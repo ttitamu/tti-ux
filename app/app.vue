@@ -97,13 +97,13 @@ watch(() => route.fullPath, () => {
                  initial file without a post-hydration flash. Both are
                  tiny, both stay in the DOM, toggling is instant. -->
             <img
-              src="/logo.png"
+              src="/logo.svg"
               alt=""
               class="w-8 h-8 logo-light-only"
               aria-hidden="true"
             />
             <img
-              src="/logo-dark.png"
+              src="/logo-dark.svg"
               alt=""
               class="w-8 h-8 logo-dark-only"
               aria-hidden="true"
