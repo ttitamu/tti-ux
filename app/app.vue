@@ -82,6 +82,13 @@ function toggleTheme() {
               Components
             </NuxtLink>
             <NuxtLink
+              to="/forms"
+              class="text-text-secondary hover:text-text-brand"
+              active-class="text-text-brand font-medium"
+            >
+              Forms
+            </NuxtLink>
+            <NuxtLink
               to="/patterns"
               class="text-text-secondary hover:text-text-brand"
               active-class="text-text-brand font-medium"

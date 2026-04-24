@@ -2,12 +2,13 @@
 useHead({ title: "tti-ux — Living style guide" });
 
 const components = [
-  { name: "TuxAlert",  to: "/components/alert",  blurb: "Docusaurus-style admonitions — 8 variants." },
-  { name: "TuxBadge",  to: "/components/badge",  blurb: "Classification tiers, scan states, tags, counts." },
-  { name: "TuxButton", to: "/components/button", blurb: "Four semantic intents incl. destructive fill-on-hover." },
-  { name: "TuxCard",   to: "/components/card",   blurb: "Static or linked — corner-drop hover choreography." },
-  { name: "TuxModal",  to: "/components/modal",  blurb: "UModal with eyebrow + gold-bar title." },
-  { name: "TuxTable",  to: "/components/table",  blurb: "UTable with aggieux chrome + auto status cells." },
+  { name: "TuxAlert",         to: "/components/alert",          blurb: "Docusaurus-style admonitions — 8 variants." },
+  { name: "TuxBadge",         to: "/components/badge",          blurb: "Classification tiers, scan states, tags, counts." },
+  { name: "TuxButton",        to: "/components/button",         blurb: "Four semantic intents incl. destructive fill-on-hover." },
+  { name: "TuxCard",          to: "/components/card",           blurb: "Static or linked — corner-drop hover choreography." },
+  { name: "TuxModal",         to: "/components/modal",          blurb: "UModal with eyebrow + gold-bar title." },
+  { name: "TuxSectionHeader", to: "/components/section-header", blurb: "Editorial ALL-CAPS heading, maroon underline." },
+  { name: "TuxTable",         to: "/components/table",          blurb: "UTable with aggieux chrome + auto status cells." },
 ];
 </script>
 
@@ -49,6 +50,14 @@ const components = [
           <p class="mt-2 text-sm text-text-secondary">
             Three durations, the 4px spacing ramp, and the aggieux corner-drop
             signature.
+          </p>
+        </TuxCard>
+        <TuxCard to="/forms">
+          <p class="eyebrow">primitives</p>
+          <h3 class="text-xl font-bold">Forms</h3>
+          <p class="mt-2 text-sm text-text-secondary">
+            Inputs, selects, radios, switches, sliders, and chip inputs — Nuxt UI
+            form primitives with TTI maroon focus rings and consistent label rhythm.
           </p>
         </TuxCard>
         <TuxCard to="/patterns">

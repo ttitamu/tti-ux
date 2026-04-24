@@ -2,12 +2,13 @@
 useHead({ title: "Components · tti-ux" });
 
 const components = [
-  { name: "TuxAlert",  to: "/components/alert",  blurb: "Docusaurus-style admonitions — 8 variants including compliance and tip.",                         uses: "UAlert" },
-  { name: "TuxBadge",  to: "/components/badge",  blurb: "Classification tiers, scan states, classifier tags, and facet counts.",                             uses: "UBadge" },
-  { name: "TuxButton", to: "/components/button", blurb: "Semantic intent prop — primary, secondary, ghost, destructive (fills on hover).",                   uses: "UButton" },
-  { name: "TuxCard",   to: "/components/card",   blurb: "Static or linked — linked mode has corner-drop hover + appearing arrow.",                           uses: "aggieux (no U-primitive)" },
-  { name: "TuxModal",  to: "/components/modal",  blurb: "UModal with editorial rhythm — optional eyebrow, gold-bar underlined title.",                       uses: "UModal" },
-  { name: "TuxTable",  to: "/components/table",  blurb: "UTable with aggieux chrome, automatic status-cell rendering via TuxBadge.",                         uses: "UTable" },
+  { name: "TuxAlert",         to: "/components/alert",          blurb: "Docusaurus-style admonitions — 8 variants including compliance and tip.",                    uses: "UAlert" },
+  { name: "TuxBadge",         to: "/components/badge",          blurb: "Classification tiers, scan states, classifier tags, and facet counts.",                        uses: "UBadge" },
+  { name: "TuxButton",        to: "/components/button",         blurb: "Semantic intent prop — primary, secondary, ghost, destructive (fills on hover).",              uses: "UButton" },
+  { name: "TuxCard",          to: "/components/card",           blurb: "Static or linked — linked mode has corner-drop hover + appearing arrow.",                      uses: "aggieux (no U-primitive)" },
+  { name: "TuxModal",         to: "/components/modal",          blurb: "UModal with editorial rhythm — optional eyebrow, gold-bar underlined title.",                  uses: "UModal" },
+  { name: "TuxSectionHeader", to: "/components/section-header", blurb: "Editorial section heading — ALL-CAPS, tracked-out, maroon underline.",                         uses: "aggieux (no U-primitive)" },
+  { name: "TuxTable",         to: "/components/table",          blurb: "UTable with aggieux chrome, automatic status-cell rendering via TuxBadge.",                    uses: "UTable" },
 ];
 </script>
 
