@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  tti-ux mark — maroon tuxedo on black square, for light/standard themes.
+  tti-ux mark — white tuxedo on black square, for dark theme.
   Traced from the Copilot-generated reference on 2026-04-24. If this trace
   is off, drop the original SVG here and it'll pick up automatically.
 -->
@@ -12,26 +12,21 @@
 >
   <title>tti-ux</title>
 
-  <!-- Black square background -->
+  <!-- Black square background — same frame as the light-mode mark so the
+       header chip keeps the same footprint; only the tux graphic flips. -->
   <rect width="64" height="64" fill="#000000"/>
 
-  <g fill="#5C0025">
-    <!-- Bow tie: two splayed triangular wings + a slim center knot.
-         The tiny inner notch on each wing is the classic bow-tie pinch. -->
+  <g fill="#FFFFFF">
     <path d="M 20 18 L 30 15 L 30 22 L 20 21 L 22 19.5 L 20 18 Z"/>
     <path d="M 44 18 L 34 15 L 34 22 L 44 21 L 42 19.5 L 44 18 Z"/>
     <rect x="30" y="15" width="4" height="8" rx="0.4"/>
 
-    <!-- Left lapel: sharp V sweeping from collar to deep point near
-         the bottom-center, with a notch at the shoulder. -->
     <path d="M 13 27 L 30 23 L 32 56 L 22 42 Z"/>
     <path d="M 17 24 L 22 27 L 19 27 Z"/>
 
-    <!-- Right lapel: mirror of the left. -->
     <path d="M 51 27 L 34 23 L 32 56 L 42 42 Z"/>
     <path d="M 47 24 L 42 27 L 45 27 Z"/>
 
-    <!-- Three shirt buttons. -->
     <circle cx="32" cy="34" r="1.4"/>
     <circle cx="32" cy="40" r="1.4"/>
     <circle cx="32" cy="46" r="1.4"/>

@@ -192,3 +192,14 @@
   border-bottom-color: var(--brand-primary);
   color: var(--brand-primary);
 }
+
+/* ------------------------------------------------------------
+   Theme-aware logo swap — renders the maroon tuxedo on tti / tti-hc,
+   the white tuxedo on tti-dark. Both images live in the DOM so the
+   toggle is instant; the hidden one is just display: none.
+   ------------------------------------------------------------ */
+.logo-light-only { display: inline-block; }
+.logo-dark-only  { display: none; }
+
+[data-theme="tti-dark"] .logo-light-only { display: none; }
+[data-theme="tti-dark"] .logo-dark-only  { display: inline-block; }
