@@ -10,6 +10,7 @@
     "generate": "nuxt generate",
     "postinstall": "nuxt prepare",
     "sync:aggieux": "node scripts/sync-aggieux.mjs",
+    "sync:aggieux-icons": "node scripts/sync-aggieux-icons.mjs",
     "gen:lucide-names": "node scripts/gen-lucide-names.mjs"
   },
   "dependencies": {

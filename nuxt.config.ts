@@ -26,10 +26,21 @@ export default defineNuxtConfig({
   // Tux* wrappers).
   css: ["~/assets/css/tokens.css", "~/assets/css/globals.css", "~/assets/css/aggieux.css"],
 
+  // @nuxt/fonts auto-detects which of these are actually referenced in
+  // source (font-family declarations in CSS / Vue files) and only fetches
+  // the ones it sees. So adding the full AggieUX stack here doesn't bloat
+  // the bundle — it makes them available when a component reaches for
+  // AggieUX parity. Default stack is still Public Sans + JetBrains Mono.
   fonts: {
     families: [
       { name: "Public Sans", weights: [400, 500, 600, 700], provider: "google" },
       { name: "JetBrains Mono", weights: [400, 500], provider: "google" },
+      // AggieUX parity — load on demand when a component opts in.
+      { name: "Open Sans", weights: [300, 400, 500, 600, 700, 800], provider: "google" },
+      { name: "Oswald", weights: [200, 300, 400, 500, 600, 700], provider: "google" },
+      { name: "Work Sans", weights: [100, 200, 300, 400, 500, 600, 700, 800, 900], provider: "google" },
+      // Georgia is a system font — no fetch needed, listed so the intent is
+      // explicit for designers reading the config.
     ],
   },
 
