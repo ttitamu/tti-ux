@@ -4,6 +4,7 @@ useHead({ title: "tti-ux — Living style guide" });
 const components = [
   { name: "TuxAlert",  to: "/components/alert",  blurb: "Docusaurus-style admonitions — 8 variants." },
   { name: "TuxBadge",  to: "/components/badge",  blurb: "Classification tiers, scan states, tags, counts." },
+  { name: "TuxButton", to: "/components/button", blurb: "Four semantic intents incl. destructive fill-on-hover." },
   { name: "TuxCard",   to: "/components/card",   blurb: "Static or linked — corner-drop hover choreography." },
   { name: "TuxModal",  to: "/components/modal",  blurb: "UModal with eyebrow + gold-bar title." },
   { name: "TuxTable",  to: "/components/table",  blurb: "UTable with aggieux chrome + auto status cells." },
@@ -30,8 +31,8 @@ const components = [
           <p class="eyebrow">foundations</p>
           <h3 class="text-xl font-bold">Tokens</h3>
           <p class="mt-2 text-sm text-text-secondary">
-            Brand colors, surfaces, text roles, shadows, radii — every CSS variable the
-            system exposes, visible at a glance.
+            Brand colors, surfaces, text roles, shadows, radii — every CSS variable
+            the system exposes, visible at a glance.
           </p>
         </TuxCard>
         <TuxCard to="/typography">
@@ -40,6 +41,22 @@ const components = [
           <p class="mt-2 text-sm text-text-secondary">
             Public Sans + JetBrains Mono. The <code>heading--bold</code>,
             <code>heading--display</code>, and eyebrow utilities in context.
+          </p>
+        </TuxCard>
+        <TuxCard to="/motion">
+          <p class="eyebrow">foundations</p>
+          <h3 class="text-xl font-bold">Motion &amp; spacing</h3>
+          <p class="mt-2 text-sm text-text-secondary">
+            Three durations, the 4px spacing ramp, and the aggieux corner-drop
+            signature.
+          </p>
+        </TuxCard>
+        <TuxCard to="/patterns">
+          <p class="eyebrow">beyond components</p>
+          <h3 class="text-xl font-bold">Patterns</h3>
+          <p class="mt-2 text-sm text-text-secondary">
+            Empty states, loading skeletons, confirmation flows, admonition stacks —
+            conventions for the decisions components don't answer.
           </p>
         </TuxCard>
       </div>

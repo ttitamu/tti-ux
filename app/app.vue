@@ -5,12 +5,24 @@
 
 const colorMode = useColorMode();
 
-const themeToggleIcon = computed(() =>
-  colorMode.preference === "tti-hc" ? "lucide:sun" : "lucide:contrast"
-);
+// Three-way cycle: tti → tti-dark → tti-hc → tti.
+// Icon shows what you'll GET on click (the next state), which matches how
+// OS theme toggles tend to read (the sun icon means "click for light mode").
+const themeToggleIcon = computed(() => {
+  if (colorMode.preference === "tti") return "lucide:moon";         // → dark
+  if (colorMode.preference === "tti-dark") return "lucide:contrast"; // → high-contrast
+  return "lucide:sun";                                                // → light
+});
+
+const themeToggleLabel = computed(() => {
+  if (colorMode.preference === "tti") return "Switch to dark theme";
+  if (colorMode.preference === "tti-dark") return "Switch to high-contrast theme";
+  return "Switch to standard theme";
+});
 
 function toggleTheme() {
-  colorMode.preference = colorMode.preference === "tti-hc" ? "tti" : "tti-hc";
+  const next = { tti: "tti-dark", "tti-dark": "tti-hc", "tti-hc": "tti" } as const;
+  colorMode.preference = next[colorMode.preference as keyof typeof next] ?? "tti";
 }
 </script>
 
@@ -56,11 +68,25 @@ function toggleTheme() {
               Typography
             </NuxtLink>
             <NuxtLink
+              to="/motion"
+              class="text-text-secondary hover:text-text-brand"
+              active-class="text-text-brand font-medium"
+            >
+              Motion
+            </NuxtLink>
+            <NuxtLink
               to="/components"
               class="text-text-secondary hover:text-text-brand"
               active-class="text-text-brand font-medium"
             >
               Components
+            </NuxtLink>
+            <NuxtLink
+              to="/patterns"
+              class="text-text-secondary hover:text-text-brand"
+              active-class="text-text-brand font-medium"
+            >
+              Patterns
             </NuxtLink>
           </nav>
 
@@ -71,7 +97,7 @@ function toggleTheme() {
                 color="neutral"
                 variant="ghost"
                 size="sm"
-                :aria-label="colorMode.preference === 'tti-hc' ? 'Switch to standard theme' : 'Switch to high-contrast theme'"
+                :aria-label="themeToggleLabel"
                 @click="toggleTheme"
               />
               <template #fallback>

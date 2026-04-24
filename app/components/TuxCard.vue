@@ -29,17 +29,17 @@ const isLinked = computed(() => !!props.to);
 </script>
 
 <template>
-  <component
-    :is="isLinked ? resolveComponent('NuxtLink') : 'div'"
+  <NuxtLink
+    v-if="isLinked"
     :to="to"
-    :class="[
-      isLinked ? 'card-linked no-underline block' : 'card-static',
-      padded && 'p-6',
-    ]"
+    :class="['card-linked no-underline block', padded && 'p-6']"
   >
-    <span v-if="isLinked" class="card-linked__arrow" aria-hidden="true">
+    <span class="card-linked__arrow" aria-hidden="true">
       <UIcon name="lucide:arrow-up-right" class="w-7 h-7" />
     </span>
     <slot />
-  </component>
+  </NuxtLink>
+  <div v-else :class="['card-static', padded && 'p-6']">
+    <slot />
+  </div>
 </template>

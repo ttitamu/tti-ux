@@ -103,6 +103,39 @@
   --color-maroon-950: #150008;
 }
 
+/* Dark variant — warm charcoal surfaces, lightened maroon so the brand
+   stays visible on dark ground. Gold accent is unchanged; gold's job here is
+   emphasis, not legibility. `color-scheme: dark` tells the browser to darken
+   form inputs + scrollbars automatically. */
+[data-theme="tti-dark"] {
+  color-scheme: dark;
+
+  --brand-primary:      #b14a6c;
+  --brand-primary-deep: #db859e;
+  --brand-accent:       var(--tti-gold);
+  --brand-accent-deep:  #F0C362;
+  --brand-secondary:    #5d9cd9;
+
+  --surface-page:   #15100F;
+  --surface-raised: #221F1F;
+  --surface-sunken: #0B0908;
+  --surface-border: #3D3A3A;
+
+  --text-primary:   #FAFAFA;
+  --text-secondary: #D1D2D4;
+  --text-muted:     #A5A5A5;
+  --text-inverse:   #221F1F;
+  --text-brand:     #db859e;
+
+  --color-success: #7FA05F;
+  --color-warning: #F0C362;
+  --color-danger:  #b14a6c;
+  --color-error:   #F07070;
+  --color-info:    #6BABB5;
+
+  --shadow-focus: 0 0 0 3px rgba(219, 133, 158, 0.45);
+}
+
 /* High-contrast variant — WCAG AAA; drawn from the TTI 508-accessible PPTX. */
 [data-theme="tti-hc"] {
   --brand-primary:      #500000;

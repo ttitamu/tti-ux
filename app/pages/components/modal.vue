@@ -21,7 +21,7 @@ const confirm = ref(false);
       <p class="eyebrow">basic</p>
       <h2 class="heading--bold text-xl font-bold">Title + eyebrow</h2>
       <div class="mt-4">
-        <UButton color="primary" @click="basic = true">Open basic modal</UButton>
+        <TuxButton intent="primary" @click="basic = true">Open basic modal</TuxButton>
         <TuxModal v-model:open="basic" eyebrow="action" title="Trigger new scan">
           <p class="text-text-secondary leading-relaxed">
             A basic modal with an eyebrow label above the title. The gold bar under
@@ -36,9 +36,9 @@ const confirm = ref(false);
       <p class="eyebrow">with footer</p>
       <h2 class="heading--bold text-xl font-bold">Confirm pattern</h2>
       <div class="mt-4">
-        <UButton variant="outline" color="error" class="btn-fill-on-hover" @click="confirm = true">
+        <TuxButton intent="destructive" icon="lucide:trash-2" @click="confirm = true">
           Delete index…
-        </UButton>
+        </TuxButton>
         <TuxModal v-model:open="confirm" eyebrow="destructive action" title="Delete index?">
           <p class="text-text-secondary leading-relaxed">
             This will remove the OpenSearch index and its 12,402 documents. The
@@ -46,8 +46,8 @@ const confirm = ref(false);
           </p>
           <template #footer>
             <div class="flex justify-end gap-2 w-full">
-              <UButton variant="ghost" color="neutral" @click="confirm = false">Cancel</UButton>
-              <UButton color="error" @click="confirm = false">Delete</UButton>
+              <TuxButton intent="ghost" @click="confirm = false">Cancel</TuxButton>
+              <TuxButton intent="destructive" @click="confirm = false">Delete</TuxButton>
             </div>
           </template>
         </TuxModal>
