@@ -1,17 +1,15 @@
 <script setup lang="ts">
-// Root shell for the style-guide app. Header with logo + theme toggle;
-// sidebar nav + content live in layouts/default.vue (auto-applied via
-// <NuxtLayout> passthrough).
+// Style-guide shell: minimal header (logo + theme toggle) and a grouped
+// sidebar that does all the navigation. Main content fills the rest.
 
 const colorMode = useColorMode();
 
-// Three-way cycle: tti → tti-dark → tti-hc → tti.
-// Icon shows what you'll GET on click (the next state), which matches how
-// OS theme toggles tend to read (the sun icon means "click for light mode").
+// Three-way cycle: tti → tti-dark → tti-hc → tti. The icon shows the state
+// you'll get on click (sun icon means "click for light").
 const themeToggleIcon = computed(() => {
-  if (colorMode.preference === "tti") return "lucide:moon";         // → dark
-  if (colorMode.preference === "tti-dark") return "lucide:contrast"; // → high-contrast
-  return "lucide:sun";                                                // → light
+  if (colorMode.preference === "tti") return "lucide:moon";
+  if (colorMode.preference === "tti-dark") return "lucide:contrast";
+  return "lucide:sun";
 });
 
 const themeToggleLabel = computed(() => {
@@ -24,111 +22,156 @@ function toggleTheme() {
   const next = { tti: "tti-dark", "tti-dark": "tti-hc", "tti-hc": "tti" } as const;
   colorMode.preference = next[colorMode.preference as keyof typeof next] ?? "tti";
 }
+
+// Sidebar nav — grouped by role so newcomers orient by "what are you looking
+// for?" rather than alphabetical. Icons are Lucide; mostly mnemonic.
+const nav = [
+  {
+    group: "Foundations",
+    items: [
+      { label: "Tokens",     to: "/tokens",     icon: "lucide:palette" },
+      { label: "Typography", to: "/typography", icon: "lucide:type" },
+      { label: "Motion",     to: "/motion",     icon: "lucide:zap" },
+    ],
+  },
+  {
+    group: "Components",
+    items: [
+      { label: "TuxAlert",         to: "/components/alert",          icon: "lucide:message-square" },
+      { label: "TuxBadge",         to: "/components/badge",          icon: "lucide:badge" },
+      { label: "TuxButton",        to: "/components/button",         icon: "lucide:rectangle-horizontal" },
+      { label: "TuxCard",          to: "/components/card",           icon: "lucide:square-stack" },
+      { label: "TuxModal",         to: "/components/modal",          icon: "lucide:panel-top-open" },
+      { label: "TuxSectionHeader", to: "/components/section-header", icon: "lucide:heading" },
+      { label: "TuxTable",         to: "/components/table",          icon: "lucide:table" },
+    ],
+  },
+  {
+    group: "Composition",
+    items: [
+      { label: "Forms",    to: "/forms",    icon: "lucide:clipboard-list" },
+      { label: "Patterns", to: "/patterns", icon: "lucide:layers" },
+    ],
+  },
+];
+
+// Mobile sidebar toggle — below md, sidebar slides in from the left.
+const sidebarOpen = ref(false);
+const route = useRoute();
+watch(() => route.fullPath, () => {
+  sidebarOpen.value = false;
+});
 </script>
 
 <template>
-  <!-- UApp hosts the portal containers for <UModal>, <UToast>, tooltips. -->
   <UApp>
     <div class="min-h-screen flex flex-col bg-surface-page text-text-primary">
       <header
-        class="border-b border-surface-border bg-surface-raised"
+        class="border-b border-surface-border bg-surface-raised sticky top-0 z-20"
         role="banner"
       >
-        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center gap-6">
-          <div class="flex-1 flex items-center">
-            <NuxtLink to="/" class="flex items-center gap-3 no-underline">
-              <img src="/logo.svg" alt="" class="w-9 h-9" aria-hidden="true" />
-              <div>
-                <div class="font-semibold tracking-tight leading-none text-text-primary">
-                  tti-ux
-                </div>
-                <div
-                  class="text-xs uppercase text-text-muted mt-0.5"
-                  style="letter-spacing: var(--tracking-wider)"
-                >
-                  TTI Design System
-                </div>
+        <div class="px-4 sm:px-6 py-3 flex items-center gap-4">
+          <UButton
+            icon="lucide:menu"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            class="md:hidden"
+            aria-label="Open navigation"
+            @click="sidebarOpen = !sidebarOpen"
+          />
+
+          <NuxtLink to="/" class="flex items-center gap-3 no-underline">
+            <img src="/logo.svg" alt="" class="w-8 h-8" aria-hidden="true" />
+            <div>
+              <div class="font-semibold tracking-tight leading-none text-text-primary">
+                tti-ux
               </div>
-            </NuxtLink>
-          </div>
+              <div
+                class="text-xs uppercase text-text-muted mt-0.5 hidden sm:block"
+                style="letter-spacing: var(--tracking-wider)"
+              >
+                TTI Design System
+              </div>
+            </div>
+          </NuxtLink>
 
-          <nav class="flex items-center gap-6 text-sm">
-            <NuxtLink
-              to="/tokens"
-              class="text-text-secondary hover:text-text-brand"
-              active-class="text-text-brand font-medium"
-            >
-              Tokens
-            </NuxtLink>
-            <NuxtLink
-              to="/typography"
-              class="text-text-secondary hover:text-text-brand"
-              active-class="text-text-brand font-medium"
-            >
-              Typography
-            </NuxtLink>
-            <NuxtLink
-              to="/motion"
-              class="text-text-secondary hover:text-text-brand"
-              active-class="text-text-brand font-medium"
-            >
-              Motion
-            </NuxtLink>
-            <NuxtLink
-              to="/components"
-              class="text-text-secondary hover:text-text-brand"
-              active-class="text-text-brand font-medium"
-            >
-              Components
-            </NuxtLink>
-            <NuxtLink
-              to="/forms"
-              class="text-text-secondary hover:text-text-brand"
-              active-class="text-text-brand font-medium"
-            >
-              Forms
-            </NuxtLink>
-            <NuxtLink
-              to="/patterns"
-              class="text-text-secondary hover:text-text-brand"
-              active-class="text-text-brand font-medium"
-            >
-              Patterns
-            </NuxtLink>
-          </nav>
+          <div class="flex-1" />
 
-          <div class="flex-1 flex items-center justify-end gap-3">
-            <ClientOnly>
-              <UButton
-                :icon="themeToggleIcon"
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                :aria-label="themeToggleLabel"
-                @click="toggleTheme"
-              />
-              <template #fallback>
-                <div class="w-8 h-8" />
-              </template>
-            </ClientOnly>
-          </div>
+          <ClientOnly>
+            <UButton
+              :icon="themeToggleIcon"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              :aria-label="themeToggleLabel"
+              @click="toggleTheme"
+            />
+            <template #fallback>
+              <div class="w-8 h-8" />
+            </template>
+          </ClientOnly>
         </div>
       </header>
 
-      <main class="flex-1">
-        <div class="max-w-7xl mx-auto px-6 py-8">
-          <NuxtLayout>
-            <NuxtPage />
-          </NuxtLayout>
-        </div>
-      </main>
-
-      <footer class="border-t border-surface-border bg-surface-sunken mt-16">
+      <div class="flex flex-1 min-h-0">
+        <!-- Sidebar backdrop (mobile only) -->
         <div
-          class="max-w-7xl mx-auto px-6 py-4 text-xs text-text-muted flex items-center justify-between"
+          v-if="sidebarOpen"
+          class="fixed inset-0 z-10 bg-black/40 md:hidden"
+          aria-hidden="true"
+          @click="sidebarOpen = false"
+        />
+
+        <aside
+          :class="[
+            'border-r border-surface-border bg-surface-raised flex-shrink-0 w-60',
+            'md:static md:translate-x-0',
+            'fixed inset-y-0 left-0 top-[57px] z-20 transition-transform duration-200',
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+          ]"
+          role="navigation"
+          aria-label="Main navigation"
+        >
+          <nav class="p-4 space-y-6 overflow-y-auto h-full">
+            <div v-for="section in nav" :key="section.group">
+              <h2
+                class="text-xs font-semibold uppercase text-text-muted mb-2 px-2"
+                style="letter-spacing: var(--tracking-wider)"
+              >
+                {{ section.group }}
+              </h2>
+              <ul class="space-y-0.5">
+                <li v-for="item in section.items" :key="item.to">
+                  <NuxtLink
+                    :to="item.to"
+                    class="flex items-center gap-2 px-2 py-1.5 rounded-sm text-sm text-text-secondary hover:bg-surface-sunken hover:text-text-brand transition-colors"
+                    active-class="bg-surface-sunken text-text-brand font-medium"
+                  >
+                    <UIcon :name="item.icon" class="w-4 h-4 opacity-70" />
+                    <span>{{ item.label }}</span>
+                  </NuxtLink>
+                </li>
+              </ul>
+            </div>
+          </nav>
+        </aside>
+
+        <main class="flex-1 min-w-0">
+          <div class="max-w-5xl mx-auto px-6 md:px-10 py-8">
+            <NuxtLayout>
+              <NuxtPage />
+            </NuxtLayout>
+          </div>
+        </main>
+      </div>
+
+      <footer class="border-t border-surface-border bg-surface-sunken">
+        <div
+          class="px-6 py-3 text-xs text-text-muted flex flex-col md:flex-row items-start md:items-center md:justify-between gap-1"
         >
           <div>tti-ux &middot; living style guide &middot; Apache 2.0</div>
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-3">
             <span>Texas A&amp;M Transportation Institute</span>
             <span class="text-text-muted/50">&bull;</span>
             <span>Networking &amp; Information Services</span>

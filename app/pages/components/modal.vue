@@ -3,6 +3,26 @@ useHead({ title: "TuxModal · tti-ux" });
 
 const basic = ref(false);
 const confirm = ref(false);
+
+const basicVue = `<tux-button intent="primary" @click="open = true">Open basic modal</tux-button>
+<tux-modal v-model:open="open" eyebrow="action" title="Trigger new scan">
+  <p>A basic modal with an eyebrow label above the title. The gold bar under
+     the title is the aggieux signature.</p>
+</tux-modal>`;
+
+const confirmVue = `<tux-button intent="destructive" icon="lucide:trash-2" @click="open = true">
+  Delete index…
+</tux-button>
+<tux-modal v-model:open="open" eyebrow="destructive action" title="Delete index?">
+  <p>This will remove the OpenSearch index and its 12,402 documents.
+     The underlying files are untouched — you can re-index anytime.</p>
+  <template #footer>
+    <div class="flex justify-end gap-2 w-full">
+      <tux-button intent="ghost" @click="open = false">Cancel</tux-button>
+      <tux-button intent="destructive" @click="open = false">Delete</tux-button>
+    </div>
+  </template>
+</tux-modal>`;
 </script>
 
 <template>
@@ -15,12 +35,17 @@ const confirm = ref(false);
         <code>heading--bold</code> utility) and an optional <code>eyebrow</code> for
         editorial rhythm. Body goes in the default slot; footer in <code>#footer</code>.
       </p>
+      <p class="mt-2 max-w-2xl text-sm text-text-muted">
+        Note: the HTML tab on this page captures the trigger button, not the modal
+        itself — when closed, the modal doesn't exist in the DOM. Open it and
+        inspect via browser devtools to see the full structure.
+      </p>
     </section>
 
     <section>
       <p class="eyebrow">basic</p>
       <h2 class="heading--bold text-xl font-bold">Title + eyebrow</h2>
-      <div class="mt-4">
+      <TuxExample class="mt-4" :vue="basicVue">
         <TuxButton intent="primary" @click="basic = true">Open basic modal</TuxButton>
         <TuxModal v-model:open="basic" eyebrow="action" title="Trigger new scan">
           <p class="text-text-secondary leading-relaxed">
@@ -29,13 +54,13 @@ const confirm = ref(false);
             section headings.
           </p>
         </TuxModal>
-      </div>
+      </TuxExample>
     </section>
 
     <section>
       <p class="eyebrow">with footer</p>
       <h2 class="heading--bold text-xl font-bold">Confirm pattern</h2>
-      <div class="mt-4">
+      <TuxExample class="mt-4" :vue="confirmVue">
         <TuxButton intent="destructive" icon="lucide:trash-2" @click="confirm = true">
           Delete index…
         </TuxButton>
@@ -51,18 +76,7 @@ const confirm = ref(false);
             </div>
           </template>
         </TuxModal>
-      </div>
-    </section>
-
-    <section>
-      <p class="eyebrow">usage</p>
-      <h2 class="heading--bold text-xl font-bold">Source</h2>
-      <pre class="mt-3 p-4 rounded-md bg-surface-sunken text-xs font-mono overflow-auto border border-surface-border"><code>&lt;tux-modal v-model:open="open" eyebrow="action" title="Trigger new scan"&gt;
-  &lt;p&gt;Body content…&lt;/p&gt;
-  &lt;template #footer&gt;
-    &lt;UButton color="primary"&gt;Confirm&lt;/UButton&gt;
-  &lt;/template&gt;
-&lt;/tux-modal&gt;</code></pre>
+      </TuxExample>
     </section>
   </div>
 </template>

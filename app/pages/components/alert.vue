@@ -11,6 +11,27 @@ const variants = [
   "danger",
   "compliance",
 ] as const;
+
+const galleryVue = `<!-- renders all 8 variants with the same props shape -->
+<tux-alert
+  v-for="v in variants"
+  :key="v"
+  :variant="v"
+  :title="v"
+  :description="\`This is a \${v} admonition.\`"
+/>`;
+
+const compactVue = `<tux-alert
+  variant="tip"
+  title="Use \`heading--bold\` for section titles, not page chrome."
+/>`;
+
+const iconVue = `<tux-alert
+  variant="info"
+  icon="lucide:database"
+  title="Index scaffolded"
+  description="Pass any Lucide icon name via \`icon\` to override the variant default."
+/>`;
 </script>
 
 <template>
@@ -29,15 +50,17 @@ const variants = [
     <section>
       <p class="eyebrow">all variants</p>
       <h2 class="heading--bold text-xl font-bold">Gallery</h2>
-      <div class="mt-4 space-y-3">
-        <TuxAlert
-          v-for="v in variants"
-          :key="v"
-          :variant="v"
-          :title="v.charAt(0).toUpperCase() + v.slice(1)"
-          :description="`This is a ${v} admonition. Left bar picks up the variant's color family.`"
-        />
-      </div>
+      <TuxExample class="mt-4" title="All 8 variants" :vue="galleryVue">
+        <div class="space-y-3">
+          <TuxAlert
+            v-for="v in variants"
+            :key="v"
+            :variant="v"
+            :title="v.charAt(0).toUpperCase() + v.slice(1)"
+            :description="`This is a ${v} admonition. Left bar picks up the variant's color family.`"
+          />
+        </div>
+      </TuxExample>
     </section>
 
     <section>
@@ -47,28 +70,22 @@ const variants = [
         Omit <code>description</code> for a single-line admonition — good for
         inline heads-up messages in table cells or form fields.
       </p>
-      <TuxAlert variant="tip" title="Use `heading--bold` for section titles, not page chrome." />
+      <TuxExample :vue="compactVue">
+        <TuxAlert variant="tip" title="Use `heading--bold` for section titles, not page chrome." />
+      </TuxExample>
     </section>
 
     <section>
       <p class="eyebrow">custom icon</p>
       <h2 class="heading--bold text-xl font-bold">Override icon</h2>
-      <TuxAlert
-        variant="info"
-        icon="lucide:database"
-        title="Index scaffolded"
-        description="Pass any Lucide icon name via `icon` to override the variant default."
-      />
-    </section>
-
-    <section>
-      <p class="eyebrow">usage</p>
-      <h2 class="heading--bold text-xl font-bold">Source</h2>
-      <pre class="mt-3 p-4 rounded-md bg-surface-sunken text-xs font-mono overflow-auto border border-surface-border"><code>&lt;tux-alert
-  variant="compliance"
-  title="Export controlled"
-  description="ITAR-designated records. Do not share outside TAMUS."
-/&gt;</code></pre>
+      <TuxExample :vue="iconVue">
+        <TuxAlert
+          variant="info"
+          icon="lucide:database"
+          title="Index scaffolded"
+          description="Pass any Lucide icon name via `icon` to override the variant default."
+        />
+      </TuxExample>
     </section>
   </div>
 </template>
