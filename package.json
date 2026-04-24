@@ -8,7 +8,9 @@
     "preview": "nuxt preview",
     "typecheck": "nuxt typecheck",
     "generate": "nuxt generate",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "sync:aggieux": "node scripts/sync-aggieux.mjs",
+    "gen:lucide-names": "node scripts/gen-lucide-names.mjs"
   },
   "dependencies": {
     "@nuxt/a11y": "^1.0.0-alpha.1",
