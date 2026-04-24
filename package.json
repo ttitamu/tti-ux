@@ -1,0 +1,36 @@
+{
+  "name": "tti-ux",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev --host 0.0.0.0 --port 3030",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "typecheck": "nuxt typecheck",
+    "generate": "nuxt generate",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxt/a11y": "^1.0.0-alpha.1",
+    "@nuxt/eslint": "^1.15.2",
+    "@nuxt/fonts": "^0.14.0",
+    "@nuxt/icon": "^2.0.0",
+    "@nuxt/image": "^2.0.0",
+    "@nuxt/ui": "^4.6.1",
+    "@nuxtjs/color-mode": "^4.0.0",
+    "@vueuse/core": "^12.0.0",
+    "@vueuse/nuxt": "^12.0.0",
+    "nuxt": "^4.4.2",
+    "vue": "^3.5.32",
+    "vue-router": "^5.0.0"
+  },
+  "devDependencies": {
+    "@iconify-json/lucide": "^1.2.102",
+    "@nuxt/devtools": "^2.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@tanstack/vue-table": "^8.20.0",
+    "@tanstack/vue-virtual": "^3.13.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0"
+  }
+}

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  tti-ux placeholder logo — stylized tuxedo in TTI brand colors.
+  Maroon jacket (#5C0025), gold bow tie (#DDAC37), white shirt front.
+  Replace with a polished mark when the design lands.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="tti-ux">
+  <title>tti-ux</title>
+  <!-- Rounded black/charcoal frame so the mark reads on any background -->
+  <rect width="64" height="64" rx="10" fill="#221F1F"/>
+
+  <!-- Tuxedo jacket: maroon lapels meeting in a V, open to show white shirt -->
+  <!-- Left lapel -->
+  <path d="M10 52 L10 22 L32 40 Z" fill="#5C0025"/>
+  <!-- Right lapel -->
+  <path d="M54 52 L54 22 L32 40 Z" fill="#5C0025"/>
+
+  <!-- White shirt front — triangular opening between lapels -->
+  <path d="M24 52 L32 40 L40 52 Z" fill="#FFFFFF"/>
+
+  <!-- Gold bow tie -->
+  <path d="M26 36 L32 40 L26 44 Z" fill="#DDAC37"/>
+  <path d="M38 36 L32 40 L38 44 Z" fill="#DDAC37"/>
+  <rect x="30" y="38" width="4" height="4" rx="0.8" fill="#DDAC37"/>
+
+  <!-- Collar notch — subtle gold thread accent at the top of the lapel V -->
+  <circle cx="32" cy="40" r="1.2" fill="#DDAC37"/>
+</svg>

@@ -1,0 +1,194 @@
+/*
+ * aggieux.css — Tux* utility layer on top of Nuxt UI.
+ *
+ * TTI visual language layered onto Nuxt UI primitives. The Tux* components
+ * reach into these class hooks for the parts Nuxt UI's :ui slot overrides
+ * can't express cleanly (left-bar on alerts, card hover choreography, etc.).
+ *
+ * What lives here:
+ *   - heading--display         — editorial uppercase heading with gold bar
+ *   - card-static / card-linked — used by TuxCard
+ *   - TuxAlert text overrides (warning darkening, tip softening)
+ *   - TuxBadge class hooks (warning text darkening)
+ *   - tux-table                 — card frame around UTable
+ *   - btn-fill-on-hover         — destructive button hover fill
+ *   - link-tti                  — inline text link in TTI navy
+ *   - tooltip-trigger           — dotted-underline affordance on hoverable text
+ */
+
+/* ------------------------------------------------------------
+   Headings — heading--bold + eyebrow/subhead live in globals.css.
+   heading--display is the editorial-maximalist variant (italic +
+   uppercase + extrabold + gold bar) — used sparingly for landing copy.
+   ------------------------------------------------------------ */
+.heading--display {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.heading--display::after {
+  content: "";
+  display: block;
+  width: 100px;
+  height: 8px;
+  background: var(--brand-accent);
+  margin-top: 0.5rem;
+}
+
+/* ------------------------------------------------------------
+   Cards — used by TuxCard. Ported from Aggie UX cards.css.
+   ------------------------------------------------------------ */
+.card-static,
+.card-linked {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  border: 2px solid var(--brand-primary);
+  border-radius: var(--radius-lg);
+}
+
+.card-linked {
+  position: relative;
+  text-decoration: none;
+  box-shadow: 0 0 0 0 rgba(92, 0, 37, 0);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.35s ease-out,
+    background 0.25s ease-out;
+}
+
+.card-linked:hover,
+.card-linked:focus-visible {
+  transform: translate(6px, -6px);
+  box-shadow: -6px 6px 0 0 var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 3%, var(--surface-raised));
+  outline: none;
+}
+
+.card-linked__arrow {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  color: var(--brand-primary);
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(4px, -4px);
+  transition:
+    opacity 0.2s ease-out,
+    transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1.2);
+}
+
+.card-linked:hover .card-linked__arrow,
+.card-linked:focus-visible .card-linked__arrow {
+  opacity: 1;
+  transform: translate(0, 0);
+}
+
+/* ------------------------------------------------------------
+   TuxTable frame — rounded card border around a UTable so it reads as
+   a single chunked list, not a raw HTML table on the page.
+   ------------------------------------------------------------ */
+.tux-table {
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+.tux-table table {
+  margin: 0;
+}
+
+/* ------------------------------------------------------------
+   Warning-color text override — Nuxt UI's subtle/soft variants use
+   amber-500ish text on amber-50 bg, under-contrasted. Pulled to amber-800
+   across any component that opts in by adding one of these hooks.
+   ------------------------------------------------------------ */
+.tux-alert--warning,
+.tux-alert--warning *,
+.tux-badge--warning,
+.tux-badge--warning *,
+.tux-warning-dark,
+.tux-warning-dark * {
+  color: #6a3e00;
+}
+
+.tux-alert--warning [class*="description"] {
+  opacity: 0.95;
+}
+
+/* Tip alert — UAlert's tip-50 is slightly too saturated. Soften the
+   background so tips read as gentle lavender alongside the other subtle
+   alerts. */
+.tux-alert--tip {
+  background-color: color-mix(in srgb, #8b5cf6 4%, var(--surface-raised)) !important;
+}
+
+/* ------------------------------------------------------------
+   btn-fill-on-hover — apply to a destructive UButton (variant="outline"
+   color="error") to make its hover state fill solid red with white text.
+   Hardcoded to error because `currentColor` fought Nuxt UI's own
+   hover-text-color changes.
+   ------------------------------------------------------------ */
+.btn-fill-on-hover:hover,
+.btn-fill-on-hover:focus-visible {
+  background-color: var(--color-error) !important;
+  border-color: var(--color-error) !important;
+  color: var(--text-inverse) !important;
+}
+
+.btn-fill-on-hover:hover *,
+.btn-fill-on-hover:focus-visible * {
+  color: var(--text-inverse) !important;
+}
+
+/* ------------------------------------------------------------
+   link-tti — inline text-link affordance. ULink defaults to text-color,
+   which blends into body copy. Pull to TTI navy with a subtle underline
+   so readers can spot links at a glance.
+   ------------------------------------------------------------ */
+.link-tti {
+  color: var(--brand-secondary) !important;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--brand-secondary) 40%, transparent);
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.link-tti:hover,
+.link-tti:focus-visible {
+  color: color-mix(in srgb, var(--brand-secondary) 80%, black) !important;
+  text-decoration-color: currentColor;
+}
+
+/* ------------------------------------------------------------
+   UTabs hover — Nuxt UI's default is focus-ring only, no hover highlight
+   on inactive tabs. Adds a subtle brand wash so tabs read as hoverable.
+   ------------------------------------------------------------ */
+[role="tab"]:not([data-state="active"]):hover {
+  background-color: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  transition: background-color 0.15s ease;
+}
+
+/* ------------------------------------------------------------
+   tooltip-trigger — dotted-underline affordance for inline text that
+   reveals a tooltip on hover. Use on spans inside a <UTooltip> trigger.
+   ------------------------------------------------------------ */
+.tooltip-trigger {
+  border-bottom: 1px dashed var(--text-muted);
+  cursor: help;
+}
+
+.tooltip-trigger:hover {
+  border-bottom-color: var(--brand-primary);
+  color: var(--brand-primary);
+}

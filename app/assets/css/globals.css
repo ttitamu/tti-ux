@@ -1,0 +1,107 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/*
+ * Maroon palette lives in tokens.css as plain :root vars (not @theme),
+ * because Tailwind v4 tree-shakes @theme entries that aren't referenced
+ * in source CSS/templates. Nuxt UI references them via its pre-compiled
+ * CSS which Tailwind doesn't scan, so tree-shaking would strip them.
+ */
+
+/*
+ * Tailwind v4 `@theme` block — consumes CSS vars from tokens.css, exposes
+ * them as Tailwind utility classes (text-brand, bg-surface-page, etc.).
+ */
+@theme {
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-deep: var(--brand-primary-deep);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-deep: var(--brand-accent-deep);
+  --color-brand-secondary: var(--brand-secondary);
+
+  --color-surface-page: var(--surface-page);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-border: var(--surface-border);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: var(--text-inverse);
+  --color-text-brand: var(--text-brand);
+
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-danger:  var(--color-danger);
+  --color-error:   var(--color-error);
+  --color-info:    var(--color-info);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --shadow-focus: var(--shadow-focus);
+}
+
+/*
+ * Fonts are served by @nuxt/fonts — see `fonts` config in nuxt.config.ts.
+ * The module downloads Public Sans + JetBrains Mono at build time and
+ * self-hosts them, so air-gapped deployments don't need Google Fonts.
+ */
+
+html,
+body {
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+}
+
+/* Focus ring — TTI maroon by default, swaps per theme. */
+*:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+/* =====================================================
+   TAMUS-family typography utilities
+   Cherry-picked from Aggie UX via docs-tti-tamu-edu. The gold bar is
+   opt-in (class-scoped) so it doesn't stripe every <h1> in app chrome —
+   add `heading--bold` to page titles where the editorial rhythm fits.
+   ===================================================== */
+
+.heading--bold {
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.heading--bold::after {
+  content: "";
+  display: block;
+  width: 100px;
+  height: 8px;
+  background: var(--brand-accent);
+  margin-top: 0.5rem;
+}
+
+/* Small uppercase tracked label — used above or below a heading, or to
+   separate meta/labels from body copy. Matches the inline pattern already
+   used by SectionHeader; this tokenizes it. */
+.eyebrow,
+.subhead {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.eyebrow {
+  margin-bottom: 0.25rem;
+}
+
+.subhead {
+  margin-top: 0.25rem;
+}
