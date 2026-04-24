@@ -4,12 +4,12 @@ import tuxEmptyStateSource from "~/components/TuxEmptyState.vue?raw";
 useHead({ title: "TuxEmptyState · tti-ux" });
 
 const basicVue = `<tux-empty-state
-  icon="lucide:folder-search"
-  title="No scans yet"
-  description="Point the indexer at a directory or S3 bucket to get started."
+  icon="lucide:folder-plus"
+  title="No projects yet"
+  description="Create your first project to start tracking deliverables."
 >
-  <tux-button intent="primary" icon="lucide:play">
-    Start your first scan
+  <tux-button intent="primary" icon="lucide:plus">
+    Create project
   </tux-button>
 </tux-empty-state>`;
 
@@ -21,7 +21,7 @@ const minimalVue = `<tux-empty-state
 const noCardVue = `<tux-empty-state
   no-card
   icon="lucide:search-x"
-  title="Nothing matches \`research/grants/q3\`"
+  title="Nothing matches \`bridge inspections\`"
   description="Try a broader keyword or clear filters."
 />`;
 </script>
@@ -29,9 +29,9 @@ const noCardVue = `<tux-empty-state
 <template>
   <div class="space-y-10">
     <TuxPageHeader eyebrow="component" title="TuxEmptyState">
-      The "no data yet" pattern extracted. Icon in a tinted circle, heading, one
-      sentence of context, and a CTA — always tell users what to do next, not
-      just that there's nothing here.
+      The "no data yet" pattern extracted. Icon in a tinted circle, heading,
+      one sentence of context, and a CTA — always tell users what to do
+      next, not just that there's nothing here.
     </TuxPageHeader>
 
     <section>
@@ -39,12 +39,12 @@ const noCardVue = `<tux-empty-state
       <h2 class="heading--bold text-xl font-bold">With action</h2>
       <TuxExample class="mt-4" :vue="basicVue" :source="tuxEmptyStateSource">
         <TuxEmptyState
-          icon="lucide:folder-search"
-          title="No scans yet"
-          description="Point the indexer at a directory or S3 bucket to get started."
+          icon="lucide:folder-plus"
+          title="No projects yet"
+          description="Create your first project to start tracking deliverables."
         >
-          <TuxButton intent="primary" icon="lucide:play">
-            Start your first scan
+          <TuxButton intent="primary" icon="lucide:plus">
+            Create project
           </TuxButton>
         </TuxEmptyState>
       </TuxExample>
@@ -54,8 +54,8 @@ const noCardVue = `<tux-empty-state
       <p class="eyebrow">compact</p>
       <h2 class="heading--bold text-xl font-bold">Minimal</h2>
       <p class="text-sm text-text-secondary mb-3">
-        No description, no action. Fine for transient "loaded zero rows" cases
-        where there's nothing actionable the user can do.
+        No description, no action. Fine for transient "loaded zero rows"
+        cases where there's nothing actionable the user can do.
       </p>
       <TuxExample :vue="minimalVue">
         <TuxEmptyState icon="lucide:inbox" title="No records found" />
@@ -73,7 +73,7 @@ const noCardVue = `<tux-empty-state
         <TuxEmptyState
           no-card
           icon="lucide:search-x"
-          title="Nothing matches `research/grants/q3`"
+          title="Nothing matches `bridge inspections`"
           description="Try a broader keyword or clear filters."
         />
       </TuxExample>

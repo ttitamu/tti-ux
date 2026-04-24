@@ -4,8 +4,8 @@
  *
  * Five shapes:
  *   <tux-badge tier="sensitive" />                 classification tier
- *   <tux-badge status="running" />                 scan state (spinner on running)
- *   <tux-badge kind="tag">pii:us_ssn</tux-badge>   classifier tag (mono)
+ *   <tux-badge status="running" />                 lifecycle state (spinner on running)
+ *   <tux-badge kind="tag">topic:safety</tux-badge> mono-font tag
  *   <tux-badge kind="count" :count="11">md</tux-badge>  facet + count
  *   <tux-badge>generic</tux-badge>                 default neutral
  *

@@ -3,7 +3,7 @@ useHead({ title: "tti-ux — Living style guide" });
 
 const components = [
   { name: "TuxAlert",         to: "/components/alert",          blurb: "Docusaurus-style admonitions — 8 variants." },
-  { name: "TuxBadge",         to: "/components/badge",          blurb: "Classification tiers, scan states, tags, counts." },
+  { name: "TuxBadge",         to: "/components/badge",          blurb: "Classification tiers, lifecycle states, tags, counts." },
   { name: "TuxButton",        to: "/components/button",         blurb: "Four semantic intents incl. destructive fill-on-hover." },
   { name: "TuxCard",          to: "/components/card",           blurb: "Static or linked — corner-drop hover choreography." },
   { name: "TuxEmptyState",    to: "/components/empty-state",    blurb: "No-data placeholder w/ icon + CTA slot." },

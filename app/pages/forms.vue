@@ -6,6 +6,9 @@ const password = ref("");
 const textarea = ref("");
 const search = ref("");
 
+// Classification tiers reflect the TAMUS data-classification policy —
+// public / internal / sensitive / restricted — shared across all consuming
+// apps, not specific to any one.
 const selectOptions = [
   { label: "Public",     value: "public",     description: "Discoverable by default" },
   { label: "Internal",   value: "internal",   description: "TAMUS-only" },
@@ -14,13 +17,13 @@ const selectOptions = [
 ];
 const selected = ref(selectOptions[2]);
 
-const checks = ref({ pii: true, license: false, format: false });
-const radio = ref<"tika" | "presidio" | "gliner">("tika");
+const checks = ref({ notify: true, archive: false, public: false });
+const radio = ref<"report" | "memo" | "brief">("report");
 const toggle = ref(true);
 const slider = ref(50);
 const date = ref("");
 
-const chips = ref(["pii:us_ssn", "pii:email"]);
+const chips = ref(["topic:safety", "topic:mobility"]);
 const newChip = ref("");
 function addChip() {
   const v = newChip.value.trim();
@@ -44,9 +47,9 @@ function submit() {
   <div class="space-y-12">
     <TuxPageHeader eyebrow="primitives" title="Forms">
       Nuxt UI form primitives with TTI theming — maroon focus rings, consistent
-      label styling, and the aggieux <code>heading--bold</code> for section titles
-      inside forms. No Tux wrappers here yet: Nuxt UI's form primitives don't need
-      deviation to fit the brand.
+      label styling, and the aggieux <code>heading--bold</code> for section
+      titles inside forms. No Tux wrappers here yet: Nuxt UI's form primitives
+      don't need deviation to fit the brand.
     </TuxPageHeader>
 
     <TuxCard :padded="true">
@@ -56,16 +59,16 @@ function submit() {
         </TuxSectionHeader>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <UFormField label="Index name" required>
-            <UInput v-model="text" placeholder="q1-research-grants" />
+          <UFormField label="Project name" required>
+            <UInput v-model="text" placeholder="corridor-speed-study-2026" />
           </UFormField>
 
           <UFormField label="Admin password" required>
             <UInput v-model="password" type="password" placeholder="••••••••" />
           </UFormField>
 
-          <UFormField label="Search" help="Keyword or semantic.">
-            <UInput v-model="search" icon="lucide:search" placeholder="Search scans…" />
+          <UFormField label="Search" help="Filter by title or keyword.">
+            <UInput v-model="search" icon="lucide:search" placeholder="Search records…" />
           </UFormField>
 
           <UFormField label="Created after" help="ISO date.">
@@ -73,8 +76,8 @@ function submit() {
           </UFormField>
         </div>
 
-        <UFormField label="Description" help="Markdown supported. Appears in the index card.">
-          <UTextarea v-model="textarea" :rows="3" placeholder="One-line summary of this index…" />
+        <UFormField label="Description" help="Markdown supported. Appears in the project card.">
+          <UTextarea v-model="textarea" :rows="3" placeholder="One-line summary…" />
         </UFormField>
 
         <TuxSectionHeader :level="2" subtitle="Single choice from a bounded set">
@@ -82,18 +85,18 @@ function submit() {
         </TuxSectionHeader>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <UFormField label="Classification tier" required>
+          <UFormField label="Data classification" required>
             <USelectMenu v-model="selected" :items="selectOptions" />
             <template #help>
               <span class="text-xs text-text-muted">{{ selected.description }}</span>
             </template>
           </UFormField>
 
-          <UFormField label="Text extractor">
+          <UFormField label="Document type">
             <URadioGroup v-model="radio" :items="[
-              { label: 'Tika',     value: 'tika',     description: 'Apache Tika — most formats, slowest' },
-              { label: 'Presidio', value: 'presidio', description: 'Microsoft — PII-focused, medium speed' },
-              { label: 'GLiNER',   value: 'gliner',   description: 'Zero-shot NER — fastest, needs GPU' },
+              { label: 'Report',       value: 'report', description: 'Full technical report with findings + methodology' },
+              { label: 'Memo',         value: 'memo',   description: 'Internal memorandum, shorter format' },
+              { label: 'Brief',        value: 'brief',  description: 'Executive summary, 1–2 pages' },
             ]" />
           </UFormField>
         </div>
@@ -103,14 +106,14 @@ function submit() {
         </TuxSectionHeader>
 
         <div class="space-y-3">
-          <UCheckbox v-model="checks.pii" label="Run PII classifier (Presidio + GLiNER)" />
-          <UCheckbox v-model="checks.license" label="Detect software license headers" />
-          <UCheckbox v-model="checks.format" label="Record file-format distribution (MIME + extension)" />
+          <UCheckbox v-model="checks.notify" label="Notify reviewers when the record is saved" />
+          <UCheckbox v-model="checks.archive" label="Archive the previous version on save" />
+          <UCheckbox v-model="checks.public" label="Include in the public search index" />
         </div>
 
         <UFormField
-          label="Index is publicly discoverable"
-          help="When off, only TAMUS-authenticated users can see this index."
+          label="Record is publicly discoverable"
+          help="When off, only TAMUS-authenticated users can see this record."
         >
           <USwitch v-model="toggle" />
         </UFormField>
@@ -119,7 +122,7 @@ function submit() {
           Slider
         </TuxSectionHeader>
 
-        <UFormField :label="`Classifier confidence threshold (${slider}%)`" help="Below this score, tags are suppressed.">
+        <UFormField :label="`Review threshold (${slider}%)`" help="Only records scoring above this threshold are surfaced to reviewers.">
           <USlider v-model="slider" :min="0" :max="100" :step="5" />
         </UFormField>
 
@@ -127,7 +130,7 @@ function submit() {
           Chip input
         </TuxSectionHeader>
 
-        <UFormField label="Required classifier tags" help="Scans fail if any of these are missing from the output.">
+        <UFormField label="Topic tags" help="Used to cross-link related records.">
           <div class="flex flex-wrap items-center gap-2">
             <TuxBadge v-for="c in chips" :key="c" kind="tag">
               {{ c }}
@@ -159,7 +162,7 @@ function submit() {
           </p>
           <div class="flex gap-2">
             <TuxButton intent="ghost" type="reset">Reset</TuxButton>
-            <TuxButton intent="primary" type="submit" icon="lucide:check">Save index</TuxButton>
+            <TuxButton intent="primary" type="submit" icon="lucide:check">Save</TuxButton>
           </div>
         </div>
       </form>
@@ -169,18 +172,18 @@ function submit() {
       v-if="submitted"
       variant="success"
       title="Form submitted"
-      description="In a real app, this would POST to /api/indices and route to the new index's detail page."
+      description="In a real app this would POST to the server and route to the detail page."
     />
 
     <section>
       <TuxSectionHeader :level="2">Validation</TuxSectionHeader>
       <p class="text-sm text-text-secondary max-w-2xl">
-        Nuxt UI 4 ships with validation via <code>UForm</code> + a schema library
-        of your choice (Zod, Valibot, Yup). The showcase above uses bare
-        <code>UFormField</code>s for clarity; in production apps, wrap in
-        <code>&lt;UForm :schema="..." :state="..."&gt;</code> and Nuxt UI handles
-        error display automatically. Errors adopt the maroon focus ring and
-        <code>--color-error</code> text — no extra styling needed.
+        Nuxt UI 4 ships with validation via <code>UForm</code> + a schema
+        library of your choice (Zod, Valibot, Yup). The showcase above uses
+        bare <code>UFormField</code>s for clarity; in production apps, wrap in
+        <code>&lt;UForm :schema="..." :state="..."&gt;</code> and Nuxt UI
+        handles error display automatically. Errors adopt the maroon focus
+        ring and <code>--color-error</code> text — no extra styling needed.
       </p>
     </section>
 

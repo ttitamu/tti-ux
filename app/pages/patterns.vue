@@ -1,23 +1,38 @@
 <script setup lang="ts">
 useHead({ title: "Patterns · tti-ux" });
 
-const tableRows = ref<Array<{ id: string; path: string; status: "queued" | "running" | "completed" | "failed"; files: number }>>([]);
+// Generic research-publications example data — illustrative, not bound to
+// any specific consuming app.
+type Status = "draft" | "in_review" | "published" | "archived";
+const tableRows = ref<Array<{ id: string; title: string; status: Status; year: number }>>([]);
 const tableLoading = ref(false);
 
 const tableColumns = [
-  { accessorKey: "path",   header: "Path" },
-  { accessorKey: "files",  header: "Files" },
+  { accessorKey: "title",  header: "Title" },
+  { accessorKey: "year",   header: "Year" },
   { accessorKey: "status", header: "Status" },
 ];
+
+// TuxBadge only knows four status states out of the box
+// (queued/running/completed/failed). Map the demo's domain-status to the
+// badge's visual status so the pattern reads correctly without modifying
+// TuxBadge itself.
+const statusToBadge: Record<Status, "queued" | "running" | "completed" | "failed"> = {
+  draft: "queued",
+  in_review: "running",
+  published: "completed",
+  archived: "failed",
+};
 
 function simulateLoad() {
   tableLoading.value = true;
   tableRows.value = [];
   setTimeout(() => {
     tableRows.value = [
-      { id: "7f5bd95a", path: "/mnt/research/grants/q1",   status: "completed", files: 12402 },
-      { id: "a31c7e14", path: "/mnt/research/grants/q2",   status: "running",   files:  3847 },
-      { id: "b8e4f921", path: "/mnt/research/datasets/lidar", status: "failed", files:    12 },
+      { id: "2024-0142", title: "Rural intersection safety — Phase II",            status: "published", year: 2026 },
+      { id: "2024-0317", title: "Corridor speed study — I-35 north of Austin",      status: "in_review", year: 2026 },
+      { id: "2025-0008", title: "Connected-vehicle pilot — preliminary findings",   status: "draft",     year: 2026 },
+      { id: "2023-0591", title: "Pavement condition index methodology, 3rd ed.",    status: "archived",  year: 2024 },
     ];
     tableLoading.value = false;
   }, 1500);
@@ -28,24 +43,25 @@ function simulateLoad() {
   <div class="space-y-12">
     <TuxPageHeader eyebrow="beyond components" title="Patterns">
       Component-level decisions answered: "what does the empty state look like?",
-      "what does the page show while data is loading?", "how do we ask for confirmation?".
-      These are conventions, not components — borrow and tweak per context.
+      "what does the page show while data is loading?", "how do we ask for
+      confirmation?". These are conventions, not components — borrow and tweak
+      per context.
     </TuxPageHeader>
 
     <section>
       <p class="eyebrow">no data yet</p>
       <h2 class="heading--bold text-xl font-bold">Empty state</h2>
       <p class="mt-2 max-w-2xl text-sm text-text-secondary">
-        Show the user what action gets them to a filled state. Don't just say "No
-        results." — tell them what to do next.
+        Show the user what action gets them to a filled state. Don't just say
+        "No results." — tell them what to do next.
       </p>
       <TuxEmptyState
         class="mt-4"
-        icon="lucide:folder-search"
-        title="No scans yet"
-        description="Point PECAN at a directory or S3 bucket and it'll start indexing. You'll see files appear here as classifiers finish running."
+        icon="lucide:folder-plus"
+        title="No projects yet"
+        description="Create your first project to start tracking deliverables. You'll see them appear here as soon as they're saved."
       >
-        <TuxButton intent="primary" icon="lucide:play">Start your first scan</TuxButton>
+        <TuxButton intent="primary" icon="lucide:plus">Create project</TuxButton>
       </TuxEmptyState>
     </section>
 
@@ -53,9 +69,9 @@ function simulateLoad() {
       <p class="eyebrow">waiting for data</p>
       <h2 class="heading--bold text-xl font-bold">Loading skeleton</h2>
       <p class="mt-2 max-w-2xl text-sm text-text-secondary">
-        Match the skeleton's shape to the content it's standing in for — rows for
-        tables, lines for paragraphs, circles for avatars. Animated via pure CSS
-        <code>@keyframes</code>, no JS timer needed.
+        Match the skeleton's shape to the content it's standing in for — rows
+        for tables, lines for paragraphs, circles for avatars. Animated via
+        pure CSS <code>@keyframes</code>, no JS timer needed.
       </p>
       <div class="mt-4 rounded-md border border-surface-border p-6 space-y-3">
         <div v-for="n in 4" :key="n" class="flex items-center gap-4">
@@ -70,12 +86,12 @@ function simulateLoad() {
       <p class="eyebrow">interactive</p>
       <h2 class="heading--bold text-xl font-bold">Load → data / empty</h2>
       <p class="mt-2 max-w-2xl text-sm text-text-secondary">
-        Same table, three states: empty, loading skeleton, populated. Click the
-        button to cycle.
+        Same table, three states: empty, loading skeleton, populated. Click
+        the button to cycle.
       </p>
       <div class="mt-4 flex gap-2">
         <TuxButton intent="primary" :loading="tableLoading" @click="simulateLoad">
-          Reload scans
+          Load publications
         </TuxButton>
         <TuxButton intent="ghost" @click="tableRows = []">Clear</TuxButton>
       </div>
@@ -87,17 +103,16 @@ function simulateLoad() {
             <div class="skeleton h-4 w-20 rounded" />
           </div>
         </div>
-        <TuxTable
-          v-else-if="tableRows.length"
-          :data="tableRows"
-          :columns="tableColumns"
-          status-accessor="status"
-        />
+        <TuxTable v-else-if="tableRows.length" :data="tableRows" :columns="tableColumns">
+          <template #status-cell="{ row }">
+            <TuxBadge :status="statusToBadge[(row.original || row).status as Status]" :label="(row.original || row).status.replace('_', ' ')" />
+          </template>
+        </TuxTable>
         <TuxEmptyState
           v-else
           icon="lucide:inbox"
-          title="No scans yet"
-          description="Reload to populate."
+          title="No publications loaded"
+          description="Click Load publications to populate the table."
         />
       </div>
     </section>
@@ -118,19 +133,19 @@ function simulateLoad() {
       <p class="eyebrow">inline feedback</p>
       <h2 class="heading--bold text-xl font-bold">Admonition stack</h2>
       <p class="mt-2 max-w-2xl text-sm text-text-secondary">
-        Use <code>TuxAlert</code> inline above a form or between sections. Avoid
-        toasts for anything the user needs to read — toasts disappear.
+        Use <code>TuxAlert</code> inline above a form or between sections.
+        Avoid toasts for anything the user needs to read — toasts disappear.
       </p>
       <div class="mt-4 space-y-3">
         <TuxAlert
           variant="important"
           title="Scheduled maintenance · Thursday 2am–4am"
-          description="OpenSearch will be offline for a patch window. Queue any scans you need to run before 1am."
+          description="Backend services will be offline during the patch window. Save any in-progress work before 1am."
         />
         <TuxAlert
           variant="compliance"
           title="Export controlled"
-          description="This index contains ITAR-designated records. Do not share outside TAMUS."
+          description="This record contains export-controlled research data. Do not share outside TAMUS."
         />
       </div>
     </section>

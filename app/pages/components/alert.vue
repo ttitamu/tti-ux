@@ -33,7 +33,7 @@ const compactVue = `<tux-alert
 const iconVue = `<tux-alert
   variant="info"
   icon="lucide:database"
-  title="Index scaffolded"
+  title="Saved to server"
   description="Pass any Lucide icon name via \`icon\` to override the variant default."
 />`;
 </script>
@@ -87,7 +87,7 @@ const iconVue = `<tux-alert
         <TuxAlert
           variant="info"
           icon="lucide:database"
-          title="Index scaffolded"
+          title="Saved to server"
           description="Pass any Lucide icon name via `icon` to override the variant default."
         />
       </TuxExample>

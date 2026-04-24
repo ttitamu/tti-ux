@@ -3,8 +3,12 @@
 Living style guide for the TTI design system. A runnable Nuxt 4 app that IS the
 source of truth for components — if a visual changes, this site shows it first.
 
-Built for Texas A&amp;M Transportation Institute apps: PECAN, tti-ai-chat, the
-TTI docs site, Aggie BI, and whatever comes next.
+Built for Texas A&amp;M Transportation Institute apps (PECAN, tti-ai-chat, the
+TTI docs site, Aggie BI, etc.) but the components and tokens are domain-
+agnostic. Example data in the showcase pages (project titles, status badges,
+form fields) is illustrative — intentionally spread across
+transportation-research domains so no single consuming app's identity leaks
+into the design system.
 
 ## What's in here
 

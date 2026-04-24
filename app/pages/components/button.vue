@@ -20,7 +20,7 @@ const intentsVue = `<tux-button intent="primary">Primary</tux-button>
 <tux-button intent="ghost">Ghost</tux-button>
 <tux-button intent="destructive">Destructive</tux-button>`;
 
-const iconsVue = `<tux-button intent="primary" icon="lucide:play">Start scan</tux-button>
+const iconsVue = `<tux-button intent="primary" icon="lucide:play">Run</tux-button>
 <tux-button intent="secondary" icon="lucide:download">Export CSV</tux-button>
 <tux-button intent="ghost" trailing-icon="lucide:arrow-right">Next</tux-button>
 <tux-button intent="destructive" icon="lucide:trash-2">Delete</tux-button>`;
@@ -76,7 +76,7 @@ const linkVue = `<tux-button intent="primary" to="/tokens" trailing-icon="lucide
       <h2 class="heading--bold text-xl font-bold">Leading &amp; trailing icons</h2>
       <TuxExample class="mt-4" :vue="iconsVue">
         <div class="flex flex-wrap gap-3">
-          <TuxButton intent="primary" icon="lucide:play">Start scan</TuxButton>
+          <TuxButton intent="primary" icon="lucide:play">Run</TuxButton>
           <TuxButton intent="secondary" icon="lucide:download">Export CSV</TuxButton>
           <TuxButton intent="ghost" trailing-icon="lucide:arrow-right">Next</TuxButton>
           <TuxButton intent="destructive" icon="lucide:trash-2">Delete</TuxButton>

@@ -13,7 +13,7 @@
  * combination. Pass `color` or `variant` explicitly and it wins.
  *
  * Usage:
- *   <tux-button intent="primary" icon="lucide:play">Start scan</tux-button>
+ *   <tux-button intent="primary" icon="lucide:play">Run</tux-button>
  *   <tux-button intent="destructive" icon="lucide:trash-2">Delete</tux-button>
  */
 

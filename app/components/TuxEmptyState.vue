@@ -8,12 +8,12 @@
  *
  * Usage:
  *   <tux-empty-state
- *     icon="lucide:folder-search"
- *     title="No scans yet"
- *     description="Point the indexer at a bucket to get started."
+ *     icon="lucide:folder-plus"
+ *     title="No projects yet"
+ *     description="Create your first project to get started."
  *   >
- *     <tux-button intent="primary" icon="lucide:play" to="/scans/new">
- *       Start first scan
+ *     <tux-button intent="primary" icon="lucide:plus" to="/projects/new">
+ *       Create project
  *     </tux-button>
  *   </tux-empty-state>
  *

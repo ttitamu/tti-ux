@@ -2,8 +2,8 @@
 useHead({ title: "TuxCard · tti-ux" });
 
 const staticVue = `<tux-card>
-  <p class="eyebrow">scan · 2026-04-22</p>
-  <h3 class="text-xl font-bold">Q1 research grants</h3>
+  <p class="eyebrow">project · 2026-04-22</p>
+  <h3 class="text-xl font-bold">Corridor safety review</h3>
   <p class="mt-2 text-sm text-text-secondary">
     Static card — no hover motion. Use for summary blocks inside a page.
   </p>
@@ -32,8 +32,8 @@ const linkedVue = `<tux-card to="/tokens">
       <h2 class="heading--bold text-xl font-bold">Without `to`</h2>
       <TuxExample class="mt-4" :vue="staticVue">
         <TuxCard>
-          <p class="eyebrow">scan · 2026-04-22</p>
-          <h3 class="text-xl font-bold">Q1 research grants</h3>
+          <p class="eyebrow">project · 2026-04-22</p>
+          <h3 class="text-xl font-bold">Corridor safety review</h3>
           <p class="mt-2 text-sm text-text-secondary">
             Static card — no hover motion. Use for summary blocks inside a page.
           </p>

@@ -3,7 +3,7 @@ useHead({ title: "TuxBadge · tti-ux" });
 
 const tiers = ["public", "internal", "sensitive", "restricted"] as const;
 const statuses = ["queued", "running", "completed", "failed"] as const;
-const tags = ["pii:us_ssn", "pii:email", "pii:phone", "license:cc-by", "format:pdf"];
+const tags = ["topic:safety", "topic:mobility", "topic:bridges", "license:cc-by", "format:pdf"];
 
 const tiersVue = `<tux-badge tier="public" />
 <tux-badge tier="internal" />
@@ -15,8 +15,8 @@ const statusVue = `<tux-badge status="queued" />
 <tux-badge status="completed" />
 <tux-badge status="failed" />`;
 
-const tagsVue = `<tux-badge kind="tag">pii:us_ssn</tux-badge>
-<tux-badge kind="tag">pii:email</tux-badge>
+const tagsVue = `<tux-badge kind="tag">topic:safety</tux-badge>
+<tux-badge kind="tag">topic:mobility</tux-badge>
 <tux-badge kind="tag">license:cc-by</tux-badge>`;
 
 const countVue = `<tux-badge kind="count" :count="42">pdf</tux-badge>
@@ -27,9 +27,9 @@ const countVue = `<tux-badge kind="count" :count="42">pdf</tux-badge>
 <template>
   <div class="space-y-10">
     <TuxPageHeader eyebrow="component" title="TuxBadge">
-      Five shapes over one <code>UBadge</code>: classification tier, scan status
-      (with spinner on <code>running</code>), classifier tag (mono + outline),
-      facet-plus-count, and a plain default.
+      Five shapes over one <code>UBadge</code>: classification tier, lifecycle
+      status (with spinner on <code>running</code>), monospace tag
+      (outlined), facet-plus-count, and a plain default.
     </TuxPageHeader>
 
     <section>
@@ -44,7 +44,7 @@ const countVue = `<tux-badge kind="count" :count="42">pdf</tux-badge>
 
     <section>
       <p class="eyebrow">state</p>
-      <h2 class="heading--bold text-xl font-bold">Scan status</h2>
+      <h2 class="heading--bold text-xl font-bold">Lifecycle status</h2>
       <TuxExample class="mt-4" :vue="statusVue">
         <div class="flex flex-wrap gap-2">
           <TuxBadge v-for="s in statuses" :key="s" :status="s" />
@@ -53,7 +53,7 @@ const countVue = `<tux-badge kind="count" :count="42">pdf</tux-badge>
     </section>
 
     <section>
-      <p class="eyebrow">classifier output</p>
+      <p class="eyebrow">machine tokens</p>
       <h2 class="heading--bold text-xl font-bold">Tags</h2>
       <p class="text-sm text-text-secondary mb-3">
         Monospace + outline to read as machine tokens, not editorial copy.

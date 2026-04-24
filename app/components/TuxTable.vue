@@ -14,7 +14,7 @@
  * cell auto-renders as <tux-badge :status="..." />.
  *
  * Usage:
- *   <tux-table :data="scans" :columns="cols" status-accessor="status" />
+ *   <tux-table :data="projects" :columns="cols" status-accessor="status" />
  *
  * Custom per-column:
  *   <tux-table :data :columns>
