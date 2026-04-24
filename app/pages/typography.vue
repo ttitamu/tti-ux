@@ -4,15 +4,11 @@ useHead({ title: "Typography · tti-ux" });
 
 <template>
   <div class="space-y-12">
-    <section>
-      <p class="eyebrow">foundations</p>
-      <h1 class="heading--bold text-3xl font-bold">Typography</h1>
-      <p class="mt-3 max-w-2xl text-text-secondary">
-        Public Sans as the body+display face, JetBrains Mono for IDs and paths. The
-        <code>heading--bold</code> and <code>heading--display</code> utilities add the
-        signature gold bar — opt-in, not applied to every heading in app chrome.
-      </p>
-    </section>
+    <TuxPageHeader eyebrow="foundations" title="Typography">
+      Public Sans as the body+display face, JetBrains Mono for IDs and paths. The
+      <code>heading--bold</code> and <code>heading--display</code> utilities add the
+      signature gold bar — opt-in, not applied to every heading in app chrome.
+    </TuxPageHeader>
 
     <section>
       <p class="eyebrow">display heading</p>

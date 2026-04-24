@@ -41,16 +41,12 @@ const customCellVue = `<tux-table :data="scans" :columns="columns" status-access
 
 <template>
   <div class="space-y-10">
-    <section>
-      <p class="eyebrow">component</p>
-      <h1 class="heading--bold text-3xl font-bold">TuxTable</h1>
-      <p class="mt-3 max-w-2xl text-text-secondary">
-        Wraps <code>UTable</code>. Adds the maroon-wash header, uppercase tracked
-        labels, brand-tinted row hover, and a rounded card frame. Body cells default
-        to <code>font-mono</code> because most of what lands in our tables is paths
-        and IDs — override per-column with a <code>#{column}-cell</code> slot.
-      </p>
-    </section>
+    <TuxPageHeader eyebrow="component" title="TuxTable">
+      Wraps <code>UTable</code>. Adds the maroon-wash header, uppercase tracked
+      labels, brand-tinted row hover, and a rounded card frame. Body cells default
+      to <code>font-mono</code> because most of what lands in our tables is paths
+      and IDs — override per-column with a <code>#{column}-cell</code> slot.
+    </TuxPageHeader>
 
     <section>
       <p class="eyebrow">auto status cell</p>

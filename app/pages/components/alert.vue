@@ -40,16 +40,12 @@ const iconVue = `<tux-alert
 
 <template>
   <div class="space-y-10">
-    <section>
-      <p class="eyebrow">component</p>
-      <h1 class="heading--bold text-3xl font-bold">TuxAlert</h1>
-      <p class="mt-3 max-w-2xl text-text-secondary">
-        Wraps <code>UAlert</code>. Adds a 4px left border in the admonition's
-        own color family — Docusaurus-style rhythm that Nuxt UI's <code>subtle</code>
-        variant omits by default. <code>important</code> and <code>compliance</code>
-        both lean on brand maroon but at different visual weights (subtle vs. solid).
-      </p>
-    </section>
+    <TuxPageHeader eyebrow="component" title="TuxAlert">
+      Wraps <code>UAlert</code>. Adds a 4px left border in the admonition's
+      own color family — Docusaurus-style rhythm that Nuxt UI's <code>subtle</code>
+      variant omits by default. <code>important</code> and <code>compliance</code>
+      both lean on brand maroon but at different visual weights (subtle vs. solid).
+    </TuxPageHeader>
 
     <section>
       <p class="eyebrow">all variants</p>

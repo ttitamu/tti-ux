@@ -42,16 +42,12 @@ function submit() {
 
 <template>
   <div class="space-y-12">
-    <section>
-      <p class="eyebrow">primitives</p>
-      <h1 class="heading--bold text-3xl font-bold">Forms</h1>
-      <p class="mt-3 max-w-2xl text-text-secondary">
-        Nuxt UI form primitives with TTI theming — maroon focus rings, consistent
-        label styling, and the aggieux <code>heading--bold</code> for section titles
-        inside forms. No Tux wrappers here yet: Nuxt UI's form primitives don't need
-        deviation to fit the brand.
-      </p>
-    </section>
+    <TuxPageHeader eyebrow="primitives" title="Forms">
+      Nuxt UI form primitives with TTI theming — maroon focus rings, consistent
+      label styling, and the aggieux <code>heading--bold</code> for section titles
+      inside forms. No Tux wrappers here yet: Nuxt UI's form primitives don't need
+      deviation to fit the brand.
+    </TuxPageHeader>
 
     <TuxCard :padded="true">
       <form class="space-y-8" @submit.prevent="submit">

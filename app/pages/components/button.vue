@@ -47,18 +47,14 @@ const linkVue = `<tux-button intent="primary" to="/tokens" trailing-icon="lucide
 
 <template>
   <div class="space-y-10">
-    <section>
-      <p class="eyebrow">component</p>
-      <h1 class="heading--bold text-3xl font-bold">TuxButton</h1>
-      <p class="mt-3 max-w-2xl text-text-secondary">
-        Wraps <code>UButton</code>. The <code>intent</code> prop picks one of four
-        TTI-conventional combinations — <code>primary</code>, <code>secondary</code>,
-        <code>ghost</code>, <code>destructive</code> — so call sites don't have to
-        remember that "destructive" means <code>outline + error + btn-fill-on-hover</code>.
-        Every other <code>UButton</code> prop still works (<code>size</code>,
-        <code>icon</code>, <code>loading</code>, <code>to</code>, <code>disabled</code>).
-      </p>
-    </section>
+    <TuxPageHeader eyebrow="component" title="TuxButton">
+      Wraps <code>UButton</code>. The <code>intent</code> prop picks one of four
+      TTI-conventional combinations — <code>primary</code>, <code>secondary</code>,
+      <code>ghost</code>, <code>destructive</code> — so call sites don't have to
+      remember that "destructive" means <code>outline + error + btn-fill-on-hover</code>.
+      Every other <code>UButton</code> prop still works (<code>size</code>,
+      <code>icon</code>, <code>loading</code>, <code>to</code>, <code>disabled</code>).
+    </TuxPageHeader>
 
     <section>
       <p class="eyebrow">intents</p>

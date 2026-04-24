@@ -26,15 +26,11 @@ function simulateLoad() {
 
 <template>
   <div class="space-y-12">
-    <section>
-      <p class="eyebrow">beyond components</p>
-      <h1 class="heading--bold text-3xl font-bold">Patterns</h1>
-      <p class="mt-3 max-w-2xl text-text-secondary">
-        Component-level decisions answered: "what does the empty state look like?",
-        "what does the page show while data is loading?", "how do we ask for confirmation?".
-        These are conventions, not components — borrow and tweak per context.
-      </p>
-    </section>
+    <TuxPageHeader eyebrow="beyond components" title="Patterns">
+      Component-level decisions answered: "what does the empty state look like?",
+      "what does the page show while data is loading?", "how do we ask for confirmation?".
+      These are conventions, not components — borrow and tweak per context.
+    </TuxPageHeader>
 
     <section>
       <p class="eyebrow">no data yet</p>
@@ -43,22 +39,14 @@ function simulateLoad() {
         Show the user what action gets them to a filled state. Don't just say "No
         results." — tell them what to do next.
       </p>
-      <TuxCard class="mt-4">
-        <div class="flex flex-col items-center text-center py-6 gap-3">
-          <div
-            class="w-14 h-14 rounded-full flex items-center justify-center"
-            style="background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-raised))"
-          >
-            <UIcon name="lucide:folder-search" class="w-7 h-7" style="color: var(--brand-primary)" />
-          </div>
-          <h3 class="text-lg font-bold">No scans yet</h3>
-          <p class="text-sm text-text-secondary max-w-md">
-            Point PECAN at a directory or S3 bucket and it'll start indexing. You'll
-            see files appear here as classifiers finish running.
-          </p>
-          <TuxButton intent="primary" icon="lucide:play">Start your first scan</TuxButton>
-        </div>
-      </TuxCard>
+      <TuxEmptyState
+        class="mt-4"
+        icon="lucide:folder-search"
+        title="No scans yet"
+        description="Point PECAN at a directory or S3 bucket and it'll start indexing. You'll see files appear here as classifiers finish running."
+      >
+        <TuxButton intent="primary" icon="lucide:play">Start your first scan</TuxButton>
+      </TuxEmptyState>
     </section>
 
     <section>
@@ -105,12 +93,12 @@ function simulateLoad() {
           :columns="tableColumns"
           status-accessor="status"
         />
-        <TuxCard v-else>
-          <div class="flex flex-col items-center text-center py-6 gap-3">
-            <UIcon name="lucide:inbox" class="w-10 h-10 text-text-muted" />
-            <p class="text-sm text-text-secondary">No scans yet — reload to populate.</p>
-          </div>
-        </TuxCard>
+        <TuxEmptyState
+          v-else
+          icon="lucide:inbox"
+          title="No scans yet"
+          description="Reload to populate."
+        />
       </div>
     </section>
 

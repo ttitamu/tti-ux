@@ -22,14 +22,10 @@ function bump() {
 
 <template>
   <div class="space-y-12">
-    <section>
-      <p class="eyebrow">foundations</p>
-      <h1 class="heading--bold text-3xl font-bold">Motion &amp; spacing</h1>
-      <p class="mt-3 max-w-2xl text-text-secondary">
-        Transitions should feel intentional, not incidental. Spacing follows Tailwind's
-        4px-base ramp — stick to the ramp so rhythms match across the app.
-      </p>
-    </section>
+    <TuxPageHeader eyebrow="foundations" title="Motion &amp; spacing">
+      Transitions should feel intentional, not incidental. Spacing follows Tailwind's
+      4px-base ramp — stick to the ramp so rhythms match across the app.
+    </TuxPageHeader>
 
     <section>
       <p class="eyebrow">rhythm</p>

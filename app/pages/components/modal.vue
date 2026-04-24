@@ -27,20 +27,15 @@ const confirmVue = `<tux-button intent="destructive" icon="lucide:trash-2" @clic
 
 <template>
   <div class="space-y-10">
-    <section>
-      <p class="eyebrow">component</p>
-      <h1 class="heading--bold text-3xl font-bold">TuxModal</h1>
-      <p class="mt-3 max-w-2xl text-text-secondary">
-        Wraps <code>UModal</code>. Pass <code>title</code> (rendered with the gold-bar
-        <code>heading--bold</code> utility) and an optional <code>eyebrow</code> for
-        editorial rhythm. Body goes in the default slot; footer in <code>#footer</code>.
-      </p>
-      <p class="mt-2 max-w-2xl text-sm text-text-muted">
-        Note: the HTML tab on this page captures the trigger button, not the modal
-        itself — when closed, the modal doesn't exist in the DOM. Open it and
-        inspect via browser devtools to see the full structure.
-      </p>
-    </section>
+    <TuxPageHeader eyebrow="component" title="TuxModal">
+      Wraps <code>UModal</code>. Pass <code>title</code> (rendered with the gold-bar
+      <code>heading--bold</code> utility) and an optional <code>eyebrow</code> for
+      editorial rhythm. Body goes in the default slot; footer in <code>#footer</code>.
+      <br><br>
+      <span class="text-sm text-text-muted">Note: the HTML tab on this page
+      captures the trigger button, not the modal itself — when closed, the
+      modal doesn't exist in the DOM. Open it and inspect via browser devtools.</span>
+    </TuxPageHeader>
 
     <section>
       <p class="eyebrow">basic</p>

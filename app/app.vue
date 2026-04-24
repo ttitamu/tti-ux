@@ -32,6 +32,7 @@ const nav = [
       { label: "Tokens",     to: "/tokens",     icon: "lucide:palette" },
       { label: "Typography", to: "/typography", icon: "lucide:type" },
       { label: "Motion",     to: "/motion",     icon: "lucide:zap" },
+      { label: "Icons",      to: "/icons",      icon: "lucide:sparkles" },
     ],
   },
   {
@@ -41,7 +42,9 @@ const nav = [
       { label: "TuxBadge",         to: "/components/badge",          icon: "lucide:badge" },
       { label: "TuxButton",        to: "/components/button",         icon: "lucide:rectangle-horizontal" },
       { label: "TuxCard",          to: "/components/card",           icon: "lucide:square-stack" },
+      { label: "TuxEmptyState",    to: "/components/empty-state",    icon: "lucide:inbox" },
       { label: "TuxModal",         to: "/components/modal",          icon: "lucide:panel-top-open" },
+      { label: "TuxPageHeader",    to: "/components/page-header",    icon: "lucide:pilcrow" },
       { label: "TuxSectionHeader", to: "/components/section-header", icon: "lucide:heading" },
       { label: "TuxTable",         to: "/components/table",          icon: "lucide:table" },
     ],

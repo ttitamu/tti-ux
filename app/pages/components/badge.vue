@@ -26,15 +26,11 @@ const countVue = `<tux-badge kind="count" :count="42">pdf</tux-badge>
 
 <template>
   <div class="space-y-10">
-    <section>
-      <p class="eyebrow">component</p>
-      <h1 class="heading--bold text-3xl font-bold">TuxBadge</h1>
-      <p class="mt-3 max-w-2xl text-text-secondary">
-        Five shapes over one <code>UBadge</code>: classification tier, scan status
-        (with spinner on <code>running</code>), classifier tag (mono + outline),
-        facet-plus-count, and a plain default.
-      </p>
-    </section>
+    <TuxPageHeader eyebrow="component" title="TuxBadge">
+      Five shapes over one <code>UBadge</code>: classification tier, scan status
+      (with spinner on <code>running</code>), classifier tag (mono + outline),
+      facet-plus-count, and a plain default.
+    </TuxPageHeader>
 
     <section>
       <p class="eyebrow">tiers</p>

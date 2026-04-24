@@ -18,17 +18,13 @@ const subtitleVue = `<tux-section-header :level="2" subtitle="4,218 documents ac
 
 <template>
   <div class="space-y-10">
-    <section>
-      <p class="eyebrow">component</p>
-      <h1 class="heading--bold text-3xl font-bold">TuxSectionHeader</h1>
-      <p class="mt-3 max-w-2xl text-text-secondary">
-        The aggieux editorial heading — ALL-CAPS, tracked-out, maroon underline rule.
-        Distinct from <code>heading--bold</code> (which uses a gold bar) and
-        <code>heading--display</code> (italic maximalist). Use this for mid-page
-        section titles inside a longer document — it's quieter than the gold-bar
-        headings and reads as rhythmic navigation between sections.
-      </p>
-    </section>
+    <TuxPageHeader eyebrow="component" title="TuxSectionHeader">
+      The aggieux editorial heading — ALL-CAPS, tracked-out, maroon underline rule.
+      Distinct from <code>heading--bold</code> (which uses a gold bar) and
+      <code>heading--display</code> (italic maximalist). Use this for mid-page
+      section titles inside a longer document — it's quieter than the gold-bar
+      headings and reads as rhythmic navigation between sections.
+    </TuxPageHeader>
 
     <section>
       <p class="eyebrow">level 1</p>

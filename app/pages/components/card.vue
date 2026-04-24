@@ -20,16 +20,12 @@ const linkedVue = `<tux-card to="/tokens">
 
 <template>
   <div class="space-y-10">
-    <section>
-      <p class="eyebrow">component</p>
-      <h1 class="heading--bold text-3xl font-bold">TuxCard</h1>
-      <p class="mt-3 max-w-2xl text-text-secondary">
-        A static branded block, or pass <code>to</code> and it becomes a <code>NuxtLink</code>
-        with corner-drop choreography — the card shifts +6/-6px on hover and an arrow
-        fades in at the top-right. The 2px maroon border is load-bearing, so we don't
-        wrap <code>UCard</code>.
-      </p>
-    </section>
+    <TuxPageHeader eyebrow="component" title="TuxCard">
+      A static branded block, or pass <code>to</code> and it becomes a <code>NuxtLink</code>
+      with corner-drop choreography — the card shifts +6/-6px on hover and an arrow
+      fades in at the top-right. The 2px maroon border is load-bearing, so we don't
+      wrap <code>UCard</code>.
+    </TuxPageHeader>
 
     <section>
       <p class="eyebrow">static</p>

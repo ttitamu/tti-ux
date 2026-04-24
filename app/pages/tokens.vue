@@ -53,14 +53,10 @@ const radii = [
 
 <template>
   <div class="space-y-12">
-    <section>
-      <p class="eyebrow">foundations</p>
-      <h1 class="heading--bold text-3xl font-bold">Tokens</h1>
-      <p class="mt-3 max-w-2xl text-text-secondary">
-        Every color, shadow, and radius the system exposes. Switch themes with the
-        contrast toggle in the header — the same swatches below will redraw.
-      </p>
-    </section>
+    <TuxPageHeader eyebrow="foundations" title="Tokens">
+      Every color, shadow, and radius the system exposes. Switch themes with the
+      contrast toggle in the header — the same swatches below will redraw.
+    </TuxPageHeader>
 
     <section>
       <p class="eyebrow">brand anchor</p>

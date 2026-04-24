@@ -6,7 +6,9 @@ const components = [
   { name: "TuxBadge",         to: "/components/badge",          blurb: "Classification tiers, scan states, tags, counts." },
   { name: "TuxButton",        to: "/components/button",         blurb: "Four semantic intents incl. destructive fill-on-hover." },
   { name: "TuxCard",          to: "/components/card",           blurb: "Static or linked — corner-drop hover choreography." },
+  { name: "TuxEmptyState",    to: "/components/empty-state",    blurb: "No-data placeholder w/ icon + CTA slot." },
   { name: "TuxModal",         to: "/components/modal",          blurb: "UModal with eyebrow + gold-bar title." },
+  { name: "TuxPageHeader",    to: "/components/page-header",    blurb: "Eyebrow + heading + subtitle opener." },
   { name: "TuxSectionHeader", to: "/components/section-header", blurb: "Editorial ALL-CAPS heading, maroon underline." },
   { name: "TuxTable",         to: "/components/table",          blurb: "UTable with aggieux chrome + auto status cells." },
 ];
@@ -50,6 +52,14 @@ const components = [
           <p class="mt-2 text-sm text-text-secondary">
             Three durations, the 4px spacing ramp, and the aggieux corner-drop
             signature.
+          </p>
+        </TuxCard>
+        <TuxCard to="/icons">
+          <p class="eyebrow">foundations</p>
+          <h3 class="text-xl font-bold">Icons</h3>
+          <p class="mt-2 text-sm text-text-secondary">
+            1,755 Lucide glyphs via <code>@nuxt/icon</code>. Click-to-copy
+            in a searchable catalog.
           </p>
         </TuxCard>
         <TuxCard to="/forms">
