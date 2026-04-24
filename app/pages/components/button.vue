@@ -1,4 +1,8 @@
 <script setup lang="ts">
+// Vite ?raw import — the SFC's file contents become a string at build time
+// so the `Source` tab below can expose the component without duplication.
+import tuxButtonSource from "~/components/TuxButton.vue?raw";
+
 useHead({ title: "TuxButton · tti-ux" });
 
 const loading = ref(false);
@@ -59,7 +63,7 @@ const linkVue = `<tux-button intent="primary" to="/tokens" trailing-icon="lucide
     <section>
       <p class="eyebrow">intents</p>
       <h2 class="heading--bold text-xl font-bold">Four semantic roles</h2>
-      <TuxExample class="mt-4" :vue="intentsVue">
+      <TuxExample class="mt-4" :vue="intentsVue" :source="tuxButtonSource">
         <div class="flex flex-wrap gap-3">
           <TuxButton v-for="i in intents" :key="i" :intent="i" class="capitalize">
             {{ i }}

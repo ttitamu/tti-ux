@@ -1,5 +1,19 @@
 <script setup lang="ts">
 useHead({ title: "TuxSectionHeader · tti-ux" });
+
+const level1Vue = `<tux-section-header :level="1" subtitle="Level 1 — the biggest">
+  Research grants overview
+</tux-section-header>`;
+
+const level2Vue = `<tux-section-header :level="2" subtitle="Level 2 — default">
+  Classification tiers
+</tux-section-header>`;
+
+const level3Vue = `<tux-section-header :level="3">Tag namespaces</tux-section-header>`;
+
+const subtitleVue = `<tux-section-header :level="2" subtitle="4,218 documents across 17 indices">
+  Index catalog
+</tux-section-header>`;
 </script>
 
 <template>
@@ -17,54 +31,50 @@ useHead({ title: "TuxSectionHeader · tti-ux" });
     </section>
 
     <section>
-      <TuxSectionHeader :level="1" subtitle="Level 1 — the biggest">
-        Research grants overview
-      </TuxSectionHeader>
-      <p class="text-text-secondary max-w-2xl">
-        <code>:level="1"</code> renders as <code>&lt;h1&gt;</code> with
+      <p class="eyebrow">level 1</p>
+      <h2 class="heading--bold text-xl font-bold">Biggest section heading</h2>
+      <TuxExample class="mt-4" :vue="level1Vue">
+        <TuxSectionHeader :level="1" subtitle="Level 1 — the biggest">
+          Research grants overview
+        </TuxSectionHeader>
+      </TuxExample>
+      <p class="mt-3 text-sm text-text-secondary">
+        <code>level="1"</code> renders as <code>&lt;h1&gt;</code> with
         <code>text-2xl</code>. Use for page sections that stand in for the
         main document heading.
       </p>
     </section>
 
     <section>
-      <TuxSectionHeader :level="2" subtitle="Level 2 — default">
-        Classification tiers
-      </TuxSectionHeader>
-      <p class="text-text-secondary max-w-2xl">
-        <code>:level="2"</code> is the default — <code>text-lg</code>. Use for the
-        top-level sections inside a page, where you'd otherwise reach for an h2.
-      </p>
+      <p class="eyebrow">level 2 (default)</p>
+      <h2 class="heading--bold text-xl font-bold">Default section heading</h2>
+      <TuxExample class="mt-4" :vue="level2Vue">
+        <TuxSectionHeader :level="2" subtitle="Level 2 — default">
+          Classification tiers
+        </TuxSectionHeader>
+      </TuxExample>
     </section>
 
     <section>
-      <TuxSectionHeader :level="3">Tag namespaces</TuxSectionHeader>
-      <p class="text-text-secondary max-w-2xl">
-        <code>:level="3"</code> is <code>text-sm</code>. Small, tight, great for
-        nested sub-sections inside a card or alongside a table.
-      </p>
+      <p class="eyebrow">level 3</p>
+      <h2 class="heading--bold text-xl font-bold">Smallest variant</h2>
+      <TuxExample class="mt-4" :vue="level3Vue">
+        <TuxSectionHeader :level="3">Tag namespaces</TuxSectionHeader>
+      </TuxExample>
     </section>
 
     <section>
-      <TuxSectionHeader :level="2" subtitle="4,218 documents across 17 indices">
-        Index catalog
-      </TuxSectionHeader>
-      <p class="text-sm text-text-secondary max-w-2xl">
+      <p class="eyebrow">with subtitle</p>
+      <h2 class="heading--bold text-xl font-bold">Metadata below the bar</h2>
+      <TuxExample class="mt-4" :vue="subtitleVue">
+        <TuxSectionHeader :level="2" subtitle="4,218 documents across 17 indices">
+          Index catalog
+        </TuxSectionHeader>
+      </TuxExample>
+      <p class="mt-3 text-sm text-text-secondary">
         <code>subtitle</code> renders as smaller secondary text beneath the heading
         — good for counts, timestamps, or "last updated" metadata.
       </p>
-    </section>
-
-    <section>
-      <p class="eyebrow">usage</p>
-      <h2 class="heading--bold text-xl font-bold">Source</h2>
-      <pre v-pre class="mt-3 p-4 rounded-md bg-surface-sunken text-xs font-mono overflow-auto border border-surface-border"><code>&lt;tux-section-header :level="1" subtitle="Q1 2026"&gt;
-  Research grants
-&lt;/tux-section-header&gt;
-
-&lt;tux-section-header :level="2"&gt;Classifications&lt;/tux-section-header&gt;
-
-&lt;tux-section-header :level="3"&gt;Tag namespaces&lt;/tux-section-header&gt;</code></pre>
     </section>
   </div>
 </template>

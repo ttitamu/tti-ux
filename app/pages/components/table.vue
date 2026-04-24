@@ -22,6 +22,21 @@ const columns = [
   { accessorKey: "status",  header: "Status" },
   { accessorKey: "started", header: "Started" },
 ];
+
+const basicVue = `<tux-table
+  :data="scans"
+  :columns="columns"
+  status-accessor="status"
+/>`;
+
+const customCellVue = `<tux-table :data="scans" :columns="columns" status-accessor="status">
+  <!-- custom cell override -->
+  <template #path-cell="{ row }">
+    <NuxtLink :to="\`/scans/\${row.id}\`" class="font-mono">
+      {{ '{{ row.path }}' }}
+    </NuxtLink>
+  </template>
+</tux-table>`;
 </script>
 
 <template>
@@ -44,20 +59,28 @@ const columns = [
         Point <code>status-accessor</code> at a column key and TuxTable auto-renders
         that cell as a <code>TuxBadge :status</code>.
       </p>
-      <TuxTable :data="scans" :columns="columns" status-accessor="status" />
+      <TuxExample :vue="basicVue" preview-padding="p-0">
+        <TuxTable :data="scans" :columns="columns" status-accessor="status" />
+      </TuxExample>
     </section>
 
     <section>
-      <p class="eyebrow">usage</p>
-      <h2 class="heading--bold text-xl font-bold">Source</h2>
-      <pre v-pre class="mt-3 p-4 rounded-md bg-surface-sunken text-xs font-mono overflow-auto border border-surface-border"><code>&lt;tux-table :data="scans" :columns="cols" status-accessor="status"&gt;
-  &lt;!-- custom cell override --&gt;
-  &lt;template #path-cell="{ row }"&gt;
-    &lt;NuxtLink :to="`/scans/${row.id}`" class="font-mono"&gt;
-      {{ row.path }}
-    &lt;/NuxtLink&gt;
-  &lt;/template&gt;
-&lt;/tux-table&gt;</code></pre>
+      <p class="eyebrow">custom cell slots</p>
+      <h2 class="heading--bold text-xl font-bold">Override a column</h2>
+      <p class="text-sm text-text-secondary mb-3">
+        Any column slot from UTable is forwarded. Use
+        <code>#{accessorKey}-cell</code> to replace a column's renderer — e.g.
+        turn paths into links.
+      </p>
+      <TuxExample :vue="customCellVue" preview-padding="p-0">
+        <TuxTable :data="scans" :columns="columns" status-accessor="status">
+          <template #path-cell="{ row }">
+            <NuxtLink :to="`/components/table`" class="font-mono text-text-brand hover:underline">
+              {{ (row.original || row).path }}
+            </NuxtLink>
+          </template>
+        </TuxTable>
+      </TuxExample>
     </section>
   </div>
 </template>

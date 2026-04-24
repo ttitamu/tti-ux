@@ -21,7 +21,7 @@ useHead({ title: "Typography · tti-ux" });
         Editorial-maximalist variant — italic + uppercase + extrabold + gold bar. Used
         sparingly for landing copy.
       </p>
-      <h1 class="heading--display text-5xl">the transportation institute</h1>
+      <h1 class="heading--display text-5xl">Texas A&amp;M Transportation Institute</h1>
     </section>
 
     <section>

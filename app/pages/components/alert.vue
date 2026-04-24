@@ -1,4 +1,8 @@
 <script setup lang="ts">
+// Vite's `?raw` query: the SFC file contents land here as a plain string,
+// no duplication. That powers the `Source` tab on the gallery example below.
+import tuxAlertSource from "~/components/TuxAlert.vue?raw";
+
 useHead({ title: "TuxAlert · tti-ux" });
 
 const variants = [
@@ -50,7 +54,12 @@ const iconVue = `<tux-alert
     <section>
       <p class="eyebrow">all variants</p>
       <h2 class="heading--bold text-xl font-bold">Gallery</h2>
-      <TuxExample class="mt-4" title="All 8 variants" :vue="galleryVue">
+      <TuxExample
+        class="mt-4"
+        title="All 8 variants"
+        :vue="galleryVue"
+        :source="tuxAlertSource"
+      >
         <div class="space-y-3">
           <TuxAlert
             v-for="v in variants"

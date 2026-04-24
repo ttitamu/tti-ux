@@ -1,16 +1,23 @@
 <script setup lang="ts">
+import type { Highlighter } from "shiki";
+
 /**
  * TuxExample — live demo + code-reveal container for the style guide.
  *
  * Renders the default slot as a framed preview, then a tab strip with:
  *   - Vue       · the template source (passed via `vue` prop)
  *   - HTML      · the rendered DOM, auto-extracted from the preview on mount
- *                 and pretty-printed. Updates on theme swap (MutationObserver).
+ *                 and pretty-printed. Re-syncs on theme swap / state changes
+ *                 via MutationObserver.
  *   - Source    · optional — full Tux component SFC (passed via `source` prop)
  *
- * The HTML tab is client-only because `innerHTML` relies on a mounted DOM.
- * During SSR that tab renders a placeholder, so the page still SSRs cleanly
- * for crawlers and then hydrates the HTML view in-browser.
+ * Code blocks are syntax-highlighted with Shiki, theme-aware:
+ *   tti       → github-light
+ *   tti-dark  → github-dark
+ *   tti-hc    → github-light-high-contrast
+ *
+ * Shiki is client-only (DOM-dependent), so the highlighter loads on mount
+ * and falls back to plain text until ready.
  *
  * Usage:
  *   <tux-example :vue="vueSource">
@@ -41,9 +48,52 @@ const previewRef = ref<HTMLElement | null>(null);
 const rendered = ref("");
 const copied = ref(false);
 
+const colorMode = useColorMode();
+const highlighter = ref<Highlighter | null>(null);
+
+const shikiTheme = computed(() => {
+  if (colorMode.preference === "tti-dark") return "github-dark";
+  if (colorMode.preference === "tti-hc") return "github-light-high-contrast";
+  return "github-light";
+});
+
+onMounted(async () => {
+  captureHTML();
+  attachObserver();
+  // Dynamic import keeps shiki out of SSR bundle.
+  const { createHighlighter } = await import("shiki");
+  highlighter.value = await createHighlighter({
+    themes: ["github-light", "github-dark", "github-light-high-contrast"],
+    langs: ["vue", "html"],
+  });
+});
+
+let observer: MutationObserver | null = null;
+
+function attachObserver() {
+  if (!previewRef.value) return;
+  observer = new MutationObserver(() => captureHTML());
+  observer.observe(previewRef.value, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    characterData: true,
+  });
+}
+
+onBeforeUnmount(() => {
+  observer?.disconnect();
+});
+
+function captureHTML() {
+  if (previewRef.value) {
+    rendered.value = formatHTML(previewRef.value.innerHTML);
+  }
+}
+
 // Pretty-print HTML by re-indenting on tag boundaries. Not a full formatter —
-// it strips whitespace between tags then wraps each tag on its own line with
-// depth-based indentation. Good enough for "look at what my component renders."
+// strips whitespace between tags then wraps each tag on its own line with
+// depth-based indentation. Good enough for "look at what my component emits."
 function formatHTML(html: string): string {
   const stripped = html.replace(/>\s+</g, "><").trim();
   let depth = 0;
@@ -63,33 +113,6 @@ function formatHTML(html: string): string {
   return out;
 }
 
-function captureHTML() {
-  if (previewRef.value) {
-    rendered.value = formatHTML(previewRef.value.innerHTML);
-  }
-}
-
-let observer: MutationObserver | null = null;
-
-onMounted(() => {
-  captureHTML();
-  // Re-extract on theme changes / reactive updates that mutate the preview.
-  if (previewRef.value) {
-    observer = new MutationObserver(() => captureHTML());
-    observer.observe(previewRef.value, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      characterData: true,
-    });
-  }
-});
-
-onBeforeUnmount(() => {
-  observer?.disconnect();
-});
-
-// Auto-reveal the Source tab only when `source` is provided.
 const tabs = computed(() => {
   const t: { id: Tab; label: string }[] = [
     { id: "vue", label: "Vue" },
@@ -103,6 +126,18 @@ const activeCode = computed(() => {
   if (activeTab.value === "vue") return props.vue ?? "";
   if (activeTab.value === "html") return rendered.value;
   return props.source ?? "";
+});
+
+const activeLang = computed<"vue" | "html">(() =>
+  activeTab.value === "html" ? "html" : "vue"
+);
+
+const highlightedCode = computed(() => {
+  if (!highlighter.value || !activeCode.value) return null;
+  return highlighter.value.codeToHtml(activeCode.value, {
+    lang: activeLang.value,
+    theme: shikiTheme.value,
+  });
 });
 
 async function copyActive() {
@@ -164,14 +199,40 @@ async function copyActive() {
       </button>
     </div>
 
-    <div class="bg-surface-sunken">
+    <div class="tux-example__code bg-surface-sunken">
       <ClientOnly v-if="activeTab === 'html'">
-        <pre class="m-0 p-4 text-xs font-mono overflow-auto max-h-96"><code>{{ rendered || "(awaiting mount)" }}</code></pre>
+        <div
+          v-if="highlightedCode"
+          class="shiki-wrap"
+          v-html="highlightedCode"
+        />
+        <pre v-else class="m-0 p-4 text-xs font-mono overflow-auto max-h-96"><code>{{ rendered || "(awaiting mount)" }}</code></pre>
         <template #fallback>
           <pre class="m-0 p-4 text-xs font-mono text-text-muted">Loading rendered HTML…</pre>
         </template>
       </ClientOnly>
-      <pre v-else class="m-0 p-4 text-xs font-mono overflow-auto max-h-96"><code>{{ activeCode }}</code></pre>
+      <div v-else>
+        <div
+          v-if="highlightedCode"
+          class="shiki-wrap"
+          v-html="highlightedCode"
+        />
+        <pre v-else class="m-0 p-4 text-xs font-mono overflow-auto max-h-96"><code>{{ activeCode }}</code></pre>
+      </div>
     </div>
   </div>
 </template>
+
+<style>
+/* Shiki emits `<pre class="shiki shiki-themes ..." style="background-color:..">`.
+   We let it keep its color scheme (that's the whole point), but pin sizing
+   and scroll behavior to match the rest of the style guide. */
+.tux-example__code .shiki-wrap pre.shiki {
+  margin: 0;
+  padding: 1rem;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  max-height: 24rem;
+  overflow: auto;
+}
+</style>
