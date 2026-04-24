@@ -15,7 +15,8 @@ recoverable.
 - [0002 — `Tux*` as the component prefix](0002-tux-prefix-naming.md)
 - [0003 — Standalone repo until an npm team is provisioned](0003-standalone-repo-until-npm-team.md)
 - [0004 — aggieux tokens live alongside the Nuxt UI theme, not inside it](0004-aggieux-tokens-separate-from-nuxt-ui-theme.md)
-- [0005 — Three-theme palette (tti / tti-dark / tti-hc)](0005-three-theme-palette.md)
+- [0005 — Three-theme palette (tti / tti-dark / tti-hc)](0005-three-theme-palette.md) (toggle cycle superseded by 0006)
+- [0006 — Separate high-contrast mode from the casual theme toggle](0006-separate-hc-from-casual-theme-toggle.md)
 
 ## Contributing
 

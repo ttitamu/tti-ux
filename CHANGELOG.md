@@ -7,6 +7,16 @@ when you pull." No npm publish, no version tags, yet.
 
 ## Unreleased
 
+### Changed
+- **Theme toggle split** — the header toggle is now **light ↔ dark only**
+  (`tti ↔ tti-dark`). High-contrast mode (`tti-hc`) moved to a dedicated
+  footer button, because WCAG AAA's line weights read as "broken" in a
+  casual theme cycle and users shouldn't be pushed through an
+  accessibility mode as part of aesthetic preference. See
+  [ADR 0006](docs/adr/0006-separate-hc-from-casual-theme-toggle.md) —
+  supersedes the three-way cycle from ADR 0005 (the palette itself
+  stays).
+
 ### Added
 - **Initial scaffold** (2026-04-24) — Nuxt 4 runnable style guide, extracted
   from PECAN's frontend so tti-ux can serve as the source of truth for

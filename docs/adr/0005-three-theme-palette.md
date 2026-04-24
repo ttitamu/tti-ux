@@ -1,7 +1,8 @@
 # ADR 0005 — Three-theme palette (tti / tti-dark / tti-hc)
 
 - **Date**: 2026-04-24
-- **Status**: Accepted
+- **Status**: Accepted (three-theme palette); three-way toggle cycle is
+  **superseded by [ADR 0006](0006-separate-hc-from-casual-theme-toggle.md)**
 
 ## Context
 

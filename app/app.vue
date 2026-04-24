@@ -4,23 +4,30 @@
 
 const colorMode = useColorMode();
 
-// Three-way cycle: tti → tti-dark → tti-hc → tti. The icon shows the state
-// you'll get on click (sun icon means "click for light").
-const themeToggleIcon = computed(() => {
-  if (colorMode.preference === "tti") return "lucide:moon";
-  if (colorMode.preference === "tti-dark") return "lucide:contrast";
-  return "lucide:sun";
-});
+// Header toggle: light ↔ dark only. High-contrast is an accessibility option,
+// not an aesthetic preference — it lives in the footer so users don't get
+// pushed through it during casual theme switching (see ADR-0006). The icon
+// shows the state a click will produce, mirroring OS-level toggles.
+const isDark = computed(() => colorMode.preference === "tti-dark");
+const isHighContrast = computed(() => colorMode.preference === "tti-hc");
 
-const themeToggleLabel = computed(() => {
-  if (colorMode.preference === "tti") return "Switch to dark theme";
-  if (colorMode.preference === "tti-dark") return "Switch to high-contrast theme";
-  return "Switch to standard theme";
-});
+const themeToggleIcon = computed(() =>
+  isDark.value ? "lucide:sun" : "lucide:moon"
+);
+
+const themeToggleLabel = computed(() =>
+  isDark.value ? "Switch to light theme" : "Switch to dark theme"
+);
 
 function toggleTheme() {
-  const next = { tti: "tti-dark", "tti-dark": "tti-hc", "tti-hc": "tti" } as const;
-  colorMode.preference = next[colorMode.preference as keyof typeof next] ?? "tti";
+  // From HC, clicking the light/dark toggle exits HC into whichever non-HC
+  // theme makes sense. Default to tti (light) — users on HC who want dark
+  // can click again.
+  colorMode.preference = isDark.value ? "tti" : "tti-dark";
+}
+
+function toggleHighContrast() {
+  colorMode.preference = isHighContrast.value ? "tti" : "tti-hc";
 }
 
 // Sidebar nav — grouped by role so newcomers orient by "what are you looking
@@ -173,7 +180,34 @@ watch(() => route.fullPath, () => {
         <div
           class="px-6 py-3 text-xs text-text-muted flex flex-col md:flex-row items-start md:items-center md:justify-between gap-1"
         >
-          <div>tti-ux &middot; living style guide &middot; Apache 2.0</div>
+          <div class="flex items-center gap-3">
+            <span>tti-ux &middot; living style guide &middot; Apache 2.0</span>
+            <span class="text-text-muted/50">&bull;</span>
+            <ClientOnly>
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 hover:text-text-brand transition-colors"
+                :aria-pressed="isHighContrast"
+                :title="
+                  isHighContrast
+                    ? 'High-contrast mode is on — click to exit'
+                    : 'Enable WCAG AAA high-contrast mode (accessibility)'
+                "
+                @click="toggleHighContrast"
+              >
+                <UIcon name="lucide:accessibility" class="w-3.5 h-3.5" />
+                <span>
+                  {{ isHighContrast ? "Exit high-contrast" : "High-contrast mode" }}
+                </span>
+              </button>
+              <template #fallback>
+                <span class="inline-flex items-center gap-1">
+                  <UIcon name="lucide:accessibility" class="w-3.5 h-3.5" />
+                  <span>High-contrast mode</span>
+                </span>
+              </template>
+            </ClientOnly>
+          </div>
           <div class="flex items-center gap-3">
             <span>Texas A&amp;M Transportation Institute</span>
             <span class="text-text-muted/50">&bull;</span>
