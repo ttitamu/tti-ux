@@ -31,16 +31,21 @@
   letter-spacing: -0.01em;
   line-height: 1.1;
   position: relative;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.625rem;
 }
 
+/* Editorial-maximalist accent rule. Slimmed from 100×8 to 88×3 in
+   v1.0.0 (matches the heading--bold refinement) — display heads
+   are bigger so the bar is slightly wider, but it's the same
+   "refined editorial" weight, not a marketing slab. */
 .heading--display::after {
   content: "";
   display: block;
-  width: 100px;
-  height: 8px;
+  width: 88px;
+  height: 3px;
   background: var(--brand-accent);
-  margin-top: 0.5rem;
+  border-radius: 1.5px;
+  margin-top: 0.75rem;
 }
 
 /* ------------------------------------------------------------
@@ -463,4 +468,43 @@
   box-shadow: none;
   border-style: dotted;
   border-color: var(--brand-primary-deep);
+}
+
+/* ------------------------------------------------------------
+   Demo notice — used at the top of every /examples/* page to
+   set the "this is a composition demo, not real data" expectation.
+   Lives here (not per-page) since the same rhythm should appear
+   across all three current examples + any future ones.
+   ------------------------------------------------------------ */
+.example-demo-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  background: color-mix(in srgb, var(--brand-accent) 8%, var(--surface-raised));
+  border: 1px solid color-mix(in srgb, var(--brand-accent) 35%, transparent);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.example-demo-notice__icon {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  color: var(--brand-primary);
+}
+
+[data-theme="tti-dark"] .example-demo-notice__icon {
+  color: var(--brand-accent);
+}
+
+.example-demo-notice__text {
+  margin: 0;
+}
+
+.example-demo-notice strong {
+  color: var(--text-primary);
+  font-weight: 700;
 }

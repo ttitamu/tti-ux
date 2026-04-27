@@ -75,13 +75,19 @@ body {
   padding-bottom: 0.5rem;
 }
 
+/* The gold accent rule beneath bold-style headings. Slimmed from
+   100×8px to 64×3px in v1.0.0 — the slab read as "marketing 2010"
+   next to the more refined chrome we've shipped (sidebar pills,
+   institutional footer, version pills). 3px keeps the editorial
+   weight without competing visually with the headline itself. */
 .heading--bold::after {
   content: "";
   display: block;
-  width: 100px;
-  height: 8px;
+  width: 64px;
+  height: 3px;
   background: var(--brand-accent);
-  margin-top: 0.5rem;
+  border-radius: 1.5px;
+  margin-top: 0.625rem;
 }
 
 /* Small uppercase tracked label — used above or below a heading, or to

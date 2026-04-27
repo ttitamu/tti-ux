@@ -100,12 +100,17 @@ const drillIntoFileExample = ref<string | null>(null);
 
 <template>
   <div class="space-y-10">
-    <!-- Eyebrow note explaining the example -->
-    <p class="text-xs italic text-text-muted">
-      This is an illustrative composition — not a real PECAN view. Data
-      is invented to show how the IT-facing dashboard assembles from
-      Tux* components.
-    </p>
+    <!-- "This is a demo" notice — same shape across all three example
+         pages so visitors immediately recognize the scope. -->
+    <div class="example-demo-notice">
+      <Icon name="lucide:layers" class="example-demo-notice__icon" aria-hidden="true" />
+      <p class="example-demo-notice__text">
+        <strong>Composition example.</strong>
+        Illustrative data assembled into a real-shape PECAN dashboard
+        — treemap, faceted file search, scan table, compliance alert.
+        Twelve Tux* components composed from primitives.
+      </p>
+    </div>
 
     <TuxBreadcrumbs :trail="breadcrumb" />
 
@@ -275,4 +280,5 @@ const drillIntoFileExample = ref<string | null>(null);
 .tux-table thead tr {
   background: color-mix(in srgb, var(--brand-primary) 6%, var(--surface-raised));
 }
+
 </style>

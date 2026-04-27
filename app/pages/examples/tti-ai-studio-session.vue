@@ -45,11 +45,15 @@ const cmdGroups = [
 
 <template>
   <div class="space-y-10">
-    <p class="text-xs italic text-text-muted">
-      This is an illustrative composition — not a real
-      tti-ai-studio session. Shows how the chat / agent product
-      composes from Tux* components.
-    </p>
+    <div class="example-demo-notice">
+      <Icon name="lucide:layers" class="example-demo-notice__icon" aria-hidden="true" />
+      <p class="example-demo-notice__text">
+        <strong>Composition example.</strong>
+        Real-shape tti-ai-studio session — composer, citations,
+        right-rail corpus + usage + recent sessions, ⌘K palette.
+        Nine Tux* components, app-shape register.
+      </p>
+    </div>
 
     <!-- Session breadcrumb -->
     <TuxBreadcrumbs

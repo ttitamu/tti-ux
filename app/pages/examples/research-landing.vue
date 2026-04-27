@@ -49,11 +49,23 @@ const testimonials = [
 
 <template>
   <div class="space-y-12">
-    <p class="text-xs italic text-text-muted">
-      This is an illustrative composition — not a real research-program
-      page. Shows how marketing/research surfaces compose from Tux*
-      components.
-    </p>
+    <div class="example-demo-notice">
+      <Icon name="lucide:layers" class="example-demo-notice__icon" aria-hidden="true" />
+      <p class="example-demo-notice__text">
+        <strong>Composition example.</strong>
+        Real-shape research-program landing — hero, factoids, media
+        slab, focus areas, program cards, news, testimonials, CTA.
+        Eleven Tux* components, marketing-shape register.
+      </p>
+    </div>
+
+    <TuxBreadcrumbs
+      :trail="[
+        { label: 'Home',     to: '/' },
+        { label: 'Research', to: '#' },
+        { label: 'Connected & Automated Vehicles' },
+      ]"
+    />
 
     <!-- Hero with stats anchor -->
     <TuxPageHeader
