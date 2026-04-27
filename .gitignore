@@ -6,6 +6,9 @@
 .cache
 dist
 
+# Tooling artifacts
+contrast-report.json
+
 # Node
 node_modules
 *.log

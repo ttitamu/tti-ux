@@ -13,7 +13,8 @@
     "sync:aggieux": "node scripts/sync-aggieux.mjs",
     "sync:aggieux-icons": "node scripts/sync-aggieux-icons.mjs",
     "gen:lucide-names": "node scripts/gen-lucide-names.mjs",
-    "build:logos": "node scripts/png-to-svg-logo.mjs"
+    "build:logos": "node scripts/png-to-svg-logo.mjs",
+    "audit:contrast": "node scripts/audit-contrast.mjs"
   },
   "dependencies": {
     "@nuxt/a11y": "^1.0.0-alpha.1",
@@ -39,6 +40,8 @@
     "@tanstack/vue-table": "^8.20.0",
     "@tanstack/vue-virtual": "^3.13.0",
     "potrace": "^2.1.8",
+    "puppeteer": "^24.42.0",
+    "serve-handler": "^6.1.7",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.0"
   }

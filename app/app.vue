@@ -113,6 +113,12 @@ const nav = [
       { label: "Kits",        to: "/kits",     icon: "lucide:library" },
     ],
   },
+  {
+    group: "Tooling",
+    items: [
+      { label: "Contrast audit", to: "/contrast-audit", icon: "lucide:contrast" },
+    ],
+  },
 ];
 
 // Mobile sidebar toggle — below md, sidebar slides in from the left.

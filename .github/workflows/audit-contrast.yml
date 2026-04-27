@@ -1,0 +1,55 @@
+# Run the WCAG contrast audit on every push to main + every PR. Fails
+# CI if any text/bg pair on /contrast-audit drops below 4.5:1 (3.0:1 for
+# large text). Independent of the deploy workflow so a transient audit
+# failure doesn't block site updates — but a regression here means a
+# real accessibility issue was introduced.
+#
+# How to fix locally:
+#   npm run generate
+#   NUXT_APP_BASE_URL=/tti-ux/ npm run audit:contrast
+#   # → contrast-report.json + console summary
+#   # Fix the failing colors in tokens.css or component styles, repeat.
+
+name: contrast audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Match the deploy-pages.yml runner — Node 24 / npm 11.
+          node-version: 24
+          cache: npm
+
+      - name: install
+        run: npm ci
+
+      - name: generate static site
+        env:
+          NUXT_APP_BASE_URL: /tti-ux/
+          NUXT_PAGES: "1"
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: npm run generate
+
+      - name: run contrast audit
+        env:
+          NUXT_APP_BASE_URL: /tti-ux/
+        run: npm run audit:contrast
+
+      - name: upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contrast-report
+          path: contrast-report.json
+          retention-days: 14

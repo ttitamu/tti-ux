@@ -88,6 +88,8 @@ const isWarningColor = computed(() => uColor.value === "warning");
     :class="[
       isTagFont && 'font-mono font-normal',
       isWarningColor && 'tux-badge--warning',
+      mode === 'tier' && tier && `tux-badge--tier-${tier}`,
+      mode === 'status' && status && `tux-badge--status-${status}`,
     ]"
   >
     <template v-if="mode === 'status' && status === 'running'" #leading>

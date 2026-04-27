@@ -118,6 +118,9 @@
    Warning-color text override — Nuxt UI's subtle/soft variants use
    amber-500ish text on amber-50 bg, under-contrasted. Pulled to amber-800
    across any component that opts in by adding one of these hooks.
+   In dark mode the amber-50 bg flips dark, so we lighten the text
+   correspondingly to keep ≥4.5:1 — the original #6a3e00 on a dark
+   surface read at 2.07:1 (caught by /contrast-audit).
    ------------------------------------------------------------ */
 .tux-alert--warning,
 .tux-alert--warning *,
@@ -128,8 +131,39 @@
   color: #6a3e00;
 }
 
+[data-theme="tti-dark"] .tux-alert--warning,
+[data-theme="tti-dark"] .tux-alert--warning *,
+[data-theme="tti-dark"] .tux-badge--warning,
+[data-theme="tti-dark"] .tux-badge--warning *,
+[data-theme="tti-dark"] .tux-warning-dark,
+[data-theme="tti-dark"] .tux-warning-dark * {
+  color: #f5d98a;
+}
+
 .tux-alert--warning [class*="description"] {
   opacity: 0.95;
+}
+
+/* ------------------------------------------------------------
+   TuxBadge tier overrides for dark mode — Nuxt UI's primary palette
+   is fixed at #5c0025 (maroon-500) regardless of theme, so a tier=
+   "sensitive" badge in dark mode rendered as #5c0025 text directly
+   on the dark page bg (1.33:1). Force a brighter maroon when the
+   theme is dark; the soft-variant bg from Nuxt UI is also too low-
+   contrast in dark, so we layer our own pink-tinted bg.
+   ------------------------------------------------------------ */
+[data-theme="tti-dark"] .tux-badge--tier-sensitive,
+[data-theme="tti-dark"] .tux-badge--tier-restricted {
+  color: #f3c0d0;
+  background-color: color-mix(in srgb, #d2718c 30%, transparent);
+}
+
+/* Status badges in dark mode — running's amber-700 text on dark
+   surface is the same problem as warning above. Other statuses
+   (completed, failed, queued) already pass via their semantic
+   color tokens. */
+[data-theme="tti-dark"] .tux-badge--status-running {
+  color: #f5d98a;
 }
 
 /* Tip alert — UAlert's tip-50 is slightly too saturated. Soften the

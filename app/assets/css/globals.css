@@ -18,6 +18,7 @@
   --color-brand-accent: var(--brand-accent);
   --color-brand-accent-deep: var(--brand-accent-deep);
   --color-brand-secondary: var(--brand-secondary);
+  --color-brand-fill: var(--brand-fill);
 
   --color-surface-page: var(--surface-page);
   --color-surface-raised: var(--surface-raised);

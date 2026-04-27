@@ -235,8 +235,11 @@ function linkAttrs(item: ColumnLink) {
 
 /* ──────── MAROON MARKETING ──────── */
 .tux-footer__marketing {
-  background: var(--brand-primary);
-  color: rgba(255, 255, 255, 0.85);
+  /* --brand-fill (always dark maroon) instead of --brand-primary
+     because brand-primary lightens in dark mode for text legibility,
+     which would push white-on-maroon-fill text below WCAG AA. */
+  background: var(--brand-fill);
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .tux-footer__marketing-inner {
@@ -307,7 +310,7 @@ function linkAttrs(item: ColumnLink) {
 .tux-footer__address-line,
 .tux-footer__phone {
   margin: 0;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .tux-footer__phone-link {
@@ -397,11 +400,11 @@ function linkAttrs(item: ColumnLink) {
 
 .tux-footer__column-link {
   font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.92);
   text-decoration: underline;
   text-underline-offset: 3px;
   text-decoration-thickness: 1px;
-  text-decoration-color: rgba(255, 255, 255, 0.4);
+  text-decoration-color: rgba(255, 255, 255, 0.5);
   transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 

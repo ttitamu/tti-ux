@@ -132,7 +132,9 @@ defineSlots<{
 }
 
 .tux-page-header--maroon {
-  background: var(--brand-primary);
+  /* --brand-fill instead of --brand-primary so dark mode keeps a
+     dark panel bg (white text on top stays WCAG-compliant). */
+  background: var(--brand-fill);
   color: #fff;
   padding: 1.5rem 1.5rem;
   border-radius: var(--radius-md);
@@ -140,13 +142,14 @@ defineSlots<{
 
 .tux-page-header--maroon :deep(.eyebrow),
 .tux-page-header--maroon .tux-page-header__eyebrow {
-  color: rgba(255, 255, 255, 0.72);
+  /* Bumped from 0.72 to 0.85 — was 3.46:1 against the maroon panel. */
+  color: rgba(255, 255, 255, 0.85);
 }
 .tux-page-header--maroon .tux-page-header__title {
   color: #fff;
 }
 .tux-page-header--maroon .tux-page-header__body {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.92);
 }
 
 /* Rhythm — heading + body sizes. Hero title uses clamp() so it scales
