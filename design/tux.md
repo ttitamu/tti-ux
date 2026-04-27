@@ -15,10 +15,12 @@ institution outside TAMUS that wants to borrow the pattern.
 2. **Data-dense where it counts.** Research and institutional apps can
    show thousands of rows at a time. When we get dense, we get dense
    *well* — virtualized tables, clear hierarchy, no flicker.
-3. **Accessible by default.** WCAG AA is the floor, not the ceiling.
-   Texas state agencies have §2054.459 obligations; every color token
-   ships with a documented contrast pair and a high-contrast (AAA)
-   variant.
+3. **Accessible by default.** **WCAG 2.2 Level AA** is the floor;
+   color contrast is verified at **AAA** (7:1 normal text, 4.5:1 large)
+   across all three themes by automated audit on every commit. Texas
+   state agencies have §2054.459 obligations; every color token ships
+   with a documented contrast pair. See [`/accessibility`](../app/pages/accessibility.vue)
+   for the formal statement and the per-criterion coverage table.
 4. **Themeable by institution.** Brand colors are the only thing that
    changes. Spacing, typography scale, component behavior — identical
    everywhere. Clone the TTI token file, swap four hex values, ship a
@@ -45,10 +47,12 @@ shadcn:
 
 ### The gold bar
 
-Under every editorial heading: a 100×8px **TTI gold** rule. Three
-utility variants — `heading--bold` (upright), `heading--display`
-(italic uppercase, editorial maximalist), and `TuxSectionHeader`
-(ALL-CAPS with a maroon underline). Used sparingly; not on every `<h1>`.
+Under every editorial heading: a slim **TTI gold** rule (64×3px under
+`heading--bold`, 88×3px under `heading--display`, with a 1.5px
+border-radius). Earlier drafts used a 100×8px slab; the slim hairline
+reads more "refined editorial" and less "marketing 2010" without
+losing the editorial-weight signal. `TuxSectionHeader` uses a 2px
+maroon underline scoped to text-width as a third variant.
 
 ### The card corner-drop
 
@@ -70,9 +74,9 @@ setting `data-theme` on `<html>`.
 
 | Theme         | Anchor             | Accent          | Notes                                                      |
 | ------------- | ------------------ | --------------- | ---------------------------------------------------------- |
-| `tti`         | maroon `#5C0025`   | gold `#DDAC37`  | Default. Matches TTI collateral                             |
-| `tti-dark`    | maroon-400         | gold            | Warm-charcoal dark theme; for editor-by-evening use         |
-| `tti-hc`      | dark-red `#500000` | gold `#DCAA37`  | WCAG AAA. Drawn from the 508-accessible PPTX template      |
+| `tti`         | maroon `#5C0025`   | gold `#DDAC37`  | Default light theme. AAA-verified contrast.                 |
+| `tti-dark`    | rose `#e795a8`     | gold            | Warm-charcoal dark theme. AAA-verified contrast.            |
+| `tti-hc`      | dark-red `#500000` | gold `#DCAA37`  | High-contrast variant. AAA across the board.                |
 | `tamu`        | maroon `#500000`   | white / gray    | Texas A&M University primary *(placeholder, unverified)*   |
 | `pvamu`       | purple `#500778`   | gold `#FFD700`  | Prairie View A&M *(placeholder, unverified)*               |
 | `tarleton`    | purple `#4C1D95`   | white           | Tarleton State *(placeholder, unverified)*                 |
