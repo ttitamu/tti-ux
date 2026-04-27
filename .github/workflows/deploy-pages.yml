@@ -73,16 +73,18 @@ jobs:
 
       - name: generate
         env:
-          # Per-repo base URL. The production repo (ttitamu/tti-ux)
-          # deploys to ttitamu.github.io/tti-ux/ and needs the
-          # /tti-ux/ prefix. The test fork deploys to a Pages
-          # preview subdomain (musical-fiesta-…pages.github.io)
-          # which serves at root, so its baseURL is /. Anything
-          # else (other forks, custom domains) defaults to root.
-          NUXT_APP_BASE_URL: ${{ github.repository == 'ttitamu/tti-ux' && '/tti-ux/' || '/' }}
-          # Switches the Nitro preset to `github_pages` (emits the
-          # `.nojekyll` marker + static dist). Local builds without
-          # this env var keep the default node-server preset.
+          # baseURL stays at "/" (the nuxt.config.ts default) because
+          # ttitamu/tti-ux deploys to a randomized Pages subdomain
+          # (musical-fiesta-p3jjr6m.pages.github.io/) that serves at
+          # root, NOT to ttitamu.github.io/tti-ux/. Verified via the
+          # Pages API:
+          #   curl /repos/ttitamu/tti-ux/pages
+          #   → html_url: https://musical-fiesta-p3jjr6m.pages.github.io/
+          # When/if a custom domain (e.g. tti-ux.tti.tamu.edu) lands,
+          # this stays at "/". The /tti-ux/ subpath would only be
+          # needed under the legacy ttitamu.github.io/tti-ux/ URL
+          # pattern, which GitHub no longer issues by default for
+          # private/internal repos.
           NUXT_PAGES: "1"
           # Bump V8 heap. The default (~1.5GB on Node 24) OOMed during
           # prerender — we walk ~80 routes including font fetches +

@@ -45,10 +45,11 @@ const ROOT = path.resolve(__dirname, "..");
 const STATIC_DIR = path.join(ROOT, ".output", "public");
 const REPORT_PATH = path.join(ROOT, "contrast-report.json");
 
-// Static github_pages builds use NUXT_APP_BASE_URL=/tti-ux/ as the base. The
-// dev/server build uses /. Both are valid `npm run generate` outputs; we
-// detect which by looking at the root index.html for the baseURL hint, then
-// build the audit URL accordingly.
+// The audit URL is derived from NUXT_APP_BASE_URL (default "/"). The
+// production deploy is at root (musical-fiesta-…pages.github.io/), so
+// most builds keep "/" — but the script also handles a non-root prefix
+// via the URL-rewriting middleware below, so a build with a /foo/
+// prefix still audits cleanly.
 const BASE_URL = process.env.NUXT_APP_BASE_URL || "/";
 const PORT = Number.parseInt(process.env.AUDIT_PORT ?? "7878", 10);
 const AUDIT_PATH = `${BASE_URL.replace(/\/$/, "")}/contrast-audit/`;
@@ -71,8 +72,9 @@ if (!existsSync(path.join(STATIC_DIR, "contrast-audit", "index.html"))) {
 // ── Local server ──────────────────────────────────────────────────────────
 // Strip the configured base URL prefix from incoming paths so requests
 // resolve against STATIC_DIR regardless of how the build was generated.
-// The github_pages build emits assets at /tti-ux/_nuxt/... but serve-
-// handler treats STATIC_DIR as root.
+// If NUXT_APP_BASE_URL is set to a subpath (e.g. /foo/), assets are
+// emitted as /foo/_nuxt/... but serve-handler treats STATIC_DIR as
+// root — strip the prefix so they resolve.
 const baseStrip = BASE_URL.replace(/\/$/, "");
 const server = createServer((req, res) => {
   if (baseStrip && req.url?.startsWith(baseStrip + "/")) {

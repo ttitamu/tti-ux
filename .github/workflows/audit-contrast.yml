@@ -57,17 +57,14 @@ jobs:
 
       - name: generate static site
         env:
-          # The audit script rewrites incoming /tti-ux/ paths to
-          # /, so the build can use either prefix. Keep /tti-ux/
-          # for parity with the production deploy.
-          NUXT_APP_BASE_URL: /tti-ux/
+          # Production deploys at root (musical-fiesta-…pages.github.io/),
+          # so no baseURL prefix. Matches deploy-pages.yml.
           NUXT_PAGES: "1"
           NODE_OPTIONS: --max-old-space-size=6144
         run: npm run generate
 
       - name: run contrast audit (AAA gate)
         env:
-          NUXT_APP_BASE_URL: /tti-ux/
           AUDIT_LEVEL: AAA
           # Tell puppeteer to use --no-sandbox on the runner. The
           # GitHub-hosted runner doesn't allow user namespaces, so

@@ -70,7 +70,7 @@ overriding only the `--brand-*` slots.
 ```sh
 # Run the audit locally:
 npm run generate
-NUXT_APP_BASE_URL=/tti-ux/ AUDIT_LEVEL=AAA npm run audit:contrast
+AUDIT_LEVEL=AAA npm run audit:contrast
 ```
 
 ## Consuming from another app (pre-npm-team)
