@@ -27,6 +27,18 @@ const props = defineProps<Props>();
 const hasChildren = computed(() => (props.section.children?.length ?? 0) > 0);
 const open = computed(() => props.isOpen(props.section, props.path));
 
+// "Active trail" — true when this section is the active route OR any
+// descendant is. Used to render a maroon guide line up the ancestor
+// chain so the eye can trace from the active item back to its section
+// root. Same pattern Drupal calls "active trail" and Microsoft Learn
+// calls "tree guides with active state."
+const inActiveTrail = computed(() => containsActive(props.section));
+
+function containsActive(section: DocsSection): boolean {
+  if (props.isActive(section)) return true;
+  return section.children?.some(c => containsActive(c)) ?? false;
+}
+
 function pathOf(child: DocsSection): string {
   return `${props.path}/${child.label}`;
 }
@@ -76,7 +88,10 @@ function escape(s: string): string {
           aria-hidden="true"
         />
       </summary>
-      <ul class="tux-docs-sidebar__sublist">
+      <ul
+        class="tux-docs-sidebar__sublist"
+        :class="{ 'tux-docs-sidebar__sublist--active-trail': inActiveTrail }"
+      >
         <TuxDocsSidebarNode
           v-for="child in section.children"
           :key="child.label"
@@ -202,12 +217,23 @@ function escape(s: string): string {
   transform: rotate(90deg);
 }
 
+/* Indent guide — single thin vertical line per nesting level. The
+   "active trail" modifier (set by the parent node when it contains
+   the active route) thickens + colors this line so the eye can
+   follow the maroon up the ancestor chain to the active item.
+   This is what Drupal calls "active trail" and Microsoft Learn
+   calls "tree guides with active state." */
 .tux-docs-sidebar__sublist {
   list-style: none;
   margin: 0.125rem 0 0.375rem;
   padding: 0;
-  border-left: 1px solid var(--surface-border);
   margin-left: 0.875rem;
+  border-left: 1px solid var(--surface-border);
+  transition: border-color 0.15s ease;
+}
+
+.tux-docs-sidebar__sublist--active-trail {
+  border-left-color: var(--brand-primary);
 }
 
 .tux-docs-sidebar__link {
@@ -218,16 +244,43 @@ function escape(s: string): string {
   font-size: 0.8125rem;
   color: var(--text-secondary);
   text-decoration: none;
-  border-radius: var(--radius-sm);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  /* Negative margin pulls the link's left edge over the parent
+     sublist's border, so the active treatment "merges" with the
+     trail line instead of stacking next to it. */
   border-left: 2px solid transparent;
   margin-left: -1px;
+  position: relative;
   transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
-.tux-docs-sidebar__link--depth-0 { padding-left: 0.5rem; }
+.tux-docs-sidebar__link--depth-0 {
+  padding-left: 0.5rem;
+  border-radius: var(--radius-sm);
+  margin-left: 0;
+  border-left: 0;
+}
 .tux-docs-sidebar__link--depth-1 { padding-left: 1.125rem; }
 .tux-docs-sidebar__link--depth-2 { padding-left: 1.875rem; }
 .tux-docs-sidebar__link--depth-3 { padding-left: 2.625rem; }
+
+/* Subtle horizontal connector — a tiny tick from the guide line to
+   the link's left edge. Adds a small visual cue without going full
+   ASCII-tree. Suppressed at depth 0 (no parent guide to connect to). */
+.tux-docs-sidebar__link:not(.tux-docs-sidebar__link--depth-0)::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0.4375rem;
+  height: 1px;
+  background: var(--surface-border);
+  transform: translateY(-50%);
+}
+
+.tux-docs-sidebar__sublist--active-trail > .tux-docs-sidebar__item > .tux-docs-sidebar__link::before {
+  background: var(--brand-primary);
+}
 
 .tux-docs-sidebar__link:hover {
   background: var(--surface-sunken);
@@ -237,8 +290,30 @@ function escape(s: string): string {
 .tux-docs-sidebar__link--active {
   color: var(--brand-primary);
   font-weight: 600;
+  /* Bump the left bar to 3px so the active item is the visual
+     anchor of the trail — heavier than the 2px ancestor lines
+     above it. */
   border-left-color: var(--brand-primary);
-  background: color-mix(in srgb, var(--brand-primary) 5%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+}
+
+.tux-docs-sidebar__link--active:not(.tux-docs-sidebar__link--depth-0) {
+  border-left-width: 3px;
+  margin-left: -2px;
+}
+
+/* Same treatment for summary rows in the active trail — when an
+   ancestor is the trail, the chevron + label of the open section
+   above the active item gets the brand color so the user can see
+   "I'm inside this section" at a glance. */
+.tux-docs-sidebar__group:has(.tux-docs-sidebar__link--active) > .tux-docs-sidebar__summary,
+.tux-docs-sidebar__group:has(.tux-docs-sidebar__sublist--active-trail) > .tux-docs-sidebar__summary {
+  color: var(--brand-primary);
+}
+
+.tux-docs-sidebar__group:has(.tux-docs-sidebar__link--active) > .tux-docs-sidebar__summary .tux-docs-sidebar__chevron,
+.tux-docs-sidebar__group:has(.tux-docs-sidebar__sublist--active-trail) > .tux-docs-sidebar__summary .tux-docs-sidebar__chevron {
+  color: var(--brand-primary);
 }
 
 .tux-docs-sidebar__heading {
