@@ -1,5 +1,41 @@
 <script setup lang="ts">
+import pkg from "../../package.json";
+
 useHead({ title: "tti-ux — Living style guide" });
+
+const version = pkg.version;
+
+// Recent-changes feed for the welcome page. Hand-curated rather than
+// parsed from CHANGELOG.md — the changelog is verbose (designed to be
+// read end-to-end) and the home page wants a glanceable shortlist.
+// Update this when shipping a noteworthy batch; the canonical history
+// stays in CHANGELOG.md.
+const recentUpdates = [
+  {
+    date: "2026-04-27",
+    title: "Doc-site chrome batch",
+    body: "TuxDocsSidebar, TuxTOC, TuxSiteNav, TuxDropdown, TuxMegaMenu — the navigation + doc-shape components for technical documentation sites.",
+    to: "/components/docs-sidebar",
+  },
+  {
+    date: "2026-04-26",
+    title: "Authoring + content batch",
+    body: "TuxCodeBlock, TuxDiagram, MDC integration. Markdown rendering with Tux* components inline; SSR-rendered Shiki + Mermaid.",
+    to: "/components/code-block",
+  },
+  {
+    date: "2026-04-25",
+    title: "Container queries everywhere",
+    body: "Responsive layouts now key off component width via container queries, not viewport width — fixes the long-standing \"works in full-width but breaks in a narrow demo wrapper\" bug.",
+    to: "/design/components",
+  },
+  {
+    date: "2026-04-24",
+    title: "tti-ux extracted from PECAN",
+    body: "Forked the design-system source out of pecan into a standalone runnable style guide. Three downstream consumers: PECAN, tti-ai-studio, this style guide itself.",
+    to: "/design/tux",
+  },
+];
 
 const components = [
   { name: "TuxAlert",         to: "/components/alert",          blurb: "Docusaurus-style admonitions — 8 variants." },
@@ -54,13 +90,58 @@ const components = [
 <template>
   <div class="space-y-10">
     <section>
-      <p class="eyebrow">tti-ux</p>
+      <p class="eyebrow">
+        <span>tti-ux</span>
+        <span class="welcome-version">v{{ version }}</span>
+      </p>
       <h1 class="heading--display text-4xl">TTI Design System</h1>
       <p class="mt-4 max-w-2xl text-text-secondary leading-relaxed">
         A living style guide for Texas A&amp;M Transportation Institute apps built on Nuxt 4.
         Every page you see is rendered by the same components your app imports — so this site
         <span class="link-tti">is</span> the source of truth, not a doc of it.
       </p>
+      <p class="mt-3 max-w-2xl text-text-secondary leading-relaxed">
+        Three products consume this system today: <strong>PECAN</strong>
+        (sensitive-data classifier for IT), <strong>tti-ai-studio</strong>
+        (LLM tooling for researchers), and this style guide itself.
+        Themed for TTI maroon &amp; gold, structured so a sister
+        institution can repaint via tokens without forking the
+        components. Apache 2.0.
+      </p>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <NuxtLink to="/design/tux" class="welcome-cta welcome-cta--primary">
+          <span>Read the doctrine</span>
+          <Icon name="lucide:arrow-right" class="welcome-cta-icon" aria-hidden="true" />
+        </NuxtLink>
+        <NuxtLink to="/components" class="welcome-cta">
+          <span>Browse components</span>
+          <Icon name="lucide:arrow-right" class="welcome-cta-icon" aria-hidden="true" />
+        </NuxtLink>
+        <a href="https://github.com/anthonyguevara/tti-ux-test" target="_blank" rel="noopener" class="welcome-cta">
+          <Icon name="lucide:github" class="welcome-cta-icon" aria-hidden="true" />
+          <span>Repo</span>
+        </a>
+      </div>
+    </section>
+
+    <section>
+      <p class="eyebrow">recent updates</p>
+      <div class="welcome-updates-header">
+        <h2 class="heading--bold text-2xl font-bold">What's new</h2>
+        <a href="https://github.com/anthonyguevara/tti-ux-test/blob/main/CHANGELOG.md" target="_blank" rel="noopener" class="welcome-updates-changelog">
+          <span>Full changelog</span>
+          <Icon name="lucide:external-link" class="welcome-cta-icon" aria-hidden="true" />
+        </a>
+      </div>
+      <ul class="welcome-updates">
+        <li v-for="u in recentUpdates" :key="u.title" class="welcome-update">
+          <time class="welcome-update__date">{{ u.date }}</time>
+          <div class="welcome-update__body">
+            <NuxtLink :to="u.to" class="welcome-update__title">{{ u.title }}</NuxtLink>
+            <p class="welcome-update__text">{{ u.body }}</p>
+          </div>
+        </li>
+      </ul>
     </section>
 
     <section>
@@ -168,3 +249,163 @@ const components = [
     </section>
   </div>
 </template>
+
+<style scoped>
+/* Version chip in the welcome eyebrow — same monospace + maroon
+   treatment as the header pill, scaled to eyebrow rhythm. */
+.welcome-version {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.5rem;
+  padding: 0.0625rem 0.375rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  border-radius: var(--radius-sm);
+}
+
+[data-theme="tti-dark"] .welcome-version {
+  color: var(--brand-accent);
+  background: color-mix(in srgb, var(--brand-accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--brand-accent) 28%, transparent);
+}
+
+/* CTA buttons under the welcome paragraph. The primary variant gets
+   a maroon fill; the secondary gets a hairline border. Same tone
+   pattern used in TuxButton but kept inline because these are
+   landing-page-only and don't warrant adding a new TuxButton variant. */
+.welcome-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  padding: 0.5rem 0.875rem;
+  font-family: var(--font-bold);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.welcome-cta:hover,
+.welcome-cta:focus-visible {
+  background: var(--surface-sunken);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.welcome-cta--primary {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #fff;
+}
+
+.welcome-cta--primary:hover,
+.welcome-cta--primary:focus-visible {
+  background: color-mix(in srgb, var(--brand-primary) 88%, #000);
+  border-color: var(--brand-primary);
+  color: #fff;
+}
+
+.welcome-cta-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Recent-updates feed — date column + title + body. Reads as a
+   timeline rather than a card grid so it's clearly "log of changes"
+   not "categories of content". */
+.welcome-updates-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.welcome-updates-changelog {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--surface-border);
+  padding-bottom: 1px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.welcome-updates-changelog:hover,
+.welcome-updates-changelog:focus-visible {
+  color: var(--brand-primary);
+  border-color: var(--brand-primary);
+  outline: none;
+}
+
+.welcome-updates {
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--surface-border);
+}
+
+.welcome-update {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.25rem 1.5rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+@container (min-width: 38rem) {
+  .welcome-update {
+    grid-template-columns: 7rem 1fr;
+    gap: 0 1.5rem;
+  }
+}
+
+.welcome-update__date {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.welcome-update__title {
+  display: block;
+  font-family: var(--font-bold);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.welcome-update__title:hover,
+.welcome-update__title:focus-visible {
+  color: var(--brand-primary);
+  outline: none;
+}
+
+.welcome-update__text {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+</style>

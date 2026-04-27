@@ -80,6 +80,14 @@ const stateLinks = [
             >{{ l.label }}</a>
           </li>
         </ul>
+
+        <!-- Optional preferences slot — accessibility toggles, locale
+             switchers, etc. Rendered subtly below the state-links so
+             it doesn't compete with the legal copy. tti-ux uses this
+             for the high-contrast toggle (per ADR-0006). -->
+        <div v-if="$slots.preferences" class="tux-subfooter__preferences">
+          <slot name="preferences" />
+        </div>
       </div>
 
       <!-- State seal placeholder -->
@@ -203,6 +211,36 @@ const stateLinks = [
 .tux-subfooter__link:hover,
 .tux-subfooter__link:focus-visible {
   opacity: 0.8;
+  outline: none;
+}
+
+.tux-subfooter__preferences {
+  margin-top: 0.625rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.6875rem;
+  color: rgba(255, 255, 255, 0.55);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.875rem;
+}
+
+.tux-subfooter__preferences :deep(button) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.tux-subfooter__preferences :deep(button:hover),
+.tux-subfooter__preferences :deep(button:focus-visible) {
+  color: var(--brand-accent);
   outline: none;
 }
 

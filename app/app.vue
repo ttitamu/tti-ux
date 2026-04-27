@@ -114,6 +114,49 @@ const route = useRoute();
 watch(() => route.fullPath, () => {
   sidebarOpen.value = false;
 });
+
+// Version surfaced in the header pill + welcome page. Sourced from
+// package.json so a `npm version` bump propagates without code edits.
+import pkg from "../package.json";
+const pkgVersion = pkg.version;
+
+// Marketing-footer config — modeled on tti.tamu.edu's footer
+// inventory. Two columns of state-resource + policy links, plus a
+// social-icon row beneath the address. Lucide ships the brand
+// glyphs we need; Threads doesn't have a Lucide icon yet so we
+// drop it (the production tti.tamu.edu has 6 socials; we ship 5).
+const footerSocial = [
+  { icon: "lucide:linkedin",  label: "LinkedIn",  href: "https://www.linkedin.com/company/texas-a-m-transportation-institute/" },
+  { icon: "lucide:facebook",  label: "Facebook",  href: "https://www.facebook.com/TTITAMUS" },
+  { icon: "lucide:instagram", label: "Instagram", href: "https://www.instagram.com/ttitamus/" },
+  { icon: "lucide:youtube",   label: "YouTube",   href: "https://www.youtube.com/user/TTIVideoChannel" },
+  { icon: "lucide:twitter",   label: "X (Twitter)", href: "https://x.com/TTITAMUS" },
+];
+
+const footerColumns = [
+  {
+    heading: "State Resources",
+    links: [
+      { label: "The State of Texas",          href: "https://www.texas.gov/" },
+      { label: "Texas Homeland Security",     href: "https://gov.texas.gov/organization/hs" },
+      { label: "Texas Veterans Portal",       href: "https://veterans.portal.texas.gov/" },
+      { label: "State Expenditure Database",  href: "https://comptroller.texas.gov/transparency/" },
+      { label: "Statewide Search",            href: "https://www.tsl.texas.gov/trail/" },
+      { label: "State Auditor's Office Hotline", href: "https://sao.fraud.texas.gov/" },
+    ],
+  },
+  {
+    heading: "Policies",
+    links: [
+      { label: "TAMUS Risk, Fraud & Misconduct Hotline", href: "https://secure.ethicspoint.com/domain/media/en/gui/19681/index.html" },
+      { label: "Digital Accessibility",       href: "https://gov.texas.gov/organization/disabilities/accessibility-policy" },
+      { label: "Site Policies",               href: "https://www.tamus.edu/site-policies/" },
+      { label: "Open Records Policy",         href: "https://www.tamus.edu/open-records/" },
+      { label: "Statutorily Required Reports", href: "https://www.tamus.edu/legal/statutorily-required-reports/" },
+      { label: "Repo on GitHub",              href: "https://github.com/anthonyguevara/tti-ux-test" },
+    ],
+  },
+];
 </script>
 
 <template>
@@ -139,13 +182,23 @@ watch(() => route.fullPath, () => {
                line above the product name, the same rhythm consuming
                apps will use. `logoSize` is shrunk a hair (32px) so the
                header keeps the same vertical density it had before. -->
-          <TuxIdentity
-            level="center"
-            superhead="Texas A&M Transportation Institute"
-            name="tti-ux"
-            href="/"
-            :logo-size="32"
-          />
+          <div class="flex items-center gap-3">
+            <TuxIdentity
+              level="center"
+              superhead="Texas A&M Transportation Institute"
+              name="tti-ux"
+              href="/"
+              :logo-size="32"
+            />
+            <!-- Version pill — kept local to the style guide chrome. If
+                 a second product ever wants this affordance, promote
+                 it to a TuxIdentity prop. Until then: don't bolt the
+                 abstraction on speculatively. -->
+            <span
+              class="tux-version-pill"
+              :title="`tti-ux ${pkgVersion} \u2014 see /changelog for release notes`"
+            >v{{ pkgVersion }}</span>
+          </div>
 
           <div class="flex-1" />
 
@@ -222,20 +275,26 @@ watch(() => route.fullPath, () => {
            a chrome theme — it lives in the footer's #extra slot so
            users don't get pushed through it during casual theme
            switching (see ADR-0006). -->
-      <TuxFooter
-        version="tti-ux · living style guide · Apache 2.0"
-        name="Texas A&M Transportation Institute · Networking & Information Services"
-        :links="[
-          { label: 'Repo',       href: 'https://github.com/anthonyguevara/tti-ux-test' },
-          { label: 'Components', to: '/components' },
-          { label: 'Tokens',     to: '/tokens' },
-        ]"
-      >
-        <template #extra>
+      <!-- Marketing-shape footer for the style guide itself — the
+           public face of the design system. PECAN / tti-ai-studio
+           keep using the slim TuxFooter; this richer maroon footer
+           is for marcom-shaped surfaces. The mandatory TAMUS legal
+           strip stays directly below it (CLAUDE.md non-negotiable). -->
+      <TuxMarketingFooter
+        :columns="footerColumns"
+        :social="footerSocial"
+      />
+
+      <!-- Mandatory TAMUS legal strip. The high-contrast toggle lives
+           here per ADR-0006: accessibility is a compliance affordance,
+           not a chrome theme — surfacing it inside the legal strip
+           matches the institutional reading of "this is required,
+           not aesthetic". -->
+      <TuxSubfooter>
+        <template #preferences>
           <ClientOnly>
             <button
               type="button"
-              class="inline-flex items-center gap-1 hover:text-text-brand transition-colors"
               :aria-pressed="isHighContrast"
               :title="
                 isHighContrast
@@ -257,8 +316,35 @@ watch(() => route.fullPath, () => {
             </template>
           </ClientOnly>
         </template>
-      </TuxFooter>
-      <TuxSubfooter />
+      </TuxSubfooter>
     </div>
   </UApp>
 </template>
+
+<style scoped>
+/* Version chip next to the header lockup. Monospace + brand maroon
+   to read as "this is a system token, not editorial copy". The
+   weight is heavier than the address copy so it pops against the
+   wordmark without competing with the lockup itself. */
+.tux-version-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.4375rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+[data-theme="tti-dark"] .tux-version-pill {
+  color: var(--brand-accent);
+  background: color-mix(in srgb, var(--brand-accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--brand-accent) 28%, transparent);
+}
+</style>
