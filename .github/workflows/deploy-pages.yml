@@ -4,8 +4,18 @@
 # directories like `_nuxt/` correctly.
 #
 # Triggers:
-#   - push to main → publishes the live site
+#   - push to main on ttitamu/tti-ux → publishes the live site
 #   - manual workflow_dispatch → for republish without a code change
+#
+# **This workflow is gated to the production repo** (ttitamu/tti-ux).
+# Forks and the test repo (anthonyguevara/tti-ux-test) skip the build
+# entirely — Pages requires repo-level enablement that the workflow
+# token can't grant on its own (Resource not accessible by integration
+# from configure-pages@v5). To enable Pages on a fork:
+#   1. Settings → Pages → Source = "GitHub Actions"
+#   2. Re-run this workflow.
+# After that one-time manual step, the gate below can be relaxed for
+# the fork.
 #
 # Required GH settings: Settings → Pages → Source = "GitHub Actions"
 # (not "Deploy from a branch"). Permissions are scoped per the
@@ -38,6 +48,10 @@ env:
 
 jobs:
   build:
+    # Gate: only the production repo deploys. Other repos' pushes still
+    # run the contrast audit (which lives in audit-contrast.yml and is
+    # NOT gated), they just don't deploy.
+    if: github.repository == 'ttitamu/tti-ux'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -91,6 +105,7 @@ jobs:
           path: .output/public
 
   deploy:
+    if: github.repository == 'ttitamu/tti-ux'
     needs: build
     runs-on: ubuntu-latest
     environment:
