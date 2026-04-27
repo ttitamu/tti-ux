@@ -287,17 +287,24 @@ function escape(s: string): string {
   color: var(--text-primary);
 }
 
+/* Active item — maroon left bar + bold maroon text. No background
+   fill. tux uses maroon as accent, not as soft tinted padding —
+   that's the dashboard-app aesthetic, which doesn't fit the
+   editorial register the rest of the system commits to (card
+   corner-drop, gold bar, ALL-CAPS section underline). The bar +
+   bold text + the maroon trail guide above carry the "you are
+   here" signal cleanly on their own. */
 .tux-docs-sidebar__link--active {
   color: var(--brand-primary);
-  font-weight: 600;
-  /* Bump the left bar to 3px so the active item is the visual
-     anchor of the trail — heavier than the 2px ancestor lines
-     above it. */
+  font-weight: 700;
   border-left-color: var(--brand-primary);
-  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
 }
 
 .tux-docs-sidebar__link--active:not(.tux-docs-sidebar__link--depth-0) {
+  /* 3px bar at the active item — heavier than the 2px ancestor
+     guide lines so the eye lands on the active row first. Negative
+     margin pulls the bar over the parent guide so they merge into
+     a single continuous trail. */
   border-left-width: 3px;
   margin-left: -2px;
 }
