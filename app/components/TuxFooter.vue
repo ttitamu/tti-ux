@@ -22,16 +22,26 @@
 //   │                        [#preferences slot]     │
 //   └────────────────────────────────────────────────┘
 //
-// **The black legal strip is mandatory and non-configurable.** Per
-// CLAUDE.md and AggieUX policy, the TAMUS lockup, the
-// "Coordinated Statewide Transportation Research Program" tagline
-// (TTI-specific), and the state-agency link list ship verbatim on
-// every TTI surface. Don't add knobs for those — propose changes
-// upstream first.
+// The black legal strip is intentionally minimal — TAMUS lockup
+// left, © + name right, optional #preferences slot below. The
+// TTI-specific tagline ("Coordinated Statewide Transportation
+// Research Program") lives in the marketing section just below
+// the institution name, where it carries more editorial weight.
 //
-// The maroon marketing section IS configurable: pass `social` and
+// **State-agency compliance links** (Veterans Portal, Open Records,
+// Risk/Fraud Hotline, etc.) belong in the user-passed `columns` —
+// the production tti.tamu.edu / tamu.edu pattern is to surface
+// them in the marketing-shape link inventory, not duplicate them
+// in a sub-bar. Earlier versions of this component shipped a
+// non-configurable legal-link list at the bottom; that left the
+// rendered footer with awkward duplication (Texas Veterans Portal
+// appearing twice, etc.) and was dropped in favor of the
+// production pattern.
+//
+// The maroon marketing section is configurable: pass `social` and
 // `columns` to populate it. Pass nothing and you get just the
-// identity block, which is the right shape for an app dashboard.
+// identity block + the TAMUS lockup strip, which is the right
+// shape for an app dashboard.
 
 interface SocialLink {
   /** Lucide icon name, e.g. "lucide:linkedin", "lucide:facebook". */
@@ -68,8 +78,15 @@ interface Props {
   /** Social-platform links. Renders as an icon row beneath the address. */
   social?: SocialLink[];
   /** Right-side resource/policy columns. Two is canonical; three+
-   *  works on wide containers. Pass empty to suppress. */
+   *  works on wide containers. Include any state-agency compliance
+   *  links your institution requires (Veterans Portal, Open Records,
+   *  Risk/Fraud Hotline) here — there's no longer a separate legal
+   *  link list at the bottom. */
   columns?: Column[];
+  /** TTI-specific research-program tagline rendered as a small
+   *  italic line below the institution name. Override or pass
+   *  empty for sibling institutions with different mandate text. */
+  tagline?: string;
   /** Year for the © line. Defaults to current year. */
   year?: number;
 }
@@ -82,20 +99,9 @@ withDefaults(defineProps<Props>(), {
   logoSize: 80,
   social: () => [],
   columns: () => [],
+  tagline: "Coordinated Statewide Transportation Research Program",
   year: () => new Date().getFullYear(),
 });
-
-// State-agency link list. **Mandatory order, mandatory labels** per
-// AggieUX rules. Don't rename or remove without coordinating with
-// TAMUS compliance.
-const stateLinks = [
-  { label: "State Link Policy",                 href: "https://statelinkpolicy.texas.gov/" },
-  { label: "Texas Veterans Portal",             href: "https://veterans.portal.texas.gov/" },
-  { label: "Open Records / Public Information", href: "https://www.tamus.edu/open-records/" },
-  { label: "Risk, Fraud & Misconduct Hotline",  href: "https://www.tamus.edu/business/risk-management/" },
-  { label: "Statewide Search",                  href: "https://www.tsl.texas.gov/trail/" },
-  { label: "Site Links & Policies",             href: "https://www.tamus.edu/site-policies/" },
-];
 
 function isInternal(href: string | undefined, to: string | undefined) {
   if (to) return true;
@@ -133,6 +139,7 @@ function linkAttrs(item: ColumnLink) {
 
           <div class="tux-footer__identity-text">
             <p class="tux-footer__name">{{ name }}</p>
+            <p v-if="tagline" class="tux-footer__tagline">{{ tagline }}</p>
             <p
               v-for="line in address.split('\n')"
               :key="line"
@@ -185,10 +192,12 @@ function linkAttrs(item: ColumnLink) {
       </div>
     </div>
 
-    <!-- ────────── BLACK LEGAL STRIP (MANDATORY) ────────── -->
+    <!-- ────────── BLACK LEGAL STRIP — minimal: TAMUS lockup left,
+         © right, optional preferences below if used. State-agency
+         links live in `columns` above (production tti.tamu.edu /
+         tamu.edu pattern). ────────── -->
     <div class="tux-footer__legal">
       <div class="tux-footer__legal-inner">
-        <!-- TAMUS lockup -->
         <a
           href="https://www.tamus.edu/"
           target="_blank"
@@ -203,28 +212,14 @@ function linkAttrs(item: ColumnLink) {
           </span>
         </a>
 
-        <!-- Tagline + © + state links + optional preferences -->
-        <div class="tux-footer__legal-content">
-          <p class="tux-footer__tagline">
-            Coordinated Statewide Transportation Research Program
-          </p>
-          <p class="tux-footer__copy">
-            © {{ year }} {{ name }} · {{ address.split("\n").join(" · ") }}
-          </p>
-          <ul class="tux-footer__legal-links">
-            <li v-for="l in stateLinks" :key="l.label">
-              <a
-                :href="l.href"
-                target="_blank"
-                rel="noopener"
-                class="tux-footer__legal-link"
-              >{{ l.label }}</a>
-            </li>
-          </ul>
+        <p class="tux-footer__copy">
+          © {{ year }} {{ name }}
+        </p>
+      </div>
 
-          <div v-if="$slots.preferences" class="tux-footer__preferences">
-            <slot name="preferences" />
-          </div>
+      <div v-if="$slots.preferences" class="tux-footer__preferences">
+        <div class="tux-footer__preferences-inner">
+          <slot name="preferences" />
         </div>
       </div>
     </div>
@@ -291,12 +286,22 @@ function linkAttrs(item: ColumnLink) {
 }
 
 .tux-footer__name {
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.125rem;
   font-family: var(--font-bold);
   font-weight: 700;
   font-size: 1rem;
   color: #fff;
   line-height: 1.3;
+}
+
+.tux-footer__tagline {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-elegant), serif;
+  font-style: italic;
+  font-size: 0.8125rem;
+  color: var(--brand-accent);
+  line-height: 1.35;
+  max-width: 22rem;
 }
 
 .tux-footer__address-line,
@@ -418,25 +423,27 @@ function linkAttrs(item: ColumnLink) {
 .tux-footer__legal-inner {
   max-width: 80rem;
   margin: 0 auto;
-  padding: 1.25rem 1.5rem;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
+  padding: 0.875rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
   align-items: flex-start;
 }
 
 @container tux-footer (min-width: 48rem) {
   .tux-footer__legal-inner {
-    grid-template-columns: auto 1fr;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     gap: 2rem;
-    padding: 1.5rem 2rem;
+    padding: 0.875rem 2rem;
   }
 }
 
 .tux-footer__lockup {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.625rem;
   text-decoration: none;
   color: inherit;
   flex-shrink: 0;
@@ -453,13 +460,13 @@ function linkAttrs(item: ColumnLink) {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2rem;
+  height: 2rem;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(221, 172, 55, 0.3);
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--brand-accent);
   flex-shrink: 0;
@@ -485,54 +492,42 @@ function linkAttrs(item: ColumnLink) {
   color: rgba(255, 255, 255, 0.9);
 }
 
-.tux-footer__legal-content {
-  min-width: 0;
-}
-
-.tux-footer__tagline {
-  margin: 0 0 0.25rem;
-  color: rgba(255, 255, 255, 0.55);
-}
-
 .tux-footer__copy {
-  margin: 0 0 0.5rem;
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: right;
 }
 
-.tux-footer__legal-links {
-  list-style: none;
-  margin: 0.375rem 0 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.875rem;
-}
-
-.tux-footer__legal-link {
-  color: var(--brand-accent);
-  text-decoration: none;
-  border-bottom: 1px solid var(--brand-accent);
-  padding-bottom: 1px;
-  transition: opacity 0.15s ease;
-}
-
-.tux-footer__legal-link:hover,
-.tux-footer__legal-link:focus-visible {
-  opacity: 0.8;
-  outline: none;
+@container tux-footer (max-width: 48rem) {
+  .tux-footer__copy {
+    text-align: left;
+  }
 }
 
 /* Optional preferences slot — accessibility toggles, locale switcher,
-   etc. Subtle, below the legal links so it doesn't compete with the
-   compliance copy. */
+   etc. Subtle row beneath the legal strip so it doesn't compete with
+   the lockup or copyright. */
 .tux-footer__preferences {
-  margin-top: 0.75rem;
-  padding-top: 0.625rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 0.6875rem;
+  background: #1f1c1c;
   color: rgba(255, 255, 255, 0.55);
+}
+
+.tux-footer__preferences-inner {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.6875rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.875rem;
+}
+
+@container tux-footer (min-width: 48rem) {
+  .tux-footer__preferences-inner {
+    padding: 0.5rem 2rem;
+  }
 }
 
 .tux-footer__preferences :deep(button) {

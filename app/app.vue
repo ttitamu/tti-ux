@@ -159,6 +159,7 @@ const footerColumns = [
       { label: "Digital Accessibility",       href: "https://gov.texas.gov/organization/disabilities/accessibility-policy" },
       { label: "Site Policies",               href: "https://www.tamus.edu/site-policies/" },
       { label: "Open Records Policy",         href: "https://www.tamus.edu/open-records/" },
+      { label: "State Link Policy",           href: "https://statelinkpolicy.texas.gov/" },
       { label: "Statutorily Required Reports", href: "https://www.tamus.edu/legal/statutorily-required-reports/" },
       { label: "Repo on GitHub",              href: "https://github.com/anthonyguevara/tti-ux-test" },
     ],
