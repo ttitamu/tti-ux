@@ -116,6 +116,7 @@ const nav = [
   {
     group: "Tooling",
     items: [
+      { label: "Accessibility",  to: "/accessibility",  icon: "lucide:accessibility" },
       { label: "Contrast audit", to: "/contrast-audit", icon: "lucide:contrast" },
     ],
   },
@@ -161,6 +162,7 @@ const footerColumns = [
   {
     heading: "Policies",
     links: [
+      { label: "Accessibility (WCAG 2.2 AA · AAA contrast)", to: "/accessibility" },
       { label: "TAMUS Risk, Fraud & Misconduct Hotline", href: "https://secure.ethicspoint.com/domain/media/en/gui/19681/index.html" },
       { label: "Digital Accessibility",       href: "https://gov.texas.gov/organization/disabilities/accessibility-policy" },
       { label: "Site Policies",               href: "https://www.tamus.edu/site-policies/" },

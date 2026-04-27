@@ -466,11 +466,15 @@ function linkAttrs(item: ColumnLink) {
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(221, 172, 55, 0.3);
+  /* Transparent bg so the gold sits directly on the legal-strip
+     #1f1c1c surface — gold-on-deep-charcoal clears AAA (≥ 7:1).
+     The hairline gold border carries the "circle medallion"
+     affordance without adding a weakly-contrasted fill behind. */
+  background: transparent;
+  border: 1px solid rgba(221, 172, 55, 0.45);
   font-family: var(--font-display);
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 700;
   color: var(--brand-accent);
   flex-shrink: 0;
 }
@@ -485,7 +489,8 @@ function linkAttrs(item: ColumnLink) {
   font-size: 0.625rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  /* 0.65 alpha clears 7:1 against the legal-strip bg #1f1c1c. */
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .tux-footer__lockup-name {

@@ -55,12 +55,12 @@
   --surface-border: var(--neutral-200);
 
   --text-primary:   var(--tti-charcoal);
-  --text-secondary: var(--neutral-700);
-  /* --text-muted bumped from neutral-500 (#939597, 3.01:1 on white,
-     fails WCAG 2.1 AA) to a darker shade that passes 4.5:1.
-     Affects every eyebrow / caption / section label across the
-     system — caught by /contrast-audit on 2026-04-27. */
-  --text-muted:     #6F6F6F;
+  /* Both text-secondary and text-muted target WCAG 2.2 AAA (7:1) on
+     white. They're close in shade — hierarchy comes from font weight,
+     size, and the eyebrow text-transform rather than from color
+     alone. Numbers verified by /contrast-audit on 2026-04-27. */
+  --text-secondary: #424242; /* 8.97:1 on white */
+  --text-muted:     #525252; /* 7.05:1 on white */
   --text-inverse:   var(--neutral-0);
   --text-brand:     var(--tti-maroon);
 
@@ -68,13 +68,12 @@
      broke" (true red) stop visually competing. --color-danger stays brand-
      aligned for compliance-language UI; --color-error signals failure.
 
-     Info + success darkened from #4A8892 / #66814F (4.02 / 4.36:1 on
-     white, just under threshold) to ratios that pass WCAG AA. */
-  --color-success: #4F6936;
+     All four target AAA on the surfaces they're consumed in. */
+  --color-success: #3D5328;
   --color-warning: var(--tti-gold);
   --color-danger:  var(--tti-maroon);
-  --color-error:   #D04343;
-  --color-info:    #2D7984;
+  --color-error:   #A02828;
+  --color-info:    #1F5D66;
 
   /* Typography
      Two layers:
@@ -148,17 +147,15 @@
 [data-theme="tti-dark"] {
   color-scheme: dark;
 
-  /* --brand-primary lightened from #b14a6c to #d2718c — the prior
-     value passed only as fill bg, not as text on dark surfaces
-     (3.65:1, fails WCAG AA). This shade clears 5.4:1 on the dark
-     page bg, so component eyebrows + editorial accents that use
-     --brand-primary for text are legible. Filled maroon panels
-     should use --brand-fill (always #5c0025) instead. */
-  --brand-primary:      #d2718c;
+  /* --brand-primary lightened to #e795a8 (clears AAA at 7.92:1 on
+     #15100f). Earlier #d2718c only passed AA. Filled maroon panels
+     use --brand-fill (always #5c0025) — keeps them dark enough that
+     white text on top stays AAA. */
+  --brand-primary:      #e795a8;
   --brand-primary-deep: #db859e;
   --brand-accent:       var(--tti-gold);
   --brand-accent-deep:  #F0C362;
-  --brand-secondary:    #5d9cd9;
+  --brand-secondary:    #8ab7e2;
   /* Marketing panel fill — kept dark so white text on top passes
      contrast. Same color in all themes (apart from HC). */
   --brand-fill:         var(--tti-maroon);
@@ -174,11 +171,13 @@
   --text-inverse:   #221F1F;
   --text-brand:     #db859e;
 
-  --color-success: #9BBE7E;
+  /* All semantic colors target AAA (7:1) on the dark page surface
+     #15100f. Numbers verified by /contrast-audit. */
+  --color-success: #ABCC8E;
   --color-warning: #F5D98A;
-  --color-danger:  #b14a6c;
-  --color-error:   #F07070;
-  --color-info:    #88C9D4;
+  --color-danger:  #e795a8;
+  --color-error:   #F59292;
+  --color-info:    #9BD4E0;
 
   --shadow-focus: 0 0 0 3px rgba(219, 133, 158, 0.45);
 
@@ -223,20 +222,21 @@
 
   --text-primary:   #000000;
   --text-secondary: #221F1F;
-  --text-muted:     #5D5D5D;
+  /* HC text-muted at #4D4D4D clears AAA (7.5:1 on white). The light
+     theme's text-muted stays at #6F6F6F for hierarchy reasons; HC
+     can be flatter because it's the accessibility-first variant. */
+  --text-muted:     #4D4D4D;
   --text-inverse:   #FFFFFF;
   --text-brand:     #500000;
 
   /* HC marketing panel — same #500000 darker maroon as the brand. */
   --brand-fill:     #500000;
 
-  /* HC tightens info + success to ensure WCAG AAA. Same pattern as
-     light theme but darker. Warning stays unchanged (gold against
-     amber bg works). */
+  /* HC semantic colors all target AAA on white. */
   --color-success: #3D5328;
   --color-warning: var(--tti-gold);
   --color-danger:  #500000;
-  --color-error:   #B33131;
+  --color-error:   #A02828;
   --color-info:    #1F5D66;
 
   /* Tailwind v4 @theme alias re-bindings — see comment in tti-dark

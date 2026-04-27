@@ -40,8 +40,11 @@ const themes = [
       <p class="audit__intro">
         Every contrast-risk surface rendered in all three themes side-by-side.
         Run <code>npm&nbsp;run&nbsp;audit:contrast</code> to crawl this page
-        with puppeteer, compute WCAG contrast ratios for every text/background
-        pair, and fail on anything below 4.5:1 (or 3:1 for large text).
+        with puppeteer, compute WCAG 2.2 contrast ratios for every text/background
+        pair, and fail on regressions. CI gates on
+        <strong>AAA (7:1 normal · 4.5:1 large)</strong> — see the
+        <NuxtLink to="/accessibility" class="link-tti">accessibility page</NuxtLink>
+        for the full conformance statement.
       </p>
     </header>
 

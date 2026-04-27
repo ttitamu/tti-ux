@@ -2,26 +2,32 @@
 /**
  * audit-contrast.mjs — WCAG contrast audit over the /contrast-audit page.
  *
+ * Computes the WCAG 2.1 / 2.2 contrast ratio for every text/background pair
+ * inside the audit page (one render per theme: tti, tti-dark, tti-hc) and
+ * reports pass/fail at both AA and AAA conformance levels in a single pass.
+ *
+ * WCAG contrast thresholds (same in 2.1 and 2.2 — the only changes in 2.2
+ * are non-contrast criteria like target size + focus visibility):
+ *   - AA  · normal text: 4.5:1   · large text: 3.0:1
+ *   - AAA · normal text: 7.0:1   · large text: 4.5:1
+ *
+ * Large text per WCAG = ≥ 24px regular OR ≥ 18.66px bold.
+ *
  * Workflow:
- *   1. Confirms `.output/public/contrast-audit/index.html` exists (build first).
- *   2. Serves `.output/public/` on a local port.
- *   3. Launches headless Chromium via puppeteer, navigates to the audit page.
- *   4. In-page: walks every text-containing element inside each [data-theme]
- *      column, computes the effective foreground + background color (walking
- *      up parents through transparent ancestors), then the WCAG 2.1 contrast
- *      ratio for the pair.
- *   5. Determines the threshold by font size + weight (large text = 3.0:1,
- *      otherwise 4.5:1). Reports failures.
- *   6. Writes contrast-report.json with full details, prints a console
- *      summary, and exits non-zero if any pair fails.
+ *   1. Confirms `.output/public/contrast-audit/index.html` exists.
+ *   2. Serves `.output/public/` on a local port (with base-URL stripping).
+ *   3. Launches headless Chromium, navigates to the audit page.
+ *   4. Walks every text-containing element under each [data-theme] column,
+ *      computes effective foreground (alpha-composited up the parent chain)
+ *      and effective background, then the contrast ratio.
+ *   5. Reports per-theme + per-level summaries; writes contrast-report.json.
+ *   6. Exits non-zero on AA failures (the CI gate). AAA is informational
+ *      unless AUDIT_LEVEL=AAA is set.
  *
  * Usage:
- *   npm run build      # produce .output/public/
- *   npm run audit:contrast
- *
- * The audit page lives at app/pages/contrast-audit.vue. To extend the
- * surfaces audited, drop new components into that page; the auditor picks
- * them up automatically — it crawls every text node in every theme column.
+ *   npm run audit:contrast              # AA gate (CI default)
+ *   AUDIT_LEVEL=AAA npm run audit:contrast    # AAA gate (informational fail)
+ *   AUDIT_DEBUG=1   npm run audit:contrast    # token-resolution probe
  */
 
 import { createServer } from "node:http";
@@ -253,7 +259,8 @@ const results = await page.evaluate(() => {
       const fontWeight = Number.parseInt(cs.fontWeight, 10) || 400;
       // Per WCAG: large text is ≥ 18pt (~24px) or ≥ 14pt bold (~18.66px bold).
       const isLarge = fontSize >= 24 || (fontSize >= 18.66 && fontWeight >= 700);
-      const threshold = isLarge ? 3.0 : 4.5;
+      const aaThreshold  = isLarge ? 3.0 : 4.5;
+      const aaaThreshold = isLarge ? 4.5 : 7.0;
 
       // Round ratio to 2 decimals for stability.
       const roundedRatio = Math.round(ratio * 100) / 100;
@@ -264,11 +271,11 @@ const results = await page.evaluate(() => {
         fg: rgbToHex(fg),
         bg: rgbToHex(bg),
         ratio: roundedRatio,
-        threshold,
         fontSize,
         fontWeight,
         isLarge,
-        passes: ratio >= threshold,
+        aa: { threshold: aaThreshold,  passes: ratio >= aaThreshold },
+        aaa: { threshold: aaaThreshold, passes: ratio >= aaaThreshold },
         selector: selectorFor(el),
         auditGroup: el.closest("[data-audit-group]")?.dataset.auditGroup ?? null,
       });
@@ -282,41 +289,75 @@ const results = await page.evaluate(() => {
 await browser.close();
 server.close();
 
-const failures = results.filter((r) => !r.passes);
-const passes = results.length - failures.length;
+const level = (process.env.AUDIT_LEVEL ?? "AA").toUpperCase();
+const gateLevel = level === "AAA" ? "aaa" : "aa";
 
-writeFileSync(REPORT_PATH, JSON.stringify({ summary: { total: results.length, passes, failures: failures.length }, results }, null, 2));
+const aaFails  = results.filter((r) => !r.aa.passes);
+const aaaFails = results.filter((r) => !r.aaa.passes);
+const aaPasses  = results.length - aaFails.length;
+const aaaPasses = results.length - aaaFails.length;
 
-console.log(`Audited ${results.length} text/bg pairs across themes.`);
-console.log(`  ${passes} pass`);
-console.log(`  ${failures.length} fail`);
-console.log(`Wrote ${path.relative(ROOT, REPORT_PATH)}\n`);
+const summary = {
+  total: results.length,
+  aa:  { passes: aaPasses,  failures: aaFails.length },
+  aaa: { passes: aaaPasses, failures: aaaFails.length },
+  byTheme: {},
+};
+for (const r of results) {
+  const t = (summary.byTheme[r.theme] ??= { total: 0, aa: { failures: 0 }, aaa: { failures: 0 } });
+  t.total += 1;
+  if (!r.aa.passes)  t.aa.failures  += 1;
+  if (!r.aaa.passes) t.aaa.failures += 1;
+}
 
-if (failures.length > 0) {
-  // Group by theme for readability.
+writeFileSync(REPORT_PATH, JSON.stringify({ summary, results }, null, 2));
+
+console.log(`Audited ${results.length} text/bg pairs across ${Object.keys(summary.byTheme).length} themes.\n`);
+console.log(`  WCAG 2.2 AA   ${aaPasses}/${results.length} pass  (${aaFails.length} fail)`);
+console.log(`  WCAG 2.2 AAA  ${aaaPasses}/${results.length} pass  (${aaaFails.length} fail)\n`);
+
+for (const [theme, t] of Object.entries(summary.byTheme)) {
+  console.log(`  ${theme.padEnd(10)} AA: ${t.total - t.aa.failures}/${t.total}  ·  AAA: ${t.total - t.aaa.failures}/${t.total}`);
+}
+console.log(`\nWrote ${path.relative(ROOT, REPORT_PATH)}\n`);
+
+// Print failures for the chosen gate level.
+const gateFails = level === "AAA" ? aaaFails : aaFails;
+if (gateFails.length > 0) {
+  console.log(`── ${level} failures ──`);
   const byTheme = {};
-  for (const f of failures) {
-    (byTheme[f.theme] ??= []).push(f);
-  }
+  for (const f of gateFails) (byTheme[f.theme] ??= []).push(f);
   for (const [theme, items] of Object.entries(byTheme)) {
-    console.log(`── ${theme} (${items.length} failures) ──`);
-    // Sort by ratio (worst first).
+    console.log(`\n  ${theme} (${items.length}):`);
     items.sort((a, b) => a.ratio - b.ratio);
-    for (const f of items.slice(0, 30)) {
+    for (const f of items.slice(0, 40)) {
       const sizeNote = f.isLarge ? "large" : "normal";
+      const need = f[gateLevel].threshold;
       console.log(
-        `  ${f.ratio.toFixed(2)}:1 (need ${f.threshold}, ${sizeNote})  ` +
-        `${f.fg} on ${f.bg}  ` +
-        `[${f.auditGroup ?? "-"}]  "${f.text.slice(0, 50)}"`
+        `    ${f.ratio.toFixed(2)}:1 (need ${need}, ${sizeNote})  ` +
+        `${f.fg} on ${f.bg}  [${f.auditGroup ?? "-"}]  "${f.text.slice(0, 50)}"`
       );
     }
-    if (items.length > 30) {
-      console.log(`  … ${items.length - 30} more in contrast-report.json`);
-    }
-    console.log("");
+    if (items.length > 40) console.log(`    … ${items.length - 40} more in contrast-report.json`);
   }
+  console.log("");
+}
+
+if (level === "AAA" && aaaFails.length > 0) {
+  console.log(`Failed AAA gate. ${aaFails.length === 0 ? "(AA passes — set AUDIT_LEVEL=AA for the relaxed gate.)" : ""}`);
+  process.exit(1);
+}
+if (level === "AA" && aaFails.length > 0) {
+  console.log("Failed AA gate.");
   process.exit(1);
 }
 
-console.log("All pairs pass WCAG 2.1 AA.");
+if (level === "AAA") {
+  console.log("All pairs pass WCAG 2.2 AAA.");
+} else {
+  console.log("All pairs pass WCAG 2.2 AA.");
+  if (aaaFails.length > 0) {
+    console.log(`(${aaaFails.length} pairs fall short of AAA — informational. Set AUDIT_LEVEL=AAA to gate on it.)`);
+  }
+}
 process.exit(0);

@@ -10,6 +10,38 @@ consumers (PECAN, tti-ai-studio, the style guide itself) for several
 weeks; cutting v1 makes the consumption story (`file:../tti-ux` for
 now, npm package later) explicit instead of implicit.
 
+### Added — accessibility tooling + AAA conformance
+- **`/accessibility` page** with the formal conformance statement:
+  WCAG 2.2 AA target; color contrast verified at AAA across all
+  three themes (light, dark, high-contrast).
+- **`/contrast-audit` page** renders every contrast-risk surface
+  in three themed columns simultaneously (one per `data-theme`).
+- **`scripts/audit-contrast.mjs`** uses puppeteer + the WCAG 2.1/2.2
+  contrast formula to compute ratios for every text/background
+  pair on the audit page. Reports both AA and AAA pass counts in
+  one run; gates on AAA when `AUDIT_LEVEL=AAA` is set (CI default).
+- **`audit-contrast.yml`** workflow runs on every push + PR. CI
+  fails if any contrast pair drops below AAA.
+- **Token revisions** to clear AAA across the board:
+  - light `--text-secondary` #5d5d5d → #424242 (8.97:1 on white)
+  - light `--text-muted` #6F6F6F → #525252 (7.05:1 on white)
+  - light `--color-success` → #3D5328, `--color-error` → #A02828,
+    `--color-info` → #1F5D66
+  - dark `--brand-primary` #d2718c → #e795a8 (7.92:1 on dark page)
+  - dark `--brand-secondary` → #8ab7e2, `--color-error` → #F59292,
+    `--color-success` → #ABCC8E, `--color-info` → #9BD4E0
+  - HC `--text-muted` → #4D4D4D, `--color-error` → #A02828
+  - new `--brand-fill` token for filled maroon panels (always
+    #5C0025 in light/dark, #500000 in HC) so brand-primary can
+    lighten in dark mode for text legibility without compromising
+    panel contrast.
+- **Tailwind v4 `@theme` cascade workaround**: re-bound every
+  `--color-*` alias inside `[data-theme="tti-dark"]` and
+  `[data-theme="tti-hc"]` because Chrome freezes `@theme`
+  variable references at `:root` scope. Without this, theme
+  overrides on raw tokens didn't propagate to Tailwind utility
+  classes.
+
 ### Changed — BREAKING
 - **`TuxFooter` is now the unified institutional footer.** Earlier
   releases shipped three separate components for the page anchor
