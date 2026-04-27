@@ -282,6 +282,15 @@ function escape(s: string): string {
   background: var(--brand-primary);
 }
 
+/* On the active item, the 3px bar already connects to the trail
+   guide on the left. The connector tick would just add a redundant
+   visual note inside the rounded bg pill, so hide it — the bar +
+   bg do the work cleanly. Inactive items keep their tick so the
+   parent-child hierarchy stays readable. */
+.tux-docs-sidebar__link--active::before {
+  display: none;
+}
+
 .tux-docs-sidebar__link:hover {
   background: var(--surface-sunken);
   color: var(--text-primary);
@@ -298,12 +307,16 @@ function escape(s: string): string {
   color: var(--brand-primary);
   font-weight: 700;
   border-left-color: var(--brand-primary);
-  background: color-mix(in srgb, var(--brand-primary) 7%, transparent);
+  /* Stronger fill (12%) so the card shape is clearly visible. 7%
+     was nearly imperceptible against the page surface and read as
+     "no fill" — the rounding wasn't doing visible work. 12% reads
+     as a clear pink-tinted pill while still being soft enough not
+     to compete with the body text. */
+  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
   /* Round the right corners only. The left edge stays straight so
-     it sits flush with the trail guide line — the active row
-     reads as a "tab" coming out from the trail, not a free-floating
-     pill. Matches the card radius (--radius-md) used elsewhere in
-     the system. */
+     it sits flush with the trail guide line — the active row reads
+     as a "tab" coming out from the trail, not a free-floating
+     pill. Matches the card radius (--radius-md). */
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }
 
