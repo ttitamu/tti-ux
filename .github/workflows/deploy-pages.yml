@@ -59,6 +59,12 @@ jobs:
           # `.nojekyll` marker + static dist). Local builds without
           # this env var keep the default node-server preset.
           NUXT_PAGES: "1"
+          # Bump V8 heap. The default (~1.5GB on Node 24) OOMed during
+          # prerender — we walk ~80 routes including font fetches +
+          # Shiki + Mermaid bundles. 6GB gives headroom on the
+          # ubuntu-latest runner (7GB total). Symptom was:
+          # "FATAL ERROR: Ineffective mark-compacts near heap limit".
+          NODE_OPTIONS: --max-old-space-size=6144
         run: npm run generate
 
       - uses: actions/configure-pages@v5
