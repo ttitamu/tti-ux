@@ -28,11 +28,13 @@ npm run dev
 | `TuxCaptionedMedia`  | tux native               | `/components/captioned-media`   |
 | `TuxCard`            | tux native               | `/components/card`              |
 | `TuxCardSlab`        | tux native               | `/components/card-slab`         |
+| `TuxCodeBlock`       | Shiki                    | `/components/code-block`        |
 | `TuxCodeMaroon`      | tux native               | `/components/code-maroon`       |
 | `TuxCommandPalette`  | tux native               | `/components/command-palette`   |
 | `TuxContactCard`     | tux native               | `/components/contact-card`      |
 | `TuxCTA`             | tux native               | `/components/cta`               |
 | `TuxDescriptionList` | tux native               | `/components/description-list`  |
+| `TuxDiagram`         | Mermaid                  | `/components/diagram`           |
 | `TuxEmptyState`      | `TuxCard` composite      | `/components/empty-state`       |
 | `TuxExample`         | showcase primitive       | (used on every component page)  |
 | `TuxFactoid`         | tux native               | `/components/factoid`           |
@@ -61,6 +63,43 @@ npm run dev
 The showcase pages expose **Vue** (template source), **HTML** (rendered
 DOM), and — where applicable — **Source** (the component SFC) tabs via
 the `TuxExample` primitive.
+
+## Pattern coverage — "want X? use Y"
+
+If you're about to build something, check this map first. The catalog
+covers more than the file names suggest, and shipping a duplicate
+component because the existing one had a non-obvious name is the
+single most common failure mode.
+
+| Want… | Use… |
+|---|---|
+| **Tag** (mono-font label chip — `topic:safety`, `pii:us_ssn`) | `<TuxBadge kind="tag">` |
+| **Status pill** (live/running/failed/queued + dot) | `<TuxBadge :status="…">` |
+| **Classification tier** (Public / Internal / Restricted / ITAR) | `<TuxBadge :tier="…">` |
+| **Count badge** (`md (11)` facet count) | `<TuxBadge kind="count" :count="…">` |
+| **Page-level admonition** (Docusaurus-style note/tip/warning/danger) | `<TuxAlert variant="…">` — 8 variants |
+| **Compliance alert** (ITAR / export-controlled / legal callout) | `<TuxAlert variant="compliance">` |
+| **Inline body callout** (single-paragraph aside in flowing prose) | `<TuxCallout kind="fact|stat|quote">` |
+| **Standalone pull quote** (focal element, attribution + rules) | `<TuxBlockquote>` |
+| **Long-form Q&A** (always-expanded explainer prose) | `<TuxQACollection>` |
+| **FAQ** (collapsible question/answer for scanning) | `<TuxAccordion kind="faq">` |
+| **Code block in a doc / blog / ADR** | `<TuxCodeBlock>` |
+| **Code in a component-demo flow** (Vue + HTML reveal tabs) | `<TuxExample>` |
+| **Term/definition list** (event details, file metadata, spec list) | `<TuxDescriptionList>` |
+| **Architecture diagram** (boxes + arrows, decision flows) | `<TuxDiagram>` (Mermaid) |
+| **Markdown content with Tux components inline** | `@nuxtjs/mdc` + auto-import (see `/markdown` demo) |
+| **Form input** (email / select / radio / etc.) | Nuxt UI native — `UInput`, `USelect`, etc. See `/forms`. |
+| **Data table** (sortable, virtualizable, status cells) | `<TuxTable>` |
+| **Search bar** (PECAN finder, conversation search) | `<TuxSearch>` |
+| **A–Z directory jump bar** | `<TuxAlphaNav>` |
+| **Sidebar widget wrapper** (related links, contact box, in-page nav) | `<TuxSidebarBlock>` |
+| **Newsletter signup** | `<TuxSignupFeature>` |
+| **Big oversized stat** (single headline metric) | `<TuxBigStat>` |
+| **Row of oversized stats** ("by the numbers" 3/4/5-up) | `<TuxFactoid>` |
+
+If your need isn't here, scan `/components` (or
+`app/pages/components/index.vue`) — there are 41 Tux\* components and
+this map only highlights the ones with the easiest-to-miss names.
 
 ## Ideas not yet shipped
 

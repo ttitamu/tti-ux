@@ -1,23 +1,22 @@
 <script setup lang="ts">
-import type { Highlighter } from "shiki";
+import type { BundledTheme } from "shiki";
 
 /**
  * TuxExample — live demo + code-reveal container for the style guide.
  *
  * Renders the default slot as a framed preview, then a tab strip with:
- *   - Vue       · the template source (passed via `vue` prop)
- *   - HTML      · the rendered DOM, auto-extracted from the preview on mount
- *                 and pretty-printed. Re-syncs on theme swap / state changes
- *                 via MutationObserver.
- *   - Source    · optional — full Tux component SFC (passed via `source` prop)
+ *   - Vue       · the template source (passed via `vue` prop) — SSR-highlighted
+ *   - HTML      · the rendered DOM, auto-extracted from the preview on
+ *                 mount and pretty-printed. Re-syncs on theme swap or state
+ *                 changes via MutationObserver. Highlighted client-side
+ *                 since the source is DOM-derived.
+ *   - Source    · optional — full Tux component SFC (passed via `source`
+ *                 prop). SSR-highlighted.
  *
- * Code blocks are syntax-highlighted with Shiki, theme-aware:
- *   tti       → github-light
- *   tti-dark  → github-dark
- *   tti-hc    → github-light-high-contrast
- *
- * Shiki is client-only (DOM-dependent), so the highlighter loads on mount
- * and falls back to plain text until ready.
+ * Highlighting uses `useTuxHighlighter` (singleton, pre-loaded common
+ * langs). Static tabs (Vue, Source) ship pre-highlighted in the SSR
+ * document; the HTML tab fills in client-side once the rendered DOM
+ * is available. No flash of unhighlighted code on first paint.
  *
  * Usage:
  *   <tux-example :vue="vueSource">
@@ -46,27 +45,58 @@ type Tab = "vue" | "html" | "source";
 const activeTab = ref<Tab>("vue");
 const previewRef = ref<HTMLElement | null>(null);
 const rendered = ref("");
+const renderedHighlighted = ref<string | null>(null);
 const copied = ref(false);
 
 const colorMode = useColorMode();
-const highlighter = ref<Highlighter | null>(null);
+const { highlight } = useTuxHighlighter();
 
-const shikiTheme = computed(() => {
-  if (colorMode.preference === "tti-dark") return "github-dark";
-  if (colorMode.preference === "tti-hc") return "github-light-high-contrast";
+const shikiTheme = computed<BundledTheme>(() => {
+  if (colorMode.value === "tti-dark") return "github-dark";
+  if (colorMode.value === "tti-hc")   return "github-light-high-contrast";
   return "github-light";
 });
 
-onMounted(async () => {
+// Hash for stable cache keys.
+function hashCode(s: string): string {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return h.toString(36);
+}
+
+// Pre-highlight the static `vue` and `source` props at SSR time so the
+// initial paint of either tab is already colored. The HTML tab is
+// derived from the DOM, so it can only highlight after mount.
+const { data: vueHighlighted } = await useAsyncData(
+  () => `tux-example-vue:${shikiTheme.value}:${hashCode(props.vue ?? "")}`,
+  () => (props.vue ? highlight(props.vue, { lang: "vue", theme: shikiTheme.value }) : Promise.resolve("")),
+  { watch: [() => props.vue, shikiTheme] },
+);
+
+const { data: sourceHighlighted } = await useAsyncData(
+  () => `tux-example-src:${shikiTheme.value}:${hashCode(props.source ?? "")}`,
+  () => (props.source ? highlight(props.source, { lang: "vue", theme: shikiTheme.value }) : Promise.resolve("")),
+  { watch: [() => props.source, shikiTheme] },
+);
+
+onMounted(() => {
   captureHTML();
   attachObserver();
-  // Dynamic import keeps shiki out of SSR bundle.
-  const { createHighlighter } = await import("shiki");
-  highlighter.value = await createHighlighter({
-    themes: ["github-light", "github-dark", "github-light-high-contrast"],
-    langs: ["vue", "html"],
-  });
+  rehighlightHtmlTab();
 });
+
+watch([rendered, shikiTheme], () => rehighlightHtmlTab());
+
+async function rehighlightHtmlTab() {
+  if (!rendered.value) {
+    renderedHighlighted.value = null;
+    return;
+  }
+  renderedHighlighted.value = await highlight(rendered.value, {
+    lang: "html",
+    theme: shikiTheme.value,
+  });
+}
 
 let observer: MutationObserver | null = null;
 
@@ -128,16 +158,10 @@ const activeCode = computed(() => {
   return props.source ?? "";
 });
 
-const activeLang = computed<"vue" | "html">(() =>
-  activeTab.value === "html" ? "html" : "vue"
-);
-
-const highlightedCode = computed(() => {
-  if (!highlighter.value || !activeCode.value) return null;
-  return highlighter.value.codeToHtml(activeCode.value, {
-    lang: activeLang.value,
-    theme: shikiTheme.value,
-  });
+const highlightedCode = computed<string | null>(() => {
+  if (activeTab.value === "vue")    return vueHighlighted.value || null;
+  if (activeTab.value === "source") return sourceHighlighted.value || null;
+  return renderedHighlighted.value;
 });
 
 async function copyActive() {

@@ -18,8 +18,26 @@ export default defineNuxtConfig({
     "@nuxt/eslint",
     "@nuxt/a11y",
     "@nuxtjs/color-mode",
+    "@nuxtjs/mdc",
     "@vueuse/nuxt",
   ],
+
+  // MDC — markdown rendering with Vue components. Lets consumers
+  // (tti-docs, blog posts, marcom WordPress migration) author content
+  // in markdown with Tux* components inline. Tux components are
+  // already auto-imported by Nuxt; MDC picks them up via the same
+  // resolver. See `app/pages/markdown.vue` for the demo + full syntax
+  // crib sheet.
+  mdc: {
+    highlight: {
+      // Reuse the Shiki themes the rest of the system uses.
+      theme: {
+        default: "github-light",
+        dark: "github-dark",
+      },
+      langs: ["ts", "js", "vue", "html", "css", "json", "bash", "python", "yaml", "md"],
+    },
+  },
 
   // CSS load order: tokens first (CSS vars), then globals (consumes tokens +
   // Tailwind + Nuxt UI @imports), then tux (utility layer consumed by the

@@ -8,6 +8,38 @@ when you pull." No npm publish, no version tags, yet.
 ## Unreleased
 
 ### Added
+- **Authoring + content batch — TuxCodeBlock, TuxDiagram, MDC integration.**
+  Closes the gap between "components for app surfaces" and "components
+  for prose surfaces" (docs, blog, ADRs, marcom WordPress migration).
+  - **`TuxCodeBlock`** ([app/components/TuxCodeBlock.vue](app/components/TuxCodeBlock.vue)) — standalone
+    Shiki-backed code block. Distinct from `TuxExample` (which is for
+    component demos with Vue/HTML reveal tabs) — this one is for
+    embedded code samples in docs/blog/ADRs. Lazy-loads the requested
+    grammar on mount so the SSR bundle stays clean. Theme tracks
+    page color-mode (light / dark / high-contrast). Filename caption
+    + line numbers + copy button optional.
+  - **`TuxDiagram`** ([app/components/TuxDiagram.vue](app/components/TuxDiagram.vue)) — Mermaid wrapper for
+    diagrams-as-code (flowcharts, sequence diagrams, ERDs, gantt).
+    Mermaid is a real ~3MB dep, so the component lazy-imports it on
+    mount — pages that don't render a diagram pay nothing. Brand
+    palette mapped into Mermaid's themeVariables. Render errors
+    surface inline with the parser message. Pulse + spin animations
+    respect `prefers-reduced-motion`.
+  - **`@nuxtjs/mdc` integration** — markdown rendering with Vue
+    components inline. Configured in `nuxt.config.ts` with the same
+    Shiki theme set the rest of the system uses. Tux components are
+    auto-imported via Nuxt's existing resolver, so authors can
+    invoke them with the `::tux-alert{variant="warning"}` block
+    syntax without per-component setup. Live demo + syntax crib
+    sheet at `/markdown` shows source + rendered side-by-side.
+
+- **Pattern coverage map** in [design/components.md](design/components.md) — explicit
+  "want X? use Y" table covering tags (`TuxBadge kind="tag"`),
+  admonitions (`TuxAlert`), inline callouts, blockquotes, Q&A, code,
+  diagrams, MDC, forms, tables, search, A–Z nav, sidebar widgets,
+  signups, big stats, factoid rows. Surfaces the catalog's
+  easiest-to-miss component names so newcomers don't ship duplicates.
+
 - **`TuxCodeMaroon`** ([app/components/TuxCodeMaroon.vue](app/components/TuxCodeMaroon.vue)) — institutional
   emergency alert banner. TAMUS's Code Maroon is the mandatory
   emergency-notification system; Rellis Campus (where TTI lives)
