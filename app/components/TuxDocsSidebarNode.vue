@@ -287,24 +287,32 @@ function escape(s: string): string {
   color: var(--text-primary);
 }
 
-/* Active item — maroon left bar + bold maroon text. No background
-   fill. tux uses maroon as accent, not as soft tinted padding —
-   that's the dashboard-app aesthetic, which doesn't fit the
-   editorial register the rest of the system commits to (card
-   corner-drop, gold bar, ALL-CAPS section underline). The bar +
-   bold text + the maroon trail guide above carry the "you are
-   here" signal cleanly on their own. */
+/* Active item — rounded "card pill" with maroon left bar + soft
+   tinted fill. The card-style rounded radius (matches --radius-md
+   used elsewhere in the system) plus the bg fill turn the active
+   row into a clearly bounded shape; the connector tick now visually
+   flows INTO the rounded shape from the trail guide line, instead
+   of floating with a white-space gap between them. Bold maroon
+   text remains the primary affordance. */
 .tux-docs-sidebar__link--active {
   color: var(--brand-primary);
   font-weight: 700;
   border-left-color: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 7%, transparent);
+  /* Round the right corners only. The left edge stays straight so
+     it sits flush with the trail guide line — the active row
+     reads as a "tab" coming out from the trail, not a free-floating
+     pill. Matches the card radius (--radius-md) used elsewhere in
+     the system. */
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }
 
 .tux-docs-sidebar__link--active:not(.tux-docs-sidebar__link--depth-0) {
   /* 3px bar at the active item — heavier than the 2px ancestor
      guide lines so the eye lands on the active row first. Negative
      margin pulls the bar over the parent guide so they merge into
-     a single continuous trail. */
+     a single continuous trail; the rounded bg starts at that same
+     edge so the connector tick lands inside the pill, not before it. */
   border-left-width: 3px;
   margin-left: -2px;
 }
