@@ -1,9 +1,42 @@
 # Changelog
 
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
-conventions and [Semantic Versioning](https://semver.org/) — though while we're
-pre-1.0 and not-yet-published, "breaking changes" just mean "update consumers
-when you pull." No npm publish, no version tags, yet.
+conventions and [Semantic Versioning](https://semver.org/).
+
+## [1.0.0] — 2026-04-27
+
+First versioned release. The catalog has been stable for three product
+consumers (PECAN, tti-ai-studio, the style guide itself) for several
+weeks; cutting v1 makes the consumption story (`file:../tti-ux` for
+now, npm package later) explicit instead of implicit.
+
+### Changed — BREAKING
+- **`TuxFooter` is now the unified institutional footer.** Earlier
+  releases shipped three separate components for the page anchor
+  (slim `TuxFooter`, `TuxMarketingFooter`, `TuxSubfooter`); they're
+  collapsed into a single `TuxFooter` that renders the maroon
+  marketing block + the mandatory TAMUS legal strip in one
+  component. Every shipped TTI surface needs the same anchor —
+  having three pieces was over-decomposition.
+  - **Migration**: replace `<TuxFooter ... /><TuxSubfooter />` (and
+    any `<TuxMarketingFooter />` usage) with a single
+    `<TuxFooter :columns="..." :social="..." />`. Pass empty
+    arrays for `columns` and `social` to get the slim app-shape
+    (just identity block + legal strip).
+  - **Removed components**: `TuxMarketingFooter` (lived for one
+    commit), `TuxSubfooter` (replaced by the legal-strip section
+    of the new TuxFooter).
+
+### Added
+- **`/changelog` page** — renders this file via the same MDC pipeline
+  as `/design/[doc]`. Linked from the welcome page header and the
+  "What's new" section.
+- **"Welcome" sidebar group** — Home + Changelog above Foundations.
+- **`v1.0.0` version pill** — surfaced in the header lockup and the
+  welcome eyebrow, sourced from `package.json`.
+- **Welcome-page polish** — "Recent updates" timeline, CTA buttons
+  (Doctrine / Components / Repo), tighter pitch covering all three
+  downstream consumers.
 
 ## Unreleased
 

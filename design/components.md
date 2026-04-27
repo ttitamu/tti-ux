@@ -59,7 +59,6 @@ npm run dev
 | `TuxSidebarBlock`    | tux native               | `/components/sidebar-block`     |
 | `TuxSignupFeature`   | tux native               | `/components/signup-feature`    |
 | `TuxSiteNav`         | tux native               | `/components/site-nav`          |
-| `TuxSubfooter`       | tux native               | `/components/footer`            |
 | `TuxTable`           | `UTable`                 | `/components/table`             |
 | `TuxTestimonial`     | tux native               | `/components/testimonial`       |
 | `TuxTOC`             | tux native               | `/components/toc`               |

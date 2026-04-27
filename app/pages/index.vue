@@ -62,7 +62,7 @@ const components = [
   { name: "TuxEmptyState",    to: "/components/empty-state",    blurb: "No-data placeholder w/ icon + CTA slot." },
   { name: "TuxFactoid",       to: "/components/factoid",        blurb: "Institutional \"by the numbers\" — 3/4/5-up oversized stats." },
   { name: "TuxFilterPanel",   to: "/components/filter-panel",   blurb: "Left-rail facet panel — collapsible groups, checkbox lists, applied-filter chips." },
-  { name: "TuxFooter",        to: "/components/footer",         blurb: "Slim app footer + mandatory TAMUS legal subfooter (the canonical pairing)." },
+  { name: "TuxFooter",        to: "/components/footer",         blurb: "Unified institutional footer \u2014 maroon marketing top + mandatory TAMUS legal strip in one." },
   { name: "TuxIconFeature",   to: "/components/icon-feature",   blurb: "Icon + headline + body grid — the classic \"focus areas / our services\" block." },
   { name: "TuxIdentity",      to: "/components/identity",       blurb: "Header lockup — logo + wordmark, three hierarchy levels, two orientations." },
   { name: "TuxLinkList",      to: "/components/link-list",      blurb: "Categorized resource lists — for sponsors / for partners / for students." },

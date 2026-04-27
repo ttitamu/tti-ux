@@ -34,6 +34,13 @@ function toggleHighContrast() {
 // for?" rather than alphabetical. Icons are Lucide; mostly mnemonic.
 const nav = [
   {
+    group: "Welcome",
+    items: [
+      { label: "Home",      to: "/",          icon: "lucide:home" },
+      { label: "Changelog", to: "/changelog", icon: "lucide:scroll-text" },
+    ],
+  },
+  {
     group: "Foundations",
     items: [
       { label: "Tokens",         to: "/tokens",         icon: "lucide:palette" },
@@ -275,22 +282,15 @@ const footerColumns = [
            a chrome theme — it lives in the footer's #extra slot so
            users don't get pushed through it during casual theme
            switching (see ADR-0006). -->
-      <!-- Marketing-shape footer for the style guide itself — the
-           public face of the design system. PECAN / tti-ai-studio
-           keep using the slim TuxFooter; this richer maroon footer
-           is for marcom-shaped surfaces. The mandatory TAMUS legal
-           strip stays directly below it (CLAUDE.md non-negotiable). -->
-      <TuxMarketingFooter
+      <!-- Unified institutional footer — maroon marketing top + black
+           legal strip in one component. Same shape across PECAN,
+           tti-ai-studio, marcom pages, and the style guide itself.
+           HC toggle slots into #preferences (accessibility-as-
+           compliance per ADR-0006). -->
+      <TuxFooter
         :columns="footerColumns"
         :social="footerSocial"
-      />
-
-      <!-- Mandatory TAMUS legal strip. The high-contrast toggle lives
-           here per ADR-0006: accessibility is a compliance affordance,
-           not a chrome theme — surfacing it inside the legal strip
-           matches the institutional reading of "this is required,
-           not aesthetic". -->
-      <TuxSubfooter>
+      >
         <template #preferences>
           <ClientOnly>
             <button
@@ -316,7 +316,7 @@ const footerColumns = [
             </template>
           </ClientOnly>
         </template>
-      </TuxSubfooter>
+      </TuxFooter>
     </div>
   </UApp>
 </template>

@@ -26,7 +26,7 @@ const components = [
   { name: "TuxEmptyState",    to: "/components/empty-state",    blurb: "No-data placeholder — tinted icon circle, title, description, CTA slot.",                     uses: "TuxCard composite" },
   { name: "TuxFactoid",       to: "/components/factoid",        blurb: "Institutional \"by the numbers\" — 3/4/5-up oversized stats, variant-aware numerals.",        uses: "tux (no U-primitive)" },
   { name: "TuxFilterPanel",   to: "/components/filter-panel",   blurb: "Left-rail facet panel — collapsible groups, checkbox lists with counts, applied-filter chips.", uses: "tux (no U-primitive)" },
-  { name: "TuxFooter",        to: "/components/footer",         blurb: "Slim app footer + mandatory TAMUS legal subfooter (TuxSubfooter). The canonical pairing.",     uses: "tux (no U-primitive)" },
+  { name: "TuxFooter",        to: "/components/footer",         blurb: "Unified institutional footer \u2014 maroon marketing top (logo + address + social + columns) over the mandatory TAMUS legal strip.",     uses: "tux (no U-primitive)" },
   { name: "TuxIconFeature",   to: "/components/icon-feature",   blurb: "Icon + headline + body grid — classic \"our services\" block, three tones, grid or list.",   uses: "tux (no U-primitive)" },
   { name: "TuxIdentity",      to: "/components/identity",       blurb: "Header lockup — logo + wordmark. Lockup or text-only, horizontal or stacked, three levels.",   uses: "tux (no U-primitive)" },
   { name: "TuxLinkList",      to: "/components/link-list",      blurb: "Categorized resource list — grouped headings, optional descriptions, featured-item left bar.",   uses: "tux (no U-primitive)" },

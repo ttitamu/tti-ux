@@ -160,7 +160,6 @@ const { active, severity, title, message } = useRellisAlertFeed();
   &lt;/header&gt;
   &lt;NuxtPage /&gt;
   &lt;TuxFooter ... /&gt;
-  &lt;TuxSubfooter /&gt;
 &lt;/template&gt;</code></pre>
     </section>
 
