@@ -1,5 +1,5 @@
 /*
- * aggieux design tokens — TTI default theme.
+ * tux design tokens — TTI default theme.
  *
  * This file is the resolved output of design/tokens.json for the `tti` theme.
  * When the Style Dictionary pipeline is wired, this file becomes generated.
@@ -61,18 +61,41 @@
   --color-error:   #D04343;
   --color-info:    var(--tti-teal);
 
-  /* Typography */
+  /* Typography
+     Two layers:
+
+     1. Lane tokens (four-family rule from design/tux.md). Each family
+        has one job — body, default-display, bold-display, elegant-display.
+        The .style--bold / .style--elegant scopes in tux.css rebind
+        --font-display to swap heading face without touching body copy.
+
+     2. Legacy --font-sans — retained for backwards-compat with components
+        and pages built before the lane tokens were introduced. Resolves
+        to Public Sans, then Franklin Gothic, then a system fallback.
+        New work should reach for the lane tokens directly. */
+  --font-body:
+    "Open Sans",
+    "Helvetica Neue", Arial, sans-serif;
+  --font-display:
+    "Oswald",
+    "Helvetica Neue Condensed", "Impact", "Arial Narrow", sans-serif;
+  --font-bold:
+    "Work Sans",
+    "Helvetica Neue", Arial, sans-serif;
+  --font-elegant:
+    Georgia, "Times New Roman", Times, serif;
   --font-sans:
     "Public Sans",
     "Franklin Gothic ATF", "Franklin Gothic",
     "Helvetica Neue", Arial, sans-serif;
-  --font-display: var(--font-sans);
   --font-mono:
     "JetBrains Mono", "SFMono-Regular",
     Consolas, "Liberation Mono", monospace;
 
-  --tracking-wide:  0.05em;
-  --tracking-wider: 0.10em;
+  --tracking-tight:  -0.01em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.05em;
+  --tracking-wider:  0.10em;
 
   /* Shadows + radii */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);

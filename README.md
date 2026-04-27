@@ -19,10 +19,10 @@ into the design system.
 - **Five Tux\* components** wrapping Nuxt UI primitives:
   - `TuxAlert` (wraps `UAlert`) — 8 admonition variants incl. compliance
   - `TuxBadge` (wraps `UBadge`) — tiers, statuses, tags, counts
-  - `TuxCard` (aggieux native) — static or linked with corner-drop hover
+  - `TuxCard` (tux native) — static or linked with corner-drop hover
   - `TuxModal` (wraps `UModal`) — eyebrow + gold-bar title
   - `TuxTable` (wraps `UTable`) — maroon header, auto status cells
-- **Design docs** — `design/` carries `aggieux.md`, `components.md`,
+- **Design docs** — `design/` carries `tux.md`, `components.md`,
   `palette.md`, `tokens.json`.
 
 ## Run it

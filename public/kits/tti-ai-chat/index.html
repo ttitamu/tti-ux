@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tti">
+<head>
+<meta charset="utf-8">
+<title>tti-ai-chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="../../colors_and_type.css?v=1777059800000" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--surface-page); color: var(--text-primary); font-family: var(--font-sans); height: 100vh; overflow: hidden; }
+  #root { height: 100vh; }
+  * { box-sizing: border-box; }
+  @keyframes tux-spin { to { transform: rotate(360deg); } }
+  code { font-family: var(--font-mono); background: var(--surface-sunken); padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="TuxComponents.jsx"></script>
+<script type="text/babel" src="ChatParts.jsx"></script>
+<script type="text/babel">
+const { useState } = React;
+
+function App() {
+  const [active, setActive] = useState("c1");
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "300px 1fr 320px", height: "100vh" }}>
+      <ChatSidebar active={active} onPick={setActive} onNew={() => {}} />
+      <div style={{ display: "grid", gridTemplateRows: "auto 1fr auto", minWidth: 0, minHeight: 0 }}>
+        <ConversationHeader title="ITAR classifier retraining scope" />
+        <div style={{ overflow: "auto", minHeight: 0 }}>
+          <Message role="user">
+            I'm planning a retraining run for the ITAR-tier classifier next sprint. Which corpora in <code>grants-2024</code> saw the most false-positives last quarter, and what would the scope of a retrain look like if we only touched those buckets?
+          </Message>
+
+          <Message
+            role="assistant"
+            citations={[
+              { title: "Q1 2024 classifier audit · grants-2024", path: "grants-2024/audits/q1-2024-classifier-audit.md", score: "0.94" },
+              { title: "ITAR tier rubric v2.1", path: "classifiers-docs/itar/rubric-v2.1.pdf", score: "0.88" },
+              { title: "False-positive log · 2024-Q1", path: "grants-2024/logs/fp-2024-q1.csv", score: "0.81" },
+            ]}
+          >
+            <p style={{ margin: "0 0 14px" }}>Three buckets in <code>grants-2024</code> drove <strong>78%</strong> of Q1 false-positives on the ITAR-tier classifier:</p>
+            <ol style={{ margin: "0 0 14px", paddingLeft: 22, lineHeight: 1.75 }}>
+              <li><code>grants-2024/dod-xr-contracts/</code> — 342 FPs, mostly training docs that name ITAR categories but aren't themselves controlled [1].</li>
+              <li><code>grants-2024/texdot-state/</code> — 218 FPs. Public state-funded work being flagged because of phrase-overlap with the defense corpus [1].</li>
+              <li><code>grants-2024/nsf-cdr/</code> — 104 FPs from the carbon dioxide removal proposals. Chemistry terms collide with the rubric's "dual-use materials" category [2].</li>
+            </ol>
+            <p style={{ margin: "0 0 14px" }}>A scoped retrain touching only these three buckets would:</p>
+            <ul style={{ margin: "0 0 14px", paddingLeft: 22, lineHeight: 1.75 }}>
+              <li>add <strong>~664 new negatives</strong> to the training set [3],</li>
+              <li>cost approximately <strong>4.2 GPU-hours</strong> on the A100 pool (est. from the Q4 2023 full retrain),</li>
+              <li>require re-running the <code>classifiers-docs</code> validation harness, not the full compliance review.</li>
+            </ul>
+            <p style={{ margin: 0 }}>You would not need to re-certify the rubric itself — §3.2 of the rubric allows scoped retraining without re-certification so long as the positive class remains unchanged [2].</p>
+          </Message>
+
+          <Message role="user">
+            Good. Draft the ticket for the retrain — include the three buckets, GPU estimate, and a link to the rubric §3.2 clause so reviewers don't block it.
+          </Message>
+
+          <Message role="assistant">
+            <div style={{ padding: "14px 16px", background: "var(--surface-raised)", border: "1px solid var(--surface-border)", borderRadius: "var(--radius-md)", fontFamily: "var(--font-mono)", fontSize: "0.8125rem", lineHeight: 1.6 }}>
+              <div style={{ color: "var(--text-muted)", marginBottom: 10, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "var(--tracking-wider)" }}>linear ticket · draft</div>
+              <div style={{ fontWeight: 600, color: "var(--brand-primary)" }}>CLS-204 · Scoped retrain: ITAR classifier Q2 2024</div>
+              <div style={{ marginTop: 10, color: "var(--text-primary)", fontFamily: "var(--font-sans)", fontSize: "0.8125rem" }}>
+                Retrain the ITAR-tier classifier against the three false-positive-heavy buckets identified in the Q1 2024 audit: <code>dod-xr-contracts</code>, <code>texdot-state</code>, <code>nsf-cdr</code>. Adds ~664 negatives, no positive-class change. Est. 4.2 GPU-hrs on A100 pool. Validation harness only — no full compliance review per rubric §3.2 (scoped retrains with unchanged positive class are pre-approved).
+              </div>
+            </div>
+            <div style={{ marginTop: 14, display: "flex", gap: 8 }}>
+              <TuxButton intent="primary" icon="plus">Create ticket</TuxButton>
+              <TuxButton intent="secondary" icon="pencil">Edit draft</TuxButton>
+              <TuxButton intent="ghost">Discard</TuxButton>
+            </div>
+          </Message>
+        </div>
+        <Composer />
+      </div>
+      <ContextPanel />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

@@ -21,5 +21,13 @@ Thumbs.db
 .idea
 .vscode
 
-# Claude Code
+# AI tooling — local state + agent-facing docs (kept out of the
+# repo so the canonical conventions live in design/ + docs/adr/,
+# not in AI-only artifacts that drift)
 .claude/
+CLAUDE.md
+.cursor/
+.cursorrules
+.aider*
+.windsurfrules
+.continue/

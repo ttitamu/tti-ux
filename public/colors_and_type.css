@@ -1,0 +1,663 @@
+/*
+ * tti-ux · colors_and_type.css
+ *
+ * Flattened, framework-agnostic token layer for the TTI design system.
+ * Usable standalone in any HTML mock — sibling `fonts/` directory required.
+ *
+ * THEME — set on <html> or any ancestor:
+ *   data-theme="tti"        (default light)
+ *   data-theme="tti-dark"
+ *   data-theme="tti-hc"     (WCAG AAA high-contrast)
+ *
+ * STYLE VARIANT — the "section style" toggle. Three variants ship:
+ * Components opt in with BEM modifier classes (e.g. .card-group--bold),
+ * or pages opt in globally with .style--default / .style--bold / .style--elegant
+ * on any ancestor.
+ *
+ *   Default style  → Oswald (H1–H3) + Open Sans (body + H4+)
+ *                    Less design embellishment; used most often.
+ *                    Maroon underline on section headers.
+ *   Bold style     → Work Sans (H1–H3, buttons, forms) + Open Sans (body)
+ *                    Eye-catching; dot-grids, rectangular dividers;
+ *                    well-suited to athletic/student-oriented surfaces.
+ *   Elegant style  → Georgia (H1–H3) + Open Sans (body + H4+)
+ *                    Refined, stately. Hash-pattern accents + dotted borders.
+ *                    Well-suited to administrative and research-oriented sites.
+ *
+ * FOUR FAMILIES — one rule each, enforced by token names:
+ *
+ *   --font-body     → Open Sans         · default body copy, anywhere
+ *   --font-display  → Oswald            · default H1–H3, narrow display
+ *                                         NEVER used for body copy or subheads
+ *                                         (becomes illegible at small sizes)
+ *   --font-bold     → Work Sans         · bold-variant H1–H3, buttons, forms
+ *                                         NEVER used for large bodies of text
+ *   --font-elegant  → Georgia           · elegant-variant H1–H3 only
+ *                                         System font — no @font-face needed.
+ *                                         NEVER used for body copy.
+ *
+ *   --font-mono     → JetBrains Mono    · paths, IDs, code, stats
+ */
+
+/* ==========================================================================
+   @FONT-FACE — self-hosted
+   Paths are relative to THIS file; keep the fonts/ sibling directory intact.
+   ========================================================================== */
+
+/* ─── Open Sans — body, eyebrows, H4+, everywhere by default ──────────── */
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 400;
+  src: url("fonts/open-sans/OpenSans-Regular.ttf")  format("truetype"); font-display: swap; }
+@font-face { font-family: "Open Sans"; font-style: italic; font-weight: 400;
+  src: url("fonts/open-sans/OpenSans-Italic.ttf")   format("truetype"); font-display: swap; }
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 500;
+  src: url("fonts/open-sans/OpenSans-Medium.ttf")   format("truetype"); font-display: swap; }
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 600;
+  src: url("fonts/open-sans/OpenSans-SemiBold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: 700;
+  src: url("fonts/open-sans/OpenSans-Bold.ttf")     format("truetype"); font-display: swap; }
+@font-face { font-family: "Open Sans"; font-style: italic; font-weight: 700;
+  src: url("fonts/open-sans/OpenSans-BoldItalic.ttf") format("truetype"); font-display: swap; }
+
+/* ─── Oswald — default-style display (H1–H3 ONLY) ─────────────────────── */
+@font-face { font-family: "Oswald"; font-style: normal; font-weight: 400;
+  src: url("fonts/oswald/Oswald-Regular.ttf")  format("truetype"); font-display: swap; }
+@font-face { font-family: "Oswald"; font-style: normal; font-weight: 500;
+  src: url("fonts/oswald/Oswald-Medium.ttf")   format("truetype"); font-display: swap; }
+@font-face { font-family: "Oswald"; font-style: normal; font-weight: 600;
+  src: url("fonts/oswald/Oswald-SemiBold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "Oswald"; font-style: normal; font-weight: 700;
+  src: url("fonts/oswald/Oswald-Bold.ttf")     format("truetype"); font-display: swap; }
+
+/* ─── Work Sans — bold-style display (H1–H3, buttons, forms) ──────────── */
+@font-face { font-family: "Work Sans"; font-style: normal; font-weight: 400;
+  src: url("fonts/work-sans/WorkSans-Regular.ttf")  format("truetype"); font-display: swap; }
+@font-face { font-family: "Work Sans"; font-style: italic; font-weight: 400;
+  src: url("fonts/work-sans/WorkSans-Italic.ttf")   format("truetype"); font-display: swap; }
+@font-face { font-family: "Work Sans"; font-style: normal; font-weight: 500;
+  src: url("fonts/work-sans/WorkSans-Medium.ttf")   format("truetype"); font-display: swap; }
+@font-face { font-family: "Work Sans"; font-style: normal; font-weight: 600;
+  src: url("fonts/work-sans/WorkSans-SemiBold.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "Work Sans"; font-style: normal; font-weight: 700;
+  src: url("fonts/work-sans/WorkSans-Bold.ttf")     format("truetype"); font-display: swap; }
+@font-face { font-family: "Work Sans"; font-style: normal; font-weight: 800;
+  src: url("fonts/work-sans/WorkSans-ExtraBold.ttf") format("truetype"); font-display: swap; }
+
+
+/* ==========================================================================
+   BRAND + NEUTRAL PALETTE (standard / light)
+   ========================================================================== */
+
+:root,
+[data-theme="tti"] {
+  /* Brand anchor — pulled from PDF sampling (factsheet + overview). */
+  --tti-maroon:      #5C0025;  /* primary anchor */
+  --tti-maroon-deep: #500000;  /* 508-accessible variant */
+  --tti-gold:        #DDAC37;  /* warm ochre, NOT bright Aggie yellow */
+  --tti-gold-deep:   #DCAA37;
+  --tti-navy:        #15457E;  /* secondary accent, inline links */
+  --tti-teal:        #4A8892;  /* tertiary / info */
+  --tti-sage:        #66814F;  /* tertiary / success */
+  --tti-charcoal:    #221F1F;  /* body copy — not pure black */
+
+  /* Neutrals — PPTX-derived warm grays */
+  --neutral-0:    #FFFFFF;
+  --neutral-50:   #FAFAFA;
+  --neutral-100:  #F5F5F5;
+  --neutral-200:  #E7E6E6;
+  --neutral-300:  #D1D2D4;
+  --neutral-400:  #A5A5A5;
+  --neutral-500:  #939597;
+  --neutral-600:  #7E7E7E;
+  --neutral-700:  #5D5D5D;
+  --neutral-800:  #4C4C4E;
+  --neutral-900:  #221F1F;
+  --neutral-1000: #000000;
+
+  /* Semantic brand tokens */
+  --brand-primary:      var(--tti-maroon);
+  --brand-primary-deep: var(--tti-maroon-deep);
+  --brand-accent:       var(--tti-gold);
+  --brand-accent-deep:  var(--tti-gold-deep);
+  --brand-secondary:    var(--tti-navy);
+
+  --surface-page:   var(--neutral-0);
+  --surface-raised: var(--neutral-0);
+  --surface-sunken: var(--neutral-100);
+  --surface-border: var(--neutral-200);
+
+  --text-primary:   var(--tti-charcoal);
+  --text-secondary: var(--neutral-700);
+  --text-muted:     var(--neutral-500);
+  --text-inverse:   var(--neutral-0);
+  --text-brand:     var(--tti-maroon);
+
+  /* Status. Danger = brand maroon (compliance); error = true red (broken). */
+  --color-success: var(--tti-sage);
+  --color-warning: var(--tti-gold);
+  --color-danger:  var(--tti-maroon);
+  --color-error:   #D04343;
+  --color-info:    var(--tti-teal);
+
+  /* Maroon ramp */
+  --color-maroon-50:  #fbf3f6;
+  --color-maroon-100: #f5e0e7;
+  --color-maroon-200: #eab5c3;
+  --color-maroon-300: #db859e;
+  --color-maroon-400: #b14a6c;
+  --color-maroon-500: #5c0025;
+  --color-maroon-600: #4d001f;
+  --color-maroon-700: #3d0018;
+  --color-maroon-800: #2e0012;
+  --color-maroon-900: #1f000c;
+  --color-maroon-950: #150008;
+
+  /* ── TYPOGRAPHY STACKS ──────────────────────────────────────────────
+     Three families, three tokens — one rule each. Keep these separate.
+     See the file header for usage rules.
+  ─────────────────────────────────────────────────────────────────── */
+  --font-body:    "Open Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Oswald",   "Oswald Fallback", "Impact", "Helvetica Neue Condensed", sans-serif;
+  --font-bold:    "Work Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-elegant: Georgia, "Times New Roman", Times, serif;
+  --font-mono:    "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  /* Back-compat: existing components reference --font-sans.
+     Points at the body face (Open Sans). DO NOT use for H1–H3 display. */
+  --font-sans: var(--font-body);
+
+  /* Tracking */
+  --tracking-tight:  -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.05em;
+  --tracking-wider:  0.10em;
+
+  /* Spacing ramp — 4px base */
+  --space-0: 0; --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem;
+  --space-4: 1rem; --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem;
+  --space-10: 2.5rem; --space-12: 3rem; --space-16: 4rem; --space-24: 6rem;
+
+  /* Radii — hard ceiling at 0.75rem / 12px. */
+  --radius-none: 0; --radius-sm: 0.125rem; --radius-md: 0.375rem;
+  --radius-lg: 0.5rem; --radius-xl: 0.75rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+  --shadow-focus: 0 0 0 3px rgba(92, 0, 37, 0.35);
+  --shadow-corner-drop: -6px 6px 0 0 var(--brand-primary);
+}
+
+/* ==========================================================================
+   DARK
+   ========================================================================== */
+[data-theme="tti-dark"] {
+  color-scheme: dark;
+
+  --brand-primary:      #b14a6c;
+  --brand-primary-deep: #db859e;
+  --brand-accent:       var(--tti-gold);
+  --brand-accent-deep:  #F0C362;
+  --brand-secondary:    #5d9cd9;
+
+  --surface-page:   #15100F;
+  --surface-raised: #221F1F;
+  --surface-sunken: #0B0908;
+  --surface-border: #3D3A3A;
+
+  --text-primary:   #FAFAFA;
+  --text-secondary: #D1D2D4;
+  --text-muted:     #A5A5A5;
+  --text-inverse:   #221F1F;
+  --text-brand:     #db859e;
+
+  --color-success: #7FA05F;
+  --color-warning: #F0C362;
+  --color-danger:  #b14a6c;
+  --color-error:   #F07070;
+  --color-info:    #6BABB5;
+
+  --shadow-focus: 0 0 0 3px rgba(219, 133, 158, 0.45);
+  --shadow-corner-drop: -6px 6px 0 0 #b14a6c;
+}
+
+/* ==========================================================================
+   HIGH-CONTRAST (WCAG AAA)
+   ========================================================================== */
+[data-theme="tti-hc"] {
+  --brand-primary:      #500000;
+  --brand-primary-deep: #3A0000;
+  --brand-accent:       #DCAA37;
+  --brand-accent-deep:  #B88A21;
+  --brand-secondary:    #000000;
+
+  --surface-page:   #FFFFFF;
+  --surface-raised: #FFFFFF;
+  --surface-sunken: #F0F0F0;
+  --surface-border: #5D5D5D;
+
+  --text-primary:   #000000;
+  --text-secondary: #221F1F;
+  --text-muted:     #5D5D5D;
+  --text-inverse:   #FFFFFF;
+  --text-brand:     #500000;
+  --color-error:    #B33131;
+
+  --shadow-corner-drop: -6px 6px 0 0 #500000;
+}
+
+
+/* ==========================================================================
+   BASE TYPOGRAPHY — semantic element styles (DEFAULT STYLE)
+   ==========================================================================
+   Default-style rules govern here. Bold-style opts in via .style--bold on
+   an ancestor, or via component-level --bold modifiers.
+   ========================================================================== */
+
+html, body {
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font-family: var(--font-body);       /* Open Sans — default body */
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* H1–H3 → Oswald (display). Condensed, tighter line-height. */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin: 0;
+}
+h1 { font-size: 2.625rem; font-weight: 700; }  /* 42px · page title */
+h2 { font-size: 2rem;     font-weight: 600; }  /* 32px · section */
+h3 { font-size: 1.5rem;   font-weight: 600; }  /* 24px · subsection */
+
+/* H4–H6 stay on Open Sans — Oswald is too narrow at these sizes. */
+h4, h5, h6 {
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0;
+}
+h4 { font-size: 1.25rem; }
+h5 { font-size: 1.0625rem; }
+h6 { font-size: 1rem; }
+
+p  { margin: 0; line-height: 1.65; color: var(--text-primary); }
+
+code, kbd, samp, pre { font-family: var(--font-mono); font-size: 0.875em; }
+code { background: var(--surface-sunken); border-radius: var(--radius-sm); padding: 0.1em 0.4em; }
+
+a { color: var(--brand-secondary); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Action-based elements always use --font-bold (Work Sans) even in default. */
+button, input, select, textarea {
+  font-family: var(--font-bold);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+hr { border: 0; border-top: 1px solid var(--surface-border); margin: var(--space-6) 0; }
+::selection { background: color-mix(in srgb, var(--brand-accent) 50%, transparent); color: var(--text-primary); }
+*:focus-visible { outline: none; box-shadow: var(--shadow-focus); border-radius: var(--radius-sm); }
+
+
+/* ==========================================================================
+   STYLE VARIANT — .style--bold
+   ==========================================================================
+   Global switch. Scopes Work Sans onto H1–H3 (replacing Oswald) and adds
+   the bold-variant signatures: rectangular dividers, dot-grid accents.
+   Apply on <body>, a section, or the :root.
+   Per-component: use BEM --bold modifiers (e.g. .card-group--bold).
+   ========================================================================== */
+
+.style--bold {
+  /* Swap the display token so every heading picks up Work Sans */
+  --font-display: var(--font-bold);
+}
+.style--bold h1,
+.style--bold h2,
+.style--bold h3 {
+  font-family: var(--font-display);      /* = Work Sans now */
+  font-weight: 800;                      /* heavier — this style is loud */
+  letter-spacing: var(--tracking-tight);
+  text-transform: none;                  /* Work Sans reads better mixed-case */
+}
+.style--bold h1 { font-size: 2.75rem; }
+.style--bold h2 { font-size: 2.125rem; }
+.style--bold h3 { font-size: 1.625rem; }
+
+
+/* ==========================================================================
+   STYLE VARIANT — .style--elegant
+   ==========================================================================
+   Global switch. Scopes Georgia onto H1–H3 (replacing Oswald) and introduces
+   the elegant-variant signatures: hash-pattern accents, dotted borders.
+   Apply on <body>, a section, or the :root. Intended for administrative
+   and research-oriented surfaces (annual reports, faculty pages, policy).
+   Per-component: use BEM --elegant modifiers (e.g. .card-static--elegant).
+   ========================================================================== */
+
+.style--elegant {
+  --font-display: var(--font-elegant);
+}
+.style--elegant h1,
+.style--elegant h2,
+.style--elegant h3 {
+  font-family: var(--font-display);      /* = Georgia now */
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: var(--tracking-normal);
+  text-transform: none;                  /* Georgia reads mixed-case */
+  line-height: 1.15;
+}
+.style--elegant h1 { font-size: 2.75rem; }
+.style--elegant h2 { font-size: 2.125rem; }
+.style--elegant h3 { font-size: 1.5rem; }
+
+/* heading--elegant — direct element modifier, no ancestor class needed */
+.heading--elegant {
+  font-family: var(--font-elegant);
+  font-weight: 700;
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: var(--tracking-normal);
+  line-height: 1.15;
+  color: var(--text-primary);
+  margin: 0;
+}
+.heading--elegant--italic {
+  font-style: italic;
+}
+
+/* hash-pattern — diagonal hash decoration, elegant-variant signature.
+   Use as a standalone block (e.g. above a heading) or as a border accent. */
+.hash-pattern {
+  display: block;
+  height: 24px;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--brand-primary) 0,
+    var(--brand-primary) 1.5px,
+    transparent 1.5px,
+    transparent 8px
+  );
+}
+.hash-pattern--sm { height: 16px; background-size: auto; background-position: 0 0; }
+.hash-pattern--narrow { width: 64px; }
+.hash-pattern--gold {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--brand-accent) 0,
+    var(--brand-accent) 1.5px,
+    transparent 1.5px,
+    transparent 8px
+  );
+}
+
+/* Dotted borders — elegant-variant signature. Apply to any box. */
+.border-dotted-tti {
+  border: 1px dotted var(--brand-primary);
+}
+.border-dotted-tti-top    { border: 0; border-top: 1px dotted var(--brand-primary); }
+.border-dotted-tti-bottom { border: 0; border-bottom: 1px dotted var(--brand-primary); }
+
+/* Elegant section header — italic Georgia, soft-faded hash signature BELOW title */
+.section-header--elegant {
+  font-family: var(--font-elegant);
+  font-weight: 400;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: -0.005em;
+  border-bottom: 0;
+  padding-bottom: 0.75rem;
+  color: var(--text-primary);
+  position: relative;
+  display: inline-block;
+}
+.section-header--elegant::after {
+  content: "";
+  display: block;
+  width: 86px;
+  height: 6px;
+  margin-top: 0.75rem;
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--brand-accent) 0,
+    var(--brand-accent) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 15%, black 85%, transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0%, black 15%, black 85%, transparent 100%);
+  opacity: 0.8;
+}
+
+/* Elegant card — dotted border, no maroon outline, tighter radius */
+.card-static--elegant,
+.card-linked--elegant {
+  border: 1px dotted var(--brand-primary);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  padding: var(--space-6);
+  box-shadow: none;
+}
+.card-linked--elegant:hover,
+.card-linked--elegant:focus-visible {
+  background: color-mix(in srgb, var(--brand-primary) 3%, var(--surface-raised));
+  transform: none;
+  box-shadow: none;
+  border-style: dotted;
+  border-color: var(--brand-primary-deep);
+}
+
+
+/* ==========================================================================
+   TTI SIGNATURE UTILITIES
+   ========================================================================== */
+
+/* heading--bold — workhorse editorial heading w/ stacked gold punctuation.
+   Three bars, stepping down in opacity — reads as punctuation, not a box. */
+.heading--bold { position: relative; padding-bottom: 0.75rem; }
+.heading--bold::after {
+  content: "";
+  display: block;
+  width: 62px;
+  height: 5px;
+  margin-top: 0.75rem;
+  background:
+    linear-gradient(to right,
+      var(--brand-accent) 0 32px,
+      transparent 32px 38px,
+      color-mix(in srgb, var(--brand-accent) 50%, transparent) 38px 52px,
+      transparent 52px 56px,
+      color-mix(in srgb, var(--brand-accent) 25%, transparent) 56px 62px);
+  border-radius: 2.5px;
+}
+
+/* heading--display — Oswald upright (default) or Work Sans (bold style).
+   This is the hero-style heading. Italic + uppercase. */
+.heading--display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.05;
+  position: relative;
+  padding-bottom: 0.75rem;
+}
+.heading--display::after {
+  content: "";
+  display: block;
+  width: 62px;
+  height: 5px;
+  margin-top: 0.75rem;
+  background:
+    linear-gradient(to right,
+      var(--brand-accent) 0 32px,
+      transparent 32px 38px,
+      color-mix(in srgb, var(--brand-accent) 50%, transparent) 38px 52px,
+      transparent 52px 56px,
+      color-mix(in srgb, var(--brand-accent) 25%, transparent) 56px 62px);
+  border-radius: 2.5px;
+}
+.style--bold .heading--display {
+  font-weight: 800;
+  font-style: italic;                    /* Work Sans italic hero flourish */
+  text-transform: uppercase;
+}
+
+/* Eyebrow + subhead — ALL-CAPS tracked labels. ALWAYS --font-body (Open Sans),
+   never Oswald — too narrow at 12px. */
+.eyebrow,
+.subhead {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0;
+}
+.eyebrow { margin-bottom: 0.25rem; }
+.subhead { margin-top: 0.25rem; }
+
+/* Section header — ALL-CAPS w/ soft-faded maroon hairline BELOW title. Default style. */
+.section-header {
+  font-family: var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  font-weight: 700;
+  display: inline-block;
+  padding-bottom: 0.625rem;
+  color: var(--text-primary);
+  position: relative;
+}
+.section-header::after {
+  content: "";
+  display: block;
+  width: 72px;
+  height: 1px;
+  margin-top: 0.625rem;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--brand-primary) 15%,
+    var(--brand-primary) 85%,
+    transparent 100%
+  );
+  opacity: 0.85;
+}
+
+/* Bold-variant signature: stacked maroon bars BELOW title, matching heading--bold */
+.section-header--bold {
+  font-family: var(--font-bold);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 700;
+  padding-top: 0;
+  padding-bottom: 0.75rem;
+  border: 0;
+  padding-left: 0;
+  display: inline-block;
+  position: relative;
+  color: var(--text-primary);
+}
+.section-header--bold::after {
+  content: "";
+  display: block;
+  width: 62px;
+  height: 5px;
+  margin-top: 0.75rem;
+  background:
+    linear-gradient(to right,
+      var(--brand-primary) 0 32px,
+      transparent 32px 38px,
+      color-mix(in srgb, var(--brand-primary) 50%, transparent) 38px 52px,
+      transparent 52px 56px,
+      color-mix(in srgb, var(--brand-primary) 25%, transparent) 56px 62px);
+  border-radius: 2.5px;
+}
+/* Dot-grid accent — bold-style decoration, sits next to headings. Apply to any element. */
+.dot-grid {
+  display: inline-block;
+  width: 48px; height: 24px;
+  background-image: radial-gradient(var(--brand-primary) 1.5px, transparent 1.5px);
+  background-size: 8px 8px;
+  background-position: 0 0;
+  vertical-align: middle;
+}
+
+/* link-tti — inline text link in TTI navy */
+.link-tti {
+  color: var(--brand-secondary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--brand-secondary) 40%, transparent);
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+.link-tti:hover,
+.link-tti:focus-visible {
+  color: color-mix(in srgb, var(--brand-secondary) 80%, black);
+  text-decoration-color: currentColor;
+}
+
+/* Card — static or linked. */
+.card-static,
+.card-linked {
+  display: flex; flex-direction: column;
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  border: 2px solid var(--brand-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+.card-linked {
+  position: relative;
+  text-decoration: none;
+  box-shadow: 0 0 0 0 rgba(92, 0, 37, 0);
+  transition: transform 0.25s ease, box-shadow 0.35s ease-out, background 0.25s ease-out;
+  cursor: pointer;
+}
+.card-linked:hover,
+.card-linked:focus-visible {
+  transform: translate(6px, -6px);
+  box-shadow: var(--shadow-corner-drop);
+  background: color-mix(in srgb, var(--brand-primary) 3%, var(--surface-raised));
+  outline: none;
+}
+.card-linked__arrow {
+  position: absolute; top: 0.75rem; right: 0.75rem;
+  color: var(--brand-primary);
+  opacity: 0; transform: translate(4px, -4px);
+  transition: opacity 0.2s ease-out, transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1.2);
+}
+.card-linked:hover .card-linked__arrow,
+.card-linked:focus-visible .card-linked__arrow { opacity: 1; transform: translate(0, 0); }
+
+/* Bold-variant card — sharper corners, no border, rectangular top divider */
+.card-static--bold,
+.card-linked--bold {
+  border: 0;
+  border-top: 8px solid var(--brand-primary);
+  border-radius: 0;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-md);
+}
+.card-linked--bold:hover,
+.card-linked--bold:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Tooltip trigger */
+.tooltip-trigger { border-bottom: 1px dashed var(--text-muted); cursor: help; }
+.tooltip-trigger:hover { border-bottom-color: var(--brand-primary); color: var(--brand-primary); }

@@ -36,10 +36,11 @@ const nav = [
   {
     group: "Foundations",
     items: [
-      { label: "Tokens",     to: "/tokens",     icon: "lucide:palette" },
-      { label: "Typography", to: "/typography", icon: "lucide:type" },
-      { label: "Motion",     to: "/motion",     icon: "lucide:zap" },
-      { label: "Icons",      to: "/icons",      icon: "lucide:sparkles" },
+      { label: "Tokens",         to: "/tokens",         icon: "lucide:palette" },
+      { label: "Typography",     to: "/typography",     icon: "lucide:type" },
+      { label: "Style variants", to: "/style-variants", icon: "lucide:layout-template" },
+      { label: "Motion",         to: "/motion",         icon: "lucide:zap" },
+      { label: "Icons",          to: "/icons",          icon: "lucide:sparkles" },
     ],
   },
   {
@@ -47,20 +48,53 @@ const nav = [
     items: [
       { label: "TuxAlert",         to: "/components/alert",          icon: "lucide:message-square" },
       { label: "TuxBadge",         to: "/components/badge",          icon: "lucide:badge" },
+      { label: "TuxAccordion",     to: "/components/accordion",      icon: "lucide:chevrons-up-down" },
+      { label: "TuxAlphaNav",      to: "/components/alpha-nav",      icon: "lucide:case-sensitive" },
+      { label: "TuxBigStat",       to: "/components/big-stat",       icon: "lucide:trending-up" },
+      { label: "TuxBlockquote",    to: "/components/blockquote",     icon: "lucide:quote" },
+      { label: "TuxBreadcrumbs",   to: "/components/breadcrumbs",    icon: "lucide:chevrons-right" },
       { label: "TuxButton",        to: "/components/button",         icon: "lucide:rectangle-horizontal" },
+      { label: "TuxCallout",       to: "/components/callout",        icon: "lucide:flag-triangle-right" },
+      { label: "TuxCaptionedMedia", to: "/components/captioned-media", icon: "lucide:image" },
       { label: "TuxCard",          to: "/components/card",           icon: "lucide:square-stack" },
+      { label: "TuxCardSlab",      to: "/components/card-slab",      icon: "lucide:rows-3" },
+      { label: "TuxCodeMaroon",    to: "/components/code-maroon",    icon: "lucide:siren" },
+      { label: "TuxCommandPalette", to: "/components/command-palette", icon: "lucide:command" },
+      { label: "TuxContactCard",   to: "/components/contact-card",   icon: "lucide:user-circle" },
+      { label: "TuxCTA",           to: "/components/cta",            icon: "lucide:megaphone" },
+      { label: "TuxDescriptionList", to: "/components/description-list", icon: "lucide:list" },
       { label: "TuxEmptyState",    to: "/components/empty-state",    icon: "lucide:inbox" },
+      { label: "TuxFactoid",       to: "/components/factoid",        icon: "lucide:hash" },
+      { label: "TuxFilterPanel",   to: "/components/filter-panel",   icon: "lucide:list-filter" },
+      { label: "TuxFooter",        to: "/components/footer",         icon: "lucide:panel-bottom" },
+      { label: "TuxIconFeature",   to: "/components/icon-feature",   icon: "lucide:layout-grid" },
+      { label: "TuxIdentity",      to: "/components/identity",       icon: "lucide:flag" },
+      { label: "TuxLinkList",      to: "/components/link-list",      icon: "lucide:list-tree" },
+      { label: "TuxLinkSlab",      to: "/components/link-slab",      icon: "lucide:menu" },
+      { label: "TuxMediaSlab",     to: "/components/media-slab",     icon: "lucide:image-plus" },
       { label: "TuxModal",         to: "/components/modal",          icon: "lucide:panel-top-open" },
+      { label: "TuxNewsCollection", to: "/components/news-collection", icon: "lucide:newspaper" },
+      { label: "TuxPagination",    to: "/components/pagination",     icon: "lucide:list-ordered" },
       { label: "TuxPageHeader",    to: "/components/page-header",    icon: "lucide:pilcrow" },
+      { label: "TuxPhotoGrid",     to: "/components/photo-grid",     icon: "lucide:images" },
+      { label: "TuxQACollection",  to: "/components/qa-collection",  icon: "lucide:message-circle-question" },
+      { label: "TuxSearch",        to: "/components/search",         icon: "lucide:search" },
       { label: "TuxSectionHeader", to: "/components/section-header", icon: "lucide:heading" },
+      { label: "TuxSidebarBlock",  to: "/components/sidebar-block",  icon: "lucide:panel-right" },
+      { label: "TuxSignupFeature", to: "/components/signup-feature", icon: "lucide:mail-plus" },
       { label: "TuxTable",         to: "/components/table",          icon: "lucide:table" },
+      { label: "TuxTestimonial",   to: "/components/testimonial",    icon: "lucide:message-circle-heart" },
+      { label: "TuxTreemap",       to: "/components/treemap",        icon: "lucide:layout-dashboard" },
     ],
   },
   {
     group: "Composition",
     items: [
+      { label: "Examples", to: "/examples", icon: "lucide:layout-panel-left" },
       { label: "Forms",    to: "/forms",    icon: "lucide:clipboard-list" },
       { label: "Patterns", to: "/patterns", icon: "lucide:layers" },
+      { label: "Preview",  to: "/preview",  icon: "lucide:image" },
+      { label: "Kits",     to: "/kits",     icon: "lucide:library" },
     ],
   },
 ];
@@ -91,35 +125,18 @@ watch(() => route.fullPath, () => {
             @click="sidebarOpen = !sidebarOpen"
           />
 
-          <NuxtLink to="/" class="flex items-center gap-3 no-underline">
-            <!-- Theme-aware logo. CSS swaps which one shows (instead of
-                 :src-binding via useColorMode) so SSR picks the right
-                 initial file without a post-hydration flash. Both are
-                 tiny, both stay in the DOM, toggling is instant. -->
-            <img
-              src="/logo.svg"
-              alt=""
-              class="w-8 h-8 logo-light-only"
-              aria-hidden="true"
-            />
-            <img
-              src="/logo-dark.svg"
-              alt=""
-              class="w-8 h-8 logo-dark-only"
-              aria-hidden="true"
-            />
-            <div>
-              <div class="font-semibold tracking-tight leading-none text-text-primary">
-                tti-ux
-              </div>
-              <div
-                class="text-xs uppercase text-text-muted mt-0.5 hidden sm:block"
-                style="letter-spacing: var(--tracking-wider)"
-              >
-                TTI Design System
-              </div>
-            </div>
-          </NuxtLink>
+          <!-- Dogfood: the style guide uses its own TuxIdentity for the
+               header lockup. `level="center"` puts the institutional
+               line above the product name, the same rhythm consuming
+               apps will use. `logoSize` is shrunk a hair (32px) so the
+               header keeps the same vertical density it had before. -->
+          <TuxIdentity
+            level="center"
+            superhead="Texas A&M Transportation Institute"
+            name="tti-ux"
+            href="/"
+            :logo-size="32"
+          />
 
           <div class="flex-1" />
 
@@ -191,45 +208,48 @@ watch(() => route.fullPath, () => {
         </main>
       </div>
 
-      <footer class="border-t border-surface-border bg-surface-sunken">
-        <div
-          class="px-6 py-3 text-xs text-text-muted flex flex-col md:flex-row items-start md:items-center md:justify-between gap-1"
-        >
-          <div class="flex items-center gap-3">
-            <span>tti-ux &middot; living style guide &middot; Apache 2.0</span>
-            <span class="text-text-muted/50">&bull;</span>
-            <ClientOnly>
-              <button
-                type="button"
-                class="inline-flex items-center gap-1 hover:text-text-brand transition-colors"
-                :aria-pressed="isHighContrast"
-                :title="
-                  isHighContrast
-                    ? 'High-contrast mode is on — click to exit'
-                    : 'Enable WCAG AAA high-contrast mode (accessibility)'
-                "
-                @click="toggleHighContrast"
-              >
+      <!-- Dogfood: real TuxFooter + mandatory TAMUS subfooter. The
+           high-contrast toggle is an opt-in accessibility control, not
+           a chrome theme — it lives in the footer's #extra slot so
+           users don't get pushed through it during casual theme
+           switching (see ADR-0006). -->
+      <TuxFooter
+        version="tti-ux · living style guide · Apache 2.0"
+        name="Texas A&M Transportation Institute · Networking & Information Services"
+        :links="[
+          { label: 'Repo',       href: 'https://github.com/anthonyguevara/tti-ux-test' },
+          { label: 'Components', to: '/components' },
+          { label: 'Tokens',     to: '/tokens' },
+        ]"
+      >
+        <template #extra>
+          <ClientOnly>
+            <button
+              type="button"
+              class="inline-flex items-center gap-1 hover:text-text-brand transition-colors"
+              :aria-pressed="isHighContrast"
+              :title="
+                isHighContrast
+                  ? 'High-contrast mode is on — click to exit'
+                  : 'Enable WCAG AAA high-contrast mode (accessibility)'
+              "
+              @click="toggleHighContrast"
+            >
+              <UIcon name="lucide:accessibility" class="w-3.5 h-3.5" />
+              <span>
+                {{ isHighContrast ? "Exit high-contrast" : "High-contrast mode" }}
+              </span>
+            </button>
+            <template #fallback>
+              <span class="inline-flex items-center gap-1">
                 <UIcon name="lucide:accessibility" class="w-3.5 h-3.5" />
-                <span>
-                  {{ isHighContrast ? "Exit high-contrast" : "High-contrast mode" }}
-                </span>
-              </button>
-              <template #fallback>
-                <span class="inline-flex items-center gap-1">
-                  <UIcon name="lucide:accessibility" class="w-3.5 h-3.5" />
-                  <span>High-contrast mode</span>
-                </span>
-              </template>
-            </ClientOnly>
-          </div>
-          <div class="flex items-center gap-3">
-            <span>Texas A&amp;M Transportation Institute</span>
-            <span class="text-text-muted/50">&bull;</span>
-            <span>Networking &amp; Information Services</span>
-          </div>
-        </div>
-      </footer>
+                <span>High-contrast mode</span>
+              </span>
+            </template>
+          </ClientOnly>
+        </template>
+      </TuxFooter>
+      <TuxSubfooter />
     </div>
   </UApp>
 </template>

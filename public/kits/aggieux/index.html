@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tti">
+<head>
+<meta charset="utf-8">
+<title>AggieUX Components · tux reference kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="../../colors_and_type.css?v=1777076899170" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--surface-page); color: var(--text-primary); font-family: var(--font-body); }
+  #root { min-height: 100vh; }
+  @keyframes tux-spin { to { transform: rotate(360deg); } }
+  code { font-family: var(--font-mono); background: var(--surface-sunken); padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+  * { box-sizing: border-box; }
+</style>
+
+<!-- React + Babel -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- Lucide icons (web components) -->
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+<div id="root"><div style="padding: 80px; font-family: sans-serif; color: #999;">Loading AggieUX reference kit…<div style="display:inline-block; margin-left: 12px; width: 14px; height: 14px; border: 2px solid #ccc; border-top-color: #5C0025; border-radius: 50%; animation: tux-spin 0.8s linear infinite;"></div></div></div>
+
+<script type="text/babel" src="AggieCatalog.jsx"></script>
+<script type="text/babel" src="AggieChrome.jsx"></script>
+<script type="text/babel" src="AggiePlaceholders.jsx"></script>
+<script type="text/babel" src="AggiePages.jsx"></script>
+<script type="text/babel" src="AggieIdentities.jsx"></script>
+<script type="text/babel" src="AggieMenus.jsx"></script>
+<script type="text/babel" src="AggieSiteNav.jsx"></script>
+<script type="text/babel" src="AggieBreadcrumbs.jsx"></script>
+<script type="text/babel" src="AggiePageHeaders.jsx"></script>
+<script type="text/babel" src="AggieButtonsAlerts.jsx"></script>
+<script type="text/babel" src="AggieCards.jsx"></script>
+<script type="text/babel" src="AggieCTA.jsx"></script>
+<script type="text/babel" src="AggiePullquote.jsx"></script>
+<script type="text/babel" src="AggieNumbersVoices.jsx"></script>
+<script type="text/babel" src="AggieSearch.jsx"></script>
+<script type="text/babel" src="AggieFooters.jsx"></script>
+<script type="text/babel" src="AggieMedia1.jsx"></script>
+<script type="text/babel" src="AggieMedia2.jsx"></script>
+<script type="text/babel" src="AggieNewsContact.jsx"></script>
+<script type="text/babel" src="AggieIconLink.jsx"></script>
+<script type="text/babel" src="AggieDisclosure.jsx"></script>
+<script type="text/babel" src="App.jsx"></script>
+</body>
+</html>

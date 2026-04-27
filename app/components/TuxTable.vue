@@ -37,7 +37,7 @@ withDefaults(defineProps<Props>(), {
 });
 
 // UTable's default classes are dense SaaS table. These overrides give the
-// aggieux flavoring without forking the component.
+// tux flavoring without forking the component.
 const tableUi = {
   thead: "bg-[color-mix(in_srgb,var(--brand-primary)_6%,var(--surface-raised))]",
   th: "uppercase text-text-secondary font-semibold text-xs tracking-wider py-3",

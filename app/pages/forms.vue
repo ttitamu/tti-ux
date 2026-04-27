@@ -47,7 +47,7 @@ function submit() {
   <div class="space-y-12">
     <TuxPageHeader eyebrow="primitives" title="Forms">
       Nuxt UI form primitives with TTI theming — maroon focus rings, consistent
-      label styling, and the aggieux <code>heading--bold</code> for section
+      label styling, and the tux <code>heading--bold</code> for section
       titles inside forms. No Tux wrappers here yet: Nuxt UI's form primitives
       don't need deviation to fit the brand.
     </TuxPageHeader>

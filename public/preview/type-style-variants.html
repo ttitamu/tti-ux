@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tti">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="../colors_and_type.css?v=1777059360001" rel="stylesheet">
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; padding: 28px 32px; background: var(--surface-page); box-sizing: border-box; font-family: var(--font-body); }
+  .lede { max-width: 760px; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6; margin: 4px 0 22px; }
+  .lede em { font-style: italic; color: var(--text-primary); }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border: 1px solid var(--surface-border); border-radius: var(--radius-md); overflow: hidden; background: #fff; }
+  .col { padding: 28px 26px 32px; border-right: 1px solid var(--surface-border); min-height: 240px; display: flex; flex-direction: column; }
+  .col:last-child { border-right: none; }
+
+  .label { font-family: var(--font-body-bold); font-weight: 700; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 20px; }
+  .label b { color: var(--brand-primary); font-weight: 700; }
+
+  .super { font-family: var(--font-body-bold); font-weight: 700; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+
+  .title { margin: 0 0 14px; line-height: 1.2; color: var(--text-primary); }
+
+  /* ── Default — Oswald uppercase. Faded hairline rule. ── */
+  .t-default { font-family: var(--font-display); font-weight: 500; font-size: 1.35rem; text-transform: uppercase; letter-spacing: 0.01em; }
+  .sig-default { width: 72px; height: 1px; background: linear-gradient(90deg, transparent 0%, var(--brand-primary) 15%, var(--brand-primary) 85%, transparent 100%); opacity: 0.85; }
+
+  /* ── Bold — Work Sans 700 sentence case. Stacked rounded bars. ── */
+  .t-bold { font-family: var(--font-body-bold); font-weight: 700; font-size: 1.35rem; letter-spacing: 0; }
+  .sig-bold { display: flex; align-items: center; gap: 6px; }
+  .sig-bold span { display: block; height: 4px; border-radius: 2px; background: var(--brand-primary); }
+  .sig-bold span:nth-child(1) { width: 32px; }
+  .sig-bold span:nth-child(2) { width: 14px; opacity: 0.5; }
+  .sig-bold span:nth-child(3) { width: 6px;  opacity: 0.25; }
+
+  /* ── Elegant — Georgia italic. Soft-faded diagonal hash. ── */
+  .t-elegant { font-family: var(--font-elegant, Georgia, serif); font-weight: 400; font-style: italic; font-size: 1.55rem; letter-spacing: -0.005em; }
+  .sig-elegant {
+    width: 86px; height: 6px;
+    background-image: repeating-linear-gradient(135deg, var(--brand-accent) 0 1px, transparent 1px 5px);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 15%, black 85%, transparent 100%);
+            mask-image: linear-gradient(90deg, transparent 0%, black 15%, black 85%, transparent 100%);
+    opacity: 0.8;
+  }
+
+  .lede-sub { margin: 14px 0 0; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6; }
+  .meta { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: auto; padding-top: 20px; }
+</style>
+</head>
+<body>
+
+<p class="lede">Every component family supports three visual styles. Here's what the <em>signature</em> — the editorial rule anchoring each section header — looks like in each. Signatures sit <em>below</em> the title, not above.</p>
+
+<div class="grid">
+
+  <!-- Default -->
+  <div class="col">
+    <div class="label">style = <b>default</b></div>
+    <div class="super">superhead</div>
+    <h3 class="title t-default">Section title reads like this</h3>
+    <div class="sig-default"></div>
+    <p class="lede-sub">Oswald + Open Sans. Dashboards, admin, product surfaces.</p>
+    <div class="meta">.style--default · Oswald</div>
+  </div>
+
+  <!-- Bold -->
+  <div class="col">
+    <div class="label">style = <b>bold</b></div>
+    <div class="super">superhead</div>
+    <h3 class="title t-bold">Section title reads like this</h3>
+    <div class="sig-bold"><span></span><span></span><span></span></div>
+    <p class="lede-sub">Work Sans + Open Sans. Marketing, student life, events, CTA-heavy pages.</p>
+    <div class="meta">.style--bold · Work Sans</div>
+  </div>
+
+  <!-- Elegant -->
+  <div class="col">
+    <div class="label">style = <b>elegant</b></div>
+    <div class="super">superhead</div>
+    <h3 class="title t-elegant">A section title, composed</h3>
+    <div class="sig-elegant"></div>
+    <p class="lede-sub">Georgia italic + Open Sans. Refined, stately — research, publications, faculty profiles.</p>
+    <div class="meta">.style--elegant · Georgia italic</div>
+  </div>
+
+</div>
+
+</body>
+</html>

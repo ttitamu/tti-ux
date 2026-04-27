@@ -22,9 +22,9 @@ export default defineNuxtConfig({
   ],
 
   // CSS load order: tokens first (CSS vars), then globals (consumes tokens +
-  // Tailwind + Nuxt UI @imports), then aggieux (utility layer consumed by the
+  // Tailwind + Nuxt UI @imports), then tux (utility layer consumed by the
   // Tux* wrappers).
-  css: ["~/assets/css/tokens.css", "~/assets/css/globals.css", "~/assets/css/aggieux.css"],
+  css: ["~/assets/css/tokens.css", "~/assets/css/globals.css", "~/assets/css/tux.css"],
 
   // @nuxt/fonts auto-detects which of these are actually referenced in
   // source (font-family declarations in CSS / Vue files) and only fetches

@@ -7,7 +7,7 @@ const confirm = ref(false);
 const basicVue = `<tux-button intent="primary" @click="open = true">Open basic modal</tux-button>
 <tux-modal v-model:open="open" eyebrow="action" title="Confirm changes">
   <p>A basic modal with an eyebrow label above the title. The gold bar under
-     the title is the aggieux signature.</p>
+     the title is the tux signature.</p>
 </tux-modal>`;
 
 const confirmVue = `<tux-button intent="destructive" icon="lucide:trash-2" @click="open = true">
@@ -47,7 +47,7 @@ const confirmVue = `<tux-button intent="destructive" icon="lucide:trash-2" @clic
         <TuxModal v-model:open="basic" eyebrow="action" title="Confirm changes">
           <p class="text-text-secondary leading-relaxed">
             A basic modal with an eyebrow label above the title. The gold bar
-            under the title is the aggieux signature — the same utility we use
+            under the title is the tux signature — the same utility we use
             for section headings.
           </p>
         </TuxModal>

@@ -82,7 +82,7 @@ function bump() {
       <p class="eyebrow">signature</p>
       <h2 class="heading--bold text-xl font-bold">Card corner-drop</h2>
       <p class="mt-2 text-sm text-text-secondary max-w-xl">
-        The <code>card-linked</code> hover is the aggieux signature motion: translate
+        The <code>card-linked</code> hover is the tux signature motion: translate
         (+6px right, -6px up) + box-shadow drops a maroon slab into the gap it
         leaves behind. Hover the card to see it. <code>TuxCard</code> uses this
         automatically when <code>to</code> is set.

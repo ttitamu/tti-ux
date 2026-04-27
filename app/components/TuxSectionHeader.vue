@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * TuxSectionHeader — aggieux signature. ALL-CAPS, tracked-out, with a maroon
+ * TuxSectionHeader — tux signature. ALL-CAPS, tracked-out, with a maroon
  * underline rule. Echoes TTI's editorial rhythm.
  *
  * Pass `level` to control which heading tag renders (h1/h2/h3) — semantic

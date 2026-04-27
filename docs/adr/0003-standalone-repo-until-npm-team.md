@@ -40,7 +40,7 @@ PR.
   apps break until they update their call sites. We mitigate via the
   CHANGELOG and by the fact that there's only one maintainer right now.
 - Nuxt layer extension gives us auto-import of Tux\* components, the
-  aggieux CSS chain, and `app.config.ts` theming without the consumer
+  tux CSS chain, and `app.config.ts` theming without the consumer
   writing boilerplate — the layer model fits this distribution style
   naturally.
 - Cloning for new developers is a two-step dance (clone tti-ux, then clone

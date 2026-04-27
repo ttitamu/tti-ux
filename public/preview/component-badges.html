@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tti">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="../colors_and_type.css?v=1777059346290" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 20px; background: var(--surface-page); display: flex; flex-wrap: wrap; gap: 8px; box-sizing: border-box; align-items: center; }
+  .b { font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 6px; }
+  .tier-sensitive { background: color-mix(in srgb, var(--brand-primary) 12%, transparent); color: var(--brand-primary); }
+  .tier-restricted { background: var(--brand-primary); color: #fff; }
+  .tier-public { background: color-mix(in srgb, var(--color-info) 12%, transparent); color: var(--color-info); }
+  .tier-internal { background: var(--surface-sunken); color: var(--text-secondary); }
+  .status { background: var(--surface-sunken); color: var(--text-secondary); }
+  .dot { width: 6px; height: 6px; border-radius: 9999px; display: inline-block; }
+  .tag { background: transparent; border: 1px solid var(--surface-border); color: var(--text-secondary); font-family: var(--font-mono); font-weight: 400; }
+</style>
+</head>
+<body>
+<span class="b tier-public">public</span>
+<span class="b tier-internal">internal</span>
+<span class="b tier-sensitive">sensitive</span>
+<span class="b tier-restricted">restricted</span>
+<span class="b status"><span class="dot" style="background:var(--color-success)"></span>completed</span>
+<span class="b status"><span class="dot" style="background:var(--brand-accent)"></span>running</span>
+<span class="b status"><span class="dot" style="background:var(--color-error)"></span>failed</span>
+<span class="b tag">pii:us_ssn</span>
+<span class="b tag">ext:pdf</span>
+</body>
+</html>

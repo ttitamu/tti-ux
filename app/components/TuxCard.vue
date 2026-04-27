@@ -2,7 +2,7 @@
 /**
  * TuxCard — TTI-flavored card.
  *
- * Wraps the aggieux `.card-static` / `.card-linked` chrome in a simple slot
+ * Wraps the tux `.card-static` / `.card-linked` chrome in a simple slot
  * API. Pass `to` to make it a `<NuxtLink>` with corner-drop + hover-arrow
  * motion (signals navigation). Without `to` it's a static branded block.
  *

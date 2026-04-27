@@ -75,7 +75,7 @@ const dotColor = computed(() => {
 });
 
 const isTagFont = computed(() => props.kind === "tag");
-// Nuxt UI's warning text on amber-50 bg under-contrasts. Tag so aggieux.css
+// Nuxt UI's warning text on amber-50 bg under-contrasts. Tag so tux.css
 // can pull it to amber-800 — mirrors the TuxAlert warning fix.
 const isWarningColor = computed(() => uColor.value === "warning");
 </script>

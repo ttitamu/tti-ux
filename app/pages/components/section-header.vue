@@ -19,7 +19,7 @@ const subtitleVue = `<tux-section-header :level="2" subtitle="4,218 documents ac
 <template>
   <div class="space-y-10">
     <TuxPageHeader eyebrow="component" title="TuxSectionHeader">
-      The aggieux editorial heading — ALL-CAPS, tracked-out, maroon underline rule.
+      The tux editorial heading — ALL-CAPS, tracked-out, maroon underline rule.
       Distinct from <code>heading--bold</code> (which uses a gold bar) and
       <code>heading--display</code> (italic maximalist). Use this for mid-page
       section titles inside a longer document — it's quieter than the gold-bar

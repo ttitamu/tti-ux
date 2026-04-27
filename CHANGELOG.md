@@ -7,7 +7,281 @@ when you pull." No npm publish, no version tags, yet.
 
 ## Unreleased
 
+### Added
+- **`TuxCodeMaroon`** ([app/components/TuxCodeMaroon.vue](app/components/TuxCodeMaroon.vue)) — institutional
+  emergency alert banner. TAMUS's Code Maroon is the mandatory
+  emergency-notification system; Rellis Campus (where TTI lives)
+  routes through `https://rellis.tamus.edu/emergency/` —
+  `detailsUrl` defaults to that for TTI consumers, override for
+  non-Rellis sites. Three severities (alert/warning/info) with
+  hard-coded colors that **don't theme** (no `tti-dark` / `tti-hc`
+  override — visual recognition matters more than palette
+  consistency during emergencies). Defaults to non-dismissible per
+  institutional convention; pass `dismissible` + v-model to allow
+  dismissal. Sticky-position support via `sticky` prop. Pulsing
+  siren icon respects `prefers-reduced-motion`. Demo at
+  `/components/code-maroon`.
+- **Catalog mop-up — five last components** closing out every
+  AggieUX catalog entry relevant for the three target consumers.
+  Shipping these makes the system feature-complete for the marcom
+  reveal:
+  - **`TuxLinkSlab`** ([app/components/TuxLinkSlab.vue](app/components/TuxLinkSlab.vue)) — full-width
+    horizontal band of prominent links. The "footer-of-section
+    navigation" pattern; distinct from `TuxLinkList`'s multi-column
+    grouped list. Three tones (plain / neutral / maroon).
+  - **`TuxSidebarBlock`** ([app/components/TuxSidebarBlock.vue](app/components/TuxSidebarBlock.vue)) — generic
+    sidebar widget wrapper. Eyebrow + maroon-underline title +
+    content slot. Three variants (default / bordered / filled).
+    Compose any content inside — lists of NuxtLinks (auto-styled),
+    `TuxDescriptionList`, prose, etc.
+  - **`TuxQACollection`** ([app/components/TuxQACollection.vue](app/components/TuxQACollection.vue)) — long-form
+    Q&A editorial pattern. Always expanded — designed to be read
+    top-to-bottom. Companion to `TuxAccordion kind="faq"` (which is
+    collapsible for scanning). Maroon "Q." marker + bold question +
+    flowing answer prose, with optional "see also" link list per item.
+  - **`TuxSignupFeature`** ([app/components/TuxSignupFeature.vue](app/components/TuxSignupFeature.vue)) —
+    newsletter signup block. Heading + dek + bordered email input +
+    uppercase action + consent line. Three tones, three style
+    variants. Self-contained.
+  - **`TuxAlphaNav`** ([app/components/TuxAlphaNav.vue](app/components/TuxAlphaNav.vue)) — A–Z jump bar
+    for directory and glossary pages. Two modes: anchor (sets
+    `window.location.hash` for in-page jumps) or emit
+    (filter-in-place via v-model). Letters not in the dataset
+    render dimmed and disabled.
+
+  All five use container queries per ADR 0007. The catalog's
+  "Ideas not yet shipped" section is now empty — every aspirational
+  entry the AggieUX kit catalogued has shipped.
+
+- **Composition examples** — three "what does this enable" pages
+  assembling 9–13 Tux\* components each into real-shape surfaces:
+  - **`/examples/pecan-dashboard`** ([app/pages/examples/pecan-dashboard.vue](app/pages/examples/pecan-dashboard.vue)) —
+    IT-facing index overview. TuxBreadcrumbs, TuxPageHeader (with
+    media slot), TuxFactoid, TuxAlert, TuxTreemap, TuxFilterPanel,
+    TuxSearch, TuxBadge, TuxPagination, TuxDescriptionList,
+    TuxSectionHeader, TuxCallout. (13 components.)
+  - **`/examples/research-landing`** ([app/pages/examples/research-landing.vue](app/pages/examples/research-landing.vue)) —
+    public-facing program hero. TuxPageHeader (hero + maroon),
+    TuxFactoid, TuxBlockquote (drop-cap), TuxMediaSlab (split),
+    TuxIconFeature, TuxCardSlab, TuxNewsCollection, TuxTestimonial,
+    TuxCTA, TuxLinkList. (10 components.)
+  - **`/examples/tti-ai-studio-session`** ([app/pages/examples/tti-ai-studio-session.vue](app/pages/examples/tti-ai-studio-session.vue)) —
+    LLM/agent session view. TuxBreadcrumbs, TuxPageHeader, TuxAlert
+    (compliance), TuxSectionHeader, TuxCallout, TuxDescriptionList,
+    TuxFactoid, TuxAccordion, TuxCommandPalette. (9 components.)
+  - **`/examples`** ([app/pages/examples/index.vue](app/pages/examples/index.vue)) — the
+    index page. Cards on the landing page promote it.
+- **ADR 0007** ([docs/adr/0007-container-queries-over-viewport-media-queries.md](docs/adr/0007-container-queries-over-viewport-media-queries.md)) —
+  captures the WHY behind the container-query convention. Cross-
+  references the gitignored CLAUDE.md and the
+  `design/components.md` guidance section that enforce it for
+  human + AI contributors.
+- **`#extra` slot on TuxFooter** — for inline left-side content
+  alongside the version + © (high-contrast toggle in the style
+  guide; system-status indicators or session counts in product
+  consumers).
+
 ### Changed
+- **Style-guide chrome eats its own dogfood.** The repo's `app.vue`
+  no longer hand-rolls the header lockup or footer — it uses
+  `<TuxIdentity level="center" superhead="Texas A&M Transportation
+  Institute" name="tti-ux">` for the header, `<TuxFooter>` for the
+  app-level strip, and `<TuxSubfooter>` for the mandatory TAMUS
+  legal block. The high-contrast toggle moves into TuxFooter's
+  new `#extra` slot. Net effect: the live style guide is now a
+  real example of itself, and any rough edges in the chrome
+  components surface in the place they're most visible.
+
+- **Container queries replace viewport media queries on layout-shifting
+  components** ([TuxPageHeader](app/components/TuxPageHeader.vue),
+  [TuxMediaSlab](app/components/TuxMediaSlab.vue),
+  [TuxCardSlab](app/components/TuxCardSlab.vue),
+  [TuxCTA](app/components/TuxCTA.vue),
+  [TuxNewsCollection](app/components/TuxNewsCollection.vue),
+  [TuxBreadcrumbs](app/components/TuxBreadcrumbs.vue)).
+  Each component declares its own `container-type: inline-size` +
+  named container, then uses `@container <name> (min-width: …)` for
+  layout breakpoints. **Why:** with the old viewport-based queries, a
+  component embedded in a 600px demo wrapper inside a 1200px viewport
+  would think it had room for a two-column layout it couldn't fit. With
+  container queries, breakpoints fire on the component's own width — so
+  the same component renders correctly whether it's at full page width,
+  inside a sidebar tile, or inside a narrow article column.
+- **Hero typography uses `clamp()` with `cqi` units** for fluid scaling.
+  Hero-rhythm titles, slab titles, news titles, and CTA titles now
+  scale smoothly with the container width instead of jumping at a
+  breakpoint. e.g. `font-size: clamp(2rem, 1.2rem + 4.5cqi, 3.5rem)`
+  on the hero page-header title.
+- **TuxTreemap tooltip flips on canvas edges** instead of overflowing.
+  When the cursor is past the canvas midpoint, the tooltip anchors to
+  the cursor's opposite side using `right`/`bottom` instead of
+  `left`/`top`. Removes the bug where hovering near a corner sent the
+  tooltip off-screen.
+
+### Added
+- **Catalog completion + tier 2/3 product batch** — seven components
+  closing out the AggieUX catalog backlog and unblocking the tier 2/3
+  product surfaces:
+  - **`TuxContactCard`** ([app/components/TuxContactCard.vue](app/components/TuxContactCard.vue)) — faculty / staff
+    directory card. Portrait + credentials + role + typed contact rows
+    (email/phone/web/office/location, with auto `mailto:` and `tel:`).
+    Vertical or horizontal layout.
+  - **TuxPageHeader extended** — same component, three new dimensions:
+    `tone="neutral|maroon"` for backgrounded panels,
+    `rhythm="hero"` for landing-page sized headings,
+    `#media` slot for two-column hero treatments,
+    `#actions` slot for trailing CTAs. Existing call sites unchanged.
+  - **`TuxMediaSlab`** ([app/components/TuxMediaSlab.vue](app/components/TuxMediaSlab.vue)) — full-bleed hero
+    band, "big photo moment". Overlay or split layout, three heights,
+    three placeholder tones.
+  - **`TuxCardSlab`** ([app/components/TuxCardSlab.vue](app/components/TuxCardSlab.vue)) — full-bleed band of
+    media-forward cards. The "browse our programs" pattern. Three
+    aspect ratios, 2/3/4-up grid, whole-card click w/ corner-drop hover.
+  - **`TuxPagination`** ([app/components/TuxPagination.vue](app/components/TuxPagination.vue)) — page-number
+    controls. Native Vue (not UPagination) — squarified active page,
+    ellipsis truncation, optional status line, configurable
+    sibling/boundary count.
+  - **`TuxCommandPalette`** ([app/components/TuxCommandPalette.vue](app/components/TuxCommandPalette.vue)) — global
+    ⌘K jump bar. Native `<dialog>` (free focus trap + scrim + ESC),
+    grouped commands w/ live filter, keyboard navigation, action or
+    navigation per command. Single instance at app root.
+  - **`TuxTreemap`** ([app/components/TuxTreemap.vue](app/components/TuxTreemap.vue)) — squarified
+    hierarchical-size visualization, PECAN's headline chart. Pure SVG
+    implementation of the Bruls-Huijsen-van Wijk algorithm — no viz
+    library dependency. Click to drill, breadcrumb to zoom out, log-
+    scaled maroon ramp, hover tooltip. 4 unit modes
+    (bytes/count/percent).
+- **Marketing surface batch** — five components that round out the
+  marketing/landing surface coverage. Marcom's eventual review now sees
+  every common content block, not gaps:
+  - **`TuxPhotoGrid`** ([app/components/TuxPhotoGrid.vue](app/components/TuxPhotoGrid.vue)) — uniform image
+    grid. `kind="photo"` (4:3, captions, full color) or
+    `kind="logo"` (1:1, grayscale-on-hover wall). Auto-fits columns,
+    placeholder gradients for design mocks before real assets land.
+  - **`TuxCaptionedMedia`** ([app/components/TuxCaptionedMedia.vue](app/components/TuxCaptionedMedia.vue)) — single
+    inline image (or video frame via `#media` slot). Four aspect ratios
+    (16:9 / 4:3 / 1:1 / 3:4), three alignment treatments
+    (full / wide / right-floated for prose).
+  - **`TuxNewsCollection`** ([app/components/TuxNewsCollection.vue](app/components/TuxNewsCollection.vue)) — institutional
+    news-index pattern. Stacked list (thumb left, copy right) for /news
+    landing pages, or grid (thumb above, 2 or 3 cols) for hub-page
+    "recent news" sections. Dates render as `<time>` with ISO datetime.
+  - **`TuxIconFeature`** ([app/components/TuxIconFeature.vue](app/components/TuxIconFeature.vue)) — the classic
+    "our services" / "focus areas" block. Icon-in-tinted-circle +
+    headline + body + CTA. Three tones cycle (maroon/navy/gold). Grid
+    or list layout.
+  - **`TuxLinkList`** ([app/components/TuxLinkList.vue](app/components/TuxLinkList.vue)) — categorized resource
+    list. "For sponsors / for partners / for students" footer-of-section
+    pattern. Optional descriptions per link, auto-detected external
+    arrows, `featured: true` for maroon left-bar emphasis.
+- **Editorial breadth batch** — four components that round out the
+  marketing/content surface coverage so marcom's eventual review sees a
+  finished system rather than a partial scaffold:
+  - **`TuxBlockquote`** ([app/components/TuxBlockquote.vue](app/components/TuxBlockquote.vue)) — standalone
+    editorial pull quote. Two layouts (centered with rules above/below;
+    magazine-style drop-cap) and three style variants. Companion to
+    `TuxCallout` (which is the inline aside).
+  - **`TuxTestimonial`** ([app/components/TuxTestimonial.vue](app/components/TuxTestimonial.vue)) — attributed
+    quote collection with portrait + name + role. Grid (cards, 2 or 3
+    cols) or row layout. Circular gradient portrait placeholders cycle
+    through maroon/navy/gold; pass `image` for real photos.
+  - **`TuxAccordion`** ([app/components/TuxAccordion.vue](app/components/TuxAccordion.vue)) — FAQ + publication
+    disclosure. Native `<details>`/`<summary>` (zero-JS, perfect a11y).
+    `kind="publication"` switches to citation rhythm with italic title +
+    meta line. `single` mode for mutually-exclusive groups.
+  - **`TuxDescriptionList`** ([app/components/TuxDescriptionList.vue](app/components/TuxDescriptionList.vue)) — term /
+    definition pairs as native `<dl>`. `editorial` emphasis for marketing
+    surfaces (event details, exhibit captions); `data` emphasis for
+    product metadata (PECAN file detail, classifier specs).
+- **Tier 1 navigation + chrome batch** — five components that unblock
+  shipping PECAN, tti-ai-studio, and tux's own surfaces:
+  - **`TuxSearch`** ([app/components/TuxSearch.vue](app/components/TuxSearch.vue)) — branded inline search bar
+    with attached uppercase action button. Two sizes (regular 60px / slim
+    51px), real working v-model, custom action label/icon. Demos at
+    `/components/search`.
+  - **`TuxFilterPanel`** ([app/components/TuxFilterPanel.vue](app/components/TuxFilterPanel.vue)) — left-rail
+    facet panel for list pages. Collapsible facet groups via native
+    `<details>` (zero-JS, perfect a11y), checkbox lists with counts,
+    applied-filter chips, Clear all. v-modeled as flat
+    `Record<string, string[]>` for easy wiring to OpenSearch / TanStack.
+    Demos at `/components/filter-panel`.
+  - **`TuxIdentity`** ([app/components/TuxIdentity.vue](app/components/TuxIdentity.vue)) — institutional header
+    lockup. Two kinds (lockup / text-only) × two orientations (horizontal /
+    stacked) × three hierarchy levels (institution / center / department).
+    Replaces the aspirational header rhythm work. Demos at
+    `/components/identity`.
+  - **`TuxFooter`** + **`TuxSubfooter`** ([app/components/TuxFooter.vue](app/components/TuxFooter.vue),
+    [app/components/TuxSubfooter.vue](app/components/TuxSubfooter.vue)) — paired closer for every TTI surface.
+    TuxFooter is the slim app-level compliance strip (version + © +
+    utility links); TuxSubfooter is the **mandatory TAMUS legal strip**
+    (Texas A&M University System requirement). Per AggieUX guidance the
+    subfooter content is fixed — only the institute name + address +
+    year are configurable. Demos at `/components/footer`.
+- **Earlier in this Unreleased cycle: four editorial/data Tux\* components**
+  driven by the same product needs:
+  - **`TuxBigStat`** ([app/components/TuxBigStat.vue](app/components/TuxBigStat.vue)) — single oversized metric
+    with three sizes (lg/md/sm), three tones (maroon/gold/neutral), and
+    style-variant-aware numeral face. Demos at `/components/big-stat`.
+    Replaces the aspirational `BigStat` from `design/components.md`.
+  - **`TuxCallout`** ([app/components/TuxCallout.vue](app/components/TuxCallout.vue)) — pulled-aside editorial
+    accent (fact / stat / quote) with style-variant left rule (gradient /
+    stacked-bars / diagonal-hash). Demos at `/components/callout`.
+  - **`TuxBreadcrumbs`** ([app/components/TuxBreadcrumbs.vue](app/components/TuxBreadcrumbs.vue)) — page-depth
+    navigation. Home icon, italic intermediates, pipe-rule separators
+    that collapse to chevron under 35rem. Demos at `/components/breadcrumbs`.
+    Replaces the aspirational `PathCrumbs` from `design/components.md`.
+  - **`TuxCTA`** ([app/components/TuxCTA.vue](app/components/TuxCTA.vue)) — big promotional block, three tones,
+    two-column at ≥48rem with action slot. Demos at `/components/cta`.
+- **Three style variants — `.style--bold` / `.style--elegant` / default** —
+  CSS scopes in `tux.css` plus a live `/style-variants` page demoing
+  side-by-side. `.style--bold` rebinds `--font-display` to Work Sans and
+  introduces the stacked-bar section signature + `.dot-grid` accent +
+  `.card-static--bold` rectangular top-bar variant. `.style--elegant`
+  rebinds to Georgia and introduces the diagonal `.hash-pattern` +
+  dotted maroon borders + `.card-static--elegant`. Default style is
+  implicit (no class needed) and renders the Oswald + maroon-hairline
+  rhythm via `.section-header`.
+- **Four-family lane tokens** in `tokens.css` — `--font-body` (Open Sans),
+  `--font-display` (Oswald), `--font-bold` (Work Sans),
+  `--font-elegant` (Georgia). Additive — legacy `--font-sans`
+  (Public Sans) unchanged.
+- **`TuxFactoid` component + `/components/factoid` demo page** — the
+  institutional "by the numbers" block. Numeral face changes per
+  variant (Open Sans 700 / Work Sans 800-italic / Georgia italic),
+  three densities (3/4/5-up at 96/72/56px). Replaces the aspirational
+  `<BigStat>` from `design/components.md`.
+- **`/preview` page + `public/preview/`** — 28 standalone HTML specimen
+  cards (typography, color, spacing, components, brand motifs) served
+  from `/preview/*.html` and indexed via iframe grid. Each loads
+  `/colors_and_type.css` directly — framework-free — so designers can
+  lift one into a deck without pulling Nuxt. `colors_and_type.css` and
+  `fonts/` mirrored into `public/` for portable use.
+- **`/kits` page + `public/kits/`** — five static reference kits carried
+  from the portable design-system download: `aggieux` (~57-family
+  component catalog), `pecan` / `tti-docs` / `tti-ai-chat` (three
+  application-shape demos showing tux primitives composed into product
+  surfaces), and `slides` (deck-stage slide system). All five render in
+  vanilla CSS + React via Babel-in-the-browser. Treat as frozen design
+  reference — the Tux*.vue components are authoritative when they
+  disagree.
+
+### Changed
+- **Renamed `app/assets/css/aggieux.css` → `tux.css`** — completes the
+  aggieux → tux rename. `nuxt.config.ts` and all comments/blurbs in
+  components, pages, ADRs, and design docs updated to match. The
+  `aggieux` name now refers exclusively to the upstream Texas A&M
+  MarCom AggieUX kit (snapshot in `reference/aggieux/`, copy in
+  `public/kits/aggieux/`, sync scripts in `scripts/sync-aggieux*.mjs`)
+  — not to our own design system. ADR 0004 file renamed to
+  `0004-tux-tokens-separate-from-nuxt-ui-theme.md`.
+- **Renamed `design/aggieux.md` → `design/tux.md`** — the system is named
+  tux (Aggie + UX); the older `aggieux.md` filename was a holdover from
+  the initial PECAN extraction. Content also adopts the **four-family
+  typography rule** (Open Sans / Oswald / Work Sans / Georgia +
+  JetBrains Mono) and documents the three section styles
+  (`default`/`bold`/`elegant`) — superseding the earlier Public
+  Sans-as-default framing. Public Sans remains loaded by `@nuxt/fonts`
+  for legacy components.
 - **Theme toggle split** — the header toggle is now **light ↔ dark only**
   (`tti ↔ tti-dark`). High-contrast mode (`tti-hc`) moved to a dedicated
   footer button, because WCAG AAA's line weights read as "broken" in a

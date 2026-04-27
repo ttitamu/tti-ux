@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tti">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="../colors_and_type.css?v=1777059345910" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 16px; background: var(--surface-page); box-sizing: border-box; display: flex; flex-direction: column; gap: 8px; }
+  .a { display: flex; gap: 10px; padding: 10px 12px; border-radius: var(--radius-md); border-left: 4px solid; background: var(--surface-sunken); font-size: 0.8rem; }
+  .a-imp { border-color: var(--brand-primary); background: color-mix(in srgb, var(--brand-primary) 5%, var(--surface-raised)); }
+  .a-warn { border-color: var(--brand-accent); background: #fdf6e3; color: #6a3e00; }
+  .a-comp { border-color: transparent; background: var(--brand-primary); color: #fff; }
+  .a-succ { border-color: var(--color-success); background: color-mix(in srgb, var(--color-success) 8%, var(--surface-raised)); }
+  .title { font-weight: 700; }
+  .body { opacity: 0.85; }
+</style>
+</head>
+<body>
+<div class="a a-imp"><div><div class="title">Scheduled maintenance · Thursday 2am–4am</div><div class="body">OpenSearch will be offline for a patch window.</div></div></div>
+<div class="a a-comp"><div><div class="title">Export controlled</div><div class="body">This index contains ITAR-designated records. Do not share outside TAMUS.</div></div></div>
+<div class="a a-warn"><div><div class="title">Classifier drift detected</div><div class="body">Review the pii:us_ssn results before re-exporting.</div></div></div>
+<div class="a a-succ"><div><div class="title">Scan completed</div><div class="body">12,402 files indexed in 4 min 18 s.</div></div></div>
+</body>
+</html>

@@ -1,4 +1,4 @@
-# ADR 0004 — aggieux tokens live alongside the Nuxt UI theme, not inside it
+# ADR 0004 — tux tokens live alongside the Nuxt UI theme, not inside it
 
 - **Date**: 2026-04-24
 - **Status**: Accepted
@@ -34,7 +34,7 @@ Tokens live in three CSS files loaded in strict order:
    re-exposes our custom properties to Tailwind's `@theme` so utilities
    like `bg-surface-page` work. Also hosts editorial utilities
    (`.heading--bold`, `.eyebrow`, `.subhead`).
-3. `app/assets/css/aggieux.css` — the Tux-specific utility layer:
+3. `app/assets/css/tux.css` — the Tux-specific utility layer:
    `card-linked`, `tux-table`, `tux-alert--warning`, `link-tti`,
    `btn-fill-on-hover`, etc. Referenced by Tux components that need
    stylistic deviations Nuxt UI's `:ui` prop can't express cleanly.
@@ -48,7 +48,7 @@ defined in the CSS: `primary: 'maroon'`, `info: 'teal'`, etc.
   color aliasing. They compose cleanly because the alias layer just
   resolves names to our palettes.
 - CSS load order is load-bearing — `tokens.css` must come first so
-  `@theme` in `globals.css` can reference the vars, and `aggieux.css`
+  `@theme` in `globals.css` can reference the vars, and `tux.css`
   last so its rules can layer over Nuxt UI's. Documented inline in
   `nuxt.config.ts`.
 - Dark theme and high-contrast theme work by swapping `data-theme`

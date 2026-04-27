@@ -5,7 +5,7 @@
  * Nuxt UI's UModal gives us the heavy lifting (scrim, focus trap, body
  * scroll lock, Escape to close). This wrapper adds:
  *   - optional eyebrow above the title (editorial rhythm)
- *   - gold-bar underline on the title (aggieux signature)
+ *   - gold-bar underline on the title (tux signature)
  *   - title uses the `heading--bold` utility
  *
  * Pass `v-model:open` like you would to UModal. Body and footer go in the

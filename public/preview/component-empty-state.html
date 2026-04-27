@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tti">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="../colors_and_type.css?v=1777059347548" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 20px; background: var(--surface-page); box-sizing: border-box; display: flex; justify-content: center; }
+  .e { max-width: 420px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; border: 2px solid var(--brand-primary); border-radius: var(--radius-lg); padding: 22px; background: var(--surface-raised); }
+  .icon { width: 48px; height: 48px; border-radius: 9999px; background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-raised)); display: flex; align-items: center; justify-content: center; color: var(--brand-primary); font-size: 22px; }
+  .t { font-weight: 700; font-size: 1rem; }
+  .d { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; }
+  .cta { background: var(--brand-primary); color: #fff; padding: 7px 14px; border-radius: var(--radius-md); font-size: 0.8rem; font-weight: 500; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="e">
+  <div class="icon">⌕</div>
+  <div class="t">No scans yet</div>
+  <div class="d">Point PECAN at a directory or S3 bucket and it'll start indexing. You'll see files appear here as classifiers finish running.</div>
+  <div class="cta">Start first scan</div>
+</div>
+</body>
+</html>

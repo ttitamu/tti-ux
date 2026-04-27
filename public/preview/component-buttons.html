@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tti">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="../colors_and_type.css?v=1777059346652" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 20px; background: var(--surface-page); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; box-sizing: border-box; }
+  button { font-family: var(--font-sans); font-size: 0.875rem; font-weight: 500; padding: 8px 16px; border-radius: var(--radius-md); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; border: 1px solid transparent; }
+  .primary { background: var(--brand-primary); color: #fff; }
+  .primary:hover { background: #4d001f; }
+  .secondary { background: transparent; color: var(--text-primary); border-color: var(--surface-border); }
+  .secondary:hover { background: var(--surface-sunken); }
+  .ghost { background: transparent; color: var(--text-primary); }
+  .ghost:hover { background: color-mix(in srgb, var(--brand-primary) 6%, transparent); }
+  .destructive { background: transparent; color: var(--color-error); border-color: var(--color-error); }
+  .destructive:hover { background: var(--color-error); color: #fff; }
+  .disabled { opacity: 0.5; cursor: not-allowed; }
+</style>
+</head>
+<body>
+<button class="primary">Start scan</button>
+<button class="secondary">Export CSV</button>
+<button class="ghost">Next →</button>
+<button class="destructive">Delete</button>
+<button class="primary disabled">Disabled</button>
+</body>
+</html>

@@ -54,7 +54,7 @@ Uses Arial (vs Calibri for regular templates) — PPTX-specific, doesn't affect 
 
 **Direction:** the newer (factsheet) system is where TTI is headed. Franklin Gothic ATF is a licensed font — we match the *feel* with **Public Sans** (US Web Design System, open-source, visually close). If TTI licenses Franklin Gothic ATF for web, we swap the token value; no other changes needed.
 
-## Visual identity cues to preserve in aggieux
+## Visual identity cues to preserve in tux
 
 - **Big-number stats** — oversized maroon or gold numerals with tiny tracked-out labels. Single most recognizable TTI design move. See `BigStat` in the components doc.
 - **ALL-CAPS section headers** — letter-spaced, bold sans-serif. Editorial rhythm throughout the collateral.
@@ -66,4 +66,4 @@ Uses Arial (vs Calibri for regular templates) — PPTX-specific, doesn't affect 
 
 TTI presents as its **own institutional voice that happens to live in the A&M system**. Boilerplate ("an agency of the State of Texas and member of The Texas A&M University System") appears in body copy, not as a co-branded logo lockup. Aggie maroon is the cue — not a TAMUS logo.
 
-aggieux follows: themes per institution; TTI is not "a TAMU skin." The `tti` theme and the `tamu` theme are siblings, not parent-child.
+tux follows: themes per institution; TTI is not "a TAMU skin." The `tti` theme and the `tamu` theme are siblings, not parent-child.

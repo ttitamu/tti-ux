@@ -24,14 +24,14 @@ and the broader Nuxt ecosystem is stable and growing, the risk is low.
 ## Decision
 
 tti-ux is a Nuxt 4 project. Components wrap Nuxt UI primitives where
-possible; we only go native (plain Vue + aggieux CSS) when Nuxt UI doesn't
+possible; we only go native (plain Vue + tux CSS) when Nuxt UI doesn't
 cover the need or when Nuxt UI's opinions fight the TTI brand too hard to
 override cleanly.
 
 ## Consequences
 
 - Consuming apps must be on Nuxt 4 or later. Non-Nuxt apps can't use tti-ux
-  directly — they'd need to copy the aggieux CSS tokens and rebuild
+  directly — they'd need to copy the tux CSS tokens and rebuild
   components.
 - We inherit Nuxt UI's release cadence. When they release a breaking change
   (e.g. Nuxt UI 5 renaming a prop), we track it in our CHANGELOG and bump.

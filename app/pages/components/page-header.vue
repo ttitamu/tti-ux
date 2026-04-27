@@ -57,5 +57,88 @@ const h2Vue = `<tux-page-header :level="2" eyebrow="inner section" title="Classi
         </TuxPageHeader>
       </TuxExample>
     </section>
+
+    <section>
+      <p class="eyebrow">tone — neutral</p>
+      <h2 class="heading--bold text-xl font-bold">Sunken-gray panel</h2>
+      <p class="text-sm text-text-secondary mb-3">
+        Pass <code>tone="neutral"</code> for a softly distinct page header —
+        useful when the page has rich body content and the header should
+        read as separate from it.
+      </p>
+      <TuxExample>
+        <TuxPageHeader
+          tone="neutral"
+          eyebrow="research"
+          title="Roadway safety program"
+        >
+          Twelve-county before/after studies on rural intersection
+          treatments. Outcomes tracked through 36-month follow-up windows
+          for durability.
+          <template #actions>
+            <TuxButton intent="primary">Browse projects</TuxButton>
+            <TuxButton intent="ghost">Read the report</TuxButton>
+          </template>
+        </TuxPageHeader>
+      </TuxExample>
+    </section>
+
+    <section>
+      <p class="eyebrow">tone — maroon · rhythm — hero</p>
+      <h2 class="heading--bold text-xl font-bold">Marketing landing surface</h2>
+      <p class="text-sm text-text-secondary mb-3">
+        Pass <code>tone="maroon"</code> + <code>rhythm="hero"</code> for the
+        loudest possible opener — brand-colored panel, oversized heading,
+        inverted text. Use sparingly; this is for the very top of a
+        landing page, not interior chrome.
+      </p>
+      <TuxExample>
+        <TuxPageHeader
+          tone="maroon"
+          rhythm="hero"
+          eyebrow="research"
+          title="Connected & Automated Vehicles"
+        >
+          Field-deployed sensor networks across the Texas Triangle, with
+          longitudinal corridor data feeding both safety research and
+          policy frameworks.
+          <template #actions>
+            <TuxButton intent="primary">Browse program</TuxButton>
+            <TuxButton intent="ghost">Read the 2025 report</TuxButton>
+          </template>
+        </TuxPageHeader>
+      </TuxExample>
+    </section>
+
+    <section>
+      <p class="eyebrow">media slot</p>
+      <h2 class="heading--bold text-xl font-bold">Two-column with quick fact</h2>
+      <p class="text-sm text-text-secondary mb-3">
+        Pass content into the <code>#media</code> slot to anchor a column
+        on the right (≥48rem). Common uses: a quick-fact callout, a hero
+        image, or a TuxBigStat anchoring the headline number.
+      </p>
+      <TuxExample>
+        <TuxPageHeader
+          tone="neutral"
+          rhythm="hero"
+          eyebrow="program"
+          title="MovementLab"
+        >
+          Continuous instrumentation of the Texas Triangle freight network.
+          Real-time corridor data feeds both research and operational
+          decisions.
+          <template #media>
+            <TuxBigStat
+              :value="412"
+              suffix=" mi"
+              label="Continuously instrumented corridor"
+              tone="maroon"
+              size="lg"
+            />
+          </template>
+        </TuxPageHeader>
+      </TuxExample>
+    </section>
   </div>
 </template>
