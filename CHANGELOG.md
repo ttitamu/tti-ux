@@ -8,6 +8,47 @@ when you pull." No npm publish, no version tags, yet.
 ## Unreleased
 
 ### Added
+- **Doc-site chrome batch — TuxDocsSidebar, TuxTOC, TuxSiteNav,
+  TuxDropdown, TuxMegaMenu.** Fills the navigation-and-doc-shape gap
+  identified after the previous batch. The catalog had `TuxIdentity`
+  (the lockup) but no actual menu components, and no doc-site
+  sidebar / TOC for technical documentation.
+  - **`TuxDocsSidebar`** ([app/components/TuxDocsSidebar.vue](app/components/TuxDocsSidebar.vue)) — hierarchical
+    sidebar built on native `<details>` + recursive
+    `TuxDocsSidebarNode`. Active-route highlighting (including
+    ancestors), inline search filter with match highlighting,
+    sessionStorage-persisted collapse state per consumer.
+  - **`TuxTOC`** ([app/components/TuxTOC.vue](app/components/TuxTOC.vue)) — article table-of-contents.
+    Auto-detects H2/H3 from a target element on mount, tracks active
+    heading via `IntersectionObserver`, smooth-scrolls on click,
+    updates URL hash without triggering a full navigation. Pairs
+    with `TuxDocsSidebar` for the canonical three-column doc layout.
+  - **`TuxSiteNav`** ([app/components/TuxSiteNav.vue](app/components/TuxSiteNav.vue)) — institutional top-bar
+    with TuxIdentity lockup + optional utility strip + primary nav.
+    Mobile hamburger drawer included. Five AggieUX site types
+    (University / Center / Department / Application+nav / Application-only)
+    all expressible via composition.
+  - **`TuxDropdown`** ([app/components/TuxDropdown.vue](app/components/TuxDropdown.vue)) — single-column
+    dropdown panel. Used as a primary-nav item in TuxSiteNav, also
+    works standalone for inline "more actions" patterns.
+    Hover/focus open with diagonal-path delay; Escape closes.
+  - **`TuxMegaMenu`** ([app/components/TuxMegaMenu.vue](app/components/TuxMegaMenu.vue)) — full-width
+    multi-column panel from a top-bar item, with optional featured
+    tile (eyebrow + title + description + image) on the right.
+
+### Changed
+- **TuxDiagram styling pass.** Swapped from Mermaid's `default` theme
+  to `base` so all themeVariables actually apply; expanded the
+  brand-mapping (primary/secondary/tertiary fills, sequence-actor
+  styling, note styling for both light + dark modes); type sized
+  down from 16px to 13px Open Sans so diagrams don't dominate
+  editorial body context. Error surface replaced the raw parser
+  dump with a hint about quoting unquoted special characters + a
+  collapsible details for the parser output. Demo source for the
+  flowchart fixed (the `<br/>` inside an unquoted node label was
+  failing to parse — wrapped in `"…"` per Mermaid's syntax).
+
+### Added
 - **Authoring + content batch — TuxCodeBlock, TuxDiagram, MDC integration.**
   Closes the gap between "components for app surfaces" and "components
   for prose surfaces" (docs, blog, ADRs, marcom WordPress migration).

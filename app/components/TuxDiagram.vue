@@ -80,9 +80,18 @@ watch(
       <div v-if="svg" v-html="svg" class="tux-diagram__svg" />
       <div v-else-if="error" class="tux-diagram__error">
         <Icon name="lucide:triangle-alert" class="tux-diagram__error-icon" aria-hidden="true" />
-        <div>
+        <div class="tux-diagram__error-body">
           <p class="tux-diagram__error-title">Diagram failed to render</p>
-          <pre class="tux-diagram__error-message">{{ error }}</pre>
+          <p class="tux-diagram__error-hint">
+            Check the source for unquoted special characters
+            (<code>&lt;</code>, <code>&gt;</code>, <code>(</code>,
+            <code>)</code>, <code>:</code>) — Mermaid requires labels
+            with these to be wrapped in <code>"…"</code>.
+          </p>
+          <details class="tux-diagram__error-details">
+            <summary class="tux-diagram__error-summary">Show parser output</summary>
+            <pre class="tux-diagram__error-message">{{ error }}</pre>
+          </details>
         </div>
       </div>
       <!-- Reserved-space skeleton: estimated height + dimmed icon. No
@@ -198,13 +207,64 @@ watch(
   color: var(--color-error);
 }
 
-.tux-diagram__error-message {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
+.tux-diagram__error-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.tux-diagram__error-hint {
+  margin: 0 0 0.625rem;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
   color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.tux-diagram__error-hint code {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  background: var(--surface-sunken);
+  padding: 0.0625rem 0.25rem;
+  border-radius: var(--radius-sm);
+  color: var(--brand-primary);
+}
+
+.tux-diagram__error-details {
+  margin: 0;
+}
+
+.tux-diagram__error-summary {
+  font-family: var(--font-bold);
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem 0;
+  list-style: none;
+}
+
+.tux-diagram__error-summary::before {
+  content: "›  ";
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.tux-diagram__error-details[open] .tux-diagram__error-summary::before {
+  transform: rotate(90deg);
+}
+
+.tux-diagram__error-message {
+  margin: 0.5rem 0 0;
+  padding: 0.625rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
   white-space: pre-wrap;
   word-break: break-word;
+  max-height: 12rem;
+  overflow-y: auto;
 }
 
 .tux-diagram__caption {

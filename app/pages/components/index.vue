@@ -21,6 +21,8 @@ const components = [
   { name: "TuxCTA",           to: "/components/cta",            blurb: "Big promotional block — three tones, three style variants, action slot.",                      uses: "tux (no U-primitive)" },
   { name: "TuxDescriptionList", to: "/components/description-list", blurb: "Term/definition pairs — native dl/dt/dd. Inline or stacked, editorial or data emphasis.",   uses: "tux (no U-primitive)" },
   { name: "TuxDiagram",       to: "/components/diagram",        blurb: "Mermaid diagrams-as-code — flowcharts, sequences, ERDs. Lazy-loaded ~3MB; brand-themed.",     uses: "Mermaid" },
+  { name: "TuxDocsSidebar",   to: "/components/docs-sidebar",   blurb: "Hierarchical doc-site sidebar — collapsible sections, search filter, persisted collapse state.", uses: "tux (no U-primitive)" },
+  { name: "TuxDropdown",      to: "/components/site-nav",       blurb: "Single-column dropdown from a top-bar nav item. Composes inside TuxSiteNav.",                  uses: "tux (no U-primitive)" },
   { name: "TuxEmptyState",    to: "/components/empty-state",    blurb: "No-data placeholder — tinted icon circle, title, description, CTA slot.",                     uses: "TuxCard composite" },
   { name: "TuxFactoid",       to: "/components/factoid",        blurb: "Institutional \"by the numbers\" — 3/4/5-up oversized stats, variant-aware numerals.",        uses: "tux (no U-primitive)" },
   { name: "TuxFilterPanel",   to: "/components/filter-panel",   blurb: "Left-rail facet panel — collapsible groups, checkbox lists with counts, applied-filter chips.", uses: "tux (no U-primitive)" },
@@ -30,6 +32,7 @@ const components = [
   { name: "TuxLinkList",      to: "/components/link-list",      blurb: "Categorized resource list — grouped headings, optional descriptions, featured-item left bar.",   uses: "tux (no U-primitive)" },
   { name: "TuxLinkSlab",      to: "/components/link-slab",      blurb: "Full-width band of prominent links — footer-of-section navigation, three tones.",              uses: "tux (no U-primitive)" },
   { name: "TuxMediaSlab",     to: "/components/media-slab",     blurb: "Full-bleed hero band — overlay (drama) or split (editorial), three heights, three tones.",     uses: "tux (no U-primitive)" },
+  { name: "TuxMegaMenu",      to: "/components/site-nav",       blurb: "Full-width multi-column panel from a top-bar item, optional featured tile. Composes inside TuxSiteNav.", uses: "tux (no U-primitive)" },
   { name: "TuxModal",         to: "/components/modal",          blurb: "UModal with editorial rhythm — optional eyebrow, gold-bar underlined title.",                  uses: "UModal" },
   { name: "TuxNewsCollection", to: "/components/news-collection", blurb: "News article list — date + thumbnail + headline + dek + read-more, stacked or grid.",        uses: "tux (no U-primitive)" },
   { name: "TuxPageHeader",    to: "/components/page-header",    blurb: "Eyebrow + gold-bar heading + subtitle — plain default, neutral or maroon panel, hero rhythm.", uses: "tux (no U-primitive)" },
@@ -40,8 +43,10 @@ const components = [
   { name: "TuxSectionHeader", to: "/components/section-header", blurb: "Editorial section heading — ALL-CAPS, tracked-out, maroon underline.",                         uses: "tux (no U-primitive)" },
   { name: "TuxSidebarBlock",  to: "/components/sidebar-block",  blurb: "Sidebar widget wrapper — eyebrow + maroon underline + content. Default/bordered/filled.",      uses: "tux (no U-primitive)" },
   { name: "TuxSignupFeature", to: "/components/signup-feature", blurb: "Newsletter signup — email input + uppercase action + consent. Three tones, three style variants.", uses: "tux (no U-primitive)" },
+  { name: "TuxSiteNav",       to: "/components/site-nav",       blurb: "Top-bar with TuxIdentity + utility nav + primary nav. Hosts TuxDropdown / TuxMegaMenu items.",   uses: "tux (no U-primitive)" },
   { name: "TuxTable",         to: "/components/table",          blurb: "UTable with tux chrome, automatic status-cell rendering via TuxBadge.",                    uses: "UTable" },
   { name: "TuxTestimonial",   to: "/components/testimonial",    blurb: "Attributed quotes with portrait + name + role — grid or row layout, three style variants.",   uses: "tux (no U-primitive)" },
+  { name: "TuxTOC",           to: "/components/toc",            blurb: "Article table-of-contents — sticky right rail with IntersectionObserver-driven active state.",  uses: "tux (no U-primitive)" },
   { name: "TuxTreemap",       to: "/components/treemap",        blurb: "Squarified hierarchical-size viz — PECAN's headline chart, drill-in, no external library.",   uses: "tux (no U-primitive)" },
 ];
 </script>

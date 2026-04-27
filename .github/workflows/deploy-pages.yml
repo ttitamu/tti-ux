@@ -1,0 +1,71 @@
+# Build the Nuxt site into static HTML and publish to GitHub Pages.
+# The `github_pages` Nitro preset emits a fully-prerendered `dist/`,
+# including a `.nojekyll` marker so GH Pages serves underscored
+# directories like `_nuxt/` correctly.
+#
+# Triggers:
+#   - push to main → publishes the live site
+#   - manual workflow_dispatch → for republish without a code change
+#
+# Required GH settings: Settings → Pages → Source = "GitHub Actions"
+# (not "Deploy from a branch"). Permissions are scoped per the
+# `permissions:` block below.
+
+name: deploy to github pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Single in-flight run; cancel earlier deploys when a newer commit
+# lands so the live site reflects HEAD without race conditions.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: install
+        run: npm ci
+
+      - name: generate
+        env:
+          # Repo-subpath base for the github.io URL. If a custom
+          # domain ever lands, override via repo variables to "/".
+          NUXT_APP_BASE_URL: /tti-ux/
+          # Switches the Nitro preset to `github_pages` (emits the
+          # `.nojekyll` marker + static dist). Local builds without
+          # this env var keep the default node-server preset.
+          NUXT_PAGES: "1"
+        run: npm run generate
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .output/public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

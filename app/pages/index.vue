@@ -21,6 +21,8 @@ const components = [
   { name: "TuxCTA",           to: "/components/cta",            blurb: "Big promotional block — three tones, three style variants, action slot." },
   { name: "TuxDescriptionList", to: "/components/description-list", blurb: "Term/definition pairs — event details, file metadata, spec lists." },
   { name: "TuxDiagram",       to: "/components/diagram",        blurb: "Mermaid diagrams-as-code — flowcharts, sequences, ERDs. Lazy-loaded; brand-themed." },
+  { name: "TuxDocsSidebar",   to: "/components/docs-sidebar",   blurb: "Hierarchical doc-site sidebar — collapsible sections, active-route, search filter." },
+  { name: "TuxDropdown",      to: "/components/site-nav",       blurb: "Single-column dropdown from a top-bar nav item (composes inside TuxSiteNav)." },
   { name: "TuxEmptyState",    to: "/components/empty-state",    blurb: "No-data placeholder w/ icon + CTA slot." },
   { name: "TuxFactoid",       to: "/components/factoid",        blurb: "Institutional \"by the numbers\" — 3/4/5-up oversized stats." },
   { name: "TuxFilterPanel",   to: "/components/filter-panel",   blurb: "Left-rail facet panel — collapsible groups, checkbox lists, applied-filter chips." },
@@ -30,6 +32,7 @@ const components = [
   { name: "TuxLinkList",      to: "/components/link-list",      blurb: "Categorized resource lists — for sponsors / for partners / for students." },
   { name: "TuxLinkSlab",      to: "/components/link-slab",      blurb: "Full-width band of prominent links — footer-of-section navigation, three tones." },
   { name: "TuxMediaSlab",     to: "/components/media-slab",     blurb: "Full-bleed hero band — overlay or split layout, three heights, three tones." },
+  { name: "TuxMegaMenu",      to: "/components/site-nav",       blurb: "Full-width multi-column panel from a top-bar nav item (composes inside TuxSiteNav)." },
   { name: "TuxModal",         to: "/components/modal",          blurb: "UModal with eyebrow + gold-bar title." },
   { name: "TuxNewsCollection", to: "/components/news-collection", blurb: "News article list — date + thumbnail + headline + dek + read-more, stacked or grid." },
   { name: "TuxPagination",    to: "/components/pagination",     blurb: "Page-number controls — squarified active page, ellipsis truncation, optional status line." },
@@ -40,8 +43,10 @@ const components = [
   { name: "TuxSectionHeader", to: "/components/section-header", blurb: "Editorial ALL-CAPS heading, maroon underline." },
   { name: "TuxSidebarBlock",  to: "/components/sidebar-block",  blurb: "Sidebar widget wrapper — related links, contact box, quick facts, in-page nav." },
   { name: "TuxSignupFeature", to: "/components/signup-feature", blurb: "Newsletter signup block — email input + uppercase action + consent line, three tones." },
+  { name: "TuxSiteNav",       to: "/components/site-nav",       blurb: "Top-bar with TuxIdentity + utility nav + primary nav. Compose with TuxDropdown / TuxMegaMenu." },
   { name: "TuxTable",         to: "/components/table",          blurb: "UTable with tux chrome + auto status cells." },
   { name: "TuxTestimonial",   to: "/components/testimonial",    blurb: "Attributed quotes with portrait + name + role — grid or row." },
+  { name: "TuxTOC",           to: "/components/toc",            blurb: "Article table-of-contents — sticky right rail, IntersectionObserver-driven active state." },
   { name: "TuxTreemap",       to: "/components/treemap",        blurb: "Squarified hierarchical-size viz — PECAN's headline chart, no external viz library." },
 ];
 </script>

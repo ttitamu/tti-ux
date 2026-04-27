@@ -40,22 +40,71 @@ async function getMermaid(theme: "default" | "dark") {
 }
 
 function applyConfig(m: typeof import("mermaid").default, theme: "default" | "dark") {
+  // Brand palette mapped into Mermaid's semantic slots. We can't use
+  // CSS vars here — Mermaid resolves colors at render time into
+  // standalone SVG, not at paint time. Light + dark modes get
+  // distinct slots so contrast stays right in both.
+  const isDark = theme === "dark";
+
   const config: MermaidConfig = {
     startOnLoad: false,
-    theme,
+    // 'base' honors all themeVariables; 'default' silently overrides
+    // some so brand colors don't fully apply.
+    theme: "base",
     themeVariables: {
-      // Brand palette mapped into Mermaid's semantic slots. We can't
-      // use CSS vars here — Mermaid resolves colors at render time
-      // into standalone SVG, not at paint time.
-      fontFamily: "var(--font-body), Open Sans, sans-serif",
-      primaryColor: "#5C0025",
-      primaryTextColor: "#ffffff",
-      primaryBorderColor: "#3d0018",
-      secondaryColor: "#DDAC37",
-      secondaryTextColor: "#2A0E15",
+      // Type — Open Sans, sized smaller than Mermaid's default
+      // (16px) which dominates editorial body context.
+      fontFamily: '"Open Sans", "Helvetica Neue", Arial, sans-serif',
+      fontSize: "13px",
+
+      // Primary nodes — white fill with maroon border keeps diagrams
+      // readable in editorial context without competing with body
+      // text. Mermaid's default fills nodes with the primary color
+      // which is too loud.
+      primaryColor: isDark ? "#3a3a3a" : "#FFFFFF",
+      primaryTextColor: isDark ? "#FAFAFA" : "#221F1F",
+      primaryBorderColor: "#5C0025",
+
+      // Secondary — sunken-gray fills (alt nodes, subgraphs).
+      secondaryColor: isDark ? "#2a2727" : "#F5F5F5",
+      secondaryTextColor: isDark ? "#FAFAFA" : "#221F1F",
+      secondaryBorderColor: isDark ? "#5D5D5D" : "#D1D2D4",
+
+      // Tertiary — gold accent for the rare third tier.
+      tertiaryColor: isDark ? "#DDAC37" : "#FBF3F6",
+      tertiaryTextColor: "#2A0E15",
+      tertiaryBorderColor: "#DDAC37",
+
+      // Edges + connectors — brand maroon, not generic gray.
       lineColor: "#5C0025",
-      textColor: "#221F1F",
-      background: "#ffffff",
+      textColor: isDark ? "#FAFAFA" : "#221F1F",
+      mainBkg: isDark ? "#221F1F" : "#FFFFFF",
+      background: isDark ? "#15100F" : "#FFFFFF",
+
+      // Sequence diagrams
+      actorBkg: isDark ? "#3a3a3a" : "#FFFFFF",
+      actorBorder: "#5C0025",
+      actorTextColor: isDark ? "#FAFAFA" : "#221F1F",
+      activationBkgColor: isDark ? "#5C0025" : "#FBF3F6",
+      activationBorderColor: "#5C0025",
+
+      // Notes inside diagrams
+      noteBkgColor: isDark ? "#1f000c" : "#FBF3F6",
+      noteBorderColor: "#5C0025",
+      noteTextColor: isDark ? "#FAFAFA" : "#221F1F",
+    },
+    flowchart: {
+      curve: "basis",
+      nodeSpacing: 40,
+      rankSpacing: 50,
+      padding: 8,
+      htmlLabels: true,
+    },
+    sequence: {
+      actorMargin: 60,
+      messageFontSize: 12,
+      noteFontSize: 12,
+      mirrorActors: false,
     },
     securityLevel: "strict",
   };

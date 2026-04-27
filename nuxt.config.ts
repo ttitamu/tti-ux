@@ -10,6 +10,32 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
+  // GitHub Pages deploy.
+  //
+  // The site pre-renders fully at build time — no SSR worker on
+  // Pages. `app.baseURL` only kicks in when an explicit env var is
+  // set (the Actions workflow sets `NUXT_APP_BASE_URL=/tti-ux/`); in
+  // local dev and SSR-server builds the baseURL stays `/` so nothing
+  // changes for the development workflow.
+  //
+  // The github_pages Nitro preset emits a fully-prerendered
+  // `.output/public/` directory with a `.nojekyll` marker. The
+  // workflow only switches to that preset when building for Pages —
+  // again via env var — so `npm run dev` and `npm run build` (a
+  // server build) keep their default behavior.
+  $production: {
+    app: {
+      baseURL: process.env.NUXT_APP_BASE_URL || "/",
+    },
+    nitro: {
+      preset: process.env.NUXT_PAGES === "1" ? "github_pages" : undefined,
+      prerender: {
+        crawlLinks: true,
+        routes: ["/"],
+      },
+    },
+  },
+
   modules: [
     "@nuxt/icon",
     "@nuxt/fonts",

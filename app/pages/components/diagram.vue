@@ -1,15 +1,18 @@
 <script setup lang="ts">
 useHead({ title: "TuxDiagram · tti-ux" });
 
+// Mermaid requires labels containing HTML or special chars to be
+// double-quoted — the `<br/>` would otherwise break the parser at
+// the `<` character. Same applies to parens, braces, and `:` etc.
 const flowchart = `flowchart TD
-  A[File event on disk] --> B{Watcher coalesce<br/>(250ms window)}
+  A[File event on disk] --> B{"Watcher coalesce<br/>(250ms window)"}
   B --> C[Batch event payload]
   C --> D{Heartbeat OK?}
   D -->|yes| E[Ship to central index]
   D -->|no| F[Buffer locally]
   F --> G{Reconnect}
   G --> E
-  E --> H[Drift reconciler<br/>hourly sweep]`;
+  E --> H["Drift reconciler<br/>hourly sweep"]`;
 
 const sequence = `sequenceDiagram
   participant U as User

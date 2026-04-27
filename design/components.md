@@ -35,6 +35,8 @@ npm run dev
 | `TuxCTA`             | tux native               | `/components/cta`               |
 | `TuxDescriptionList` | tux native               | `/components/description-list`  |
 | `TuxDiagram`         | Mermaid                  | `/components/diagram`           |
+| `TuxDocsSidebar`     | tux native               | `/components/docs-sidebar`      |
+| `TuxDropdown`        | tux native               | `/components/site-nav`          |
 | `TuxEmptyState`      | `TuxCard` composite      | `/components/empty-state`       |
 | `TuxExample`         | showcase primitive       | (used on every component page)  |
 | `TuxFactoid`         | tux native               | `/components/factoid`           |
@@ -45,6 +47,7 @@ npm run dev
 | `TuxLinkList`        | tux native               | `/components/link-list`         |
 | `TuxLinkSlab`        | tux native               | `/components/link-slab`         |
 | `TuxMediaSlab`       | tux native               | `/components/media-slab`        |
+| `TuxMegaMenu`        | tux native               | `/components/site-nav`          |
 | `TuxModal`           | `UModal`                 | `/components/modal`             |
 | `TuxNewsCollection`  | tux native               | `/components/news-collection`   |
 | `TuxPageHeader`      | tux native               | `/components/page-header`       |
@@ -55,9 +58,11 @@ npm run dev
 | `TuxSectionHeader`   | tux native               | `/components/section-header`    |
 | `TuxSidebarBlock`    | tux native               | `/components/sidebar-block`     |
 | `TuxSignupFeature`   | tux native               | `/components/signup-feature`    |
+| `TuxSiteNav`         | tux native               | `/components/site-nav`          |
 | `TuxSubfooter`       | tux native               | `/components/footer`            |
 | `TuxTable`           | `UTable`                 | `/components/table`             |
 | `TuxTestimonial`     | tux native               | `/components/testimonial`       |
+| `TuxTOC`             | tux native               | `/components/toc`               |
 | `TuxTreemap`         | tux native               | `/components/treemap`           |
 
 The showcase pages expose **Vue** (template source), **HTML** (rendered
