@@ -174,13 +174,9 @@ function escape(s: string): string {
   padding: 0.5rem 0.5rem;
 }
 
-.tux-docs-sidebar__summary--depth-1 {
-  font-weight: 600;
-  padding-left: 1.125rem;
-}
-
+.tux-docs-sidebar__summary--depth-1,
 .tux-docs-sidebar__summary--depth-2 {
-  padding-left: 1.875rem;
+  font-weight: 600;
 }
 
 .tux-docs-sidebar__icon {
@@ -217,23 +213,50 @@ function escape(s: string): string {
   transform: rotate(90deg);
 }
 
-/* Indent guide — single thin vertical line per nesting level. The
-   "active trail" modifier (set by the parent node when it contains
-   the active route) thickens + colors this line so the eye can
-   follow the maroon up the ancestor chain to the active item.
-   This is what Drupal calls "active trail" and Microsoft Learn
-   calls "tree guides with active state." */
+/* Indent guide — single thin neutral vertical line per nesting
+   level. The line stays the same neutral gray whether or not a
+   descendant is active; the active item's pill alone carries the
+   "you are here" affordance. This matches the docs-it-tamu-edu
+   and docs-tti-tamu-edu sidebar pattern. */
 .tux-docs-sidebar__sublist {
   list-style: none;
   margin: 0.125rem 0 0.375rem;
-  padding: 0;
-  margin-left: 0.875rem;
+  padding: 0 0 0 0.75rem;
+  margin-left: 0.6rem;
+  position: relative;
   border-left: 1px solid var(--surface-border);
-  transition: border-color 0.15s ease;
+  display: grid;
+  gap: 0.125rem;
 }
 
-.tux-docs-sidebar__sublist--active-trail {
-  border-left-color: var(--brand-primary);
+/* Horizontal connector tick from the guide line to each child
+   item — neutral gray, always. Drawn on the <li> (item) so the
+   tick aligns with the row regardless of whether the child renders
+   as a link, summary, or heading. */
+.tux-docs-sidebar__sublist > .tux-docs-sidebar__item {
+  position: relative;
+}
+
+.tux-docs-sidebar__sublist > .tux-docs-sidebar__item::before {
+  content: "";
+  position: absolute;
+  left: -0.75rem;
+  top: 0.85rem;
+  width: 0.55rem;
+  border-top: 1px solid var(--surface-border);
+}
+
+/* Cap the vertical guide at the last child — paint over the line
+   below the last tick using the surface color, so the guide ends
+   cleanly at the final item rather than dangling past it. */
+.tux-docs-sidebar__sublist > .tux-docs-sidebar__item:last-child::after {
+  content: "";
+  position: absolute;
+  left: -0.76rem;
+  top: 0.85rem;
+  bottom: 0;
+  width: 2px;
+  background: var(--surface-page);
 }
 
 .tux-docs-sidebar__link {
@@ -244,51 +267,8 @@ function escape(s: string): string {
   font-size: 0.8125rem;
   color: var(--text-secondary);
   text-decoration: none;
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  /* Negative margin pulls the link's left edge over the parent
-     sublist's border, so the active treatment "merges" with the
-     trail line instead of stacking next to it. */
-  border-left: 2px solid transparent;
-  margin-left: -1px;
-  position: relative;
-  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-
-.tux-docs-sidebar__link--depth-0 {
-  padding-left: 0.5rem;
   border-radius: var(--radius-sm);
-  margin-left: 0;
-  border-left: 0;
-}
-.tux-docs-sidebar__link--depth-1 { padding-left: 1.125rem; }
-.tux-docs-sidebar__link--depth-2 { padding-left: 1.875rem; }
-.tux-docs-sidebar__link--depth-3 { padding-left: 2.625rem; }
-
-/* Subtle horizontal connector — a tiny tick from the guide line to
-   the link's left edge. Adds a small visual cue without going full
-   ASCII-tree. Suppressed at depth 0 (no parent guide to connect to). */
-.tux-docs-sidebar__link:not(.tux-docs-sidebar__link--depth-0)::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 0.4375rem;
-  height: 1px;
-  background: var(--surface-border);
-  transform: translateY(-50%);
-}
-
-.tux-docs-sidebar__sublist--active-trail > .tux-docs-sidebar__item > .tux-docs-sidebar__link::before {
-  background: var(--brand-primary);
-}
-
-/* On the active item, the 3px bar already connects to the trail
-   guide on the left. The connector tick would just add a redundant
-   visual note inside the rounded bg pill, so hide it — the bar +
-   bg do the work cleanly. Inactive items keep their tick so the
-   parent-child hierarchy stays readable. */
-.tux-docs-sidebar__link--active::before {
-  display: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .tux-docs-sidebar__link:hover {
@@ -296,51 +276,25 @@ function escape(s: string): string {
   color: var(--text-primary);
 }
 
-/* Active item — rounded "card pill" with maroon left bar + soft
-   tinted fill. The card-style rounded radius (matches --radius-md
-   used elsewhere in the system) plus the bg fill turn the active
-   row into a clearly bounded shape; the connector tick now visually
-   flows INTO the rounded shape from the trail guide line, instead
-   of floating with a white-space gap between them. Bold maroon
-   text remains the primary affordance. */
+/* Active item — soft pink pill, fully rounded on all four
+   corners. No left bar, no trail-color change on the guide line,
+   no negative margins. The pill alone reads as "you are here";
+   the neutral guide + tick give the parent-child context. Bold
+   maroon text is the primary affordance. */
 .tux-docs-sidebar__link--active {
   color: var(--brand-primary);
   font-weight: 700;
-  border-left-color: var(--brand-primary);
-  /* Stronger fill (12%) so the card shape is clearly visible. 7%
-     was nearly imperceptible against the page surface and read as
-     "no fill" — the rounding wasn't doing visible work. 12% reads
-     as a clear pink-tinted pill while still being soft enough not
-     to compete with the body text. */
   background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
-  /* Round the right corners only. The left edge stays straight so
-     it sits flush with the trail guide line — the active row reads
-     as a "tab" coming out from the trail, not a free-floating
-     pill. Matches the card radius (--radius-md). */
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }
 
-.tux-docs-sidebar__link--active:not(.tux-docs-sidebar__link--depth-0) {
-  /* 3px bar at the active item — heavier than the 2px ancestor
-     guide lines so the eye lands on the active row first. Negative
-     margin pulls the bar over the parent guide so they merge into
-     a single continuous trail; the rounded bg starts at that same
-     edge so the connector tick lands inside the pill, not before it. */
-  border-left-width: 3px;
-  margin-left: -2px;
-}
-
-/* Same treatment for summary rows in the active trail — when an
-   ancestor is the trail, the chevron + label of the open section
-   above the active item gets the brand color so the user can see
-   "I'm inside this section" at a glance. */
-.tux-docs-sidebar__group:has(.tux-docs-sidebar__link--active) > .tux-docs-sidebar__summary,
-.tux-docs-sidebar__group:has(.tux-docs-sidebar__sublist--active-trail) > .tux-docs-sidebar__summary {
+/* Summary rows whose subtree contains the active item get bold
+   maroon text + chevron, so the eye can trace the section header
+   back to the active page. The guide line itself stays neutral. */
+.tux-docs-sidebar__group:has(.tux-docs-sidebar__link--active) > .tux-docs-sidebar__summary {
   color: var(--brand-primary);
 }
 
-.tux-docs-sidebar__group:has(.tux-docs-sidebar__link--active) > .tux-docs-sidebar__summary .tux-docs-sidebar__chevron,
-.tux-docs-sidebar__group:has(.tux-docs-sidebar__sublist--active-trail) > .tux-docs-sidebar__summary .tux-docs-sidebar__chevron {
+.tux-docs-sidebar__group:has(.tux-docs-sidebar__link--active) > .tux-docs-sidebar__summary .tux-docs-sidebar__chevron {
   color: var(--brand-primary);
 }
 

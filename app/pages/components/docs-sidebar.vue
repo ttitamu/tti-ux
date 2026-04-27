@@ -77,32 +77,29 @@ const exampleVue = `<TuxDocsSidebar
       flat catalog sidebar in the style guide. Collapsible parent
       sections via native <code>&lt;details&gt;</code>, inline search
       filtering with match highlighting, sessionStorage-persisted
-      collapse state. <strong>Active trail</strong> draws a maroon
-      guide line up the ancestor chain so users can visually trace
-      from the deeply-nested active item back to the section root —
-      the pattern Drupal calls "active trail" and Microsoft Learn
-      calls "tree guides with active state."
+      collapse state. The active item renders as a soft pink pill;
+      neutral indent guides + horizontal connector ticks carry the
+      parent-child structure. Same visual pattern as the production
+      docs.tti.tamu.edu and docs.it.tamu.edu sidebars.
     </TuxPageHeader>
 
     <section class="space-y-3">
       <p class="eyebrow">visual language</p>
-      <h2 class="heading--bold text-xl font-bold">Indent guides + active trail</h2>
+      <h2 class="heading--bold text-xl font-bold">Indent guides + connector ticks</h2>
       <p class="max-w-3xl text-sm text-text-secondary leading-relaxed">
         Each nesting level renders a thin vertical guide line on the
-        left of its children — that's the indent guide. When any
-        descendant is the active route, that section's guide + the
-        ancestor chain turn brand maroon, so the eye can follow it
-        up to the parent section heading. Each item also gets a
-        small horizontal tick connecting it to the guide so the
-        parent-child relationship is unambiguous without going full
-        ASCII tree.
+        left of its children — that's the indent guide. Every child
+        gets a short horizontal tick connecting from the guide to
+        its row, so the parent-child relationship is unambiguous
+        without going full ASCII tree. Both stay neutral gray; the
+        active item alone carries the "you are here" affordance.
       </p>
       <p class="max-w-3xl text-sm text-text-secondary leading-relaxed">
         The demo below has its <strong>Search API</strong> entry
         wired to <code>/components/docs-sidebar</code> — this very
-        page. As you read it, that entry is highlighted and the
-        maroon trail traces up through "Index" so you can see where
-        you are without scanning the whole tree.
+        page. That entry renders as a maroon-tinted pill so you can
+        see the active treatment in context, with the section
+        heading "Index" picking up the brand color above it.
       </p>
     </section>
 
@@ -116,7 +113,7 @@ const exampleVue = `<TuxDocsSidebar
         treatment.
       </p>
       <TuxExample class="mt-4" :vue="exampleVue">
-        <div class="border border-surface-border rounded-md bg-surface-raised p-4">
+        <div class="border border-surface-border rounded-md bg-surface-page p-4">
           <TuxDocsSidebar
             title="PECAN docs"
             :tree="tree"
