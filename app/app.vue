@@ -41,6 +41,14 @@ const nav = [
     ],
   },
   {
+    group: "Design",
+    items: [
+      { label: "Doctrine",   to: "/design/tux",        icon: "lucide:book-open" },
+      { label: "Components", to: "/design/components", icon: "lucide:layers" },
+      { label: "Palette",    to: "/design/palette",    icon: "lucide:swatch-book" },
+    ],
+  },
+  {
     group: "Foundations",
     items: [
       { label: "Tokens",         to: "/tokens",         icon: "lucide:palette" },
@@ -104,13 +112,12 @@ const nav = [
   {
     group: "Composition",
     items: [
-      { label: "Design docs", to: "/design",   icon: "lucide:book-open" },
-      { label: "Examples",    to: "/examples", icon: "lucide:layout-panel-left" },
-      { label: "Markdown",    to: "/markdown", icon: "lucide:file-text" },
-      { label: "Forms",       to: "/forms",    icon: "lucide:clipboard-list" },
-      { label: "Patterns",    to: "/patterns", icon: "lucide:layers" },
-      { label: "Preview",     to: "/preview",  icon: "lucide:image" },
-      { label: "Kits",        to: "/kits",     icon: "lucide:library" },
+      { label: "Examples", to: "/examples", icon: "lucide:layout-panel-left" },
+      { label: "Markdown", to: "/markdown", icon: "lucide:file-text" },
+      { label: "Forms",    to: "/forms",    icon: "lucide:clipboard-list" },
+      { label: "Patterns", to: "/patterns", icon: "lucide:layers-2" },
+      { label: "Preview",  to: "/preview",  icon: "lucide:image" },
+      { label: "Kits",     to: "/kits",     icon: "lucide:library" },
     ],
   },
   {

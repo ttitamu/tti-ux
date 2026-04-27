@@ -1,9 +1,11 @@
 # tux — design system
 
-**tux** (/ˈæ.ɡi.uː/) is the design system behind tti-ux. The name is
-Aggie + UX. It ships with a **TTI flavor** out of the box and re-themes
-cleanly for any Texas A&M University System member institution — or any
-institution outside TAMUS that wants to borrow the pattern.
+**tux** (/tʌks/, rhymes with "ducks" — like the suit) is the design
+system behind tti-ux. The name nods at "tuxedo" by way of TTI's maroon
++ gold formal-wear palette and the literal tuxedo glyph in the logo
+mark. It ships with a **TTI flavor** out of the box and re-themes
+cleanly for any Texas A&M University System member institution — or
+any institution outside TAMUS that wants to borrow the pattern.
 
 ## Principles
 

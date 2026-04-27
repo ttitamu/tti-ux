@@ -79,6 +79,12 @@ jobs:
         run: npm run generate
 
       - uses: actions/configure-pages@v5
+        with:
+          # Auto-enable Pages on the repo if it isn't already configured.
+          # Lets forks (and the test repo) deploy without a manual
+          # Settings → Pages → "GitHub Actions" toggle. Requires the
+          # `pages: write` permission set above.
+          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:
