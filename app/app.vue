@@ -179,7 +179,7 @@ const footerColumns = [
   <UApp>
     <div class="min-h-screen flex flex-col bg-surface-page text-text-primary">
       <header
-        class="border-b border-surface-border bg-surface-raised sticky top-0 z-20"
+        class="border-b border-surface-border bg-surface-raised sticky top-0 z-30"
         role="banner"
       >
         <div class="px-4 sm:px-6 py-3 flex items-center gap-4">
@@ -243,10 +243,17 @@ const footerColumns = [
           @click="sidebarOpen = false"
         />
 
+        <!-- Sidebar — fixed-positioned on mobile (slides in from left
+             with the menu toggle), static-positioned on desktop. We use
+             `md:transform-none` (rather than `md:translate-x-0`) so the
+             desktop sidebar doesn't carry a `transform` declaration —
+             a transformed static element creates a stacking context that
+             paints over the sticky header (z-index doesn't apply to
+             static elements, so the header's z-30 wouldn't help). -->
         <aside
           :class="[
             'border-r border-surface-border bg-surface-raised flex-shrink-0 w-60',
-            'md:static md:translate-x-0',
+            'md:static md:translate-x-0 md:transform-none',
             'fixed inset-y-0 left-0 top-[57px] z-20 transition-transform duration-200',
             sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
           ]"

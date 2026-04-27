@@ -92,10 +92,20 @@ console.log(`Serving ${STATIC_DIR} at http://127.0.0.1:${PORT}`);
 console.log(`Auditing ${AUDIT_PATH}\n`);
 
 // ── Browser ───────────────────────────────────────────────────────────────
+// On GitHub-hosted runners (and many other sandboxed CI environments)
+// Chromium's default user-namespace sandbox can't initialize. We disable
+// the sandbox via `--no-sandbox` when PUPPETEER_LAUNCH_NO_SANDBOX is set.
+// This is safe here because we're running our own audit page in the
+// browser, not untrusted content. Local dev keeps the sandbox.
+const launchArgs = [];
+if (process.env.PUPPETEER_LAUNCH_NO_SANDBOX === "true") {
+  launchArgs.push("--no-sandbox", "--disable-setuid-sandbox");
+}
 const browser = await puppeteer.launch({
   // Match the resolution used to render the audit page; smaller viewports
   // collapse the columns and the audit becomes single-column.
   defaultViewport: { width: 1600, height: 1200 },
+  args: launchArgs,
 });
 
 const page = await browser.newPage();

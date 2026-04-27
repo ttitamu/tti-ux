@@ -21,9 +21,20 @@ on:
     branches: [main]
   workflow_dispatch: {}
 
+# Force JS actions (checkout, setup-node, upload-artifact) onto
+# Node 24. Default is the deprecated Node 20 runtime.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   audit:
     runs-on: ubuntu-latest
+    # Chromium needs additional system libs to run headless on
+    # ubuntu-latest. puppeteer's bundled Chromium expects libnss3,
+    # libatk1.0, libcups2, libxss1, libxkbcommon, libdrm, libgbm.
+    # The ubuntu-latest runner has most preinstalled but not all —
+    # we install the headless-shell deps explicitly to avoid the
+    # "No usable sandbox" launch failure.
     steps:
       - uses: actions/checkout@v4
 
@@ -33,11 +44,22 @@ jobs:
           node-version: 24
           cache: npm
 
+      - name: install Chromium system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 libatk-bridge2.0-0 libatk1.0-0 libcups2 libdrm2 \
+            libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
+            libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2t64
+
       - name: install
         run: npm ci
 
       - name: generate static site
         env:
+          # The audit script rewrites incoming /tti-ux/ paths to
+          # /, so the build can use either prefix. Keep /tti-ux/
+          # for parity with the production deploy.
           NUXT_APP_BASE_URL: /tti-ux/
           NUXT_PAGES: "1"
           NODE_OPTIONS: --max-old-space-size=6144
@@ -47,6 +69,13 @@ jobs:
         env:
           NUXT_APP_BASE_URL: /tti-ux/
           AUDIT_LEVEL: AAA
+          # Tell puppeteer to use --no-sandbox on the runner. The
+          # GitHub-hosted runner doesn't allow user namespaces, so
+          # Chromium's default sandbox fails with "No usable sandbox".
+          # This is the standard workaround for headless Chromium
+          # in CI; we're not running untrusted JS so the sandbox
+          # isn't load-bearing here.
+          PUPPETEER_LAUNCH_NO_SANDBOX: "true"
         run: npm run audit:contrast
 
       - name: upload report on failure

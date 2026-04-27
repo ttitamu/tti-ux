@@ -29,6 +29,13 @@ concurrency:
   group: pages
   cancel-in-progress: true
 
+# Force JavaScript-based actions (checkout, setup-node, etc.) onto
+# the Node 24 runtime. Without this they fall back to Node 20,
+# which is deprecated as of 2025-09. See:
+# https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -52,9 +59,13 @@ jobs:
 
       - name: generate
         env:
-          # Repo-subpath base for the github.io URL. If a custom
-          # domain ever lands, override via repo variables to "/".
-          NUXT_APP_BASE_URL: /tti-ux/
+          # Per-repo base URL. The production repo (ttitamu/tti-ux)
+          # deploys to ttitamu.github.io/tti-ux/ and needs the
+          # /tti-ux/ prefix. The test fork deploys to a Pages
+          # preview subdomain (musical-fiesta-…pages.github.io)
+          # which serves at root, so its baseURL is /. Anything
+          # else (other forks, custom domains) defaults to root.
+          NUXT_APP_BASE_URL: ${{ github.repository == 'ttitamu/tti-ux' && '/tti-ux/' || '/' }}
           # Switches the Nitro preset to `github_pages` (emits the
           # `.nojekyll` marker + static dist). Local builds without
           # this env var keep the default node-server preset.
