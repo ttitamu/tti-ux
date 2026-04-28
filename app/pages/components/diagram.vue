@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxDiagram · tti-ux" });
+useHead({ title: "TuxDiagram · TUX" });
 
 // Mermaid requires labels containing HTML or special chars to be
 // double-quoted — the `<br/>` would otherwise break the parser at

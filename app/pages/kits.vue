@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Reference kits · tti-ux" });
+useHead({ title: "Reference kits · TUX" });
 
 // Static reference kits — lifted wholesale from the portable design-system
 // download. They render in vanilla CSS + React (Babel-in-the-browser, no

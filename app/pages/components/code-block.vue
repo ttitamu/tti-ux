@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxCodeBlock · tti-ux" });
+useHead({ title: "TuxCodeBlock · TUX" });
 
 const tsCode = `// Drift reconciler — closes stale local→central mismatches every hour.
 import { schedule } from "./scheduler";

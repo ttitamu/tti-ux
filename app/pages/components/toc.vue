@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxTOC · tti-ux" });
+useHead({ title: "TuxTOC · TUX" });
 
 const exampleVue = `<TuxTOC
   target="#article"

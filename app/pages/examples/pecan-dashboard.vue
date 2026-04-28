@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Example · PECAN dashboard · tti-ux" });
+useHead({ title: "Example · PECAN dashboard · TUX" });
 
 definePageMeta({
   // Composition example — assembled from real Tux* components, but

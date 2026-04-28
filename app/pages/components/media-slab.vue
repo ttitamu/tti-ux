@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxMediaSlab · tti-ux" });
+useHead({ title: "TuxMediaSlab · TUX" });
 
 const exampleVue = `<TuxMediaSlab
   eyebrow="Field deployment"

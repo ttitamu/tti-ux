@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxCaptionedMedia · tti-ux" });
+useHead({ title: "TuxCaptionedMedia · TUX" });
 
 const exampleVue = `<TuxCaptionedMedia
   alt="Connected vehicle test track at Rellis Campus"

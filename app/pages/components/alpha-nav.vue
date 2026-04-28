@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxAlphaNav · tti-ux" });
+useHead({ title: "TuxAlphaNav · TUX" });
 
 // Mock dataset — letters with at least one entry
 const availableLetters = ["A", "B", "C", "D", "G", "H", "I", "L", "M", "N", "P", "R", "S", "T", "V"];

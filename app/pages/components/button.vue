@@ -3,7 +3,7 @@
 // so the `Source` tab below can expose the component without duplication.
 import tuxButtonSource from "~/components/TuxButton.vue?raw";
 
-useHead({ title: "TuxButton · tti-ux" });
+useHead({ title: "TuxButton · TUX" });
 
 const loading = ref(false);
 

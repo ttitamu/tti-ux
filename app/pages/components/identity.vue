@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxIdentity · tti-ux" });
+useHead({ title: "TuxIdentity · TUX" });
 
 const exampleVue = `<TuxIdentity
   level="institution"

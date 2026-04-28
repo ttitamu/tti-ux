@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxTable · tti-ux" });
+useHead({ title: "TuxTable · TUX" });
 
 interface Project {
   id: string;

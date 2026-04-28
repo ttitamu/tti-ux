@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxBadge · tti-ux" });
+useHead({ title: "TuxBadge · TUX" });
 
 const tiers = ["public", "internal", "sensitive", "restricted"] as const;
 const statuses = ["queued", "running", "completed", "failed"] as const;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxSearch · tti-ux" });
+useHead({ title: "TuxSearch · TUX" });
 
 const q1 = ref("");
 const q2 = ref("");

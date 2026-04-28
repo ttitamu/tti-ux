@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Motion &amp; spacing · tti-ux" });
+useHead({ title: "Motion &amp; spacing · TUX" });
 
 const spaceSteps = [
   { name: "0.5",  rem: "0.125rem", px: "2px" },

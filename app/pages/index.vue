@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import pkg from "../../package.json";
 
-useHead({ title: "tti-ux — Living style guide" });
+useHead({ title: "TUX" });
 
 const version = pkg.version;
 

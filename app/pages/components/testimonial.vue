@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxTestimonial · tti-ux" });
+useHead({ title: "TuxTestimonial · TUX" });
 
 const testimonials = [
   { quote: "Engineering-only treatments rarely hold past 24 months — this one is doing something different.", name: "Dr. Lina Hassan", role: "Principal Investigator · Roadway Safety", color: "maroon" as const },

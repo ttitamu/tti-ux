@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxFooter · tti-ux" });
+useHead({ title: "TuxFooter · TUX" });
 
 // Demo data — same shape as what app.vue passes for the live footer.
 const demoSocial = [

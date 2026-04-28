@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxBlockquote · tti-ux" });
+useHead({ title: "TuxBlockquote · TUX" });
 
 const exampleVue = `<TuxBlockquote
   quote="What surprised us was the durability of the effect — three years out, we expected some regression toward baseline. We didn't see it."

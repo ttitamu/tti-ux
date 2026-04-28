@@ -3,7 +3,7 @@
 // no duplication. That powers the `Source` tab on the gallery example below.
 import tuxAlertSource from "~/components/TuxAlert.vue?raw";
 
-useHead({ title: "TuxAlert · tti-ux" });
+useHead({ title: "TuxAlert · TUX" });
 
 const variants = [
   "note",

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxBreadcrumbs · tti-ux" });
+useHead({ title: "TuxBreadcrumbs · TUX" });
 
 const exampleVue = `<TuxBreadcrumbs :trail="[
   { label: 'Home',                       to: '/' },

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Patterns · tti-ux" });
+useHead({ title: "Patterns · TUX" });
 
 // Generic research-publications example data — illustrative, not bound to
 // any specific consuming app.

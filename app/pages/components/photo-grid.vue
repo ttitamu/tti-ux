@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxPhotoGrid · tti-ux" });
+useHead({ title: "TuxPhotoGrid · TUX" });
 
 const photoItems = [
   { alt: "Connected vehicle test track at Rellis", tone: "maroon" as const, caption: "Connected vehicle test track", credit: "TTI Photography · 2025" },

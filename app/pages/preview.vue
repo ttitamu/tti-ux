@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Preview specimens · tti-ux" });
+useHead({ title: "Preview specimens · TUX" });
 
 // Specimen index. Each entry maps to an HTML file in /public/preview/.
 // The HTML files are deliberately framework-free — vanilla CSS, no Vue —

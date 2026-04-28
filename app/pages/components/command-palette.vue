@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxCommandPalette · tti-ux" });
+useHead({ title: "TuxCommandPalette · TUX" });
 
 const paletteRef = ref<{ open: () => void } | null>(null);
 

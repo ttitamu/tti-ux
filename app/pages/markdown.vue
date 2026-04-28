@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Markdown (MDC) · tti-ux" });
+useHead({ title: "Markdown (MDC) · TUX" });
 
 // Parse markdown at SSR time via `parseMarkdown()` so fenced code
 // blocks ship pre-highlighted (Shiki runs during the parse, using the

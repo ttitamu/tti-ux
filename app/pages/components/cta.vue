@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxCTA · tti-ux" });
+useHead({ title: "TuxCTA · TUX" });
 
 const exampleVue = `<TuxCTA
   eyebrow="get started"

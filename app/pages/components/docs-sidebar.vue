@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxDocsSidebar · tti-ux" });
+useHead({ title: "TuxDocsSidebar · TUX" });
 
 const tree = [
   {

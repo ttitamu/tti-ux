@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxSectionHeader · tti-ux" });
+useHead({ title: "TuxSectionHeader · TUX" });
 
 const level1Vue = `<tux-section-header :level="1" subtitle="Level 1 — the biggest">
   Research grants overview

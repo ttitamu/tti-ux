@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxDescriptionList · tti-ux" });
+useHead({ title: "TuxDescriptionList · TUX" });
 
 const eventItems = [
   { term: "Date",      value: "Thursday, May 14, 2026" },

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxPagination · tti-ux" });
+useHead({ title: "TuxPagination · TUX" });
 
 const page1 = ref(1);
 const page2 = ref(7);

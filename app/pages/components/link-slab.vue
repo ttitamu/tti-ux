@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxLinkSlab · tti-ux" });
+useHead({ title: "TuxLinkSlab · TUX" });
 
 const sectionLinks = [
   { label: "About",     to: "#", icon: "lucide:info",      description: "Mission, history, leadership" },

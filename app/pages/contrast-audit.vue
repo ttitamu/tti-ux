@@ -15,7 +15,7 @@
 // component below. It renders once but appears three times — one in
 // each themed column.
 
-useHead({ title: "Contrast audit · tti-ux" });
+useHead({ title: "Contrast audit · TUX" });
 
 definePageMeta({
   // Skip prerender — this page is for local audit + visual review,

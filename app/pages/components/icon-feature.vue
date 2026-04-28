@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxIconFeature · tti-ux" });
+useHead({ title: "TuxIconFeature · TUX" });
 
 const items = [
   {

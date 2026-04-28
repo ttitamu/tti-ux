@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Forms · tti-ux" });
+useHead({ title: "Forms · TUX" });
 
 const text = ref("");
 const password = ref("");

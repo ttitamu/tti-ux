@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Example · tti-ai-studio session · tti-ux" });
+useHead({ title: "Example · tti-ai-studio session · TUX" });
 
 const corpora = [
   { value: "grants-2024-2026",        label: "grants-2024-2026 · 12,480 docs",  count: 12480 },

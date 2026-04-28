@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Components · tti-ux" });
+useHead({ title: "Components · TUX" });
 
 const components = [
   { name: "TuxAlert",         to: "/components/alert",          blurb: "Docusaurus-style admonitions — 8 variants including compliance and tip.",                    uses: "UAlert" },

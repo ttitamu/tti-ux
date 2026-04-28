@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxContactCard · tti-ux" });
+useHead({ title: "TuxContactCard · TUX" });
 
 const directory = [
   {

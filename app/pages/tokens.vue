@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Tokens · tti-ux" });
+useHead({ title: "Tokens · TUX" });
 
 const brand = [
   { name: "tti-maroon",      hex: "#5C0025", var: "--tti-maroon" },

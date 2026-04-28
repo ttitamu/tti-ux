@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Composition examples · tti-ux" });
+useHead({ title: "Composition examples · TUX" });
 
 const examples = [
   {

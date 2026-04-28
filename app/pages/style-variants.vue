@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Style variants · tti-ux" });
+useHead({ title: "Style variants · TUX" });
 </script>
 
 <template>

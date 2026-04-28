@@ -35,7 +35,7 @@ const titles: Record<string, string> = {
 };
 
 useHead({
-  title: computed(() => `${titles[docName.value] ?? docName.value} · tti-ux`),
+  title: computed(() => `${titles[docName.value] ?? docName.value} · TUX`),
 });
 
 // 404 if the slug doesn't match a design doc.

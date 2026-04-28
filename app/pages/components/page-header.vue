@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import tuxPageHeaderSource from "~/components/TuxPageHeader.vue?raw";
 
-useHead({ title: "TuxPageHeader · tti-ux" });
+useHead({ title: "TuxPageHeader · TUX" });
 
 const basicVue = `<tux-page-header eyebrow="primitives" title="TuxButton">
   Wraps <code>UButton</code>. The <code>intent</code> prop picks one of four

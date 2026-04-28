@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxModal · tti-ux" });
+useHead({ title: "TuxModal · TUX" });
 
 const basic = ref(false);
 const confirm = ref(false);

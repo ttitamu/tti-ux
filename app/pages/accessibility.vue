@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Accessibility · tti-ux" });
+useHead({ title: "Accessibility · TUX" });
 
 // Audit summary lives statically here. Refresh after each audit run by
 // pasting from contrast-report.json's `summary` field. Keeping it

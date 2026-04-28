@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxCard · tti-ux" });
+useHead({ title: "TuxCard · TUX" });
 
 const staticVue = `<tux-card>
   <p class="eyebrow">project · 2026-04-22</p>

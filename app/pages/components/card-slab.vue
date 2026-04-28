@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxCardSlab · tti-ux" });
+useHead({ title: "TuxCardSlab · TUX" });
 
 const programCards = [
   { eyebrow: "Program", title: "Connected & Automated Vehicles", to: "/research/cav",     tone: "maroon" as const },

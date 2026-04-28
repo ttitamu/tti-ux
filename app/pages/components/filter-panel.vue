@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxFilterPanel · tti-ux" });
+useHead({ title: "TuxFilterPanel · TUX" });
 
 const facets = [
   {

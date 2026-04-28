@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Design docs · tti-ux" });
+useHead({ title: "Design docs · TUX" });
 
 // Same Vite glob trick — discover the docs at build time.
 const docs = import.meta.glob("../../../design/*.md", {

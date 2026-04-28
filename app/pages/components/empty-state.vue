@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import tuxEmptyStateSource from "~/components/TuxEmptyState.vue?raw";
 
-useHead({ title: "TuxEmptyState · tti-ux" });
+useHead({ title: "TuxEmptyState · TUX" });
 
 const basicVue = `<tux-empty-state
   icon="lucide:folder-plus"

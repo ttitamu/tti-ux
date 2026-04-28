@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxSidebarBlock · tti-ux" });
+useHead({ title: "TuxSidebarBlock · TUX" });
 
 const exampleVue = `<TuxSidebarBlock title="Related research" icon="lucide:link">
   <ul>

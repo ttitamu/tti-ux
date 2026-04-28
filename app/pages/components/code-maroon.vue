@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxCodeMaroon · tti-ux" });
+useHead({ title: "TuxCodeMaroon · TUX" });
 
 const showAlert    = ref(true);
 const showWarning  = ref(true);

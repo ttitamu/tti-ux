@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxFactoid · tti-ux" });
+useHead({ title: "TuxFactoid · TUX" });
 
 const FACTOID_DATA = [
   { value: "412", suffix: " mi", label: "Continuously instrumented freight corridor coming online by year's end.", source: "TTI Freight Operations Group · 2025" },

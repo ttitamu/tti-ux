@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxAccordion · tti-ux" });
+useHead({ title: "TuxAccordion · TUX" });
 
 const faqItems = [
   {

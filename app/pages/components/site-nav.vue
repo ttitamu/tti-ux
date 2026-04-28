@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxSiteNav · tti-ux" });
+useHead({ title: "TuxSiteNav · TUX" });
 
 const universityNav = {
   identity: {

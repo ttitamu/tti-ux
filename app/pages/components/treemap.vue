@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxTreemap · tti-ux" });
+useHead({ title: "TuxTreemap · TUX" });
 
 // Mock PECAN-style filesystem tree — sizes in bytes for the byte formatter.
 const data = {

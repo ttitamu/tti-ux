@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxCallout · tti-ux" });
+useHead({ title: "TuxCallout · TUX" });
 
 const exampleVue = `<TuxCallout kind="stat">
   <p>

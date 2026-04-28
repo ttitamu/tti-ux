@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxSignupFeature · tti-ux" });
+useHead({ title: "TuxSignupFeature · TUX" });
 
 const email = ref("");
 const lastSubmitted = ref<string | null>(null);

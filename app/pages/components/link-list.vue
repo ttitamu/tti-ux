@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxLinkList · tti-ux" });
+useHead({ title: "TuxLinkList · TUX" });
 
 const groups = [
   {

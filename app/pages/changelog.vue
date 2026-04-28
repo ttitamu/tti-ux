@@ -6,7 +6,7 @@
 // so fenced code blocks ship pre-highlighted through Shiki.
 import changelogSource from "../../CHANGELOG.md?raw";
 
-useHead({ title: "Changelog · tti-ux" });
+useHead({ title: "Changelog · TUX" });
 
 const { data: parsed } = await useAsyncData(
   "changelog",

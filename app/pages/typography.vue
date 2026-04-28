@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Typography · tti-ux" });
+useHead({ title: "Typography · TUX" });
 </script>
 
 <template>

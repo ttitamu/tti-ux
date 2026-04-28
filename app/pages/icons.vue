@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { lucideIconNames, lucideIconCount } from "~/utils/lucide-names";
 
-useHead({ title: "Icons · tti-ux" });
+useHead({ title: "Icons · TUX" });
 
 // Curated: the icons the Tux components + existing pages actually reach for.
 // Keeps a quick-scan grid at the top for the 80% case. Full catalog below.

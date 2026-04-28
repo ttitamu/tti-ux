@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Example · Research program landing · tti-ux" });
+useHead({ title: "Example · Research program landing · TUX" });
 
 const factoids = [
   { value: "412", suffix: " mi", label: "Continuously instrumented freight corridor coming online by year's end.", source: "TTI Freight Operations Group · 2025" },

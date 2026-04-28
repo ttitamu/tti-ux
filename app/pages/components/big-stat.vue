@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxBigStat · tti-ux" });
+useHead({ title: "TuxBigStat · TUX" });
 
 const exampleVue = `<TuxBigStat
   value="$126"
