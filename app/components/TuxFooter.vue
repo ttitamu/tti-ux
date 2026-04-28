@@ -75,6 +75,13 @@ interface Props {
   logo?: string;
   /** Logo width in px. */
   logoSize?: number;
+  /** Optional full institutional lockup (logo + wordmark) rendered
+   *  beneath the social row. Use the white-on-transparent variant
+   *  since it sits on the maroon marketing ground. Pass `null` to
+   *  hide; sibling institutions override with their own artwork. */
+  brandLockup?: string | null;
+  /** Alt text for `brandLockup`. */
+  brandLockupAlt?: string;
   /** Social-platform links. Renders as an icon row beneath the address. */
   social?: SocialLink[];
   /** Right-side resource/policy columns. Two is canonical; three+
@@ -97,6 +104,8 @@ withDefaults(defineProps<Props>(), {
   phone: "(979) 317-2000",
   logo: "/logo.svg",
   logoSize: 80,
+  brandLockup: "/TTI_white.png",
+  brandLockupAlt: "Texas A&M Transportation Institute",
   social: () => [],
   columns: () => [],
   tagline: "Coordinated Statewide Transportation Research Program",
@@ -170,6 +179,13 @@ function linkAttrs(item: ColumnLink) {
               </a>
             </li>
           </ul>
+
+          <img
+            v-if="brandLockup"
+            :src="brandLockup"
+            :alt="brandLockupAlt"
+            class="tux-footer__brand-lockup"
+          >
         </div>
 
         <!-- Right-side columns of links -->
@@ -205,7 +221,6 @@ function linkAttrs(item: ColumnLink) {
           class="tux-footer__lockup"
           aria-label="The Texas A&M University System"
         >
-          <span class="tux-footer__lockup-glyph" aria-hidden="true">A</span>
           <span class="tux-footer__lockup-text">
             <span class="tux-footer__lockup-eyebrow">A Member of</span>
             <span class="tux-footer__lockup-name">The Texas A&amp;M University System</span>
@@ -265,7 +280,8 @@ function linkAttrs(item: ColumnLink) {
   grid-template-columns: auto 1fr;
   grid-template-areas:
     "logo text"
-    "social social";
+    "social social"
+    "lockup lockup";
   gap: 1rem 1.25rem;
   align-items: start;
 }
@@ -360,6 +376,22 @@ function linkAttrs(item: ColumnLink) {
 .tux-footer__social-icon {
   width: 1.125rem;
   height: 1.125rem;
+}
+
+/* Institutional brand lockup — official logo+wordmark artwork
+   beneath the social row. Renders the white-on-transparent variant
+   on the maroon ground. Capped at a print-card size so it doesn't
+   compete with the identity-block name. */
+.tux-footer__brand-lockup {
+  grid-area: lockup;
+  display: block;
+  margin-top: 1rem;
+  width: auto;
+  height: auto;
+  max-width: 16rem;
+  max-height: 2.75rem;
+  object-fit: contain;
+  object-position: left center;
 }
 
 /* Right-side marketing columns */
@@ -457,26 +489,6 @@ function linkAttrs(item: ColumnLink) {
   text-decoration: underline;
   text-underline-offset: 2px;
   outline: none;
-}
-
-.tux-footer__lockup-glyph {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  /* Transparent bg so the gold sits directly on the legal-strip
-     #1f1c1c surface — gold-on-deep-charcoal clears AAA (≥ 7:1).
-     The hairline gold border carries the "circle medallion"
-     affordance without adding a weakly-contrasted fill behind. */
-  background: transparent;
-  border: 1px solid rgba(221, 172, 55, 0.45);
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--brand-accent);
-  flex-shrink: 0;
 }
 
 .tux-footer__lockup-text {

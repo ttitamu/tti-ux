@@ -73,6 +73,18 @@ now, npm package later) explicit instead of implicit.
 ## Unreleased
 
 ### Added
+- **TuxFooter `brandLockup` prop — official institutional artwork
+  beneath the social row.** The footer's identity column has the
+  square glyph + HTML wordmark for chrome-density purposes; the new
+  prop layers in the official horizontal lockup PNG (logo + wordmark
+  in one piece) so consumers see the canonical institutional artwork
+  on the maroon marketing ground. Defaults to `/TTI_white.png` for
+  TTI; sibling institutions override with their own white-on-
+  transparent variant; pass `null` to hide. Capped at 16rem × 2.75rem
+  so it doesn't compete with the institution name above it.
+  - Three new public assets: `TTI-Color.png` (maroon road glyph,
+    light backgrounds), `TTI-black.png` (mono black, print/legal),
+    `TTI_white.png` (light variant, dark/maroon backgrounds).
 - **Doc-site chrome batch — TuxDocsSidebar, TuxTOC, TuxSiteNav,
   TuxDropdown, TuxMegaMenu.** Fills the navigation-and-doc-shape gap
   identified after the previous batch. The catalog had `TuxIdentity`
@@ -102,6 +114,11 @@ now, npm package later) explicit instead of implicit.
     tile (eyebrow + title + description + image) on the right.
 
 ### Changed
+- **TuxFooter legal strip drops the gold "A" medallion** next to the
+  TAMUS lockup. The medallion was a placeholder glyph standing in
+  for an actual TAMUS-system mark and read as ornament rather than
+  signal; the eyebrow + name lockup carries the affordance on its
+  own.
 - **TuxDiagram styling pass.** Swapped from Mermaid's `default` theme
   to `base` so all themeVariables actually apply; expanded the
   brand-mapping (primary/secondary/tertiary fills, sequence-actor
