@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Static poster for the /visualizations/embed Power BI demo. Stylized
+  donut + KPI tiles + line chart layout — the canonical Power BI
+  "executive overview" arrangement, recolored in TTI palette.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" preserveAspectRatio="xMidYMid meet">
+  <rect width="1200" height="750" fill="#FFFFFF"/>
+  <!-- Title strip -->
+  <rect x="0" y="0" width="1200" height="64" fill="#F5F5F5"/>
+  <text x="40" y="42" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#221F1F">Sponsored research · FY26 spend overview</text>
+  <text x="1100" y="42" font-family="Arial, sans-serif" font-size="13" font-weight="500" fill="#5C0025" text-anchor="end">Power BI</text>
+
+  <!-- KPI row -->
+  <g font-family="Arial, sans-serif">
+    <rect x="40" y="90" width="270" height="120" fill="#FAFAFA" stroke="#E7E6E6"/>
+    <text x="60" y="120" font-size="11" fill="#525252" letter-spacing="1.5">TOTAL AWARDED</text>
+    <text x="60" y="170" font-size="42" font-weight="700" fill="#5C0025">$84.2M</text>
+    <text x="60" y="195" font-size="12" fill="#3D5328">▲ 12.4% vs FY25</text>
+
+    <rect x="330" y="90" width="270" height="120" fill="#FAFAFA" stroke="#E7E6E6"/>
+    <text x="350" y="120" font-size="11" fill="#525252" letter-spacing="1.5">ACTIVE PROJECTS</text>
+    <text x="350" y="170" font-size="42" font-weight="700" fill="#5C0025">412</text>
+    <text x="350" y="195" font-size="12" fill="#3D5328">▲ 28 new this quarter</text>
+
+    <rect x="620" y="90" width="270" height="120" fill="#FAFAFA" stroke="#E7E6E6"/>
+    <text x="640" y="120" font-size="11" fill="#525252" letter-spacing="1.5">TOP SPONSOR</text>
+    <text x="640" y="170" font-size="42" font-weight="700" fill="#5C0025">TxDOT</text>
+    <text x="640" y="195" font-size="12" fill="#525252">$31.0M · 36.8%</text>
+
+    <rect x="910" y="90" width="250" height="120" fill="#FAFAFA" stroke="#E7E6E6"/>
+    <text x="930" y="120" font-size="11" fill="#525252" letter-spacing="1.5">EXPECTED Q4 BURN</text>
+    <text x="930" y="170" font-size="42" font-weight="700" fill="#15457E">$22.6M</text>
+    <text x="930" y="195" font-size="12" fill="#A02828">▼ trending under plan</text>
+  </g>
+
+  <!-- Donut: sponsor mix -->
+  <g transform="translate(280 460)">
+    <text x="-220" y="-130" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#221F1F">Sponsor mix · FY26</text>
+    <circle r="120" fill="none" stroke="#E7E6E6" stroke-width="40"/>
+    <!-- TxDOT 37% -->
+    <circle r="120" fill="none" stroke="#5C0025" stroke-width="40"
+      stroke-dasharray="279 754" stroke-dashoffset="0" transform="rotate(-90)"/>
+    <!-- Federal 28% -->
+    <circle r="120" fill="none" stroke="#DDAC37" stroke-width="40"
+      stroke-dasharray="211 754" stroke-dashoffset="-279" transform="rotate(-90)"/>
+    <!-- Other state 18% -->
+    <circle r="120" fill="none" stroke="#15457E" stroke-width="40"
+      stroke-dasharray="136 754" stroke-dashoffset="-490" transform="rotate(-90)"/>
+    <!-- Other 17% -->
+    <circle r="120" fill="none" stroke="#4A8892" stroke-width="40"
+      stroke-dasharray="128 754" stroke-dashoffset="-626" transform="rotate(-90)"/>
+    <text x="0" y="-4" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#221F1F">$84.2M</text>
+    <text x="0" y="14" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#525252">FY26 awards</text>
+  </g>
+  <!-- Donut legend -->
+  <g font-family="Arial, sans-serif" font-size="12" fill="#221F1F" transform="translate(440 380)">
+    <rect x="0" y="0" width="12" height="12" fill="#5C0025"/><text x="20" y="11">TxDOT — 37%</text>
+    <rect x="0" y="22" width="12" height="12" fill="#DDAC37"/><text x="20" y="33">Federal (FHWA, NSF) — 28%</text>
+    <rect x="0" y="44" width="12" height="12" fill="#15457E"/><text x="20" y="55">Other state — 18%</text>
+    <rect x="0" y="66" width="12" height="12" fill="#4A8892"/><text x="20" y="77">Industry &amp; other — 17%</text>
+  </g>
+
+  <!-- Line chart: monthly burn -->
+  <g transform="translate(700 250)">
+    <text x="0" y="-10" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#221F1F">Monthly burn · FY26 to date</text>
+    <rect x="0" y="0" width="450" height="260" fill="#FAFAFA" stroke="#E7E6E6"/>
+    <!-- gridlines -->
+    <g stroke="#E7E6E6">
+      <line x1="0" y1="65" x2="450" y2="65"/>
+      <line x1="0" y1="130" x2="450" y2="130"/>
+      <line x1="0" y1="195" x2="450" y2="195"/>
+    </g>
+    <!-- planned -->
+    <polyline fill="none" stroke="#A5A5A5" stroke-width="2" stroke-dasharray="4 4"
+      points="20,210 60,190 100,170 140,150 180,130 220,115 260,100 300,85 340,70 380,55 420,40"/>
+    <!-- actual -->
+    <polyline fill="none" stroke="#5C0025" stroke-width="3"
+      points="20,215 60,200 100,180 140,165 180,150 220,140 260,125 300,110 340,95"/>
+    <!-- markers -->
+    <g fill="#5C0025">
+      <circle cx="20"  cy="215" r="4"/>
+      <circle cx="60"  cy="200" r="4"/>
+      <circle cx="100" cy="180" r="4"/>
+      <circle cx="140" cy="165" r="4"/>
+      <circle cx="180" cy="150" r="4"/>
+      <circle cx="220" cy="140" r="4"/>
+      <circle cx="260" cy="125" r="4"/>
+      <circle cx="300" cy="110" r="4"/>
+      <circle cx="340" cy="95"  r="4"/>
+    </g>
+    <!-- legend -->
+    <g font-family="Arial, sans-serif" font-size="11" fill="#221F1F" transform="translate(20 240)">
+      <line x1="0" y1="0" x2="22" y2="0" stroke="#5C0025" stroke-width="3"/>
+      <text x="28" y="4">Actual</text>
+      <line x1="100" y1="0" x2="122" y2="0" stroke="#A5A5A5" stroke-width="2" stroke-dasharray="4 4"/>
+      <text x="128" y="4">Plan</text>
+    </g>
+  </g>
+
+  <!-- Footer -->
+  <line x1="0" y1="690" x2="1200" y2="690" stroke="#E7E6E6" stroke-width="1"/>
+  <text x="40" y="720" font-family="Arial, sans-serif" font-size="11" fill="#525252">Source: TTI sponsored-projects warehouse · refreshed nightly · workspace: TTI/Finance</text>
+</svg>

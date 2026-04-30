@@ -105,7 +105,10 @@ function simulateLoad() {
         </div>
         <TuxTable v-else-if="tableRows.length" :data="tableRows" :columns="tableColumns">
           <template #status-cell="{ row }">
-            <TuxBadge :status="statusToBadge[(row.original || row).status as Status]" :label="(row.original || row).status.replace('_', ' ')" />
+            <TuxBadge
+              :status="statusToBadge[((row.original || row) as { status: Status }).status]"
+              :label="((row.original || row) as { status: string }).status.replace('_', ' ')"
+            />
           </template>
         </TuxTable>
         <TuxEmptyState

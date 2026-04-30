@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  TTI road-glyph mark, isolated from the full TTI lockup wordmark.
+  Three perspective stripes converging toward an upper-right vanishing
+  point — recognizable as the road silhouette from the institutional
+  TTI logo. Uses currentColor so the consumer can theme it
+  (e.g. set color: var(--brand-accent) to flip from brand-primary).
+
+  Original lockup: public/TTI-Color.png (full, with wordmark).
+  This file: just the glyph, square viewBox, ready for avatars + chips.
+-->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 100 100"
+  role="img"
+  aria-label="TTI mark"
+  fill="currentColor"
+>
+  <title>Texas A&amp;M Transportation Institute</title>
+  <!-- Outer/longest stripe — runs from lower-left to upper-right vanishing point -->
+  <path d="M 6,86 L 84,18 L 92,18 L 92,28 L 16,92 Z" />
+  <!-- Middle stripe — shorter, parallel, offset toward the lower edge -->
+  <path d="M 30,92 L 92,40 L 92,50 L 42,92 Z" />
+  <!-- Innermost/shortest stripe — closest to the bottom edge -->
+  <path d="M 56,92 L 92,62 L 92,72 L 68,92 Z" />
+</svg>

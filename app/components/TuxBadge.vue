@@ -34,23 +34,25 @@ const mode = computed<"tier" | "status" | "kind">(() =>
   props.tier ? "tier" : props.status ? "status" : "kind"
 );
 
-const uColor = computed<"info" | "neutral" | "primary" | "success" | "warning" | "error">(() => {
-  if (mode.value === "tier") {
-    return {
-      public: "info",
-      internal: "neutral",
-      sensitive: "primary",
-      restricted: "primary",
-    }[props.tier as Tier];
-  }
-  if (mode.value === "status") {
-    return {
-      completed: "success",
-      running: "warning",
-      failed: "error",
-      queued: "neutral",
-    }[props.status as Status];
-  }
+type UColor = "info" | "neutral" | "primary" | "success" | "warning" | "error";
+
+const tierColor: Record<Tier, UColor> = {
+  public: "info",
+  internal: "neutral",
+  sensitive: "primary",
+  restricted: "primary",
+};
+
+const statusColor: Record<Status, UColor> = {
+  completed: "success",
+  running: "warning",
+  failed: "error",
+  queued: "neutral",
+};
+
+const uColor = computed<UColor>(() => {
+  if (mode.value === "tier") return tierColor[props.tier as Tier];
+  if (mode.value === "status") return statusColor[props.status as Status];
   return "neutral";
 });
 

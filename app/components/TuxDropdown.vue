@@ -8,7 +8,16 @@
 //     diagonal mouse paths from trigger → panel)
 //   - focus-within keeps the panel open while keyboard-traversing
 //   - Escape closes; Tab through panel works naturally
-//   - click on trigger toggles (touch + keyboard friendly)
+//   - click on trigger:
+//       · if `to` is set → navigate (real link semantics, NuxtLink
+//         intercepts the click). Menu stays available via hover.
+//       · if `to` is not set → toggle the panel (dropdown-only mode).
+//
+// Active-state awareness:
+//   - The trigger lights up when the current route matches the
+//     trigger's own `to` OR any descendant item's `to` (operator
+//     immediately sees "I'm inside this section").
+//   - Each item lights up when the current route matches its `to`.
 //
 // For a multi-column featured panel, use `<TuxMegaMenu>` instead.
 
@@ -24,6 +33,13 @@ interface Props {
   label: string;
   /** Column of links shown when open. */
   items: DropdownItem[];
+  /** Optional landing route for the trigger label itself. When set,
+   *  clicking the trigger NAVIGATES (the menu still opens on hover/
+   *  focus). When omitted, the trigger acts as a pure toggle button.
+   *  Use the route the operator most likely wants when they "just
+   *  click on Workflow" — typically the overview/index of the
+   *  section. */
+  to?: string;
 }
 
 const props = defineProps<Props>();
@@ -55,7 +71,7 @@ function toggle() {
 function onKeydown(e: KeyboardEvent) {
   if (e.key === "Escape") {
     open.value = false;
-    (root.value?.querySelector("button") as HTMLButtonElement)?.focus();
+    (root.value?.querySelector("button, a") as HTMLElement)?.focus();
   }
 }
 
@@ -70,28 +86,83 @@ function isInternal(href: string) {
   return href.startsWith("/") || href.startsWith("#");
 }
 
-function linkAttrs(item: DropdownItem) {
-  if (item.to) return { component: "NuxtLink" as const, to: item.to };
-  if (item.href) {
-    if (isInternal(item.href)) return { component: "NuxtLink" as const, to: item.href };
-    return { component: "a" as const, href: item.href, target: "_blank", rel: "noopener" };
+// ─── Route awareness — auto-close + active-state highlights ──────────
+const route = useRoute();
+
+// Close any open menu when the operator navigates. Without this, a
+// click on an item navigates AND leaves the panel open for the next
+// page — confusing because nothing on that next page corresponds to
+// the now-stale open state.
+watch(() => route.fullPath, () => {
+  open.value = false;
+  if (closeTimer) {
+    clearTimeout(closeTimer);
+    closeTimer = null;
   }
-  return { component: "span" as const };
+});
+
+// Per-item active: full-target match (path + query + hash). Items with
+// hash or query (`/admin#fleet`, `/policies?tab=approvals`) need the
+// nav helper so siblings under the same path don't all light up at
+// once — see `app/utils/nav-active.ts`.
+function isItemActive(item: DropdownItem): boolean {
+  const target = item.to ?? (item.href && isInternal(item.href) ? item.href : null);
+  if (!target) return false;
+  return isExactActive(target, route);
 }
+
+// Trigger active: lights up when the operator is inside this section.
+// Section membership = path-prefix match on `to` OR on any item's path.
+// We use `isSectionActive` (path-only) so a `?tab=` or `#anchor`
+// on the route still counts as "inside this section."
+const isTriggerActive = computed<boolean>(() => {
+  if (props.to && isSectionActive(props.to, route)) return true;
+  return props.items.some((item) => {
+    const target = item.to ?? null;
+    return target ? isSectionActive(target, route) : false;
+  });
+});
 </script>
 
 <template>
   <div
     ref="root"
     class="tux-dropdown"
+    :class="{ 'tux-dropdown--active': isTriggerActive }"
     @mouseenter="show"
     @mouseleave="() => hide()"
     @focusout="onFocusOut"
     @keydown="onKeydown"
   >
+    <!-- Trigger: NuxtLink when `to` is set (click → navigate, hover
+         still opens the panel via the wrapper's mouseenter). Plain
+         button otherwise (click → toggle). Explicit v-if branches
+         instead of `<component :is>` because dynamic-component
+         resolution from a string was eating clicks intermittently in
+         hover-open state — the static branches give vue-router the
+         resolved component at compile time and clicks land reliably. -->
+    <NuxtLink
+      v-if="to"
+      :to="to"
+      class="tux-dropdown__trigger"
+      :class="{ 'tux-dropdown__trigger--active': isTriggerActive }"
+      :aria-expanded="open"
+      :aria-current="route.fullPath === to ? 'page' : undefined"
+      aria-haspopup="true"
+    >
+      <span>{{ label }}</span>
+      <Icon
+        name="lucide:chevron-down"
+        class="tux-dropdown__chevron"
+        :class="{ 'tux-dropdown__chevron--open': open }"
+        aria-hidden="true"
+      />
+    </NuxtLink>
     <button
+      v-else
       type="button"
       class="tux-dropdown__trigger"
+      :class="{ 'tux-dropdown__trigger--active': isTriggerActive }"
       :aria-expanded="open"
       aria-haspopup="true"
       @click="toggle"
@@ -113,9 +184,44 @@ function linkAttrs(item: DropdownItem) {
       >
         <ul class="tux-dropdown__list">
           <li v-for="item in items" :key="item.label" class="tux-dropdown__item" role="none">
-            <component
-              v-bind="linkAttrs(item)"
-              :is="linkAttrs(item).component"
+            <!-- Same explicit-branch reasoning as the trigger. The
+                 previous `<component v-bind="linkAttrs(item)" :is>`
+                 pattern leaked the `component` key onto the rendered
+                 element AND was vulnerable to the same string-resolution
+                 click-eating issue under hover state. -->
+            <NuxtLink
+              v-if="item.to"
+              :to="item.to"
+              class="tux-dropdown__link"
+              :class="{ 'tux-dropdown__link--active': isItemActive(item) }"
+              :aria-current="isItemActive(item) ? 'page' : undefined"
+              role="menuitem"
+            >
+              <span class="tux-dropdown__link-label">{{ item.label }}</span>
+              <span
+                v-if="item.description"
+                class="tux-dropdown__link-description"
+              >{{ item.description }}</span>
+            </NuxtLink>
+            <NuxtLink
+              v-else-if="item.href && isInternal(item.href)"
+              :to="item.href"
+              class="tux-dropdown__link"
+              :class="{ 'tux-dropdown__link--active': isItemActive(item) }"
+              :aria-current="isItemActive(item) ? 'page' : undefined"
+              role="menuitem"
+            >
+              <span class="tux-dropdown__link-label">{{ item.label }}</span>
+              <span
+                v-if="item.description"
+                class="tux-dropdown__link-description"
+              >{{ item.description }}</span>
+            </NuxtLink>
+            <a
+              v-else-if="item.href"
+              :href="item.href"
+              target="_blank"
+              rel="noopener"
               class="tux-dropdown__link"
               role="menuitem"
             >
@@ -124,7 +230,14 @@ function linkAttrs(item: DropdownItem) {
                 v-if="item.description"
                 class="tux-dropdown__link-description"
               >{{ item.description }}</span>
-            </component>
+            </a>
+            <span v-else class="tux-dropdown__link" role="menuitem">
+              <span class="tux-dropdown__link-label">{{ item.label }}</span>
+              <span
+                v-if="item.description"
+                class="tux-dropdown__link-description"
+              >{{ item.description }}</span>
+            </span>
           </li>
         </ul>
       </div>
@@ -152,7 +265,13 @@ function linkAttrs(item: DropdownItem) {
   border: 0;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+  /* Reserve a 2px bottom border slot so the active-state border
+     doesn't shift the label vertically. The transparent border
+     occupies the space; the active rule replaces the color. */
+  border-bottom: 2px solid transparent;
+  transition: background-color 0.15s ease, color 0.15s ease,
+    border-bottom-color 0.15s ease;
 }
 
 .tux-dropdown__trigger:hover,
@@ -161,6 +280,14 @@ function linkAttrs(item: DropdownItem) {
   background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
   color: var(--brand-primary);
   outline: none;
+}
+
+/* Section-active (operator is inside this area). The maroon bottom
+   bar reads as "I'm here" — same shape as the tab pattern most
+   ops dashboards use, just integrated into the trigger button. */
+.tux-dropdown__trigger--active {
+  color: var(--brand-primary);
+  border-bottom-color: var(--brand-primary);
 }
 
 .tux-dropdown__chevron {
@@ -210,6 +337,21 @@ function linkAttrs(item: DropdownItem) {
   background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
   color: var(--brand-primary);
   outline: none;
+}
+
+/* Per-item active — soft bg + maroon left rail. The rail reads as a
+   directory marker; the bg is just enough to confirm "this row is
+   the one you're on." */
+.tux-dropdown__link--active {
+  background: color-mix(in srgb, var(--brand-primary) 9%, transparent);
+  color: var(--brand-primary);
+  /* Border on left rather than the whole row outline keeps it from
+     fighting the active-section indicator on the trigger. */
+  box-shadow: inset 2px 0 0 0 var(--brand-primary);
+}
+
+.tux-dropdown__link--active .tux-dropdown__link-label {
+  font-weight: 700;
 }
 
 .tux-dropdown__link-label {

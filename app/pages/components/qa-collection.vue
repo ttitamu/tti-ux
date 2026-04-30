@@ -61,11 +61,11 @@ const exampleVue = `<TuxQACollection :items="items" />`;
         <div class="space-y-8">
           <TuxQACollection
             variant="bold"
-            :items="[items[0]]"
+            :items="[items[0]!]"
           />
           <TuxQACollection
             variant="elegant"
-            :items="[items[1]]"
+            :items="[items[1]!]"
           />
         </div>
       </TuxExample>

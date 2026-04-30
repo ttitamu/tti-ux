@@ -117,10 +117,34 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
   --shadow-focus: 0 0 0 3px rgba(92, 0, 37, 0.35);
 
+  --radius-none: 0;
   --radius-sm: 0.125rem;
   --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
+
+  /* Motion — three-tier duration + three-tier easing. Names refer to
+     intent, not to a specific component. `motion-fast` is for hover
+     and focus state changes; `motion-base` is the default for
+     transitions like dropdown-open or accordion-toggle; `motion-slow`
+     reserves for emphasis moments (page transitions, hero reveals).
+     Easings: `standard` is the default ease-out for most transitions;
+     `emphasis` overshoots for the corner-drop signature; `exit` is a
+     symmetric ease-in-out for elements leaving the viewport. */
+  --motion-fast: 0.15s;
+  --motion-base: 0.25s;
+  --motion-slow: 0.35s;
+  --ease-standard: cubic-bezier(0.2, 0.55, 0.4, 0.9);
+  --ease-emphasis: cubic-bezier(0.2, 0.8, 0.2, 1.2);
+  --ease-exit:     cubic-bezier(0.4, 0, 0.6, 1);
+
+  /* Spacing utilities — supplement to Tailwind's spacing scale for
+     places where a Tux component reaches into a CSS var directly
+     (inline styles, calc()). Tailwind's `gap-1`, `p-1`, etc. cover
+     the same ground for class-based work. */
+  --space-0:  0;
+  --space-4:  4px;
+  --space-10: 10px;
 
   /* TTI maroon palette — anchored at #5C0025 = 500. Nuxt UI resolves
      `color="primary"` against these via app/app.config.ts `primary: 'maroon'`.
@@ -138,6 +162,23 @@
   --color-maroon-800: #2e0012;
   --color-maroon-900: #1f000c;
   --color-maroon-950: #150008;
+
+  /* TTI gold palette — anchored at #DDAC37 = 500. Same defined-as-:root-vars
+     pattern as maroon (Tailwind v4 tree-shake guard). Powers `warning` once
+     app/app.config.ts flips from `warning: amber` → `warning: gold`.
+     Lightness curve picked to keep 50–200 readable on a white background
+     (gold is naturally light) and 700+ legible-as-text on white. */
+  --color-gold-50:  #fdf9ee;
+  --color-gold-100: #faf0d2;
+  --color-gold-200: #f4dfa1;
+  --color-gold-300: #ecca6f;
+  --color-gold-400: #e3ba4f;
+  --color-gold-500: #ddac37;
+  --color-gold-600: #b58a23;
+  --color-gold-700: #8a691b;
+  --color-gold-800: #604812;
+  --color-gold-900: #3f300b;
+  --color-gold-950: #271e07;
 }
 
 /* Dark variant — warm charcoal surfaces, lightened maroon so the brand

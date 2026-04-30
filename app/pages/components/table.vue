@@ -74,7 +74,7 @@ const customCellVue = `<tux-table :data="projects" :columns="columns" status-acc
         <TuxTable :data="projects" :columns="columns" status-accessor="status">
           <template #title-cell="{ row }">
             <NuxtLink :to="`/components/table`" class="font-mono text-text-brand hover:underline">
-              {{ (row.original || row).title }}
+              {{ ((row.original || row) as { title: string }).title }}
             </NuxtLink>
           </template>
         </TuxTable>

@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { lucideIconNames, lucideIconCount } from "~/utils/lucide-names";
+// Use a relative path (not the `~` alias) so consuming apps can typecheck
+// the layer cleanly — Nuxt's `~` resolves to the consuming app's app/, not
+// to the layer's, so an alias-rooted import here breaks downstream tsc.
+import { lucideIconNames, lucideIconCount } from "../utils/lucide-names";
 
 useHead({ title: "Icons · TUX" });
 

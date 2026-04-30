@@ -206,7 +206,7 @@ const cmdGroups = [
       <!-- Right rail -->
       <aside class="space-y-6">
         <section class="space-y-3">
-          <TuxSectionHeader level="3">Corpus</TuxSectionHeader>
+          <TuxSectionHeader :level="3">Corpus</TuxSectionHeader>
           <TuxDescriptionList
             emphasis="editorial"
             :items="[
@@ -219,12 +219,12 @@ const cmdGroups = [
         </section>
 
         <section class="space-y-3">
-          <TuxSectionHeader level="3">Usage</TuxSectionHeader>
+          <TuxSectionHeader :level="3">Usage</TuxSectionHeader>
           <TuxFactoid variant="default" :density="3" :items="usageStats" />
         </section>
 
         <section class="space-y-3">
-          <TuxSectionHeader level="3">Recent sessions</TuxSectionHeader>
+          <TuxSectionHeader :level="3">Recent sessions</TuxSectionHeader>
           <TuxAccordion
             :items="recentSessions.map((s) => ({
               title: s.title,

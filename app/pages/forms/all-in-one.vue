@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Forms · TUX" });
+useHead({ title: "Forms — all in one · TUX" });
 
 const text = ref("");
 const password = ref("");
@@ -15,7 +15,7 @@ const selectOptions = [
   { label: "Sensitive",  value: "sensitive",  description: "PII / confidential" },
   { label: "Restricted", value: "restricted", description: "Export-controlled / legal" },
 ];
-const selected = ref(selectOptions[2]);
+const selected = ref(selectOptions[2]!);
 
 const checks = ref({ notify: true, archive: false, public: false });
 const radio = ref<"report" | "memo" | "brief">("report");

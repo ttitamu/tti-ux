@@ -1,4 +1,13 @@
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
+
+// Layer-rooted dir so consuming apps (PECAN, tti-ai-studio, etc.) resolve
+// our css/asset paths relative to *this* file, not their own srcDir.
+// `~` in a Nuxt layer's nuxt.config maps to the *consumer's* `app/`, not
+// the layer's, so anything we want to ship from the layer needs an
+// absolute path.
+const layerDir = dirname(fileURLToPath(import.meta.url));
 
 // tti-ux is a runnable Nuxt 4 style-guide for the TTI design system. The app
 // itself IS the living doc: every route under /components demos a Tux* wrapper
@@ -75,8 +84,14 @@ export default defineNuxtConfig({
 
   // CSS load order: tokens first (CSS vars), then globals (consumes tokens +
   // Tailwind + Nuxt UI @imports), then tux (utility layer consumed by the
-  // Tux* wrappers).
-  css: ["~/assets/css/tokens.css", "~/assets/css/globals.css", "~/assets/css/tux.css"],
+  // Tux* wrappers). Paths are layer-rooted (see `layerDir` above) so
+  // consuming apps don't accidentally try to load these from their own
+  // app/ when they extend us.
+  css: [
+    resolve(layerDir, "app/assets/css/tokens.css"),
+    resolve(layerDir, "app/assets/css/globals.css"),
+    resolve(layerDir, "app/assets/css/tux.css"),
+  ],
 
   // @nuxt/fonts auto-detects which of these are actually referenced in
   // source (font-family declarations in CSS / Vue files) and only fetches

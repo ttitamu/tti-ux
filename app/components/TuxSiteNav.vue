@@ -52,6 +52,14 @@ interface MegaMenuConfig {
 
 interface PrimaryNavItem {
   label: string;
+  /** Landing route. Used three ways:
+   *    - on a plain link: where clicking goes (and source for active-
+   *      route detection)
+   *    - on a `dropdown` or `megaMenu` item: makes the trigger LABEL
+   *      itself a link (clicking → navigate; hover/focus still opens
+   *      the panel). When omitted on a menu item, the trigger acts
+   *      as a pure toggle button.
+   */
   to?: string;
   href?: string;
   /** Drop a flat column of links underneath. */
@@ -103,13 +111,14 @@ function isInternal(href: string) {
   return href.startsWith("/") || href.startsWith("#");
 }
 
-function linkAttrs(item: { to?: string; href?: string }) {
-  if (item.to) return { component: "NuxtLink" as const, to: item.to };
-  if (item.href) {
-    if (isInternal(item.href)) return { component: "NuxtLink" as const, to: item.href };
-    return { component: "a" as const, href: item.href, target: "_blank", rel: "noopener" };
-  }
-  return { component: "span" as const };
+// Active-state for plain (no-dropdown) primary-nav links. Section-
+// match (path-prefix) so a /docs/handbook link reads as active across
+// all /docs/* sub-pages. `?tab=` and `#anchor` don't influence this —
+// section membership is path-only, same as the menu triggers.
+function isPlainLinkActive(item: { to?: string; href?: string }): boolean {
+  const target = item.to ?? (item.href && isInternal(item.href) ? item.href : null);
+  if (!target) return false;
+  return isSectionActive(target, route);
 }
 </script>
 
@@ -123,9 +132,9 @@ function linkAttrs(item: { to?: string; href?: string }) {
       <div class="tux-site-nav__utility-inner">
         <ul v-if="utilityNav.length > 0" class="tux-site-nav__utility-list">
           <li v-for="link in utilityNav" :key="link.label">
-            <component
-              v-bind="linkAttrs(link)"
-              :is="linkAttrs(link).component"
+            <NuxtLink
+              v-if="link.to"
+              :to="link.to"
               class="tux-site-nav__utility-link"
             >
               <Icon
@@ -135,7 +144,35 @@ function linkAttrs(item: { to?: string; href?: string }) {
                 aria-hidden="true"
               />
               <span>{{ link.label }}</span>
-            </component>
+            </NuxtLink>
+            <NuxtLink
+              v-else-if="link.href && isInternal(link.href)"
+              :to="link.href"
+              class="tux-site-nav__utility-link"
+            >
+              <Icon
+                v-if="link.icon"
+                :name="link.icon"
+                class="tux-site-nav__utility-icon"
+                aria-hidden="true"
+              />
+              <span>{{ link.label }}</span>
+            </NuxtLink>
+            <a
+              v-else-if="link.href"
+              :href="link.href"
+              target="_blank"
+              rel="noopener"
+              class="tux-site-nav__utility-link"
+            >
+              <Icon
+                v-if="link.icon"
+                :name="link.icon"
+                class="tux-site-nav__utility-icon"
+                aria-hidden="true"
+              />
+              <span>{{ link.label }}</span>
+            </a>
           </li>
         </ul>
         <button
@@ -180,6 +217,7 @@ function linkAttrs(item: { to?: string; href?: string }) {
               v-for="item in primaryNav"
               :key="item.label"
               class="tux-site-nav__primary-item"
+              :class="{ 'tux-site-nav__primary-item--mega': !!item.megaMenu }"
             >
               <!-- Mega menu -->
               <TuxMegaMenu
@@ -187,23 +225,75 @@ function linkAttrs(item: { to?: string; href?: string }) {
                 :label="item.label"
                 :columns="item.megaMenu.columns"
                 :featured="item.megaMenu.featured"
+                :to="item.to"
               />
               <!-- Dropdown -->
               <TuxDropdown
                 v-else-if="item.dropdown"
                 :label="item.label"
                 :items="item.dropdown"
+                :to="item.to"
               />
-              <!-- Plain link -->
-              <component
-                v-else
-                v-bind="linkAttrs(item)"
-                :is="linkAttrs(item).component"
+              <!-- Plain link — gets a section-active class when the
+                   route matches `to` exactly OR is a strict descendant
+                   path. Mirrors the active-state shape Tux{Dropdown,MegaMenu}
+                   apply to their triggers so every primary-nav variant
+                   shares the same active visual language. Explicit v-if
+                   branches (vs `<component :is>`) for the same click-
+                   reliability reason as the menu triggers. -->
+              <NuxtLink
+                v-else-if="item.to"
+                :to="item.to"
                 class="tux-site-nav__primary-link"
-              >{{ item.label }}</component>
+                :class="{
+                  'tux-site-nav__primary-link--active': isPlainLinkActive(item),
+                }"
+                :aria-current="isPlainLinkActive(item) ? 'page' : undefined"
+              >{{ item.label }}</NuxtLink>
+              <NuxtLink
+                v-else-if="item.href && isInternal(item.href)"
+                :to="item.href"
+                class="tux-site-nav__primary-link"
+                :class="{
+                  'tux-site-nav__primary-link--active': isPlainLinkActive(item),
+                }"
+                :aria-current="isPlainLinkActive(item) ? 'page' : undefined"
+              >{{ item.label }}</NuxtLink>
+              <a
+                v-else-if="item.href"
+                :href="item.href"
+                target="_blank"
+                rel="noopener"
+                class="tux-site-nav__primary-link"
+              >{{ item.label }}</a>
+              <span v-else class="tux-site-nav__primary-link">{{ item.label }}</span>
             </li>
           </ul>
         </nav>
+
+        <!--
+          Trailing utility cluster — slot for app-shape consumers
+          (PECAN, tti-ai-studio, future admin tools) to drop a
+          search trigger / theme toggle / user dropdown / notification
+          bell next to the primary nav.
+
+          Marketing surfaces (tti.tamu.edu home) leave the slot empty
+          and rely on the upper utility bar (`utilityNav` prop) for
+          visit/give/apply links — different audience, different
+          density.
+
+          Slot is rendered inside `.tux-site-nav__bar-inner` so it
+          shares the same vertical center as TuxIdentity and the
+          primary nav. Hidden when mobileOpen=false on narrow
+          viewports? — no: the trailing cluster stays visible because
+          the items inside (theme toggle, user) are commonly the
+          *first* affordances a mobile user reaches for. Consumers
+          that don't want them on mobile can wrap the slot content
+          in their own media query.
+        -->
+        <div v-if="$slots.trailing" class="tux-site-nav__trailing">
+          <slot name="trailing" />
+        </div>
       </div>
     </div>
   </header>
@@ -320,6 +410,19 @@ function linkAttrs(item: { to?: string; href?: string }) {
   justify-content: flex-end;
 }
 
+/* Trailing utility cluster — sits flush right of the primary nav.
+   Slot content controls its own gap; we just provide the alignment
+   wrapper. Border-left rule visually separates the cluster from the
+   nav so theme/user controls don't read as "another nav item." */
+.tux-site-nav__trailing {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-left: 1rem;
+  margin-left: 0.25rem;
+  border-left: 1px solid var(--surface-border);
+}
+
 .tux-site-nav__primary-list {
   display: flex;
   align-items: center;
@@ -330,6 +433,12 @@ function linkAttrs(item: { to?: string; href?: string }) {
 }
 
 .tux-site-nav__primary-item {
+  /* Establishes a positioning context for `TuxDropdown` AND
+     `TuxMegaMenu` panels. Both anchor to their trigger; the
+     mega-menu just sizes to its content (capped) instead of
+     extending bar-width. The previous "skip-positioning" trick
+     made mega menus span the whole bar — fine in theory, jarring
+     in practice next to the compact TuxDropdown. */
   position: relative;
 }
 
@@ -344,7 +453,12 @@ function linkAttrs(item: { to?: string; href?: string }) {
   color: var(--text-primary);
   text-decoration: none;
   border-radius: var(--radius-sm);
-  transition: background-color 0.15s ease, color 0.15s ease;
+  /* Reserve a 2px bottom border slot for the active state. Matches
+     TuxDropdown / TuxMegaMenu trigger treatment so all three primary-
+     nav variants share a coherent active visual language. */
+  border-bottom: 2px solid transparent;
+  transition: background-color 0.15s ease, color 0.15s ease,
+    border-bottom-color 0.15s ease;
 }
 
 .tux-site-nav__primary-link:hover,
@@ -353,6 +467,11 @@ function linkAttrs(item: { to?: string; href?: string }) {
   background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
   color: var(--brand-primary);
   outline: none;
+}
+
+.tux-site-nav__primary-link--active {
+  color: var(--brand-primary);
+  border-bottom-color: var(--brand-primary);
 }
 
 /* Mobile */

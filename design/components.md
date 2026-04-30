@@ -19,7 +19,9 @@ npm run dev
 | `TuxAccordion`       | tux native               | `/components/accordion`         |
 | `TuxAlert`           | `UAlert`                 | `/components/alert`             |
 | `TuxAlphaNav`        | tux native               | `/components/alpha-nav`         |
+| `TuxAnnouncementBanner` | tux native            | `/components/announcement-banner` |
 | `TuxBadge`           | `UBadge`                 | `/components/badge`             |
+| `TuxBetaRibbon`      | tux native               | `/components/beta-ribbon`       |
 | `TuxBigStat`         | tux native               | `/components/big-stat`          |
 | `TuxBlockquote`      | tux native               | `/components/blockquote`        |
 | `TuxBreadcrumbs`     | tux native               | `/components/breadcrumbs`       |
@@ -28,16 +30,23 @@ npm run dev
 | `TuxCaptionedMedia`  | tux native               | `/components/captioned-media`   |
 | `TuxCard`            | tux native               | `/components/card`              |
 | `TuxCardSlab`        | tux native               | `/components/card-slab`         |
+| `TuxCookieConsent`   | tux native               | `/components/cookie-consent`    |
+| `TuxChatMessage`     | tux native               | `/components/chat-message`      |
+| `TuxCitations`       | tux native               | `/components/citations`         |
 | `TuxCodeBlock`       | Shiki                    | `/components/code-block`        |
 | `TuxCodeMaroon`      | tux native               | `/components/code-maroon`       |
 | `TuxCommandPalette`  | tux native               | `/components/command-palette`   |
 | `TuxContactCard`     | tux native               | `/components/contact-card`      |
+| `TuxContextPanel`    | tux native               | `/components/context-panel`     |
+| `TuxConversationList`| tux native               | `/components/conversation-list` |
+| `TuxComposer`        | tux native               | `/components/composer`          |
 | `TuxCTA`             | tux native               | `/components/cta`               |
 | `TuxDescriptionList` | tux native               | `/components/description-list`  |
 | `TuxDiagram`         | Mermaid                  | `/components/diagram`           |
 | `TuxDocsSidebar`     | tux native               | `/components/docs-sidebar`      |
 | `TuxDropdown`        | tux native               | `/components/site-nav`          |
 | `TuxEmptyState`      | `TuxCard` composite      | `/components/empty-state`       |
+| `TuxErrorPage`       | tux native               | `/components/error-page`        |
 | `TuxExample`         | showcase primitive       | (used on every component page)  |
 | `TuxFactoid`         | tux native               | `/components/factoid`           |
 | `TuxFilterPanel`     | tux native               | `/components/filter-panel`      |
@@ -59,10 +68,46 @@ npm run dev
 | `TuxSidebarBlock`    | tux native               | `/components/sidebar-block`     |
 | `TuxSignupFeature`   | tux native               | `/components/signup-feature`    |
 | `TuxSiteNav`         | tux native               | `/components/site-nav`          |
+| `TuxSkeleton`        | tux native               | `/components/skeleton`          |
+| `TuxStepper`         | tux native               | `/components/stepper`           |
 | `TuxTable`           | `UTable`                 | `/components/table`             |
 | `TuxTestimonial`     | tux native               | `/components/testimonial`       |
 | `TuxTOC`             | tux native               | `/components/toc`               |
 | `TuxTreemap`         | tux native               | `/components/treemap`           |
+
+### Reports section
+
+Finished-narrative deliverables — paper, PDF, print, or web-hosted
+long-form. The reader reads top-to-bottom; they don't pivot or
+filter. Components live in `app/components/` like everything else,
+but demos live under `/reports/<kebab>` (with a landing at
+`/reports`).
+
+| Component             | Wraps                    | Output medium    | Route                       |
+| --------------------- | ------------------------ | ---------------- | --------------------------- |
+| `TuxReportFrame`      | tux native               | paper · PDF      | `/reports/frame`            |
+| `TuxReportPrintSheet` | `useHead` injection      | print stylesheet | `/reports/print-sheet`      |
+| `TuxReportWebFrame`   | tux native               | web (HTML page)  | `/reports/web-frame`        |
+
+### Visualizations section
+
+Interactive data surfaces — BI dashboards, R artifacts, native
+charts. The reader pivots, filters, drills in. Same pattern as
+Reports (flat components, grouped routes), but a different section
+because the chrome and posture are different (provider chip,
+sandbox, source caption).
+
+| Component             | Wraps                                  | Route                          |
+| --------------------- | -------------------------------------- | ------------------------------ |
+| `TuxVizEmbed`         | sandboxed `<iframe>` + poster fallback | `/visualizations/embed`        |
+| `TuxVizRPlot`         | `<img>` / `<object>` / `<iframe>`      | `/visualizations/rplot`        |
+| `TuxVizGrid`          | tux native (CSS Grid layout shell)     | `/visualizations/grid`         |
+| `TuxSparkline`        | tux native (inline SVG)                | `/visualizations/sparkline`    |
+
+See [ADR-0008](../docs/adr/0008-data-display-and-reports-section.md)
+for the positioning rationale (why data-display stays flat in
+`/components/`, why Reports and Visualizations get their own sections,
+and the criteria for adding a future route group).
 
 The showcase pages expose **Vue** (template source), **HTML** (rendered
 DOM), and — where applicable — **Source** (the component SFC) tabs via
@@ -100,9 +145,22 @@ single most common failure mode.
 | **Newsletter signup** | `<TuxSignupFeature>` |
 | **Big oversized stat** (single headline metric) | `<TuxBigStat>` |
 | **Row of oversized stats** ("by the numbers" 3/4/5-up) | `<TuxFactoid>` |
+| **Tiny inline trend** (no axes, beside a stat) | `<TuxSparkline>` |
+| **Loading placeholder** (cards, lists, tables, articles, stats) | `<TuxSkeleton kind="…">` |
+| **404 / 500 / 403 / 503 page** | `<TuxErrorPage code="…">` |
+| **Multi-step flow indicator** (funding application, IRB, study onboarding) | `<TuxStepper :steps :current-index>` |
+| **Site-wide notice strip** (closure, maintenance, security advisory) | `<TuxAnnouncementBanner>` |
+| **"This isn't production" label** (preview env, public beta, sandbox) | `<TuxBetaRibbon variant="…">` |
+| **Privacy / cookie consent** (public TTI surface) | `<TuxCookieConsent>` |
+| **Quarterly / sponsor PDF report** (paper, print, PDF export) | `<TuxReportFrame>` |
+| **Web-hosted long-form report** (annual report, findings page at a permanent URL) | `<TuxReportWebFrame>` |
+| **"Print this page" affordance** on an existing screen | `<TuxReportPrintSheet>` |
+| **BI dashboard embed** (Tableau, Power BI, Superset, Grafana) | `<TuxVizEmbed>` |
+| **R / ggplot artifact** (PNG, SVG, htmlwidget) | `<TuxVizRPlot>` |
+| **Side-by-side dashboard tiles** (small-multiples 2/3/4-up) | `<TuxVizGrid>` |
 
 If your need isn't here, scan `/components` (or
-`app/pages/components/index.vue`) — there are 41 Tux\* components and
+`app/pages/components/index.vue`) — there are ~60 Tux\* components and
 this map only highlights the ones with the easiest-to-miss names.
 
 ## Ideas not yet shipped

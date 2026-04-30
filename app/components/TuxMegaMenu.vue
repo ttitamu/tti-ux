@@ -41,6 +41,13 @@ interface Props {
   columns: MegaMenuColumn[];
   /** Optional featured tile rendered on the right of the panel. */
   featured?: FeaturedTile;
+  /** Optional landing route for the trigger label itself. When set,
+   *  clicking the trigger NAVIGATES (the panel still opens on hover/
+   *  focus). When omitted, the trigger acts as a pure toggle button.
+   *  Same shape as TuxDropdown's `to` — use the route the operator
+   *  most likely wants when they "just click on Govern" — typically
+   *  the area's overview/index. */
+  to?: string;
 }
 
 const props = defineProps<Props>();
@@ -72,7 +79,7 @@ function toggle() {
 function onKeydown(e: KeyboardEvent) {
   if (e.key === "Escape") {
     open.value = false;
-    (root.value?.querySelector("button") as HTMLButtonElement)?.focus();
+    (root.value?.querySelector("button, a") as HTMLElement)?.focus();
   }
 }
 
@@ -86,28 +93,84 @@ function isInternal(href: string) {
   return href.startsWith("/") || href.startsWith("#");
 }
 
-function linkAttrs(item: { to?: string; href?: string }) {
-  if (item.to) return { component: "NuxtLink" as const, to: item.to };
-  if (item.href) {
-    if (isInternal(item.href)) return { component: "NuxtLink" as const, to: item.href };
-    return { component: "a" as const, href: item.href, target: "_blank", rel: "noopener" };
+// ─── Route awareness — auto-close + active-state highlights ──────────
+const route = useRoute();
+
+watch(() => route.fullPath, () => {
+  open.value = false;
+  if (closeTimer) {
+    clearTimeout(closeTimer);
+    closeTimer = null;
   }
-  return { component: "span" as const };
+});
+
+function isLinkTarget(item: { to?: string; href?: string }): string | null {
+  if (item.to) return item.to;
+  if (item.href && isInternal(item.href)) return item.href;
+  return null;
 }
+
+// Per-item active: full-target match (path + query + hash) via the
+// shared nav helper so siblings under the same path don't all light
+// up at once. See `app/utils/nav-active.ts`.
+function isItemActive(item: { to?: string; href?: string }): boolean {
+  const target = isLinkTarget(item);
+  if (!target) return false;
+  return isExactActive(target, route);
+}
+
+// Trigger active when own `to` OR any column item's path is the
+// section the operator is currently inside. Path-only by design —
+// `?tab=` and `#anchor` shouldn't affect section membership.
+const isTriggerActive = computed<boolean>(() => {
+  if (props.to && isSectionActive(props.to, route)) return true;
+  for (const col of props.columns) {
+    for (const item of col.items) {
+      const target = isLinkTarget(item);
+      if (target && isSectionActive(target, route)) return true;
+    }
+  }
+  return false;
+});
 </script>
 
 <template>
   <div
     ref="root"
     class="tux-mega-menu"
+    :class="{ 'tux-mega-menu--active': isTriggerActive }"
     @mouseenter="show"
     @mouseleave="() => hide()"
     @focusout="onFocusOut"
     @keydown="onKeydown"
   >
+    <!-- Trigger: explicit v-if branches (NuxtLink vs button) instead
+         of `<component :is>` — same reasoning as TuxDropdown. The
+         dynamic-component shape was eating clicks intermittently
+         under hover-open state; resolving statically gives vue-router
+         the component reference at compile time. -->
+    <NuxtLink
+      v-if="to"
+      :to="to"
+      class="tux-mega-menu__trigger"
+      :class="{ 'tux-mega-menu__trigger--active': isTriggerActive }"
+      :aria-expanded="open"
+      :aria-current="route.fullPath === to ? 'page' : undefined"
+      aria-haspopup="true"
+    >
+      <span>{{ label }}</span>
+      <Icon
+        name="lucide:chevron-down"
+        class="tux-mega-menu__chevron"
+        :class="{ 'tux-mega-menu__chevron--open': open }"
+        aria-hidden="true"
+      />
+    </NuxtLink>
     <button
+      v-else
       type="button"
       class="tux-mega-menu__trigger"
+      :class="{ 'tux-mega-menu__trigger--active': isTriggerActive }"
       :aria-expanded="open"
       aria-haspopup="true"
       @click="toggle"
@@ -137,9 +200,41 @@ function linkAttrs(item: { to?: string; href?: string }) {
             <h3 class="tux-mega-menu__heading">{{ col.heading }}</h3>
             <ul class="tux-mega-menu__list">
               <li v-for="item in col.items" :key="item.label" role="none">
-                <component
-                  v-bind="linkAttrs(item)"
-                  :is="linkAttrs(item).component"
+                <!-- Same explicit-branch shape the trigger uses, for the
+                     same clickability + active-state reliability. -->
+                <NuxtLink
+                  v-if="item.to"
+                  :to="item.to"
+                  class="tux-mega-menu__link"
+                  :class="{ 'tux-mega-menu__link--active': isItemActive(item) }"
+                  :aria-current="isItemActive(item) ? 'page' : undefined"
+                  role="menuitem"
+                >
+                  <span class="tux-mega-menu__link-label">{{ item.label }}</span>
+                  <span
+                    v-if="item.description"
+                    class="tux-mega-menu__link-description"
+                  >{{ item.description }}</span>
+                </NuxtLink>
+                <NuxtLink
+                  v-else-if="item.href && isInternal(item.href)"
+                  :to="item.href"
+                  class="tux-mega-menu__link"
+                  :class="{ 'tux-mega-menu__link--active': isItemActive(item) }"
+                  :aria-current="isItemActive(item) ? 'page' : undefined"
+                  role="menuitem"
+                >
+                  <span class="tux-mega-menu__link-label">{{ item.label }}</span>
+                  <span
+                    v-if="item.description"
+                    class="tux-mega-menu__link-description"
+                  >{{ item.description }}</span>
+                </NuxtLink>
+                <a
+                  v-else-if="item.href"
+                  :href="item.href"
+                  target="_blank"
+                  rel="noopener"
                   class="tux-mega-menu__link"
                   role="menuitem"
                 >
@@ -148,39 +243,123 @@ function linkAttrs(item: { to?: string; href?: string }) {
                     v-if="item.description"
                     class="tux-mega-menu__link-description"
                   >{{ item.description }}</span>
-                </component>
+                </a>
+                <span v-else class="tux-mega-menu__link" role="menuitem">
+                  <span class="tux-mega-menu__link-label">{{ item.label }}</span>
+                  <span
+                    v-if="item.description"
+                    class="tux-mega-menu__link-description"
+                  >{{ item.description }}</span>
+                </span>
               </li>
             </ul>
           </section>
         </div>
 
-        <component
-          v-if="featured"
-          v-bind="linkAttrs(featured)"
-          :is="linkAttrs(featured).component"
-          class="tux-mega-menu__featured"
-        >
-          <div
-            v-if="featured.image"
-            class="tux-mega-menu__featured-image"
-            :style="{ backgroundImage: `url('${featured.image}')` }"
-            role="img"
-            :aria-label="featured.title"
-          />
-          <div
-            v-else
-            class="tux-mega-menu__featured-placeholder"
-            aria-hidden="true"
-          />
-          <div class="tux-mega-menu__featured-body">
-            <span v-if="featured.eyebrow" class="tux-mega-menu__featured-eyebrow">{{ featured.eyebrow }}</span>
-            <span class="tux-mega-menu__featured-title">{{ featured.title }}</span>
-            <span
-              v-if="featured.description"
-              class="tux-mega-menu__featured-description"
-            >{{ featured.description }}</span>
+        <template v-if="featured">
+          <NuxtLink
+            v-if="featured.to"
+            :to="featured.to"
+            class="tux-mega-menu__featured"
+          >
+            <div
+              v-if="featured.image"
+              class="tux-mega-menu__featured-image"
+              :style="{ backgroundImage: `url('${featured.image}')` }"
+              role="img"
+              :aria-label="featured.title"
+            />
+            <div
+              v-else
+              class="tux-mega-menu__featured-placeholder"
+              aria-hidden="true"
+            />
+            <div class="tux-mega-menu__featured-body">
+              <span v-if="featured.eyebrow" class="tux-mega-menu__featured-eyebrow">{{ featured.eyebrow }}</span>
+              <span class="tux-mega-menu__featured-title">{{ featured.title }}</span>
+              <span
+                v-if="featured.description"
+                class="tux-mega-menu__featured-description"
+              >{{ featured.description }}</span>
+            </div>
+          </NuxtLink>
+          <NuxtLink
+            v-else-if="featured.href && isInternal(featured.href)"
+            :to="featured.href"
+            class="tux-mega-menu__featured"
+          >
+            <div
+              v-if="featured.image"
+              class="tux-mega-menu__featured-image"
+              :style="{ backgroundImage: `url('${featured.image}')` }"
+              role="img"
+              :aria-label="featured.title"
+            />
+            <div
+              v-else
+              class="tux-mega-menu__featured-placeholder"
+              aria-hidden="true"
+            />
+            <div class="tux-mega-menu__featured-body">
+              <span v-if="featured.eyebrow" class="tux-mega-menu__featured-eyebrow">{{ featured.eyebrow }}</span>
+              <span class="tux-mega-menu__featured-title">{{ featured.title }}</span>
+              <span
+                v-if="featured.description"
+                class="tux-mega-menu__featured-description"
+              >{{ featured.description }}</span>
+            </div>
+          </NuxtLink>
+          <a
+            v-else-if="featured.href"
+            :href="featured.href"
+            target="_blank"
+            rel="noopener"
+            class="tux-mega-menu__featured"
+          >
+            <div
+              v-if="featured.image"
+              class="tux-mega-menu__featured-image"
+              :style="{ backgroundImage: `url('${featured.image}')` }"
+              role="img"
+              :aria-label="featured.title"
+            />
+            <div
+              v-else
+              class="tux-mega-menu__featured-placeholder"
+              aria-hidden="true"
+            />
+            <div class="tux-mega-menu__featured-body">
+              <span v-if="featured.eyebrow" class="tux-mega-menu__featured-eyebrow">{{ featured.eyebrow }}</span>
+              <span class="tux-mega-menu__featured-title">{{ featured.title }}</span>
+              <span
+                v-if="featured.description"
+                class="tux-mega-menu__featured-description"
+              >{{ featured.description }}</span>
+            </div>
+          </a>
+          <div v-else class="tux-mega-menu__featured">
+            <div
+              v-if="featured.image"
+              class="tux-mega-menu__featured-image"
+              :style="{ backgroundImage: `url('${featured.image}')` }"
+              role="img"
+              :aria-label="featured.title"
+            />
+            <div
+              v-else
+              class="tux-mega-menu__featured-placeholder"
+              aria-hidden="true"
+            />
+            <div class="tux-mega-menu__featured-body">
+              <span v-if="featured.eyebrow" class="tux-mega-menu__featured-eyebrow">{{ featured.eyebrow }}</span>
+              <span class="tux-mega-menu__featured-title">{{ featured.title }}</span>
+              <span
+                v-if="featured.description"
+                class="tux-mega-menu__featured-description"
+              >{{ featured.description }}</span>
+            </div>
           </div>
-        </component>
+        </template>
       </div>
     </Transition>
   </div>
@@ -207,7 +386,13 @@ function linkAttrs(item: { to?: string; href?: string }) {
   border: 0;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+  /* Reserve a 2px bottom border slot so the active-state border
+     doesn't shift the label vertically. The transparent border
+     occupies the space; the active rule replaces the color. */
+  border-bottom: 2px solid transparent;
+  transition: background-color 0.15s ease, color 0.15s ease,
+    border-bottom-color 0.15s ease;
 }
 
 .tux-mega-menu__trigger:hover,
@@ -216,6 +401,14 @@ function linkAttrs(item: { to?: string; href?: string }) {
   background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
   color: var(--brand-primary);
   outline: none;
+}
+
+/* Section-active: maroon bottom bar reads as "I'm in this section."
+   Same shape as TuxDropdown's active treatment so both menu types
+   share a coherent active-state visual language. */
+.tux-mega-menu__trigger--active {
+  color: var(--brand-primary);
+  border-bottom-color: var(--brand-primary);
 }
 
 .tux-mega-menu__chevron {
@@ -231,15 +424,29 @@ function linkAttrs(item: { to?: string; href?: string }) {
 .tux-mega-menu__panel {
   position: absolute;
   top: 100%;
-  left: 0;
+  /* Anchor the right edge to the trigger; the panel flows leftward.
+     Standard right-aligned-nav-dropdown behavior — matches what
+     `TuxDropdown` does single-column. The previous full-bar-width
+     shape (`left: 0; right: 0`) felt jarring next to the compact
+     dropdown variant; sizing the panel to its content keeps both
+     menus in the same visual family. */
   right: 0;
   z-index: 10;
   display: grid;
   grid-template-columns: 1fr;
   gap: 2rem;
-  max-width: 80rem;
-  margin: 0.375rem auto 0;
-  padding: 1.75rem 2rem;
+  /* Width follows content (`max-content`) so a 2-column panel doesn't
+     leave dead space, and a 4-column panel can stretch wider — but
+     capped so even a content-heavy mega menu doesn't dominate the
+     bar. min(48rem, viewport - 2rem) handles both desktop (panel at
+     48rem == 768px) and narrow viewports (panel = viewport with a
+     2rem safety margin so it doesn't kiss the edges). The min-width
+     keeps a single-column panel from collapsing too narrow. */
+  width: max-content;
+  max-width: min(48rem, calc(100vw - 2rem));
+  min-width: 20rem;
+  margin-top: 0.375rem;
+  padding: 1.5rem 1.75rem;
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
   border-top: 2px solid var(--brand-primary);
@@ -302,6 +509,19 @@ function linkAttrs(item: { to?: string; href?: string }) {
   background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
   color: var(--brand-primary);
   outline: none;
+}
+
+/* Per-item active — soft bg + maroon left rail. Same treatment as
+   TuxDropdown's active-link state for visual consistency across the
+   two menu types. */
+.tux-mega-menu__link--active {
+  background: color-mix(in srgb, var(--brand-primary) 9%, transparent);
+  color: var(--brand-primary);
+  box-shadow: inset 2px 0 0 0 var(--brand-primary);
+}
+
+.tux-mega-menu__link--active .tux-mega-menu__link-label {
+  font-weight: 700;
 }
 
 .tux-mega-menu__link-label {

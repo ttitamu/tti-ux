@@ -88,8 +88,8 @@ const treeData = {
 
 const recentScans = [
   { id: "scan-7f5bd95a", path: "/research/movementlab/raw-corridor-feeds", agent: "agent-04", started: "12:14:08", status: "running" as const, files: 412_843 },
-  { id: "scan-83012ab1", path: "/research/grants/nsf-1234",                agent: "agent-02", started: "11:48:33", status: "complete" as const, files: 88_402 },
-  { id: "scan-c0a18bbe", path: "/research/publications/2025",              agent: "agent-04", started: "11:21:19", status: "complete" as const, files: 12_207 },
+  { id: "scan-83012ab1", path: "/research/grants/nsf-1234",                agent: "agent-02", started: "11:48:33", status: "completed" as const, files: 88_402 },
+  { id: "scan-c0a18bbe", path: "/research/publications/2025",              agent: "agent-04", started: "11:21:19", status: "completed" as const, files: 12_207 },
   { id: "scan-d44ef902", path: "/research/scratch",                        agent: "agent-03", started: "10:55:00", status: "failed"   as const, files: 0 },
 ];
 

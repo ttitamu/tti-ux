@@ -50,7 +50,7 @@ const tableUi = {
   <div class="tux-table">
     <UTable v-bind="$attrs" :ui="tableUi">
       <template v-if="statusAccessor" #[`${statusAccessor}-cell`]="{ row }">
-        <TuxBadge :status="(row.original || row)[statusAccessor]" />
+        <TuxBadge :status="((row.original || row) as Record<string, string>)[statusAccessor] as 'running' | 'completed' | 'failed' | 'queued'" />
       </template>
 
       <template

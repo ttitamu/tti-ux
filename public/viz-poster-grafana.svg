@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Static poster for the /visualizations/embed Grafana demo. Stylized
+  time-series + gauge layout matching Grafana's dark-on-light kiosk
+  defaults, recolored in TTI palette.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" preserveAspectRatio="xMidYMid meet">
+  <rect width="1200" height="750" fill="#FFFFFF"/>
+  <!-- Title strip -->
+  <rect x="0" y="0" width="1200" height="64" fill="#221F1F"/>
+  <text x="40" y="42" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">PECAN ingestion · last 24h</text>
+  <text x="1100" y="42" font-family="Arial, sans-serif" font-size="13" font-weight="500" fill="#DDAC37" text-anchor="end">Grafana</text>
+
+  <!-- Time series panel -->
+  <g transform="translate(40 90)">
+    <rect x="0" y="0" width="780" height="320" fill="#FAFAFA" stroke="#E7E6E6"/>
+    <text x="14" y="22" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#221F1F">Events ingested · req/sec</text>
+    <!-- gridlines -->
+    <g stroke="#E7E6E6">
+      <line x1="14" y1="80"  x2="766" y2="80"/>
+      <line x1="14" y1="140" x2="766" y2="140"/>
+      <line x1="14" y1="200" x2="766" y2="200"/>
+      <line x1="14" y1="260" x2="766" y2="260"/>
+    </g>
+    <!-- area fill -->
+    <path
+      d="M 14,260 L 60,240 L 110,210 L 160,200 L 210,180 L 260,170 L 310,150 L 360,140 L 410,120 L 460,135 L 510,110 L 560,100 L 610,115 L 660,90 L 710,75 L 760,85 L 766,85 L 766,260 Z"
+      fill="#5C0025" fill-opacity="0.12" stroke="none"/>
+    <!-- line -->
+    <polyline
+      points="14,260 60,240 110,210 160,200 210,180 260,170 310,150 360,140 410,120 460,135 510,110 560,100 610,115 660,90 710,75 760,85"
+      fill="none" stroke="#5C0025" stroke-width="2"/>
+    <!-- y axis labels -->
+    <g font-family="Arial, sans-serif" font-size="10" fill="#525252">
+      <text x="770" y="84">  4k</text>
+      <text x="770" y="144"> 3k</text>
+      <text x="770" y="204"> 2k</text>
+      <text x="770" y="264"> 1k</text>
+    </g>
+    <!-- x axis labels -->
+    <g font-family="Arial, sans-serif" font-size="10" fill="#525252" text-anchor="middle">
+      <text x="60"  y="295">-24h</text>
+      <text x="210" y="295">-18h</text>
+      <text x="360" y="295">-12h</text>
+      <text x="510" y="295">-6h</text>
+      <text x="660" y="295">-2h</text>
+      <text x="760" y="295">now</text>
+    </g>
+  </g>
+
+  <!-- Stat row right -->
+  <g transform="translate(840 90)">
+    <rect x="0" y="0" width="320" height="100" fill="#FAFAFA" stroke="#E7E6E6"/>
+    <text x="14" y="20" font-family="Arial, sans-serif" font-size="11" fill="#525252" letter-spacing="1.5">P95 LATENCY · 1H</text>
+    <text x="14" y="68" font-family="Arial, sans-serif" font-size="36" font-weight="700" fill="#3D5328">82 ms</text>
+
+    <rect x="0" y="110" width="320" height="100" fill="#FAFAFA" stroke="#E7E6E6"/>
+    <text x="14" y="130" font-family="Arial, sans-serif" font-size="11" fill="#525252" letter-spacing="1.5">ERROR RATE · 1H</text>
+    <text x="14" y="178" font-family="Arial, sans-serif" font-size="36" font-weight="700" fill="#A02828">0.41%</text>
+
+    <rect x="0" y="220" width="320" height="100" fill="#FAFAFA" stroke="#E7E6E6"/>
+    <text x="14" y="240" font-family="Arial, sans-serif" font-size="11" fill="#525252" letter-spacing="1.5">EVENTS · 24H</text>
+    <text x="14" y="288" font-family="Arial, sans-serif" font-size="36" font-weight="700" fill="#5C0025">218.4k</text>
+  </g>
+
+  <!-- Bottom: log heatmap + tags -->
+  <g transform="translate(40 440)">
+    <rect x="0" y="0" width="1120" height="220" fill="#FAFAFA" stroke="#E7E6E6"/>
+    <text x="14" y="22" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#221F1F">Per-corpus throughput · 24h</text>
+    <!-- 12 row heatmap, 5 corpora -->
+    <g>
+      <text x="14" y="60" font-family="Arial, sans-serif" font-size="11" fill="#525252">tti-corridors</text>
+      <text x="14" y="92" font-family="Arial, sans-serif" font-size="11" fill="#525252">tti-research</text>
+      <text x="14" y="124" font-family="Arial, sans-serif" font-size="11" fill="#525252">txdot-rules</text>
+      <text x="14" y="156" font-family="Arial, sans-serif" font-size="11" fill="#525252">crash-reports</text>
+      <text x="14" y="188" font-family="Arial, sans-serif" font-size="11" fill="#525252">work-zone-feed</text>
+    </g>
+    <!-- heatmap grid -->
+    <g transform="translate(160 44)">
+      <!-- row 1 -->
+      <rect x="0"   y="0" width="78" height="22" fill="#5C0025" fill-opacity="0.20"/>
+      <rect x="80"  y="0" width="78" height="22" fill="#5C0025" fill-opacity="0.45"/>
+      <rect x="160" y="0" width="78" height="22" fill="#5C0025" fill-opacity="0.60"/>
+      <rect x="240" y="0" width="78" height="22" fill="#5C0025" fill-opacity="0.85"/>
+      <rect x="320" y="0" width="78" height="22" fill="#5C0025" fill-opacity="0.95"/>
+      <rect x="400" y="0" width="78" height="22" fill="#5C0025" fill-opacity="0.75"/>
+      <rect x="480" y="0" width="78" height="22" fill="#5C0025" fill-opacity="0.50"/>
+      <rect x="560" y="0" width="78" height="22" fill="#5C0025" fill-opacity="0.35"/>
+      <rect x="640" y="0" width="78" height="22" fill="#5C0025" fill-opacity="0.40"/>
+      <rect x="720" y="0" width="78" height="22" fill="#5C0025" fill-opacity="0.55"/>
+      <rect x="800" y="0" width="78" height="22" fill="#5C0025" fill-opacity="0.65"/>
+      <rect x="880" y="0" width="78" height="22" fill="#5C0025" fill-opacity="0.45"/>
+      <!-- row 2 -->
+      <rect x="0"   y="32" width="78" height="22" fill="#5C0025" fill-opacity="0.45"/>
+      <rect x="80"  y="32" width="78" height="22" fill="#5C0025" fill-opacity="0.55"/>
+      <rect x="160" y="32" width="78" height="22" fill="#5C0025" fill-opacity="0.70"/>
+      <rect x="240" y="32" width="78" height="22" fill="#5C0025" fill-opacity="0.50"/>
+      <rect x="320" y="32" width="78" height="22" fill="#5C0025" fill-opacity="0.40"/>
+      <rect x="400" y="32" width="78" height="22" fill="#5C0025" fill-opacity="0.30"/>
+      <rect x="480" y="32" width="78" height="22" fill="#5C0025" fill-opacity="0.45"/>
+      <rect x="560" y="32" width="78" height="22" fill="#5C0025" fill-opacity="0.55"/>
+      <rect x="640" y="32" width="78" height="22" fill="#5C0025" fill-opacity="0.65"/>
+      <rect x="720" y="32" width="78" height="22" fill="#5C0025" fill-opacity="0.70"/>
+      <rect x="800" y="32" width="78" height="22" fill="#5C0025" fill-opacity="0.50"/>
+      <rect x="880" y="32" width="78" height="22" fill="#5C0025" fill-opacity="0.40"/>
+      <!-- row 3 -->
+      <rect x="0"   y="64" width="78" height="22" fill="#DDAC37" fill-opacity="0.30"/>
+      <rect x="80"  y="64" width="78" height="22" fill="#DDAC37" fill-opacity="0.45"/>
+      <rect x="160" y="64" width="78" height="22" fill="#DDAC37" fill-opacity="0.50"/>
+      <rect x="240" y="64" width="78" height="22" fill="#DDAC37" fill-opacity="0.60"/>
+      <rect x="320" y="64" width="78" height="22" fill="#DDAC37" fill-opacity="0.50"/>
+      <rect x="400" y="64" width="78" height="22" fill="#DDAC37" fill-opacity="0.40"/>
+      <rect x="480" y="64" width="78" height="22" fill="#DDAC37" fill-opacity="0.30"/>
+      <rect x="560" y="64" width="78" height="22" fill="#DDAC37" fill-opacity="0.45"/>
+      <rect x="640" y="64" width="78" height="22" fill="#DDAC37" fill-opacity="0.55"/>
+      <rect x="720" y="64" width="78" height="22" fill="#DDAC37" fill-opacity="0.50"/>
+      <rect x="800" y="64" width="78" height="22" fill="#DDAC37" fill-opacity="0.45"/>
+      <rect x="880" y="64" width="78" height="22" fill="#DDAC37" fill-opacity="0.30"/>
+      <!-- row 4 -->
+      <rect x="0"   y="96" width="78" height="22" fill="#15457E" fill-opacity="0.50"/>
+      <rect x="80"  y="96" width="78" height="22" fill="#15457E" fill-opacity="0.65"/>
+      <rect x="160" y="96" width="78" height="22" fill="#15457E" fill-opacity="0.85"/>
+      <rect x="240" y="96" width="78" height="22" fill="#15457E" fill-opacity="0.75"/>
+      <rect x="320" y="96" width="78" height="22" fill="#15457E" fill-opacity="0.55"/>
+      <rect x="400" y="96" width="78" height="22" fill="#15457E" fill-opacity="0.45"/>
+      <rect x="480" y="96" width="78" height="22" fill="#15457E" fill-opacity="0.55"/>
+      <rect x="560" y="96" width="78" height="22" fill="#15457E" fill-opacity="0.65"/>
+      <rect x="640" y="96" width="78" height="22" fill="#15457E" fill-opacity="0.75"/>
+      <rect x="720" y="96" width="78" height="22" fill="#15457E" fill-opacity="0.55"/>
+      <rect x="800" y="96" width="78" height="22" fill="#15457E" fill-opacity="0.40"/>
+      <rect x="880" y="96" width="78" height="22" fill="#15457E" fill-opacity="0.35"/>
+      <!-- row 5 -->
+      <rect x="0"   y="128" width="78" height="22" fill="#4A8892" fill-opacity="0.55"/>
+      <rect x="80"  y="128" width="78" height="22" fill="#4A8892" fill-opacity="0.45"/>
+      <rect x="160" y="128" width="78" height="22" fill="#4A8892" fill-opacity="0.60"/>
+      <rect x="240" y="128" width="78" height="22" fill="#4A8892" fill-opacity="0.75"/>
+      <rect x="320" y="128" width="78" height="22" fill="#4A8892" fill-opacity="0.55"/>
+      <rect x="400" y="128" width="78" height="22" fill="#4A8892" fill-opacity="0.45"/>
+      <rect x="480" y="128" width="78" height="22" fill="#4A8892" fill-opacity="0.40"/>
+      <rect x="560" y="128" width="78" height="22" fill="#4A8892" fill-opacity="0.50"/>
+      <rect x="640" y="128" width="78" height="22" fill="#4A8892" fill-opacity="0.65"/>
+      <rect x="720" y="128" width="78" height="22" fill="#4A8892" fill-opacity="0.55"/>
+      <rect x="800" y="128" width="78" height="22" fill="#4A8892" fill-opacity="0.40"/>
+      <rect x="880" y="128" width="78" height="22" fill="#4A8892" fill-opacity="0.30"/>
+    </g>
+  </g>
+
+  <!-- Footer -->
+  <line x1="0" y1="690" x2="1200" y2="690" stroke="#E7E6E6" stroke-width="1"/>
+  <text x="40" y="720" font-family="Arial, sans-serif" font-size="11" fill="#525252">Datasource: prometheus · refresh: 30s · org: TTI · folder: PECAN-ops</text>
+</svg>

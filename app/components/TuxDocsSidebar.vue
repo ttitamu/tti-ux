@@ -76,7 +76,12 @@ function pathOf(section: DocsSection, parentPath: string): string {
 
 function isActive(section: DocsSection): boolean {
   if (!section.to) return false;
-  return route.path === section.to;
+  // Use the shared nav helper so doc entries with hash anchors
+  // (`/handbook#install`) light up correctly. Without this, every
+  // sub-anchor on a long doc page would claim the parent's active
+  // highlight — same bug class TuxMegaMenu/Dropdown had before the
+  // helper landed.
+  return isExactActive(section.to, route);
 }
 
 // True when the active route is at or below this section — used to

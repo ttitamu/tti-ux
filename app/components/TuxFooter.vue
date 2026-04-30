@@ -112,21 +112,8 @@ withDefaults(defineProps<Props>(), {
   year: () => new Date().getFullYear(),
 });
 
-function isInternal(href: string | undefined, to: string | undefined) {
-  if (to) return true;
-  if (!href) return false;
+function isInternal(href: string) {
   return href.startsWith("/") || href.startsWith("#");
-}
-
-function linkAttrs(item: ColumnLink) {
-  if (item.to) return { component: "NuxtLink" as const, to: item.to };
-  if (item.href) {
-    if (isInternal(item.href, undefined)) {
-      return { component: "NuxtLink" as const, to: item.href };
-    }
-    return { component: "a" as const, href: item.href, target: "_blank", rel: "noopener" };
-  }
-  return { component: "span" as const };
 }
 </script>
 
@@ -197,11 +184,29 @@ function linkAttrs(item: ColumnLink) {
           <p class="tux-footer__column-heading">{{ col.heading }}</p>
           <ul class="tux-footer__column-list">
             <li v-for="link in col.links" :key="link.label">
-              <component
-                v-bind="linkAttrs(link)"
-                :is="linkAttrs(link).component"
+              <!-- Explicit v-if branches (not `<component :is>`) for the
+                   same click-reliability reason as the Tux nav components:
+                   resolving NuxtLink from a string was eating clicks
+                   intermittently. Static branches give vue-router the
+                   resolved component at compile time. -->
+              <NuxtLink
+                v-if="link.to"
+                :to="link.to"
                 class="tux-footer__column-link"
-              >{{ link.label }}</component>
+              >{{ link.label }}</NuxtLink>
+              <NuxtLink
+                v-else-if="link.href && isInternal(link.href)"
+                :to="link.href"
+                class="tux-footer__column-link"
+              >{{ link.label }}</NuxtLink>
+              <a
+                v-else-if="link.href"
+                :href="link.href"
+                target="_blank"
+                rel="noopener"
+                class="tux-footer__column-link"
+              >{{ link.label }}</a>
+              <span v-else class="tux-footer__column-link">{{ link.label }}</span>
             </li>
           </ul>
         </div>
