@@ -11,7 +11,7 @@ badges, form fields) is illustrative — intentionally spread across
 transportation-research domains so no single consuming app's identity leaks
 into the design system.
 
-**Current release:** v1.0.0 · WCAG 2.2 AA conformance · color contrast
+**Current release:** v1.1.0 · WCAG 2.2 AA conformance · color contrast
 verified at AAA across all three themes (light, dark, high-contrast).
 
 ## What's in here
@@ -73,33 +73,39 @@ npm run generate
 AUDIT_LEVEL=AAA npm run audit:contrast
 ```
 
-## Consuming from another app (pre-npm-team)
+## Consuming from another app
 
-Until an npm team is provisioned, downstream Nuxt apps consume tti-ux
-locally:
+Pin to a tagged release straight from GitHub — no npm registry needed.
+Bumping the consumer's pin is how you opt in to a new tux version:
+
+```ts
+// nuxt.config.ts of the consuming app
+export default defineNuxtConfig({
+  extends: ["github:ttitamu/tti-ux#v1.1.0"],
+});
+```
+
+Or if you'd rather see it in `package.json`:
 
 ```jsonc
-// package.json of the consuming app
 {
   "dependencies": {
-    "tti-ux": "file:../tti-ux"
+    "tti-ux": "github:ttitamu/tti-ux#v1.1.0"
   }
 }
 ```
 
-Then extend the Nuxt layer:
+For local dev with a sibling checkout, swap to a file URL:
+`"tti-ux": "file:../tti-ux"`.
 
-```ts
-// nuxt.config.ts
-export default defineNuxtConfig({
-  extends: ["tti-ux"],
-});
-```
+Either path pulls in `app/components/`, `app/assets/css/`, and
+`app/app.config.ts` automatically — the consuming app gets `Tux*`
+auto-imports, tokens loaded, Nuxt UI themed to maroon, and access to the
+markdown rendering pipeline (`@nuxtjs/mdc` with Shiki syntax highlighting).
 
-This pulls in `app/components/`, `app/assets/css/`, and `app/app.config.ts`
-automatically — the consuming app gets `Tux*` auto-imports, tokens loaded,
-Nuxt UI themed to maroon, and access to the markdown rendering pipeline
-(`@nuxtjs/mdc` with Shiki syntax highlighting).
+Tags are immutable; consumers pin to a version and upgrade deliberately
+by bumping the `#vX.Y.Z` ref. See [`CHANGELOG.md`](CHANGELOG.md) for what
+each version contains.
 
 ## Naming
 

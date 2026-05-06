@@ -3,16 +3,49 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] — 2026-04-30 (driven by PECAN's hybrid chrome work)
+## [Unreleased]
+
+_Nothing yet._
+
+## [1.1.0] — 2026-05-06
+
+Cuts the accumulated post-v1.0.0 work into a tagged release so
+consumers can pin to `github:ttitamu/tti-ux#v1.1.0` and upgrade
+deliberately. Substantial new features in the hybrid-chrome family
+(below) plus packaging changes that make the GitHub-tag consumption
+path real.
+
+### Added — packaging for GitHub-tag consumption
+- **`public/CNAME` for `ux.tti.tamu.edu`.** Pins the custom domain
+  in the Pages artifact so deploys don't drop the Settings → Pages
+  custom-domain value on republish — the source of recent HTTPS
+  cert flakiness, since the cert is provisioned per-domain and only
+  after the domain is locked in.
+- **`main` + `files` in `package.json`** so consumers get a clean
+  package shape: layer config (`nuxt.config.ts`), `app/`, `design/`,
+  `docs/`, `public/`, plus README/CHANGELOG/tsconfig. Everything
+  else (scripts, contrast-report, dist, node_modules) stays out.
+- **Runtime deps moved from `devDependencies` to `dependencies`** —
+  `@iconify-json/lucide`, `@tailwindcss/vite`, `@tanstack/vue-table`,
+  `@tanstack/vue-virtual`, `tailwindcss`. These are needed at build
+  time in any consumer that extends the layer or installs the
+  package, so they have to be runtime deps. (The pure tooling deps
+  — `@nuxt/devtools`, `puppeteer`, `potrace`, `serve-handler`,
+  `typescript` — stay in devDependencies.)
+- **README consumption guide** rewritten around
+  `extends: ["github:ttitamu/tti-ux#v1.1.0"]` as the primary path,
+  with `file:../tti-ux` kept as a local-dev fallback.
+
+### Hybrid chrome (PECAN-driven)
 
 App-shape consumers (PECAN, tti-ai-studio) need a "I'm in an
 application" chrome that wasn't quite expressible with the current
-TuxSiteNav + TuxDropdown + TuxMegaMenu set. This release adds the
-missing hooks so the institutional + docs + app patterns can all
-share one component family. All changes additive; no breaking
-changes for marketing-surface consumers.
+TuxSiteNav + TuxDropdown + TuxMegaMenu set. v1.1.0 adds the missing
+hooks so the institutional + docs + app patterns can all share one
+component family. All changes additive; no breaking changes for
+marketing-surface consumers.
 
-### Added
+### Added — hybrid chrome
 - **`TuxSiteNav` `#trailing` slot** — renders inside
   `.tux-site-nav__bar-inner` after the primary nav, with a
   left-border separator from the nav. App-shape consumers drop

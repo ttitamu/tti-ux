@@ -1,5 +1,6 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { defineNuxtConfig } from "nuxt/config";
 import tailwindcss from "@tailwindcss/vite";
 
 // Layer-rooted dir so consuming apps (PECAN, tti-ai-studio, etc.) resolve
