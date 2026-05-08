@@ -5,6 +5,57 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Visual-language evolution prelude (2026-05)
+
+Token-only refresh that should have shipped *before* the data-density
+batch below. No per-component edits required for the base behavior;
+families inherit the changes automatically.
+
+- **Two-ring focus token** — outer 2px maroon + inner 2px sand halo
+  replaces the prior single 3px maroon-at-35% ring. Reads cleanly on
+  data tables and form rows where a single soft ring gets lost. New
+  tokens: `--focus-ring-outer`, `--focus-ring-inner`. Variants: dark
+  uses softened maroon + warm-gold inner; HC uses pure black + white
+  inner at 5px total width. Lineage: Ant (two-ring concept) and
+  Fabric (focus discipline on data-rich surfaces); color story is
+  tux-original.
+- **Transportation-tempo easings** — `--ease-survey` (tables/forms/
+  disclosures), `--ease-corridor` (page-level/sheets/modals), and
+  `--ease-arrival` (toasts/banners/snapshots locking in). Three
+  distinct curves giving "measured / smooth / decelerate-only"
+  coverage without overshoot. Legacy `--ease-standard/emphasis/exit`
+  retained as back-compat aliases. Lineage: Material 3
+  standard-effects family.
+- **Four-tier elevation system** — `--elevation-flat/rest/hover/
+  overlay/pinned`, layered on existing `--shadow-sm/md/lg`. Gives
+  every component a predictable elevation role; old `sm/md/lg` are
+  still available as primitives but new work should use the named
+  tiers. Variants: dark bumps overlay alpha so sheets stay readable
+  on warm charcoal; HC nukes shadows across the board and uses a
+  2px border for the overlay tier. Lineage: Microsoft Fabric.
+- **Warm-neutral ramp extension** — added intermediate stops at
+  `--neutral-150/250/450/550/650/750/850`. Sand-leaning tints that
+  harmonize with maroon over extended viewing. Use for row-stripe,
+  hover, and selected states on data-table surfaces (the original
+  6-stop ramp couldn't carry those without compounding transparent
+  tints). Lineage: shadcn's stone/zinc 12-stop ramps; hex values
+  tux-original.
+- **Survey-rhythm density tokens** — `--rhythm-tight/snug/normal/
+  loose/roomy` (4/8/12/16/24px). Use *instead of* the general
+  `--space-*` ramp inside dense surfaces (tables, forms,
+  descriptions); `--space-*` stays for section/page-level rhythm.
+  Lineage: Ant Design's 4/8/12/16/24 cadence.
+- **`public/identity-primitives.svg`** — four `<symbol>`s exported
+  as a single shared sprite: `#tux-star` (5-point Lone-star
+  reference), `#tux-chevron` (TAMUS-style downward angle bracket),
+  `#tux-compass` (compass rose for map-related families), and
+  `#tux-row-grid` (parallel-lines-getting-denser pavement-stripe
+  pattern). Restraint-grade identity moves for corner accents,
+  section brackets, and map decorators. All draw with currentColor.
+- **`design/visual-language-evolution.md`** — running ledger that
+  documents each entry above (what changed / why / variants /
+  lineage). Future token-level changes get appended here.
+
 ### Added — Data density + geographic charts (recovery branch, 2026-05)
 
 Two batches landing on `claude/recovery-2026-05` after a worktree

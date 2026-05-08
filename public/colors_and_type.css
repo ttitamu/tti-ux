@@ -103,15 +103,28 @@
   --neutral-0:    #FFFFFF;
   --neutral-50:   #FAFAFA;
   --neutral-100:  #F5F5F5;
+  --neutral-150:  #EFEEED;  /* row stripe (light), table hover surface */
   --neutral-200:  #E7E6E6;
+  --neutral-250:  #DCDBD8;  /* sunken-2, sand-leaning */
   --neutral-300:  #D1D2D4;
   --neutral-400:  #A5A5A5;
+  --neutral-450:  #9B9A96;  /* warm muted text */
   --neutral-500:  #939597;
+  --neutral-550:  #86847F;  /* warm muted-2 */
   --neutral-600:  #7E7E7E;
+  --neutral-650:  #6B6964;  /* warm secondary */
   --neutral-700:  #5D5D5D;
+  --neutral-750:  #535048;  /* warm primary-soft */
   --neutral-800:  #4C4C4E;
+  --neutral-850:  #3A3833;  /* warm darkest non-black */
   --neutral-900:  #221F1F;
   --neutral-1000: #000000;
+  /* Intermediate stops at 150/250/450/550/650/750/850 are warm/sand-
+     leaning so they harmonize with maroon. Use them for row-stripe /
+     hover / selected states on data-table surfaces — the original
+     6-stop ramp couldn't carry those without compounding transparent
+     tints. Lineage: shadcn's stone/zinc 12-stop ramps; hex values
+     are tux-original. */
 
   /* Semantic brand tokens */
   --brand-primary:      var(--tti-maroon);
@@ -176,6 +189,24 @@
   --space-4: 1rem; --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem;
   --space-10: 2.5rem; --space-12: 3rem; --space-16: 4rem; --space-24: 6rem;
 
+  /* Survey-rhythm density baseline — 4-8-12-16-24 ramp tuned for
+     data-dense families (tables, forms, descriptions). Use these
+     *instead of* --space-* inside dense surfaces; --space-* stays
+     for section/page-level rhythm. Lineage: Ant Design's cadence. */
+  --rhythm-tight:  4px;
+  --rhythm-snug:   8px;
+  --rhythm-normal: 12px;
+  --rhythm-loose:  16px;
+  --rhythm-roomy:  24px;
+
+  /* Transportation-tempo easings. "Measured / smooth / decelerate-
+     only" curves named for the system's research domain. Suits
+     research-data UIs where playful springs feel out of register.
+     Lineage: Material 3 standard-effects family. */
+  --ease-survey:   cubic-bezier(0.4, 0.0, 0.2, 1.0);  /* tables, forms, disclosures */
+  --ease-corridor: cubic-bezier(0.2, 0.0, 0.0, 1.0);  /* page-level, sheets, modals */
+  --ease-arrival:  cubic-bezier(0.0, 0.0, 0.2, 1.0);  /* toasts, banners, snapshots locking in */
+
   /* Radii — hard ceiling at 0.75rem / 12px. */
   --radius-none: 0; --radius-sm: 0.125rem; --radius-md: 0.375rem;
   --radius-lg: 0.5rem; --radius-xl: 0.75rem;
@@ -184,7 +215,28 @@
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
-  --shadow-focus: 0 0 0 3px rgba(92, 0, 37, 0.35);
+
+  /* Two-ring focus token. Outer 2px maroon + inner 2px sand halo
+     reads cleanly on dense surfaces (data tables, form rows) where
+     a single soft ring gets lost. Lineage: Ant + Fabric. */
+  --focus-ring-outer: var(--brand-primary);
+  --focus-ring-inner: #F2E6C9;
+  --shadow-focus:
+    0 0 0 2px var(--focus-ring-inner),
+    0 0 0 4px var(--focus-ring-outer);
+
+  /* Four-tier elevation language. Use these (not raw shadow-sm/md/lg)
+     so every component gets a predictable role: `flat` = border-only,
+     `rest` = quietly lifted (rows, list items), `hover` = `rest` +
+     translateY(-1px), `overlay` = popovers/sheets/modals, `pinned` =
+     bottom-only shadow for sticky toolbars/headers. Lineage:
+     Microsoft Fabric's elevation discipline. */
+  --elevation-flat:    none;
+  --elevation-rest:    var(--shadow-sm);
+  --elevation-hover:   var(--shadow-md);
+  --elevation-overlay: var(--shadow-lg);
+  --elevation-pinned:  0 4px 6px -2px rgba(0, 0, 0, 0.06);
+
   --shadow-corner-drop: -6px 6px 0 0 var(--brand-primary);
 }
 
@@ -217,7 +269,21 @@
   --color-error:   #F07070;
   --color-info:    #6BABB5;
 
-  --shadow-focus: 0 0 0 3px rgba(219, 133, 158, 0.45);
+  /* Two-ring focus on dark — softened maroon outer + warm-gold inner. */
+  --focus-ring-outer: var(--brand-primary);
+  --focus-ring-inner: #3D2E0F;
+  --shadow-focus:
+    0 0 0 2px var(--focus-ring-inner),
+    0 0 0 4px var(--focus-ring-outer);
+
+  /* Elevation tiers on dark — overlay alpha bumped so the sheet
+     doesn't disappear into the warm-charcoal page. */
+  --elevation-flat:    none;
+  --elevation-rest:    var(--shadow-sm);
+  --elevation-hover:   var(--shadow-md);
+  --elevation-overlay: 0 10px 15px -3px rgba(0, 0, 0, 0.20), 0 4px 6px -2px rgba(0, 0, 0, 0.12);
+  --elevation-pinned:  0 4px 6px -2px rgba(0, 0, 0, 0.18);
+
   --shadow-corner-drop: -6px 6px 0 0 #b14a6c;
 }
 
@@ -242,6 +308,22 @@
   --text-inverse:   #FFFFFF;
   --text-brand:     #500000;
   --color-error:    #B33131;
+
+  /* Two-ring focus on HC — pure black outer + white inner at 5px
+     total width. Bigger ring meets HC's wider-target conventions. */
+  --focus-ring-outer: #000000;
+  --focus-ring-inner: #FFFFFF;
+  --shadow-focus:
+    0 0 0 2px var(--focus-ring-inner),
+    0 0 0 5px var(--focus-ring-outer);
+
+  /* Elevation in HC — shadows nuked across the board; overlay swaps
+     to a 2px border so depth still reads at the contrast floor. */
+  --elevation-flat:    none;
+  --elevation-rest:    none;
+  --elevation-hover:   none;
+  --elevation-overlay: 0 0 0 2px var(--surface-border);
+  --elevation-pinned:  0 0 0 1px var(--surface-border);
 
   --shadow-corner-drop: -6px 6px 0 0 #500000;
 }
