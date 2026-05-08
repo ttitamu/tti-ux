@@ -47,6 +47,20 @@ const tiles = [
     kind: "native mini chart",
     blurb: "Inline trend line — no axes, no legend. Pairs with TuxBigStat / TuxFactoid for KPI rows. Native SVG, theme-aware tones.",
   },
+  {
+    label: "TuxChartGeographic",
+    to: "/visualizations/chart-geographic",
+    icon: "lucide:map",
+    kind: "native Texas maps",
+    blurb: "County choropleth · TxDOT 25-district map · US states (TX highlighted) · dot density · OD flow arcs. Five kinds via kind prop, real geometry from us-atlas + TxDOT MapServer pre-projected at build time. Plus TuxMetroInset for 4-up neighborhood drill-downs.",
+  },
+  {
+    label: "TuxChartSunburst",
+    to: "/visualizations/chart-sunburst",
+    icon: "lucide:circle-dot",
+    kind: "native hierarchical",
+    blurb: "Two-ring radial breakdown — inner ring = top-level groups, outer ring = children with stepped opacity. Center carries the total. Sister to TuxTreemap for budget / portfolio / capacity exhibits.",
+  },
 ];
 </script>
 

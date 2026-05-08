@@ -1,7 +1,22 @@
 /**
  * Convert the Copilot-made tuxedo PNGs into clean vector SVGs via potrace.
  *
- * Run: node scripts/png-to-svg-logo.mjs
+ * One-off regeneration utility — the produced SVGs (`public/logo.svg`,
+ * `public/logo-dark.svg`) are committed to the repo, so the design system
+ * ships without any tracing dependency. `potrace` and `jimp` are NOT in
+ * `devDependencies` because their transitive `phin@2.x` chain carries
+ * a perpetual moderate-severity vuln (sensitive headers leak across
+ * redirects) — a problem we don't trigger here (we only read local
+ * files), but not worth carrying for a script that runs once per logo
+ * refresh.
+ *
+ * To regenerate after the source PNGs change:
+ *
+ *   npm install --no-save potrace jimp@0.16
+ *   node scripts/png-to-svg-logo.mjs
+ *
+ * Then commit the resulting SVGs and `git checkout package*.json` to
+ * drop the temporary deps.
  *
  * Why this exists: the source PNGs are 1024×1024 RGBA (~1–2MB combined),
  * rendered at w-8 h-8 in the header. Vector tracing gets each down to
@@ -23,9 +38,22 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createRequire } from "node:module";
-import potrace from "potrace";
 const require = createRequire(import.meta.url);
-const Jimp = require("jimp");
+
+let potrace, Jimp;
+try {
+  potrace = (await import("potrace")).default;
+  Jimp = require("jimp");
+} catch {
+  console.error(
+    "✗ Missing tracer deps. potrace + jimp are not in devDependencies\n" +
+    "  by default (transitive phin vuln chain). Install temporarily:\n\n" +
+    "    npm install --no-save potrace jimp@0.16\n\n" +
+    "  Then re-run, commit the resulting SVGs, and:\n\n" +
+    "    git checkout package.json package-lock.json\n",
+  );
+  process.exit(1);
+}
 
 const JOBS = [
   {

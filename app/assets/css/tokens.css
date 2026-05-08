@@ -179,6 +179,42 @@
   --color-gold-800: #604812;
   --color-gold-900: #3f300b;
   --color-gold-950: #271e07;
+
+  /* Categorical chart palette — eight series, qualitatively distinct
+     under normal vision and across major colorblind types. Maroon at
+     1 keeps brand presence on the primary series; the rest cycle
+     through warm-neutral and earth-toned series so a single chart
+     never reads as a competing system. Components reference these
+     by var name so theme overrides re-color in place. */
+  --chart-1: var(--brand-primary);   /* maroon — primary series */
+  --chart-2: #3F5A6F;                /* slate teal */
+  --chart-3: #C7973C;                /* wheat */
+  --chart-4: #6B8E5A;                /* sage */
+  --chart-5: #8C5A3C;                /* clay */
+  --chart-6: #5C7080;                /* fog */
+  --chart-7: #A33A3A;                /* rust red */
+  --chart-8: #3C5A87;                /* deep blue */
+
+  /* Map choropleth ramps — 5-step sequential (quantile-binned) for
+     classifications without a natural midpoint. Maroon for traffic-
+     direct metrics (delay, AADT, crash rate, VMT); slate for
+     non-traffic context layers (population, terrain, jurisdiction)
+     so two ramps can coexist on the same exhibit without competing.
+     `--map-outline` is the Texas state outline / district boundary
+     hairline color; `--map-flow` colors O-D arcs and dot-density
+     dots. */
+  --map-seq-maroon-1: #F1E4E0;
+  --map-seq-maroon-2: #DDB7AC;
+  --map-seq-maroon-3: #C58675;
+  --map-seq-maroon-4: #9E483A;
+  --map-seq-maroon-5: #500000;
+  --map-seq-slate-1: #E2E7EC;
+  --map-seq-slate-2: #B7C2CC;
+  --map-seq-slate-3: #7E94A4;
+  --map-seq-slate-4: #52677A;
+  --map-seq-slate-5: #283544;
+  --map-outline: var(--surface-border);
+  --map-flow: var(--brand-primary);
 }
 
 /* Dark variant — warm charcoal surfaces, lightened maroon so the brand
@@ -246,6 +282,35 @@
   --color-text-muted:         var(--text-muted);
   --color-text-inverse:       var(--text-inverse);
   --color-text-brand:         var(--text-brand);
+
+  /* Chart categorical palette on dark — each swatch lifted ~15% to
+     read against the warm-charcoal page surface. Maroon stays as
+     --brand-primary (already lightened in this theme). */
+  --chart-1: var(--brand-primary);
+  --chart-2: #6B8DA3;  /* slate teal · lifted */
+  --chart-3: #E0BC60;  /* wheat · lifted */
+  --chart-4: #93B57E;  /* sage · lifted */
+  --chart-5: #B58463;  /* clay · lifted */
+  --chart-6: #8AA0B2;  /* fog · lifted */
+  --chart-7: #D67272;  /* rust red · lifted */
+  --chart-8: #6E8FBE;  /* deep blue · lifted */
+
+  /* Map ramps lifted for the warm-charcoal page; maroon ramp now
+     reads as a "warm" gradient (deep maroon → light salmon) and
+     slate goes from near-charcoal up to a near-white. Outline
+     gets boosted opacity so the state shape stays visible. */
+  --map-seq-maroon-1: #3D1110;
+  --map-seq-maroon-2: #702C28;
+  --map-seq-maroon-3: #A14A3D;
+  --map-seq-maroon-4: #C97058;
+  --map-seq-maroon-5: #E89B7E;
+  --map-seq-slate-1: #1A2129;
+  --map-seq-slate-2: #3F5A6F;
+  --map-seq-slate-3: #6F8294;
+  --map-seq-slate-4: #9CADBD;
+  --map-seq-slate-5: #C2D0DE;
+  --map-outline: rgba(255, 255, 255, 0.22);
+  --map-flow: #E89B7E;
 }
 
 /* High-contrast variant — WCAG AAA; drawn from the TTI 508-accessible PPTX. */
@@ -299,4 +364,36 @@
   --color-text-muted:         var(--text-muted);
   --color-text-inverse:       var(--text-inverse);
   --color-text-brand:         var(--text-brand);
+
+  /* HC chart palette — collapsed to high-contrast series (black,
+     dark maroon, mid gray, dark gold, etc.). Charts in HC mode rely
+     on patterns + labels at least as much as color; consumers should
+     pair these with `pattern` props on bars/areas, or fall back to
+     direct labels. */
+  --chart-1: #000000;
+  --chart-2: var(--brand-primary);  /* dark maroon */
+  --chart-3: #5D5D5D;
+  --chart-4: #8A6915;
+  --chart-5: #4A4A4A;
+  --chart-6: #1F5D66;
+  --chart-7: #6B0000;
+  --chart-8: #2A2A2A;
+
+  /* HC map ramps — collapsed to a 5-step grayscale that clears AAA
+     against both the page and itself. Real HC maps in production
+     should layer hatching / dot patterns on top via consumer SVG
+     fills, since color-only encoding doesn't survive HC contrast
+     requirements. */
+  --map-seq-maroon-1: #FFFFFF;
+  --map-seq-maroon-2: #C8C8C8;
+  --map-seq-maroon-3: #8A8A8A;
+  --map-seq-maroon-4: #4A4A4A;
+  --map-seq-maroon-5: #000000;
+  --map-seq-slate-1: #FFFFFF;
+  --map-seq-slate-2: #C8C8C8;
+  --map-seq-slate-3: #8A8A8A;
+  --map-seq-slate-4: #4A4A4A;
+  --map-seq-slate-5: #000000;
+  --map-outline: #000000;
+  --map-flow: #000000;
 }

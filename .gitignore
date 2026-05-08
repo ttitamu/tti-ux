@@ -35,3 +35,9 @@ CLAUDE.md
 .aider*
 .windsurfrules
 .continue/
+
+# Raw GeoJSON sources are large (13MB+) and re-fetchable from
+# their official endpoints. The build-geo script projects +
+# simplifies them into the small TS modules under
+# app/assets/geo/. We ship the projected outputs, not the raw.
+data/source/

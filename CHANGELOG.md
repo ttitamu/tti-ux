@@ -5,7 +5,114 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added — Data density + geographic charts (recovery branch, 2026-05)
+
+Two batches landing on `claude/recovery-2026-05` after a worktree
+got wiped by a parallel session before any of its work was
+committed. Rebuilt verbatim from chat memory + the official source
+of truth (us-atlas + TxDOT MapServer). Defensive commits per
+component / batch from here on.
+
+**Data density:**
+
+- **`TuxRichDataGrid`** — interactive grid for PECAN-class
+  operational surfaces. Sticky header, row selection w/
+  indeterminate header checkbox, expandable detail rows, sortable
+  columns, active-filter chip strip, bulk-action bar (visible
+  only when ≥1 row selected), footer pagination strip. State is
+  host-driven via v-models (`selected` / `expanded` / `sortKey` /
+  `sortDir`) and events (`search`, `filter-remove`,
+  `bulk-action`, `page`, `toolbar`). Slots: `cell-<key>` per
+  column, `expanded` for row body, `bulk-actions` to override
+  the default action trio.
+- **`TuxDataTable`** — research-flavored static table for
+  finished deliverables. Numbered caption (`Table 4-2`) over an
+  Oswald display title + optional descriptive lede; tabular-
+  figure body cells; uncertainty cells auto-rendered as
+  `value ± CI` when a column declares `ciKey`; footnote anchors
+  wired to a formal note block; optional row groups banded by
+  category; optional sticky header w/ max-height for appendix
+  density; optional totals row w/ maroon top-rule; source
+  citation line. Sort is host-driven.
+
+**Geographic charts (real geometry):**
+
+- **`TuxChartGeographic`** — five Texas-flavored map kinds in
+  one component:
+
+  - `county` — 254 real TIGER/Line counties projected with
+    d3-geoAlbers (Texas-centered, parallels 27°N–35°N).
+  - `districts` — TxDOT's 25 engineering districts using the
+    official boundary geometry from the TxDOT MapServer feature
+    service, Visvalingam-simplified at weight 0.05.
+  - `us-context` — All 50 US states + DC using the AlbersUsa
+    composite projection (handles AK / HI as insets natively).
+    Highlighted state shifts to maroon.
+  - `dot-density` — Dots are rejection-sampled inside the actual
+    Texas state outline using a deterministic Mulberry32 RNG so
+    SSR + CSR produce the same scatter.
+  - `flow` — Origin-destination curved arcs between Texas's
+    seven primary metros, projected from real lat/lng.
+
+- **`TuxMetroInset`** — single-metro neighborhood-grid companion
+  for 4-up drill-downs (Houston · DFW · Austin · SAT). Cell
+  pattern seeded by metro name so SSR + CSR match.
+- **`TuxChartSunburst`** — two-ring radial breakdown sister to
+  `TuxTreemap`. Inner ring = top-level groups, outer ring =
+  children with stepped opacity, center carries total in
+  tabular numerals. Container-queried legend collapse below
+  36rem.
+- **`TuxChartFrame`** — editorial wrapper (eyebrow + Oswald
+  title + 2px maroon signature rule + body slot + source/notes
+  footer) used by `/visualizations/*` showcase pages so a
+  multi-exhibit report reads as one document.
+
+**Geometry pipeline (build-time only):**
+
+- `scripts/build-geo.mjs` runs at build time only — pulls
+  us-atlas (npm; TIGER/Line 1:10m) and the official TxDOT
+  MapServer feature service, simplifies via `topojson-simplify`,
+  projects with `d3-geoAlbers` (Texas) / `d3-geoAlbersUsa` (US),
+  emits three TS modules under `app/assets/geo/` (`texas.ts`,
+  `texas-counties.ts`, `us-states.ts`). Outputs are checked in;
+  re-run via `npm run build:geo` when upstream sources change.
+  No runtime projection or topology library — the component
+  imports static SVG path strings.
+- New devDependencies: `d3-geo`, `topojson-client`,
+  `topojson-server`, `topojson-simplify`, `us-atlas`.
+- New tokens: `--chart-1` through `--chart-8` (categorical
+  palette across light / dark / HC), `--map-seq-maroon-1..5`,
+  `--map-seq-slate-1..5`, `--map-outline`, `--map-flow`. All
+  three theme variants override.
+- `data/source/` added to `.gitignore` (raw GeoJSON is 13MB+
+  and re-fetchable from the TxDOT MapServer).
+
+### Security — `npm audit` cleanup, 8 → 0 vulnerabilities (2026-05)
+
+- `npm audit fix` (no `--force`) applied patch upgrades to
+  `nitropack` (open-redirect via wildcard route rules + proxy
+  scope bypass), `uuid` (missing buffer-bounds check in v3/v5/v6),
+  and `basic-ftp` (unbounded multiline FTP control buffer DoS,
+  transitive via Puppeteer's proxy-agent chain).
+- `potrace` removed from `devDependencies`. The remaining five
+  vulns were a single root cause counted across the
+  `phin@2.x → @jimp/core → @jimp/custom → jimp → potrace` chain.
+  Potrace was a build-time-only utility (the SVGs it produced
+  ship in `public/`); the script
+  [`scripts/png-to-svg-logo.mjs`](scripts/png-to-svg-logo.mjs)
+  now starts with a fail-fast that prints regen instructions
+  (`npm install --no-save potrace jimp@0.16`).
+
+`npm audit` reports `found 0 vulnerabilities` on a clean install.
+
+### Deferred — completing the doctrine surface
+
+`design/components.md` doctrine table + "want X? use Y" pattern
+map and `design/roadmap.md` closures are still on the v1.1.0
+baseline — they don't yet reference the five new components.
+Worth a follow-up commit when bandwidth allows; not blocking the
+catalog because the new components are discoverable via the
+sidebar nav, the catalog index, and the home Foundations grid.
 
 ## [1.1.0] — 2026-05-06
 
