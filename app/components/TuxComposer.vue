@@ -26,6 +26,14 @@ interface Props {
   maxLength?: number;
   hint?: string;
   hideAttach?: boolean;
+  /** Label for the attach chip in the toolbar. Default speaks to the
+   *  corpus-attach use case; consumer apps that wire `@attach` to a
+   *  different action (image picker, MCP picker) override this so the
+   *  label matches the actual behavior. */
+  attachLabel?: string;
+  /** Icon name (Iconify, e.g. `lucide:plus`, `lucide:image-plus`,
+   *  `lucide:paperclip`) shown to the left of `attachLabel`. */
+  attachIcon?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -36,6 +44,8 @@ const props = withDefaults(defineProps<Props>(), {
   maxLength: 32000,
   hint: "⌘↵ send · / corpus to switch context · shift↵ newline",
   hideAttach: false,
+  attachLabel: "Attach corpus",
+  attachIcon: "lucide:plus",
 });
 
 const emit = defineEmits<{
@@ -89,8 +99,8 @@ function onKey(e: KeyboardEvent) {
           class="tux-composer__chip"
           @click="emit('attach')"
         >
-          <UIcon name="lucide:plus" class="tux-composer__chip-icon" />
-          <span>Attach corpus</span>
+          <UIcon :name="attachIcon" class="tux-composer__chip-icon" />
+          <span>{{ attachLabel }}</span>
         </button>
         <select
           v-if="models.length"
