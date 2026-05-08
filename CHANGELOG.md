@@ -5,6 +5,13 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Direction — tti-ux as source of truth for the BI design system
+
+- **ADR 0009 accepted** ([`docs/adr/0009-bi-design-system-source-of-truth.md`](docs/adr/0009-bi-design-system-source-of-truth.md)). tti-ux becomes the canonical home for TTI's Power BI / Microsoft Fabric design system: brand tokens (already here), data-viz tokens (already here), Power BI theme JSON (to be generated here from tokens), and the Aggie Viz / Tti Viz shell spec (to be ported here from `docs-it-tamu-edu`).
+- **Consumers**: `tti-reporting` ([`ttitamu/tti-reporting`](https://github.com/ttitamu/tti-reporting)) currently snapshots tokens into `core/themes/tokens.json` and ports the Aggie Viz shell into `core/ttiviz/SHELL_SPEC.md`. Once tti-ux owns these, those become reference snapshots that follow tti-ux releases.
+- **`docs-tti-tamu-edu`** stops being a stale clone of the docs-it-tamu-edu Power BI section and instead links to tti-ux for canonical BI standards.
+- **Pending port** (from `docs-it-tamu-edu/nuxt-site/content/docs/tamu/M365/Power-BI-Fabric/`): ~12 documents covering AggieBI brand-theme rationale, light/dark mode architecture, organizational visuals, component/visual-type policy, and the Aggie Viz visual spec family (shell, textboxes, nav pills, card styling, PBIP property reference). See ADR 0009 for the full mapping.
+
 ## [1.2.0] — 2026-05-08
 
 Cuts the accumulated post-v1.1.0 work into a tagged release. Two
