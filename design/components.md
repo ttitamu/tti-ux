@@ -41,6 +41,7 @@ npm run dev
 | `TuxConversationList`| tux native               | `/components/conversation-list` |
 | `TuxComposer`        | tux native               | `/components/composer`          |
 | `TuxCTA`             | tux native               | `/components/cta`               |
+| `TuxDataTable`       | tux native               | `/components/data-table`        |
 | `TuxDescriptionList` | tux native               | `/components/description-list`  |
 | `TuxDiagram`         | Mermaid                  | `/components/diagram`           |
 | `TuxDocsSidebar`     | tux native               | `/components/docs-sidebar`      |
@@ -63,6 +64,7 @@ npm run dev
 | `TuxPagination`      | tux native               | `/components/pagination`        |
 | `TuxPhotoGrid`       | tux native               | `/components/photo-grid`        |
 | `TuxQACollection`    | tux native               | `/components/qa-collection`     |
+| `TuxRichDataGrid`    | tux native               | `/components/rich-data-grid`    |
 | `TuxSearch`          | tux native               | `/components/search`            |
 | `TuxSectionHeader`   | tux native               | `/components/section-header`    |
 | `TuxSidebarBlock`    | tux native               | `/components/sidebar-block`     |
@@ -103,6 +105,10 @@ sandbox, source caption).
 | `TuxVizRPlot`         | `<img>` / `<object>` / `<iframe>`      | `/visualizations/rplot`        |
 | `TuxVizGrid`          | tux native (CSS Grid layout shell)     | `/visualizations/grid`         |
 | `TuxSparkline`        | tux native (inline SVG)                | `/visualizations/sparkline`    |
+| `TuxChartFrame`       | tux native (editorial wrapper)         | (used by `/visualizations/*` showcase pages) |
+| `TuxChartGeographic`  | tux native (5-kind Texas map)          | `/visualizations/chart-geographic` |
+| `TuxChartSunburst`    | tux native (two-ring radial)           | `/visualizations/chart-sunburst`   |
+| `TuxMetroInset`       | tux native (neighborhood grid)         | (used by `/visualizations/chart-geographic`) |
 
 See [ADR-0008](../docs/adr/0008-data-display-and-reports-section.md)
 for the positioning rationale (why data-display stays flat in
@@ -139,6 +145,8 @@ single most common failure mode.
 | **Markdown content with Tux components inline** | `@nuxtjs/mdc` + auto-import (see `/markdown` demo) |
 | **Form input** (email / select / radio / etc.) | Nuxt UI native — `UInput`, `USelect`, etc. See `/forms`. |
 | **Data table** (sortable, virtualizable, status cells) | `<TuxTable>` |
+| **Sortable / selectable / expandable data grid** (PECAN-class operational lists with bulk actions, active-filter chips, row expansion) | `<TuxRichDataGrid>` |
+| **Static research table** (numbered caption, ± CI uncertainty, footnotes, source citation, optional totals row) | `<TuxDataTable>` |
 | **Search bar** (PECAN finder, conversation search) | `<TuxSearch>` |
 | **A–Z directory jump bar** | `<TuxAlphaNav>` |
 | **Sidebar widget wrapper** (related links, contact box, in-page nav) | `<TuxSidebarBlock>` |
@@ -158,9 +166,13 @@ single most common failure mode.
 | **BI dashboard embed** (Tableau, Power BI, Superset, Grafana) | `<TuxVizEmbed>` |
 | **R / ggplot artifact** (PNG, SVG, htmlwidget) | `<TuxVizRPlot>` |
 | **Side-by-side dashboard tiles** (small-multiples 2/3/4-up) | `<TuxVizGrid>` |
+| **Texas-flavored map** (county choropleth, TxDOT districts, in-state dot density, OD flow arcs, AlbersUsa context) | `<TuxChartGeographic kind="…">` |
+| **Multi-metro inset grid** (4-up neighborhood drill-down — Houston / DFW / Austin / SAT) | `<TuxMetroInset>` |
+| **Two-ring radial breakdown** (sister to treemap; categorical part-to-whole with center total) | `<TuxChartSunburst>` |
+| **Editorial wrapper for a multi-exhibit visualizations page** (eyebrow + Oswald title + maroon signature + body + source) | `<TuxChartFrame>` |
 
 If your need isn't here, scan `/components` (or
-`app/pages/components/index.vue`) — there are ~60 Tux\* components and
+`app/pages/components/index.vue`) — there are ~70 Tux\* components and
 this map only highlights the ones with the easiest-to-miss names.
 
 ## Ideas not yet shipped

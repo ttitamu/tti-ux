@@ -187,6 +187,68 @@ get lost. Pick from the top when there's a slow afternoon.
 
 ---
 
+## Recently shipped — data density + geographic charts (2026-05)
+
+Two batches plus the token-only prelude that should have shipped
+before them. Both batches were rebuilt from chat memory + the
+official source of truth (us-atlas + TxDOT MapServer) after a
+worktree got wiped pre-commit. See CHANGELOG entries.
+
+**Data density** — neither was on the original roadmap; both were
+pulled in because PECAN-class consumers needed them.
+
+- **TuxRichDataGrid** — interactive grid for operational surfaces.
+  Sticky header, row selection (with indeterminate header
+  checkbox), expandable detail rows, sortable columns, active-
+  filter chip strip, bulk-action bar (visible only when ≥1 row
+  selected), footer pagination. Host-driven via v-models +
+  events; `cell-<key>`, `expanded`, `bulk-actions` slots.
+- **TuxDataTable** — research-flavored static table for finished
+  deliverables. Numbered caption + Oswald display title +
+  tabular figures, uncertainty cells (`value ± CI` when `ciKey`
+  is set), footnote anchors, optional row groups + sticky header
+  + totals row, source citation.
+
+**Geographic charts (real geometry)** — adjacent to the still-
+aspirational `TuxMapEmbed` line in Priority B (Mapbox/Leaflet
+wrapper); these ship pre-projected static SVG geometry, not a
+slippy-map runtime.
+
+- **TuxChartGeographic** — five Texas-flavored map kinds in one
+  component (`county` choropleth from real TIGER/Line, `districts`
+  from the TxDOT MapServer feature service, `us-context` via
+  AlbersUsa, `dot-density` rejection-sampled inside the actual
+  state outline, `flow` OD arcs between primary metros).
+- **TuxMetroInset** — 4-up neighborhood-grid companion (Houston /
+  DFW / Austin / SAT). Cell pattern seeded by metro name so SSR
+  + CSR match.
+- **TuxChartSunburst** — two-ring radial breakdown sister to
+  `TuxTreemap`. Container-queried legend collapse below 36rem.
+- **TuxChartFrame** — editorial wrapper used by `/visualizations/*`
+  showcase pages so a multi-exhibit report reads as one document.
+
+**Geometry pipeline (build-time only).** `scripts/build-geo.mjs`
+projects us-atlas + the official TxDOT Boundaries MapServer GeoJSON
+into static SVG path strings under `app/assets/geo/`. New
+devDependencies: `d3-geo`, `topojson-client/server/simplify`,
+`us-atlas`. Outputs are checked in; re-run via `npm run build:geo`
+when upstream sources change. New tokens for chart palette
+(`--chart-1..8`) and map ramps (`--map-seq-maroon-1..5`,
+`--map-seq-slate-1..5`, `--map-outline`, `--map-flow`) across
+light / dark / HC.
+
+**Visual-language evolution prelude.** Token-only refresh; component
+families inherit automatically. Two-ring focus token, transportation-
+tempo easings (`--ease-survey/corridor/arrival`), four-tier
+elevation system (`--elevation-flat/rest/hover/overlay/pinned`),
+warm-neutral ramp extension (12 → 18 stops), survey-rhythm density
+tokens (`--rhythm-tight/snug/normal/loose/roomy`), and
+`public/identity-primitives.svg` (four `<symbol>`s: tux-star,
+tux-chevron, tux-compass, tux-row-grid). Documented in
+[`visual-language-evolution.md`](visual-language-evolution.md).
+
+---
+
 ## Recently shipped — reports + visualizations sections
 
 Added 2026-04-28 after the design-kit port; rounded out 2026-04-29:
