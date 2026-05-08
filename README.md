@@ -11,12 +11,12 @@ badges, form fields) is illustrative — intentionally spread across
 transportation-research domains so no single consuming app's identity leaks
 into the design system.
 
-**Current release:** v1.1.0 · WCAG 2.2 AA conformance · color contrast
+**Current release:** v1.2.0 · WCAG 2.2 AA conformance · color contrast
 verified at AAA across all three themes (light, dark, high-contrast).
 
 ## What's in here
 
-- **~50 Tux\* components** under [`app/components/`](app/components/) —
+- **~70 Tux\* components** under [`app/components/`](app/components/) —
   alerts, badges, accordions, breadcrumbs, buttons, cards, code blocks,
   diagrams (Mermaid), the unified institutional footer, the doc-site
   sidebar + TOC, the marketing-shape page header, table, treemap, and
@@ -81,7 +81,7 @@ Bumping the consumer's pin is how you opt in to a new tux version:
 ```ts
 // nuxt.config.ts of the consuming app
 export default defineNuxtConfig({
-  extends: ["github:ttitamu/tti-ux#v1.1.0"],
+  extends: ["github:ttitamu/tti-ux#v1.2.0"],
 });
 ```
 
@@ -90,7 +90,7 @@ Or if you'd rather see it in `package.json`:
 ```jsonc
 {
   "dependencies": {
-    "tti-ux": "github:ttitamu/tti-ux#v1.1.0"
+    "tti-ux": "github:ttitamu/tti-ux#v1.2.0"
   }
 }
 ```

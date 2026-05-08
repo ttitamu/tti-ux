@@ -5,6 +5,14 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-05-08
+
+Cuts the accumulated post-v1.1.0 work into a tagged release. Two
+component batches (data density + geographic charts) recovered from
+a worktree wipe, the visual-language evolution prelude that should
+have shipped before them, and an `npm audit` cleanup. No breaking
+changes — pin bump from `#v1.1.0` to `#v1.2.0` is additive only.
+
 ### Added — Visual-language evolution prelude (2026-05)
 
 Token-only refresh that should have shipped *before* the data-density
@@ -56,13 +64,12 @@ families inherit the changes automatically.
   documents each entry above (what changed / why / variants /
   lineage). Future token-level changes get appended here.
 
-### Added — Data density + geographic charts (recovery branch, 2026-05)
+### Added — Data density + geographic charts (2026-05)
 
-Two batches landing on `claude/recovery-2026-05` after a worktree
-got wiped by a parallel session before any of its work was
-committed. Rebuilt verbatim from chat memory + the official source
-of truth (us-atlas + TxDOT MapServer). Defensive commits per
-component / batch from here on.
+Two batches recovered after a worktree got wiped by a parallel
+session before any of its work was committed. Rebuilt verbatim
+from chat memory + the official source of truth (us-atlas +
+TxDOT MapServer).
 
 **Data density:**
 
@@ -156,14 +163,21 @@ component / batch from here on.
 
 `npm audit` reports `found 0 vulnerabilities` on a clean install.
 
-### Deferred — completing the doctrine surface
+### Docs — doctrine catch-up
 
-`design/components.md` doctrine table + "want X? use Y" pattern
-map and `design/roadmap.md` closures are still on the v1.1.0
-baseline — they don't yet reference the five new components.
-Worth a follow-up commit when bandwidth allows; not blocking the
-catalog because the new components are discoverable via the
-sidebar nav, the catalog index, and the home Foundations grid.
+- `design/components.md` — added rows for `TuxDataTable`,
+  `TuxRichDataGrid` (main table) and `TuxChartFrame`,
+  `TuxChartGeographic`, `TuxChartSunburst`, `TuxMetroInset`
+  (Visualizations table). "Want X? use Y" pattern map gains
+  five entries (rich data grid, static research table, Texas
+  map, multi-metro inset, two-ring radial). Component count
+  bumped ~60 → ~70.
+- `design/roadmap.md` — new "Recently shipped" section covering
+  the data-density and geographic-charts batches plus the
+  visual-language evolution prelude. Notes that data-density
+  wasn't on the original roadmap and the geographic-charts work
+  is adjacent to (not a replacement for) the still-aspirational
+  `TuxMapEmbed` Mapbox/Leaflet line.
 
 ## [1.1.0] — 2026-05-06
 
