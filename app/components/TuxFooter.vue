@@ -44,8 +44,14 @@
 // shape for an app dashboard.
 
 interface SocialLink {
-  /** Lucide icon name, e.g. "lucide:linkedin", "lucide:facebook". */
-  icon: string;
+  /** Lucide icon name, e.g. "lucide:linkedin", "lucide:facebook".
+   *  Either `icon` or `svg` must be provided. */
+  icon?: string;
+  /** Inline `<svg>…</svg>` markup. Used when the platform lacks a
+   *  Lucide glyph (Threads is the canonical case). The SVG should use
+   *  `fill="currentColor"` and a 0 0 24 24 viewBox to sit cleanly
+   *  alongside the Lucide icons. */
+  svg?: string;
   /** Platform name for aria-label. */
   label: string;
   /** Profile URL. */
@@ -96,6 +102,13 @@ interface Props {
   tagline?: string;
   /** Year for the © line. Defaults to current year. */
   year?: number;
+  /** Full override for the copyright line. If provided, replaces the
+   *  default "© {year} {name}" rendering. Use to match institutional
+   *  comm-team wording verbatim (e.g. "© Copyright 2026 TTI"). */
+  copyrightText?: string;
+  /** If provided, wraps the copyright line in an external link —
+   *  typically to the institution's copyright-statement page. */
+  copyrightHref?: string;
 }
 
 withDefaults(defineProps<Props>(), {
@@ -110,6 +123,8 @@ withDefaults(defineProps<Props>(), {
   columns: () => [],
   tagline: "Coordinated Statewide Transportation Research Program",
   year: () => new Date().getFullYear(),
+  copyrightText: "",
+  copyrightHref: "",
 });
 
 function isInternal(href: string) {
@@ -158,7 +173,19 @@ function isInternal(href: string) {
                 :aria-label="s.label"
                 class="tux-footer__social-link"
               >
+                <!-- v-html for the `svg` branch is safe here: the markup
+                     is component-author-provided (never user-input) and
+                     declared inline in the consumer's social[] array.
+                     The only consumer today is the Threads brand glyph,
+                     which Lucide doesn't carry. -->
+                <span
+                  v-if="s.svg"
+                  class="tux-footer__social-icon"
+                  aria-hidden="true"
+                  v-html="s.svg"
+                />
                 <Icon
+                  v-else-if="s.icon"
                   :name="s.icon"
                   class="tux-footer__social-icon"
                   aria-hidden="true"
@@ -213,27 +240,31 @@ function isInternal(href: string) {
       </div>
     </div>
 
-    <!-- ────────── BLACK LEGAL STRIP — minimal: TAMUS lockup left,
+    <!-- ────────── BLACK LEGAL STRIP — minimal: TAMUS line left,
          © right, optional preferences below if used. State-agency
          links live in `columns` above (production tti.tamu.edu /
-         tamu.edu pattern). ────────── -->
+         tamu.edu pattern). The left side renders as a single plain
+         link to match the comm-team's Kadence footer; the © line
+         optionally wraps in `copyrightHref` to the institution's
+         copyright-statement page. ────────── -->
     <div class="tux-footer__legal">
       <div class="tux-footer__legal-inner">
         <a
           href="https://www.tamus.edu/"
           target="_blank"
           rel="noopener"
-          class="tux-footer__lockup"
-          aria-label="The Texas A&M University System"
-        >
-          <span class="tux-footer__lockup-text">
-            <span class="tux-footer__lockup-eyebrow">A Member of</span>
-            <span class="tux-footer__lockup-name">The Texas A&amp;M University System</span>
-          </span>
-        </a>
+          class="tux-footer__tamus-link"
+        >A member of the Texas A&amp;M University System</a>
 
         <p class="tux-footer__copy">
-          © {{ year }} {{ name }}
+          <a
+            v-if="copyrightHref"
+            :href="copyrightHref"
+            target="_blank"
+            rel="noopener"
+            class="tux-footer__copy-link"
+          >{{ copyrightText || `© ${year} ${name}` }}</a>
+          <template v-else>{{ copyrightText || `© ${year} ${name}` }}</template>
         </p>
       </div>
 
@@ -362,8 +393,10 @@ function isInternal(href: string) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  /* 2.75rem = 44px — WCAG 2.5.5 (AAA) target-size minimum, matching
+     the comm-team Kadence footer's 44px icon size. */
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: 50%;
   color: #fff;
   background: rgba(255, 255, 255, 0.06);
@@ -379,8 +412,28 @@ function isInternal(href: string) {
 }
 
 .tux-footer__social-icon {
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* When the social entry ships its own inline SVG (e.g. Threads), the
+   icon class lands on a <span> wrapper rather than on the <svg>
+   itself, so we stretch the inner SVG to fill it. The Lucide <Icon>
+   path renders the <svg> directly and is unaffected. We force `fill`
+   onto the descendant <path> too — SVG fill inheritance from <svg>
+   to descendant shapes isn't reliable across browsers when the
+   markup comes in via v-html with default presentation attrs. */
+.tux-footer__social-icon > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
+}
+
+.tux-footer__social-icon > svg path,
+.tux-footer__social-icon > svg circle,
+.tux-footer__social-icon > svg rect {
+  fill: currentColor;
 }
 
 /* Institutional brand lockup — official logo+wordmark artwork
@@ -480,41 +533,24 @@ function isInternal(href: string) {
   }
 }
 
-.tux-footer__lockup {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
+/* Plain link to TAMUS — single line, matches the comm-team Kadence
+   footer rather than a stacked eyebrow + name lockup. The underline
+   on hover/focus is the only affordance; the row reads as ordinary
+   legal-strip prose otherwise. */
+.tux-footer__tamus-link {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
-  color: inherit;
   flex-shrink: 0;
+  transition: color 0.15s ease;
 }
 
-.tux-footer__lockup:hover .tux-footer__lockup-name,
-.tux-footer__lockup:focus-visible .tux-footer__lockup-name {
+.tux-footer__tamus-link:hover,
+.tux-footer__tamus-link:focus-visible {
+  color: #fff;
   text-decoration: underline;
   text-underline-offset: 2px;
   outline: none;
-}
-
-.tux-footer__lockup-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.tux-footer__lockup-eyebrow {
-  font-size: 0.625rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  /* 0.65 alpha clears 7:1 against the legal-strip bg #1f1c1c. */
-  color: rgba(255, 255, 255, 0.65);
-}
-
-.tux-footer__lockup-name {
-  font-family: var(--font-bold);
-  font-weight: 600;
-  font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.9);
 }
 
 .tux-footer__copy {
@@ -522,6 +558,20 @@ function isInternal(href: string) {
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.7);
   text-align: right;
+}
+
+.tux-footer__copy-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.tux-footer__copy-link:hover,
+.tux-footer__copy-link:focus-visible {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  outline: none;
 }
 
 @container tux-footer (max-width: 48rem) {

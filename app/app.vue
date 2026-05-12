@@ -32,17 +32,22 @@ function toggleHighContrast() {
 
 // Sidebar nav — grouped by role so newcomers orient by "what are you looking
 // for?" rather than alphabetical. Icons are Lucide; mostly mnemonic.
-const nav = [
+//
+// Shape is the `TuxDocsSidebar` tree: top-level entries are collapsible
+// section parents (no `to`, no `icon` — uppercase eyebrow alone reads as
+// the group header, matching the AggieUX reference-kit pattern). Leaves
+// keep their Lucide glyphs.
+const navTree = [
   {
-    group: "Welcome",
-    items: [
+    label: "Welcome",
+    children: [
       { label: "Home",      to: "/",          icon: "lucide:home" },
       { label: "Changelog", to: "/changelog", icon: "lucide:scroll-text" },
     ],
   },
   {
-    group: "Design",
-    items: [
+    label: "Design",
+    children: [
       { label: "Doctrine",   to: "/design/tux",        icon: "lucide:book-open" },
       { label: "Components", to: "/design/components", icon: "lucide:layers" },
       { label: "Palette",    to: "/design/palette",    icon: "lucide:swatch-book" },
@@ -50,8 +55,8 @@ const nav = [
     ],
   },
   {
-    group: "Foundations",
-    items: [
+    label: "Foundations",
+    children: [
       { label: "Tokens",         to: "/tokens",         icon: "lucide:palette" },
       { label: "Typography",     to: "/typography",     icon: "lucide:type" },
       { label: "Style variants", to: "/style-variants", icon: "lucide:layout-template" },
@@ -60,8 +65,8 @@ const nav = [
     ],
   },
   {
-    group: "Components",
-    items: [
+    label: "Components",
+    children: [
       { label: "TuxAlert",         to: "/components/alert",          icon: "lucide:message-square" },
       { label: "TuxAnnouncementBanner", to: "/components/announcement-banner", icon: "lucide:megaphone" },
       { label: "TuxBadge",         to: "/components/badge",          icon: "lucide:badge" },
@@ -112,7 +117,7 @@ const nav = [
       { label: "TuxSectionHeader", to: "/components/section-header", icon: "lucide:heading" },
       { label: "TuxSidebarBlock",  to: "/components/sidebar-block",  icon: "lucide:panel-right" },
       { label: "TuxSignupFeature", to: "/components/signup-feature", icon: "lucide:mail-plus" },
-      { label: "TuxSiteNav",       to: "/components/site-nav",       icon: "lucide:menu-square", note: "+ TuxDropdown · TuxMegaMenu" },
+      { label: "TuxSiteNav",       to: "/components/site-nav",       icon: "lucide:menu-square" },
       { label: "TuxSkeleton",      to: "/components/skeleton",       icon: "lucide:loader" },
       { label: "TuxStepper",       to: "/components/stepper",        icon: "lucide:list-checks" },
       { label: "TuxTable",         to: "/components/table",          icon: "lucide:table" },
@@ -122,8 +127,8 @@ const nav = [
     ],
   },
   {
-    group: "Composition",
-    items: [
+    label: "Composition",
+    children: [
       { label: "Examples", to: "/examples", icon: "lucide:layout-panel-left" },
       { label: "Markdown", to: "/markdown", icon: "lucide:file-text" },
       { label: "Patterns", to: "/patterns", icon: "lucide:layers-2" },
@@ -132,8 +137,8 @@ const nav = [
     ],
   },
   {
-    group: "Forms",
-    items: [
+    label: "Forms",
+    children: [
       { label: "Forms overview",     to: "/forms",                    icon: "lucide:clipboard-list" },
       { label: "Text field",         to: "/forms/text-field",         icon: "lucide:type" },
       { label: "Select",             to: "/forms/select",             icon: "lucide:list" },
@@ -145,8 +150,8 @@ const nav = [
     ],
   },
   {
-    group: "Reports",
-    items: [
+    label: "Reports",
+    children: [
       { label: "Reports overview",     to: "/reports",             icon: "lucide:file-output" },
       { label: "TuxReportFrame",       to: "/reports/frame",       icon: "lucide:file-text" },
       { label: "TuxReportPrintSheet",  to: "/reports/print-sheet", icon: "lucide:printer" },
@@ -154,8 +159,8 @@ const nav = [
     ],
   },
   {
-    group: "Visualizations",
-    items: [
+    label: "Visualizations",
+    children: [
       { label: "Visualizations overview", to: "/visualizations",                  icon: "lucide:chart-pie" },
       { label: "TuxChartGeographic",      to: "/visualizations/chart-geographic", icon: "lucide:map" },
       { label: "TuxChartSunburst",        to: "/visualizations/chart-sunburst",   icon: "lucide:circle-dot" },
@@ -166,8 +171,8 @@ const nav = [
     ],
   },
   {
-    group: "Tooling",
-    items: [
+    label: "Tooling",
+    children: [
       { label: "Accessibility",  to: "/accessibility",  icon: "lucide:accessibility" },
       { label: "Contrast audit", to: "/contrast-audit", icon: "lucide:contrast" },
     ],
@@ -186,52 +191,72 @@ watch(() => route.fullPath, () => {
 import pkg from "../package.json";
 const pkgVersion = pkg.version;
 
-// Marketing-footer config — modeled on tti.tamu.edu's footer
-// inventory. Two columns of state-resource + policy links, plus a
-// social-icon row beneath the address. Lucide ships the brand
-// glyphs we need; Threads doesn't have a Lucide icon yet so we
-// drop it (the production tti.tamu.edu has 6 socials; we ship 5).
+// Marketing-footer config — mirrors the comm-team's Kadence footer
+// for tti.tamu.edu so consumers (PECAN, ai-studio, marcom pages,
+// this style guide) inherit the production handles and link
+// inventory verbatim. Threads ships as inline SVG since Lucide
+// doesn't carry the brand mark yet — see TuxFooter's `svg` field.
 const footerSocial = [
-  { icon: "lucide:linkedin",  label: "LinkedIn",  href: "https://www.linkedin.com/company/texas-a-m-transportation-institute/" },
-  { icon: "lucide:facebook",  label: "Facebook",  href: "https://www.facebook.com/TTITAMUS" },
-  { icon: "lucide:instagram", label: "Instagram", href: "https://www.instagram.com/ttitamus/" },
-  { icon: "lucide:youtube",   label: "YouTube",   href: "https://www.youtube.com/user/TTIVideoChannel" },
-  { icon: "lucide:twitter",   label: "X (Twitter)", href: "https://x.com/TTITAMUS" },
+  { icon: "lucide:linkedin",  label: "LinkedIn",  href: "https://www.linkedin.com/company/texasa-mtransportationinstitute" },
+  { icon: "lucide:facebook",  label: "Facebook",  href: "https://www.facebook.com/ttitamu" },
+  { icon: "lucide:instagram", label: "Instagram", href: "https://www.instagram.com/ttitamu/" },
+  { icon: "lucide:youtube",   label: "YouTube",   href: "https://www.youtube.com/ttitamu" },
+  {
+    label: "Threads",
+    href: "https://www.threads.com/@ttitamu",
+    // Simple Icons "threads" path — CC0. Inline because Lucide
+    // lacks a Threads glyph.
+    svg: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.598.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291 1.062-.06 2.046.04 2.916.282-.115-.651-.34-1.176-.679-1.567-.485-.561-1.235-.847-2.228-.853h-.028c-.798 0-1.881.221-2.572 1.247l-1.737-1.166c.925-1.373 2.428-2.13 4.32-2.13h.043c3.176.02 5.072 1.97 5.263 5.36q.18.077.347.158c2.318 1.09 3.609 2.96 3.633 5.27.024 2.7-1.27 4.85-3.836 6.55-1.945 1.21-4.46 1.79-7.18 1.79zm1.359-9.93q-.41 0-.823.025c-1.265.073-2.058.692-2.005 1.586.06 1.022 1.151 1.499 2.179 1.491 1.061-.034 2.105-.405 2.205-2.602q-.769-.235-1.556-.5z"/></svg>',
+  },
+  { icon: "lucide:twitter",   label: "X (Twitter)", href: "https://twitter.com/TTITAMU" },
 ];
 
+// Two columns mirror the Kadence source: TTI-owned URLs for the
+// Policies set; canonical state URLs for State Resources. The only
+// non-Kadence extra is the internal WCAG audit page — it's
+// style-guide-specific (production tti.tamu.edu doesn't expose an
+// accessibility audit), but valuable surfacing it here for
+// designers/auditors landing on the system docs.
 const footerColumns = [
   {
     heading: "State Resources",
     links: [
       { label: "The State of Texas",          href: "https://www.texas.gov/" },
-      { label: "Texas Homeland Security",     href: "https://gov.texas.gov/organization/hs" },
+      { label: "Texas Homeland Security",     href: "https://gov.texas.gov/" },
       { label: "Texas Veterans Portal",       href: "https://veterans.portal.texas.gov/" },
       { label: "State Expenditure Database",  href: "https://comptroller.texas.gov/transparency/" },
-      { label: "Statewide Search",            href: "https://www.tsl.texas.gov/trail/" },
+      { label: "Statewide Search",            href: "https://www.tsl.texas.gov/trail/index.html" },
       { label: "State Auditor's Office Hotline", href: "https://sao.fraud.texas.gov/" },
     ],
   },
   {
     heading: "Policies",
     links: [
-      { label: "Accessibility (WCAG 2.2 AA · AAA contrast)", to: "/accessibility" },
       { label: "TAMUS Risk, Fraud & Misconduct Hotline", href: "https://secure.ethicspoint.com/domain/media/en/gui/19681/index.html" },
-      { label: "Digital Accessibility",       href: "https://gov.texas.gov/organization/disabilities/accessibility-policy" },
-      { label: "Site Policies",               href: "https://www.tamus.edu/site-policies/" },
-      { label: "Open Records Policy",         href: "https://www.tamus.edu/open-records/" },
-      { label: "State Link Policy",           href: "https://statelinkpolicy.texas.gov/" },
-      { label: "Statutorily Required Reports", href: "https://www.tamus.edu/legal/statutorily-required-reports/" },
-      { label: "Repo on GitHub",              href: "https://github.com/anthonyguevara/tti-ux-test" },
+      { label: "Digital Accessibility",       href: "https://tti.tamu.edu/notices-policies/accessibility-policy/" },
+      { label: "Site Policies",               href: "https://tti.tamu.edu/notices-policies/" },
+      { label: "Open Records Policy",         href: "https://tti.tamu.edu/notices-policies/open-records-policy/" },
+      { label: "Statutorily Required Reports", href: "https://tti.tamu.edu/notices-policies/statereq-reports/" },
+      { label: "TTI Rules",                   href: "https://tti.tamu.edu/notices-policies/rules/" },
+      { label: "Veterans",                    href: "https://tti.tamu.edu/notices-policies/veterans/" },
+      { label: "Equal Opportunity",           href: "https://tti.tamu.edu/jobs/commitment-to-equal-opportunity/" },
+      { label: "Jobs",                        href: "https://tti.tamu.edu/jobs/" },
+      { label: "Accessibility (WCAG 2.2 AA · AAA contrast)", to: "/accessibility" },
     ],
   },
 ];
+
+// Copyright line formatted to match the Kadence footer ("© Copyright
+// {year} … (TTI)") and linked to the institutional copyright-
+// statement page.
+const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transportation Institute (TTI)`;
 </script>
 
 <template>
   <UApp>
     <div class="min-h-screen flex flex-col bg-surface-page text-text-primary">
       <header
-        class="border-b border-surface-border bg-surface-raised sticky top-0 z-30"
+        class="tti-shell-header bg-surface-raised sticky top-0 z-30"
         role="banner"
       >
         <div class="px-4 sm:px-6 py-3 flex items-center gap-4">
@@ -301,43 +326,52 @@ const footerColumns = [
              desktop sidebar doesn't carry a `transform` declaration —
              a transformed static element creates a stacking context that
              paints over the sticky header (z-index doesn't apply to
-             static elements, so the header's z-30 wouldn't help). -->
-        <aside
+             static elements, so the header's z-30 wouldn't help).
+             The chrome (border, surface, slide-in) is provided here; the
+             inner `<TuxDocsSidebar>` carries the navigation landmark,
+             collapsible groups, active-trail highlighting, filter, and
+             sessionStorage-persisted collapse state. The outer is a
+             plain <div> to avoid a duplicate "navigation" landmark. -->
+        <!-- Sticky on desktop so the sidebar stays pinned to the
+             viewport as the page scrolls — otherwise the flex row's
+             stretch makes the sidebar as tall as the main content,
+             and you scroll past it (and the tapered hairline rides
+             down into the footer). `md:self-start` opts this child
+             out of the flex parent's default stretch so sticky can
+             actually take effect, and `md:max-h-[calc(100vh-57px)]`
+             caps the sidebar at the viewport minus the 57px sticky
+             header. `overflow-x-hidden` on the inner scroll wrapper
+             clips any horizontal overflow from long item labels
+             (the leaf links also truncate with ellipsis, but this is
+             a belt-and-braces guard so a runaway label can never
+             trigger a horizontal scrollbar). -->
+        <div
           :class="[
-            'border-r border-surface-border bg-surface-raised flex-shrink-0 w-60',
-            'md:static md:translate-x-0 md:transform-none',
+            'tti-shell-sidebar bg-surface-raised flex-shrink-0 w-60 overflow-y-auto overflow-x-hidden',
+            'md:sticky md:top-[57px] md:self-start md:max-h-[calc(100vh-57px)]',
+            'md:translate-x-0 md:transform-none',
             'fixed inset-y-0 left-0 top-[57px] z-20 transition-transform duration-200',
             sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
           ]"
-          role="navigation"
-          aria-label="Main navigation"
         >
-          <nav class="p-4 space-y-6 overflow-y-auto h-full">
-            <div v-for="section in nav" :key="section.group">
-              <h2
-                class="text-xs font-semibold uppercase text-text-muted mb-2 px-2"
-                style="letter-spacing: var(--tracking-wider)"
-              >
-                {{ section.group }}
-              </h2>
-              <ul class="space-y-0.5">
-                <li v-for="item in section.items" :key="item.to">
-                  <NuxtLink
-                    :to="item.to"
-                    class="flex items-center gap-2 px-2 py-1.5 rounded-sm text-sm text-text-secondary hover:bg-surface-sunken hover:text-text-brand transition-colors"
-                    active-class="bg-surface-sunken text-text-brand font-medium"
-                  >
-                    <UIcon :name="item.icon" class="w-4 h-4 opacity-70" />
-                    <span>{{ item.label }}</span>
-                  </NuxtLink>
-                </li>
-              </ul>
-            </div>
-          </nav>
-        </aside>
+          <div class="p-4">
+            <TuxDocsSidebar
+              :tree="navTree"
+              title="Navigation"
+              :search="true"
+              search-placeholder="Filter the system…"
+              storage-key="tti-ux-sidebar"
+              :exclusive-top-level="true"
+            />
+          </div>
+        </div>
 
         <main class="flex-1 min-w-0">
-          <div class="max-w-5xl mx-auto px-6 md:px-10 py-8">
+          <!-- max-w-6xl (72rem / 1152px) — wider than the previous
+               5xl cap, but still leaves a right-side margin for the
+               future TuxTOC rail. Bump again if the gap still reads
+               as wasted space. -->
+          <div class="max-w-6xl mx-auto px-6 md:px-10 py-8">
             <NuxtLayout>
               <NuxtPage />
             </NuxtLayout>
@@ -358,6 +392,9 @@ const footerColumns = [
       <TuxFooter
         :columns="footerColumns"
         :social="footerSocial"
+        tagline=""
+        :copyright-text="copyrightLine"
+        copyright-href="https://tti.tamu.edu/notices-policies/copyright-statement/"
       >
         <template #preferences>
           <ClientOnly>
@@ -390,6 +427,51 @@ const footerColumns = [
 </template>
 
 <style scoped>
+/* Tapered hairlines — mirrors the pattern shipped in tti-ai-studio
+   (studio-shell): a 1px line drawn via a pseudo-element with a
+   linear-gradient background that fades to transparent at both ends
+   and holds the border color through the middle. Reads as a soft
+   ruled line rather than a hard corner-to-corner stroke, giving the
+   shell a more modern, sleek feel. The 18%/82% stops match the
+   ai-studio values for cross-product consistency. */
+.tti-shell-header {
+  position: sticky;
+}
+
+.tti-shell-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--surface-border) 18%,
+    var(--surface-border) 82%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.tti-shell-sidebar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--surface-border) 18%,
+    var(--surface-border) 82%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
 /* Version chip next to the header lockup. Monospace + brand maroon
    to read as "this is a system token, not editorial copy". The
    weight is heavier than the address copy so it pops against the

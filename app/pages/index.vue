@@ -37,77 +37,10 @@ const recentUpdates = [
   },
 ];
 
-const components = [
-  { name: "TuxAlert",         to: "/components/alert",          blurb: "Docusaurus-style admonitions — 8 variants." },
-  { name: "TuxBadge",         to: "/components/badge",          blurb: "Classification tiers, lifecycle states, tags, counts." },
-  { name: "TuxAccordion",     to: "/components/accordion",      blurb: "FAQ + publication group disclosure — native details/summary, zero-JS, perfect a11y." },
-  { name: "TuxAlphaNav",      to: "/components/alpha-nav",      blurb: "A–Z jump bar for directory + glossary pages. Anchor or filter-in-place mode." },
-  { name: "TuxBigStat",       to: "/components/big-stat",       blurb: "Single oversized metric — the institutional headline number." },
-  { name: "TuxBlockquote",    to: "/components/blockquote",     blurb: "Standalone editorial pull quote — centered or magazine-style drop-cap." },
-  { name: "TuxBreadcrumbs",   to: "/components/breadcrumbs",    blurb: "Page-depth navigation — home icon, italic intermediates, pipe rules." },
-  { name: "TuxButton",        to: "/components/button",         blurb: "Four semantic intents incl. destructive fill-on-hover." },
-  { name: "TuxCallout",       to: "/components/callout",        blurb: "Pulled-aside editorial accent — fact / stat / quote with style-variant left rule." },
-  { name: "TuxCaptionedMedia", to: "/components/captioned-media", blurb: "Single image + caption + credit — four aspect ratios, three alignments, video-embed slot." },
-  { name: "TuxCard",          to: "/components/card",           blurb: "Static or linked — corner-drop hover choreography." },
-  { name: "TuxCardSlab",      to: "/components/card-slab",      blurb: "Full-bleed band of media-forward cards — the \"browse our programs\" pattern." },
-  { name: "TuxChatMessage",   to: "/components/chat-message",   blurb: "One conversation turn — user/assistant role, citations slot, tool row. Powers tti-ai-chat." },
-  { name: "TuxCitations",     to: "/components/citations",      blurb: "Numbered source list under an assistant message — title + path + score." },
-  { name: "TuxCodeBlock",     to: "/components/code-block",     blurb: "Standalone Shiki-backed code block — filename, line numbers, copy, all langs." },
-  { name: "TuxCodeMaroon",    to: "/components/code-maroon",    blurb: "Mandatory emergency alert banner — Rellis Code Maroon. Hard-coded colors, non-themed." },
-  { name: "TuxCommandPalette", to: "/components/command-palette", blurb: "Global ⌘K jump bar — search input + grouped commands + keyboard navigation." },
-  { name: "TuxContactCard",   to: "/components/contact-card",   blurb: "Faculty/staff directory card — portrait + name + role + typed contact rows." },
-  { name: "TuxContextPanel",  to: "/components/context-panel",  blurb: "Right-rail surface for chat grounding context — corpus, retrieval, usage." },
-  { name: "TuxConversationList", to: "/components/conversation-list", blurb: "Sidebar history grouped by temporal bucket (TODAY / YESTERDAY / …)." },
-  { name: "TuxComposer",      to: "/components/composer",       blurb: "Chat input with optional compliance scope banner — model picker, ⌘↵ send." },
-  { name: "TuxAnnouncementBanner", to: "/components/announcement-banner", blurb: "Top-of-page dismissable strip; localStorage-backed dismissal." },
-  { name: "TuxBetaRibbon",    to: "/components/beta-ribbon",    blurb: "Environment label — corner ribbon, top stripe, or inline pill." },
-  { name: "TuxCookieConsent", to: "/components/cookie-consent", blurb: "Privacy notice with categories slot; remembers the decision." },
-  { name: "TuxErrorPage",     to: "/components/error-page",     blurb: "Full-page 404/500/403/503 template with recovery actions." },
-  { name: "TuxSkeleton",      to: "/components/skeleton",       blurb: "Loading shapes — primitive + 6 composed presets, honors reduced-motion." },
-  { name: "TuxStepper",       to: "/components/stepper",        blurb: "Numbered-circle multi-step indicator for funding / IRB / study onboarding flows." },
-  { name: "TuxReportFrame",   to: "/reports/frame",             blurb: "Page-sized canvas (letter / a4) for PDF + print. Stats, charts, prose go inside." },
-  { name: "TuxReportPrintSheet", to: "/reports/print-sheet",    blurb: "Drop-in print stylesheet; paginate with data-print-break attrs." },
-  { name: "TuxReportWebFrame", to: "/reports/web-frame",        blurb: "Long-form web-hosted narrative — cover, byline, sticky TOC, body, footer." },
-  { name: "TuxSparkline",     to: "/visualizations/sparkline",  blurb: "Inline mini trend line — no axes; pairs with TuxBigStat / TuxFactoid." },
-  { name: "TuxVizEmbed",      to: "/visualizations/embed",      blurb: "Tableau / Power BI / Superset / Grafana iframe wrapper with poster fallback." },
-  { name: "TuxVizGrid",       to: "/visualizations/grid",       blurb: "Small-multiples shell — 2/3/4-up panes with shared editorial header." },
-  { name: "TuxVizRPlot",      to: "/visualizations/rplot",      blurb: "R artifact wrapper — image / svg / htmlwidget — with source-line caption." },
-  { name: "TuxCTA",           to: "/components/cta",            blurb: "Big promotional block — three tones, three style variants, action slot." },
-  { name: "TuxChartGeographic", to: "/visualizations/chart-geographic", blurb: "Texas county / district / dot-density / flow / US-context maps from real geometry. Five kinds via kind prop." },
-  { name: "TuxChartSunburst", to: "/visualizations/chart-sunburst", blurb: "Two-ring radial breakdown — sister to TuxTreemap for budget / portfolio exhibits." },
-  { name: "TuxDataTable",     to: "/components/data-table",     blurb: "Research-deliverable table — numbered caption, uncertainty cells, footnote anchors, source line." },
-  { name: "TuxDescriptionList", to: "/components/description-list", blurb: "Term/definition pairs — event details, file metadata, spec lists." },
-  { name: "TuxMetroInset",    to: "/visualizations/chart-geographic", blurb: "Neighborhood-grid inset for one Texas metro — 4-up companion to TuxChartGeographic." },
-  { name: "TuxRichDataGrid",  to: "/components/rich-data-grid", blurb: "Interactive data grid — selection, expansion, sticky header, bulk actions; PECAN-class operational." },
-  { name: "TuxDiagram",       to: "/components/diagram",        blurb: "Mermaid diagrams-as-code — flowcharts, sequences, ERDs. Lazy-loaded; brand-themed." },
-  { name: "TuxDocsSidebar",   to: "/components/docs-sidebar",   blurb: "Hierarchical doc-site sidebar — collapsible sections, active-route, search filter." },
-  { name: "TuxDropdown",      to: "/components/site-nav",       blurb: "Single-column dropdown from a top-bar nav item (composes inside TuxSiteNav)." },
-  { name: "TuxEmptyState",    to: "/components/empty-state",    blurb: "No-data placeholder w/ icon + CTA slot." },
-  { name: "TuxFactoid",       to: "/components/factoid",        blurb: "Institutional \"by the numbers\" — 3/4/5-up oversized stats." },
-  { name: "TuxFilterPanel",   to: "/components/filter-panel",   blurb: "Left-rail facet panel — collapsible groups, checkbox lists, applied-filter chips." },
-  { name: "TuxFooter",        to: "/components/footer",         blurb: "Unified institutional footer \u2014 maroon marketing top + mandatory TAMUS legal strip in one." },
-  { name: "TuxIconFeature",   to: "/components/icon-feature",   blurb: "Icon + headline + body grid — the classic \"focus areas / our services\" block." },
-  { name: "TuxIdentity",      to: "/components/identity",       blurb: "Header lockup — logo + wordmark, three hierarchy levels, two orientations." },
-  { name: "TuxLinkList",      to: "/components/link-list",      blurb: "Categorized resource lists — for sponsors / for partners / for students." },
-  { name: "TuxLinkSlab",      to: "/components/link-slab",      blurb: "Full-width band of prominent links — footer-of-section navigation, three tones." },
-  { name: "TuxMediaSlab",     to: "/components/media-slab",     blurb: "Full-bleed hero band — overlay or split layout, three heights, three tones." },
-  { name: "TuxMegaMenu",      to: "/components/site-nav",       blurb: "Full-width multi-column panel from a top-bar nav item (composes inside TuxSiteNav)." },
-  { name: "TuxModal",         to: "/components/modal",          blurb: "UModal with eyebrow + gold-bar title." },
-  { name: "TuxNewsCollection", to: "/components/news-collection", blurb: "News article list — date + thumbnail + headline + dek + read-more, stacked or grid." },
-  { name: "TuxPagination",    to: "/components/pagination",     blurb: "Page-number controls — squarified active page, ellipsis truncation, optional status line." },
-  { name: "TuxPageHeader",    to: "/components/page-header",    blurb: "Eyebrow + heading + subtitle opener." },
-  { name: "TuxPhotoGrid",     to: "/components/photo-grid",     blurb: "Uniform image grid — photo (4:3, captioned) or logo wall (1:1, grayscale-on-hover)." },
-  { name: "TuxQACollection",  to: "/components/qa-collection",  blurb: "Long-form Q&A editorial pattern — always expanded, designed to be read top-to-bottom." },
-  { name: "TuxSearch",        to: "/components/search",         blurb: "Branded search bar — bordered input + uppercase action button, two sizes." },
-  { name: "TuxSectionHeader", to: "/components/section-header", blurb: "Editorial ALL-CAPS heading, maroon underline." },
-  { name: "TuxSidebarBlock",  to: "/components/sidebar-block",  blurb: "Sidebar widget wrapper — related links, contact box, quick facts, in-page nav." },
-  { name: "TuxSignupFeature", to: "/components/signup-feature", blurb: "Newsletter signup block — email input + uppercase action + consent line, three tones." },
-  { name: "TuxSiteNav",       to: "/components/site-nav",       blurb: "Top-bar with TuxIdentity + utility nav + primary nav. Compose with TuxDropdown / TuxMegaMenu." },
-  { name: "TuxTable",         to: "/components/table",          blurb: "UTable with tux chrome + auto status cells." },
-  { name: "TuxTestimonial",   to: "/components/testimonial",    blurb: "Attributed quotes with portrait + name + role — grid or row." },
-  { name: "TuxTOC",           to: "/components/toc",            blurb: "Article table-of-contents — sticky right rail, IntersectionObserver-driven active state." },
-  { name: "TuxTreemap",       to: "/components/treemap",        blurb: "Squarified hierarchical-size viz — PECAN's headline chart, no external viz library." },
-];
+// Headline catalog size for the hero meta line. The full inventory
+// lives at /components/ (and is reachable via the collapsible
+// sidebar). Update when batches ship.
+const catalogCount = "70+";
 </script>
 
 <template>
@@ -169,7 +102,7 @@ const components = [
           <p class="welcome-hero__meta-value">PECAN · tti-ai-studio · tti-ux</p>
 
           <p class="welcome-hero__meta-label">Catalog</p>
-          <p class="welcome-hero__meta-value">{{ components.length }}+ components · 5 foundations</p>
+          <p class="welcome-hero__meta-value">{{ catalogCount }} components · 5 foundations</p>
 
           <p class="welcome-hero__meta-label">Themes</p>
           <p class="welcome-hero__meta-value">tti · tti-dark · tti-hc</p>
@@ -352,17 +285,6 @@ const components = [
       </div>
     </section>
 
-    <section>
-      <p class="eyebrow">primitives</p>
-      <h2 class="heading--bold text-2xl font-bold">Components</h2>
-      <div class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <TuxCard v-for="c in components" :key="c.name" :to="c.to">
-          <p class="eyebrow">component</p>
-          <h3 class="text-xl font-bold">{{ c.name }}</h3>
-          <p class="mt-2 text-sm text-text-secondary">{{ c.blurb }}</p>
-        </TuxCard>
-      </div>
-    </section>
   </div>
 </template>
 

@@ -120,7 +120,11 @@ function escape(s: string): string {
         class="tux-docs-sidebar__icon"
         aria-hidden="true"
       />
-      <span v-html="highlight(section.label)" />
+      <!-- Reuse `__label` so leaf links truncate with ellipsis the
+           same way summary rows do — long component names like
+           `TuxAnnouncementBanner` would otherwise blow past the
+           240px sidebar lane and trigger horizontal overflow. -->
+      <span class="tux-docs-sidebar__label" v-html="highlight(section.label)" />
     </NuxtLink>
 
     <!-- Childless non-link (rare; section header without nav) -->
@@ -217,7 +221,18 @@ function escape(s: string): string {
    level. The line stays the same neutral gray whether or not a
    descendant is active; the active item's pill alone carries the
    "you are here" affordance. This matches the docs-it-tamu-edu
-   and docs-tti-tamu-edu sidebar pattern. */
+   and docs-tti-tamu-edu sidebar pattern.
+   `grid-template-columns: minmax(0, 1fr)` is load-bearing: without
+   it the grid column auto-sizes to each row's max-content, which
+   for a list of unwrapped component names like
+   `TuxAnnouncementBanner` is wider than the 240px sidebar lane.
+   The labels' `overflow: hidden; text-overflow: ellipsis` only
+   clips at paint time — it does not shrink the grid track — so
+   the items overflow the parent. That triggers a horizontal
+   scrollbar on the `__nav` ancestor (`overflow-y: auto` is
+   coerced by the CSS spec to also auto on the x axis). The
+   `minmax(0, 1fr)` track allows the column to shrink below
+   max-content, which is what lets the ellipsis actually kick in. */
 .tux-docs-sidebar__sublist {
   list-style: none;
   margin: 0.125rem 0 0.375rem;
@@ -226,6 +241,7 @@ function escape(s: string): string {
   position: relative;
   border-left: 1px solid var(--surface-border);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.125rem;
 }
 

@@ -39,6 +39,12 @@ interface Props {
   /** Persist collapse state under this key (sessionStorage). Set to
    *  `null` to disable persistence. */
   storageKey?: string | null;
+  /** Exclusive open at the root level — opening one top-level section
+   *  collapses the others. Nested sections inside a group remain
+   *  independently toggleable. Use when the sidebar is wide enough
+   *  that users can otherwise "get lost" with several groups expanded
+   *  at once (the tti-ux style-guide chrome is the canonical case). */
+  exclusiveTopLevel?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -46,6 +52,7 @@ const props = withDefaults(defineProps<Props>(), {
   search: true,
   searchPlaceholder: "Filter docs…",
   storageKey: "tux-docs-sidebar",
+  exclusiveTopLevel: false,
 });
 
 const route = useRoute();
@@ -101,6 +108,21 @@ function isOpen(section: DocsSection, path: string): boolean {
 }
 
 function setOpen(path: string, open: boolean) {
+  // Exclusive-root mode: when opening a top-level group, explicitly
+  // close every other top-level group. We have to write `false` (not
+  // just delete the entries) so the override beats the auto-open
+  // via `containsActive` for the active route's ancestor.
+  if (props.exclusiveTopLevel && open && !path.includes("/")) {
+    const next: Record<string, boolean> = { ...openMap.value };
+    for (const top of props.tree) {
+      if ((top.children?.length ?? 0) > 0 && top.label !== path) {
+        next[top.label] = false;
+      }
+    }
+    next[path] = true;
+    openMap.value = next;
+    return;
+  }
   openMap.value = { ...openMap.value, [path]: open };
 }
 
@@ -270,6 +292,14 @@ const filteredTree = computed(() => {
 }
 
 .tux-docs-sidebar__nav {
+  /* Defense-in-depth: setting only `overflow-y: auto` lets the CSS
+     spec coerce `overflow-x` to `auto` too, which surfaces an
+     h-scrollbar the moment anything inside (e.g. an over-wide grid
+     track from `__sublist`) overflows. Explicit `overflow-x: hidden`
+     prevents the coercion regardless of inner-layout drift. The
+     `__sublist` track is also pinned to `minmax(0, 1fr)` — see
+     TuxDocsSidebarNode — so this is belt-and-braces. */
+  overflow-x: hidden;
   overflow-y: auto;
 }
 

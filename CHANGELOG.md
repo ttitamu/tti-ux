@@ -5,12 +5,139 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-05-12
+
+Shell + sidebar + footer alignment batch. The style-guide chrome
+now dogfoods `TuxDocsSidebar` (and gets the same exclusive-open
+disclosure UX as the AggieUX reference kit), the institutional
+footer is reconciled to the comm-team's Kadence source so we ship
+the same handles + link inventory as production tti.tamu.edu, and
+the shell adopts the tapered-hairline pattern from tti-ai-studio
+for cross-product consistency. No breaking API changes — every
+component prop added below is optional with a sensible default.
+
 ### Direction — tti-ux as source of truth for the BI design system
 
 - **ADR 0009 accepted** ([`docs/adr/0009-bi-design-system-source-of-truth.md`](docs/adr/0009-bi-design-system-source-of-truth.md)). tti-ux becomes the canonical home for TTI's Power BI / Microsoft Fabric design system: brand tokens (already here), data-viz tokens (already here), Power BI theme JSON (to be generated here from tokens), and the Aggie Viz / Tti Viz shell spec (to be ported here from `docs-it-tamu-edu`).
 - **Consumers**: `tti-reporting` ([`ttitamu/tti-reporting`](https://github.com/ttitamu/tti-reporting)) currently snapshots tokens into `core/themes/tokens.json` and ports the Aggie Viz shell into `core/ttiviz/SHELL_SPEC.md`. Once tti-ux owns these, those become reference snapshots that follow tti-ux releases.
 - **`docs-tti-tamu-edu`** stops being a stale clone of the docs-it-tamu-edu Power BI section and instead links to tti-ux for canonical BI standards.
 - **Pending port** (from `docs-it-tamu-edu/nuxt-site/content/docs/tamu/M365/Power-BI-Fabric/`): ~12 documents covering AggieBI brand-theme rationale, light/dark mode architecture, organizational visuals, component/visual-type policy, and the Aggie Viz visual spec family (shell, textboxes, nav pills, card styling, PBIP property reference). See ADR 0009 for the full mapping.
+
+### Changed — Style-guide shell dogfoods TuxDocsSidebar
+
+- **Shell sidebar collapses** by group. The flat list in
+  `app/app.vue` is replaced with `<TuxDocsSidebar>` (the component
+  was already shipping for downstream consumers and even documented
+  the style-guide shell as a TODO migration). Auto-opens the group
+  containing the active route, persists collapse state in
+  sessionStorage under `tti-ux-sidebar`, and exposes the inline
+  filter as "Filter the system…". Eliminates the wall-of-69
+  problem when scanning the catalog.
+- **Exclusive-open root**: a new `exclusiveTopLevel` prop on
+  `TuxDocsSidebar` makes opening any root group explicitly close
+  every other root group. Without this you could expand 5 groups
+  and lose the sidebar's "where am I" affordance. Opt-in (default
+  `false`) so existing consumers (PECAN docs shells, etc.) aren't
+  surprised.
+- **Long-name truncation**: leaf-link labels now share the
+  `__label` truncation class with summary rows. Component names
+  like `TuxAnnouncementBanner` were blowing past the 240px lane
+  and — combined with the CSS spec coercing `overflow-x` to `auto`
+  whenever `overflow-y` is non-visible — surfaced a horizontal
+  scrollbar inside `__nav`. The root cause was `__sublist`'s
+  `display: grid` auto-sizing the column to `max-content`; pinning
+  to `grid-template-columns: minmax(0, 1fr)` lets the column
+  shrink below max-content so the ellipsis actually kicks in.
+  `__nav` also gets an explicit `overflow-x: hidden` as belt-and-
+  braces against future inner-layout drift.
+- **Sticky sidebar shell**: the shell wrapper in `app.vue` is now
+  `md:sticky md:top-[57px] md:self-start md:max-h-[calc(100vh-57px)]`
+  on desktop with `overflow-y: auto; overflow-x: hidden`. Before,
+  the wrapper stretched to match the main content's full height,
+  so scrolling the page scrolled the sidebar out of view and the
+  tapered hairline rode down into the footer. `self-start` opts
+  out of the flex parent's default stretch so sticky can actually
+  take effect; mobile keeps its `fixed inset-y-0 top-[57px]`
+  slide-in shell unchanged.
+- **Content width**: shell content cap raised from `max-w-5xl`
+  (1024px) to `max-w-6xl` (1152px). Modest bump — leaves room for
+  the future right-rail `TuxTOC` and the persistent left sidebar.
+
+### Changed — TuxFooter aligned to the comm-team Kadence source
+
+The comm team's authoritative footer (Kadence block source for
+production tti.tamu.edu) now defines the institutional shape. We
+were close on structure but drifted on handles, URLs, and the
+TAMUS lockup styling. Reconciled in one pass.
+
+- **Social handles flipped** to the canonical `ttitamu` (no S)
+  forms: LinkedIn `linkedin.com/company/texasa-mtransportationinstitute`,
+  Facebook `facebook.com/ttitamu`, Instagram `instagram.com/ttitamu/`,
+  YouTube `youtube.com/ttitamu`, Twitter/X `twitter.com/TTITAMU`.
+  Previously we shipped a stale `TTIVideoChannel` YouTube link and
+  `TTITAMUS` (with S) for several others.
+- **Threads added** (sixth social, matching production). Lucide
+  doesn't ship a Threads glyph, so `TuxFooter` now accepts an
+  optional `svg?: string` field on `SocialLink` as an alternative
+  to `icon` — pass raw `<svg>` markup. Threads renders via the
+  Simple Icons path (CC0). Force-set `fill="currentColor"` on the
+  `<svg>` and `<path>` plus a descendant CSS rule so the icon
+  picks up the footer's white color reliably across v-html paths.
+- **Social-link tap targets** bumped from 40×40 to **44×44px** —
+  WCAG 2.5.5 (AAA) target-size minimum, matching the Kadence 44px
+  setting. Icon glyph scaled from 1.125rem to 1.25rem for
+  proportion.
+- **State Resources URLs** corrected to match Kadence: Texas
+  Homeland Security points at `gov.texas.gov/` root, Statewide
+  Search at `tsl.texas.gov/trail/index.html`.
+- **Policies column restructured** to the 9-item TTI-owned list
+  (TAMUS Risk/Fraud Hotline → Digital Accessibility → Site
+  Policies → Open Records → Statutorily Required Reports → TTI
+  Rules → Veterans → Equal Opportunity → Jobs) — all pointing at
+  `tti.tamu.edu/notices-policies/…` rather than the upstream
+  `tamus.edu` URLs we previously linked. The internal WCAG-audit
+  page is kept as the column's last entry (style-guide-only extra,
+  not in production).
+- **Tagline dropped** from the marketing section. Kadence's
+  production footer doesn't render the "Coordinated Statewide
+  Transportation Research Program" tagline — institutional name
+  carries it. The `tagline` prop still defaults to that string for
+  back-compat; the shell passes `tagline=""` to suppress it.
+- **TAMUS lockup → plain link**. The black legal strip's left
+  side previously rendered as a two-line eyebrow + name lockup.
+  Kadence ships a single plain "A member of the Texas A&M
+  University System" link. Lockup CSS removed; replaced with a
+  single `__tamus-link` rule.
+- **© line now linked**. Two new optional props on `TuxFooter`:
+  `copyrightText` (full override of the default "© {year} {name}"
+  rendering) and `copyrightHref` (wraps the line in an external
+  link). The shell passes
+  `© Copyright 2026 Texas A&M Transportation Institute (TTI)`
+  pointing at the copyright-statement page, matching production.
+
+### Added — Tapered hairlines (cross-product shell pattern)
+
+- **`.tti-shell-header::after` / `.tti-shell-sidebar::after`** —
+  the hard `border-b` / `border-r` Tailwind utilities on the shell
+  header and sidebar are replaced with 1px pseudo-elements drawn
+  via `linear-gradient(transparent 0% → var(--surface-border)
+  18%–82% → transparent 100%)`. Reads as a soft ruled line that
+  fades into the surface rather than a hard corner-to-corner
+  stroke. Lifted verbatim from tti-ai-studio's `studio-shell`
+  (same 18%/82% stops) so the two products feel like one family
+  at the chrome level. Promote to a shared utility when a third
+  surface needs it.
+
+### Removed — Home page Components grid
+
+- The 69-card Components grid on the welcome page is gone. The
+  same inventory is now reachable in one click via the (newly
+  collapsible) sidebar's Components group and the dedicated
+  `/components/` catalog page, both of which already shipped. The
+  grid was duplicating navigation and dominating the home page
+  scroll. `catalogCount` constant added for the hero meta line
+  ("70+ components · 5 foundations") so we don't have to maintain
+  a parallel array.
 
 ## [1.2.0] — 2026-05-08
 
