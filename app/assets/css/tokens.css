@@ -471,6 +471,24 @@
   --color-error:   #A02828;
   --color-info:    #1F5D66;
 
+  /* HC overrides of Nuxt UI's primary palette steps. HC's color-mode
+     value is "tti-hc" which adds class "tti-hc" but not "dark" (see
+     app/plugins/nuxt-ui-dark-bridge.client.ts — the bridge fires
+     .dark only for tti-dark), so Nuxt UI stays in its light path and
+     reads --ui-color-primary-500. Pinning both steps to #500000
+     aligns Nuxt UI primitives (UButton solid, UBadge primary, etc.)
+     with the HC brand maroon called out in ADR-0005 (sampled from
+     TTI's 508-accessible PPTX). Without this, :root's --color-maroon-500
+     of #5c0025 leaks through — close but one color-step off from the
+     ADR spec.
+
+     The 400 override isn't reached in HC (Nuxt UI's .dark path never
+     fires under this theme) but is kept for ADR-0005's "three blocks,
+     each a full override of every semantic token" discipline. Pure
+     values throughout — HC's "zero color-mixing" principle. */
+  --color-maroon-400: #500000;
+  --color-maroon-500: #500000;
+
   /* Tailwind v4 @theme alias re-bindings — see comment in tti-dark
      above. Keep in sync with the @theme block in globals.css. */
   --color-brand-primary:      var(--brand-primary);

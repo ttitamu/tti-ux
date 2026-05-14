@@ -5,6 +5,30 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.2] — 2026-05-14
+
+Patch: align the HC theme's primary palette steps with the brand
+value stated in ADR-0005. The HC palette was sampled from TTI's 508-
+accessible PPTX where the maroon anchor is `#500000`, but
+`--color-maroon-400` and `--color-maroon-500` were inheriting from
+`:root` (`#b14a6c` raspberry and `#5c0025` deep wine respectively),
+which leaked a one-color-step deviation into any Nuxt UI primitive
+under `tti-hc`. No visual impact on `tti` or `tti-dark`.
+
+### Fixed — HC primary palette aligned with ADR-0005
+
+- **`[data-theme="tti-hc"]` in `app/assets/css/tokens.css`** now
+  pins both `--color-maroon-400` and `--color-maroon-500` to
+  `#500000`. The 500 override is the visible fix — solid Nuxt UI
+  primitives (UButton, UBadge, etc.) in HC mode were rendering
+  `#5c0025` from `:root` instead of the ADR-stated `#500000`. The
+  400 override is defensive (Nuxt UI's `.dark` path doesn't fire
+  under HC, so 400 isn't read in practice) but keeps the "three
+  blocks, each a full override of every semantic token" discipline
+  from ADR-0005 intact.
+- Pure values throughout, in keeping with HC's "zero color-mixing"
+  principle.
+
 ## [1.4.1] — 2026-05-14
 
 Patch: bridge `@nuxtjs/color-mode` to Nuxt UI's `.dark` class so Nuxt
