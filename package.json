@@ -23,6 +23,7 @@
     "postinstall": "nuxt prepare",
     "sync:aggieux": "node scripts/sync-aggieux.mjs",
     "sync:aggieux-icons": "node scripts/sync-aggieux-icons.mjs",
+    "sync:fonts": "node scripts/sync-fonts.mjs",
     "gen:lucide-names": "node scripts/gen-lucide-names.mjs",
     "build:logos": "node scripts/png-to-svg-logo.mjs",
     "audit:contrast": "node scripts/audit-contrast.mjs",
@@ -51,6 +52,11 @@
     "vue-router": "^5.0.0"
   },
   "devDependencies": {
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@fontsource/open-sans": "^5.2.7",
+    "@fontsource/oswald": "^5.2.8",
+    "@fontsource/public-sans": "^5.2.7",
+    "@fontsource/work-sans": "^5.2.8",
     "@nuxt/devtools": "^2.0.0",
     "d3-geo": "^3.1.1",
     "puppeteer": "^24.42.0",

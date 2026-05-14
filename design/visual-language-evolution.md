@@ -147,6 +147,131 @@ brackets, map decorators.
 
 ---
 
+## Batch J — 2026-05
+
+**Visual-language application sweep.** A surface-level pass that applies
+the Batch E-prelude tokens across the existing kit *without* needing to
+edit every component file. Everything in Batch J is opt-in via CSS
+attribute selectors (`data-tux-overlay`, `data-tux-elevation`, etc.) or
+new utility classes; the one global rule (J.1) only sets a default
+`transition-timing-function`, which inline-declared transitions still
+override.
+
+The CSS lives in `app/assets/css/tux.css` under the `BATCH J` heading.
+The matching tokens already shipped in `app/assets/css/tokens.css` as
+part of the Batch E-prelude.
+
+### J.1 · Transportation-tempo easings applied to common controls
+
+`button`, `a`, `input`, `select`, `textarea`, `[role="button"]`,
+`[role="tab"]`, `[role="option"]`, `.tux-card`, and `.card-linked*`
+inherit `transition-timing-function: var(--ease-survey)` with
+`transition-duration: var(--motion-base)` when the user hasn't requested
+reduced motion. Inline JS transitions still win — this is just the
+default for any property animated without an explicit curve.
+
+Two opt-in attributes layer onto specific roles:
+
+- `data-tux-overlay` → corridor curve (smoother acceleration, used by
+  modals / sheets / popovers / command palette).
+- `data-tux-arrival` → arrival curve (decelerate-only, used by toasts /
+  banners / snapshots locking in place).
+
+**Why:** Most existing transitions were declared without a curve, which
+meant the browser default ease was running. Pinning a curve at the
+surface level produces consistent motion even on un-refit components.
+
+### J.2 · Elevation roles via `data-tux-elevation`
+
+```html
+<div data-tux-elevation="rest">…</div>
+<div data-tux-elevation="overlay">…</div>
+```
+
+Maps the five elevation tiers to a single attribute. Strictly additive —
+only elements carrying the data-attr get the new shadows. The `hover`
+value also applies `transform: translateY(-1px)` so a one-line opt-in
+produces the full hover lift.
+
+### J.3 · `.tux-hoverlift` utility
+
+For surfaces that should lift on hover without writing the transition
+by hand:
+
+```html
+<article class="tux-hoverlift" data-tux-elevation="rest">…</article>
+```
+
+The class adds the easing + duration; the hover/focus-within state pulls
+in `--elevation-hover` and the -1px translate.
+
+### J.4 · `.tux-mark` utility for identity primitives
+
+Sizes and tints any of the four `<symbol>` primitives from
+`/identity-primitives.svg`:
+
+```html
+<svg class="tux-mark tux-mark--lg" style="--mark-color: var(--brand-accent)">
+  <use href="/identity-primitives.svg#tux-star" />
+</svg>
+```
+
+Defaults: 16×16, currentColor = `--brand-primary`. Use `tux-mark--lg`
+(32px) for section accents, `tux-mark--xl` (56px) for hero marks.
+
+### J.5 · `.tux-section-divider` helper
+
+Eyebrow-with-trailing-rule pattern from the signature library, packaged
+as a one-class utility:
+
+```html
+<div class="tux-section-divider">Section label</div>
+```
+
+Renders the label + a maroon-to-transparent gradient rule. The rule
+fades at the right edge, matching the default-style signature rhythm.
+
+### J.6 · ROW grid background via `data-tux-rowgrid`
+
+Subtle vertical-line pattern at 6% maroon, applied as a background
+image. Use on hero surfaces, large empty-state panels, or the section-
+divider between major page zones. Off by default — opt in:
+
+```html
+<section data-tux-rowgrid>Hero content here</section>
+```
+
+**Why:** Carries the right-of-way visual DNA without requiring a host to
+embed the SVG sprite or manage opacity manually.
+
+### What's not in J
+
+- No component file got rewritten. Everything lives in `tux.css` as
+  either a global default (J.1 only, gated by `prefers-reduced-motion`)
+  or an opt-in attribute / class.
+- No new tokens added — Batch J consumes the existing prelude tokens
+  from `tokens.css`.
+- No JS changes — the application is pure CSS.
+
+If a future component wants the full visual-language treatment, the
+typical opt-in pattern is:
+
+```vue
+<aside
+  data-tux-overlay
+  data-tux-elevation="overlay"
+  class="tux-hoverlift">
+  …
+</aside>
+```
+
+**Path note:** In the standalone skill payload these utilities use
+`assets/identity-primitives.svg`. Here in the Nuxt repo the asset
+lives at `public/identity-primitives.svg`, addressed at runtime as
+`/identity-primitives.svg`.
+
+---
+
 ## How to use this doc
 
 When you make a token-level change in `app/assets/css/tokens.css` (and

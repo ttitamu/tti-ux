@@ -9,6 +9,27 @@
  *
  * Helper prefix: NC (News-Contact). Local helpers — never import a generic
  * SectionLabel/Box/Spec from another batch (collisions break Babel scope).
+ *
+ * Lineage (INF-2):
+ *   • News collection — anatomy informed by SharePoint Web News (Hub, List,
+ *     Side-by-side, Top-story, Tiles, Carousel — 13 frames). SharePoint
+ *     names a clean set of editorial layouts that map to ours: Hub = 3-up
+ *     card grid (canonical "news hub" page), List = thumb-left rows,
+ *     Side-by-side = featured + secondary column, Top-story = oversized
+ *     hero + supporting tiles, Tiles = uniform grid, Carousel = horizontal
+ *     scroll. SharePoint's metadata row (avatar · author · date · views)
+ *     is the structural baseline for our optional metadata row.
+ *   • Contact card collection — anatomy informed by SharePoint People
+ *     (3 frames) — square portrait + name + title + contact links. TUX
+ *     keeps the editorial Work Sans 700 caps title; SharePoint uses Segoe
+ *     UI semibold sentence case.
+ *   • Collection feature — informed by SharePoint Highlighted-Content
+ *     Compact (3-up "latest from" pull), retitled to fit TUX's "view-all"
+ *     header rhythm.
+ *
+ * Identity stays TUX: maroon eyebrow, signature rule on featured-card
+ * variants, italic Work Sans dates, JetBrains Mono numerals. Never lift
+ * Segoe UI or SharePoint blue.
  */
 
 // ════════════════════════════════════════════════════════════════════════
@@ -255,6 +276,7 @@ function NewsCollectionPage() {
         <NCSpec label="Thumb" value="3:2 (list) · 16:9 (card)" note="Square crop only when source mandates" />
         <NCSpec label="Eyebrow" value="0.66rem caps" note="Category in maroon (gold on dark) + date mono" />
         <NCSpec label="Pagination" value="prev · 1 · 2 · 3 · … · n" note="Bordered strip; count left" />
+        <NCSpec label="Lineage" value="SharePoint News" note="Hub / List / Side-by-side / Top-story / Tiles / Carousel — anatomy only" />
       </NCSpecRow>
     </PageShell>
   );
@@ -628,6 +650,7 @@ function CollectionFeaturePage() {
         <NCSpec label="Layouts" value="stack / split" note="Stack for full-width · split for spreads" />
         <NCSpec label="View-all" value="caps + arrow" note="Top-right of header · brand-color link" />
         <NCSpec label="Item row" value="hairline-divided" note="No thumbs — reads as a list, not cards" />
+        <NCSpec label="Lineage" value="SharePoint Highlighted-Content Compact" note="3-up &quot;latest from&quot; pull — anatomy only" />
       </NCSpecRow>
     </PageShell>
   );

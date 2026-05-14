@@ -281,12 +281,22 @@
 [data-theme="tti-dark"] {
   color-scheme: dark;
 
-  /* --brand-primary lightened to #e795a8 (clears AAA at 7.92:1 on
-     #15100f). Earlier #d2718c only passed AA. Filled maroon panels
-     use --brand-fill (always #5c0025) — keeps them dark enough that
-     white text on top stays AAA. */
-  --brand-primary:      #e795a8;
-  --brand-primary-deep: #db859e;
+  /* Brand accent in dark mode is lifted TTI teal — base #4A8892
+     (tertiary in design/palette.md) lifted to #6BB4C0 for readability
+     on the dark page. Clears AAA on every dark surface (7.1:1 on the
+     raised surface, ~8.2:1 on page, ~8.7:1 on sunken). Earlier values
+     of #e795a8/#db859e (lightened maroon) read too pink in the studio
+     where most accent points live on small chrome elements (composer
+     border, focus rings, active-tab text).
+
+     Maroon brand presence is preserved via:
+       - --brand-fill (#5C0025) for marketing panels with white text
+       - --color-maroon-400 override (below) so Nuxt UI's solid primary
+         button fill stays dark wine, not raspberry
+       - --chart-1 pinned to a wine-leaning value so the brand chart
+         series doesn't silently shift to teal. */
+  --brand-primary:      #6BB4C0;
+  --brand-primary-deep: #5B9CA8;
   --brand-accent:       var(--tti-gold);
   --brand-accent-deep:  #F0C362;
   --brand-secondary:    #8ab7e2;
@@ -303,7 +313,18 @@
   --text-secondary: #D1D2D4;
   --text-muted:     #B5B5B5;
   --text-inverse:   #221F1F;
-  --text-brand:     #db859e;
+  --text-brand:     #5B9CA8;
+
+  /* Override Nuxt UI's maroon palette in dark mode at the 400 step.
+     Nuxt UI v4's solid-variant button picks primary-400 for the fill
+     in dark themes; the unmodified palette value (#b14a6c) reads as
+     raspberry pink on dark, which conflicts with the teal accent
+     above. Deepening to #7a1233 keeps the brand maroon presence on
+     the loudest CTAs (+ New chat, Send) while staying legible — white
+     text on #7a1233 clears AAA. Other maroon-* steps inherit from
+     :root because they're only used in light surfaces or fall back
+     to deep wine values that already work on dark. */
+  --color-maroon-400: #7a1233;
 
   /* All semantic colors target AAA (7:1) on the dark page surface
      #15100f. Numbers verified by /contrast-audit. */
@@ -356,9 +377,11 @@
   --color-text-brand:         var(--text-brand);
 
   /* Chart categorical palette on dark — each swatch lifted ~15% to
-     read against the warm-charcoal page surface. Maroon stays as
-     --brand-primary (already lightened in this theme). */
-  --chart-1: var(--brand-primary);
+     read against the warm-charcoal page surface. Chart-1 is pinned
+     to a wine-leaning value rather than var(--brand-primary) so the
+     primary chart series keeps the maroon brand association even
+     though --brand-primary now resolves to teal in dark mode. */
+  --chart-1: #c47585;  /* wine-rose · brand series anchor */
   --chart-2: #6B8DA3;  /* slate teal · lifted */
   --chart-3: #E0BC60;  /* wheat · lifted */
   --chart-4: #93B57E;  /* sage · lifted */

@@ -257,8 +257,8 @@ function UsageGrid({ children }) {
 
 function UsageCard({ icon, tone, title, body }) {
   const toneMap = {
-    good: { color: "var(--state-success)", bg: "color-mix(in srgb, var(--state-success) 8%, transparent)" },
-    bad:  { color: "var(--state-danger)",  bg: "color-mix(in srgb, var(--state-danger) 8%, transparent)" },
+    good: { color: "var(--color-success)", bg: "color-mix(in srgb, var(--color-success) 8%, transparent)" },
+    bad:  { color: "var(--color-danger)",  bg: "color-mix(in srgb, var(--color-danger) 8%, transparent)" },
   };
   const t = toneMap[tone] || toneMap.good;
   return (

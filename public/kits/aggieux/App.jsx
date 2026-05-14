@@ -79,9 +79,27 @@ function LucideIcon({ name, size = 16, color = "currentColor", strokeWidth = 1.7
 window.LucideIcon = LucideIcon;
 
 // ─── App ───────────────────────────────────────────────────────────────────
+// Three themes ship in colors_and_type.css: tti (light), tti-dark, tti-hc.
+// We persist the choice in localStorage so reloads keep it.
+const THEME_STORAGE_KEY = "aggieux:theme";
+const THEMES = [
+  { id: "tti",      label: "Light",         icon: "sun"      },
+  { id: "tti-dark", label: "Dark",          icon: "moon"     },
+  { id: "tti-hc",   label: "High contrast", icon: "contrast" },
+];
+
 function App() {
   const [route, setRoute] = useState(() => (location.hash || "#intro").slice(1) || "intro");
-  const [darkPreview, setDarkPreview] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem(THEME_STORAGE_KEY) || "tti"; }
+    catch (e) { return "tti"; }
+  });
+
+  // Apply data-theme to <html> so every component re-themes via tokens.
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch (e) { /* ignore */ }
+  }, [theme]);
 
   useEffect(() => {
     const onHash = () => setRoute((location.hash || "#intro").slice(1) || "intro");
@@ -92,17 +110,16 @@ function App() {
   const navigate = (id) => {
     setRoute(id);
     history.replaceState(null, "", `#${id}`);
-    // scroll to top of main region
     const main = document.getElementById("aggie-main");
     if (main) main.scrollTo({ top: 0, behavior: "instant" });
   };
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <AggieHeader darkPreview={darkPreview} onToggleDark={() => setDarkPreview(v => !v)} />
+      <AggieHeader theme={theme} onSetTheme={setTheme} themes={THEMES} />
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
         <AggieSidebar route={route} onNavigate={navigate} />
-        <main id="aggie-main" style={{ flex: 1, overflowY: "auto", background: darkPreview ? "var(--brand-primary)" : "var(--surface-page)", transition: "background 200ms", color: darkPreview ? "#fff" : "inherit" }}>
+        <main id="aggie-main" style={{ flex: 1, overflowY: "auto", background: "var(--surface-page)", color: "var(--text-primary)", transition: "background 200ms, color 200ms" }}>
           <AggiePage id={route} />
         </main>
       </div>

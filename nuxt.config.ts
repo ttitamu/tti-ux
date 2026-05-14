@@ -56,7 +56,11 @@ export default defineNuxtConfig({
 
   modules: [
     "@nuxt/icon",
-    "@nuxt/fonts",
+    // @nuxt/fonts removed — fonts are now self-hosted via explicit
+    // @font-face declarations in app/assets/css/fonts.css, sourced from
+    // @fontsource/* npm packages via scripts/sync-fonts.mjs. The module
+    // had auto-fetch-from-Google behavior that defeats air-gapped builds;
+    // removing it makes the font-load surface explicit and offline-clean.
     "@nuxt/image",
     "@nuxt/ui",
     "@nuxt/eslint",
@@ -83,34 +87,22 @@ export default defineNuxtConfig({
     },
   },
 
-  // CSS load order: tokens first (CSS vars), then globals (consumes tokens +
-  // Tailwind + Nuxt UI @imports), then tux (utility layer consumed by the
-  // Tux* wrappers). Paths are layer-rooted (see `layerDir` above) so
-  // consuming apps don't accidentally try to load these from their own
-  // app/ when they extend us.
+  // CSS load order: fonts first (@font-face — declare faces before any
+  // rules reference them), then tokens (CSS vars), then globals
+  // (consumes tokens + Tailwind + Nuxt UI @imports), then tux (utility
+  // layer consumed by the Tux* wrappers). Paths are layer-rooted (see
+  // `layerDir` above) so consuming apps don't accidentally try to load
+  // these from their own app/ when they extend us.
+  //
+  // Fonts are self-hosted from public/fonts/<family>/*.woff2 — sourced
+  // from @fontsource/* npm packages via scripts/sync-fonts.mjs. No CDN
+  // dependency at runtime or build time; air-gapped-build clean.
   css: [
+    resolve(layerDir, "app/assets/css/fonts.css"),
     resolve(layerDir, "app/assets/css/tokens.css"),
     resolve(layerDir, "app/assets/css/globals.css"),
     resolve(layerDir, "app/assets/css/tux.css"),
   ],
-
-  // @nuxt/fonts auto-detects which of these are actually referenced in
-  // source (font-family declarations in CSS / Vue files) and only fetches
-  // the ones it sees. So adding the full AggieUX stack here doesn't bloat
-  // the bundle — it makes them available when a component reaches for
-  // AggieUX parity. Default stack is still Public Sans + JetBrains Mono.
-  fonts: {
-    families: [
-      { name: "Public Sans", weights: [400, 500, 600, 700], provider: "google" },
-      { name: "JetBrains Mono", weights: [400, 500], provider: "google" },
-      // AggieUX parity — load on demand when a component opts in.
-      { name: "Open Sans", weights: [300, 400, 500, 600, 700, 800], provider: "google" },
-      { name: "Oswald", weights: [200, 300, 400, 500, 600, 700], provider: "google" },
-      { name: "Work Sans", weights: [100, 200, 300, 400, 500, 600, 700, 800, 900], provider: "google" },
-      // Georgia is a system font — no fetch needed, listed so the intent is
-      // explicit for designers reading the config.
-    ],
-  },
 
   colorMode: {
     preference: "tti",
@@ -132,7 +124,11 @@ export default defineNuxtConfig({
   },
 
   vite: {
-    plugins: [tailwindcss()],
+    // Cast through unknown so consuming layers' typecheck doesn't trip
+    // when their `vite` resolves to a different path than ours under
+    // `node_modules`. The Plugin shape is identical at runtime; only
+    // nominal TS identity differs across duplicate vite installs.
+    plugins: [tailwindcss()] as unknown as never[],
   },
 
   app: {

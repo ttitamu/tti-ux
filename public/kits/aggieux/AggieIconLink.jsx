@@ -13,6 +13,24 @@
  *
  * Helper prefix: IL (IconLink). Always-local helpers — never import a generic
  * SectionLabel/Box/Spec from another batch (Babel scope collisions).
+ *
+ * Lineage (INF-2):
+ *   • Link list & link slab — anatomy informed by SharePoint Quick-Links
+ *     (Button, Compact, Filmstrip, Grid, List, Tiles — 13 frames).
+ *     SharePoint maps the same editorial intent to six layouts; ours
+ *     condense to: list = SharePoint Compact/List, slab = SharePoint
+ *     Button/Filmstrip (horizontal-band variants). The icon + label + arrow
+ *     row rhythm is shared.
+ *   • Icon feature collection — informed by SharePoint Quick-Links Grid
+ *     (icon-top tile w/ headline + description). TUX keeps the maroon
+ *     tinted icon-box; SharePoint uses a flat Fluent fill.
+ *   • Icon list — informed by SharePoint Quick-Links Compact (icon-left
+ *     row, denser than the grid). Dense / regular density tiers map to
+ *     SharePoint's "compact" toggle in the web part.
+ *
+ * Identity stays TUX: Lucide @ stroke 1.5 (not Fluent icons), tinted-square
+ * icon containers in brand color, Work Sans 700 caps links. Never lift
+ * Segoe UI or SharePoint blue.
  */
 
 // ════════════════════════════════════════════════════════════════════════
@@ -508,6 +526,7 @@ function LinkListPage() {
         <ILSpec label="row"        value="link · → · note" note="Right-arrow affordance always; secondary note as monospace caption." />
         <ILSpec label="hover"      value="brand color"   note="Light theme only — on dark stays white to avoid contrast loss." />
         <ILSpec label="separator"  value="1px hairline"   note="Border-bottom on each row including last (visual closure)." />
+        <ILSpec label="lineage"    value="SharePoint Quick-Links Compact/List" note="Anatomy only · TUX type and color" />
       </ILSpecRow>
     </PageShell>
   );
@@ -620,6 +639,7 @@ function LinkSlabPage() {
         <ILSpec label="links" value="Work Sans 700" note="Always uppercase, 0.78rem, with a trailing arrow." />
         <ILSpec label="layout" value="title L · links R" note="Two-column grid; links flex-wrap and right-align." />
         <ILSpec label="position" value="end of section" note="Sits between page body and global footer." />
+        <ILSpec label="lineage" value="SharePoint Quick-Links Button/Filmstrip" note="Anatomy only · TUX type and color" />
       </ILSpecRow>
     </PageShell>
   );

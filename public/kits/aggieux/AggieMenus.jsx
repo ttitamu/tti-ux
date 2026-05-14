@@ -135,6 +135,12 @@ function PreviewBox({ label, bg, minH, dark, children }) {
 }
 
 // ─── Sidebar menu ────────────────────────────────────────────────────
+// Lineage: Microsoft Teams Secondary-left-navigation (INF-3 anatomy ref).
+// Teams ships a left-rail secondary nav with a "back to parent" link, a
+// rowed list of section children, and a bar/tint active marker. TUX adopts
+// the same structure and swaps in: 3px maroon (gold on dark) section border,
+// Work Sans 700 italic teal/gold back-link, 40px rows, 4px maroon active bar.
+// The anatomy is already TUX-native — no shape changes from this lineage.
 function SidebarMenu({ dark }) {
   const borderColor = dark ? "#DDAC37" : "#5C0025";
   const textColor = dark ? "#fff" : "#222";

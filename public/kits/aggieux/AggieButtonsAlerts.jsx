@@ -347,6 +347,79 @@ function AggieAlert({
   );
 }
 
+// ─── CompactAlert ────────────────────────────────────────────────────
+// Lineage: Base Gallery Banner (INF-4 sanity baseline).
+// Base ships a soft tinted-card alert with no left-border accent, no rule, no
+// eyebrow — just a circle icon + headline/body + optional pill action.
+// We adopt that anatomy as the UTILITY variant of the alert family:
+//   • Use this for dashboard rows, settings panels, inline form responses —
+//     anywhere TUX's editorial alert (with signature rule + eyebrow + tone
+//     label) is too loud for the surface.
+//   • Hierarchy=Low → white card outline with tinted icon disc.
+//   • Hierarchy=High → fully tinted card surface, icon disc reverses to white.
+// Identity stays TUX: maroon accent, Work Sans 700 caps for action label,
+// no Uber Move, no rgb(40,40,40) Base black.
+function CompactAlert({ tone = "info", hierarchy = "low", title, children, action, onAction, dark = false }) {
+  const toneMap = {
+    info:    { fg: dark ? "#8BCAD8" : "#006483", tint: dark ? "rgba(139,202,216,0.16)" : "#E8F1F4", icon: "info" },
+    success: { fg: dark ? "#97D498" : "#2D6B2F", tint: dark ? "rgba(151,212,152,0.16)" : "#E8F3E9", icon: "check-circle" },
+    warning: { fg: dark ? "#F0B849" : "#8A5C00", tint: dark ? "rgba(240,184,73,0.18)" : "#FAEFD4", icon: "alert-triangle" },
+    error:   { fg: dark ? "#EAA19B" : "#9A1F1A", tint: dark ? "rgba(234,161,155,0.18)" : "#F8E3E1", icon: "alert-octagon" },
+  }[tone];
+
+  const isHigh = hierarchy === "high";
+  const bg = isHigh ? toneMap.tint : (dark ? "rgba(255,255,255,0.04)" : "#FFFFFF");
+  const border = isHigh ? "1px solid transparent" : `1px solid ${dark ? "rgba(255,255,255,0.12)" : "var(--surface-border)"}`;
+  const discBg = isHigh ? (dark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.6)") : toneMap.tint;
+  const textPrimary = dark ? "#FFFFFF" : "var(--text-primary)";
+  const textSecondary = dark ? "rgba(255,255,255,0.78)" : "var(--text-secondary)";
+
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 12,
+      padding: "10px 12px",
+      background: bg, border, borderRadius: 12,
+      fontFamily: "var(--font-body)",
+    }}>
+      <div style={{
+        flexShrink: 0, width: 36, height: 36, borderRadius: "50%",
+        background: discBg,
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        <LucideIcon name={toneMap.icon} size={18} color={toneMap.fg} strokeWidth={2.25} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {title ? (
+          <div style={{
+            fontFamily: "var(--font-body-bold)", fontWeight: 700, fontSize: 14, lineHeight: 1.3,
+            color: textPrimary, marginBottom: children ? 2 : 0,
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>{title}</div>
+        ) : null}
+        {children ? (
+          <div style={{
+            fontSize: 13, lineHeight: 1.45,
+            color: textSecondary,
+          }}>{children}</div>
+        ) : null}
+      </div>
+      {action ? (
+        <button onClick={onAction} style={{
+          flexShrink: 0,
+          padding: "6px 12px", height: 32,
+          background: isHigh ? (dark ? "var(--brand-accent)" : "var(--brand-primary)") : "transparent",
+          color: isHigh ? (dark ? "var(--brand-primary)" : "#FFFFFF") : toneMap.fg,
+          border: isHigh ? "none" : `1px solid ${toneMap.fg}`,
+          borderRadius: 999,
+          fontFamily: "var(--font-body-bold)", fontWeight: 700, fontSize: "0.7rem",
+          textTransform: "uppercase", letterSpacing: "0.10em",
+          cursor: "pointer",
+        }}>{action}</button>
+      ) : null}
+    </div>
+  );
+}
+
 function AlertBox({ dark = false, label, children }) {
   return (
     <div style={{ border: "1px solid var(--surface-border)", borderRadius: "var(--radius-md)", overflow: "hidden", marginBottom: 16 }}>
@@ -414,11 +487,41 @@ function AlertsPage() {
         <AggieAlert tone="error"   style="default" dismissible={false} title="Connection interrupted — retrying…" />
       </AlertBox>
 
+      {/* Utility / compact (Base-anatomy) */}
+      <BASectionLabel>Utility alert · soft tinted card · Base-anatomy</BASectionLabel>
+      <div style={{ padding: "12px 16px", marginBottom: 14, background: "color-mix(in srgb, var(--brand-accent) 12%, transparent)", borderRadius: "var(--radius-sm)", fontSize: "0.84rem", lineHeight: 1.5, color: "var(--text-secondary)" }}>
+        For dashboard rows, settings panels, and inline form responses where the
+        editorial alert (signature rule + eyebrow + tone label) is too loud.
+        Soft 12-radius tinted card, circle icon disc, optional pill action.
+        Hierarchy=<em>Low</em> (bordered white card) vs <em>High</em> (tinted
+        surface).
+      </div>
+      <AlertBox dark={false} label="Hierarchy=Low · bordered white card with tinted icon disc">
+        <CompactAlert tone="info"    title="Quarterly review starts Monday">Submissions close Friday at 5 p.m.</CompactAlert>
+        <CompactAlert tone="success" title="Saved · synced to the workspace" action="Undo" />
+        <CompactAlert tone="warning" title="Two corridors are missing AADT data" action="Review" />
+        <CompactAlert tone="error"   title="Couldn't reach TxDOT API · using cached data" action="Retry" />
+      </AlertBox>
+      <AlertBox dark={false} label="Hierarchy=High · fully tinted surface, no border">
+        <CompactAlert tone="info"    hierarchy="high" title="Quarterly review starts Monday">Submissions close Friday at 5 p.m.</CompactAlert>
+        <CompactAlert tone="success" hierarchy="high" title="Saved · synced to the workspace" action="Undo" />
+        <CompactAlert tone="warning" hierarchy="high" title="Two corridors are missing AADT data" action="Review" />
+        <CompactAlert tone="error"   hierarchy="high" title="Couldn't reach TxDOT API · using cached data" action="Retry" />
+      </AlertBox>
+      <AlertBox dark={true} label="Hierarchy=High · on dark surface">
+        <CompactAlert dark tone="info"    hierarchy="high" title="Export queued" action="Watch" />
+        <CompactAlert dark tone="success" hierarchy="high" title="Connection restored" />
+        <CompactAlert dark tone="warning" hierarchy="high" title="Two corridors are missing AADT data" />
+        <CompactAlert dark tone="error"   hierarchy="high" title="Validation failed · 38 rows flagged" action="Open" />
+      </AlertBox>
+
       <BASpecRow>
         <BASpec label="Tones" value="info · success · warning · error" note="tone color applies to rule, icon, eyebrow label" />
-        <BASpec label="Rule width" value="2 / 6 / 8px" note="default / bold / elegant" />
-        <BASpec label="Layouts" value="inline · banner" note="inline = boxed with border · banner = tinted, no border" />
-        <BASpec label="Eyebrow" value="Work Sans 700" note="tone-colored, 0.12em tracking, 11px" />
+        <BASpec label="Rule width" value="2 / 6 / 8px" note="default / bold / elegant (editorial variants only)" />
+        <BASpec label="Layouts" value="inline · banner · utility" note="inline = bordered · banner = tinted bleed · utility = soft 12-radius (Base)" />
+        <BASpec label="Eyebrow" value="Work Sans 700" note="tone-colored, 0.12em tracking, 11px · skipped on utility variant" />
+        <BASpec label="Utility action" value="pill button" note="Tinted-outline (Low) or filled (High); Work Sans 700 caps." />
+        <BASpec label="Lineage" value="Base Gallery Banner" note="Utility variant anatomy only · TUX type, maroon, no soft black." />
       </BASpecRow>
     </PageShell>
   );
@@ -443,7 +546,7 @@ function BASpecRow({ children }) {
     <div style={{
       marginTop: 28, padding: "14px 18px", border: "1px solid var(--surface-border)",
       borderRadius: "var(--radius-md)", background: "var(--surface-raised)",
-      display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16,
+      display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 16,
     }}>{children}</div>
   );
 }

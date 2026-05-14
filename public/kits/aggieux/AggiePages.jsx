@@ -36,14 +36,14 @@ function IntroPage() {
       {/* ─── Stat row ─── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0, border: "1px solid var(--surface-border)", borderRadius: "var(--radius-md)", overflow: "hidden", marginBottom: 40, background: "var(--surface-raised)" }}>
         <StatCell label="families" value={totalFams} />
-        <StatCell label="ready" value={readyFams} accent="var(--state-success)" />
+        <StatCell label="ready" value={readyFams} accent="var(--color-success)" />
         <StatCell label="scaffolded" value={scaffoldFams} accent="var(--brand-accent)" />
         <StatCell label="style variants" value="3×" sub="default · bold · elegant" />
       </div>
 
       {/* ─── Sections ─── */}
       <SectionBlock title="What's in scope" eyebrow="scope">
-        <p>Every component family from AggieUX 1.7, organized into four sections mirroring the Figma file:</p>
+        <p>Every component family from AggieUX 1.7, organized into the sections mirroring the Figma file:</p>
         <ul style={{ margin: "10px 0 0", padding: 0, listStyle: "none", display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
           {Object.entries(counts).map(([page, count]) => (
             <li key={page} style={{ fontSize: "0.88rem", color: "var(--text-secondary)", padding: "10px 14px", background: "var(--surface-raised)", border: "1px solid var(--surface-border)", borderRadius: "var(--radius-sm)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -62,24 +62,6 @@ function IntroPage() {
           <li><strong>Figma source</strong> — the node path in Aggie UX v1.7 that this family maps to.</li>
           <li><strong>The mock</strong> — each style side-by-side, with an On Dark=True mirror where applicable.</li>
         </ol>
-      </SectionBlock>
-
-      <SectionBlock title="What v2.0 will add" eyebrow="forward-looking">
-        <p>Once AggieUX 2.0 publishes, this kit will roll in:</p>
-        <ul style={{ margin: "10px 0 0 20px", padding: 0, lineHeight: 1.75, color: "var(--text-secondary)" }}>
-          <li>Mega menu variants (in addition to dropdown)</li>
-          <li>Lockup identity + text identity — four navigation combinations total</li>
-          <li>Consistency-tightened class names per the v2.0 changelog</li>
-          <li>Accessibility structural updates</li>
-        </ul>
-      </SectionBlock>
-
-      <SectionBlock title="Relationship to tux" eyebrow="the stack">
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 0, border: "1px solid var(--surface-border)", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
-          <StackCell layer="1" name="AggieUX 1.7 / 2.0" desc="TAMU-wide editorial component system. This kit mirrors its library here." />
-          <StackCell layer="2" name="tux" desc="TTI's Nuxt UI layer — inherits AggieUX editorial patterns, applies TTI typography + palette, adds internal-app primitives." accent />
-          <StackCell layer="3" name="PECAN (and siblings)" desc="Internal apps for research/admin staff. Consume tux components directly." />
-        </div>
       </SectionBlock>
     </div>
   );
@@ -243,6 +225,7 @@ function AggiePage({ id }) {
 
   if (id === "intro")          return <IntroPage />;
   if (id === "style-variants") return <StyleVariantsPage />;
+  if (id === "visual-language" && window.VisualLanguagePage) return <VisualLanguagePage />;
   if (id === "identities" && window.IdentitiesPage) return <IdentitiesPage />;
   if (id === "menus"      && window.MenusPage)      return <MenusPage />;
   if (id === "navigation" && window.SiteNavPage)    return <SiteNavPage />;
@@ -285,6 +268,97 @@ function AggiePage({ id }) {
   if (id === "accordion-groups" && window.AccordionGroupsPage) return <AccordionGroupsPage />;
   if (id === "publication-accordion" && window.PublicationAccordionPage) return <PublicationAccordionPage />;
   if (id === "qa-collections" && window.QACollectionsPage) return <QACollectionsPage />;
+  if (id === "description-list" && window.DescriptionListPage) return <DescriptionListPage />;
+  if (id === "tables" && window.TablesPage) return <TablesPage />;
+  if (id === "sidebar-components" && window.SidebarComponentsPage) return <SidebarComponentsPage />;
+  if (id === "signup-feature" && window.SignupFeaturePage) return <SignupFeaturePage />;
+  if (id === "social-banner" && window.SocialBannerPage) return <SocialBannerPage />;
+  if (id === "custom-content" && window.CustomContentPage) return <CustomContentPage />;
+  if (id === "empty-state" && window.EmptyStatePage) return <EmptyStatePage />;
+  if (id === "error-page" && window.ErrorPagePage) return <ErrorPagePage />;
+  if (id === "skeleton-loader" && window.SkeletonLoaderPage) return <SkeletonLoaderPage />;
+  if (id === "stepper" && window.StepperPage) return <StepperPage />;
+  if (id === "specialized-page-headers" && window.SpecializedPageHeadersPage) return <SpecializedPageHeadersPage />;
+  if (id === "news-story-footer" && window.NewsStoryFooterPage) return <NewsStoryFooterPage />;
+  if (id === "pagination" && window.PaginationPage) return <PaginationPage />;
+  if (id === "horizontal-filters" && window.HorizontalFiltersPage) return <HorizontalFiltersPage />;
+  if (id === "sidebar-filtration" && window.SidebarFiltrationPage) return <SidebarFiltrationPage />;
+  if (id === "alpha-nav" && window.AlphaNavPage) return <AlphaNavPage />;
+  if (id === "directory" && window.DirectoryPage) return <DirectoryPage />;
+  if (id === "glossary" && window.GlossaryPage) return <GlossaryPage />;
+  if (id === "calendar-event" && window.CalendarEventPage) return <CalendarEventPage />;
+  if (id === "date-range-picker" && window.DateRangePickerPage) return <DateRangePickerPage />;
+  if (id === "inline-feed-group" && window.InlineFeedGroupPage) return <InlineFeedGroupPage />;
+  if (id === "example-forms" && window.ExampleFormsPage) return <ExampleFormsPage />;
+  if (id === "code-maroon-banner" && window.CodeMaroonBannerPage) return <CodeMaroonBannerPage />;
+  if (id === "command-palette" && window.CommandPalettePage) return <CommandPalettePage />;
+  if (id === "modal" && window.ModalPage) return <ModalPage />;
+  if (id === "toc" && window.TOCPage) return <TOCPage />;
+  if (id === "announcement-banner" && window.AnnouncementBannerPage) return <AnnouncementBannerPage />;
+  if (id === "cookie-consent" && window.CookieConsentPage) return <CookieConsentPage />;
+  if (id === "beta-ribbon" && window.BetaRibbonPage) return <BetaRibbonPage />;
+  if (id === "badge-chip-tag" && window.BadgeChipTagPage) return <BadgeChipTagPage />;
+  if (id === "form-text" && window.FormTextPage) return <FormTextPage />;
+  if (id === "form-select" && window.FormSelectPage) return <FormSelectPage />;
+  if (id === "form-choice" && window.FormChoicePage) return <FormChoicePage />;
+  if (id === "form-date" && window.FormDatePage) return <FormDatePage />;
+  if (id === "form-file" && window.FormFilePage) return <FormFilePage />;
+  if (id === "dropdown-rich" && window.DropdownRichPage) return <DropdownRichPage />;
+  if (id === "combobox" && window.ComboboxPage) return <ComboboxPage />;
+  if (id === "field-grid" && window.FieldGridPage) return <FieldGridPage />;
+  if (id === "inline-validation" && window.InlineValidationPage) return <InlineValidationPage />;
+  if (id === "chart-foundations" && window.ChartFoundationsPage) return <ChartFoundationsPage />;
+  if (id === "chart-bar" && window.ChartBarPage) return <ChartBarPage />;
+  if (id === "chart-line" && window.ChartLinePage) return <ChartLinePage />;
+  if (id === "chart-scatter" && window.ChartScatterPage) return <ChartScatterPage />;
+  if (id === "chart-trend" && window.ChartTrendPage) return <ChartTrendPage />;
+  if (id === "stat-comparison" && window.StatComparisonPage) return <StatComparisonPage />;
+  if (id === "chart-treatments" && window.ChartTreatmentsPage) return <ChartTreatmentsPage />;
+  if (id === "chart-hierarchy" && window.ChartHierarchyPage) return <ChartHierarchyPage />;
+  if (id === "chart-waterfall" && window.ChartWaterfallPage) return <ChartWaterfallPage />;
+  if (id === "chart-radar" && window.ChartRadarPage) return <ChartRadarPage />;
+  if (id === "chart-change" && window.ChartChangePage) return <ChartChangePage />;
+  if (id === "chart-annotation" && window.ChartAnnotationPage) return <ChartAnnotationPage />;
+  if (id === "chart-maps" && window.ChartMapsPage) return <ChartMapsPage />;
+  if (id === "map-legend" && window.MapLegendPage) return <MapLegendPage />;
+  if (id === "corridor-strip" && window.CorridorStripPage) return <CorridorStripPage />;
+  if (id === "data-tables" && window.DataTablesPage) return <DataTablesPage />;
+  if (id === "rich-data-grid" && window.RichDataGridPage) return <RichDataGridPage />;
+  if (id === "descriptions" && window.DescriptionsPage) return <DescriptionsPage />;
+  if (id === "tree" && window.TreePage) return <TreePage />;
+  if (id === "focus-model" && window.FocusModelPage) return <FocusModelPage />;
+  if (id === "breakpoints" && window.BreakpointsPage) return <BreakpointsPage />;
+  if (id === "contrast-matrix" && window.ContrastMatrixPage) return <ContrastMatrixPage />;
+  if (id === "motion-rtl" && window.MotionRtlPage) return <MotionRtlPage />;
+  if (id === "tabs-horizontal" && window.TabsHorizontalPage) return <TabsHorizontalPage />;
+  if (id === "tabs-vertical" && window.TabsVerticalPage) return <TabsVerticalPage />;
+  if (id === "side-sheet" && window.SideSheetPage) return <SideSheetPage />;
+  if (id === "tooltip-popover" && window.TooltipPopoverPage) return <TooltipPopoverPage />;
+  if (id === "load-more" && window.LoadMorePage) return <LoadMorePage />;
+  if (id === "comment-thread" && window.CommentReactionPage) return <CommentReactionPage />;
+  if (id === "teaching-banner" && window.TeachingBannerPage) return <TeachingBannerPage />;
+  if (id === "teaching-popover" && window.TeachingPopoverPage) return <TeachingPopoverPage />;
+  if (id === "wizard" && window.WizardPage) return <WizardPage />;
+  // INF-1 new TUX components
+  if (id === "toast" && window.ToastPage) return <ToastPage />;
+  if (id === "spinner" && window.SpinnerPage) return <SpinnerPage />;
+  if (id === "progress-bar" && window.ProgressBarPage) return <ProgressBarPage />;
+  if (id === "switch" && window.SwitchPage) return <SwitchPage />;
+  if (id === "slider" && window.SliderPage) return <SliderPage />;
+  // INF-3 new TUX components
+  if (id === "adaptive-card" && window.AdaptiveCardPage) return <AdaptiveCardPage />;
+  if (id === "metric-tile" && window.MetricTilePage) return <MetricTilePage />;
+  // INF-3b deferred fold (Toolbar + Image lightbox)
+  if (id === "toolbar" && window.ToolbarPage) return <ToolbarPage />;
+  if (id === "image-lightbox" && window.ImageLightboxPage) return <ImageLightboxPage />;
+  // INF-4.5b new TUX components (Bootstrap 5 DS)
+  if (id === "transfer" && window.TransferPage) return <TransferPage />;
+  if (id === "rate" && window.RatePage) return <RatePage />;
+  if (id === "templates" && window.TemplatesPage) return <TemplatesPage />;
+  if (id === "tmpl-research-dashboard" && window.ResearchDashboardPage) return <ResearchDashboardPage />;
+  if (id === "tmpl-document-detail" && window.DocumentDetailPage) return <DocumentDetailPage />;
+  if (id === "tmpl-settings-shell" && window.SettingsShellPage) return <SettingsShellPage />;
+  if (id === "tmpl-list-detail-split" && window.ListDetailSplitPage) return <ListDetailSplitPage />;
 
   return <PageShell item={item} />;
 }

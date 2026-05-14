@@ -542,3 +542,116 @@
   color: var(--text-primary);
   font-weight: 700;
 }
+
+
+/* ==========================================================================
+   BATCH J — VISUAL-LANGUAGE APPLICATION SWEEP (2026-05)
+
+   Surface-level rules that apply the Batch E-prelude tokens (focus, easing,
+   elevation, identity primitives) across the existing kit without touching
+   every component file. Strictly opt-in via attribute selector / class —
+   the only global rule is the easing default (J.1), which is gated by
+   prefers-reduced-motion and falls back to --ease-standard.
+
+   See design/visual-language-evolution.md § Batch J for the full lineage.
+   ========================================================================== */
+
+/* J.1 — Apply transportation-tempo easings to common transition properties.
+   Components that don't explicitly set --ease-* in JS pick up these defaults
+   via inherited transition shorthand. Existing inline-declared transitions
+   still win — this is just the curve when no curve was specified. */
+@media (prefers-reduced-motion: no-preference) {
+  button, a, input, select, textarea,
+  [role="button"], [role="tab"], [role="option"],
+  .tux-card, .card-linked, .card-linked--bold, .card-linked--elegant {
+    transition-timing-function: var(--ease-survey, var(--ease-standard));
+    transition-duration: var(--motion-base);
+  }
+  /* Anchored disclosure surfaces — sheets, popovers, modals — use the
+     corridor curve (smoother acceleration into rest). Components opt in
+     by adding data-tux-overlay; the data-attr is non-invasive. */
+  [data-tux-overlay] {
+    transition-timing-function: var(--ease-corridor, var(--ease-standard));
+  }
+  /* Toasts and banners locking in place — decelerate-only. */
+  [data-tux-arrival] {
+    transition-timing-function: var(--ease-arrival, var(--ease-standard));
+  }
+}
+
+/* J.2 — Elevation roles. Components opt in via data-tux-elevation.
+   Strictly additive: existing inline box-shadows on the element are
+   overridden only where the data-attr is present. */
+[data-tux-elevation="flat"]    { box-shadow: var(--elevation-flat); }
+[data-tux-elevation="rest"]    { box-shadow: var(--elevation-rest); }
+[data-tux-elevation="hover"]   { box-shadow: var(--elevation-hover); transform: translateY(-1px); }
+[data-tux-elevation="overlay"] { box-shadow: var(--elevation-overlay); }
+[data-tux-elevation="pinned"]  { box-shadow: var(--elevation-pinned); }
+
+/* J.3 — Hover-lift utility (pairs with the elevation tokens). One-class
+   opt-in for the rest → hover transition without writing it by hand. */
+.tux-hoverlift {
+  transition: transform var(--motion-fast) var(--ease-survey, var(--ease-standard)),
+              box-shadow var(--motion-fast) var(--ease-survey, var(--ease-standard));
+}
+.tux-hoverlift:hover,
+.tux-hoverlift:focus-within {
+  transform: translateY(-1px);
+  box-shadow: var(--elevation-hover);
+}
+
+/* J.4 — Identity-primitive utilities. Use anywhere by referencing
+   /identity-primitives.svg via <use href>. The class sizes the host SVG;
+   the CSS-variable hooks let consumers tweak size and hue per-instance
+   without touching the sprite.
+
+   Default: 16×16, currentColor = --brand-primary.
+   Use .tux-mark--lg (32px) for section accents, .tux-mark--xl (56px)
+   for hero marks. */
+.tux-mark {
+  display: inline-block;
+  width: var(--mark-size, 16px);
+  height: var(--mark-size, 16px);
+  color: var(--mark-color, var(--brand-primary));
+}
+.tux-mark--lg { --mark-size: 32px; }
+.tux-mark--xl { --mark-size: 56px; }
+
+/* J.5 — Section-divider helper: eyebrow label + maroon-to-transparent
+   rule that fades at the right edge. Matches the default-style signature
+   rhythm. Apply via .tux-section-divider on a wrapping element. */
+.tux-section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-bold);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 18px 0 12px;
+}
+.tux-section-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg,
+    var(--brand-primary) 0%,
+    var(--brand-primary) 30%,
+    transparent 100%);
+  opacity: 0.5;
+}
+
+/* J.6 — ROW grid background: subtle vertical-line pattern at 6% maroon,
+   carrying the right-of-way visual DNA. Opt-in via data-tux-rowgrid on
+   any block-level element (heroes, large empty states, section breaks). */
+[data-tux-rowgrid] {
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 11px,
+    color-mix(in srgb, var(--brand-primary) 6%, transparent) 11px,
+    color-mix(in srgb, var(--brand-primary) 6%, transparent) 12px
+  );
+}

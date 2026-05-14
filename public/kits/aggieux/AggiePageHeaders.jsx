@@ -15,6 +15,24 @@
  *
  * Both expose the three style variants → demonstrates how the signatures
  * (hairline / stacked-bars / soft-faded hash) read at hero scale.
+ *
+ * Lineage (INF-2):
+ *   • Page Headers (overlap variant) — anatomy informed by SharePoint
+ *     Page-title Overlap (the image-bleed + overlapping-card pattern).
+ *     SharePoint canonicalizes four page-title layouts: Color-block,
+ *     Image-and-title, Overlap, Plain. Ours map to:
+ *       Page Headers (large landing hero)   ← Page-title Overlap
+ *       Standard Page Header · maroon bg    ← Page-title Color-block
+ *       Standard Page Header · with media   ← Page-title Image-and-title
+ *       Standard Page Header · white bg     ← Page-title Plain
+ *   • Page Headers (hero variant) — informed by SharePoint Hero Layers
+ *     (overlaid-text-on-full-bleed-image) and Hero Tiles (multi-tile hero).
+ *     We adopt the structural layering rule; signature rule under title is
+ *     TUX-original.
+ *
+ * Identity stays TUX: maroon image bleed (never SharePoint blue), Oswald
+ * /Work Sans bold-italic / Georgia italic display per style variant,
+ * signature rule motif. Never lift Segoe UI.
  */
 
 // ────────────────────────────────────────────────────────────────────────

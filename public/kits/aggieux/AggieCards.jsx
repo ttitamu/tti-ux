@@ -17,6 +17,21 @@
  *
  * Style signature appears as a hairline / stacked-bar / hashed rule
  * under the title — same vocabulary as section headers.
+ *
+ * Lineage (INF-2):
+ *   • Card groups — anatomy informed by SharePoint Highlighted-Content
+ *     Grid (11 frames). Same 3:2 image-on-top + content-below rhythm,
+ *     1px border, no radius. SharePoint's bordered card is the structural
+ *     baseline; we drop the corner-radius (2px in SharePoint) for our
+ *     flatter editorial feel.
+ *   • Card groups w/ featured — informed by SharePoint Highlighted-Content
+ *     Filmstrip and News-Top-story (the hero-plus-supporting pattern).
+ *     Hero gets the 16:9 ratio + larger title; siblings stay at 3:2.
+ *   • Card slab — informed by SharePoint Hero Tiles (full-bleed media
+ *     band), pared down to a 50/50 split.
+ *
+ * Identity stays TUX: maroon/teal/gold gradient placeholders, Work Sans
+ * eyebrow, signature rule under title. Never lift Segoe UI or SharePoint blue.
  */
 
 // ════════════════════════════════════════════════════════════════════════
@@ -317,6 +332,7 @@ function CardGroupsPage() {
         <CDSpec label="Image ratio" value="3:2 default" note="16:9 when size=wide; 3:4 when size=tall" />
         <CDSpec label="Lede clamp" value="3 lines" note="prevents ragged column heights" />
         <CDSpec label="Card chrome" value="1px border, no radius" note="kept flat to preserve editorial rhythm" />
+        <CDSpec label="Lineage" value="SharePoint Highlighted-Content Grid" note="Anatomy only · TUX type and color" />
       </CDSpecRow>
     </PageShell>
   );
@@ -372,6 +388,7 @@ function CardGroupsFeaturedPage() {
         <CDSpec label="Hero title" value="30px / 30px" note="vs 20px on standards" />
         <CDSpec label="Layouts" value="top-stacked · left-anchored" note="left-anchored fits hero alongside 3 stacked siblings" />
         <CDSpec label="Lede clamp" value="hero=4 · standards=3" note="hero gets the breathing room" />
+        <CDSpec label="Lineage" value="SharePoint Highlighted-Content Filmstrip + News-Top-story" note="Anatomy only · TUX type and color" />
       </CDSpecRow>
     </PageShell>
   );
@@ -509,6 +526,7 @@ function CardSlabPage() {
         <CDSpec label="Title size" value="38px" note="largest in-body title — only page-headers are louder" />
         <CDSpec label="Edge" value="Full-bleed" note="extends to viewport edges; ignores body gutters" />
         <CDSpec label="Limit" value="≤2 per page" note="more than two and the page reads as a slideshow" />
+        <CDSpec label="Lineage" value="SharePoint Hero Tiles" note="Full-bleed media band — anatomy only" />
       </CDSpecRow>
     </PageShell>
   );

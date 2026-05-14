@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link href="../../colors_and_type.css?v=1777059800000" rel="stylesheet">
+<link href="../../colors_and_type.css?v=1777394008156" rel="stylesheet">
 <style>
   html, body { margin: 0; padding: 0; background: var(--surface-page); color: var(--text-primary); font-family: var(--font-sans); height: 100vh; overflow: hidden; }
   #root { height: 100vh; }
@@ -22,6 +22,7 @@
 <div id="root"></div>
 <script type="text/babel" src="TuxComponents.jsx"></script>
 <script type="text/babel" src="ChatParts.jsx"></script>
+<script type="text/babel" src="StructuredOutput.jsx"></script>
 <script type="text/babel">
 const { useState } = React;
 
@@ -62,22 +63,144 @@ function App() {
           </Message>
 
           <Message role="user">
-            Good. Draft the ticket for the retrain — include the three buckets, GPU estimate, and a link to the rubric §3.2 clause so reviewers don't block it.
+            Pull the three audit docs you cited so I can see them, and draft the Linear ticket for the retrain — include the buckets, GPU estimate, and the rubric §3.2 link so reviewers don't block it.
           </Message>
 
           <Message role="assistant">
-            <div style={{ padding: "14px 16px", background: "var(--surface-raised)", border: "1px solid var(--surface-border)", borderRadius: "var(--radius-md)", fontFamily: "var(--font-mono)", fontSize: "0.8125rem", lineHeight: 1.6 }}>
-              <div style={{ color: "var(--text-muted)", marginBottom: 10, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "var(--tracking-wider)" }}>linear ticket · draft</div>
-              <div style={{ fontWeight: 600, color: "var(--brand-primary)" }}>CLS-204 · Scoped retrain: ITAR classifier Q2 2024</div>
-              <div style={{ marginTop: 10, color: "var(--text-primary)", fontFamily: "var(--font-sans)", fontSize: "0.8125rem" }}>
-                Retrain the ITAR-tier classifier against the three false-positive-heavy buckets identified in the Q1 2024 audit: <code>dod-xr-contracts</code>, <code>texdot-state</code>, <code>nsf-cdr</code>. Adds ~664 negatives, no positive-class change. Est. 4.2 GPU-hrs on A100 pool. Validation harness only — no full compliance review per rubric §3.2 (scoped retrains with unchanged positive class are pre-approved).
+            <p style={{ margin: "0 0 14px" }}>Here are the three cited audit documents from the corpus, then the ticket draft.</p>
+
+            <InlineCarousel
+              eyebrow="retrieved · grants-2024 + classifiers-docs"
+              title="Source documents"
+              cardWidth={260}
+              totalCount={47}
+              count={3}
+            >
+              <InlineCard
+                eyebrow="audit · q1-2024"
+                title="Q1 2024 classifier audit"
+                subtitle="False-positive analysis across grants-2024 buckets. Identifies the three high-FP corpora driving 78% of overrides."
+                thumb={{ glyph: <LucideIcon name="file-text" size={20} /> }}
+                meta={[
+                  { label: "score", value: "0.94", mono: true },
+                  { label: "tier", value: "internal" },
+                  { label: "pages", value: "12", mono: true },
+                ]}
+                badge={<TuxBadge tier="internal" />}
+                onClick={() => {}}
+              />
+              <InlineCard
+                eyebrow="rubric · v2.1"
+                title="ITAR tier rubric v2.1"
+                subtitle="§3.2: scoped retrains with unchanged positive class are pre-approved. Re-certification not required."
+                thumb={{ glyph: <LucideIcon name="shield" size={20} /> }}
+                meta={[
+                  { label: "score", value: "0.88", mono: true },
+                  { label: "tier", value: "restricted" },
+                  { label: "section", value: "§3.2", mono: true },
+                ]}
+                badge={<TuxBadge tier="sensitive">ITAR</TuxBadge>}
+                onClick={() => {}}
+              />
+              <InlineCard
+                eyebrow="log · csv"
+                title="False-positive log · 2024-Q1"
+                subtitle="664 row entries across three buckets. Maps doc-id → flagged tier → human-review verdict."
+                thumb={{ glyph: <LucideIcon name="database" size={20} /> }}
+                meta={[
+                  { label: "score", value: "0.81", mono: true },
+                  { label: "rows", value: "664", mono: true },
+                  { label: "size", value: "412 KB", mono: true },
+                ]}
+                badge={<TuxBadge tier="internal" />}
+                onClick={() => {}}
+              />
+              <InlineCard
+                eyebrow="dataset"
+                title="dod-xr-contracts/"
+                subtitle="342 false-positives. Mostly training docs that name ITAR categories but aren't themselves controlled."
+                thumb={{ glyph: <LucideIcon name="folder" size={20} /> }}
+                meta={[
+                  { label: "fps", value: "342", mono: true },
+                  { label: "tier", value: "restricted" },
+                ]}
+                badge={<TuxBadge tier="sensitive">ITAR</TuxBadge>}
+                onClick={() => {}}
+              />
+              <InlineCard
+                eyebrow="dataset"
+                title="texdot-state/"
+                subtitle="218 false-positives. Public state-funded work flagged for phrase-overlap with the defense corpus."
+                thumb={{ glyph: <LucideIcon name="folder" size={20} /> }}
+                meta={[
+                  { label: "fps", value: "218", mono: true },
+                  { label: "tier", value: "public" },
+                ]}
+                badge={<TuxBadge tier="public" />}
+                onClick={() => {}}
+              />
+              <InlineCard
+                eyebrow="dataset"
+                title="nsf-cdr/"
+                subtitle="104 false-positives from carbon dioxide removal proposals. Chemistry terms collide with dual-use category."
+                thumb={{ glyph: <LucideIcon name="folder" size={20} /> }}
+                meta={[
+                  { label: "fps", value: "104", mono: true },
+                  { label: "tier", value: "internal" },
+                ]}
+                badge={<TuxBadge tier="internal" />}
+                onClick={() => {}}
+              />
+            </InlineCarousel>
+
+            <div style={{ height: 18 }} />
+
+            <ResponseCard
+              toolName="linear.create_issue"
+              title="CLS-204 · Scoped retrain: ITAR classifier Q2 2024"
+              status="success"
+              icon="zap"
+              footer={
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                  <span>Linked to rubric §3.2 · auto-tagged <code>classifier</code>, <code>itar</code>, <code>retrain</code></span>
+                  <a href="#" onClick={(e) => e.preventDefault()} className="link-tti" style={{ fontSize: "0.78rem", fontWeight: 600 }}>Open in Linear →</a>
+                </div>
+              }
+            >
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 14 }}>
+                <div>
+                  <div className="eyebrow" style={{ fontSize: "0.62rem", marginBottom: 3 }}>project</div>
+                  <div style={{ fontSize: "0.85rem", fontWeight: 500 }}>Classifiers</div>
+                </div>
+                <div>
+                  <div className="eyebrow" style={{ fontSize: "0.62rem", marginBottom: 3 }}>assignee</div>
+                  <div style={{ fontSize: "0.85rem", fontWeight: 500 }}>A. Guevara</div>
+                </div>
+                <div>
+                  <div className="eyebrow" style={{ fontSize: "0.62rem", marginBottom: 3 }}>est. compute</div>
+                  <div style={{ fontSize: "0.85rem", fontWeight: 500, fontFamily: "var(--font-mono)" }}>4.2 GPU-hrs · A100</div>
+                </div>
               </div>
-            </div>
-            <div style={{ marginTop: 14, display: "flex", gap: 8 }}>
-              <TuxButton intent="primary" icon="plus">Create ticket</TuxButton>
-              <TuxButton intent="secondary" icon="pencil">Edit draft</TuxButton>
-              <TuxButton intent="ghost">Discard</TuxButton>
-            </div>
+              <p style={{ margin: "0 0 12px", fontSize: "0.875rem", lineHeight: 1.6, color: "var(--text-primary)" }}>
+                Retrain the ITAR-tier classifier against the three false-positive-heavy buckets identified in the Q1 2024 audit: <code>dod-xr-contracts</code>, <code>texdot-state</code>, <code>nsf-cdr</code>. Adds ~664 negatives, no positive-class change. Validation harness only — no full compliance review per rubric §3.2 (scoped retrains with unchanged positive class are pre-approved).
+              </p>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <TuxButton intent="primary" icon="plus">Create ticket</TuxButton>
+                <TuxButton intent="secondary" icon="pencil">Edit draft</TuxButton>
+                <TuxButton intent="ghost">Discard</TuxButton>
+              </div>
+            </ResponseCard>
+
+            <div style={{ height: 14 }} />
+
+            <InlineCard
+              variant="compact"
+              eyebrow="related runbook"
+              title="How to scope an ITAR classifier retrain"
+              subtitle="research-it/runbooks/scoped-classifier-retrain.md"
+              thumb={{ glyph: <LucideIcon name="book-open" size={16} /> }}
+              onClick={() => {}}
+            />
           </Message>
         </div>
         <Composer />

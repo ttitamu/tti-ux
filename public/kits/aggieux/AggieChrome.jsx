@@ -6,10 +6,30 @@
  * The header sits above both and includes a product tag + search stub.
  */
 
-const { useState: _cUseState, useMemo: _cUseMemo } = React;
+const { useState: _cUseState, useMemo: _cUseMemo, useEffect: _cUseEffect, useRef: _cUseRef } = React;
+
+// Sidebar group order. Catalog entries can use any `page` value; new groups
+// land at the end of this list (alphabetical fallback) so adding one is safe
+// without touching this file. Reorder here when a group's priority changes.
+const SIDEBAR_PAGE_ORDER = [
+  "Foundations",
+  "Status",
+  "Navigation",
+  "Components",
+  "Sectioning",
+  "Specialized",
+  "Overlays",
+  "Data viz",
+  "Accessibility",
+  "Templates",
+];
+
+// Groups that start collapsed by default. Foundations stays open so the kit
+// has an obvious entry point on first load.
+const SIDEBAR_DEFAULT_OPEN = new Set(["Foundations"]);
 
 // ─── AggieHeader ────────────────────────────────────────────────────────────
-function AggieHeader({ darkPreview, onToggleDark }) {
+function AggieHeader({ theme, onSetTheme, themes }) {
   return (
     <header style={{ position: "sticky", top: 0, zIndex: 20, background: "color-mix(in srgb, var(--surface-raised) 94%, transparent)", borderBottom: "1px solid var(--surface-border)", backdropFilter: "blur(6px)" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 24, padding: "12px 28px", maxWidth: "100%" }}>
@@ -40,10 +60,35 @@ function AggieHeader({ darkPreview, onToggleDark }) {
           <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.68rem", color: "var(--text-muted)", background: "var(--surface-raised)", padding: "2px 5px", borderRadius: 3, border: "1px solid var(--surface-border)" }}>⌘K</span>
         </div>
 
-        <label style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: "0.78rem", color: "var(--text-secondary)", cursor: "pointer", userSelect: "none" }}>
-          <input type="checkbox" checked={darkPreview} onChange={onToggleDark} style={{ accentColor: "var(--brand-primary)" }} />
-          Preview on dark
-        </label>
+        <div role="radiogroup" aria-label="Theme" style={{ display: "inline-flex", padding: 3, background: "var(--surface-sunken)", borderRadius: "var(--radius-md)", border: "1px solid var(--surface-border)" }}>
+          {themes.map(t => {
+            const active = t.id === theme;
+            return (
+              <button
+                key={t.id}
+                role="radio"
+                aria-checked={active}
+                aria-label={t.label}
+                onClick={() => onSetTheme(t.id)}
+                title={t.label}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  padding: "5px 10px", border: "none", cursor: "pointer",
+                  background: active ? "var(--surface-raised)" : "transparent",
+                  color: active ? "var(--brand-primary)" : "var(--text-secondary)",
+                  fontFamily: "var(--font-body-bold)", fontWeight: 700,
+                  fontSize: "0.68rem", textTransform: "uppercase", letterSpacing: "0.08em",
+                  borderRadius: "calc(var(--radius-md) - 3px)",
+                  boxShadow: active ? "var(--shadow-sm)" : "none",
+                  transition: "background 120ms, color 120ms",
+                }}
+              >
+                <LucideIcon name={t.icon} size={12} />
+                <span>{t.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </header>
   );
@@ -58,55 +103,176 @@ function AggieSidebar({ route, onNavigate }) {
       if (!map.has(item.page)) map.set(item.page, []);
       map.get(item.page).push(item);
     }
-    return [...map.entries()];
+    const entries = [...map.entries()];
+    // Sort by SIDEBAR_PAGE_ORDER; unknown groups fall to the end alphabetically.
+    entries.sort(([a], [b]) => {
+      const ai = SIDEBAR_PAGE_ORDER.indexOf(a);
+      const bi = SIDEBAR_PAGE_ORDER.indexOf(b);
+      if (ai === -1 && bi === -1) return a.localeCompare(b);
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+    return entries;
   }, [catalog]);
 
+  // Find which group contains the active route — that group always opens.
+  const activeGroup = _cUseMemo(() => {
+    for (const [page, items] of groups) {
+      if (items.some(i => i.id === route)) return page;
+    }
+    return null;
+  }, [groups, route]);
+
+  // Open/closed state per group. Persists to localStorage so the user's
+  // preference survives reloads. Defaults: Foundations open + active group.
+  const [openGroups, setOpenGroups] = _cUseState(() => {
+    let saved = {};
+    try {
+      const raw = localStorage.getItem("aggieux:sidebarOpen");
+      if (raw) saved = JSON.parse(raw);
+    } catch (e) { /* ignore */ }
+    const init = {};
+    for (const [page] of groups) {
+      init[page] = saved[page] != null ? saved[page] : SIDEBAR_DEFAULT_OPEN.has(page);
+    }
+    return init;
+  });
+
+  // Whenever the active route changes, force its group open (without
+  // collapsing anything else the user has already opened).
+  _cUseEffect(() => {
+    if (!activeGroup) return;
+    setOpenGroups((prev) => prev[activeGroup] ? prev : { ...prev, [activeGroup]: true });
+  }, [activeGroup]);
+
+  const toggleGroup = (page) => {
+    setOpenGroups((prev) => {
+      const next = { ...prev, [page]: !prev[page] };
+      try { localStorage.setItem("aggieux:sidebarOpen", JSON.stringify(next)); } catch (e) { /* ignore */ }
+      return next;
+    });
+  };
+
+  const expandAll = () => {
+    const next = {};
+    for (const [page] of groups) next[page] = true;
+    setOpenGroups(next);
+    try { localStorage.setItem("aggieux:sidebarOpen", JSON.stringify(next)); } catch (e) { /* ignore */ }
+  };
+  const collapseAll = () => {
+    const next = {};
+    for (const [page] of groups) next[page] = false;
+    if (activeGroup) next[activeGroup] = true; // never hide the active route
+    setOpenGroups(next);
+    try { localStorage.setItem("aggieux:sidebarOpen", JSON.stringify(next)); } catch (e) { /* ignore */ }
+  };
+
+  // Auto-scroll the active sidebar item into view on route change. Only scrolls
+  // when the active item is outside the visible viewport — avoids jitter on
+  // every nav click.
+  const asideRef = _cUseRef(null);
+  _cUseEffect(() => {
+    if (!route || !asideRef.current) return;
+    const active = asideRef.current.querySelector(`a[data-route="${route}"]`);
+    if (!active) return;
+    const aside = asideRef.current;
+    const aTop = active.offsetTop;
+    const aBottom = aTop + active.offsetHeight;
+    const sTop = aside.scrollTop;
+    const sBottom = sTop + aside.clientHeight;
+    if (aTop < sTop + 40 || aBottom > sBottom - 40) {
+      aside.scrollTo({ top: aTop - aside.clientHeight / 2 + active.offsetHeight / 2, behavior: "smooth" });
+    }
+  }, [route, openGroups]);
+
   return (
-    <aside style={{ width: 264, borderRight: "1px solid var(--surface-border)", background: "var(--surface-raised)", height: "calc(100vh - 61px)", position: "sticky", top: 61, overflowY: "auto" }}>
-      <nav style={{ padding: "20px 0 40px" }}>
-        {groups.map(([page, items]) => (
-          <div key={page} style={{ marginBottom: 20 }}>
-            <div style={{ padding: "0 20px 8px", fontSize: "0.64rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.11em", color: "var(--text-muted)", fontFamily: "var(--font-body-bold)" }}>
-              {page}
+    <aside ref={asideRef} style={{ width: 264, borderRight: "1px solid var(--surface-border)", background: "var(--surface-raised)", height: "calc(100vh - 61px)", position: "sticky", top: 61, overflowY: "auto" }}>
+      {/* Expand/collapse-all controls */}
+      <div style={{ display: "flex", gap: 6, padding: "14px 20px 8px", borderBottom: "1px solid var(--surface-border)", marginBottom: 10 }}>
+        <button onClick={expandAll} style={sidebarBtn}>Expand all</button>
+        <button onClick={collapseAll} style={sidebarBtn}>Collapse all</button>
+      </div>
+      <nav style={{ padding: "0 0 40px" }}>
+        {groups.map(([page, items]) => {
+          const isOpen = !!openGroups[page];
+          const readyCount = items.filter(i => i.status === "ready").length;
+          return (
+            <div key={page} style={{ marginBottom: 4 }}>
+              <button
+                onClick={() => toggleGroup(page)}
+                aria-expanded={isOpen}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "8px 20px", border: "none", background: "transparent", cursor: "pointer",
+                  fontSize: "0.64rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.11em",
+                  color: "var(--text-muted)", fontFamily: "var(--font-body-bold)",
+                  textAlign: "left",
+                }}
+              >
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ display: "inline-block", width: 8, transition: "transform 120ms", transform: isOpen ? "rotate(90deg)" : "rotate(0deg)", color: "var(--text-muted)", fontSize: "0.7rem", lineHeight: 1 }}>▸</span>
+                  {page}
+                </span>
+                <span style={{ fontFamily: "var(--font-mono)", fontWeight: 500, opacity: 0.65, fontSize: "0.62rem", letterSpacing: 0, textTransform: "none" }}>
+                  {readyCount}/{items.length}
+                </span>
+              </button>
+              {isOpen && items.map((item) => {
+                const active = route === item.id;
+                return (
+                  <a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    data-route={item.id}
+                    onClick={(e) => { e.preventDefault(); onNavigate(item.id); }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      padding: "7px 20px 7px 36px",
+                      fontSize: "0.82rem",
+                      fontWeight: active ? 600 : 400,
+                      color: active ? "var(--brand-primary)" : "var(--text-secondary)",
+                      background: active ? "color-mix(in srgb, var(--brand-primary) 6%, transparent)" : "transparent",
+                      borderLeft: active ? "3px solid var(--brand-primary)" : "3px solid transparent",
+                      textDecoration: "none",
+                      transition: "background 120ms, color 120ms",
+                    }}
+                  >
+                    <span>{item.label}</span>
+                    {item.status === "ready" && (
+                      <span style={{ fontSize: "0.6rem", color: "var(--color-success)", fontFamily: "var(--font-mono)" }}>●</span>
+                    )}
+                    {item.status === "in-progress" && (
+                      <span style={{ fontSize: "0.6rem", color: "var(--brand-accent)", fontFamily: "var(--font-mono)" }}>◐</span>
+                    )}
+                  </a>
+                );
+              })}
             </div>
-            {items.map((item) => {
-              const active = route === item.id;
-              return (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  onClick={(e) => { e.preventDefault(); onNavigate(item.id); }}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 10,
-                    padding: "7px 20px 7px 24px",
-                    fontSize: "0.82rem",
-                    fontWeight: active ? 600 : 400,
-                    color: active ? "var(--brand-primary)" : "var(--text-secondary)",
-                    background: active ? "color-mix(in srgb, var(--brand-primary) 6%, transparent)" : "transparent",
-                    borderLeft: active ? "3px solid var(--brand-primary)" : "3px solid transparent",
-                    textDecoration: "none",
-                    transition: "background 120ms, color 120ms",
-                  }}
-                >
-                  <span>{item.label}</span>
-                  {item.status === "ready" && (
-                    <span style={{ fontSize: "0.6rem", color: "var(--state-success)", fontFamily: "var(--font-mono)" }}>●</span>
-                  )}
-                  {item.status === "in-progress" && (
-                    <span style={{ fontSize: "0.6rem", color: "var(--brand-accent)", fontFamily: "var(--font-mono)" }}>◐</span>
-                  )}
-                </a>
-              );
-            })}
-          </div>
-        ))}
+          );
+        })}
       </nav>
     </aside>
   );
 }
+
+const sidebarBtn = {
+  flex: 1,
+  padding: "5px 8px",
+  fontSize: "0.62rem",
+  fontWeight: 600,
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  color: "var(--text-secondary)",
+  background: "var(--surface-sunken)",
+  border: "1px solid var(--surface-border)",
+  borderRadius: "var(--radius-sm)",
+  cursor: "pointer",
+  fontFamily: "var(--font-body-bold)",
+};
 
 // ─── PageShell — consistent header + intro for every component page ────────
 function PageShell({ item, darkPreview, children }) {
@@ -139,7 +305,7 @@ function StatusChip({ status }) {
   const map = {
     scaffold:     { label: "Scaffold",     color: "var(--text-muted)",       bg: "var(--surface-sunken)" },
     "in-progress":{ label: "In progress",  color: "var(--brand-accent)",     bg: "color-mix(in srgb, var(--brand-accent) 14%, transparent)" },
-    ready:        { label: "Ready",        color: "var(--state-success)",    bg: "color-mix(in srgb, var(--state-success) 14%, transparent)" },
+    ready:        { label: "Ready",        color: "var(--color-success)",    bg: "color-mix(in srgb, var(--color-success) 14%, transparent)" },
   };
   const s = map[status] || map.scaffold;
   return (

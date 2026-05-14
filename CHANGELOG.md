@@ -5,6 +5,324 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — self-hosted fonts via `@fontsource/*` + `scripts/sync-fonts.mjs`
+
+Replaces the `@nuxt/fonts` module (Google-provider auto-fetch) with
+explicit `@font-face` declarations in `app/assets/css/fonts.css`,
+sourced from `@fontsource/*` npm packages and synced into
+`public/fonts/<family>/*.woff2` via [`scripts/sync-fonts.mjs`](scripts/sync-fonts.mjs).
+Air-gapped-build clean — no CDN dependency at runtime or build time,
+which matters for state-agency deploys and consumer apps that ship
+behind enterprise proxies.
+
+- **`@fontsource/{open-sans,oswald,work-sans,public-sans,jetbrains-mono}`**
+  added as devDependencies. Re-sync with `npm run sync:fonts`.
+- **`app/assets/css/fonts.css`** declares every face/weight/style
+  combination the four-family rule uses; loaded first in the CSS
+  cascade so subsequent rules can reference the families.
+- **`nuxt.config.ts`** drops `@nuxt/fonts` from `modules` and its
+  `fonts` block; prepends `fonts.css` to the `css` array.
+
+### Changed — dark theme brand accent retuned to lifted-TTI-teal
+
+Dark theme's `--brand-primary` switches from lightened maroon
+(`#e795a8`) to lifted TTI teal (`#6BB4C0` — the tertiary swatch from
+`design/palette.md`, lifted for dark-page contrast). Earlier values
+read too pink in the studio where most accent points live on small
+chrome elements (composer border, focus rings, active-tab text);
+teal reads more institutional at small sizes.
+
+- **`--brand-primary` / `--brand-primary-deep`** retuned in
+  `[data-theme="tti-dark"]` to `#6BB4C0` / `#5B9CA8`. Clears AAA on
+  every dark surface (7.1:1 on raised, ~8.2:1 on page, ~8.7:1 on
+  sunken).
+- **`--color-maroon-400 = #7A1233`** override added — Nuxt UI v4's
+  solid-variant button fill uses primary-400 in dark themes; the
+  unmodified palette value (#b14a6c) reads as raspberry pink against
+  the teal accent. Deepening to wine keeps the brand maroon presence
+  on loud CTAs (New chat, Send) without losing AAA on white text.
+- **`--text-brand`** repointed to the new teal-deep so brand-tinted
+  inline text stays coherent with the accent.
+
+Maroon brand presence preserved via `--brand-fill` (always #5C0025)
+on marketing panels, the `--color-maroon-400` override on solid
+buttons, and `--chart-1` pinned to a wine-leaning value so the brand
+chart series doesn't silently shift to teal.
+
+### Added — `TuxSlideover` (edge-anchored drawer)
+
+Slice 4 (final) of the Nuxt UI gap-analysis follow-through. Distinct
+affordance from `TuxModal` — `TuxSlideover` slides in from a viewport
+edge and preserves the reading context behind the scrim. Use for row
+detail (click a `TuxRichDataGrid` row → slide in field metadata),
+filter panels, mobile nav reveals, and bottom action sheets.
+
+- **`TuxSlideover`** ([`app/components/TuxSlideover.vue`](app/components/TuxSlideover.vue),
+  [`/components/slideover`](app/pages/components/slideover.vue)) —
+  edge-anchored panel built on the native `<dialog>` element so focus
+  trap, escape handling, scrim rendering, and ARIA semantics come from
+  the platform. Slide animation rides Batch J's `--ease-corridor`
+  curve over `--motion-base` duration. The panel itself opts into
+  `data-tux-overlay` (Batch J easing) and `data-tux-elevation="overlay"`
+  (Batch J shadow tier) so it inherits the system's anchored-surface
+  rhythm without duplicate CSS.
+- **Three sides** —
+  - `right` (default) — row detail, filter panel. 28rem wide, full
+    viewport height, rounded on the left edge.
+  - `left` — mobile nav drawer. Mirror of right.
+  - `bottom` — action sheet. Full viewport width, 24rem tall, rounded
+    on the top edge.
+- **Props** —
+  - `v-model: boolean` — open / closed
+  - `side: "left" | "right" | "bottom"` (default `"right"`)
+  - `size: string` — CSS length for width (left/right) or height (bottom)
+  - `title` + `eyebrow` — header heading + optional eyebrow above
+  - `showClose: boolean` — top-right close button (default `true`)
+  - `closeOnBackdrop: boolean` — dismiss on scrim click (default `true`)
+- **Slots** — default (body), `#header` (replace eyebrow + title region),
+  `#footer` (action row with sunken-surface tint).
+- **Reduced motion** — `@media (prefers-reduced-motion: reduce)`
+  skips the slide animation; the panel appears in place.
+- **Doctrine note** — added "Slideover vs Modal" section to the demo
+  page: choose slideover when the user is drilling into the page
+  they're on (row detail, filter panel, side-by-side editor); choose
+  modal when the underlying page doesn't matter (confirmation, fatal
+  error, full-attention form).
+
+### Added — `TuxTree` (hierarchical list)
+
+Slice 3 of the Nuxt UI gap-analysis follow-through. Fills the
+sitemap / corpus / BI-dataset-explorer gap identified in the Nuxt UI
+audit. Native (not a `UTree` wrapper) since the visual is
+brand-specific and the keyboard semantics are simple enough to own.
+
+- **`TuxTree`** ([`app/components/TuxTree.vue`](app/components/TuxTree.vue))
+  — recursive hierarchical list. Each node carries
+  `{ id, label, icon?, description?, mono?, to?, href?, badge?, children? }`.
+  Pass `to` for internal nav (renders `<NuxtLink>`), `href` for
+  external, or leave both off for a pure toggle/select row (renders
+  `<div role="button" tabindex="0">` to sidestep Tailwind v4's
+  `@layer base` button reset, which would otherwise win over scoped
+  CSS via layer cascade order). Set `mono: true` on a node to render
+  its label in JetBrains Mono — useful for path / id / hash leaf
+  rows.
+- **`TuxTreeNode`** ([`app/components/TuxTreeNode.vue`](app/components/TuxTreeNode.vue))
+  — single-row recursive child component. Owns the row chrome
+  (chevron, icon, label-block, badge) and indents by depth via
+  `padding-left`. Expand state lives in the parent tree; this
+  component just queries it via a callback prop.
+- **Props (`TuxTree`)** —
+  - `items: TreeItem[]` (required)
+  - `defaultExpanded?: string[]` — initial open IDs (defaults to every root node)
+  - `storageKey?: string` — sessionStorage key for collapse persistence
+  - `showGuides: boolean` — 1px sand guide lines under expanded branches (default `true`)
+  - `v-model:selected` — currently-selected node ID
+  - `ariaLabel: string` — passed to `[role="tree"]`
+  - Exposes `expandAll()` / `collapseAll()` via template ref
+- **Visual rhythm** — maroon chevron + maroon label tint on the
+  selected row (anchored by a 2px maroon left bar, mirroring
+  `.tux-cmd__item--active` so cross-component selection reads
+  consistently). Sand guide lines under expanded branches help deep
+  hierarchies stay scan-able. Container query
+  (`@container tux-tree (max-width: 280px)`) drops the description
+  line and tightens padding at narrow widths — per CLAUDE.md rule 1.
+- **Keyboard nav** — `Enter` / `Space` toggle+select,
+  `ArrowRight` expands a collapsed branch, `ArrowLeft` collapses an
+  expanded branch. Up/down navigation uses native focus order through
+  the row elements (which are all focusable).
+- **Demo page** [`/components/tree`](app/pages/components/tree.vue)
+  shows three example trees: sitemap (route links + badges), corpus /
+  filesystem browser (mono leaf labels, row-count badges), and a
+  BI dataset hierarchy (per ADR-0009) with `v-model:selected` driving
+  a focused-field side panel.
+- **Nav wiring** — `app/app.vue` sidebar, `app/pages/components/index.vue`
+  catalog, and `design/components.md` doctrine table.
+
+### Added — `TuxProse`, `/typography` refresh, doc-page surround nav
+
+Slice 2 of the Nuxt UI gap-analysis follow-through. Consolidates the
+prose typography that was duplicated across three pages, refreshes the
+`/typography` foundation page to reflect the four-family rule from
+`design/tux.md`, and adds a prev/next surround at the bottom of every
+`/design/[doc]` page.
+
+- **`TuxProse`** ([`app/components/TuxProse.vue`](app/components/TuxProse.vue),
+  [`/components/prose`](app/pages/components/prose.vue)) — typographic shell for
+  long-form markdown. Single `:deep()` block covering H1/H2/H3/H4/p/ul/ol/li/
+  strong/em/code/pre/a/table/th/td/hr/blockquote/img. Default wrapper is
+  `<article>`; pass `as="div"` when the parent already provides the
+  landmark. Replaces three duplicate ~130-line `.prose-tux :deep(…)`
+  blocks that lived inline in `app/pages/changelog.vue`,
+  `app/pages/design/[doc].vue`, and `app/pages/markdown.vue` (~400
+  lines of duplication eliminated).
+- **`[`/design/[doc]`](app/pages/design/[doc].vue)` rewrite** — wraps `<MDCRenderer>`
+  in `<TuxProse>` and adds a Nuxt-UI-style `ContentSurround` at article
+  bottom (prev / next sibling design docs, sorted by slug). The
+  surround cards opt into Batch J's `data-tux-elevation="rest"` for
+  consistent shadow tier.
+- **[`/changelog`](app/pages/changelog.vue)** — wraps `<MDCRenderer>` in
+  `<TuxProse>`. Drops the 90-line scoped prose CSS block.
+- **[`/markdown`](app/pages/markdown.vue)** — wraps the MDC preview in
+  `<TuxProse as="div">` so the prose rhythm renders inside the
+  card without doubling up the `<article>` landmark. Drops the
+  110-line scoped prose CSS block.
+- **[`/typography`](app/pages/typography.vue) refresh** — dek now opens with "Four families,
+  three style variants, one mono" instead of the stale Public Sans /
+  JetBrains Mono framing. Adds:
+  - **Family roster** — five articles, one per token
+    (`--font-body`, `--font-display`, `--font-bold`, `--font-elegant`,
+    `--font-mono`), each showing role + sample. Each card opts into
+    Batch J's `data-tux-elevation="rest"`.
+  - **`heading--elegant`** section with both the upright and italic
+    forms (the page mentioned the utility before but never showed it).
+  - **Style variants triptych** — three side-by-side cards
+    demonstrating `default` / `.style--bold` / `.style--elegant`
+    applied to the same heading text.
+  - **`TuxProse` wrapper demo** — renders a sample H1 / p / H2 / list /
+    blockquote stack inside the wrapper to make the prose rhythm
+    legible to designers landing on the foundation page.
+  - Cross-links to `/design/tux`, `/tokens`, `/components/kbd`,
+    `/style-variants`, and `/changelog`.
+- **Nav wiring** — `app/app.vue` sidebar, `app/pages/components/index.vue`
+  catalog, and `design/components.md` doctrine table all gain the
+  `TuxProse` row.
+
+### Added — `TuxKbd`, `TuxShortcutsHelp`, global `defineShortcuts`
+
+Slice 1 of the Nuxt UI gap-analysis follow-through. Consolidates the
+three hand-rolled `<kbd>` styling blocks that lived inside
+`TuxCommandPalette` into one component, leans on Nuxt UI's
+`defineShortcuts` for platform-correct hotkey wiring, and mounts a
+global command palette + shortcuts-help overlay at the shell so every
+page benefits from `⌘K`, `/`, and `?`.
+
+- **`TuxKbd`** ([`app/components/TuxKbd.vue`](app/components/TuxKbd.vue), [`/components/kbd`](app/pages/components/kbd.vue)) — token-styled `<kbd>` with Mac
+  vs PC modifier normalization (post-hydration to avoid SSR mismatch).
+  Three sizes (`xs`/`sm`/`lg`), single-key + combo + sequence forms,
+  built-in glyphs for arrows / enter / escape / tab / space, default
+  slot for custom content (function keys, icons). Uses the same
+  `defineShortcuts` key grammar (`meta`, `ctrl`, `shift`, …) so a
+  binding declaration and its rendered hint share a vocabulary.
+- **`TuxShortcutsHelp`** ([`app/components/TuxShortcutsHelp.vue`](app/components/TuxShortcutsHelp.vue)) — modal
+  overlay listing every wired shortcut, grouped. Auto-classifies items
+  as combo (modifier+key, rendered as one `TuxKbd` group) or sequence
+  (no modifier, rendered as `TuxKbd "then" TuxKbd`). Built on
+  `<dialog>` for free focus trap + scrim + escape semantics, same
+  anatomy as `TuxCommandPalette`. Opt-in `data-tux-overlay` +
+  `data-tux-elevation="overlay"` so it picks up the Batch J easing
+  curve and shadow.
+- **`TuxCommandPalette` refactor** — replaces the hand-rolled
+  `keydown` listener with `defineShortcuts({ meta_k: …, usingInput: true })`
+  for platform-correct meta/ctrl handling. Replaces the inline `<kbd>`
+  markup (esc hint, per-item shortcut, footer hints) with `<TuxKbd>`.
+  Drops the now-redundant `.tux-cmd__esc-hint`,
+  `.tux-cmd__item-shortcut`, and `.tux-cmd__footer-hint kbd` scoped
+  CSS blocks. Arrow / enter / escape stay on the dialog's local input
+  handler since they're list-nav, not app-level shortcuts.
+- **Shell-level wiring in [`app/app.vue`](app/app.vue)** — mounts one
+  `<TuxCommandPalette>` and one `<TuxShortcutsHelp>` globally, with
+  `paletteGroups` derived from the existing `navTree` so a single
+  source of truth drives sidebar nav and palette search.
+  `defineShortcuts` at the shell wires:
+  - `meta_k` — open the global palette (handled by `TuxCommandPalette` internally)
+  - `/` — open the global palette (GitHub idiom)
+  - `?` — toggle the shortcuts-help overlay
+  - `g-c` / `g-t` / `g-d` / `g-h` — sequence shortcuts to
+    `/components`, `/tokens`, `/design/tux`, `/`
+- **`/components/command-palette` demo** — adds `:disable-hotkey="true"`
+  on the page's local palette instance so `⌘K` only fires the global
+  one. Replaces the page's hand-rolled `<kbd>` markup with `<TuxKbd>`.
+- **Nav wiring** — `app/app.vue` sidebar tree, `app/pages/components/index.vue`
+  catalog table, and `design/components.md` doctrine table all gain
+  the `TuxKbd` row.
+
+### Added — Batch J: visual-language application sweep
+
+A surface-level pass that applies the Batch E-prelude tokens (focus,
+easing, elevation, identity primitives) across the existing kit without
+touching every component file. Pure CSS, additive, opt-in via attribute
+selectors and utility classes. Imported from the standalone
+`tti-ux-design` skill payload (2026-05-14), where the doctrine and
+implementation were authored alongside.
+
+- **`app/assets/css/tux.css`** gains a `BATCH J` section with six rules:
+  - **J.1** — `transition-timing-function: var(--ease-survey)` default
+    for `button, a, input, select, textarea, [role="button"],
+    [role="tab"], [role="option"], .tux-card, .card-linked*` (gated by
+    `prefers-reduced-motion`). Opt-in `data-tux-overlay` →
+    `--ease-corridor`; `data-tux-arrival` → `--ease-arrival`. Inline JS
+    transitions and component-declared curves still win.
+  - **J.2** — `[data-tux-elevation="flat|rest|hover|overlay|pinned"]`
+    maps the five elevation tiers to a single attribute. The `hover`
+    value also applies `translateY(-1px)` for the canonical lift.
+  - **J.3** — `.tux-hoverlift` utility: one-class opt-in for the
+    rest → hover transition pairing.
+  - **J.4** — `.tux-mark` / `.tux-mark--lg` / `.tux-mark--xl` for sizing
+    and tinting identity-primitive `<symbol>`s from
+    `/identity-primitives.svg` (already shipping in `public/`). Default
+    16×16, currentColor = `--brand-primary`; `--mark-size` and
+    `--mark-color` are the per-instance hooks.
+  - **J.5** — `.tux-section-divider`: eyebrow label + maroon-to-
+    transparent gradient rule packaged as a one-class utility.
+  - **J.6** — `[data-tux-rowgrid]`: subtle 6%-maroon repeating-vertical-
+    lines background, opt-in on heroes / empty-state panels / section
+    breaks.
+- **`design/visual-language-evolution.md`** gains the matching `Batch J
+  — 2026-05` section documenting each rule, the opt-in pattern, and the
+  Nuxt-vs-skill path note (`assets/identity-primitives.svg` in the
+  skill payload → `/identity-primitives.svg` here).
+- **No new tokens, no new components, no JS changes.** Batch J consumes
+  the prelude tokens (`--ease-survey/corridor/arrival`, `--motion-base/
+  fast`, `--elevation-flat/rest/hover/overlay/pinned`, etc.) already in
+  `app/assets/css/tokens.css`. The mapping `--font-body-bold` →
+  `--font-bold` reconciles the skill payload's token name with the
+  four-family typography rule.
+
+### Added — `public/kits/aggieux/` major expansion
+
+Refresh of the TTI-curated AggieUX preview catalog at
+`public/kits/aggieux/` from the skill payload (`ui_kits/aggieux/`).
+**Not** a change to `reference/aggieux/v2.0.1/` (the frozen upstream
+CDN snapshot at `aux.tamu.edu`, untouched per CLAUDE.md).
+
+- **43 new `Aggie*.jsx` demo pages** covering chart foundations,
+  charts/maps/treatments/viz, data tables, descriptions, directory,
+  forms (core + advanced + field grid + date range + dropdown-
+  combobox), filters, status states, banners, sectioning, templates,
+  hover/focus disclosures, accessibility, image lightbox, load-more,
+  feedback, toggle/slider, toolbar, transfer, tree, rate, rich data
+  grid, sidebar banner, specialized patterns, AI-studio surface,
+  corridor strip, collab, descriptions, guidance, map legend, news
+  contact (sectioning, etc.). Net 23 → 66 files in the kit folder.
+- **10 updated pages** — `AggieCatalog` (registers every new section),
+  `AggieButtonsAlerts`, `AggieCards`, `AggieChrome`, `AggieIconLink`,
+  `AggieMenus`, `AggieNewsContact`, `AggiePageHeaders`, `AggiePages`,
+  `App.jsx`.
+- **`index.html`** updated to register all 64 JSX modules via
+  `<script type="text/babel">` tags.
+- **`AggieDisclosure.jsx`** (Batch 10: accordions / publication
+  accordion / Q&A) and **`AggieDisclosures.jsx`** (Batch A.1: tooltips
+  and popovers) are intentionally distinct — both ship.
+
+### Added — `StructuredOutput.jsx` for tti-ai-chat kit
+
+Imported from the skill payload's `tti-ai-studio` kit (collapsed-naming
+mirror of our `tti-ai-chat`).
+
+- **`public/kits/tti-ai-chat/StructuredOutput.jsx`** ships three
+  primitives for AI-generated structured tool output inline in a
+  conversation: `InlineCard`, `InlineCarousel`, `ResponseCard`. Anatomy
+  lineage is MCP Apps for Claude; translated to tti-ux's typography,
+  color, and signature language. Globals: `React`, `LucideIcon`,
+  `TuxBadge` — all already provided by other kit scripts.
+- **`public/kits/tti-ai-chat/index.html`** rewritten to register
+  `StructuredOutput.jsx` and to demonstrate the new primitives — the
+  assistant Message in the demo conversation now renders an
+  `InlineCarousel` of six citation cards, a `ResponseCard` for the
+  Linear ticket draft (with `toolName`, `status`, `footer`), and a
+  compact `InlineCard` for the related runbook. Title kept as
+  `tti-ai-chat` to match the local kit naming.
+
 ## [1.3.0] — 2026-05-12
 
 Shell + sidebar + footer alignment batch. The style-guide chrome
