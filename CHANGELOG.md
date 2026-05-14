@@ -5,6 +5,50 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.1] — 2026-05-14
+
+Patch: bridge `@nuxtjs/color-mode` to Nuxt UI's `.dark` class so Nuxt
+UI primitives actually inherit the dark theme. Completes v1.4.0's
+dark-accent retune — without this bridge, `<UButton>` / `<UInput>` /
+`<UBadge>` / `<USelect>` stayed in light mode under `tti-dark`
+because Nuxt UI's runtime CSS rule is gated on `.dark`, but our
+color-mode is configured with `classSuffix: ""` so it emits
+`tti-dark`, not `.dark`.
+
+### Fixed — Nuxt UI primitives in dark theme
+
+- **`app/plugins/nuxt-ui-dark-bridge.client.ts`** ([`view`](app/plugins/nuxt-ui-dark-bridge.client.ts))
+  watches `colorMode.value` and toggles `.dark` on `<html>` when the
+  preference is `tti-dark`. `tti-hc` is light-surfaced per ADR-0005
+  so it intentionally stays without `.dark` (Nuxt UI's light path is
+  correct for HC).
+- Brief FOUC trade-off: the boot script sets `[data-theme]` + the
+  theme class before Vue hydrates, but this Vue plugin only runs on
+  hydration. On a fresh load in `tti-dark`, primitives flash light
+  briefly before this plugin adds `.dark`. The surrounding page is
+  already dark from tokens.css so the flash should be imperceptible;
+  the harder fix (patching the boot script to add both classes at
+  once) is parked for now.
+
+### Changed — `--color-maroon-400` consolidated onto the dark-mode teal accent
+
+With the bridge plugin firing `.dark`, Nuxt UI's `text-inverted`
+flips from white to stone-900 in dark mode, which changes the
+calculus for the primary-button fill (the button now carries dark
+text on top, conventional inverted-button pattern).
+
+- **`--color-maroon-400`** in `[data-theme="tti-dark"]` retuned from
+  brick-wine `#702C28` to lifted TTI teal `#6BB4C0` — the same value
+  as `--brand-primary`. Consolidates the dark-mode accent system on
+  a single hue: maroon stays anchored on light surfaces and in
+  `--brand-fill` for marketing panels, but every primary-colored
+  control in dark mode reads as TTI teal. Black-on-#6BB4C0 ≈ 7.9:1
+  AAA.
+- Earlier wine candidates (`#b14a6c`, `#7a1233`, `#702C28`) all rang
+  awkwardly next to the teal accent — either too pink (high
+  saturation) or too dim (deep brown against a near-black sidebar).
+  Picking teal unifies the dark-mode accent story.
+
 ## [1.4.0] — 2026-05-14
 
 Nuxt UI gap-analysis batch (five new components covering kbd hints,

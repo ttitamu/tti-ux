@@ -315,23 +315,30 @@
   --text-inverse:   #221F1F;
   --text-brand:     #5B9CA8;
 
-  /* Override Nuxt UI's maroon palette in dark mode at the 400 step.
-     Nuxt UI v4's solid-variant button picks primary-400 for the fill
-     in dark themes; the unmodified palette value (#b14a6c) reads as
-     raspberry pink, and an earlier deepening to #7a1233 still rang
-     loud against the teal accent above (raspberry/magenta hue at
-     mid-saturation). Reusing the existing --map-seq-maroon-2 value
-     (#702C28) — brick-wine, low saturation, brown-leaning — recedes
-     into the dark page so the button is quiet rather than punchy.
-     Surface contrast vs the page is ~1.9:1 (below WCAG 1.4.11's 3:1
-     UI threshold), so the button edge is faint by design; readability
-     comes from the white label (clears 10:1 on this fill) and the
-     button's shape/hover state, not from the surface contrast.
+  /* Override Nuxt UI's primary palette at the 400 step. Nuxt UI's
+     solid-variant button reads `bg-primary` → `var(--ui-primary)`,
+     which under .dark resolves to var(--ui-color-primary-400) →
+     var(--color-maroon-400). So this is the effective dark-mode
+     button-fill knob.
+
+     Wine values here (the original #b14a6c, then #7a1233, then a
+     brick-wine #702C28) all rang awkwardly next to the teal accent
+     — either too pink (high saturation) or too dim (deep brown
+     against a near-black sidebar). Going to the same lifted teal
+     as --brand-primary consolidates the dark-mode accent system on
+     a single hue: maroon stays anchored on light surfaces and in
+     --brand-fill for marketing panels, but every primary-colored
+     control in dark mode reads as TTI teal.
+
+     With the bridge plugin firing .dark on <html>, Nuxt UI's
+     `text-inverted` also flips from white to stone-900, so this
+     teal fill carries dark text on top (the inverted-button pattern
+     conventional in dark themes). Black-on-#6BB4C0 ≈ 7.9:1 AAA.
 
      Other maroon-* steps inherit from :root because they're only
-     used in light surfaces or fall back to deep wine values that
-     already work on dark. */
-  --color-maroon-400: #702C28;
+     used in light-mode surfaces or fall back to deep wine values
+     that already work on dark. */
+  --color-maroon-400: #6BB4C0;
 
   /* All semantic colors target AAA (7:1) on the dark page surface
      #15100f. Numbers verified by /contrast-audit. */
