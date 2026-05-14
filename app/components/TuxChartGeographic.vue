@@ -148,8 +148,10 @@ const stateValueByCode = computed(() => {
 function pointInPolygon(point: readonly [number, number], poly: ReadonlyArray<readonly [number, number]>): boolean {
   let inside = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const [xi, yi] = poly[i];
-    const [xj, yj] = poly[j];
+    // Index is guaranteed in range by the loop bounds; `!` quiets
+    // noUncheckedIndexedAccess without changing runtime behavior.
+    const [xi, yi] = poly[i]!;
+    const [xj, yj] = poly[j]!;
     const intersect = ((yi > point[1]) !== (yj > point[1]))
       && (point[0] < ((xj - xi) * (point[1] - yi)) / (yj - yi) + xi);
     if (intersect) inside = !inside;

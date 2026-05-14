@@ -105,7 +105,9 @@ const arcs = computed(() => {
     const groupEnd = theta + groupExtent;
     groupArcs.push({
       start: groupStart, end: groupEnd,
-      color: palette.value[gi % palette.value.length],
+      // Index is `gi % length` so always in range; `!` quiets
+      // noUncheckedIndexedAccess.
+      color: palette.value[gi % palette.value.length]!,
       label: g.label, value: groupTotal,
       share: groupTotal / t, children: g.children,
     });
@@ -114,7 +116,7 @@ const arcs = computed(() => {
       const ext = (c.value / t) * Math.PI * 2;
       childArcs.push({
         start: inner, end: inner + ext,
-        color: palette.value[gi % palette.value.length],
+        color: palette.value[gi % palette.value.length]!,
         opacity: 0.4 + (ci / Math.max(1, g.children.length)) * 0.5,
         label: c.label, value: c.value,
         share: c.value / t, groupIdx: gi,

@@ -68,22 +68,24 @@ const groups = [
 
     <section>
       <p class="eyebrow">try it</p>
-      <h2 class="heading--bold text-xl font-bold">Press ⌘K (or Ctrl+K)</h2>
+      <h2 class="heading--bold text-xl font-bold">Press <TuxKbd :keys="['meta', 'k']" size="lg" /> from anywhere</h2>
       <p class="text-sm text-text-secondary mb-3">
-        On this page, the global hotkey is wired to the demo palette
-        below. Type to filter, arrow keys navigate, Enter selects, Esc
-        closes. Click outside the panel to dismiss.
+        The style-guide shell mounts a real palette globally — so the
+        hotkey already works on this page, jumping to the same routes as
+        the sidebar. The button below opens this page's <em>local</em>
+        instance for visual reference; its hotkey is disabled to avoid
+        racing with the global one.
       </p>
       <TuxExample>
         <div class="flex gap-3">
           <TuxButton intent="primary" icon="lucide:command" @click="paletteRef?.open()">
-            Open palette
+            Open local palette
           </TuxButton>
-          <span class="text-sm text-text-muted self-center">
-            …or press <kbd class="font-mono text-xs px-1.5 py-0.5 border border-surface-border rounded bg-surface-sunken">⌘K</kbd>
+          <span class="text-sm text-text-muted self-center inline-flex items-center gap-1">
+            …or press <TuxKbd :keys="['meta', 'k']" /> for the global one
           </span>
         </div>
-        <TuxCommandPalette ref="paletteRef" :groups="groups" />
+        <TuxCommandPalette ref="paletteRef" :groups="groups" :disable-hotkey="true" />
       </TuxExample>
     </section>
 

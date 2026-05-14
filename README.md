@@ -11,16 +11,18 @@ badges, form fields) is illustrative — intentionally spread across
 transportation-research domains so no single consuming app's identity leaks
 into the design system.
 
-**Current release:** v1.2.0 · WCAG 2.2 AA conformance · color contrast
+**Current release:** v1.3.0 · WCAG 2.2 AA conformance · color contrast
 verified at AAA across all three themes (light, dark, high-contrast).
 
 ## What's in here
 
-- **~70 Tux\* components** under [`app/components/`](app/components/) —
+- **~78 Tux\* components** under [`app/components/`](app/components/) —
   alerts, badges, accordions, breadcrumbs, buttons, cards, code blocks,
   diagrams (Mermaid), the unified institutional footer, the doc-site
-  sidebar + TOC, the marketing-shape page header, table, treemap, and
-  the rest of the catalog. All demoed at `/components/<kebab-name>`.
+  sidebar + TOC, the marketing-shape page header, the prose wrapper for
+  long-form markdown, table, tree, treemap, the keyboard-shortcut overlay,
+  the edge-anchored slide-over, and the rest of the catalog. All demoed
+  at `/components/<kebab-name>`.
 - **Foundations** — tokens, typography, motion, icons, the three
   style variants. Pages under `/tokens`, `/typography`, etc.
 - **Composition examples** — three real-shape pages showing the system in

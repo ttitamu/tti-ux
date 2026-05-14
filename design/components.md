@@ -54,6 +54,7 @@ npm run dev
 | `TuxFooter`          | tux native               | `/components/footer`            |
 | `TuxIconFeature`     | tux native               | `/components/icon-feature`      |
 | `TuxIdentity`        | tux native               | `/components/identity`          |
+| `TuxKbd`             | tux native               | `/components/kbd`               |
 | `TuxLinkList`        | tux native               | `/components/link-list`         |
 | `TuxLinkSlab`        | tux native               | `/components/link-slab`         |
 | `TuxMediaSlab`       | tux native               | `/components/media-slab`        |
@@ -63,6 +64,7 @@ npm run dev
 | `TuxPageHeader`      | tux native               | `/components/page-header`       |
 | `TuxPagination`      | tux native               | `/components/pagination`        |
 | `TuxPhotoGrid`       | tux native               | `/components/photo-grid`        |
+| `TuxProse`           | tux native               | `/components/prose`             |
 | `TuxQACollection`    | tux native               | `/components/qa-collection`     |
 | `TuxRichDataGrid`    | tux native               | `/components/rich-data-grid`    |
 | `TuxSearch`          | tux native               | `/components/search`            |
@@ -71,10 +73,12 @@ npm run dev
 | `TuxSignupFeature`   | tux native               | `/components/signup-feature`    |
 | `TuxSiteNav`         | tux native               | `/components/site-nav`          |
 | `TuxSkeleton`        | tux native               | `/components/skeleton`          |
+| `TuxSlideover`       | tux native               | `/components/slideover`         |
 | `TuxStepper`         | tux native               | `/components/stepper`           |
 | `TuxTable`           | `UTable`                 | `/components/table`             |
 | `TuxTestimonial`     | tux native               | `/components/testimonial`       |
 | `TuxTOC`             | tux native               | `/components/toc`               |
+| `TuxTree`            | tux native               | `/components/tree`              |
 | `TuxTreemap`         | tux native               | `/components/treemap`           |
 
 ### Reports section

@@ -46,6 +46,7 @@ const components = [
   { name: "TuxFooter",        to: "/components/footer",         blurb: "Unified institutional footer \u2014 maroon marketing top (logo + address + social + columns) over the mandatory TAMUS legal strip.",     uses: "tux (no U-primitive)" },
   { name: "TuxIconFeature",   to: "/components/icon-feature",   blurb: "Icon + headline + body grid — classic \"our services\" block, three tones, grid or list.",   uses: "tux (no U-primitive)" },
   { name: "TuxIdentity",      to: "/components/identity",       blurb: "Header lockup — logo + wordmark. Lockup or text-only, horizontal or stacked, three levels.",   uses: "tux (no U-primitive)" },
+  { name: "TuxKbd",           to: "/components/kbd",            blurb: "Token-styled <kbd> for shortcut hints. Mac/PC modifier normalization, three sizes, combo + sequence forms.", uses: "tux (no U-primitive)" },
   { name: "TuxLinkList",      to: "/components/link-list",      blurb: "Categorized resource list — grouped headings, optional descriptions, featured-item left bar.",   uses: "tux (no U-primitive)" },
   { name: "TuxLinkSlab",      to: "/components/link-slab",      blurb: "Full-width band of prominent links — footer-of-section navigation, three tones.",              uses: "tux (no U-primitive)" },
   { name: "TuxMediaSlab",     to: "/components/media-slab",     blurb: "Full-bleed hero band — overlay (drama) or split (editorial), three heights, three tones.",     uses: "tux (no U-primitive)" },
@@ -55,6 +56,7 @@ const components = [
   { name: "TuxPageHeader",    to: "/components/page-header",    blurb: "Eyebrow + gold-bar heading + subtitle — plain default, neutral or maroon panel, hero rhythm.", uses: "tux (no U-primitive)" },
   { name: "TuxPagination",    to: "/components/pagination",     blurb: "Page-number controls — squarified active page, ellipsis truncation, optional status line.",     uses: "tux (no U-primitive)" },
   { name: "TuxPhotoGrid",     to: "/components/photo-grid",     blurb: "Uniform image grid — photo (full color, captioned) or logo wall (grayscale-on-hover).",        uses: "tux (no U-primitive)" },
+  { name: "TuxProse",         to: "/components/prose",          blurb: "Typographic shell for long-form markdown — H1/H2/H3/p/list/code/table/blockquote rhythm in one wrapper.", uses: "tux (no U-primitive)" },
   { name: "TuxQACollection",  to: "/components/qa-collection",  blurb: "Long-form Q&A — always expanded, designed to be read top-to-bottom (companion to TuxAccordion).", uses: "tux (no U-primitive)" },
   { name: "TuxRichDataGrid",  to: "/components/rich-data-grid", blurb: "Interactive data grid — sticky header, row selection, expandable detail, sort + filter chips, bulk-action bar. PECAN-class operational surfaces.", uses: "tux (no U-primitive)" },
   { name: "TuxSearch",        to: "/components/search",         blurb: "Branded search bar — bordered input + uppercase action button. Regular / slim / focus state.", uses: "tux (no U-primitive)" },
@@ -63,10 +65,12 @@ const components = [
   { name: "TuxSignupFeature", to: "/components/signup-feature", blurb: "Newsletter signup — email input + uppercase action + consent. Three tones, three style variants.", uses: "tux (no U-primitive)" },
   { name: "TuxSiteNav",       to: "/components/site-nav",       blurb: "Top-bar with TuxIdentity + utility nav + primary nav. Hosts TuxDropdown / TuxMegaMenu items.",   uses: "tux (no U-primitive)" },
   { name: "TuxSkeleton",      to: "/components/skeleton",       blurb: "Loading-state placeholder — primitive shapes + 6 composed presets. Honors prefers-reduced-motion.", uses: "tux (no U-primitive)" },
+  { name: "TuxSlideover",     to: "/components/slideover",      blurb: "Edge-anchored drawer — row detail, filter panel, mobile nav, action sheet. Right/left/bottom anchors, native <dialog>.", uses: "tux (no U-primitive)" },
   { name: "TuxStepper",       to: "/components/stepper",        blurb: "Numbered-circle multi-step indicator — funding application, IRB submission, study onboarding.",   uses: "tux (no U-primitive)" },
   { name: "TuxTable",         to: "/components/table",          blurb: "UTable with tux chrome, automatic status-cell rendering via TuxBadge.",                    uses: "UTable" },
   { name: "TuxTestimonial",   to: "/components/testimonial",    blurb: "Attributed quotes with portrait + name + role — grid or row layout, three style variants.",   uses: "tux (no U-primitive)" },
   { name: "TuxTOC",           to: "/components/toc",            blurb: "Article table-of-contents — sticky right rail with IntersectionObserver-driven active state.",  uses: "tux (no U-primitive)" },
+  { name: "TuxTree",          to: "/components/tree",           blurb: "Hierarchical list — sitemap, corpus + filesystem browser, BI dataset explorer. Mono leaf labels, sand guide lines, persistence.", uses: "tux (no U-primitive)" },
   { name: "TuxTreemap",       to: "/components/treemap",        blurb: "Squarified hierarchical-size viz — PECAN's headline chart, drill-in, no external library.",   uses: "tux (no U-primitive)" },
 ];
 </script>

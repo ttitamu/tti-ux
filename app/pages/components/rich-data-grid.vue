@@ -13,6 +13,9 @@ interface Project {
   phase: string;
   budget: number;
   scope: string;
+  // Index signature so Project satisfies TuxRichDataGrid's
+  // `Record<string, unknown>[]` row-data prop type.
+  [key: string]: unknown;
 }
 
 const PROJECTS: Project[] = [

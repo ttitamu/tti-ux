@@ -103,6 +103,7 @@ const navTree = [
       { label: "TuxFooter",        to: "/components/footer",         icon: "lucide:panel-bottom" },
       { label: "TuxIconFeature",   to: "/components/icon-feature",   icon: "lucide:layout-grid" },
       { label: "TuxIdentity",      to: "/components/identity",       icon: "lucide:flag" },
+      { label: "TuxKbd",           to: "/components/kbd",            icon: "lucide:keyboard" },
       { label: "TuxLinkList",      to: "/components/link-list",      icon: "lucide:list-tree" },
       { label: "TuxLinkSlab",      to: "/components/link-slab",      icon: "lucide:menu" },
       { label: "TuxMediaSlab",     to: "/components/media-slab",     icon: "lucide:image-plus" },
@@ -111,6 +112,7 @@ const navTree = [
       { label: "TuxPagination",    to: "/components/pagination",     icon: "lucide:list-ordered" },
       { label: "TuxPageHeader",    to: "/components/page-header",    icon: "lucide:pilcrow" },
       { label: "TuxPhotoGrid",     to: "/components/photo-grid",     icon: "lucide:images" },
+      { label: "TuxProse",         to: "/components/prose",          icon: "lucide:text" },
       { label: "TuxQACollection",  to: "/components/qa-collection",  icon: "lucide:message-circle-question" },
       { label: "TuxRichDataGrid",  to: "/components/rich-data-grid", icon: "lucide:layout-grid" },
       { label: "TuxSearch",        to: "/components/search",         icon: "lucide:search" },
@@ -119,10 +121,12 @@ const navTree = [
       { label: "TuxSignupFeature", to: "/components/signup-feature", icon: "lucide:mail-plus" },
       { label: "TuxSiteNav",       to: "/components/site-nav",       icon: "lucide:menu-square" },
       { label: "TuxSkeleton",      to: "/components/skeleton",       icon: "lucide:loader" },
+      { label: "TuxSlideover",     to: "/components/slideover",      icon: "lucide:panel-right" },
       { label: "TuxStepper",       to: "/components/stepper",        icon: "lucide:list-checks" },
       { label: "TuxTable",         to: "/components/table",          icon: "lucide:table" },
       { label: "TuxTestimonial",   to: "/components/testimonial",    icon: "lucide:message-circle-heart" },
       { label: "TuxTOC",           to: "/components/toc",            icon: "lucide:list-ordered" },
+      { label: "TuxTree",          to: "/components/tree",           icon: "lucide:list-tree" },
       { label: "TuxTreemap",       to: "/components/treemap",        icon: "lucide:layout-dashboard" },
     ],
   },
@@ -182,8 +186,82 @@ const navTree = [
 // Mobile sidebar toggle — below md, sidebar slides in from the left.
 const sidebarOpen = ref(false);
 const route = useRoute();
+const router = useRouter();
 watch(() => route.fullPath, () => {
   sidebarOpen.value = false;
+});
+
+// Global command palette + shortcuts-help overlay. Mounted once at the
+// shell so any page benefits from ⌘K and ?. The palette's groups derive
+// from `navTree` so a single source of truth drives sidebar nav and
+// fuzzy-search jump.
+const paletteRef = ref<{ open: () => void; close: () => void } | null>(null);
+const shortcutsHelpRef = ref<{ open: () => void; close: () => void; toggle: () => void } | null>(null);
+
+const paletteGroups = computed(() =>
+  navTree.map(section => ({
+    heading: section.label,
+    items: (section.children ?? [])
+      .filter(c => !!c.to)
+      .map(c => ({
+        id: `${section.label}-${c.label}`.toLowerCase().replace(/\s+/g, "-"),
+        label: c.label,
+        icon: c.icon,
+        to: c.to,
+      })),
+  })),
+);
+
+// Help-overlay groups document every shortcut wired below. Keep this
+// in sync with the `defineShortcuts` block — if you add a binding,
+// add a row here so users can discover it via ?.
+const shortcutGroups = [
+  {
+    heading: "Navigation",
+    items: [
+      { keys: ["meta", "k"], label: "Open command palette", description: "Fuzzy-search and jump anywhere" },
+      { keys: ["/"], label: "Open command palette", description: "GitHub-style alias for ⌘K" },
+      { keys: ["?"], label: "Show this shortcuts overlay" },
+    ],
+  },
+  {
+    heading: "Jump to",
+    items: [
+      { keys: ["g", "c"], label: "Components catalog", description: "Goes to /components" },
+      { keys: ["g", "t"], label: "Tokens", description: "Goes to /tokens" },
+      { keys: ["g", "d"], label: "Doctrine", description: "Goes to /design/tux" },
+      { keys: ["g", "h"], label: "Home", description: "Goes to /" },
+    ],
+  },
+  {
+    heading: "Inside the command palette",
+    items: [
+      { keys: ["arrowup"], label: "Previous result" },
+      { keys: ["arrowdown"], label: "Next result" },
+      { keys: ["enter"], label: "Run selected" },
+      { keys: ["escape"], label: "Close" },
+    ],
+  },
+];
+
+// Use Nuxt UI's defineShortcuts at the shell so every binding gets
+// platform-correct meta/ctrl handling and respects "usingInput" (we
+// don't want the route-jump sequences firing while someone's typing
+// in TuxSearch's filter).
+defineShortcuts({
+  "/": {
+    handler: () => paletteRef.value?.open(),
+  },
+  "?": {
+    handler: () => shortcutsHelpRef.value?.toggle(),
+  },
+  // Hyphen, not underscore: defineShortcuts uses `_` for combos (modifier
+  // held with key, e.g. meta_k) and `-` for sequences (press g, then t —
+  // GitHub idiom). Sequences time out after 800ms by default.
+  "g-c": () => router.push("/components"),
+  "g-t": () => router.push("/tokens"),
+  "g-d": () => router.push("/design/tux"),
+  "g-h": () => router.push("/"),
 });
 
 // Version surfaced in the header pill + welcome page. Sourced from
@@ -254,6 +332,19 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
 
 <template>
   <UApp>
+    <!-- Global command palette + keyboard-shortcut overlay. Mounted once;
+         the shell-level defineShortcuts block above drives both. -->
+    <ClientOnly>
+      <TuxCommandPalette
+        ref="paletteRef"
+        :groups="paletteGroups"
+      />
+      <TuxShortcutsHelp
+        ref="shortcutsHelpRef"
+        :groups="shortcutGroups"
+      />
+    </ClientOnly>
+
     <div class="min-h-screen flex flex-col bg-surface-page text-text-primary">
       <header
         class="tti-shell-header bg-surface-raised sticky top-0 z-30"

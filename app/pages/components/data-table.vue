@@ -18,6 +18,9 @@ interface DistrictRow {
   ksi: number;
   n: number;
   fn?: number;
+  // Index signature so DistrictRow satisfies TuxDataTable's
+  // `Record<string, unknown>[]` row-data prop type.
+  [key: string]: unknown;
 }
 
 const districtData: DistrictRow[] = [
@@ -126,6 +129,7 @@ interface SegmentRow {
   iri: number;
   rut: number;
   year: number;
+  [key: string]: unknown;
 }
 const denseRows: SegmentRow[] = (() => {
   const segs: SegmentRow[] = [];
@@ -164,6 +168,7 @@ interface ComparisonRow {
   after: number;
   pct: number;
   improved: boolean;
+  [key: string]: unknown;
 }
 const comparisonRowsRaw = [
   { metric: "Average daily delay (veh-hr)", before: 18420, after: 11240, lower: true },

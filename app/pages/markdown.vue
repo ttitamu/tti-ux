@@ -110,13 +110,16 @@ const { data: parsed } = await useAsyncData(
           render as the actual Vue components — same TTI rhythm as
           everything else in the style guide.
         </p>
-        <article class="prose-tux border border-surface-border rounded-md bg-surface-raised p-5">
+        <TuxProse
+          as="div"
+          class="border border-surface-border rounded-md bg-surface-raised p-5"
+        >
           <MDCRenderer
             v-if="parsed"
             :body="parsed.body"
             :data="parsed.data"
           />
-        </article>
+        </TuxProse>
       </div>
     </section>
 
@@ -191,114 +194,3 @@ A :badge[ITAR]{kind=\&quot;tag\&quot;} flag here.
   </div>
 </template>
 
-<style scoped>
-/* Editorial prose styling for MDC output. Keeps the tux rhythm but
-   doesn't turn into the heavy heading--bold / heading--display
-   utilities — those are for chrome, not body prose. */
-.prose-tux :deep(h1) {
-  font-family: var(--font-display);
-  font-size: 1.875rem;
-  line-height: 1.15;
-  margin: 0 0 1.25rem;
-  color: var(--text-primary);
-}
-
-.prose-tux :deep(h2) {
-  font-family: var(--font-bold);
-  font-weight: 700;
-  font-size: 1.375rem;
-  line-height: 1.25;
-  margin: 2rem 0 0.75rem;
-  color: var(--text-primary);
-  padding-bottom: 0.375rem;
-  border-bottom: 1px solid var(--surface-border);
-}
-
-.prose-tux :deep(h3) {
-  font-family: var(--font-bold);
-  font-weight: 700;
-  font-size: 1.0625rem;
-  margin: 1.5rem 0 0.5rem;
-}
-
-.prose-tux :deep(p) {
-  font-family: var(--font-body);
-  font-size: 0.9375rem;
-  line-height: 1.7;
-  color: var(--text-secondary);
-  margin: 0 0 1rem;
-}
-
-.prose-tux :deep(ul),
-.prose-tux :deep(ol) {
-  font-size: 0.9375rem;
-  line-height: 1.7;
-  color: var(--text-secondary);
-  padding-left: 1.5rem;
-  margin: 0 0 1rem;
-}
-
-.prose-tux :deep(li) {
-  margin: 0.25rem 0;
-}
-
-.prose-tux :deep(code) {
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  background: var(--surface-sunken);
-  padding: 0.125rem 0.375rem;
-  border-radius: var(--radius-sm);
-  color: var(--brand-primary);
-}
-
-.prose-tux :deep(table) {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1rem 0;
-  font-size: 0.875rem;
-}
-
-.prose-tux :deep(th) {
-  text-align: left;
-  font-family: var(--font-bold);
-  font-weight: 700;
-  font-size: 0.6875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text-muted);
-  padding: 0.5rem 0.75rem;
-  border-bottom: 2px solid var(--brand-primary);
-}
-
-.prose-tux :deep(td) {
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid var(--surface-border);
-  vertical-align: top;
-}
-
-.prose-tux :deep(pre) {
-  margin: 1rem 0;
-  padding: 1rem 1.125rem;
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  background: var(--surface-sunken);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
-  overflow-x: auto;
-}
-
-.prose-tux :deep(pre code) {
-  background: transparent;
-  padding: 0;
-  color: var(--text-primary);
-}
-
-.prose-tux :deep(a) {
-  color: var(--brand-secondary);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-  text-decoration-color: color-mix(in srgb, var(--brand-secondary) 40%, transparent);
-}
-</style>

@@ -34,8 +34,12 @@ const titles: Record<string, string> = {
   palette:    "Palette + visual identity",
 };
 
+function titleFor(slug: string): string {
+  return titles[slug] ?? slug;
+}
+
 useHead({
-  title: computed(() => `${titles[docName.value] ?? docName.value} · TUX`),
+  title: computed(() => `${titleFor(docName.value)} · TUX`),
 });
 
 // 404 if the slug doesn't match a design doc.
@@ -56,10 +60,24 @@ const { data: parsed } = await useAsyncData(
   { watch: [source] },
 );
 
+// Sibling doc surround — prev / next at article bottom, mirroring
+// Nuxt UI's ContentSurround pattern. Sorted slugs make the order
+// stable; the current doc is excluded.
+const sortedSlugs = computed(() =>
+  Object.keys(docMap.value).sort(),
+);
+
+const surround = computed(() => {
+  const slugs = sortedSlugs.value;
+  const idx = slugs.indexOf(docName.value);
+  return {
+    prev: idx > 0 ? slugs[idx - 1] : null,
+    next: idx >= 0 && idx < slugs.length - 1 ? slugs[idx + 1] : null,
+  };
+});
+
 const otherDocs = computed(() =>
-  Object.keys(docMap.value)
-    .filter(s => s !== docName.value)
-    .sort()
+  sortedSlugs.value.filter(s => s !== docName.value),
 );
 </script>
 
@@ -69,17 +87,52 @@ const otherDocs = computed(() =>
       :trail="[
         { label: 'Home',   to: '/' },
         { label: 'Design', to: '/design' },
-        { label: titles[docName] ?? docName },
+        { label: titleFor(docName) },
       ]"
     />
 
-    <article class="prose-tux">
+    <TuxProse>
       <MDCRenderer
         v-if="parsed"
         :body="parsed.body"
         :data="parsed.data"
       />
-    </article>
+    </TuxProse>
+
+    <!-- Prev / next surround — same idiom as Nuxt UI's ContentSurround.
+         Anchored at article bottom for long-form reading flow. -->
+    <nav
+      v-if="surround.prev || surround.next"
+      class="tux-doc-surround"
+      aria-label="Adjacent design docs"
+    >
+      <NuxtLink
+        v-if="surround.prev"
+        :to="`/design/${surround.prev}`"
+        class="tux-doc-surround__link tux-doc-surround__link--prev"
+        data-tux-elevation="rest"
+      >
+        <span class="eyebrow tux-doc-surround__eyebrow">
+          <Icon name="lucide:arrow-left" aria-hidden="true" class="w-3 h-3" />
+          previous
+        </span>
+        <span class="tux-doc-surround__title">{{ titleFor(surround.prev) }}</span>
+      </NuxtLink>
+      <span v-else class="tux-doc-surround__spacer" />
+
+      <NuxtLink
+        v-if="surround.next"
+        :to="`/design/${surround.next}`"
+        class="tux-doc-surround__link tux-doc-surround__link--next"
+        data-tux-elevation="rest"
+      >
+        <span class="eyebrow tux-doc-surround__eyebrow">
+          next
+          <Icon name="lucide:arrow-right" aria-hidden="true" class="w-3 h-3" />
+        </span>
+        <span class="tux-doc-surround__title">{{ titleFor(surround.next) }}</span>
+      </NuxtLink>
+    </nav>
 
     <aside class="border-t border-surface-border pt-6">
       <p class="eyebrow">other design docs</p>
@@ -101,138 +154,51 @@ const otherDocs = computed(() =>
 </template>
 
 <style scoped>
-.prose-tux :deep(h1) {
-  font-family: var(--font-display);
-  font-size: clamp(1.875rem, 1.4rem + 2cqi, 2.5rem);
-  line-height: 1.1;
-  margin: 0 0 1.5rem;
-  color: var(--text-primary);
-  letter-spacing: -0.005em;
+.tux-doc-surround {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 2.5rem;
 }
 
-.prose-tux :deep(h2) {
-  font-family: var(--font-bold);
-  font-weight: 700;
-  font-size: 1.375rem;
-  line-height: 1.25;
-  margin: 2.5rem 0 0.875rem;
-  color: var(--text-primary);
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--brand-primary);
-}
-
-.prose-tux :deep(h3) {
-  font-family: var(--font-bold);
-  font-weight: 700;
-  font-size: 1.125rem;
-  margin: 1.75rem 0 0.625rem;
-  color: var(--text-primary);
-}
-
-.prose-tux :deep(p) {
-  font-family: var(--font-body);
-  font-size: 0.9375rem;
-  line-height: 1.75;
-  color: var(--text-secondary);
-  margin: 0 0 1rem;
-}
-
-.prose-tux :deep(ul),
-.prose-tux :deep(ol) {
-  font-family: var(--font-body);
-  font-size: 0.9375rem;
-  line-height: 1.75;
-  color: var(--text-secondary);
-  padding-left: 1.5rem;
-  margin: 0 0 1rem;
-}
-
-.prose-tux :deep(li) {
-  margin: 0.375rem 0;
-}
-
-.prose-tux :deep(strong) {
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.prose-tux :deep(code) {
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  background: var(--surface-sunken);
-  padding: 0.125rem 0.375rem;
-  border-radius: var(--radius-sm);
-  color: var(--brand-primary);
-}
-
-.prose-tux :deep(table) {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1.25rem 0;
-  font-size: 0.875rem;
-  font-family: var(--font-body);
-}
-
-.prose-tux :deep(th) {
-  text-align: left;
-  font-family: var(--font-bold);
-  font-weight: 700;
-  font-size: 0.6875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text-muted);
-  padding: 0.625rem 0.875rem;
-  border-bottom: 2px solid var(--brand-primary);
-  background: var(--surface-sunken);
-}
-
-.prose-tux :deep(td) {
-  padding: 0.625rem 0.875rem;
-  border-bottom: 1px solid var(--surface-border);
-  vertical-align: top;
-}
-
-.prose-tux :deep(td code) {
-  font-size: 0.75rem;
-}
-
-.prose-tux :deep(pre) {
-  margin: 1.25rem 0;
-  padding: 1rem 1.125rem;
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  background: var(--surface-sunken);
+.tux-doc-surround__link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.875rem 1rem;
+  background: var(--surface-raised);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
-  overflow-x: auto;
-}
-
-.prose-tux :deep(pre code) {
-  background: transparent;
-  padding: 0;
+  text-decoration: none;
   color: var(--text-primary);
 }
 
-.prose-tux :deep(a) {
-  color: var(--brand-secondary);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-  text-decoration-color: color-mix(in srgb, var(--brand-secondary) 40%, transparent);
+.tux-doc-surround__link:hover {
+  border-color: var(--brand-primary);
+  transform: translateY(-1px);
 }
 
-.prose-tux :deep(hr) {
-  border: 0;
-  border-top: 1px solid var(--surface-border);
-  margin: 2rem 0;
+.tux-doc-surround__link--next {
+  text-align: right;
+  align-items: flex-end;
 }
 
-.prose-tux :deep(blockquote) {
-  margin: 1.25rem 0;
-  padding-left: 1.25rem;
-  border-left: 3px solid var(--brand-primary);
-  font-style: italic;
-  color: var(--text-secondary);
+.tux-doc-surround__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.tux-doc-surround__title {
+  font-family: var(--font-bold);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  line-height: 1.3;
+}
+
+.tux-doc-surround__spacer {
+  /* Empty grid cell to keep "next" right-aligned when there's no prev. */
 }
 </style>

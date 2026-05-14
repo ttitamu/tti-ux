@@ -162,31 +162,22 @@ function flatIndexOf(group: CommandGroup, itemIdx: number): number {
   return -1;
 }
 
-// Global hotkey listener
-function onGlobalKeydown(e: KeyboardEvent) {
-  if (props.disableHotkey) return;
-  const isMac = typeof navigator !== "undefined" && /Mac/i.test(navigator.platform);
-  const triggered = (isMac ? e.metaKey : e.ctrlKey) && e.key.toLowerCase() === props.hotkey;
-  if (!triggered) return;
-  e.preventDefault();
-  if (dialogRef.value?.open) {
-    close();
-  } else {
-    open();
-  }
+// Global hotkey — Nuxt UI's defineShortcuts normalizes meta vs ctrl per
+// platform and respects "usingInput" semantics so the hotkey still fires
+// from focused inputs (which is what we want for ⌘K). Arrow / enter /
+// escape stay on the dialog's local input handler since they're list-nav,
+// not app-level shortcuts.
+if (!props.disableHotkey) {
+  defineShortcuts({
+    [`meta_${props.hotkey}`]: {
+      handler: () => {
+        if (dialogRef.value?.open) close();
+        else open();
+      },
+      usingInput: true,
+    },
+  });
 }
-
-onMounted(() => {
-  if (typeof window !== "undefined") {
-    window.addEventListener("keydown", onGlobalKeydown);
-  }
-});
-
-onBeforeUnmount(() => {
-  if (typeof window !== "undefined") {
-    window.removeEventListener("keydown", onGlobalKeydown);
-  }
-});
 </script>
 
 <template>
@@ -209,7 +200,7 @@ onBeforeUnmount(() => {
           spellcheck="false"
           @keydown="onInputKeydown"
         >
-        <kbd class="tux-cmd__esc-hint">esc</kbd>
+        <TuxKbd value="esc" size="sm" />
       </div>
 
       <div v-if="filteredGroups.length === 0" class="tux-cmd__empty">
@@ -244,23 +235,24 @@ onBeforeUnmount(() => {
                 class="tux-cmd__item-description"
               >{{ item.description }}</span>
             </div>
-            <kbd
+            <TuxKbd
               v-if="item.shortcut"
-              class="tux-cmd__item-shortcut"
-            >{{ item.shortcut }}</kbd>
+              :value="item.shortcut"
+              size="sm"
+            />
           </li>
         </template>
       </ul>
 
       <div class="tux-cmd__footer">
         <span class="tux-cmd__footer-hint">
-          <kbd>↑</kbd><kbd>↓</kbd> navigate
+          <TuxKbd :keys="['arrowup', 'arrowdown']" size="xs" /> navigate
         </span>
         <span class="tux-cmd__footer-hint">
-          <kbd>↵</kbd> select
+          <TuxKbd value="enter" size="xs" /> select
         </span>
         <span class="tux-cmd__footer-hint">
-          <kbd>esc</kbd> close
+          <TuxKbd value="esc" size="xs" /> close
         </span>
       </div>
     </div>
@@ -327,16 +319,6 @@ onBeforeUnmount(() => {
 .tux-cmd__input::placeholder {
   font-style: italic;
   color: var(--text-muted);
-}
-
-.tux-cmd__esc-hint {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  color: var(--text-muted);
-  background: var(--surface-sunken);
-  padding: 0.125rem 0.4375rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--surface-border);
 }
 
 /* List */
@@ -414,17 +396,6 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
-.tux-cmd__item-shortcut {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  color: var(--text-muted);
-  background: var(--surface-sunken);
-  padding: 0.125rem 0.4375rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--surface-border);
-  flex-shrink: 0;
-}
-
 /* Empty */
 .tux-cmd__empty {
   padding: 2.5rem 1rem;
@@ -466,17 +437,5 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-}
-
-.tux-cmd__footer-hint kbd {
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  color: var(--text-secondary);
-  background: var(--surface-raised);
-  padding: 0.0625rem 0.375rem;
-  border-radius: 2px;
-  border: 1px solid var(--surface-border);
-  min-width: 1.125rem;
-  text-align: center;
 }
 </style>

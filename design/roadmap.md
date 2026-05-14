@@ -103,8 +103,10 @@ TTI does heavy GIS work.
 - **TuxTabsHorizontal** — used in research-report pages, tti-ai-chat
   (chat / settings / history).
 - **TuxTabsVertical** — for settings panels.
-- **TuxSideSheet** — slide-from-edge panel for filters or detail-view.
-  Distinct from TuxModal — non-blocking.
+- ~~**TuxSideSheet**~~ — shipped 2026-05-14 as `TuxSlideover`. Three
+  sides (right · left · bottom), built on the native `<dialog>`,
+  Batch-J ease-corridor slide animation. See
+  [`/components/slideover`](../app/pages/components/slideover.vue).
 
 ### Pagination extras
 
@@ -130,8 +132,13 @@ We have basic numbered pagination only.
   visual anchor.
 - **TuxPopover** — richer floating panel (tooltip with title + body +
   action).
-- **TuxKeyboardShortcuts** — "Press ? for shortcuts" reference overlay.
-  Pairs with TuxCommandPalette.
+- ~~**TuxKeyboardShortcuts**~~ — shipped 2026-05-14 as
+  `TuxShortcutsHelp`. Modal overlay triggered by `?`, auto-classifies
+  combo vs sequence rows, uses `TuxKbd` for every key glyph. Mounted
+  globally in `app.vue` alongside the command palette. See
+  [`/components/kbd`](../app/pages/components/kbd.vue) for the kbd
+  primitive and the shell's `defineShortcuts` block for the wired
+  bindings.
 
 ---
 
@@ -184,6 +191,59 @@ get lost. Pick from the top when there's a slow afternoon.
   `/examples/tti-ai-studio-session`** with the same lens — anywhere
   a hand-rolled chart or stat row could be a sparkline or a
   viz-grid, swap it. Same reason as above.
+
+---
+
+## Recently shipped — keyboard shortcuts + prose layer + drawer + tree (2026-05-14)
+
+Sliced delivery of the Nuxt UI gap-analysis follow-through. Three of
+the five components close explicit roadmap entries above (under
+different working names — `TuxSideSheet` → `TuxSlideover`,
+`TuxKeyboardShortcuts` → `TuxShortcutsHelp`); the other two
+(`TuxKbd`, `TuxProse`, `TuxTree`) emerged from the audit. Each one
+followed the four-surface nav wiring rule (sidebar / index grid /
+catalog table / doctrine table). See CHANGELOG for the full per-slice
+inventory.
+
+- ~~**TuxKbd**~~ — token-styled `<kbd>` with Mac/PC modifier
+  normalization, three sizes, built-in glyphs (`enter` → ↵, arrows,
+  `tab`, `space`, …). Slice 1.
+- ~~**TuxShortcutsHelp**~~ — modal overlay listing wired bindings,
+  triggered by `?`. Auto-classifies combo (`meta_k`) vs sequence
+  (`g-c`) rows. Slice 1.
+- ~~**Global `defineShortcuts` wiring**~~ — `meta_k`, `/`, `?`,
+  `g-c`/`g-t`/`g-d`/`g-h` in `app.vue`. `TuxCommandPalette`
+  refactored onto the same composable; mounted globally with groups
+  derived from `navTree` so sidebar and palette share a source of
+  truth. Slice 1.
+- ~~**TuxProse**~~ — typographic shell for long-form markdown.
+  Consolidates ~400 lines of duplicated `.prose-tux :deep(…)` CSS
+  that lived inline in `/changelog`, `/design/[doc]`, `/markdown`.
+  Slice 2.
+- ~~**`/typography` refresh**~~ — four-family roster, `heading--elegant`
+  demo, style-variants triptych, TuxProse sample. Replaces the stale
+  Public-Sans-only foundation page. Slice 2.
+- ~~**ContentSurround on `/design/[doc]`**~~ — Nuxt-UI-style prev/next
+  sibling-doc navigation at article bottom. Slice 2.
+- ~~**TuxTree**~~ — recursive hierarchical list (native, not a
+  `UTree` wrapper). Sitemap, corpus/filesystem browser, BI dataset
+  explorer (per [ADR-0009](../docs/adr/0009-bi-design-system-source-of-truth.md)).
+  Mono leaf labels, sand guide lines, sessionStorage persistence,
+  `v-model:selected`. Slice 3.
+- ~~**TuxSlideover**~~ — edge-anchored `<dialog>` drawer (right /
+  left / bottom). Closes the **TuxSideSheet** roadmap entry. Slice 4.
+
+### Carry-forwards
+
+Two items adjacent to this batch worth tracking:
+
+- The TuxTree selected-row background-color uncovered a Tailwind v4
+  `@layer base` cascade gotcha (button reset wins over scoped CSS
+  even with `!important`). Documented in CLAUDE.md gotchas and the
+  `feedback_tailwind_layer_button_reset` memory.
+- `defineShortcuts` grammar: `_` for combos, `-` for sequences.
+  Documented in CLAUDE.md and the `feedback_define_shortcuts_grammar`
+  memory after burning a verification cycle on `g_c` vs `g-c`.
 
 ---
 

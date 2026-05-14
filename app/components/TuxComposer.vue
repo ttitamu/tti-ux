@@ -145,10 +145,22 @@ function onKey(e: KeyboardEvent) {
   border-radius: var(--radius-lg);
   background: var(--surface-raised);
   overflow: hidden;
-  transition: box-shadow var(--motion-fast) var(--ease-standard);
+  /* Border-color transitions together with the focus shadow so the
+     branded chrome resolves into the focus ring without a flash. */
+  transition:
+    box-shadow var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard);
 }
 
+/* On focus, the always-on brand border would compound with the two-ring
+   focus shadow into a triple-stack ("brand border + inner halo + outer
+   brand ring"). Fade the border to transparent so the focus ring stands
+   alone — the ring's outer color is already --brand-primary, so the
+   focused state still reads as brand emphasis, just without the doubling.
+   border-color: transparent keeps the 2px box geometry so the layout
+   doesn't jitter. */
 .tux-composer__frame:focus-within {
+  border-color: transparent;
   box-shadow: var(--shadow-focus);
 }
 
