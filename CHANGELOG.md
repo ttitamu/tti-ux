@@ -5,6 +5,14 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-05-14
+
+Nuxt UI gap-analysis batch (five new components covering kbd hints,
+prose typography, hierarchical lists, and edge-anchored drawers,
+plus a global keyboard-shortcut layer), the Batch J visual-language
+application sweep, and a self-hosted fonts migration. No breaking
+API changes — pin bump from `#v1.3.0` to `#v1.4.0` is additive only.
+
 ### Changed — self-hosted fonts via `@fontsource/*` + `scripts/sync-fonts.mjs`
 
 Replaces the `@nuxt/fonts` module (Google-provider auto-fetch) with
@@ -36,11 +44,17 @@ teal reads more institutional at small sizes.
   `[data-theme="tti-dark"]` to `#6BB4C0` / `#5B9CA8`. Clears AAA on
   every dark surface (7.1:1 on raised, ~8.2:1 on page, ~8.7:1 on
   sunken).
-- **`--color-maroon-400 = #7A1233`** override added — Nuxt UI v4's
+- **`--color-maroon-400 = #702C28`** override added — Nuxt UI v4's
   solid-variant button fill uses primary-400 in dark themes; the
-  unmodified palette value (#b14a6c) reads as raspberry pink against
-  the teal accent. Deepening to wine keeps the brand maroon presence
-  on loud CTAs (New chat, Send) without losing AAA on white text.
+  unmodified palette value (#b14a6c) reads as raspberry pink, and an
+  intermediate `#7a1233` still rang loud against the teal accent
+  (mid-saturation magenta hue). Reuses the existing
+  `--map-seq-maroon-2` value — brick-wine, low saturation,
+  brown-leaning — so the button recedes into the dark page surface.
+  Edge contrast is ~1.9:1 vs page (below WCAG 1.4.11's 3:1 UI
+  threshold by design); readability comes from the white label
+  (clears 10:1 on this fill) and the button's shape / hover state,
+  not from surface contrast.
 - **`--text-brand`** repointed to the new teal-deep so brand-tinted
   inline text stays coherent with the accent.
 

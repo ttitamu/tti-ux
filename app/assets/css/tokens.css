@@ -318,13 +318,20 @@
   /* Override Nuxt UI's maroon palette in dark mode at the 400 step.
      Nuxt UI v4's solid-variant button picks primary-400 for the fill
      in dark themes; the unmodified palette value (#b14a6c) reads as
-     raspberry pink on dark, which conflicts with the teal accent
-     above. Deepening to #7a1233 keeps the brand maroon presence on
-     the loudest CTAs (+ New chat, Send) while staying legible — white
-     text on #7a1233 clears AAA. Other maroon-* steps inherit from
-     :root because they're only used in light surfaces or fall back
-     to deep wine values that already work on dark. */
-  --color-maroon-400: #7a1233;
+     raspberry pink, and an earlier deepening to #7a1233 still rang
+     loud against the teal accent above (raspberry/magenta hue at
+     mid-saturation). Reusing the existing --map-seq-maroon-2 value
+     (#702C28) — brick-wine, low saturation, brown-leaning — recedes
+     into the dark page so the button is quiet rather than punchy.
+     Surface contrast vs the page is ~1.9:1 (below WCAG 1.4.11's 3:1
+     UI threshold), so the button edge is faint by design; readability
+     comes from the white label (clears 10:1 on this fill) and the
+     button's shape/hover state, not from the surface contrast.
+
+     Other maroon-* steps inherit from :root because they're only
+     used in light surfaces or fall back to deep wine values that
+     already work on dark. */
+  --color-maroon-400: #702C28;
 
   /* All semantic colors target AAA (7:1) on the dark page surface
      #15100f. Numbers verified by /contrast-audit. */
