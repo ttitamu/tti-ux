@@ -102,6 +102,12 @@ function onKey(e: KeyboardEvent) {
           <UIcon :name="attachIcon" class="tux-composer__chip-icon" />
           <span>{{ attachLabel }}</span>
         </button>
+        <!-- Consumer-supplied toolbar items (mic button, file-type picker,
+             etc.) sit immediately after the built-in attach affordance.
+             Slot is unstyled — let the consumer pass through `tux-composer__chip`
+             on its buttons to match the existing visual rhythm, or style
+             from scratch for distinct treatments. -->
+        <slot name="toolbar-extra" />
         <select
           v-if="models.length"
           v-model="localModel"
