@@ -33,6 +33,12 @@
  *   - `expanded` — expanded-row detail body, gets `{ row }`
  *   - `bulk-actions` — replace the default Export / Archive /
  *                      Reassign trio with custom buttons
+ *   - `headerMenu` — per-column header menu (sort / hide / pin /
+ *                    filter); receives `{ column, sortKey, sortDir }`.
+ *                    Renders inline inside the `<th>` after the
+ *                    sort affordance. The slot ships *no* default
+ *                    chrome — consumers compose a `UDropdownMenu` /
+ *                    `UPopover` / `<TuxFilterPanel>` per their needs.
  */
 
 interface Column {
@@ -414,6 +420,20 @@ function onSearchInput(e: Event) {
                 </span>
               </button>
               <span v-else class="tux-rich-data-grid__th-label">{{ col.label }}</span>
+              <!-- Per-column header menu — consumer-supplied dropdown
+                   for sort/hide/pin/filter actions. Slot receives the
+                   column object so the consumer can branch on
+                   `col.key` if the menu differs per column. Renders
+                   inline next to the label (or sort button) inside
+                   the <th>. Absorbed from the Data-table-design Figma
+                   kit (filter-panel and rule-builder column menus)
+                   and Snow Dashboard (per-column actions). -->
+              <slot
+                name="headerMenu"
+                :column="col"
+                :sort-key="sortKey"
+                :sort-dir="sortDir"
+              />
             </th>
           </tr>
         </thead>

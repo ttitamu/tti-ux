@@ -86,6 +86,7 @@ const navTree = [
       { label: "TuxCallout",       to: "/components/callout",        icon: "lucide:flag-triangle-right" },
       { label: "TuxCaptionedMedia", to: "/components/captioned-media", icon: "lucide:image" },
       { label: "TuxCard",          to: "/components/card",           icon: "lucide:square-stack" },
+      { label: "TuxCardCarousel",  to: "/components/card-carousel",  icon: "lucide:gallery-horizontal-end" },
       { label: "TuxCardSlab",      to: "/components/card-slab",      icon: "lucide:rows-3" },
       { label: "TuxChatMessage",   to: "/components/chat-message",   icon: "lucide:message-square-text" },
       { label: "TuxCitations",     to: "/components/citations",      icon: "lucide:quote" },

@@ -224,9 +224,11 @@ const agents = [
         <p class="example-demo-notice__text">
           <strong>Composition example.</strong>
           Illustrative data assembled into a real-shape Landscape
-          dashboard — sidebar shell, KPI row with deltas, ingest-rate
-          sparkline, treemap, faceted file search, scan table,
-          activity rail. Composes ~15 Tux* + Nuxt UI 4 primitives.
+          dashboard — sidebar shell with left rail + right
+          <code>#aside</code> (activity + agents), KPI row with
+          deltas, ingest-rate sparkline, treemap, faceted file
+          search, scan table. Composes ~15 Tux* + Nuxt UI 4
+          primitives.
         </p>
       </div>
 
@@ -300,121 +302,61 @@ const agents = [
         <TuxTreemap :data="treeData" :max-depth="2" color-by="size" />
       </section>
 
-      <!-- Files (filter + table) + right-rail aside. The right rail
-           composes existing primitives (TuxCard + icon list) — not a
-           layout-level slot; the carry-forward roadmap note on
-           `sidebar.vue#aside` waits for a second consumer surface
-           before being formalized. -->
-      <section class="grid grid-cols-1 xl:grid-cols-[1fr_18rem] gap-6 items-start">
-
-        <!-- Main column: filter panel + results table -->
-        <div class="space-y-3">
-          <TuxSectionHeader>Files · 1.2M results</TuxSectionHeader>
-          <div class="grid grid-cols-1 lg:grid-cols-[18rem_1fr] gap-6 items-start">
-            <TuxFilterPanel
-              v-model="filterState"
-              :facets="filterFacets"
-              title="Filter results"
-            />
-            <div class="space-y-4">
-              <div class="flex items-center justify-between gap-3">
-                <TuxSearch
-                  size="slim"
-                  placeholder="Search filename, path, owner…"
-                />
-                <TuxButton intent="secondary" icon="lucide:sliders-horizontal" size="sm">
-                  Columns
-                </TuxButton>
-              </div>
-
-              <table class="tux-table w-full">
-                <thead>
-                  <tr class="border-b-2 border-brand-primary">
-                    <th class="text-left text-xs uppercase tracking-wider text-text-muted py-2 px-3 font-bold">Scan</th>
-                    <th class="text-left text-xs uppercase tracking-wider text-text-muted py-2 px-3 font-bold">Path</th>
-                    <th class="text-left text-xs uppercase tracking-wider text-text-muted py-2 px-3 font-bold">Agent</th>
-                    <th class="text-left text-xs uppercase tracking-wider text-text-muted py-2 px-3 font-bold">Started</th>
-                    <th class="text-left text-xs uppercase tracking-wider text-text-muted py-2 px-3 font-bold">Files</th>
-                    <th class="text-left text-xs uppercase tracking-wider text-text-muted py-2 px-3 font-bold">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="scan in recentScans" :key="scan.id" class="border-b border-surface-border text-sm">
-                    <td class="py-2.5 px-3 font-mono text-xs">{{ scan.id }}</td>
-                    <td class="py-2.5 px-3 font-mono text-xs text-text-secondary">{{ scan.path }}</td>
-                    <td class="py-2.5 px-3 font-mono text-xs">{{ scan.agent }}</td>
-                    <td class="py-2.5 px-3 font-mono text-xs tabular-nums">{{ scan.started }}</td>
-                    <td class="py-2.5 px-3 font-mono text-xs tabular-nums">{{ scan.files.toLocaleString() }}</td>
-                    <td class="py-2.5 px-3"><TuxBadge :status="scan.status" /></td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <TuxPagination
-                v-model="page"
-                :total="1_215_402"
-                :page-size="20"
-                show-status
-                noun="file"
+      <!-- Files (filter + table). Right rail (Recent activity +
+           Active agents) lives in the layout's `#aside` slot — see
+           the bottom of this template — so it stays sticky while
+           main content scrolls. -->
+      <section class="space-y-3">
+        <TuxSectionHeader>Files · 1.2M results</TuxSectionHeader>
+        <div class="grid grid-cols-1 lg:grid-cols-[18rem_1fr] gap-6 items-start">
+          <TuxFilterPanel
+            v-model="filterState"
+            :facets="filterFacets"
+            title="Filter results"
+          />
+          <div class="space-y-4">
+            <div class="flex items-center justify-between gap-3">
+              <TuxSearch
+                size="slim"
+                placeholder="Search filename, path, owner…"
               />
+              <TuxButton intent="secondary" icon="lucide:sliders-horizontal" size="sm">
+                Columns
+              </TuxButton>
             </div>
+
+            <table class="tux-table w-full">
+              <thead>
+                <tr class="border-b-2 border-brand-primary">
+                  <th class="text-left text-xs uppercase tracking-wider text-text-muted py-2 px-3 font-bold">Scan</th>
+                  <th class="text-left text-xs uppercase tracking-wider text-text-muted py-2 px-3 font-bold">Path</th>
+                  <th class="text-left text-xs uppercase tracking-wider text-text-muted py-2 px-3 font-bold">Agent</th>
+                  <th class="text-left text-xs uppercase tracking-wider text-text-muted py-2 px-3 font-bold">Started</th>
+                  <th class="text-left text-xs uppercase tracking-wider text-text-muted py-2 px-3 font-bold">Files</th>
+                  <th class="text-left text-xs uppercase tracking-wider text-text-muted py-2 px-3 font-bold">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="scan in recentScans" :key="scan.id" class="border-b border-surface-border text-sm">
+                  <td class="py-2.5 px-3 font-mono text-xs">{{ scan.id }}</td>
+                  <td class="py-2.5 px-3 font-mono text-xs text-text-secondary">{{ scan.path }}</td>
+                  <td class="py-2.5 px-3 font-mono text-xs">{{ scan.agent }}</td>
+                  <td class="py-2.5 px-3 font-mono text-xs tabular-nums">{{ scan.started }}</td>
+                  <td class="py-2.5 px-3 font-mono text-xs tabular-nums">{{ scan.files.toLocaleString() }}</td>
+                  <td class="py-2.5 px-3"><TuxBadge :status="scan.status" /></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <TuxPagination
+              v-model="page"
+              :total="1_215_402"
+              :page-size="20"
+              show-status
+              noun="file"
+            />
           </div>
         </div>
-
-        <!-- Right rail: Recent activity + Active agents. Snow's
-             "Notifications / Activities / Contacts" trio collapsed
-             to the two that matter for a data-index dashboard. -->
-        <aside class="space-y-4">
-
-          <TuxCard>
-            <p class="eyebrow">Recent activity</p>
-            <ul class="mt-3 space-y-3">
-              <li
-                v-for="ev in activity"
-                :key="ev.id"
-                class="flex gap-2.5 text-sm"
-              >
-                <Icon
-                  :name="ev.icon"
-                  class="w-4 h-4 mt-0.5 flex-shrink-0"
-                  :class="{
-                    'text-text-success': ev.tone === 'success',
-                    'text-text-warning': ev.tone === 'warning',
-                    'text-text-muted':   ev.tone === 'neutral',
-                  }"
-                  aria-hidden="true"
-                />
-                <div class="min-w-0">
-                  <p class="text-text-primary leading-snug">{{ ev.text }}</p>
-                  <p class="text-xs text-text-muted mt-0.5">{{ ev.when }}</p>
-                </div>
-              </li>
-            </ul>
-          </TuxCard>
-
-          <TuxCard>
-            <p class="eyebrow">Active agents</p>
-            <ul class="mt-3 space-y-2.5">
-              <li
-                v-for="agent in agents"
-                :key="agent.id"
-                class="flex items-center gap-2 text-sm"
-              >
-                <span
-                  class="agent-dot"
-                  :class="`agent-dot--${agent.status}`"
-                  aria-hidden="true"
-                />
-                <span class="font-mono text-xs text-text-primary">{{ agent.id }}</span>
-                <span class="ml-auto text-xs font-mono tabular-nums text-text-muted">{{ agent.load }}</span>
-              </li>
-            </ul>
-            <p class="mt-3 text-xs text-text-muted">
-              <Icon name="lucide:clock" class="inline w-3 h-3 -mt-0.5" aria-hidden="true" />
-              Heartbeats refreshed every 5s
-            </p>
-          </TuxCard>
-        </aside>
       </section>
 
       <!-- File detail (full width). Description list with editorial
@@ -443,6 +385,64 @@ const agents = [
         </TuxDescriptionList>
       </section>
     </div>
+
+    <!-- Right rail — Recent activity + Active agents. Lives in the
+         layout's `#aside` slot so it stays sticky while main content
+         scrolls. Snow Dashboard's "Notifications / Activities /
+         Contacts" trio collapsed to the two that matter for a data-
+         index dashboard. -->
+    <template #aside>
+      <div class="p-4 space-y-4">
+        <TuxCard>
+          <p class="eyebrow">Recent activity</p>
+          <ul class="mt-3 space-y-3">
+            <li
+              v-for="ev in activity"
+              :key="ev.id"
+              class="flex gap-2.5 text-sm"
+            >
+              <Icon
+                :name="ev.icon"
+                class="w-4 h-4 mt-0.5 flex-shrink-0"
+                :class="{
+                  'text-text-success': ev.tone === 'success',
+                  'text-text-warning': ev.tone === 'warning',
+                  'text-text-muted':   ev.tone === 'neutral',
+                }"
+                aria-hidden="true"
+              />
+              <div class="min-w-0">
+                <p class="text-text-primary leading-snug">{{ ev.text }}</p>
+                <p class="text-xs text-text-muted mt-0.5">{{ ev.when }}</p>
+              </div>
+            </li>
+          </ul>
+        </TuxCard>
+
+        <TuxCard>
+          <p class="eyebrow">Active agents</p>
+          <ul class="mt-3 space-y-2.5">
+            <li
+              v-for="agent in agents"
+              :key="agent.id"
+              class="flex items-center gap-2 text-sm"
+            >
+              <span
+                class="agent-dot"
+                :class="`agent-dot--${agent.status}`"
+                aria-hidden="true"
+              />
+              <span class="font-mono text-xs text-text-primary">{{ agent.id }}</span>
+              <span class="ml-auto text-xs font-mono tabular-nums text-text-muted">{{ agent.load }}</span>
+            </li>
+          </ul>
+          <p class="mt-3 text-xs text-text-muted">
+            <Icon name="lucide:clock" class="inline w-3 h-3 -mt-0.5" aria-hidden="true" />
+            Heartbeats refreshed every 5s
+          </p>
+        </TuxCard>
+      </div>
+    </template>
   </NuxtLayout>
 </template>
 

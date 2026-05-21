@@ -31,6 +31,7 @@ npm run dev
 | `TuxCallout`         | tux native               | `/components/callout`           |
 | `TuxCaptionedMedia`  | tux native               | `/components/captioned-media`   |
 | `TuxCard`            | tux native               | `/components/card`              |
+| `TuxCardCarousel`    | `UCarousel` (embla) wrap | `/components/card-carousel`     |
 | `TuxCardSlab`        | tux native               | `/components/card-slab`         |
 | `TuxCookieConsent`   | tux native               | `/components/cookie-consent`    |
 | `TuxChatMessage`     | tux native               | `/components/chat-message`      |
@@ -255,6 +256,81 @@ Canonical references for each pattern in real composition:
 [`forms/inline-validation.vue`](../app/pages/forms/inline-validation.vue) (field-level),
 [`forms/all-in-one.vue`](../app/pages/forms/all-in-one.vue) (form summary),
 [`landscape-dashboard`](../app/pages/examples/landscape-dashboard.vue) ITAR alert (session banner).
+
+### First-run AI surfaces — Examples / Capabilities / Limitations
+
+When a consumer surface needs richer first-run framing than the single-
+block `TuxEmptyState kind="first-run"` (e.g. tti-ai-studio's new-session
+splash), use ChatGPT's canonical three-column taxonomy. Each column
+sets a different expectation before the user types their first prompt:
+
+| Column | What it answers | Typical content |
+|---|---|---|
+| **Examples** | "What should I ask?" | 3 concrete prompt strings the user can click to populate the composer |
+| **Capabilities** | "What can it do?" | 3 strengths — corpora it can ground against, formats it can write, languages it understands |
+| **Limitations** | "What should I not trust?" | 3 advisory caveats — knowledge cutoff, hallucination risk, ITAR scope boundaries |
+
+Compose with `<TuxFactoid density="3">` (numerical-statistic style) or
+a 3-up `<TuxCard>` grid (richer per-cell layout). The taxonomy is the
+discipline; the components rendering it are the consumer's choice.
+**No dedicated `TuxFirstRunTaxonomy` component is needed** — the value
+is the framing, not the chrome.
+
+Anti-patterns to avoid:
+
+- **Single-paragraph welcome.** "Welcome to tti-ai-studio." reads as
+  marketing, not orientation. The three columns set expectations
+  before the user invests their first prompt.
+- **Marketing tone in research IT.** ChatGPT's first-run is a
+  consumer surface ("Hi, what's on your mind today?"). Research-IT
+  first-run should be quieter and more functional — "Recent session
+  was about X · Pick up where you left off." Keep the taxonomy;
+  drop the marketing voice.
+- **More than three columns.** The discipline is exactly three —
+  the gain over a flat "welcome" is the parallelism. Four blurs it.
+
+Reference frame:
+[`reference/figma-cache/chatgpt-ui-kit-ai-chat/screens/new-chat.png`](../reference/figma-cache/chatgpt-ui-kit-ai-chat/screens/new-chat.png).
+Absorbed 2026-05-21 from the ChatGPT UI Kit Figma file.
+
+### MCP tool output — inline card / inline carousel / full screen
+
+When an MCP (Model Context Protocol) tool inside tti-ai-studio returns
+output to render in the chat, three display tiers cover the spectrum.
+Each is the canonical TUX composition; pick by the *density* and
+*interactivity* of the result.
+
+| Tier | Use when | TUX composition |
+|---|---|---|
+| **Inline card** | Single result fits a card — a place, a chart, a document, a record. | `<TuxArtifact>` — title + icon + meta header, copy/download/regenerate/share actions, body slot. Drops inline between message turns. |
+| **Inline carousel** | 3+ comparable results — list of places, sources, datasets, results. The user scans across, sometimes clicks one. | `<TuxCardCarousel>` with `arrows + dots`, sized to ~280–360px cards. Header eyebrow names the tool (e.g. *nearby trails*) + count. |
+| **Full screen** | Rich interaction needed — large data viz, multi-step picker, app-like surface that competes with chat scroll. | Compose `<TuxArtifact>` (or a richer surface) inside `<TuxSlideover>` (side-docked) or `<TuxModal>` (centered). The chat pauses while the user works the surface. |
+
+**Decision tree:**
+
+1. **One result + read-only** → inline card.
+2. **Multiple comparable results + scanning** → inline carousel.
+3. **Interactive UI / heavy data / takes >½ chat width** → full screen.
+
+**Each tier has a skeleton state** for the loading window — Nuxt UI 4's
+`UChatShimmer` covers the inline tiers; `TuxSkeleton` covers full-screen
+loads.
+
+**Anti-patterns to avoid:**
+
+- **Full-screen for a one-line answer.** The takeover surface is
+  expensive; if the response fits a sentence, just render it in the
+  chat body.
+- **Inline carousel for two items.** Use two side-by-side
+  `<TuxArtifact>` blocks (or a single card with a comparison
+  callout) — the carousel chrome (arrows, dots, advance buttons)
+  overweights two items.
+- **Inline card when the result is a list.** A 12-result tool dump
+  inside one card is unreadable; promote to inline carousel.
+
+Reference frame:
+[`reference/figma-cache/mcp-apps-for-claude/frames/`](../reference/figma-cache/mcp-apps-for-claude/frames/).
+Absorbed 2026-05-21 from Anthropic's official MCP Apps UI kit v1.1.
 
 ### Empty states — no decorative illustrations
 

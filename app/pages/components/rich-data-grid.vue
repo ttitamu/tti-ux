@@ -89,6 +89,22 @@ const compactColumns = [
 ];
 const compactRows = PROJECTS.slice(0, 5);
 
+// Header-menu example string for the TuxExample :vue prop. Held in
+// the script (not inline in the template attribute) because Vue's
+// template-attribute parser chokes on the embedded double quotes
+// inside the backtick literal — see commit history for the original
+// bug. Multi-line string preserved with \n so the rendered example
+// still wraps cleanly.
+const headerMenuExample = [
+  "<TuxRichDataGrid :columns :rows>",
+  '  <template #headerMenu="{ column }">',
+  '    <UDropdownMenu :items="menuItemsFor(column)">',
+  '      <button class="th-menu-btn" aria-label="Column actions">⋮</button>',
+  "    </UDropdownMenu>",
+  "  </template>",
+  "</TuxRichDataGrid>",
+].join("\n");
+
 const richVue = `<TuxRichDataGrid
   title="Active corridor projects"
   meta="FY 2025 · 8 of 184 · last sync 14 min ago"
@@ -260,6 +276,55 @@ const compactVue = `<TuxRichDataGrid
         </TuxRichDataGrid>
       </TuxExample>
     </section>
+
+    <section>
+      <p class="eyebrow">per-column controls</p>
+      <h2 class="heading--bold text-xl font-bold">Header-menu slot</h2>
+      <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
+        The <code>#headerMenu</code> slot mounts a consumer-supplied
+        control next to each column header. Use it to expose
+        sort / hide / pin / filter actions from the header itself —
+        TUX ships no default chrome, so consumers compose with
+        <code>UDropdownMenu</code>, <code>UPopover</code>, or a
+        full <code>TuxFilterPanel</code>. Slot scope:
+        <code>{ column, sortKey, sortDir }</code>.
+      </p>
+      <TuxExample
+        class="mt-4"
+        :vue="headerMenuExample"
+      >
+        <TuxRichDataGrid
+          title="Header-menu demo"
+          :columns="columns.slice(0, 4)"
+          :rows="rows.slice(0, 5)"
+          :show-search="false"
+          :show-filter="false"
+          :show-columns="false"
+          :show-export="false"
+        >
+          <template #headerMenu="{ column }">
+            <UPopover :ui="{ content: 'min-w-44' }">
+              <button
+                type="button"
+                class="rdg-demo__th-menu"
+                :aria-label="`${column.label} column actions`"
+              >
+                <UIcon name="lucide:ellipsis-vertical" class="w-3.5 h-3.5" />
+              </button>
+              <template #content>
+                <ul class="rdg-demo__th-menu-list">
+                  <li><button type="button">Sort A → Z</button></li>
+                  <li><button type="button">Sort Z → A</button></li>
+                  <li><button type="button">Filter column…</button></li>
+                  <li><button type="button">Hide column</button></li>
+                  <li><button type="button">Pin to left</button></li>
+                </ul>
+              </template>
+            </UPopover>
+          </template>
+        </TuxRichDataGrid>
+      </TuxExample>
+    </section>
   </div>
 </template>
 
@@ -316,5 +381,44 @@ const compactVue = `<TuxRichDataGrid
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
+}
+.rdg-demo__th-menu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-left: 0.25rem;
+  border-radius: 0.25rem;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  vertical-align: middle;
+}
+.rdg-demo__th-menu:hover {
+  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  color: var(--brand-primary);
+}
+.rdg-demo__th-menu-list {
+  display: flex;
+  flex-direction: column;
+  padding: 0.375rem;
+  font-size: 0.8rem;
+  list-style: none;
+  margin: 0;
+}
+.rdg-demo__th-menu-list button {
+  width: 100%;
+  text-align: left;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.25rem;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.rdg-demo__th-menu-list button:hover {
+  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
 }
 </style>

@@ -35,6 +35,75 @@ tti-ai-studio integrates MCP tool output. Findings + carry-forwards
 in `reference/figma-cache/mcp-apps-for-claude/NOTES.md` and the
 roadmap.
 
+### Added — adoption batch from absorption carry-forwards (2026-05-21)
+
+Shipping the small, broadly-useful improvements identified across the
+last three absorption passes. No speculative builds — each item had
+multiple absorption files asking for it.
+
+**Tier 1 — slot + prop additions (≤30 LOC each):**
+
+- **[`TuxComposer`](app/components/TuxComposer.vue)** — `cancelable`
+  prop + `cancelLabel` prop + `@cancel` emit. When the composer is
+  wrapped in a modal / slideover / inline edit, surfaces an explicit
+  `[Cancel] [Send]` pair. Cancel is ghost-intent; Send stays primary.
+  Absorbed from the Chat Input Box Figma file. New showcase section
+  on [`/components/composer`](app/pages/components/composer.vue).
+
+- **[`TuxRichDataGrid`](app/components/TuxRichDataGrid.vue)** —
+  `#headerMenu` per-column slot. Consumer-supplied dropdown attached
+  to each column header for sort / hide / pin / filter actions. Slot
+  scope: `{ column, sortKey, sortDir }`. No default chrome — consumers
+  compose with `UDropdownMenu`, `UPopover`, or a full `TuxFilterPanel`.
+  Absorbed from the Data-table-design Figma kit + Snow Dashboard. New
+  showcase section on
+  [`/components/rich-data-grid`](app/pages/components/rich-data-grid.vue).
+
+- **[`app/layouts/sidebar.vue`](app/layouts/sidebar.vue)** —
+  `#aside` slot for an optional right rail. Fixed-width
+  (`asideWidth` prop, default `18rem`), sticky-scrolling next to the
+  main panel, hidden under `md` viewport. Absorbed from Snow
+  Dashboard's notifications + activities rail. The
+  [`landscape-dashboard`](app/pages/examples/landscape-dashboard.vue)
+  example refactored to use this slot (its Recent-activity + Active-
+  agents tiles moved out of the page body into the layout aside —
+  they now stay sticky while main content scrolls).
+
+**Tier 2 — Conventions docs (`design/components.md`):**
+
+- **First-run AI surfaces — Examples / Capabilities / Limitations.**
+  ChatGPT's canonical three-column taxonomy for first-run splashes.
+  Compose with `TuxFactoid density="3"` or 3-up `TuxCard` grid; no
+  new component needed.
+- **MCP tool output — inline card / inline carousel / full screen.**
+  Three-tier display decision tree for MCP tool results. Maps each
+  tier to a TUX composition (`TuxArtifact` → `TuxCardCarousel` →
+  `TuxArtifact` inside `TuxSlideover`/`TuxModal`).
+
+**Tier 2 — new design doc:**
+
+- **[`design/chart-foundations.md`](design/chart-foundations.md)**
+  skeleton. Captures the doctrine future `TuxChartLine` /
+  `TuxChartBar` / `TuxChartArea` will follow — palette rules, in-bar
+  vs above value labels, end-of-line label default, comparison-series
+  patterns, brush/range selector, KPI strip composition, accessibility.
+  Lands before the components so they ship in line with the doctrine.
+
+**Tier 3 — new component:**
+
+- **[`TuxCardCarousel`](app/components/TuxCardCarousel.vue)** —
+  horizontal scroll of cards with editorial chrome (eyebrow + display-
+  face title + signature rule + arrows + optional pagination dots).
+  Thin wrapper around `UCarousel` (embla under the hood); cards are
+  the consumer's responsibility — `TuxCard`, `TuxArtifact`,
+  `TuxContactCard`, or a bare `<article>` all work. Two render modes:
+  `items` array + `#item` scoped slot, or direct slide blocks via
+  the default slot. Re-opens the carousel question we deferred in
+  the shadcn absorption — MCP-Apps-for-Claude (inline carousel tier)
+  was the trigger consumer. Full 6-step integration: source +
+  showcase at [`/components/card-carousel`](app/pages/components/card-carousel.vue)
+  + nav entry + index card + components-md row + CHANGELOG.
+
 ### Changed — PECAN → Landscape rebrand (2026-05-21)
 
 The downstream sensitive-data classifier consumer formerly named

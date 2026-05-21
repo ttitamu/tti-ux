@@ -15,6 +15,7 @@ const components = [
   { name: "TuxCallout",       to: "/components/callout",        blurb: "Pulled-aside editorial accent — fact / stat / quote with style-variant left rule.",          uses: "tux (no U-primitive)" },
   { name: "TuxCaptionedMedia", to: "/components/captioned-media", blurb: "Single image + caption + credit. 16:9 / 1:1 / 4:3 / 3:4 aspect, full / wide / right alignment.", uses: "tux (no U-primitive)" },
   { name: "TuxCard",          to: "/components/card",           blurb: "Static or linked — linked mode has corner-drop hover + appearing arrow.",                      uses: "tux (no U-primitive)" },
+  { name: "TuxCardCarousel",  to: "/components/card-carousel",  blurb: "Horizontal scroll of cards — eyebrow + display title + arrows + dots. Wraps UCarousel.",      uses: "UCarousel" },
   { name: "TuxCardSlab",      to: "/components/card-slab",      blurb: "Full-bleed band of media-forward cards — \"browse our programs\" pattern, 2/3/4-up.",          uses: "tux (no U-primitive)" },
   { name: "TuxChatMessage",   to: "/components/chat-message",   blurb: "One conversation turn — user or assistant role, citations slot, tool row. Powers tti-ai-chat.", uses: "tux (no U-primitive)" },
   { name: "TuxCitations",     to: "/components/citations",      blurb: "Numbered source list under an assistant message — title + path + score in a 3-col grid.",      uses: "tux (no U-primitive)" },

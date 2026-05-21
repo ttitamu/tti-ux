@@ -3,6 +3,7 @@ useHead({ title: "TuxComposer · TUX" });
 
 const text = ref("");
 const compliantText = ref("");
+const cancelableText = ref("");
 
 const models = [
   { value: "haiku-4.5", label: "anthropic/haiku-4.5" },
@@ -31,6 +32,19 @@ const complianceVue = `<tux-composer
     </tux-alert>
   </template>
 </tux-composer>`;
+
+const cancelableVue = `<!-- Wrapped in a modal / slideover. Cancelable
+     surfaces an explicit [Cancel] [Send] pair so the user can back
+     out without sending. The cancel button is ghost-intent; send
+     stays primary. -->
+<tux-composer
+  v-model="text"
+  cancelable
+  cancel-label="Discard"
+  placeholder="Reply to thread…"
+  @submit="handleSend"
+  @cancel="closeModal"
+/>`;
 </script>
 
 <template>
@@ -76,6 +90,27 @@ const complianceVue = `<tux-composer
             </TuxAlert>
           </template>
         </TuxComposer>
+      </TuxExample>
+    </section>
+
+    <section>
+      <p class="eyebrow">cancelable</p>
+      <h2 class="heading--bold text-xl font-bold">Composer wrapped in a modal</h2>
+      <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
+        Pass <code>cancelable</code> to surface a ghost-intent
+        <code>[Cancel]</code> button to the left of <code>[Send]</code>.
+        Listen to <code>@cancel</code> to close the surrounding modal /
+        slideover / inline edit. The <code>cancelLabel</code> prop swaps
+        the button text — useful when "Discard" or "Close" reads better
+        than "Cancel" in context.
+      </p>
+      <TuxExample class="mt-4" :vue="cancelableVue">
+        <TuxComposer
+          v-model="cancelableText"
+          cancelable
+          cancel-label="Discard"
+          placeholder="Reply to thread…"
+        />
       </TuxExample>
     </section>
   </div>

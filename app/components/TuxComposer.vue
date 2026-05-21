@@ -34,6 +34,15 @@ interface Props {
   /** Icon name (Iconify, e.g. `lucide:plus`, `lucide:image-plus`,
    *  `lucide:paperclip`) shown to the left of `attachLabel`. */
   attachIcon?: string;
+  /** When true, render a secondary [Cancel] button next to [Send] and
+   *  emit `@cancel` on click. Use when the composer is wrapped inside
+   *  a modal / slideover / inline edit surface where the user needs
+   *  an explicit way to back out without sending. The send button
+   *  stays primary; cancel sits to its left as ghost-intent. */
+  cancelable?: boolean;
+  /** Label for the Cancel button. Defaults to `"Cancel"`; override
+   *  for editorial surfaces ("Discard", "Close without sending", etc.). */
+  cancelLabel?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -46,6 +55,8 @@ const props = withDefaults(defineProps<Props>(), {
   hideAttach: false,
   attachLabel: "Attach corpus",
   attachIcon: "lucide:plus",
+  cancelable: false,
+  cancelLabel: "Cancel",
 });
 
 const emit = defineEmits<{
@@ -53,6 +64,7 @@ const emit = defineEmits<{
   "update:modelId": [value: string];
   submit: [value: string];
   attach: [];
+  cancel: [];
 }>();
 
 const local = computed({
@@ -118,6 +130,14 @@ function onKey(e: KeyboardEvent) {
         </select>
         <div class="tux-composer__spacer" />
         <span class="tux-composer__count">{{ local.length }} / {{ maxLength }}</span>
+        <UButton
+          v-if="cancelable"
+          color="neutral"
+          variant="ghost"
+          @click="emit('cancel')"
+        >
+          {{ cancelLabel }}
+        </UButton>
         <UButton
           color="primary"
           icon="lucide:arrow-right"

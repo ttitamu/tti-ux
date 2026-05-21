@@ -29,16 +29,28 @@
 //   #rail-footer   — bottom of the rail; user / settings.
 //                    Scope: { collapsed, collapse }
 //   (default)      — main content surface (UDashboardPanel body).
+//   #aside         — optional right rail (notifications / activity /
+//                    contacts / app context). Renders as a fixed-width
+//                    `<aside>` to the right of the main panel, sticky-
+//                    scrolling independently. Width defaults to 18rem;
+//                    override via `asideWidth` prop. Absorbed from the
+//                    Snow Dashboard pattern; only renders when the slot
+//                    has content.
 
 interface Props {
   /** Initial mobile-overlay open state. Default closed. */
   initialOpen?: boolean;
   /** Initial collapsed-to-icons state at lg+. Default expanded. */
   initialCollapsed?: boolean;
+  /** Width of the optional right-rail `#aside` slot. Accepts any CSS
+   *  length (`18rem`, `280px`, `min(20rem, 25vw)`, etc.). Default
+   *  `18rem`. Hide the aside by leaving its slot empty. */
+  asideWidth?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
   initialOpen: false,
   initialCollapsed: false,
+  asideWidth: "18rem",
 });
 
 // Typed slot surface — UDashboardSidebar forwards `{ collapsed, collapse }`
@@ -54,6 +66,9 @@ defineSlots<{
   rail(props: RailScope): unknown;
   "rail-footer"(props: RailScope): unknown;
   default(): unknown;
+  /** Optional right rail. Renders only when the slot has content;
+   *  fixed-width, sticky-scrolling, sits next to UDashboardPanel. */
+  aside(): unknown;
 }>();
 
 const open = ref(props.initialOpen);
@@ -90,5 +105,36 @@ const collapsed = ref(props.initialCollapsed);
         <slot />
       </template>
     </UDashboardPanel>
+
+    <aside
+      v-if="$slots.aside"
+      class="tux-sidebar-layout__aside"
+      :style="{ width: asideWidth }"
+    >
+      <slot name="aside" />
+    </aside>
   </UDashboardGroup>
 </template>
+
+<style scoped>
+.tux-sidebar-layout__aside {
+  flex-shrink: 0;
+  border-left: 1px solid var(--surface-border);
+  background: var(--surface-page);
+  overflow-y: auto;
+  /* Match UDashboardPanel's full-height scrollable behavior — the
+     aside scrolls independently of the main panel body so notifications
+     /activity feeds stay visible while the user scrolls main content. */
+  height: 100%;
+  align-self: stretch;
+}
+
+/* Hide the aside on narrow viewports (< md) so the main panel gets
+   full width. Consumers can re-show via custom media queries if their
+   surface demands it. */
+@media (max-width: 47.99rem) {
+  .tux-sidebar-layout__aside {
+    display: none;
+  }
+}
+</style>
