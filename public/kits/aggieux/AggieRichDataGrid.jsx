@@ -374,7 +374,7 @@ function RichDataGridPage() {
   return (
     <PageShell item={item}>
       <RGIntro>
-        Interactive data grid for research dashboards and operational tools (PECAN-class). Anatomy adapted from Ant Design Table, Microsoft Fluent 2 Web DataGrid, and Microsoft Fabric Rich-data-grid — sticky header, row selection with bulk-action bar, expandable detail rows, sortable columns with resize affordance, and an active-filter chip strip. Identity stays TUX: Work Sans / Open Sans / JetBrains Mono only, maroon focus ring, warm-neutral surfaces, tabular numerics throughout. Use this when readers need to <em>act</em> on rows; use <code>data-tables</code> for static reports where exact numbers and footnotes matter more than interaction.
+        Interactive data grid for research dashboards and operational tools (Landscape-class). Anatomy adapted from Ant Design Table, Microsoft Fluent 2 Web DataGrid, and Microsoft Fabric Rich-data-grid — sticky header, row selection with bulk-action bar, expandable detail rows, sortable columns with resize affordance, and an active-filter chip strip. Identity stays TUX: Work Sans / Open Sans / JetBrains Mono only, maroon focus ring, warm-neutral surfaces, tabular numerics throughout. Use this when readers need to <em>act</em> on rows; use <code>data-tables</code> for static reports where exact numbers and footnotes matter more than interaction.
       </RGIntro>
 
       <RGSectionLabel>Full interactive grid</RGSectionLabel>

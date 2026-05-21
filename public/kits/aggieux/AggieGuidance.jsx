@@ -246,7 +246,7 @@ function TeachingBannerPage() {
           tone="info"
           badge="New"
           title="Project workspace is now collaborative"
-          body="Invite up to 12 collaborators per project. Comments, presence indicators, and mentions are now available across all PECAN tools."
+          body="Invite up to 12 collaborators per project. Comments, presence indicators, and mentions are now available across all Landscape tools."
           primary="Try it now"
           secondary="Learn more"
         />
@@ -299,7 +299,7 @@ function TeachingBannerPage() {
           <GUTeachingBanner
             tone="spotlight"
             size="hero"
-            badge="Welcome to PECAN 4.0"
+            badge="Welcome to Landscape 4.0"
             title="A faster, calmer corridor analysis tool"
             body="Datasets, runs, and reports now share one workspace. Most of what was buried in menus is now reachable from the command palette."
             primary="Take the tour"

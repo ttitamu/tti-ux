@@ -23,7 +23,7 @@ const grafanaVue = `<tux-viz-embed
   provider="grafana"
   src="https://grafana.example.org/d/abc/dashboard?kiosk=tv"
   poster-src="/viz-poster-grafana.svg"
-  title="PECAN ingestion · last 24h"
+  title="Landscape ingestion · last 24h"
   eyebrow="grafana"
   ratio="16/9"
 />`;
@@ -89,13 +89,13 @@ const grafanaVue = `<tux-viz-embed
 
     <section>
       <p class="eyebrow">grafana</p>
-      <h2 class="heading--bold text-xl font-bold">PECAN ingestion dashboard</h2>
+      <h2 class="heading--bold text-xl font-bold">Landscape ingestion dashboard</h2>
       <TuxExample class="mt-4" :vue="grafanaVue">
         <TuxVizEmbed
           provider="grafana"
           src="https://grafana.example.org/d/abc/dashboard?kiosk=tv"
           poster-src="/viz-poster-grafana.svg"
-          title="PECAN ingestion · last 24h"
+          title="Landscape ingestion · last 24h"
           eyebrow="grafana"
           ratio="16/9"
         >

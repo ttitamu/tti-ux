@@ -15,7 +15,7 @@ function ChatSidebar({ active, onPick, onNew }) {
     ]},
     { group: "THIS WEEK", items: [
       { id: "c5", t: "Compare 2023 vs 2024 crash reports", meta: "18 turns · BI corpus" },
-      { id: "c6", t: "Generate handoff notes for PECAN v1.2", meta: "9 turns" },
+      { id: "c6", t: "Generate handoff notes for Landscape v1.2", meta: "9 turns" },
       { id: "c7", t: "Read TxDOT rule 43 TAC 31.12 ", meta: "5 turns" },
     ]},
   ];

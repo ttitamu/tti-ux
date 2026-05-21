@@ -30,7 +30,7 @@ const exampleVue = `<TuxTOC
         <div class="grid grid-cols-1 md:grid-cols-[1fr_14rem] gap-8 items-start">
           <article id="article" class="prose-toc-demo space-y-4 max-h-[28rem] overflow-y-auto pr-4 border-r border-surface-border">
             <h2 id="introduction">Introduction</h2>
-            <p>The PECAN agent watcher is a long-running process on each agent host that detects file events and ships them to the central index. This is an intro paragraph long enough to push the next heading down the page so the TOC has something to track.</p>
+            <p>The Landscape agent watcher is a long-running process on each agent host that detects file events and ships them to the central index. This is an intro paragraph long enough to push the next heading down the page so the TOC has something to track.</p>
             <p>The watcher coalesces events over a 250ms window to avoid shipping every keystroke during text-editor saves. Output is batched and pushed via the central transport channel.</p>
 
             <h2 id="event-types">Event types</h2>

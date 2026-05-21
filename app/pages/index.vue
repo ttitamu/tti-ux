@@ -31,8 +31,8 @@ const recentUpdates = [
   },
   {
     date: "2026-04-24",
-    title: "tti-ux extracted from PECAN",
-    body: "Forked the design-system source out of pecan into a standalone runnable style guide. Three downstream consumers: PECAN, tti-ai-studio, this style guide itself.",
+    title: "tti-ux extracted from Landscape",
+    body: "Forked the design-system source out of landscape into a standalone runnable style guide. Three downstream consumers: Landscape, tti-ai-studio, this style guide itself.",
     to: "/design/tux",
   },
 ];
@@ -71,7 +71,7 @@ const catalogCount = "70+";
         </p>
         <p class="welcome-hero__body">
           Three products consume this system today:
-          <strong>PECAN</strong> (sensitive-data classifier),
+          <strong>Landscape</strong> (sensitive-data classifier),
           <strong>tti-ai-studio</strong> (LLM tooling), and this style
           guide itself. Themed for TTI maroon &amp; gold, structured so
           a sister institution can repaint via tokens without forking.
@@ -99,7 +99,7 @@ const catalogCount = "70+";
           <p class="welcome-hero__meta-value">Nuxt 4 · Nuxt UI · Tailwind v4</p>
 
           <p class="welcome-hero__meta-label">Consumers</p>
-          <p class="welcome-hero__meta-value">PECAN · tti-ai-studio · tti-ux</p>
+          <p class="welcome-hero__meta-value">Landscape · tti-ai-studio · tti-ux</p>
 
           <p class="welcome-hero__meta-label">Catalog</p>
           <p class="welcome-hero__meta-value">{{ catalogCount }} components · 5 foundations</p>
@@ -199,13 +199,13 @@ const catalogCount = "70+";
       <p class="mt-2 max-w-2xl text-text-secondary leading-relaxed">
         If you're trying to figure out what tux is <em>for</em>,
         these three pages assemble 9–13 components into real-shape
-        surfaces — a PECAN dashboard, a research-program landing,
+        surfaces — a Landscape dashboard, a research-program landing,
         a tti-ai-studio session.
       </p>
       <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <TuxCard to="/examples/pecan-dashboard">
+        <TuxCard to="/examples/landscape-dashboard">
           <p class="eyebrow">product · IT-facing</p>
-          <h3 class="text-xl font-bold">PECAN dashboard</h3>
+          <h3 class="text-xl font-bold">Landscape dashboard</h3>
           <p class="mt-2 text-sm text-text-secondary">
             Index overview — treemap viz, faceted file search, scan
             table, compliance alert.

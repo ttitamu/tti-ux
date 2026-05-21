@@ -90,7 +90,7 @@ interface Props {
   sticky?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   primaryNav: () => [],
   utilityNav: () => [],
   search: false,
@@ -273,7 +273,7 @@ function isPlainLinkActive(item: { to?: string; href?: string }): boolean {
 
         <!--
           Trailing utility cluster — slot for app-shape consumers
-          (PECAN, tti-ai-studio, future admin tools) to drop a
+          (Landscape, tti-ai-studio, future admin tools) to drop a
           search trigger / theme toggle / user dropdown / notification
           bell next to the primary nav.
 

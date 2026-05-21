@@ -35,7 +35,7 @@ function FootersPage() {
         <FBox dark={true}><SiteFooter dark={true} columns={3} newsletter /></FBox>
       </FSection>
 
-      <FSection eyebrow="compact" title="Application footer" desc="For internal tools (PECAN, etc). Skip the main block; compliance strip only, with app-specific utility links.">
+      <FSection eyebrow="compact" title="Application footer" desc="For internal tools (Landscape, etc). Skip the main block; compliance strip only, with app-specific utility links.">
         <FBox dark={false}><AppFooter dark={false} /></FBox>
         <FBox dark={true}><AppFooter dark={true} /></FBox>
       </FSection>
@@ -169,7 +169,7 @@ function AppFooter({ dark }) {
   return (
     <div style={{ background: bg, padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: "var(--font-body)", fontSize: 12, color: textColor }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: dark ? "#DDAC37" : "#5C0025", fontWeight: 600 }}>PECAN v2.14.3</span>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: dark ? "#DDAC37" : "#5C0025", fontWeight: 600 }}>Landscape v2.14.3</span>
         <span style={{ opacity: 0.6 }}>·</span>
         <span>© 2026 Texas A&nbsp;&amp;&nbsp;M Transportation Institute</span>
       </div>

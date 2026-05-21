@@ -3,8 +3,8 @@ useHead({ title: "TuxAccordion · TUX" });
 
 const faqItems = [
   {
-    title: "What does PECAN do that diskover doesn't?",
-    content: "PECAN ships per-institution themes and a classifier-aware indexing pipeline. The treemap, search facets, and audit trail are reimplemented on a modern stack — TanStack Virtual + OpenSearch instead of D3 v3 + ElasticSearch. It also bakes in TAMUS access tiers and ITAR compliance markers as first-class concerns.",
+    title: "What does Landscape do that diskover doesn't?",
+    content: "Landscape ships per-institution themes and a classifier-aware indexing pipeline. The treemap, search facets, and audit trail are reimplemented on a modern stack — TanStack Virtual + OpenSearch instead of D3 v3 + ElasticSearch. It also bakes in TAMUS access tiers and ITAR compliance markers as first-class concerns.",
     defaultOpen: true,
   },
   {
@@ -13,10 +13,10 @@ const faqItems = [
   },
   {
     title: "Is there a CLI?",
-    content: "Yes. `pecan agent watch /path` indexes a directory and streams events to the central OpenSearch. `pecan agent token` manages scoped tokens. `pecan classifier list` shows the classifier catalog.",
+    content: "Yes. `landscape agent watch /path` indexes a directory and streams events to the central OpenSearch. `landscape agent token` manages scoped tokens. `landscape classifier list` shows the classifier catalog.",
   },
   {
-    title: "Can I deploy PECAN air-gapped?",
+    title: "Can I deploy Landscape air-gapped?",
     content: "The current target is TAMUS-network deployments. Air-gapped is feasible — fonts self-host (already wired), OpenSearch is offline-installable, and the only outbound dependencies are the Lucide CDN (replaceable with the bundled Iconify set) and Google Fonts (replaceable with self-hosted equivalents).",
   },
 ];

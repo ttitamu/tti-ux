@@ -29,7 +29,7 @@ const exampleVue = `<TuxSearch
       <TuxExample class="mt-4" :vue="exampleVue">
         <TuxSearch
           v-model="q1"
-          placeholder="Search PECAN indices"
+          placeholder="Search Landscape indices"
           @submit="(v) => (lastSubmitted = v)"
         />
       </TuxExample>

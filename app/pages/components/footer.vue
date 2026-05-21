@@ -96,7 +96,7 @@ const slimExampleVue = `<!-- Pass no columns / no social — you get the
         and the maroon top compresses to just the identity block
         (logo + name + address + phone). The right shape for app
         contexts where marketing-y link grids would feel out of
-        place — PECAN dashboards, tti-ai-studio sessions.
+        place — Landscape dashboards, tti-ai-studio sessions.
       </p>
       <TuxExample class="mt-4" :vue="slimExampleVue">
         <div class="border border-surface-border rounded-md overflow-hidden">

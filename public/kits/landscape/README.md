@@ -1,6 +1,6 @@
-# UI Kit — tux (PECAN)
+# UI Kit — tux (Landscape)
 
-High-fidelity React recreation of the tti-ux component family, demonstrated inside a mocked PECAN (the institute's internal sensitive-data classifier) shell. This is not the production Nuxt app — it is a static click-through built to mirror visual decisions 1:1 so design work can compose real screens without pulling in the Nuxt UI runtime.
+High-fidelity React recreation of the tti-ux component family, demonstrated inside a mocked Landscape (the institute's internal sensitive-data classifier; previously named PECAN) shell. This is not the production Nuxt app — it is a static click-through built to mirror visual decisions 1:1 so design work can compose real screens without pulling in the Nuxt UI runtime.
 
 ## Files
 

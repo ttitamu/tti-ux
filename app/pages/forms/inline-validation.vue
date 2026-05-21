@@ -155,7 +155,7 @@ function onEmailInput() {
         Each of these is ten lines of Vue. Wrapping them in a single
         component would obscure intent and lock the host app into one
         masking convention. The patterns here transfer cleanly to any
-        consumer (PECAN admin, tti-ai-studio settings, sponsor-portal
+        consumer (Landscape admin, tti-ai-studio settings, sponsor-portal
         forms) — copy the handler, point it at the right ref.
       </p>
     </section>

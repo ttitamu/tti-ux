@@ -4,9 +4,9 @@ Living style guide for the **tux** design system. A runnable Nuxt 4 app that
 IS the source of truth for components — if a visual changes, this site shows
 it first.
 
-Built for Texas A&amp;M Transportation Institute apps (PECAN, tti-ai-studio,
-the TTI docs site, marcom WordPress kit) but the components and tokens are
-domain-agnostic. The example data in showcase pages (project titles, status
+Built for Texas A&amp;M Transportation Institute apps (Landscape — formerly
+PECAN — tti-ai-studio, the TTI docs site, marcom WordPress kit) but the
+components and tokens are domain-agnostic. The example data in showcase pages (project titles, status
 badges, form fields) is illustrative — intentionally spread across
 transportation-research domains so no single consuming app's identity leaks
 into the design system.
@@ -26,7 +26,7 @@ verified at AAA across all three themes (light, dark, high-contrast).
 - **Foundations** — tokens, typography, motion, icons, the three
   style variants. Pages under `/tokens`, `/typography`, etc.
 - **Composition examples** — three real-shape pages showing the system in
-  context: a [PECAN dashboard](app/pages/examples/pecan-dashboard.vue), a
+  context: a [Landscape dashboard](app/pages/examples/landscape-dashboard.vue), a
   [research-program landing](app/pages/examples/research-landing.vue), a
   [tti-ai-studio session](app/pages/examples/tti-ai-studio-session.vue).
 - **Tooling** — [`/contrast-audit`](app/pages/contrast-audit.vue) renders
@@ -125,11 +125,11 @@ Prefer the hyphenated form in showcase code samples; PascalCase in imports.
 ## Project context
 
 tti-ux is one of three concurrent products at TTI Networking & Information
-Services: PECAN (sensitive-data classifier), tti-ai-studio (LLM tooling for
-researchers), and this style guide itself. The system supports all three
+Services: Landscape (sensitive-data classifier; previously named PECAN),
+tti-ai-studio (LLM tooling for researchers), and this style guide itself. The system supports all three
 plus an emerging marcom WordPress kit. See [`design/tux.md`](design/tux.md)
 for the full manifesto.
 
 ## License
 
-Apache 2.0 — matches PECAN and the other TAMUS/TTI open-source projects.
+Apache 2.0 — matches Landscape and the other TAMUS/TTI open-source projects.

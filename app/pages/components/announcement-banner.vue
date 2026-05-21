@@ -12,7 +12,7 @@ const infoVue = `<tux-announcement-banner
 const warningVue = `<tux-announcement-banner
   tone="warning"
   eyebrow="scheduled maintenance"
-  message="PECAN will be unavailable Saturday 2\u20134am for index rebuild."
+  message="Landscape will be unavailable Saturday 2\u20134am for index rebuild."
   :action="{ label: 'Status page', href: 'https://status.tti.tamu.edu' }"
 />`;
 
@@ -54,7 +54,7 @@ const urgentVue = `<tux-announcement-banner
         <TuxAnnouncementBanner
           tone="warning"
           eyebrow="scheduled maintenance"
-          message="PECAN will be unavailable Saturday 2–4am for index rebuild."
+          message="Landscape will be unavailable Saturday 2–4am for index rebuild."
           :action="{ label: 'Status page', href: 'https://status.tti.tamu.edu' }"
         />
       </TuxExample>

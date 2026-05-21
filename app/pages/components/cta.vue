@@ -3,7 +3,7 @@ useHead({ title: "TuxCTA · TUX" });
 
 const exampleVue = `<TuxCTA
   eyebrow="get started"
-  title="Point PECAN at your first directory"
+  title="Point Landscape at your first directory"
   dek="Five minutes, no commitment, runs entirely in your tenant."
 >
   <template #actions>
@@ -29,7 +29,7 @@ const exampleVue = `<TuxCTA
       <TuxExample class="mt-4" :vue="exampleVue">
         <TuxCTA
           eyebrow="get started"
-          title="Point PECAN at your first directory"
+          title="Point Landscape at your first directory"
           dek="Five minutes, no commitment, runs entirely in your tenant."
         >
           <template #actions>

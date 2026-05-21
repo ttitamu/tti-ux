@@ -22,10 +22,10 @@ const kits: Kit[] = [
     blurb: "Exhaustive ~57-family catalog organized into Foundations, Navigation, Components, Specialized, Templates. Mirrors the Texas A&M Marcom + TTI structure. Most families have all three style variants (default / bold / elegant) demonstrated. The richest reference; consult before designing a new pattern.",
   },
   {
-    slug: "pecan",
+    slug: "landscape",
     eyebrow: "app shape",
-    label: "PECAN",
-    blurb: "The institute's sensitive-data classifier — sidebar nav, scans/classifiers/indices pages, compliance alerts, status badges, classifier catalog cards. The data-density end of the system: how tux composes into a research-IT product surface.",
+    label: "Landscape",
+    blurb: "The institute's sensitive-data classifier (Landscape, formerly PECAN) — sidebar nav, scans/classifiers/indices pages, compliance alerts, status badges, classifier catalog cards. The data-density end of the system: how tux composes into a research-IT product surface.",
   },
   {
     slug: "tti-docs",
@@ -53,8 +53,8 @@ const kits: Kit[] = [
     <TuxPageHeader eyebrow="reference" title="Reference kits">
       Five static reference artifacts served from <code>/kits/&lt;name&gt;/</code>.
       They predate the Nuxt repo and were carried over as design source: the
-      AggieUX component catalog, three application shells (PECAN, tti-docs,
-      tti-ai-chat), and a deck-stage slide system. All five render in
+      AggieUX component catalog, three application shells (Landscape,
+      tti-docs, tti-ai-chat), and a deck-stage slide system. All five render in
       vanilla CSS + React via Babel-in-the-browser — no build step — and
       pull <code>/colors_and_type.css</code> so they reflect the live tokens.
       Use them to see how patterns compose; the production-grade equivalents

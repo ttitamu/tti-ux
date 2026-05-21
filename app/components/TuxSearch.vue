@@ -2,7 +2,7 @@
 // TuxSearch — branded inline search bar.
 //
 // Bordered input + attached uppercase action button. The institutional
-// search affordance — used in PECAN's finder, tti-ai-studio's conversation
+// search affordance — used in Landscape's finder, tti-ai-studio's conversation
 // search, and any catalog page that needs a search input.
 //
 // Two sizes:

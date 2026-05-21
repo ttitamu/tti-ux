@@ -115,15 +115,15 @@ function OVCommandPalette({ dark = false, query = "deploy" }) {
     {
       label: "Recent",
       items: [
-        { icon: "rotate-cw",   label: "Re-run last scan",          shortcut: "R",     hint: "Pecan / scans" },
+        { icon: "rotate-cw",   label: "Re-run last scan",          shortcut: "R",     hint: "Landscape / scans" },
         { icon: "file-text",   label: "Open ADR-024 — Search",     shortcut: null,    hint: "tti-docs / ADRs" },
       ],
     },
     {
       label: "Pages",
       items: [
-        { icon: "compass",     label: "Go to Dashboard",           shortcut: "G D",   hint: "Pecan" },
-        { icon: "hard-drive",  label: "Go to Indexes",             shortcut: "G I",   hint: "Pecan" },
+        { icon: "compass",     label: "Go to Dashboard",           shortcut: "G D",   hint: "Landscape" },
+        { icon: "hard-drive",  label: "Go to Indexes",             shortcut: "G I",   hint: "Landscape" },
         { icon: "users",       label: "Go to Directory",           shortcut: "G U",   hint: "tti-staff" },
       ],
     },
@@ -160,7 +160,7 @@ function OVCommandPalette({ dark = false, query = "deploy" }) {
       {/* Faux app behind the scrim — just enough to read as "open over content" */}
       <div style={{ position: "absolute", inset: 0, background: dark ? "linear-gradient(180deg, #221F1F, #15100F)" : "linear-gradient(180deg, var(--surface-raised), var(--surface-page))", zIndex: 0 }}>
         <div style={{ padding: "16px 22px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: dialogBorder, opacity: 0.45 }}>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: "0.95rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: itemColor }}>Pecan / dashboard</div>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: "0.95rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: itemColor }}>Landscape / dashboard</div>
           <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: itemMutedColor }}>research/staff</div>
         </div>
         <div style={{ padding: "32px 22px", color: itemMutedColor, fontSize: "0.85rem", lineHeight: 1.6, opacity: 0.4 }}>
@@ -326,7 +326,7 @@ function OVModal({ variant = "default", kind = "basic", dark = false }) {
       {/* Faux page background */}
       <div style={{ position: "absolute", inset: 0, background: dark ? "linear-gradient(180deg, #221F1F, #15100F)" : "linear-gradient(180deg, var(--surface-raised), var(--surface-page))", opacity: 0.55 }}>
         <div style={{ padding: "16px 22px", display: "flex", justifyContent: "space-between", alignItems: "center", opacity: 0.5 }}>
-          <div style={{ fontFamily: "var(--font-display)", fontSize: "0.9rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: textColor }}>Pecan / indexes</div>
+          <div style={{ fontFamily: "var(--font-display)", fontSize: "0.9rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: textColor }}>Landscape / indexes</div>
           <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.68rem", color: mutedColor }}>research/staff</div>
         </div>
       </div>
@@ -360,7 +360,7 @@ function OVModal({ variant = "default", kind = "basic", dark = false }) {
           {isDestructive && (
             <div style={{ marginTop: 16, padding: "10px 12px", display: "flex", alignItems: "flex-start", gap: 10, background: dark ? "color-mix(in srgb, var(--color-error) 18%, transparent)" : "color-mix(in srgb, var(--color-error) 8%, transparent)", borderLeft: `3px solid var(--color-error)`, borderRadius: "0 var(--radius-sm) var(--radius-sm) 0", fontSize: "0.82rem", color: textColor }}>
               <LucideIcon name="alert-triangle" size={14} color="var(--color-error)" />
-              <span><strong>Type the index name</strong> <code style={{ fontFamily: "var(--font-mono)", background: "transparent", color: "var(--color-error)", fontWeight: 600 }}>pecan-2024-q3</code> to confirm.</span>
+              <span><strong>Type the index name</strong> <code style={{ fontFamily: "var(--font-mono)", background: "transparent", color: "var(--color-error)", fontWeight: 600 }}>landscape-2024-q3</code> to confirm.</span>
             </div>
           )}
         </div>

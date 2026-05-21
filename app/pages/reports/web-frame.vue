@@ -115,7 +115,7 @@ const sourceVue = `<tux-report-web-frame
               <h2>Data and methods</h2>
               <p>
                 Source datasets, classifier versions, and reproducibility
-                pointers live in the program's PECAN workspace. Sponsor
+                pointers live in the program's Landscape workspace. Sponsor
                 access is provisioned via Entra ID; public extracts are
                 published to data.tti.tamu.edu in CSV and Parquet.
               </p>

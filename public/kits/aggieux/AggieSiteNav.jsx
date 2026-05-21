@@ -10,7 +10,7 @@
  *   • University              — top-level TTI site
  *   • Center / Program        — a center or program under the institute
  *   • Department              — a department within a center
- *   • Application w/ Nav      — internal tool with its own nav (e.g. PECAN)
+ *   • Application w/ Nav      — internal tool with its own nav (e.g. Landscape)
  *   • Application only        — internal tool with no nav, just identity + user menu
  *
  * Each has a dark-mode mirror. Identity type (lockup vs text) and menu type
@@ -51,7 +51,7 @@ function SiteNavPage() {
 
       <TypeBlock
         type="Application with nav"
-        desc="Internal tool (e.g. PECAN). Utility nav replaced with app utility — user menu, help, notifications. Primary nav carries app sections."
+        desc="Internal tool (e.g. Landscape). Utility nav replaced with app utility — user menu, help, notifications. Primary nav carries app sections."
       >
         <SiteHeader type="app" dark={false} />
         <SiteHeader type="app" dark={true} />
@@ -145,7 +145,7 @@ function SiteHeader({ type, dark }) {
 
   // identity content per type
   const identityName = isApp
-    ? "PECAN"
+    ? "Landscape"
     : type === "center"
     ? "Center for Transportation Safety"
     : type === "department"

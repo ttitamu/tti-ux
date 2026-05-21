@@ -19,7 +19,7 @@ const items = [
   },
   {
     question: "Are container queries safe to use given the consumer base?",
-    answer: "Yes. Tux's three downstream consumers (PECAN, tti-ai-studio, marcom WordPress) all target current Chrome / Edge / Firefox / Safari. Container queries shipped in Chrome 105 (2022-09), Safari 16 (2022-09), Firefox 110 (2023-02) — all evergreen. We have no user agents predating that.",
+    answer: "Yes. Tux's three downstream consumers (Landscape, tti-ai-studio, marcom WordPress) all target current Chrome / Edge / Firefox / Safari. Container queries shipped in Chrome 105 (2022-09), Safari 16 (2022-09), Firefox 110 (2023-02) — all evergreen. We have no user agents predating that.",
     seeAlso: [
       { label: "ADR 0007", to: "#" },
     ],

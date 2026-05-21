@@ -66,7 +66,7 @@ const exampleVue = `<TuxFilterPanel
 
     <section>
       <p class="eyebrow">canonical</p>
-      <h2 class="heading--bold text-xl font-bold">PECAN-style facets</h2>
+      <h2 class="heading--bold text-xl font-bold">Landscape-style facets</h2>
       <p class="text-sm text-text-secondary mb-3">
         Toggle checkboxes — applied filters surface as chips at the top.
         Click a chip or <strong>Clear all</strong> to remove. The

@@ -79,7 +79,7 @@ useHead({ title: "Style variants · TUX" });
           </div>
           <div class="card-static--bold">
             <p class="eyebrow">workshop</p>
-            <h4 class="text-xl font-extrabold mt-1">Hands-on PECAN intake</h4>
+            <h4 class="text-xl font-extrabold mt-1">Hands-on Landscape intake</h4>
             <p class="mt-2 text-sm text-text-secondary">
               Day 2 · 1:00 PM · Bring your own corpus. Limited to 30 seats.
             </p>

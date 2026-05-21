@@ -61,7 +61,7 @@ const tree = [
 ];
 
 const exampleVue = `<TuxDocsSidebar
-  title="PECAN docs"
+  title="Landscape docs"
   :tree="[
     { label: 'Get started', children: [...] },
     { label: 'Agent',       children: [...] },
@@ -105,7 +105,7 @@ const exampleVue = `<TuxDocsSidebar
 
     <section>
       <p class="eyebrow">canonical</p>
-      <h2 class="heading--bold text-xl font-bold">PECAN-shaped tree · 5 sections</h2>
+      <h2 class="heading--bold text-xl font-bold">Landscape-shaped tree · 5 sections</h2>
       <p class="text-sm text-text-secondary mb-3">
         Type in the filter to narrow the tree — matches highlight in
         labels and parent groups expand to reveal hits. The "Search
@@ -115,7 +115,7 @@ const exampleVue = `<TuxDocsSidebar
       <TuxExample class="mt-4" :vue="exampleVue">
         <div class="border border-surface-border rounded-md bg-surface-page p-4">
           <TuxDocsSidebar
-            title="PECAN docs"
+            title="Landscape docs"
             :tree="tree"
           />
         </div>

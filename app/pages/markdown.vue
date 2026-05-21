@@ -19,7 +19,7 @@ author: R. Chen
 
 # How the agent watcher works
 
-PECAN's file watcher is the long-running process on each agent host
+Landscape's file watcher is the long-running process on each agent host
 that detects file events (create / modify / delete / move) and ships
 them to the central index.
 
@@ -57,7 +57,7 @@ const debounced = debounce(events, { window: 250 });
 Run it locally:
 
 \`\`\`bash
-$ pecan agent watch /research/grants --root=local
+$ landscape agent watch /research/grants --root=local
 [12:14:08] watcher: 4 paths registered
 [12:14:09] heartbeat: ok (latency 38ms)
 \`\`\`
@@ -67,6 +67,22 @@ The default heartbeat is every 60 seconds. Override with
 \`--heartbeat=30s\` for tighter monitoring during a deploy or rolling
 restart.
 ::
+
+## Math
+
+Inline equations flow with surrounding prose — the watcher's
+detection-latency budget is bounded by $T_{poll} + T_{fs}$, where
+$T_{poll}$ is the kernel poll interval and $T_{fs}$ is the filesystem
+event-emission delay.
+
+Display equations get their own block:
+
+$$
+T_{detect} = \\max(T_{poll}, T_{fs}) + \\frac{1}{N}\\sum_{i=1}^{N} T_{network,i}
+$$
+
+Math renders via \`remark-math\` + \`rehype-katex\` in the MDC
+pipeline; KaTeX CSS is imported globally in \`globals.css\`.
 `;
 
 // Parse at SSR time. parseMarkdown runs Shiki on every fenced code
@@ -186,7 +202,7 @@ A :badge[ITAR]{kind=\&quot;tag\&quot;} flag here.
         <li>
           <strong>Mix freely</strong> — a Vue page can render an
           <code>&lt;MDC :value="..." /&gt;</code> block for the prose
-          section and Vue components for the chrome. The PECAN docs
+          section and Vue components for the chrome. The Landscape docs
           site does this for product overviews.
         </li>
       </ul>

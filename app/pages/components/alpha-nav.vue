@@ -10,7 +10,7 @@ const exampleVue = `<TuxAlphaNav :available="['A','B','C','D','G','H','I']" />`;
 
 // Mock glossary entries
 const glossary = [
-  { term: "Agent", letter: "A", definition: "Long-running process on a host machine that watches one or more directories and ships file events to PECAN's central index." },
+  { term: "Agent", letter: "A", definition: "Long-running process on a host machine that watches one or more directories and ships file events to Landscape's central index." },
   { term: "Beat",  letter: "B", definition: "Heartbeat ping from an agent confirming it's alive. Default cadence: every 60 seconds." },
   { term: "Corpus", letter: "C", definition: "A logical grouping of indexed documents — typically scoped to a research grant, a collection, or an access tier." },
   { term: "Drift",  letter: "D", definition: "Disagreement between the agent's local index and the central record. The drift reconciler runs hourly to close drift entries." },

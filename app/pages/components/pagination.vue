@@ -18,7 +18,7 @@ const exampleVue = `<TuxPagination
 <template>
   <div class="space-y-12">
     <TuxPageHeader eyebrow="component" title="TuxPagination">
-      Page-number controls for result lists. Used by PECAN result tables,
+      Page-number controls for result lists. Used by Landscape result tables,
       news collections, publication catalogs, any surface where N items
       spread across multiple pages. Native Vue (not UPagination) so the
       visual rhythm — square corners, maroon active page, tabular
@@ -27,7 +27,7 @@ const exampleVue = `<TuxPagination
 
     <section>
       <p class="eyebrow">canonical</p>
-      <h2 class="heading--bold text-xl font-bold">PECAN-style results page</h2>
+      <h2 class="heading--bold text-xl font-bold">Landscape-style results page</h2>
       <p class="text-sm text-text-secondary mb-3">
         With status line. v-model'd to <code>page1</code>, current page
         <strong>{{ page1 }}</strong>.

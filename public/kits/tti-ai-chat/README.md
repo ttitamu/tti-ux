@@ -23,7 +23,7 @@ Everything named in the demo conversation is specific on purpose: the classifier
 | File | What's in it |
 |---|---|
 | `index.html` | Mount + the demo conversation (3 messages covering audit, scoped retrain proposal, ticket draft). |
-| `TuxComponents.jsx` | Shared tux primitives (copied from `ui_kits/pecan/`). |
+| `TuxComponents.jsx` | Shared tux primitives (copied from `ui_kits/landscape/`). |
 | `ChatParts.jsx` | `ChatSidebar`, `ConversationHeader`, `Message`, `Citations`, `AssistantToolbar`, `Composer`, `ContextPanel`, `Stat`, `BigFigure`. |
 
 ## What's cut

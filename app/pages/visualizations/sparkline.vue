@@ -81,7 +81,7 @@ const factoidVue = `<div class="card-static p-4">
             <p class="mt-1 text-xs text-text-muted">per 100M VMT · 10-q trend</p>
           </div>
           <div class="card-static p-4">
-            <p class="eyebrow">ingest · pecan</p>
+            <p class="eyebrow">ingest · landscape</p>
             <div class="flex items-end gap-3 mt-1">
               <span class="text-3xl font-bold">4.0</span>
               <TuxSparkline :data="ingest" :width="96" :height="28" tone="neutral" show-delta delta-format="absolute" />

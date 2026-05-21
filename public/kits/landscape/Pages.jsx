@@ -11,7 +11,7 @@ function OverviewPage({ onNavigate }) {
   ];
   return (
     <div>
-      <TuxPageHeader eyebrow="overview" title="PECAN dashboard">
+      <TuxPageHeader eyebrow="overview" title="Landscape dashboard">
         Sensitive-data classifier for TTI research storage. Live across <code>/mnt/research</code>
         {" "}and three S3 buckets.
       </TuxPageHeader>
@@ -244,7 +244,7 @@ function ClassifiersPage() {
   return (
     <div>
       <TuxPageHeader eyebrow="classifiers" title="Classifier catalog">
-        Detectors registered in PECAN. Precision and recall measured against the Q4 2025 gold set.
+        Detectors registered in Landscape. Precision and recall measured against the Q4 2025 gold set.
       </TuxPageHeader>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         {[

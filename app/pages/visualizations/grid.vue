@@ -33,7 +33,7 @@ const twoUpVue = `<tux-viz-grid
 const threeUpVue = `<tux-viz-grid
   cols="3"
   eyebrow="ingest health"
-  title="PECAN \u00b7 last 24h across all stages"
+  title="Landscape \u00b7 last 24h across all stages"
 >
   <tux-viz-embed provider="grafana" src="\u2026" title="Producer" \u2026 />
   <tux-viz-embed provider="grafana" src="\u2026" title="Pipeline" \u2026 />
@@ -98,7 +98,7 @@ const threeUpVue = `<tux-viz-grid
         <TuxVizGrid
           :cols="3"
           eyebrow="ingest health"
-          title="PECAN · last 24h across all stages"
+          title="Landscape · last 24h across all stages"
         >
           <TuxVizEmbed
             provider="grafana"

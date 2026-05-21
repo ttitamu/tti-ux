@@ -5,7 +5,7 @@
  * Four page-template comps showing how the shipped families compose into
  * full app surfaces:
  *
- *   • research-dashboard — metrics + corridor strip + grid + map (PECAN-style)
+ *   • research-dashboard — metrics + corridor strip + grid + map (Landscape-style)
  *   • document-detail    — long-form research doc w/ TOC rail + citations
  *   • settings-shell     — vertical-tab settings page (Fabric/Apple-shaped)
  *   • list-detail-split  — Mail-style two-pane list + selected detail
@@ -102,9 +102,9 @@ function TIResearchDashboard() {
   return (
     <div style={{ background: "var(--surface-page)", minHeight: 720, fontFamily: "var(--font-body)", color: "var(--text-primary)" }}>
       <TIPageHeader
-        eyebrow="PECAN · Performance"
+        eyebrow="Landscape · Performance"
         title="Statewide corridor performance · FY 2026"
-        breadcrumbs={["PECAN", "Dashboards", "Corridor performance"]}
+        breadcrumbs={["Landscape", "Dashboards", "Corridor performance"]}
         actions={<>
           <TIBtn icon="filter">Filter</TIBtn>
           <TIBtn icon="download">Export</TIBtn>
@@ -269,7 +269,7 @@ function ResearchDashboardPage() {
   return (
     <PageShell item={item}>
       <TIIntro>
-        PECAN-class research-app dashboard: filter strip · 4-stat row · corridor-strip chart · top-projects table · district map · alerts rail. Composes the existing families <code>data-tables</code>, <code>chart-foundations</code>, <code>corridor-strip</code>, <code>map-legend</code>, <code>buttons</code>, <code>chips</code>, and the survey-rhythm density baseline.
+        Landscape-class research-app dashboard: filter strip · 4-stat row · corridor-strip chart · top-projects table · district map · alerts rail. Composes the existing families <code>data-tables</code>, <code>chart-foundations</code>, <code>corridor-strip</code>, <code>map-legend</code>, <code>buttons</code>, <code>chips</code>, and the survey-rhythm density baseline.
       </TIIntro>
       <TILineage>Microsoft Fabric page-templates (data-app shape) + Apple HIG sidebar/header rhythm.</TILineage>
       <TIBox label="Research dashboard · full template">
@@ -531,9 +531,9 @@ function TIListDetailSplit() {
   return (
     <div style={{ background: "var(--surface-page)", minHeight: 640 }}>
       <TIPageHeader
-        eyebrow="PECAN · Projects"
+        eyebrow="Landscape · Projects"
         title="Corridor projects · 184 active"
-        breadcrumbs={["PECAN", "Projects"]}
+        breadcrumbs={["Landscape", "Projects"]}
         actions={<>
           <TIBtn icon="filter">Filter</TIBtn>
           <TIBtn icon="plus" primary>New project</TIBtn>

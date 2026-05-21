@@ -12,7 +12,7 @@ const groups = [
   ]},
   { group: "THIS WEEK", items: [
     { id: "c5", title: "Compare 2023 vs 2024 corridor reports",  meta: "18 turns · BI corpus" },
-    { id: "c6", title: "Generate handoff notes for PECAN v1.2",  meta: "9 turns" },
+    { id: "c6", title: "Generate handoff notes for Landscape v1.2",  meta: "9 turns" },
   ]},
 ];
 

@@ -19,10 +19,10 @@ schedule.hourly(async () => {
   }
 });`;
 
-const pyCode = `# pecan agent watch — long-running file event shipper
+const pyCode = `# landscape agent watch — long-running file event shipper
 import asyncio
-from pecan.agent import Watcher
-from pecan.transport import EventChannel
+from landscape.agent import Watcher
+from landscape.transport import EventChannel
 
 async def main(roots: list[str]) -> None:
     async with EventChannel() as channel:
@@ -48,11 +48,11 @@ const jsonCode = `{
   }
 }`;
 
-const bashCode = `# Spin up a local PECAN agent + ship events
-$ pecan agent token --scope=corpus:grants-2024 --ttl=24h
+const bashCode = `# Spin up a local Landscape agent + ship events
+$ landscape agent token --scope=corpus:grants-2024 --ttl=24h
 > tier3_a1b2c3d4e5...
 
-$ PECAN_TOKEN=tier3_... pecan agent watch /research/grants --root=local
+$ PECAN_TOKEN=tier3_... landscape agent watch /research/grants --root=local
 [12:14:08] watcher: 4 paths registered, 12,480 inodes tracked
 [12:14:09] heartbeat: ok (latency 38ms)`;
 
@@ -89,7 +89,7 @@ const exampleVue = `<TuxCodeBlock
 
     <section>
       <p class="eyebrow">multi-language · python</p>
-      <h2 class="heading--bold text-xl font-bold">PECAN agent CLI source</h2>
+      <h2 class="heading--bold text-xl font-bold">Landscape agent CLI source</h2>
       <p class="text-sm text-text-secondary mb-3">
         Full Shiki language support — Python, Go, Rust, Vue, Svelte, SQL,
         TOML, YAML, anything in the bundled set.
@@ -97,7 +97,7 @@ const exampleVue = `<TuxCodeBlock
       <TuxExample class="mt-4">
         <TuxCodeBlock
           lang="python"
-          filename="pecan/agent/__main__.py"
+          filename="landscape/agent/__main__.py"
           :code="pyCode"
         />
       </TuxExample>

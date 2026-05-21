@@ -82,7 +82,7 @@ const manual = [
   {
     criterion: "3.3.7 Redundant Entry",
     level: "A (2.2)",
-    note: "No multi-step flows in the catalog. PECAN and tti-ai-studio downstream consumers handle this in their own flows.",
+    note: "No multi-step flows in the catalog. Landscape and tti-ai-studio downstream consumers handle this in their own flows.",
   },
 ];
 
@@ -233,7 +233,7 @@ const themeBadgeClass = (status: string) => {
         normal feature work.
       </p>
       <p class="ax-prose">
-        Downstream products (PECAN, tti-ai-studio) inherit the system's
+        Downstream products (Landscape, tti-ai-studio) inherit the system's
         contrast guarantees but compose pages on top — page-level
         accessibility (heading order, landmark structure, form-field
         labeling) is the consumer's responsibility. The

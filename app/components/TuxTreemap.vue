@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // TuxTreemap — squarified hierarchical-size visualization.
 //
-// PECAN's headline viz. Replaces diskover's D3 v3 treemap. Self-contained
+// Landscape's headline viz. Replaces diskover's D3 v3 treemap. Self-contained
 // SVG implementation — no external viz library. Implements the squarified
 // treemap algorithm (Bruls, Huijsen, van Wijk · 1999) so the cells stay
 // near-square at every level, which is what makes it readable.

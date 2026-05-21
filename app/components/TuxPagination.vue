@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // TuxPagination — page-number controls for result lists.
 //
-// Used by PECAN result tables, news collections, publication lists, any
+// Used by Landscape result tables, news collections, publication lists, any
 // surface where N items spread across multiple pages. v-modeled as the
 // current page number (1-indexed).
 //

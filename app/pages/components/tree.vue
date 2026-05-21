@@ -39,7 +39,7 @@ const sitemap = [
 
 // Corpus / filesystem browser — paths render in JetBrains Mono via
 // `mono: true`. Leaf rows carry a row-count badge (typical "n files"
-// hint a PECAN/research dashboard would show).
+// hint a Landscape/research dashboard would show).
 const corpus = [
   {
     id: "grants-2024",

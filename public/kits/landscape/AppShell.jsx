@@ -28,7 +28,7 @@ function Sidebar({ route, onNavigate }) {
         <div>
           <div style={{ fontSize: "0.875rem", fontWeight: 700, letterSpacing: "0.04em" }}>tti-ux</div>
           <div style={{ fontSize: "0.65rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "var(--tracking-wider)" }}>
-            PECAN · data index
+            Landscape · data index
           </div>
         </div>
       </div>
@@ -96,7 +96,7 @@ function TopBar({ title }) {
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <span style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "var(--tracking-wider)", color: "var(--text-muted)" }}>
-          pecan
+          landscape
         </span>
         <span style={{ color: "var(--text-muted)" }}>/</span>
         <span style={{ fontSize: "0.875rem", fontWeight: 600 }}>{title}</span>

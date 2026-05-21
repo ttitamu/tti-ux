@@ -563,7 +563,7 @@ function BetaCornerRibbon({ kind = "beta" }) {
   );
 }
 
-function BetaInlineBanner({ kind = "beta", productName = "PECAN", feedbackUrl = "#" }) {
+function BetaInlineBanner({ kind = "beta", productName = "Landscape", feedbackUrl = "#" }) {
   const k = BETA_KINDS[kind];
   return (
     <div style={{
@@ -594,7 +594,7 @@ function BetaInlineBanner({ kind = "beta", productName = "PECAN", feedbackUrl = 
   );
 }
 
-function BetaStackedBanner({ kind = "beta", productName = "PECAN" }) {
+function BetaStackedBanner({ kind = "beta", productName = "Landscape" }) {
   const k = BETA_KINDS[kind];
   return (
     <div style={{
@@ -645,7 +645,7 @@ function BetaRibbonPage() {
             <div key={k} style={{ position: "relative", border: "1px solid var(--surface-border)", borderRadius: "var(--radius-sm)", height: 200, background: "var(--surface-raised)", overflow: "hidden", padding: 22 }}>
               <BetaCornerRibbon kind={k} />
               <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-muted)", marginBottom: 8 }}>app login screen</div>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: "1.4rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.02em", color: "var(--text-primary)", marginBottom: 6 }}>PECAN</div>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: "1.4rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.02em", color: "var(--text-primary)", marginBottom: 6 }}>Landscape</div>
               <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", lineHeight: 1.5, marginBottom: 14 }}>Sign in with TAMU credentials.</div>
               <div style={{ width: "100%", height: 36, border: "1px solid var(--surface-border)", borderRadius: 3, background: "var(--surface-page)", marginBottom: 8 }} />
               <div style={{ width: "100%", height: 36, background: "var(--brand-primary)", borderRadius: 3 }} />
@@ -656,7 +656,7 @@ function BetaRibbonPage() {
 
       <BNSectionLabel>Inline banner — persistent reminder above app content</BNSectionLabel>
       <BNBox label="beta — paired with a Send feedback action" padded={false}>
-        <BetaInlineBanner kind="beta" productName="PECAN" />
+        <BetaInlineBanner kind="beta" productName="Landscape" />
         <FauxAppShell title="Field Studies" />
       </BNBox>
       <BNBox label="alpha — louder, fewer assurances about data persistence" padded={false}>
@@ -666,7 +666,7 @@ function BetaRibbonPage() {
 
       <BNSectionLabel>Stacked banner — first-launch onboarding</BNSectionLabel>
       <BNBox label="full-feedback variant — appears the first time a user visits" padded={false}>
-        <BetaStackedBanner kind="beta" productName="PECAN" />
+        <BetaStackedBanner kind="beta" productName="Landscape" />
         <FauxAppShell title="Project Dashboard" />
       </BNBox>
 

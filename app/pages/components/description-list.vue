@@ -55,7 +55,7 @@ const exampleVue = `<TuxDescriptionList
 
     <section>
       <p class="eyebrow">data emphasis</p>
-      <h2 class="heading--bold text-xl font-bold">PECAN file metadata</h2>
+      <h2 class="heading--bold text-xl font-bold">Landscape file metadata</h2>
       <p class="text-sm text-text-secondary mb-3">
         Pass <code>emphasis="data"</code> for product surfaces. Mono-font
         terms, tabular numerals on values. <code>&lt;code&gt;</code> tags
@@ -116,7 +116,7 @@ const exampleVue = `<TuxDescriptionList
             <TuxBadge color="warning">Restricted</TuxBadge>
           </template>
           <template #value-2>
-            <code>pecan-agent@host-04</code> · last beat 3s ago
+            <code>landscape-agent@host-04</code> · last beat 3s ago
           </template>
         </TuxDescriptionList>
       </TuxExample>

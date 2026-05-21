@@ -6,7 +6,7 @@
 // marcom surfaces, TuxSubfooter for the TAMUS legal strip), but in
 // practice tti.tamu.edu / tamu.edu / pvamu.edu all run the same
 // shape — a maroon marketing block stacked on a black legal strip —
-// and our consumers (PECAN, tti-ai-studio, the style guide, marcom
+// and our consumers (Landscape, tti-ai-studio, the style guide, marcom
 // pages) all need the same thing. So this is one component.
 //
 // Layout:

@@ -59,7 +59,7 @@ const wrapperVue = `<!-- Inside a card, use a non-landmark wrapper -->
         <TuxProse as="div">
           <h1>How the agent watcher works</h1>
           <p>
-            PECAN's file watcher is the long-running process on each
+            Landscape's file watcher is the long-running process on each
             agent host that detects file events
             (<code>create</code> / <code>modify</code> / <code>delete</code> / <code>move</code>)
             and ships them to the central index.

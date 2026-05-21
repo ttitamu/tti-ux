@@ -3,11 +3,11 @@ useHead({ title: "Composition examples · TUX" });
 
 const examples = [
   {
-    slug: "pecan-dashboard",
+    slug: "landscape-dashboard",
     eyebrow: "product · IT-facing",
-    title: "PECAN dashboard",
-    blurb: "Index overview for a research-IT product. Composes TuxBreadcrumbs, TuxPageHeader (with media slot), TuxFactoid, TuxAlert, TuxTreemap, TuxFilterPanel, TuxSearch, TuxBadge, TuxPagination, TuxDescriptionList, TuxSectionHeader, and TuxCallout.",
-    components: 13,
+    title: "Landscape dashboard",
+    blurb: "Index overview for a research-IT product (Landscape, formerly PECAN). Sidebar shell + KPI row with deltas + inline ingest-rate sparkline + treemap + faceted file search + right-rail activity + active-agents tile. Composes TuxBreadcrumbs, TuxPageHeader, TuxBigStat, TuxFactoid, TuxSparkline, TuxAlert, TuxTreemap, TuxFilterPanel, TuxSearch, TuxBadge, TuxPagination, TuxSectionHeader, TuxDescriptionList, TuxCard, and the sidebar layout primitives (UDashboardSidebarToggle, UNavigationMenu).",
+    components: 15,
   },
   {
     slug: "research-landing",
@@ -23,6 +23,13 @@ const examples = [
     blurb: "LLM/agent session view. Composes TuxBreadcrumbs, TuxPageHeader, TuxAlert (compliance), TuxSectionHeader, TuxCallout, TuxDescriptionList, TuxFactoid, TuxAccordion, and TuxCommandPalette.",
     components: 9,
   },
+  {
+    slug: "sidebar-shell",
+    eyebrow: "layout · app shell",
+    title: "Sidebar shell",
+    blurb: "Demonstrates `app/layouts/sidebar.vue` — the opt-in app-shell layout built on UDashboardGroup + UDashboardSidebar + UDashboardPanel. Four named slots (header, rail-header, rail, rail-footer) + default content. Try resizing.",
+    components: 5,
+  },
 ];
 </script>
 
@@ -30,7 +37,7 @@ const examples = [
   <div class="space-y-10">
     <TuxPageHeader eyebrow="examples" title="Composition examples">
       What the system enables. Each example assembles 9–13 Tux*
-      components into a real-shape surface — a PECAN dashboard, a
+      components into a real-shape surface — a Landscape dashboard, a
       research-program landing, a tti-ai-studio session. Data is
       illustrative; the goal is to show how the components compose
       under realistic constraints, not to ship working product views.
@@ -61,12 +68,12 @@ const examples = [
     <section class="space-y-3">
       <TuxSectionHeader>Why these three</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
-        tux serves three product shapes: data-dense IT chrome (PECAN),
-        marketing/research surfaces (the public site, the docs site,
-        program landings), and chat/agent product views
-        (tti-ai-studio). Each example here demonstrates one of those
-        shapes end-to-end so consumers can see the system stretched in
-        the direction they care about.
+        tux serves three product shapes: data-dense IT chrome
+        (Landscape, formerly PECAN), marketing/research surfaces (the
+        public site, the docs site, program landings), and chat/agent
+        product views (tti-ai-studio). Each example here demonstrates
+        one of those shapes end-to-end so consumers can see the system
+        stretched in the direction they care about.
       </p>
     </section>
   </div>

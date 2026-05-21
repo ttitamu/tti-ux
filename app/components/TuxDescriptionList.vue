@@ -16,7 +16,7 @@
 //   - editorial (default) — eyebrow-styled terms (uppercase, tracked).
 //                          Editorial rhythm. Right for content surfaces.
 //   - data                 — mono terms + tabular numerals on values.
-//                          Right for PECAN file detail, classifier specs.
+//                          Right for Landscape file detail, classifier specs.
 
 interface DLItem {
   term: string;
