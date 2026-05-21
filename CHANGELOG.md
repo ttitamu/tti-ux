@@ -22,6 +22,19 @@ roadmap carry-forwards (`design/roadmap.md`) and one doctrine
 addition to `TuxEmptyState` / `design/components.md` ("no decorative
 illustrations").
 
+A subsequent AI-studio chat-surface cluster pass on 2026-05-21 absorbed
+four more files (Chat UI kit, Chat Input Box, ChatGPT UI Kit, MCP Apps
+for Claude). Net new: **0 components shipped**. The chat surface was
+already saturated by the Vercel AI Elements pack + Fluent 2 + Primer
+work. Most absorption value was confirming `TuxComposer #toolbar-extra`
++ `TuxChatMessage #header-trailing` cover the canonical shapes; the
+exception was Anthropic's MCP Apps kit which mapped a three-tier
+display taxonomy (inline card → inline carousel → full screen) that
+will guide a future `TuxMcpEmbed` + `TuxCardCarousel` build when
+tti-ai-studio integrates MCP tool output. Findings + carry-forwards
+in `reference/figma-cache/mcp-apps-for-claude/NOTES.md` and the
+roadmap.
+
 ### Changed — PECAN → Landscape rebrand (2026-05-21)
 
 The downstream sensitive-data classifier consumer formerly named

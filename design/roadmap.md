@@ -300,6 +300,36 @@ illustrations in `TuxEmptyState`). New deferred-with-criterion items:
   `design/components.md` Conventions, once `TuxRuleBuilder` is on
   the roadmap.
 
+**AI-studio chat-surface pass (2026-05-21):** Chat UI kit + Chat
+Input Box + ChatGPT UI Kit + MCP Apps for Claude absorbed. Net new:
+**0 components shipped.** The chat surface was saturated after the
+prior Vercel AI Elements + Fluent 2 + Primer pass. New deferred-
+with-criterion items, mostly anchored on a future MCP integration
+in tti-ai-studio:
+
+- **`TuxMcpEmbed`** (new, ~150 LOC) — thinner artifact variant for
+  *interactive* third-party app output. Anatomy: app icon + name +
+  collapse caret + expand + exit X + skeleton + container slot.
+  Build when tti-ai-studio adopts MCP. Sister to `TuxArtifact`,
+  not a replacement.
+- **`TuxCardCarousel`** (new, ~200 LOC, Priority B candidate) —
+  horizontal scroll of cards with prev/next + optional pagination
+  dots. Re-opens the carousel question we deferred in the shadcn
+  absorption — MCP integration is the trigger. Also useful for
+  featured-projects / image galleries.
+- **MCP three-tier display taxonomy** ("inline card / inline
+  carousel / full screen") — document in `design/components.md`
+  Conventions when MCP build starts. Captures the decision tree
+  before the components ship.
+- **`TuxComposer.cancelable`** (carry-forward, defer) — when a
+  consumer wraps TuxComposer in a modal and wants explicit
+  `[Cancel] [Send]` pair. Build only when forced.
+- **First-run AI-surface taxonomy** ("Examples / Capabilities /
+  Limitations") — document in `design/components.md` Conventions
+  when a consumer surface needs richer first-run framing than
+  `TuxEmptyState kind="first-run"`. Compose with TuxFactoid 3-up
+  or 3-up TuxCard grid; no new component.
+
 ---
 
 ## Recently shipped — PECAN → Landscape rebrand (2026-05-21)

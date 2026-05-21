@@ -9,7 +9,7 @@ subfolders alongside `<slug>/<page-slug>/NOTES.md`.
 Listing cached in [`PROJECT-FILES.json`](PROJECT-FILES.json).
 
 **Totals:** 70 files · 69 with cover ·
-12 absorbed · 58 stub · 0 fetch errors.
+16 absorbed · 54 stub · 0 fetch errors.
 
 ## Why this exists
 
@@ -50,9 +50,9 @@ patterns). Skim covers; deep-dive only the relevant pages.
 |---|---|---|---|
 | 🖼 | [Calendar Interactive UI Kit (Community)](calendar-interactive-ui-kit/NOTES.md) | 2 | stub |
 | 🖼 | [Charts UI Kit (Community)](charts-ui-kit/NOTES.md) | 3 | absorbed |
-| 🖼 | [Chat Input Box (Community)](chat-input-box/NOTES.md) | 4 | stub |
-| 🖼 | [Chat UI kit (Community)](chat-ui-kit/NOTES.md) | 2 | stub |
-| 🖼 | [ChatGPT UI Kit, AI Chat (Community)](chatgpt-ui-kit-ai-chat/NOTES.md) | 5 | stub |
+| 🖼 | [Chat Input Box (Community)](chat-input-box/NOTES.md) | 4 | absorbed |
+| 🖼 | [Chat UI kit (Community)](chat-ui-kit/NOTES.md) | 2 | absorbed |
+| 🖼 | [ChatGPT UI Kit, AI Chat (Community)](chatgpt-ui-kit-ai-chat/NOTES.md) | 5 | absorbed |
 | 🖼 | [Dashboard - Free UI Kit 🖥 (Community)](dashboard-free-ui-kit/NOTES.md) | 7 | stub |
 | 🖼 | [Dashboard UI Kit - Dashboard, Free Admin Dashboard (Community)](dashboard-ui-kit-dashboard-free-admin-dashboard/NOTES.md) | 4 | stub |
 | 🖼 | [Data table design components. Free UI Kit (Community)](data-table-design-components-free-ui-kit/NOTES.md) | 3 | absorbed |
@@ -60,7 +60,7 @@ patterns). Skim covers; deep-dive only the relevant pages.
 | 🖼 | [Empty State Illustration Kit (Community)](empty-state-illustration-kit/NOTES.md) | 4 | absorbed |
 | 🖼 | [Interactive Dropdown (Community)](interactive-dropdown/NOTES.md) | 2 | stub |
 | 🖼 | [Interactive Dropdown (Community) (1)](interactive-dropdown-1/NOTES.md) | 2 | stub |
-| 🖼 | [MCP Apps for Claude (Community)](mcp-apps-for-claude/NOTES.md) | 17 | stub |
+| 🖼 | [MCP Apps for Claude (Community)](mcp-apps-for-claude/NOTES.md) | 17 | absorbed |
 | 🖼 | [Microsoft 365 UI Kit (Community)](microsoft-365-ui-kit/NOTES.md) | 25 | stub |
 | 🖼 | [Microsoft Fabric page templates (Community)](microsoft-fabric-page-templates/NOTES.md) | 6 | stub |
 | 🖼 | [Microsoft Fabric UI kit (Community)](microsoft-fabric-ui-kit/NOTES.md) | 64 | stub |
