@@ -53,7 +53,7 @@ const exampleVue = `<TuxMediaSlab
       <TuxExample class="mt-4">
         <TuxMediaSlab
           layout="split"
-          imageSide="left"
+          image-side="left"
           eyebrow="Roadway safety"
           title="Twelve-county roadway treatment study"
           dek="Compliance gains held steady through the 36-month follow-up window. Three of twelve treated sites also showed measurable reductions in late-night crashes."

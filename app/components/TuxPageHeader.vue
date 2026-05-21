@@ -54,6 +54,7 @@ withDefaults(defineProps<Props>(), {
   level: 1,
   tone: "plain",
   rhythm: "compact",
+  eyebrow: undefined,
 });
 
 defineSlots<{

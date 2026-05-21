@@ -67,7 +67,7 @@ const altText = computed(() => props.alt || props.title);
         :alt="altText"
         loading="lazy"
         class="tux-viz-rplot__art"
-      />
+      >
       <object
         v-else-if="kind === 'svg'"
         :data="src"

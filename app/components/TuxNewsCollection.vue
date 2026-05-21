@@ -42,7 +42,7 @@ interface Props {
   readMore?: string;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   layout: "stacked",
   columns: 3,
   readMore: "Read more",
@@ -136,8 +136,8 @@ function linkProps(item: NewsItem) {
           </h3>
           <p v-if="item.dek" class="tux-news__dek">{{ item.dek }}</p>
           <component
-            v-if="linkProps(item)"
             :is="linkProps(item)?.component"
+            v-if="linkProps(item)"
             :to="linkProps(item)?.to"
             :href="linkProps(item)?.href"
             class="tux-news__more"

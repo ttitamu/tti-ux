@@ -118,7 +118,7 @@ const testimonials = [
     <section>
       <TuxMediaSlab
         layout="split"
-        imageSide="right"
+        image-side="right"
         eyebrow="Field deployment"
         title="The corridor that made it real"
         dek="412 miles of continuously-instrumented freight corridor came online during Q3 2025. Real-time data feeds both research and operational decisions."

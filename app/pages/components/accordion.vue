@@ -97,7 +97,8 @@ const exampleVue = `<TuxAccordion :items="faqItems" />`;
         Falls back to <code>item.content</code> when the slot is empty.
       </p>
       <TuxExample class="mt-4">
-        <TuxAccordion :items="[
+        <TuxAccordion
+:items="[
           { title: 'How does the agent file-watcher work?', defaultOpen: true },
           { title: 'What gets indexed by default?' },
         ]">

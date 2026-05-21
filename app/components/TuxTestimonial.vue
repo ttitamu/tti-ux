@@ -34,7 +34,7 @@ interface Props {
   variant?: "default" | "bold" | "elegant";
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   layout: "grid",
   columns: 3,
   variant: "default",

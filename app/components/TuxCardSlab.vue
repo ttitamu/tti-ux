@@ -40,7 +40,7 @@ interface Props {
   inset?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   columns: 3,
   aspect: "4/5",
   heading: undefined,

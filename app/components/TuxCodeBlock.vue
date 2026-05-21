@@ -159,11 +159,7 @@ function download() {
            here: the source is Shiki's own escaped output (server-side
            rendered via useTuxHighlighter), not user input. -->
       <!-- eslint-disable-next-line vue/no-v-html -->
-      <div
-        v-if="highlightedCode"
-        class="tux-codeblock__rendered"
-        v-html="highlightedCode"
-      />
+      <div v-if="highlightedCode" class="tux-codeblock__rendered" v-html="highlightedCode" />
 
       <!-- Line-numbered fallback (or text-mode source) -->
       <pre v-else class="tux-codeblock__fallback"><code><span

@@ -28,6 +28,10 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   kind: "default",
+  tier: undefined,
+  status: undefined,
+  count: undefined,
+  label: undefined,
 });
 
 const mode = computed<"tier" | "status" | "kind">(() =>

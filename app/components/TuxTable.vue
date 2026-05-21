@@ -32,7 +32,7 @@ interface Props {
   statusAccessor?: string;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   statusAccessor: "status",
 });
 
@@ -44,13 +44,24 @@ const tableUi = {
   tr: "hover:bg-[color-mix(in_srgb,var(--brand-primary)_4%,transparent)] transition-colors",
   td: "text-sm font-mono py-3",
 };
+
+// Read the status value off a row in a way that keeps the type cast out
+// of the template. Inline TypeScript union literals (`'a' | 'b'`) in
+// template expressions trip vue-eslint-parser's filter rule — extracting
+// the cast here both sidesteps the false positive and makes the typing
+// reusable if we add more status-typed slots.
+type ScanStatus = "running" | "completed" | "failed" | "queued";
+function readStatus(row: { original?: Record<string, unknown> } & Record<string, unknown>): ScanStatus {
+  const source = (row.original ?? row) as Record<string, string>;
+  return source[props.statusAccessor] as ScanStatus;
+}
 </script>
 
 <template>
   <div class="tux-table">
     <UTable v-bind="$attrs" :ui="tableUi">
       <template v-if="statusAccessor" #[`${statusAccessor}-cell`]="{ row }">
-        <TuxBadge :status="((row.original || row) as Record<string, string>)[statusAccessor] as 'running' | 'completed' | 'failed' | 'queued'" />
+        <TuxBadge :status="readStatus(row)" />
       </template>
 
       <template

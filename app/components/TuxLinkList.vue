@@ -37,7 +37,7 @@ interface Props {
   columns?: 2 | 3 | 4;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   layout: "columns",
   columns: 3,
 });

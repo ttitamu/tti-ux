@@ -178,12 +178,12 @@ function isInternal(href: string) {
                      declared inline in the consumer's social[] array.
                      The only consumer today is the Threads brand glyph,
                      which Lucide doesn't carry. -->
-                <span
-                  v-if="s.svg"
-                  class="tux-footer__social-icon"
-                  aria-hidden="true"
-                  v-html="s.svg"
-                />
+                <!-- v-html is safe: `s.svg` is an inline brand mark
+                     literal supplied by the consumer in the social
+                     array (e.g., Threads, which Lucide doesn't carry),
+                     not user input. -->
+                <!-- eslint-disable-next-line vue/no-v-html -->
+                <span v-if="s.svg" class="tux-footer__social-icon" aria-hidden="true" v-html="s.svg" />
                 <Icon
                   v-else-if="s.icon"
                   :name="s.icon"

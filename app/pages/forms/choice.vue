@@ -69,7 +69,8 @@ const someChecks = computed(() =>
       <h2 class="heading--bold text-xl font-bold">Single choice from a bounded set</h2>
       <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
         <UFormField label="Document type" required>
-          <URadioGroup v-model="radio" :items="[
+          <URadioGroup
+v-model="radio" :items="[
             { label: 'Report', value: 'report', description: 'Full technical report with findings + methodology' },
             { label: 'Memo',   value: 'memo',   description: 'Internal memorandum, shorter format' },
             { label: 'Brief',  value: 'brief',  description: 'Executive summary, 1\u20132 pages' },

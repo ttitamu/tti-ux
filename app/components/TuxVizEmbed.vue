@@ -119,7 +119,7 @@ function onError() { errored.value = true; loaded.value = true; }
         :alt="posterAlt || title"
         loading="lazy"
         class="tux-viz-embed__poster"
-      />
+      >
       <template v-else>
         <iframe
           :src="src"

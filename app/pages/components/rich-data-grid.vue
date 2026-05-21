@@ -164,15 +164,15 @@ const compactVue = `<TuxRichDataGrid
       </p>
       <TuxExample class="mt-4" :vue="richVue">
         <TuxRichDataGrid
+          v-model:selected="selected"
+          v-model:expanded="expanded"
+          v-model:sort-key="sortKey"
+          v-model:sort-dir="sortDir"
           title="Active corridor projects"
           meta="FY 2025 · 8 of 184 · last sync 14 min ago"
           :columns="columns"
           :rows="sortedRows"
           :filters="filters"
-          v-model:selected="selected"
-          v-model:expanded="expanded"
-          v-model:sort-key="sortKey"
-          v-model:sort-dir="sortDir"
           pagination-label="Showing 1–8 of 184 projects"
           :pagination-tokens="paginationTokens"
           @filter-remove="filters.splice($event, 1)"

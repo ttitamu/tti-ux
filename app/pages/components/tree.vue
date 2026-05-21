@@ -199,8 +199,8 @@ const datasetVue = `<TuxTree
       <TuxExample :vue="datasetVue">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <TuxTree
-            :items="dataset"
             v-model:selected="selectedField"
+            :items="dataset"
             storage-key="demo-bi-explorer-dataset"
             aria-label="Dataset explorer"
           />

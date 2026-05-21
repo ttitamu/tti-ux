@@ -79,15 +79,15 @@ function remove(id: string) {
       <div
         class="mt-4 dropzone"
         :class="isDragging ? 'dropzone--active' : ''"
+        role="button"
+        tabindex="0"
+        aria-label="Upload files: drag and drop, or click to select"
         @dragenter.prevent="isDragging = true"
         @dragover.prevent="isDragging = true"
         @dragleave.prevent="isDragging = false"
         @drop="handleDrop"
         @click="fileInput?.click()"
         @keydown.enter="fileInput?.click()"
-        role="button"
-        tabindex="0"
-        aria-label="Upload files: drag and drop, or click to select"
       >
         <UIcon name="lucide:upload-cloud" class="w-8 h-8 text-text-brand" />
         <p class="mt-2 font-bold">Drop files here, or click to select</p>
@@ -98,7 +98,7 @@ function remove(id: string) {
           multiple
           class="sr-only"
           @change="handleSelect"
-        />
+        >
       </div>
     </section>
 

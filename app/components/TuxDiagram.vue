@@ -77,7 +77,9 @@ watch(
       :class="{ 'tux-diagram__canvas--error': error }"
       :style="!svg && !error ? { minHeight: `${reservedHeight}px` } : {}"
     >
-      <div v-if="svg" v-html="svg" class="tux-diagram__svg" />
+      <!-- v-html is safe: `svg` is Mermaid's server-rendered SVG output. -->
+      <!-- eslint-disable-next-line vue/no-v-html -->
+      <div v-if="svg" class="tux-diagram__svg" v-html="svg" />
       <div v-else-if="error" class="tux-diagram__error">
         <Icon name="lucide:triangle-alert" class="tux-diagram__error-icon" aria-hidden="true" />
         <div class="tux-diagram__error-body">

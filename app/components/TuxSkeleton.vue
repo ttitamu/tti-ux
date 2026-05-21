@@ -113,14 +113,14 @@ const repeatLines = computed(() => Array.from({ length: props.count }));
     <!-- ── Table: header row + N body rows ─────────────────────── -->
     <div v-else-if="kind === 'table'" class="tux-skeleton__table" aria-hidden="true">
       <div class="tux-skeleton__table-row tux-skeleton__table-row--head">
-        <span class="tux-skeleton tux-skeleton__cell" v-for="i in 4" :key="i" />
+        <span v-for="i in 4" :key="i" class="tux-skeleton tux-skeleton__cell" />
       </div>
       <div
         v-for="(_, i) in repeatLines"
         :key="i"
         class="tux-skeleton__table-row"
       >
-        <span class="tux-skeleton tux-skeleton__cell" v-for="c in 4" :key="c" />
+        <span v-for="c in 4" :key="c" class="tux-skeleton tux-skeleton__cell" />
       </div>
     </div>
 

@@ -75,7 +75,8 @@ const exampleVue = `<TuxTOC
       </p>
       <TuxExample class="mt-4">
         <div class="border border-surface-border rounded-md bg-surface-raised p-4 max-w-xs">
-          <TuxTOC :items="[
+          <TuxTOC
+:items="[
             { id: 'sec-1', label: 'Get started',          depth: 2 },
             { id: 'sec-2', label: 'Install',              depth: 3 },
             { id: 'sec-3', label: 'First scan',           depth: 3 },

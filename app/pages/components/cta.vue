@@ -95,11 +95,14 @@ const exampleVue = `<TuxCTA
       </p>
       <TuxExample class="mt-4">
         <div class="space-y-6">
-          <TuxCTA variant="default" eyebrow="default" title="Editorial flagship — Oswald display"
+          <TuxCTA
+variant="default" eyebrow="default" title="Editorial flagship — Oswald display"
                   dek="The most common framing. Reads as institutional, not promotional." />
-          <TuxCTA variant="bold" eyebrow="bold" title="Athletic flagship — Work Sans bold"
+          <TuxCTA
+variant="bold" eyebrow="bold" title="Athletic flagship — Work Sans bold"
                   dek="Mixed-case, heavy weight. Right for events and student-facing surfaces." />
-          <TuxCTA variant="elegant" tone="neutral" eyebrow="elegant" title="Refined flagship — Georgia italic"
+          <TuxCTA
+variant="elegant" tone="neutral" eyebrow="elegant" title="Refined flagship — Georgia italic"
                   dek="Mixed-case serif. Right for research bulletins and policy announcements." />
         </div>
       </TuxExample>

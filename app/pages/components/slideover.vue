@@ -185,11 +185,11 @@ const filterVue = `<TuxSlideover v-model="filterOpen" title="Filters" eyebrow="c
             <div class="space-y-1.5">
               <label v-for="t in tiers" :key="t.value" class="flex items-center gap-2 text-sm">
                 <input
+                  v-model="filters.tier"
                   type="checkbox"
                   :value="t.value"
-                  v-model="filters.tier"
                   class="h-3.5 w-3.5"
-                />
+                >
                 {{ t.label }}
               </label>
             </div>
@@ -198,7 +198,7 @@ const filterVue = `<TuxSlideover v-model="filterOpen" title="Filters" eyebrow="c
             <legend class="eyebrow mb-2">format</legend>
             <div class="space-y-1.5">
               <label v-for="f in ['all', 'pdf', 'csv', 'md']" :key="f" class="flex items-center gap-2 text-sm">
-                <input type="radio" :value="f" v-model="filters.format" class="h-3.5 w-3.5" />
+                <input v-model="filters.format" type="radio" :value="f" class="h-3.5 w-3.5" >
                 <span class="font-mono">{{ f }}</span>
               </label>
             </div>
@@ -206,7 +206,7 @@ const filterVue = `<TuxSlideover v-model="filterOpen" title="Filters" eyebrow="c
           <fieldset class="border-0 p-0 m-0">
             <legend class="eyebrow mb-2">metadata</legend>
             <label class="flex items-center gap-2 text-sm">
-              <input type="checkbox" v-model="filters.hasDoi" class="h-3.5 w-3.5" />
+              <input v-model="filters.hasDoi" type="checkbox" class="h-3.5 w-3.5" >
               Has DOI assigned
             </label>
           </fieldset>

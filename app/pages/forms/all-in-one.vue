@@ -93,7 +93,8 @@ function submit() {
           </UFormField>
 
           <UFormField label="Document type">
-            <URadioGroup v-model="radio" :items="[
+            <URadioGroup
+v-model="radio" :items="[
               { label: 'Report',       value: 'report', description: 'Full technical report with findings + methodology' },
               { label: 'Memo',         value: 'memo',   description: 'Internal memorandum, shorter format' },
               { label: 'Brief',        value: 'brief',  description: 'Executive summary, 1–2 pages' },

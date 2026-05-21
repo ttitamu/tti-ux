@@ -238,13 +238,13 @@ function pciClass(value: number): string {
       </p>
       <TuxExample class="mt-4" :vue="sortableVue">
         <TuxDataTable
+          v-model:sort-key="sortKey"
+          v-model:sort-dir="sortDir"
           table-number="Table 4-2"
           caption="Fatal & serious-injury rate by TxDOT district, 2019–2023"
           description="Five-year average rate per hundred million vehicle-miles travelled (HMVMT). Confidence intervals are 95%, computed by Poisson exact method."
           :columns="sortableColumnsWithFn"
           :rows="sortedDistricts"
-          v-model:sort-key="sortKey"
-          v-model:sort-dir="sortDir"
           :totals="totalsRow"
           :footnotes="sortableFootnotes"
           source="Source: TxDOT CRIS, FHWA HPMS · Compiled by TTI Center for Transportation Safety, 2024."

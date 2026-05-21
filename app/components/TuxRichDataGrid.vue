@@ -120,6 +120,10 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   rowKey: "id",
+  title: undefined,
+  meta: undefined,
+  sortKey: undefined,
+  sortDir: undefined,
   searchPlaceholder: "Search…",
   showSearch: true,
   showFilter: true,

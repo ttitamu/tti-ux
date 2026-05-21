@@ -23,6 +23,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   padded: true,
+  to: undefined,
 });
 
 const isLinked = computed(() => !!props.to);

@@ -34,7 +34,7 @@ interface Props {
   columns?: 2 | 3 | 4;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   layout: "grid",
   columns: 3,
 });
@@ -86,8 +86,8 @@ function ctaProps(cta: FeatureItem["cta"]) {
         <h3 class="tux-icon-feature__title">{{ item.title }}</h3>
         <p v-if="item.body" class="tux-icon-feature__body">{{ item.body }}</p>
         <component
-          v-if="ctaProps(item.cta)"
           :is="ctaProps(item.cta)?.component"
+          v-if="ctaProps(item.cta)"
           :to="ctaProps(item.cta)?.to"
           :href="ctaProps(item.cta)?.href"
           class="tux-icon-feature__cta"

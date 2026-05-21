@@ -38,6 +38,9 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   previewPadding: "p-6",
+  vue: undefined,
+  source: undefined,
+  title: undefined,
 });
 
 type Tab = "vue" | "html" | "source";
@@ -225,22 +228,18 @@ async function copyActive() {
 
     <div class="tux-example__code bg-surface-sunken">
       <ClientOnly v-if="activeTab === 'html'">
-        <div
-          v-if="highlightedCode"
-          class="shiki-wrap"
-          v-html="highlightedCode"
-        />
+        <!-- v-html is safe: `highlightedCode` is Shiki SSR output of
+             code samples authored in the repo, not user input. -->
+        <!-- eslint-disable-next-line vue/no-v-html -->
+        <div v-if="highlightedCode" class="shiki-wrap" v-html="highlightedCode" />
         <pre v-else class="m-0 p-4 text-xs font-mono overflow-auto max-h-96"><code>{{ rendered || "(awaiting mount)" }}</code></pre>
         <template #fallback>
           <pre class="m-0 p-4 text-xs font-mono text-text-muted">Loading rendered HTML…</pre>
         </template>
       </ClientOnly>
       <div v-else>
-        <div
-          v-if="highlightedCode"
-          class="shiki-wrap"
-          v-html="highlightedCode"
-        />
+        <!-- eslint-disable-next-line vue/no-v-html -->
+        <div v-if="highlightedCode" class="shiki-wrap" v-html="highlightedCode" />
         <pre v-else class="m-0 p-4 text-xs font-mono overflow-auto max-h-96"><code>{{ activeCode }}</code></pre>
       </div>
     </div>

@@ -126,6 +126,8 @@ const props = withDefaults(defineProps<Props>(), {
   tableNumber: "",
   caption: "",
   description: "",
+  sortKey: undefined,
+  sortDir: undefined,
   sticky: false,
   maxHeight: "20rem",
   density: "comfortable",

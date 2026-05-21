@@ -34,6 +34,9 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   variant: "info",
+  title: undefined,
+  description: undefined,
+  icon: undefined,
 });
 
 const variantMap = {

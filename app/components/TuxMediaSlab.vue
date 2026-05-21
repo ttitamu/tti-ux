@@ -34,7 +34,7 @@ interface Props {
   tone?: "maroon" | "gold" | "charcoal";
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   src: undefined,
   alt: "",
   eyebrow: undefined,

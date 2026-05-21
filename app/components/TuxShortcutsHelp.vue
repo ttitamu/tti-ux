@@ -31,7 +31,7 @@ interface Props {
   sequenceSeparator?: string;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   sequenceSeparator: "then",
 });
 

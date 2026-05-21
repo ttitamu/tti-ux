@@ -81,6 +81,7 @@ function escape(s: string): string {
           class="tux-docs-sidebar__icon"
           aria-hidden="true"
         />
+        <!-- eslint-disable-next-line vue/no-v-html -->
         <span class="tux-docs-sidebar__label" v-html="highlight(section.label)" />
         <Icon
           name="lucide:chevron-right"
@@ -124,16 +125,17 @@ function escape(s: string): string {
            same way summary rows do — long component names like
            `TuxAnnouncementBanner` would otherwise blow past the
            240px sidebar lane and trigger horizontal overflow. -->
+      <!-- eslint-disable-next-line vue/no-v-html -->
       <span class="tux-docs-sidebar__label" v-html="highlight(section.label)" />
     </NuxtLink>
 
-    <!-- Childless non-link (rare; section header without nav) -->
-    <span
-      v-else
-      class="tux-docs-sidebar__heading"
-      :class="`tux-docs-sidebar__heading--depth-${depth}`"
-      v-html="highlight(section.label)"
-    />
+    <!-- Childless non-link (rare; section header without nav).
+         v-html is safe: `section.label` is from the in-repo nav tree,
+         not user input, and `highlight()` only wraps matches in
+         `<mark>`. The whole component renders trusted markdown
+         derived from the file-system docs tree. -->
+    <!-- eslint-disable-next-line vue/no-v-html -->
+    <span v-else class="tux-docs-sidebar__heading" :class="`tux-docs-sidebar__heading--depth-${depth}`" v-html="highlight(section.label)" />
   </li>
 </template>
 

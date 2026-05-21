@@ -37,6 +37,8 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   size: "sm",
   separator: "",
+  value: undefined,
+  keys: undefined,
 });
 
 const isMac = ref(false);
