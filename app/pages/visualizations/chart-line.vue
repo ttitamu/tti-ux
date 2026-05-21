@@ -22,6 +22,13 @@ const previousSeries = [
   },
 ];
 
+// Each inner band entry is a [low, high] tuple by construction. We
+// deliberately do NOT use `as Array<[number, number]>` here: Nuxt's
+// macro extractor (`?macro=true`) parses the <script setup> block
+// without TS support, and any TS-only syntax (`as`, type annotations,
+// `satisfies`) makes the whole route module fail to load with
+// "Unexpected token, expected ','". Inference gives `number[][]` —
+// close enough for TuxChartLine's runtime, which just iterates pairs.
 const bandSeries = [
   {
     key: "estimate",
@@ -31,7 +38,7 @@ const bandSeries = [
       [38, 46], [44, 52], [50, 58], [54, 62],
       [57, 65], [61, 69], [64, 72], [68, 76],
       [73, 83], [79, 89], [83, 93], [86, 98],
-    ] as Array<[number, number]>,
+    ],
   },
 ];
 

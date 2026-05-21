@@ -18,6 +18,9 @@ recoverable.
 - [0005 — Three-theme palette (tti / tti-dark / tti-hc)](0005-three-theme-palette.md) (toggle cycle superseded by 0006)
 - [0006 — Separate high-contrast mode from the casual theme toggle](0006-separate-hc-from-casual-theme-toggle.md)
 - [0007 — Container queries over viewport media queries](0007-container-queries-over-viewport-media-queries.md)
+- [0008 — Data-display + reports section](0008-data-display-and-reports-section.md)
+- [0009 — tti-ux is the source of truth for TTI's BI design system](0009-bi-design-system-source-of-truth.md)
+- [0010 — No TypeScript-only syntax in `pages/**/*.vue` `<script setup>`](0010-no-ts-only-syntax-in-page-script-setup.md)
 
 ## Contributing
 
