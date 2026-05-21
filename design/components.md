@@ -82,13 +82,31 @@ npm run dev
 | `TuxSkeleton`        | tux native               | `/components/skeleton`          |
 | `TuxSlideover`       | tux native               | `/components/slideover`         |
 | `TuxStepper`         | tux native               | `/components/stepper`           |
+| `TuxStatComparison`  | tux native               | `/components/stat-comparison`   |
 | `TuxSuggestionChips` | tux native               | `/components/suggestion-chips`  |
 | `TuxTable`           | `UTable`                 | `/components/table`             |
+| `TuxTabs`            | `UTabs`                  | `/components/tabs`              |
 | `TuxTeachingPopover` | tux native               | `/components/teaching-popover`  |
 | `TuxTestimonial`     | tux native               | `/components/testimonial`       |
 | `TuxTOC`             | tux native               | `/components/toc`               |
+| `TuxTooltip`         | `UTooltip`               | `/components/tooltip`           |
 | `TuxTree`            | tux native               | `/components/tree`              |
 | `TuxTreemap`         | tux native               | `/components/treemap`           |
+
+**Pagination + result-display family** (added 2026-05-21):
+
+| Component            | Stack                    | Showcase                        |
+|----------------------|--------------------------|---------------------------------|
+| `TuxResultCount`     | tux native               | `/components/result-count`      |
+| `TuxLoadMore`        | tux native               | `/components/load-more`         |
+| `TuxInfiniteScroll`  | tux native               | `/components/infinite-scroll`   |
+| `TuxReactionBar`     | tux native               | `/components/reaction-bar`      |
+
+**Native chart family** (Priority B):
+
+| Component            | Stack                    | Showcase                        |
+|----------------------|--------------------------|---------------------------------|
+| `TuxChartLine`       | tux native SVG           | `/visualizations/chart-line`    |
 
 ### Reports section
 

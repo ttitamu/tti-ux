@@ -35,6 +35,93 @@ tti-ai-studio integrates MCP tool output. Findings + carry-forwards
 in `reference/figma-cache/mcp-apps-for-claude/NOTES.md` and the
 roadmap.
 
+### Added — roadmap clear: small wrappers + pagination + first chart + a11y docs (2026-05-21)
+
+Big batch closing the Priority B/C/D items already on the roadmap
+before this session started. Net new: **8 components shipped + 4
+accessibility doc pages + TuxTOC wiring + TuxStatComparison demo
+on research-landing**. Lint clean throughout.
+
+**Easy wrappers (Nuxt UI primitives + TUX chrome):**
+
+- **[`TuxTabs`](app/components/TuxTabs.vue)** — wraps `UTabs`. 2px
+  maroon active underline replaces the default accent. `intent="bold"`
+  swaps to uppercase tracked labels for eyebrow-rhythm contexts.
+  `orientation="vertical"` covers settings panels. Closes both
+  `TuxTabsHorizontal` and `TuxTabsVertical` roadmap entries (one
+  component, prop covers both).
+- **[`TuxTooltip`](app/components/TuxTooltip.vue)** — wraps `UTooltip`.
+  Optional title + hairline rule; tuned max-width (~22ch); shortcut
+  glyphs via `kbds`. For richer panels, consumers use
+  `TuxTeachingPopover` (onboarding) or `UPopover` directly.
+
+**Pagination + result-display family:**
+
+- **[`TuxResultCount`](app/components/TuxResultCount.vue)** —
+  "Showing 1–24 of 412 corridors · 24 per page." v-model bound page
+  + pageSize; page-size picker auto-snaps to page 1 on change. Naive
+  pluralization with `nounPlural` override.
+- **[`TuxLoadMore`](app/components/TuxLoadMore.vue)** — explicit
+  button with remaining count below + terminal divider on completion
+  (`loaded >= total`). SEO-friendly middle ground between paginated
+  and infinite.
+- **[`TuxInfiniteScroll`](app/components/TuxInfiniteScroll.vue)** —
+  IntersectionObserver sentinel with throttled emit + loading state.
+  Honors `prefers-reduced-motion` automatically (renders explicit
+  button instead of auto-fetching); `keyboardFallback` prop forces
+  the button on for accessibility-critical surfaces.
+
+**Feedback + comparison:**
+
+- **[`TuxReactionBar`](app/components/TuxReactionBar.vue)** —
+  light-touch acknowledgement strip. Default trio (helpful · question
+  · disagree) with full configurability via `reactions` prop. Counts
+  display-only; v-modeled active reactions. Two sizes (sm / md).
+- **[`TuxStatComparison`](app/components/TuxStatComparison.vue)** —
+  before/after stat block with delta + tone. Three polarities
+  (direct / invert / neutral) for metrics where down-is-good (latency,
+  error rate). Three layouts (row / stack / inline). Demonstrated
+  alongside the existing factoid row in `/examples/research-landing`.
+
+**First Priority B chart:**
+
+- **[`TuxChartLine`](app/components/TuxChartLine.vue)** (~520 LOC) —
+  native SVG line chart following the chart-foundations doctrine.
+  End-of-line value labels colored to series (default, not opt-in —
+  the accessibility win flagged by the Data Viz Graphs absorption).
+  Optional `series[].previous` for dashed prior-period overlay,
+  optional `series[].band` for confidence bands, optional markers,
+  auto-derived screen-reader summary. Showcase at
+  [`/visualizations/chart-line`](app/pages/visualizations/chart-line.vue)
+  with five examples including a `TuxChartFrame`-wrapped editorial
+  variant.
+
+**Accessibility documentation (4 pages):**
+
+- [`/accessibility/skip-to-content`](app/pages/accessibility/skip-to-content.vue)
+- [`/accessibility/focus-model`](app/pages/accessibility/focus-model.vue)
+- [`/accessibility/contrast-matrix`](app/pages/accessibility/contrast-matrix.vue)
+  — USWDS-style top-10 token-pair summary with per-theme ratios
+- [`/accessibility/breakpoints`](app/pages/accessibility/breakpoints.vue)
+  — six-breakpoint scale + container-query preference + 200% zoom
+
+Existing `accessibility.vue` moved to `accessibility/index.vue` with
+a new "deep-dive references" section linking to all four sub-pages
+via TuxCard tiles.
+
+**Polish queue items:**
+
+- **TuxTOC wired into TuxReportWebFrame `#toc` slot** in
+  `/reports/web-frame` showcase. Uses TuxTOC's auto-detect (scans
+  h2/h3 in the article) so the IntersectionObserver scroll-spy
+  works without rebuilding the items array. The fallback (plain
+  anchor list from the frame's `toc` prop) still renders when the
+  slot is empty.
+- **research-landing example refreshed** with a TuxStatComparison
+  year-over-year delta row beneath the by-the-numbers factoid.
+  One of three uses inverted polarity to show non-compliance going
+  down = success.
+
 ### Added — adoption batch from absorption carry-forwards (2026-05-21)
 
 Shipping the small, broadly-useful improvements identified across the

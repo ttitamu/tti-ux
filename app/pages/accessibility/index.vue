@@ -241,6 +241,50 @@ const themeBadgeClass = (status: string) => {
         notes per-component a11y considerations.
       </p>
     </section>
+
+    <section>
+      <p class="eyebrow">deep-dive references</p>
+      <h2 class="heading--bold text-xl font-bold">Foundations pages</h2>
+      <p class="mt-3 ax-prose">
+        Four focused references covering the foundations every TUX page
+        inherits — and consumers can verify against in their own
+        downstream builds.
+      </p>
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <TuxCard to="/accessibility/skip-to-content">
+          <p class="eyebrow">keyboard · WCAG 2.4.1</p>
+          <h3 class="text-base font-bold mt-1">Skip to content</h3>
+          <p class="mt-1 text-sm text-text-secondary">
+            The keyboard-first foundation. How the skip link is wired,
+            where it lands, how to verify.
+          </p>
+        </TuxCard>
+        <TuxCard to="/accessibility/focus-model">
+          <p class="eyebrow">keyboard · WCAG 2.4.7</p>
+          <h3 class="text-base font-bold mt-1">Focus model</h3>
+          <p class="mt-1 text-sm text-text-secondary">
+            Visible focus rings, focus-trap behavior in modals + slideovers,
+            tab order rules.
+          </p>
+        </TuxCard>
+        <TuxCard to="/accessibility/contrast-matrix">
+          <p class="eyebrow">color · WCAG 1.4.3 + 1.4.6</p>
+          <h3 class="text-base font-bold mt-1">Contrast matrix</h3>
+          <p class="mt-1 text-sm text-text-secondary">
+            Which token pairs pass AA / AAA across the three themes —
+            USWDS-style summary of the top 10 by traffic.
+          </p>
+        </TuxCard>
+        <TuxCard to="/accessibility/breakpoints">
+          <p class="eyebrow">responsive · WCAG 1.4.10</p>
+          <h3 class="text-base font-bold mt-1">Breakpoints</h3>
+          <p class="mt-1 text-sm text-text-secondary">
+            The documented responsive scale + the container-query
+            preference + 200% zoom reflow guarantees.
+          </p>
+        </TuxCard>
+      </div>
+    </section>
   </div>
 </template>
 

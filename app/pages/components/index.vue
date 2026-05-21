@@ -81,6 +81,14 @@ const components = [
   { name: "TuxRemovableChip", to: "/components/removable-chip", blurb: "Interactive dismissible chip — leading icon, three sizes, removable × or click-to-remove whole pill. Distinct from TuxBadge (decorative).", uses: "tux (no U-primitive)" },
   { name: "TuxSuggestionChips", to: "/components/suggestion-chips", blurb: "Horizontal row of clickable prompt-suggestion chips. Empty-state composer or post-response follow-ups.", uses: "tux (no U-primitive)" },
   { name: "TuxTeachingPopover", to: "/components/teaching-popover", blurb: "Onboarding/guided-tour tooltip — image, body, Next/Skip, step counter. On-brand variant for high emphasis.", uses: "tux (no U-primitive)" },
+  { name: "TuxTabs",          to: "/components/tabs",           blurb: "Editorial tabs with maroon active underline. Horizontal + vertical orientations; `bold` intent for eyebrow-rhythm labels.", uses: "UTabs" },
+  { name: "TuxTooltip",       to: "/components/tooltip",        blurb: "Keyboard-accessible hover-help with optional title + hairline rule. Tuned max-width (~22ch).", uses: "UTooltip" },
+  { name: "TuxResultCount",   to: "/components/result-count",   blurb: "\"Showing 1–24 of 412 corridors · 24 per page\". Pairs with TuxPagination / TuxLoadMore / TuxInfiniteScroll.", uses: "tux (no U-primitive)" },
+  { name: "TuxLoadMore",      to: "/components/load-more",      blurb: "Explicit \"Load more\" button + remaining count + terminal divider when all loaded. SEO-friendly middle ground.", uses: "tux (no U-primitive)" },
+  { name: "TuxInfiniteScroll", to: "/components/infinite-scroll", blurb: "IntersectionObserver sentinel that auto-fetches the next page. Honors prefers-reduced-motion + keyboard fallback.", uses: "tux (no U-primitive)" },
+  { name: "TuxReactionBar",   to: "/components/reaction-bar",   blurb: "Light-touch helpful/question/disagree row. Lower friction than a feedback form; counts display-only.", uses: "tux (no U-primitive)" },
+  { name: "TuxStatComparison", to: "/components/stat-comparison", blurb: "Before/after stat block with delta + tone. Direct or inverted polarity (down-is-good metrics). Row / stack / inline layouts.", uses: "tux (no U-primitive)" },
+  { name: "TuxChartLine",     to: "/visualizations/chart-line", blurb: "Native SVG line chart — end-of-line value labels, optional previous-period overlay + confidence band, auto SR summary.", uses: "tux (no U-primitive)" },
 ];
 </script>
 

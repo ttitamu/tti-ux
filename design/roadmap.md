@@ -76,13 +76,23 @@ or Superset URL. These are for first-class native rendering.
   pairs with TuxBigStat / TuxFactoid for KPI rows).
 - **TuxChartBar** — vertical + horizontal, grouped + stacked.
   Maroon-led palette across light/dark/HC.
-- **TuxChartLine** — single + multi-series, markers, confidence band.
+- ~~**TuxChartLine**~~ — shipped 2026-05-21; native SVG single +
+  multi-series, end-of-line value labels (default), optional
+  previous-period dashed overlay, optional confidence band, markers,
+  auto-derived screen-reader summary. See
+  [`/visualizations/chart-line`](../app/pages/visualizations/chart-line.vue).
 - **TuxChartScatter** — bivariate scatter for corridor data;
   color-by-category.
-- **TuxStatComparison** — before/after stat block, trend-arrow stat,
-  year-over-year. Pairs with TuxBigStat.
-- **chart-foundations doc** — series palette, axis/grid/legend tokens,
-  accessibility (alt-text patterns, screen-reader summaries).
+- ~~**TuxStatComparison**~~ — shipped 2026-05-21; before/after stat
+  block with delta + tone, direct/invert/neutral polarity, three
+  layouts (row/stack/inline). Pairs with `TuxBigStat`. See
+  [`/components/stat-comparison`](../app/pages/components/stat-comparison.vue).
+- ~~**chart-foundations doc**~~ — shipped 2026-05-21 as
+  [`design/chart-foundations.md`](chart-foundations.md). Palette,
+  axis/grid/legend tokens, in-bar vs above value labels, end-of-line
+  default, previous-period overlay, confidence bands, brush selector,
+  KPI strip composition, accessibility (SR summaries + alt-text
+  patterns).
 
 ### Map & geospatial
 
@@ -100,21 +110,32 @@ TTI does heavy GIS work.
 
 ### Tabs & sectioning
 
-- **TuxTabsHorizontal** — used in research-report pages, tti-ai-chat
-  (chat / settings / history).
-- **TuxTabsVertical** — for settings panels.
+- ~~**TuxTabsHorizontal**~~ / ~~**TuxTabsVertical**~~ — shipped
+  2026-05-21 as `TuxTabs` (single component, `orientation` prop
+  covers both). Wraps `UTabs`; adds maroon active underline + `bold`
+  intent for eyebrow-rhythm contexts. See
+  [`/components/tabs`](../app/pages/components/tabs.vue).
 - ~~**TuxSideSheet**~~ — shipped 2026-05-14 as `TuxSlideover`. Three
   sides (right · left · bottom), built on the native `<dialog>`,
   Batch-J ease-corridor slide animation. See
   [`/components/slideover`](../app/pages/components/slideover.vue).
 
-### Pagination extras
+### Pagination extras — ✅ shipped 2026-05-21
 
-We have basic numbered pagination only.
+We have basic numbered pagination only — was. Now three more.
 
-- **TuxLoadMore** — explicit button.
-- **TuxInfiniteScroll** — sentinel + "loading more…" pattern.
-- **TuxResultCount** — "Showing 1–24 of 412" with page-size controls.
+- ~~**TuxLoadMore**~~ — shipped 2026-05-21; explicit button with
+  remaining count + terminal divider on completion. SEO-friendly
+  middle ground between paginated and infinite. See
+  [`/components/load-more`](../app/pages/components/load-more.vue).
+- ~~**TuxInfiniteScroll**~~ — shipped 2026-05-21; IntersectionObserver
+  sentinel + loading state; honors `prefers-reduced-motion` with
+  explicit-button fallback. See
+  [`/components/infinite-scroll`](../app/pages/components/infinite-scroll.vue).
+- ~~**TuxResultCount**~~ — shipped 2026-05-21; "Showing 1–24 of 412
+  corridors · 24 per page." Pairs with any of the three pager
+  components. See
+  [`/components/result-count`](../app/pages/components/result-count.vue).
 
 ---
 
@@ -124,14 +145,21 @@ We have basic numbered pagination only.
 
 - **TuxCommentThread** — peer-review / editorial-comment threads with
   reply, resolve, mention.
-- **TuxReactionBar** — light-touch acknowledgement (helpful · question).
+- ~~**TuxReactionBar**~~ — shipped 2026-05-21; light-touch
+  acknowledgement strip (helpful · question · disagree default, fully
+  configurable). v-modeled active reactions + display-only counts.
+  See [`/components/reaction-bar`](../app/pages/components/reaction-bar.vue).
 
 ### Tooltips & help
 
-- **TuxTooltip** — keyboard-accessible hover-help. Hairline rule as
-  visual anchor.
+- ~~**TuxTooltip**~~ — shipped 2026-05-21; wraps `UTooltip`. Adds
+  optional title + hairline rule + tuned max-width (~22ch) + shortcut
+  glyphs via `kbds`. See
+  [`/components/tooltip`](../app/pages/components/tooltip.vue).
 - **TuxPopover** — richer floating panel (tooltip with title + body +
-  action).
+  action). Consumers currently compose `UPopover` directly; ship a
+  TUX wrapper when a richer-than-tooltip pattern is needed across two
+  consumer surfaces.
 - ~~**TuxKeyboardShortcuts**~~ — shipped 2026-05-14 as
   `TuxShortcutsHelp`. Modal overlay triggered by `?`, auto-classifies
   combo vs sequence rows, uses `TuxKbd` for every key glyph. Mounted
@@ -144,16 +172,23 @@ We have basic numbered pagination only.
 
 ## Priority E — Foundations & meta
 
-### Accessibility documentation
+### Accessibility documentation — ✅ shipped 2026-05-21
 
-- **`/accessibility/skip-to-content`** — keyboard-first foundations
-  page.
-- **`/accessibility/focus-model`** — visible-focus reference,
-  focus-trap behavior, tab order.
-- **`/accessibility/contrast-matrix`** — which token pairs pass AA /
-  AAA, USWDS-style.
-- **`/accessibility/breakpoints`** — documented responsive scale
-  alongside the existing spacing scale.
+All four foundation pages live under `/accessibility/*`. Each is
+referenced from the [accessibility index](../app/pages/accessibility/index.vue)
+with a tile card.
+
+- ~~**`/accessibility/skip-to-content`**~~ — keyboard-first foundations
+  page. WCAG 2.4.1 Bypass Blocks; how the skip link is wired, where it
+  lands, how to verify.
+- ~~**`/accessibility/focus-model`**~~ — visible-focus reference,
+  focus-trap behavior in modals/slideovers/popovers, tab-order rules,
+  three exceptions (inputs, linked cards, HC theme).
+- ~~**`/accessibility/contrast-matrix`**~~ — USWDS-style summary of
+  the top 10 token pairs by traffic across light/dark/HC themes.
+  Full 282-surface audit at `/contrast-audit`.
+- ~~**`/accessibility/breakpoints`**~~ — six-breakpoint scale + the
+  container-query preference (ADR-0007) + 200% zoom reflow guarantees.
 
 ### Mobile frames
 
@@ -170,27 +205,27 @@ Small follow-ups for components already in the catalog. Each one is
 worth less than a fresh component; collect them here so they don't
 get lost. Pick from the top when there's a slow afternoon.
 
-- **Wire `TuxTOC` into `TuxReportWebFrame`'s `#toc` slot.** The
-  web-frame currently renders TOC entries as plain anchor links —
-  no scroll-spy, no active-section tracking. The slot already
-  accepts richer content; an opt-in story like
-  `<TuxReportWebFrame><TuxTOC #toc target="…" /></TuxReportWebFrame>`
-  would give consumers IntersectionObserver-driven active state
-  without changing the default. **Why:** the bare `<a>` list is fine
-  for short reports but degrades on long-form (the use case the
-  component was built for).
-- **Refresh `/examples/landscape-dashboard` to use the new viz family.**
-  The dashboard predates `TuxSparkline`, `TuxVizEmbed`, `TuxVizGrid`.
-  Replace the hand-rolled trend strips and table-of-charts with the
-  real components. Verify it still composes the same way (BigStat +
-  Factoid + Treemap stay; sparkline goes inline next to BigStat
-  values; viz-grid replaces the manual 2-up). **Why:** examples
-  drift from real catalog usage when components ship faster than
-  the demos refresh.
-- **Refresh `/examples/research-landing` and
-  `/examples/tti-ai-studio-session`** with the same lens — anywhere
-  a hand-rolled chart or stat row could be a sparkline or a
-  viz-grid, swap it. Same reason as above.
+- ~~**Wire `TuxTOC` into `TuxReportWebFrame`'s `#toc` slot.**~~ —
+  done 2026-05-21. `/reports/web-frame` example now uses
+  `<TuxTOC target=".tux-report-web-frame article" />` inside the
+  `#toc` slot for IntersectionObserver-driven active-section
+  tracking. The fallback (plain anchor list from the `toc` prop)
+  still renders when the slot is empty.
+- ~~**Refresh `/examples/landscape-dashboard`**~~ — done 2026-05-21.
+  Now uses the full sidebar layout + `#aside` slot for the activity
+  rail + inline TuxSparkline next to the treemap header + KPI
+  deltas in factoid `source` fields.
+- ~~**Refresh `/examples/research-landing`**~~ — done 2026-05-21.
+  Added a TuxStatComparison year-over-year delta row beneath the
+  by-the-numbers factoid; one of the three uses inverted polarity
+  (non-compliance going down = success tone).
+- **Refresh `/examples/tti-ai-studio-session`** with the same lens —
+  most of this page already uses the catalog's chat components
+  (TuxChatMessage with #tools, TuxArtifact, TuxBranchNav,
+  TuxCitations, TuxContextMeter, TuxComposer). Pending: spot-check
+  the message-action row vs the new TuxReactionBar pattern, decide
+  whether to swap or leave (current pattern matches the documented
+  Conventions exactly).
 
 ---
 

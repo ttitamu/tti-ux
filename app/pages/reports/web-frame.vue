@@ -130,6 +130,19 @@ const sourceVue = `<tux-report-web-frame
               </p>
             </section>
 
+            <!-- Wire TuxTOC into the #toc slot for IntersectionObserver-
+                 driven active-section tracking (scroll-spy). When the
+                 slot is empty, the frame falls back to a plain ol of
+                 anchor links from the `toc` prop. Wiring the full
+                 component gives readers the active-section indicator
+                 on long-form pages. Letting TuxTOC auto-detect from
+                 the article scans h2/h3 headings on mount; the `toc`
+                 prop on the frame still works for SSR-time fallback
+                 (search engines + non-JS readers). -->
+            <template #toc>
+              <TuxTOC target=".tux-report-web-frame article" />
+            </template>
+
             <template #footer>
               <span>Source: tti.tamu.edu · Published April 2026</span>
             </template>

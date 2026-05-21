@@ -102,6 +102,40 @@ const testimonials = [
         title="What three years of follow-up data is telling us."
         dek="Treatment outcomes from twelve rural intersections, measured through 36 months of post-construction observation."
       />
+
+      <!-- Year-over-year deltas — composed below the factoid row to
+           show *how* the headline metrics moved, not just the latest
+           value. Demonstrates TuxStatComparison alongside the
+           existing TuxFactoid for the "summary + comparison" rhythm. -->
+      <div class="research-landing__deltas mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <TuxStatComparison
+          eyebrow="freight corridors"
+          :current="412"
+          :previous="368"
+          suffix=" mi"
+          :decimals="0"
+          label="vs end of FY24"
+          layout="stack"
+        />
+        <TuxStatComparison
+          eyebrow="non-compliance rate"
+          :current="37"
+          :previous="49"
+          suffix="%"
+          :decimals="0"
+          label="vs pre-treatment baseline"
+          polarity="invert"
+          layout="stack"
+        />
+        <TuxStatComparison
+          eyebrow="monitored vehicles / day"
+          :current="2.1"
+          :previous="1.8"
+          suffix="M"
+          label="vs Q3 last year"
+          layout="stack"
+        />
+      </div>
     </section>
 
     <!-- Featured publication callout -->
