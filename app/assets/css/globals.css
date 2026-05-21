@@ -2,6 +2,15 @@
 @import "@nuxt/ui";
 
 /*
+ * KaTeX styles for `$...$` and `$$...$$` math blocks rendered by the
+ * `rehype-katex` MDC plugin (see nuxt.config.ts `mdc.rehypePlugins`).
+ * Loads globally (~75 KB) so any markdown surface can render math
+ * without a per-page import. KaTeX's own math fonts are lazy-loaded
+ * via @font-face — pages without math don't fetch them.
+ */
+@import "katex/dist/katex.min.css";
+
+/*
  * Maroon palette lives in tokens.css as plain :root vars (not @theme),
  * because Tailwind v4 tree-shakes @theme entries that aren't referenced
  * in source CSS/templates. Nuxt UI references them via its pre-compiled
@@ -41,6 +50,22 @@
   --font-mono: var(--font-mono);
 
   --shadow-focus: var(--shadow-focus);
+
+  /*
+   * Layout breakpoints. Anchored to design/tokens.json `breakpoint`
+   * block — the *semantic trigger* for each is documented there
+   * (what surface state changes at this width). Values match Tailwind
+   * v4 defaults, so `md:` / `lg:` utilities keep their intuitive
+   * meaning, but the token source is now the durable reference.
+   * `xs` (0) is documentation-only in tokens.json — not added here
+   * because Tailwind doesn't ship an `xs:` prefix by default (no
+   * prefix already means "applies at all widths").
+   */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
 }
 
 /*

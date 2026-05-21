@@ -20,12 +20,17 @@ interface Props {
    *  Falls back to `text` (no highlighting) for unknown langs. */
   lang?: BundledLanguage | "text";
   /** Optional caption — typically a filename like
-   *  `app/components/TuxButton.vue` or `pecan/agent.py:42`. */
+   *  `app/components/TuxButton.vue` or `landscape/agent.py:42`. */
   filename?: string;
   /** Show 1-indexed line numbers in the gutter. */
   lineNumbers?: boolean;
   /** Hide the copy button. */
   noCopy?: boolean;
+  /** Hide the download button. */
+  noDownload?: boolean;
+  /** Override the suggested filename for downloads. Falls back to
+   *  `filename` (basename) or `code.{ext}` derived from `lang`. */
+  downloadName?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -33,6 +38,8 @@ const props = withDefaults(defineProps<Props>(), {
   filename: undefined,
   lineNumbers: false,
   noCopy: false,
+  noDownload: false,
+  downloadName: undefined,
 });
 
 const colorMode = useColorMode();
@@ -78,6 +85,40 @@ async function copy() {
   copied.value = true;
   setTimeout(() => (copied.value = false), 1500);
 }
+
+const LANG_EXT: Record<string, string> = {
+  ts: "ts", tsx: "tsx", js: "js", jsx: "jsx", vue: "vue",
+  python: "py", py: "py", rust: "rs", go: "go", java: "java",
+  c: "c", cpp: "cpp", cs: "cs", rb: "rb", php: "php",
+  bash: "sh", sh: "sh", zsh: "sh", fish: "sh",
+  yaml: "yml", yml: "yml", json: "json", toml: "toml",
+  html: "html", css: "css", scss: "scss",
+  md: "md", markdown: "md", sql: "sql", text: "txt",
+};
+
+const resolvedDownloadName = computed(() => {
+  if (props.downloadName) return props.downloadName;
+  if (props.filename) {
+    // Strip any path prefix and `:line` suffix — keep just the basename.
+    return props.filename.split("/").pop()!.split(":")[0]!;
+  }
+  const ext = LANG_EXT[props.lang] ?? "txt";
+  return `code.${ext}`;
+});
+
+function download() {
+  if (typeof window === "undefined") return;
+  const blob = new Blob([props.code], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = resolvedDownloadName.value;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  // Defer revoke so the download has time to start in slower browsers.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 </script>
 
 <template>
@@ -88,21 +129,36 @@ async function copy() {
     </figcaption>
 
     <div class="tux-codeblock__body">
-      <button
-        v-if="!noCopy"
-        type="button"
-        class="tux-codeblock__copy"
-        :aria-label="copied ? 'Copied' : 'Copy code'"
-        @click="copy"
-      >
-        <Icon
-          :name="copied ? 'lucide:check' : 'lucide:copy'"
-          class="tux-codeblock__copy-icon"
-        />
-        <span>{{ copied ? "Copied" : "Copy" }}</span>
-      </button>
+      <div v-if="!noCopy || !noDownload" class="tux-codeblock__actions">
+        <button
+          v-if="!noDownload"
+          type="button"
+          class="tux-codeblock__action"
+          :aria-label="`Download ${resolvedDownloadName}`"
+          @click="download"
+        >
+          <Icon name="lucide:download" class="tux-codeblock__action-icon" />
+          <span>Download</span>
+        </button>
+        <button
+          v-if="!noCopy"
+          type="button"
+          class="tux-codeblock__action"
+          :aria-label="copied ? 'Copied' : 'Copy code'"
+          @click="copy"
+        >
+          <Icon
+            :name="copied ? 'lucide:check' : 'lucide:copy'"
+            class="tux-codeblock__action-icon"
+          />
+          <span>{{ copied ? "Copied" : "Copy" }}</span>
+        </button>
+      </div>
 
-      <!-- Highlighted output once Shiki has loaded -->
+      <!-- Highlighted output once Shiki has loaded. v-html is safe
+           here: the source is Shiki's own escaped output (server-side
+           rendered via useTuxHighlighter), not user input. -->
+      <!-- eslint-disable-next-line vue/no-v-html -->
       <div
         v-if="highlightedCode"
         class="tux-codeblock__rendered"
@@ -169,11 +225,24 @@ async function copy() {
   position: relative;
 }
 
-.tux-codeblock__copy {
+.tux-codeblock__actions {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
   z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.tux-codeblock:hover .tux-codeblock__actions,
+.tux-codeblock:focus-within .tux-codeblock__actions {
+  opacity: 1;
+}
+
+.tux-codeblock__action {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
@@ -188,22 +257,17 @@ async function copy() {
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s ease, color 0.15s ease;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 
-.tux-codeblock:hover .tux-codeblock__copy,
-.tux-codeblock:focus-within .tux-codeblock__copy,
-.tux-codeblock__copy:focus-visible {
-  opacity: 1;
-}
-
-.tux-codeblock__copy:hover {
+.tux-codeblock__action:hover,
+.tux-codeblock__action:focus-visible {
   color: var(--brand-primary);
   border-color: color-mix(in srgb, var(--brand-primary) 40%, var(--surface-border));
+  outline: none;
 }
 
-.tux-codeblock__copy-icon {
+.tux-codeblock__action-icon {
   width: 0.8125rem;
   height: 0.8125rem;
 }

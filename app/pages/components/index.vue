@@ -58,7 +58,7 @@ const components = [
   { name: "TuxPhotoGrid",     to: "/components/photo-grid",     blurb: "Uniform image grid — photo (full color, captioned) or logo wall (grayscale-on-hover).",        uses: "tux (no U-primitive)" },
   { name: "TuxProse",         to: "/components/prose",          blurb: "Typographic shell for long-form markdown — H1/H2/H3/p/list/code/table/blockquote rhythm in one wrapper.", uses: "tux (no U-primitive)" },
   { name: "TuxQACollection",  to: "/components/qa-collection",  blurb: "Long-form Q&A — always expanded, designed to be read top-to-bottom (companion to TuxAccordion).", uses: "tux (no U-primitive)" },
-  { name: "TuxRichDataGrid",  to: "/components/rich-data-grid", blurb: "Interactive data grid — sticky header, row selection, expandable detail, sort + filter chips, bulk-action bar. PECAN-class operational surfaces.", uses: "tux (no U-primitive)" },
+  { name: "TuxRichDataGrid",  to: "/components/rich-data-grid", blurb: "Interactive data grid — sticky header, row selection, expandable detail, sort + filter chips, bulk-action bar. Landscape-class operational surfaces.", uses: "tux (no U-primitive)" },
   { name: "TuxSearch",        to: "/components/search",         blurb: "Branded search bar — bordered input + uppercase action button. Regular / slim / focus state.", uses: "tux (no U-primitive)" },
   { name: "TuxSectionHeader", to: "/components/section-header", blurb: "Editorial section heading — ALL-CAPS, tracked-out, maroon underline.",                         uses: "tux (no U-primitive)" },
   { name: "TuxSidebarBlock",  to: "/components/sidebar-block",  blurb: "Sidebar widget wrapper — eyebrow + maroon underline + content. Default/bordered/filled.",      uses: "tux (no U-primitive)" },
@@ -71,7 +71,15 @@ const components = [
   { name: "TuxTestimonial",   to: "/components/testimonial",    blurb: "Attributed quotes with portrait + name + role — grid or row layout, three style variants.",   uses: "tux (no U-primitive)" },
   { name: "TuxTOC",           to: "/components/toc",            blurb: "Article table-of-contents — sticky right rail with IntersectionObserver-driven active state.",  uses: "tux (no U-primitive)" },
   { name: "TuxTree",          to: "/components/tree",           blurb: "Hierarchical list — sitemap, corpus + filesystem browser, BI dataset explorer. Mono leaf labels, sand guide lines, persistence.", uses: "tux (no U-primitive)" },
-  { name: "TuxTreemap",       to: "/components/treemap",        blurb: "Squarified hierarchical-size viz — PECAN's headline chart, drill-in, no external library.",   uses: "tux (no U-primitive)" },
+  { name: "TuxTreemap",       to: "/components/treemap",        blurb: "Squarified hierarchical-size viz — Landscape's headline chart, drill-in, no external library.",   uses: "tux (no U-primitive)" },
+  { name: "TuxArtifact",      to: "/components/artifact",       blurb: "AI output container — header + actions + body slot. Wraps generated code, docs, exported datasets.", uses: "tux (no U-primitive)" },
+  { name: "TuxBranchNav",     to: "/components/branch-nav",     blurb: "‹ N of M › navigator for response alternatives. Lives in TuxChatMessage's #header-trailing slot.",  uses: "tux (no U-primitive)" },
+  { name: "TuxContextMeter",  to: "/components/context-meter",  blurb: "Token-utilization meter — pill + conic ring + popover with input/output/cost. Tone-codes ok/warn/alert.", uses: "UPopover" },
+  { name: "TuxInfoLabel",     to: "/components/info-label",     blurb: "Form-field label with (i) help — hover or click popover with the explanation. For ITAR rubrics, retention classes, classifier metrics.", uses: "UPopover" },
+  { name: "TuxInlineCitation", to: "/components/inline-citation", blurb: "Academic-style inline [N] citation pill — hover reveals title + URL + excerpt + score. Composes with TuxCitations footer list.", uses: "UPopover" },
+  { name: "TuxRemovableChip", to: "/components/removable-chip", blurb: "Interactive dismissible chip — leading icon, three sizes, removable × or click-to-remove whole pill. Distinct from TuxBadge (decorative).", uses: "tux (no U-primitive)" },
+  { name: "TuxSuggestionChips", to: "/components/suggestion-chips", blurb: "Horizontal row of clickable prompt-suggestion chips. Empty-state composer or post-response follow-ups.", uses: "tux (no U-primitive)" },
+  { name: "TuxTeachingPopover", to: "/components/teaching-popover", blurb: "Onboarding/guided-tour tooltip — image, body, Next/Skip, step counter. On-brand variant for high emphasis.", uses: "tux (no U-primitive)" },
 ];
 </script>
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // TuxFilterPanel — left-rail facet panel for list pages.
 //
-// PECAN's results UI lives or dies on this. Multiple facet groups (Owner,
+// Landscape's results UI lives or dies on this. Multiple facet groups (Owner,
 // Type, Extension, Access tier, Grant ID, Retention class), each collapsible,
 // each with a checkbox list + counts. Applied filters surface as chips at
 // the top so the user can scan + remove without scrolling.
@@ -53,15 +53,16 @@ function toggle(facet: string, value: string) {
   const next = current.includes(value)
     ? current.filter(v => v !== value)
     : [...current, value];
-  const updated = { ...props.modelValue, [facet]: next };
-  if (next.length === 0) delete updated[facet];
-  emit("update:modelValue", updated);
-}
-
-function clearFacet(facet: string) {
-  const updated = { ...props.modelValue };
-  delete updated[facet];
-  emit("update:modelValue", updated);
+  if (next.length === 0) {
+    // Omit the facet via destructuring rather than `delete updated[facet]`
+    // — eslint's `@typescript-eslint/no-dynamic-delete` flags the latter
+    // since TS can't typecheck dynamic key removal. Same effect.
+    const { [facet]: _omit, ...rest } = props.modelValue;
+    void _omit;
+    emit("update:modelValue", rest);
+  } else {
+    emit("update:modelValue", { ...props.modelValue, [facet]: next });
+  }
 }
 
 function clearAll() {
@@ -114,19 +115,19 @@ const applied = computed<AppliedChip[]>(() => {
     </header>
 
     <div v-if="applied.length > 0" class="tux-filter-panel__applied" role="list">
-      <button
+      <TuxRemovableChip
         v-for="chip in applied"
         :key="`${chip.facet}:${chip.value}`"
-        type="button"
-        class="tux-filter-panel__chip"
+        size="sm"
+        removable
+        click-to-remove
+        :remove-label="`Remove ${chip.facetLabel}: ${chip.label}`"
         role="listitem"
-        :aria-label="`Remove ${chip.facetLabel}: ${chip.label}`"
-        @click="toggle(chip.facet, chip.value)"
+        @remove="toggle(chip.facet, chip.value)"
       >
         <span class="tux-filter-panel__chip-prefix">{{ chip.facetLabel }}:</span>
         <span class="tux-filter-panel__chip-value">{{ chip.label }}</span>
-        <Icon name="lucide:x" class="tux-filter-panel__chip-remove" aria-hidden="true" />
-      </button>
+      </TuxRemovableChip>
     </div>
 
     <details
@@ -224,35 +225,16 @@ const applied = computed<AppliedChip[]>(() => {
   margin-bottom: 1rem;
 }
 
-.tux-filter-panel__chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.5rem 0.25rem 0.625rem;
-  font-family: var(--font-body);
-  font-size: 0.75rem;
-  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--brand-primary) 30%, transparent);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-.tux-filter-panel__chip:hover {
-  background: color-mix(in srgb, var(--brand-primary) 14%, transparent);
-}
-
+/* Two-tone label inside each TuxRemovableChip: muted facet name +
+   bold value. Targets the chip's default slot via :deep so we keep
+   the chip primitive's chrome unaltered. */
 .tux-filter-panel__chip-prefix {
   color: var(--text-muted);
   font-weight: 500;
+  margin-right: 0.125rem;
 }
 .tux-filter-panel__chip-value {
   font-weight: 600;
-}
-.tux-filter-panel__chip-remove {
-  width: 0.75rem;
-  height: 0.75rem;
-  color: var(--brand-primary);
 }
 
 .tux-filter-panel__facet {

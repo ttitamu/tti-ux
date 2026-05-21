@@ -5,6 +5,310 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+A multi-day absorption pass over the Figma project's high-signal
+reference systems (shadcn_ui Jan 2026, Vercel AI Elements, Primer Web,
+Microsoft Fluent 2 Web, plus the Windows UI kit and Aggie UX). Most
+findings confirmed TUX's architecture; the rest landed as new
+components, a layout, build-pipeline additions, and one infrastructure
+fix. Triage + per-file findings live under
+[`reference/figma-cache/`](reference/figma-cache); each `NOTES.md`
+records what was absorbed vs skipped vs deliberately deferred.
+
+A follow-up medium-signal pass on 2026-05-21 absorbed five more files
+(Charts UI Kit, Data Visualization Graphs / Charts Kit, Data Table
+design components, Snow Dashboard UI Kit, Empty State Illustration
+Kit) — 0 new components, audit-only by design. Findings rolled into
+roadmap carry-forwards (`design/roadmap.md`) and one doctrine
+addition to `TuxEmptyState` / `design/components.md` ("no decorative
+illustrations").
+
+### Changed — PECAN → Landscape rebrand (2026-05-21)
+
+The downstream sensitive-data classifier consumer formerly named
+**PECAN** is now **Landscape**. The rebrand touched ~50 files across
+TUX; historical record (this CHANGELOG file and the `docs/adr/*.md`
+records) was deliberately left intact — entries reference the project
+under its name at the time the entry was written.
+
+- **Renamed** [`app/pages/examples/pecan-dashboard.vue`](app/pages/examples/landscape-dashboard.vue)
+  → `landscape-dashboard.vue`. Route is now `/examples/landscape-dashboard`.
+- **Renamed** `public/kits/pecan/` → [`public/kits/landscape/`](public/kits/landscape/);
+  kit slug + label updated in [`app/pages/kits.vue`](app/pages/kits.vue).
+- **Prose updated** across `README.md`, `design/components.md`,
+  `design/roadmap.md`, ~30 showcase pages under `app/pages/`, 10
+  component JSDoc blocks (`TuxDescriptionList`, `TuxCodeBlock`,
+  `TuxFilterPanel`, `TuxPagination`, `TuxTeachingPopover`,
+  `TuxTreemap`, `TuxSearch`, `TuxSiteNav`, `TuxRichDataGrid`,
+  `TuxFooter`), top-of-file comments in `nuxt.config.ts` /
+  `app/app.vue` / `app/layouts/sidebar.vue`, and the
+  `public/kits/aggieux/*.jsx` reference catalog (default
+  `productName` knobs on banners, footer demo strings, breadcrumbs).
+- **First-mention-per-file** uses "Landscape (formerly PECAN)" for
+  continuity; later mentions are bare "Landscape."
+- **Refreshed** [`app/pages/examples/landscape-dashboard.vue`](app/pages/examples/landscape-dashboard.vue)
+  to use the full sidebar layout + KPI row with delta-vs-previous
+  readings + inline ingest-rate sparkline + two-column main/right-
+  rail grid with Recent-activity + Active-agents tiles. Composition
+  reference for the patterns absorbed from the Snow Dashboard
+  ([NOTES](reference/figma-cache/snow-dashboard-ui-kit/NOTES.md)).
+  Composes ~15 Tux\* + Nuxt UI 4 primitives. No new components — the
+  right rail is a host-driven grid composition, not a layout slot
+  (the `#aside` slot follow-up on `sidebar.vue` waits until a second
+  consumer surface needs it).
+
+### Changed — empty-state stance documented
+
+- **[`TuxEmptyState`](app/components/TuxEmptyState.vue)** — JSDoc now
+  states the deliberate "no decorative illustrations" stance.
+  Companion entry added to
+  [`design/components.md`](design/components.md) Conventions section.
+  Reaffirmed against the Empty State Illustration Kit absorption
+  ([NOTES](reference/figma-cache/empty-state-illustration-kit/NOTES.md));
+  the five `kind` presets remain the canonical taxonomy.
+
+### Added — AI-elements component pack (Vercel AI Elements absorption)
+
+Five new components and one enhancement, all driven by patterns from
+Vercel's AI Elements that nothing in TUX or Nuxt UI 4 covered. Together
+they let `tti-ai-studio` surface budget visibility, response
+alternatives, inline-grounded citations, generated artifacts, and
+follow-up suggestions — the AI-specific affordances real consumer apps
+need but TUX previously left to ad-hoc composition.
+
+- **[`TuxSuggestionChips`](app/components/TuxSuggestionChips.vue)** —
+  horizontal row of clickable prompt-suggestion chips. Empty-state
+  composer or post-response follow-ups. Accepts plain strings or
+  `{ label, prompt }` for short-chip / longer-prompt cases.
+- **[`TuxBranchNav`](app/components/TuxBranchNav.vue)** — `‹ N of M ›`
+  navigator for response alternatives. v-modeled 1-indexed position,
+  `hideSingleton` defaults true (N=1 renders nothing), optional
+  `loop`. Position rendered as text for SR announcement.
+- **[`TuxInlineCitation`](app/components/TuxInlineCitation.vue)** —
+  academic-style superscripted `[N]` pill in body text. Hover or
+  click reveals `UPopover` with title + URL + excerpt + score. One
+  source per pill (not Vercel's "+N" aggregation); composes with the
+  existing `TuxCitations` footer list.
+- **[`TuxContextMeter`](app/components/TuxContextMeter.vue)** —
+  token-utilization meter. Compact pill with conic-gradient ring + %
+  used; popover reveals input/output token counts + per-side cost +
+  total. Tone-codes ok / warn / alert at 60% / 85% thresholds —
+  visible signal as long sessions approach the context limit.
+- **[`TuxArtifact`](app/components/TuxArtifact.vue)** — structured
+  container for AI-generated output (code file, dataset, document,
+  image). Header (icon + title + meta + actions row) + body slot.
+  Common actions (copy / download / regenerate / share) via the
+  `actions` prop emit named events; custom actions via `#actions`
+  slot. Standalone — consumer wraps in container (inline, sidebar
+  aside, full-page).
+- **[`TuxCodeBlock`](app/components/TuxCodeBlock.vue)** gained a
+  **download button** beside the existing copy. Resolves filename
+  from a `downloadName` override → the `filename` basename →
+  `code.{ext}` from a 25-language extension map. Both buttons share a
+  hover-revealed `__actions` container.
+- **[`TuxChatMessage`](app/components/TuxChatMessage.vue)** gained a
+  **`#header-trailing` slot** for right-aligned controls (canonical
+  use: `TuxBranchNav`; also fits per-message model pickers,
+  regenerate buttons). Surfaced by dogfooding the refactor of the
+  example page; previously the header had no place for trailing
+  controls.
+
+### Added — `TuxRemovableChip` (Primer Token absorption)
+
+Standalone primitive for interactive dismissible pills. Distinct from
+[`TuxBadge`](app/components/TuxBadge.vue) (decorative) — this is
+button-shaped, focusable, and emits events: click-toggleable via
+`selected`, removable via the `×` button (or `clickToRemove` for
+whole-pill click). Three sizes, optional leading icon, optional
+disabled state. Pattern was previously hand-rolled inside
+[`TuxFilterPanel`](app/components/TuxFilterPanel.vue); extraction
+gives a primitive for tag inputs, recipient lists, multi-select
+chips, etc.
+
+- **[`TuxFilterPanel`](app/components/TuxFilterPanel.vue)** refactored
+  to consume `TuxRemovableChip` for applied-filter pills at the top
+  of the panel. Removes ~30 LOC of hand-rolled chip markup and
+  scoped styles; behavior preserved (whole-pill click removes, `×`
+  rendered as decorative affordance).
+
+### Added — `TuxInfoLabel`, `TuxTeachingPopover` (Fluent 2 absorption)
+
+Two small patterns from Microsoft Fluent 2 Web. Both deferred from
+the initial Fluent pass until the integration sweep landed them with
+showcase routes and convention.
+
+- **[`TuxInfoLabel`](app/components/TuxInfoLabel.vue)** — form-field
+  label with an `(i)` info button. Hover or click reveals a popover
+  with extended explanation. For technical research forms where
+  field meanings deserve context (ITAR rubrics, retention classes,
+  classifier metrics). Pairs with form primitives via the standard
+  `for=` attribute; optional `required` shows the maroon `*`.
+- **[`TuxTeachingPopover`](app/components/TuxTeachingPopover.vue)** —
+  onboarding / guided-tour tooltip. Distinguished from `UTooltip`
+  (passive hover help) by the guided-flow affordances: optional
+  header image, body, Next / Skip footer, step counter
+  (`{step} of {totalSteps}`). v-models both open state and current
+  step. `onBrand` variant for high-emphasis announcements.
+
+### Added — Sidebar app-shell layout + demo example
+
+- **[`app/layouts/sidebar.vue`](app/layouts/sidebar.vue)** rewritten
+  to compose Nuxt UI 4's `UDashboardGroup` + `UDashboardSidebar` +
+  `UDashboardPanel`. Earlier scaffold was hand-rolled CSS; the
+  rewrite drops ~70 LOC and inherits collapse-to-icons, mobile
+  slideover, resizable handle, and cookie-backed persistence from
+  Nuxt UI. Opt in per page via
+  `definePageMeta({ layout: "sidebar" })`. Slot surface:
+  `#header` (top bar / breadcrumbs), `#rail-header` (brand),
+  `#rail` (nav body), `#rail-footer` (user), default (main content).
+  Rail slots receive `{ collapsed, collapse }` scope vars.
+- **[`/examples/sidebar-shell`](app/pages/examples/sidebar-shell.vue)** —
+  new composition example demonstrating the layout's slot surface.
+  Sample app-shell with TTI brand, hierarchical UNavigationMenu in
+  the rail, user-account footer, and a content surface with
+  factoids + recent-activity list.
+
+### Added — LaTeX math in MDC pipeline
+
+`remark-math` + `rehype-katex` wired into [`nuxt.config.ts`](nuxt.config.ts)
+under `mdc.remarkPlugins` / `mdc.rehypePlugins`. KaTeX CSS imported
+globally in [`globals.css`](app/assets/css/globals.css). Markdown
+sources can now use `$inline$` and `$$display$$` math; rendered HTML
+includes both `katex-html` (visual) and `katex-mathml` (a11y) trees.
+The [`/markdown`](app/pages/markdown.vue) demo gains a Math section
+exercising both forms. Bundle-size cost: ~75 KB KaTeX CSS loads on
+every page (lightweight enough to justify; consumers can swap to a
+manual per-page import if they want to be strictly lazy).
+
+### Added — Breakpoint tokens (Windows UI kit absorption)
+
+- **[`design/tokens.json`](design/tokens.json)** gained a
+  `breakpoint` block: `xs` (0) / `sm` (640) / `md` (768) / `lg` (1024)
+  / `xl` (1280) / `2xl` (1536), with `$description` per breakpoint
+  documenting the semantic trigger (what surface state changes at
+  this width). Values match Tailwind v4 defaults so `md:` / `lg:`
+  utilities keep their intuitive meaning; the token source is the
+  durable reference. Pulled from a survey of Microsoft's Windows UI
+  kit responsive ladder (348 / 660 / 708 / 1020 / 1252), rebased to
+  TUX's editorial-first content widths.
+- **[`globals.css`](app/assets/css/globals.css)** `@theme` block
+  gained `--breakpoint-*` entries mirroring the token source.
+
+### Added — `TuxEmptyState` `compact` prop + `kind` preset library
+
+Two enhancements to the empty-state component, one from the Primer
+pass and one from the Backstage pass:
+
+- **`compact` boolean prop** (Primer pass) — reduces icon, heading,
+  description, and padding sizes for narrow-column placements (facet
+  results, inline list area, sidebar widget). Confirmed against
+  Primer's Blankslate small variants and again against Backstage's
+  Empty Card use case.
+- **`kind` preset prop** (Backstage pass) — five named cases that
+  pre-fill icon + title + description for the most-reused
+  empty-state shapes:
+  - `no-data` — empty dataset, nothing created yet
+  - `no-results` — query / filter returned nothing
+  - `not-found` — resource doesn't exist (or moved)
+  - `no-permissions` — auth-gated; user lacks access
+  - `first-run` — onboarding; "welcome, get started"
+
+  Explicit `icon` / `title` / `description` props still win per-field,
+  so consumers can use a preset as the baseline and override the
+  voice. Surveyed from Backstage's seven dedicated empty-state pages
+  (Empty Card / Table / Page / No Builds to Show / Entity Not Found
+  / Create a Component); collapsed to the five most-reused shapes for
+  TUX. Showcase at [`/components/empty-state`](app/pages/components/empty-state.vue)
+  demonstrates each preset.
+
+- **Template dedup as a side-effect.** The earlier `compact` addition
+  only worked on the with-card branch — the `no-card` branch had a
+  duplicate template that drifted. Restructured to one template using
+  `<component :is="noCard ? 'div' : 'TuxCard'">` (made possible by the
+  global Tux component registration this session also shipped); both
+  branches now honor `compact` and `kind` identically.
+
+### Added — Standard composition conventions
+
+- **[`design/components.md`](design/components.md)** gained a new
+  **Conventions** section with two documented standards:
+  - **Chat-message actions** (Vercel AI Elements absorption) — the
+    standard `TuxChatMessage` `#tools` icon set:
+    **Copy · Regenerate · Share · Helpful · Off** in that order. Icon
+    names, labels, and expected emit-event names all listed so
+    consumers don't reinvent.
+  - **Form validation — when to use which** (Backstage absorption) —
+    decision tree for four placements: inline field error / inline
+    form summary / blocking dialog / page-or-session banner / toast.
+    Each placement names the components, the use case, and the
+    behavior expected. Anti-patterns called out explicitly (modal for
+    a single bad field, banner for a single bad field, etc.).
+    Backstage's 38-frame form-validation page surfaced the gap — TUX
+    leans on `UFormField` + `TuxAlert` + `UModal` + `useToast()` for
+    primitives but previously didn't document the decision.
+
+### Added — Figma absorption cache + scripts
+
+[`reference/figma-cache/`](reference/figma-cache/) houses the
+durable artifacts from the absorption pass: per-file `NOTES.md`
+(skip / absorb / tension / decisions framework) with cover thumbnails
+for all 70 files in the source project. Aggregator at
+[`INDEX.md`](reference/figma-cache/INDEX.md). Helper scripts at
+[`_scripts/sync.py`](reference/figma-cache/_scripts/sync.py) +
+[`rebuild-index.py`](reference/figma-cache/_scripts/rebuild-index.py)
+re-sync from the Figma REST API (rate-limit-aware) and regenerate the
+index from on-disk state.
+
+### Fixed — MDC component resolution
+
+Nuxt's default component auto-import works via compile-time template
+rewrites; components are not registered via `app.component()`. That
+made every Tux\* invisible to `MDCRenderer`'s runtime
+`resolveComponent()` call, so markdown like `::tux-alert{...}` /
+`::tux-callout{...}` rendered as plain text and logged
+`[Vue warn]: Failed to resolve component: TuxAlert` on every render.
+
+- **[`nuxt.config.ts`](nuxt.config.ts)** now sets
+  `components: [{ path: resolve(layerDir, "app/components"), global: true }]`.
+  `global: true` registers each component via `app.component()` at
+  boot so runtime resolvers find them. Bundle cost: Tux\* components
+  ship in the main chunk instead of being lazy-loaded — acceptable
+  because they're used across virtually every page anyway, and the
+  win (markdown surfaces can use any `::tux-*` block without explicit
+  registration) is real. Propagates to consumer apps (PECAN,
+  tti-ai-studio) when they extend this layer.
+
+### Fixed — Typesafe emit-union narrowing
+
+`vue-tsc` flagged two new components where `emit(union)` couldn't
+narrow to a specific literal:
+
+- **[`TuxArtifact`](app/components/TuxArtifact.vue)** — the `actions`
+  prop's loop called `emit(a)` where `a: ArtifactAction`. Replaced
+  with an `onAction(a)` switch dispatch over the literals.
+- **[`TuxBranchNav`](app/components/TuxBranchNav.vue)** — `emit(delta === 1 ? "next" : "prev")` couldn't narrow. Replaced with `if (delta === 1) emit("next"); else emit("prev");`.
+
+### Changed — `tti-ai-studio-session` example uses `TuxChatMessage`
+
+The example page previously used hand-rolled `<article>` blocks for
+both message turns. Refactored to use
+[`TuxChatMessage`](app/components/TuxChatMessage.vue) — closes a
+dead-code-audit finding (the component had no consumer outside its
+own showcase route) and demonstrates the canonical pattern. The user
+turn becomes a 3-line call; the assistant turn uses four slots
+(`#header-trailing` for `TuxBranchNav`, default for body, `#citations`
+for the footer list, `#tools` for the standard action set).
+
+### Changed — `app/pages/examples/tti-ai-studio-session.vue` composition
+
+Beyond the `TuxChatMessage` refactor, the example was previously
+heavily updated this session to demonstrate the new AI-elements
+components in their natural composition: `TuxContextMeter` in the
+page header, `TuxBranchNav` in the assistant header,
+`TuxInlineCitation` inline in the prose, `TuxArtifact` wrapping a
+`TuxCodeBlock` after the message, `TuxSuggestionChips` before the
+composer, plus `UChatReasoning` / `UChatTool` / `UChatShimmer` from
+the Nuxt UI 4 Chat suite to show how the two layers compose.
+
 ## [1.4.2] — 2026-05-14
 
 Patch: align the HC theme's primary palette steps with the brand

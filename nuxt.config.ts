@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { defineNuxtConfig } from "nuxt/config";
 import tailwindcss from "@tailwindcss/vite";
 
-// Layer-rooted dir so consuming apps (PECAN, tti-ai-studio, etc.) resolve
+// Layer-rooted dir so consuming apps (Landscape, tti-ai-studio, etc.) resolve
 // our css/asset paths relative to *this* file, not their own srcDir.
 // `~` in a Nuxt layer's nuxt.config maps to the *consumer's* `app/`, not
 // the layer's, so anything we want to ship from the layer needs an
@@ -70,6 +70,26 @@ export default defineNuxtConfig({
     "@vueuse/nuxt",
   ],
 
+  // Components registration. Default Nuxt behavior auto-imports
+  // components via compile-time template rewrites — fast, lean, but
+  // INVISIBLE to `vueResolveComponent()` at runtime. That matters for
+  // `@nuxtjs/mdc`, whose `MDCRenderer` resolves tags from `::tux-alert{...}`
+  // markdown block syntax by calling Vue's runtime resolver. Without
+  // global registration, every Tux* used in markdown logs
+  // `[Vue warn]: Failed to resolve component: TuxAlert`.
+  //
+  // `global: true` registers each component via `app.component()` so
+  // MDC's resolver finds it. Bundle-size cost: components ship in the
+  // main chunk instead of being lazy-loaded — acceptable for TUX
+  // because Tux* are used on virtually every page anyway. Layer-rooted
+  // path so consuming apps resolve from *this* file, not their own srcDir.
+  components: [
+    {
+      path: resolve(layerDir, "app/components"),
+      global: true,
+    },
+  ],
+
   // MDC — markdown rendering with Vue components. Lets consumers
   // (tti-docs, blog posts, marcom WordPress migration) author content
   // in markdown with Tux* components inline. Tux components are
@@ -84,6 +104,15 @@ export default defineNuxtConfig({
         dark: "github-dark",
       },
       langs: ["ts", "js", "vue", "html", "css", "json", "bash", "python", "yaml", "md"],
+    },
+    // Math in markdown: `$inline$` and `$$display$$` parse via
+    // `remark-math` and render to HTML via `rehype-katex`. Pair with
+    // the `katex/dist/katex.min.css` import in `globals.css`.
+    remarkPlugins: {
+      "remark-math": {},
+    },
+    rehypePlugins: {
+      "rehype-katex": {},
     },
   },
 

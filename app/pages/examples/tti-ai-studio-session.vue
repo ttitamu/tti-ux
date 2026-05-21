@@ -1,13 +1,6 @@
 <script setup lang="ts">
 useHead({ title: "Example · tti-ai-studio session · TUX" });
 
-const corpora = [
-  { value: "grants-2024-2026",        label: "grants-2024-2026 · 12,480 docs",  count: 12480 },
-  { value: "movementlab-corridors",   label: "movementlab-corridors · 8,422 docs", count: 8422 },
-  { value: "publications-internal",   label: "publications-internal · 4,180 docs", count: 4180 },
-  { value: "policy-briefs-2025",      label: "policy-briefs-2025 · 2,344 docs",   count: 2344 },
-];
-
 const recentSessions = [
   { id: "session-04ab", title: "Compare CLS-204 vs CLS-211 on grant subset", relTime: "8 min ago" },
   { id: "session-12cd", title: "Draft response to TxDOT IAC 2020-78-104 RFI",  relTime: "1 hr ago" },
@@ -22,6 +15,60 @@ const usageStats = [
 ];
 
 const cmdRef = ref<{ open: () => void } | null>(null);
+
+// Branch alternates — the assistant produced 3 candidate responses; we
+// show the 2nd as the selected one to demo the nav in a non-edge state.
+const currentBranch = ref(2);
+const branchTotal = 3;
+
+// Mid-session token budget. Numbers chosen to land in the amber band so
+// the meter's tone-coding is visible without looking alarming.
+const contextMeter = {
+  used: 142_000,
+  max: 200_000,
+  modelLabel: "opus-4-7 · 200k context",
+  breakdown: {
+    input:  { tokens: 118_400, cost: "$0.59" },
+    output: { tokens:  23_600, cost: "$1.18" },
+    totalCost: "$1.77",
+  },
+};
+
+// Follow-up prompts surfaced after the assistant's first answer. Mix of
+// plain strings + label/prompt pairs to demo both TuxSuggestionChips shapes.
+const followupSuggestions = [
+  "Why does CLS-211 drop on public-tier?",
+  "Show the per-document score deltas",
+  { label: "Promote CLS-211 to staging", prompt: "Draft the changelog entry to promote CLS-211 to staging." },
+  { label: "Export ITAR-only comparison", prompt: "Export the comparison filtered to ITAR-tier documents only, as CSV." },
+];
+
+// Reasoning trace shown above the assistant body. Emitted by the model
+// while planning; collapsed once streaming finishes.
+const reasoningText = `I'll need to load grants-2024-2026, filter to ITAR tier 1+, and run both CLS-204 (production) and CLS-211 (candidate) over the same subset. Precision and recall by tier give us the apples-to-apples view — public-tier numbers also matter for regression analysis since the retrain shouldn't sacrifice public-tier accuracy for ITAR gains.`;
+
+// Tool call surfaced inside the message — what the model actually did.
+const toolBody = `SELECT precision, recall FROM classifier_metrics
+WHERE classifier IN ('CLS-204','CLS-211')
+  AND corpus = 'grants-2024-2026'
+  AND tier   IN ('itar','public')
+GROUP BY classifier, tier;
+-- 4 rows returned in 312ms`;
+
+// Reproducibility artifact — Python that reproduces the comparison.
+const comparisonPy = `# Reproduces the CLS-204 vs CLS-211 ITAR comparison shown above.
+from tti_ai_studio import corpora, models
+
+scope = corpora.load("grants-2024-2026")
+itar   = scope.filter(tier="itar")
+public = scope.filter(tier="public")
+
+for label, subset in [("itar", itar), ("public", public)]:
+    for cls in ("CLS-204", "CLS-211"):
+        m = models.classifier(cls)
+        p, r = m.evaluate(subset)
+        print(f"{cls} {label}: precision={p:.3f} recall={r:.3f}")
+`;
 
 const cmdGroups = [
   {
@@ -50,8 +97,10 @@ const cmdGroups = [
       <p class="example-demo-notice__text">
         <strong>Composition example.</strong>
         Real-shape tti-ai-studio session — composer, citations,
-        right-rail corpus + usage + recent sessions, ⌘K palette.
-        Nine Tux* components, app-shape register.
+        right-rail corpus + usage + recent sessions, ⌘K palette, plus
+        the AI-elements pieces (context meter, branch nav, inline
+        citations, artifact, follow-up chips) and the Nuxt UI 4 Chat
+        suite (reasoning trace, tool call, shimmer). App-shape register.
       </p>
     </div>
 
@@ -73,6 +122,12 @@ const cmdGroups = [
       Started 8 minutes ago by R. Chen. Scoped to
       <code>grants-2024-2026</code>. Model: <code>opus-4-7</code>.
       <template #actions>
+        <TuxContextMeter
+          :used="contextMeter.used"
+          :max="contextMeter.max"
+          :breakdown="contextMeter.breakdown"
+          :model-label="contextMeter.modelLabel"
+        />
         <TuxButton intent="primary" icon="lucide:command" @click="cmdRef?.open()">
           Commands · ⌘K
         </TuxButton>
@@ -99,80 +154,116 @@ const cmdGroups = [
         <TuxSectionHeader>Conversation</TuxSectionHeader>
 
         <!-- User turn -->
-        <article class="rounded-md border border-surface-border bg-surface-page p-5 space-y-2">
-          <header class="flex items-baseline gap-3">
-            <span class="font-mono text-xs text-text-muted">R. Chen</span>
-            <span class="text-xs text-text-muted">12:14:08</span>
-          </header>
-          <p class="text-text-primary leading-relaxed">
+        <TuxChatMessage role="user" author="R. Chen" timestamp="12:14:08">
+          <p>
             Compare classifier CLS-204 (current production) and CLS-211
             (candidate retrain) on the <code>grants-2024-2026</code>
             subset. Show precision and recall by ITAR-tier.
           </p>
-        </article>
+        </TuxChatMessage>
 
-        <!-- Assistant turn -->
-        <article class="rounded-md border-2 border-brand-primary bg-surface-raised p-5 space-y-4">
-          <header class="flex items-baseline gap-3">
-            <span class="font-mono text-xs uppercase tracking-wider font-bold text-brand-primary">tti-ai-studio</span>
-            <span class="text-xs text-text-muted">12:14:11 · 0.038s</span>
-          </header>
+        <!-- Assistant turn — uses TuxChatMessage as the canonical chat
+             component. `meta` carries the model + latency (split from
+             the timestamp clock-time per the component's API); the
+             header-trailing slot is where TuxBranchNav lives. -->
+        <TuxChatMessage
+          role="assistant"
+          author="tti-ai-studio"
+          timestamp="12:14:11"
+          meta="opus-4-7 · 0.038s"
+        >
+          <template #header-trailing>
+            <TuxBranchNav v-model="currentBranch" :total="branchTotal" />
+          </template>
 
-          <p class="text-text-primary leading-relaxed">
-            Across <strong>12,480 documents</strong> in the grants-2024-2026
-            subset, here's the comparison broken out by ITAR tier:
-          </p>
+          <div class="space-y-4">
+            <!-- Reasoning + tool trace. UChatReasoning auto-opens during
+                 streaming, closes after; we render a finalized snapshot
+                 here. UChatTool shows the actual SQL the model ran. -->
+            <UChatReasoning :text="reasoningText" :duration="2.4" />
 
-          <TuxDescriptionList
-            emphasis="data"
-            :items="[
-              { term: 'CLS-204 precision · ITAR',  value: '0.872' },
-              { term: 'CLS-211 precision · ITAR',  value: '0.918  (+5.3%)' },
-              { term: 'CLS-204 recall · ITAR',     value: '0.794' },
-              { term: 'CLS-211 recall · ITAR',     value: '0.821  (+3.4%)' },
-              { term: 'CLS-204 precision · public', value: '0.962' },
-              { term: 'CLS-211 precision · public', value: '0.954  (-0.8%)' },
-            ]"
-          />
+            <UChatTool
+              text="grants-corpus.query"
+              suffix="Completed"
+              icon="lucide:database"
+              chevron="trailing"
+            >
+              <pre class="text-xs font-mono text-text-secondary whitespace-pre-wrap m-0">{{ toolBody }}</pre>
+            </UChatTool>
 
-          <TuxCallout kind="stat" variant="default">
             <p>
-              CLS-211 is a clear win on ITAR — both precision and recall
-              up. Public-tier precision drops slightly; you'll want to
-              decide whether the 5pp ITAR gain is worth a 1pp public-tier
-              regression.
+              Across <strong>12,480 documents</strong><TuxInlineCitation
+                :n="1"
+                title="CLS retrain methodology · v3.1"
+                href="#"
+                excerpt="The retrain pipeline runs nightly on the grants-2024-2026 corpus and emits both classifier checkpoints to the model registry."
+                score="0.91"
+              /> in the grants-2024-2026 subset, here's the comparison broken
+              out by ITAR tier<TuxInlineCitation
+                :n="2"
+                title="ITAR rubric · §3.2 boundary cases"
+                href="#"
+                excerpt="Boundary-case classification follows §3.2 (dual-use determination) with a 0.62 confidence threshold."
+                score="0.88"
+              />:
             </p>
-          </TuxCallout>
 
-          <p class="text-text-primary leading-relaxed">
-            Citations from the 4 most-discriminating documents:
-          </p>
+            <TuxDescriptionList
+              emphasis="data"
+              :items="[
+                { term: 'CLS-204 precision · ITAR',  value: '0.872' },
+                { term: 'CLS-211 precision · ITAR',  value: '0.918  (+5.3%)' },
+                { term: 'CLS-204 recall · ITAR',     value: '0.794' },
+                { term: 'CLS-211 recall · ITAR',     value: '0.821  (+3.4%)' },
+                { term: 'CLS-204 precision · public', value: '0.962' },
+                { term: 'CLS-211 precision · public', value: '0.954  (-0.8%)' },
+              ]"
+            />
 
-          <ol class="space-y-2 text-sm">
-            <li class="flex items-baseline gap-3">
-              <span class="font-mono text-xs text-brand-primary font-bold">[1]</span>
-              <div>
-                <p class="font-medium"><span class="link-tti">CLS retrain methodology · v3.1.pdf</span></p>
-                <p class="text-xs text-text-muted font-mono">/grants-2024-2026/retrain/methodology.pdf · cosine 0.91</p>
-              </div>
-            </li>
-            <li class="flex items-baseline gap-3">
-              <span class="font-mono text-xs text-brand-primary font-bold">[2]</span>
-              <div>
-                <p class="font-medium"><span class="link-tti">ITAR rubric · §3.2 boundary cases</span></p>
-                <p class="text-xs text-text-muted font-mono">/policy-briefs-2025/itar-rubric.docx · cosine 0.88</p>
-              </div>
-            </li>
-            <li class="flex items-baseline gap-3">
-              <span class="font-mono text-xs text-brand-primary font-bold">[3]</span>
-              <div>
-                <p class="font-medium"><span class="link-tti">DoD-XR contract addendum</span></p>
-                <p class="text-xs text-text-muted font-mono">/grants-2024-2026/dod-xr/addendum.pdf · cosine 0.84</p>
-              </div>
-            </li>
-          </ol>
+            <TuxCallout kind="stat" variant="default">
+              <p>
+                CLS-211 is a clear win on ITAR — both precision and recall
+                up. Public-tier precision drops slightly; you'll want to
+                decide whether the 5pp ITAR gain is worth a 1pp public-tier
+                regression.
+              </p>
+            </TuxCallout>
+          </div>
 
-          <footer class="flex items-center gap-3 pt-3 border-t border-surface-border">
+          <template #citations>
+            <p class="text-sm text-text-secondary mb-2">
+              Citations from the 4 most-discriminating documents:
+            </p>
+            <ol class="space-y-2 text-sm">
+              <li class="flex items-baseline gap-3">
+                <span class="font-mono text-xs text-brand-primary font-bold">[1]</span>
+                <div>
+                  <p class="font-medium"><span class="link-tti">CLS retrain methodology · v3.1.pdf</span></p>
+                  <p class="text-xs text-text-muted font-mono">/grants-2024-2026/retrain/methodology.pdf · cosine 0.91</p>
+                </div>
+              </li>
+              <li class="flex items-baseline gap-3">
+                <span class="font-mono text-xs text-brand-primary font-bold">[2]</span>
+                <div>
+                  <p class="font-medium"><span class="link-tti">ITAR rubric · §3.2 boundary cases</span></p>
+                  <p class="text-xs text-text-muted font-mono">/policy-briefs-2025/itar-rubric.docx · cosine 0.88</p>
+                </div>
+              </li>
+              <li class="flex items-baseline gap-3">
+                <span class="font-mono text-xs text-brand-primary font-bold">[3]</span>
+                <div>
+                  <p class="font-medium"><span class="link-tti">DoD-XR contract addendum</span></p>
+                  <p class="text-xs text-text-muted font-mono">/grants-2024-2026/dod-xr/addendum.pdf · cosine 0.84</p>
+                </div>
+              </li>
+            </ol>
+          </template>
+
+          <!-- Standard message-action set per design/components.md →
+               Conventions → Chat-message actions. Order: Copy ·
+               Regenerate · Share · Helpful · Off (Regenerate + Share
+               omitted on this turn since the demo doesn't wire them). -->
+          <template #tools>
             <button class="text-xs text-text-muted hover:text-brand-primary inline-flex items-center gap-1">
               <UIcon name="lucide:copy" class="w-3 h-3" /> Copy
             </button>
@@ -182,8 +273,40 @@ const cmdGroups = [
             <button class="text-xs text-text-muted hover:text-brand-primary inline-flex items-center gap-1">
               <UIcon name="lucide:thumbs-down" class="w-3 h-3" /> Off
             </button>
-          </footer>
-        </article>
+          </template>
+        </TuxChatMessage>
+
+        <!-- Generated artifact — reproducibility script the assistant
+             produced alongside the comparison. Demonstrates TuxArtifact
+             wrapping a TuxCodeBlock with its new download affordance. -->
+        <TuxArtifact
+          title="compare.py"
+          meta="Reproducibility script · 14 lines · python · Updated just now"
+          icon="lucide:file-code"
+        >
+          <TuxCodeBlock
+            :code="comparisonPy"
+            lang="python"
+            filename="compare.py"
+            :line-numbers="true"
+          />
+        </TuxArtifact>
+
+        <!-- Follow-up suggestions surfaced after the assistant's answer.
+             Picks pre-fill the composer in a real consumer; here we
+             just log them. -->
+        <TuxSuggestionChips
+          label="Follow up with"
+          :items="followupSuggestions"
+          @pick="(p) => console.log('picked:', p)"
+        />
+
+        <!-- UChatShimmer placeholder showing what a streaming response
+             would look like above the composer. In production this
+             renders while tokens stream; here it's static for the demo. -->
+        <div class="rounded-md border border-surface-border bg-surface-page p-4">
+          <UChatShimmer text="Drafting follow-up response…" />
+        </div>
 
         <!-- Composer -->
         <div class="rounded-md border-2 border-brand-primary bg-surface-page p-3">

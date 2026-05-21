@@ -20,10 +20,12 @@ npm run dev
 | `TuxAlert`           | `UAlert`                 | `/components/alert`             |
 | `TuxAlphaNav`        | tux native               | `/components/alpha-nav`         |
 | `TuxAnnouncementBanner` | tux native            | `/components/announcement-banner` |
+| `TuxArtifact`        | tux native               | `/components/artifact`          |
 | `TuxBadge`           | `UBadge`                 | `/components/badge`             |
 | `TuxBetaRibbon`      | tux native               | `/components/beta-ribbon`       |
 | `TuxBigStat`         | tux native               | `/components/big-stat`          |
 | `TuxBlockquote`      | tux native               | `/components/blockquote`        |
+| `TuxBranchNav`       | tux native               | `/components/branch-nav`        |
 | `TuxBreadcrumbs`     | tux native               | `/components/breadcrumbs`       |
 | `TuxButton`          | `UButton`                | `/components/button`            |
 | `TuxCallout`         | tux native               | `/components/callout`           |
@@ -37,6 +39,7 @@ npm run dev
 | `TuxCodeMaroon`      | tux native               | `/components/code-maroon`       |
 | `TuxCommandPalette`  | tux native               | `/components/command-palette`   |
 | `TuxContactCard`     | tux native               | `/components/contact-card`      |
+| `TuxContextMeter`    | `UPopover`               | `/components/context-meter`     |
 | `TuxContextPanel`    | tux native               | `/components/context-panel`     |
 | `TuxConversationList`| tux native               | `/components/conversation-list` |
 | `TuxComposer`        | tux native               | `/components/composer`          |
@@ -54,6 +57,8 @@ npm run dev
 | `TuxFooter`          | tux native               | `/components/footer`            |
 | `TuxIconFeature`     | tux native               | `/components/icon-feature`      |
 | `TuxIdentity`        | tux native               | `/components/identity`          |
+| `TuxInfoLabel`       | `UPopover`               | `/components/info-label`        |
+| `TuxInlineCitation`  | `UPopover`               | `/components/inline-citation`   |
 | `TuxKbd`             | tux native               | `/components/kbd`               |
 | `TuxLinkList`        | tux native               | `/components/link-list`         |
 | `TuxLinkSlab`        | tux native               | `/components/link-slab`         |
@@ -66,6 +71,7 @@ npm run dev
 | `TuxPhotoGrid`       | tux native               | `/components/photo-grid`        |
 | `TuxProse`           | tux native               | `/components/prose`             |
 | `TuxQACollection`    | tux native               | `/components/qa-collection`     |
+| `TuxRemovableChip`   | tux native               | `/components/removable-chip`    |
 | `TuxRichDataGrid`    | tux native               | `/components/rich-data-grid`    |
 | `TuxSearch`          | tux native               | `/components/search`            |
 | `TuxSectionHeader`   | tux native               | `/components/section-header`    |
@@ -75,7 +81,9 @@ npm run dev
 | `TuxSkeleton`        | tux native               | `/components/skeleton`          |
 | `TuxSlideover`       | tux native               | `/components/slideover`         |
 | `TuxStepper`         | tux native               | `/components/stepper`           |
+| `TuxSuggestionChips` | tux native               | `/components/suggestion-chips`  |
 | `TuxTable`           | `UTable`                 | `/components/table`             |
+| `TuxTeachingPopover` | tux native               | `/components/teaching-popover`  |
 | `TuxTestimonial`     | tux native               | `/components/testimonial`       |
 | `TuxTOC`             | tux native               | `/components/toc`               |
 | `TuxTree`            | tux native               | `/components/tree`              |
@@ -149,9 +157,9 @@ single most common failure mode.
 | **Markdown content with Tux components inline** | `@nuxtjs/mdc` + auto-import (see `/markdown` demo) |
 | **Form input** (email / select / radio / etc.) | Nuxt UI native — `UInput`, `USelect`, etc. See `/forms`. |
 | **Data table** (sortable, virtualizable, status cells) | `<TuxTable>` |
-| **Sortable / selectable / expandable data grid** (PECAN-class operational lists with bulk actions, active-filter chips, row expansion) | `<TuxRichDataGrid>` |
+| **Sortable / selectable / expandable data grid** (Landscape-class operational lists with bulk actions, active-filter chips, row expansion) | `<TuxRichDataGrid>` |
 | **Static research table** (numbered caption, ± CI uncertainty, footnotes, source citation, optional totals row) | `<TuxDataTable>` |
-| **Search bar** (PECAN finder, conversation search) | `<TuxSearch>` |
+| **Search bar** (Landscape finder, conversation search) | `<TuxSearch>` |
 | **A–Z directory jump bar** | `<TuxAlphaNav>` |
 | **Sidebar widget wrapper** (related links, contact box, in-page nav) | `<TuxSidebarBlock>` |
 | **Newsletter signup** | `<TuxSignupFeature>` |
@@ -179,11 +187,94 @@ If your need isn't here, scan `/components` (or
 `app/pages/components/index.vue`) — there are ~70 Tux\* components and
 this map only highlights the ones with the easiest-to-miss names.
 
+## Conventions
+
+Composition standards for cases where a slot or prop combination
+shows up across multiple Tux\* components or consuming apps. Capturing
+them here keeps consumers from inventing different icons or labels for
+the same affordance.
+
+### Chat-message actions
+
+`TuxChatMessage` exposes a `#tools` slot for the row of small actions
+that sit below an assistant response (copy, regenerate, like, etc.).
+The Vercel AI Elements `Actions` reference shows the pattern; TUX
+standardizes on this five-icon set so consumers don't pick five
+different copy icons:
+
+| Action | Icon | Label | Emit (host-wired) | Notes |
+|---|---|---|---|---|
+| Copy | `lucide:copy` | "Copy" | `copy` | Copies the message body to clipboard |
+| Regenerate | `lucide:refresh-cw` | "Regenerate" | `regenerate` | Re-runs the prompt that produced this response |
+| Share | `lucide:share-2` | "Share" | `share` | Opens host-chosen share affordance |
+| Helpful | `lucide:thumbs-up` | "Helpful" | `feedback` w/ `'up'` | Positive feedback signal |
+| Off | `lucide:thumbs-down` | "Off" | `feedback` w/ `'down'` | Negative feedback signal |
+
+Order convention: **Copy · Regenerate · Share · Helpful · Off** when
+all five appear. Use a subset if the surface doesn't support an
+action (e.g., no regenerate when the response is already final).
+[`tti-ai-studio-session.vue`](../app/pages/examples/tti-ai-studio-session.vue)
+is the canonical example using a Copy / Helpful / Off subset.
+
+Style: icon + label (label can hide at narrow widths), font-size
+`text-xs`, color `text-text-muted`, hover transitions to
+`text-brand-primary`. Sits in a flex row below a `border-t` rule.
+
+### Form validation — when to use which
+
+Backstage's design system dedicates 38 frames to form validation
+(inline errors, dialogs, banners) because *where* validation lives
+matters as much as *what* it says. TUX standardizes on four placements;
+the right one depends on scope (field / form / page / session) and
+severity (advisory / blocking).
+
+| Placement | Use when | Component(s) | Behavior |
+|---|---|---|---|
+| **Inline field error** | A single field is invalid. Most common case — wrong format, out of range, required-but-empty | `UFormField` with `error` prop, or compose `<TuxInfoLabel>` + `<UInput>` + an error `<p class="text-text-danger text-xs">` below | Renders red text below the field; non-blocking; clears on next valid input |
+| **Inline form summary** | Multiple fields invalid AND the user has tried to submit. Tells them *how many* issues without scrolling | `<TuxAlert variant="danger">` above the form body, with a list of `<a href="#field-id">` jumps to each broken field | Persists until all issues resolved; field-level inline errors remain the source of truth |
+| **Blocking dialog** | The action being submitted is destructive or irreversible. Forces explicit confirmation | `<UModal>` (or `<TuxModal>` for editorial chrome) with primary/secondary actions | Blocks the page; "Delete this corpus?" / "Discard 12 unsaved changes?" / "Revoke API key — this can't be undone" |
+| **Page/session banner** | The issue is *not* about this form — it's a session-level constraint that affects what the form can do (ITAR scope, expired token, rate limit, server down) | `<TuxAlert variant="compliance" \| "danger" \| "warning">` at the top of the page | Persists across forms on the same page; doesn't compete with field-level errors |
+| **Toast (transient confirmation)** | The form succeeded and the user has moved on. Not a "validation" placement per se, but the closing half of the validation lifecycle | `useToast()` (Nuxt UI) → green-tone "Saved" / "Removed" / "Sent" | Auto-dismisses in ~4 seconds; non-blocking |
+
+**Decision tree:**
+
+1. **Single field is wrong** → inline field error
+2. **Multiple fields wrong + user tried to submit** → inline form summary + keep inline errors
+3. **Destructive action being submitted** → blocking dialog
+4. **Session-level constraint (ITAR, auth, rate limit)** → page/session banner
+5. **Form succeeded** → toast
+
+Anti-patterns to avoid:
+
+- **Modal dialog for a single bad field** — friction without value; the inline error is faster
+- **Banner for a single bad field** — wrong scope; the user has to find which field
+- **Inline error for a session-level issue** — the user fixes the field but can't progress; root cause lives above
+- **Toast for an error** — transient and easily missed; use banner or dialog for anything the user needs to act on
+
+Canonical references for each pattern in real composition:
+[`forms/inline-validation.vue`](../app/pages/forms/inline-validation.vue) (field-level),
+[`forms/all-in-one.vue`](../app/pages/forms/all-in-one.vue) (form summary),
+[`landscape-dashboard`](../app/pages/examples/landscape-dashboard.vue) ITAR alert (session banner).
+
+### Empty states — no decorative illustrations
+
+`TuxEmptyState` deliberately avoids the saturated-cartoon illustrations
+common in consumer-SaaS empty-state kits. TUX is research-publishing;
+editorial restraint outweighs the "consumer SaaS expectation" of a
+friendly mascot. Empty states use a Lucide icon + heading + body +
+optional CTA. If warmth is needed, place a real photograph
+(`TuxPhotoCard`) *next to* — not inside — the empty state.
+
+This stance was reaffirmed against the Empty State Illustration Kit
+absorption (2026-05-21). The five `kind` presets (`no-data` /
+`no-results` / `not-found` / `no-permissions` / `first-run`) cover
+the real scenario taxonomy; 200 generic illustrations would not.
+
 ## Ideas not yet shipped
 
 The catalog originally listed several components here. As of the
 current cycle, every aspirational entry has shipped. New components land
-when a consuming app (PECAN, tti-ai-studio, marcom WordPress kit) needs
+when a consuming app (Landscape, tti-ai-studio, marcom WordPress kit) needs
 them; open an issue or ping the maintainer to add a row.
 
 ## Guidance for adding a new component

@@ -12,6 +12,16 @@
  * `meta` is a free-form line that renders under the body (e.g.
  * "anthropic/haiku-4.5 · 2.1s"). For citations, slot in
  * `<TuxCitations>` via the default slot or its `#citations` slot.
+ *
+ * Slots:
+ *   - default          — message body
+ *   - avatar           — override the default avatar (initials / glyph)
+ *   - header-trailing  — right-aligned controls in the header row;
+ *                        natural home for `<TuxBranchNav>`, a per-message
+ *                        model picker, or a regenerate control
+ *   - citations        — optional citation list below the body
+ *   - tools            — action row (copy / regenerate / share / feedback)
+ *                        per the convention in design/components.md
  */
 type Role = "user" | "assistant";
 
@@ -57,7 +67,7 @@ const isAssistant = computed(() => props.role === "assistant");
               alt=""
               class="tux-chat-message__avatar-glyph"
               aria-hidden="true"
-            />
+            >
           </slot>
         </div>
         <div v-else class="tux-chat-message__avatar-user">
@@ -69,6 +79,12 @@ const isAssistant = computed(() => props.role === "assistant");
         <header class="tux-chat-message__head">
           <span class="tux-chat-message__author">{{ author }}</span>
           <span v-if="timestamp" class="tux-chat-message__ts">{{ timestamp }}</span>
+          <span
+            v-if="$slots['header-trailing']"
+            class="tux-chat-message__head-trailing"
+          >
+            <slot name="header-trailing" />
+          </span>
         </header>
         <div class="tux-chat-message__content">
           <slot />
@@ -151,6 +167,15 @@ const isAssistant = computed(() => props.role === "assistant");
   gap: 0.625rem;
   margin-bottom: 0.375rem;
   flex-wrap: wrap;
+}
+
+/* Pushes the slot content (e.g., TuxBranchNav) to the right edge of
+   the header row. `margin-left: auto` works in a flex parent without
+   stretching the row vertically. */
+.tux-chat-message__head-trailing {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
 }
 
 .tux-chat-message__author {

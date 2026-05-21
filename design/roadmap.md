@@ -179,7 +179,7 @@ get lost. Pick from the top when there's a slow afternoon.
   without changing the default. **Why:** the bare `<a>` list is fine
   for short reports but degrades on long-form (the use case the
   component was built for).
-- **Refresh `/examples/pecan-dashboard` to use the new viz family.**
+- **Refresh `/examples/landscape-dashboard` to use the new viz family.**
   The dashboard predates `TuxSparkline`, `TuxVizEmbed`, `TuxVizGrid`.
   Replace the hand-rolled trend strips and table-of-charts with the
   real components. Verify it still composes the same way (BigStat +
@@ -191,6 +191,160 @@ get lost. Pick from the top when there's a slow afternoon.
   `/examples/tti-ai-studio-session`** with the same lens — anywhere
   a hand-rolled chart or stat row could be a sparkline or a
   viz-grid, swap it. Same reason as above.
+
+---
+
+## Recently shipped — Figma absorption pass (2026-05-19 / 2026-05-20)
+
+Sequenced absorption of seven high-signal Figma reference systems
+(Windows UI kit, Aggie UX, shadcn_ui Jan 2026, Vercel AI Elements,
+Primer Web, Microsoft Fluent 2 Web, Backstage). "Absorb the thinking,
+skip the chrome" — most findings confirmed TUX's architecture; the
+rest landed as net-new components, a layout, build-pipeline additions,
+and one MDC infrastructure fix. Per-file findings cached under
+[`reference/figma-cache/`](../reference/figma-cache/); each NOTES.md
+records the skip/absorb/tension/decisions framework.
+
+### New components (8)
+
+- ~~**TuxSuggestionChips**~~ — horizontal prompt chip row (Vercel)
+- ~~**TuxBranchNav**~~ — `‹ N of M ›` response-alternative nav (Vercel)
+- ~~**TuxInlineCitation**~~ — academic `[N]` pill + hover popover (Vercel)
+- ~~**TuxContextMeter**~~ — token-utilization badge + cost popover (Vercel)
+- ~~**TuxArtifact**~~ — container for AI-generated output (Vercel)
+- ~~**TuxRemovableChip**~~ — dismissible chip primitive (Primer)
+- ~~**TuxInfoLabel**~~ — form-field label + `(i)` help popover (Fluent 2)
+- ~~**TuxTeachingPopover**~~ — onboarding/guided-tour tooltip (Fluent 2)
+
+### Enhancements (5)
+
+- ~~**TuxCodeBlock**~~ gained a download button + filename resolution
+- ~~**TuxEmptyState**~~ gained `compact` (Primer) + `kind` preset library
+  with 5 named cases (Backstage)
+- ~~**TuxChatMessage**~~ gained a `#header-trailing` slot surfaced by
+  dogfooding the `tti-ai-studio-session.vue` refactor
+- ~~**TuxFilterPanel**~~ refactored to consume `TuxRemovableChip`
+- ~~**sidebar.vue layout**~~ rewritten on `UDashboardGroup` +
+  `UDashboardSidebar` + `UDashboardPanel`; new demo example at
+  [`/examples/sidebar-shell`](../app/pages/examples/sidebar-shell.vue)
+
+### Build pipeline + infrastructure
+
+- ~~**Breakpoint tokens**~~ — `breakpoint` block in `design/tokens.json`
+  + `@theme --breakpoint-*` in `globals.css`. Sourced from Microsoft's
+  Windows UI kit responsive ladder, rebased to TUX's editorial widths.
+- ~~**LaTeX math in MDC**~~ — `remark-math` + `rehype-katex` + KaTeX
+  CSS imported globally. `$inline$` and `$$display$$` now render in
+  any markdown surface.
+- ~~**MDC component resolution fix**~~ — `nuxt.config.ts` now sets
+  `components: [{ ..., global: true }]` so `::tux-alert{...}` and other
+  Tux\* embeds in markdown actually resolve at runtime. Closes a
+  long-standing `[Vue warn]: Failed to resolve component: TuxAlert`
+  that fired on every markdown render.
+
+### Conventions
+
+Added "Conventions" section to
+[`design/components.md`](components.md) with two documented standards:
+
+- ~~**Chat-message actions**~~ — standard 5-icon set for
+  `TuxChatMessage` `#tools`: Copy / Regenerate / Share / Helpful / Off
+- ~~**Form validation — when to use which**~~ — decision tree across
+  inline field error / inline form summary / blocking dialog / page
+  banner / toast
+
+### Carry-forwards
+
+Deferred-with-criterion items (in NOTES.md follow-ups; build when a
+consumer surface forces the question):
+
+- `TuxSegmentedControl` (Primer) — only if URadioGroup-as-buttons
+  doesn't compose cleanly for a real surface
+- `TuxCommentBox` (Primer) — markdown editor with toolbar; bigger
+  build, deferred to tti-ai-studio drafting/annotation context
+- `TuxSparkline.autoTone` (Backstage) — auto-color by trend direction;
+  ~10 LOC if any consumer needs it
+- TuxDataTable cross-check against Primer's 17 frames + Fluent 2's
+  variant matrix when next material update lands
+- `TuxChatMessage` vs `UChatMessage` dead-code audit — verify the TUX
+  wrapper still adds TTI-specific value once dust settles
+
+**Medium-signal pass (2026-05-21):** Charts UI Kit + Data Viz Graphs
++ Data Table + Snow Dashboard + Empty State Illustration Kit absorbed.
+Net new: **0 components shipped, 1 doc stance added** (no decorative
+illustrations in `TuxEmptyState`). New deferred-with-criterion items:
+
+- **TuxChartLine** (Priority B): default end-of-line value labels
+  colored to match series; support `withBrush` / `#range` slot for
+  time-series scrubbing; support `series.previous` overlay + tooltip
+- **TuxChartBar** (Priority B): `valuePlacement: "in-bar" | "above" |
+  "auto"` prop (auto: bar pixel-height ≥ 24px → in-bar); support a
+  `comparison` series with muted fill for projection-vs-actual
+- **TuxChartArea** (Priority B): stacked variant; KPI strip
+  composed above by parent template, not baked in
+- **TuxRuleBuilder** (new, Priority B candidate): relational query UI
+  (`field + op + value` rows, AND/OR groupers). Pairs with the
+  existing faceted `TuxFilterPanel`. ~400 LOC + 4 days. Build only
+  when a Landscape research-dashboard surface forces the question.
+- **TuxRichDataGrid: per-column `headerMenu` slot** for sort / hide /
+  pin / filter from the column header (Snow + data-table kit)
+- **TuxRichDataGrid: inline column-header filter popover** as a
+  second filter mode alongside `TuxFilterPanel`
+- **`sidebar.vue`: `#aside` slot** for an optional right rail
+  (notifications + activities). Defer until two surfaces request it.
+- **`chart-foundations.md` doc** — series palette, axis/grid/legend
+  tokens, accessibility (alt-text + screen-reader summaries),
+  in-bar vs above value-label decision, brush/previous-period
+  patterns. Ship alongside the first TuxChart\* component.
+- **"Faceted vs relational filtering — when to use which"** in
+  `design/components.md` Conventions, once `TuxRuleBuilder` is on
+  the roadmap.
+
+---
+
+## Recently shipped — PECAN → Landscape rebrand (2026-05-21)
+
+The downstream consumer formerly named **PECAN** is now **Landscape**.
+TUX touched ~50 files across pages, components, kits, and design docs;
+historical record (CHANGELOG, ADRs) was left intact by design.
+
+**Renamed:**
+- `app/pages/examples/pecan-dashboard.vue` → `landscape-dashboard.vue`
+  (file + route `/examples/landscape-dashboard` + body text + nav entry
+  in `app/app.vue` + index card in `app/pages/examples/index.vue`)
+- `public/kits/pecan/` → `public/kits/landscape/` (folder + README +
+  AppShell + Pages.jsx + index.html; `app/pages/kits.vue` slug + label)
+
+**Prose updated** (first mention per file uses "Landscape (formerly
+PECAN)" for continuity; later mentions are bare "Landscape"):
+- `README.md`, `design/components.md`, `design/roadmap.md`
+- ~30 showcase pages under `app/pages/` (components, examples, forms,
+  visualizations, reports, kits)
+- 10 component JSDoc blocks (TuxDescriptionList, TuxCodeBlock,
+  TuxFilterPanel, TuxPagination, TuxTeachingPopover, TuxTreemap,
+  TuxSearch, TuxSiteNav, TuxRichDataGrid, TuxFooter)
+- Top-of-file comments in `nuxt.config.ts`, `app/app.vue`,
+  `app/layouts/sidebar.vue`
+- All `public/kits/aggieux/*.jsx` demo content (banners default
+  `productName`, footer demo text, breadcrumbs, overlays)
+
+**Leave alone (historical record, by design):**
+- `CHANGELOG.md` — entries refer to the project under its name at the
+  time the entry was written. Don't rewrite history.
+- `docs/adr/*.md` — architectural decisions reference the name as it
+  was when the decision was made.
+
+**Composition refresh shipped alongside:** `landscape-dashboard.vue`
+was rebuilt on the sidebar layout (left-rail nav with brand lockup +
+two nav groups + user chip) and gained a KPI row with delta-vs-
+previous readings, an inline ingest-rate sparkline next to the
+treemap section header, and a right-rail aside composing Recent-
+activity + Active-agents tiles. Composes ~15 Tux\* + Nuxt UI 4
+primitives. Per the Snow Dashboard absorption notes
+(`reference/figma-cache/snow-dashboard-ui-kit/NOTES.md`). No new
+components — the right rail is a host-driven grid, not a layout
+slot. The `sidebar.vue#aside` slot carry-forward waits for a second
+consumer surface before being formalized.
 
 ---
 
@@ -255,7 +409,7 @@ official source of truth (us-atlas + TxDOT MapServer) after a
 worktree got wiped pre-commit. See CHANGELOG entries.
 
 **Data density** — neither was on the original roadmap; both were
-pulled in because PECAN-class consumers needed them.
+pulled in because Landscape-class consumers needed them.
 
 - **TuxRichDataGrid** — interactive grid for operational surfaces.
   Sticky header, row selection (with indeterminate header

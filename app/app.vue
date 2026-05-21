@@ -2,6 +2,10 @@
 // Style-guide shell: minimal header (logo + theme toggle) and a grouped
 // sidebar that does all the navigation. Main content fills the rest.
 
+// Version surfaced in the header pill + welcome page. Sourced from
+// package.json so a `npm version` bump propagates without code edits.
+import pkg from "../package.json";
+
 const colorMode = useColorMode();
 
 // Header toggle: light ↔ dark only. High-contrast is an accessibility option,
@@ -69,12 +73,14 @@ const navTree = [
     children: [
       { label: "TuxAlert",         to: "/components/alert",          icon: "lucide:message-square" },
       { label: "TuxAnnouncementBanner", to: "/components/announcement-banner", icon: "lucide:megaphone" },
+      { label: "TuxArtifact",      to: "/components/artifact",       icon: "lucide:file-output" },
       { label: "TuxBadge",         to: "/components/badge",          icon: "lucide:badge" },
       { label: "TuxAccordion",     to: "/components/accordion",      icon: "lucide:chevrons-up-down" },
       { label: "TuxAlphaNav",      to: "/components/alpha-nav",      icon: "lucide:case-sensitive" },
       { label: "TuxBetaRibbon",    to: "/components/beta-ribbon",    icon: "lucide:flag-triangle-right" },
       { label: "TuxBigStat",       to: "/components/big-stat",       icon: "lucide:trending-up" },
       { label: "TuxBlockquote",    to: "/components/blockquote",     icon: "lucide:quote" },
+      { label: "TuxBranchNav",     to: "/components/branch-nav",     icon: "lucide:git-branch" },
       { label: "TuxBreadcrumbs",   to: "/components/breadcrumbs",    icon: "lucide:chevrons-right" },
       { label: "TuxButton",        to: "/components/button",         icon: "lucide:rectangle-horizontal" },
       { label: "TuxCallout",       to: "/components/callout",        icon: "lucide:flag-triangle-right" },
@@ -87,6 +93,7 @@ const navTree = [
       { label: "TuxCodeMaroon",    to: "/components/code-maroon",    icon: "lucide:siren" },
       { label: "TuxCommandPalette", to: "/components/command-palette", icon: "lucide:command" },
       { label: "TuxContactCard",   to: "/components/contact-card",   icon: "lucide:user-circle" },
+      { label: "TuxContextMeter",  to: "/components/context-meter",  icon: "lucide:gauge" },
       { label: "TuxContextPanel",  to: "/components/context-panel",  icon: "lucide:panel-right" },
       { label: "TuxConversationList", to: "/components/conversation-list", icon: "lucide:message-square" },
       { label: "TuxCookieConsent", to: "/components/cookie-consent", icon: "lucide:cookie" },
@@ -103,6 +110,8 @@ const navTree = [
       { label: "TuxFooter",        to: "/components/footer",         icon: "lucide:panel-bottom" },
       { label: "TuxIconFeature",   to: "/components/icon-feature",   icon: "lucide:layout-grid" },
       { label: "TuxIdentity",      to: "/components/identity",       icon: "lucide:flag" },
+      { label: "TuxInfoLabel",     to: "/components/info-label",     icon: "lucide:info" },
+      { label: "TuxInlineCitation", to: "/components/inline-citation", icon: "lucide:square-quote" },
       { label: "TuxKbd",           to: "/components/kbd",            icon: "lucide:keyboard" },
       { label: "TuxLinkList",      to: "/components/link-list",      icon: "lucide:list-tree" },
       { label: "TuxLinkSlab",      to: "/components/link-slab",      icon: "lucide:menu" },
@@ -114,6 +123,7 @@ const navTree = [
       { label: "TuxPhotoGrid",     to: "/components/photo-grid",     icon: "lucide:images" },
       { label: "TuxProse",         to: "/components/prose",          icon: "lucide:text" },
       { label: "TuxQACollection",  to: "/components/qa-collection",  icon: "lucide:message-circle-question" },
+      { label: "TuxRemovableChip", to: "/components/removable-chip", icon: "lucide:tag" },
       { label: "TuxRichDataGrid",  to: "/components/rich-data-grid", icon: "lucide:layout-grid" },
       { label: "TuxSearch",        to: "/components/search",         icon: "lucide:search" },
       { label: "TuxSectionHeader", to: "/components/section-header", icon: "lucide:heading" },
@@ -123,7 +133,9 @@ const navTree = [
       { label: "TuxSkeleton",      to: "/components/skeleton",       icon: "lucide:loader" },
       { label: "TuxSlideover",     to: "/components/slideover",      icon: "lucide:panel-right" },
       { label: "TuxStepper",       to: "/components/stepper",        icon: "lucide:list-checks" },
+      { label: "TuxSuggestionChips", to: "/components/suggestion-chips", icon: "lucide:sparkles" },
       { label: "TuxTable",         to: "/components/table",          icon: "lucide:table" },
+      { label: "TuxTeachingPopover", to: "/components/teaching-popover", icon: "lucide:graduation-cap" },
       { label: "TuxTestimonial",   to: "/components/testimonial",    icon: "lucide:message-circle-heart" },
       { label: "TuxTOC",           to: "/components/toc",            icon: "lucide:list-ordered" },
       { label: "TuxTree",          to: "/components/tree",           icon: "lucide:list-tree" },
@@ -265,12 +277,11 @@ defineShortcuts({
 });
 
 // Version surfaced in the header pill + welcome page. Sourced from
-// package.json so a `npm version` bump propagates without code edits.
-import pkg from "../package.json";
+// package.json (imported at the top of this file).
 const pkgVersion = pkg.version;
 
 // Marketing-footer config — mirrors the comm-team's Kadence footer
-// for tti.tamu.edu so consumers (PECAN, ai-studio, marcom pages,
+// for tti.tamu.edu so consumers (Landscape, ai-studio, marcom pages,
 // this style guide) inherit the production handles and link
 // inventory verbatim. Threads ships as inline SVG since Lucide
 // doesn't carry the brand mark yet — see TuxFooter's `svg` field.
@@ -476,7 +487,7 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
            users don't get pushed through it during casual theme
            switching (see ADR-0006). -->
       <!-- Unified institutional footer — maroon marketing top + black
-           legal strip in one component. Same shape across PECAN,
+           legal strip in one component. Same shape across Landscape,
            tti-ai-studio, marcom pages, and the style guide itself.
            HC toggle slots into #preferences (accessibility-as-
            compliance per ADR-0006). -->
