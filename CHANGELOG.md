@@ -5,6 +5,48 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — four-family expansion (2026-05-22)
+
+22 new components across four families, shipped in 4 focused
+commits with shared showcase routes:
+
+**Research-publishing cluster** (8 components,
+`/components/research-publishing`):
+TuxAbstract, TuxAuthorByline, TuxPaperMeta, TuxFigureCaption,
+TuxTableCaption, TuxFootnote, TuxCitationExport (6 formats),
+TuxAcknowledgments. Makes "TUX is for research publishing"
+tangible at the page level.
+
+**TTI identity / brand cluster** (5 components,
+`/components/tti-identity`):
+TuxResearcher (3 layouts), TuxLab, TuxProgram (3 layouts),
+TuxFundingSource (3 sizes), TuxCenterBadge (6 canonical TTI
+centers). Profile-shaped components for surfacing TTI people,
+labs, programs, funders.
+
+**Geospatial / map cluster** (4 components,
+`/components/geospatial`):
+TuxMapEmbed (library-agnostic iframe + slot wrapper),
+TuxCorridorStrip (native SVG 1-D corridor viz with segments +
+events + value spark), TuxMapLegend (stack/inline/gradient
+layouts), TuxMapMarker (5 research-typed SVG markers).
+Extends TuxChartGeographic toward general geospatial.
+
+**Forms wrapper cluster** (5 components,
+`/components/forms-wrapper`):
+TuxFormField (label + help + input + error stack with auto-
+generated ids + aria plumbing), TuxMarkdownEditor (no-deps
+markdown authoring with toolbar + shortcuts + preview),
+TuxFileDropzone (drag-and-drop uploads with validation),
+TuxValidationSummary (top-of-form error list with jump-to-
+field links), TuxConfirmDialog (TuxModal preset, 4 variants).
+
+Showcase convention shift: families share a single combined
+showcase route rather than 22 individual `/components/<kebab>`
+pages. Reads better as a cluster + reduces nav bloat.
+
+~132 Tux* components + 3 composables total (was ~110).
+
 ### Added — composability doctrine + touchups (2026-05-22)
 
 **New doctrine doc:**

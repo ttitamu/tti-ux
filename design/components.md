@@ -110,6 +110,48 @@ npm run dev
 | `TuxInfiniteScroll`  | tux native               | `/components/infinite-scroll`   |
 | `TuxReactionBar`     | tux native               | `/components/reaction-bar`      |
 
+**Research-publishing family** (added 2026-05-22):
+
+| Component            | Wraps                    | Showcase                            |
+|----------------------|--------------------------|-------------------------------------|
+| `TuxAbstract`        | tux native               | `/components/research-publishing`   |
+| `TuxAuthorByline`    | tux native               | `/components/research-publishing`   |
+| `TuxPaperMeta`       | tux native               | `/components/research-publishing`   |
+| `TuxFigureCaption`   | tux native               | `/components/research-publishing`   |
+| `TuxTableCaption`    | composes TuxFigureCaption| `/components/research-publishing`   |
+| `TuxFootnote`        | `UPopover`               | `/components/research-publishing`   |
+| `TuxCitationExport`  | `UDropdownMenu`          | `/components/research-publishing`   |
+| `TuxAcknowledgments` | tux native               | `/components/research-publishing`   |
+
+**TTI identity family** (added 2026-05-22):
+
+| Component            | Wraps                    | Showcase                            |
+|----------------------|--------------------------|-------------------------------------|
+| `TuxResearcher`      | tux native               | `/components/tti-identity`          |
+| `TuxLab`             | tux native               | `/components/tti-identity`          |
+| `TuxProgram`         | tux native               | `/components/tti-identity`          |
+| `TuxFundingSource`   | tux native               | `/components/tti-identity`          |
+| `TuxCenterBadge`     | tux native               | `/components/tti-identity`          |
+
+**Geospatial family** (added 2026-05-22):
+
+| Component            | Wraps                    | Showcase                            |
+|----------------------|--------------------------|-------------------------------------|
+| `TuxMapEmbed`        | iframe / slot            | `/components/geospatial`            |
+| `TuxCorridorStrip`   | tux native SVG           | `/components/geospatial`            |
+| `TuxMapLegend`       | tux native               | `/components/geospatial`            |
+| `TuxMapMarker`       | tux native SVG           | `/components/geospatial`            |
+
+**Forms wrapper family** (added 2026-05-22):
+
+| Component            | Wraps                    | Showcase                            |
+|----------------------|--------------------------|-------------------------------------|
+| `TuxFormField`       | tux native               | `/components/forms-wrapper`         |
+| `TuxMarkdownEditor`  | tux native (no deps)     | `/components/forms-wrapper`         |
+| `TuxFileDropzone`    | tux native               | `/components/forms-wrapper`         |
+| `TuxValidationSummary` | tux native             | `/components/forms-wrapper`         |
+| `TuxConfirmDialog`   | `TuxModal` preset        | `/components/forms-wrapper`         |
+
 **Native chart family** (Priority B — closed 2026-05-22):
 
 | Component            | Stack                    | Showcase                        |
