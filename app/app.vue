@@ -45,8 +45,9 @@ const navTree = [
   {
     label: "Welcome",
     children: [
-      { label: "Home",      to: "/",          icon: "lucide:home" },
-      { label: "Changelog", to: "/changelog", icon: "lucide:scroll-text" },
+      { label: "Home",            to: "/",                icon: "lucide:home" },
+      { label: "Getting started", to: "/getting-started", icon: "lucide:compass" },
+      { label: "Changelog",       to: "/changelog",       icon: "lucide:scroll-text" },
     ],
   },
   {

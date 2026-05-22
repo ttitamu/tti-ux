@@ -66,23 +66,24 @@ itself is now a landing tile page.
 
 ## Priority B — Data patterns
 
-### Charts & data viz
+### Charts & data viz — ✅ closed 2026-05-22
 
 TTI is a research institute — charting is the most under-served family
 in the catalog. Note: simple cases compose `TuxVizEmbed` + a Tableau
-or Superset URL. These are for first-class native rendering.
+or Superset URL. These were for first-class native rendering.
 
 - ~~**TuxSparkline**~~ — shipped (inline mini trend line, no axes;
   pairs with TuxBigStat / TuxFactoid for KPI rows).
-- **TuxChartBar** — vertical + horizontal, grouped + stacked.
-  Maroon-led palette across light/dark/HC.
+- ~~**TuxChartBar**~~ — shipped 2026-05-22; vertical + horizontal,
+  grouped + stacked, comparison overlay for projections-vs-actuals.
 - ~~**TuxChartLine**~~ — shipped 2026-05-21; native SVG single +
   multi-series, end-of-line value labels (default), optional
   previous-period dashed overlay, optional confidence band, markers,
-  auto-derived screen-reader summary. See
+  auto-derived screen-reader summary, brush selector. See
   [`/visualizations/chart-line`](../app/pages/visualizations/chart-line.vue).
-- **TuxChartScatter** — bivariate scatter for corridor data;
-  color-by-category.
+- ~~**TuxChartScatter**~~ — shipped 2026-05-22; bivariate scatter with
+  linear-regression trendline + R², bubble-chart mode via per-point
+  size.
 - ~~**TuxStatComparison**~~ — shipped 2026-05-21; before/after stat
   block with delta + tone, direct/invert/neutral polarity, three
   layouts (row/stack/inline). Pairs with `TuxBigStat`. See
@@ -94,15 +95,19 @@ or Superset URL. These are for first-class native rendering.
   KPI strip composition, accessibility (SR summaries + alt-text
   patterns).
 
-### Map & geospatial
+### Map & geospatial — ✅ closed 2026-05-22
 
-TTI does heavy GIS work.
+TTI does heavy GIS work. Cluster shipped as sprint 3 of the four-family
+expansion alongside identity + research-publishing + forms-wrapper.
 
-- **TuxMapEmbed** — Mapbox / Leaflet wrapper with TTI tokens
-  (basemap palette, marker styles, popup chrome).
-- **TuxMapLegend** — choropleth legend with the editorial maroon rule.
-- **TuxCorridorStrip** — linear "strip map" diagram for
-  highway-corridor reports.
+- ~~**TuxMapEmbed**~~ — shipped 2026-05-22; Mapbox / Leaflet wrapper
+  with TTI tokens (basemap palette, marker styles, popup chrome).
+- ~~**TuxMapLegend**~~ — shipped 2026-05-22; choropleth legend with
+  the editorial maroon rule.
+- ~~**TuxMapMarker**~~ — shipped 2026-05-22; branded marker with
+  cluster + popup affordances.
+- ~~**TuxCorridorStrip**~~ — shipped 2026-05-22; linear "strip map"
+  diagram for highway-corridor reports.
 
 ---
 
@@ -190,9 +195,13 @@ with a tile card.
 - ~~**`/accessibility/breakpoints`**~~ — six-breakpoint scale + the
   container-query preference (ADR-0007) + 200% zoom reflow guarantees.
 
-### Mobile frames
+### Mobile frames — deferred
 
 If TTI ships an app, native-feel demo frames help stakeholder reviews.
+Status: deferred. The Tauri pivot (2026-05-22) made these less
+urgent — `useTuxPlatform()` + `TuxAppFrame` + `TuxTabBar` cover the
+runtime case; screenshot frames are a documentation-only nicety we
+can ship when a marketing surface forces the question.
 
 - **TuxIosFrame** — TTI-themed iPhone frame for screenshots.
 - **TuxAndroidFrame** — same for Android.
@@ -219,17 +228,149 @@ get lost. Pick from the top when there's a slow afternoon.
   Added a TuxStatComparison year-over-year delta row beneath the
   by-the-numbers factoid; one of the three uses inverted polarity
   (non-compliance going down = success tone).
-- **Refresh `/examples/tti-ai-studio-session`** with the same lens —
-  most of this page already uses the catalog's chat components
-  (TuxChatMessage with #tools, TuxArtifact, TuxBranchNav,
-  TuxCitations, TuxContextMeter, TuxComposer). Pending: spot-check
-  the message-action row vs the new TuxReactionBar pattern, decide
-  whether to swap or leave (current pattern matches the documented
-  Conventions exactly).
+- ~~**Refresh `/examples/tti-ai-studio-session`**~~ — done 2026-05-22
+  (second polish queue commit). Spot-checked the message-action row
+  vs `TuxReactionBar`; left as-is per documented Conventions. Page
+  now exercises the full chat-surface cluster end-to-end.
 
 ---
 
-## Recently shipped — platform-aware Tauri build (2026-05-22)
+## Recently shipped — four-family TTI expansion + dogfood pass (2026-05-22)
+
+After closing the Figma absorption pipeline at 70/70 triaged
+(51 absorbed + 19 in SKIP-RATIONALE), the user picked **all four**
+proposed new component families. Each shipped as its own focused
+sprint with the full 6-step wiring (source + showcase + nav +
+index + components.md + CHANGELOG). The catalog grew from ~110
+to ~130 Tux\* components in one batch.
+
+### Research-publishing cluster — sprint 1 of 4
+
+Editorial-research surfaces for the published-paper shape — what
+JOSS, eLife, Distill, and TRR pages all need. Eight components:
+
+- ~~**TuxAbstract**~~ — structured abstract (Background / Methods /
+  Results / Conclusions) with optional plain-language summary.
+- ~~**TuxAuthorByline**~~ — author list with affiliations,
+  ORCID iDs, corresponding-author marker; compact/full layouts.
+- ~~**TuxPaperMeta**~~ — DOI / license / received-accepted-published
+  dates / version history / funder strip.
+- ~~**TuxFigureCaption**~~ — numbered figure wrapper with source
+  citation and inline alt-text reveal.
+- ~~**TuxTableCaption**~~ — numbered table caption sister.
+- ~~**TuxFootnote**~~ — inline marker + bottom-of-document list;
+  scrollspy bidirectional linking.
+- ~~**TuxCitationExport**~~ — six-format export popover
+  (BibTeX / RIS / EndNote / APA / MLA / Chicago).
+- ~~**TuxAcknowledgments**~~ — gratitude block with role taxonomy.
+
+### TTI identity / brand cluster — sprint 2 of 4
+
+The institutional-identity surfaces that map directly to TTI
+organizational structure. Five components:
+
+- ~~**TuxResearcher**~~ — researcher card with ORCID, h-index,
+  active grants, recent publications.
+- ~~**TuxLab**~~ — division/lab hero with leaders, focus areas,
+  project/people counts, location.
+- ~~**TuxProgram**~~ — sponsored-research program card with funders,
+  leads, and headline metrics.
+- ~~**TuxFundingSource**~~ — funder badge with abbreviation +
+  grant number; size sm/md.
+- ~~**TuxCenterBadge**~~ — TTI center identity chip
+  (mobility / safety / freight / roadways / policy / operations).
+
+### Geospatial / map cluster — sprint 3 of 4
+
+Closed the Priority B "Map & geospatial" roadmap section. Four
+components:
+
+- ~~**TuxMapEmbed**~~ — Mapbox/Leaflet wrapper, deferred runtime
+  via lazy load, TTI-themed marker + popup chrome.
+- ~~**TuxMapLegend**~~ — choropleth legend with editorial maroon
+  rule and numeric / categorical variants.
+- ~~**TuxMapMarker**~~ — branded SVG marker with cluster + popup
+  affordances.
+- ~~**TuxCorridorStrip**~~ — linear strip-map for highway-
+  corridor reports (mile markers, segment tones, callouts).
+
+### Forms wrapper cluster — sprint 4 of 4
+
+The "TUX wrapper above Nuxt UI form primitives" layer the original
+Priority A forms-as-primitives sprint had deliberately deferred —
+shipped now because the research-publishing dogfood surfaced two
+real consumer-shape needs (markdown drafting + dropzone uploads).
+Five components:
+
+- ~~**TuxFormField**~~ — labeled wrapper with description, error,
+  required marker, and `TuxInfoLabel` integration.
+- ~~**TuxMarkdownEditor**~~ — no-deps markdown source editor with
+  toolbar + preview + character counter. Chose markdown over Tiptap
+  for source-controllable editorial-research outputs.
+- ~~**TuxFileDropzone**~~ — drag-and-drop file upload with progress
+  + per-file remove + validation slot.
+- ~~**TuxValidationSummary**~~ — inline form-level error summary with
+  anchor links to each invalid field.
+- ~~**TuxConfirmDialog**~~ — sentence-cased confirmation modal with
+  destructive tone variant + keyboard-shortcut hints.
+
+### Dogfood pass — 2 new examples + 3 refreshed
+
+After the four families shipped, the user requested a dogfood pass to
+prove the components compose under realistic constraints. Two new
+pages exercise the new families end-to-end; three existing pages were
+refreshed to sprinkle the new identity primitives into already-shipped
+surfaces:
+
+- ~~**`/examples/paper-page`**~~ — full editorial-research paper page
+  exercising the research-publishing cluster end-to-end (12 Tux\*
+  components, including a TuxChartLine inside TuxFigureCaption + an
+  inline TuxFootnote × 3 with reverse-link list at document end).
+- ~~**`/examples/center-landing`**~~ — TTI Mobility Division landing
+  using the identity cluster end-to-end (TuxLab hero + TuxResearcher × 3
+  with stagger entrance + TuxProgram × 3 + TuxFundingSource × 7 +
+  cross-division TuxCenterBadge links).
+- ~~**`/examples/research-landing` refresh**~~ — identity-cluster
+  sprinkle (TuxCenterBadge + TuxAuthorByline + TuxFundingSource strip).
+- ~~**`/examples/landscape-dashboard` refresh**~~ — corridor strip +
+  map markers + I-35 cross-link to the new paper page.
+- ~~**`/examples/tti-ai-studio-session` refresh**~~ — TuxMarkdownEditor
+  composer wired into the chat surface.
+
+### Compositions doctrine
+
+- ~~**[`design/compositions.md`](./compositions.md)**~~ — "X + Y
+  composes more value than they do alone" doctrine. Seven sections:
+  layout shells, headlines+summaries, chart surfaces, browse+detail,
+  chat, cross-app nav, editorial-research. Pairs with `components.md`
+  (catalog) and `tux.md` (manifesto) to make the three-doc design
+  triangle complete.
+
+### Figma absorption — closed at 70/70
+
+- ~~**Coverage gap closure**~~ — five remaining stubs (shadcn_ui
+  original, TailwindCSS v4.2.4, Airbnb UI Kit, Material UI ×2)
+  got proper NOTES.md. Skip-rationale rebased 22 → 21 entries.
+  Pipeline now closed: 51 absorbed + 19 in SKIP-RATIONALE = 70/70.
+
+### Carry-forwards
+
+Deferred-with-criterion items surfaced in this batch:
+
+- **TuxRichTextEditor** (Tiptap-based) — only if a consumer surface
+  needs WYSIWYG with media embeds. `TuxMarkdownEditor` covers the
+  source-controllable case; this would be the rendered-only sister.
+- **Map runtime decision** — `TuxMapEmbed` ships as a wrapper around
+  Mapbox + Leaflet; pick one when the first consumer surface forces
+  the question. Default lean: Leaflet for OSS-friendly + no token
+  registration.
+- **Paper-page hardening** — when a real journal consumer materializes,
+  audit footnote bidirectional-scroll polish, citation-export format
+  details, and figure number auto-incrementing.
+
+---
+
+
 
 User shifted TUX target from web-only to **Tauri desktop shells on
 Windows / macOS / Linux** plus future Tauri Mobile (iOS / Android).

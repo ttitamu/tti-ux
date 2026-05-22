@@ -51,7 +51,7 @@ const Wrapper = computed(() => (props.to ? "a" : "div"));
     :class="[`tux-funding-source--${size}`, `tux-funding-source--${layout}`]"
   >
     <div v-if="logo" class="tux-funding-source__logo-wrap">
-      <img :src="logo" :alt="`${funder} logo`" class="tux-funding-source__logo" />
+      <img :src="logo" :alt="`${funder} logo`" class="tux-funding-source__logo" >
     </div>
 
     <div class="tux-funding-source__body">
