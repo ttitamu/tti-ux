@@ -82,37 +82,47 @@ const chromeClass = computed(() => {
   return "tux-app-frame--web";
 });
 
-// Best-effort Tauri window control invocation. We avoid a static
-// `@tauri-apps/api` import to keep the component runtime-agnostic;
-// the dynamic import gracefully no-ops in non-Tauri builds.
+// Best-effort dynamic load of the Tauri window-controls API. We
+// avoid a static `@tauri-apps/api` import to keep the component
+// runtime-agnostic — the package isn't a TUX dependency, and a
+// static reference breaks the production build for any consumer
+// that doesn't have it installed. The `/* @vite-ignore */`
+// annotation handles Vite dev mode; Rollup (the production
+// bundler under the hood) needs the additional indirection of
+// building the specifier from a variable so it can't be
+// statically resolved at bundle time. Array.join is the safest
+// pattern — constant-string concat may still get folded.
+async function loadTauriWindow(): Promise<Record<string, unknown> | null> {
+  if (!platform.value.tauri) return null;
+  try {
+    const specifier = ["@tauri-apps", "api", "window"].join("/");
+    const mod = await import(/* @vite-ignore */ specifier);
+    const win = mod.getCurrentWindow
+      ? mod.getCurrentWindow()
+      : (mod as Record<string, unknown>).appWindow;
+    return (win as Record<string, unknown>) ?? null;
+  } catch {
+    // Tauri not installed (e.g., dev-server preview, web build); no-op.
+    return null;
+  }
+}
+
 async function invokeWindow(action: "close" | "minimize" | "toggleMaximize") {
   emit(action === "toggleMaximize" ? "zoom" : action);
-  if (!platform.value.tauri) return;
-  try {
-    const mod = await import(/* @vite-ignore */ "@tauri-apps/api/window");
-    const win = mod.getCurrentWindow ? mod.getCurrentWindow() : (mod as Record<string, unknown>).appWindow;
-    if (!win) return;
-    const w = win as Record<string, () => Promise<void>>;
-    if (action === "close" && w.close) await w.close();
-    if (action === "minimize" && w.minimize) await w.minimize();
-    if (action === "toggleMaximize" && w.toggleMaximize) await w.toggleMaximize();
-  } catch {
-    // Tauri not installed (e.g., dev-server preview); fall through.
-  }
+  const win = await loadTauriWindow();
+  if (!win) return;
+  const w = win as Record<string, () => Promise<void>>;
+  if (action === "close" && w.close) await w.close();
+  if (action === "minimize" && w.minimize) await w.minimize();
+  if (action === "toggleMaximize" && w.toggleMaximize) await w.toggleMaximize();
 }
 
 const isMaximized = ref(false);
 onMounted(async () => {
-  if (!platform.value.tauri) return;
-  try {
-    const mod = await import(/* @vite-ignore */ "@tauri-apps/api/window");
-    const win = mod.getCurrentWindow ? mod.getCurrentWindow() : (mod as Record<string, unknown>).appWindow;
-    if (!win) return;
-    const w = win as Record<string, () => Promise<boolean>>;
-    if (w.isMaximized) isMaximized.value = await w.isMaximized();
-  } catch {
-    // No-op.
-  }
+  const win = await loadTauriWindow();
+  if (!win) return;
+  const w = win as Record<string, () => Promise<boolean>>;
+  if (w.isMaximized) isMaximized.value = await w.isMaximized();
 });
 </script>
 
