@@ -39,6 +39,16 @@ MED = {
     "Dashboard - Free UI Kit \U0001f5a5 (Community)",
     "Dashboard UI Kit - Dashboard, Free Admin Dashboard (Community)",
     "Microsoft Store Asset Guidance (Community)",
+    # Platform-aware Tauri target sweep (2026-05-22):
+    "Windows UI kit (Community)",
+    "iOS 26 Liquid Glass (Community)", "iOS and iPadOS 26 (Community)",
+    "macOS 26 (Community)", "macOS Browser UI Kit (Big Sur Update) (Community)",
+    "visionOS 26 (Community)", "Apple Widgets UI Kit (Community)",
+    "Template for SF Symbol Creator (Community)", "Material 3 Design Kit (Community)",
+    "Android UI Kit (Community)", "50 Mobile Bottom Navigation Bar (Community)",
+    "Tailwind Headless UI with Animations (Community)",
+    "\U0001f6a0 Scrollbar Kit MacOS & Windows (Community)",
+    "UI Prep Layout Grids 8.0 (Community)",
 }
 
 def priority(name):

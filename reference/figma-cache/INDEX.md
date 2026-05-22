@@ -9,7 +9,7 @@ subfolders alongside `<slug>/<page-slug>/NOTES.md`.
 Listing cached in [`PROJECT-FILES.json`](PROJECT-FILES.json).
 
 **Totals:** 70 files · 69 with cover ·
-30 absorbed · 40 stub · 0 fetch errors.
+43 absorbed · 27 stub · 0 fetch errors.
 
 ## Why this exists
 
@@ -41,13 +41,16 @@ These directly inform TUX foundations. Process first.
 | 🖼 | [shadcn_ui components with variables & Tailwind classes - Updated January 2026 (Community)](shadcn-ui-components-with-variables-tailwind-classes-updated/NOTES.md) | ? | absorbed |
 | 🖼 | [TailwindCSS v4.2.4 Design System (Community)](tailwindcss-v4-2-4-design-system/NOTES.md) | 1 | stub |
 
-## Medium signal (23)
+## Medium signal (37)
 
 Useful for specific surfaces (charts, chat, Microsoft suite, individual
 patterns). Skim covers; deep-dive only the relevant pages.
 
 | | File | Pages | Status |
 |---|---|---|---|
+| 🖼 | [50 Mobile Bottom Navigation Bar (Community)](50-mobile-bottom-navigation-bar/NOTES.md) | 6 | absorbed |
+| 🖼 | [Android UI Kit (Community)](android-ui-kit/NOTES.md) | 8 | absorbed |
+| 🖼 | [Apple Widgets UI Kit (Community)](apple-widgets-ui-kit/NOTES.md) | 5 | absorbed |
 | 🖼 | [Calendar Interactive UI Kit (Community)](calendar-interactive-ui-kit/NOTES.md) | 2 | absorbed |
 | 🖼 | [Charts UI Kit (Community)](charts-ui-kit/NOTES.md) | 3 | absorbed |
 | 🖼 | [Chat Input Box (Community)](chat-input-box/NOTES.md) | 4 | absorbed |
@@ -60,6 +63,11 @@ patterns). Skim covers; deep-dive only the relevant pages.
 | 🖼 | [Empty State Illustration Kit (Community)](empty-state-illustration-kit/NOTES.md) | 4 | absorbed |
 | 🖼 | [Interactive Dropdown (Community)](interactive-dropdown/NOTES.md) | 2 | absorbed |
 | 🖼 | [Interactive Dropdown (Community) (1)](interactive-dropdown-1/NOTES.md) | ? | absorbed |
+| 🖼 | [iOS 26 Liquid Glass (Community)](ios-26-liquid-glass/NOTES.md) | 1 | absorbed |
+| 🖼 | [iOS and iPadOS 26 (Community)](ios-and-ipados-26/NOTES.md) | 45 | absorbed |
+| 🖼 | [macOS 26 (Community)](macos-26/NOTES.md) | 42 | absorbed |
+| 🖼 | [macOS Browser UI Kit (Big Sur Update) (Community)](macos-browser-ui-kit-big-sur-update/NOTES.md) | 3 | absorbed |
+|   | [Material 3 Design Kit (Community)](material-3-design-kit/NOTES.md) | 33 | absorbed |
 | 🖼 | [MCP Apps for Claude (Community)](mcp-apps-for-claude/NOTES.md) | 17 | absorbed |
 | 🖼 | [Microsoft 365 UI Kit (Community)](microsoft-365-ui-kit/NOTES.md) | 25 | absorbed |
 | 🖼 | [Microsoft Fabric page templates (Community)](microsoft-fabric-page-templates/NOTES.md) | 6 | absorbed |
@@ -71,23 +79,26 @@ patterns). Skim covers; deep-dive only the relevant pages.
 | 🖼 | [Progress Bar UI Kit (Community)](progress-bar-ui-kit/NOTES.md) | 2 | absorbed |
 | 🖼 | [SharePoint Web UI Kit (Community)](sharepoint-web-ui-kit/NOTES.md) | 45 | absorbed |
 | 🖼 | [Snow Dashboard UI Kit (Community)](snow-dashboard-ui-kit/NOTES.md) | 6 | absorbed |
+| 🖼 | [Tailwind Headless UI with Animations (Community)](tailwind-headless-ui-with-animations/NOTES.md) | 5 | absorbed |
+| 🖼 | [Template for SF Symbol Creator (Community)](template-for-sf-symbol-creator/NOTES.md) | 2 | absorbed |
+| 🖼 | [UI Prep Layout Grids 8.0 (Community)](ui-prep-layout-grids-8-0/NOTES.md) | 8 | absorbed |
+| 🖼 | [visionOS 26 (Community)](visionos-26/NOTES.md) | 39 | absorbed |
+| 🖼 | [Windows UI kit (Community)](windows-ui-kit/NOTES.md) | 21 | absorbed |
+| 🖼 | [🚠 Scrollbar Kit MacOS & Windows (Community)](scrollbar-kit-macos-windows/NOTES.md) | 5 | absorbed |
 
-## Skip / skim (39)
+## Skip / skim (25)
 
 Native platform kits, mockups, or non-shadcn-family systems. Kept for
 reference but probably not absorbed into TUX. Scan covers for surprises.
 
 | | File | Pages | Status |
 |---|---|---|---|
-| 🖼 | [50 Mobile Bottom Navigation Bar (Community)](50-mobile-bottom-navigation-bar/NOTES.md) | 6 | stub |
 | 🖼 | [59 Charts UI Responsive Components Chart.js Chartist Apex Charts and Recharts (Community)](59-charts-ui-responsive-components-chart-js-chartist-apex-ch/NOTES.md) | 2 | stub |
 | 🖼 | [Accessible design toolkit (Community)](accessible-design-toolkit/NOTES.md) | 8 | stub |
 | 🖼 | [ACS UI Library Design Kit (Community)](acs-ui-library-design-kit/NOTES.md) | 4 | stub |
 | 🖼 | [Airbnb UI Kit (Community)](airbnb-ui-kit/NOTES.md) | 21 | stub |
-| 🖼 | [Android UI Kit (Community)](android-ui-kit/NOTES.md) | 8 | stub |
 | 🖼 | [Ant Design Open Source (Community)](ant-design-open-source/NOTES.md) | 70 | stub |
 | 🖼 | [App Icon Template (Community)](app-icon-template/NOTES.md) | 2 | stub |
-| 🖼 | [Apple Widgets UI Kit (Community)](apple-widgets-ui-kit/NOTES.md) | 5 | stub |
 | 🖼 | [Bootstrap 5 Design System - UI Kit (Community)](bootstrap-5-design-system-ui-kit/NOTES.md) | 62 | stub |
 | 🖼 | [Bootstrap 5 UI Kit (Community)](bootstrap-5-ui-kit/NOTES.md) | 6 | stub |
 | 🖼 | [Design System _ UI kit _ +6000 Components (Community)](design-system-ui-kit-6000-components/NOTES.md) | 24 | stub |
@@ -96,25 +107,14 @@ reference but probably not absorbed into TUX. Scan covers for surprises.
 | 🖼 | [Figma’s Trending Most Powerfull Mockup UI Kit Minimal Devices (Zara) (Community)](figma-s-trending-most-powerfull-mockup-ui-kit-minimal-device/NOTES.md) | 16 | stub |
 | 🖼 | [Figma’s Trending Most Powerfull Wireframing UI kit Design System (Zara) (Community)](figma-s-trending-most-powerfull-wireframing-ui-kit-design-sy/NOTES.md) | 16 | stub |
 | 🖼 | [HeroUI Figma Kit (Community) (Community)](heroui-figma-kit/NOTES.md) | 38 | stub |
-| 🖼 | [iOS 26 Liquid Glass (Community)](ios-26-liquid-glass/NOTES.md) | 1 | stub |
-| 🖼 | [iOS and iPadOS 26 (Community)](ios-and-ipados-26/NOTES.md) | 45 | stub |
 | 🖼 | [LOGIFY - WEB LOGIN UI KIT (Community)](logify-web-login-ui-kit/NOTES.md) | 2 | stub |
-| 🖼 | [macOS 26 (Community)](macos-26/NOTES.md) | 42 | stub |
-| 🖼 | [macOS Browser UI Kit (Big Sur Update) (Community)](macos-browser-ui-kit-big-sur-update/NOTES.md) | 3 | stub |
-|   | [Material 3 Design Kit (Community)](material-3-design-kit/NOTES.md) | 33 | stub |
 | 🖼 | [Material UI for Figma (and MUI X) (Community)](material-ui-for-figma-and-mui-x/NOTES.md) | 70 | stub |
 | 🖼 | [Material UI for Figma (and MUI X) (Community) (1)](material-ui-for-figma-and-mui-x-1/NOTES.md) | 70 | stub |
 | 🖼 | [Mobile UI kit (Community)](mobile-ui-kit/NOTES.md) | 3 | stub |
 | 🖼 | [monday.com project template (Community)](monday-com-project-template/NOTES.md) | 9 | stub |
 | 🖼 | [Neumorphism UI Kit (Community)](neumorphism-ui-kit/NOTES.md) | 4 | stub |
 | 🖼 | [Omnichart - Customizable UX Flow Chart (Community)](omnichart-customizable-ux-flow-chart/NOTES.md) | 3 | stub |
-| 🖼 | [Tailwind Headless UI with Animations (Community)](tailwind-headless-ui-with-animations/NOTES.md) | 5 | stub |
-| 🖼 | [Template for SF Symbol Creator (Community)](template-for-sf-symbol-creator/NOTES.md) | 2 | stub |
 | 🖼 | [Template for VS Code Color Mapper (Community)](template-for-vs-code-color-mapper/NOTES.md) | 3 | stub |
-| 🖼 | [UI Prep Layout Grids 8.0 (Community)](ui-prep-layout-grids-8-0/NOTES.md) | 8 | stub |
 | 🖼 | [Vibe UI Kit by monday.com (Community)](vibe-ui-kit-by-monday-com/NOTES.md) | 55 | stub |
-| 🖼 | [visionOS 26 (Community)](visionos-26/NOTES.md) | 39 | stub |
-| 🖼 | [Windows UI kit (Community)](windows-ui-kit/NOTES.md) | 21 | absorbed |
 | 🖼 | [❖ Base Gallery (Community)](base-gallery/NOTES.md) | 2 | stub |
 | 🖼 | [📙 Component library (Community)](component-library/NOTES.md) | 45 | stub |
-| 🖼 | [🚠 Scrollbar Kit MacOS & Windows (Community)](scrollbar-kit-macos-windows/NOTES.md) | 5 | stub |
