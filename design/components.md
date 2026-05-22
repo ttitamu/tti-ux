@@ -20,6 +20,7 @@ npm run dev
 | `TuxAlert`           | `UAlert`                 | `/components/alert`             |
 | `TuxAlphaNav`        | tux native               | `/components/alpha-nav`         |
 | `TuxAnnouncementBanner` | tux native            | `/components/announcement-banner` |
+| `TuxAppFrame`        | tux native               | `/components/app-frame`         |
 | `TuxArtifact`        | tux native               | `/components/artifact`          |
 | `TuxBadge`           | `UBadge`                 | `/components/badge`             |
 | `TuxBetaRibbon`      | tux native               | `/components/beta-ribbon`       |
@@ -53,8 +54,10 @@ npm run dev
 | `TuxEmptyState`      | `TuxCard` composite      | `/components/empty-state`       |
 | `TuxErrorPage`       | tux native               | `/components/error-page`        |
 | `TuxExample`         | showcase primitive       | (used on every component page)  |
+| `TuxFAB`             | tux native               | `/components/fab`               |
 | `TuxFactoid`         | tux native               | `/components/factoid`           |
 | `TuxFilterPanel`     | tux native               | `/components/filter-panel`      |
+| `TuxFocusView`       | tux native               | `/components/focus-view`        |
 | `TuxFooter`          | tux native               | `/components/footer`            |
 | `TuxIconFeature`     | tux native               | `/components/icon-feature`      |
 | `TuxIdentity`        | tux native               | `/components/identity`          |
@@ -65,6 +68,7 @@ npm run dev
 | `TuxLinkSlab`        | tux native               | `/components/link-slab`         |
 | `TuxMediaSlab`       | tux native               | `/components/media-slab`        |
 | `TuxMegaMenu`        | tux native               | `/components/site-nav`          |
+| `TuxMenuBar`         | `UDropdownMenu`          | `/components/menu-bar`          |
 | `TuxModal`           | `UModal`                 | `/components/modal`             |
 | `TuxNewsCollection`  | tux native               | `/components/news-collection`   |
 | `TuxPageHeader`      | tux native               | `/components/page-header`       |
@@ -81,10 +85,12 @@ npm run dev
 | `TuxSiteNav`         | tux native               | `/components/site-nav`          |
 | `TuxSkeleton`        | tux native               | `/components/skeleton`          |
 | `TuxSlideover`       | tux native               | `/components/slideover`         |
+| `TuxSplashScreen`    | tux native               | `/components/splash-screen`     |
 | `TuxStepper`         | tux native               | `/components/stepper`           |
 | `TuxStatComparison`  | tux native               | `/components/stat-comparison`   |
 | `TuxSuggestionChips` | tux native               | `/components/suggestion-chips`  |
 | `TuxTable`           | `UTable`                 | `/components/table`             |
+| `TuxTabBar`          | tux native               | `/components/tab-bar`           |
 | `TuxTabs`            | `UTabs`                  | `/components/tabs`              |
 | `TuxTeachingPopover` | tux native               | `/components/teaching-popover`  |
 | `TuxTestimonial`     | tux native               | `/components/testimonial`       |
@@ -149,6 +155,28 @@ and the criteria for adding a future route group).
 The showcase pages expose **Vue** (template source), **HTML** (rendered
 DOM), and — where applicable — **Source** (the component SFC) tabs via
 the `TuxExample` primitive.
+
+**Platform-aware chrome family** (added 2026-05-22):
+
+| Component / composable | Wraps                  | Route                           |
+| -------------------- | ------------------------ | ------------------------------- |
+| `TuxAppFrame`        | tux native               | `/components/app-frame`         |
+| `TuxFocusView`       | Teleport + native        | `/components/focus-view`        |
+| `TuxMenuBar`         | `UDropdownMenu`          | `/components/menu-bar`          |
+| `TuxSplashScreen`    | tux native               | `/components/splash-screen`     |
+| `TuxTabBar`          | tux native               | `/components/tab-bar`           |
+| `TuxFAB`             | tux native               | `/components/fab`               |
+| `useTuxPlatform`     | composable               | (consumed by all of the above)  |
+| `useTuxSwipe`        | composable               | `/components/swipe`             |
+| `useTuxRipple`       | composable               | `/components/ripple`            |
+
+These ship together under the **platform-aware** banner. They cover
+the brand-vs-chrome split documented in
+[`platform-awareness.md`](./platform-awareness.md): one component
+tree, platform-adaptive at the chrome layer. The `tux-scrollbar.css`
+utility ships alongside (auto-imports via `globals.css`) and
+branches scrollbar styling per host via the `data-platform`
+attribute set by `useTuxPlatform()`.
 
 ## Pattern coverage — "want X? use Y"
 

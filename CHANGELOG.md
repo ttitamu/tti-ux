@@ -5,6 +5,115 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — platform-aware Tauri build sprint (2026-05-22)
+
+Doctrine + 8 components + 2 composables + 1 CSS utility + safe-area
+support landed in a single sprint. TUX shifted from web-only to
+**Tauri desktop shells on Windows / macOS / Linux** plus future
+Tauri Mobile (iOS / Android), which made the previously-skipped
+Apple / Material / Windows Figma kits legitimately useful.
+
+**Doctrine (grounds everything else):**
+
+- **[`design/platform-awareness.md`](design/platform-awareness.md)** —
+  "TUX is one component tree, platform-adaptive at the chrome layer."
+  Two-layer mental model (brand invariant, chrome adapts). 8
+  dimensions of variation (window controls, scrollbar, modifier keys,
+  fonts, drag regions, menu bar, accent, share/file/notification
+  APIs). Held 5 visual-language rejections: Liquid Glass as surface,
+  Mica wholesale, Material tonal palette, elevation-as-color, SF
+  Symbols icon family.
+
+**Foundations:**
+
+- **[`useTuxPlatform()`](app/composables/useTuxPlatform.ts)** —
+  module-singleton composable that detects host OS + Tauri runtime
+  + primary modifier + system accent post-hydration. Sets
+  `document.documentElement.dataset.platform` so CSS branches without
+  each component asking JS. SSR-safe defaults.
+- **[`app/assets/css/tux-scrollbar.css`](app/assets/css/tux-scrollbar.css)** —
+  per-platform scrollbar styling auto-imported via `globals.css`.
+  Mac overlay auto-hide, Win11 persistent slim (12px), Linux defers
+  to GTK/Qt, web fallback. Recipes lifted from the scrollbar-kit
+  absorption. Opt-out via `.tux-scrollbar-default`.
+- **Safe-area-inset CSS** on `app/layouts/default.vue` +
+  `app/layouts/sidebar.vue`. Honors `env(safe-area-inset-*)` so
+  Tauri Mobile builds get notch / home-indicator / gesture-nav
+  clearance. Zero cost on desktop / web.
+
+**Chrome components (desktop / app-shell):**
+
+- **[`TuxAppFrame`](app/components/TuxAppFrame.vue)** — custom Tauri
+  titlebar with platform-correct controls. Mac: traffic lights
+  top-left + title-toolbar unification. Win11: min/max/close
+  top-right with native snap-layouts. Linux: close-only fallback.
+  Slots: `#left` / `#center` / `#right`. Drag regions marked.
+- **[`TuxFocusView`](app/components/TuxFocusView.vue)** — full-
+  viewport overlay for inspecting one piece of content (a chart, a
+  record). Back + title + actions chrome above a content slot. Esc +
+  backdrop dismiss; focus trap; reduced-motion respected. Absorbed
+  from Teams Stage view / Lightbox view.
+- **[`TuxMenuBar`](app/components/TuxMenuBar.vue)** — in-window
+  File / Edit / View / Help strip for Win / Linux. Composes
+  `UDropdownMenu`. Skipped on Mac (system menu wins).
+- **[`TuxSplashScreen`](app/components/TuxSplashScreen.vue)** —
+  branded app-launch overlay. Brand mark + maroon hairline + status.
+  Bridges Tauri window-show → Vue hydrate gap.
+
+**Mobile components (Tauri Mobile target):**
+
+- **[`TuxTabBar`](app/components/TuxTabBar.vue)** — bottom-anchored
+  3-5 tab nav. Icon + label + **maroon top-edge active rule** (TUX
+  signature). Safe-area-inset honored. 44px min tap target.
+- **[`TuxFAB`](app/components/TuxFAB.vue)** — Floating Action Button
+  for the single "compose new" action per screen. Icon-only circle
+  (56 / 40px) or extended pill with label.
+
+**Composables:**
+
+- **[`useTuxSwipe`](app/composables/useTuxSwipe.ts)** — pointer /
+  touch swipe detection with directional callbacks. Accessibility
+  rule: any swipe action MUST have a visible alternative.
+- **[`useTuxRipple`](app/composables/useTuxRipple.ts)** — Material-
+  style tap-feedback ripple. Opt-in only. Honors
+  `prefers-reduced-motion`.
+
+**Enhancements:**
+
+- **[`TuxKbd`](app/components/TuxKbd.vue)** — reads from
+  `useTuxPlatform()` instead of inline navigator-platform sniff.
+  Renders `Super` on Linux + `Win` on Windows. Three platform symbol
+  tables.
+- **[`TuxModal`](app/components/TuxModal.vue)** — adds `size` prop
+  (sm → 3xl) + `variant: 'standard' | 'sheet' | 'auto'`. Sheet
+  variant is bottom-anchored with drag-handle pill (iOS / Material 3
+  mobile pattern). Auto picks sheet on iOS / Android.
+
+**Showcase routes** (full 6-step ship discipline):
+`/components/{app-frame, focus-view, menu-bar, splash-screen,
+tab-bar, fab, swipe, ripple}` — all 8 added to app.vue nav,
+components index cards, design/components.md rows.
+
+### Platform-aware Figma absorption sweep (2026-05-22)
+
+The doctrine pass was preceded by a 13-file absorption sweep across
+Apple / Google / Windows / cross-platform utility kits (Windows UI
+kit re-read with new lens, macOS 26 Tahoe, iOS 26 Liquid Glass, iOS+
+iPadOS 26, macOS Browser, visionOS 26, Apple Widgets, SF Symbol
+Creator, Material 3, Android UI Kit, 50 Mobile Bottom Nav, Tailwind
+Headless UI Animations, Scrollbar Kit MacOS & Windows, UI Prep Layout
+Grids). 0 new components from absorption alone; recipes + roadmap
+candidates captured in per-file NOTES.md. 43/70 absorbed total.
+
+### Medium-signal absorption sweep (2026-05-22)
+
+14 files cleared from the original medium bucket: 7 single-pattern
+(Calendar, Interactive Dropdown ×2, Progress Bar, Order list,
+Dashboard ×2) and 7 Microsoft-suite (M365, Fabric ×3, Store, Teams,
+SharePoint). 0 new components; 3 future-component candidates noted
+(TuxSplitPane, TuxAppSwitcher, TuxFocusView — the last shipped this
+sprint).
+
 A multi-day absorption pass over the Figma project's high-signal
 reference systems (shadcn_ui Jan 2026, Vercel AI Elements, Primer Web,
 Microsoft Fluent 2 Web, plus the Windows UI kit and Aggie UX). Most

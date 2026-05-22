@@ -18,10 +18,11 @@
 // per-platform symbol (⌘/Ctrl, ⇧, ⌥/Alt, ↵, esc, ↑, etc.). Unknown keys
 // are passed through verbatim so letters and digits render as typed.
 //
-// Platform detection runs post-hydration to avoid SSR/client mismatch —
-// the server always renders the PC form (no Unicode glyphs), and the
-// client swaps to ⌘/⌥ on Mac after mount. This is the same tradeoff
-// Nuxt UI's UKbd makes.
+// Platform detection runs post-hydration via `useTuxPlatform()` to
+// avoid SSR/client mismatch — the server always renders the PC form
+// (no Unicode glyphs), and the client swaps to ⌘/⌥ on Apple hosts,
+// `Win` on Windows, and `Super` on Linux after mount. Same trade-off
+// Nuxt UI's UKbd makes; we just branch on three OSes instead of two.
 
 interface Props {
   /** Single key. Use `keys` for multi-key combos. */
@@ -41,12 +42,9 @@ const props = withDefaults(defineProps<Props>(), {
   keys: undefined,
 });
 
-const isMac = ref(false);
-onMounted(() => {
-  if (typeof navigator !== "undefined") {
-    isMac.value = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-  }
-});
+// Pull platform from the central composable so every TuxKbd instance
+// shares one detection pass (and CSS-side `data-platform` stays in sync).
+const platform = useTuxPlatform();
 
 const MAC_SYMBOLS: Record<string, string> = {
   meta: "⌘",
@@ -57,6 +55,8 @@ const MAC_SYMBOLS: Record<string, string> = {
   shift: "⇧",
   alt: "⌥",
   option: "⌥",
+  super: "⌘",  // No "Super" on Apple — folded onto Command.
+  win: "⌘",
   enter: "↵",
   return: "↵",
   escape: "esc",
@@ -71,7 +71,7 @@ const MAC_SYMBOLS: Record<string, string> = {
   space: "␣",
 };
 
-const PC_SYMBOLS: Record<string, string> = {
+const WIN_SYMBOLS: Record<string, string> = {
   meta: "Ctrl",
   cmd: "Ctrl",
   command: "Ctrl",
@@ -80,10 +80,12 @@ const PC_SYMBOLS: Record<string, string> = {
   shift: "Shift",
   alt: "Alt",
   option: "Alt",
+  super: "Win",
+  win: "Win",
   enter: "↵",
   return: "↵",
-  escape: "esc",
-  esc: "esc",
+  escape: "Esc",
+  esc: "Esc",
   arrowup: "↑",
   arrowdown: "↓",
   arrowleft: "←",
@@ -94,9 +96,45 @@ const PC_SYMBOLS: Record<string, string> = {
   space: "␣",
 };
 
+const LINUX_SYMBOLS: Record<string, string> = {
+  meta: "Ctrl",
+  cmd: "Ctrl",
+  command: "Ctrl",
+  ctrl: "Ctrl",
+  control: "Ctrl",
+  shift: "Shift",
+  alt: "Alt",
+  option: "Alt",
+  super: "Super",
+  win: "Super",
+  enter: "↵",
+  return: "↵",
+  escape: "Esc",
+  esc: "Esc",
+  arrowup: "↑",
+  arrowdown: "↓",
+  arrowleft: "←",
+  arrowright: "→",
+  backspace: "⌫",
+  delete: "Del",
+  tab: "Tab",
+  space: "␣",
+};
+
+// Generic-PC fallback for the SSR pass and any unknown host. Matches
+// the Linux table — Ctrl-led modifiers, no Apple glyphs.
+const PC_SYMBOLS = LINUX_SYMBOLS;
+
+function tableForOS(os: string): Record<string, string> {
+  if (os === "mac" || os === "ios") return MAC_SYMBOLS;
+  if (os === "win") return WIN_SYMBOLS;
+  if (os === "linux") return LINUX_SYMBOLS;
+  return PC_SYMBOLS;
+}
+
 function displayKey(key: string): string {
   const k = key.toLowerCase();
-  const table = isMac.value ? MAC_SYMBOLS : PC_SYMBOLS;
+  const table = tableForOS(platform.value.os);
   if (table[k]) return table[k];
   // Single letter / digit / symbol — uppercase letters for readability,
   // pass everything else through.

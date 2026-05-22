@@ -1,4 +1,12 @@
 <script setup lang="ts">
+// Note for future authors: keep top-level expressions in this script
+// block as plain JS. Nuxt's page-extract pass uses a JS-only parser
+// path that doesn't honor `lang="ts"`, and any TS-only syntax (`as`,
+// type annotations, `satisfies`) surfaces as a confusing
+// "?macro=true — Error parsing JavaScript expression (1:30)" with
+// the position pointing nowhere useful. Type-annotated locals are
+// fine inside function bodies; the constraint is on the top-level
+// statements the macro extractor walks.
 useHead({ title: "TuxChartLine · TUX" });
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

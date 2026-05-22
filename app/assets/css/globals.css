@@ -11,6 +11,13 @@
 @import "katex/dist/katex.min.css";
 
 /*
+ * Platform-aware scrollbar styling. Branches on the `data-platform`
+ * attribute that `useTuxPlatform()` sets on `<html>` post-hydration.
+ * See `design/platform-awareness.md` for the doctrine + per-OS recipes.
+ */
+@import "./tux-scrollbar.css";
+
+/*
  * Maroon palette lives in tokens.css as plain :root vars (not @theme),
  * because Tailwind v4 tree-shakes @theme entries that aren't referenced
  * in source CSS/templates. Nuxt UI references them via its pre-compiled

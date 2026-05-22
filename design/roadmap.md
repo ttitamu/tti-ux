@@ -229,6 +229,67 @@ get lost. Pick from the top when there's a slow afternoon.
 
 ---
 
+## Recently shipped — platform-aware Tauri build (2026-05-22)
+
+User shifted TUX target from web-only to **Tauri desktop shells on
+Windows / macOS / Linux** plus future Tauri Mobile (iOS / Android).
+Doctrine doc + 8 components + 2 composables + 1 CSS utility +
+safe-area support landed in one sprint. Held the line on 5 visual-
+language rejections (Liquid Glass surface, Mica wholesale, Material
+tonal palette, elevation-as-color, SF Symbols).
+
+**Doctrine:**
+
+- **[`design/platform-awareness.md`](./platform-awareness.md)** —
+  "One component tree, platform-adaptive at the chrome layer." Two-
+  layer mental model; 8 dimensions of variation.
+
+**Foundations:**
+
+- **useTuxPlatform()** — composable; sets `[data-platform]` on
+  `<html>`.
+- **tux-scrollbar.css** — per-platform scrollbar styles.
+- **Safe-area-inset CSS** on `default.vue` + `sidebar.vue`.
+
+**Components shipped:**
+
+- **TuxAppFrame** — custom Tauri titlebar with platform-correct
+  controls.
+- **TuxFocusView** — full-viewport content overlay (Teams Stage
+  view analog).
+- **TuxMenuBar** — in-window File/Edit/View menu for Win/Linux.
+- **TuxSplashScreen** — branded app-launch overlay.
+- **TuxTabBar** — bottom-anchored 3-5 mobile tabs with maroon
+  top-edge active rule.
+- **TuxFAB** — Floating Action Button (Material pattern).
+
+**Composables shipped:**
+
+- **useTuxSwipe** — pointer/touch swipe with directional callbacks.
+- **useTuxRipple** — Material tap-feedback ripple, opt-in only.
+
+**Enhancements:**
+
+- **TuxKbd** — extended for Super (Linux) / Win (Windows) keys
+  via `useTuxPlatform()`.
+- **TuxModal** — `size` prop + `variant: 'standard' | 'sheet' |
+  'auto'` (mobile sheet from iOS/M3 patterns).
+
+### Still on the platform-aware roadmap (deferred to consumer pull)
+
+- **TuxAppSwitcher** — waffle button + popover grid for hopping
+  between TTI consumer apps (Landscape ↔ tti-ai-studio ↔ future).
+  Source: Microsoft Fabric "Suite header."
+- **TuxSplitPane** — in-page master-detail layout with URL-bound
+  selection. Source: Microsoft Fabric "Multiview."
+- **TuxChartGauge** — 270° arc with needle. Source: Microsoft Teams
+  data viz inventory. Defer; research dashboards rarely use gauges.
+- **`design/tauri-bindings.md`** — companion doc enumerating which
+  TUX components call which Tauri APIs (share sheet, native
+  notification, file dialog) and the web fallback path.
+
+---
+
 ## Recently shipped — Figma absorption pass (2026-05-19 / 2026-05-20)
 
 Sequenced absorption of seven high-signal Figma reference systems

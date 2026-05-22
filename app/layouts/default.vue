@@ -1,14 +1,28 @@
 <script setup lang="ts">
-// Default layout — passthrough. Lets pages opt into a sidebar layout later
-// via `definePageMeta({ layout: 'sidebar' })` without rewriting app.vue.
+// Default layout — minimal wrapper. Lets pages opt into a sidebar layout
+// later via `definePageMeta({ layout: 'sidebar' })` without rewriting
+// app.vue.
 //
-// The bare `<slot />` root is intentional — Vue 3 supports fragment-style
-// single-root templates and we want zero extra DOM nodes around page
-// content. eslint-plugin-vue's `vue/no-multiple-template-root` is a
-// Vue-2-era rule that hasn't caught up; disabled below.
+// Wraps content in a `<div>` with safe-area-inset CSS so Tauri Mobile
+// builds (iOS / Android) get notch / dynamic-island / home-indicator /
+// gesture-nav clearance automatically. Zero cost on desktop / web —
+// env() values evaluate to 0 there. Captured in
+// design/platform-awareness.md as the one no-regret change available
+// today.
 </script>
 
 <template>
-  <!-- eslint-disable-next-line vue/no-multiple-template-root -->
-  <slot />
+  <div class="tux-default-layout">
+    <slot />
+  </div>
 </template>
+
+<style scoped>
+.tux-default-layout {
+  min-height: 100vh;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+</style>

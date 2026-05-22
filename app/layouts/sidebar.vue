@@ -117,6 +117,13 @@ const collapsed = ref(props.initialCollapsed);
 </template>
 
 <style scoped>
+/*
+ * Safe-area-inset handling for Tauri Mobile (iOS / Android) targets.
+ * Each layout edge that *can* hit a system inset (notch, dynamic island,
+ * home indicator, status bar, gesture nav) gets the `env()` value as
+ * inner padding. Zero cost on non-mobile browsers — envs evaluate to 0.
+ * Captured in design/platform-awareness.md as the one no-regret change.
+ */
 .tux-sidebar-layout__aside {
   flex-shrink: 0;
   border-left: 1px solid var(--surface-border);
@@ -127,6 +134,9 @@ const collapsed = ref(props.initialCollapsed);
      /activity feeds stay visible while the user scrolls main content. */
   height: 100%;
   align-self: stretch;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-right: env(safe-area-inset-right);
 }
 
 /* Hide the aside on narrow viewports (< md) so the main panel gets

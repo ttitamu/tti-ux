@@ -89,6 +89,15 @@ const components = [
   { name: "TuxReactionBar",   to: "/components/reaction-bar",   blurb: "Light-touch helpful/question/disagree row. Lower friction than a feedback form; counts display-only.", uses: "tux (no U-primitive)" },
   { name: "TuxStatComparison", to: "/components/stat-comparison", blurb: "Before/after stat block with delta + tone. Direct or inverted polarity (down-is-good metrics). Row / stack / inline layouts.", uses: "tux (no U-primitive)" },
   { name: "TuxChartLine",     to: "/visualizations/chart-line", blurb: "Native SVG line chart — end-of-line value labels, optional previous-period overlay + confidence band, auto SR summary.", uses: "tux (no U-primitive)" },
+  // Platform-aware chrome — see design/platform-awareness.md for the doctrine.
+  { name: "TuxAppFrame",      to: "/components/app-frame",      blurb: "Custom Tauri titlebar — traffic lights (Mac) / min-max-close (Win/Linux), brand + toolbar slots, drag regions. Replaces native window decoration.", uses: "tux (no U-primitive)" },
+  { name: "TuxFocusView",     to: "/components/focus-view",     blurb: "Full-viewport overlay for inspecting one piece of content — back + title + actions chrome, content slot. \"Open chart in focus mode.\"", uses: "Teleport" },
+  { name: "TuxMenuBar",       to: "/components/menu-bar",       blurb: "In-window File / Edit / View / Help menu strip for Windows / Linux Tauri shells. Skipped on Mac (system menu wins).", uses: "UDropdownMenu" },
+  { name: "TuxSplashScreen",  to: "/components/splash-screen",  blurb: "Branded app-launch overlay — brand mark + maroon hairline + status. Bridges Tauri window-show → Vue hydrate gap. Fades when loaded.", uses: "tux (no U-primitive)" },
+  { name: "TuxTabBar",        to: "/components/tab-bar",        blurb: "Bottom-anchored 3-5 mobile tabs — icon + label, maroon top-edge active rule, safe-area-inset-bottom honored. Tauri Mobile target.", uses: "tux (no U-primitive)" },
+  { name: "TuxFAB",           to: "/components/fab",            blurb: "Floating Action Button. Material-pattern primary action; icon-only circle or extended pill. Honors safe-area-inset.", uses: "tux (no U-primitive)" },
+  { name: "useTuxSwipe",      to: "/components/swipe",          blurb: "Composable: pointer/touch swipe detection with directional callbacks. Requires a11y-pair button per platform-awareness doctrine.", uses: "Pointer events" },
+  { name: "useTuxRipple",     to: "/components/ripple",         blurb: "Composable: Material-style tap-feedback ripple on a target element. Opt-in only; honors prefers-reduced-motion.", uses: "DOM + CSS transitions" },
 ];
 </script>
 

@@ -1,0 +1,114 @@
+/*
+ * tux-scrollbar.css — platform-aware scrollbar styling.
+ *
+ * Recipes lifted directly from
+ * reference/figma-cache/scrollbar-kit-macos-windows/NOTES.md and the
+ * platform-awareness doctrine in design/platform-awareness.md.
+ *
+ * Branches on `[data-platform]` set by `useTuxPlatform()` on
+ * `<html>` post-hydration. SSR renders the web fallback; client
+ * swaps once the composable runs.
+ *
+ * Opt-out: add `.tux-scrollbar-default` to any container that
+ * should keep native scrollbar styling (third-party embeds,
+ * deep-rendered components that break with custom scrollbars).
+ *
+ * Linux: defer to the GTK/Qt theme — we only set `scrollbar-width`
+ * and `scrollbar-color` (standard CSS) so users with strong DE
+ * preferences keep their look.
+ */
+
+/* ---- Default / web fallback ---- */
+:root[data-platform="web"] *,
+:root:not([data-platform]) * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-3, #d5dadf) transparent;
+}
+
+/* ---- macOS: overlay scrollbar, auto-hides ---- */
+:root[data-platform="mac"] *::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+:root[data-platform="mac"] *:hover::-webkit-scrollbar,
+:root[data-platform="mac"] *:focus-within::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+:root[data-platform="mac"] *::-webkit-scrollbar-track {
+  background: transparent;
+}
+:root[data-platform="mac"] *::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-muted, #6b7280) 35%, transparent);
+  border-radius: 4px;
+}
+:root[data-platform="mac"] *::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--text-muted, #6b7280) 55%, transparent);
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-platform="mac"] *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  :root[data-platform="mac"] *::-webkit-scrollbar-thumb {
+    background: var(--surface-3, #d5dadf);
+  }
+}
+
+/* ---- iOS: trust the system; scrollbars are platform-owned ---- */
+:root[data-platform="ios"] * {
+  /* No override; iOS Safari WebView handles scrollbar visibility. */
+}
+
+/* ---- Windows 11: persistent slim scrollbar ---- */
+:root[data-platform="win"] *::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+:root[data-platform="win"] *::-webkit-scrollbar-track {
+  background: var(--surface-1, #ffffff);
+}
+:root[data-platform="win"] *::-webkit-scrollbar-thumb {
+  background: var(--surface-3, #d5dadf);
+  border: 3px solid var(--surface-1, #ffffff);
+  border-radius: 6px;
+}
+:root[data-platform="win"] *::-webkit-scrollbar-thumb:hover {
+  background: var(--surface-4, #b8c0c8);
+}
+:root[data-platform="win"] *::-webkit-scrollbar-thumb:active {
+  background: var(--text-muted, #6b7280);
+}
+
+/* ---- Linux: defer to host theme ---- */
+:root[data-platform="linux"] * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-3, #d5dadf) transparent;
+}
+
+/* ---- Android: trust the system ---- */
+:root[data-platform="android"] * {
+  /* No override. */
+}
+
+/* ---- Opt-out: revert to native ---- */
+.tux-scrollbar-default,
+.tux-scrollbar-default * {
+  scrollbar-width: auto;
+  scrollbar-color: auto;
+}
+.tux-scrollbar-default::-webkit-scrollbar,
+.tux-scrollbar-default *::-webkit-scrollbar {
+  width: revert;
+  height: revert;
+}
+.tux-scrollbar-default::-webkit-scrollbar-thumb,
+.tux-scrollbar-default *::-webkit-scrollbar-thumb {
+  background: revert;
+  border: revert;
+  border-radius: revert;
+}
+.tux-scrollbar-default::-webkit-scrollbar-track,
+.tux-scrollbar-default *::-webkit-scrollbar-track {
+  background: revert;
+}
