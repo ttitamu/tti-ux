@@ -5,6 +5,36 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — composability doctrine + touchups (2026-05-22)
+
+**New doctrine doc:**
+
+- [`design/compositions.md`](design/compositions.md) — "Compositions
+  worth knowing" doctrine. Captures the **"X + Y composes more value
+  than they do alone"** patterns that emerged across the chart-family,
+  platform-aware, and AI-studio sprints. Seven sections (layout
+  shells, headlines + summaries, chart surfaces, browse + detail,
+  chat, cross-app nav, editorial) with code snippets + in-repo
+  consumer citations + non-obvious gotchas. Three tests for what
+  earns a slot. Composability is now a first-class doctrine, not
+  scattered hints in component JSDocs.
+
+**Navigation:**
+
+- Design-docs nav now lists Compositions, Chart foundations, and
+  Platform awareness alongside Doctrine / Components / Palette /
+  Roadmap. Previously these were only reachable via direct URL.
+- `app/pages/design/[doc].vue` title map extended for all current
+  design docs so the browser tab + breadcrumb read right.
+
+**Touchups — motion vocabulary aligned in example surfaces:**
+
+- `app/pages/examples/research-landing.vue` — TuxStatComparison
+  delta row gains `tux-mount-in` stagger so the year-over-year
+  numbers tick in subtly.
+- `app/pages/examples/sidebar-shell.vue` — Recent-activity rows
+  fade up with stagger as the page mounts.
+
 ### Added — second polish queue (2026-05-22)
 
 Four-phase polish following the chart-tooltip + entrance-animation

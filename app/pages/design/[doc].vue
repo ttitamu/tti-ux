@@ -29,9 +29,13 @@ const docMap = computed(() => {
 const source = computed(() => docMap.value[docName.value] ?? null);
 
 const titles: Record<string, string> = {
-  tux:        "tux — design system",
-  components: "Components doctrine",
-  palette:    "Palette + visual identity",
+  tux:                 "tux — design system",
+  components:          "Components doctrine",
+  palette:             "Palette + visual identity",
+  compositions:        "Compositions — patterns worth knowing",
+  "chart-foundations": "Chart foundations doctrine",
+  "platform-awareness": "Platform awareness doctrine",
+  "tauri-bindings":    "Tauri bindings reference",
 };
 
 function titleFor(slug: string): string {

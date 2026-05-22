@@ -106,8 +106,9 @@ const testimonials = [
       <!-- Year-over-year deltas — composed below the factoid row to
            show *how* the headline metrics moved, not just the latest
            value. Demonstrates TuxStatComparison alongside the
-           existing TuxFactoid for the "summary + comparison" rhythm. -->
-      <div class="research-landing__deltas mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+           existing TuxFactoid for the "summary + comparison" rhythm.
+           tux-mount-in stagger gives the row a subtle entrance. -->
+      <div class="research-landing__deltas mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 tux-mount-in tux-mount-in--stagger">
         <TuxStatComparison
           eyebrow="freight corridors"
           :current="412"
@@ -116,6 +117,7 @@ const testimonials = [
           :decimals="0"
           label="vs end of FY24"
           layout="stack"
+          :style="{ '--tux-mount-stagger-index': 0 }"
         />
         <TuxStatComparison
           eyebrow="non-compliance rate"
@@ -126,6 +128,7 @@ const testimonials = [
           label="vs pre-treatment baseline"
           polarity="invert"
           layout="stack"
+          :style="{ '--tux-mount-stagger-index': 1 }"
         />
         <TuxStatComparison
           eyebrow="monitored vehicles / day"
@@ -134,6 +137,7 @@ const testimonials = [
           suffix="M"
           label="vs Q3 last year"
           layout="stack"
+          :style="{ '--tux-mount-stagger-index': 2 }"
         />
       </div>
     </section>

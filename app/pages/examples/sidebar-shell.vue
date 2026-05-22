@@ -154,11 +154,12 @@ const recentSessions = [
 
       <section class="space-y-3">
         <TuxSectionHeader>Recent activity</TuxSectionHeader>
-        <ul class="space-y-2">
+        <ul class="space-y-2 tux-mount-in tux-mount-in--stagger">
           <li
-            v-for="s in recentSessions"
+            v-for="(s, idx) in recentSessions"
             :key="s.id"
             class="flex items-center gap-3 p-3 rounded-md border border-surface-border bg-surface-page hover:border-brand-primary transition-colors"
+            :style="{ '--tux-mount-stagger-index': idx }"
           >
             <UIcon name="lucide:message-square-text" class="w-4 h-4 text-text-muted flex-shrink-0" />
             <p class="flex-1 text-sm text-text-primary truncate">{{ s.title }}</p>

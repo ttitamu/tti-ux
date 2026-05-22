@@ -52,10 +52,13 @@ const navTree = [
   {
     label: "Design",
     children: [
-      { label: "Doctrine",   to: "/design/tux",        icon: "lucide:book-open" },
-      { label: "Components", to: "/design/components", icon: "lucide:layers" },
-      { label: "Palette",    to: "/design/palette",    icon: "lucide:swatch-book" },
-      { label: "Roadmap",    to: "/design/roadmap",    icon: "lucide:map" },
+      { label: "Doctrine",     to: "/design/tux",                 icon: "lucide:book-open" },
+      { label: "Components",   to: "/design/components",          icon: "lucide:layers" },
+      { label: "Compositions", to: "/design/compositions",        icon: "lucide:blocks" },
+      { label: "Palette",      to: "/design/palette",             icon: "lucide:swatch-book" },
+      { label: "Roadmap",      to: "/design/roadmap",             icon: "lucide:map" },
+      { label: "Chart foundations", to: "/design/chart-foundations", icon: "lucide:area-chart" },
+      { label: "Platform awareness", to: "/design/platform-awareness", icon: "lucide:monitor-smartphone" },
     ],
   },
   {
