@@ -9,7 +9,7 @@ subfolders alongside `<slug>/<page-slug>/NOTES.md`.
 Listing cached in [`PROJECT-FILES.json`](PROJECT-FILES.json).
 
 **Totals:** 70 files · 69 with cover ·
-46 absorbed · 24 stub · 0 fetch errors.
+51 absorbed · 19 stub · 0 fetch errors.
 
 ## Why this exists
 
@@ -32,14 +32,14 @@ These directly inform TUX foundations. Process first.
 
 | | File | Pages | Status |
 |---|---|---|---|
-| 🖼 | [@shadcn_ui - Design System (Community)](shadcn-ui-design-system/NOTES.md) | 6 | stub |
+| 🖼 | [@shadcn_ui - Design System (Community)](shadcn-ui-design-system/NOTES.md) | 6 | absorbed |
 | 🖼 | [@vercel AI Elements ✨ (Community)](vercel-ai-elements/NOTES.md) | ? | absorbed |
 | 🖼 | [Aggie UX Design System _ v1.7.0 (Community)](aggie-ux-design-system-v1-7-0/NOTES.md) | 8 | absorbed |
 | 🖼 | [Backstage Design System (Community)](backstage-design-system/NOTES.md) | ? | absorbed |
 | 🖼 | [Microsoft Fluent 2 Web (Community)](microsoft-fluent-2-web/NOTES.md) | ? | absorbed |
 | 🖼 | [Primer Web (Community)](primer-web/NOTES.md) | ? | absorbed |
 | 🖼 | [shadcn_ui components with variables & Tailwind classes - Updated January 2026 (Community)](shadcn-ui-components-with-variables-tailwind-classes-updated/NOTES.md) | ? | absorbed |
-| 🖼 | [TailwindCSS v4.2.4 Design System (Community)](tailwindcss-v4-2-4-design-system/NOTES.md) | 1 | stub |
+| 🖼 | [TailwindCSS v4.2.4 Design System (Community)](tailwindcss-v4-2-4-design-system/NOTES.md) | 1 | absorbed |
 
 ## Medium signal (37)
 
@@ -96,7 +96,7 @@ reference but probably not absorbed into TUX. Scan covers for surprises.
 | 🖼 | [59 Charts UI Responsive Components Chart.js Chartist Apex Charts and Recharts (Community)](59-charts-ui-responsive-components-chart-js-chartist-apex-ch/NOTES.md) | ? | absorbed |
 | 🖼 | [Accessible design toolkit (Community)](accessible-design-toolkit/NOTES.md) | ? | absorbed |
 | 🖼 | [ACS UI Library Design Kit (Community)](acs-ui-library-design-kit/NOTES.md) | 4 | stub |
-| 🖼 | [Airbnb UI Kit (Community)](airbnb-ui-kit/NOTES.md) | 21 | stub |
+| 🖼 | [Airbnb UI Kit (Community)](airbnb-ui-kit/NOTES.md) | 21 | absorbed |
 | 🖼 | [Ant Design Open Source (Community)](ant-design-open-source/NOTES.md) | 70 | stub |
 | 🖼 | [App Icon Template (Community)](app-icon-template/NOTES.md) | 2 | stub |
 | 🖼 | [Bootstrap 5 Design System - UI Kit (Community)](bootstrap-5-design-system-ui-kit/NOTES.md) | 62 | stub |
@@ -108,8 +108,8 @@ reference but probably not absorbed into TUX. Scan covers for surprises.
 | 🖼 | [Figma’s Trending Most Powerfull Wireframing UI kit Design System (Zara) (Community)](figma-s-trending-most-powerfull-wireframing-ui-kit-design-sy/NOTES.md) | 16 | stub |
 | 🖼 | [HeroUI Figma Kit (Community) (Community)](heroui-figma-kit/NOTES.md) | 38 | stub |
 | 🖼 | [LOGIFY - WEB LOGIN UI KIT (Community)](logify-web-login-ui-kit/NOTES.md) | 2 | stub |
-| 🖼 | [Material UI for Figma (and MUI X) (Community)](material-ui-for-figma-and-mui-x/NOTES.md) | 70 | stub |
-| 🖼 | [Material UI for Figma (and MUI X) (Community) (1)](material-ui-for-figma-and-mui-x-1/NOTES.md) | 70 | stub |
+| 🖼 | [Material UI for Figma (and MUI X) (Community)](material-ui-for-figma-and-mui-x/NOTES.md) | ? | absorbed |
+| 🖼 | [Material UI for Figma (and MUI X) (Community) (1)](material-ui-for-figma-and-mui-x-1/NOTES.md) | ? | absorbed |
 | 🖼 | [Mobile UI kit (Community)](mobile-ui-kit/NOTES.md) | 3 | stub |
 | 🖼 | [monday.com project template (Community)](monday-com-project-template/NOTES.md) | 9 | stub |
 | 🖼 | [Neumorphism UI Kit (Community)](neumorphism-ui-kit/NOTES.md) | 4 | stub |

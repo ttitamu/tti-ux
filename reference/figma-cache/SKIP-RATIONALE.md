@@ -1,10 +1,11 @@
-# Skip-rationale — 22 remaining stub files
+# Skip-rationale — 21 remaining stub files
 
-**Status:** consolidated audit (2026-05-22) covering the files in
-the skip-bucket of [`INDEX.md`](./INDEX.md) that **don't warrant
-their own `NOTES.md` deep-dive**. Each entry below explains why
-the file is reference-only and what TUX-equivalent surface (if
-any) already covers the patterns it contains.
+**Status:** consolidated audit (2026-05-22, updated same day after
+coverage-gap close) covering the files in the skip-bucket of
+[`INDEX.md`](./INDEX.md) that **don't warrant their own `NOTES.md`
+deep-dive**. Each entry below explains why the file is
+reference-only and what TUX-equivalent surface (if any) already
+covers the patterns it contains.
 
 This doc exists so future contributors don't have to wonder whether
 a stub file was "skipped intentionally" or "forgotten." It was
@@ -12,11 +13,28 @@ intentional — the per-file `NOTES.md` already records the page
 inventory; the rationale below is the missing "why."
 
 After the 2026-05-22 absorption marathons (high-signal, medium-
-signal, platform-aware, chart-family closure), 47 of 70 files are
-absorbed. The 22 below + 1 file already audited as duplicate
-(Material UI for Figma ×2) round out the remaining skip-bucket.
+signal, platform-aware, chart-family closure, sleeper-skim audits,
+and a coverage-gap close), **49 of 70 files are absorbed** with
+explicit `NOTES.md` decisions. The 21 below + 0 missing-rationale
+files = full corpus triaged.
 
-## The 22
+### Coverage-gap close (2026-05-22)
+
+Three files originally in this rationale doc earned their own
+`NOTES.md` after a coverage audit revealed they had decisions
+worth recording independently:
+
+- **`shadcn_ui - Design System (original)`** — superseded by the
+  Jan 2026 variant; documented in
+  [`shadcn-ui-design-system/NOTES.md`](./shadcn-ui-design-system/NOTES.md).
+- **`TailwindCSS v4.2.4 Design System`** — pre-absorbed via
+  `tokens.css` + `@theme`; documented in
+  [`tailwindcss-v4-2-4-design-system/NOTES.md`](./tailwindcss-v4-2-4-design-system/NOTES.md).
+- **`Airbnb UI Kit`** — consumer-travel kit, atom-level coverage
+  but wrong register; documented in
+  [`airbnb-ui-kit/NOTES.md`](./airbnb-ui-kit/NOTES.md).
+
+## The 21
 
 ### Other design systems we're not adopting
 
@@ -28,12 +46,16 @@ absorbed. The 22 below + 1 file already audited as duplicate
 | **Design System / UI kit / +6000 Components** (24 pages) | Kitchen-sink kit with no curated POV. By definition the 6000 components include duplicates of every Nuxt UI primitive; no signal beyond noise. |
 | **DesignCode UI** (32 pages) | Consumer-app design system (Swift/SwiftUI-flavored). Apple-suite absorptions already cover the platform-aware ground for Tauri-Mac targets. |
 | **HeroUI Figma Kit** (38 pages) | NextUI rebrand; React-focused. TUX is Vue + Nuxt UI 4 on Reka primitives — different framework path. |
-| **Material UI for Figma (and MUI X)** ×2 (70 pages each, duplicate keys) | MUI is React-only; Material 3 absorption already captured the relevant Android / cross-platform patterns. |
 | **Vibe UI Kit by monday.com** (55 pages) | monday.com's product design system; consumer-SaaS chrome very different from research-editorial. |
 | **Component library** (45 pages) | Generic kitchen-sink kit; same reasoning as the +6000 Components entry above. |
 | **Essential UI** (3 pages) | Single-author minimalist kit; nothing TUX-specific. |
 | **ACS UI Library Design Kit** (4 pages) | Niche consumer kit; no relevant patterns. |
 | **Base Gallery** (2 pages) | Promotional gallery, not a design system. |
+
+> **Audited separately** (covered in coverage-gap close 2026-05-22):
+> the Material UI for Figma duplicates earned their own NOTES.md
+> files; the Airbnb UI Kit also got its own NOTES.md. See top of
+> this doc.
 
 ### Mockup / wireframe / authoring tools
 
