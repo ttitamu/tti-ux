@@ -5,6 +5,47 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — next-sprint batch: SplitPane + AppSwitcher + ChartBar (2026-05-22)
+
+Closes 3 of the 4 deferred roadmap candidates from the
+platform-aware sprint. Tauri-bindings companion doc lands too.
+
+**New components:**
+
+- **[`TuxSplitPane`](app/components/TuxSplitPane.vue)** — in-page
+  master-detail layout with resizable list pane (drag handle, double-
+  click to collapse, sliver-click to expand) and optional bottom pane
+  for related content. Width persists via localStorage when an `id`
+  is provided. Folds to single-column below tablet. Selection is
+  URL-bound (consumer's responsibility); empty-state defaults to
+  `TuxEmptyState` if `#empty` slot not provided. Source: Fabric
+  "Multiview" absorption.
+- **[`TuxAppSwitcher`](app/components/TuxAppSwitcher.vue)** — waffle-
+  button trigger + popover grid of app tiles for hopping between TTI
+  consumer apps (Landscape ↔ AI Studio ↔ future). Current-app tile
+  carries `aria-current="page"` + visual disabled state. Source:
+  Fabric "Suite header" absorption.
+- **[`TuxChartBar`](app/components/TuxChartBar.vue)** — second
+  Priority B chart, sibling to TuxChartLine. Native SVG; vertical
+  (default) + horizontal orientations; single / grouped / stacked
+  variants; optional comparison overlay (Snow "Projections vs
+  Actuals" pattern); value labels above-bar or in-bar; auto SR
+  summary. Follows `chart-foundations.md` doctrine.
+
+**New doc:**
+
+- **[`design/tauri-bindings.md`](design/tauri-bindings.md)** —
+  companion to platform-awareness. Enumerates which TUX components
+  call which Tauri APIs (window controls in `TuxAppFrame`, share
+  sheet in `TuxArtifact`, file dialog in `TuxCodeBlock`,
+  notifications in `TuxStatusToast`), the web fallback for each, and
+  a capability allowlist template for consumer Tauri shells.
+
+**Showcase routes:** `/components/{split-pane, app-switcher}` +
+`/visualizations/chart-bar` — full 6-step shipping discipline
+(routes, nav, index cards, components.md rows, roadmap struck
+through).
+
 ### Added — platform-aware Tauri build sprint (2026-05-22)
 
 Doctrine + 8 components + 2 composables + 1 CSS utility + safe-area

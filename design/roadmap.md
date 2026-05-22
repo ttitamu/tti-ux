@@ -275,18 +275,30 @@ tonal palette, elevation-as-color, SF Symbols).
 - **TuxModal** — `size` prop + `variant: 'standard' | 'sheet' |
   'auto'` (mobile sheet from iOS/M3 patterns).
 
+### Recently shipped — next-sprint batch (2026-05-22)
+
+- ~~**TuxAppSwitcher**~~ — shipped 2026-05-22. Waffle button +
+  popover grid for hopping between TTI consumer apps.
+- ~~**TuxSplitPane**~~ — shipped 2026-05-22. In-page master-detail
+  layout with resizable list pane (localStorage-persistent),
+  optional bottom pane, URL-bound selection.
+- ~~**TuxChartBar**~~ — shipped 2026-05-22. Second Priority B chart;
+  single / grouped / stacked, vertical / horizontal, comparison
+  overlay for projections-vs-actuals.
+- ~~**`design/tauri-bindings.md`**~~ — shipped 2026-05-22.
+  Companion doc enumerating which TUX components call which Tauri
+  APIs + the capability allowlist template.
+
 ### Still on the platform-aware roadmap (deferred to consumer pull)
 
-- **TuxAppSwitcher** — waffle button + popover grid for hopping
-  between TTI consumer apps (Landscape ↔ tti-ai-studio ↔ future).
-  Source: Microsoft Fabric "Suite header."
-- **TuxSplitPane** — in-page master-detail layout with URL-bound
-  selection. Source: Microsoft Fabric "Multiview."
 - **TuxChartGauge** — 270° arc with needle. Source: Microsoft Teams
   data viz inventory. Defer; research dashboards rarely use gauges.
-- **`design/tauri-bindings.md`** — companion doc enumerating which
-  TUX components call which Tauri APIs (share sheet, native
-  notification, file dialog) and the web fallback path.
+- **TuxChartArea** — stacked area chart with KPI strip above
+  composition. Source: Charts UI Kit absorption carry-forward.
+- **TuxChartScatter** — scatter plot for correlation surfaces.
+  Source: chart-foundations Priority B roadmap.
+- **TuxChartDonut** — categorical share-of-total. Source: Snow
+  Dashboard + Charts UI Kit carry-forwards.
 
 ---
 

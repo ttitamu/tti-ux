@@ -21,6 +21,7 @@ npm run dev
 | `TuxAlphaNav`        | tux native               | `/components/alpha-nav`         |
 | `TuxAnnouncementBanner` | tux native            | `/components/announcement-banner` |
 | `TuxAppFrame`        | tux native               | `/components/app-frame`         |
+| `TuxAppSwitcher`     | `UPopover`               | `/components/app-switcher`      |
 | `TuxArtifact`        | tux native               | `/components/artifact`          |
 | `TuxBadge`           | `UBadge`                 | `/components/badge`             |
 | `TuxBetaRibbon`      | tux native               | `/components/beta-ribbon`       |
@@ -86,6 +87,7 @@ npm run dev
 | `TuxSkeleton`        | tux native               | `/components/skeleton`          |
 | `TuxSlideover`       | tux native               | `/components/slideover`         |
 | `TuxSplashScreen`    | tux native               | `/components/splash-screen`     |
+| `TuxSplitPane`       | tux native               | `/components/split-pane`        |
 | `TuxStepper`         | tux native               | `/components/stepper`           |
 | `TuxStatComparison`  | tux native               | `/components/stat-comparison`   |
 | `TuxSuggestionChips` | tux native               | `/components/suggestion-chips`  |
@@ -161,9 +163,11 @@ the `TuxExample` primitive.
 | Component / composable | Wraps                  | Route                           |
 | -------------------- | ------------------------ | ------------------------------- |
 | `TuxAppFrame`        | tux native               | `/components/app-frame`         |
+| `TuxAppSwitcher`     | `UPopover`               | `/components/app-switcher`      |
 | `TuxFocusView`       | Teleport + native        | `/components/focus-view`        |
 | `TuxMenuBar`         | `UDropdownMenu`          | `/components/menu-bar`          |
 | `TuxSplashScreen`    | tux native               | `/components/splash-screen`     |
+| `TuxSplitPane`       | tux native               | `/components/split-pane`        |
 | `TuxTabBar`          | tux native               | `/components/tab-bar`           |
 | `TuxFAB`             | tux native               | `/components/fab`               |
 | `useTuxPlatform`     | composable               | (consumed by all of the above)  |

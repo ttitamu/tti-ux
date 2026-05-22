@@ -91,6 +91,9 @@ const components = [
   { name: "TuxChartLine",     to: "/visualizations/chart-line", blurb: "Native SVG line chart — end-of-line value labels, optional previous-period overlay + confidence band, auto SR summary.", uses: "tux (no U-primitive)" },
   // Platform-aware chrome — see design/platform-awareness.md for the doctrine.
   { name: "TuxAppFrame",      to: "/components/app-frame",      blurb: "Custom Tauri titlebar — traffic lights (Mac) / min-max-close (Win/Linux), brand + toolbar slots, drag regions. Replaces native window decoration.", uses: "tux (no U-primitive)" },
+  { name: "TuxAppSwitcher",   to: "/components/app-switcher",   blurb: "Waffle-button popover for hopping between TTI consumer apps (Landscape ↔ AI Studio). Current-app tile carries aria-current.", uses: "UPopover" },
+  { name: "TuxSplitPane",     to: "/components/split-pane",     blurb: "In-page master-detail layout — resizable list + detail + optional bottom pane. Width persists via localStorage. URL-bound selection.", uses: "tux (no U-primitive)" },
+  { name: "TuxChartBar",      to: "/visualizations/chart-bar",  blurb: "Native SVG bar chart — single / grouped / stacked variants, vertical or horizontal, optional comparison overlay (projection vs actual).", uses: "tux (no U-primitive)" },
   { name: "TuxFocusView",     to: "/components/focus-view",     blurb: "Full-viewport overlay for inspecting one piece of content — back + title + actions chrome, content slot. \"Open chart in focus mode.\"", uses: "Teleport" },
   { name: "TuxMenuBar",       to: "/components/menu-bar",       blurb: "In-window File / Edit / View / Help menu strip for Windows / Linux Tauri shells. Skipped on Mac (system menu wins).", uses: "UDropdownMenu" },
   { name: "TuxSplashScreen",  to: "/components/splash-screen",  blurb: "Branded app-launch overlay — brand mark + maroon hairline + status. Bridges Tauri window-show → Vue hydrate gap. Fades when loaded.", uses: "tux (no U-primitive)" },

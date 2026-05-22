@@ -74,6 +74,7 @@ const navTree = [
       { label: "TuxAlert",         to: "/components/alert",          icon: "lucide:message-square" },
       { label: "TuxAnnouncementBanner", to: "/components/announcement-banner", icon: "lucide:megaphone" },
       { label: "TuxAppFrame",      to: "/components/app-frame",      icon: "lucide:app-window" },
+      { label: "TuxAppSwitcher",   to: "/components/app-switcher",   icon: "lucide:layout-grid" },
       { label: "TuxArtifact",      to: "/components/artifact",       icon: "lucide:file-output" },
       { label: "TuxBadge",         to: "/components/badge",          icon: "lucide:badge" },
       { label: "TuxAccordion",     to: "/components/accordion",      icon: "lucide:chevrons-up-down" },
@@ -143,6 +144,7 @@ const navTree = [
       { label: "TuxSkeleton",      to: "/components/skeleton",       icon: "lucide:loader" },
       { label: "TuxSlideover",     to: "/components/slideover",      icon: "lucide:panel-right" },
       { label: "TuxSplashScreen",  to: "/components/splash-screen",  icon: "lucide:loader-circle" },
+      { label: "TuxSplitPane",     to: "/components/split-pane",     icon: "lucide:columns-2" },
       { label: "TuxStatComparison", to: "/components/stat-comparison", icon: "lucide:arrow-up-right" },
       { label: "TuxStepper",       to: "/components/stepper",        icon: "lucide:list-checks" },
       { label: "TuxSuggestionChips", to: "/components/suggestion-chips", icon: "lucide:sparkles" },
@@ -194,6 +196,7 @@ const navTree = [
     label: "Visualizations",
     children: [
       { label: "Visualizations overview", to: "/visualizations",                  icon: "lucide:chart-pie" },
+      { label: "TuxChartBar",             to: "/visualizations/chart-bar",        icon: "lucide:bar-chart-3" },
       { label: "TuxChartGeographic",      to: "/visualizations/chart-geographic", icon: "lucide:map" },
       { label: "TuxChartLine",            to: "/visualizations/chart-line",       icon: "lucide:line-chart" },
       { label: "TuxChartSunburst",        to: "/visualizations/chart-sunburst",   icon: "lucide:circle-dot" },
