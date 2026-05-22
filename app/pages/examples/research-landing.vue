@@ -92,6 +92,35 @@ const testimonials = [
       </template>
     </TuxPageHeader>
 
+    <!-- Center badge + program leads byline + funder badges.
+         Added 2026-05-22 dogfood pass: sprinkles the TTI identity
+         cluster into the existing research-program landing rhythm. -->
+    <section class="research-landing__identity">
+      <div class="flex items-center gap-2 flex-wrap">
+        <TuxCenterBadge center="safety" />
+        <TuxCenterBadge center="mobility" />
+        <span class="text-xs text-text-muted">·  Cross-division program</span>
+      </div>
+      <TuxAuthorByline
+        layout="compact"
+        :authors="[
+          { name: 'M. Hassan',    affiliations: [1], orcid: '0000-0002-1234-5678', corresponding: true },
+          { name: 'L. Velazquez', affiliations: [1] },
+          { name: 'R. Chen',      affiliations: [2] },
+        ]"
+        :affiliations="[
+          'Texas A&M Transportation Institute, Roadway Safety Division',
+          'Texas A&M Transportation Institute, Mobility Division',
+        ]"
+      />
+      <div class="flex flex-wrap items-center gap-2 mt-2">
+        <span class="text-xs uppercase tracking-wider text-text-muted font-semibold">Funded by:</span>
+        <TuxFundingSource funder="FHWA" abbrev="FHWA" grant="HRDS-30-2022-04" size="sm" />
+        <TuxFundingSource funder="TxDOT" grant="0-7042" size="sm" />
+        <TuxFundingSource funder="Bloomberg" grant="BP-EQT-2024" size="sm" />
+      </div>
+    </section>
+
     <!-- By-the-numbers row -->
     <section>
       <TuxFactoid
@@ -265,3 +294,16 @@ const testimonials = [
     </section>
   </div>
 </template>
+
+<style scoped>
+.research-landing__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface-sunken);
+  border-left: 3px solid var(--brand-primary);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  margin: -0.5rem 0 1.5rem 0;
+}
+</style>

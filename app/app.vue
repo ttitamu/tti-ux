@@ -184,6 +184,12 @@ const navTree = [
     label: "Composition",
     children: [
       { label: "Examples", to: "/examples", icon: "lucide:layout-panel-left" },
+      { label: "  · Center landing", to: "/examples/center-landing", icon: "lucide:landmark" },
+      { label: "  · Landscape dashboard", to: "/examples/landscape-dashboard", icon: "lucide:map" },
+      { label: "  · Paper page", to: "/examples/paper-page", icon: "lucide:file-text" },
+      { label: "  · Research landing", to: "/examples/research-landing", icon: "lucide:milestone" },
+      { label: "  · Sidebar shell", to: "/examples/sidebar-shell", icon: "lucide:panel-left" },
+      { label: "  · tti-ai-studio session", to: "/examples/tti-ai-studio-session", icon: "lucide:bot" },
       { label: "Markdown", to: "/markdown", icon: "lucide:file-text" },
       { label: "Patterns", to: "/patterns", icon: "lucide:layers-2" },
       { label: "Preview",  to: "/preview",  icon: "lucide:image" },

@@ -414,6 +414,222 @@ uses the page-header path).
 
 ---
 
+## Research-publishing surfaces
+
+### Paper page rhythm
+
+The canonical editorial-research paper composition shipped 2026-05-22.
+The order matters — each component informs the reader's parse of
+the next.
+
+```vue
+<TuxBreadcrumbs :trail="trail" />
+<TuxCenterBadge :center="centerKey" />
+<TuxPageHeader eyebrow="article · venue" :title="paperTitle">…</TuxPageHeader>
+<TuxAuthorByline :authors="authors" :affiliations="affiliations" />
+<TuxPaperMeta :type="type" :venue="venue" :published="date" :doi="doi" :license="license" :funders="funders" />
+
+<!-- Sticky actions row: funder badges + Cite + PDF + Share -->
+<div class="paper-page__actions">
+  <TuxFundingSource v-for="f in fundersList" v-bind="f" size="sm" />
+  <TuxCitationExport :citation="citationData" />
+  <UButton variant="ghost" icon="lucide:download">PDF</UButton>
+</div>
+
+<TuxAbstract :background="…" :methods="…" :results="…" :conclusion="…" :keywords="kw" />
+
+<!-- Body sections — h2 numbering 1., 2., 3., … -->
+<section>
+  <h2>1.  Introduction</h2>
+  <p>… <TuxFootnote :n="1" :text="…" /> …</p>
+</section>
+
+<!-- Numbered figures + tables -->
+<TuxFigureCaption :number="1" :caption="…" :source="…">
+  <TuxChartLine :labels="…" :series="…" />
+</TuxFigureCaption>
+
+<TuxTableCaption :number="1" :caption="…">
+  <table>…</table>
+</TuxTableCaption>
+
+<TuxAcknowledgments :funding="…" :acknowledgments="…" :conflicts="…" :ethics="…" />
+
+<!-- Footnotes list at document end -->
+<section>
+  <h2>Notes</h2>
+  <ol><li id="fn-1">… <a href="#fn-ref-1">↩</a></li>…</ol>
+</section>
+```
+
+**Consumer:** `app/pages/examples/paper-page.vue` (full demo).
+
+**Notes:** TuxFootnote's hover preview pairs with a footnotes-list
+at the document end (consumer's responsibility — the `id="fn-N"`
+on each list item matches the `targetId` the popover links to).
+
+### Sticky-actions Cite sidebar / row
+
+Two arrangements work for the "Cite + funders + PDF + Share"
+actions: a sticky-row beneath the paper meta (used in the example
+above), or a sticky right-rail sidebar for long-form papers.
+
+```vue
+<!-- Sidebar variant -->
+<aside class="paper-actions-rail">
+  <div class="sticky top-6 space-y-3">
+    <TuxCitationExport :citation="c" />
+    <UButton block variant="outline" icon="lucide:download">PDF</UButton>
+    <div class="space-y-1">
+      <TuxFundingSource v-for="f in funders" v-bind="f" size="sm" layout="stacked" />
+    </div>
+  </div>
+</aside>
+```
+
+**Notes:** the stacked-funder variant works well in the narrow rail
+(80–120 px wide), full-width chips in the row variant.
+
+---
+
+## TTI identity surfaces
+
+### Center landing rhythm
+
+The hero + featured-researchers + active-programs + funders
+composition shipped 2026-05-22.
+
+```vue
+<TuxBreadcrumbs :trail="['Home', 'Divisions', centerName]" />
+<TuxCenterBadge :center="centerKey" />
+<TuxPageHeader eyebrow="division · …" :title="centerName" rhythm="hero">
+  Short summary of the division's research focus.
+</TuxPageHeader>
+
+<!-- Lab/division identity card — the marquee identity block. -->
+<TuxLab v-bind="lab" />
+
+<!-- Featured-researchers row with stagger entrance -->
+<div class="grid grid-cols-3 gap-6 tux-mount-in tux-mount-in--stagger">
+  <TuxResearcher v-for="(r, i) in featured" v-bind="r" :key="r.name"
+    :style="{ '--tux-mount-stagger-index': i }" />
+</div>
+
+<!-- Active programs grid -->
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-6">
+  <TuxProgram v-for="p in programs" v-bind="p" :key="p.name" />
+</div>
+
+<!-- Funding partners strip + cross-division badges -->
+<div class="flex flex-wrap gap-3">
+  <TuxFundingSource v-for="f in fundersList" v-bind="f" />
+</div>
+<div class="flex flex-wrap gap-2">
+  <NuxtLink v-for="c in otherCenters" :key="c" :to="c.to">
+    <TuxCenterBadge :center="c.key" />
+  </NuxtLink>
+</div>
+```
+
+**Consumer:** `app/pages/examples/center-landing.vue`.
+
+**Notes:** TuxCenterBadge wrapped in NuxtLink is the canonical
+"cross-link to another division" affordance. The badges are
+distinctly colored so multiple in a row read as a directory
+rather than a banner.
+
+### Cross-division byline
+
+For research that spans multiple TTI divisions, render multiple
+TuxCenterBadge entries above the byline.
+
+```vue
+<div class="flex items-center gap-2 flex-wrap">
+  <TuxCenterBadge center="safety" />
+  <TuxCenterBadge center="mobility" />
+  <span class="text-xs text-text-muted">·  Cross-division program</span>
+</div>
+<TuxAuthorByline :authors="authors" :affiliations="affiliations" />
+```
+
+**Consumer:** `app/pages/examples/research-landing.vue` § identity row.
+
+---
+
+## Corridor surfaces
+
+### Corridor study panel
+
+Pairs `TuxCorridorStrip` (the linear viz) with a `TuxMapMarker`
+legend below so the strip's event tones read against the marker
+shapes used elsewhere in the dashboard.
+
+```vue
+<TuxSectionHeader>Active corridor study · I-35 mile 174–195</TuxSectionHeader>
+<TuxCorridorStrip
+  name="I-35 corridor — northbound"
+  direction="Northbound  →"
+  :from-mile="174"
+  :to-mile="195"
+  :segments="segments"
+  :events="events"
+/>
+
+<div class="flex flex-wrap items-start gap-4 mt-3">
+  <div class="flex items-center gap-2">
+    <TuxMapMarker kind="intersection" size="md" />
+    <span class="text-xs">Intersection</span>
+  </div>
+  <!-- … site, treatment, incident -->
+</div>
+```
+
+**Consumer:** `app/pages/examples/landscape-dashboard.vue` § Active
+corridor study panel; also `app/pages/examples/paper-page.vue`
+§ 2.1 sub-study.
+
+**Notes:** the same data feeds both the operational dashboard and
+the published paper — illustrates the "TUX components let the
+operational and published views share a single data source"
+affordance.
+
+---
+
+## Chat surfaces (extension)
+
+### Markdown composer in chat
+
+`TuxMarkdownEditor` slotted into the composer position of a chat
+surface. Researchers can format their follow-ups with markdown
+shortcuts, preview before sending, and the editor handles
+char + word counts, min-length checks, and reduced-motion.
+
+```vue
+<div class="rounded-md border-2 border-brand-primary bg-surface-page p-2 space-y-2">
+  <TuxMarkdownEditor
+    v-model="draft"
+    :rows="5"
+    :min-length="3"
+    placeholder="Ask a follow-up — markdown supported · ⌘B / ⌘I / ⌘K · ⌘↵ to send"
+  />
+  <div class="flex items-center justify-between gap-3 px-1">
+    <div class="flex items-center gap-2 text-xs text-text-muted">
+      <code>{{ corpus }}</code> · <code>{{ model }}</code>
+    </div>
+    <TuxButton intent="primary" icon="lucide:send-horizontal" size="sm">Send</TuxButton>
+  </div>
+</div>
+```
+
+**Consumer:** `app/pages/examples/tti-ai-studio-session.vue` § composer
+(refreshed 2026-05-22 from plain textarea to TuxMarkdownEditor).
+
+**Notes:** the editor's built-in preview pairs with the LLM's
+markdown rendering — what the user sees in the preview is what
+the model gets, modulo the system prompt.
+
+---
+
 ## Editorial surfaces
 
 ### TuxBlockquote + TuxMediaSlab (publication landing)

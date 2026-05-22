@@ -30,6 +30,20 @@ const examples = [
     blurb: "Demonstrates `app/layouts/sidebar.vue` — the opt-in app-shell layout built on UDashboardGroup + UDashboardSidebar + UDashboardPanel. Four named slots (header, rail-header, rail, rail-footer) + default content. Try resizing.",
     components: 5,
   },
+  {
+    slug: "paper-page",
+    eyebrow: "publishing · academic article",
+    title: "Research paper",
+    blurb: "Full editorial-research paper page exercising the research-publishing cluster end-to-end. Composes TuxPageHeader + TuxAuthorByline + TuxPaperMeta + TuxAbstract + TuxChartLine (inside TuxFigureCaption) + TuxTableCaption + TuxCorridorStrip + TuxFootnote (inline + bottom list) + TuxCitationExport (6 formats) + TuxAcknowledgments + TuxCenterBadge + TuxFundingSource.",
+    components: 12,
+  },
+  {
+    slug: "center-landing",
+    eyebrow: "marketing · TTI identity",
+    title: "TTI center landing",
+    blurb: "Mobility Division landing page exercising the TTI identity cluster end-to-end. TuxLab as hero, TuxResearcher × 3 featured, TuxProgram × 3 active programs, TuxFundingSource strip, TuxCenterBadge throughout (including cross-division links to the other five TTI centers).",
+    components: 8,
+  },
 ];
 </script>
 

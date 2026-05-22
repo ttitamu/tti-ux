@@ -123,6 +123,10 @@ const artifactFocusOpen = ref(false);
 
 // Reaction state on the assistant turn. Replaces the inline thumbs.
 const assistantReaction = ref<string | undefined>(undefined);
+
+// Composer draft (dogfood 2026-05-22) — backing the new
+// TuxMarkdownEditor below.
+const composerDraft = ref("");
 </script>
 
 <template>
@@ -385,13 +389,21 @@ const assistantReaction = ref<string | undefined>(undefined);
           <UChatShimmer text="Drafting follow-up response…" />
         </div>
 
-        <!-- Composer -->
-        <div class="rounded-md border-2 border-brand-primary bg-surface-page p-3">
-          <textarea
-            class="w-full min-h-[5rem] bg-transparent border-0 outline-0 resize-y font-body text-sm leading-relaxed"
-            placeholder="Ask a follow-up — Cmd+Enter to send, Cmd+K for commands"
+        <!-- Composer with TuxMarkdownEditor (refresh 2026-05-22).
+             Drops the prior plain textarea for the branded markdown
+             editor — researchers can format their follow-ups with
+             markdown shortcuts, see a live preview, and the editor
+             handles char/word counts and reduced-motion. -->
+        <div class="rounded-md border-2 border-brand-primary bg-surface-page p-2 space-y-2">
+          <TuxMarkdownEditor
+            v-model="composerDraft"
+            :rows="5"
+            :min-length="3"
+            :max-length="8000"
+            placeholder="Ask a follow-up — markdown supported · ⌘B / ⌘I / ⌘K · ⌘↵ to send"
+            aria-label="Compose a follow-up message"
           />
-          <div class="flex items-center justify-between gap-3 pt-2 border-t border-surface-border mt-2">
+          <div class="flex items-center justify-between gap-3 px-1">
             <div class="flex items-center gap-2 text-xs text-text-muted">
               <UIcon name="lucide:database" class="w-3.5 h-3.5" />
               <code class="font-mono">grants-2024-2026</code>

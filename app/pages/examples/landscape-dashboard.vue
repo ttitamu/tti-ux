@@ -214,6 +214,23 @@ const kpiTotals = computed(() => {
   const grand = totals.reduce((a, b) => a + b, 0);
   return { totals, grand };
 });
+
+// Active corridor study (dogfood pass 2026-05-22) — I-35 mile
+// 174-195 sub-study, matches the paper-page example.
+const studyCorridorSegments = [
+  { from: 174, to: 178, label: "Pre-treatment baseline", toneIndex: 6 },
+  { from: 178, to: 184, label: "Treatment zone A", toneIndex: 4 },
+  { from: 184, to: 188, label: "Construction zone", toneIndex: 7 },
+  { from: 188, to: 192, label: "Treatment zone B", toneIndex: 1 },
+  { from: 192, to: 195, label: "Post-treatment baseline", toneIndex: 6 },
+];
+
+const studyCorridorEvents = [
+  { mile: 175.5, label: "FM 60 intersection",  toneIndex: 2 },
+  { mile: 180,   label: "Site 12 instrumentation", toneIndex: 3 },
+  { mile: 189,   label: "Treatment applied",  toneIndex: 4 },
+  { mile: 193,   label: "Site 18 instrumentation", toneIndex: 3 },
+];
 </script>
 
 <template>
@@ -507,6 +524,52 @@ const kpiTotals = computed(() => {
               />
             </div>
           </TuxCard>
+        </div>
+      </section>
+
+      <!-- ── Active corridor study panel ──────────────────────────
+           Dogfood for TuxCorridorStrip + TuxMapMarker (added
+           2026-05-22). Same corridor data feeds the /examples/
+           paper-page demo — illustrates how an operational dashboard
+           and a published paper share underlying data via TUX
+           components. -->
+      <section class="space-y-3">
+        <TuxSectionHeader>Active corridor study · I-35 mile 174–195</TuxSectionHeader>
+        <p class="text-sm text-text-secondary max-w-3xl">
+          Live operational view of the corridor study that's also
+          published in
+          <NuxtLink to="/examples/paper-page" class="link-tti">Hassan et al. 2025</NuxtLink>.
+          Treatment zones, construction zone, and instrumentation
+          sites in a single linear view.
+        </p>
+        <TuxCorridorStrip
+          name="I-35 corridor — northbound"
+          direction="Northbound  →"
+          :from-mile="174"
+          :to-mile="195"
+          :segments="studyCorridorSegments"
+          :events="studyCorridorEvents"
+          :width="900"
+          :height="120"
+        />
+
+        <div class="flex flex-wrap items-start gap-4 mt-3">
+          <div class="flex items-center gap-2">
+            <TuxMapMarker kind="intersection" size="md" />
+            <span class="text-xs text-text-secondary">Intersection</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <TuxMapMarker kind="site" size="md" :number="12" />
+            <span class="text-xs text-text-secondary">Instrumented site</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <TuxMapMarker kind="treatment" size="md" />
+            <span class="text-xs text-text-secondary">Treatment applied</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <TuxMapMarker kind="incident" size="md" />
+            <span class="text-xs text-text-secondary">Incident</span>
+          </div>
         </div>
       </section>
 
