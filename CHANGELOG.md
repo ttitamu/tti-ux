@@ -5,6 +5,54 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — compositional sprint: chart interactions + dashboard refresh + absorption closure (2026-05-22)
+
+Layered onto the chart-family completion: real interactions on the
+most-used chart, a full Landscape-dashboard dogfood, and the
+absorption pipeline closed.
+
+**Chart interactions** on `TuxChartLine`:
+
+- **Hover tooltip** — on by default. Mouse + keyboard (tab into
+  plot area, arrow keys to cycle data points). Tooltip card
+  positioned with the active vertical guide line + focus dots on
+  each series. Shows current + previous-period readouts together.
+  Native SVG `<title>` fallback still present for plain screen-
+  reader users.
+- **Brush selector** — pass `brush` + `v-model:range` to render a
+  compact preview strip beneath the main chart with two draggable
+  handles. Drag handles to resize the visible window; drag the
+  window itself to pan. Charts UI Kit absorption carry-forward
+  finally lands. Two new emits (`update:range`, `hover`).
+
+**Showcase refresh:**
+- `/visualizations/chart-line` gains two new sections (tooltip
+  + brush) with live demos.
+
+**`app/pages/examples/landscape-dashboard.vue`:**
+- Three new chart sections dogfood the full Priority B chart
+  family on real-shape Landscape data:
+  - 12-month ingest trend with brush selector + previous-period
+    overlay (TuxChartLine).
+  - KPI strip (TuxBigStat × 4) above stacked area chart by file
+    type — the canonical "summary + trend" composition from the
+    Charts UI Kit absorption.
+  - Throughput-by-weekday bar + access-tier donut + API-uptime +
+    agent-pool gauges in a three-card grid.
+
+**Absorption pipeline closed:**
+- Three sleeper audits — Accessible Design Toolkit (a11y rubric
+  parity confirmed), Omnichart UX Flowchart (TuxDiagram covers
+  it), 59 Charts UI Responsive (native SVG architecture
+  reaffirmed). All "no new components" with documented rationale.
+- New [`reference/figma-cache/SKIP-RATIONALE.md`](reference/figma-cache/SKIP-RATIONALE.md)
+  consolidates the explicit-skip rationale for the remaining 22
+  files (other framework systems, mockup tools, single-pattern
+  kits). Future contributors don't need to re-litigate.
+
+**Totals after this sprint:** 46 / 70 absorbed; 22 explicitly
+skipped + 2 known duplicates = full corpus triaged.
+
 ### Added — native chart family completion (2026-05-22)
 
 Closes the Priority B chart roadmap. Four new native SVG charts

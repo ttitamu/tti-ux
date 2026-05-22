@@ -65,6 +65,19 @@ const framedVue = `<tux-chart-frame
 >
   <tux-chart-line :labels="months" :series="singleSeries" />
 </tux-chart-frame>`;
+
+const tooltipVue = `<!-- Tooltip is on by default — disable with :tooltip="false" -->
+<tux-chart-line :labels="months" :series="multiSeries" markers />`;
+
+const brushVue = `<!-- Two-way bound range; drag the handles below the chart -->
+<tux-chart-line
+  v-model:range="visibleRange"
+  :labels="months"
+  :series="singleSeries"
+  brush
+/>`;
+
+const brushRange = ref([2, 9]);
 </script>
 
 <template>
@@ -143,6 +156,40 @@ const framedVue = `<tux-chart-frame
       </p>
       <TuxExample class="mt-4" :vue="bandVue">
         <TuxChartLine :labels="months" :series="bandSeries" />
+      </TuxExample>
+    </section>
+
+    <section>
+      <p class="eyebrow">hover tooltip · keyboard arrow nav</p>
+      <h2 class="heading--bold text-xl font-bold">Pointer-driven readout</h2>
+      <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
+        On by default. Hover, click into the plot area, or tab focus +
+        arrow-key to cycle through data points. The tooltip shows every
+        series' value at the active index, with a 60%-opacity "previous"
+        readout when applicable.
+      </p>
+      <TuxExample class="mt-4" :vue="tooltipVue">
+        <TuxChartLine :labels="months" :series="multiSeries" markers />
+      </TuxExample>
+    </section>
+
+    <section>
+      <p class="eyebrow">brush selector · drill into a window</p>
+      <h2 class="heading--bold text-xl font-bold">Drag the handles below</h2>
+      <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
+        Pass <code>brush</code> + <code>v-model:range</code> to get a
+        compact preview strip below the main chart with two draggable
+        handles. The main chart rescales to the window. Drag the window
+        itself (between the handles) to pan; drag handles to resize.
+        Carry-forward from the Charts UI Kit absorption.
+      </p>
+      <TuxExample class="mt-4" :vue="brushVue">
+        <TuxChartLine
+          v-model:range="brushRange"
+          :labels="months"
+          :series="singleSeries"
+          brush
+        />
       </TuxExample>
     </section>
 

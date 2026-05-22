@@ -9,7 +9,7 @@ subfolders alongside `<slug>/<page-slug>/NOTES.md`.
 Listing cached in [`PROJECT-FILES.json`](PROJECT-FILES.json).
 
 **Totals:** 70 files · 69 with cover ·
-43 absorbed · 27 stub · 0 fetch errors.
+46 absorbed · 24 stub · 0 fetch errors.
 
 ## Why this exists
 
@@ -93,8 +93,8 @@ reference but probably not absorbed into TUX. Scan covers for surprises.
 
 | | File | Pages | Status |
 |---|---|---|---|
-| 🖼 | [59 Charts UI Responsive Components Chart.js Chartist Apex Charts and Recharts (Community)](59-charts-ui-responsive-components-chart-js-chartist-apex-ch/NOTES.md) | 2 | stub |
-| 🖼 | [Accessible design toolkit (Community)](accessible-design-toolkit/NOTES.md) | 8 | stub |
+| 🖼 | [59 Charts UI Responsive Components Chart.js Chartist Apex Charts and Recharts (Community)](59-charts-ui-responsive-components-chart-js-chartist-apex-ch/NOTES.md) | ? | absorbed |
+| 🖼 | [Accessible design toolkit (Community)](accessible-design-toolkit/NOTES.md) | ? | absorbed |
 | 🖼 | [ACS UI Library Design Kit (Community)](acs-ui-library-design-kit/NOTES.md) | 4 | stub |
 | 🖼 | [Airbnb UI Kit (Community)](airbnb-ui-kit/NOTES.md) | 21 | stub |
 | 🖼 | [Ant Design Open Source (Community)](ant-design-open-source/NOTES.md) | 70 | stub |
@@ -113,7 +113,7 @@ reference but probably not absorbed into TUX. Scan covers for surprises.
 | 🖼 | [Mobile UI kit (Community)](mobile-ui-kit/NOTES.md) | 3 | stub |
 | 🖼 | [monday.com project template (Community)](monday-com-project-template/NOTES.md) | 9 | stub |
 | 🖼 | [Neumorphism UI Kit (Community)](neumorphism-ui-kit/NOTES.md) | 4 | stub |
-| 🖼 | [Omnichart - Customizable UX Flow Chart (Community)](omnichart-customizable-ux-flow-chart/NOTES.md) | 3 | stub |
+| 🖼 | [Omnichart - Customizable UX Flow Chart (Community)](omnichart-customizable-ux-flow-chart/NOTES.md) | ? | absorbed |
 | 🖼 | [Template for VS Code Color Mapper (Community)](template-for-vs-code-color-mapper/NOTES.md) | 3 | stub |
 | 🖼 | [Vibe UI Kit by monday.com (Community)](vibe-ui-kit-by-monday-com/NOTES.md) | 55 | stub |
 | 🖼 | [❖ Base Gallery (Community)](base-gallery/NOTES.md) | 2 | stub |

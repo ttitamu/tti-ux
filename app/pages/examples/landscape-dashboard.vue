@@ -152,6 +152,68 @@ const agents = [
   { id: "agent-04", status: "warning" as const, heartbeat: "6m ago",  load: "—"   },
   { id: "agent-05", status: "online"  as const, heartbeat: "1s ago",  load: "8%"  },
 ];
+
+// Throughput row data.
+// (a) Bar chart: scans per day-of-week, last 4 weeks averaged.
+const throughputLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const throughputSeries = [
+  { key: "ok",     label: "Completed",   data: [142, 168, 155, 189, 210, 64, 48] },
+  { key: "fail",   label: "Failed",      data: [4, 6, 3, 8, 5, 2, 1] },
+];
+
+// (b) Area chart: 12-month cumulative ingest by file type. Pair
+//     with the BigStat KPI strip above per chart-foundations
+//     "KPI strip over stacked area" composition.
+const ingestMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const ingestAreaSeries = [
+  { key: "pdf",  label: "PDF",     data: [12, 14, 17, 19, 22, 26, 29, 33, 38, 42, 47, 52] },
+  { key: "csv",  label: "CSV",     data: [8, 10, 11, 13, 13, 15, 16, 18, 21, 24, 27, 31] },
+  { key: "geo",  label: "GeoJSON", data: [4, 5, 6, 7, 9, 11, 12, 14, 17, 19, 22, 25] },
+];
+
+// (c) Donut: distribution of files by access tier.
+const tierSlices = [
+  { key: "public",     label: "Public",     value: 4_120_843 },
+  { key: "internal",   label: "Internal",   value: 6_411_203 },
+  { key: "restricted", label: "Restricted", value: 2_230_117 },
+  { key: "itar",       label: "ITAR",       value: 174_022 },
+];
+const totalFiles = tierSlices.reduce((a, b) => a + b.value, 0);
+
+// (d) Gauge: SLA uptime against a high target floor.
+const slaBands = [
+  { from: 0,  to: 95,  intent: "alert" as const },
+  { from: 95, to: 99,  intent: "warn"  as const },
+  { from: 99, to: 100, intent: "ok"    as const },
+];
+
+// (e) Gauge: utilization of the agent pool against a soft cap.
+const utilizationBands = [
+  { from: 0,  to: 60,  intent: "ok"    as const },
+  { from: 60, to: 85,  intent: "warn"  as const },
+  { from: 85, to: 100, intent: "alert" as const },
+];
+
+// Ingest-rate trend data for the TuxChartLine — same shape as
+// ingestTrend but mapped onto 12 months for full-chart rendering.
+const trendLabels = ingestMonths;
+const trendSeries = [
+  {
+    key: "files",
+    label: "Files (M)",
+    data:     [12.4, 14.8, 18.2, 22.1, 24.7, 28.3, 30.1, 33.4, 35.8, 38.9, 41.2, 44.0],
+    previous: [10.8, 12.4, 15.6, 18.2, 21.0, 23.4, 26.1, 28.4, 30.2, 32.1, 33.8, 35.6],
+  },
+];
+const trendRange = ref<[number, number]>([0, 11]);
+
+// Last-7d KPI strip for the stacked-area composition. These numbers
+// are derived from the last column of ingestAreaSeries for the demo.
+const kpiTotals = computed(() => {
+  const totals = ingestAreaSeries.map((s) => s.data[s.data.length - 1] as number);
+  const grand = totals.reduce((a, b) => a + b, 0);
+  return { totals, grand };
+});
 </script>
 
 <template>
@@ -300,6 +362,148 @@ const agents = [
           </div>
         </div>
         <TuxTreemap :data="treeData" :max-depth="2" color-by="size" />
+      </section>
+
+      <!-- ── Throughput + composition row ─────────────────────────
+           Dogfoods the full Priority B chart family on real-shape
+           Landscape data. Row 1: line chart with brush selector for
+           the 12-month ingest trend (current + previous-year overlay).
+           Row 2: KPI strip over a stacked area (the canonical
+           "summary + trend" composition). Row 3: throughput bar +
+           tier donut + uptime gauges.
+      -->
+      <section class="space-y-3">
+        <TuxSectionHeader>Ingest trend · 12 months, current vs prior</TuxSectionHeader>
+        <p class="text-sm text-text-secondary">
+          Drag the brush handles below to narrow the window — hover or
+          tab into the chart for value tooltips.
+        </p>
+        <TuxChartLine
+          v-model:range="trendRange"
+          :labels="trendLabels"
+          :series="trendSeries"
+          :width="900"
+          :height="300"
+          legend
+          markers
+          brush
+          aria-summary="Files ingested per month for the current year (solid) vs prior year (dashed). Current ranges 12.4 to 44.0M; prior 10.8 to 35.6M."
+        />
+      </section>
+
+      <section class="space-y-3">
+        <TuxSectionHeader>Corpus composition · stacked by file type</TuxSectionHeader>
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          <TuxBigStat
+            :value="kpiTotals.grand"
+            suffix="M"
+            label="Total"
+            tone="maroon"
+            size="md"
+          />
+          <TuxBigStat
+            :value="(kpiTotals.totals[0] as number)"
+            suffix="M"
+            label="PDF"
+            size="md"
+          />
+          <TuxBigStat
+            :value="(kpiTotals.totals[1] as number)"
+            suffix="M"
+            label="CSV"
+            size="md"
+          />
+          <TuxBigStat
+            :value="(kpiTotals.totals[2] as number)"
+            suffix="M"
+            label="GeoJSON"
+            size="md"
+          />
+        </div>
+        <TuxChartArea
+          :labels="ingestMonths"
+          :series="ingestAreaSeries"
+          variant="stacked"
+          :width="900"
+          :height="220"
+          legend
+          aria-summary="Stacked area chart of files ingested per month by file type. PDF dominates, growing from 12 to 52M over the year. CSV second, GeoJSON third."
+        />
+      </section>
+
+      <section class="space-y-3">
+        <TuxSectionHeader>Throughput · status · health</TuxSectionHeader>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+          <TuxCard>
+            <p class="eyebrow">scans / weekday</p>
+            <h3 class="font-bold text-base">Throughput · last 4 weeks avg</h3>
+            <p class="text-sm text-text-secondary mb-3">
+              Failed bars overlaid behind completed (comparison
+              overlay variant).
+            </p>
+            <TuxChartBar
+              :labels="throughputLabels"
+              :series="throughputSeries"
+              :width="380"
+              :height="220"
+              variant="stacked"
+              legend
+              aria-summary="Stacked bar chart of completed and failed scans per weekday."
+            />
+          </TuxCard>
+
+          <TuxCard>
+            <p class="eyebrow">files · by tier</p>
+            <h3 class="font-bold text-base">Access-tier distribution</h3>
+            <p class="text-sm text-text-secondary mb-3">
+              Restricted + ITAR slices auto-fold into Other below
+              <code>minSlice</code>; here they're material enough to
+              show on their own.
+            </p>
+            <TuxChartDonut
+              :slices="tierSlices"
+              :size="220"
+              :slice-labels="false"
+              legend
+              center-label="Files"
+              :center-value="(totalFiles / 1_000_000).toFixed(1) + 'M'"
+            />
+          </TuxCard>
+
+          <TuxCard>
+            <p class="eyebrow">health · sla + utilization</p>
+            <h3 class="font-bold text-base">System health</h3>
+            <p class="text-sm text-text-secondary mb-3">
+              Two single-target metrics that genuinely have hard
+              floors / soft caps — the cases where gauges actually
+              earn their seat.
+            </p>
+            <div class="flex items-start justify-around gap-4">
+              <TuxChartGauge
+                variant="progress"
+                :value="99.84"
+                :min="95"
+                :max="100"
+                :bands="slaBands"
+                :size="160"
+                center-label="API uptime"
+                :center-value="99.84"
+                units="%"
+                :decimals="2"
+              />
+              <TuxChartGauge
+                :value="72"
+                :min="0"
+                :max="100"
+                :bands="utilizationBands"
+                :size="160"
+                center-label="Agent pool"
+                :center-value="72"
+                units="%"
+              />
+            </div>
+          </TuxCard>
+        </div>
       </section>
 
       <!-- Files (filter + table). Right rail (Recent activity +
