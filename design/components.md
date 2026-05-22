@@ -401,6 +401,78 @@ absorption (2026-05-21). The five `kind` presets (`no-data` /
 `no-results` / `not-found` / `no-permissions` / `first-run`) cover
 the real scenario taxonomy; 200 generic illustrations would not.
 
+### Motion primitives — six canonical transitions
+
+Absorbed from the Tailwind Headless UI w/ Animations Figma kit and
+reaffirmed by the chart-family entrance animations shipped
+2026-05-22. Every Tux component that animates uses one of these six
+patterns. Designers and contributors should reach for the
+**existing primitive**, not invent new motion.
+
+| Primitive | Pattern | Duration | When to use |
+|---|---|---|---|
+| **Tooltip / Popover** | fade + scale 0.95 → 1 | fast (~150ms) | `TuxTooltip`, `TuxInfoLabel`, `TuxInlineCitation`, chart tooltips |
+| **Dropdown menu** | slide-down (-8px → 0) + fade | fast (~150ms) | `UDropdownMenu`, `TuxMenuBar` triggers |
+| **Modal / Dialog** | fade + scale 0.95 → 1 (or sheet slide on Mac) | normal (~200ms) | `TuxModal`, `TuxFocusView` |
+| **Slideover / Drawer** | slide-from-edge | normal (~250ms) | `TuxSlideover`, sidebar mobile-mode |
+| **Toast / Notification** | slide-from-edge + fade | normal (~200ms) | `TuxStatusToast`, future Tauri notifications |
+| **Accordion / Disclosure** | height auto + fade | fast (~150ms) | `TuxAccordion`, `UCollapsible` |
+
+Plus three **component-level entrance** primitives shipped 2026-05-22
+in [`tux-component-motion.css`](../app/assets/css/tux-component-motion.css):
+
+- **Mount fade-up** (4px slide + fade, 220ms) — opt-in via
+  `.tux-mount-in` on a section; immediate children animate in
+  with optional stagger via `--tux-mount-stagger-index`.
+- **Mount fade** (no slide, 180ms) — for chrome surfaces like
+  alerts and badges that shouldn't move.
+- **Mount scale** (96% → 100%, 200ms) — for popovers / floating
+  chrome that originate from a trigger.
+
+Plus six **chart-family entrance** primitives in
+[`tux-chart-motion.css`](../app/assets/css/tux-chart-motion.css):
+
+- Lines draw on via animated `stroke-dashoffset`.
+- Bars scale-Y from baseline (or scale-X horizontally).
+- Areas + top-lines rise from scale-Y 0.94.
+- Donut slices spin in -12° → 0, staggered.
+- Scatter dots pop from scale(0), staggered.
+- Gauge fill sweeps via stroke-dashoffset; needle swings.
+
+**All motion primitives** collapse to instant on
+`@media (prefers-reduced-motion: reduce)`. This is non-negotiable —
+no contributor escapes it, no "delight" affordance ignores it.
+
+### Chart tooltips — consistent pattern across the family
+
+Every interactive chart in the native chart family uses the same
+tooltip pattern, shipped 2026-05-22 (`TuxChartLine`, `TuxChartBar`,
+`TuxChartArea`, `TuxChartScatter`):
+
+1. **Hover via pointer or focus via keyboard.** Lines / Areas / Bars
+   accept a focusable rect across the plot area; arrow keys cycle
+   the active index. Scatter dots are individually focusable.
+2. **Visual highlight** — vertical guide line + per-series focus
+   dots (Line / Area); column-wash on the active category (Bar);
+   active-dot grow +2px (Scatter).
+3. **Branded tooltip card** with the active label, per-series
+   values, and (where applicable) totals, comparison overlays, or
+   previous-period readouts.
+4. **Auto-flip** — when the active point sits past 60% of chart
+   width, the tooltip flips to the *left* of the cursor so it
+   doesn't overflow the parent container on the right.
+5. **`hover` emit** — every chart emits `hover` with the active
+   payload so consumers can sync hover state across multiple
+   panels (e.g., highlight the matching row in an adjacent table).
+6. **`tooltip` prop** — pass `:tooltip="false"` to disable when
+   the chart is used in a print / PDF / non-interactive context.
+7. **Native SVG `<title>`** fallback remains on all hover-capable
+   elements for AT users who don't see the branded card.
+
+When building a new chart that needs hover behavior, follow this
+pattern rather than inventing a parallel one. The visual + a11y +
+emit contract is the canonical TUX chart-tooltip shape.
+
 ## Ideas not yet shipped
 
 The catalog originally listed several components here. As of the

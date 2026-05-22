@@ -607,14 +607,18 @@ function onBrushUp() {
       </g>
     </svg>
 
-    <!-- Tooltip card (HTML, absolutely positioned over the plot) -->
+    <!-- Tooltip card (HTML, absolutely positioned over the plot).
+         When the active index sits past 60% of the chart width, flip
+         the card to the *left* of the cursor so it doesn't overflow
+         the parent container on the right. -->
     <div
       v-if="tooltip && tooltipPayload"
       class="tux-chart-line__tooltip"
+      :class="{ 'tux-chart-line__tooltip--flip': (hoverX / width) > 0.6 }"
       role="status"
       aria-live="polite"
       :style="{
-        left: `calc(${(hoverX / width) * 100}% + 8px)`,
+        left: `calc(${(hoverX / width) * 100}% + ${(hoverX / width) > 0.6 ? '-8px' : '8px'})`,
         top: '8px',
       }"
     >
@@ -836,9 +840,14 @@ function onBrushUp() {
   box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
   font-size: 0.75rem;
   pointer-events: none;
-  /* Translate left when near the right edge — guard with a CSS clamp
-     so the tooltip never overflows the figure on the right side. */
   transform: translateX(0);
+}
+
+/* When the active index is past 60% of the chart width, flip the
+   tooltip to the *left* of the cursor so it doesn't overflow the
+   container on the right. */
+.tux-chart-line__tooltip--flip {
+  transform: translateX(-100%);
 }
 
 .tux-chart-line__tooltip-label {

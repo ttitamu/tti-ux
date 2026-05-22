@@ -1,0 +1,114 @@
+/*
+ * tux-component-motion.css — entrance animations for non-chart
+ * components. Subtle, fast, **reduced-motion-respecting**.
+ *
+ * Pattern: animations are **opt-in** via a class on the parent
+ * container (a route, a section). Wrap content in
+ * `.tux-mount-in` and immediate-child Tux components fade-in
+ * with a subtle slide. This keeps existing surfaces undisturbed
+ * — only contributors who explicitly want the motion get it.
+ *
+ * Motion vocabulary (paired with the 6-primitive motion vocabulary
+ * absorbed from Tailwind Headless UI w/ Animations, see
+ * `design/components.md` Conventions § Motion primitives):
+ *
+ *   - Cards / Factoids / BigStats: fade + 4px slide up (220ms)
+ *   - Alerts / Badges: fade-in (180ms)
+ *   - Sections: fade + 8px slide up (320ms)
+ *   - Stagger via --tux-mount-stagger-index (any container can
+ *     set per-child)
+ *
+ * Usage in a Vue template:
+ *
+ *   <section class="tux-mount-in">
+ *     <TuxCard>...</TuxCard>
+ *     <TuxCard>...</TuxCard>
+ *   </section>
+ *
+ * Or with stagger for a row of KPI tiles:
+ *
+ *   <div class="tux-mount-in tux-mount-in--stagger">
+ *     <TuxBigStat :style="{ '--tux-mount-stagger-index': 0 }" />
+ *     <TuxBigStat :style="{ '--tux-mount-stagger-index': 1 }" />
+ *     <TuxBigStat :style="{ '--tux-mount-stagger-index': 2 }" />
+ *   </div>
+ */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Default mount-in: fade + 4px slide up. Applies to direct
+     children inside .tux-mount-in. */
+  .tux-mount-in > * {
+    animation: tux-mount-fade-up 220ms ease-out backwards;
+    animation-delay: calc(var(--tux-mount-stagger-index, 0) * 36ms);
+  }
+
+  @keyframes tux-mount-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Bigger motion for section-level entrances. */
+  .tux-mount-in--section > * {
+    animation-duration: 320ms;
+  }
+  .tux-mount-in--section > *:first-child {
+    animation-name: tux-mount-fade-up-lg;
+  }
+  @keyframes tux-mount-fade-up-lg {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Simple fade — for Alert / Badge / Toast type chrome that
+     shouldn't slide. Apply the class to the element itself, not
+     the parent. */
+  .tux-mount-fade {
+    animation: tux-mount-fade 180ms ease-out backwards;
+  }
+  @keyframes tux-mount-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* Scale-in for popovers / floating chrome. Pairs with the
+     existing TuxFocusView animation; this gives non-modal floating
+     elements (TuxAnnouncementBanner promoted overlay, etc.) a
+     consistent in. */
+  .tux-mount-scale {
+    animation: tux-mount-scale 200ms ease-out backwards;
+    transform-origin: center top;
+  }
+  @keyframes tux-mount-scale {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tux-mount-in > *,
+  .tux-mount-in--section > *,
+  .tux-mount-in--section > *:first-child,
+  .tux-mount-fade,
+  .tux-mount-scale {
+    animation: none !important;
+    transform: none !important;
+  }
+}

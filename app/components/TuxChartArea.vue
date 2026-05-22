@@ -438,13 +438,19 @@ function focusY(seriesIdx: number, idx: number): number {
       </g>
     </svg>
 
-    <!-- Tooltip card (HTML, absolutely positioned over the plot) -->
+    <!-- Tooltip card (HTML, absolutely positioned over the plot).
+         Flips left of cursor when active index > 60% of width to
+         avoid right-edge overflow in tight cards. -->
     <div
       v-if="tooltip && tooltipPayload"
       class="tux-chart-area__tooltip"
+      :class="{ 'tux-chart-area__tooltip--flip': (hoverX / width) > 0.6 }"
       role="status"
       aria-live="polite"
-      :style="{ left: `calc(${(hoverX / width) * 100}% + 8px)`, top: '8px' }"
+      :style="{
+        left: `calc(${(hoverX / width) * 100}% + ${(hoverX / width) > 0.6 ? '-8px' : '8px'})`,
+        top: '8px',
+      }"
     >
       <p class="tux-chart-area__tooltip-label">{{ tooltipPayload.label }}</p>
       <ul>
@@ -634,6 +640,11 @@ function focusY(seriesIdx: number, idx: number): number {
   box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
   font-size: 0.75rem;
   pointer-events: none;
+  transform: translateX(0);
+}
+
+.tux-chart-area__tooltip--flip {
+  transform: translateX(-100%);
 }
 
 .tux-chart-area__tooltip-label {

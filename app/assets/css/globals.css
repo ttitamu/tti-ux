@@ -24,6 +24,14 @@
 @import "./tux-chart-motion.css";
 
 /*
+ * Opt-in entrance animations for non-chart Tux components.
+ * Pattern: wrap a section in `.tux-mount-in` and immediate children
+ * fade-in with a subtle slide. See file head for the full
+ * vocabulary + usage.
+ */
+@import "./tux-component-motion.css";
+
+/*
  * Maroon palette lives in tokens.css as plain :root vars (not @theme),
  * because Tailwind v4 tree-shakes @theme entries that aren't referenced
  * in source CSS/templates. Nuxt UI references them via its pre-compiled

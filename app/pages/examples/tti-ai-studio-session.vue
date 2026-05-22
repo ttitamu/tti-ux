@@ -88,6 +88,41 @@ const cmdGroups = [
     ],
   },
 ];
+
+// Cross-app switcher — visible in the page header. Marks "AI Studio"
+// as current; other tiles link out (in a real Tauri shell these
+// would open in the host browser or switch the Tauri window).
+const ttiApps = [
+  {
+    id: "ai-studio",
+    name: "AI Studio",
+    tagline: "Conversational research assistant",
+    icon: "lucide:bot",
+    to: "/examples/tti-ai-studio-session",
+    current: true,
+  },
+  {
+    id: "landscape",
+    name: "Landscape",
+    tagline: "Research dashboard · runs, corpora, KPIs",
+    icon: "lucide:map",
+    to: "/examples/landscape-dashboard",
+  },
+  {
+    id: "tux",
+    name: "TUX style guide",
+    tagline: "Design system docs · components, charts, tokens",
+    icon: "lucide:palette",
+    to: "/",
+  },
+];
+
+// Focus-mode for the artifact — when the researcher wants to read /
+// edit the reproducibility script in a distraction-free overlay.
+const artifactFocusOpen = ref(false);
+
+// Reaction state on the assistant turn. Replaces the inline thumbs.
+const assistantReaction = ref<string | undefined>(undefined);
 </script>
 
 <template>
@@ -99,8 +134,10 @@ const cmdGroups = [
         Real-shape tti-ai-studio session — composer, citations,
         right-rail corpus + usage + recent sessions, ⌘K palette, plus
         the AI-elements pieces (context meter, branch nav, inline
-        citations, artifact, follow-up chips) and the Nuxt UI 4 Chat
-        suite (reasoning trace, tool call, shimmer). App-shape register.
+        citations, artifact, follow-up chips, reaction bar) and the
+        Nuxt UI 4 Chat suite (reasoning trace, tool call, shimmer).
+        Refreshed 2026-05-22: app switcher in header, focus-mode
+        overlay on the artifact, entrance animations on the rail.
       </p>
     </div>
 
@@ -134,6 +171,13 @@ const cmdGroups = [
         <TuxButton intent="ghost" icon="lucide:download">
           Export transcript
         </TuxButton>
+        <!-- Cross-app switcher — hop to Landscape or the TUX docs
+             without leaving the tab. Lives next to the other header
+             actions per the AppSwitcher absorption guidance. -->
+        <TuxAppSwitcher
+          :apps="ttiApps"
+          footer-text="Each app uses TUX components; tokens + theme follow."
+        />
       </template>
     </TuxPageHeader>
 
@@ -267,23 +311,37 @@ const cmdGroups = [
             <button class="text-xs text-text-muted hover:text-brand-primary inline-flex items-center gap-1">
               <UIcon name="lucide:copy" class="w-3 h-3" /> Copy
             </button>
-            <button class="text-xs text-text-muted hover:text-brand-primary inline-flex items-center gap-1">
-              <UIcon name="lucide:thumbs-up" class="w-3 h-3" /> Helpful
-            </button>
-            <button class="text-xs text-text-muted hover:text-brand-primary inline-flex items-center gap-1">
-              <UIcon name="lucide:thumbs-down" class="w-3 h-3" /> Off
-            </button>
+            <!-- TuxReactionBar replaces the inline thumb buttons.
+                 Captures helpful / question / disagree without the
+                 friction of opening a full feedback form. -->
+            <TuxReactionBar
+              v-model="assistantReaction"
+              :counts="{ helpful: 7, question: 1, disagree: 0 }"
+            />
           </template>
         </TuxChatMessage>
 
         <!-- Generated artifact — reproducibility script the assistant
              produced alongside the comparison. Demonstrates TuxArtifact
-             wrapping a TuxCodeBlock with its new download affordance. -->
+             wrapping a TuxCodeBlock with its new download affordance,
+             plus an "open in focus mode" button that pins the code in
+             a distraction-free TuxFocusView. -->
         <TuxArtifact
           title="compare.py"
           meta="Reproducibility script · 14 lines · python · Updated just now"
           icon="lucide:file-code"
         >
+          <template #actions>
+            <UButton
+              variant="ghost"
+              size="xs"
+              icon="lucide:maximize"
+              aria-label="Open artifact in focus mode"
+              @click="artifactFocusOpen = true"
+            >
+              Focus
+            </UButton>
+          </template>
           <TuxCodeBlock
             :code="comparisonPy"
             lang="python"
@@ -291,6 +349,25 @@ const cmdGroups = [
             :line-numbers="true"
           />
         </TuxArtifact>
+
+        <!-- Focus-mode overlay for the artifact. Real apps would put
+             the code editor + a diff pane + a "Run" button here. -->
+        <TuxFocusView
+          v-model:open="artifactFocusOpen"
+          eyebrow="Artifact"
+          title="compare.py"
+        >
+          <template #actions>
+            <UButton variant="ghost" icon="lucide:download">Download</UButton>
+            <UButton variant="primary" icon="lucide:play">Run</UButton>
+          </template>
+          <TuxCodeBlock
+            :code="comparisonPy"
+            lang="python"
+            filename="compare.py"
+            :line-numbers="true"
+          />
+        </TuxFocusView>
 
         <!-- Follow-up suggestions surfaced after the assistant's answer.
              Picks pre-fill the composer in a real consumer; here we
@@ -327,8 +404,8 @@ const cmdGroups = [
       </div>
 
       <!-- Right rail -->
-      <aside class="space-y-6">
-        <section class="space-y-3">
+      <aside class="space-y-6 tux-mount-in tux-mount-in--stagger">
+        <section class="space-y-3" :style="{ '--tux-mount-stagger-index': 0 }">
           <TuxSectionHeader :level="3">Corpus</TuxSectionHeader>
           <TuxDescriptionList
             emphasis="editorial"
@@ -341,12 +418,12 @@ const cmdGroups = [
           />
         </section>
 
-        <section class="space-y-3">
+        <section class="space-y-3" :style="{ '--tux-mount-stagger-index': 1 }">
           <TuxSectionHeader :level="3">Usage</TuxSectionHeader>
           <TuxFactoid variant="default" :density="3" :items="usageStats" />
         </section>
 
-        <section class="space-y-3">
+        <section class="space-y-3" :style="{ '--tux-mount-stagger-index': 2 }">
           <TuxSectionHeader :level="3">Recent sessions</TuxSectionHeader>
           <TuxAccordion
             :items="recentSessions.map((s) => ({

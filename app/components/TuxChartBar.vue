@@ -593,13 +593,18 @@ const highlightRect = computed(() => {
       </g>
     </svg>
 
-    <!-- Tooltip card -->
+    <!-- Tooltip card; flips left when the active category sits past
+         60% of the chart width to avoid right-edge overflow. -->
     <div
       v-if="tooltip && tooltipPayload"
       class="tux-chart-bar__tooltip"
+      :class="{ 'tux-chart-bar__tooltip--flip': tooltipAnchorPercent > 60 }"
       role="status"
       aria-live="polite"
-      :style="{ left: `calc(${tooltipAnchorPercent}% + 12px)`, top: '8px' }"
+      :style="{
+        left: `calc(${tooltipAnchorPercent}% + ${tooltipAnchorPercent > 60 ? '-12px' : '12px'})`,
+        top: '8px',
+      }"
     >
       <p class="tux-chart-bar__tooltip-label">{{ tooltipPayload.label }}</p>
       <ul>
@@ -773,6 +778,11 @@ const highlightRect = computed(() => {
   box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
   font-size: 0.75rem;
   pointer-events: none;
+  transform: translateX(0);
+}
+
+.tux-chart-bar__tooltip--flip {
+  transform: translateX(-100%);
 }
 
 .tux-chart-bar__tooltip-label {

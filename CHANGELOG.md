@@ -5,6 +5,55 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — second polish queue (2026-05-22)
+
+Four-phase polish following the chart-tooltip + entrance-animation
+sprint. Spans dashboard hover hygiene, opt-in component motion,
+ai-studio example refresh, and Conventions documentation.
+
+**Dashboard hover state**
+- Chart tooltips on `TuxChartLine`, `TuxChartArea`, `TuxChartBar`
+  **auto-flip** to the left of the cursor when the active index sits
+  past 60% of the chart width. Avoids right-edge overflow in tight
+  card containers (the throughput / tier / health row in
+  landscape-dashboard, for instance).
+
+**Component motion** — new
+[`app/assets/css/tux-component-motion.css`](app/assets/css/tux-component-motion.css)
+(auto-imported via `globals.css`):
+- **`.tux-mount-in`** opt-in class — immediate children fade + 4px
+  slide up on mount (220ms). Stagger via
+  `--tux-mount-stagger-index` per child.
+- **`.tux-mount-in--section`** larger variant for section-level
+  entrances (320ms).
+- **`.tux-mount-fade`** + **`.tux-mount-scale`** for chrome
+  elements that shouldn't slide.
+- All three respect `prefers-reduced-motion: reduce` (collapse to
+  instant).
+- Applied opt-in to `landscape-dashboard.vue` (KPI strip + 3-card
+  health row) and `tti-ai-studio-session.vue` (right rail).
+
+**tti-ai-studio-session.vue refresh:**
+- **TuxAppSwitcher** added to the page-header actions (AI Studio
+  ↔ Landscape ↔ TUX docs).
+- **TuxFocusView** wraps the `compare.py` artifact for an "open in
+  focus mode" affordance (the natural Artifact + FocusView pairing).
+- **TuxReactionBar** replaces the inline thumb buttons in the
+  assistant turn's footer (less friction than a feedback form).
+- **`tux-mount-in`** entrance on the right rail.
+
+**Conventions docs** (in `design/components.md`):
+- New "Motion primitives — six canonical transitions" subsection
+  documenting the six existing patterns (Tooltip / Popover,
+  Dropdown menu, Modal / Dialog, Slideover / Drawer, Toast,
+  Accordion) plus the three component-level + six chart-family
+  primitives. **All collapse to instant on `prefers-reduced-motion:
+  reduce`** — non-negotiable.
+- New "Chart tooltips — consistent pattern across the family"
+  subsection capturing the 7-point contract every interactive
+  chart now follows (focus, highlight, branded card, auto-flip,
+  hover emit, tooltip prop, SVG `<title>` fallback).
+
 ### Added — chart polish queue (2026-05-22)
 
 Polishes the native chart family for consistency and motion.

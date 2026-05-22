@@ -393,31 +393,35 @@ const kpiTotals = computed(() => {
 
       <section class="space-y-3">
         <TuxSectionHeader>Corpus composition · stacked by file type</TuxSectionHeader>
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 tux-mount-in tux-mount-in--stagger">
           <TuxBigStat
             :value="kpiTotals.grand"
             suffix="M"
             label="Total"
             tone="maroon"
             size="md"
+            :style="{ '--tux-mount-stagger-index': 0 }"
           />
           <TuxBigStat
             :value="(kpiTotals.totals[0] as number)"
             suffix="M"
             label="PDF"
             size="md"
+            :style="{ '--tux-mount-stagger-index': 1 }"
           />
           <TuxBigStat
             :value="(kpiTotals.totals[1] as number)"
             suffix="M"
             label="CSV"
             size="md"
+            :style="{ '--tux-mount-stagger-index': 2 }"
           />
           <TuxBigStat
             :value="(kpiTotals.totals[2] as number)"
             suffix="M"
             label="GeoJSON"
             size="md"
+            :style="{ '--tux-mount-stagger-index': 3 }"
           />
         </div>
         <TuxChartArea
@@ -433,8 +437,8 @@ const kpiTotals = computed(() => {
 
       <section class="space-y-3">
         <TuxSectionHeader>Throughput · status · health</TuxSectionHeader>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-          <TuxCard>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start tux-mount-in tux-mount-in--stagger">
+          <TuxCard :style="{ '--tux-mount-stagger-index': 0 }">
             <p class="eyebrow">scans / weekday</p>
             <h3 class="font-bold text-base">Throughput · last 4 weeks avg</h3>
             <p class="text-sm text-text-secondary mb-3">
@@ -452,7 +456,7 @@ const kpiTotals = computed(() => {
             />
           </TuxCard>
 
-          <TuxCard>
+          <TuxCard :style="{ '--tux-mount-stagger-index': 1 }">
             <p class="eyebrow">files · by tier</p>
             <h3 class="font-bold text-base">Access-tier distribution</h3>
             <p class="text-sm text-text-secondary mb-3">
@@ -470,7 +474,7 @@ const kpiTotals = computed(() => {
             />
           </TuxCard>
 
-          <TuxCard>
+          <TuxCard :style="{ '--tux-mount-stagger-index': 2 }">
             <p class="eyebrow">health · sla + utilization</p>
             <h3 class="font-bold text-base">System health</h3>
             <p class="text-sm text-text-secondary mb-3">
