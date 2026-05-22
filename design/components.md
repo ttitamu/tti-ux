@@ -110,11 +110,16 @@ npm run dev
 | `TuxInfiniteScroll`  | tux native               | `/components/infinite-scroll`   |
 | `TuxReactionBar`     | tux native               | `/components/reaction-bar`      |
 
-**Native chart family** (Priority B):
+**Native chart family** (Priority B — closed 2026-05-22):
 
 | Component            | Stack                    | Showcase                        |
 |----------------------|--------------------------|---------------------------------|
 | `TuxChartLine`       | tux native SVG           | `/visualizations/chart-line`    |
+| `TuxChartBar`        | tux native SVG           | `/visualizations/chart-bar`     |
+| `TuxChartArea`       | tux native SVG           | `/visualizations/chart-area`    |
+| `TuxChartDonut`      | tux native SVG           | `/visualizations/chart-donut`   |
+| `TuxChartScatter`    | tux native SVG           | `/visualizations/chart-scatter` |
+| `TuxChartGauge`      | tux native SVG           | `/visualizations/chart-gauge`   |
 
 ### Reports section
 

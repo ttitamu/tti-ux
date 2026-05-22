@@ -289,16 +289,25 @@ tonal palette, elevation-as-color, SF Symbols).
   Companion doc enumerating which TUX components call which Tauri
   APIs + the capability allowlist template.
 
-### Still on the platform-aware roadmap (deferred to consumer pull)
+### Native chart family — closed 2026-05-22
 
-- **TuxChartGauge** — 270° arc with needle. Source: Microsoft Teams
-  data viz inventory. Defer; research dashboards rarely use gauges.
-- **TuxChartArea** — stacked area chart with KPI strip above
-  composition. Source: Charts UI Kit absorption carry-forward.
-- **TuxChartScatter** — scatter plot for correlation surfaces.
-  Source: chart-foundations Priority B roadmap.
-- **TuxChartDonut** — categorical share-of-total. Source: Snow
-  Dashboard + Charts UI Kit carry-forwards.
+The Priority B chart family is now complete:
+
+- ~~**TuxChartLine**~~ — shipped 2026-05-21 (end-of-line labels,
+  previous-period overlay, confidence band).
+- ~~**TuxChartBar**~~ — shipped 2026-05-22 (single / grouped /
+  stacked / horizontal / comparison overlay).
+- ~~**TuxChartArea**~~ — shipped 2026-05-22 (overlay + stacked
+  variants; pairs with `TuxBigStat` for the KPI-strip composition).
+- ~~**TuxChartDonut**~~ — shipped 2026-05-22 (center stat slot,
+  slice-label colored to wedge, auto-fold tiny slices into "Other").
+- ~~**TuxChartScatter**~~ — shipped 2026-05-22 (linear-regression
+  trendline + R², bubble-chart mode via per-point size).
+- ~~**TuxChartGauge**~~ — shipped 2026-05-22 (270° arc with needle
+  + bands, or radial-progress variant).
+
+Plus the pre-existing **`TuxChartGeographic`** (Texas map) and
+**`TuxChartSunburst`** (two-ring radial) for specialized surfaces.
 
 ---
 

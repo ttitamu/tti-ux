@@ -5,6 +5,43 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — native chart family completion (2026-05-22)
+
+Closes the Priority B chart roadmap. Four new native SVG charts
+land in one sprint, all following `design/chart-foundations.md`
+doctrine: maroon-led `--chart-1..8` palette, end-of-element value
+labels colored to series, auto-derived screen-reader summary,
+editorial chrome via optional `TuxChartFrame` wrap.
+
+- **[`TuxChartDonut`](app/components/TuxChartDonut.vue)** —
+  share-of-total with center stat slot. Slices below `minSlice%`
+  auto-fold into "Other" (keeps it legible past 6 categories).
+  Slice labels colored to the wedge they point at — color-blind
+  users get identity from text adjacency.
+- **[`TuxChartArea`](app/components/TuxChartArea.vue)** — sibling
+  to TuxChartLine; fills the region under each line. Overlay
+  (default, 0.22 opacity for multi-series read-through) and stacked
+  variants. End-of-area labels colored to series. Pairs with
+  `TuxBigStat` for the canonical "KPI strip over stacked area"
+  composition (Charts UI Kit absorption carry-forward).
+- **[`TuxChartScatter`](app/components/TuxChartScatter.vue)** —
+  correlation plot. Optional linear-regression trendline per series
+  with R² readout in the legend. Variable point sizes for bubble-
+  chart mode. The only chart in the family where both axes need
+  labels (since x is no longer ordinal).
+- **[`TuxChartGauge`](app/components/TuxChartGauge.vue)** — 270°
+  arc gauge for single-target metrics. Two variants: `arc` (needle
+  + optional tone bands using status tokens) and `progress` (single
+  filled arc, no needle). Use sparingly — research dashboards
+  rarely need gauges; the showcase calls out when to reach for
+  `TuxBigStat` instead.
+
+Plus showcase routes under `/visualizations/{chart-donut, chart-area,
+chart-scatter, chart-gauge}`, full 6-step shipping discipline (nav,
+index cards, components.md rows, roadmap struck through).
+
+The Priority B chart roadmap is now closed.
+
 ### Added — next-sprint batch: SplitPane + AppSwitcher + ChartBar (2026-05-22)
 
 Closes 3 of the 4 deferred roadmap candidates from the

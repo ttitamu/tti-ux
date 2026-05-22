@@ -196,9 +196,13 @@ const navTree = [
     label: "Visualizations",
     children: [
       { label: "Visualizations overview", to: "/visualizations",                  icon: "lucide:chart-pie" },
+      { label: "TuxChartArea",            to: "/visualizations/chart-area",       icon: "lucide:area-chart" },
       { label: "TuxChartBar",             to: "/visualizations/chart-bar",        icon: "lucide:bar-chart-3" },
+      { label: "TuxChartDonut",           to: "/visualizations/chart-donut",      icon: "lucide:pie-chart" },
+      { label: "TuxChartGauge",           to: "/visualizations/chart-gauge",      icon: "lucide:gauge" },
       { label: "TuxChartGeographic",      to: "/visualizations/chart-geographic", icon: "lucide:map" },
       { label: "TuxChartLine",            to: "/visualizations/chart-line",       icon: "lucide:line-chart" },
+      { label: "TuxChartScatter",         to: "/visualizations/chart-scatter",    icon: "lucide:scatter-chart" },
       { label: "TuxChartSunburst",        to: "/visualizations/chart-sunburst",   icon: "lucide:circle-dot" },
       { label: "TuxVizEmbed",             to: "/visualizations/embed",            icon: "lucide:bar-chart-3" },
       { label: "TuxVizRPlot",             to: "/visualizations/rplot",            icon: "lucide:square-sigma" },
