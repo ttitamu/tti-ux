@@ -62,6 +62,9 @@ interface Props {
   decimals?: number;
   ariaSummary?: string;
   units?: string;
+  /** Enable the styled hover tooltip overlay. Default true. Mouse +
+   *  keyboard (tab + arrow keys cycle data points). */
+  tooltip?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -77,7 +80,12 @@ const props = withDefaults(defineProps<Props>(), {
   decimals: 1,
   ariaSummary: undefined,
   units: undefined,
+  tooltip: true,
 });
+
+const emit = defineEmits<{
+  hover: [payload: { index: number; label: string; values: Array<{ key: string; label: string; value: number }> } | null];
+}>();
 
 const PAD_TOP = 14;
 const PAD_RIGHT = 56; // room for end-of-area labels
@@ -222,6 +230,90 @@ const ariaSummary = computed(() => {
   const variantNote = isStacked.value ? " (stacked)" : "";
   return `Area chart${variantNote}: ${props.labels.length} points, ${props.series.length} series, low ${min.toFixed(props.decimals)}, high ${max.toFixed(props.decimals)}, latest total ${lastTotal.toFixed(props.decimals)}${u}.`;
 });
+
+// ----- Hover tooltip (Line-style: vertical guide + focus dots) ----
+const hoverIndex = ref<number | null>(null);
+const hoverX = computed(() => (hoverIndex.value === null ? 0 : xCoord(hoverIndex.value)));
+
+function indexFromPointer(clientX: number, svg: SVGSVGElement): number | null {
+  const rect = svg.getBoundingClientRect();
+  const scaleX = props.width / rect.width;
+  const xInSvg = (clientX - rect.left) * scaleX;
+  const n = props.labels.length;
+  if (n === 0) return null;
+  if (xInSvg < PAD_LEFT) return 0;
+  if (xInSvg > PAD_LEFT + innerW.value) return n - 1;
+  const frac = (xInSvg - PAD_LEFT) / Math.max(1, innerW.value);
+  return Math.max(0, Math.min(n - 1, Math.round(frac * (n - 1))));
+}
+
+function onAreaMove(e: PointerEvent) {
+  if (!props.tooltip) return;
+  const svg = e.currentTarget as SVGSVGElement;
+  const idx = indexFromPointer(e.clientX, svg);
+  if (idx !== null) setHoverIndex(idx);
+}
+
+function onAreaLeave() {
+  setHoverIndex(null);
+}
+
+function onAreaKey(e: KeyboardEvent) {
+  if (!props.tooltip) return;
+  const n = props.labels.length;
+  if (n === 0) return;
+  if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+    e.preventDefault();
+    const cur = hoverIndex.value ?? Math.floor(n / 2);
+    const next = e.key === "ArrowLeft" ? Math.max(0, cur - 1) : Math.min(n - 1, cur + 1);
+    setHoverIndex(next);
+  } else if (e.key === "Escape") {
+    setHoverIndex(null);
+  }
+}
+
+function setHoverIndex(idx: number | null) {
+  hoverIndex.value = idx;
+  if (idx === null) {
+    emit("hover", null);
+    return;
+  }
+  const label = props.labels[idx] ?? "";
+  const values = props.series.map((s) => ({
+    key: s.key,
+    label: s.label,
+    value: s.data[idx] ?? 0,
+  }));
+  emit("hover", { index: idx, label, values });
+}
+
+const tooltipPayload = computed(() => {
+  if (hoverIndex.value === null) return null;
+  const idx = hoverIndex.value;
+  const total = props.series.reduce((sum, s) => sum + (s.data[idx] ?? 0), 0);
+  return {
+    label: props.labels[idx] ?? "",
+    total: isStacked.value ? total : undefined,
+    rows: props.series.map((s, i) => {
+      const tone = Math.max(1, Math.min(8, s.toneIndex ?? i + 1));
+      return {
+        key: s.key,
+        label: s.label,
+        value: s.data[idx] ?? 0,
+        toneClass: `tux-chart-area__series--c${tone}`,
+      };
+    }),
+  };
+});
+
+// For focus dots on the area chart we draw at the top edge of each
+// series' band (stacked) or at the data value (overlay).
+function focusY(seriesIdx: number, idx: number): number {
+  if (isStacked.value && stackedSeries.value) {
+    return yCoord(stackedSeries.value[seriesIdx]?.top[idx] ?? 0);
+  }
+  return yCoord(props.series[seriesIdx]?.data[idx] ?? 0);
+}
 </script>
 
 <template>
@@ -310,7 +402,70 @@ const ariaSummary = computed(() => {
           {{ area.endLabel.text }}
         </text>
       </g>
+
+      <!-- Hover layer: vertical guide + focus dots + capture rect. -->
+      <g v-if="tooltip" class="tux-chart-area__hover-layer">
+        <line
+          v-if="hoverIndex !== null"
+          :x1="hoverX"
+          :x2="hoverX"
+          :y1="PAD_TOP"
+          :y2="PAD_TOP + innerH"
+          class="tux-chart-area__hover-guide"
+        />
+        <template v-if="hoverIndex !== null">
+          <circle
+            v-for="(s, i) in series"
+            :key="`focus-${s.key}`"
+            :cx="hoverX"
+            :cy="focusY(i, hoverIndex)"
+            r="4"
+            :class="['tux-chart-area__hover-dot', `tux-chart-area__series--c${Math.max(1, Math.min(8, s.toneIndex ?? i + 1))}`]"
+          />
+        </template>
+        <rect
+          :x="PAD_LEFT"
+          :y="PAD_TOP"
+          :width="innerW"
+          :height="innerH"
+          class="tux-chart-area__hover-capture"
+          tabindex="0"
+          :aria-label="`Plot area, ${labels.length} points; use left/right arrows to read values.`"
+          @pointermove="onAreaMove"
+          @pointerleave="onAreaLeave"
+          @keydown="onAreaKey"
+        />
+      </g>
     </svg>
+
+    <!-- Tooltip card (HTML, absolutely positioned over the plot) -->
+    <div
+      v-if="tooltip && tooltipPayload"
+      class="tux-chart-area__tooltip"
+      role="status"
+      aria-live="polite"
+      :style="{ left: `calc(${(hoverX / width) * 100}% + 8px)`, top: '8px' }"
+    >
+      <p class="tux-chart-area__tooltip-label">{{ tooltipPayload.label }}</p>
+      <ul>
+        <li
+          v-for="row in tooltipPayload.rows"
+          :key="row.key"
+          :class="row.toneClass"
+        >
+          <span class="tux-chart-area__tooltip-swatch" />
+          <span class="tux-chart-area__tooltip-name">{{ row.label }}</span>
+          <span class="tux-chart-area__tooltip-value">{{ format(row.value as number) }}</span>
+        </li>
+        <li
+          v-if="tooltipPayload.total !== undefined"
+          class="tux-chart-area__tooltip-total"
+        >
+          <span class="tux-chart-area__tooltip-name">Total</span>
+          <span class="tux-chart-area__tooltip-value">{{ format(tooltipPayload.total) }}</span>
+        </li>
+      </ul>
+    </div>
 
     <ul v-if="legend" class="tux-chart-area__legend">
       <li
@@ -428,4 +583,114 @@ const ariaSummary = computed(() => {
 .tux-chart-area__legend-item.tux-chart-area__series--c6 .tux-chart-area__legend-swatch { background: var(--chart-6, #5c7080); }
 .tux-chart-area__legend-item.tux-chart-area__series--c7 .tux-chart-area__legend-swatch { background: var(--chart-7, #a33a3a); }
 .tux-chart-area__legend-item.tux-chart-area__series--c8 .tux-chart-area__legend-swatch { background: var(--chart-8, #3c5a87); }
+
+/* ---- Hover layer ---- */
+.tux-chart-area {
+  position: relative;
+}
+
+.tux-chart-area__hover-capture {
+  fill: transparent;
+  cursor: crosshair;
+  outline: none;
+}
+
+.tux-chart-area__hover-capture:focus-visible {
+  fill: color-mix(in srgb, var(--brand-primary) 4%, transparent);
+}
+
+.tux-chart-area__hover-guide {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.tux-chart-area__hover-dot {
+  fill: var(--surface-page);
+  stroke-width: 2;
+  pointer-events: none;
+}
+
+.tux-chart-area__hover-dot.tux-chart-area__series--c1 { stroke: var(--chart-1, var(--brand-primary)); }
+.tux-chart-area__hover-dot.tux-chart-area__series--c2 { stroke: var(--chart-2, #3f5a6f); }
+.tux-chart-area__hover-dot.tux-chart-area__series--c3 { stroke: var(--chart-3, #c7973c); }
+.tux-chart-area__hover-dot.tux-chart-area__series--c4 { stroke: var(--chart-4, #6b8e5a); }
+.tux-chart-area__hover-dot.tux-chart-area__series--c5 { stroke: var(--chart-5, #8c5a3c); }
+.tux-chart-area__hover-dot.tux-chart-area__series--c6 { stroke: var(--chart-6, #5c7080); }
+.tux-chart-area__hover-dot.tux-chart-area__series--c7 { stroke: var(--chart-7, #a33a3a); }
+.tux-chart-area__hover-dot.tux-chart-area__series--c8 { stroke: var(--chart-8, #3c5a87); }
+
+.tux-chart-area__tooltip {
+  position: absolute;
+  z-index: 4;
+  min-width: 8rem;
+  max-width: 16rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--surface-page);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm, 4px);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+
+.tux-chart-area__tooltip-label {
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  color: var(--text-primary);
+}
+
+.tux-chart-area__tooltip ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tux-chart-area__tooltip li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.375rem;
+  align-items: baseline;
+  padding: 0.125rem 0;
+}
+
+.tux-chart-area__tooltip-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  align-self: center;
+}
+.tux-chart-area__tooltip li.tux-chart-area__series--c1 .tux-chart-area__tooltip-swatch { background: var(--chart-1, var(--brand-primary)); }
+.tux-chart-area__tooltip li.tux-chart-area__series--c2 .tux-chart-area__tooltip-swatch { background: var(--chart-2, #3f5a6f); }
+.tux-chart-area__tooltip li.tux-chart-area__series--c3 .tux-chart-area__tooltip-swatch { background: var(--chart-3, #c7973c); }
+.tux-chart-area__tooltip li.tux-chart-area__series--c4 .tux-chart-area__tooltip-swatch { background: var(--chart-4, #6b8e5a); }
+.tux-chart-area__tooltip li.tux-chart-area__series--c5 .tux-chart-area__tooltip-swatch { background: var(--chart-5, #8c5a3c); }
+.tux-chart-area__tooltip li.tux-chart-area__series--c6 .tux-chart-area__tooltip-swatch { background: var(--chart-6, #5c7080); }
+.tux-chart-area__tooltip li.tux-chart-area__series--c7 .tux-chart-area__tooltip-swatch { background: var(--chart-7, #a33a3a); }
+.tux-chart-area__tooltip li.tux-chart-area__series--c8 .tux-chart-area__tooltip-swatch { background: var(--chart-8, #3c5a87); }
+
+.tux-chart-area__tooltip-name {
+  color: var(--text-secondary);
+}
+
+.tux-chart-area__tooltip-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.tux-chart-area__tooltip-total {
+  border-top: 1px solid var(--surface-border);
+  margin-top: 0.25rem;
+  padding-top: 0.25rem !important;
+}
+
+.tux-chart-area__tooltip-total .tux-chart-area__tooltip-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  grid-column: 1 / 3;
+}
 </style>

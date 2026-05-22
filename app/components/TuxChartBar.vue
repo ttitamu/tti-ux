@@ -89,6 +89,10 @@ interface Props {
   ariaSummary?: string;
   /** Units label appended to the SR summary ("requests/min"). */
   units?: string;
+  /** Enable the styled hover tooltip. Default true. Hovering a bar
+   *  highlights its category column + shows a tooltip card with the
+   *  category total + per-series values. */
+  tooltip?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -105,7 +109,12 @@ const props = withDefaults(defineProps<Props>(), {
   decimals: 1,
   ariaSummary: undefined,
   units: undefined,
+  tooltip: true,
 });
+
+const emit = defineEmits<{
+  hover: [payload: { index: number; label: string; values: Array<{ key: string; label: string; value: number }> } | null];
+}>();
 
 // Layout — same paddings as TuxChartLine for visual rhythm consistency.
 const PAD_TOP = 16;
@@ -312,10 +321,127 @@ function valueLabelPos(rect: { x: number; y: number; w: number; h: number }): {
     baseline: props.inBarLabels ? "hanging" : "ideographic",
   };
 }
+
+// ----- Hover tooltip (bar-highlight pattern) ----------------------
+const hoverCategory = ref<number | null>(null);
+
+function categoryIndexFromPointer(clientX: number, clientY: number, svg: SVGSVGElement): number | null {
+  const rect = svg.getBoundingClientRect();
+  const scaleX = props.width / rect.width;
+  const scaleY = props.height / rect.height;
+  const xInSvg = (clientX - rect.left) * scaleX;
+  const yInSvg = (clientY - rect.top) * scaleY;
+  const n = props.labels.length;
+  if (n === 0) return null;
+
+  if (isHorizontal.value) {
+    if (yInSvg < PAD_TOP || yInSvg > PAD_TOP + innerH.value) return null;
+    const slot = (yInSvg - PAD_TOP) / Math.max(1, groupWidth.value);
+    return Math.max(0, Math.min(n - 1, Math.floor(slot)));
+  }
+  if (xInSvg < PAD_LEFT || xInSvg > PAD_LEFT + innerW.value) return null;
+  const slot = (xInSvg - PAD_LEFT) / Math.max(1, groupWidth.value);
+  return Math.max(0, Math.min(n - 1, Math.floor(slot)));
+}
+
+function onBarMove(e: PointerEvent) {
+  if (!props.tooltip) return;
+  const svg = e.currentTarget as SVGSVGElement;
+  const idx = categoryIndexFromPointer(e.clientX, e.clientY, svg);
+  setHoverCategory(idx);
+}
+
+function onBarLeave() {
+  setHoverCategory(null);
+}
+
+function onBarKey(e: KeyboardEvent) {
+  if (!props.tooltip) return;
+  const n = props.labels.length;
+  if (n === 0) return;
+  if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") {
+    e.preventDefault();
+    const cur = hoverCategory.value ?? 0;
+    const advance = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
+    setHoverCategory(Math.max(0, Math.min(n - 1, cur + advance)));
+  } else if (e.key === "Escape") {
+    setHoverCategory(null);
+  }
+}
+
+function setHoverCategory(idx: number | null) {
+  hoverCategory.value = idx;
+  if (idx === null) {
+    emit("hover", null);
+    return;
+  }
+  const label = props.labels[idx] ?? "";
+  const values = props.series.map((s) => ({
+    key: s.key,
+    label: s.label,
+    value: s.data[idx] ?? 0,
+  }));
+  emit("hover", { index: idx, label, values });
+}
+
+const tooltipPayload = computed(() => {
+  if (hoverCategory.value === null) return null;
+  const idx = hoverCategory.value;
+  const total = props.series.reduce((sum, s) => sum + (s.data[idx] ?? 0), 0);
+  return {
+    label: props.labels[idx] ?? "",
+    total,
+    rows: props.series.map((s, i) => {
+      const tone = props.series.length === 1
+        ? (idx % 8) + 1
+        : Math.max(1, Math.min(8, s.toneIndex ?? i + 1));
+      return {
+        key: s.key,
+        label: s.label,
+        value: s.data[idx] ?? 0,
+        toneClass: `tux-chart-bar__series--c${tone}`,
+        comparison: s.comparison?.[idx],
+      };
+    }),
+  };
+});
+
+// Pixel position to anchor the tooltip card.
+const tooltipAnchorPercent = computed(() => {
+  if (hoverCategory.value === null) return 0;
+  const slotCenter = categoryOffset(hoverCategory.value) + groupWidth.value / 2;
+  if (isHorizontal.value) return ((PAD_LEFT + innerW.value / 2) / props.width) * 100;
+  return ((PAD_LEFT + slotCenter) / props.width) * 100;
+});
+
+// Highlight rect geometry per active category.
+const highlightRect = computed(() => {
+  if (hoverCategory.value === null) return null;
+  const i = hoverCategory.value;
+  if (isHorizontal.value) {
+    return {
+      x: PAD_LEFT,
+      y: PAD_TOP + categoryOffset(i),
+      width: innerW.value,
+      height: groupWidth.value,
+    };
+  }
+  return {
+    x: PAD_LEFT + categoryOffset(i),
+    y: PAD_TOP,
+    width: groupWidth.value,
+    height: innerH.value,
+  };
+});
 </script>
 
 <template>
-  <figure class="tux-chart-bar" role="figure" :aria-label="ariaSummary">
+  <figure
+    class="tux-chart-bar"
+    role="figure"
+    :aria-label="ariaSummary"
+    :data-orient="orientation"
+  >
     <svg
       :viewBox="`0 0 ${width} ${height}`"
       :width="width"
@@ -413,6 +539,7 @@ function valueLabelPos(rect: { x: number; y: number; w: number; h: number }): {
               :width="barRect(i, j, v).w"
               :height="Math.max(0, barRect(i, j, v).h)"
               :class="['tux-chart-bar__bar', series.length === 1 ? categoryToneClass(i) : toneClass(s, j)]"
+              :style="`--tux-chart-stagger-index: ${i};`"
             />
             <text
               v-if="valueLabels"
@@ -436,10 +563,70 @@ function valueLabelPos(rect: { x: number; y: number; w: number; h: number }): {
             :width="barRect(seg.catIndex, seg.seriesIndex, seg.value, seg.base).w"
             :height="Math.max(0, barRect(seg.catIndex, seg.seriesIndex, seg.value, seg.base).h)"
             :class="['tux-chart-bar__bar', seg.toneClass]"
+            :style="`--tux-chart-stagger-index: ${seg.catIndex};`"
           />
         </template>
       </g>
+
+      <!-- Hover overlay: column-wash highlight + capture rect -->
+      <g v-if="tooltip" class="tux-chart-bar__hover-layer">
+        <rect
+          v-if="highlightRect"
+          :x="highlightRect.x"
+          :y="highlightRect.y"
+          :width="highlightRect.width"
+          :height="highlightRect.height"
+          class="tux-chart-bar__hover-highlight"
+        />
+        <rect
+          :x="PAD_LEFT"
+          :y="PAD_TOP"
+          :width="innerW"
+          :height="innerH"
+          class="tux-chart-bar__hover-capture"
+          tabindex="0"
+          :aria-label="`Plot area, ${labels.length} categories; use arrow keys to read each.`"
+          @pointermove="onBarMove"
+          @pointerleave="onBarLeave"
+          @keydown="onBarKey"
+        />
+      </g>
     </svg>
+
+    <!-- Tooltip card -->
+    <div
+      v-if="tooltip && tooltipPayload"
+      class="tux-chart-bar__tooltip"
+      role="status"
+      aria-live="polite"
+      :style="{ left: `calc(${tooltipAnchorPercent}% + 12px)`, top: '8px' }"
+    >
+      <p class="tux-chart-bar__tooltip-label">{{ tooltipPayload.label }}</p>
+      <ul>
+        <li
+          v-for="row in tooltipPayload.rows"
+          :key="row.key"
+          :class="row.toneClass"
+        >
+          <span class="tux-chart-bar__tooltip-swatch" />
+          <span class="tux-chart-bar__tooltip-name">{{ row.label }}</span>
+          <span class="tux-chart-bar__tooltip-value">{{ format(row.value as number) }}</span>
+          <span
+            v-if="row.comparison !== undefined"
+            class="tux-chart-bar__tooltip-comparison"
+          >
+            (target {{ format(row.comparison as number) }})
+          </span>
+        </li>
+        <li
+          v-if="series.length > 1"
+          class="tux-chart-bar__tooltip-total"
+        >
+          <span class="tux-chart-bar__tooltip-name">Total</span>
+          <span class="tux-chart-bar__tooltip-value">{{ format(tooltipPayload.total) }}</span>
+        </li>
+      </ul>
+    </div>
 
     <!-- Legend -->
     <ul v-if="legend" class="tux-chart-bar__legend">
@@ -552,5 +739,105 @@ function valueLabelPos(rect: { x: number; y: number; w: number; h: number }): {
   .tux-chart-bar__bar {
     transition: none;
   }
+}
+
+/* ---- Hover layer ---- */
+.tux-chart-bar {
+  position: relative;
+}
+
+.tux-chart-bar__hover-capture {
+  fill: transparent;
+  cursor: crosshair;
+  outline: none;
+}
+
+.tux-chart-bar__hover-capture:focus-visible {
+  fill: color-mix(in srgb, var(--brand-primary) 4%, transparent);
+}
+
+.tux-chart-bar__hover-highlight {
+  fill: color-mix(in srgb, var(--brand-primary) 5%, transparent);
+  pointer-events: none;
+}
+
+.tux-chart-bar__tooltip {
+  position: absolute;
+  z-index: 4;
+  min-width: 9rem;
+  max-width: 18rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--surface-page);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm, 4px);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+
+.tux-chart-bar__tooltip-label {
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+.tux-chart-bar__tooltip ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tux-chart-bar__tooltip li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.375rem;
+  align-items: baseline;
+  padding: 0.125rem 0;
+}
+
+.tux-chart-bar__tooltip-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  align-self: center;
+}
+.tux-chart-bar__tooltip li.tux-chart-bar__series--c1 .tux-chart-bar__tooltip-swatch { background: var(--chart-1, var(--brand-primary)); }
+.tux-chart-bar__tooltip li.tux-chart-bar__series--c2 .tux-chart-bar__tooltip-swatch { background: var(--chart-2, #3f5a6f); }
+.tux-chart-bar__tooltip li.tux-chart-bar__series--c3 .tux-chart-bar__tooltip-swatch { background: var(--chart-3, #c7973c); }
+.tux-chart-bar__tooltip li.tux-chart-bar__series--c4 .tux-chart-bar__tooltip-swatch { background: var(--chart-4, #6b8e5a); }
+.tux-chart-bar__tooltip li.tux-chart-bar__series--c5 .tux-chart-bar__tooltip-swatch { background: var(--chart-5, #8c5a3c); }
+.tux-chart-bar__tooltip li.tux-chart-bar__series--c6 .tux-chart-bar__tooltip-swatch { background: var(--chart-6, #5c7080); }
+.tux-chart-bar__tooltip li.tux-chart-bar__series--c7 .tux-chart-bar__tooltip-swatch { background: var(--chart-7, #a33a3a); }
+.tux-chart-bar__tooltip li.tux-chart-bar__series--c8 .tux-chart-bar__tooltip-swatch { background: var(--chart-8, #3c5a87); }
+
+.tux-chart-bar__tooltip-name {
+  color: var(--text-secondary);
+}
+
+.tux-chart-bar__tooltip-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.tux-chart-bar__tooltip-comparison {
+  grid-column: 1 / -1;
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  text-align: right;
+}
+
+.tux-chart-bar__tooltip-total {
+  border-top: 1px solid var(--surface-border);
+  margin-top: 0.25rem;
+  padding-top: 0.25rem !important;
+}
+
+.tux-chart-bar__tooltip-total .tux-chart-bar__tooltip-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  grid-column: 1 / 3;
 }
 </style>

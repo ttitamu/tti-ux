@@ -219,10 +219,11 @@ function fmtPercent(frac: number): string {
       >
         <g class="tux-chart-donut__slices">
           <path
-            v-for="arc in arcs"
+            v-for="(arc, i) in arcs"
             :key="arc.slice.key"
             :d="arc.d"
             :class="['tux-chart-donut__slice', arc.toneClass]"
+            :style="`--tux-chart-stagger-index: ${i};`"
           />
         </g>
 

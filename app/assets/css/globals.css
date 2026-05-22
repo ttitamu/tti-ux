@@ -18,6 +18,12 @@
 @import "./tux-scrollbar.css";
 
 /*
+ * Chart-family entrance animations. Subtle, fast, reduced-motion-
+ * respecting. See `design/chart-foundations.md` motion section.
+ */
+@import "./tux-chart-motion.css";
+
+/*
  * Maroon palette lives in tokens.css as plain :root vars (not @theme),
  * because Tailwind v4 tree-shakes @theme entries that aren't referenced
  * in source CSS/templates. Nuxt UI references them via its pre-compiled

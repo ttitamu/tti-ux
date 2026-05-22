@@ -78,6 +78,19 @@ const brushVue = `<!-- Two-way bound range; drag the handles below the chart -->
 />`;
 
 const brushRange = ref([2, 9]);
+
+const focusOpen = ref(false);
+const focusVue = `<UButton icon="lucide:maximize" @click="focusOpen = true">Open in focus mode</UButton>
+<TuxFocusView
+  v-model:open="focusOpen"
+  eyebrow="Exhibit 11.04"
+  title="Monthly ingest rate"
+>
+  <template #actions>
+    <UButton variant="ghost" icon="lucide:download" />
+  </template>
+  <TuxChartLine :labels="months" :series="multiSeries" :width="1100" :height="500" markers brush />
+</TuxFocusView>`;
 </script>
 
 <template>
@@ -190,6 +203,38 @@ const brushRange = ref([2, 9]);
           :series="singleSeries"
           brush
         />
+      </TuxExample>
+    </section>
+
+    <section>
+      <p class="eyebrow">composition · open in focus mode</p>
+      <h2 class="heading--bold text-xl font-bold">Pin the chart full-viewport</h2>
+      <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
+        Compose with <NuxtLink to="/components/focus-view" class="link-tti">TuxFocusView</NuxtLink>
+        to give consumers a "pin this chart full-screen" affordance —
+        useful in dashboard tiles when a chart needs more breathing
+        room for analysis. The brush + tooltip still work inside the
+        overlay.
+      </p>
+      <TuxExample class="mt-4" :vue="focusVue">
+        <UButton icon="lucide:maximize" @click="focusOpen = true">Open in focus mode</UButton>
+        <TuxFocusView
+          v-model:open="focusOpen"
+          eyebrow="Exhibit 11.04"
+          title="Monthly ingest rate"
+        >
+          <template #actions>
+            <UButton variant="ghost" icon="lucide:download" />
+          </template>
+          <TuxChartLine
+            :labels="months"
+            :series="multiSeries"
+            :width="1100"
+            :height="500"
+            markers
+            brush
+          />
+        </TuxFocusView>
       </TuxExample>
     </section>
 

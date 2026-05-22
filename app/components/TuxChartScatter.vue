@@ -77,6 +77,9 @@ interface Props {
   decimals?: number;
   ariaSummary?: string;
   units?: string;
+  /** Enable the styled tooltip on dot hover. Default true. Replaces
+   *  the native SVG <title> on the dot with a branded card. */
+  tooltip?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -93,7 +96,12 @@ const props = withDefaults(defineProps<Props>(), {
   decimals: 2,
   ariaSummary: undefined,
   units: undefined,
+  tooltip: true,
 });
+
+const emit = defineEmits<{
+  hover: [payload: { seriesKey: string; seriesLabel: string; x: number; y: number; label?: string } | null];
+}>();
 
 const PAD_TOP = 16;
 const PAD_RIGHT = 16;
@@ -217,6 +225,59 @@ const ariaSummary = computed(() => {
   }
   return `Scatter plot: ${n} points across ${props.series.length} series; x from ${xMin.toFixed(props.decimals)} to ${xMax.toFixed(props.decimals)}, y from ${yMin.toFixed(props.decimals)} to ${yMax.toFixed(props.decimals)}${u}${trendNote}.`;
 });
+
+// ----- Hover tooltip ----------------------------------------------
+interface HoveredPoint {
+  seriesIdx: number;
+  pointIdx: number;
+  series: Series;
+  point: Point;
+}
+const hovered = ref<HoveredPoint | null>(null);
+
+function onDotEnter(seriesIdx: number, pointIdx: number) {
+  if (!props.tooltip) return;
+  const s = props.series[seriesIdx];
+  const p = s?.points[pointIdx];
+  if (!s || !p) return;
+  hovered.value = { seriesIdx, pointIdx, series: s, point: p };
+  emit("hover", {
+    seriesKey: s.key,
+    seriesLabel: s.label,
+    x: p.x,
+    y: p.y,
+    label: p.label,
+  });
+}
+
+function onDotLeave() {
+  hovered.value = null;
+  emit("hover", null);
+}
+
+function onDotFocus(seriesIdx: number, pointIdx: number) {
+  onDotEnter(seriesIdx, pointIdx);
+}
+
+function onDotBlur() {
+  onDotLeave();
+}
+
+const tooltipPos = computed(() => {
+  if (!hovered.value) return null;
+  const { point } = hovered.value;
+  return {
+    leftPercent: (xCoord(point.x) / props.width) * 100,
+    topPercent: (yCoord(point.y) / props.height) * 100,
+  };
+});
+
+function hoverToneClass(seriesIdx: number): string {
+  const s = props.series[seriesIdx];
+  const idx = s?.toneIndex ?? seriesIdx + 1;
+  const tone = Math.max(1, Math.min(8, idx));
+  return `tux-chart-scatter__series--c${tone}`;
+}
 </script>
 
 <template>
@@ -312,14 +373,57 @@ const ariaSummary = computed(() => {
             :key="`pt-${i}-${j}`"
             :cx="xCoord(p.x)"
             :cy="yCoord(p.y)"
-            :r="p.size ?? 5"
-            :class="['tux-chart-scatter__dot', toneClass(s, i)]"
+            :r="hovered && hovered.seriesIdx === i && hovered.pointIdx === j ? (p.size ?? 5) + 2 : (p.size ?? 5)"
+            :class="[
+              'tux-chart-scatter__dot',
+              toneClass(s, i),
+              { 'tux-chart-scatter__dot--active': hovered && hovered.seriesIdx === i && hovered.pointIdx === j },
+            ]"
+            tabindex="0"
+            :style="`--tux-chart-stagger-index: ${j};`"
+            :aria-label="`${s.label}: ${p.label ? p.label + ', ' : ''}x ${format(p.x)}, y ${format(p.y)}`"
+            @pointerenter="onDotEnter(i, j)"
+            @pointerleave="onDotLeave"
+            @focus="onDotFocus(i, j)"
+            @blur="onDotBlur"
           >
-            <title>{{ s.label }}: ({{ format(p.x) }}, {{ format(p.y) }})</title>
+            <title>{{ s.label }}{{ p.label ? ' · ' + p.label : '' }}: ({{ format(p.x) }}, {{ format(p.y) }})</title>
           </circle>
         </template>
       </g>
     </svg>
+
+    <!-- Tooltip card anchored to the active dot. -->
+    <div
+      v-if="tooltip && hovered && tooltipPos"
+      class="tux-chart-scatter__tooltip"
+      role="status"
+      aria-live="polite"
+      :style="{
+        left: `calc(${tooltipPos.leftPercent}% + 12px)`,
+        top: `calc(${tooltipPos.topPercent}% - 6px)`,
+      }"
+    >
+      <p
+        :class="['tux-chart-scatter__tooltip-series', hoverToneClass(hovered.seriesIdx)]"
+      >
+        <span class="tux-chart-scatter__tooltip-swatch" />
+        {{ hovered.series.label }}
+      </p>
+      <p v-if="hovered.point.label" class="tux-chart-scatter__tooltip-pointlabel">
+        {{ hovered.point.label }}
+      </p>
+      <dl class="tux-chart-scatter__tooltip-values">
+        <div>
+          <dt>{{ xLabel }}</dt>
+          <dd>{{ format(hovered.point.x) }}</dd>
+        </div>
+        <div>
+          <dt>{{ yLabel }}</dt>
+          <dd>{{ format(hovered.point.y) }}</dd>
+        </div>
+      </dl>
+    </div>
 
     <ul v-if="legend" class="tux-chart-scatter__legend">
       <li
@@ -371,11 +475,19 @@ const ariaSummary = computed(() => {
   fill: var(--chart-1, var(--brand-primary));
   opacity: 0.78;
   transition: opacity 120ms ease-out, r 120ms ease-out;
-  cursor: default;
+  cursor: pointer;
+  outline: none;
 }
 
-.tux-chart-scatter__dot:hover {
+.tux-chart-scatter__dot:hover,
+.tux-chart-scatter__dot:focus-visible,
+.tux-chart-scatter__dot--active {
   opacity: 1;
+}
+
+.tux-chart-scatter__dot:focus-visible {
+  stroke: var(--brand-primary);
+  stroke-width: 2;
 }
 
 .tux-chart-scatter__trend {
@@ -449,5 +561,81 @@ const ariaSummary = computed(() => {
   .tux-chart-scatter__dot {
     transition: none;
   }
+}
+
+/* ---- Tooltip ---- */
+.tux-chart-scatter {
+  position: relative;
+}
+
+.tux-chart-scatter__tooltip {
+  position: absolute;
+  z-index: 4;
+  min-width: 9rem;
+  max-width: 18rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--surface-page);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm, 4px);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+
+.tux-chart-scatter__tooltip-series {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.tux-chart-scatter__tooltip-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.tux-chart-scatter__tooltip-series.tux-chart-scatter__series--c1 .tux-chart-scatter__tooltip-swatch { background: var(--chart-1, var(--brand-primary)); }
+.tux-chart-scatter__tooltip-series.tux-chart-scatter__series--c2 .tux-chart-scatter__tooltip-swatch { background: var(--chart-2, #3f5a6f); }
+.tux-chart-scatter__tooltip-series.tux-chart-scatter__series--c3 .tux-chart-scatter__tooltip-swatch { background: var(--chart-3, #c7973c); }
+.tux-chart-scatter__tooltip-series.tux-chart-scatter__series--c4 .tux-chart-scatter__tooltip-swatch { background: var(--chart-4, #6b8e5a); }
+.tux-chart-scatter__tooltip-series.tux-chart-scatter__series--c5 .tux-chart-scatter__tooltip-swatch { background: var(--chart-5, #8c5a3c); }
+.tux-chart-scatter__tooltip-series.tux-chart-scatter__series--c6 .tux-chart-scatter__tooltip-swatch { background: var(--chart-6, #5c7080); }
+.tux-chart-scatter__tooltip-series.tux-chart-scatter__series--c7 .tux-chart-scatter__tooltip-swatch { background: var(--chart-7, #a33a3a); }
+.tux-chart-scatter__tooltip-series.tux-chart-scatter__series--c8 .tux-chart-scatter__tooltip-swatch { background: var(--chart-8, #3c5a87); }
+
+.tux-chart-scatter__tooltip-pointlabel {
+  color: var(--text-secondary);
+  margin: 0.25rem 0 0.375rem 0;
+  font-style: italic;
+}
+
+.tux-chart-scatter__tooltip-values {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 0.125rem 0.75rem;
+}
+
+.tux-chart-scatter__tooltip-values > div {
+  display: contents;
+}
+
+.tux-chart-scatter__tooltip-values dt {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  text-transform: lowercase;
+}
+
+.tux-chart-scatter__tooltip-values dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: right;
 }
 </style>

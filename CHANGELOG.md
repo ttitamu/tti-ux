@@ -5,6 +5,43 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — chart polish queue (2026-05-22)
+
+Polishes the native chart family for consistency and motion.
+
+**Tooltip parity across the chart family:**
+- `TuxChartArea` — vertical guide + per-series focus dots + tooltip
+  card (Line-style pattern, including stacked-total readout).
+- `TuxChartBar` — column-wash highlight + tooltip card with per-
+  series values + projection-vs-actual comparison row + total.
+- `TuxChartScatter` — per-dot pointer enter / focus reveals a
+  tooltip anchored to the active dot. Dot grows +2px on active.
+  Native SVG `<title>` still present as a fallback for AT.
+- All three accept `:tooltip="false"` to disable, and emit a
+  `hover` event with the active payload (consumer can sync hover
+  state across panels).
+- Keyboard-accessible: tab into the plot, arrow keys cycle
+  indices on Line/Area/Bar; tab into a dot on Scatter.
+
+**Chart entrance animations** (new
+`app/assets/css/tux-chart-motion.css`, auto-imported via
+`globals.css`):
+- Lines draw on via animated `stroke-dashoffset` (450ms).
+- Bars scale-Y from baseline (vertical) / scale-X from edge
+  (horizontal), staggered ~12ms per category.
+- Areas + top-lines rise from a 0.94 vertical scale (360ms).
+- Donut slices spin in (~360ms, staggered 28ms per slice).
+- Scatter dots pop from scale(0), staggered 8ms.
+- Gauge fill sweeps via `stroke-dashoffset`; needle swings from
+  -135° to its angle (480ms).
+- **All keyed off `prefers-reduced-motion`** — `reduce` collapses
+  every animation to instant.
+
+**TuxFocusView + chart composition:**
+- Chart-line showcase gains an "Open in focus mode" demo that
+  pins the chart full-viewport with brush + tooltip still
+  functional inside the overlay.
+
 ### Added — compositional sprint: chart interactions + dashboard refresh + absorption closure (2026-05-22)
 
 Layered onto the chart-family completion: real interactions on the
