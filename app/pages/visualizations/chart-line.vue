@@ -1,4 +1,12 @@
 <script setup lang="ts">
+// `bandSeries` (tuple-typed) and `brushRange` (tuple-typed ref) are
+// imported from a sibling `.demo-data.ts` module so we can use real
+// TS annotations — Nuxt's page-extract macro parser doesn't honor
+// TS-only syntax in top-level `<script setup>` declarations (`as`,
+// type annotations, `satisfies` all break it with "Unexpected token"),
+// but an external .ts import sidesteps that entirely.
+import { bandSeries, brushRange } from "./chart-line.demo-data";
+
 // Note for future authors: keep top-level expressions in this script
 // block as plain JS. Nuxt's page-extract pass uses a JS-only parser
 // path that doesn't honor `lang="ts"`, and any TS-only syntax (`as`,
@@ -30,26 +38,6 @@ const previousSeries = [
   },
 ];
 
-// Each inner band entry is a [low, high] tuple by construction. We
-// deliberately do NOT use `as Array<[number, number]>` here: Nuxt's
-// macro extractor (`?macro=true`) parses the <script setup> block
-// without TS support, and any TS-only syntax (`as`, type annotations,
-// `satisfies`) makes the whole route module fail to load with
-// "Unexpected token, expected ','". Inference gives `number[][]` —
-// close enough for TuxChartLine's runtime, which just iterates pairs.
-const bandSeries = [
-  {
-    key: "estimate",
-    label: "Estimated rate (95% CI)",
-    data: [42, 48, 54, 58, 61, 65, 68, 72, 78, 84, 88, 92],
-    band: [
-      [38, 46], [44, 52], [50, 58], [54, 62],
-      [57, 65], [61, 69], [64, 72], [68, 76],
-      [73, 83], [79, 89], [83, 93], [86, 98],
-    ],
-  },
-];
-
 const basicVue = `<tux-chart-line :labels="months" :series="series" :width="640" :height="280" />`;
 const multiVue = `<tux-chart-line :labels="months" :series="multiSeries" markers />`;
 const prevVue = `<!-- series[].previous renders as a 60% opacity dashed
@@ -77,7 +65,6 @@ const brushVue = `<!-- Two-way bound range; drag the handles below the chart -->
   brush
 />`;
 
-const brushRange = ref([2, 9]);
 
 const focusOpen = ref(false);
 const focusVue = `<UButton icon="lucide:maximize" @click="focusOpen = true">Open in focus mode</UButton>

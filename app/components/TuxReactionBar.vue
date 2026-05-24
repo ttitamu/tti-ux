@@ -93,7 +93,7 @@ function toggle(key: string) {
       <UIcon :name="r.icon" class="tux-reaction-bar__icon" aria-hidden="true" />
       <span class="tux-reaction-bar__label">{{ r.label }}</span>
       <span
-        v-if="counts[r.key] !== undefined && counts[r.key] > 0"
+        v-if="(counts[r.key] ?? 0) > 0"
         class="tux-reaction-bar__count"
       >{{ counts[r.key] }}</span>
     </button>

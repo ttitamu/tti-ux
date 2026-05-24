@@ -63,8 +63,13 @@ const loaded = ref(false);
 const iframeEl = ref<HTMLIFrameElement | null>(null);
 
 onMounted(() => {
-  // If the iframe already loaded (cached), reflect that.
-  if (iframeEl.value?.complete) loaded.value = true;
+  // If the iframe already loaded before mount (same-origin cached
+  // navigation), reflect that. For cross-origin maps (the common case)
+  // contentDocument is null and we'll wait for the `load` template
+  // handler instead.
+  if (iframeEl.value?.contentDocument?.readyState === "complete") {
+    loaded.value = true;
+  }
 });
 
 const surfaceStyle = computed(() => {

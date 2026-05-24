@@ -51,7 +51,10 @@ const tableUi = {
 // the cast here both sidesteps the false positive and makes the typing
 // reusable if we add more status-typed slots.
 type ScanStatus = "running" | "completed" | "failed" | "queued";
-function readStatus(row: { original?: Record<string, unknown> } & Record<string, unknown>): ScanStatus {
+// `row` comes in as `Row<unknown>` from UTable's slot — accept that
+// shape (original is `unknown`) and do the narrowing cast inside the
+// function so the call site stays clean.
+function readStatus(row: { original?: unknown }): ScanStatus {
   const source = (row.original ?? row) as Record<string, string>;
   return source[props.statusAccessor] as ScanStatus;
 }

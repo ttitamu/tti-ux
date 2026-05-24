@@ -296,7 +296,7 @@ const compactVue = `<TuxRichDataGrid
         <TuxRichDataGrid
           title="Header-menu demo"
           :columns="columns.slice(0, 4)"
-          :rows="rows.slice(0, 5)"
+          :rows="compactRows"
           :show-search="false"
           :show-filter="false"
           :show-columns="false"

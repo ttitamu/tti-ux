@@ -66,10 +66,14 @@ const emit = defineEmits<{
   cancel: [];
 }>();
 
-const confirmIntent = computed(() => {
-  if (props.variant === "primary") return "primary";
-  if (props.variant === "warning") return "warning";
-  return "destructive"; // destructive | danger
+// TuxButton's `intent` is `"primary" | "secondary" | "ghost" | "destructive"`.
+// The dialog's "warning" variant maps to the primary button intent — the
+// warning context is set by the dialog chrome (header tone, icon), not by
+// the button. Return type is narrowed to the actual TuxButton intents
+// this computed produces.
+const confirmIntent = computed<"primary" | "destructive">(() => {
+  if (props.variant === "destructive") return "destructive";
+  return "primary"; // both "primary" and "warning" variants
 });
 
 const defaultConfirmLabel = computed(() => {

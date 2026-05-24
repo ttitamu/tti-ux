@@ -1,18 +1,14 @@
 <script setup lang="ts">
+// Bands data lives in a sibling .ts module so we can use real type
+// annotations to narrow `intent` to the `Band.intent` union. Nuxt's
+// page-extract macro parser doesn't honor TS-only syntax in top-level
+// `<script setup>` declarations (see ADR-0010 and the note in
+// chart-line.vue), but an external .ts import sidesteps that. The
+// `.demo-data.ts` suffix makes it obvious these aren't routes.
+import { utilizationBands, slaBands } from "./chart-gauge.demo-data";
+
 // Per ADR-0010, keep top-level <script setup> expressions plain JS.
 useHead({ title: "TuxChartGauge · TUX" });
-
-const utilizationBands = [
-  { from: 0,  to: 60,  intent: "ok"    },
-  { from: 60, to: 85,  intent: "warn"  },
-  { from: 85, to: 100, intent: "alert" },
-];
-
-const slaBands = [
-  { from: 0,  to: 95,  intent: "alert" },
-  { from: 95, to: 99,  intent: "warn"  },
-  { from: 99, to: 100, intent: "ok"    },
-];
 
 const basicVue = `<tux-chart-gauge
   :value="78"

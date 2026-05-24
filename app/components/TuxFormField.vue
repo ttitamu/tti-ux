@@ -92,7 +92,12 @@ const describedBy = computed(() => {
     <p v-if="hint" :id="descId" class="tux-form-field__hint">{{ hint }}</p>
 
     <!-- Consumer's input — slot exposes ids + aria flags so the
-         consumer just binds them. -->
+         consumer just binds them. The aria-* keys are kebab-case
+         (Vue's type extraction preserves the literal string, and
+         vue/attribute-hyphenation requires hyphenated form on slot
+         bindings); consumers destructure them with string-key syntax
+         (`{ 'aria-describedby': x }`) — see app/pages/components/
+         forms-wrapper.vue for the canonical pattern. -->
     <div class="tux-form-field__input-wrap">
       <slot
         :input-id="inputId"

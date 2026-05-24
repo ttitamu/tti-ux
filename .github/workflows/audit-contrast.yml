@@ -83,10 +83,11 @@ jobs:
           path: contrast-report.json
           retention-days: 14
 
-  # Lint gate. Runs in parallel with `audit` — independent so transient
-  # ESLint failures don't block visual-regression surfacing, and vice
-  # versa. Kept in this workflow (not deploy-pages.yml) so deploys aren't
-  # blocked by lint noise unrelated to the build artifact.
+  # Lint + typecheck gate. Runs in parallel with `audit` — independent
+  # so transient failures don't block visual-regression surfacing, and
+  # vice versa. Both steps are blocking. Kept in this workflow (not
+  # deploy-pages.yml) so deploys aren't blocked by lint noise unrelated
+  # to the build artifact.
   quality:
     runs-on: ubuntu-latest
     steps:
@@ -102,3 +103,6 @@ jobs:
 
       - name: lint
         run: npm run lint
+
+      - name: typecheck
+        run: npm run typecheck

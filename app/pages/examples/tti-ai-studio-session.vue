@@ -122,7 +122,7 @@ const ttiApps = [
 const artifactFocusOpen = ref(false);
 
 // Reaction state on the assistant turn. Replaces the inline thumbs.
-const assistantReaction = ref<string | undefined>(undefined);
+const assistantReaction = ref<string[]>([]);
 
 // Composer draft (dogfood 2026-05-22) — backing the new
 // TuxMarkdownEditor below.
@@ -363,7 +363,7 @@ const composerDraft = ref("");
         >
           <template #actions>
             <UButton variant="ghost" icon="lucide:download">Download</UButton>
-            <UButton variant="primary" icon="lucide:play">Run</UButton>
+            <UButton variant="solid" icon="lucide:play">Run</UButton>
           </template>
           <TuxCodeBlock
             :code="comparisonPy"

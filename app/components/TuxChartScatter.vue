@@ -217,7 +217,7 @@ const ariaSummary = computed(() => {
   if (props.trendline && trends.value.length > 0) {
     const dir = trends.value
       .map((t) => (t.trend ? (t.trend.m > 0 ? "positive" : t.trend.m < 0 ? "negative" : "flat") : null))
-      .filter((x): x is string => !!x);
+      .filter((x): x is "positive" | "negative" | "flat" => x !== null);
     if (dir.length > 0) {
       const avgR2 = trends.value.reduce((a, t) => a + (t.trend?.r2 ?? 0), 0) / trends.value.length;
       trendNote = `, ${dir[0]} trend, R² = ${avgR2.toFixed(props.decimals)}`;

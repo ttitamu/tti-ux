@@ -61,7 +61,7 @@ interface Props {
   ariaLabel?: string;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   items: undefined,
   eyebrow: undefined,
   title: undefined,
@@ -81,6 +81,14 @@ defineSlots<{
   /** Direct slide rendering (alternative to `items` + `#item`). */
   default(): unknown;
 }>();
+
+// UCarousel's `items` prop is typed as a specific `CarouselItem[]` shape
+// (image-carousel default), but TuxCardCarousel is generic over T and
+// delegates item rendering to the `#item` slot — UCarousel only uses the
+// length for slide count. Cast through `unknown` so the template binding
+// satisfies UCarousel's strict prop type without losing the generic T
+// for the `#item` slot.
+const carouselItems = computed(() => props.items as unknown as never[]);
 </script>
 
 <template>
@@ -108,7 +116,7 @@ defineSlots<{
     </header>
 
     <UCarousel
-      :items="items"
+      :items="carouselItems"
       :arrows="arrows"
       :dots="dots"
       :loop="loop"

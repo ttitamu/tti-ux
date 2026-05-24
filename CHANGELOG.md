@@ -5,6 +5,122 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — polish & hygiene sprint (2026-05-23)
+
+Four-item polish pass closing the catalog + CI + theme gaps that
+accumulated through the four-family expansion. No new components;
+all behavior-preserving except where the typecheck cleanup fixed
+real bugs.
+
+**Catalog hygiene** — three orphaned components surfaced:
+
+- `TuxShortcutsHelp` shipped into the catalog: row added to
+  [`design/components.md`](design/components.md), entry added to
+  the [`/components`](app/pages/components/index.vue) card grid and
+  [`app.vue`](app/app.vue) sidebar nav, new showcase page at
+  [`/components/shortcuts-help`](app/pages/components/shortcuts-help.vue)
+  built on the `TuxCommandPalette` showcase template (combos vs
+  sequences, native `<dialog>` setup, `defineShortcuts` wiring).
+- `TuxTreeNode` and `TuxDocsSidebarNode` annotated as internal
+  children of `TuxTree` and `TuxDocsSidebar` in
+  [`design/components.md`](design/components.md) — they're recursive
+  rendering primitives, not standalone consumables.
+
+**Dark theme tokens aligned** — the `tti-dark` runtime palette
+(150-line `[data-theme="tti-dark"]` block in
+[`app/assets/css/tokens.css`](app/assets/css/tokens.css)) is now
+mirrored in [`design/tokens.json`](design/tokens.json) under
+`themes.tti-dark` (brand, surface, text, semantic, focus, chart, map
+sections) so the documented single source of truth matches what
+actually renders. New "Dark theme" section in
+[`design/palette.md`](design/palette.md) explains the
+maroon→lifted-teal shift on small chrome elements, the three channels
+that preserve maroon brand presence (`brand.fill` for marketing
+panels, `chart.1` pinned to wine-rose for the primary chart series,
+Nuxt UI's `--color-maroon-400` override for solid buttons), and the
+asymmetry where `tti-dark` defines `semantic`/`chart`/`map` overrides
+that `tti` and `tti-hc` inherit from base.
+
+**CI gates** — `npm run lint` script added; new `quality` job in
+[`.github/workflows/audit-contrast.yml`](.github/workflows/audit-contrast.yml)
+runs lint + typecheck in parallel with the contrast audit. Both
+gates are blocking after the typecheck cleanup below. Fixed 3
+pre-existing lint errors in `scripts/audit-contrast.mjs` (duplicate
+`node:fs` import) and `scripts/build-geo.mjs` (dead `roundCoords`
+function). Added `reference/**` to
+[`eslint.config.mjs`](eslint.config.mjs) ignores since that
+directory is sync'd from upstream and not ours to lint.
+
+**Pre-commit hook** — husky + lint-staged installed.
+[`.husky/pre-commit`](.husky/pre-commit) runs `npx lint-staged`;
+[`package.json`](package.json) `lint-staged` config runs
+`eslint --fix` on staged `.vue` / `.ts` / `.js` / `.mjs` files.
+Husky's `prepare` script auto-installs the hook on `npm install`
+(documented in [`README.md`](README.md) Run-it section).
+
+**Typecheck cleanup (21 errors → 0)** — typecheck CI gate flipped
+from non-blocking to blocking. Eleven files touched, mix of real
+bug fixes and pre-existing pattern issues:
+
+- `TuxMapEmbed.vue` — `iframeEl.value?.complete` is an
+  `HTMLImageElement` property, not an iframe one. Replaced with
+  `contentDocument?.readyState === "complete"` (still null for
+  cross-origin maps, which fall through to the `load` event).
+- `TuxReactionBar.vue` — replaced
+  `counts[r.key] !== undefined && counts[r.key] > 0` with
+  `(counts[r.key] ?? 0) > 0` so TS can narrow through the indexed
+  access.
+- `TuxChartLine.vue` — added `as [number, number]` cast to the
+  `yDomain` `[0, 1]` fallback so the destructured `lo`/`hi` aren't
+  `number | undefined` downstream.
+- `TuxChartScatter.vue` — narrowed type predicate from
+  `(x): x is string` to `(x): x is "positive" | "negative" | "flat"`
+  to satisfy "predicate's type must be assignable to parameter's
+  type".
+- `TuxTable.vue` — relaxed `readStatus` signature from
+  `{ original?: Record<string, unknown> } & Record<string, unknown>`
+  to `{ original?: unknown }` so it accepts `Row<unknown>` from
+  UTable's slot.
+- `TuxAppFrame.vue` — replaced ternary `emit(action === … ? … : …)`
+  with explicit `if`/`else` branches per emit name so TS can match
+  the discrete tuple overloads.
+- `TuxCardCarousel.vue` — added `props` capture + `carouselItems`
+  computed that casts through `unknown` to satisfy UCarousel's
+  strict `CarouselItem[]` prop without losing the generic `T` for
+  the `#item` slot.
+- `TuxConfirmDialog.vue` — narrowed `confirmIntent` return type to
+  `"primary" | "destructive"`; mapped the "warning" dialog variant
+  to the primary button intent since `TuxButton`'s `Intent` doesn't
+  include "warning" and the warning context lives in the dialog
+  chrome, not the button.
+- `TuxFormField.vue` — kept kebab-case slot bindings (eslint
+  `vue/attribute-hyphenation` requires it) + added a comment
+  pointing consumers at the string-key destructure pattern
+  (`{ 'aria-describedby': x }`).
+- `app/pages/components/forms-wrapper.vue` — switched the
+  `TuxFormField` slot destructures to string-key syntax to match
+  Vue's literal type extraction for `aria-*` props.
+- `app/pages/components/rich-data-grid.vue` — `rows.slice(0, 5)` →
+  `compactRows` (undefined identifier reference).
+- New
+  [`app/pages/visualizations/chart-gauge.demo-data.ts`](app/pages/visualizations/chart-gauge.demo-data.ts) +
+  [`app/pages/visualizations/chart-line.demo-data.ts`](app/pages/visualizations/chart-line.demo-data.ts) —
+  showcase data extracted from the `.vue` pages so we can use real
+  TS annotations to narrow `Band.intent` and tuple-typed `Series.band`
+  / `Ref<[number, number]>` without violating ADR-0010's macro-extractor
+  constraint. See
+  [ADR-0011](docs/adr/0011-sibling-demo-data-ts-modules-for-pages.md)
+  for the prescribed pattern.
+
+**Architecture decision:**
+
+- New
+  [ADR-0011 — Sibling `*.demo-data.ts` modules for typed page data](docs/adr/0011-sibling-demo-data-ts-modules-for-pages.md).
+  Supplements ADR-0010 with the escape hatch when type-narrowing
+  needs collide with the macro-extractor constraint — JSDoc workarounds
+  don't suffice for literal narrowing, so extract to a sibling `.ts`
+  module instead.
+
 ### Added — four-family expansion (2026-05-22)
 
 22 new components across four families, shipped in 4 focused

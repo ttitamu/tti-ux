@@ -108,7 +108,12 @@ async function loadTauriWindow(): Promise<Record<string, unknown> | null> {
 }
 
 async function invokeWindow(action: "close" | "minimize" | "toggleMaximize") {
-  emit(action === "toggleMaximize" ? "zoom" : action);
+  // Each emit call has to be a discrete branch — TS can't narrow the
+  // event-name tuple union from a ternary down to a single overload.
+  if (action === "close") emit("close");
+  else if (action === "minimize") emit("minimize");
+  else emit("zoom");
+
   const win = await loadTauriWindow();
   if (!win) return;
   const w = win as Record<string, () => Promise<void>>;

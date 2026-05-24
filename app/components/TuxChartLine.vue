@@ -151,7 +151,7 @@ const yDomain = computed(() => {
     if (s.previous) for (const v of s.previous) { if (v < lo) lo = v; if (v > hi) hi = v; }
     if (s.band) for (const [l, h] of s.band) { if (l < lo) lo = l; if (h > hi) hi = h; }
   }
-  if (!Number.isFinite(lo) || !Number.isFinite(hi)) return [0, 1];
+  if (!Number.isFinite(lo) || !Number.isFinite(hi)) return [0, 1] as [number, number];
   if (lo === hi) { lo -= 1; hi += 1; }
   // Add 8% headroom + footroom so lines don't kiss the chart edges.
   const span = hi - lo;

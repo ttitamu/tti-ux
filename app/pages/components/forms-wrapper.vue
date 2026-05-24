@@ -58,7 +58,14 @@ function onConfirm() {
           hint="TTI / TAMUS addresses preferred."
           :error="emailError"
         >
-          <template #default="{ inputId: id, ariaDescribedby, ariaInvalid, ariaRequired }">
+          <template
+            #default="{
+              inputId: id,
+              'aria-describedby': ariaDescribedby,
+              'aria-invalid': ariaInvalid,
+              'aria-required': ariaRequired,
+            }"
+          >
             <UInput
               :id="id"
               v-model="email"
@@ -76,7 +83,13 @@ function onConfirm() {
           help="Sessions are scoped to a single corpus. Switch corpora via the ⌘K palette later."
           input-id="fld-corpus"
         >
-          <template #default="{ inputId: id, ariaInvalid, ariaRequired }">
+          <template
+            #default="{
+              inputId: id,
+              'aria-invalid': ariaInvalid,
+              'aria-required': ariaRequired,
+            }"
+          >
             <USelect
               :id="id"
               v-model="corpus"
