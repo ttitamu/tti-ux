@@ -82,3 +82,23 @@ jobs:
           name: contrast-report
           path: contrast-report.json
           retention-days: 14
+
+  # Lint gate. Runs in parallel with `audit` — independent so transient
+  # ESLint failures don't block visual-regression surfacing, and vice
+  # versa. Kept in this workflow (not deploy-pages.yml) so deploys aren't
+  # blocked by lint noise unrelated to the build artifact.
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: install
+        run: npm ci
+
+      - name: lint
+        run: npm run lint

@@ -62,6 +62,7 @@ const components = [
   { name: "TuxRichDataGrid",  to: "/components/rich-data-grid", blurb: "Interactive data grid — sticky header, row selection, expandable detail, sort + filter chips, bulk-action bar. Landscape-class operational surfaces.", uses: "tux (no U-primitive)" },
   { name: "TuxSearch",        to: "/components/search",         blurb: "Branded search bar — bordered input + uppercase action button. Regular / slim / focus state.", uses: "tux (no U-primitive)" },
   { name: "TuxSectionHeader", to: "/components/section-header", blurb: "Editorial section heading — ALL-CAPS, tracked-out, maroon underline.",                         uses: "tux (no U-primitive)" },
+  { name: "TuxShortcutsHelp", to: "/components/shortcuts-help", blurb: "Modal overlay listing every wired keyboard shortcut — combos vs sequences, opens on ?. Sibling to TuxCommandPalette.", uses: "tux (no U-primitive)" },
   { name: "TuxSidebarBlock",  to: "/components/sidebar-block",  blurb: "Sidebar widget wrapper — eyebrow + maroon underline + content. Default/bordered/filled.",      uses: "tux (no U-primitive)" },
   { name: "TuxSignupFeature", to: "/components/signup-feature", blurb: "Newsletter signup — email input + uppercase action + consent. Three tones, three style variants.", uses: "tux (no U-primitive)" },
   { name: "TuxSiteNav",       to: "/components/site-nav",       blurb: "Top-bar with TuxIdentity + utility nav + primary nav. Hosts TuxDropdown / TuxMegaMenu items.",   uses: "tux (no U-primitive)" },

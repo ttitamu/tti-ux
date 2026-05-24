@@ -122,18 +122,6 @@ function simplifyFC(fc, weight) {
   return out;
 }
 
-/** Round all numbers in geometry coordinates so JSON serializes
- *  more compactly (and bundles smaller). Mutates in place. */
-function roundCoords(geom, decimals = 4) {
-  const f = Math.pow(10, decimals);
-  const round = (n) => Math.round(n * f) / f;
-  const walk = (a) => {
-    if (typeof a[0] === "number") return [round(a[0]), round(a[1])];
-    return a.map(walk);
-  };
-  geom.coordinates = walk(geom.coordinates);
-}
-
 /** Extract the largest outer ring from a (multi)polygon as a
  *  flat array of [x, y] pairs. Used for runtime point-in-polygon
  *  testing on the Texas outline. */

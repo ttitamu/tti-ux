@@ -50,7 +50,7 @@ npm run dev
 | `TuxDataTable`       | tux native               | `/components/data-table`        |
 | `TuxDescriptionList` | tux native               | `/components/description-list`  |
 | `TuxDiagram`         | Mermaid                  | `/components/diagram`           |
-| `TuxDocsSidebar`     | tux native               | `/components/docs-sidebar`      |
+| `TuxDocsSidebar`     | tux native               | `/components/docs-sidebar` (renders internal child `TuxDocsSidebarNode`) |
 | `TuxDropdown`        | tux native               | `/components/site-nav`          |
 | `TuxEmptyState`      | `TuxCard` composite      | `/components/empty-state`       |
 | `TuxErrorPage`       | tux native               | `/components/error-page`        |
@@ -81,6 +81,7 @@ npm run dev
 | `TuxRichDataGrid`    | tux native               | `/components/rich-data-grid`    |
 | `TuxSearch`          | tux native               | `/components/search`            |
 | `TuxSectionHeader`   | tux native               | `/components/section-header`    |
+| `TuxShortcutsHelp`   | tux native (`<dialog>`)  | `/components/shortcuts-help`    |
 | `TuxSidebarBlock`    | tux native               | `/components/sidebar-block`     |
 | `TuxSignupFeature`   | tux native               | `/components/signup-feature`    |
 | `TuxSiteNav`         | tux native               | `/components/site-nav`          |
@@ -98,7 +99,7 @@ npm run dev
 | `TuxTestimonial`     | tux native               | `/components/testimonial`       |
 | `TuxTOC`             | tux native               | `/components/toc`               |
 | `TuxTooltip`         | `UTooltip`               | `/components/tooltip`           |
-| `TuxTree`            | tux native               | `/components/tree`              |
+| `TuxTree`            | tux native               | `/components/tree` (renders internal child `TuxTreeNode`) |
 | `TuxTreemap`         | tux native               | `/components/treemap`           |
 
 **Pagination + result-display family** (added 2026-05-21):

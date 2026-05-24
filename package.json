@@ -19,6 +19,7 @@
     "build": "nuxt build",
     "preview": "nuxt preview",
     "typecheck": "nuxt typecheck",
+    "lint": "eslint .",
     "generate": "nuxt generate",
     "postinstall": "nuxt prepare",
     "sync:aggieux": "node scripts/sync-aggieux.mjs",
@@ -27,7 +28,8 @@
     "gen:lucide-names": "node scripts/gen-lucide-names.mjs",
     "build:logos": "node scripts/png-to-svg-logo.mjs",
     "audit:contrast": "node scripts/audit-contrast.mjs",
-    "build:geo": "node scripts/build-geo.mjs"
+    "build:geo": "node scripts/build-geo.mjs",
+    "prepare": "husky"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.102",
@@ -54,6 +56,9 @@
     "vue": "^3.5.32",
     "vue-router": "^5.0.0"
   },
+  "lint-staged": {
+    "*.{vue,ts,js,mjs}": "eslint --fix"
+  },
   "devDependencies": {
     "@fontsource/jetbrains-mono": "^5.2.8",
     "@fontsource/open-sans": "^5.2.7",
@@ -62,6 +67,8 @@
     "@fontsource/work-sans": "^5.2.8",
     "@nuxt/devtools": "^2.0.0",
     "d3-geo": "^3.1.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.5",
     "puppeteer": "^24.42.0",
     "serve-handler": "^6.1.7",
     "topojson-client": "^3.1.0",

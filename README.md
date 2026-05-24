@@ -79,6 +79,11 @@ footer's preferences strip carries the WCAG AAA high-contrast toggle.
 New visitors should start at **`/getting-started`** for the onboarding
 tour.
 
+`npm install` also installs a [husky](https://typicode.github.io/husky/) pre-commit
+hook (via the `prepare` script) that runs `eslint --fix` on staged
+`.vue`/`.ts`/`.js`/`.mjs` files through [lint-staged](https://github.com/lint-staged/lint-staged).
+The same `eslint .` runs in CI; the hook catches issues before the push.
+
 ## Themes
 
 Three themes ship: `tti` (default light), `tti-dark` (warm-charcoal dark),

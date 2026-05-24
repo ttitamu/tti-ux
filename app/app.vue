@@ -158,6 +158,7 @@ const navTree = [
       { label: "useTuxRipple",     to: "/components/ripple",         icon: "lucide:circle-dot" },
       { label: "TuxSearch",        to: "/components/search",         icon: "lucide:search" },
       { label: "TuxSectionHeader", to: "/components/section-header", icon: "lucide:heading" },
+      { label: "TuxShortcutsHelp", to: "/components/shortcuts-help", icon: "lucide:keyboard" },
       { label: "TuxSidebarBlock",  to: "/components/sidebar-block",  icon: "lucide:panel-right" },
       { label: "TuxSignupFeature", to: "/components/signup-feature", icon: "lucide:mail-plus" },
       { label: "TuxSiteNav",       to: "/components/site-nav",       icon: "lucide:menu-square" },

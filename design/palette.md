@@ -22,6 +22,47 @@ Reference document for `design/tokens.json`. Explains where each hex came from a
 | `tti.sage` | `#66814F` | PPTX | Tertiary. Option-2/3 templates promote sage as primary — we don't. |
 | `tti.charcoal` | `#221F1F` | PDFs | Body copy throughout. Not pure `#000`. |
 
+## Dark theme
+
+The `tti-dark` theme isn't derived from a TTI source artifact — TTI has no published dark palette. It's a tux-original mapping built to keep the editorial system legible after sunset while preserving brand recognition. Values are mirrored in `design/tokens.json` (`themes.tti-dark`) and applied at runtime via `[data-theme="tti-dark"]` in `app/assets/css/tokens.css`.
+
+### Why primary shifts from maroon to lifted teal
+
+Earlier dark drafts kept maroon as the brand primary by lightening it to rose-pink variants (`#e795a8`, `#db859e`). They read **too pink** against the small chrome elements where the accent actually lives — composer borders, focus rings, active-tab text, input outlines. Consolidating the dark-mode accent on **lifted TTI teal** (`#6BB4C0`, base `tti.teal #4A8892` lifted ~15%) gave the studio chrome a single coherent hue and cleared AAA on every dark surface:
+
+| Surface | Hex | Contrast vs `#6BB4C0` |
+|---|---|---|
+| `surface.page` | `#15100F` | ~8.2:1 |
+| `surface.raised` | `#221F1F` | 7.1:1 |
+| `surface.sunken` | `#0B0908` | ~8.7:1 |
+
+Gold accent stays unchanged — its job in dark is emphasis, not legibility, and the warm ochre keeps the TTI signature warmth on dark surfaces.
+
+### How maroon brand presence is preserved on dark
+
+Three deliberate channels keep maroon visible even though `brand.primary` resolves to teal:
+
+1. **`brand.fill`** stays `tti.maroon` (`#5C0025`). Marketing panels (`<TuxCTA>`, hero bands) still render white-on-wine. Same hex in every theme except HC.
+2. **`chart.1`** is pinned to wine-rose `#c47585` rather than `brand.primary`. The primary chart series stays in the maroon family so a TTI dashboard reads as a TTI dashboard.
+3. **Nuxt UI's `--color-maroon-400`** is overridden to `#6BB4C0` so solid primary buttons inherit the teal accent. (Implementation detail in `tokens.css`; not exposed in `tokens.json` because it's a vendor-namespace override.)
+
+### Lifted semantic + chart + map palettes
+
+Every semantic color is lifted to clear AAA (7:1) on `surface.page`. Numbers verified by `/contrast-audit`:
+
+| Semantic | Light base | Dark lifted | Mapping |
+|---|---|---|---|
+| `success` | `#66814F` (sage) | `#ABCC8E` | mint |
+| `warning` | `#DDAC37` (gold) | `#F5D98A` | pale wheat |
+| `danger`  | `#5C0025` (maroon) | `#e795a8` | pale rose |
+| `info`    | `#4A8892` (teal) | `#9BD4E0` | pale cyan |
+
+The 8-step categorical chart palette and the maroon/slate map ramps follow the same lift pattern — exact values in `tokens.json` under `themes.tti-dark.chart` and `.map`.
+
+### Asymmetry note
+
+`themes.tti` and `themes.tti-hc` only declare `brand` + `surface` + `text` because their semantic / chart / map values inherit from the base `color.semantic` block. `themes.tti-dark` additionally declares `semantic`, `focus`, `chart`, and `map` because every one of those needs lifted values to clear AAA on dark surfaces. That asymmetry is real; don't flatten it by inheriting through to dark.
+
 ## High-contrast (508) palette
 
 From `TTI-presentation-template-highcontrast-508.pptx`:
