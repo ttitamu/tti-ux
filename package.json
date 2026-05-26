@@ -28,8 +28,7 @@
     "gen:lucide-names": "node scripts/gen-lucide-names.mjs",
     "build:logos": "node scripts/png-to-svg-logo.mjs",
     "audit:contrast": "node scripts/audit-contrast.mjs",
-    "build:geo": "node scripts/build-geo.mjs",
-    "prepare": "husky"
+    "build:geo": "node scripts/build-geo.mjs"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.102",
