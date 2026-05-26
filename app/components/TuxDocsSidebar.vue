@@ -140,9 +140,12 @@ const filteredTree = computed(() => {
 </script>
 
 <template>
-  <aside
+  <!-- Native <nav>: <aside role="navigation"> fails axe's
+       `aria-allowed-role` because aside's implicit complementary
+       role can't be overridden. <nav> carries the navigation
+       landmark natively, and aria-label names the surface. -->
+  <nav
     class="tux-docs-sidebar"
-    role="navigation"
     :aria-label="title"
   >
     <header class="tux-docs-sidebar__header">
@@ -173,7 +176,10 @@ const filteredTree = computed(() => {
       class="tux-docs-sidebar__empty"
     >No docs match "{{ query }}".</p>
 
-    <nav class="tux-docs-sidebar__nav">
+    <!-- Plain <div>: the outer <nav> already provides the
+         navigation landmark. A nested <nav> would create two
+         landmarks for one tree. -->
+    <div class="tux-docs-sidebar__nav">
       <ul class="tux-docs-sidebar__list">
         <TuxDocsSidebarNode
           v-for="section in filteredTree"
@@ -188,8 +194,8 @@ const filteredTree = computed(() => {
           :depth="0"
         />
       </ul>
-    </nav>
-  </aside>
+    </div>
+  </nav>
 </template>
 
 <style scoped>

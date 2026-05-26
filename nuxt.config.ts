@@ -162,6 +162,9 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      // `lang` is required for screen readers to pick the right voice
+      // and for axe's `html-has-lang` rule. Sets `<html lang="en">`.
+      htmlAttrs: { lang: "en" },
       title: "tti-ux",
       meta: [
         { charset: "utf-8" },
