@@ -5,6 +5,316 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed — Polish pass (2026-05-26)
+
+After the seven-slice add pass, an audit pass caught a token bug
+and three a11y violations.
+
+**`--surface-base` was undefined** — every component shipped in
+this batch (`TuxCommentThread`, `TuxPopover`, `TuxMcpEmbed`,
+`TuxRuleBuilderGroup`, `TuxRichTextEditor`, `TuxMobileFrame`, plus
+two showcase pages) referenced `var(--surface-base)` as a screen /
+content background. That token doesn't exist in
+[`tokens.css`](app/assets/css/tokens.css) — only `--surface-page`,
+`--surface-raised`, and `--surface-sunken` do. The undefined token
+fell back to no value, so backgrounds were transparent and whatever
+showed through looked wrong in both light and dark mode. Swapped to
+`var(--surface-raised)` across all 7 files — that's the equivalent
+TUX token for component-surface backgrounds (cards, modals, popovers,
+artifact bodies). Reported by the user: "light mode has dark mode
+colors."
+
+**`nested-interactive` on `TuxMobileFrame`** — the frame's
+`<figure>` carried `role="img"`, but the slot can hold focusable
+children (e.g. the demo CTA button). axe's
+`nested-interactive` flagged it; dropped the role and let `<figure>`
+carry its native semantic role instead.
+
+**`landmark-unique` on `TuxRuleBuilder`** — the top-level wrapper
+was `<section aria-label="Rule builder">`, which gives it a landmark
+role; two builders on one page (flagship + empty demo) collided.
+Switched to a plain `<div>` since the surrounding heading already
+names the surface.
+
+**Pre-existing TUX-wide fixes — caught while we were here:**
+
+- `<html>` element was missing `lang` — added
+  `htmlAttrs: { lang: "en" }` to
+  [`nuxt.config.ts`](nuxt.config.ts) `app.head`. axe's `html-has-lang`
+  rule (serious impact) had been failing on every page.
+- `TuxDocsSidebar` was rendering `<aside role="navigation">`, which
+  axe's `aria-allowed-role` flags — aside's implicit complementary
+  role can't be overridden to navigation. Switched the outer element
+  to native `<nav>` (carries the navigation landmark natively) and
+  collapsed the now-redundant inner `<nav>` to a `<div>` to avoid
+  duplicate landmarks.
+
+After fixes: **zero axe violations** on all 6 showcase pages from
+this batch (mobile-frame, comment-thread, popover, mcp-embed,
+rule-builder, rich-text-editor). Tested via `jsdom` + `axe-core`
+(added `jsdom` to devDeps).
+
+### Added — TuxMobileFrame (2026-05-26)
+
+Closes the deferred Priority E "Mobile frames" entry. Stylized
+device chrome for marketing screenshots and stakeholder reviews —
+**one component, two platforms** via a `platform="ios" | "android"`
+prop. (Initially shipped as two separate `TuxIosFrame` +
+`TuxAndroidFrame` components pointing at one combined showcase
+page; consolidated to a single component when the dual nav entries
+made the same showcase highlight twice in the sidebar.)
+
+**Explicitly not for runtime use.** When TTI apps actually need
+mobile chrome, reach for `TuxAppFrame` + `TuxTabBar` +
+`useTuxPlatform()` per `design/platform-awareness.md`. The new
+frame only ships the static device chrome around a slot; the
+screen doesn't react to safe-area insets, platform APIs, or
+orientation. Doctrine is documented in the showcase's "Frame vs
+runtime chrome" decision-tree footer.
+
+- **[`TuxMobileFrame`](app/components/TuxMobileFrame.vue)** —
+  `platform="ios"` renders realistic iPhone 16 Pro proportions
+  (19.5:9 screen, ~46px corner radius scaled, Dynamic Island,
+  home indicator, four finishes: natural / black / white / maroon).
+  `platform="android"` renders Pixel 9 proportions (20:9 screen,
+  ~36px corner radius, center punch-hole camera, three nav-style
+  options: `gesture` / `three-button` / `none`, four finishes:
+  obsidian / porcelain / hazel / maroon). Single `:width` prop
+  drives proportional scaling of all chrome — pass 280 (default),
+  160 for thumbnail rows, 360 for hero exhibits. Both platforms
+  share the same width pivot so they sit cleanly side-by-side in
+  cross-platform mockups.
+
+Showcase at
+[`/components/mobile-frame`](app/pages/components/mobile-frame.vue) —
+flagship demo per platform with a realistic Landscape corridor-
+summary slot; color-variant rows; Android nav-style picker; the
+canonical side-by-side cross-platform layout; and the
+frame-vs-runtime decision tree.
+
+Implementation is pure CSS — no SVG, no images, no canvas. The
+device body uses a single `<figure>` with absolutely-positioned
+side-button pills and an inner `<div class="…__screen">` holding
+the slot. Everything scales from one numeric `:width` prop.
+
+### Added — TuxRichTextEditor (2026-05-26)
+
+Closes the deferred-with-criterion Priority D carry-forward — Tiptap-
+based WYSIWYG sister to `TuxMarkdownEditor`. Built to be the
+**canonical TUX rich-text surface** — feature set mirrors the
+`TipTapEditor` in `docs-tti-tamu-edu/nuxt-site/app/components/`
+so the same editor can land in Landscape draft surfaces,
+tti-ai-studio chat composition, and the docs.it.tamu.edu admin
+center without each consumer maintaining a separate Tiptap wrapper.
+
+- **[`TuxRichTextEditor`](app/components/TuxRichTextEditor.vue)** —
+  Tiptap-based editor with seven toolbar groups (configurable via
+  `:toolbar` — `format` · `headings` · `lists` · `block` · `media` ·
+  `table` · `mode`). v-modeled as HTML.
+
+  **Inline marks:** bold · italic · underline · strikethrough ·
+  inline code.
+
+  **Headings:** H1 · H2 · H3 · H4 (per-consumer subset via
+  `:heading-levels`).
+
+  **Lists:** bullet · numbered · task (checkable, nestable).
+
+  **Blocks:** blockquote · code block with syntax highlighting via
+  `lowlight` (covers ~30 popular languages via `common`) ·
+  horizontal rule.
+
+  **Media:** link (⌘K prompt) · image (URL + alt-text prompt,
+  base64 allowed).
+
+  **Tables:** insert 3×3 with header row · add / remove columns and
+  rows · resizable column widths · selection highlight · delete
+  table. Table-specific buttons only appear when cursor is inside
+  a table.
+
+  **Mode toggle:** WYSIWYG ↔ raw HTML source textarea. Round-trips
+  cleanly in both directions; toolbar buttons disable in source
+  mode; a "source" pill appears in the footer to make the mode
+  visible. (Markdown ↔ HTML round-trip via `turndown` is deferred
+  to a follow-on — the `:sourceFormat` prop is the planned
+  extension point for when a consumer surface stores markdown.)
+
+  **Full-screen:** overlay mode that pins the editor to the viewport
+  via `position: fixed; inset: 0; z-index: 60`; Esc exits. Emits
+  `@fullscreen-change`.
+
+  **Word / character count:** live footer; pure DOM-text count,
+  ignores HTML tags. Hide via `:show-count="false"`.
+
+  **Save event:** ⌘S / Ctrl+S intercepted via Tiptap's
+  `handleKeyDown` and emitted as `save`. Host wires to persist.
+
+  **Typography substitutions:** smart quotes, em dashes, ellipses
+  (Tiptap Typography extension).
+
+  **Undo / redo:** disabled-state derived from `editor.can()`.
+
+**Bundle.** Tiptap core / vue-3 / starter-kit / link / image /
+placeholder / underline arrive transitively via `@nuxt/ui` 4.7 (no
+package.json add). The richer extensions — tables (4 packages),
+task lists (2 packages), typography, code-block-lowlight, and
+`lowlight` itself — are direct dependencies pinned to NuxtUI's exact
+Tiptap version (3.22.4) to avoid peer-dep churn. Total
+package.json additions: 9 packages, all on the established Tiptap
+line NuxtUI already pulls.
+
+Showcase at
+[`/components/rich-text-editor`](app/pages/components/rich-text-editor.vue)
+with three demos (full feature set with pre-seeded corridor field
+notes including a table + task list + Python code block · trimmed
+inline-comment field · minimal source-mode-only chrome), the feature
+inventory, and the "why this is the canonical surface" reference
+back to the docs-tti-tamu-edu editor.
+
+### Added — TuxRuleBuilder (2026-05-26)
+
+Closes the deferred-with-criterion Priority B candidate. Relational
+query UI — field + operator + value rows, AND/OR groupers, nestable
+groups. Sister to the existing faceted `TuxFilterPanel`; they
+compose well on the same surface.
+
+- **[`TuxRuleBuilder`](app/components/TuxRuleBuilder.vue)** —
+  top-level wrapper that owns the field catalog (passed via
+  `:fields`) and footer actions (Apply / Clear). v-modeled as a
+  single root `Group` tree. Provides the field catalog + max-depth
+  to recursive children via `inject`.
+- **[`TuxRuleBuilderGroup`](app/components/TuxRuleBuilderGroup.vue)** —
+  recursive internal child (same pattern as
+  [`TuxTreeNode`](app/components/TuxTreeNode.vue) inside
+  [`TuxTree`](app/components/TuxTree.vue)). Renders one group: a
+  combinator toggle (AND/OR), an ordered list of mixed rules and
+  nested groups, "+ Add rule" / "+ Add group" affordances. Recurses
+  on itself for nested groups, bounded by the parent's
+  `maxDepth` prop (default 3 — deeper trees almost always want to
+  be split into saved views).
+
+Five operator families ship with defaults: `string` (contains, equals,
+starts with, not contains), `number` (=, ≠, &lt;, ≤, &gt;, ≥,
+between), `date` (on, before, after, between), `select` (is, is not),
+`boolean` (is true, is false). The value editor switches based on
+field type + operator: text input · numeric input · date picker ·
+select · "between" pair · no-input for boolean. Per-field operator
+overrides via `FieldDef.operators`.
+
+Showcase at [`/components/rule-builder`](app/pages/components/rule-builder.vue)
+with a corridor-research demo exercising number `between`, select,
+nested OR group, and a live JSON pretty-print of the applied tree so
+hosts can see exactly what they need to evaluate against.
+
+**Conventions doc updated** — new
+[`design/components.md`](design/components.md) §
+"Faceted vs relational filtering — when to use which" decision tree
++ anti-patterns table. Lives next to "Empty states" in the
+Conventions section.
+
+### Added — TuxMcpEmbed (2026-05-26)
+
+Sister to `TuxArtifact` for the *interactive* MCP shape — when an
+assistant turn hands off to a third-party app (Linear, Notion, Figma,
+…) and renders the app's UI inline. The split:
+
+- `TuxArtifact` — static AI-generated output (code file, doc, image).
+  File-chrome action set (copy / download / regenerate / share).
+- `TuxMcpEmbed` — interactive third-party app surface. Window-chrome
+  action set (collapse / expand / exit). Built-in skeleton.
+
+- **[`TuxMcpEmbed`](app/components/TuxMcpEmbed.vue)** — app identity
+  bar (icon + name + optional `source` line for version/scope) +
+  window controls + skeleton + container slot. Three controls,
+  individually toggleable (`:collapsible`, `:expandable`,
+  `:closable`); each emits a semantic event (`collapse`, `expand`,
+  `exit`) the host wires up. Internal collapsed state syncs from a
+  prop so the host can persist + restore. Loading skeleton is three
+  shimmer bars + a content block; honors `prefers-reduced-motion`
+  with a static fill. Visual chrome matches `TuxArtifact` (same
+  border / radius / head rhythm) so the two read as a family — the
+  3px accent strip on the left edge is the only signal that this is
+  third-party, not first-party output. Showcase at
+  [`/components/mcp-embed`](app/pages/components/mcp-embed.vue) with
+  three demos (Linear default · Notion loading · Figma fixed-chrome)
+  + the MCP three-tier display taxonomy reference.
+
+**Conventions doc updated** —
+[`design/components.md`](design/components.md) § "MCP tool output —
+inline card / inline carousel / full screen" was promoted from
+single-component (`TuxArtifact` everywhere) to the static-vs-
+interactive split. The inline-card tier now branches on whether the
+MCP result is read-only (TuxArtifact) or app-like (TuxMcpEmbed); the
+full-screen tier documents the `@expand`-event → focus-view pattern.
+
+### Added — TuxPopover (2026-05-26)
+
+Closes the deferred-with-criterion Priority D entry — the
+richer-than-tooltip floating panel that consumers were composing on
+top of `UPopover` directly (~7 surfaces in the catalog by the time
+this shipped: `TuxFootnote`, `TuxInlineCitation`, `TuxContextMeter`,
+`TuxInfoLabel`, `TuxFormField`, `TuxAppSwitcher`, plus
+`TuxFilterPanel` chips).
+
+- **[`TuxPopover`](app/components/TuxPopover.vue)** — title + body +
+  optional actions panel. Default `mode="click"` because
+  hover-with-actions is bad UX (panel dismisses the moment the user
+  reaches for a button); `mode="hover"` available for read-only
+  inspect cases. Editorial maroon hairline rule under the title (same
+  anchor as `TuxTooltip`'s title presentation — that's the visual cue
+  that distinguishes a TUX floating panel from a bare UPopover drop).
+  Three width tiers: `sm` (16rem), `md` (22rem, default), `lg`
+  (28rem), plus `auto`. `body` prop covers prose; `#body` slot opens
+  the surface to richer markup (lists, data blocks, form fields).
+  `#actions` slot renders into a footer with a top border; bare
+  `<button>` elements get compact chrome via `:deep(button)`; add the
+  `tux-popover__action--primary` class for a maroon primary action.
+  Catalog convention added: the "which floating-panel component?"
+  decision tree (tooltip / teaching popover / popover / bare
+  UPopover) lives in the showcase page's footer for now; promote to
+  `design/components.md` Conventions if a third consumer surface
+  asks. Showcase at
+  [`/components/popover`](app/pages/components/popover.vue).
+
+### Added — TuxCommentThread (2026-05-26)
+
+Closes the only fully-unblocked Priority D entry in
+[`design/roadmap.md`](design/roadmap.md) — peer-review /
+editorial-comment threads. Sister to `TuxReactionBar`: that's
+light-touch acknowledgement, this is the heavyweight thread
+surface for actual dialog.
+
+- **[`TuxCommentThread`](app/components/TuxCommentThread.vue)** —
+  stateless renderer over a v-modeled `CommentThread[]`. Each thread
+  groups a root comment + replies, has an `open` / `resolved` status,
+  and supports `@mention` tokens (auto-detected on render, brand-
+  accent color). Authors are passed in as a `Record<string,
+  CommentAuthor>` directory (name + affiliation + optional avatar;
+  initials fallback when avatar is absent). The host owns
+  persistence — mutations emit semantic events (`comment:add`,
+  `comment:edit`, `comment:delete`, `thread:resolve`,
+  `thread:reopen`). Container-query density fallback below ~22rem
+  for narrow sidebar slots; explicit `size="sm"` for the same effect
+  via prop. Resolved threads collapse behind a "Show resolved (N)"
+  toggle by default. Edit / delete affordances only render on
+  comments the current viewer authored. `⌘↵` / `Ctrl↵` in the reply
+  textarea submits. Showcase at
+  [`/components/comment-thread`](app/pages/components/comment-thread.vue).
+
+Roadmap entry struck through; component table updated; nav slot
+added between `TuxCommandPalette` and `TuxConfirmDialog`.
+
+**Dogfood** — [`/examples/paper-page`](app/pages/examples/paper-page.vue)
+now embeds an "Open peer-review" section between Discussion §4 and
+Acknowledgments. Three threads (two open + one resolved) reflect a
+realistic TRR open-review pass: reviewer raises a methods concern,
+author responds; reviewer suggests adding citations; reviewer flags
+a reading-grade issue on the plain-language summary, co-author
+addresses it. Typed fixtures live in
+[`paper-page.demo-data.ts`](app/pages/examples/paper-page.demo-data.ts)
+per ADR-0011 since vue-tsc can't narrow string-literal union types
+declared inline in page `<script setup>` blocks.
+
 ### Added — polish & hygiene sprint (2026-05-23)
 
 Four-item polish pass closing the catalog + CI + theme gaps that

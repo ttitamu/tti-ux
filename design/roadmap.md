@@ -148,8 +148,10 @@ We have basic numbered pagination only — was. Now three more.
 
 ### Comments & feedback
 
-- **TuxCommentThread** — peer-review / editorial-comment threads with
-  reply, resolve, mention.
+- ~~**TuxCommentThread**~~ — shipped 2026-05-26; peer-review /
+  editorial-comment threads with reply, resolve, @mention. Stateless
+  renderer over a v-modeled array; host owns persistence. See
+  [`/components/comment-thread`](../app/pages/components/comment-thread.vue).
 - ~~**TuxReactionBar**~~ — shipped 2026-05-21; light-touch
   acknowledgement strip (helpful · question · disagree default, fully
   configurable). v-modeled active reactions + display-only counts.
@@ -161,10 +163,12 @@ We have basic numbered pagination only — was. Now three more.
   optional title + hairline rule + tuned max-width (~22ch) + shortcut
   glyphs via `kbds`. See
   [`/components/tooltip`](../app/pages/components/tooltip.vue).
-- **TuxPopover** — richer floating panel (tooltip with title + body +
-  action). Consumers currently compose `UPopover` directly; ship a
-  TUX wrapper when a richer-than-tooltip pattern is needed across two
-  consumer surfaces.
+- ~~**TuxPopover**~~ — shipped 2026-05-26; title + body + optional
+  actions panel. Click mode by default (hover-with-actions is bad UX);
+  three width tiers; maroon hairline under title. See
+  [`/components/popover`](../app/pages/components/popover.vue). The
+  "two consumer surfaces" bar was already cleared (~7 UPopover-
+  direct call sites existed at ship time).
 - ~~**TuxKeyboardShortcuts**~~ — shipped 2026-05-14 as
   `TuxShortcutsHelp`. Modal overlay triggered by `?`, auto-classifies
   combo vs sequence rows, uses `TuxKbd` for every key glyph. Mounted
@@ -195,16 +199,17 @@ with a tile card.
 - ~~**`/accessibility/breakpoints`**~~ — six-breakpoint scale + the
   container-query preference (ADR-0007) + 200% zoom reflow guarantees.
 
-### Mobile frames — deferred
+### Mobile frames — ✅ shipped 2026-05-26 as `TuxMobileFrame`
 
-If TTI ships an app, native-feel demo frames help stakeholder reviews.
-Status: deferred. The Tauri pivot (2026-05-22) made these less
-urgent — `useTuxPlatform()` + `TuxAppFrame` + `TuxTabBar` cover the
-runtime case; screenshot frames are a documentation-only nicety we
-can ship when a marketing surface forces the question.
+CSS-only, doc-only nicety. The platform-awareness doctrine still
+stands for runtime: reach for `TuxAppFrame` + `TuxTabBar` when the
+chrome needs to be live.
 
-- **TuxIosFrame** — TTI-themed iPhone frame for screenshots.
-- **TuxAndroidFrame** — same for Android.
+- ~~**TuxMobileFrame**~~ — single component with
+  `platform="ios" | "android"` prop. iPhone 16 Pro or Pixel 9
+  proportions; per-platform color sets; Android nav-style options;
+  shared `:width` pivot for cross-platform mockups. See
+  [`/components/mobile-frame`](../app/pages/components/mobile-frame.vue).
 
 ---
 
@@ -357,9 +362,14 @@ surfaces:
 
 Deferred-with-criterion items surfaced in this batch:
 
-- **TuxRichTextEditor** (Tiptap-based) — only if a consumer surface
-  needs WYSIWYG with media embeds. `TuxMarkdownEditor` covers the
-  source-controllable case; this would be the rendered-only sister.
+- ~~**TuxRichTextEditor**~~ — shipped 2026-05-26 as the canonical
+  TUX rich-text surface; Tiptap-based WYSIWYG with 7 toolbar groups
+  including tables, task lists, source-mode toggle, full-screen,
+  word count, save event, and code-block syntax highlighting via
+  lowlight. Feature set mirrors the `docs-tti-tamu-edu` admin-center
+  editor so one component covers Landscape · tti-ai-studio · docs.
+  See
+  [`/components/rich-text-editor`](../app/pages/components/rich-text-editor.vue).
 - **Map runtime decision** — `TuxMapEmbed` ships as a wrapper around
   Mapbox + Leaflet; pick one when the first consumer surface forces
   the question. Default lean: Leaflet for OSS-friendly + no token
@@ -540,10 +550,11 @@ illustrations in `TuxEmptyState`). New deferred-with-criterion items:
   `comparison` series with muted fill for projection-vs-actual
 - **TuxChartArea** (Priority B): stacked variant; KPI strip
   composed above by parent template, not baked in
-- **TuxRuleBuilder** (new, Priority B candidate): relational query UI
-  (`field + op + value` rows, AND/OR groupers). Pairs with the
-  existing faceted `TuxFilterPanel`. ~400 LOC + 4 days. Build only
-  when a Landscape research-dashboard surface forces the question.
+- ~~**TuxRuleBuilder**~~ — shipped 2026-05-26; relational query UI
+  with five operator families, nestable groups (depth-bounded), and
+  type-aware value editors. Recursive `TuxRuleBuilderGroup` internal
+  child. See
+  [`/components/rule-builder`](../app/pages/components/rule-builder.vue).
 - **TuxRichDataGrid: per-column `headerMenu` slot** for sort / hide /
   pin / filter from the column header (Snow + data-table kit)
 - **TuxRichDataGrid: inline column-header filter popover** as a
@@ -554,9 +565,10 @@ illustrations in `TuxEmptyState`). New deferred-with-criterion items:
   tokens, accessibility (alt-text + screen-reader summaries),
   in-bar vs above value-label decision, brush/previous-period
   patterns. Ship alongside the first TuxChart\* component.
-- **"Faceted vs relational filtering — when to use which"** in
-  `design/components.md` Conventions, once `TuxRuleBuilder` is on
-  the roadmap.
+- ~~**"Faceted vs relational filtering — when to use which"**~~ —
+  shipped 2026-05-26 in
+  [`design/components.md`](./components.md) Conventions alongside
+  `TuxRuleBuilder`.
 
 **AI-studio chat-surface pass (2026-05-21):** Chat UI kit + Chat
 Input Box + ChatGPT UI Kit + MCP Apps for Claude absorbed. Net new:
@@ -565,20 +577,19 @@ prior Vercel AI Elements + Fluent 2 + Primer pass. New deferred-
 with-criterion items, mostly anchored on a future MCP integration
 in tti-ai-studio:
 
-- **`TuxMcpEmbed`** (new, ~150 LOC) — thinner artifact variant for
-  *interactive* third-party app output. Anatomy: app icon + name +
-  collapse caret + expand + exit X + skeleton + container slot.
-  Build when tti-ai-studio adopts MCP. Sister to `TuxArtifact`,
-  not a replacement.
-- **`TuxCardCarousel`** (new, ~200 LOC, Priority B candidate) —
-  horizontal scroll of cards with prev/next + optional pagination
-  dots. Re-opens the carousel question we deferred in the shadcn
-  absorption — MCP integration is the trigger. Also useful for
-  featured-projects / image galleries.
-- **MCP three-tier display taxonomy** ("inline card / inline
-  carousel / full screen") — document in `design/components.md`
-  Conventions when MCP build starts. Captures the decision tree
-  before the components ship.
+- ~~**`TuxMcpEmbed`**~~ — shipped 2026-05-26; ~340 LOC (came in over
+  the ~150 LOC estimate once the skeleton + reduced-motion fallback +
+  collapse-state-sync landed). Sister to `TuxArtifact`. See
+  [`/components/mcp-embed`](../app/pages/components/mcp-embed.vue).
+- ~~**`TuxCardCarousel`**~~ — shipped (predates this entry's
+  authorship; roadmap was stale). Horizontal scroll of cards with
+  prev/next + optional pagination dots. Eyebrow + display title.
+  Wraps `UCarousel` (embla). See
+  [`/components/card-carousel`](../app/pages/components/card-carousel.vue).
+- ~~**MCP three-tier display taxonomy**~~ — done. Lives in
+  [`design/components.md`](./components.md) § "MCP tool output".
+  Updated 2026-05-26 alongside `TuxMcpEmbed` ship to reflect the
+  static-vs-interactive split on the inline-card tier.
 - **`TuxComposer.cancelable`** (carry-forward, defer) — when a
   consumer wraps TuxComposer in a modal and wants explicit
   `[Cancel] [Send]` pair. Build only when forced.

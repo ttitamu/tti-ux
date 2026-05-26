@@ -41,6 +41,7 @@ npm run dev
 | `TuxCodeBlock`       | Shiki                    | `/components/code-block`        |
 | `TuxCodeMaroon`      | tux native               | `/components/code-maroon`       |
 | `TuxCommandPalette`  | tux native               | `/components/command-palette`   |
+| `TuxCommentThread`   | tux native               | `/components/comment-thread`    |
 | `TuxContactCard`     | tux native               | `/components/contact-card`      |
 | `TuxContextMeter`    | `UPopover`               | `/components/context-meter`     |
 | `TuxContextPanel`    | tux native               | `/components/context-panel`     |
@@ -67,18 +68,23 @@ npm run dev
 | `TuxKbd`             | tux native               | `/components/kbd`               |
 | `TuxLinkList`        | tux native               | `/components/link-list`         |
 | `TuxLinkSlab`        | tux native               | `/components/link-slab`         |
+| `TuxMcpEmbed`        | tux native               | `/components/mcp-embed`         |
 | `TuxMediaSlab`       | tux native               | `/components/media-slab`        |
 | `TuxMegaMenu`        | tux native               | `/components/site-nav`          |
 | `TuxMenuBar`         | `UDropdownMenu`          | `/components/menu-bar`          |
+| `TuxMobileFrame`     | tux native (CSS)         | `/components/mobile-frame`      |
 | `TuxModal`           | `UModal`                 | `/components/modal`             |
 | `TuxNewsCollection`  | tux native               | `/components/news-collection`   |
 | `TuxPageHeader`      | tux native               | `/components/page-header`       |
 | `TuxPagination`      | tux native               | `/components/pagination`        |
 | `TuxPhotoGrid`       | tux native               | `/components/photo-grid`        |
+| `TuxPopover`         | `UPopover`               | `/components/popover`           |
 | `TuxProse`           | tux native               | `/components/prose`             |
 | `TuxQACollection`    | tux native               | `/components/qa-collection`     |
 | `TuxRemovableChip`   | tux native               | `/components/removable-chip`    |
 | `TuxRichDataGrid`    | tux native               | `/components/rich-data-grid`    |
+| `TuxRichTextEditor`  | Tiptap + lowlight        | `/components/rich-text-editor`  |
+| `TuxRuleBuilder`     | tux native               | `/components/rule-builder` (renders internal child `TuxRuleBuilderGroup` recursively) |
 | `TuxSearch`          | tux native               | `/components/search`            |
 | `TuxSectionHeader`   | tux native               | `/components/section-header`    |
 | `TuxShortcutsHelp`   | tux native (`<dialog>`)  | `/components/shortcuts-help`    |
@@ -400,19 +406,21 @@ Each is the canonical TUX composition; pick by the *density* and
 
 | Tier | Use when | TUX composition |
 |---|---|---|
-| **Inline card** | Single result fits a card — a place, a chart, a document, a record. | `<TuxArtifact>` — title + icon + meta header, copy/download/regenerate/share actions, body slot. Drops inline between message turns. |
-| **Inline carousel** | 3+ comparable results — list of places, sources, datasets, results. The user scans across, sometimes clicks one. | `<TuxCardCarousel>` with `arrows + dots`, sized to ~280–360px cards. Header eyebrow names the tool (e.g. *nearby trails*) + count. |
-| **Full screen** | Rich interaction needed — large data viz, multi-step picker, app-like surface that competes with chat scroll. | Compose `<TuxArtifact>` (or a richer surface) inside `<TuxSlideover>` (side-docked) or `<TuxModal>` (centered). The chat pauses while the user works the surface. |
+| **Inline card** | Single result fits a card. | **Static** result (place, chart, document, record): `<TuxArtifact>` — title + icon + meta header, copy/download/regenerate/share actions. **Interactive** third-party app surface: `<TuxMcpEmbed>` — app icon + name + window controls (collapse/expand/exit), built-in skeleton, container slot for the app's UI. |
+| **Inline carousel** | 3+ comparable results — list of places, sources, datasets, results. The user scans across, sometimes clicks one. | `<TuxCardCarousel>` with `arrows + dots`, sized to ~280–360px cards. Each card is a `<TuxArtifact>` (static) or `<TuxMcpEmbed>` (interactive). Header eyebrow names the tool (e.g. *nearby trails*) + count. |
+| **Full screen** | Rich interaction needed — large data viz, multi-step picker, app-like surface that competes with chat scroll. | Listen for `<TuxMcpEmbed>`'s `@expand` event and switch to a focus-view layout (`<TuxFocusView>`, `<TuxSlideover>` side-docked, or `<TuxModal>` centered) holding the same embed. Static surfaces compose `<TuxArtifact>` inside the same shells. |
 
 **Decision tree:**
 
-1. **One result + read-only** → inline card.
-2. **Multiple comparable results + scanning** → inline carousel.
-3. **Interactive UI / heavy data / takes >½ chat width** → full screen.
+1. **One static result + read-only** → inline card (`TuxArtifact`).
+2. **One interactive app surface** → inline card (`TuxMcpEmbed`).
+3. **Multiple comparable results + scanning** → inline carousel.
+4. **Heavy data / app needs >½ chat width** → full screen.
 
-**Each tier has a skeleton state** for the loading window — Nuxt UI 4's
-`UChatShimmer` covers the inline tiers; `TuxSkeleton` covers full-screen
-loads.
+**Each tier has a skeleton state** for the loading window — `TuxMcpEmbed`
+ships its own (three shimmer bars + a content block, honors
+`prefers-reduced-motion`); Nuxt UI 4's `UChatShimmer` covers `TuxArtifact`
+inline; `TuxSkeleton` covers full-screen loads.
 
 **Anti-patterns to avoid:**
 
@@ -429,6 +437,31 @@ loads.
 Reference frame:
 [`reference/figma-cache/mcp-apps-for-claude/frames/`](../reference/figma-cache/mcp-apps-for-claude/frames/).
 Absorbed 2026-05-21 from Anthropic's official MCP Apps UI kit v1.1.
+
+### Faceted vs relational filtering — when to use which
+
+Two filter components, two shapes of question. Reach for the one that
+matches what the user is *actually doing* — they're sisters, not
+substitutes.
+
+| Shape of question | Component | Example |
+|---|---|---|
+| **Narrow a list along known axes.** Buckets are pre-aggregated; the user multi-selects from each. | `<TuxFilterPanel>` (faceted) | "Owner ∈ {Chen, Kim} AND type ∈ {PDF, CSV} AND district ∈ {Bryan, Austin}" — a Landscape browse / results page. |
+| **Express a relational predicate across heterogeneous fields.** Operators matter; numeric / date comparisons appear; nesting appears. | `<TuxRuleBuilder>` (relational) | "compliance &lt; 50% AND last inspected before 2024-01-01 AND treatment IS rumble" — a research-dashboard "save as smart view" flow. |
+| **Both, on the same surface.** Facets do the dominant narrowing in the left rail; rule builder lives in a slideover for the long-tail query. | `<TuxFilterPanel>` + `<TuxRuleBuilder>` | Operational data surface where some users browse and some authors save smart views. |
+
+Anti-patterns:
+
+- **TuxFilterPanel for relational predicates.** If you find yourself
+  generating a facet bucket per `>50%` / `>60%` / `>70%` threshold,
+  the user wanted a numeric comparator. Switch to TuxRuleBuilder.
+- **TuxRuleBuilder for "owner = X."** If the dominant axis is
+  multi-select narrowing across a known set, the rule builder makes
+  the user click 3× for what a single facet checkbox covers. Use
+  facets and keep the rule builder for the predicates that don't fit.
+- **Nesting beyond 3 levels.** TuxRuleBuilder caps depth at 3 by
+  default. Deeper trees signal the query should be split into named
+  saved views the user composes, not a single deeply-nested predicate.
 
 ### Empty states — no decorative illustrations
 

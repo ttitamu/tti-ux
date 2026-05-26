@@ -1,6 +1,41 @@
 <script setup lang="ts">
 // Per ADR-0010, keep top-level <script setup> expressions plain JS.
+// Typed peer-review fixtures live in the sibling .demo-data.ts file
+// (ADR-0011 escape hatch — vue-tsc can't narrow string literal unions
+// declared inline in pages).
+import { reviewAuthors, reviewMe, reviewThreads } from "./paper-page.demo-data";
+
 useHead({ title: "Example · Research paper · TUX" });
+
+const threads = ref(reviewThreads);
+
+function nextId(prefix) {
+  return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
+}
+function onAdd(threadId, body) {
+  const t = threads.value.find((x) => x.id === threadId);
+  if (!t) return;
+  t.comments.push({
+    id: nextId("c"),
+    authorId: reviewMe.id,
+    createdAt: new Date().toISOString(),
+    body,
+  });
+}
+function onResolve(threadId) {
+  const t = threads.value.find((x) => x.id === threadId);
+  if (!t) return;
+  t.status = "resolved";
+  t.resolvedBy = reviewMe.id;
+  t.resolvedAt = new Date().toISOString();
+}
+function onReopen(threadId) {
+  const t = threads.value.find((x) => x.id === threadId);
+  if (!t) return;
+  t.status = "open";
+  t.resolvedBy = undefined;
+  t.resolvedAt = undefined;
+}
 
 const breadcrumb = [
   { label: "Home", to: "/" },
@@ -254,6 +289,25 @@ const corridorEvents = [
         literature suggests — at least for this class of
         treatments.
       </p>
+    </section>
+
+    <!-- Open peer-review -->
+    <section class="paper-page__section">
+      <h2 class="paper-page__h2">Open peer-review</h2>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        TRR opted into open-review for this manuscript. Anonymized
+        reviewer threads anchored to specific sections appear below;
+        author responses are co-located. Resolved threads collapse
+        behind a toggle.
+      </p>
+      <TuxCommentThread
+        v-model="threads"
+        :authors="reviewAuthors"
+        :current-user="reviewMe"
+        @comment:add="onAdd"
+        @thread:resolve="onResolve"
+        @thread:reopen="onReopen"
+      />
     </section>
 
     <!-- Acknowledgments -->
