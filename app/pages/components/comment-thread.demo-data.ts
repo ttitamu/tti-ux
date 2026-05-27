@@ -1,7 +1,10 @@
+// Relative path (not `~/`) so this resolves the same whether tti-ux is
+// built standalone or consumed as a Nuxt layer (where `~/` rebinds to
+// the host app's srcDir).
 import type {
   CommentAuthor,
   CommentThread,
-} from "~/components/TuxCommentThread.vue";
+} from "../../components/TuxCommentThread.vue";
 
 // Sibling demo data per ADR-0011 — pages re-parse via a JS-only Babel
 // pass that breaks on explicit `const` type annotations and non-null

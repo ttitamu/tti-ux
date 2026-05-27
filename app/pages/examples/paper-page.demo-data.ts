@@ -1,7 +1,8 @@
+// Relative path (not `~/`) — see comment-thread.demo-data.ts for rationale.
 import type {
   CommentAuthor,
   CommentThread,
-} from "~/components/TuxCommentThread.vue";
+} from "../../components/TuxCommentThread.vue";
 
 // Sibling demo data per ADR-0011 — typed peer-review fixtures for the
 // open-review section at the bottom of the paper page. The page can't
