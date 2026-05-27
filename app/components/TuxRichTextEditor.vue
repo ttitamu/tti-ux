@@ -94,7 +94,15 @@ const emit = defineEmits<{
   "fullscreen-change": [v: boolean];
 }>();
 
-const editor = ref<Editor | null>(null);
+// `shallowRef` per Tiptap's vue-3 docs: the Editor instance carries its
+// own reactivity, and wrapping it in a deep `ref()` makes Vue try to
+// proxy ProseMirror's internal state — which both breaks editor
+// behavior and confuses vue-tsc into inferring a Vue component-instance
+// shape on the bound prop (TS2322 vs Editor | undefined).
+//
+// `undefined` (not `null`) as the empty state to line up with
+// `<EditorContent>`'s prop type.
+const editor = shallowRef<Editor | undefined>(undefined);
 const mode = ref<"wysiwyg" | "source">("wysiwyg");
 const isFullscreen = ref(false);
 const sourceText = ref(props.modelValue);
@@ -234,7 +242,12 @@ function onWindowKey(e: KeyboardEvent) {
 onMounted(() => window.addEventListener("keydown", onWindowKey));
 onBeforeUnmount(() => window.removeEventListener("keydown", onWindowKey));
 
-function showGroup(name: Props["toolbar"][number]) {
+// `Props["toolbar"]` is `Array<...> | undefined` (it's an optional prop
+// even though it always resolves to a default in `withDefaults`). Strip
+// the `undefined` before indexing or TS rejects the `[number]` lookup.
+type ToolbarGroup = NonNullable<Props["toolbar"]>[number];
+
+function showGroup(name: ToolbarGroup) {
   return props.toolbar.includes(name);
 }
 

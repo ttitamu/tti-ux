@@ -9,10 +9,14 @@ useHead({ title: "Example · Research paper · TUX" });
 
 const threads = ref(reviewThreads);
 
-function nextId(prefix) {
+// Function-param types are fine in <script setup> (ADR-0010 only
+// restricts top-level *expression* annotations like `const x: T = ...`,
+// not function signatures). Without them, vue-tsc flags TS7006 on each
+// param under strict mode.
+function nextId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
 }
-function onAdd(threadId, body) {
+function onAdd(threadId: string, body: string) {
   const t = threads.value.find((x) => x.id === threadId);
   if (!t) return;
   t.comments.push({
@@ -22,14 +26,14 @@ function onAdd(threadId, body) {
     body,
   });
 }
-function onResolve(threadId) {
+function onResolve(threadId: string) {
   const t = threads.value.find((x) => x.id === threadId);
   if (!t) return;
   t.status = "resolved";
   t.resolvedBy = reviewMe.id;
   t.resolvedAt = new Date().toISOString();
 }
-function onReopen(threadId) {
+function onReopen(threadId: string) {
   const t = threads.value.find((x) => x.id === threadId);
   if (!t) return;
   t.status = "open";

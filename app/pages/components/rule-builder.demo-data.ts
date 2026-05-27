@@ -1,4 +1,5 @@
-import type { FieldDef, Group } from "~/components/TuxRuleBuilder.vue";
+// Relative path (not `~/`) — see comment-thread.demo-data.ts for rationale.
+import type { FieldDef, Group } from "../../components/TuxRuleBuilder.vue";
 
 // Sibling demo data per ADR-0011. Field catalogs + initial trees are
 // the kind of structured fixtures that need explicit types to be
