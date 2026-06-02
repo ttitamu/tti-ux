@@ -154,6 +154,7 @@ const navTree = [
       { label: "TuxPopover",       to: "/components/popover",        icon: "lucide:message-square-more" },
       { label: "TuxProse",         to: "/components/prose",          icon: "lucide:text" },
       { label: "TuxQACollection",  to: "/components/qa-collection",  icon: "lucide:message-circle-question" },
+      { label: "TuxRailNav",       to: "/components/rail-nav",        icon: "lucide:panel-left" },
       { label: "TuxReactionBar",   to: "/components/reaction-bar",   icon: "lucide:thumbs-up" },
       { label: "TuxRemovableChip", to: "/components/removable-chip", icon: "lucide:tag" },
       { label: "TuxResearcher",    to: "/components/tti-identity",   icon: "lucide:user-round" },

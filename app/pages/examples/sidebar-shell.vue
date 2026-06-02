@@ -86,14 +86,15 @@ const recentSessions = [
       </div>
     </template>
 
-    <!-- #rail: navigation body. UNavigationMenu handles the hierarchical
-         render + collapse mechanics; we pass two groups (primary +
-         secondary) so the secondary set sits visually below a divider. -->
+    <!-- #rail: navigation body. TuxRailNav renders the hierarchy with
+         native <details> groups (accessible disclosure, no roleless
+         aria-expanded); two groups (primary + secondary) sit either
+         side of a divider. -->
     <template #rail="{ collapsed }">
-      <UNavigationMenu
-        orientation="vertical"
+      <TuxRailNav
         :items="railItems"
         :collapsed="collapsed"
+        aria-label="Studio navigation"
         class="px-2 py-3"
       />
     </template>

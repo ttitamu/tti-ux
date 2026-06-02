@@ -12,6 +12,12 @@ const version = pkg.version;
 // stays in CHANGELOG.md.
 const recentUpdates = [
   {
+    date: "2026-06-02",
+    title: "Site-wide a11y pass + TuxRailNav",
+    body: "Drove the new axe-core gate to zero across all pages; added TuxRailNav — a native <details> collapsible sidebar nav that replaces UNavigationMenu's inaccessible collapsible chevron in the example shells.",
+    to: "/components/rail-nav",
+  },
+  {
     date: "2026-04-27",
     title: "Doc-site chrome batch",
     body: "TuxDocsSidebar, TuxTOC, TuxSiteNav, TuxDropdown, TuxMegaMenu — the navigation + doc-shape components for technical documentation sites.",

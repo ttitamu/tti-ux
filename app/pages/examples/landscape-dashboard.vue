@@ -268,12 +268,13 @@ const studyCorridorEvents = [
     </template>
 
     <!-- Rail nav body. Two groups (primary + secondary) rendered via
-         UNavigationMenu so the collapse mechanics are inherited. -->
+         TuxRailNav — native <details> disclosure groups, accessible
+         without the roleless-aria-expanded chevron Nuxt UI emits. -->
     <template #rail="{ collapsed }">
-      <UNavigationMenu
-        orientation="vertical"
+      <TuxRailNav
         :items="railItems"
         :collapsed="collapsed"
+        aria-label="Landscape navigation"
         class="px-2 py-3"
       />
     </template>
