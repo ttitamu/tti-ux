@@ -610,6 +610,18 @@ them; open an issue or ping the maintainer to add a row.
    Foundations/Components grid, and `app/pages/components/index.vue`
    table.
 7. **Update `CHANGELOG.md`** under Unreleased → Added.
+8. **Run the local guards before you push** — don't wait for CI to find
+   what you could catch in seconds while the component is still fresh in
+   your head:
+   - `npm run lint` + `npm run typecheck` — style + types.
+   - `npm run audit:tokens` — every `var(--token)` you wrote resolves to
+     a defined token (or fallback / known external namespace). Catches
+     the `--surface-base` class of bug (undefined token → renders
+     transparent), invisible to typecheck and the contrast audit.
+   - `npm run generate && npm run audit:a11y` — structural axe-core pass
+     (roles, landmarks, accessible names, nesting) over your new
+     showcase page. `npm run audit:contrast` covers color separately.
+   All three are blocking in CI, so a clean local run is a clean PR.
 
 A component that skips any of these is invisible to future readers —
 the style guide is its own documentation, so being in the guide is the

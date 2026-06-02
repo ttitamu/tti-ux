@@ -28,6 +28,8 @@
     "gen:lucide-names": "node scripts/gen-lucide-names.mjs",
     "build:logos": "node scripts/png-to-svg-logo.mjs",
     "audit:contrast": "node scripts/audit-contrast.mjs",
+    "audit:tokens": "node scripts/audit-tokens.mjs",
+    "audit:a11y": "node scripts/audit-a11y.mjs",
     "build:geo": "node scripts/build-geo.mjs"
   },
   "dependencies": {
@@ -74,6 +76,8 @@
     "@fontsource/public-sans": "^5.2.7",
     "@fontsource/work-sans": "^5.2.8",
     "@nuxt/devtools": "^2.0.0",
+    "@vue/language-core": "^3.3.3",
+    "axe-core": "^4.11.3",
     "d3-geo": "^3.1.1",
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
@@ -84,6 +88,7 @@
     "topojson-server": "^3.0.1",
     "topojson-simplify": "^3.0.3",
     "typescript": "^5.7.0",
-    "us-atlas": "^3.0.1"
+    "us-atlas": "^3.0.1",
+    "vue-tsc": "^3.3.3"
   }
 }

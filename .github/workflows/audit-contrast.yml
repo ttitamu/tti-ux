@@ -75,6 +75,14 @@ jobs:
           PUPPETEER_LAUNCH_NO_SANDBOX: "true"
         run: npm run audit:contrast
 
+      # Structural a11y audit (jsdom + axe-core) over the same generated
+      # output. Catches role/landmark/name/nesting bugs that escaped the
+      # ad-hoc per-batch axe checks. Reuses the generate step above; no
+      # browser needed. Known third-party-framework artifacts are logged
+      # (not gated) — see scripts/audit-a11y.mjs KNOWN_UPSTREAM.
+      - name: run a11y audit (axe-core)
+        run: npm run audit:a11y
+
       - name: upload report on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -106,3 +114,11 @@ jobs:
 
       - name: typecheck
         run: npm run typecheck
+
+      # Static check: every var(--token) reference resolves to a defined
+      # token (or a fallback / known external namespace). Catches the
+      # `--surface-base`-style undefined-token bug that renders transparent
+      # and slips past both typecheck (CSS isn't typed) and the contrast
+      # audit (no color to measure). No build needed — pure static pass.
+      - name: token references
+        run: npm run audit:tokens
