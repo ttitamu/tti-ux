@@ -5,6 +5,95 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-06-02
+
+### Added — Tightened the authoring loop (2026-06-02)
+
+Two new guards + a toolchain fix, after a session-state review found
+that defects were consistently caught in batch audits *after* shipping
+rather than during authoring.
+
+**`vue-tsc` resolution fixed.** `nuxt typecheck` was resolving `vue-tsc`
+from the global npx cache while `vue-router`'s volar plugin
+(`vue-router/volar/sfc-route-blocks`) loaded from local `node_modules`
+and then failed to `require('@vue/language-core')` (split dependency
+trees). The typecheck still exited 0, but the route-block plugin was
+silently *not running* — so typed `<route>`-block checks were skipped.
+Added `vue-tsc` + `@vue/language-core` to `devDependencies` so the
+whole toolchain resolves from one tree; the plugin now loads.
+
+**`npm run audit:tokens`** (new — `scripts/audit-tokens.mjs`). Static
+pass asserting every `var(--token)` reference in `app/**/*.{vue,css}`
+resolves to a token defined in the CSS, a `var(--x, fallback)`, or a
+known external namespace (Tailwind / Nuxt UI). Catches the
+`--surface-base` class of bug (undefined token → transparent render)
+that's invisible to typecheck (CSS isn't typed) and the contrast audit
+(no color to measure). Now blocking in CI's `quality` job.
+
+**`npm run audit:a11y`** (new — `scripts/audit-a11y.mjs`). Promotes the
+ad-hoc "tested via jsdom + axe-core" pass into a committed, repeatable
+gate: runs axe-core over every prerendered page (`color-contrast`
+disabled — that's the contrast audit's job). The first full run found
+**135 structural violations across 42 pages** that the per-batch ad-hoc
+checks had never covered site-wide; all are now fixed (see below). Now
+blocking in CI's `audit` job. Added `axe-core` to `devDependencies`.
+
+### Fixed — Site-wide a11y remediation (2026-06-02)
+
+Drove `audit:a11y` to zero across all 164 pages. Highlights:
+
+- **Charts** (`TuxChartArea` / `Bar` / `Line` / `Scatter`, `TuxDiagram`)
+  — `aria-label` on bare SVG shapes (`<rect>` / `<circle>`) is prohibited
+  without a name-supporting role; added `role="img"` to labeled data /
+  interaction shapes. `TuxDiagram` mermaid output is legalized via a
+  post-processor; its loading skeleton got `role="status"`.
+- **`TuxFileDropzone`** + `/forms/file-upload` — converted the
+  `role="button"` drop zone wrapping a focusable `<input type="file">`
+  (critical `label` + `nested-interactive`) to a native `<label>`
+  wrapper: one focusable, named control, no nesting.
+- **`TuxSuggestionChips`** — moved `role="listitem"` off the `<button>`
+  onto a wrapping element (`aria-allowed-role`).
+- **`TuxCodeMaroon`** `<aside role="alert">` → `<div role="alert">`;
+  **`TuxSplitPane`** detail `<main>` → `<section role="region">` (no
+  duplicate / nested main); **`TuxRichDataGrid`** empty `<th>` → visually
+  hidden text; **`TuxAbstract`** / **`TuxAcknowledgments`** hardcoded
+  `<h4>` → configurable `level` prop (heading-order).
+- **`TuxCardCarousel`** — dropped the redundant outer `region` landmark
+  (Nuxt UI's `UCarousel` already is one) and named that region instead.
+- **`TuxToc`** showcase wrapper `<aside>`/over-eager `<nav>` → plain
+  `<div>`; tree / sunburst callout `<aside>` → `<div>`
+  (`landmark-complementary-is-top-level`).
+- **Landmark components** (alpha-nav, branch-nav, breadcrumbs, link-slab,
+  pagination, site-nav, stepper, tab-bar, treemap) — added optional
+  `ariaLabel` props and gave each repeated showcase instance a unique
+  accessible name (`landmark-unique`, which fired because galleries
+  render a landmark component 5–7×).
+- **Doc pages** — index-grid card headings `<h3>` → `<h2>` (no level
+  skip under the page `<h1>`); `/kits/slides` + `/kits/aggieux` content
+  wrapped in a `<main>` landmark (`region`); icon-only buttons on
+  app-frame / swipe / text-field given `aria-label` (critical
+  `button-name`).
+
+### Added — TuxRailNav (2026-06-02)
+
+Collapsible sidebar/rail navigation built on native
+`<details>`/`<summary>` (the `TuxFilterPanel` "zero-JS, perfect-a11y"
+disclosure pattern). Grouped entries with one nesting level, an
+icon-only `collapsed` mode, and a `<nav>` landmark named via an
+overridable `ariaLabel` prop. Showcase at
+[`/components/rail-nav`](app/pages/components/rail-nav.vue).
+
+This is the tux-owned replacement for Nuxt UI's `UNavigationMenu` in
+vertical mode, which renders a collapsible group's chevron as a
+roleless `<span aria-expanded>` (axe `aria-allowed-attr` — internal to
+Nuxt UI, present in 4.7.0 and still in 4.8.1, not fixable from the
+consumer side). Swapped into both example shells
+(`/examples/sidebar-shell`, `/examples/landscape-dashboard`), which
+closes the last a11y violation **at the source** — `audit:a11y` is now
+a true zero with no suppressions. (A `KNOWN_UPSTREAM` allowlist remains
+in `scripts/audit-a11y.mjs`, intentionally empty, as the documented
+home for any future genuine third-party artifact.)
+
 ### Fixed — Polish pass (2026-05-26)
 
 After the seven-slice add pass, an audit pass caught a token bug
