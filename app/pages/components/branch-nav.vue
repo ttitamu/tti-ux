@@ -33,7 +33,7 @@ const hideSingleVue = `<tux-branch-nav v-model="current" :total="1" />
         at the end, next is disabled.
       </p>
       <TuxExample class="mt-4" :vue="basicVue" :source="tuxBranchNavSource">
-        <TuxBranchNav v-model="current" :total="3" />
+        <TuxBranchNav v-model="current" :total="3" aria-label="Response alternatives — basic" />
         <p class="mt-3 text-xs text-text-muted">
           current: <code>{{ current }}</code>
         </p>
@@ -48,7 +48,7 @@ const hideSingleVue = `<tux-branch-nav v-model="current" :total="1" />
         alternates form a cycle (e.g., circular regeneration history).
       </p>
       <TuxExample :vue="loopVue">
-        <TuxBranchNav v-model="looped" :total="5" loop />
+        <TuxBranchNav v-model="looped" :total="5" loop aria-label="Response alternatives — looping" />
       </TuxExample>
     </section>
 

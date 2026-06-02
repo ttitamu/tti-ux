@@ -58,9 +58,12 @@ const exampleVue = `<TuxTOC
             <p>The drift reconciler runs hourly. It compares the agent's local index against the central record and closes entries that disagree.</p>
           </article>
 
-          <aside class="sticky top-4">
+          <!-- Plain positioning wrapper, NOT a landmark — TuxTOC renders
+               its own <nav aria-label="On this page">; a second nav with
+               the same name here would trip axe's landmark-unique. -->
+          <div class="sticky top-4">
             <TuxTOC target="#article" />
-          </aside>
+          </div>
         </div>
       </TuxExample>
     </section>

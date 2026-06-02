@@ -17,8 +17,8 @@ const withSlotsVue = `<tux-app-frame title="Landscape" :force-chrome="true">
     <UInput placeholder="Search…" icon="lucide:search" size="sm" />
   </template>
   <template #right>
-    <UButton variant="ghost" icon="lucide:bell" />
-    <UButton variant="ghost" icon="lucide:user" />
+    <UButton variant="ghost" icon="lucide:bell" aria-label="Notifications" />
+    <UButton variant="ghost" icon="lucide:user" aria-label="User account" />
   </template>
 </tux-app-frame>`;
 </script>
@@ -74,8 +74,8 @@ const withSlotsVue = `<tux-app-frame title="Landscape" :force-chrome="true">
             <UInput placeholder="Search…" icon="lucide:search" size="sm" class="w-72" />
           </template>
           <template #right>
-            <UButton variant="ghost" icon="lucide:bell" />
-            <UButton variant="ghost" icon="lucide:user" />
+            <UButton variant="ghost" icon="lucide:bell" aria-label="Notifications" />
+            <UButton variant="ghost" icon="lucide:user" aria-label="User account" />
           </template>
         </TuxAppFrame>
       </TuxExample>

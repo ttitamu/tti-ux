@@ -61,11 +61,6 @@ const labelText = computed(() =>
   props.label || (props.multiple ? "Drop files here, or click to browse" : "Drop a file here, or click to browse")
 );
 
-function openPicker() {
-  if (props.disabled) return;
-  inputRef.value?.click();
-}
-
 function onInputChange(e: Event) {
   const target = e.target as HTMLInputElement;
   handleFiles(Array.from(target.files || []));
@@ -144,19 +139,13 @@ function formatSize(bytes: number): string {
 
 <template>
   <div class="tux-file-dropzone">
-    <div
+    <label
       class="tux-file-dropzone__zone"
       :class="{
         'tux-file-dropzone__zone--drag': dragOver,
         'tux-file-dropzone__zone--disabled': disabled,
       }"
-      role="button"
-      tabindex="0"
-      :aria-label="labelText"
       :aria-disabled="disabled"
-      @click="openPicker"
-      @keydown.enter.prevent="openPicker"
-      @keydown.space.prevent="openPicker"
       @dragover="onDragOver"
       @dragleave="onDragLeave"
       @drop="onDrop"
@@ -174,10 +163,11 @@ function formatSize(bytes: number): string {
         :accept="accept"
         :multiple="multiple"
         :disabled="disabled"
+        :aria-label="labelText"
         class="tux-file-dropzone__input"
         @change="onInputChange"
       >
-    </div>
+    </label>
 
     <p v-if="error" class="tux-file-dropzone__error" role="alert">
       <Icon name="lucide:alert-circle" :size="14" />

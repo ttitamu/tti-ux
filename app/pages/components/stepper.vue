@@ -60,7 +60,7 @@ const errorVue = `<tux-stepper
       <p class="eyebrow">horizontal</p>
       <h2 class="heading--bold text-xl font-bold">IRB protocol submission · step 3 of 6</h2>
       <TuxExample class="mt-4" :vue="horizontalVue">
-        <TuxStepper :steps="irbSteps" :current-index="2" />
+        <TuxStepper :steps="irbSteps" :current-index="2" aria-label="IRB protocol submission progress" />
       </TuxExample>
     </section>
 
@@ -69,7 +69,7 @@ const errorVue = `<tux-stepper
       <h2 class="heading--bold text-xl font-bold">Stacked layout</h2>
       <TuxExample class="mt-4" :vue="verticalVue">
         <div class="max-w-md">
-          <TuxStepper orientation="vertical" :steps="irbSteps" :current-index="2" />
+          <TuxStepper orientation="vertical" :steps="irbSteps" :current-index="2" aria-label="IRB protocol submission progress (vertical)" />
         </div>
       </TuxExample>
     </section>
@@ -78,7 +78,7 @@ const errorVue = `<tux-stepper
       <p class="eyebrow">per-step status override</p>
       <h2 class="heading--bold text-xl font-bold">Error step</h2>
       <TuxExample class="mt-4" :vue="errorVue">
-        <TuxStepper :steps="fundingSteps" :current-index="2" />
+        <TuxStepper :steps="fundingSteps" :current-index="2" aria-label="Funding application progress" />
       </TuxExample>
     </section>
 

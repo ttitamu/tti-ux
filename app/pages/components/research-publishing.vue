@@ -92,6 +92,7 @@ const headerVue = `<TuxAuthorByline
         format abstracts.
       </p>
       <TuxAbstract
+        :level="3"
         background="Earlier evaluations of rural intersection treatments often suffered from short follow-up windows that conflated treatment effects with novelty effects."
         methods="Twelve treated rural intersections in central Texas were instrumented for 36 months post-construction; matched controls were observed in parallel."
         results="Treated sites showed a 37 percent reduction in stop-line non-compliance vs controls; the reduction persisted across all 36 months, with no detectable decay over time."
@@ -184,6 +185,7 @@ const headerVue = `<TuxAuthorByline
         Renders nothing for any section left empty.
       </p>
       <TuxAcknowledgments
+        :level="3"
         :funding="[
           { funder: 'Federal Highway Administration', grant: 'HRDS-30-2022-04', url: 'https://highways.dot.gov' },
           { funder: 'Texas Department of Transportation', grant: '0-7042' },

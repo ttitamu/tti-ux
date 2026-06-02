@@ -31,6 +31,10 @@ interface Props {
   showAll?: boolean;
   /** Currently-selected letter (in emit mode) — gets the active treatment. */
   modelValue?: string | null;
+  /** Accessible name for the nav landmark. Override when multiple
+   *  TuxAlphaNav instances appear on the same page so each landmark
+   *  has a unique role+name combination (landmark-unique). */
+  ariaLabel?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -40,6 +44,7 @@ const props = withDefaults(defineProps<Props>(), {
   sticky: false,
   showAll: false,
   modelValue: null,
+  ariaLabel: "Jump to letter",
 });
 
 const emit = defineEmits<{
@@ -77,7 +82,7 @@ function onClick(e: Event, letter: string | null) {
   <nav
     class="tux-alpha-nav"
     :class="{ 'tux-alpha-nav--sticky': sticky }"
-    aria-label="Jump to letter"
+    :aria-label="ariaLabel"
   >
     <ol class="tux-alpha-nav__list" role="list">
       <li v-if="showAll" class="tux-alpha-nav__item">

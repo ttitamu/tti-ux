@@ -127,7 +127,7 @@ const exampleVue = `<TuxSiteNav
       </p>
       <TuxExample class="mt-4" :vue="exampleVue">
         <div class="border border-surface-border rounded-md overflow-hidden bg-surface-page" style="min-height: 16rem; container-type: inline-size">
-          <TuxSiteNav v-bind="universityNav" search @search:open="() => {}" />
+          <TuxSiteNav v-bind="universityNav" search aria-label="TTI university site navigation" @search:open="() => {}" />
           <div class="px-6 py-12 text-center text-sm text-text-muted">
             (Page content — interact with the nav above.)
           </div>
@@ -145,7 +145,7 @@ const exampleVue = `<TuxSiteNav
       </p>
       <TuxExample class="mt-4">
         <div class="border border-surface-border rounded-md overflow-hidden bg-surface-page" style="min-height: 12rem; container-type: inline-size">
-          <TuxSiteNav v-bind="appNav" />
+          <TuxSiteNav v-bind="appNav" aria-label="Landscape application navigation" />
           <div class="px-6 py-10 text-center text-sm text-text-muted">
             (Application body.)
           </div>

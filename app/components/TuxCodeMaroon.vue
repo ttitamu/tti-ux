@@ -82,7 +82,7 @@ const severityIcon = computed(() => {
 
 <template>
   <Transition name="tux-codemaroon">
-    <aside
+    <div
       v-if="visible"
       class="tux-codemaroon"
       :class="[
@@ -122,7 +122,7 @@ const severityIcon = computed(() => {
           <Icon name="lucide:x" aria-hidden="true" />
         </button>
       </div>
-    </aside>
+    </div>
   </Transition>
 </template>
 

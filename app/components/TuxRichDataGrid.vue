@@ -378,8 +378,7 @@ function onSearchInput(e: Event) {
               v-if="!expansionDisabled"
               scope="col"
               class="tux-rich-data-grid__th tux-rich-data-grid__th--chevron"
-              aria-label="Expand row"
-            />
+            ><span class="sr-only">Expand row</span></th>
             <th
               v-for="(col, ci) in columns"
               :key="col.key"

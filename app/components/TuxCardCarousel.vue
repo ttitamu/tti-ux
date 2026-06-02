@@ -92,11 +92,12 @@ const carouselItems = computed(() => props.items as unknown as never[]);
 </script>
 
 <template>
-  <section
-    class="tux-card-carousel"
-    :aria-label="ariaLabel"
-    role="region"
-  >
+  <!-- The bare <section> carries no accessible name, so it is NOT a
+       region landmark — UCarousel below renders its own role="region"
+       (with aria-roledescription="carousel"), and we name THAT region
+       via :aria-label. Two same-named region landmarks would trip
+       axe's landmark-unique. -->
+  <section class="tux-card-carousel">
     <header
       v-if="eyebrow || title"
       class="tux-card-carousel__header"
@@ -117,6 +118,7 @@ const carouselItems = computed(() => props.items as unknown as never[]);
 
     <UCarousel
       :items="carouselItems"
+      :aria-label="ariaLabel"
       :arrows="arrows"
       :dots="dots"
       :loop="loop"

@@ -187,7 +187,7 @@ const hasBottomSlot = computed(() => !!useSlots().bottom);
         @dblclick="toggleCollapsed"
       />
 
-      <main
+      <section
         class="tux-split-pane__detail"
         :aria-label="detailLabel"
       >
@@ -199,7 +199,7 @@ const hasBottomSlot = computed(() => !!useSlots().bottom);
             description="Pick an item from the list to see details here."
           />
         </slot>
-      </main>
+      </section>
     </div>
 
     <section

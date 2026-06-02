@@ -41,7 +41,7 @@ const trailArticle = [
       <p class="eyebrow">canonical</p>
       <h2 class="heading--bold text-xl font-bold">L3 article trail</h2>
       <TuxExample class="mt-4" :vue="exampleVue">
-        <TuxBreadcrumbs :trail="trailArticle" />
+        <TuxBreadcrumbs :trail="trailArticle" aria-label="Breadcrumb — canonical" />
       </TuxExample>
     </section>
 
@@ -54,9 +54,9 @@ const trailArticle = [
       </p>
       <TuxExample class="mt-4">
         <div class="space-y-5">
-          <TuxBreadcrumbs :trail="trailL2" />
-          <TuxBreadcrumbs :trail="trailL3" />
-          <TuxBreadcrumbs :trail="trailArticle" />
+          <TuxBreadcrumbs :trail="trailL2" aria-label="Breadcrumb — L2 depth" />
+          <TuxBreadcrumbs :trail="trailL3" aria-label="Breadcrumb — L3 depth" />
+          <TuxBreadcrumbs :trail="trailArticle" aria-label="Breadcrumb — article depth" />
         </div>
       </TuxExample>
     </section>
@@ -70,7 +70,7 @@ const trailArticle = [
         breadcrumb starts mid-tree.
       </p>
       <TuxExample class="mt-4">
-        <TuxBreadcrumbs :home-icon="false" :trail="trailArticle" />
+        <TuxBreadcrumbs :home-icon="false" :trail="trailArticle" aria-label="Breadcrumb — no home icon" />
       </TuxExample>
     </section>
 
@@ -82,7 +82,7 @@ const trailArticle = [
         viewport. Useful in tight chrome where the pipe rule looks heavy.
       </p>
       <TuxExample class="mt-4">
-        <TuxBreadcrumbs chevron :trail="trailArticle" />
+        <TuxBreadcrumbs chevron :trail="trailArticle" aria-label="Breadcrumb — chevron separators" />
       </TuxExample>
     </section>
 

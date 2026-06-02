@@ -204,14 +204,14 @@ const datasetVue = `<TuxTree
             storage-key="demo-bi-explorer-dataset"
             aria-label="Dataset explorer"
           />
-          <aside class="p-4 bg-surface-sunken border border-surface-border rounded-md text-sm">
+          <div class="p-4 bg-surface-sunken border border-surface-border rounded-md text-sm">
             <p class="eyebrow mb-1">selected field</p>
             <p class="font-mono text-text-primary">{{ selectedField ?? "(none)" }}</p>
             <p class="text-xs text-text-muted mt-3">
               Drives a real focused-field panel in BI explorer surfaces —
               field metadata, sample values, downstream visuals.
             </p>
-          </aside>
+          </div>
         </div>
       </TuxExample>
     </section>

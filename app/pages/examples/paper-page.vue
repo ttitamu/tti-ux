@@ -152,8 +152,11 @@ const corridorEvents = [
       </div>
     </div>
 
-    <!-- Structured abstract -->
+    <!-- Structured abstract — level 2 so Background/Methods/etc. sit
+         one step below the page h1 (TuxPageHeader), matching the same
+         level as the numbered paper sections that follow. -->
     <TuxAbstract
+      :level="2"
       background="Earlier evaluations of rural intersection treatments often suffered from short follow-up windows that conflated treatment effects with novelty effects. We extend the follow-up window to 36 months across twelve treated sites with matched controls."
       methods="Twelve treated rural intersections in central Texas were instrumented for 36 months post-construction; matched controls were observed in parallel. Stop-line non-compliance rates were sampled in 6-month windows; difference-in-differences with site-level fixed effects estimated treatment effects."
       results="Treated sites showed a 37 percent reduction in stop-line non-compliance vs controls; the reduction persisted across all 36 months, with no detectable decay over time (slope = −0.04 pp/month, p = 0.78)."
@@ -314,8 +317,10 @@ const corridorEvents = [
       />
     </section>
 
-    <!-- Acknowledgments -->
+    <!-- Acknowledgments — level 3: sub-headings (Funding, Conflicts…)
+         sit one step below the h2 paper sections that precede them. -->
     <TuxAcknowledgments
+      :level="3"
       :funding="[
         { funder: 'Federal Highway Administration', grant: 'HRDS-30-2022-04', url: 'https://highways.dot.gov' },
         { funder: 'Texas Department of Transportation', grant: '0-7042' },

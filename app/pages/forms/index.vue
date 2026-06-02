@@ -72,7 +72,7 @@ const tiles = [
         <UIcon :name="t.icon" class="w-6 h-6 text-text-brand flex-shrink-0 mt-1" />
         <div>
           <p class="eyebrow">{{ t.primitive }}</p>
-          <h3 class="heading--bold text-base font-bold">{{ t.label }}</h3>
+          <h2 class="heading--bold text-base font-bold">{{ t.label }}</h2>
           <p class="mt-1 text-sm text-text-secondary leading-relaxed">{{ t.blurb }}</p>
         </div>
       </NuxtLink>

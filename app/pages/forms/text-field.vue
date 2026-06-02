@@ -32,7 +32,7 @@ const textarea = ref("");
         <UFormField label="With trailing button">
           <UInput placeholder="https://example.org">
             <template #trailing>
-              <UButton color="neutral" variant="ghost" size="xs" icon="lucide:copy" />
+              <UButton color="neutral" variant="ghost" size="xs" icon="lucide:copy" aria-label="Copy URL" />
             </template>
           </UInput>
         </UFormField>

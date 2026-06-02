@@ -430,6 +430,7 @@ function focusY(seriesIdx: number, idx: number): number {
           :height="innerH"
           class="tux-chart-area__hover-capture"
           tabindex="0"
+          role="img"
           :aria-label="`Plot area, ${labels.length} points; use left/right arrows to read values.`"
           @pointermove="onAreaMove"
           @pointerleave="onAreaLeave"

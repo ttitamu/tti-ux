@@ -380,6 +380,7 @@ function hoverToneClass(seriesIdx: number): string {
               { 'tux-chart-scatter__dot--active': hovered && hovered.seriesIdx === i && hovered.pointIdx === j },
             ]"
             tabindex="0"
+            role="img"
             :style="`--tux-chart-stagger-index: ${j};`"
             :aria-label="`${s.label}: ${p.label ? p.label + ', ' : ''}x ${format(p.x)}, y ${format(p.y)}`"
             @pointerenter="onDotEnter(i, j)"

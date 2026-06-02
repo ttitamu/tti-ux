@@ -44,6 +44,8 @@ interface Props {
    *  `percent` appends `%`. For more exotic formatting, format the
    *  values upstream and feed already-formatted strings via the data tree. */
   unit?: "bytes" | "count" | "percent";
+  /** Accessible label for the breadcrumb nav landmark. */
+  ariaLabel?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -52,6 +54,7 @@ const props = withDefaults(defineProps<Props>(), {
   maxDepth: 2,
   colorBy: "size",
   unit: "bytes",
+  ariaLabel: "Treemap path",
 });
 
 function formatSize(n: number): string {
@@ -324,7 +327,7 @@ function fitsSize(rect: Rect): boolean {
 <template>
   <div class="tux-treemap">
     <!-- Breadcrumb -->
-    <nav class="tux-treemap__breadcrumb" aria-label="Treemap path">
+    <nav class="tux-treemap__breadcrumb" :aria-label="ariaLabel">
       <button
         v-for="(node, idx) in breadcrumb"
         :key="idx"

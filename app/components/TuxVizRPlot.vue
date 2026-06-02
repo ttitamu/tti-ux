@@ -33,6 +33,12 @@ interface Props {
   src2x?: string;
   /** What R produced this — shown in the caption gutter. */
   source?: string;
+  /**
+   * Heading level for the chart title (1–6). Adjust to match the surrounding
+   * document outline — e.g. pass :level="2" when the component sits directly
+   * under a page h1 with no intervening h2 section heading.
+   */
+  level?: 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -42,6 +48,7 @@ const props = withDefaults(defineProps<Props>(), {
   alt: "",
   src2x: undefined,
   source: undefined,
+  level: 3,
 });
 
 const altText = computed(() => props.alt || props.title);
@@ -52,7 +59,7 @@ const altText = computed(() => props.alt || props.title);
     <header class="tux-viz-rplot__head">
       <div class="tux-viz-rplot__title-block">
         <p v-if="eyebrow" class="eyebrow">{{ eyebrow }}</p>
-        <h3 class="tux-viz-rplot__title">{{ title }}</h3>
+        <component :is="`h${level}`" class="tux-viz-rplot__title">{{ title }}</component>
       </div>
       <span class="tux-viz-rplot__chip" title="Rendered from R">
         <UIcon name="lucide:square-sigma" class="tux-viz-rplot__chip-icon" />

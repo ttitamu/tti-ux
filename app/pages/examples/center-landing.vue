@@ -147,7 +147,8 @@ const programs = [
     </div>
 
     <!-- Lab identity card — hero block -->
-    <section>
+    <section aria-labelledby="lab-identity-heading">
+      <h2 id="lab-identity-heading" class="sr-only">Division identity</h2>
       <TuxLab v-bind="labDescription" />
     </section>
 

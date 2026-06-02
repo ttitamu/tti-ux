@@ -54,7 +54,7 @@ const badgeVue = `<tux-tab-bar
       </p>
       <TuxExample class="mt-4" :vue="basicVue">
         <div class="rounded-md border border-surface-border overflow-hidden">
-          <TuxTabBar :items="tabs3" />
+          <TuxTabBar :items="tabs3" aria-label="3-tab mobile navigation demo" />
         </div>
       </TuxExample>
     </section>
@@ -69,7 +69,7 @@ const badgeVue = `<tux-tab-bar
       </p>
       <TuxExample class="mt-4" :vue="badgeVue">
         <div class="rounded-md border border-surface-border overflow-hidden">
-          <TuxTabBar :items="tabs5" />
+          <TuxTabBar :items="tabs5" aria-label="5-tab mobile navigation with badge demo" />
         </div>
       </TuxExample>
     </section>

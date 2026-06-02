@@ -33,14 +33,20 @@ interface Props {
   conflicts?: string;
   /** Ethics / IRB / data-access statement. */
   ethics?: string;
+  /** Heading level for the sub-section eyebrows (h3 / h4 / h5).
+   *  Default h4 — assumes h2/h3 above in the page outline. */
+  level?: 2 | 3 | 4 | 5;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   funding: undefined,
   acknowledgments: undefined,
   conflicts: undefined,
   ethics: undefined,
+  level: 4,
 });
+
+const headingTag = computed(() => `h${props.level}`);
 </script>
 
 <template>
@@ -50,7 +56,7 @@ withDefaults(defineProps<Props>(), {
     </p>
 
     <div v-if="funding && funding.length" class="tux-acknowledgments__section">
-      <h4 class="tux-acknowledgments__heading">Funding</h4>
+      <component :is="headingTag" class="tux-acknowledgments__heading">Funding</component>
       <ul class="tux-acknowledgments__funding-list">
         <li v-for="(f, i) in funding" :key="i">
           <a v-if="f.url" :href="f.url" class="link-tti" target="_blank" rel="noopener">
@@ -65,17 +71,17 @@ withDefaults(defineProps<Props>(), {
     </div>
 
     <div v-if="acknowledgments" class="tux-acknowledgments__section">
-      <h4 class="tux-acknowledgments__heading">Acknowledgments</h4>
+      <component :is="headingTag" class="tux-acknowledgments__heading">Acknowledgments</component>
       <p class="tux-acknowledgments__body">{{ acknowledgments }}</p>
     </div>
 
     <div v-if="conflicts" class="tux-acknowledgments__section">
-      <h4 class="tux-acknowledgments__heading">Conflicts of interest</h4>
+      <component :is="headingTag" class="tux-acknowledgments__heading">Conflicts of interest</component>
       <p class="tux-acknowledgments__body">{{ conflicts }}</p>
     </div>
 
     <div v-if="ethics" class="tux-acknowledgments__section">
-      <h4 class="tux-acknowledgments__heading">Ethics &amp; data access</h4>
+      <component :is="headingTag" class="tux-acknowledgments__heading">Ethics &amp; data access</component>
       <p class="tux-acknowledgments__body">{{ ethics }}</p>
     </div>
 

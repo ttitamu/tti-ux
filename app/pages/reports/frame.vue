@@ -82,6 +82,7 @@ const letterVue = `<tux-report-frame
               eyebrow="figure 1"
               ratio="8/5"
               source="R 4.4.1 · ggplot2 3.5.1 · scripts/grants-by-quarter.R"
+              :level="2"
             />
 
             <template #footer>

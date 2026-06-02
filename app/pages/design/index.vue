@@ -61,7 +61,7 @@ const entries = computed<DocEntry[]>(() => {
     <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <TuxCard v-for="d in entries" :key="d.slug" :to="`/design/${d.slug}`">
         <p class="eyebrow">{{ d.slug }}.md</p>
-        <h3 class="text-xl font-bold">{{ d.title }}</h3>
+        <h2 class="text-xl font-bold">{{ d.title }}</h2>
         <p v-if="d.blurb" class="mt-2 text-sm text-text-secondary">{{ d.blurb }}</p>
       </TuxCard>
     </section>

@@ -75,7 +75,7 @@ const exampleVue = `<TuxTreemap :data="data" :max-depth="2" color-by="size" />`;
         because file-size distributions are heavy-tailed).
       </p>
       <TuxExample class="mt-4" :vue="exampleVue">
-        <TuxTreemap :data="data" :max-depth="2" color-by="size" />
+        <TuxTreemap :data="data" :max-depth="2" color-by="size" aria-label="Filesystem hierarchy by size" />
       </TuxExample>
     </section>
 
@@ -88,7 +88,7 @@ const exampleVue = `<TuxTreemap :data="data" :max-depth="2" color-by="size" />`;
         nested folder structure where every level matters equally.
       </p>
       <TuxExample class="mt-4">
-        <TuxTreemap :data="data" :max-depth="2" color-by="depth" />
+        <TuxTreemap :data="data" :max-depth="2" color-by="depth" aria-label="Filesystem hierarchy by depth" />
       </TuxExample>
     </section>
 
@@ -101,7 +101,7 @@ const exampleVue = `<TuxTreemap :data="data" :max-depth="2" color-by="size" />`;
         distracted by sub-hierarchies.
       </p>
       <TuxExample class="mt-4">
-        <TuxTreemap :data="data" :max-depth="1" />
+        <TuxTreemap :data="data" :max-depth="1" aria-label="Filesystem top-level overview" />
       </TuxExample>
     </section>
 

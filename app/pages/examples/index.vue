@@ -71,7 +71,7 @@ const examples = [
         :to="`/examples/${ex.slug}`"
       >
         <p class="eyebrow">{{ ex.eyebrow }}</p>
-        <h3 class="text-xl font-bold">{{ ex.title }}</h3>
+        <h2 class="text-xl font-bold">{{ ex.title }}</h2>
         <p class="mt-2 text-sm text-text-secondary leading-relaxed">{{ ex.blurb }}</p>
         <p class="mt-3 font-mono text-xs text-text-muted">
           {{ ex.components }} Tux* components

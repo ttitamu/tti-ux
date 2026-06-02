@@ -39,7 +39,7 @@ const glossary = [
         Click any letter to jump to its anchor section below.
       </p>
       <TuxExample class="mt-4" :vue="exampleVue">
-        <TuxAlphaNav :available="availableLetters" sticky />
+        <TuxAlphaNav :available="availableLetters" sticky aria-label="Jump to letter — anchor mode" />
 
         <div class="mt-6 space-y-8">
           <section
@@ -87,6 +87,7 @@ const glossary = [
           mode="emit"
           show-all
           :available="availableLetters"
+          aria-label="Jump to letter — emit mode"
         />
         <p class="mt-4 font-mono text-xs text-text-muted">
           selected: <code>{{ selectedLetter ?? "All" }}</code>

@@ -88,6 +88,8 @@ interface Props {
   search?: boolean;
   /** Sticky-position the whole nav at the top of the viewport. */
   sticky?: boolean;
+  /** Accessible label for the primary nav landmark. */
+  ariaLabel?: string;
 }
 
 withDefaults(defineProps<Props>(), {
@@ -95,6 +97,7 @@ withDefaults(defineProps<Props>(), {
   utilityNav: () => [],
   search: false,
   sticky: false,
+  ariaLabel: "Primary navigation",
 });
 
 const emit = defineEmits<{
@@ -210,7 +213,7 @@ function isPlainLinkActive(item: { to?: string; href?: string }): boolean {
         <nav
           class="tux-site-nav__primary"
           :class="{ 'tux-site-nav__primary--mobile-open': mobileOpen }"
-          aria-label="Primary navigation"
+          :aria-label="ariaLabel"
         >
           <ul class="tux-site-nav__primary-list">
             <li

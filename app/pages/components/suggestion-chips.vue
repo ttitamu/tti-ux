@@ -81,6 +81,7 @@ const richItems = [
       </p>
       <TuxExample :vue="richVue">
         <TuxSuggestionChips
+          aria-label="Short label vs longer prompt example"
           :items="richItems"
           @pick="(p) => lastPicked = p"
         />
@@ -96,7 +97,11 @@ const richItems = [
         filters rather than dispatchable prompts.
       </p>
       <TuxExample :vue="noArrowVue">
-        <TuxSuggestionChips no-arrow :items="['Tag-style chips without trailing arrow']" />
+        <TuxSuggestionChips
+          aria-label="Tag-style chips without trailing arrow"
+          no-arrow
+          :items="['Tag-style chips without trailing arrow']"
+        />
       </TuxExample>
     </section>
   </div>

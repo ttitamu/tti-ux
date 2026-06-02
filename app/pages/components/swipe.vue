@@ -100,7 +100,7 @@ const usageVue = [
             <p class="font-semibold">Research run · landscape-2026-q2</p>
             <p class="text-sm text-text-muted">Swipe left to dismiss, right to reveal actions</p>
           </div>
-          <UButton variant="ghost" icon="lucide:dots-vertical" />
+          <UButton variant="ghost" icon="lucide:dots-vertical" aria-label="Row actions" />
         </div>
         <UButton v-else variant="outline" @click="resetHorizontal">Reset row</UButton>
         <p class="text-sm">Last gesture: <code>{{ lastSwipe }}</code></p>

@@ -26,10 +26,15 @@ interface Props {
   links: SlabLink[];
   /** Background tone. */
   tone?: "plain" | "neutral" | "maroon";
+  /** Accessible name for the nav landmark. Override when multiple
+   *  TuxLinkSlab instances appear on the same page so each landmark
+   *  has a unique role+name combination (landmark-unique). */
+  ariaLabel?: string;
 }
 
 withDefaults(defineProps<Props>(), {
   tone: "plain",
+  ariaLabel: "Section navigation",
 });
 
 function isInternal(href: string) {
@@ -51,7 +56,7 @@ function linkProps(link: SlabLink) {
   <nav
     class="tux-link-slab"
     :class="`tux-link-slab--${tone}`"
-    aria-label="Section navigation"
+    :aria-label="ariaLabel"
   >
     <ul class="tux-link-slab__list">
       <li

@@ -25,7 +25,7 @@ const exampleVue = `<TuxLinkSlab :links="links" tone="neutral" />`;
       <p class="eyebrow">canonical</p>
       <h2 class="heading--bold text-xl font-bold">Neutral · routing band</h2>
       <TuxExample class="mt-4" :vue="exampleVue">
-        <TuxLinkSlab :links="sectionLinks" tone="neutral" />
+        <TuxLinkSlab :links="sectionLinks" tone="neutral" aria-label="Section navigation — canonical" />
       </TuxExample>
     </section>
 
@@ -41,9 +41,9 @@ const exampleVue = `<TuxLinkSlab :links="links" tone="neutral" />`;
       </p>
       <TuxExample class="mt-4">
         <div class="space-y-4">
-          <TuxLinkSlab :links="sectionLinks" tone="plain" />
-          <TuxLinkSlab :links="sectionLinks" tone="neutral" />
-          <TuxLinkSlab :links="sectionLinks" tone="maroon" />
+          <TuxLinkSlab :links="sectionLinks" tone="plain" aria-label="Section navigation — plain tone" />
+          <TuxLinkSlab :links="sectionLinks" tone="neutral" aria-label="Section navigation — neutral tone" />
+          <TuxLinkSlab :links="sectionLinks" tone="maroon" aria-label="Section navigation — maroon tone" />
         </div>
       </TuxExample>
     </section>
@@ -58,6 +58,7 @@ const exampleVue = `<TuxLinkSlab :links="links" tone="neutral" />`;
       <TuxExample class="mt-4">
         <TuxLinkSlab
           tone="neutral"
+          aria-label="Section navigation — compact label-only"
           :links="[
             { label: 'Research',     to: '#', icon: 'lucide:microscope' },
             { label: 'Publications', to: '#', icon: 'lucide:book-open' },

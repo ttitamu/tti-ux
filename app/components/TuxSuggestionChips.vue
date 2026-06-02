@@ -24,14 +24,23 @@ interface Props {
   items: ChipItem[];
   /** Optional eyebrow text rendered above the chip row. */
   label?: string;
+  /**
+   * Accessible name for the landmark `<section>`. Defaults to the visible
+   * `label`, falling back to "Suggested prompts". Set this explicitly when
+   * several instances share a page so each landmark name stays unique.
+   */
+  ariaLabel?: string;
   /** Hide the trailing arrow on each chip. */
   noArrow?: boolean;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   label: undefined,
+  ariaLabel: undefined,
   noArrow: false,
 });
+
+const sectionLabel = computed(() => props.ariaLabel || props.label || "Suggested prompts");
 
 const emit = defineEmits<{
   pick: [prompt: string, index: number];
@@ -51,25 +60,29 @@ function onPick(item: ChipItem, index: number) {
 </script>
 
 <template>
-  <section class="tux-suggestion-chips" :aria-label="label || 'Suggested prompts'">
+  <section class="tux-suggestion-chips" :aria-label="sectionLabel">
     <p v-if="label" class="tux-suggestion-chips__label">{{ label }}</p>
     <div class="tux-suggestion-chips__row" role="list">
-      <button
+      <span
         v-for="(item, i) in items"
         :key="i"
-        type="button"
         role="listitem"
-        class="tux-suggestion-chips__chip"
-        @click="onPick(item, i)"
+        class="tux-suggestion-chips__item"
       >
-        <span class="tux-suggestion-chips__chip-text">{{ labelOf(item) }}</span>
-        <Icon
-          v-if="!noArrow"
-          name="lucide:arrow-up-right"
-          class="tux-suggestion-chips__chip-icon"
-          aria-hidden="true"
-        />
-      </button>
+        <button
+          type="button"
+          class="tux-suggestion-chips__chip"
+          @click="onPick(item, i)"
+        >
+          <span class="tux-suggestion-chips__chip-text">{{ labelOf(item) }}</span>
+          <Icon
+            v-if="!noArrow"
+            name="lucide:arrow-up-right"
+            class="tux-suggestion-chips__chip-icon"
+            aria-hidden="true"
+          />
+        </button>
+      </span>
     </div>
   </section>
 </template>
@@ -95,6 +108,10 @@ function onPick(item: ChipItem, index: number) {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.tux-suggestion-chips__item {
+  display: inline-flex;
 }
 
 .tux-suggestion-chips__chip {

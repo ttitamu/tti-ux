@@ -26,11 +26,16 @@ interface Props {
   homeIcon?: boolean;
   /** Use chevron separators at all sizes (instead of pipes-collapse-to-chevron). */
   chevron?: boolean;
+  /** Accessible name for the nav landmark. Override when multiple
+   *  TuxBreadcrumbs instances appear on the same page so each landmark
+   *  has a unique role+name combination (landmark-unique). */
+  ariaLabel?: string;
 }
 
 withDefaults(defineProps<Props>(), {
   homeIcon: true,
   chevron: false,
+  ariaLabel: "Breadcrumb",
 });
 </script>
 
@@ -38,7 +43,7 @@ withDefaults(defineProps<Props>(), {
   <nav
     class="tux-breadcrumbs"
     :class="{ 'tux-breadcrumbs--chevron': chevron }"
-    aria-label="Breadcrumb"
+    :aria-label="ariaLabel"
   >
     <ol class="tux-breadcrumbs__list">
       <li

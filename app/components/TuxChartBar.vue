@@ -585,6 +585,7 @@ const highlightRect = computed(() => {
           :height="innerH"
           class="tux-chart-bar__hover-capture"
           tabindex="0"
+          role="img"
           :aria-label="`Plot area, ${labels.length} categories; use arrow keys to read each.`"
           @pointermove="onBarMove"
           @pointerleave="onBarLeave"

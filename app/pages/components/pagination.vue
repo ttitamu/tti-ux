@@ -39,6 +39,7 @@ const exampleVue = `<TuxPagination
           :page-size="20"
           show-status
           noun="result"
+          aria-label="Landscape results pagination"
         />
       </TuxExample>
     </section>
@@ -53,7 +54,7 @@ const exampleVue = `<TuxPagination
         <strong>{{ page2 }}</strong> of 50.
       </p>
       <TuxExample class="mt-4">
-        <TuxPagination v-model="page2" :total="1000" :page-size="20" />
+        <TuxPagination v-model="page2" :total="1000" :page-size="20" aria-label="Ellipsis truncation demo pagination" />
       </TuxExample>
     </section>
 
@@ -64,7 +65,7 @@ const exampleVue = `<TuxPagination
         Under ~7 pages, every number shows — no ellipses needed.
       </p>
       <TuxExample class="mt-4">
-        <TuxPagination v-model="page3" :total="80" :page-size="20" />
+        <TuxPagination v-model="page3" :total="80" :page-size="20" aria-label="Small range demo pagination" />
       </TuxExample>
     </section>
 
@@ -76,7 +77,7 @@ const exampleVue = `<TuxPagination
         <strong>{{ page4 }}</strong> of 43.
       </p>
       <TuxExample class="mt-4">
-        <TuxPagination v-model="page4" :total="850" :page-size="20" show-status noun="publication" />
+        <TuxPagination v-model="page4" :total="850" :page-size="20" show-status noun="publication" aria-label="Publications last page demo pagination" />
       </TuxExample>
     </section>
 

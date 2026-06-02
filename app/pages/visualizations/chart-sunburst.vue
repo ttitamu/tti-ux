@@ -128,7 +128,7 @@ const portfolio = [
             :show-legend="false"
             :format-total="t => `$${t}M`"
           />
-          <aside>
+          <div>
             <p class="eyebrow">research portfolio · FY 2025</p>
             <p>
               Hover any arc for the exact label, value, and share.
@@ -137,7 +137,7 @@ const portfolio = [
               "where does the money go?" but the precise totals
               belong on a stat row.
             </p>
-          </aside>
+          </div>
         </div>
       </TuxExample>
     </section>

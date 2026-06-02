@@ -27,6 +27,8 @@ interface Props {
   showStatus?: boolean;
   /** Singular noun for the status line ("result" → "results"). */
   noun?: string;
+  /** Accessible label for the nav landmark. */
+  ariaLabel?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -35,6 +37,7 @@ const props = withDefaults(defineProps<Props>(), {
   boundaryCount: 1,
   showStatus: false,
   noun: "result",
+  ariaLabel: "Pagination",
 });
 
 const emit = defineEmits<{
@@ -98,7 +101,7 @@ function formatNumber(n: number): string {
 </script>
 
 <template>
-  <nav class="tux-pagination" aria-label="Pagination">
+  <nav class="tux-pagination" :aria-label="ariaLabel">
     <p
       v-if="showStatus"
       class="tux-pagination__status"

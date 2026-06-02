@@ -71,7 +71,7 @@ const kits: Kit[] = [
         class="card-linked p-6"
       >
         <p class="eyebrow">{{ kit.eyebrow }}</p>
-        <h3 class="text-xl font-bold mt-1">{{ kit.label }}</h3>
+        <h2 class="text-xl font-bold mt-1">{{ kit.label }}</h2>
         <p class="mt-2 text-sm text-text-secondary leading-relaxed">{{ kit.blurb }}</p>
         <p class="mt-3 font-mono text-xs text-text-muted">/kits/{{ kit.slug }}/ ↗</p>
       </a>

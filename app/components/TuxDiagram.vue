@@ -37,6 +37,20 @@ const mermaidTheme = computed<"default" | "dark">(() =>
   colorMode.value === "tti-dark" ? "dark" : "default"
 );
 
+// Mermaid emits `aria-label` on bare SVG shapes/groups that have no
+// role, which trips axe's `aria-prohibited-attr` (a name is only
+// allowed on roles that support one). We don't author Mermaid's
+// markup, so we post-process its SVG string: any element that carries
+// an `aria-label` but no `role` gets `role="img"` so the name is
+// legal and reaches assistive tech. The root <svg> is left alone —
+// it uses `aria-roledescription` + a referenced <title>/<desc>.
+function legalizeAriaLabels(markup: string): string {
+  return markup.replace(/<(?!svg\b)([a-zA-Z][\w-]*)((?:[^>]*?\saria-label=)[^>]*?)(\/?)>/g, (match, tag, attrs, selfClose) => {
+    if (/\srole=/.test(attrs)) return match;
+    return `<${tag}${attrs} role="img"${selfClose}>`;
+  });
+}
+
 // Reserved height — emitted at SSR + during the brief window before
 // the client-side render commits. Prevents the layout shift from a
 // "Rendering…" placeholder collapsing to a 400px diagram.
@@ -52,7 +66,7 @@ async function doRender() {
       theme: mermaidTheme.value,
     });
     if (id !== renderId.value) return;
-    if (result) svg.value = result;
+    if (result) svg.value = legalizeAriaLabels(result);
   } catch (e) {
     if (id !== renderId.value) return;
     error.value = e instanceof Error ? e.message : String(e);
@@ -99,7 +113,7 @@ watch(
       <!-- Reserved-space skeleton: estimated height + dimmed icon. No
            "Rendering…" copy — the visual gap conveys the same thing
            without a layout-shift candidate text node. -->
-      <div v-else class="tux-diagram__skeleton" aria-busy="true" aria-label="Rendering diagram">
+      <div v-else class="tux-diagram__skeleton" role="status" aria-busy="true" aria-label="Rendering diagram">
         <Icon name="lucide:workflow" class="tux-diagram__skeleton-icon" aria-hidden="true" />
       </div>
     </div>
