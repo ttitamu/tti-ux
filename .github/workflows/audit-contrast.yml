@@ -56,12 +56,15 @@ jobs:
         run: npm ci
 
       # Puppeteer needs the actual Chrome binary, not just the apt system
-      # libs above. Relying on puppeteer's postinstall download is flaky in
-      # CI — an npm cache hit can skip the install script, leaving the
-      # browser absent ("Could not find Chrome (ver. …)"). Install it
-      # explicitly and deterministically before the contrast audit.
+      # libs above. Its postinstall download is unreliable here: it can leave
+      # a PARTIAL cache (the version folder exists but the executable is
+      # missing → "Could not find Chrome"), and @puppeteer/browsers then
+      # refuses to overwrite that half-present folder. Nuke any stale cache,
+      # then install fresh and deterministically before the contrast audit.
       - name: install Chrome for Puppeteer
-        run: npx puppeteer browsers install chrome
+        run: |
+          rm -rf ~/.cache/puppeteer
+          npx puppeteer browsers install chrome
 
       - name: generate static site
         env:
