@@ -1,0 +1,22 @@
+.tti-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tti-space-2);
+  padding: var(--tti-space-2) var(--tti-space-3);
+  border: none;
+  border-radius: var(--tti-radius-md);
+  background: var(--tti-maroon-700);
+  color: var(--tti-white);
+  font-family: var(--tti-font-sans);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.tti-button:hover  { background: var(--tti-maroon-500); }
+.tti-button:active { background: var(--tti-maroon-900); }
+
+.tti-button[disabled] {
+  background: var(--tti-gray-500);
+  cursor: not-allowed;
+}

@@ -1,0 +1,42 @@
+# Filesystem CVE scan on every push (and PR), so we surface vulnerable
+# deps when they're cheap to fix — not at release time.
+#
+# Runs as UID 1000 on Forgejo Runner v9.1.1 — no apk-add root, no
+# /usr/local/bin write. Trivy goes to ~/.local/bin/. A1 will replace
+# this with a runner image where Trivy is pre-baked.
+name: scan
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  trivy-fs:
+    runs-on: host
+    steps:
+      # Manual checkout — no Node needed, just git (already in image).
+      # actions/checkout is JS and can't run without node in PATH.
+      - name: Manual checkout
+        run: |
+          set -eu
+          git init -q
+          git remote add origin "${{ github.server_url }}/${{ github.repository }}"
+          git fetch --depth=1 origin "${{ github.sha }}"
+          git checkout -q FETCH_HEAD
+
+      - name: Install Trivy
+        run: |
+          set -eux
+          mkdir -p "$HOME/.local/bin"
+          case "$(uname -m)" in
+            aarch64|arm64) TRIVY_ARCH=ARM64 ;;
+            x86_64)        TRIVY_ARCH=64bit ;;
+            *) echo "unsupported arch: $(uname -m)"; exit 1 ;;
+          esac
+          TRIVY_VERSION=0.70.0
+          wget -qO- "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-${TRIVY_ARCH}.tar.gz" \
+            | tar -xz -C "$HOME/.local/bin" trivy
+
+      - name: Scan filesystem
+        run: "$HOME/.local/bin/trivy fs --severity HIGH,CRITICAL --exit-code 1 --no-progress ."

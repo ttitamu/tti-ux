@@ -1,0 +1,30 @@
+{
+  "name": "@tti/ux",
+  "version": "0.1.0",
+  "description": "TTI design system — tokens and component styles, distributed via the TTI self-hosted npm registry.",
+  "license": "UNLICENSED",
+  "private": false,
+  "publishConfig": {
+    "registry": "http://host.containers.internal:3939/api/packages/tti/npm/",
+    "access": "restricted"
+  },
+  "files": [
+    "dist/",
+    "README.md"
+  ],
+  "main": "dist/index.css",
+  "style": "dist/index.css",
+  "exports": {
+    ".": "./dist/index.css",
+    "./tokens.css": "./dist/tokens.css",
+    "./components/button.css": "./dist/components/button.css"
+  },
+  "scripts": {
+    "build": "mkdir -p dist/components && cp src/tokens.css src/index.css dist/ && cp src/components/*.css dist/components/",
+    "clean": "rm -rf dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://localhost:3939/tti/tti-ux.git"
+  }
+}

@@ -1,0 +1,30 @@
+/* @tti/ux — design tokens
+   The single source of truth for TTI colors, spacing, and typography.
+   Replaces ad-hoc CDN <link> tags across researcher project sites. */
+
+:root {
+  /* Brand */
+  --tti-maroon-900: #500000;
+  --tti-maroon-700: #6c1d1d;
+  --tti-maroon-500: #862f2f;
+  --tti-gray-900:   #1f2328;
+  --tti-gray-500:   #6e7681;
+  --tti-gray-100:   #f3f4f6;
+  --tti-white:      #ffffff;
+
+  /* Type */
+  --tti-font-sans:  "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --tti-font-mono:  "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+
+  /* Scale */
+  --tti-space-1: 0.25rem;
+  --tti-space-2: 0.5rem;
+  --tti-space-3: 1rem;
+  --tti-space-4: 1.5rem;
+  --tti-space-6: 3rem;
+
+  /* Radius */
+  --tti-radius-sm: 4px;
+  --tti-radius-md: 8px;
+  --tti-radius-lg: 16px;
+}
