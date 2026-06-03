@@ -88,8 +88,14 @@ const headingClass = computed(() => {
 }
 
 /* Tones --------------------------------------------------------- */
+/* Use --brand-fill (the saturated maroon *panel* token), NOT
+ * --brand-primary. brand-primary lifts to light teal in dark mode (it's
+ * the accent/text color), which would leave white copy at ~2.4:1 on a
+ * light fill. brand-fill stays dark maroon in every theme precisely so
+ * marketing panels keep white text readable. Identical to brand-primary
+ * in the light theme (both #5C0025). */
 .tux-cta--maroon {
-  background: var(--brand-primary);
+  background: var(--brand-fill);
   color: #fff;
 }
 .tux-cta--maroon .tux-cta__eyebrow,

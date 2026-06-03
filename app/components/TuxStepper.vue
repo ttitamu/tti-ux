@@ -135,32 +135,41 @@ function statusIcon(s: StepStatus): string | null {
 }
 
 .tux-stepper--horizontal .tux-stepper__item {
-  display: flex;
-  align-items: flex-start;
+  position: relative;
   flex: 1;
   min-width: 0;
-}
-
-.tux-stepper--horizontal .tux-stepper__node {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  text-decoration: none;
-  color: inherit;
-  flex-shrink: 0;
-  gap: 0.5rem;
-  min-width: 0;
 }
 
+/* Circle + text flow directly into the centered item column, so the text
+ * is constrained to the item's width and WRAPS instead of growing to its
+ * max-content width and overlapping the neighboring step. */
+.tux-stepper--horizontal .tux-stepper__node {
+  display: contents;
+  text-decoration: none;
+  color: inherit;
+}
+
+.tux-stepper--horizontal .tux-stepper__text {
+  width: 100%;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+/* Connector runs from this step's circle center to the next step's circle
+ * center, drawn behind the circles (which carry z-index: 1). */
 .tux-stepper--horizontal .tux-stepper__connector {
-  flex: 1;
+  position: absolute;
+  top: 1rem; /* circle is 2rem tall → its vertical center */
+  left: 50%;
+  right: -50%;
   height: 2px;
   background: var(--surface-border);
-  align-self: center;
-  margin: 0 0.5rem;
-  margin-top: -1.25rem;
-  min-width: 1.5rem;
+  transform: translateY(-1px);
+  z-index: 0;
 }
 
 .tux-stepper--horizontal .tux-stepper__connector--done {
@@ -200,6 +209,8 @@ function statusIcon(s: StepStatus): string | null {
 
 /* ── Shared circle + text ──────────────────────────────────── */
 .tux-stepper__circle {
+  position: relative;
+  z-index: 1; /* sit above the horizontal connector line */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -294,14 +305,19 @@ function statusIcon(s: StepStatus): string | null {
     display: contents;
   }
   .tux-stepper--horizontal .tux-stepper__connector {
+    position: static; /* back to in-flow for the stacked column */
     grid-column: 1;
     width: 2px;
     height: auto;
     margin: 0.25rem auto;
     min-height: 1.25rem;
+    transform: none;
   }
   .tux-stepper--horizontal .tux-stepper__text {
+    width: auto;
+    align-items: flex-start;
     text-align: left;
+    margin-top: 0;
     padding-top: 0.1875rem;
   }
 }

@@ -214,7 +214,11 @@ const hasCover = computed(
 
 .tux-report-web-frame__body :deep(p) {
   margin: 0 0 1.125rem;
-  color: var(--text-secondary);
+  /* Long-form reading body uses primary text for full reading contrast,
+   * not the lighter secondary tone (which is right for ledes/metadata
+   * but reads as washed-out across multiple paragraphs, especially in
+   * dark mode). */
+  color: var(--text-primary);
 }
 
 .tux-report-web-frame__body :deep(p strong) {

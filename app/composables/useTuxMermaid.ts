@@ -46,6 +46,13 @@ function applyConfig(m: typeof import("mermaid").default, theme: "default" | "da
   // distinct slots so contrast stays right in both.
   const isDark = theme === "dark";
 
+  // Brand stroke for borders + edges. In light it's maroon; in dark,
+  // maroon (#5C0025) on the charcoal canvas is ~1.3:1 — effectively
+  // invisible — so we lift to the dark-mode brand accent (the same
+  // teal --brand-primary resolves to in tti-dark) for visible strokes
+  // that still read as "brand."
+  const brandStroke = isDark ? "#6BB4C0" : "#5C0025";
+
   const config: MermaidConfig = {
     startOnLoad: false,
     // 'base' honors all themeVariables; 'default' silently overrides
@@ -63,7 +70,10 @@ function applyConfig(m: typeof import("mermaid").default, theme: "default" | "da
       // which is too loud.
       primaryColor: isDark ? "#3a3a3a" : "#FFFFFF",
       primaryTextColor: isDark ? "#FAFAFA" : "#221F1F",
-      primaryBorderColor: "#5C0025",
+      primaryBorderColor: brandStroke,
+      // Flowchart node label color for htmlLabels — pin it explicitly so
+      // dark-mode node text is the near-white, not a faded default.
+      nodeTextColor: isDark ? "#FAFAFA" : "#221F1F",
 
       // Secondary — sunken-gray fills (alt nodes, subgraphs).
       secondaryColor: isDark ? "#2a2727" : "#F5F5F5",
@@ -75,22 +85,29 @@ function applyConfig(m: typeof import("mermaid").default, theme: "default" | "da
       tertiaryTextColor: "#2A0E15",
       tertiaryBorderColor: "#DDAC37",
 
-      // Edges + connectors — brand maroon, not generic gray.
-      lineColor: "#5C0025",
+      // Edges + connectors — brand stroke (maroon in light, lifted teal
+      // in dark so they stay visible on the charcoal canvas).
+      lineColor: brandStroke,
       textColor: isDark ? "#FAFAFA" : "#221F1F",
       mainBkg: isDark ? "#221F1F" : "#FFFFFF",
       background: isDark ? "#15100F" : "#FFFFFF",
 
+      // ER diagrams — attribute row fills. Mermaid defaults these to
+      // light colors; unset, dark-mode rows render near-white cells under
+      // near-white text. Pin dark fills so the (light) text stays legible.
+      attributeBackgroundColorOdd: isDark ? "#221F1F" : "#FFFFFF",
+      attributeBackgroundColorEven: isDark ? "#2a2727" : "#F5F5F5",
+
       // Sequence diagrams
       actorBkg: isDark ? "#3a3a3a" : "#FFFFFF",
-      actorBorder: "#5C0025",
+      actorBorder: brandStroke,
       actorTextColor: isDark ? "#FAFAFA" : "#221F1F",
       activationBkgColor: isDark ? "#5C0025" : "#FBF3F6",
-      activationBorderColor: "#5C0025",
+      activationBorderColor: brandStroke,
 
       // Notes inside diagrams
       noteBkgColor: isDark ? "#1f000c" : "#FBF3F6",
-      noteBorderColor: "#5C0025",
+      noteBorderColor: brandStroke,
       noteTextColor: isDark ? "#FAFAFA" : "#221F1F",
     },
     flowchart: {
