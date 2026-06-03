@@ -1,0 +1,16 @@
+/* Spike stylesheet — mirrors the real app's global CSS chain so the
+ * custom elements (rendered in LIGHT DOM) inherit identical styling.
+ *
+ * This is the "dogfood the visuals" layer from ADR-0012: one global
+ * stylesheet that any host page loads, and light-DOM <tux-*> elements
+ * pick it up exactly as the Nuxt app does. */
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/* Make Tailwind scan the real component source so utilities used by
+ * Tux components (font-mono, w-3, animate-spin, ml-0.5, …) get generated. */
+@source "../../app/components";
+
+/* tux tokens (CSS vars) + utility layer, straight from the real app. */
+@import "../../app/assets/css/tokens.css";
+@import "../../app/assets/css/tux.css";
