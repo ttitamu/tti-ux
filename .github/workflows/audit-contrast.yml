@@ -55,19 +55,25 @@ jobs:
       - name: install
         run: npm ci
 
-      # Puppeteer needs the actual Chrome binary, not just the apt system
-      # libs above. The runner's cache/version resolution is unreliable here
-      # (postinstall leaves a partial folder; launch then can't find the
-      # pinned build even after a re-install). So: nuke any stale cache,
-      # install fresh, capture the exact installed path, and pin it via
-      # PUPPETEER_EXECUTABLE_PATH — launch() uses that binary directly, with
-      # no cache-dir or version lookup left to go wrong.
-      - name: install Chrome for Puppeteer
+      # Puppeteer needs a real Chrome binary, and the runner's download path
+      # is unreliable (partial cache; launch can't find the pinned build).
+      # Be robust: clear any stale cache, install via the LOCAL puppeteer bin
+      # (avoid npx resolution surprises), then resolve the authoritative path
+      # from puppeteer.executablePath(). If that's still missing, fall back to
+      # the runner's pre-installed system Chrome. Pin the result via
+      # PUPPETEER_EXECUTABLE_PATH so launch() uses it directly. Fail loudly
+      # (with a cache dump) only if no usable Chrome exists at all.
+      - name: provision Chrome for Puppeteer
         run: |
           rm -rf ~/.cache/puppeteer
-          CHROME_PATH="$(npx puppeteer browsers install chrome --format '{{path}}' | tail -1)"
-          echo "Installed Chrome → $CHROME_PATH"
-          test -x "$CHROME_PATH" || { echo "::error::Chrome binary missing after install"; exit 1; }
+          ./node_modules/.bin/puppeteer browsers install chrome 2>&1 | tail -3 || true
+          CHROME_PATH="$(node -p "require('puppeteer').executablePath()" 2>/dev/null || true)"
+          if [ ! -x "$CHROME_PATH" ]; then
+            echo "puppeteer-managed Chrome not usable ('$CHROME_PATH'); trying system Chrome"
+            CHROME_PATH="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          fi
+          echo "Using Chrome → '$CHROME_PATH'"
+          test -x "$CHROME_PATH" || { echo "::error::No usable Chrome found"; ls -R ~/.cache/puppeteer 2>&1 | head -40 || true; exit 1; }
           echo "PUPPETEER_EXECUTABLE_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
 
       - name: generate static site
