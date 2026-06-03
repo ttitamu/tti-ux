@@ -30,7 +30,8 @@
     "audit:contrast": "node scripts/audit-contrast.mjs",
     "audit:tokens": "node scripts/audit-tokens.mjs",
     "audit:a11y": "node scripts/audit-a11y.mjs",
-    "build:geo": "node scripts/build-geo.mjs"
+    "build:geo": "node scripts/build-geo.mjs",
+    "build:tokens": "node scripts/build-tokens.mjs"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.102",
