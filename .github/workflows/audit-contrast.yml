@@ -55,6 +55,14 @@ jobs:
       - name: install
         run: npm ci
 
+      # Puppeteer needs the actual Chrome binary, not just the apt system
+      # libs above. Relying on puppeteer's postinstall download is flaky in
+      # CI — an npm cache hit can skip the install script, leaving the
+      # browser absent ("Could not find Chrome (ver. …)"). Install it
+      # explicitly and deterministically before the contrast audit.
+      - name: install Chrome for Puppeteer
+        run: npx puppeteer browsers install chrome
+
       - name: generate static site
         env:
           # Production deploys at root (musical-fiesta-…pages.github.io/),
@@ -62,6 +70,16 @@ jobs:
           NUXT_PAGES: "1"
           NODE_OPTIONS: --max-old-space-size=6144
         run: npm run generate
+
+      # Structural a11y audit (jsdom + axe-core) over the generated output.
+      # Catches role/landmark/name/nesting bugs that escaped the ad-hoc
+      # per-batch axe checks. Browserless, so it runs BEFORE the puppeteer
+      # contrast audit — a browser-provisioning hiccup in the contrast step
+      # must never hide the a11y result. Known third-party-framework
+      # artifacts are logged (not gated) — see scripts/audit-a11y.mjs
+      # KNOWN_UPSTREAM.
+      - name: run a11y audit (axe-core)
+        run: npm run audit:a11y
 
       - name: run contrast audit (AAA gate)
         env:
@@ -74,14 +92,6 @@ jobs:
           # isn't load-bearing here.
           PUPPETEER_LAUNCH_NO_SANDBOX: "true"
         run: npm run audit:contrast
-
-      # Structural a11y audit (jsdom + axe-core) over the same generated
-      # output. Catches role/landmark/name/nesting bugs that escaped the
-      # ad-hoc per-batch axe checks. Reuses the generate step above; no
-      # browser needed. Known third-party-framework artifacts are logged
-      # (not gated) — see scripts/audit-a11y.mjs KNOWN_UPSTREAM.
-      - name: run a11y audit (axe-core)
-        run: npm run audit:a11y
 
       - name: upload report on failure
         if: failure()
