@@ -43,6 +43,9 @@ const TOKENS_JSON = path.join(ROOT, "design/tokens.json");
 const TOKENS_CSS = path.join(ROOT, "app/assets/css/tokens.css");
 // Committed (not dist/, which is gitignored) so jsDelivr-from-GitHub serves it.
 const KIT_CSS = path.join(ROOT, "kit/css/tux-tokens.css");
+// Bootstrap 4 SCSS variable partial — tti-theme literals for apps that
+// recompile Bootstrap. (For a no-recompile drop-in, use kit/css/tux-bootstrap.css.)
+const KIT_SCSS = path.join(ROOT, "kit/scss/_tux-bootstrap.scss");
 
 const SELECTORS = {
   tti: ':root,\n[data-theme="tti"]',
@@ -220,6 +223,62 @@ function aliasRebinds(t) {
 }
 
 // ---------------------------------------------------------------------------
+// Bootstrap 4 SCSS variable partial (tti-theme literals)
+// ---------------------------------------------------------------------------
+
+/** Resolve a node's value to a literal, following {a.b.c} aliases. */
+function resolveLiteral(tokens, raw) {
+  let v = val(raw);
+  let guard = 0;
+  while (typeof v === "string" && v.startsWith("{") && v.endsWith("}") && guard++ < 6) {
+    const parts = v.slice(1, -1).split(".");
+    let node = tokens;
+    for (const p of parts) node = node && node[p];
+    v = val(node);
+  }
+  return String(v);
+}
+
+function generateScss(tokens) {
+  const t = tokens.themes.tti;
+  const lit = (node) => resolveLiteral(tokens, node);
+  const g = tokens.globals;
+  return `// _tux-bootstrap.scss — GENERATED from design/tokens.json (tti theme).
+// DO NOT EDIT BY HAND. Regenerate with \`npm run build:tokens\`.
+//
+// Bootstrap 4 $variable overrides that bake the TTI brand into a recompiled
+// bootstrap.css. Import BEFORE Bootstrap's SCSS:
+//   @import "tux-bootstrap";              // this file
+//   @import "bootstrap/scss/bootstrap";   // Bootstrap 4 source
+//
+// These are tti (light) literals — SCSS compiles statically. For a
+// no-recompile, theme-reactive (tti/tti-dark/tti-hc) drop-in instead, load
+// kit/css/tux-bootstrap.css after a stock bootstrap.css.
+
+$primary:   ${lit(t.brand.primary)};
+$secondary: ${lit(t.brand.accent)};
+$success:   ${lit(t.semantic.success)};
+$info:      ${lit(t.semantic.info)};
+$warning:   ${lit(t.semantic.warning)};
+$danger:    ${lit(t.semantic.error)};
+
+$body-bg:    ${lit(t.surface.page)};
+$body-color: ${lit(t.text.primary)};
+$link-color: ${lit(t.brand.primary)};
+$border-color: ${lit(t.surface.border)};
+$component-active-bg: ${lit(t.brand.primary)};
+
+$border-radius:    ${lit(g.radius.md)};
+$border-radius-lg: ${lit(g.radius.lg)};
+$border-radius-sm: ${lit(g.radius.sm)};
+
+$font-family-base:      ${lit(g.font.body)};
+$headings-font-family:  ${lit(g.font.bold)};
+$font-family-monospace: ${lit(g.font.mono)};
+`;
+}
+
+// ---------------------------------------------------------------------------
 // CSS rendering
 // ---------------------------------------------------------------------------
 
@@ -368,12 +427,15 @@ function check() {
 }
 
 function write() {
-  const css = generateCss();
+  const tokens = readTokens();
+  const css = renderCss(buildSelectors(tokens));
   fs.writeFileSync(TOKENS_CSS, css);
   fs.mkdirSync(path.dirname(KIT_CSS), { recursive: true });
   fs.writeFileSync(KIT_CSS, css);
+  fs.mkdirSync(path.dirname(KIT_SCSS), { recursive: true });
+  fs.writeFileSync(KIT_SCSS, generateScss(tokens));
   process.stdout.write(
-    `Wrote ${path.relative(ROOT, TOKENS_CSS)} and ${path.relative(ROOT, KIT_CSS)}\n`,
+    `Wrote ${path.relative(ROOT, TOKENS_CSS)}, ${path.relative(ROOT, KIT_CSS)}, ${path.relative(ROOT, KIT_SCSS)}\n`,
   );
 }
 
