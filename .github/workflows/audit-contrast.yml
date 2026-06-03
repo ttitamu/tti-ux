@@ -56,15 +56,19 @@ jobs:
         run: npm ci
 
       # Puppeteer needs the actual Chrome binary, not just the apt system
-      # libs above. Its postinstall download is unreliable here: it can leave
-      # a PARTIAL cache (the version folder exists but the executable is
-      # missing → "Could not find Chrome"), and @puppeteer/browsers then
-      # refuses to overwrite that half-present folder. Nuke any stale cache,
-      # then install fresh and deterministically before the contrast audit.
+      # libs above. The runner's cache/version resolution is unreliable here
+      # (postinstall leaves a partial folder; launch then can't find the
+      # pinned build even after a re-install). So: nuke any stale cache,
+      # install fresh, capture the exact installed path, and pin it via
+      # PUPPETEER_EXECUTABLE_PATH — launch() uses that binary directly, with
+      # no cache-dir or version lookup left to go wrong.
       - name: install Chrome for Puppeteer
         run: |
           rm -rf ~/.cache/puppeteer
-          npx puppeteer browsers install chrome
+          CHROME_PATH="$(npx puppeteer browsers install chrome --format '{{path}}' | tail -1)"
+          echo "Installed Chrome → $CHROME_PATH"
+          test -x "$CHROME_PATH" || { echo "::error::Chrome binary missing after install"; exit 1; }
+          echo "PUPPETEER_EXECUTABLE_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
 
       - name: generate static site
         env:
