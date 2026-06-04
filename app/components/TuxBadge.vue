@@ -15,7 +15,7 @@
  */
 
 type Tier = "public" | "internal" | "sensitive" | "restricted";
-type Status = "running" | "completed" | "failed" | "queued";
+type Status = "running" | "completed" | "failed" | "queued" | "paused" | "cancelled";
 type Kind = "tag" | "count" | "default";
 
 interface Props {
@@ -52,6 +52,12 @@ const statusColor: Record<Status, UColor> = {
   running: "warning",
   failed: "error",
   queued: "neutral",
+  // paused: an in-flight job the operator halted (resumable) — info blue,
+  // distinct from the amber of an actively-running job.
+  paused: "info",
+  // cancelled: stopped on purpose (operator / restart), NOT an error —
+  // neutral grey so it doesn't read as a failure.
+  cancelled: "neutral",
 };
 
 const uColor = computed<UColor>(() => {
@@ -77,6 +83,8 @@ const dotColor = computed(() => {
     running: "var(--brand-accent)",
     failed: "var(--color-error)",
     queued: "var(--text-muted)",
+    paused: "var(--color-info)",
+    cancelled: "var(--text-muted)",
   }[props.status as Status];
 });
 
