@@ -2,12 +2,18 @@
 /**
  * TuxBadge — TTI-flavored badge family built on UBadge.
  *
- * Five shapes:
+ * Six shapes:
  *   <tux-badge tier="sensitive" />                 classification tier
  *   <tux-badge status="running" />                 lifecycle state (spinner on running)
+ *   <tux-badge tone="warning">WIP</tux-badge>      generic semantic-color label
  *   <tux-badge kind="tag">topic:safety</tux-badge> mono-font tag
  *   <tux-badge kind="count" :count="11">md</tux-badge>  facet + count
  *   <tux-badge>generic</tux-badge>                 default neutral
+ *
+ * `tone` is the open-ended sibling of `tier`/`status`: a plain semantic
+ * color (info/success/warning/error/neutral) with no lifecycle affordance
+ * (no dot, no spinner). Use it for inline doc labels — "Work in Progress",
+ * "Available", "Evolving Standard" — where tier/status semantics don't fit.
  *
  * Under the hood: UBadge with `:ui` saturation overrides, plus a `#leading`
  * slot for the status-dot / spinning-loader affordance that raw UBadge
@@ -16,11 +22,13 @@
 
 type Tier = "public" | "internal" | "sensitive" | "restricted";
 type Status = "running" | "completed" | "failed" | "queued" | "paused" | "cancelled";
+type Tone = "info" | "success" | "warning" | "error" | "neutral";
 type Kind = "tag" | "count" | "default";
 
 interface Props {
   tier?: Tier;
   status?: Status;
+  tone?: Tone;
   kind?: Kind;
   count?: number | string;
   label?: string;
@@ -30,12 +38,13 @@ const props = withDefaults(defineProps<Props>(), {
   kind: "default",
   tier: undefined,
   status: undefined,
+  tone: undefined,
   count: undefined,
   label: undefined,
 });
 
-const mode = computed<"tier" | "status" | "kind">(() =>
-  props.tier ? "tier" : props.status ? "status" : "kind"
+const mode = computed<"tier" | "status" | "tone" | "kind">(() =>
+  props.tier ? "tier" : props.status ? "status" : props.tone ? "tone" : "kind"
 );
 
 type UColor = "info" | "neutral" | "primary" | "success" | "warning" | "error";
@@ -45,6 +54,15 @@ const tierColor: Record<Tier, UColor> = {
   internal: "neutral",
   sensitive: "primary",
   restricted: "primary",
+};
+
+// `tone` maps 1:1 onto UBadge's semantic palette — it IS the open color set.
+const toneColor: Record<Tone, UColor> = {
+  info: "info",
+  success: "success",
+  warning: "warning",
+  error: "error",
+  neutral: "neutral",
 };
 
 const statusColor: Record<Status, UColor> = {
@@ -63,6 +81,7 @@ const statusColor: Record<Status, UColor> = {
 const uColor = computed<UColor>(() => {
   if (mode.value === "tier") return tierColor[props.tier as Tier];
   if (mode.value === "status") return statusColor[props.status as Status];
+  if (mode.value === "tone") return toneColor[props.tone as Tone];
   return "neutral";
 });
 
