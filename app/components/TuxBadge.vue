@@ -22,7 +22,7 @@
 
 type Tier = "public" | "internal" | "sensitive" | "restricted";
 type Status = "running" | "completed" | "failed" | "queued" | "paused" | "cancelled";
-type Tone = "info" | "success" | "warning" | "error" | "neutral";
+type Tone = "info" | "success" | "warning" | "error" | "neutral" | "muted";
 type Kind = "tag" | "count" | "default";
 
 interface Props {
@@ -63,6 +63,7 @@ const toneColor: Record<Tone, UColor> = {
   warning: "warning",
   error: "error",
   neutral: "neutral",
+  muted: "neutral", // low-emphasis grey alias (used by split-pane showcase)
 };
 
 const statusColor: Record<Status, UColor> = {
