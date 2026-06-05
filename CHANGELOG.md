@@ -5,6 +5,32 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.6.0] — 2026-06-05
+
+Additive release (no breaking changes) — two new component capabilities
+requested by the docs-tti consumer. Cut from the v1.5.0 tag (does NOT include
+the in-flight Bootstrap-theme / token-pipeline work on `main`).
+
+### Added — `TuxBadge` `tone` prop
+
+- **`tone`** (`info | success | warning | error | neutral`) — a generic
+  semantic-color badge, the open-ended sibling of `tier` / `status`. No
+  lifecycle affordance (no status dot, no spinner). For inline doc labels
+  like "Work in Progress", "Available", "Evolving Standard" where the
+  classification-tier / lifecycle-status semantics don't fit.
+
+### Added — `TuxCard` `linked` prop + attribute forwarding
+
+- **`linked`** — renders the linked-card chrome (hover-lift + corner arrow)
+  on a plain `<div>` instead of an anchor. For cards whose real link lives
+  on an inner element (a title link with a stretched `::after`), is EXTERNAL,
+  or that contain several interactive children an anchor wrapper would
+  swallow. `to` still wins when both are set.
+- **Attribute forwarding** — `TuxCard` is a multi-root component (its three
+  branches), so Vue couldn't auto-inherit fallthrough attrs. Added
+  `inheritAttrs: false` + explicit `v-bind="$attrs"` on each root so
+  consumers can reliably pass `class` / `id` / etc.
+
 ## [1.5.0] — 2026-06-02
 
 ### Added — Tightened the authoring loop (2026-06-02)
