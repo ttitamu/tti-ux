@@ -6,12 +6,14 @@
 # reusable-workflow repo by design (Area H decision 1): the logic is self-contained
 # and seeded, so there's no public CI repo and no org-wide `secrets: inherit` target.
 #
-# Runs on TODAY's stripped Alpine v9 runner (UID 1000): static Go binaries to
-# ~/.local/bin, using only wget + tar + awk + git. No node, no curl, no python3.
+# Runs on the A1 Ubuntu runner (runs-on: ubuntu-latest; ported 2026-07-03 — the
+# original `runs-on: host` label retired with the host runner, which left seeded
+# gates queued forever). Kept dependency-light on purpose (wget + tar + awk +
+# git; manual checkout): the gate stays valid even on a minimal runner image.
 #   - SCA + secrets gate here (fails the PR on HIGH/CRITICAL or a leaked secret).
-#   - Semgrep SAST joins after A1 (needs glibc/Python).
+#   - Semgrep SAST is a future add (H4).
 #   - SBOM → Dependency-Track is a HOST-SIDE detective job (security/sbom-to-dtrack.sh),
-#     NOT in this gate — the stripped runner has no curl to PUT the SBOM.
+#     NOT in this gate.
 #
 # Suppressions: a repo's .security-ignore (unified VEX-style allowlist) is compiled
 # to each scanner's native ignore file at runtime; expired entries re-surface.
@@ -24,7 +26,7 @@ on:
 
 jobs:
   baseline:
-    runs-on: host
+    runs-on: ubuntu-latest
     steps:
       # Manual checkout — actions/checkout is JS and needs node, which the v9
       # runner image lacks. Same pattern as seed/tti-ux/.forgejo/workflows/scan.yml.
