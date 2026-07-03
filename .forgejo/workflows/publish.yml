@@ -74,9 +74,12 @@ jobs:
           npm pack --pack-destination /tmp >/dev/null
           TARBALL=$(ls /tmp/tti-ux-*.tgz)
           cp "$TARBALL" package.tgz
-          cosign sign-blob --yes --tlog-upload=false --key env://COSIGN_KEY \
+          # empty signing-config = no transparency-log service (private forge);
+          # cosign 3.x removed --tlog-upload.
+          cosign signing-config create --out no-tlog.json
+          cosign sign-blob --yes --signing-config no-tlog.json --key env://COSIGN_KEY \
             --bundle sbom.cdx.json.bundle sbom.cdx.json
-          cosign sign-blob --yes --tlog-upload=false --key env://COSIGN_KEY \
+          cosign sign-blob --yes --signing-config no-tlog.json --key env://COSIGN_KEY \
             --bundle package.tgz.bundle package.tgz
           for f in sbom.cdx.json.bundle package.tgz.bundle package.tgz; do
             curl -sf -X PUT \
