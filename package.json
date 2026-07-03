@@ -1,6 +1,6 @@
 {
   "name": "@tti/ux",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TTI design system — tokens and component styles, distributed via the TTI self-hosted npm registry.",
   "license": "UNLICENSED",
   "private": false,
