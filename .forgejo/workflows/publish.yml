@@ -50,3 +50,32 @@ jobs:
             --header "Authorization: token ${NPM_TOKEN}" \
             --upload-file sbom.cdx.json \
             "http://host.containers.internal:3939/api/packages/tti/generic/tti-ux-sbom/${TAG}/sbom.cdx.json"
+
+      # A3 supply-chain signing (key-based; cosign is baked into the runner
+      # image). Keyless/Fulcio is NOT possible here — Forgejo Actions issues no
+      # job OIDC token, and Fulcio only trusts specific CI issuers. The private
+      # key lives ONLY in repo secrets (COSIGN_KEY, password-encrypted; passphrase
+      # in COSIGN_PASSWORD); the public key is committed as cosign.pub.
+      # Verify any artifact offline:
+      #   cosign verify-blob --key cosign.pub --signature <file>.sig <file>
+      - name: Sign artifacts (cosign)
+        env:
+          COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -eu
+          TAG="${{ github.ref_name }}"
+          npm pack --pack-destination /tmp >/dev/null
+          TARBALL=$(ls /tmp/tti-ux-*.tgz)
+          cosign sign-blob --yes --key env://COSIGN_KEY \
+            --output-signature sbom.cdx.json.sig sbom.cdx.json
+          cosign sign-blob --yes --key env://COSIGN_KEY \
+            --output-signature package.tgz.sig "$TARBALL"
+          for f in sbom.cdx.json.sig package.tgz.sig; do
+            curl -sf -X PUT \
+              --header "Authorization: token ${NPM_TOKEN}" \
+              --upload-file "$f" \
+              "http://host.containers.internal:3939/api/packages/tti/generic/tti-ux-sbom/${TAG}/${f}"
+          done
+          echo "signed + signatures published for ${TAG}"
