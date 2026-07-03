@@ -1,0 +1,101 @@
+# H2 baseline security gate — SEEDED into each tti repo's .forgejo/workflows/.
+#
+# CANONICAL SOURCE: security/baseline/baseline.yml in forgejo-stack. Do NOT edit
+# the seeded copy in a repo — the conformance audit (security/audit-baseline.sh)
+# treats this file as the source of truth and re-seeds drift. There is no central
+# reusable-workflow repo by design (Area H decision 1): the logic is self-contained
+# and seeded, so there's no public CI repo and no org-wide `secrets: inherit` target.
+#
+# Runs on TODAY's stripped Alpine v9 runner (UID 1000): static Go binaries to
+# ~/.local/bin, using only wget + tar + awk + git. No node, no curl, no python3.
+#   - SCA + secrets gate here (fails the PR on HIGH/CRITICAL or a leaked secret).
+#   - Semgrep SAST joins after A1 (needs glibc/Python).
+#   - SBOM → Dependency-Track is a HOST-SIDE detective job (security/sbom-to-dtrack.sh),
+#     NOT in this gate — the stripped runner has no curl to PUT the SBOM.
+#
+# Suppressions: a repo's .security-ignore (unified VEX-style allowlist) is compiled
+# to each scanner's native ignore file at runtime; expired entries re-surface.
+name: baseline-security
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  baseline:
+    runs-on: host
+    steps:
+      # Manual checkout — actions/checkout is JS and needs node, which the v9
+      # runner image lacks. Same pattern as seed/tti-ux/.forgejo/workflows/scan.yml.
+      - name: Manual checkout
+        run: |
+          set -eu
+          git init -q
+          git remote add origin "${{ github.server_url }}/${{ github.repository }}"
+          git fetch --depth=1 origin "${{ github.sha }}"
+          git checkout -q FETCH_HEAD
+
+      # Compile the unified .security-ignore into per-tool native ignore files.
+      # Format per non-comment line:
+      #   <tool>  <id-or-fingerprint>  <reason...>  [expires=YYYY-MM-DD]
+      # Expired (or malformed) lines do NOT suppress — the finding re-surfaces.
+      - name: Compile suppressions
+        run: |
+          set -eu
+          TODAY=$(date +%Y-%m-%d)
+          : > /tmp/.trivyignore
+          : > ./.gitleaksignore
+          if [ -f .security-ignore ]; then
+            awk -v today="$TODAY" '
+              /^[[:space:]]*#/ || NF==0 { next }
+              {
+                exp=""
+                for (i=1;i<=NF;i++) if ($i ~ /^expires=/) exp=substr($i,9)
+                if (exp != "" && exp < today) next
+                if ($1=="trivy")    print $2 >> "/tmp/.trivyignore"
+                if ($1=="gitleaks") print $2 >> "./.gitleaksignore"
+              }' .security-ignore
+            echo "Active suppressions: $(wc -l < /tmp/.trivyignore | tr -d ' ') trivy, $(wc -l < ./.gitleaksignore | tr -d ' ') gitleaks (expired excluded)."
+          fi
+
+      - name: Install scanners (static Go binaries → ~/.local/bin, checksum-verified)
+        run: |
+          set -eux
+          mkdir -p "$HOME/.local/bin"
+          # Pins + publisher SHA-256 — see ops/provenance/{trivy,gitleaks}.md. Bump
+          # in lockstep with the A1.0 runner-image and update the hashes here.
+          TRIVY_VERSION=0.70.0
+          GITLEAKS_VERSION=8.21.2
+          case "$(uname -m)" in
+            aarch64|arm64)
+              TRIVY_ARCH=ARM64; GL_ARCH=arm64
+              TRIVY_SHA=2f6bb988b553a1bbac6bdd1ce890f5e412439564e17522b88a4541b4f364fc8d
+              GITLEAKS_SHA=654c935542c89f565aabe7bf7c6c500830f116c114f0aeb509d2460c1ac2e6da ;;
+            x86_64)
+              TRIVY_ARCH=64bit; GL_ARCH=x64
+              TRIVY_SHA=8b4376d5d6befe5c24d503f10ff136d9e0c49f9127a4279fd110b727929a5aa9
+              GITLEAKS_SHA=5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba ;;
+            *) echo "unsupported arch: $(uname -m)"; exit 1 ;;
+          esac
+          # Download to a file, verify the published checksum, THEN extract. The
+          # bare wget|tar pipe trusted TLS only — this closes that gap.
+          wget -qO /tmp/trivy.tgz "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-${TRIVY_ARCH}.tar.gz"
+          echo "${TRIVY_SHA}  /tmp/trivy.tgz" | sha256sum -c -
+          tar -xzf /tmp/trivy.tgz -C "$HOME/.local/bin" trivy
+          wget -qO /tmp/gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${GL_ARCH}.tar.gz"
+          echo "${GITLEAKS_SHA}  /tmp/gitleaks.tgz" | sha256sum -c -
+          tar -xzf /tmp/gitleaks.tgz -C "$HOME/.local/bin" gitleaks
+
+      # SCA gate — vulnerable dependencies only. `--scanners vuln` keeps roles clean:
+      # Trivy owns SCA, gitleaks (below) owns secrets. (Trivy's default fs scan ALSO
+      # does secrets+misconfig, which would double-report against gitleaks.) Fails on
+      # HIGH/CRITICAL; suppressed CVEs come from /tmp/.trivyignore.
+      - name: SCA — Trivy filesystem (HIGH/CRITICAL gate)
+        run: '$HOME/.local/bin/trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --no-progress --ignorefile /tmp/.trivyignore .'
+
+      # Secret gate — scans full git history. gitleaks reads ./.gitleaksignore
+      # (fingerprints) by default. A hit here is already-burned → secret-rotation
+      # runbook (ops/secret-rotation-runbook.md), not just a code edit.
+      - name: Secrets — gitleaks (full history)
+        run: '$HOME/.local/bin/gitleaks detect --no-banner --redact --exit-code 1'
