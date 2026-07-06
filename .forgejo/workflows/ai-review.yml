@@ -79,7 +79,9 @@ jobs:
         run: |
           set -eu
           [ -s /tmp/review.md ] || { echo "no review body"; exit 0; }
-          BODY=$(python3 -c "import json;print(json.dumps({'body':'### 🤖 AI review (advisory · Gemma-4-31B + web search)\n\n'+open('/tmp/review.md').read()+'\n\n<sub>Advisory only — not a merge gate. Runs via the TTI AI BFF.</sub>'}))")
+          # No emoji — the ai-review-bot's maroon Lucide avatar (branding/bot-avatars.py)
+          # marks the comment, keeping the house symbology consistent.
+          BODY=$(python3 -c "import json;print(json.dumps({'body':'### AI review — advisory · Gemma-4-31B + web search\n\n'+open('/tmp/review.md').read()+'\n\n<sub>Advisory only — not a merge gate. Runs via the TTI AI BFF.</sub>'}))")
           printf '%s' "$BODY" | curl -sf -X POST \
             -H "Authorization: token ${GH_TOKEN}" -H "Content-Type: application/json" \
             --data @- \
