@@ -1,0 +1,87 @@
+# AI code review (plan Area F) — ADVISORY, changed-files only, via the TTI AI BFF.
+#
+# Runs Gemma-4-31B (harness web search ON) over the PR diff and posts ONE review
+# comment. NEVER blocks: the job always exits 0 — the deterministic H2 baseline
+# gate is the thing with teeth; this is a second pair of eyes, not a gate.
+#
+# Auth: the BFF call uses a dedicated ai-review bot PAT (secret AI_REVIEW_TOKEN),
+# but is ATTRIBUTED to the PR author via X-TTI-Actor — so BFF usage telemetry
+# shows who put the code up, executed-by the bot. Seeded per-repo by
+# ai/seed-ai-review.sh (same idiom as security/seed-baseline.sh).
+name: ai-review
+on:
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticated checkout (private-repo safe)
+        run: |
+          set -eu
+          git init -q
+          git remote add origin "${{ github.server_url }}/${{ github.repository }}"
+          hdr="Authorization: basic $(printf 'x-access-token:%s' "${{ github.token }}" | base64 | tr -d '\n')"
+          git -c http.extraheader="$hdr" fetch --depth=50 origin "${{ github.base_ref }}" "${{ github.sha }}"
+          git checkout -q "${{ github.sha }}"
+          git branch -f _base "origin/${{ github.base_ref }}" 2>/dev/null || true
+
+      - name: Compute changed-files diff (capped)
+        run: |
+          set -eu
+          BASE=$(git merge-base _base HEAD 2>/dev/null || git rev-parse HEAD~1)
+          git diff --unified=3 "$BASE"...HEAD -- . > /tmp/pr.diff || true
+          # cap to stay within the model's context + the BFF token budget
+          head -c 60000 /tmp/pr.diff > /tmp/pr.capped && mv /tmp/pr.capped /tmp/pr.diff
+          echo "diff bytes: $(wc -c < /tmp/pr.diff)"
+
+      - name: Review via BFF (Gemma-4-31B + web search)
+        env:
+          BFF_TOKEN: ${{ secrets.AI_REVIEW_TOKEN }}
+          BFF_URL: http://host.containers.internal:3950
+          ACTOR: ${{ github.actor }}
+          MODEL: protected.gemma-4-31B-it
+        run: |
+          set -eu
+          if [ ! -s /tmp/pr.diff ]; then echo "empty diff — nothing to review"; echo "" > /tmp/review.md; exit 0; fi
+          python3 - <<'PY'
+          import json, os, urllib.request
+          diff = open("/tmp/pr.diff").read()
+          sys_prompt = (
+            "You are a senior engineer giving an ADVISORY review of a pull request diff. "
+            "Focus on correctness bugs, security issues, and clear best-practice gaps in the CHANGED lines only. "
+            "Use web search to verify library versions, deprecations, and known CVEs, and cite URLs when you do. "
+            "Be concise: at most 6 bullets, most important first. If the diff looks fine, say so in one line. "
+            "Do NOT restate the diff. Output GitHub-flavored markdown.")
+          body = {"model": os.environ["MODEL"], "stream": False,
+                  "features": {"web_search": True},
+                  "messages": [{"role":"system","content":sys_prompt},
+                               {"role":"user","content":"PR diff:\n\n```diff\n"+diff+"\n```"}]}
+          req = urllib.request.Request(os.environ["BFF_URL"]+"/v1/chat/completions",
+                  data=json.dumps(body).encode(),
+                  headers={"Content-Type":"application/json",
+                           "Authorization":"token "+os.environ["BFF_TOKEN"],
+                           "X-TTI-Actor":os.environ["ACTOR"]})
+          try:
+              with urllib.request.urlopen(req, timeout=180) as r:
+                  out = json.load(r)
+              md = out["choices"][0]["message"]["content"]
+          except Exception as e:
+              md = f"_AI review unavailable this run: {e}_"
+          open("/tmp/review.md","w").write(md)
+          print("review chars:", len(md))
+          PY
+
+      - name: Post review comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          [ -s /tmp/review.md ] || { echo "no review body"; exit 0; }
+          BODY=$(python3 -c "import json;print(json.dumps({'body':'### 🤖 AI review (advisory · Gemma-4-31B + web search)\n\n'+open('/tmp/review.md').read()+'\n\n<sub>Advisory only — not a merge gate. Runs via the TTI AI BFF.</sub>'}))")
+          printf '%s' "$BODY" | curl -sf -X POST \
+            -H "Authorization: token ${GH_TOKEN}" -H "Content-Type: application/json" \
+            --data @- \
+            "${{ github.server_url }}/api/v1/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            -o /dev/null -w "comment posted: %{http_code}\n" || echo "comment post failed (non-fatal)"
