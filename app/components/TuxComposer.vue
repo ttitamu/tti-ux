@@ -160,12 +160,14 @@ function onKey(e: KeyboardEvent) {
 }
 
 .tux-composer__scope {
-  max-width: 880px;
+  max-width: var(--tux-composer-measure, 880px);
   margin: 0 auto 0.875rem;
 }
 
 .tux-composer__frame {
-  max-width: 880px;
+  /* Measure overridable by hosts (see TuxChatMessage's
+   * --tux-chat-measure) so the composer tracks the transcript column. */
+  max-width: var(--tux-composer-measure, 880px);
   margin: 0 auto;
   border: 2px solid var(--brand-primary);
   border-radius: var(--radius-lg);

@@ -115,7 +115,10 @@ const isAssistant = computed(() => props.role === "assistant");
 }
 
 .tux-chat-message__inner {
-  max-width: 820px;
+  /* Reading measure. Hosts may override --tux-chat-measure (e.g. with a
+   * container-relative clamp) so wide windows relax the column instead
+   * of stranding the transcript in whitespace; 820px stays the default. */
+  max-width: var(--tux-chat-measure, 820px);
   margin: 0 auto;
   display: grid;
   grid-template-columns: 40px 1fr;
