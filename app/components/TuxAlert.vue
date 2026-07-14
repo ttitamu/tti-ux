@@ -50,7 +50,12 @@ const variantMap = {
   compliance: { color: "primary", variant: "solid",  icon: "lucide:shield-alert",   bar: "transparent",          width: "0" },
 } as const;
 
-const mapped = computed(() => variantMap[props.variant]);
+// Unknown variants fall back to danger rather than crashing — an invalid
+// variant on an error-branch alert was 500ing whole SSR pages (consumers
+// passed "error", which has never been in the map).
+const mapped = computed(
+  () => variantMap[props.variant as keyof typeof variantMap] ?? variantMap.danger,
+);
 </script>
 
 <template>
