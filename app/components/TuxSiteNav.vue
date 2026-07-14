@@ -445,6 +445,19 @@ function isPlainLinkActive(item: { to?: string; href?: string }): boolean {
   position: relative;
 }
 
+@container tux-site-nav (max-width: 76rem) {
+  .tux-site-nav__primary-item--mega {
+    /* Hand the mega panel's positioning context up to __bar-inner.
+       A trigger-anchored panel needs its full width available to the
+       LEFT of the trigger (it's right-aligned); once the bar narrows
+       past ~76rem that space runs out and the panel pokes off the
+       viewport edge. Bar-wide is the classic mega-menu fallback.
+       TuxDropdown items keep their own context — their panels are
+       narrow enough to never overflow. */
+    position: static;
+  }
+}
+
 .tux-site-nav__primary-link {
   display: inline-block;
   padding: 0.5rem 0.875rem;
