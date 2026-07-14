@@ -76,6 +76,17 @@ function toggle() {
   open.value = !open.value;
 }
 
+function onTriggerClick(e: MouseEvent) {
+  // Hover opens the panel on pointer devices, but touch has no hover —
+  // on hover-less devices a tap on the link trigger would navigate away
+  // with the panel's items unreachable. There, first tap opens the
+  // panel; tapping again (or picking an item) proceeds.
+  if (window.matchMedia("(hover: none)").matches && !open.value) {
+    e.preventDefault();
+    show();
+  }
+}
+
 function onKeydown(e: KeyboardEvent) {
   if (e.key === "Escape") {
     open.value = false;
@@ -157,6 +168,7 @@ const isTriggerActive = computed<boolean>(() => {
       :aria-expanded="open"
       :aria-current="route.fullPath === to ? 'page' : undefined"
       aria-haspopup="true"
+      @click="onTriggerClick"
     >
       <span>{{ label }}</span>
       <Icon
@@ -191,7 +203,10 @@ const isTriggerActive = computed<boolean>(() => {
         :class="{ 'tux-mega-menu__panel--with-featured': featured }"
         role="menu"
       >
-        <div class="tux-mega-menu__columns">
+        <div
+          class="tux-mega-menu__columns"
+          :style="{ '--tux-mega-cols': columns.length }"
+        >
           <section
             v-for="col in columns"
             :key="col.heading"
@@ -443,7 +458,11 @@ const isTriggerActive = computed<boolean>(() => {
      2rem safety margin so it doesn't kiss the edges). The min-width
      keeps a single-column panel from collapsing too narrow. */
   width: max-content;
-  max-width: min(48rem, calc(100vw - 2rem));
+  /* 42rem (not the old 48) so the panel always fits between the bar's
+     left edge and the trigger at the ≥76rem container sizes where this
+     right-anchored shape applies — three 11.5rem tracks + gaps + padding.
+     Below 76rem the container query further down goes bar-wide instead. */
+  max-width: min(42rem, calc(100vw - 2rem));
   min-width: 20rem;
   margin-top: 0.375rem;
   padding: 1.5rem 1.75rem;
@@ -462,8 +481,46 @@ const isTriggerActive = computed<boolean>(() => {
 
 .tux-mega-menu__columns {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  /* One track per section, pinned via --tux-mega-cols (set inline from the
+     column count). The previous `auto-fit` derived the count from available
+     width, so on narrower panels a whole section wrapped onto a second grid
+     row — and because a row is as tall as its tallest sibling, a short
+     first column left a huge empty gap above the wrapped section. Pinned
+     tracks mean sections only ever sit side by side. The 14rem track cap
+     makes long item descriptions wrap instead of pushing the panel out to
+     its 48rem max-width (dead horizontal space). */
+  grid-template-columns: repeat(var(--tux-mega-cols, 3), minmax(11rem, 14rem));
   gap: 1.5rem 2rem;
+  /* Sections have very different heights (4 vs 10 items) — top-align them
+     rather than stretching the short ones. */
+  align-items: start;
+}
+
+@container tux-site-nav (max-width: 76rem) {
+  .tux-mega-menu__panel {
+    /* Bar-wide panel (the __primary-item--mega rule in TuxSiteNav makes
+       __bar-inner the positioning context at this size). Insets match the
+       bar's 1.5rem content padding. */
+    left: 1.5rem;
+    right: 1.5rem;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+  }
+  .tux-mega-menu__columns {
+    /* Same pinned track count, but share the full bar width evenly —
+       fixed track caps would leave dead space in a bar-wide panel. */
+    grid-template-columns: repeat(var(--tux-mega-cols, 3), minmax(11rem, 1fr));
+  }
+}
+
+@container tux-site-nav (max-width: 48rem) {
+  .tux-mega-menu__columns {
+    /* Below the bar's mobile breakpoint, side-by-side tracks can't fit —
+       stack the sections vertically in source order. (Wrapping tracks is
+       exactly the gap bug the pinned count replaces.) */
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .tux-mega-menu__column {
