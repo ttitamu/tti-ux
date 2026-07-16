@@ -61,9 +61,9 @@ function onConfirm() {
           <template
             #default="{
               inputId: id,
-              'aria-describedby': ariaDescribedby,
-              'aria-invalid': ariaInvalid,
-              'aria-required': ariaRequired,
+              ariaDescribedby,
+              ariaInvalid,
+              ariaRequired,
             }"
           >
             <UInput
@@ -86,8 +86,8 @@ function onConfirm() {
           <template
             #default="{
               inputId: id,
-              'aria-invalid': ariaInvalid,
-              'aria-required': ariaRequired,
+              ariaInvalid,
+              ariaRequired,
             }"
           >
             <USelect
@@ -149,7 +149,7 @@ function onConfirm() {
         the errors list is empty.
       </p>
       <div class="flex items-center gap-2 mb-2">
-        <UButton size="xs" variant="outline" @click="showSummary = !showSummary">
+        <UButton size="xs" variant="outline" @click="showSummary = !showSummary;">
           {{ showSummary ? "Hide" : "Show" }} sample errors
         </UButton>
       </div>

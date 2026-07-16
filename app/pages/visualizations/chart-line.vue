@@ -204,7 +204,7 @@ const focusVue = `<UButton icon="lucide:maximize" @click="focusOpen = true">Open
         overlay.
       </p>
       <TuxExample class="mt-4" :vue="focusVue">
-        <UButton icon="lucide:maximize" @click="focusOpen = true">Open in focus mode</UButton>
+        <UButton icon="lucide:maximize" @click="focusOpen = true;">Open in focus mode</UButton>
         <TuxFocusView
           v-model:open="focusOpen"
           eyebrow="Exhibit 11.04"

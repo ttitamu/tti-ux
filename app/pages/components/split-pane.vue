@@ -112,7 +112,7 @@ const basicVue = `<tux-split-pane
         </div>
         <div class="mt-3 flex items-center gap-3">
           <UCheckbox v-model="showBottom" label="Show bottom pane" />
-          <UButton variant="ghost" size="sm" @click="selected = null">Clear selection</UButton>
+          <UButton variant="ghost" size="sm" @click="selected = null;">Clear selection</UButton>
         </div>
       </TuxExample>
     </section>
