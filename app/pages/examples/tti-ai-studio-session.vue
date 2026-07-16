@@ -341,7 +341,7 @@ const composerDraft = ref("");
               size="xs"
               icon="lucide:maximize"
               aria-label="Open artifact in focus mode"
-              @click="artifactFocusOpen = true"
+              @click="artifactFocusOpen = true;"
             >
               Focus
             </UButton>

@@ -47,7 +47,7 @@ const singleSeries = [
         the backdrop / close button to dismiss.
       </p>
       <TuxExample class="mt-4" :vue="basicVue">
-        <UButton @click="openBasic = true">Open focus view</UButton>
+        <UButton @click="openBasic = true;">Open focus view</UButton>
         <TuxFocusView v-model:open="openBasic" title="Document inspector" eyebrow="Focus mode">
           <p>
             Full-viewport surface with backdrop blur, back button + title +
@@ -73,7 +73,7 @@ const singleSeries = [
         top-bar.
       </p>
       <TuxExample class="mt-4" :vue="chartVue">
-        <UButton icon="lucide:expand" @click="openChart = true">Open chart in focus mode</UButton>
+        <UButton icon="lucide:expand" @click="openChart = true;">Open chart in focus mode</UButton>
         <TuxFocusView v-model:open="openChart" title="Monthly ingest rate" eyebrow="Exhibit 11.04">
           <template #actions>
             <UButton variant="ghost" icon="lucide:download" />

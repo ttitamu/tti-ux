@@ -428,7 +428,7 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
             size="sm"
             class="md:hidden"
             aria-label="Open navigation"
-            @click="sidebarOpen = !sidebarOpen"
+            @click="sidebarOpen = !sidebarOpen;"
           />
 
           <!-- Dogfood: the style guide uses its own TuxIdentity for the
