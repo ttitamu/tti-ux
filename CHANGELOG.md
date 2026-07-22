@@ -1,0 +1,3040 @@
+# Changelog
+
+All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
+conventions and [Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
+
+## [1.6.0] — 2026-06-05
+
+Additive release (no breaking changes) — two new component capabilities
+requested by the docs-tti consumer. Cut from the v1.5.0 tag (does NOT include
+the in-flight Bootstrap-theme / token-pipeline work on `main`).
+
+### Added — `TuxBadge` `tone` prop
+
+- **`tone`** (`info | success | warning | error | neutral`) — a generic
+  semantic-color badge, the open-ended sibling of `tier` / `status`. No
+  lifecycle affordance (no status dot, no spinner). For inline doc labels
+  like "Work in Progress", "Available", "Evolving Standard" where the
+  classification-tier / lifecycle-status semantics don't fit.
+
+### Added — `TuxCard` `linked` prop + attribute forwarding
+
+- **`linked`** — renders the linked-card chrome (hover-lift + corner arrow)
+  on a plain `<div>` instead of an anchor. For cards whose real link lives
+  on an inner element (a title link with a stretched `::after`), is EXTERNAL,
+  or that contain several interactive children an anchor wrapper would
+  swallow. `to` still wins when both are set.
+- **Attribute forwarding** — `TuxCard` is a multi-root component (its three
+  branches), so Vue couldn't auto-inherit fallthrough attrs. Added
+  `inheritAttrs: false` + explicit `v-bind="$attrs"` on each root so
+  consumers can reliably pass `class` / `id` / etc.
+
+## [1.5.0] — 2026-06-02
+
+### Added — Tightened the authoring loop (2026-06-02)
+
+Two new guards + a toolchain fix, after a session-state review found
+that defects were consistently caught in batch audits *after* shipping
+rather than during authoring.
+
+**`vue-tsc` resolution fixed.** `nuxt typecheck` was resolving `vue-tsc`
+from the global npx cache while `vue-router`'s volar plugin
+(`vue-router/volar/sfc-route-blocks`) loaded from local `node_modules`
+and then failed to `require('@vue/language-core')` (split dependency
+trees). The typecheck still exited 0, but the route-block plugin was
+silently *not running* — so typed `<route>`-block checks were skipped.
+Added `vue-tsc` + `@vue/language-core` to `devDependencies` so the
+whole toolchain resolves from one tree; the plugin now loads.
+
+**`npm run audit:tokens`** (new — `scripts/audit-tokens.mjs`). Static
+pass asserting every `var(--token)` reference in `app/**/*.{vue,css}`
+resolves to a token defined in the CSS, a `var(--x, fallback)`, or a
+known external namespace (Tailwind / Nuxt UI). Catches the
+`--surface-base` class of bug (undefined token → transparent render)
+that's invisible to typecheck (CSS isn't typed) and the contrast audit
+(no color to measure). Now blocking in CI's `quality` job.
+
+**`npm run audit:a11y`** (new — `scripts/audit-a11y.mjs`). Promotes the
+ad-hoc "tested via jsdom + axe-core" pass into a committed, repeatable
+gate: runs axe-core over every prerendered page (`color-contrast`
+disabled — that's the contrast audit's job). The first full run found
+**135 structural violations across 42 pages** that the per-batch ad-hoc
+checks had never covered site-wide; all are now fixed (see below). Now
+blocking in CI's `audit` job. Added `axe-core` to `devDependencies`.
+
+### Fixed — Site-wide a11y remediation (2026-06-02)
+
+Drove `audit:a11y` to zero across all 164 pages. Highlights:
+
+- **Charts** (`TuxChartArea` / `Bar` / `Line` / `Scatter`, `TuxDiagram`)
+  — `aria-label` on bare SVG shapes (`<rect>` / `<circle>`) is prohibited
+  without a name-supporting role; added `role="img"` to labeled data /
+  interaction shapes. `TuxDiagram` mermaid output is legalized via a
+  post-processor; its loading skeleton got `role="status"`.
+- **`TuxFileDropzone`** + `/forms/file-upload` — converted the
+  `role="button"` drop zone wrapping a focusable `<input type="file">`
+  (critical `label` + `nested-interactive`) to a native `<label>`
+  wrapper: one focusable, named control, no nesting.
+- **`TuxSuggestionChips`** — moved `role="listitem"` off the `<button>`
+  onto a wrapping element (`aria-allowed-role`).
+- **`TuxCodeMaroon`** `<aside role="alert">` → `<div role="alert">`;
+  **`TuxSplitPane`** detail `<main>` → `<section role="region">` (no
+  duplicate / nested main); **`TuxRichDataGrid`** empty `<th>` → visually
+  hidden text; **`TuxAbstract`** / **`TuxAcknowledgments`** hardcoded
+  `<h4>` → configurable `level` prop (heading-order).
+- **`TuxCardCarousel`** — dropped the redundant outer `region` landmark
+  (Nuxt UI's `UCarousel` already is one) and named that region instead.
+- **`TuxToc`** showcase wrapper `<aside>`/over-eager `<nav>` → plain
+  `<div>`; tree / sunburst callout `<aside>` → `<div>`
+  (`landmark-complementary-is-top-level`).
+- **Landmark components** (alpha-nav, branch-nav, breadcrumbs, link-slab,
+  pagination, site-nav, stepper, tab-bar, treemap) — added optional
+  `ariaLabel` props and gave each repeated showcase instance a unique
+  accessible name (`landmark-unique`, which fired because galleries
+  render a landmark component 5–7×).
+- **Doc pages** — index-grid card headings `<h3>` → `<h2>` (no level
+  skip under the page `<h1>`); `/kits/slides` + `/kits/aggieux` content
+  wrapped in a `<main>` landmark (`region`); icon-only buttons on
+  app-frame / swipe / text-field given `aria-label` (critical
+  `button-name`).
+
+### Added — TuxRailNav (2026-06-02)
+
+Collapsible sidebar/rail navigation built on native
+`<details>`/`<summary>` (the `TuxFilterPanel` "zero-JS, perfect-a11y"
+disclosure pattern). Grouped entries with one nesting level, an
+icon-only `collapsed` mode, and a `<nav>` landmark named via an
+overridable `ariaLabel` prop. Showcase at
+[`/components/rail-nav`](app/pages/components/rail-nav.vue).
+
+This is the tux-owned replacement for Nuxt UI's `UNavigationMenu` in
+vertical mode, which renders a collapsible group's chevron as a
+roleless `<span aria-expanded>` (axe `aria-allowed-attr` — internal to
+Nuxt UI, present in 4.7.0 and still in 4.8.1, not fixable from the
+consumer side). Swapped into both example shells
+(`/examples/sidebar-shell`, `/examples/landscape-dashboard`), which
+closes the last a11y violation **at the source** — `audit:a11y` is now
+a true zero with no suppressions. (A `KNOWN_UPSTREAM` allowlist remains
+in `scripts/audit-a11y.mjs`, intentionally empty, as the documented
+home for any future genuine third-party artifact.)
+
+### Fixed — Polish pass (2026-05-26)
+
+After the seven-slice add pass, an audit pass caught a token bug
+and three a11y violations.
+
+**`--surface-base` was undefined** — every component shipped in
+this batch (`TuxCommentThread`, `TuxPopover`, `TuxMcpEmbed`,
+`TuxRuleBuilderGroup`, `TuxRichTextEditor`, `TuxMobileFrame`, plus
+two showcase pages) referenced `var(--surface-base)` as a screen /
+content background. That token doesn't exist in
+[`tokens.css`](app/assets/css/tokens.css) — only `--surface-page`,
+`--surface-raised`, and `--surface-sunken` do. The undefined token
+fell back to no value, so backgrounds were transparent and whatever
+showed through looked wrong in both light and dark mode. Swapped to
+`var(--surface-raised)` across all 7 files — that's the equivalent
+TUX token for component-surface backgrounds (cards, modals, popovers,
+artifact bodies). Reported by the user: "light mode has dark mode
+colors."
+
+**`nested-interactive` on `TuxMobileFrame`** — the frame's
+`<figure>` carried `role="img"`, but the slot can hold focusable
+children (e.g. the demo CTA button). axe's
+`nested-interactive` flagged it; dropped the role and let `<figure>`
+carry its native semantic role instead.
+
+**`landmark-unique` on `TuxRuleBuilder`** — the top-level wrapper
+was `<section aria-label="Rule builder">`, which gives it a landmark
+role; two builders on one page (flagship + empty demo) collided.
+Switched to a plain `<div>` since the surrounding heading already
+names the surface.
+
+**Pre-existing TUX-wide fixes — caught while we were here:**
+
+- `<html>` element was missing `lang` — added
+  `htmlAttrs: { lang: "en" }` to
+  [`nuxt.config.ts`](nuxt.config.ts) `app.head`. axe's `html-has-lang`
+  rule (serious impact) had been failing on every page.
+- `TuxDocsSidebar` was rendering `<aside role="navigation">`, which
+  axe's `aria-allowed-role` flags — aside's implicit complementary
+  role can't be overridden to navigation. Switched the outer element
+  to native `<nav>` (carries the navigation landmark natively) and
+  collapsed the now-redundant inner `<nav>` to a `<div>` to avoid
+  duplicate landmarks.
+
+After fixes: **zero axe violations** on all 6 showcase pages from
+this batch (mobile-frame, comment-thread, popover, mcp-embed,
+rule-builder, rich-text-editor). Tested via `jsdom` + `axe-core`
+(added `jsdom` to devDeps).
+
+### Added — TuxMobileFrame (2026-05-26)
+
+Closes the deferred Priority E "Mobile frames" entry. Stylized
+device chrome for marketing screenshots and stakeholder reviews —
+**one component, two platforms** via a `platform="ios" | "android"`
+prop. (Initially shipped as two separate `TuxIosFrame` +
+`TuxAndroidFrame` components pointing at one combined showcase
+page; consolidated to a single component when the dual nav entries
+made the same showcase highlight twice in the sidebar.)
+
+**Explicitly not for runtime use.** When TTI apps actually need
+mobile chrome, reach for `TuxAppFrame` + `TuxTabBar` +
+`useTuxPlatform()` per `design/platform-awareness.md`. The new
+frame only ships the static device chrome around a slot; the
+screen doesn't react to safe-area insets, platform APIs, or
+orientation. Doctrine is documented in the showcase's "Frame vs
+runtime chrome" decision-tree footer.
+
+- **[`TuxMobileFrame`](app/components/TuxMobileFrame.vue)** —
+  `platform="ios"` renders realistic iPhone 16 Pro proportions
+  (19.5:9 screen, ~46px corner radius scaled, Dynamic Island,
+  home indicator, four finishes: natural / black / white / maroon).
+  `platform="android"` renders Pixel 9 proportions (20:9 screen,
+  ~36px corner radius, center punch-hole camera, three nav-style
+  options: `gesture` / `three-button` / `none`, four finishes:
+  obsidian / porcelain / hazel / maroon). Single `:width` prop
+  drives proportional scaling of all chrome — pass 280 (default),
+  160 for thumbnail rows, 360 for hero exhibits. Both platforms
+  share the same width pivot so they sit cleanly side-by-side in
+  cross-platform mockups.
+
+Showcase at
+[`/components/mobile-frame`](app/pages/components/mobile-frame.vue) —
+flagship demo per platform with a realistic Landscape corridor-
+summary slot; color-variant rows; Android nav-style picker; the
+canonical side-by-side cross-platform layout; and the
+frame-vs-runtime decision tree.
+
+Implementation is pure CSS — no SVG, no images, no canvas. The
+device body uses a single `<figure>` with absolutely-positioned
+side-button pills and an inner `<div class="…__screen">` holding
+the slot. Everything scales from one numeric `:width` prop.
+
+### Added — TuxRichTextEditor (2026-05-26)
+
+Closes the deferred-with-criterion Priority D carry-forward — Tiptap-
+based WYSIWYG sister to `TuxMarkdownEditor`. Built to be the
+**canonical TUX rich-text surface** — feature set mirrors the
+`TipTapEditor` in `docs-tti-tamu-edu/nuxt-site/app/components/`
+so the same editor can land in Landscape draft surfaces,
+tti-ai-studio chat composition, and the docs.it.tamu.edu admin
+center without each consumer maintaining a separate Tiptap wrapper.
+
+- **[`TuxRichTextEditor`](app/components/TuxRichTextEditor.vue)** —
+  Tiptap-based editor with seven toolbar groups (configurable via
+  `:toolbar` — `format` · `headings` · `lists` · `block` · `media` ·
+  `table` · `mode`). v-modeled as HTML.
+
+  **Inline marks:** bold · italic · underline · strikethrough ·
+  inline code.
+
+  **Headings:** H1 · H2 · H3 · H4 (per-consumer subset via
+  `:heading-levels`).
+
+  **Lists:** bullet · numbered · task (checkable, nestable).
+
+  **Blocks:** blockquote · code block with syntax highlighting via
+  `lowlight` (covers ~30 popular languages via `common`) ·
+  horizontal rule.
+
+  **Media:** link (⌘K prompt) · image (URL + alt-text prompt,
+  base64 allowed).
+
+  **Tables:** insert 3×3 with header row · add / remove columns and
+  rows · resizable column widths · selection highlight · delete
+  table. Table-specific buttons only appear when cursor is inside
+  a table.
+
+  **Mode toggle:** WYSIWYG ↔ raw HTML source textarea. Round-trips
+  cleanly in both directions; toolbar buttons disable in source
+  mode; a "source" pill appears in the footer to make the mode
+  visible. (Markdown ↔ HTML round-trip via `turndown` is deferred
+  to a follow-on — the `:sourceFormat` prop is the planned
+  extension point for when a consumer surface stores markdown.)
+
+  **Full-screen:** overlay mode that pins the editor to the viewport
+  via `position: fixed; inset: 0; z-index: 60`; Esc exits. Emits
+  `@fullscreen-change`.
+
+  **Word / character count:** live footer; pure DOM-text count,
+  ignores HTML tags. Hide via `:show-count="false"`.
+
+  **Save event:** ⌘S / Ctrl+S intercepted via Tiptap's
+  `handleKeyDown` and emitted as `save`. Host wires to persist.
+
+  **Typography substitutions:** smart quotes, em dashes, ellipses
+  (Tiptap Typography extension).
+
+  **Undo / redo:** disabled-state derived from `editor.can()`.
+
+**Bundle.** Tiptap core / vue-3 / starter-kit / link / image /
+placeholder / underline arrive transitively via `@nuxt/ui` 4.7 (no
+package.json add). The richer extensions — tables (4 packages),
+task lists (2 packages), typography, code-block-lowlight, and
+`lowlight` itself — are direct dependencies pinned to NuxtUI's exact
+Tiptap version (3.22.4) to avoid peer-dep churn. Total
+package.json additions: 9 packages, all on the established Tiptap
+line NuxtUI already pulls.
+
+Showcase at
+[`/components/rich-text-editor`](app/pages/components/rich-text-editor.vue)
+with three demos (full feature set with pre-seeded corridor field
+notes including a table + task list + Python code block · trimmed
+inline-comment field · minimal source-mode-only chrome), the feature
+inventory, and the "why this is the canonical surface" reference
+back to the docs-tti-tamu-edu editor.
+
+### Added — TuxRuleBuilder (2026-05-26)
+
+Closes the deferred-with-criterion Priority B candidate. Relational
+query UI — field + operator + value rows, AND/OR groupers, nestable
+groups. Sister to the existing faceted `TuxFilterPanel`; they
+compose well on the same surface.
+
+- **[`TuxRuleBuilder`](app/components/TuxRuleBuilder.vue)** —
+  top-level wrapper that owns the field catalog (passed via
+  `:fields`) and footer actions (Apply / Clear). v-modeled as a
+  single root `Group` tree. Provides the field catalog + max-depth
+  to recursive children via `inject`.
+- **[`TuxRuleBuilderGroup`](app/components/TuxRuleBuilderGroup.vue)** —
+  recursive internal child (same pattern as
+  [`TuxTreeNode`](app/components/TuxTreeNode.vue) inside
+  [`TuxTree`](app/components/TuxTree.vue)). Renders one group: a
+  combinator toggle (AND/OR), an ordered list of mixed rules and
+  nested groups, "+ Add rule" / "+ Add group" affordances. Recurses
+  on itself for nested groups, bounded by the parent's
+  `maxDepth` prop (default 3 — deeper trees almost always want to
+  be split into saved views).
+
+Five operator families ship with defaults: `string` (contains, equals,
+starts with, not contains), `number` (=, ≠, &lt;, ≤, &gt;, ≥,
+between), `date` (on, before, after, between), `select` (is, is not),
+`boolean` (is true, is false). The value editor switches based on
+field type + operator: text input · numeric input · date picker ·
+select · "between" pair · no-input for boolean. Per-field operator
+overrides via `FieldDef.operators`.
+
+Showcase at [`/components/rule-builder`](app/pages/components/rule-builder.vue)
+with a corridor-research demo exercising number `between`, select,
+nested OR group, and a live JSON pretty-print of the applied tree so
+hosts can see exactly what they need to evaluate against.
+
+**Conventions doc updated** — new
+[`design/components.md`](design/components.md) §
+"Faceted vs relational filtering — when to use which" decision tree
++ anti-patterns table. Lives next to "Empty states" in the
+Conventions section.
+
+### Added — TuxMcpEmbed (2026-05-26)
+
+Sister to `TuxArtifact` for the *interactive* MCP shape — when an
+assistant turn hands off to a third-party app (Linear, Notion, Figma,
+…) and renders the app's UI inline. The split:
+
+- `TuxArtifact` — static AI-generated output (code file, doc, image).
+  File-chrome action set (copy / download / regenerate / share).
+- `TuxMcpEmbed` — interactive third-party app surface. Window-chrome
+  action set (collapse / expand / exit). Built-in skeleton.
+
+- **[`TuxMcpEmbed`](app/components/TuxMcpEmbed.vue)** — app identity
+  bar (icon + name + optional `source` line for version/scope) +
+  window controls + skeleton + container slot. Three controls,
+  individually toggleable (`:collapsible`, `:expandable`,
+  `:closable`); each emits a semantic event (`collapse`, `expand`,
+  `exit`) the host wires up. Internal collapsed state syncs from a
+  prop so the host can persist + restore. Loading skeleton is three
+  shimmer bars + a content block; honors `prefers-reduced-motion`
+  with a static fill. Visual chrome matches `TuxArtifact` (same
+  border / radius / head rhythm) so the two read as a family — the
+  3px accent strip on the left edge is the only signal that this is
+  third-party, not first-party output. Showcase at
+  [`/components/mcp-embed`](app/pages/components/mcp-embed.vue) with
+  three demos (Linear default · Notion loading · Figma fixed-chrome)
+  + the MCP three-tier display taxonomy reference.
+
+**Conventions doc updated** —
+[`design/components.md`](design/components.md) § "MCP tool output —
+inline card / inline carousel / full screen" was promoted from
+single-component (`TuxArtifact` everywhere) to the static-vs-
+interactive split. The inline-card tier now branches on whether the
+MCP result is read-only (TuxArtifact) or app-like (TuxMcpEmbed); the
+full-screen tier documents the `@expand`-event → focus-view pattern.
+
+### Added — TuxPopover (2026-05-26)
+
+Closes the deferred-with-criterion Priority D entry — the
+richer-than-tooltip floating panel that consumers were composing on
+top of `UPopover` directly (~7 surfaces in the catalog by the time
+this shipped: `TuxFootnote`, `TuxInlineCitation`, `TuxContextMeter`,
+`TuxInfoLabel`, `TuxFormField`, `TuxAppSwitcher`, plus
+`TuxFilterPanel` chips).
+
+- **[`TuxPopover`](app/components/TuxPopover.vue)** — title + body +
+  optional actions panel. Default `mode="click"` because
+  hover-with-actions is bad UX (panel dismisses the moment the user
+  reaches for a button); `mode="hover"` available for read-only
+  inspect cases. Editorial maroon hairline rule under the title (same
+  anchor as `TuxTooltip`'s title presentation — that's the visual cue
+  that distinguishes a TUX floating panel from a bare UPopover drop).
+  Three width tiers: `sm` (16rem), `md` (22rem, default), `lg`
+  (28rem), plus `auto`. `body` prop covers prose; `#body` slot opens
+  the surface to richer markup (lists, data blocks, form fields).
+  `#actions` slot renders into a footer with a top border; bare
+  `<button>` elements get compact chrome via `:deep(button)`; add the
+  `tux-popover__action--primary` class for a maroon primary action.
+  Catalog convention added: the "which floating-panel component?"
+  decision tree (tooltip / teaching popover / popover / bare
+  UPopover) lives in the showcase page's footer for now; promote to
+  `design/components.md` Conventions if a third consumer surface
+  asks. Showcase at
+  [`/components/popover`](app/pages/components/popover.vue).
+
+### Added — TuxCommentThread (2026-05-26)
+
+Closes the only fully-unblocked Priority D entry in
+[`design/roadmap.md`](design/roadmap.md) — peer-review /
+editorial-comment threads. Sister to `TuxReactionBar`: that's
+light-touch acknowledgement, this is the heavyweight thread
+surface for actual dialog.
+
+- **[`TuxCommentThread`](app/components/TuxCommentThread.vue)** —
+  stateless renderer over a v-modeled `CommentThread[]`. Each thread
+  groups a root comment + replies, has an `open` / `resolved` status,
+  and supports `@mention` tokens (auto-detected on render, brand-
+  accent color). Authors are passed in as a `Record<string,
+  CommentAuthor>` directory (name + affiliation + optional avatar;
+  initials fallback when avatar is absent). The host owns
+  persistence — mutations emit semantic events (`comment:add`,
+  `comment:edit`, `comment:delete`, `thread:resolve`,
+  `thread:reopen`). Container-query density fallback below ~22rem
+  for narrow sidebar slots; explicit `size="sm"` for the same effect
+  via prop. Resolved threads collapse behind a "Show resolved (N)"
+  toggle by default. Edit / delete affordances only render on
+  comments the current viewer authored. `⌘↵` / `Ctrl↵` in the reply
+  textarea submits. Showcase at
+  [`/components/comment-thread`](app/pages/components/comment-thread.vue).
+
+Roadmap entry struck through; component table updated; nav slot
+added between `TuxCommandPalette` and `TuxConfirmDialog`.
+
+**Dogfood** — [`/examples/paper-page`](app/pages/examples/paper-page.vue)
+now embeds an "Open peer-review" section between Discussion §4 and
+Acknowledgments. Three threads (two open + one resolved) reflect a
+realistic TRR open-review pass: reviewer raises a methods concern,
+author responds; reviewer suggests adding citations; reviewer flags
+a reading-grade issue on the plain-language summary, co-author
+addresses it. Typed fixtures live in
+[`paper-page.demo-data.ts`](app/pages/examples/paper-page.demo-data.ts)
+per ADR-0011 since vue-tsc can't narrow string-literal union types
+declared inline in page `<script setup>` blocks.
+
+### Added — polish & hygiene sprint (2026-05-23)
+
+Four-item polish pass closing the catalog + CI + theme gaps that
+accumulated through the four-family expansion. No new components;
+all behavior-preserving except where the typecheck cleanup fixed
+real bugs.
+
+**Catalog hygiene** — three orphaned components surfaced:
+
+- `TuxShortcutsHelp` shipped into the catalog: row added to
+  [`design/components.md`](design/components.md), entry added to
+  the [`/components`](app/pages/components/index.vue) card grid and
+  [`app.vue`](app/app.vue) sidebar nav, new showcase page at
+  [`/components/shortcuts-help`](app/pages/components/shortcuts-help.vue)
+  built on the `TuxCommandPalette` showcase template (combos vs
+  sequences, native `<dialog>` setup, `defineShortcuts` wiring).
+- `TuxTreeNode` and `TuxDocsSidebarNode` annotated as internal
+  children of `TuxTree` and `TuxDocsSidebar` in
+  [`design/components.md`](design/components.md) — they're recursive
+  rendering primitives, not standalone consumables.
+
+**Dark theme tokens aligned** — the `tti-dark` runtime palette
+(150-line `[data-theme="tti-dark"]` block in
+[`app/assets/css/tokens.css`](app/assets/css/tokens.css)) is now
+mirrored in [`design/tokens.json`](design/tokens.json) under
+`themes.tti-dark` (brand, surface, text, semantic, focus, chart, map
+sections) so the documented single source of truth matches what
+actually renders. New "Dark theme" section in
+[`design/palette.md`](design/palette.md) explains the
+maroon→lifted-teal shift on small chrome elements, the three channels
+that preserve maroon brand presence (`brand.fill` for marketing
+panels, `chart.1` pinned to wine-rose for the primary chart series,
+Nuxt UI's `--color-maroon-400` override for solid buttons), and the
+asymmetry where `tti-dark` defines `semantic`/`chart`/`map` overrides
+that `tti` and `tti-hc` inherit from base.
+
+**CI gates** — `npm run lint` script added; new `quality` job in
+[`.github/workflows/audit-contrast.yml`](.github/workflows/audit-contrast.yml)
+runs lint + typecheck in parallel with the contrast audit. Both
+gates are blocking after the typecheck cleanup below. Fixed 3
+pre-existing lint errors in `scripts/audit-contrast.mjs` (duplicate
+`node:fs` import) and `scripts/build-geo.mjs` (dead `roundCoords`
+function). Added `reference/**` to
+[`eslint.config.mjs`](eslint.config.mjs) ignores since that
+directory is sync'd from upstream and not ours to lint.
+
+**Pre-commit hook** — husky + lint-staged installed.
+[`.husky/pre-commit`](.husky/pre-commit) runs `npx lint-staged`;
+[`package.json`](package.json) `lint-staged` config runs
+`eslint --fix` on staged `.vue` / `.ts` / `.js` / `.mjs` files.
+Husky's `prepare` script auto-installs the hook on `npm install`
+(documented in [`README.md`](README.md) Run-it section).
+
+**Typecheck cleanup (21 errors → 0)** — typecheck CI gate flipped
+from non-blocking to blocking. Eleven files touched, mix of real
+bug fixes and pre-existing pattern issues:
+
+- `TuxMapEmbed.vue` — `iframeEl.value?.complete` is an
+  `HTMLImageElement` property, not an iframe one. Replaced with
+  `contentDocument?.readyState === "complete"` (still null for
+  cross-origin maps, which fall through to the `load` event).
+- `TuxReactionBar.vue` — replaced
+  `counts[r.key] !== undefined && counts[r.key] > 0` with
+  `(counts[r.key] ?? 0) > 0` so TS can narrow through the indexed
+  access.
+- `TuxChartLine.vue` — added `as [number, number]` cast to the
+  `yDomain` `[0, 1]` fallback so the destructured `lo`/`hi` aren't
+  `number | undefined` downstream.
+- `TuxChartScatter.vue` — narrowed type predicate from
+  `(x): x is string` to `(x): x is "positive" | "negative" | "flat"`
+  to satisfy "predicate's type must be assignable to parameter's
+  type".
+- `TuxTable.vue` — relaxed `readStatus` signature from
+  `{ original?: Record<string, unknown> } & Record<string, unknown>`
+  to `{ original?: unknown }` so it accepts `Row<unknown>` from
+  UTable's slot.
+- `TuxAppFrame.vue` — replaced ternary `emit(action === … ? … : …)`
+  with explicit `if`/`else` branches per emit name so TS can match
+  the discrete tuple overloads.
+- `TuxCardCarousel.vue` — added `props` capture + `carouselItems`
+  computed that casts through `unknown` to satisfy UCarousel's
+  strict `CarouselItem[]` prop without losing the generic `T` for
+  the `#item` slot.
+- `TuxConfirmDialog.vue` — narrowed `confirmIntent` return type to
+  `"primary" | "destructive"`; mapped the "warning" dialog variant
+  to the primary button intent since `TuxButton`'s `Intent` doesn't
+  include "warning" and the warning context lives in the dialog
+  chrome, not the button.
+- `TuxFormField.vue` — kept kebab-case slot bindings (eslint
+  `vue/attribute-hyphenation` requires it) + added a comment
+  pointing consumers at the string-key destructure pattern
+  (`{ 'aria-describedby': x }`).
+- `app/pages/components/forms-wrapper.vue` — switched the
+  `TuxFormField` slot destructures to string-key syntax to match
+  Vue's literal type extraction for `aria-*` props.
+- `app/pages/components/rich-data-grid.vue` — `rows.slice(0, 5)` →
+  `compactRows` (undefined identifier reference).
+- New
+  [`app/pages/visualizations/chart-gauge.demo-data.ts`](app/pages/visualizations/chart-gauge.demo-data.ts) +
+  [`app/pages/visualizations/chart-line.demo-data.ts`](app/pages/visualizations/chart-line.demo-data.ts) —
+  showcase data extracted from the `.vue` pages so we can use real
+  TS annotations to narrow `Band.intent` and tuple-typed `Series.band`
+  / `Ref<[number, number]>` without violating ADR-0010's macro-extractor
+  constraint. See
+  [ADR-0011](docs/adr/0011-sibling-demo-data-ts-modules-for-pages.md)
+  for the prescribed pattern.
+
+**Architecture decision:**
+
+- New
+  [ADR-0011 — Sibling `*.demo-data.ts` modules for typed page data](docs/adr/0011-sibling-demo-data-ts-modules-for-pages.md).
+  Supplements ADR-0010 with the escape hatch when type-narrowing
+  needs collide with the macro-extractor constraint — JSDoc workarounds
+  don't suffice for literal narrowing, so extract to a sibling `.ts`
+  module instead.
+
+### Added — four-family expansion (2026-05-22)
+
+22 new components across four families, shipped in 4 focused
+commits with shared showcase routes:
+
+**Research-publishing cluster** (8 components,
+`/components/research-publishing`):
+TuxAbstract, TuxAuthorByline, TuxPaperMeta, TuxFigureCaption,
+TuxTableCaption, TuxFootnote, TuxCitationExport (6 formats),
+TuxAcknowledgments. Makes "TUX is for research publishing"
+tangible at the page level.
+
+**TTI identity / brand cluster** (5 components,
+`/components/tti-identity`):
+TuxResearcher (3 layouts), TuxLab, TuxProgram (3 layouts),
+TuxFundingSource (3 sizes), TuxCenterBadge (6 canonical TTI
+centers). Profile-shaped components for surfacing TTI people,
+labs, programs, funders.
+
+**Geospatial / map cluster** (4 components,
+`/components/geospatial`):
+TuxMapEmbed (library-agnostic iframe + slot wrapper),
+TuxCorridorStrip (native SVG 1-D corridor viz with segments +
+events + value spark), TuxMapLegend (stack/inline/gradient
+layouts), TuxMapMarker (5 research-typed SVG markers).
+Extends TuxChartGeographic toward general geospatial.
+
+**Forms wrapper cluster** (5 components,
+`/components/forms-wrapper`):
+TuxFormField (label + help + input + error stack with auto-
+generated ids + aria plumbing), TuxMarkdownEditor (no-deps
+markdown authoring with toolbar + shortcuts + preview),
+TuxFileDropzone (drag-and-drop uploads with validation),
+TuxValidationSummary (top-of-form error list with jump-to-
+field links), TuxConfirmDialog (TuxModal preset, 4 variants).
+
+Showcase convention shift: families share a single combined
+showcase route rather than 22 individual `/components/<kebab>`
+pages. Reads better as a cluster + reduces nav bloat.
+
+~132 Tux* components + 3 composables total (was ~110).
+
+### Added — composability doctrine + touchups (2026-05-22)
+
+**New doctrine doc:**
+
+- [`design/compositions.md`](design/compositions.md) — "Compositions
+  worth knowing" doctrine. Captures the **"X + Y composes more value
+  than they do alone"** patterns that emerged across the chart-family,
+  platform-aware, and AI-studio sprints. Seven sections (layout
+  shells, headlines + summaries, chart surfaces, browse + detail,
+  chat, cross-app nav, editorial) with code snippets + in-repo
+  consumer citations + non-obvious gotchas. Three tests for what
+  earns a slot. Composability is now a first-class doctrine, not
+  scattered hints in component JSDocs.
+
+**Navigation:**
+
+- Design-docs nav now lists Compositions, Chart foundations, and
+  Platform awareness alongside Doctrine / Components / Palette /
+  Roadmap. Previously these were only reachable via direct URL.
+- `app/pages/design/[doc].vue` title map extended for all current
+  design docs so the browser tab + breadcrumb read right.
+
+**Touchups — motion vocabulary aligned in example surfaces:**
+
+- `app/pages/examples/research-landing.vue` — TuxStatComparison
+  delta row gains `tux-mount-in` stagger so the year-over-year
+  numbers tick in subtly.
+- `app/pages/examples/sidebar-shell.vue` — Recent-activity rows
+  fade up with stagger as the page mounts.
+
+### Added — second polish queue (2026-05-22)
+
+Four-phase polish following the chart-tooltip + entrance-animation
+sprint. Spans dashboard hover hygiene, opt-in component motion,
+ai-studio example refresh, and Conventions documentation.
+
+**Dashboard hover state**
+- Chart tooltips on `TuxChartLine`, `TuxChartArea`, `TuxChartBar`
+  **auto-flip** to the left of the cursor when the active index sits
+  past 60% of the chart width. Avoids right-edge overflow in tight
+  card containers (the throughput / tier / health row in
+  landscape-dashboard, for instance).
+
+**Component motion** — new
+[`app/assets/css/tux-component-motion.css`](app/assets/css/tux-component-motion.css)
+(auto-imported via `globals.css`):
+- **`.tux-mount-in`** opt-in class — immediate children fade + 4px
+  slide up on mount (220ms). Stagger via
+  `--tux-mount-stagger-index` per child.
+- **`.tux-mount-in--section`** larger variant for section-level
+  entrances (320ms).
+- **`.tux-mount-fade`** + **`.tux-mount-scale`** for chrome
+  elements that shouldn't slide.
+- All three respect `prefers-reduced-motion: reduce` (collapse to
+  instant).
+- Applied opt-in to `landscape-dashboard.vue` (KPI strip + 3-card
+  health row) and `tti-ai-studio-session.vue` (right rail).
+
+**tti-ai-studio-session.vue refresh:**
+- **TuxAppSwitcher** added to the page-header actions (AI Studio
+  ↔ Landscape ↔ TUX docs).
+- **TuxFocusView** wraps the `compare.py` artifact for an "open in
+  focus mode" affordance (the natural Artifact + FocusView pairing).
+- **TuxReactionBar** replaces the inline thumb buttons in the
+  assistant turn's footer (less friction than a feedback form).
+- **`tux-mount-in`** entrance on the right rail.
+
+**Conventions docs** (in `design/components.md`):
+- New "Motion primitives — six canonical transitions" subsection
+  documenting the six existing patterns (Tooltip / Popover,
+  Dropdown menu, Modal / Dialog, Slideover / Drawer, Toast,
+  Accordion) plus the three component-level + six chart-family
+  primitives. **All collapse to instant on `prefers-reduced-motion:
+  reduce`** — non-negotiable.
+- New "Chart tooltips — consistent pattern across the family"
+  subsection capturing the 7-point contract every interactive
+  chart now follows (focus, highlight, branded card, auto-flip,
+  hover emit, tooltip prop, SVG `<title>` fallback).
+
+### Added — chart polish queue (2026-05-22)
+
+Polishes the native chart family for consistency and motion.
+
+**Tooltip parity across the chart family:**
+- `TuxChartArea` — vertical guide + per-series focus dots + tooltip
+  card (Line-style pattern, including stacked-total readout).
+- `TuxChartBar` — column-wash highlight + tooltip card with per-
+  series values + projection-vs-actual comparison row + total.
+- `TuxChartScatter` — per-dot pointer enter / focus reveals a
+  tooltip anchored to the active dot. Dot grows +2px on active.
+  Native SVG `<title>` still present as a fallback for AT.
+- All three accept `:tooltip="false"` to disable, and emit a
+  `hover` event with the active payload (consumer can sync hover
+  state across panels).
+- Keyboard-accessible: tab into the plot, arrow keys cycle
+  indices on Line/Area/Bar; tab into a dot on Scatter.
+
+**Chart entrance animations** (new
+`app/assets/css/tux-chart-motion.css`, auto-imported via
+`globals.css`):
+- Lines draw on via animated `stroke-dashoffset` (450ms).
+- Bars scale-Y from baseline (vertical) / scale-X from edge
+  (horizontal), staggered ~12ms per category.
+- Areas + top-lines rise from a 0.94 vertical scale (360ms).
+- Donut slices spin in (~360ms, staggered 28ms per slice).
+- Scatter dots pop from scale(0), staggered 8ms.
+- Gauge fill sweeps via `stroke-dashoffset`; needle swings from
+  -135° to its angle (480ms).
+- **All keyed off `prefers-reduced-motion`** — `reduce` collapses
+  every animation to instant.
+
+**TuxFocusView + chart composition:**
+- Chart-line showcase gains an "Open in focus mode" demo that
+  pins the chart full-viewport with brush + tooltip still
+  functional inside the overlay.
+
+### Added — compositional sprint: chart interactions + dashboard refresh + absorption closure (2026-05-22)
+
+Layered onto the chart-family completion: real interactions on the
+most-used chart, a full Landscape-dashboard dogfood, and the
+absorption pipeline closed.
+
+**Chart interactions** on `TuxChartLine`:
+
+- **Hover tooltip** — on by default. Mouse + keyboard (tab into
+  plot area, arrow keys to cycle data points). Tooltip card
+  positioned with the active vertical guide line + focus dots on
+  each series. Shows current + previous-period readouts together.
+  Native SVG `<title>` fallback still present for plain screen-
+  reader users.
+- **Brush selector** — pass `brush` + `v-model:range` to render a
+  compact preview strip beneath the main chart with two draggable
+  handles. Drag handles to resize the visible window; drag the
+  window itself to pan. Charts UI Kit absorption carry-forward
+  finally lands. Two new emits (`update:range`, `hover`).
+
+**Showcase refresh:**
+- `/visualizations/chart-line` gains two new sections (tooltip
+  + brush) with live demos.
+
+**`app/pages/examples/landscape-dashboard.vue`:**
+- Three new chart sections dogfood the full Priority B chart
+  family on real-shape Landscape data:
+  - 12-month ingest trend with brush selector + previous-period
+    overlay (TuxChartLine).
+  - KPI strip (TuxBigStat × 4) above stacked area chart by file
+    type — the canonical "summary + trend" composition from the
+    Charts UI Kit absorption.
+  - Throughput-by-weekday bar + access-tier donut + API-uptime +
+    agent-pool gauges in a three-card grid.
+
+**Absorption pipeline closed:**
+- Three sleeper audits — Accessible Design Toolkit (a11y rubric
+  parity confirmed), Omnichart UX Flowchart (TuxDiagram covers
+  it), 59 Charts UI Responsive (native SVG architecture
+  reaffirmed). All "no new components" with documented rationale.
+- New [`reference/figma-cache/SKIP-RATIONALE.md`](reference/figma-cache/SKIP-RATIONALE.md)
+  consolidates the explicit-skip rationale for the remaining 22
+  files (other framework systems, mockup tools, single-pattern
+  kits). Future contributors don't need to re-litigate.
+
+**Totals after this sprint:** 46 / 70 absorbed; 22 explicitly
+skipped + 2 known duplicates = full corpus triaged.
+
+### Added — native chart family completion (2026-05-22)
+
+Closes the Priority B chart roadmap. Four new native SVG charts
+land in one sprint, all following `design/chart-foundations.md`
+doctrine: maroon-led `--chart-1..8` palette, end-of-element value
+labels colored to series, auto-derived screen-reader summary,
+editorial chrome via optional `TuxChartFrame` wrap.
+
+- **[`TuxChartDonut`](app/components/TuxChartDonut.vue)** —
+  share-of-total with center stat slot. Slices below `minSlice%`
+  auto-fold into "Other" (keeps it legible past 6 categories).
+  Slice labels colored to the wedge they point at — color-blind
+  users get identity from text adjacency.
+- **[`TuxChartArea`](app/components/TuxChartArea.vue)** — sibling
+  to TuxChartLine; fills the region under each line. Overlay
+  (default, 0.22 opacity for multi-series read-through) and stacked
+  variants. End-of-area labels colored to series. Pairs with
+  `TuxBigStat` for the canonical "KPI strip over stacked area"
+  composition (Charts UI Kit absorption carry-forward).
+- **[`TuxChartScatter`](app/components/TuxChartScatter.vue)** —
+  correlation plot. Optional linear-regression trendline per series
+  with R² readout in the legend. Variable point sizes for bubble-
+  chart mode. The only chart in the family where both axes need
+  labels (since x is no longer ordinal).
+- **[`TuxChartGauge`](app/components/TuxChartGauge.vue)** — 270°
+  arc gauge for single-target metrics. Two variants: `arc` (needle
+  + optional tone bands using status tokens) and `progress` (single
+  filled arc, no needle). Use sparingly — research dashboards
+  rarely need gauges; the showcase calls out when to reach for
+  `TuxBigStat` instead.
+
+Plus showcase routes under `/visualizations/{chart-donut, chart-area,
+chart-scatter, chart-gauge}`, full 6-step shipping discipline (nav,
+index cards, components.md rows, roadmap struck through).
+
+The Priority B chart roadmap is now closed.
+
+### Added — next-sprint batch: SplitPane + AppSwitcher + ChartBar (2026-05-22)
+
+Closes 3 of the 4 deferred roadmap candidates from the
+platform-aware sprint. Tauri-bindings companion doc lands too.
+
+**New components:**
+
+- **[`TuxSplitPane`](app/components/TuxSplitPane.vue)** — in-page
+  master-detail layout with resizable list pane (drag handle, double-
+  click to collapse, sliver-click to expand) and optional bottom pane
+  for related content. Width persists via localStorage when an `id`
+  is provided. Folds to single-column below tablet. Selection is
+  URL-bound (consumer's responsibility); empty-state defaults to
+  `TuxEmptyState` if `#empty` slot not provided. Source: Fabric
+  "Multiview" absorption.
+- **[`TuxAppSwitcher`](app/components/TuxAppSwitcher.vue)** — waffle-
+  button trigger + popover grid of app tiles for hopping between TTI
+  consumer apps (Landscape ↔ AI Studio ↔ future). Current-app tile
+  carries `aria-current="page"` + visual disabled state. Source:
+  Fabric "Suite header" absorption.
+- **[`TuxChartBar`](app/components/TuxChartBar.vue)** — second
+  Priority B chart, sibling to TuxChartLine. Native SVG; vertical
+  (default) + horizontal orientations; single / grouped / stacked
+  variants; optional comparison overlay (Snow "Projections vs
+  Actuals" pattern); value labels above-bar or in-bar; auto SR
+  summary. Follows `chart-foundations.md` doctrine.
+
+**New doc:**
+
+- **[`design/tauri-bindings.md`](design/tauri-bindings.md)** —
+  companion to platform-awareness. Enumerates which TUX components
+  call which Tauri APIs (window controls in `TuxAppFrame`, share
+  sheet in `TuxArtifact`, file dialog in `TuxCodeBlock`,
+  notifications in `TuxStatusToast`), the web fallback for each, and
+  a capability allowlist template for consumer Tauri shells.
+
+**Showcase routes:** `/components/{split-pane, app-switcher}` +
+`/visualizations/chart-bar` — full 6-step shipping discipline
+(routes, nav, index cards, components.md rows, roadmap struck
+through).
+
+### Added — platform-aware Tauri build sprint (2026-05-22)
+
+Doctrine + 8 components + 2 composables + 1 CSS utility + safe-area
+support landed in a single sprint. TUX shifted from web-only to
+**Tauri desktop shells on Windows / macOS / Linux** plus future
+Tauri Mobile (iOS / Android), which made the previously-skipped
+Apple / Material / Windows Figma kits legitimately useful.
+
+**Doctrine (grounds everything else):**
+
+- **[`design/platform-awareness.md`](design/platform-awareness.md)** —
+  "TUX is one component tree, platform-adaptive at the chrome layer."
+  Two-layer mental model (brand invariant, chrome adapts). 8
+  dimensions of variation (window controls, scrollbar, modifier keys,
+  fonts, drag regions, menu bar, accent, share/file/notification
+  APIs). Held 5 visual-language rejections: Liquid Glass as surface,
+  Mica wholesale, Material tonal palette, elevation-as-color, SF
+  Symbols icon family.
+
+**Foundations:**
+
+- **[`useTuxPlatform()`](app/composables/useTuxPlatform.ts)** —
+  module-singleton composable that detects host OS + Tauri runtime
+  + primary modifier + system accent post-hydration. Sets
+  `document.documentElement.dataset.platform` so CSS branches without
+  each component asking JS. SSR-safe defaults.
+- **[`app/assets/css/tux-scrollbar.css`](app/assets/css/tux-scrollbar.css)** —
+  per-platform scrollbar styling auto-imported via `globals.css`.
+  Mac overlay auto-hide, Win11 persistent slim (12px), Linux defers
+  to GTK/Qt, web fallback. Recipes lifted from the scrollbar-kit
+  absorption. Opt-out via `.tux-scrollbar-default`.
+- **Safe-area-inset CSS** on `app/layouts/default.vue` +
+  `app/layouts/sidebar.vue`. Honors `env(safe-area-inset-*)` so
+  Tauri Mobile builds get notch / home-indicator / gesture-nav
+  clearance. Zero cost on desktop / web.
+
+**Chrome components (desktop / app-shell):**
+
+- **[`TuxAppFrame`](app/components/TuxAppFrame.vue)** — custom Tauri
+  titlebar with platform-correct controls. Mac: traffic lights
+  top-left + title-toolbar unification. Win11: min/max/close
+  top-right with native snap-layouts. Linux: close-only fallback.
+  Slots: `#left` / `#center` / `#right`. Drag regions marked.
+- **[`TuxFocusView`](app/components/TuxFocusView.vue)** — full-
+  viewport overlay for inspecting one piece of content (a chart, a
+  record). Back + title + actions chrome above a content slot. Esc +
+  backdrop dismiss; focus trap; reduced-motion respected. Absorbed
+  from Teams Stage view / Lightbox view.
+- **[`TuxMenuBar`](app/components/TuxMenuBar.vue)** — in-window
+  File / Edit / View / Help strip for Win / Linux. Composes
+  `UDropdownMenu`. Skipped on Mac (system menu wins).
+- **[`TuxSplashScreen`](app/components/TuxSplashScreen.vue)** —
+  branded app-launch overlay. Brand mark + maroon hairline + status.
+  Bridges Tauri window-show → Vue hydrate gap.
+
+**Mobile components (Tauri Mobile target):**
+
+- **[`TuxTabBar`](app/components/TuxTabBar.vue)** — bottom-anchored
+  3-5 tab nav. Icon + label + **maroon top-edge active rule** (TUX
+  signature). Safe-area-inset honored. 44px min tap target.
+- **[`TuxFAB`](app/components/TuxFAB.vue)** — Floating Action Button
+  for the single "compose new" action per screen. Icon-only circle
+  (56 / 40px) or extended pill with label.
+
+**Composables:**
+
+- **[`useTuxSwipe`](app/composables/useTuxSwipe.ts)** — pointer /
+  touch swipe detection with directional callbacks. Accessibility
+  rule: any swipe action MUST have a visible alternative.
+- **[`useTuxRipple`](app/composables/useTuxRipple.ts)** — Material-
+  style tap-feedback ripple. Opt-in only. Honors
+  `prefers-reduced-motion`.
+
+**Enhancements:**
+
+- **[`TuxKbd`](app/components/TuxKbd.vue)** — reads from
+  `useTuxPlatform()` instead of inline navigator-platform sniff.
+  Renders `Super` on Linux + `Win` on Windows. Three platform symbol
+  tables.
+- **[`TuxModal`](app/components/TuxModal.vue)** — adds `size` prop
+  (sm → 3xl) + `variant: 'standard' | 'sheet' | 'auto'`. Sheet
+  variant is bottom-anchored with drag-handle pill (iOS / Material 3
+  mobile pattern). Auto picks sheet on iOS / Android.
+
+**Showcase routes** (full 6-step ship discipline):
+`/components/{app-frame, focus-view, menu-bar, splash-screen,
+tab-bar, fab, swipe, ripple}` — all 8 added to app.vue nav,
+components index cards, design/components.md rows.
+
+### Platform-aware Figma absorption sweep (2026-05-22)
+
+The doctrine pass was preceded by a 13-file absorption sweep across
+Apple / Google / Windows / cross-platform utility kits (Windows UI
+kit re-read with new lens, macOS 26 Tahoe, iOS 26 Liquid Glass, iOS+
+iPadOS 26, macOS Browser, visionOS 26, Apple Widgets, SF Symbol
+Creator, Material 3, Android UI Kit, 50 Mobile Bottom Nav, Tailwind
+Headless UI Animations, Scrollbar Kit MacOS & Windows, UI Prep Layout
+Grids). 0 new components from absorption alone; recipes + roadmap
+candidates captured in per-file NOTES.md. 43/70 absorbed total.
+
+### Medium-signal absorption sweep (2026-05-22)
+
+14 files cleared from the original medium bucket: 7 single-pattern
+(Calendar, Interactive Dropdown ×2, Progress Bar, Order list,
+Dashboard ×2) and 7 Microsoft-suite (M365, Fabric ×3, Store, Teams,
+SharePoint). 0 new components; 3 future-component candidates noted
+(TuxSplitPane, TuxAppSwitcher, TuxFocusView — the last shipped this
+sprint).
+
+A multi-day absorption pass over the Figma project's high-signal
+reference systems (shadcn_ui Jan 2026, Vercel AI Elements, Primer Web,
+Microsoft Fluent 2 Web, plus the Windows UI kit and Aggie UX). Most
+findings confirmed TUX's architecture; the rest landed as new
+components, a layout, build-pipeline additions, and one infrastructure
+fix. Triage + per-file findings live under
+[`reference/figma-cache/`](reference/figma-cache); each `NOTES.md`
+records what was absorbed vs skipped vs deliberately deferred.
+
+A follow-up medium-signal pass on 2026-05-21 absorbed five more files
+(Charts UI Kit, Data Visualization Graphs / Charts Kit, Data Table
+design components, Snow Dashboard UI Kit, Empty State Illustration
+Kit) — 0 new components, audit-only by design. Findings rolled into
+roadmap carry-forwards (`design/roadmap.md`) and one doctrine
+addition to `TuxEmptyState` / `design/components.md` ("no decorative
+illustrations").
+
+A subsequent AI-studio chat-surface cluster pass on 2026-05-21 absorbed
+four more files (Chat UI kit, Chat Input Box, ChatGPT UI Kit, MCP Apps
+for Claude). Net new: **0 components shipped**. The chat surface was
+already saturated by the Vercel AI Elements pack + Fluent 2 + Primer
+work. Most absorption value was confirming `TuxComposer #toolbar-extra`
++ `TuxChatMessage #header-trailing` cover the canonical shapes; the
+exception was Anthropic's MCP Apps kit which mapped a three-tier
+display taxonomy (inline card → inline carousel → full screen) that
+will guide a future `TuxMcpEmbed` + `TuxCardCarousel` build when
+tti-ai-studio integrates MCP tool output. Findings + carry-forwards
+in `reference/figma-cache/mcp-apps-for-claude/NOTES.md` and the
+roadmap.
+
+### Added — roadmap clear: small wrappers + pagination + first chart + a11y docs (2026-05-21)
+
+Big batch closing the Priority B/C/D items already on the roadmap
+before this session started. Net new: **8 components shipped + 4
+accessibility doc pages + TuxTOC wiring + TuxStatComparison demo
+on research-landing**. Lint clean throughout.
+
+**Easy wrappers (Nuxt UI primitives + TUX chrome):**
+
+- **[`TuxTabs`](app/components/TuxTabs.vue)** — wraps `UTabs`. 2px
+  maroon active underline replaces the default accent. `intent="bold"`
+  swaps to uppercase tracked labels for eyebrow-rhythm contexts.
+  `orientation="vertical"` covers settings panels. Closes both
+  `TuxTabsHorizontal` and `TuxTabsVertical` roadmap entries (one
+  component, prop covers both).
+- **[`TuxTooltip`](app/components/TuxTooltip.vue)** — wraps `UTooltip`.
+  Optional title + hairline rule; tuned max-width (~22ch); shortcut
+  glyphs via `kbds`. For richer panels, consumers use
+  `TuxTeachingPopover` (onboarding) or `UPopover` directly.
+
+**Pagination + result-display family:**
+
+- **[`TuxResultCount`](app/components/TuxResultCount.vue)** —
+  "Showing 1–24 of 412 corridors · 24 per page." v-model bound page
+  + pageSize; page-size picker auto-snaps to page 1 on change. Naive
+  pluralization with `nounPlural` override.
+- **[`TuxLoadMore`](app/components/TuxLoadMore.vue)** — explicit
+  button with remaining count below + terminal divider on completion
+  (`loaded >= total`). SEO-friendly middle ground between paginated
+  and infinite.
+- **[`TuxInfiniteScroll`](app/components/TuxInfiniteScroll.vue)** —
+  IntersectionObserver sentinel with throttled emit + loading state.
+  Honors `prefers-reduced-motion` automatically (renders explicit
+  button instead of auto-fetching); `keyboardFallback` prop forces
+  the button on for accessibility-critical surfaces.
+
+**Feedback + comparison:**
+
+- **[`TuxReactionBar`](app/components/TuxReactionBar.vue)** —
+  light-touch acknowledgement strip. Default trio (helpful · question
+  · disagree) with full configurability via `reactions` prop. Counts
+  display-only; v-modeled active reactions. Two sizes (sm / md).
+- **[`TuxStatComparison`](app/components/TuxStatComparison.vue)** —
+  before/after stat block with delta + tone. Three polarities
+  (direct / invert / neutral) for metrics where down-is-good (latency,
+  error rate). Three layouts (row / stack / inline). Demonstrated
+  alongside the existing factoid row in `/examples/research-landing`.
+
+**First Priority B chart:**
+
+- **[`TuxChartLine`](app/components/TuxChartLine.vue)** (~520 LOC) —
+  native SVG line chart following the chart-foundations doctrine.
+  End-of-line value labels colored to series (default, not opt-in —
+  the accessibility win flagged by the Data Viz Graphs absorption).
+  Optional `series[].previous` for dashed prior-period overlay,
+  optional `series[].band` for confidence bands, optional markers,
+  auto-derived screen-reader summary. Showcase at
+  [`/visualizations/chart-line`](app/pages/visualizations/chart-line.vue)
+  with five examples including a `TuxChartFrame`-wrapped editorial
+  variant.
+
+**Accessibility documentation (4 pages):**
+
+- [`/accessibility/skip-to-content`](app/pages/accessibility/skip-to-content.vue)
+- [`/accessibility/focus-model`](app/pages/accessibility/focus-model.vue)
+- [`/accessibility/contrast-matrix`](app/pages/accessibility/contrast-matrix.vue)
+  — USWDS-style top-10 token-pair summary with per-theme ratios
+- [`/accessibility/breakpoints`](app/pages/accessibility/breakpoints.vue)
+  — six-breakpoint scale + container-query preference + 200% zoom
+
+Existing `accessibility.vue` moved to `accessibility/index.vue` with
+a new "deep-dive references" section linking to all four sub-pages
+via TuxCard tiles.
+
+**Polish queue items:**
+
+- **TuxTOC wired into TuxReportWebFrame `#toc` slot** in
+  `/reports/web-frame` showcase. Uses TuxTOC's auto-detect (scans
+  h2/h3 in the article) so the IntersectionObserver scroll-spy
+  works without rebuilding the items array. The fallback (plain
+  anchor list from the frame's `toc` prop) still renders when the
+  slot is empty.
+- **research-landing example refreshed** with a TuxStatComparison
+  year-over-year delta row beneath the by-the-numbers factoid.
+  One of three uses inverted polarity to show non-compliance going
+  down = success.
+
+### Added — adoption batch from absorption carry-forwards (2026-05-21)
+
+Shipping the small, broadly-useful improvements identified across the
+last three absorption passes. No speculative builds — each item had
+multiple absorption files asking for it.
+
+**Tier 1 — slot + prop additions (≤30 LOC each):**
+
+- **[`TuxComposer`](app/components/TuxComposer.vue)** — `cancelable`
+  prop + `cancelLabel` prop + `@cancel` emit. When the composer is
+  wrapped in a modal / slideover / inline edit, surfaces an explicit
+  `[Cancel] [Send]` pair. Cancel is ghost-intent; Send stays primary.
+  Absorbed from the Chat Input Box Figma file. New showcase section
+  on [`/components/composer`](app/pages/components/composer.vue).
+
+- **[`TuxRichDataGrid`](app/components/TuxRichDataGrid.vue)** —
+  `#headerMenu` per-column slot. Consumer-supplied dropdown attached
+  to each column header for sort / hide / pin / filter actions. Slot
+  scope: `{ column, sortKey, sortDir }`. No default chrome — consumers
+  compose with `UDropdownMenu`, `UPopover`, or a full `TuxFilterPanel`.
+  Absorbed from the Data-table-design Figma kit + Snow Dashboard. New
+  showcase section on
+  [`/components/rich-data-grid`](app/pages/components/rich-data-grid.vue).
+
+- **[`app/layouts/sidebar.vue`](app/layouts/sidebar.vue)** —
+  `#aside` slot for an optional right rail. Fixed-width
+  (`asideWidth` prop, default `18rem`), sticky-scrolling next to the
+  main panel, hidden under `md` viewport. Absorbed from Snow
+  Dashboard's notifications + activities rail. The
+  [`landscape-dashboard`](app/pages/examples/landscape-dashboard.vue)
+  example refactored to use this slot (its Recent-activity + Active-
+  agents tiles moved out of the page body into the layout aside —
+  they now stay sticky while main content scrolls).
+
+**Tier 2 — Conventions docs (`design/components.md`):**
+
+- **First-run AI surfaces — Examples / Capabilities / Limitations.**
+  ChatGPT's canonical three-column taxonomy for first-run splashes.
+  Compose with `TuxFactoid density="3"` or 3-up `TuxCard` grid; no
+  new component needed.
+- **MCP tool output — inline card / inline carousel / full screen.**
+  Three-tier display decision tree for MCP tool results. Maps each
+  tier to a TUX composition (`TuxArtifact` → `TuxCardCarousel` →
+  `TuxArtifact` inside `TuxSlideover`/`TuxModal`).
+
+**Tier 2 — new design doc:**
+
+- **[`design/chart-foundations.md`](design/chart-foundations.md)**
+  skeleton. Captures the doctrine future `TuxChartLine` /
+  `TuxChartBar` / `TuxChartArea` will follow — palette rules, in-bar
+  vs above value labels, end-of-line label default, comparison-series
+  patterns, brush/range selector, KPI strip composition, accessibility.
+  Lands before the components so they ship in line with the doctrine.
+
+**Tier 3 — new component:**
+
+- **[`TuxCardCarousel`](app/components/TuxCardCarousel.vue)** —
+  horizontal scroll of cards with editorial chrome (eyebrow + display-
+  face title + signature rule + arrows + optional pagination dots).
+  Thin wrapper around `UCarousel` (embla under the hood); cards are
+  the consumer's responsibility — `TuxCard`, `TuxArtifact`,
+  `TuxContactCard`, or a bare `<article>` all work. Two render modes:
+  `items` array + `#item` scoped slot, or direct slide blocks via
+  the default slot. Re-opens the carousel question we deferred in
+  the shadcn absorption — MCP-Apps-for-Claude (inline carousel tier)
+  was the trigger consumer. Full 6-step integration: source +
+  showcase at [`/components/card-carousel`](app/pages/components/card-carousel.vue)
+  + nav entry + index card + components-md row + CHANGELOG.
+
+### Changed — PECAN → Landscape rebrand (2026-05-21)
+
+The downstream sensitive-data classifier consumer formerly named
+**PECAN** is now **Landscape**. The rebrand touched ~50 files across
+TUX; historical record (this CHANGELOG file and the `docs/adr/*.md`
+records) was deliberately left intact — entries reference the project
+under its name at the time the entry was written.
+
+- **Renamed** [`app/pages/examples/pecan-dashboard.vue`](app/pages/examples/landscape-dashboard.vue)
+  → `landscape-dashboard.vue`. Route is now `/examples/landscape-dashboard`.
+- **Renamed** `public/kits/pecan/` → [`public/kits/landscape/`](public/kits/landscape/);
+  kit slug + label updated in [`app/pages/kits.vue`](app/pages/kits.vue).
+- **Prose updated** across `README.md`, `design/components.md`,
+  `design/roadmap.md`, ~30 showcase pages under `app/pages/`, 10
+  component JSDoc blocks (`TuxDescriptionList`, `TuxCodeBlock`,
+  `TuxFilterPanel`, `TuxPagination`, `TuxTeachingPopover`,
+  `TuxTreemap`, `TuxSearch`, `TuxSiteNav`, `TuxRichDataGrid`,
+  `TuxFooter`), top-of-file comments in `nuxt.config.ts` /
+  `app/app.vue` / `app/layouts/sidebar.vue`, and the
+  `public/kits/aggieux/*.jsx` reference catalog (default
+  `productName` knobs on banners, footer demo strings, breadcrumbs).
+- **First-mention-per-file** uses "Landscape (formerly PECAN)" for
+  continuity; later mentions are bare "Landscape."
+- **Refreshed** [`app/pages/examples/landscape-dashboard.vue`](app/pages/examples/landscape-dashboard.vue)
+  to use the full sidebar layout + KPI row with delta-vs-previous
+  readings + inline ingest-rate sparkline + two-column main/right-
+  rail grid with Recent-activity + Active-agents tiles. Composition
+  reference for the patterns absorbed from the Snow Dashboard
+  ([NOTES](reference/figma-cache/snow-dashboard-ui-kit/NOTES.md)).
+  Composes ~15 Tux\* + Nuxt UI 4 primitives. No new components — the
+  right rail is a host-driven grid composition, not a layout slot
+  (the `#aside` slot follow-up on `sidebar.vue` waits until a second
+  consumer surface needs it).
+
+### Changed — empty-state stance documented
+
+- **[`TuxEmptyState`](app/components/TuxEmptyState.vue)** — JSDoc now
+  states the deliberate "no decorative illustrations" stance.
+  Companion entry added to
+  [`design/components.md`](design/components.md) Conventions section.
+  Reaffirmed against the Empty State Illustration Kit absorption
+  ([NOTES](reference/figma-cache/empty-state-illustration-kit/NOTES.md));
+  the five `kind` presets remain the canonical taxonomy.
+
+### Added — AI-elements component pack (Vercel AI Elements absorption)
+
+Five new components and one enhancement, all driven by patterns from
+Vercel's AI Elements that nothing in TUX or Nuxt UI 4 covered. Together
+they let `tti-ai-studio` surface budget visibility, response
+alternatives, inline-grounded citations, generated artifacts, and
+follow-up suggestions — the AI-specific affordances real consumer apps
+need but TUX previously left to ad-hoc composition.
+
+- **[`TuxSuggestionChips`](app/components/TuxSuggestionChips.vue)** —
+  horizontal row of clickable prompt-suggestion chips. Empty-state
+  composer or post-response follow-ups. Accepts plain strings or
+  `{ label, prompt }` for short-chip / longer-prompt cases.
+- **[`TuxBranchNav`](app/components/TuxBranchNav.vue)** — `‹ N of M ›`
+  navigator for response alternatives. v-modeled 1-indexed position,
+  `hideSingleton` defaults true (N=1 renders nothing), optional
+  `loop`. Position rendered as text for SR announcement.
+- **[`TuxInlineCitation`](app/components/TuxInlineCitation.vue)** —
+  academic-style superscripted `[N]` pill in body text. Hover or
+  click reveals `UPopover` with title + URL + excerpt + score. One
+  source per pill (not Vercel's "+N" aggregation); composes with the
+  existing `TuxCitations` footer list.
+- **[`TuxContextMeter`](app/components/TuxContextMeter.vue)** —
+  token-utilization meter. Compact pill with conic-gradient ring + %
+  used; popover reveals input/output token counts + per-side cost +
+  total. Tone-codes ok / warn / alert at 60% / 85% thresholds —
+  visible signal as long sessions approach the context limit.
+- **[`TuxArtifact`](app/components/TuxArtifact.vue)** — structured
+  container for AI-generated output (code file, dataset, document,
+  image). Header (icon + title + meta + actions row) + body slot.
+  Common actions (copy / download / regenerate / share) via the
+  `actions` prop emit named events; custom actions via `#actions`
+  slot. Standalone — consumer wraps in container (inline, sidebar
+  aside, full-page).
+- **[`TuxCodeBlock`](app/components/TuxCodeBlock.vue)** gained a
+  **download button** beside the existing copy. Resolves filename
+  from a `downloadName` override → the `filename` basename →
+  `code.{ext}` from a 25-language extension map. Both buttons share a
+  hover-revealed `__actions` container.
+- **[`TuxChatMessage`](app/components/TuxChatMessage.vue)** gained a
+  **`#header-trailing` slot** for right-aligned controls (canonical
+  use: `TuxBranchNav`; also fits per-message model pickers,
+  regenerate buttons). Surfaced by dogfooding the refactor of the
+  example page; previously the header had no place for trailing
+  controls.
+
+### Added — `TuxRemovableChip` (Primer Token absorption)
+
+Standalone primitive for interactive dismissible pills. Distinct from
+[`TuxBadge`](app/components/TuxBadge.vue) (decorative) — this is
+button-shaped, focusable, and emits events: click-toggleable via
+`selected`, removable via the `×` button (or `clickToRemove` for
+whole-pill click). Three sizes, optional leading icon, optional
+disabled state. Pattern was previously hand-rolled inside
+[`TuxFilterPanel`](app/components/TuxFilterPanel.vue); extraction
+gives a primitive for tag inputs, recipient lists, multi-select
+chips, etc.
+
+- **[`TuxFilterPanel`](app/components/TuxFilterPanel.vue)** refactored
+  to consume `TuxRemovableChip` for applied-filter pills at the top
+  of the panel. Removes ~30 LOC of hand-rolled chip markup and
+  scoped styles; behavior preserved (whole-pill click removes, `×`
+  rendered as decorative affordance).
+
+### Added — `TuxInfoLabel`, `TuxTeachingPopover` (Fluent 2 absorption)
+
+Two small patterns from Microsoft Fluent 2 Web. Both deferred from
+the initial Fluent pass until the integration sweep landed them with
+showcase routes and convention.
+
+- **[`TuxInfoLabel`](app/components/TuxInfoLabel.vue)** — form-field
+  label with an `(i)` info button. Hover or click reveals a popover
+  with extended explanation. For technical research forms where
+  field meanings deserve context (ITAR rubrics, retention classes,
+  classifier metrics). Pairs with form primitives via the standard
+  `for=` attribute; optional `required` shows the maroon `*`.
+- **[`TuxTeachingPopover`](app/components/TuxTeachingPopover.vue)** —
+  onboarding / guided-tour tooltip. Distinguished from `UTooltip`
+  (passive hover help) by the guided-flow affordances: optional
+  header image, body, Next / Skip footer, step counter
+  (`{step} of {totalSteps}`). v-models both open state and current
+  step. `onBrand` variant for high-emphasis announcements.
+
+### Added — Sidebar app-shell layout + demo example
+
+- **[`app/layouts/sidebar.vue`](app/layouts/sidebar.vue)** rewritten
+  to compose Nuxt UI 4's `UDashboardGroup` + `UDashboardSidebar` +
+  `UDashboardPanel`. Earlier scaffold was hand-rolled CSS; the
+  rewrite drops ~70 LOC and inherits collapse-to-icons, mobile
+  slideover, resizable handle, and cookie-backed persistence from
+  Nuxt UI. Opt in per page via
+  `definePageMeta({ layout: "sidebar" })`. Slot surface:
+  `#header` (top bar / breadcrumbs), `#rail-header` (brand),
+  `#rail` (nav body), `#rail-footer` (user), default (main content).
+  Rail slots receive `{ collapsed, collapse }` scope vars.
+- **[`/examples/sidebar-shell`](app/pages/examples/sidebar-shell.vue)** —
+  new composition example demonstrating the layout's slot surface.
+  Sample app-shell with TTI brand, hierarchical UNavigationMenu in
+  the rail, user-account footer, and a content surface with
+  factoids + recent-activity list.
+
+### Added — LaTeX math in MDC pipeline
+
+`remark-math` + `rehype-katex` wired into [`nuxt.config.ts`](nuxt.config.ts)
+under `mdc.remarkPlugins` / `mdc.rehypePlugins`. KaTeX CSS imported
+globally in [`globals.css`](app/assets/css/globals.css). Markdown
+sources can now use `$inline$` and `$$display$$` math; rendered HTML
+includes both `katex-html` (visual) and `katex-mathml` (a11y) trees.
+The [`/markdown`](app/pages/markdown.vue) demo gains a Math section
+exercising both forms. Bundle-size cost: ~75 KB KaTeX CSS loads on
+every page (lightweight enough to justify; consumers can swap to a
+manual per-page import if they want to be strictly lazy).
+
+### Added — Breakpoint tokens (Windows UI kit absorption)
+
+- **[`design/tokens.json`](design/tokens.json)** gained a
+  `breakpoint` block: `xs` (0) / `sm` (640) / `md` (768) / `lg` (1024)
+  / `xl` (1280) / `2xl` (1536), with `$description` per breakpoint
+  documenting the semantic trigger (what surface state changes at
+  this width). Values match Tailwind v4 defaults so `md:` / `lg:`
+  utilities keep their intuitive meaning; the token source is the
+  durable reference. Pulled from a survey of Microsoft's Windows UI
+  kit responsive ladder (348 / 660 / 708 / 1020 / 1252), rebased to
+  TUX's editorial-first content widths.
+- **[`globals.css`](app/assets/css/globals.css)** `@theme` block
+  gained `--breakpoint-*` entries mirroring the token source.
+
+### Added — `TuxEmptyState` `compact` prop + `kind` preset library
+
+Two enhancements to the empty-state component, one from the Primer
+pass and one from the Backstage pass:
+
+- **`compact` boolean prop** (Primer pass) — reduces icon, heading,
+  description, and padding sizes for narrow-column placements (facet
+  results, inline list area, sidebar widget). Confirmed against
+  Primer's Blankslate small variants and again against Backstage's
+  Empty Card use case.
+- **`kind` preset prop** (Backstage pass) — five named cases that
+  pre-fill icon + title + description for the most-reused
+  empty-state shapes:
+  - `no-data` — empty dataset, nothing created yet
+  - `no-results` — query / filter returned nothing
+  - `not-found` — resource doesn't exist (or moved)
+  - `no-permissions` — auth-gated; user lacks access
+  - `first-run` — onboarding; "welcome, get started"
+
+  Explicit `icon` / `title` / `description` props still win per-field,
+  so consumers can use a preset as the baseline and override the
+  voice. Surveyed from Backstage's seven dedicated empty-state pages
+  (Empty Card / Table / Page / No Builds to Show / Entity Not Found
+  / Create a Component); collapsed to the five most-reused shapes for
+  TUX. Showcase at [`/components/empty-state`](app/pages/components/empty-state.vue)
+  demonstrates each preset.
+
+- **Template dedup as a side-effect.** The earlier `compact` addition
+  only worked on the with-card branch — the `no-card` branch had a
+  duplicate template that drifted. Restructured to one template using
+  `<component :is="noCard ? 'div' : 'TuxCard'">` (made possible by the
+  global Tux component registration this session also shipped); both
+  branches now honor `compact` and `kind` identically.
+
+### Added — Standard composition conventions
+
+- **[`design/components.md`](design/components.md)** gained a new
+  **Conventions** section with two documented standards:
+  - **Chat-message actions** (Vercel AI Elements absorption) — the
+    standard `TuxChatMessage` `#tools` icon set:
+    **Copy · Regenerate · Share · Helpful · Off** in that order. Icon
+    names, labels, and expected emit-event names all listed so
+    consumers don't reinvent.
+  - **Form validation — when to use which** (Backstage absorption) —
+    decision tree for four placements: inline field error / inline
+    form summary / blocking dialog / page-or-session banner / toast.
+    Each placement names the components, the use case, and the
+    behavior expected. Anti-patterns called out explicitly (modal for
+    a single bad field, banner for a single bad field, etc.).
+    Backstage's 38-frame form-validation page surfaced the gap — TUX
+    leans on `UFormField` + `TuxAlert` + `UModal` + `useToast()` for
+    primitives but previously didn't document the decision.
+
+### Added — Figma absorption cache + scripts
+
+[`reference/figma-cache/`](reference/figma-cache/) houses the
+durable artifacts from the absorption pass: per-file `NOTES.md`
+(skip / absorb / tension / decisions framework) with cover thumbnails
+for all 70 files in the source project. Aggregator at
+[`INDEX.md`](reference/figma-cache/INDEX.md). Helper scripts at
+[`_scripts/sync.py`](reference/figma-cache/_scripts/sync.py) +
+[`rebuild-index.py`](reference/figma-cache/_scripts/rebuild-index.py)
+re-sync from the Figma REST API (rate-limit-aware) and regenerate the
+index from on-disk state.
+
+### Fixed — MDC component resolution
+
+Nuxt's default component auto-import works via compile-time template
+rewrites; components are not registered via `app.component()`. That
+made every Tux\* invisible to `MDCRenderer`'s runtime
+`resolveComponent()` call, so markdown like `::tux-alert{...}` /
+`::tux-callout{...}` rendered as plain text and logged
+`[Vue warn]: Failed to resolve component: TuxAlert` on every render.
+
+- **[`nuxt.config.ts`](nuxt.config.ts)** now sets
+  `components: [{ path: resolve(layerDir, "app/components"), global: true }]`.
+  `global: true` registers each component via `app.component()` at
+  boot so runtime resolvers find them. Bundle cost: Tux\* components
+  ship in the main chunk instead of being lazy-loaded — acceptable
+  because they're used across virtually every page anyway, and the
+  win (markdown surfaces can use any `::tux-*` block without explicit
+  registration) is real. Propagates to consumer apps (PECAN,
+  tti-ai-studio) when they extend this layer.
+
+### Fixed — Typesafe emit-union narrowing
+
+`vue-tsc` flagged two new components where `emit(union)` couldn't
+narrow to a specific literal:
+
+- **[`TuxArtifact`](app/components/TuxArtifact.vue)** — the `actions`
+  prop's loop called `emit(a)` where `a: ArtifactAction`. Replaced
+  with an `onAction(a)` switch dispatch over the literals.
+- **[`TuxBranchNav`](app/components/TuxBranchNav.vue)** — `emit(delta === 1 ? "next" : "prev")` couldn't narrow. Replaced with `if (delta === 1) emit("next"); else emit("prev");`.
+
+### Changed — `tti-ai-studio-session` example uses `TuxChatMessage`
+
+The example page previously used hand-rolled `<article>` blocks for
+both message turns. Refactored to use
+[`TuxChatMessage`](app/components/TuxChatMessage.vue) — closes a
+dead-code-audit finding (the component had no consumer outside its
+own showcase route) and demonstrates the canonical pattern. The user
+turn becomes a 3-line call; the assistant turn uses four slots
+(`#header-trailing` for `TuxBranchNav`, default for body, `#citations`
+for the footer list, `#tools` for the standard action set).
+
+### Changed — `app/pages/examples/tti-ai-studio-session.vue` composition
+
+Beyond the `TuxChatMessage` refactor, the example was previously
+heavily updated this session to demonstrate the new AI-elements
+components in their natural composition: `TuxContextMeter` in the
+page header, `TuxBranchNav` in the assistant header,
+`TuxInlineCitation` inline in the prose, `TuxArtifact` wrapping a
+`TuxCodeBlock` after the message, `TuxSuggestionChips` before the
+composer, plus `UChatReasoning` / `UChatTool` / `UChatShimmer` from
+the Nuxt UI 4 Chat suite to show how the two layers compose.
+
+## [1.4.2] — 2026-05-14
+
+Patch: align the HC theme's primary palette steps with the brand
+value stated in ADR-0005. The HC palette was sampled from TTI's 508-
+accessible PPTX where the maroon anchor is `#500000`, but
+`--color-maroon-400` and `--color-maroon-500` were inheriting from
+`:root` (`#b14a6c` raspberry and `#5c0025` deep wine respectively),
+which leaked a one-color-step deviation into any Nuxt UI primitive
+under `tti-hc`. No visual impact on `tti` or `tti-dark`.
+
+### Fixed — HC primary palette aligned with ADR-0005
+
+- **`[data-theme="tti-hc"]` in `app/assets/css/tokens.css`** now
+  pins both `--color-maroon-400` and `--color-maroon-500` to
+  `#500000`. The 500 override is the visible fix — solid Nuxt UI
+  primitives (UButton, UBadge, etc.) in HC mode were rendering
+  `#5c0025` from `:root` instead of the ADR-stated `#500000`. The
+  400 override is defensive (Nuxt UI's `.dark` path doesn't fire
+  under HC, so 400 isn't read in practice) but keeps the "three
+  blocks, each a full override of every semantic token" discipline
+  from ADR-0005 intact.
+- Pure values throughout, in keeping with HC's "zero color-mixing"
+  principle.
+
+## [1.4.1] — 2026-05-14
+
+Patch: bridge `@nuxtjs/color-mode` to Nuxt UI's `.dark` class so Nuxt
+UI primitives actually inherit the dark theme. Completes v1.4.0's
+dark-accent retune — without this bridge, `<UButton>` / `<UInput>` /
+`<UBadge>` / `<USelect>` stayed in light mode under `tti-dark`
+because Nuxt UI's runtime CSS rule is gated on `.dark`, but our
+color-mode is configured with `classSuffix: ""` so it emits
+`tti-dark`, not `.dark`.
+
+### Fixed — Nuxt UI primitives in dark theme
+
+- **`app/plugins/nuxt-ui-dark-bridge.client.ts`** ([`view`](app/plugins/nuxt-ui-dark-bridge.client.ts))
+  watches `colorMode.value` and toggles `.dark` on `<html>` when the
+  preference is `tti-dark`. `tti-hc` is light-surfaced per ADR-0005
+  so it intentionally stays without `.dark` (Nuxt UI's light path is
+  correct for HC).
+- Brief FOUC trade-off: the boot script sets `[data-theme]` + the
+  theme class before Vue hydrates, but this Vue plugin only runs on
+  hydration. On a fresh load in `tti-dark`, primitives flash light
+  briefly before this plugin adds `.dark`. The surrounding page is
+  already dark from tokens.css so the flash should be imperceptible;
+  the harder fix (patching the boot script to add both classes at
+  once) is parked for now.
+
+### Changed — `--color-maroon-400` consolidated onto the dark-mode teal accent
+
+With the bridge plugin firing `.dark`, Nuxt UI's `text-inverted`
+flips from white to stone-900 in dark mode, which changes the
+calculus for the primary-button fill (the button now carries dark
+text on top, conventional inverted-button pattern).
+
+- **`--color-maroon-400`** in `[data-theme="tti-dark"]` retuned from
+  brick-wine `#702C28` to lifted TTI teal `#6BB4C0` — the same value
+  as `--brand-primary`. Consolidates the dark-mode accent system on
+  a single hue: maroon stays anchored on light surfaces and in
+  `--brand-fill` for marketing panels, but every primary-colored
+  control in dark mode reads as TTI teal. Black-on-#6BB4C0 ≈ 7.9:1
+  AAA.
+- Earlier wine candidates (`#b14a6c`, `#7a1233`, `#702C28`) all rang
+  awkwardly next to the teal accent — either too pink (high
+  saturation) or too dim (deep brown against a near-black sidebar).
+  Picking teal unifies the dark-mode accent story.
+
+## [1.4.0] — 2026-05-14
+
+Nuxt UI gap-analysis batch (five new components covering kbd hints,
+prose typography, hierarchical lists, and edge-anchored drawers,
+plus a global keyboard-shortcut layer), the Batch J visual-language
+application sweep, and a self-hosted fonts migration. No breaking
+API changes — pin bump from `#v1.3.0` to `#v1.4.0` is additive only.
+
+### Changed — self-hosted fonts via `@fontsource/*` + `scripts/sync-fonts.mjs`
+
+Replaces the `@nuxt/fonts` module (Google-provider auto-fetch) with
+explicit `@font-face` declarations in `app/assets/css/fonts.css`,
+sourced from `@fontsource/*` npm packages and synced into
+`public/fonts/<family>/*.woff2` via [`scripts/sync-fonts.mjs`](scripts/sync-fonts.mjs).
+Air-gapped-build clean — no CDN dependency at runtime or build time,
+which matters for state-agency deploys and consumer apps that ship
+behind enterprise proxies.
+
+- **`@fontsource/{open-sans,oswald,work-sans,public-sans,jetbrains-mono}`**
+  added as devDependencies. Re-sync with `npm run sync:fonts`.
+- **`app/assets/css/fonts.css`** declares every face/weight/style
+  combination the four-family rule uses; loaded first in the CSS
+  cascade so subsequent rules can reference the families.
+- **`nuxt.config.ts`** drops `@nuxt/fonts` from `modules` and its
+  `fonts` block; prepends `fonts.css` to the `css` array.
+
+### Changed — dark theme brand accent retuned to lifted-TTI-teal
+
+Dark theme's `--brand-primary` switches from lightened maroon
+(`#e795a8`) to lifted TTI teal (`#6BB4C0` — the tertiary swatch from
+`design/palette.md`, lifted for dark-page contrast). Earlier values
+read too pink in the studio where most accent points live on small
+chrome elements (composer border, focus rings, active-tab text);
+teal reads more institutional at small sizes.
+
+- **`--brand-primary` / `--brand-primary-deep`** retuned in
+  `[data-theme="tti-dark"]` to `#6BB4C0` / `#5B9CA8`. Clears AAA on
+  every dark surface (7.1:1 on raised, ~8.2:1 on page, ~8.7:1 on
+  sunken).
+- **`--color-maroon-400 = #702C28`** override added — Nuxt UI v4's
+  solid-variant button fill uses primary-400 in dark themes; the
+  unmodified palette value (#b14a6c) reads as raspberry pink, and an
+  intermediate `#7a1233` still rang loud against the teal accent
+  (mid-saturation magenta hue). Reuses the existing
+  `--map-seq-maroon-2` value — brick-wine, low saturation,
+  brown-leaning — so the button recedes into the dark page surface.
+  Edge contrast is ~1.9:1 vs page (below WCAG 1.4.11's 3:1 UI
+  threshold by design); readability comes from the white label
+  (clears 10:1 on this fill) and the button's shape / hover state,
+  not from surface contrast.
+- **`--text-brand`** repointed to the new teal-deep so brand-tinted
+  inline text stays coherent with the accent.
+
+Maroon brand presence preserved via `--brand-fill` (always #5C0025)
+on marketing panels, the `--color-maroon-400` override on solid
+buttons, and `--chart-1` pinned to a wine-leaning value so the brand
+chart series doesn't silently shift to teal.
+
+### Added — `TuxSlideover` (edge-anchored drawer)
+
+Slice 4 (final) of the Nuxt UI gap-analysis follow-through. Distinct
+affordance from `TuxModal` — `TuxSlideover` slides in from a viewport
+edge and preserves the reading context behind the scrim. Use for row
+detail (click a `TuxRichDataGrid` row → slide in field metadata),
+filter panels, mobile nav reveals, and bottom action sheets.
+
+- **`TuxSlideover`** ([`app/components/TuxSlideover.vue`](app/components/TuxSlideover.vue),
+  [`/components/slideover`](app/pages/components/slideover.vue)) —
+  edge-anchored panel built on the native `<dialog>` element so focus
+  trap, escape handling, scrim rendering, and ARIA semantics come from
+  the platform. Slide animation rides Batch J's `--ease-corridor`
+  curve over `--motion-base` duration. The panel itself opts into
+  `data-tux-overlay` (Batch J easing) and `data-tux-elevation="overlay"`
+  (Batch J shadow tier) so it inherits the system's anchored-surface
+  rhythm without duplicate CSS.
+- **Three sides** —
+  - `right` (default) — row detail, filter panel. 28rem wide, full
+    viewport height, rounded on the left edge.
+  - `left` — mobile nav drawer. Mirror of right.
+  - `bottom` — action sheet. Full viewport width, 24rem tall, rounded
+    on the top edge.
+- **Props** —
+  - `v-model: boolean` — open / closed
+  - `side: "left" | "right" | "bottom"` (default `"right"`)
+  - `size: string` — CSS length for width (left/right) or height (bottom)
+  - `title` + `eyebrow` — header heading + optional eyebrow above
+  - `showClose: boolean` — top-right close button (default `true`)
+  - `closeOnBackdrop: boolean` — dismiss on scrim click (default `true`)
+- **Slots** — default (body), `#header` (replace eyebrow + title region),
+  `#footer` (action row with sunken-surface tint).
+- **Reduced motion** — `@media (prefers-reduced-motion: reduce)`
+  skips the slide animation; the panel appears in place.
+- **Doctrine note** — added "Slideover vs Modal" section to the demo
+  page: choose slideover when the user is drilling into the page
+  they're on (row detail, filter panel, side-by-side editor); choose
+  modal when the underlying page doesn't matter (confirmation, fatal
+  error, full-attention form).
+
+### Added — `TuxTree` (hierarchical list)
+
+Slice 3 of the Nuxt UI gap-analysis follow-through. Fills the
+sitemap / corpus / BI-dataset-explorer gap identified in the Nuxt UI
+audit. Native (not a `UTree` wrapper) since the visual is
+brand-specific and the keyboard semantics are simple enough to own.
+
+- **`TuxTree`** ([`app/components/TuxTree.vue`](app/components/TuxTree.vue))
+  — recursive hierarchical list. Each node carries
+  `{ id, label, icon?, description?, mono?, to?, href?, badge?, children? }`.
+  Pass `to` for internal nav (renders `<NuxtLink>`), `href` for
+  external, or leave both off for a pure toggle/select row (renders
+  `<div role="button" tabindex="0">` to sidestep Tailwind v4's
+  `@layer base` button reset, which would otherwise win over scoped
+  CSS via layer cascade order). Set `mono: true` on a node to render
+  its label in JetBrains Mono — useful for path / id / hash leaf
+  rows.
+- **`TuxTreeNode`** ([`app/components/TuxTreeNode.vue`](app/components/TuxTreeNode.vue))
+  — single-row recursive child component. Owns the row chrome
+  (chevron, icon, label-block, badge) and indents by depth via
+  `padding-left`. Expand state lives in the parent tree; this
+  component just queries it via a callback prop.
+- **Props (`TuxTree`)** —
+  - `items: TreeItem[]` (required)
+  - `defaultExpanded?: string[]` — initial open IDs (defaults to every root node)
+  - `storageKey?: string` — sessionStorage key for collapse persistence
+  - `showGuides: boolean` — 1px sand guide lines under expanded branches (default `true`)
+  - `v-model:selected` — currently-selected node ID
+  - `ariaLabel: string` — passed to `[role="tree"]`
+  - Exposes `expandAll()` / `collapseAll()` via template ref
+- **Visual rhythm** — maroon chevron + maroon label tint on the
+  selected row (anchored by a 2px maroon left bar, mirroring
+  `.tux-cmd__item--active` so cross-component selection reads
+  consistently). Sand guide lines under expanded branches help deep
+  hierarchies stay scan-able. Container query
+  (`@container tux-tree (max-width: 280px)`) drops the description
+  line and tightens padding at narrow widths — per CLAUDE.md rule 1.
+- **Keyboard nav** — `Enter` / `Space` toggle+select,
+  `ArrowRight` expands a collapsed branch, `ArrowLeft` collapses an
+  expanded branch. Up/down navigation uses native focus order through
+  the row elements (which are all focusable).
+- **Demo page** [`/components/tree`](app/pages/components/tree.vue)
+  shows three example trees: sitemap (route links + badges), corpus /
+  filesystem browser (mono leaf labels, row-count badges), and a
+  BI dataset hierarchy (per ADR-0009) with `v-model:selected` driving
+  a focused-field side panel.
+- **Nav wiring** — `app/app.vue` sidebar, `app/pages/components/index.vue`
+  catalog, and `design/components.md` doctrine table.
+
+### Added — `TuxProse`, `/typography` refresh, doc-page surround nav
+
+Slice 2 of the Nuxt UI gap-analysis follow-through. Consolidates the
+prose typography that was duplicated across three pages, refreshes the
+`/typography` foundation page to reflect the four-family rule from
+`design/tux.md`, and adds a prev/next surround at the bottom of every
+`/design/[doc]` page.
+
+- **`TuxProse`** ([`app/components/TuxProse.vue`](app/components/TuxProse.vue),
+  [`/components/prose`](app/pages/components/prose.vue)) — typographic shell for
+  long-form markdown. Single `:deep()` block covering H1/H2/H3/H4/p/ul/ol/li/
+  strong/em/code/pre/a/table/th/td/hr/blockquote/img. Default wrapper is
+  `<article>`; pass `as="div"` when the parent already provides the
+  landmark. Replaces three duplicate ~130-line `.prose-tux :deep(…)`
+  blocks that lived inline in `app/pages/changelog.vue`,
+  `app/pages/design/[doc].vue`, and `app/pages/markdown.vue` (~400
+  lines of duplication eliminated).
+- **`[`/design/[doc]`](app/pages/design/[doc].vue)` rewrite** — wraps `<MDCRenderer>`
+  in `<TuxProse>` and adds a Nuxt-UI-style `ContentSurround` at article
+  bottom (prev / next sibling design docs, sorted by slug). The
+  surround cards opt into Batch J's `data-tux-elevation="rest"` for
+  consistent shadow tier.
+- **[`/changelog`](app/pages/changelog.vue)** — wraps `<MDCRenderer>` in
+  `<TuxProse>`. Drops the 90-line scoped prose CSS block.
+- **[`/markdown`](app/pages/markdown.vue)** — wraps the MDC preview in
+  `<TuxProse as="div">` so the prose rhythm renders inside the
+  card without doubling up the `<article>` landmark. Drops the
+  110-line scoped prose CSS block.
+- **[`/typography`](app/pages/typography.vue) refresh** — dek now opens with "Four families,
+  three style variants, one mono" instead of the stale Public Sans /
+  JetBrains Mono framing. Adds:
+  - **Family roster** — five articles, one per token
+    (`--font-body`, `--font-display`, `--font-bold`, `--font-elegant`,
+    `--font-mono`), each showing role + sample. Each card opts into
+    Batch J's `data-tux-elevation="rest"`.
+  - **`heading--elegant`** section with both the upright and italic
+    forms (the page mentioned the utility before but never showed it).
+  - **Style variants triptych** — three side-by-side cards
+    demonstrating `default` / `.style--bold` / `.style--elegant`
+    applied to the same heading text.
+  - **`TuxProse` wrapper demo** — renders a sample H1 / p / H2 / list /
+    blockquote stack inside the wrapper to make the prose rhythm
+    legible to designers landing on the foundation page.
+  - Cross-links to `/design/tux`, `/tokens`, `/components/kbd`,
+    `/style-variants`, and `/changelog`.
+- **Nav wiring** — `app/app.vue` sidebar, `app/pages/components/index.vue`
+  catalog, and `design/components.md` doctrine table all gain the
+  `TuxProse` row.
+
+### Added — `TuxKbd`, `TuxShortcutsHelp`, global `defineShortcuts`
+
+Slice 1 of the Nuxt UI gap-analysis follow-through. Consolidates the
+three hand-rolled `<kbd>` styling blocks that lived inside
+`TuxCommandPalette` into one component, leans on Nuxt UI's
+`defineShortcuts` for platform-correct hotkey wiring, and mounts a
+global command palette + shortcuts-help overlay at the shell so every
+page benefits from `⌘K`, `/`, and `?`.
+
+- **`TuxKbd`** ([`app/components/TuxKbd.vue`](app/components/TuxKbd.vue), [`/components/kbd`](app/pages/components/kbd.vue)) — token-styled `<kbd>` with Mac
+  vs PC modifier normalization (post-hydration to avoid SSR mismatch).
+  Three sizes (`xs`/`sm`/`lg`), single-key + combo + sequence forms,
+  built-in glyphs for arrows / enter / escape / tab / space, default
+  slot for custom content (function keys, icons). Uses the same
+  `defineShortcuts` key grammar (`meta`, `ctrl`, `shift`, …) so a
+  binding declaration and its rendered hint share a vocabulary.
+- **`TuxShortcutsHelp`** ([`app/components/TuxShortcutsHelp.vue`](app/components/TuxShortcutsHelp.vue)) — modal
+  overlay listing every wired shortcut, grouped. Auto-classifies items
+  as combo (modifier+key, rendered as one `TuxKbd` group) or sequence
+  (no modifier, rendered as `TuxKbd "then" TuxKbd`). Built on
+  `<dialog>` for free focus trap + scrim + escape semantics, same
+  anatomy as `TuxCommandPalette`. Opt-in `data-tux-overlay` +
+  `data-tux-elevation="overlay"` so it picks up the Batch J easing
+  curve and shadow.
+- **`TuxCommandPalette` refactor** — replaces the hand-rolled
+  `keydown` listener with `defineShortcuts({ meta_k: …, usingInput: true })`
+  for platform-correct meta/ctrl handling. Replaces the inline `<kbd>`
+  markup (esc hint, per-item shortcut, footer hints) with `<TuxKbd>`.
+  Drops the now-redundant `.tux-cmd__esc-hint`,
+  `.tux-cmd__item-shortcut`, and `.tux-cmd__footer-hint kbd` scoped
+  CSS blocks. Arrow / enter / escape stay on the dialog's local input
+  handler since they're list-nav, not app-level shortcuts.
+- **Shell-level wiring in [`app/app.vue`](app/app.vue)** — mounts one
+  `<TuxCommandPalette>` and one `<TuxShortcutsHelp>` globally, with
+  `paletteGroups` derived from the existing `navTree` so a single
+  source of truth drives sidebar nav and palette search.
+  `defineShortcuts` at the shell wires:
+  - `meta_k` — open the global palette (handled by `TuxCommandPalette` internally)
+  - `/` — open the global palette (GitHub idiom)
+  - `?` — toggle the shortcuts-help overlay
+  - `g-c` / `g-t` / `g-d` / `g-h` — sequence shortcuts to
+    `/components`, `/tokens`, `/design/tux`, `/`
+- **`/components/command-palette` demo** — adds `:disable-hotkey="true"`
+  on the page's local palette instance so `⌘K` only fires the global
+  one. Replaces the page's hand-rolled `<kbd>` markup with `<TuxKbd>`.
+- **Nav wiring** — `app/app.vue` sidebar tree, `app/pages/components/index.vue`
+  catalog table, and `design/components.md` doctrine table all gain
+  the `TuxKbd` row.
+
+### Added — Batch J: visual-language application sweep
+
+A surface-level pass that applies the Batch E-prelude tokens (focus,
+easing, elevation, identity primitives) across the existing kit without
+touching every component file. Pure CSS, additive, opt-in via attribute
+selectors and utility classes. Imported from the standalone
+`tti-ux-design` skill payload (2026-05-14), where the doctrine and
+implementation were authored alongside.
+
+- **`app/assets/css/tux.css`** gains a `BATCH J` section with six rules:
+  - **J.1** — `transition-timing-function: var(--ease-survey)` default
+    for `button, a, input, select, textarea, [role="button"],
+    [role="tab"], [role="option"], .tux-card, .card-linked*` (gated by
+    `prefers-reduced-motion`). Opt-in `data-tux-overlay` →
+    `--ease-corridor`; `data-tux-arrival` → `--ease-arrival`. Inline JS
+    transitions and component-declared curves still win.
+  - **J.2** — `[data-tux-elevation="flat|rest|hover|overlay|pinned"]`
+    maps the five elevation tiers to a single attribute. The `hover`
+    value also applies `translateY(-1px)` for the canonical lift.
+  - **J.3** — `.tux-hoverlift` utility: one-class opt-in for the
+    rest → hover transition pairing.
+  - **J.4** — `.tux-mark` / `.tux-mark--lg` / `.tux-mark--xl` for sizing
+    and tinting identity-primitive `<symbol>`s from
+    `/identity-primitives.svg` (already shipping in `public/`). Default
+    16×16, currentColor = `--brand-primary`; `--mark-size` and
+    `--mark-color` are the per-instance hooks.
+  - **J.5** — `.tux-section-divider`: eyebrow label + maroon-to-
+    transparent gradient rule packaged as a one-class utility.
+  - **J.6** — `[data-tux-rowgrid]`: subtle 6%-maroon repeating-vertical-
+    lines background, opt-in on heroes / empty-state panels / section
+    breaks.
+- **`design/visual-language-evolution.md`** gains the matching `Batch J
+  — 2026-05` section documenting each rule, the opt-in pattern, and the
+  Nuxt-vs-skill path note (`assets/identity-primitives.svg` in the
+  skill payload → `/identity-primitives.svg` here).
+- **No new tokens, no new components, no JS changes.** Batch J consumes
+  the prelude tokens (`--ease-survey/corridor/arrival`, `--motion-base/
+  fast`, `--elevation-flat/rest/hover/overlay/pinned`, etc.) already in
+  `app/assets/css/tokens.css`. The mapping `--font-body-bold` →
+  `--font-bold` reconciles the skill payload's token name with the
+  four-family typography rule.
+
+### Added — `public/kits/aggieux/` major expansion
+
+Refresh of the TTI-curated AggieUX preview catalog at
+`public/kits/aggieux/` from the skill payload (`ui_kits/aggieux/`).
+**Not** a change to `reference/aggieux/v2.0.1/` (the frozen upstream
+CDN snapshot at `aux.tamu.edu`, untouched per CLAUDE.md).
+
+- **43 new `Aggie*.jsx` demo pages** covering chart foundations,
+  charts/maps/treatments/viz, data tables, descriptions, directory,
+  forms (core + advanced + field grid + date range + dropdown-
+  combobox), filters, status states, banners, sectioning, templates,
+  hover/focus disclosures, accessibility, image lightbox, load-more,
+  feedback, toggle/slider, toolbar, transfer, tree, rate, rich data
+  grid, sidebar banner, specialized patterns, AI-studio surface,
+  corridor strip, collab, descriptions, guidance, map legend, news
+  contact (sectioning, etc.). Net 23 → 66 files in the kit folder.
+- **10 updated pages** — `AggieCatalog` (registers every new section),
+  `AggieButtonsAlerts`, `AggieCards`, `AggieChrome`, `AggieIconLink`,
+  `AggieMenus`, `AggieNewsContact`, `AggiePageHeaders`, `AggiePages`,
+  `App.jsx`.
+- **`index.html`** updated to register all 64 JSX modules via
+  `<script type="text/babel">` tags.
+- **`AggieDisclosure.jsx`** (Batch 10: accordions / publication
+  accordion / Q&A) and **`AggieDisclosures.jsx`** (Batch A.1: tooltips
+  and popovers) are intentionally distinct — both ship.
+
+### Added — `StructuredOutput.jsx` for tti-ai-chat kit
+
+Imported from the skill payload's `tti-ai-studio` kit (collapsed-naming
+mirror of our `tti-ai-chat`).
+
+- **`public/kits/tti-ai-chat/StructuredOutput.jsx`** ships three
+  primitives for AI-generated structured tool output inline in a
+  conversation: `InlineCard`, `InlineCarousel`, `ResponseCard`. Anatomy
+  lineage is MCP Apps for Claude; translated to tti-ux's typography,
+  color, and signature language. Globals: `React`, `LucideIcon`,
+  `TuxBadge` — all already provided by other kit scripts.
+- **`public/kits/tti-ai-chat/index.html`** rewritten to register
+  `StructuredOutput.jsx` and to demonstrate the new primitives — the
+  assistant Message in the demo conversation now renders an
+  `InlineCarousel` of six citation cards, a `ResponseCard` for the
+  Linear ticket draft (with `toolName`, `status`, `footer`), and a
+  compact `InlineCard` for the related runbook. Title kept as
+  `tti-ai-chat` to match the local kit naming.
+
+## [1.3.0] — 2026-05-12
+
+Shell + sidebar + footer alignment batch. The style-guide chrome
+now dogfoods `TuxDocsSidebar` (and gets the same exclusive-open
+disclosure UX as the AggieUX reference kit), the institutional
+footer is reconciled to the comm-team's Kadence source so we ship
+the same handles + link inventory as production tti.tamu.edu, and
+the shell adopts the tapered-hairline pattern from tti-ai-studio
+for cross-product consistency. No breaking API changes — every
+component prop added below is optional with a sensible default.
+
+### Direction — tti-ux as source of truth for the BI design system
+
+- **ADR 0009 accepted** ([`docs/adr/0009-bi-design-system-source-of-truth.md`](docs/adr/0009-bi-design-system-source-of-truth.md)). tti-ux becomes the canonical home for TTI's Power BI / Microsoft Fabric design system: brand tokens (already here), data-viz tokens (already here), Power BI theme JSON (to be generated here from tokens), and the Aggie Viz / Tti Viz shell spec (to be ported here from `docs-it-tamu-edu`).
+- **Consumers**: `tti-reporting` ([`ttitamu/tti-reporting`](https://github.com/ttitamu/tti-reporting)) currently snapshots tokens into `core/themes/tokens.json` and ports the Aggie Viz shell into `core/ttiviz/SHELL_SPEC.md`. Once tti-ux owns these, those become reference snapshots that follow tti-ux releases.
+- **`docs-tti-tamu-edu`** stops being a stale clone of the docs-it-tamu-edu Power BI section and instead links to tti-ux for canonical BI standards.
+- **Pending port** (from `docs-it-tamu-edu/nuxt-site/content/docs/tamu/M365/Power-BI-Fabric/`): ~12 documents covering AggieBI brand-theme rationale, light/dark mode architecture, organizational visuals, component/visual-type policy, and the Aggie Viz visual spec family (shell, textboxes, nav pills, card styling, PBIP property reference). See ADR 0009 for the full mapping.
+
+### Changed — Style-guide shell dogfoods TuxDocsSidebar
+
+- **Shell sidebar collapses** by group. The flat list in
+  `app/app.vue` is replaced with `<TuxDocsSidebar>` (the component
+  was already shipping for downstream consumers and even documented
+  the style-guide shell as a TODO migration). Auto-opens the group
+  containing the active route, persists collapse state in
+  sessionStorage under `tti-ux-sidebar`, and exposes the inline
+  filter as "Filter the system…". Eliminates the wall-of-69
+  problem when scanning the catalog.
+- **Exclusive-open root**: a new `exclusiveTopLevel` prop on
+  `TuxDocsSidebar` makes opening any root group explicitly close
+  every other root group. Without this you could expand 5 groups
+  and lose the sidebar's "where am I" affordance. Opt-in (default
+  `false`) so existing consumers (PECAN docs shells, etc.) aren't
+  surprised.
+- **Long-name truncation**: leaf-link labels now share the
+  `__label` truncation class with summary rows. Component names
+  like `TuxAnnouncementBanner` were blowing past the 240px lane
+  and — combined with the CSS spec coercing `overflow-x` to `auto`
+  whenever `overflow-y` is non-visible — surfaced a horizontal
+  scrollbar inside `__nav`. The root cause was `__sublist`'s
+  `display: grid` auto-sizing the column to `max-content`; pinning
+  to `grid-template-columns: minmax(0, 1fr)` lets the column
+  shrink below max-content so the ellipsis actually kicks in.
+  `__nav` also gets an explicit `overflow-x: hidden` as belt-and-
+  braces against future inner-layout drift.
+- **Sticky sidebar shell**: the shell wrapper in `app.vue` is now
+  `md:sticky md:top-[57px] md:self-start md:max-h-[calc(100vh-57px)]`
+  on desktop with `overflow-y: auto; overflow-x: hidden`. Before,
+  the wrapper stretched to match the main content's full height,
+  so scrolling the page scrolled the sidebar out of view and the
+  tapered hairline rode down into the footer. `self-start` opts
+  out of the flex parent's default stretch so sticky can actually
+  take effect; mobile keeps its `fixed inset-y-0 top-[57px]`
+  slide-in shell unchanged.
+- **Content width**: shell content cap raised from `max-w-5xl`
+  (1024px) to `max-w-6xl` (1152px). Modest bump — leaves room for
+  the future right-rail `TuxTOC` and the persistent left sidebar.
+
+### Changed — TuxFooter aligned to the comm-team Kadence source
+
+The comm team's authoritative footer (Kadence block source for
+production tti.tamu.edu) now defines the institutional shape. We
+were close on structure but drifted on handles, URLs, and the
+TAMUS lockup styling. Reconciled in one pass.
+
+- **Social handles flipped** to the canonical `ttitamu` (no S)
+  forms: LinkedIn `linkedin.com/company/texasa-mtransportationinstitute`,
+  Facebook `facebook.com/ttitamu`, Instagram `instagram.com/ttitamu/`,
+  YouTube `youtube.com/ttitamu`, Twitter/X `twitter.com/TTITAMU`.
+  Previously we shipped a stale `TTIVideoChannel` YouTube link and
+  `TTITAMUS` (with S) for several others.
+- **Threads added** (sixth social, matching production). Lucide
+  doesn't ship a Threads glyph, so `TuxFooter` now accepts an
+  optional `svg?: string` field on `SocialLink` as an alternative
+  to `icon` — pass raw `<svg>` markup. Threads renders via the
+  Simple Icons path (CC0). Force-set `fill="currentColor"` on the
+  `<svg>` and `<path>` plus a descendant CSS rule so the icon
+  picks up the footer's white color reliably across v-html paths.
+- **Social-link tap targets** bumped from 40×40 to **44×44px** —
+  WCAG 2.5.5 (AAA) target-size minimum, matching the Kadence 44px
+  setting. Icon glyph scaled from 1.125rem to 1.25rem for
+  proportion.
+- **State Resources URLs** corrected to match Kadence: Texas
+  Homeland Security points at `gov.texas.gov/` root, Statewide
+  Search at `tsl.texas.gov/trail/index.html`.
+- **Policies column restructured** to the 9-item TTI-owned list
+  (TAMUS Risk/Fraud Hotline → Digital Accessibility → Site
+  Policies → Open Records → Statutorily Required Reports → TTI
+  Rules → Veterans → Equal Opportunity → Jobs) — all pointing at
+  `tti.tamu.edu/notices-policies/…` rather than the upstream
+  `tamus.edu` URLs we previously linked. The internal WCAG-audit
+  page is kept as the column's last entry (style-guide-only extra,
+  not in production).
+- **Tagline dropped** from the marketing section. Kadence's
+  production footer doesn't render the "Coordinated Statewide
+  Transportation Research Program" tagline — institutional name
+  carries it. The `tagline` prop still defaults to that string for
+  back-compat; the shell passes `tagline=""` to suppress it.
+- **TAMUS lockup → plain link**. The black legal strip's left
+  side previously rendered as a two-line eyebrow + name lockup.
+  Kadence ships a single plain "A member of the Texas A&M
+  University System" link. Lockup CSS removed; replaced with a
+  single `__tamus-link` rule.
+- **© line now linked**. Two new optional props on `TuxFooter`:
+  `copyrightText` (full override of the default "© {year} {name}"
+  rendering) and `copyrightHref` (wraps the line in an external
+  link). The shell passes
+  `© Copyright 2026 Texas A&M Transportation Institute (TTI)`
+  pointing at the copyright-statement page, matching production.
+
+### Added — Tapered hairlines (cross-product shell pattern)
+
+- **`.tti-shell-header::after` / `.tti-shell-sidebar::after`** —
+  the hard `border-b` / `border-r` Tailwind utilities on the shell
+  header and sidebar are replaced with 1px pseudo-elements drawn
+  via `linear-gradient(transparent 0% → var(--surface-border)
+  18%–82% → transparent 100%)`. Reads as a soft ruled line that
+  fades into the surface rather than a hard corner-to-corner
+  stroke. Lifted verbatim from tti-ai-studio's `studio-shell`
+  (same 18%/82% stops) so the two products feel like one family
+  at the chrome level. Promote to a shared utility when a third
+  surface needs it.
+
+### Removed — Home page Components grid
+
+- The 69-card Components grid on the welcome page is gone. The
+  same inventory is now reachable in one click via the (newly
+  collapsible) sidebar's Components group and the dedicated
+  `/components/` catalog page, both of which already shipped. The
+  grid was duplicating navigation and dominating the home page
+  scroll. `catalogCount` constant added for the hero meta line
+  ("70+ components · 5 foundations") so we don't have to maintain
+  a parallel array.
+
+## [1.2.0] — 2026-05-08
+
+Cuts the accumulated post-v1.1.0 work into a tagged release. Two
+component batches (data density + geographic charts) recovered from
+a worktree wipe, the visual-language evolution prelude that should
+have shipped before them, and an `npm audit` cleanup. No breaking
+changes — pin bump from `#v1.1.0` to `#v1.2.0` is additive only.
+
+### Added — Visual-language evolution prelude (2026-05)
+
+Token-only refresh that should have shipped *before* the data-density
+batch below. No per-component edits required for the base behavior;
+families inherit the changes automatically.
+
+- **Two-ring focus token** — outer 2px maroon + inner 2px sand halo
+  replaces the prior single 3px maroon-at-35% ring. Reads cleanly on
+  data tables and form rows where a single soft ring gets lost. New
+  tokens: `--focus-ring-outer`, `--focus-ring-inner`. Variants: dark
+  uses softened maroon + warm-gold inner; HC uses pure black + white
+  inner at 5px total width. Lineage: Ant (two-ring concept) and
+  Fabric (focus discipline on data-rich surfaces); color story is
+  tux-original.
+- **Transportation-tempo easings** — `--ease-survey` (tables/forms/
+  disclosures), `--ease-corridor` (page-level/sheets/modals), and
+  `--ease-arrival` (toasts/banners/snapshots locking in). Three
+  distinct curves giving "measured / smooth / decelerate-only"
+  coverage without overshoot. Legacy `--ease-standard/emphasis/exit`
+  retained as back-compat aliases. Lineage: Material 3
+  standard-effects family.
+- **Four-tier elevation system** — `--elevation-flat/rest/hover/
+  overlay/pinned`, layered on existing `--shadow-sm/md/lg`. Gives
+  every component a predictable elevation role; old `sm/md/lg` are
+  still available as primitives but new work should use the named
+  tiers. Variants: dark bumps overlay alpha so sheets stay readable
+  on warm charcoal; HC nukes shadows across the board and uses a
+  2px border for the overlay tier. Lineage: Microsoft Fabric.
+- **Warm-neutral ramp extension** — added intermediate stops at
+  `--neutral-150/250/450/550/650/750/850`. Sand-leaning tints that
+  harmonize with maroon over extended viewing. Use for row-stripe,
+  hover, and selected states on data-table surfaces (the original
+  6-stop ramp couldn't carry those without compounding transparent
+  tints). Lineage: shadcn's stone/zinc 12-stop ramps; hex values
+  tux-original.
+- **Survey-rhythm density tokens** — `--rhythm-tight/snug/normal/
+  loose/roomy` (4/8/12/16/24px). Use *instead of* the general
+  `--space-*` ramp inside dense surfaces (tables, forms,
+  descriptions); `--space-*` stays for section/page-level rhythm.
+  Lineage: Ant Design's 4/8/12/16/24 cadence.
+- **`public/identity-primitives.svg`** — four `<symbol>`s exported
+  as a single shared sprite: `#tux-star` (5-point Lone-star
+  reference), `#tux-chevron` (TAMUS-style downward angle bracket),
+  `#tux-compass` (compass rose for map-related families), and
+  `#tux-row-grid` (parallel-lines-getting-denser pavement-stripe
+  pattern). Restraint-grade identity moves for corner accents,
+  section brackets, and map decorators. All draw with currentColor.
+- **`design/visual-language-evolution.md`** — running ledger that
+  documents each entry above (what changed / why / variants /
+  lineage). Future token-level changes get appended here.
+
+### Added — Data density + geographic charts (2026-05)
+
+Two batches recovered after a worktree got wiped by a parallel
+session before any of its work was committed. Rebuilt verbatim
+from chat memory + the official source of truth (us-atlas +
+TxDOT MapServer).
+
+**Data density:**
+
+- **`TuxRichDataGrid`** — interactive grid for PECAN-class
+  operational surfaces. Sticky header, row selection w/
+  indeterminate header checkbox, expandable detail rows, sortable
+  columns, active-filter chip strip, bulk-action bar (visible
+  only when ≥1 row selected), footer pagination strip. State is
+  host-driven via v-models (`selected` / `expanded` / `sortKey` /
+  `sortDir`) and events (`search`, `filter-remove`,
+  `bulk-action`, `page`, `toolbar`). Slots: `cell-<key>` per
+  column, `expanded` for row body, `bulk-actions` to override
+  the default action trio.
+- **`TuxDataTable`** — research-flavored static table for
+  finished deliverables. Numbered caption (`Table 4-2`) over an
+  Oswald display title + optional descriptive lede; tabular-
+  figure body cells; uncertainty cells auto-rendered as
+  `value ± CI` when a column declares `ciKey`; footnote anchors
+  wired to a formal note block; optional row groups banded by
+  category; optional sticky header w/ max-height for appendix
+  density; optional totals row w/ maroon top-rule; source
+  citation line. Sort is host-driven.
+
+**Geographic charts (real geometry):**
+
+- **`TuxChartGeographic`** — five Texas-flavored map kinds in
+  one component:
+
+  - `county` — 254 real TIGER/Line counties projected with
+    d3-geoAlbers (Texas-centered, parallels 27°N–35°N).
+  - `districts` — TxDOT's 25 engineering districts using the
+    official boundary geometry from the TxDOT MapServer feature
+    service, Visvalingam-simplified at weight 0.05.
+  - `us-context` — All 50 US states + DC using the AlbersUsa
+    composite projection (handles AK / HI as insets natively).
+    Highlighted state shifts to maroon.
+  - `dot-density` — Dots are rejection-sampled inside the actual
+    Texas state outline using a deterministic Mulberry32 RNG so
+    SSR + CSR produce the same scatter.
+  - `flow` — Origin-destination curved arcs between Texas's
+    seven primary metros, projected from real lat/lng.
+
+- **`TuxMetroInset`** — single-metro neighborhood-grid companion
+  for 4-up drill-downs (Houston · DFW · Austin · SAT). Cell
+  pattern seeded by metro name so SSR + CSR match.
+- **`TuxChartSunburst`** — two-ring radial breakdown sister to
+  `TuxTreemap`. Inner ring = top-level groups, outer ring =
+  children with stepped opacity, center carries total in
+  tabular numerals. Container-queried legend collapse below
+  36rem.
+- **`TuxChartFrame`** — editorial wrapper (eyebrow + Oswald
+  title + 2px maroon signature rule + body slot + source/notes
+  footer) used by `/visualizations/*` showcase pages so a
+  multi-exhibit report reads as one document.
+
+**Geometry pipeline (build-time only):**
+
+- `scripts/build-geo.mjs` runs at build time only — pulls
+  us-atlas (npm; TIGER/Line 1:10m) and the official TxDOT
+  MapServer feature service, simplifies via `topojson-simplify`,
+  projects with `d3-geoAlbers` (Texas) / `d3-geoAlbersUsa` (US),
+  emits three TS modules under `app/assets/geo/` (`texas.ts`,
+  `texas-counties.ts`, `us-states.ts`). Outputs are checked in;
+  re-run via `npm run build:geo` when upstream sources change.
+  No runtime projection or topology library — the component
+  imports static SVG path strings.
+- New devDependencies: `d3-geo`, `topojson-client`,
+  `topojson-server`, `topojson-simplify`, `us-atlas`.
+- New tokens: `--chart-1` through `--chart-8` (categorical
+  palette across light / dark / HC), `--map-seq-maroon-1..5`,
+  `--map-seq-slate-1..5`, `--map-outline`, `--map-flow`. All
+  three theme variants override.
+- `data/source/` added to `.gitignore` (raw GeoJSON is 13MB+
+  and re-fetchable from the TxDOT MapServer).
+
+### Security — `npm audit` cleanup, 8 → 0 vulnerabilities (2026-05)
+
+- `npm audit fix` (no `--force`) applied patch upgrades to
+  `nitropack` (open-redirect via wildcard route rules + proxy
+  scope bypass), `uuid` (missing buffer-bounds check in v3/v5/v6),
+  and `basic-ftp` (unbounded multiline FTP control buffer DoS,
+  transitive via Puppeteer's proxy-agent chain).
+- `potrace` removed from `devDependencies`. The remaining five
+  vulns were a single root cause counted across the
+  `phin@2.x → @jimp/core → @jimp/custom → jimp → potrace` chain.
+  Potrace was a build-time-only utility (the SVGs it produced
+  ship in `public/`); the script
+  [`scripts/png-to-svg-logo.mjs`](scripts/png-to-svg-logo.mjs)
+  now starts with a fail-fast that prints regen instructions
+  (`npm install --no-save potrace jimp@0.16`).
+
+`npm audit` reports `found 0 vulnerabilities` on a clean install.
+
+### Docs — doctrine catch-up
+
+- `design/components.md` — added rows for `TuxDataTable`,
+  `TuxRichDataGrid` (main table) and `TuxChartFrame`,
+  `TuxChartGeographic`, `TuxChartSunburst`, `TuxMetroInset`
+  (Visualizations table). "Want X? use Y" pattern map gains
+  five entries (rich data grid, static research table, Texas
+  map, multi-metro inset, two-ring radial). Component count
+  bumped ~60 → ~70.
+- `design/roadmap.md` — new "Recently shipped" section covering
+  the data-density and geographic-charts batches plus the
+  visual-language evolution prelude. Notes that data-density
+  wasn't on the original roadmap and the geographic-charts work
+  is adjacent to (not a replacement for) the still-aspirational
+  `TuxMapEmbed` Mapbox/Leaflet line.
+
+## [1.1.0] — 2026-05-06
+
+Cuts the accumulated post-v1.0.0 work into a tagged release so
+consumers can pin to `github:ttitamu/tti-ux#v1.1.0` and upgrade
+deliberately. Substantial new features in the hybrid-chrome family
+(below) plus packaging changes that make the GitHub-tag consumption
+path real.
+
+### Added — packaging for GitHub-tag consumption
+- **`public/CNAME` for `ux.tti.tamu.edu`.** Pins the custom domain
+  in the Pages artifact so deploys don't drop the Settings → Pages
+  custom-domain value on republish — the source of recent HTTPS
+  cert flakiness, since the cert is provisioned per-domain and only
+  after the domain is locked in.
+- **`main` + `files` in `package.json`** so consumers get a clean
+  package shape: layer config (`nuxt.config.ts`), `app/`, `design/`,
+  `docs/`, `public/`, plus README/CHANGELOG/tsconfig. Everything
+  else (scripts, contrast-report, dist, node_modules) stays out.
+- **Runtime deps moved from `devDependencies` to `dependencies`** —
+  `@iconify-json/lucide`, `@tailwindcss/vite`, `@tanstack/vue-table`,
+  `@tanstack/vue-virtual`, `tailwindcss`. These are needed at build
+  time in any consumer that extends the layer or installs the
+  package, so they have to be runtime deps. (The pure tooling deps
+  — `@nuxt/devtools`, `puppeteer`, `potrace`, `serve-handler`,
+  `typescript` — stay in devDependencies.)
+- **README consumption guide** rewritten around
+  `extends: ["github:ttitamu/tti-ux#v1.1.0"]` as the primary path,
+  with `file:../tti-ux` kept as a local-dev fallback.
+
+### Hybrid chrome (PECAN-driven)
+
+App-shape consumers (PECAN, tti-ai-studio) need a "I'm in an
+application" chrome that wasn't quite expressible with the current
+TuxSiteNav + TuxDropdown + TuxMegaMenu set. v1.1.0 adds the missing
+hooks so the institutional + docs + app patterns can all share one
+component family. All changes additive; no breaking changes for
+marketing-surface consumers.
+
+### Added — hybrid chrome
+- **`TuxSiteNav` `#trailing` slot** — renders inside
+  `.tux-site-nav__bar-inner` after the primary nav, with a
+  left-border separator from the nav. App-shape consumers drop
+  a utility cluster (search trigger, notifications bell, theme
+  toggle, user dropdown) into the slot; marketing surfaces leave
+  it empty and rely on the upper utility bar (`utilityNav` prop).
+- **`PrimaryNavItem.to`** — now valid alongside `dropdown` /
+  `megaMenu`. When set, the trigger LABEL becomes a real
+  `NuxtLink` (clicking → navigate; hover/focus still opens the
+  panel). Use the route the operator most likely wants when
+  they "just click on the section name" — typically the area's
+  overview/index.
+- **Route-aware active states on TuxDropdown + TuxMegaMenu.**
+  Each menu computes:
+  - `isTriggerActive` — true when the route matches `to` exactly
+    OR is a strict descendant path OR matches any descendant
+    item's `to`. Renders the trigger with a 2px maroon
+    bottom-border (with reserved-slot pattern so the active
+    state doesn't shift the label vertically).
+  - `isItemActive(item)` — exact-route match. Renders the item
+    with `--active` modifier: 9% maroon background tint + 2px
+    maroon left rail (via `box-shadow: inset`) + bold label +
+    `aria-current="page"`.
+  - Auto-close on navigation via `watch(() => route.fullPath, …)`.
+  Same `--active` shape applied to plain primary-nav links via
+  `TuxSiteNav.isPlainLinkActive` so all three primary-nav variants
+  share one visual language.
+
+### Fixed
+- **Active-state on `?query=` and `#hash` routes** —
+  `TuxDropdown.isItemActive`, `TuxMegaMenu.isItemActive`, and
+  `TuxSiteNav.isPlainLinkActive` were comparing `route.path === target`
+  which strips both the query and hash. Items like
+  `/policies?tab=approvals` and `/admin#fleet` never lit up; worse, on
+  a query-filtered route the bare-path sibling (`/policies`) STAYED
+  active, so two siblings claimed the indicator at once. Extracted the
+  matching rules into a shared `app/utils/nav-active.ts` helper with
+  two functions:
+  - `isExactActive(target, route)` — segment-aware exact match (path +
+    query + hash). A bare-path target only lights up on a "neutral"
+    route (no query, no hash); a query/hash target requires an exact
+    match. This is what individual items + `aria-current="page"` use.
+  - `isSectionActive(target, route)` — path-only prefix match. This is
+    what triggers and section indicators use, since `?tab=` / `#anchor`
+    don't change which section the operator is in.
+  Also picked up by `TuxDocsSidebar` so doc anchors work the same way.
+- **Trigger + item clickability under hover-open state** —
+  `TuxDropdown` / `TuxMegaMenu` / `TuxSiteNav` / `TuxFooter` were
+  rendering navigable elements via `<component :is="triggerComponent">`
+  + `v-bind="linkAttrs(item)"` where `triggerComponent` resolved a
+  `NuxtLink` from a string at runtime. Under hover-open state, clicks
+  on the trigger were being eaten intermittently (vue-router didn't
+  always have the resolved component reference at click-handling time).
+  Replaced with explicit `<NuxtLink v-if> / <a v-else-if> / <button
+  v-else>` branches across all four components — vue-router gets the
+  static component reference at compile time and clicks land
+  reliably. Verbose, but the cost is cheap and the bug it prevents is
+  user-visible.
+
+### Changed
+- **`TuxMegaMenu` panel sizing** — was `position: absolute; left:
+  0; right: 0; max-width: 80rem` but anchored to the trigger
+  `<li>` (which had `position: relative` for TuxDropdown's
+  per-trigger panels). Result: panel inherited the narrow
+  trigger box; columns stacked vertically because
+  `auto-fit minmax(11rem, 1fr)` had no horizontal room. Fixed by
+  anchoring the panel right-edge-to-trigger
+  (`right: 0; left: auto`), sizing it to its content
+  (`width: max-content`), capping at
+  `min(48rem, calc(100vw - 2rem))` with a `min-width: 20rem`.
+  Three columns now lay out side-by-side; visually consistent
+  with TuxDropdown (same border, shadow, density).
+- **Layer-rooted CSS paths in `nuxt.config.ts`** — `~/` resolves
+  to the consumer's `app/`, not the layer's, so
+  `~/assets/css/tokens.css` in the layer's nuxt.config breaks
+  consumers when they `extends` the layer. Now uses
+  `dirname(fileURLToPath(import.meta.url))` →
+  `resolve(layerDir, "app/assets/css/...")`. Same fix applied
+  to `app/pages/icons.vue`'s import (was `~/utils/lucide-names`,
+  now `../utils/lucide-names`).
+
+### Token additions
+- **TTI gold palette** added to `app/assets/css/tokens.css`
+  (50→950 anchored at #DDAC37 = 500). Was a planned follow-up
+  documented in v1.0.0; now upstream so any consumer can flip
+  `warning: amber → gold` in their `app.config.ts` without a
+  local `tokens.css` shim.
+
+### Documentation
+- **Internal-tool footer exception**. The "one footer component,
+  vary content via `columns` and `social` props" guidance still
+  applies to public institutional surfaces. But internal-tool
+  consumers (PECAN, future internal admin tools) should drop
+  TuxFooter entirely — the marcom shape (state-resource columns,
+  social row, TAMUS legal strip) is sized for tti.tamu.edu, not
+  for single-audience tools whose operators already know they
+  work for the institute. PECAN ships its own `PecanOpsFooter`
+  (~40px slim strip with version pill + helpdesk + © anchor)
+  as the documented exception.
+
+## [1.0.0] — 2026-04-27
+
+First versioned release. The catalog has been stable for three product
+consumers (PECAN, tti-ai-studio, the style guide itself) for several
+weeks; cutting v1 makes the consumption story (`file:../tti-ux` for
+now, npm package later) explicit instead of implicit.
+
+### Added — accessibility tooling + AAA conformance
+- **`/accessibility` page** with the formal conformance statement:
+  WCAG 2.2 AA target; color contrast verified at AAA across all
+  three themes (light, dark, high-contrast).
+- **`/contrast-audit` page** renders every contrast-risk surface
+  in three themed columns simultaneously (one per `data-theme`).
+- **`scripts/audit-contrast.mjs`** uses puppeteer + the WCAG 2.1/2.2
+  contrast formula to compute ratios for every text/background
+  pair on the audit page. Reports both AA and AAA pass counts in
+  one run; gates on AAA when `AUDIT_LEVEL=AAA` is set (CI default).
+- **`audit-contrast.yml`** workflow runs on every push + PR. CI
+  fails if any contrast pair drops below AAA.
+- **Token revisions** to clear AAA across the board:
+  - light `--text-secondary` #5d5d5d → #424242 (8.97:1 on white)
+  - light `--text-muted` #6F6F6F → #525252 (7.05:1 on white)
+  - light `--color-success` → #3D5328, `--color-error` → #A02828,
+    `--color-info` → #1F5D66
+  - dark `--brand-primary` #d2718c → #e795a8 (7.92:1 on dark page)
+  - dark `--brand-secondary` → #8ab7e2, `--color-error` → #F59292,
+    `--color-success` → #ABCC8E, `--color-info` → #9BD4E0
+  - HC `--text-muted` → #4D4D4D, `--color-error` → #A02828
+  - new `--brand-fill` token for filled maroon panels (always
+    #5C0025 in light/dark, #500000 in HC) so brand-primary can
+    lighten in dark mode for text legibility without compromising
+    panel contrast.
+- **Tailwind v4 `@theme` cascade workaround**: re-bound every
+  `--color-*` alias inside `[data-theme="tti-dark"]` and
+  `[data-theme="tti-hc"]` because Chrome freezes `@theme`
+  variable references at `:root` scope. Without this, theme
+  overrides on raw tokens didn't propagate to Tailwind utility
+  classes.
+
+### Changed — BREAKING
+- **`TuxFooter` is now the unified institutional footer.** Earlier
+  releases shipped three separate components for the page anchor
+  (slim `TuxFooter`, `TuxMarketingFooter`, `TuxSubfooter`); they're
+  collapsed into a single `TuxFooter` that renders the maroon
+  marketing block + the mandatory TAMUS legal strip in one
+  component. Every shipped TTI surface needs the same anchor —
+  having three pieces was over-decomposition.
+  - **Migration**: replace `<TuxFooter ... /><TuxSubfooter />` (and
+    any `<TuxMarketingFooter />` usage) with a single
+    `<TuxFooter :columns="..." :social="..." />`. Pass empty
+    arrays for `columns` and `social` to get the slim app-shape
+    (just identity block + legal strip).
+  - **Removed components**: `TuxMarketingFooter` (lived for one
+    commit), `TuxSubfooter` (replaced by the legal-strip section
+    of the new TuxFooter).
+
+### Added
+- **`/changelog` page** — renders this file via the same MDC pipeline
+  as `/design/[doc]`. Linked from the welcome page header and the
+  "What's new" section.
+- **"Welcome" sidebar group** — Home + Changelog above Foundations.
+- **`v1.0.0` version pill** — surfaced in the header lockup and the
+  welcome eyebrow, sourced from `package.json`.
+- **Welcome-page polish** — "Recent updates" timeline, CTA buttons
+  (Doctrine / Components / Repo), tighter pitch covering all three
+  downstream consumers.
+
+## Unreleased
+
+### Added — Priority A roadmap batch (2026-04-29)
+Status states, banners & tags, and dedicated form-primitive
+state-matrix pages. Closes Priority A in `design/roadmap.md`;
+~60 Tux\* components total now in the catalog.
+
+**Status states (3 new components):**
+- **`TuxErrorPage`** ([app/components/TuxErrorPage.vue](app/components/TuxErrorPage.vue))
+  — full-page 404 / 500 / 403 / 503 template. Editorial display-type
+  status numeral, icon medallion, title + lede, recovery actions
+  (TuxButton row), optional support / status-page slot. Per-code
+  defaults (icons, copy, actions); slots and props override anything.
+  Use as Nuxt's `error.vue` or inline via the `inline` prop.
+- **`TuxSkeleton`** ([app/components/TuxSkeleton.vue](app/components/TuxSkeleton.vue))
+  — placeholder shapes for loading states. Six composed presets
+  (`card` / `list` / `table` / `article` / `media` / `stat`) plus
+  primitive mode (`width` / `height` / `variant`). Three animation
+  modes: shimmer (default · 1.6s linear gradient sweep), pulse
+  (cheaper opacity oscillation for dense lists), never (opt-out for
+  print / screenshots). **Honors `prefers-reduced-motion: reduce`
+  automatically** — collapses to a static tint, no movement, per
+  the roadmap spec. SR-only "Loading…" label on a `role="status"`
+  region; decorative shapes are `aria-hidden`.
+- **`TuxStepper`** ([app/components/TuxStepper.vue](app/components/TuxStepper.vue))
+  — numbered-circle multi-step indicator. Status auto-derives from
+  `currentIndex` (done · active · todo); per-step `error` override.
+  Two orientations (`horizontal` collapses to `vertical` below
+  ~30rem container width via container query, not viewport). Optional
+  `to` per step renders the node as `NuxtLink` for jump-back
+  navigation. Renders as `<nav aria-label>` with `aria-current="step"`
+  on the active item. Use for funding applications, IRB
+  submissions, study onboarding.
+
+**Banners & tags (3 new components):**
+- **`TuxAnnouncementBanner`** ([app/components/TuxAnnouncementBanner.vue](app/components/TuxAnnouncementBanner.vue))
+  — top-of-page dismissable strip for site-wide notices. Distinct
+  from `TuxAlert` (page-body admonition) — this is chrome that sits
+  above the page header, full-width, persists across routes.
+  Dismissal persists in `localStorage` keyed by `id` prop; emits
+  `dismiss` for consumers driving their own persistence. Four
+  tones: `info` (blue), `success` (green), `warning` (gold),
+  `urgent` (maroon fill — reserves for service outages, security
+  advisories).
+- **`TuxCookieConsent`** ([app/components/TuxCookieConsent.vue](app/components/TuxCookieConsent.vue))
+  — privacy notice required on public TTI surfaces. Bottom-right
+  floating card or full-width bottom strip (`position` prop).
+  Decision (`accepted` / `rejected` / `custom`) persists in
+  `localStorage` and emits via `decision` event so consumers can
+  gate analytics. **Surface only**; per-category UI lives in the
+  `#categories` slot — the host owns category names and wiring.
+  Necessary cookies are implicitly accepted (no toggle).
+- **`TuxBetaRibbon`** ([app/components/TuxBetaRibbon.vue](app/components/TuxBetaRibbon.vue))
+  — environment / lifecycle label. Three variants picked by host
+  context, not aesthetic preference: `corner` (diagonal ribbon in
+  the page corner — full-deploy preview environments / staging),
+  `stripe` (top-of-page horizontal full-width — production-shaped
+  deploys with non-prod data, public betas), `pill` (inline — feature-
+  level beta tags, per-page indicators). Three tones: `preview`
+  (gold), `beta` (navy), `dev` (warning red). Maintenance windows
+  belong on `TuxAnnouncementBanner tone="urgent"` — content notice,
+  not chrome label.
+
+**Form primitives — 6 dedicated state-matrix pages, no new
+components:** the existing `/forms` page explicitly stated "No Tux
+wrappers here yet" — Nuxt UI's form primitives don't need deviation
+to fit the brand. The roadmap's intent was breaking the inline
+catch-all into focused per-primitive pages, not new wrappers.
+- **`/forms` is now a landing** ([app/pages/forms/index.vue](app/pages/forms/index.vue))
+  with 6 tiles + a link to the legacy all-in-one demo (now at
+  `/forms/all-in-one`).
+- **`/forms/text-field`** — `UInput` + `UTextarea` state matrix:
+  default · focus · filled · disabled · readonly · error · with
+  helper · with counter · auto-resize · trailing button · leading icon.
+- **`/forms/select`** — `USelectMenu` with descriptions (TAMUS
+  classification tiers), searchable combobox, creatable values,
+  multi-select.
+- **`/forms/choice`** — `UCheckbox` group with select-all +
+  indeterminate parent; `URadioGroup` with descriptions and inline
+  orientation; "when to reach for which" decision section.
+- **`/forms/date-picker`** — native `UInput type="date"` with
+  helper, min/max bounds, range-input pattern, plus
+  `time` / `datetime-local` / `month` / `week`.
+- **`/forms/file-upload`** — drag-drop dropzone, file list with
+  per-file progress + status icons, error and complete states.
+  Working sketch; consuming apps wire the actual upload backend.
+- **`/forms/inline-validation`** — live patterns: character counter,
+  phone-number mask, NIH grant ID mask, async "this email is taken"
+  with debounced check. Inline patterns; "why no Tux wrapper"
+  rationale.
+
+**Wiring:**
+- Sidebar nav: 6 new entries in the alpha-sorted Components group
+  (`TuxAnnouncementBanner`, `TuxBetaRibbon`, `TuxCookieConsent`,
+  `TuxErrorPage`, `TuxSkeleton`, `TuxStepper`); the "Forms" entry
+  in the Composition group is replaced by a dedicated **Forms**
+  group with an overview link and 6 sub-pages + the all-in-one
+  demo. Components catalog ([components/index.vue](app/pages/components/index.vue))
+  + home grid ([pages/index.vue](app/pages/index.vue)) + doctrine
+  table + pattern coverage map all updated.
+- New `pattern-coverage` entries: "Loading placeholder" → Skeleton,
+  "404 / 500 page" → ErrorPage, "Multi-step flow indicator" →
+  Stepper, "Site-wide notice strip" → AnnouncementBanner, "This
+  isn't production label" → BetaRibbon, "Privacy / cookie consent" →
+  CookieConsent.
+
+### Added — design-kit port (chat primitives + reports section)
+- **Chat primitives — five components** ported from the tti-ai-chat
+  React/JSX kit. They were previously demo mocks; now they're real
+  Vue SFCs in the catalog so a future tti-ai-chat Nuxt project can
+  consume them via the same `file:../tti-ux` link the other consumers
+  use.
+  - **`TuxChatMessage`** ([app/components/TuxChatMessage.vue](app/components/TuxChatMessage.vue)) —
+    one conversation turn. `role="user"` or `role="assistant"`; the
+    assistant variant sits on `--surface-sunken` so model output reads
+    as a distinct visual lane. Slots for citations, tools, and
+    avatar.
+  - **`TuxCitations`** ([app/components/TuxCitations.vue](app/components/TuxCitations.vue)) —
+    numbered source list under an assistant message. Three-column
+    grid (rank · body · score) so paths can ellipsize without
+    pushing the score off-screen.
+  - **`TuxComposer`** ([app/components/TuxComposer.vue](app/components/TuxComposer.vue)) —
+    chat input with optional compliance scope banner. Two-zone layout
+    (textarea + toolbar). Built-in model picker, corpus-attach,
+    char counter, and ⌘↵-to-send. Slot in a `TuxAlert variant="compliance"`
+    via the `#scope` slot for ITAR / restricted-corpus framing.
+  - **`TuxConversationList`** ([app/components/TuxConversationList.vue](app/components/TuxConversationList.vue))
+    — left-rail history grouped by temporal bucket (TODAY · YESTERDAY
+    · THIS WEEK · …). 3px maroon left border + 10%-tint background
+    on the active item.
+  - **`TuxContextPanel`** ([app/components/TuxContextPanel.vue](app/components/TuxContextPanel.vue))
+    — right-rail surface for grounding context (corpus, retrieval,
+    usage). Slot-driven; the panel contributes the chrome (border,
+    scroll, width, padding scheme) and the host arranges sections.
+- **New `/reports` section — finished-narrative deliverables.**
+  Paper · PDF · print. The reader reads top-to-bottom.
+  - **`TuxReportFrame`** ([app/components/TuxReportFrame.vue](app/components/TuxReportFrame.vue))
+    — page-sized canvas (letter / a4, portrait or landscape) for
+    PDF export and print. Editorial or compact density. Draws a
+    paper-sheet shadow on screen; goes flush borderless under
+    `@media print`. Visualizations, stats, and prose go inside.
+  - **`TuxReportPrintSheet`** ([app/components/TuxReportPrintSheet.vue](app/components/TuxReportPrintSheet.vue))
+    — drop-in print stylesheet. Renders nothing on screen; injects
+    a `<style media="print">` into the head via `useHead`. Hides
+    chrome marked `data-print="hide"`; paginates with
+    `data-print-break="before|after|avoid"`.
+  - **Reports landing** ([app/pages/reports/index.vue](app/pages/reports/index.vue))
+    — overview tiles, scope explainer (what's a report vs a viz).
+- **New `/visualizations` section — interactive data surfaces.**
+  BI dashboards · R artifacts · future native charts. The reader
+  pivots, filters, drills in. Distinct from Reports because the
+  chrome and posture are different (provider chip, sandbox, source
+  caption), and the deliverable lives inside the app, not on paper.
+  - **`TuxVizEmbed`** ([app/components/TuxVizEmbed.vue](app/components/TuxVizEmbed.vue))
+    — branded chrome around a Tableau / Power BI / Apache Superset
+    / Grafana iframe. Provider chip + open-in-new + per-provider
+    sandbox + loading/error states. New `posterSrc` prop renders a
+    static image fallback when the live tenant isn't reachable
+    (style-guide demos, air-gapped previews).
+  - **`TuxVizRPlot`** ([app/components/TuxVizRPlot.vue](app/components/TuxVizRPlot.vue))
+    — branded chrome around an R-language plot artifact. Three
+    kinds (`image` PNG/JPG, `svg` via `<object>`, `html` for
+    htmlwidgets in a sandboxed iframe). Source-line caption for
+    `sessionInfo()` or script path.
+  - **Visualizations landing** ([app/pages/visualizations/index.vue](app/pages/visualizations/index.vue))
+    — overview tiles, reports-vs-viz explainer, link to roadmap
+    for native charts.
+- **Demo poster artwork** so visualization demos render even
+  without a live tenant: `public/viz-poster-tableau.svg`
+  (TTI-corridor crash-rate bars), `public/viz-poster-powerbi.svg`
+  (sponsored-research executive overview), `public/viz-poster-grafana.svg`
+  (PECAN ingestion time-series + heatmap),
+  `public/viz-rplot-grants.svg` (faceted ggplot2 by quarter).
+- **TTI road-glyph SVG** ([public/TTI-glyph.svg](public/TTI-glyph.svg))
+  — institutional road mark isolated from the full TTI lockup.
+  Used as the `TuxChatMessage` assistant avatar (replaces the
+  earlier `tx` italic placeholder).
+- **Sidebar nav: new "Reports" + "Visualizations" groups** between
+  "Composition" and "Tooling". Reports group has Frame + PrintSheet;
+  Visualizations group has Embed + RPlot.
+- **Sidebar housekeeping**: added "Roadmap" link in the Design
+  group (`/design/roadmap` was reachable but unlinked); collapsed
+  the redundant `TuxSiteNav` / `TuxDropdown` / `TuxMegaMenu` trio
+  (all three pointed at the same demo page) into a single
+  `TuxSiteNav` entry.
+
+### Added — reports + visualizations build-out (2026-04-29)
+Rounds out both new sections so they read as more than the
+two-component minimum the design-kit port shipped with.
+
+- **`TuxReportWebFrame`** ([app/components/TuxReportWebFrame.vue](app/components/TuxReportWebFrame.vue))
+  — long-form, web-hosted narrative canvas. Same Reports family as
+  `TuxReportFrame` (finished narrative, read top-to-bottom), but
+  rendered as an HTML page rather than an 8.5×11 sheet. Cover
+  (eyebrow / title / lede), byline + date + reading-time row,
+  optional sticky right-rail TOC, body slot with editorial
+  typography rhythm, footer slot for source / publication line.
+  Three measure widths (`narrow` ≈ 56ch, `default` ≈ 70ch, `wide`
+  ≈ 82ch). Sibling sidebar entry under Reports.
+  - **Why a new component instead of just composing TuxPageHeader
+    + free sections:** TTI's web-hosted reports (annual report,
+    research findings, accreditation summaries) want a deliberately
+    bounded reading frame with cover, byline, optional TOC, and
+    closing source line. Composing those primitives ad-hoc per page
+    drifted; the frame canonicalizes the rhythm.
+  - **Why it's a Report, not a Visualization:** the reader still
+    reads top-to-bottom. The web/paper distinction is output medium,
+    not posture. A Visualization is something the reader pivots and
+    filters.
+  - Demo at [/reports/web-frame](app/pages/reports/web-frame.vue)
+    with a full sponsored-research example (cover · TOC · summary ·
+    findings with a TuxFactoid · methods · data · what's next).
+- **`TuxSparkline`** ([app/components/TuxSparkline.vue](app/components/TuxSparkline.vue))
+  — inline mini trend line. No axes, no legend, no tooltip. Native
+  SVG; no chart library. Five tones (`brand` / `success` / `error`
+  / `warning` / `neutral`), all theme-aware across light / dark /
+  HC. Optional area fill, last-point marker, and right-aligned
+  delta arrow (`+12%` percent or `+4.9` absolute). The SVG carries
+  an auto-derived `aria-label` and matching `<title>` summarizing
+  the trend ("Trend: 10 points, low 61, high 84, last 84 (+35.5%
+  from first)"); pass `units="$M awarded"` to suffix the summary.
+  - **First native chart in the catalog.** Shipped ahead of the
+    full `TuxChartBar` / `TuxChartLine` family because it's small
+    (no axes, no legend, no library) and the demand was already
+    clear: pair with `TuxBigStat` / `TuxFactoid` for KPI rows.
+  - Demo at [/visualizations/sparkline](app/pages/visualizations/sparkline.vue).
+- **`TuxVizGrid`** ([app/components/TuxVizGrid.vue](app/components/TuxVizGrid.vue))
+  — small-multiples layout primitive for the Visualizations
+  section. 2-, 3-, or 4-up panes of `TuxVizEmbed` / `TuxVizRPlot`
+  (or any visualization-shaped child) with shared editorial header
+  (eyebrow / title / dek), consistent gap, and optional footer
+  slot for source / data-cutoff / caveat copy. Container-queried —
+  collapses to single-column under ~32rem and to 2-up between
+  ~32rem and ~56rem. Doesn't repaint pane chrome; layout only.
+  - **Why a layout primitive instead of just CSS Grid in the host:**
+    a shared editorial header above N panes is a recurring pattern
+    (an exec dashboard with three Power BI tiles; a regional
+    small-multiples set of one Tableau viz). The grid implies "these
+    belong together" — meaningful editorial signal, worth a
+    component.
+  - Demo at [/visualizations/grid](app/pages/visualizations/grid.vue)
+    with two-up Tableau + Power BI and three-up Grafana stages.
+- **Reports landing rewritten** ([app/pages/reports/index.vue](app/pages/reports/index.vue))
+  — three tiles instead of two, each tagged with the output medium
+  (paper · PDF / print stylesheet / web-hosted). New "Pick by
+  output medium" decision section.
+- **Visualizations landing rewritten** ([app/pages/visualizations/index.vue](app/pages/visualizations/index.vue))
+  — four tiles, each tagged with kind (BI iframe wrapper / R
+  artifact wrapper / layout primitive / native mini chart). Scope
+  note now reads "TuxSparkline ships as the first native chart;
+  the broader family is still on the roadmap" instead of "all
+  native charts are pending".
+- **Doctrine table updates** ([design/components.md](design/components.md))
+  — Reports table grows an "Output medium" column (`paper · PDF` /
+  `print stylesheet` / `web (HTML page)`). Visualizations table
+  picks up TuxVizGrid + TuxSparkline rows. Pattern coverage map
+  picks up six new "want X? use Y" entries (sparkline, the three
+  report flavors, BI dashboard, R artifact, small-multiples).
+- **Roadmap reconciled** ([design/roadmap.md](design/roadmap.md))
+  — "Recently shipped" block updated to current names
+  (`TuxReportEmbed` / `TuxReportRPlot` were renamed to
+  `TuxVizEmbed` / `TuxVizRPlot` mid-batch and the roadmap still
+  carried the old names). TuxSparkline crossed off Priority B.
+
+### Renamed (since 1.0.0; not yet released)
+- `TuxReportEmbed` → **`TuxVizEmbed`**, demo route
+  `/reports/embed` → **`/visualizations/embed`**
+- `TuxReportRPlot` → **`TuxVizRPlot`**, demo route
+  `/reports/rplot` → **`/visualizations/rplot`**
+- Rationale: Tableau / Power BI / Grafana / R artifacts are
+  *visualizations*, not *reports*. TTI uses both words and they
+  mean different things (reports = finished narrative on paper;
+  visualizations = interactive surface in the app). The split
+  makes the IA match the institutional vocabulary.
+- **`design/roadmap.md`** — Vue-shaped backlog adapted from the
+  aggieux JSX-kit roadmap. Charts, maps, tabs, side-sheet, comments,
+  tooltips, and a11y-doc pages organized by priority tier. Replaces
+  the previous "we know what's missing but it's not written down" gap.
+- **ADR-0008 — Data-display components stay flat; reports get their
+  own section.** ([docs/adr/0008-data-display-and-reports-section.md](docs/adr/0008-data-display-and-reports-section.md))
+  Documents the decision and the criteria for adding a future route
+  group (chrome, discoverability, mass).
+- **Motion + spacing tokens** in `tokens.css`:
+  - `--motion-fast: 0.15s` · `--motion-base: 0.25s` · `--motion-slow: 0.35s`
+  - `--ease-standard` (default), `--ease-emphasis` (overshoot for the
+    corner-drop signature), `--ease-exit` (symmetric ease-in-out).
+  - `--space-0`, `--space-4`, `--space-10`, `--radius-none` —
+    supplements for places Tux components reach into a CSS var
+    directly (inline styles, `calc()`).
+
+### Added
+- **TuxFooter `brandLockup` prop — official institutional artwork
+  beneath the social row.** The footer's identity column has the
+  square glyph + HTML wordmark for chrome-density purposes; the new
+  prop layers in the official horizontal lockup PNG (logo + wordmark
+  in one piece) so consumers see the canonical institutional artwork
+  on the maroon marketing ground. Defaults to `/TTI_white.png` for
+  TTI; sibling institutions override with their own white-on-
+  transparent variant; pass `null` to hide. Capped at 16rem × 2.75rem
+  so it doesn't compete with the institution name above it.
+  - Three new public assets: `TTI-Color.png` (maroon road glyph,
+    light backgrounds), `TTI-black.png` (mono black, print/legal),
+    `TTI_white.png` (light variant, dark/maroon backgrounds).
+- **Doc-site chrome batch — TuxDocsSidebar, TuxTOC, TuxSiteNav,
+  TuxDropdown, TuxMegaMenu.** Fills the navigation-and-doc-shape gap
+  identified after the previous batch. The catalog had `TuxIdentity`
+  (the lockup) but no actual menu components, and no doc-site
+  sidebar / TOC for technical documentation.
+  - **`TuxDocsSidebar`** ([app/components/TuxDocsSidebar.vue](app/components/TuxDocsSidebar.vue)) — hierarchical
+    sidebar built on native `<details>` + recursive
+    `TuxDocsSidebarNode`. Active-route highlighting (including
+    ancestors), inline search filter with match highlighting,
+    sessionStorage-persisted collapse state per consumer.
+  - **`TuxTOC`** ([app/components/TuxTOC.vue](app/components/TuxTOC.vue)) — article table-of-contents.
+    Auto-detects H2/H3 from a target element on mount, tracks active
+    heading via `IntersectionObserver`, smooth-scrolls on click,
+    updates URL hash without triggering a full navigation. Pairs
+    with `TuxDocsSidebar` for the canonical three-column doc layout.
+  - **`TuxSiteNav`** ([app/components/TuxSiteNav.vue](app/components/TuxSiteNav.vue)) — institutional top-bar
+    with TuxIdentity lockup + optional utility strip + primary nav.
+    Mobile hamburger drawer included. Five AggieUX site types
+    (University / Center / Department / Application+nav / Application-only)
+    all expressible via composition.
+  - **`TuxDropdown`** ([app/components/TuxDropdown.vue](app/components/TuxDropdown.vue)) — single-column
+    dropdown panel. Used as a primary-nav item in TuxSiteNav, also
+    works standalone for inline "more actions" patterns.
+    Hover/focus open with diagonal-path delay; Escape closes.
+  - **`TuxMegaMenu`** ([app/components/TuxMegaMenu.vue](app/components/TuxMegaMenu.vue)) — full-width
+    multi-column panel from a top-bar item, with optional featured
+    tile (eyebrow + title + description + image) on the right.
+
+### Changed
+- **TuxFooter legal strip drops the gold "A" medallion** next to the
+  TAMUS lockup. The medallion was a placeholder glyph standing in
+  for an actual TAMUS-system mark and read as ornament rather than
+  signal; the eyebrow + name lockup carries the affordance on its
+  own.
+- **TuxDiagram styling pass.** Swapped from Mermaid's `default` theme
+  to `base` so all themeVariables actually apply; expanded the
+  brand-mapping (primary/secondary/tertiary fills, sequence-actor
+  styling, note styling for both light + dark modes); type sized
+  down from 16px to 13px Open Sans so diagrams don't dominate
+  editorial body context. Error surface replaced the raw parser
+  dump with a hint about quoting unquoted special characters + a
+  collapsible details for the parser output. Demo source for the
+  flowchart fixed (the `<br/>` inside an unquoted node label was
+  failing to parse — wrapped in `"…"` per Mermaid's syntax).
+
+### Added
+- **Authoring + content batch — TuxCodeBlock, TuxDiagram, MDC integration.**
+  Closes the gap between "components for app surfaces" and "components
+  for prose surfaces" (docs, blog, ADRs, marcom WordPress migration).
+  - **`TuxCodeBlock`** ([app/components/TuxCodeBlock.vue](app/components/TuxCodeBlock.vue)) — standalone
+    Shiki-backed code block. Distinct from `TuxExample` (which is for
+    component demos with Vue/HTML reveal tabs) — this one is for
+    embedded code samples in docs/blog/ADRs. Lazy-loads the requested
+    grammar on mount so the SSR bundle stays clean. Theme tracks
+    page color-mode (light / dark / high-contrast). Filename caption
+    + line numbers + copy button optional.
+  - **`TuxDiagram`** ([app/components/TuxDiagram.vue](app/components/TuxDiagram.vue)) — Mermaid wrapper for
+    diagrams-as-code (flowcharts, sequence diagrams, ERDs, gantt).
+    Mermaid is a real ~3MB dep, so the component lazy-imports it on
+    mount — pages that don't render a diagram pay nothing. Brand
+    palette mapped into Mermaid's themeVariables. Render errors
+    surface inline with the parser message. Pulse + spin animations
+    respect `prefers-reduced-motion`.
+  - **`@nuxtjs/mdc` integration** — markdown rendering with Vue
+    components inline. Configured in `nuxt.config.ts` with the same
+    Shiki theme set the rest of the system uses. Tux components are
+    auto-imported via Nuxt's existing resolver, so authors can
+    invoke them with the `::tux-alert{variant="warning"}` block
+    syntax without per-component setup. Live demo + syntax crib
+    sheet at `/markdown` shows source + rendered side-by-side.
+
+- **Pattern coverage map** in [design/components.md](design/components.md) — explicit
+  "want X? use Y" table covering tags (`TuxBadge kind="tag"`),
+  admonitions (`TuxAlert`), inline callouts, blockquotes, Q&A, code,
+  diagrams, MDC, forms, tables, search, A–Z nav, sidebar widgets,
+  signups, big stats, factoid rows. Surfaces the catalog's
+  easiest-to-miss component names so newcomers don't ship duplicates.
+
+- **`TuxCodeMaroon`** ([app/components/TuxCodeMaroon.vue](app/components/TuxCodeMaroon.vue)) — institutional
+  emergency alert banner. TAMUS's Code Maroon is the mandatory
+  emergency-notification system; Rellis Campus (where TTI lives)
+  routes through `https://rellis.tamus.edu/emergency/` —
+  `detailsUrl` defaults to that for TTI consumers, override for
+  non-Rellis sites. Three severities (alert/warning/info) with
+  hard-coded colors that **don't theme** (no `tti-dark` / `tti-hc`
+  override — visual recognition matters more than palette
+  consistency during emergencies). Defaults to non-dismissible per
+  institutional convention; pass `dismissible` + v-model to allow
+  dismissal. Sticky-position support via `sticky` prop. Pulsing
+  siren icon respects `prefers-reduced-motion`. Demo at
+  `/components/code-maroon`.
+- **Catalog mop-up — five last components** closing out every
+  AggieUX catalog entry relevant for the three target consumers.
+  Shipping these makes the system feature-complete for the marcom
+  reveal:
+  - **`TuxLinkSlab`** ([app/components/TuxLinkSlab.vue](app/components/TuxLinkSlab.vue)) — full-width
+    horizontal band of prominent links. The "footer-of-section
+    navigation" pattern; distinct from `TuxLinkList`'s multi-column
+    grouped list. Three tones (plain / neutral / maroon).
+  - **`TuxSidebarBlock`** ([app/components/TuxSidebarBlock.vue](app/components/TuxSidebarBlock.vue)) — generic
+    sidebar widget wrapper. Eyebrow + maroon-underline title +
+    content slot. Three variants (default / bordered / filled).
+    Compose any content inside — lists of NuxtLinks (auto-styled),
+    `TuxDescriptionList`, prose, etc.
+  - **`TuxQACollection`** ([app/components/TuxQACollection.vue](app/components/TuxQACollection.vue)) — long-form
+    Q&A editorial pattern. Always expanded — designed to be read
+    top-to-bottom. Companion to `TuxAccordion kind="faq"` (which is
+    collapsible for scanning). Maroon "Q." marker + bold question +
+    flowing answer prose, with optional "see also" link list per item.
+  - **`TuxSignupFeature`** ([app/components/TuxSignupFeature.vue](app/components/TuxSignupFeature.vue)) —
+    newsletter signup block. Heading + dek + bordered email input +
+    uppercase action + consent line. Three tones, three style
+    variants. Self-contained.
+  - **`TuxAlphaNav`** ([app/components/TuxAlphaNav.vue](app/components/TuxAlphaNav.vue)) — A–Z jump bar
+    for directory and glossary pages. Two modes: anchor (sets
+    `window.location.hash` for in-page jumps) or emit
+    (filter-in-place via v-model). Letters not in the dataset
+    render dimmed and disabled.
+
+  All five use container queries per ADR 0007. The catalog's
+  "Ideas not yet shipped" section is now empty — every aspirational
+  entry the AggieUX kit catalogued has shipped.
+
+- **Composition examples** — three "what does this enable" pages
+  assembling 9–13 Tux\* components each into real-shape surfaces:
+  - **`/examples/pecan-dashboard`** ([app/pages/examples/pecan-dashboard.vue](app/pages/examples/pecan-dashboard.vue)) —
+    IT-facing index overview. TuxBreadcrumbs, TuxPageHeader (with
+    media slot), TuxFactoid, TuxAlert, TuxTreemap, TuxFilterPanel,
+    TuxSearch, TuxBadge, TuxPagination, TuxDescriptionList,
+    TuxSectionHeader, TuxCallout. (13 components.)
+  - **`/examples/research-landing`** ([app/pages/examples/research-landing.vue](app/pages/examples/research-landing.vue)) —
+    public-facing program hero. TuxPageHeader (hero + maroon),
+    TuxFactoid, TuxBlockquote (drop-cap), TuxMediaSlab (split),
+    TuxIconFeature, TuxCardSlab, TuxNewsCollection, TuxTestimonial,
+    TuxCTA, TuxLinkList. (10 components.)
+  - **`/examples/tti-ai-studio-session`** ([app/pages/examples/tti-ai-studio-session.vue](app/pages/examples/tti-ai-studio-session.vue)) —
+    LLM/agent session view. TuxBreadcrumbs, TuxPageHeader, TuxAlert
+    (compliance), TuxSectionHeader, TuxCallout, TuxDescriptionList,
+    TuxFactoid, TuxAccordion, TuxCommandPalette. (9 components.)
+  - **`/examples`** ([app/pages/examples/index.vue](app/pages/examples/index.vue)) — the
+    index page. Cards on the landing page promote it.
+- **ADR 0007** ([docs/adr/0007-container-queries-over-viewport-media-queries.md](docs/adr/0007-container-queries-over-viewport-media-queries.md)) —
+  captures the WHY behind the container-query convention. Cross-
+  references the gitignored CLAUDE.md and the
+  `design/components.md` guidance section that enforce it for
+  human + AI contributors.
+- **`#extra` slot on TuxFooter** — for inline left-side content
+  alongside the version + © (high-contrast toggle in the style
+  guide; system-status indicators or session counts in product
+  consumers).
+
+### Changed
+- **Style-guide chrome eats its own dogfood.** The repo's `app.vue`
+  no longer hand-rolls the header lockup or footer — it uses
+  `<TuxIdentity level="center" superhead="Texas A&M Transportation
+  Institute" name="tti-ux">` for the header, `<TuxFooter>` for the
+  app-level strip, and `<TuxSubfooter>` for the mandatory TAMUS
+  legal block. The high-contrast toggle moves into TuxFooter's
+  new `#extra` slot. Net effect: the live style guide is now a
+  real example of itself, and any rough edges in the chrome
+  components surface in the place they're most visible.
+
+- **Container queries replace viewport media queries on layout-shifting
+  components** ([TuxPageHeader](app/components/TuxPageHeader.vue),
+  [TuxMediaSlab](app/components/TuxMediaSlab.vue),
+  [TuxCardSlab](app/components/TuxCardSlab.vue),
+  [TuxCTA](app/components/TuxCTA.vue),
+  [TuxNewsCollection](app/components/TuxNewsCollection.vue),
+  [TuxBreadcrumbs](app/components/TuxBreadcrumbs.vue)).
+  Each component declares its own `container-type: inline-size` +
+  named container, then uses `@container <name> (min-width: …)` for
+  layout breakpoints. **Why:** with the old viewport-based queries, a
+  component embedded in a 600px demo wrapper inside a 1200px viewport
+  would think it had room for a two-column layout it couldn't fit. With
+  container queries, breakpoints fire on the component's own width — so
+  the same component renders correctly whether it's at full page width,
+  inside a sidebar tile, or inside a narrow article column.
+- **Hero typography uses `clamp()` with `cqi` units** for fluid scaling.
+  Hero-rhythm titles, slab titles, news titles, and CTA titles now
+  scale smoothly with the container width instead of jumping at a
+  breakpoint. e.g. `font-size: clamp(2rem, 1.2rem + 4.5cqi, 3.5rem)`
+  on the hero page-header title.
+- **TuxTreemap tooltip flips on canvas edges** instead of overflowing.
+  When the cursor is past the canvas midpoint, the tooltip anchors to
+  the cursor's opposite side using `right`/`bottom` instead of
+  `left`/`top`. Removes the bug where hovering near a corner sent the
+  tooltip off-screen.
+
+### Added
+- **Catalog completion + tier 2/3 product batch** — seven components
+  closing out the AggieUX catalog backlog and unblocking the tier 2/3
+  product surfaces:
+  - **`TuxContactCard`** ([app/components/TuxContactCard.vue](app/components/TuxContactCard.vue)) — faculty / staff
+    directory card. Portrait + credentials + role + typed contact rows
+    (email/phone/web/office/location, with auto `mailto:` and `tel:`).
+    Vertical or horizontal layout.
+  - **TuxPageHeader extended** — same component, three new dimensions:
+    `tone="neutral|maroon"` for backgrounded panels,
+    `rhythm="hero"` for landing-page sized headings,
+    `#media` slot for two-column hero treatments,
+    `#actions` slot for trailing CTAs. Existing call sites unchanged.
+  - **`TuxMediaSlab`** ([app/components/TuxMediaSlab.vue](app/components/TuxMediaSlab.vue)) — full-bleed hero
+    band, "big photo moment". Overlay or split layout, three heights,
+    three placeholder tones.
+  - **`TuxCardSlab`** ([app/components/TuxCardSlab.vue](app/components/TuxCardSlab.vue)) — full-bleed band of
+    media-forward cards. The "browse our programs" pattern. Three
+    aspect ratios, 2/3/4-up grid, whole-card click w/ corner-drop hover.
+  - **`TuxPagination`** ([app/components/TuxPagination.vue](app/components/TuxPagination.vue)) — page-number
+    controls. Native Vue (not UPagination) — squarified active page,
+    ellipsis truncation, optional status line, configurable
+    sibling/boundary count.
+  - **`TuxCommandPalette`** ([app/components/TuxCommandPalette.vue](app/components/TuxCommandPalette.vue)) — global
+    ⌘K jump bar. Native `<dialog>` (free focus trap + scrim + ESC),
+    grouped commands w/ live filter, keyboard navigation, action or
+    navigation per command. Single instance at app root.
+  - **`TuxTreemap`** ([app/components/TuxTreemap.vue](app/components/TuxTreemap.vue)) — squarified
+    hierarchical-size visualization, PECAN's headline chart. Pure SVG
+    implementation of the Bruls-Huijsen-van Wijk algorithm — no viz
+    library dependency. Click to drill, breadcrumb to zoom out, log-
+    scaled maroon ramp, hover tooltip. 4 unit modes
+    (bytes/count/percent).
+- **Marketing surface batch** — five components that round out the
+  marketing/landing surface coverage. Marcom's eventual review now sees
+  every common content block, not gaps:
+  - **`TuxPhotoGrid`** ([app/components/TuxPhotoGrid.vue](app/components/TuxPhotoGrid.vue)) — uniform image
+    grid. `kind="photo"` (4:3, captions, full color) or
+    `kind="logo"` (1:1, grayscale-on-hover wall). Auto-fits columns,
+    placeholder gradients for design mocks before real assets land.
+  - **`TuxCaptionedMedia`** ([app/components/TuxCaptionedMedia.vue](app/components/TuxCaptionedMedia.vue)) — single
+    inline image (or video frame via `#media` slot). Four aspect ratios
+    (16:9 / 4:3 / 1:1 / 3:4), three alignment treatments
+    (full / wide / right-floated for prose).
+  - **`TuxNewsCollection`** ([app/components/TuxNewsCollection.vue](app/components/TuxNewsCollection.vue)) — institutional
+    news-index pattern. Stacked list (thumb left, copy right) for /news
+    landing pages, or grid (thumb above, 2 or 3 cols) for hub-page
+    "recent news" sections. Dates render as `<time>` with ISO datetime.
+  - **`TuxIconFeature`** ([app/components/TuxIconFeature.vue](app/components/TuxIconFeature.vue)) — the classic
+    "our services" / "focus areas" block. Icon-in-tinted-circle +
+    headline + body + CTA. Three tones cycle (maroon/navy/gold). Grid
+    or list layout.
+  - **`TuxLinkList`** ([app/components/TuxLinkList.vue](app/components/TuxLinkList.vue)) — categorized resource
+    list. "For sponsors / for partners / for students" footer-of-section
+    pattern. Optional descriptions per link, auto-detected external
+    arrows, `featured: true` for maroon left-bar emphasis.
+- **Editorial breadth batch** — four components that round out the
+  marketing/content surface coverage so marcom's eventual review sees a
+  finished system rather than a partial scaffold:
+  - **`TuxBlockquote`** ([app/components/TuxBlockquote.vue](app/components/TuxBlockquote.vue)) — standalone
+    editorial pull quote. Two layouts (centered with rules above/below;
+    magazine-style drop-cap) and three style variants. Companion to
+    `TuxCallout` (which is the inline aside).
+  - **`TuxTestimonial`** ([app/components/TuxTestimonial.vue](app/components/TuxTestimonial.vue)) — attributed
+    quote collection with portrait + name + role. Grid (cards, 2 or 3
+    cols) or row layout. Circular gradient portrait placeholders cycle
+    through maroon/navy/gold; pass `image` for real photos.
+  - **`TuxAccordion`** ([app/components/TuxAccordion.vue](app/components/TuxAccordion.vue)) — FAQ + publication
+    disclosure. Native `<details>`/`<summary>` (zero-JS, perfect a11y).
+    `kind="publication"` switches to citation rhythm with italic title +
+    meta line. `single` mode for mutually-exclusive groups.
+  - **`TuxDescriptionList`** ([app/components/TuxDescriptionList.vue](app/components/TuxDescriptionList.vue)) — term /
+    definition pairs as native `<dl>`. `editorial` emphasis for marketing
+    surfaces (event details, exhibit captions); `data` emphasis for
+    product metadata (PECAN file detail, classifier specs).
+- **Tier 1 navigation + chrome batch** — five components that unblock
+  shipping PECAN, tti-ai-studio, and tux's own surfaces:
+  - **`TuxSearch`** ([app/components/TuxSearch.vue](app/components/TuxSearch.vue)) — branded inline search bar
+    with attached uppercase action button. Two sizes (regular 60px / slim
+    51px), real working v-model, custom action label/icon. Demos at
+    `/components/search`.
+  - **`TuxFilterPanel`** ([app/components/TuxFilterPanel.vue](app/components/TuxFilterPanel.vue)) — left-rail
+    facet panel for list pages. Collapsible facet groups via native
+    `<details>` (zero-JS, perfect a11y), checkbox lists with counts,
+    applied-filter chips, Clear all. v-modeled as flat
+    `Record<string, string[]>` for easy wiring to OpenSearch / TanStack.
+    Demos at `/components/filter-panel`.
+  - **`TuxIdentity`** ([app/components/TuxIdentity.vue](app/components/TuxIdentity.vue)) — institutional header
+    lockup. Two kinds (lockup / text-only) × two orientations (horizontal /
+    stacked) × three hierarchy levels (institution / center / department).
+    Replaces the aspirational header rhythm work. Demos at
+    `/components/identity`.
+  - **`TuxFooter`** + **`TuxSubfooter`** ([app/components/TuxFooter.vue](app/components/TuxFooter.vue),
+    [app/components/TuxSubfooter.vue](app/components/TuxSubfooter.vue)) — paired closer for every TTI surface.
+    TuxFooter is the slim app-level compliance strip (version + © +
+    utility links); TuxSubfooter is the **mandatory TAMUS legal strip**
+    (Texas A&M University System requirement). Per AggieUX guidance the
+    subfooter content is fixed — only the institute name + address +
+    year are configurable. Demos at `/components/footer`.
+- **Earlier in this Unreleased cycle: four editorial/data Tux\* components**
+  driven by the same product needs:
+  - **`TuxBigStat`** ([app/components/TuxBigStat.vue](app/components/TuxBigStat.vue)) — single oversized metric
+    with three sizes (lg/md/sm), three tones (maroon/gold/neutral), and
+    style-variant-aware numeral face. Demos at `/components/big-stat`.
+    Replaces the aspirational `BigStat` from `design/components.md`.
+  - **`TuxCallout`** ([app/components/TuxCallout.vue](app/components/TuxCallout.vue)) — pulled-aside editorial
+    accent (fact / stat / quote) with style-variant left rule (gradient /
+    stacked-bars / diagonal-hash). Demos at `/components/callout`.
+  - **`TuxBreadcrumbs`** ([app/components/TuxBreadcrumbs.vue](app/components/TuxBreadcrumbs.vue)) — page-depth
+    navigation. Home icon, italic intermediates, pipe-rule separators
+    that collapse to chevron under 35rem. Demos at `/components/breadcrumbs`.
+    Replaces the aspirational `PathCrumbs` from `design/components.md`.
+  - **`TuxCTA`** ([app/components/TuxCTA.vue](app/components/TuxCTA.vue)) — big promotional block, three tones,
+    two-column at ≥48rem with action slot. Demos at `/components/cta`.
+- **Three style variants — `.style--bold` / `.style--elegant` / default** —
+  CSS scopes in `tux.css` plus a live `/style-variants` page demoing
+  side-by-side. `.style--bold` rebinds `--font-display` to Work Sans and
+  introduces the stacked-bar section signature + `.dot-grid` accent +
+  `.card-static--bold` rectangular top-bar variant. `.style--elegant`
+  rebinds to Georgia and introduces the diagonal `.hash-pattern` +
+  dotted maroon borders + `.card-static--elegant`. Default style is
+  implicit (no class needed) and renders the Oswald + maroon-hairline
+  rhythm via `.section-header`.
+- **Four-family lane tokens** in `tokens.css` — `--font-body` (Open Sans),
+  `--font-display` (Oswald), `--font-bold` (Work Sans),
+  `--font-elegant` (Georgia). Additive — legacy `--font-sans`
+  (Public Sans) unchanged.
+- **`TuxFactoid` component + `/components/factoid` demo page** — the
+  institutional "by the numbers" block. Numeral face changes per
+  variant (Open Sans 700 / Work Sans 800-italic / Georgia italic),
+  three densities (3/4/5-up at 96/72/56px). Replaces the aspirational
+  `<BigStat>` from `design/components.md`.
+- **`/preview` page + `public/preview/`** — 28 standalone HTML specimen
+  cards (typography, color, spacing, components, brand motifs) served
+  from `/preview/*.html` and indexed via iframe grid. Each loads
+  `/colors_and_type.css` directly — framework-free — so designers can
+  lift one into a deck without pulling Nuxt. `colors_and_type.css` and
+  `fonts/` mirrored into `public/` for portable use.
+- **`/kits` page + `public/kits/`** — five static reference kits carried
+  from the portable design-system download: `aggieux` (~57-family
+  component catalog), `pecan` / `tti-docs` / `tti-ai-chat` (three
+  application-shape demos showing tux primitives composed into product
+  surfaces), and `slides` (deck-stage slide system). All five render in
+  vanilla CSS + React via Babel-in-the-browser. Treat as frozen design
+  reference — the Tux*.vue components are authoritative when they
+  disagree.
+
+### Changed
+- **Renamed `app/assets/css/aggieux.css` → `tux.css`** — completes the
+  aggieux → tux rename. `nuxt.config.ts` and all comments/blurbs in
+  components, pages, ADRs, and design docs updated to match. The
+  `aggieux` name now refers exclusively to the upstream Texas A&M
+  MarCom AggieUX kit (snapshot in `reference/aggieux/`, copy in
+  `public/kits/aggieux/`, sync scripts in `scripts/sync-aggieux*.mjs`)
+  — not to our own design system. ADR 0004 file renamed to
+  `0004-tux-tokens-separate-from-nuxt-ui-theme.md`.
+- **Renamed `design/aggieux.md` → `design/tux.md`** — the system is named
+  tux (Aggie + UX); the older `aggieux.md` filename was a holdover from
+  the initial PECAN extraction. Content also adopts the **four-family
+  typography rule** (Open Sans / Oswald / Work Sans / Georgia +
+  JetBrains Mono) and documents the three section styles
+  (`default`/`bold`/`elegant`) — superseding the earlier Public
+  Sans-as-default framing. Public Sans remains loaded by `@nuxt/fonts`
+  for legacy components.
+- **Theme toggle split** — the header toggle is now **light ↔ dark only**
+  (`tti ↔ tti-dark`). High-contrast mode (`tti-hc`) moved to a dedicated
+  footer button, because WCAG AAA's line weights read as "broken" in a
+  casual theme cycle and users shouldn't be pushed through an
+  accessibility mode as part of aesthetic preference. See
+  [ADR 0006](docs/adr/0006-separate-hc-from-casual-theme-toggle.md) —
+  supersedes the three-way cycle from ADR 0005 (the palette itself
+  stays).
+
+### Added
+- **Initial scaffold** (2026-04-24) — Nuxt 4 runnable style guide, extracted
+  from PECAN's frontend so tti-ux can serve as the source of truth for
+  downstream Nuxt apps.
+- **7 Tux\* components** wrapping Nuxt UI primitives where TTI branding
+  requires deviation:
+  - `TuxAlert` — 8 admonition variants (note/tip/info/important/success/
+    warning/danger/compliance) with left-bar treatment.
+  - `TuxBadge` — 5 shapes (tier/status/tag/count/default).
+  - `TuxButton` — single `intent` prop for primary/secondary/ghost/destructive.
+  - `TuxCard` — static or linked; linked has corner-drop hover signature.
+  - `TuxModal` — editorial rhythm (eyebrow + gold-bar title).
+  - `TuxSectionHeader` — aggieux ALL-CAPS heading with maroon underline.
+  - `TuxTable` — maroon-wash header, auto status-cell rendering via TuxBadge.
+- **3 themes** — `tti` (default), `tti-dark` (warm-charcoal dark), `tti-hc`
+  (WCAG AAA high-contrast). Three-way cycle in the header toggle.
+- **Style-guide pages**:
+  - `/` — landing with foundations + components grid.
+  - `/tokens` — brand palette, semantic roles, status colors, maroon ramp,
+    shadows, radii.
+  - `/typography` — heading utilities, type scale, inline treatments.
+  - `/motion` — spacing ramp, duration tiers, corner-drop demo, Transition
+    example.
+  - `/components` + `/components/{alert,badge,button,card,modal,
+    section-header,table}` — per-component demos.
+  - `/forms` — inputs, textarea, select, radio, checkboxes, switch, slider,
+    chip input, date, validation + focus-ring notes.
+  - `/patterns` — empty state, loading skeleton, table-state cycle,
+    confirmation flow pointer, admonition stack.
+- **Placeholder tuxedo SVG logo** — maroon jacket, gold bow tie, white shirt
+  front, charcoal frame. Needs iteration with a polished mark.
+- **Design docs** (`design/`) — `aggieux.md`, `components.md`, `palette.md`,
+  `tokens.json` — carried from PECAN.
+- **Dev server binds :3030** — avoids collision with PECAN and docs-tti-tamu-edu
+  on :3000.
+
+### Known gaps
+
+- No npm publish yet — downstream apps must consume via `file:../tti-ux`
+  and `extends: ['tti-ux']` in their nuxt.config.ts.
+- No git remote yet — local repo only; will push to `ttitamu/tti-ux` when
+  the empty remote exists.
+- PECAN still ships its own copies of the 5 `Pecan*` wrappers. Layer
+  consumption wiring is a separate follow-up.
+- Style Dictionary pipeline for `design/tokens.json` → `tokens.css` isn't
+  wired; `tokens.css` is hand-maintained for now.
+- `warning` Nuxt UI color = Tailwind `amber`; a TTI-gold-anchored palette
+  would back it properly — inherited TODO from PECAN.

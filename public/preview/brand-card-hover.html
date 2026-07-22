@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tti">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="../colors_and_type.css?v=1777059340699" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 40px 30px; background: var(--surface-page); display: flex; gap: 40px; align-items: center; box-sizing: border-box; }
+  .card { border: 2px solid var(--brand-primary); border-radius: var(--radius-lg); padding: 18px; background: var(--surface-raised); width: 220px; transition: all 0.35s ease-out; }
+  .resting { }
+  .hover { transform: translate(6px, -6px); box-shadow: -6px 6px 0 0 var(--brand-primary); background: color-mix(in srgb, var(--brand-primary) 3%, var(--surface-raised)); }
+  .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: var(--tracking-wider); color: var(--text-muted); display: block; margin-top: 10px; text-align: center; }
+</style>
+</head>
+<body>
+<div>
+  <div class="card resting">
+    <p class="eyebrow">component</p>
+    <h4 style="margin:0;font-size:1rem;font-weight:700;">TuxButton</h4>
+    <p style="margin-top:6px;font-size:0.75rem;color:var(--text-secondary);">Four semantic intents.</p>
+  </div>
+  <span class="label">resting</span>
+</div>
+<div style="font-size: 22px; color: var(--text-muted);">→</div>
+<div>
+  <div class="card hover">
+    <p class="eyebrow">component</p>
+    <h4 style="margin:0;font-size:1rem;font-weight:700;">TuxButton</h4>
+    <p style="margin-top:6px;font-size:0.75rem;color:var(--text-secondary);">Four semantic intents.</p>
+  </div>
+  <span class="label">hover · +6/-6 corner-drop</span>
+</div>
+</body>
+</html>

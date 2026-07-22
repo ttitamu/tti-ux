@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tti">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="../colors_and_type.css?v=1777059354327" rel="stylesheet">
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; padding: 24px; background: var(--surface-page); box-sizing: border-box; }
+  .row { display: grid; grid-template-columns: 130px 1fr; gap: 20px; padding: 14px 0; border-bottom: 1px solid var(--surface-border); align-items: baseline; }
+  .row:last-child { border-bottom: 0; }
+  .label { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: var(--tracking-wider); line-height: 1.4; }
+  .label .family { display: block; color: var(--text-primary); text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 0.825rem; margin-bottom: 2px; }
+  .specimen { font-size: 1.875rem; line-height: 1.15; }
+  .note { font-size: 0.68rem; color: var(--text-muted); margin-top: 4px; }
+</style>
+</head>
+<body>
+  <p class="eyebrow">four families · one rule each</p>
+  <h4 style="margin: 0 0 12px;">Type system</h4>
+
+  <div class="row">
+    <div class="label"><span class="family">Oswald</span>display · H1–H3</div>
+    <div>
+      <div class="specimen" style="font-family: var(--font-display); font-weight: 600; text-transform: uppercase; letter-spacing: -0.02em;">Research in motion</div>
+      <div class="note">default-style headings · never body</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="label"><span class="family">Work Sans</span>bold · forms</div>
+    <div>
+      <div class="specimen" style="font-family: var(--font-bold); font-weight: 800; letter-spacing: -0.01em;">Research in motion</div>
+      <div class="note">bold-variant headings, buttons, inputs</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="label"><span class="family">Georgia</span>elegant · H1–H3</div>
+    <div>
+      <div class="specimen" style="font-family: var(--font-elegant); font-weight: 700;">Research in motion</div>
+      <div class="note">elegant-variant headings · admin + research · system font</div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="label"><span class="family">Open Sans</span>body · eyebrows</div>
+    <div>
+      <div class="specimen" style="font-family: var(--font-body); font-weight: 400; font-size: 1.125rem; line-height: 1.55;">Research in motion — body, subheads, eyebrows, H4+.</div>
+      <div class="note">everywhere, at any size</div>
+    </div>
+  </div>
+</body>
+</html>

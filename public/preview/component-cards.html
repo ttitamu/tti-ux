@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tti">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="../colors_and_type.css?v=1777059347203" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 24px; background: var(--surface-page); display: grid; grid-template-columns: 1fr 1fr; gap: 20px; box-sizing: border-box; }
+  .wrap { padding-right: 20px; padding-top: 10px; }
+  .card-linked { padding: 18px; }
+  .hint { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: var(--tracking-wider); margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card-static" style="padding: 18px;">
+    <p class="eyebrow">foundations</p>
+    <h4 style="font-size: 1.125rem; font-weight: 700; margin: 0;">Tokens</h4>
+    <p style="margin-top: 6px; font-size: 0.8rem; color: var(--text-secondary);">Brand colors, surfaces, text roles.</p>
+  </div>
+  <div class="hint">card-static · 2px maroon border</div>
+</div>
+<div class="wrap">
+  <a class="card-linked" href="#" style="transform: translate(6px, -6px); box-shadow: var(--shadow-corner-drop); background: color-mix(in srgb, var(--brand-primary) 3%, var(--surface-raised));">
+    <span class="card-linked__arrow" style="opacity:1;transform:translate(0,0);">↗</span>
+    <p class="eyebrow">component</p>
+    <h4 style="font-size: 1.125rem; font-weight: 700; margin: 0;">TuxButton</h4>
+    <p style="margin-top: 6px; font-size: 0.8rem; color: var(--text-secondary);">Four semantic intents.</p>
+  </a>
+  <div class="hint">card-linked · +6/-6 corner-drop hover</div>
+</div>
+</body>
+</html>

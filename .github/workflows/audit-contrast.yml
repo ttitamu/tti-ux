@@ -1,0 +1,147 @@
+# WCAG 2.2 contrast audit on every push to main + every PR. Gates on
+# AAA (7:1 normal text, 4.5:1 large) — regressions block merge.
+# Independent of the deploy workflow so a transient audit failure
+# doesn't block site updates.
+#
+# How to reproduce locally:
+#   npm run generate
+#   NUXT_APP_BASE_URL=/tti-ux/ AUDIT_LEVEL=AAA npm run audit:contrast
+#   # → contrast-report.json + per-theme pass/fail summary
+#   # Fix failing colors in tokens.css or component styles, repeat.
+#
+# To loosen to AA (the default human-side practical threshold):
+#   AUDIT_LEVEL=AA npm run audit:contrast
+
+name: contrast audit (WCAG 2.2 AAA)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+# Force JS actions (checkout, setup-node, upload-artifact) onto
+# Node 24. Default is the deprecated Node 20 runtime.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    # Chromium needs additional system libs to run headless on
+    # ubuntu-latest. puppeteer's bundled Chromium expects libnss3,
+    # libatk1.0, libcups2, libxss1, libxkbcommon, libdrm, libgbm.
+    # The ubuntu-latest runner has most preinstalled but not all —
+    # we install the headless-shell deps explicitly to avoid the
+    # "No usable sandbox" launch failure.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Match the deploy-pages.yml runner — Node 24 / npm 11.
+          node-version: 24
+          cache: npm
+
+      - name: install Chromium system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libnss3 libatk-bridge2.0-0 libatk1.0-0 libcups2 libdrm2 \
+            libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
+            libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2t64
+
+      - name: install
+        run: npm ci
+
+      # Puppeteer needs a real Chrome binary, and the runner's download path
+      # is unreliable (partial cache; launch can't find the pinned build).
+      # Be robust: clear any stale cache, install via the LOCAL puppeteer bin
+      # (avoid npx resolution surprises), then resolve the authoritative path
+      # from puppeteer.executablePath(). If that's still missing, fall back to
+      # the runner's pre-installed system Chrome. Pin the result via
+      # PUPPETEER_EXECUTABLE_PATH so launch() uses it directly. Fail loudly
+      # (with a cache dump) only if no usable Chrome exists at all.
+      - name: provision Chrome for Puppeteer
+        run: |
+          rm -rf ~/.cache/puppeteer
+          ./node_modules/.bin/puppeteer browsers install chrome 2>&1 | tail -3 || true
+          CHROME_PATH="$(node -p "require('puppeteer').executablePath()" 2>/dev/null || true)"
+          if [ ! -x "$CHROME_PATH" ]; then
+            echo "puppeteer-managed Chrome not usable ('$CHROME_PATH'); trying system Chrome"
+            CHROME_PATH="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          fi
+          echo "Using Chrome → '$CHROME_PATH'"
+          test -x "$CHROME_PATH" || { echo "::error::No usable Chrome found"; ls -R ~/.cache/puppeteer 2>&1 | head -40 || true; exit 1; }
+          echo "PUPPETEER_EXECUTABLE_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
+
+      - name: generate static site
+        env:
+          # Production deploys at root (musical-fiesta-…pages.github.io/),
+          # so no baseURL prefix. Matches deploy-pages.yml.
+          NUXT_PAGES: "1"
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: npm run generate
+
+      # Structural a11y audit (jsdom + axe-core) over the generated output.
+      # Catches role/landmark/name/nesting bugs that escaped the ad-hoc
+      # per-batch axe checks. Browserless, so it runs BEFORE the puppeteer
+      # contrast audit — a browser-provisioning hiccup in the contrast step
+      # must never hide the a11y result. Known third-party-framework
+      # artifacts are logged (not gated) — see scripts/audit-a11y.mjs
+      # KNOWN_UPSTREAM.
+      - name: run a11y audit (axe-core)
+        run: npm run audit:a11y
+
+      - name: run contrast audit (AAA gate)
+        env:
+          AUDIT_LEVEL: AAA
+          # Tell puppeteer to use --no-sandbox on the runner. The
+          # GitHub-hosted runner doesn't allow user namespaces, so
+          # Chromium's default sandbox fails with "No usable sandbox".
+          # This is the standard workaround for headless Chromium
+          # in CI; we're not running untrusted JS so the sandbox
+          # isn't load-bearing here.
+          PUPPETEER_LAUNCH_NO_SANDBOX: "true"
+        run: npm run audit:contrast
+
+      - name: upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contrast-report
+          path: contrast-report.json
+          retention-days: 14
+
+  # Lint + typecheck gate. Runs in parallel with `audit` — independent
+  # so transient failures don't block visual-regression surfacing, and
+  # vice versa. Both steps are blocking. Kept in this workflow (not
+  # deploy-pages.yml) so deploys aren't blocked by lint noise unrelated
+  # to the build artifact.
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: install
+        run: npm ci
+
+      - name: lint
+        run: npm run lint
+
+      - name: typecheck
+        run: npm run typecheck
+
+      # Static check: every var(--token) reference resolves to a defined
+      # token (or a fallback / known external namespace). Catches the
+      # `--surface-base`-style undefined-token bug that renders transparent
+      # and slips past both typecheck (CSS isn't typed) and the contrast
+      # audit (no color to measure). No build needed — pure static pass.
+      - name: token references
+        run: npm run audit:tokens

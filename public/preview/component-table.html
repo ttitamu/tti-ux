@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tti">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="../colors_and_type.css?v=1777059348691" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 16px; background: var(--surface-page); box-sizing: border-box; }
+  table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.8rem; border: 1px solid var(--surface-border); border-radius: var(--radius-md); overflow: hidden; }
+  thead { background: color-mix(in srgb, var(--brand-primary) 6%, var(--surface-raised)); }
+  th { text-align: left; text-transform: uppercase; letter-spacing: var(--tracking-wider); font-weight: 600; font-size: 0.7rem; color: var(--text-secondary); padding: 10px 12px; font-family: var(--font-sans); }
+  td { padding: 10px 12px; border-top: 1px solid var(--surface-border); }
+  .dot { display: inline-block; width: 6px; height: 6px; border-radius: 9999px; margin-right: 6px; vertical-align: middle; }
+  .num { text-align: right; }
+</style>
+</head>
+<body>
+<table>
+  <thead><tr><th>Path</th><th class="num">Files</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr><td>/mnt/research/grants/q1</td><td class="num">12,402</td><td><span class="dot" style="background:var(--color-success)"></span>completed</td></tr>
+    <tr><td>/mnt/research/grants/q2</td><td class="num">3,847</td><td><span class="dot" style="background:var(--brand-accent)"></span>running</td></tr>
+    <tr><td>/mnt/research/datasets/lidar</td><td class="num">12</td><td><span class="dot" style="background:var(--color-error)"></span>failed</td></tr>
+  </tbody>
+</table>
+</body>
+</html>

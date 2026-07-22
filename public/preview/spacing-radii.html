@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tti">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="../colors_and_type.css?v=1777059349067" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 20px; background: var(--surface-page); display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; align-items: end; box-sizing: border-box; }
+  .item { text-align: center; }
+  .box { background: var(--surface-sunken); border: 1px solid var(--surface-border); width: 64px; height: 64px; margin: 0 auto; }
+  .token { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); margin-top: 10px; }
+  .val { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-muted); }
+  .label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: var(--tracking-wider); grid-column: 1 / -1; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="label">Radii — capped at 12px. No blobs.</div>
+<div class="item"><div class="box" style="border-radius:0"></div><div class="token">none</div><div class="val">0</div></div>
+<div class="item"><div class="box" style="border-radius:0.125rem"></div><div class="token">sm</div><div class="val">2px</div></div>
+<div class="item"><div class="box" style="border-radius:0.375rem"></div><div class="token">md</div><div class="val">6px</div></div>
+<div class="item"><div class="box" style="border-radius:0.5rem"></div><div class="token">lg</div><div class="val">8px</div></div>
+<div class="item"><div class="box" style="border-radius:0.75rem"></div><div class="token">xl</div><div class="val">12px</div></div>
+</body>
+</html>

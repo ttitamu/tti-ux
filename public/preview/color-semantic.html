@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tti">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="../colors_and_type.css?v=1777059345485" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 20px; background: var(--surface-page); box-sizing: border-box; }
+  .row { display: grid; grid-template-columns: 40px 1fr 1fr; gap: 14px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--surface-border); }
+  .row:last-child { border-bottom: 0; }
+  .swatch { height: 28px; width: 40px; border-radius: var(--radius-sm); border: 1px solid var(--surface-border); }
+  .token { font-family: var(--font-mono); font-size: 0.75rem; }
+  .note { font-size: 0.75rem; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="row"><div class="swatch" style="background:#66814F"></div><span class="token">--color-success</span><span class="note">sage · scans completed</span></div>
+<div class="row"><div class="swatch" style="background:#DDAC37"></div><span class="token">--color-warning</span><span class="note">gold · scans running</span></div>
+<div class="row"><div class="swatch" style="background:#5C0025"></div><span class="token">--color-danger</span><span class="note">maroon · compliance</span></div>
+<div class="row"><div class="swatch" style="background:#D04343"></div><span class="token">--color-error</span><span class="note">red · something broke</span></div>
+<div class="row"><div class="swatch" style="background:#4A8892"></div><span class="token">--color-info</span><span class="note">teal · info</span></div>
+</body>
+</html>

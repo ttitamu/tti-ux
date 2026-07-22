@@ -1,0 +1,136 @@
+# AI code review (plan Area F v2) — ADVISORY, changed-files only, via the TTI AI BFF.
+#
+# Calls the gateway's /v1/review: a three-model superPOD PANEL (GPT-OSS 120B,
+# Gemma 4 31B, Devstral 2) independently reviews the diff, cross-examines each
+# other's findings, and synthesizes ONE comment — with bounded, receipted
+# Google-PSE web grounding when a reviewer requests verification. The debate
+# logic lives in the GATEWAY on purpose: this vendored file stays a thin
+# caller, so panel upgrades don't require re-seeding every repo.
+# NEVER blocks: the job always exits 0 — the deterministic H2 baseline
+# gate is the thing with teeth; this is a second pair of eyes, not a gate.
+#
+# Auth: the BFF call uses a dedicated ai-review bot PAT (secret AI_REVIEW_TOKEN),
+# but is ATTRIBUTED to the PR author via X-TTI-Actor — so BFF usage telemetry
+# shows who put the code up, executed-by the bot. Seeded per-repo by
+# ai/seed-ai-review.sh (same idiom as security/seed-baseline.sh).
+name: ai-review
+on:
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: AI-Restricted gate (skip all AI on flagged repos)
+        id: gate
+        run: |
+          set -eu
+          # A repo carrying the "ai-restricted" topic is excluded from ALL AI.
+          # Fail-closed: if the topic check itself errors, SKIP (treat as
+          # restricted) rather than review something we couldn't clear.
+          T=$(curl -sf -H "Authorization: token ${{ github.token }}" \
+                "${{ github.server_url }}/api/v1/repos/${{ github.repository }}/topics" || echo '{"topics":["ai-restricted"]}')
+          if printf '%s' "$T" | grep -q '"ai-restricted"'; then
+            echo "repo is ai-restricted — skipping AI review"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Authenticated checkout (private-repo safe)
+        if: steps.gate.outputs.skip != 'true'
+        run: |
+          set -eu
+          git init -q
+          git remote add origin "${{ github.server_url }}/${{ github.repository }}"
+          hdr="Authorization: basic $(printf 'x-access-token:%s' "${{ github.token }}" | base64 | tr -d '\n')"
+          git -c http.extraheader="$hdr" fetch --depth=50 origin "${{ github.base_ref }}" "${{ github.sha }}"
+          git checkout -q "${{ github.sha }}"
+          git branch -f _base "origin/${{ github.base_ref }}" 2>/dev/null || true
+
+      - name: Compute changed-files diff (capped)
+        if: steps.gate.outputs.skip != 'true'
+        run: |
+          set -eu
+          BASE=$(git merge-base _base HEAD 2>/dev/null || git rev-parse HEAD~1)
+          git diff --unified=3 "$BASE"...HEAD -- . > /tmp/pr.diff || true
+          # cap to stay within the panel's context budget (gateway re-caps too)
+          head -c 100000 /tmp/pr.diff > /tmp/pr.capped && mv /tmp/pr.capped /tmp/pr.diff
+          echo "diff bytes: $(wc -c < /tmp/pr.diff)"
+
+      - name: Panel review via BFF (/v1/review)
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          BFF_TOKEN: ${{ secrets.AI_REVIEW_TOKEN }}
+          BFF_URL: http://host.containers.internal:3950
+          ACTOR: ${{ github.actor }}
+          REPO: ${{ github.repository }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          SERVER_URL: ${{ github.server_url }}
+        run: |
+          set -eu
+          if [ ! -s /tmp/pr.diff ]; then echo "empty diff — nothing to review"; echo "" > /tmp/review.md; exit 0; fi
+          python3 - <<'PY'
+          import json, os, urllib.request
+          body = {"repo": os.environ["REPO"],
+                  "context": "PR title: " + os.environ.get("PR_TITLE", ""),
+                  "diff": open("/tmp/pr.diff").read()}
+          req = urllib.request.Request(os.environ["BFF_URL"]+"/v1/review",
+                  data=json.dumps(body).encode(),
+                  headers={"Content-Type":"application/json",
+                           "Authorization":"token "+os.environ["BFF_TOKEN"],
+                           "X-TTI-Actor":os.environ["ACTOR"]})
+          out = None
+          for attempt in range(3):
+              try:
+                  # 3 models x 2 rounds + synthesis — superPOD is fast but
+                  # give headroom; retry rides out BFF quota windows (a big
+                  # index run can 429-starve the panel briefly).
+                  with urllib.request.urlopen(req, timeout=600) as r:
+                      out = json.load(r)
+                  break
+              except Exception as e:
+                  print(f"attempt {attempt+1} failed: {e}")
+                  if attempt < 2:
+                      import time; time.sleep(90)
+          try:
+              if out is None:
+                  raise RuntimeError("panel unavailable after 3 attempts")
+              md = out["markdown"] + "\n\n<sub>⚑ " + out.get("receipt", "") + "</sub>"
+              # Debate transparency: collapsible how-we-got-here digest + a
+              # link to the full transcript (round outputs, verdicts, web
+              # results, model reasoning) — ACL-gated to repo visibility.
+              if out.get("digest"):
+                  md += "\n\n" + out["digest"]
+              if out.get("review_id"):
+                  md += ("\n\n<sub>Full transcript: " + os.environ["SERVER_URL"]
+                         + "/-/ai/v1/review/" + out["review_id"] + "</sub>")
+          except Exception as e:
+              md = ("_The AI panel couldn't review this change right now "
+                    "(it will review the next push). Details for admins: "
+                    f"{e}_")
+          open("/tmp/review.md","w").write(md)
+          print("review chars:", len(md))
+          PY
+
+      - name: Post review comment
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BOT_TOKEN: ${{ secrets.AI_REVIEW_TOKEN }}
+        run: |
+          set -eu
+          [ -s /tmp/review.md ] || { echo "no review body"; exit 0; }
+          # No emoji — the ai-review-bot's maroon Lucide avatar (branding/bot-avatars.py)
+          # marks the comment, keeping the house symbology consistent.
+          BODY=$(python3 -c "import json;print(json.dumps({'body':'### AI review · advisory\n\n'+open('/tmp/review.md').read()+'\n\n<sub>Three superPOD models reviewed this independently and cross-examined each other; only what survived is shown. Advisory — never a merge gate.</sub>'}))")
+          # Post AS ai-review-bot (named identity + maroon avatar in the feed,
+          # instead of the anonymous actions "Ghost"); fall back to the job
+          # token if the bot PAT lacks issue-write on this repo.
+          post() { printf '%s' "$BODY" | curl -sf -X POST \
+            -H "Authorization: token $1" -H "Content-Type: application/json" \
+            --data @- \
+            "${{ github.server_url }}/api/v1/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            -o /dev/null -w "comment posted ($2): %{http_code}\n"; }
+          post "$BOT_TOKEN" "ai-review-bot" || post "$GH_TOKEN" "actions token" || echo "comment post failed (non-fatal)"

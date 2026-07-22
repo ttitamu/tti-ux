@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tti">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="../colors_and_type.css?v=1777059347903" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 20px; background: var(--surface-page); box-sizing: border-box; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  label { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); }
+  input, select { font-family: var(--font-sans); font-size: 0.875rem; padding: 8px 10px; border: 1px solid var(--surface-border); border-radius: var(--radius-md); background: var(--surface-raised); color: var(--text-primary); }
+  input:focus, select:focus { outline: none; border-color: var(--brand-primary); box-shadow: var(--shadow-focus); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; }
+  input[type="checkbox"] { accent-color: var(--brand-primary); }
+</style>
+</head>
+<body>
+<div class="row">
+  <div class="field"><label>Scan name</label><input value="Q1 research grants"></div>
+  <div class="field"><label>Retention</label><select><option>30 days</option><option>90 days</option><option>Indefinite</option></select></div>
+</div>
+<div class="field"><label>Root path</label><input value="/mnt/research/grants/q1" style="font-family:var(--font-mono);"></div>
+<div class="check"><input type="checkbox" checked><span>Enable PII classifiers (us_ssn, us_phone, email)</span></div>
+</body>
+</html>
