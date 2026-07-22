@@ -1,0 +1,657 @@
+/*
+ * tux.css — Tux* utility layer on top of Nuxt UI.
+ *
+ * TTI visual language layered onto Nuxt UI primitives. The Tux* components
+ * reach into these class hooks for the parts Nuxt UI's :ui slot overrides
+ * can't express cleanly (left-bar on alerts, card hover choreography, etc.).
+ *
+ * What lives here:
+ *   - heading--display         — editorial uppercase heading with gold bar
+ *   - card-static / card-linked — used by TuxCard
+ *   - TuxAlert text overrides (warning darkening, tip softening)
+ *   - TuxBadge class hooks (warning text darkening)
+ *   - tux-table                 — card frame around UTable
+ *   - btn-fill-on-hover         — destructive button hover fill
+ *   - link-tti                  — inline text link in TTI navy
+ *   - tooltip-trigger           — dotted-underline affordance on hoverable text
+ *   - .style--bold / .style--elegant — three-style-variant scopes,
+ *                                  see design/tux.md
+ */
+
+/* ------------------------------------------------------------
+   Headings — heading--bold + eyebrow/subhead live in globals.css.
+   heading--display is the editorial-maximalist variant (italic +
+   uppercase + extrabold + gold bar) — used sparingly for landing copy.
+   ------------------------------------------------------------ */
+.heading--display {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  position: relative;
+  padding-bottom: 0.625rem;
+}
+
+/* Editorial-maximalist accent rule. Slimmed from 100×8 to 88×3 in
+   v1.0.0 (matches the heading--bold refinement) — display heads
+   are bigger so the bar is slightly wider, but it's the same
+   "refined editorial" weight, not a marketing slab. */
+.heading--display::after {
+  content: "";
+  display: block;
+  width: 88px;
+  height: 3px;
+  background: var(--brand-accent);
+  border-radius: 1.5px;
+  margin-top: 0.75rem;
+}
+
+/* ------------------------------------------------------------
+   Cards — used by TuxCard. Ported from tti-ux cards.css.
+   ------------------------------------------------------------ */
+.card-static,
+.card-linked {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  border: 2px solid var(--brand-primary);
+  border-radius: var(--radius-lg);
+}
+
+.card-linked {
+  position: relative;
+  text-decoration: none;
+  box-shadow: 0 0 0 0 rgba(92, 0, 37, 0);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.35s ease-out,
+    background 0.25s ease-out;
+}
+
+.card-linked:hover,
+.card-linked:focus-visible {
+  transform: translate(6px, -6px);
+  box-shadow: -6px 6px 0 0 var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 3%, var(--surface-raised));
+  outline: none;
+}
+
+.card-linked__arrow {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  color: var(--brand-primary);
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(4px, -4px);
+  transition:
+    opacity 0.2s ease-out,
+    transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1.2);
+}
+
+.card-linked:hover .card-linked__arrow,
+.card-linked:focus-visible .card-linked__arrow {
+  opacity: 1;
+  transform: translate(0, 0);
+}
+
+/* ------------------------------------------------------------
+   TuxTable frame — rounded card border around a UTable so it reads as
+   a single chunked list, not a raw HTML table on the page.
+   ------------------------------------------------------------ */
+.tux-table {
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+.tux-table table {
+  margin: 0;
+}
+
+/* ------------------------------------------------------------
+   Warning-color text override — Nuxt UI's subtle/soft variants use
+   amber-500ish text on amber-50 bg, under-contrasted. Pulled to amber-800
+   across any component that opts in by adding one of these hooks.
+   In dark mode the amber-50 bg flips dark, so we lighten the text
+   correspondingly to keep ≥4.5:1 — the original #6a3e00 on a dark
+   surface read at 2.07:1 (caught by /contrast-audit).
+   ------------------------------------------------------------ */
+.tux-alert--warning,
+.tux-alert--warning *,
+.tux-badge--warning,
+.tux-badge--warning *,
+.tux-warning-dark,
+.tux-warning-dark * {
+  color: #6a3e00;
+}
+
+[data-theme="tti-dark"] .tux-alert--warning,
+[data-theme="tti-dark"] .tux-alert--warning *,
+[data-theme="tti-dark"] .tux-badge--warning,
+[data-theme="tti-dark"] .tux-badge--warning *,
+[data-theme="tti-dark"] .tux-warning-dark,
+[data-theme="tti-dark"] .tux-warning-dark * {
+  color: #f5d98a;
+}
+
+.tux-alert--warning [class*="description"] {
+  opacity: 0.95;
+}
+
+/* ------------------------------------------------------------
+   TuxBadge tier overrides for dark mode — Nuxt UI's primary palette
+   is fixed at #5c0025 (maroon-500) regardless of theme, so a tier=
+   "sensitive" badge in dark mode rendered as #5c0025 text directly
+   on the dark page bg (1.33:1). Force a brighter maroon when the
+   theme is dark; the soft-variant bg from Nuxt UI is also too low-
+   contrast in dark, so we layer our own pink-tinted bg.
+   ------------------------------------------------------------ */
+[data-theme="tti-dark"] .tux-badge--tier-sensitive,
+[data-theme="tti-dark"] .tux-badge--tier-restricted {
+  color: #f3c0d0;
+  background-color: color-mix(in srgb, #d2718c 30%, transparent);
+}
+
+/* Status badges in dark mode — running's amber-700 text on dark
+   surface is the same problem as warning above. Other statuses
+   (completed, failed, queued) already pass via their semantic
+   color tokens. */
+[data-theme="tti-dark"] .tux-badge--status-running {
+  color: #f5d98a;
+}
+
+/* Tip alert — UAlert's tip-50 is slightly too saturated. Soften the
+   background so tips read as gentle lavender alongside the other subtle
+   alerts. */
+.tux-alert--tip {
+  background-color: color-mix(in srgb, #8b5cf6 4%, var(--surface-raised)) !important;
+}
+
+/* ------------------------------------------------------------
+   btn-fill-on-hover — apply to a destructive UButton (variant="outline"
+   color="error") to make its hover state fill solid red with white text.
+   Hardcoded to error because `currentColor` fought Nuxt UI's own
+   hover-text-color changes.
+   ------------------------------------------------------------ */
+.btn-fill-on-hover:hover,
+.btn-fill-on-hover:focus-visible {
+  background-color: var(--color-error) !important;
+  border-color: var(--color-error) !important;
+  color: var(--text-inverse) !important;
+}
+
+.btn-fill-on-hover:hover *,
+.btn-fill-on-hover:focus-visible * {
+  color: var(--text-inverse) !important;
+}
+
+/* ------------------------------------------------------------
+   link-tti — inline text-link affordance. ULink defaults to text-color,
+   which blends into body copy. Pull to TTI navy with a subtle underline
+   so readers can spot links at a glance.
+   ------------------------------------------------------------ */
+.link-tti {
+  color: var(--brand-secondary) !important;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--brand-secondary) 40%, transparent);
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.link-tti:hover,
+.link-tti:focus-visible {
+  color: color-mix(in srgb, var(--brand-secondary) 80%, black) !important;
+  text-decoration-color: currentColor;
+}
+
+/* ------------------------------------------------------------
+   UTabs hover — Nuxt UI's default is focus-ring only, no hover highlight
+   on inactive tabs. Adds a subtle brand wash so tabs read as hoverable.
+   ------------------------------------------------------------ */
+[role="tab"]:not([data-state="active"]):hover {
+  background-color: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  transition: background-color 0.15s ease;
+}
+
+/* ------------------------------------------------------------
+   tooltip-trigger — dotted-underline affordance for inline text that
+   reveals a tooltip on hover. Use on spans inside a <UTooltip> trigger.
+   ------------------------------------------------------------ */
+.tooltip-trigger {
+  border-bottom: 1px dashed var(--text-muted);
+  cursor: help;
+}
+
+.tooltip-trigger:hover {
+  border-bottom-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+/* ------------------------------------------------------------
+   Theme-aware logo swap — renders the maroon tuxedo on tti / tti-hc,
+   the white tuxedo on tti-dark. Both images live in the DOM so the
+   toggle is instant; the hidden one is just display: none.
+   ------------------------------------------------------------ */
+.logo-light-only { display: inline-block; }
+.logo-dark-only  { display: none; }
+
+[data-theme="tti-dark"] .logo-light-only { display: none; }
+[data-theme="tti-dark"] .logo-dark-only  { display: inline-block; }
+
+
+/* ============================================================
+   STYLE VARIANTS — default / bold / elegant
+   ------------------------------------------------------------
+   Three section styles described in design/tux.md. Apply a
+   .style--bold or .style--elegant class on any ancestor (page,
+   <section>, even a single block) and headings inside swap face
+   + signature decoration. Default style is implicit — no class
+   needed; that's the most common surface.
+   Per-component opt-in works through the BEM modifiers
+   (.section-header--bold, .heading--elegant, etc.).
+   ============================================================ */
+
+/* --- Default style (implicit; ALL-CAPS Oswald w/ maroon hairline) --- */
+.section-header {
+  font-family: var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  font-weight: 700;
+  display: inline-block;
+  padding-bottom: 0.625rem;
+  color: var(--text-primary);
+  position: relative;
+  margin: 0;
+}
+
+.section-header::after {
+  content: "";
+  display: block;
+  width: 72px;
+  height: 1px;
+  margin-top: 0.625rem;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--brand-primary) 15%,
+    var(--brand-primary) 85%,
+    transparent 100%
+  );
+  opacity: 0.85;
+}
+
+/* --- Bold style — Work Sans + stacked maroon bars + dot grid --- */
+.style--bold {
+  --font-display: var(--font-bold);
+}
+
+.style--bold h1,
+.style--bold h2,
+.style--bold h3 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: var(--tracking-tight);
+  text-transform: none;
+}
+
+.style--bold h1 { font-size: 2.75rem; line-height: 1.05; }
+.style--bold h2 { font-size: 2.125rem; line-height: 1.1; }
+.style--bold h3 { font-size: 1.625rem; line-height: 1.15; }
+
+.section-header--bold {
+  font-family: var(--font-bold);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 700;
+  padding-bottom: 0.75rem;
+  display: inline-block;
+  position: relative;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.section-header--bold::after {
+  content: "";
+  display: block;
+  width: 62px;
+  height: 5px;
+  margin-top: 0.75rem;
+  background:
+    linear-gradient(to right,
+      var(--brand-primary) 0 32px,
+      transparent 32px 38px,
+      color-mix(in srgb, var(--brand-primary) 50%, transparent) 38px 52px,
+      transparent 52px 56px,
+      color-mix(in srgb, var(--brand-primary) 25%, transparent) 56px 62px);
+  border-radius: 2.5px;
+}
+
+.heading--bold {
+  position: relative;
+  padding-bottom: 0.75rem;
+  margin: 0;
+}
+
+.heading--bold::after {
+  content: "";
+  display: block;
+  width: 62px;
+  height: 5px;
+  margin-top: 0.75rem;
+  background:
+    linear-gradient(to right,
+      var(--brand-accent) 0 32px,
+      transparent 32px 38px,
+      color-mix(in srgb, var(--brand-accent) 50%, transparent) 38px 52px,
+      transparent 52px 56px,
+      color-mix(in srgb, var(--brand-accent) 25%, transparent) 56px 62px);
+  border-radius: 2.5px;
+}
+
+/* Dot-grid accent — bold-style decoration. Sits next to a heading
+   or stands alone as a divider. */
+.dot-grid {
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+  background-image: radial-gradient(var(--brand-primary) 1.5px, transparent 1.5px);
+  background-size: 8px 8px;
+  background-position: 0 0;
+  vertical-align: middle;
+}
+
+/* Bold-style card — sharper corners, rectangular top bar instead of
+   the default 2px maroon outline. */
+.card-static--bold,
+.card-linked--bold {
+  border: 0;
+  border-top: 8px solid var(--brand-primary);
+  border-radius: 0;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-md);
+  padding: 1.5rem;
+}
+
+.card-linked--bold:hover,
+.card-linked--bold:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  background: var(--surface-raised);
+}
+
+/* --- Elegant style — Georgia + diagonal hash + dotted borders --- */
+.style--elegant {
+  --font-display: var(--font-elegant);
+}
+
+.style--elegant h1,
+.style--elegant h2,
+.style--elegant h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: var(--tracking-normal);
+  text-transform: none;
+  line-height: 1.15;
+}
+
+.style--elegant h1 { font-size: 2.75rem; }
+.style--elegant h2 { font-size: 2.125rem; }
+.style--elegant h3 { font-size: 1.5rem; }
+
+.heading--elegant {
+  font-family: var(--font-elegant);
+  font-weight: 700;
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: var(--tracking-normal);
+  line-height: 1.15;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.heading--elegant--italic {
+  font-style: italic;
+}
+
+.section-header--elegant {
+  font-family: var(--font-elegant);
+  font-weight: 400;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: -0.005em;
+  padding-bottom: 0.75rem;
+  color: var(--text-primary);
+  position: relative;
+  display: inline-block;
+  margin: 0;
+}
+
+.section-header--elegant::after {
+  content: "";
+  display: block;
+  width: 86px;
+  height: 6px;
+  margin-top: 0.75rem;
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--brand-accent) 0,
+    var(--brand-accent) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 15%, black 85%, transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0%, black 15%, black 85%, transparent 100%);
+  opacity: 0.8;
+}
+
+/* Hash-pattern — diagonal maroon hash decoration. Use as a standalone
+   block above a heading or as a border accent. */
+.hash-pattern {
+  display: block;
+  height: 24px;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--brand-primary) 0,
+    var(--brand-primary) 1.5px,
+    transparent 1.5px,
+    transparent 8px
+  );
+}
+
+.hash-pattern--sm     { height: 16px; }
+.hash-pattern--narrow { width: 64px; }
+
+.hash-pattern--gold {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--brand-accent) 0,
+    var(--brand-accent) 1.5px,
+    transparent 1.5px,
+    transparent 8px
+  );
+}
+
+/* Dotted maroon borders — elegant signature. */
+.border-dotted-tti        { border: 1px dotted var(--brand-primary); }
+.border-dotted-tti-top    { border: 0; border-top: 1px dotted var(--brand-primary); }
+.border-dotted-tti-bottom { border: 0; border-bottom: 1px dotted var(--brand-primary); }
+
+/* Elegant card — dotted maroon outline, no maroon slab outline,
+   tighter radius. Hover stays subtle (no corner-drop). */
+.card-static--elegant,
+.card-linked--elegant {
+  border: 1px dotted var(--brand-primary);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  padding: 1.5rem;
+  box-shadow: none;
+}
+
+.card-linked--elegant:hover,
+.card-linked--elegant:focus-visible {
+  background: color-mix(in srgb, var(--brand-primary) 3%, var(--surface-raised));
+  transform: none;
+  box-shadow: none;
+  border-style: dotted;
+  border-color: var(--brand-primary-deep);
+}
+
+/* ------------------------------------------------------------
+   Demo notice — used at the top of every /examples/* page to
+   set the "this is a composition demo, not real data" expectation.
+   Lives here (not per-page) since the same rhythm should appear
+   across all three current examples + any future ones.
+   ------------------------------------------------------------ */
+.example-demo-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  background: color-mix(in srgb, var(--brand-accent) 8%, var(--surface-raised));
+  border: 1px solid color-mix(in srgb, var(--brand-accent) 35%, transparent);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.example-demo-notice__icon {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  color: var(--brand-primary);
+}
+
+[data-theme="tti-dark"] .example-demo-notice__icon {
+  color: var(--brand-accent);
+}
+
+.example-demo-notice__text {
+  margin: 0;
+}
+
+.example-demo-notice strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+
+/* ==========================================================================
+   BATCH J — VISUAL-LANGUAGE APPLICATION SWEEP (2026-05)
+
+   Surface-level rules that apply the Batch E-prelude tokens (focus, easing,
+   elevation, identity primitives) across the existing kit without touching
+   every component file. Strictly opt-in via attribute selector / class —
+   the only global rule is the easing default (J.1), which is gated by
+   prefers-reduced-motion and falls back to --ease-standard.
+
+   See design/visual-language-evolution.md § Batch J for the full lineage.
+   ========================================================================== */
+
+/* J.1 — Apply transportation-tempo easings to common transition properties.
+   Components that don't explicitly set --ease-* in JS pick up these defaults
+   via inherited transition shorthand. Existing inline-declared transitions
+   still win — this is just the curve when no curve was specified. */
+@media (prefers-reduced-motion: no-preference) {
+  button, a, input, select, textarea,
+  [role="button"], [role="tab"], [role="option"],
+  .tux-card, .card-linked, .card-linked--bold, .card-linked--elegant {
+    transition-timing-function: var(--ease-survey, var(--ease-standard));
+    transition-duration: var(--motion-base);
+  }
+  /* Anchored disclosure surfaces — sheets, popovers, modals — use the
+     corridor curve (smoother acceleration into rest). Components opt in
+     by adding data-tux-overlay; the data-attr is non-invasive. */
+  [data-tux-overlay] {
+    transition-timing-function: var(--ease-corridor, var(--ease-standard));
+  }
+  /* Toasts and banners locking in place — decelerate-only. */
+  [data-tux-arrival] {
+    transition-timing-function: var(--ease-arrival, var(--ease-standard));
+  }
+}
+
+/* J.2 — Elevation roles. Components opt in via data-tux-elevation.
+   Strictly additive: existing inline box-shadows on the element are
+   overridden only where the data-attr is present. */
+[data-tux-elevation="flat"]    { box-shadow: var(--elevation-flat); }
+[data-tux-elevation="rest"]    { box-shadow: var(--elevation-rest); }
+[data-tux-elevation="hover"]   { box-shadow: var(--elevation-hover); transform: translateY(-1px); }
+[data-tux-elevation="overlay"] { box-shadow: var(--elevation-overlay); }
+[data-tux-elevation="pinned"]  { box-shadow: var(--elevation-pinned); }
+
+/* J.3 — Hover-lift utility (pairs with the elevation tokens). One-class
+   opt-in for the rest → hover transition without writing it by hand. */
+.tux-hoverlift {
+  transition: transform var(--motion-fast) var(--ease-survey, var(--ease-standard)),
+              box-shadow var(--motion-fast) var(--ease-survey, var(--ease-standard));
+}
+.tux-hoverlift:hover,
+.tux-hoverlift:focus-within {
+  transform: translateY(-1px);
+  box-shadow: var(--elevation-hover);
+}
+
+/* J.4 — Identity-primitive utilities. Use anywhere by referencing
+   /identity-primitives.svg via <use href>. The class sizes the host SVG;
+   the CSS-variable hooks let consumers tweak size and hue per-instance
+   without touching the sprite.
+
+   Default: 16×16, currentColor = --brand-primary.
+   Use .tux-mark--lg (32px) for section accents, .tux-mark--xl (56px)
+   for hero marks. */
+.tux-mark {
+  display: inline-block;
+  width: var(--mark-size, 16px);
+  height: var(--mark-size, 16px);
+  color: var(--mark-color, var(--brand-primary));
+}
+.tux-mark--lg { --mark-size: 32px; }
+.tux-mark--xl { --mark-size: 56px; }
+
+/* J.5 — Section-divider helper: eyebrow label + maroon-to-transparent
+   rule that fades at the right edge. Matches the default-style signature
+   rhythm. Apply via .tux-section-divider on a wrapping element. */
+.tux-section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-bold);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 18px 0 12px;
+}
+.tux-section-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg,
+    var(--brand-primary) 0%,
+    var(--brand-primary) 30%,
+    transparent 100%);
+  opacity: 0.5;
+}
+
+/* J.6 — ROW grid background: subtle vertical-line pattern at 6% maroon,
+   carrying the right-of-way visual DNA. Opt-in via data-tux-rowgrid on
+   any block-level element (heroes, large empty states, section breaks). */
+[data-tux-rowgrid] {
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 11px,
+    color-mix(in srgb, var(--brand-primary) 6%, transparent) 11px,
+    color-mix(in srgb, var(--brand-primary) 6%, transparent) 12px
+  );
+}

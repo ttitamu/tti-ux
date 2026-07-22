@@ -1,0 +1,212 @@
+<script setup lang="ts">
+useHead({ title: "Markdown (MDC) · TUX" });
+
+// Parse markdown at SSR time via `parseMarkdown()` so fenced code
+// blocks ship pre-highlighted (Shiki runs during the parse, using the
+// theme + langs configured in nuxt.config.ts). Then `<MDCRenderer>`
+// renders the AST into Vue. The runtime `<MDC :value>` shortcut is
+// available, but it doesn't run the Shiki pipeline — code blocks
+// would render as plain <pre> with the runtime renderer.
+//
+// Tux components are auto-imported by Nuxt; MDC picks them up via
+// the same resolver, so `::tux-alert{...}` block syntax just works.
+
+const sample = `---
+title: How the agent watcher works
+date: 2026-04-22
+author: R. Chen
+---
+
+# How the agent watcher works
+
+Landscape's file watcher is the long-running process on each agent host
+that detects file events (create / modify / delete / move) and ships
+them to the central index.
+
+::tux-alert{variant="compliance" title="ITAR-tagged paths"}
+This watcher must run with a tier-3 token when watching corpora that
+contain ITAR-marked records. The default agent token is tier-1 and
+will refuse the scope.
+::
+
+## Event types
+
+The watcher emits four event types upstream:
+
+| Type | Triggers when… |
+|---|---|
+| \`create\` | A new inode appears in a watched root |
+| \`modify\` | An existing inode's content or mtime changes |
+| \`delete\` | An inode disappears (soft-delete with 30d retention) |
+| \`move\`  | An inode's path changes — single event, never delete+create |
+
+::tux-callout{kind="stat"}
+Move detection uses inode tracking on POSIX and SHA-256 correlation
+on Windows. Either way, a single \`move\` event is emitted upstream
+rather than a delete+create pair.
+::
+
+## Implementation note
+
+\`\`\`ts
+// Coalesce events over a 250ms window to avoid shipping every
+// keystroke during text-editor saves.
+const debounced = debounce(events, { window: 250 });
+\`\`\`
+
+Run it locally:
+
+\`\`\`bash
+$ landscape agent watch /research/grants --root=local
+[12:14:08] watcher: 4 paths registered
+[12:14:09] heartbeat: ok (latency 38ms)
+\`\`\`
+
+::tux-alert{variant="tip" title="Heartbeat cadence"}
+The default heartbeat is every 60 seconds. Override with
+\`--heartbeat=30s\` for tighter monitoring during a deploy or rolling
+restart.
+::
+
+## Math
+
+Inline equations flow with surrounding prose — the watcher's
+detection-latency budget is bounded by $T_{poll} + T_{fs}$, where
+$T_{poll}$ is the kernel poll interval and $T_{fs}$ is the filesystem
+event-emission delay.
+
+Display equations get their own block:
+
+$$
+T_{detect} = \\max(T_{poll}, T_{fs}) + \\frac{1}{N}\\sum_{i=1}^{N} T_{network,i}
+$$
+
+Math renders via \`remark-math\` + \`rehype-katex\` in the MDC
+pipeline; KaTeX CSS is imported globally in \`globals.css\`.
+`;
+
+// Parse at SSR time. parseMarkdown runs Shiki on every fenced code
+// block, so the highlighted HTML is in the initial document — same
+// no-flash benefit as TuxCodeBlock, applied to markdown content.
+const { data: parsed } = await useAsyncData(
+  "markdown-demo-sample",
+  () => parseMarkdown(sample),
+);
+</script>
+
+<template>
+  <div class="space-y-10">
+    <TuxPageHeader eyebrow="composition" title="Markdown (MDC)">
+      Author content in markdown with Tux* components inline. Powered
+      by <code>@nuxtjs/mdc</code>; Tux components are auto-imported so
+      no per-component configuration is needed. Use this for
+      tti-docs, blog posts, ADRs, and any marcom content where the
+      author shouldn't have to write Vue.
+    </TuxPageHeader>
+
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+      <div class="space-y-3">
+        <p class="eyebrow">source</p>
+        <h2 class="heading--bold text-xl font-bold">Markdown input</h2>
+        <p class="text-sm text-text-secondary">
+          Frontmatter for metadata, GFM for prose, the
+          <code>:::name{`{prop=value}`}</code> block syntax for invoking
+          Tux components, and fenced code blocks with language ids for
+          syntax highlighting.
+        </p>
+        <TuxCodeBlock lang="md" :code="sample" filename="how-watcher-works.md" />
+      </div>
+
+      <div class="space-y-3">
+        <p class="eyebrow">rendered</p>
+        <h2 class="heading--bold text-xl font-bold">MDC output</h2>
+        <p class="text-sm text-text-secondary">
+          The same source rendered live. Notice the
+          <code>tux-alert</code> and <code>tux-callout</code> blocks
+          render as the actual Vue components — same TTI rhythm as
+          everything else in the style guide.
+        </p>
+        <TuxProse
+          as="div"
+          class="border border-surface-border rounded-md bg-surface-raised p-5"
+        >
+          <MDCRenderer
+            v-if="parsed"
+            :body="parsed.body"
+            :data="parsed.data"
+          />
+        </TuxProse>
+      </div>
+    </section>
+
+    <section class="space-y-3">
+      <p class="eyebrow">syntax</p>
+      <h2 class="heading--bold text-xl font-bold">Block syntax for Tux components</h2>
+      <p class="text-sm text-text-secondary max-w-3xl leading-relaxed">
+        MDC's block syntax invokes Vue components via
+        <code>:::name{`{prop=value}`}</code>, with content between the
+        opening fence and the matching close. Props are stringly-typed
+        — wrap with <code>:</code> prefix for booleans and numbers
+        (<code>:dismissible="true"</code>). Slots use
+        <code>#slot</code>:
+      </p>
+      <TuxCodeBlock
+        lang="md"
+        filename="syntax-crib-sheet.md"
+        :code="`# Inline component (default slot)
+
+::tux-alert{variant=\&quot;warning\&quot; title=\&quot;Be careful\&quot;}
+Body content goes here.
+::
+
+# With a named slot
+
+::tux-cta{tone=\&quot;maroon\&quot; title=\&quot;Ship it\&quot; dek=\&quot;Two clicks.\&quot;}
+  ::tux-button{intent=\&quot;primary\&quot;}
+  Start scan
+  ::
+::
+
+# Self-closing (no body)
+
+::tux-section-header
+Storage overview
+::
+
+# Inline span (one-line components)
+
+A :badge[ITAR]{kind=\&quot;tag\&quot;} flag here.
+
+# Booleans + numbers — note the colon prefix
+
+::tux-pagination{:total=\&quot;412\&quot; :page-size=\&quot;20\&quot; :show-status=\&quot;true\&quot;}
+::`"
+      />
+    </section>
+
+    <section class="space-y-3">
+      <p class="eyebrow">where to use</p>
+      <h2 class="heading--bold text-xl font-bold">Markdown vs Vue authoring</h2>
+      <ul class="text-sm space-y-2 max-w-3xl">
+        <li>
+          <strong>Use markdown (this)</strong> when content authors
+          aren't writing Vue — tti-docs articles, blog posts, ADRs,
+          changelog entries, marcom landing copy.
+        </li>
+        <li>
+          <strong>Use Vue templates</strong> when the surface needs
+          interactivity beyond what MDC components expose, or when the
+          page is structurally a layout (a dashboard, a session view,
+          a directory) rather than long-form prose.
+        </li>
+        <li>
+          <strong>Mix freely</strong> — a Vue page can render an
+          <code>&lt;MDC :value="..." /&gt;</code> block for the prose
+          section and Vue components for the chrome. The Landscape docs
+          site does this for product overviews.
+        </li>
+      </ul>
+    </section>
+  </div>
+</template>
+

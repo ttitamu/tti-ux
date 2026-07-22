@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Static R-rendered chart artifact (faceted bar chart) for the
+  /visualizations/rplot demo. Written to look like a ggplot2 export:
+  thin axis lines, light gridlines, sans-serif labels. Recolored in
+  TTI palette so it doesn't fight the brand.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" preserveAspectRatio="xMidYMid meet">
+  <rect width="1200" height="750" fill="#FFFFFF"/>
+
+  <!-- Title -->
+  <text x="600" y="40" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#221F1F">Grant draws by sponsor — FY26 by quarter</text>
+  <text x="600" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#525252">facet_wrap(~ quarter) · scales = "free_y"</text>
+
+  <!-- 4 facet panels: Q1..Q4 -->
+  <g font-family="Arial, sans-serif" font-size="11" fill="#525252">
+    <!-- Q1 -->
+    <g transform="translate(80 110)">
+      <rect x="0" y="0" width="240" height="240" fill="#FAFAFA" stroke="#E7E6E6"/>
+      <text x="120" y="-8" text-anchor="middle" font-size="12" font-weight="600" fill="#221F1F">Q1</text>
+      <!-- gridlines -->
+      <line x1="0" y1="60" x2="240" y2="60" stroke="#E7E6E6"/>
+      <line x1="0" y1="120" x2="240" y2="120" stroke="#E7E6E6"/>
+      <line x1="0" y1="180" x2="240" y2="180" stroke="#E7E6E6"/>
+      <!-- bars -->
+      <rect x="20"  y="80"  width="35" height="160" fill="#5C0025"/>
+      <rect x="65"  y="100" width="35" height="140" fill="#DDAC37"/>
+      <rect x="110" y="140" width="35" height="100" fill="#15457E"/>
+      <rect x="155" y="170" width="35" height="70"  fill="#4A8892"/>
+      <rect x="200" y="190" width="35" height="50"  fill="#66814F"/>
+    </g>
+    <!-- Q2 -->
+    <g transform="translate(360 110)">
+      <rect x="0" y="0" width="240" height="240" fill="#FAFAFA" stroke="#E7E6E6"/>
+      <text x="120" y="-8" text-anchor="middle" font-size="12" font-weight="600" fill="#221F1F">Q2</text>
+      <line x1="0" y1="60" x2="240" y2="60" stroke="#E7E6E6"/>
+      <line x1="0" y1="120" x2="240" y2="120" stroke="#E7E6E6"/>
+      <line x1="0" y1="180" x2="240" y2="180" stroke="#E7E6E6"/>
+      <rect x="20"  y="60"  width="35" height="180" fill="#5C0025"/>
+      <rect x="65"  y="90"  width="35" height="150" fill="#DDAC37"/>
+      <rect x="110" y="120" width="35" height="120" fill="#15457E"/>
+      <rect x="155" y="160" width="35" height="80"  fill="#4A8892"/>
+      <rect x="200" y="180" width="35" height="60"  fill="#66814F"/>
+    </g>
+    <!-- Q3 -->
+    <g transform="translate(640 110)">
+      <rect x="0" y="0" width="240" height="240" fill="#FAFAFA" stroke="#E7E6E6"/>
+      <text x="120" y="-8" text-anchor="middle" font-size="12" font-weight="600" fill="#221F1F">Q3</text>
+      <line x1="0" y1="60" x2="240" y2="60" stroke="#E7E6E6"/>
+      <line x1="0" y1="120" x2="240" y2="120" stroke="#E7E6E6"/>
+      <line x1="0" y1="180" x2="240" y2="180" stroke="#E7E6E6"/>
+      <rect x="20"  y="50"  width="35" height="190" fill="#5C0025"/>
+      <rect x="65"  y="80"  width="35" height="160" fill="#DDAC37"/>
+      <rect x="110" y="110" width="35" height="130" fill="#15457E"/>
+      <rect x="155" y="140" width="35" height="100" fill="#4A8892"/>
+      <rect x="200" y="170" width="35" height="70"  fill="#66814F"/>
+    </g>
+    <!-- Q4 -->
+    <g transform="translate(920 110)">
+      <rect x="0" y="0" width="240" height="240" fill="#FAFAFA" stroke="#E7E6E6"/>
+      <text x="120" y="-8" text-anchor="middle" font-size="12" font-weight="600" fill="#221F1F">Q4 (proj)</text>
+      <line x1="0" y1="60" x2="240" y2="60" stroke="#E7E6E6"/>
+      <line x1="0" y1="120" x2="240" y2="120" stroke="#E7E6E6"/>
+      <line x1="0" y1="180" x2="240" y2="180" stroke="#E7E6E6"/>
+      <rect x="20"  y="40"  width="35" height="200" fill="#5C0025" fill-opacity="0.55"/>
+      <rect x="65"  y="70"  width="35" height="170" fill="#DDAC37" fill-opacity="0.55"/>
+      <rect x="110" y="100" width="35" height="140" fill="#15457E" fill-opacity="0.55"/>
+      <rect x="155" y="130" width="35" height="110" fill="#4A8892" fill-opacity="0.55"/>
+      <rect x="200" y="160" width="35" height="80"  fill="#66814F" fill-opacity="0.55"/>
+    </g>
+  </g>
+
+  <!-- Trend strip across the bottom -->
+  <g transform="translate(80 410)">
+    <text x="540" y="-8" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#525252">Cumulative draws across all quarters</text>
+    <rect x="0" y="0" width="1080" height="200" fill="#FAFAFA" stroke="#E7E6E6"/>
+    <line x1="0" y1="50"  x2="1080" y2="50"  stroke="#E7E6E6"/>
+    <line x1="0" y1="100" x2="1080" y2="100" stroke="#E7E6E6"/>
+    <line x1="0" y1="150" x2="1080" y2="150" stroke="#E7E6E6"/>
+    <!-- TxDOT -->
+    <polyline fill="none" stroke="#5C0025" stroke-width="3"
+      points="20,170 270,140 540,90 810,40 1060,10"/>
+    <!-- Federal -->
+    <polyline fill="none" stroke="#DDAC37" stroke-width="3"
+      points="20,180 270,160 540,130 810,90 1060,50"/>
+    <!-- Other state -->
+    <polyline fill="none" stroke="#15457E" stroke-width="3"
+      points="20,185 270,170 540,150 810,120 1060,85"/>
+    <!-- Industry -->
+    <polyline fill="none" stroke="#4A8892" stroke-width="3"
+      points="20,190 270,180 540,165 810,145 1060,115"/>
+  </g>
+
+  <!-- Legend -->
+  <g font-family="Arial, sans-serif" font-size="12" fill="#221F1F" transform="translate(80 650)">
+    <rect x="0"   y="-10" width="14" height="14" fill="#5C0025"/><text x="20"  y="2">TxDOT</text>
+    <rect x="120" y="-10" width="14" height="14" fill="#DDAC37"/><text x="140" y="2">Federal (FHWA, NSF)</text>
+    <rect x="340" y="-10" width="14" height="14" fill="#15457E"/><text x="360" y="2">Other state</text>
+    <rect x="500" y="-10" width="14" height="14" fill="#4A8892"/><text x="520" y="2">Industry</text>
+    <rect x="640" y="-10" width="14" height="14" fill="#66814F"/><text x="660" y="2">Internal seed</text>
+  </g>
+
+  <!-- caption gutter -->
+  <text x="80" y="710" font-family="Courier, monospace" font-size="11" fill="#525252">R 4.4.1 · ggplot2 3.5.1 · scripts/grants-by-quarter.R · sessionInfo() pinned 2026-04-28</text>
+</svg>

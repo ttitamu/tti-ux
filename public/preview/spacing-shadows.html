@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tti">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="../colors_and_type.css?v=1777059349666" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 28px 20px; background: var(--surface-page); display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; box-sizing: border-box; }
+  .item { text-align: center; }
+  .box { width: 56px; height: 56px; background: var(--surface-raised); border-radius: var(--radius-md); margin: 0 auto 16px; }
+  .token { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="item"><div class="box" style="box-shadow:0 1px 2px 0 rgba(0,0,0,0.05)"></div><div class="token">shadow-sm</div></div>
+<div class="item"><div class="box" style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04)"></div><div class="token">shadow-md</div></div>
+<div class="item"><div class="box" style="box-shadow:0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.03)"></div><div class="token">shadow-lg</div></div>
+<div class="item"><div class="box" style="box-shadow:0 0 0 3px rgba(92,0,37,0.35)"></div><div class="token">shadow-focus</div></div>
+</body>
+</html>

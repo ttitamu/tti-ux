@@ -34,8 +34,15 @@ jobs:
         run: |
           set -eu
           git init -q
+          # Authenticate the fetch with the auto per-job token so this works on
+          # PRIVATE repos too. An unauthenticated fetch of a private repo prompts
+          # for a username and dies non-interactively ("could not read Username
+          # for host.containers.internal" — hit live 2026-07-06 on the first
+          # private repos). Header via -c (not the URL) so the token never lands
+          # in remote config; the expansion line is unechoed.
           git remote add origin "${{ github.server_url }}/${{ github.repository }}"
-          git fetch --depth=1 origin "${{ github.sha }}"
+          hdr="Authorization: basic $(printf 'x-access-token:%s' "${{ github.token }}" | base64 | tr -d '\n')"
+          git -c http.extraheader="$hdr" fetch --depth=1 origin "${{ github.sha }}"
           git checkout -q FETCH_HEAD
 
       # Compile the unified .security-ignore into per-tool native ignore files.
@@ -52,9 +59,12 @@ jobs:
             awk -v today="$TODAY" '
               /^[[:space:]]*#/ || NF==0 { next }
               {
-                exp=""
-                for (i=1;i<=NF;i++) if ($i ~ /^expires=/) exp=substr($i,9)
-                if (exp != "" && exp < today) next
+                # NB: "exp" is a reserved awk builtin — using it as a variable
+                # is a hard syntax error (bit live 2026-07-22, first repo to
+                # actually carry a .security-ignore).
+                until=""
+                for (i=1;i<=NF;i++) if ($i ~ /^expires=/) until=substr($i,9)
+                if (until != "" && until < today) next
                 if ($1=="trivy")    print $2 >> "/tmp/.trivyignore"
                 if ($1=="gitleaks") print $2 >> "./.gitleaksignore"
               }' .security-ignore

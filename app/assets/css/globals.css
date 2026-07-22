@@ -1,0 +1,160 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/*
+ * KaTeX styles for `$...$` and `$$...$$` math blocks rendered by the
+ * `rehype-katex` MDC plugin (see nuxt.config.ts `mdc.rehypePlugins`).
+ * Loads globally (~75 KB) so any markdown surface can render math
+ * without a per-page import. KaTeX's own math fonts are lazy-loaded
+ * via @font-face — pages without math don't fetch them.
+ */
+@import "katex/dist/katex.min.css";
+
+/*
+ * Platform-aware scrollbar styling. Branches on the `data-platform`
+ * attribute that `useTuxPlatform()` sets on `<html>` post-hydration.
+ * See `design/platform-awareness.md` for the doctrine + per-OS recipes.
+ */
+@import "./tux-scrollbar.css";
+
+/*
+ * Chart-family entrance animations. Subtle, fast, reduced-motion-
+ * respecting. See `design/chart-foundations.md` motion section.
+ */
+@import "./tux-chart-motion.css";
+
+/*
+ * Opt-in entrance animations for non-chart Tux components.
+ * Pattern: wrap a section in `.tux-mount-in` and immediate children
+ * fade-in with a subtle slide. See file head for the full
+ * vocabulary + usage.
+ */
+@import "./tux-component-motion.css";
+
+/*
+ * Maroon palette lives in tokens.css as plain :root vars (not @theme),
+ * because Tailwind v4 tree-shakes @theme entries that aren't referenced
+ * in source CSS/templates. Nuxt UI references them via its pre-compiled
+ * CSS which Tailwind doesn't scan, so tree-shaking would strip them.
+ */
+
+/*
+ * Tailwind v4 `@theme` block — consumes CSS vars from tokens.css, exposes
+ * them as Tailwind utility classes (text-brand, bg-surface-page, etc.).
+ */
+@theme {
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-deep: var(--brand-primary-deep);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-deep: var(--brand-accent-deep);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-brand-fill: var(--brand-fill);
+
+  --color-surface-page: var(--surface-page);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-border: var(--surface-border);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: var(--text-inverse);
+  --color-text-brand: var(--text-brand);
+
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-danger:  var(--color-danger);
+  --color-error:   var(--color-error);
+  --color-info:    var(--color-info);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --shadow-focus: var(--shadow-focus);
+
+  /*
+   * Layout breakpoints. Anchored to design/tokens.json `breakpoint`
+   * block — the *semantic trigger* for each is documented there
+   * (what surface state changes at this width). Values match Tailwind
+   * v4 defaults, so `md:` / `lg:` utilities keep their intuitive
+   * meaning, but the token source is now the durable reference.
+   * `xs` (0) is documentation-only in tokens.json — not added here
+   * because Tailwind doesn't ship an `xs:` prefix by default (no
+   * prefix already means "applies at all widths").
+   */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+
+/*
+ * Fonts are served by @nuxt/fonts — see `fonts` config in nuxt.config.ts.
+ * The module downloads Public Sans + JetBrains Mono at build time and
+ * self-hosts them, so air-gapped deployments don't need Google Fonts.
+ */
+
+html,
+body {
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+}
+
+/* Focus ring — TTI maroon by default, swaps per theme. */
+*:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+/* =====================================================
+   TAMUS-family typography utilities
+   Cherry-picked from Aggie UX via docs-tti-tamu-edu. The gold bar is
+   opt-in (class-scoped) so it doesn't stripe every <h1> in app chrome —
+   add `heading--bold` to page titles where the editorial rhythm fits.
+   ===================================================== */
+
+.heading--bold {
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+/* The gold accent rule beneath bold-style headings. Slimmed from
+   100×8px to 64×3px in v1.0.0 — the slab read as "marketing 2010"
+   next to the more refined chrome we've shipped (sidebar pills,
+   institutional footer, version pills). 3px keeps the editorial
+   weight without competing visually with the headline itself. */
+.heading--bold::after {
+  content: "";
+  display: block;
+  width: 64px;
+  height: 3px;
+  background: var(--brand-accent);
+  border-radius: 1.5px;
+  margin-top: 0.625rem;
+}
+
+/* Small uppercase tracked label — used above or below a heading, or to
+   separate meta/labels from body copy. Matches the inline pattern already
+   used by SectionHeader; this tokenizes it. */
+.eyebrow,
+.subhead {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.eyebrow {
+  margin-bottom: 0.25rem;
+}
+
+.subhead {
+  margin-top: 0.25rem;
+}

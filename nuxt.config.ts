@@ -1,0 +1,185 @@
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { defineNuxtConfig } from "nuxt/config";
+import tailwindcss from "@tailwindcss/vite";
+
+// Layer-rooted dir so consuming apps (Landscape, tti-ai-studio, etc.) resolve
+// our css/asset paths relative to *this* file, not their own srcDir.
+// `~` in a Nuxt layer's nuxt.config maps to the *consumer's* `app/`, not
+// the layer's, so anything we want to ship from the layer needs an
+// absolute path.
+const layerDir = dirname(fileURLToPath(import.meta.url));
+
+// tti-ux is a runnable Nuxt 4 style-guide for the TTI design system. The app
+// itself IS the living doc: every route under /components demos a Tux* wrapper
+// so visual regressions are obvious at a glance.
+export default defineNuxtConfig({
+  compatibilityDate: "2026-04-24",
+
+  future: { compatibilityVersion: 4 },
+
+  devtools: { enabled: true },
+
+  // GitHub Pages deploy.
+  //
+  // The site pre-renders fully at build time — no SSR worker on
+  // Pages. `app.baseURL` only kicks in when an explicit env var is
+  // set (the Actions workflow sets `NUXT_APP_BASE_URL=/tti-ux/`); in
+  // local dev and SSR-server builds the baseURL stays `/` so nothing
+  // changes for the development workflow.
+  //
+  // The github_pages Nitro preset emits a fully-prerendered
+  // `.output/public/` directory with a `.nojekyll` marker. The
+  // workflow only switches to that preset when building for Pages —
+  // again via env var — so `npm run dev` and `npm run build` (a
+  // server build) keep their default behavior.
+  $production: {
+    app: {
+      baseURL: process.env.NUXT_APP_BASE_URL || "/",
+    },
+    nitro: {
+      preset: process.env.NUXT_PAGES === "1" ? "github_pages" : undefined,
+      prerender: {
+        crawlLinks: true,
+        routes: ["/"],
+        // Demo pages (breadcrumbs, footer) intentionally render
+        // realistic-looking nav links to routes that don't exist in
+        // the style guide (/research, /docs, /changelog, /sessions,
+        // /models, /keys). Crawling finds them, hits 404s, and would
+        // abort the whole build. Demote 404s to warnings so the rest
+        // of the static site still ships. Real broken-link checking
+        // belongs in CI/lighthouse, not the build step.
+        failOnError: false,
+      },
+    },
+  },
+
+  modules: [
+    "@nuxt/icon",
+    // @nuxt/fonts removed — fonts are now self-hosted via explicit
+    // @font-face declarations in app/assets/css/fonts.css, sourced from
+    // @fontsource/* npm packages via scripts/sync-fonts.mjs. The module
+    // had auto-fetch-from-Google behavior that defeats air-gapped builds;
+    // removing it makes the font-load surface explicit and offline-clean.
+    "@nuxt/image",
+    "@nuxt/ui",
+    "@nuxt/eslint",
+    "@nuxt/a11y",
+    "@nuxtjs/color-mode",
+    "@nuxtjs/mdc",
+    "@vueuse/nuxt",
+  ],
+
+  // Components registration. Default Nuxt behavior auto-imports
+  // components via compile-time template rewrites — fast, lean, but
+  // INVISIBLE to `vueResolveComponent()` at runtime. That matters for
+  // `@nuxtjs/mdc`, whose `MDCRenderer` resolves tags from `::tux-alert{...}`
+  // markdown block syntax by calling Vue's runtime resolver. Without
+  // global registration, every Tux* used in markdown logs
+  // `[Vue warn]: Failed to resolve component: TuxAlert`.
+  //
+  // `global: true` registers each component via `app.component()` so
+  // MDC's resolver finds it. Bundle-size cost: components ship in the
+  // main chunk instead of being lazy-loaded — acceptable for TUX
+  // because Tux* are used on virtually every page anyway. Layer-rooted
+  // path so consuming apps resolve from *this* file, not their own srcDir.
+  components: [
+    {
+      path: resolve(layerDir, "app/components"),
+      global: true,
+    },
+  ],
+
+  // MDC — markdown rendering with Vue components. Lets consumers
+  // (tti-docs, blog posts, marcom WordPress migration) author content
+  // in markdown with Tux* components inline. Tux components are
+  // already auto-imported by Nuxt; MDC picks them up via the same
+  // resolver. See `app/pages/markdown.vue` for the demo + full syntax
+  // crib sheet.
+  mdc: {
+    highlight: {
+      // Reuse the Shiki themes the rest of the system uses.
+      theme: {
+        default: "github-light",
+        dark: "github-dark",
+      },
+      langs: ["ts", "js", "vue", "html", "css", "json", "bash", "python", "yaml", "md"],
+    },
+    // Math in markdown: `$inline$` and `$$display$$` parse via
+    // `remark-math` and render to HTML via `rehype-katex`. Pair with
+    // the `katex/dist/katex.min.css` import in `globals.css`.
+    remarkPlugins: {
+      "remark-math": {},
+    },
+    rehypePlugins: {
+      "rehype-katex": {},
+    },
+  },
+
+  // CSS load order: fonts first (@font-face — declare faces before any
+  // rules reference them), then tokens (CSS vars), then globals
+  // (consumes tokens + Tailwind + Nuxt UI @imports), then tux (utility
+  // layer consumed by the Tux* wrappers). Paths are layer-rooted (see
+  // `layerDir` above) so consuming apps don't accidentally try to load
+  // these from their own app/ when they extend us.
+  //
+  // Fonts are self-hosted from public/fonts/<family>/*.woff2 — sourced
+  // from @fontsource/* npm packages via scripts/sync-fonts.mjs. No CDN
+  // dependency at runtime or build time; air-gapped-build clean.
+  css: [
+    resolve(layerDir, "app/assets/css/fonts.css"),
+    resolve(layerDir, "app/assets/css/tokens.css"),
+    resolve(layerDir, "app/assets/css/globals.css"),
+    resolve(layerDir, "app/assets/css/tux.css"),
+  ],
+
+  colorMode: {
+    preference: "tti",
+    fallback: "tti",
+    classSuffix: "",
+    dataValue: "theme",
+  },
+
+  a11y: {
+    enabled: true,
+    defaultHighlight: false,
+    logIssues: true,
+  },
+
+  ui: {
+    theme: {
+      colors: ["primary", "secondary", "success", "info", "warning", "error", "neutral", "tip"],
+    },
+  },
+
+  vite: {
+    // Cast through unknown so consuming layers' typecheck doesn't trip
+    // when their `vite` resolves to a different path than ours under
+    // `node_modules`. The Plugin shape is identical at runtime; only
+    // nominal TS identity differs across duplicate vite installs.
+    plugins: [tailwindcss()] as unknown as never[],
+  },
+
+  app: {
+    head: {
+      // `lang` is required for screen readers to pick the right voice
+      // and for axe's `html-has-lang` rule. Sets `<html lang="en">`.
+      htmlAttrs: { lang: "en" },
+      title: "tti-ux",
+      meta: [
+        { charset: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        {
+          name: "description",
+          content:
+            "Living style guide for the TTI design system — Nuxt 4 + Nuxt UI, themed for Texas A&M Transportation Institute.",
+        },
+      ],
+    },
+  },
+
+  typescript: {
+    strict: true,
+    typeCheck: false,
+  },
+});

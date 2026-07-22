@@ -1,30 +1,98 @@
 {
-  "name": "@tti/ux",
-  "version": "0.1.3",
-  "description": "TTI design system — tokens and component styles, distributed via the TTI self-hosted npm registry.",
-  "license": "UNLICENSED",
-  "private": false,
-  "publishConfig": {
-    "registry": "http://host.containers.internal:3939/api/packages/tti/npm/",
-    "access": "restricted"
-  },
+  "name": "tti-ux",
+  "version": "1.6.0",
+  "private": true,
+  "type": "module",
+  "main": "./nuxt.config.ts",
   "files": [
-    "dist/",
-    "README.md"
+    "app",
+    "design",
+    "docs",
+    "public",
+    "nuxt.config.ts",
+    "tsconfig.json",
+    "README.md",
+    "CHANGELOG.md"
   ],
-  "main": "dist/index.css",
-  "style": "dist/index.css",
-  "exports": {
-    ".": "./dist/index.css",
-    "./tokens.css": "./dist/tokens.css",
-    "./components/button.css": "./dist/components/button.css"
-  },
   "scripts": {
-    "build": "mkdir -p dist/components && cp src/tokens.css src/index.css dist/ && cp src/components/*.css dist/components/",
-    "clean": "rm -rf dist"
+    "dev": "nuxt dev --host 0.0.0.0 --port 3030",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "typecheck": "nuxt typecheck",
+    "lint": "eslint .",
+    "generate": "nuxt generate",
+    "postinstall": "nuxt prepare",
+    "sync:aggieux": "node scripts/sync-aggieux.mjs",
+    "sync:aggieux-icons": "node scripts/sync-aggieux-icons.mjs",
+    "sync:fonts": "node scripts/sync-fonts.mjs",
+    "gen:lucide-names": "node scripts/gen-lucide-names.mjs",
+    "build:logos": "node scripts/png-to-svg-logo.mjs",
+    "audit:contrast": "node scripts/audit-contrast.mjs",
+    "audit:tokens": "node scripts/audit-tokens.mjs",
+    "audit:a11y": "node scripts/audit-a11y.mjs",
+    "build:geo": "node scripts/build-geo.mjs",
+    "build:tokens": "node scripts/build-tokens.mjs"
   },
-  "repository": {
-    "type": "git",
-    "url": "http://localhost:3939/tti/tti-ux.git"
+  "dependencies": {
+    "@iconify-json/lucide": "^1.2.102",
+    "@nuxt/a11y": "^1.0.0-alpha.1",
+    "@nuxt/eslint": "^1.15.2",
+    "@nuxt/fonts": "^0.14.0",
+    "@nuxt/icon": "^2.0.0",
+    "@nuxt/image": "^2.0.0",
+    "@nuxt/ui": "^4.6.1",
+    "@nuxtjs/color-mode": "^4.0.0",
+    "@nuxtjs/mdc": "^0.21.1",
+    "@tailwindcss/vite": "^4.0.0",
+    "@tanstack/vue-table": "^8.20.0",
+    "@tanstack/vue-virtual": "^3.13.0",
+    "@tiptap/extension-code-block-lowlight": "^3.22.4",
+    "@tiptap/extension-table": "^3.22.4",
+    "@tiptap/extension-table-cell": "^3.22.4",
+    "@tiptap/extension-table-header": "^3.22.4",
+    "@tiptap/extension-table-row": "^3.22.4",
+    "@tiptap/extension-task-item": "^3.22.4",
+    "@tiptap/extension-task-list": "^3.22.4",
+    "@tiptap/extension-typography": "^3.22.4",
+    "@vueuse/core": "^12.0.0",
+    "@vueuse/nuxt": "^12.0.0",
+    "katex": "^0.16.47",
+    "lowlight": "^3.3.0",
+    "mermaid": "^11.14.0",
+    "nuxt": "^4.4.2",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
+    "shiki": "^4.0.2",
+    "tailwindcss": "^4.0.0",
+    "vue": "^3.5.32",
+    "vue-router": "^5.0.0"
+  },
+  "lint-staged": {
+    "*.{vue,ts,js,mjs}": "eslint --fix"
+  },
+  "devDependencies": {
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@fontsource/open-sans": "^5.2.7",
+    "@fontsource/oswald": "^5.2.8",
+    "@fontsource/public-sans": "^5.2.7",
+    "@fontsource/work-sans": "^5.2.8",
+    "@nuxt/devtools": "^2.0.0",
+    "@vue/language-core": "^3.3.3",
+    "axe-core": "^4.11.3",
+    "d3-geo": "^3.1.1",
+    "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
+    "lint-staged": "^17.0.5",
+    "puppeteer": "^24.42.0",
+    "serve-handler": "^6.1.7",
+    "topojson-client": "^3.1.0",
+    "topojson-server": "^3.0.1",
+    "topojson-simplify": "^3.0.3",
+    "typescript": "^5.7.0",
+    "us-atlas": "^3.0.1",
+    "vue-tsc": "^3.3.3"
+  },
+  "overrides": {
+    "sharp": "^0.35.0"
   }
 }
