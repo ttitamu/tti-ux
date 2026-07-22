@@ -34,8 +34,15 @@ jobs:
         run: |
           set -eu
           git init -q
+          # Authenticate the fetch with the auto per-job token so this works on
+          # PRIVATE repos too. An unauthenticated fetch of a private repo prompts
+          # for a username and dies non-interactively ("could not read Username
+          # for host.containers.internal" — hit live 2026-07-06 on the first
+          # private repos). Header via -c (not the URL) so the token never lands
+          # in remote config; the expansion line is unechoed.
           git remote add origin "${{ github.server_url }}/${{ github.repository }}"
-          git fetch --depth=1 origin "${{ github.sha }}"
+          hdr="Authorization: basic $(printf 'x-access-token:%s' "${{ github.token }}" | base64 | tr -d '\n')"
+          git -c http.extraheader="$hdr" fetch --depth=1 origin "${{ github.sha }}"
           git checkout -q FETCH_HEAD
 
       # Compile the unified .security-ignore into per-tool native ignore files.
@@ -52,9 +59,12 @@ jobs:
             awk -v today="$TODAY" '
               /^[[:space:]]*#/ || NF==0 { next }
               {
-                exp=""
-                for (i=1;i<=NF;i++) if ($i ~ /^expires=/) exp=substr($i,9)
-                if (exp != "" && exp < today) next
+                # NB: "exp" is a reserved awk builtin — using it as a variable
+                # is a hard syntax error (bit live 2026-07-22, first repo to
+                # actually carry a .security-ignore).
+                until=""
+                for (i=1;i<=NF;i++) if ($i ~ /^expires=/) until=substr($i,9)
+                if (until != "" && until < today) next
                 if ($1=="trivy")    print $2 >> "/tmp/.trivyignore"
                 if ($1=="gitleaks") print $2 >> "./.gitleaksignore"
               }' .security-ignore
@@ -67,17 +77,17 @@ jobs:
           mkdir -p "$HOME/.local/bin"
           # Pins + publisher SHA-256 — see ops/provenance/{trivy,gitleaks}.md. Bump
           # in lockstep with the A1.0 runner-image and update the hashes here.
-          TRIVY_VERSION=0.70.0
-          GITLEAKS_VERSION=8.21.2
+          TRIVY_VERSION=0.72.0
+          GITLEAKS_VERSION=8.30.1
           case "$(uname -m)" in
             aarch64|arm64)
               TRIVY_ARCH=ARM64; GL_ARCH=arm64
-              TRIVY_SHA=2f6bb988b553a1bbac6bdd1ce890f5e412439564e17522b88a4541b4f364fc8d
-              GITLEAKS_SHA=654c935542c89f565aabe7bf7c6c500830f116c114f0aeb509d2460c1ac2e6da ;;
+              TRIVY_SHA=2ca2c023109c2db6b2b77366b6717291452d4531167377d95c79547f0c8e3467
+              GITLEAKS_SHA=e4a487ee7ccd7d3a7f7ec08657610aa3606637dab924210b3aee62570fb4b080 ;;
             x86_64)
               TRIVY_ARCH=64bit; GL_ARCH=x64
-              TRIVY_SHA=8b4376d5d6befe5c24d503f10ff136d9e0c49f9127a4279fd110b727929a5aa9
-              GITLEAKS_SHA=5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba ;;
+              TRIVY_SHA=bbb64b9695866ce4a7a8f5c9592002c5961cab378577fa3f8a040df362b9b2ea
+              GITLEAKS_SHA=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb ;;
             *) echo "unsupported arch: $(uname -m)"; exit 1 ;;
           esac
           # Download to a file, verify the published checksum, THEN extract. The
