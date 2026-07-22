@@ -1,7 +1,12 @@
-# AI code review (plan Area F) — ADVISORY, changed-files only, via the TTI AI BFF.
+# AI code review (plan Area F v2) — ADVISORY, changed-files only, via the TTI AI BFF.
 #
-# Runs Gemma-4-31B (harness web search ON) over the PR diff and posts ONE review
-# comment. NEVER blocks: the job always exits 0 — the deterministic H2 baseline
+# Calls the gateway's /v1/review: a three-model superPOD PANEL (GPT-OSS 120B,
+# Gemma 4 31B, Devstral 2) independently reviews the diff, cross-examines each
+# other's findings, and synthesizes ONE comment — with bounded, receipted
+# Google-PSE web grounding when a reviewer requests verification. The debate
+# logic lives in the GATEWAY on purpose: this vendored file stays a thin
+# caller, so panel upgrades don't require re-seeding every repo.
+# NEVER blocks: the job always exits 0 — the deterministic H2 baseline
 # gate is the thing with teeth; this is a second pair of eyes, not a gate.
 #
 # Auth: the BFF call uses a dedicated ai-review bot PAT (secret AI_REVIEW_TOKEN),
@@ -17,7 +22,24 @@ jobs:
   review:
     runs-on: ubuntu-latest
     steps:
+      - name: AI-Restricted gate (skip all AI on flagged repos)
+        id: gate
+        run: |
+          set -eu
+          # A repo carrying the "ai-restricted" topic is excluded from ALL AI.
+          # Fail-closed: if the topic check itself errors, SKIP (treat as
+          # restricted) rather than review something we couldn't clear.
+          T=$(curl -sf -H "Authorization: token ${{ github.token }}" \
+                "${{ github.server_url }}/api/v1/repos/${{ github.repository }}/topics" || echo '{"topics":["ai-restricted"]}')
+          if printf '%s' "$T" | grep -q '"ai-restricted"'; then
+            echo "repo is ai-restricted — skipping AI review"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Authenticated checkout (private-repo safe)
+        if: steps.gate.outputs.skip != 'true'
         run: |
           set -eu
           git init -q
@@ -28,52 +50,49 @@ jobs:
           git branch -f _base "origin/${{ github.base_ref }}" 2>/dev/null || true
 
       - name: Compute changed-files diff (capped)
+        if: steps.gate.outputs.skip != 'true'
         run: |
           set -eu
           BASE=$(git merge-base _base HEAD 2>/dev/null || git rev-parse HEAD~1)
           git diff --unified=3 "$BASE"...HEAD -- . > /tmp/pr.diff || true
-          # cap to stay within the model's context + the BFF token budget
-          head -c 60000 /tmp/pr.diff > /tmp/pr.capped && mv /tmp/pr.capped /tmp/pr.diff
+          # cap to stay within the panel's context budget (gateway re-caps too)
+          head -c 100000 /tmp/pr.diff > /tmp/pr.capped && mv /tmp/pr.capped /tmp/pr.diff
           echo "diff bytes: $(wc -c < /tmp/pr.diff)"
 
-      - name: Review via BFF (Gemma-4-31B + web search)
+      - name: Panel review via BFF (/v1/review)
+        if: steps.gate.outputs.skip != 'true'
         env:
           BFF_TOKEN: ${{ secrets.AI_REVIEW_TOKEN }}
           BFF_URL: http://host.containers.internal:3950
           ACTOR: ${{ github.actor }}
-          MODEL: protected.gemma-4-31B-it
+          REPO: ${{ github.repository }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           set -eu
           if [ ! -s /tmp/pr.diff ]; then echo "empty diff — nothing to review"; echo "" > /tmp/review.md; exit 0; fi
           python3 - <<'PY'
           import json, os, urllib.request
-          diff = open("/tmp/pr.diff").read()
-          sys_prompt = (
-            "You are a senior engineer giving an ADVISORY review of a pull request diff. "
-            "Focus on correctness bugs, security issues, and clear best-practice gaps in the CHANGED lines only. "
-            "Use web search to verify library versions, deprecations, and known CVEs, and cite URLs when you do. "
-            "Be concise: at most 6 bullets, most important first. If the diff looks fine, say so in one line. "
-            "Do NOT restate the diff. Output GitHub-flavored markdown.")
-          body = {"model": os.environ["MODEL"], "stream": False,
-                  "features": {"web_search": True},
-                  "messages": [{"role":"system","content":sys_prompt},
-                               {"role":"user","content":"PR diff:\n\n```diff\n"+diff+"\n```"}]}
-          req = urllib.request.Request(os.environ["BFF_URL"]+"/v1/chat/completions",
+          body = {"repo": os.environ["REPO"],
+                  "context": "PR title: " + os.environ.get("PR_TITLE", ""),
+                  "diff": open("/tmp/pr.diff").read()}
+          req = urllib.request.Request(os.environ["BFF_URL"]+"/v1/review",
                   data=json.dumps(body).encode(),
                   headers={"Content-Type":"application/json",
                            "Authorization":"token "+os.environ["BFF_TOKEN"],
                            "X-TTI-Actor":os.environ["ACTOR"]})
           try:
-              with urllib.request.urlopen(req, timeout=180) as r:
+              # 3 models x 2 rounds + synthesis — superPOD is fast but give headroom
+              with urllib.request.urlopen(req, timeout=600) as r:
                   out = json.load(r)
-              md = out["choices"][0]["message"]["content"]
+              md = out["markdown"] + "\n\n<sub>⚑ " + out.get("receipt", "") + "</sub>"
           except Exception as e:
-              md = f"_AI review unavailable this run: {e}_"
+              md = f"_AI panel review unavailable this run: {e}_"
           open("/tmp/review.md","w").write(md)
           print("review chars:", len(md))
           PY
 
       - name: Post review comment
+        if: steps.gate.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -81,7 +100,7 @@ jobs:
           [ -s /tmp/review.md ] || { echo "no review body"; exit 0; }
           # No emoji — the ai-review-bot's maroon Lucide avatar (branding/bot-avatars.py)
           # marks the comment, keeping the house symbology consistent.
-          BODY=$(python3 -c "import json;print(json.dumps({'body':'### AI review — advisory · Gemma-4-31B + web search\n\n'+open('/tmp/review.md').read()+'\n\n<sub>Advisory only — not a merge gate. Runs via the TTI AI BFF.</sub>'}))")
+          BODY=$(python3 -c "import json;print(json.dumps({'body':'### AI review — advisory · superPOD panel\n\n'+open('/tmp/review.md').read()+'\n\n<sub>Advisory only — not a merge gate. Three-model debate via the TTI AI BFF.</sub>'}))")
           printf '%s' "$BODY" | curl -sf -X POST \
             -H "Authorization: token ${GH_TOKEN}" -H "Content-Type: application/json" \
             --data @- \
