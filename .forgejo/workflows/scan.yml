@@ -1,0 +1,21 @@
+# Filesystem CVE scan on every push (and PR), so we surface vulnerable
+# deps when they're cheap to fix — not at release time.
+#
+# Ported to the A1 Ubuntu runner (runs-on: ubuntu-latest, 2026-06-23). Trivy is
+# pre-baked in the TTI runner image, so this is plain standard steps — no manual
+# git checkout, no per-job Trivy download (the host-mode v9 dance is in git
+# history).
+name: scan
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  trivy-fs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan filesystem (fail on HIGH/CRITICAL)
+        run: trivy fs --severity HIGH,CRITICAL --exit-code 1 --no-progress .

@@ -1,0 +1,47 @@
+# boards-rollup — event-driven epic roll-up (Area G2).
+#
+# Re-homes boards/rollup.sh into a Forgejo Action so an epic's roll-up block
+# refreshes within seconds of a child issue changing, instead of waiting for the
+# 06:00 boards.timer (G1). Same logic, same source of truth: it runs the *exact*
+# boards/_boards.py that the host-side timer runs — install-g2.sh vendors a copy
+# to .forgejo/boards/_boards.py in this repo, so there is no forked rollup code.
+#
+# Requires the A1 Ubuntu runner (runs-on: ubuntu-latest) — the retired v9 Alpine
+# runner had no python3. Installed by: boards/install-g2.sh <org> [--repo NAME].
+# Generic by design — derives org/repo from the event, so the same file drops
+# into any repo unchanged.
+name: boards-rollup
+on:
+  issues:
+    # The events that can change a roll-up: membership (open/close/reopen),
+    # the `Epic: #n` body marker (edited), and points/state labels.
+    types: [opened, edited, closed, reopened, labeled, unlabeled]
+
+# One roll-up at a time per repo; a newer event supersedes an in-flight run
+# (rollup always recomputes from current state, so the latest run wins).
+concurrency:
+  group: boards-rollup-${{ github.repository }}
+  cancel-in-progress: true
+
+jobs:
+  rollup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Roll up epics in this repo
+        env:
+          # Forge address reachable from the job container. Laptop default is
+          # host.containers.internal:3939 (the same address publish.yml uses and
+          # which is verified-reachable). Override per-env with a repo/org
+          # Actions variable FORGEJO_URL (e.g. https://code.tti.tamu.edu on the VM).
+          FORGEJO_URL: ${{ vars.FORGEJO_URL || 'http://host.containers.internal:3939' }}
+          # The auto-injected token carries issues:write on this repo — enough to
+          # PATCH the epic body. (It lacks package-write, which is why publish.yml
+          # mints a separate PAT; roll-ups don't touch packages.)
+          FORGEJO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 .forgejo/boards/_boards.py rollup \
+            "${{ github.repository_owner }}" \
+            --repo "${{ github.event.repository.name }}" \
+            --apply
