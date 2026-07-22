@@ -1,0 +1,9 @@
+# gitleaks repo config — auto-detected at the repo root by gitleaks v8.
+# Extends the default ruleset; only adds allowlist entries.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Cached Figma REST responses — file keys and signed thumbnail URLs are identifiers, not credentials (generic-api-key fired 68 times on files[].key)."
+paths = ['''reference/figma-cache/.*''']

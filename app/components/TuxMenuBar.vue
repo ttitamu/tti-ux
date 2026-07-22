@@ -63,10 +63,16 @@ const shouldRender = computed(() => {
 
 <template>
   <div v-if="shouldRender" class="tux-menu-bar" role="menubar">
+    <!-- `as never`: when a consumer app AND this layer each carry their own
+         @nuxt/ui copy (e.g. CI installs the layer's node_modules), vue-tsc
+         resolves UDropdownMenu's prop from the app's instance and this
+         file's DropdownMenuItem from ours — structurally identical, but
+         ArrayOrNested<> fails cross-instance identity. The cast bridges it
+         and stays valid in single-instance setups. -->
     <UDropdownMenu
       v-for="menu in menus"
       :key="menu.label"
-      :items="menu.items"
+      :items="menu.items as never"
       :popper="{ placement: 'bottom-start' }"
     >
       <button type="button" class="tux-menu-bar__trigger" role="menuitem">
