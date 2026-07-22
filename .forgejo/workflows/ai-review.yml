@@ -81,10 +81,22 @@ jobs:
                   headers={"Content-Type":"application/json",
                            "Authorization":"token "+os.environ["BFF_TOKEN"],
                            "X-TTI-Actor":os.environ["ACTOR"]})
+          out = None
+          for attempt in range(3):
+              try:
+                  # 3 models x 2 rounds + synthesis — superPOD is fast but
+                  # give headroom; retry rides out BFF quota windows (a big
+                  # index run can 429-starve the panel briefly).
+                  with urllib.request.urlopen(req, timeout=600) as r:
+                      out = json.load(r)
+                  break
+              except Exception as e:
+                  print(f"attempt {attempt+1} failed: {e}")
+                  if attempt < 2:
+                      import time; time.sleep(90)
           try:
-              # 3 models x 2 rounds + synthesis — superPOD is fast but give headroom
-              with urllib.request.urlopen(req, timeout=600) as r:
-                  out = json.load(r)
+              if out is None:
+                  raise RuntimeError("panel unavailable after 3 attempts")
               md = out["markdown"] + "\n\n<sub>⚑ " + out.get("receipt", "") + "</sub>"
               # Debate transparency: collapsible how-we-got-here digest + a
               # link to the full transcript (round outputs, verdicts, web
@@ -95,7 +107,9 @@ jobs:
                   md += ("\n\n<sub>Full transcript: " + os.environ["SERVER_URL"]
                          + "/-/ai/v1/review/" + out["review_id"] + "</sub>")
           except Exception as e:
-              md = f"_AI panel review unavailable this run: {e}_"
+              md = ("_The AI panel couldn't review this change right now "
+                    "(it will review the next push). Details for admins: "
+                    f"{e}_")
           open("/tmp/review.md","w").write(md)
           print("review chars:", len(md))
           PY
@@ -104,14 +118,19 @@ jobs:
         if: steps.gate.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          BOT_TOKEN: ${{ secrets.AI_REVIEW_TOKEN }}
         run: |
           set -eu
           [ -s /tmp/review.md ] || { echo "no review body"; exit 0; }
           # No emoji — the ai-review-bot's maroon Lucide avatar (branding/bot-avatars.py)
           # marks the comment, keeping the house symbology consistent.
-          BODY=$(python3 -c "import json;print(json.dumps({'body':'### AI review — advisory · superPOD panel\n\n'+open('/tmp/review.md').read()+'\n\n<sub>Advisory only — not a merge gate. Three-model debate via the TTI AI BFF.</sub>'}))")
-          printf '%s' "$BODY" | curl -sf -X POST \
-            -H "Authorization: token ${GH_TOKEN}" -H "Content-Type: application/json" \
+          BODY=$(python3 -c "import json;print(json.dumps({'body':'### AI review · advisory\n\n'+open('/tmp/review.md').read()+'\n\n<sub>Three superPOD models reviewed this independently and cross-examined each other; only what survived is shown. Advisory — never a merge gate.</sub>'}))")
+          # Post AS ai-review-bot (named identity + maroon avatar in the feed,
+          # instead of the anonymous actions "Ghost"); fall back to the job
+          # token if the bot PAT lacks issue-write on this repo.
+          post() { printf '%s' "$BODY" | curl -sf -X POST \
+            -H "Authorization: token $1" -H "Content-Type: application/json" \
             --data @- \
             "${{ github.server_url }}/api/v1/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
-            -o /dev/null -w "comment posted: %{http_code}\n" || echo "comment post failed (non-fatal)"
+            -o /dev/null -w "comment posted ($2): %{http_code}\n"; }
+          post "$BOT_TOKEN" "ai-review-bot" || post "$GH_TOKEN" "actions token" || echo "comment post failed (non-fatal)"
