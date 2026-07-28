@@ -182,4 +182,25 @@ export default defineNuxtConfig({
     strict: true,
     typeCheck: false,
   },
+
+  hooks: {
+    // Co-located `*.demo-data.ts` fixtures live beside their gallery pages
+    // on purpose — but Nuxt's file router registers EVERY .ts under pages/
+    // as a route. Crawling those "routes" imports a module with no default
+    // component and prerender dies with the flaky
+    // "Cannot read properties of undefined ('__vccOpts')" (and the page
+    // being rendered at that moment silently drops from the output —
+    // found 2026-07-16 in tti-ai-studio's generate). Strip them from the
+    // route table; the sibling imports are untouched.
+    "pages:extend"(pages) {
+      const strip = (list: (typeof pages)[number][]) => {
+        for (let i = list.length - 1; i >= 0; i--) {
+          const p = list[i]!;
+          if (p.file?.endsWith(".demo-data.ts")) list.splice(i, 1);
+          else if (p.children?.length) strip(p.children);
+        }
+      };
+      strip(pages);
+    },
+  },
 });
