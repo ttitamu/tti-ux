@@ -5,6 +5,26 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+
+## [1.7.0] — 2026-07-28
+
+Suite-chrome release — the portal unification plan's v1.7.0 slice.
+
+### Added
+- **TTI Portals registry**: `design/apps.json` (public tile metadata only) + `useTuxApps()` with audience filtering (public / authenticated / entitled, Tier-0 fail-open) and filtered-count footer text. App lists are never hand-declared in consumers (doctrine).
+- **TuxUtilityCluster** — the trailing app-control cluster: `search · notifications · theme · waffle · identity` in law-fixed DOM order; registry-fed waffle; theme toggle announces via `role="status"`.
+- **TuxUserMenu** — the suite's one identity affordance: `cluster` + `rail-footer` mounts, state-complete (loading / signed-out / signed-in / local-only / error), law-fixed menu order.
+- vitest + registry-invariant unit tests (tile-position constancy, audience filtering, no client-side entitlement mappings).
+
+### Changed
+- **TuxAppSwitcher A2b pre-flight**: registry order everywhere (current-sorts-last removed), focusable current tile with clean `aria-current`, list semantics, same-tab default, "Desktop app" affix, reserved `presentation` prop (popover|sheet), motion tokens, forced-colors fallbacks, heading "TTI Portals".
+- Docs site dogfoods the suite chrome: header uses TuxUtilityCluster (waffle + theme; identity seat deliberately absent).
+- Live PECAN copy retired (READMEs, examples, demo poster, `PECAN_TOKEN` → `LANDSCAPE_TOKEN`). Historical records keep the old name.
+
+### Fixed
+- **TuxSiteNav focus restoration (A2c)**: both `outline: none` suppressions removed — keyboard focus is distinguishable from hover again (WCAG 2.4.7) and survives forced-colors.
+- Five undeclared `@tiptap` dependencies declared (v1.6.1); `postinstall` guarded for git-dep consumers; brace-expansion pinned 5.0.8 (CVE-2026-14257).
+
 ## [1.6.0] — 2026-06-05
 
 Additive release (no breaking changes) — two new component capabilities
