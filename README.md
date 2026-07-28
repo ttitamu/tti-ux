@@ -5,7 +5,7 @@ IS the source of truth for components — if a visual changes, this site shows
 it first.
 
 Built for Texas A&amp;M Transportation Institute apps (Landscape — formerly
-PECAN — tti-ai-studio, the TTI docs site, marcom WordPress kit) and now
+Landscape — tti-ai-studio, the TTI docs site, marcom WordPress kit) and now
 shipping as a **Tauri desktop layer** for Windows 11 / macOS Tahoe /
 Ubuntu, with Tauri Mobile (iOS / Android) on the near horizon. Components
 and tokens are domain-agnostic. The example data in showcase pages (project
@@ -185,7 +185,7 @@ Prefer the hyphenated form in showcase code samples; PascalCase in imports.
 ## Project context
 
 tti-ux is one of three concurrent products at TTI Networking & Information
-Services: Landscape (sensitive-data classifier; previously named PECAN),
+Services: Landscape (sensitive-data classifier),
 tti-ai-studio (LLM tooling for researchers), and this style guide itself.
 The system supports all three plus an emerging marcom WordPress kit and
 the Tauri desktop shells the consumer apps now ship as. See

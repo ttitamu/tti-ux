@@ -49,7 +49,7 @@ const productShapes = [
   {
     icon: "lucide:layout-dashboard",
     title: "Data-dense IT chrome",
-    body: "Landscape (sensitive-data classifier, formerly PECAN). Sidebar shell + KPI rows + treemap + faceted search + activity rail. Operational density at editorial-research quality.",
+    body: "Landscape (sensitive-data classifier). Sidebar shell + KPI rows + treemap + faceted search + activity rail. Operational density at editorial-research quality.",
     example: { label: "Landscape dashboard", to: "/examples/landscape-dashboard" },
   },
   {

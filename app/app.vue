@@ -8,27 +8,9 @@ import pkg from "../package.json";
 
 const colorMode = useColorMode();
 
-// Header toggle: light ↔ dark only. High-contrast is an accessibility option,
-// not an aesthetic preference — it lives in the footer so users don't get
-// pushed through it during casual theme switching (see ADR-0006). The icon
-// shows the state a click will produce, mirroring OS-level toggles.
-const isDark = computed(() => colorMode.preference === "tti-dark");
+// Header theme toggle now lives inside TuxUtilityCluster (light ↔ dark
+// only). High-contrast stays a footer affordance per ADR-0006.
 const isHighContrast = computed(() => colorMode.preference === "tti-hc");
-
-const themeToggleIcon = computed(() =>
-  isDark.value ? "lucide:sun" : "lucide:moon"
-);
-
-const themeToggleLabel = computed(() =>
-  isDark.value ? "Switch to light theme" : "Switch to dark theme"
-);
-
-function toggleTheme() {
-  // From HC, clicking the light/dark toggle exits HC into whichever non-HC
-  // theme makes sense. Default to tti (light) — users on HC who want dark
-  // can click again.
-  colorMode.preference = isDark.value ? "tti" : "tti-dark";
-}
 
 function toggleHighContrast() {
   colorMode.preference = isHighContrast.value ? "tti" : "tti-hc";
@@ -456,19 +438,12 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
 
           <div class="flex-1" />
 
-          <ClientOnly>
-            <UButton
-              :icon="themeToggleIcon"
-              color="neutral"
-              variant="ghost"
-              size="sm"
-              :aria-label="themeToggleLabel"
-              @click="toggleTheme"
-            />
-            <template #fallback>
-              <div class="w-8 h-8" />
-            </template>
-          </ClientOnly>
+          <!-- Dogfood (A6): the style guide wears the suite's trailing
+               utility cluster — theme toggle + registry-fed waffle in
+               the law's order. No identity seat: the docs site is an
+               unauthenticated product, so the seat is deliberately
+               absent (never a placeholder). -->
+          <TuxUtilityCluster current="tux" />
         </div>
       </header>
 

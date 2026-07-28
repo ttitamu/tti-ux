@@ -5,7 +5,7 @@ useHead({ title: "Example · Landscape dashboard · TUX" });
 // explicitly below — that's the only way to access the layout's
 // named slots (#header, #rail-header, #rail, #rail-footer) with
 // typed scope. See `sidebar-shell.vue` for the same pattern.
-// (Landscape was previously named PECAN; see CHANGELOG.)
+
 definePageMeta({ layout: false });
 
 const breadcrumb = [

@@ -1,6 +1,6 @@
 {
   "name": "tti-ux",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "private": true,
   "type": "module",
   "main": "./nuxt.config.ts",
@@ -31,7 +31,8 @@
     "audit:tokens": "node scripts/audit-tokens.mjs",
     "audit:a11y": "node scripts/audit-a11y.mjs",
     "build:geo": "node scripts/build-geo.mjs",
-    "build:tokens": "node scripts/build-tokens.mjs"
+    "build:tokens": "node scripts/build-tokens.mjs",
+    "test": "vitest run"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.102",
@@ -95,6 +96,7 @@
     "topojson-simplify": "^3.0.3",
     "typescript": "^5.7.0",
     "us-atlas": "^3.0.1",
+    "vitest": "^4.1.10",
     "vue-tsc": "^3.3.3"
   },
   "overrides": {
