@@ -4,40 +4,29 @@
  *
  * Source: Microsoft Fabric "Suite header" pattern (see absorption notes
  * at reference/figma-cache/microsoft-fabric-ui-kit/NOTES.md §Absorb #3).
- * Lets users hop between TTI's research apps without leaving their
- * browser tab — Landscape ↔ tti-ai-studio ↔ future surfaces.
+ * Lets users hop between TTI's portals without leaving their browser
+ * tab — Landscape ↔ TTI Code ↔ TUX docs ↔ AI Studio.
  *
  * Lives in `TuxAppFrame`'s `#right` slot (Tauri shells) or in
  * `TuxSiteNav`'s utility row (plain-web consumers). It's a single
  * floating-affordance trigger, not a full nav structure.
  *
- * Items shape:
+ * The `apps` array should come from `useTuxApps()` (the canonical
+ * registry in design/apps.json) — never hand-declared in a consumer.
  *
- *   const apps = [
- *     {
- *       id: "landscape",
- *       name: "Landscape",
- *       tagline: "Research dashboard",
- *       icon: "lucide:map",
- *       to: "https://landscape.tti.tamu.edu",
- *       current: true,   // mark the app the user is in
- *     },
- *     {
- *       id: "ai-studio",
- *       name: "AI Studio",
- *       tagline: "Conversational research assistant",
- *       icon: "lucide:bot",
- *       to: "https://ai.tti.tamu.edu",
- *     },
- *   ];
- *
- * Behavior:
- *   - Click waffle → popover opens beneath/below the button.
- *   - 2-column grid of app tiles by default; tightens to 1-column on
- *     narrow viewports.
- *   - "Current app" tile is visually disabled + carries
- *     aria-current="page".
- *   - Esc / outside click closes.
+ * Behavior contract (suite doctrine — design/compositions.md):
+ *   - Tiles render in REGISTRY ORDER on every portal. Never reorder by
+ *     context: spatial constancy is the whole point of a suite switcher.
+ *   - The current app's tile stays a real, focusable link (a self-link
+ *     is harmless) carrying `aria-current="page"` + a visual badge.
+ *   - Navigation is same-tab by default — the user is going somewhere,
+ *     not opening a reference. `target="_blank"` is the exception and
+ *     is announced in the accessible name.
+ *   - `kind: "desktop"` tiles carry a visible "Desktop app" affix and
+ *     should point at the launcher interstitial, never a raw scheme.
+ *   - Esc / outside click close and focus-return come from UPopover.
+ *   - Tab-only traversal (no arrow-key grid) — fine at ≤6 tiles; do not
+ *     promise APG-grid behavior in ports of this component.
  */
 import { computed } from "vue";
 
@@ -51,38 +40,47 @@ export interface TuxAppSwitcherApp {
   /** Lucide icon name for the tile. */
   icon: string;
   /** Target URL — usually external (other TTI app) but in-app routes
-   *  work too (Tauri shells may route in-window). */
+   *  work too (Tauri shells route through the host's opener command). */
   to: string;
-  /** Mark this as the currently-active app. The tile renders disabled
-   *  with `aria-current="page"`. Defaults to false. */
+  /** Mark this as the currently-active app. The tile stays focusable
+   *  and carries `aria-current="page"`. Defaults to false. */
   current?: boolean;
-  /** Optional external-link target. Default "_blank" for cross-origin,
-   *  same-tab for relative routes. */
+  /** Navigation target. Default is same-tab (`_self`) — suite
+   *  convention. `_blank` tiles get "(opens in new tab)" appended to
+   *  their accessible name. */
   target?: "_self" | "_blank";
+  /** "desktop" renders a "Desktop app" affix on the tile. Default "web". */
+  kind?: "web" | "desktop";
 }
 
 interface Props {
   apps: TuxAppSwitcherApp[];
   /** Trigger button label for screen readers. Default "Switch apps". */
   ariaLabel?: string;
-  /** Header text inside the popover. Default "TTI Research Suite". */
+  /** Header text inside the popover. Default "TTI Portals". */
   heading?: string;
-  /** Optional footer slot description (rendered above the slot). */
+  /** Optional footer line (rendered above the #footer slot). Used for
+   *  filtered-state summaries, e.g. "Showing 3 of 5 apps · Sign in to
+   *  see all." */
   footerText?: string;
+  /** Presentation mode. "popover" (default) is the only implemented
+   *  mode today; "sheet" is RESERVED for compact/touch hosts (Tauri
+   *  Mobile) so the prop exists before consumers freeze the contract.
+   *  Passing "sheet" currently renders the popover. */
+  presentation?: "popover" | "sheet";
 }
 
 const props = withDefaults(defineProps<Props>(), {
   ariaLabel: "Switch apps",
-  heading: "TTI Research Suite",
+  heading: "TTI Portals",
   footerText: undefined,
+  presentation: "popover",
 });
 
-const sortedApps = computed(() => {
-  // Current app sorts last so it doesn't visually dominate the grid.
-  const list = [...props.apps];
-  list.sort((a, b) => Number(!!a.current) - Number(!!b.current));
-  return list;
-});
+// Registry order, verbatim. (An earlier revision sorted the current app
+// last; that made the grid differ per portal and defeated the muscle
+// memory the switcher exists to build. See plan Appendix B/C.)
+const apps = computed(() => props.apps);
 </script>
 
 <template>
@@ -98,35 +96,45 @@ const sortedApps = computed(() => {
     <template #content>
       <div class="tux-app-switcher__panel">
         <header class="tux-app-switcher__heading">
-          <p class="eyebrow">research suite</p>
+          <p class="eyebrow">texas a&amp;m transportation institute</p>
           <h3>{{ heading }}</h3>
         </header>
 
-        <div class="tux-app-switcher__grid">
-          <NuxtLink
-            v-for="app in sortedApps"
-            :key="app.id"
-            :to="app.current ? undefined : app.to"
-            :target="app.target"
-            class="tux-app-switcher__tile"
-            :class="{ 'tux-app-switcher__tile--current': app.current }"
-            :aria-current="app.current ? 'page' : undefined"
-            :aria-disabled="app.current || undefined"
-          >
-            <div class="tux-app-switcher__tile-icon">
-              <Icon :name="app.icon" :size="22" />
-            </div>
-            <div class="tux-app-switcher__tile-text">
-              <p class="tux-app-switcher__tile-name">{{ app.name }}</p>
-              <p v-if="app.tagline" class="tux-app-switcher__tile-tagline">
-                {{ app.tagline }}
-              </p>
-            </div>
-            <span v-if="app.current" class="tux-app-switcher__tile-badge">
-              You are here
-            </span>
-          </NuxtLink>
-        </div>
+        <ul class="tux-app-switcher__grid" role="list">
+          <li v-for="app in apps" :key="app.id" class="tux-app-switcher__cell">
+            <NuxtLink
+              :to="app.to"
+              :target="app.target ?? '_self'"
+              class="tux-app-switcher__tile"
+              :class="{ 'tux-app-switcher__tile--current': app.current }"
+              :aria-current="app.current ? 'page' : undefined"
+            >
+              <div class="tux-app-switcher__tile-icon" aria-hidden="true">
+                <Icon :name="app.icon" :size="22" />
+              </div>
+              <div class="tux-app-switcher__tile-text">
+                <p class="tux-app-switcher__tile-name">{{ app.name }}</p>
+                <p v-if="app.tagline" class="tux-app-switcher__tile-tagline">
+                  {{ app.tagline }}
+                </p>
+                <p v-if="app.kind === 'desktop'" class="tux-app-switcher__tile-kind">
+                  <Icon name="lucide:monitor-down" :size="11" aria-hidden="true" />
+                  Desktop app
+                </p>
+              </div>
+              <span
+                v-if="app.current"
+                class="tux-app-switcher__tile-badge"
+                aria-hidden="true"
+              >
+                You are here
+              </span>
+              <span v-if="app.target === '_blank'" class="sr-only">
+                (opens in new tab)
+              </span>
+            </NuxtLink>
+          </li>
+        </ul>
 
         <footer v-if="$slots.footer || footerText" class="tux-app-switcher__footer">
           <p v-if="footerText">{{ footerText }}</p>
@@ -149,7 +157,9 @@ const sortedApps = computed(() => {
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background 80ms ease-out, color 80ms ease-out;
+  transition:
+    background var(--motion-fast) var(--ease-survey),
+    color var(--motion-fast) var(--ease-survey);
 }
 
 .tux-app-switcher__trigger:hover,
@@ -161,6 +171,12 @@ const sortedApps = computed(() => {
 @media (prefers-reduced-motion: reduce) {
   .tux-app-switcher__trigger {
     transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .tux-app-switcher__trigger:focus-visible {
+    outline: 2px solid;
   }
 }
 
@@ -183,12 +199,19 @@ const sortedApps = computed(() => {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 @media (max-width: 30rem) {
   .tux-app-switcher__grid {
     grid-template-columns: 1fr;
   }
+}
+
+.tux-app-switcher__cell {
+  display: contents;
 }
 
 .tux-app-switcher__tile {
@@ -202,7 +225,10 @@ const sortedApps = computed(() => {
   color: var(--text-primary);
   text-decoration: none;
   position: relative;
-  transition: background 80ms ease-out, border-color 80ms ease-out, transform 80ms ease-out;
+  transition:
+    background var(--motion-fast) var(--ease-survey),
+    border-color var(--motion-fast) var(--ease-survey),
+    transform var(--motion-fast) var(--ease-survey);
 }
 
 .tux-app-switcher__tile:hover:not(.tux-app-switcher__tile--current) {
@@ -214,8 +240,6 @@ const sortedApps = computed(() => {
 .tux-app-switcher__tile--current {
   background: color-mix(in srgb, var(--brand-primary) 6%, var(--surface-page));
   border-color: color-mix(in srgb, var(--brand-primary) 30%, var(--surface-border));
-  cursor: default;
-  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -224,6 +248,15 @@ const sortedApps = computed(() => {
   }
   .tux-app-switcher__tile:hover {
     transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .tux-app-switcher__tile:focus-visible {
+    outline: 2px solid;
+  }
+  .tux-app-switcher__tile--current {
+    border: 2px solid;
   }
 }
 
@@ -257,6 +290,17 @@ const sortedApps = computed(() => {
   color: var(--text-muted);
   margin: 0.125rem 0 0 0;
   line-height: 1.3;
+}
+
+.tux-app-switcher__tile-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0.25rem 0 0 0;
+  line-height: 1;
 }
 
 .tux-app-switcher__tile-badge {

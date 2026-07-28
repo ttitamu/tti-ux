@@ -89,33 +89,14 @@ const cmdGroups = [
   },
 ];
 
-// Cross-app switcher — visible in the page header. Marks "AI Studio"
-// as current; other tiles link out (in a real Tauri shell these
-// would open in the host browser or switch the Tauri window).
-const ttiApps = [
-  {
-    id: "ai-studio",
-    name: "AI Studio",
-    tagline: "Conversational research assistant",
-    icon: "lucide:bot",
-    to: "/examples/tti-ai-studio-session",
-    current: true,
-  },
-  {
-    id: "landscape",
-    name: "Landscape",
-    tagline: "Research dashboard · runs, corpora, KPIs",
-    icon: "lucide:map",
-    to: "/examples/landscape-dashboard",
-  },
-  {
-    id: "tux",
-    name: "TUX style guide",
-    tagline: "Design system docs · components, charts, tokens",
-    icon: "lucide:palette",
-    to: "/",
-  },
-];
+// Cross-app switcher — visible in the page header. The app list comes
+// from the canonical registry via useTuxApps() (never hand-declared);
+// "AI Studio" is current here. In a real Tauri shell the outbound
+// tiles route through the host's allowlisted opener command.
+const { apps: ttiApps, heading: ttiAppsHeading } = useTuxApps({
+  current: "ai-studio",
+  signedIn: true,
+});
 
 // Focus-mode for the artifact — when the researcher wants to read /
 // edit the reproducibility script in a distraction-free overlay.
@@ -180,6 +161,7 @@ const composerDraft = ref("");
              actions per the AppSwitcher absorption guidance. -->
         <TuxAppSwitcher
           :apps="ttiApps"
+          :heading="ttiAppsHeading"
           footer-text="Each app uses TUX components; tokens + theme follow."
         />
       </template>
