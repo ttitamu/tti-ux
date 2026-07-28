@@ -6,7 +6,7 @@ const examples = [
     slug: "landscape-dashboard",
     eyebrow: "product · IT-facing",
     title: "Landscape dashboard",
-    blurb: "Index overview for a research-IT product (Landscape, formerly PECAN). Sidebar shell + KPI row with deltas + inline ingest-rate sparkline + treemap + faceted file search + right-rail activity + active-agents tile. Composes TuxBreadcrumbs, TuxPageHeader, TuxBigStat, TuxFactoid, TuxSparkline, TuxAlert, TuxTreemap, TuxFilterPanel, TuxSearch, TuxBadge, TuxPagination, TuxSectionHeader, TuxDescriptionList, TuxCard, and the sidebar layout primitives (UDashboardSidebarToggle, UNavigationMenu).",
+    blurb: "Index overview for a research-IT product (Landscape). Sidebar shell + KPI row with deltas + inline ingest-rate sparkline + treemap + faceted file search + right-rail activity + active-agents tile. Composes TuxBreadcrumbs, TuxPageHeader, TuxBigStat, TuxFactoid, TuxSparkline, TuxAlert, TuxTreemap, TuxFilterPanel, TuxSearch, TuxBadge, TuxPagination, TuxSectionHeader, TuxDescriptionList, TuxCard, and the sidebar layout primitives (UDashboardSidebarToggle, UNavigationMenu).",
     components: 15,
   },
   {
@@ -83,7 +83,7 @@ const examples = [
       <TuxSectionHeader>Why these three</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
         tux serves three product shapes: data-dense IT chrome
-        (Landscape, formerly PECAN), marketing/research surfaces (the
+        (Landscape), marketing/research surfaces (the
         public site, the docs site, program landings), and chat/agent
         product views (tti-ai-studio). Each example here demonstrates
         one of those shapes end-to-end so consumers can see the system

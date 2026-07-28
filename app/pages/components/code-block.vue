@@ -52,7 +52,7 @@ const bashCode = `# Spin up a local Landscape agent + ship events
 $ landscape agent token --scope=corpus:grants-2024 --ttl=24h
 > tier3_a1b2c3d4e5...
 
-$ PECAN_TOKEN=tier3_... landscape agent watch /research/grants --root=local
+$ LANDSCAPE_TOKEN=tier3_... landscape agent watch /research/grants --root=local
 [12:14:08] watcher: 4 paths registered, 12,480 inodes tracked
 [12:14:09] heartbeat: ok (latency 38ms)`;
 

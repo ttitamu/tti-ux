@@ -25,7 +25,7 @@ const kits: Kit[] = [
     slug: "landscape",
     eyebrow: "app shape",
     label: "Landscape",
-    blurb: "The institute's sensitive-data classifier (Landscape, formerly PECAN) — sidebar nav, scans/classifiers/indices pages, compliance alerts, status badges, classifier catalog cards. The data-density end of the system: how tux composes into a research-IT product surface.",
+    blurb: "The institute's sensitive-data classifier (Landscape) — sidebar nav, scans/classifiers/indices pages, compliance alerts, status badges, classifier catalog cards. The data-density end of the system: how tux composes into a research-IT product surface.",
   },
   {
     slug: "tti-docs",
