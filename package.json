@@ -21,7 +21,7 @@
     "typecheck": "nuxt typecheck",
     "lint": "eslint .",
     "generate": "nuxt generate",
-    "postinstall": "nuxt prepare",
+    "postinstall": "nuxt prepare || exit 0",
     "sync:aggieux": "node scripts/sync-aggieux.mjs",
     "sync:aggieux-icons": "node scripts/sync-aggieux-icons.mjs",
     "sync:fonts": "node scripts/sync-fonts.mjs",
@@ -93,6 +93,7 @@
     "vue-tsc": "^3.3.3"
   },
   "overrides": {
-    "sharp": "^0.35.0"
+    "sharp": "^0.35.0",
+    "brace-expansion": "5.0.8"
   }
 }

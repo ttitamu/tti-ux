@@ -99,7 +99,7 @@ const components = [
   { name: "TuxChartLine",     to: "/visualizations/chart-line", blurb: "Native SVG line chart — end-of-line value labels, optional previous-period overlay + confidence band, auto SR summary.", uses: "tux (no U-primitive)" },
   // Platform-aware chrome — see design/platform-awareness.md for the doctrine.
   { name: "TuxAppFrame",      to: "/components/app-frame",      blurb: "Custom Tauri titlebar — traffic lights (Mac) / min-max-close (Win/Linux), brand + toolbar slots, drag regions. Replaces native window decoration.", uses: "tux (no U-primitive)" },
-  { name: "TuxAppSwitcher",   to: "/components/app-switcher",   blurb: "Waffle-button popover for hopping between TTI consumer apps (Landscape ↔ AI Studio). Current-app tile carries aria-current.", uses: "UPopover" },
+  { name: "TuxAppSwitcher",   to: "/components/app-switcher",   blurb: "Waffle-button popover for hopping between TTI portals — registry-fed via useTuxApps(), registry order everywhere, current tile carries aria-current.", uses: "UPopover" },
   { name: "TuxSplitPane",     to: "/components/split-pane",     blurb: "In-page master-detail layout — resizable list + detail + optional bottom pane. Width persists via localStorage. URL-bound selection.", uses: "tux (no U-primitive)" },
   { name: "TuxChartBar",      to: "/visualizations/chart-bar",  blurb: "Native SVG bar chart — single / grouped / stacked variants, vertical or horizontal, optional comparison overlay (projection vs actual).", uses: "tux (no U-primitive)" },
   { name: "TuxChartDonut",    to: "/visualizations/chart-donut", blurb: "Share-of-total donut — center stat slot, slice-label colored to wedge, minSlice% auto-folds tiny slices into Other.", uses: "tux (no U-primitive)" },

@@ -356,7 +356,8 @@ function isPlainLinkActive(item: { to?: string; href?: string }): boolean {
 .tux-site-nav__utility-link:hover,
 .tux-site-nav__utility-link:focus-visible {
   color: var(--brand-primary);
-  outline: none;
+  /* No `outline: none` here — the layer's universal 2px focus ring must
+     survive on chrome links (2.4.7; focus ≠ hover). */
 }
 
 .tux-site-nav__utility-icon {
@@ -482,7 +483,9 @@ function isPlainLinkActive(item: { to?: string; href?: string }): boolean {
 .tux-site-nav__primary-link.router-link-active {
   background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
   color: var(--brand-primary);
-  outline: none;
+  /* No `outline: none` here — a 6% tint is not a focus indicator. The
+     universal ring stays so keyboard focus is distinguishable from
+     hover (2.4.7/1.4.11) and survives forced-colors. */
 }
 
 .tux-site-nav__primary-link--active {
