@@ -399,6 +399,19 @@ user sees their budget while typing.
 
 ## Cross-app navigation
 
+### The registry
+
+The app list comes from **`design/apps.json` via `useTuxApps()`** —
+never hand-declared in a consumer. The registry ships *public* tile
+metadata only (id, name, tagline, icon, url, audience, kind);
+entitlement group mappings and non-discoverable apps live server-side
+next to each portal's same-origin `my-apps` resolver, never in the
+shipped JSON. The family heading is **"TTI Portals"**.
+
+Audience filtering is navigation, not authentication — every
+destination enforces its own gate, so tile visibility may fail open
+to the anonymous (`public`-only) set.
+
 ### TuxAppSwitcher placement
 
 In Tauri shells, the switcher lives in `TuxAppFrame`'s `#right`
@@ -406,11 +419,36 @@ slot. In plain-web consumers, it lives in `TuxSiteNav`'s utility
 row OR in a page-header `#actions` slot (the AI-studio example
 uses the page-header path).
 
+### Behavior law
+
+- **Registry order, every portal, always.** Tiles are never
+  reordered by context — spatial constancy is the switcher's whole
+  value. (The original current-sorts-last behavior was removed for
+  exactly this reason.)
+- **The current app's tile stays a real, focusable link** carrying
+  `aria-current="page"` — a self-link is harmless; an unfocusable
+  "current" tile is invisible to keyboard users.
+- **Same-tab navigation is the suite default.** The user is going
+  somewhere, not opening a reference. `target="_blank"` is the
+  exception and is appended to the tile's accessible name.
+- **`kind: "desktop"` tiles point at the launcher interstitial,
+  never a raw scheme**, and carry a visible "Desktop app" affix —
+  identical-looking tiles must not have categorically different
+  behaviors.
+- The chrome's tempo is part of the family signature: the switcher
+  animates on the motion tokens (`--motion-fast`/`--ease-survey`);
+  `prefers-reduced-motion` collapses to opacity-only/none.
+- `presentation="sheet"` is reserved for compact/touch hosts (Tauri
+  Mobile); only `"popover"` is implemented. Ports of this component
+  must not promise APG-grid keyboard behavior — traversal is
+  Tab-only by design at ≤6 tiles.
+
 **Don't:**
 - Render two switchers on the same page.
 - Mark more than one app as `current: true`.
 - Place inside `TuxSlideover` / `TuxModal` (defeats the "always
   visible" purpose).
+- Hand-declare an `apps[]` array in a consumer.
 
 ---
 
