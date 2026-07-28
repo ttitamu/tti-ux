@@ -21,7 +21,7 @@
     "typecheck": "nuxt typecheck",
     "lint": "eslint .",
     "generate": "nuxt generate",
-    "postinstall": "nuxt prepare",
+    "postinstall": "nuxt prepare || exit 0",
     "sync:aggieux": "node scripts/sync-aggieux.mjs",
     "sync:aggieux-icons": "node scripts/sync-aggieux-icons.mjs",
     "sync:fonts": "node scripts/sync-fonts.mjs",
