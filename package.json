@@ -8,6 +8,8 @@
     "app",
     "design",
     "docs",
+    "kit",
+    "scripts",
     "public",
     "nuxt.config.ts",
     "tsconfig.json",
@@ -32,7 +34,10 @@
     "audit:a11y": "node scripts/audit-a11y.mjs",
     "build:geo": "node scripts/build-geo.mjs",
     "build:tokens": "node scripts/build-tokens.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:brand-env": "node scripts/extract-brand.mjs",
+    "build:powerbi": "node scripts/build-powerbi-theme.mjs",
+    "build:kit": "npm run build:tokens && npm run build:brand-env && npm run build:powerbi"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.102",
@@ -101,5 +106,8 @@
   "overrides": {
     "sharp": "^0.35.0",
     "brace-expansion": "5.0.8"
+  },
+  "bin": {
+    "tux-audit": "scripts/tux-audit.mjs"
   }
 }

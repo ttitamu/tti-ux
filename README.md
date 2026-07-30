@@ -185,6 +185,26 @@ and access to
 the markdown rendering pipeline (`@nuxtjs/mdc` with Shiki syntax
 highlighting + KaTeX math).
 
+### Guardrails for consumers
+
+The design-system audits ship with the package. The one every consumer
+should run — zero extra dependencies, one CI line — is the
+undefined-token audit (it catches the `var(--surface-base)` bug class,
+where a consumer-invented token resolves to nothing and renders
+transparent):
+
+```yaml
+- run: npx tux-audit tokens app
+```
+
+Token definitions are harvested from both the tti-ux layer and your own
+CSS, so canonical tokens always resolve and your local component knobs
+still count. Target dirs via args or `TUX_AUDIT_DIRS`; declare your own
+custom-property namespaces via `TUX_AUDIT_EXTERNAL_PREFIXES`.
+`tux-audit contrast` / `tux-audit a11y` also exist but need your own
+puppeteer/axe-core devDeps plus a generated site — they tell you exactly
+that if you run them unprepared.
+
 Tags are immutable; consumers pin to a version and upgrade deliberately
 by bumping the `#vX.Y.Z` ref. See [`CHANGELOG.md`](CHANGELOG.md) for what
 each version contains.

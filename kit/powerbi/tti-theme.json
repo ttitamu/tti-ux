@@ -1,0 +1,44 @@
+{
+  "name": "TTI (tux)",
+  "_generated": "by tti-ux scripts/build-powerbi-theme.mjs from design/tokens.json — do not hand-edit; re-vendor at a pinned tag",
+  "dataColors": [
+    "#5C0025",
+    "#3F5A6F",
+    "#C7973C",
+    "#6B8E5A",
+    "#8C5A3C",
+    "#5C7080",
+    "#A33A3A",
+    "#3C5A87",
+    "#6E5A7E",
+    "#7E7350"
+  ],
+  "background": "#FFFFFF",
+  "foreground": "#221F1F",
+  "tableAccent": "#5C0025",
+  "good": "#3D5328",
+  "neutral": "#525252",
+  "bad": "#A02828",
+  "textClasses": {
+    "title": {
+      "fontFace": "Work Sans",
+      "color": "#221F1F",
+      "fontSize": 12
+    },
+    "callout": {
+      "fontFace": "Oswald",
+      "color": "#221F1F",
+      "fontSize": 40
+    },
+    "label": {
+      "fontFace": "Open Sans",
+      "color": "#424242",
+      "fontSize": 10
+    },
+    "header": {
+      "fontFace": "Open Sans",
+      "color": "#221F1F",
+      "fontSize": 11
+    }
+  }
+}

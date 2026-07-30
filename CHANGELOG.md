@@ -5,6 +5,43 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — distribution artifacts for non-Vue consumers (2026-07-30)
+
+One source (`design/tokens.json`), five generated artifacts — this is
+how the Forgejo overlay, compose stacks, and Power BI reporting stop
+hand-vendoring hex:
+
+- **`kit/` + `scripts/` now ship in the package `files`** — git-dep
+  consumers previously couldn't even see the kit the README sells.
+- **`kit/env/brand.env`** (`npm run build:brand-env`) — 71 flat
+  resolved `TUX_<THEME>_<GROUP>_<TOKEN>=#hex` keys for shell/Go/Python
+  consumers, written with collab-hub's temp-file + atomic-rename
+  fail-safety so an interrupted run can never half-theme downstream
+  apps.
+- **`kit/powerbi/tti-theme.json` + `tti-theme-dark.json`**
+  (`npm run build:powerbi`) — Power BI report themes: 10-series
+  dataColors from the chart ramp (chart-9/10 added so 10-series
+  validators are token-sourced, not hand-mixed), tux fonts, and a
+  theme-invariant brand block per the on-brand rule. The reporting
+  repo re-vendors at pin-bump instead of maintaining its v1.1.0-era
+  hand snapshot.
+- `npm run build:kit` chains tokens → brand.env → powerbi.
+- kit/README gains the "which artifact for which consumer" matrix.
+
+### Added — `tux-audit` bin: guardrails as a consumable (2026-07-30)
+
+- **`npx tux-audit tokens [dirs…]`** — the zero-dependency
+  undefined-token audit, now runnable from any consumer (one CI line,
+  documented in the README). `audit-tokens.mjs` generalized: target
+  dirs via args/`TUX_AUDIT_DIRS`, token definitions harvested from the
+  layer AND the consumer, extra namespaces via
+  `TUX_AUDIT_EXTERNAL_PREFIXES`. Validated against the estate: the
+  Landscape frontend passes clean; the AI Studio tree fails with the
+  migration table printed — exactly the 17-undefined-tokens bug class
+  this exists to catch.
+- `tux-audit contrast` / `tux-audit a11y` delegate when the consumer
+  has puppeteer/axe-core and explain honestly when it doesn't.
+
 ### Added — TuxStatusToast + useTuxToast (2026-07-30)
 
 - The catalog's biggest hole, and a phantom the docs promised since the

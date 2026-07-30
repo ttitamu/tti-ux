@@ -1,0 +1,44 @@
+{
+  "name": "TTI Dark (tux)",
+  "_generated": "by tti-ux scripts/build-powerbi-theme.mjs from design/tokens.json — do not hand-edit; re-vendor at a pinned tag",
+  "dataColors": [
+    "#c47585",
+    "#6B8DA3",
+    "#E0BC60",
+    "#93B57E",
+    "#B58463",
+    "#8AA0B2",
+    "#D67272",
+    "#6E8FBE",
+    "#A08CB4",
+    "#B0A578"
+  ],
+  "background": "#15100F",
+  "foreground": "#FAFAFA",
+  "tableAccent": "#5C0025",
+  "good": "#ABCC8E",
+  "neutral": "#B5B5B5",
+  "bad": "#F59292",
+  "textClasses": {
+    "title": {
+      "fontFace": "Work Sans",
+      "color": "#FAFAFA",
+      "fontSize": 12
+    },
+    "callout": {
+      "fontFace": "Oswald",
+      "color": "#FAFAFA",
+      "fontSize": 40
+    },
+    "label": {
+      "fontFace": "Open Sans",
+      "color": "#D1D2D4",
+      "fontSize": 10
+    },
+    "header": {
+      "fontFace": "Open Sans",
+      "color": "#FAFAFA",
+      "fontSize": 11
+    }
+  }
+}

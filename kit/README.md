@@ -17,7 +17,23 @@ generated files (`css/tux-tokens.css`, `scss/_tux-bootstrap.scss`).
 | `css/tux-tokens.css` | All tux design tokens as CSS custom properties, for all three themes (`tti`, `tti-dark`, `tti-hc`). Generated. |
 | `css/tux-bootstrap.css` | A **Bootstrap 4 re-skin** that maps Bootstrap's class API onto the tux tokens. Theme-reactive. |
 | `scss/_tux-bootstrap.scss` | Bootstrap 4 SCSS `$variable` overrides (tti light literals) for apps that **recompile** Bootstrap. Generated. |
+| `env/brand.env` | Flat resolved `TUX_<THEME>_<GROUP>_<TOKEN>=#hex` pairs for **shell / Go-template / Python** consumers (Forgejo overlay `apply-branding.sh`, compose-stack `make brand` fan-outs). Generated (`npm run build:brand-env`) with atomic-rename fail-safety. |
+| `powerbi/tti-theme.json` + `powerbi/tti-theme-dark.json` | **Power BI report themes** — 10-series dataColors from the chart ramp, tux fonts, theme-invariant brand block. Generated (`npm run build:powerbi`); the reporting repo re-vendors at a pinned tag. |
 | `demo/bootstrap.html` | A self-contained demo: stock Bootstrap 4 + the two kit links, with a theme switcher. |
+
+## Which artifact for which consumer
+
+| Consumer shape | Artifact | Mechanism |
+|---|---|---|
+| Vue/Nuxt product | the Nuxt layer itself | `extends: ["github:ttitamu/tti-ux#vX.Y.Z"]` |
+| Any web app with its own CSS (Forgejo overlay pages, static sites, WordPress) | `css/tux-tokens.css` | `<link>` from jsDelivr at a pinned tag, or vendor verbatim with the source ref in a comment |
+| Bootstrap 4 apps (RIMS, BIMS) | `css/tux-tokens.css` + `css/tux-bootstrap.css` | see below |
+| Shell / Go templates / Python theming scripts | `env/brand.env` | `source` it / parse KEY=value; re-vendor at pin-bump |
+| Power BI / Fabric reports | `powerbi/*.json` | import as report theme; re-vendor at pin-bump |
+
+All five are generated from `design/tokens.json` — the same anchors, ramps,
+and semantic decisions everywhere. CDN base:
+`https://cdn.jsdelivr.net/gh/ttitamu/tti-ux@<tag>/kit/…`
 
 ## Token naming — rename, don't alias
 
