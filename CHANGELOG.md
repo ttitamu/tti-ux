@@ -5,6 +5,12 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+
+## [1.7.1] — 2026-07-30
+
+Doctrine + registry-truth release — docs and CI only, no runtime changes.
+Safe for all consumers to pick up immediately.
+
 ### Added — unification doctrine committed (2026-07-30)
 
 - **`design/unification-plan.md`** — the portal-unification plan's
