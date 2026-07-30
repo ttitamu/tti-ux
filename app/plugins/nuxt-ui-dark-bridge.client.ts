@@ -30,11 +30,23 @@
  * boot script to add both classes at once.
  */
 export default defineNuxtPlugin(() => {
+  // Consumer kill-switch: `tux: { darkBridge: false }` in app.config.ts
+  // disables the bridge for apps that run their own (docs-tti previously
+  // stripped this plugin file by path in an `app:resolve` hook — fragile
+  // against layer refactors; the config flag is the supported path).
+  const appConfig = useAppConfig() as { tux?: { darkBridge?: boolean } };
+  if (appConfig.tux?.darkBridge === false) return;
+
   const colorMode = useColorMode();
 
   watchEffect(() => {
     const root = document.documentElement;
-    if (colorMode.value === "tti-dark") {
+    // Tolerant matching: the layer's own themes use `tti-dark`, but
+    // consumers on stock light/dark/system color-mode values (docs-tti)
+    // resolve to `dark`. Any `*-dark` theme name also counts.
+    const v = colorMode.value;
+    const isDark = v === "dark" || v === "tti-dark" || v.endsWith("-dark");
+    if (isDark) {
       root.classList.add("dark");
     } else {
       root.classList.remove("dark");

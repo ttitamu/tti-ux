@@ -204,10 +204,20 @@ export default defineNuxtConfig({
     // found 2026-07-16 in tti-ai-studio's generate). Strip them from the
     // route table; the sibling imports are untouched.
     "pages:extend"(pages) {
+      // When another app consumes tti-ux as a layer, the style guide's own
+      // routes (164 showcase/docs pages) leak into the consumer's route
+      // table via `extends`. Strip every page whose file lives in the
+      // layer, unless the consumer opts back in with TTI_UX_DEMOS=1 (handy
+      // for browsing the gallery inside an app during development).
+      // docs-tti previously carried this exact hook as a consumer
+      // workaround — it can delete it at next pin-bump.
+      const stripLayerPages = !isRootProject && process.env.TTI_UX_DEMOS !== "1";
+      const layerPagesDir = resolve(layerDir, "app/pages");
       const strip = (list: (typeof pages)[number][]) => {
         for (let i = list.length - 1; i >= 0; i--) {
           const p = list[i]!;
           if (p.file?.endsWith(".demo-data.ts")) list.splice(i, 1);
+          else if (stripLayerPages && p.file?.startsWith(layerPagesDir)) list.splice(i, 1);
           else if (p.children?.length) strip(p.children);
         }
       };

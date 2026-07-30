@@ -169,6 +169,22 @@
   color: #f5d98a;
 }
 
+/* TuxBadge tone="custom" — the open palette escape hatch. Consumers set
+   the three hooks on a wrapper (or the badge itself) and point them at
+   TOKENS, never raw hex — their own audit:tokens run enforces that:
+
+     .my-state-decided { --tux-badge-bg: var(--color-info); … }
+
+   Fallbacks keep an unconfigured custom badge readable (neutral look). */
+.tux-badge--custom {
+  background-color: var(--tux-badge-bg, var(--surface-sunken));
+  box-shadow: inset 0 0 0 1px var(--tux-badge-border, transparent);
+}
+.tux-badge--custom,
+.tux-badge--custom * {
+  color: var(--tux-badge-fg, var(--text-primary));
+}
+
 /* Tip alert — UAlert's tip-50 is slightly too saturated. Soften the
    background so tips read as gentle lavender alongside the other subtle
    alerts. */
@@ -657,4 +673,33 @@
     color-mix(in srgb, var(--brand-primary) 6%, transparent) 11px,
     color-mix(in srgb, var(--brand-primary) 6%, transparent) 12px
   );
+}
+
+/* ==========================================================================
+   Batch K — Nuxt UI theme hardening (v1.8.0, unification-plan.md §Form
+   controls). The hybrid doctrine: U* primitives ARE the blessed app
+   controls, and the layer makes them on-brand everywhere — consumers get
+   branded forms at pin-bump with zero markup changes.
+   ========================================================================== */
+
+/* K.1 — Control typography. The four-family rule (tux.md §Typography)
+   puts buttons, inputs, and selects in --font-bold (Work Sans),
+   everywhere. Element-level so it covers Nuxt UI primitives, Tux
+   wrappers, and raw elements alike; long-form surfaces (textarea used
+   for prose, mono code inputs) override locally with a more specific
+   rule. */
+button,
+input,
+select,
+textarea,
+[role="button"] {
+  font-family: var(--font-bold);
+}
+
+/* K.2 — Nuxt UI geometry rides tux tokens. @nuxt/ui derives every
+   rounded corner from --ui-radius (defaults 0.25rem); binding it to
+   --radius-md aligns U* controls with Tux chrome (TuxCard, TuxModal)
+   so the two vocabularies stop reading as different systems. */
+:root {
+  --ui-radius: var(--radius-md);
 }

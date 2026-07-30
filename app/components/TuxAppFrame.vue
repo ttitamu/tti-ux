@@ -39,7 +39,7 @@
  * The brand-layer / chrome-layer split lives in
  * `design/platform-awareness.md`. Read that doctrine before tuning.
  */
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 
 interface Props {
   /** Optional title rendered if no `#center` slot is provided. */
@@ -123,16 +123,43 @@ async function invokeWindow(action: "close" | "minimize" | "toggleMaximize") {
 }
 
 const isMaximized = ref(false);
+
+// Publish the frame's measured height as `--tux-nav-height` on <html> —
+// same contract TuxSiteNav provides in the site shape, so consumer
+// sticky/viewport math works identically in both shell shapes despite
+// the per-platform titlebar heights (36px web / 52px mac unified / …).
+const frameRoot = ref<HTMLElement | null>(null);
+let frameResizeObserver: ResizeObserver | null = null;
+
 onMounted(async () => {
+  if (frameRoot.value && typeof ResizeObserver !== "undefined") {
+    const publish = () => {
+      if (!frameRoot.value) return;
+      document.documentElement.style.setProperty(
+        "--tux-nav-height",
+        `${Math.round(frameRoot.value.getBoundingClientRect().height)}px`,
+      );
+    };
+    frameResizeObserver = new ResizeObserver(publish);
+    frameResizeObserver.observe(frameRoot.value);
+    publish();
+  }
+
   const win = await loadTauriWindow();
   if (!win) return;
   const w = win as Record<string, () => Promise<boolean>>;
   if (w.isMaximized) isMaximized.value = await w.isMaximized();
 });
+
+onBeforeUnmount(() => {
+  frameResizeObserver?.disconnect();
+  document.documentElement.style.removeProperty("--tux-nav-height");
+});
 </script>
 
 <template>
   <header
+    ref="frameRoot"
     class="tux-app-frame"
     :class="[chromeClass, { 'tux-app-frame--unified': platform.os === 'mac' && unifiedToolbar }]"
     data-tauri-drag-region

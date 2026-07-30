@@ -450,6 +450,12 @@ const isTriggerActive = computed<boolean>(() => {
   display: grid;
   grid-template-columns: 1fr;
   gap: 2rem;
+  /* Never taller than the viewport below the nav — content-heavy menus
+     scroll inside the panel instead of running off-screen. Uses the
+     measured --tux-nav-height that TuxSiteNav publishes (4rem fallback
+     pre-mount). Upstreams Landscape's app.vue consumer override. */
+  max-height: calc(100dvh - var(--tux-nav-height, 4rem) - 1rem);
+  overflow-y: auto;
   /* Width follows content (`max-content`) so a 2-column panel doesn't
      leave dead space, and a 4-column panel can stretch wider — but
      capped so even a content-heavy mega menu doesn't dominate the

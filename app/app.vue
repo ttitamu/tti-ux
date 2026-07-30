@@ -283,6 +283,9 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
         ref="shortcutsHelpRef"
         :groups="shortcutGroups"
       />
+      <!-- Toast host — dogfoods the v1.8.0 TuxStatusToast; every page can
+           fire via useTuxToast() (the /components/status-toast demo does). -->
+      <TuxStatusToast />
     </ClientOnly>
 
     <div class="min-h-screen flex flex-col bg-surface-page text-text-primary">

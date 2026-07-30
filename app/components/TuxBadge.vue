@@ -22,7 +22,7 @@
 
 type Tier = "public" | "internal" | "sensitive" | "restricted";
 type Status = "running" | "completed" | "failed" | "queued" | "paused" | "cancelled";
-type Tone = "info" | "success" | "warning" | "error" | "neutral" | "muted";
+type Tone = "info" | "success" | "warning" | "error" | "neutral" | "muted" | "custom";
 type Kind = "tag" | "count" | "default";
 
 interface Props {
@@ -64,6 +64,13 @@ const toneColor: Record<Tone, UColor> = {
   error: "error",
   neutral: "neutral",
   muted: "neutral", // low-emphasis grey alias (used by split-pane showcase)
+  // custom: escape hatch for domain palettes the closed set can't cover
+  // (docs-tti's StatusPill: decided / implemented / locked / special …).
+  // Colors come from the --tux-badge-bg/fg/border custom-property hooks —
+  // which MUST point at tokens, never raw hex; a consumer's audit:tokens
+  // run keeps that honest. Base color is neutral; .tux-badge--custom
+  // (tux.css) applies the hooks.
+  custom: "neutral",
 };
 
 const statusColor: Record<Status, UColor> = {
@@ -122,6 +129,7 @@ const isWarningColor = computed(() => uColor.value === "warning");
     :class="[
       isTagFont && 'font-mono font-normal',
       isWarningColor && 'tux-badge--warning',
+      mode === 'tone' && tone === 'custom' && 'tux-badge--custom',
       mode === 'tier' && tier && `tux-badge--tier-${tier}`,
       mode === 'status' && status && `tux-badge--status-${status}`,
     ]"

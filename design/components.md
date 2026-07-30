@@ -20,6 +20,7 @@ npm run dev
 | `TuxAlert`           | `UAlert`                 | `/components/alert`             |
 | `TuxAlphaNav`        | tux native               | `/components/alpha-nav`         |
 | `TuxAnnouncementBanner` | tux native            | `/components/announcement-banner` |
+| `TuxAvatar`          | tux native               | `/components/avatar`            |
 | `TuxAppFrame`        | tux native               | `/components/app-frame`         |
 | `TuxAppSwitcher`     | `UPopover`               | `/components/app-switcher`      |
 | `TuxArtifact`        | tux native               | `/components/artifact`          |
@@ -75,6 +76,7 @@ npm run dev
 | `TuxMobileFrame`     | tux native (CSS)         | `/components/mobile-frame`      |
 | `TuxModal`           | `UModal`                 | `/components/modal`             |
 | `TuxNewsCollection`  | tux native               | `/components/news-collection`   |
+| `TuxPageContainer`   | tux native               | `/components/page-container`    |
 | `TuxPageHeader`      | tux native               | `/components/page-header`       |
 | `TuxPagination`      | tux native               | `/components/pagination`        |
 | `TuxPhotoGrid`       | tux native               | `/components/photo-grid`        |
@@ -96,6 +98,7 @@ npm run dev
 | `TuxSlideover`       | tux native               | `/components/slideover`         |
 | `TuxSplashScreen`    | tux native               | `/components/splash-screen`     |
 | `TuxSplitPane`       | tux native               | `/components/split-pane`        |
+| `TuxStatusToast`     | tux native (`useTuxToast` bus) | `/components/status-toast` |
 | `TuxStepper`         | tux native               | `/components/stepper`           |
 | `TuxStatComparison`  | tux native               | `/components/stat-comparison`   |
 | `TuxSuggestionChips` | tux native               | `/components/suggestion-chips`  |
@@ -263,7 +266,7 @@ single most common failure mode.
 | **Term/definition list** (event details, file metadata, spec list) | `<TuxDescriptionList>` |
 | **Architecture diagram** (boxes + arrows, decision flows) | `<TuxDiagram>` (Mermaid) |
 | **Markdown content with Tux components inline** | `@nuxtjs/mdc` + auto-import (see `/markdown` demo) |
-| **Form input** (email / select / radio / etc.) | Nuxt UI native — `UInput`, `USelect`, etc. See `/forms`. |
+| **Form input** (email / select / radio / etc.) | Nuxt UI native — `UInput`, `USelect`, etc., **layer-themed** (Batch K in `tux.css`: Work Sans controls, tux radius, maroon focus). The hybrid doctrine (unification-plan.md, owner-ratified 2026-07-30): `U*` is the blessed spelling for app controls — no Tux input wrappers ship; `TuxFormField` owns label/help/error anatomy; `TuxButton` is the *editorial* button (gold-bar/CTA contexts), not the app-control default. Lint targets raw `<input>`/`<button>` elements and hex literals, never `U*`. See `/forms`. |
 | **Data table** (sortable, virtualizable, status cells) | `<TuxTable>` |
 | **Sortable / selectable / expandable data grid** (Landscape-class operational lists with bulk actions, active-filter chips, row expansion) | `<TuxRichDataGrid>` |
 | **Static research table** (numbered caption, ± CI uncertainty, footnotes, source citation, optional totals row) | `<TuxDataTable>` |
@@ -343,7 +346,7 @@ severity (advisory / blocking).
 | **Inline form summary** | Multiple fields invalid AND the user has tried to submit. Tells them *how many* issues without scrolling | `<TuxAlert variant="danger">` above the form body, with a list of `<a href="#field-id">` jumps to each broken field | Persists until all issues resolved; field-level inline errors remain the source of truth |
 | **Blocking dialog** | The action being submitted is destructive or irreversible. Forces explicit confirmation | `<UModal>` (or `<TuxModal>` for editorial chrome) with primary/secondary actions | Blocks the page; "Delete this corpus?" / "Discard 12 unsaved changes?" / "Revoke API key — this can't be undone" |
 | **Page/session banner** | The issue is *not* about this form — it's a session-level constraint that affects what the form can do (ITAR scope, expired token, rate limit, server down) | `<TuxAlert variant="compliance" \| "danger" \| "warning">` at the top of the page | Persists across forms on the same page; doesn't compete with field-level errors |
-| **Toast (transient confirmation)** | The form succeeded and the user has moved on. Not a "validation" placement per se, but the closing half of the validation lifecycle | `useToast()` (Nuxt UI) → green-tone "Saved" / "Removed" / "Sent" | Auto-dismisses in ~4 seconds; non-blocking |
+| **Toast (transient confirmation)** | The form succeeded and the user has moved on. Not a "validation" placement per se, but the closing half of the validation lifecycle | `useTuxToast().success("Saved")` rendered by the app-shell `<TuxStatusToast>` host | Auto-dismisses in ~5 seconds (errors stick); non-blocking; escalates to OS notification in unfocused Tauri windows |
 
 **Decision tree:**
 
@@ -496,7 +499,7 @@ patterns. Designers and contributors should reach for the
 | **Dropdown menu** | slide-down (-8px → 0) + fade | fast (~150ms) | `UDropdownMenu`, `TuxMenuBar` triggers |
 | **Modal / Dialog** | fade + scale 0.95 → 1 (or sheet slide on Mac) | normal (~200ms) | `TuxModal`, `TuxFocusView` |
 | **Slideover / Drawer** | slide-from-edge | normal (~250ms) | `TuxSlideover`, sidebar mobile-mode |
-| **Toast / Notification** | slide-from-edge + fade | normal (~200ms) | `TuxStatusToast` (roadmap — ships v1.8.0), future Tauri notifications |
+| **Toast / Notification** | slide-from-edge + fade | normal (~200ms) | `TuxStatusToast` + `useTuxToast()`, Tauri OS-notification escalation |
 | **Accordion / Disclosure** | height auto + fade | fast (~150ms) | `TuxAccordion`, `UCollapsible` |
 
 Plus three **component-level entrance** primitives shipped 2026-05-22

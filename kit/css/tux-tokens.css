@@ -107,6 +107,9 @@
   --space-40: 40px;
   --space-48: 48px;
   --space-64: 64px;
+  --layout-content-max: 80rem;
+  --layout-content-wide: 96rem;
+  --layout-prose-max: 72ch;
   --rhythm-tight: 4px;
   --rhythm-snug: 8px;
   --rhythm-normal: 12px;

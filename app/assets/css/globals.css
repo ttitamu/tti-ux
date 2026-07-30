@@ -71,6 +71,10 @@
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+  --font-body: var(--font-body);
+  --font-display: var(--font-display);
+  --font-bold: var(--font-bold);
+  --font-elegant: var(--font-elegant);
 
   --shadow-focus: var(--shadow-focus);
 

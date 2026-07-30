@@ -169,6 +169,13 @@ Or if you'd rather see it in `package.json`:
 For local dev with a sibling checkout, swap to a file URL:
 `"tti-ux": "file:../tti-ux"`.
 
+**Deploying behind a reverse proxy?** Set `icon: { mode: "svg" }` in
+your `nuxt.config.ts`. `@nuxt/icon`'s default CSS-mask mode fetches
+icon CSS through `/api/*` routes, which proxies commonly route
+elsewhere — the failure mode is invisible 0×0 icon spans (ghost
+buttons). Landscape hit exactly this behind Caddy; svg mode inlines
+the icons and sidesteps the route entirely.
+
 Either path pulls in `app/components/`, `app/composables/`,
 `app/assets/css/`, and `app/app.config.ts` automatically — the consuming
 app gets `Tux*` auto-imports, all composables (`useTuxApps`,

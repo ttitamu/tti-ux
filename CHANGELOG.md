@@ -5,6 +5,70 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — TuxStatusToast + useTuxToast (2026-07-30)
+
+- The catalog's biggest hole, and a phantom the docs promised since the
+  motion table and tauri-bindings.md first cited it: **`TuxStatusToast`**
+  (the once-per-shell host) + **`useTuxToast()`** (the bus). Polite
+  `role="status"` live region; error tones render `role="alert"` and
+  stick until dismissed; slide-from-edge + fade at
+  `--motion-fast`/`--ease-standard`, collapsing to opacity-only under
+  reduced motion; optional action button; `edge="top"` mount for
+  workbench shells. In Tauri shells an unfocused window ALSO fires an OS
+  notification (guarded dynamic import of `@tauri-apps/
+  plugin-notification`, capability-optional, silent no-op on web) — the
+  tauri-bindings.md contract implemented. The docs shell dogfoods the
+  host; `/components/status-toast` is the live demo. Owns its own item
+  state rather than piggybacking Nuxt UI's toaster so the semantics and
+  motion are tux-controlled; migration from `useToast()` is a rename.
+
+### Added — TuxAvatar + TuxPageContainer (2026-07-30)
+
+- **`TuxAvatar`** — photo/initials/status-dot identity primitive,
+  extracted from TuxUserMenu (which now consumes it; no API change).
+  Broken photo URLs fall back to initials; decorative by default.
+- **`TuxPageContainer`** — content-width primitive over the new
+  `--layout-content-max` (80rem) / `--layout-content-wide` (96rem) /
+  `--layout-prose-max` (72ch) tokens. Landscape alone carried three
+  divergent max-widths before this existed.
+
+### Added — Nuxt UI theme hardening, Batch K (2026-07-30, owner-ratified)
+
+The hybrid form-control doctrine lands: `U*` primitives are the blessed
+app controls and the layer brands them everywhere —
+
+- Controls (`button`/`input`/`select`/`textarea`/`[role="button"]`)
+  ride `--font-bold` (Work Sans) per the four-family rule.
+- Nuxt UI's `--ui-radius` binds to `--radius-md`, aligning `U*` corner
+  geometry with Tux chrome.
+- The four family fonts are now Tailwind utilities
+  (`font-body/display/bold/elegant`).
+- `TuxButton` re-scoped in doctrine as the *editorial* button;
+  components.md's "Form input" row rewritten for the hybrid rule.
+
+### Added — TuxBadge `tone="custom"` (2026-07-30)
+
+- The open-palette escape hatch docs-tti's StatusPill needed:
+  `tone="custom"` + `--tux-badge-bg/fg/border` hooks (which must point
+  at tokens — consumer `audit:tokens` runs keep that honest).
+
+### Fixed — consumer-debt fixes (2026-07-30)
+
+- **TuxMegaMenu** caps its panel at the viewport below the nav and
+  scrolls internally — Landscape deletes its `app.vue` override.
+- **TuxSiteNav + TuxAppFrame publish `--tux-nav-height`** on `<html>`
+  (ResizeObserver-measured) — consumers replace hardcoded 4rem/5rem
+  sticky offsets in both shell shapes.
+- **Layer route stripping**: consumers no longer inherit the style
+  guide's 164 showcase routes via `extends` (opt back in with
+  `TTI_UX_DEMOS=1`) — docs-tti deletes its `pages:extend` workaround.
+- **Dark-bridge tolerance**: the Nuxt UI `.dark` bridge now matches any
+  `*-dark` color-mode value (not just `tti-dark`) and honors a
+  `tux: { darkBridge: false }` app.config kill-switch — docs-tti stops
+  path-stripping the plugin.
+- README documents the reverse-proxy `icon: { mode: "svg" }` guidance
+  (the Landscape/Caddy ghost-icon failure).
+
 ### Added — semantic tokens for the estate (2026-07-30)
 
 - **`--text-on-brand`** — theme-invariant near-white for content on
