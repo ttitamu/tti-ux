@@ -5,6 +5,62 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — unification doctrine committed (2026-07-30)
+
+- **`design/unification-plan.md`** — the portal-unification plan's
+  permanent home. The v4 plan document (authored + seven-lens-reviewed
+  in-session on 2026-07-28) previously lived only in session state; it
+  is now reconstructed as public-safe doctrine: the two-shape identity
+  rule, one-chrome-many-voices, registry law, distribution artifacts,
+  guardrails, execution log, and the open-decision ledger. Registered
+  in the Design sidebar, the design index, and the `[doc].vue` title
+  map (which also gains the missing `roadmap` and
+  `visual-language-evolution` titles).
+- **`compositions.md` §Suite chrome** — the section
+  `TuxUserMenu`/`TuxUtilityCluster` docblocks have cited since v1.7.0
+  but which was never written: canonical header composition per shell
+  shape, the cluster anatomy law, the two-shape identity rule as
+  composition law, and the don't list.
+- Owner decisions ratified 2026-07-30: form controls go **hybrid**
+  (harden the layer's Nuxt UI theme; no wrapper set; `TuxButton`
+  re-scoped editorial — lands v1.8.0), `warning` → TTI gold (v1.8.0),
+  collab-stack hc-as-light confirmed accidental, docs-platform work
+  spun into its own workstream.
+
+### Added — catalog single source + registry test (2026-07-30)
+
+- **`app/utils/tuxCatalog.ts`** — one 139-entry catalog (name, route,
+  icon, family, kind, wraps, blurb) now drives the sidebar navTree's
+  Components / Reports / Visualizations groups, the `/components`
+  index card grid, and the homepage count. The four hand-maintained
+  lists it replaces had drifted: ~30 components missing from the index
+  grid (the entire research-publishing, TTI-identity, geospatial, and
+  forms families), 9 from the sidebar (including v1.7.0's own
+  `TuxUserMenu` + `TuxUtilityCluster`), 3 from `components.md`
+  (backfilled: `TuxRailNav`, `TuxUserMenu`, `TuxUtilityCluster`).
+- **`tests/tux-catalog.test.ts`** — catalog ↔ filesystem ↔ routes ↔
+  `components.md` invariants in the `useTuxApps.test.ts` mold. The
+  icon check immediately caught 10 deprecated Lucide alias names
+  (`form-input`, `alert-circle`, `check-square`, …) that the nav had
+  carried silently — all renamed to canonical.
+- **`npm test` now gates CI** (quality job) — vitest existed since
+  v1.7.0 but ran in no workflow.
+
+### Fixed — doc truth pass (2026-07-30)
+
+- README: "Current release: v1.4.2" (three releases stale) replaced
+  with a CHANGELOG pointer; pin examples bumped `#v1.4.2` → `#v1.7.0`;
+  component census corrected (~130+5 → 140+6, now test-enforced);
+  the "Landscape — formerly Landscape" rename artifact fixed; `kit/`
+  and the apps registry documented; ADR count corrected (ten →
+  twelve); `useTuxApps` added to the composables list.
+- Homepage: hardcoded "70+" count now computed from the catalog;
+  recent-updates feed gains the missing v1.7.0 suite-chrome entry.
+- `getting-started.vue` counts (~100/~95) corrected; `components.md`
+  "~70 components" corrected and phantom references annotated
+  (`TuxPhotoCard` → roadmap; `TuxStatusToast` → ships v1.8.0);
+  `roadmap.md` ship-checklist now points at the catalog + test
+  instead of four files.
 
 ## [1.7.0] — 2026-07-28
 

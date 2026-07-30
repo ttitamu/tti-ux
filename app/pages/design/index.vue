@@ -28,6 +28,34 @@ const titleMap: Record<string, { title: string; blurb: string }> = {
     title: "Palette + visual identity",
     blurb: "TTI palette reconciliation across PPTX/PDF sources, visual identity cues to preserve, relationship to TAMUS.",
   },
+  "unification-plan": {
+    title: "Unification plan — one suite, one system",
+    blurb: "The cross-portal unification doctrine: two-shape identity rule, one-chrome-many-voices, registry law, distribution artifacts, execution log, open decisions.",
+  },
+  compositions: {
+    title: "Compositions — patterns worth knowing",
+    blurb: "The \"X + Y composes well\" doctrine — layout shells, chart surfaces, chat, suite chrome, cross-app navigation.",
+  },
+  roadmap: {
+    title: "Roadmap",
+    blurb: "What's missing from tux today, ordered by impact, plus the carry-forward list of small deferred capabilities.",
+  },
+  "chart-foundations": {
+    title: "Chart foundations doctrine",
+    blurb: "The native-SVG chart family's shared rules — palette, axes, motion, tooltips, accessibility.",
+  },
+  "platform-awareness": {
+    title: "Platform awareness doctrine",
+    blurb: "The two-layer model for web + Tauri desktop + mobile chrome, and the visual languages tux deliberately rejects.",
+  },
+  "tauri-bindings": {
+    title: "Tauri bindings reference",
+    blurb: "Which Tauri capabilities each platform-aware component needs, and the reserved future surface.",
+  },
+  "visual-language-evolution": {
+    title: "Visual language evolution",
+    blurb: "Dated batches recording how the visual language has shifted — what changed, what was rejected, and why.",
+  },
 };
 
 const entries = computed<DocEntry[]>(() => {

@@ -30,12 +30,15 @@ const source = computed(() => docMap.value[docName.value] ?? null);
 
 const titles: Record<string, string> = {
   tux:                 "tux — design system",
+  "unification-plan":  "Unification plan — one suite, one system",
   components:          "Components doctrine",
   palette:             "Palette + visual identity",
   compositions:        "Compositions — patterns worth knowing",
+  roadmap:             "Roadmap",
   "chart-foundations": "Chart foundations doctrine",
   "platform-awareness": "Platform awareness doctrine",
   "tauri-bindings":    "Tauri bindings reference",
+  "visual-language-evolution": "Visual language evolution",
 };
 
 function titleFor(slug: string): string {

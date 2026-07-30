@@ -81,6 +81,7 @@ npm run dev
 | `TuxPopover`         | `UPopover`               | `/components/popover`           |
 | `TuxProse`           | tux native               | `/components/prose`             |
 | `TuxQACollection`    | tux native               | `/components/qa-collection`     |
+| `TuxRailNav`         | tux native (`<details>`) | `/components/rail-nav`          |
 | `TuxRemovableChip`   | tux native               | `/components/removable-chip`    |
 | `TuxRichDataGrid`    | tux native               | `/components/rich-data-grid`    |
 | `TuxRichTextEditor`  | Tiptap + lowlight        | `/components/rich-text-editor`  |
@@ -107,6 +108,8 @@ npm run dev
 | `TuxTooltip`         | `UTooltip`               | `/components/tooltip`           |
 | `TuxTree`            | tux native               | `/components/tree` (renders internal child `TuxTreeNode`) |
 | `TuxTreemap`         | tux native               | `/components/treemap`           |
+| `TuxUserMenu`        | `UDropdownMenu`          | `/components/utility-cluster`   |
+| `TuxUtilityCluster`  | composes `TuxAppSwitcher` + `TuxUserMenu` | `/components/utility-cluster` |
 
 **Pagination + result-display family** (added 2026-05-21):
 
@@ -289,8 +292,9 @@ single most common failure mode.
 | **Editorial wrapper for a multi-exhibit visualizations page** (eyebrow + Oswald title + maroon signature + body + source) | `<TuxChartFrame>` |
 
 If your need isn't here, scan `/components` (or
-`app/pages/components/index.vue`) — there are ~70 Tux\* components and
-this map only highlights the ones with the easiest-to-miss names.
+[`app/utils/tuxCatalog.ts`](../app/utils/tuxCatalog.ts), the census the
+catalog test enforces) — there are ~140 Tux\* components and this map
+only highlights the ones with the easiest-to-miss names.
 
 ## Conventions
 
@@ -469,8 +473,9 @@ Anti-patterns:
 common in consumer-SaaS empty-state kits. TUX is research-publishing;
 editorial restraint outweighs the "consumer SaaS expectation" of a
 friendly mascot. Empty states use a Lucide icon + heading + body +
-optional CTA. If warmth is needed, place a real photograph
-(`TuxPhotoCard`) *next to* — not inside — the empty state.
+optional CTA. If warmth is needed, place a real photograph (a future
+`TuxPhotoCard` — roadmap; today a `TuxCaptionedMedia`) *next to* — not
+inside — the empty state.
 
 This stance was reaffirmed against the Empty State Illustration Kit
 absorption (2026-05-21). The five `kind` presets (`no-data` /
@@ -491,7 +496,7 @@ patterns. Designers and contributors should reach for the
 | **Dropdown menu** | slide-down (-8px → 0) + fade | fast (~150ms) | `UDropdownMenu`, `TuxMenuBar` triggers |
 | **Modal / Dialog** | fade + scale 0.95 → 1 (or sheet slide on Mac) | normal (~200ms) | `TuxModal`, `TuxFocusView` |
 | **Slideover / Drawer** | slide-from-edge | normal (~250ms) | `TuxSlideover`, sidebar mobile-mode |
-| **Toast / Notification** | slide-from-edge + fade | normal (~200ms) | `TuxStatusToast`, future Tauri notifications |
+| **Toast / Notification** | slide-from-edge + fade | normal (~200ms) | `TuxStatusToast` (roadmap — ships v1.8.0), future Tauri notifications |
 | **Accordion / Disclosure** | height auto + fade | fast (~150ms) | `TuxAccordion`, `UCollapsible` |
 
 Plus three **component-level entrance** primitives shipped 2026-05-22

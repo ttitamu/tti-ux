@@ -5,11 +5,12 @@ aggieux batch-roadmap (which was React/JSX-specific) into a Vue +
 Nuxt-shaped backlog. Each entry lists a working name, what it covers,
 and any shipped neighbors that already partly fill the gap.
 
-When you ship one, register it in [`app.vue`](../app/app.vue) nav,
-[`pages/components/index.vue`](../app/pages/components/index.vue),
-[`pages/index.vue`](../app/pages/index.vue), and the doctrine table in
-[`components.md`](components.md). Update [`CHANGELOG.md`](../CHANGELOG.md)
-under Unreleased.
+When you ship one, register it in
+[`app/utils/tuxCatalog.ts`](../app/utils/tuxCatalog.ts) (which drives the
+sidebar nav, the `/components` index grid, and the homepage count) and add
+a row to the doctrine table in [`components.md`](components.md).
+`tests/tux-catalog.test.ts` fails CI until both agree with the filesystem.
+Update [`CHANGELOG.md`](../CHANGELOG.md) under Unreleased.
 
 ---
 

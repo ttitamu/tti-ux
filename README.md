@@ -4,8 +4,8 @@ Living style guide for the **tux** design system. A runnable Nuxt 4 app that
 IS the source of truth for components — if a visual changes, this site shows
 it first.
 
-Built for Texas A&amp;M Transportation Institute apps (Landscape — formerly
-Landscape — tti-ai-studio, the TTI docs site, marcom WordPress kit) and now
+Built for Texas A&amp;M Transportation Institute apps (Landscape, TTI AI
+Studio, TTI Code, the TTI docs site, marcom WordPress kit) and now
 shipping as a **Tauri desktop layer** for Windows 11 / macOS Tahoe /
 Ubuntu, with Tauri Mobile (iOS / Android) on the near horizon. Components
 and tokens are domain-agnostic. The example data in showcase pages (project
@@ -13,13 +13,16 @@ titles, status badges, form fields) is illustrative — intentionally spread
 across transportation-research domains so no single consuming app's identity
 leaks into the design system.
 
-**Current release:** v1.4.2 · WCAG 2.2 AA conformance · color contrast
+**Current release:** see [`CHANGELOG.md`](CHANGELOG.md) — consumers pin a
+git tag (never a branch) · WCAG 2.2 AA conformance · color contrast
 verified at AAA across all three themes (light, dark, high-contrast) ·
 platform-adaptive at the chrome layer (web + Tauri desktop + Tauri mobile).
 
 ## What's in here
 
-- **~130 Tux\* components + 5 composables** under
+- **140+ Tux\* components + 6 composables** (the exact census lives in
+  [`app/utils/tuxCatalog.ts`](app/utils/tuxCatalog.ts), enforced against
+  the filesystem by `tests/tux-catalog.test.ts`) under
   [`app/components/`](app/components/) and
   [`app/composables/`](app/composables/) — alerts, badges, accordions,
   the editorial page header, chart family (line / bar / area / scatter /
@@ -50,8 +53,15 @@ platform-adaptive at the chrome layer (web + Tauri desktop + Tauri mobile).
   [`/accessibility`](app/pages/accessibility.vue) carries the formal
   conformance statement; [`scripts/audit-contrast.mjs`](scripts/audit-contrast.mjs)
   is the puppeteer-based WCAG ratio checker that gates CI.
-- **Design docs** — ten files under [`design/`](design/):
+- **Framework-neutral kit** — [`kit/`](kit/) ships the generated
+  [`kit/css/tux-tokens.css`](kit/css/tux-tokens.css) token drop and the
+  Bootstrap 4 re-skin for non-Vue consumers (WordPress, RIMS, BIMS,
+  Forgejo overlays), CDN-served via jsDelivr at a pinned tag. See
+  [`kit/README.md`](kit/README.md).
+- **Design docs** — under [`design/`](design/):
   [`tux.md`](design/tux.md) (manifesto),
+  [`unification-plan.md`](design/unification-plan.md) (the suite
+  unification doctrine — one chrome, many voices),
   [`components.md`](design/components.md) (doctrine + pattern coverage map),
   [`compositions.md`](design/compositions.md) (composability doctrine),
   [`palette.md`](design/palette.md) (visual identity),
@@ -62,8 +72,9 @@ platform-adaptive at the chrome layer (web + Tauri desktop + Tauri mobile).
   [`tauri-bindings.md`](design/tauri-bindings.md) (Tauri API surface
   per component),
   [`visual-language-evolution.md`](design/visual-language-evolution.md),
-  plus the canonical [`tokens.json`](design/tokens.json) source. Ten
-  ADRs under [`docs/adr/`](docs/adr/) record architectural decisions.
+  plus the canonical [`tokens.json`](design/tokens.json) source and the
+  [`apps.json`](design/apps.json) TTI Portals registry. Twelve ADRs
+  under [`docs/adr/`](docs/adr/) record architectural decisions.
 
 ## Run it
 
@@ -135,12 +146,13 @@ AUDIT_LEVEL=AAA npm run audit:contrast
 ## Consuming from another app
 
 Pin to a tagged release straight from GitHub — no npm registry needed.
-Bumping the consumer's pin is how you opt in to a new tux version:
+Bumping the consumer's pin is how you opt in to a new tux version
+(check [`CHANGELOG.md`](CHANGELOG.md) for the latest tag):
 
 ```ts
 // nuxt.config.ts of the consuming app
 export default defineNuxtConfig({
-  extends: ["github:ttitamu/tti-ux#v1.4.2"],
+  extends: ["github:ttitamu/tti-ux#v1.7.0"],
 });
 ```
 
@@ -149,7 +161,7 @@ Or if you'd rather see it in `package.json`:
 ```jsonc
 {
   "dependencies": {
-    "tti-ux": "github:ttitamu/tti-ux#v1.4.2"
+    "tti-ux": "github:ttitamu/tti-ux#v1.7.0"
   }
 }
 ```
@@ -159,9 +171,10 @@ For local dev with a sibling checkout, swap to a file URL:
 
 Either path pulls in `app/components/`, `app/composables/`,
 `app/assets/css/`, and `app/app.config.ts` automatically — the consuming
-app gets `Tux*` auto-imports, all composables (`useTuxPlatform`,
-`useTuxSwipe`, `useTuxRipple`, `useTuxHighlighter`, `useTuxMermaid`)
-auto-imported, tokens loaded, Nuxt UI themed to maroon, and access to
+app gets `Tux*` auto-imports, all composables (`useTuxApps`,
+`useTuxPlatform`, `useTuxSwipe`, `useTuxRipple`, `useTuxHighlighter`,
+`useTuxMermaid`) auto-imported, tokens loaded, Nuxt UI themed to maroon,
+and access to
 the markdown rendering pipeline (`@nuxtjs/mdc` with Shiki syntax
 highlighting + KaTeX math).
 
