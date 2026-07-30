@@ -180,8 +180,16 @@ for (const [token, sites] of [...byToken.entries()].sort()) {
 }
 console.error(
   `\nEach var(${[...byToken.keys()][0]}) etc. resolves to nothing at runtime.\n` +
-    `Define it in app/assets/css/tokens.css, fix the name, or — if it's a\n` +
-    `Tailwind/Nuxt UI token — add its namespace to EXTERNAL_PREFIXES in\n` +
-    `scripts/audit-tokens.mjs.`
+    `Define it in design/tokens.json (never hand-edit tokens.css), fix the\n` +
+    `name, or — if it's a Tailwind/Nuxt UI token — add its namespace to\n` +
+    `EXTERNAL_PREFIXES in scripts/audit-tokens.mjs.\n\n` +
+    `If this is a consumer-invented alias, rename to the canonical token\n` +
+    `instead (migration table in kit/README.md): --surface-base →\n` +
+    `--surface-page · --text-default → --text-primary · --danger →\n` +
+    `--color-danger · --status-* → --color-{info,success,warning,error} ·\n` +
+    `--border-subtle → --surface-border-subtle. Note: a\n` +
+    `var(--invented, var(--canonical)) fallback silences this audit but is\n` +
+    `a migration smell — fallbacks are for component-local knobs, not for\n` +
+    `keeping invented names alive.`
 );
 process.exit(1);

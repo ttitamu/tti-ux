@@ -238,12 +238,12 @@ function dismiss() {
 
 .tux-announcement--urgent {
   background: var(--brand-fill);
-  color: #ffffff;
+  color: var(--text-on-brand);
   border-bottom-color: rgba(255, 255, 255, 0.15);
 }
 .tux-announcement--urgent .tux-announcement__icon,
 .tux-announcement--urgent .tux-announcement__action,
-.tux-announcement--urgent .tux-announcement__eyebrow { color: #ffffff; }
+.tux-announcement--urgent .tux-announcement__eyebrow { color: var(--text-on-brand); }
 
 /* ── Transition ────────────────────────────────────────────── */
 .tux-announcement-enter-active,

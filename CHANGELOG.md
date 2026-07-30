@@ -5,6 +5,61 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — semantic tokens for the estate (2026-07-30)
+
+- **`--text-on-brand`** — theme-invariant near-white for content on
+  `--brand-fill` surfaces, in all three themes. The collab-stack's
+  `--tux-on-brand` insight made canonical: fixed-maroon surfaces must
+  never use `--text-inverse` (it flips dark in dark mode). Adopted by
+  `TuxCTA`, `TuxFooter`, `TuxPageHeader`, `TuxAnnouncementBanner`
+  (replacing 10 hardcoded `#fff` declarations) and registered as the
+  measured pair on `/contrast-audit`, so AAA CI now gates the real
+  token. Tailwind alias `--color-text-on-brand` added.
+- **`--surface-border-subtle`** — the hairline-divider step below
+  `--surface-border` consumers kept inventing as `--border-subtle`
+  (light: neutral-150; dark: #2E2B2A; hc: deliberately === border).
+- **Spacing scale** — `--space-2/8/12/16/24/32/40/48/64` join the
+  existing 0/4/10, closing the "spacing is un-tokenized" gap against
+  tux.md principle 4.
+- **Migration table** (kit/README.md + `audit:tokens` failure message):
+  every consumer-invented token name observed in the estate mapped to
+  its canonical equivalent, plus the documented on-brand recipe and the
+  "rename, don't alias" doctrine — no compat aliases ship.
+
+### Changed — warning is TTI gold (2026-07-30, owner-ratified)
+
+- Nuxt UI's `warning` alias now maps to the **TTI gold ramp**
+  (`--color-gold-*`, #DDAC37 anchor) instead of the amber stand-in the
+  app.config self-documented as a follow-up. Landscape's local
+  `warning: "gold"` override becomes redundant at its next pin-bump.
+
+### Changed — typography now matches the four-family doctrine (2026-07-30)
+
+**Estate-visible at pin-bump.** tux.md's four-family rule was doctrine
+the CSS didn't follow; now it does:
+
+- Body copy (`html, body`) and `.eyebrow`/`.subhead` use
+  `--font-body` (**Open Sans**) — previously `--font-sans`
+  (Public Sans, the "legacy" face per tux.md).
+- `.heading--display` uses `--font-display` (**Oswald** in the default
+  style, re-binding to Work Sans / Georgia under `.style--bold` /
+  `.style--elegant`) — previously Public Sans 800 italic. Italic
+  dropped (Oswald ships no italic axis); weight normalized to 700.
+- `--font-sans` remains defined (self-hosted) but is **deprecated** —
+  marked in tokens.json, tux.md, and globals.css.
+- Dead **`@nuxt/fonts`** dependency removed (module was already out of
+  nuxt.config; fonts are self-hosted via `fonts.css` +
+  `sync-fonts.mjs`); stale comments claiming otherwise fixed in
+  globals.css and tux.md.
+
+### Fixed — layer no longer bleeds docs-site build config (2026-07-30)
+
+- The `$production.nitro.prerender` block (crawlLinks +
+  `failOnError: false`) is now fenced behind an is-root-project check,
+  so `extends` consumers stop inheriting the style guide's prerender
+  behavior. Landscape can delete its `nitro:config` reset hook at next
+  pin-bump.
+
 ### Added — unification doctrine committed (2026-07-30)
 
 - **`design/unification-plan.md`** — the portal-unification plan's

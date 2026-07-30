@@ -24,9 +24,12 @@
    uppercase + extrabold + gold bar) — used sparingly for landing copy.
    ------------------------------------------------------------ */
 .heading--display {
-  font-family: var(--font-sans);
-  font-weight: 800;
-  font-style: italic;
+  /* Rides the style-variant machinery: --font-display is Oswald in the
+     default style and re-binds to Work Sans / Georgia under .style--bold /
+     .style--elegant. Was Public Sans 800 italic — off-system per the
+     four-family rule; italic dropped because Oswald ships no italic axis. */
+  font-family: var(--font-display);
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: -0.01em;
   line-height: 1.1;

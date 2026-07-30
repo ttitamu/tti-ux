@@ -113,9 +113,11 @@ Scale follows a 1.25 modular scale anchored at 16px body.
 
 **Public Sans note.** Earlier drafts of tux defaulted to **Public Sans**
 (USWDS) as a Franklin-Gothic-adjacent open-source heading face. The
-four-family rule above supersedes that — Public Sans remains loaded
-by `@nuxt/fonts` for legacy components but new work should commit to
-the Oswald / Work Sans / Open Sans / Georgia stack.
+four-family rule above supersedes that — as of v1.8.0 the body default
+and `.heading--display` actually follow it (`--font-body` / Oswald via
+`--font-display`). `--font-sans` (Public Sans) remains defined and
+self-hosted for legacy consumers but is **deprecated**: new work commits
+to the Oswald / Work Sans / Open Sans / Georgia stack.
 
 ### Three section styles — `default`, `bold`, `elegant`
 
@@ -157,11 +159,13 @@ without leaking.
 
 ### Font sources
 
-Open Sans, Oswald, and Work Sans are open-source and registered via
-`@nuxt/fonts` (Google provider in dev; self-hosted is straightforward
-for air-gapped deploys). Georgia is a system font — shipped with every
-OS, no @font-face needed. JetBrains Mono is loaded the same way. No
-license fees, no public-sector procurement questions.
+Open Sans, Oswald, and Work Sans are open-source and **self-hosted**:
+`scripts/sync-fonts.mjs` copies woff2 files from the `@fontsource/*`
+packages into `public/fonts/`, and `app/assets/css/fonts.css` declares
+the `@font-face` rules — zero runtime font fetches, air-gapped clean.
+Georgia is a system font — shipped with every OS, no @font-face needed.
+JetBrains Mono is loaded the same way as the others. No license fees,
+no public-sector procurement questions.
 
 ## What we're deliberately not doing
 
