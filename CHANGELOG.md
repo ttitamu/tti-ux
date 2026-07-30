@@ -5,6 +5,15 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+
+## [1.8.0] — 2026-07-30
+
+The unification minor — semantic tokens for the estate, the toast that
+was always promised, Nuxt UI theme hardening (hybrid form doctrine),
+consumer-debt fixes, and the kit as a real distribution surface
+(brand.env, Power BI themes, `tux-audit`). Estate-visible change: body
+copy moves Public Sans → Open Sans per the four-family rule.
+
 ### Added — distribution artifacts for non-Vue consumers (2026-07-30)
 
 One source (`design/tokens.json`), five generated artifacts — this is
@@ -160,6 +169,11 @@ the CSS didn't follow; now it does:
   so `extends` consumers stop inheriting the style guide's prerender
   behavior. Landscape can delete its `nitro:config` reset hook at next
   pin-bump.
+
+## [1.7.1] — 2026-07-30
+
+Doctrine + registry-truth release — docs and CI only, no runtime changes.
+Safe for all consumers to pick up immediately.
 
 ### Added — unification doctrine committed (2026-07-30)
 
