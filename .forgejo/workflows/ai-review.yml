@@ -1,7 +1,7 @@
 # AI code review (plan Area F v2) — ADVISORY, changed-files only, via the TTI AI BFF.
 #
-# Calls the gateway's /v1/review: a three-model superPOD PANEL (GPT-OSS 120B,
-# Gemma 4 31B, Devstral 2) independently reviews the diff, cross-examines each
+# Calls the gateway's /v1/review: a multi-model superPOD PANEL (GPT-OSS 120B,
+# Gemma 4 31B, Devstral 2, poolside Laguna S 2.1) independently reviews the diff, cross-examines each
 # other's findings, and synthesizes ONE comment — with bounded, receipted
 # Google-PSE web grounding when a reviewer requests verification. The debate
 # logic lives in the GATEWAY on purpose: this vendored file stays a thin
@@ -40,14 +40,25 @@ jobs:
 
       - name: Authenticated checkout (private-repo safe)
         if: steps.gate.outputs.skip != 'true'
+        # Ref names reach the shell through env:, never through ${{ }}
+        # interpolation. Actions substitutes ${{ }} TEXTUALLY before bash
+        # parses the line, and `$(...)`/backticks execute even inside double
+        # quotes — so a branch literally named `feat/$(curl …|sh)` (a valid
+        # git ref) would run on the runner. Env vars are not re-parsed.
+        env:
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          JOB_TOKEN: ${{ github.token }}
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_SHA: ${{ github.sha }}
         run: |
           set -eu
           git init -q
-          git remote add origin "${{ github.server_url }}/${{ github.repository }}"
-          hdr="Authorization: basic $(printf 'x-access-token:%s' "${{ github.token }}" | base64 | tr -d '\n')"
-          git -c http.extraheader="$hdr" fetch --depth=50 origin "${{ github.base_ref }}" "${{ github.sha }}"
-          git checkout -q "${{ github.sha }}"
-          git branch -f _base "origin/${{ github.base_ref }}" 2>/dev/null || true
+          git remote add origin "$SERVER_URL/$REPO"
+          hdr="Authorization: basic $(printf 'x-access-token:%s' "$JOB_TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$hdr" fetch --depth=50 origin "$BASE_REF" "$HEAD_SHA"
+          git checkout -q "$HEAD_SHA"
+          git branch -f _base "origin/$BASE_REF" 2>/dev/null || true
 
       - name: Compute changed-files diff (capped)
         if: steps.gate.outputs.skip != 'true'
@@ -139,7 +150,7 @@ jobs:
           [ -f /tmp/review.posted ] && { echo "native review posted; no classic comment"; exit 0; }
           # No emoji — the ai-review-bot's maroon Lucide avatar (branding/bot-avatars.py)
           # marks the comment, keeping the house symbology consistent.
-          BODY=$(python3 -c "import json;print(json.dumps({'body':'### AI review · advisory\n\n'+open('/tmp/review.md').read()+'\n\n<sub>Three superPOD models reviewed this independently and cross-examined each other; only what survived is shown. Advisory — never a merge gate.</sub>'}))")
+          BODY=$(python3 -c "import json;print(json.dumps({'body':'### AI review · advisory\n\n'+open('/tmp/review.md').read()+'\n\n<sub>A panel of superPOD models reviewed this independently and cross-examined each other; only what survived is shown. Advisory — never a merge gate.</sub>'}))")
           # Post AS ai-review-bot (named identity + maroon avatar in the feed,
           # instead of the anonymous actions "Ghost"); fall back to the job
           # token if the bot PAT lacks issue-write on this repo.
