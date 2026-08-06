@@ -111,3 +111,64 @@ jobs:
       # runbook (ops/secret-rotation-runbook.md), not just a code edit.
       - name: Secrets — gitleaks (full history)
         run: '$HOME/.local/bin/gitleaks detect --no-banner --redact --exit-code 1'
+
+      # Undefined-name gate (J1, added 2026-08-06). Catches what neither the
+      # SCA nor the secret scanner can, and what `py_compile` structurally
+      # cannot: a name used in a function body that does not exist.
+      #
+      # Why this exists: nis/forgejo-stack#27. `zip_longest` was used without
+      # its import; the file compiled, the MODULE IMPORTED FINE (Python
+      # resolves names in a function body at CALL time), CI went green, and
+      # the gateway 500'd on every review in production. pyflakes finds it in
+      # one line without importing or executing anything.
+      #
+      # Graduated on purpose: an undefined name is a runtime NameError with
+      # essentially no false positives, so it BLOCKS. Everything else pyflakes
+      # reports (unused imports, dead locals) is printed and does not fail —
+      # a new gate must not break 13 repos on the day it lands.
+      - name: Undefined names — pyflakes (blocks; other findings advisory)
+        run: |
+          set -eu
+          # ONE universal wheel (py2.py3-none-any) — unlike trivy/gitleaks
+          # there is no per-arch hash to keep in step. Publisher SHA-256 from
+          # PyPI, see ops/provenance/pyflakes.md.
+          PYFLAKES_VERSION=3.4.0
+          PYFLAKES_SHA=f742a7dbd0d9cb9ea41e9a24a918996e8170c799fa528688d40dd582c8265f4f
+          WHEEL="pyflakes-${PYFLAKES_VERSION}-py2.py3-none-any.whl"
+          wget -qO "/tmp/${WHEEL}" \
+            "https://files.pythonhosted.org/packages/c2/2f/81d580a0fb83baeb066698975cb14a618bdbed7720678566f1b046a95fe8/${WHEEL}"
+          echo "${PYFLAKES_SHA}  /tmp/${WHEEL}" | sha256sum -c -
+          python3 -m pip install --quiet --no-deps --no-index "/tmp/${WHEEL}"
+
+          # Vendored/generated trees are not ours to lint.
+          find . -name '*.py' \
+            -not -path './.git/*' -not -path './node_modules/*' \
+            -not -path './.venv/*' -not -path './venv/*' \
+            -not -path './backups/*' -not -path './site-packages/*' \
+            > /tmp/pyfiles.txt
+          if [ ! -s /tmp/pyfiles.txt ]; then
+            echo "no Python files in this repo — nothing to check."
+            exit 0
+          fi
+          echo "checking $(wc -l < /tmp/pyfiles.txt) Python file(s)"
+          # xargs -0, NOT `$(cat …)`: a large repo blows past ARG_MAX (515 .py
+          # files in nis/landscape today), and an unquoted expansion mangles
+          # any path containing a space. Both failure modes are SILENT — they
+          # produce output that looks like "no findings".
+          # pyflakes exits 1 on ANY finding, so capture rather than gate on it.
+          tr '\n' '\0' < /tmp/pyfiles.txt \
+            | xargs -0 --no-run-if-empty python3 -m pyflakes > /tmp/pyflakes.txt 2>&1 || true
+          if [ -s /tmp/pyflakes.txt ]; then
+            echo "--- pyflakes findings (advisory unless listed below) ---"
+            cat /tmp/pyflakes.txt
+          fi
+          # Blocking subset: undefined names, and files pyflakes could not
+          # parse. A parse failure is NOT a pass — silence from a scanner
+          # that could not read the file is the trap documented in CLAUDE.md.
+          if grep -E "undefined name|invalid syntax|unexpected (EOF|indent)" /tmp/pyflakes.txt; then
+            echo ""
+            echo "FAIL: undefined name or unparseable file above."
+            echo "An undefined name is a NameError waiting for the first call."
+            exit 1
+          fi
+          echo "OK: no undefined names."
