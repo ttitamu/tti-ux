@@ -138,7 +138,14 @@ jobs:
           wget -qO "/tmp/${WHEEL}" \
             "https://files.pythonhosted.org/packages/c2/2f/81d580a0fb83baeb066698975cb14a618bdbed7720678566f1b046a95fe8/${WHEEL}"
           echo "${PYFLAKES_SHA}  /tmp/${WHEEL}" | sha256sum -c -
-          python3 -m pip install --quiet --no-deps --no-index "/tmp/${WHEEL}"
+          # NOT `pip install`. Ubuntu 24.04 marks its system Python
+          # externally-managed (PEP 668), so pip refuses outright — verified
+          # against the real runner image, where it failed and left pyflakes
+          # unimportable. A wheel is a zip, and pyflakes is pure Python, so
+          # putting the VERIFIED wheel on PYTHONPATH runs exactly the bytes we
+          # checksummed: no install, no venv, no --break-system-packages, and
+          # nothing mutated in the image.
+          export PYTHONPATH="/tmp/${WHEEL}"
 
           # Vendored/generated trees are not ours to lint.
           find . -name '*.py' \
