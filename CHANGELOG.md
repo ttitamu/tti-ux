@@ -5,6 +5,20 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **`TuxChartGeographic` per-kind code split** — the five `kind`s now
+  render through async child components (`TuxChartGeoCounty` /
+  `Districts` / `UsContext` / `DotDensity` / `Flow`, internal, no
+  catalog entries) that each statically import only their own geo data
+  module. `app/assets/geo/texas.ts` split into `texas-outline` /
+  `texas-outline-polygon` / `txdot-districts` / `tx-metros` (data
+  byte-identical; `texas.ts` remains as a compat re-export barrel) and
+  `scripts/build-geo.mjs` now emits that layout. Payload per kind drops
+  from ~348KB eager to ~12KB (flow) / ~21KB (dot-density) / ~63KB
+  (county) / ~119KB (districts) / ~163KB (us-context); the public API,
+  rendered SVG, and SSR/prerender output are unchanged.
+
 ### Fixed
 
 - **`tux-audit a11y` gated on the wrong dependency** — the dispatcher

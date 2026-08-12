@@ -35,6 +35,16 @@ export const INTERNAL_COMPONENTS = [
   "TuxDocsSidebarNode", // recursive child of TuxDocsSidebar
   "TuxTreeNode",        // recursive child of TuxTree
   "TuxRuleBuilderGroup",// recursive child of TuxRuleBuilder
+  // Async per-kind children of TuxChartGeographic (payload split: each
+  // statically imports only its own geo data module) + their shared
+  // SVG-fragment chrome. The parent stays the one catalogued API.
+  "TuxChartGeoCounty",
+  "TuxChartGeoDistricts",
+  "TuxChartGeoUsContext",
+  "TuxChartGeoDotDensity",
+  "TuxChartGeoFlow",
+  "TuxChartGeoTitle",
+  "TuxChartGeoChoroplethLegend",
 ];
 
 export const tuxCatalog: TuxCatalogEntry[] = [
