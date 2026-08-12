@@ -10,7 +10,7 @@
  *   npx tux-audit contrast         AAA contrast audit — needs YOUR
  *                                  devDeps (puppeteer) + a generated site.
  *   npx tux-audit a11y             axe audit — needs YOUR devDeps
- *                                  (puppeteer + axe-core) + generated site.
+ *                                  (jsdom + axe-core) + generated site.
  *
  * The honest split: `tokens` is pure node:fs and works everywhere;
  * contrast/a11y need heavyweight deps tti-ux deliberately does not force
@@ -55,9 +55,9 @@ switch (cmd) {
     break;
 
   case "a11y":
-    if (!hasDep("puppeteer") || !hasDep("axe-core")) {
+    if (!hasDep("jsdom") || !hasDep("axe-core")) {
       console.error(
-        "tux-audit a11y needs `puppeteer` + `axe-core` in YOUR devDependencies\n" +
+        "tux-audit a11y needs `jsdom` + `axe-core` in YOUR devDependencies\n" +
           "plus a generated site to crawl. Install them, generate, then re-run —\n" +
           "or run inside the tti-ux repo itself (`npm run audit:a11y`).",
       );
@@ -71,7 +71,7 @@ switch (cmd) {
       "usage: tux-audit <tokens|contrast|a11y> [args]\n" +
         "  tokens [dirs…]  undefined-token audit (zero-dep; defaults to ./app)\n" +
         "  contrast        WCAG AAA contrast audit (needs your puppeteer)\n" +
-        "  a11y            axe accessibility audit (needs your puppeteer + axe-core)",
+        "  a11y            axe accessibility audit (needs your jsdom + axe-core)",
     );
     process.exit(cmd ? 2 : 0);
 }

@@ -202,8 +202,8 @@ CSS, so canonical tokens always resolve and your local component knobs
 still count. Target dirs via args or `TUX_AUDIT_DIRS`; declare your own
 custom-property namespaces via `TUX_AUDIT_EXTERNAL_PREFIXES`.
 `tux-audit contrast` / `tux-audit a11y` also exist but need your own
-puppeteer/axe-core devDeps plus a generated site — they tell you exactly
-that if you run them unprepared.
+devDeps plus a generated site — puppeteer for contrast, jsdom + axe-core
+for a11y — and they tell you exactly that if you run them unprepared.
 
 Tags are immutable; consumers pin to a version and upgrade deliberately
 by bumping the `#vX.Y.Z` ref. See [`CHANGELOG.md`](CHANGELOG.md) for what

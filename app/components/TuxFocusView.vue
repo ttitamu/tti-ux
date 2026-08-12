@@ -27,7 +27,7 @@
  *   #actions   — right-aligned action buttons in the top bar
  *   (default) — content of the focus surface
  */
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { nextTick, onMounted, onUnmounted, ref, useId, watch } from "vue";
 
 interface Props {
   /** Two-way bound; `v-model:open`. */
@@ -110,7 +110,7 @@ onUnmounted(() => {
   document.body.style.overflow = "";
 });
 
-const titleId = computed(() => `tux-focus-${Math.random().toString(36).slice(2, 9)}`);
+const titleId = useId();
 </script>
 
 <template>

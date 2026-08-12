@@ -61,8 +61,13 @@ function operatorsFor(key: string): string[] {
   return f.operators ?? DEFAULT_OPERATORS[f.type];
 }
 
+// Per-instance useId() seed + counter instead of Math.random(): ids stay
+// unique across nested groups and deterministic under SSR if a future
+// refactor ever generates them during setup.
+const idSeed = useId();
+let idSeq = 0;
 function newId(prefix: string): string {
-  return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
+  return `${prefix}-${idSeed}-${++idSeq}`;
 }
 
 function defaultValueFor(field: FieldDef, operator: string): unknown {
