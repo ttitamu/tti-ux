@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useVirtualizer } from "@tanstack/vue-virtual";
 /**
  * TuxRichDataGrid — interactive data grid for operational and
  * research-dashboard surfaces (Landscape-class apps where the reader
@@ -117,6 +118,14 @@ interface Props {
   // Layout
   /** Max viewport height for the scrollable body. Default 440px. */
   maxHeight?: string;
+  /** Virtualize the body with @tanstack/vue-virtual — render only the
+   *  visible window of rows. Opt in for big lists (thousands of rows);
+   *  rows should be uniform height (`virtualRowHeight`). Row expansion
+   *  is disabled while virtualized (variable-height windows need
+   *  per-row measurement — build it when a consumer needs it). */
+  virtualized?: boolean;
+  /** Estimated row height in px for the virtualizer. Default 44. */
+  virtualRowHeight?: number;
   density?: "comfortable" | "compact";
 
   // Pagination (host renders meta; component renders strip)
@@ -146,10 +155,59 @@ const props = withDefaults(defineProps<Props>(), {
     { key: "reassign", label: "Reassign", icon: "lucide:user-plus" },
   ],
   maxHeight: "440px",
+  virtualized: false,
+  virtualRowHeight: 44,
   density: "comfortable",
   paginationLabel: "",
   paginationTokens: () => [],
 });
+
+// ── Virtualized body (opt-in) ────────────────────────────────────
+// Table-compatible windowing: the virtualizer tracks scroll inside
+// __scroll and we render only its window, bracketed by two spacer
+// rows sized to the off-screen extent — no absolute positioning, so
+// table layout, sticky header, and key-based selection all survive.
+// Always instantiated (composable rules) but inert (count 0) unless
+// `virtualized`.
+const scrollRef = ref<HTMLElement | null>(null);
+// Spacers render only after mount: the virtualizer's total size
+// differs between the server and the hydrating client (no scroll
+// element yet), so emitting spacers during SSR/hydration mismatches.
+// Server + first client render agree on "no spacers, no rows"; the
+// window streams in reactively right after mount.
+const vMounted = ref(false);
+onMounted(() => { vMounted.value = true; });
+const virtualizer = useVirtualizer(
+  computed(() => ({
+    count: props.virtualized ? props.rows.length : 0,
+    getScrollElement: () => scrollRef.value,
+    estimateSize: () => props.virtualRowHeight,
+    overscan: 8,
+  })),
+);
+const virtualItems = computed(() => (props.virtualized ? virtualizer.value.getVirtualItems() : []));
+const renderRows = computed(() => {
+  if (!props.virtualized) return props.rows;
+  return virtualItems.value
+    .map((vi) => props.rows[vi.index])
+    .filter((r): r is (typeof props.rows)[number] => r !== undefined);
+});
+const padTop = computed(() => (virtualItems.value.length ? virtualItems.value[0]!.start : 0));
+const padBottom = computed(() => {
+  if (!props.virtualized || !vMounted.value || props.rows.length === 0) return 0;
+  const total = virtualizer.value.getTotalSize();
+  const items = virtualItems.value;
+  // Zero-height viewport (unmeasured scroll element): the whole
+  // estimated extent is off-screen — keeps the scrollbar honest.
+  if (!items.length) return total;
+  return Math.max(0, total - items.at(-1)!.end);
+});
+// Expansion is off while virtualized — variable-height windows need
+// per-row measurement; build that when a consumer actually needs it.
+const expansionOff = computed(() => props.expansionDisabled || props.virtualized);
+const fullColspan = computed(
+  () => props.columns.length + (props.selectionDisabled ? 0 : 1) + (expansionOff.value ? 0 : 1),
+);
 
 const emit = defineEmits<{
   "update:selected": [keys: (string | number)[]];
@@ -350,6 +408,7 @@ function onSearchInput(e: Event) {
 
     <!-- Scrollable grid body -->
     <div
+      ref="scrollRef"
       class="tux-rich-data-grid__scroll"
       :style="{ maxHeight }"
     >
@@ -375,7 +434,7 @@ function onSearchInput(e: Event) {
               </button>
             </th>
             <th
-              v-if="!expansionDisabled"
+              v-if="!expansionOff"
               scope="col"
               class="tux-rich-data-grid__th tux-rich-data-grid__th--chevron"
             ><span class="sr-only">Expand row</span></th>
@@ -437,7 +496,10 @@ function onSearchInput(e: Event) {
           </tr>
         </thead>
         <tbody>
-          <template v-for="row in rows" :key="rowKeyOf(row)">
+          <tr v-if="virtualized && padTop > 0" aria-hidden="true" class="tux-rich-data-grid__spacer">
+            <td :colspan="fullColspan" :style="{ height: `${padTop}px` }" />
+          </tr>
+          <template v-for="row in renderRows" :key="rowKeyOf(row)">
             <tr
               :class="[
                 'tux-rich-data-grid__row',
@@ -457,7 +519,7 @@ function onSearchInput(e: Event) {
                   </span>
                 </button>
               </td>
-              <td v-if="!expansionDisabled" class="tux-rich-data-grid__td tux-rich-data-grid__td--chevron">
+              <td v-if="!expansionOff" class="tux-rich-data-grid__td tux-rich-data-grid__td--chevron">
                 <button
                   type="button"
                   :aria-label="expandedSet.has(rowKeyOf(row)) ? 'Collapse row' : 'Expand row'"
@@ -489,7 +551,7 @@ function onSearchInput(e: Event) {
               </td>
             </tr>
             <tr
-              v-if="expandedSet.has(rowKeyOf(row)) && !expansionDisabled"
+              v-if="expandedSet.has(rowKeyOf(row)) && !expansionOff"
               class="tux-rich-data-grid__expanded"
             >
               <td
@@ -502,9 +564,12 @@ function onSearchInput(e: Event) {
               </td>
             </tr>
           </template>
+          <tr v-if="virtualized && padBottom > 0" aria-hidden="true" class="tux-rich-data-grid__spacer">
+            <td :colspan="fullColspan" :style="{ height: `${padBottom}px` }" />
+          </tr>
           <tr v-if="!rows.length">
             <td
-              :colspan="columns.length + (selectionDisabled ? 0 : 1) + (expansionDisabled ? 0 : 1)"
+              :colspan="fullColspan"
               class="tux-rich-data-grid__empty"
             >
               <slot name="empty">No rows.</slot>

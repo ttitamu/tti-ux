@@ -7,6 +7,18 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **`TuxRichDataGrid` virtualized big-list mode** (owner-requested) —
+  pass `virtualized` (+ optional `virtualRowHeight`, default 44) and
+  the body windows through `@tanstack/vue-virtual`: only the visible
+  slice of rows renders, bracketed by table-compatible spacer rows
+  that preserve the scroll extent, so sticky header, sorting, and
+  key-based selection keep working (measured live: 17–25 rendered
+  `<tr>`s while scrolling 5,000 rows). Spacers are mounted-gated so
+  SSR and the hydrating client agree. Row expansion is disabled while
+  virtualized (variable-height windows need per-row measurement —
+  build when a consumer needs it). Demo on
+  `/components/rich-data-grid`; mounted tests included.
+
 - **Mounted component testing foundation** — `vitest.config.ts` (the
   file never existed; `npm test` ran bare) with a two-tier layout:
   pure tests stay in the node environment, mounted tests opt into the
