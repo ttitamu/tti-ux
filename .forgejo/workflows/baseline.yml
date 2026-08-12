@@ -103,8 +103,116 @@ jobs:
       # Trivy owns SCA, gitleaks (below) owns secrets. (Trivy's default fs scan ALSO
       # does secrets+misconfig, which would double-report against gitleaks.) Fails on
       # HIGH/CRITICAL; suppressed CVEs come from /tmp/.trivyignore.
-      - name: SCA — Trivy filesystem (HIGH/CRITICAL gate)
-        run: '$HOME/.local/bin/trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --no-progress --ignorefile /tmp/.trivyignore .'
+      #
+      # M2 (ops/M-actionable-findings-design.md): a failing gate must NAME THE
+      # FIX. On pull_request failures this posts ONE marker-deduped comment
+      # mapping each finding to the open Renovate PR that fixes it (or the
+      # lockfile command when none exists), and flags when the failure is
+      # INHERITED from a red default branch (the deadlock that kept three
+      # repos red for a week, 2026-08-12). Token via env:, never ${{ }} in run.
+      - name: SCA — Trivy filesystem (HIGH/CRITICAL gate + fix map)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          "$HOME/.local/bin/trivy" fs --scanners vuln --severity HIGH,CRITICAL \
+            --exit-code 0 --no-progress --ignorefile /tmp/.trivyignore \
+            --format json --output /tmp/trivy.json .
+          python3 - <<'PYEOF'
+          import json, os, sys, urllib.request
+
+          rep = json.load(open("/tmp/trivy.json"))
+          vulns = []
+          for res in rep.get("Results") or []:
+              for v in res.get("Vulnerabilities") or []:
+                  vulns.append({"target": res.get("Target", ""),
+                                "pkg": v.get("PkgName", ""),
+                                "id": v.get("VulnerabilityID", ""),
+                                "sev": v.get("Severity", ""),
+                                "installed": v.get("InstalledVersion", ""),
+                                "fixed": v.get("FixedVersion", "")})
+          if not vulns:
+              print("SCA: no HIGH/CRITICAL findings.")
+              sys.exit(0)
+          print(f"SCA: {len(vulns)} HIGH/CRITICAL finding(s):")
+          for v in vulns:
+              print(f"  {v['sev']:9} {v['pkg']:30} {v['id']:20} "
+                    f"{v['installed']} -> fixed in {v['fixed'] or '?'}  ({v['target']})")
+
+          api = os.environ.get("GITHUB_API_URL", "")
+          repo = os.environ.get("GITHUB_REPOSITORY", "")
+          tok = os.environ.get("GH_TOKEN", "")
+
+          def gh(path, data=None):
+              req = urllib.request.Request(
+                  api + path,
+                  data=json.dumps(data).encode() if data is not None else None,
+                  headers={"Authorization": "token " + tok,
+                           "Content-Type": "application/json"},
+                  method="POST" if data is not None else "GET")
+              with urllib.request.urlopen(req, timeout=15) as r:
+                  return json.load(r)
+
+          if os.environ.get("GITHUB_EVENT_NAME") == "pull_request" and api and repo and tok:
+              try:
+                  event = json.load(open(os.environ["GITHUB_EVENT_PATH"]))
+                  pr = event.get("pull_request") or {}
+                  prn = event.get("number") or pr.get("number")
+                  head_sha = (pr.get("head") or {}).get("sha", "")
+                  base_ref = (pr.get("base") or {}).get("ref", "")
+                  marker = f"<!-- tti-fixmap:{head_sha} -->"
+                  cs = gh(f"/repos/{repo}/issues/{prn}/comments?limit=50")
+                  if any(marker in (c.get("body") or "") for c in cs):
+                      print("fix map already posted for this head commit.")
+                      sys.exit(1)
+                  prs = gh(f"/repos/{repo}/pulls?state=open&limit=50")
+
+                  def fix_pr(pkg):
+                      needle = pkg.lower().split("/")[-1]
+                      for p in prs:
+                          hay = (p.get("title", "") + " " +
+                                 ((p.get("head") or {}).get("ref") or "")).lower()
+                          if needle and needle in hay:
+                              return p
+                      return None
+
+                  lines = ["### 🔧 Security-gate fix map", marker, "",
+                           "The gate failed on these dependency findings — "
+                           "fastest path to green for each:", "",
+                           "| finding | package | installed → fixed | do this |",
+                           "|---|---|---|---|"]
+                  for v in vulns:
+                      p = fix_pr(v["pkg"])
+                      if p:
+                          do = f"merge #{p['number']} — {p['title'][:60]}"
+                      elif "package-lock" in v["target"]:
+                          do = (f"no fix PR yet — `npm update "
+                                f"{v['pkg'].split('/')[-1]} --package-lock-only`")
+                      else:
+                          do = "no fix PR yet — bump the pinned version"
+                      lines.append(f"| {v['id']} ({v['sev']}) | `{v['pkg']}` | "
+                                   f"{v['installed']} → {v['fixed'] or '?'} | {do} |")
+                  try:
+                      st = gh(f"/repos/{repo}/commits/{base_ref}/status")
+                      if (st.get("state") or "") in ("failure", "error"):
+                          lines += ["", f"> ⚠ `{base_ref}` is itself red right now — "
+                                    "this PR likely **inherits** the backlog rather "
+                                    f"than adding it. Fixing `{base_ref}` (rows above) "
+                                    "unblocks every open PR at once."]
+                  except Exception:
+                      pass
+                  lines += ["", "<sub>Posted once per head commit by the baseline "
+                            "gate (M2). A Renovate PR that only touches a manifest "
+                            "with no lockfile change is a broken pre-2026-08-06 "
+                            "artifact — check its diff before merging.</sub>"]
+                  gh(f"/repos/{repo}/issues/{prn}/comments", {"body": "\n".join(lines)})
+                  print("fix map comment posted.")
+              except SystemExit:
+                  raise
+              except Exception as e:
+                  print(f"fix-map post failed (non-fatal): {e!r}")
+          sys.exit(1)
+          PYEOF
 
       # Secret gate — the checkout is depth-1, so this scans the WHOLE TREE as of
       # the branch head (not just the diff). gitleaks reads ./.gitleaksignore
