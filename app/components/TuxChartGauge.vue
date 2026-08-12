@@ -112,9 +112,12 @@ function valueToAngle(v: number): number {
 }
 
 function polar(angle: number, r: number): { x: number; y: number } {
+  // Round to 2dp: raw trig floats can serialize differently between the
+  // server's and browser's V8 (last-ulp Math.sin/cos differences), which
+  // reads as an SSR hydration mismatch on the path/position attributes.
   return {
-    x: cx.value + r * Math.sin(angle),
-    y: cy.value - r * Math.cos(angle),
+    x: Math.round((cx.value + r * Math.sin(angle)) * 100) / 100,
+    y: Math.round((cy.value - r * Math.cos(angle)) * 100) / 100,
   };
 }
 

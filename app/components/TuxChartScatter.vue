@@ -208,6 +208,11 @@ const ariaSummary = computed(() => {
 });
 
 // ----- Hover tooltip ----------------------------------------------
+// Roving-cursor model (components.md chart-tooltip contract): ONE tab
+// stop on the svg, Arrow keys walk the points in x order, Escape
+// clears. Dots were previously individually focusable — a 500-point
+// scatter injected 500 tab stops with no Escape. Pointer hover stays
+// per-dot; both paths converge on the shared hover index.
 interface HoveredPoint {
   seriesIdx: number;
   pointIdx: number;
@@ -216,32 +221,51 @@ interface HoveredPoint {
 }
 const hovered = ref<HoveredPoint | null>(null);
 
+const flatPoints = computed(() => {
+  const out: Array<{ seriesIdx: number; pointIdx: number; x: number }> = [];
+  props.series.forEach((s, i) => s.points.forEach((p, j) => out.push({ seriesIdx: i, pointIdx: j, x: p.x })));
+  out.sort((a, b) => a.x - b.x);
+  return out;
+});
+
+const flatIndexByKey = computed(() => {
+  const m = new Map<string, number>();
+  flatPoints.value.forEach((fp, k) => m.set(`${fp.seriesIdx}-${fp.pointIdx}`, k));
+  return m;
+});
+
+const {
+  setHoverIndex,
+  onPointerLeave: onDotLeave,
+  onKeydown: onScatterKey,
+} = useTuxChartHover({
+  count: () => flatPoints.value.length,
+  enabled: () => props.tooltip,
+  indexFromPointer: () => null, // pointer handled per-dot below
+  onChange(idx) {
+    if (idx === null) {
+      hovered.value = null;
+      emit("hover", null);
+      return;
+    }
+    const fp = flatPoints.value[idx];
+    const s = fp ? props.series[fp.seriesIdx] : undefined;
+    const p = fp ? s?.points[fp.pointIdx] : undefined;
+    if (!fp || !s || !p) return;
+    hovered.value = { seriesIdx: fp.seriesIdx, pointIdx: fp.pointIdx, series: s, point: p };
+    emit("hover", {
+      seriesKey: s.key,
+      seriesLabel: s.label,
+      x: p.x,
+      y: p.y,
+      label: p.label,
+    });
+  },
+});
+
 function onDotEnter(seriesIdx: number, pointIdx: number) {
   if (!props.tooltip) return;
-  const s = props.series[seriesIdx];
-  const p = s?.points[pointIdx];
-  if (!s || !p) return;
-  hovered.value = { seriesIdx, pointIdx, series: s, point: p };
-  emit("hover", {
-    seriesKey: s.key,
-    seriesLabel: s.label,
-    x: p.x,
-    y: p.y,
-    label: p.label,
-  });
-}
-
-function onDotLeave() {
-  hovered.value = null;
-  emit("hover", null);
-}
-
-function onDotFocus(seriesIdx: number, pointIdx: number) {
-  onDotEnter(seriesIdx, pointIdx);
-}
-
-function onDotBlur() {
-  onDotLeave();
+  setHoverIndex(flatIndexByKey.value.get(`${seriesIdx}-${pointIdx}`) ?? null);
 }
 
 const tooltipPos = computed(() => {
@@ -255,9 +279,7 @@ const tooltipPos = computed(() => {
 
 function hoverToneClass(seriesIdx: number): string {
   const s = props.series[seriesIdx];
-  const idx = s?.toneIndex ?? seriesIdx + 1;
-  const tone = Math.max(1, Math.min(8, idx));
-  return `tux-chart-scatter__series--c${tone}`;
+  return s ? toneClass(s, seriesIdx) : "";
 }
 </script>
 
@@ -269,6 +291,10 @@ function hoverToneClass(seriesIdx: number): string {
       :height="height"
       preserveAspectRatio="xMidYMid meet"
       class="tux-chart-scatter__svg"
+      tabindex="0"
+      role="img"
+      :aria-label="`${allPoints.length} points across ${series.length} series; use arrow keys to read each.`"
+      @keydown="onScatterKey"
     >
       <!-- Gridlines -->
       <g v-if="gridlines" class="tux-chart-scatter__gridlines">
@@ -360,14 +386,9 @@ function hoverToneClass(seriesIdx: number): string {
               toneClass(s, i),
               { 'tux-chart-scatter__dot--active': hovered && hovered.seriesIdx === i && hovered.pointIdx === j },
             ]"
-            tabindex="0"
-            role="img"
             :style="`--tux-chart-stagger-index: ${j};`"
-            :aria-label="`${s.label}: ${p.label ? p.label + ', ' : ''}x ${format(p.x)}, y ${format(p.y)}`"
             @pointerenter="onDotEnter(i, j)"
             @pointerleave="onDotLeave"
-            @focus="onDotFocus(i, j)"
-            @blur="onDotBlur"
           >
             <title>{{ s.label }}{{ p.label ? ' · ' + p.label : '' }}: ({{ format(p.x) }}, {{ format(p.y) }})</title>
           </circle>
@@ -453,21 +474,30 @@ function hoverToneClass(seriesIdx: number): string {
   letter-spacing: 0.02em;
 }
 
+.tux-chart-scatter__svg {
+  outline: none;
+}
+
+.tux-chart-scatter__svg:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--brand-primary));
+  outline-offset: 2px;
+}
+
 .tux-chart-scatter__dot {
   fill: var(--tux-chart-tone, var(--chart-1, var(--brand-primary)));
   opacity: 0.78;
   transition: opacity 120ms ease-out, r 120ms ease-out;
   cursor: pointer;
-  outline: none;
 }
 
 .tux-chart-scatter__dot:hover,
-.tux-chart-scatter__dot:focus-visible,
 .tux-chart-scatter__dot--active {
   opacity: 1;
 }
 
-.tux-chart-scatter__dot:focus-visible {
+/* The keyboard-active dot (arrow keys on the svg) mirrors the old
+   per-dot focus ring so the roving cursor stays visible. */
+.tux-chart-scatter__dot--active {
   stroke: var(--brand-primary);
   stroke-width: 2;
 }

@@ -5,7 +5,32 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Chart tooltip contract extended to the interaction-less charts**
+  (per the components.md "Chart tooltips" doctrine, which previously
+  only Line/Bar/Area/Scatter honored):
+  - **`TuxTreemap`** — cells were focusable but bound no key handlers
+    (a focus ring with no readout and no way to drill). Cells are now
+    real `role="button"`s with accessible names; focus shows the
+    tooltip anchored to the cell, arrows walk the leaf cells,
+    Enter/Space drills in, Backspace drills up, Escape dismisses.
+  - **`TuxChartDonut`** — per-slice hover + branded tooltip card
+    (label, value, % of total), sibling slices dim while one is
+    active, native `<title>` fallbacks, `hover` emit, `tooltip` prop,
+    and single-tab-stop keyboard access (arrows cycle slices).
+  - **`TuxChartSunburst`** — same treatment; arrows walk segments in
+    hierarchical order (group, then its children) and the tooltip
+    names the parent group.
+
 ### Changed
+
+- **`TuxChartScatter` keyboard model: roving cursor instead of
+  per-point tab stops.** Every dot was previously `tabindex="0"` — a
+  500-point scatter injected 500 tab stops with no Escape. The svg is
+  now the single focusable surface; arrow keys walk points in x order
+  with the active dot ringed, Escape clears, and per-dot pointer hover
+  still works. The components.md contract text was updated to match.
 
 - **Chart family: shared scale math + hover model**
   (`app/utils/tuxChartScale.ts` + `useTuxChartHover()`, locked by
@@ -46,6 +71,18 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **Radial charts: SSR hydration mismatch from raw trig floats.**
+  `TuxChartSunburst` / `TuxChartDonut` / `TuxChartGauge` serialized
+  unrounded `Math.sin`/`Math.cos` results into arc `d` and position
+  attributes; the server's and browser's V8 can differ in the last
+  ulp on transcendentals, so hydration flagged mismatched attributes
+  ("Hydration completed but contains mismatches", data-dependent).
+  Coordinates now round to 2dp at the geometry boundary — the same
+  discipline the cartesian charts already used via `toFixed(2)` —
+  verified byte-identical server-vs-client on every radial showcase
+  instance. Also fixed in passing: `TuxChartScatter`'s tooltip swatch
+  lost its color in the palette consolidation (its `hoverToneClass`
+  helper predated the shared tone classes).
 - **`tux-audit a11y` gated on the wrong dependency** — the dispatcher
   required `puppeteer`, but `audit-a11y.mjs` runs on jsdom + axe-core
   (its header documents why). Consumers with jsdom + axe-core were

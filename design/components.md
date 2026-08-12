@@ -531,11 +531,20 @@ no contributor escapes it, no "delight" affordance ignores it.
 
 Every interactive chart in the native chart family uses the same
 tooltip pattern, shipped 2026-05-22 (`TuxChartLine`, `TuxChartBar`,
-`TuxChartArea`, `TuxChartScatter`):
+`TuxChartArea`, `TuxChartScatter`) and extended to `TuxChartDonut`,
+`TuxChartSunburst`, and `TuxTreemap` 2026-08-12:
 
-1. **Hover via pointer or focus via keyboard.** Lines / Areas / Bars
-   accept a focusable rect across the plot area; arrow keys cycle
-   the active index. Scatter dots are individually focusable.
+1. **Hover via pointer or focus via keyboard — one tab stop per
+   chart.** Lines / Areas / Bars accept a focusable rect across the
+   plot area; Scatter / Donut / Sunburst make the `<svg>` itself the
+   single focusable surface. Arrow keys cycle the active item as a
+   roving cursor (scatter points in x order; donut slices clockwise;
+   sunburst segments in hierarchical order — group, then its
+   children). Never make every data point a tab stop: a 500-point
+   scatter must not inject 500 tab stops. Treemap is the one
+   exception — its cells are real drill-in *buttons* (`role="button"`,
+   Enter/Space drills, Backspace drills up, arrows walk cells), so
+   per-cell focus is the correct semantic.
 2. **Visual highlight** — vertical guide line + per-series focus
    dots (Line / Area); column-wash on the active category (Bar);
    active-dot grow +2px (Scatter).

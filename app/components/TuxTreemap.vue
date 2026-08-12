@@ -281,37 +281,108 @@ const tooltipStyle = ref<{
   left?: string; right?: string; top?: string; bottom?: string;
 }>({});
 
+function positionTooltip(anchorX: number, anchorY: number, rect: DOMRect) {
+  const offset = 12;
+  // Flip horizontally if the anchor is past midpoint — tooltip anchors
+  // right. Flip vertically if it's in the bottom half — anchors above.
+  const flipX = anchorX > rect.width / 2;
+  const flipY = anchorY > rect.height / 2;
+
+  const style: typeof tooltipStyle.value = {};
+  if (flipX) {
+    style.right = `${rect.width - anchorX + offset}px`;
+  } else {
+    style.left = `${anchorX + offset}px`;
+  }
+  if (flipY) {
+    style.bottom = `${rect.height - anchorY + offset}px`;
+  } else {
+    style.top = `${anchorY + offset}px`;
+  }
+  tooltipStyle.value = style;
+}
+
 function onCellHover(cell: LayoutCell, e: MouseEvent) {
   hoveredCell.value = cell;
   const svg = (e.currentTarget as SVGElement).ownerSVGElement;
   const wrap = svg?.parentElement;
   if (!wrap) return;
   const rect = wrap.getBoundingClientRect();
-  const cursorX = e.clientX - rect.left;
-  const cursorY = e.clientY - rect.top;
-  const offset = 12;
+  positionTooltip(e.clientX - rect.left, e.clientY - rect.top, rect);
+}
 
-  // Flip horizontally if cursor is past midpoint — tooltip anchors right.
-  // Flip vertically if cursor is in bottom half — tooltip anchors above.
-  const flipX = cursorX > rect.width / 2;
-  const flipY = cursorY > rect.height / 2;
-
-  const style: typeof tooltipStyle.value = {};
-  if (flipX) {
-    style.right = `${rect.width - cursorX + offset}px`;
-  } else {
-    style.left = `${cursorX + offset}px`;
-  }
-  if (flipY) {
-    style.bottom = `${rect.height - cursorY + offset}px`;
-  } else {
-    style.top = `${cursorY + offset}px`;
-  }
-  tooltipStyle.value = style;
+// Keyboard path: focusing a cell shows the same tooltip, anchored to
+// the cell's center (no cursor to follow).
+function onCellFocus(cell: LayoutCell, e: FocusEvent) {
+  hoveredCell.value = cell;
+  const svg = (e.currentTarget as SVGElement).ownerSVGElement;
+  const wrap = svg?.parentElement;
+  if (!wrap) return;
+  const rect = wrap.getBoundingClientRect();
+  const cx = ((cell.rect.x + cell.rect.w / 2) / props.width) * rect.width;
+  const cy = ((cell.rect.y + cell.rect.h / 2) / props.height) * rect.height;
+  positionTooltip(cx, cy, rect);
 }
 
 function onCellLeave() {
   hoveredCell.value = null;
+}
+
+// ----- Keyboard navigation ------------------------------------------
+// Cells were focusable before but bound no key handlers — a focus ring
+// with no readout and no way to drill. Arrow keys walk the leaf cells
+// in layout (size) order, Enter/Space drills in, Backspace drills up,
+// Escape dismisses the tooltip.
+const canvasRef = ref<SVGSVGElement | null>(null);
+
+function focusLeafAt(index: number) {
+  const leaves = canvasRef.value?.querySelectorAll<SVGRectElement>(".tux-treemap__cell--leaf");
+  if (!leaves || leaves.length === 0) return;
+  const i = Math.max(0, Math.min(leaves.length - 1, index));
+  leaves[i]?.focus();
+}
+
+function focusFirstLeafSoon() {
+  nextTick(() => focusLeafAt(0));
+}
+
+function leafIndexOf(cell: LayoutCell): number {
+  let i = 0;
+  for (const c of layout.value) {
+    if (c.isAggregate) continue;
+    if (c === cell) return i;
+    i++;
+  }
+  return 0;
+}
+
+function onCellKeydown(cell: LayoutCell, e: KeyboardEvent) {
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    if (cell.node.children && cell.node.children.length > 0) {
+      drillInto(cell);
+      focusFirstLeafSoon();
+    }
+  } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+    e.preventDefault();
+    focusLeafAt(leafIndexOf(cell) + 1);
+  } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+    e.preventDefault();
+    focusLeafAt(leafIndexOf(cell) - 1);
+  } else if (e.key === "Backspace" && drillStack.value.length > 0) {
+    e.preventDefault();
+    navigateTo(drillStack.value.length - 1);
+    focusFirstLeafSoon();
+  } else if (e.key === "Escape") {
+    hoveredCell.value = null;
+  }
+}
+
+function cellAriaLabel(cell: LayoutCell): string {
+  const drill = cell.node.children && cell.node.children.length > 0
+    ? " — press Enter to drill in"
+    : "";
+  return `${cell.path} · ${formatSize(cell.size)}${drill}`;
 }
 
 // Hide labels on cells too small to fit them.
@@ -342,12 +413,15 @@ function fitsSize(rect: Rect): boolean {
     <!-- SVG canvas -->
     <div class="tux-treemap__canvas-wrap" :style="{ aspectRatio: `${width} / ${height}` }">
       <svg
+        ref="canvasRef"
         :viewBox="`0 0 ${width} ${height}`"
         preserveAspectRatio="xMidYMid meet"
         class="tux-treemap__canvas"
-        role="img"
+        role="group"
         :aria-label="`Treemap of ${currentNode.name}`"
-      >
+      ><!-- role=group, not img: the canvas contains real interactive
+        cell buttons, and role=img would make them nested-interactive
+        violations (an image is opaque to AT). -->
         <g
           v-for="cell in layout"
           :key="`${cell.path}-${cell.depth}`"
@@ -366,8 +440,13 @@ function fitsSize(rect: Rect): boolean {
               'tux-treemap__cell--leaf': !cell.isAggregate,
             }"
             :tabindex="cell.isAggregate ? -1 : 0"
+            :role="cell.isAggregate ? undefined : 'button'"
+            :aria-label="cell.isAggregate ? undefined : cellAriaLabel(cell)"
             @mousemove="onCellHover(cell, $event)"
             @mouseleave="onCellLeave"
+            @focus="onCellFocus(cell, $event)"
+            @blur="onCellLeave"
+            @keydown="onCellKeydown(cell, $event)"
             @click="drillInto(cell)"
           />
           <!-- Aggregate header label -->
@@ -397,6 +476,8 @@ function fitsSize(rect: Rect): boolean {
       <div
         v-if="hoveredCell"
         class="tux-treemap__tooltip"
+        role="status"
+        aria-live="polite"
         :style="tooltipStyle"
       >
         <p class="tux-treemap__tooltip-path">{{ hoveredCell.path }}</p>
