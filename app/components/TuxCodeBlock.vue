@@ -44,7 +44,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const colorMode = useColorMode();
 const { highlight } = useTuxHighlighter();
-const copied = ref(false);
+const { copied, copy: writeClipboard } = useTuxClipboard();
 
 const shikiTheme = computed<BundledTheme>(() => {
   if (colorMode.value === "tti-dark") return "github-dark";
@@ -80,10 +80,7 @@ function hashCode(s: string): string {
 const lines = computed(() => props.code.split("\n"));
 
 async function copy() {
-  if (typeof navigator === "undefined" || !navigator.clipboard) return;
-  await navigator.clipboard.writeText(props.code);
-  copied.value = true;
-  setTimeout(() => (copied.value = false), 1500);
+  await writeClipboard(props.code);
 }
 
 const LANG_EXT: Record<string, string> = {

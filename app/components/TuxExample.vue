@@ -49,7 +49,7 @@ const activeTab = ref<Tab>("vue");
 const previewRef = ref<HTMLElement | null>(null);
 const rendered = ref("");
 const renderedHighlighted = ref<string | null>(null);
-const copied = ref(false);
+const { copied, copy: writeClipboard } = useTuxClipboard();
 
 const colorMode = useColorMode();
 const { highlight } = useTuxHighlighter();
@@ -169,13 +169,7 @@ const highlightedCode = computed<string | null>(() => {
 
 async function copyActive() {
   if (!activeCode.value) return;
-  try {
-    await navigator.clipboard.writeText(activeCode.value);
-    copied.value = true;
-    setTimeout(() => (copied.value = false), 1500);
-  } catch {
-    // Clipboard API unavailable (e.g. insecure context) — fail silently.
-  }
+  await writeClipboard(activeCode.value);
 }
 </script>
 

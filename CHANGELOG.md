@@ -38,6 +38,21 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **Dependency hygiene (owner-decided): `@vueuse/core` + `@vueuse/nuxt`
+  + `@tanstack/vue-table` removed.** All three were declared (VueUse
+  even registered as a module) with zero call sites — dead weight in
+  every consumer's dependency graph. The duplicated hand-rolled
+  patterns they would have covered are now tux-owned composables:
+  `useTuxPersistedRef` (SSR-safe storage-backed ref with a
+  `serializer` option so migrated components keep their exact wire
+  format) and `useTuxClipboard` (copy + "Copied" flash, keyed variant,
+  clears its reset timer on unmount — the hand-rolled copies leaked
+  theirs). Migrated: TuxAnnouncementBanner (dismissal memory),
+  TuxCodeBlock / TuxExample / TuxCitationExport (copy affordances).
+  `@tanstack/vue-virtual` stays — kept deliberately to back
+  TuxRichDataGrid's virtualized big-list mode (owner-requested,
+  landing separately).
+
 - **`TuxChartScatter` keyboard model: roving cursor instead of
   per-point tab stops.** Every dot was previously `tabindex="0"` — a
   500-point scatter injected 500 tab stops with no Escape. The svg is

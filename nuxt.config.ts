@@ -78,7 +78,12 @@ export default defineNuxtConfig({
     "@nuxt/a11y",
     "@nuxtjs/color-mode",
     "@nuxtjs/mdc",
-    "@vueuse/nuxt",
+    // @vueuse/nuxt removed 2026-08-12 (owner-decided): registered since
+    // early scaffolding with zero call sites. House utilities live in
+    // app/composables/ as tux-owned equivalents (useTuxPersistedRef,
+    // useTuxClipboard, …) — model new ones on VueUse's semantics when a
+    // need appears, but own the ~30 lines instead of shipping the
+    // dependency to every consumer.
   ],
 
   // Components registration. Default Nuxt behavior auto-imports

@@ -67,22 +67,14 @@ const defaultIcon: Record<Tone, string> = {
 };
 
 const storageKey = computed(() => (props.id ? `tux-announcement-${props.id}` : null));
-const dismissed = ref(false);
-
-onMounted(() => {
-  if (!storageKey.value) return;
-  try {
-    if (localStorage.getItem(storageKey.value) === "1") {
-      dismissed.value = true;
-    }
-  } catch { /* localStorage unavailable — render banner */ }
+// Wire-format compat: this key has stored the literal "1" since the
+// component shipped — the serializer preserves it.
+const dismissed = useTuxPersistedRef<boolean>(() => storageKey.value, false, {
+  serializer: { read: (raw) => raw === "1", write: (v) => (v ? "1" : "0") },
 });
 
 function dismiss() {
   dismissed.value = true;
-  if (storageKey.value) {
-    try { localStorage.setItem(storageKey.value, "1"); } catch { /* ignore */ }
-  }
   emit("dismiss");
 }
 </script>
