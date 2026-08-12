@@ -5,6 +5,25 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+
+## [1.9.0] — 2026-08-12
+
+The chart-engineering minor. One audit-driven day: the geographic
+family stops shipping 348KB of Texas to every consumer (per-kind
+async split), the four cartesian charts trade four drifted copies of
+their scale/hover math for shared modules under behavior-lock tests,
+the palette collapses ~135 pasted declarations into one file, and the
+six interaction-less charts join the tooltip/keyboard contract —
+including the treemap keyboard-drill fix and a scatter roving cursor
+replacing 500 tab stops. Underneath: the repo's first mounted
+component tests (vitest + @nuxt/test-utils), VueUse/TanStack dead
+weight dropped in favor of tux-owned composables,
+`TuxRichDataGrid` gains an opt-in virtualized big-list mode, focus
+rings unify onto the universal two-ring system, and a fix wave closes
+the tux-audit dependency gate, `Math.random()` ids, the radial
+charts' SSR float mismatches, and the `TuxExample` formatter crash
+that had been corrupting hydration on heavy pages.
+
 ### Added
 
 - **`TuxRichDataGrid` virtualized big-list mode** (owner-requested) —

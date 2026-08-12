@@ -254,7 +254,8 @@ vendor the artifact verbatim and reference canonical names.
 | 2026-07-30 | Plan reconstruction | This document committed; estate survey folded in; owner decisions #1–4 below resolved. v1.7.1: catalog single-source (`app/utils/tuxCatalog.ts` + invariant test), doc truth pass, tests wired into CI. |
 | *(next)* | B2 (TTI Code) | Token consolidation onto the kit artifact, shell-fragment consolidation, server-rendered waffle partial, `/launch/ai-studio` interstitial, overlay integrity manifest, deploy-from-git-ref. **Three portals.** |
 | *(next)* | v1.8.0 | `--text-on-brand` + `--border-subtle` + spacing scale + warning→gold, typography doctrine fix, `TuxStatusToast`, `TuxPageContainer`, `TuxAvatar`, Nuxt UI theme hardening, consumer-debt fixes (mega-menu cap, measured nav height, demo-route stripping, dark-bridge tolerance), kit shipped in package `files`, `brand.env` + Power BI artifacts, `tux-audit` bin. |
-| *(later)* | v1.9.0 | `TuxKanban` family promotion (from AI Studio, re-implemented tokens-clean), lint-rule guardrails. |
+| 2026-08-12 | v1.9.0 "chart engineering" | Audit-driven day: TuxChartGeographic per-kind async split (348KB → 12–163KB per kind), shared chart scale/hover/tone modules + one palette file under 39 behavior-lock tests, tooltip/keyboard contract extended to treemap/donut/sunburst + scatter roving cursor, mounted-test foundation (vitest + @nuxt/test-utils, 66 tests), VueUse/TanStack dead weight dropped for tux-owned composables, TuxRichDataGrid virtualized mode, universal focus-ring consolidation, fix wave (tux-audit jsdom gate, useId ids, radial SSR float mismatch, TuxExample formatter crash). |
+| *(later)* | — | `TuxKanban` family promotion (from AI Studio, re-implemented tokens-clean), lint-rule guardrails. |
 
 ---
 
