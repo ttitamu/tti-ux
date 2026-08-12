@@ -493,8 +493,6 @@ function onBetweenChange(rule: Rule, idx: 0 | 1, raw: string) {
 }
 .tux-rule-builder-row__select:focus,
 .tux-rule-builder-row__input:focus {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 1px;
   border-color: var(--brand-primary);
 }
 .tux-rule-builder-row__select--field { min-width: 9rem; }

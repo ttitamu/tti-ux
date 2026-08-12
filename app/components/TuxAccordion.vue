@@ -112,10 +112,6 @@ const groupName = computed(() => (props.single ? `tux-accordion-${groupId}` : un
   background: color-mix(in srgb, var(--brand-primary) 3%, transparent);
 }
 
-.tux-accordion__summary:focus-visible {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: -2px;
-}
 
 .tux-accordion__summary-content {
   flex: 1;

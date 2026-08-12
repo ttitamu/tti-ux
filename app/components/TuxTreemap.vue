@@ -571,8 +571,11 @@ function fitsSize(rect: Rect): boolean {
   opacity: 0.85;
 }
 
+/* SVG-child exception: the universal box-shadow ring can't render on
+   SVG child elements, so cells carry their own outline — colored with
+   the themed focus token (black in HC), not a brand accent. */
 .tux-treemap__cell--leaf:focus-visible {
-  outline: 2px solid var(--brand-accent);
+  outline: 2px solid var(--focus-ring-outer);
   outline-offset: -2px;
 }
 

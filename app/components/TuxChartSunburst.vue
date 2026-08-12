@@ -370,12 +370,7 @@ const tooltipPos = computed(() => {
 }
 .tux-chart-sunburst--bare { grid-template-columns: auto; }
 .tux-chart-sunburst__wrap { position: relative; display: inline-block; }
-.tux-chart-sunburst__svg { display: block; outline: none; }
-
-.tux-chart-sunburst__svg:focus-visible {
-  outline: 2px solid var(--focus-ring, var(--brand-primary));
-  outline-offset: 2px;
-}
+.tux-chart-sunburst__svg { display: block; }
 
 .tux-chart-sunburst__svg path {
   transition: opacity 120ms ease-out;

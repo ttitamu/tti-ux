@@ -109,13 +109,7 @@ const isInternalLink = computed(() =>
   max-width: 22.5rem;
 }
 
-/* Wraps a link — kill default focus ring; rely on the focus pseudo we add. */
-.tux-identity:is(a, .router-link-active):focus { outline: none; }
-
-.tux-identity:is(a, .router-link-active):focus-visible {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 4px;
-}
+/* Focus ring: the universal *:focus-visible rule (globals.css) owns it. */
 
 /* Horizontal: logo + stacked-text-block side-by-side */
 .tux-identity--horizontal {

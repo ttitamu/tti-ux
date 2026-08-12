@@ -485,6 +485,28 @@ absorption (2026-05-21). The five `kind` presets (`no-data` /
 `no-results` / `not-found` / `no-permissions` / `first-run`) cover
 the real scenario taxonomy; 200 generic illustrations would not.
 
+### Focus rings — the universal rule owns them
+
+The layer ships ONE focus affordance: `*:focus-visible` in
+`globals.css` applies the themed two-ring `--shadow-focus`
+(`--focus-ring-inner` / `--focus-ring-outer`, remapped per theme —
+black-on-white in high-contrast). Components must NOT restate their
+own ring: a per-component `outline: 2px solid <color>` double-draws
+on top of the shadow, and a per-component `outline: none` silently
+suppresses the universal ring (2026-08-12 audit found four competing
+recipes across ten components — all removed).
+
+Exactly two sanctioned exceptions:
+
+1. **SVG child elements** (`<rect>`, `<path>`, …) — `box-shadow`
+   cannot render on them, so a focusable SVG child carries its own
+   `outline: 2px solid var(--focus-ring-outer)` (the themed token,
+   never a brand color). `TuxTreemap`'s cells are the canonical case.
+   Plot-level capture rects may instead use the documented
+   wash-fill alternative (`TuxChartLine`'s hover capture).
+2. **`@media (forced-colors: active)`** blocks — Windows High
+   Contrast rings use system colors by design; leave them.
+
 ### Motion primitives — six canonical transitions
 
 Absorbed from the Tailwind Headless UI w/ Animations Figma kit and

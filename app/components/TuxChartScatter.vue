@@ -474,15 +474,6 @@ function hoverToneClass(seriesIdx: number): string {
   letter-spacing: 0.02em;
 }
 
-.tux-chart-scatter__svg {
-  outline: none;
-}
-
-.tux-chart-scatter__svg:focus-visible {
-  outline: 2px solid var(--focus-ring, var(--brand-primary));
-  outline-offset: 2px;
-}
-
 .tux-chart-scatter__dot {
   fill: var(--tux-chart-tone, var(--chart-1, var(--brand-primary)));
   opacity: 0.78;

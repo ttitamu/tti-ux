@@ -50,6 +50,24 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **Focus rings: one universal system, ten divergent recipes removed.**
+  The layer has always shipped a themed two-ring focus affordance
+  (`*:focus-visible` → `--shadow-focus`, black-on-white in
+  high-contrast), but ten components had grown their own competing
+  rings — four recipes including a non-existent `--focus-ring` token
+  (masked by fallbacks) and a brand-accent ring on `TuxTreemap` — that
+  either double-drew on the universal shadow or suppressed it with
+  `outline: none`. All removed; components now inherit the universal
+  ring. Two sanctioned exceptions are documented in components.md
+  §"Focus rings": SVG child elements (box-shadow can't render there —
+  `TuxTreemap` cells now use the themed `--focus-ring-outer` instead
+  of brand-accent) and `forced-colors` blocks (system colors by
+  design). Form-control `:focus` border tints are kept — they're
+  input affordances, not rings. Scope note: the reduced-motion blocks
+  flagged in the same audit stay colocated per component by design
+  (portability beats DRY for 3-line media queries), and small-type
+  utilities are deferred until the token question is settled.
+
 - **Dependency hygiene (owner-decided): `@vueuse/core` + `@vueuse/nuxt`
   + `@tanstack/vue-table` removed.** All three were declared (VueUse
   even registered as a module) with zero call sites — dead weight in

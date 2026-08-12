@@ -390,15 +390,6 @@ const tooltipPos = computed(() => {
   height: auto;
 }
 
-.tux-chart-donut__svg {
-  outline: none;
-}
-
-.tux-chart-donut__svg:focus-visible {
-  outline: 2px solid var(--focus-ring, var(--brand-primary));
-  outline-offset: 2px;
-}
-
 .tux-chart-donut__slice {
   fill: var(--tux-chart-tone, var(--chart-1, var(--brand-primary)));
   stroke: var(--surface-page);
