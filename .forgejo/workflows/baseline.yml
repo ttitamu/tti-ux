@@ -92,10 +92,23 @@ jobs:
           esac
           # Download to a file, verify the published checksum, THEN extract. The
           # bare wget|tar pipe trusted TLS only — this closes that gap.
-          wget -qO /tmp/trivy.tgz "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-${TRIVY_ARCH}.tar.gz"
+          # fetch = 3 attempts covering EVERY failure class (DNS, TLS,
+          # conn-refused, HTTP) — a single silent wget death from github.com
+          # redded a PR before any scanning ran (2026-08-12). A gate must not
+          # fail on its own toolchain download when one retry would do.
+          fetch() {
+            for _i in 1 2 3; do
+              if wget -qO "$2" -T 30 "$1"; then return 0; fi
+              echo "download failed (attempt ${_i}/3): $1"
+              sleep 5
+            done
+            echo "download failed after 3 attempts: $1"
+            return 1
+          }
+          fetch "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-${TRIVY_ARCH}.tar.gz" /tmp/trivy.tgz
           echo "${TRIVY_SHA}  /tmp/trivy.tgz" | sha256sum -c -
           tar -xzf /tmp/trivy.tgz -C "$HOME/.local/bin" trivy
-          wget -qO /tmp/gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${GL_ARCH}.tar.gz"
+          fetch "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${GL_ARCH}.tar.gz" /tmp/gitleaks.tgz
           echo "${GITLEAKS_SHA}  /tmp/gitleaks.tgz" | sha256sum -c -
           tar -xzf /tmp/gitleaks.tgz -C "$HOME/.local/bin" gitleaks
 
@@ -103,11 +116,223 @@ jobs:
       # Trivy owns SCA, gitleaks (below) owns secrets. (Trivy's default fs scan ALSO
       # does secrets+misconfig, which would double-report against gitleaks.) Fails on
       # HIGH/CRITICAL; suppressed CVEs come from /tmp/.trivyignore.
-      - name: SCA — Trivy filesystem (HIGH/CRITICAL gate)
-        run: '$HOME/.local/bin/trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --no-progress --ignorefile /tmp/.trivyignore .'
+      #
+      # M2 (ops/M-actionable-findings-design.md): a failing gate must NAME THE
+      # FIX. On pull_request failures this posts ONE marker-deduped comment
+      # mapping each finding to the open Renovate PR that fixes it (or the
+      # lockfile command when none exists), and flags when the failure is
+      # INHERITED from a red default branch (the deadlock that kept three
+      # repos red for a week, 2026-08-12). Token via env:, never ${{ }} in run.
+      - name: SCA — Trivy filesystem (HIGH/CRITICAL gate + fix map)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          # --exit-code 0 means findings never fail this invocation (the
+          # python below owns the verdict) — so a nonzero here is purely
+          # operational (vulndb download flake and kin) and safe to retry.
+          _ok=""
+          for _try in 1 2 3; do
+            if "$HOME/.local/bin/trivy" fs --scanners vuln --severity HIGH,CRITICAL \
+              --exit-code 0 --no-progress --ignorefile /tmp/.trivyignore \
+              --format json --output /tmp/trivy.json .; then _ok=1; break; fi
+            echo "trivy attempt ${_try}/3 failed (operational — likely vulndb fetch); retrying in 10s"
+            sleep 10
+          done
+          if [ -z "$_ok" ]; then echo "trivy could not complete after 3 attempts"; exit 1; fi
+          python3 - <<'PYEOF'
+          import json, os, sys, urllib.request
 
-      # Secret gate — scans full git history. gitleaks reads ./.gitleaksignore
+          rep = json.load(open("/tmp/trivy.json"))
+          vulns = []
+          for res in rep.get("Results") or []:
+              for v in res.get("Vulnerabilities") or []:
+                  vulns.append({"target": res.get("Target", ""),
+                                "pkg": v.get("PkgName", ""),
+                                "id": v.get("VulnerabilityID", ""),
+                                "sev": v.get("Severity", ""),
+                                "installed": v.get("InstalledVersion", ""),
+                                "fixed": v.get("FixedVersion", "")})
+          if not vulns:
+              print("SCA: no HIGH/CRITICAL findings.")
+              sys.exit(0)
+          print(f"SCA: {len(vulns)} HIGH/CRITICAL finding(s):")
+          for v in vulns:
+              print(f"  {v['sev']:9} {v['pkg']:30} {v['id']:20} "
+                    f"{v['installed']} -> fixed in {v['fixed'] or '?'}  ({v['target']})")
+
+          api = os.environ.get("GITHUB_API_URL", "")
+          repo = os.environ.get("GITHUB_REPOSITORY", "")
+          tok = os.environ.get("GH_TOKEN", "")
+
+          def gh(path, data=None):
+              req = urllib.request.Request(
+                  api + path,
+                  data=json.dumps(data).encode() if data is not None else None,
+                  headers={"Authorization": "token " + tok,
+                           "Content-Type": "application/json"},
+                  method="POST" if data is not None else "GET")
+              with urllib.request.urlopen(req, timeout=15) as r:
+                  return json.load(r)
+
+          if os.environ.get("GITHUB_EVENT_NAME") == "pull_request" and api and repo and tok:
+              try:
+                  event = json.load(open(os.environ["GITHUB_EVENT_PATH"]))
+                  pr = event.get("pull_request") or {}
+                  prn = event.get("number") or pr.get("number")
+                  head_sha = (pr.get("head") or {}).get("sha", "")
+                  base_ref = (pr.get("base") or {}).get("ref", "")
+                  marker = f"<!-- tti-fixmap:{head_sha} -->"
+                  cs = gh(f"/repos/{repo}/issues/{prn}/comments?limit=50")
+                  if any(marker in (c.get("body") or "") for c in cs):
+                      print("fix map already posted for this head commit.")
+                      sys.exit(1)
+                  prs = gh(f"/repos/{repo}/pulls?state=open&limit=50")
+
+                  def fix_pr(pkg):
+                      needle = pkg.lower().split("/")[-1]
+                      for p in prs:
+                          hay = (p.get("title", "") + " " +
+                                 ((p.get("head") or {}).get("ref") or "")).lower()
+                          if needle and needle in hay:
+                              return p
+                      return None
+
+                  lines = ["### 🔧 Security-gate fix map", marker, "",
+                           "The gate failed on these dependency findings — "
+                           "fastest path to green for each:", "",
+                           "| finding | package | installed → fixed | do this |",
+                           "|---|---|---|---|"]
+                  for v in vulns:
+                      p = fix_pr(v["pkg"])
+                      if p:
+                          do = f"merge #{p['number']} — {p['title'][:60]}"
+                      elif "package-lock" in v["target"]:
+                          do = (f"no fix PR yet — `npm update "
+                                f"{v['pkg'].split('/')[-1]} --package-lock-only`")
+                      else:
+                          do = "no fix PR yet — bump the pinned version"
+                      lines.append(f"| {v['id']} ({v['sev']}) | `{v['pkg']}` | "
+                                   f"{v['installed']} → {v['fixed'] or '?'} | {do} |")
+                  try:
+                      st = gh(f"/repos/{repo}/commits/{base_ref}/status")
+                      if (st.get("state") or "") in ("failure", "error"):
+                          lines += ["", f"> ⚠ `{base_ref}` is itself red right now — "
+                                    "this PR likely **inherits** the backlog rather "
+                                    f"than adding it. Fixing `{base_ref}` (rows above) "
+                                    "unblocks every open PR at once."]
+                  except Exception:
+                      pass
+                  lines += ["", "<sub>Posted once per head commit by the baseline "
+                            "gate (M2). A Renovate PR that only touches a manifest "
+                            "with no lockfile change is a broken pre-2026-08-06 "
+                            "artifact — check its diff before merging.</sub>"]
+                  gh(f"/repos/{repo}/issues/{prn}/comments", {"body": "\n".join(lines)})
+                  print("fix map comment posted.")
+              except SystemExit:
+                  raise
+              except Exception as e:
+                  print(f"fix-map post failed (non-fatal): {e!r}")
+          sys.exit(1)
+          PYEOF
+
+      # Secret gate — the checkout is depth-1, so this scans the WHOLE TREE as of
+      # the branch head (not just the diff). gitleaks reads ./.gitleaksignore
       # (fingerprints) by default. A hit here is already-burned → secret-rotation
       # runbook (ops/secret-rotation-runbook.md), not just a code edit.
-      - name: Secrets — gitleaks (full history)
-        run: '$HOME/.local/bin/gitleaks detect --no-banner --redact --exit-code 1'
+      # --verbose prints each finding (rule, file:line, fingerprint) with the
+      # secret value redacted — without it a failure is an unactionable
+      # "leaks found: N" (hit live 2026-08-12 on a stale Renovate branch).
+      - name: Secrets — gitleaks (tree scan, redacted findings)
+        run: |
+          if ! "$HOME/.local/bin/gitleaks" detect --no-banner --redact --verbose --exit-code 1; then
+            echo
+            echo "gitleaks failed — redacted findings above (rule, file:line, fingerprint)."
+            echo " * NEW secret in this change: it is already burned — rotate it per"
+            echo "   ops/secret-rotation-runbook.md, then scrub the content."
+            echo " * A finding you did NOT touch: stale branch. This depth-1 scan covers"
+            echo "   the whole tree, so a branch cut before a scrub landed on the default"
+            echo "   branch re-reports the old finding — update the branch from the"
+            echo "   default branch and re-run."
+            echo " * Commit-pinned .security-ignore fingerprints cannot match here (the"
+            echo "   shallow commit changes every push) — fix the content instead."
+            exit 1
+          fi
+
+      # Undefined-name gate (J1, added 2026-08-06). Catches what neither the
+      # SCA nor the secret scanner can, and what `py_compile` structurally
+      # cannot: a name used in a function body that does not exist.
+      #
+      # Why this exists: nis/forgejo-stack#27. `zip_longest` was used without
+      # its import; the file compiled, the MODULE IMPORTED FINE (Python
+      # resolves names in a function body at CALL time), CI went green, and
+      # the gateway 500'd on every review in production. pyflakes finds it in
+      # one line without importing or executing anything.
+      #
+      # Graduated on purpose: an undefined name is a runtime NameError with
+      # essentially no false positives, so it BLOCKS. Everything else pyflakes
+      # reports (unused imports, dead locals) is printed and does not fail —
+      # a new gate must not break 13 repos on the day it lands.
+      - name: Undefined names — pyflakes (blocks; other findings advisory)
+        run: |
+          set -eu
+          # ONE universal wheel (py2.py3-none-any) — unlike trivy/gitleaks
+          # there is no per-arch hash to keep in step. Publisher SHA-256 from
+          # PyPI, see ops/provenance/pyflakes.md.
+          PYFLAKES_VERSION=3.4.0
+          PYFLAKES_SHA=f742a7dbd0d9cb9ea41e9a24a918996e8170c799fa528688d40dd582c8265f4f
+          WHEEL="pyflakes-${PYFLAKES_VERSION}-py2.py3-none-any.whl"
+          # Same 3-attempt fetch as the scanner step (separate shell, so the
+          # helper is redefined) — no gate red on a one-off download blip.
+          fetch() {
+            for _i in 1 2 3; do
+              if wget -qO "$2" -T 30 "$1"; then return 0; fi
+              echo "download failed (attempt ${_i}/3): $1"
+              sleep 5
+            done
+            echo "download failed after 3 attempts: $1"
+            return 1
+          }
+          fetch "https://files.pythonhosted.org/packages/c2/2f/81d580a0fb83baeb066698975cb14a618bdbed7720678566f1b046a95fe8/${WHEEL}" "/tmp/${WHEEL}"
+          echo "${PYFLAKES_SHA}  /tmp/${WHEEL}" | sha256sum -c -
+          # NOT `pip install`. Ubuntu 24.04 marks its system Python
+          # externally-managed (PEP 668), so pip refuses outright — verified
+          # against the real runner image, where it failed and left pyflakes
+          # unimportable. A wheel is a zip, and pyflakes is pure Python, so
+          # putting the VERIFIED wheel on PYTHONPATH runs exactly the bytes we
+          # checksummed: no install, no venv, no --break-system-packages, and
+          # nothing mutated in the image.
+          export PYTHONPATH="/tmp/${WHEEL}"
+
+          # Vendored/generated trees are not ours to lint.
+          find . -name '*.py' \
+            -not -path './.git/*' -not -path './node_modules/*' \
+            -not -path './.venv/*' -not -path './venv/*' \
+            -not -path './backups/*' -not -path './site-packages/*' \
+            > /tmp/pyfiles.txt
+          if [ ! -s /tmp/pyfiles.txt ]; then
+            echo "no Python files in this repo — nothing to check."
+            exit 0
+          fi
+          echo "checking $(wc -l < /tmp/pyfiles.txt) Python file(s)"
+          # xargs -0, NOT `$(cat …)`: a large repo blows past ARG_MAX (515 .py
+          # files in nis/landscape today), and an unquoted expansion mangles
+          # any path containing a space. Both failure modes are SILENT — they
+          # produce output that looks like "no findings".
+          # pyflakes exits 1 on ANY finding, so capture rather than gate on it.
+          tr '\n' '\0' < /tmp/pyfiles.txt \
+            | xargs -0 --no-run-if-empty python3 -m pyflakes > /tmp/pyflakes.txt 2>&1 || true
+          if [ -s /tmp/pyflakes.txt ]; then
+            echo "--- pyflakes findings (advisory unless listed below) ---"
+            cat /tmp/pyflakes.txt
+          fi
+          # Blocking subset: undefined names, and files pyflakes could not
+          # parse. A parse failure is NOT a pass — silence from a scanner
+          # that could not read the file is the trap documented in CLAUDE.md.
+          if grep -E "undefined name|invalid syntax|unexpected (EOF|indent)" /tmp/pyflakes.txt; then
+            echo ""
+            echo "FAIL: undefined name or unparseable file above."
+            echo "An undefined name is a NameError waiting for the first call."
+            exit 1
+          fi
+          echo "OK: no undefined names."
