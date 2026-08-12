@@ -106,11 +106,28 @@ jobs:
       - name: SCA — Trivy filesystem (HIGH/CRITICAL gate)
         run: '$HOME/.local/bin/trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --no-progress --ignorefile /tmp/.trivyignore .'
 
-      # Secret gate — scans full git history. gitleaks reads ./.gitleaksignore
+      # Secret gate — the checkout is depth-1, so this scans the WHOLE TREE as of
+      # the branch head (not just the diff). gitleaks reads ./.gitleaksignore
       # (fingerprints) by default. A hit here is already-burned → secret-rotation
       # runbook (ops/secret-rotation-runbook.md), not just a code edit.
-      - name: Secrets — gitleaks (full history)
-        run: '$HOME/.local/bin/gitleaks detect --no-banner --redact --exit-code 1'
+      # --verbose prints each finding (rule, file:line, fingerprint) with the
+      # secret value redacted — without it a failure is an unactionable
+      # "leaks found: N" (hit live 2026-08-12 on a stale Renovate branch).
+      - name: Secrets — gitleaks (tree scan, redacted findings)
+        run: |
+          if ! "$HOME/.local/bin/gitleaks" detect --no-banner --redact --verbose --exit-code 1; then
+            echo
+            echo "gitleaks failed — redacted findings above (rule, file:line, fingerprint)."
+            echo " * NEW secret in this change: it is already burned — rotate it per"
+            echo "   ops/secret-rotation-runbook.md, then scrub the content."
+            echo " * A finding you did NOT touch: stale branch. This depth-1 scan covers"
+            echo "   the whole tree, so a branch cut before a scrub landed on the default"
+            echo "   branch re-reports the old finding — update the branch from the"
+            echo "   default branch and re-run."
+            echo " * Commit-pinned .security-ignore fingerprints cannot match here (the"
+            echo "   shallow commit changes every push) — fix the content instead."
+            exit 1
+          fi
 
       # Undefined-name gate (J1, added 2026-08-06). Catches what neither the
       # SCA nor the secret scanner can, and what `py_compile` structurally
