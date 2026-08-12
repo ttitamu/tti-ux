@@ -110,6 +110,31 @@ const route = useRoute();
 // Close mobile menu on route change
 watch(() => route.fullPath, () => { mobileOpen.value = false; });
 
+// Publish the nav's measured height as `--tux-nav-height` on <html> so
+// consumers can build sticky offsets / viewport-height math against the
+// real chrome instead of hardcoding 4rem/5rem (Landscape carried both
+// magic numbers for the same bar). ResizeObserver keeps it honest when
+// the utility bar toggles or the bar wraps at narrow widths.
+const navRoot = ref<HTMLElement | null>(null);
+let navResizeObserver: ResizeObserver | null = null;
+onMounted(() => {
+  if (!navRoot.value || typeof ResizeObserver === "undefined") return;
+  const publish = () => {
+    if (!navRoot.value) return;
+    document.documentElement.style.setProperty(
+      "--tux-nav-height",
+      `${Math.round(navRoot.value.getBoundingClientRect().height)}px`,
+    );
+  };
+  navResizeObserver = new ResizeObserver(publish);
+  navResizeObserver.observe(navRoot.value);
+  publish();
+});
+onBeforeUnmount(() => {
+  navResizeObserver?.disconnect();
+  document.documentElement.style.removeProperty("--tux-nav-height");
+});
+
 function isInternal(href: string) {
   return href.startsWith("/") || href.startsWith("#");
 }
@@ -127,6 +152,7 @@ function isPlainLinkActive(item: { to?: string; href?: string }): boolean {
 
 <template>
   <header
+    ref="navRoot"
     class="tux-site-nav"
     :class="{ 'tux-site-nav--sticky': sticky, 'tux-site-nav--mobile-open': mobileOpen }"
   >

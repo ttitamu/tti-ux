@@ -143,8 +143,4 @@ function changeSize(e: Event) {
   background: var(--surface-raised);
   color: var(--text-primary);
 }
-.tux-result-count__select:focus {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 1px;
-}
 </style>

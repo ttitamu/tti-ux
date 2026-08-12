@@ -10,6 +10,15 @@ import tailwindcss from "@tailwindcss/vite";
 // absolute path.
 const layerDir = dirname(fileURLToPath(import.meta.url));
 
+// True when tti-ux itself is the project being built (style-guide dev,
+// `npm run generate`, Pages deploy) — false when another app consumes
+// tti-ux as a layer via `extends`. Layer configs merge into consumers, so
+// docs-site-only build behavior (prerender crawling, 404 demotion) must be
+// fenced behind this or it silently bleeds into every consumer's
+// production build (Landscape ships a `nitro:config` hook today solely to
+// undo that bleed — this makes that workaround unnecessary).
+const isRootProject = process.cwd() === layerDir;
+
 // tti-ux is a runnable Nuxt 4 style-guide for the TTI design system. The app
 // itself IS the living doc: every route under /components demos a Tux* wrapper
 // so visual regressions are obvious at a glance.
@@ -33,26 +42,28 @@ export default defineNuxtConfig({
   // workflow only switches to that preset when building for Pages —
   // again via env var — so `npm run dev` and `npm run build` (a
   // server build) keep their default behavior.
-  $production: {
-    app: {
-      baseURL: process.env.NUXT_APP_BASE_URL || "/",
-    },
-    nitro: {
-      preset: process.env.NUXT_PAGES === "1" ? "github_pages" : undefined,
-      prerender: {
-        crawlLinks: true,
-        routes: ["/"],
-        // Demo pages (breadcrumbs, footer) intentionally render
-        // realistic-looking nav links to routes that don't exist in
-        // the style guide (/research, /docs, /changelog, /sessions,
-        // /models, /keys). Crawling finds them, hits 404s, and would
-        // abort the whole build. Demote 404s to warnings so the rest
-        // of the static site still ships. Real broken-link checking
-        // belongs in CI/lighthouse, not the build step.
-        failOnError: false,
-      },
-    },
-  },
+  $production: isRootProject
+    ? {
+        app: {
+          baseURL: process.env.NUXT_APP_BASE_URL || "/",
+        },
+        nitro: {
+          preset: process.env.NUXT_PAGES === "1" ? "github_pages" : undefined,
+          prerender: {
+            crawlLinks: true,
+            routes: ["/"],
+            // Demo pages (breadcrumbs, footer) intentionally render
+            // realistic-looking nav links to routes that don't exist in
+            // the style guide (/research, /docs, /changelog, /sessions,
+            // /models, /keys). Crawling finds them, hits 404s, and would
+            // abort the whole build. Demote 404s to warnings so the rest
+            // of the static site still ships. Real broken-link checking
+            // belongs in CI/lighthouse, not the build step.
+            failOnError: false,
+          },
+        },
+      }
+    : {},
 
   modules: [
     "@nuxt/icon",
@@ -67,7 +78,12 @@ export default defineNuxtConfig({
     "@nuxt/a11y",
     "@nuxtjs/color-mode",
     "@nuxtjs/mdc",
-    "@vueuse/nuxt",
+    // @vueuse/nuxt removed 2026-08-12 (owner-decided): registered since
+    // early scaffolding with zero call sites. House utilities live in
+    // app/composables/ as tux-owned equivalents (useTuxPersistedRef,
+    // useTuxClipboard, …) — model new ones on VueUse's semantics when a
+    // need appears, but own the ~30 lines instead of shipping the
+    // dependency to every consumer.
   ],
 
   // Components registration. Default Nuxt behavior auto-imports
@@ -193,10 +209,20 @@ export default defineNuxtConfig({
     // found 2026-07-16 in tti-ai-studio's generate). Strip them from the
     // route table; the sibling imports are untouched.
     "pages:extend"(pages) {
+      // When another app consumes tti-ux as a layer, the style guide's own
+      // routes (164 showcase/docs pages) leak into the consumer's route
+      // table via `extends`. Strip every page whose file lives in the
+      // layer, unless the consumer opts back in with TTI_UX_DEMOS=1 (handy
+      // for browsing the gallery inside an app during development).
+      // docs-tti previously carried this exact hook as a consumer
+      // workaround — it can delete it at next pin-bump.
+      const stripLayerPages = !isRootProject && process.env.TTI_UX_DEMOS !== "1";
+      const layerPagesDir = resolve(layerDir, "app/pages");
       const strip = (list: (typeof pages)[number][]) => {
         for (let i = list.length - 1; i >= 0; i--) {
           const p = list[i]!;
           if (p.file?.endsWith(".demo-data.ts")) list.splice(i, 1);
+          else if (stripLayerPages && p.file?.startsWith(layerPagesDir)) list.splice(i, 1);
           else if (p.children?.length) strip(p.children);
         }
       };

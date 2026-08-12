@@ -33,6 +33,9 @@ interface Props {
   formatValue?: (v: number) => string;
   showLegend?: boolean;
   palette?: string[];
+  /** Enable the branded hover/keyboard tooltip. Default true; pass
+   *  false in print / PDF / non-interactive contexts. */
+  tooltip?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -42,7 +45,12 @@ const props = withDefaults(defineProps<Props>(), {
   formatValue: undefined,
   showLegend: true,
   palette: undefined,
+  tooltip: true,
 });
+
+const emit = defineEmits<{
+  hover: [payload: { index: number; kind: "group" | "child"; label: string; value: number; share: number; group?: string } | null];
+}>();
 
 const palette = computed<string[]>(() =>
   props.palette ?? [
@@ -56,14 +64,18 @@ function arcPath(
   rIn: number, rOut: number,
   a0: number, a1: number,
 ): string {
-  const x0o = cx + rOut * Math.cos(a0);
-  const y0o = cy + rOut * Math.sin(a0);
-  const x1o = cx + rOut * Math.cos(a1);
-  const y1o = cy + rOut * Math.sin(a1);
-  const x0i = cx + rIn * Math.cos(a0);
-  const y0i = cy + rIn * Math.sin(a0);
-  const x1i = cx + rIn * Math.cos(a1);
-  const y1i = cy + rIn * Math.sin(a1);
+  // 2dp rounding: raw trig floats can serialize differently between the
+  // server's and browser's V8 (last-ulp Math.sin/cos differences), which
+  // reads as an SSR hydration mismatch on the arc `d` attribute.
+  const f = (n: number) => Math.round(n * 100) / 100;
+  const x0o = f(cx + rOut * Math.cos(a0));
+  const y0o = f(cy + rOut * Math.sin(a0));
+  const x1o = f(cx + rOut * Math.cos(a1));
+  const y1o = f(cy + rOut * Math.sin(a1));
+  const x0i = f(cx + rIn * Math.cos(a0));
+  const y0i = f(cy + rIn * Math.sin(a0));
+  const x1i = f(cx + rIn * Math.cos(a1));
+  const y1i = f(cy + rIn * Math.sin(a1));
   const large = (a1 - a0) > Math.PI ? 1 : 0;
   return `M ${x0o} ${y0o} A ${rOut} ${rOut} 0 ${large} 1 ${x1o} ${y1o} L ${x1i} ${y1i} A ${rIn} ${rIn} 0 ${large} 0 ${x0i} ${y0i} Z`;
 }
@@ -135,17 +147,109 @@ const formattedTotal = computed(() =>
 function fmtValue(v: number): string {
   return props.formatValue ? props.formatValue(v) : `$${v}M`;
 }
+
+// ----- Hover tooltip (components.md chart-tooltip contract) --------
+// Both rings flatten into hierarchical keyboard order (group, then its
+// children, then the next group); pointer hover is per-arc. Arrow keys
+// cycle the flat order, Escape clears.
+interface FlatSegment {
+  kind: "group" | "child";
+  label: string;
+  value: number;
+  share: number;
+  mid: number;
+  r: number;
+  group?: string;
+}
+
+const flat = computed(() => {
+  const segments: FlatSegment[] = [];
+  const groupFlat: number[] = [];
+  const childFlat: number[] = [];
+  const { groupArcs, childArcs } = arcs.value;
+  let ci = 0;
+  groupArcs.forEach((g, gi) => {
+    groupFlat[gi] = segments.length;
+    segments.push({
+      kind: "group",
+      label: g.label,
+      value: g.value,
+      share: g.share,
+      mid: (g.start + g.end) / 2,
+      r: (rIn.value + rMid.value) / 2,
+    });
+    while (ci < childArcs.length && childArcs[ci]!.groupIdx === gi) {
+      const c = childArcs[ci]!;
+      childFlat[ci] = segments.length;
+      segments.push({
+        kind: "child",
+        label: c.label,
+        value: c.value,
+        share: c.share,
+        mid: (c.start + c.end) / 2,
+        r: (rMid.value + rOut.value) / 2,
+        group: g.label,
+      });
+      ci++;
+    }
+  });
+  return { segments, groupFlat, childFlat };
+});
+
+const {
+  hoverIndex,
+  setHoverIndex,
+  onPointerLeave: onArcsLeave,
+  onKeydown: onSunburstKey,
+} = useTuxChartHover({
+  count: () => flat.value.segments.length,
+  enabled: () => props.tooltip,
+  indexFromPointer: () => null, // pointer handled per-arc below
+  onChange(idx) {
+    if (idx === null) {
+      emit("hover", null);
+      return;
+    }
+    const s = flat.value.segments[idx];
+    if (!s) return;
+    emit("hover", { index: idx, kind: s.kind, label: s.label, value: s.value, share: s.share, group: s.group });
+  },
+});
+
+function onArcEnter(flatIdx: number) {
+  if (props.tooltip) setHoverIndex(flatIdx);
+}
+
+const activeSegment = computed(() =>
+  hoverIndex.value === null ? null : flat.value.segments[hoverIndex.value] ?? null,
+);
+
+// Tooltip anchors to the active arc's ring midpoint; flips left past
+// 60% of the canvas width (family-standard flip rule). Angles here are
+// math-convention (0 at 3 o'clock), matching arcPath.
+const tooltipPos = computed(() => {
+  const s = activeSegment.value;
+  if (!s) return null;
+  const x = cx.value + s.r * Math.cos(s.mid);
+  const y = cy.value + s.r * Math.sin(s.mid);
+  const xFrac = x / props.size;
+  return { xPct: xFrac * 100, yPct: (y / props.size) * 100, flip: xFrac > 0.6 };
+});
 </script>
 
 <template>
   <div class="tux-chart-sunburst" :class="{ 'tux-chart-sunburst--bare': !showLegend }">
-    <svg
-      :viewBox="`0 0 ${size} ${size}`"
-      :width="size" :height="size"
-      role="img"
-      :aria-label="`Sunburst chart · ${formattedTotal}`"
-      class="tux-chart-sunburst__svg"
-    >
+    <div class="tux-chart-sunburst__wrap">
+      <svg
+        :viewBox="`0 0 ${size} ${size}`"
+        :width="size" :height="size"
+        role="img"
+        :aria-label="`Sunburst chart · ${formattedTotal}; use arrow keys to read each segment.`"
+        class="tux-chart-sunburst__svg"
+        tabindex="0"
+        @keydown="onSunburstKey"
+        @pointerleave="onArcsLeave"
+      >
       <path
         v-for="(a, i) in arcs.childArcs"
         :key="`c-${i}`"
@@ -154,6 +258,10 @@ function fmtValue(v: number): string {
         :fill-opacity="a.opacity"
         stroke="var(--surface-page)"
         stroke-width="1"
+        :class="{
+          'tux-chart-sunburst__arc--dim': hoverIndex !== null && hoverIndex !== flat.childFlat[i],
+        }"
+        @pointerenter="onArcEnter(flat.childFlat[i]!)"
       >
         <title>{{ a.label }} · {{ fmtValue(a.value) }} · {{ Math.round(a.share * 100) }}%</title>
       </path>
@@ -165,6 +273,10 @@ function fmtValue(v: number): string {
         :fill="a.color"
         stroke="var(--surface-page)"
         stroke-width="1.5"
+        :class="{
+          'tux-chart-sunburst__arc--dim': hoverIndex !== null && hoverIndex !== flat.groupFlat[i],
+        }"
+        @pointerenter="onArcEnter(flat.groupFlat[i]!)"
       >
         <title>{{ a.label }} · {{ fmtValue(a.value) }} · {{ Math.round(a.share * 100) }}%</title>
       </path>
@@ -187,7 +299,29 @@ function fmtValue(v: number): string {
         font-weight="700"
         style="font-variant-numeric: tabular-nums;"
       >{{ formattedTotal }}</text>
-    </svg>
+      </svg>
+
+      <!-- Branded tooltip card (family contract) -->
+      <div
+        v-if="tooltip && activeSegment && tooltipPos"
+        class="tux-chart-sunburst__tooltip"
+        :class="{ 'tux-chart-sunburst__tooltip--flip': tooltipPos.flip }"
+        role="status"
+        aria-live="polite"
+        :style="{
+          left: `calc(${tooltipPos.xPct}% + ${tooltipPos.flip ? '-8px' : '8px'})`,
+          top: `${tooltipPos.yPct}%`,
+        }"
+      >
+        <p class="tux-chart-sunburst__tooltip-label">{{ activeSegment.label }}</p>
+        <p v-if="activeSegment.group" class="tux-chart-sunburst__tooltip-group">
+          in {{ activeSegment.group }}
+        </p>
+        <p class="tux-chart-sunburst__tooltip-value">
+          {{ fmtValue(activeSegment.value) }} · {{ Math.round(activeSegment.share * 100) }}% of total
+        </p>
+      </div>
+    </div>
 
     <div v-if="showLegend" class="tux-chart-sunburst__legend">
       <div
@@ -235,7 +369,52 @@ function fmtValue(v: number): string {
   container-name: tux-chart-sunburst;
 }
 .tux-chart-sunburst--bare { grid-template-columns: auto; }
+.tux-chart-sunburst__wrap { position: relative; display: inline-block; }
 .tux-chart-sunburst__svg { display: block; }
+
+.tux-chart-sunburst__svg path {
+  transition: opacity 120ms ease-out;
+}
+
+.tux-chart-sunburst__arc--dim { opacity: 0.55; }
+
+.tux-chart-sunburst__tooltip {
+  position: absolute;
+  z-index: 4;
+  min-width: 8rem;
+  max-width: 16rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--surface-page);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm, 4px);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+
+.tux-chart-sunburst__tooltip--flip { transform: translateX(-100%); }
+
+.tux-chart-sunburst__tooltip-label {
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.tux-chart-sunburst__tooltip-group {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+}
+
+.tux-chart-sunburst__tooltip-value {
+  margin: 0.125rem 0 0 0;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tux-chart-sunburst__svg path { transition: none; }
+}
 
 .tux-chart-sunburst__legend { min-width: 0; }
 .tux-chart-sunburst__legend-group { margin-bottom: 0.875rem; }

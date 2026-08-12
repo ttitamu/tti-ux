@@ -1,0 +1,29 @@
+/**
+ * tux-chart-palette.css — the single home of the 8-tone categorical
+ * series ramp for the native chart family.
+ *
+ * Each tone class sets ONE custom property, `--tux-chart-tone`;
+ * component styles consume it per part (`fill: var(--tux-chart-tone)`
+ * on an area, `stroke:` on a line, `background:` on a legend swatch).
+ * Before this file, every chart component pasted the full 8-rule ramp
+ * — with these hex fallbacks — once per part (~135 duplicated
+ * declarations across six components), so a palette change meant
+ * editing six files. Now it means editing this one.
+ *
+ * The fallbacks mirror design/tokens.json's light-theme chart ramp for
+ * contexts where tokens.css didn't load (Storybook-less embeds, unit
+ * snapshots); themed values still win through --chart-1..8.
+ *
+ * Components keep their own `tux-chart-<name>__series--cN` classes on
+ * the same elements purely as consumer styling hooks — they carry no
+ * styles here anymore.
+ */
+
+.tux-chart-tone--c1 { --tux-chart-tone: var(--chart-1, var(--brand-primary)); }
+.tux-chart-tone--c2 { --tux-chart-tone: var(--chart-2, #3f5a6f); }
+.tux-chart-tone--c3 { --tux-chart-tone: var(--chart-3, #c7973c); }
+.tux-chart-tone--c4 { --tux-chart-tone: var(--chart-4, #6b8e5a); }
+.tux-chart-tone--c5 { --tux-chart-tone: var(--chart-5, #8c5a3c); }
+.tux-chart-tone--c6 { --tux-chart-tone: var(--chart-6, #5c7080); }
+.tux-chart-tone--c7 { --tux-chart-tone: var(--chart-7, #a33a3a); }
+.tux-chart-tone--c8 { --tux-chart-tone: var(--chart-8, #3c5a87); }

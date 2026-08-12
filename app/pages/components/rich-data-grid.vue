@@ -144,6 +144,28 @@ const compactVue = `<TuxRichDataGrid
   :show-filter="false"
   :show-columns="false"
 />`;
+
+// 5,000 generated rows for the virtualized demo — the windowed body
+// renders only the visible slice of <tr>s regardless of row count.
+const districts = ["Bryan", "Austin", "Houston", "Dallas", "El Paso"];
+const virtualRows = Array.from({ length: 5000 }, (_, i) => ({
+  id: `seg-${i}`,
+  name: `Corridor segment ${i}`,
+  district: districts[i % districts.length],
+  lead: `Crew ${(i % 12) + 1}`,
+  status: (["live", "queued", "review"] as const)[i % 3],
+  delay: Math.round(((i * 37) % 400) / 4 + 2) / 10,
+}));
+
+const virtualizedVue = `<TuxRichDataGrid
+  virtualized
+  :virtual-row-height="44"
+  :rows="rows"      <!-- 5,000 rows -->
+  :columns="columns"
+  row-key="id"
+  max-height="360px"
+/>`;
+
 </script>
 
 <template>
@@ -323,6 +345,36 @@ const compactVue = `<TuxRichDataGrid
             </UPopover>
           </template>
         </TuxRichDataGrid>
+      </TuxExample>
+    </section>
+
+    <section>
+      <p class="eyebrow">big lists</p>
+      <h2 class="heading--bold text-xl font-bold">Virtualized mode — 5,000 rows</h2>
+      <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
+        Pass <code>virtualized</code> and the body windows through
+        <code>@tanstack/vue-virtual</code>: only the visible slice of
+        rows renders, bracketed by spacer rows that preserve the scroll
+        extent — sticky header, sorting, and key-based selection all
+        keep working. Rows should be uniform height
+        (<code>virtual-row-height</code>, default 44). Row expansion is
+        disabled while virtualized. This demo scrolls 5,000 generated
+        rows; inspect the DOM to watch the window move.
+      </p>
+      <TuxExample class="mt-4" :vue="virtualizedVue">
+        <TuxRichDataGrid
+          title="Corridor segments (5,000 rows)"
+          virtualized
+          :virtual-row-height="44"
+          :columns="columns.slice(0, 4)"
+          :rows="virtualRows"
+          row-key="id"
+          max-height="360px"
+          :show-search="false"
+          :show-filter="false"
+          :show-columns="false"
+          :show-export="false"
+        />
       </TuxExample>
     </section>
   </div>

@@ -131,6 +131,7 @@ function buildSelectors(tokens) {
   root.push(...group(g.motion, "motion-"));
   root.push(...group(g.ease, "ease-"));
   root.push(...group(g.space, "space-"));
+  root.push(...group(g.layout, "layout-"));
   root.push(...group(g.rhythm, "rhythm-"));
 
   // Nuxt UI ramps (--color-maroon-*, --color-gold-*)

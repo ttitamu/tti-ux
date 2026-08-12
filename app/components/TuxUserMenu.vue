@@ -82,17 +82,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{ (e: "sign-out" | "refresh"): void }>();
 
-const initials = computed(() => {
-  if (props.identity?.initials) return props.identity.initials;
-  const n = props.identity?.name ?? "";
-  return n
-    .split(/[\s,]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]!.toUpperCase())
-    .join("");
-});
-
 const triggerLabel = computed(() =>
   props.state === "signed-in" || props.state === "local-only"
     ? `Account: ${props.identity?.name ?? "unknown"}`
@@ -183,10 +172,15 @@ const menuItems = computed(() => {
       ]"
       :aria-label="triggerLabel"
     >
-      <span class="tux-user-menu__avatar" aria-hidden="true">
-        <img v-if="identity?.photoUrl" :src="identity.photoUrl" alt="">
-        <template v-else>{{ initials || "?" }}</template>
-      </span>
+      <!-- Avatar primitive owns photo/initials fallback; the error tint
+           stays here (state is TuxUserMenu's concern, not the avatar's). -->
+      <TuxAvatar
+        class="tux-user-menu__avatar"
+        :name="identity?.name"
+        :initials="identity?.initials"
+        :photo-url="identity?.photoUrl"
+        size="md"
+      />
       <span v-if="placement === 'rail-footer'" class="tux-user-menu__text">
         <span class="tux-user-menu__name">{{ identity?.name }}</span>
         <span class="tux-user-menu__status">
@@ -258,25 +252,8 @@ const menuItems = computed(() => {
   background: color-mix(in srgb, var(--text-primary) 7%, transparent);
 }
 
-.tux-user-menu__avatar {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border-radius: 9999px;
-  background: var(--brand-primary);
-  color: var(--text-inverse);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-.tux-user-menu__avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+/* Base avatar look lives in TuxAvatar; only the error-state tint is
+   this component's concern (scoped styles reach the child's root). */
 .tux-user-menu__trigger--error .tux-user-menu__avatar {
   background: var(--color-warning);
   color: var(--text-primary);

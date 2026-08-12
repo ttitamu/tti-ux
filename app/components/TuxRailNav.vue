@@ -159,11 +159,6 @@ function collapsedTarget(item: RailItem): string {
   color: var(--text-primary);
 }
 
-.tux-rail-nav__link:focus-visible,
-.tux-rail-nav__summary:focus-visible {
-  outline: 2px solid var(--focus-ring, var(--brand-primary));
-  outline-offset: 2px;
-}
 
 /* Active route — NuxtLink applies router-link-active. */
 .tux-rail-nav__link.router-link-active {

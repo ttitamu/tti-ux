@@ -33,6 +33,16 @@
  * Usage:
  *   npm run audit:tokens
  *   AUDIT_TOKENS_DEBUG=1 npm run audit:tokens   # also print the defined set
+ *
+ * Consumer usage (the script ships in the package; `tux-audit` is the bin):
+ *   npx tux-audit tokens            # audits ./app against layer + own tokens
+ *   npx tux-audit tokens src app    # explicit target dirs
+ *   TUX_AUDIT_DIRS=frontend/app npx tux-audit tokens
+ *   TUX_AUDIT_EXTERNAL_PREFIXES=--my-app- npx tux-audit tokens
+ * Token definitions are harvested from BOTH the tti-ux layer's CSS (so
+ * canonical tokens always resolve) and the target dirs' own CSS/Vue files.
+ * This is the zero-dependency audit that would have caught the 17
+ * undefined tokens one consumer shipped (--surface-base et al.).
  */
 
 import { readFileSync, readdirSync, statSync } from "node:fs";
@@ -41,7 +51,19 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
-const APP_DIR = path.join(ROOT, "app");
+
+// Target dirs: CLI args > TUX_AUDIT_DIRS (comma/colon-separated) > ./app.
+// Resolved against cwd so the same invocation works in tti-ux itself and
+// in any consumer running the shipped bin.
+const argDirs = process.argv.slice(2).filter((a) => !a.startsWith("-"));
+const envDirs = (process.env.TUX_AUDIT_DIRS ?? "").split(/[,:]/).filter(Boolean);
+const TARGET_DIRS = (argDirs.length ? argDirs : envDirs.length ? envDirs : ["app"])
+  .map((d) => path.resolve(process.cwd(), d));
+
+// The layer's own app/ tree — harvested for token DEFINITIONS regardless of
+// target, so consumers get the canonical set for free. Identical to the
+// target in a self-run (deduped below).
+const LAYER_APP_DIR = path.join(ROOT, "app");
 
 // External token namespaces we don't own: Tailwind 4 emits theme tokens
 // (--color-*, --radius-*, --spacing-*, --text-*, --font-*, …) from its
@@ -66,6 +88,9 @@ const EXTERNAL_PREFIXES = [
   "--animate-",
   "--perspective-",
   "--default-",
+  // Consumer-declared namespaces (comma-separated), e.g. an app's own
+  // component-local custom-property convention.
+  ...(process.env.TUX_AUDIT_EXTERNAL_PREFIXES ?? "").split(",").filter(Boolean),
 ];
 
 const isExternal = (name) => EXTERNAL_PREFIXES.some((p) => name.startsWith(p));
@@ -85,8 +110,23 @@ function walk(dir, exts, out = []) {
   return out;
 }
 
-const cssFiles = walk(APP_DIR, [".css"]);
-const vueFiles = walk(APP_DIR, [".vue"]);
+for (const d of TARGET_DIRS) {
+  try {
+    statSync(d);
+  } catch {
+    console.error(`✗ audit:tokens — target dir does not exist: ${d}`);
+    process.exit(2);
+  }
+}
+
+const cssFiles = [...new Set(TARGET_DIRS.flatMap((d) => walk(d, [".css"])))];
+const vueFiles = [...new Set(TARGET_DIRS.flatMap((d) => walk(d, [".vue"])))];
+
+// Layer CSS/Vue — definitions only (never audited as references unless the
+// layer is itself a target).
+const layerDefFiles = TARGET_DIRS.includes(LAYER_APP_DIR)
+  ? []
+  : [...walk(LAYER_APP_DIR, [".css"]), ...walk(LAYER_APP_DIR, [".vue"])];
 
 // ── build the "defined" set ─────────────────────────────────────────────────
 // Matches `--token:` (CSS decl) and `'--token':` / `"--token":` (inline style
@@ -105,6 +145,7 @@ function harvestDecls(file) {
 }
 cssFiles.forEach(harvestDecls);
 vueFiles.forEach(harvestDecls);
+layerDefFiles.forEach(harvestDecls);
 
 // ── collect var() references ────────────────────────────────────────────────
 // Capture the token name plus the rest of the var() argument so we can detect
@@ -180,8 +221,16 @@ for (const [token, sites] of [...byToken.entries()].sort()) {
 }
 console.error(
   `\nEach var(${[...byToken.keys()][0]}) etc. resolves to nothing at runtime.\n` +
-    `Define it in app/assets/css/tokens.css, fix the name, or — if it's a\n` +
-    `Tailwind/Nuxt UI token — add its namespace to EXTERNAL_PREFIXES in\n` +
-    `scripts/audit-tokens.mjs.`
+    `Define it in design/tokens.json (never hand-edit tokens.css), fix the\n` +
+    `name, or — if it's a Tailwind/Nuxt UI token — add its namespace to\n` +
+    `EXTERNAL_PREFIXES in scripts/audit-tokens.mjs.\n\n` +
+    `If this is a consumer-invented alias, rename to the canonical token\n` +
+    `instead (migration table in kit/README.md): --surface-base →\n` +
+    `--surface-page · --text-default → --text-primary · --danger →\n` +
+    `--color-danger · --status-* → --color-{info,success,warning,error} ·\n` +
+    `--border-subtle → --surface-border-subtle. Note: a\n` +
+    `var(--invented, var(--canonical)) fallback silences this audit but is\n` +
+    `a migration smell — fallbacks are for component-local knobs, not for\n` +
+    `keeping invented names alive.`
 );
 process.exit(1);

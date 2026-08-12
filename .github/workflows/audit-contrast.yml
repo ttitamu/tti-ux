@@ -138,6 +138,12 @@ jobs:
       - name: typecheck
         run: npm run typecheck
 
+      # Registry invariants: apps.json tile constancy (useTuxApps) and the
+      # component catalog (tuxCatalog ↔ filesystem ↔ routes ↔ components.md).
+      # These shipped in v1.7.0/v1.7.1 but were never gated until now.
+      - name: unit tests
+        run: npm test
+
       # Static check: every var(--token) reference resolves to a defined
       # token (or a fallback / known external namespace). Catches the
       # `--surface-base`-style undefined-token bug that renders transparent

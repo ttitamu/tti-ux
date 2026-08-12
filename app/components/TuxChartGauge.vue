@@ -112,9 +112,12 @@ function valueToAngle(v: number): number {
 }
 
 function polar(angle: number, r: number): { x: number; y: number } {
+  // Round to 2dp: raw trig floats can serialize differently between the
+  // server's and browser's V8 (last-ulp Math.sin/cos differences), which
+  // reads as an SSR hydration mismatch on the path/position attributes.
   return {
-    x: cx.value + r * Math.sin(angle),
-    y: cy.value - r * Math.cos(angle),
+    x: Math.round((cx.value + r * Math.sin(angle)) * 100) / 100,
+    y: Math.round((cy.value - r * Math.cos(angle)) * 100) / 100,
   };
 }
 
@@ -147,8 +150,8 @@ const renderedBands = computed<RenderedBand[]>(() => {
     else if (b.intent === "warn") toneClass = "tux-chart-gauge__band--warn";
     else if (b.intent === "alert") toneClass = "tux-chart-gauge__band--alert";
     else {
-      const tone = Math.max(1, Math.min(8, b.toneIndex ?? 1));
-      toneClass = `tux-chart-gauge__band--c${tone}`;
+      const tone = tuxSeriesTone(0, b.toneIndex ?? 1);
+      toneClass = `tux-chart-gauge__band--c${tone} tux-chart-tone--c${tone}`;
     }
     return { path: arcPath(sa, ea, radius.value), toneClass };
   });
@@ -300,14 +303,7 @@ const fillToneClass = computed(() => {
 .tux-chart-gauge__band--ok    { stroke: var(--status-success, #6b8e5a); opacity: 0.7; }
 .tux-chart-gauge__band--warn  { stroke: var(--status-warning, #c7973c); opacity: 0.7; }
 .tux-chart-gauge__band--alert { stroke: var(--status-error,   #a33a3a); opacity: 0.7; }
-.tux-chart-gauge__band--c1    { stroke: var(--chart-1, var(--brand-primary)); opacity: 0.55; }
-.tux-chart-gauge__band--c2    { stroke: var(--chart-2, #3f5a6f); opacity: 0.55; }
-.tux-chart-gauge__band--c3    { stroke: var(--chart-3, #c7973c); opacity: 0.55; }
-.tux-chart-gauge__band--c4    { stroke: var(--chart-4, #6b8e5a); opacity: 0.55; }
-.tux-chart-gauge__band--c5    { stroke: var(--chart-5, #8c5a3c); opacity: 0.55; }
-.tux-chart-gauge__band--c6    { stroke: var(--chart-6, #5c7080); opacity: 0.55; }
-.tux-chart-gauge__band--c7    { stroke: var(--chart-7, #a33a3a); opacity: 0.55; }
-.tux-chart-gauge__band--c8    { stroke: var(--chart-8, #3c5a87); opacity: 0.55; }
+.tux-chart-gauge__band[class*="tux-chart-tone--"] { stroke: var(--tux-chart-tone); opacity: 0.55; }
 
 .tux-chart-gauge__fill--brand { stroke: var(--brand-primary); }
 .tux-chart-gauge__fill--ok    { stroke: var(--status-success, #6b8e5a); }

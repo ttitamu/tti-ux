@@ -98,8 +98,8 @@ function mileToX(mile: number): number {
 }
 
 function toneClass(idx?: number, fallback = 1): string {
-  const i = Math.max(1, Math.min(8, idx ?? fallback));
-  return `tux-corridor__c${i}`;
+  const tone = tuxSeriesTone(fallback - 1, idx);
+  return `tux-corridor__c${tone} tux-chart-tone--c${tone}`;
 }
 
 const tickMiles = computed(() => {
@@ -115,8 +115,7 @@ const tickMiles = computed(() => {
 // Value-series spark coordinates.
 const valuesPath = computed(() => {
   if (!props.values || props.values.length === 0) return "";
-  const min = Math.min(...props.values);
-  const max = Math.max(...props.values);
+  const [min, max] = tuxExtent(props.values);
   const range = max - min || 1;
   const PAD = 24;
   const w = props.width - PAD * 2;
@@ -304,13 +303,7 @@ const ariaSummary = computed(() => {
   opacity: 0.85;
 }
 
-/* Palette */
-.tux-corridor__c1 { fill: var(--chart-1, var(--brand-primary)); }
-.tux-corridor__c2 { fill: var(--chart-2, #3f5a6f); }
-.tux-corridor__c3 { fill: var(--chart-3, #c7973c); }
-.tux-corridor__c4 { fill: var(--chart-4, #6b8e5a); }
-.tux-corridor__c5 { fill: var(--chart-5, #8c5a3c); }
-.tux-corridor__c6 { fill: var(--chart-6, #5c7080); }
-.tux-corridor__c7 { fill: var(--chart-7, #a33a3a); }
-.tux-corridor__c8 { fill: var(--chart-8, #3c5a87); }
+/* Series tones come from tux-chart-palette.css via --tux-chart-tone. */
+.tux-corridor__segment[class*="tux-chart-tone--"],
+.tux-corridor__event-dot[class*="tux-chart-tone--"] { fill: var(--tux-chart-tone); }
 </style>

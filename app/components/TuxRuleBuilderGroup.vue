@@ -61,8 +61,13 @@ function operatorsFor(key: string): string[] {
   return f.operators ?? DEFAULT_OPERATORS[f.type];
 }
 
+// Per-instance useId() seed + counter instead of Math.random(): ids stay
+// unique across nested groups and deterministic under SSR if a future
+// refactor ever generates them during setup.
+const idSeed = useId();
+let idSeq = 0;
 function newId(prefix: string): string {
-  return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
+  return `${prefix}-${idSeed}-${++idSeq}`;
 }
 
 function defaultValueFor(field: FieldDef, operator: string): unknown {
@@ -488,8 +493,6 @@ function onBetweenChange(rule: Rule, idx: 0 | 1, raw: string) {
 }
 .tux-rule-builder-row__select:focus,
 .tux-rule-builder-row__input:focus {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 1px;
   border-color: var(--brand-primary);
 }
 .tux-rule-builder-row__select--field { min-width: 9rem; }

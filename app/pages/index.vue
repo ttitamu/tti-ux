@@ -12,6 +12,12 @@ const version = pkg.version;
 // stays in CHANGELOG.md.
 const recentUpdates = [
   {
+    date: "2026-07-28",
+    title: "Suite chrome — TuxUserMenu + TuxUtilityCluster",
+    body: "The portal-unification slice: TTI Portals registry (design/apps.json + useTuxApps), TuxUtilityCluster with the law-fixed search · notifications · theme · waffle · identity order, TuxUserMenu with cluster + rail-footer mounts, and the docs site dogfooding its own waffle.",
+    to: "/components/utility-cluster",
+  },
+  {
     date: "2026-06-02",
     title: "Site-wide a11y pass + TuxRailNav",
     body: "Drove the new axe-core gate to zero across all pages; added TuxRailNav — a native <details> collapsible sidebar nav that replaces UNavigationMenu's inaccessible collapsible chevron in the example shells.",
@@ -43,10 +49,10 @@ const recentUpdates = [
   },
 ];
 
-// Headline catalog size for the hero meta line. The full inventory
-// lives at /components/ (and is reachable via the collapsible
-// sidebar). Update when batches ship.
-const catalogCount = "70+";
+// Headline catalog size for the hero meta line — computed from the
+// catalog source of truth (app/utils/tuxCatalog.ts) so it can never
+// go stale again. The full inventory lives at /components/.
+const catalogCount = `${tuxComponentCount}`;
 </script>
 
 <template>

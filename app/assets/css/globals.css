@@ -22,6 +22,7 @@
  * respecting. See `design/chart-foundations.md` motion section.
  */
 @import "./tux-chart-motion.css";
+@import "./tux-chart-palette.css";
 
 /*
  * Opt-in entrance animations for non-chart Tux components.
@@ -54,11 +55,13 @@
   --color-surface-raised: var(--surface-raised);
   --color-surface-sunken: var(--surface-sunken);
   --color-surface-border: var(--surface-border);
+  --color-surface-border-subtle: var(--surface-border-subtle);
 
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
   --color-text-inverse: var(--text-inverse);
+  --color-text-on-brand: var(--text-on-brand);
   --color-text-brand: var(--text-brand);
 
   --color-success: var(--color-success);
@@ -69,6 +72,10 @@
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+  --font-body: var(--font-body);
+  --font-display: var(--font-display);
+  --font-bold: var(--font-bold);
+  --font-elegant: var(--font-elegant);
 
   --shadow-focus: var(--shadow-focus);
 
@@ -90,16 +97,19 @@
 }
 
 /*
- * Fonts are served by @nuxt/fonts — see `fonts` config in nuxt.config.ts.
- * The module downloads Public Sans + JetBrains Mono at build time and
- * self-hosts them, so air-gapped deployments don't need Google Fonts.
+ * Fonts are self-hosted: app/assets/css/fonts.css declares @font-face
+ * over woff2 files in public/fonts/, synced from @fontsource packages by
+ * scripts/sync-fonts.mjs. No runtime font fetches — air-gapped clean.
  */
 
 html,
 body {
   background: var(--surface-page);
   color: var(--text-primary);
-  font-family: var(--font-sans);
+  /* Four-family rule (tux.md §Typography): body copy is --font-body
+     (Open Sans). --font-sans (Public Sans) is legacy — deprecated as
+     the body default in v1.8.0. */
+  font-family: var(--font-body);
   font-feature-settings: "ss01", "cv11";
 }
 
@@ -142,7 +152,8 @@ body {
    used by SectionHeader; this tokenizes it. */
 .eyebrow,
 .subhead {
-  font-family: var(--font-sans);
+  /* Eyebrows/subheads are --font-body's lane (tux.md four-family rule). */
+  font-family: var(--font-body);
   font-size: 0.75rem;
   font-weight: 500;
   text-transform: uppercase;

@@ -96,11 +96,11 @@ const headingClass = computed(() => {
  * in the light theme (both #5C0025). */
 .tux-cta--maroon {
   background: var(--brand-fill);
-  color: #fff;
+  color: var(--text-on-brand);
 }
 .tux-cta--maroon .tux-cta__eyebrow,
 .tux-cta--maroon .tux-cta__dek { color: rgba(255, 255, 255, 0.85); }
-.tux-cta--maroon :deep(.tux-cta__title) { color: #fff; }
+.tux-cta--maroon :deep(.tux-cta__title) { color: var(--text-on-brand); }
 
 .tux-cta--gold {
   background: var(--brand-accent);

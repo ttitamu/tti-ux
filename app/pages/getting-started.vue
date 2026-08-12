@@ -67,7 +67,7 @@ const productShapes = [
 ];
 
 // Component family map — six clusters that tightly couple. The other
-// ~100 components are listed individually in the sidebar; these are
+// ~140 components are listed individually in the sidebar; these are
 // the ones where reading them together is the point.
 const componentFamilies = [
   {
@@ -237,7 +237,7 @@ const consumeSnippet = [
       <TuxSectionHeader>3 · Component families</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
         Six tightly-coupled clusters where reading the components
-        <em>together</em> is the point. The remaining ~95 components
+        <em>together</em> is the point. The remaining ~130 components
         are listed individually in the sidebar.
       </p>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

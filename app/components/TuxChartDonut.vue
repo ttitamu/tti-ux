@@ -75,6 +75,9 @@ interface Props {
   ariaSummary?: string;
   /** Units label appended to the SR summary. */
   units?: string;
+  /** Enable the branded hover/keyboard tooltip. Default true; pass
+   *  false in print / PDF / non-interactive contexts. */
+  tooltip?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -89,7 +92,12 @@ const props = withDefaults(defineProps<Props>(), {
   decimals: 1,
   ariaSummary: undefined,
   units: undefined,
+  tooltip: true,
 });
+
+const emit = defineEmits<{
+  hover: [payload: { index: number; key: string; label: string; value: number; fraction: number } | null];
+}>();
 
 // Fold tiny slices into "Other" so we don't get a wheel of 1° wedges.
 const foldedSlices = computed<Slice[]>(() => {
@@ -128,10 +136,13 @@ const innerR = computed(() =>
 );
 
 function polar(cxv: number, cyv: number, r: number, angle: number): { x: number; y: number } {
-  // Angle in radians; 0 at 12 o'clock, clockwise.
+  // Angle in radians; 0 at 12 o'clock, clockwise. Rounded to 2dp: raw
+  // trig floats can serialize differently between the server's and
+  // browser's V8 (last-ulp Math.sin/cos differences), which reads as an
+  // SSR hydration mismatch on the arc `d` / label position attributes.
   return {
-    x: cxv + r * Math.sin(angle),
-    y: cyv - r * Math.cos(angle),
+    x: Math.round((cxv + r * Math.sin(angle)) * 100) / 100,
+    y: Math.round((cyv - r * Math.cos(angle)) * 100) / 100,
   };
 }
 
@@ -175,8 +186,7 @@ const arcs = computed<Arc[]>(() => {
     const anchor: "start" | "middle" | "end" =
       Math.sin(mid) > 0.15 ? "start" : Math.sin(mid) < -0.15 ? "end" : "middle";
 
-    const toneIdx = s.toneIndex ?? i + 1;
-    const tone = Math.max(1, Math.min(8, toneIdx));
+    const tone = tuxSeriesTone(i, s.toneIndex);
 
     return {
       slice: s,
@@ -186,7 +196,7 @@ const arcs = computed<Arc[]>(() => {
       midAngle: mid,
       d,
       labelPos: { x: labelP.x, y: labelP.y + 4, anchor },
-      toneClass: `tux-chart-donut__slice--c${tone}`,
+      toneClass: `tux-chart-donut__slice--c${tone} tux-chart-tone--c${tone}`,
     };
   });
 });
@@ -205,6 +215,60 @@ const ariaSummary = computed(() => {
 function fmtPercent(frac: number): string {
   return `${(frac * 100).toFixed(props.decimals)}%`;
 }
+
+// ----- Hover tooltip (components.md chart-tooltip contract) --------
+// Slices are discrete wedges, so pointer hover is per-slice
+// (pointerenter), while the keyboard path is the family's shared
+// roving cursor: Arrow keys cycle slices, Escape clears.
+const {
+  hoverIndex,
+  setHoverIndex,
+  onPointerLeave: onSlicesLeave,
+  onKeydown: onDonutKey,
+} = useTuxChartHover({
+  count: () => arcs.value.length,
+  enabled: () => props.tooltip,
+  indexFromPointer: () => null, // pointer handled per-slice below
+  onChange(idx) {
+    if (idx === null) {
+      emit("hover", null);
+      return;
+    }
+    const a = arcs.value[idx];
+    if (!a) return;
+    emit("hover", {
+      index: idx,
+      key: a.slice.key,
+      label: a.slice.label,
+      value: a.slice.value,
+      fraction: a.fraction,
+    });
+  },
+});
+
+function onSliceEnter(i: number) {
+  if (props.tooltip) setHoverIndex(i);
+}
+
+const activeArc = computed(() =>
+  hoverIndex.value === null ? null : arcs.value[hoverIndex.value] ?? null,
+);
+
+// Tooltip anchors to the active slice's ring midpoint; past 60% of the
+// canvas width it flips left so it can't overflow the wrap (the
+// family-standard flip rule).
+const tooltipPos = computed(() => {
+  const a = activeArc.value;
+  if (!a) return null;
+  const r = (outerR.value + innerR.value) / 2;
+  const p = polar(cx.value, cy.value, r, a.midAngle);
+  const xFrac = p.x / props.size;
+  return {
+    xPct: xFrac * 100,
+    yPct: (p.y / props.size) * 100,
+    flip: xFrac > 0.6,
+  };
+});
 </script>
 
 <template>
@@ -216,15 +280,29 @@ function fmtPercent(frac: number): string {
         :height="size"
         preserveAspectRatio="xMidYMid meet"
         class="tux-chart-donut__svg"
+        tabindex="0"
+        role="img"
+        :aria-label="`${arcs.length} slices; use arrow keys to read each.`"
+        @keydown="onDonutKey"
       >
-        <g class="tux-chart-donut__slices">
+        <g class="tux-chart-donut__slices" @pointerleave="onSlicesLeave">
           <path
             v-for="(arc, i) in arcs"
             :key="arc.slice.key"
             :d="arc.d"
-            :class="['tux-chart-donut__slice', arc.toneClass]"
+            :class="[
+              'tux-chart-donut__slice',
+              arc.toneClass,
+              {
+                'tux-chart-donut__slice--active': hoverIndex === i,
+                'tux-chart-donut__slice--dim': hoverIndex !== null && hoverIndex !== i,
+              },
+            ]"
             :style="`--tux-chart-stagger-index: ${i};`"
-          />
+            @pointerenter="onSliceEnter(i)"
+          >
+            <title>{{ arc.slice.label }} · {{ format(arc.slice.value) }} ({{ fmtPercent(arc.fraction) }})</title>
+          </path>
         </g>
 
         <g v-if="sliceLabels" class="tux-chart-donut__labels">
@@ -249,6 +327,27 @@ function fmtPercent(frac: number): string {
             {{ typeof centerValue === "number" ? format(centerValue) : centerValue }}
           </p>
         </slot>
+      </div>
+
+      <!-- Branded tooltip card (family contract) -->
+      <div
+        v-if="tooltip && activeArc && tooltipPos"
+        class="tux-chart-donut__tooltip"
+        :class="{ 'tux-chart-donut__tooltip--flip': tooltipPos.flip }"
+        role="status"
+        aria-live="polite"
+        :style="{
+          left: `calc(${tooltipPos.xPct}% + ${tooltipPos.flip ? '-8px' : '8px'})`,
+          top: `${tooltipPos.yPct}%`,
+        }"
+      >
+        <p class="tux-chart-donut__tooltip-label">
+          <span :class="['tux-chart-donut__tooltip-swatch', activeArc.toneClass]" />
+          {{ activeArc.slice.label }}
+        </p>
+        <p class="tux-chart-donut__tooltip-value">
+          {{ format(activeArc.slice.value) }} · {{ fmtPercent(activeArc.fraction) }} of total
+        </p>
       </div>
     </div>
 
@@ -292,10 +391,56 @@ function fmtPercent(frac: number): string {
 }
 
 .tux-chart-donut__slice {
-  fill: var(--chart-1, var(--brand-primary));
+  fill: var(--tux-chart-tone, var(--chart-1, var(--brand-primary)));
   stroke: var(--surface-page);
   stroke-width: 1.5;
   transition: opacity 120ms ease-out;
+}
+
+/* Active-slice highlight: siblings recede, the active slice holds. */
+.tux-chart-donut__slice--dim {
+  opacity: 0.55;
+}
+
+.tux-chart-donut__tooltip {
+  position: absolute;
+  z-index: 4;
+  min-width: 8rem;
+  max-width: 16rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--surface-page);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm, 4px);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+
+.tux-chart-donut__tooltip--flip {
+  transform: translateX(-100%);
+}
+
+.tux-chart-donut__tooltip-label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-weight: 600;
+  margin: 0 0 0.125rem 0;
+  color: var(--text-primary);
+}
+
+.tux-chart-donut__tooltip-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--tux-chart-tone);
+  flex-shrink: 0;
+}
+
+.tux-chart-donut__tooltip-value {
+  margin: 0;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
 }
 
 .tux-chart-donut__slice-label {
@@ -332,27 +477,12 @@ function fmtPercent(frac: number): string {
   line-height: 1.05;
 }
 
-/* Palette — eight chart tones, same as TuxChartLine + TuxChartBar. */
-.tux-chart-donut__slice--c1 { fill: var(--chart-1, var(--brand-primary)); }
-.tux-chart-donut__slice--c2 { fill: var(--chart-2, #3f5a6f); }
-.tux-chart-donut__slice--c3 { fill: var(--chart-3, #c7973c); }
-.tux-chart-donut__slice--c4 { fill: var(--chart-4, #6b8e5a); }
-.tux-chart-donut__slice--c5 { fill: var(--chart-5, #8c5a3c); }
-.tux-chart-donut__slice--c6 { fill: var(--chart-6, #5c7080); }
-.tux-chart-donut__slice--c7 { fill: var(--chart-7, #a33a3a); }
-.tux-chart-donut__slice--c8 { fill: var(--chart-8, #3c5a87); }
+/* Series tones come from tux-chart-palette.css via --tux-chart-tone. */
+.tux-chart-donut__slice-label[class*="tux-chart-tone--"] { fill: var(--tux-chart-tone); }
 
 /* Slice-label tones echo the slice fill so identity is preserved
    even on grayscale prints / colorblind viewers — they see the
    label colored to match the slice it points at. */
-.tux-chart-donut__slice-label.tux-chart-donut__slice--c1 { fill: var(--chart-1, var(--brand-primary)); }
-.tux-chart-donut__slice-label.tux-chart-donut__slice--c2 { fill: var(--chart-2, #3f5a6f); }
-.tux-chart-donut__slice-label.tux-chart-donut__slice--c3 { fill: var(--chart-3, #c7973c); }
-.tux-chart-donut__slice-label.tux-chart-donut__slice--c4 { fill: var(--chart-4, #6b8e5a); }
-.tux-chart-donut__slice-label.tux-chart-donut__slice--c5 { fill: var(--chart-5, #8c5a3c); }
-.tux-chart-donut__slice-label.tux-chart-donut__slice--c6 { fill: var(--chart-6, #5c7080); }
-.tux-chart-donut__slice-label.tux-chart-donut__slice--c7 { fill: var(--chart-7, #a33a3a); }
-.tux-chart-donut__slice-label.tux-chart-donut__slice--c8 { fill: var(--chart-8, #3c5a87); }
 
 .tux-chart-donut__legend {
   list-style: none;
@@ -374,19 +504,12 @@ function fmtPercent(frac: number): string {
 }
 
 .tux-chart-donut__legend-swatch {
+  background: var(--tux-chart-tone);
   width: 10px;
   height: 10px;
   border-radius: 2px;
   flex-shrink: 0;
 }
-.tux-chart-donut__legend-item.tux-chart-donut__slice--c1 .tux-chart-donut__legend-swatch { background: var(--chart-1, var(--brand-primary)); }
-.tux-chart-donut__legend-item.tux-chart-donut__slice--c2 .tux-chart-donut__legend-swatch { background: var(--chart-2, #3f5a6f); }
-.tux-chart-donut__legend-item.tux-chart-donut__slice--c3 .tux-chart-donut__legend-swatch { background: var(--chart-3, #c7973c); }
-.tux-chart-donut__legend-item.tux-chart-donut__slice--c4 .tux-chart-donut__legend-swatch { background: var(--chart-4, #6b8e5a); }
-.tux-chart-donut__legend-item.tux-chart-donut__slice--c5 .tux-chart-donut__legend-swatch { background: var(--chart-5, #8c5a3c); }
-.tux-chart-donut__legend-item.tux-chart-donut__slice--c6 .tux-chart-donut__legend-swatch { background: var(--chart-6, #5c7080); }
-.tux-chart-donut__legend-item.tux-chart-donut__slice--c7 .tux-chart-donut__legend-swatch { background: var(--chart-7, #a33a3a); }
-.tux-chart-donut__legend-item.tux-chart-donut__slice--c8 .tux-chart-donut__legend-swatch { background: var(--chart-8, #3c5a87); }
 
 .tux-chart-donut__legend-label {
   font-weight: 500;

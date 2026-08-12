@@ -472,8 +472,6 @@ function cancelEdit() {
   resize: vertical;
 }
 .tux-comment__textarea:focus {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 1px;
   border-color: var(--brand-primary);
 }
 

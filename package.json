@@ -1,6 +1,6 @@
 {
   "name": "tti-ux",
-  "version": "1.7.0",
+  "version": "1.9.0",
   "private": true,
   "type": "module",
   "main": "./nuxt.config.ts",
@@ -8,6 +8,8 @@
     "app",
     "design",
     "docs",
+    "kit",
+    "scripts",
     "public",
     "nuxt.config.ts",
     "tsconfig.json",
@@ -32,20 +34,21 @@
     "audit:a11y": "node scripts/audit-a11y.mjs",
     "build:geo": "node scripts/build-geo.mjs",
     "build:tokens": "node scripts/build-tokens.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:brand-env": "node scripts/extract-brand.mjs",
+    "build:powerbi": "node scripts/build-powerbi-theme.mjs",
+    "build:kit": "npm run build:tokens && npm run build:brand-env && npm run build:powerbi"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.102",
     "@nuxt/a11y": "^1.0.0-alpha.1",
     "@nuxt/eslint": "^1.15.2",
-    "@nuxt/fonts": "^0.14.0",
     "@nuxt/icon": "^2.0.0",
     "@nuxt/image": "^2.0.0",
     "@nuxt/ui": "^4.6.1",
     "@nuxtjs/color-mode": "^4.0.0",
     "@nuxtjs/mdc": "^0.21.1",
     "@tailwindcss/vite": "^4.0.0",
-    "@tanstack/vue-table": "^8.20.0",
     "@tanstack/vue-virtual": "^3.13.0",
     "@tiptap/extension-code-block-lowlight": "^3.22.4",
     "@tiptap/extension-image": "^3.22.4",
@@ -60,8 +63,6 @@
     "@tiptap/extension-typography": "^3.22.4",
     "@tiptap/extension-underline": "^3.22.4",
     "@tiptap/starter-kit": "^3.22.4",
-    "@vueuse/core": "^12.0.0",
-    "@vueuse/nuxt": "^12.0.0",
     "katex": "^0.16.47",
     "lowlight": "^3.3.0",
     "mermaid": "^11.14.0",
@@ -83,7 +84,9 @@
     "@fontsource/public-sans": "^5.2.7",
     "@fontsource/work-sans": "^5.2.8",
     "@nuxt/devtools": "^2.0.0",
+    "@nuxt/test-utils": "^4.1.0",
     "@vue/language-core": "^3.3.3",
+    "@vue/test-utils": "^2.4.11",
     "axe-core": "^4.11.3",
     "d3-geo": "^3.1.1",
     "husky": "^9.1.7",
@@ -102,5 +105,8 @@
   "overrides": {
     "sharp": "^0.35.0",
     "brace-expansion": "5.0.9"
+  },
+  "bin": {
+    "tux-audit": "scripts/tux-audit.mjs"
   }
 }

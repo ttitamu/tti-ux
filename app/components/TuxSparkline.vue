@@ -65,8 +65,7 @@ const points = computed(() => {
   const d = props.data;
   if (d.length < 2) return { path: "", area: "", last: null as null | { x: number; y: number } };
 
-  const min = Math.min(...d);
-  const max = Math.max(...d);
+  const [min, max] = tuxExtent(d);
   const span = max - min || 1;
   const w = props.width;
   const h = props.height;
@@ -115,8 +114,7 @@ const summary = computed(() => {
   if (props.ariaSummary) return props.ariaSummary;
   const d = props.data;
   if (!d.length) return "Trend chart with no data";
-  const lo = Math.min(...d);
-  const hi = Math.max(...d);
+  const [lo, hi] = tuxExtent(d);
   const last = d[d.length - 1]!;
   const dl = delta.value?.label ?? "";
   const u = props.units ? ` ${props.units}` : "";

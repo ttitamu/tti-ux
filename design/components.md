@@ -20,6 +20,7 @@ npm run dev
 | `TuxAlert`           | `UAlert`                 | `/components/alert`             |
 | `TuxAlphaNav`        | tux native               | `/components/alpha-nav`         |
 | `TuxAnnouncementBanner` | tux native            | `/components/announcement-banner` |
+| `TuxAvatar`          | tux native               | `/components/avatar`            |
 | `TuxAppFrame`        | tux native               | `/components/app-frame`         |
 | `TuxAppSwitcher`     | `UPopover`               | `/components/app-switcher`      |
 | `TuxArtifact`        | tux native               | `/components/artifact`          |
@@ -75,12 +76,14 @@ npm run dev
 | `TuxMobileFrame`     | tux native (CSS)         | `/components/mobile-frame`      |
 | `TuxModal`           | `UModal`                 | `/components/modal`             |
 | `TuxNewsCollection`  | tux native               | `/components/news-collection`   |
+| `TuxPageContainer`   | tux native               | `/components/page-container`    |
 | `TuxPageHeader`      | tux native               | `/components/page-header`       |
 | `TuxPagination`      | tux native               | `/components/pagination`        |
 | `TuxPhotoGrid`       | tux native               | `/components/photo-grid`        |
 | `TuxPopover`         | `UPopover`               | `/components/popover`           |
 | `TuxProse`           | tux native               | `/components/prose`             |
 | `TuxQACollection`    | tux native               | `/components/qa-collection`     |
+| `TuxRailNav`         | tux native (`<details>`) | `/components/rail-nav`          |
 | `TuxRemovableChip`   | tux native               | `/components/removable-chip`    |
 | `TuxRichDataGrid`    | tux native               | `/components/rich-data-grid`    |
 | `TuxRichTextEditor`  | Tiptap + lowlight        | `/components/rich-text-editor`  |
@@ -95,6 +98,7 @@ npm run dev
 | `TuxSlideover`       | tux native               | `/components/slideover`         |
 | `TuxSplashScreen`    | tux native               | `/components/splash-screen`     |
 | `TuxSplitPane`       | tux native               | `/components/split-pane`        |
+| `TuxStatusToast`     | tux native (`useTuxToast` bus) | `/components/status-toast` |
 | `TuxStepper`         | tux native               | `/components/stepper`           |
 | `TuxStatComparison`  | tux native               | `/components/stat-comparison`   |
 | `TuxSuggestionChips` | tux native               | `/components/suggestion-chips`  |
@@ -107,6 +111,8 @@ npm run dev
 | `TuxTooltip`         | `UTooltip`               | `/components/tooltip`           |
 | `TuxTree`            | tux native               | `/components/tree` (renders internal child `TuxTreeNode`) |
 | `TuxTreemap`         | tux native               | `/components/treemap`           |
+| `TuxUserMenu`        | `UDropdownMenu`          | `/components/utility-cluster`   |
+| `TuxUtilityCluster`  | composes `TuxAppSwitcher` + `TuxUserMenu` | `/components/utility-cluster` |
 
 **Pagination + result-display family** (added 2026-05-21):
 
@@ -260,7 +266,7 @@ single most common failure mode.
 | **Term/definition list** (event details, file metadata, spec list) | `<TuxDescriptionList>` |
 | **Architecture diagram** (boxes + arrows, decision flows) | `<TuxDiagram>` (Mermaid) |
 | **Markdown content with Tux components inline** | `@nuxtjs/mdc` + auto-import (see `/markdown` demo) |
-| **Form input** (email / select / radio / etc.) | Nuxt UI native — `UInput`, `USelect`, etc. See `/forms`. |
+| **Form input** (email / select / radio / etc.) | Nuxt UI native — `UInput`, `USelect`, etc., **layer-themed** (Batch K in `tux.css`: Work Sans controls, tux radius, maroon focus). The hybrid doctrine (unification-plan.md, owner-ratified 2026-07-30): `U*` is the blessed spelling for app controls — no Tux input wrappers ship; `TuxFormField` owns label/help/error anatomy; `TuxButton` is the *editorial* button (gold-bar/CTA contexts), not the app-control default. Lint targets raw `<input>`/`<button>` elements and hex literals, never `U*`. See `/forms`. |
 | **Data table** (sortable, virtualizable, status cells) | `<TuxTable>` |
 | **Sortable / selectable / expandable data grid** (Landscape-class operational lists with bulk actions, active-filter chips, row expansion) | `<TuxRichDataGrid>` |
 | **Static research table** (numbered caption, ± CI uncertainty, footnotes, source citation, optional totals row) | `<TuxDataTable>` |
@@ -289,8 +295,9 @@ single most common failure mode.
 | **Editorial wrapper for a multi-exhibit visualizations page** (eyebrow + Oswald title + maroon signature + body + source) | `<TuxChartFrame>` |
 
 If your need isn't here, scan `/components` (or
-`app/pages/components/index.vue`) — there are ~70 Tux\* components and
-this map only highlights the ones with the easiest-to-miss names.
+[`app/utils/tuxCatalog.ts`](../app/utils/tuxCatalog.ts), the census the
+catalog test enforces) — there are ~140 Tux\* components and this map
+only highlights the ones with the easiest-to-miss names.
 
 ## Conventions
 
@@ -339,7 +346,7 @@ severity (advisory / blocking).
 | **Inline form summary** | Multiple fields invalid AND the user has tried to submit. Tells them *how many* issues without scrolling | `<TuxAlert variant="danger">` above the form body, with a list of `<a href="#field-id">` jumps to each broken field | Persists until all issues resolved; field-level inline errors remain the source of truth |
 | **Blocking dialog** | The action being submitted is destructive or irreversible. Forces explicit confirmation | `<UModal>` (or `<TuxModal>` for editorial chrome) with primary/secondary actions | Blocks the page; "Delete this corpus?" / "Discard 12 unsaved changes?" / "Revoke API key — this can't be undone" |
 | **Page/session banner** | The issue is *not* about this form — it's a session-level constraint that affects what the form can do (ITAR scope, expired token, rate limit, server down) | `<TuxAlert variant="compliance" \| "danger" \| "warning">` at the top of the page | Persists across forms on the same page; doesn't compete with field-level errors |
-| **Toast (transient confirmation)** | The form succeeded and the user has moved on. Not a "validation" placement per se, but the closing half of the validation lifecycle | `useToast()` (Nuxt UI) → green-tone "Saved" / "Removed" / "Sent" | Auto-dismisses in ~4 seconds; non-blocking |
+| **Toast (transient confirmation)** | The form succeeded and the user has moved on. Not a "validation" placement per se, but the closing half of the validation lifecycle | `useTuxToast().success("Saved")` rendered by the app-shell `<TuxStatusToast>` host | Auto-dismisses in ~5 seconds (errors stick); non-blocking; escalates to OS notification in unfocused Tauri windows |
 
 **Decision tree:**
 
@@ -469,13 +476,36 @@ Anti-patterns:
 common in consumer-SaaS empty-state kits. TUX is research-publishing;
 editorial restraint outweighs the "consumer SaaS expectation" of a
 friendly mascot. Empty states use a Lucide icon + heading + body +
-optional CTA. If warmth is needed, place a real photograph
-(`TuxPhotoCard`) *next to* — not inside — the empty state.
+optional CTA. If warmth is needed, place a real photograph (a future
+`TuxPhotoCard` — roadmap; today a `TuxCaptionedMedia`) *next to* — not
+inside — the empty state.
 
 This stance was reaffirmed against the Empty State Illustration Kit
 absorption (2026-05-21). The five `kind` presets (`no-data` /
 `no-results` / `not-found` / `no-permissions` / `first-run`) cover
 the real scenario taxonomy; 200 generic illustrations would not.
+
+### Focus rings — the universal rule owns them
+
+The layer ships ONE focus affordance: `*:focus-visible` in
+`globals.css` applies the themed two-ring `--shadow-focus`
+(`--focus-ring-inner` / `--focus-ring-outer`, remapped per theme —
+black-on-white in high-contrast). Components must NOT restate their
+own ring: a per-component `outline: 2px solid <color>` double-draws
+on top of the shadow, and a per-component `outline: none` silently
+suppresses the universal ring (2026-08-12 audit found four competing
+recipes across ten components — all removed).
+
+Exactly two sanctioned exceptions:
+
+1. **SVG child elements** (`<rect>`, `<path>`, …) — `box-shadow`
+   cannot render on them, so a focusable SVG child carries its own
+   `outline: 2px solid var(--focus-ring-outer)` (the themed token,
+   never a brand color). `TuxTreemap`'s cells are the canonical case.
+   Plot-level capture rects may instead use the documented
+   wash-fill alternative (`TuxChartLine`'s hover capture).
+2. **`@media (forced-colors: active)`** blocks — Windows High
+   Contrast rings use system colors by design; leave them.
 
 ### Motion primitives — six canonical transitions
 
@@ -491,7 +521,7 @@ patterns. Designers and contributors should reach for the
 | **Dropdown menu** | slide-down (-8px → 0) + fade | fast (~150ms) | `UDropdownMenu`, `TuxMenuBar` triggers |
 | **Modal / Dialog** | fade + scale 0.95 → 1 (or sheet slide on Mac) | normal (~200ms) | `TuxModal`, `TuxFocusView` |
 | **Slideover / Drawer** | slide-from-edge | normal (~250ms) | `TuxSlideover`, sidebar mobile-mode |
-| **Toast / Notification** | slide-from-edge + fade | normal (~200ms) | `TuxStatusToast`, future Tauri notifications |
+| **Toast / Notification** | slide-from-edge + fade | normal (~200ms) | `TuxStatusToast` + `useTuxToast()`, Tauri OS-notification escalation |
 | **Accordion / Disclosure** | height auto + fade | fast (~150ms) | `TuxAccordion`, `UCollapsible` |
 
 Plus three **component-level entrance** primitives shipped 2026-05-22
@@ -523,11 +553,20 @@ no contributor escapes it, no "delight" affordance ignores it.
 
 Every interactive chart in the native chart family uses the same
 tooltip pattern, shipped 2026-05-22 (`TuxChartLine`, `TuxChartBar`,
-`TuxChartArea`, `TuxChartScatter`):
+`TuxChartArea`, `TuxChartScatter`) and extended to `TuxChartDonut`,
+`TuxChartSunburst`, and `TuxTreemap` 2026-08-12:
 
-1. **Hover via pointer or focus via keyboard.** Lines / Areas / Bars
-   accept a focusable rect across the plot area; arrow keys cycle
-   the active index. Scatter dots are individually focusable.
+1. **Hover via pointer or focus via keyboard — one tab stop per
+   chart.** Lines / Areas / Bars accept a focusable rect across the
+   plot area; Scatter / Donut / Sunburst make the `<svg>` itself the
+   single focusable surface. Arrow keys cycle the active item as a
+   roving cursor (scatter points in x order; donut slices clockwise;
+   sunburst segments in hierarchical order — group, then its
+   children). Never make every data point a tab stop: a 500-point
+   scatter must not inject 500 tab stops. Treemap is the one
+   exception — its cells are real drill-in *buttons* (`role="button"`,
+   Enter/Space drills, Backspace drills up, arrows walk cells), so
+   per-cell focus is the correct semantic.
 2. **Visual highlight** — vertical guide line + per-series focus
    dots (Line / Area); column-wash on the active category (Bar);
    active-dot grow +2px (Scatter).
@@ -614,6 +653,12 @@ them; open an issue or ping the maintainer to add a row.
    what you could catch in seconds while the component is still fresh in
    your head:
    - `npm run lint` + `npm run typecheck` — style + types.
+   - `npm test` — catalog conformance plus the mounted component
+     suites (`tests/components/*.nuxt.test.ts`, nuxt environment via
+     `// @vitest-environment nuxt` docblock, mounted with
+     `mountSuspended`). New interactive behavior — keyboard contracts,
+     persistence, emits — should land with a mounted test; the chart
+     tooltip suites are the house exemplars.
    - `npm run audit:tokens` — every `var(--token)` you wrote resolves to
      a defined token (or fallback / known external namespace). Catches
      the `--surface-base` class of bug (undefined token → renders

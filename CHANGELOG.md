@@ -6,6 +6,416 @@ conventions and [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 
+## [1.9.0] — 2026-08-12
+
+The chart-engineering minor. One audit-driven day: the geographic
+family stops shipping 348KB of Texas to every consumer (per-kind
+async split), the four cartesian charts trade four drifted copies of
+their scale/hover math for shared modules under behavior-lock tests,
+the palette collapses ~135 pasted declarations into one file, and the
+six interaction-less charts join the tooltip/keyboard contract —
+including the treemap keyboard-drill fix and a scatter roving cursor
+replacing 500 tab stops. Underneath: the repo's first mounted
+component tests (vitest + @nuxt/test-utils), VueUse/TanStack dead
+weight dropped in favor of tux-owned composables,
+`TuxRichDataGrid` gains an opt-in virtualized big-list mode, focus
+rings unify onto the universal two-ring system, and a fix wave closes
+the tux-audit dependency gate, `Math.random()` ids, the radial
+charts' SSR float mismatches, and the `TuxExample` formatter crash
+that had been corrupting hydration on heavy pages.
+
+### Added
+
+- **`TuxRichDataGrid` virtualized big-list mode** (owner-requested) —
+  pass `virtualized` (+ optional `virtualRowHeight`, default 44) and
+  the body windows through `@tanstack/vue-virtual`: only the visible
+  slice of rows renders, bracketed by table-compatible spacer rows
+  that preserve the scroll extent, so sticky header, sorting, and
+  key-based selection keep working (measured live: 17–25 rendered
+  `<tr>`s while scrolling 5,000 rows). Spacers are mounted-gated so
+  SSR and the hydrating client agree. Row expansion is disabled while
+  virtualized (variable-height windows need per-row measurement —
+  build when a consumer needs it). Demo on
+  `/components/rich-data-grid`; mounted tests included.
+
+- **Mounted component testing foundation** — `vitest.config.ts` (the
+  file never existed; `npm test` ran bare) with a two-tier layout:
+  pure tests stay in the node environment, mounted tests opt into the
+  `nuxt` environment per file (`@nuxt/test-utils` + `@vue/test-utils`,
+  jsdom DOM), so Nuxt auto-imports resolve exactly as in the app.
+  First five mounted suites (18 tests) lock the hand-rolled behaviors
+  nothing exercised before: the donut/scatter/treemap interaction
+  contracts (arrow cycling, Escape, drill-in/up, roving cursor,
+  tooltip cards + emits), TuxFocusView's Escape handling and
+  `aria-labelledby` wiring, and TuxAnnouncementBanner's
+  localStorage-backed dismissal memory. Contributor guidance in
+  components.md now lists `npm test` among the pre-push guards.
+
+- **Chart tooltip contract extended to the interaction-less charts**
+  (per the components.md "Chart tooltips" doctrine, which previously
+  only Line/Bar/Area/Scatter honored):
+  - **`TuxTreemap`** — cells were focusable but bound no key handlers
+    (a focus ring with no readout and no way to drill). Cells are now
+    real `role="button"`s with accessible names; focus shows the
+    tooltip anchored to the cell, arrows walk the leaf cells,
+    Enter/Space drills in, Backspace drills up, Escape dismisses.
+  - **`TuxChartDonut`** — per-slice hover + branded tooltip card
+    (label, value, % of total), sibling slices dim while one is
+    active, native `<title>` fallbacks, `hover` emit, `tooltip` prop,
+    and single-tab-stop keyboard access (arrows cycle slices).
+  - **`TuxChartSunburst`** — same treatment; arrows walk segments in
+    hierarchical order (group, then its children) and the tooltip
+    names the parent group.
+
+### Changed
+
+- **Focus rings: one universal system, ten divergent recipes removed.**
+  The layer has always shipped a themed two-ring focus affordance
+  (`*:focus-visible` → `--shadow-focus`, black-on-white in
+  high-contrast), but ten components had grown their own competing
+  rings — four recipes including a non-existent `--focus-ring` token
+  (masked by fallbacks) and a brand-accent ring on `TuxTreemap` — that
+  either double-drew on the universal shadow or suppressed it with
+  `outline: none`. All removed; components now inherit the universal
+  ring. Two sanctioned exceptions are documented in components.md
+  §"Focus rings": SVG child elements (box-shadow can't render there —
+  `TuxTreemap` cells now use the themed `--focus-ring-outer` instead
+  of brand-accent) and `forced-colors` blocks (system colors by
+  design). Form-control `:focus` border tints are kept — they're
+  input affordances, not rings. Scope note: the reduced-motion blocks
+  flagged in the same audit stay colocated per component by design
+  (portability beats DRY for 3-line media queries), and small-type
+  utilities are deferred until the token question is settled.
+
+- **Dependency hygiene (owner-decided): `@vueuse/core` + `@vueuse/nuxt`
+  + `@tanstack/vue-table` removed.** All three were declared (VueUse
+  even registered as a module) with zero call sites — dead weight in
+  every consumer's dependency graph. The duplicated hand-rolled
+  patterns they would have covered are now tux-owned composables:
+  `useTuxPersistedRef` (SSR-safe storage-backed ref with a
+  `serializer` option so migrated components keep their exact wire
+  format) and `useTuxClipboard` (copy + "Copied" flash, keyed variant,
+  clears its reset timer on unmount — the hand-rolled copies leaked
+  theirs). Migrated: TuxAnnouncementBanner (dismissal memory),
+  TuxCodeBlock / TuxExample / TuxCitationExport (copy affordances).
+  `@tanstack/vue-virtual` stays — kept deliberately to back
+  TuxRichDataGrid's virtualized big-list mode (owner-requested,
+  landing separately).
+
+- **`TuxChartScatter` keyboard model: roving cursor instead of
+  per-point tab stops.** Every dot was previously `tabindex="0"` — a
+  500-point scatter injected 500 tab stops with no Escape. The svg is
+  now the single focusable surface; arrow keys walk points in x order
+  with the active dot ringed, Escape clears, and per-dot pointer hover
+  still works. The components.md contract text was updated to match.
+
+- **Chart family: shared scale math + hover model**
+  (`app/utils/tuxChartScale.ts` + `useTuxChartHover()`, locked by
+  `tests/tux-chart-scale.test.ts`). TuxChartLine / Bar / Area / Scatter
+  (plus Sparkline / Treemap / CorridorStrip spot fixes) now share one
+  implementation of nice-ticks, extents, domain padding, series tones,
+  margins, and the roving-cursor hover/keyboard contract. Deliberate
+  unifications: **ticks** — Bar/Area/Scatter adopt Line's algorithm
+  (1/2/5-step, in-domain), so the same domain renders the same axis on
+  every chart and Scatter's drifted `ceil` no longer drops the first
+  tick; **keyboard** — arrow navigation seeds at the midpoint
+  everywhere (Bar seeded at 0) and Up/Down alias Left/Right everywhere;
+  **tones** — series 9+ clamps to `--chart-8` everywhere (Line
+  previously wrapped back to hue 1); **margins** — left/bottom are
+  family-standard (48/36) so stacked exhibits baseline-align; **hover**
+  — pointer over plot padding clamps to the edge index instead of
+  Bar's old clear-on-padding; **robustness** — extents are loop-based
+  (`Math.min(...arr)` overflowed the stack past ~100k points).
+  **Palette**: series colors now flow through one `--tux-chart-tone`
+  custom property set by shared `tux-chart-tone--c1..8` classes
+  (`app/assets/css/tux-chart-palette.css`) — ~135 duplicated
+  `var(--chart-N, #hex)` declarations across six components collapse
+  to one file; rendered colors verified computed-identical to the
+  chart tokens on every showcase surface. Components keep their
+  `…__series--cN` classes as consumer styling hooks.
+
+- **`TuxChartGeographic` per-kind code split** — the five `kind`s now
+  render through async child components (`TuxChartGeoCounty` /
+  `Districts` / `UsContext` / `DotDensity` / `Flow`, internal, no
+  catalog entries) that each statically import only their own geo data
+  module. `app/assets/geo/texas.ts` split into `texas-outline` /
+  `texas-outline-polygon` / `txdot-districts` / `tx-metros` (data
+  byte-identical; `texas.ts` remains as a compat re-export barrel) and
+  `scripts/build-geo.mjs` now emits that layout. Payload per kind drops
+  from ~348KB eager to ~12KB (flow) / ~21KB (dot-density) / ~63KB
+  (county) / ~119KB (districts) / ~163KB (us-context); the public API,
+  rendered SVG, and SSR/prerender output are unchanged.
+
+### Fixed
+
+- **`TuxExample` HTML-tab formatter crash + the hydration errors it
+  caused.** The inline pretty-printer treated Vue's hydration comment
+  markers (`<!--[-->` / `<!--]-->`) as open tags — every marker leaked
+  one indent level forever (a rich-data-grid preview leaked +190,
+  inflating 26KB of DOM to 165KB of output), and `<col>`-class void
+  elements leaked too. On large, churning previews the quadratic
+  runaway exceeded V8's maximum string length ("RangeError: Invalid
+  string length"); because that threw during the hydration mount tick,
+  Vue's reconciliation corrupted and logged four "Hydration completed
+  but contains mismatches" errors on `/components/rich-data-grid`.
+  The formatter now lives in `app/utils/tuxFormatHtml.ts` (unit
+  tested): comments tokenize as single units and are dropped as
+  framework plumbing, the void-element list is complete, and input is
+  hard-capped with a visible truncation notice so no preview subtree
+  can ever OOM the tab. Verified: the page loads with zero console
+  errors and the HTML tab renders comment-free at true DOM depth.
+
+- **Radial charts: SSR hydration mismatch from raw trig floats.**
+  `TuxChartSunburst` / `TuxChartDonut` / `TuxChartGauge` serialized
+  unrounded `Math.sin`/`Math.cos` results into arc `d` and position
+  attributes; the server's and browser's V8 can differ in the last
+  ulp on transcendentals, so hydration flagged mismatched attributes
+  ("Hydration completed but contains mismatches", data-dependent).
+  Coordinates now round to 2dp at the geometry boundary — the same
+  discipline the cartesian charts already used via `toFixed(2)` —
+  verified byte-identical server-vs-client on every radial showcase
+  instance. Also fixed in passing: `TuxChartScatter`'s tooltip swatch
+  lost its color in the palette consolidation (its `hoverToneClass`
+  helper predated the shared tone classes).
+- **`tux-audit a11y` gated on the wrong dependency** — the dispatcher
+  required `puppeteer`, but `audit-a11y.mjs` runs on jsdom + axe-core
+  (its header documents why). Consumers with jsdom + axe-core were
+  wrongly blocked; consumers with puppeteer but no jsdom were admitted
+  and crashed on import. The gate now checks `jsdom`; help text and
+  README corrected to state the honest per-command dependency split.
+- **`Math.random()` element ids replaced with `useId()`** —
+  `TuxFocusView`'s `aria-labelledby` title id was generated by a
+  `Math.random()` computed (an SSR hydration mismatch when rendered
+  open, and a re-roll risk); now a stable `useId()`. `TuxRuleBuilder`'s
+  internal group child now derives rule/group ids from a per-instance
+  `useId()` seed + counter instead of `Math.random()`.
+
+## [1.8.0] — 2026-07-30
+
+The unification minor — semantic tokens for the estate, the toast that
+was always promised, Nuxt UI theme hardening (hybrid form doctrine),
+consumer-debt fixes, and the kit as a real distribution surface
+(brand.env, Power BI themes, `tux-audit`). Estate-visible change: body
+copy moves Public Sans → Open Sans per the four-family rule.
+
+### Added — distribution artifacts for non-Vue consumers (2026-07-30)
+
+One source (`design/tokens.json`), five generated artifacts — this is
+how the Forgejo overlay, compose stacks, and Power BI reporting stop
+hand-vendoring hex:
+
+- **`kit/` + `scripts/` now ship in the package `files`** — git-dep
+  consumers previously couldn't even see the kit the README sells.
+- **`kit/env/brand.env`** (`npm run build:brand-env`) — 71 flat
+  resolved `TUX_<THEME>_<GROUP>_<TOKEN>=#hex` keys for shell/Go/Python
+  consumers, written with collab-hub's temp-file + atomic-rename
+  fail-safety so an interrupted run can never half-theme downstream
+  apps.
+- **`kit/powerbi/tti-theme.json` + `tti-theme-dark.json`**
+  (`npm run build:powerbi`) — Power BI report themes: 10-series
+  dataColors from the chart ramp (chart-9/10 added so 10-series
+  validators are token-sourced, not hand-mixed), tux fonts, and a
+  theme-invariant brand block per the on-brand rule. The reporting
+  repo re-vendors at pin-bump instead of maintaining its v1.1.0-era
+  hand snapshot.
+- `npm run build:kit` chains tokens → brand.env → powerbi.
+- kit/README gains the "which artifact for which consumer" matrix.
+
+### Added — `tux-audit` bin: guardrails as a consumable (2026-07-30)
+
+- **`npx tux-audit tokens [dirs…]`** — the zero-dependency
+  undefined-token audit, now runnable from any consumer (one CI line,
+  documented in the README). `audit-tokens.mjs` generalized: target
+  dirs via args/`TUX_AUDIT_DIRS`, token definitions harvested from the
+  layer AND the consumer, extra namespaces via
+  `TUX_AUDIT_EXTERNAL_PREFIXES`. Validated against the estate: the
+  Landscape frontend passes clean; the AI Studio tree fails with the
+  migration table printed — exactly the 17-undefined-tokens bug class
+  this exists to catch.
+- `tux-audit contrast` / `tux-audit a11y` delegate when the consumer
+  has puppeteer/axe-core and explain honestly when it doesn't.
+
+### Added — TuxStatusToast + useTuxToast (2026-07-30)
+
+- The catalog's biggest hole, and a phantom the docs promised since the
+  motion table and tauri-bindings.md first cited it: **`TuxStatusToast`**
+  (the once-per-shell host) + **`useTuxToast()`** (the bus). Polite
+  `role="status"` live region; error tones render `role="alert"` and
+  stick until dismissed; slide-from-edge + fade at
+  `--motion-fast`/`--ease-standard`, collapsing to opacity-only under
+  reduced motion; optional action button; `edge="top"` mount for
+  workbench shells. In Tauri shells an unfocused window ALSO fires an OS
+  notification (guarded dynamic import of `@tauri-apps/
+  plugin-notification`, capability-optional, silent no-op on web) — the
+  tauri-bindings.md contract implemented. The docs shell dogfoods the
+  host; `/components/status-toast` is the live demo. Owns its own item
+  state rather than piggybacking Nuxt UI's toaster so the semantics and
+  motion are tux-controlled; migration from `useToast()` is a rename.
+
+### Added — TuxAvatar + TuxPageContainer (2026-07-30)
+
+- **`TuxAvatar`** — photo/initials/status-dot identity primitive,
+  extracted from TuxUserMenu (which now consumes it; no API change).
+  Broken photo URLs fall back to initials; decorative by default.
+- **`TuxPageContainer`** — content-width primitive over the new
+  `--layout-content-max` (80rem) / `--layout-content-wide` (96rem) /
+  `--layout-prose-max` (72ch) tokens. Landscape alone carried three
+  divergent max-widths before this existed.
+
+### Added — Nuxt UI theme hardening, Batch K (2026-07-30, owner-ratified)
+
+The hybrid form-control doctrine lands: `U*` primitives are the blessed
+app controls and the layer brands them everywhere —
+
+- Controls (`button`/`input`/`select`/`textarea`/`[role="button"]`)
+  ride `--font-bold` (Work Sans) per the four-family rule.
+- Nuxt UI's `--ui-radius` binds to `--radius-md`, aligning `U*` corner
+  geometry with Tux chrome.
+- The four family fonts are now Tailwind utilities
+  (`font-body/display/bold/elegant`).
+- `TuxButton` re-scoped in doctrine as the *editorial* button;
+  components.md's "Form input" row rewritten for the hybrid rule.
+
+### Added — TuxBadge `tone="custom"` (2026-07-30)
+
+- The open-palette escape hatch docs-tti's StatusPill needed:
+  `tone="custom"` + `--tux-badge-bg/fg/border` hooks (which must point
+  at tokens — consumer `audit:tokens` runs keep that honest).
+
+### Fixed — consumer-debt fixes (2026-07-30)
+
+- **TuxMegaMenu** caps its panel at the viewport below the nav and
+  scrolls internally — Landscape deletes its `app.vue` override.
+- **TuxSiteNav + TuxAppFrame publish `--tux-nav-height`** on `<html>`
+  (ResizeObserver-measured) — consumers replace hardcoded 4rem/5rem
+  sticky offsets in both shell shapes.
+- **Layer route stripping**: consumers no longer inherit the style
+  guide's 164 showcase routes via `extends` (opt back in with
+  `TTI_UX_DEMOS=1`) — docs-tti deletes its `pages:extend` workaround.
+- **Dark-bridge tolerance**: the Nuxt UI `.dark` bridge now matches any
+  `*-dark` color-mode value (not just `tti-dark`) and honors a
+  `tux: { darkBridge: false }` app.config kill-switch — docs-tti stops
+  path-stripping the plugin.
+- README documents the reverse-proxy `icon: { mode: "svg" }` guidance
+  (the Landscape/Caddy ghost-icon failure).
+
+### Added — semantic tokens for the estate (2026-07-30)
+
+- **`--text-on-brand`** — theme-invariant near-white for content on
+  `--brand-fill` surfaces, in all three themes. The collab-stack's
+  `--tux-on-brand` insight made canonical: fixed-maroon surfaces must
+  never use `--text-inverse` (it flips dark in dark mode). Adopted by
+  `TuxCTA`, `TuxFooter`, `TuxPageHeader`, `TuxAnnouncementBanner`
+  (replacing 10 hardcoded `#fff` declarations) and registered as the
+  measured pair on `/contrast-audit`, so AAA CI now gates the real
+  token. Tailwind alias `--color-text-on-brand` added.
+- **`--surface-border-subtle`** — the hairline-divider step below
+  `--surface-border` consumers kept inventing as `--border-subtle`
+  (light: neutral-150; dark: #2E2B2A; hc: deliberately === border).
+- **Spacing scale** — `--space-2/8/12/16/24/32/40/48/64` join the
+  existing 0/4/10, closing the "spacing is un-tokenized" gap against
+  tux.md principle 4.
+- **Migration table** (kit/README.md + `audit:tokens` failure message):
+  every consumer-invented token name observed in the estate mapped to
+  its canonical equivalent, plus the documented on-brand recipe and the
+  "rename, don't alias" doctrine — no compat aliases ship.
+
+### Changed — warning is TTI gold (2026-07-30, owner-ratified)
+
+- Nuxt UI's `warning` alias now maps to the **TTI gold ramp**
+  (`--color-gold-*`, #DDAC37 anchor) instead of the amber stand-in the
+  app.config self-documented as a follow-up. Landscape's local
+  `warning: "gold"` override becomes redundant at its next pin-bump.
+
+### Changed — typography now matches the four-family doctrine (2026-07-30)
+
+**Estate-visible at pin-bump.** tux.md's four-family rule was doctrine
+the CSS didn't follow; now it does:
+
+- Body copy (`html, body`) and `.eyebrow`/`.subhead` use
+  `--font-body` (**Open Sans**) — previously `--font-sans`
+  (Public Sans, the "legacy" face per tux.md).
+- `.heading--display` uses `--font-display` (**Oswald** in the default
+  style, re-binding to Work Sans / Georgia under `.style--bold` /
+  `.style--elegant`) — previously Public Sans 800 italic. Italic
+  dropped (Oswald ships no italic axis); weight normalized to 700.
+- `--font-sans` remains defined (self-hosted) but is **deprecated** —
+  marked in tokens.json, tux.md, and globals.css.
+- Dead **`@nuxt/fonts`** dependency removed (module was already out of
+  nuxt.config; fonts are self-hosted via `fonts.css` +
+  `sync-fonts.mjs`); stale comments claiming otherwise fixed in
+  globals.css and tux.md.
+
+### Fixed — layer no longer bleeds docs-site build config (2026-07-30)
+
+- The `$production.nitro.prerender` block (crawlLinks +
+  `failOnError: false`) is now fenced behind an is-root-project check,
+  so `extends` consumers stop inheriting the style guide's prerender
+  behavior. Landscape can delete its `nitro:config` reset hook at next
+  pin-bump.
+
+## [1.7.1] — 2026-07-30
+
+Doctrine + registry-truth release — docs and CI only, no runtime changes.
+Safe for all consumers to pick up immediately.
+
+### Added — unification doctrine committed (2026-07-30)
+
+- **`design/unification-plan.md`** — the portal-unification plan's
+  permanent home. The v4 plan document (authored + seven-lens-reviewed
+  in-session on 2026-07-28) previously lived only in session state; it
+  is now reconstructed as public-safe doctrine: the two-shape identity
+  rule, one-chrome-many-voices, registry law, distribution artifacts,
+  guardrails, execution log, and the open-decision ledger. Registered
+  in the Design sidebar, the design index, and the `[doc].vue` title
+  map (which also gains the missing `roadmap` and
+  `visual-language-evolution` titles).
+- **`compositions.md` §Suite chrome** — the section
+  `TuxUserMenu`/`TuxUtilityCluster` docblocks have cited since v1.7.0
+  but which was never written: canonical header composition per shell
+  shape, the cluster anatomy law, the two-shape identity rule as
+  composition law, and the don't list.
+- Owner decisions ratified 2026-07-30: form controls go **hybrid**
+  (harden the layer's Nuxt UI theme; no wrapper set; `TuxButton`
+  re-scoped editorial — lands v1.8.0), `warning` → TTI gold (v1.8.0),
+  collab-stack hc-as-light confirmed accidental, docs-platform work
+  spun into its own workstream.
+
+### Added — catalog single source + registry test (2026-07-30)
+
+- **`app/utils/tuxCatalog.ts`** — one 139-entry catalog (name, route,
+  icon, family, kind, wraps, blurb) now drives the sidebar navTree's
+  Components / Reports / Visualizations groups, the `/components`
+  index card grid, and the homepage count. The four hand-maintained
+  lists it replaces had drifted: ~30 components missing from the index
+  grid (the entire research-publishing, TTI-identity, geospatial, and
+  forms families), 9 from the sidebar (including v1.7.0's own
+  `TuxUserMenu` + `TuxUtilityCluster`), 3 from `components.md`
+  (backfilled: `TuxRailNav`, `TuxUserMenu`, `TuxUtilityCluster`).
+- **`tests/tux-catalog.test.ts`** — catalog ↔ filesystem ↔ routes ↔
+  `components.md` invariants in the `useTuxApps.test.ts` mold. The
+  icon check immediately caught 10 deprecated Lucide alias names
+  (`form-input`, `alert-circle`, `check-square`, …) that the nav had
+  carried silently — all renamed to canonical.
+- **`npm test` now gates CI** (quality job) — vitest existed since
+  v1.7.0 but ran in no workflow.
+
+### Fixed — doc truth pass (2026-07-30)
+
+- README: "Current release: v1.4.2" (three releases stale) replaced
+  with a CHANGELOG pointer; pin examples bumped `#v1.4.2` → `#v1.7.0`;
+  component census corrected (~130+5 → 140+6, now test-enforced);
+  the "Landscape — formerly Landscape" rename artifact fixed; `kit/`
+  and the apps registry documented; ADR count corrected (ten →
+  twelve); `useTuxApps` added to the composables list.
+- Homepage: hardcoded "70+" count now computed from the catalog;
+  recent-updates feed gains the missing v1.7.0 suite-chrome entry.
+- `getting-started.vue` counts (~100/~95) corrected; `components.md`
+  "~70 components" corrected and phantom references annotated
+  (`TuxPhotoCard` → roadmap; `TuxStatusToast` → ships v1.8.0);
+  `roadmap.md` ship-checklist now points at the catalog + test
+  instead of four files.
+
 ## [1.7.0] — 2026-07-28
 
 Suite-chrome release — the portal unification plan's v1.7.0 slice.

@@ -14,7 +14,7 @@
  * (in the same row as the DOI / license / funder strip), or
  * in a sticky-actions sidebar.
  */
-import { computed, ref } from "vue";
+import { computed } from "vue";
 
 export interface TuxCitationData {
   /** Author list — "Last, F.M." or "F.M. Last" forms work. */
@@ -166,19 +166,10 @@ const formats = computed(() => {
   ];
 });
 
-const copied = ref<string | null>(null);
+const { copiedKey: copied, copy: writeClipboard } = useTuxClipboard({ resetAfterMs: 1800 });
 
 async function copyToClipboard(key: string, text: string) {
-  if (typeof navigator === "undefined" || !navigator.clipboard) return;
-  try {
-    await navigator.clipboard.writeText(text);
-    copied.value = key;
-    setTimeout(() => {
-      if (copied.value === key) copied.value = null;
-    }, 1800);
-  } catch {
-    // Clipboard write failed — silent.
-  }
+  await writeClipboard(text, key);
 }
 </script>
 

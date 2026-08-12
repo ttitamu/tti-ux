@@ -31,6 +31,7 @@ Compositions earn a slot in this doc when they meet three tests:
 - [Chart surfaces](#chart-surfaces)
 - [Browse + detail surfaces](#browse--detail-surfaces)
 - [Chat surfaces](#chat-surfaces)
+- [Suite chrome](#suite-chrome)
 - [Cross-app navigation](#cross-app-navigation)
 - [Editorial surfaces](#editorial-surfaces)
 
@@ -394,6 +395,88 @@ user sees their budget while typing.
 ```
 
 **Consumers:** `app/pages/examples/tti-ai-studio-session.vue`.
+
+---
+
+## Suite chrome
+
+> The composition law behind the family look. Strategy and provenance
+> live in [`unification-plan.md`](./unification-plan.md); this section
+> is *how to build it*. `TuxUserMenu` and `TuxUtilityCluster` cite
+> this section as the source of their anatomy law.
+
+### The canonical header
+
+Every portal's chrome is the same composition:
+
+- **Site shape** (global top header — Landscape, TTI Code, the docs
+  site): `TuxSiteNav` with `TuxUtilityCluster` in its trailing slot.
+- **Workbench shape** (persistent left rail — AI Studio, Tauri
+  shells): `TuxAppFrame` with the cluster in its `#right` slot,
+  before the OS window controls.
+
+```vue
+<TuxSiteNav :identity="identity" :items="primaryNav">
+  <template #trailing>
+    <TuxUtilityCluster
+      current="landscape"
+      :signed-in="signedIn"
+      :user-menu="{ identity: user, items: menuItems }"
+    >
+      <template #search><!-- portal's search trigger --></template>
+      <template #notifications><!-- portal's bell --></template>
+    </TuxUtilityCluster>
+  </template>
+</TuxSiteNav>
+```
+
+### The anatomy law
+
+The cluster's DOM order is fixed, always:
+
+```
+[ #search ] [ #notifications ] [ theme ] [ waffle ] [ identity ]
+```
+
+Optional seats are *absent*, never reordered. The waffle never
+folds; identity never folds. One cluster per app shell. In Tauri the
+cluster is "trailing", not "top-right" — Windows owns the literal
+corner.
+
+### The two-shape identity rule
+
+Identity has exactly two blessed homes, bound to shell shape:
+
+| Shell shape | Mount |
+|---|---|
+| Site shape | `TuxUserMenu placement="cluster"` — the cluster's **last** seat |
+| Workbench shape | `TuxUserMenu placement="rail-footer"` — the rail's footer seat |
+
+Never a third home. Menu content and order are identical in both
+mounts; only the trigger anatomy differs. All five states
+(loading / signed-out / signed-in / local-only / error) must render —
+a portal may not hide the seat because auth is in flight.
+
+Theme: the cluster's toggle flips `tti ↔ tti-dark` and announces via
+`role="status"`. `tti-hc` stays reachable from the footer (ADR-0006)
+and the identity menu's prefs — never from the toggle's cycle.
+
+### Don't
+
+- Never a third identity home (a titlebar chip *and* a rail footer,
+  a bespoke avatar button next to the cluster).
+- Never reorder or interleave the cluster's seats.
+- Never two waffles, and never a hand-declared app list — the waffle
+  is registry-fed via `useTuxApps()` (see
+  [Cross-app navigation](#cross-app-navigation)).
+- Never rebuild the cluster per-layout — wrap it once per product
+  (the Landscape pattern below) and mount the wrapper everywhere.
+
+**Consumers:** `app/app.vue` (the docs site dogfoods the cluster —
+waffle + theme, identity seat deliberately absent because the site is
+unauthenticated); Landscape's `LandscapeUtilityCluster.vue`
+(one wrapper wires search / bell / identity once, all layouts mount
+it — the reference consumer shape).
 
 ---
 

@@ -90,9 +90,9 @@ const themes = [
         <section class="audit__section" data-audit-group="tokens">
           <p class="audit__section-label">color tokens</p>
           <div class="audit__swatch-grid">
-            <div class="audit__swatch" style="background: var(--brand-fill); color: #fff;">
+            <div class="audit__swatch" style="background: var(--brand-fill); color: var(--text-on-brand);">
               <span class="audit__swatch-name">brand-fill</span>
-              <span class="audit__swatch-on">white text · marketing panel</span>
+              <span class="audit__swatch-on">text-on-brand · marketing panel</span>
             </div>
             <div class="audit__swatch" style="background: var(--brand-accent); color: #1f1c1c;">
               <span class="audit__swatch-name">brand-accent</span>

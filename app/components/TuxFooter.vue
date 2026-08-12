@@ -345,7 +345,7 @@ function isInternal(href: string) {
   font-family: var(--font-bold);
   font-weight: 700;
   font-size: 1rem;
-  color: #fff;
+  color: var(--text-on-brand);
   line-height: 1.3;
 }
 
@@ -398,7 +398,7 @@ function isInternal(href: string) {
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 50%;
-  color: #fff;
+  color: var(--text-on-brand);
   background: rgba(255, 255, 255, 0.06);
   transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
@@ -547,7 +547,7 @@ function isInternal(href: string) {
 
 .tux-footer__tamus-link:hover,
 .tux-footer__tamus-link:focus-visible {
-  color: #fff;
+  color: var(--text-on-brand);
   text-decoration: underline;
   text-underline-offset: 2px;
   outline: none;
@@ -568,7 +568,7 @@ function isInternal(href: string) {
 
 .tux-footer__copy-link:hover,
 .tux-footer__copy-link:focus-visible {
-  color: #fff;
+  color: var(--text-on-brand);
   text-decoration: underline;
   text-underline-offset: 2px;
   outline: none;

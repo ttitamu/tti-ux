@@ -136,7 +136,7 @@ defineSlots<{
   /* --brand-fill instead of --brand-primary so dark mode keeps a
      dark panel bg (white text on top stays WCAG-compliant). */
   background: var(--brand-fill);
-  color: #fff;
+  color: var(--text-on-brand);
   padding: 1.5rem 1.5rem;
   border-radius: var(--radius-md);
 }
@@ -147,7 +147,7 @@ defineSlots<{
   color: rgba(255, 255, 255, 0.85);
 }
 .tux-page-header--maroon .tux-page-header__title {
-  color: #fff;
+  color: var(--text-on-brand);
 }
 .tux-page-header--maroon .tux-page-header__body {
   color: rgba(255, 255, 255, 0.92);
