@@ -92,10 +92,23 @@ jobs:
           esac
           # Download to a file, verify the published checksum, THEN extract. The
           # bare wget|tar pipe trusted TLS only — this closes that gap.
-          wget -qO /tmp/trivy.tgz "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-${TRIVY_ARCH}.tar.gz"
+          # fetch = 3 attempts covering EVERY failure class (DNS, TLS,
+          # conn-refused, HTTP) — a single silent wget death from github.com
+          # redded a PR before any scanning ran (2026-08-12). A gate must not
+          # fail on its own toolchain download when one retry would do.
+          fetch() {
+            for _i in 1 2 3; do
+              if wget -qO "$2" -T 30 "$1"; then return 0; fi
+              echo "download failed (attempt ${_i}/3): $1"
+              sleep 5
+            done
+            echo "download failed after 3 attempts: $1"
+            return 1
+          }
+          fetch "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-${TRIVY_ARCH}.tar.gz" /tmp/trivy.tgz
           echo "${TRIVY_SHA}  /tmp/trivy.tgz" | sha256sum -c -
           tar -xzf /tmp/trivy.tgz -C "$HOME/.local/bin" trivy
-          wget -qO /tmp/gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${GL_ARCH}.tar.gz"
+          fetch "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${GL_ARCH}.tar.gz" /tmp/gitleaks.tgz
           echo "${GITLEAKS_SHA}  /tmp/gitleaks.tgz" | sha256sum -c -
           tar -xzf /tmp/gitleaks.tgz -C "$HOME/.local/bin" gitleaks
 
@@ -115,9 +128,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -eu
-          "$HOME/.local/bin/trivy" fs --scanners vuln --severity HIGH,CRITICAL \
-            --exit-code 0 --no-progress --ignorefile /tmp/.trivyignore \
-            --format json --output /tmp/trivy.json .
+          # --exit-code 0 means findings never fail this invocation (the
+          # python below owns the verdict) — so a nonzero here is purely
+          # operational (vulndb download flake and kin) and safe to retry.
+          _ok=""
+          for _try in 1 2 3; do
+            if "$HOME/.local/bin/trivy" fs --scanners vuln --severity HIGH,CRITICAL \
+              --exit-code 0 --no-progress --ignorefile /tmp/.trivyignore \
+              --format json --output /tmp/trivy.json .; then _ok=1; break; fi
+            echo "trivy attempt ${_try}/3 failed (operational — likely vulndb fetch); retrying in 10s"
+            sleep 10
+          done
+          if [ -z "$_ok" ]; then echo "trivy could not complete after 3 attempts"; exit 1; fi
           python3 - <<'PYEOF'
           import json, os, sys, urllib.request
 
@@ -260,8 +282,18 @@ jobs:
           PYFLAKES_VERSION=3.4.0
           PYFLAKES_SHA=f742a7dbd0d9cb9ea41e9a24a918996e8170c799fa528688d40dd582c8265f4f
           WHEEL="pyflakes-${PYFLAKES_VERSION}-py2.py3-none-any.whl"
-          wget -qO "/tmp/${WHEEL}" \
-            "https://files.pythonhosted.org/packages/c2/2f/81d580a0fb83baeb066698975cb14a618bdbed7720678566f1b046a95fe8/${WHEEL}"
+          # Same 3-attempt fetch as the scanner step (separate shell, so the
+          # helper is redefined) — no gate red on a one-off download blip.
+          fetch() {
+            for _i in 1 2 3; do
+              if wget -qO "$2" -T 30 "$1"; then return 0; fi
+              echo "download failed (attempt ${_i}/3): $1"
+              sleep 5
+            done
+            echo "download failed after 3 attempts: $1"
+            return 1
+          }
+          fetch "https://files.pythonhosted.org/packages/c2/2f/81d580a0fb83baeb066698975cb14a618bdbed7720678566f1b046a95fe8/${WHEEL}" "/tmp/${WHEEL}"
           echo "${PYFLAKES_SHA}  /tmp/${WHEEL}" | sha256sum -c -
           # NOT `pip install`. Ubuntu 24.04 marks its system Python
           # externally-managed (PEP 668), so pip refuses outright — verified
