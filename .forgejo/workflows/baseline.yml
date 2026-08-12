@@ -119,9 +119,19 @@ jobs:
             echo "${TRIVY_SHA}  /tmp/trivy.tgz" | sha256sum -c -
             tar -xzf /tmp/trivy.tgz -C "$HOME/.local/bin" trivy
           fi
-          fetch "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${GL_ARCH}.tar.gz" /tmp/gitleaks.tgz
-          echo "${GITLEAKS_SHA}  /tmp/gitleaks.tgz" | sha256sum -c -
-          tar -xzf /tmp/gitleaks.tgz -C "$HOME/.local/bin" gitleaks
+          # Same baked-first policy for gitleaks (in the image since the
+          # 2026-08-12 rebuild — the throttle moved to its tarball the moment
+          # trivy stopped downloading). Version output is bare ("8.30.1") but
+          # tolerate a v-prefix; any mismatch falls back to the fetch.
+          gv="$(gitleaks version 2>/dev/null || true)"
+          if [ "$gv" = "${GITLEAKS_VERSION}" ] || [ "$gv" = "v${GITLEAKS_VERSION}" ]; then
+            ln -sf "$(command -v gitleaks)" "$HOME/.local/bin/gitleaks"
+            echo "using image-baked gitleaks ${GITLEAKS_VERSION} (no download)"
+          else
+            fetch "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${GL_ARCH}.tar.gz" /tmp/gitleaks.tgz
+            echo "${GITLEAKS_SHA}  /tmp/gitleaks.tgz" | sha256sum -c -
+            tar -xzf /tmp/gitleaks.tgz -C "$HOME/.local/bin" gitleaks
+          fi
 
       # SCA gate — vulnerable dependencies only. `--scanners vuln` keeps roles clean:
       # Trivy owns SCA, gitleaks (below) owns secrets. (Trivy's default fs scan ALSO
