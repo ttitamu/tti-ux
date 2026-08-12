@@ -105,9 +105,20 @@ jobs:
             echo "download failed after 3 attempts: $1"
             return 1
           }
-          fetch "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-${TRIVY_ARCH}.tar.gz" /tmp/trivy.tgz
-          echo "${TRIVY_SHA}  /tmp/trivy.tgz" | sha256sum -c -
-          tar -xzf /tmp/trivy.tgz -C "$HOME/.local/bin" trivy
+          # Prefer the A1.0 runner image's BAKED trivy when it matches the pin
+          # (checksum-verified at image build — same trust anchor, zero
+          # network). github.com throttled the ~50MB tarball during a 13-repo
+          # rollout on 2026-08-12: three retries, all dead. The download is
+          # now only the drift fallback, e.g. mid-quarter pin bumps before an
+          # image rebuild.
+          if [ "$(trivy --version 2>/dev/null | head -n1)" = "Version: ${TRIVY_VERSION}" ]; then
+            ln -sf "$(command -v trivy)" "$HOME/.local/bin/trivy"
+            echo "using image-baked trivy ${TRIVY_VERSION} (no download)"
+          else
+            fetch "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-${TRIVY_ARCH}.tar.gz" /tmp/trivy.tgz
+            echo "${TRIVY_SHA}  /tmp/trivy.tgz" | sha256sum -c -
+            tar -xzf /tmp/trivy.tgz -C "$HOME/.local/bin" trivy
+          fi
           fetch "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${GL_ARCH}.tar.gz" /tmp/gitleaks.tgz
           echo "${GITLEAKS_SHA}  /tmp/gitleaks.tgz" | sha256sum -c -
           tar -xzf /tmp/gitleaks.tgz -C "$HOME/.local/bin" gitleaks
