@@ -631,6 +631,12 @@ them; open an issue or ping the maintainer to add a row.
    what you could catch in seconds while the component is still fresh in
    your head:
    - `npm run lint` + `npm run typecheck` — style + types.
+   - `npm test` — catalog conformance plus the mounted component
+     suites (`tests/components/*.nuxt.test.ts`, nuxt environment via
+     `// @vitest-environment nuxt` docblock, mounted with
+     `mountSuspended`). New interactive behavior — keyboard contracts,
+     persistence, emits — should land with a mounted test; the chart
+     tooltip suites are the house exemplars.
    - `npm run audit:tokens` — every `var(--token)` you wrote resolves to
      a defined token (or fallback / known external namespace). Catches
      the `--surface-base` class of bug (undefined token → renders

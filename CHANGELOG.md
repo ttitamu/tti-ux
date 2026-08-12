@@ -7,6 +7,19 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Mounted component testing foundation** — `vitest.config.ts` (the
+  file never existed; `npm test` ran bare) with a two-tier layout:
+  pure tests stay in the node environment, mounted tests opt into the
+  `nuxt` environment per file (`@nuxt/test-utils` + `@vue/test-utils`,
+  jsdom DOM), so Nuxt auto-imports resolve exactly as in the app.
+  First five mounted suites (18 tests) lock the hand-rolled behaviors
+  nothing exercised before: the donut/scatter/treemap interaction
+  contracts (arrow cycling, Escape, drill-in/up, roving cursor,
+  tooltip cards + emits), TuxFocusView's Escape handling and
+  `aria-labelledby` wiring, and TuxAnnouncementBanner's
+  localStorage-backed dismissal memory. Contributor guidance in
+  components.md now lists `npm test` among the pre-push guards.
+
 - **Chart tooltip contract extended to the interaction-less charts**
   (per the components.md "Chart tooltips" doctrine, which previously
   only Line/Bar/Area/Scatter honored):
