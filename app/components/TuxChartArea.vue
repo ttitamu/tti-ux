@@ -87,10 +87,12 @@ const emit = defineEmits<{
   hover: [payload: { index: number; label: string; values: Array<{ key: string; label: string; value: number }> } | null];
 }>();
 
-const PAD_TOP = 14;
-const PAD_RIGHT = 56; // room for end-of-area labels
-const PAD_BOTTOM = 32;
-const PAD_LEFT = 48;
+// Family-standard top/bottom/left (tuxChartScale) so stacked exhibits
+// baseline-align; right stays wider than standard for end-of-area labels.
+const PAD_TOP = TUX_CHART_MARGINS.top;
+const PAD_RIGHT = 56;
+const PAD_BOTTOM = TUX_CHART_MARGINS.bottom;
+const PAD_LEFT = TUX_CHART_MARGINS.left;
 
 const innerW = computed(() => props.width - PAD_LEFT - PAD_RIGHT);
 const innerH = computed(() => props.height - PAD_TOP - PAD_BOTTOM);
@@ -120,31 +122,14 @@ const extent = computed(() => {
       for (const s of props.series) sum += s.data[i] ?? 0;
       totals.push(sum);
     }
-    return { min: 0, max: Math.max(0, ...totals) || 1 };
+    return { min: 0, max: Math.max(0, tuxExtent(totals)[1]) || 1 };
   }
   const vals = props.series.flatMap((s) => s.data);
-  return { min: 0, max: Math.max(0, ...vals) || 1 };
+  return { min: 0, max: Math.max(0, tuxExtent(vals)[1]) || 1 };
 });
 
-function niceTicks(min: number, max: number, count: number): number[] {
-  const range = max - min;
-  const step = Math.pow(10, Math.floor(Math.log10(range / Math.max(1, count))));
-  const candidates = [1, 2, 2.5, 5, 10].map((m) => m * step);
-  let chosen = step;
-  for (const c of candidates) {
-    if (range / c <= count + 1) {
-      chosen = c;
-      break;
-    }
-  }
-  const ticks: number[] = [];
-  for (let v = Math.floor(min / chosen) * chosen; v <= max + chosen / 2; v += chosen) {
-    ticks.push(Number(v.toFixed(8)));
-  }
-  return ticks;
-}
-
-const yTickValues = computed(() => niceTicks(extent.value.min, extent.value.max, props.ticks));
+// Family-canonical ticks (tuxChartScale).
+const yTickValues = computed(() => tuxNiceTicks(extent.value.min, extent.value.max, props.ticks));
 
 function xCoord(i: number): number {
   const n = props.labels.length;
@@ -158,9 +143,10 @@ function yCoord(v: number): number {
 }
 
 function toneClass(s: Series, fallbackIndex: number): string {
-  const idx = s.toneIndex ?? fallbackIndex + 1;
-  const tone = Math.max(1, Math.min(8, idx));
-  return `tux-chart-area__series--c${tone}`;
+  const tone = tuxSeriesTone(fallbackIndex, s.toneIndex);
+  // BEM class = consumer styling hook; tux-chart-tone--cN carries the
+  // color via --tux-chart-tone (tux-chart-palette.css).
+  return `tux-chart-area__series--c${tone} tux-chart-tone--c${tone}`;
 }
 
 interface AreaPath {
@@ -222,8 +208,7 @@ const areaPaths = computed<AreaPath[]>(() => {
 const ariaSummary = computed(() => {
   if (props.ariaSummary) return props.ariaSummary;
   const all = props.series.flatMap((s) => s.data);
-  const max = Math.max(...all);
-  const min = Math.min(...all);
+  const [min, max] = tuxExtent(all);
   const last = props.series.map((s) => s.data[s.data.length - 1] ?? 0);
   const lastTotal = last.reduce((a, b) => a + b, 0);
   const u = props.units ? ` ${props.units}` : "";
@@ -232,60 +217,45 @@ const ariaSummary = computed(() => {
 });
 
 // ----- Hover tooltip (Line-style: vertical guide + focus dots) ----
-const hoverIndex = ref<number | null>(null);
+// Shared roving-cursor model (useTuxChartHover), point-mode projection.
+const {
+  hoverIndex,
+  onPointerMove: onAreaMove,
+  onPointerLeave: onAreaLeave,
+  onKeydown: onAreaKey,
+} = useTuxChartHover({
+  count: () => props.labels.length,
+  enabled: () => props.tooltip,
+  indexFromPointer(e) {
+    const svg = e.currentTarget as SVGSVGElement;
+    const rect = svg.getBoundingClientRect();
+    return tuxIndexFromPointer({
+      clientX: e.clientX,
+      rectLeft: rect.left,
+      rectWidth: rect.width,
+      viewWidth: props.width,
+      padLeft: PAD_LEFT,
+      innerWidth: innerW.value,
+      count: props.labels.length,
+      mode: "point",
+    });
+  },
+  onChange(idx) {
+    if (idx === null) {
+      emit("hover", null);
+      return;
+    }
+    const label = props.labels[idx] ?? "";
+    const values = props.series.map((s) => ({
+      key: s.key,
+      label: s.label,
+      value: s.data[idx] ?? 0,
+    }));
+    emit("hover", { index: idx, label, values });
+  },
+});
+
 const hoverX = computed(() => (hoverIndex.value === null ? 0 : xCoord(hoverIndex.value)));
-
-function indexFromPointer(clientX: number, svg: SVGSVGElement): number | null {
-  const rect = svg.getBoundingClientRect();
-  const scaleX = props.width / rect.width;
-  const xInSvg = (clientX - rect.left) * scaleX;
-  const n = props.labels.length;
-  if (n === 0) return null;
-  if (xInSvg < PAD_LEFT) return 0;
-  if (xInSvg > PAD_LEFT + innerW.value) return n - 1;
-  const frac = (xInSvg - PAD_LEFT) / Math.max(1, innerW.value);
-  return Math.max(0, Math.min(n - 1, Math.round(frac * (n - 1))));
-}
-
-function onAreaMove(e: PointerEvent) {
-  if (!props.tooltip) return;
-  const svg = e.currentTarget as SVGSVGElement;
-  const idx = indexFromPointer(e.clientX, svg);
-  if (idx !== null) setHoverIndex(idx);
-}
-
-function onAreaLeave() {
-  setHoverIndex(null);
-}
-
-function onAreaKey(e: KeyboardEvent) {
-  if (!props.tooltip) return;
-  const n = props.labels.length;
-  if (n === 0) return;
-  if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-    e.preventDefault();
-    const cur = hoverIndex.value ?? Math.floor(n / 2);
-    const next = e.key === "ArrowLeft" ? Math.max(0, cur - 1) : Math.min(n - 1, cur + 1);
-    setHoverIndex(next);
-  } else if (e.key === "Escape") {
-    setHoverIndex(null);
-  }
-}
-
-function setHoverIndex(idx: number | null) {
-  hoverIndex.value = idx;
-  if (idx === null) {
-    emit("hover", null);
-    return;
-  }
-  const label = props.labels[idx] ?? "";
-  const values = props.series.map((s) => ({
-    key: s.key,
-    label: s.label,
-    value: s.data[idx] ?? 0,
-  }));
-  emit("hover", { index: idx, label, values });
-}
 
 const tooltipPayload = computed(() => {
   if (hoverIndex.value === null) return null;
@@ -512,7 +482,7 @@ function focusY(seriesIdx: number, idx: number): number {
 }
 
 .tux-chart-area__area {
-  fill: var(--chart-1, var(--brand-primary));
+  fill: var(--tux-chart-tone, var(--chart-1, var(--brand-primary)));
 }
 .tux-chart-area__area--overlay {
   opacity: 0.22;
@@ -522,43 +492,15 @@ function focusY(seriesIdx: number, idx: number): number {
 }
 
 .tux-chart-area__top-line {
-  stroke: var(--chart-1, var(--brand-primary));
+  stroke: var(--tux-chart-tone, var(--chart-1, var(--brand-primary)));
   stroke-width: 1.75;
 }
 
 .tux-chart-area__end-label {
   font-size: 11px;
   font-weight: 600;
-  fill: var(--chart-1, var(--brand-primary));
+  fill: var(--tux-chart-tone, var(--chart-1, var(--brand-primary)));
 }
-
-/* Palette */
-.tux-chart-area__area.tux-chart-area__series--c1 { fill: var(--chart-1, var(--brand-primary)); }
-.tux-chart-area__area.tux-chart-area__series--c2 { fill: var(--chart-2, #3f5a6f); }
-.tux-chart-area__area.tux-chart-area__series--c3 { fill: var(--chart-3, #c7973c); }
-.tux-chart-area__area.tux-chart-area__series--c4 { fill: var(--chart-4, #6b8e5a); }
-.tux-chart-area__area.tux-chart-area__series--c5 { fill: var(--chart-5, #8c5a3c); }
-.tux-chart-area__area.tux-chart-area__series--c6 { fill: var(--chart-6, #5c7080); }
-.tux-chart-area__area.tux-chart-area__series--c7 { fill: var(--chart-7, #a33a3a); }
-.tux-chart-area__area.tux-chart-area__series--c8 { fill: var(--chart-8, #3c5a87); }
-
-.tux-chart-area__top-line.tux-chart-area__series--c1 { stroke: var(--chart-1, var(--brand-primary)); }
-.tux-chart-area__top-line.tux-chart-area__series--c2 { stroke: var(--chart-2, #3f5a6f); }
-.tux-chart-area__top-line.tux-chart-area__series--c3 { stroke: var(--chart-3, #c7973c); }
-.tux-chart-area__top-line.tux-chart-area__series--c4 { stroke: var(--chart-4, #6b8e5a); }
-.tux-chart-area__top-line.tux-chart-area__series--c5 { stroke: var(--chart-5, #8c5a3c); }
-.tux-chart-area__top-line.tux-chart-area__series--c6 { stroke: var(--chart-6, #5c7080); }
-.tux-chart-area__top-line.tux-chart-area__series--c7 { stroke: var(--chart-7, #a33a3a); }
-.tux-chart-area__top-line.tux-chart-area__series--c8 { stroke: var(--chart-8, #3c5a87); }
-
-.tux-chart-area__end-label.tux-chart-area__series--c1 { fill: var(--chart-1, var(--brand-primary)); }
-.tux-chart-area__end-label.tux-chart-area__series--c2 { fill: var(--chart-2, #3f5a6f); }
-.tux-chart-area__end-label.tux-chart-area__series--c3 { fill: var(--chart-3, #c7973c); }
-.tux-chart-area__end-label.tux-chart-area__series--c4 { fill: var(--chart-4, #6b8e5a); }
-.tux-chart-area__end-label.tux-chart-area__series--c5 { fill: var(--chart-5, #8c5a3c); }
-.tux-chart-area__end-label.tux-chart-area__series--c6 { fill: var(--chart-6, #5c7080); }
-.tux-chart-area__end-label.tux-chart-area__series--c7 { fill: var(--chart-7, #a33a3a); }
-.tux-chart-area__end-label.tux-chart-area__series--c8 { fill: var(--chart-8, #3c5a87); }
 
 .tux-chart-area__legend {
   list-style: none;
@@ -581,15 +523,8 @@ function focusY(seriesIdx: number, idx: number): number {
   width: 10px;
   height: 10px;
   border-radius: 2px;
+  background: var(--tux-chart-tone);
 }
-.tux-chart-area__legend-item.tux-chart-area__series--c1 .tux-chart-area__legend-swatch { background: var(--chart-1, var(--brand-primary)); }
-.tux-chart-area__legend-item.tux-chart-area__series--c2 .tux-chart-area__legend-swatch { background: var(--chart-2, #3f5a6f); }
-.tux-chart-area__legend-item.tux-chart-area__series--c3 .tux-chart-area__legend-swatch { background: var(--chart-3, #c7973c); }
-.tux-chart-area__legend-item.tux-chart-area__series--c4 .tux-chart-area__legend-swatch { background: var(--chart-4, #6b8e5a); }
-.tux-chart-area__legend-item.tux-chart-area__series--c5 .tux-chart-area__legend-swatch { background: var(--chart-5, #8c5a3c); }
-.tux-chart-area__legend-item.tux-chart-area__series--c6 .tux-chart-area__legend-swatch { background: var(--chart-6, #5c7080); }
-.tux-chart-area__legend-item.tux-chart-area__series--c7 .tux-chart-area__legend-swatch { background: var(--chart-7, #a33a3a); }
-.tux-chart-area__legend-item.tux-chart-area__series--c8 .tux-chart-area__legend-swatch { background: var(--chart-8, #3c5a87); }
 
 /* ---- Hover layer ---- */
 .tux-chart-area {
@@ -616,18 +551,11 @@ function focusY(seriesIdx: number, idx: number): number {
 
 .tux-chart-area__hover-dot {
   fill: var(--surface-page);
+  stroke: var(--tux-chart-tone);
   stroke-width: 2;
   pointer-events: none;
 }
 
-.tux-chart-area__hover-dot.tux-chart-area__series--c1 { stroke: var(--chart-1, var(--brand-primary)); }
-.tux-chart-area__hover-dot.tux-chart-area__series--c2 { stroke: var(--chart-2, #3f5a6f); }
-.tux-chart-area__hover-dot.tux-chart-area__series--c3 { stroke: var(--chart-3, #c7973c); }
-.tux-chart-area__hover-dot.tux-chart-area__series--c4 { stroke: var(--chart-4, #6b8e5a); }
-.tux-chart-area__hover-dot.tux-chart-area__series--c5 { stroke: var(--chart-5, #8c5a3c); }
-.tux-chart-area__hover-dot.tux-chart-area__series--c6 { stroke: var(--chart-6, #5c7080); }
-.tux-chart-area__hover-dot.tux-chart-area__series--c7 { stroke: var(--chart-7, #a33a3a); }
-.tux-chart-area__hover-dot.tux-chart-area__series--c8 { stroke: var(--chart-8, #3c5a87); }
 
 .tux-chart-area__tooltip {
   position: absolute;
@@ -673,15 +601,8 @@ function focusY(seriesIdx: number, idx: number): number {
   height: 8px;
   border-radius: 2px;
   align-self: center;
+  background: var(--tux-chart-tone);
 }
-.tux-chart-area__tooltip li.tux-chart-area__series--c1 .tux-chart-area__tooltip-swatch { background: var(--chart-1, var(--brand-primary)); }
-.tux-chart-area__tooltip li.tux-chart-area__series--c2 .tux-chart-area__tooltip-swatch { background: var(--chart-2, #3f5a6f); }
-.tux-chart-area__tooltip li.tux-chart-area__series--c3 .tux-chart-area__tooltip-swatch { background: var(--chart-3, #c7973c); }
-.tux-chart-area__tooltip li.tux-chart-area__series--c4 .tux-chart-area__tooltip-swatch { background: var(--chart-4, #6b8e5a); }
-.tux-chart-area__tooltip li.tux-chart-area__series--c5 .tux-chart-area__tooltip-swatch { background: var(--chart-5, #8c5a3c); }
-.tux-chart-area__tooltip li.tux-chart-area__series--c6 .tux-chart-area__tooltip-swatch { background: var(--chart-6, #5c7080); }
-.tux-chart-area__tooltip li.tux-chart-area__series--c7 .tux-chart-area__tooltip-swatch { background: var(--chart-7, #a33a3a); }
-.tux-chart-area__tooltip li.tux-chart-area__series--c8 .tux-chart-area__tooltip-swatch { background: var(--chart-8, #3c5a87); }
 
 .tux-chart-area__tooltip-name {
   color: var(--text-secondary);

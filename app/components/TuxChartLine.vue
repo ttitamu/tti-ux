@@ -132,11 +132,12 @@ const emit = defineEmits<{
   hover: [payload: { index: number; label: string; values: Array<{ key: string; label: string; value: number }> } | null];
 }>();
 
-// Layout — 36px left for y-axis labels, 56px right for end-of-line
-// labels, 24px top for breathing room, 36px bottom for x-axis labels.
+// Layout — family-standard left/bottom (tuxChartScale) so stacked
+// exhibits baseline-align; top stays taller for breathing room and
+// right widens when end-of-line labels render.
 const padTop = 24;
-const padBottom = 36;
-const padLeft = 44;
+const padBottom = TUX_CHART_MARGINS.bottom;
+const padLeft = TUX_CHART_MARGINS.left;
 const padRight = computed(() => (props.endLabels ? 64 : 16));
 
 const plotW = computed(() => Math.max(0, props.width - padLeft - padRight.value));
@@ -158,25 +159,11 @@ const yDomain = computed(() => {
   return [lo - span * 0.08, hi + span * 0.08] as [number, number];
 });
 
-// Pretty y-axis ticks — round to nice numbers.
-function niceTicks(lo: number, hi: number, count: number) {
-  const span = hi - lo;
-  const step = Math.pow(10, Math.floor(Math.log10(span / count)));
-  const err = (count * step) / span;
-  let m = step;
-  if (err <= 0.15) m = step * 10;
-  else if (err <= 0.35) m = step * 5;
-  else if (err <= 0.75) m = step * 2;
-  const t0 = Math.floor(lo / m) * m;
-  const t1 = Math.ceil(hi / m) * m;
-  const out: number[] = [];
-  for (let v = t0; v <= t1 + m * 0.5; v += m) out.push(v);
-  return out.filter((v) => v >= lo && v <= hi);
-}
-
+// Family-canonical ticks — this component's algorithm WAS the one
+// promoted into tuxChartScale, so rendering here is unchanged.
 const yTicksValues = computed(() => {
   const [lo, hi] = yDomain.value;
-  return niceTicks(lo, hi, props.yTicks);
+  return tuxNiceTicks(lo, hi, props.yTicks);
 });
 
 // Coordinate transforms.
@@ -208,8 +195,9 @@ function bandPath(band: Array<[number, number]>) {
 }
 
 function toneVar(idx: number) {
-  const n = ((idx - 1) % 8) + 1; // 1..8
-  return `var(--chart-${n})`;
+  // Clamp, don't wrap — tuxSeriesTone takes a 0-based fallback index,
+  // so idx-1 keeps existing 1-based call sites unchanged.
+  return `var(--chart-${tuxSeriesTone(idx - 1)})`;
 }
 
 // Auto-derive an SR summary covering all series.
@@ -217,8 +205,7 @@ const autoSummary = computed(() => {
   const parts: string[] = [];
   for (const s of props.series) {
     if (!s.data.length) continue;
-    const lo = Math.min(...s.data);
-    const hi = Math.max(...s.data);
+    const [lo, hi] = tuxExtent(s.data);
     const first = s.data[0];
     const last = s.data[s.data.length - 1];
     const delta = (last as number) - (first as number);
@@ -263,66 +250,51 @@ const visibleSeries = computed(() => {
 });
 
 // ----- Hover tooltip ----------------------------------------------
-const hoverIndex = ref<number | null>(null);
+// Shared roving-cursor model (useTuxChartHover), point-mode projection
+// over the brushed visible window.
+const {
+  hoverIndex,
+  onPointerMove: onPlotMove,
+  onPointerLeave: onPlotLeave,
+  onKeydown: onPlotKey,
+} = useTuxChartHover({
+  count: () => visibleLabels.value.length,
+  enabled: () => props.tooltip,
+  indexFromPointer(e) {
+    const svg = e.currentTarget as SVGSVGElement;
+    const rect = svg.getBoundingClientRect();
+    return tuxIndexFromPointer({
+      clientX: e.clientX,
+      rectLeft: rect.left,
+      rectWidth: rect.width,
+      viewWidth: props.width,
+      padLeft,
+      innerWidth: plotW.value,
+      count: visibleLabels.value.length,
+      mode: "point",
+    });
+  },
+  onChange(idx) {
+    if (idx === null) {
+      emit("hover", null);
+      return;
+    }
+    const label = visibleLabels.value[idx] ?? "";
+    const values = visibleSeries.value.map((s) => ({
+      key: s.key,
+      label: s.label,
+      value: s.data[idx] ?? 0,
+    }));
+    emit("hover", { index: idx, label, values });
+  },
+});
+
 // Pixel position of the focus line within the SVG. Used to position
 // the tooltip card.
 const hoverX = computed(() => {
   if (hoverIndex.value === null) return 0;
   return xAt(hoverIndex.value, visibleLabels.value.length);
 });
-
-function indexFromPointerX(clientX: number, svg: SVGSVGElement): number | null {
-  const rect = svg.getBoundingClientRect();
-  const scaleX = props.width / rect.width;
-  const xInSvg = (clientX - rect.left) * scaleX;
-  const n = visibleLabels.value.length;
-  if (n === 0) return null;
-  if (xInSvg < padLeft) return 0;
-  if (xInSvg > padLeft + plotW.value) return n - 1;
-  // Map xInSvg back to index — nearest data point.
-  const frac = (xInSvg - padLeft) / Math.max(1, plotW.value);
-  return Math.max(0, Math.min(n - 1, Math.round(frac * (n - 1))));
-}
-
-function onPlotMove(e: PointerEvent) {
-  if (!props.tooltip) return;
-  const svg = e.currentTarget as SVGSVGElement;
-  const idx = indexFromPointerX(e.clientX, svg);
-  if (idx !== null) setHoverIndex(idx);
-}
-
-function onPlotLeave() {
-  setHoverIndex(null);
-}
-
-function onPlotKey(e: KeyboardEvent) {
-  if (!props.tooltip) return;
-  const n = visibleLabels.value.length;
-  if (n === 0) return;
-  if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-    e.preventDefault();
-    const cur = hoverIndex.value ?? Math.floor(n / 2);
-    const next = e.key === "ArrowLeft" ? Math.max(0, cur - 1) : Math.min(n - 1, cur + 1);
-    setHoverIndex(next);
-  } else if (e.key === "Escape") {
-    setHoverIndex(null);
-  }
-}
-
-function setHoverIndex(idx: number | null) {
-  hoverIndex.value = idx;
-  if (idx === null) {
-    emit("hover", null);
-    return;
-  }
-  const label = visibleLabels.value[idx] ?? "";
-  const values = visibleSeries.value.map((s) => ({
-    key: s.key,
-    label: s.label,
-    value: s.data[idx] ?? 0,
-  }));
-  emit("hover", { index: idx, label, values });
-}
 
 const tooltipPayload = computed(() => {
   if (hoverIndex.value === null) return null;

@@ -7,6 +7,31 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **Chart family: shared scale math + hover model**
+  (`app/utils/tuxChartScale.ts` + `useTuxChartHover()`, locked by
+  `tests/tux-chart-scale.test.ts`). TuxChartLine / Bar / Area / Scatter
+  (plus Sparkline / Treemap / CorridorStrip spot fixes) now share one
+  implementation of nice-ticks, extents, domain padding, series tones,
+  margins, and the roving-cursor hover/keyboard contract. Deliberate
+  unifications: **ticks** — Bar/Area/Scatter adopt Line's algorithm
+  (1/2/5-step, in-domain), so the same domain renders the same axis on
+  every chart and Scatter's drifted `ceil` no longer drops the first
+  tick; **keyboard** — arrow navigation seeds at the midpoint
+  everywhere (Bar seeded at 0) and Up/Down alias Left/Right everywhere;
+  **tones** — series 9+ clamps to `--chart-8` everywhere (Line
+  previously wrapped back to hue 1); **margins** — left/bottom are
+  family-standard (48/36) so stacked exhibits baseline-align; **hover**
+  — pointer over plot padding clamps to the edge index instead of
+  Bar's old clear-on-padding; **robustness** — extents are loop-based
+  (`Math.min(...arr)` overflowed the stack past ~100k points).
+  **Palette**: series colors now flow through one `--tux-chart-tone`
+  custom property set by shared `tux-chart-tone--c1..8` classes
+  (`app/assets/css/tux-chart-palette.css`) — ~135 duplicated
+  `var(--chart-N, #hex)` declarations across six components collapse
+  to one file; rendered colors verified computed-identical to the
+  chart tokens on every showcase surface. Components keep their
+  `…__series--cN` classes as consumer styling hooks.
+
 - **`TuxChartGeographic` per-kind code split** — the five `kind`s now
   render through async child components (`TuxChartGeoCounty` /
   `Districts` / `UsContext` / `DotDensity` / `Flow`, internal, no

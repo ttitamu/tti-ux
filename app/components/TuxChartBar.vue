@@ -116,11 +116,12 @@ const emit = defineEmits<{
   hover: [payload: { index: number; label: string; values: Array<{ key: string; label: string; value: number }> } | null];
 }>();
 
-// Layout — same paddings as TuxChartLine for visual rhythm consistency.
-const PAD_TOP = 16;
-const PAD_RIGHT = 24;
-const PAD_BOTTOM = 36;
-const PAD_LEFT = 48;
+// Layout — the family-standard margins (tuxChartScale) so stacked
+// exhibits baseline-align with the other charts.
+const PAD_TOP = TUX_CHART_MARGINS.top;
+const PAD_RIGHT = TUX_CHART_MARGINS.right;
+const PAD_BOTTOM = TUX_CHART_MARGINS.bottom;
+const PAD_LEFT = TUX_CHART_MARGINS.left;
 
 const innerW = computed(() => props.width - PAD_LEFT - PAD_RIGHT);
 const innerH = computed(() => props.height - PAD_TOP - PAD_BOTTOM);
@@ -144,31 +145,15 @@ const extent = computed(() => {
       if (s.comparison) for (const v of s.comparison) vals.push(v);
     }
   }
-  const max = Math.max(0, ...vals);
-  // Always anchor at 0 — bar charts shouldn't truncate.
+  // Loop-safe max (spread overflows on huge arrays); anchor at 0 —
+  // bar charts shouldn't truncate.
+  const max = Math.max(0, tuxExtent(vals)[1]);
   return { min: 0, max: max || 1 };
 });
 
-// Nice-rounded ticks.
-function niceTicks(min: number, max: number, count: number): number[] {
-  const range = max - min;
-  const step = Math.pow(10, Math.floor(Math.log10(range / Math.max(1, count))));
-  const candidates = [1, 2, 2.5, 5, 10].map((m) => m * step);
-  let chosen = step;
-  for (const c of candidates) {
-    if (range / c <= count + 1) {
-      chosen = c;
-      break;
-    }
-  }
-  const ticks: number[] = [];
-  for (let v = Math.floor(min / chosen) * chosen; v <= max + chosen / 2; v += chosen) {
-    ticks.push(Number(v.toFixed(8)));
-  }
-  return ticks;
-}
-
-const yTickValues = computed(() => niceTicks(extent.value.min, extent.value.max, props.ticks));
+// Family-canonical ticks (tuxChartScale) — same domain in a line chart
+// on the same dashboard now yields the same tick set.
+const yTickValues = computed(() => tuxNiceTicks(extent.value.min, extent.value.max, props.ticks));
 
 // Scales: value scale + category scale.
 function vScale(v: number): number {
@@ -231,15 +216,15 @@ function barRect(catIndex: number, seriesIndex: number, value: number, baseV = 0
 }
 
 function toneClass(s: Series, fallbackIndex: number): string {
-  const idx = s.toneIndex ?? fallbackIndex + 1;
-  const clamped = Math.max(1, Math.min(8, idx));
-  return `tux-chart-bar__series--c${clamped}`;
+  const tone = tuxSeriesTone(fallbackIndex, s.toneIndex);
+  return `tux-chart-bar__series--c${tone} tux-chart-tone--c${tone}`;
 }
 
 // For single-series mode, walk the palette across categories (gives
 // the categorical-chart visual).
 function categoryToneClass(catIndex: number): string {
-  return `tux-chart-bar__series--c${(catIndex % 8) + 1}`;
+  const tone = (catIndex % 8) + 1;
+  return `tux-chart-bar__series--c${tone} tux-chart-tone--c${tone}`;
 }
 
 // Iteration helper: stacked needs cumulative base per category.
@@ -283,8 +268,7 @@ const stackBars = computed(() => stackedBars());
 const ariaSummary = computed(() => {
   if (props.ariaSummary) return props.ariaSummary;
   const all = props.series.flatMap((s) => s.data);
-  const min = Math.min(...all);
-  const max = Math.max(...all);
+  const [min, max] = tuxExtent(all);
   const total = all.reduce((a, b) => a + b, 0);
   const unitsTrail = props.units ? ` ${props.units}` : "";
   return `Bar chart: ${props.labels.length} categories, ${props.series.length} series, low ${min.toFixed(props.decimals)}, high ${max.toFixed(props.decimals)}, total ${total.toFixed(props.decimals)}${unitsTrail}.`;
@@ -323,66 +307,57 @@ function valueLabelPos(rect: { x: number; y: number; w: number; h: number }): {
 }
 
 // ----- Hover tooltip (bar-highlight pattern) ----------------------
-const hoverCategory = ref<number | null>(null);
-
-function categoryIndexFromPointer(clientX: number, clientY: number, svg: SVGSVGElement): number | null {
-  const rect = svg.getBoundingClientRect();
-  const scaleX = props.width / rect.width;
-  const scaleY = props.height / rect.height;
-  const xInSvg = (clientX - rect.left) * scaleX;
-  const yInSvg = (clientY - rect.top) * scaleY;
-  const n = props.labels.length;
-  if (n === 0) return null;
-
-  if (isHorizontal.value) {
-    if (yInSvg < PAD_TOP || yInSvg > PAD_TOP + innerH.value) return null;
-    const slot = (yInSvg - PAD_TOP) / Math.max(1, groupWidth.value);
-    return Math.max(0, Math.min(n - 1, Math.floor(slot)));
-  }
-  if (xInSvg < PAD_LEFT || xInSvg > PAD_LEFT + innerW.value) return null;
-  const slot = (xInSvg - PAD_LEFT) / Math.max(1, groupWidth.value);
-  return Math.max(0, Math.min(n - 1, Math.floor(slot)));
-}
-
-function onBarMove(e: PointerEvent) {
-  if (!props.tooltip) return;
-  const svg = e.currentTarget as SVGSVGElement;
-  const idx = categoryIndexFromPointer(e.clientX, e.clientY, svg);
-  setHoverCategory(idx);
-}
-
-function onBarLeave() {
-  setHoverCategory(null);
-}
-
-function onBarKey(e: KeyboardEvent) {
-  if (!props.tooltip) return;
-  const n = props.labels.length;
-  if (n === 0) return;
-  if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown") {
-    e.preventDefault();
-    const cur = hoverCategory.value ?? 0;
-    const advance = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : -1;
-    setHoverCategory(Math.max(0, Math.min(n - 1, cur + advance)));
-  } else if (e.key === "Escape") {
-    setHoverCategory(null);
-  }
-}
-
-function setHoverCategory(idx: number | null) {
-  hoverCategory.value = idx;
-  if (idx === null) {
-    emit("hover", null);
-    return;
-  }
-  const label = props.labels[idx] ?? "";
-  const values = props.series.map((s) => ({
-    key: s.key,
-    label: s.label,
-    value: s.data[idx] ?? 0,
-  }));
-  emit("hover", { index: idx, label, values });
-}
+// Shared roving-cursor model (useTuxChartHover): pointer or Arrow keys
+// move the active category, Escape clears. The projection here is
+// band-mode over category slots — clientY when horizontal.
+const {
+  hoverIndex: hoverCategory,
+  onPointerMove: onBarMove,
+  onPointerLeave: onBarLeave,
+  onKeydown: onBarKey,
+} = useTuxChartHover({
+  count: () => props.labels.length,
+  enabled: () => props.tooltip,
+  indexFromPointer(e) {
+    const svg = e.currentTarget as SVGSVGElement;
+    const rect = svg.getBoundingClientRect();
+    if (isHorizontal.value) {
+      return tuxIndexFromPointer({
+        clientX: e.clientY,
+        rectLeft: rect.top,
+        rectWidth: rect.height,
+        viewWidth: props.height,
+        padLeft: PAD_TOP,
+        innerWidth: innerH.value,
+        count: props.labels.length,
+        mode: "band",
+      });
+    }
+    return tuxIndexFromPointer({
+      clientX: e.clientX,
+      rectLeft: rect.left,
+      rectWidth: rect.width,
+      viewWidth: props.width,
+      padLeft: PAD_LEFT,
+      innerWidth: innerW.value,
+      count: props.labels.length,
+      mode: "band",
+    });
+  },
+  onChange(idx) {
+    if (idx === null) {
+      emit("hover", null);
+      return;
+    }
+    const label = props.labels[idx] ?? "";
+    const values = props.series.map((s) => ({
+      key: s.key,
+      label: s.label,
+      value: s.data[idx] ?? 0,
+    }));
+    emit("hover", { index: idx, label, values });
+  },
+});
 
 const tooltipPayload = computed(() => {
   if (hoverCategory.value === null) return null;
@@ -393,13 +368,13 @@ const tooltipPayload = computed(() => {
     total,
     rows: props.series.map((s, i) => {
       const tone = props.series.length === 1
-        ? (idx % 8) + 1
-        : Math.max(1, Math.min(8, s.toneIndex ?? i + 1));
+        ? (idx % 8) + 1 // categorical walk — matches categoryToneClass
+        : tuxSeriesTone(i, s.toneIndex);
       return {
         key: s.key,
         label: s.label,
         value: s.data[idx] ?? 0,
-        toneClass: `tux-chart-bar__series--c${tone}`,
+        toneClass: `tux-chart-bar__series--c${tone} tux-chart-tone--c${tone}`,
         comparison: s.comparison?.[idx],
       };
     }),
@@ -678,7 +653,7 @@ const highlightRect = computed(() => {
 
 .tux-chart-bar__bar {
   /* Default fill — overridden by tone classes below. */
-  fill: var(--chart-1, var(--brand-primary));
+  fill: var(--tux-chart-tone, var(--chart-1, var(--brand-primary)));
   transition: fill 120ms ease-out;
 }
 
@@ -692,31 +667,8 @@ const highlightRect = computed(() => {
   fill: var(--text-secondary);
 }
 
-/* Palette — eight chart tones. */
-.tux-chart-bar__series--c1 .tux-chart-bar__legend-swatch,
-.tux-chart-bar__bar.tux-chart-bar__series--c1,
-.tux-chart-bar__value-label.tux-chart-bar__series--c1 { fill: var(--chart-1, var(--brand-primary)); background: var(--chart-1, var(--brand-primary)); }
-.tux-chart-bar__series--c2 .tux-chart-bar__legend-swatch,
-.tux-chart-bar__bar.tux-chart-bar__series--c2,
-.tux-chart-bar__value-label.tux-chart-bar__series--c2 { fill: var(--chart-2, #3f5a6f); background: var(--chart-2, #3f5a6f); }
-.tux-chart-bar__series--c3 .tux-chart-bar__legend-swatch,
-.tux-chart-bar__bar.tux-chart-bar__series--c3,
-.tux-chart-bar__value-label.tux-chart-bar__series--c3 { fill: var(--chart-3, #c7973c); background: var(--chart-3, #c7973c); }
-.tux-chart-bar__series--c4 .tux-chart-bar__legend-swatch,
-.tux-chart-bar__bar.tux-chart-bar__series--c4,
-.tux-chart-bar__value-label.tux-chart-bar__series--c4 { fill: var(--chart-4, #6b8e5a); background: var(--chart-4, #6b8e5a); }
-.tux-chart-bar__series--c5 .tux-chart-bar__legend-swatch,
-.tux-chart-bar__bar.tux-chart-bar__series--c5,
-.tux-chart-bar__value-label.tux-chart-bar__series--c5 { fill: var(--chart-5, #8c5a3c); background: var(--chart-5, #8c5a3c); }
-.tux-chart-bar__series--c6 .tux-chart-bar__legend-swatch,
-.tux-chart-bar__bar.tux-chart-bar__series--c6,
-.tux-chart-bar__value-label.tux-chart-bar__series--c6 { fill: var(--chart-6, #5c7080); background: var(--chart-6, #5c7080); }
-.tux-chart-bar__series--c7 .tux-chart-bar__legend-swatch,
-.tux-chart-bar__bar.tux-chart-bar__series--c7,
-.tux-chart-bar__value-label.tux-chart-bar__series--c7 { fill: var(--chart-7, #a33a3a); background: var(--chart-7, #a33a3a); }
-.tux-chart-bar__series--c8 .tux-chart-bar__legend-swatch,
-.tux-chart-bar__bar.tux-chart-bar__series--c8,
-.tux-chart-bar__value-label.tux-chart-bar__series--c8 { fill: var(--chart-8, #3c5a87); background: var(--chart-8, #3c5a87); }
+/* Series tones come from tux-chart-palette.css via --tux-chart-tone. */
+.tux-chart-bar__value-label[class*="tux-chart-tone--"] { fill: var(--tux-chart-tone); }
 
 .tux-chart-bar__legend {
   list-style: none;
@@ -736,6 +688,7 @@ const highlightRect = computed(() => {
 }
 
 .tux-chart-bar__legend-swatch {
+  background: var(--tux-chart-tone);
   width: 10px;
   height: 10px;
   border-radius: 2px;
@@ -808,19 +761,12 @@ const highlightRect = computed(() => {
 }
 
 .tux-chart-bar__tooltip-swatch {
+  background: var(--tux-chart-tone);
   width: 8px;
   height: 8px;
   border-radius: 2px;
   align-self: center;
 }
-.tux-chart-bar__tooltip li.tux-chart-bar__series--c1 .tux-chart-bar__tooltip-swatch { background: var(--chart-1, var(--brand-primary)); }
-.tux-chart-bar__tooltip li.tux-chart-bar__series--c2 .tux-chart-bar__tooltip-swatch { background: var(--chart-2, #3f5a6f); }
-.tux-chart-bar__tooltip li.tux-chart-bar__series--c3 .tux-chart-bar__tooltip-swatch { background: var(--chart-3, #c7973c); }
-.tux-chart-bar__tooltip li.tux-chart-bar__series--c4 .tux-chart-bar__tooltip-swatch { background: var(--chart-4, #6b8e5a); }
-.tux-chart-bar__tooltip li.tux-chart-bar__series--c5 .tux-chart-bar__tooltip-swatch { background: var(--chart-5, #8c5a3c); }
-.tux-chart-bar__tooltip li.tux-chart-bar__series--c6 .tux-chart-bar__tooltip-swatch { background: var(--chart-6, #5c7080); }
-.tux-chart-bar__tooltip li.tux-chart-bar__series--c7 .tux-chart-bar__tooltip-swatch { background: var(--chart-7, #a33a3a); }
-.tux-chart-bar__tooltip li.tux-chart-bar__series--c8 .tux-chart-bar__tooltip-swatch { background: var(--chart-8, #3c5a87); }
 
 .tux-chart-bar__tooltip-name {
   color: var(--text-secondary);

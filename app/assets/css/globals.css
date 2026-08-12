@@ -22,6 +22,7 @@
  * respecting. See `design/chart-foundations.md` motion section.
  */
 @import "./tux-chart-motion.css";
+@import "./tux-chart-palette.css";
 
 /*
  * Opt-in entrance animations for non-chart Tux components.

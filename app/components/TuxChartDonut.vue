@@ -186,7 +186,7 @@ const arcs = computed<Arc[]>(() => {
       midAngle: mid,
       d,
       labelPos: { x: labelP.x, y: labelP.y + 4, anchor },
-      toneClass: `tux-chart-donut__slice--c${tone}`,
+      toneClass: `tux-chart-donut__slice--c${tone} tux-chart-tone--c${tone}`,
     };
   });
 });
@@ -292,7 +292,7 @@ function fmtPercent(frac: number): string {
 }
 
 .tux-chart-donut__slice {
-  fill: var(--chart-1, var(--brand-primary));
+  fill: var(--tux-chart-tone, var(--chart-1, var(--brand-primary)));
   stroke: var(--surface-page);
   stroke-width: 1.5;
   transition: opacity 120ms ease-out;
@@ -332,27 +332,12 @@ function fmtPercent(frac: number): string {
   line-height: 1.05;
 }
 
-/* Palette — eight chart tones, same as TuxChartLine + TuxChartBar. */
-.tux-chart-donut__slice--c1 { fill: var(--chart-1, var(--brand-primary)); }
-.tux-chart-donut__slice--c2 { fill: var(--chart-2, #3f5a6f); }
-.tux-chart-donut__slice--c3 { fill: var(--chart-3, #c7973c); }
-.tux-chart-donut__slice--c4 { fill: var(--chart-4, #6b8e5a); }
-.tux-chart-donut__slice--c5 { fill: var(--chart-5, #8c5a3c); }
-.tux-chart-donut__slice--c6 { fill: var(--chart-6, #5c7080); }
-.tux-chart-donut__slice--c7 { fill: var(--chart-7, #a33a3a); }
-.tux-chart-donut__slice--c8 { fill: var(--chart-8, #3c5a87); }
+/* Series tones come from tux-chart-palette.css via --tux-chart-tone. */
+.tux-chart-donut__slice-label[class*="tux-chart-tone--"] { fill: var(--tux-chart-tone); }
 
 /* Slice-label tones echo the slice fill so identity is preserved
    even on grayscale prints / colorblind viewers — they see the
    label colored to match the slice it points at. */
-.tux-chart-donut__slice-label.tux-chart-donut__slice--c1 { fill: var(--chart-1, var(--brand-primary)); }
-.tux-chart-donut__slice-label.tux-chart-donut__slice--c2 { fill: var(--chart-2, #3f5a6f); }
-.tux-chart-donut__slice-label.tux-chart-donut__slice--c3 { fill: var(--chart-3, #c7973c); }
-.tux-chart-donut__slice-label.tux-chart-donut__slice--c4 { fill: var(--chart-4, #6b8e5a); }
-.tux-chart-donut__slice-label.tux-chart-donut__slice--c5 { fill: var(--chart-5, #8c5a3c); }
-.tux-chart-donut__slice-label.tux-chart-donut__slice--c6 { fill: var(--chart-6, #5c7080); }
-.tux-chart-donut__slice-label.tux-chart-donut__slice--c7 { fill: var(--chart-7, #a33a3a); }
-.tux-chart-donut__slice-label.tux-chart-donut__slice--c8 { fill: var(--chart-8, #3c5a87); }
 
 .tux-chart-donut__legend {
   list-style: none;
@@ -374,19 +359,12 @@ function fmtPercent(frac: number): string {
 }
 
 .tux-chart-donut__legend-swatch {
+  background: var(--tux-chart-tone);
   width: 10px;
   height: 10px;
   border-radius: 2px;
   flex-shrink: 0;
 }
-.tux-chart-donut__legend-item.tux-chart-donut__slice--c1 .tux-chart-donut__legend-swatch { background: var(--chart-1, var(--brand-primary)); }
-.tux-chart-donut__legend-item.tux-chart-donut__slice--c2 .tux-chart-donut__legend-swatch { background: var(--chart-2, #3f5a6f); }
-.tux-chart-donut__legend-item.tux-chart-donut__slice--c3 .tux-chart-donut__legend-swatch { background: var(--chart-3, #c7973c); }
-.tux-chart-donut__legend-item.tux-chart-donut__slice--c4 .tux-chart-donut__legend-swatch { background: var(--chart-4, #6b8e5a); }
-.tux-chart-donut__legend-item.tux-chart-donut__slice--c5 .tux-chart-donut__legend-swatch { background: var(--chart-5, #8c5a3c); }
-.tux-chart-donut__legend-item.tux-chart-donut__slice--c6 .tux-chart-donut__legend-swatch { background: var(--chart-6, #5c7080); }
-.tux-chart-donut__legend-item.tux-chart-donut__slice--c7 .tux-chart-donut__legend-swatch { background: var(--chart-7, #a33a3a); }
-.tux-chart-donut__legend-item.tux-chart-donut__slice--c8 .tux-chart-donut__legend-swatch { background: var(--chart-8, #3c5a87); }
 
 .tux-chart-donut__legend-label {
   font-weight: 500;

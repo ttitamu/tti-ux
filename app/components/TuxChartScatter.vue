@@ -103,57 +103,39 @@ const emit = defineEmits<{
   hover: [payload: { seriesKey: string; seriesLabel: string; x: number; y: number; label?: string } | null];
 }>();
 
-const PAD_TOP = 16;
+// Family-standard top/left (tuxChartScale); bottom stays deeper than
+// standard for the x-axis title row, right stays tight (no end labels).
+const PAD_TOP = TUX_CHART_MARGINS.top;
 const PAD_RIGHT = 16;
 const PAD_BOTTOM = 48;
-const PAD_LEFT = 56;
+const PAD_LEFT = TUX_CHART_MARGINS.left;
 
 const innerW = computed(() => props.width - PAD_LEFT - PAD_RIGHT);
 const innerH = computed(() => props.height - PAD_TOP - PAD_BOTTOM);
 
 const allPoints = computed(() => props.series.flatMap((s) => s.points));
 
+// Loop-safe extents (spread overflowed the stack on ~100k+ points here —
+// this component maps EVERY point's x and y).
 const extent = computed(() => {
-  const xs = allPoints.value.map((p) => p.x);
-  const ys = allPoints.value.map((p) => p.y);
-  return {
-    xMin: Math.min(...xs),
-    xMax: Math.max(...xs),
-    yMin: Math.min(...ys),
-    yMax: Math.max(...ys),
-  };
+  const [xMin, xMax] = tuxExtent(allPoints.value.map((p) => p.x));
+  const [yMin, yMax] = tuxExtent(allPoints.value.map((p) => p.y));
+  return { xMin, xMax, yMin, yMax };
 });
 
-function nicePad(min: number, max: number): { min: number; max: number } {
-  const range = max - min;
-  if (range === 0) return { min: min - 1, max: max + 1 };
-  const pad = range * 0.08;
-  return { min: min - pad, max: max + pad };
-}
+const xRange = computed(() => {
+  const [min, max] = tuxPadDomain(extent.value.xMin, extent.value.xMax);
+  return { min, max };
+});
+const yRange = computed(() => {
+  const [min, max] = tuxPadDomain(extent.value.yMin, extent.value.yMax);
+  return { min, max };
+});
 
-const xRange = computed(() => nicePad(extent.value.xMin, extent.value.xMax));
-const yRange = computed(() => nicePad(extent.value.yMin, extent.value.yMax));
-
-function niceTicks(min: number, max: number, count: number): number[] {
-  const range = max - min;
-  const step = Math.pow(10, Math.floor(Math.log10(range / Math.max(1, count))));
-  const candidates = [1, 2, 2.5, 5, 10].map((m) => m * step);
-  let chosen = step;
-  for (const c of candidates) {
-    if (range / c <= count + 1) {
-      chosen = c;
-      break;
-    }
-  }
-  const ticks: number[] = [];
-  for (let v = Math.ceil(min / chosen) * chosen; v <= max + chosen / 2; v += chosen) {
-    ticks.push(Number(v.toFixed(8)));
-  }
-  return ticks;
-}
-
-const xTickValues = computed(() => niceTicks(xRange.value.min, xRange.value.max, props.xTicks));
-const yTickValues = computed(() => niceTicks(yRange.value.min, yRange.value.max, props.yTicks));
+// Family-canonical ticks (tuxChartScale). The local copy this replaces
+// had drifted to `Math.ceil` seeding and silently dropped the first tick.
+const xTickValues = computed(() => tuxNiceTicks(xRange.value.min, xRange.value.max, props.xTicks));
+const yTickValues = computed(() => tuxNiceTicks(yRange.value.min, yRange.value.max, props.yTicks));
 
 function xCoord(x: number): number {
   const { min, max } = xRange.value;
@@ -165,9 +147,8 @@ function yCoord(y: number): number {
 }
 
 function toneClass(s: Series, fallbackIndex: number): string {
-  const idx = s.toneIndex ?? fallbackIndex + 1;
-  const tone = Math.max(1, Math.min(8, idx));
-  return `tux-chart-scatter__series--c${tone}`;
+  const tone = tuxSeriesTone(fallbackIndex, s.toneIndex);
+  return `tux-chart-scatter__series--c${tone} tux-chart-tone--c${tone}`;
 }
 
 // Linear regression per series.
@@ -473,7 +454,7 @@ function hoverToneClass(seriesIdx: number): string {
 }
 
 .tux-chart-scatter__dot {
-  fill: var(--chart-1, var(--brand-primary));
+  fill: var(--tux-chart-tone, var(--chart-1, var(--brand-primary)));
   opacity: 0.78;
   transition: opacity 120ms ease-out, r 120ms ease-out;
   cursor: pointer;
@@ -492,29 +473,13 @@ function hoverToneClass(seriesIdx: number): string {
 }
 
 .tux-chart-scatter__trend {
-  stroke: var(--chart-1, var(--brand-primary));
+  stroke: var(--tux-chart-tone, var(--chart-1, var(--brand-primary)));
   stroke-width: 1.5;
   opacity: 0.6;
 }
 
 /* Palette */
-.tux-chart-scatter__dot.tux-chart-scatter__series--c1   { fill: var(--chart-1, var(--brand-primary)); }
-.tux-chart-scatter__dot.tux-chart-scatter__series--c2   { fill: var(--chart-2, #3f5a6f); }
-.tux-chart-scatter__dot.tux-chart-scatter__series--c3   { fill: var(--chart-3, #c7973c); }
-.tux-chart-scatter__dot.tux-chart-scatter__series--c4   { fill: var(--chart-4, #6b8e5a); }
-.tux-chart-scatter__dot.tux-chart-scatter__series--c5   { fill: var(--chart-5, #8c5a3c); }
-.tux-chart-scatter__dot.tux-chart-scatter__series--c6   { fill: var(--chart-6, #5c7080); }
-.tux-chart-scatter__dot.tux-chart-scatter__series--c7   { fill: var(--chart-7, #a33a3a); }
-.tux-chart-scatter__dot.tux-chart-scatter__series--c8   { fill: var(--chart-8, #3c5a87); }
 
-.tux-chart-scatter__trend.tux-chart-scatter__series--c1 { stroke: var(--chart-1, var(--brand-primary)); }
-.tux-chart-scatter__trend.tux-chart-scatter__series--c2 { stroke: var(--chart-2, #3f5a6f); }
-.tux-chart-scatter__trend.tux-chart-scatter__series--c3 { stroke: var(--chart-3, #c7973c); }
-.tux-chart-scatter__trend.tux-chart-scatter__series--c4 { stroke: var(--chart-4, #6b8e5a); }
-.tux-chart-scatter__trend.tux-chart-scatter__series--c5 { stroke: var(--chart-5, #8c5a3c); }
-.tux-chart-scatter__trend.tux-chart-scatter__series--c6 { stroke: var(--chart-6, #5c7080); }
-.tux-chart-scatter__trend.tux-chart-scatter__series--c7 { stroke: var(--chart-7, #a33a3a); }
-.tux-chart-scatter__trend.tux-chart-scatter__series--c8 { stroke: var(--chart-8, #3c5a87); }
 
 .tux-chart-scatter__legend {
   list-style: none;
@@ -534,19 +499,12 @@ function hoverToneClass(seriesIdx: number): string {
 }
 
 .tux-chart-scatter__legend-swatch {
+  background: var(--tux-chart-tone);
   width: 10px;
   height: 10px;
   border-radius: 50%;
 }
 
-.tux-chart-scatter__legend-item.tux-chart-scatter__series--c1 .tux-chart-scatter__legend-swatch { background: var(--chart-1, var(--brand-primary)); }
-.tux-chart-scatter__legend-item.tux-chart-scatter__series--c2 .tux-chart-scatter__legend-swatch { background: var(--chart-2, #3f5a6f); }
-.tux-chart-scatter__legend-item.tux-chart-scatter__series--c3 .tux-chart-scatter__legend-swatch { background: var(--chart-3, #c7973c); }
-.tux-chart-scatter__legend-item.tux-chart-scatter__series--c4 .tux-chart-scatter__legend-swatch { background: var(--chart-4, #6b8e5a); }
-.tux-chart-scatter__legend-item.tux-chart-scatter__series--c5 .tux-chart-scatter__legend-swatch { background: var(--chart-5, #8c5a3c); }
-.tux-chart-scatter__legend-item.tux-chart-scatter__series--c6 .tux-chart-scatter__legend-swatch { background: var(--chart-6, #5c7080); }
-.tux-chart-scatter__legend-item.tux-chart-scatter__series--c7 .tux-chart-scatter__legend-swatch { background: var(--chart-7, #a33a3a); }
-.tux-chart-scatter__legend-item.tux-chart-scatter__series--c8 .tux-chart-scatter__legend-swatch { background: var(--chart-8, #3c5a87); }
 
 .tux-chart-scatter__legend-count {
   color: var(--text-muted);
@@ -593,19 +551,12 @@ function hoverToneClass(seriesIdx: number): string {
 }
 
 .tux-chart-scatter__tooltip-swatch {
+  background: var(--tux-chart-tone);
   width: 8px;
   height: 8px;
   border-radius: 50%;
 }
 
-.tux-chart-scatter__tooltip-series.tux-chart-scatter__series--c1 .tux-chart-scatter__tooltip-swatch { background: var(--chart-1, var(--brand-primary)); }
-.tux-chart-scatter__tooltip-series.tux-chart-scatter__series--c2 .tux-chart-scatter__tooltip-swatch { background: var(--chart-2, #3f5a6f); }
-.tux-chart-scatter__tooltip-series.tux-chart-scatter__series--c3 .tux-chart-scatter__tooltip-swatch { background: var(--chart-3, #c7973c); }
-.tux-chart-scatter__tooltip-series.tux-chart-scatter__series--c4 .tux-chart-scatter__tooltip-swatch { background: var(--chart-4, #6b8e5a); }
-.tux-chart-scatter__tooltip-series.tux-chart-scatter__series--c5 .tux-chart-scatter__tooltip-swatch { background: var(--chart-5, #8c5a3c); }
-.tux-chart-scatter__tooltip-series.tux-chart-scatter__series--c6 .tux-chart-scatter__tooltip-swatch { background: var(--chart-6, #5c7080); }
-.tux-chart-scatter__tooltip-series.tux-chart-scatter__series--c7 .tux-chart-scatter__tooltip-swatch { background: var(--chart-7, #a33a3a); }
-.tux-chart-scatter__tooltip-series.tux-chart-scatter__series--c8 .tux-chart-scatter__tooltip-swatch { background: var(--chart-8, #3c5a87); }
 
 .tux-chart-scatter__tooltip-pointlabel {
   color: var(--text-secondary);

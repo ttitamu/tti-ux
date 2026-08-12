@@ -254,7 +254,7 @@ const sizeRange = computed<[number, number]>(() => {
     .filter(c => !c.isAggregate)
     .map(c => c.size);
   if (sizes.length === 0) return [1, 2];
-  return [Math.min(...sizes), Math.max(...sizes)];
+  return tuxExtent(sizes);
 });
 
 const breadcrumb = computed(() => [
