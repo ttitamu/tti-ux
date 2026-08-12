@@ -120,30 +120,11 @@ onBeforeUnmount(() => {
 
 function captureHTML() {
   if (previewRef.value) {
-    rendered.value = formatHTML(previewRef.value.innerHTML);
+    // tuxFormatHtml (app/utils) — strips Vue hydration comment noise,
+    // knows the full void-element list, and hard-caps input so a huge
+    // preview subtree can't blow the tab up (RangeError class).
+    rendered.value = tuxFormatHtml(previewRef.value.innerHTML);
   }
-}
-
-// Pretty-print HTML by re-indenting on tag boundaries. Not a full formatter —
-// strips whitespace between tags then wraps each tag on its own line with
-// depth-based indentation. Good enough for "look at what my component emits."
-function formatHTML(html: string): string {
-  const stripped = html.replace(/>\s+</g, "><").trim();
-  let depth = 0;
-  let out = "";
-  const tokens = stripped.match(/<[^>]+>|[^<]+/g) || [];
-  for (const token of tokens) {
-    if (token.startsWith("<")) {
-      const isClose = token.startsWith("</");
-      const isSelfClose = token.endsWith("/>") || /<(br|img|input|hr|meta|link)\b/i.test(token);
-      if (isClose) depth = Math.max(0, depth - 1);
-      out += (out ? "\n" : "") + "  ".repeat(depth) + token;
-      if (!isClose && !isSelfClose) depth++;
-    } else if (token.trim()) {
-      out += "\n" + "  ".repeat(depth) + token.trim();
-    }
-  }
-  return out;
 }
 
 const tabs = computed(() => {

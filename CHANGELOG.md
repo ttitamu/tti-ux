@@ -111,6 +111,23 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **`TuxExample` HTML-tab formatter crash + the hydration errors it
+  caused.** The inline pretty-printer treated Vue's hydration comment
+  markers (`<!--[-->` / `<!--]-->`) as open tags — every marker leaked
+  one indent level forever (a rich-data-grid preview leaked +190,
+  inflating 26KB of DOM to 165KB of output), and `<col>`-class void
+  elements leaked too. On large, churning previews the quadratic
+  runaway exceeded V8's maximum string length ("RangeError: Invalid
+  string length"); because that threw during the hydration mount tick,
+  Vue's reconciliation corrupted and logged four "Hydration completed
+  but contains mismatches" errors on `/components/rich-data-grid`.
+  The formatter now lives in `app/utils/tuxFormatHtml.ts` (unit
+  tested): comments tokenize as single units and are dropped as
+  framework plumbing, the void-element list is complete, and input is
+  hard-capped with a visible truncation notice so no preview subtree
+  can ever OOM the tab. Verified: the page loads with zero console
+  errors and the HTML tab renders comment-free at true DOM depth.
+
 - **Radial charts: SSR hydration mismatch from raw trig floats.**
   `TuxChartSunburst` / `TuxChartDonut` / `TuxChartGauge` serialized
   unrounded `Math.sin`/`Math.cos` results into arc `d` and position
