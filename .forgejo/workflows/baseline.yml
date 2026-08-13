@@ -11,7 +11,8 @@
 # gates queued forever). Kept dependency-light on purpose (wget + tar + awk +
 # git; manual checkout): the gate stays valid even on a minimal runner image.
 #   - SCA + secrets gate here (fails the PR on HIGH/CRITICAL or a leaked secret).
-#   - Semgrep SAST is a future add (H4).
+#   - Semgrep SAST is report-only (K Phase 1) — findings print; the step FAILS
+#     on errors[] PartialParsing (a coverage gap that looks like a pass).
 #   - SBOM → Dependency-Track is a HOST-SIDE detective job (security/sbom-to-dtrack.sh),
 #     NOT in this gate.
 #
@@ -31,6 +32,11 @@ jobs:
       # Manual checkout — actions/checkout is JS and needs node, which the v9
       # runner image lacks. Same pattern as seed/tti-ux/.forgejo/workflows/scan.yml.
       - name: Manual checkout
+        env:
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          JOB_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.sha }}
         run: |
           set -eu
           git init -q
@@ -40,9 +46,11 @@ jobs:
           # for host.containers.internal" — hit live 2026-07-06 on the first
           # private repos). Header via -c (not the URL) so the token never lands
           # in remote config; the expansion line is unechoed.
-          git remote add origin "${{ github.server_url }}/${{ github.repository }}"
-          hdr="Authorization: basic $(printf 'x-access-token:%s' "${{ github.token }}" | base64 | tr -d '\n')"
-          git -c http.extraheader="$hdr" fetch --depth=1 origin "${{ github.sha }}"
+          # Values reach the shell through env:, never expression-interpolated
+          # into run: (same RCE class as ai-review.yml — textual substitution).
+          git remote add origin "$SERVER_URL/$REPO"
+          hdr="Authorization: basic $(printf 'x-access-token:%s' "$JOB_TOKEN" | base64 | tr -d '\n')"
+          git -c http.extraheader="$hdr" fetch --depth=1 origin "$HEAD_SHA"
           git checkout -q FETCH_HEAD
 
       # Compile the unified .security-ignore into per-tool native ignore files.
@@ -55,6 +63,7 @@ jobs:
           TODAY=$(date +%Y-%m-%d)
           : > /tmp/.trivyignore
           : > ./.gitleaksignore
+          : > /tmp/.semgrep-exclude
           if [ -f .security-ignore ]; then
             awk -v today="$TODAY" '
               /^[[:space:]]*#/ || NF==0 { next }
@@ -67,8 +76,9 @@ jobs:
                 if (until != "" && until < today) next
                 if ($1=="trivy")    print $2 >> "/tmp/.trivyignore"
                 if ($1=="gitleaks") print $2 >> "./.gitleaksignore"
+                if ($1=="semgrep")  print $2 >> "/tmp/.semgrep-exclude"
               }' .security-ignore
-            echo "Active suppressions: $(wc -l < /tmp/.trivyignore | tr -d ' ') trivy, $(wc -l < ./.gitleaksignore | tr -d ' ') gitleaks (expired excluded)."
+            echo "Active suppressions: $(wc -l < /tmp/.trivyignore | tr -d ' ') trivy, $(wc -l < ./.gitleaksignore | tr -d ' ') gitleaks, $(wc -l < /tmp/.semgrep-exclude | tr -d ' ') semgrep (expired excluded)."
           fi
 
       - name: Install scanners (static Go binaries → ~/.local/bin, checksum-verified)
@@ -357,3 +367,111 @@ jobs:
             exit 1
           fi
           echo "OK: no undefined names."
+
+      # SAST (K Phase 1, 2026-08-13) — report-only on findings; FAILS on
+      # errors[] PartialParsing. Semgrep's bash sub-parser chokes on ${{ }}
+      # inside run:, so "0 findings" can mean "never analysed those lines".
+      # Rules are TTI-authored and vendored (never p/<pack> — registry
+      # configs fetch from semgrep.dev at scan time).
+      - name: SAST — semgrep (report-only; fail on parse gaps)
+        run: |
+          set -eu
+          SEMGREP_VERSION=1.172.0
+          # Baked-first, same policy as trivy/gitleaks above: once the A1.0
+          # runner image bakes semgrep, this step goes zero-download too.
+          # Until then the checksum-verified wheel is the drift fallback.
+          if [ "$(semgrep --version 2>/dev/null)" = "${SEMGREP_VERSION}" ]; then
+            SEMGREP=semgrep
+            echo "using image-baked semgrep ${SEMGREP_VERSION} (no download)"
+          else
+            case "$(uname -m)" in
+              aarch64|arm64)
+                WHL="semgrep-${SEMGREP_VERSION}-cp310.cp311.cp312.cp313.cp314.py310.py311.py312.py313.py314-none-manylinux_2_34_aarch64.whl"
+                SEMGREP_SHA=c881a305b965e594b88b15c2c6419b398e76e438ec61e60916c8b2effe927240
+                SEMGREP_URL="https://files.pythonhosted.org/packages/1b/45/35488f2f609db23eed350ada093722484a6f8cb3b1eaf8ecfd54e2338521/${WHL}" ;;
+              x86_64)
+                WHL="semgrep-${SEMGREP_VERSION}-cp310.cp311.cp312.cp313.cp314.py310.py311.py312.py313.py314-none-manylinux_2_34_x86_64.whl"
+                SEMGREP_SHA=d8b94af4266a575287ad2cd844573743ab4fe58f6bfb6d9229327807937eade3
+                SEMGREP_URL="https://files.pythonhosted.org/packages/84/a5/21624510b65271a673961a894af7511b5123d662e84c74c765560ea28b27/${WHL}" ;;
+              *) echo "unsupported arch: $(uname -m)"; exit 1 ;;
+            esac
+            fetch() {
+              for _i in 1 2 3; do
+                if wget -qO "$2" -T 30 "$1"; then return 0; fi
+                echo "download failed (attempt ${_i}/3): $1"
+                sleep 5
+              done
+              echo "download failed after 3 attempts: $1"
+              return 1
+            }
+            fetch "$SEMGREP_URL" "/tmp/${WHL}"
+            echo "${SEMGREP_SHA}  /tmp/${WHL}" | sha256sum -c -
+            # --target avoids PEP 668. Transitive deps still come from PyPI;
+            # the engine wheel is the trust anchor (ops/provenance/semgrep.md).
+            pip3 install --target /tmp/semgrep --no-compile --disable-pip-version-check \
+              --no-warn-script-location "/tmp/${WHL}"
+            export PYTHONPATH="/tmp/semgrep${PYTHONPATH:+:$PYTHONPATH}"
+            # BOTH exports are load-bearing: the console script needs
+            # PYTHONPATH for the package, and the OCaml core execvp's
+            # `pysemgrep` from PATH. `python3 -m semgrep` is a HARD ERROR
+            # (exit 2, empty output) in 1.172.0 — validated live 2026-08-13.
+            export PATH="/tmp/semgrep/bin:$PATH"
+            SEMGREP=semgrep
+          fi
+          # The SEEDED path wins on purpose: audit-baseline.sh hashes
+          # .forgejo/semgrep-rules/tti.yml, so preferring a repo-local
+          # security/semgrep-rules/ would let any repo swap out the audited
+          # org pack while the audit still prints "ok".
+          if [ -d .forgejo/semgrep-rules ]; then
+            RULES=.forgejo/semgrep-rules
+          elif [ -d security/semgrep-rules ]; then
+            RULES=security/semgrep-rules
+          else
+            echo "FAIL: no vendored semgrep rules (security/semgrep-rules or .forgejo/semgrep-rules)."
+            echo "The gate must not fetch p/ registry configs."
+            exit 1
+          fi
+          EXCL=()
+          if [ -s /tmp/.semgrep-exclude ]; then
+            while IFS= read -r _id; do
+              [ -n "$_id" ] && EXCL+=(--exclude-rule "$_id")
+            done < /tmp/.semgrep-exclude
+          fi
+          $SEMGREP --metrics=off --disable-version-check \
+            --config "$RULES" --json --quiet \
+            --exclude .git --exclude node_modules --exclude .venv \
+            --exclude venv --exclude backups --exclude site-packages \
+            "${EXCL[@]+"${EXCL[@]}"}" \
+            . > /tmp/semgrep.json || true
+          python3 - <<'PYEOF'
+          import json, sys
+          try:
+              rep = json.load(open("/tmp/semgrep.json"))
+          except Exception as e:
+              print(f"FAIL: could not parse semgrep JSON: {e}")
+              sys.exit(1)
+          errors = rep.get("errors") or []
+          results = rep.get("results") or []
+          parse_gaps = [e for e in errors
+                        if "PartialParsing" in str(e.get("type") or "")
+                        or "PartialParsing" in str(e)]
+          print(f"SAST: {len(results)} finding(s), {len(errors)} error(s), "
+                f"{len(parse_gaps)} PartialParsing.")
+          for e in errors:
+              print(f"  error: {e.get('type', '?')}: {str(e.get('message') or e)[:200]}")
+          for r in results:
+            sev = (r.get("extra") or {}).get("severity") or "?"
+            rid = r.get("check_id") or "?"
+            path = r.get("path") or "?"
+            start = ((r.get("start") or {}).get("line")) or "?"
+            msg = ((r.get("extra") or {}).get("message") or "").split("\n")[0][:160]
+            print(f"  {sev:7} {path}:{start}  {rid}  {msg}")
+          if parse_gaps:
+              print("")
+              print("FAIL: semgrep could not parse some files (PartialParsing).")
+              print("A coverage gap that presents as a pass is worse than no scanner.")
+              sys.exit(1)
+          if errors and not parse_gaps:
+              print("semgrep reported non-parse errors (advisory this phase).")
+          print("OK: no PartialParsing gaps (findings are report-only).")
+          PYEOF
