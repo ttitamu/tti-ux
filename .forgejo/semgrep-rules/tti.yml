@@ -1,0 +1,96 @@
+# TTI-authored semgrep rules for the H2 baseline gate (K Phase 1).
+#
+# These are NOT a vendor of p/default. Registry configs fetch from semgrep.dev
+# at scan time — that is the lineage-test concern recorded in
+# ops/provenance/semgrep.md. This pack is the demonstrated-gap floor:
+# the ${{ }}→run: injection the AI panel missed, plus the taint/secret
+# patterns gitleaks/Trivy do not cover.
+#
+# Licence: same as this repository (TTI-authored). Engine is LGPL-2.1-or-later;
+# we invoke it as a process and do not redistribute it.
+#
+# Pin: hashed in ops/provenance/semgrep.md. Refresh with the quarterly
+# tool-pin cadence. Never add a `p/` registry config.
+
+rules:
+  - id: tti.gha-interpolation-in-run
+    message: >-
+      Actions interpolates ${{ }} into run: before bash parses. $(...) and
+      backticks execute inside double quotes, so a branch named feat/$(id)
+      is remote code execution on a runner that mounts the host podman
+      socket. Pass values through env: instead (CWE-78).
+    severity: ERROR
+    languages: [yaml]
+    metadata:
+      cwe: "CWE-78"
+      category: security
+    paths:
+      include:
+        - "**/.forgejo/workflows/*.yml"
+        - "**/.forgejo/workflows/*.yaml"
+        - "**/.github/workflows/*.yml"
+        - "**/.github/workflows/*.yaml"
+    # The block-scalar branch anchors continuation lines to indentation DEEPER
+    # than the run: key's own indent (backref \1), so the match cannot run past
+    # the block's dedent into a later step's env:/comments — the unanchored
+    # version false-positived on every workflow that carried the recommended
+    # env: fix. The two line alternatives are disjoint (content vs pure
+    # whitespace) to keep the lazy repetition linear-time.
+    pattern-regex: '(?m)^([ \t]+)run:(?:[ \t]+[^\n]*\$\{\{|[ \t]*[|>][+-]?[ \t]*\n(?:(?:\1[ \t]+[^ \t\n][^\n]*|[ \t]*)\n)*?\1[ \t]+[^\n]*\$\{\{)'
+
+  - id: tti.subprocess-shell-true
+    message: >-
+      subprocess with shell=True and a non-literal command is command
+      injection (CWE-78). Pass a list argv and shell=False.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: "CWE-78"
+      category: security
+    patterns:
+      - pattern: subprocess.$F($CMD, ..., shell=True, ...)
+      - pattern-not: subprocess.$F("...", ..., shell=True, ...)
+      - pattern-not: subprocess.$F('...', ..., shell=True, ...)
+
+  - id: tti.eval-detected
+    message: eval() on a non-literal is code injection (CWE-95).
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: "CWE-95"
+      category: security
+    patterns:
+      - pattern: eval($X)
+      - pattern-not: eval("...")
+      - pattern-not: eval('...')
+
+  - id: tti.formatted-sql-query
+    message: >-
+      SQL query built with an f-string, %, format, or concatenation (CWE-89).
+      Use a parameterized query.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: "CWE-89"
+      category: security
+    pattern-either:
+      - pattern: $CUR.execute(f"...{$X}...")
+      - pattern: $CUR.execute("..." % $X)
+      - pattern: $CUR.execute("..." + $X)
+      - pattern: $CUR.execute("...".format(...))
+
+  - id: tti.aws-access-key-id
+    message: >-
+      Hardcoded AWS access key id (CWE-798). gitleaks entropy-filters keys
+      containing EXAMPLE/NOTREAL; this rule does not.
+    severity: ERROR
+    languages: [generic]
+    metadata:
+      cwe: "CWE-798"
+      category: security
+    paths:
+      exclude:
+        - "**/*.md"
+        - "**/ops/provenance/**"
+        - "**/.security-ignore*"
+    pattern-regex: 'AKIA[0-9A-Z]{16}'
