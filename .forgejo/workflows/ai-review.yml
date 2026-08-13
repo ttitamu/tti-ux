@@ -24,13 +24,20 @@ jobs:
     steps:
       - name: AI-Restricted gate (skip all AI on flagged repos)
         id: gate
+        env:
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          JOB_TOKEN: ${{ github.token }}
         run: |
           set -eu
           # A repo carrying the "ai-restricted" topic is excluded from ALL AI.
           # Fail-closed: if the topic check itself errors, SKIP (treat as
           # restricted) rather than review something we couldn't clear.
-          T=$(curl -sf -H "Authorization: token ${{ github.token }}" \
-                "${{ github.server_url }}/api/v1/repos/${{ github.repository }}/topics" || echo '{"topics":["ai-restricted"]}')
+          # Values reach the shell through env:, never expression-interpolated
+          # into run: (Actions substitutes textually before bash parses; a
+          # crafted github.repository of feat/$(id) is a valid git ref).
+          T=$(curl -sf -H "Authorization: token $JOB_TOKEN" \
+                "$SERVER_URL/api/v1/repos/$REPO/topics" || echo '{"topics":["ai-restricted"]}')
           if printf '%s' "$T" | grep -q '"ai-restricted"'; then
             echo "repo is ai-restricted — skipping AI review"
             echo "skip=true" >> "$GITHUB_OUTPUT"
@@ -84,7 +91,7 @@ jobs:
           set -eu
           if [ ! -s /tmp/pr.diff ]; then echo "empty diff — nothing to review"; echo "" > /tmp/review.md; exit 0; fi
           python3 - <<'PY'
-          import json, os, urllib.request
+          import json, os, urllib.error, urllib.request
           # Passing "pr" lets the gateway post a REAL Forgejo review with
           # inline comments at file:line (Area I2) — the human ↔ panel board
           # and native threads hang off that. If it posts, we skip the classic
@@ -99,21 +106,32 @@ jobs:
                            "Authorization":"token "+os.environ["BFF_TOKEN"],
                            "X-TTI-Actor":os.environ["ACTOR"]})
           out = None
+          fail = None
           for attempt in range(3):
               try:
-                  # 3 models x 2 rounds + synthesis — superPOD is fast but
-                  # give headroom; retry rides out BFF quota windows (a big
-                  # index run can 429-starve the panel briefly).
+                  # Retry ONLY 429 quota. 502/503 are inconclusive (gemma
+                  # timeout / Devstral over-limit) — retrying burns ~4.5 min
+                  # and will not recover; stop, but fall THROUGH to the
+                  # advisory comment below (AI review is advisory — a panel
+                  # outage must not red the PR).
                   with urllib.request.urlopen(req, timeout=600) as r:
                       out = json.load(r)
                   break
+              except urllib.error.HTTPError as e:
+                  detail = e.read().decode("utf-8", "replace")
+                  print(f"attempt {attempt+1} failed: HTTP {e.code}")
+                  if e.code != 429:
+                      fail = f"panel HTTP {e.code}: {detail[:300]}"
+                      break
+                  if attempt < 2:
+                      import time; time.sleep(90)
               except Exception as e:
                   print(f"attempt {attempt+1} failed: {e}")
                   if attempt < 2:
                       import time; time.sleep(90)
           try:
               if out is None:
-                  raise RuntimeError("panel unavailable after 3 attempts")
+                  raise RuntimeError(fail or "panel unavailable after 3 attempts")
               # I2: when the gateway already posted a native Forgejo review
               # (inline comments + findings board), DON'T also post the classic
               # single comment — leave a sentinel so the next step skips.
@@ -142,6 +160,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BOT_TOKEN: ${{ secrets.AI_REVIEW_TOKEN }}
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -eu
           [ -s /tmp/review.md ] || { echo "no review body"; exit 0; }
@@ -157,6 +178,6 @@ jobs:
           post() { printf '%s' "$BODY" | curl -sf -X POST \
             -H "Authorization: token $1" -H "Content-Type: application/json" \
             --data @- \
-            "${{ github.server_url }}/api/v1/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            "$SERVER_URL/api/v1/repos/$REPO/issues/$PR_NUMBER/comments" \
             -o /dev/null -w "comment posted ($2): %{http_code}\n"; }
           post "$BOT_TOKEN" "ai-review-bot" || post "$GH_TOKEN" "actions token" || echo "comment post failed (non-fatal)"
