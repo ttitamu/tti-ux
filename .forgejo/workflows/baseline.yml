@@ -23,7 +23,13 @@ on:
   push:
     branches: ["**"]
   pull_request:
-    branches: [main]
+    # "**", not [main]: default branch names are NOT uniform across the estate
+    # (nis/yard is on `master`), and a PR targeting anything else silently
+    # never fired this gate — or, where the check is marked required, blocked
+    # the PR forever waiting on a status that could not arrive. Matching the
+    # push trigger removes the assumption instead of encoding a second special
+    # case; a new repo on `trunk`/`develop` is covered without anyone noticing.
+    branches: ["**"]
 
 jobs:
   baseline:
