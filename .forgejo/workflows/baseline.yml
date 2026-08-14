@@ -368,6 +368,64 @@ jobs:
           fi
           echo "OK: no undefined names."
 
+      # Workflow YAML must PARSE (added 2026-08-14). A malformed workflow does
+      # not fail loudly — Forgejo just never runs it, or 500s on dispatch, so
+      # the repo silently loses a gate. Hit live: a python heredoc left at
+      # column 0 dedented out of its `run: |` block scalar and made the whole
+      # file unparseable ("could not find expected ':'"); a regex-extract +
+      # `bash -n` pre-check reported it clean because the regex stopped at the
+      # dedent and validated a TRUNCATED script. Only a real parse catches it.
+      - name: Workflow YAML parses (blocks)
+        run: |
+          set -eu
+          python3 - <<'PYEOF'
+          import glob, sys
+          files = sorted(glob.glob(".forgejo/workflows/*.yml")
+                         + glob.glob(".forgejo/workflows/*.yaml")
+                         + glob.glob(".github/workflows/*.yml")
+                         + glob.glob(".github/workflows/*.yaml"))
+          if not files:
+              print("no workflow files to check.")
+              sys.exit(0)
+          # A REAL parser or nothing. An earlier draft degraded to a heuristic
+          # when pyyaml was absent, and the heuristic missed the very bug it was
+          # written for: it accepted any dedented line containing a colon, so a
+          # heredoc body starting `d = {"a": 1}` or `Host: example.com` passed —
+          # and it still printed "all workflow files parse". A check that cannot
+          # see its own target defect, while claiming coverage, is the trap this
+          # repo keeps re-learning. python3-yaml is in the runner image.
+          try:
+              import yaml
+          except ImportError:
+              print("FAIL: no YAML parser available (python3-yaml / pyyaml).")
+              print("Refusing to guess — a heuristic here reports 'parses' on")
+              print("files that do not. Add python3-yaml to the runner image.")
+              sys.exit(1)
+
+          fail = 0
+          for f in files:
+              try:
+                  doc = yaml.safe_load(open(f, encoding="utf-8"))
+              except Exception as e:
+                  print(f"  FAIL {f}: {str(e).splitlines()[0]}"); fail = 1; continue
+              if doc is None:
+                  # Empty or fully commented out — a normal way to park a
+                  # workflow. It parses; that is what this step checks.
+                  print(f"  ok   {f}  (empty / commented out)"); continue
+              if isinstance(doc, dict) and doc.get("jobs"):
+                  print(f"  ok   {f}  jobs={list(doc['jobs'])}")
+              else:
+                  # Parses but is not a runnable workflow. Worth saying, not
+                  # worth reddening every PR in the repo over.
+                  print(f"  ok   {f}  (parses; declares no jobs)")
+          if fail:
+              print("")
+              print("FAIL: a workflow file does not parse. Forgejo will not run it,")
+              print("and nothing else in CI will tell you — the gate just vanishes.")
+              sys.exit(1)
+          print(f"OK: {len(files)} workflow file(s) parsed with pyyaml.")
+          PYEOF
+
       # SAST (K Phase 1, 2026-08-13) — report-only on findings; FAILS on
       # errors[] PartialParsing. Semgrep's bash sub-parser chokes on ${{ }}
       # inside run:, so "0 findings" can mean "never analysed those lines".
