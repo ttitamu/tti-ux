@@ -1,7 +1,15 @@
 {
-  "name": "tti-ux",
-  "version": "1.9.0",
-  "private": true,
+  "name": "@tti/tti-ux",
+  "version": "2.0.0",
+  "description": "TUX \u2014 the TTI design system: Nuxt layer, design tokens, and audit tooling. Published from code.tti.tamu.edu (Forgejo npm registry).",
+  "publishConfig": {
+    "registry": "https://code.tti.tamu.edu/api/packages/tti/npm/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://code.tti.tamu.edu/tti/tti-ux.git"
+  },
+  "license": "Apache-2.0",
   "type": "module",
   "main": "./nuxt.config.ts",
   "files": [

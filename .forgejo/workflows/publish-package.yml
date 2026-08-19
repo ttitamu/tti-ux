@@ -1,0 +1,70 @@
+# Publish @tti/tti-ux to the Forgejo npm registry on every version tag.
+#
+# Forgejo (code.tti.tamu.edu) is the CANONICAL package source for tux;
+# the GitHub repo is a mirror whose only job is the GitHub Pages deploy
+# of ux.tti.tamu.edu. Consumers install via the @tti scope:
+#   @tti:registry=https://code.tti.tamu.edu/api/packages/tti/npm/
+#
+# No build step on purpose: package.json "files" lists committed
+# content (app/, kit/, scripts/, docs/, …), so `npm publish` packs the
+# repo as-tagged. Generated artifacts (kit/css, kit/scss) are committed
+# by `npm run build:kit` before release — publishing never regenerates.
+#
+# Auth: prefers the repo secret PACKAGE_TOKEN (a token with
+# package:write, survives job-token permission tightening); falls back
+# to the workflow's automatic token, which on this Forgejo has
+# package write for the repo owner. House security idiom applies:
+# values reach the shell through env:, never ${{ }} inside run:.
+name: publish-package
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticated checkout (tag)
+        env:
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          JOB_TOKEN: ${{ github.token }}
+          TAG_REF: ${{ github.ref_name }}
+        run: |
+          set -eu
+          git init -q .
+          AUTH_URL=$(printf '%s' "$SERVER_URL" | sed "s#https://#https://oauth2:${JOB_TOKEN}@#")
+          git remote add origin "$AUTH_URL/$REPO.git"
+          git fetch -q --depth 1 origin "refs/tags/$TAG_REF:refs/tags/$TAG_REF"
+          git checkout -q "refs/tags/$TAG_REF"
+
+      - name: Verify tag matches package.json version
+        env:
+          TAG_REF: ${{ github.ref_name }}
+        run: |
+          set -eu
+          PKG_VERSION=$(node -p "require('./package.json').version" 2>/dev/null \
+            || sed -n 's/^  "version": "\(.*\)",$/\1/p' package.json)
+          if [ "v$PKG_VERSION" != "$TAG_REF" ]; then
+            echo "::error::tag $TAG_REF != package.json version $PKG_VERSION — retag or bump before publishing"
+            exit 1
+          fi
+
+      - name: Publish to the Forgejo npm registry
+        env:
+          SERVER_URL: ${{ github.server_url }}
+          JOB_TOKEN: ${{ github.token }}
+          PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
+        run: |
+          set -eu
+          command -v npm >/dev/null 2>&1 || {
+            echo "::error::npm not on runner image — install Node on the A1 runner or switch runs-on"; exit 1; }
+          HOST=$(printf '%s' "$SERVER_URL" | sed 's#https://##')
+          TOKEN="${PACKAGE_TOKEN:-$JOB_TOKEN}"
+          # Scope → registry mapping + auth, kept out of the repo tree.
+          printf '@tti:registry=%s/api/packages/tti/npm/\n//%s/api/packages/tti/npm/:_authToken=%s\n' \
+            "$SERVER_URL" "$HOST" "$TOKEN" > "$HOME/.npmrc"
+          # --ignore-scripts: postinstall (nuxt prepare) is for consumers,
+          # not the publish pack; nothing here needs lifecycle hooks.
+          npm publish --ignore-scripts
+          echo "published @tti/tti-ux@${GITHUB_REF_NAME#v} to $SERVER_URL/api/packages/tti/npm/"

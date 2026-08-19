@@ -145,29 +145,43 @@ AUDIT_LEVEL=AAA npm run audit:contrast
 
 ## Consuming from another app
 
-Pin to a tagged release straight from GitHub — no npm registry needed.
-Bumping the consumer's pin is how you opt in to a new tux version
-(check [`CHANGELOG.md`](CHANGELOG.md) for the latest tag):
+**The canonical install source is the Forgejo npm registry** on
+code.tti.tamu.edu — every `vX.Y.Z` tag publishes `@tti/tti-ux`
+automatically. (The GitHub repo is a mirror whose only job is the
+GitHub Pages deploy of ux.tti.tamu.edu; don't install from it.)
+
+One-time setup in the consuming app (or your `~/.npmrc`):
+
+```ini
+# .npmrc
+@tti:registry=https://code.tti.tamu.edu/api/packages/tti/npm/
+```
+
+(If the repo/package isn't public to you, add
+`//code.tti.tamu.edu/api/packages/tti/npm/:_authToken=<your token>`.)
+
+Then depend on a pinned version and extend the layer:
+
+```sh
+npm install @tti/tti-ux@2.0.0
+```
 
 ```ts
 // nuxt.config.ts of the consuming app
 export default defineNuxtConfig({
-  extends: ["github:ttitamu/tti-ux#v1.7.0"],
+  extends: ["@tti/tti-ux"],
 });
 ```
 
-Or if you'd rather see it in `package.json`:
-
-```jsonc
-{
-  "dependencies": {
-    "tti-ux": "github:ttitamu/tti-ux#v1.7.0"
-  }
-}
-```
+Bumping the pinned version is how you opt in to a new tux release —
+check [`CHANGELOG.md`](CHANGELOG.md) for what each version contains.
 
 For local dev with a sibling checkout, swap to a file URL:
-`"tti-ux": "file:../tti-ux"`.
+`"@tti/tti-ux": "file:../tti-ux"`. A direct git pin also works on
+the internal network:
+`"@tti/tti-ux": "git+https://code.tti.tamu.edu/tti/tti-ux.git#v2.0.0"`.
+(Legacy consumers pinned to `github:ttitamu/tti-ux#v1.x` keep
+working, but new pins should not use the mirror.)
 
 **Deploying behind a reverse proxy?** Set `icon: { mode: "svg" }` in
 your `nuxt.config.ts`. `@nuxt/icon`'s default CSS-mask mode fetches
