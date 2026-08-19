@@ -5,11 +5,37 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-> **The next release is v2.0.0** — the Breaking section below lands
-> the vocabulary renames as one coordinated batch, timed
-> deliberately *before* the multi-target token expansion (C# /
-> React / WordPress kits) and Forgejo package distribution multiply
-> the consumer count.
+
+## [2.0.0] — 2026-08-19
+
+The language major. Everything a consumer touches — prop words, emit
+names, token set, package identity — is now the ratified vocabulary,
+released as one coordinated break *before* the multi-target token
+expansion (C# / React / WordPress kits) multiplies the consumer
+count.
+
+### Fixed
+
+- **Wash tokens resolved to nothing between the language-closeout
+  merge and this release**: the mechanical wash sweep had also
+  rewritten the *generated* `tokens.css`, turning the `--wash-brand-*`
+  definitions into self-references (`--wash-brand-4:
+  var(--wash-brand-4)`), which are invalid at computed-value time.
+  Regenerated from source; `audit:tokens` now hard-fails on any
+  self-referential token definition so this bug class can't ship
+  again.
+
+### Breaking — package identity & distribution
+
+- **The package is now `@tti/tti-ux`, published to the Forgejo npm
+  registry** (`code.tti.tamu.edu/api/packages/tti/npm/`) on every
+  version tag — Forgejo is the canonical install source. Migration:
+  add the `@tti` scope to `.npmrc`, depend on `@tti/tti-ux`, and use
+  `extends: ["@tti/tti-ux"]` in `nuxt.config.ts`. The old
+  `github:ttitamu/tti-ux#vX.Y.Z` pin keeps working for existing
+  consumers but is deprecated — the GitHub repo is a mirror whose
+  job is the GitHub Pages deploy of ux.tti.tamu.edu, nothing more.
+  See README § Consuming from another app.
 
 ### Breaking — v2.0.0 vocabulary batch (2026-08-19)
 

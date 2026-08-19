@@ -134,11 +134,26 @@ const DECL_RE = /(--[a-z][a-z0-9-]*)\s*['"]?\s*:/g;
 
 const defined = new Set();
 const declSource = new Map(); // token -> first file it was defined in (debug)
+const selfReferential = []; // { token, file } — `--x: var(--x)` resolves to nothing
+// A definition whose value is a bare var() of ITSELF is invalid at
+// computed-value time — the token "exists" but resolves to nothing.
+// This shipped once: a mechanical wash sweep rewrote the GENERATED
+// tokens.css, turning `--wash-brand-4: color-mix(…)` into
+// `--wash-brand-4: var(--wash-brand-4)`, and this audit counted it as
+// defined. Now it's a hard failure.
+const SELF_REF_RE = /(--[a-z][a-z0-9-]*)\s*:\s*var\(\s*\1\s*[),]/g;
 function harvestDecls(file) {
   const text = readFileSync(file, "utf8");
   for (const m of text.matchAll(DECL_RE)) {
     defined.add(m[1]);
     if (!declSource.has(m[1])) declSource.set(m[1], file);
+  }
+  for (const m of text.matchAll(SELF_REF_RE)) {
+    // The Tailwind @theme bridge in globals.css legitimately re-exports
+    // root values as `--x: var(--x)` inside an @theme block — those are
+    // Tailwind theme keys, not CSS custom-property self-references.
+    if (/globals\.css$/.test(file)) continue;
+    selfReferential.push({ token: m[1], file });
   }
 }
 cssFiles.forEach(harvestDecls);
@@ -192,6 +207,18 @@ if (process.env.AUDIT_TOKENS_DEBUG === "1") {
       `fallback-skipped: ${fallbackSkipped}  dynamic-skipped: ${dynamicSkipped}  ` +
       `external-prefixes: ${EXTERNAL_PREFIXES.length}\n`
   );
+}
+
+if (selfReferential.length > 0) {
+  console.error(
+    `✗ ${selfReferential.length} self-referential token definition(s) — ` +
+      `these resolve to NOTHING at computed-value time:\n`
+  );
+  for (const s of selfReferential) console.error(`  ${s.token}  (${s.file})`);
+  console.error(
+    `\nRegenerate the file (npm run build:tokens) or fix the definition.`
+  );
+  process.exit(1);
 }
 
 if (violations.length === 0) {
