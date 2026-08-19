@@ -17,6 +17,7 @@ npm run dev
 | Component            | Wraps                    | Route                           |
 | -------------------- | ------------------------ | ------------------------------- |
 | `TuxAccordion`       | tux native               | `/components/accordion`         |
+| `TuxActivityTimeline`| tux native               | `/components/activity-timeline` |
 | `TuxAlert`           | `UAlert`                 | `/components/alert`             |
 | `TuxAlphaNav`        | tux native               | `/components/alpha-nav`         |
 | `TuxAnnouncementBanner` | tux native            | `/components/announcement-banner` |
@@ -175,6 +176,8 @@ npm run dev
 | `TuxChartDonut`      | tux native SVG           | `/visualizations/chart-donut`   |
 | `TuxChartScatter`    | tux native SVG           | `/visualizations/chart-scatter` |
 | `TuxChartGauge`      | tux native SVG           | `/visualizations/chart-gauge`   |
+| `TuxChartHeatmap`    | tux native SVG           | `/visualizations/chart-heatmap` |
+| `TuxChartHistogram`  | tux native SVG           | `/visualizations/chart-histogram` |
 
 ### Reports section
 
@@ -292,6 +295,9 @@ single most common failure mode.
 | **Texas-flavored map** (county choropleth, TxDOT districts, in-state dot density, OD flow arcs, AlbersUsa context) | `<TuxChartGeographic kind="…">` |
 | **Multi-metro inset grid** (4-up neighborhood drill-down — Houston / DFW / Austin / SAT) | `<TuxMetroInset>` |
 | **Two-ring radial breakdown** (sister to treemap; categorical part-to-whole with center total) | `<TuxChartSunburst>` |
+| **Time-of-day / matrix intensity** (crashes by day × hour, corridor demand by month, station uptime) | `<TuxChartHeatmap>` |
+| **Distribution of raw observations** (travel-time reliability, delay spread; p50/p95 planning-time pair) | `<TuxChartHistogram :percentiles="[50, 95]">` |
+| **Vertical event timeline** (project milestones, ingest/agent feed, session history) | `<TuxActivityTimeline>` |
 | **Editorial wrapper for a multi-exhibit visualizations page** (eyebrow + Oswald title + maroon signature + body + source) | `<TuxChartFrame>` |
 
 If your need isn't here, scan `/components` (or
@@ -563,7 +569,10 @@ tooltip pattern, shipped 2026-05-22 (`TuxChartLine`, `TuxChartBar`,
    roving cursor (scatter points in x order; donut slices clockwise;
    sunburst segments in hierarchical order — group, then its
    children). Never make every data point a tab stop: a 500-point
-   scatter must not inject 500 tab stops. Treemap is the one
+   scatter must not inject 500 tab stops. Heatmap keeps the single
+   tab stop but its roving cursor is **two-dimensional** — Left/Right
+   walk columns, Up/Down walk rows — because collapsing a matrix to a
+   1-D walk would alias the axes. Treemap is the one
    exception — its cells are real drill-in *buttons* (`role="button"`,
    Enter/Space drills, Backspace drills up, arrows walk cells), so
    per-cell focus is the correct semantic.

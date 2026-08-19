@@ -5,6 +5,42 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **`TuxChartHeatmap`** — native SVG matrix heatmap, the top-ranked
+  viz gap from the 2026-08 audit (time-of-day patterns: crashes by
+  day × hour, corridor demand by month). Cells quantize onto the same
+  5-stop sequential ramps the choropleth family uses
+  (`--map-seq-maroon-*` default, `slate` variant), equal-interval
+  bins with the ranges printed in the legend, honest hatched `null`
+  cells ("No data", never zero), auto-thinned dense column axes, and
+  the family tooltip/keyboard contract with a **two-dimensional**
+  roving cursor (Left/Right walk columns, Up/Down walk rows —
+  documented in components.md § Chart tooltips). Demo at
+  `/visualizations/chart-heatmap`.
+- **`TuxChartHistogram`** — native SVG distribution chart over raw
+  samples, built for the travel-time-reliability shape. Bin edges
+  snap to 1/2/5 × 10^k (`tuxBinEdges`) so ranges read "10–15 min";
+  `:percentiles="[50, 95]"` drops dashed gold rules at interpolated
+  quantiles (the planning-time-index pair); `normalize` switches the
+  y axis to share-of-samples for side-by-side comparisons; family
+  tooltip/keyboard contract (band-mode roving cursor via
+  `useTuxChartHover`). Demo at `/visualizations/chart-histogram`.
+- **`TuxActivityTimeline`** — editorial vertical event timeline (the
+  audit's top component gap): maroon spine, mono tabular timestamps,
+  gold-ringed `current` node, eyebrow-weight `heading` group rows,
+  semantic tones shared with the badge/alert families, `dense` rail
+  posture, `#item` / `#trailing` scoped slots. Stateless — the host
+  owns the feed. Demo at `/components/activity-timeline`.
+- **`app/utils/tuxChartBins.ts`** — shared binning + quantile math
+  for the distribution charts (`tuxBinEdges`, `tuxBinCounts`,
+  `tuxQuantile`/`tuxQuantileSorted`, `tuxQuantizeBin`), sibling to
+  `tuxChartScale`, behavior-locked by `tests/tux-chart-bins.test.ts`.
+- **Chart motion vocabulary** extended in `tux-chart-motion.css`:
+  heatmap cells fade in column-staggered; histogram bars grow from
+  the baseline like the bar family. Both collapse to instant under
+  `prefers-reduced-motion: reduce`.
+
 
 ## [1.9.0] — 2026-08-12
 
