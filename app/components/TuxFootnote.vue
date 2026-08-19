@@ -77,7 +77,7 @@ const targetId = computed(() => `${props.idPrefix}-${props.n}`);
 
 .tux-footnote:hover,
 .tux-footnote:focus-visible {
-  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  background: var(--wash-brand-12);
   outline: none;
 }
 

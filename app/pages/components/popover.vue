@@ -183,7 +183,7 @@ const richVue = `<tux-popover title="Filter by segment" width="lg">
   width: 1.25rem;
   height: 1.25rem;
   border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--brand-primary) 14%, transparent);
+  background: var(--wash-brand-12);
   color: var(--brand-primary);
   font-family: var(--font-body);
   font-size: 0.75rem;

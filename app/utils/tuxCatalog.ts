@@ -143,7 +143,7 @@ export const tuxCatalog: TuxCatalogEntry[] = [
   { name: "TuxContactCard", to: "/components/contact-card", icon: "lucide:circle-user", family: "components", kind: "component", wraps: "tux native",
     blurb: "Directory card — portrait + name + role + typed contact rows. Vertical or horizontal." },
   { name: "TuxContextMeter", to: "/components/context-meter", icon: "lucide:gauge", family: "components", kind: "component", wraps: "UPopover",
-    blurb: "Token-utilization meter — pill + conic ring + popover with input/output/cost. Tone-codes ok/warn/alert." },
+    blurb: "Token-utilization meter — pill + conic ring + popover with input/output/cost. Tone-codes success/warning/error." },
   { name: "TuxContextPanel", to: "/components/context-panel", icon: "lucide:panel-right", family: "components", kind: "component", wraps: "tux native",
     blurb: "Right-rail surface for chat grounding context (corpus, retrieval, usage). Slot-driven chrome." },
   { name: "TuxConversationList", to: "/components/conversation-list", icon: "lucide:message-square", family: "components", kind: "component", wraps: "tux native",

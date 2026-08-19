@@ -301,7 +301,7 @@ function contactHref(item: ContactItem): string | undefined {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
-  text-decoration-color: color-mix(in srgb, var(--brand-secondary) 30%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--brand-secondary) 35%, transparent);
 }
 
 .tux-contact-card__contact-link:hover,

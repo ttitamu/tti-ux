@@ -174,7 +174,7 @@ const pairs = [
   color: var(--color-success, #166534);
 }
 .contrast-matrix__level[data-level="AA"] {
-  background: color-mix(in srgb, var(--brand-accent) 16%, transparent);
+  background: color-mix(in srgb, var(--brand-accent) 18%, transparent);
   color: var(--text-secondary);
 }
 .contrast-matrix__level[data-level="AA-large"] {

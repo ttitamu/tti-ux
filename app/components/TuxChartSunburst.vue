@@ -304,8 +304,8 @@ const tooltipPos = computed(() => {
       <!-- Branded tooltip card (family contract) -->
       <div
         v-if="tooltip && activeSegment && tooltipPos"
-        class="tux-chart-sunburst__tooltip"
-        :class="{ 'tux-chart-sunburst__tooltip--flip': tooltipPos.flip }"
+        class="tux-chart-tooltip tux-chart-sunburst__tooltip"
+        :class="{ 'tux-chart-tooltip--flip': tooltipPos.flip }"
         role="status"
         aria-live="polite"
         :style="{
@@ -378,21 +378,7 @@ const tooltipPos = computed(() => {
 
 .tux-chart-sunburst__arc--dim { opacity: 0.55; }
 
-.tux-chart-sunburst__tooltip {
-  position: absolute;
-  z-index: 4;
-  min-width: 8rem;
-  max-width: 16rem;
-  padding: 0.5rem 0.625rem;
-  background: var(--surface-page);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--elevation-overlay);
-  font-size: 0.75rem;
-  pointer-events: none;
-}
 
-.tux-chart-sunburst__tooltip--flip { transform: translateX(-100%); }
 
 .tux-chart-sunburst__tooltip-label {
   font-weight: 600;

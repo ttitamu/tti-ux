@@ -12,7 +12,7 @@ const basicVue = `<tux-suggestion-chips
     'Show per-document score deltas',
     'Promote CLS-211 to staging',
   ]"
-  @pick="(p) => prompt = p"
+  @select="(p) => prompt = p"
 />`;
 
 const richVue = `<tux-suggestion-chips
@@ -23,7 +23,7 @@ const richVue = `<tux-suggestion-chips
       prompt: 'A longer prompt that the chip expands to when picked.',
     },
   ]"
-  @pick="onPick"
+  @select="onPick"
 />`;
 
 const noArrowVue = `<tux-suggestion-chips
@@ -64,7 +64,7 @@ const richItems = [
         <TuxSuggestionChips
           label="Follow up with"
           :items="basicItems"
-          @pick="(p) => lastPicked = p"
+          @select="(p) => lastPicked = p"
         />
         <p v-if="lastPicked" class="mt-3 text-xs text-text-muted">
           last picked: <code>{{ lastPicked }}</code>
@@ -83,7 +83,7 @@ const richItems = [
         <TuxSuggestionChips
           aria-label="Short label vs longer prompt example"
           :items="richItems"
-          @pick="(p) => lastPicked = p"
+          @select="(p) => lastPicked = p"
         />
       </TuxExample>
     </section>

@@ -43,7 +43,7 @@ const props = withDefaults(defineProps<Props>(), {
 const sectionLabel = computed(() => props.ariaLabel || props.label || "Suggested prompts");
 
 const emit = defineEmits<{
-  pick: [prompt: string, index: number];
+  select: [prompt: string, index: number];
 }>();
 
 function labelOf(item: ChipItem): string {
@@ -55,7 +55,7 @@ function promptOf(item: ChipItem): string {
 }
 
 function onPick(item: ChipItem, index: number) {
-  emit("pick", promptOf(item), index);
+  emit("select", promptOf(item), index);
 }
 </script>
 

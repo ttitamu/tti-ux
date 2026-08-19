@@ -586,8 +586,8 @@ function onBrushUp() {
          the parent container on the right. -->
     <div
       v-if="tooltip && tooltipPayload"
-      class="tux-chart-line__tooltip"
-      :class="{ 'tux-chart-line__tooltip--flip': (hoverX / width) > 0.6 }"
+      class="tux-chart-tooltip tux-chart-line__tooltip"
+      :class="{ 'tux-chart-tooltip--flip': (hoverX / width) > 0.6 }"
       role="status"
       aria-live="polite"
       :style="{
@@ -786,7 +786,7 @@ function onBrushUp() {
 }
 
 .tux-chart-line__hover-capture:focus-visible {
-  fill: color-mix(in srgb, var(--brand-primary) 4%, transparent);
+  fill: var(--wash-brand-4);
 }
 
 .tux-chart-line__hover-guide {
@@ -803,27 +803,10 @@ function onBrushUp() {
   pointer-events: none;
 }
 
-.tux-chart-line__tooltip {
-  position: absolute;
-  z-index: 4;
-  min-width: 8rem;
-  max-width: 16rem;
-  padding: 0.5rem 0.625rem;
-  background: var(--surface-page);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--elevation-overlay);
-  font-size: 0.75rem;
-  pointer-events: none;
-  transform: translateX(0);
-}
 
 /* When the active index is past 60% of the chart width, flip the
    tooltip to the *left* of the cursor so it doesn't overflow the
    container on the right. */
-.tux-chart-line__tooltip--flip {
-  transform: translateX(-100%);
-}
 
 .tux-chart-line__tooltip-label {
   font-weight: 600;
@@ -896,8 +879,8 @@ function onBrushUp() {
 }
 
 .tux-chart-line__brush-window {
-  fill: color-mix(in srgb, var(--brand-primary) 6%, transparent);
-  stroke: color-mix(in srgb, var(--brand-primary) 35%, transparent);
+  fill: var(--wash-brand-6);
+  stroke: var(--wash-brand-35);
   stroke-width: 1;
   cursor: grab;
 }

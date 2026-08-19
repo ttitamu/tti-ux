@@ -65,24 +65,22 @@ const TARGET_DIRS = (argDirs.length ? argDirs : envDirs.length ? envDirs : ["app
 // target in a self-run (deduped below).
 const LAYER_APP_DIR = path.join(ROOT, "app");
 
-// External token namespaces we don't own: Tailwind 4 emits theme tokens
-// (--color-*, --radius-*, --spacing-*, --text-*, --font-*, …) from its
-// `@theme` block, and Nuxt UI emits --ui-*. These resolve at build/runtime
-// outside our CSS, so a missing one is not our bug to catch here.
+// External token namespaces we don't own. Nuxt UI emits --ui-*, and a
+// handful of Tailwind 4 @theme namespaces resolve at build/runtime
+// outside our CSS. ⚠ Namespaces the APP ALSO DEFINES (--radius-,
+// --font-, --shadow-, --text-, --ease-, --tracking-, --color-) must
+// NOT be blanket-exempted: the blanket form let `--radius-full` ship
+// undefined for months (six components, chips rendered square) because
+// the "--radius-" prefix swallowed it. Those shared namespaces are now
+// audited like everything else — a legit Tailwind-only reference can be
+// added to the narrow list below with a comment.
 const EXTERNAL_PREFIXES = [
   "--ui-",
-  "--color-",
-  "--radius-",
   "--spacing-",
-  "--text-",
-  "--font-",
   "--leading-",
-  "--tracking-",
   "--breakpoint-",
   "--container-",
-  "--ease-",
   "--blur-",
-  "--shadow-",
   "--inset-",
   "--aspect-",
   "--animate-",

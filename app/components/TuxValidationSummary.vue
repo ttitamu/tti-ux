@@ -161,7 +161,7 @@ function jumpToField(fieldId: string) {
   cursor: pointer;
   font: inherit;
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--text-primary) 30%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--text-primary) 35%, transparent);
   text-underline-offset: 2px;
 }
 

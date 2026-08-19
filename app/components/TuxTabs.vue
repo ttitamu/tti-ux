@@ -38,14 +38,14 @@ interface Props {
   size?: "slim" | "md";
   /** Label treatment. `bold` → uppercase + tracked + Work-Sans bold;
    *  `default` → sentence-case + medium weight. */
-  intent?: "default" | "bold";
+  variant?: "default" | "bold";
 }
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: undefined,
   orientation: "horizontal",
   size: "md",
-  intent: "default",
+  variant: "default",
 });
 
 const emit = defineEmits<{
@@ -66,7 +66,7 @@ const local = computed({
     :ui="{
       root: 'tux-tabs',
       list: ['tux-tabs__list', `tux-tabs__list--${orientation}`, `tux-tabs__list--${size}`].join(' '),
-      trigger: ['tux-tabs__trigger', `tux-tabs__trigger--${intent}`].join(' '),
+      trigger: ['tux-tabs__trigger', `tux-tabs__trigger--${variant}`].join(' '),
       indicator: 'tux-tabs__indicator',
       content: 'tux-tabs__content',
     }"

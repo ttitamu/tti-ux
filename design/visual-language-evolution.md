@@ -272,6 +272,30 @@ lives at `public/identity-primitives.svg`, addressed at runtime as
 
 ---
 
+## Batch L — the wash ladder (2026-08-19)
+
+The transparent-tint washes (hover fills, focus washes, selected
+states, hairline spines) had drifted to 22 distinct eyeballed
+`color-mix` percentages across 84 sites — adjacent near-duplicates
+like 4/5/6 and 8/9/10 proving nobody was choosing from a scale.
+Ratified as law:
+
+- **The ladder: 4 · 6 · 8 · 12 · 18 · 22 · 35 · 50.** Every
+  `color-mix(… N%, transparent)` wash below 60% uses a ladder
+  percentage, whatever the base color.
+- **Maroon washes use the named tokens** `--wash-brand-4 … 35`
+  (defined over `--brand-primary`, so each theme's anchor rebind
+  retints every wash automatically). 50% stays inline — at that
+  weight it reads as a tint, and only two sites need it.
+- **≥ 60% is a scrim/fill, not a wash** — exempt from the ladder
+  (modal scrims, frosted panels, image overlays).
+- Other bases (`--brand-accent`, `--brand-secondary`,
+  `--text-primary`, …) keep inline `color-mix` but on ladder
+  percentages. Named tokens for a base earn their place when it
+  reaches maroon-level usage.
+
+`tests/tux-color.test.ts` enforces the ladder in CI.
+
 ## How to use this doc
 
 When you make a token-level change in `app/assets/css/tokens.css` (and

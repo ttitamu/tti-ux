@@ -413,7 +413,7 @@ const isTriggerActive = computed<boolean>(() => {
 .tux-mega-menu__trigger:hover,
 .tux-mega-menu__trigger:focus-visible,
 .tux-mega-menu__trigger[aria-expanded="true"] {
-  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  background: var(--wash-brand-6);
   color: var(--brand-primary);
   outline: none;
 }
@@ -569,7 +569,7 @@ const isTriggerActive = computed<boolean>(() => {
 
 .tux-mega-menu__link:hover,
 .tux-mega-menu__link:focus-visible {
-  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  background: var(--wash-brand-6);
   color: var(--brand-primary);
   outline: none;
 }
@@ -578,7 +578,7 @@ const isTriggerActive = computed<boolean>(() => {
    TuxDropdown's active-link state for visual consistency across the
    two menu types. */
 .tux-mega-menu__link--active {
-  background: color-mix(in srgb, var(--brand-primary) 9%, transparent);
+  background: var(--wash-brand-8);
   color: var(--brand-primary);
   box-shadow: inset 2px 0 0 0 var(--brand-primary);
 }

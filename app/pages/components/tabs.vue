@@ -31,7 +31,7 @@ const verticalVue = `<tux-tabs
   :items="settingsItems"
   orientation="vertical"
 />`;
-const boldVue = `<tux-tabs v-model="active" :items="items" intent="bold" />`;
+const boldVue = `<tux-tabs v-model="active" :items="items" variant="bold" />`;
 </script>
 
 <template>
@@ -83,12 +83,12 @@ const boldVue = `<tux-tabs v-model="active" :items="items" intent="bold" />`;
       <p class="eyebrow">bold intent · eyebrow rhythm</p>
       <h2 class="heading--bold text-xl font-bold">Uppercase tracked tabs</h2>
       <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
-        Use <code>intent="bold"</code> when tabs sit next to other
+        Use <code>variant="bold"</code> when tabs sit next to other
         eyebrow-styled labels (research-report navigation, public
         landing pages). Reads as a section header, not a control.
       </p>
       <TuxExample class="mt-4" :vue="boldVue">
-        <TuxTabs v-model="boldActive" :items="boldItems" intent="bold">
+        <TuxTabs v-model="boldActive" :items="boldItems" variant="bold">
           <p class="text-sm text-text-secondary">
             Tab: <strong>{{ boldActive }}</strong>.
           </p>

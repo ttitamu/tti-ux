@@ -188,7 +188,7 @@ const rowAttrs = computed<Record<string, unknown>>(() => {
 }
 
 .tux-tree__row:hover {
-  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  background: var(--wash-brand-6);
 }
 
 .tux-tree__row:focus-visible {
@@ -204,7 +204,7 @@ const rowAttrs = computed<Record<string, unknown>>(() => {
    declarations; only !important inside an unlayered rule reliably
    defeats them). */
 .tux-tree__node > .tux-tree__row--selected {
-  background: color-mix(in srgb, var(--brand-primary) 10%, transparent) !important;
+  background: var(--wash-brand-8) !important;
   border-left-color: var(--brand-primary) !important;
 }
 

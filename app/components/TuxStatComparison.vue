@@ -59,7 +59,7 @@ interface Props {
    *  ("vs last week", "vs Q3", "vs baseline"). */
   label?: string;
   /** Layout. Default `row`. */
-  layout?: "row" | "stack" | "inline";
+  layout?: "row" | "stacked" | "inline";
   /** Decimal places on the current + previous values. Default 1. */
   decimals?: number;
   /** Polarity. Default `direct` (up is success, down is error).
@@ -158,7 +158,7 @@ function fmt(n: number) {
   align-items: baseline;
   gap: 0.75rem;
 }
-.tux-stat-comparison--stack .tux-stat-comparison__row {
+.tux-stat-comparison--stacked .tux-stat-comparison__row {
   flex-direction: column;
   align-items: flex-start;
   gap: 0.125rem;

@@ -266,7 +266,7 @@ function statusIcon(s: StepStatus): string | null {
   background: var(--brand-primary);
   border-color: var(--brand-primary);
   color: var(--text-on-brand, #ffffff);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+  box-shadow: 0 0 0 4px var(--wash-brand-18);
 }
 
 .tux-stepper__item--active .tux-stepper__label {

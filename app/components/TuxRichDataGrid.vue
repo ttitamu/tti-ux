@@ -724,13 +724,13 @@ function onSearchInput(e: Event) {
   align-items: center;
   gap: 0.375rem;
   padding: 0.1875rem 0.25rem 0.1875rem 0.625rem;
-  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  background: var(--wash-brand-8);
   color: var(--brand-primary);
   font-size: 0.74rem;
   font-family: var(--font-bold);
   font-weight: 600;
   border-radius: 3px;
-  border: 1px solid color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  border: 1px solid var(--wash-brand-22);
 }
 .tux-rich-data-grid__filter-chip-label {
   color: var(--text-muted);
@@ -785,7 +785,7 @@ function onSearchInput(e: Event) {
   gap: 0.75rem;
   padding: 0.5625rem 0.875rem;
   background: var(--brand-primary);
-  color: #fff;
+  color: var(--text-inverse);
   font-size: 0.82rem;
 }
 .tux-rich-data-grid__bulk-clear-cb {
@@ -807,7 +807,7 @@ function onSearchInput(e: Event) {
 }
 .tux-rich-data-grid__bulk-cb-box :deep(.iconify) {
   font-size: 0.7rem;
-  color: #fff;
+  color: var(--text-inverse);
 }
 .tux-rich-data-grid__bulk-count {
   font-family: var(--font-bold);
@@ -819,10 +819,10 @@ function onSearchInput(e: Event) {
   align-items: center;
   gap: 0.375rem;
   padding: 0.3125rem 0.6875rem;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: color-mix(in srgb, var(--text-inverse) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-inverse) 22%, transparent);
   border-radius: 3px;
-  color: #fff;
+  color: var(--text-inverse);
   font-family: var(--font-bold);
   font-size: 0.72rem;
   font-weight: 600;
@@ -888,7 +888,7 @@ function onSearchInput(e: Event) {
   padding: 0.625rem 0;
 }
 .tux-rich-data-grid__th:not(.tux-rich-data-grid__th--last):not(.tux-rich-data-grid__th--cb):not(.tux-rich-data-grid__th--chevron) {
-  border-right: 1px solid color-mix(in srgb, var(--surface-border) 40%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--surface-border) 35%, transparent);
 }
 
 .tux-rich-data-grid__sort-btn,
@@ -939,11 +939,11 @@ function onSearchInput(e: Event) {
   transition: background 100ms;
 }
 .tux-rich-data-grid__row:hover {
-  background: color-mix(in srgb, var(--brand-primary) 3%, transparent);
+  background: var(--wash-brand-4);
 }
 .tux-rich-data-grid__row--selected,
 .tux-rich-data-grid__row--selected:hover {
-  background: color-mix(in srgb, var(--brand-primary) 5%, transparent);
+  background: var(--wash-brand-4);
 }
 .tux-rich-data-grid__td {
   padding: 0.6875rem 0.875rem;
@@ -999,7 +999,7 @@ function onSearchInput(e: Event) {
   background: var(--brand-primary);
 }
 .tux-rich-data-grid__cb-box :deep(.iconify) {
-  color: #fff;
+  color: var(--text-inverse);
   font-size: 0.7rem;
 }
 .tux-rich-data-grid__cb-dash {
@@ -1089,7 +1089,7 @@ function onSearchInput(e: Event) {
 .tux-rich-data-grid__page-btn--current {
   background: var(--brand-primary);
   border-color: var(--brand-primary);
-  color: #fff;
+  color: var(--text-inverse);
 }
 .tux-rich-data-grid__page-btn[disabled] {
   opacity: 0.4;

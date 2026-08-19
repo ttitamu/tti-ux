@@ -86,7 +86,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   "update:modelValue": [v: string];
-  update: [v: string];
   focus: [];
   blur: [];
   save: [];
@@ -172,7 +171,6 @@ onMounted(() => {
       if (mode.value === "wysiwyg") {
         sourceText.value = html;
         emit("update:modelValue", html);
-        emit("update", html);
       }
     },
     onFocus() { emit("focus"); },
@@ -212,7 +210,6 @@ function toggleMode() {
     editor.value?.commands.setContent(sourceText.value, { emitUpdate: false });
     recountFromHtml(sourceText.value);
     emit("update:modelValue", sourceText.value);
-    emit("update", sourceText.value);
     mode.value = "wysiwyg";
     nextTick(() => editor.value?.commands.focus());
   }
@@ -224,7 +221,6 @@ function onSourceInput(e: Event) {
   sourceText.value = html;
   recountFromHtml(html);
   emit("update:modelValue", html);
-  emit("update", html);
 }
 
 function toggleFullscreen() {
@@ -655,7 +651,7 @@ const inTable = computed(() => isActive("table"));
   cursor: not-allowed;
 }
 .tux-rte__btn--active {
-  background: color-mix(in srgb, var(--brand-primary) 14%, transparent);
+  background: var(--wash-brand-12);
   color: var(--brand-primary);
 }
 .tux-rte__btn--mode {
@@ -742,7 +738,7 @@ const inTable = computed(() => isActive("table"));
   align-items: center;
   gap: 0.25rem;
   padding: 0.0625rem 0.375rem;
-  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  background: var(--wash-brand-12);
   color: var(--brand-primary);
   border-radius: var(--radius-full);
   text-transform: uppercase;
@@ -868,7 +864,7 @@ const inTable = computed(() => isActive("table"));
   content: "";
   position: absolute;
   inset: 0;
-  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  background: var(--wash-brand-12);
   pointer-events: none;
 }
 .tux-rte__editor :deep(.tux-rte__content .column-resize-handle) {
@@ -913,7 +909,7 @@ const inTable = computed(() => isActive("table"));
 
 /* Selection */
 .tux-rte__editor :deep(.tux-rte__content ::selection) {
-  background: color-mix(in srgb, var(--brand-primary) 20%, transparent);
+  background: var(--wash-brand-22);
 }
 
 /* Lowlight / highlight.js token classes — minimal set keyed to TUX

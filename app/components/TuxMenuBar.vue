@@ -108,7 +108,7 @@ const shouldRender = computed(() => {
 
 .tux-menu-bar__trigger:hover,
 .tux-menu-bar__trigger[aria-expanded="true"] {
-  background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -170,7 +170,7 @@ const describedBy = computed(() => {
 .tux-form-field__help-trigger:hover,
 .tux-form-field__help-trigger:focus-visible {
   color: var(--brand-primary);
-  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  background: var(--wash-brand-8);
   outline: none;
 }
 

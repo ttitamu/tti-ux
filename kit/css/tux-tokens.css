@@ -118,6 +118,13 @@
   --rhythm-normal: 12px;
   --rhythm-loose: 16px;
   --rhythm-roomy: 24px;
+  --wash-brand-4: color-mix(in srgb, var(--brand-primary) 4%, transparent);
+  --wash-brand-6: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  --wash-brand-8: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  --wash-brand-12: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  --wash-brand-18: color-mix(in srgb, var(--brand-primary) 18%, transparent);
+  --wash-brand-22: color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  --wash-brand-35: color-mix(in srgb, var(--brand-primary) 35%, transparent);
   --color-maroon-50: #fbf3f6;
   --color-maroon-100: #f5e0e7;
   --color-maroon-200: #eab5c3;

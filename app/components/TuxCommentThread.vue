@@ -364,7 +364,7 @@ function cancelEdit() {
   width: 2rem;
   height: 2rem;
   border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  background: var(--wash-brand-12);
   color: var(--brand-primary);
   display: inline-flex;
   align-items: center;

@@ -124,8 +124,8 @@ const headingClass = computed(() => {
 }
 
 .tux-signup--maroon {
-  background: var(--brand-primary);
-  color: #fff;
+  background: var(--brand-fill);
+  color: var(--text-on-brand);
 }
 
 .tux-signup--gold {
@@ -144,8 +144,8 @@ const headingClass = computed(() => {
 }
 
 .tux-signup--neutral .tux-signup__eyebrow { color: var(--brand-primary); }
-.tux-signup--maroon .tux-signup__eyebrow  { color: rgba(255, 255, 255, 0.72); }
-.tux-signup--gold .tux-signup__eyebrow    { color: rgba(42, 14, 21, 0.72); }
+.tux-signup--maroon .tux-signup__eyebrow  { color: color-mix(in srgb, var(--text-on-brand) 72%, transparent); }
+.tux-signup--gold .tux-signup__eyebrow    { color: color-mix(in srgb, var(--brand-accent-ink) 72%, transparent); }
 
 .tux-signup__title {
   margin: 0;
@@ -154,7 +154,7 @@ const headingClass = computed(() => {
 }
 
 .tux-signup--maroon .tux-signup__title :deep(*),
-.tux-signup--maroon .tux-signup__title { color: #fff; }
+.tux-signup--maroon .tux-signup__title { color: var(--text-on-brand); }
 
 .tux-signup--gold .tux-signup__title :deep(*),
 .tux-signup--gold .tux-signup__title { color: var(--brand-accent-ink); }
@@ -168,8 +168,8 @@ const headingClass = computed(() => {
 }
 
 .tux-signup--neutral .tux-signup__dek { color: var(--text-secondary); }
-.tux-signup--maroon .tux-signup__dek  { color: rgba(255, 255, 255, 0.85); }
-.tux-signup--gold .tux-signup__dek    { color: rgba(42, 14, 21, 0.85); }
+.tux-signup--maroon .tux-signup__dek  { color: color-mix(in srgb, var(--text-on-brand) 85%, transparent); }
+.tux-signup--gold .tux-signup__dek    { color: color-mix(in srgb, var(--brand-accent-ink) 85%, transparent); }
 
 /* Form */
 .tux-signup__form {
@@ -188,11 +188,11 @@ const headingClass = computed(() => {
 
 .tux-signup--maroon .tux-signup__input-row {
   background: rgba(0, 0, 0, 0.18);
-  border-color: rgba(255, 255, 255, 0.9);
+  border-color: color-mix(in srgb, var(--text-on-brand) 90%, transparent);
 }
 
 .tux-signup--gold .tux-signup__input-row {
-  background: rgba(255, 255, 255, 0.18);
+  background: color-mix(in srgb, var(--text-on-brand) 18%, transparent);
   border-color: var(--brand-accent-ink);
 }
 
@@ -209,7 +209,7 @@ const headingClass = computed(() => {
   outline: 0;
 }
 
-.tux-signup--maroon .tux-signup__input { color: #fff; }
+.tux-signup--maroon .tux-signup__input { color: var(--text-on-brand); }
 .tux-signup--gold .tux-signup__input   { color: var(--brand-accent-ink); }
 
 .tux-signup__input::placeholder {
@@ -219,7 +219,7 @@ const headingClass = computed(() => {
 }
 
 .tux-signup--maroon .tux-signup__input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: color-mix(in srgb, var(--text-on-brand) 60%, transparent);
 }
 
 .tux-signup__action {
@@ -230,8 +230,8 @@ const headingClass = computed(() => {
   font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  background: var(--brand-primary);
-  color: #fff;
+  background: var(--brand-fill);
+  color: var(--text-on-brand);
   border: 0;
   cursor: pointer;
   transition: background-color 0.15s ease;
@@ -239,7 +239,9 @@ const headingClass = computed(() => {
 
 .tux-signup__action:hover,
 .tux-signup__action:focus-visible {
-  background: var(--brand-primary-deep);
+  /* Deep-maroon hover stays maroon in every theme (the fill panel
+     doesn't rebind to the dark teal anchor). */
+  background: var(--tti-maroon-deep);
   outline: none;
 }
 
@@ -266,6 +268,6 @@ const headingClass = computed(() => {
 }
 
 .tux-signup--neutral .tux-signup__consent { color: var(--text-muted); }
-.tux-signup--maroon .tux-signup__consent  { color: rgba(255, 255, 255, 0.72); }
-.tux-signup--gold .tux-signup__consent    { color: rgba(42, 14, 21, 0.72); }
+.tux-signup--maroon .tux-signup__consent  { color: color-mix(in srgb, var(--text-on-brand) 72%, transparent); }
+.tux-signup--gold .tux-signup__consent    { color: color-mix(in srgb, var(--brand-accent-ink) 72%, transparent); }
 </style>

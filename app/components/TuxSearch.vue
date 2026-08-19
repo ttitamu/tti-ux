@@ -113,7 +113,7 @@ function onSubmit() {
 .tux-search--focused {
   border-color: var(--brand-primary);
   border-width: 3px;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 25%, transparent);
+  box-shadow: inset 0 0 0 1px var(--wash-brand-22);
 }
 
 [data-theme="tti-dark"] .tux-search {

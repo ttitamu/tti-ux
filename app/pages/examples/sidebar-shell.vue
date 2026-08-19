@@ -150,7 +150,7 @@ const recentSessions = [
       </TuxPageHeader>
 
       <section>
-        <TuxFactoid variant="default" :density="3" :items="headlineFactoids" />
+        <TuxFactoid variant="default" :columns="3" :items="headlineFactoids" />
       </section>
 
       <section class="space-y-3">

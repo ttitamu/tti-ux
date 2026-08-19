@@ -255,7 +255,7 @@ const filteredTree = computed(() => {
 
 .tux-docs-sidebar__search-input:focus-visible {
   border-color: var(--brand-primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+  box-shadow: 0 0 0 2px var(--wash-brand-18);
 }
 
 .tux-docs-sidebar__search-input::placeholder {

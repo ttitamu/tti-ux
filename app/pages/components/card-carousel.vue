@@ -188,7 +188,7 @@ const pubVue = `<tux-card-carousel
   padding: 0.125rem 0.4375rem;
   align-self: flex-start;
   border-radius: 0.25rem;
-  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  background: var(--wash-brand-8);
   color: var(--brand-primary);
 }
 .trail-card__diff[data-difficulty="Strenuous"] {

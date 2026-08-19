@@ -299,7 +299,7 @@ function togglePreview() {
 }
 
 .tux-md-editor__textarea:focus {
-  background: color-mix(in srgb, var(--brand-primary) 2%, transparent);
+  background: var(--wash-brand-4);
 }
 
 .tux-md-editor__preview {

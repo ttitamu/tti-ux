@@ -399,7 +399,7 @@ function hoverToneClass(seriesIdx: number): string {
     <!-- Tooltip card anchored to the active dot. -->
     <div
       v-if="tooltip && hovered && tooltipPos"
-      class="tux-chart-scatter__tooltip"
+      class="tux-chart-tooltip tux-chart-scatter__tooltip"
       role="status"
       aria-live="polite"
       :style="{
@@ -549,19 +549,6 @@ function hoverToneClass(seriesIdx: number): string {
   position: relative;
 }
 
-.tux-chart-scatter__tooltip {
-  position: absolute;
-  z-index: 4;
-  min-width: 9rem;
-  max-width: 18rem;
-  padding: 0.5rem 0.625rem;
-  background: var(--surface-page);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--elevation-overlay);
-  font-size: 0.75rem;
-  pointer-events: none;
-}
 
 .tux-chart-scatter__tooltip-series {
   display: inline-flex;

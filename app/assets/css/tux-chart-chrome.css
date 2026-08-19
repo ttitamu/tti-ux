@@ -1,0 +1,35 @@
+/*
+ * tux-chart-chrome.css — the shared tooltip-card shell for the native
+ * chart family. Sister to tux-chart-palette.css (series ramp) and
+ * tux-chart-motion.css (entrances): one home for chrome every chart
+ * repeats.
+ *
+ * Before this file, nine charts carried byte-identical tooltip-shell
+ * declarations in their scoped styles (and one had drifted its shadow
+ * alpha). Components keep a `tux-chart-<name>__tooltip` class on the
+ * same element purely as a consumer styling hook, plus their own
+ * `__tooltip-*` internals (rows, swatches, totals) — the SHELL lives
+ * here.
+ *
+ * Contract (components.md § Chart tooltips): the card auto-flips left
+ * past 60% of chart width via the `--flip` modifier.
+ */
+
+.tux-chart-tooltip {
+  position: absolute;
+  z-index: 4;
+  min-width: 8rem;
+  max-width: 18rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--surface-page);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--elevation-overlay);
+  font-size: 0.75rem;
+  pointer-events: none;
+  transform: translateX(0);
+}
+
+.tux-chart-tooltip--flip {
+  transform: translateX(-100%);
+}

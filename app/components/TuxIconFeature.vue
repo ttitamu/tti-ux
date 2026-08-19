@@ -151,7 +151,7 @@ function ctaProps(cta: FeatureItem["cta"]) {
 }
 
 .tux-icon-feature__icon-wrap--maroon {
-  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  background: var(--wash-brand-12);
   color: var(--brand-primary);
 }
 
@@ -161,7 +161,7 @@ function ctaProps(cta: FeatureItem["cta"]) {
 }
 
 .tux-icon-feature__icon-wrap--navy {
-  background: color-mix(in srgb, var(--brand-secondary) 14%, transparent);
+  background: color-mix(in srgb, var(--brand-secondary) 12%, transparent);
   color: var(--brand-secondary);
 }
 

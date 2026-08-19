@@ -253,11 +253,11 @@ const fixedVue = `<tux-mcp-embed
 }
 .mcp-demo__issue-status--in-progress {
   color: var(--brand-primary);
-  border-color: color-mix(in srgb, var(--brand-primary) 40%, transparent);
+  border-color: var(--wash-brand-35);
 }
 .mcp-demo__issue-status--review {
   color: var(--brand-accent);
-  border-color: color-mix(in srgb, var(--brand-accent) 40%, transparent);
+  border-color: color-mix(in srgb, var(--brand-accent) 35%, transparent);
 }
 .mcp-demo__issue-status--todo { color: var(--text-muted); }
 

@@ -352,7 +352,7 @@ if (!props.disableHotkey) {
 }
 
 .tux-cmd__item--active {
-  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  background: var(--wash-brand-8);
   border-left-color: var(--brand-primary);
 }
 

@@ -34,11 +34,10 @@ interface Props {
   cancelLabel?: string;
   /** Variant — picks the confirm button intent + default label.
    *  - "destructive" (default) — red button, "Delete"
-   *  - "danger"      — same as destructive, alias
    *  - "primary"     — maroon button, "Confirm"
    *  - "warning"     — amber tone, "Proceed"
    */
-  variant?: "destructive" | "danger" | "primary" | "warning";
+  variant?: "destructive" | "primary" | "warning";
   /** Disable the confirm button (e.g. while a typed-name guard
    *  hasn't matched yet). */
   confirmDisabled?: boolean;

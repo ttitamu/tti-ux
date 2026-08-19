@@ -235,7 +235,7 @@ withDefaults(defineProps<Props>(), {
   justify-content: flex-end;
   padding: 1.5rem;
   background: linear-gradient(to top, rgb(0 0 0 / 0.55), rgb(0 0 0 / 0.1) 60%, transparent);
-  color: #fff;
+  color: var(--neutral-0);
 }
 
 .tux-program__hero-eyebrow {
@@ -249,7 +249,7 @@ withDefaults(defineProps<Props>(), {
   font-weight: 800;
   margin: 0;
   line-height: 1.15;
-  color: #fff;
+  color: var(--neutral-0);
 }
 
 .tux-program__hero-title :deep(a) {

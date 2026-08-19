@@ -203,7 +203,7 @@ const corridorEvents = [
 
       <TuxFigureCaption
         :number="1"
-        kind="Figure"
+        label="Figure"
         caption="Stop-line non-compliance rate over 36 months (6-month windows). Treated sites in maroon; matched controls in slate teal. End-of-line value labels in the same series color."
         source="TxDOT 0-7042 study dataset · n = 24 sites"
       >
@@ -251,7 +251,7 @@ const corridorEvents = [
 
       <TuxTableCaption
         :number="1"
-        kind="Table"
+        label="Table"
         caption="Treatment vs control compliance rates, by 6-month window. Difference-in-differences estimate in the rightmost column."
         source="Hassan et al. · TxDOT 0-7042"
       >

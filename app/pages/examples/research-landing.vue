@@ -125,7 +125,7 @@ const testimonials = [
     <section>
       <TuxFactoid
         variant="default"
-        :density="3"
+        :columns="3"
         :items="factoids"
         eyebrow="By the numbers"
         title="What three years of follow-up data is telling us."
@@ -145,7 +145,7 @@ const testimonials = [
           suffix=" mi"
           :decimals="0"
           label="vs end of FY24"
-          layout="stack"
+          layout="stacked"
           :style="{ '--tux-mount-stagger-index': 0 }"
         />
         <TuxStatComparison
@@ -156,7 +156,7 @@ const testimonials = [
           :decimals="0"
           label="vs pre-treatment baseline"
           polarity="invert"
-          layout="stack"
+          layout="stacked"
           :style="{ '--tux-mount-stagger-index': 1 }"
         />
         <TuxStatComparison
@@ -165,7 +165,7 @@ const testimonials = [
           :previous="1.8"
           suffix="M"
           label="vs Q3 last year"
-          layout="stack"
+          layout="stacked"
           :style="{ '--tux-mount-stagger-index': 2 }"
         />
       </div>

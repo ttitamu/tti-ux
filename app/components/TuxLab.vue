@@ -204,7 +204,7 @@ withDefaults(defineProps<Props>(), {
   text-transform: uppercase;
   letter-spacing: var(--tracking-wider, 0.05em);
   color: var(--brand-primary);
-  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  background: var(--wash-brand-8);
   padding: 0.125rem 0.4375rem;
   border-radius: 2px;
 }

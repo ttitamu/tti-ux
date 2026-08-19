@@ -164,7 +164,7 @@ const apps = computed(() => props.apps);
 
 .tux-app-switcher__trigger:hover,
 .tux-app-switcher__trigger[aria-expanded="true"] {
-  background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
   color: var(--text-primary);
 }
 

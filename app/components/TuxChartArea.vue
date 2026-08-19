@@ -414,8 +414,8 @@ function focusY(seriesIdx: number, idx: number): number {
          avoid right-edge overflow in tight cards. -->
     <div
       v-if="tooltip && tooltipPayload"
-      class="tux-chart-area__tooltip"
-      :class="{ 'tux-chart-area__tooltip--flip': (hoverX / width) > 0.6 }"
+      class="tux-chart-tooltip tux-chart-area__tooltip"
+      :class="{ 'tux-chart-tooltip--flip': (hoverX / width) > 0.6 }"
       role="status"
       aria-live="polite"
       :style="{
@@ -538,7 +538,7 @@ function focusY(seriesIdx: number, idx: number): number {
 }
 
 .tux-chart-area__hover-capture:focus-visible {
-  fill: color-mix(in srgb, var(--brand-primary) 4%, transparent);
+  fill: var(--wash-brand-4);
 }
 
 .tux-chart-area__hover-guide {
@@ -557,24 +557,7 @@ function focusY(seriesIdx: number, idx: number): number {
 }
 
 
-.tux-chart-area__tooltip {
-  position: absolute;
-  z-index: 4;
-  min-width: 8rem;
-  max-width: 16rem;
-  padding: 0.5rem 0.625rem;
-  background: var(--surface-page);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--elevation-overlay);
-  font-size: 0.75rem;
-  pointer-events: none;
-  transform: translateX(0);
-}
 
-.tux-chart-area__tooltip--flip {
-  transform: translateX(-100%);
-}
 
 .tux-chart-area__tooltip-label {
   font-weight: 600;

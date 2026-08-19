@@ -36,7 +36,7 @@ withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  pick: [id: string];
+  select: [id: string];
 }>();
 
 const slots = useSlots();
@@ -59,7 +59,7 @@ const hasItemActions = computed(() => Boolean(slots["item-actions"]));
             class="tux-conversation-list__item"
             :class="{ 'tux-conversation-list__item--active': activeId === it.id }"
             :aria-current="activeId === it.id ? 'page' : undefined"
-            @click.prevent="emit('pick', it.id)"
+            @click.prevent="emit('select', it.id)"
           >
             <span class="tux-conversation-list__title">{{ it.title }}</span>
             <span v-if="it.meta" class="tux-conversation-list__meta">{{ it.meta }}</span>
@@ -122,7 +122,7 @@ const hasItemActions = computed(() => Boolean(slots["item-actions"]));
 }
 
 .tux-conversation-list__item:hover {
-  background: color-mix(in srgb, var(--brand-primary) 5%, transparent);
+  background: var(--wash-brand-4);
 }
 
 .tux-conversation-list__actions {
@@ -146,7 +146,7 @@ const hasItemActions = computed(() => Boolean(slots["item-actions"]));
 }
 
 .tux-conversation-list__item--active {
-  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  background: var(--wash-brand-8);
   border-left-color: var(--brand-primary);
 }
 

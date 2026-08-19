@@ -177,7 +177,7 @@ const consumeSnippet = [
     <section>
       <TuxFactoid
         variant="default"
-        :density="3"
+        :columns="3"
         :items="[
           { value: '130+', label: 'Tux* components + 5 composables. All auto-imported.' },
           { value: '6',    label: 'Real-shape composition examples across three product surfaces.' },
@@ -429,8 +429,8 @@ const consumeSnippet = [
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--brand-primary);
-  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  background: var(--wash-brand-8);
+  border: 1px solid var(--wash-brand-22);
   border-radius: 50%;
 }
 
@@ -464,6 +464,6 @@ const consumeSnippet = [
 [data-theme="tti-dark"] .gs-step__n {
   color: var(--brand-accent);
   background: color-mix(in srgb, var(--brand-accent) 12%, transparent);
-  border-color: color-mix(in srgb, var(--brand-accent) 28%, transparent);
+  border-color: color-mix(in srgb, var(--brand-accent) 22%, transparent);
 }
 </style>

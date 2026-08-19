@@ -574,7 +574,7 @@ function ariaSort(col: Column): "ascending" | "descending" | "none" | undefined 
   letter-spacing: 0.12em;
   color: var(--brand-primary);
   font-family: var(--font-bold);
-  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  background: var(--wash-brand-8);
   border-bottom: 1px solid var(--surface-border);
 }
 
@@ -609,14 +609,14 @@ function ariaSort(col: Column): "ascending" | "descending" | "none" | undefined 
 
 /* Totals row */
 .tux-data-table__totals .tux-data-table__td {
-  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  background: var(--wash-brand-6);
   font-weight: 700;
   color: var(--text-primary);
   border-top: 2px solid var(--brand-primary);
   border-bottom: none;
 }
 .tux-data-table--banded .tux-data-table__totals .tux-data-table__td {
-  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  background: var(--wash-brand-6);
 }
 
 .tux-data-table__empty {

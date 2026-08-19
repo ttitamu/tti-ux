@@ -176,7 +176,7 @@ const isInternalLink = computed(() =>
 .tux-identity__rule {
   width: 2.625rem;
   height: 1px;
-  background: color-mix(in srgb, var(--text-primary) 55%, transparent);
+  background: color-mix(in srgb, var(--text-primary) 50%, transparent);
   margin: 0.25rem 0 0.125rem;
 }
 .tux-identity--stacked .tux-identity__rule {

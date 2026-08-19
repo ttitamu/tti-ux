@@ -329,25 +329,30 @@ grandfathered until the next major.
 
 **Two meanings of `tone`, on purpose:** product surfaces use the
 semantic family (status colors); marketing/editorial surfaces
-(`TuxCTA`, `TuxCardSlab`, `TuxPhotoGrid`, …) use brand-paint values
-(`maroon · gold · charcoal`). Both are "which color is this thing" —
-that's the invariant. The brand-paint third slot is spelled
-**`charcoal`** going forward (not `navy`/`neutral`).
+(`TuxCTA`, `TuxCardSlab`, `TuxPhotoGrid`, …) use brand-paint values.
+Both are "which color is this thing" — that's the invariant.
+Brand-paint values name the **actual paint** (`maroon`, `gold`,
+`charcoal`, `navy`, `neutral`) — never alias one paint word for a
+different color.
 
-**Known deviations, queued for the next major (do not copy):**
-`TuxFactoid.density` is a column count (should be `columns`);
-`TuxBetaRibbon.tone` holds presets (should be `kind`);
-`TuxTabs.intent`/`TuxChartGauge.intent` hold style/tone values;
-`TuxCodeMaroon.severity` and `TuxTestimonial.color` are `tone`;
-`TuxConfirmDialog` carries both `destructive` and `danger`;
-`TuxConversationList`/`TuxSuggestionChips` emit `pick` (should be
-`select`); `TuxCitations`/`TuxInlineCitation` emit `open` meaning
-select while `TuxCommandPalette` emits `open` meaning opened;
-`TuxStatComparison.layout` spells `stack` (should be `stacked`);
-`TuxResultCount` emits `update:page` where `TuxPagination` uses
-`update:modelValue`; `TuxRichTextEditor` emits a duplicate bare
-`update`. Each rename is breaking — they land together in v2.0.0
-with migration notes, not piecemeal.
+**The v2.0.0 rename batch LANDED 2026-08-19** (see CHANGELOG
+"Breaking"): `TuxFactoid.columns`, `TuxBetaRibbon.kind`,
+`TuxTabs.variant`, `TuxChartGauge` band `tone:
+success·warning·error`, `TuxCodeMaroon.tone` (`error` replaces
+`alert`), `TuxTestimonial.tone`, `TuxConfirmDialog` drops the
+`danger` alias, `select` replaces `pick`
+(`TuxConversationList`/`TuxSuggestionChips`) and citation `open`
+(`TuxCitations`/`TuxInlineCitation`), `stacked` replaces `stack`
+(`TuxStatComparison`/`TuxMapLegend`),
+`TuxFigureCaption`/`TuxTableCaption` `label` replaces free-form
+`kind`, `TuxRichTextEditor`'s duplicate bare `update` emit removed,
+and `TuxTreemap` joins the family `hover` emit.
+
+**Deviations kept, by decision:** `TuxResultCount` emits
+`update:page` (a legitimate `v-model:page`) while `TuxPagination`
+uses `update:modelValue` — both are idiomatic Vue;
+`TuxCommentThread`'s `comment:*`/`thread:*` colon namespace;
+`TuxCommandPalette.open` meaning "panel opened".
 
 Composition standards for cases where a slot or prop combination
 shows up across multiple Tux\* components or consuming apps. Capturing

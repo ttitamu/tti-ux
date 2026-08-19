@@ -361,7 +361,7 @@ const composerDraft = ref("");
         <TuxSuggestionChips
           label="Follow up with"
           :items="followupSuggestions"
-          @pick="(p) => console.log('picked:', p)"
+          @select="(p) => console.log('picked:', p)"
         />
 
         <!-- UChatShimmer placeholder showing what a streaming response
@@ -414,7 +414,7 @@ const composerDraft = ref("");
 
         <section class="space-y-3" :style="{ '--tux-mount-stagger-index': 1 }">
           <TuxSectionHeader :level="3">Usage</TuxSectionHeader>
-          <TuxFactoid variant="default" :density="3" :items="usageStats" />
+          <TuxFactoid variant="default" :columns="3" :items="usageStats" />
         </section>
 
         <section class="space-y-3" :style="{ '--tux-mount-stagger-index': 2 }">

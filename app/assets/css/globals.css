@@ -23,6 +23,7 @@
  */
 @import "./tux-chart-motion.css";
 @import "./tux-chart-palette.css";
+@import "./tux-chart-chrome.css";
 
 /*
  * Opt-in entrance animations for non-chart Tux components.

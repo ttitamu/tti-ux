@@ -449,7 +449,7 @@ const virtualizedVue = `<TuxRichDataGrid
   vertical-align: middle;
 }
 .rdg-demo__th-menu:hover {
-  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  background: var(--wash-brand-8);
   color: var(--brand-primary);
 }
 .rdg-demo__th-menu-list {
@@ -471,6 +471,6 @@ const virtualizedVue = `<TuxRichDataGrid
   cursor: pointer;
 }
 .rdg-demo__th-menu-list button:hover {
-  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  background: var(--wash-brand-8);
 }
 </style>

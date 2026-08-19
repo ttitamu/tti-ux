@@ -126,7 +126,7 @@ const aadtGradient = {
       <h2 class="heading--bold text-xl font-bold">TuxMapLegend</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
         <div>
-          <p class="text-xs text-text-muted uppercase tracking-wider mb-2">layout="stack"</p>
+          <p class="text-xs text-text-muted uppercase tracking-wider mb-2">layout="stacked"</p>
           <TuxMapLegend
             eyebrow="Tiers"
             title="Access tier"
