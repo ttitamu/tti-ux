@@ -68,11 +68,11 @@ const percentDisplay = computed(() => {
 // Threshold color cues — green under 60%, amber 60–85%, red over 85%.
 // Maps to TUX semantic CSS vars rather than hex so themes (TTI / TTI-HC)
 // take over cleanly.
-const tone = computed<"ok" | "warn" | "alert">(() => {
+const tone = computed<"success" | "warning" | "error">(() => {
   const p = percentRaw.value;
-  if (p >= 85) return "alert";
-  if (p >= 60) return "warn";
-  return "ok";
+  if (p >= 85) return "error";
+  if (p >= 60) return "warning";
+  return "success";
 });
 
 function fmtTokens(n: number): string {
@@ -174,8 +174,8 @@ function fmtTokens(n: number): string {
   outline: none;
 }
 
-.tux-context-meter__trigger--warn { color: var(--color-warning, var(--brand-accent)); }
-.tux-context-meter__trigger--alert { color: var(--color-error, var(--brand-primary)); }
+.tux-context-meter__trigger--warning { color: var(--color-warning, var(--brand-accent)); }
+.tux-context-meter__trigger--error { color: var(--color-error, var(--brand-primary)); }
 
 /* Tiny conic-gradient utilization ring — purely cosmetic; the panel
    bar is the accessible progress. */
@@ -187,7 +187,7 @@ function fmtTokens(n: number): string {
     currentColor calc(var(--p, 0) * 1%),
     color-mix(in srgb, currentColor 22%, transparent) 0
   );
-  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
 }
 
 .tux-context-meter__pct {
@@ -245,8 +245,8 @@ function fmtTokens(n: number): string {
   transition: width 0.2s ease;
 }
 
-.tux-context-meter__panel-bar-fill--warn { background: var(--color-warning, var(--brand-accent)); }
-.tux-context-meter__panel-bar-fill--alert { background: var(--color-error, var(--brand-primary)); }
+.tux-context-meter__panel-bar-fill--warning { background: var(--color-warning, var(--brand-accent)); }
+.tux-context-meter__panel-bar-fill--error { background: var(--color-error, var(--brand-primary)); }
 
 .tux-context-meter__panel-breakdown {
   display: grid;

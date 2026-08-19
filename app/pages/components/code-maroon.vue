@@ -8,7 +8,7 @@ const dismissible  = ref(false);
 
 const exampleVue = `<TuxCodeMaroon
   :active="hasAlert"
-  severity="alert"
+  tone="error"
   title="Code Maroon active"
   message="Shelter in place. Avoid the Rellis Headquarters Building until further notice."
   details-url="https://rellis.tamus.edu/emergency/"
@@ -41,7 +41,7 @@ const exampleVue = `<TuxCodeMaroon
     </section>
 
     <section>
-      <p class="eyebrow">canonical · alert severity</p>
+      <p class="eyebrow">canonical · alert tone</p>
       <h2 class="heading--bold text-xl font-bold">Active emergency</h2>
       <p class="text-sm text-text-secondary mb-3">
         The default. Bright red, white text, pulsing siren icon. Use
@@ -56,7 +56,7 @@ const exampleVue = `<TuxCodeMaroon
         </div>
         <TuxCodeMaroon
           :active="showAlert"
-          severity="alert"
+          tone="error"
           title="Code Maroon active"
           message="Shelter in place. Avoid the Rellis Headquarters Building until further notice."
         />
@@ -64,7 +64,7 @@ const exampleVue = `<TuxCodeMaroon
     </section>
 
     <section>
-      <p class="eyebrow">warning severity</p>
+      <p class="eyebrow">warning tone</p>
       <h2 class="heading--bold text-xl font-bold">Advisory</h2>
       <p class="text-sm text-text-secondary mb-3">
         Amber. Use for advisories — weather watches, scheduled drills,
@@ -78,7 +78,7 @@ const exampleVue = `<TuxCodeMaroon
         </div>
         <TuxCodeMaroon
           :active="showWarning"
-          severity="warning"
+          tone="warning"
           title="Severe thunderstorm watch"
           message="In effect through 10 PM. Outdoor field operations are paused; check with your supervisor."
         />
@@ -86,7 +86,7 @@ const exampleVue = `<TuxCodeMaroon
     </section>
 
     <section>
-      <p class="eyebrow">info severity</p>
+      <p class="eyebrow">info tone</p>
       <h2 class="heading--bold text-xl font-bold">Drill / scheduled disruption</h2>
       <p class="text-sm text-text-secondary mb-3">
         Navy. Use for scheduled tests of the Code Maroon system, or
@@ -100,7 +100,7 @@ const exampleVue = `<TuxCodeMaroon
         </div>
         <TuxCodeMaroon
           :active="showInfo"
-          severity="info"
+          tone="info"
           title="Scheduled test · Wednesday 11:00 AM"
           message="The Code Maroon system will run a scheduled test. No action required; this is not a real emergency."
         />
@@ -123,7 +123,7 @@ const exampleVue = `<TuxCodeMaroon
         </div>
         <TuxCodeMaroon
           :active="!dismissible"
-          severity="warning"
+          tone="warning"
           title="Power maintenance"
           message="HVAC systems in Building 4202 will cycle between 2 PM and 4 PM. Some labs will be temporarily warm."
           dismissible
@@ -144,13 +144,13 @@ const exampleVue = `<TuxCodeMaroon
         not from a hard-coded prop.
       </p>
       <pre class="text-xs bg-surface-sunken border border-surface-border rounded p-4 overflow-x-auto"><code>&lt;script setup&gt;
-const { active, severity, title, message } = useRellisAlertFeed();
+const { active, tone, title, message } = useRellisAlertFeed();
 &lt;/script&gt;
 
 &lt;template&gt;
   &lt;TuxCodeMaroon
     :active="active"
-    :severity="severity"
+    :tone="tone"
     :title="title"
     :message="message"
     sticky
@@ -168,7 +168,7 @@ const { active, severity, title, message } = useRellisAlertFeed();
       <h2 class="heading--bold text-xl font-bold">Props + events</h2>
       <ul class="mt-4 space-y-2 text-sm">
         <li><code>active</code> — show the banner. Defaults to <code>false</code> so an unconfigured banner renders nothing.</li>
-        <li><code>severity</code> — <code>"alert" | "warning" | "info"</code>. Defaults to <code>"alert"</code>.</li>
+        <li><code>tone</code> — <code>"error" | "warning" | "info"</code>. Defaults to <code>"error"</code>.</li>
         <li><code>title</code> — short banner title. Defaults to <code>"Emergency alert"</code>.</li>
         <li><code>message</code> — alert body text.</li>
         <li><code>detailsUrl</code> — link to full alert page. Defaults to the Rellis emergency portal; override for non-Rellis consumers.</li>

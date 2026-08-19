@@ -45,13 +45,13 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  open: [n: number];
+  select: [n: number];
 }>();
 
 const pillText = computed(() => props.label ?? String(props.n));
 
 function handleClick(e: MouseEvent) {
-  emit("open", props.n);
+  emit("select", props.n);
   if (!props.href) e.preventDefault();
 }
 </script>
@@ -108,7 +108,7 @@ function handleClick(e: MouseEvent) {
   line-height: 1;
   padding: 0.0625em 0.25em;
   border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  background: var(--wash-brand-8);
   color: var(--brand-primary);
   vertical-align: super;
   letter-spacing: 0;
@@ -161,7 +161,7 @@ function handleClick(e: MouseEvent) {
 
 .tux-inline-citation__panel-title--link {
   text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--brand-primary) 35%, transparent);
+  border-bottom: 1px solid var(--wash-brand-35);
   transition: border-color 0.15s ease;
 }
 

@@ -11,7 +11,7 @@ const FACTOID_DATA = [
 
 const exampleVue = `<TuxFactoid
   variant="default"
-  :density="3"
+  :columns="3"
   :items="items"
   eyebrow="By the numbers"
   title="What three years of follow-up data is telling us."
@@ -36,7 +36,7 @@ const exampleVue = `<TuxFactoid
       <TuxExample class="mt-4" :vue="exampleVue">
         <TuxFactoid
           variant="default"
-          :density="3"
+          :columns="3"
           :items="FACTOID_DATA"
           eyebrow="By the numbers"
           title="What three years of follow-up data is telling us."
@@ -51,7 +51,7 @@ const exampleVue = `<TuxFactoid
       <TuxExample class="mt-4">
         <TuxFactoid
           variant="bold"
-          :density="4"
+          :columns="4"
           :items="FACTOID_DATA"
           eyebrow="Statewide measurement"
           title="The numbers behind a year of monitoring."
@@ -68,7 +68,7 @@ const exampleVue = `<TuxFactoid
         and <code>dek</code> for a bare grid you can drop into any layout.
       </p>
       <TuxExample class="mt-4">
-        <TuxFactoid variant="elegant" :density="4" :items="FACTOID_DATA" />
+        <TuxFactoid variant="elegant" :columns="4" :items="FACTOID_DATA" />
       </TuxExample>
     </section>
 
@@ -76,7 +76,7 @@ const exampleVue = `<TuxFactoid
       <p class="eyebrow">default · 5-up</p>
       <h2 class="heading--bold text-xl font-bold">Smallest numerals · dashboard tier</h2>
       <TuxExample class="mt-4">
-        <TuxFactoid variant="default" :density="5" :items="FACTOID_DATA" />
+        <TuxFactoid variant="default" :columns="5" :items="FACTOID_DATA" />
       </TuxExample>
     </section>
 

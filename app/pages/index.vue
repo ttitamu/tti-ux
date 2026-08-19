@@ -641,15 +641,15 @@ const catalogCount = `${tuxComponentCount}`;
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--brand-primary);
-  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  background: var(--wash-brand-8);
+  border: 1px solid var(--wash-brand-22);
   border-radius: var(--radius-sm);
 }
 
 [data-theme="tti-dark"] .welcome-version {
   color: var(--brand-accent);
   background: color-mix(in srgb, var(--brand-accent) 12%, transparent);
-  border-color: color-mix(in srgb, var(--brand-accent) 28%, transparent);
+  border-color: color-mix(in srgb, var(--brand-accent) 22%, transparent);
 }
 
 /* CTA buttons under the welcome paragraph. The primary variant gets

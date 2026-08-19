@@ -302,7 +302,7 @@ function escape(s: string): string {
 .tux-docs-sidebar__link--active {
   color: var(--brand-primary);
   font-weight: 700;
-  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  background: var(--wash-brand-12);
 }
 
 /* Summary rows whose subtree contains the active item get bold

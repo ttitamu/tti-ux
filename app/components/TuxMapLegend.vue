@@ -7,7 +7,7 @@
  * label) and/or a continuous gradient scale (for choropleths).
  *
  * Three layouts:
- *   - **stack** (default) — vertical list with swatch + label rows
+ *   - **stacked** (default) — vertical list with swatch + label rows
  *   - **inline** — horizontal pill row (good for short legends)
  *   - **gradient** — single horizontal gradient bar with min/max
  *     + optional intermediate stops (for choropleths)
@@ -29,10 +29,10 @@ interface Props {
   title?: string;
   /** Optional eyebrow above the title. */
   eyebrow?: string;
-  /** Categorical entries (used when layout="stack" or "inline"). */
+  /** Categorical entries (used when layout="stacked" or "inline"). */
   entries?: TuxMapLegendEntry[];
   /** Layout. Default "stack". */
-  layout?: "stack" | "inline" | "gradient";
+  layout?: "stacked" | "inline" | "gradient";
   /** Gradient stops (used when layout="gradient"). */
   gradient?: {
     /** Min value label. */
@@ -50,7 +50,7 @@ withDefaults(defineProps<Props>(), {
   title: undefined,
   eyebrow: undefined,
   entries: undefined,
-  layout: "stack",
+  layout: "stacked",
   gradient: undefined,
 });
 
@@ -68,7 +68,7 @@ function gradientCss(stops?: Array<{ color: string }>): string {
       <p v-if="title" class="tux-map-legend__title">{{ title }}</p>
     </header>
 
-    <ul v-if="layout === 'stack' && entries" class="tux-map-legend__list">
+    <ul v-if="layout === 'stacked' && entries" class="tux-map-legend__list">
       <li
         v-for="entry in entries"
         :key="entry.label"

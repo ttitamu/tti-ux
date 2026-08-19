@@ -154,7 +154,7 @@ const toneIcon: Record<string, string> = {
 }
 .tux-status-toast__action:hover,
 .tux-status-toast__action:focus-visible {
-  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  background: var(--wash-brand-8);
 }
 
 .tux-status-toast__dismiss {
@@ -167,7 +167,7 @@ const toneIcon: Record<string, string> = {
 .tux-status-toast__dismiss:hover,
 .tux-status-toast__dismiss:focus-visible {
   color: var(--text-primary);
-  background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 
 /* Motion — slide-from-edge + fade, ~200ms (components.md motion table). */

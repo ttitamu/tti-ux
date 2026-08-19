@@ -385,8 +385,8 @@ const tooltipTopPercent = computed(() => {
     <!-- Tooltip card; flips left past 60% width (family contract). -->
     <div
       v-if="tooltip && tooltipPayload"
-      class="tux-chart-heatmap__tooltip"
-      :class="{ 'tux-chart-heatmap__tooltip--flip': tooltipAnchorPercent > 60 }"
+      class="tux-chart-tooltip tux-chart-heatmap__tooltip"
+      :class="{ 'tux-chart-tooltip--flip': tooltipAnchorPercent > 60 }"
       role="status"
       aria-live="polite"
       :style="{
@@ -501,7 +501,7 @@ const tooltipTopPercent = computed(() => {
 }
 
 .tux-chart-heatmap__hover-capture:focus-visible {
-  fill: color-mix(in srgb, var(--brand-primary) 4%, transparent);
+  fill: var(--wash-brand-4);
 }
 
 .tux-chart-heatmap__hover-ring {
@@ -511,23 +511,7 @@ const tooltipTopPercent = computed(() => {
   pointer-events: none;
 }
 
-.tux-chart-heatmap__tooltip {
-  position: absolute;
-  z-index: 4;
-  min-width: 8rem;
-  max-width: 16rem;
-  padding: 0.5rem 0.625rem;
-  background: var(--surface-page);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--elevation-overlay);
-  font-size: 0.75rem;
-  pointer-events: none;
-}
 
-.tux-chart-heatmap__tooltip--flip {
-  transform: translateX(-100%);
-}
 
 .tux-chart-heatmap__tooltip-label {
   font-weight: 600;

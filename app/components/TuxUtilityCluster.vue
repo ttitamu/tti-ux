@@ -148,7 +148,7 @@ function toggleTheme() {
     color var(--motion-fast) var(--ease-survey);
 }
 .tux-utility-cluster__theme:hover {
-  background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
   color: var(--text-primary);
 }
 

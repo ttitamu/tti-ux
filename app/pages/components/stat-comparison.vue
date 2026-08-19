@@ -25,7 +25,7 @@ const stackedVue = `<tux-stat-comparison
   :previous="6"
   :decimals="0"
   label="vs yesterday"
-  layout="stack"
+  layout="stacked"
 />`;
 
 const inlineVue = `<!-- Inline layout — for KPI rows next to other stats -->
@@ -96,7 +96,7 @@ const inlineVue = `<!-- Inline layout — for KPI rows next to other stats -->
           :previous="6"
           :decimals="0"
           label="vs yesterday"
-          layout="stack"
+          layout="stacked"
         />
       </TuxExample>
     </section>

@@ -112,7 +112,7 @@ const headerVue = `<TuxAuthorByline
       </p>
       <TuxFigureCaption
         :number="3"
-        kind="Figure"
+        label="Figure"
         caption="Mean stop-line non-compliance rate over 36 months. Treated sites (n=12) in maroon; matched controls (n=12) in dashed slate."
         source="Hassan et al. 2025 · TxDOT 0-7042 dataset"
       >
@@ -123,7 +123,7 @@ const headerVue = `<TuxAuthorByline
 
       <TuxTableCaption
         :number="2"
-        kind="Table"
+        label="Table"
         caption="Treatment vs control compliance rates, by 6-month window."
         source="Hassan et al. 2025"
       >

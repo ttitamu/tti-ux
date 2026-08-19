@@ -222,7 +222,7 @@ function formatNumber(n: number): string {
 
 .tux-pagination__btn:hover:not(:disabled),
 .tux-pagination__btn:focus-visible:not(:disabled) {
-  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  background: var(--wash-brand-6);
   color: var(--brand-primary);
   border-color: color-mix(in srgb, var(--brand-primary) 35%, var(--surface-border));
   outline: none;
@@ -235,7 +235,7 @@ function formatNumber(n: number): string {
 
 .tux-pagination__btn--active {
   background: var(--brand-primary);
-  color: #fff;
+  color: var(--text-inverse);
   border-color: var(--brand-primary);
   font-weight: 700;
 }
@@ -243,7 +243,7 @@ function formatNumber(n: number): string {
 .tux-pagination__btn--active:hover,
 .tux-pagination__btn--active:focus-visible {
   background: var(--brand-primary-deep);
-  color: #fff;
+  color: var(--text-inverse);
   border-color: var(--brand-primary-deep);
 }
 

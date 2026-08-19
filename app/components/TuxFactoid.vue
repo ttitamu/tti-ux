@@ -19,7 +19,7 @@ interface Props {
   /** Numeral face. Defaults to 'default' (Open Sans heavy). */
   variant?: "default" | "bold" | "elegant";
   /** Number of columns / sizing tier. */
-  density?: 3 | 4 | 5;
+  columns?: 3 | 4 | 5;
   /** Eyebrow text shown above the title. Optional. */
   eyebrow?: string;
   /** Block heading. Optional — omit for a bare grid. */
@@ -30,13 +30,13 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   variant: "default",
-  density: 3,
+  columns: 3,
   eyebrow: undefined,
   title: undefined,
   dek: undefined,
 });
 
-// Per-density sizing tier. `min` is the cell's minimum column width — below
+// Per-columns sizing tier. `min` is the cell's minimum column width — below
 // it the grid wraps to fewer columns rather than crushing the numerals into
 // the suffix. The minmax(min, 1fr) approach lets CSS handle wrapping without
 // JS viewport math.
@@ -46,7 +46,7 @@ const sizes = {
   5: { num: "3.5rem", suf: "1.375rem", lab: "0.8125rem", gap: "1.5rem",  min: "9.5rem" },
 } as const;
 
-const sized = computed(() => sizes[props.density]);
+const sized = computed(() => sizes[props.columns]);
 
 const numeralStyle = computed(() => {
   if (props.variant === "bold") {
@@ -79,7 +79,7 @@ const headingClass = computed(() => {
   return "heading--display";
 });
 
-const visible = computed(() => props.items.slice(0, props.density));
+const visible = computed(() => props.items.slice(0, props.columns));
 </script>
 
 <template>

@@ -29,13 +29,13 @@
  * that's a content notice, not a chrome label.
  */
 type Variant = "corner" | "stripe" | "pill";
-type Tone = "preview" | "beta" | "dev";
+type Kind = "preview" | "beta" | "dev";
 type Corner = "top-right" | "top-left" | "bottom-right" | "bottom-left";
 
 interface Props {
   variant?: Variant;
-  tone?: Tone;
-  /** Custom label text. Defaults vary by tone. */
+  kind?: Kind;
+  /** Custom label text. Defaults vary by kind. */
   label?: string;
   /** Where the corner ribbon sits. Only applies to `variant="corner"`. */
   corner?: Corner;
@@ -45,26 +45,26 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   variant: "corner",
-  tone: "preview",
+  kind: "preview",
   label: undefined,
   corner: "top-right",
   message: undefined,
 });
 
-const defaultLabel: Record<Tone, string> = {
+const defaultLabel: Record<Kind, string> = {
   preview: "preview",
   beta:    "beta",
   dev:     "dev",
 };
 
-const defaultMessage: Record<Tone, string> = {
+const defaultMessage: Record<Kind, string> = {
   preview: "Preview environment — data may differ from production.",
   beta:    "This is a public beta. Feedback welcome at support@tti.tamu.edu.",
   dev:     "Non-production environment. Do not enter real research data.",
 };
 
-const resolvedLabel = computed(() => props.label ?? defaultLabel[props.tone]);
-const resolvedMessage = computed(() => props.message ?? defaultMessage[props.tone]);
+const resolvedLabel = computed(() => props.label ?? defaultLabel[props.kind]);
+const resolvedMessage = computed(() => props.message ?? defaultMessage[props.kind]);
 </script>
 
 <template>
@@ -72,7 +72,7 @@ const resolvedMessage = computed(() => props.message ?? defaultMessage[props.ton
   <div
     v-if="variant === 'corner'"
     class="tux-beta-corner"
-    :class="[`tux-beta-corner--${corner}`, `tux-beta--${tone}`]"
+    :class="[`tux-beta-corner--${corner}`, `tux-beta--${kind}`]"
     role="note"
     :aria-label="`Environment: ${resolvedLabel}`"
   >
@@ -83,7 +83,7 @@ const resolvedMessage = computed(() => props.message ?? defaultMessage[props.ton
   <aside
     v-else-if="variant === 'stripe'"
     class="tux-beta-stripe"
-    :class="`tux-beta--${tone}`"
+    :class="`tux-beta--${kind}`"
     role="note"
     :aria-label="`Environment: ${resolvedLabel}`"
   >
@@ -97,12 +97,12 @@ const resolvedMessage = computed(() => props.message ?? defaultMessage[props.ton
   <span
     v-else
     class="tux-beta-pill"
-    :class="`tux-beta--${tone}`"
+    :class="`tux-beta--${kind}`"
     role="note"
     :aria-label="`Status: ${resolvedLabel}`"
   >
     <UIcon
-      v-if="tone === 'dev'"
+      v-if="kind === 'dev'"
       name="lucide:siren"
       class="tux-beta-pill__icon"
       aria-hidden="true"
@@ -232,7 +232,7 @@ const resolvedMessage = computed(() => props.message ?? defaultMessage[props.ton
   letter-spacing: 0.06em;
   background: var(--tux-beta-tint);
   color: var(--text-primary);
-  border: 1px solid color-mix(in srgb, var(--tux-beta-bg) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tux-beta-bg) 35%, transparent);
   border-radius: var(--radius-sm);
   white-space: nowrap;
   vertical-align: middle;

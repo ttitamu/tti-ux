@@ -116,7 +116,7 @@ const widthClass = computed(() => `tux-popover__panel--${props.width}`);
   /* Editorial maroon hairline rule — same anchor used by TuxTooltip
      when a title is present. Distinguishes a structured popover from
      a bare UPopover content drop. */
-  border-bottom: 1px solid color-mix(in srgb, var(--brand-primary) 24%, transparent);
+  border-bottom: 1px solid var(--wash-brand-22);
   padding-bottom: 0.5rem;
 }
 .tux-popover__title {

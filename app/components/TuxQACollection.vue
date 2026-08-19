@@ -209,7 +209,7 @@ function isInternal(href: string) {
 .tux-qa__see-also-link {
   color: var(--brand-secondary);
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--brand-secondary) 40%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--brand-secondary) 35%, transparent);
   text-underline-offset: 2px;
   transition: color 0.15s ease;
 }

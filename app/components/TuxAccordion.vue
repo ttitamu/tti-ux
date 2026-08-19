@@ -109,7 +109,7 @@ const groupName = computed(() => (props.single ? `tux-accordion-${groupId}` : un
 .tux-accordion__summary::-webkit-details-marker { display: none; }
 
 .tux-accordion__summary:hover {
-  background: color-mix(in srgb, var(--brand-primary) 3%, transparent);
+  background: var(--wash-brand-4);
 }
 
 

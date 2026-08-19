@@ -230,8 +230,8 @@ const screenStyles = computed(() => ({
   background: var(--frame-body);
   box-shadow:
     inset 0 0 0 1px color-mix(in srgb, white 6%, transparent),
-    0 12px 24px -8px color-mix(in srgb, black 30%, transparent),
-    0 4px 8px -2px color-mix(in srgb, black 15%, transparent);
+    0 12px 24px -8px color-mix(in srgb, black 35%, transparent),
+    0 4px 8px -2px color-mix(in srgb, black 12%, transparent);
 }
 
 /* iOS color variants — realistic iPhone 16 Pro finishes + a TTI

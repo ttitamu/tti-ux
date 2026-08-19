@@ -573,8 +573,8 @@ const highlightRect = computed(() => {
          60% of the chart width to avoid right-edge overflow. -->
     <div
       v-if="tooltip && tooltipPayload"
-      class="tux-chart-bar__tooltip"
-      :class="{ 'tux-chart-bar__tooltip--flip': tooltipAnchorPercent > 60 }"
+      class="tux-chart-tooltip tux-chart-bar__tooltip"
+      :class="{ 'tux-chart-tooltip--flip': tooltipAnchorPercent > 60 }"
       role="status"
       aria-live="polite"
       :style="{
@@ -712,32 +712,15 @@ const highlightRect = computed(() => {
 }
 
 .tux-chart-bar__hover-capture:focus-visible {
-  fill: color-mix(in srgb, var(--brand-primary) 4%, transparent);
+  fill: var(--wash-brand-4);
 }
 
 .tux-chart-bar__hover-highlight {
-  fill: color-mix(in srgb, var(--brand-primary) 5%, transparent);
+  fill: var(--wash-brand-4);
   pointer-events: none;
 }
 
-.tux-chart-bar__tooltip {
-  position: absolute;
-  z-index: 4;
-  min-width: 9rem;
-  max-width: 18rem;
-  padding: 0.5rem 0.625rem;
-  background: var(--surface-page);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--elevation-overlay);
-  font-size: 0.75rem;
-  pointer-events: none;
-  transform: translateX(0);
-}
 
-.tux-chart-bar__tooltip--flip {
-  transform: translateX(-100%);
-}
 
 .tux-chart-bar__tooltip-label {
   font-weight: 600;

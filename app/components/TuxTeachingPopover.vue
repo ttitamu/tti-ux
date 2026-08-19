@@ -227,7 +227,7 @@ function onSecondary() {
 .tux-teaching-popover__dismiss:hover,
 .tux-teaching-popover__dismiss:focus-visible {
   opacity: 1;
-  background: color-mix(in srgb, currentColor 14%, transparent);
+  background: color-mix(in srgb, currentColor 12%, transparent);
   outline: none;
 }
 
@@ -317,7 +317,7 @@ function onSecondary() {
 
 .tux-teaching-popover--on-brand .tux-teaching-popover__btn--secondary:hover {
   color: var(--text-inverse);
-  background: color-mix(in srgb, var(--text-inverse) 14%, transparent);
+  background: color-mix(in srgb, var(--text-inverse) 12%, transparent);
 }
 
 .tux-teaching-popover__btn--primary {

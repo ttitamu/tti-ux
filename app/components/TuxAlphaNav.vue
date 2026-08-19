@@ -176,20 +176,20 @@ function onClick(e: Event, letter: string | null) {
 
 .tux-alpha-nav__link:hover,
 .tux-alpha-nav__link:focus-visible {
-  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  background: var(--wash-brand-8);
   color: var(--brand-primary);
   outline: none;
 }
 
 .tux-alpha-nav__link--active {
   background: var(--brand-primary);
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 .tux-alpha-nav__link--active:hover,
 .tux-alpha-nav__link--active:focus-visible {
   background: var(--brand-primary-deep);
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 .tux-alpha-nav__link--disabled {

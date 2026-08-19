@@ -507,7 +507,7 @@ function isPlainLinkActive(item: { to?: string; href?: string }): boolean {
 .tux-site-nav__primary-link:hover,
 .tux-site-nav__primary-link:focus-visible,
 .tux-site-nav__primary-link.router-link-active {
-  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  background: var(--wash-brand-6);
   color: var(--brand-primary);
   /* No `outline: none` here — a 6% tint is not a focus indicator. The
      universal ring stays so keyboard focus is distinguishable from

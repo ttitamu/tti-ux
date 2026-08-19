@@ -202,7 +202,7 @@ const dropCapRest  = computed(() => props.quote.slice(1));
       transparent 50% 56%,
       color-mix(in srgb, var(--brand-primary) 50%, transparent) 56% 84%,
       transparent 84% 92%,
-      color-mix(in srgb, var(--brand-primary) 25%, transparent) 92% 100%);
+      var(--wash-brand-22) 92% 100%);
   border-radius: 2.5px;
 }
 

@@ -4,7 +4,7 @@
  * exhibits, equations.
  *
  * The numbering and label semantics are consumer-driven (pass
- * `kind` + `number` explicitly) so consumers can manage their own
+ * `label` + `number` explicitly) so consumers can manage their own
  * counter — TUX doesn't introspect doc order. Pairs with the
  * companion `TuxTableCaption` for tabular content; both share
  * styling.
@@ -13,14 +13,14 @@
  * element so screen readers announce them as a unit.
  *
  * Usage:
- *   <TuxFigureCaption :number="3" kind="Figure" caption="Mean delay reduction over 36 months.">
+ *   <TuxFigureCaption :number="3" label="Figure" caption="Mean delay reduction over 36 months.">
  *     <img src="/research/figs/fig-3.png" alt="Mean delay reduction" />
  *   </TuxFigureCaption>
  */
 interface Props {
   /** Kind label. "Figure" / "Table" / "Exhibit" / "Equation" /
    *  consumer-defined. */
-  kind?: string;
+  label?: string;
   /** Number — passed by the consumer; TUX doesn't auto-increment. */
   number: number | string;
   /** Caption text. Plain string for the simple case; use #default
@@ -34,7 +34,7 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  kind: "Figure",
+  label: "Figure",
   caption: undefined,
   source: undefined,
   placement: "below",
@@ -44,7 +44,7 @@ withDefaults(defineProps<Props>(), {
 <template>
   <figure class="tux-figure-caption">
     <figcaption v-if="placement === 'above'" class="tux-figure-caption__caption">
-      <span class="tux-figure-caption__label">{{ kind }} {{ number }}.</span>
+      <span class="tux-figure-caption__label">{{ label }} {{ number }}.</span>
       <slot name="caption">{{ caption }}</slot>
       <span v-if="source || $slots.source" class="tux-figure-caption__source">
         <slot name="source">{{ source }}</slot>
@@ -56,7 +56,7 @@ withDefaults(defineProps<Props>(), {
     </div>
 
     <figcaption v-if="placement === 'below'" class="tux-figure-caption__caption">
-      <span class="tux-figure-caption__label">{{ kind }} {{ number }}.</span>
+      <span class="tux-figure-caption__label">{{ label }} {{ number }}.</span>
       <slot name="caption">{{ caption }}</slot>
       <span v-if="source || $slots.source" class="tux-figure-caption__source">
         <slot name="source">{{ source }}</slot>

@@ -2,7 +2,7 @@
 /**
  * TuxTableCaption — auto-numbered caption for tables.
  *
- * Identical to `TuxFigureCaption` but defaults to `kind="Table"`
+ * Identical to `TuxFigureCaption` but defaults to `label="Table"`
  * + `placement="above"` (the conventional academic placement —
  * figures captioned below, tables captioned above).
  *
@@ -13,7 +13,7 @@
  * rendered table (e.g. an R-generated DataFrame).
  */
 interface Props {
-  kind?: string;
+  label?: string;
   number: number | string;
   caption?: string;
   source?: string;
@@ -21,7 +21,7 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  kind: "Table",
+  label: "Table",
   caption: undefined,
   source: undefined,
   placement: "above",
@@ -33,7 +33,7 @@ withDefaults(defineProps<Props>(), {
        semantic kind+placement defaults. Consumers can override
        either prop if their convention differs. -->
   <TuxFigureCaption
-    :kind="kind"
+    :label="label"
     :number="number"
     :caption="caption"
     :source="source"

@@ -272,7 +272,20 @@ function navigateTo(idx: number) {
   drillStack.value = drillStack.value.slice(0, idx);
 }
 
+const emit = defineEmits<{
+  /** Family chart-tooltip contract: the active cell, or null on clear. */
+  hover: [payload: { path: string; size: number; depth: number; childCount: number } | null];
+}>();
+
 const hoveredCell = ref<LayoutCell | null>(null);
+watch(hoveredCell, (cell) => {
+  emit("hover", cell === null ? null : {
+    path: cell.path,
+    size: cell.size,
+    depth: cell.depth,
+    childCount: cell.childCount,
+  });
+});
 // Tooltip position is computed *flipped*: when the cursor is in the right
 // half of the canvas, the tooltip anchors to the cursor's left so it
 // stays inside bounds. Same logic for vertical edges. We also clamp to
@@ -475,7 +488,7 @@ function fitsSize(rect: Rect): boolean {
       <!-- Tooltip — flipped to opposite anchor near canvas edges. -->
       <div
         v-if="hoveredCell"
-        class="tux-treemap__tooltip"
+        class="tux-chart-tooltip tux-treemap__tooltip"
         role="status"
         aria-live="polite"
         :style="tooltipStyle"
@@ -613,16 +626,10 @@ function fitsSize(rect: Rect): boolean {
 }
 
 /* Tooltip */
+
 .tux-treemap__tooltip {
-  position: absolute;
-  pointer-events: none;
-  background: var(--surface-page);
-  border: 1px solid var(--brand-primary);
-  border-radius: var(--radius-sm);
-  padding: 0.5rem 0.75rem;
-  box-shadow: var(--elevation-overlay);
+  /* Wider than the family shell — treemap labels are full paths. */
   max-width: 22rem;
-  z-index: 10;
 }
 
 .tux-treemap__tooltip-path {

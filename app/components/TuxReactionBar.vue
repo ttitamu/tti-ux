@@ -125,7 +125,7 @@ function toggle(key: string) {
 }
 .tux-reaction-bar__btn--active {
   border-color: var(--brand-primary);
-  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  background: var(--wash-brand-8);
 }
 .tux-reaction-bar__btn--active.tux-reaction-bar__btn--success {
   color: var(--color-success, oklch(0.5 0.13 145));

@@ -43,8 +43,8 @@ interface Band {
   to: number;
   /** Palette index 1..8. */
   toneIndex?: number;
-  /** Visual intent — overrides toneIndex with a status color. */
-  intent?: "ok" | "warn" | "alert";
+  /** Semantic tone — overrides toneIndex with a status color. */
+  tone?: "success" | "warning" | "error";
   label?: string;
 }
 
@@ -146,9 +146,9 @@ const renderedBands = computed<RenderedBand[]>(() => {
     const sa = valueToAngle(b.from);
     const ea = valueToAngle(b.to);
     let toneClass = "";
-    if (b.intent === "ok") toneClass = "tux-chart-gauge__band--ok";
-    else if (b.intent === "warn") toneClass = "tux-chart-gauge__band--warn";
-    else if (b.intent === "alert") toneClass = "tux-chart-gauge__band--alert";
+    if (b.tone === "success") toneClass = "tux-chart-gauge__band--success";
+    else if (b.tone === "warning") toneClass = "tux-chart-gauge__band--warning";
+    else if (b.tone === "error") toneClass = "tux-chart-gauge__band--error";
     else {
       const tone = tuxSeriesTone(0, b.toneIndex ?? 1);
       toneClass = `tux-chart-gauge__band--c${tone} tux-chart-tone--c${tone}`;
@@ -178,9 +178,9 @@ const fillToneClass = computed(() => {
   if (props.variant !== "progress") return "";
   if (props.bands.length === 0) return "tux-chart-gauge__fill--brand";
   const matching = props.bands.find((b) => props.value >= b.from && props.value <= b.to);
-  if (matching?.intent === "ok") return "tux-chart-gauge__fill--ok";
-  if (matching?.intent === "warn") return "tux-chart-gauge__fill--warn";
-  if (matching?.intent === "alert") return "tux-chart-gauge__fill--alert";
+  if (matching?.tone === "success") return "tux-chart-gauge__fill--success";
+  if (matching?.tone === "warning") return "tux-chart-gauge__fill--warning";
+  if (matching?.tone === "error") return "tux-chart-gauge__fill--error";
   return "tux-chart-gauge__fill--brand";
 });
 </script>
@@ -300,15 +300,15 @@ const fillToneClass = computed(() => {
   stroke: var(--surface-sunken);
 }
 
-.tux-chart-gauge__band--ok    { stroke: var(--status-success, #6b8e5a); opacity: 0.7; }
-.tux-chart-gauge__band--warn  { stroke: var(--status-warning, #c7973c); opacity: 0.7; }
-.tux-chart-gauge__band--alert { stroke: var(--status-error,   #a33a3a); opacity: 0.7; }
+.tux-chart-gauge__band--success    { stroke: var(--status-success, #6b8e5a); opacity: 0.7; }
+.tux-chart-gauge__band--warning  { stroke: var(--status-warning, #c7973c); opacity: 0.7; }
+.tux-chart-gauge__band--error { stroke: var(--status-error,   #a33a3a); opacity: 0.7; }
 .tux-chart-gauge__band[class*="tux-chart-tone--"] { stroke: var(--tux-chart-tone); opacity: 0.55; }
 
 .tux-chart-gauge__fill--brand { stroke: var(--brand-primary); }
-.tux-chart-gauge__fill--ok    { stroke: var(--status-success, #6b8e5a); }
-.tux-chart-gauge__fill--warn  { stroke: var(--status-warning, #c7973c); }
-.tux-chart-gauge__fill--alert { stroke: var(--status-error,   #a33a3a); }
+.tux-chart-gauge__fill--success    { stroke: var(--status-success, #6b8e5a); }
+.tux-chart-gauge__fill--warning  { stroke: var(--status-warning, #c7973c); }
+.tux-chart-gauge__fill--error { stroke: var(--status-error,   #a33a3a); }
 
 .tux-chart-gauge__needle {
   stroke: var(--text-primary);

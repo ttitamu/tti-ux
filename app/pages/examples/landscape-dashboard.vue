@@ -182,16 +182,16 @@ const totalFiles = tierSlices.reduce((a, b) => a + b.value, 0);
 
 // (d) Gauge: SLA uptime against a high target floor.
 const slaBands = [
-  { from: 0,  to: 95,  intent: "alert" as const },
-  { from: 95, to: 99,  intent: "warn"  as const },
-  { from: 99, to: 100, intent: "ok"    as const },
+  { from: 0,  to: 95,  tone: 'error' as const },
+  { from: 95, to: 99,  tone: 'warning'  as const },
+  { from: 99, to: 100, tone: 'success'    as const },
 ];
 
 // (e) Gauge: utilization of the agent pool against a soft cap.
 const utilizationBands = [
-  { from: 0,  to: 60,  intent: "ok"    as const },
-  { from: 60, to: 85,  intent: "warn"  as const },
-  { from: 85, to: 100, intent: "alert" as const },
+  { from: 0,  to: 60,  tone: 'success'    as const },
+  { from: 60, to: 85,  tone: 'warning'  as const },
+  { from: 85, to: 100, tone: 'error' as const },
 ];
 
 // Ingest-rate trend data for the TuxChartLine — same shape as
@@ -341,7 +341,7 @@ const studyCorridorEvents = [
       <section>
         <TuxFactoid
           variant="default"
-          :density="3"
+          :columns="3"
           :items="headlineFactoids"
         />
       </section>

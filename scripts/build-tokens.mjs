@@ -133,6 +133,9 @@ function buildSelectors(tokens) {
   root.push(...group(g.space, "space-"));
   root.push(...group(g.layout, "layout-"));
   root.push(...group(g.rhythm, "rhythm-"));
+  // Wash ladder — color-mix over --brand-primary, so each theme's
+  // rebind of the anchor retints every wash automatically.
+  root.push(...group(g.wash, "wash-"));
 
   // Nuxt UI ramps (--color-maroon-*, --color-gold-*)
   root.push(...ramp(tokens.ramps.maroon, "color-maroon-"));

@@ -175,7 +175,7 @@ function linkProps(item: LinkItem) {
 .tux-link-list__item--featured .tux-link-list__link {
   padding-left: 0.875rem;
   border-left: 3px solid var(--brand-primary);
-  background: color-mix(in srgb, var(--brand-primary) 4%, transparent);
+  background: var(--wash-brand-4);
 }
 
 .tux-link-list__link:hover,

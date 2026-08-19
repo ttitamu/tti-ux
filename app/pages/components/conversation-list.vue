@@ -21,7 +21,7 @@ const active = ref("c2");
 const basicVue = `<tux-conversation-list
   :groups="groups"
   :active-id="active"
-  @pick="active = $event"
+  @select="active = $event"
 />`;
 </script>
 
@@ -45,7 +45,7 @@ const basicVue = `<tux-conversation-list
           <TuxConversationList
             :groups="groups"
             :active-id="active"
-            @pick="active = $event"
+            @select="active = $event"
           />
         </div>
       </TuxExample>

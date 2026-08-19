@@ -124,7 +124,7 @@ const labelFor = computed(() => props.for);
 .tux-info-label__trigger:hover,
 .tux-info-label__trigger:focus-visible {
   color: var(--brand-primary);
-  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  background: var(--wash-brand-8);
   outline: none;
 }
 

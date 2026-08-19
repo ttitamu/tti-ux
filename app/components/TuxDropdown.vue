@@ -277,7 +277,7 @@ const isTriggerActive = computed<boolean>(() => {
 .tux-dropdown__trigger:hover,
 .tux-dropdown__trigger:focus-visible,
 .tux-dropdown__trigger[aria-expanded="true"] {
-  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  background: var(--wash-brand-6);
   color: var(--brand-primary);
   outline: none;
 }
@@ -334,7 +334,7 @@ const isTriggerActive = computed<boolean>(() => {
 
 .tux-dropdown__link:hover,
 .tux-dropdown__link:focus-visible {
-  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  background: var(--wash-brand-6);
   color: var(--brand-primary);
   outline: none;
 }
@@ -343,7 +343,7 @@ const isTriggerActive = computed<boolean>(() => {
    directory marker; the bg is just enough to confirm "this row is
    the one you're on." */
 .tux-dropdown__link--active {
-  background: color-mix(in srgb, var(--brand-primary) 9%, transparent);
+  background: var(--wash-brand-8);
   color: var(--brand-primary);
   /* Border on left rather than the whole row outline keeps it from
      fighting the active-section indicator on the trigger. */

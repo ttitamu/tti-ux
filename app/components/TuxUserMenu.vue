@@ -249,7 +249,7 @@ const menuItems = computed(() => {
 }
 .tux-user-menu__trigger--rail-footer:hover,
 .tux-user-menu__trigger--cluster:hover {
-  background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 
 /* Base avatar look lives in TuxAvatar; only the error-state tint is

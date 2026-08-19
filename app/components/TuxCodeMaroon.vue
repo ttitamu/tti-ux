@@ -25,7 +25,7 @@ interface Props {
   active?: boolean;
   /** Severity color. `alert` (red, urgent), `warning` (amber, advisory),
    *  `info` (navy, informational). */
-  severity?: "alert" | "warning" | "info";
+  tone?: "error" | "warning" | "info";
   /** Short title — e.g. "Emergency alert" or "Code Maroon active". */
   title?: string;
   /** The alert message. Required when active. */
@@ -46,7 +46,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   active: false,
-  severity: "alert",
+  tone: "error",
   title: "Emergency alert",
   message: undefined,
   detailsUrl: "https://rellis.tamus.edu/emergency/",
@@ -73,9 +73,9 @@ function onDismiss() {
   emit("dismiss");
 }
 
-const severityIcon = computed(() => {
-  if (props.severity === "warning") return "lucide:triangle-alert";
-  if (props.severity === "info")    return "lucide:info";
+const toneIcon = computed(() => {
+  if (props.tone === "warning") return "lucide:triangle-alert";
+  if (props.tone === "info")    return "lucide:info";
   return "lucide:siren";
 });
 </script>
@@ -86,15 +86,15 @@ const severityIcon = computed(() => {
       v-if="visible"
       class="tux-codemaroon"
       :class="[
-        `tux-codemaroon--${severity}`,
+        `tux-codemaroon--${tone}`,
         { 'tux-codemaroon--sticky': sticky },
       ]"
-      role="alert"
+      role="error"
       aria-live="assertive"
     >
       <div class="tux-codemaroon__inner">
         <Icon
-          :name="severityIcon"
+          :name="toneIcon"
           class="tux-codemaroon__icon"
           aria-hidden="true"
         />
@@ -142,7 +142,7 @@ const severityIcon = computed(() => {
   z-index: 50;
 }
 
-.tux-codemaroon--alert {
+.tux-codemaroon--error {
   background: #b3261e;
   color: #fff;
 }

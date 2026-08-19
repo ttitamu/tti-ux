@@ -3,10 +3,10 @@ useHead({ title: "TuxBetaRibbon · TUX" });
 
 const showCorner = ref(false);
 
-const cornerVue = `<tux-beta-ribbon variant="corner" tone="preview" corner="top-right" />`;
-const stripeVue = `<tux-beta-ribbon variant="stripe" tone="dev" />`;
+const cornerVue = `<tux-beta-ribbon variant="corner" kind="preview" corner="top-right" />`;
+const stripeVue = `<tux-beta-ribbon variant="stripe" kind="dev" />`;
 const pillVue = `<h2>
-  Corridor dashboard <tux-beta-ribbon variant="pill" tone="beta" />
+  Corridor dashboard <tux-beta-ribbon variant="pill" kind="beta" />
 </h2>`;
 </script>
 
@@ -41,7 +41,7 @@ const pillVue = `<h2>
       <TuxBetaRibbon
         v-if="showCorner"
         variant="corner"
-        tone="preview"
+        kind="preview"
         corner="top-right"
       />
 
@@ -77,13 +77,13 @@ const pillVue = `<h2>
         on the canonical product (a public beta).
       </p>
       <TuxExample class="mt-4" :vue="stripeVue">
-        <TuxBetaRibbon variant="stripe" tone="dev" />
+        <TuxBetaRibbon variant="stripe" kind="dev" />
       </TuxExample>
       <TuxExample class="mt-4">
-        <TuxBetaRibbon variant="stripe" tone="beta" />
+        <TuxBetaRibbon variant="stripe" kind="beta" />
       </TuxExample>
       <TuxExample class="mt-4">
-        <TuxBetaRibbon variant="stripe" tone="preview" />
+        <TuxBetaRibbon variant="stripe" kind="preview" />
       </TuxExample>
     </section>
 
@@ -97,15 +97,15 @@ const pillVue = `<h2>
       <TuxExample class="mt-4" :vue="pillVue">
         <h3 class="heading--bold text-xl font-bold flex items-center gap-2">
           Corridor dashboard
-          <TuxBetaRibbon variant="pill" tone="beta" />
+          <TuxBetaRibbon variant="pill" kind="beta" />
         </h3>
         <h3 class="heading--bold text-xl font-bold flex items-center gap-2 mt-4">
           Funding application v2
-          <TuxBetaRibbon variant="pill" tone="preview" />
+          <TuxBetaRibbon variant="pill" kind="preview" />
         </h3>
         <h3 class="heading--bold text-xl font-bold flex items-center gap-2 mt-4">
           Landscape sandbox
-          <TuxBetaRibbon variant="pill" tone="dev" />
+          <TuxBetaRibbon variant="pill" kind="dev" />
         </h3>
       </TuxExample>
     </section>

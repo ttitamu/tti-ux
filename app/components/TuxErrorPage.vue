@@ -173,8 +173,8 @@ const resolvedActions = computed(() => props.actions ?? preset.value.actions);
   width: 4.5rem;
   height: 4.5rem;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  background: var(--wash-brand-8);
+  border: 1px solid var(--wash-brand-22);
   margin-bottom: 1rem;
 }
 

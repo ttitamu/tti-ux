@@ -337,7 +337,7 @@ const themeBadgeClass = (status: string) => {
 
 .ax-summary__card--accent {
   background: color-mix(in srgb, var(--brand-accent) 18%, var(--surface-raised));
-  border-color: color-mix(in srgb, var(--brand-accent) 45%, transparent);
+  border-color: color-mix(in srgb, var(--brand-accent) 50%, transparent);
 }
 
 .ax-summary__label {

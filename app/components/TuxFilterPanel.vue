@@ -210,7 +210,7 @@ const applied = computed<AppliedChip[]>(() => {
   cursor: pointer;
   padding: 0;
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--brand-secondary) 40%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--brand-secondary) 35%, transparent);
   text-underline-offset: 2px;
 }
 .tux-filter-panel__clear-all:hover {

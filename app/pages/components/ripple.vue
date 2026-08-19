@@ -9,7 +9,7 @@ useTuxRipple(button, {
 });
 
 useTuxRipple(card, {
-  color: "color-mix(in srgb, var(--brand-primary) 22%, transparent)",
+  color: "var(--wash-brand-22)",
   duration: 800,
 });
 

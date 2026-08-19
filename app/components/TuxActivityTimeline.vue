@@ -129,7 +129,7 @@ withDefaults(defineProps<Props>(), {
   top: 14px;
   bottom: -2px;
   width: 2px;
-  background: color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  background: var(--wash-brand-22);
 }
 
 .tux-activity-timeline__item:last-child::before {

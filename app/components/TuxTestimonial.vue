@@ -20,7 +20,7 @@ interface Testimonial {
    *  the first letter of `name`. */
   initial?: string;
   /** Portrait gradient color. Cycles through maroon/gold/navy by default. */
-  color?: "maroon" | "gold" | "navy";
+  tone?: "maroon" | "gold" | "navy";
   /** Real portrait URL. Overrides the initial placeholder. */
   image?: string;
 }
@@ -43,7 +43,7 @@ withDefaults(defineProps<Props>(), {
 const colorCycle: Array<"maroon" | "gold" | "navy"> = ["maroon", "navy", "gold"];
 
 function colorFor(item: Testimonial, idx: number): "maroon" | "gold" | "navy" {
-  return item.color ?? colorCycle[idx % colorCycle.length]!;
+  return item.tone ?? colorCycle[idx % colorCycle.length]!;
 }
 
 function initialFor(item: Testimonial): string {

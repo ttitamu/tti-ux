@@ -5,7 +5,63 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Changed — visual-language unification pass (2026-08-19)
+> **The next release is v2.0.0** — the Breaking section below lands
+> the vocabulary renames as one coordinated batch, timed
+> deliberately *before* the multi-target token expansion (C# /
+> React / WordPress kits) and Forgejo package distribution multiply
+> the consumer count.
+
+### Breaking — v2.0.0 vocabulary batch (2026-08-19)
+
+The canonical prop/emit vocabulary (components.md § "Prop & emit
+vocabulary") is now enforced by the APIs themselves. Migration is
+mechanical:
+
+| Component | Before | After |
+|---|---|---|
+| `TuxFactoid` | `density: 3\|4\|5` | `columns: 3\|4\|5` |
+| `TuxBetaRibbon` | `tone: preview\|beta\|dev` | `kind` (same values) |
+| `TuxTabs` | `intent: default\|bold` | `variant` (same values) |
+| `TuxChartGauge` | band `intent: ok\|warn\|alert` | band `tone: success\|warning\|error` (band/fill CSS hooks renamed to match) |
+| `TuxCodeMaroon` | `severity: alert\|warning\|info` | `tone: error\|warning\|info` (`--alert` classes now `--error`) |
+| `TuxTestimonial` | `color` | `tone` (same values) |
+| `TuxConfirmDialog` | `variant: danger` | removed — use `destructive` |
+| `TuxConversationList` / `TuxSuggestionChips` | emit `pick` | emit `select` |
+| `TuxCitations` / `TuxInlineCitation` | emit `open` | emit `select` |
+| `TuxStatComparison` / `TuxMapLegend` | `layout: stack` | `layout: stacked` |
+| `TuxFigureCaption` / `TuxTableCaption` | `kind` (free-form label) | `label` |
+| `TuxRichTextEditor` | duplicate bare `update` emit | removed — use `update:modelValue` |
+
+Added (non-breaking, same batch): `TuxTreemap` now emits the family
+`hover` payload (`{ path, size, depth, childCount } \| null`).
+
+### Changed — language closeout (2026-08-19, second pass)
+
+- **The wash ladder** (visual-language-evolution.md § Batch L): all
+  transparent-tint washes collapse from 22 eyeballed `color-mix`
+  percentages onto the ratified ladder {4 · 6 · 8 · 12 · 18 · 22 ·
+  35 · 50}; maroon washes use new named tokens `--wash-brand-*`
+  (theme-aware via the brand anchor). ≥60% scrims exempt.
+- **Chart tooltip chrome consolidated** into
+  `tux-chart-chrome.css` (`.tux-chart-tooltip` shell + `--flip`),
+  removing nine near-identical scoped blocks; treemap keeps only its
+  wider max-width and now shares the family border (was a one-off
+  maroon border).
+- **On-brand ink correctness in dark mode**: white-on-`--brand-primary`
+  controls (rich-data-grid selection/bulk bar, pagination active,
+  alpha-nav active) now use `--text-inverse` — dark ink on the dark
+  theme's light teal anchor instead of broken white-on-teal.
+  `TuxSignupFeature`'s maroon panel moves to `--brand-fill` +
+  `--text-on-brand` (stays maroon in every theme, per the
+  brand-fill doctrine); its whites/alphas tokenized.
+- **Guards**: `tests/tux-color.test.ts` enforces the wash ladder and
+  freezes raw color literals per component at an exact-budget
+  ratchet (sanctioned chrome documented inline);
+  `scripts/audit-tokens.mjs` no longer blanket-exempts Tailwind
+  prefixes the app also owns (the hole that let `--radius-full` ship
+  undefined).
+
+### Changed — visual-language unification pass (2026-08-19, first pass)
 
 One deep pass to make the whole catalog speak the same language,
 driven by three full-repo sweeps (typography, color/tokens, API

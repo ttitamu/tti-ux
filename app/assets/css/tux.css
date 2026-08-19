@@ -220,7 +220,7 @@
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
-  text-decoration-color: color-mix(in srgb, var(--brand-secondary) 40%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--brand-secondary) 35%, transparent);
   transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 
@@ -235,7 +235,7 @@
    on inactive tabs. Adds a subtle brand wash so tabs read as hoverable.
    ------------------------------------------------------------ */
 [role="tab"]:not([data-state="active"]):hover {
-  background-color: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  background-color: var(--wash-brand-6);
   transition: background-color 0.15s ease;
 }
 
@@ -348,7 +348,7 @@
       transparent 32px 38px,
       color-mix(in srgb, var(--brand-primary) 50%, transparent) 38px 52px,
       transparent 52px 56px,
-      color-mix(in srgb, var(--brand-primary) 25%, transparent) 56px 62px);
+      var(--wash-brand-22) 56px 62px);
   border-radius: 2.5px;
 }
 
@@ -370,7 +370,7 @@
       transparent 32px 38px,
       color-mix(in srgb, var(--brand-accent) 50%, transparent) 38px 52px,
       transparent 52px 56px,
-      color-mix(in srgb, var(--brand-accent) 25%, transparent) 56px 62px);
+      color-mix(in srgb, var(--brand-accent) 22%, transparent) 56px 62px);
   border-radius: 2.5px;
 }
 
@@ -670,8 +670,8 @@
     90deg,
     transparent 0,
     transparent 11px,
-    color-mix(in srgb, var(--brand-primary) 6%, transparent) 11px,
-    color-mix(in srgb, var(--brand-primary) 6%, transparent) 12px
+    var(--wash-brand-6) 11px,
+    var(--wash-brand-6) 12px
   );
 }
 

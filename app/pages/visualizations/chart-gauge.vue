@@ -24,9 +24,9 @@ const bandsVue = `<tux-chart-gauge
   :min="0"
   :max="100"
   :bands="[
-    { from: 0,  to: 60,  intent: 'ok'    },
-    { from: 60, to: 85,  intent: 'warn'  },
-    { from: 85, to: 100, intent: 'alert' },
+    { from: 0,  to: 60,  tone: 'success'    },
+    { from: 60, to: 85,  tone: 'warning'  },
+    { from: 85, to: 100, tone: 'error' },
   ]"
   center-label="Token utilization"
   :center-value="72"
@@ -49,9 +49,9 @@ const slaVue = `<tux-chart-gauge
   :min="95"
   :max="100"
   :bands="[
-    { from: 0,  to: 95,  intent: 'alert' },
-    { from: 95, to: 99,  intent: 'warn'  },
-    { from: 99, to: 100, intent: 'ok'    },
+    { from: 0,  to: 95,  tone: 'error' },
+    { from: 95, to: 99,  tone: 'warning'  },
+    { from: 99, to: 100, tone: 'success'    },
   ]"
   center-label="API uptime"
   :center-value="99.84"
@@ -64,7 +64,7 @@ const slaVue = `<tux-chart-gauge
     <TuxPageHeader eyebrow="visualization · native chart" title="TuxChartGauge">
       270° arc gauge for <strong>single-target</strong> metrics where
       one value matters and the target zones are qualitative
-      (ok/warn/alert) or hard limits. Use sparingly — research
+      (success/warning/error) or hard limits. Use sparingly — research
       dashboards rarely need gauges. Good fits: token utilization,
       SLA uptime, compliance score. Bad fits: anything contextual
       (use <code>TuxBigStat</code> + <code>TuxSparkline</code>).
@@ -101,7 +101,7 @@ const slaVue = `<tux-chart-gauge
       <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
         Pass <code>bands</code> to mark target zones. Each band has
         <code>from</code>, <code>to</code>, and either an
-        <code>intent</code> (ok / warn / alert — status tokens) or a
+        <code>tone</code> (success / warning / error — status tokens) or a
         <code>toneIndex</code> (1..8 chart palette). The needle reads
         against the bands.
       </p>
@@ -145,7 +145,7 @@ const slaVue = `<tux-chart-gauge
       <h2 class="heading--bold text-xl font-bold">SLA uptime</h2>
       <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
         Bands work in <code>progress</code> mode too — the fill color
-        picks up the band intent the current value falls into. Here,
+        picks up the band tone the current value falls into. Here,
         99.84% sits in the ok zone (above 99), so the arc draws
         green.
       </p>

@@ -27,12 +27,12 @@ withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  open: [item: Citation, index: number];
+  select: [item: Citation, index: number];
 }>();
 
 function handleClick(e: MouseEvent, item: Citation, index: number) {
   if (!item.href) e.preventDefault();
-  emit("open", item, index);
+  emit("select", item, index);
 }
 </script>
 
@@ -91,7 +91,7 @@ function handleClick(e: MouseEvent, item: Citation, index: number) {
 }
 
 .tux-citations__link:hover {
-  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  background: var(--wash-brand-6);
 }
 
 .tux-citations__rank {

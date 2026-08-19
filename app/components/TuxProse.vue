@@ -160,7 +160,7 @@ withDefaults(defineProps<Props>(), {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
-  text-decoration-color: color-mix(in srgb, var(--brand-secondary) 40%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--brand-secondary) 35%, transparent);
 }
 
 .tux-prose :deep(a:hover) {

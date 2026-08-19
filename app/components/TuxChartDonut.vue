@@ -332,8 +332,8 @@ const tooltipPos = computed(() => {
       <!-- Branded tooltip card (family contract) -->
       <div
         v-if="tooltip && activeArc && tooltipPos"
-        class="tux-chart-donut__tooltip"
-        :class="{ 'tux-chart-donut__tooltip--flip': tooltipPos.flip }"
+        class="tux-chart-tooltip tux-chart-donut__tooltip"
+        :class="{ 'tux-chart-tooltip--flip': tooltipPos.flip }"
         role="status"
         aria-live="polite"
         :style="{
@@ -402,23 +402,7 @@ const tooltipPos = computed(() => {
   opacity: 0.55;
 }
 
-.tux-chart-donut__tooltip {
-  position: absolute;
-  z-index: 4;
-  min-width: 8rem;
-  max-width: 16rem;
-  padding: 0.5rem 0.625rem;
-  background: var(--surface-page);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--elevation-overlay);
-  font-size: 0.75rem;
-  pointer-events: none;
-}
 
-.tux-chart-donut__tooltip--flip {
-  transform: translateX(-100%);
-}
 
 .tux-chart-donut__tooltip-label {
   display: flex;

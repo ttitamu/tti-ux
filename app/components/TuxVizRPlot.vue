@@ -142,7 +142,7 @@ const altText = computed(() => props.alt || props.title);
   font-family: var(--font-mono);
   font-size: 0.7rem;
   color: var(--brand-secondary);
-  background: color-mix(in srgb, var(--brand-secondary) 10%, transparent);
+  background: color-mix(in srgb, var(--brand-secondary) 8%, transparent);
   border: 1px solid color-mix(in srgb, var(--brand-secondary) 22%, transparent);
   border-radius: var(--radius-sm);
 }
