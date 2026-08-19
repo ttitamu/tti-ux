@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxVizEmbed · Visualizations · TUX" });
+useHead({ title: "TuxVizEmbed · TUX" });
 
 const tableauVue = `<tux-viz-embed
   provider="tableau"

@@ -188,7 +188,7 @@ const apps = computed(() => props.apps);
   margin-bottom: 0.75rem;
 }
 .tux-app-switcher__heading h3 {
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);

@@ -110,7 +110,7 @@ const toneClass = computed(() => `tux-center-badge--c${Math.max(1, Math.min(8, r
   display: inline-flex;
   align-items: center;
   gap: 0.3125rem;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-weight: 600;
   border: 1px solid currentColor;
   background: color-mix(in srgb, currentColor 8%, var(--surface-page));

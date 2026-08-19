@@ -130,7 +130,7 @@ function orcidUrl(orcid: string): string {
 
 <style scoped>
 .tux-author-byline {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   margin: 1rem 0;
 }
 

@@ -219,7 +219,7 @@ function togglePreview() {
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
   background: var(--surface-page);
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   overflow: hidden;
 }
 
@@ -360,7 +360,7 @@ function togglePreview() {
 
 .tux-md-editor__min-warning {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   color: var(--status-warning, #c7973c);
   font-style: italic;
 }

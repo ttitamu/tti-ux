@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxReportWebFrame · Reports · TUX" });
+useHead({ title: "TuxReportWebFrame · TUX" });
 
 const factoid = [
   { value: "412", label: "active projects", note: "+28 vs FY25" },

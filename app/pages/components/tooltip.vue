@@ -91,7 +91,7 @@ const kbdVue = `<tux-tooltip text="Open command palette" :kbds="['⌘', 'K']">
   justify-content: center;
   width: 1.125rem;
   height: 1.125rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
   color: var(--brand-primary);
   font-family: var(--font-bold);

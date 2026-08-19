@@ -90,7 +90,7 @@ const shouldRender = computed(() => {
   background: var(--surface-page);
   border-bottom: 1px solid var(--surface-border);
   padding-inline: 0.25rem;
-  font-family: var(--font-sans);
+  font-family: var(--font-bold);
   font-size: 0.8125rem;
 }
 
@@ -103,7 +103,7 @@ const shouldRender = computed(() => {
   color: var(--text-primary);
   cursor: pointer;
   transition: background 80ms ease-out;
-  border-radius: var(--radius-xs, 2px);
+  border-radius: var(--radius-sm);
 }
 
 .tux-menu-bar__trigger:hover,

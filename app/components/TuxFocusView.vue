@@ -199,7 +199,7 @@ const titleId = useId();
 }
 
 .tux-focus-view__title {
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-display);
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--text-primary);

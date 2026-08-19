@@ -122,12 +122,12 @@ function gradientCss(stops?: Array<{ color: string }>): string {
 
 <style scoped>
 .tux-map-legend {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-sm);
   padding: 0.5rem 0.625rem;
-  box-shadow: 0 2px 6px rgb(0 0 0 / 0.06);
+  box-shadow: var(--elevation-rest);
   min-width: 8rem;
   max-width: 16rem;
   font-size: 0.75rem;

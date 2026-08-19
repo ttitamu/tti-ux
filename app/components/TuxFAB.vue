@@ -82,11 +82,10 @@ defineEmits<{
   color: var(--text-inverse, #fff);
   border: 0;
   cursor: pointer;
-  font-family: var(--font-sans);
+  font-family: var(--font-bold);
   font-weight: 600;
   font-size: 0.875rem;
-  box-shadow: 0 6px 16px rgb(0 0 0 / 0.18),
-              0 2px 4px rgb(0 0 0 / 0.08);
+  box-shadow: var(--elevation-hover);
   transition: transform 120ms ease-out, box-shadow 120ms ease-out;
 }
 
@@ -114,8 +113,7 @@ defineEmits<{
 
 .tux-fab:hover:not([disabled]) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgb(0 0 0 / 0.22),
-              0 3px 6px rgb(0 0 0 / 0.1);
+  box-shadow: var(--elevation-overlay);
 }
 
 .tux-fab:active:not([disabled]) {

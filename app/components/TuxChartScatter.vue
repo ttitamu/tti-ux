@@ -447,7 +447,7 @@ function hoverToneClass(seriesIdx: number): string {
 <style scoped>
 .tux-chart-scatter {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
 }
 
 .tux-chart-scatter__svg {
@@ -532,6 +532,7 @@ function hoverToneClass(seriesIdx: number): string {
 }
 
 .tux-chart-scatter__legend-r2 {
+  font-family: var(--font-mono);
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
   margin-left: 0.25rem;
@@ -556,8 +557,8 @@ function hoverToneClass(seriesIdx: number): string {
   padding: 0.5rem 0.625rem;
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm, 4px);
-  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--elevation-overlay);
   font-size: 0.75rem;
   pointer-events: none;
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxReportPrintSheet · Reports · TUX" });
+useHead({ title: "TuxReportPrintSheet · TUX" });
 
 function printPage() {
   if (typeof window !== "undefined") window.print();

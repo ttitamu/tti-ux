@@ -103,7 +103,7 @@ const headingTag = computed(() => `h${props.level}`);
   border-bottom: 1px solid var(--surface-border);
   padding: 1.25rem 0 1.5rem 0;
   margin: 1.5rem 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
 }
 
 .tux-abstract__eyebrow {
@@ -133,7 +133,7 @@ const headingTag = computed(() => `h${props.level}`);
 }
 
 .tux-abstract__heading {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;

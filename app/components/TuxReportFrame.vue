@@ -77,7 +77,7 @@ const dims = computed(() => {
   background: var(--surface-raised);
   color: var(--text-primary);
   margin: 0 auto 2rem;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--elevation-overlay);
   border: 1px solid var(--surface-border);
   display: flex;
   flex-direction: column;

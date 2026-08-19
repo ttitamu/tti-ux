@@ -190,7 +190,7 @@ function onSubmit() {
 
 [data-theme="tti-dark"] .tux-search__action {
   background: var(--brand-accent);
-  color: #2A0E15;
+  color: var(--brand-accent-ink);
 }
 [data-theme="tti-dark"] .tux-search__action:hover,
 [data-theme="tti-dark"] .tux-search__action:focus-visible {

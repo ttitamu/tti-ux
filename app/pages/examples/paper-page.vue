@@ -380,7 +380,7 @@ const corridorEvents = [
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   color: var(--text-primary);
 }
 
@@ -391,7 +391,7 @@ const corridorEvents = [
 }
 
 .paper-page__h2 {
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-display);
   font-size: 1.375rem;
   font-weight: 700;
   color: var(--text-primary);
@@ -401,7 +401,7 @@ const corridorEvents = [
 }
 
 .paper-page__h3 {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: 1.0625rem;
   font-weight: 600;
   color: var(--text-primary);

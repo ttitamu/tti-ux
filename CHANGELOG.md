@@ -5,6 +5,98 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — visual-language unification pass (2026-08-19)
+
+One deep pass to make the whole catalog speak the same language,
+driven by three full-repo sweeps (typography, color/tokens, API
+vocabulary) plus a light/dark browser walk. Fix highlights:
+
+- **Typography: the four-family rule is now real.** All 78 references
+  to the deprecated `--font-sans` (Public Sans) are gone from app
+  code — chart roots and body text moved to `--font-body`; TabBar /
+  MenuBar / FAB label controls moved to `--font-bold`; the token
+  itself now aliases the body stack for legacy consumers. Dead
+  `var(--font-x, var(--font-y))` fallback chains stripped. Stat
+  values that wore Oswald outside its H1–H3 lane (TuxResearcher /
+  TuxLab / TuxProgram metrics, TuxStatComparison, donut + gauge
+  center stats) now use the TuxBigStat numeral face (`--font-body`
+  700 + tabular figures). Numeric readouts (chart tooltip values,
+  legend stats, R², code-block line numbers) join the
+  `--font-mono` + tabular-nums pattern; counting affordances
+  (composer counter, facet counts, sparkline delta, file sizes) gain
+  tabular figures. Mermaid diagrams read the live `--font-body`
+  token instead of a pasted stack. `tests/tux-typography.test.ts`
+  now guards all of it in CI.
+- **Elevation system actually adopted.** All hand-rolled box-shadows
+  and legacy `--shadow-sm/md/lg` component references migrated to
+  the four-tier `--elevation-*` tokens (identical values in
+  light/dark — but the high-contrast theme suppresses blur shadows
+  through the elevation tokens only, so every migrated site now
+  renders correctly in HC). TuxRichDataGrid's hand-rolled focus ring
+  now uses the universal `--shadow-focus` two-ring.
+- **`--radius-full` finally exists.** Six components referenced it
+  before it was ever defined — an invalid `var()` that rendered
+  suggestion chips, removable chips, info labels, and context meters
+  **square** instead of pill. Token added (9999px), literal `9999px`
+  sites converted, wrong-value radius fallbacks
+  (`var(--radius-sm, 4px)`) cleaned.
+- **Gold-surface ink promoted to tokens.** The 12 pasted `#2A0E15`
+  ("ink on gold") and 6 pasted `#A87B1F` (gold gradient deep stop)
+  literals became `--brand-accent-ink` / `--brand-accent-shade`.
+- **TuxChartHeatmap dark-mode fix.** The dark theme reverses ramp
+  luminance, so the stop-indexed white/dark label split inverted
+  there; in-cell values now use `--text-primary` with a
+  `--surface-page` paint-order halo — ≥18:1 against the halo in
+  every theme, on every ramp stop.
+- **TuxActivityTimeline** marker glyphs use `--text-inverse` (theme-
+  aware) instead of `#fff`; the Landscape-dashboard example's hand-
+  rolled activity rail now dogfoods `TuxActivityTimeline dense`.
+- **Vocabulary doctrine.** components.md § Conventions gains "Prop &
+  emit vocabulary" — canonical meanings for
+  tone/kind/variant/intent/size/density/layout and the
+  hover/select/update:* emits, with every known deviation listed and
+  queued for v2.0.0 (renames are breaking; they land together, not
+  piecemeal).
+- Docs truth: tux.md's dark-theme row now matches the ratified teal
+  anchor (`#6BB4C0`) with the tokens.json rationale; showcase page
+  titles normalized to the 2-part `TuxX · TUX` form.
+
+### Added
+
+- **`TuxChartHeatmap`** — native SVG matrix heatmap, the top-ranked
+  viz gap from the 2026-08 audit (time-of-day patterns: crashes by
+  day × hour, corridor demand by month). Cells quantize onto the same
+  5-stop sequential ramps the choropleth family uses
+  (`--map-seq-maroon-*` default, `slate` variant), equal-interval
+  bins with the ranges printed in the legend, honest hatched `null`
+  cells ("No data", never zero), auto-thinned dense column axes, and
+  the family tooltip/keyboard contract with a **two-dimensional**
+  roving cursor (Left/Right walk columns, Up/Down walk rows —
+  documented in components.md § Chart tooltips). Demo at
+  `/visualizations/chart-heatmap`.
+- **`TuxChartHistogram`** — native SVG distribution chart over raw
+  samples, built for the travel-time-reliability shape. Bin edges
+  snap to 1/2/5 × 10^k (`tuxBinEdges`) so ranges read "10–15 min";
+  `:percentiles="[50, 95]"` drops dashed gold rules at interpolated
+  quantiles (the planning-time-index pair); `normalize` switches the
+  y axis to share-of-samples for side-by-side comparisons; family
+  tooltip/keyboard contract (band-mode roving cursor via
+  `useTuxChartHover`). Demo at `/visualizations/chart-histogram`.
+- **`TuxActivityTimeline`** — editorial vertical event timeline (the
+  audit's top component gap): maroon spine, mono tabular timestamps,
+  gold-ringed `current` node, eyebrow-weight `heading` group rows,
+  semantic tones shared with the badge/alert families, `dense` rail
+  posture, `#item` / `#trailing` scoped slots. Stateless — the host
+  owns the feed. Demo at `/components/activity-timeline`.
+- **`app/utils/tuxChartBins.ts`** — shared binning + quantile math
+  for the distribution charts (`tuxBinEdges`, `tuxBinCounts`,
+  `tuxQuantile`/`tuxQuantileSorted`, `tuxQuantizeBin`), sibling to
+  `tuxChartScale`, behavior-locked by `tests/tux-chart-bins.test.ts`.
+- **Chart motion vocabulary** extended in `tux-chart-motion.css`:
+  heatmap cells fade in column-staggered; histogram bars grow from
+  the baseline like the bar family. Both collapse to instant under
+  `prefers-reduced-motion: reduce`.
+
 
 ## [1.9.0] — 2026-08-12
 

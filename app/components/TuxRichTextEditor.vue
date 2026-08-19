@@ -642,7 +642,7 @@ const inTable = computed(() => isActive("table"));
   color: var(--text-secondary);
   cursor: pointer;
   transition: background-color 120ms ease, color 120ms ease;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: 0.6875rem;
   font-weight: 600;
 }
@@ -744,7 +744,7 @@ const inTable = computed(() => isActive("table"));
   padding: 0.0625rem 0.375rem;
   background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
   color: var(--brand-primary);
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -781,7 +781,7 @@ const inTable = computed(() => isActive("table"));
   margin-top: 1rem;
 }
 .tux-rte__editor :deep(.tux-rte__content h4) {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: 1rem;
   font-weight: 700;
   margin-top: 0.875rem;

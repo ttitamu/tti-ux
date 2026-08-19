@@ -372,7 +372,7 @@ const tooltipPos = computed(() => {
 <style scoped>
 .tux-chart-donut {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -410,8 +410,8 @@ const tooltipPos = computed(() => {
   padding: 0.5rem 0.625rem;
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm, 4px);
-  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--elevation-overlay);
   font-size: 0.75rem;
   pointer-events: none;
 }
@@ -438,6 +438,7 @@ const tooltipPos = computed(() => {
 }
 
 .tux-chart-donut__tooltip-value {
+  font-family: var(--font-mono);
   margin: 0;
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
@@ -469,12 +470,13 @@ const tooltipPos = computed(() => {
 }
 
 .tux-chart-donut__center-value {
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-body);
   font-size: 2rem;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
   line-height: 1.05;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Series tones come from tux-chart-palette.css via --tux-chart-tone. */
@@ -516,6 +518,7 @@ const tooltipPos = computed(() => {
 }
 
 .tux-chart-donut__legend-value {
+  font-family: var(--font-mono);
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
   margin-left: auto;

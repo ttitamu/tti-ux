@@ -146,13 +146,14 @@ const px = computed(() => SIZES[props.size]);
 
 .tux-map-marker__icon-text {
   fill: var(--surface-page);
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-display);
   font-size: 14px;
   font-weight: 700;
   text-anchor: middle;
 }
 
 .tux-map-marker__number {
+  font-variant-numeric: tabular-nums;
   fill: var(--surface-page);
   font-family: var(--font-mono);
   font-size: 11px;

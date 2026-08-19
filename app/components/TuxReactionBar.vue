@@ -113,7 +113,7 @@ function toggle(key: string) {
   padding: 0.375rem 0.625rem;
   background: transparent;
   border: 1px solid var(--surface-border);
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   color: var(--text-muted);
   font-size: 0.75rem;
   cursor: pointer;
@@ -148,7 +148,7 @@ function toggle(key: string) {
   height: 0.875rem;
 }
 .tux-reaction-bar__label {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-weight: 500;
 }
 .tux-reaction-bar__count {

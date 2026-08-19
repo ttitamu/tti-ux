@@ -95,7 +95,7 @@ const local = computed({
   background: transparent;
   border: none;
   cursor: pointer;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: 0.9375rem;
   font-weight: 500;
   transition: color 120ms ease;

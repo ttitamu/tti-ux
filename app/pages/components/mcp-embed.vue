@@ -245,10 +245,10 @@ const fixedVue = `<tux-mcp-embed
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 0.125rem 0.375rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   border: 1px solid var(--surface-border);
   color: var(--text-muted);
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-weight: 600;
 }
 .mcp-demo__issue-status--in-progress {
@@ -264,7 +264,7 @@ const fixedVue = `<tux-mcp-embed
 .popover-demo__trigger {
   padding: 0.375rem 0.75rem;
   font-size: 0.875rem;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   background: var(--surface-sunken);
   border: 1px solid var(--surface-border);
   border-radius: 0.375rem;

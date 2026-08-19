@@ -190,7 +190,7 @@ const resolvedActions = computed(() => props.actions ?? preset.value.actions);
 
 .tux-error-page__code {
   margin: 0.25rem 0 0.625rem;
-  font-family: var(--font-display, var(--font-bold));
+  font-family: var(--font-display);
   font-size: clamp(3.5rem, 6cqw + 2rem, 5.5rem);
   line-height: 0.9;
   color: var(--brand-primary);

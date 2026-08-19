@@ -298,6 +298,7 @@ function download() {
 }
 
 .tux-codeblock__line-no {
+  font-family: var(--font-mono);
   display: inline-block;
   width: 2.5rem;
   margin-right: 1rem;

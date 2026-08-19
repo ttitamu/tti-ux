@@ -130,7 +130,7 @@ const headingClass = computed(() => {
 
 .tux-signup--gold {
   background: var(--brand-accent);
-  color: #2A0E15;
+  color: var(--brand-accent-ink);
 }
 
 /* Copy */
@@ -157,7 +157,7 @@ const headingClass = computed(() => {
 .tux-signup--maroon .tux-signup__title { color: #fff; }
 
 .tux-signup--gold .tux-signup__title :deep(*),
-.tux-signup--gold .tux-signup__title { color: #2A0E15; }
+.tux-signup--gold .tux-signup__title { color: var(--brand-accent-ink); }
 
 .tux-signup__dek {
   margin: 1rem 0 0;
@@ -193,7 +193,7 @@ const headingClass = computed(() => {
 
 .tux-signup--gold .tux-signup__input-row {
   background: rgba(255, 255, 255, 0.18);
-  border-color: #2A0E15;
+  border-color: var(--brand-accent-ink);
 }
 
 .tux-signup__input {
@@ -210,7 +210,7 @@ const headingClass = computed(() => {
 }
 
 .tux-signup--maroon .tux-signup__input { color: #fff; }
-.tux-signup--gold .tux-signup__input   { color: #2A0E15; }
+.tux-signup--gold .tux-signup__input   { color: var(--brand-accent-ink); }
 
 .tux-signup__input::placeholder {
   font-style: italic;
@@ -245,7 +245,7 @@ const headingClass = computed(() => {
 
 .tux-signup--maroon .tux-signup__action {
   background: var(--brand-accent);
-  color: #2A0E15;
+  color: var(--brand-accent-ink);
 }
 .tux-signup--maroon .tux-signup__action:hover,
 .tux-signup--maroon .tux-signup__action:focus-visible {
@@ -253,7 +253,7 @@ const headingClass = computed(() => {
 }
 
 .tux-signup--gold .tux-signup__action {
-  background: #2A0E15;
+  background: var(--brand-accent-ink);
   color: var(--brand-accent);
 }
 

@@ -89,7 +89,7 @@ const targetId = computed(() => `${props.idPrefix}-${props.n}`);
 
 .tux-footnote__preview {
   padding: 0.5rem 0.625rem;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
 }
 
 .tux-footnote__preview-text {

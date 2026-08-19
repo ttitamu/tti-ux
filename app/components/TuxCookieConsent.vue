@@ -169,7 +169,7 @@ function toggleExpanded() {
   background: var(--surface-raised);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--elevation-overlay);
   color: var(--text-primary);
 }
 
@@ -215,7 +215,7 @@ function toggleExpanded() {
 
 .tux-cookie__title {
   margin: 0;
-  font-family: var(--font-bold, var(--font-display));
+  font-family: var(--font-bold);
   font-size: 1rem;
   font-weight: 600;
 }

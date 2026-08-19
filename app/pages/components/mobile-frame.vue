@@ -223,7 +223,7 @@ const sideBySideVue = `<div class="flex gap-6">
   margin-bottom: 0.875rem;
 }
 .mf-demo__stat-num {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 2.5rem;
   font-weight: 700;
   color: var(--brand-primary);

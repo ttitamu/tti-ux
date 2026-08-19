@@ -133,15 +133,15 @@ const recentScans = [
 
 const page = ref(1);
 
-// Right-rail activity feed. Mirrors the Snow Dashboard "Activities"
-// rail — recent events with a category icon, body, and relative
-// timestamp. Composed via TuxCard, not a new component.
+// Right-rail activity feed — TuxActivityTimeline in dense rail
+// posture (the canonical activity-rail component since 2026-08-19;
+// this rail used to be a hand-rolled TuxCard list).
 const activity = [
-  { id: "a1", icon: "lucide:check-circle-2", text: "Drift reconciler closed 412 stale entries.", when: "8 min ago", tone: "success" as const },
-  { id: "a2", icon: "lucide:alert-triangle", text: "Agent-04 heartbeat quiet for 6 min — investigating.", when: "12 min ago", tone: "warning" as const },
-  { id: "a3", icon: "lucide:scan-line",      text: "scan-7f5bd95a started: /movementlab/raw-corridor-feeds", when: "32 min ago", tone: "neutral" as const },
-  { id: "a4", icon: "lucide:tag",            text: "Classifier CLS-204 promoted to production.", when: "1 hr ago", tone: "neutral" as const },
-  { id: "a5", icon: "lucide:user-plus",      text: "M. Acosta added to /research/grants.", when: "3 hr ago", tone: "neutral" as const },
+  { id: "a1", time: "8 min ago", title: "Drift reconciler closed 412 stale entries.", tone: "success" as const },
+  { id: "a2", time: "12 min ago", title: "Agent-04 heartbeat quiet for 6 min — investigating.", tone: "warning" as const, current: true },
+  { id: "a3", time: "32 min ago", title: "scan-7f5bd95a started: /movementlab/raw-corridor-feeds" },
+  { id: "a4", time: "1 hr ago", title: "Classifier CLS-204 promoted to production." },
+  { id: "a5", time: "3 hr ago", title: "M. Acosta added to /research/grants." },
 ];
 
 // Active agents tile. Compact list with status dot + heartbeat
@@ -667,28 +667,7 @@ const studyCorridorEvents = [
       <div class="p-4 space-y-4">
         <TuxCard>
           <p class="eyebrow">Recent activity</p>
-          <ul class="mt-3 space-y-3">
-            <li
-              v-for="ev in activity"
-              :key="ev.id"
-              class="flex gap-2.5 text-sm"
-            >
-              <Icon
-                :name="ev.icon"
-                class="w-4 h-4 mt-0.5 flex-shrink-0"
-                :class="{
-                  'text-text-success': ev.tone === 'success',
-                  'text-text-warning': ev.tone === 'warning',
-                  'text-text-muted':   ev.tone === 'neutral',
-                }"
-                aria-hidden="true"
-              />
-              <div class="min-w-0">
-                <p class="text-text-primary leading-snug">{{ ev.text }}</p>
-                <p class="text-xs text-text-muted mt-0.5">{{ ev.when }}</p>
-              </div>
-            </li>
-          </ul>
+          <TuxActivityTimeline class="mt-3" :items="activity" dense />
         </TuxCard>
 
         <TuxCard>
@@ -737,7 +716,7 @@ const studyCorridorEvents = [
 .agent-dot {
   width: 0.5rem;
   height: 0.5rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: var(--text-muted);
   display: inline-block;
   flex-shrink: 0;

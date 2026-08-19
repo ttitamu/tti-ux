@@ -17,6 +17,7 @@ npm run dev
 | Component            | Wraps                    | Route                           |
 | -------------------- | ------------------------ | ------------------------------- |
 | `TuxAccordion`       | tux native               | `/components/accordion`         |
+| `TuxActivityTimeline`| tux native               | `/components/activity-timeline` |
 | `TuxAlert`           | `UAlert`                 | `/components/alert`             |
 | `TuxAlphaNav`        | tux native               | `/components/alpha-nav`         |
 | `TuxAnnouncementBanner` | tux native            | `/components/announcement-banner` |
@@ -175,6 +176,8 @@ npm run dev
 | `TuxChartDonut`      | tux native SVG           | `/visualizations/chart-donut`   |
 | `TuxChartScatter`    | tux native SVG           | `/visualizations/chart-scatter` |
 | `TuxChartGauge`      | tux native SVG           | `/visualizations/chart-gauge`   |
+| `TuxChartHeatmap`    | tux native SVG           | `/visualizations/chart-heatmap` |
+| `TuxChartHistogram`  | tux native SVG           | `/visualizations/chart-histogram` |
 
 ### Reports section
 
@@ -292,6 +295,9 @@ single most common failure mode.
 | **Texas-flavored map** (county choropleth, TxDOT districts, in-state dot density, OD flow arcs, AlbersUsa context) | `<TuxChartGeographic kind="…">` |
 | **Multi-metro inset grid** (4-up neighborhood drill-down — Houston / DFW / Austin / SAT) | `<TuxMetroInset>` |
 | **Two-ring radial breakdown** (sister to treemap; categorical part-to-whole with center total) | `<TuxChartSunburst>` |
+| **Time-of-day / matrix intensity** (crashes by day × hour, corridor demand by month, station uptime) | `<TuxChartHeatmap>` |
+| **Distribution of raw observations** (travel-time reliability, delay spread; p50/p95 planning-time pair) | `<TuxChartHistogram :percentiles="[50, 95]">` |
+| **Vertical event timeline** (project milestones, ingest/agent feed, session history) | `<TuxActivityTimeline>` |
 | **Editorial wrapper for a multi-exhibit visualizations page** (eyebrow + Oswald title + maroon signature + body + source) | `<TuxChartFrame>` |
 
 If your need isn't here, scan `/components` (or
@@ -300,6 +306,48 @@ catalog test enforces) — there are ~140 Tux\* components and this map
 only highlights the ones with the easiest-to-miss names.
 
 ## Conventions
+
+### Prop & emit vocabulary — the words and what they mean
+
+Ratified 2026-08-19 after a full-catalog vocabulary audit. `TuxBadge`
+and `TuxSkeleton` are the reference implementations. New components
+MUST use these words with these meanings; deviations listed below are
+grandfathered until the next major.
+
+| Word | Means | Value shape | Reference |
+|---|---|---|---|
+| `tone` | Semantic **color** | `info · success · warning · error · neutral` (semantic family) — or brand-paint (`maroon · gold · charcoal`) on marketing surfaces | `TuxBadge`, `TuxActivityTimeline` |
+| `kind` | Structural **preset** | named layout/content presets (`faq`, `first-run`, `tag`) | `TuxBadge`, `TuxSkeleton`, `TuxEmptyState` |
+| `variant` | Editorial **style** | `default · bold · elegant` (the section-style triad) — or a visual style set where the triad doesn't apply | `TuxBigStat`, `TuxCallout`, `TuxSkeleton` |
+| `intent` | **Action semantics** on interactive controls | `primary · secondary · ghost · destructive` | `TuxButton` |
+| `size` | **Scale** | t-shirt (`sm · md · lg`) for components; px number for chart canvases; paper (`letter · a4`) for report frames | `TuxAvatar`, charts |
+| `density` | Row/space **compactness** | `comfortable · compact` | `TuxDataTable`, `TuxRichDataGrid` |
+| `layout` | **Arrangement** | prefer `inline · stacked` (+ `grid · columns` where real) | `TuxDescriptionList` |
+| emit `hover` | Chart roving-cursor payload (`payload \| null`) | — | all interactive charts |
+| emit `select` | User picked an item | — | `TuxAlphaNav`, `TuxTree` |
+| emit `update:x` | v-model bridge only | — | everywhere |
+
+**Two meanings of `tone`, on purpose:** product surfaces use the
+semantic family (status colors); marketing/editorial surfaces
+(`TuxCTA`, `TuxCardSlab`, `TuxPhotoGrid`, …) use brand-paint values
+(`maroon · gold · charcoal`). Both are "which color is this thing" —
+that's the invariant. The brand-paint third slot is spelled
+**`charcoal`** going forward (not `navy`/`neutral`).
+
+**Known deviations, queued for the next major (do not copy):**
+`TuxFactoid.density` is a column count (should be `columns`);
+`TuxBetaRibbon.tone` holds presets (should be `kind`);
+`TuxTabs.intent`/`TuxChartGauge.intent` hold style/tone values;
+`TuxCodeMaroon.severity` and `TuxTestimonial.color` are `tone`;
+`TuxConfirmDialog` carries both `destructive` and `danger`;
+`TuxConversationList`/`TuxSuggestionChips` emit `pick` (should be
+`select`); `TuxCitations`/`TuxInlineCitation` emit `open` meaning
+select while `TuxCommandPalette` emits `open` meaning opened;
+`TuxStatComparison.layout` spells `stack` (should be `stacked`);
+`TuxResultCount` emits `update:page` where `TuxPagination` uses
+`update:modelValue`; `TuxRichTextEditor` emits a duplicate bare
+`update`. Each rename is breaking — they land together in v2.0.0
+with migration notes, not piecemeal.
 
 Composition standards for cases where a slot or prop combination
 shows up across multiple Tux\* components or consuming apps. Capturing
@@ -563,7 +611,10 @@ tooltip pattern, shipped 2026-05-22 (`TuxChartLine`, `TuxChartBar`,
    roving cursor (scatter points in x order; donut slices clockwise;
    sunburst segments in hierarchical order — group, then its
    children). Never make every data point a tab stop: a 500-point
-   scatter must not inject 500 tab stops. Treemap is the one
+   scatter must not inject 500 tab stops. Heatmap keeps the single
+   tab stop but its roving cursor is **two-dimensional** — Left/Right
+   walk columns, Up/Down walk rows — because collapsing a matrix to a
+   1-D walk would alias the axes. Treemap is the one
    exception — its cells are real drill-in *buttons* (`role="button"`,
    Enter/Space drills, Backspace drills up, arrows walk cells), so
    per-cell focus is the correct semantic.

@@ -262,6 +262,7 @@ const applied = computed<AppliedChip[]>(() => {
 .tux-filter-panel__facet-label { flex: 1; }
 
 .tux-filter-panel__facet-count {
+  font-variant-numeric: tabular-nums;
   display: inline-block;
   min-width: 1.25rem;
   padding: 0 0.375rem;

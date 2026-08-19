@@ -68,7 +68,7 @@ withDefaults(defineProps<Props>(), {
 <style scoped>
 .tux-figure-caption {
   margin: 1.5rem 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
 }
 
 .tux-figure-caption__content {

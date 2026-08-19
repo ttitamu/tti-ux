@@ -123,7 +123,7 @@ withDefaults(defineProps<Props>(), {
 
 <style scoped>
 .tux-lab {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
   border-top: 3px solid var(--brand-primary);
@@ -162,7 +162,7 @@ withDefaults(defineProps<Props>(), {
 .tux-lab__logo-wrap--initials {
   background: var(--brand-primary);
   color: var(--text-inverse, #fff);
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-display);
   font-size: 1.125rem;
   font-weight: 700;
 }
@@ -176,7 +176,7 @@ withDefaults(defineProps<Props>(), {
 }
 
 .tux-lab__name {
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-display);
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--text-primary);
@@ -223,7 +223,7 @@ withDefaults(defineProps<Props>(), {
 }
 
 .tux-lab__stat-value {
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-body);
   font-size: 1.375rem;
   font-weight: 700;
   color: var(--brand-primary);

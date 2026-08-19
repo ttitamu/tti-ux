@@ -281,7 +281,7 @@ const screenStyles = computed(() => ({
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: oklch(0.08 0.002 0);
   z-index: 2;
 }
@@ -295,7 +295,7 @@ const screenStyles = computed(() => ({
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   color: var(--text-primary);
   z-index: 3;
   pointer-events: none;

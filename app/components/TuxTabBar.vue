@@ -108,7 +108,7 @@ function isActive(item: TuxTabBarItem): boolean {
   height: 64px;
   padding-bottom: env(safe-area-inset-bottom);
   padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
-  font-family: var(--font-sans);
+  font-family: var(--font-bold);
 }
 
 .tux-tab-bar__tab {

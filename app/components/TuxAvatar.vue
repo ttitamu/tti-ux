@@ -86,7 +86,7 @@ const showPhoto = computed(() => !!props.photoUrl && !photoFailed.value);
 .tux-avatar {
   position: relative;
   flex-shrink: 0;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: var(--brand-primary);
   color: var(--text-inverse);
   font-weight: 700;
@@ -114,7 +114,7 @@ const showPhoto = computed(() => !!props.photoUrl && !photoFailed.value);
   bottom: 0;
   width: 27%;
   height: 27%;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   box-shadow: 0 0 0 2px var(--surface-raised);
 }
 .tux-avatar__dot--success { background: var(--color-success); }

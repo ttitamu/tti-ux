@@ -834,7 +834,7 @@ function onSearchInput(e: Event) {
 .tux-rich-data-grid__bulk-btn:hover { background: rgba(255, 255, 255, 0.22); }
 .tux-rich-data-grid__bulk-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--brand-primary), 0 0 0 4px #fff;
+  box-shadow: var(--shadow-focus);
 }
 .tux-rich-data-grid__bulk-btn--icon {
   padding-left: 0.5rem;

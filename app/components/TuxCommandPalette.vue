@@ -279,7 +279,7 @@ if (!props.disableHotkey) {
   background: var(--surface-raised);
   border: 2px solid var(--brand-primary);
   border-radius: var(--radius-md);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--elevation-overlay);
   display: flex;
   flex-direction: column;
   max-height: min(32rem, 90vh);

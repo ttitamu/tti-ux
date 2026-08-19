@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "Forms — all in one · TUX" });
+useHead({ title: "Forms · All in one · TUX" });
 
 const text = ref("");
 const password = ref("");

@@ -89,7 +89,7 @@ withDefaults(defineProps<Props>(), {
   border-radius: var(--radius-sm, 0.25rem);
   font-size: 0.75rem;
   line-height: 1.4;
-  box-shadow: 0 6px 20px -8px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--elevation-overlay);
 }
 
 .tux-tooltip__body {

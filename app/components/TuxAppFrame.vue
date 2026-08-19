@@ -294,7 +294,7 @@ onBeforeUnmount(() => {
 }
 
 .tux-app-frame__title {
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-display);
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-primary);
@@ -305,6 +305,7 @@ onBeforeUnmount(() => {
   height: 28px;
   padding-left: 78px; /* 12px (edge) + 3×(12+8) (lights+gaps) = 78px reserved */
   padding-right: 0.75rem;
+  /* Sanctioned four-family exception: simulates native OS window chrome. */
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
 }
 .tux-app-frame--mac.tux-app-frame--unified {
@@ -344,6 +345,7 @@ onBeforeUnmount(() => {
 .tux-app-frame--win {
   height: 32px;
   padding-right: 0;
+  /* Sanctioned four-family exception: simulates native OS window chrome. */
   font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
 }
 .tux-app-frame__controls--right {
@@ -374,6 +376,7 @@ onBeforeUnmount(() => {
 .tux-app-frame--linux {
   height: 32px;
   padding-right: 0;
+  /* Sanctioned four-family exception: simulates native OS window chrome. */
   font-family: Inter, "Ubuntu Sans", system-ui, sans-serif;
 }
 .tux-app-frame--linux .tux-win-control:first-child,

@@ -151,7 +151,7 @@ const hasCover = computed(
 
 .tux-report-web-frame__lede {
   margin: 0;
-  font-family: var(--font-elegant, Georgia, serif);
+  font-family: var(--font-elegant);
   font-size: clamp(1.0625rem, 0.9cqw + 0.875rem, 1.3125rem);
   line-height: 1.55;
   color: var(--text-secondary);
@@ -198,7 +198,7 @@ const hasCover = computed(
 
 .tux-report-web-frame__body :deep(h2) {
   margin: 2.25rem 0 0.75rem;
-  font-family: var(--font-bold, var(--font-display));
+  font-family: var(--font-bold);
   font-size: 1.625rem;
   line-height: 1.2;
   scroll-margin-top: 5rem;
@@ -206,7 +206,7 @@ const hasCover = computed(
 
 .tux-report-web-frame__body :deep(h3) {
   margin: 1.75rem 0 0.5rem;
-  font-family: var(--font-bold, var(--font-display));
+  font-family: var(--font-bold);
   font-size: 1.25rem;
   line-height: 1.25;
   scroll-margin-top: 5rem;

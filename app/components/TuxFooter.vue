@@ -351,7 +351,7 @@ function isInternal(href: string) {
 
 .tux-footer__tagline {
   margin: 0 0 0.5rem;
-  font-family: var(--font-elegant), serif;
+  font-family: var(--font-elegant);
   font-style: italic;
   font-size: 0.8125rem;
   color: var(--brand-accent);

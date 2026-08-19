@@ -95,7 +95,7 @@ function jumpToField(fieldId: string) {
   background: color-mix(in srgb, var(--status-error, #a33a3a) 6%, var(--surface-page));
   border-radius: var(--radius-sm);
   padding: 0.75rem 1rem;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
 }
 
 .tux-validation-summary--warning {
@@ -127,6 +127,7 @@ function jumpToField(fieldId: string) {
 }
 
 .tux-validation-summary__count {
+  font-variant-numeric: tabular-nums;
   font-size: 0.6875rem;
   color: var(--text-muted);
   font-family: var(--font-mono);

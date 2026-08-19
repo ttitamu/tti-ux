@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxVizRPlot · Visualizations · TUX" });
+useHead({ title: "TuxVizRPlot · TUX" });
 
 const svgVue = `<tux-viz-rplot
   kind="svg"

@@ -195,7 +195,7 @@ function formatSize(bytes: number): string {
 
 <style scoped>
 .tux-file-dropzone {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
@@ -319,6 +319,7 @@ function formatSize(bytes: number): string {
 }
 
 .tux-file-dropzone__file-size {
+  font-variant-numeric: tabular-nums;
   margin: 0;
   font-size: 0.6875rem;
   color: var(--text-muted);

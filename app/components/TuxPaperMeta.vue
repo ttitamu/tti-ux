@@ -98,7 +98,7 @@ function doiUrl(doi: string): string {
   display: grid;
   grid-template-columns: 7rem 1fr;
   gap: 0.375rem 1rem;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: 0.8125rem;
   margin: 1rem 0;
   padding: 0.75rem 0;

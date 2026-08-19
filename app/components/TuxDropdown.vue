@@ -310,7 +310,7 @@ const isTriggerActive = computed<boolean>(() => {
   border: 1px solid var(--surface-border);
   border-top: 2px solid var(--brand-primary);
   border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--elevation-hover);
   z-index: 10;
 }
 

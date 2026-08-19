@@ -198,6 +198,8 @@ provides equivalent chrome.
 | `TuxChartGeographic` | Shipped — Texas-flavored maps; 5 kinds (county / districts / states / dot / OD) |
 | `TuxChartSunburst` | Shipped — two-ring radial |
 | `TuxChartFrame` | Shipped — editorial wrapper |
+| `TuxChartHeatmap` | Shipped — matrix heatmap on the 5-stop sequential map ramps; equal-interval bins (`tuxQuantizeBin`); 2-D keyboard cursor; honest null cells |
+| `TuxChartHistogram` | Shipped — raw-sample distribution; nice 1/2/5 bin edges (`tuxBinEdges`); dashed gold percentile rules (`tuxQuantile`); normalize-to-share mode |
 | `TuxChartLine` | Roadmap Priority B — see §4, §5, §6 |
 | `TuxChartBar` | Roadmap Priority B — see §3, §5 |
 | `TuxChartArea` | Roadmap Priority B — see §7 |

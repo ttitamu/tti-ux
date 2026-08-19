@@ -279,7 +279,7 @@ const fillToneClass = computed(() => {
 <style scoped>
 .tux-chart-gauge {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -348,12 +348,13 @@ const fillToneClass = computed(() => {
 }
 
 .tux-chart-gauge__center-value {
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-body);
   font-size: 2rem;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
   line-height: 1.05;
+  font-variant-numeric: tabular-nums;
 }
 
 .tux-chart-gauge__center-units {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxSparkline · Visualizations · TUX" });
+useHead({ title: "TuxSparkline · TUX" });
 
 const grants = [62, 64, 61, 68, 71, 74, 73, 78, 82, 84];
 const crashes = [142, 138, 135, 131, 128, 124, 119, 117, 115, 112];

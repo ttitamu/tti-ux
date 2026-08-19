@@ -228,10 +228,10 @@ function cardComponent(card: SlabCard) {
 }
 
 .tux-card-slab__placeholder--maroon {
-  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-deep) 60%, #2A0E15 100%);
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-deep) 60%, var(--brand-accent-ink) 100%);
 }
 .tux-card-slab__placeholder--gold {
-  background: linear-gradient(135deg, var(--brand-accent) 0%, #A87B1F 100%);
+  background: linear-gradient(135deg, var(--brand-accent) 0%, var(--brand-accent-shade) 100%);
 }
 .tux-card-slab__placeholder--charcoal {
   background: linear-gradient(135deg, #4a4747 0%, #2a2727 100%);

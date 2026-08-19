@@ -103,7 +103,7 @@ const widthClass = computed(() => `tux-popover__panel--${props.width}`);
   flex-direction: column;
   gap: 0.625rem;
   padding: 0.75rem 0.875rem;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   color: var(--text-primary);
   background: var(--surface-raised);
 }

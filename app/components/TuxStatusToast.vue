@@ -109,7 +109,7 @@ const toneIcon: Record<string, string> = {
   background: var(--surface-raised);
   border: 1px solid var(--surface-border);
   border-left: 4px solid var(--toast-tone, var(--color-info));
-  box-shadow: var(--shadow-lg, 0 8px 24px rgb(0 0 0 / 0.12));
+  box-shadow: var(--elevation-overlay);
   color: var(--text-primary);
   font-family: var(--font-body);
 }
@@ -150,7 +150,7 @@ const toneIcon: Record<string, string> = {
   font-weight: 600;
   color: var(--brand-primary);
   padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm, 6px);
+  border-radius: var(--radius-sm);
 }
 .tux-status-toast__action:hover,
 .tux-status-toast__action:focus-visible {
@@ -161,7 +161,7 @@ const toneIcon: Record<string, string> = {
   flex-shrink: 0;
   display: inline-flex;
   padding: 0.25rem;
-  border-radius: var(--radius-sm, 6px);
+  border-radius: var(--radius-sm);
   color: var(--text-muted);
 }
 .tux-status-toast__dismiss:hover,
