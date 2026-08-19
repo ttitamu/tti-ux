@@ -11,6 +11,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 // @ts-expect-error — plain .mjs build script, no type declarations.
 import { generate } from "../scripts/build-framework-targets.mjs";
+// @ts-expect-error — plain .mjs build script, no type declarations.
+import { check as portsCheck } from "../scripts/ports-manifest.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const files: Map<string, string> = generate();
@@ -37,6 +39,13 @@ describe("committed kit targets ↔ generator", () => {
         expect(content, rel).not.toContain("var(");
       }
     }
+  });
+});
+
+describe("port ledger ↔ component census", () => {
+  it("kit/ports/manifest.json tracks exactly the shipped components", () => {
+    const { missing, ghosts } = portsCheck();
+    expect({ missing, ghosts }).toEqual({ missing: [], ghosts: [] });
   });
 });
 

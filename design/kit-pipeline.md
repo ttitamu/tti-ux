@@ -44,34 +44,43 @@ React `TuxCard`, a WPF chart family. These are *translations of
 behavior*, not derivations of data: slots, a11y contracts, keyboard
 models, container queries. No deterministic emitter can produce them.
 
-**How it should work (proposed architecture, not yet built):**
+**How it works (ratified 2026-08-19, first piece SHIPPED — owner
+decision: build on existing access only, no new BFF endpoints or
+tokens minted):**
 
-The estate already has the pieces. This repo's CI calls the **TTI AI
-BFF** (`/v1/review`) for the advisory PR panel — a multi-model
-superPOD debate with per-actor attribution — and tti-ai-studio /
-Landscape use the same debate-and-judge method interactively. The
-component-port pipeline composes those proven parts:
+The estate already has the judgment infrastructure: this repo's CI
+calls the **TTI AI BFF** (`/v1/review`) on every PR — a multi-model
+superPOD panel with per-actor attribution. So the pipeline doesn't
+need generation *access*; it needs drift *detection* and a PR for
+the panel to judge. That's cheap and deterministic:
 
-1. **Trigger:** a Forgejo Actions workflow watches merged changes
-   under `app/components/Tux*.vue` (path filter on push to main).
-2. **Generate:** for each changed component, call a BFF generation
-   endpoint with (a) the Vue source, (b) the target-framework port if
-   one exists, (c) the doctrine docs (components.md vocabulary,
-   chart-tooltip contract, four-family rule) as context. Multi-agent:
-   one generator per target framework, a critic panel debating the
-   draft (the ai-review method), a revision round.
-3. **Verify mechanically, not rhetorically:** the port must pass a
-   behavior-lock harness — the same prop/emit vocabulary (enforced
-   against the components.md table), rendered-output snapshots for
-   the deterministic parts, axe on the rendered port. Panels argue;
-   tests decide.
-4. **Deliver as a PR, never a direct publish.** The bot opens
-   `port/<component>-<framework>` with the generated code + its test
-   results; the normal gates run (baseline-security, ai-review,
-   lock tests). Auto-merge on all-green is a *policy dial* the owner
-   can turn later — start with human merge, earn the automation.
-5. **Publish:** merged ports ride the same tag train as everything
-   else. No separate publish path exists, on purpose.
+1. **Detect (SHIPPED — `ports-sync.yml` + `scripts/ports-manifest.mjs`):**
+   every merge to main touching `app/components/Tux*.vue` updates the
+   port ledger (`kit/ports/manifest.json`: source hash per component,
+   last-ported hash per target) and the human-readable
+   `kit/ports/QUEUE.md`, on a bot branch (`bots/ports-sync`), as a PR.
+   Auth reuses the job token (git push) and the existing ai-review
+   bot PAT (PR creation). `--check` mode runs in the test suite so a
+   component can't land without the ledger following it.
+2. **Judge with the bots we already have:** the bot PR flows through
+   the SAME gates as any human PR — baseline-security, the full test
+   suite, and the ai-review superPOD panel. When port code appears in
+   these PRs, the panel debates *that code* with zero pipeline
+   changes.
+3. **Generate — the slot the ledger feeds, in maturity order:**
+   (a) hand/session-authored ports working down QUEUE.md;
+   (b) a mechanical Vue→target scaffolder for the template+CSS-heavy
+   components (most of the catalog), output landing in the same bot
+   PR; (c) agent-authored ports if/when a generation endpoint ever
+   earns its keep. Each stage rides the identical PR shape, so
+   upgrading the generator never changes the pipeline contract.
+4. **Verify mechanically, not rhetorically:** ports must pass a
+   behavior-lock harness — prop/emit vocabulary conformance against
+   the components.md table, rendered-output snapshots, axe. Panels
+   argue; tests decide.
+5. **Deliver as a PR, never a direct publish; publish rides the tag
+   train.** Auto-merge on all-green is a *policy dial* the owner can
+   turn later — start with human merge, earn the automation.
 
 **Why the PR gate is load-bearing:** the deterministic tier can ship
 unreviewed because it cannot be wrong in new ways. Generated
@@ -82,9 +91,7 @@ automatic *generation*, automatic *verification*, automatic
 *delivery to a merge decision* — with the merge itself starting
 human and becoming automatic only when the harness has earned trust.
 
-**Prerequisites before building tier 2:**
-- A BFF generation endpoint (today's `/v1/review` reviews; ports need
-  a `/v1/generate`-shaped contract with repo-context upload).
+**Remaining prerequisites before ports themselves land:**
 - A React (first target) test harness in this repo or a sibling
   `tti-ux-react` repo — decide mono vs sibling before the first port.
 - The `PACKAGE_TOKEN` secret (already required for the tag train).

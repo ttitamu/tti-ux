@@ -1,0 +1,1229 @@
+{
+  "_note": "GENERATED ledger — scripts/ports-manifest.mjs. sourceHash = current Tux*.vue content hash; ports.<target>.hash = the source hash that port was last generated/verified against (null = never ported).",
+  "components": {
+    "TuxAbstract": {
+      "sourceHash": "b9dc86fc2b002b58",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxAccordion": {
+      "sourceHash": "0daf9b5aede78ccf",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxAcknowledgments": {
+      "sourceHash": "c702f2350632ed10",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxActivityTimeline": {
+      "sourceHash": "e59b58bf714bf1a0",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxAlert": {
+      "sourceHash": "92721441ba134fc3",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxAlphaNav": {
+      "sourceHash": "3c7e8f587107f2c3",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxAnnouncementBanner": {
+      "sourceHash": "78fdaf3db9cf7133",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxAppFrame": {
+      "sourceHash": "b3310ddb91ecfd8a",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxAppSwitcher": {
+      "sourceHash": "550767b5e211558b",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxArtifact": {
+      "sourceHash": "145e791ea9e651f4",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxAuthorByline": {
+      "sourceHash": "f443f3be0571bb98",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxAvatar": {
+      "sourceHash": "3a65f25fd729b453",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxBadge": {
+      "sourceHash": "b523d6cba026a631",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxBetaRibbon": {
+      "sourceHash": "60fd352c0c841d7e",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxBigStat": {
+      "sourceHash": "0d21e41b1defd388",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxBlockquote": {
+      "sourceHash": "fbe72d619e6246d7",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxBranchNav": {
+      "sourceHash": "e2f308195a5fa977",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxBreadcrumbs": {
+      "sourceHash": "102b109652e1a4e7",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxButton": {
+      "sourceHash": "4527bd63ea637175",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxCTA": {
+      "sourceHash": "e3bde2c79be124c0",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxCallout": {
+      "sourceHash": "55e2f40545476bf6",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxCaptionedMedia": {
+      "sourceHash": "31f2b82c68446b49",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxCard": {
+      "sourceHash": "2386a4ce680f97a4",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxCardCarousel": {
+      "sourceHash": "f8cbce0ddd75fbeb",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxCardSlab": {
+      "sourceHash": "283d4af5fd7276d6",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxCenterBadge": {
+      "sourceHash": "da4017887f7bc93d",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartArea": {
+      "sourceHash": "93d8b3b9359c6d1c",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartBar": {
+      "sourceHash": "2b24b8f4a49a2dc2",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartDonut": {
+      "sourceHash": "25d1abbe92c2e871",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartFrame": {
+      "sourceHash": "ab768386f6a627f1",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartGauge": {
+      "sourceHash": "8551b9e40fd4318a",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartGeoChoroplethLegend": {
+      "sourceHash": "d8936240bbff2bd8",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartGeoCounty": {
+      "sourceHash": "eb473049876f6dbc",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartGeoDistricts": {
+      "sourceHash": "d7a5045877987a27",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartGeoDotDensity": {
+      "sourceHash": "3354ff3123bafccb",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartGeoFlow": {
+      "sourceHash": "1d620e569d1aa190",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartGeoTitle": {
+      "sourceHash": "7758b870cc88a290",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartGeoUsContext": {
+      "sourceHash": "f67a293e4e656dfa",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartGeographic": {
+      "sourceHash": "846d8b94f1a538e8",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartHeatmap": {
+      "sourceHash": "8ad51db6ee89361c",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartHistogram": {
+      "sourceHash": "54d41a2921ea81fe",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartLine": {
+      "sourceHash": "57521547e36c3098",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartScatter": {
+      "sourceHash": "bb81390db73cadc3",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChartSunburst": {
+      "sourceHash": "2f945e823d14fc6c",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxChatMessage": {
+      "sourceHash": "633a7ade61d5553b",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxCitationExport": {
+      "sourceHash": "af20f591b76c387e",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxCitations": {
+      "sourceHash": "38f02f1ca5f418da",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxCodeBlock": {
+      "sourceHash": "65385cf04a7ed57e",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxCodeMaroon": {
+      "sourceHash": "83329ed65d552d6f",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxCommandPalette": {
+      "sourceHash": "545ac555082294d6",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxCommentThread": {
+      "sourceHash": "1d47415627c3b1db",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxComposer": {
+      "sourceHash": "9a060c230d0fb37b",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxConfirmDialog": {
+      "sourceHash": "5ced06d69ccfabdd",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxContactCard": {
+      "sourceHash": "459915a6f8504ade",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxContextMeter": {
+      "sourceHash": "193cb33255271938",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxContextPanel": {
+      "sourceHash": "18a02de72924d2a1",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxConversationList": {
+      "sourceHash": "95820302a1773c52",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxCookieConsent": {
+      "sourceHash": "603fb5cfff5f3aa1",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxCorridorStrip": {
+      "sourceHash": "c1d5401c0b58fcff",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxDataTable": {
+      "sourceHash": "f6eb3697f49a88b3",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxDescriptionList": {
+      "sourceHash": "441a6b8f18c2949a",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxDiagram": {
+      "sourceHash": "b4edc51387ceaadc",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxDocsSidebar": {
+      "sourceHash": "f9d25d5664a3afa0",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxDocsSidebarNode": {
+      "sourceHash": "380b2a654f3432a4",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxDropdown": {
+      "sourceHash": "411e98eab0a2ce55",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxEmptyState": {
+      "sourceHash": "445f24b0341ac3ab",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxErrorPage": {
+      "sourceHash": "fa766115ce639b46",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxExample": {
+      "sourceHash": "f70878303c317081",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxFAB": {
+      "sourceHash": "bcdf2623fad1a2bc",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxFactoid": {
+      "sourceHash": "350f4bd0d8dfac8a",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxFigureCaption": {
+      "sourceHash": "4c2fc730c00424a7",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxFileDropzone": {
+      "sourceHash": "1346c472514588ef",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxFilterPanel": {
+      "sourceHash": "928fbcd030d6f8d3",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxFocusView": {
+      "sourceHash": "1d12f801591ba084",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxFooter": {
+      "sourceHash": "bfca8475adc606e2",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxFootnote": {
+      "sourceHash": "4544984f4cdbf4f2",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxFormField": {
+      "sourceHash": "e496c95b1083e880",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxFundingSource": {
+      "sourceHash": "223cfe873d13c61e",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxIconFeature": {
+      "sourceHash": "c5d47d2be57ccd7d",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxIdentity": {
+      "sourceHash": "06cbc223fc8c0390",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxInfiniteScroll": {
+      "sourceHash": "8a5e00fa771308b5",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxInfoLabel": {
+      "sourceHash": "a8cb3f9d9fb1c0ea",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxInlineCitation": {
+      "sourceHash": "4e23f27a83b76542",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxKbd": {
+      "sourceHash": "b12f4c79a35ddc0b",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxLab": {
+      "sourceHash": "f886776dd6d253b8",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxLinkList": {
+      "sourceHash": "662441c00f4f91e9",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxLinkSlab": {
+      "sourceHash": "1e49f134af8e464e",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxLoadMore": {
+      "sourceHash": "24307c6dc7731a36",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxMapEmbed": {
+      "sourceHash": "bc631f53adae02fc",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxMapLegend": {
+      "sourceHash": "a01284af3b08bfc5",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxMapMarker": {
+      "sourceHash": "bea1ae56dbaecd8f",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxMarkdownEditor": {
+      "sourceHash": "19231cf7de01ad24",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxMcpEmbed": {
+      "sourceHash": "c6fa2bdf90ce340f",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxMediaSlab": {
+      "sourceHash": "fee9ffab9a0931ef",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxMegaMenu": {
+      "sourceHash": "0875506914838903",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxMenuBar": {
+      "sourceHash": "bdcd118353478226",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxMetroInset": {
+      "sourceHash": "9f73ee3c231fd639",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxMobileFrame": {
+      "sourceHash": "c2638cacac1b103d",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxModal": {
+      "sourceHash": "67ef9d68e7e8e39e",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxNewsCollection": {
+      "sourceHash": "e86e0555d753acbd",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxPageContainer": {
+      "sourceHash": "eab7e3dcdcd83c4a",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxPageHeader": {
+      "sourceHash": "51448b7d925c5962",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxPagination": {
+      "sourceHash": "a661cb9de9a743d7",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxPaperMeta": {
+      "sourceHash": "d2cce993e0903458",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxPhotoGrid": {
+      "sourceHash": "a2c957407213bf47",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxPopover": {
+      "sourceHash": "7628fc87b41b2bed",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxProgram": {
+      "sourceHash": "c2c72ce4ae53f171",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxProse": {
+      "sourceHash": "1817a252c6aeded4",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxQACollection": {
+      "sourceHash": "d5c6271baa16df30",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxRailNav": {
+      "sourceHash": "e7d4d3d50000e0f7",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxReactionBar": {
+      "sourceHash": "df163bba9232c00c",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxRemovableChip": {
+      "sourceHash": "b83f1c1a1142a968",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxReportFrame": {
+      "sourceHash": "8c028e7ac4ca7b1f",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxReportPrintSheet": {
+      "sourceHash": "924ba6cf99bf3dc5",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxReportWebFrame": {
+      "sourceHash": "878a0ac564649441",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxResearcher": {
+      "sourceHash": "c600efa8b7d17d3b",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxResultCount": {
+      "sourceHash": "a5a48ea868f03013",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxRichDataGrid": {
+      "sourceHash": "4827a1a6dee5fcc0",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxRichTextEditor": {
+      "sourceHash": "9e2d702066203abe",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxRuleBuilder": {
+      "sourceHash": "0f380495fec3491c",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxRuleBuilderGroup": {
+      "sourceHash": "33662e7d7738c31f",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxSearch": {
+      "sourceHash": "8c14424f8d874431",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxSectionHeader": {
+      "sourceHash": "ad27293e3f0ee8db",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxShortcutsHelp": {
+      "sourceHash": "1e18dbb6e4870d53",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxSidebarBlock": {
+      "sourceHash": "2345af43b1e88a37",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxSignupFeature": {
+      "sourceHash": "2f582f08bd6591c9",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxSiteNav": {
+      "sourceHash": "b7e29149cda74a2e",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxSkeleton": {
+      "sourceHash": "01c2ed3cd53de60a",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxSlideover": {
+      "sourceHash": "7895756bdc00e63f",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxSparkline": {
+      "sourceHash": "5cce26a828511e4f",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxSplashScreen": {
+      "sourceHash": "d6e1588f9e5e03a9",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxSplitPane": {
+      "sourceHash": "c7c6929088da9d95",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxStatComparison": {
+      "sourceHash": "c8416a73b8e1f727",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxStatusToast": {
+      "sourceHash": "13bd454896118cac",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxStepper": {
+      "sourceHash": "5b03dae4bad6ea91",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxSuggestionChips": {
+      "sourceHash": "6a7cd98481c2cfd3",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxTOC": {
+      "sourceHash": "89d41d50daabe1b1",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxTabBar": {
+      "sourceHash": "ad69ee4ca56b4053",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxTable": {
+      "sourceHash": "8b76aee9d40ae986",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxTableCaption": {
+      "sourceHash": "d9b4452c40a862c3",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxTabs": {
+      "sourceHash": "3c2c4531f39a42ab",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxTeachingPopover": {
+      "sourceHash": "10a2759311bcf3ae",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxTestimonial": {
+      "sourceHash": "9a19e07650ccdf6d",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxTooltip": {
+      "sourceHash": "ca74e5b4efc827c8",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxTree": {
+      "sourceHash": "1d82273290646267",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxTreeNode": {
+      "sourceHash": "f4ce6c46e3297cce",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxTreemap": {
+      "sourceHash": "7dbecfc00d942166",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxUserMenu": {
+      "sourceHash": "d416c80cc7bbdd8f",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxUtilityCluster": {
+      "sourceHash": "6a86ed446f270367",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxValidationSummary": {
+      "sourceHash": "9d628f64f2902331",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxVizEmbed": {
+      "sourceHash": "23e3dac3b0643d33",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxVizGrid": {
+      "sourceHash": "65888913ade7d279",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxVizRPlot": {
+      "sourceHash": "db14d27528903fb2",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    }
+  }
+}

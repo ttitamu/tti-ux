@@ -22,6 +22,16 @@ conventions and [Semantic Versioning](https://semver.org/).
   washes correctly compute over the teal anchor). Wired into
   `npm run build:kit`; `tests/tux-kit-targets.test.ts` locks the
   committed outputs to the generator and pins resolution semantics.
+- **Port-drift bot (tier 2, detection stage)** — `ports-sync.yml`
+  runs on every merge to main touching `Tux*.vue`: updates the port
+  ledger (`kit/ports/manifest.json`, 153 components tracked by
+  content hash) + `kit/ports/QUEUE.md`, pushes a bot branch, and
+  opens a PR that the existing gates — including the ai-review
+  superPOD panel — judge like any human PR. Built entirely on
+  existing access (job token + the ai-review bot PAT); no new BFF
+  endpoints or tokens (owner decision). The ledger's `--check` mode
+  runs in the test suite, so a component can't land without the
+  ledger following it.
 - **`design/kit-pipeline.md`** — the two-tier doctrine: tier 1
   (deterministic emitters, fully automatic, zero AI, publish on tag)
   vs tier 2 (component ports via the TTI AI BFF superPOD panel:
