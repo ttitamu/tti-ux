@@ -91,7 +91,7 @@ const headingTag = computed(() => `h${props.level}`);
 
 <style scoped>
 .tux-acknowledgments {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   margin: 2rem 0;
   padding: 1.25rem 0;
   border-top: 1px solid var(--surface-border);
@@ -112,7 +112,7 @@ const headingTag = computed(() => `h${props.level}`);
 }
 
 .tux-acknowledgments__heading {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;

@@ -620,7 +620,7 @@ function fitsSize(rect: Rect): boolean {
   border: 1px solid var(--brand-primary);
   border-radius: var(--radius-sm);
   padding: 0.5rem 0.75rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--elevation-overlay);
   max-width: 22rem;
   z-index: 10;
 }

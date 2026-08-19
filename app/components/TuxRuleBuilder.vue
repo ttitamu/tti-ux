@@ -147,7 +147,7 @@ function clear() {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   container-type: inline-size;
 }
 

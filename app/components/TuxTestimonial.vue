@@ -241,8 +241,8 @@ function initialFor(item: Testimonial): string {
   background: linear-gradient(135deg, #2E4A6B, #1A2E45);
 }
 .tux-testimonial__portrait--gold {
-  background: linear-gradient(135deg, var(--brand-accent), #A87B1F);
-  color: #2A0E15;
+  background: linear-gradient(135deg, var(--brand-accent), var(--brand-accent-shade));
+  color: var(--brand-accent-ink);
 }
 
 .tux-testimonial__portrait::after {

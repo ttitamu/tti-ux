@@ -59,9 +59,14 @@ function applyConfig(m: typeof import("mermaid").default, theme: "default" | "da
     // some so brand colors don't fully apply.
     theme: "base",
     themeVariables: {
-      // Type — Open Sans, sized smaller than Mermaid's default
-      // (16px) which dominates editorial body context.
-      fontFamily: '"Open Sans", "Helvetica Neue", Arial, sans-serif',
+      // Type — the body face (--font-body), sized smaller than
+      // Mermaid's default (16px) which dominates editorial body
+      // context. Read off the live token so the stack can't desync
+      // from tokens.css; literal fallback covers non-DOM contexts.
+      fontFamily:
+        (typeof document !== "undefined"
+          && getComputedStyle(document.documentElement).getPropertyValue("--font-body").trim())
+          || '"Open Sans", "Helvetica Neue", Arial, sans-serif',
       fontSize: "13px",
 
       // Primary nodes — white fill with maroon border keeps diagrams

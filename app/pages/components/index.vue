@@ -22,7 +22,7 @@ const components = tuxCatalog.map((e) => ({
     <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <TuxCard v-for="c in components" :key="c.name" :to="c.to">
         <p class="eyebrow">wraps {{ c.uses }}</p>
-        <h2 class="text-xl font-bold">{{ c.name }}</h2>
+        <h2 class="heading--bold text-xl font-bold">{{ c.name }}</h2>
         <p class="mt-2 text-sm text-text-secondary">{{ c.blurb }}</p>
       </TuxCard>
     </section>

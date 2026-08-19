@@ -104,11 +104,11 @@ const headingClass = computed(() => {
 
 .tux-cta--gold {
   background: var(--brand-accent);
-  color: #2A0E15;
+  color: var(--brand-accent-ink);
 }
 .tux-cta--gold .tux-cta__eyebrow,
 .tux-cta--gold .tux-cta__dek { color: rgba(42, 14, 21, 0.8); }
-.tux-cta--gold :deep(.tux-cta__title) { color: #2A0E15; }
+.tux-cta--gold :deep(.tux-cta__title) { color: var(--brand-accent-ink); }
 
 .tux-cta--neutral {
   background: var(--surface-sunken);

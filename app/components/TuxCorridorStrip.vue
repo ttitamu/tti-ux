@@ -236,7 +236,7 @@ const ariaSummary = computed(() => {
 <style scoped>
 .tux-corridor {
   margin: 1rem 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
 }
 
 .tux-corridor__header {
@@ -244,7 +244,7 @@ const ariaSummary = computed(() => {
 }
 
 .tux-corridor__name {
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);

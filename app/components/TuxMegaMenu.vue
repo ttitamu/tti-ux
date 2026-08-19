@@ -476,7 +476,7 @@ const isTriggerActive = computed<boolean>(() => {
   border: 1px solid var(--surface-border);
   border-top: 2px solid var(--brand-primary);
   border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--elevation-overlay);
 }
 
 @container tux-site-nav (min-width: 60rem) {

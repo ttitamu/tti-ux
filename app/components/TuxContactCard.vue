@@ -202,8 +202,8 @@ function contactHref(item: ContactItem): string | undefined {
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-deep));
 }
 .tux-contact-card__portrait--gold {
-  background: linear-gradient(135deg, var(--brand-accent), #A87B1F);
-  color: #2A0E15;
+  background: linear-gradient(135deg, var(--brand-accent), var(--brand-accent-shade));
+  color: var(--brand-accent-ink);
 }
 .tux-contact-card__portrait--navy {
   background: linear-gradient(135deg, #2E4A6B, #1A2E45);

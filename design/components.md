@@ -307,6 +307,48 @@ only highlights the ones with the easiest-to-miss names.
 
 ## Conventions
 
+### Prop & emit vocabulary — the words and what they mean
+
+Ratified 2026-08-19 after a full-catalog vocabulary audit. `TuxBadge`
+and `TuxSkeleton` are the reference implementations. New components
+MUST use these words with these meanings; deviations listed below are
+grandfathered until the next major.
+
+| Word | Means | Value shape | Reference |
+|---|---|---|---|
+| `tone` | Semantic **color** | `info · success · warning · error · neutral` (semantic family) — or brand-paint (`maroon · gold · charcoal`) on marketing surfaces | `TuxBadge`, `TuxActivityTimeline` |
+| `kind` | Structural **preset** | named layout/content presets (`faq`, `first-run`, `tag`) | `TuxBadge`, `TuxSkeleton`, `TuxEmptyState` |
+| `variant` | Editorial **style** | `default · bold · elegant` (the section-style triad) — or a visual style set where the triad doesn't apply | `TuxBigStat`, `TuxCallout`, `TuxSkeleton` |
+| `intent` | **Action semantics** on interactive controls | `primary · secondary · ghost · destructive` | `TuxButton` |
+| `size` | **Scale** | t-shirt (`sm · md · lg`) for components; px number for chart canvases; paper (`letter · a4`) for report frames | `TuxAvatar`, charts |
+| `density` | Row/space **compactness** | `comfortable · compact` | `TuxDataTable`, `TuxRichDataGrid` |
+| `layout` | **Arrangement** | prefer `inline · stacked` (+ `grid · columns` where real) | `TuxDescriptionList` |
+| emit `hover` | Chart roving-cursor payload (`payload \| null`) | — | all interactive charts |
+| emit `select` | User picked an item | — | `TuxAlphaNav`, `TuxTree` |
+| emit `update:x` | v-model bridge only | — | everywhere |
+
+**Two meanings of `tone`, on purpose:** product surfaces use the
+semantic family (status colors); marketing/editorial surfaces
+(`TuxCTA`, `TuxCardSlab`, `TuxPhotoGrid`, …) use brand-paint values
+(`maroon · gold · charcoal`). Both are "which color is this thing" —
+that's the invariant. The brand-paint third slot is spelled
+**`charcoal`** going forward (not `navy`/`neutral`).
+
+**Known deviations, queued for the next major (do not copy):**
+`TuxFactoid.density` is a column count (should be `columns`);
+`TuxBetaRibbon.tone` holds presets (should be `kind`);
+`TuxTabs.intent`/`TuxChartGauge.intent` hold style/tone values;
+`TuxCodeMaroon.severity` and `TuxTestimonial.color` are `tone`;
+`TuxConfirmDialog` carries both `destructive` and `danger`;
+`TuxConversationList`/`TuxSuggestionChips` emit `pick` (should be
+`select`); `TuxCitations`/`TuxInlineCitation` emit `open` meaning
+select while `TuxCommandPalette` emits `open` meaning opened;
+`TuxStatComparison.layout` spells `stack` (should be `stacked`);
+`TuxResultCount` emits `update:page` where `TuxPagination` uses
+`update:modelValue`; `TuxRichTextEditor` emits a duplicate bare
+`update`. Each rename is breaking — they land together in v2.0.0
+with migration notes, not piecemeal.
+
 Composition standards for cases where a slot or prop combination
 shows up across multiple Tux\* components or consuming apps. Capturing
 them here keeps consumers from inventing different icons or labels for

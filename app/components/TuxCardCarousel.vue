@@ -231,7 +231,7 @@ const carouselItems = computed(() => props.items as unknown as never[]);
 .tux-card-carousel__rail :deep(.tux-card-carousel__dot) {
   width: 0.5rem;
   height: 0.5rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: var(--surface-border);
   border: none;
   cursor: pointer;

@@ -118,7 +118,7 @@ const describedBy = computed(() => {
 
 <style scoped>
 .tux-form-field {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   display: flex;
   flex-direction: column;
   gap: 0.375rem;

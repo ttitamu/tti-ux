@@ -77,7 +77,7 @@ setting `data-theme` on `<html>`.
 | Theme         | Anchor             | Accent          | Notes                                                      |
 | ------------- | ------------------ | --------------- | ---------------------------------------------------------- |
 | `tti`         | maroon `#5C0025`   | gold `#DDAC37`  | Default light theme. AAA-verified contrast.                 |
-| `tti-dark`    | rose `#e795a8`     | gold            | Warm-charcoal dark theme. AAA-verified contrast.            |
+| `tti-dark`    | teal `#6BB4C0`     | gold            | Warm-charcoal dark theme; lifted TTI teal anchors (lightened maroon reads pink on dark — see tokens.json rationale; maroon presence stays via `brand.fill` + chart-1 wine). AAA-verified contrast. |
 | `tti-hc`      | dark-red `#500000` | gold `#DCAA37`  | High-contrast variant. AAA across the board.                |
 | `tamu`        | maroon `#500000`   | white / gray    | Texas A&M University primary *(placeholder, unverified)*   |
 | `pvamu`       | purple `#500778`   | gold `#FFD700`  | Prairie View A&M *(placeholder, unverified)*               |

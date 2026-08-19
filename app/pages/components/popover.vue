@@ -167,7 +167,7 @@ const richVue = `<tux-popover title="Filter by segment" width="lg">
 .popover-demo__trigger {
   padding: 0.375rem 0.75rem;
   font-size: 0.875rem;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   background: var(--surface-sunken);
   border: 1px solid var(--surface-border);
   border-radius: 0.375rem;
@@ -182,10 +182,10 @@ const richVue = `<tux-popover title="Filter by segment" width="lg">
 .popover-demo__info-anchor {
   width: 1.25rem;
   height: 1.25rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--brand-primary) 14%, transparent);
   color: var(--brand-primary);
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: 0.75rem;
   font-weight: 600;
   font-style: italic;

@@ -228,8 +228,8 @@ function linkProps(item: NewsItem) {
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-deep));
 }
 .tux-news__thumb-placeholder--gold {
-  background: linear-gradient(135deg, var(--brand-accent), #A87B1F);
-  color: #2A0E15;
+  background: linear-gradient(135deg, var(--brand-accent), var(--brand-accent-shade));
+  color: var(--brand-accent-ink);
 }
 .tux-news__thumb-placeholder--charcoal {
   background: linear-gradient(135deg, #3a3a3a, #1f1f1f);

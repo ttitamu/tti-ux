@@ -94,7 +94,7 @@ withDefaults(defineProps<Props>(), {
 
 <style scoped>
 .tux-program {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
@@ -125,7 +125,7 @@ withDefaults(defineProps<Props>(), {
 }
 
 .tux-program__title {
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-primary);
@@ -184,7 +184,7 @@ withDefaults(defineProps<Props>(), {
 }
 
 .tux-program__metric-value {
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-body);
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--brand-primary);
@@ -244,7 +244,7 @@ withDefaults(defineProps<Props>(), {
 }
 
 .tux-program__hero-title {
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-display);
   font-size: 1.75rem;
   font-weight: 800;
   margin: 0;

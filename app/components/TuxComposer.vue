@@ -246,6 +246,7 @@ function onKey(e: KeyboardEvent) {
 }
 
 .tux-composer__count {
+  font-variant-numeric: tabular-nums;
   font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--text-muted);

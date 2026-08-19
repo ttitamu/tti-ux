@@ -44,6 +44,8 @@
   --brand-accent-deep: var(--tti-gold-deep);
   --brand-secondary: var(--tti-navy);
   --brand-fill: var(--tti-maroon);
+  --brand-accent-ink: #2A0E15;
+  --brand-accent-shade: #A87B1F;
   --surface-page: var(--neutral-0);
   --surface-raised: var(--neutral-0);
   --surface-sunken: var(--neutral-100);
@@ -64,7 +66,7 @@
   --font-display: "Oswald", "Helvetica Neue Condensed", "Impact", "Arial Narrow", sans-serif;
   --font-bold: "Work Sans", "Helvetica Neue", Arial, sans-serif;
   --font-elegant: Georgia, "Times New Roman", Times, serif;
-  --font-sans: "Public Sans", "Franklin Gothic ATF", "Franklin Gothic", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Open Sans", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --tracking-tight: -0.01em;
   --tracking-normal: 0;
@@ -86,6 +88,7 @@
   --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
+  --radius-full: 9999px;
   --motion-fast: 0.15s;
   --motion-base: 0.25s;
   --motion-slow: 0.35s;

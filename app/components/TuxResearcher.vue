@@ -150,7 +150,7 @@ function orcidUrl(orcid: string): string {
 
 <style scoped>
 .tux-researcher {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
@@ -178,7 +178,7 @@ function orcidUrl(orcid: string): string {
   font-weight: 700;
   color: var(--brand-primary);
   background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-sunken));
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-display);
 }
 
 .tux-researcher__body {
@@ -194,7 +194,7 @@ function orcidUrl(orcid: string): string {
 }
 
 .tux-researcher__name {
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-display);
   font-size: 1.0625rem;
   font-weight: 700;
   color: var(--text-primary);
@@ -234,7 +234,7 @@ function orcidUrl(orcid: string): string {
 }
 
 .tux-researcher__metric-value {
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-body);
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--brand-primary);
@@ -342,7 +342,7 @@ function orcidUrl(orcid: string): string {
 
 .tux-researcher--inline .tux-researcher__name {
   font-size: 0.875rem;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
 }
 
 .tux-researcher--inline .tux-researcher__role {

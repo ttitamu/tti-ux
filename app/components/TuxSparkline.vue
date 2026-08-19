@@ -213,6 +213,7 @@ const arrowIcon = computed(() => {
 }
 
 .tux-sparkline__delta {
+  font-variant-numeric: tabular-nums;
   display: inline-flex;
   align-items: center;
   gap: 0.1875rem;

@@ -185,7 +185,7 @@ function fmt(n: number) {
   margin: 0;
 }
 .tux-stat-comparison__value {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 2.5rem;
   font-weight: 600;
   letter-spacing: -0.015em;
@@ -203,7 +203,7 @@ function fmt(n: number) {
   align-items: center;
   gap: 0.25rem;
   padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   font-family: var(--font-mono);
   font-size: 0.875rem;
   font-weight: 600;

@@ -120,6 +120,7 @@ function handleClick(e: MouseEvent, item: Citation, index: number) {
 }
 
 .tux-citations__score {
+  font-variant-numeric: tabular-nums;
   font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--text-muted);

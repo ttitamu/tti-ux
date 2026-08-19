@@ -373,7 +373,7 @@ const tooltipAnchorPercent = computed(() => {
 .tux-chart-histogram {
   margin: 0;
   position: relative;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
 }
 
 .tux-chart-histogram__svg {
@@ -417,6 +417,7 @@ const tooltipAnchorPercent = computed(() => {
 }
 
 .tux-chart-histogram__percentile-flag {
+  font-family: var(--font-mono);
   fill: var(--text-primary);
   font-size: 10px;
   font-weight: 700;
@@ -446,8 +447,8 @@ const tooltipAnchorPercent = computed(() => {
   padding: 0.5rem 0.625rem;
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm, 4px);
-  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--elevation-overlay);
   font-size: 0.75rem;
   pointer-events: none;
 }
@@ -457,6 +458,7 @@ const tooltipAnchorPercent = computed(() => {
 }
 
 .tux-chart-histogram__tooltip-label {
+  font-family: var(--font-mono);
   font-weight: 600;
   margin: 0 0 0.125rem 0;
   color: var(--text-primary);
@@ -472,13 +474,13 @@ const tooltipAnchorPercent = computed(() => {
 }
 
 .tux-chart-histogram__tooltip-units {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-weight: 400;
   color: var(--text-muted);
 }
 
 .tux-chart-histogram__tooltip-share {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-weight: 400;
   color: var(--text-muted);
   margin-left: 0.25rem;

@@ -139,14 +139,6 @@ function cellClass(v: number | null): string {
   return `tux-chart-heatmap__cell tux-chart-heatmap__cell--s${stop}`;
 }
 
-/** Dark ramp stops get light in-cell text; light stops get dark. */
-function cellLabelClass(v: number): string {
-  const stop = RAMP_STOPS[props.bins]![cellBin(v)]!;
-  return stop >= 4
-    ? "tux-chart-heatmap__cell-label tux-chart-heatmap__cell-label--light"
-    : "tux-chart-heatmap__cell-label";
-}
-
 function cellRect(rowIdx: number, colIdx: number): { x: number; y: number; w: number; h: number } {
   // 1px gutter between cells so the matrix reads as cells, not a
   // continuous field (the choropleth-legend convention).
@@ -329,7 +321,7 @@ const tooltipTopPercent = computed(() => {
               :x="r2(cellRect(r, c).x + cellRect(r, c).w / 2)"
               :y="r2(cellRect(r, c).y + cellRect(r, c).h / 2 + 3.5)"
               text-anchor="middle"
-              :class="cellLabelClass(v)"
+              class="tux-chart-heatmap__cell-label"
             >
               {{ format(v) }}
             </text>
@@ -435,7 +427,7 @@ const tooltipTopPercent = computed(() => {
 .tux-chart-heatmap {
   margin: 0;
   position: relative;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
 }
 
 .tux-chart-heatmap__svg {
@@ -481,15 +473,18 @@ const tooltipTopPercent = computed(() => {
 }
 
 .tux-chart-heatmap__cell-label {
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   fill: var(--text-primary);
+  /* Page-surface halo keeps the numeral legible on every ramp stop in
+     every theme — the dark theme reverses ramp luminance, so any
+     stop-indexed ink split would invert there. */
+  stroke: var(--surface-page);
+  stroke-width: 2.5;
+  paint-order: stroke;
   pointer-events: none;
-}
-
-.tux-chart-heatmap__cell-label--light {
-  fill: #fff;
 }
 
 .tux-chart-heatmap__row-labels text,
@@ -524,8 +519,8 @@ const tooltipTopPercent = computed(() => {
   padding: 0.5rem 0.625rem;
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm, 4px);
-  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--elevation-overlay);
   font-size: 0.75rem;
   pointer-events: none;
 }
@@ -549,7 +544,7 @@ const tooltipTopPercent = computed(() => {
 }
 
 .tux-chart-heatmap__tooltip-units {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-weight: 400;
   color: var(--text-muted);
 }
@@ -585,6 +580,7 @@ const tooltipTopPercent = computed(() => {
 }
 
 .tux-chart-heatmap__legend-range {
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 

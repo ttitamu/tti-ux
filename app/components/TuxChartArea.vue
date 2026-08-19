@@ -460,7 +460,7 @@ function focusY(seriesIdx: number, idx: number): number {
 <style scoped>
 .tux-chart-area {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
 }
 
 .tux-chart-area__svg {
@@ -565,8 +565,8 @@ function focusY(seriesIdx: number, idx: number): number {
   padding: 0.5rem 0.625rem;
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm, 4px);
-  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--elevation-overlay);
   font-size: 0.75rem;
   pointer-events: none;
   transform: translateX(0);

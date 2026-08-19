@@ -554,7 +554,7 @@ function isPlainLinkActive(item: { to?: string; href?: string }): boolean {
     padding: 0.5rem 1.5rem 1rem;
     flex-direction: column;
     align-items: stretch;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--elevation-hover);
     display: none;
   }
 

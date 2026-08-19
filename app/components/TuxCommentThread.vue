@@ -338,7 +338,7 @@ function cancelEdit() {
   gap: 0.375rem;
   font-size: 0.75rem;
   color: var(--text-muted);
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
 }
 .tux-comment-thread__status-icon {
   width: 0.875rem;
@@ -363,13 +363,13 @@ function cancelEdit() {
 .tux-comment__avatar {
   width: 2rem;
   height: 2rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
   color: var(--brand-primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: 0.75rem;
   font-weight: 600;
   overflow: hidden;
@@ -390,7 +390,7 @@ function cancelEdit() {
   flex-wrap: wrap;
   font-size: 0.75rem;
   color: var(--text-muted);
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
 }
 .tux-comment__author {
   color: var(--text-primary);
@@ -431,7 +431,7 @@ function cancelEdit() {
   border: none;
   padding: 0;
   font-size: 0.75rem;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   color: var(--text-muted);
   cursor: pointer;
   display: inline-flex;
@@ -461,7 +461,7 @@ function cancelEdit() {
 
 .tux-comment__textarea {
   width: 100%;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: 0.875rem;
   line-height: 1.5;
   color: var(--text-primary);
@@ -480,7 +480,7 @@ function cancelEdit() {
   border: 1px solid var(--surface-border);
   border-radius: 0.375rem;
   padding: 0.3125rem 0.75rem;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: 0.75rem;
   color: var(--text-primary);
   cursor: pointer;
@@ -528,7 +528,7 @@ function cancelEdit() {
   background: transparent;
   border: none;
   padding: 0.25rem 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: 0.75rem;
   color: var(--text-muted);
   cursor: pointer;

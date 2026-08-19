@@ -130,7 +130,7 @@ const surfaceStyle = computed(() => {
 <style scoped>
 .tux-map-embed {
   margin: 1.5rem 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
 }
 
 .tux-map-embed__header {
@@ -138,7 +138,7 @@ const surfaceStyle = computed(() => {
 }
 
 .tux-map-embed__title {
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-primary);

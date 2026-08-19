@@ -116,7 +116,7 @@ const ariaBusy = computed(() => (showSplash.value ? "true" : "false"));
 }
 
 .tux-splash-screen__wordmark {
-  font-family: var(--font-display, var(--font-sans));
+  font-family: var(--font-display);
   font-size: 3rem;
   font-weight: 800;
   color: var(--brand-primary);
@@ -126,7 +126,7 @@ const ariaBusy = computed(() => (showSplash.value ? "true" : "false"));
 }
 
 .tux-splash-screen__subwordmark {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: 0.875rem;
   color: var(--text-secondary);
   letter-spacing: 0.02em;
@@ -142,7 +142,7 @@ const ariaBusy = computed(() => (showSplash.value ? "true" : "false"));
 }
 
 .tux-splash-screen__status {
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   font-size: 0.875rem;
   color: var(--text-muted);
   margin: 0;

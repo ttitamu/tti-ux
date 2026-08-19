@@ -201,7 +201,7 @@ const menuItems = computed(() => {
 
 <style scoped>
 .tux-user-menu__skeleton {
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 .tux-user-menu__skeleton--cluster {
@@ -237,7 +237,7 @@ const menuItems = computed(() => {
   border: 0;
   background: transparent;
   cursor: pointer;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   padding: 0;
   transition: background var(--motion-fast) var(--ease-survey);
 }

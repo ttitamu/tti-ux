@@ -68,7 +68,7 @@ const Wrapper = computed(() => (props.to ? "a" : "div"));
 .tux-funding-source {
   display: inline-flex;
   align-items: center;
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
   border: 1px solid var(--surface-border);
   background: var(--surface-page);
   border-radius: var(--radius-sm);

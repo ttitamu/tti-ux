@@ -166,7 +166,7 @@ withDefaults(defineProps<Props>(), {
 .tux-activity-timeline__marker-icon {
   width: 14px;
   height: 14px;
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 /* The gold ring — "you are here." One per feed. */

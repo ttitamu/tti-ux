@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useHead({ title: "TuxVizGrid · Visualizations · TUX" });
+useHead({ title: "TuxVizGrid · TUX" });
 
 const twoUpVue = `<tux-viz-grid
   cols="2"

@@ -182,7 +182,7 @@ function onSecondary() {
   background: var(--surface-raised);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
-  box-shadow: 0 18px 50px -10px rgba(0,0,0,0.18), 0 4px 10px -2px rgba(0,0,0,0.08);
+  box-shadow: var(--elevation-overlay);
   font-family: var(--font-body);
   overflow: hidden;
 }

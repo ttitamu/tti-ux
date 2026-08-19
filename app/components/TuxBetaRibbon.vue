@@ -160,7 +160,7 @@ const resolvedMessage = computed(() => props.message ?? defaultMessage[props.ton
   letter-spacing: 0.08em;
   background: var(--tux-beta-bg);
   color: var(--tux-beta-fg);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--elevation-rest);
 }
 
 .tux-beta-corner--top-right .tux-beta-corner__band {
