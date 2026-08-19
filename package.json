@@ -45,7 +45,8 @@
     "test": "vitest run",
     "build:brand-env": "node scripts/extract-brand.mjs",
     "build:powerbi": "node scripts/build-powerbi-theme.mjs",
-    "build:kit": "npm run build:tokens && npm run build:brand-env && npm run build:powerbi"
+    "build:kit": "npm run build:tokens && npm run build:brand-env && npm run build:powerbi && npm run build:framework",
+    "build:framework": "node scripts/build-framework-targets.mjs"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.102",

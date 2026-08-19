@@ -101,7 +101,7 @@ function group(obj, prefix) {
 // Build per-selector declaration lists from tokens.json
 // ---------------------------------------------------------------------------
 
-function buildSelectors(tokens) {
+export function buildSelectors(tokens) {
   const sel = { tti: [], "tti-dark": [], "tti-hc": [] };
 
   // ---- :root / tti -------------------------------------------------------
@@ -396,7 +396,7 @@ function extract() {
 // Main
 // ---------------------------------------------------------------------------
 
-function readTokens() {
+export function readTokens() {
   return JSON.parse(fs.readFileSync(TOKENS_JSON, "utf8"));
 }
 
@@ -443,7 +443,12 @@ function write() {
   );
 }
 
-const mode = process.argv[2];
-if (mode === "--check") check();
-else if (mode === "--extract") extract();
-else write();
+// CLI entry — guarded so build-framework-targets.mjs can import
+// readTokens/buildSelectors without triggering a write.
+import { pathToFileURL } from "node:url";
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const mode = process.argv[2];
+  if (mode === "--check") check();
+  else if (mode === "--extract") extract();
+  else write();
+}

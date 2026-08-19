@@ -5,6 +5,29 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — framework targets, tier 1 (2026-08-19)
+
+- **`kit/csharp/TuxTokens.cs`** — resolved token literals for .NET
+  consumers: one static class per theme (`Tti` / `TtiDark` / `TtiHc`)
+  with PascalCased consts + an `All` dictionary for dynamic lookup.
+- **`kit/react/tux-tokens.ts`** — per-theme resolved token maps for
+  React/TS apps outside the Nuxt layer, plus `tuxVar()` for the
+  CSS-custom-property spelling when the CSS kit is loaded.
+- **`kit/wp/theme.json`** — WordPress block-theme settings (v3):
+  29-entry TUX palette, the four families + mono as fontFamilies,
+  radius/wash/rhythm under `settings.custom.tux`.
+- All three come from `scripts/build-framework-targets.mjs`, which
+  shares `build-tokens.mjs`'s selector builder and **resolves** var()
+  chains, aliases, and wash `color-mix` to literals per theme (dark
+  washes correctly compute over the teal anchor). Wired into
+  `npm run build:kit`; `tests/tux-kit-targets.test.ts` locks the
+  committed outputs to the generator and pins resolution semantics.
+- **`design/kit-pipeline.md`** — the two-tier doctrine: tier 1
+  (deterministic emitters, fully automatic, zero AI, publish on tag)
+  vs tier 2 (component ports via the TTI AI BFF superPOD panel:
+  automatic generation + mechanical verification + PR-gated
+  delivery; proposed architecture documented, not yet built).
+
 
 ## [2.0.0] — 2026-08-19
 

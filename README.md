@@ -199,6 +199,24 @@ and access to
 the markdown rendering pipeline (`@nuxtjs/mdc` with Shiki syntax
 highlighting + KaTeX math).
 
+### Non-Nuxt consumers — the kit targets
+
+The package also ships resolved-token targets for platforms that
+can't run the layer (see `design/kit-pipeline.md` for the doctrine):
+
+| Target | File in the package | For |
+|---|---|---|
+| CSS custom properties | `kit/css/tux-tokens.css` | any web page |
+| SCSS (Bootstrap) | `kit/scss/_tux-bootstrap.scss` | Bootstrap recompiles |
+| C# | `kit/csharp/TuxTokens.cs` | WPF / MAUI / Blazor / report generators |
+| React / TS | `kit/react/tux-tokens.ts` | React apps outside Nuxt |
+| WordPress | `kit/wp/theme.json` | block-theme marcom sites |
+| Power BI | `kit/powerbi/tti-theme*.json` | report theming |
+| env | `kit/env/brand.env` | build-time brand injection |
+
+All are generated from `design/tokens.json` and locked to it by CI —
+a token change propagates to every target in the next release.
+
 ### Guardrails for consumers
 
 The design-system audits ship with the package. The one every consumer
