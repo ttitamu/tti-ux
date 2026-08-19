@@ -10,11 +10,14 @@
 # repo as-tagged. Generated artifacts (kit/css, kit/scss) are committed
 # by `npm run build:kit` before release — publishing never regenerates.
 #
-# Auth: prefers the repo secret PACKAGE_TOKEN (a token with
-# package:write, survives job-token permission tightening); falls back
-# to the workflow's automatic token, which on this Forgejo has
-# package write for the repo owner. House security idiom applies:
-# values reach the shell through env:, never ${{ }} inside run:.
+# Auth: REQUIRES the repo secret PACKAGE_TOKEN — a user access token
+# with package:write. The workflow's automatic job token was tried
+# first (v2.0.0 run 523) and the registry rejected it with ENEEDAUTH,
+# so the job-token fallback exists only to produce a clear error
+# message, not as a working path. v2.0.0 itself was published
+# manually with an owner token; every later tag publishes here.
+# House security idiom applies: values reach the shell through env:,
+# never ${{ }} inside run:.
 name: publish-package
 on:
   push:
@@ -59,12 +62,24 @@ jobs:
           set -eu
           command -v npm >/dev/null 2>&1 || {
             echo "::error::npm not on runner image — install Node on the A1 runner or switch runs-on"; exit 1; }
-          HOST=$(printf '%s' "$SERVER_URL" | sed 's#https://##')
-          TOKEN="${PACKAGE_TOKEN:-$JOB_TOKEN}"
-          # Scope → registry mapping + auth, kept out of the repo tree.
-          printf '@tti:registry=%s/api/packages/tti/npm/\n//%s/api/packages/tti/npm/:_authToken=%s\n' \
-            "$SERVER_URL" "$HOST" "$TOKEN" > "$HOME/.npmrc"
-          # --ignore-scripts: postinstall (nuxt prepare) is for consumers,
-          # not the publish pack; nothing here needs lifecycle hooks.
-          npm publish --ignore-scripts
-          echo "published @tti/tti-ux@${GITHUB_REF_NAME#v} to $SERVER_URL/api/packages/tti/npm/"
+          if [ -z "${PACKAGE_TOKEN:-}" ]; then
+            echo "::error::PACKAGE_TOKEN secret missing. The automatic job token cannot write packages (ENEEDAUTH, run 523). Add a repo Actions secret PACKAGE_TOKEN containing a user token with package:write, then re-run."
+            exit 1
+          fi
+          # On the runner, github.server_url resolves to the INTERNAL
+          # address (host.containers.internal:PORT), not the public
+          # hostname — publish through it, and write auth for both
+          # hosts so publishConfig's public URL also resolves.
+          REG="$SERVER_URL/api/packages/tti/npm/"
+          RUNNER_HOST=$(printf '%s' "$SERVER_URL" | sed 's#^https\{0,1\}://##')
+          {
+            printf '@tti:registry=%s\n' "$REG"
+            printf '//%s/api/packages/tti/npm/:_authToken=%s\n' "$RUNNER_HOST" "$PACKAGE_TOKEN"
+            printf '//code.tti.tamu.edu/api/packages/tti/npm/:_authToken=%s\n' "$PACKAGE_TOKEN"
+          } > "$HOME/.npmrc"
+          # --registry beats publishConfig (which pins the public URL,
+          # unreachable as-such from inside the runner network).
+          # --ignore-scripts: postinstall (nuxt prepare) is for
+          # consumers, not the publish pack.
+          npm publish --ignore-scripts --registry "$REG"
+          echo "published @tti/tti-ux@${GITHUB_REF_NAME#v} via $REG"
