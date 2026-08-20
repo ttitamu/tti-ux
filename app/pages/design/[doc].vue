@@ -39,6 +39,7 @@ const titles: Record<string, string> = {
   "platform-awareness": "Platform awareness doctrine",
   "tauri-bindings":    "Tauri bindings reference",
   "visual-language-evolution": "Visual language evolution",
+  "kit-pipeline":      "Kit pipeline — framework targets",
 };
 
 function titleFor(slug: string): string {

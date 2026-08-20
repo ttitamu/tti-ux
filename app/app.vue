@@ -56,6 +56,7 @@ const navTree = [
       { label: "Platform awareness", to: "/design/platform-awareness", icon: "lucide:monitor-smartphone" },
       { label: "Tauri bindings", to: "/design/tauri-bindings",    icon: "lucide:app-window" },
       { label: "Visual language", to: "/design/visual-language-evolution", icon: "lucide:eye" },
+      { label: "Kit pipeline", to: "/design/kit-pipeline",       icon: "lucide:package" },
     ],
   },
   {

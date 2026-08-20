@@ -1,0 +1,213 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/theme.json",
+  "version": 3,
+  "_generated": "GENERATED FILE — do not edit. Source: design/tokens.json via scripts/build-framework-targets.mjs (npm run build:framework).",
+  "settings": {
+    "color": {
+      "palette": [
+        {
+          "slug": "tux-brand-primary",
+          "color": "#5C0025",
+          "name": "TUX Brand Primary"
+        },
+        {
+          "slug": "tux-brand-primary-deep",
+          "color": "#500000",
+          "name": "TUX Brand Primary Deep"
+        },
+        {
+          "slug": "tux-brand-accent",
+          "color": "#DDAC37",
+          "name": "TUX Brand Accent"
+        },
+        {
+          "slug": "tux-brand-accent-deep",
+          "color": "#DCAA37",
+          "name": "TUX Brand Accent Deep"
+        },
+        {
+          "slug": "tux-brand-secondary",
+          "color": "#15457E",
+          "name": "TUX Brand Secondary"
+        },
+        {
+          "slug": "tux-brand-fill",
+          "color": "#5C0025",
+          "name": "TUX Brand Fill"
+        },
+        {
+          "slug": "tux-brand-accent-ink",
+          "color": "#2A0E15",
+          "name": "TUX Brand Accent Ink"
+        },
+        {
+          "slug": "tux-brand-accent-shade",
+          "color": "#A87B1F",
+          "name": "TUX Brand Accent Shade"
+        },
+        {
+          "slug": "tux-surface-page",
+          "color": "#FFFFFF",
+          "name": "TUX Surface Page"
+        },
+        {
+          "slug": "tux-surface-raised",
+          "color": "#FFFFFF",
+          "name": "TUX Surface Raised"
+        },
+        {
+          "slug": "tux-surface-sunken",
+          "color": "#F5F5F5",
+          "name": "TUX Surface Sunken"
+        },
+        {
+          "slug": "tux-surface-border",
+          "color": "#E7E6E6",
+          "name": "TUX Surface Border"
+        },
+        {
+          "slug": "tux-text-primary",
+          "color": "#221F1F",
+          "name": "TUX Text Primary"
+        },
+        {
+          "slug": "tux-text-secondary",
+          "color": "#424242",
+          "name": "TUX Text Secondary"
+        },
+        {
+          "slug": "tux-text-muted",
+          "color": "#525252",
+          "name": "TUX Text Muted"
+        },
+        {
+          "slug": "tux-text-inverse",
+          "color": "#FFFFFF",
+          "name": "TUX Text Inverse"
+        },
+        {
+          "slug": "tux-color-success",
+          "color": "#3D5328",
+          "name": "TUX Color Success"
+        },
+        {
+          "slug": "tux-color-warning",
+          "color": "#DDAC37",
+          "name": "TUX Color Warning"
+        },
+        {
+          "slug": "tux-color-danger",
+          "color": "#5C0025",
+          "name": "TUX Color Danger"
+        },
+        {
+          "slug": "tux-color-error",
+          "color": "#A02828",
+          "name": "TUX Color Error"
+        },
+        {
+          "slug": "tux-color-info",
+          "color": "#1F5D66",
+          "name": "TUX Color Info"
+        },
+        {
+          "slug": "tux-chart-1",
+          "color": "#5C0025",
+          "name": "TUX Chart 1"
+        },
+        {
+          "slug": "tux-chart-2",
+          "color": "#3F5A6F",
+          "name": "TUX Chart 2"
+        },
+        {
+          "slug": "tux-chart-3",
+          "color": "#C7973C",
+          "name": "TUX Chart 3"
+        },
+        {
+          "slug": "tux-chart-4",
+          "color": "#6B8E5A",
+          "name": "TUX Chart 4"
+        },
+        {
+          "slug": "tux-chart-5",
+          "color": "#8C5A3C",
+          "name": "TUX Chart 5"
+        },
+        {
+          "slug": "tux-chart-6",
+          "color": "#5C7080",
+          "name": "TUX Chart 6"
+        },
+        {
+          "slug": "tux-chart-7",
+          "color": "#A33A3A",
+          "name": "TUX Chart 7"
+        },
+        {
+          "slug": "tux-chart-8",
+          "color": "#3C5A87",
+          "name": "TUX Chart 8"
+        }
+      ],
+      "defaultPalette": false
+    },
+    "typography": {
+      "fontFamilies": [
+        {
+          "slug": "tux-body",
+          "name": "TUX Body (Open Sans)",
+          "fontFamily": "\"Open Sans\", \"Helvetica Neue\", Arial, sans-serif"
+        },
+        {
+          "slug": "tux-display",
+          "name": "TUX Display (Oswald)",
+          "fontFamily": "\"Oswald\", \"Helvetica Neue Condensed\", \"Impact\", \"Arial Narrow\", sans-serif"
+        },
+        {
+          "slug": "tux-bold",
+          "name": "TUX Bold (Work Sans)",
+          "fontFamily": "\"Work Sans\", \"Helvetica Neue\", Arial, sans-serif"
+        },
+        {
+          "slug": "tux-elegant",
+          "name": "TUX Elegant (Georgia)",
+          "fontFamily": "Georgia, \"Times New Roman\", Times, serif"
+        },
+        {
+          "slug": "tux-mono",
+          "name": "TUX Mono (JetBrains Mono)",
+          "fontFamily": "\"JetBrains Mono\", \"SFMono-Regular\", Consolas, \"Liberation Mono\", monospace"
+        }
+      ]
+    },
+    "custom": {
+      "tux": {
+        "radius": {
+          "sm": "0.125rem",
+          "md": "0.375rem",
+          "lg": "0.5rem",
+          "xl": "0.75rem",
+          "full": "9999px"
+        },
+        "wash": {
+          "wash-brand-4": "rgba(92, 0, 37, 0.04)",
+          "wash-brand-6": "rgba(92, 0, 37, 0.06)",
+          "wash-brand-8": "rgba(92, 0, 37, 0.08)",
+          "wash-brand-12": "rgba(92, 0, 37, 0.12)",
+          "wash-brand-18": "rgba(92, 0, 37, 0.18)",
+          "wash-brand-22": "rgba(92, 0, 37, 0.22)",
+          "wash-brand-35": "rgba(92, 0, 37, 0.35)"
+        },
+        "rhythm": {
+          "rhythm-tight": "4px",
+          "rhythm-snug": "8px",
+          "rhythm-normal": "12px",
+          "rhythm-loose": "16px",
+          "rhythm-roomy": "24px"
+        }
+      }
+    }
+  }
+}

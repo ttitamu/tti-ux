@@ -1,0 +1,4 @@
+/* @tti/tti-ux-react — consumer stylesheet entry.
+ * Pulls the design tokens from the root package (peer dependency),
+ * so data-theme switching works exactly as in the Nuxt layer. */
+@import "@tti/tti-ux/kit/css/tux-tokens.css";

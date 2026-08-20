@@ -1,0 +1,94 @@
+# Port-drift bot — tier 2 of design/kit-pipeline.md, built entirely on
+# EXISTING access (owner decision 2026-08-19: no new BFF endpoints or
+# tokens minted for this).
+#
+# When a merge to main adds or modifies a Tux*.vue component, this
+# workflow updates the port ledger (kit/ports/manifest.json + QUEUE.md)
+# on a bot branch and opens/refreshes a PR. That PR then flows through
+# the SAME gates as any human PR — baseline-security, tests, and the
+# ai-review superPOD panel — so "the bots review it for correctness"
+# without any generation-endpoint access: detection is deterministic,
+# judgment reuses the panel already wired into CI.
+#
+# When port code generation comes online (mechanical scaffolder first,
+# agent-authored later), it drops its output into this same PR shape;
+# the pipeline contract doesn't change.
+#
+# Auth: git push uses the workflow's job token (contents write);
+# PR creation uses AI_REVIEW_TOKEN (the existing ai-review bot PAT,
+# which already writes to the API). House idiom: values reach the
+# shell via env:, never ${{ }} inside run:.
+name: ports-sync
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/components/Tux*.vue"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticated checkout (main)
+        env:
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          JOB_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git init -q .
+          AUTH_URL=$(printf '%s' "$SERVER_URL" | sed "s#https://#https://oauth2:${JOB_TOKEN}@#; s#http://#http://oauth2:${JOB_TOKEN}@#")
+          git remote add origin "$AUTH_URL/$REPO.git"
+          git fetch -q --depth 2 origin "$HEAD_SHA"
+          git checkout -q "$HEAD_SHA"
+
+      - name: Detect drift and update the ledger
+        id: drift
+        run: |
+          set -eu
+          command -v node >/dev/null 2>&1 || {
+            echo "::error::node not on runner image"; exit 1; }
+          OUT=$(node scripts/ports-manifest.mjs)
+          echo "result=$OUT" >> "$GITHUB_OUTPUT"
+          if git diff --quiet -- kit/ports; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "ledger already current — nothing to do"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push ledger update to the bot branch
+        if: steps.drift.outputs.changed == 'true'
+        env:
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          git config user.name "ports-sync bot"
+          git config user.email "ports-sync@code.tti.tamu.edu"
+          git checkout -q -B bots/ports-sync
+          git add kit/ports
+          git commit -q -m "bots(ports): ledger sync for $HEAD_SHA" \
+            -m "Components added/modified on main; see kit/ports/QUEUE.md for the current port queue."
+          git push -f -q origin bots/ports-sync
+
+      - name: Open (or refresh) the ports-sync PR
+        if: steps.drift.outputs.changed == 'true'
+        env:
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          BOT_TOKEN: ${{ secrets.AI_REVIEW_TOKEN }}
+          DRIFT: ${{ steps.drift.outputs.result }}
+        run: |
+          set -eu
+          if [ -z "${BOT_TOKEN:-}" ]; then
+            echo "::error::AI_REVIEW_TOKEN secret unavailable — cannot open the PR"; exit 1
+          fi
+          # If a PR for the bot branch is already open, the force-push
+          # above refreshed it; creating again would 409 — tolerate.
+          BODY=$(printf 'Automated port-ledger sync. Drift: %s\n\nThe queue lives at kit/ports/QUEUE.md. When port generation lands, its output rides this same PR shape. Reviewed by the standard gates including the ai-review panel.' "$DRIFT")
+          curl -sS -X POST "$SERVER_URL/api/v1/repos/$REPO/pulls" \
+            -H "Authorization: token $BOT_TOKEN" -H "Content-Type: application/json" \
+            -d "$(printf '{"title": "bots(ports): component drift — port queue update", "head": "bots/ports-sync", "base": "main", "body": %s}' "$(printf '%s' "$BODY" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))')")" \
+            -o /tmp/pr.json -w "create PR: HTTP %{http_code}\n" || true
+          cat /tmp/pr.json | head -c 400 || true

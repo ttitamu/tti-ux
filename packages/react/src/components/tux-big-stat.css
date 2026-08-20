@@ -1,0 +1,46 @@
+/* TuxBigStat — byte-equivalent to the Vue SFC's style block (scoping
+ * comes from the BEM names, which both frameworks share). Tokens load
+ * from @tti/tti-ux kit css via ../styles.css. */
+
+.tux-big-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.tux-big-stat__value {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  line-height: 0.95;
+}
+
+.tux-big-stat__suffix {
+  font-family: var(--font-bold);
+  font-weight: 700;
+  font-style: normal;
+  line-height: 1;
+  color: inherit;
+  margin-left: 0.25rem;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.tux-big-stat__label {
+  margin: 0.875rem 0 0;
+  font-family: var(--font-body);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.tux-big-stat__source {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  font-style: italic;
+}

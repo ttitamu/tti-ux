@@ -5,6 +5,53 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — framework targets, tier 1 (2026-08-19)
+
+- **`kit/csharp/TuxTokens.cs`** — resolved token literals for .NET
+  consumers: one static class per theme (`Tti` / `TtiDark` / `TtiHc`)
+  with PascalCased consts + an `All` dictionary for dynamic lookup.
+- **`kit/react/tux-tokens.ts`** — per-theme resolved token maps for
+  React/TS apps outside the Nuxt layer, plus `tuxVar()` for the
+  CSS-custom-property spelling when the CSS kit is loaded.
+- **`kit/wp/theme.json`** — WordPress block-theme settings (v3):
+  29-entry TUX palette, the four families + mono as fontFamilies,
+  radius/wash/rhythm under `settings.custom.tux`.
+- All three come from `scripts/build-framework-targets.mjs`, which
+  shares `build-tokens.mjs`'s selector builder and **resolves** var()
+  chains, aliases, and wash `color-mix` to literals per theme (dark
+  washes correctly compute over the teal anchor). Wired into
+  `npm run build:kit`; `tests/tux-kit-targets.test.ts` locks the
+  committed outputs to the generator and pins resolution semantics.
+- **Multi-language monorepo + `@tti/tti-ux-react`** (owner-ratified:
+  ports live in this repo). npm workspaces; `packages/react` ships
+  `@tti/tti-ux-react` (version-locked, same tag train, published by
+  the extended publish workflow). First port as proof:
+  **`TuxBigStat`** — identical props/BEM/tokens, byte-equivalent CSS,
+  4 port-fidelity tests, ledger entry pinned to the source hash.
+  Repo `.npmrc` maps the `@tti` scope to the Forgejo registry (the
+  same line consumers add).
+- **Port-writer bot specced** (kit-pipeline.md): `tux-port-bot`
+  service account leveraging the superPOD models via the BFF like the
+  existing bots (dedicated PAT + actor attribution), writing drafts
+  into the drift-bot's PR shape; degrades to detection-only until the
+  owner mints the account. Platform direction recorded for TTI Code:
+  per-repo toggleable bots, security review non-optional.
+- **Port-drift bot (tier 2, detection stage)** — `ports-sync.yml`
+  runs on every merge to main touching `Tux*.vue`: updates the port
+  ledger (`kit/ports/manifest.json`, 153 components tracked by
+  content hash) + `kit/ports/QUEUE.md`, pushes a bot branch, and
+  opens a PR that the existing gates — including the ai-review
+  superPOD panel — judge like any human PR. Built entirely on
+  existing access (job token + the ai-review bot PAT); no new BFF
+  endpoints or tokens (owner decision). The ledger's `--check` mode
+  runs in the test suite, so a component can't land without the
+  ledger following it.
+- **`design/kit-pipeline.md`** — the two-tier doctrine: tier 1
+  (deterministic emitters, fully automatic, zero AI, publish on tag)
+  vs tier 2 (component ports via the TTI AI BFF superPOD panel:
+  automatic generation + mechanical verification + PR-gated
+  delivery; proposed architecture documented, not yet built).
+
 
 ## [2.0.0] — 2026-08-19
 
