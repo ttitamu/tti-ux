@@ -19,6 +19,10 @@ import { defineVitestConfig } from "@nuxt/test-utils/config";
 
 export default defineVitestConfig({
   test: {
+    // Workspace packages (packages/react, …) run their own vitest
+    // with their own environment — `npm test` chains them. The root
+    // runner must not sweep them up with the wrong environment.
+    exclude: ["**/node_modules/**", "packages/**"],
     environmentOptions: {
       nuxt: {
         domEnvironment: "jsdom",

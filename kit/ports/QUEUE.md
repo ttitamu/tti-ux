@@ -21,7 +21,6 @@ with a matching source hash in manifest.json.
 | TuxAvatar | react | never ported |
 | TuxBadge | react | never ported |
 | TuxBetaRibbon | react | never ported |
-| TuxBigStat | react | never ported |
 | TuxBlockquote | react | never ported |
 | TuxBranchNav | react | never ported |
 | TuxBreadcrumbs | react | never ported |

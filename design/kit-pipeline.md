@@ -91,9 +91,36 @@ automatic *generation*, automatic *verification*, automatic
 *delivery to a merge decision* — with the merge itself starting
 human and becoming automatic only when the harness has earned trust.
 
-**Remaining prerequisites before ports themselves land:**
-- A React (first target) test harness in this repo or a sibling
-  `tti-ux-react` repo — decide mono vs sibling before the first port.
+**Where ports live (owner-ratified 2026-08-20): in THIS repo — a
+multi-language monorepo.** npm workspaces; the root stays the Nuxt
+layer (`@tti/tti-ux`), `packages/react/` is `@tti/tti-ux-react`
+(version-locked to the root, published by the same tag train), and a
+future `packages/dotnet/` follows the same shape. First port shipped
+as proof: `TuxBigStat` — same props, same BEM classes, byte-equivalent
+CSS, port-fidelity tests, ledger entry recording the source hash it
+was generated against.
+
+**The port-writer bot (owner-ratified direction, account pending):**
+generation gets its own **service account** — working name
+`tux-port-bot` — that leverages the superPOD models through the BFF
+exactly the way the existing bots do (dedicated PAT, `X-TTI-Actor`
+attribution). Scopes: repo content write (push to `bots/ports-sync`)
++ PR create; BFF access for generation calls. It writes port drafts
+into the same bot-PR shape the drift bot already opens, where the
+ai-review panel and the port-fidelity harness judge them. Creating
+the account and its PAT is an owner/admin action; the workflow reads
+it as a `PORT_BOT_TOKEN` secret and degrades to detection-only when
+absent.
+
+**Platform direction (recorded for the forgejo-stack workstream):**
+once the port-writer proves out here, TTI Code should expose bots as
+a per-repo capability — site/repo owners see the available bots
+(review panel, port writer, …) and can toggle them, with the
+**security review permanently non-optional**. This repo is the pilot.
+
+**Remaining prerequisites before generated ports land:**
+- The `tux-port-bot` service account + `PORT_BOT_TOKEN` secret
+  (owner/admin).
 - The `PACKAGE_TOKEN` secret (already required for the tag train).
 
 ## The rule of thumb

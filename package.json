@@ -10,6 +10,9 @@
     "url": "https://code.tti.tamu.edu/tti/tti-ux.git"
   },
   "license": "Apache-2.0",
+  "workspaces": [
+    "packages/*"
+  ],
   "type": "module",
   "main": "./nuxt.config.ts",
   "files": [
@@ -42,11 +45,12 @@
     "audit:a11y": "node scripts/audit-a11y.mjs",
     "build:geo": "node scripts/build-geo.mjs",
     "build:tokens": "node scripts/build-tokens.mjs",
-    "test": "vitest run",
+    "test": "vitest run && npm run test -w @tti/tti-ux-react",
     "build:brand-env": "node scripts/extract-brand.mjs",
     "build:powerbi": "node scripts/build-powerbi-theme.mjs",
     "build:kit": "npm run build:tokens && npm run build:brand-env && npm run build:powerbi && npm run build:framework",
-    "build:framework": "node scripts/build-framework-targets.mjs"
+    "build:framework": "node scripts/build-framework-targets.mjs",
+    "test:root": "vitest run"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.102",

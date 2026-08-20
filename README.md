@@ -217,6 +217,28 @@ can't run the layer (see `design/kit-pipeline.md` for the doctrine):
 All are generated from `design/tokens.json` and locked to it by CI —
 a token change propagates to every target in the next release.
 
+### React apps — `@tti/tti-ux-react`
+
+Component ports live in this repo (`packages/react`, a multi-language
+monorepo) and publish version-locked with the layer:
+
+```sh
+npm install @tti/tti-ux-react react
+```
+
+```tsx
+import { TuxBigStat } from "@tti/tti-ux-react";
+import "@tti/tti-ux-react/styles.css"; // tokens, once at app root
+
+<TuxBigStat value="47.2" suffix="TB" label="Indexed across all corpora" />
+```
+
+Ports share BEM class names and token spellings with the Vue
+originals, so theming (`data-theme` on `<html>`) behaves identically.
+The port ledger (`kit/ports/manifest.json`) records which Vue source
+hash each port was generated against; `kit/ports/QUEUE.md` is the
+open queue.
+
 ### Guardrails for consumers
 
 The design-system audits ship with the package. The one every consumer

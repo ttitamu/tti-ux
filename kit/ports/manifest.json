@@ -117,7 +117,8 @@
       "sourceHash": "0d21e41b1defd388",
       "ports": {
         "react": {
-          "hash": null
+          "hash": "0d21e41b1defd388",
+          "path": "packages/react/src/components/TuxBigStat.tsx"
         }
       }
     },

@@ -22,6 +22,20 @@ conventions and [Semantic Versioning](https://semver.org/).
   washes correctly compute over the teal anchor). Wired into
   `npm run build:kit`; `tests/tux-kit-targets.test.ts` locks the
   committed outputs to the generator and pins resolution semantics.
+- **Multi-language monorepo + `@tti/tti-ux-react`** (owner-ratified:
+  ports live in this repo). npm workspaces; `packages/react` ships
+  `@tti/tti-ux-react` (version-locked, same tag train, published by
+  the extended publish workflow). First port as proof:
+  **`TuxBigStat`** — identical props/BEM/tokens, byte-equivalent CSS,
+  4 port-fidelity tests, ledger entry pinned to the source hash.
+  Repo `.npmrc` maps the `@tti` scope to the Forgejo registry (the
+  same line consumers add).
+- **Port-writer bot specced** (kit-pipeline.md): `tux-port-bot`
+  service account leveraging the superPOD models via the BFF like the
+  existing bots (dedicated PAT + actor attribution), writing drafts
+  into the drift-bot's PR shape; degrades to detection-only until the
+  owner mints the account. Platform direction recorded for TTI Code:
+  per-repo toggleable bots, security review non-optional.
 - **Port-drift bot (tier 2, detection stage)** — `ports-sync.yml`
   runs on every merge to main touching `Tux*.vue`: updates the port
   ledger (`kit/ports/manifest.json`, 153 components tracked by
