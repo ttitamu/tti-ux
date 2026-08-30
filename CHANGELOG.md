@@ -5,6 +5,33 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — TTI Portals roster (2026-08-30)
+
+- **`design/apps.json` `_meta.version` 1 → 2.** New roster order:
+  `tti-www` → `tti-my` → `tux` → `landscape` → `tti-code`.
+- **`ai-studio` removed from the roster** (owner call). The
+  `/launch/ai-studio` interstitial, the forge's repo-header "Open in
+  AI Studio" button, and the ratified desktop-link law all survive —
+  the tile is gone, the integration is not. With no `kind:"desktop"`
+  entry left, that law is dormant; `tests/useTuxApps.test.ts` now
+  asserts the zero-count so the dormancy is explicit rather than a
+  vacuously green test.
+- **`tti-my` added** — `my.TTI`, the internal site at
+  `https://my.tti.tamu.edu`. Shipped `audience:"public"`: the site
+  enforces its own SSO, and `authenticated` is enforced upstream but
+  is a **no-op** in the forge deployment (its waffle renders outside
+  the signed-in guard), so shipping it would create a field that means
+  one thing here and nothing downstream.
+- **`tti-www` repointed** to the apex `https://tti.tamu.edu` (verified
+  HTTP 200 with zero redirects; `www.` 301s to it) and renamed `TTI`.
+- **`audience:"entitled"` remains ADVISORY upstream** — `app/app.vue`
+  renders `<TuxUtilityCluster current="tux" />` with no `entitled`
+  prop, so ux.tti.tamu.edu shows `public` tiles only. Enforcement is a
+  per-portal obligation, and **TTI Code ships the first resolver**:
+  Landscape's tile is never baked and never published, and is added
+  per-caller from Entra security-group membership. See
+  `design/unification-plan.md` (Registry doctrine, amended 2026-08-30).
+
 ### Added — framework targets, tier 1 (2026-08-19)
 
 - **`kit/csharp/TuxTokens.cs`** — resolved token literals for .NET

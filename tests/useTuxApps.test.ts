@@ -53,6 +53,11 @@ describe("useTuxApps", () => {
   });
 
   it("desktop entries point at the launcher, never a raw scheme", () => {
+    // The roster carries no kind:"desktop" entry since the AI Studio tile was
+    // retired (2026-08-30), so the branch below is DORMANT, not passing —
+    // asserted explicitly so a future desktop tile is not added believing the
+    // launcher rule is still being enforced here.
+    expect(registry.apps.filter((a) => a.kind === "desktop")).toHaveLength(0);
     for (const app of registry.apps) {
       if (app.kind === "desktop") {
         expect(app.url.startsWith("https://")).toBe(true);
