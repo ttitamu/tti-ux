@@ -2,10 +2,40 @@
   "_meta": {
     "name": "tti-portals-registry",
     "description": "Canonical registry of TTI portal apps for TuxAppSwitcher. PUBLIC tile metadata only — entitlement group mappings and non-discoverable apps live server-side next to each portal's my-apps resolver, never in this file. Consumed via useTuxApps(); never hand-declare an apps[] in a consumer.",
-    "version": 1
+    "version": 2
   },
   "heading": "TTI Portals",
   "apps": [
+    {
+      "id": "tti-www",
+      "name": "TTI",
+      "tagline": "Institute news, reports & programs",
+      "icon": "lucide:globe",
+      "glyph": null,
+      "url": "https://tti.tamu.edu",
+      "audience": "public",
+      "kind": "web"
+    },
+    {
+      "id": "tti-my",
+      "name": "my.TTI",
+      "tagline": "Internal site — forms, HR & resources",
+      "icon": "lucide:building-2",
+      "glyph": null,
+      "url": "https://my.tti.tamu.edu",
+      "audience": "public",
+      "kind": "web"
+    },
+    {
+      "id": "tux",
+      "name": "TUX",
+      "tagline": "Design system & style guide",
+      "icon": "lucide:palette",
+      "glyph": null,
+      "url": "https://ux.tti.tamu.edu",
+      "audience": "public",
+      "kind": "web"
+    },
     {
       "id": "landscape",
       "name": "Landscape",
@@ -23,37 +53,6 @@
       "icon": "lucide:git-branch",
       "glyph": null,
       "url": "https://code.tti.tamu.edu",
-      "audience": "public",
-      "kind": "web"
-    },
-    {
-      "id": "ai-studio",
-      "name": "TTI AI Studio",
-      "tagline": "Local + cloud AI workbench",
-      "icon": "lucide:bot",
-      "glyph": null,
-      "url": "https://code.tti.tamu.edu/launch/ai-studio",
-      "deepLink": "tti-ai-studio://chat?mode=home",
-      "audience": "authenticated",
-      "kind": "desktop"
-    },
-    {
-      "id": "tux",
-      "name": "TUX",
-      "tagline": "Design system & style guide",
-      "icon": "lucide:palette",
-      "glyph": null,
-      "url": "https://ux.tti.tamu.edu",
-      "audience": "public",
-      "kind": "web"
-    },
-    {
-      "id": "tti-www",
-      "name": "TTI public site",
-      "tagline": "Reports, news, programs",
-      "icon": "lucide:globe",
-      "glyph": null,
-      "url": "https://www.tti.tamu.edu",
       "audience": "public",
       "kind": "web"
     }

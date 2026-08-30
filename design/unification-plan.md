@@ -99,8 +99,10 @@ same order, same behavior. Products differentiate through their
 ### Registry doctrine (2026-07-28, security-reviewed)
 
 - [`design/apps.json`](./apps.json) is the **TTI Portals registry** —
-  public tile metadata **only** (id, name, blurb, accessUrl,
-  audience, discoverable, glyph). It is **baked at build/deploy time,
+  public tile metadata **only** (id, name, tagline, icon, url,
+  audience, kind, glyph — corrected 2026-08-30 to the shipped
+  `TuxRegistryApp` shape; `blurb`/`accessUrl`/`discoverable` were
+  drafted here but never built). It is **baked at build/deploy time,
   never fetched at runtime**, and never served from a third-party CDN
   in a runtime path.
 - **Entitlement mappings live server-side, per portal** (distributed
@@ -110,9 +112,15 @@ same order, same behavior. Products differentiate through their
   none.
 - Tile order is a pure function of the registry (spatial constancy —
   current app sorts in place, never last). Audience filtering:
-  public / authenticated / entitled, Tier-0 fail-open; not-entitled
-  portals that remain discoverable render a visible tile with a lock
-  and a request-access affordance, never a dead-disabled tile.
+  public / authenticated / entitled, Tier-0 fail-open. A **discoverable**
+  not-entitled portal renders a visible tile with a lock and a
+  request-access affordance, never a dead-disabled tile; a
+  **non-discoverable** one is hidden entirely. **TTI Code ships the
+  non-discoverable branch for Landscape (2026-08-30)** — the tile is
+  never baked into the page and never published in the anonymous
+  registry artifact, and is added per-caller by a server-side resolver
+  keyed on Entra security-group membership. That resolver is the first
+  implementation of the "my-apps" slot named above.
 - Behavior law (focus, same-tab default, "Desktop app" affix, heading
   "TTI Portals") lives in [`compositions.md`](./compositions.md)
   §Cross-app navigation — one home, not duplicated here.
@@ -136,6 +144,12 @@ launcher pages accept and forward **zero** query parameters.
 Desktop-side, outbound navigation goes through an allowlisted opener
 command (exact-host https allowlist), and the single-instance plugin
 is a prerequisite for desktop tiles.
+
+**Amendment 2026-08-30:** the roster currently carries no
+`kind:"desktop"` entry (AI Studio was retired from it), so this law is
+**dormant, not repealed** — it governs the next desktop tile added.
+`tests/useTuxApps.test.ts` asserts the zero-count explicitly so the
+dormancy is visible rather than a silently vacuous test.
 
 ### Pinning + release discipline (2026-07-28)
 
@@ -300,7 +314,7 @@ move to the laws above with a date.
 | 1 | **Family name** — waffle heading ships as "TTI Portals"; the umbrella marketing name ("TTI Research Suite"? "TTI Tools"?) is unratified | open |
 | 2 | **Light-mode family signature** — editorial-white chrome + maroon wordmark + gold keyline + tracked eyebrow, incl. whether TTI Code keeps its maroon navbar or adopts the white chrome | **ratified 2026-08-27 — TTI Code retired the maroon navbar and adopted the editorial white/warm-black chrome (TuxSiteNav recipe); maroon survives as `--brand-fill` surfaces per the on-brand rule** |
 | 3 | **Landscape anonymous surface** — purpose-built anonymous endpoints vs authenticated-only (path-exclusion on the auth proxy was reviewed and **withdrawn as unsafe**) | open |
-| 4 | **AI Studio in the anonymous waffle** — show (with launcher) or hide until signed in | open (currently signed-in only) |
+| 4 | ~~**AI Studio in the anonymous waffle**~~ — **withdrawn 2026-08-30**: the AI Studio tile was retired from the roster (owner call); the `/launch/ai-studio` interstitial and the desktop-link law both survive | withdrawn |
 | 5 | **Follow-OS theme default for web portals** (+ maroon floor); desktop shell already ratified follow-OS | open |
 | 6 | **Classification-banner scope** — which portals carry the data-classification banner (compliance question) | open |
 | 7 | **Vibrancy/Mica asymmetry** — macOS gets vibrancy, Windows does not; ratify or converge | open |

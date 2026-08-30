@@ -5,7 +5,7 @@
  * Source: Microsoft Fabric "Suite header" pattern (see absorption notes
  * at reference/figma-cache/microsoft-fabric-ui-kit/NOTES.md §Absorb #3).
  * Lets users hop between TTI's portals without leaving their browser
- * tab — Landscape ↔ TTI Code ↔ TUX docs ↔ AI Studio.
+ * tab — TTI ↔ my.TTI ↔ TUX docs ↔ Landscape ↔ TTI Code.
  *
  * Lives in `TuxAppFrame`'s `#right` slot (Tauri shells) or in
  * `TuxSiteNav`'s utility row (plain-web consumers). It's a single
@@ -60,7 +60,7 @@ interface Props {
   /** Header text inside the popover. Default "TTI Portals". */
   heading?: string;
   /** Optional footer line (rendered above the #footer slot). Used for
-   *  filtered-state summaries, e.g. "Showing 3 of 5 apps · Sign in to
+   *  filtered-state summaries, e.g. "Showing 4 of 5 apps · Sign in to
    *  see all." */
   footerText?: string;
   /** Presentation mode. "popover" (default) is the only implemented
