@@ -19,7 +19,7 @@ const basicVue = `const { apps, heading, footerText } = useTuxApps({
   <div class="space-y-10">
     <TuxPageHeader eyebrow="component · platform-aware chrome" title="TuxAppSwitcher">
       Waffle-button trigger + popover grid for hopping between TTI's
-      portals (TTI ↔ my.TTI ↔ TUX docs ↔ Landscape ↔ TTI Code).
+      portals (TTI ↔ my.TTI ↔ TUX docs ↔ Landscape ↔ Atlas ↔ TTI Code).
       Lives in <code>TuxAppFrame</code>'s <code>#right</code> slot
       on Tauri shells or in <code>TuxSiteNav</code>'s utility row on
       plain-web consumers. Source: Microsoft Fabric "Suite header"

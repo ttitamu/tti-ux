@@ -2,7 +2,7 @@
   "_meta": {
     "name": "tti-portals-registry",
     "description": "Canonical registry of TTI portal apps for TuxAppSwitcher. PUBLIC tile metadata only — entitlement group mappings and non-discoverable apps live server-side next to each portal's my-apps resolver, never in this file. Consumed via useTuxApps(); never hand-declare an apps[] in a consumer.",
-    "version": 2
+    "version": 3
   },
   "heading": "TTI Portals",
   "apps": [
@@ -43,6 +43,16 @@
       "icon": "lucide:map",
       "glyph": null,
       "url": "https://landscape.tti.tamu.edu",
+      "audience": "entitled",
+      "kind": "web"
+    },
+    {
+      "id": "atlas",
+      "name": "Atlas",
+      "tagline": "M365 & Azure policy audit corpus",
+      "icon": "lucide:shield-check",
+      "glyph": null,
+      "url": "https://atlas.tti.tamu.edu",
       "audience": "entitled",
       "kind": "web"
     },
