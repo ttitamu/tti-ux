@@ -5,6 +5,17 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Atlas portal tile (2026-08-31)
+
+- **`atlas`** — `Atlas`, `https://atlas.tti.tamu.edu`, `audience:"entitled"`,
+  placed beside `landscape` (the two gated portals sit together). The site
+  returns **403** to non-members, so like Landscape it enforces its own access
+  and the tile is hidden rather than shown-and-refused.
+- `_meta.version` 2 → 3. Anonymous now sees **4 of 6**.
+- Entitlement is resolved per-portal server-side; TTI Code gates this tile on
+  the Entra group that governs it today. Nothing about the mapping is in this
+  file — see `design/unification-plan.md` (Registry doctrine).
+
 ### Changed — TTI Portals roster (2026-08-30)
 
 - **`design/apps.json` `_meta.version` 1 → 2.** New roster order:
