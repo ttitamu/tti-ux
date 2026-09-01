@@ -326,6 +326,96 @@ no-op, not an error. Open the report and look at it.
 
 ---
 
+## Parity with the web charts
+
+Building the `visualStyles` emitter forced every axis, gridline and
+legend decision to become a literal, and those decisions are now the
+shared contract in
+[`design/chart-foundations.md` §2](https://code.tti.tamu.edu/tti/tti-ux/src/branch/main/design/chart-foundations.md).
+That is what makes "a Power BI report and a TUX page render the same
+system" a checkable claim rather than a slogan.
+
+One deliberate divergence: web gridlines are `--surface-border` at 50%
+opacity, while this theme uses `surface.border-subtle`, because a theme's
+`gridlineColor` has no alpha channel. `#EFEEED` is within a hair of
+`#E7E6E6` composited at 50% on white — same intent, two mechanisms.
+
+---
+
+## Why the kit is split this way
+
+Everything here is **Tier 1** under the
+[kit pipeline doctrine](https://code.tti.tamu.edu/tti/tti-ux/src/branch/main/design/kit-pipeline.md):
+every literal resolves from `design/tokens.json` through the same
+`palette()` the theme emitter uses, so a theme and its fragments cannot
+drift apart.
+
+That's worth pausing on, because the shell *looks* like component-port
+work — geometry, layering, a nav system. But the geometry is derived and
+the colours are token-resolved, so the whole thing is a pure function of
+`tokens.json`. It gets deterministic emission and byte locks rather than
+the port-ledger treatment.
+
+The theme/PBIR split isn't stylistic either. It falls directly out of the
+no-native-dark-mode constraint above: a theme file can carry colour, type
+and per-visual style, but nothing conditional. Chrome that responds to
+*state* has to live in the report's own PBIR JSON, bound to measures.
+Hence two halves.
+
+---
+
+## Where this came from
+
+Ported from the Power BI & Fabric documentation tree in
+`docs-tti-tamu-edu` — roughly 15,000 lines across 70 files, written
+against a real Tableau→Power BI migration that generated ~1,100 visuals.
+The port re-tokenised it from TAMU/AggieBI branding to TTI and re-pinned
+every schema version.
+
+What was worth taking was the **non-googleable** part: that `0L` and `1D`
+are different values and the wrong one is silently ignored; that a slicer
+needs `mode: 'Basic'` *and* `orientation: "1D"` together to render as
+tiles; that `syncGroup` lives inside `visual`; that a nav pill must be
+three layered visuals because `actionButton` text rendering is unreliable
+and its `fontColor` can't take a measureRef at all; that paragraph text
+colour can't be measure-bound, so theme-responsive labels have to be
+rendered through the visual's *title* instead.
+
+What was left behind: the PowerShell generator — the logic moved to a
+`.mjs` emitter, and Microsoft's own report-authoring guidance now
+recommends "a deterministic Node.js generator" — and everything
+data-platform-shaped (Graph ingestion, capacity sizing, semantic-model
+naming standards). That's a data-platform concern, not a design-system
+one.
+
+---
+
+## Known gaps
+
+- **Nothing here has been opened in Power BI Desktop.** 30/30 shell
+  visuals validate against the live `visualContainer/2.9.0` schema with
+  its five remote `$ref`s resolved, and all three themes against
+  `reportThemeSchema-2.157` — but structural validity does not imply a
+  correct render, precisely because Power BI ignores a wrong literal type
+  rather than rejecting it. The smoke test needs Windows.
+- **`nav_pill_inactive_hit` ships without its `navigationSection`
+  binding.** The value is a destination page slug that only exists once a
+  report has pages, and the source docs never showed the property's JSON
+  shape — so it's left to Desktop rather than invented.
+- **No deep validation in CI.** `verify:pbir` checks URL reachability
+  only. Schema validation needs `ajv`, currently just a transitive
+  dependency; wiring CI to an undeclared transitive dep is how builds
+  break later.
+- **Fragment coverage is partial.** Three fragment types ship —
+  `card-chrome`, `chart-cartesian` (bar / column / line / area /
+  scatter), and `table-chrome`. Donut, gauge, heatmap, treemap and the
+  rest have no fragment yet.
+- **Not yet built:** the report scaffold, a `tux-pbir` injector that
+  mints conforming IDs and renumbers z-order on drop-in, and named style
+  presets — the closest thing Power BI has to component variants.
+
+---
+
 ## Status
 
 PBIR is still **public preview** as of 2026-08-31 — GA slipped past its

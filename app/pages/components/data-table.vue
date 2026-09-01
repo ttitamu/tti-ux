@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import pbiTable from "../../../kit/powerbi/pbir/fragments/tti/table-chrome.json?raw";
+
 useHead({ title: "TuxDataTable · TUX" });
 
 // ── Variant 1: sortable research table with uncertainty + footnotes ──
@@ -236,7 +238,7 @@ function pciClass(value: number): string {
         footnote superscript next to district names links to the formal
         note block under the table.
       </p>
-      <TuxExample class="mt-4" :vue="sortableVue">
+      <TuxExample :powerbi="pbiTable" class="mt-4" :vue="sortableVue">
         <TuxDataTable
           v-model:sort-key="sortKey"
           v-model:sort-dir="sortDir"

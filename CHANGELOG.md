@@ -5,6 +5,61 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — navigation restructure, 9 groups to 7 (2026-09-01)
+
+Sprawl pass. Four surfaces were answering two questions, two groups had
+three entries between them, and `kit/` — nine shipped framework targets —
+had no page at all.
+
+- **`Composition`, `Forms` and `Tooling` are gone as groups.** Their
+  entries redistribute: composed pages to **Kits**, Forms to a nested
+  branch under Components, Accessibility and Contrast audit to
+  Foundations.
+- **New `Kits` group** — "where do I look for an assembly of things."
+  Composed examples, Patterns, and the frozen static reference designs.
+- **`Design` narrows 11 → 7** by *re-homing*, not hiding. `components.md`
+  now leads the Components group, `chart-foundations.md` the
+  Visualizations group, `compositions.md` the Kits group. Every doc keeps
+  a sidebar home and its `/design/<slug>` URL; only ownership moved.
+- **`/preview` relabelled Specimens** in the sidebar. Route unchanged.
+
+### Added — Install pages for the kit/ tier (2026-09-01)
+
+- **`/install`** — one page for all nine framework targets, with
+  `design/kit-pipeline.md` as its doctrine body. Deliberately a page, not
+  a group: a directory listing wearing an intent label is the thing that
+  was already rejected as "Kit targets" / "Platforms" / "Integrations".
+- **`/install/power-bi`** — platform-level Power BI setup, rendering
+  `kit/powerbi/README.md` verbatim so the site and the npm package are
+  single-source.
+
+### Changed — Power BI moves out of design/ (2026-09-01)
+
+`design/powerbi-kit.md` is **deleted**; its content merged into
+`kit/powerbi/README.md`. `design/` is doctrine about TUX itself — how to
+apply TUX to a specific host is a different kind of document. The doc was
+also the proof: registering a design doc takes **three** edits
+(`design/index.vue`, `design/[doc].vue`, and `app.vue`), and it shipped
+with only two, so it rendered but never appeared in the sidebar.
+
+### Added — Power BI tabs on component pages (2026-09-01)
+
+The seam: **how to style one chart lives on the chart; how to set up a
+report lives in the setup page.** Implementations are an attribute of a
+component, not a section of the nav — which is why there is no Power BI
+group.
+
+- **`TuxExample` gains a `powerbi` tab**, pushed conditionally exactly as
+  `source` already was. `tableau` slots in the same way.
+- Wired on chart-bar, chart-line, chart-area, chart-scatter (the
+  `chart-cartesian` fragment) and data-table (`table-chrome`), imported
+  from `kit/powerbi/` rather than retyped, so a tab cannot drift from the
+  emitter.
+- **Coverage is partial and says so.** The kit ships three fragment
+  types, not one per chart, so a parity table on the Visualizations
+  overview names what is covered and what is not — a missing tab reads as
+  "no fragment yet", not "Power BI can't render it".
+
 ### Added — Power BI kit design doc (2026-09-01)
 
 - **`design/powerbi-kit.md`**, surfaced at `/design/powerbi-kit` by the

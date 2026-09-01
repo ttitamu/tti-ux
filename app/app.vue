@@ -40,23 +40,25 @@ const navTree = [
     children: [
       { label: "Home",            to: "/",                icon: "lucide:home" },
       { label: "Getting started", to: "/getting-started", icon: "lucide:compass" },
+      { label: "Install",         to: "/install",         icon: "lucide:package-plus" },
+      { label: "  · Power BI setup", to: "/install/power-bi", icon: "lucide:chart-column" },
       { label: "Changelog",       to: "/changelog",       icon: "lucide:scroll-text" },
     ],
   },
   {
+    // Doctrine about TUX ITSELF. Docs that govern one specific group
+    // (components, compositions, chart foundations, the kit pipeline)
+    // live on that group's overview instead — they are still at
+    // /design/<slug>, they just aren't listed twice.
     label: "Design",
     children: [
       { label: "Doctrine",     to: "/design/tux",                 icon: "lucide:book-open" },
       { label: "Unification plan", to: "/design/unification-plan", icon: "lucide:combine" },
-      { label: "Components",   to: "/design/components",          icon: "lucide:layers" },
-      { label: "Compositions", to: "/design/compositions",        icon: "lucide:blocks" },
       { label: "Palette",      to: "/design/palette",             icon: "lucide:swatch-book" },
-      { label: "Roadmap",      to: "/design/roadmap",             icon: "lucide:map" },
-      { label: "Chart foundations", to: "/design/chart-foundations", icon: "lucide:area-chart" },
       { label: "Platform awareness", to: "/design/platform-awareness", icon: "lucide:monitor-smartphone" },
-      { label: "Tauri bindings", to: "/design/tauri-bindings",    icon: "lucide:app-window" },
+      { label: "  · Tauri bindings", to: "/design/tauri-bindings", icon: "lucide:app-window" },
       { label: "Visual language", to: "/design/visual-language-evolution", icon: "lucide:eye" },
-      { label: "Kit pipeline", to: "/design/kit-pipeline",       icon: "lucide:package" },
+      { label: "Roadmap",      to: "/design/roadmap",             icon: "lucide:map" },
     ],
   },
   {
@@ -67,39 +69,43 @@ const navTree = [
       { label: "Style variants", to: "/style-variants", icon: "lucide:layout-template" },
       { label: "Motion",         to: "/motion",         icon: "lucide:zap" },
       { label: "Icons",          to: "/icons",          icon: "lucide:sparkles" },
+      { label: "Specimens",      to: "/preview",        icon: "lucide:image" },
+      { label: "Markdown",       to: "/markdown",       icon: "lucide:file-text" },
+      { label: "Accessibility",  to: "/accessibility",  icon: "lucide:accessibility" },
+      { label: "Contrast audit", to: "/contrast-audit", icon: "lucide:contrast" },
     ],
   },
   {
     label: "Components",
-    children: catalogNav("components"),
+    children: [
+      { label: "Components doctrine", to: "/design/components", icon: "lucide:book-marked" },
+      ...catalogNav("components"),
+      { label: "Forms",              to: "/forms",                    icon: "lucide:clipboard-list" },
+      { label: "  · Text field",     to: "/forms/text-field",         icon: "lucide:type" },
+      { label: "  · Select",         to: "/forms/select",             icon: "lucide:list" },
+      { label: "  · Choice",         to: "/forms/choice",             icon: "lucide:check-square" },
+      { label: "  · Date picker",    to: "/forms/date-picker",        icon: "lucide:calendar" },
+      { label: "  · File upload",    to: "/forms/file-upload",        icon: "lucide:upload" },
+      { label: "  · Inline validation", to: "/forms/inline-validation", icon: "lucide:check-circle-2" },
+      { label: "  · All-in-one demo", to: "/forms/all-in-one",        icon: "lucide:layout-panel-left" },
+    ],
   },
   {
-    label: "Composition",
+    // "Where do I look for an assembly of things." Absorbs the old
+    // Composition group: composed pages, the patterns page, and the
+    // frozen static reference designs.
+    label: "Kits",
     children: [
-      { label: "Examples", to: "/examples", icon: "lucide:layout-panel-left" },
+      { label: "Kits overview", to: "/examples", icon: "lucide:library" },
+      { label: "Compositions doctrine", to: "/design/compositions", icon: "lucide:blocks" },
       { label: "  · Center landing", to: "/examples/center-landing", icon: "lucide:landmark" },
       { label: "  · Landscape dashboard", to: "/examples/landscape-dashboard", icon: "lucide:map" },
       { label: "  · Paper page", to: "/examples/paper-page", icon: "lucide:file-text" },
       { label: "  · Research landing", to: "/examples/research-landing", icon: "lucide:milestone" },
       { label: "  · Sidebar shell", to: "/examples/sidebar-shell", icon: "lucide:panel-left" },
       { label: "  · tti-ai-studio session", to: "/examples/tti-ai-studio-session", icon: "lucide:bot" },
-      { label: "Markdown", to: "/markdown", icon: "lucide:file-text" },
       { label: "Patterns", to: "/patterns", icon: "lucide:layers-2" },
-      { label: "Preview",  to: "/preview",  icon: "lucide:image" },
-      { label: "Kits",     to: "/kits",     icon: "lucide:library" },
-    ],
-  },
-  {
-    label: "Forms",
-    children: [
-      { label: "Forms overview",     to: "/forms",                    icon: "lucide:clipboard-list" },
-      { label: "Text field",         to: "/forms/text-field",         icon: "lucide:type" },
-      { label: "Select",             to: "/forms/select",             icon: "lucide:list" },
-      { label: "Choice",             to: "/forms/choice",             icon: "lucide:check-square" },
-      { label: "Date picker",        to: "/forms/date-picker",        icon: "lucide:calendar" },
-      { label: "File upload",        to: "/forms/file-upload",        icon: "lucide:upload" },
-      { label: "Inline validation",  to: "/forms/inline-validation",  icon: "lucide:check-circle-2" },
-      { label: "All-in-one demo",    to: "/forms/all-in-one",         icon: "lucide:layout-panel-left" },
+      { label: "Reference designs", to: "/kits", icon: "lucide:archive" },
     ],
   },
   {
@@ -113,14 +119,8 @@ const navTree = [
     label: "Visualizations",
     children: [
       { label: "Visualizations overview", to: "/visualizations", icon: "lucide:chart-pie" },
+      { label: "Chart foundations", to: "/design/chart-foundations", icon: "lucide:area-chart" },
       ...catalogNav("visualizations"),
-    ],
-  },
-  {
-    label: "Tooling",
-    children: [
-      { label: "Accessibility",  to: "/accessibility",  icon: "lucide:accessibility" },
-      { label: "Contrast audit", to: "/contrast-audit", icon: "lucide:contrast" },
     ],
   },
 ];

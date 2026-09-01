@@ -1,5 +1,7 @@
 <script setup lang="ts">
 // Per ADR-0010, keep top-level <script setup> expressions plain JS.
+import pbiCartesian from "../../../kit/powerbi/pbir/fragments/tti/chart-cartesian.json?raw";
+
 useHead({ title: "TuxChartScatter · TUX" });
 
 // Training-hours vs errors: clear negative correlation.
@@ -91,7 +93,7 @@ const bubbleVue = `<tux-chart-scatter
         fewer errors. The R² shows how tightly the dots cluster
         around the line.
       </p>
-      <TuxExample class="mt-4" :vue="basicVue">
+      <TuxExample :powerbi="pbiCartesian" class="mt-4" :vue="basicVue">
         <TuxChartScatter
           x-label="Hours of training"
           y-label="Errors per shift"
