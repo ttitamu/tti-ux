@@ -1,0 +1,17 @@
+/// Disconnected table driving the in-report light/dark toggle.
+table ThemeMode
+
+	column Mode
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Mode
+
+	column SortOrder
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: SortOrder
+		isHidden
+
+	partition ThemeMode = calculated
+		mode: import
+		source = DATATABLE("Mode", STRING, "SortOrder", INTEGER, {{"Dark", 1}, {"Light", 2}})

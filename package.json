@@ -1,6 +1,6 @@
 {
   "name": "@tti/tti-ux",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "TUX \u2014 the TTI design system: Nuxt layer, design tokens, and audit tooling. Published from code.tti.tamu.edu (Forgejo npm registry).",
   "publishConfig": {
     "registry": "https://code.tti.tamu.edu/api/packages/tti/npm/"
@@ -48,7 +48,9 @@
     "test": "vitest run && npm run test -w @tti/tti-ux-react",
     "build:brand-env": "node scripts/extract-brand.mjs",
     "build:powerbi": "node scripts/build-powerbi-theme.mjs",
-    "build:kit": "npm run build:tokens && npm run build:brand-env && npm run build:powerbi && npm run build:framework",
+    "build:pbir": "node scripts/build-pbir-components.mjs",
+    "verify:pbir": "node scripts/build-pbir-components.mjs --verify",
+    "build:kit": "npm run build:tokens && npm run build:brand-env && npm run build:powerbi && npm run build:pbir && npm run build:framework",
     "build:framework": "node scripts/build-framework-targets.mjs",
     "test:root": "vitest run"
   },

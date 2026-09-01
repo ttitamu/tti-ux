@@ -1,0 +1,133 @@
+/// Colour roles for the in-report light/dark toggle. One measure per
+/// role, each returning a hex literal chosen by the ThemeMode slicer.
+table TuxThemeColors
+
+	/// Page canvas behind the cards.
+	measure PageBackground = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#0B0908", "#F5F5F5")
+		displayFolder: Surface
+
+	/// Fill for every content visual.
+	measure CardBackground = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#221F1F", "#FFFFFF")
+		displayFolder: Surface
+
+	/// Secondary surface.
+	measure SecondaryBackground = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#15100F", "#FFFFFF")
+		displayFolder: Surface
+
+	/// Card and control borders.
+	measure BorderColor = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#3D3A3A", "#E7E6E6")
+		displayFolder: Surface
+
+	/// Body and heading text.
+	measure TextPrimary = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#FAFAFA", "#221F1F")
+		displayFolder: Text
+
+	/// Labels, captions, axis text.
+	measure TextSecondary = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#D1D2D4", "#424242")
+		displayFolder: Text
+
+	/// De-emphasised text.
+	measure TextMuted = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#B5B5B5", "#525252")
+		displayFolder: Text
+
+	/// Text on a brand surface.
+	measure TextOnAccent = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#FFFFFF", "#FFFFFF")
+		displayFolder: Text
+
+	/// Theme-adapted brand anchor.
+	measure AccentPrimary = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#6BB4C0", "#5C0025")
+		displayFolder: Accent
+
+	/// Secondary accent.
+	measure AccentGold = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#DDAC37", "#DDAC37")
+		displayFolder: Accent
+
+	/// Table header fill.
+	measure TableHeaderBg = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#221F1F", "#FFFFFF")
+		displayFolder: Table
+
+	/// Table header text.
+	measure TableHeaderText = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#FAFAFA", "#221F1F")
+		displayFolder: Table
+
+	/// Table row fill.
+	measure TableRowBg = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#221F1F", "#FFFFFF")
+		displayFolder: Table
+
+	/// Banded row fill.
+	measure TableAltRowBg = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#0B0908", "#F5F5F5")
+		displayFolder: Table
+
+	/// Table body text.
+	measure TableRowText = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#FAFAFA", "#221F1F")
+		displayFolder: Table
+
+	/// Total row fill.
+	measure TableTotalBg = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#0B0908", "#F5F5F5")
+		displayFolder: Table
+
+	/// Table gridlines.
+	measure TableGrid = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#2E2B2A", "#EFEEED")
+		displayFolder: Table
+
+	/// Value-axis gridlines.
+	measure ChartGridline = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#2E2B2A", "#EFEEED")
+		displayFolder: Chart
+
+	/// Axis and data labels.
+	measure ChartLabelText = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#D1D2D4", "#424242")
+		displayFolder: Chart
+
+	/// Plot-area fill.
+	measure ChartBackground = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#221F1F", "#FFFFFF")
+		displayFolder: Chart
+
+	/// Positive / on-target.
+	measure SemanticGood = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#ABCC8E", "#3D5328")
+		displayFolder: Semantic
+
+	/// Negative / off-target.
+	measure SemanticBad = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#F59292", "#A02828")
+		displayFolder: Semantic
+
+	/// Caution.
+	measure SemanticWarning = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#F5D98A", "#DDAC37")
+		displayFolder: Semantic
+
+	/// No signal.
+	measure SemanticNeutral = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#0B0908", "#F5F5F5")
+		displayFolder: Semantic
+
+	/// Masthead / footer fill (theme-invariant).
+	measure ShellHeaderBg = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#5C0025", "#5C0025")
+		displayFolder: Shell
+
+	/// Masthead text.
+	measure ShellHeaderText = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#FFFFFF", "#FFFFFF")
+		displayFolder: Shell
+
+	/// Accent rule under the masthead.
+	measure ShellAccentRule = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#DDAC37", "#DDAC37")
+		displayFolder: Shell
+
+	/// Tooltip fill (inverts).
+	measure TooltipBackground = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#FAFAFA", "#221F1F")
+		displayFolder: Tooltip
+
+	/// Tooltip title (inverts).
+	measure TooltipTitle = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#221F1F", "#FFFFFF")
+		displayFolder: Tooltip
+
+	/// Tooltip value (inverts).
+	measure TooltipValue = IF(SELECTEDVALUE(ThemeMode[Mode], "Light") = "Dark", "#0B0908", "#F5F5F5")
+		displayFolder: Tooltip
+
+	column Placeholder
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: Placeholder
+		isHidden
+
+	partition TuxThemeColors = calculated
+		mode: import
+		source = ROW("Placeholder", 1)
