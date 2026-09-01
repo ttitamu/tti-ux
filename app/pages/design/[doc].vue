@@ -40,6 +40,7 @@ const titles: Record<string, string> = {
   "tauri-bindings":    "Tauri bindings reference",
   "visual-language-evolution": "Visual language evolution",
   "kit-pipeline":      "Kit pipeline — framework targets",
+  "powerbi-kit":       "Power BI kit",
 };
 
 function titleFor(slug: string): string {

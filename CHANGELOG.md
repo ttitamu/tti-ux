@@ -5,6 +5,41 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — Power BI kit design doc (2026-09-01)
+
+- **`design/powerbi-kit.md`**, surfaced at `/design/powerbi-kit` by the
+  existing `design/*.md` glob. Covers why the kit is shaped the way it
+  is: the no-native-dark-mode constraint that splits it into theme vs
+  PBIR, the named-theme-colors trap, the version-pinning burden, Fluent
+  2, and the known gaps. The consumer procedure stays in
+  `kit/powerbi/README.md`, which ships in the package.
+- Deliberately a design doc rather than a bespoke page. The whole
+  framework-target tier is undocumented on the site — `kit/csharp`,
+  `kit/react`, `kit/wp`, `kit/css`, `kit/scss` have no pages either — so
+  this sets a pattern those can follow instead of being a one-off. Note
+  `/reports` would be the wrong home despite the name: that section is
+  explicitly for finished narratives the reader doesn't pivot or filter,
+  and a Power BI report is the opposite.
+
+### Changed — chart foundations §2 settled (2026-09-01)
+
+- **`design/chart-foundations.md` §2 is no longer a TODO.** Building the
+  Power BI `visualStyles` emitter forced every axis, gridline and legend
+  choice to become a literal, and two systems now have to agree on them.
+- **No `--chart-*` tokens were minted.** The 2026-05 skeleton expected
+  four new anchors; the surface and text ramps already carry those roles,
+  and aliasing would create two names for one value — which
+  `audit:tokens` flags. §2 now maps each role to the existing token and
+  its Power BI counterpart.
+- Records one deliberate divergence — web gridlines use
+  `--surface-border` at 50% opacity, the Power BI theme uses
+  `surface.border-subtle`, because a theme's `gridlineColor` has no alpha
+  channel — and one **defect**: `TuxChartLine` styles axis ticks
+  `--text-muted` while `TuxChartBar` uses `--text-secondary`. Both clear
+  AAA, so it is a consistency bug, not an accessibility one.
+  `--text-secondary` is named canonical; moving `TuxChartLine` is left to
+  its own change, since it is a visible change to a shipped component.
+
 ## [2.1.0] — 2026-09-01
 
 ### Added — Power BI kit v2: PBIR components (2026-09-01)

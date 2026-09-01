@@ -48,18 +48,61 @@ Don't re-tune.
 
 ## 2. Axis, grid, and legend tokens
 
-_TODO: enumerate as `TuxChartBar` / `TuxChartLine` ship._
+Settled 2026-09-01, after the charts shipped and the Power BI emitter
+(`scripts/build-powerbi-theme.mjs`) forced every one of these choices to
+become a literal. Two systems now have to agree on them, which is what
+turned the guesses below into decisions.
 
-Expected anchors:
-- `--chart-axis` — axis-line color (likely `--surface-border`)
-- `--chart-gridline` — horizontal gridline (likely
-  `color-mix(in srgb, var(--surface-border) 50%, transparent)`)
-- `--chart-label` — axis tick text (likely `--text-muted`)
-- `--chart-legend` — legend text (likely `--text-secondary`)
+**No `--chart-*` tokens were minted.** The 2026-05 skeleton expected
+four new anchors (`--chart-axis`, `--chart-gridline`, `--chart-label`,
+`--chart-legend`). Building both consumers showed they aren't needed —
+the surface and text ramps already carry these roles, and aliasing them
+would create two names for one value, which `audit:tokens` flags. Use
+the anchors directly:
 
-Tabular numerals (`font-variant-numeric: tabular-nums`) on axis ticks
-and value labels everywhere; aligns with the rest of TUX's data
-density.
+| Role | Web token | Power BI theme |
+|---|---|---|
+| Axis line | `--surface-border` | `thirdLevelElements` |
+| Gridline | `--surface-border` @ `opacity: 0.5` | `gridlineColor` ← `surface.border-subtle` |
+| Axis tick text | `--text-secondary` | `categoryAxis`/`valueAxis` `fontColor` |
+| Legend text | `--text-secondary` | `legend.labelColor` |
+| Data labels | `--text-secondary` | `labels.color` |
+
+The gridline row is the one deliberate divergence. The web charts render
+`--surface-border` at half opacity; a Power BI theme has no opacity
+channel on `gridlineColor`, so it uses `surface.border-subtle` instead —
+`#EFEEED`, which is within a hair of `#E7E6E6` composited at 50% on
+white. Same intent, two mechanisms, because one of them can't express
+alpha.
+
+### Rules
+
+- **Gridlines on the value axis only.** One horizontal rule per value
+  step is enough to read a bar or point against; category-axis gridlines
+  add ink without adding information. (`gridlineShow: false` on
+  `categoryAxis`, `true` on `valueAxis`.)
+- **Axis titles off by default.** The field name is nearly always
+  redundant with the visual's own title. Fluent 2 defaults them off too,
+  so this is now the platform default rather than a house deviation.
+- **Legend on top, no legend title**, for the same redundancy reason.
+- **Tabular numerals** (`font-variant-numeric: tabular-nums`) on axis
+  ticks and value labels everywhere — aligns with the rest of TUX's data
+  density.
+
+### Known deviation — reconcile before the next chart batch
+
+`TuxChartLine` styles its x/y tick labels `--text-muted`, while
+`TuxChartBar` uses `--text-secondary`. Both clear WCAG 2.2 AAA on white
+(tokens.json holds them both to 7:1), so this is a consistency defect,
+not an accessibility one — but the two charts genuinely render axis text
+at different weights of grey today.
+
+`--text-secondary` is canonical, on three grounds: `TuxChartBar` already
+uses it, the Power BI theme emits it, and axis ticks carry real
+information rather than being de-emphasised chrome. `TuxChartLine` is
+the outlier and should move — as its own change with the chart family,
+not folded into a doc edit, since it is a visible change to a shipped
+component.
 
 ## 3. Value-label placement — in-bar vs above
 
