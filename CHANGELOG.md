@@ -5,6 +5,76 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.1.0] — 2026-09-01
+
+### Added — Power BI kit v2: PBIR components (2026-09-01)
+
+The Power BI target grows from a colours-and-fonts theme file into a
+drop-in report kit. Ported from the Power BI & Fabric documentation tree
+in `docs-tti-tamu-edu`, re-tokenised to TTI, and re-pinned against the
+current Microsoft schemas (every version below verified live on
+2026-08-31: each URL returns 200 and the next version up 404s).
+
+- **`scripts/pbir-schema-lock.mjs`** — single source for every pinned
+  PBIR `$schema` URL and format-version literal, emitted to
+  `kit/powerbi/pbir/schema-lock.json`. Current tips: `report/3.3.0`,
+  `visualContainer/2.9.0`, `page/2.1.0`, `pagesMetadata/1.1.0`,
+  `platformProperties/2.1.0` (under `gitIntegration/`, **not**
+  `item/report/`), `definitionProperties/2.0.0`, `versionMetadata/1.0.0`.
+  `npm run verify:pbir` re-checks all of them against the live endpoints.
+- **`kit/powerbi/tti-theme-hc.json`** — third emitted theme, from the
+  existing `tti-hc` tokens. Has no upstream equivalent.
+- **`kit/powerbi/pbir/geometry.json`** — report shell layout: chrome
+  bands, content area, nav-pill stride, and the z-order scheme
+  (content reserved to 9000–15000). Two canvas variants, because Fluent 2
+  moved the default canvas to 1920×1080 while existing reports stay at
+  1280×920.
+- **`kit/powerbi/pbir/fragments/`** — card chrome, `tableEx` chrome and
+  cartesian-chart chrome, in four lanes: static `tti` / `tti-dark` /
+  `tti-hc`, plus `themed` whose colours bind to DAX measures.
+- **`kit/powerbi/pbir/tmdl/` + `pbir/dax/`** — the in-report light/dark
+  switch: a `ThemeMode` table and 30 `TuxThemeColors` measures across
+  eight display folders, as TMDL for PBIP projects and as DAX for
+  Desktop. Power BI has **no** native dark mode for report content in
+  Desktop, the service, or mobile, so this is the mechanism, not a
+  workaround. `Shell*` roles are theme-invariant (the masthead stays
+  maroon); `Tooltip*` roles invert.
+- **`kit/powerbi/pbir/shell/{classic,fluent2}/`** — 15 drop-in visuals
+  per canvas: 10 page-chrome visuals plus 5 nav-pill templates, laid out
+  one folder per visual to match PBIR on disk. All 30 validated against
+  the live `visualContainer/2.9.0` schema with its five remote `$ref`s
+  resolved. Includes the Dark/Light tile slicer (`mode: 'Basic'` **and**
+  `orientation: "1D"` — both required) with cross-page `syncGroup`.
+- **`kit/powerbi/README.md`** — drop-in procedure, the theme-registration
+  triple, the semantic-model contract, and the calibrated sizing rules.
+- **`npm run build:pbir` / `verify:pbir`**, with `build:pbir` wired into
+  `build:kit`.
+
+### Changed — Power BI theme emitter (2026-09-01)
+
+`scripts/build-powerbi-theme.mjs` now emits a complete report theme.
+**Consumers re-vendoring at a pinned tag will see visible differences:**
+
+- **Removed the `_generated` key.** The theme schema is
+  `additionalProperties: false` over exactly 42 named properties, so
+  every theme v1 emitted was technically invalid. Provenance moved to
+  `kit/powerbi/README.md`.
+- **`background` (dark) `#15100F` → `#221F1F`.** v1 mapped it to
+  `surface.page`, but Power BI's `background` is the *visual* fill; it is
+  now `surface.raised`, so dark cards separate from the canvas.
+- **`tableAccent` (dark) `#5C0025` → `#6BB4C0`.** v1 pinned light-theme
+  maroon regardless of theme, which reads poorly on a dark card; it now
+  follows the theme's own brand anchor.
+- **Added** `$schema`, a `baseTheme` pin (`Fluent2-CY26SU08` — `CY24SU06`
+  is two generations stale), the structural set
+  (`firstLevelElements`…`fourthLevelElements`, `secondaryBackground`,
+  `shapeStroke`, `disabledText`, `hyperlink`, `visitedHyperlink`), a
+  brand-anchored divergent ramp, and `visualStyles` for 26 visual types.
+- **Exports `generate()`**, so `tests/tux-kit-targets.test.ts` can
+  byte-lock the output. `build-powerbi-theme.mjs` was the only Tier-1
+  emitter with no lock test — it could drift from tokens silently, which
+  is precisely the failure class its own header comment claims to end.
+
 ### Added — Atlas portal tile (2026-08-31)
 
 - **`atlas`** — `Atlas`, `https://atlas.tti.tamu.edu`, `audience:"entitled"`,

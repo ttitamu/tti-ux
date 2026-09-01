@@ -1,57 +1,55 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/main/Report%20Theme%20JSON%20Schema/reportThemeSchema-2.157.json",
-  "name": "TTI Dark (tux)",
+  "name": "TTI High Contrast (tux)",
   "baseTheme": "Fluent2-CY26SU08",
   "dataColors": [
-    "#c47585",
-    "#6B8DA3",
-    "#E0BC60",
-    "#93B57E",
-    "#B58463",
-    "#8AA0B2",
-    "#D67272",
-    "#6E8FBE",
-    "#A08CB4",
-    "#B0A578"
+    "#000000",
+    "#500000",
+    "#5D5D5D",
+    "#8A6915",
+    "#4A4A4A",
+    "#1F5D66",
+    "#6B0000",
+    "#2A2A2A"
   ],
-  "background": "#221F1F",
-  "secondaryBackground": "#0B0908",
-  "foreground": "#FAFAFA",
-  "firstLevelElements": "#FAFAFA",
-  "secondLevelElements": "#D1D2D4",
-  "thirdLevelElements": "#3D3A3A",
-  "fourthLevelElements": "#B5B5B5",
-  "tableAccent": "#6BB4C0",
-  "shapeStroke": "#3D3A3A",
-  "disabledText": "#B5B5B5",
-  "hyperlink": "#6BB4C0",
-  "visitedHyperlink": "#5B9CA8",
-  "good": "#ABCC8E",
-  "neutral": "#B5B5B5",
-  "bad": "#F59292",
-  "minimum": "#0B0908",
-  "center": "#DDAC37",
-  "maximum": "#6BB4C0",
-  "null": "#2E2B2A",
+  "background": "#FFFFFF",
+  "secondaryBackground": "#F0F0F0",
+  "foreground": "#000000",
+  "firstLevelElements": "#000000",
+  "secondLevelElements": "#221F1F",
+  "thirdLevelElements": "#5D5D5D",
+  "fourthLevelElements": "#4D4D4D",
+  "tableAccent": "#500000",
+  "shapeStroke": "#5D5D5D",
+  "disabledText": "#4D4D4D",
+  "hyperlink": "#500000",
+  "visitedHyperlink": "#3A0000",
+  "good": "#3D5328",
+  "neutral": "#4D4D4D",
+  "bad": "#A02828",
+  "minimum": "#F0F0F0",
+  "center": "#DCAA37",
+  "maximum": "#500000",
+  "null": "#5D5D5D",
   "textClasses": {
     "title": {
       "fontFace": "Work Sans",
-      "color": "#FAFAFA",
+      "color": "#000000",
       "fontSize": 12
     },
     "callout": {
       "fontFace": "Oswald",
-      "color": "#FAFAFA",
+      "color": "#000000",
       "fontSize": 40
     },
     "label": {
       "fontFace": "Open Sans",
-      "color": "#D1D2D4",
+      "color": "#221F1F",
       "fontSize": 10
     },
     "header": {
       "fontFace": "Open Sans",
-      "color": "#FAFAFA",
+      "color": "#000000",
       "fontSize": 11
     }
   },
@@ -63,7 +61,7 @@
             "properties": {
               "color": {
                 "solid": {
-                  "color": "#0B0908"
+                  "color": "#F0F0F0"
                 }
               },
               "transparency": {
@@ -81,7 +79,7 @@
             "properties": {
               "color": {
                 "solid": {
-                  "color": "#0B0908"
+                  "color": "#F0F0F0"
                 }
               },
               "transparency": {
@@ -117,7 +115,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -156,7 +154,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -175,7 +173,7 @@
               },
               "gridlineColor": {
                 "solid": {
-                  "color": "#2E2B2A"
+                  "color": "#5D5D5D"
                 }
               },
               "gridlineThickness": {
@@ -214,7 +212,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -253,7 +251,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -282,7 +280,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -321,7 +319,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -340,7 +338,7 @@
               },
               "gridlineColor": {
                 "solid": {
-                  "color": "#2E2B2A"
+                  "color": "#5D5D5D"
                 }
               },
               "gridlineThickness": {
@@ -379,7 +377,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -418,7 +416,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -447,7 +445,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -486,7 +484,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -505,7 +503,7 @@
               },
               "gridlineColor": {
                 "solid": {
-                  "color": "#2E2B2A"
+                  "color": "#5D5D5D"
                 }
               },
               "gridlineThickness": {
@@ -544,7 +542,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -583,7 +581,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -612,7 +610,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -651,7 +649,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -670,7 +668,7 @@
               },
               "gridlineColor": {
                 "solid": {
-                  "color": "#2E2B2A"
+                  "color": "#5D5D5D"
                 }
               },
               "gridlineThickness": {
@@ -709,7 +707,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -748,7 +746,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -777,7 +775,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -816,7 +814,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -835,7 +833,7 @@
               },
               "gridlineColor": {
                 "solid": {
-                  "color": "#2E2B2A"
+                  "color": "#5D5D5D"
                 }
               },
               "gridlineThickness": {
@@ -874,7 +872,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -913,7 +911,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -942,7 +940,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -981,7 +979,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -1000,7 +998,7 @@
               },
               "gridlineColor": {
                 "solid": {
-                  "color": "#2E2B2A"
+                  "color": "#5D5D5D"
                 }
               },
               "gridlineThickness": {
@@ -1039,7 +1037,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -1078,7 +1076,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -1107,7 +1105,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -1146,7 +1144,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -1165,7 +1163,7 @@
               },
               "gridlineColor": {
                 "solid": {
-                  "color": "#2E2B2A"
+                  "color": "#5D5D5D"
                 }
               },
               "gridlineThickness": {
@@ -1204,7 +1202,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -1243,7 +1241,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -1272,7 +1270,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -1311,7 +1309,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -1330,7 +1328,7 @@
               },
               "gridlineColor": {
                 "solid": {
-                  "color": "#2E2B2A"
+                  "color": "#5D5D5D"
                 }
               },
               "gridlineThickness": {
@@ -1369,7 +1367,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -1408,7 +1406,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -1437,7 +1435,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -1476,7 +1474,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -1495,7 +1493,7 @@
               },
               "gridlineColor": {
                 "solid": {
-                  "color": "#2E2B2A"
+                  "color": "#5D5D5D"
                 }
               },
               "gridlineThickness": {
@@ -1534,7 +1532,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -1573,7 +1571,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -1602,7 +1600,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -1641,7 +1639,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -1660,7 +1658,7 @@
               },
               "gridlineColor": {
                 "solid": {
-                  "color": "#2E2B2A"
+                  "color": "#5D5D5D"
                 }
               },
               "gridlineThickness": {
@@ -1699,7 +1697,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -1738,7 +1736,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -1767,7 +1765,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -1806,7 +1804,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -1825,7 +1823,7 @@
               },
               "gridlineColor": {
                 "solid": {
-                  "color": "#2E2B2A"
+                  "color": "#5D5D5D"
                 }
               },
               "gridlineThickness": {
@@ -1864,7 +1862,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -1903,7 +1901,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -1932,7 +1930,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -1971,7 +1969,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -1990,7 +1988,7 @@
               },
               "gridlineColor": {
                 "solid": {
-                  "color": "#2E2B2A"
+                  "color": "#5D5D5D"
                 }
               },
               "gridlineThickness": {
@@ -2029,7 +2027,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -2068,7 +2066,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -2097,7 +2095,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -2136,7 +2134,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -2155,7 +2153,7 @@
               },
               "gridlineColor": {
                 "solid": {
-                  "color": "#2E2B2A"
+                  "color": "#5D5D5D"
                 }
               },
               "gridlineThickness": {
@@ -2194,7 +2192,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -2233,7 +2231,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -2262,7 +2260,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -2301,7 +2299,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "showAxisTitle": {
@@ -2320,7 +2318,7 @@
               },
               "gridlineColor": {
                 "solid": {
-                  "color": "#2E2B2A"
+                  "color": "#5D5D5D"
                 }
               },
               "gridlineThickness": {
@@ -2359,7 +2357,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -2398,7 +2396,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -2427,7 +2425,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -2466,7 +2464,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -2508,7 +2506,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -2547,7 +2545,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -2576,7 +2574,7 @@
               },
               "labelColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "position": {
@@ -2615,7 +2613,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -2644,7 +2642,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -2666,7 +2664,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#6BB4C0"
+                  "color": "#500000"
                 }
               }
             }
@@ -2684,7 +2682,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#6BB4C0"
+                  "color": "#500000"
                 }
               }
             }
@@ -2706,7 +2704,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#6BB4C0"
+                  "color": "#500000"
                 }
               }
             }
@@ -2731,7 +2729,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -2753,7 +2751,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#6BB4C0"
+                  "color": "#500000"
                 }
               }
             }
@@ -2778,7 +2776,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               }
             }
@@ -2800,7 +2798,7 @@
               },
               "color": {
                 "solid": {
-                  "color": "#6BB4C0"
+                  "color": "#500000"
                 }
               }
             }
@@ -2811,7 +2809,7 @@
             "properties": {
               "color": {
                 "solid": {
-                  "color": "#DDAC37"
+                  "color": "#DCAA37"
                 }
               }
             }
@@ -2840,17 +2838,17 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#FAFAFA"
+                  "color": "#000000"
                 }
               },
               "backColor": {
                 "solid": {
-                  "color": "#221F1F"
+                  "color": "#FFFFFF"
                 }
               },
               "outlineColor": {
                 "solid": {
-                  "color": "#6BB4C0"
+                  "color": "#500000"
                 }
               },
               "outlineWeight": {
@@ -2882,17 +2880,17 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#FAFAFA"
+                  "color": "#000000"
                 }
               },
               "backColor": {
                 "solid": {
-                  "color": "#221F1F"
+                  "color": "#FFFFFF"
                 }
               },
               "backColorAlternate": {
                 "solid": {
-                  "color": "#0B0908"
+                  "color": "#F0F0F0"
                 }
               }
             }
@@ -2910,7 +2908,7 @@
               },
               "gridHorizontalColor": {
                 "solid": {
-                  "color": "#2E2B2A"
+                  "color": "#5D5D5D"
                 }
               },
               "gridVertical": {
@@ -2922,7 +2920,7 @@
               },
               "outlineColor": {
                 "solid": {
-                  "color": "#3D3A3A"
+                  "color": "#5D5D5D"
                 }
               }
             }
@@ -2947,12 +2945,12 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#FAFAFA"
+                  "color": "#000000"
                 }
               },
               "backColor": {
                 "solid": {
-                  "color": "#0B0908"
+                  "color": "#F0F0F0"
                 }
               }
             }
@@ -2981,7 +2979,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#FAFAFA"
+                  "color": "#000000"
                 }
               }
             }
@@ -3006,7 +3004,7 @@
               },
               "fontColor": {
                 "solid": {
-                  "color": "#D1D2D4"
+                  "color": "#221F1F"
                 }
               },
               "background": {

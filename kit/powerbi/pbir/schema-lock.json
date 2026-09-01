@@ -1,0 +1,51 @@
+{
+  "$comment": "Pinned Power BI / PBIR format versions for the TUX kit. Generated from scripts/pbir-schema-lock.mjs — do not hand-edit. Every URL was verified live on 2026-08-31 (200, with the next version up returning 404).",
+  "verifiedOn": "2026-08-31",
+  "status": {
+    "ga": false,
+    "note": "PBIR is still public preview as of 2026-08-31 (GA slipped past its Q3 2026 target) but is already the default format for new reports in the service (Jan 2026) and Desktop (Mar 2026). Microsoft has stated it becomes the ONLY supported format at GA."
+  },
+  "pbirSchemas": {
+    "platformProperties": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.1.0/schema.json",
+    "definitionProperties": "https://developer.microsoft.com/json-schemas/fabric/item/report/definitionProperties/2.0.0/schema.json",
+    "versionMetadata": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/versionMetadata/1.0.0/schema.json",
+    "report": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.3.0/schema.json",
+    "pagesMetadata": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/pagesMetadata/1.1.0/schema.json",
+    "page": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+    "visualContainer": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json"
+  },
+  "pbirFormatVersions": {
+    "definitionPbir": "4.0",
+    "versionMetadata": "2.0.0",
+    "platformConfig": "2.0"
+  },
+  "theme": {
+    "schemaVersion": "2.157",
+    "schemaUrl": "https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/main/Report%20Theme%20JSON%20Schema/reportThemeSchema-2.157.json",
+    "baseThemes": {
+      "fluent2": "Fluent2-CY26SU08",
+      "classic": "CY26SU08"
+    },
+    "reportVersionAtImport": {
+      "visual": "2.9.0",
+      "page": "2.3.1",
+      "report": "3.3.0"
+    }
+  },
+  "limits": {
+    "pagesPerReport": 1000,
+    "visualsPerPage": 1000,
+    "resourceFilesPerReport": 1000,
+    "resourcePackageBytes": 314572800,
+    "reportBytes": 314572800,
+    "maxPathChars": 260
+  },
+  "deprecatedVisualTypes": {
+    "card": "cardVisual",
+    "table": "tableEx",
+    "matrix": "pivotTable",
+    "filledMap": "azureMap",
+    "map": "azureMap",
+    "multiRowCard": "cardVisual"
+  }
+}
