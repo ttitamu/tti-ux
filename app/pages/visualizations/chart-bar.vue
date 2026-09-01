@@ -4,6 +4,8 @@
 // casts, no type annotations on const, no `satisfies`). Inference
 // gives `number[]` / `number[][]` which is what the runtime wants.
 // See ADR-0010 for the full context.
+import pbiCartesian from "../../../kit/powerbi/pbir/fragments/tti/chart-cartesian.json?raw";
+
 useHead({ title: "TuxChartBar · TUX" });
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"];
@@ -88,7 +90,7 @@ const framedVue = `<tux-chart-frame
         bar carries its own hue + colored value label. Use when the
         data point itself is the focus.
       </p>
-      <TuxExample class="mt-4" :vue="basicVue">
+      <TuxExample :powerbi="pbiCartesian" class="mt-4" :vue="basicVue">
         <TuxChartBar
           :labels="['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']"
           :series="[{ key: 'ingest', label: 'Files ingested', data: [12, 18, 24, 31, 28, 35] }]"

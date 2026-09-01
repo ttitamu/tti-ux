@@ -1,5 +1,7 @@
 <script setup lang="ts">
 // Per ADR-0010, keep top-level <script setup> expressions plain JS.
+import pbiCartesian from "../../../kit/powerbi/pbir/fragments/tti/chart-cartesian.json?raw";
+
 useHead({ title: "TuxChartArea · TUX" });
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -50,7 +52,7 @@ const compositionVue = `<!-- "KPI strip over stacked area" — pattern absorbed 
         opacity, edged with a crisp top line. End-of-area value label
         colored to series.
       </p>
-      <TuxExample class="mt-4" :vue="basicVue">
+      <TuxExample :powerbi="pbiCartesian" class="mt-4" :vue="basicVue">
         <TuxChartArea :labels="months" :series="singleSeries" />
       </TuxExample>
     </section>

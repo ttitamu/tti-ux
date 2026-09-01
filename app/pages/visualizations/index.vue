@@ -104,5 +104,62 @@ const tiles = [
         or <code>TuxVizRPlot</code> + a pre-rendered ggplot artifact.
       </p>
     </section>
+
+    <section>
+      <p class="eyebrow">power bi</p>
+      <h2 class="heading--bold text-lg font-bold">Power BI parity</h2>
+      <p class="mt-2 text-text-secondary leading-relaxed">
+        Charts with a <strong>Power BI</strong> tab carry a ready-to-paste
+        PBIR fragment from
+        <NuxtLink to="/install/power-bi" class="link-tti">the Power BI kit</NuxtLink>.
+        Implementations are an attribute of a component, not a section of
+        their own — so the Power BI rendering of a chart lives on that
+        chart's page, beside Vue and HTML. Tableau will appear the same way.
+      </p>
+      <p class="mt-2 text-text-secondary leading-relaxed">
+        Coverage is partial today: the kit ships three fragment types, not
+        one per chart. <strong>A missing tab means no fragment yet, not
+        that Power BI can't render it</strong> — the theme still styles
+        every native visual it supports.
+      </p>
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left">
+              <th class="py-2 pr-4 font-semibold">Fragment</th>
+              <th class="py-2 pr-4 font-semibold">Covers</th>
+              <th class="py-2 font-semibold">Where</th>
+            </tr>
+          </thead>
+          <tbody class="align-top">
+            <tr>
+              <td class="py-2 pr-4"><code>chart-cartesian</code></td>
+              <td class="py-2 pr-4">bar, column, line, area, scatter</td>
+              <td class="py-2">Power BI tab on those chart pages</td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4"><code>table-chrome</code></td>
+              <td class="py-2 pr-4"><code>tableEx</code></td>
+              <td class="py-2">
+                <NuxtLink to="/components/data-table" class="link-tti">Data table</NuxtLink>
+              </td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4"><code>card-chrome</code></td>
+              <td class="py-2 pr-4">every content visual</td>
+              <td class="py-2">
+                Container rule, not a single visual — see
+                <NuxtLink to="/install/power-bi" class="link-tti">setup</NuxtLink>
+              </td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4 text-text-muted">—</td>
+              <td class="py-2 pr-4 text-text-muted">donut, gauge, heatmap, histogram, sunburst, geographic</td>
+              <td class="py-2 text-text-muted">no fragment yet</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
 </template>

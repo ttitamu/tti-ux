@@ -52,10 +52,6 @@ const titleMap: Record<string, { title: string; blurb: string }> = {
     title: "Kit pipeline — framework targets",
     blurb: "The two-tier doctrine: deterministic token emitters (C#, React, WordPress, Power BI) vs component ports — the port ledger, the drift bot, and the superPOD review loop.",
   },
-  "powerbi-kit": {
-    title: "Power BI kit",
-    blurb: "How TUX reaches Fabric: report themes, PBIR fragments, the drop-in page shell, and the DAX module behind the light/dark toggle — plus why that toggle has to exist at all.",
-  },
   "tauri-bindings": {
     title: "Tauri bindings reference",
     blurb: "Which Tauri capabilities each platform-aware component needs, and the reserved future surface.",

@@ -15,6 +15,8 @@ import { bandSeries, brushRange } from "./chart-line.demo-data";
 // the position pointing nowhere useful. Type-annotated locals are
 // fine inside function bodies; the constraint is on the top-level
 // statements the macro extractor walks.
+import pbiCartesian from "../../../kit/powerbi/pbir/fragments/tti/chart-cartesian.json?raw";
+
 useHead({ title: "TuxChartLine · TUX" });
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -107,7 +109,7 @@ const focusVue = `<UButton icon="lucide:maximize" @click="focusOpen = true">Open
         carries series identity — even without a legend, the reader
         sees the final value at a glance.
       </p>
-      <TuxExample class="mt-4" :vue="basicVue">
+      <TuxExample :powerbi="pbiCartesian" class="mt-4" :vue="basicVue">
         <TuxChartLine :labels="months" :series="singleSeries" />
       </TuxExample>
     </section>

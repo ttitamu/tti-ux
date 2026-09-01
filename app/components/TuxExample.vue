@@ -30,6 +30,13 @@ interface Props {
   vue?: string;
   /** Optional component source SFC to expose in a third `Source` tab. */
   source?: string;
+  /** Optional Power BI JSON for this visual — a `visualStyles` block or a
+   *  PBIR fragment, shown in a `Power BI` tab. Implementations are an
+   *  attribute of a component, not a separate place in the nav, so the
+   *  Power BI rendering of a chart lives on that chart's own page.
+   *  Import it from kit/powerbi/ rather than retyping, so it cannot
+   *  drift from the emitter. `tableau` will slot in the same way. */
+  powerbi?: string;
   /** Preview-pane label (small uppercase tag above the demo). */
   title?: string;
   /** Padding inside the preview area. Default "p-6". */
@@ -40,10 +47,11 @@ const props = withDefaults(defineProps<Props>(), {
   previewPadding: "p-6",
   vue: undefined,
   source: undefined,
+  powerbi: undefined,
   title: undefined,
 });
 
-type Tab = "vue" | "html" | "source";
+type Tab = "vue" | "html" | "source" | "powerbi";
 
 const activeTab = ref<Tab>("vue");
 const previewRef = ref<HTMLElement | null>(null);
@@ -80,6 +88,12 @@ const { data: sourceHighlighted } = await useAsyncData(
   () => `tux-example-src:${shikiTheme.value}:${hashCode(props.source ?? "")}`,
   () => (props.source ? highlight(props.source, { lang: "vue", theme: shikiTheme.value }) : Promise.resolve("")),
   { watch: [() => props.source, shikiTheme] },
+);
+
+const { data: powerbiHighlighted } = await useAsyncData(
+  () => `tux-example-pbi:${shikiTheme.value}:${hashCode(props.powerbi ?? "")}`,
+  () => (props.powerbi ? highlight(props.powerbi, { lang: "json", theme: shikiTheme.value }) : Promise.resolve("")),
+  { watch: [() => props.powerbi, shikiTheme] },
 );
 
 onMounted(() => {
@@ -132,6 +146,7 @@ const tabs = computed(() => {
     { id: "vue", label: "Vue" },
     { id: "html", label: "HTML" },
   ];
+  if (props.powerbi) t.push({ id: "powerbi", label: "Power BI" });
   if (props.source) t.push({ id: "source", label: "Source" });
   return t;
 });
@@ -139,12 +154,14 @@ const tabs = computed(() => {
 const activeCode = computed(() => {
   if (activeTab.value === "vue") return props.vue ?? "";
   if (activeTab.value === "html") return rendered.value;
+  if (activeTab.value === "powerbi") return props.powerbi ?? "";
   return props.source ?? "";
 });
 
 const highlightedCode = computed<string | null>(() => {
-  if (activeTab.value === "vue")    return vueHighlighted.value || null;
-  if (activeTab.value === "source") return sourceHighlighted.value || null;
+  if (activeTab.value === "vue")     return vueHighlighted.value || null;
+  if (activeTab.value === "source")  return sourceHighlighted.value || null;
+  if (activeTab.value === "powerbi") return powerbiHighlighted.value || null;
   return renderedHighlighted.value;
 });
 
