@@ -222,7 +222,7 @@ const icons: Record<ArtifactAction, string> = {
   padding: 0;
   background: transparent;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   color: var(--text-secondary);
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease;

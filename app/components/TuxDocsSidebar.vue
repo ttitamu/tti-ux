@@ -248,7 +248,7 @@ const filteredTree = computed(() => {
   color: var(--text-primary);
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   outline: 0;
   transition: border-color 0.15s ease;
 }
@@ -277,7 +277,7 @@ const filteredTree = computed(() => {
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
 }
 
 .tux-docs-sidebar__search-clear:hover {

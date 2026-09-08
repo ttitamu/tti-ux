@@ -3,7 +3,110 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [2.2.0] — 2026-09-08
+
+### Fixed — Batch M: the control radius rule (2026-09-08)
+
+Three controls sitting side by side rendered at three different corner
+radii: a `UButton` at **9px**, `.tux-pagination__btn` at **2px**, and
+`TuxCommandPalette` at **6px**. Batch K.2 exists specifically to prevent
+this, and had in fact caused half of it.
+
+- **K.2 was solving for the wrong variable.** Nuxt UI 4 never reads
+  `--radius-md`: it re-declares the Tailwind radius scale in an
+  `@theme default inline` block as multiples of its own base
+  (`--radius-md: calc(var(--ui-radius) * 1.5)`), and `inline`
+  substitutes those expressions straight into the utilities at build
+  time. Every U* control is `rounded-md` = **1.5× the base**, so binding
+  the base to `--radius-md` rendered them at 9px against tux chrome's
+  6px. Nuxt UI's untouched 0.25rem default had been landing on 6px
+  correctly all along — K.2 moved them off the match it was written to
+  create. Now `--ui-radius: calc(var(--radius-md) / 1.5)`, which solves
+  for the control utility and survives a change to `--radius-md`.
+  **Every U\* control moves 9px → 6px.**
+- **One rule, ratified** (`design/visual-language-evolution.md` § Batch
+  M): interactive controls use `--radius-md`; inline marks and chrome
+  use `--radius-sm`. Fifteen declarations across thirteen components
+  moved to `--radius-md` — `TuxAppSwitcher`, `TuxArtifact`,
+  `TuxBranchNav`, `TuxCodeBlock`, `TuxDocsSidebar` (×2), `TuxDropdown`,
+  `TuxMarkdownEditor`, `TuxMegaMenu`, `TuxMenuBar`, `TuxPagination`,
+  `TuxSiteNav` (×2), `TuxStatusToast`, `TuxTeachingPopover`.
+- **Inline marks stay near-square deliberately**, and now say so:
+  `TuxKbd` keycaps, `TuxInlineCitation` pills, `TuxBetaRibbon` and
+  `TuxVizEmbed` display chips. A `<kbd>` reads as a physical key at 2px
+  and as a pill at 6px; a citation `[1]` inside prose should not look
+  like a button.
+- `TuxPagination`'s own docs claimed "square corners" as a deliberate
+  system trait. Corrected — that was describing the drift, not a
+  decision.
+
+### Fixed — two install pages passed an invalid `kind` to TuxCallout
+
+`/install` and `/install/power-bi` passed `kind="info"` / `kind="warning"`
+plus a `title` to `TuxCallout`, which accepts neither (`kind` is
+`fact | stat | quote`; there is no `title` prop). Both were the only
+`nuxt typecheck` errors in the repo. Converted to `TuxAlert`, which is
+the component that actually models severity — typecheck is now clean.
+
+### Changed — TuxSearch stops being an AggieUX port (2026-09-08)
+
+`TuxSearch` shipped as a 1:1 port of the AggieUX search bar and stayed
+one: its 60/51px heights, its 155/123px button widths, its 2px→3px
+border-thickening focus, its italic placeholder, its five raw hexes.
+Every tux move ratified since — the two-ring focus token, the
+transportation-tempo easings, the elevation tiers, the rhythm ramp, the
+wash ladder — passed it by. It is now a tux component.
+
+- **`field` is the new default shape.** Bordered input, leading
+  `lucide:search` glyph, hairline border, clear (×) affordance. 44px
+  regular / 36px slim. This is what belongs in a table toolbar or a
+  sidebar widget — where the old attached-slab bar was being applied for
+  want of an alternative (see the `/examples/landscape-dashboard`
+  toolbar, where a 51px maroon SEARCH slab sat beside a 32px "Columns"
+  button). **Breaking visually**: existing call sites render as a field
+  unless they pass `variant="slab"`.
+- **`slab` keeps the attached-button anatomy** — 2px rule, square
+  corners, uppercase action, 60/51px. It is the right *editorial*
+  shape for hero strips and dedicated search pages; it is simply no
+  longer what you get by default.
+- **`block`** — heading + bar + optional lede on the rhythm ramp
+  (16px heading→bar, 12px bar→lede), carrying `role="search"`.
+  `block-bar="slab"` for blocks that are the page's primary CTA.
+- **Two-ring focus at a constant border width.** The AggieUX 2px→3px
+  thickening shifted the bar by 1px on every focus; `--shadow-focus`
+  (sand inner halo + brand outer) replaces it.
+- **Corner-drop on focus** for `slab` / `block`, adapted from `TuxCard`
+  — deliberately *without* the translate. The card moves because it is a
+  navigation target; moving a text field out from under a live caret is
+  hostile, so only the shadow lands. Off for `field`; `corner-drop`
+  overrides either way.
+- **Zero raw color literals.** The dark theme's hardcoded
+  `rgba(255,255,255,…)` overrides are gone — the bar now reads
+  `--surface-raised` / `--surface-border` / `--text-primary` and
+  rebinds per theme for free. The slab button moved from
+  `--brand-primary` (which lifts to light teal on dark, stranding white
+  label copy at ~2.4:1, and which the port papered over by flipping the
+  button to gold) to `--brand-fill`, so the slab keeps its maroon
+  presence in every theme. `TuxSearch.vue` drops out of the
+  `tux-color.test.ts` literal budget entirely.
+- **New capability**: clear affordance, `loading` state (spinner glyph +
+  `aria-busy`), and a `#suggestions` scoped slot that opens an overlay
+  panel on focus. The bar wires `role="combobox"`,
+  `aria-expanded`/`aria-controls`, Escape-to-close and focus-out;
+  consumers own the listbox semantics inside. Escape closes the panel,
+  then clears the value.
+- **Corner radius follows Batch K.2.** The bar was carrying AggieUX's
+  square corners — `--radius-none` on the slab (the only use of that
+  token in the entire component library) and `--radius-sm` on the field,
+  which reads as square at 2px. Both now use `--radius-md`, the radius
+  K.2 binds `--ui-radius` to precisely "so the two vocabularies stop
+  reading as different systems". The slab's weight comes from its hard
+  2px rule and attached button, not from 90° corners; the button's outer
+  corners are clipped flush by `overflow: hidden` on the bar (safe for
+  the focus ring and corner-drop — an element's own box-shadow isn't
+  clipped by its own overflow).
+- Motion runs on `--ease-survey` / `--motion-*` and honors
+  `prefers-reduced-motion`, which the port never did.
 
 ### Changed — navigation restructure, 9 groups to 7 (2026-09-01)
 

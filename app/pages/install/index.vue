@@ -102,11 +102,13 @@ const targets: Target[] = [
       edit reaches every target in one build.
     </TuxPageHeader>
 
-    <TuxCallout kind="info" title="Same input, same bytes">
-      These are deterministic emitters, not ports. A lock test fails CI if
-      a committed artifact drifts from its generator, so no model ever
-      transcribes a hex value into one of these files.
-    </TuxCallout>
+    <TuxAlert variant="info" title="Same input, same bytes">
+      <template #description>
+        These are deterministic emitters, not ports. A lock test fails CI if
+        a committed artifact drifts from its generator, so no model ever
+        transcribes a hex value into one of these files.
+      </template>
+    </TuxAlert>
 
     <section class="space-y-3">
       <TuxSectionHeader title="Targets" />

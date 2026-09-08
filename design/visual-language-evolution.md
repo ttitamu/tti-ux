@@ -296,6 +296,89 @@ Ratified as law:
 
 `tests/tux-color.test.ts` enforces the ladder in CI.
 
+## Batch M — the control radius rule (2026-09-08)
+
+Three controls sitting side by side rendered at three different corner
+radii: a Nuxt UI `UButton` at **9px**, a tux-native `.tux-pagination__btn`
+at **2px**, and `TuxCommandPalette`'s surface at **6px**. Batch K.2 was
+written specifically to prevent this and had in fact *caused* half of it.
+
+### 1 · K.2 was solving for the wrong variable
+
+**Before:**
+
+```css
+:root { --ui-radius: var(--radius-md); }   /* 0.375rem */
+```
+
+**After:**
+
+```css
+:root { --ui-radius: calc(var(--radius-md) / 1.5); }
+```
+
+**Why.** Nuxt UI 4 does not read `--radius-md`. It re-declares the whole
+Tailwind radius scale inside an `@theme default inline` block as
+multiples of its own base:
+
+```css
+--radius-sm: var(--ui-radius);
+--radius-md: calc(var(--ui-radius) * 1.5);
+--radius-lg: calc(var(--ui-radius) * 2);
+```
+
+The `inline` keyword substitutes those expressions *straight into the
+utilities* at build time, so `rounded-md` compiles to
+`calc(var(--ui-radius) * 1.5)` and never resolves tux's same-named token
+at all. The two scales share token names but never meet in the cascade —
+which is why the collision was invisible.
+
+Every Nuxt UI control (`UButton`, `UInput`, `USelect`, …) is `rounded-md`,
+i.e. **1.5× the base**. So assigning `--radius-md` to the base rendered
+controls at 0.5625rem / 9px against tux chrome's 6px. Nuxt UI's untouched
+0.25rem default had been landing on exactly 6px all along; K.2 moved them
+*off* the match it was trying to create. Dividing by 1.5 solves for the
+control utility instead of the base, and survives a change to
+`--radius-md`.
+
+**Measured**: `UButton` 9px → 6px. `TuxSearch`, `TuxCommandPalette`
+unchanged at 6px.
+
+### 2 · The rule: controls round, marks don't
+
+Ratified so the next component doesn't have to guess:
+
+| Kind | Token | Examples |
+|------|-------|----------|
+| **Interactive control** — anything clicked, typed into, or toggled | `--radius-md` | buttons, triggers, inputs, search bars, menu items, pagination |
+| **Inline mark** — a text-level label rendered *in* prose | `--radius-sm` | `TuxKbd` keycaps, `TuxInlineCitation` pills, `TuxBetaRibbon` / `TuxVizEmbed` display chips |
+| **Chrome / decoration** — panels, rails, swatches, wells | `--radius-sm` | unchanged; ~52 sites |
+
+Fifteen declarations across thirteen components moved from `--radius-sm`
+to `--radius-md`: `TuxAppSwitcher`, `TuxArtifact`, `TuxBranchNav`,
+`TuxCodeBlock`, `TuxDocsSidebar` (×2), `TuxDropdown`,
+`TuxMarkdownEditor`, `TuxMegaMenu`, `TuxMenuBar`, `TuxPagination`,
+`TuxSiteNav` (×2), `TuxStatusToast`, `TuxTeachingPopover`.
+
+Inline marks stay near-square deliberately, not by neglect: a `<kbd>`
+keycap reads as a physical key at 2px and as a pill at 6px, and a
+citation `[1]` sitting inside a line of prose should not look like a
+button.
+
+**Variants:** none — radius is theme-invariant.
+
+**Lineage:** tux-original. The bug is specific to Nuxt UI 4's
+`@theme default inline` scale derivation.
+
+### 3 · `--radius-none` retired from components
+
+`TuxSearch` was the only component using it — carried over from the
+AggieUX search bar's square corners, which was the loudest remaining
+tell that the component was a port. The token stays defined for
+consumers; nothing in the kit uses it.
+
+---
+
 ## How to use this doc
 
 When you make a token-level change in `app/assets/css/tokens.css` (and

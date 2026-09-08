@@ -248,7 +248,7 @@ function download() {
   color: var(--text-secondary);
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: color 0.15s ease, border-color 0.15s ease;
 }

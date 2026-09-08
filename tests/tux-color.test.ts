@@ -77,7 +77,6 @@ describe("raw color-literal ratchet", () => {
     "TuxReportPrintSheet.vue": [4, 0], // @media print block
     "TuxResearcher.vue": [2, 0], // ORCID brand green
     "TuxRichDataGrid.vue": [2, 2],
-    "TuxSearch.vue": [3, 2],
     "TuxShortcutsHelp.vue": [0, 1],
     "TuxSignupFeature.vue": [0, 1],
     "TuxSlideover.vue": [0, 1],

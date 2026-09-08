@@ -150,7 +150,7 @@ const toneIcon: Record<string, string> = {
   font-weight: 600;
   color: var(--brand-primary);
   padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
 }
 .tux-status-toast__action:hover,
 .tux-status-toast__action:focus-visible {

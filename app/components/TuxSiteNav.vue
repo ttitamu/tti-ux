@@ -404,7 +404,7 @@ function isPlainLinkActive(item: { to?: string; href?: string }): boolean {
   color: var(--text-secondary);
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: border-color 0.15s ease, color 0.15s ease;
 }
@@ -529,7 +529,7 @@ function isPlainLinkActive(item: { to?: string; href?: string }): boolean {
   margin-left: auto;
   background: transparent;
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   cursor: pointer;
   color: var(--text-primary);
 }

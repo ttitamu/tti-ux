@@ -9,8 +9,9 @@
 // fit. Optional status line ("Showing 21–40 of 412 results") and page-size
 // selector.
 //
-// Native Vue (not UPagination) so the visual rhythm — square corners,
-// maroon active page, tabular numerals — exactly matches the system.
+// Native Vue (not UPagination) so the visual rhythm — maroon active
+// page, tabular numerals, control radius per Batch M — exactly matches
+// the system.
 
 interface Props {
   /** Total number of items across all pages. */
@@ -215,7 +216,7 @@ function formatNumber(n: number): string {
   color: var(--text-secondary);
   background: transparent;
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
