@@ -110,7 +110,7 @@ function step(delta: 1 | -1) {
   padding: 0;
   background: transparent;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   color: inherit;
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease;

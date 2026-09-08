@@ -246,7 +246,7 @@ function togglePreview() {
   border: 0;
   color: var(--text-secondary);
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   font-size: 0.75rem;
   font-weight: 500;
   transition: background 80ms ease-out, color 80ms ease-out;

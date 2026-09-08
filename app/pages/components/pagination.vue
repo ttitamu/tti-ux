@@ -21,8 +21,8 @@ const exampleVue = `<TuxPagination
       Page-number controls for result lists. Used by Landscape result tables,
       news collections, publication catalogs, any surface where N items
       spread across multiple pages. Native Vue (not UPagination) so the
-      visual rhythm — square corners, maroon active page, tabular
-      numerals — matches the system exactly.
+      visual rhythm — maroon active page, tabular numerals, control
+      radius per Batch M — matches the system exactly.
     </TuxPageHeader>
 
     <section>

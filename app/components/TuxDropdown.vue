@@ -263,7 +263,7 @@ const isTriggerActive = computed<boolean>(() => {
   color: var(--text-primary);
   background: transparent;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   cursor: pointer;
   text-decoration: none;
   /* Reserve a 2px bottom border slot so the active-state border

@@ -103,7 +103,7 @@ const shouldRender = computed(() => {
   color: var(--text-primary);
   cursor: pointer;
   transition: background 80ms ease-out;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
 }
 
 .tux-menu-bar__trigger:hover,

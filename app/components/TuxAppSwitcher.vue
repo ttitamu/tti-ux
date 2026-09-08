@@ -153,7 +153,7 @@ const apps = computed(() => props.apps);
   width: 32px;
   height: 32px;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;

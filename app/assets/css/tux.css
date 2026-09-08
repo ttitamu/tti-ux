@@ -697,9 +697,27 @@ textarea,
 }
 
 /* K.2 — Nuxt UI geometry rides tux tokens. @nuxt/ui derives every
-   rounded corner from --ui-radius (defaults 0.25rem); binding it to
-   --radius-md aligns U* controls with Tux chrome (TuxCard, TuxModal)
-   so the two vocabularies stop reading as different systems. */
+   rounded corner from --ui-radius, and its controls (UButton, UInput,
+   USelect, …) are all `rounded-md`. In Nuxt UI 4 that utility is NOT
+   var(--radius-md): the library re-declares the whole Tailwind radius
+   scale in an `@theme default inline` block as multiples of the base —
+
+       --radius-sm: var(--ui-radius);
+       --radius-md: calc(var(--ui-radius) * 1.5);
+       --radius-lg: calc(var(--ui-radius) * 2);
+
+   — and `inline` substitutes those expressions straight into the
+   utilities, so `rounded-md` compiles to calc(var(--ui-radius) * 1.5)
+   and never reads tux's same-named token at all. The two scales share
+   token names but never collide in the cascade.
+
+   Which means: solve for the base that puts the CONTROL utility on
+   --radius-md, don't assign --radius-md to the base. Binding the base
+   directly (as this rule did through v2.1.0) rendered every U* control
+   at 0.5625rem / 9px against tux chrome's 6px — it manufactured the
+   mismatch it was written to prevent, and Nuxt UI's untouched 0.25rem
+   default had been landing on 6px correctly all along. Dividing keeps
+   the intent explicit and survives a change to --radius-md. */
 :root {
-  --ui-radius: var(--radius-md);
+  --ui-radius: calc(var(--radius-md) / 1.5);
 }

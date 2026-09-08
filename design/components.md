@@ -273,7 +273,7 @@ single most common failure mode.
 | **Data table** (sortable, virtualizable, status cells) | `<TuxTable>` |
 | **Sortable / selectable / expandable data grid** (Landscape-class operational lists with bulk actions, active-filter chips, row expansion) | `<TuxRichDataGrid>` |
 | **Static research table** (numbered caption, ± CI uncertainty, footnotes, source citation, optional totals row) | `<TuxDataTable>` |
-| **Search bar** (Landscape finder, conversation search) | `<TuxSearch>` |
+| **Search bar** (Landscape finder, conversation search, table toolbars) | `<TuxSearch>` — `variant="field"` (default) for chrome and toolbars, `"slab"` for the editorial attached-button treatment on hero strips and dedicated search pages, `"block"` for a labeled standalone unit (heading + bar + lede) |
 | **A–Z directory jump bar** | `<TuxAlphaNav>` |
 | **Sidebar widget wrapper** (related links, contact box, in-page nav) | `<TuxSidebarBlock>` |
 | **Newsletter signup** | `<TuxSignupFeature>` |

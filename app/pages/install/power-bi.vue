@@ -43,12 +43,14 @@ const { data: parsed } = await useAsyncData("install-powerbi", () =>
       <NuxtLink to="/visualizations">Visualizations</NuxtLink>.
     </TuxPageHeader>
 
-    <TuxCallout kind="warning" title="Not yet verified in Power BI Desktop">
-      Every emitted file validates against Microsoft's live PBIR and theme
-      schemas, but structural validity doesn't imply a correct render —
-      Power BI ignores a wrong literal type silently rather than
-      rejecting it. A Desktop smoke test on Windows is still outstanding.
-    </TuxCallout>
+    <TuxAlert variant="warning" title="Not yet verified in Power BI Desktop">
+      <template #description>
+        Every emitted file validates against Microsoft's live PBIR and theme
+        schemas, but structural validity doesn't imply a correct render —
+        Power BI ignores a wrong literal type silently rather than
+        rejecting it. A Desktop smoke test on Windows is still outstanding.
+      </template>
+    </TuxAlert>
 
     <TuxProse>
       <MDCRenderer v-if="parsed" :body="parsed.body" :data="parsed.data" />
