@@ -23,9 +23,11 @@
  *      lightness once left UNKNOWN and CRITICAL 0.043 apart — pale orange
  *      beside pale salmon — which is indistinguishable at a glance.
  *
- *   3. SEVERITY ORDER. Chip lightness descends ok > warning > unknown >
- *      critical. Severity then reads as weight as well as hue, which is what
- *      carries the ramp for a reader who cannot separate the hues at all.
+ *   3. SEVERITY ORDER. Chip lightness descends across the WARM hues —
+ *      warning > unknown > critical — so severity reads as weight as well as
+ *      hue, the channel that still works for a reader who cannot separate the
+ *      hues at all. Deliberately not extended to ok: yellow's natural
+ *      lightness is above green's, and forcing it below turns it olive.
  *
  *   4. BRAND DISTANCE. No status colour within 0.10 OKLab of brand maroon.
  *      An unconstrained solve once put CRITICAL at #77020b — 0.076 from maroon,
@@ -175,9 +177,18 @@ for (const theme of ["tti", "tti-dark", "tti-hc"]) {
     : fail(`${theme} ${worst[1]}/${worst[2]} are ${worst[0].toFixed(3)} apart (floor ${MIN_PAIR})`);
   console.log(`  closest pair: ${worst[1]}/${worst[2]} = ${worst[0].toFixed(3)} OKLab`);
 
-  // 3. severity order (filled themes only — outlined chips share one fill)
+  // 3. severity order (filled themes only — outlined chips share one fill).
+  //
+  //    WARM HUES ONLY. This rule started as ok > warning > unknown > critical
+  //    and that was wrong: sRGB gives each hue a very different lightness at
+  //    full chroma (yellow ~0.97, green ~0.87, orange ~0.77, red ~0.64), so a
+  //    monotonic ramp across all four forces yellow below green — where it
+  //    stops being yellow and turns olive. Hue identity outranks weight
+  //    ordering. The ordering exists to keep ADJACENT WARM hues apart, which
+  //    is where the collision actually was (orange beside salmon); green is
+  //    far enough away in hue that its weight does not matter.
   if (!outlined) {
-    const order = ["ok", "warning", "unknown", "critical"];
+    const order = ["warning", "unknown", "critical"];
     for (let i = 0; i < order.length - 1; i++) {
       lights[order[i]] > lights[order[i + 1]]
         ? pass()

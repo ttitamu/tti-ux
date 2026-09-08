@@ -84,7 +84,7 @@ orange → red is operator muscle memory:
 | State | Nagios stock | `tti` base | `tti` fill | `tti-dark` base | `tti-dark` fill |
 |---|---|---|---|---|---|
 | ok | `#33FF00` | `#258818` | `#93F387` | `#90F084` | `#86E67A` |
-| warning | `#FFFF00` | `#7A7A00` | `#D2D331` | `#FDFF68` | `#C6C618` |
+| warning | `#FFFF00` | `#7A7A00` | `#ECEE55` | `#FDFF68` | `#E6E74C` |
 | unknown | `#FF9900` | `#BC5B00` | `#FF9B5A` | `#FC8731` | `#FF8A37` |
 | critical | `#F83838` | `#A02828` | `#FF544D` | `#F14440` | `#FC4F49` |
 | pending | `#ACACAC` | `#747474` | `#DEDEDE` | `#ABABAB` | `#D1D1D1` |
@@ -97,8 +97,11 @@ is brown. Hue lives in the fill.
 `tti-hc` renders outlined chips instead: fill is the page surface, ink is the
 base, and every base clears AAA.
 
-Chip lightness descends with severity, so severity reads as weight as well as
-hue — the channel that still works for a reader who cannot separate the hues.
+Chip lightness descends with severity across the **warm** hues (warning →
+unknown → critical), so severity reads as weight as well as hue — the channel
+that still works for a reader who cannot separate them. It stops short of `ok`
+on purpose: yellow's natural lightness sits above green's, and forcing it below
+turns it olive rather than yellow.
 
 Derivation rules and their guards are in
 [ADR-0013](../docs/adr/0013-operational-status-ramp.md); `npm run audit:status`

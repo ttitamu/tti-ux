@@ -66,7 +66,7 @@
   --status-ok-fill: #93F387;
   --status-ok-ink: var(--tti-charcoal);
   --status-warning: #7A7A00;
-  --status-warning-fill: #D2D331;
+  --status-warning-fill: #ECEE55;
   --status-warning-ink: var(--tti-charcoal);
   --status-unknown: #BC5B00;
   --status-unknown-fill: #FF9B5A;
@@ -215,7 +215,7 @@
   --status-ok-fill: #86E67A;
   --status-ok-ink: var(--tti-charcoal);
   --status-warning: #FDFF68;
-  --status-warning-fill: #C6C618;
+  --status-warning-fill: #E6E74C;
   --status-warning-ink: var(--tti-charcoal);
   --status-unknown: #FC8731;
   --status-unknown-fill: #FF8A37;

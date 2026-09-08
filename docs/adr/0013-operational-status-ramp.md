@@ -84,9 +84,19 @@ authored in `tokens.json` like every other token. `scripts/audit-status-palette.
    stock-hue UNKNOWN chip read as a cousin of the gold keyline.
 2. **Separation** — any two chips ≥ 0.075 apart in OKLab. A flat chip lightness
    once left UNKNOWN and CRITICAL 0.043 apart: pale orange beside pale salmon.
-3. **Severity order** — chip lightness descends ok → warning → unknown →
-   critical, so severity reads as *weight* as well as hue. That second channel
-   is what carries the ramp for a reader who cannot separate the hues at all.
+3. **Severity order** — chip lightness descends across the **warm hues**,
+   warning → unknown → critical, so severity reads as *weight* as well as hue.
+   That second channel is what carries the ramp for a reader who cannot
+   separate the hues at all.
+
+   It deliberately stops short of `ok`. The rule was first written as
+   ok → warning → unknown → critical, and that was wrong: sRGB gives each hue a
+   very different lightness at full chroma (yellow ~0.97, green ~0.87, orange
+   ~0.77, red ~0.64), so a monotonic ramp across all four forces yellow *below*
+   green — where it stops being yellow and turns olive. Hue identity outranks
+   weight ordering. The ordering exists to keep adjacent warm hues apart, which
+   is where the collision actually was; green is far enough away in hue that
+   its weight does not matter.
 4. **Brand distance** — no status colour within 0.10 OKLab of brand maroon. An
    unconstrained solve put CRITICAL at `#77020b`, 0.076 from maroon: it painted
    "down" the colour of the chrome. Gold proximity is advisory only — WARNING is
