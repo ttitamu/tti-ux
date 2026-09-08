@@ -23,6 +23,7 @@ recoverable.
 - [0010 — No TypeScript-only syntax in `pages/**/*.vue` `<script setup>`](0010-no-ts-only-syntax-in-page-script-setup.md) (supplemented by 0011)
 - [0011 — Sibling `*.demo-data.ts` modules for typed page data](0011-sibling-demo-data-ts-modules-for-pages.md)
 - [0012 — Cross-framework distribution via single-source Web Components](0012-cross-framework-distribution-via-web-components.md) (supplements 0003)
+- [0013 — An operational status ramp, separate from the semantic palette](0013-operational-status-ramp.md) (extends 0005)
 
 ## Contributing
 

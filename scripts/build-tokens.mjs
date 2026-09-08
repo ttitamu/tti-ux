@@ -118,6 +118,10 @@ export function buildSelectors(tokens) {
   root.push(...group(tokens.themes.tti.text, "text-"));
   // Base semantic colors (--color-*)
   root.push(...semantic(tokens.themes.tti.semantic ?? tokens.color.semantic));
+  // Operational status ramp (--status-*). Separate from semantic on purpose:
+  // semantic is a three-state sentiment palette, status is five states an
+  // operator has to separate at a glance. See ADR-0013.
+  root.push(...group(tokens.themes.tti.status, "status-"));
 
   // Globals — fonts, tracking, shadow, focus, elevation, radius, motion,
   // ease, space, rhythm — :root only.
@@ -160,6 +164,7 @@ export function buildSelectors(tokens) {
     out.push(...ramp(t.rampOverrides, "color-maroon-"));
 
     out.push(...semantic(t.semantic));
+    out.push(...group(t.status, "status-"));
     out.push(...focus(t.focus, t.focus));
     out.push(...group(t.elevation, "elevation-"));
 
