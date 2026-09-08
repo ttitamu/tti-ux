@@ -3,6 +3,37 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed — the two axe violations that had the audit workflow red (2026-09-08)
+
+`npm run audit:a11y` failed on 6 nodes across 2 pages. Both were
+pre-existing and identical across the #54 and #55 merges — neither
+release introduced them.
+
+- **`TuxCodeMaroon` was emitting `role="error"`.** The v2 vocabulary
+  batch renamed the `alert` tone to `error` and swept the role attribute
+  along with it (`8f7d5e4`), so every banner has shipped an ARIA role
+  that doesn't exist since 2.0.0 — four nodes, `[critical] aria-roles`.
+  The role now derives from the tone the way `TuxStatusToast` does it:
+  safety tones (`error` / `warning`) are `role="alert"` +
+  `aria-live="assertive"` so a banner appearing mid-session interrupts;
+  `info` is `role="status"` + `aria-live="polite"` so a scheduled-drill
+  notice waits its turn. The blanket `aria-live="assertive"` on the
+  `info` tone goes with it.
+- **Two `TuxSectionHeader` call sites on `/install` passed `title=`.**
+  The component takes its text from the default slot and has no `title`
+  prop, so the string fell through to the wrapping `<header>` as an HTML
+  tooltip and the `<h2>` rendered empty — `[minor] empty-heading` ×2.
+  Same mistake shape as the `TuxCallout` `kind` fix below: a
+  `TuxPageHeader` prop used on a component that doesn't take one. Every
+  other call site in the site already uses the slot, so this is fixed at
+  the two call sites — the component is untouched.
+
+`npm run audit:a11y` is now zero violations across 176 pages;
+`AUDIT_LEVEL=AAA npm run audit:contrast` stays 276/276 in all three
+themes.
+
 ## [2.2.0] — 2026-09-08
 
 ### Fixed — Batch M: the control radius rule (2026-09-08)

@@ -78,6 +78,17 @@ const toneIcon = computed(() => {
   if (props.tone === "info")    return "lucide:info";
   return "lucide:siren";
 });
+
+// Live-region semantics, the same split TuxStatusToast uses: safety tones
+// (error / warning) get `role="alert"` so a banner that appears mid-session
+// interrupts; `info` gets `role="status"` so a drill notice waits its turn.
+// The tone name is NOT a role. The v2 vocabulary batch renamed the `alert`
+// tone to `error` and swept the role attribute along with it (8f7d5e4),
+// which is how `role="error"` — not an ARIA role at all — shipped in v2.0.
+const toneRole = computed(() => (props.tone === "info" ? "status" : "alert"));
+const tonePoliteness = computed(() =>
+  props.tone === "info" ? "polite" : "assertive",
+);
 </script>
 
 <template>
@@ -89,8 +100,8 @@ const toneIcon = computed(() => {
         `tux-codemaroon--${tone}`,
         { 'tux-codemaroon--sticky': sticky },
       ]"
-      role="error"
-      aria-live="assertive"
+      :role="toneRole"
+      :aria-live="tonePoliteness"
     >
       <div class="tux-codemaroon__inner">
         <Icon

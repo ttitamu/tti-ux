@@ -111,7 +111,7 @@ const targets: Target[] = [
     </TuxAlert>
 
     <section class="space-y-3">
-      <TuxSectionHeader title="Targets" />
+      <TuxSectionHeader>Targets</TuxSectionHeader>
       <div class="grid gap-3 sm:grid-cols-2">
         <TuxCard
           v-for="t in targets"
@@ -130,10 +130,9 @@ const targets: Target[] = [
     </section>
 
     <section class="space-y-3">
-      <TuxSectionHeader
-        title="How the pipeline works"
-        subtitle="design/kit-pipeline.md"
-      />
+      <TuxSectionHeader subtitle="design/kit-pipeline.md">
+        How the pipeline works
+      </TuxSectionHeader>
       <TuxProse>
         <MDCRenderer v-if="parsed" :body="parsed.body" :data="parsed.data" />
       </TuxProse>
