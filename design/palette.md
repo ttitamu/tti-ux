@@ -79,7 +79,9 @@ overlay:
   PENDING's neutral grey sat too close to that near-grey brown.
 
 Hues are inherited from what Nagios Core itself ships, because green → yellow →
-orange → red is operator muscle memory:
+orange → red is operator muscle memory. `maintenance` is the exception — Nagios
+has no colour for it because it is not a severity at all, so it takes TTI's own
+blue (`brand.secondary`'s hue) and sits off the ramp:
 
 | State | Nagios stock | `tti` base | `tti` fill | `tti-dark` base | `tti-dark` fill |
 |---|---|---|---|---|---|
@@ -88,6 +90,7 @@ orange → red is operator muscle memory:
 | unknown | `#FF9900` | `#BC5B00` | `#FF9B5A` | `#FC8731` | `#FF8A37` |
 | critical | `#F83838` | `#A02828` | `#FF544D` | `#F14440` | `#FC4F49` |
 | pending | `#ACACAC` | `#747474` | `#DEDEDE` | `#ABABAB` | `#D1D1D1` |
+| maintenance | — (TTI blue) | `#0566C7` | `#85BAFF` | `#53A0FF` | `#85BAFF` |
 
 Three roles per state — `base` (text, edges, identity), `fill` (a chip), `ink`
 (the word inside it) — because on a light surface a colour dark enough to be

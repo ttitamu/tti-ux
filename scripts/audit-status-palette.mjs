@@ -48,10 +48,14 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const tokens = JSON.parse(readFileSync(path.join(ROOT, "design/tokens.json"), "utf8"));
 
-const STATES = ["ok", "warning", "unknown", "critical", "pending"];
+const STATES = ["ok", "warning", "unknown", "critical", "maintenance", "pending"];
 const STOCK = {
   ok: "#33FF00", warning: "#FFFF00", unknown: "#FF9900",
   critical: "#F83838", pending: "#ACACAC",
+  // Nagios ships no maintenance colour — it is not a point on the severity
+  // ramp, it is "expected, not a fault". It takes TTI's own blue instead:
+  // brand.secondary #15457E, whose hue is far from all five severity hues.
+  maintenance: "#15457E",
 };
 const HUE_TOLERANCE = 14;           // degrees
 const HUE_OFFSET = { unknown: -12.6 };

@@ -50,10 +50,25 @@ Hues track the colours **Nagios Core itself ships** (`html/stylesheets/status.cs
 | `unknown` | `#FF9900` orange | the check produced no verdict |
 | `critical` | `#F83838` red | failed / down |
 | `pending` | `#ACACAC` grey | not yet checked |
+| `maintenance` | — (TTI blue) | planned downtime — expected, not a fault |
 
 That ordering — green → yellow → orange → red — is decades of operator muscle
 memory. Inventing a prettier ramp would be a legibility regression dressed as a
 brand win, so the hues are inherited and only the *rendering* is TTI's.
+
+**`maintenance` is the one exception**, added 2026-09-08. Nagios ships no colour
+for it, because it is not a point on the severity ramp at all: it means
+*expected, not a fault*. It therefore takes TTI's own blue — the hue of
+`brand.secondary` `#15457E`, at 255.2° — which is far from all five severity
+hues and is the conventional colour for planned work across monitoring tools.
+It is exempt from the severity-weight rule for the same reason `ok` is: it is
+not on the ramp.
+
+The state earns its place from Nagios alone. Core already distinguishes
+**acknowledged** (`…ACK`) from **in scheduled downtime** (`…SCHED`), and those
+are different facts: one means somebody is on it, the other means we planned
+this. Collapsing both into one "handled" grey — as the first consumer did —
+throws away the distinction an operator most wants at 3am.
 
 ### Three roles per state
 

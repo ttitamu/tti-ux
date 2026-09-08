@@ -74,6 +74,9 @@
   --status-critical: #A02828;
   --status-critical-fill: #FF544D;
   --status-critical-ink: var(--tti-charcoal);
+  --status-maintenance: #0566C7;
+  --status-maintenance-fill: #85BAFF;
+  --status-maintenance-ink: var(--tti-charcoal);
   --status-pending: #747474;
   --status-pending-fill: #DEDEDE;
   --status-pending-ink: var(--tti-charcoal);
@@ -223,6 +226,9 @@
   --status-critical: #F14440;
   --status-critical-fill: #FC4F49;
   --status-critical-ink: var(--tti-charcoal);
+  --status-maintenance: #53A0FF;
+  --status-maintenance-fill: #85BAFF;
+  --status-maintenance-ink: var(--tti-charcoal);
   --status-pending: #ABABAB;
   --status-pending-fill: #D1D1D1;
   --status-pending-ink: var(--tti-charcoal);
@@ -312,6 +318,9 @@
   --status-critical: #B20014;
   --status-critical-fill: var(--neutral-0);
   --status-critical-ink: #B20014;
+  --status-maintenance: #0056AA;
+  --status-maintenance-fill: var(--neutral-0);
+  --status-maintenance-ink: #0056AA;
   --status-pending: #585858;
   --status-pending-fill: var(--neutral-0);
   --status-pending-ink: #585858;
