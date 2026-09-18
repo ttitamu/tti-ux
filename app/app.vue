@@ -69,6 +69,7 @@ const navTree = [
       { label: "Style variants", to: "/style-variants", icon: "lucide:layout-template" },
       { label: "Motion",         to: "/motion",         icon: "lucide:zap" },
       { label: "Icons",          to: "/icons",          icon: "lucide:sparkles" },
+      { label: "Logos & brand",  to: "/resources/logos", icon: "lucide:stamp" },
       { label: "Specimens",      to: "/preview",        icon: "lucide:image" },
       { label: "Markdown",       to: "/markdown",       icon: "lucide:file-text" },
       { label: "Accessibility",  to: "/accessibility",  icon: "lucide:accessibility" },

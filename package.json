@@ -40,6 +40,7 @@
     "sync:fonts": "node scripts/sync-fonts.mjs",
     "gen:lucide-names": "node scripts/gen-lucide-names.mjs",
     "build:logos": "node scripts/png-to-svg-logo.mjs",
+    "build:brand-logos": "node scripts/build-brand-logos.mjs",
     "audit:contrast": "node scripts/audit-contrast.mjs",
     "audit:tokens": "node scripts/audit-tokens.mjs",
     "audit:a11y": "node scripts/audit-a11y.mjs",
