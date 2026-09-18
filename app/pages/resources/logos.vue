@@ -32,6 +32,17 @@ interface LogoItem {
 
 const fullLockups: LogoItem[] = [
   {
+    id: "logo-keyline",
+    name: "TTI Dual-Mode Keyline (Copilot Chat Ready)",
+    file: "tti-logo-keyline.png",
+    desc: "Collegiate silhouette: precision white contour hugging letterforms. 100% invisible on light grounds; lights up with high contrast on dark mode. Zero clumsy square box.",
+    dimensions: "680 × 131 px",
+    bytes: 7969,
+    sizeKb: "7.78 KB",
+    recommendedFor: "M365 Copilot Chat footer, dual-theme pages, mixed light/dark surfaces.",
+    bestOn: "BOTH Light and Dark backgrounds",
+  },
+  {
     id: "logo-color",
     name: "TTI Official Color Lockup",
     file: "tti-logo-color.png",
@@ -88,6 +99,17 @@ const squareMarks: LogoItem[] = [
     sizeKb: "3.48 KB",
     recommendedFor: "App tiles, M365 app launcher icons, avatars, social icons.",
     bestOn: "Light backgrounds",
+  },
+  {
+    id: "glyph-keyline-sq",
+    name: "Road Glyph · Keyline (Square)",
+    file: "tti-glyph-keyline-square.png",
+    desc: "Centered Aggie Maroon (#500000) road glyph with precision white contour for dual-theme app tiles.",
+    dimensions: "512 × 512 px",
+    bytes: 3573,
+    sizeKb: "3.49 KB",
+    recommendedFor: "App launcher tiles & avatars rendered across both light/dark surfaces.",
+    bestOn: "BOTH Light and Dark backgrounds",
   },
   {
     id: "glyph-white-sq",

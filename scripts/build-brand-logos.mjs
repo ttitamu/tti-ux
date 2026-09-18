@@ -8,6 +8,9 @@
  * <= 10 KB file size ceiling (Organization profile -> Custom themes) while
  * maintaining 2.8x-5.6x Retina clarity for navbar display heights (24-48px).
  *
+ * Also includes dual-mode contoured keyline variants engineered specifically
+ * for M365 Copilot Chat, which renders the same logo across light and dark modes.
+ *
  * Output directory: public/resources/logos/
  */
 
@@ -23,9 +26,6 @@ const HIRES_DIR = join(OUT_DIR, "hires");
 // Aggie Maroon brand anchor
 const AGGIE_MAROON = { r: 80, g: 0, b: 0 }; // #500000
 
-// Target lockup width: 680px gives ~131px height (exact 5.18:1 ratio),
-// yielding >2.7x Retina pixel density at 250px navbar width, while staying
-// strictly between 7.5KB and 9.5KB with 64-color palette quantization.
 const LOCKUP_WIDTH = 680;
 const GLYPH_WIDTH = 512;
 const SQUARE_SIZE = 512;
@@ -46,6 +46,53 @@ async function createMaroonBuffer(sourceBlackPath) {
   return { data: maroonData, info };
 }
 
+function generateKeylineBuffer(data, width, height, radius = 1.8, feather = 0.8) {
+  const outlineData = Buffer.alloc(width * height * 4);
+  const rCeil = Math.ceil(radius);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let maxA = 0;
+      for (let dy = -rCeil; dy <= rCeil; dy++) {
+        const ny = y + dy;
+        if (ny < 0 || ny >= height) continue;
+        for (let dx = -rCeil; dx <= rCeil; dx++) {
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d > radius) continue;
+          const nx = x + dx;
+          if (nx < 0 || nx >= width) continue;
+          const a = data[(ny * width + nx) * 4 + 3];
+          const falloff = d > radius - feather ? (radius - d) / feather : 1;
+          const effA = a * Math.max(0, Math.min(1, falloff));
+          if (effA > maxA) maxA = effA;
+        }
+      }
+      const idx = (y * width + x) * 4;
+      outlineData[idx] = 255;
+      outlineData[idx + 1] = 255;
+      outlineData[idx + 2] = 255;
+      outlineData[idx + 3] = Math.round(maxA);
+    }
+  }
+
+  const compositeData = Buffer.alloc(width * height * 4);
+  for (let i = 0; i < width * height; i++) {
+    const idx = i * 4;
+    const baseA = data[idx + 3] / 255;
+    const outA = outlineData[idx + 3] / 255;
+    const finalA = baseA + outA * (1 - baseA);
+    if (finalA > 0) {
+      compositeData[idx + 3] = Math.round(finalA * 255);
+      for (let c = 0; c < 3; c++) {
+        const baseC = data[idx + c];
+        const outC = outlineData[idx + c];
+        const blended = (baseC * baseA + outC * outA * (1 - baseA)) / finalA;
+        compositeData[idx + c] = Math.round(blended);
+      }
+    }
+  }
+  return compositeData;
+}
+
 async function run() {
   console.log("=== Building TTI Brand Logo Assets (<10KB Transparent PNGs) ===\n");
 
@@ -58,7 +105,7 @@ async function run() {
     process.exit(1);
   }
 
-  // 1. High-Resolution Masters archive
+  // 1. High-Resolution Masters archive & Vector SVG
   copyFileSync(colorSource, join(HIRES_DIR, "tti-logo-color-hires.png"));
   copyFileSync(blackSource, join(HIRES_DIR, "tti-logo-black-hires.png"));
   copyFileSync(whiteSource, join(HIRES_DIR, "tti-logo-white-hires.png"));
@@ -132,7 +179,6 @@ async function run() {
   ];
 
   for (const item of glyphCropConfigs) {
-    // Rectangular mark
     const gBuf = await sharp(item.input)
       .extract(item.crop)
       .resize({ width: GLYPH_WIDTH, kernel: "lanczos3" })
@@ -141,7 +187,6 @@ async function run() {
     writeFileSync(join(OUT_DIR, item.name), gBuf);
     console.log(`✓ Generated ${item.name} — ${gBuf.length} bytes (${(gBuf.length / 1024).toFixed(2)} KB)`);
 
-    // Centered square (512x512) for avatars/favicons/app icons
     const sqBuf = await sharp(item.input)
       .extract(item.crop)
       .resize({
@@ -166,9 +211,6 @@ async function run() {
     .png({ palette: true, quality: 100, effort: 10, colours: 64 })
     .toBuffer();
   writeFileSync(join(OUT_DIR, "tti-glyph-maroon.png"), maroonGlyphBuf);
-  console.log(
-    `✓ Generated tti-glyph-maroon.png — ${maroonGlyphBuf.length} bytes (${(maroonGlyphBuf.length / 1024).toFixed(2)} KB)`
-  );
 
   const maroonSqBuf = await sharp(maroonMaster.data, {
     raw: { width: maroonMaster.info.width, height: maroonMaster.info.height, channels: 4 },
@@ -184,12 +226,37 @@ async function run() {
     .png({ palette: true, quality: 100, effort: 10, colours: 64 })
     .toBuffer();
   writeFileSync(join(OUT_DIR, "tti-glyph-maroon-square.png"), maroonSqBuf);
+
+  // 4. Dual-Mode Keyline Variants (for M365 Copilot Chat & dual light/dark surfaces)
+  const baseColorImg = sharp(join(OUT_DIR, "tti-logo-color.png"));
+  const { data: baseData, info: baseInfo } = await baseColorImg.raw().toBuffer({ resolveWithObject: true });
+  const keylineLockupData = generateKeylineBuffer(baseData, baseInfo.width, baseInfo.height, 1.8, 0.8);
+  const keylineLockupBuf = await sharp(keylineLockupData, {
+    raw: { width: baseInfo.width, height: baseInfo.height, channels: 4 },
+  })
+    .png({ palette: true, quality: 100, effort: 10, colours: 64 })
+    .toBuffer();
+  writeFileSync(join(OUT_DIR, "tti-logo-keyline.png"), keylineLockupBuf);
+  writeFileSync(join(OUT_DIR, "tti-logo-dual.png"), keylineLockupBuf);
   console.log(
-    `✓ Generated tti-glyph-maroon-square.png — ${maroonSqBuf.length} bytes (${(maroonSqBuf.length / 1024).toFixed(2)} KB)`
+    `✓ Generated tti-logo-keyline.png — ${keylineLockupBuf.length} bytes (${(keylineLockupBuf.length / 1024).toFixed(2)} KB)`
+  );
+
+  const sqColorImg = sharp(join(OUT_DIR, "tti-glyph-color-square.png"));
+  const { data: sqData, info: sqInfo } = await sqColorImg.raw().toBuffer({ resolveWithObject: true });
+  const keylineSqData = generateKeylineBuffer(sqData, sqInfo.width, sqInfo.height, 2.2, 1.0);
+  const keylineSqBuf = await sharp(keylineSqData, {
+    raw: { width: sqInfo.width, height: sqInfo.height, channels: 4 },
+  })
+    .png({ palette: true, quality: 100, effort: 10, colours: 64 })
+    .toBuffer();
+  writeFileSync(join(OUT_DIR, "tti-glyph-keyline-square.png"), keylineSqBuf);
+  console.log(
+    `✓ Generated tti-glyph-keyline-square.png — ${keylineSqBuf.length} bytes (${(keylineSqBuf.length / 1024).toFixed(2)} KB)`
   );
 
   // Verification census
-  console.log("\n--- Verification Census ---");
+  console.log("\n--- Verification Census ---\n");
   const generatedFiles = readdirSync(OUT_DIR).filter((f) => f.endsWith(".png"));
   let allPass = true;
   for (const f of generatedFiles) {
@@ -198,16 +265,16 @@ async function run() {
     const isUnder10kDec = s.size < 10000;
     if (!isUnder10KB) allPass = false;
     console.log(
-      `  ${f.padEnd(28)} : ${String(s.size).padStart(6)} bytes (${(s.size / 1024).toFixed(2)} KB) — ${
+      `  ${f.padEnd(30)} : ${String(s.size).padStart(6)} bytes (${(s.size / 1024).toFixed(2)} KB) — ${
         isUnder10kDec ? "PASS (<10,000 B)" : isUnder10KB ? "PASS (<10,240 B)" : "FAIL (>10KB)"
       }`
     );
   }
 
   if (allPass) {
-    console.log("\n✅ All assets passed strict < 10 KB requirement for Microsoft 365 Admin Center!");
+    console.log("\n✅ All assets passed strict < 10 KB requirement for Microsoft 365 Admin Center!\n");
   } else {
-    console.error("\n❌ Some assets exceed 10 KB!");
+    console.error("\n❌ Some assets exceed 10 KB!\n");
     process.exit(1);
   }
 }

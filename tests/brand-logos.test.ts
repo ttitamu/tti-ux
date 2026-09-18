@@ -11,6 +11,8 @@ describe("brand-logos (<10KB transparent PNG resources)", () => {
     "tti-logo-black.png",
     "tti-logo-white.png",
     "tti-logo-maroon.png",
+    "tti-logo-keyline.png",
+    "tti-logo-dual.png",
   ];
 
   const expectedGlyphs = [
@@ -22,6 +24,7 @@ describe("brand-logos (<10KB transparent PNG resources)", () => {
     "tti-glyph-white-square.png",
     "tti-glyph-maroon.png",
     "tti-glyph-maroon-square.png",
+    "tti-glyph-keyline-square.png",
   ];
 
   it("all expected lockups exist and are strictly under 10 KB (10,240 B)", async () => {
