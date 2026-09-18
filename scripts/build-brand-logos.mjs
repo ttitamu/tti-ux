@@ -46,7 +46,7 @@ async function createMaroonBuffer(sourceBlackPath) {
   return { data: maroonData, info };
 }
 
-function generateKeylineBuffer(data, width, height, radius = 1.8, feather = 0.8) {
+function generateKeylineBuffer(data, width, height, radius = 4.5, feather = 0.8) {
   const outlineData = Buffer.alloc(width * height * 4);
   const rCeil = Math.ceil(radius);
   for (let y = 0; y < height; y++) {
@@ -230,7 +230,7 @@ async function run() {
   // 4. Dual-Mode Keyline Variants (for M365 Copilot Chat & dual light/dark surfaces)
   const baseColorImg = sharp(join(OUT_DIR, "tti-logo-color.png"));
   const { data: baseData, info: baseInfo } = await baseColorImg.raw().toBuffer({ resolveWithObject: true });
-  const keylineLockupData = generateKeylineBuffer(baseData, baseInfo.width, baseInfo.height, 1.8, 0.8);
+  const keylineLockupData = generateKeylineBuffer(baseData, baseInfo.width, baseInfo.height, 4.5, 0.8);
   const keylineLockupBuf = await sharp(keylineLockupData, {
     raw: { width: baseInfo.width, height: baseInfo.height, channels: 4 },
   })
@@ -244,7 +244,7 @@ async function run() {
 
   const sqColorImg = sharp(join(OUT_DIR, "tti-glyph-color-square.png"));
   const { data: sqData, info: sqInfo } = await sqColorImg.raw().toBuffer({ resolveWithObject: true });
-  const keylineSqData = generateKeylineBuffer(sqData, sqInfo.width, sqInfo.height, 2.2, 1.0);
+  const keylineSqData = generateKeylineBuffer(sqData, sqInfo.width, sqInfo.height, 4.5, 0.8);
   const keylineSqBuf = await sharp(keylineSqData, {
     raw: { width: sqInfo.width, height: sqInfo.height, channels: 4 },
   })
