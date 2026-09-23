@@ -1,6 +1,6 @@
 # AI code review (plan Area F v2) — ADVISORY, changed-files only, via the TTI AI BFF.
 #
-# Calls the gateway's /v1/review: a multi-model superPOD PANEL (GPT-OSS 120B,
+# Calls the gateway's POST /v1/repos/{o}/{r}/pulls/{n}/reviews: a multi-model superPOD PANEL (GPT-OSS 120B,
 # Gemma 4 31B, Devstral 2, poolside Laguna S 2.1) independently reviews the diff, cross-examines each
 # other's findings, and synthesizes ONE comment — with bounded, receipted
 # Google-PSE web grounding when a reviewer requests verification. The debate
@@ -96,11 +96,12 @@ jobs:
           # inline comments at file:line (Area I2) — the human ↔ panel board
           # and native threads hang off that. If it posts, we skip the classic
           # single comment below; otherwise we fall back to it.
-          body = {"repo": os.environ["REPO"],
-                  "pr": int(os.environ.get("PR_NUMBER") or 0),
-                  "context": "PR title: " + os.environ.get("PR_TITLE", ""),
+          body = {"context": "PR title: " + os.environ.get("PR_TITLE", ""),
                   "diff": open("/tmp/pr.diff").read()}
-          req = urllib.request.Request(os.environ["BFF_URL"]+"/v1/review",
+          # Forgejo-shaped route (ADR-0002): repo and PR live in the PATH and the
+          # gateway checks the caller can see that repo before it reads the diff.
+          req = urllib.request.Request(os.environ["BFF_URL"] + "/v1/repos/" + os.environ["REPO"]
+                  + "/pulls/" + str(int(os.environ.get("PR_NUMBER") or 0)) + "/reviews",
                   data=json.dumps(body).encode(),
                   headers={"Content-Type":"application/json",
                            "Authorization":"token "+os.environ["BFF_TOKEN"],
@@ -146,7 +147,7 @@ jobs:
                   md += "\n\n" + out["digest"]
               if out.get("review_id"):
                   md += ("\n\n<sub>Full transcript: " + os.environ["SERVER_URL"]
-                         + "/-/ai/v1/review/" + out["review_id"] + "</sub>")
+                         + "/-/ai/v1/reviews/" + out["review_id"] + "</sub>")
           except Exception as e:
               md = ("_The AI panel couldn't review this change right now "
                     "(it will review the next push). Details for admins: "
