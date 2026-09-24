@@ -246,6 +246,8 @@ export const tuxCatalog: TuxCatalogEntry[] = [
     blurb: "Page-number controls — squarified active page, ellipsis truncation, optional status line." },
   { name: "TuxPaperMeta", to: "/components/research-publishing", icon: "lucide:file-badge", family: "components", kind: "component", wraps: "tux native",
     blurb: "Academic paper metadata block." },
+  { name: "TuxPeoplePicker", to: "/components/people-picker", icon: "lucide:user-round-plus", family: "components", kind: "component", wraps: "tux native (APG combobox)",
+    blurb: "Assign people to a piece of work — search box over avatar/name/title rows with status badges. Local or server-side search, single or multi select, Escape that never closes the enclosing dialog." },
   { name: "TuxPhotoGrid", to: "/components/photo-grid", icon: "lucide:images", family: "components", kind: "component", wraps: "tux native",
     blurb: "Uniform image grid — photo (full color, captioned) or logo wall (grayscale-on-hover)." },
   { name: "TuxPopover", to: "/components/popover", icon: "lucide:message-square-more", family: "components", kind: "component", wraps: "UPopover",
