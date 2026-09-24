@@ -3,8 +3,8 @@
  * TuxDependencyGraph — "what has to happen first".
  *
  * A layered, left-to-right graph of work items where an arrow means
- * "waits on": `{ from: "180", to: "184" }` says #184 cannot finish until
- * #180 does. Built for the forge's Roadmap tab ("Order" view), where the
+ * "waits on": `{ from: "a", to: "b" }` says #b cannot finish until
+ * #a does. Built for the forge's Roadmap tab ("Order" view), where the
  * data are Forgejo issue dependencies, cross-repository links included.
  *
  * Not TuxDiagram: that one renders Mermaid source you write by hand. This
@@ -575,7 +575,7 @@ const loopKey = (loop: string[]) => tuxGraphEdgeKey(loop[0] ?? "", loop[loop.len
   align-items: flex-start;
   gap: 0.625rem;
   padding: 0.75rem 0.875rem;
-  border: 1px solid color-mix(in srgb, var(--color-error) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error) 50%, transparent);
   border-left: 4px solid var(--color-error);
   border-radius: var(--radius-md);
   background: color-mix(in srgb, var(--color-error) 8%, var(--surface-raised));
@@ -633,7 +633,7 @@ const loopKey = (loop: string[]) => tuxGraphEdgeKey(loop[0] ?? "", loop[loop.len
 }
 
 .tux-dependency-graph__banner-ref:hover {
-  border-color: color-mix(in srgb, var(--color-error) 45%, transparent);
+  border-color: color-mix(in srgb, var(--color-error) 50%, transparent);
   background: var(--surface-raised);
 }
 
@@ -670,7 +670,7 @@ const loopKey = (loop: string[]) => tuxGraphEdgeKey(loop[0] ?? "", loop[loop.len
 
 .tux-dependency-graph__frame {
   fill: color-mix(in srgb, var(--color-error) 6%, transparent);
-  stroke: color-mix(in srgb, var(--color-error) 55%, transparent);
+  stroke: color-mix(in srgb, var(--color-error) 50%, transparent);
   stroke-width: 1.5;
 }
 

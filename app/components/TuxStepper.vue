@@ -494,7 +494,7 @@ function statusIcon(s: StepStatus): string | null {
    brand is teal. Text on the filled step is the page colour (white on
    tti-dark's light teal is 2.4:1). */
 .tux-path__step--done .tux-path__seg {
-  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
   border-color: color-mix(in srgb, var(--brand-primary) 35%, transparent);
   color: var(--text-primary);
 }

@@ -130,7 +130,7 @@ onMounted(() => {
 
 .tux-kanban-card--lifted {
   border-color: var(--brand-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 25%, transparent), var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.12));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 22%, transparent), var(--shadow-md);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -291,11 +291,11 @@ export function provideTuxKanbanDnd(opts: TuxKanbanDndOptions): TuxKanbanDndCont
       case "ArrowRight":
       case "ArrowLeft": {
         e.preventDefault();
-        const i = all.indexOf(lane) + (e.key === "ArrowRight" ? 1 : -1);
-        if (i < 0 || i >= all.length) return opts.announce(`${describe()}. No more lanes that way.`);
-        overLaneId.value = all[i];
+        const next = all[all.indexOf(lane) + (e.key === "ArrowRight" ? 1 : -1)];
+        if (!next) return opts.announce(`${describe()}. No more lanes that way.`);
+        overLaneId.value = next;
         beforeCardId.value = null;
-        judge(cardId, all[i]);
+        judge(cardId, next);
         return opts.announce(describe());
       }
       case "ArrowUp":
@@ -368,7 +368,7 @@ export function useTuxKanbanDnd(): TuxKanbanDndContext {
  * Keyboard: Tab to a card, Space lifts it, ←/→ change lane, ↑/↓ change
  * position, Space or Enter drops, Escape cancels. Every step is announced.
  * `canDrop(cardId, toLaneId, fromLaneId)` returns true or the reason a lane
- * refuses the card ("#184 still waits on #183"); the lane shows the reason
+ * refuses the card ("#n still waits on #m"); the lane shows the reason
  * while the drag is over it and the drop is cancelled.
  *
  * Promoted from TTI AI Studio's kanban primitive; shadow-DOM safe (the forge
@@ -467,7 +467,7 @@ const hintId = `tux-kanban-hint-${Math.random().toString(36).slice(2, 8)}`;
   pointer-events: none;
   opacity: 0.92;
   transform: rotate(1.5deg);
-  box-shadow: var(--shadow-lg, 0 10px 30px rgba(0, 0, 0, 0.18));
+  box-shadow: var(--shadow-lg);
 }
 
 .tux-kanban__sr {

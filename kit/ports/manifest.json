@@ -482,6 +482,14 @@
         }
       }
     },
+    "TuxDependencyGraph": {
+      "sourceHash": "6e967f15d0370135",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
     "TuxDescriptionList": {
       "sourceHash": "441a6b8f18c2949a",
       "ports": {
@@ -666,6 +674,30 @@
         }
       }
     },
+    "TuxKanbanBoard": {
+      "sourceHash": "0060b693d1df363b",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxKanbanCard": {
+      "sourceHash": "34f110c932005f98",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxKanbanLane": {
+      "sourceHash": "023f939cd45e8efd",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
     "TuxKbd": {
       "sourceHash": "b12f4c79a35ddc0b",
       "ports": {
@@ -778,6 +810,14 @@
         }
       }
     },
+    "TuxMilestoneRoadmap": {
+      "sourceHash": "b6ab47b801874d5b",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
     "TuxMobileFrame": {
       "sourceHash": "c2638cacac1b103d",
       "ports": {
@@ -828,6 +868,14 @@
     },
     "TuxPaperMeta": {
       "sourceHash": "d2cce993e0903458",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxPeoplePicker": {
+      "sourceHash": "3784050611760086",
       "ports": {
         "react": {
           "hash": null
@@ -1140,6 +1188,14 @@
     },
     "TuxTestimonial": {
       "sourceHash": "9a19e07650ccdf6d",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxTimeline": {
+      "sourceHash": "2a1bdb0b027b62c1",
       "ports": {
         "react": {
           "hash": null

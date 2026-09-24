@@ -41,7 +41,7 @@ withDefaults(defineProps<Props>(), {
 
 // A crumb with `to` is a NuxtLink, with `href` a plain link, and with
 // neither a button that emits `navigate` — for hosts without a router (the
-// forge's work-surface panel: "Roadmap › an area › #184", where each crumb
+// forge's work-surface panel: "Roadmap › an area › #n", where each crumb
 // changes what the panel shows instead of the page).
 const emit = defineEmits<{ navigate: [crumb: Crumb, index: number] }>();
 // Unchanged for existing pages: a home crumb with no `to` still links to "/"

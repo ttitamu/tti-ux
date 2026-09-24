@@ -514,12 +514,12 @@ defineExpose({ focus });
 }
 
 .tux-people-picker__option:hover {
-  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
 }
 
 .tux-people-picker__option--active,
 .tux-people-picker__option--active:hover {
-  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
 }
 
 /* The visual focus while DOM focus stays in the input. */
@@ -537,7 +537,7 @@ defineExpose({ focus });
 }
 
 .tux-people-picker__option--disabled.tux-people-picker__option--active {
-  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
 }
 
 /* Selection mark. Multiple: a checkbox-like box, filled when selected.

@@ -60,7 +60,7 @@ export type TuxMilestoneTone = "info" | "success" | "warning" | "error" | "neutr
 export interface TuxMilestoneItem {
   id: string | number;
   title: string;
-  /** Short reference, e.g. "#184" or "tti/other#9" — shown small + mono. */
+  /** Short reference, e.g. "#12" or "tti/other#9" — shown small + mono. */
   ref?: string;
   /** Closed/finished: struck through, counts toward progress. */
   done?: boolean;
@@ -671,7 +671,7 @@ function onKeydown(e: KeyboardEvent) {
 }
 
 .tux-milestone-roadmap__head:hover {
-  background: color-mix(in srgb, var(--brand-primary) 5%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
 }
 
 .tux-milestone-roadmap__heading {
@@ -820,7 +820,7 @@ function onKeydown(e: KeyboardEvent) {
 }
 
 .tux-milestone-roadmap__open:hover {
-  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
   color: var(--brand-primary);
 }
 

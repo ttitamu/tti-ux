@@ -42,7 +42,7 @@ export interface TuxTimelineMarker {
 export interface TuxTimelineRow {
   id: TuxTimelineId;
   label: string;
-  /** e.g. "#163 · In progress" */
+  /** e.g. "#12 · In progress" */
   sublabel?: string;
   /** Rows sharing a group render under one group header. */
   group?: string;
@@ -1837,11 +1837,11 @@ const rootStyle = computed(() => ({
 }
 
 .tux-timeline__band--hover {
-  background: color-mix(in srgb, var(--brand-primary) 5%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
 }
 
 .tux-timeline__band--selected {
-  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
 }
 
 .tux-timeline__gridline,
@@ -1987,7 +1987,7 @@ const rootStyle = computed(() => ({
   border-right: 0;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
-  mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent);
+  mask-image: linear-gradient(to right, black calc(100% - 3rem), transparent);
 }
 
 /* Cut by the visible range. */
