@@ -675,7 +675,7 @@
       }
     },
     "TuxKanbanBoard": {
-      "sourceHash": "0060b693d1df363b",
+      "sourceHash": "0b3089d83597402e",
       "ports": {
         "react": {
           "hash": null
