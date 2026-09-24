@@ -144,9 +144,37 @@ function statusIcon(s: StepStatus): string | null {
         :class="`tux-stepper__item--${s.status}`"
         :aria-current="s.status === 'active' ? 'step' : undefined"
       >
+        <!-- NuxtLink must be a static tag: as a string in :is it isn't resolved -->
+        <NuxtLink v-if="!selectable && s.to" :to="s.to" class="tux-stepper__node">
+          <span class="tux-stepper__circle" aria-hidden="true">
+            <UIcon
+              v-if="busyIndex === i"
+              name="lucide:loader-circle"
+              class="tux-stepper__icon tux-path__icon--spin"
+            />
+            <UIcon
+              v-else-if="statusIcon(s.status)"
+              :name="statusIcon(s.status)!"
+              class="tux-stepper__icon"
+            />
+            <UIcon
+              v-else-if="s.locked"
+              name="lucide:lock"
+              class="tux-stepper__icon"
+            />
+            <span v-else class="tux-stepper__num">{{ i + 1 }}</span>
+          </span>
+          <span class="tux-stepper__text">
+            <span class="tux-stepper__label">{{ s.label }}</span>
+            <span
+              v-if="showDescriptions && s.description"
+              class="tux-stepper__description"
+            >{{ s.description }}</span>
+          </span>
+                </NuxtLink>
         <component
-          :is="selectable ? 'button' : s.to ? 'NuxtLink' : 'span'"
-          :to="selectable ? undefined : s.to"
+          :is="selectable ? 'button' : 'span'"
+          v-else
           :type="selectable ? 'button' : undefined"
           class="tux-stepper__node"
           :class="{ 'tux-stepper__node--button': selectable }"

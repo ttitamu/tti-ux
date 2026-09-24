@@ -40,6 +40,14 @@ describe("TuxStepper selectable path", () => {
     expect(w.emitted("select")).toBeUndefined();
   });
 
+  it("a step with `to` is a real link (NuxtLink), not an unknown element", async () => {
+    const w = await mountSuspended(TuxStepper, {
+      props: { steps: [{ label: "Info", to: "/apply/info" }, { label: "Budget" }], currentIndex: 1 },
+    });
+    expect(w.find('a[href="/apply/info"]').exists()).toBe(true);
+    expect(w.html()).not.toContain("<nuxtlink");
+  });
+
   it("the default stepper renders no buttons", async () => {
     const w = await mountSuspended(TuxStepper, { props: { steps, currentIndex: 1 } });
     expect(w.findAll("button")).toHaveLength(0);
