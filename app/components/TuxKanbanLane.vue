@@ -44,7 +44,10 @@ const titleId = `tux-kanban-lane-${props.laneId.replace(/[^\w-]/g, "_")}-${Math.
 </script>
 
 <template>
-  <section
+  <!-- a named group, not a <section>: a landmark per lane repeats "Now",
+       "Next"… on any page with two boards (axe landmark-unique) -->
+  <div
+    role="group"
     class="tux-kanban-lane"
     :class="{ 'tux-kanban-lane--over': isOver && !refused, 'tux-kanban-lane--refused': refused }"
     :data-kanban-lane="laneId"
@@ -66,7 +69,7 @@ const titleId = `tux-kanban-lane-${props.laneId.replace(/[^\w-]/g, "_")}-${Math.
       <div v-if="!$slots.default || count === 0" class="tux-kanban-lane__empty"><slot name="empty">Nothing here</slot></div>
       <div v-if="showAppend" class="tux-kanban-lane__append" aria-hidden="true" />
     </div>
-  </section>
+  </div>
 </template>
 
 <style scoped>
