@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getCurrentInstance } from "vue";
 // TuxBreadcrumbs — page-depth navigation trail.
 //
 // Sits above the page header on every non-landing page. Home crumb is
@@ -37,6 +38,17 @@ withDefaults(defineProps<Props>(), {
   chevron: false,
   ariaLabel: "Breadcrumb",
 });
+
+// A crumb with `to` is a NuxtLink, with `href` a plain link, and with
+// neither a button that emits `navigate` — for hosts without a router (the
+// forge's work-surface panel: "Roadmap › an area › #184", where each crumb
+// changes what the panel shows instead of the page).
+const emit = defineEmits<{ navigate: [crumb: Crumb, index: number] }>();
+// Unchanged for existing pages: a home crumb with no `to` still links to "/"
+// unless the host listens for `navigate`.
+const listening = !!getCurrentInstance()?.vnode.props?.onNavigate;
+const toOf = (c: Crumb, idx: number) => c.to ?? (idx === 0 && !c.href && !listening ? "/" : undefined);
+const tagOf = (c: Crumb, idx: number) => (toOf(c, idx) ? "NuxtLink" : c.href ? "a" : "button");
 </script>
 
 <template>
@@ -71,9 +83,8 @@ withDefaults(defineProps<Props>(), {
 
         <!-- Home crumb (with icon) -->
         <NuxtLink
-          v-else-if="idx === 0"
-          :to="crumb.to ?? '/'"
-          :href="crumb.href"
+          v-else-if="idx === 0 && tagOf(crumb, idx) === 'NuxtLink'"
+          :to="toOf(crumb, idx)"
           class="tux-breadcrumbs__home"
         >
           <Icon
@@ -84,14 +95,37 @@ withDefaults(defineProps<Props>(), {
           />
           <span>{{ crumb.label }}</span>
         </NuxtLink>
+        <component
+          :is="tagOf(crumb, idx)"
+          v-else-if="idx === 0"
+          :href="crumb.href"
+          :type="tagOf(crumb, idx) === 'button' ? 'button' : undefined"
+          class="tux-breadcrumbs__home"
+          @click="tagOf(crumb, idx) === 'button' && emit('navigate', crumb, idx)"
+        >
+          <Icon
+            v-if="homeIcon"
+            name="lucide:home"
+            class="tux-breadcrumbs__home-icon"
+            aria-hidden="true"
+          />
+          <span>{{ crumb.label }}</span>
+        </component>
 
         <!-- Intermediate crumbs — italic link -->
         <NuxtLink
-          v-else
-          :to="crumb.to"
-          :href="crumb.href"
+          v-else-if="tagOf(crumb, idx) === 'NuxtLink'"
+          :to="toOf(crumb, idx)"
           class="tux-breadcrumbs__link"
         >{{ crumb.label }}</NuxtLink>
+        <component
+          :is="tagOf(crumb, idx)"
+          v-else
+          :href="crumb.href"
+          :type="tagOf(crumb, idx) === 'button' ? 'button' : undefined"
+          class="tux-breadcrumbs__link"
+          @click="tagOf(crumb, idx) === 'button' && emit('navigate', crumb, idx)"
+        >{{ crumb.label }}</component>
       </li>
     </ol>
   </nav>
@@ -152,6 +186,15 @@ withDefaults(defineProps<Props>(), {
   height: auto;
   background: transparent;
   color: var(--text-muted);
+}
+
+button.tux-breadcrumbs__home,
+button.tux-breadcrumbs__link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
 }
 
 .tux-breadcrumbs__home,
