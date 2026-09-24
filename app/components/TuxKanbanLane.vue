@@ -8,7 +8,7 @@
  * While a drag is over the lane it highlights, shows where the card will land
  * and — when the board's canDrop refuses it — says why, instead of highlighting.
  */
-import { computed } from "vue";
+import { computed, useId } from "vue";
 import { useTuxKanbanDnd } from "./TuxKanbanBoard.vue";
 
 type Tone = "brand" | "info" | "success" | "warning" | "error" | "neutral" | "muted";
@@ -40,7 +40,7 @@ const TONE: Record<Tone, string> = {
   neutral: "var(--text-secondary)",
   muted: "var(--text-muted)",
 };
-const titleId = `tux-kanban-lane-${props.laneId.replace(/[^\w-]/g, "_")}-${Math.random().toString(36).slice(2, 6)}`;
+const titleId = `tux-kanban-lane-${useId()}`;     // SSR-stable (panel finding on tti-ux#61)
 </script>
 
 <template>

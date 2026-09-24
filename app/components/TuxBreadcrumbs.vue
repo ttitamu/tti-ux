@@ -98,8 +98,7 @@ const tagOf = (c: Crumb, idx: number) => (toOf(c, idx) ? "NuxtLink" : c.href ? "
         <component
           :is="tagOf(crumb, idx)"
           v-else-if="idx === 0"
-          :href="crumb.href"
-          :type="tagOf(crumb, idx) === 'button' ? 'button' : undefined"
+          v-bind="tagOf(crumb, idx) === 'a' ? { href: crumb.href } : { type: 'button' }"
           class="tux-breadcrumbs__home"
           @click="tagOf(crumb, idx) === 'button' && emit('navigate', crumb, idx)"
         >
@@ -121,8 +120,7 @@ const tagOf = (c: Crumb, idx: number) => (toOf(c, idx) ? "NuxtLink" : c.href ? "
         <component
           :is="tagOf(crumb, idx)"
           v-else
-          :href="crumb.href"
-          :type="tagOf(crumb, idx) === 'button' ? 'button' : undefined"
+          v-bind="tagOf(crumb, idx) === 'a' ? { href: crumb.href } : { type: 'button' }"
           class="tux-breadcrumbs__link"
           @click="tagOf(crumb, idx) === 'button' && emit('navigate', crumb, idx)"
         >{{ crumb.label }}</component>

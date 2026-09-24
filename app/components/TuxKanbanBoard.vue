@@ -26,7 +26,7 @@
 // a ShadowRoot — both have elementFromPoint), and nothing touches
 // document.body. The forge mounts TUX inside a shadow root.
 
-import { inject, provide, ref, toRef, type InjectionKey, type Ref } from "vue";
+import { inject, provide, ref, toRef, useId, type InjectionKey, type Ref } from "vue";
 
 export interface TuxKanbanMove {
   cardId: string;
@@ -414,7 +414,7 @@ provideTuxKanbanDnd({
   onMove: (m) => emit("move", m),
 });
 
-const hintId = `tux-kanban-hint-${Math.random().toString(36).slice(2, 8)}`;
+const hintId = `tux-kanban-hint-${useId()}`;     // SSR-stable (panel finding on tti-ux#61)
 </script>
 
 <template>

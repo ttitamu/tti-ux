@@ -119,9 +119,10 @@ onMounted(() => {
   border-color: var(--brand-primary);
 }
 
+/* TUX's shared two-ring focus (v2.1.0), not a one-off outline. */
 .tux-kanban-card:focus-visible {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 2px;
+  outline: 2px solid transparent;
+  box-shadow: var(--shadow-focus);
 }
 
 .tux-kanban-card--dragging {
