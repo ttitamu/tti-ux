@@ -108,6 +108,7 @@ npm run dev
 | `TuxTabs`            | `UTabs`                  | `/components/tabs`              |
 | `TuxTeachingPopover` | tux native               | `/components/teaching-popover`  |
 | `TuxTestimonial`     | tux native               | `/components/testimonial`       |
+| `TuxTimeline`        | tux native               | `/components/timeline`          |
 | `TuxTOC`             | tux native               | `/components/toc`               |
 | `TuxTooltip`         | `UTooltip`               | `/components/tooltip`           |
 | `TuxTree`            | tux native               | `/components/tree` (renders internal child `TuxTreeNode`) |
@@ -298,6 +299,7 @@ single most common failure mode.
 | **Time-of-day / matrix intensity** (crashes by day × hour, corridor demand by month, station uptime) | `<TuxChartHeatmap>` |
 | **Distribution of raw observations** (travel-time reliability, delay spread; p50/p95 planning-time pair) | `<TuxChartHistogram :percentiles="[50, 95]">` |
 | **Vertical event timeline** (project milestones, ingest/agent feed, session history) | `<TuxActivityTimeline>` |
+| **Planning timeline / roadmap** (areas × months, due dates, milestones, dependencies) | `<TuxTimeline :rows :milestones :dependencies>` |
 | **Editorial wrapper for a multi-exhibit visualizations page** (eyebrow + Oswald title + maroon signature + body + source) | `<TuxChartFrame>` |
 
 If your need isn't here, scan `/components` (or

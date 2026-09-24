@@ -314,6 +314,8 @@ export const tuxCatalog: TuxCatalogEntry[] = [
     blurb: "Onboarding/guided-tour tooltip — image, body, Next/Skip, step counter. On-brand variant for high emphasis." },
   { name: "TuxTestimonial", to: "/components/testimonial", icon: "lucide:message-circle-heart", family: "components", kind: "component", wraps: "tux native",
     blurb: "Attributed quotes with portrait + name + role — grid or row layout, three style variants." },
+  { name: "TuxTimeline", to: "/components/timeline", icon: "lucide:chart-gantt", family: "components", kind: "component", wraps: "tux native",
+    blurb: "Planning timeline — rows × a time axis: bars for spans, due-date diamonds, markers, milestone + today lines, dependency arrows that turn red when the order is impossible. The Roadmap tab's Timeline view." },
   { name: "TuxTooltip", to: "/components/tooltip", icon: "lucide:message-square-quote", family: "components", kind: "component", wraps: "UTooltip",
     blurb: "Keyboard-accessible hover-help with optional title + hairline rule. Tuned max-width (~22ch)." },
   { name: "TuxTree", to: "/components/tree", icon: "lucide:list-tree", family: "components", kind: "component", wraps: "tux native",
