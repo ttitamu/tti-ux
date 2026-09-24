@@ -80,6 +80,7 @@ npm run dev
 | `TuxPageContainer`   | tux native               | `/components/page-container`    |
 | `TuxPageHeader`      | tux native               | `/components/page-header`       |
 | `TuxPagination`      | tux native               | `/components/pagination`        |
+| `TuxPeoplePicker`    | tux native (APG combobox) | `/components/people-picker`    |
 | `TuxPhotoGrid`       | tux native               | `/components/photo-grid`        |
 | `TuxPopover`         | `UPopover`               | `/components/popover`           |
 | `TuxProse`           | tux native               | `/components/prose`             |
