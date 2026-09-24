@@ -154,6 +154,8 @@ export const tuxCatalog: TuxCatalogEntry[] = [
     blurb: "Linear corridor visualization." },
   { name: "TuxDataTable", to: "/components/data-table", icon: "lucide:table-2", family: "components", kind: "component", wraps: "tux native",
     blurb: "Research-deliverable table — numbered caption, uncertainty cells (value ± CI), footnote anchors, totals row, source citation. Static (printable)." },
+  { name: "TuxDependencyGraph", to: "/components/dependency-graph", icon: "lucide:network", family: "components", kind: "component", wraps: "tux native SVG",
+    blurb: "“What has to happen first” — work items laid out left to right by what they wait on. Loops get a banner and their own band, blockers say “Waiting on N”, hover traces a whole chain." },
   { name: "TuxDescriptionList", to: "/components/description-list", icon: "lucide:list", family: "components", kind: "component", wraps: "tux native",
     blurb: "Term/definition pairs — native dl/dt/dd. Inline or stacked, editorial or data emphasis." },
   { name: "TuxDiagram", to: "/components/diagram", icon: "lucide:workflow", family: "components", kind: "component", wraps: "Mermaid",

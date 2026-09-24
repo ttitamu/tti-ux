@@ -51,6 +51,7 @@ npm run dev
 | `TuxComposer`        | tux native               | `/components/composer`          |
 | `TuxCTA`             | tux native               | `/components/cta`               |
 | `TuxDataTable`       | tux native               | `/components/data-table`        |
+| `TuxDependencyGraph` | tux native SVG           | `/components/dependency-graph`  |
 | `TuxDescriptionList` | tux native               | `/components/description-list`  |
 | `TuxDiagram`         | Mermaid                  | `/components/diagram`           |
 | `TuxDocsSidebar`     | tux native               | `/components/docs-sidebar` (renders internal child `TuxDocsSidebarNode`) |
@@ -268,6 +269,7 @@ single most common failure mode.
 | **Code in a component-demo flow** (Vue + HTML reveal tabs) | `<TuxExample>` |
 | **Term/definition list** (event details, file metadata, spec list) | `<TuxDescriptionList>` |
 | **Architecture diagram** (boxes + arrows, decision flows) | `<TuxDiagram>` (Mermaid) |
+| **Work-item order** (what waits on what, loops, blockers — data-driven, clickable) | `<TuxDependencyGraph>` |
 | **Markdown content with Tux components inline** | `@nuxtjs/mdc` + auto-import (see `/markdown` demo) |
 | **Form input** (email / select / radio / etc.) | Nuxt UI native — `UInput`, `USelect`, etc., **layer-themed** (Batch K in `tux.css`: Work Sans controls, tux radius, maroon focus). The hybrid doctrine (unification-plan.md, owner-ratified 2026-07-30): `U*` is the blessed spelling for app controls — no Tux input wrappers ship; `TuxFormField` owns label/help/error anatomy; `TuxButton` is the *editorial* button (gold-bar/CTA contexts), not the app-control default. Lint targets raw `<input>`/`<button>` elements and hex literals, never `U*`. See `/forms`. |
 | **Data table** (sortable, virtualizable, status cells) | `<TuxTable>` |
