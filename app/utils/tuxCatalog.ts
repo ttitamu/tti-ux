@@ -224,6 +224,8 @@ export const tuxCatalog: TuxCatalogEntry[] = [
     blurb: "In-window File / Edit / View / Help menu strip for Windows / Linux Tauri shells. Skipped on Mac (system menu wins)." },
   { name: "TuxMetroInset", to: "/visualizations/chart-geographic", icon: "lucide:locate", family: "visualizations", kind: "component", wraps: "tux native (neighborhood grid)",
     blurb: "Neighborhood-grid inset for a single metro, intended for 4-up side-by-side layouts (Houston · DFW · Austin · San Antonio)." },
+  { name: "TuxMilestoneRoadmap", to: "/components/milestone-roadmap", icon: "lucide:milestone", family: "components", kind: "component", wraps: "tux native",
+    blurb: "Redmine-style milestone roadmap — a section per milestone with due wording, progress, and its items as select buttons. The forge's Roadmap \"Milestones\" view." },
   { name: "TuxMobileFrame", to: "/components/mobile-frame", icon: "lucide:smartphone", family: "components", kind: "component", wraps: "tux native (CSS)",
     blurb: "Stylized device chrome for screenshots — iOS (iPhone) or Android (Pixel) via platform prop. Doc-only marketing helper." },
   { name: "TuxModal", to: "/components/modal", icon: "lucide:panel-top-open", family: "components", kind: "component", wraps: "UModal",
