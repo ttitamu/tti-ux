@@ -78,6 +78,7 @@ npm run dev
 | `TuxMediaSlab`       | tux native               | `/components/media-slab`        |
 | `TuxMegaMenu`        | tux native               | `/components/site-nav`          |
 | `TuxMenuBar`         | `UDropdownMenu`          | `/components/menu-bar`          |
+| `TuxMilestoneRoadmap`| tux native               | `/components/milestone-roadmap` |
 | `TuxMobileFrame`     | tux native (CSS)         | `/components/mobile-frame`      |
 | `TuxModal`           | `UModal`                 | `/components/modal`             |
 | `TuxNewsCollection`  | tux native               | `/components/news-collection`   |
@@ -306,6 +307,7 @@ single most common failure mode.
 | **Distribution of raw observations** (travel-time reliability, delay spread; p50/p95 planning-time pair) | `<TuxChartHistogram :percentiles="[50, 95]">` |
 | **Vertical event timeline** (project milestones, ingest/agent feed, session history) | `<TuxActivityTimeline>` |
 | **Planning timeline / roadmap** (areas × months, due dates, milestones, dependencies) | `<TuxTimeline :rows :milestones :dependencies>` |
+| **Milestone roadmap** (Redmine-style: each milestone's due date, progress and items — the forge's Roadmap "Milestones" view) | `<TuxMilestoneRoadmap :milestones :unscheduled>` |
 | **Editorial wrapper for a multi-exhibit visualizations page** (eyebrow + Oswald title + maroon signature + body + source) | `<TuxChartFrame>` |
 
 If your need isn't here, scan `/components` (or
