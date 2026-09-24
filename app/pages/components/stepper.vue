@@ -29,6 +29,34 @@ const horizontalVue = `<tux-stepper
   :current-index="2"
 />`;
 
+// A work item's execution stages: the same control shows where it stands
+// and moves it. "Done" is locked while it waits on other work.
+const stages = ["Triage", "Ready", "In progress", "In review", "Done"];
+const stage = ref(1);
+const saving = ref(-1);
+const waiting = ref(true);
+const stageSteps = computed(() => stages.map((label) => ({
+  label,
+  locked: label === "Done" && waiting.value ? "Can't be done while it waits on #183" : undefined,
+})));
+function moveTo(i: number) {
+  saving.value = i;
+  setTimeout(() => { stage.value = i; saving.value = -1; }, 600);
+}
+
+const pathVue = `<TuxStepper
+  variant="path"
+  selectable
+  aria-label="Progress"
+  :steps="[
+    { label: 'Triage' }, { label: 'Ready' }, { label: 'In progress' }, { label: 'In review' },
+    { label: 'Done', locked: waitingOn ? 'Can\\'t be done while it waits on #183' : undefined },
+  ]"
+  :current-index="stage"
+  :busy-index="saving"
+  @select="(i) => save(i)"
+/>`;
+
 const verticalVue = `<tux-stepper orientation="vertical" :steps="irbSteps" :current-index="2" />`;
 
 const errorVue = `<tux-stepper
@@ -79,6 +107,34 @@ const errorVue = `<tux-stepper
       <h2 class="heading--bold text-xl font-bold">Error step</h2>
       <TuxExample class="mt-4" :vue="errorVue">
         <TuxStepper :steps="fundingSteps" :current-index="2" aria-label="Funding application progress" />
+      </TuxExample>
+    </section>
+
+    <section>
+      <p class="eyebrow">selectable · path variant</p>
+      <h2 class="heading--bold text-xl font-bold">Show where it stands, and move it</h2>
+      <p class="mt-2 text-sm text-text-secondary max-w-3xl">
+        <code>selectable</code> turns every step into a button that emits
+        <code>select(index, step)</code>; <code>variant="path"</code> is the
+        compact form for panels and cards. A step with <code>locked</code>
+        shows a lock and says why it can't be chosen; <code>busy-index</code>
+        spins while a change saves.
+      </p>
+      <TuxExample class="mt-4" :vue="pathVue">
+        <div class="max-w-xl space-y-3">
+          <TuxStepper
+            variant="path"
+            selectable
+            aria-label="Progress"
+            :steps="stageSteps"
+            :current-index="stage"
+            :busy-index="saving"
+            @select="moveTo"
+          />
+          <label class="flex items-center gap-2 text-sm text-text-secondary">
+            <input v-model="waiting" type="checkbox"> Waits on #183 (locks Done)
+          </label>
+        </div>
       </TuxExample>
     </section>
 

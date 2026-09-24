@@ -62,7 +62,9 @@ withDefaults(defineProps<Props>(), {
     :arrow="arrow"
     :disabled="disabled"
     :ui="{
-      content: 'tux-tooltip__content',
+      // Nuxt UI's tooltip content is a fixed h-6 row; a titled tooltip has
+      // two lines, so it grows (tailwind-merge lets h-auto win).
+      content: title ? 'tux-tooltip__content h-auto py-2' : 'tux-tooltip__content',
       arrow: 'tux-tooltip__arrow',
     }"
   >

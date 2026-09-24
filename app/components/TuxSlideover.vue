@@ -53,11 +53,34 @@ const dialogRef = ref<HTMLDialogElement | null>(null);
 
 watch(open, (val) => {
   if (val) {
-    dialogRef.value?.showModal();
+    if (!dialogRef.value?.open) dialogRef.value?.showModal();
   } else {
     dialogRef.value?.close();
   }
 });
+
+// Mounted already open (a deep link to a record): the watch above only sees
+// CHANGES, so open the dialog here too.
+onMounted(() => {
+  if (open.value && dialogRef.value && !dialogRef.value.open) dialogRef.value.showModal();
+});
+
+// Escape inside an open popover, menu or listbox belongs to THAT: the native
+// dialog also treats Escape as its own close request, so without this one
+// keypress closes both. Note on keydown whether a dismissable layer (Nuxt UI
+// / reka popovers, selects, menus) is open inside the sheet, and cancel the
+// dialog's close request if so. Handlers that preventDefault() the Escape
+// keydown already stop the close request themselves (the platform does it).
+let layerOpenAtEscape = false;
+function onKeydownCapture(e: KeyboardEvent) {
+  if (e.key === "Escape") {
+    layerOpenAtEscape = !!dialogRef.value?.querySelector('[data-dismissable-layer], [role="listbox"][data-state="open"], [data-state="open"][role="menu"]');
+  }
+}
+function onCancel(e: Event) {
+  if (layerOpenAtEscape) e.preventDefault();
+  layerOpenAtEscape = false;
+}
 
 // `dialog.close()` fires the `close` event; mirror it back to the
 // v-model so external state stays in sync when the user dismisses
@@ -100,6 +123,8 @@ defineExpose({ open: () => { open.value = true; }, close });
     data-tux-overlay
     :aria-label="title || 'Slide-over panel'"
     @close="onDialogClose"
+    @cancel="onCancel"
+    @keydown.capture="onKeydownCapture"
     @click="onBackdropClick"
   >
     <div

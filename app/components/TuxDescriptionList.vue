@@ -82,10 +82,30 @@ withDefaults(defineProps<Props>(), {
 
 /* Inline layout — term left, value right. Native CSS grid for crisp
    alignment without table semantics. */
+.tux-dl-wrap {
+  container-type: inline-size;
+  container-name: tux-dl;
+}
+
 .tux-dl--inline {
   display: grid;
-  grid-template-columns: minmax(8rem, max-content) 1fr;
+  grid-template-columns: minmax(8rem, max-content) minmax(0, 1fr);
   gap: 0.5rem 1.25rem;
+}
+
+/* A narrow container (a side panel on a phone): labels above values. */
+@container tux-dl (max-width: 26rem) {
+  .tux-dl--inline {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.125rem;
+  }
+  .tux-dl--inline .tux-dl__term,
+  .tux-dl--inline .tux-dl__value {
+    grid-column: 1;
+  }
+  .tux-dl--inline .tux-dl__term:not(:first-child) {
+    margin-top: 0.75rem;
+  }
 }
 
 .tux-dl--inline .tux-dl__term {
