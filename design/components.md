@@ -68,6 +68,9 @@ npm run dev
 | `TuxInfoLabel`       | `UPopover`               | `/components/info-label`        |
 | `TuxInlineCitation`  | `UPopover`               | `/components/inline-citation`   |
 | `TuxKbd`             | tux native               | `/components/kbd`               |
+| `TuxKanbanBoard`     | tux native               | `/components/kanban`            |
+| `TuxKanbanCard`      | tux native               | `/components/kanban`            |
+| `TuxKanbanLane`      | tux native               | `/components/kanban`            |
 | `TuxLinkList`        | tux native               | `/components/link-list`         |
 | `TuxLinkSlab`        | tux native               | `/components/link-slab`         |
 | `TuxMcpEmbed`        | tux native               | `/components/mcp-embed`         |
