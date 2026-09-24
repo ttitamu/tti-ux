@@ -3,6 +3,56 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added — work surface components (2026-09-24)
+
+Nine components for planning and doing work, built for TTI Code's per-repo
+Roadmap tab (a TUX app mounted in a shadow root inside Forgejo pages) and
+usable anywhere. All are Nuxt-free (no NuxtLink/useRoute), shadow-DOM safe
+(no `document`-global queries), keyboard-operable, container-query
+responsive, and covered by mounted tests.
+
+- **`TuxKanbanBoard` / `TuxKanbanLane` / `TuxKanbanCard`** (`/components/kanban`)
+  — promoted from TTI AI Studio's kanban primitive, with keyboard
+  drag-and-drop (Space lifts, arrows move, Space drops, Escape cancels, every
+  step announced). The board holds no data and emits one
+  `move({cardId, fromLaneId, toLaneId, beforeCardId})`; `canDrop` returns
+  `true` or the reason a lane refuses a card, shown while dragging.
+- **`TuxMilestoneRoadmap`** (`/components/milestone-roadmap`) — one section per
+  milestone with its due date ("due Oct 29 · in 36 days", overdue called out
+  in words), progress and items; collapsible, keyboard-navigable.
+- **`TuxTimeline`** (`/components/timeline`) — rows × a week/month/quarter
+  axis, bars and points, milestone lines, a today line, and dependency arrows
+  that turn red when the order is impossible; undated rows are listed, never
+  dropped. (Different from `TuxActivityTimeline`, an event list.)
+- **`TuxDependencyGraph`** (`/components/dependency-graph`) — "what has to
+  happen first": layered left-to-right, loops found (Tarjan) and called out in
+  plain words, cross-repo items dashed, hover/focus traces a chain.
+- **`TuxPeoplePicker`** (`/components/people-picker`) — an ARIA combobox to
+  assign people: avatars, titles/departments, "Needs access" statuses, local
+  or server-side search, single or multiple.
+
+### Changed — for apps that host TUX without Nuxt (2026-09-24)
+
+- **`TuxStepper`**: `selectable` steps (buttons emitting `select(index, step)`),
+  a per-step `locked` reason, `busyIndex`, and `variant="path"` — compact
+  segments for panels and cards. The default stepper is unchanged.
+- **`TuxSlideover`** opens when mounted already open (deep links), and an
+  Escape meant for a popover/listbox inside it no longer closes the sheet too.
+- **`TuxBreadcrumbs`**: `href` crumbs are plain links and crumbs with neither
+  `to` nor `href` are buttons emitting `navigate(crumb, index)`. Existing pages
+  are unchanged.
+- **`TuxTooltip`** with a `title` grows instead of overflowing Nuxt UI's fixed
+  `h-6` content row. **`TuxDescriptionList`** stacks labels above values in
+  narrow containers.
+
+Known, left for 3.0's palette work: under `tti-dark`, `--text-on-brand` is
+white on the light-teal `--brand-primary` (2.4:1), `--wash-brand-*` stay
+maroon (computed on the theme root), and Nuxt UI's primary (TuxButton) renders
+rose-maroon at 3.4:1. The new components mix tints from `--brand-primary`
+directly and put `--surface-page` text on brand fills, so they pass either way.
+
 ## [2.2.0] — 2026-09-08
 
 ### Fixed — Batch M: the control radius rule (2026-09-08)
