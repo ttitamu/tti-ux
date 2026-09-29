@@ -63,13 +63,13 @@ Justification:
   - Estimated completion: [month, year].
   - Est. storage footprint: 4.2 TB, unchanged from prior period.
 
-PI: Anthony Guevara (anthony.guevara@tti.tamu.edu)
+PI: [PI name] ([PI email])
 Cost center: [ledger code]
 
 Happy to complete the formal extension form if preferred.
 
 Thanks,
-Anthony`}
+[PI name]`}
         </pre>
       </>
     ),

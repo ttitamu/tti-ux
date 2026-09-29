@@ -61,9 +61,9 @@ function ChatSidebar({ active, onPick, onNew }) {
         ))}
       </div>
       <div style={{ borderTop: "1px solid var(--surface-border)", padding: "12px 14px", display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--brand-primary)", color: "#fff", display: "grid", placeItems: "center", fontSize: "0.76rem", fontWeight: 600 }}>AG</div>
+        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--brand-primary)", color: "#fff", display: "grid", placeItems: "center", fontSize: "0.76rem", fontWeight: 600 }}>DU</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: "0.8rem", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>A. Guevara</div>
+          <div style={{ fontSize: "0.8rem", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>D. User</div>
           <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>CTR · scan tier 3</div>
         </div>
         <LucideIcon name="settings" size={16} />
@@ -98,7 +98,7 @@ function Message({ role, children, meta, citations }) {
       <div style={{ maxWidth: 820, margin: "0 auto", display: "grid", gridTemplateColumns: "40px 1fr", gap: 16 }}>
         <div>
           {isUser ? (
-            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--surface-border)", color: "var(--text-secondary)", display: "grid", placeItems: "center", fontSize: "0.76rem", fontWeight: 600 }}>AG</div>
+            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--surface-border)", color: "var(--text-secondary)", display: "grid", placeItems: "center", fontSize: "0.76rem", fontWeight: 600 }}>DU</div>
           ) : (
             <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--brand-primary)", display: "grid", placeItems: "center" }}>
               <div style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontWeight: 800, fontSize: "0.95rem", color: "var(--brand-accent)", lineHeight: 1 }}>tx</div>
@@ -108,7 +108,7 @@ function Message({ role, children, meta, citations }) {
         <div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 6 }}>
             <div style={{ fontWeight: 600, fontSize: "0.825rem" }}>
-              {isUser ? "Anthony Guevara" : "tti-ai"}
+              {isUser ? "Demo User" : "tti-ai"}
             </div>
             <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-muted)" }}>
               {isUser ? "10:42:14 CDT" : "10:42:17 CDT · anthropic/haiku-4.5 · 2.1s"}

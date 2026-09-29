@@ -69,10 +69,10 @@ function Sidebar({ route, onNavigate }) {
       <div style={{ marginTop: "auto", borderTop: "1px solid var(--surface-border)", paddingTop: 14 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: "0.8rem" }}>
           <div style={{ width: 28, height: 28, borderRadius: 9999, background: "var(--brand-primary)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: 700 }}>
-            AG
+            DU
           </div>
           <div>
-            <div style={{ fontWeight: 600 }}>A. Guevara</div>
+            <div style={{ fontWeight: 600 }}>D. User</div>
             <div style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>IT · TTI</div>
           </div>
         </div>
