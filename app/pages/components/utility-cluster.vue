@@ -6,7 +6,7 @@ const signedIn = {
   state: "signed-in" as const,
   identity: {
     name: "User, Demo",
-    email: "a-guevara@tti.tamu.edu",
+    email: "duser@tti.tamu.edu",
     department: "NET",
   },
   items: [
