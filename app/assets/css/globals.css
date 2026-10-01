@@ -140,22 +140,37 @@ body {
 
 .heading--bold {
   position: relative;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.625rem;
 }
 
-/* The gold accent rule beneath bold-style headings. Slimmed from
-   100×8px to 64×3px in v1.0.0 — the slab read as "marketing 2010"
-   next to the more refined chrome we've shipped (sidebar pills,
-   institutional footer, version pills). 3px keeps the editorial
-   weight without competing visually with the headline itself. */
+/* Roadway directional passing lane rule beneath bold-style headings.
+   Solid line on top, broken/dashed line on bottom (MUTCD passing zone).
+   Evokes Texas transportation infrastructure in Warm Gold. */
 .heading--bold::after {
   content: "";
   display: block;
   width: 64px;
-  height: 3px;
-  background: var(--brand-accent);
-  border-radius: 1.5px;
+  height: 7px;
   margin-top: 0.625rem;
+  background-image:
+    /* Top line: Solid roadway lane */
+    linear-gradient(var(--brand-accent), var(--brand-accent)),
+    /* Bottom line: Broken / dashed directional passing lane */
+    repeating-linear-gradient(to right,
+      var(--brand-accent) 0px,
+      var(--brand-accent) 8px,
+      transparent 8px,
+      transparent 14px
+    );
+  background-size:
+    100% 2px,
+    100% 2px;
+  background-position:
+    0 0,
+    0 5px;
+  background-repeat:
+    no-repeat,
+    no-repeat;
 }
 
 /* Small uppercase tracked label — used above or below a heading, or to

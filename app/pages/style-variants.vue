@@ -54,13 +54,14 @@ useHead({ title: "Style variants · TUX" });
     <!-- Bold style -->
     <section class="style--bold space-y-4">
       <p class="eyebrow">style 2 / 3</p>
-      <h2 class="heading--bold text-3xl font-bold">Bold — Work Sans + stacked maroon bars</h2>
+      <h2 class="heading--bold text-3xl font-bold">Bold — Work Sans + roadway passing lane</h2>
       <p class="max-w-3xl text-text-secondary leading-relaxed">
         Eye-catching. Right for marketing splashes, athletic-flavored landing
         pages, event blocks. Headings are heavy Work Sans (800-weight,
         mixed-case, italic hero flourish on
         <code>.heading--display</code>), and the section signature is a
-        stacked-bar rule that reads like punctuation.
+        roadway passing lane rule (solid line on top, broken line on bottom)
+        reflecting transportation infrastructure.
       </p>
 
       <div class="rounded-md border border-surface-border bg-surface-raised p-8 space-y-6">
@@ -91,18 +92,18 @@ useHead({ title: "Style variants · TUX" });
     <!-- Elegant style -->
     <section class="style--elegant space-y-4">
       <p class="eyebrow">style 3 / 3</p>
-      <h2 class="heading--bold text-3xl font-bold">Elegant — Georgia + diagonal hash</h2>
+      <h2 class="heading--bold text-3xl font-bold">Elegant — Georgia + diagonal slashes</h2>
       <p class="max-w-3xl text-text-secondary leading-relaxed">
         Refined and stately. Used for research publications, annual reports,
         faculty profiles, policy and administrative surfaces. Headings switch
         to Georgia (a system serif, no font fetch needed), the section
-        signature becomes a soft-faded diagonal hash, and cards drop the
-        2px maroon outline for a dotted maroon border.
+        signature is a series of full, symmetrical diagonal slashes, and cards
+        drop the 2px maroon outline for a dotted maroon border.
       </p>
 
       <div class="rounded-md border border-surface-border bg-surface-raised p-8 space-y-6">
         <div>
-          <span class="hash-pattern hash-pattern--narrow hash-pattern--sm" aria-hidden="true" />
+          <span class="hash-pattern" aria-hidden="true" />
           <p class="eyebrow mt-2">annual report 2025</p>
           <h3 class="section-header--elegant text-2xl">Director's letter</h3>
         </div>

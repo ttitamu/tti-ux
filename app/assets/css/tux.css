@@ -339,39 +339,72 @@
 .section-header--bold::after {
   content: "";
   display: block;
-  width: 62px;
-  height: 5px;
-  margin-top: 0.75rem;
-  background:
-    linear-gradient(to right,
-      var(--brand-primary) 0 32px,
-      transparent 32px 38px,
-      color-mix(in srgb, var(--brand-primary) 50%, transparent) 38px 52px,
-      transparent 52px 56px,
-      var(--wash-brand-22) 56px 62px);
-  border-radius: 2.5px;
+  width: 64px;
+  height: 7px;
+  margin-top: 0.625rem;
+  background-image:
+    /* Top line: Solid roadway lane */
+    linear-gradient(var(--brand-primary), var(--brand-primary)),
+    /* Bottom line: Broken / dashed directional passing lane */
+    repeating-linear-gradient(to right,
+      var(--brand-primary) 0px,
+      var(--brand-primary) 8px,
+      transparent 8px,
+      transparent 14px
+    );
+  background-size:
+    100% 2px,
+    100% 2px;
+  background-position:
+    0 0,
+    0 5px;
+  background-repeat:
+    no-repeat,
+    no-repeat;
+}
+
+[data-theme="tti-dark"] .section-header--bold::after {
+  background-image:
+    linear-gradient(var(--brand-accent), var(--brand-accent)),
+    repeating-linear-gradient(to right,
+      var(--brand-accent) 0px,
+      var(--brand-accent) 8px,
+      transparent 8px,
+      transparent 14px
+    );
 }
 
 .heading--bold {
   position: relative;
-  padding-bottom: 0.75rem;
+  padding-bottom: 0.625rem;
   margin: 0;
 }
 
 .heading--bold::after {
   content: "";
   display: block;
-  width: 62px;
-  height: 5px;
-  margin-top: 0.75rem;
-  background:
-    linear-gradient(to right,
-      var(--brand-accent) 0 32px,
-      transparent 32px 38px,
-      color-mix(in srgb, var(--brand-accent) 50%, transparent) 38px 52px,
-      transparent 52px 56px,
-      color-mix(in srgb, var(--brand-accent) 22%, transparent) 56px 62px);
-  border-radius: 2.5px;
+  width: 64px;
+  height: 7px;
+  margin-top: 0.625rem;
+  background-image:
+    /* Top line: Solid roadway lane */
+    linear-gradient(var(--brand-accent), var(--brand-accent)),
+    /* Bottom line: Broken / dashed directional passing lane */
+    repeating-linear-gradient(to right,
+      var(--brand-accent) 0px,
+      var(--brand-accent) 8px,
+      transparent 8px,
+      transparent 14px
+    );
+  background-size:
+    100% 2px,
+    100% 2px;
+  background-position:
+    0 0,
+    0 5px;
+  background-repeat:
+    no-repeat,
+    no-repeat;
 }
 
 /* Dot-grid accent — bold-style decoration. Sits next to a heading
@@ -456,46 +489,30 @@
 .section-header--elegant::after {
   content: "";
   display: block;
-  width: 86px;
-  height: 6px;
-  margin-top: 0.75rem;
-  background-image: repeating-linear-gradient(
-    135deg,
-    var(--brand-accent) 0,
-    var(--brand-accent) 1px,
-    transparent 1px,
-    transparent 5px
-  );
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 15%, black 85%, transparent 100%);
-          mask-image: linear-gradient(90deg, transparent 0%, black 15%, black 85%, transparent 100%);
-  opacity: 0.8;
+  width: 64px;
+  height: 16px;
+  margin-top: 0.625rem;
+  background-color: var(--brand-accent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 16'%3E%3Cg stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cline x1='4' y1='14' x2='11' y2='2'/%3E%3Cline x1='14' y1='14' x2='21' y2='2'/%3E%3Cline x1='24' y1='14' x2='31' y2='2'/%3E%3Cline x1='34' y1='14' x2='41' y2='2'/%3E%3Cline x1='44' y1='14' x2='51' y2='2'/%3E%3Cline x1='54' y1='14' x2='61' y2='2'/%3E%3C/g%3E%3C/svg%3E") no-repeat left center / contain;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 16'%3E%3Cg stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cline x1='4' y1='14' x2='11' y2='2'/%3E%3Cline x1='14' y1='14' x2='21' y2='2'/%3E%3Cline x1='24' y1='14' x2='31' y2='2'/%3E%3Cline x1='34' y1='14' x2='41' y2='2'/%3E%3Cline x1='44' y1='14' x2='51' y2='2'/%3E%3Cline x1='54' y1='14' x2='61' y2='2'/%3E%3C/g%3E%3C/svg%3E") no-repeat left center / contain;
 }
 
-/* Hash-pattern — diagonal maroon hash decoration. Use as a standalone
-   block above a heading or as a border accent. */
+/* Hash-pattern — symmetrical full-line diagonal slashes with rounded caps. */
 .hash-pattern {
-  display: block;
-  height: 24px;
-  background-image: repeating-linear-gradient(
-    -45deg,
-    var(--brand-primary) 0,
-    var(--brand-primary) 1.5px,
-    transparent 1.5px,
-    transparent 8px
-  );
+  display: inline-block;
+  width: 64px;
+  height: 16px;
+  background-color: var(--brand-primary);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 16'%3E%3Cg stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cline x1='4' y1='14' x2='11' y2='2'/%3E%3Cline x1='14' y1='14' x2='21' y2='2'/%3E%3Cline x1='24' y1='14' x2='31' y2='2'/%3E%3Cline x1='34' y1='14' x2='41' y2='2'/%3E%3Cline x1='44' y1='14' x2='51' y2='2'/%3E%3Cline x1='54' y1='14' x2='61' y2='2'/%3E%3C/g%3E%3C/svg%3E") no-repeat left center / contain;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 16'%3E%3Cg stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cline x1='4' y1='14' x2='11' y2='2'/%3E%3Cline x1='14' y1='14' x2='21' y2='2'/%3E%3Cline x1='24' y1='14' x2='31' y2='2'/%3E%3Cline x1='34' y1='14' x2='41' y2='2'/%3E%3Cline x1='44' y1='14' x2='51' y2='2'/%3E%3Cline x1='54' y1='14' x2='61' y2='2'/%3E%3C/g%3E%3C/svg%3E") no-repeat left center / contain;
+  vertical-align: middle;
 }
 
-.hash-pattern--sm     { height: 16px; }
-.hash-pattern--narrow { width: 64px; }
+.hash-pattern--sm     { height: 14px; width: 54px; }
+.hash-pattern--narrow { width: 54px; }
 
 .hash-pattern--gold {
-  background-image: repeating-linear-gradient(
-    -45deg,
-    var(--brand-accent) 0,
-    var(--brand-accent) 1.5px,
-    transparent 1.5px,
-    transparent 8px
-  );
+  background-color: var(--brand-accent);
 }
 
 /* Dotted maroon borders — elegant signature. */
