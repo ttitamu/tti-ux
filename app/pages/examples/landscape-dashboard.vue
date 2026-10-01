@@ -239,14 +239,15 @@ const studyCorridorEvents = [
          actions. Sidebar toggle (UDashboardSidebarToggle) is required
          here so the rail can collapse on narrow viewports. -->
     <template #header>
-      <div class="flex items-center justify-between gap-3 px-6 py-3 border-b border-surface-border bg-surface-page">
+      <div class="relative flex items-center justify-between gap-3 px-6 py-3 border-b border-surface-border bg-surface-raised">
+        <TuxSpectrumRibbon height="sm" class="absolute top-0 left-0 right-0" />
         <div class="flex items-center gap-3 min-w-0">
           <UDashboardSidebarToggle />
           <TuxBreadcrumbs :trail="breadcrumb" />
         </div>
         <div class="flex items-center gap-2">
-          <TuxButton intent="ghost"   icon="lucide:play"     size="sm">Start scan</TuxButton>
-          <TuxButton intent="primary" icon="lucide:download" size="sm">Export catalog</TuxButton>
+          <TuxButton intent="ghost"   icon="lucide:play"     size="sm" shape="sharp">Start scan</TuxButton>
+          <TuxButton intent="primary" icon="lucide:download" size="sm" shape="sharp">Export catalog</TuxButton>
         </div>
       </div>
     </template>
@@ -256,7 +257,7 @@ const studyCorridorEvents = [
     <template #rail-header="{ collapsed }">
       <div class="px-3 py-3 border-b border-surface-border">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-md bg-brand-primary text-text-inverse grid place-items-center font-bold text-xs flex-shrink-0">
+          <div class="w-8 h-8 rounded-none bg-brand-primary text-text-on-brand grid place-items-center font-bold text-xs flex-shrink-0 shadow-xs">
             L
           </div>
           <div v-if="!collapsed" class="min-w-0">

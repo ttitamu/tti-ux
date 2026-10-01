@@ -150,10 +150,10 @@ const composerDraft = ref("");
           :breakdown="contextMeter.breakdown"
           :model-label="contextMeter.modelLabel"
         />
-        <TuxButton intent="primary" icon="lucide:command" @click="cmdRef?.open()">
+        <TuxButton intent="primary" icon="lucide:command" shape="sharp" @click="cmdRef?.open()">
           Commands · ⌘K
         </TuxButton>
-        <TuxButton intent="ghost" icon="lucide:download">
+        <TuxButton intent="ghost" icon="lucide:download" shape="sharp">
           Export transcript
         </TuxButton>
         <!-- Cross-app switcher — hop to Landscape or the TUX docs
