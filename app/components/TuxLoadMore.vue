@@ -71,7 +71,7 @@ const nounLabel = computed(() => {
   <div class="tux-load-more">
     <div v-if="isTerminal" class="tux-load-more__terminal">
       <span class="tux-load-more__rule" aria-hidden="true" />
-      <span class="tux-load-more__terminal-text">{{ terminalLabel }} · {{ total.toLocaleString() }}<template v-if="noun"> {{ nounPlural ?? noun + 's' }}</template></span>
+      <span class="tux-load-more__terminal-text">{{ terminalLabel }} · {{ total.toLocaleString() }}{{ noun ? (' ' + (nounPlural ?? noun + 's')) : '' }}</span>
       <span class="tux-load-more__rule" aria-hidden="true" />
     </div>
     <template v-else>

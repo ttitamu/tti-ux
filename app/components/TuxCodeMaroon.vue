@@ -89,7 +89,7 @@ const toneIcon = computed(() => {
         `tux-codemaroon--${tone}`,
         { 'tux-codemaroon--sticky': sticky },
       ]"
-      role="error"
+      role="alert"
       aria-live="assertive"
     >
       <div class="tux-codemaroon__inner">

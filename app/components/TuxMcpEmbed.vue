@@ -90,6 +90,7 @@ function onToggleCollapse() {
 <template>
   <section
     class="tux-mcp-embed"
+    :aria-label="appName"
     :class="{
       'tux-mcp-embed--collapsed': collapsedLocal,
       'tux-mcp-embed--loading': loading,

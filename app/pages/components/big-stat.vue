@@ -7,6 +7,118 @@ const exampleVue = `<TuxBigStat
   label="Annual research expenditure"
   source="FY 2025 sponsored research report"
 />`;
+
+import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
+
+const bigStatControls: TuxPropControl[] = [
+  {
+    prop: "value",
+    label: "Metric Value",
+    type: "text",
+    defaultValue: "94.2",
+  },
+  {
+    prop: "suffix",
+    label: "Value Suffix",
+    type: "text",
+    defaultValue: "%",
+  },
+  {
+    prop: "prefix",
+    label: "Value Prefix",
+    type: "text",
+    defaultValue: "",
+  },
+  {
+    prop: "label",
+    label: "Descriptor Label",
+    type: "text",
+    defaultValue: "Corridor Travel-Time Reliability",
+  },
+  {
+    prop: "size",
+    label: "Size Tier",
+    type: "select",
+    options: ["sm", "md", "lg"],
+    defaultValue: "md",
+  },
+  {
+    prop: "tone",
+    label: "Brand Tone",
+    type: "select",
+    options: ["maroon", "gold", "neutral"],
+    defaultValue: "maroon",
+  },
+  {
+    prop: "source",
+    label: "Attribution Source",
+    type: "text",
+    defaultValue: "TTI Mobility Division Sensor Telemetry",
+  },
+];
+
+const bigStatPresets: TuxPlaygroundPreset[] = [
+  {
+    name: "reliability",
+    label: "Reliability Index",
+    description: "Standard percentage metric with maroon brand tone",
+    icon: "lucide:percent",
+    values: {
+      value: "94.2",
+      suffix: "%",
+      prefix: "",
+      label: "Corridor Travel-Time Reliability",
+      size: "md",
+      tone: "maroon",
+      source: "TTI Mobility Division Sensor Telemetry",
+    },
+  },
+  {
+    name: "expenditure",
+    label: "Research Expenditure",
+    description: "Large currency stat for factsheets and annual reports",
+    icon: "lucide:dollar-sign",
+    values: {
+      value: "126.4",
+      suffix: "M",
+      prefix: "$",
+      label: "Annual Sponsored Research Expenditure",
+      size: "lg",
+      tone: "maroon",
+      source: "Texas A&M Transportation Institute FY25 Annual Report",
+    },
+  },
+  {
+    name: "safety-impact",
+    label: "Incident Reduction",
+    description: "Warm gold accent stat highlighting safety outcomes",
+    icon: "lucide:trending-down",
+    values: {
+      value: "-38.5",
+      suffix: "%",
+      prefix: "",
+      label: "Peak Severe Incident Probability",
+      size: "md",
+      tone: "gold",
+      source: "TxDOT Connected Work Zone Safety Evaluation",
+    },
+  },
+  {
+    name: "traffic-volume",
+    label: "Hourly Vehicle Volume",
+    description: "Compact telemetry count for operations dashboards",
+    icon: "lucide:gauge",
+    values: {
+      value: "14,820",
+      suffix: "vph",
+      prefix: "",
+      label: "Freeway Mainlane Traffic Throughput",
+      size: "sm",
+      tone: "neutral",
+      source: "Live Austin District Radar Ingest",
+    },
+  },
+];
 </script>
 
 <template>
@@ -17,6 +129,30 @@ const exampleVue = `<TuxBigStat
       Companion to <code>TuxFactoid</code> — use BigStat for a single hero
       metric, Factoid for a row of them.
     </TuxPageHeader>
+
+    <!-- Interactive Props Workbench -->
+    <section>
+      <TuxPlayground
+        tag="tux-big-stat"
+        title="TuxBigStat Workbench"
+        eyebrow="Interactive Component Playground"
+        :controls="bigStatControls"
+        :presets="bigStatPresets"
+        :self-closing="true"
+      >
+        <template #default="{ values }">
+          <TuxBigStat
+            :value="values.value"
+            :suffix="values.suffix || undefined"
+            :prefix="values.prefix || undefined"
+            :label="values.label"
+            :size="values.size"
+            :tone="values.tone"
+            :source="values.source || undefined"
+          />
+        </template>
+      </TuxPlayground>
+    </section>
 
     <section>
       <p class="eyebrow">canonical</p>

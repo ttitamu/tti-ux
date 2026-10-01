@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // /install — the one page for the whole kit/ tier.
 //
-// kit/ ships nine generated framework targets that a consumer installs
+// kit/ ships generated framework targets plus hand-maintained recipe
+// CSS (tux-bootstrap, tux-ops) that a consumer installs into their own
 // into their own stack, and until now none of them had a page. This is
 // deliberately ONE page with a target list rather than a nav group: the
 // owner rejected "Kit targets" / "Platforms" / "Integrations" as sidebar
@@ -51,28 +52,44 @@ const targets: Target[] = [
     blurb: "Every token as a CSS custom property, per theme. Zero build step — link it and the variables are live. Pairs with tux-bootstrap.css to re-skin a Bootstrap 4 app with no markup changes.",
   },
   {
+    label: "Ops CSS",
+    path: "kit/css/tux-ops.css",
+    consumer: "monitoring overlays",
+    blurb: "Status chips, row tints, gold heading keyline, hairline chrome. Drop in after tux-tokens.css. The CSS tab on TuxStatus. Host selectors stay in the consuming repo.",
+  },
+  {
     label: "SCSS partial",
     path: "kit/scss/_tux-bootstrap.scss",
     consumer: "Bootstrap builds",
     blurb: "Bootstrap variable overrides for builds that compile SCSS rather than loading the prebuilt CSS.",
   },
   {
-    label: "React tokens",
-    path: "kit/react/tux-tokens.ts",
+    label: "React ecosystem",
+    path: "@tti/tti-ux-react",
     consumer: "React / TS apps",
-    blurb: "Per-theme resolved token maps plus a tuxVar() helper. Component ports ship separately as @tti/tti-ux-react.",
+    blurb: "Native React components and hooks, token stylesheet, and CEM-driven wrappers. Full guide available.",
+    to: "/install/react",
   },
   {
-    label: "C# tokens",
-    path: "kit/csharp/TuxTokens.cs",
-    consumer: ".NET — WPF, MAUI, Blazor",
-    blurb: "Per-theme static classes of resolved literals plus an All dictionary for dynamic lookup. For report generators and desktop surfaces with no CSS layer.",
+    label: "C# / .NET / ASP.NET",
+    path: "Tti.Tux.AspNetCore / Blazor",
+    consumer: ".NET — Razor, Blazor, MVC",
+    blurb: "ASP.NET Core Tag Helpers, Blazor component library, and MVC 5.3 Bootstrap bridge.",
+    to: "/install/dotnet",
   },
   {
-    label: "WordPress theme.json",
-    path: "kit/wp/theme.json",
-    consumer: "block themes",
-    blurb: "Palette, font families, spacing and radius as block-theme settings — for marcom sites.",
+    label: "WordPress & PHP",
+    path: "tti-ux-core / tux-php",
+    consumer: "WordPress & PHP sites",
+    blurb: "Turnkey plugin with Kadence theme hooks, Gutenberg blocks & block patterns, and PHP view helper.",
+    to: "/install/wordpress",
+  },
+  {
+    label: "Nuxt Studio",
+    path: "templates/tux-starter-content",
+    consumer: "Content & Microsites",
+    blurb: "Visual, browser-based authoring for researchers and marcom teams with Git-backed static deployment.",
+    to: "/install/nuxt-studio",
   },
   {
     label: "Brand env",

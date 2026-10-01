@@ -1,55 +1,126 @@
 <script setup lang="ts">
+import type { TuxPropControl } from "~/components/TuxPlayground.vue";
+import type { CommandGroup } from "~/components/TuxCommandPalette.vue";
+
 useHead({ title: "TuxCommandPalette · TUX" });
 
-const paletteRef = ref<{ open: () => void } | null>(null);
+const localPaletteRef = ref<{ open: (tab?: string) => void; close: () => void } | null>(null);
 
-const groups = [
+const playgroundControls: TuxPropControl[] = [
   {
-    heading: "Navigation",
-    items: [
-      { id: "nav-tokens",    label: "Tokens",        description: "Brand colors, surfaces, text roles", icon: "lucide:palette",       to: "/tokens",        shortcut: "g t" },
-      { id: "nav-typography", label: "Typography",   description: "Type families, scale, utilities",     icon: "lucide:type",          to: "/typography",    shortcut: "g y" },
-      { id: "nav-styles",    label: "Style variants", description: "Default / bold / elegant",            icon: "lucide:layout-template", to: "/style-variants" },
-      { id: "nav-icons",     label: "Icons",         description: "1,755 Lucide glyphs",                  icon: "lucide:sparkles",      to: "/icons" },
-    ],
+    prop: "placeholder",
+    label: "Input Placeholder",
+    type: "text",
+    defaultValue: "Type a command, token (--), component (@), or search…",
   },
   {
-    heading: "Components",
-    items: [
-      { id: "cmp-button",    label: "TuxButton",       icon: "lucide:rectangle-horizontal", to: "/components/button" },
-      { id: "cmp-card",      label: "TuxCard",         icon: "lucide:square-stack",         to: "/components/card" },
-      { id: "cmp-factoid",   label: "TuxFactoid",      icon: "lucide:hash",                 to: "/components/factoid" },
-      { id: "cmp-search",    label: "TuxSearch",       icon: "lucide:search",               to: "/components/search" },
-      { id: "cmp-table",     label: "TuxTable",        icon: "lucide:table",                to: "/components/table" },
+    prop: "defaultTab",
+    label: "Default Filter Tab",
+    type: "select",
+    options: [
+      { label: "All categories (all)", value: "all" },
+      { label: "Quick Actions (actions)", value: "actions" },
+      { label: "Component Lab (components)", value: "components" },
+      { label: "Design Tokens (tokens)", value: "tokens" },
+      { label: "Documentation (docs)", value: "docs" },
     ],
+    defaultValue: "all",
   },
   {
-    heading: "Actions",
+    prop: "showTabs",
+    label: "Show Filter Tabs",
+    type: "boolean",
+    defaultValue: true,
+  },
+  {
+    prop: "hotkey",
+    label: "Trigger Hotkey",
+    type: "text",
+    defaultValue: "k",
+  },
+];
+
+const sampleGroups: CommandGroup[] = [
+  {
+    heading: "⚡ Quick Actions",
+    category: "actions",
     items: [
       {
-        id: "act-toggle-theme",
+        id: "act-theme",
         label: "Toggle dark mode",
         description: "Flip between light + dark palettes",
         icon: "lucide:moon",
         shortcut: "⌘ ⇧ D",
-        action: () => {
-          if (typeof document === "undefined") return;
-          const root = document.documentElement;
-          const next = root.dataset.theme === "tti-dark" ? "tti" : "tti-dark";
-          root.dataset.theme = next;
-        },
+        category: "actions",
+        badge: "Theme",
+        badgeTone: "brand",
       },
       {
         id: "act-copy-url",
         label: "Copy current URL",
-        description: "Useful for sharing a deep link",
+        description: "Share a deep link to this page",
         icon: "lucide:link",
-        action: async () => {
-          if (typeof navigator !== "undefined" && navigator.clipboard) {
-            await navigator.clipboard.writeText(window.location.href);
-          }
-        },
+        category: "actions",
+        badge: "Share",
+        badgeTone: "neutral",
+        copyText: "https://tti.tamu.edu/tux",
       },
+    ],
+  },
+  {
+    heading: "🎨 Design Tokens",
+    category: "tokens",
+    items: [
+      {
+        id: "tok-maroon",
+        label: "--brand-primary",
+        description: "#5C0025 · Primary brand action fill",
+        category: "tokens",
+        badge: "brand",
+        badgeTone: "brand",
+        tokenValue: "#5C0025",
+        isColor: true,
+        copyText: "var(--brand-primary)",
+      },
+      {
+        id: "tok-gold",
+        label: "--brand-accent",
+        description: "#DDAC37 · Signature ochre gold accent",
+        category: "tokens",
+        badge: "semantic",
+        badgeTone: "brand",
+        tokenValue: "#DDAC37",
+        isColor: true,
+        copyText: "var(--brand-accent)",
+      },
+      {
+        id: "tok-status-ok",
+        label: "--status-ok",
+        description: "#258818 · Normal operational telemetry state",
+        category: "tokens",
+        badge: "ops",
+        badgeTone: "ok",
+        tokenValue: "#258818",
+        isColor: true,
+        copyText: "var(--status-ok)",
+      },
+    ],
+  },
+  {
+    heading: "🧩 Components",
+    category: "components",
+    items: [
+      { id: "cmp-button", label: "TuxButton", description: "Primary interactive buttons", icon: "lucide:rectangle-horizontal", to: "/components/button", category: "components", badge: "actions", badgeTone: "brand" },
+      { id: "cmp-card", label: "TuxCard", description: "Branded content slabs and interactive links", icon: "lucide:square-stack", to: "/components/card", category: "components", badge: "publishing", badgeTone: "brand" },
+      { id: "cmp-alert", label: "TuxAlert", description: "Docusaurus-style admonitions and callouts", icon: "lucide:message-square", to: "/components/alert", category: "components", badge: "feedback", badgeTone: "brand" },
+    ],
+  },
+  {
+    heading: "📚 Documentation",
+    category: "docs",
+    items: [
+      { id: "doc-tokens", label: "Tokens Catalog", description: "Every color, shadow, and radius token", icon: "lucide:palette", to: "/tokens", category: "docs", badge: "Doc", badgeTone: "neutral" },
+      { id: "doc-adr12", label: "ADR-0012: Cross-Framework Distribution", description: "Web components and framework packaging", icon: "lucide:book-open", to: "/docs/adr/0012-cross-framework-distribution-via-web-components", category: "docs", badge: "ADR", badgeTone: "neutral" },
     ],
   },
 ];
@@ -58,81 +129,126 @@ const groups = [
 <template>
   <div class="space-y-12">
     <TuxPageHeader eyebrow="component" title="TuxCommandPalette">
-      Global ⌘K jump bar. Search input + grouped command list, live
-      substring filter, keyboard navigation. Built on the native
-      <code>&lt;dialog&gt;</code> element so focus trap and scrim come
-      free. Each command can navigate (<code>to</code> / <code>href</code>)
-      or run an action (<code>action: () =&gt; void</code>). Use a single
-      instance at app root.
+      Command Palette 2.0 (⌘K). High-productivity search input with instant design token inspector,
+      quick system actions, live color swatches, filter tabs, and fuzzy component census jump.
+      Built on the native <code>&lt;dialog&gt;</code> element for zero-JS browser focus traps and accessibility.
     </TuxPageHeader>
 
+    <!-- Interactive Workbench -->
     <section>
-      <p class="eyebrow">try it</p>
-      <h2 class="heading--bold text-xl font-bold">Press <TuxKbd :keys="['meta', 'k']" size="lg" /> from anywhere</h2>
-      <p class="text-sm text-text-secondary mb-3">
-        The style-guide shell mounts a real palette globally — so the
-        hotkey already works on this page, jumping to the same routes as
-        the sidebar. The button below opens this page's <em>local</em>
-        instance for visual reference; its hotkey is disabled to avoid
-        racing with the global one.
+      <TuxPlayground
+        tag="tux-command-palette"
+        title="TuxCommandPalette Workbench"
+        :controls="playgroundControls"
+        :self-closing="true"
+      >
+        <template #default="{ values }">
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4 py-6">
+            <TuxButton
+              intent="primary"
+              size="lg"
+              icon="lucide:command"
+              @click="localPaletteRef?.open(values.defaultTab)"
+            >
+              Open Command Palette Preview
+            </TuxButton>
+            <span class="text-xs text-text-muted font-mono">
+              (press <TuxKbd :keys="['meta', 'k']" size="xs" /> anywhere for global shell palette)
+            </span>
+          </div>
+
+          <TuxCommandPalette
+            ref="localPaletteRef"
+            :groups="sampleGroups"
+            :placeholder="values.placeholder"
+            :show-tabs="values.showTabs"
+            :default-tab="values.defaultTab"
+            :hotkey="values.hotkey"
+            :disable-hotkey="true"
+          />
+        </template>
+      </TuxPlayground>
+    </section>
+
+    <!-- Prefix Filter Syntax -->
+    <section>
+      <p class="eyebrow">productivity</p>
+      <h2 class="heading--bold text-xl font-bold">Instant Filter Prefixes</h2>
+      <p class="text-sm text-text-secondary mb-4">
+        Users can jump straight into specific subsystems simply by typing a single lead character:
       </p>
-      <TuxExample>
-        <div class="flex gap-3">
-          <TuxButton intent="primary" icon="lucide:command" @click="paletteRef?.open()">
-            Open local palette
-          </TuxButton>
-          <span class="text-sm text-text-muted self-center inline-flex items-center gap-1">
-            …or press <TuxKbd :keys="['meta', 'k']" /> for the global one
-          </span>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="p-4 rounded-md border border-surface-border bg-surface-raised space-y-1">
+          <div class="flex items-center gap-2">
+            <code class="text-brand-primary font-bold bg-wash-brand-12 px-1.5 py-0.5 rounded text-xs">&gt;</code>
+            <span class="font-bold text-sm">Quick Actions</span>
+          </div>
+          <p class="text-xs text-text-muted">Type <code>&gt;</code> to filter to system commands, theme toggles, and framework switches.</p>
         </div>
-        <TuxCommandPalette ref="paletteRef" :groups="groups" :disable-hotkey="true" />
-      </TuxExample>
+
+        <div class="p-4 rounded-md border border-surface-border bg-surface-raised space-y-1">
+          <div class="flex items-center gap-2">
+            <code class="text-color-info font-bold bg-surface-sunken px-1.5 py-0.5 rounded text-xs">--</code>
+            <span class="font-bold text-sm">Design Tokens</span>
+          </div>
+          <p class="text-xs text-text-muted">Type <code>--</code> or <code>token:</code> to inspect color swatches, roles, and copy CSS variables.</p>
+        </div>
+
+        <div class="p-4 rounded-md border border-surface-border bg-surface-raised space-y-1">
+          <div class="flex items-center gap-2">
+            <code class="text-brand-primary font-bold bg-wash-brand-12 px-1.5 py-0.5 rounded text-xs">@</code>
+            <span class="font-bold text-sm">Component Lab</span>
+          </div>
+          <p class="text-xs text-text-muted">Type <code>@</code> or <code>comp:</code> to search across all 150+ catalogued TUX components.</p>
+        </div>
+
+        <div class="p-4 rounded-md border border-surface-border bg-surface-raised space-y-1">
+          <div class="flex items-center gap-2">
+            <code class="text-text-secondary font-bold bg-surface-sunken px-1.5 py-0.5 rounded text-xs">#</code>
+            <span class="font-bold text-sm">Documentation</span>
+          </div>
+          <p class="text-xs text-text-muted">Type <code>#</code> or <code>doc:</code> to search design doctrines, ADR records, and guides.</p>
+        </div>
+      </div>
     </section>
 
+    <!-- Architecture & Setup -->
     <section>
-      <p class="eyebrow">design</p>
+      <p class="eyebrow">architecture</p>
       <h2 class="heading--bold text-xl font-bold">Why native <code>&lt;dialog&gt;</code></h2>
-      <p class="max-w-3xl text-sm text-text-secondary leading-relaxed">
-        The browser handles focus trap, ESC-to-close, scrim rendering, and
-        ARIA semantics out of the box when you use
-        <code>showModal()</code>. Wrapping a custom modal would replicate
-        all of that imperatively. The only thing we add: a global keydown
-        listener for <code>⌘K</code> / <code>Ctrl+K</code> to toggle the
-        dialog.
+      <p class="max-w-3xl text-sm text-text-secondary leading-relaxed mb-4">
+        The browser natively provides modal focus trapping, ESC-to-close behavior, inert backdrop rendering, and
+        proper accessibility roles when using <code>showModal()</code>. The TUX command palette builds upon this
+        native standard, adding reactive keyboard list traversal, token swatch previewing, and non-intrusive toast integration.
       </p>
-    </section>
 
-    <section>
-      <p class="eyebrow">setup</p>
-      <h2 class="heading--bold text-xl font-bold">Install at app root</h2>
-      <p class="text-sm text-text-secondary mb-3">
-        Place a single <code>&lt;TuxCommandPalette&gt;</code> in
-        <code>app.vue</code>. It self-registers the ⌘K hotkey for the
-        whole app. To open it from a button, hold a ref and call
-        <code>.open()</code>:
-      </p>
-      <pre class="text-xs bg-surface-sunken border border-surface-border rounded p-4 overflow-x-auto"><code>&lt;script setup&gt;
+      <pre class="text-xs bg-surface-sunken border border-surface-border rounded p-4 overflow-x-auto font-mono"><code>&lt;script setup&gt;
+import { ref } from "vue";
+
 const paletteRef = ref(null);
-const groups = [/* ... */];
+const groups = [
+  {
+    heading: "⚡ Actions",
+    category: "actions",
+    items: [
+      { id: "act-theme", label: "Toggle Dark Mode", action: () => toggleTheme() }
+    ]
+  },
+  {
+    heading: "🎨 Design Tokens",
+    category: "tokens",
+    items: [
+      { id: "tok-primary", label: "--brand-primary", tokenValue: "#5C0025", isColor: true, copyText: "var(--brand-primary)" }
+    ]
+  }
+];
 &lt;/script&gt;
 
 &lt;template&gt;
   &lt;TuxCommandPalette ref="paletteRef" :groups="groups" /&gt;
-  &lt;TuxButton @click="paletteRef.open()"&gt;Search&lt;/TuxButton&gt;
+  &lt;TuxButton @click="paletteRef.open()"&gt;Quick Search&lt;/TuxButton&gt;
 &lt;/template&gt;</code></pre>
-    </section>
-
-    <section>
-      <p class="eyebrow">props</p>
-      <h2 class="heading--bold text-xl font-bold">Props + commands</h2>
-      <ul class="mt-4 space-y-2 text-sm">
-        <li><code>groups</code> — array of <code>{ heading, items }</code>. Required.</li>
-        <li>Each item — <code>{ id, label, description?, icon?, shortcut?, to?, href?, action? }</code>.</li>
-        <li><code>placeholder</code> — input placeholder. Defaults to <code>"Type a command or search…"</code>.</li>
-        <li><code>disableHotkey</code> — turn off the global ⌘K listener (rare).</li>
-        <li><code>hotkey</code> — override the trigger key. Defaults to <code>"k"</code>.</li>
-        <li>Exposes <code>.open()</code> + <code>.close()</code> via template ref.</li>
-      </ul>
     </section>
   </div>
 </template>

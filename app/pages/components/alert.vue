@@ -36,6 +36,98 @@ const iconVue = `<tux-alert
   title="Saved to server"
   description="Pass any Lucide icon name via \`icon\` to override the variant default."
 />`;
+
+import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
+
+const alertControls: TuxPropControl[] = [
+  {
+    prop: "title",
+    label: "Alert Title",
+    type: "text",
+    defaultValue: "Corridor Telemetry Advisory",
+  },
+  {
+    prop: "description",
+    label: "Description",
+    type: "text",
+    defaultValue: "Average vehicular throughput on I-35 southbound increased by 14.2% following adaptive signal retiming.",
+  },
+  {
+    prop: "variant",
+    label: "Variant",
+    type: "select",
+    options: ["tip", "note", "info", "important", "success", "warning", "danger", "compliance"],
+    defaultValue: "tip",
+  },
+  {
+    prop: "icon",
+    label: "Custom Icon",
+    type: "select",
+    options: ["", "lucide:bell", "lucide:shield-alert", "lucide:info", "lucide:database", "lucide:sparkles"],
+    defaultValue: "",
+  },
+  {
+    prop: "close",
+    label: "Closeable Dismiss Action",
+    type: "boolean",
+    defaultValue: false,
+  },
+];
+
+const alertPresets: TuxPlaygroundPreset[] = [
+  {
+    name: "compliance",
+    label: "Compliance Mandate",
+    description: "Solid Aggie Maroon callout for legal or export control governance",
+    icon: "lucide:shield-alert",
+    values: {
+      variant: "compliance",
+      title: "ITAR Regulated Research Asset",
+      description: "Access to this telemetry pipeline requires TAMUS institutional authentication.",
+      icon: "lucide:shield-alert",
+      close: false,
+    },
+  },
+  {
+    name: "warning",
+    label: "Operational Warning",
+    description: "High-contrast warning banner for active field interruptions",
+    icon: "lucide:triangle-alert",
+    values: {
+      variant: "warning",
+      title: "Variable Speed Limit Advisory",
+      description: "Severe weather detected along SH-130 corridor. Advisory speed reduced to 55 MPH.",
+      icon: "",
+      close: false,
+    },
+  },
+  {
+    name: "important",
+    label: "Institutional Policy",
+    description: "Subtle maroon border for formal reporting advisories",
+    icon: "lucide:bookmark",
+    values: {
+      variant: "important",
+      title: "Annual Safety Review Submissions",
+      description: "All corridor crash telemetry datasets must be certified before fiscal closeout.",
+      icon: "",
+      close: false,
+    },
+  },
+  {
+    name: "tip",
+    label: "Research Guidance",
+    description: "Soft violet accent for best practice suggestions",
+    icon: "lucide:lightbulb",
+    values: {
+      variant: "tip",
+      title: "Vectorized Query Recommendation",
+      description: "Use DuckDB or Parquet partition filters for multi-gigabyte loop detector tables.",
+      icon: "",
+      close: true,
+    },
+  },
+];
 </script>
 
 <template>
@@ -46,6 +138,30 @@ const iconVue = `<tux-alert
       variant omits by default. <code>important</code> and <code>compliance</code>
       both lean on brand maroon but at different visual weights (subtle vs. solid).
     </TuxPageHeader>
+
+    <!-- Interactive Props Workbench -->
+    <section>
+      <TuxPlayground
+        tag="tux-alert"
+        title="TuxAlert Workbench"
+        eyebrow="Interactive Component Playground"
+        :controls="alertControls"
+        :presets="alertPresets"
+        :self-closing="true"
+      >
+        <template #default="{ values }">
+          <div class="max-w-2xl w-full">
+            <TuxAlert
+              :variant="values.variant"
+              :title="values.title"
+              :description="values.description"
+              :icon="values.icon || undefined"
+              :close="values.close"
+            />
+          </div>
+        </template>
+      </TuxPlayground>
+    </section>
 
     <section>
       <p class="eyebrow">all variants</p>

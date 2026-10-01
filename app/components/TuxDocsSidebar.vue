@@ -158,6 +158,7 @@ const filteredTree = computed(() => {
         v-model="query"
         type="search"
         :placeholder="searchPlaceholder"
+        :aria-label="searchPlaceholder || 'Filter docs'"
         class="tux-docs-sidebar__search-input"
       >
       <button
@@ -216,11 +217,11 @@ const filteredTree = computed(() => {
 
 .tux-docs-sidebar__title {
   margin: 0;
-  font-family: var(--font-body);
+  font-family: var(--font-mono);
   font-weight: 700;
   font-size: 0.6875rem;
   text-transform: uppercase;
-  letter-spacing: var(--tracking-wider);
+  letter-spacing: 0.1em;
   color: var(--text-primary);
 }
 
@@ -246,15 +247,16 @@ const filteredTree = computed(() => {
   font-family: var(--font-body);
   font-size: 0.8125rem;
   color: var(--text-primary);
-  background: var(--surface-page);
+  background: var(--surface-sunken);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
   outline: 0;
-  transition: border-color 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .tux-docs-sidebar__search-input:focus-visible {
   border-color: var(--brand-primary);
+  background: var(--surface-raised);
   box-shadow: 0 0 0 2px var(--wash-brand-18);
 }
 

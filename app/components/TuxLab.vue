@@ -61,7 +61,7 @@ withDefaults(defineProps<Props>(), {
       <div v-if="logo" class="tux-lab__logo-wrap">
         <img :src="logo" :alt="`${name} logo`" class="tux-lab__logo" >
       </div>
-      <div v-else class="tux-lab__logo-wrap tux-lab__logo-wrap--initials">
+      <div v-else class="tux-lab__logo-wrap tux-lab__logo-wrap--initials" role="img" :aria-label="name">
         <span>{{ name.split(/\s+/).map((p) => p[0]).slice(0, 2).join("") }}</span>
       </div>
 
@@ -104,6 +104,7 @@ withDefaults(defineProps<Props>(), {
           <div
             v-else
             class="tux-lab__leader-portrait tux-lab__leader-portrait--initials"
+            role="img"
             :aria-label="leader.name"
           >
             {{ leader.name.split(/\s+/).map((p) => p[0]).slice(0, 2).join("") }}

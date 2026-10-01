@@ -93,6 +93,7 @@ function orcidUrl(orcid: string): string {
       <div
         class="tux-researcher__portrait tux-researcher__portrait--initials"
         :aria-label="`${name} (no portrait)`"
+        role="img"
       >
         {{ name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("") }}
       </div>

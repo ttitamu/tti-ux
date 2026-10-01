@@ -25,6 +25,7 @@
  *     <span class="info-anchor">i</span>
  *   </tux-tooltip>
  */
+import { TooltipProvider } from "reka-ui";
 
 interface Props {
   /** Tooltip body text. Always required (it's a tooltip — needs to
@@ -55,28 +56,30 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <UTooltip
-    :text="title ? undefined : text"
-    :kbds="kbds"
-    :side="side"
-    :arrow="arrow"
-    :disabled="disabled"
-    :ui="{
-      content: 'tux-tooltip__content',
-      arrow: 'tux-tooltip__arrow',
-    }"
-  >
-    <slot />
-    <template v-if="title" #content>
-      <div class="tux-tooltip__body">
-        <p class="tux-tooltip__title">{{ title }}</p>
-        <p class="tux-tooltip__text">{{ text }}</p>
-        <span v-if="kbds?.length" class="tux-tooltip__kbds">
-          <kbd v-for="k in kbds" :key="k">{{ k }}</kbd>
-        </span>
-      </div>
-    </template>
-  </UTooltip>
+  <TooltipProvider>
+    <UTooltip
+      :text="title ? undefined : text"
+      :kbds="kbds"
+      :side="side"
+      :arrow="arrow"
+      :disabled="disabled"
+      :ui="{
+        content: 'tux-tooltip__content',
+        arrow: 'tux-tooltip__arrow',
+      }"
+    >
+      <slot />
+      <template v-if="title" #content>
+        <div class="tux-tooltip__body">
+          <p class="tux-tooltip__title">{{ title }}</p>
+          <p class="tux-tooltip__text">{{ text }}</p>
+          <span v-if="kbds?.length" class="tux-tooltip__kbds">
+            <kbd v-for="k in kbds" :key="k">{{ k }}</kbd>
+          </span>
+        </div>
+      </template>
+    </UTooltip>
+  </TooltipProvider>
 </template>
 
 <style scoped>

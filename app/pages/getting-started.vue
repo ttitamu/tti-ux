@@ -121,6 +121,7 @@ const doctrineDocs = [
   { to: "/design/components",                label: "Components",           blurb: "Doctrine + the full pattern-coverage map." },
   { to: "/design/compositions",              label: "Compositions",         blurb: "\"X + Y composes more value than they do alone.\" Seven composition patterns." },
   { to: "/design/palette",                   label: "Palette",              blurb: "Visual identity — maroon-led palette across three themes." },
+  { to: "/design/ops-surfaces",              label: "Operational surfaces", blurb: "Overlay class API vs owned ops board. Vue / HTML / CSS / Source." },
   { to: "/design/chart-foundations",         label: "Chart foundations",    blurb: "Axis/grid/legend tokens, value-label placement, brush selectors, alt-text patterns." },
   { to: "/design/platform-awareness",        label: "Platform awareness",   blurb: "Tauri / multi-platform doctrine. \"One tree, platform-adaptive at the chrome layer.\"" },
   { to: "/design/tauri-bindings",            label: "Tauri bindings",       blurb: "Which Tux* components call which Tauri APIs + capability allowlist template." },
@@ -128,9 +129,10 @@ const doctrineDocs = [
   { to: "/design/roadmap",                   label: "Roadmap",              blurb: "What's shipped, what's deferred, what's carry-forward." },
 ];
 
-// Example pages — six composition surfaces.
+// Example pages — eight composition surfaces.
 const examplePages = [
   { to: "/examples/landscape-dashboard",   eyebrow: "product · IT-facing",       title: "Landscape dashboard",    components: 15 },
+  { to: "/examples/ops-board",             eyebrow: "product · operations",      title: "Ops board",              components: 4  },
   { to: "/examples/research-landing",      eyebrow: "marketing · public",        title: "Research-program landing", components: 10 },
   { to: "/examples/tti-ai-studio-session", eyebrow: "product · chat",            title: "tti-ai-studio session",  components: 9  },
   { to: "/examples/sidebar-shell",         eyebrow: "layout · app shell",        title: "Sidebar shell",          components: 5  },
@@ -260,7 +262,7 @@ const consumeSnippet = [
     <section class="space-y-4">
       <TuxSectionHeader>4 · Examples</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
-        Six real-shape pages that assemble 5-15 Tux* components into
+        Eight real-shape pages that assemble 5-15 Tux* components into
         a realistic surface. Illustrative data, real composition rhythm.
       </p>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -282,7 +284,7 @@ const consumeSnippet = [
     <section class="space-y-4">
       <TuxSectionHeader>5 · Doctrine docs</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
-        Nine narrative design documents under
+        Ten narrative design documents under
         <code>design/</code>, plus the canonical
         <code>tokens.json</code> source. Read in the order below to
         get the full mental model.

@@ -1,41 +1,40 @@
 <script setup lang="ts">
 import type { BundledTheme } from "shiki";
+import { useTuxFramework, type TuxFrameworkId } from "../composables/useTuxFramework";
 
 /**
  * TuxExample — live demo + code-reveal container for the style guide.
  *
  * Renders the default slot as a framed preview, then a tab strip with:
- *   - Vue       · the template source (passed via `vue` prop) — SSR-highlighted
- *   - HTML      · the rendered DOM, auto-extracted from the preview on
- *                 mount and pretty-printed. Re-syncs on theme swap or state
- *                 changes via MutationObserver. Highlighted client-side
- *                 since the source is DOM-derived.
- *   - Source    · optional — full Tux component SFC (passed via `source`
- *                 prop). SSR-highlighted.
+ *   - Vue             · Canonical Vue 3 / Nuxt template source (SSR-highlighted)
+ *   - React           · React JSX (@tti/tti-ux-react) syntax (SSR-highlighted)
+ *   - Web Component   · Custom Elements (@tti/tti-ux-elements) syntax (SSR-highlighted)
+ *   - Razor (.NET)    · ASP.NET Core Tag Helper & Blazor component syntax (SSR-highlighted)
+ *   - HTML (DOM)      · Rendered DOM, auto-extracted from the preview on
+ *                       mount and pretty-printed via tuxFormatHtml.
+ *   - CSS             · Optional drop-in overlay / class API (tux-ops.css)
+ *   - Power BI        · Optional visualStyles JSON or PBIR fragment
+ *   - Source          · Optional full Tux component SFC
  *
- * Highlighting uses `useTuxHighlighter` (singleton, pre-loaded common
- * langs). Static tabs (Vue, Source) ship pre-highlighted in the SSR
- * document; the HTML tab fills in client-side once the rendered DOM
- * is available. No flash of unhighlighted code on first paint.
- *
- * Usage:
- *   <tux-example :vue="vueSource">
- *     <tux-alert variant="tip" title="..." />
- *   </tux-example>
+ * Synchronized with `useTuxFramework()`: clicking a framework tab or switching
+ * the framework in the shell header immediately updates all code examples across
+ * the application and persists in localStorage.
  */
 
 interface Props {
-  /** The Vue template source to show in the `Vue` tab. Multi-line template
-   *  literals recommended; escape `{{ }}` as `{{ '{{ x }}' }}` if needed. */
+  /** The Vue template source to show in the `Vue` tab. */
   vue?: string;
-  /** Optional component source SFC to expose in a third `Source` tab. */
+  /** Optional React JSX code (auto-derived from vue if omitted). */
+  react?: string;
+  /** Optional Web Component code (auto-derived from vue if omitted). */
+  wc?: string;
+  /** Optional Razor / C# tag helper code (auto-derived from vue if omitted). */
+  razor?: string;
+  /** Optional component source SFC to expose in a `Source` tab. */
   source?: string;
-  /** Optional Power BI JSON for this visual — a `visualStyles` block or a
-   *  PBIR fragment, shown in a `Power BI` tab. Implementations are an
-   *  attribute of a component, not a separate place in the nav, so the
-   *  Power BI rendering of a chart lives on that chart's own page.
-   *  Import it from kit/powerbi/ rather than retyping, so it cannot
-   *  drift from the emitter. `tableau` will slot in the same way. */
+  /** Optional drop-in CSS (overlay class API). Shown in a `CSS` tab. */
+  css?: string;
+  /** Optional Power BI JSON for this visual. Shown in a `Power BI` tab. */
   powerbi?: string;
   /** Preview-pane label (small uppercase tag above the demo). */
   title?: string;
@@ -46,13 +45,18 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   previewPadding: "p-6",
   vue: undefined,
+  react: undefined,
+  wc: undefined,
+  razor: undefined,
   source: undefined,
+  css: undefined,
   powerbi: undefined,
   title: undefined,
 });
 
-type Tab = "vue" | "html" | "source" | "powerbi";
+type Tab = "vue" | "react" | "wc" | "razor" | "html" | "css" | "source" | "powerbi";
 
+const { framework, setFramework } = useTuxFramework();
 const activeTab = ref<Tab>("vue");
 const previewRef = ref<HTMLElement | null>(null);
 const rendered = ref("");
@@ -64,7 +68,7 @@ const { highlight } = useTuxHighlighter();
 
 const shikiTheme = computed<BundledTheme>(() => {
   if (colorMode.value === "tti-dark") return "github-dark";
-  if (colorMode.value === "tti-hc")   return "github-light-high-contrast";
+  if (colorMode.value === "tti-hc") return "github-light-high-contrast";
   return "github-light";
 });
 
@@ -75,26 +79,197 @@ function hashCode(s: string): string {
   return h.toString(36);
 }
 
-// Pre-highlight the static `vue` and `source` props at SSR time so the
-// initial paint of either tab is already colored. The HTML tab is
-// derived from the DOM, so it can only highlight after mount.
+function kebab(name: string): string {
+  return name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+}
+
+function pascal(name: string): string {
+  return name.replace(/(^|-)([a-z0-9])/g, (_, __, c) => c.toUpperCase());
+}
+
+/** Extract all unique Tux component names in both PascalCase and kebab-case. */
+function extractTuxComponents(template: string): string[] {
+  if (!template) return [];
+  const names = new Set<string>();
+  const pascalMatches = template.matchAll(/<Tux([A-Za-z0-9]+)/g);
+  for (const m of pascalMatches) {
+    names.add(`Tux${m[1]}`);
+  }
+  const kebabMatches = template.matchAll(/<tux-([a-z0-9-]+)/g);
+  for (const m of kebabMatches) {
+    names.add(pascal(`tux-${m[1]}`));
+  }
+  return Array.from(names).sort();
+}
+
+function deriveReact(vue: string): string {
+  if (!vue) return "";
+  const components = extractTuxComponents(vue);
+  const compImport =
+    components.length > 0
+      ? `import { ${components.join(", ")} } from "@tti/tti-ux-react";\n\n`
+      : "";
+
+  const jsx = vue
+    .replace(/<tux-([a-z0-9-]+)/g, (_, name) => `<${pascal(`tux-${name}`)}`)
+    .replace(/<\/tux-([a-z0-9-]+)>/g, (_, name) => `</${pascal(`tux-${name}`)}>`)
+    .replace(/:([a-zA-Z0-9_-]+)="true"/g, "$1")
+    .replace(/:([a-zA-Z0-9_-]+)="false"/g, "$1={false}")
+    .replace(/:([a-zA-Z0-9_-]+)="([^"]+)"/g, "$1={$2}")
+    .replace(/\bclass="/g, 'className="')
+    .replace(/{{\s*([^}]+)\s*}}/g, "{$1}");
+
+  return `${compImport}${jsx.trim()}`;
+}
+
+function deriveWebComponent(vue: string): string {
+  if (!vue) return "";
+  const wc = vue
+    .replace(/<Tux([A-Za-z0-9]+)/g, (_, name) => `<tux-${kebab(name)}`)
+    .replace(/<\/Tux([A-Za-z0-9]+)>/g, (_, name) => `</tux-${kebab(name)}>`)
+    .replace(/:([a-zA-Z0-9_-]+)="true"/g, "$1")
+    .replace(/:([a-zA-Z0-9_-]+)="false"/g, "")
+    .replace(/:([a-zA-Z0-9_-]+)="'(.*?)'"/g, '$1="$2"')
+    .replace(/:([a-zA-Z0-9_-]+)="([^"]+)"/g, '$1="$2"')
+    .replace(/{{\s*([^}]+)\s*}}/g, "$1");
+
+  return `<!-- Web Component (@tti/tti-ux-elements) -->\n${wc.trim()}`;
+}
+
+function deriveRazor(vue: string): string {
+  if (!vue) return "";
+
+  // 1. Generate ASP.NET Core Tag Helper syntax
+  const tagHelper = vue
+    .replace(/<Tux([A-Za-z0-9]+)/g, (_, name) => `<tux-${kebab(name)}`)
+    .replace(/<\/Tux([A-Za-z0-9]+)>/g, (_, name) => `</tux-${kebab(name)}>`)
+    .replace(/:([a-zA-Z0-9_-]+)="false"/g, '$1="@false"')
+    .replace(/:([a-zA-Z0-9_-]+)="true"/g, '$1="@true"')
+    .replace(/:([a-zA-Z0-9_-]+)="([^"]+)"/g, '$1="@($2)"')
+    .replace(/{{\s*([^}]+)\s*}}/g, "@($1)");
+
+  // 2. Generate Blazor component syntax with PascalCase parameters
+  const blazor = vue
+    .replace(/<tux-([a-z0-9-]+)/g, (_, name) => `<${pascal(`tux-${name}`)}`)
+    .replace(/<\/tux-([a-z0-9-]+)>/g, (_, name) => `</${pascal(`tux-${name}`)}>`)
+    .replace(/:([a-zA-Z0-9_-]+)="true"/g, (_, name) => `${pascal(name)}="@true"`)
+    .replace(/:([a-zA-Z0-9_-]+)="false"/g, (_, name) => `${pascal(name)}="@false"`)
+    .replace(/:([a-zA-Z0-9_-]+)="([^"]+)"/g, (_, name, val) => `${pascal(name)}="@(${val})"`)
+    .replace(/\b([a-z][a-zA-Z0-9_-]*)=/g, (match, name) => {
+      if (name === "class" || name === "style" || name === "id") return match;
+      return `${pascal(name)}=`;
+    })
+    .replace(/{{\s*([^}]+)\s*}}/g, "@($1)");
+
+  return `@* 1. ASP.NET Core Tag Helper *@
+@addTagHelper *, Tti.Tux.AspNetCore
+
+${tagHelper.trim()}
+
+@* 2. Or Blazor Component *@
+@using Tti.Tux.Blazor
+
+${blazor.trim()}`;
+}
+
+const activeReactCode = computed(() => props.react ?? deriveReact(props.vue ?? ""));
+const activeWcCode = computed(() => props.wc ?? deriveWebComponent(props.vue ?? ""));
+const activeRazorCode = computed(() => props.razor ?? deriveRazor(props.vue ?? ""));
+
+// Pre-highlight static framework tabs at SSR time
 const { data: vueHighlighted } = await useAsyncData(
   () => `tux-example-vue:${shikiTheme.value}:${hashCode(props.vue ?? "")}`,
-  () => (props.vue ? highlight(props.vue, { lang: "vue", theme: shikiTheme.value }) : Promise.resolve("")),
+  () =>
+    props.vue
+      ? highlight(props.vue, { lang: "vue", theme: shikiTheme.value })
+      : Promise.resolve(""),
   { watch: [() => props.vue, shikiTheme] },
+);
+
+const { data: reactHighlighted } = await useAsyncData(
+  () => `tux-example-react:${shikiTheme.value}:${hashCode(activeReactCode.value)}`,
+  () =>
+    activeReactCode.value
+      ? highlight(activeReactCode.value, { lang: "tsx", theme: shikiTheme.value })
+      : Promise.resolve(""),
+  { watch: [() => activeReactCode.value, shikiTheme] },
+);
+
+const { data: wcHighlighted } = await useAsyncData(
+  () => `tux-example-wc:${shikiTheme.value}:${hashCode(activeWcCode.value)}`,
+  () =>
+    activeWcCode.value
+      ? highlight(activeWcCode.value, { lang: "html", theme: shikiTheme.value })
+      : Promise.resolve(""),
+  { watch: [() => activeWcCode.value, shikiTheme] },
+);
+
+const { data: razorHighlighted } = await useAsyncData(
+  () => `tux-example-razor:${shikiTheme.value}:${hashCode(activeRazorCode.value)}`,
+  () =>
+    activeRazorCode.value
+      ? highlight(activeRazorCode.value, { lang: "razor", theme: shikiTheme.value })
+      : Promise.resolve(""),
+  { watch: [() => activeRazorCode.value, shikiTheme] },
 );
 
 const { data: sourceHighlighted } = await useAsyncData(
   () => `tux-example-src:${shikiTheme.value}:${hashCode(props.source ?? "")}`,
-  () => (props.source ? highlight(props.source, { lang: "vue", theme: shikiTheme.value }) : Promise.resolve("")),
+  () =>
+    props.source
+      ? highlight(props.source, { lang: "vue", theme: shikiTheme.value })
+      : Promise.resolve(""),
   { watch: [() => props.source, shikiTheme] },
 );
 
 const { data: powerbiHighlighted } = await useAsyncData(
   () => `tux-example-pbi:${shikiTheme.value}:${hashCode(props.powerbi ?? "")}`,
-  () => (props.powerbi ? highlight(props.powerbi, { lang: "json", theme: shikiTheme.value }) : Promise.resolve("")),
+  () =>
+    props.powerbi
+      ? highlight(props.powerbi, { lang: "json", theme: shikiTheme.value })
+      : Promise.resolve(""),
   { watch: [() => props.powerbi, shikiTheme] },
 );
+
+const { data: cssHighlighted } = await useAsyncData(
+  () => `tux-example-css:${shikiTheme.value}:${hashCode(props.css ?? "")}`,
+  () =>
+    props.css
+      ? highlight(props.css, { lang: "css", theme: shikiTheme.value })
+      : Promise.resolve(""),
+  { watch: [() => props.css, shikiTheme] },
+);
+
+const tabs = computed(() => {
+  const t: { id: Tab; label: string }[] = [{ id: "vue", label: "Vue" }];
+  if (activeReactCode.value) t.push({ id: "react", label: "React" });
+  if (activeWcCode.value) t.push({ id: "wc", label: "Web Component" });
+  if (activeRazorCode.value) t.push({ id: "razor", label: "Razor (.NET)" });
+  t.push({ id: "html", label: "HTML (DOM)" });
+  if (props.css) t.push({ id: "css", label: "CSS" });
+  if (props.powerbi) t.push({ id: "powerbi", label: "Power BI" });
+  if (props.source) t.push({ id: "source", label: "Source" });
+  return t;
+});
+
+// Reactively synchronize activeTab with global framework preference
+watch(
+  framework,
+  (fw) => {
+    if (tabs.value.some((t) => t.id === fw)) {
+      activeTab.value = fw;
+    }
+  },
+  { immediate: true },
+);
+
+function onSelectTab(tabId: Tab) {
+  activeTab.value = tabId;
+  // If user clicked one of the core frameworks, synchronize globally
+  if (tabId === "vue" || tabId === "react" || tabId === "wc" || tabId === "razor") {
+    setFramework(tabId, { notify: false });
+  }
+}
 
 onMounted(() => {
   captureHTML();
@@ -103,6 +278,18 @@ onMounted(() => {
 });
 
 watch([rendered, shikiTheme], () => rehighlightHtmlTab());
+
+watch([activeTab, shikiTheme], async ([tab, theme]) => {
+  if (tab === "html") {
+    await rehighlightHtmlTab();
+  } else if (tab === "razor" && activeRazorCode.value) {
+    razorHighlighted.value = await highlight(activeRazorCode.value, { lang: "razor", theme });
+  } else if (tab === "react" && activeReactCode.value) {
+    reactHighlighted.value = await highlight(activeReactCode.value, { lang: "tsx", theme });
+  } else if (tab === "wc" && activeWcCode.value) {
+    wcHighlighted.value = await highlight(activeWcCode.value, { lang: "html", theme });
+  }
+});
 
 async function rehighlightHtmlTab() {
   if (!rendered.value) {
@@ -134,33 +321,29 @@ onBeforeUnmount(() => {
 
 function captureHTML() {
   if (previewRef.value) {
-    // tuxFormatHtml (app/utils) — strips Vue hydration comment noise,
-    // knows the full void-element list, and hard-caps input so a huge
-    // preview subtree can't blow the tab up (RangeError class).
     rendered.value = tuxFormatHtml(previewRef.value.innerHTML);
   }
 }
 
-const tabs = computed(() => {
-  const t: { id: Tab; label: string }[] = [
-    { id: "vue", label: "Vue" },
-    { id: "html", label: "HTML" },
-  ];
-  if (props.powerbi) t.push({ id: "powerbi", label: "Power BI" });
-  if (props.source) t.push({ id: "source", label: "Source" });
-  return t;
-});
-
 const activeCode = computed(() => {
   if (activeTab.value === "vue") return props.vue ?? "";
+  if (activeTab.value === "react") return activeReactCode.value;
+  if (activeTab.value === "wc") return activeWcCode.value;
   if (activeTab.value === "html") return rendered.value;
+  if (activeTab.value === "razor") return activeRazorCode.value;
+  if (activeTab.value === "css") return props.css ?? "";
   if (activeTab.value === "powerbi") return props.powerbi ?? "";
   return props.source ?? "";
 });
 
 const highlightedCode = computed<string | null>(() => {
-  if (activeTab.value === "vue")     return vueHighlighted.value || null;
-  if (activeTab.value === "source")  return sourceHighlighted.value || null;
+  if (activeTab.value === "vue") return vueHighlighted.value || null;
+  if (activeTab.value === "react") return reactHighlighted.value || null;
+  if (activeTab.value === "wc") return wcHighlighted.value || null;
+  if (activeTab.value === "html") return renderedHighlighted.value;
+  if (activeTab.value === "razor") return razorHighlighted.value || null;
+  if (activeTab.value === "source") return sourceHighlighted.value || null;
+  if (activeTab.value === "css") return cssHighlighted.value || null;
   if (activeTab.value === "powerbi") return powerbiHighlighted.value || null;
   return renderedHighlighted.value;
 });
@@ -188,25 +371,25 @@ async function copyActive() {
       <slot />
     </div>
 
-    <div class="flex items-center border-t border-surface-border bg-surface-sunken">
+    <div class="flex items-center border-t border-surface-border bg-surface-sunken overflow-x-auto">
       <button
         v-for="t in tabs"
         :key="t.id"
         type="button"
-        class="px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors border-b-2"
+        class="px-3.5 py-2 text-xs font-semibold uppercase tracking-wider transition-colors border-b-2 whitespace-nowrap cursor-pointer"
         :class="
           activeTab === t.id
             ? 'text-text-brand border-brand-primary bg-surface-raised'
             : 'text-text-muted hover:text-text-secondary border-transparent'
         "
-        @click="activeTab = t.id"
+        @click="onSelectTab(t.id)"
       >
         {{ t.label }}
       </button>
       <div class="flex-1" />
       <button
         type="button"
-        class="flex items-center gap-1 px-3 py-2 text-xs text-text-muted hover:text-text-brand"
+        class="flex items-center gap-1 px-3 py-2 text-xs text-text-muted hover:text-text-brand whitespace-nowrap cursor-pointer"
         :aria-label="copied ? 'Copied' : 'Copy code'"
         @click="copyActive"
       >

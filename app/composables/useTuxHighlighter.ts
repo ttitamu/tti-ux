@@ -20,7 +20,7 @@ import type { Highlighter, BundledLanguage, BundledTheme } from "shiki";
 // Common langs we pre-load. Anything outside this set adds maybe
 // 10-30ms on first use to fetch + register the grammar.
 const COMMON_LANGS: BundledLanguage[] = [
-  "ts", "js", "vue", "html", "css", "scss",
+  "ts", "tsx", "js", "vue", "html", "css", "scss", "csharp", "razor",
   "json", "yaml", "md", "bash", "shell", "python", "go", "rust", "sql",
 ];
 

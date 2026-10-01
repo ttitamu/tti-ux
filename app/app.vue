@@ -5,9 +5,13 @@
 // Version surfaced in the header pill + welcome page. Sourced from
 // package.json so a `npm version` bump propagates without code edits.
 import pkg from "../package.json";
-import { tuxCatalog, type TuxCatalogFamily } from "./utils/tuxCatalog";
+import { tuxCatalog, catalogByCategory, catalogByVizCategory, type TuxCatalogFamily } from "./utils/tuxCatalog";
+import { tuxTokensCatalog } from "./utils/tuxTokensCatalog";
+import type { Command, CommandGroup } from "./components/TuxCommandPalette.vue";
 
 const colorMode = useColorMode();
+const route = useRoute();
+const router = useRouter();
 
 // Header theme toggle now lives inside TuxUtilityCluster (light ↔ dark
 // only). High-contrast stays a footer affordance per ADR-0006.
@@ -34,9 +38,129 @@ const catalogNav = (family: TuxCatalogFamily) =>
     .filter((e) => e.family === family)
     .map((e) => ({ label: e.name, to: e.to, icon: e.icon }));
 
+interface HighLevelArea {
+  id: string;
+  label: string;
+  icon: string;
+  to: string;
+  eyebrow?: string;
+  groupTitles: string[];
+}
+
+const highLevelAreas: HighLevelArea[] = [
+  {
+    id: "foundations",
+    label: "Foundations",
+    icon: "lucide:palette",
+    to: "/tokens",
+    eyebrow: "Design Language",
+    groupTitles: ["01 // Doctrine", "02 // Foundations"],
+  },
+  {
+    id: "components",
+    label: "Component Lab",
+    icon: "lucide:blocks",
+    to: "/components",
+    eyebrow: "UI Primitives & Kits",
+    groupTitles: [
+      "03 // Overview & Doctrine",
+      "03a // Actions & Commands",
+      "03b // Navigation & Layout",
+      "03c // Data Display & Tables",
+      "03d // Feedback & Alerts",
+      "03e // Forms & Controls",
+      "03f // AI & Conversational",
+      "03g // Research & Publishing",
+      "05 // Suites & Kits",
+    ],
+  },
+  {
+    id: "visualizations",
+    label: "Data & Telemetry",
+    icon: "lucide:chart-pie",
+    to: "/visualizations",
+    eyebrow: "BI & Visualization",
+    groupTitles: [
+      "06 // Overview & Foundations",
+      "06a // Timeseries & Trends",
+      "06b // Geospatial & Maps",
+      "06c // Statistical & Distributions",
+      "06d // BI & Analytics Embeds",
+      "06e // Publishing & Print Reports",
+    ],
+  },
+  {
+    id: "editorial",
+    label: "Editorial CMS",
+    icon: "lucide:layout-template",
+    to: "/admin",
+    eyebrow: "Web Builder & Pages",
+    groupTitles: ["04 // Editorial CMS", "04b // Content Governance"],
+  },
+  {
+    id: "docs",
+    label: "Docs & SDKs",
+    icon: "lucide:book-open",
+    to: "/docs",
+    eyebrow: "Guides & Architecture",
+    groupTitles: ["00 // Overview", "00b // Architecture & ADRs"],
+  },
+];
+
+const activeAreaId = ref<string>("foundations");
+
+watchEffect(() => {
+  const p = route.path;
+  if (p.startsWith("/admin") || p.startsWith("/desk") || p.startsWith("/p/")) {
+    activeAreaId.value = "editorial";
+  } else if (
+    p.startsWith("/visualizations") ||
+    p.startsWith("/reports") ||
+    p.startsWith("/design/chart-foundations")
+  ) {
+    activeAreaId.value = "visualizations";
+  } else if (
+    p.startsWith("/components") ||
+    p.startsWith("/forms") ||
+    p.startsWith("/examples") ||
+    p.startsWith("/patterns") ||
+    p.startsWith("/kits") ||
+    p.startsWith("/design/components") ||
+    p.startsWith("/design/compositions") ||
+    p.startsWith("/design/ops-surfaces")
+  ) {
+    activeAreaId.value = "components";
+  } else if (
+    p.startsWith("/docs") ||
+    p === "/" ||
+    p.startsWith("/getting-started") ||
+    p.startsWith("/install") ||
+    p.startsWith("/changelog")
+  ) {
+    activeAreaId.value = "docs";
+  } else {
+    activeAreaId.value = "foundations";
+  }
+});
+
+const currentArea = computed(() => {
+  return highLevelAreas.find((a) => a.id === activeAreaId.value) || highLevelAreas[0];
+});
+
+const showAllAreasInSidebar = ref(false);
+
+const activeSidebarSections = computed(() => {
+  if (showAllAreasInSidebar.value) {
+    return navTree;
+  }
+  const titles = new Set(currentArea.value.groupTitles);
+  const matched = navTree.filter((g) => titles.has(g.label));
+  return matched.length > 0 ? matched : navTree;
+});
+
 const navTree = [
   {
-    label: "Welcome",
+    label: "00 // Overview",
     children: [
       { label: "Home",            to: "/",                icon: "lucide:home" },
       { label: "Getting started", to: "/getting-started", icon: "lucide:compass" },
@@ -46,11 +170,15 @@ const navTree = [
     ],
   },
   {
-    // Doctrine about TUX ITSELF. Docs that govern one specific group
-    // (components, compositions, chart foundations, the kit pipeline)
-    // live on that group's overview instead — they are still at
-    // /design/<slug>, they just aren't listed twice.
-    label: "Design",
+    label: "00b // Architecture & ADRs",
+    children: [
+      { label: "ADR Index", to: "/docs/adr", icon: "lucide:layers" },
+      { label: "Visual language", to: "/design/visual-language-evolution", icon: "lucide:eye" },
+      { label: "Kit pipeline", to: "/design/kit-pipeline", icon: "lucide:workflow" },
+    ],
+  },
+  {
+    label: "01 // Doctrine",
     children: [
       { label: "Doctrine",     to: "/design/tux",                 icon: "lucide:book-open" },
       { label: "Unification plan", to: "/design/unification-plan", icon: "lucide:combine" },
@@ -62,13 +190,15 @@ const navTree = [
     ],
   },
   {
-    label: "Foundations",
+    label: "02 // Foundations",
     children: [
       { label: "Tokens",         to: "/tokens",         icon: "lucide:palette" },
+      { label: "Token Playground", to: "/tokens/playground", icon: "lucide:sliders" },
       { label: "Typography",     to: "/typography",     icon: "lucide:type" },
       { label: "Style variants", to: "/style-variants", icon: "lucide:layout-template" },
       { label: "Motion",         to: "/motion",         icon: "lucide:zap" },
       { label: "Icons",          to: "/icons",          icon: "lucide:sparkles" },
+      { label: "Logos & brand",  to: "/resources/logos", icon: "lucide:stamp" },
       { label: "Specimens",      to: "/preview",        icon: "lucide:image" },
       { label: "Markdown",       to: "/markdown",       icon: "lucide:file-text" },
       { label: "Accessibility",  to: "/accessibility",  icon: "lucide:accessibility" },
@@ -76,11 +206,33 @@ const navTree = [
     ],
   },
   {
-    label: "Components",
+    label: "03 // Overview & Doctrine",
     children: [
       { label: "Components doctrine", to: "/design/components", icon: "lucide:book-marked" },
-      ...catalogNav("components"),
-      { label: "Forms",              to: "/forms",                    icon: "lucide:clipboard-list" },
+      { label: "All components index", to: "/components", icon: "lucide:blocks" },
+    ],
+  },
+  {
+    label: "03a // Actions & Commands",
+    children: catalogByCategory("actions"),
+  },
+  {
+    label: "03b // Navigation & Layout",
+    children: catalogByCategory("navigation"),
+  },
+  {
+    label: "03c // Data Display & Tables",
+    children: catalogByCategory("data-display"),
+  },
+  {
+    label: "03d // Feedback & Alerts",
+    children: catalogByCategory("feedback"),
+  },
+  {
+    label: "03e // Forms & Controls",
+    children: [
+      ...catalogByCategory("forms"),
+      { label: "Forms guide",          to: "/forms",                    icon: "lucide:clipboard-list" },
       { label: "  · Text field",     to: "/forms/text-field",         icon: "lucide:type" },
       { label: "  · Select",         to: "/forms/select",             icon: "lucide:list" },
       { label: "  · Choice",         to: "/forms/choice",             icon: "lucide:check-square" },
@@ -91,15 +243,44 @@ const navTree = [
     ],
   },
   {
-    // "Where do I look for an assembly of things." Absorbs the old
-    // Composition group: composed pages, the patterns page, and the
-    // frozen static reference designs.
-    label: "Kits",
+    label: "03f // AI & Conversational",
+    children: catalogByCategory("ai"),
+  },
+  {
+    label: "03g // Research & Publishing",
+    children: catalogByCategory("publishing"),
+  },
+  {
+    label: "04 // Editorial CMS",
+    children: [
+      { label: "Editorial Desk", to: "/admin", icon: "lucide:layout-dashboard" },
+      { label: "Editor Playground", to: "/desk", icon: "lucide:layout-template" },
+      { label: "  · Corridor Runbook", to: "/p/corridor-telemetry-runbook", icon: "lucide:file-text" },
+      { label: "  · Welcome Article", to: "/p/welcome-to-tux-desk", icon: "lucide:file-text" },
+    ],
+  },
+  {
+    label: "04b // Content Governance",
+    children: [
+      { label: "Document Verification", to: "/admin", icon: "lucide:shield-check" },
+      { label: "Review Cadence", to: "/admin", icon: "lucide:calendar-clock" },
+      { label: "Reader Issues Triage", to: "/admin", icon: "lucide:life-buoy" },
+    ],
+  },
+  {
+    label: "05 // Suites & Kits",
     children: [
       { label: "Kits overview", to: "/examples", icon: "lucide:library" },
       { label: "Compositions doctrine", to: "/design/compositions", icon: "lucide:blocks" },
+      { label: "Operational surfaces", to: "/design/ops-surfaces", icon: "lucide:heart-pulse" },
+      { label: "  · Atlas audit portal", to: "/examples/atlas", icon: "lucide:shield-check" },
+      { label: "  · TTI Code / Forgejo", to: "/examples/forgejo-code", icon: "lucide:git-branch" },
+      { label: "  · Comm public portal", to: "/examples/comm-portal", icon: "lucide:globe" },
+      { label: "  · MyTTI intranet", to: "/examples/intranet-dashboard", icon: "lucide:building-2" },
       { label: "  · Center landing", to: "/examples/center-landing", icon: "lucide:landmark" },
+      { label: "  · Corridor analytics", to: "/examples/corridor-analytics", icon: "lucide:route" },
       { label: "  · Landscape dashboard", to: "/examples/landscape-dashboard", icon: "lucide:map" },
+      { label: "  · Ops board", to: "/examples/ops-board", icon: "lucide:heart-pulse" },
       { label: "  · Paper page", to: "/examples/paper-page", icon: "lucide:file-text" },
       { label: "  · Research landing", to: "/examples/research-landing", icon: "lucide:milestone" },
       { label: "  · Sidebar shell", to: "/examples/sidebar-shell", icon: "lucide:panel-left" },
@@ -109,61 +290,245 @@ const navTree = [
     ],
   },
   {
-    label: "Reports",
+    label: "06 // Overview & Foundations",
     children: [
+      { label: "Visualizations overview", to: "/visualizations", icon: "lucide:chart-pie" },
       { label: "Reports overview", to: "/reports", icon: "lucide:file-output" },
-      ...catalogNav("reports"),
+      { label: "Chart foundations", to: "/design/chart-foundations", icon: "lucide:area-chart" },
     ],
   },
   {
-    label: "Visualizations",
-    children: [
-      { label: "Visualizations overview", to: "/visualizations", icon: "lucide:chart-pie" },
-      { label: "Chart foundations", to: "/design/chart-foundations", icon: "lucide:area-chart" },
-      ...catalogNav("visualizations"),
-    ],
+    label: "06a // Timeseries & Trends",
+    children: catalogByVizCategory("timeseries"),
+  },
+  {
+    label: "06b // Geospatial & Maps",
+    children: catalogByVizCategory("geospatial"),
+  },
+  {
+    label: "06c // Statistical & Distributions",
+    children: catalogByVizCategory("statistical"),
+  },
+  {
+    label: "06d // BI & Analytics Embeds",
+    children: catalogByVizCategory("embeds"),
+  },
+  {
+    label: "06e // Publishing & Print Reports",
+    children: catalogNav("reports"),
   },
 ];
 
 // Mobile sidebar toggle — below md, sidebar slides in from the left.
 const sidebarOpen = ref(false);
-const route = useRoute();
-const router = useRouter();
+// Desktop sidebar collapse — lets workspace/builder pages use full fluid width.
+const desktopSidebarCollapsed = ref(false);
+
+const isFullWidth = computed(() => {
+  return Boolean(
+    route.meta?.fullWidth ||
+    route.path.startsWith('/desk') ||
+    route.path.startsWith('/admin')
+  );
+});
+
 watch(() => route.fullPath, () => {
   sidebarOpen.value = false;
 });
 
+// Auto-collapse sidebar on builder/admin pages on desktop for maximum workspace
+onMounted(() => {
+  if (isFullWidth.value && typeof window !== "undefined" && window.innerWidth >= 768) {
+    desktopSidebarCollapsed.value = true;
+  }
+});
+
 // Global command palette + shortcuts-help overlay. Mounted once at the
 // shell so any page benefits from ⌘K and ?. The palette's groups derive
-// from `navTree` so a single source of truth drives sidebar nav and
-// fuzzy-search jump.
-const paletteRef = ref<{ open: () => void; close: () => void } | null>(null);
+// from actions, tuxCatalog, tuxTokensCatalog, and navTree for universal jump.
+const paletteRef = ref<{ open: (initialTab?: string) => void; close: () => void } | null>(null);
 const shortcutsHelpRef = ref<{ open: () => void; close: () => void; toggle: () => void } | null>(null);
 
-const paletteGroups = computed(() =>
-  navTree.map(section => ({
-    heading: section.label,
-    items: (section.children ?? [])
-      .filter(c => !!c.to)
-      .map(c => ({
-        id: `${section.label}-${c.label}`.toLowerCase().replace(/\s+/g, "-"),
-        label: c.label,
-        icon: c.icon,
-        to: c.to,
-      })),
-  })),
-);
+const { setFramework } = useTuxFramework();
+const toast = useTuxToast();
+
+const actionCommands: Command[] = [
+  {
+    id: "act-toggle-theme",
+    label: "Toggle light / dark mode",
+    description: "Flip between standard institutional light mode and dark palette",
+    icon: "lucide:moon",
+    shortcut: "⌘ ⇧ D",
+    category: "actions",
+    badge: "Theme",
+    badgeTone: "brand",
+    action: () => {
+      colorMode.preference = colorMode.preference === "tti-dark" ? "tti" : "tti-dark";
+      toast.info("Theme switched", colorMode.preference === "tti-dark" ? "Active theme: Dark" : "Active theme: Light");
+    },
+  },
+  {
+    id: "act-toggle-hc",
+    label: "Toggle high-contrast (508 mode)",
+    description: "Activate WCAG AAA / Section 508 high-contrast color scheme",
+    icon: "lucide:eye",
+    category: "actions",
+    badge: "A11y",
+    badgeTone: "warning",
+    action: () => {
+      toggleHighContrast();
+      toast.info("Accessibility mode", isHighContrast.value ? "508 High-Contrast Active" : "Standard Palette Restored");
+    },
+  },
+  {
+    id: "act-framework-vue",
+    label: "Switch framework: Vue 3 / Nuxt",
+    description: "Target canonical Single File Components (@tti/tti-ux)",
+    icon: "lucide:code",
+    category: "actions",
+    badge: "Framework",
+    badgeTone: "brand",
+    action: () => setFramework("vue"),
+  },
+  {
+    id: "act-framework-react",
+    label: "Switch framework: React JSX",
+    description: "Target React component library (@tti/tti-ux-react)",
+    icon: "lucide:atom",
+    category: "actions",
+    badge: "Framework",
+    badgeTone: "brand",
+    action: () => setFramework("react"),
+  },
+  {
+    id: "act-framework-wc",
+    label: "Switch framework: Web Components",
+    description: "Target custom elements (<tux-*>) (@tti/tti-ux-elements)",
+    icon: "lucide:code-xml",
+    category: "actions",
+    badge: "Framework",
+    badgeTone: "brand",
+    action: () => setFramework("wc"),
+  },
+  {
+    id: "act-framework-razor",
+    label: "Switch framework: .NET Razor / Blazor",
+    description: "Target ASP.NET Core Tag Helpers and Blazor components",
+    icon: "lucide:binary",
+    category: "actions",
+    badge: "Framework",
+    badgeTone: "brand",
+    action: () => setFramework("razor"),
+  },
+  {
+    id: "act-toggle-sidebar",
+    label: "Toggle sidebar mini-rail",
+    description: "Expand or collapse the primary navigation sidebar",
+    icon: "lucide:panel-left",
+    shortcut: "[",
+    category: "actions",
+    badge: "Layout",
+    badgeTone: "neutral",
+    action: () => {
+      desktopSidebarCollapsed.value = !desktopSidebarCollapsed.value;
+    },
+  },
+  {
+    id: "act-copy-url",
+    label: "Copy current page URL",
+    description: "Copy shareable permalink to clipboard",
+    icon: "lucide:link",
+    category: "actions",
+    badge: "Share",
+    badgeTone: "neutral",
+    action: async () => {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success("Copied to clipboard", window.location.href);
+      }
+    },
+  },
+];
+
+const tokenCommands: Command[] = tuxTokensCatalog.map((t) => ({
+  id: `token-${t.cleanName}`,
+  label: t.name,
+  description: `${t.value} · ${t.description}`,
+  category: "tokens",
+  badge: t.category,
+  badgeTone: t.category === "brand" ? "brand" : t.category === "ops" ? "ok" : "neutral",
+  tokenValue: t.value,
+  isColor: t.isColor,
+  copyText: `var(${t.name})`,
+}));
+
+const componentCommands: Command[] = tuxCatalog
+  .filter((c) => c.family === "components")
+  .map((c) => ({
+    id: `cmp-${c.name.toLowerCase()}`,
+    label: c.name,
+    description: c.blurb,
+    icon: c.icon,
+    to: c.to,
+    category: "components",
+    badge: c.category || "component",
+    badgeTone: "brand",
+  }));
+
+const docCommands: CommandGroup[] = navTree.map((section) => ({
+  heading: section.label,
+  category: "docs" as const,
+  items: (section.children ?? [])
+    .filter((c) => !!c.to)
+    .map((c) => ({
+      id: `${section.label}-${c.label}`.toLowerCase().replace(/\s+/g, "-"),
+      label: c.label,
+      icon: c.icon,
+      to: c.to,
+      category: "docs" as const,
+      badge: "Doc",
+      badgeTone: "neutral" as const,
+    })),
+}));
+
+const paletteGroups = computed<CommandGroup[]>(() => [
+  {
+    heading: "⚡ Quick Actions",
+    category: "actions",
+    items: actionCommands,
+  },
+  {
+    heading: "🧩 Component Lab (150+ Components)",
+    category: "components",
+    items: componentCommands,
+  },
+  {
+    heading: "🎨 Design Tokens & Palette",
+    category: "tokens",
+    items: tokenCommands,
+  },
+  ...docCommands,
+]);
 
 // Help-overlay groups document every shortcut wired below. Keep this
 // in sync with the `defineShortcuts` block — if you add a binding,
 // add a row here so users can discover it via ?.
 const shortcutGroups = [
   {
-    heading: "Navigation",
+    heading: "Navigation & Palette",
     items: [
-      { keys: ["meta", "k"], label: "Open command palette", description: "Fuzzy-search and jump anywhere" },
+      { keys: ["meta", "k"], label: "Open command palette", description: "Search commands, components, and tokens" },
       { keys: ["/"], label: "Open command palette", description: "GitHub-style alias for ⌘K" },
       { keys: ["?"], label: "Show this shortcuts overlay" },
+    ],
+  },
+  {
+    heading: "Command Palette Filters",
+    items: [
+      { keys: [">"], label: "Quick Actions", description: "Filter to system actions and toggles" },
+      { keys: ["@"], label: "Components", description: "Filter to 150+ Component Lab entries" },
+      { keys: ["-", "-"], label: "Design Tokens", description: "Filter to tokens, swatches, and CSS variables" },
+      { keys: ["#"], label: "Documentation", description: "Filter to guides and architecture records" },
     ],
   },
   {
@@ -180,7 +545,7 @@ const shortcutGroups = [
     items: [
       { keys: ["arrowup"], label: "Previous result" },
       { keys: ["arrowdown"], label: "Next result" },
-      { keys: ["enter"], label: "Run selected" },
+      { keys: ["enter"], label: "Run selected / Copy token" },
       { keys: ["escape"], label: "Close" },
     ],
   },
@@ -289,7 +654,12 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
       <TuxStatusToast />
     </ClientOnly>
 
-    <div class="min-h-screen flex flex-col bg-surface-page text-text-primary">
+    <!-- Standalone full-viewport pages (layout: false) bypass the style guide shell -->
+    <template v-if="route.meta?.layout === false">
+      <NuxtPage />
+    </template>
+
+    <div v-else class="min-h-screen flex flex-col bg-surface-eggshell text-text-primary">
       <header
         class="tti-shell-header bg-surface-raised sticky top-0 z-30"
         role="banner"
@@ -318,24 +688,62 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
               href="/"
               :logo-size="32"
             />
-            <!-- Version pill — kept local to the style guide chrome. If
-                 a second product ever wants this affordance, promote
-                 it to a TuxIdentity prop. Until then: don't bolt the
-                 abstraction on speculatively. -->
-            <span
-              class="tux-version-pill"
-              :title="`tti-ux ${pkgVersion} \u2014 see /changelog for release notes`"
-            >v{{ pkgVersion }}</span>
+            <div
+              class="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-mono font-semibold bg-surface-sunken border border-surface-border text-text-muted"
+              :title="`tti-ux v${pkgVersion} // Core online`"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse" />
+              <span>SYS // v{{ pkgVersion }}</span>
+            </div>
           </div>
+
+          <!-- Mobile/Compact Area Switcher (< lg) -->
+          <div class="lg:hidden relative flex items-center ml-2">
+            <select
+              v-model="activeAreaId"
+              class="text-xs font-bold uppercase tracking-wider bg-surface-sunken border border-surface-border rounded-md px-2 py-1 text-brand-primary focus:outline-none focus:border-brand-primary font-mono cursor-pointer"
+              aria-label="Select work area"
+              @change="navigateTo(currentArea.to)"
+            >
+              <option v-for="area in highLevelAreas" :key="area.id" :value="area.id">
+                {{ area.label }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Desktop High-Level Area Switcher (lg+) -->
+          <nav class="hidden lg:flex items-center gap-1.5 ml-3" aria-label="Primary areas">
+            <NuxtLink
+              v-for="area in highLevelAreas"
+              :key="area.id"
+              :to="area.to"
+              class="tux-top-nav-link"
+              :class="{ 'tux-top-nav-link--active': currentArea.id === area.id }"
+              @click="activeAreaId = area.id; showAllAreasInSidebar = false"
+            >
+              <UIcon :name="area.icon" class="w-3.5 h-3.5 mr-1" />
+              <span>{{ area.label }}</span>
+            </NuxtLink>
+          </nav>
 
           <div class="flex-1" />
 
-          <!-- Dogfood (A6): the style guide wears the suite's trailing
-               utility cluster — theme toggle + registry-fed waffle in
-               the law's order. No identity seat: the docs site is an
-               unauthenticated product, so the seat is deliberately
-               absent (never a placeholder). -->
-          <TuxUtilityCluster current="tux" />
+          <!-- Utility Cluster with Quick Search Trigger -->
+          <TuxUtilityCluster current="tux">
+            <template #search>
+              <button
+                type="button"
+                class="tux-header-search-btn hidden sm:inline-flex"
+                aria-label="Open command palette (Press ⌘K or /)"
+                title="Open command palette (Press ⌘K or /)"
+                @click="paletteRef?.open()"
+              >
+                <UIcon name="lucide:search" class="w-3.5 h-3.5" />
+                <span class="tux-header-search-label">Quick search...</span>
+                <kbd class="tux-header-search-kbd">⌘K</kbd>
+              </button>
+            </template>
+          </TuxUtilityCluster>
         </div>
       </header>
 
@@ -373,33 +781,38 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
              (the leaf links also truncate with ellipsis, but this is
              a belt-and-braces guard so a runaway label can never
              trigger a horizontal scrollbar). -->
+        <!-- Sidebar — Reactive Dual-Mode (w-80 expanded, w-16 collapsed) -->
         <div
           :class="[
-            'tti-shell-sidebar bg-surface-raised flex-shrink-0 w-60 overflow-y-auto overflow-x-hidden',
-            'md:sticky md:top-[57px] md:self-start md:max-h-[calc(100vh-57px)]',
+            'tti-shell-sidebar bg-surface-raised flex-shrink-0 transition-all duration-200 border-r border-surface-border relative',
+            desktopSidebarCollapsed ? 'w-16' : 'w-72 lg:w-80',
+            'md:sticky md:top-[57px] md:self-start md:h-[calc(100vh-57px)] md:max-h-[calc(100vh-57px)] md:flex md:flex-col md:overflow-hidden',
             'md:translate-x-0 md:transform-none',
-            'fixed inset-y-0 left-0 top-[57px] z-20 transition-transform duration-200',
+            'fixed inset-y-0 left-0 top-[57px] z-20 h-[calc(100vh-57px)] flex flex-col overflow-hidden',
             sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
           ]"
         >
-          <div class="p-4">
-            <TuxDocsSidebar
-              :tree="navTree"
-              title="Navigation"
-              :search="true"
-              search-placeholder="Filter the system…"
-              storage-key="tti-ux-sidebar"
-              :exclusive-top-level="true"
-            />
-          </div>
+          <TuxReactiveSidebar
+            :sections="activeSidebarSections"
+            :all-sections="navTree"
+            :show-all="showAllAreasInSidebar"
+            :collapsed="desktopSidebarCollapsed"
+            :active-area-title="currentArea.label"
+            :active-area-icon="currentArea.icon"
+            :search="true"
+            @update:show-all="showAllAreasInSidebar = $event"
+            @toggle-collapse="desktopSidebarCollapsed = !desktopSidebarCollapsed"
+          />
         </div>
 
         <main class="flex-1 min-w-0">
-          <!-- max-w-6xl (72rem / 1152px) — wider than the previous
-               5xl cap, but still leaves a right-side margin for the
-               future TuxTOC rail. Bump again if the gap still reads
-               as wasted space. -->
-          <div class="max-w-6xl mx-auto px-6 md:px-10 py-8">
+          <div
+            :class="[
+              isFullWidth
+                ? 'w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6'
+                : 'w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8',
+            ]"
+          >
             <NuxtLayout>
               <NuxtPage />
             </NuxtLayout>
@@ -466,6 +879,29 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
   position: sticky;
 }
 
+.tti-shell-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(
+    to right,
+    var(--spectrum-maroon, #500000) 0%,
+    var(--spectrum-maroon, #500000) 20%,
+    var(--spectrum-blue, #005480) 20%,
+    var(--spectrum-blue, #005480) 40%,
+    var(--spectrum-teal, #006F79) 40%,
+    var(--spectrum-teal, #006F79) 60%,
+    var(--spectrum-green, #285C4D) 60%,
+    var(--spectrum-green, #285C4D) 80%,
+    var(--spectrum-gold, #CFA935) 80%,
+    var(--spectrum-gold, #CFA935) 100%
+  );
+  z-index: 10;
+}
+
 .tti-shell-header::after {
   content: "";
   position: absolute;
@@ -481,6 +917,75 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
     transparent 100%
   );
   pointer-events: none;
+}
+
+.tux-top-nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.625rem;
+  font-family: var(--font-bold);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  transition: all var(--motion-fast) var(--ease-standard);
+  text-decoration: none;
+}
+
+.tux-top-nav-link:hover {
+  color: var(--text-primary);
+  background: var(--surface-sunken);
+}
+
+.tux-top-nav-link--active {
+  color: var(--brand-primary);
+  background: var(--wash-brand-12);
+}
+
+.tux-top-nav-link--active::after {
+  content: "";
+  position: absolute;
+  bottom: -9px;
+  left: 0.5rem;
+  right: 0.5rem;
+  height: 2px;
+  background: var(--brand-accent, #CFA935);
+  border-radius: 0;
+}
+
+.tux-header-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3125rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--motion-fast) var(--ease-standard);
+}
+
+.tux-header-search-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--brand-primary);
+  background: var(--surface-raised);
+}
+
+.tux-header-search-kbd {
+  padding: 0.125rem 0.375rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  color: var(--text-primary);
 }
 
 .tti-shell-sidebar::after {
@@ -513,7 +1018,7 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
   font-weight: 600;
   line-height: 1.2;
   color: var(--brand-primary);
-  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--brand-primary) 22%, transparent);
   border-radius: var(--radius-sm);
   letter-spacing: 0.01em;
@@ -523,6 +1028,6 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
 [data-theme="tti-dark"] .tux-version-pill {
   color: var(--brand-accent);
   background: color-mix(in srgb, var(--brand-accent) 12%, transparent);
-  border-color: color-mix(in srgb, var(--brand-accent) 28%, transparent);
+  border-color: color-mix(in srgb, var(--brand-accent) 22%, transparent);
 }
 </style>

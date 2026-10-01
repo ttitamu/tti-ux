@@ -43,6 +43,131 @@ const linkVue = `<tux-button intent="primary" to="/tokens" trailing-icon="lucide
 <tux-button intent="secondary" to="/components" icon="lucide:layers">
   All components
 </tux-button>`;
+
+import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
+
+const buttonControls: TuxPropControl[] = [
+  {
+    prop: "label",
+    label: "Button Label",
+    type: "text",
+    defaultValue: "Execute Analysis",
+  },
+  {
+    prop: "intent",
+    label: "Intent",
+    type: "select",
+    options: ["primary", "secondary", "ghost", "destructive"],
+    defaultValue: "primary",
+  },
+  {
+    prop: "shape",
+    label: "Profile Shape",
+    type: "select",
+    options: ["default", "sharp", "square", "pill"],
+    defaultValue: "default",
+  },
+  {
+    prop: "size",
+    label: "Size",
+    type: "select",
+    options: ["xs", "sm", "md", "lg", "xl"],
+    defaultValue: "md",
+  },
+  {
+    prop: "icon",
+    label: "Leading Icon",
+    type: "select",
+    options: ["", "lucide:play", "lucide:download", "lucide:plus", "lucide:sparkles", "lucide:trash-2"],
+    defaultValue: "lucide:play",
+  },
+  {
+    prop: "trailingIcon",
+    label: "Trailing Icon",
+    type: "select",
+    options: ["", "lucide:arrow-right", "lucide:chevron-down", "lucide:external-link"],
+    defaultValue: "",
+  },
+  {
+    prop: "loading",
+    label: "Loading State",
+    type: "boolean",
+    defaultValue: false,
+  },
+  {
+    prop: "disabled",
+    label: "Disabled",
+    type: "boolean",
+    defaultValue: false,
+  },
+];
+
+const buttonPresets: TuxPlaygroundPreset[] = [
+  {
+    name: "kadence",
+    label: "Kadence Rectangular",
+    description: "Official TTI rectangular 0px button geometry for brand parity",
+    icon: "lucide:square",
+    values: {
+      intent: "primary",
+      shape: "sharp",
+      label: "Institutional Action",
+      size: "md",
+      icon: "lucide:play",
+      trailingIcon: "",
+      loading: false,
+      disabled: false,
+    },
+  },
+  {
+    name: "secondary-link",
+    label: "Secondary Explorer",
+    description: "Subtle outlined button for secondary workflows",
+    icon: "lucide:compass",
+    values: {
+      intent: "secondary",
+      shape: "sharp",
+      label: "Explore Research Data",
+      size: "md",
+      icon: "",
+      trailingIcon: "lucide:arrow-right",
+      loading: false,
+      disabled: false,
+    },
+  },
+  {
+    name: "pill-cta",
+    label: "Pill Call to Action",
+    description: "High-visibility rounded call-to-action button",
+    icon: "lucide:sparkles",
+    values: {
+      intent: "primary",
+      shape: "pill",
+      label: "Start New Session",
+      size: "lg",
+      icon: "lucide:sparkles",
+      trailingIcon: "lucide:arrow-right",
+      loading: false,
+      disabled: false,
+    },
+  },
+  {
+    name: "destructive",
+    label: "Destructive Action",
+    description: "Confirmation button with fill-on-hover danger styling",
+    icon: "lucide:trash-2",
+    values: {
+      intent: "destructive",
+      shape: "sharp",
+      label: "Purge Staged Records",
+      size: "md",
+      icon: "lucide:trash-2",
+      trailingIcon: "",
+      loading: false,
+      disabled: false,
+    },
+  },
+];
 </script>
 
 <template>
@@ -55,6 +180,33 @@ const linkVue = `<tux-button intent="primary" to="/tokens" trailing-icon="lucide
       Every other <code>UButton</code> prop still works (<code>size</code>,
       <code>icon</code>, <code>loading</code>, <code>to</code>, <code>disabled</code>).
     </TuxPageHeader>
+
+    <!-- Interactive Props Workbench -->
+    <section>
+      <TuxPlayground
+        tag="tux-button"
+        title="TuxButton Workbench"
+        eyebrow="Interactive Component Playground"
+        :controls="buttonControls"
+        :presets="buttonPresets"
+        slot-prop="label"
+        default-slot-text="Execute Analysis"
+      >
+        <template #default="{ values }">
+          <TuxButton
+            :intent="values.intent"
+            :shape="values.shape"
+            :size="values.size"
+            :icon="values.icon || undefined"
+            :trailing-icon="values.trailingIcon || undefined"
+            :loading="values.loading"
+            :disabled="values.disabled"
+          >
+            {{ values.label }}
+          </TuxButton>
+        </template>
+      </TuxPlayground>
+    </section>
 
     <section>
       <p class="eyebrow">intents</p>

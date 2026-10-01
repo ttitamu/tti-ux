@@ -28,6 +28,8 @@ interface Props {
   showStatus?: boolean;
   /** Singular noun for the status line ("result" → "results"). */
   noun?: string;
+  /** Optional explicit plural noun ("study" → "studies"). */
+  pluralNoun?: string;
   /** Accessible label for the nav landmark. */
   ariaLabel?: string;
 }
@@ -38,6 +40,7 @@ const props = withDefaults(defineProps<Props>(), {
   boundaryCount: 1,
   showStatus: false,
   noun: "result",
+  pluralNoun: undefined,
   ariaLabel: "Pagination",
 });
 
@@ -112,7 +115,7 @@ function formatNumber(n: number): string {
       <span class="tux-pagination__range">{{ formatNumber(rangeStart) }}–{{ formatNumber(rangeEnd) }}</span>
       of
       <span class="tux-pagination__total">{{ formatNumber(total) }}</span>
-      {{ total === 1 ? noun : `${noun}s` }}
+      {{ total === 1 ? noun : (pluralNoun || `${noun}s`) }}
     </p>
 
     <ul class="tux-pagination__list">

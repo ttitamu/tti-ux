@@ -50,10 +50,10 @@ function isInternal(href: string) {
       :key="idx"
       class="tux-qa__item"
     >
-      <header class="tux-qa__question-row">
+      <div class="tux-qa__question-row">
         <span class="tux-qa__marker" aria-hidden="true">Q.</span>
         <h3 class="tux-qa__question">{{ item.question }}</h3>
-      </header>
+      </div>
 
       <div class="tux-qa__answer">
         <slot :name="`answer-${idx}`" :item="item">
