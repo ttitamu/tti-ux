@@ -28,6 +28,7 @@ Compositions earn a slot in this doc when they meet three tests:
 
 - [Layout shells](#layout-shells)
 - [Headlines + summaries](#headlines--summaries)
+- [Operational surfaces](#operational-surfaces)
 - [Chart surfaces](#chart-surfaces)
 - [Browse + detail surfaces](#browse--detail-surfaces)
 - [Chat surfaces](#chat-surfaces)
@@ -181,6 +182,49 @@ Hero pattern for landing pages where one number is the anchor.
 
 **Consumers:**
 `app/pages/examples/landscape-dashboard.vue`.
+
+---
+
+## Operational surfaces
+
+Companion doctrine: [`ops-surfaces.md`](./ops-surfaces.md). Overlay
+class API vs owned board. Tokens: ADR-0013. Kit target: ADR-0014.
+
+### TuxStatus + ops table + gold heading keyline
+
+A monitoring pane is not a Landscape dashboard with different copy.
+Maroon numerals compete with CRITICAL. Gold heading *text* fails on
+white. The composition is: hairline chrome, `--status-*` chips, gold
+as a 3px keyline under `--text-primary`.
+
+```vue
+<div class="grid grid-cols-3 gap-4">
+  <div class="p-4 bg-surface-raised border border-surface-border rounded-md">
+    <p class="eyebrow">Unhandled</p>
+    <div class="mt-2 flex items-end justify-between">
+      <span class="text-3xl font-bold">3</span>
+      <TuxStatus state="critical" />
+    </div>
+  </div>
+</div>
+
+<h2 class="tux-ops-heading">Current problems</h2>
+<table class="tux-ops-table">
+  <tr class="tux-status-row--critical">
+    <td>atlas.tti.tamu.edu</td>
+    <td><TuxStatus state="critical" /></td>
+  </tr>
+</table>
+```
+
+**Consumers:** `app/pages/examples/ops-board.vue`,
+`app/pages/components/status.vue` (the CSS tab is
+`kit/css/tux-ops.css`). Overlay consumers stamp the same classes onto
+host markup — they do not add `.serviceOK` to this kit.
+
+**Notes:** `TuxBadge status=` is job lifecycle (queued / running /
+completed). Feeding OK/CRITICAL through it is a misuse. Acknowledged
+(`.tux-status--acked`) is not maintenance.
 
 ---
 

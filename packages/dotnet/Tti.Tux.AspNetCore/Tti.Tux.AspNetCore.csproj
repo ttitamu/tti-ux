@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PackageId>Tti.Tux.AspNetCore</PackageId>
+    <Version>2.2.0</Version>
+    <Authors>Texas A&amp;M Transportation Institute</Authors>
+    <Company>Texas A&amp;M Transportation Institute</Company>
+    <Description>ASP.NET Core Razor Tag Helpers for TUX (TTI Design System).</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+</Project>

@@ -11,8 +11,15 @@ contrast-report.json
 
 # Node
 node_modules
+.npm
 *.log
 *.tsbuildinfo
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
 
 # Env
 .env

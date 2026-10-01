@@ -42,6 +42,7 @@ npm run dev
 | `TuxCitations`       | tux native               | `/components/citations`         |
 | `TuxCodeBlock`       | Shiki                    | `/components/code-block`        |
 | `TuxCodeMaroon`      | tux native               | `/components/code-maroon`       |
+| `TuxCommandBar`      | tux native               | `/components/command-bar`       |
 | `TuxCommandPalette`  | tux native               | `/components/command-palette`   |
 | `TuxCommentThread`   | tux native               | `/components/comment-thread`    |
 | `TuxContactCard`     | tux native               | `/components/contact-card`      |
@@ -82,9 +83,12 @@ npm run dev
 | `TuxPagination`      | tux native               | `/components/pagination`        |
 | `TuxPhotoGrid`       | tux native               | `/components/photo-grid`        |
 | `TuxPopover`         | `UPopover`               | `/components/popover`           |
+| `TuxPortalHeader`    | tux native               | `/components/portal-shell`      |
+| `TuxPortalShell`     | tux native               | `/components/portal-shell`      |
 | `TuxProse`           | tux native               | `/components/prose`             |
 | `TuxQACollection`    | tux native               | `/components/qa-collection`     |
 | `TuxRailNav`         | tux native (`<details>`) | `/components/rail-nav`          |
+| `TuxRecordHighlights`| tux native               | `/components/record-highlights` |
 | `TuxRemovableChip`   | tux native               | `/components/removable-chip`    |
 | `TuxRichDataGrid`    | tux native               | `/components/rich-data-grid`    |
 | `TuxRichTextEditor`  | Tiptap + lowlight        | `/components/rich-text-editor`  |
@@ -99,6 +103,7 @@ npm run dev
 | `TuxSlideover`       | tux native               | `/components/slideover`         |
 | `TuxSplashScreen`    | tux native               | `/components/splash-screen`     |
 | `TuxSplitPane`       | tux native               | `/components/split-pane`        |
+| `TuxStatus`          | tux native (`tux-ops.css`) | `/components/status`          |
 | `TuxStatusToast`     | tux native (`useTuxToast` bus) | `/components/status-toast` |
 | `TuxStepper`         | tux native               | `/components/stepper`           |
 | `TuxStatComparison`  | tux native               | `/components/stat-comparison`   |
@@ -128,14 +133,14 @@ npm run dev
 
 | Component            | Wraps                    | Showcase                            |
 |----------------------|--------------------------|-------------------------------------|
-| `TuxAbstract`        | tux native               | `/components/research-publishing`   |
-| `TuxAuthorByline`    | tux native               | `/components/research-publishing`   |
-| `TuxPaperMeta`       | tux native               | `/components/research-publishing`   |
-| `TuxFigureCaption`   | tux native               | `/components/research-publishing`   |
-| `TuxTableCaption`    | composes TuxFigureCaption| `/components/research-publishing`   |
-| `TuxFootnote`        | `UPopover`               | `/components/research-publishing`   |
-| `TuxCitationExport`  | `UDropdownMenu`          | `/components/research-publishing`   |
-| `TuxAcknowledgments` | tux native               | `/components/research-publishing`   |
+| `TuxAbstract`        | tux native               | `/components/abstract`              |
+| `TuxAuthorByline`    | tux native               | `/components/author-byline`         |
+| `TuxPaperMeta`       | tux native               | `/components/paper-meta`            |
+| `TuxFigureCaption`   | tux native               | `/components/figure-caption`        |
+| `TuxTableCaption`    | composes TuxFigureCaption| `/components/table-caption`         |
+| `TuxFootnote`        | `UPopover`               | `/components/footnote`              |
+| `TuxCitationExport`  | `UDropdownMenu`          | `/components/citation-export`       |
+| `TuxAcknowledgments` | tux native               | `/components/acknowledgments`        |
 
 **TTI identity family** (added 2026-05-22):
 
@@ -160,11 +165,22 @@ npm run dev
 
 | Component            | Wraps                    | Showcase                            |
 |----------------------|--------------------------|-------------------------------------|
-| `TuxFormField`       | tux native               | `/components/forms-wrapper`         |
-| `TuxMarkdownEditor`  | tux native (no deps)     | `/components/forms-wrapper`         |
-| `TuxFileDropzone`    | tux native               | `/components/forms-wrapper`         |
-| `TuxValidationSummary` | tux native             | `/components/forms-wrapper`         |
-| `TuxConfirmDialog`   | `TuxModal` preset        | `/components/forms-wrapper`         |
+| `TuxFormField`       | tux native               | `/components/form-field`            |
+| `TuxMarkdownEditor`  | tux native (no deps)     | `/components/markdown-editor`       |
+| `TuxFileDropzone`    | tux native               | `/components/file-dropzone`         |
+| `TuxValidationSummary` | tux native             | `/components/validation-summary`    |
+| `TuxConfirmDialog`   | `TuxModal` preset        | `/components/confirm-dialog`        |
+
+**Comm redesign & institutional intranet family** (added 2026-09-30):
+
+| Component            | Wraps                    | Showcase                            |
+|----------------------|--------------------------|-------------------------------------|
+| `TuxCapabilityCluster` | tux native             | `/components/capability-cluster`    |
+| `TuxCommHero`        | tux native               | `/components/comm-hero`             |
+| `TuxEventCalendarRow` | tux native              | `/components/event-calendar-row`    |
+| `TuxSpectrumFacts`   | tux native               | `/components/spectrum-facts`        |
+| `TuxSpectrumRibbon`  | tux native               | `/components/spectrum-ribbon`       |
+| `TuxTileGrid`        | tux native               | `/components/tile-grid`             |
 
 **Native chart family** (Priority B — closed 2026-05-22):
 
@@ -207,10 +223,10 @@ sandbox, source caption).
 | `TuxVizRPlot`         | `<img>` / `<object>` / `<iframe>`      | `/visualizations/rplot`        |
 | `TuxVizGrid`          | tux native (CSS Grid layout shell)     | `/visualizations/grid`         |
 | `TuxSparkline`        | tux native (inline SVG)                | `/visualizations/sparkline`    |
-| `TuxChartFrame`       | tux native (editorial wrapper)         | (used by `/visualizations/*` showcase pages) |
+| `TuxChartFrame`       | tux native (editorial wrapper)         | `/visualizations/chart-frame`  |
 | `TuxChartGeographic`  | tux native (5-kind Texas map)          | `/visualizations/chart-geographic` |
 | `TuxChartSunburst`    | tux native (two-ring radial)           | `/visualizations/chart-sunburst`   |
-| `TuxMetroInset`       | tux native (neighborhood grid)         | (used by `/visualizations/chart-geographic`) |
+| `TuxMetroInset`       | tux native (neighborhood grid)         | `/visualizations/metro-inset`  |
 
 See [ADR-0008](../docs/adr/0008-data-display-and-reports-section.md)
 for the positioning rationale (why data-display stays flat in
@@ -255,7 +271,8 @@ single most common failure mode.
 | Want… | Use… |
 |---|---|
 | **Tag** (mono-font label chip — `topic:safety`, `pii:us_ssn`) | `<TuxBadge kind="tag">` |
-| **Status pill** (live/running/failed/queued + dot) | `<TuxBadge :status="…">` |
+| **Status pill** (live/running/failed/queued + dot — job lifecycle, not system health) | `<TuxBadge :status="…">` |
+| **Operational state** (ok / warning / unknown / critical) | `<TuxStatus state="…">` — class API is `kit/css/tux-ops.css` |
 | **Classification tier** (Public / Internal / Restricted / ITAR) | `<TuxBadge :tier="…">` |
 | **Count badge** (`md (11)` facet count) | `<TuxBadge kind="count" :count="…">` |
 | **Page-level admonition** (Docusaurus-style note/tip/warning/danger) | `<TuxAlert variant="…">` — 8 variants |
@@ -265,7 +282,7 @@ single most common failure mode.
 | **Long-form Q&A** (always-expanded explainer prose) | `<TuxQACollection>` |
 | **FAQ** (collapsible question/answer for scanning) | `<TuxAccordion kind="faq">` |
 | **Code block in a doc / blog / ADR** | `<TuxCodeBlock>` |
-| **Code in a component-demo flow** (Vue + HTML reveal tabs) | `<TuxExample>` |
+| **Code in a component-demo flow** (Vue + HTML + optional CSS / Source / Power BI tabs) | `<TuxExample>` |
 | **Term/definition list** (event details, file metadata, spec list) | `<TuxDescriptionList>` |
 | **Architecture diagram** (boxes + arrows, decision flows) | `<TuxDiagram>` (Mermaid) |
 | **Markdown content with Tux components inline** | `@nuxtjs/mdc` + auto-import (see `/markdown` demo) |
@@ -698,7 +715,9 @@ them; open an issue or ping the maintainer to add a row.
 4. **Add a showcase route** at `/components/<kebab-name>`. Use
    `TuxExample` with at least a `vue` prop so the Vue template is
    exposed. If the component is load-bearing for the brand, also pass
-   `source` so readers can see the SFC.
+   `source` so readers can see the SFC. If it has a kit drop-in
+   (overlay CSS, Power BI fragment), pass `css` or `powerbi` from
+   `kit/` rather than retyping.
 5. **Dogfood `TuxPageHeader`** at the top of the page — keeps visual
    rhythm consistent across every component demo.
 6. **Add the entry** to `app/app.vue` nav, `app/pages/index.vue`

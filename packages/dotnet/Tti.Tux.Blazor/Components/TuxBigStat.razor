@@ -1,0 +1,28 @@
+@namespace Tti.Tux.Blazor
+
+<div class="tux-big-stat tux-big-stat--@Tone tux-big-stat--@Variant tux-big-stat--@Size @Class" @attributes="AdditionalAttributes">
+    <div class="tux-big-stat__numeral">
+        <span class="tux-big-stat__value">@Value</span>
+        @if (!string.IsNullOrEmpty(Suffix))
+        {
+            <span class="tux-big-stat__suffix">@Suffix</span>
+        }
+    </div>
+    <p class="tux-big-stat__label">@Label</p>
+    @if (!string.IsNullOrEmpty(Source))
+    {
+        <p class="tux-big-stat__source">@Source</p>
+    }
+</div>
+
+@code {
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public string? Suffix { get; set; }
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public string? Source { get; set; }
+    [Parameter] public string Variant { get; set; } = "default";
+    [Parameter] public string Tone { get; set; } = "maroon";
+    [Parameter] public string Size { get; set; } = "md";
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+}

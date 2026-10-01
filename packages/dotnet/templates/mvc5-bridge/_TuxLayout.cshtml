@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="tti">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title - Texas A&amp;M Transportation Institute</title>
+
+    <!-- 1. Stock Bootstrap 4 Stylesheet -->
+    <link rel="stylesheet" href="~/Content/bootstrap.min.css" />
+
+    <!-- 2. TUX Canonical Tokens (Generated) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ttitamu/tti-ux@v2.2.0/kit/css/tux-tokens.css" />
+
+    <!-- 3. TUX Bootstrap 4 Theme Bridge (Zero Markup Changes) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ttitamu/tti-ux@v2.2.0/kit/css/tux-bootstrap.css" />
+
+    <!-- 4. Web Components Bundle (Optional, enables <tux-*> elements) -->
+    <script type="module" src="https://cdn.jsdelivr.net/gh/ttitamu/tti-ux@v2.2.0/packages/elements/dist/tux-elements.js"></script>
+
+    @RenderSection("Styles", required: false)
+</head>
+<body class="bg-light text-dark">
+    <!-- Institutional TTI Header -->
+    <header class="navbar navbar-expand-lg navbar-dark bg-primary px-4 py-2 border-bottom">
+        <a class="navbar-brand font-weight-bold" href="~/">
+            <span style="color: var(--brand-accent);">TTI</span> RIMS
+        </a>
+        <div class="ml-auto d-flex align-items-center">
+            <!-- Theme Toggle Switcher -->
+            <button type="button" class="btn btn-outline-light btn-sm" onclick="toggleTuxTheme()">
+                Toggle Theme
+            </button>
+        </div>
+    </header>
+
+    <main class="container my-4">
+        @RenderBody()
+    </main>
+
+    <!-- Institutional Footer -->
+    <footer class="container-fluid py-4 mt-5 text-center border-top text-muted small">
+        <p>&copy; @DateTime.Now.Year Texas A&amp;M Transportation Institute. All rights reserved.</p>
+    </footer>
+
+    <script src="~/Scripts/jquery-3.6.0.min.js"></script>
+    <script src="~/Scripts/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleTuxTheme() {
+            var html = document.documentElement;
+            var current = html.getAttribute('data-theme') || 'tti';
+            var next = current === 'tti' ? 'tti-dark' : (current === 'tti-dark' ? 'tti-hc' : 'tti');
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('tux-theme', next);
+        }
+        (function() {
+            var saved = localStorage.getItem('tux-theme');
+            if (saved) document.documentElement.setAttribute('data-theme', saved);
+        })();
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

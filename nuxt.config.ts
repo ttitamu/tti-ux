@@ -2,6 +2,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineNuxtConfig } from "nuxt/config";
 import tailwindcss from "@tailwindcss/vite";
+import { designRoutes, docsRoutes } from "./app/utils/content-routes";
 
 // Layer-rooted dir so consuming apps (Landscape, tti-ai-studio, etc.) resolve
 // our css/asset paths relative to *this* file, not their own srcDir.
@@ -28,6 +29,7 @@ export default defineNuxtConfig({
   future: { compatibilityVersion: 4 },
 
   devtools: { enabled: true },
+  telemetry: false,
 
   // GitHub Pages deploy.
   //
@@ -48,10 +50,13 @@ export default defineNuxtConfig({
           baseURL: process.env.NUXT_APP_BASE_URL || "/",
         },
         nitro: {
-          preset: process.env.NUXT_PAGES === "1" ? "github_pages" : undefined,
+          preset: process.env.NUXT_PAGES === "1" ? "github_pages" : "node-server",
+          externals: {
+            inline: ["unhead"],
+          },
           prerender: {
             crawlLinks: true,
-            routes: ["/"],
+            routes: ["/", ...docsRoutes(layerDir), ...designRoutes(layerDir)],
             // Demo pages (breadcrumbs, footer) intentionally render
             // realistic-looking nav links to routes that don't exist in
             // the style guide (/research, /docs, /changelog, /sessions,
@@ -85,6 +90,19 @@ export default defineNuxtConfig({
     // need appears, but own the ~30 lines instead of shipping the
     // dependency to every consumer.
   ],
+
+  // @nuxt/ui auto-installs @nuxt/fonts. Explicitly disable all remote providers
+  // so it never makes external fetch calls (fonts are self-hosted in public/fonts/).
+  fonts: {
+    providers: {
+      google: false,
+      bunny: false,
+      fontshare: false,
+      fontsource: false,
+      adobe: false,
+      npm: false,
+    },
+  },
 
   // Components registration. Default Nuxt behavior auto-imports
   // components via compile-time template rewrites — fast, lean, but
@@ -126,6 +144,9 @@ export default defineNuxtConfig({
     // the `katex/dist/katex.min.css` import in `globals.css`.
     remarkPlugins: {
       "remark-math": {},
+      "remark-md-links": {
+        src: resolve(layerDir, "app/utils/remark-md-links.ts"),
+      },
     },
     rehypePlugins: {
       "rehype-katex": {},
@@ -147,6 +168,8 @@ export default defineNuxtConfig({
     resolve(layerDir, "app/assets/css/tokens.css"),
     resolve(layerDir, "app/assets/css/globals.css"),
     resolve(layerDir, "app/assets/css/tux.css"),
+    resolve(layerDir, "kit/css/tux-ops.css"),
+    resolve(layerDir, "kit/css/tux-bridge.css"),
   ],
 
   colorMode: {
@@ -169,6 +192,11 @@ export default defineNuxtConfig({
   },
 
   vite: {
+    server: {
+      watch: {
+        ignored: ["**/templates/**", "**/packages/**", "**/dist/**", "**/.output/**", "**/reference/**"],
+      },
+    },
     // Cast through unknown so consuming layers' typecheck doesn't trip
     // when their `vite` resolves to a different path than ours under
     // `node_modules`. The Plugin shape is identical at runtime; only

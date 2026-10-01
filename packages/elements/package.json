@@ -1,0 +1,29 @@
+{
+  "name": "@tti/tti-ux-elements",
+  "version": "3.0.0",
+  "description": "TUX Web Components — framework-neutral Custom Elements compiled from canonical Vue components. Zero runtime dependencies other than Vue/Nuxt UI runtime.",
+  "type": "module",
+  "main": "./dist/tux-elements.js",
+  "module": "./dist/tux-elements.js",
+  "types": "./dist/tux-elements.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/tux-elements.d.ts",
+      "import": "./dist/tux-elements.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "registry": "https://code.tti.tamu.edu/api/packages/tti/npm/"
+  },
+  "scripts": {
+    "build": "node ../../scripts/build-elements.mjs"
+  },
+  "peerDependencies": {
+    "@tti/tti-ux": "^3.0.0"
+  }
+}

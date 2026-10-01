@@ -24,6 +24,9 @@ recoverable.
 - [0011 — Sibling `*.demo-data.ts` modules for typed page data](0011-sibling-demo-data-ts-modules-for-pages.md)
 - [0012 — Cross-framework distribution via single-source Web Components](0012-cross-framework-distribution-via-web-components.md) (supplements 0003)
 - [0013 — An operational status ramp, separate from the semantic palette](0013-operational-status-ramp.md) (extends 0005)
+- [0014 — Operational surfaces are a kit target, not a host fork](0014-operational-surfaces.md) (extends 0013)
+- [0015 — Brand alignment with TTI Communications & interactive design token playground](0015-comm-brand-alignment-and-token-playground.md) (extends 0004)
+- [0016 — Legacy modernization bridge (`tux-bridge.css`) & WCAG 2.2 AAA architecture](0016-legacy-bridge-and-wcag-aaa.md) (extends 0004, 0012, 0014, 0015)
 
 ## Contributing
 

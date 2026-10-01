@@ -18,6 +18,11 @@ computation. Today: `kit/css` (custom properties), `kit/scss`
 themes), `kit/csharp` (`TuxTokens.cs`), `kit/react`
 (`tux-tokens.ts`), `kit/wp` (`theme.json`).
 
+Hand-maintained **recipe** CSS sits beside that, not in the
+emitter: `kit/css/tux-bootstrap.css` (Bootstrap class API) and
+`kit/css/tux-ops.css` (operational class API). They reference
+tokens; they do not copy hex. Host selectors never belong here.
+
 **How:** `npm run build:kit` runs the emitters
 (`scripts/build-tokens.mjs`, `build-framework-targets.mjs`, …);
 outputs are **committed**, and lock tests
