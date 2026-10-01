@@ -57,6 +57,8 @@
   --color-surface-sunken: var(--surface-sunken);
   --color-surface-border: var(--surface-border);
   --color-surface-border-subtle: var(--surface-border-subtle);
+  --color-surface-eggshell: var(--surface-eggshell);
+  --color-surface-cool-gray: var(--surface-cool-gray);
 
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
@@ -64,6 +66,14 @@
   --color-text-inverse: var(--text-inverse);
   --color-text-on-brand: var(--text-on-brand);
   --color-text-brand: var(--text-brand);
+  --color-text-charcoal: var(--text-charcoal);
+  --color-text-dark: var(--text-dark);
+
+  --color-spectrum-maroon: var(--spectrum-maroon);
+  --color-spectrum-blue: var(--spectrum-blue);
+  --color-spectrum-teal: var(--spectrum-teal);
+  --color-spectrum-green: var(--spectrum-green);
+  --color-spectrum-gold: var(--spectrum-gold);
 
   --color-success: var(--color-success);
   --color-warning: var(--color-warning);

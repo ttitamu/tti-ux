@@ -70,6 +70,7 @@ function aliasToVarName(ref) {
   const parts = inner.split(".");
   if (parts[0] === "color" && parts[1] === "tti") return `var(--tti-${parts[2]})`;
   if (parts[0] === "color" && parts[1] === "neutral") return `var(--neutral-${parts[2]})`;
+  if (parts[0] === "color" && parts[1] === "spectrum") return `var(--spectrum-${parts[2]})`;
   throw new Error(`Unsupported alias reference: ${ref}`);
 }
 
@@ -109,6 +110,10 @@ export function buildSelectors(tokens) {
 
   // Brand anchor (--tti-*)
   root.push(...group(tokens.color.tti, "tti-"));
+  // Spectrum (--spectrum-*)
+  if (tokens.color.spectrum) {
+    root.push(...group(tokens.color.spectrum, "spectrum-"));
+  }
   // Neutrals (--neutral-*)
   root.push(...group(tokens.color.neutral, "neutral-"));
   // Brand → semantic (--brand-*) for tti theme
@@ -159,6 +164,9 @@ export function buildSelectors(tokens) {
     out.push(...group(t.brand, "brand-"));
     out.push(...group(t.surface, "surface-"));
     out.push(...group(t.text, "text-"));
+    if (t.spectrum) {
+      out.push(...group(t.spectrum, "spectrum-"));
+    }
 
     // Nuxt UI ramp overrides (only specific steps)
     out.push(...ramp(t.rampOverrides, "color-maroon-"));
@@ -227,6 +235,12 @@ function aliasRebinds(t) {
   for (const k of Object.keys(t.text)) {
     if (k.startsWith("_") || k.startsWith("$")) continue;
     push(`text-${k}`, `text-${k}`);
+  }
+  if (t.spectrum) {
+    for (const k of Object.keys(t.spectrum)) {
+      if (k.startsWith("_") || k.startsWith("$")) continue;
+      push(`spectrum-${k}`, `spectrum-${k}`);
+    }
   }
   return out;
 }

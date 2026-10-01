@@ -186,8 +186,13 @@ export function renderWordPress(themes) {
     "brand-primary", "brand-primary-deep", "brand-accent", "brand-accent-deep",
     "brand-secondary", "brand-fill", "brand-accent-ink", "brand-accent-shade",
     "surface-page", "surface-raised", "surface-sunken", "surface-border",
+    "surface-eggshell", "surface-cool-gray",
     "text-primary", "text-secondary", "text-muted", "text-inverse",
+    "text-charcoal", "text-dark",
+    "spectrum-maroon", "spectrum-blue", "spectrum-teal", "spectrum-green", "spectrum-gold",
     "color-success", "color-warning", "color-danger", "color-error", "color-info",
+    "status-ok", "status-warning", "status-unknown", "status-critical",
+    "status-pending", "status-maintenance",
     "chart-1", "chart-2", "chart-3", "chart-4", "chart-5", "chart-6", "chart-7", "chart-8",
   ];
   for (const slug of paletteSlugs) {
