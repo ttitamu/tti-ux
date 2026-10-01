@@ -9,36 +9,115 @@ const version = pkg.version;
 // landing/marketing surface; this page is the actual "what is tux,
 // how do I use it, where do I go next" tour. Six sections matched
 // to the six sidebar groups + the three product shapes tux serves.
-const steps = [
+interface Step {
+  n: number;
+  title: string;
+  body: string;
+  command?: string;
+  code?: string;
+  language?: string;
+  filename?: string;
+  details?: string[];
+  to?: string;
+  toLabel?: string;
+}
+
+const steps: Step[] = [
   {
     n: 1,
-    title: "Install and run",
-    body: "Clone the repository, install dependencies, and start the local development server. Component documentation routes render live from source.",
+    title: "Clone repository and run local development",
+    body: "Clone the repository, install dependencies, and start the local preview server. Prerendered documentation and live component sandboxes serve at port 3030.",
+    command: "git clone https://github.com/ttitamu/tti-ux.git\ncd tti-ux\nnpm install\nnpm run dev",
+    details: [
+      "Binds to http://localhost:3030 to prevent port collisions with other local services.",
+      "Vite hot-module replacement (HMR) reloads automatically on token, component, or doc edits.",
+    ],
+    to: "/install",
+    toLabel: "View all install targets",
   },
   {
     n: 2,
-    title: "Review system doctrine",
-    body: "The design documentation (/design/tux) defines architecture guidelines, accessibility rules, color hierarchies, and typography standards.",
+    title: "Extend TUX in your Nuxt 4 configuration",
+    body: "In your application nuxt.config.ts, extend TUX as a layer. All 183 Tux* components and composables are auto-imported and immediately available in templates.",
+    code: `// nuxt.config.ts
+export default defineNuxtConfig({
+  extends: ["@tti/tti-ux"],
+});`,
+    language: "ts",
+    filename: "nuxt.config.ts",
+    details: [
+      "Global component registration ensures both Vue SFC templates and Markdown (via MDC) resolve primitives without imports.",
+      "Tailwind v4 theme variables and typography tokens are injected automatically.",
+    ],
+    to: "/components",
+    toLabel: "Browse 183 components",
   },
   {
     n: 3,
-    title: "Explore the catalog",
-    body: "Browse individual primitives and composite patterns under /components, including form wrappers, data visualization, and publishing elements.",
+    title: "Consume standalone tokens and CSS (Non-Nuxt stacks)",
+    body: "For static HTML, React, ASP.NET, or WordPress projects that cannot run the Nuxt layer, link pre-compiled tokens and operational classes directly from the kit distribution.",
+    code: `<!-- Include in your document <head> -->
+<link rel="stylesheet" href="@tti/tti-ux/kit/css/tux-tokens.css">
+<link rel="stylesheet" href="@tti/tti-ux/kit/css/tux-ops.css">`,
+    language: "html",
+    filename: "index.html",
+    details: [
+      "kit/css/tux-tokens.css provides pure CSS custom properties for all three themes without any build tooling.",
+      "kit/css/tux-bridge.css upgrades raw HTML tables, buttons, and form inputs to WCAG 2.2 AAA standards.",
+    ],
+    to: "/tokens",
+    toLabel: "Explore token reference",
   },
   {
     n: 4,
-    title: "Examine compositions",
-    body: "Review production layout examples under /examples — operational dashboards, research project landings, chat sessions, and publishing templates.",
+    title: "Compose templates using accessible primitives",
+    body: "Assemble user interfaces using verified TTI primitives. Every component strictly satisfies WCAG 2.2 Level AAA requirements, including >= 7.0:1 text contrast and full keyboard navigation.",
+    code: `<template>
+  <div class="space-y-4">
+    <TuxSectionHeader title="Analysis Parameters" />
+    <TuxAlert variant="info" title="Sensor Array Online">
+      Data feed synchronized across all 12 monitoring stations.
+    </TuxAlert>
+    <TuxButton intent="primary">Export Dataset</TuxButton>
+  </div>
+</template>`,
+    language: "vue",
+    filename: "AnalysisView.vue",
+    details: [
+      "Form controls integrate with validation summaries, field wrappers, and accessible error descriptors.",
+      "Status chips and badges enforce consistent semantic status semantics (nominal, warning, critical, info, subtle).",
+    ],
+    to: "/examples/landscape-dashboard",
+    toLabel: "View dashboard composition",
   },
   {
     n: 5,
-    title: "Configure your application",
-    body: "Extend TUX in your Nuxt application configuration to inherit design tokens, auto-imported components, and accessible defaults.",
+    title: "Configure themes and high-contrast accessibility",
+    body: "TUX supports 3 certified themes: tti (default light), tti-dark (warm charcoal), and tti-hc (dedicated WCAG AAA high-contrast). Themes switch instantly via the data-theme attribute on <html>.",
+    code: `<!-- Set data-theme on <html> -->
+<html data-theme="tti">
+<html data-theme="tti-dark">
+<html data-theme="tti-hc">`,
+    language: "html",
+    filename: "app.html",
+    details: [
+      "High-contrast mode is decoupled from standard dark mode to ensure persistent accessibility accommodations (ADR-0006).",
+      "Use the useTuxTheme() composable to read or switch themes programmatically in Vue apps.",
+    ],
+    to: "/docs/adr/0006-separate-hc-from-casual-theme-toggle",
+    toLabel: "Read ADR-0006",
   },
   {
     n: 6,
-    title: "Verify accessibility",
-    body: "Run automated contrast audits and accessibility checks. TUX enforces WCAG 2.2 Level AAA color contrast across light, dark, and high-contrast modes.",
+    title: "Run automated quality and contrast verification",
+    body: "Verify component contracts and accessibility standards using the institutional 6-gate test harness before deploying changes.",
+    command: "# Run full 6-gate verification (tokens, status palette, WCAG AAA math, Vitest, Axe prerender)\nnode scripts/test-all-suites.mjs\n\n# Run mathematical luminance contrast audit\nnpm run audit:aaa",
+    details: [
+      "Evaluates luminance ratios mathematically against WCAG 2.2 Level AAA (>= 7.0:1 text, >= 3.0:1 UI boundaries).",
+      "Checks 245 prerendered routes with axe-core to ensure 0 accessibility violations.",
+    ],
+    to: "/components/health",
+    toLabel: "View 183-component Health Matrix",
   },
 ];
 
@@ -196,45 +275,59 @@ const consumeSnippet = [
           class="gs-step"
         >
           <span class="gs-step__n" aria-hidden="true">{{ step.n }}</span>
-          <div class="gs-step__body">
-            <h3 class="gs-step__title">{{ step.title }}</h3>
-            <p class="gs-step__copy">{{ step.body }}</p>
+          <div class="gs-step__body flex-1 min-w-0">
+            <div class="flex flex-wrap items-baseline justify-between gap-2 mb-1.5">
+              <h3 class="gs-step__title">{{ step.title }}</h3>
+              <NuxtLink
+                v-if="step.to"
+                :to="step.to"
+                class="inline-flex items-center gap-1 text-xs font-semibold text-brand-primary hover:underline"
+              >
+                <span>{{ step.toLabel }}</span>
+                <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" aria-hidden="true" />
+              </NuxtLink>
+            </div>
+            <p class="gs-step__copy mb-3">{{ step.body }}</p>
+
+            <div v-if="step.command" class="my-3">
+              <TuxCodeBlock
+                :code="step.command"
+                language="sh"
+                filename="terminal"
+              />
+            </div>
+            <div v-else-if="step.code" class="my-3">
+              <TuxCodeBlock
+                :code="step.code"
+                :language="step.language || 'ts'"
+                :filename="step.filename"
+              />
+            </div>
+
+            <ul v-if="step.details?.length" class="space-y-1 mt-2 text-xs text-text-secondary list-disc pl-4">
+              <li v-for="(d, idx) in step.details" :key="idx">{{ d }}</li>
+            </ul>
           </div>
         </li>
       </ol>
     </section>
 
-    <!-- Install + run as the first concrete how-to. -->
-    <section class="space-y-3">
-      <TuxSectionHeader>1 · Install and run</TuxSectionHeader>
-      <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
-        Local development serves every component at
-        <code>http://localhost:3030</code>. The development server hot-reloads
-        on token edits, component edits, and documentation updates.
-      </p>
-      <TuxCodeBlock
-        :code="installSnippet"
-        language="sh"
-        filename="terminal"
-      />
-    </section>
-
     <!-- Three product shapes. -->
     <section class="space-y-4">
-      <TuxSectionHeader>2 · Application profiles</TuxSectionHeader>
+      <TuxSectionHeader>Application profiles</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
-        TUX provides standardized patterns for three core interface types across TTI applications:
+        Standardized patterns tailored for three core interface types:
       </p>
       <TuxIconFeature :items="productShapes" :columns="3" />
     </section>
 
     <!-- Component family map. -->
     <section class="space-y-4">
-      <TuxSectionHeader>3 · Component families</TuxSectionHeader>
+      <TuxSectionHeader>Component families</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
         Six tightly-coupled clusters where reading the components
-        <em>together</em> is the point. The remaining ~130 components
-        are listed individually in the sidebar.
+        <em>together</em> provides cohesive patterns. The remaining components
+        are cataloged individually in the sidebar.
       </p>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <TuxCard
@@ -254,10 +347,10 @@ const consumeSnippet = [
 
     <!-- Examples. -->
     <section class="space-y-4">
-      <TuxSectionHeader>4 · Examples</TuxSectionHeader>
+      <TuxSectionHeader>Composition examples</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
-        Eight real-shape pages that assemble 5-15 Tux* components into
-        a realistic surface. Illustrative data, real composition rhythm.
+        Production-grade layouts assembling 5–15 Tux* components into
+        realistic application surfaces.
       </p>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <TuxCard
@@ -276,12 +369,11 @@ const consumeSnippet = [
 
     <!-- Doctrine + design docs. -->
     <section class="space-y-4">
-      <TuxSectionHeader>5 · Doctrine docs</TuxSectionHeader>
+      <TuxSectionHeader>System doctrine</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
-        Ten narrative design documents under
+        Ten architectural design documents under
         <code>design/</code>, plus the canonical
-        <code>tokens.json</code> source. Read in the order below to
-        get the full mental model.
+        <code>tokens.json</code> source.
       </p>
       <TuxLinkList
         :columns="3"
@@ -304,7 +396,7 @@ const consumeSnippet = [
 
     <!-- Theming. -->
     <section class="space-y-3">
-      <TuxSectionHeader>6 · Theming</TuxSectionHeader>
+      <TuxSectionHeader>Theme configuration</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
         Three themes ship: <code>tti</code> (default light),
         <code>tti-dark</code> (dark), and

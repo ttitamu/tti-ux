@@ -150,6 +150,9 @@ export default defineNuxtConfig({
   // resolver. See `app/pages/markdown.vue` for the demo + full syntax
   // crib sheet.
   mdc: {
+    headings: {
+      anchorLinks: false,
+    },
     highlight: {
       // Reuse the Shiki themes the rest of the system uses.
       theme: {

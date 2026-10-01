@@ -1,135 +1,90 @@
-# The kit pipeline — how framework targets get made
+# Multi-Platform Kit Pipeline
 
-> Ratified 2026-08-19 with the first framework-target batch (C# /
-> React / WordPress). Answers the standing question: *how automatic
-> is this, and where do the superPOD panels fit?*
+TUX distributes design tokens and component implementations across multiple software stacks. The kit pipeline ensures that applications outside the Nuxt 4 ecosystem inherit identical brand standards, color palettes, and accessibility contracts.
 
-TUX serves consumers on platforms that can't run the Nuxt layer —
-.NET report generators, plain React apps, WordPress marcom sites,
-Power BI. The kit (`kit/`, shipped inside the `@tti/tti-ux` npm
-package) is how they consume the system. Two tiers, two very
-different automation stories.
+---
 
-## Tier 1 — deterministic emitters (tokens & themes)
+## Architecture Overview
 
-**What:** anything derivable from `design/tokens.json` by pure
-computation. Today: `kit/css` (custom properties), `kit/scss`
-(Bootstrap partial), `kit/env` (brand env), `kit/powerbi` (report
-themes), `kit/csharp` (`TuxTokens.cs`), `kit/react`
-(`tux-tokens.ts`), `kit/wp` (`theme.json`).
+The distribution pipeline is organized into two distinct tiers:
 
-Hand-maintained **recipe** CSS sits beside that, not in the
-emitter: `kit/css/tux-bootstrap.css` (Bootstrap class API) and
-`kit/css/tux-ops.css` (operational class API). They reference
-tokens; they do not copy hex. Host selectors never belong here.
+| Tier | Category | Artifacts | Automation Model |
+|---|---|---|---|
+| **Tier 1** | Deterministic Emitters | CSS variables, SCSS partials, TS constants, C# classes, Power BI themes | Pure computation from `design/tokens.json` |
+| **Tier 2** | Component Ports | React components, .NET Tag Helpers/Blazor, WordPress plugins, Web Components | Behavioral translations verified by test suites |
 
-**How:** `npm run build:kit` runs the emitters
-(`scripts/build-tokens.mjs`, `build-framework-targets.mjs`, …);
-outputs are **committed**, and lock tests
-(`tests/tux-kit-targets.test.ts`, `build-tokens --check`) fail CI if
-a committed output drifts from its generator. Publishing is the tag
-train: merge → tag `vX.Y.Z` → `publish-package.yml` ships the whole
-kit to the Forgejo npm registry.
+---
 
-**Automation status: fully automatic, zero AI — by design.** Same
-input, same bytes, forever. A token edit in `tokens.json` propagates
-to every target in one `build:kit` run, and no model is ever asked to
-transcribe a hex value. AI has negative value at this tier: the
-failure mode of generative transcription (plausible-but-wrong
-literals) is exactly what the lock tests exist to make impossible.
+## Tier 1 — Deterministic Token Emitters
 
-**Adding a target** (Compose-for-Android, iOS asset catalog, Figma
-variables push, …) = one emitter function + one lock test + a README
-consumption note. An ordinary minor release.
+Tier 1 targets are mathematically derived from `design/tokens.json`. Any update to a design token compiles directly into all target formats without manual transcription.
 
-## Tier 2 — component ports (the BFF / superPOD panel tier)
+### Emitted Artifacts
 
-**What:** actual component implementations on other frameworks — a
-React `TuxCard`, a WPF chart family. These are *translations of
-behavior*, not derivations of data: slots, a11y contracts, keyboard
-models, container queries. No deterministic emitter can produce them.
+- **`kit/css/tux-tokens.css`**: CSS custom properties for all three themes (`tti`, `tti-dark`, `tti-hc`). Zero build step required.
+- **`kit/css/tux-ops.css`**: Operational status chips, table row tints, and keyline styles.
+- **`kit/css/tux-bridge.css`**: Drop-in stylesheet elevating raw HTML tables, buttons, and forms to WCAG 2.2 AAA standards.
+- **`kit/scss/_tux-bootstrap.scss`**: Variable overrides for SCSS-based Bootstrap builds.
+- **`kit/react/tux-tokens.ts`**: TypeScript constant definitions and typed theme objects for React applications.
+- **`kit/csharp/TuxTokens.cs`**: Strongly-typed C# constants for ASP.NET and Blazor backends.
+- **`kit/powerbi/`**: JSON theme files (`tti-theme.json`, `tti-theme-dark.json`, `tti-theme-hc.json`) for Power BI Desktop and Fabric.
+- **`kit/env/brand.env`**: POSIX shell environment variables for CI pipelines and container builds.
 
-**How it works (ratified 2026-08-19, first piece SHIPPED — owner
-decision: build on existing access only, no new BFF endpoints or
-tokens minted):**
+### Build and Verification
 
-The estate already has the judgment infrastructure: this repo's CI
-calls the **TTI AI BFF** (`/v1/review`) on every PR — a multi-model
-superPOD panel with per-actor attribution. So the pipeline doesn't
-need generation *access*; it needs drift *detection* and a PR for
-the panel to judge. That's cheap and deterministic:
+The emitter scripts compile tokens in a single execution:
 
-1. **Detect (SHIPPED — `ports-sync.yml` + `scripts/ports-manifest.mjs`):**
-   every merge to main touching `app/components/Tux*.vue` updates the
-   port ledger (`kit/ports/manifest.json`: source hash per component,
-   last-ported hash per target) and the human-readable
-   `kit/ports/QUEUE.md`, on a bot branch (`bots/ports-sync`), as a PR.
-   Auth reuses the job token (git push) and the existing ai-review
-   bot PAT (PR creation). `--check` mode runs in the test suite so a
-   component can't land without the ledger following it.
-2. **Judge with the bots we already have:** the bot PR flows through
-   the SAME gates as any human PR — baseline-security, the full test
-   suite, and the ai-review superPOD panel. When port code appears in
-   these PRs, the panel debates *that code* with zero pipeline
-   changes.
-3. **Generate — the slot the ledger feeds, in maturity order:**
-   (a) hand/session-authored ports working down QUEUE.md;
-   (b) a mechanical Vue→target scaffolder for the template+CSS-heavy
-   components (most of the catalog), output landing in the same bot
-   PR; (c) agent-authored ports if/when a generation endpoint ever
-   earns its keep. Each stage rides the identical PR shape, so
-   upgrading the generator never changes the pipeline contract.
-4. **Verify mechanically, not rhetorically:** ports must pass a
-   behavior-lock harness — prop/emit vocabulary conformance against
-   the components.md table, rendered-output snapshots, axe. Panels
-   argue; tests decide.
-5. **Deliver as a PR, never a direct publish; publish rides the tag
-   train.** Auto-merge on all-green is a *policy dial* the owner can
-   turn later — start with human merge, earn the automation.
+```bash
+# Compile all framework targets from design/tokens.json
+npm run build:kit
 
-**Why the PR gate is load-bearing:** the deterministic tier can ship
-unreviewed because it cannot be wrong in new ways. Generated
-component code can be — and a port that subtly breaks a keyboard
-contract damages the system's core promise (accessible by default).
-The gate is what makes "automatically review and publish" honest:
-automatic *generation*, automatic *verification*, automatic
-*delivery to a merge decision* — with the merge itself starting
-human and becoming automatic only when the harness has earned trust.
+# Verify that committed files match source tokens (CI gate)
+npm run test:tokens
+```
 
-**Where ports live (owner-ratified 2026-08-20): in THIS repo — a
-multi-language monorepo.** npm workspaces; the root stays the Nuxt
-layer (`@tti/tti-ux`), `packages/react/` is `@tti/tti-ux-react`
-(version-locked to the root, published by the same tag train), and a
-future `packages/dotnet/` follows the same shape. First port shipped
-as proof: `TuxBigStat` — same props, same BEM classes, byte-equivalent
-CSS, port-fidelity tests, ledger entry recording the source hash it
-was generated against.
+Automated lock tests (`tests/tux-kit-targets.test.ts`) verify that committed targets never drift from their generators.
 
-**The port-writer bot (owner-ratified direction, account pending):**
-generation gets its own **service account** — working name
-`tux-port-bot` — that leverages the superPOD models through the BFF
-exactly the way the existing bots do (dedicated PAT, `X-TTI-Actor`
-attribution). Scopes: repo content write (push to `bots/ports-sync`)
-+ PR create; BFF access for generation calls. It writes port drafts
-into the same bot-PR shape the drift bot already opens, where the
-ai-review panel and the port-fidelity harness judge them. Creating
-the account and its PAT is an owner/admin action; the workflow reads
-it as a `PORT_BOT_TOKEN` secret and degrades to detection-only when
-absent.
+---
 
-**Platform direction (recorded for the forgejo-stack workstream):**
-once the port-writer proves out here, TTI Code should expose bots as
-a per-repo capability — site/repo owners see the available bots
-(review panel, port writer, …) and can toggle them, with the
-**security review permanently non-optional**. This repo is the pilot.
+## Tier 2 — Component Ports
 
-**Remaining prerequisites before generated ports land:**
-- The `tux-port-bot` service account + `PORT_BOT_TOKEN` secret
-  (owner/admin).
-- The `PACKAGE_TOKEN` secret (already required for the tag train).
+Tier 2 encompasses native component implementations in other frontend ecosystems. Unlike token files, component ports require explicit translation of component lifecycle, slot mechanics, keyboard navigation models, and ARIA contracts.
 
-## The rule of thumb
+### Active Component Packages
 
-> If a target can be a function of `tokens.json`, it is tier 1 and
-> ships this week. If it needs judgment, it is tier 2, the judgment
-> gets a panel, the panel gets a harness, and the harness gets a PR.
+1. **React (`@tti/tti-ux-react`)**:
+   - Native React 18/19 components, TypeScript interfaces, and Tailwind wrappers.
+   - Comprehensive Vitest unit tests verifying DOM rendering and accessibility.
+   - Documentation guide available at `/install/react`.
+
+2. **.NET / Blazor (`Tti.Tux.AspNetCore` & `Tti.Tux.Blazor`)**:
+   - Razor Tag Helpers and Blazor component library for C# enterprise services.
+   - Full guide available at `/install/dotnet`.
+
+3. **WordPress & Kadence (`tti-ux-core`)**:
+   - Turnkey WordPress plugin providing Gutenberg block patterns and Kadence theme styling hooks.
+   - Full guide available at `/install/wordpress`.
+
+4. **Web Components (`@tti/tti-ux-elements`)**:
+   - Framework-agnostic custom element custom bundle (`dist/tux-elements.js`) for embedding in legacy or arbitrary web stacks.
+
+### Quality and Drift Management
+
+To maintain parity between the Vue source of truth and framework ports:
+
+1. **Parity Ledger**: Component signatures and hashes are tracked in `kit/ports/manifest.json`.
+2. **Behavior Verification**: Ports must satisfy identical prop, emit, and accessibility contracts verified by axe-core and component unit tests.
+3. **Change Control**: Component additions and revisions undergo formal pull request review with automated test suite validation.
+
+---
+
+## Target Consumption Guide
+
+To consume specific targets in downstream projects:
+
+```bash
+# Install the core distribution package
+npm install @tti/tti-ux
+```
+
+Refer to the [Install Directory](/install) for detailed setup instructions and code examples for each platform.

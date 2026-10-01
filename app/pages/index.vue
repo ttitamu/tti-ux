@@ -73,11 +73,6 @@ const catalogCount = `${tuxComponentCount}`;
           The design system and component library for the Texas A&amp;M Transportation Institute.
           Engineered for Nuxt 4, Tailwind v4, and WCAG 2.2 Level AAA accessibility.
         </p>
-        <p class="welcome-hero__body">
-          Used across TTI web applications and tools, including Atlas (compliance audit),
-          TTI Code (Git hosting), Landscape (telemetry), TTI AI Studio, MyTTI Intranet,
-          and WordPress sites.
-        </p>
         <div class="welcome-hero__actions">
           <NuxtLink to="/components" class="welcome-cta welcome-cta--primary">
             <span>Components (183)</span>
@@ -102,8 +97,8 @@ const catalogCount = `${tuxComponentCount}`;
           <p class="welcome-hero__meta-label">Stack</p>
           <p class="welcome-hero__meta-value">Nuxt 4 · Tailwind v4 · Vue 3.5</p>
 
-          <p class="welcome-hero__meta-label">Applications</p>
-          <p class="welcome-hero__meta-value">Atlas · Forgejo · Landscape · AI Studio · MyTTI</p>
+          <p class="welcome-hero__meta-label">Architecture</p>
+          <p class="welcome-hero__meta-value">Tokens · Components · Multi-Platform Kit</p>
 
           <p class="welcome-hero__meta-label">Component Census</p>
           <p class="welcome-hero__meta-value">183 components (100% verified)</p>
