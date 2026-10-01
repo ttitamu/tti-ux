@@ -1,0 +1,98 @@
+.tux-breadcrumbs {
+  container-type: inline-size;
+  container-name: tux-breadcrumbs;
+  font-family: var(--font-bold, system-ui, -apple-system, sans-serif);
+  font-size: 0.875rem;
+  line-height: 1;
+  color: var(--text-secondary, #475569);
+}
+
+.tux-breadcrumbs__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.tux-breadcrumbs__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.tux-breadcrumbs__separator {
+  display: inline-block;
+  width: 1px;
+  height: 0.875rem;
+  background: var(--surface-border, #cbd5e1);
+  flex-shrink: 0;
+}
+
+/* On narrow containers, collapse rule to chevron */
+@container tux-breadcrumbs (max-width: 30rem) {
+  .tux-breadcrumbs__separator {
+    width: auto;
+    height: auto;
+    background: transparent;
+    color: var(--text-muted, #94a3b8);
+    font-size: 0.875rem;
+  }
+  .tux-breadcrumbs__separator::after {
+    content: "›";
+  }
+}
+
+/* Explicit chevron variant */
+.tux-breadcrumbs--chevron .tux-breadcrumbs__separator {
+  width: auto;
+  height: auto;
+  background: transparent;
+  color: var(--text-muted, #94a3b8);
+}
+
+.tux-breadcrumbs__home,
+.tux-breadcrumbs__link {
+  color: var(--brand-secondary, #003c71);
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.tux-breadcrumbs__home {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--brand-secondary, #003c71) 35%, transparent);
+}
+
+.tux-breadcrumbs__home-icon {
+  width: 0.8125rem;
+  height: 0.8125rem;
+  flex-shrink: 0;
+}
+
+.tux-breadcrumbs__link {
+  font-style: italic;
+  font-weight: 400;
+}
+
+.tux-breadcrumbs__home:hover,
+.tux-breadcrumbs__home:focus-visible,
+.tux-breadcrumbs__link:hover,
+.tux-breadcrumbs__link:focus-visible {
+  color: color-mix(in srgb, var(--brand-secondary, #003c71) 80%, black);
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+  outline: none;
+}
+
+.tux-breadcrumbs__current {
+  font-weight: 400;
+  color: var(--text-primary, #0f172a);
+}

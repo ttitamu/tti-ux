@@ -1,0 +1,66 @@
+.tux-factoid__header {
+  margin-bottom: 2.25rem;
+  max-width: 45rem;
+}
+
+.tux-factoid__title {
+  margin: 0 0 0.75rem;
+  font-size: 2.25rem;
+  line-height: 1.15;
+  color: var(--text-primary);
+}
+
+.tux-factoid__dek {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.96875rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  max-width: 38rem;
+}
+
+.tux-factoid__grid {
+  display: grid;
+  padding-top: 0.25rem;
+}
+
+.tux-factoid__cell {
+  padding-right: 0.75rem;
+}
+
+.tux-factoid__value {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  line-height: 0.95;
+  color: var(--brand-primary);
+}
+
+.tux-factoid__suffix {
+  font-family: var(--font-bold);
+  font-weight: 700;
+  font-style: normal;
+  line-height: 1;
+  color: inherit;
+  margin-left: 0.25rem;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.tux-factoid__label {
+  margin: 0.75rem 0 0;
+  font-family: var(--font-body);
+  line-height: 1.5;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.tux-factoid__source {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  font-style: italic;
+}

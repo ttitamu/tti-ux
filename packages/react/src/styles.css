@@ -1,4 +1,30 @@
 /* @tti/tti-ux-react — consumer stylesheet entry.
- * Pulls the design tokens from the root package (peer dependency),
+ * Pulls the design tokens and component styles,
  * so data-theme switching works exactly as in the Nuxt layer. */
 @import "@tti/tti-ux/kit/css/tux-tokens.css";
+@import "./components/tux-big-stat.css";
+@import "./components/tux-button.css";
+@import "./components/tux-badge.css";
+@import "./components/tux-alert.css";
+@import "./components/tux-card.css";
+@import "./components/tux-accordion.css";
+@import "./components/tux-avatar.css";
+@import "./components/tux-dropdown.css";
+@import "./components/tux-tabs.css";
+@import "./components/tux-skeleton.css";
+@import "./components/tux-kbd.css";
+@import "./components/tux-table-caption.css";
+@import "./components/tux-stat-comparison.css";
+@import "./components/tux-code-block.css";
+@import "./components/tux-callout.css";
+@import "./components/tux-form-field.css";
+@import "./components/tux-description-list.css";
+@import "./components/tux-link-list.css";
+@import "./components/tux-link-slab.css";
+@import "./components/tux-factoid.css";
+@import "./components/tux-beta-ribbon.css";
+@import "./components/tux-breadcrumbs.css";
+@import "./components/tux-section-header.css";
+@import "./components/tux-empty-state.css";
+@import "./components/tux-status.css";
+

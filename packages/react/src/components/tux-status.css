@@ -1,0 +1,78 @@
+.tux-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0.125rem 0.5rem;
+  font-family: var(--font-bold, system-ui, -apple-system, sans-serif);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wider, 0.05em);
+  line-height: 1.25;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-radius: var(--radius-sm, 0.25rem);
+  border: 1px solid transparent;
+  background: var(--status-pending-fill, #f8fafc);
+  color: var(--status-pending-ink, #475569);
+}
+
+.tux-status--ok {
+  background: var(--status-ok-fill, #ecfdf5);
+  color: var(--status-ok-ink, #065f46);
+}
+.tux-status--warning {
+  background: var(--status-warning-fill, #fffbeb);
+  color: var(--status-warning-ink, #92400e);
+}
+.tux-status--unknown {
+  background: var(--status-unknown-fill, #f3f4f6);
+  color: var(--status-unknown-ink, #374151);
+}
+.tux-status--critical {
+  background: var(--status-critical-fill, #fef2f2);
+  color: var(--status-critical-ink, #991b1b);
+}
+.tux-status--pending {
+  background: var(--status-pending-fill, #f8fafc);
+  color: var(--status-pending-ink, #475569);
+}
+.tux-status--maintenance {
+  background: var(--status-maintenance-fill, #eff6ff);
+  color: var(--status-maintenance-ink, #1e40af);
+}
+
+.tux-status--text {
+  padding: 0;
+  background: transparent;
+  border-color: transparent;
+}
+.tux-status--text.tux-status--ok { color: var(--status-ok, #059669); }
+.tux-status--text.tux-status--warning { color: var(--status-warning, #d97706); }
+.tux-status--text.tux-status--unknown { color: var(--status-unknown, #6b7280); }
+.tux-status--text.tux-status--critical { color: var(--status-critical, #dc2626); }
+.tux-status--text.tux-status--pending { color: var(--status-pending, #64748b); }
+.tux-status--text.tux-status--maintenance { color: var(--status-maintenance, #2563eb); }
+
+.tux-status--dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+  border-radius: 999px;
+  color: transparent;
+  font-size: 0;
+}
+.tux-status--dot.tux-status--ok { background: var(--status-ok, #059669); }
+.tux-status--dot.tux-status--warning { background: var(--status-warning, #d97706); }
+.tux-status--dot.tux-status--unknown { background: var(--status-unknown, #6b7280); }
+.tux-status--dot.tux-status--critical { background: var(--status-critical, #dc2626); }
+.tux-status--dot.tux-status--pending { background: var(--status-pending, #64748b); }
+.tux-status--dot.tux-status--maintenance { background: var(--status-maintenance, #2563eb); }
+
+.tux-status--acked {
+  background: var(--surface-sunken, #f1f5f9);
+  color: var(--text-muted, #64748b);
+  border-color: var(--surface-border, #cbd5e1);
+}

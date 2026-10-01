@@ -1,0 +1,95 @@
+.tux-section-header {
+  margin-bottom: 1.5rem;
+  display: block;
+}
+
+.tux-section-header__kicker {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider, 0.05em);
+  color: var(--text-muted, #94a3b8);
+  margin-bottom: 0.25rem;
+}
+
+.tux-section-header__title {
+  margin: 0;
+  line-height: 1.25;
+}
+
+/* Institutional & Rule-Full */
+.tux-section-header--institutional .tux-section-header__title,
+.tux-section-header--rule-full .tux-section-header__title {
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--brand-primary, #500000);
+  letter-spacing: -0.02em;
+  transition: color 0.15s ease;
+}
+
+.tux-section-header__title--h1 {
+  font-size: 1.5rem;
+}
+@media (min-width: 768px) {
+  .tux-section-header__title--h1 {
+    font-size: 1.875rem;
+  }
+}
+
+.tux-section-header__title--h2 {
+  font-size: 1.25rem;
+}
+@media (min-width: 768px) {
+  .tux-section-header__title--h2 {
+    font-size: 1.5rem;
+  }
+}
+
+.tux-section-header__title--h3 {
+  font-size: 1.125rem;
+}
+
+.tux-section-header__title--h4 {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+/* Signature Gold Underline Rule */
+.tux-section-header__rule {
+  margin-top: 0.5rem;
+  height: 3px;
+  background: var(--brand-accent, #cfa935);
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+/* Classic Variant */
+.tux-section-header--classic .tux-section-header__title {
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  display: inline-block;
+  padding-bottom: 0.375rem;
+  letter-spacing: var(--tracking-wider, 0.05em);
+  border-bottom: 2px solid var(--brand-primary, #500000);
+}
+
+/* Minimal Variant */
+.tux-section-header--minimal {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--surface-border, #cbd5e1);
+}
+
+.tux-section-header--minimal .tux-section-header__title {
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+}
+
+.tux-section-header__subtitle {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secondary, #475569);
+  max-width: 48rem;
+}

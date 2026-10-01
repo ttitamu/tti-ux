@@ -1,0 +1,130 @@
+/* TuxButton — byte-equivalent styles for React port
+ * Derived from app/components/TuxButton.vue + Nuxt UI UButton defaults.
+ * Uses tokens from @tti/tti-ux kit CSS. */
+
+.tux-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-bold, var(--font-body));
+  font-weight: 600;
+  text-decoration: none;
+  line-height: 1.25;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: var(--radius-sm, 4px);
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+.tux-button:focus-visible {
+  outline: 3px solid var(--brand-accent, #cfa935);
+  outline-offset: 2px;
+}
+
+.tux-button:disabled,
+.tux-button--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Shapes */
+.tux-button--sharp,
+.tux-button--square {
+  border-radius: 0px !important;
+}
+
+.tux-button--pill {
+  border-radius: 9999px !important;
+}
+
+/* Sizes */
+.tux-button--xs {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  min-height: 28px;
+}
+
+.tux-button--sm {
+  font-size: 0.8125rem;
+  padding: 0.375rem 0.75rem;
+  min-height: 32px;
+}
+
+.tux-button--md {
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  min-height: 38px;
+}
+
+.tux-button--lg {
+  font-size: 1rem;
+  padding: 0.625rem 1.25rem;
+  min-height: 44px; /* WCAG 2.2 AAA Target Size */
+}
+
+.tux-button--xl {
+  font-size: 1.125rem;
+  padding: 0.75rem 1.5rem;
+  min-height: 48px;
+}
+
+/* Semantic Intents */
+.tux-button--primary {
+  background-color: var(--brand-primary, #500000);
+  border-color: var(--brand-primary, #500000);
+  color: #ffffff;
+}
+
+.tux-button--primary:hover:not(:disabled) {
+  background-color: var(--brand-dark, #3c0000);
+  border-color: var(--brand-dark, #3c0000);
+}
+
+.tux-button--secondary {
+  background-color: transparent;
+  border-color: var(--surface-border, #d1d5db);
+  color: var(--text-primary, #111827);
+}
+
+.tux-button--secondary:hover:not(:disabled) {
+  background-color: var(--wash-brand-08, rgba(80, 0, 0, 0.08));
+  border-color: var(--brand-primary, #500000);
+  color: var(--brand-primary, #500000);
+}
+
+.tux-button--ghost {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--text-primary, #111827);
+}
+
+.tux-button--ghost:hover:not(:disabled) {
+  background-color: var(--wash-brand-08, rgba(80, 0, 0, 0.08));
+  color: var(--brand-primary, #500000);
+}
+
+.tux-button--destructive {
+  background-color: transparent;
+  border-color: var(--color-error, #b91c1c);
+  color: var(--color-error, #b91c1c);
+}
+
+.tux-button--destructive:hover:not(:disabled) {
+  background-color: var(--color-error, #b91c1c);
+  border-color: var(--color-error, #b91c1c);
+  color: #ffffff;
+}
+
+.tux-button__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
