@@ -4,7 +4,7 @@ useHead({ title: "TuxAccordion · TUX" });
 const faqItems = [
   {
     title: "What does Landscape do that diskover doesn't?",
-    content: "Landscape ships per-institution themes and a classifier-aware indexing pipeline. The treemap, search facets, and audit trail are reimplemented on a modern stack — TanStack Virtual + OpenSearch instead of D3 v3 + ElasticSearch. It also bakes in TAMUS access tiers and ITAR compliance markers as first-class concerns.",
+    content: "Landscape provides configurable institutional themes and a classifier-aware indexing pipeline. The treemap, search facets, and audit trail run on TanStack Virtual and OpenSearch, incorporating TTI data-governance tiers and ITAR compliance markers as first-class controls.",
     defaultOpen: true,
   },
   {
@@ -17,7 +17,7 @@ const faqItems = [
   },
   {
     title: "Can I deploy Landscape air-gapped?",
-    content: "The current target is TAMUS-network deployments. Air-gapped is feasible — fonts self-host (already wired), OpenSearch is offline-installable, and the only outbound dependencies are the Lucide CDN (replaceable with the bundled Iconify set) and Google Fonts (replaceable with self-hosted equivalents).",
+    content: "The primary target is TTI internal network deployments. Offline or air-gapped installations are supported: fonts self-host locally, OpenSearch runs on-premise, and icon bundles package locally with zero external network dependencies.",
   },
 ];
 

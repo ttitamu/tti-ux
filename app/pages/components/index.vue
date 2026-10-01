@@ -51,7 +51,7 @@ const filteredComponents = computed(() => {
       secondary-title="Library & Primitives"
       variant="two-tone-rule"
       kicker="INSTITUTIONAL DIRECTORY"
-      subtitle="Thin wrappers around Nuxt UI primitives. Each adds the authentic TTI identity (Aggie Maroon brand, Warm Gold keylines, editorial typography) without forking the underlying component."
+      subtitle="Component library for TTI applications. Implements institutional brand tokens, accessible high-contrast defaults, and specialized research patterns."
     />
 
     <!-- Operational Filter & Category Ribbon -->

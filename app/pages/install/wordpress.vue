@@ -86,7 +86,7 @@ function tti_kadence_child_global_palette($palette) {
     }
 
     $tti_colors = array(
-        0 => array('color' => '#500000', 'name' => __('Aggie Maroon (Primary)', 'kadence-child-tti'), 'slug' => 'theme-palette1'),
+        0 => array('color' => '#500000', 'name' => __('TTI Maroon (Primary)', 'kadence-child-tti'), 'slug' => 'theme-palette1'),
         1 => array('color' => '#3C0000', 'name' => __('Deep Maroon (Primary Deep)', 'kadence-child-tti'), 'slug' => 'theme-palette2'),
         2 => array('color' => '#CFA935', 'name' => __('Institutional Gold (Accent)', 'kadence-child-tti'), 'slug' => 'theme-palette3'),
         3 => array('color' => '#221F1F', 'name' => __('Reading Charcoal (Text Primary)', 'kadence-child-tti'), 'slug' => 'theme-palette4'),
@@ -137,7 +137,7 @@ Version: 3.0.0
 
 :root {
   --global-btn-radius: 0px !important;
-  --global-palette1: #500000 !important; /* Aggie Maroon */
+  --global-palette1: #500000 !important; /* TTI Maroon */
   --global-palette2: #3c0000 !important; /* Deep Maroon */
   --global-palette3: #cfa935 !important; /* Warm Gold */
   --global-palette4: #221f1f !important; /* Reading Charcoal */
@@ -173,7 +173,7 @@ const themeJsonSnippet = `{
   "settings": {
     "color": {
       "palette": [
-        { "slug": "theme-palette1", "color": "#500000", "name": "Aggie Maroon" },
+        { "slug": "theme-palette1", "color": "#500000", "name": "TTI Maroon" },
         { "slug": "theme-palette2", "color": "#3C0000", "name": "Deep Maroon" },
         { "slug": "theme-palette3", "color": "#CFA935", "name": "Institutional Gold" },
         { "slug": "theme-palette4", "color": "#221F1F", "name": "Reading Charcoal" },
@@ -206,7 +206,7 @@ const shortcodes = {
   heading: {
     title: "Signature TTI Heading with Gold Rule",
     tag: '[tux_heading title="Connected Corridors Research" level="2"]',
-    description: "Emits a semantic <h2> header in Aggie Maroon with the official 2px Warm Gold underline keyline.",
+    description: "Emits a semantic <h2> header in Maroon with the official 2px Warm Gold underline keyline.",
   },
   alert: {
     title: "Advisory & Feedback Alert",
@@ -333,7 +333,7 @@ const bridgeImportSnippet = `/* In WordPress Admin: Appearance -> Customize -> A
               <span>Kadence Palette Hook</span>
             </div>
             <p class="text-xs text-text-muted mt-1.5">
-              Injects Aggie Maroon (<code>#500000</code>), Deep Maroon (<code>#3C0000</code>), and Warm Gold (<code>#CFA935</code>) into the customizer.
+              Injects Maroon (<code>#500000</code>), Deep Maroon (<code>#3C0000</code>), and Warm Gold (<code>#CFA935</code>) into the customizer.
             </p>
           </div>
 
@@ -652,7 +652,7 @@ const bridgeImportSnippet = `/* In WordPress Admin: Appearance -> Customize -> A
             <h3 class="font-bold text-sm text-text-primary">2. TTI WCAG AAA Telemetry Grid</h3>
             <span class="text-xs font-mono px-2 py-0.5 rounded bg-surface-sunken text-text-muted">tti-ux/telemetry-table</span>
           </div>
-          <p class="text-xs text-text-muted">Research telemetry table styled with Aggie Maroon header, gold keyline, and 7:1 contrast.</p>
+          <p class="text-xs text-text-muted">Research telemetry table styled with Maroon header, gold keyline, and 7:1 contrast.</p>
           <div class="overflow-x-auto rounded border border-surface-border text-xs">
             <table class="w-full text-left">
               <thead class="bg-[#500000] text-white border-b-2 border-[#CFA935]">

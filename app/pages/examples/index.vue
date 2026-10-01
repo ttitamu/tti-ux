@@ -62,7 +62,7 @@ const examples = [
     slug: "portal-shell",
     eyebrow: "institutional · two-tier shell",
     title: "Connected transportation portal",
-    blurb: "Turnkey institutional portal layout shell matching tti.tamu.edu. Composes TuxPortalShell + TuxPortalHeader (two-tier Aggie Maroon utility bar + crisp brand ribbon) + TuxBreadcrumbs with Warm Gold accent rule + TuxButton (Kadence sharp profile) + floating feedback pill + institutional TuxFooter.",
+    blurb: "Institutional portal layout matching tti.tamu.edu conventions. Composes TuxPortalShell + TuxPortalHeader (two-tier maroon utility bar and brand ribbon) + TuxBreadcrumbs + sharp buttons + feedback pill + institutional TuxFooter.",
     components: 7,
   },
   {
@@ -100,6 +100,13 @@ const examples = [
     blurb: "Self-hosted Git repository portal reproducing code.tti.tamu.edu. Branded in Comm language with sharp buttons, 5-band spectrum division tags, Warm Gold keylines, and eggshell README wells.",
     components: 7,
   },
+  {
+    slug: "error-pages",
+    eyebrow: "resilience · institutional error states",
+    title: "System error pages (404, 401, 403, 503, 500)",
+    blurb: "Full-page editorial error boundaries with 5-band spectrum ribbons, sharp Kadence buttons, diagnostic trace wells, and recovery routing for TTI applications.",
+    components: 4,
+  },
 ];
 </script>
 
@@ -108,17 +115,14 @@ const examples = [
     <TuxSectionHeader
       :level="1"
       title="Composition"
-      secondary-title="Examples & Showcases"
+      secondary-title="Examples & Layouts"
       variant="two-tone-rule"
-      kicker="INSTITUTIONAL SUITES & TEMPLATES"
-      subtitle="What TUX enables across TTI's application ecosystem. Each example assembles components into an authentic operational surface under realistic institutional constraints."
+      kicker="TEMPLATES & REFERENCES"
+      subtitle="Complete page layouts and operational surfaces built with TUX components for TTI applications."
     />
 
     <p class="text-sm text-text-secondary leading-relaxed max-w-2xl">
-      If you're trying to figure out what tux is <em>for</em>, start
-      here. The component-detail pages show each Tux* in isolation;
-      these examples show them together at the density and rhythm of
-      real product surfaces.
+      These examples demonstrate how components combine into complete page layouts with realistic data density and navigation.
     </p>
 
     <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -137,14 +141,11 @@ const examples = [
     </section>
 
     <section class="space-y-3">
-      <TuxSectionHeader>Why these three</TuxSectionHeader>
+      <TuxSectionHeader>Application Archetypes</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
-        tux serves three product shapes: data-dense IT chrome
-        (Landscape), marketing/research surfaces (the
-        public site, the docs site, program landings), and chat/agent
-        product views (tti-ai-studio). Each example here demonstrates
-        one of those shapes end-to-end so consumers can see the system
-        stretched in the direction they care about.
+        TUX supports three primary application formats: data-dense monitoring dashboards (Landscape),
+        public and research publications (portals and reports), and conversational interfaces (TTI AI Studio).
+        Each example provides a reference implementation for these layouts.
       </p>
     </section>
   </div>

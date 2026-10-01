@@ -33,7 +33,7 @@ const atlasNav = [
   {
     label: "Enclaves & Tenants",
     children: [
-      { label: "TTI Production (TAMUS Tenant)", to: "#enclaves", description: "Primary employee and research operations" },
+      { label: "TTI Production Tenant", to: "#enclaves", description: "Primary employee and research operations" },
       { label: "Connected Vehicle Azure Enclave", to: "#enclaves", description: "High-throughput V2X streaming infrastructure" },
       { label: "ITAR Restricted Research VPC", to: "#enclaves", description: "Air-gapped and hardened defense computing" },
       { label: "Student & Intern Sub-Tenants", to: "#enclaves", description: "FERPA-partitioned collaborative sandboxes" },
@@ -116,7 +116,7 @@ const atlasTiles = [
   {
     icon: "lucide:archive",
     title: "Immutable Evidence Locker",
-    subtitle: "Tamper-evident logs formatted for internal TAMUS and external state audits.",
+    subtitle: "Tamper-evident logs formatted for internal and state regulatory audits.",
     to: "#evidence",
   },
 ];
@@ -162,7 +162,7 @@ const policyFindings = [
     id: "POL-CIS-M365-2.1",
     framework: "CIS M365 Baseline",
     title: "Ensure Multi-Factor Authentication is Enabled for All Users",
-    resource: "TAMUS-AAD-Tenant-Production",
+    resource: "TTI-AAD-Tenant-Production",
     status: "Passed",
     severity: "High",
     lastScanned: "18 minutes ago",
@@ -329,7 +329,7 @@ const policyFindings = [
           heading: 'Atlas Security Operations',
           links: [
             { label: 'Security Operations Center', href: '#' },
-            { label: 'TAMUS Information Security', href: 'https://it.tamus.edu/security/' },
+            { label: 'TTI Information Security', href: 'https://tti.tamu.edu/' },
             { label: 'Incident Reporting Hotline', href: '#' },
           ]
         },

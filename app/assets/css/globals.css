@@ -132,8 +132,8 @@ body {
 }
 
 /* =====================================================
-   TAMUS-family typography utilities
-   Cherry-picked from Aggie UX via docs-tti-tamu-edu. The gold bar is
+   Institutional typography utilities
+   Editorial heading rules. The gold bar is
    opt-in (class-scoped) so it doesn't stripe every <h1> in app chrome —
    add `heading--bold` to page titles where the editorial rhythm fits.
    ===================================================== */
@@ -180,3 +180,153 @@ body {
 .subhead {
   margin-top: 0.25rem;
 }
+
+/* =====================================================
+   Page & Layout Transitions
+   Smooth, modern, institutional transitions respecting
+   WCAG 2.2 AAA and prefers-reduced-motion.
+   ===================================================== */
+
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.layout-enter-active,
+.layout-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.layout-enter-from,
+.layout-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-active,
+  .page-leave-active,
+  .layout-enter-active,
+  .layout-leave-active {
+    transition: none !important;
+  }
+  .page-enter-from,
+  .page-leave-to,
+  .layout-enter-from,
+  .layout-leave-to {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* =====================================================
+   Visual Era Simulation (data-tux-version)
+   Allows interactive preview of historic design eras in TUX.
+   ===================================================== */
+
+/* v3.0.0: Modernized Marcom Rebrand (Current default)
+   - 5-band spectrum ribbon
+   - Sharp Kadence buttons (0px radius)
+   - Warm Gold keylines (#CFA935)
+   - Two-tone headings
+*/
+[data-tux-version="3.0.0"] {
+  --radius-button: 0px;
+}
+
+/* v2.2.0: Batch M Visualizations
+   - Classic 2-tone Maroon & Warm Gold header bar (no multi-band spectrum)
+   - Soft rounded buttons (6px radius)
+   - Subtle classic borders
+*/
+[data-tux-version="2.2.0"] {
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+}
+[data-tux-version="2.2.0"] .tti-shell-header::before {
+  background: linear-gradient(
+    to right,
+    #500000 0%,
+    #500000 70%,
+    #CFA935 70%,
+    #CFA935 100%
+  ) !important;
+}
+[data-tux-version="2.2.0"] .tux-btn,
+[data-tux-version="2.2.0"] button:not(.tux-top-nav-link) {
+  border-radius: 6px;
+}
+
+/* v2.1.0: Operations Board & Telemetry
+   - High-density industrial telemetry CRT glow
+   - Emerald telemetry accent strip (#10B981)
+   - Square monospace badges & sharp 1px telemetry borders
+*/
+[data-tux-version="2.1.0"] {
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --brand-accent: #10B981;
+}
+[data-tux-version="2.1.0"] .tti-shell-header::before {
+  background: linear-gradient(
+    to right,
+    #10B981 0%,
+    #059669 40%,
+    #500000 100%
+  ) !important;
+}
+[data-tux-version="2.1.0"] .tux-nav-sliding-underline {
+  background: #10B981 !important;
+}
+
+/* v2.0.0: Core Architecture
+   - Neutral minimal grid (pre-spectrum era)
+   - Classic 8px rounded corners
+   - Neutral gray hairline header border
+*/
+[data-tux-version="2.0.0"] {
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+[data-tux-version="2.0.0"] .tti-shell-header::before {
+  background: var(--surface-border) !important;
+}
+
+/* v1.8.0: Legacy Web Components
+   - Retro pill buttons & chips (border-radius: 9999px)
+   - Deep Maroon gradient
+   - Soft capsule badges
+*/
+[data-tux-version="1.8.0"] {
+  --radius-sm: 9999px;
+  --radius-md: 9999px;
+  --radius-lg: 9999px;
+}
+[data-tux-version="1.8.0"] .tti-shell-header::before {
+  background: linear-gradient(
+    to right,
+    #500000 0%,
+    #300000 100%
+  ) !important;
+}
+[data-tux-version="1.8.0"] .tux-btn,
+[data-tux-version="1.8.0"] .tux-top-nav-link {
+  border-radius: 9999px !important;
+}
+[data-tux-version="1.8.0"] .tux-nav-sliding-pill {
+  border-radius: 9999px !important;
+}
+
+

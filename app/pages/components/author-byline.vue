@@ -30,7 +30,7 @@ const sampleAuthors: TuxByLineAuthor[] = [
 
 const sampleAffiliations = [
   "Texas A&M Transportation Institute, System Reliability Division",
-  "Zachry Department of Civil & Environmental Engineering, Texas A&M University",
+  "Texas A&M Transportation Institute, Infrastructure & Safety Division",
   "Center for Connected and Automated Transportation (CCAT)",
 ];
 
@@ -43,7 +43,7 @@ const sampleVue = computed(() => `<TuxAuthorByline
   ]"
   :affiliations="[
     'Texas A&M Transportation Institute, System Reliability Division',
-    'Zachry Department of Civil & Environmental Engineering, Texas A&M University',
+    'Texas A&M Transportation Institute, Infrastructure & Safety Division',
     'Center for Connected and Automated Transportation (CCAT)',
   ]"
 />`);

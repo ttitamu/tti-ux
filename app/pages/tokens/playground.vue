@@ -43,8 +43,8 @@ const presets: Preset[] = [
   {
     id: "tti-kadence",
     name: "TTI Kadence Institutional",
-    description: "Exact parity with tti.tamu.edu — sharp corners, Roboto typography, Aggie Maroon (#500000), and signature Warm Gold rule.",
-    badge: "Official Comm Parity",
+    description: "Design parity with tti.tamu.edu — sharp corners, Roboto typography, Maroon (#500000), and Warm Gold rule.",
+    badge: "Comm Alignment",
     radius: 0,
     fontFamily: "'Roboto', sans-serif",
     fontName: "Roboto (TTI Official)",
@@ -85,11 +85,11 @@ const presets: Preset[] = [
   {
     id: "friendly-portal",
     name: "Editorial Magazine",
-    description: "Warm academic editorial layout with elegant serif headings, roomy 8px card curvature, and classic Aggie Maroon.",
+    description: "Academic editorial layout with serif headings, roomy 8px card curvature, and TTI Maroon.",
     badge: "Editorial / Longform",
     radius: 8,
     fontFamily: "Georgia, 'Times New Roman', serif",
-    fontName: "Georgia (Aggie Editorial)",
+    fontName: "Georgia (Editorial)",
     primaryColor: "#500000",
     accentColor: "#B89332",
     density: "roomy",
@@ -141,7 +141,7 @@ const fontOptions = [
   { label: "Roboto (TTI Official)", value: "'Roboto', sans-serif" },
   { label: "Inter (Modern Web)", value: "'Inter', sans-serif" },
   { label: "Open Sans (TUX Default)", value: "'Open Sans', sans-serif" },
-  { label: "Georgia (Aggie Editorial)", value: "Georgia, 'Times New Roman', serif" },
+  { label: "Georgia (Editorial)", value: "Georgia, 'Times New Roman', serif" },
   { label: "JetBrains Mono (Ops / Code)", value: "'JetBrains Mono', monospace" },
 ];
 
@@ -195,7 +195,7 @@ const kadenceThemeJsonCode = computed(() => {
         {
           "slug": "brand-primary",
           "color": "${primaryColor.value}",
-          "name": "TTI Aggie Maroon"
+          "name": "TTI Maroon"
         },
         {
           "slug": "brand-accent",
@@ -273,7 +273,7 @@ ${issueNotes.value}
 - **Preset Origin**: \`${activePresetId.value}\`
 - **Border Radius**: \`${radius.value}px\` (Shape: \`${shape.value}\`)
 - **Primary Typography**: \`${fontChoice.value}\`
-- **Brand Primary Color**: \`${primaryColor.value}\` (Aggie Maroon)
+- **Brand Primary Color**: \`${primaryColor.value}\` (TTI Maroon)
 - **Brand Accent Rule**: \`${accentColor.value}\` (Warm Gold)
 - **Component Density**: \`${density.value}\`
 

@@ -87,12 +87,11 @@ const shellSnippet = `<TuxPortalShell
       eyebrow="institutional chrome"
       title="TuxPortalHeader & TuxPortalShell"
     >
-      The official Two-Tier Institutional Portal chrome for Texas A&M Transportation Institute.
-      Directly models the design system of <a href="https://tti.tamu.edu/" target="_blank" rel="noopener" class="underline text-brand-primary">tti.tamu.edu</a>
-      and <a href="https://my.tti.tamu.edu/" target="_blank" rel="noopener" class="underline text-brand-primary">my.tti.tamu.edu</a>.
-      Features an Aggie Maroon utility bar, crisp brand ribbon with official winged-A mark,
-      flyout navigation dropdowns, active Warm Gold indicators, sharp Kadence-profile buttons,
-      and turnkey layout scaffolding.
+      Two-tier institutional portal chrome for Texas A&M Transportation Institute digital products.
+      Integrates with <a href="https://tti.tamu.edu/" target="_blank" rel="noopener" class="underline text-brand-primary">tti.tamu.edu</a>
+      and <a href="https://my.tti.tamu.edu/" target="_blank" rel="noopener" class="underline text-brand-primary">my.tti.tamu.edu</a>,
+      featuring a maroon utility bar, brand ribbon with official road-glyph mark,
+      navigation dropdowns, Warm Gold focus indicators, and accessible layout scaffolding.
     </TuxPageHeader>
 
     <div class="flex items-center gap-3">
@@ -118,9 +117,9 @@ const shellSnippet = `<TuxPortalShell
         TuxPortalHeader (Two-Tier Header)
       </TuxSectionHeader>
       <p class="text-sm text-text-secondary">
-        Tier 1 is an Aggie Maroon bar with agency branding, institutional links, and search affordance.
+        Tier 1 is a maroon bar with agency branding, institutional links, and search affordance.
         Tier 2 provides the crisp white brand ribbon, portal title, multi-tier navigation dropdowns,
-        and sharp Kadence action button.
+        and action buttons.
       </p>
 
       <div class="border border-surface-border bg-surface-sunken p-2 overflow-hidden shadow-sm">
@@ -214,10 +213,10 @@ const shellSnippet = `<TuxPortalShell
         <div class="p-5 bg-surface-raised border border-surface-border">
           <h3 class="font-bold text-text-primary text-base mb-2">Visual Alignment with Comm</h3>
           <ul class="space-y-2 list-disc pl-5">
-            <li><strong>Aggie Maroon Utility Bar:</strong> Exact color parity with <code class="text-xs">var(--brand-primary)</code> and white links.</li>
+            <li><strong>Maroon Utility Bar:</strong> Standardized with <code class="text-xs">var(--brand-primary)</code> and high-contrast links.</li>
             <li><strong>Warm Gold Underline:</strong> 2px <code class="text-xs">var(--brand-accent)</code> rule on active navigation items and breadcrumbs strip.</li>
-            <li><strong>Sharp Kadence Button:</strong> Clean 0px border radius matching the default buttons on <code class="text-xs">tti.tamu.edu</code>.</li>
-            <li><strong>Sub-Brand Lockup:</strong> Hairline divider allowing any division, research lab, or tool to sit beside the official winged-A logo.</li>
+            <li><strong>Sharp Button Profile:</strong> 0px border radius matching the standard controls on <code class="text-xs">tti.tamu.edu</code>.</li>
+            <li><strong>Sub-Brand Lockup:</strong> Hairline divider allowing any division, research lab, or tool to sit beside the official TTI logo.</li>
           </ul>
         </div>
         <div class="p-5 bg-surface-raised border border-surface-border">

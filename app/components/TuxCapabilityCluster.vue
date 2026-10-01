@@ -4,7 +4,7 @@
  *
  * Implements the distinctive circular orbital nodes seen across the public redesign:
  *   - Dark circular medallions with high-contrast white vector icons
- *   - Concentric Warm Gold and Aggie Maroon orbital halo rings
+ *   - Concentric Warm Gold and Maroon orbital halo rings
  *   - Bold capability titles and bulleted focus areas
  *   - Interactive hover elevation and touch targets >= 44px
  */
@@ -35,8 +35,8 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   title: "RESEARCH CAPABILITIES",
-  kicker: "Multidisciplinary Excellence",
-  subtitle: "TTI delivers cutting-edge, data-driven solutions across nine specialized operational disciplines.",
+  kicker: "Research Programs",
+  subtitle: "Applied research and testing capabilities across nine core transportation disciplines.",
   columns: 3,
   capabilities: () => [
     {

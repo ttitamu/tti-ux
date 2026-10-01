@@ -27,8 +27,8 @@ const snippet = `<TuxCommHero
       eyebrow="marcom & hero banners"
       title="TuxCommHero"
     >
-      The signature architectural hero slab from the new tti.tamu.edu redesign (seen on /centers and /directory).
-      Features diagonal chamfer cut, deep Aggie Maroon slab (#500000), left Warm Gold square anchor block,
+      The architectural hero slab from tti.tamu.edu (used on /centers and /directory).
+      Features diagonal chamfer cut, deep Maroon slab (#500000), left Warm Gold square anchor block,
       and 3-tier heading typography.
     </TuxPageHeader>
 
@@ -41,7 +41,7 @@ const snippet = `<TuxCommHero
           eyebrow="TEXAS A&M TRANSPORTATION INSTITUTE"
           title="RESEARCH CENTERS & CAPABILITIES"
           accent-title="SOLVING MULTIMODAL CHALLENGES FOR TEXAS & THE NATION"
-          lead="TTI is an agency of the Texas A&M University System and the largest higher-education-affiliated transportation research institute in the United States."
+          lead="Texas A&M Transportation Institute conducts transportation research, testing, and technology development for public and private sponsors."
           primary-action-text="Explore Capabilities"
           primary-action-href="#"
           secondary-action-text="Contact Leads"

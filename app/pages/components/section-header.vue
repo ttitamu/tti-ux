@@ -42,7 +42,7 @@ const sectionHeaderPresets: TuxPlaygroundPreset[] = [
   {
     name: "institutional",
     label: "Institutional Maroon & Gold",
-    description: "Signature TTI heading: Aggie Maroon title with 3px Warm Gold underline keyline",
+    description: "Signature TTI heading: Maroon title with 3px Warm Gold underline keyline",
     icon: "lucide:bookmark",
     values: {
       title: "Active Research Programs",
@@ -111,7 +111,7 @@ const subtitleVue = `<tux-section-header :level="2" subtitle="4,218 documents ac
 <template>
   <div class="space-y-10">
     <TuxPageHeader eyebrow="component" title="TuxSectionHeader">
-      The signature TTI editorial section header — ALL-CAPS Aggie Maroon title paired with a Warm Gold
+      The signature TTI editorial section header — ALL-CAPS Maroon title paired with a Warm Gold
       accent keyline rule. Reflects the institutional header rhythm found across <code>tti.tamu.edu</code>.
       Distinct from <code>heading--bold</code> and generic dividers, providing clear visual hierarchy across long documents.
     </TuxPageHeader>

@@ -3,8 +3,8 @@
  * TTI Code (Forgejo) Developer Portal Showcase.
  *
  * Demonstrates:
- *   - Developer-facing git collaboration tool branded in authentic TTI Comm language
- *   - Sharp rectangular buttons, Warm Gold keylines, and Aggie Maroon tabs
+ *   - Developer-facing git collaboration portal using TTI brand standards
+ *   - Sharp rectangular buttons, Warm Gold keylines, and Maroon tabs
  *   - 5-Band Division Spectrum badging (Connected & Automated Vehicles · #005480)
  *   - Repository file explorer, commit metadata bar, and README presentation
  *   - 100% WCAG 2.2 Level AAA compliance
@@ -377,7 +377,7 @@ async function copyCloneUrl() {
           links: [
             { label: 'Open Source Software Policy', href: '#' },
             { label: 'IT Security & Vulnerability Disclosure', href: '#' },
-            { label: 'TAMUS Research Code Repository', href: '#' },
+            { label: 'TTI Research Code Repository', href: '#' },
           ]
         }
       ]"

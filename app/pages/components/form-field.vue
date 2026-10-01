@@ -19,7 +19,7 @@ const sampleVue = computed(() => `<TuxFormField
   layout="${layout.value}"
   ${isRequired.value ? "required" : ""}
   ${showHelp.value ? 'help="Used strictly for project notification dispatches and access verification."' : ""}
-  hint="TTI / TAMUS institutional address preferred."
+  hint="Institutional @tti.tamu.edu address preferred."
   ${triggerError.value ? 'error="Enter a valid institutional email address."' : ""}
 >
   <template #default="{ inputId, ariaDescribedby, ariaInvalid, ariaRequired }">
@@ -82,7 +82,7 @@ const sampleVue = computed(() => `<TuxFormField
           :layout="layout"
           :required="isRequired"
           :help="showHelp ? 'Used strictly for project notification dispatches and access verification.' : undefined"
-          hint="TTI / TAMUS institutional address preferred."
+          hint="Institutional @tti.tamu.edu address preferred."
           :error="errorMessage"
         >
           <template #default="{ inputId, ariaDescribedby, ariaInvalid, ariaRequired }">

@@ -3,7 +3,7 @@ useHead({ title: "Select · Forms · TUX" });
 
 const tiers = [
   { label: "Public",     value: "public",     description: "Discoverable by default" },
-  { label: "Internal",   value: "internal",   description: "TAMUS-only" },
+  { label: "Internal",   value: "internal",   description: "TTI-only" },
   { label: "Sensitive",  value: "sensitive",  description: "PII / confidential" },
   { label: "Restricted", value: "restricted", description: "Export-controlled / legal" },
 ];
@@ -13,7 +13,7 @@ const sponsors = [
   { label: "FHWA",              value: "fhwa" },
   { label: "NSF",               value: "nsf" },
   { label: "NIH",               value: "nih" },
-  { label: "Texas A&M System",  value: "tamus" },
+  { label: "TTI Research Foundation", value: "tti-rf" },
   { label: "City of Bryan",     value: "bryan" },
   { label: "City of College Station", value: "cs" },
 ];
@@ -28,7 +28,7 @@ const multi = ref<typeof sponsors>([sponsors[0]!, sponsors[1]!]);
     <TuxPageHeader eyebrow="forms · primitive" title="Select">
       Single-select dropdown with optional search (combobox). Built on
       <code>USelectMenu</code>. Items can carry a <code>description</code>
-      that renders below the label — useful for the TAMUS data
+      that renders below the label — useful for TTI data
       classification tiers and any tier-coded value list.
     </TuxPageHeader>
 

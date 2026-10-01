@@ -12,57 +12,55 @@ const version = pkg.version;
 const steps = [
   {
     n: 1,
-    title: "Install + run",
-    body: "Clone the repo, npm install, npm run dev. Every page under /components is a live demo rendered by the same component your app imports.",
+    title: "Install and run",
+    body: "Clone the repository, install dependencies, and start the local development server. Component documentation routes render live from source.",
   },
   {
     n: 2,
-    title: "Read the manifesto",
-    body: "Doctrine (/design/tux) frames what tux is for, what it deliberately is not, and the editorial-research voice that shows up in tokens, motion, and copy.",
+    title: "Review system doctrine",
+    body: "The design documentation (/design/tux) defines architecture guidelines, accessibility rules, color hierarchies, and typography standards.",
   },
   {
     n: 3,
-    title: "Skim the catalog",
-    body: "Components (/components) lists every Tux* in the system. Tightly-coupled clusters (research-publishing, TTI identity, geospatial, forms wrapper) share a single demo route.",
+    title: "Explore the catalog",
+    body: "Browse individual primitives and composite patterns under /components, including form wrappers, data visualization, and publishing elements.",
   },
   {
     n: 4,
-    title: "See it composed",
-    body: "Examples (/examples) shows six real-shape pages — Landscape dashboard, research-program landing, tti-ai-studio session, research paper, TTI center landing, sidebar shell. Each composes 9-15 Tux* components.",
+    title: "Examine compositions",
+    body: "Review production layout examples under /examples — operational dashboards, research project landings, chat sessions, and publishing templates.",
   },
   {
     n: 5,
-    title: "Pin a release",
-    body: "Add `extends: [\"github:ttitamu/tti-ux#v" + version + "\"]` to your consuming app's nuxt.config.ts. You get auto-imports, tokens, themed Nuxt UI, and the markdown pipeline.",
+    title: "Configure your application",
+    body: "Extend TUX in your Nuxt application configuration to inherit design tokens, auto-imported components, and accessible defaults.",
   },
   {
     n: 6,
-    title: "Ship + report regressions",
-    body: "File issues against the GitHub repo. CHANGELOG.md is the canonical history; the home page's recent-updates feed is the glance-able version.",
+    title: "Verify accessibility",
+    body: "Run automated contrast audits and accessibility checks. TUX enforces WCAG 2.2 Level AAA color contrast across light, dark, and high-contrast modes.",
   },
 ];
 
-// Product-shape map — answers the question "what do I build this
-// system into?" The same three shapes are called out in tux.md and
-// the /examples landing copy.
+// Product-shape map — three core interface profiles
 const productShapes = [
   {
     icon: "lucide:layout-dashboard",
-    title: "Data-dense IT chrome",
-    body: "Landscape (sensitive-data classifier). Sidebar shell + KPI rows + treemap + faceted search + activity rail. Operational density at editorial-research quality.",
+    title: "Operational dashboards",
+    body: "High-density data views, table pagination, faceted filters, and responsive metrics displays designed for administrative and analysis workflows.",
     example: { label: "Landscape dashboard", to: "/examples/landscape-dashboard" },
   },
   {
     icon: "lucide:newspaper",
-    title: "Marketing / research surfaces",
-    body: "Public-facing program landings, center identity pages, published papers. Hero rhythm, factoids, testimonials, blockquotes, identity primitives, full author-byline + citation-export.",
-    example: { label: "Research-program landing", to: "/examples/research-landing" },
+    title: "Research and communications",
+    body: "Public-facing program pages, center overviews, technical reports, author bylines, and citation export tools aligned with TTI identity standards.",
+    example: { label: "Research landing", to: "/examples/research-landing" },
   },
   {
     icon: "lucide:bot",
-    title: "Chat / agent product views",
-    body: "tti-ai-studio. ChatMessage with tool calls + artifacts + branch nav + citations + context meter + composer + suggestion chips. All the AI-surface idioms TUX absorbed from Vercel + Fluent + OpenAI/Anthropic.",
-    example: { label: "tti-ai-studio session", to: "/examples/tti-ai-studio-session" },
+    title: "Conversational interfaces",
+    body: "Chat layouts, tool invocation displays, document artifacts, suggestion chips, and context meters for AI-assisted research workflows.",
+    example: { label: "TTI AI Studio session", to: "/examples/tti-ai-studio-session" },
   },
 ];
 
@@ -162,28 +160,26 @@ const consumeSnippet = [
 <template>
   <div class="space-y-12">
     <TuxPageHeader
-      eyebrow="welcome"
+      eyebrow="documentation"
       title="Getting started"
       rhythm="hero"
     >
-      A six-step tour through what tux is, how to consume it, and where
-      to go next. New visitors should read this top-to-bottom; returning
-      visitors will skim the sections that changed.
+      A guide to installing, configuring, and building with TUX design tokens and components.
       <template #actions>
-        <TuxButton intent="primary" to="/components">Browse the catalog</TuxButton>
-        <TuxButton intent="ghost" to="/design/tux">Read the manifesto</TuxButton>
+        <TuxButton intent="primary" to="/components">Browse components</TuxButton>
+        <TuxButton intent="ghost" to="/design/tux">System doctrine</TuxButton>
       </template>
     </TuxPageHeader>
 
-    <!-- Quick-fact strip — the three numbers that frame the system. -->
+    <!-- Quick-fact strip — system metrics -->
     <section>
       <TuxFactoid
         variant="default"
         :columns="3"
         :items="[
-          { value: '130+', label: 'Tux* components + 5 composables. All auto-imported.' },
-          { value: '6',    label: 'Real-shape composition examples across three product surfaces.' },
-          { value: '3',    label: 'Themes shipped (light · dark · WCAG AAA high-contrast).' },
+          { value: '183', label: 'Tux* components and composables, fully auto-imported.' },
+          { value: '12+', label: 'Composition examples across operational and public research surfaces.' },
+          { value: '3',   label: 'Themes: Light, Dark, and WCAG AAA High-Contrast.' },
         ]"
         eyebrow="At a glance"
         :title="factoidTitle"
@@ -192,7 +188,7 @@ const consumeSnippet = [
 
     <!-- The six-step tour. -->
     <section class="space-y-4">
-      <TuxSectionHeader>Six-step tour</TuxSectionHeader>
+      <TuxSectionHeader>Implementation steps</TuxSectionHeader>
       <ol class="gs-steps">
         <li
           v-for="step in steps"
@@ -210,11 +206,11 @@ const consumeSnippet = [
 
     <!-- Install + run as the first concrete how-to. -->
     <section class="space-y-3">
-      <TuxSectionHeader>1 · Install + run</TuxSectionHeader>
+      <TuxSectionHeader>1 · Install and run</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
-        Local dev surfaces every component at
-        <code>http://localhost:3030</code>. The dev server hot-reloads
-        on token edits, component edits, and showcase-page edits alike.
+        Local development serves every component at
+        <code>http://localhost:3030</code>. The development server hot-reloads
+        on token edits, component edits, and documentation updates.
       </p>
       <TuxCodeBlock
         :code="installSnippet"
@@ -225,11 +221,9 @@ const consumeSnippet = [
 
     <!-- Three product shapes. -->
     <section class="space-y-4">
-      <TuxSectionHeader>2 · Three product shapes</TuxSectionHeader>
+      <TuxSectionHeader>2 · Application profiles</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
-        tux serves three concurrent product surfaces at TTI. Each
-        example here demonstrates one shape end-to-end so consumers
-        can see the system stretched in the direction they care about.
+        TUX provides standardized patterns for three core interface types across TTI applications:
       </p>
       <TuxIconFeature :items="productShapes" :columns="3" />
     </section>
@@ -313,38 +307,29 @@ const consumeSnippet = [
       <TuxSectionHeader>6 · Theming</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
         Three themes ship: <code>tti</code> (default light),
-        <code>tti-dark</code> (warm-charcoal dark), and
+        <code>tti-dark</code> (dark), and
         <code>tti-hc</code> (WCAG AAA high-contrast). Toggle via the
-        chrome controls or set <code>data-theme</code> on
-        <code>&lt;html&gt;</code>. A sister institution themes by
-        adding a <code>[data-theme="&lt;name&gt;"]</code> block to
-        <code>app/assets/css/tokens.css</code> overriding only the
-        <code>--brand-*</code> slots — no fork required.
+        navigation controls or set <code>data-theme</code> on
+        <code>&lt;html&gt;</code>. Applications customize brand tokens via
+        <code>[data-theme]</code> selectors without modifying core component templates.
       </p>
-      <TuxCallout intent="info" title="Why three themes, not two?">
-        Dark mode is an aesthetic preference. High-contrast is an
-        accessibility option. They live on separate controls so users
-        don't get pushed through HC during casual theme switching.
+      <TuxCallout intent="info" title="Dedicated High-Contrast Mode">
+        High-contrast mode is an accessibility accommodation rather than an aesthetic preference.
+        It is controlled independently to ensure continuous compliance without unintended switches.
         See <NuxtLink to="/docs/adr/0006-separate-hc-from-casual-theme-toggle" class="link-tti">ADR-0006</NuxtLink>.
       </TuxCallout>
     </section>
 
     <!-- Platform-aware. -->
     <section class="space-y-3">
-      <TuxSectionHeader>Platform-aware</TuxSectionHeader>
+      <TuxSectionHeader>Cross-platform support</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
-        tux now ships as a <strong>Tauri desktop layer</strong> for
-        Windows 11 / macOS Tahoe / Ubuntu, with Tauri Mobile (iOS /
-        Android) on the near horizon. The brand layer stays invariant;
-        the chrome layer adapts. Platform detection is via
-        <code>useTuxPlatform()</code> — a module-singleton that sets
-        <code>[data-platform]</code> on <code>&lt;html&gt;</code>
-        post-hydration. Library-agnostic Tauri detection (no static
-        <code>@tauri-apps/api</code> import) keeps the web build slim.
+        TUX components adapt across responsive web layouts and desktop application environments (such as Tauri).
+        The underlying design tokens preserve brand hierarchy while adapting navigation chrome to the target platform.
       </p>
       <div class="flex flex-wrap gap-2">
-        <TuxButton intent="ghost" to="/design/platform-awareness">Read platform-awareness</TuxButton>
-        <TuxButton intent="ghost" to="/design/tauri-bindings">Read tauri-bindings</TuxButton>
+        <TuxButton intent="ghost" to="/design/platform-awareness">Read platform guidelines</TuxButton>
+        <TuxButton intent="ghost" to="/design/tauri-bindings">View platform bindings</TuxButton>
       </div>
     </section>
 
@@ -352,14 +337,14 @@ const consumeSnippet = [
     <section class="space-y-3">
       <TuxSectionHeader>Accessibility</TuxSectionHeader>
       <ul class="gs-bullets text-sm text-text-secondary leading-relaxed max-w-3xl">
-        <li><strong>Target:</strong> WCAG 2.2 Level AA conformance.</li>
-        <li><strong>Color contrast:</strong> verified at WCAG 2.2 Level AAA across all three themes. CI fails if any pair regresses.</li>
-        <li><strong>Motion:</strong> every animation respects <code>prefers-reduced-motion: reduce</code> and collapses to instant. Non-negotiable.</li>
-        <li><strong>Touch + gesture:</strong> every swipe action has a visible alternative (keyboard or button). Swipe-only is a screen-reader trap.</li>
+        <li><strong>Contrast standard:</strong> WCAG 2.2 Level AAA (minimum 7:1 for normal text, 4.5:1 for large text) across all themes.</li>
+        <li><strong>Keyboard navigation:</strong> all interactive primitives are fully operable via keyboard with prominent focus indicators.</li>
+        <li><strong>Reduced motion:</strong> all transitions and animations respect <code>prefers-reduced-motion: reduce</code>.</li>
+        <li><strong>Target size:</strong> interactive controls meet or exceed WCAG 2.2 touch target requirements.</li>
       </ul>
       <div class="flex flex-wrap gap-2">
-        <TuxButton intent="ghost" to="/accessibility">Read the conformance statement</TuxButton>
-        <TuxButton intent="ghost" to="/contrast-audit">View the contrast audit</TuxButton>
+        <TuxButton intent="ghost" to="/accessibility">Read accessibility statement</TuxButton>
+        <TuxButton intent="ghost" to="/contrast-audit">View contrast audit</TuxButton>
       </div>
     </section>
 
@@ -367,10 +352,7 @@ const consumeSnippet = [
     <section class="space-y-3">
       <TuxSectionHeader>Consuming from another app</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
-        Pin to a tagged release straight from GitHub. Bumping the
-        consumer's pin is how you opt in to a new tux version. Tags
-        are immutable; upgrade deliberately by bumping the
-        <code>#vX.Y.Z</code> ref.
+        Pin to a tagged release in your application configuration:
       </p>
       <TuxCodeBlock
         :code="consumeSnippet"
@@ -379,19 +361,19 @@ const consumeSnippet = [
       />
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
         See <NuxtLink to="/changelog" class="link-tti">CHANGELOG.md</NuxtLink>
-        for what each version contains.
+        for version release history.
       </p>
     </section>
 
     <TuxCTA
-      eyebrow="next stops"
-      title="Pick a thread"
-      dek="Catalog · Compositions · Roadmap. The three places contributors most often start once the tour wraps."
+      eyebrow="next steps"
+      title="Continue exploring"
+      dek="Browse components, review composition patterns, or check the project roadmap."
     >
       <template #actions>
-        <TuxButton intent="primary" size="lg" to="/components">Browse all components</TuxButton>
-        <TuxButton intent="ghost" size="lg" to="/design/compositions">Read the compositions doctrine</TuxButton>
-        <TuxButton intent="ghost" size="lg" to="/design/roadmap">See the roadmap</TuxButton>
+        <TuxButton intent="primary" size="lg" to="/components">Browse components</TuxButton>
+        <TuxButton intent="ghost" size="lg" to="/design/compositions">Composition patterns</TuxButton>
+        <TuxButton intent="ghost" size="lg" to="/design/roadmap">System roadmap</TuxButton>
       </template>
     </TuxCTA>
   </div>

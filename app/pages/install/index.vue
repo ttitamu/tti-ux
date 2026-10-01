@@ -101,7 +101,7 @@ const targets: Target[] = [
     label: "Power BI",
     path: "kit/powerbi/",
     consumer: "Power BI · Fabric",
-    blurb: "Report themes, PBIR fragments, a drop-in page shell, and the DAX module behind the in-report light/dark toggle. The largest target by some distance — 51 files — and the only one with its own setup page.",
+    blurb: "Report themes, PBIR fragments, an accessible page shell, and DAX modules supporting in-report theme toggling.",
     to: "/install/power-bi",
   },
 ];
@@ -112,18 +112,15 @@ const targets: Target[] = [
     <TuxBreadcrumbs :trail="[{ label: 'Home', to: '/' }, { label: 'Install' }]" />
 
     <TuxPageHeader eyebrow="kit" title="Install">
-      TUX ships to consumers that can't run the Nuxt layer — .NET report
-      generators, plain React apps, WordPress marcom sites, Power BI.
-      Everything below is generated from
-      <code>design/tokens.json</code> and committed, so the same token
-      edit reaches every target in one build.
+      TUX distributes tokens and assets across multiple application platforms —
+      Nuxt applications, React web apps, .NET services, WordPress sites, and Power BI dashboards.
+      All artifacts compile from <code>design/tokens.json</code> to ensure unified styling.
     </TuxPageHeader>
 
-    <TuxAlert variant="info" title="Same input, same bytes">
+    <TuxAlert variant="info" title="Deterministic Token Generation">
       <template #description>
-        These are deterministic emitters, not ports. A lock test fails CI if
-        a committed artifact drifts from its generator, so no model ever
-        transcribes a hex value into one of these files.
+        Target files are generated deterministically from <code>design/tokens.json</code>.
+        Automated tests verify that compiled artifacts match source tokens on every build.
       </template>
     </TuxAlert>
 

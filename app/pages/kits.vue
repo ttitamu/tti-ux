@@ -19,31 +19,31 @@ const kits: Kit[] = [
     slug: "aggieux",
     eyebrow: "component catalog",
     label: "AggieUX",
-    blurb: "Exhaustive ~57-family catalog organized into Foundations, Navigation, Components, Specialized, Templates. Mirrors the Texas A&M Marcom + TTI structure. Most families have all three style variants (default / bold / elegant) demonstrated. The richest reference; consult before designing a new pattern.",
+    blurb: "Reference catalog organized into Foundations, Navigation, Components, Specialized, and Templates across default, bold, and elegant style variants.",
   },
   {
     slug: "landscape",
     eyebrow: "app shape",
     label: "Landscape",
-    blurb: "The institute's sensitive-data classifier (Landscape) — sidebar nav, scans/classifiers/indices pages, compliance alerts, status badges, classifier catalog cards. The data-density end of the system: how tux composes into a research-IT product surface.",
+    blurb: "The institute's sensitive-data classifier (Landscape) — sidebar nav, scans/classifiers/indices pages, compliance alerts, status badges, classifier catalog cards.",
   },
   {
     slug: "tti-docs",
     eyebrow: "app shape",
     label: "tti-docs",
-    blurb: "The living style guide itself, rebuilt as a click-thru artifact — display-italic hero, foundations grid, BigStat institutional brag-numbers, a footer-mounted high-contrast (tti-hc) toggle. The editorial / marketing end of the system.",
+    blurb: "The living style guide rebuilt as a reference artifact — editorial hero, foundations grid, key institutional metrics, and footer-mounted high-contrast toggle.",
   },
   {
     slug: "tti-ai-chat",
     eyebrow: "app shape",
     label: "tti-ai-chat",
-    blurb: "Internal LLM chat for research staff — conversation list grouped by day, ITAR-tier compliance banner over the composer, citations block on every assistant turn, right-rail context panel with corpus / retrieval / usage stats. Shows tux primitives in a chat product context.",
+    blurb: "Internal chat interface for research staff — conversation list grouped by day, compliance banner, citations block, and context panel.",
   },
   {
     slug: "slides",
     eyebrow: "deck system",
     label: "Slides kit",
-    blurb: "A deck-stage slide system in plain HTML — title slide, content slides, factoid slide, quote slide, closer. Use as a starting point for TTI presentations that need to look like the rest of the system, not like generic PowerPoint.",
+    blurb: "A slide presentation template in plain HTML — title slide, content slides, factoid slide, quote slide, and summary layout.",
   },
 ];
 </script>
@@ -52,13 +52,9 @@ const kits: Kit[] = [
   <div class="space-y-10">
     <TuxPageHeader eyebrow="reference" title="Reference kits">
       Five static reference artifacts served from <code>/kits/&lt;name&gt;/</code>.
-      They predate the Nuxt repo and were carried over as design source: the
-      AggieUX component catalog, three application shells (Landscape,
-      tti-docs, tti-ai-chat), and a deck-stage slide system. All five render in
-      vanilla CSS + React via Babel-in-the-browser — no build step — and
-      pull <code>/colors_and_type.css</code> so they reflect the live tokens.
-      Use them to see how patterns compose; the production-grade equivalents
-      live in the <code>Tux*</code> components.
+      These prototypes illustrate pattern composition for application shells (Landscape,
+      tti-docs, tti-ai-chat) and presentation templates. Production implementations
+      should use the native <code>Tux*</code> components.
     </TuxPageHeader>
 
     <section class="grid grid-cols-1 md:grid-cols-2 gap-4">

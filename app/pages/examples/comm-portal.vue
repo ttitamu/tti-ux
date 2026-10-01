@@ -1,9 +1,9 @@
 <script setup lang="ts">
 /**
- * Comm Portal Example — Flagship showcase reproducing the new tti.tamu.edu Comm design language.
+ * Comm Portal Example — Showcase demonstrating the tti.tamu.edu design language.
  *
  * Demonstrates:
- *   - Two-tier Public Comm header with Aggie Maroon utility bar
+ *   - Two-tier public header with Maroon utility bar
  *   - Architectural Hero Slab (<TuxCommHero>) with diagonal chamfer, maroon block, left gold square
  *   - Two-tone section headers (<TuxSectionHeader variant="two-tone-rule">)
  *   - Capability Medallion Cluster (<TuxCapabilityCluster>) with concentric orbital halos
@@ -62,7 +62,7 @@ const tocItems = [
       eyebrow="TEXAS A&M TRANSPORTATION INSTITUTE"
       title="RESEARCH CENTERS & CAPABILITIES"
       accent-title="SOLVING MULTIMODAL CHALLENGES FOR TEXAS & THE NATION"
-      lead="TTI is an agency of the Texas A&M University System and the largest higher-education-affiliated transportation research institute in the United States, conducting over 700 concurrent research investigations annually."
+      lead="Texas A&M Transportation Institute conducts transportation research, testing, and technology transfer across multimodal networks, maintaining active research programs for public and private sponsors."
       primary-action-text="Explore Capabilities"
       primary-action-href="#capabilities"
       secondary-action-text="Contact Research Leads"
@@ -129,7 +129,7 @@ const tocItems = [
                   RELLIS Proving Grounds
                 </h3>
                 <p class="text-xs text-text-secondary leading-relaxed">
-                  2,000-acre world-class facility accommodating full-scale crash testing, heavy vehicle dynamic braking,
+                  2,000-acre testing complex accommodating full-scale crash testing, heavy vehicle dynamic braking,
                   and autonomous guidance sensor calibration at highway speeds.
                 </p>
               </div>

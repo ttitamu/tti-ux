@@ -26,7 +26,7 @@ const titleMap: Record<string, { title: string; blurb: string }> = {
   },
   palette: {
     title: "Palette + visual identity",
-    blurb: "TTI palette reconciliation across PPTX/PDF sources, visual identity cues to preserve, relationship to TAMUS.",
+    blurb: "TTI palette reconciliation across design assets, visual identity cues to preserve, and institutional color hierarchy.",
   },
   "unification-plan": {
     title: "Unification plan — one suite, one system",

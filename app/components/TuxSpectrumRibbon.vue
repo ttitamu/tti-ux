@@ -6,7 +6,7 @@
  * and across the new TTI Communications design system rollout.
  *
  * Bands:
- *   1. Aggie Maroon
+ *   1. TTI Maroon
  *   2. Slate Blue
  *   3. Slate Teal
  *   4. Sage Green

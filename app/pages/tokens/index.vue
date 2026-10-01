@@ -2,7 +2,7 @@
 useHead({ title: "Tokens · TUX" });
 
 const brand = [
-  { name: "tti-maroon (Aggie Maroon)", hex: "#500000", var: "--tti-maroon" },
+  { name: "tti-maroon (Maroon)",       hex: "#500000", var: "--tti-maroon" },
   { name: "tti-maroon-deep",           hex: "#3C0000", var: "--tti-maroon-deep" },
   { name: "tti-gold (Warm Gold)",       hex: "#CFA935", var: "--tti-gold" },
   { name: "tti-navy",                  hex: "#005480", var: "--tti-navy" },
@@ -12,7 +12,7 @@ const brand = [
 ];
 
 const spectrumDivisions = [
-  { division: "Crash Testing & Roadside Safety",       color: "Aggie Maroon", hex: "#500000", var: "--spectrum-maroon" },
+  { division: "Crash Testing & Roadside Safety",       color: "TTI Maroon", hex: "#500000", var: "--spectrum-maroon" },
   { division: "Network Modeling & Connected Infra",     color: "Deep Blue",    hex: "#005480", var: "--spectrum-blue" },
   { division: "Policy, Air Quality & Economic Analysis", color: "Institutional Teal", hex: "#006F79", var: "--spectrum-teal" },
   { division: "Transit Mobility & Multimodal",          color: "Forest Green", hex: "#285C4D", var: "--spectrum-green" },
@@ -20,7 +20,7 @@ const spectrumDivisions = [
 ];
 
 const semantic = [
-  { name: "brand-primary",   var: "--brand-primary",   role: "Primary action + identity (Aggie Maroon #500000)" },
+  { name: "brand-primary",   var: "--brand-primary",   role: "Primary action + identity (TTI Maroon #500000)" },
   { name: "brand-accent",    var: "--brand-accent",    role: "Warm Gold underline rules + active keylines (#CFA935)" },
   { name: "brand-secondary", var: "--brand-secondary", role: "Inline text links (Deep Blue #005480)" },
   { name: "surface-page",    var: "--surface-page",    role: "Page canvas background" },
@@ -78,7 +78,7 @@ const radii = [
           <h2 class="text-base font-bold text-text-primary m-0">Design Token Studio &amp; Playground</h2>
         </div>
         <p class="text-xs text-text-secondary m-0 max-w-2xl">
-          Live-tune corner roundness, typography, and brand colors to ensure harmony with TTI Communications brand guidelines and export directly to WordPress Kadence theme.json.
+          Adjust radii, typography, and brand colors with live preview and theme.json export.
         </p>
       </div>
       <NuxtLink
@@ -109,7 +109,7 @@ const radii = [
       <p class="eyebrow">communications identity</p>
       <h2 class="heading--bold text-xl font-bold">5-Band Division Spectrum</h2>
       <p class="mt-2 text-xs text-text-secondary max-w-2xl">
-        The official color ribbon designed by the TTI Communications team, mapping each color band directly to one of the five TTI research divisions.
+        The 5-band color ribbon maps to TTI's research divisions:
       </p>
       <TuxSpectrumRibbon height="md" class="my-4" />
       <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">

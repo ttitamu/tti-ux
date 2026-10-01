@@ -198,7 +198,7 @@ const searchDepartment = ref("all");
                 >
                   <span class="flex items-center gap-2">
                     <Icon name="lucide:clock" class="w-4 h-4 text-brand-primary" aria-hidden="true" />
-                    <span>TAMUS SSO & Timecard</span>
+                    <span>Employee SSO &amp; Timecard</span>
                   </span>
                   <Icon name="lucide:external-link" class="w-3.5 h-3.5 text-text-muted" aria-hidden="true" />
                 </a>

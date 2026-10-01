@@ -3,7 +3,7 @@
  * TuxSectionHeader — the signature TTI editorial section header.
  *
  * Implements the institutional header rhythm found across tti.tamu.edu:
- * bold Aggie Maroon title (var(--brand-primary)) paired with
+ * bold Maroon title (var(--brand-primary)) paired with
  * a signature Warm Gold accent rule (var(--brand-accent)).
  *
  * Variants:

@@ -4,7 +4,7 @@
  *
  * Wraps TuxPortalHeader, sticky navigation, optional breadcrumbs/subnav strip
  * with signature Warm Gold accent rule, full-bleed hero slot, main content
- * container with responsive width modes, floating Aggie Maroon feedback pill,
+ * container with responsive width modes, floating Maroon feedback pill,
  * and institutional TuxFooter.
  */
 import type { PortalNavItem, PortalUtilityLink } from "./TuxPortalHeader.vue";
@@ -185,7 +185,7 @@ function handleFeedbackClick() {
       <slot />
     </component>
 
-    <!-- Floating Aggie Maroon Feedback Pill -->
+    <!-- Floating Maroon Feedback Pill -->
     <div v-if="showFeedback" class="tux-portal-shell__feedback fixed bottom-6 right-6 z-40 select-none">
       <slot name="feedback">
         <button

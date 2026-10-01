@@ -24,8 +24,8 @@ const snippet = computed(() => {
       eyebrow="institutional identity"
       title="TuxSpectrumRibbon"
     >
-      The 5-band institutional brand spectrum ribbon sampled from my.tti.tamu.edu and the TTI Communications redesign.
-      Spans the five signature institutional colors: Aggie Maroon, Slate Blue, Slate Teal, Sage Green, and Warm Ochre Gold.
+      The 5-band institutional brand spectrum ribbon from my.tti.tamu.edu and TTI Communications assets.
+      Spans the five institutional division colors: TTI Maroon, Slate Blue, Slate Teal, Sage Green, and Warm Ochre Gold.
     </TuxPageHeader>
 
     <!-- Interactive Demo / Playground -->

@@ -107,7 +107,7 @@ const customVue = `<tux-cookie-consent>
         <li>Necessary cookies are implicitly accepted — no toggle.</li>
         <li>This component is a surface; analytics / marketing wiring lives in the host app.</li>
         <li>The decision persists in <code>localStorage</code>; no cookie is set by the consent prompt itself.</li>
-        <li>Compatible with the TAMUS digital-accessibility policy linked in the unified TuxFooter legal strip.</li>
+        <li>Compatible with institutional digital-accessibility guidelines linked in the unified TuxFooter legal strip.</li>
       </ul>
     </section>
   </div>

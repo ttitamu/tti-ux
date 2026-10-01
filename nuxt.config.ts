@@ -31,6 +31,11 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   telemetry: false,
 
+  app: {
+    pageTransition: { name: "page", mode: "out-in" },
+    layoutTransition: { name: "layout", mode: "out-in" },
+  },
+
   // GitHub Pages deploy.
   //
   // The site pre-renders fully at build time — no SSR worker on
@@ -101,6 +106,20 @@ export default defineNuxtConfig({
       fontsource: false,
       adobe: false,
       npm: false,
+    },
+  },
+
+  // Offline-clean, zero-remote icon bundling. Scans all templates/scripts
+  // and serves locally installed @iconify-json/lucide icons directly
+  // without external fetch dependencies.
+  icon: {
+    mode: "css",
+    serverBundle: "local",
+    clientBundle: {
+      scan: {
+        globInclude: ["**/*.{vue,jsx,tsx,ts,md,mdc,mdx}"],
+      },
+      sizeLimitKb: 0,
     },
   },
 

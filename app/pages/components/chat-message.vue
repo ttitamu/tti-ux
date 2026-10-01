@@ -1,7 +1,7 @@
 <script setup lang="ts">
 useHead({ title: "TuxChatMessage · TUX" });
 
-const basicVue = `<tux-chat-message role="user" author="Joe Aggie" timestamp="10:42:14 CDT">
+const basicVue = `<tux-chat-message role="user" author="Alex Rivera" timestamp="10:42:14 CDT">
   Summarize Q1 work-zone crash trends on TX-6.
 </tux-chat-message>
 <tux-chat-message
@@ -43,7 +43,7 @@ const citationsVue = `<tux-chat-message role="assistant" author="tti-ai" timesta
       <h2 class="heading--bold text-xl font-bold">User · Assistant pair</h2>
       <TuxExample class="mt-4" :vue="basicVue">
         <div class="border border-surface-border rounded-md overflow-hidden">
-          <TuxChatMessage role="user" author="Joe Aggie" timestamp="10:42:14 CDT">
+          <TuxChatMessage role="user" author="Alex Rivera" timestamp="10:42:14 CDT">
             Summarize Q1 work-zone crash trends on TX-6.
           </TuxChatMessage>
           <TuxChatMessage

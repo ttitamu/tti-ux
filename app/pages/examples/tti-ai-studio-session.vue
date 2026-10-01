@@ -174,7 +174,7 @@ const composerDraft = ref("");
     >
       Your scoped corpus (<code>grants-2024-2026</code>) includes
       ITAR-marked documents. Generated outputs may not be exported
-      outside TAMUS without tier-3 token verification.
+      outside TTI without tier-3 verification.
     </TuxAlert>
 
     <!-- Two-column: main chat + right rail with corpus + sessions -->

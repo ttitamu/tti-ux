@@ -212,7 +212,7 @@ export const tuxCatalog: TuxCatalogEntry[] = [
   { name: "TuxFocusView", to: "/components/focus-view", icon: "lucide:focus", family: "components", kind: "component", wraps: "Teleport + native", category: "navigation",
     blurb: "Full-viewport overlay for inspecting one piece of content — back + title + actions chrome, content slot. \\\"Open chart in focus mode.\\\"" },
   { name: "TuxFooter", to: "/components/footer", icon: "lucide:panel-bottom", family: "components", kind: "component", wraps: "tux native", category: "navigation",
-    blurb: "Unified institutional footer \\u2014 maroon marketing top (logo + address + social + columns) over the mandatory TAMUS legal strip." },
+    blurb: "Unified institutional footer \\u2014 maroon contact and resources block over accessible legal baseline." },
   { name: "TuxFootnote", to: "/components/footnote", icon: "lucide:asterisk", family: "components", kind: "component", wraps: "UPopover", category: "publishing",
     blurb: "Inline footnote reference + hover preview." },
   { name: "TuxFormField", to: "/components/form-field", icon: "lucide:text-cursor-input", family: "components", kind: "component", wraps: "tux native", category: "forms",

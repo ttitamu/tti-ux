@@ -4,7 +4,7 @@
  *
  * Replicates the exact visual composition from the flagship /centers and /directory portals:
  *   - Diagonal chamfered cool-gray canvas backdrop
- *   - Deep Aggie Maroon primary slab
+ *   - Deep Maroon primary slab
  *   - Warm Ochre Gold square anchor accent block
  *   - 3-tier heading typography (Light white line 1 + Bold white line 2 + Warm gold accent line 3)
  *   - Rectangular Kadence-style sharp action buttons

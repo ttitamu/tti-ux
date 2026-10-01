@@ -16,8 +16,7 @@ const exampleVue = `<TuxIdentity
       Institutional header lockup. Two kinds (lockup with logo / text-only),
       two orientations (horizontal / stacked), three hierarchy levels
       (institution / center / department). Pair with
-      <code>&lt;TuxFooter&gt;</code> + the mandatory TAMUS subfooter on
-      every shipped surface.
+      <code>&lt;TuxFooter&gt;</code> across all shipped surfaces.
     </TuxPageHeader>
 
     <section>

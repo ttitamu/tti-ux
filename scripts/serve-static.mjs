@@ -33,6 +33,46 @@ const MIME_TYPES = {
 
 const server = http.createServer((req, res) => {
   const urlPath = decodeURIComponent(req.url.split("?")[0]);
+
+  // Support Nuxt Icon local API endpoint for offline/air-gapped previews
+  if (urlPath.startsWith("/api/_nuxt_icon")) {
+    try {
+      const match = urlPath.match(/\/api\/_nuxt_icon\/([^/?]+)/);
+      const collectionName = match ? match[1].replace(/\.json$/, "") : "";
+      const searchParams = new URL(req.url, `http://${req.headers.host || "localhost"}`).searchParams;
+      const iconsParam = searchParams.get("icons") || "";
+      const iconNames = iconsParam ? iconsParam.split(",") : [];
+
+      const iconPkgPath = path.join(ROOT, "node_modules", "@iconify-json", collectionName || "lucide", "icons.json");
+      if (fs.existsSync(iconPkgPath)) {
+        const collectionData = JSON.parse(fs.readFileSync(iconPkgPath, "utf8"));
+        const iconsSubset = {};
+        for (const name of iconNames) {
+          if (collectionData.icons && collectionData.icons[name]) {
+            iconsSubset[name] = collectionData.icons[name];
+          } else if (collectionData.aliases && collectionData.aliases[name]) {
+            iconsSubset[name] = collectionData.aliases[name];
+          }
+        }
+        const responseData = {
+          prefix: collectionName || "lucide",
+          icons: Object.keys(iconsSubset).length ? iconsSubset : collectionData.icons,
+          width: collectionData.width,
+          height: collectionData.height,
+        };
+        res.writeHead(200, {
+          "Content-Type": "application/json; charset=utf-8",
+          "Cache-Control": "public, max-age=604800, immutable",
+          "Access-Control-Allow-Origin": "*",
+        });
+        res.end(JSON.stringify(responseData));
+        return;
+      }
+    } catch (err) {
+      console.error("Error serving local icon API:", err);
+    }
+  }
+
   let filePath = path.join(PUBLIC_DIR, urlPath);
 
   // If path is a directory or has no extension, look for index.html or .html

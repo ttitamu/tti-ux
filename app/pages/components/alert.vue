@@ -78,12 +78,12 @@ const alertPresets: TuxPlaygroundPreset[] = [
   {
     name: "compliance",
     label: "Compliance Mandate",
-    description: "Solid Aggie Maroon callout for legal or export control governance",
+    description: "Solid Maroon callout for legal or export control governance",
     icon: "lucide:shield-alert",
     values: {
       variant: "compliance",
       title: "ITAR Regulated Research Asset",
-      description: "Access to this telemetry pipeline requires TAMUS institutional authentication.",
+      description: "Access to this telemetry pipeline requires TTI institutional authentication.",
       icon: "lucide:shield-alert",
       close: false,
     },

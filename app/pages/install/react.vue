@@ -72,7 +72,7 @@ const portedComponents = [
   },
   {
     name: "TuxBigStat",
-    description: "Hero KPI metric displays with trend badges, prefixes, suffixes, subtext, and Aggie Maroon branding.",
+    description: "Hero KPI metric displays with trend badges, prefixes, suffixes, subtext, and TTI Maroon branding.",
     props: "value, label, tone, prefix, suffix, trend, trendLabel, subtext",
   },
   {
@@ -157,12 +157,12 @@ const portedComponents = [
   },
   {
     name: "TuxBreadcrumbs",
-    description: "Page-depth navigation trail with Aggie Maroon home crumb, italic intermediate links, responsive pipe/chevron separators, and landmark accessibility.",
+    description: "Page-depth navigation trail with Maroon home crumb, italic intermediate links, responsive pipe/chevron separators, and landmark accessibility.",
     props: "trail, homeIcon, chevron, ariaLabel",
   },
   {
     name: "TuxSectionHeader",
-    description: "TTI editorial section heading with bold Aggie Maroon typography, signature 3px Warm Gold underline rule, and optional kicker eyebrow.",
+    description: "TTI editorial section heading with bold Maroon typography, signature 3px Warm Gold underline rule, and optional kicker eyebrow.",
     props: "level, title, subtitle, kicker, variant, children",
   },
   {

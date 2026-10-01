@@ -9,9 +9,11 @@ import { tuxCatalog, catalogByCategory, catalogByVizCategory, type TuxCatalogFam
 import { tuxTokensCatalog } from "./utils/tuxTokensCatalog";
 import type { Command, CommandGroup } from "./components/TuxCommandPalette.vue";
 
+const pkgVersion = pkg.version;
 const colorMode = useColorMode();
 const route = useRoute();
 const router = useRouter();
+const toast = useTuxToast();
 
 // Header theme toggle now lives inside TuxUtilityCluster (light ↔ dark
 // only). High-contrast stays a footer affordance per ADR-0006.
@@ -146,6 +148,136 @@ watchEffect(() => {
 const currentArea = computed(() => {
   return highLevelAreas.find((a) => a.id === activeAreaId.value) || highLevelAreas[0];
 });
+
+// Top navigation sliding active indicator state & physics
+const navLinksRefs = ref<Record<string, HTMLElement>>({});
+const navContainerRef = ref<HTMLElement | null>(null);
+const indicatorReady = ref(false);
+const pillMetrics = ref({ left: 0, width: 0, height: 0, top: 0 });
+
+function setNavLinkRef(id: string, el: any) {
+  if (el) {
+    navLinksRefs.value[id] = el.$el || el;
+  }
+}
+
+function updateNavIndicator() {
+  const activeEl = navLinksRefs.value[currentArea.value.id];
+  const container = navContainerRef.value;
+  if (!activeEl || !container) return;
+
+  const activeRect = activeEl.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+
+  pillMetrics.value = {
+    left: activeRect.left - containerRect.left,
+    width: activeRect.width,
+    top: activeRect.top - containerRect.top,
+    height: activeRect.height,
+  };
+  indicatorReady.value = true;
+}
+
+watch(() => currentArea.value.id, () => {
+  nextTick(updateNavIndicator);
+});
+
+const navPillStyle = computed(() => {
+  if (!indicatorReady.value || pillMetrics.value.width === 0) {
+    return { opacity: 0 };
+  }
+  return {
+    transform: `translate3d(${pillMetrics.value.left}px, ${pillMetrics.value.top}px, 0)`,
+    width: `${pillMetrics.value.width}px`,
+    height: `${pillMetrics.value.height}px`,
+    opacity: 1,
+  };
+});
+
+const navUnderlineStyle = computed(() => {
+  if (!indicatorReady.value || pillMetrics.value.width === 0) {
+    return { opacity: 0 };
+  }
+  const inset = 8;
+  const width = Math.max(16, pillMetrics.value.width - (inset * 2));
+  const left = pillMetrics.value.left + inset;
+  return {
+    transform: `translate3d(${left}px, 0, 0)`,
+    width: `${width}px`,
+    opacity: 1,
+  };
+});
+
+// Version Switcher Dropdown & Visual Era Simulation
+const selectedVersion = ref<string>(`v${pkgVersion}`);
+const versionMenuOpen = ref(false);
+const versionDropdownRef = ref<HTMLElement | null>(null);
+
+const releases = [
+  {
+    version: "v3.0.0",
+    title: "Comm Rebrand & Tokens",
+    era: "Modern Marcom Rebrand · 5-Band Spectrum & Sharp Geometry",
+    badge: "Current",
+    badgeClass: "bg-wash-brand-12 text-brand-primary border border-brand-primary/20",
+    route: "/",
+  },
+  {
+    version: "v2.2.0",
+    title: "Batch M Visualizations",
+    era: "Batch M Era · Maroon & Gold Keylines with Rounded Geometry",
+    badge: "LTS",
+    badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
+    route: "/changelog#220",
+  },
+  {
+    version: "v2.1.0",
+    title: "Ops Board & Telemetry",
+    era: "Operational Telemetry Era · High-Density CRT & Emerald Accents",
+    badge: "Stable",
+    badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
+    route: "/changelog#210",
+  },
+  {
+    version: "v2.0.0",
+    title: "Nuxt 4 / Tailwind v4",
+    era: "Core Architecture Era · Neutral Minimal Monochrome",
+    badge: "Archive",
+    badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
+    route: "/changelog#200",
+  },
+  {
+    version: "v1.8.0",
+    title: "Web Components Core",
+    era: "Legacy Components Era · Retro Pill Buttons & Gradient Headers",
+    badge: "Legacy",
+    badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
+    route: "/changelog#180",
+  },
+];
+
+const activeRelease = computed(() => {
+  return releases.find((r) => r.version === selectedVersion.value) || releases[0];
+});
+
+function selectVersion(ver: typeof releases[0]) {
+  versionMenuOpen.value = false;
+  selectedVersion.value = ver.version;
+  if (typeof window !== "undefined") {
+    window.sessionStorage.setItem("tux-preview-version", ver.version);
+    document.documentElement.setAttribute("data-tux-version", ver.version.replace(/^v/, ""));
+  }
+  toast.info(
+    `Visual Era: ${ver.version}`,
+    `${ver.title} — ${ver.era}`
+  );
+}
+
+function handleGlobalClick(event: MouseEvent) {
+  if (versionDropdownRef.value && !versionDropdownRef.value.contains(event.target as Node)) {
+    versionMenuOpen.value = false;
+  }
+}
 
 const showAllAreasInSidebar = ref(false);
 
@@ -285,6 +417,7 @@ const navTree = [
       { label: "  · Research landing", to: "/examples/research-landing", icon: "lucide:milestone" },
       { label: "  · Sidebar shell", to: "/examples/sidebar-shell", icon: "lucide:panel-left" },
       { label: "  · tti-ai-studio session", to: "/examples/tti-ai-studio-session", icon: "lucide:bot" },
+      { label: "  · Error boundaries", to: "/examples/error-pages", icon: "lucide:alert-octagon" },
       { label: "Patterns", to: "/patterns", icon: "lucide:layers-2" },
       { label: "Reference designs", to: "/kits", icon: "lucide:archive" },
     ],
@@ -337,9 +470,32 @@ watch(() => route.fullPath, () => {
 });
 
 // Auto-collapse sidebar on builder/admin pages on desktop for maximum workspace
+// and initialize window listeners for navigation indicators and version dropdown
 onMounted(() => {
   if (isFullWidth.value && typeof window !== "undefined" && window.innerWidth >= 768) {
     desktopSidebarCollapsed.value = true;
+  }
+  if (typeof window !== "undefined") {
+    const saved = window.sessionStorage.getItem("tux-preview-version");
+    if (saved && releases.some((r) => r.version === saved)) {
+      selectedVersion.value = saved;
+      document.documentElement.setAttribute("data-tux-version", saved.replace(/^v/, ""));
+    } else {
+      document.documentElement.setAttribute("data-tux-version", pkgVersion);
+    }
+    window.addEventListener("click", handleGlobalClick);
+    window.addEventListener("resize", updateNavIndicator);
+    nextTick(() => {
+      updateNavIndicator();
+      setTimeout(updateNavIndicator, 150);
+    });
+  }
+});
+
+onUnmounted(() => {
+  if (typeof window !== "undefined") {
+    window.removeEventListener("click", handleGlobalClick);
+    window.removeEventListener("resize", updateNavIndicator);
   }
 });
 
@@ -350,7 +506,6 @@ const paletteRef = ref<{ open: (initialTab?: string) => void; close: () => void 
 const shortcutsHelpRef = ref<{ open: () => void; close: () => void; toggle: () => void } | null>(null);
 
 const { setFramework } = useTuxFramework();
-const toast = useTuxToast();
 
 const actionCommands: Command[] = [
   {
@@ -571,10 +726,6 @@ defineShortcuts({
   "g-h": () => router.push("/"),
 });
 
-// Version surfaced in the header pill + welcome page. Sourced from
-// package.json (imported at the top of this file).
-const pkgVersion = pkg.version;
-
 // Marketing-footer config — mirrors the comm-team's Kadence footer
 // for tti.tamu.edu so consumers (Landscape, ai-studio, marcom pages,
 // this style guide) inherit the production handles and link
@@ -616,7 +767,7 @@ const footerColumns = [
   {
     heading: "Policies",
     links: [
-      { label: "TAMUS Risk, Fraud & Misconduct Hotline", href: "https://secure.ethicspoint.com/domain/media/en/gui/19681/index.html" },
+      { label: "Risk, Fraud & Misconduct Hotline", href: "https://secure.ethicspoint.com/domain/media/en/gui/19681/index.html" },
       { label: "Digital Accessibility",       href: "https://tti.tamu.edu/notices-policies/accessibility-policy/" },
       { label: "Site Policies",               href: "https://tti.tamu.edu/notices-policies/" },
       { label: "Open Records Policy",         href: "https://tti.tamu.edu/notices-policies/open-records-policy/" },
@@ -625,7 +776,7 @@ const footerColumns = [
       { label: "Veterans",                    href: "https://tti.tamu.edu/notices-policies/veterans/" },
       { label: "Equal Opportunity",           href: "https://tti.tamu.edu/jobs/commitment-to-equal-opportunity/" },
       { label: "Jobs",                        href: "https://tti.tamu.edu/jobs/" },
-      { label: "Accessibility (WCAG 2.2 AA · AAA contrast)", to: "/accessibility" },
+      { label: "Accessibility (WCAG 2.2 Level AAA)", to: "/accessibility" },
     ],
   },
 ];
@@ -660,6 +811,42 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
     </template>
 
     <div v-else class="min-h-screen flex flex-col bg-surface-eggshell text-text-primary">
+      <!-- Historical Visual Era Simulation Notice Banner -->
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="opacity-0 -translate-y-2"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 -translate-y-2"
+      >
+        <div
+          v-if="selectedVersion !== `v${pkgVersion}`"
+          class="tux-archive-banner bg-amber-500/10 dark:bg-amber-500/15 border-b border-amber-500/30 px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-3 text-text-primary sticky top-0 z-40 backdrop-blur-md"
+        >
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center justify-center px-1.5 py-0.5 rounded-none bg-amber-600 text-white font-mono font-bold text-[10px]">
+              {{ selectedVersion }}
+            </span>
+            <span>
+              Previewing visual era tokens for <strong>TUX {{ selectedVersion }}</strong> ({{ activeRelease.title }} · {{ activeRelease.era }}).
+            </span>
+          </div>
+          <div class="flex items-center gap-3">
+            <NuxtLink :to="activeRelease.route" class="text-text-secondary hover:text-brand-primary underline text-xs">
+              Changelog notes
+            </NuxtLink>
+            <button
+              type="button"
+              class="px-2.5 py-1 text-xs font-mono font-bold bg-brand-primary text-text-inverse rounded-none hover:bg-brand-primary-deep transition-colors cursor-pointer border-0 shadow-xs"
+              @click="selectVersion(releases[0])"
+            >
+              Restore v{{ pkgVersion }} (Latest)
+            </button>
+          </div>
+        </div>
+      </Transition>
+
       <header
         class="tti-shell-header bg-surface-raised sticky top-0 z-30"
         role="banner"
@@ -688,12 +875,99 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
               href="/"
               :logo-size="32"
             />
-            <div
-              class="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-mono font-semibold bg-surface-sunken border border-surface-border text-text-muted"
-              :title="`tti-ux v${pkgVersion} // Core online`"
-            >
-              <span class="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse" />
-              <span>SYS // v{{ pkgVersion }}</span>
+            <!-- Version Switcher Dropdown -->
+            <div ref="versionDropdownRef" class="relative hidden sm:inline-block">
+              <button
+                type="button"
+                class="tux-version-switcher-btn inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono font-semibold bg-surface-sunken hover:bg-surface-raised border border-surface-border hover:border-brand-primary/40 text-text-secondary hover:text-text-primary transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-brand-primary"
+                :aria-expanded="versionMenuOpen"
+                aria-haspopup="true"
+                aria-label="Select system release version"
+                @click="versionMenuOpen = !versionMenuOpen"
+              >
+                <span
+                  class="w-1.5 h-1.5 rounded-full"
+                  :class="selectedVersion === `v${pkgVersion}` ? 'bg-status-ok' : 'bg-status-warning animate-pulse'"
+                />
+                <span class="font-bold text-text-primary">{{ selectedVersion }}</span>
+                <span
+                  class="text-[9px] uppercase tracking-wide font-bold px-1 rounded"
+                  :class="selectedVersion === `v${pkgVersion}` ? 'text-brand-primary bg-wash-brand-12' : 'text-amber-700 dark:text-amber-300 bg-amber-500/15'"
+                >
+                  {{ selectedVersion === `v${pkgVersion}` ? 'latest' : 'simulated' }}
+                </span>
+                <UIcon name="lucide:chevron-down" class="w-3.5 h-3.5 text-text-muted transition-transform duration-200" :class="{ 'rotate-180': versionMenuOpen }" />
+              </button>
+
+              <!-- Dropdown Popover Menu -->
+              <Transition
+                enter-active-class="transition duration-150 ease-out"
+                enter-from-class="opacity-0 translate-y-1 scale-95"
+                enter-to-class="opacity-100 translate-y-0 scale-100"
+                leave-active-class="transition duration-100 ease-in"
+                leave-from-class="opacity-100 translate-y-0 scale-100"
+                leave-to-class="opacity-0 translate-y-1 scale-95"
+              >
+                <div
+                  v-if="versionMenuOpen"
+                  class="tux-version-menu absolute left-0 top-full mt-1.5 w-64 bg-surface-raised border border-surface-border shadow-xl z-50 py-1.5 focus:outline-none"
+                  role="menu"
+                  aria-orientation="vertical"
+                >
+                  <div class="px-3 py-1.5 border-b border-surface-border text-[10px] font-mono uppercase tracking-widest text-text-muted flex items-center justify-between">
+                    <span>TUX Release History</span>
+                    <span class="text-brand-primary font-bold">SemVer 2.0</span>
+                  </div>
+
+                  <div class="py-1">
+                    <button
+                      v-for="ver in releases"
+                      :key="ver.version"
+                      type="button"
+                      class="w-full text-left px-3 py-1.5 flex items-center justify-between text-xs hover:bg-surface-sunken transition-colors cursor-pointer group"
+                      :class="ver.version === selectedVersion ? 'text-brand-primary font-bold bg-wash-brand-8' : 'text-text-secondary'"
+                      @click="selectVersion(ver)"
+                    >
+                      <div class="flex items-center gap-2">
+                        <UIcon
+                          :name="ver.version === selectedVersion ? 'lucide:check-circle' : 'lucide:circle'"
+                          class="w-3.5 h-3.5"
+                          :class="ver.version === selectedVersion ? 'text-brand-primary' : 'text-text-muted group-hover:text-text-secondary'"
+                        />
+                        <span class="font-mono">{{ ver.version }}</span>
+                        <span v-if="ver.badge" class="text-[9px] font-mono px-1 py-0.2 rounded" :class="ver.badgeClass">
+                          {{ ver.badge }}
+                        </span>
+                      </div>
+                      <span class="text-[11px] text-text-muted group-hover:text-text-secondary">{{ ver.title }}</span>
+                    </button>
+                  </div>
+
+                  <div class="border-t border-surface-border my-1" />
+
+                  <NuxtLink
+                    to="/changelog"
+                    class="w-full text-left px-3 py-1.5 flex items-center gap-2 text-xs text-text-secondary hover:text-brand-primary hover:bg-surface-sunken transition-colors no-underline"
+                    @click="versionMenuOpen = false"
+                  >
+                    <UIcon name="lucide:scroll-text" class="w-3.5 h-3.5" />
+                    <span>View Full Changelog</span>
+                  </NuxtLink>
+                  <a
+                    href="https://github.com/ttitamu/tti-ux/releases"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="w-full text-left px-3 py-1.5 flex items-center justify-between text-xs text-text-secondary hover:text-brand-primary hover:bg-surface-sunken transition-colors no-underline"
+                    @click="versionMenuOpen = false"
+                  >
+                    <div class="flex items-center gap-2">
+                      <UIcon name="lucide:github" class="w-3.5 h-3.5" />
+                      <span>Release Archives</span>
+                    </div>
+                    <UIcon name="lucide:external-link" class="w-3 h-3 text-text-muted" />
+                  </a>
+                </div>
+              </Transition>
             </div>
           </div>
 
@@ -711,11 +985,30 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
             </select>
           </div>
 
-          <!-- Desktop High-Level Area Switcher (lg+) -->
-          <nav class="hidden lg:flex items-center gap-1.5 ml-3" aria-label="Primary areas">
+          <!-- Desktop High-Level Area Switcher (lg+) with sliding indicator -->
+          <nav
+            ref="navContainerRef"
+            class="tux-top-nav hidden lg:flex items-center gap-1.5 ml-3 relative"
+            aria-label="Primary areas"
+          >
+            <!-- Sliding active pill highlight -->
+            <div
+              class="tux-nav-sliding-pill"
+              :style="navPillStyle"
+              aria-hidden="true"
+            />
+
+            <!-- Sliding active underline indicator -->
+            <div
+              class="tux-nav-sliding-underline"
+              :style="navUnderlineStyle"
+              aria-hidden="true"
+            />
+
             <NuxtLink
               v-for="area in highLevelAreas"
               :key="area.id"
+              :ref="(el) => setNavLinkRef(area.id, el)"
               :to="area.to"
               class="tux-top-nav-link"
               :class="{ 'tux-top-nav-link--active': currentArea.id === area.id }"
@@ -820,16 +1113,11 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
         </main>
       </div>
 
-      <!-- Dogfood: real TuxFooter + mandatory TAMUS subfooter. The
+      <!-- Dogfood: real TuxFooter. The
            high-contrast toggle is an opt-in accessibility control, not
-           a chrome theme — it lives in the footer's #extra slot so
+           a chrome theme — it lives in the footer's #preferences slot so
            users don't get pushed through it during casual theme
            switching (see ADR-0006). -->
-      <!-- Unified institutional footer — maroon marketing top + black
-           legal strip in one component. Same shape across Landscape,
-           tti-ai-studio, marcom pages, and the style guide itself.
-           HC toggle slots into #preferences (accessibility-as-
-           compliance per ADR-0006). -->
       <TuxFooter
         :columns="footerColumns"
         :social="footerSocial"
@@ -919,8 +1207,45 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
   pointer-events: none;
 }
 
+.tux-nav-sliding-pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: var(--radius-sm);
+  background: var(--wash-brand-12);
+  pointer-events: none;
+  z-index: 1;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              width 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              height 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.15s ease;
+  will-change: transform, width;
+}
+
+.tux-nav-sliding-underline {
+  position: absolute;
+  bottom: -9px;
+  left: 0;
+  height: 2px;
+  background: var(--brand-accent, #CFA935);
+  pointer-events: none;
+  z-index: 2;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              width 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.15s ease;
+  will-change: transform, width;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tux-nav-sliding-pill,
+  .tux-nav-sliding-underline {
+    transition: none !important;
+  }
+}
+
 .tux-top-nav-link {
   position: relative;
+  z-index: 3;
   display: inline-flex;
   align-items: center;
   padding: 0.375rem 0.625rem;
@@ -931,29 +1256,25 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
   text-transform: uppercase;
   color: var(--text-secondary);
   border-radius: var(--radius-sm);
-  transition: all var(--motion-fast) var(--ease-standard);
+  transition: color var(--motion-fast) var(--ease-standard);
   text-decoration: none;
+  background: transparent;
 }
 
 .tux-top-nav-link:hover {
   color: var(--text-primary);
-  background: var(--surface-sunken);
 }
 
 .tux-top-nav-link--active {
   color: var(--brand-primary);
-  background: var(--wash-brand-12);
 }
 
-.tux-top-nav-link--active::after {
-  content: "";
-  position: absolute;
-  bottom: -9px;
-  left: 0.5rem;
-  right: 0.5rem;
-  height: 2px;
-  background: var(--brand-accent, #CFA935);
-  border-radius: 0;
+.tux-version-switcher-btn {
+  font-feature-settings: "tnum";
+}
+
+.tux-version-menu {
+  border-radius: var(--radius-md);
 }
 
 .tux-header-search-btn {

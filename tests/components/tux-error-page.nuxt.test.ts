@@ -12,18 +12,50 @@ describe("TuxErrorPage Component", () => {
     });
 
     expect(wrapper.text()).toContain("404");
-    expect(wrapper.text()).toContain("Page not found");
-    expect(wrapper.text()).toContain("Back to home");
+    expect(wrapper.text()).toContain("Page Not Found");
+    expect(wrapper.text()).toContain("Return to Home");
+    expect(wrapper.text()).toContain("Browse Component Lab");
 
     const violations = await runComponentAxe(wrapper.element);
     expect(violations).toEqual([]);
   });
 
-  it("renders 500 server error preset with custom support slot", async () => {
+  it("renders 401 authentication required preset", async () => {
+    const wrapper = await mountSuspended(TuxErrorPage, {
+      props: {
+        code: "401",
+      },
+    });
+
+    expect(wrapper.text()).toContain("401");
+    expect(wrapper.text()).toContain("Authentication Required");
+    expect(wrapper.text()).toContain("Sign in with TTI Account");
+
+    const violations = await runComponentAxe(wrapper.element);
+    expect(violations).toEqual([]);
+  });
+
+  it("renders 503 maintenance preset", async () => {
+    const wrapper = await mountSuspended(TuxErrorPage, {
+      props: {
+        code: "503",
+      },
+    });
+
+    expect(wrapper.text()).toContain("503");
+    expect(wrapper.text()).toContain("Service Under Scheduled Maintenance");
+    expect(wrapper.text()).toContain("Check System Health");
+
+    const violations = await runComponentAxe(wrapper.element);
+    expect(violations).toEqual([]);
+  });
+
+  it("renders 500 server error preset with custom support slot and diagnostic details", async () => {
     const wrapper = await mountSuspended(TuxErrorPage, {
       props: {
         code: "500",
         inline: true,
+        details: "Error: Connection timeout at cluster.tti.tamu.edu:9443",
       },
       slots: {
         support: () => "<p class='support-note'>Contact TTI IT Operations at support@tti.tamu.edu</p>",
@@ -31,7 +63,8 @@ describe("TuxErrorPage Component", () => {
     });
 
     expect(wrapper.text()).toContain("500");
-    expect(wrapper.text()).toContain("Something went wrong on our end");
+    expect(wrapper.text()).toContain("Internal System Error");
+    expect(wrapper.text()).toContain("Error: Connection timeout at cluster.tti.tamu.edu:9443");
     expect(wrapper.text()).toContain("Contact TTI IT Operations at support@tti.tamu.edu");
     expect(wrapper.find(".tux-error-page--inline").exists()).toBe(true);
 
@@ -46,8 +79,8 @@ describe("TuxErrorPage Component", () => {
         title: "Restricted Corridor Telemetry",
         lede: "Access to this telemetry pipeline requires TAMUS research credentials.",
         actions: [
-          { label: "Request Clearance", to: "/clearance", intent: "primary" },
-          { label: "Return to Dashboard", to: "/dashboard", intent: "ghost" },
+          { label: "Request Clearance", to: "/tokens", intent: "primary" },
+          { label: "Return to Dashboard", to: "/", intent: "ghost" },
         ],
       },
     });

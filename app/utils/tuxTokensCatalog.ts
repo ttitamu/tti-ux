@@ -105,7 +105,7 @@ export const tuxTokensCatalog: TuxTokenEntry[] = [
     cleanName: "spectrum-maroon",
     value: "#701D35",
     category: "brand",
-    description: "Institutional spectrum band 1 — Aggie Maroon (my.tti.tamu.edu).",
+    description: "Institutional spectrum band 1 — Maroon (my.tti.tamu.edu).",
     isColor: true,
   },
   {

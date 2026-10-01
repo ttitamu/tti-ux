@@ -74,7 +74,7 @@ const projects = [
   {
     id: "tti-arterial-ai",
     title: "Adaptive Urban Signal Synchronization",
-    sponsor: "Texas A&M University System",
+    sponsor: "Texas A&M Transportation Institute",
     district: "Bryan / College Station",
     detectors: "64 intersections",
     status: "Evaluation",

@@ -13,32 +13,32 @@ const version = pkg.version;
 const recentUpdates = [
   {
     date: "2026-10-01",
-    title: "TUX 3.0 & Comm Brand Transformation",
-    body: "Harmonized TUX and operational suites (Atlas, Landscape, Forgejo/Code, AI Studio) with the official TTI Communications identity: 5-band spectrum ribbon, warm eggshell surface wash (#F9F9F7), Warm Gold navigation keylines, and sharp button geometry.",
+    title: "TUX 3.0 Release",
+    body: "Aligned component styles with the TTI Communications identity: 5-band spectrum ribbon, warm eggshell surfaces, Warm Gold rules, and sharp buttons.",
     to: "/examples/comm-portal",
   },
   {
     date: "2026-09-30",
-    title: "100% Component Health & Census Milestone (183 Suites)",
-    body: "Achieved 100% unit test and in-component Axe coverage across all 183 components in the system census. All 183 components elevated to Tier 1 · Verified (Score >= 80). Tier 2 and Tier 3 completely extinguished.",
+    title: "Component Test Coverage",
+    body: "Automated unit tests and Axe-core accessibility checks for all 183 components. 0 violations.",
     to: "/components/health",
   },
   {
     date: "2026-09-28",
-    title: "Turnkey WordPress & Kadence Integration",
-    body: "Shipped the Kadence child theme (packages/wordpress/kadence-child-tti) and tti-ux-core plugin v3.0.0 with Gutenberg block patterns, instant WCAG AAA bridge enqueuing, and live shortcodes.",
+    title: "WordPress & Kadence Support",
+    body: "Added Kadence child theme and TTI core plugin with Gutenberg patterns and WCAG AAA stylesheet.",
     to: "/install/wordpress",
   },
   {
     date: "2026-09-27",
-    title: "W3C WCAG 2.2 Level AAA Architecture & Zero-JS Bridge",
-    body: "Engineered tux-bridge.css and scripts/audit-wcag-aaa.mjs to mathematically enforce >= 7.0:1 text contrast, >= 44px touch targets, and >= 3px dual-ring focus appearance across all legacy and modern surfaces.",
+    title: "WCAG 2.2 Level AAA Stylesheet",
+    body: "Added tux-bridge.css and audit scripts for 7.0:1 text contrast, 44px touch targets, and 3px focus indicators.",
     to: "/examples/legacy-bridge",
   },
   {
     date: "2026-09-20",
-    title: "Interactive Design Token Studio & Playground",
-    body: "Built the real-time token customizer at /tokens/playground with live theme previews, two-way URL state sharing, and one-click JSON/Kadence theme.json export.",
+    title: "Token Studio",
+    body: "Interactive editor for inspecting and adjusting CSS tokens with JSON export.",
     to: "/tokens/playground",
   },
 ];
@@ -70,19 +70,17 @@ const catalogCount = `${tuxComponentCount}`;
         </h1>
         <span class="welcome-hero__rule" aria-hidden="true" />
         <p class="welcome-hero__lede">
-          The living institutional design system and component architecture for the
-          Texas A&amp;M Transportation Institute, aligning digital products with
-          the TTI Communications redesign and certified for <strong>WCAG 2.2 Level AAA</strong>.
+          The design system and component library for the Texas A&amp;M Transportation Institute.
+          Engineered for Nuxt 4, Tailwind v4, and WCAG 2.2 Level AAA accessibility.
         </p>
         <p class="welcome-hero__body">
-          Powering institutional suites across TTI: <strong>Atlas</strong> (security &amp; policy audit),
-          <strong>TTI Code / Forgejo</strong> (Git developer portal), <strong>Landscape</strong> (operations telemetry),
-          <strong>TTI AI Studio</strong> (research assistant), <strong>MyTTI Intranet</strong>, and
-          <strong>WordPress Kadence</strong> research centers.
+          Used across TTI web applications and tools, including Atlas (compliance audit),
+          TTI Code (Git hosting), Landscape (telemetry), TTI AI Studio, MyTTI Intranet,
+          and WordPress sites.
         </p>
         <div class="welcome-hero__actions">
           <NuxtLink to="/components" class="welcome-cta welcome-cta--primary">
-            <span>Browse 183 Components</span>
+            <span>Components (183)</span>
             <Icon name="lucide:arrow-right" class="welcome-cta-icon" aria-hidden="true" />
           </NuxtLink>
           <NuxtLink to="/components/health" class="welcome-cta">
@@ -104,19 +102,19 @@ const catalogCount = `${tuxComponentCount}`;
           <p class="welcome-hero__meta-label">Stack</p>
           <p class="welcome-hero__meta-value">Nuxt 4 · Tailwind v4 · Vue 3.5</p>
 
-          <p class="welcome-hero__meta-label">Operational Suites</p>
+          <p class="welcome-hero__meta-label">Applications</p>
           <p class="welcome-hero__meta-value">Atlas · Forgejo · Landscape · AI Studio · MyTTI</p>
 
           <p class="welcome-hero__meta-label">Component Census</p>
-          <p class="welcome-hero__meta-value">183 components (100% Tier 1 Verified)</p>
+          <p class="welcome-hero__meta-value">183 components (100% verified)</p>
 
           <p class="welcome-hero__meta-label">Accessibility</p>
-          <p class="welcome-hero__meta-value">100% W3C WCAG 2.2 Level AAA (0 Violations)</p>
+          <p class="welcome-hero__meta-value">WCAG 2.2 Level AAA (0 violations)</p>
 
           <p class="welcome-hero__meta-label">Brand Palette</p>
-          <p class="welcome-hero__meta-value">Aggie Maroon (#500000) · 5-Band Spectrum</p>
+          <p class="welcome-hero__meta-value">TTI Maroon (#500000) · 5-Band Spectrum</p>
         </div>
-        <span class="welcome-hero__glyph" aria-hidden="true">A</span>
+        <span class="welcome-hero__glyph" aria-hidden="true">T</span>
       </div>
     </section>
 
@@ -124,9 +122,9 @@ const catalogCount = `${tuxComponentCount}`;
     <section>
       <p class="eyebrow">at a glance</p>
       <div class="welcome-updates-header">
-        <h2 class="heading--bold text-2xl font-bold">Comm Brand Visual Identity</h2>
+        <h2 class="heading--bold text-2xl font-bold">Visual Identity</h2>
         <NuxtLink to="/tokens" class="welcome-updates-changelog">
-          <span>Full token reference</span>
+          <span>Token reference</span>
           <Icon name="lucide:arrow-right" class="welcome-cta-icon" aria-hidden="true" />
         </NuxtLink>
       </div>
@@ -134,48 +132,48 @@ const catalogCount = `${tuxComponentCount}`;
         <NuxtLink to="/tokens" class="welcome-glance__tile welcome-glance__tile--maroon">
           <p class="welcome-glance__label">brand · primary</p>
           <p class="welcome-glance__value welcome-glance__value--mono">#500000</p>
-          <p class="welcome-glance__caption">Aggie Maroon (Comm Anchor)</p>
+          <p class="welcome-glance__caption">TTI Maroon</p>
         </NuxtLink>
         <NuxtLink to="/tokens" class="welcome-glance__tile welcome-glance__tile--gold">
           <p class="welcome-glance__label">brand · accent</p>
           <p class="welcome-glance__value welcome-glance__value--mono">#CFA935</p>
-          <p class="welcome-glance__caption">Warm Gold (Signature Rules)</p>
+          <p class="welcome-glance__caption">Warm Gold</p>
         </NuxtLink>
         <NuxtLink to="/tokens" class="welcome-glance__tile">
           <p class="welcome-glance__label">spectrum · 5 divisions</p>
           <div class="mt-1 flex h-6 w-full rounded-none overflow-hidden border border-surface-border">
             <span class="flex-1 bg-[#500000]" title="Crash Testing & Roadside Safety" />
-            <span class="flex-1 bg-[#005480]" title="Network Modeling & Connected Infra" />
+            <span class="flex-1 bg-[#005480]" title="Network Modeling & Connected Infrastructure" />
             <span class="flex-1 bg-[#006F79]" title="Policy & Economic Analysis" />
             <span class="flex-1 bg-[#285C4D]" title="Transit Mobility & Multimodal" />
             <span class="flex-1 bg-[#CFA935]" title="Human Factors & Automated Vehicles" />
           </div>
-          <p class="welcome-glance__caption">Official 5-Band Division Ribbon</p>
+          <p class="welcome-glance__caption">5-Band Division Ribbon</p>
         </NuxtLink>
         <NuxtLink to="/components/badge" class="welcome-glance__tile">
-          <p class="welcome-glance__label">component · live</p>
+          <p class="welcome-glance__label">component · badge</p>
           <div class="welcome-glance__live">
             <TuxBadge tier="sensitive">L3 · sensitive</TuxBadge>
             <TuxBadge status="completed">active</TuxBadge>
           </div>
-          <p class="welcome-glance__caption">TuxBadge — sharp Kadence profile</p>
+          <p class="welcome-glance__caption">TuxBadge — sharp profile</p>
         </NuxtLink>
         <NuxtLink to="/components/alert" class="welcome-glance__tile welcome-glance__tile--wide">
-          <p class="welcome-glance__label">component · live</p>
+          <p class="welcome-glance__label">component · alert</p>
           <div class="welcome-glance__live welcome-glance__live--full">
             <TuxAlert
               variant="tip"
-              title="WCAG 2.2 Level AAA Certified."
+              title="WCAG 2.2 Level AAA Compliant"
             >
-              Every component qualifies at >= 7.0:1 text contrast, >= 44px touch targets,
-              and 3px high-contrast dual-ring focus appearance.
+              Components provide &gt;= 7.0:1 text contrast, &gt;= 44px touch targets,
+              and 3px focus rings.
             </TuxAlert>
           </div>
         </NuxtLink>
         <NuxtLink to="/components/health" class="welcome-glance__tile">
-          <p class="welcome-glance__label">telemetry · census</p>
+          <p class="welcome-glance__label">coverage · census</p>
           <p class="welcome-glance__value welcome-glance__value--mono text-brand-primary">183 / 183</p>
-          <p class="welcome-glance__caption">100% Tested · 0 Untested Gaps</p>
+          <p class="welcome-glance__caption">Automated Unit &amp; Axe Tests</p>
         </NuxtLink>
       </div>
     </section>
@@ -184,10 +182,10 @@ const catalogCount = `${tuxComponentCount}`;
       <p class="eyebrow">recent updates</p>
       <div class="welcome-updates-header">
         <h2 class="heading--bold text-2xl font-bold">What's new</h2>
-        <a href="https://github.com/anthonyguevara/tti-ux-test/blob/main/CHANGELOG.md" target="_blank" rel="noopener" class="welcome-updates-changelog">
+        <NuxtLink to="/changelog" class="welcome-updates-changelog">
           <span>Full changelog</span>
-          <Icon name="lucide:external-link" class="welcome-cta-icon" aria-hidden="true" />
-        </a>
+          <Icon name="lucide:arrow-right" class="welcome-cta-icon" aria-hidden="true" />
+        </NuxtLink>
       </div>
       <ul class="welcome-updates">
         <li v-for="u in recentUpdates" :key="u.title" class="welcome-update">
@@ -201,60 +199,58 @@ const catalogCount = `${tuxComponentCount}`;
     </section>
 
     <section>
-      <p class="eyebrow">operational suites &amp; comm portals</p>
+      <p class="eyebrow">examples &amp; layouts</p>
       <div class="welcome-updates-header">
-        <h2 class="heading--bold text-2xl font-bold">Flagship Operational Showcases</h2>
+        <h2 class="heading--bold text-2xl font-bold">Application Examples</h2>
         <NuxtLink to="/examples" class="welcome-updates-changelog">
-          <span>View all 14 examples</span>
+          <span>View all 15 examples</span>
           <Icon name="lucide:arrow-right" class="welcome-cta-icon" aria-hidden="true" />
         </NuxtLink>
       </div>
       <p class="mt-2 max-w-3xl text-text-secondary leading-relaxed">
-        TUX powers the mission-critical applications across the Texas A&amp;M Transportation Institute.
-        Each turnkey showcase assembles dozens of primitives into real-shape institutional products
-        styled in complete harmony with the TTI Communications redesign:
+        Reference implementations demonstrating how components assemble into complete TTI applications:
       </p>
       <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <TuxCard to="/examples/atlas">
           <p class="eyebrow text-brand-primary">internal suite · governance</p>
           <h3 class="text-lg font-bold">Atlas Security &amp; Policy Audit</h3>
           <p class="mt-1 text-xs text-text-secondary">
-            M365, Azure, NIST 800-171, and CJIS compliance portal with 5-band spectrum facts banner, 6-tile governance launcher, findings table, and milestone calendar.
+            Compliance and policy audit console with findings ledger, telemetry metrics, and milestone schedule.
           </p>
         </TuxCard>
         <TuxCard to="/examples/forgejo-code">
           <p class="eyebrow text-brand-primary">developer tool · git</p>
           <h3 class="text-lg font-bold">TTI Code (Forgejo) Developer Portal</h3>
           <p class="mt-1 text-xs text-text-secondary">
-            Institutional self-hosted Git server: repository browser, pull requests, CAV division badge, clone drawer, and README well in eggshell wash.
+            Self-hosted Git repository interface with file browser, pull requests, clone modal, and README display.
           </p>
         </TuxCard>
         <TuxCard to="/examples/comm-portal">
           <p class="eyebrow text-brand-primary">public marcom · tti.tamu.edu</p>
-          <h3 class="text-lg font-bold">Comm Redesign Showcase</h3>
+          <h3 class="text-lg font-bold">Communications Portal</h3>
           <p class="mt-1 text-xs text-text-secondary">
-            Exact replication of the new tti.tamu.edu public website: architectural hero, 5-band spectrum facts, capability node cluster, and sticky TOC.
+            Public site layout matching tti.tamu.edu: header ribbon, division spectrum, capability cluster, and section navigation.
           </p>
         </TuxCard>
         <TuxCard to="/examples/intranet-dashboard">
           <p class="eyebrow text-brand-primary">employee intranet · my.tti</p>
           <h3 class="text-lg font-bold">MyTTI Intranet Dashboard</h3>
           <p class="mt-1 text-xs text-text-secondary">
-            Exact replication of my.tti.tamu.edu: charcoal header, MY APPS off-canvas drawer launcher, 6-tile service grid, green date calendar rows, and notices.
+            Intranet layout matching my.tti.tamu.edu: navigation header, application drawer, service grid, calendar, and notices.
           </p>
         </TuxCard>
         <TuxCard to="/examples/landscape-dashboard">
           <p class="eyebrow text-brand-primary">operations telemetry · it</p>
           <h3 class="text-lg font-bold">Landscape Operations Dashboard</h3>
           <p class="mt-1 text-xs text-text-secondary">
-            Statewide telemetry monitoring: spectrum division color coding, rectangular Kadence buttons, treemap data viz, and compliance alerts.
+            Telemetry monitoring console with division tags, data tables, treemap visualization, and status alerts.
           </p>
         </TuxCard>
         <TuxCard to="/examples/tti-ai-studio-session">
           <p class="eyebrow text-brand-primary">research assistant · ai</p>
           <h3 class="text-lg font-bold">TTI AI Studio Session</h3>
           <p class="mt-1 text-xs text-text-secondary">
-            Transportation LLM chat interface: prompt suggestion chips, live citations, model selector badges, and context window telemetry.
+            Research chat interface with prompt chips, reference citations, model selector, and telemetry details.
           </p>
         </TuxCard>
       </div>
@@ -409,8 +405,8 @@ const catalogCount = `${tuxComponentCount}`;
 }
 
 /* Right-side maroon panel — diagonal hash overlay matches the
-   slides kit's "stack" hash. The big italic A glyph is a faint
-   echo of TAMUS identity at low opacity. */
+   slides kit's "stack" hash. The big italic T glyph is a faint
+   echo of TTI identity at low opacity. */
 .welcome-hero__panel {
   position: relative;
   background: var(--brand-primary);

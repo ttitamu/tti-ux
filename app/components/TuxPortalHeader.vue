@@ -2,7 +2,7 @@
 /**
  * TuxPortalHeader — Two-Tier Institutional Header matching tti.tamu.edu & my.tti.tamu.edu.
  *
- * Tier 1: Aggie Maroon utility bar with official agency mark, quick links,
+ * Tier 1: Maroon utility bar with official agency mark, quick links,
  *         and search trigger.
  * Tier 2: Crisp brand ribbon with TTI winged-A logo, sub-brand / portal title,
  *         multi-level primary navigation dropdowns, active underline indicator,
@@ -90,7 +90,7 @@ const props = withDefaults(defineProps<Props>(), {
   intranetApps: () => [
     { label: "App Catalog", href: "https://my.tti.tamu.edu/app-catalog/", description: "Directory of all TTI web apps & internal services", icon: "lucide:layout-grid" },
     { label: "People Finder", href: "https://my.tti.tamu.edu/directory/", description: "Staff directory, phone numbers, and office locations", icon: "lucide:users" },
-    { label: "Timecard (SSO)", href: "https://sso.tamus.edu/", description: "TAMUS Single Sign-On, Workday, and Leave balances", icon: "lucide:clock" },
+    { label: "Timecard (SSO)", href: "https://sso.tamus.edu/", description: "Employee Single Sign-On, Workday, and leave balances", icon: "lucide:clock" },
     { label: "Concur Travel", href: "https://sso.tamus.edu/", description: "Travel authorization, booking, and expense reports", icon: "lucide:plane" },
     { label: "Facilities & Safety", href: "https://my.tti.tamu.edu/fss/", description: "Work orders, building access, and incident reporting", icon: "lucide:shield-check" },
     { label: "IT Helpdesk", href: "https://my.tti.tamu.edu/it/", description: "Technical support, ticket tracking, and software requests", icon: "lucide:life-buoy" },
@@ -177,7 +177,7 @@ function handleActionClick(event: MouseEvent) {
     :class="{ 'sticky top-0 shadow-sm': sticky }"
     @keydown.escape="closeDropdowns"
   >
-    <!-- TIER 1: Utility Bar (Comm: Aggie Maroon / Intranet: Editorial Charcoal) -->
+    <!-- TIER 1: Utility Bar (Comm: Maroon / Intranet: Editorial Charcoal) -->
     <div
       class="tux-portal-header__utility text-text-inverse text-xs select-none transition-colors"
       :class="mode === 'intranet' ? 'bg-neutral-900' : 'bg-brand-primary'"
