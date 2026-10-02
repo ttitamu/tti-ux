@@ -2,22 +2,18 @@
 /**
  * TuxScrollTop — EmDash-inspired circular reading-progress scroll-to-top button.
  *
- * Tracks the current viewport scroll depth and renders a clockwise SVG radial
- * progress ring. Appears gracefully once scroll passes `threshold`, and smoothly
- * scrolls back to the top on click or keyboard activation.
- *
- * Hardware-Accelerated Hybrid CSS & Vector SVG Architecture:
- * - Native CSS circular surface with GPU box-shadow eliminates rasterization filter blur.
- * - Concentric SVG radial ring (r=22.75, stroke-width=2.5) perfectly aligns with the
- *   physical 48px circle boundary (22.75 + 1.25 = 24.0), eliminating double-borders,
- *   white halos, and subpixel stair-stepping across light, dark, and brand-colored surfaces.
- * - Locked center coordinates (24, 24) guarantee optical alignment on all displays.
+ * Direct EmDash CMS 1.0 architecture adapted for TUX:
+ * - 48×48px physical geometry (WCAG 2.2 Level AAA touch target >=44px).
+ * - Inset concentric reading progress gauge (r=20, stroke-width=2.5) nested cleanly
+ *   within the white circular disc, matching Cloudflare's refined EmDash dial design.
+ * - Precision Phosphor vector arrow, optically centered at (24, 24).
+ * - Hardware-accelerated elevation (var(--elevation-overlay)) with zero software-raster artifacts.
  *
  * Accessibility (WCAG 2.2 Level AAA):
  * - Target size: 48×48px (exceeds >=44px AAA requirement).
  * - Full keyboard support (Enter / Space activation).
  * - High-contrast indicators (>=7:1 against surrounding surface).
- * - Respects `prefers-reduced-motion` for instant scroll when preferred.
+ * - Respects prefers-reduced-motion for instant scroll when preferred.
  */
 
 interface Props {
@@ -41,8 +37,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const progress = ref(0);
 const isVisible = ref(false);
-const radius = 22.75;
-const circumference = 2 * Math.PI * radius; // ~142.942
+const radius = 20;
+const circumference = 2 * Math.PI * radius; // ~125.664
 
 const dashOffset = computed(() => {
   const p = Math.min(100, Math.max(0, progress.value));
@@ -105,7 +101,7 @@ onUnmounted(() => {
     :tabindex="isVisible ? 0 : -1"
     @click="scrollToTop"
   >
-    <!-- Pure Vector SVG Component -->
+    <!-- Direct EmDash 1.0 Vector SVG Architecture -->
     <svg
       class="tux-scroll-top__svg tux-scroll-top__ring"
       viewBox="0 0 48 48"
@@ -114,12 +110,13 @@ onUnmounted(() => {
       shape-rendering="geometricPrecision"
       aria-hidden="true"
     >
-      <!-- Background track ring -->
+      <!-- Background track ring (inset dial) -->
       <circle
         class="tux-scroll-top__track"
         cx="24"
         cy="24"
         :r="radius"
+        stroke-width="2.5"
       />
 
       <!-- Clockwise reading progress ring -->
@@ -128,22 +125,21 @@ onUnmounted(() => {
         cx="24"
         cy="24"
         :r="radius"
+        stroke-width="2.5"
+        stroke-linecap="round"
         :stroke-dasharray="circumference"
         :stroke-dashoffset="dashOffset"
         transform="rotate(-90 24 24)"
       />
 
-      <!-- Optically centered crisp vector arrow -->
-      <g
-        class="tux-scroll-top__arrow"
-        stroke="currentColor"
-        stroke-width="2.25"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <line x1="24" y1="16.5" x2="24" y2="31.5" />
-        <polyline points="17.5 22.5, 24 16.5, 30.5 22.5" fill="none" />
-      </g>
+      <!-- Precision EmDash Phosphor arrow icon -->
+      <svg x="14" y="14" width="20" height="20" viewBox="0 0 256 256">
+        <path
+          class="tux-scroll-top__arrow"
+          fill="currentColor"
+          d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"
+        />
+      </svg>
     </svg>
   </button>
 </template>
@@ -164,20 +160,14 @@ onUnmounted(() => {
   justify-content: center;
   cursor: pointer;
   color: var(--text-primary);
-  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, color 0.15s ease, background-color 0.15s ease;
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, color 0.15s ease;
   user-select: none;
   outline: none;
 }
 
 .tux-scroll-top:hover {
   transform: translateY(-2px);
-  background: var(--surface-sunken);
-  color: var(--brand-primary);
   box-shadow: var(--elevation-overlay);
-}
-
-[data-theme="tti-dark"] .tux-scroll-top:hover {
-  color: var(--brand-accent);
 }
 
 .tux-scroll-top:active {
@@ -214,13 +204,13 @@ onUnmounted(() => {
 .tux-scroll-top--visible {
   opacity: 1;
   pointer-events: auto;
-  transform: scale(1);
+  transform: translateY(0);
 }
 
 .tux-scroll-top--hidden {
   opacity: 0;
   pointer-events: none;
-  transform: scale(0.8) translateY(12px);
+  transform: translateY(8px);
 }
 
 /* SVG Vector Elements */
@@ -234,16 +224,13 @@ onUnmounted(() => {
 .tux-scroll-top__track {
   fill: none;
   stroke: var(--surface-border);
-  stroke-width: 2.5;
   opacity: 0.9;
 }
 
 .tux-scroll-top__indicator {
   fill: none;
   stroke: var(--brand-primary);
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.1s linear;
+  transition: stroke-dashoffset 0.15s linear;
 }
 
 [data-theme="tti-dark"] .tux-scroll-top__indicator {
@@ -252,20 +239,16 @@ onUnmounted(() => {
 
 .tux-scroll-top__arrow {
   transition: transform 0.2s ease;
-  transform-origin: 24px 24px;
+  transform-origin: 128px 128px;
 }
 
 .tux-scroll-top:hover .tux-scroll-top__arrow {
-  transform: translateY(-1.5px);
+  transform: translateY(-8px);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tux-scroll-top {
-    transition: none;
-  }
-  .tux-scroll-top__indicator {
-    transition: none;
-  }
+  .tux-scroll-top,
+  .tux-scroll-top__indicator,
   .tux-scroll-top__arrow {
     transition: none;
   }
