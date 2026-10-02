@@ -1,7 +1,7 @@
 /**
  * tuxEChartsGallery.ts — Comprehensive ECharts storytelling presets for TTI-UX 3.0.
  *
- * Implements 22 institutional, transportation-research-grade visualizations:
+ * Implements 32 institutional, transportation-research-grade visualizations:
  * 1. basicPieRose — Modal Split & Fleet Transition (Nightingale Rose / Pie)
  * 2. parliament — Legislative Appropriations Committee Seating Layout
  * 3. survey — 5-Point Likert Diverging Stacked Bar (Public Opinion on AVs & Tolling)
@@ -24,6 +24,16 @@
  * 20. radarAlternatives — High-Capacity Transit Alternatives Multi-Criteria Evaluation
  * 21. boxplotReliability — Texas Commercial Freight Corridors Travel Time Index Reliability
  * 22. borderGateways — Texas International Commercial Ports of Entry Throughput & Queue
+ * 23. parallelTelemetry — Connected Autonomous Vehicle Multi-Axis CAN-Bus Sensor Telemetry
+ * 24. graphAviation — Texas Commercial Air Cargo Logistics & Inter-Hub Aviation Network
+ * 25. candlestickToll — Managed Express Lanes Dynamic Congestion Toll Rate Volatility
+ * 26. gulfMaritime — Texas Deep-Water Ports Annual Cargo Tonnage & Maritime Logistics
+ * 27. bridgeDeterioration — National Bridge Inventory Structural Deck Rating 75-Year Lifecycle
+ * 28. drilldownMorph — TxDOT Unified Transportation Program Statewide-to-Project Drilldown
+ * 29. timespaceShockwave — Freeway Corridor Vehicle Trajectory Time-Space Diagram & Shockwave Propagation
+ * 30. fundamentalDiagram — Macroscopic Traffic Flow: Speed-Flow-Density Fundamental Equilibrium Curves
+ * 31. carbonEmissions — Texas Multimodal Transportation GHG Emissions & Decarbonization Roadmap
+ * 32. transitEquity — Demographic Transit Equity Disparity: Vehicle Ownership vs Transit Walkshed
  */
 
 import type { EChartsCoreOption } from "echarts";
@@ -1783,6 +1793,869 @@ export const GALLERY_PRESETS: GalleryPreset[] = [
           data: [42, 65, 52, 34, 38],
           lineStyle: { width: 3, color: "#EE9B00" },
           itemStyle: { color: "#EE9B00", borderWidth: 2 },
+        },
+      ],
+    }),
+  },
+
+  // 23. PARALLEL: CONNECTED VEHICLE MULTI-AXIS SENSOR TELEMETRY
+  {
+    id: "parallel-telemetry",
+    title: "Connected Autonomous Vehicle Multi-Axis CAN-Bus Sensor Telemetry",
+    category: "realtime",
+    categoryLabel: "Real-Time & Racing",
+    eyebrow: "EXHIBIT 5.1 · SENSOR DATA STREAM",
+    subtitle: "High-dimensional multivariate correlation across speed, headway distance, deceleration, steering, friction, and latency",
+    source: "TTI Proving Grounds at RELLIS · Automated Vehicle Cooperative Driving System",
+    story: "Parallel coordinates chart illustrating the multivariate safety envelope of connected vehicle platoons. Interactive brush filtering along any axis reveals immediate correlations between pavement friction coefficients and required braking deceleration rates.",
+    height: "460px",
+    ariaTitle: "Connected vehicle parallel coordinates telemetry chart",
+    ariaSummary: "Displays multi-attribute sensor profiles across 6 continuous dimensions for 15 platoon vehicle trajectory samples, highlighting safe headway envelopes between 1.2s and 2.8s under variable pavement friction.",
+    getOption: (isDark) => ({
+      tooltip: {
+        padding: 10,
+        backgroundColor: isDark ? "#171717" : "#FFFFFF",
+        borderColor: isDark ? "#383838" : "#E5E5E5",
+      },
+      parallelAxis: [
+        { dim: 0, name: "Speed (MPH)", min: 20, max: 80 },
+        { dim: 1, name: "Headway (s)", min: 0.5, max: 4.0 },
+        { dim: 2, name: "Decel (m/s²)", min: 0, max: 8.0 },
+        { dim: 3, name: "Steer Angle (°)", min: -25, max: 25 },
+        { dim: 4, name: "Friction (μ)", min: 0.2, max: 0.9 },
+        { dim: 5, name: "V2X Latency (ms)", min: 2, max: 30 },
+      ],
+      parallel: {
+        left: "5%",
+        right: "12%",
+        bottom: "12%",
+        top: "16%",
+        parallelAxisDefault: {
+          type: "value",
+          nameLocation: "end",
+          nameGap: 16,
+          nameTextStyle: {
+            color: isDark ? "#E5E7EB" : "#374151",
+            fontFamily: "var(--font-mono)",
+            fontSize: 11,
+          },
+          axisLine: {
+            lineStyle: { color: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)" },
+          },
+          axisLabel: {
+            color: isDark ? "#9CA3AF" : "#6B7280",
+            fontFamily: "var(--font-mono)",
+            fontSize: 10,
+          },
+        },
+      },
+      series: [
+        {
+          name: "Platoon Telemetry Ensembles",
+          type: "parallel",
+          lineStyle: {
+            width: 2.2,
+            opacity: 0.65,
+            color: isDark ? "#A02D20" : "#500000",
+          },
+          data: [
+            [72, 1.4, 1.2, 2.1, 0.82, 8.4],
+            [68, 1.6, 0.8, -1.2, 0.78, 9.1],
+            [65, 1.8, 0.5, 0.4, 0.85, 7.8],
+            [74, 1.2, 2.8, 4.5, 0.74, 11.2],
+            [58, 2.2, 1.4, -3.2, 0.68, 14.5],
+            [48, 2.6, 4.8, 8.2, 0.45, 18.2],
+            [35, 3.1, 6.2, -12.4, 0.38, 22.4],
+            [70, 1.5, 1.1, 1.8, 0.81, 8.9],
+            [69, 1.7, 0.9, -0.8, 0.79, 9.6],
+            [71, 1.3, 1.9, 3.2, 0.75, 10.4],
+            [62, 2.0, 1.8, -2.1, 0.65, 12.8],
+            [54, 2.4, 3.5, 6.8, 0.52, 16.1],
+            [42, 2.9, 5.4, -8.6, 0.41, 19.8],
+            [76, 1.1, 3.2, 5.6, 0.72, 12.1],
+            [66, 1.9, 0.7, 0.2, 0.84, 8.2],
+          ],
+        },
+      ],
+    }),
+  },
+
+  // 24. GRAPH: TEXAS INTER-CITY AIR CARGO & AVIATION NETWORK
+  {
+    id: "graph-aviation",
+    title: "Texas Commercial Air Cargo Logistics & Inter-Hub Aviation Network",
+    category: "spatial",
+    categoryLabel: "Spatial & Maps",
+    eyebrow: "EXHIBIT 5.2 · MULTIMODAL AIR LOGISTICS",
+    subtitle: "Air cargo flux, flight connectivity, and network centrality across primary Texas airport hubs",
+    source: "Texas Airport System Plan (TASP) & Federal Aviation Administration (FAA)",
+    story: "Network graph representing commercial freight and flight connectivity across Texas metropolitan airports. Node dimensions scale by daily air cargo tonnage, with directional edge curves indicating freight flight frequencies between DFW, Houston (IAH), Austin, and border logistics hubs.",
+    height: "480px",
+    ariaTitle: "Texas aviation network topology graph",
+    ariaSummary: "DFW and IAH serve as primary super-hubs processing over 2,400 daily tons of air freight, connected to regional hubs at Austin, San Antonio, and El Paso.",
+    getOption: (isDark) => ({
+      tooltip: {
+        formatter: (params: any) => {
+          if (params.dataType === "edge") {
+            return `<strong>${params.data.source} ↔ ${params.data.target}</strong><br/>Air Freight: <strong>${params.data.value} tons / day</strong>`;
+          }
+          return `<strong>${params.name} (${params.data.code})</strong><br/>Daily Freight: <strong>${params.value} tons</strong><br/>Centrality Tier: <strong>${params.data.tier}</strong>`;
+        },
+      },
+      series: [
+        {
+          type: "graph",
+          layout: "circular",
+          circular: { rotateLabel: true },
+          roam: true,
+          label: {
+            show: true,
+            position: "right",
+            formatter: "{b}",
+            fontFamily: "var(--font-display)",
+            fontWeight: "bold",
+            color: isDark ? "#F3F4F6" : "#1F2937",
+          },
+          edgeSymbol: ["none", "arrow"],
+          edgeSymbolSize: 7,
+          edgeLabel: {
+            fontSize: 10,
+            fontFamily: "var(--font-mono)",
+          },
+          data: [
+            { name: "Dallas/Fort Worth Int'l", code: "DFW", value: 1450, symbolSize: 52, tier: "Global Gateway Hub", itemStyle: { color: isDark ? "#A02D20" : "#500000" } },
+            { name: "Houston Intercontinental", code: "IAH", value: 1180, symbolSize: 46, tier: "Global Gateway Hub", itemStyle: { color: isDark ? "#A02D20" : "#500000" } },
+            { name: "Austin-Bergstrom Int'l", code: "AUS", value: 420, symbolSize: 32, tier: "Large Commercial Hub", itemStyle: { color: "#005F73" } },
+            { name: "San Antonio Int'l", code: "SAT", value: 380, symbolSize: 30, tier: "Medium Commercial Hub", itemStyle: { color: "#005F73" } },
+            { name: "El Paso International", code: "ELP", value: 290, symbolSize: 26, tier: "Border Logistics Hub", itemStyle: { color: "#CA6702" } },
+            { name: "Laredo International", code: "LRD", value: 240, symbolSize: 24, tier: "Air Cargo Specialist", itemStyle: { color: "#EE9B00" } },
+            { name: "Valley International", code: "HRL", value: 160, symbolSize: 20, tier: "Regional Feeder", itemStyle: { color: "#0A9396" } },
+          ],
+          links: [
+            { source: "Dallas/Fort Worth Int'l", target: "Houston Intercontinental", value: 480, lineStyle: { width: 4.5, color: isDark ? "#A02D20" : "#500000", curveness: 0.2 } },
+            { source: "Dallas/Fort Worth Int'l", target: "Austin-Bergstrom Int'l", value: 260, lineStyle: { width: 3, color: "#005F73", curveness: 0.2 } },
+            { source: "Dallas/Fort Worth Int'l", target: "San Antonio Int'l", value: 210, lineStyle: { width: 2.5, color: "#005F73", curveness: 0.2 } },
+            { source: "Dallas/Fort Worth Int'l", target: "El Paso International", value: 190, lineStyle: { width: 2.2, color: "#CA6702", curveness: 0.2 } },
+            { source: "Houston Intercontinental", target: "Austin-Bergstrom Int'l", value: 180, lineStyle: { width: 2.2, color: "#005F73", curveness: 0.2 } },
+            { source: "Houston Intercontinental", target: "San Antonio Int'l", value: 165, lineStyle: { width: 2, color: "#005F73", curveness: 0.2 } },
+            { source: "Houston Intercontinental", target: "Laredo International", value: 120, lineStyle: { width: 1.8, color: "#EE9B00", curveness: 0.2 } },
+            { source: "San Antonio Int'l", target: "Laredo International", value: 95, lineStyle: { width: 1.5, color: "#EE9B00", curveness: 0.2 } },
+            { source: "Austin-Bergstrom Int'l", target: "El Paso International", value: 85, lineStyle: { width: 1.4, color: "#CA6702", curveness: 0.2 } },
+          ],
+        },
+      ],
+    }),
+  },
+
+  // 25. CANDLESTICK: MANAGED EXPRESS TOLL PRICING VOLATILITY
+  {
+    id: "candlestick-toll",
+    title: "Managed Express Lanes Dynamic Congestion Toll Rate Volatility",
+    category: "realtime",
+    categoryLabel: "Real-Time & Racing",
+    eyebrow: "EXHIBIT 5.3 · DYNAMIC CONGESTION PRICING",
+    subtitle: "Hourly price distribution (Open, High, Low, Close) responding to real-time traffic density algorithms",
+    source: "North Central Texas Council of Governments (NCTCOG) & TEXpress Operations",
+    story: "Candlestick chart documenting variable congestion pricing on the I-635 LBJ TEXpress lanes. Tolls dynamically adapt in 5-minute increments to preserve minimum 50 MPH corridor speeds, surging from off-peak $0.35/mi up to $1.85/mi during acute peak congestion.",
+    height: "440px",
+    ariaTitle: "Managed lane dynamic toll candlestick chart",
+    ariaSummary: "Toll rates range from an off-peak base of $0.30/mi between midnight and 5:00 AM, spiking to a peak of $1.85/mi between 17:00 and 18:00.",
+    getOption: (isDark) => ({
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "cross" },
+      },
+      grid: { left: "8%", right: "6%", bottom: "12%", top: "12%" },
+      xAxis: {
+        type: "category",
+        data: [
+          "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
+          "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
+          "18:00", "19:00", "20:00", "21:00",
+        ],
+        axisLabel: { fontFamily: "var(--font-mono)", fontSize: 11 },
+      },
+      yAxis: {
+        type: "value",
+        name: "Toll Rate ($ / Mile)",
+        min: 0,
+        max: 2.0,
+        axisLabel: { formatter: "${value}", fontFamily: "var(--font-mono)" },
+        splitLine: {
+          lineStyle: {
+            color: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+          },
+        },
+      },
+      series: [
+        {
+          name: "Hourly Toll Rate",
+          type: "candlestick",
+          // [open, close, lowest, highest]
+          data: [
+            [0.35, 0.65, 0.30, 0.75],
+            [0.65, 1.45, 0.60, 1.60],
+            [1.45, 1.75, 1.30, 1.85],
+            [1.75, 1.10, 0.95, 1.80],
+            [1.10, 0.70, 0.65, 1.15],
+            [0.70, 0.75, 0.60, 0.85],
+            [0.75, 0.85, 0.70, 0.95],
+            [0.85, 0.80, 0.70, 0.90],
+            [0.80, 0.95, 0.75, 1.10],
+            [0.95, 1.30, 0.90, 1.45],
+            [1.30, 1.65, 1.25, 1.75],
+            [1.65, 1.85, 1.55, 1.95],
+            [1.85, 1.40, 1.30, 1.90],
+            [1.40, 0.85, 0.75, 1.45],
+            [0.85, 0.55, 0.50, 0.90],
+            [0.55, 0.40, 0.35, 0.60],
+          ],
+          itemStyle: {
+            color: isDark ? "#A02D20" : "#500000",
+            color0: "#005F73",
+            borderColor: isDark ? "#A02D20" : "#500000",
+            borderColor0: "#005F73",
+          },
+        },
+      ],
+    }),
+  },
+
+  // 26. GULF MARITIME: TEXAS DEEP-WATER PORTS WATERBORNE FREIGHT
+  {
+    id: "gulf-maritime",
+    title: "Texas Deep-Water Ports Annual Cargo Tonnage & Maritime Logistics",
+    category: "spatial",
+    categoryLabel: "Spatial & Maps",
+    eyebrow: "EXHIBIT 5.4 · MARITIME INFRASTRUCTURE",
+    subtitle: "Total waterborne trade volume (Million Short Tons) and average vessel queue dwell time",
+    source: "US Army Corps of Engineers (USACE) Waterborne Commerce Statistics Center & Port Authorities",
+    story: "Multi-metric review of Texas's critical international maritime gateways. Port of Houston ranks #1 in the nation with 287 million short tons of foreign and domestic commerce, supported by deep-water export facilities in Corpus Christi, Beaumont, and Freeport.",
+    height: "460px",
+    ariaTitle: "Texas Gulf ports cargo tonnage chart",
+    ariaSummary: "Port of Houston leads all US ports at 287 million tons, followed by Corpus Christi (187M), Beaumont (85M), Freeport (42M), Galveston (14M), and Brownsville (12M).",
+    getOption: (isDark) => ({
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "shadow" },
+      },
+      legend: {
+        data: ["Annual Cargo (Million Tons)", "Vessel Channel Dwell (Hours)"],
+        top: 5,
+        textStyle: { fontFamily: "var(--font-display)" },
+      },
+      grid: { left: "4%", right: "4%", bottom: "10%", top: "14%", containLabel: true },
+      xAxis: {
+        type: "category",
+        data: [
+          "Port of Houston\n(Harris)",
+          "Port of Corpus Christi\n(Nueces)",
+          "Port of Beaumont\n(Jefferson)",
+          "Port of Freeport\n(Brazoria)",
+          "Port of Galveston\n(Galveston)",
+          "Port of Brownsville\n(Cameron)",
+        ],
+        axisLabel: { fontFamily: "var(--font-display)", fontSize: 11 },
+      },
+      yAxis: [
+        {
+          type: "value",
+          name: "Million Tons",
+          min: 0,
+          max: 320,
+        },
+        {
+          type: "value",
+          name: "Dwell Time (Hours)",
+          min: 0,
+          max: 60,
+        },
+      ],
+      series: [
+        {
+          name: "Annual Cargo (Million Tons)",
+          type: "bar",
+          data: [287, 187, 85, 42, 14, 12],
+          itemStyle: {
+            borderRadius: [4, 4, 0, 0],
+            color: isDark ? "#A02D20" : "#500000",
+          },
+        },
+        {
+          name: "Vessel Channel Dwell (Hours)",
+          type: "line",
+          yAxisIndex: 1,
+          smooth: true,
+          data: [44, 32, 28, 22, 16, 18],
+          lineStyle: { width: 3, color: "#005F73" },
+          itemStyle: { color: "#005F73", borderWidth: 2 },
+        },
+      ],
+    }),
+  },
+
+  // 27. BRIDGE DETERIORATION: 75-YEAR LIFECYCLE WITH CONFIDENCE UNCERTAINTY BANDS
+  {
+    id: "bridge-deterioration",
+    title: "National Bridge Inventory Structural Deck Rating 75-Year Lifecycle",
+    category: "executive",
+    categoryLabel: "Executive & Policy",
+    eyebrow: "EXHIBIT 5.5 · ASSET MANAGEMENT",
+    subtitle: "Forecasted bridge deck condition ratings (NBI 0–9) under active preservation vs unmitigated decay with 95% confidence intervals",
+    source: "Federal Highway Administration (FHWA) NBI & TTI Bridge Engineering Inspection Division",
+    story: "Structural lifecycle deterioration curve comparing unmitigated weathering against active cathodic protection and polymer overlays. Shaded uncertainty confidence bounds illustrate how timely preservation prevents bridges from falling below the structural deficiency threshold (Rating ≤ 4).",
+    height: "440px",
+    ariaTitle: "Bridge structural deterioration lifecycle curve",
+    ariaSummary: "Preserved bridge decks remain above NBI rating 6.8 after 75 years, whereas unmaintained structures fall below rating 4.0 by year 36.",
+    getOption: (isDark) => {
+      const years = ["0y", "10y", "20y", "30y", "40y", "50y", "60y", "70y", "75y"];
+      return {
+        tooltip: { trigger: "axis" },
+        legend: {
+          data: ["Active Preservation Plan", "Unmitigated Baseline Decay"],
+          top: 5,
+          textStyle: { fontFamily: "var(--font-display)" },
+        },
+        grid: { left: "6%", right: "6%", bottom: "10%", top: "14%", containLabel: true },
+        xAxis: {
+          type: "category",
+          data: years,
+          boundaryGap: false,
+          axisLabel: { fontFamily: "var(--font-mono)" },
+        },
+        yAxis: {
+          type: "value",
+          name: "NBI Deck Rating (0–9)",
+          min: 2,
+          max: 9,
+          splitLine: {
+            lineStyle: {
+              color: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+            },
+          },
+        },
+        series: [
+          {
+            name: "Active Preservation Plan",
+            type: "line",
+            smooth: true,
+            data: [9.0, 8.8, 8.5, 8.1, 7.8, 7.5, 7.2, 7.0, 6.8],
+            lineStyle: { width: 3.5, color: isDark ? "#0A9396" : "#005F73" },
+            itemStyle: { color: isDark ? "#0A9396" : "#005F73" },
+            areaStyle: {
+              color: isDark ? "rgba(10,147,150,0.2)" : "rgba(0,95,115,0.15)",
+            },
+          },
+          {
+            name: "Unmitigated Baseline Decay",
+            type: "line",
+            smooth: true,
+            data: [9.0, 7.8, 6.5, 4.8, 3.8, 3.2, 2.8, 2.4, 2.1],
+            lineStyle: { width: 3, type: "dashed", color: isDark ? "#A02D20" : "#500000" },
+            itemStyle: { color: isDark ? "#A02D20" : "#500000" },
+            areaStyle: {
+              color: isDark ? "rgba(160,45,32,0.18)" : "rgba(80,0,0,0.12)",
+            },
+          },
+        ],
+      };
+    },
+  },
+
+  // 28. DRILLDOWN MORPH: STATEWIDE CAPITAL PROGRAM TO DISTRICT PROJECTS
+  {
+    id: "drilldown-morph",
+    title: "TxDOT Unified Transportation Program Statewide-to-Project Drilldown",
+    category: "hierarchical",
+    categoryLabel: "Hierarchical & Composition",
+    eyebrow: "EXHIBIT 5.6 · UNIVERSAL DRILLDOWN",
+    subtitle: "High-level statewide capital program allocation breakdown into flagship corridor construction contracts",
+    source: "TxDOT Unified Transportation Program (UTP) Portfolio Management",
+    story: "Interactive drilldown morph using Apache ECharts universal transition. Demonstrates how executive budget summaries can be exploded with a single click into regional project portfolios with fluid polygon animations.",
+    height: "440px",
+    ariaTitle: "Statewide transportation capital allocation drilldown chart",
+    ariaSummary: "Major Congestion Relief represents $5,300M, Highway Preservation $6,200M, Bridge Replacement $1,900M, and Rural Connectivity $1,800M.",
+    getOption: (isDark) => ({
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "shadow" },
+        formatter: "{b}: <strong>${c}M</strong>",
+      },
+      grid: { left: "18%", right: "8%", top: "8%", bottom: "12%" },
+      xAxis: {
+        type: "value",
+        name: "Allocation ($M)",
+        axisLabel: { formatter: "${value}M", fontFamily: "var(--font-mono)" },
+        splitLine: {
+          lineStyle: {
+            color: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+          },
+        },
+      },
+      yAxis: {
+        type: "category",
+        data: [
+          "Vision Zero Safety Grants",
+          "Rural Connectivity Corridors",
+          "Bridge Replacement & Rehab",
+          "Major Congestion Relief",
+          "Highway Pavement Preservation",
+        ],
+        axisLabel: { fontFamily: "var(--font-display)", fontWeight: "bold" },
+      },
+      series: [
+        {
+          name: "Statewide Program",
+          type: "bar",
+          data: [
+            { value: 1100, itemStyle: { color: "#AE2012", borderRadius: [0, 4, 4, 0] } },
+            { value: 1800, itemStyle: { color: "#EE9B00", borderRadius: [0, 4, 4, 0] } },
+            { value: 1900, itemStyle: { color: "#CA6702", borderRadius: [0, 4, 4, 0] } },
+            { value: 5300, itemStyle: { color: "#005F73", borderRadius: [0, 4, 4, 0] } },
+            { value: 6200, itemStyle: { color: isDark ? "#A02D20" : "#500000", borderRadius: [0, 4, 4, 0] } },
+          ],
+          label: {
+            show: true,
+            position: "right",
+            formatter: "${c}M",
+            fontFamily: "var(--font-mono)",
+            fontWeight: "bold",
+          },
+          universalTransition: { enabled: true, divideShape: "clone" },
+        },
+      ],
+    }),
+  },
+
+  // 29. TIMESPACE SHOCKWAVE: FREEWAY TRAJECTORY & SHOCKWAVE PROPAGATION
+  {
+    id: "timespace-shockwave",
+    title: "Freeway Corridor Vehicle Trajectory Time-Space Diagram & Shockwave Propagation",
+    category: "realtime",
+    categoryLabel: "Real-Time & Racing",
+    eyebrow: "EXHIBIT 6.1 · TRAFFIC FLOW DYNAMICS",
+    subtitle: "Lighthill-Whitham-Richards (LWR) shockwave trajectory diagram on I-35 corridor following peak-hour bottleneck incident",
+    source: "TTI Urban Mobility Division · Freeway Operations Simulation Lab",
+    story: "Time-space diagram tracking vehicle progression along an interstate corridor (Mileposts 230 to 242) between 07:00 and 08:30. At 07:15, a vehicle incident at Milepost 238 causes downstream speed drop and upstream backward shockwave propagation. Following incident clearance at 07:45, a queue discharge acceleration wave restores free flow.",
+    height: "460px",
+    ariaTitle: "Freeway vehicle trajectory time-space shockwave diagram",
+    ariaSummary: "Free-flow vehicles travel at 65 MPH until 07:15 when an incident at Milepost 238 reduces corridor speed to 10 MPH, creating a backward shockwave of -12 MPH until clearance at 07:45.",
+    isAnimated: true,
+    getOption: (isDark) => {
+      // 12 vehicle wavefront trajectories traversing MP 230 to MP 242 between 07:00 and 08:30
+      // Slope dx/dt represents instantaneous speed. Flatter slope = slower speed.
+      const trajectories = [
+        // Wave 1: Before incident (Free-flow 65 MPH)
+        [[0, 230], [5, 233], [10, 236], [15, 239], [20, 242]],
+        [[5, 230], [10, 233], [15, 236], [20, 239], [25, 242]],
+        [[10, 230], [15, 233], [20, 236], [25, 239], [30, 242]],
+        // Wave 2: Caught in bottleneck queue (Incident at MP 238 from t=15 to t=45)
+        [[15, 230], [20, 233], [25, 236], [32, 237], [40, 237.5], [48, 238], [52, 240], [55, 242]],
+        [[20, 230], [25, 233], [32, 235], [42, 235.8], [52, 237.2], [56, 238], [60, 240], [63, 242]],
+        [[25, 230], [30, 232.5], [40, 234], [52, 235.5], [60, 237], [64, 238], [68, 240], [71, 242]],
+        [[30, 230], [36, 232], [48, 233.5], [58, 235], [66, 237], [70, 238], [74, 240], [77, 242]],
+        [[35, 230], [42, 231.8], [54, 233.2], [64, 235], [72, 237], [76, 238], [80, 240], [83, 242]],
+        // Wave 3: Post-clearance queue discharge recovery
+        [[45, 230], [52, 232], [60, 234], [68, 236], [74, 238], [78, 240], [82, 242]],
+        [[55, 230], [62, 232.5], [69, 235], [76, 238], [81, 240], [85, 242]],
+        [[65, 230], [71, 233], [77, 236], [83, 239], [88, 242]],
+        [[75, 230], [80, 233], [85, 236], [90, 239]],
+      ];
+
+      return {
+        tooltip: {
+          trigger: "item",
+          formatter: (params: any) => {
+            if (params.seriesType === "line") {
+              return `Corridor Trajectory: <strong>${params.seriesName}</strong>`;
+            }
+            return `${params.name}`;
+          },
+        },
+        legend: {
+          data: ["Vehicle Trajectories", "Incident Bottleneck", "Backward Shockwave Front"],
+          top: 5,
+          textStyle: { fontFamily: "var(--font-display)" },
+        },
+        grid: { left: "8%", right: "6%", bottom: "12%", top: "14%", containLabel: true },
+        xAxis: {
+          type: "value",
+          name: "Time of Day",
+          nameLocation: "middle",
+          nameGap: 28,
+          min: 0,
+          max: 90,
+          axisLabel: {
+            fontFamily: "var(--font-mono)",
+            formatter: (v: number) => {
+              const hour = 7 + Math.floor(v / 60);
+              const min = v % 60;
+              return `${hour < 10 ? "0" + hour : hour}:${min < 10 ? "0" + min : min}`;
+            },
+          },
+          splitLine: {
+            lineStyle: {
+              color: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+            },
+          },
+        },
+        yAxis: {
+          type: "value",
+          name: "Corridor Location (Milepost)",
+          min: 230,
+          max: 242,
+          axisLabel: { formatter: "MP {value}", fontFamily: "var(--font-mono)" },
+          splitLine: {
+            lineStyle: {
+              color: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+            },
+          },
+        },
+        series: [
+          ...trajectories.map((traj, idx) => ({
+            name: `Vehicle Wave ${idx + 1}`,
+            type: "line",
+            smooth: true,
+            showSymbol: false,
+            data: traj,
+            lineStyle: {
+              width: idx >= 3 && idx <= 7 ? 2.5 : 1.8,
+              color: idx >= 3 && idx <= 7
+                ? (isDark ? "#AE2012" : "#8B0000")
+                : (isDark ? "#0A9396" : "#005F73"),
+              opacity: 0.85,
+            },
+          })),
+          // Backward Shockwave Line
+          {
+            name: "Backward Shockwave Front",
+            type: "line",
+            data: [[15, 238], [42, 231.8]],
+            lineStyle: {
+              width: 3.5,
+              type: "dashed",
+              color: "#EE9B00",
+            },
+            symbol: "circle",
+            symbolSize: 8,
+          },
+          // Incident Point Callout
+          {
+            name: "Incident Bottleneck",
+            type: "scatter",
+            data: [[15, 238]],
+            symbolSize: 18,
+            itemStyle: { color: isDark ? "#A02D20" : "#500000" },
+            label: {
+              show: true,
+              formatter: "Crash Incident (MP 238)",
+              position: "top",
+              fontFamily: "var(--font-display)",
+              fontWeight: "bold",
+              color: isDark ? "#F87171" : "#A02D20",
+            },
+          },
+        ],
+      };
+    },
+  },
+
+  // 30. FUNDAMENTAL DIAGRAM: SPEED-FLOW-DENSITY EQUILIBRIUM
+  {
+    id: "fundamental-diagram",
+    title: "Macroscopic Traffic Flow: Speed-Flow-Density Fundamental Equilibrium Curves",
+    category: "executive",
+    categoryLabel: "Executive & Policy",
+    eyebrow: "EXHIBIT 6.2 · TRAFFIC FLOW THEORY",
+    subtitle: "Empirical Greenshields & Van Aerde non-linear equilibrium relationship between flow rate (vphpl) and traffic density (vpmpl)",
+    source: "Texas Highway Operations Manual & Transportation Research Board (TRB)",
+    story: "The foundational curve of traffic engineering. Demonstrates the critical density threshold (45 veh/mi/ln) at which highway capacity peaks at 2,200 veh/hr/ln. Beyond this threshold, traffic breaks down into unstable stop-and-go congestion with severe throughput drop.",
+    height: "440px",
+    ariaTitle: "Traffic flow fundamental equilibrium curve",
+    ariaSummary: "Highway flow reaches peak capacity of 2,200 vehicles per hour per lane at critical density of 45 veh/mile/lane, deteriorating into jam density at 120 veh/mile/lane.",
+    getOption: (isDark) => {
+      // Greenshields parabolic curve: q = v_f * k - (v_f / k_j) * k^2
+      // v_f = 65 mph, k_j = 120 vpmpl -> q_max = 65 * 120 / 4 = 1950 (or calibrated to 2200)
+      const freeFlowData: [number, number][] = [];
+      const congestedData: [number, number][] = [];
+
+      for (let k = 0; k <= 45; k += 2.5) {
+        const q = Math.round(65 * k * (1 - k / 135) * 1.35);
+        freeFlowData.push([k, q]);
+      }
+      for (let k = 45; k <= 125; k += 2.5) {
+        const q = Math.max(0, Math.round(65 * k * (1 - k / 135) * 1.35));
+        congestedData.push([k, q]);
+      }
+
+      return {
+        tooltip: {
+          trigger: "axis",
+          formatter: (params: any) => {
+            const p = params[0];
+            return `Density: <strong>${p.data[0]} veh/mi/ln</strong><br/>Flow Rate: <strong>${p.data[1].toLocaleString()} vphpl</strong>`;
+          },
+        },
+        legend: {
+          data: ["Uncongested Free-Flow Regime", "Congested Breakdown Regime"],
+          top: 5,
+          textStyle: { fontFamily: "var(--font-display)" },
+        },
+        grid: { left: "8%", right: "6%", bottom: "12%", top: "14%", containLabel: true },
+        xAxis: {
+          type: "value",
+          name: "Traffic Density k (Vehicles / Mile / Lane)",
+          nameLocation: "middle",
+          nameGap: 28,
+          min: 0,
+          max: 130,
+          axisLabel: { fontFamily: "var(--font-mono)" },
+          splitLine: {
+            lineStyle: {
+              color: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+            },
+          },
+        },
+        yAxis: {
+          type: "value",
+          name: "Flow Rate q (Vehicles / Hour / Lane)",
+          min: 0,
+          max: 2400,
+          axisLabel: { fontFamily: "var(--font-mono)" },
+          splitLine: {
+            lineStyle: {
+              color: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+            },
+          },
+        },
+        series: [
+          {
+            name: "Uncongested Free-Flow Regime",
+            type: "line",
+            smooth: true,
+            data: freeFlowData,
+            lineStyle: { width: 3.5, color: isDark ? "#0A9396" : "#005F73" },
+            itemStyle: { color: isDark ? "#0A9396" : "#005F73" },
+            areaStyle: { color: isDark ? "rgba(10,147,150,0.2)" : "rgba(0,95,115,0.15)" },
+            markPoint: {
+              data: [
+                {
+                  coord: [45, 2200],
+                  value: "Capacity (2,200 vphpl)",
+                  symbolSize: 60,
+                  itemStyle: { color: isDark ? "#EE9B00" : "#CA6702" },
+                  label: { fontFamily: "var(--font-display)", fontWeight: "bold", fontSize: 10 },
+                },
+              ],
+            },
+          },
+          {
+            name: "Congested Breakdown Regime",
+            type: "line",
+            smooth: true,
+            data: congestedData,
+            lineStyle: { width: 3.5, color: isDark ? "#A02D20" : "#500000" },
+            itemStyle: { color: isDark ? "#A02D20" : "#500000" },
+            areaStyle: { color: isDark ? "rgba(160,45,32,0.18)" : "rgba(80,0,0,0.12)" },
+            markPoint: {
+              data: [
+                {
+                  coord: [125, 0],
+                  value: "Jam Density (125)",
+                  symbolSize: 50,
+                  itemStyle: { color: "#AE2012" },
+                  label: { fontFamily: "var(--font-display)", fontWeight: "bold", fontSize: 10 },
+                },
+              ],
+            },
+          },
+        ],
+      };
+    },
+  },
+
+  // 31. CARBON EMISSIONS: MULTIMODAL FLEET DECARBONIZATION ROADMAP
+  {
+    id: "carbon-emissions",
+    title: "Texas Multimodal Transportation GHG Emissions & Decarbonization Roadmap",
+    category: "executive",
+    categoryLabel: "Executive & Policy",
+    eyebrow: "EXHIBIT 6.3 · ENVIRONMENTAL & SUSTAINABILITY",
+    subtitle: "Statewide transportation carbon intensity (Million Metric Tons CO2e) by vehicle class and projected 2035 fleet electrification reduction",
+    source: "Texas Commission on Environmental Quality (TCEQ) & EPA MOVES3 Modeling",
+    story: "Statewide carbon emissions ledger comparing baseline ICE propulsion against adopted fleet electrification targets. Class 8 heavy-duty freight trucks produce 44% of total highway emissions despite representing only 9% of registered vehicle fleet.",
+    height: "440px",
+    ariaTitle: "Statewide transportation carbon emissions reduction chart",
+    ariaSummary: "Total Texas transportation GHG emissions drop from 182 million metric tons CO2e in 2020 to projected 98 million tons in 2035 through Class 8 freight and light-duty electrification.",
+    getOption: (isDark) => ({
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "shadow" },
+      },
+      legend: {
+        data: ["2020 Baseline", "2026 Current", "2035 Target"],
+        top: 5,
+        textStyle: { fontFamily: "var(--font-display)" },
+      },
+      grid: { left: "4%", right: "4%", bottom: "10%", top: "14%", containLabel: true },
+      xAxis: {
+        type: "category",
+        data: [
+          "Class 8 Heavy Trucks",
+          "Light Duty Trucks & SUVs",
+          "Passenger Sedans",
+          "Transit & School Buses",
+          "Freight Rail & Marine",
+        ],
+        axisLabel: { fontFamily: "var(--font-display)", fontSize: 11 },
+      },
+      yAxis: {
+        type: "value",
+        name: "Million Metric Tons CO2e",
+        min: 0,
+        max: 85,
+        axisLabel: { fontFamily: "var(--font-mono)" },
+        splitLine: {
+          lineStyle: {
+            color: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+          },
+        },
+      },
+      series: [
+        {
+          name: "2020 Baseline",
+          type: "bar",
+          data: [79.2, 54.1, 31.4, 7.8, 9.5],
+          itemStyle: {
+            color: isDark ? "#A02D20" : "#500000",
+            borderRadius: [4, 4, 0, 0],
+          },
+        },
+        {
+          name: "2026 Current",
+          type: "bar",
+          data: [72.4, 48.6, 26.2, 6.1, 8.9],
+          itemStyle: {
+            color: "#CA6702",
+            borderRadius: [4, 4, 0, 0],
+          },
+        },
+        {
+          name: "2035 Target",
+          type: "bar",
+          data: [42.1, 24.5, 12.8, 2.4, 6.2],
+          itemStyle: {
+            color: isDark ? "#0A9396" : "#005F73",
+            borderRadius: [4, 4, 0, 0],
+          },
+        },
+      ],
+    }),
+  },
+
+  // 32. TRANSIT EQUITY: DEMOGRAPHIC TRANSIT ACCESSIBILITY DISPARITY
+  {
+    id: "transit-equity",
+    title: "Demographic Transit Equity Disparity: Vehicle Ownership vs Transit Walkshed",
+    category: "hierarchical",
+    categoryLabel: "Hierarchical & Composition",
+    eyebrow: "EXHIBIT 6.4 · TRANSPORTATION EQUITY & ACCESSIBILITY",
+    subtitle: "Corridor walkshed population distribution cross-tabulated by zero-vehicle household rate and 15-minute high-frequency transit access",
+    source: "US Census American Community Survey (ACS) 5-Year Estimates & TxDOT Civil Rights Office",
+    story: "Equity matrix evaluating transit accessibility in historically underserved communities. Quadrant analysis highlights environmental justice tracts where zero-vehicle households exceed 28% while rapid transit service frequency remains inadequate.",
+    height: "440px",
+    ariaTitle: "Corridor transit equity disparity scatter chart",
+    ariaSummary: "Identifies high-need priority corridors where zero-vehicle households exceed 30% yet high-frequency transit coverage is below 40%, including East Austin, South Dallas, and Houston Gulfton.",
+    getOption: (isDark) => ({
+      tooltip: {
+        trigger: "item",
+        formatter: (params: any) => {
+          const d = params.data;
+          return `<strong>${d[3]} (${d[4]})</strong><br/>
+                  Zero-Vehicle Households: <strong>${d[0]}%</strong><br/>
+                  15-Min Transit Coverage: <strong>${d[1]}%</strong><br/>
+                  Walkshed Population: <strong>${d[2].toLocaleString()} residents</strong>`;
+        },
+      },
+      grid: { left: "8%", right: "6%", bottom: "12%", top: "12%", containLabel: true },
+      xAxis: {
+        type: "value",
+        name: "Zero-Vehicle Households Rate (%)",
+        nameLocation: "middle",
+        nameGap: 28,
+        min: 0,
+        max: 45,
+        axisLabel: { formatter: "{value}%", fontFamily: "var(--font-mono)" },
+        splitLine: {
+          lineStyle: {
+            color: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+          },
+        },
+      },
+      yAxis: {
+        type: "value",
+        name: "High-Frequency Transit Coverage (%)",
+        min: 0,
+        max: 100,
+        axisLabel: { formatter: "{value}%", fontFamily: "var(--font-mono)" },
+        splitLine: {
+          lineStyle: {
+            color: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+          },
+        },
+      },
+      series: [
+        {
+          name: "Equity Corridors",
+          type: "scatter",
+          // [zeroCar%, transitCov%, population, corridorName, metro]
+          data: [
+            [38.4, 28.5, 42000, "Gulfton / Southwest", "Houston"],
+            [34.2, 32.0, 38500, "South Dallas / Fair Park", "Dallas"],
+            [31.8, 41.5, 29000, "East Austin / Pleasant Valley", "Austin"],
+            [29.5, 36.2, 34000, "Westside / Barrio", "San Antonio"],
+            [27.1, 24.8, 22000, "Chamizal / Segundo Barrio", "El Paso"],
+            [18.2, 68.4, 52000, "Midtown / Montrose", "Houston"],
+            [14.5, 74.2, 48000, "Uptown / Oak Lawn", "Dallas"],
+            [12.8, 82.0, 36000, "Downtown / University", "Austin"],
+            [8.4, 45.0, 65000, "North Central Suburbs", "San Antonio"],
+            [6.2, 38.0, 72000, "Plano / Collin Suburbs", "Dallas"],
+          ],
+          symbolSize: (data: any) => Math.sqrt(data[2]) / 6,
+          itemStyle: {
+            color: (params: any) => {
+              const zeroCar = params.data[0];
+              const transitCov = params.data[1];
+              // High need, low coverage = Red/Maroon
+              if (zeroCar >= 25 && transitCov <= 45) {
+                return isDark ? "#A02D20" : "#500000";
+              }
+              // High transit coverage = Teal
+              if (transitCov >= 60) {
+                return "#005F73";
+              }
+              return "#CA6702";
+            },
+            opacity: 0.85,
+            borderColor: isDark ? "#171717" : "#FFFFFF",
+            borderWidth: 1.5,
+          },
+          label: {
+            show: true,
+            formatter: (params: any) => params.data[3],
+            position: "right",
+            fontFamily: "var(--font-display)",
+            fontSize: 10,
+            color: isDark ? "#F3F4F6" : "#1F2937",
+          },
+          markLine: {
+            silent: true,
+            lineStyle: { type: "dashed", color: isDark ? "#EE9B00" : "#CA6702", width: 1.5 },
+            data: [
+              { xAxis: 25, label: { formatter: "Critical Need (>25% Zero-Car)" } },
+              { yAxis: 50, label: { formatter: "Adequate Transit Threshold (50%)" } },
+            ],
+          },
         },
       ],
     }),

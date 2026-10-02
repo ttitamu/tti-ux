@@ -12,17 +12,50 @@ async function capture() {
   const page = await browser.newPage();
   await page.setViewport({ width: 1440, height: 1080, deviceScaleFactor: 2 });
 
+  console.log("Navigating to http://127.0.0.1:3030/visualizations/echarts ...");
   await page.goto('http://127.0.0.1:3030/visualizations/echarts', { waitUntil: 'networkidle0' });
-  await new Promise(r => setTimeout(r, 3000));
+  await new Promise(r => setTimeout(r, 2500));
+
+  // Hide sticky header/navigation so it never obscures cards during scroll/capture
+  await page.evaluate(() => {
+    const header = document.querySelector('header');
+    if (header) header.style.display = 'none';
+  });
 
   const spatialSection = await page.$('section[aria-labelledby="geographic-intelligence-heading"]');
-  const showcaseSection = await page.$('section[aria-labelledby="dynamic-animations-heading"]');
 
-  // 1. Click "Triangle Flow Vectors"
+  // 1. Click "Gulf Maritime Ports"
+  console.log("Capturing Gulf Maritime Ports...");
   await page.evaluate(() => {
     const btns = Array.from(document.querySelectorAll('section[aria-labelledby="geographic-intelligence-heading"] button'));
-    const flowBtn = btns.find(b => b.textContent && b.textContent.includes('Triangle Flow Vectors'));
-    if (flowBtn) flowBtn.click();
+    const btn = btns.find(b => b.textContent && b.textContent.includes('Gulf Maritime Ports'));
+    if (btn) btn.click();
+  });
+  await new Promise(r => setTimeout(r, 2000));
+  if (spatialSection) {
+    await spatialSection.screenshot({ path: path.join(outDir, 'live_echarts_gulf_maritime_ports.png') });
+    console.log('Captured live_echarts_gulf_maritime_ports.png');
+  }
+
+  // 2. Click "Border Gateways (POE)"
+  console.log("Capturing Border Gateways...");
+  await page.evaluate(() => {
+    const btns = Array.from(document.querySelectorAll('section[aria-labelledby="geographic-intelligence-heading"] button'));
+    const btn = btns.find(b => b.textContent && b.textContent.includes('Border Gateways'));
+    if (btn) btn.click();
+  });
+  await new Promise(r => setTimeout(r, 2000));
+  if (spatialSection) {
+    await spatialSection.screenshot({ path: path.join(outDir, 'live_echarts_border_gateways.png') });
+    console.log('Captured live_echarts_border_gateways.png');
+  }
+
+  // 3. Click "Triangle Flow Vectors"
+  console.log("Capturing Triangle Flow Vectors...");
+  await page.evaluate(() => {
+    const btns = Array.from(document.querySelectorAll('section[aria-labelledby="geographic-intelligence-heading"] button'));
+    const btn = btns.find(b => b.textContent && b.textContent.includes('Triangle Flow Vectors'));
+    if (btn) btn.click();
   });
   await new Promise(r => setTimeout(r, 2000));
   if (spatialSection) {
@@ -30,55 +63,70 @@ async function capture() {
     console.log('Captured live_echarts_triangle_flow_vectors.png');
   }
 
-  // 2. Click "Texas 254 Counties"
+  // Helper to find article by title text
+  const getArticle = async (textSnippet) => {
+    return await page.evaluateHandle((text) => {
+      const articles = Array.from(document.querySelectorAll('article'));
+      return articles.find(a => a.textContent && a.textContent.includes(text));
+    }, textSnippet);
+  };
+
+  // 4. Click "UTP Allocation" in Morph Lab
+  console.log("Capturing UTP Allocation Morph...");
   await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll('section[aria-labelledby="geographic-intelligence-heading"] button'));
-    const countyBtn = btns.find(b => b.textContent && b.textContent.includes('Texas 254 Counties'));
-    if (countyBtn) countyBtn.click();
+    const btns = Array.from(document.querySelectorAll('button'));
+    const btn = btns.find(b => b.textContent && b.textContent.includes('UTP Allocation'));
+    if (btn) btn.click();
   });
-  await new Promise(r => setTimeout(r, 2000));
-  if (spatialSection) {
-    await spatialSection.screenshot({ path: path.join(outDir, 'live_echarts_texas_counties_map.png') });
-    console.log('Captured live_echarts_texas_counties_map.png');
+  await new Promise(r => setTimeout(r, 1500));
+  const morphCard = await getArticle('Universal Morph & Aggregation Transition Lab');
+  if (morphCard.asElement()) {
+    await morphCard.asElement().screenshot({ path: path.join(outDir, 'live_echarts_utp_statewide_morph.png') });
+    console.log('Captured live_echarts_utp_statewide_morph.png');
   }
 
-  // 3. Click "USA Albers National"
+  // 5. Drilldown to Megaprojects
+  console.log("Capturing UTP Megaprojects Drilldown...");
   await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll('section[aria-labelledby="geographic-intelligence-heading"] button'));
-    const albersBtn = btns.find(b => b.textContent && b.textContent.includes('USA Albers National'));
-    if (albersBtn) albersBtn.click();
+    const btns = Array.from(document.querySelectorAll('button'));
+    const btn = btns.find(b => b.textContent && b.textContent.includes('Drill Down to Megaprojects'));
+    if (btn) btn.click();
   });
   await new Promise(r => setTimeout(r, 2000));
-  if (spatialSection) {
-    await spatialSection.screenshot({ path: path.join(outDir, 'live_echarts_usa_albers_map.png') });
-    console.log('Captured live_echarts_usa_albers_map.png');
+  if (morphCard.asElement()) {
+    await morphCard.asElement().screenshot({ path: path.join(outDir, 'live_echarts_utp_megaprojects_drilldown.png') });
+    console.log('Captured live_echarts_utp_megaprojects_drilldown.png');
   }
 
-  // 4. Click "Bar" in the Universal Morph Lab
+  // 6. Click "Lane Blockage (8 MPH)" in Shockwave Arena
+  console.log("Capturing Shockwave Arena with Severe Lane Blockage...");
   await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll('div[role="group"][aria-label="Morph chart style"] button'));
-    const barBtn = btns.find(b => b.textContent && b.textContent.includes('Bar'));
-    if (barBtn) barBtn.click();
+    const btns = Array.from(document.querySelectorAll('button'));
+    const btn = btns.find(b => b.textContent && b.textContent.includes('Lane Blockage (8 MPH)'));
+    if (btn) btn.click();
   });
-  await new Promise(r => setTimeout(r, 2000));
-  if (showcaseSection) {
-    await showcaseSection.screenshot({ path: path.join(outDir, 'live_echarts_morph_transition_bar.png') });
-    console.log('Captured live_echarts_morph_transition_bar.png');
+  await new Promise(r => setTimeout(r, 1500));
+
+  const shockwaveCard = await getArticle('I-35 Corridor Vehicle Trajectory Time-Space Simulation');
+  if (shockwaveCard.asElement()) {
+    await shockwaveCard.asElement().screenshot({ path: path.join(outDir, 'live_echarts_timespace_shockwave_simulator.png') });
+    console.log('Captured live_echarts_timespace_shockwave_simulator.png');
   }
 
-  // 5. Dark Mode Coherence Check
+  // 7. Dark Mode Coherence Check
+  console.log("Capturing Dark Mode Spatial Command Center...");
   await page.evaluate(() => {
     document.documentElement.setAttribute('data-theme', 'tti-dark');
     document.documentElement.classList.add('dark');
   });
   await new Promise(r => setTimeout(r, 2000));
   if (spatialSection) {
-    await spatialSection.screenshot({ path: path.join(outDir, 'live_echarts_spatial_dark_mode.png') });
-    console.log('Captured live_echarts_spatial_dark_mode.png');
+    await spatialSection.screenshot({ path: path.join(outDir, 'live_echarts_maritime_dark_mode.png') });
+    console.log('Captured live_echarts_maritime_dark_mode.png');
   }
 
   await browser.close();
-  console.log('Targeted captures completed successfully.');
+  console.log('All targeted captures completed successfully.');
 }
 
 capture().catch(err => {

@@ -338,9 +338,12 @@ const dynamicRacingBarOption = computed<EChartsCoreOption>(() => {
 });
 
 // ============================================================================
-// 2. UNIVERSAL MORPH TRANSITION LAB (Rose <-> Bar <-> Donut)
+// 2. UNIVERSAL MORPH TRANSITION LAB (Rose <-> Bar <-> Donut & UTP Drilldown)
 // ============================================================================
+type MorphDataset = "commute" | "utp";
+const morphActiveDataset = ref<MorphDataset>("commute");
 const morphViewMode = ref<"rose" | "bar" | "donut">("rose");
+const utpDrilldownLevel = ref<"statewide" | "projects">("statewide");
 
 const modalCommuteData = [
   { id: "sov", name: "Single-Occupancy Vehicle", value: 62, miles: 18.4, color: "#500000", darkColor: "#A02D20" },
@@ -350,8 +353,93 @@ const modalCommuteData = [
   { id: "micro", name: "Micro-Mobility / Scooter", value: 5, miles: 3.1, color: "#BB3E03", darkColor: "#E9D8A6" },
 ];
 
+const utpStatewideData = [
+  { id: "preservation", name: "Highway Pavement Preservation", value: 6200, color: "#500000", darkColor: "#A02D20" },
+  { id: "congestion", name: "Major Metropolitan Congestion Relief", value: 5300, color: "#005F73", darkColor: "#0A9396" },
+  { id: "bridge", name: "Statewide Bridge Replacement & Rehab", value: 1900, color: "#CA6702", darkColor: "#EE9B00" },
+  { id: "rural", name: "Rural Connectivity Corridors", value: 1800, color: "#EE9B00", darkColor: "#E9D8A6" },
+  { id: "safety", name: "Vision Zero Safety Improvements", value: 1100, color: "#AE2012", darkColor: "#F87171" },
+];
+
+const utpProjectData = [
+  { id: "nhhip", name: "I-45 NHHIP Downtown Houston", value: 9700, district: "Houston", color: "#500000", darkColor: "#A02D20" },
+  { id: "capex", name: "I-35 Capital Express Central", value: 4500, district: "Austin", color: "#005F73", darkColor: "#0A9396" },
+  { id: "lbj", name: "I-635 East LBJ Project", value: 1740, district: "Dallas", color: "#CA6702", darkColor: "#EE9B00" },
+  { id: "se-conn", name: "I-35W Southeast Connector", value: 1600, district: "Fort Worth", color: "#0A9396", darkColor: "#94D2BD" },
+  { id: "loop1604", name: "Loop 1604 North Expansion", value: 1400, district: "San Antonio", color: "#BB3E03", darkColor: "#E9D8A6" },
+  { id: "harbor", name: "Harbor Bridge Replacement US-181", value: 1200, district: "Corpus Christi", color: "#2B9348", darkColor: "#94D2BD" },
+  { id: "i10-ep", name: "I-10 Downtown Managed Lanes", value: 820, district: "El Paso", color: "#AE2012", darkColor: "#F87171" },
+];
+
+function toggleUtpDrilldown() {
+  utpDrilldownLevel.value = utpDrilldownLevel.value === "statewide" ? "projects" : "statewide";
+}
+
 const morphTransitionOption = computed<EChartsCoreOption>(() => {
   const dark = isDark.value;
+
+  // Branch A: TxDOT UTP Statewide-to-Projects Drilldown Morph
+  if (morphActiveDataset.value === "utp") {
+    const isStatewide = utpDrilldownLevel.value === "statewide";
+    const data = isStatewide ? utpStatewideData : utpProjectData;
+    const sorted = [...data].sort((a, b) => b.value - a.value);
+
+    return {
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "shadow" },
+        formatter: (params: any) => {
+          const item = params[0];
+          return `<strong>${item.name}</strong><br/>Allocated Portfolio: <strong>$${item.value.toLocaleString()}M</strong>`;
+        },
+      },
+      grid: { containLabel: true, left: "2%", right: "14%", top: "8%", bottom: "12%" },
+      xAxis: {
+        type: "value",
+        name: "Budget",
+        axisLabel: {
+          formatter: (v: number) => `$${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}B`,
+          fontFamily: "var(--font-mono)",
+          fontSize: 11,
+        },
+        splitLine: { lineStyle: { color: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)" } },
+      },
+      yAxis: {
+        type: "category",
+        data: sorted.map((d) => d.name),
+        inverse: true,
+        axisLabel: {
+          fontFamily: "var(--font-display)",
+          fontWeight: "bold",
+          fontSize: 11,
+          width: 165,
+          overflow: "break",
+        },
+      },
+      series: [
+        {
+          name: isStatewide ? "Statewide Programs" : "Flagship Projects",
+          type: "bar",
+          data: sorted.map((d) => ({
+            value: d.value,
+            groupId: d.id,
+            itemStyle: { color: dark ? d.darkColor : d.color, borderRadius: [0, 4, 4, 0] },
+          })),
+          label: {
+            show: true,
+            position: "right",
+            formatter: "${c}M",
+            fontFamily: "var(--font-mono)",
+            fontWeight: "bold",
+          },
+          universalTransition: { enabled: true, divideShape: "clone" },
+          animationDurationUpdate: 1200,
+        },
+      ],
+    };
+  }
+
+  // Branch B: Commuter Modal Split Morph (Rose <-> Bar <-> Donut)
   const isRose = morphViewMode.value === "rose";
   const isBar = morphViewMode.value === "bar";
 
@@ -363,7 +451,7 @@ const morphTransitionOption = computed<EChartsCoreOption>(() => {
         axisPointer: { type: "shadow" },
         formatter: "{b}: <strong>{c}%</strong> of daily passenger trips",
       },
-      grid: { left: "20%", right: "8%", top: "8%", bottom: "12%" },
+      grid: { containLabel: true, left: "4%", right: "8%", top: "8%", bottom: "12%" },
       xAxis: {
         type: "value",
         max: 70,
@@ -558,7 +646,7 @@ const streamingTelemetryOption = computed<EChartsCoreOption>(() => ({
 // ============================================================================
 // 4. INTERACTIVE GEOGRAPHIC & SPATIAL COMMAND CENTER ("The Map Stuff")
 // ============================================================================
-type MapMode = "txdot-districts" | "texas-counties" | "texas-flow" | "usa-albers";
+type MapMode = "txdot-districts" | "texas-counties" | "texas-flow" | "gulf-maritime" | "border-gateways" | "usa-albers";
 const activeMapMode = ref<MapMode>("txdot-districts");
 
 // TxDOT District metric selection
@@ -606,20 +694,264 @@ const TXDOT_DISTRICT_DATABASE: Record<string, DistrictRecord> = {
 
 const selectedDistrict = ref<DistrictRecord>(TXDOT_DISTRICT_DATABASE["Houston"]);
 
+// Maritime Ports Database
+interface MaritimePortRecord {
+  name: string;
+  county: string;
+  coords: [number, number];
+  tonnage: number;
+  dwell: number;
+  tradeVal: number;
+  draftDepth: number;
+  commodities: string;
+  rank: string;
+}
+
+const GULF_PORTS_DATABASE: Record<string, MaritimePortRecord> = {
+  "Port of Houston": {
+    name: "Port of Houston",
+    county: "Harris County",
+    coords: [458.0, 254.0],
+    tonnage: 287,
+    dwell: 44,
+    tradeVal: 240,
+    draftDepth: 46.5,
+    commodities: "Petroleum, Chemicals, Containers, Steel",
+    rank: "#1 in US Waterborne Foreign Commerce",
+  },
+  "Port of Corpus Christi": {
+    name: "Port of Corpus Christi",
+    county: "Nueces County",
+    coords: [392.0, 332.0],
+    tonnage: 187,
+    dwell: 32,
+    tradeVal: 95,
+    draftDepth: 54.0,
+    commodities: "Crude Oil Exports, LNG, Refined Products",
+    rank: "#1 US Crude Oil Export Gateway",
+  },
+  "Port of Beaumont": {
+    name: "Port of Beaumont",
+    county: "Jefferson County",
+    coords: [515.0, 238.0],
+    tonnage: 85,
+    dwell: 28,
+    tradeVal: 38,
+    draftDepth: 40.0,
+    commodities: "Military Logistics, Heavy Grain, Crude",
+    rank: "#1 Strategic Military Outload Port in North America",
+  },
+  "Port Arthur": {
+    name: "Port Arthur",
+    county: "Jefferson County",
+    coords: [520.0, 246.0],
+    tonnage: 72,
+    dwell: 26,
+    tradeVal: 32,
+    draftDepth: 40.0,
+    commodities: "Petrochemicals, Forest Products, Steel",
+    rank: "Major Sabine-Neches Waterway Energy Hub",
+  },
+  "Port Freeport": {
+    name: "Port Freeport",
+    county: "Brazoria County",
+    coords: [452.0, 281.0],
+    tonnage: 42,
+    dwell: 22,
+    tradeVal: 24,
+    draftDepth: 51.0,
+    commodities: "Chemicals, Automotive RO/RO, Perishables",
+    rank: "Fastest-Growing Deep-Water Container Terminal",
+  },
+  "Port of Texas City": {
+    name: "Port of Texas City",
+    county: "Galveston County",
+    coords: [462.0, 262.0],
+    tonnage: 38,
+    dwell: 24,
+    tradeVal: 22,
+    draftDepth: 45.0,
+    commodities: "Petroleum Refining, Chemical Intermediates",
+    rank: "Top 15 US Energy Transshipment Port",
+  },
+  "Port of Galveston": {
+    name: "Port of Galveston",
+    county: "Galveston County",
+    coords: [468.0, 268.0],
+    tonnage: 14,
+    dwell: 16,
+    tradeVal: 18,
+    draftDepth: 45.0,
+    commodities: "Passenger Cruise Vessels, RO/RO Vehicles, Grain",
+    rank: "#4 Cruise Hub in North America",
+  },
+  "Port of Brownsville": {
+    name: "Port of Brownsville",
+    county: "Cameron County",
+    coords: [380.0, 402.0],
+    tonnage: 12,
+    dwell: 18,
+    tradeVal: 11,
+    draftDepth: 42.0,
+    commodities: "Steel Slabs, Wind Turbine Blades, Ship Recycling",
+    rank: "Only Deep-Water Port on US-Mexico Border",
+  },
+};
+
+const selectedPort = ref<MaritimePortRecord>(GULF_PORTS_DATABASE["Port of Houston"]);
+
+// Border Gateways Database
+interface BorderGatewayRecord {
+  name: string;
+  city: string;
+  county: string;
+  coords: [number, number];
+  tradeVal: number;
+  truckVolume: number;
+  peakWait: number;
+  lanes: number;
+  fastLanes: number;
+  commodities: string;
+  rank: string;
+}
+
+const BORDER_GATEWAYS_DATABASE: Record<string, BorderGatewayRecord> = {
+  "World Trade Bridge": {
+    name: "World Trade Bridge",
+    city: "Laredo",
+    county: "Webb County",
+    coords: [330.0, 355.0],
+    tradeVal: 320,
+    truckVolume: 2850,
+    peakWait: 48,
+    lanes: 16,
+    fastLanes: 4,
+    commodities: "Automotive Parts, Electronics, Heavy Machinery",
+    rank: "#1 Commercial Port of Entry in the United States",
+  },
+  "Pharr-Reynosa International": {
+    name: "Pharr-Reynosa International",
+    city: "Pharr",
+    county: "Hidalgo County",
+    coords: [365.0, 402.0],
+    tradeVal: 42,
+    truckVolume: 740,
+    peakWait: 62,
+    lanes: 8,
+    fastLanes: 2,
+    commodities: "Agricultural Produce (Avocados, Berries), Auto Parts",
+    rank: "#1 US Crossing for Fresh Produce & Refrigerated Cargo",
+  },
+  "Bridge of the Americas / Ysleta": {
+    name: "Bridge of the Americas / Ysleta",
+    city: "El Paso",
+    county: "El Paso County",
+    coords: [95.6, 173.0],
+    tradeVal: 88,
+    truckVolume: 820,
+    peakWait: 55,
+    lanes: 10,
+    fastLanes: 2,
+    commodities: "Medical Devices, Consumer Electronics, Auto Wiring",
+    rank: "Flagship Gateway for Juarez High-Tech Maquiladora Network",
+  },
+  "Camino Real International": {
+    name: "Camino Real International",
+    city: "Eagle Pass",
+    county: "Maverick County",
+    coords: [295.0, 305.0],
+    tradeVal: 34,
+    truckVolume: 210,
+    peakWait: 42,
+    lanes: 6,
+    fastLanes: 1,
+    commodities: "Brewery Logistics, Vehicle Assembly, Steel",
+    rank: "Major Rail and Commercial Highway Transshipment Hub",
+  },
+  "Colombia-Solidarity Bridge": {
+    name: "Colombia-Solidarity Bridge",
+    city: "Laredo",
+    county: "Webb County",
+    coords: [322.0, 345.0],
+    tradeVal: 28,
+    truckVolume: 490,
+    peakWait: 18,
+    lanes: 8,
+    fastLanes: 3,
+    commodities: "Hazmat Freight, Specialized Auto Parts, Pre-cleared Express",
+    rank: "Preferred Express Bypass for C-TPAT & FAST Cargo",
+  },
+  "Veterans International Bridge": {
+    name: "Veterans International Bridge",
+    city: "Brownsville",
+    county: "Cameron County",
+    coords: [382.0, 412.0],
+    tradeVal: 18,
+    truckVolume: 260,
+    peakWait: 38,
+    lanes: 6,
+    fastLanes: 1,
+    commodities: "Automotive Stamping, Aerospace Hardware, Agrochemicals",
+    rank: "Easternmost Strategic POE on the Texas-Mexico Border",
+  },
+  "Del Rio International Bridge": {
+    name: "Del Rio International Bridge",
+    city: "Del Rio",
+    county: "Val Verde County",
+    coords: [265.0, 280.0],
+    tradeVal: 12,
+    truckVolume: 110,
+    peakWait: 35,
+    lanes: 4,
+    fastLanes: 1,
+    commodities: "Textiles, Electronic Harnesses, Livestock",
+    rank: "Key Regional Industrial Crossing for Acuña Free Trade Zone",
+  },
+  "Presidio International Port of Entry": {
+    name: "Presidio International Port of Entry",
+    city: "Presidio",
+    county: "Presidio County",
+    coords: [168.0, 258.0],
+    tradeVal: 4,
+    truckVolume: 45,
+    peakWait: 20,
+    lanes: 3,
+    fastLanes: 0,
+    commodities: "Agricultural Produce, Mineral Ores, Cattle",
+    rank: "Strategic Trans-Chihuahua Pacific Corridor Rail/Road Gate",
+  },
+};
+
+const selectedBorder = ref<BorderGatewayRecord>(BORDER_GATEWAYS_DATABASE["World Trade Bridge"]);
+
 function onChartClick(params: any) {
   if (activeMapMode.value === "txdot-districts" && params.name && TXDOT_DISTRICT_DATABASE[params.name]) {
     selectedDistrict.value = TXDOT_DISTRICT_DATABASE[params.name];
+  } else if (activeMapMode.value === "gulf-maritime" && params.name && GULF_PORTS_DATABASE[params.name]) {
+    selectedPort.value = GULF_PORTS_DATABASE[params.name];
+  } else if (activeMapMode.value === "border-gateways" && params.name && BORDER_GATEWAYS_DATABASE[params.name]) {
+    selectedBorder.value = BORDER_GATEWAYS_DATABASE[params.name];
   }
 }
 
 function onChartHover(params: any) {
   if (activeMapMode.value === "txdot-districts" && params.name && TXDOT_DISTRICT_DATABASE[params.name]) {
     selectedDistrict.value = TXDOT_DISTRICT_DATABASE[params.name];
+  } else if (activeMapMode.value === "gulf-maritime" && params.name && GULF_PORTS_DATABASE[params.name]) {
+    selectedPort.value = GULF_PORTS_DATABASE[params.name];
+  } else if (activeMapMode.value === "border-gateways" && params.name && BORDER_GATEWAYS_DATABASE[params.name]) {
+    selectedBorder.value = BORDER_GATEWAYS_DATABASE[params.name];
   }
 }
 
 // Flow mode selector for Texas Triangle
 const activeFlowMode = ref<"all" | "truck" | "rail" | "air">("all");
+
+// Maritime mode selector
+const activeMaritimeMetric = ref<"all" | "energy" | "container" | "dwell">("all");
+
+// Border mode selector
+const activeBorderMetric = ref<"trade" | "trucks" | "wait" | "fast">("trade");
 
 const commandCenterMapOption = computed<EChartsCoreOption>(() => {
   const dark = isDark.value;
@@ -747,9 +1079,9 @@ const commandCenterMapOption = computed<EChartsCoreOption>(() => {
       HOU: [451.9, 251.0],
       SAT: [350.7, 266.4],
       AUS: [374.5, 234.3],
-      ELP: [95.6, 173.0],
-      MCA: [361.2, 387.0],
-      LBB: [243.8, 110.3],
+      ELP: [159.2, 222.8],
+      MCA: [358.1, 369.8],
+      LBB: [237.3, 107.7],
     };
 
     let flows = [
@@ -790,14 +1122,25 @@ const commandCenterMapOption = computed<EChartsCoreOption>(() => {
           return `${params.name} Inter-Metro Hub`;
         },
       },
-      xAxis: { min: 0, max: 600, show: false },
-      yAxis: { min: 0, max: 400, inverse: true, show: false },
-      grid: { left: "4%", right: "4%", top: "4%", bottom: "4%" },
+      geo: {
+        map: "TXDOT_DISTRICTS",
+        roam: true,
+        zoom: 1.15,
+        silent: true,
+        itemStyle: {
+          areaColor: dark ? "rgba(255, 255, 255, 0.04)" : "rgba(80, 0, 0, 0.04)",
+          borderColor: dark ? "rgba(255, 255, 255, 0.15)" : "rgba(80, 0, 0, 0.12)",
+          borderWidth: 1,
+        },
+        emphasis: {
+          disabled: true,
+        },
+      },
       series: [
         {
           name: "Corridor Arcs",
           type: "lines",
-          coordinateSystem: "cartesian2d",
+          coordinateSystem: "geo",
           zlevel: 1,
           effect: {
             show: true,
@@ -818,7 +1161,7 @@ const commandCenterMapOption = computed<EChartsCoreOption>(() => {
         {
           name: "Metropolitan Hubs",
           type: "effectScatter",
-          coordinateSystem: "cartesian2d",
+          coordinateSystem: "geo",
           zlevel: 2,
           rippleEffect: {
             brushType: "stroke",
@@ -846,7 +1189,234 @@ const commandCenterMapOption = computed<EChartsCoreOption>(() => {
     };
   }
 
-  // 4. USA ALBERS NATIONAL FREIGHT DENSITY
+  // 4. GULF DEEP-WATER MARITIME PORTS & SHIPPING CHANNELS
+  if (activeMapMode.value === "gulf-maritime") {
+    const shippingChannels = [
+      { name: "Houston Ship Channel", coords: [[458, 254], [468, 268], [510, 310]], tons: 287 },
+      { name: "Corpus Christi Ship Channel", coords: [[392, 332], [415, 345], [455, 375]], tons: 187 },
+      { name: "Sabine-Neches Waterway (Beaumont/Pt Arthur)", coords: [[520, 246], [538, 270], [568, 305]], tons: 157 },
+      { name: "Freeport Harbor Channel", coords: [[452, 281], [472, 305], [495, 335]], tons: 42 },
+      { name: "Brazos Santiago Pass (Brownsville)", coords: [[380, 402], [405, 410], [435, 420]], tons: 12 },
+    ];
+
+    const portsList = Object.values(GULF_PORTS_DATABASE);
+
+    const scatterData = portsList.map((p) => ({
+      name: p.name,
+      value: [...p.coords, p.tonnage],
+      dwell: p.dwell,
+      depth: p.draftDepth,
+      trade: p.tradeVal,
+      county: p.county,
+      rank: p.rank,
+    }));
+
+    return {
+      tooltip: {
+        trigger: "item",
+        formatter: (params: any) => {
+          if (params.seriesType === "lines") {
+            return `<strong>${params.name}</strong><br/>Annual Channel Flux: <strong>${params.data.value}M tons</strong>`;
+          }
+          const d = params.data;
+          return `<strong>${params.name} (${d.county})</strong><br/>
+                  Annual Cargo: <strong>${d.value[2]}M short tons</strong><br/>
+                  Channel Draft Depth: <strong>${d.depth} ft</strong><br/>
+                  Vessel Queue Dwell: <strong>${d.dwell} hours</strong><br/>
+                  Annual Bilateral Trade: <strong>$${d.trade}B</strong>`;
+        },
+      },
+      geo: {
+        map: "TXDOT_DISTRICTS",
+        roam: true,
+        zoom: 1.15,
+        silent: true,
+        itemStyle: {
+          areaColor: dark ? "rgba(255, 255, 255, 0.04)" : "rgba(80, 0, 0, 0.04)",
+          borderColor: dark ? "rgba(255, 255, 255, 0.15)" : "rgba(80, 0, 0, 0.12)",
+          borderWidth: 1,
+        },
+        emphasis: {
+          disabled: true,
+        },
+      },
+      series: [
+        {
+          name: "Deep-Water Shipping Channels",
+          type: "lines",
+          coordinateSystem: "geo",
+          zlevel: 1,
+          effect: {
+            show: true,
+            period: 3.8,
+            trailLength: 0.7,
+            color: dark ? "#EE9B00" : "#500000",
+            symbol: "arrow",
+            symbolSize: 8,
+          },
+          lineStyle: {
+            color: dark ? "#0A9396" : "#005F73",
+            width: 3.5,
+            opacity: 0.75,
+            curveness: 0.15,
+          },
+          data: shippingChannels.map((c) => ({
+            name: c.name,
+            coords: c.coords,
+            value: c.tons,
+          })),
+        },
+        {
+          name: "Deep-Water Maritime Ports",
+          type: "effectScatter",
+          coordinateSystem: "geo",
+          zlevel: 2,
+          rippleEffect: {
+            brushType: "stroke",
+            scale: 3.5,
+            period: 2.4,
+          },
+          symbolSize: (val: any) => Math.max(14, Math.sqrt(val[2]) * 1.8),
+          itemStyle: {
+            color: dark ? "#A02D20" : "#500000",
+            shadowBlur: 14,
+            shadowColor: "#500000",
+          },
+          label: {
+            show: true,
+            position: "right",
+            formatter: "{b}",
+            fontFamily: "var(--font-display)",
+            fontWeight: "bold",
+            color: dark ? "#F5F5F5" : "#1A1A1A",
+            fontSize: 11,
+          },
+          data: scatterData,
+        },
+      ],
+    };
+  }
+
+  // 5. INTERNATIONAL BORDER GATEWAYS & COMMERCIAL PORTS OF ENTRY
+  if (activeMapMode.value === "border-gateways") {
+    const gatewaysList = Object.values(BORDER_GATEWAYS_DATABASE);
+
+    const tradeConnectors = [
+      { from: "World Trade Bridge", toCoords: [350.7, 266.4], name: "I-35 NAFTA / USMCA Superhighway" },
+      { from: "Pharr-Reynosa International", toCoords: [350.7, 266.4], name: "I-69C / US-281 Produce Corridor" },
+      { from: "Bridge of the Americas / Ysleta", toCoords: [402.3, 139.4], name: "I-10 Trans-Continental Express" },
+      { from: "Camino Real International", toCoords: [350.7, 266.4], name: "US-57 Eagle Pass Corridor" },
+      { from: "Veterans International Bridge", toCoords: [451.9, 251.0], name: "US-77 Gulf Coast Freight Corridor" },
+      { from: "Del Rio International Bridge", toCoords: [350.7, 266.4], name: "US-90 International Trade Link" },
+      { from: "Colombia-Solidarity Bridge", toCoords: [350.7, 266.4], name: "State Hwy 255 FAST Bypass" },
+    ];
+
+    const linesData = tradeConnectors.map((c) => ({
+      name: c.name,
+      coords: [BORDER_GATEWAYS_DATABASE[c.from].coords, c.toCoords],
+    }));
+
+    const scatterData = gatewaysList.map((g) => ({
+      name: g.name,
+      value: [...g.coords, g.tradeVal],
+      city: g.city,
+      county: g.county,
+      trucks: g.truckVolume,
+      wait: g.peakWait,
+      lanes: g.lanes,
+      fast: g.fastLanes,
+      commodities: g.commodities,
+      rank: g.rank,
+    }));
+
+    return {
+      tooltip: {
+        trigger: "item",
+        formatter: (params: any) => {
+          if (params.seriesType === "lines") {
+            return `<strong>${params.name}</strong><br/>Inland Port-of-Entry Distribution Corridor`;
+          }
+          const d = params.data;
+          return `<strong>${params.name} (${d.city}, ${d.county})</strong><br/>
+                  Annual Bilateral Trade: <strong>$${d.value[2]}B</strong><br/>
+                  Commercial Trucks: <strong>${d.trucks.toLocaleString()}k / year</strong><br/>
+                  Peak Customs Wait Time: <strong>${d.wait} minutes</strong><br/>
+                  Inspection Lanes: <strong>${d.lanes} (${d.fast} dedicated FAST)</strong>`;
+        },
+      },
+      geo: {
+        map: "TXDOT_DISTRICTS",
+        roam: true,
+        zoom: 1.15,
+        silent: true,
+        itemStyle: {
+          areaColor: dark ? "rgba(255, 255, 255, 0.04)" : "rgba(80, 0, 0, 0.04)",
+          borderColor: dark ? "rgba(255, 255, 255, 0.15)" : "rgba(80, 0, 0, 0.12)",
+          borderWidth: 1,
+        },
+        emphasis: {
+          disabled: true,
+        },
+      },
+      series: [
+        {
+          name: "Inland Customs Corridors",
+          type: "lines",
+          coordinateSystem: "geo",
+          zlevel: 1,
+          effect: {
+            show: true,
+            period: 3.4,
+            trailLength: 0.65,
+            color: dark ? "#EE9B00" : "#500000",
+            symbol: "arrow",
+            symbolSize: 7,
+          },
+          lineStyle: {
+            color: dark ? "#0A9396" : "#005F73",
+            width: 2.8,
+            opacity: 0.7,
+            curveness: 0.18,
+          },
+          data: linesData,
+        },
+        {
+          name: "Commercial Ports of Entry",
+          type: "effectScatter",
+          coordinateSystem: "geo",
+          zlevel: 2,
+          rippleEffect: {
+            brushType: "stroke",
+            scale: 3.6,
+            period: 2.2,
+          },
+          symbolSize: (val: any) => Math.max(12, Math.sqrt(val[2]) * 2.2),
+          itemStyle: {
+            color: (params: any) => {
+              const wait = params.data.wait;
+              if (wait > 50) return dark ? "#F87171" : "#AE2012";
+              if (wait > 30) return "#CA6702";
+              return dark ? "#0A9396" : "#005F73";
+            },
+            shadowBlur: 14,
+            shadowColor: "#500000",
+          },
+          label: {
+            show: true,
+            position: "top",
+            formatter: (params: any) => `${params.data.city} POE`,
+            fontFamily: "var(--font-display)",
+            fontWeight: "bold",
+            color: dark ? "#F5F5F5" : "#1A1A1A",
+            fontSize: 11,
+          },
+          data: scatterData,
+        },
+      ],
+    };
+  }
+
+  // 6. USA ALBERS NATIONAL FREIGHT DENSITY
   return {
     tooltip: {
       trigger: "item",
@@ -890,6 +1460,161 @@ const commandCenterMapOption = computed<EChartsCoreOption>(() => {
           { name: "Oklahoma", value: 58 },
         ],
       },
+    ],
+  };
+});
+
+// ============================================================================
+// 5. CORRIDOR TIME-SPACE TRAJECTORY SHOCKWAVE SIMULATOR
+// ============================================================================
+type ShockwaveIncident = "freeflow" | "minor" | "severe";
+const activeIncidentSeverity = ref<ShockwaveIncident>("severe");
+
+const timeSpaceShockwaveOption = computed<EChartsCoreOption>(() => {
+  const dark = isDark.value;
+  const severity = activeIncidentSeverity.value;
+
+  let trajectories: number[][][] = [];
+  let shockwaveLine: number[][] = [];
+  let incidentPoint: number[][] = [];
+
+  if (severity === "freeflow") {
+    for (let startT = 0; startT <= 80; startT += 7) {
+      trajectories.push([
+        [startT, 230],
+        [startT + 3, 233],
+        [startT + 6, 236],
+        [startT + 9, 239],
+        [startT + 12, 242],
+      ]);
+    }
+  } else if (severity === "minor") {
+    incidentPoint = [[15, 238]];
+    shockwaveLine = [[15, 238], [35, 235]];
+    trajectories = [
+      [[0, 230], [5, 233], [10, 236], [15, 239], [20, 242]],
+      [[6, 230], [11, 233], [16, 236], [21, 239], [26, 242]],
+      [[12, 230], [17, 233], [22, 236], [28, 238], [34, 240], [38, 242]],
+      [[18, 230], [24, 233], [30, 236], [38, 238], [44, 240], [48, 242]],
+      [[24, 230], [30, 233], [37, 236], [45, 238], [51, 240], [55, 242]],
+      [[32, 230], [38, 233], [45, 236], [52, 238], [58, 240], [62, 242]],
+      [[42, 230], [48, 233], [54, 236], [60, 239], [65, 242]],
+      [[52, 230], [57, 233], [63, 236], [68, 239], [73, 242]],
+      [[62, 230], [67, 233], [72, 236], [77, 239], [82, 242]],
+      [[72, 230], [77, 233], [82, 236], [87, 239], [90, 241]],
+    ];
+  } else {
+    incidentPoint = [[15, 238]];
+    shockwaveLine = [[15, 238], [42, 231.8]];
+    trajectories = [
+      [[0, 230], [5, 233], [10, 236], [15, 239], [20, 242]],
+      [[5, 230], [10, 233], [15, 236], [20, 239], [25, 242]],
+      [[10, 230], [15, 233], [20, 236], [25, 239], [30, 242]],
+      [[15, 230], [20, 233], [25, 236], [32, 237], [40, 237.5], [48, 238], [52, 240], [55, 242]],
+      [[20, 230], [25, 233], [32, 235], [42, 235.8], [52, 237.2], [56, 238], [60, 240], [63, 242]],
+      [[25, 230], [30, 232.5], [40, 234], [52, 235.5], [60, 237], [64, 238], [68, 240], [71, 242]],
+      [[30, 230], [36, 232], [48, 233.5], [58, 235], [66, 237], [70, 238], [74, 240], [77, 242]],
+      [[35, 230], [42, 231.8], [54, 233.2], [64, 235], [72, 237], [76, 238], [80, 240], [83, 242]],
+      [[45, 230], [52, 232], [60, 234], [68, 236], [74, 238], [78, 240], [82, 242]],
+      [[55, 230], [62, 232.5], [69, 235], [76, 238], [81, 240], [85, 242]],
+      [[65, 230], [71, 233], [77, 236], [83, 239], [88, 242]],
+      [[75, 230], [80, 233], [85, 236], [90, 239]],
+    ];
+  }
+
+  return {
+    tooltip: {
+      trigger: "item",
+      formatter: (params: any) => {
+        if (params.seriesType === "line") {
+          return `Corridor Trajectory: <strong>${params.seriesName}</strong>`;
+        }
+        return `${params.name}`;
+      },
+    },
+    legend: {
+      data: ["Vehicle Trajectories", "Incident Bottleneck", "Backward Shockwave Front"],
+      top: 5,
+      textStyle: { fontFamily: "var(--font-display)" },
+    },
+    grid: { left: "8%", right: "6%", bottom: "12%", top: "14%", containLabel: true },
+    xAxis: {
+      type: "value",
+      name: "Time of Day",
+      nameLocation: "middle",
+      nameGap: 28,
+      min: 0,
+      max: 90,
+      axisLabel: {
+        fontFamily: "var(--font-mono)",
+        formatter: (v: number) => {
+          const hour = 7 + Math.floor(v / 60);
+          const min = v % 60;
+          return `${hour < 10 ? "0" + hour : hour}:${min < 10 ? "0" + min : min}`;
+        },
+      },
+      splitLine: {
+        lineStyle: {
+          color: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+        },
+      },
+    },
+    yAxis: {
+      type: "value",
+      name: "Corridor Location (Milepost)",
+      min: 230,
+      max: 242,
+      axisLabel: { formatter: "MP {value}", fontFamily: "var(--font-mono)" },
+      splitLine: {
+        lineStyle: {
+          color: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+        },
+      },
+    },
+    series: [
+      ...trajectories.map((traj, idx) => ({
+        name: `Vehicle Wave ${idx + 1}`,
+        type: "line" as const,
+        smooth: true,
+        showSymbol: false,
+        data: traj,
+        lineStyle: {
+          width: severity === "severe" && idx >= 3 && idx <= 7 ? 2.8 : 1.8,
+          color: severity === "severe" && idx >= 3 && idx <= 7
+            ? (dark ? "#AE2012" : "#8B0000")
+            : severity === "minor" && idx >= 2 && idx <= 5
+              ? "#CA6702"
+              : (dark ? "#0A9396" : "#005F73"),
+          opacity: 0.85,
+        },
+      })),
+      ...(shockwaveLine.length > 0 ? [{
+        name: "Backward Shockwave Front",
+        type: "line" as const,
+        data: shockwaveLine,
+        lineStyle: {
+          width: 3.5,
+          type: "dashed" as const,
+          color: "#EE9B00",
+        },
+        symbol: "circle",
+        symbolSize: 8,
+      }] : []),
+      ...(incidentPoint.length > 0 ? [{
+        name: "Incident Bottleneck",
+        type: "scatter" as const,
+        data: incidentPoint,
+        symbolSize: 18,
+        itemStyle: { color: dark ? "#A02D20" : "#500000" },
+        label: {
+          show: true,
+          formatter: severity === "severe" ? "Full Lane Blockage (MP 238)" : "Shoulder Stalling (MP 238)",
+          position: "top" as const,
+          fontFamily: "var(--font-display)",
+          fontWeight: "bold" as const,
+          color: dark ? "#F87171" : "#A02D20",
+        },
+      }] : []),
     ],
   };
 });
@@ -943,7 +1668,7 @@ onUnmounted(() => {
             type="button"
             role="tab"
             :aria-selected="activeMapMode === 'txdot-districts'"
-            class="min-h-[44px] px-3.5 py-2 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all inline-flex items-center gap-1.5"
+            class="min-h-[44px] px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all inline-flex items-center gap-1.5"
             :class="[
               activeMapMode === 'txdot-districts'
                 ? 'bg-brand-primary text-white border-brand-primary shadow-xs'
@@ -958,7 +1683,7 @@ onUnmounted(() => {
             type="button"
             role="tab"
             :aria-selected="activeMapMode === 'texas-counties'"
-            class="min-h-[44px] px-3.5 py-2 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all inline-flex items-center gap-1.5"
+            class="min-h-[44px] px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all inline-flex items-center gap-1.5"
             :class="[
               activeMapMode === 'texas-counties'
                 ? 'bg-brand-primary text-white border-brand-primary shadow-xs'
@@ -973,7 +1698,7 @@ onUnmounted(() => {
             type="button"
             role="tab"
             :aria-selected="activeMapMode === 'texas-flow'"
-            class="min-h-[44px] px-3.5 py-2 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all inline-flex items-center gap-1.5"
+            class="min-h-[44px] px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all inline-flex items-center gap-1.5"
             :class="[
               activeMapMode === 'texas-flow'
                 ? 'bg-brand-primary text-white border-brand-primary shadow-xs'
@@ -987,8 +1712,38 @@ onUnmounted(() => {
           <button
             type="button"
             role="tab"
+            :aria-selected="activeMapMode === 'gulf-maritime'"
+            class="min-h-[44px] px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all inline-flex items-center gap-1.5"
+            :class="[
+              activeMapMode === 'gulf-maritime'
+                ? 'bg-brand-primary text-white border-brand-primary shadow-xs'
+                : 'bg-surface-raised text-text-secondary border-surface-border hover:text-text-primary',
+            ]"
+            @click="activeMapMode = 'gulf-maritime'"
+          >
+            <span>Gulf Maritime Ports</span>
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            :aria-selected="activeMapMode === 'border-gateways'"
+            class="min-h-[44px] px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all inline-flex items-center gap-1.5"
+            :class="[
+              activeMapMode === 'border-gateways'
+                ? 'bg-brand-primary text-white border-brand-primary shadow-xs'
+                : 'bg-surface-raised text-text-secondary border-surface-border hover:text-text-primary',
+            ]"
+            @click="activeMapMode = 'border-gateways'"
+          >
+            <span>Border Gateways (POE)</span>
+          </button>
+
+          <button
+            type="button"
+            role="tab"
             :aria-selected="activeMapMode === 'usa-albers'"
-            class="min-h-[44px] px-3.5 py-2 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all inline-flex items-center gap-1.5"
+            class="min-h-[44px] px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all inline-flex items-center gap-1.5"
             :class="[
               activeMapMode === 'usa-albers'
                 ? 'bg-brand-primary text-white border-brand-primary shadow-xs'
@@ -1081,6 +1836,18 @@ onUnmounted(() => {
           </button>
         </div>
 
+        <!-- Gulf Maritime Sub-info -->
+        <div v-else-if="activeMapMode === 'gulf-maritime'" class="flex items-center gap-2 text-xs font-mono text-text-secondary">
+          <span class="w-2 h-2 rounded-full bg-teal animate-pulse" aria-hidden="true" />
+          <span>Texas Gulf Deep-Water Navigation Channels & Tonnage Convoys · Click or hover a port to inspect.</span>
+        </div>
+
+        <!-- Border Gateways Sub-info -->
+        <div v-else-if="activeMapMode === 'border-gateways'" class="flex items-center gap-2 text-xs font-mono text-text-secondary">
+          <span class="w-2 h-2 rounded-full bg-crimson animate-pulse" aria-hidden="true" />
+          <span>USMCA Cross-Border Commercial Logistics Gateways · Color-coded by peak customs wait time.</span>
+        </div>
+
         <div v-else class="text-xs font-mono text-text-muted">
           Pan & Zoom (Roam) enabled. Hover over regions for microdata.
         </div>
@@ -1095,7 +1862,7 @@ onUnmounted(() => {
             :options="commandCenterMapOption"
             height="520px"
             aria-title="Interactive Texas Spatial Command Center"
-            aria-summary="Displays Texas 254 counties, TxDOT 25 engineering districts, and multimodal freight flow vectors connecting major Texas Triangle metropolitan areas."
+            aria-summary="Displays Texas 254 counties, TxDOT 25 engineering districts, deep-water maritime ports, international border gateways, and multimodal freight flow vectors."
             @chart-click="onChartClick"
             @chart-hover="onChartHover"
           />
@@ -1108,13 +1875,34 @@ onUnmounted(() => {
               Active Inspector
             </span>
             <h3 class="text-lg font-bold font-display uppercase text-text-primary mt-2">
-              {{ activeMapMode === 'txdot-districts' ? `TxDOT ${selectedDistrict.name}` : activeMapMode === 'texas-counties' ? 'County Analytics' : activeMapMode === 'texas-flow' ? 'Texas Megaregion' : 'USA Freight Hub' }}
+              {{
+                activeMapMode === 'txdot-districts'
+                  ? `TxDOT ${selectedDistrict.name}`
+                  : activeMapMode === 'texas-counties'
+                    ? 'County Analytics'
+                    : activeMapMode === 'texas-flow'
+                      ? 'Texas Megaregion'
+                      : activeMapMode === 'gulf-maritime'
+                        ? selectedPort.name
+                        : activeMapMode === 'border-gateways'
+                          ? selectedBorder.name
+                          : 'USA Freight Hub'
+              }}
             </h3>
             <p class="text-xs font-mono text-text-muted">
-              {{ activeMapMode === 'txdot-districts' ? `District Code: ${selectedDistrict.abbr} · HQ: ${selectedDistrict.hq}` : 'Interactive telemetry' }}
+              {{
+                activeMapMode === 'txdot-districts'
+                  ? `District Code: ${selectedDistrict.abbr} · HQ: ${selectedDistrict.hq}`
+                  : activeMapMode === 'gulf-maritime'
+                    ? `${selectedPort.county} · ${selectedPort.rank}`
+                    : activeMapMode === 'border-gateways'
+                      ? `${selectedBorder.city}, ${selectedBorder.county}`
+                      : 'Interactive telemetry'
+              }}
             </p>
           </div>
 
+          <!-- District Inspector Details -->
           <div v-if="activeMapMode === 'txdot-districts'" class="space-y-3">
             <div>
               <p class="text-[11px] font-mono uppercase text-text-muted">UTP Priority Score</p>
@@ -1152,6 +1940,83 @@ onUnmounted(() => {
             </div>
           </div>
 
+          <!-- Maritime Inspector Details -->
+          <div v-else-if="activeMapMode === 'gulf-maritime'" class="space-y-3">
+            <div>
+              <p class="text-[11px] font-mono uppercase text-text-muted">Annual Waterborne Tonnage</p>
+              <p class="text-2xl font-black font-mono text-teal">
+                {{ selectedPort.tonnage }} <span class="text-xs font-normal text-text-muted">Million Short Tons</span>
+              </p>
+            </div>
+
+            <div>
+              <p class="text-[11px] font-mono uppercase text-text-muted">Annual Bilateral Commerce</p>
+              <p class="text-xl font-bold font-mono text-text-primary">
+                ${{ selectedPort.tradeVal }} Billion
+              </p>
+            </div>
+
+            <div>
+              <p class="text-[11px] font-mono uppercase text-text-muted">Authorized Channel Draft</p>
+              <p class="text-sm font-bold font-mono text-text-secondary">
+                {{ selectedPort.draftDepth }} feet deep-water draft
+              </p>
+            </div>
+
+            <div>
+              <p class="text-[11px] font-mono uppercase text-text-muted">Average Vessel Queue Dwell</p>
+              <p class="text-sm font-bold font-mono" :class="selectedPort.dwell > 30 ? 'text-gold' : 'text-forest'">
+                {{ selectedPort.dwell }} hours dwell time
+              </p>
+            </div>
+
+            <div class="pt-2 border-t border-surface-border">
+              <p class="text-[11px] font-mono uppercase text-text-muted mb-1">Primary Cargo Commodities</p>
+              <p class="text-xs text-text-secondary leading-snug">
+                {{ selectedPort.commodities }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Border Gateways Inspector Details -->
+          <div v-else-if="activeMapMode === 'border-gateways'" class="space-y-3">
+            <div>
+              <p class="text-[11px] font-mono uppercase text-text-muted">Annual Cross-Border Trade</p>
+              <p class="text-2xl font-black font-mono text-brand-primary">
+                ${{ selectedBorder.tradeVal }} <span class="text-xs font-normal text-text-muted">Billion</span>
+              </p>
+            </div>
+
+            <div>
+              <p class="text-[11px] font-mono uppercase text-text-muted">Commercial Truck Volume</p>
+              <p class="text-xl font-bold font-mono text-text-primary">
+                {{ selectedBorder.truckVolume.toLocaleString() }}k <span class="text-xs font-normal text-text-muted">trucks/yr</span>
+              </p>
+            </div>
+
+            <div>
+              <p class="text-[11px] font-mono uppercase text-text-muted">Peak Customs Wait Time</p>
+              <p class="text-sm font-bold font-mono" :class="selectedBorder.peakWait > 50 ? 'text-crimson' : selectedBorder.peakWait > 30 ? 'text-gold' : 'text-forest'">
+                {{ selectedBorder.peakWait }} minutes average peak
+              </p>
+            </div>
+
+            <div>
+              <p class="text-[11px] font-mono uppercase text-text-muted">Inspection Booths & FAST Lanes</p>
+              <p class="text-sm font-bold font-mono text-text-secondary">
+                {{ selectedBorder.lanes }} lanes ({{ selectedBorder.fastLanes }} dedicated FAST)
+              </p>
+            </div>
+
+            <div class="pt-2 border-t border-surface-border">
+              <p class="text-[11px] font-mono uppercase text-text-muted mb-1">Strategic Trade Role</p>
+              <p class="text-xs text-text-secondary leading-snug">
+                {{ selectedBorder.rank }}. Primary freight: {{ selectedBorder.commodities }}.
+              </p>
+            </div>
+          </div>
+
+          <!-- Flow Inspector Details -->
           <div v-else-if="activeMapMode === 'texas-flow'" class="space-y-3">
             <div>
               <p class="text-[11px] font-mono uppercase text-text-muted">Primary Triangle Corridor</p>
@@ -1318,46 +2183,84 @@ onUnmounted(() => {
               </h3>
             </div>
 
-            <!-- Morph Mode Buttons -->
-            <div class="flex items-center gap-1.5 p-1 bg-surface-sunken border border-surface-border rounded-md" role="group" aria-label="Morph chart style">
+            <!-- Dataset Switcher: Commute Modes vs UTP Capital Allocation -->
+            <div class="flex items-center gap-1.5 p-1 bg-surface-sunken border border-surface-border rounded-md" role="group" aria-label="Morph dataset">
               <button
                 type="button"
                 class="min-h-[44px] px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all"
-                :class="morphViewMode === 'rose' ? 'bg-brand-primary text-white border-brand-primary shadow-xs' : 'bg-surface-raised border-surface-border text-text-secondary hover:text-text-primary'"
+                :class="morphActiveDataset === 'commute' ? 'bg-brand-primary text-white border-brand-primary shadow-xs' : 'bg-surface-raised border-surface-border text-text-secondary hover:text-text-primary'"
+                @click="morphActiveDataset = 'commute'"
+              >
+                Modal Commute
+              </button>
+              <button
+                type="button"
+                class="min-h-[44px] px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all"
+                :class="morphActiveDataset === 'utp' ? 'bg-brand-primary text-white border-brand-primary shadow-xs' : 'bg-surface-raised border-surface-border text-text-secondary hover:text-text-primary'"
+                @click="morphActiveDataset = 'utp'"
+              >
+                UTP Allocation
+              </button>
+            </div>
+          </div>
+
+          <!-- Secondary Sub-Controls for Active Dataset -->
+          <div class="flex items-center justify-between gap-3 pt-1 border-t border-surface-border">
+            <p class="text-xs text-text-secondary">
+              {{
+                morphActiveDataset === 'commute'
+                  ? 'Universal Transition animates identical data slices between completely different geometric layouts.'
+                  : 'Universal Transition explodes high-level capital programs into top regional construction contracts.'
+              }}
+            </p>
+
+            <!-- Mode selector for Commute -->
+            <div v-if="morphActiveDataset === 'commute'" class="flex items-center gap-1 shrink-0" role="group" aria-label="Commute chart shape">
+              <button
+                type="button"
+                class="min-h-[44px] px-2.5 py-1 text-xs font-bold uppercase rounded-xs border transition-all"
+                :class="morphViewMode === 'rose' ? 'bg-brand-primary text-white border-brand-primary' : 'bg-surface-sunken border-surface-border text-text-secondary'"
                 @click="morphViewMode = 'rose'"
               >
                 Rose
               </button>
               <button
                 type="button"
-                class="min-h-[44px] px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all"
-                :class="morphViewMode === 'bar' ? 'bg-brand-primary text-white border-brand-primary shadow-xs' : 'bg-surface-raised border-surface-border text-text-secondary hover:text-text-primary'"
+                class="min-h-[44px] px-2.5 py-1 text-xs font-bold uppercase rounded-xs border transition-all"
+                :class="morphViewMode === 'bar' ? 'bg-brand-primary text-white border-brand-primary' : 'bg-surface-sunken border-surface-border text-text-secondary'"
                 @click="morphViewMode = 'bar'"
               >
                 Bar
               </button>
               <button
                 type="button"
-                class="min-h-[44px] px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all"
-                :class="morphViewMode === 'donut' ? 'bg-brand-primary text-white border-brand-primary shadow-xs' : 'bg-surface-raised border-surface-border text-text-secondary hover:text-text-primary'"
+                class="min-h-[44px] px-2.5 py-1 text-xs font-bold uppercase rounded-xs border transition-all"
+                :class="morphViewMode === 'donut' ? 'bg-brand-primary text-white border-brand-primary' : 'bg-surface-sunken border-surface-border text-text-secondary'"
                 @click="morphViewMode = 'donut'"
               >
                 Donut
               </button>
             </div>
-          </div>
 
-          <p class="text-xs text-text-secondary">
-            Universal Transition animates identical data slices between completely different geometric layouts. Watch slices smoothly morph into sorted horizontal bars.
-          </p>
+            <!-- Drilldown toggle for UTP -->
+            <button
+              v-else
+              type="button"
+              class="min-h-[44px] px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all shrink-0 inline-flex items-center gap-1.5"
+              :class="utpDrilldownLevel === 'projects' ? 'bg-brand-primary text-white border-brand-primary' : 'bg-surface-raised text-brand-primary border-brand-primary hover:bg-brand-primary hover:text-white'"
+              @click="toggleUtpDrilldown"
+            >
+              <span>{{ utpDrilldownLevel === 'statewide' ? 'Drill Down to Megaprojects ➔' : '◀ Back to Statewide' }}</span>
+            </button>
+          </div>
 
           <!-- Embedded Morphing Chart -->
           <TuxECharts
-            :key="`morph-${isDark}`"
+            :key="`morph-${morphActiveDataset}-${utpDrilldownLevel}-${isDark}`"
             :options="morphTransitionOption"
             height="460px"
-            aria-title="Multimodal commuter modal split morph chart"
-            aria-summary="Demonstrates universal transitions between Rose, Bar, and Donut views showing Single-Occupancy Vehicles (62%) and Express Bus (14%)."
+            aria-title="Interactive universal morph and drilldown chart"
+            aria-summary="Demonstrates universal transitions between Rose, Bar, and Donut views for modal commuter share, or between statewide capital allocations and district corridor megaprojects."
           />
 
           <!-- ARENA C: REAL-TIME TELEMETRY STREAMER WIDGET -->
@@ -1422,6 +2325,90 @@ onUnmounted(() => {
           </div>
         </article>
       </div>
+
+      <!-- ARENA D: CORRIDOR TIME-SPACE TRAJECTORY SHOCKWAVE SIMULATOR -->
+      <article class="p-6 bg-surface-raised border border-surface-border rounded-lg shadow-sm space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-surface-border pb-3">
+          <div>
+            <span class="px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-surface-sunken text-brand-primary rounded-xs border border-surface-border font-bold">
+              Traffic Flow Science · LWR Theory
+            </span>
+            <h3 class="text-lg font-bold font-display uppercase text-text-primary mt-1">
+              I-35 Corridor Vehicle Trajectory Time-Space Simulation & Shockwave Dynamics
+            </h3>
+          </div>
+
+          <!-- Incident Severity Selector -->
+          <div class="flex items-center gap-1.5 p-1 bg-surface-sunken border border-surface-border rounded-md" role="group" aria-label="Incident severity">
+            <button
+              type="button"
+              class="min-h-[44px] px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all"
+              :class="activeIncidentSeverity === 'freeflow' ? 'bg-brand-primary text-white border-brand-primary shadow-xs' : 'bg-surface-raised border-surface-border text-text-secondary hover:text-text-primary'"
+              @click="activeIncidentSeverity = 'freeflow'"
+            >
+              Free-Flow (65 MPH)
+            </button>
+            <button
+              type="button"
+              class="min-h-[44px] px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all"
+              :class="activeIncidentSeverity === 'minor' ? 'bg-brand-primary text-white border-brand-primary shadow-xs' : 'bg-surface-raised border-surface-border text-text-secondary hover:text-text-primary'"
+              @click="activeIncidentSeverity = 'minor'"
+            >
+              Shoulder Stalling (40 MPH)
+            </button>
+            <button
+              type="button"
+              class="min-h-[44px] px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all"
+              :class="activeIncidentSeverity === 'severe' ? 'bg-brand-primary text-white border-brand-primary shadow-xs' : 'bg-surface-raised border-surface-border text-text-secondary hover:text-text-primary'"
+              @click="activeIncidentSeverity = 'severe'"
+            >
+              Lane Blockage (8 MPH)
+            </button>
+          </div>
+        </div>
+
+        <p class="text-xs text-text-secondary">
+          Time-space trajectory diagram tracking vehicle progression lines along the I-35 corridor (Mileposts 230 to 242) between 07:00 and 08:30.
+          Watch the slope of trajectories flatten as traffic enters the queue, and observe the backwards-forming shockwave propagation boundary.
+        </p>
+
+        <!-- Dynamic Simulation KPI Chips -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="p-3 bg-surface-sunken border border-surface-border rounded-xs">
+            <p class="text-[10px] font-mono text-text-muted uppercase">Corridor Bottleneck Speed</p>
+            <p class="text-xl font-black font-mono" :class="activeIncidentSeverity === 'severe' ? 'text-crimson' : activeIncidentSeverity === 'minor' ? 'text-gold' : 'text-forest'">
+              {{ activeIncidentSeverity === 'severe' ? '8.0 MPH' : activeIncidentSeverity === 'minor' ? '40.0 MPH' : '65.0 MPH' }}
+            </p>
+          </div>
+          <div class="p-3 bg-surface-sunken border border-surface-border rounded-xs">
+            <p class="text-[10px] font-mono text-text-muted uppercase">Upstream Queue Backlog</p>
+            <p class="text-xl font-bold font-mono text-text-primary">
+              {{ activeIncidentSeverity === 'severe' ? '4.6 miles' : activeIncidentSeverity === 'minor' ? '1.8 miles' : '0.0 miles' }}
+            </p>
+          </div>
+          <div class="p-3 bg-surface-sunken border border-surface-border rounded-xs">
+            <p class="text-[10px] font-mono text-text-muted uppercase">Backward Shockwave Speed</p>
+            <p class="text-xl font-bold font-mono text-teal">
+              {{ activeIncidentSeverity === 'severe' ? '-14.2 MPH' : activeIncidentSeverity === 'minor' ? '-6.5 MPH' : '0.0 MPH' }}
+            </p>
+          </div>
+          <div class="p-3 bg-surface-sunken border border-surface-border rounded-xs">
+            <p class="text-[10px] font-mono text-text-muted uppercase">Passenger Hours of Delay</p>
+            <p class="text-xl font-bold font-mono text-brand-primary">
+              {{ activeIncidentSeverity === 'severe' ? '3,850 PHD' : activeIncidentSeverity === 'minor' ? '420 PHD' : '0 PHD' }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Embedded Shockwave Chart -->
+        <TuxECharts
+          :key="`shockwave-${activeIncidentSeverity}-${isDark}`"
+          :options="timeSpaceShockwaveOption"
+          height="440px"
+          aria-title="I-35 Corridor Vehicle Trajectory Time-Space Shockwave Simulation"
+          :aria-summary="`Under ${activeIncidentSeverity} incident conditions, bottleneck speeds reach ${activeIncidentSeverity === 'severe' ? '8 MPH with a 4.6-mile queue' : activeIncidentSeverity === 'minor' ? '40 MPH with a 1.8-mile queue' : '65 MPH free-flow'}.`"
+        />
+      </article>
     </section>
 
     <!-- ==================================================================== -->
