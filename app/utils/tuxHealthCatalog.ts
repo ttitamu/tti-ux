@@ -106,6 +106,7 @@ export const COMPONENTS_WITH_UNIT_TESTS: readonly string[] = [
   "TuxDocsSidebar",
   "TuxDocsSidebarNode",
   "TuxDropdown",
+  "TuxEditorialArticle",
   "TuxEmptyState",
   "TuxErrorPage",
   "TuxEventCalendarRow",

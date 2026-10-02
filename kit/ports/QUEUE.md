@@ -156,3 +156,4 @@ with a matching source hash in manifest.json.
 | TuxTileGrid | react | never ported |
 | TuxChatBubble | react | never ported |
 | TuxScrollTop | react | never ported |
+| TuxEditorialArticle | react | never ported |

@@ -195,6 +195,8 @@ export const tuxCatalog: TuxCatalogEntry[] = [
     blurb: "Hierarchical doc-site sidebar — collapsible sections, search filter, persisted collapse state." },
   { name: "TuxDropdown", to: "/components/site-nav", icon: "lucide:chevron-down", family: "components", kind: "component", wraps: "tux native", category: "navigation",
     blurb: "Single-column dropdown from a top-bar nav item. Composes inside TuxSiteNav." },
+  { name: "TuxEditorialArticle", to: "/components/editorial-article", icon: "lucide:newspaper", family: "components", kind: "component", wraps: "tux native", category: "publishing",
+    blurb: "Flagship publication reader parities MyTTI Inside Lane and EmDash CMS with switchable hero presentations, sticky TOC, and reading progress." },
   { name: "TuxEmptyState", to: "/components/empty-state", icon: "lucide:inbox", family: "components", kind: "component", wraps: "TuxCard composite", category: "feedback",
     blurb: "No-data placeholder — tinted icon circle, title, description, CTA slot." },
   { name: "TuxErrorPage", to: "/components/error-page", icon: "lucide:circle-alert", family: "components", kind: "component", wraps: "tux native", category: "feedback",

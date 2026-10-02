@@ -57,6 +57,7 @@ npm run dev
 | `TuxDiagram`         | Mermaid                  | `/components/diagram`           |
 | `TuxDocsSidebar`     | tux native               | `/components/docs-sidebar` (renders internal child `TuxDocsSidebarNode`) |
 | `TuxDropdown`        | tux native               | `/components/site-nav`          |
+| `TuxEditorialArticle`| tux native               | `/components/editorial-article` |
 | `TuxEmptyState`      | `TuxCard` composite      | `/components/empty-state`       |
 | `TuxErrorPage`       | tux native               | `/components/error-page`        |
 | `TuxExample`         | showcase primitive       | (used on every component page)  |

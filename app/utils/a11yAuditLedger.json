@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-10-02T18:23:15.309Z",
+  "timestamp": "2026-10-02T19:02:07.099Z",
   "system": "TTI-UX (TUX 3.0)",
   "standard": "W3C WCAG 2.2 Level AAA",
   "summary": {
-    "totalComponents": 172,
-    "aaaCompliantComponents": 172,
+    "totalComponents": 173,
+    "aaaCompliantComponents": 173,
     "aaaComplianceRate": 100,
     "contrastPairsTested": 11,
     "contrastPassRate": 100,
@@ -1184,6 +1184,22 @@
       "isInteractive": true,
       "hasMinTouchTarget": false,
       "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxEditorialArticle": {
+      "name": "TuxEditorialArticle",
+      "file": "TuxEditorialArticle.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": false,
       "hasAria": true,
       "tier": "AAA",
       "contrastStandard": "7.0:1 (AAA)",

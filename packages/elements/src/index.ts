@@ -75,6 +75,7 @@ import TuxDocSearch from "../../../app/components/TuxDocSearch.vue";
 import TuxDocsSidebar from "../../../app/components/TuxDocsSidebar.vue";
 import TuxDocsSidebarNode from "../../../app/components/TuxDocsSidebarNode.vue";
 import TuxDropdown from "../../../app/components/TuxDropdown.vue";
+import TuxEditorialArticle from "../../../app/components/TuxEditorialArticle.vue";
 import TuxEmptyState from "../../../app/components/TuxEmptyState.vue";
 import TuxErrorPage from "../../../app/components/TuxErrorPage.vue";
 import TuxEventCalendarRow from "../../../app/components/TuxEventCalendarRow.vue";
@@ -866,6 +867,16 @@ export const TuxDropdownElement = defineCustomElement(TuxDropdown, {
 });
 if (typeof customElements !== "undefined" && !customElements.get("tux-dropdown")) {
   customElements.define("tux-dropdown", TuxDropdownElement);
+}
+
+export const TuxEditorialArticleElement = defineCustomElement(TuxEditorialArticle, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-editorial-article")) {
+  customElements.define("tux-editorial-article", TuxEditorialArticleElement);
 }
 
 export const TuxEmptyStateElement = defineCustomElement(TuxEmptyState, {

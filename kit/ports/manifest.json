@@ -1391,7 +1391,15 @@
       }
     },
     "TuxScrollTop": {
-      "sourceHash": "af139747b9db2aca",
+      "sourceHash": "3a766d468cb5c58a",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxEditorialArticle": {
+      "sourceHash": "250a85063f0dee82",
       "ports": {
         "react": {
           "hash": null
