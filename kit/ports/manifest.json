@@ -1399,7 +1399,23 @@
       }
     },
     "TuxEditorialArticle": {
-      "sourceHash": "250a85063f0dee82",
+      "sourceHash": "bd7fda8170b0144a",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxECharts": {
+      "sourceHash": "af7b58ddb76f025b",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxHeroCanvas": {
+      "sourceHash": "6b74f6868777de05",
       "ports": {
         "react": {
           "hash": null

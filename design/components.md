@@ -66,6 +66,7 @@ npm run dev
 | `TuxFilterPanel`     | tux native               | `/components/filter-panel`      |
 | `TuxFocusView`       | tux native               | `/components/focus-view`        |
 | `TuxFooter`          | tux native               | `/components/footer`            |
+| `TuxHeroCanvas`      | HTML5 2D Canvas          | `/components/hero-canvas`       |
 | `TuxIconFeature`     | tux native               | `/components/icon-feature`      |
 | `TuxIdentity`        | tux native               | `/components/identity`          |
 | `TuxInfoLabel`       | `UPopover`               | `/components/info-label`        |
@@ -225,6 +226,7 @@ sandbox, source caption).
 | `TuxVizEmbed`         | sandboxed `<iframe>` + poster fallback | `/visualizations/embed`        |
 | `TuxVizRPlot`         | `<img>` / `<object>` / `<iframe>`      | `/visualizations/rplot`        |
 | `TuxVizGrid`          | tux native (CSS Grid layout shell)     | `/visualizations/grid`         |
+| `TuxECharts`          | Apache ECharts                         | `/visualizations/echarts`      |
 | `TuxSparkline`        | tux native (inline SVG)                | `/visualizations/sparkline`    |
 | `TuxChartFrame`       | tux native (editorial wrapper)         | `/visualizations/chart-frame`  |
 | `TuxChartGeographic`  | tux native (5-kind Texas map)          | `/visualizations/chart-geographic` |

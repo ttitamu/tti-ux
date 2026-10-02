@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-10-02T20:47:35.967Z",
+  "timestamp": "2026-10-02T21:20:46.342Z",
   "system": "TTI-UX (TUX 3.0)",
   "standard": "W3C WCAG 2.2 Level AAA",
   "summary": {
-    "totalComponents": 173,
-    "aaaCompliantComponents": 173,
+    "totalComponents": 175,
+    "aaaCompliantComponents": 175,
     "aaaComplianceRate": 100,
     "contrastPairsTested": 11,
     "contrastPassRate": 100,
@@ -1194,12 +1194,27 @@
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
+    "TuxECharts": {
+      "name": "TuxECharts",
+      "file": "TuxECharts.vue",
+      "isInteractive": false,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "n/a",
+      "notes": [
+        "Non-interactive / semantic layout component",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
     "TuxEditorialArticle": {
       "name": "TuxEditorialArticle",
       "file": "TuxEditorialArticle.vue",
       "isInteractive": true,
       "hasMinTouchTarget": true,
-      "hasFocusRing": true,
+      "hasFocusRing": false,
       "hasAria": true,
       "tier": "AAA",
       "contrastStandard": "7.0:1 (AAA)",
@@ -1457,6 +1472,22 @@
       "focusIndicator": "n/a",
       "notes": [
         "Non-interactive / semantic layout component"
+      ]
+    },
+    "TuxHeroCanvas": {
+      "name": "TuxHeroCanvas",
+      "file": "TuxHeroCanvas.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
       ]
     },
     "TuxIconFeature": {

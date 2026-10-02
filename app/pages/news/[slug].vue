@@ -144,6 +144,85 @@ const currentArticle = computed<ArticleData>(() => {
   return articlesDatabase[slug.value] || articlesDatabase["next-gen-computing-cluster-expands-transportation-ai"]!;
 });
 
+const telemetryChartOptions = computed(() => ({
+  tooltip: {
+    trigger: "axis",
+    axisPointer: { type: "cross" },
+  },
+  legend: {
+    data: ["Inference Throughput (k inf/s)", "p99 Latency (ms)"],
+    top: 5,
+    textStyle: { fontFamily: "'Open Sans', sans-serif" },
+  },
+  grid: {
+    left: "3%",
+    right: "4%",
+    bottom: "12%",
+    top: "16%",
+    containLabel: true,
+  },
+  xAxis: [
+    {
+      type: "category",
+      data: ["1 Node (8 GPU)", "2 Nodes (16 GPU)", "4 Nodes (32 GPU)", "8 Nodes (64 GPU)", "16 Nodes (128 GPU)"],
+      axisPointer: { type: "shadow" },
+    },
+  ],
+  yAxis: [
+    {
+      type: "value",
+      name: "Throughput (k inf/s)",
+      min: 0,
+      max: 160,
+      axisLabel: { formatter: "{value}k" },
+    },
+    {
+      type: "value",
+      name: "Latency (ms)",
+      min: 0,
+      max: 60,
+      axisLabel: { formatter: "{value} ms" },
+    },
+  ],
+  dataZoom: [
+    {
+      type: "inside",
+      start: 0,
+      end: 100,
+    },
+    {
+      show: true,
+      type: "slider",
+      bottom: "2%",
+      start: 0,
+      end: 100,
+      height: 20,
+    },
+  ],
+  series: [
+    {
+      name: "Inference Throughput (k inf/s)",
+      type: "bar",
+      barWidth: "32%",
+      data: [18.5, 36.2, 71.8, 114.4, 142.0],
+      itemStyle: {
+        borderRadius: [4, 4, 0, 0],
+      },
+    },
+    {
+      name: "p99 Latency (ms)",
+      type: "line",
+      yAxisIndex: 1,
+      smooth: true,
+      symbolSize: 8,
+      data: [48.2, 28.6, 15.4, 9.1, 6.2],
+      lineStyle: {
+        width: 3,
+      },
+    },
+  ],
+}));
+
 useHead({
   title: computed(() => `${currentArticle.value.title} · Inside Lane · TUX`),
 });
@@ -264,6 +343,30 @@ useHead({
           the system provides research groups with the dedicated throughput needed to process multi-terabyte
           telemetry streams, sensor fusion data, and high-frequency LiDAR scans.
         </p>
+
+        <h2 id="realtime-telemetry">Real-Time Telemetry & GPU Parallelism</h2>
+        <p>
+          The cluster integrates real-time hardware telemetry instrumentation to monitor interconnect fabric saturation,
+          tensor core occupancy, and distributed simulation throughput across multi-node deep learning runs.
+        </p>
+
+        <!-- Interactive Apache ECharts Telemetry Exhibit -->
+        <div id="realtime-telemetry" class="my-8 scroll-mt-24">
+          <TuxChartFrame
+            eyebrow="EXHIBIT 1.1 · CLUSTER TELEMETRY"
+            title="Distributed Inference Throughput & Latency Scaling"
+            subtitle="Multi-node GPU benchmark telemetry across deep transportation network simulation workloads"
+            source="Source: TTI High Performance Computing Operations · Benchmarked October 2026"
+            notes="Throughput measured in thousands of vehicle trajectory inferences per second; latency in milliseconds."
+          >
+            <TuxECharts
+              :options="telemetryChartOptions"
+              height="400px"
+              aria-title="Multi-node GPU throughput and latency scaling chart"
+              aria-summary="Throughput scales from 18.5k inferences/sec on 1 node to 142k inferences/sec on 16 nodes, while p99 latency drops from 48.2ms to 6.2ms."
+            />
+          </TuxChartFrame>
+        </div>
 
         <h2 id="research-expansion">Expanding Data-Intensive Research</h2>
         <p>

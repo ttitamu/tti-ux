@@ -32,6 +32,7 @@ describe("tuxHealthCatalog Invariants", () => {
       .map((f) => {
         const base = f.replace(".nuxt.test.ts", "");
         if (base === "tux-cta") return "TuxCTA";
+        if (base === "tux-echarts") return "TuxECharts";
         if (base === "tux-fab") return "TuxFAB";
         if (base === "tux-toc") return "TuxTOC";
         if (base === "tux-qa-collection") return "TuxQACollection";

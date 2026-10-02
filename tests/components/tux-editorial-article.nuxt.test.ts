@@ -139,15 +139,15 @@ describe("TuxEditorialArticle Component", () => {
       },
     });
 
-    expect(wrapperCanvas.find(".tux-editorial__hero-canvas-stage").exists()).toBe(true);
-    expect(wrapperCanvas.find(".tux-editorial__canvas-layer").exists()).toBe(true);
-    expect(wrapperCanvas.find(".tux-editorial__canvas-playback-btn").exists()).toBe(true);
+    expect(wrapperCanvas.find(".tux-hero-canvas").exists()).toBe(true);
+    expect(wrapperCanvas.find(".tux-hero-canvas__layer").exists()).toBe(true);
+    expect(wrapperCanvas.find(".tux-hero-canvas__playback-btn").exists()).toBe(true);
     expect(wrapperCanvas.text()).toContain("Research Index");
     expect(wrapperCanvas.text()).toContain("TECHNICAL BRIEF");
     expect(wrapperCanvas.text()).toContain("Transportation Analytics & Computing Initiative");
 
     // Toggle animation playback button
-    const playbackBtn = wrapperCanvas.find(".tux-editorial__canvas-playback-btn");
+    const playbackBtn = wrapperCanvas.find(".tux-hero-canvas__playback-btn");
     expect(playbackBtn.attributes("aria-label")).toBe("Pause interactive animation");
     await playbackBtn.trigger("click");
     expect(playbackBtn.attributes("aria-label")).toBe("Play interactive animation");
