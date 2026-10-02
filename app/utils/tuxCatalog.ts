@@ -150,7 +150,7 @@ export const tuxCatalog: TuxCatalogEntry[] = [
   { name: "TuxChartSunburst", to: "/visualizations/chart-sunburst", icon: "lucide:circle-dot", family: "visualizations", kind: "component", wraps: "tux native (two-ring radial)", vizCategory: "statistical",
     blurb: "Radial counterpart to `TuxTreemap`." },
   { name: "TuxChatBubble", to: "/components/chat-bubble", icon: "lucide:bot-message-square", family: "components", kind: "component", wraps: "tux native", category: "ai",
-    blurb: "Conversational speech bubble and assistant launcher primitive for Rev AI and conversational surfaces." },
+    blurb: "Conversational speech bubble and floating assistant launcher primitive for interactive queries." },
   { name: "TuxChatMessage", to: "/components/chat-message", icon: "lucide:message-square-text", family: "components", kind: "component", wraps: "tux native", category: "ai",
     blurb: "One conversation turn — user or assistant role, citations slot, tool row. Powers tti-ai-chat." },
   { name: "TuxCitationExport", to: "/components/citation-export", icon: "lucide:download", family: "components", kind: "component", wraps: "UDropdownMenu", category: "publishing",

@@ -22,7 +22,7 @@ interface Props {
   threshold?: number;
   /** Positioning mode.
    *  - bottom-right: standard fixed placement (bottom: 1.75rem, right: 1.75rem).
-   *  - bottom-right-stacked: offset vertically (bottom: 5.5rem) to coexist with a floating chat bubble / Rev AI launcher.
+   *  - bottom-right-stacked: offset vertically (bottom: 5.5rem) to coexist with a floating chat bubble or assistant launcher.
    *  - bottom-left: fixed placement on the left corner.
    */
   position?: "bottom-right" | "bottom-right-stacked" | "bottom-left";

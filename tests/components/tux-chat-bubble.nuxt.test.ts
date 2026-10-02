@@ -8,8 +8,8 @@ describe("TuxChatBubble Component", () => {
     const wrapper = await mountSuspended(TuxChatBubble, {
       props: {
         role: "assistant",
-        title: "Rev AI",
-        status: "online",
+        title: "Assistant",
+        subtitle: "Transportation Research",
         suggestions: ["Summarize Corridors", "Export Data"],
       },
       slots: {
@@ -17,8 +17,8 @@ describe("TuxChatBubble Component", () => {
       },
     });
 
-    expect(wrapper.text()).toContain("Rev AI");
-    expect(wrapper.text()).toContain("Online");
+    expect(wrapper.text()).toContain("Assistant");
+    expect(wrapper.text()).toContain("Transportation Research");
     expect(wrapper.text()).toContain("Analysis complete for statewide freeways.");
     expect(wrapper.text()).toContain("Summarize Corridors");
 
@@ -26,21 +26,20 @@ describe("TuxChatBubble Component", () => {
     expect(violations).toEqual([]);
   });
 
-  it("renders trigger launcher mode with teaser and status indicator", async () => {
+  it("renders trigger launcher mode with teaser and activity states", async () => {
     const wrapper = await mountSuspended(TuxChatBubble, {
       props: {
         mode: "trigger",
-        title: "Rev AI",
-        status: "thinking",
+        title: "Assistant",
+        state: "attention",
         teaser: "Need assistance with this route?",
-        badge: 3,
       },
     });
 
     const triggerBtn = wrapper.find("button.tux-chat-bubble__launcher-btn");
     expect(triggerBtn.exists()).toBe(true);
+    expect(triggerBtn.classes()).toContain("tux-chat-bubble__launcher-btn--attention");
     expect(wrapper.text()).toContain("Need assistance with this route?");
-    expect(wrapper.text()).toContain("3");
 
     const violations = await runComponentAxe(wrapper.element);
     expect(violations).toEqual([]);
@@ -54,6 +53,11 @@ describe("TuxChatBubble Component", () => {
         suggestions: ["Analyze"],
       },
     });
+
+    const chipBtn = wrapper.find("button.rounded-full");
+    expect(chipBtn.exists()).toBe(true);
+    await chipBtn.trigger("click");
+    expect(wrapper.emitted("select-suggestion")?.[0]).toEqual(["Analyze"]);
 
     const dismissBtn = wrapper.find("button[aria-label='Dismiss chat bubble']");
     expect(dismissBtn.exists()).toBe(true);

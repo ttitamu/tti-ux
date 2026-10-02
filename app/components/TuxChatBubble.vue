@@ -1,43 +1,43 @@
 <script setup lang="ts">
 /**
- * TuxChatBubble — Conversational chat bubble and assistant launcher.
+ * TuxChatBubble — Conversational speech bubble and floating assistant launcher.
  *
- * Designed for institutional AI surfaces across TTI (such as Rev AI in Atlas
- * and TTI Code). Supports both conversational speech bubbles with directional
- * pointer tails and floating launcher trigger buttons with teaser callouts.
+ * Provides the canonical conversational container for institutional assistance,
+ * interactive queries, and data workflows across TTI.
  *
- * Institutional Note:
- * On public TUX documentation surfaces, active sprite animations and live backend
- * actions are excluded / secured behind institutional credentials, while this component
- * provides the canonical design-system primitive.
+ * Supports two distinct modes:
+ * - bubble: conversational speech container with directional pointer tails and suggestion chips.
+ * - trigger: floating or inline launcher button with activity states and teaser callouts.
  *
  * Accessibility (WCAG 2.2 Level AAA):
  * - Target sizes >=44×44px on all interactive elements.
- * - Minimum 7:1 contrast ratio against raised surface.
- * - Keyboard navigation (Esc to dismiss, Enter/Space for triggers).
- * - Semantic aria-expanded and region roles.
+ * - Minimum 7:1 contrast ratio against raised and sunken surfaces.
+ * - Interactive states (thinking, attention) respect `prefers-reduced-motion`.
+ * - Semantic aria-expanded, aria-label, and status roles.
  */
 
 interface Props {
   /** Display mode:
    *  - bubble: conversational speech container with optional pointer tail.
-   *  - trigger: floating or inline assistant launcher with avatar and status dot.
+   *  - trigger: floating or inline assistant launcher with activity states and teaser callout.
    */
   mode?: "bubble" | "trigger";
   /** Semantic role voice. */
   role?: "assistant" | "user" | "system";
   /** Assistant or speaker title. */
   title?: string;
-  /** Status indicator state. */
-  status?: "online" | "thinking" | "idle" | "offline";
-  /** Custom status label (e.g. "Online · Haiku 4.5"). */
-  statusText?: string;
+  /** Subtitle or institutional role description. */
+  subtitle?: string;
+  /** Activity state:
+   *  - idle: standard ready state.
+   *  - thinking: actively generating or processing query.
+   *  - attention: prompt ready or notification available (alert icon + gentle harmonic motion).
+   */
+  state?: "idle" | "thinking" | "attention";
   /** Teaser speech bubble copy shown alongside trigger button. */
   teaser?: string;
   /** Direction of the speech bubble pointer tail. */
   tail?: "bottom-right" | "bottom-left" | "top-right" | "top-left" | "none";
-  /** Unread notification badge count or text. */
-  badge?: string | number;
   /** Whether the bubble can be dismissed with a close button. */
   dismissible?: boolean;
   /** Controlled open state for trigger / popover behavior. */
@@ -49,12 +49,11 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   mode: "bubble",
   role: "assistant",
-  title: "Rev AI",
-  status: "online",
-  statusText: undefined,
+  title: "Assistant",
+  subtitle: "Institutional Assistant",
+  state: "idle",
   teaser: undefined,
   tail: "none",
-  badge: undefined,
   dismissible: false,
   open: true,
   suggestions: () => [],
@@ -89,22 +88,6 @@ function handleDismiss() {
 function handleSuggestion(s: string) {
   emit("select-suggestion", s);
 }
-
-const statusDisplay = computed(() => {
-  if (props.statusText) return props.statusText;
-  switch (props.status) {
-    case "online":
-      return "Online";
-    case "thinking":
-      return "Thinking…";
-    case "idle":
-      return "Standby";
-    case "offline":
-      return "Offline";
-    default:
-      return "Ready";
-  }
-});
 </script>
 
 <template>
@@ -113,47 +96,49 @@ const statusDisplay = computed(() => {
     v-if="mode === 'trigger'"
     class="tux-chat-bubble-trigger flex items-center gap-3 relative"
   >
-    <!-- Teaser greeting bubble -->
+    <!-- Teaser greeting or status bubble -->
     <div
-      v-if="teaser && isOpen"
+      v-if="(teaser || state === 'thinking') && isOpen"
       class="tux-chat-bubble-teaser bg-surface-raised border border-surface-border shadow-md px-3.5 py-2 rounded-xl text-xs text-text-primary flex items-center gap-2 max-w-xs animate-fade-in"
       role="status"
     >
       <span class="font-bold text-brand-primary dark:text-brand-accent">{{ title }}:</span>
-      <span class="truncate">{{ teaser }}</span>
+      <span v-if="state === 'thinking' && !teaser" class="flex items-center gap-1.5 text-text-secondary">
+        <UIcon name="lucide:loader-2" class="w-3.5 h-3.5 animate-spin text-brand-primary dark:text-brand-accent" />
+        <span>Thinking…</span>
+      </span>
+      <span v-else class="truncate">{{ teaser }}</span>
     </div>
 
     <!-- Trigger button -->
     <button
       type="button"
       class="tux-chat-bubble__launcher-btn relative flex items-center justify-center w-12 h-12 rounded-full bg-brand-primary text-text-inverse hover:bg-brand-primary-deep shadow-lg transition-transform hover:scale-105 active:scale-95 focus-visible:outline-none"
+      :class="[
+        state === 'attention' ? 'tux-chat-bubble__launcher-btn--attention' : '',
+        state === 'thinking' ? 'tux-chat-bubble__launcher-btn--thinking' : '',
+      ]"
       :aria-expanded="isOpen"
-      :aria-label="`${title} assistant launcher`"
+      :aria-label="state === 'attention' ? `${title}: Attention needed` : `${title} launcher`"
       @click="toggle"
     >
       <slot name="icon">
-        <UIcon name="lucide:bot-message-square" class="w-6 h-6" />
+        <UIcon
+          v-if="state === 'attention'"
+          name="lucide:bell"
+          class="w-6 h-6 text-brand-accent"
+        />
+        <UIcon
+          v-else-if="state === 'thinking'"
+          name="lucide:loader-2"
+          class="w-6 h-6 animate-spin text-brand-accent"
+        />
+        <UIcon
+          v-else
+          name="lucide:bot-message-square"
+          class="w-6 h-6"
+        />
       </slot>
-
-      <!-- Status dot -->
-      <span
-        class="absolute top-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-surface-raised"
-        :class="[
-          status === 'online' ? 'bg-emerald-500' : '',
-          status === 'thinking' ? 'bg-amber-400 animate-pulse' : '',
-          status === 'idle' ? 'bg-slate-400' : '',
-          status === 'offline' ? 'bg-neutral-500' : '',
-        ]"
-        :title="statusDisplay"
-      />
-
-      <!-- Badge count -->
-      <span
-        v-if="badge"
-        class="absolute -bottom-1 -right-1 bg-red-600 text-white font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-full shadow-xs"
-      >
-        {{ badge }}
-      </span>
     </button>
   </div>
 
@@ -169,26 +154,30 @@ const statusDisplay = computed(() => {
     :aria-label="`${title} message`"
   >
     <!-- Header row -->
-    <div class="tux-chat-bubble__header flex items-center justify-between gap-3 pb-2.5 mb-2.5 border-b border-surface-border/60">
+    <div class="tux-chat-bubble__header flex items-center justify-between gap-3 pb-2.5 mb-2.5 border-b border-surface-border-subtle">
       <div class="flex items-center gap-2">
         <div class="w-7 h-7 rounded-full bg-brand-primary/10 dark:bg-brand-primary/25 text-brand-primary dark:text-brand-accent flex items-center justify-center">
           <slot name="avatar">
-            <UIcon name="lucide:sparkles" class="w-4 h-4" />
+            <UIcon
+              v-if="state === 'attention'"
+              name="lucide:bell"
+              class="w-4 h-4 text-brand-accent"
+            />
+            <UIcon
+              v-else
+              name="lucide:sparkles"
+              class="w-4 h-4"
+            />
           </slot>
         </div>
         <div>
           <span class="font-bold text-sm text-text-primary block leading-tight">{{ title }}</span>
-          <span class="text-[11px] text-text-muted flex items-center gap-1 leading-tight">
-            <span
-              class="inline-block w-1.5 h-1.5 rounded-full"
-              :class="[
-                status === 'online' ? 'bg-emerald-500' : '',
-                status === 'thinking' ? 'bg-amber-400 animate-pulse' : '',
-                status === 'idle' ? 'bg-slate-400' : '',
-                status === 'offline' ? 'bg-neutral-500' : '',
-              ]"
-            />
-            {{ statusDisplay }}
+          <span v-if="state === 'thinking'" class="text-[11px] text-brand-primary dark:text-brand-accent flex items-center gap-1 leading-tight font-medium">
+            <UIcon name="lucide:loader-2" class="w-3 h-3 animate-spin" />
+            <span>Thinking…</span>
+          </span>
+          <span v-else class="text-[11px] text-text-muted block leading-tight">
+            {{ subtitle }}
           </span>
         </div>
       </div>
@@ -215,7 +204,7 @@ const statusDisplay = computed(() => {
     <!-- Suggestion action chips -->
     <div
       v-if="suggestions && suggestions.length > 0"
-      class="tux-chat-bubble__suggestions flex flex-wrap gap-2 mt-3 pt-3 border-t border-surface-border/40"
+      class="tux-chat-bubble__suggestions flex flex-wrap gap-2 mt-3 pt-3 border-t border-surface-border-subtle"
     >
       <button
         v-for="(suggestion, idx) in suggestions"
@@ -296,7 +285,32 @@ const statusDisplay = computed(() => {
   border-width: 1px 0 0 1px;
 }
 
+/* Trigger states */
 .tux-chat-bubble__launcher-btn:focus-visible {
   box-shadow: var(--shadow-focus);
+}
+
+.tux-chat-bubble__launcher-btn--attention {
+  box-shadow: 0 0 0 2px var(--brand-accent), var(--shadow-md);
+  animation: tux-attention-bounce 2.4s ease-in-out infinite;
+}
+
+.tux-chat-bubble__launcher-btn--thinking {
+  box-shadow: 0 0 0 2px var(--brand-accent);
+}
+
+@keyframes tux-attention-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tux-chat-bubble__launcher-btn--attention {
+    animation: none;
+  }
 }
 </style>

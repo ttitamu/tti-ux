@@ -1383,7 +1383,7 @@
       }
     },
     "TuxChatBubble": {
-      "sourceHash": "ea41d578d9e093ae",
+      "sourceHash": "b49c2e8328e02418",
       "ports": {
         "react": {
           "hash": null
@@ -1391,7 +1391,7 @@
       }
     },
     "TuxScrollTop": {
-      "sourceHash": "2a9947c64d06fa20",
+      "sourceHash": "af139747b9db2aca",
       "ports": {
         "react": {
           "hash": null

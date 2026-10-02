@@ -3,7 +3,7 @@ useHead({ title: "TuxScrollTop · TUX" });
 
 const basicVue = `<tux-scroll-top :threshold="120" position="bottom-right" />`;
 
-const stackedVue = `<!-- Coexists cleanly with a bottom-right floating chat widget or Rev AI trigger -->
+const stackedVue = `<!-- Coexists cleanly with a bottom-right floating chat widget or assistant trigger -->
 <tux-scroll-top :threshold="100" position="bottom-right-stacked" />`;
 </script>
 
@@ -51,7 +51,7 @@ const stackedVue = `<!-- Coexists cleanly with a bottom-right floating chat widg
       <TuxExample class="mt-4" :vue="stackedVue">
         <div class="p-6 border border-surface-border rounded-xl bg-surface-raised space-y-3">
           <p class="text-sm text-text-secondary">
-            When paired with floating triggers like <code>TuxChatBubble</code> or the Rev AI assistant launcher in Atlas,
+            When paired with floating triggers like <code>TuxChatBubble</code> or an institutional assistant launcher,
             set <code>position="bottom-right-stacked"</code>. This lifts the button to <code>bottom: 5.5rem</code> so the two controls
             stack vertically in perfect harmony without collisions.
           </p>
