@@ -66,8 +66,7 @@ useHead({ title: "Style variants · TUX" });
 
       <div class="rounded-md border border-surface-border bg-surface-raised p-8 space-y-6">
         <div>
-          <span class="dot-grid" aria-hidden="true" />
-          <p class="eyebrow mt-2">2026 transportation symposium</p>
+          <p class="eyebrow">2026 transportation symposium</p>
           <h3 class="section-header--bold text-2xl">Register today</h3>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -101,23 +100,9 @@ useHead({ title: "Style variants · TUX" });
         drop the 2px maroon outline for a dotted maroon border.
       </p>
 
-      <!-- Signature Showcase Card -->
-      <div class="border-dotted-tti bg-surface-raised rounded-md p-10 md:p-14 text-center my-8 max-w-3xl mx-auto shadow-sm">
-        <p class="font-extrabold italic uppercase tracking-wider text-xs md:text-sm text-text-primary mb-3">
-          SECTION STYLE
-        </p>
-        <h3 class="heading--elegant heading--elegant--italic heading--elegant--brand text-4xl md:text-5xl tracking-wide mb-4">
-          ELEGANT
-        </h3>
-        <div class="flex justify-center">
-          <span class="hash-pattern" aria-hidden="true" />
-        </div>
-      </div>
-
       <div class="rounded-md border border-surface-border bg-surface-raised p-8 space-y-6">
         <div>
-          <span class="hash-pattern" aria-hidden="true" />
-          <p class="eyebrow mt-2">annual report 2025</p>
+          <p class="eyebrow">annual report 2025</p>
           <h3 class="section-header--elegant text-2xl">Director's letter</h3>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
