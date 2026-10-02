@@ -646,17 +646,22 @@ hr { border: 0; border-top: 1px solid var(--surface-border); margin: var(--space
 .section-header--bold::after {
   content: "";
   display: block;
-  width: 62px;
-  height: 5px;
-  margin-top: 0.75rem;
-  background:
-    linear-gradient(to right,
-      var(--brand-primary) 0 32px,
-      transparent 32px 38px,
-      color-mix(in srgb, var(--brand-primary) 50%, transparent) 38px 52px,
-      transparent 52px 56px,
-      color-mix(in srgb, var(--brand-primary) 25%, transparent) 56px 62px);
-  border-radius: 2.5px;
+  width: 48px;
+  height: 16px;
+  margin-top: 0.625rem;
+  background-image: radial-gradient(var(--brand-primary) 1.5px, transparent 1.5px);
+  background-size: 8px 8px;
+  background-position: 0 0;
+}
+
+[data-theme="tti-dark"] .section-header--bold::after {
+  background-image: radial-gradient(var(--brand-accent) 1.5px, transparent 1.5px);
+}
+
+.text-center .section-header--bold::after,
+.section-header--bold.text-center::after {
+  margin-left: auto;
+  margin-right: auto;
 }
 /* Dot-grid accent — bold-style decoration, sits next to headings. Apply to any element. */
 .dot-grid {

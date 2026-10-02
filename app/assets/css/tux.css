@@ -339,39 +339,22 @@
 .section-header--bold::after {
   content: "";
   display: block;
-  width: 64px;
-  height: 7px;
+  width: 48px;
+  height: 16px;
   margin-top: 0.625rem;
-  background-image:
-    /* Top line: Solid roadway lane */
-    linear-gradient(var(--brand-primary), var(--brand-primary)),
-    /* Bottom line: Broken / dashed directional passing lane */
-    repeating-linear-gradient(to right,
-      var(--brand-primary) 0px,
-      var(--brand-primary) 8px,
-      transparent 8px,
-      transparent 14px
-    );
-  background-size:
-    100% 2px,
-    100% 2px;
-  background-position:
-    0 0,
-    0 5px;
-  background-repeat:
-    no-repeat,
-    no-repeat;
+  background-image: radial-gradient(var(--brand-primary) 1.5px, transparent 1.5px);
+  background-size: 8px 8px;
+  background-position: 0 0;
 }
 
 [data-theme="tti-dark"] .section-header--bold::after {
-  background-image:
-    linear-gradient(var(--brand-accent), var(--brand-accent)),
-    repeating-linear-gradient(to right,
-      var(--brand-accent) 0px,
-      var(--brand-accent) 8px,
-      transparent 8px,
-      transparent 14px
-    );
+  background-image: radial-gradient(var(--brand-accent) 1.5px, transparent 1.5px);
+}
+
+.text-center .section-header--bold::after,
+.section-header--bold.text-center::after {
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .style--bold .heading--bold {
@@ -380,32 +363,15 @@
   margin: 0;
 }
 
-.style--bold .heading--bold::after,
-.heading--bold-roadway::after {
+.style--bold .heading--bold::after {
   content: "";
   display: block;
-  width: 64px;
-  height: 7px;
+  width: 48px;
+  height: 16px;
   margin-top: 0.625rem;
-  background-image:
-    /* Top line: Solid roadway lane */
-    linear-gradient(var(--brand-accent), var(--brand-accent)),
-    /* Bottom line: Broken / dashed directional passing lane */
-    repeating-linear-gradient(to right,
-      var(--brand-accent) 0px,
-      var(--brand-accent) 8px,
-      transparent 8px,
-      transparent 14px
-    );
-  background-size:
-    100% 2px,
-    100% 2px;
-  background-position:
-    0 0,
-    0 5px;
-  background-repeat:
-    no-repeat,
-    no-repeat;
+  background-image: radial-gradient(var(--brand-accent) 1.5px, transparent 1.5px);
+  background-size: 8px 8px;
+  background-position: 0 0;
 }
 
 /* Dot-grid accent — bold-style decoration. Sits next to a heading

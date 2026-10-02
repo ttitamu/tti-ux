@@ -54,14 +54,13 @@ useHead({ title: "Style variants · TUX" });
     <!-- Bold style -->
     <section class="style--bold space-y-4">
       <p class="eyebrow">style 2 / 3</p>
-      <h2 class="heading--bold text-3xl font-bold">Bold — Work Sans + roadway passing lane</h2>
+      <h2 class="heading--bold text-3xl font-bold">Bold — Work Sans + dot grid</h2>
       <p class="max-w-3xl text-text-secondary leading-relaxed">
         Eye-catching. Right for marketing splashes, athletic-flavored landing
         pages, event blocks. Headings are heavy Work Sans (800-weight,
         mixed-case, italic hero flourish on
         <code>.heading--display</code>), and the section signature is a
-        roadway passing lane rule (solid line on top, broken line on bottom)
-        reflecting transportation infrastructure.
+        maroon dot-grid accent.
       </p>
 
       <div class="rounded-md border border-surface-border bg-surface-raised p-8 space-y-6">
