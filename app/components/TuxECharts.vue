@@ -27,6 +27,10 @@ interface Props {
   ariaTitle?: string;
   /** Screen-reader summary explaining key findings or data trends */
   ariaSummary?: string;
+  /** Optional explicit extension names: 'wordcloud' | 'liquidfill' */
+  extensions?: ("wordcloud" | "liquidfill")[];
+  /** Optional map names to register: e.g. 'USA_ALBERS' */
+  maps?: ("USA_ALBERS")[];
   /** Loading state */
   loading?: boolean;
 }
@@ -42,6 +46,7 @@ const props = withDefaults(defineProps<Props>(), {
 const chartContainerRef = ref<HTMLDivElement | null>(null);
 let chartInstance: ECharts | null = null;
 let resizeObserver: ResizeObserver | null = null;
+let themeObserver: MutationObserver | null = null;
 
 async function initChart() {
   if (!chartContainerRef.value || typeof window === "undefined") return;
@@ -58,6 +63,38 @@ async function initChart() {
 
   const themeName = isDark ? "tux-dark" : "tux-light";
   echarts.registerTheme(themeName, createTuxEChartsTheme(isDark));
+
+  // Dynamically load extensions if option requires them
+  const optStr = JSON.stringify(props.options || {});
+  if (optStr.includes('"wordCloud"') || props.extensions?.includes("wordcloud")) {
+    try {
+      // @ts-ignore
+      await import("echarts-wordcloud");
+    } catch (e) {
+      console.warn("echarts-wordcloud extension notice:", e);
+    }
+  }
+  if (optStr.includes('"liquidFill"') || props.extensions?.includes("liquidfill")) {
+    try {
+      // @ts-ignore
+      await import("echarts-liquidfill");
+    } catch (e) {
+      console.warn("echarts-liquidfill extension notice:", e);
+    }
+  }
+
+  // Register SVG maps if requested
+  if (optStr.includes('"USA_ALBERS"') || props.maps?.includes("USA_ALBERS")) {
+    try {
+      const { usStates, US_VIEWBOX } = await import("~/assets/geo/us-states");
+      const svg = `<svg viewBox="0 0 ${US_VIEWBOX[0]} ${US_VIEWBOX[1]}" xmlns="http://www.w3.org/2000/svg">
+        ${usStates.map((s: any) => `<path name="${s.name}" id="${s.code}" d="${s.path}" />`).join("")}
+      </svg>`;
+      echarts.registerMap("USA_ALBERS", { svg });
+    } catch (e) {
+      console.warn("USA_ALBERS map load notice:", e);
+    }
+  }
 
   if (chartInstance) {
     chartInstance.dispose();
@@ -110,6 +147,17 @@ onMounted(() => {
       resizeObserver = new ResizeObserver(() => handleResize());
       resizeObserver.observe(chartContainerRef.value);
     }
+
+    // Theme mutation observer on document.documentElement
+    if (typeof MutationObserver !== "undefined") {
+      themeObserver = new MutationObserver(() => {
+        initChart();
+      });
+      themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-theme", "class"],
+      });
+    }
   });
 });
 
@@ -122,11 +170,17 @@ onUnmounted(() => {
     resizeObserver.disconnect();
     resizeObserver = null;
   }
+  if (themeObserver) {
+    themeObserver.disconnect();
+    themeObserver = null;
+  }
 });
 
 defineExpose({
   getChartInstance: () => chartInstance,
+  setOption: (opt: EChartsCoreOption, notMerge?: boolean) => chartInstance?.setOption(opt, notMerge),
   resize: handleResize,
+  dispatchAction: (payload: any) => chartInstance?.dispatchAction(payload),
 });
 </script>
 
