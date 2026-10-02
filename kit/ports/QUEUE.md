@@ -154,3 +154,5 @@ with a matching source hash in manifest.json.
 | TuxSpectrumFacts | react | never ported |
 | TuxSpectrumRibbon | react | never ported |
 | TuxTileGrid | react | never ported |
+| TuxChatBubble | react | never ported |
+| TuxScrollTop | react | never ported |

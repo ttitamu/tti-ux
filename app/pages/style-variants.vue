@@ -16,7 +16,7 @@ useHead({ title: "Style variants · TUX" });
     <!-- Default style -->
     <section class="space-y-4">
       <p class="eyebrow">style 1 / 3</p>
-      <h2 class="heading--bold text-3xl font-bold">Default — Oswald + maroon hairline</h2>
+      <h2 class="text-3xl font-bold">Default — Oswald + maroon hairline</h2>
       <p class="max-w-3xl text-text-secondary leading-relaxed">
         Quietest of the three. Used everywhere a section needs structure but
         not personality — dashboards, admin chrome, table-heavy pages,
@@ -92,7 +92,7 @@ useHead({ title: "Style variants · TUX" });
     <!-- Elegant style -->
     <section class="style--elegant space-y-4">
       <p class="eyebrow">style 3 / 3</p>
-      <h2 class="heading--bold text-3xl font-bold">Elegant — Georgia + diagonal slashes</h2>
+      <h2 class="heading--elegant text-3xl font-bold">Elegant — Georgia + diagonal slashes</h2>
       <p class="max-w-3xl text-text-secondary leading-relaxed">
         Refined and stately. Used for research publications, annual reports,
         faculty profiles, policy and administrative surfaces. Headings switch

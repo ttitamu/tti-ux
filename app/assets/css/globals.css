@@ -145,8 +145,11 @@ body {
 
 /* Roadway directional passing lane rule beneath bold-style headings.
    Solid line on top, broken/dashed line on bottom (MUTCD passing zone).
-   Evokes Texas transportation infrastructure in Warm Gold. */
-.heading--bold::after {
+   Evokes Texas transportation infrastructure in Warm Gold.
+   Opt-in: only renders under .style--bold or when explicitly opting in via .heading--bold-roadway,
+   ensuring the rest of the site remains clean in the Default style. */
+.style--bold .heading--bold::after,
+.heading--bold-roadway::after {
   content: "";
   display: block;
   width: 64px;

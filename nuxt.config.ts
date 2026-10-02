@@ -250,6 +250,23 @@ export default defineNuxtConfig({
   },
 
   hooks: {
+    // Nuxt CLI does not call process.exit(0) when the build completes, and
+    // lingering worker threads or file watchers in Node 26 can prevent the
+    // process from terminating naturally after "✨ Build complete!".
+    // Exit cleanly once Nitro signals compilation is done.
+    "nitro:init"(nitro) {
+      nitro.hooks.hook("compiled", () => {
+        if (
+          isRootProject &&
+          !process.env.VITEST &&
+          (process.argv.includes("build") || process.argv.includes("generate"))
+        ) {
+          setTimeout(() => {
+            process.exit(0);
+          }, 400);
+        }
+      });
+    },
     // Co-located `*.demo-data.ts` fixtures live beside their gallery pages
     // on purpose — but Nuxt's file router registers EVERY .ts under pages/
     // as a route. Crawling those "routes" imports a module with no default

@@ -803,6 +803,8 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
       <!-- Toast host — dogfoods the v1.8.0 TuxStatusToast; every page can
            fire via useTuxToast() (the /components/status-toast demo does). -->
       <TuxStatusToast />
+      <!-- Global reading-progress return-to-top button -->
+      <TuxScrollTop />
     </ClientOnly>
 
     <!-- Standalone full-viewport pages (layout: false) bypass the style guide shell -->

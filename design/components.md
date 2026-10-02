@@ -38,6 +38,7 @@ npm run dev
 | `TuxCardCarousel`    | `UCarousel` (embla) wrap | `/components/card-carousel`     |
 | `TuxCardSlab`        | tux native               | `/components/card-slab`         |
 | `TuxCookieConsent`   | tux native               | `/components/cookie-consent`    |
+| `TuxChatBubble`     | tux native               | `/components/chat-bubble`       |
 | `TuxChatMessage`     | tux native               | `/components/chat-message`      |
 | `TuxCitations`       | tux native               | `/components/citations`         |
 | `TuxCodeBlock`       | Shiki                    | `/components/code-block`        |
@@ -93,6 +94,7 @@ npm run dev
 | `TuxRichDataGrid`    | tux native               | `/components/rich-data-grid`    |
 | `TuxRichTextEditor`  | Tiptap + lowlight        | `/components/rich-text-editor`  |
 | `TuxRuleBuilder`     | tux native               | `/components/rule-builder` (renders internal child `TuxRuleBuilderGroup` recursively) |
+| `TuxScrollTop`       | tux native               | `/components/scroll-top`        |
 | `TuxSearch`          | tux native               | `/components/search`            |
 | `TuxSectionHeader`   | tux native               | `/components/section-header`    |
 | `TuxShortcutsHelp`   | tux native (`<dialog>`)  | `/components/shortcuts-help`    |

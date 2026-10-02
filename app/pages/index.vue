@@ -75,7 +75,7 @@ const catalogCount = `${tuxComponentCount}`;
         </p>
         <div class="welcome-hero__actions">
           <NuxtLink to="/components" class="welcome-cta welcome-cta--primary">
-            <span>Components (183)</span>
+            <span>Components ({{ catalogCount }})</span>
             <Icon name="lucide:arrow-right" class="welcome-cta-icon" aria-hidden="true" />
           </NuxtLink>
           <NuxtLink to="/components/health" class="welcome-cta">
@@ -92,24 +92,31 @@ const catalogCount = `${tuxComponentCount}`;
         </div>
       </div>
 
-      <div class="welcome-hero__panel" aria-hidden="true">
-        <div class="welcome-hero__panel-meta">
-          <p class="welcome-hero__meta-label">Stack</p>
-          <p class="welcome-hero__meta-value">Nuxt 4 · Tailwind v4 · Vue 3.5</p>
-
-          <p class="welcome-hero__meta-label">Architecture</p>
-          <p class="welcome-hero__meta-value">Tokens · Components · Multi-Platform Kit</p>
-
-          <p class="welcome-hero__meta-label">Component Census</p>
-          <p class="welcome-hero__meta-value">183 components (100% verified)</p>
-
-          <p class="welcome-hero__meta-label">Accessibility</p>
-          <p class="welcome-hero__meta-value">WCAG 2.2 Level AAA (0 violations)</p>
-
-          <p class="welcome-hero__meta-label">Brand Palette</p>
-          <p class="welcome-hero__meta-value">TTI Maroon (#500000) · 5-Band Spectrum</p>
+      <div class="welcome-hero__panel" aria-label="TTI UX: Institutional Design System &amp; Component Library">
+        <div class="welcome-hero__banner">
+          <div class="welcome-hero__banner-eyebrow">
+            <span class="welcome-hero__banner-bullet" aria-hidden="true">•</span>
+            <span>TEXAS A&amp;M TRANSPORTATION INSTITUTE</span>
+          </div>
+          <div class="welcome-hero__banner-brand">
+            <span class="welcome-hero__banner-brand-tti">TTI</span>
+            <span class="welcome-hero__banner-brand-ux">UX</span>
+          </div>
+          <div class="welcome-hero__banner-roadway" aria-hidden="true">
+            <span class="welcome-hero__roadway-solid" />
+            <span class="welcome-hero__roadway-dashed" />
+          </div>
+          <p class="welcome-hero__banner-subtitle">
+            Institutional Design System &amp; Component Library
+          </p>
+          <div class="welcome-hero__banner-chips">
+            <span class="welcome-hero__chip">v{{ version }}</span>
+            <span class="welcome-hero__chip">WCAG 2.2 AAA</span>
+            <span class="welcome-hero__chip">Nuxt 4</span>
+            <span class="welcome-hero__chip">Tailwind v4</span>
+            <span class="welcome-hero__chip">{{ catalogCount }} Components</span>
+          </div>
         </div>
-        <span class="welcome-hero__glyph" aria-hidden="true">T</span>
       </div>
     </section>
 
@@ -399,17 +406,21 @@ const catalogCount = `${tuxComponentCount}`;
   gap: 0.625rem;
 }
 
-/* Right-side maroon panel — diagonal hash overlay matches the
-   slides kit's "stack" hash. The big italic T glyph is a faint
-   echo of TTI identity at low opacity. */
+/* Right-side maroon panel — bold TTI UX display banner with institutional
+   typography, passing lane roadway rule, and dynamic framework badges. */
 .welcome-hero__panel {
   position: relative;
   background: var(--brand-primary);
+  border: 1px solid rgba(221, 172, 55, 0.25);
   border-radius: var(--radius-md);
-  padding: 1.75rem 1.625rem;
-  color: rgba(255, 255, 255, 0.92);
+  padding: 2rem 1.875rem;
+  color: #ffffff;
   overflow: hidden;
-  min-height: 16rem;
+  min-height: 18rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 20px -2px rgba(80, 0, 0, 0.35);
   isolation: isolate;
 }
 
@@ -418,57 +429,114 @@ const catalogCount = `${tuxComponentCount}`;
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(transparent 50%, rgba(0, 0, 0, 0.18)),
+    radial-gradient(ellipse at 85% 15%, rgba(221, 172, 55, 0.12) 0%, transparent 60%),
     repeating-linear-gradient(
       135deg,
-      rgba(221, 172, 55, 0.09) 0 2px,
+      rgba(221, 172, 55, 0.08) 0 2px,
       transparent 2px 18px
     );
   z-index: 0;
+  pointer-events: none;
 }
 
-.welcome-hero__panel-meta {
+.welcome-hero__banner {
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.welcome-hero__banner-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  line-height: 1.5;
-}
-
-.welcome-hero__meta-label {
-  margin: 0;
-  color: var(--brand-accent);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.625rem;
-  font-weight: 600;
-  opacity: 0.95;
-}
-
-.welcome-hero__meta-label:not(:first-child) {
-  margin-top: 0.875rem;
-}
-
-.welcome-hero__meta-value {
-  margin: 0.125rem 0 0;
-  color: rgba(255, 255, 255, 0.92);
-  font-weight: 500;
-}
-
-.welcome-hero__glyph {
-  position: absolute;
-  right: -0.5rem;
-  bottom: -2rem;
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 800;
-  font-size: 12rem;
-  line-height: 0.8;
   color: var(--brand-accent);
-  opacity: 0.14;
-  z-index: 0;
-  pointer-events: none;
-  user-select: none;
+}
+
+.welcome-hero__banner-bullet {
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.welcome-hero__banner-brand {
+  margin-top: 1rem;
+  font-family: var(--font-bold);
+  font-weight: 900;
+  font-size: clamp(3.25rem, 5vw, 4.75rem);
+  line-height: 0.92;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.welcome-hero__banner-brand-tti {
+  color: #ffffff;
+}
+
+.welcome-hero__banner-brand-ux {
+  color: var(--brand-accent);
+}
+
+.welcome-hero__banner-roadway {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 6.5rem;
+  margin: 1rem 0 1.125rem;
+}
+
+.welcome-hero__roadway-solid {
+  display: block;
+  height: 2.5px;
+  background: var(--brand-accent);
+  border-radius: 1px;
+}
+
+.welcome-hero__roadway-dashed {
+  display: block;
+  height: 0;
+  border-top: 2.5px dashed var(--brand-accent);
+}
+
+.welcome-hero__banner-subtitle {
+  margin: 0 0 1.75rem;
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.96);
+  max-width: 24rem;
+}
+
+.welcome-hero__banner-chips {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4375rem;
+}
+
+.welcome-hero__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5625rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(221, 172, 55, 0.35);
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.02em;
 }
 
 /* ──────── VISUAL IDENTITY GLANCE — six tiles showing the system
