@@ -25,14 +25,13 @@ const stackedVue = `<!-- Coexists cleanly with a bottom-right floating chat widg
             Below is an inline demo of the 48px circular radial indicator:
           </p>
           <div class="flex items-center gap-6 p-4 rounded-xl border border-surface-border bg-surface-sunken">
-            <div class="w-12 h-12 flex items-center justify-center filter drop-shadow-md text-text-primary">
-              <svg viewBox="0 0 48 48" width="48" height="48" aria-hidden="true">
-                <circle cx="24" cy="24" r="22" fill="var(--surface-raised)" />
-                <circle cx="24" cy="24" r="20.5" fill="none" stroke="var(--surface-border)" stroke-width="2.5" opacity="0.8" />
-                <circle cx="24" cy="24" r="20.5" fill="none" stroke="var(--brand-primary)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="128.8" stroke-dashoffset="40" transform="rotate(-90 24 24)" />
-                <g stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="24" y1="17.5" x2="24" y2="31.5" />
-                  <polyline points="18.5 23.5, 24 17.5, 29.5 23.5" fill="none" />
+            <div class="w-12 h-12 rounded-full bg-surface-raised flex items-center justify-center text-text-primary" style="box-shadow: var(--elevation-overlay);">
+              <svg viewBox="0 0 48 48" width="48" height="48" shape-rendering="geometricPrecision" aria-hidden="true">
+                <circle cx="24" cy="24" r="22.75" fill="none" stroke="var(--surface-border)" stroke-width="2.5" opacity="0.9" />
+                <circle cx="24" cy="24" r="22.75" fill="none" stroke="var(--brand-primary)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="142.94" stroke-dashoffset="45.74" transform="rotate(-90 24 24)" />
+                <g stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="24" y1="16.5" x2="24" y2="31.5" />
+                  <polyline points="17.5 22.5, 24 16.5, 30.5 22.5" fill="none" />
                 </g>
               </svg>
             </div>

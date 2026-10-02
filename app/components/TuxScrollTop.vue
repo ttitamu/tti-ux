@@ -6,9 +6,12 @@
  * progress ring. Appears gracefully once scroll passes `threshold`, and smoothly
  * scrolls back to the top on click or keyboard activation.
  *
- * 100% Vector SVG Architecture:
- * - Unified concentric SVG geometry eliminates subpixel rasterization, double borders, and blur.
- * - Mathematically locked center coordinates (24, 24) guarantee optical alignment on all displays.
+ * Hardware-Accelerated Hybrid CSS & Vector SVG Architecture:
+ * - Native CSS circular surface with GPU box-shadow eliminates rasterization filter blur.
+ * - Concentric SVG radial ring (r=22.75, stroke-width=2.5) perfectly aligns with the
+ *   physical 48px circle boundary (22.75 + 1.25 = 24.0), eliminating double-borders,
+ *   white halos, and subpixel stair-stepping across light, dark, and brand-colored surfaces.
+ * - Locked center coordinates (24, 24) guarantee optical alignment on all displays.
  *
  * Accessibility (WCAG 2.2 Level AAA):
  * - Target size: 48×48px (exceeds >=44px AAA requirement).
@@ -38,8 +41,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const progress = ref(0);
 const isVisible = ref(false);
-const radius = 21;
-const circumference = 2 * Math.PI * radius; // ~131.947
+const radius = 22.75;
+const circumference = 2 * Math.PI * radius; // ~142.942
 
 const dashOffset = computed(() => {
   const p = Math.min(100, Math.max(0, progress.value));
@@ -108,23 +111,9 @@ onUnmounted(() => {
       viewBox="0 0 48 48"
       width="48"
       height="48"
+      shape-rendering="geometricPrecision"
       aria-hidden="true"
     >
-      <defs>
-        <filter id="tux-scroll-shadow" x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="black" flood-opacity="0.32" />
-        </filter>
-      </defs>
-
-      <!-- Background filled surface disc with SVG drop shadow -->
-      <circle
-        class="tux-scroll-top__bg"
-        cx="24"
-        cy="24"
-        :r="radius"
-        filter="url(#tux-scroll-shadow)"
-      />
-
       <!-- Background track ring -->
       <circle
         class="tux-scroll-top__track"
@@ -165,23 +154,26 @@ onUnmounted(() => {
   z-index: 45;
   width: 48px;
   height: 48px;
-  border-radius: 9999px;
+  border-radius: 50%;
   border: none;
-  background: transparent;
+  background: var(--surface-raised);
+  box-shadow: var(--elevation-overlay);
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   color: var(--text-primary);
-  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease;
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, color 0.15s ease, background-color 0.15s ease;
   user-select: none;
   outline: none;
 }
 
 .tux-scroll-top:hover {
   transform: translateY(-2px);
+  background: var(--surface-sunken);
   color: var(--brand-primary);
+  box-shadow: var(--elevation-overlay);
 }
 
 [data-theme="tti-dark"] .tux-scroll-top:hover {
@@ -190,6 +182,7 @@ onUnmounted(() => {
 
 .tux-scroll-top:active {
   transform: translateY(0);
+  box-shadow: var(--elevation-hover);
 }
 
 .tux-scroll-top:focus-visible {
@@ -233,23 +226,16 @@ onUnmounted(() => {
 /* SVG Vector Elements */
 .tux-scroll-top__svg {
   display: block;
+  width: 48px;
+  height: 48px;
   overflow: visible;
-}
-
-.tux-scroll-top__bg {
-  fill: var(--surface-raised);
-  transition: fill 0.15s ease;
-}
-
-.tux-scroll-top:hover .tux-scroll-top__bg {
-  fill: var(--surface-sunken);
 }
 
 .tux-scroll-top__track {
   fill: none;
   stroke: var(--surface-border);
   stroke-width: 2.5;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .tux-scroll-top__indicator {
