@@ -97,9 +97,22 @@ useHead({ title: "Style variants · TUX" });
         Refined and stately. Used for research publications, annual reports,
         faculty profiles, policy and administrative surfaces. Headings switch
         to Georgia (a system serif, no font fetch needed), the section
-        signature is a series of full, symmetrical diagonal slashes, and cards
+        signature is a series of symmetrical oblong pointed-quill diagonal slashes, and cards
         drop the 2px maroon outline for a dotted maroon border.
       </p>
+
+      <!-- Signature Showcase Card -->
+      <div class="border-dotted-tti bg-surface-raised rounded-md p-10 md:p-14 text-center my-8 max-w-3xl mx-auto shadow-sm">
+        <p class="font-extrabold italic uppercase tracking-wider text-xs md:text-sm text-text-primary mb-3">
+          SECTION STYLE
+        </p>
+        <h3 class="heading--elegant heading--elegant--italic heading--elegant--brand text-4xl md:text-5xl tracking-wide mb-4">
+          ELEGANT
+        </h3>
+        <div class="flex justify-center">
+          <span class="hash-pattern" aria-hidden="true" />
+        </div>
+      </div>
 
       <div class="rounded-md border border-surface-border bg-surface-raised p-8 space-y-6">
         <div>
