@@ -1,7 +1,7 @@
 /**
  * tuxEChartsGallery.ts — Comprehensive ECharts storytelling presets for TTI-UX 3.0.
  *
- * Implements 17 institutional, transportation-research-grade visualizations:
+ * Implements 22 institutional, transportation-research-grade visualizations:
  * 1. basicPieRose — Modal Split & Fleet Transition (Nightingale Rose / Pie)
  * 2. parliament — Legislative Appropriations Committee Seating Layout
  * 3. survey — 5-Point Likert Diverging Stacked Bar (Public Opinion on AVs & Tolling)
@@ -19,6 +19,11 @@
  * 15. gaugeCluster — Vehicle Telemetry Instrument Cluster (Speedometer, Tire PSI, LOS)
  * 16. wordCloud — Commuter Experience Qualitative Survey Sentiment
  * 17. liquidFill — State Highway Trust Fund Dedicated Liquidity Reserve
+ * 18. sankey — Texas State Highway Fund Dedicated Allocation & Investment Flows
+ * 19. heatmapCongestion — Austin I-35 Central Corridor 24/7 Diurnal Congestion Matrix
+ * 20. radarAlternatives — High-Capacity Transit Alternatives Multi-Criteria Evaluation
+ * 21. boxplotReliability — Texas Commercial Freight Corridors Travel Time Index Reliability
+ * 22. borderGateways — Texas International Commercial Ports of Entry Throughput & Queue
  */
 
 import type { EChartsCoreOption } from "echarts";
@@ -971,6 +976,813 @@ export const GALLERY_PRESETS: GalleryPreset[] = [
             fontWeight: "bold",
             color: isDark ? "#F5F5F5" : "#1A1A1A",
           },
+        },
+      ],
+    }),
+  },
+
+  // 13. TEXAS 254-COUNTY CHOROPLETH MAP
+  {
+    id: "texas-counties",
+    title: "Texas 254-County Crash Severity & VMT Density Choropleth",
+    category: "spatial",
+    categoryLabel: "Spatial & Maps",
+    eyebrow: "EXHIBIT 3.1 · GEOGRAPHIC CRASH ANALYTICS",
+    subtitle: "Fatal crash rate per 100M vehicle miles traveled (VMT) with interactive zoom and pan",
+    source: "TTI Center for Transportation Safety · CRIS Crash Analytics",
+    story: "Full 254-county vector choropleth map. Equal-area projection preserves geospatial truth across rural and urban Texas districts. Hover tooltips detail county population, annual VMT, and five-year fatal crash rate trends.",
+    height: "500px",
+    ariaTitle: "Texas 254-county crash severity choropleth map",
+    ariaSummary: "Interactive Texas county map showing highest crash rates concentrated in Permian Basin energy sector counties (Ector: 2.68, Midland: 2.45 per 100M VMT), and lowest rates in suburban metro counties (Collin: 0.94, Denton: 1.05).",
+    getOption: (isDark) => ({
+      tooltip: {
+        trigger: "item",
+        formatter: "{b} County<br/>Crash Rate: <strong>{c}</strong> per 100M VMT",
+      },
+      visualMap: {
+        min: 0.8,
+        max: 2.8,
+        orient: "horizontal",
+        left: "center",
+        bottom: "2%",
+        text: ["High Severity", "Low Severity"],
+        inRange: {
+          color: isDark
+            ? ["#1F2937", "#005F73", "#EE9B00", "#A02D20"]
+            : ["#E9D8A6", "#EE9B00", "#CA6702", "#500000"],
+        },
+        calculable: true,
+      },
+      series: [
+        {
+          name: "Crash Rate",
+          type: "map",
+          map: "TEXAS_COUNTIES",
+          roam: true,
+          zoom: 1.15,
+          emphasis: {
+            label: { show: true },
+            itemStyle: { areaColor: isDark ? "#A02D20" : "#500000" },
+          },
+          data: [
+            { name: "Harris", value: 1.84 },
+            { name: "Dallas", value: 1.76 },
+            { name: "Tarrant", value: 1.42 },
+            { name: "Bexar", value: 1.58 },
+            { name: "Travis", value: 1.22 },
+            { name: "El Paso", value: 1.48 },
+            { name: "Collin", value: 0.94 },
+            { name: "Denton", value: 1.05 },
+            { name: "Hidalgo", value: 2.12 },
+            { name: "Cameron", value: 1.95 },
+            { name: "Midland", value: 2.45 },
+            { name: "Ector", value: 2.68 },
+            { name: "Lubbock", value: 1.52 },
+            { name: "Potter", value: 1.89 },
+            { name: "McLennan", value: 1.64 },
+            { name: "Brazos", value: 1.15 },
+            { name: "Bell", value: 1.55 },
+            { name: "Nueces", value: 1.72 },
+            { name: "Webb", value: 2.05 },
+          ],
+        },
+      ],
+    }),
+  },
+
+  // 14. TXDOT 25 ENGINEERING DISTRICTS MAP
+  {
+    id: "txdot-districts",
+    title: "TxDOT 25 Engineering Districts Mobility Investment Priorities",
+    category: "spatial",
+    categoryLabel: "Spatial & Maps",
+    eyebrow: "EXHIBIT 3.2 · TXDOT DISTRICT PORTFOLIO",
+    subtitle: "Unified Transportation Program (UTP) project delivery priority score by district (1–100)",
+    source: "TxDOT Unified Transportation Program · Project Delivery Office",
+    story: "Administrative geography of TxDOT's 25 engineering districts. Enables legislative delegates and district engineers to evaluate regional funding equity and active roadway reconstruction volumes.",
+    height: "500px",
+    ariaTitle: "TxDOT 25 engineering districts priority map",
+    ariaSummary: "Houston (score 94) and Dallas (score 92) districts hold the highest project delivery priority scores, followed by Austin (89), San Antonio (86), Odessa (85), and Fort Worth (84).",
+    getOption: (isDark) => ({
+      tooltip: {
+        trigger: "item",
+        formatter: "TxDOT {b} District<br/>Priority Score: <strong>{c} / 100</strong>",
+      },
+      visualMap: {
+        min: 40,
+        max: 95,
+        orient: "horizontal",
+        left: "center",
+        bottom: "2%",
+        text: ["Priority High", "Routine"],
+        inRange: {
+          color: isDark
+            ? ["#1F2937", "#005F73", "#0A9396", "#A02D20"]
+            : ["#94D2BD", "#005F73", "#500000"],
+        },
+        calculable: true,
+      },
+      series: [
+        {
+          name: "Priority Score",
+          type: "map",
+          map: "TXDOT_DISTRICTS",
+          roam: true,
+          zoom: 1.15,
+          emphasis: {
+            label: { show: true },
+            itemStyle: { areaColor: isDark ? "#EE9B00" : "#CA6702" },
+          },
+          data: [
+            { name: "Houston", value: 94 },
+            { name: "Dallas", value: 92 },
+            { name: "Austin", value: 89 },
+            { name: "San Antonio", value: 86 },
+            { name: "Fort Worth", value: 84 },
+            { name: "El Paso", value: 78 },
+            { name: "Pharr", value: 82 },
+            { name: "Laredo", value: 80 },
+            { name: "Corpus Christi", value: 74 },
+            { name: "Beaumont", value: 72 },
+            { name: "Bryan", value: 68 },
+            { name: "Waco", value: 71 },
+            { name: "Tyler", value: 65 },
+            { name: "Lufkin", value: 58 },
+            { name: "Atlanta", value: 54 },
+            { name: "Paris", value: 56 },
+            { name: "Wichita Falls", value: 60 },
+            { name: "Brownwood", value: 48 },
+            { name: "San Angelo", value: 52 },
+            { name: "Abilene", value: 62 },
+            { name: "Lubbock", value: 66 },
+            { name: "Amarillo", value: 64 },
+            { name: "Childress", value: 44 },
+            { name: "Odessa", value: 85 },
+            { name: "Yoakum", value: 59 },
+          ],
+        },
+      ],
+    }),
+  },
+
+  // 15. TEXAS TRIANGLE ORIGIN-DESTINATION FLOW ARCS
+  {
+    id: "texas-metros-flow",
+    title: "Texas Triangle Multimodal Freight & Airline Flow Arcs",
+    category: "spatial",
+    categoryLabel: "Spatial & Maps",
+    eyebrow: "EXHIBIT 3.3 · INTER-METRO LOGISTICS",
+    subtitle: "High-volume origin-destination logistics arcs with animated trailing particle vectors",
+    source: "Texas Multimodal Freight Plan · TTI Freight Analytics",
+    story: "Curved dynamic flow arcs connecting primary Texas metropolitan hubs. Animated particle arrows indicate directional freight flux along the Texas Triangle megaregion (DFW, Houston, San Antonio, Austin) and border corridors.",
+    height: "480px",
+    isAnimated: true,
+    ariaTitle: "Texas Triangle inter-metro freight flow map",
+    ariaSummary: "DFW to Houston is the highest volume freight arc (95k tons/day), followed by Austin to San Antonio (60k) and Austin to DFW (55k), with pulsing hubs at DFW, Houston, and San Antonio.",
+    getOption: (isDark) => {
+      const metroCoords: Record<string, [number, number]> = {
+        DFW: [402.3, 139.4],
+        HOU: [451.9, 251.0],
+        SAT: [350.7, 266.4],
+        AUS: [374.5, 234.3],
+        ELP: [95.6, 173.0],
+        MCA: [361.2, 387.0],
+        LBB: [243.8, 110.3],
+      };
+
+      const flows = [
+        { from: "DFW", to: "HOU", value: 95 },
+        { from: "AUS", to: "SAT", value: 60 },
+        { from: "AUS", to: "DFW", value: 55 },
+        { from: "AUS", to: "HOU", value: 45 },
+        { from: "HOU", to: "SAT", value: 38 },
+        { from: "DFW", to: "SAT", value: 30 },
+        { from: "ELP", to: "DFW", value: 18 },
+        { from: "LBB", to: "DFW", value: 16 },
+        { from: "MCA", to: "SAT", value: 28 },
+      ];
+
+      const linesData = flows.map((f) => ({
+        coords: [metroCoords[f.from], metroCoords[f.to]],
+        value: f.value,
+      }));
+
+      const scatterData = Object.entries(metroCoords).map(([code, coords]) => ({
+        name: code,
+        value: [...coords, 100],
+      }));
+
+      return {
+        tooltip: {
+          trigger: "item",
+          formatter: (params: any) => {
+            if (params.seriesType === "lines") {
+              return `Corridor Flow: <strong>${params.data.value}k tons / day</strong>`;
+            }
+            return `${params.name} Metro Freight Terminal`;
+          },
+        },
+        xAxis: { min: 0, max: 600, show: false },
+        yAxis: { min: 0, max: 400, inverse: true, show: false },
+        grid: { left: "4%", right: "4%", top: "4%", bottom: "4%" },
+        series: [
+          {
+            name: "Corridor Arcs",
+            type: "lines",
+            coordinateSystem: "cartesian2d",
+            zlevel: 1,
+            effect: {
+              show: true,
+              period: 3.2,
+              trailLength: 0.65,
+              color: isDark ? "#EE9B00" : "#500000",
+              symbol: "arrow",
+              symbolSize: 7,
+            },
+            lineStyle: {
+              color: isDark ? "#0A9396" : "#005F73",
+              width: 3,
+              opacity: 0.6,
+              curveness: 0.25,
+            },
+            data: linesData,
+          },
+          {
+            name: "Metropolitan Hubs",
+            type: "effectScatter",
+            coordinateSystem: "cartesian2d",
+            zlevel: 2,
+            rippleEffect: {
+              brushType: "stroke",
+              scale: 3.5,
+              period: 2.5,
+            },
+            label: {
+              show: true,
+              position: "top",
+              formatter: "{b}",
+              fontFamily: "'Oswald', sans-serif",
+              color: isDark ? "#F5F5F5" : "#1A1A1A",
+              fontSize: 12,
+            },
+            symbolSize: 12,
+            itemStyle: {
+              color: isDark ? "#A02D20" : "#500000",
+              shadowBlur: 10,
+              shadowColor: "#500000",
+            },
+            data: scatterData,
+          },
+        ],
+      };
+    },
+  },
+
+  // 16. US ALBERS NATIONAL FREIGHT DENSITY
+  {
+    id: "usa-albers",
+    title: "National Interstate Freight Corridor Density (AlbersUsa)",
+    category: "spatial",
+    categoryLabel: "Spatial & Maps",
+    eyebrow: "EXHIBIT 3.4 · NATIONAL FREIGHT CONTEXT",
+    subtitle: "Cross-border and interstate commercial freight intensity across 50 US states",
+    source: "Federal Highway Administration (FHWA) Freight Analysis Framework (FAF5)",
+    story: "AlbersUsa equal-area projection map demonstrating Texas's position as the nation's premier freight logistics gateway, connecting international border crossings and deep-water Gulf ports with Midwestern distribution hubs.",
+    height: "460px",
+    ariaTitle: "National freight corridor density Albers map",
+    ariaSummary: "Texas leads national freight activity at 100 on the freight intensity index, followed by California (92), Illinois (84), and Florida (78).",
+    getOption: (isDark) => ({
+      tooltip: {
+        trigger: "item",
+        formatter: "{b}<br/>Freight Activity Index: <strong>{c} / 100</strong>",
+      },
+      visualMap: {
+        min: 10,
+        max: 100,
+        orient: "horizontal",
+        left: "center",
+        bottom: "2%",
+        text: ["High Volume", "Low Volume"],
+        inRange: {
+          color: isDark
+            ? ["#1F2937", "#005F73", "#EE9B00", "#A02D20"]
+            : ["#E9D8A6", "#0A9396", "#CA6702", "#500000"],
+        },
+        calculable: true,
+      },
+      series: [
+        {
+          name: "National Freight",
+          type: "map",
+          map: "USA_ALBERS",
+          roam: true,
+          zoom: 1.15,
+          emphasis: {
+            label: { show: true },
+            itemStyle: { areaColor: isDark ? "#A02D20" : "#500000" },
+          },
+          data: [
+            { name: "Texas", value: 100 },
+            { name: "California", value: 92 },
+            { name: "Illinois", value: 84 },
+            { name: "Florida", value: 78 },
+            { name: "New York", value: 76 },
+            { name: "Georgia", value: 72 },
+            { name: "Ohio", value: 68 },
+            { name: "Pennsylvania", value: 66 },
+            { name: "Louisiana", value: 70 },
+            { name: "Oklahoma", value: 58 },
+          ],
+        },
+      ],
+    }),
+  },
+
+  // 17. RACING LINE TELEMETRY LIVE STREAM
+  {
+    id: "racing-line",
+    title: "High-Frequency Connected Vehicle Telemetry Live Stream",
+    category: "realtime",
+    categoryLabel: "Real-Time & Racing",
+    eyebrow: "EXHIBIT 3.5 · EDGE V2X SENSOR TELEMETRY",
+    subtitle: "High-frequency streaming CAN-Bus sensor telemetry across powertrain, brakes, and network latency",
+    source: "TTI Connected Vehicle Proving Grounds at RELLIS",
+    story: "High-frequency telemetry stream with dual y-axes and multi-sensor overlays. Visualizes the microsecond correlation between sudden brake pressure actuation, throttle release, and V2X edge latency.",
+    height: "420px",
+    isAnimated: true,
+    ariaTitle: "High-frequency connected vehicle telemetry line chart",
+    ariaSummary: "Vehicle speed accelerates from 0 to 70 MPH before deceleration to 52 MPH, with brake line pressure spiking to 42 PSI during emergency braking at 70 seconds.",
+    getOption: (isDark) => ({
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "cross" },
+      },
+      legend: {
+        data: ["Vehicle Speed (MPH)", "Throttle Position (%)", "Brake Line (PSI)", "C-V2X Latency (ms)"],
+        top: 5,
+      },
+      grid: { left: "4%", right: "4%", bottom: "10%", top: "14%", containLabel: true },
+      xAxis: {
+        type: "category",
+        boundaryGap: false,
+        data: ["0s", "10s", "20s", "30s", "40s", "50s", "60s", "70s", "80s", "90s"],
+      },
+      yAxis: [
+        {
+          type: "value",
+          name: "Speed / Throttle",
+          min: 0,
+          max: 100,
+        },
+        {
+          type: "value",
+          name: "Brake / Latency",
+          min: 0,
+          max: 60,
+        },
+      ],
+      series: [
+        {
+          name: "Vehicle Speed (MPH)",
+          type: "line",
+          smooth: true,
+          data: [0, 24, 45, 62, 68, 70, 65, 52, 60, 68],
+          lineStyle: { width: 3, color: isDark ? "#A02D20" : "#500000" },
+          itemStyle: { color: isDark ? "#A02D20" : "#500000" },
+        },
+        {
+          name: "Throttle Position (%)",
+          type: "line",
+          smooth: true,
+          data: [15, 65, 80, 45, 50, 48, 20, 10, 40, 52],
+          lineStyle: { width: 2, color: "#005F73" },
+          itemStyle: { color: "#005F73" },
+        },
+        {
+          name: "Brake Line (PSI)",
+          type: "line",
+          yAxisIndex: 1,
+          smooth: true,
+          data: [35, 0, 0, 0, 0, 5, 28, 42, 0, 0],
+          lineStyle: { width: 2.5, color: "#AE2012" },
+          itemStyle: { color: "#AE2012" },
+        },
+        {
+          name: "C-V2X Latency (ms)",
+          type: "line",
+          yAxisIndex: 1,
+          smooth: true,
+          data: [8, 9, 12, 11, 8, 9, 14, 11, 9, 8],
+          lineStyle: { width: 2, type: "dashed", color: "#EE9B00" },
+          itemStyle: { color: "#EE9B00" },
+        },
+      ],
+    }),
+  },
+
+  // 18. SANKEY: STATE HIGHWAY FUND & REVENUE ALLOCATION
+  {
+    id: "sankey",
+    title: "Texas State Highway Fund Dedicated Allocation & Investment Flows",
+    category: "executive",
+    categoryLabel: "Executive & Policy",
+    eyebrow: "EXHIBIT 4.1 · REVENUE & APPROPRIATIONS",
+    subtitle: "End-to-end tracing of state motor fuel, severance tax, and federal funds to TxDOT capital programs",
+    source: "Texas Comptroller of Public Accounts & TxDOT Financial Management Division",
+    story: "Multi-stage Sankey diagram illustrating how $17.1B in constitutional and statutory transportation revenues flow from dedicated motor fuel taxes, vehicle registrations, and oil/gas severance transfers into major TxDOT highway construction, bridge preservation, and multimodal programs.",
+    height: "480px",
+    ariaTitle: "Texas State Highway Fund Sankey allocation diagram",
+    ariaSummary: "Total $17.1B flow includes $4.8B Federal Highway Trust Fund, $3.8B Motor Fuel Tax, $3.4B Prop 1 Oil and Gas Severance, and $3.2B Prop 7 Sales Tax, funding $6.2B Highway Preservation, $5.3B Congestion Relief, $1.9B Bridge Replacement, and $1.8B Rural Connectivity.",
+    getOption: (isDark) => ({
+      tooltip: {
+        trigger: "item",
+        triggerOn: "mousemove",
+        formatter: (params: any) => {
+          if (params.dataType === "edge") {
+            return `<strong>${params.data.source}</strong> → <strong>${params.data.target}</strong><br/>Allocation: <strong>$${params.data.value}B</strong>`;
+          }
+          return `<strong>${params.name}</strong><br/>Volume: <strong>$${params.value || ""}B</strong>`;
+        },
+      },
+      series: [
+        {
+          type: "sankey",
+          layout: "none",
+          emphasis: { focus: "adjacency" },
+          nodeAlign: "justify",
+          nodeGap: 16,
+          nodeWidth: 20,
+          label: {
+            color: isDark ? "#F3F4F6" : "#1F2937",
+            fontFamily: "var(--font-display)",
+            fontSize: 12,
+            fontWeight: "bold",
+          },
+          lineStyle: {
+            color: "gradient",
+            curveness: 0.5,
+            opacity: 0.35,
+          },
+          data: [
+            // Sources
+            { name: "Motor Fuel Tax", itemStyle: { color: isDark ? "#A02D20" : "#500000" } },
+            { name: "Vehicle Registration", itemStyle: { color: "#005F73" } },
+            { name: "Prop 1 Oil & Gas Severance", itemStyle: { color: "#CA6702" } },
+            { name: "Prop 7 Sales Tax Transfer", itemStyle: { color: "#EE9B00" } },
+            { name: "Federal Highway Trust Fund", itemStyle: { color: "#0A9396" } },
+            // Central Pool
+            { name: "State Highway Fund (SHF)", itemStyle: { color: isDark ? "#D48B80" : "#7A1C1C" } },
+            // Allocations
+            { name: "Interstate & Pavement Preservation", itemStyle: { color: isDark ? "#A02D20" : "#500000" } },
+            { name: "Major Congestion Relief Corridors", itemStyle: { color: "#005F73" } },
+            { name: "Bridge Replacement & Rehabilitation", itemStyle: { color: "#CA6702" } },
+            { name: "Rural Connectivity & Farm-to-Market", itemStyle: { color: "#94D2BD" } },
+            { name: "Vision Zero Safety Grants", itemStyle: { color: "#AE2012" } },
+            { name: "Multimodal Transit & Rail", itemStyle: { color: "#EE9B00" } },
+          ],
+          links: [
+            { source: "Motor Fuel Tax", target: "State Highway Fund (SHF)", value: 3.8 },
+            { source: "Vehicle Registration", target: "State Highway Fund (SHF)", value: 1.9 },
+            { source: "Prop 1 Oil & Gas Severance", target: "State Highway Fund (SHF)", value: 3.4 },
+            { source: "Prop 7 Sales Tax Transfer", target: "State Highway Fund (SHF)", value: 3.2 },
+            { source: "Federal Highway Trust Fund", target: "State Highway Fund (SHF)", value: 4.8 },
+            { source: "State Highway Fund (SHF)", target: "Interstate & Pavement Preservation", value: 6.2 },
+            { source: "State Highway Fund (SHF)", target: "Major Congestion Relief Corridors", value: 5.3 },
+            { source: "State Highway Fund (SHF)", target: "Bridge Replacement & Rehabilitation", value: 1.9 },
+            { source: "State Highway Fund (SHF)", target: "Rural Connectivity & Farm-to-Market", value: 1.8 },
+            { source: "State Highway Fund (SHF)", target: "Vision Zero Safety Grants", value: 1.1 },
+            { source: "State Highway Fund (SHF)", target: "Multimodal Transit & Rail", value: 0.8 },
+          ],
+        },
+      ],
+    }),
+  },
+
+  // 19. MATRIX HEATMAP: 24/7 DIURNAL CORRIDOR CONGESTION
+  {
+    id: "heatmap-congestion",
+    title: "Austin I-35 Central Corridor 24/7 Diurnal Congestion Matrix",
+    category: "realtime",
+    categoryLabel: "Real-Time & Racing",
+    eyebrow: "EXHIBIT 4.2 · CORRIDOR BOTTLENECK DYNAMICS",
+    subtitle: "Hourly travel delay index (TDI) across 168 hours of the weekly commuting cycle",
+    source: "TTI Urban Mobility Report · Automated Traffic Operations System",
+    story: "High-density matrix heatmap mapping recurring congestion across every hour of the week along I-35 through downtown Austin. Highlights acute multi-hour gridlock (delay indices up to 2.45x free-flow) during Friday afternoon peak corridors between 15:00 and 19:00.",
+    height: "440px",
+    ariaTitle: "I-35 hourly congestion matrix heatmap",
+    ariaSummary: "Friday from 16:00 to 18:00 experiences peak congestion delay at 2.45x free-flow travel time, with weekday morning peaks occurring at 08:00 (1.95x) and weekend midday congestion remaining elevated around 1.35x.",
+    getOption: (isDark) => {
+      const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      const hours = [
+        "12a", "1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a", "11a",
+        "12p", "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p",
+      ];
+
+      // Generate realistic 7x24 grid: baseline 1.0, morning rush (7-9), evening rush (16-19), Friday peak
+      const matrixData: [number, number, number][] = [];
+      days.forEach((day, dayIdx) => {
+        hours.forEach((_, hourIdx) => {
+          let delay = 1.0;
+          const isWeekend = dayIdx >= 5;
+          if (!isWeekend) {
+            if (hourIdx >= 7 && hourIdx <= 9) {
+              delay = dayIdx === 4 ? 1.75 : 1.95 - (hourIdx === 8 ? 0 : 0.25);
+            } else if (hourIdx >= 15 && hourIdx <= 18) {
+              delay = dayIdx === 4 ? 2.45 - (hourIdx === 17 ? 0 : 0.2) : 2.1 - (hourIdx === 17 ? 0 : 0.3);
+            } else if (hourIdx >= 11 && hourIdx <= 14) {
+              delay = 1.25 + (dayIdx === 4 ? 0.2 : 0.05);
+            } else if (hourIdx >= 0 && hourIdx <= 5) {
+              delay = 1.0 + (hourIdx === 5 ? 0.15 : 0.02);
+            } else {
+              delay = 1.15;
+            }
+          } else {
+            // Weekend: midday shopping / recreational peak
+            if (hourIdx >= 11 && hourIdx <= 17) {
+              delay = 1.35;
+            } else if (hourIdx >= 21 && hourIdx <= 23) {
+              delay = 1.2;
+            } else {
+              delay = 1.02;
+            }
+          }
+          matrixData.push([hourIdx, dayIdx, Number(delay.toFixed(2))]);
+        });
+      });
+
+      return {
+        tooltip: {
+          position: "top",
+          formatter: (p: any) =>
+            `<strong>${days[p.value[1]]} at ${hours[p.value[0]]}</strong><br/>Travel Delay Index: <strong>${p.value[2]}x</strong> free-flow`,
+        },
+        grid: { height: "70%", top: "10%", left: "8%", right: "4%" },
+        xAxis: {
+          type: "category",
+          data: hours,
+          splitArea: { show: true },
+          axisLabel: { interval: 1, fontFamily: "var(--font-mono)", fontSize: 10 },
+        },
+        yAxis: {
+          type: "category",
+          data: days,
+          splitArea: { show: true },
+          axisLabel: { fontFamily: "var(--font-display)", fontWeight: "bold" },
+        },
+        visualMap: {
+          min: 1.0,
+          max: 2.5,
+          calculable: true,
+          orient: "horizontal",
+          left: "center",
+          bottom: "0%",
+          text: ["Severe Delay (2.5x)", "Free Flow (1.0x)"],
+          inRange: {
+            color: isDark
+              ? ["#1F2937", "#005F73", "#EE9B00", "#A02D20"]
+              : ["#E9D8A6", "#0A9396", "#CA6702", "#500000"],
+          },
+        },
+        series: [
+          {
+            name: "Travel Delay Index",
+            type: "heatmap",
+            data: matrixData,
+            label: { show: false },
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowColor: isDark ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 0, 0, 0.5)",
+              },
+            },
+          },
+        ],
+      };
+    },
+  },
+
+  // 20. RADAR: MULTIMODAL TRANSIT ALTERNATIVES
+  {
+    id: "radar-alternatives",
+    title: "High-Capacity Transit Alternatives Multi-Criteria Evaluation",
+    category: "executive",
+    categoryLabel: "Executive & Policy",
+    eyebrow: "EXHIBIT 4.3 · ALTERNATIVES ANALYSIS",
+    subtitle: "Comparative scoring across 6 key feasibility dimensions for urban arterial transit investment",
+    source: "Federal Transit Administration (FTA) Capital Investment Grant Evaluation",
+    story: "Radar chart comparing three major corridor investment modes. Automated Bus Rapid Transit (aBRT) delivers superior capital efficiency and rapid deployment, while Commuter Light Rail dominates maximum peak passenger throughput and long-term carbon abatement.",
+    height: "460px",
+    ariaTitle: "Multimodal transit alternatives radar chart",
+    ariaSummary: "Automated BRT scores 92 on Capital Efficiency and 88 on Speed to Construct; Commuter Rail scores 95 on Peak Hourly Capacity and 90 on Carbon Abatement; Managed HOT Lanes score 82 on Vision Zero Safety.",
+    getOption: (isDark) => ({
+      tooltip: { trigger: "item" },
+      legend: {
+        bottom: "2%",
+        textStyle: { fontFamily: "var(--font-display)" },
+      },
+      radar: {
+        indicator: [
+          { name: "Capital Efficiency ($/rider)", max: 100 },
+          { name: "Peak Hourly Capacity", max: 100 },
+          { name: "Carbon Abatement", max: 100 },
+          { name: "Vision Zero Safety Index", max: 100 },
+          { name: "Speed to Deployment", max: 100 },
+          { name: "Public & Rider Approval", max: 100 },
+        ],
+        shape: "circle",
+        splitNumber: 5,
+        axisName: {
+          color: isDark ? "#E5E7EB" : "#374151",
+          fontFamily: "var(--font-mono)",
+          fontSize: 11,
+        },
+        splitLine: {
+          lineStyle: {
+            color: isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)",
+          },
+        },
+        splitArea: {
+          show: true,
+          areaStyle: {
+            color: isDark
+              ? ["rgba(255,255,255,0.02)", "rgba(255,255,255,0.05)"]
+              : ["rgba(0,0,0,0.01)", "rgba(0,0,0,0.03)"],
+          },
+        },
+      },
+      series: [
+        {
+          name: "Transit Corridor Alternatives",
+          type: "radar",
+          data: [
+            {
+              value: [92, 68, 74, 78, 88, 80],
+              name: "Automated Bus Rapid Transit (aBRT)",
+              lineStyle: { width: 2.5, color: isDark ? "#A02D20" : "#500000" },
+              areaStyle: { color: isDark ? "rgba(160,45,32,0.25)" : "rgba(80,0,0,0.2)" },
+              itemStyle: { color: isDark ? "#A02D20" : "#500000" },
+            },
+            {
+              value: [45, 95, 90, 85, 38, 86],
+              name: "Commuter Light Rail (LRT)",
+              lineStyle: { width: 2.5, color: "#005F73" },
+              areaStyle: { color: "rgba(0,95,115,0.2)" },
+              itemStyle: { color: "#005F73" },
+            },
+            {
+              value: [72, 60, 52, 82, 70, 68],
+              name: "Managed Express HOT Lanes",
+              lineStyle: { width: 2, type: "dashed", color: "#EE9B00" },
+              areaStyle: { color: "rgba(238,155,0,0.15)" },
+              itemStyle: { color: "#EE9B00" },
+            },
+          ],
+        },
+      ],
+    }),
+  },
+
+  // 21. BOXPLOT: TRAVEL TIME RELIABILITY DISTRIBUTION
+  {
+    id: "boxplot-reliability",
+    title: "Texas Commercial Freight Corridors Travel Time Index (TTI) Reliability",
+    category: "realtime",
+    categoryLabel: "Real-Time & Racing",
+    eyebrow: "EXHIBIT 4.4 · STATISTICAL RELIABILITY",
+    subtitle: "5-number statistical distribution of travel time buffer index across primary freight corridors",
+    source: "National Performance Management Research Data Set (NPMRDS) & TTI Mobility Analysis",
+    story: "Statistical boxplot capturing travel time unpredictability. Corridors like I-35 Central exhibit extreme upper whisker extensions (95th percentile planning time index exceeding 2.85), forcing commercial freight logistics operators to budget triple their non-congested travel time.",
+    height: "440px",
+    ariaTitle: "Freight corridor travel time index boxplot",
+    ariaSummary: "I-35 Central has the highest median travel time index at 1.82 with 95th percentile reaching 2.85, followed by Loop 610 West (median 1.68, max 2.65), I-10 Katy (median 1.54), and US-290 (median 1.38).",
+    getOption: (isDark) => ({
+      tooltip: {
+        trigger: "item",
+        formatter: (params: any) => {
+          if (params.seriesType === "boxplot") {
+            const [min, q1, median, q3, max] = params.data;
+            return `<strong>${params.name}</strong><br/>
+                    95th Percentile: <strong>${max.toFixed(2)}x</strong><br/>
+                    Upper Quartile (Q3): <strong>${q3.toFixed(2)}x</strong><br/>
+                    Median Delay: <strong>${median.toFixed(2)}x</strong><br/>
+                    Lower Quartile (Q1): <strong>${q1.toFixed(2)}x</strong><br/>
+                    Free-Flow Min: <strong>${min.toFixed(2)}x</strong>`;
+          }
+          return `${params.name}: ${params.data[1]}`;
+        },
+      },
+      grid: { left: "10%", right: "8%", bottom: "14%", top: "10%" },
+      xAxis: {
+        type: "category",
+        data: [
+          "I-35 Austin Central",
+          "Loop 610 West Houston",
+          "I-45 North Freeway",
+          "I-10 Katy Freeway",
+          "US-290 Northwest",
+        ],
+        axisLabel: { fontFamily: "var(--font-display)", fontWeight: "bold" },
+      },
+      yAxis: {
+        type: "value",
+        name: "Travel Time Index (x Free-Flow)",
+        min: 1.0,
+        max: 3.0,
+        splitLine: {
+          lineStyle: {
+            color: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)",
+          },
+        },
+      },
+      series: [
+        {
+          name: "Corridor Reliability",
+          type: "boxplot",
+          itemStyle: {
+            color: isDark ? "rgba(160,45,32,0.3)" : "rgba(80,0,0,0.2)",
+            borderColor: isDark ? "#A02D20" : "#500000",
+            borderWidth: 2,
+          },
+          data: [
+            // [min, Q1, median, Q3, max]
+            [1.08, 1.42, 1.82, 2.25, 2.85],
+            [1.05, 1.35, 1.68, 2.12, 2.65],
+            [1.04, 1.28, 1.58, 1.95, 2.45],
+            [1.02, 1.22, 1.54, 1.88, 2.38],
+            [1.01, 1.15, 1.38, 1.65, 2.15],
+          ],
+        },
+      ],
+    }),
+  },
+
+  // 22. BORDER GATEWAYS: INTERNATIONAL COMMERCIAL TRADE PORTS
+  {
+    id: "border-gateways",
+    title: "Texas International Commercial Ports of Entry Throughput & Queue Wait Times",
+    category: "spatial",
+    categoryLabel: "Spatial & Maps",
+    eyebrow: "EXHIBIT 4.5 · INTERNATIONAL LOGISTICS",
+    subtitle: "Daily commercial truck crossings and peak customs inspection queue latency",
+    source: "US Customs & Border Protection (CBP) & TxDOT Border Transportation Office",
+    story: "Comprehensive overview of the nation's premier binational freight gateways. Laredo World Trade Bridge processes over 14,800 commercial vehicles daily, where automated pre-clearance FAST lanes reduce customs wait times from 95 minutes down to 18 minutes.",
+    height: "460px",
+    ariaTitle: "Texas international border commercial ports of entry chart",
+    ariaSummary: "World Trade Bridge Laredo handles 14,850 trucks daily with 42 min median wait time, followed by Pharr-Reynosa (8,420 trucks, 65 min), Bridge of the Americas El Paso (4,120 trucks, 52 min), and Veterans International Brownsville (2,380 trucks, 34 min).",
+    getOption: (isDark) => ({
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "shadow" },
+      },
+      legend: {
+        data: ["Daily Commercial Trucks", "Peak Queue Wait Time (min)"],
+        top: 5,
+        textStyle: { fontFamily: "var(--font-display)" },
+      },
+      grid: { left: "4%", right: "4%", bottom: "10%", top: "14%", containLabel: true },
+      xAxis: {
+        type: "category",
+        data: [
+          "World Trade Bridge\n(Laredo)",
+          "Pharr-Reynosa\n(Pharr)",
+          "Bridge of the Americas\n(El Paso)",
+          "Veterans International\n(Brownsville)",
+          "Camino Real\n(Eagle Pass)",
+        ],
+        axisLabel: { fontFamily: "var(--font-display)", fontSize: 11 },
+      },
+      yAxis: [
+        {
+          type: "value",
+          name: "Trucks / Day",
+          min: 0,
+          max: 16000,
+        },
+        {
+          type: "value",
+          name: "Wait Time (Minutes)",
+          min: 0,
+          max: 100,
+        },
+      ],
+      series: [
+        {
+          name: "Daily Commercial Trucks",
+          type: "bar",
+          data: [14850, 8420, 4120, 2380, 2150],
+          itemStyle: {
+            borderRadius: [4, 4, 0, 0],
+            color: isDark ? "#A02D20" : "#500000",
+          },
+        },
+        {
+          name: "Peak Queue Wait Time (min)",
+          type: "line",
+          yAxisIndex: 1,
+          smooth: true,
+          data: [42, 65, 52, 34, 38],
+          lineStyle: { width: 3, color: "#EE9B00" },
+          itemStyle: { color: "#EE9B00", borderWidth: 2 },
         },
       ],
     }),

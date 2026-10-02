@@ -29,10 +29,12 @@ interface Props {
   ariaSummary?: string;
   /** Optional explicit extension names: 'wordcloud' | 'liquidfill' */
   extensions?: ("wordcloud" | "liquidfill")[];
-  /** Optional map names to register: e.g. 'USA_ALBERS' */
-  maps?: ("USA_ALBERS")[];
+  /** Optional map names to register */
+  maps?: ("USA_ALBERS" | "TEXAS_COUNTIES" | "TXDOT_DISTRICTS")[];
   /** Loading state */
   loading?: boolean;
+  /** Whether to avoid merging options on change. Default is false (enables smooth animations/transitions) */
+  notMerge?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -41,7 +43,13 @@ const props = withDefaults(defineProps<Props>(), {
   ariaTitle: "Interactive data visualization",
   ariaSummary: "",
   loading: false,
+  notMerge: false,
 });
+
+const emit = defineEmits<{
+  (e: "chartClick", params: any): void;
+  (e: "chartHover", params: any): void;
+}>();
 
 const chartContainerRef = ref<HTMLDivElement | null>(null);
 let chartInstance: ECharts | null = null;
@@ -96,12 +104,45 @@ async function initChart() {
     }
   }
 
+  if (optStr.includes('"TEXAS_COUNTIES"') || props.maps?.includes("TEXAS_COUNTIES")) {
+    try {
+      const { texasCounties } = await import("~/assets/geo/texas-counties");
+      const { TX_VIEWBOX } = await import("~/assets/geo/texas-outline");
+      const svg = `<svg viewBox="0 0 ${TX_VIEWBOX[0]} ${TX_VIEWBOX[1]}" xmlns="http://www.w3.org/2000/svg">
+        ${texasCounties.map((c: any) => `<path name="${c.name}" id="${c.fips}" d="${c.path}" />`).join("")}
+      </svg>`;
+      echarts.registerMap("TEXAS_COUNTIES", { svg });
+    } catch (e) {
+      console.warn("TEXAS_COUNTIES map load notice:", e);
+    }
+  }
+
+  if (optStr.includes('"TXDOT_DISTRICTS"') || props.maps?.includes("TXDOT_DISTRICTS")) {
+    try {
+      const { txdotDistricts } = await import("~/assets/geo/txdot-districts");
+      const { TX_VIEWBOX } = await import("~/assets/geo/texas-outline");
+      const svg = `<svg viewBox="0 0 ${TX_VIEWBOX[0]} ${TX_VIEWBOX[1]}" xmlns="http://www.w3.org/2000/svg">
+        ${txdotDistricts.map((d: any) => `<path name="${d.name}" id="${d.abbr}" d="${d.path}" />`).join("")}
+      </svg>`;
+      echarts.registerMap("TXDOT_DISTRICTS", { svg });
+    } catch (e) {
+      console.warn("TXDOT_DISTRICTS map load notice:", e);
+    }
+  }
+
   if (chartInstance) {
     chartInstance.dispose();
   }
 
   chartInstance = echarts.init(chartContainerRef.value, themeName, {
     renderer: "canvas",
+  });
+
+  chartInstance.on("click", (params: any) => {
+    emit("chartClick", params);
+  });
+  chartInstance.on("mouseover", (params: any) => {
+    emit("chartHover", params);
   });
 
   chartInstance.setOption(props.options);
@@ -123,7 +164,7 @@ watch(
   () => props.options,
   (newOpts) => {
     if (chartInstance) {
-      chartInstance.setOption(newOpts, true);
+      chartInstance.setOption(newOpts, props.notMerge);
     }
   },
   { deep: true },

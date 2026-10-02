@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-02T21:39:12.302Z",
+  "timestamp": "2026-10-02T21:54:23.733Z",
   "system": "TTI-UX (TUX 3.0)",
   "standard": "W3C WCAG 2.2 Level AAA",
   "summary": {
@@ -1197,15 +1197,16 @@
     "TuxECharts": {
       "name": "TuxECharts",
       "file": "TuxECharts.vue",
-      "isInteractive": false,
-      "hasMinTouchTarget": true,
+      "isInteractive": true,
+      "hasMinTouchTarget": false,
       "hasFocusRing": true,
       "hasAria": true,
       "tier": "AAA",
       "contrastStandard": "7.0:1 (AAA)",
-      "focusIndicator": "n/a",
+      "focusIndicator": "3px dual-ring (AAA)",
       "notes": [
-        "Non-interactive / semantic layout component",
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
