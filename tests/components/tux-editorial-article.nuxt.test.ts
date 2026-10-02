@@ -8,25 +8,25 @@ describe("TuxEditorialArticle Component", () => {
   it("renders publication title, category pill, date, and body prose", async () => {
     const wrapper = await mountSuspended(TuxEditorialArticle, {
       props: {
-        title: "New Mobility 8 Server Expands Research Computing Capabilities",
-        category: "Inside Lane",
+        title: "Next-Gen Computing Cluster Expands Transportation AI Capabilities",
+        category: "Research Computing",
         date: "2026-10-01",
         dateLabel: "October 1, 2026",
         readTime: "3 min read",
-        heroImage: "/resources/news/mobility-8-server.jpg",
+        heroImage: "/resources/news/computing-cluster.jpg",
         heroLayout: "boxed",
-        tags: ["Announcements", "Noteworthy", "Research Computing"],
+        tags: ["Research Computing", "GeoAI", "Traffic Simulation"],
       },
       slots: {
-        default: () => [h("p", "Mobility researchers now have access to a powerful new computing resource.")],
+        default: () => [h("p", "Transportation researchers now have access to an expanded high-performance computing environment.")],
       },
     });
 
-    expect(wrapper.text()).toContain("New Mobility 8 Server");
-    expect(wrapper.text()).toContain("Inside Lane");
+    expect(wrapper.text()).toContain("Next-Gen Computing Cluster");
+    expect(wrapper.text()).toContain("Research Computing");
     expect(wrapper.text()).toContain("October 1, 2026");
     expect(wrapper.text()).toContain("3 min read");
-    expect(wrapper.text()).toContain("Mobility researchers now have access");
+    expect(wrapper.text()).toContain("Transportation researchers now have access");
     expect(wrapper.find(".tux-editorial__hero-boxed").exists()).toBe(true);
 
     const violations = await runComponentAxe(wrapper.element);
@@ -36,13 +36,13 @@ describe("TuxEditorialArticle Component", () => {
   it("supports split and full-bleed hero variants without accessibility violations", async () => {
     const wrapperSplit = await mountSuspended(TuxEditorialArticle, {
       props: {
-        title: "New RIMS Enhancements And Training Opportunities",
-        heroImage: "/resources/news/rims-enhancements.png",
+        title: "Project Lifecycle Management Tools & Fall Workshop Series",
+        heroImage: "/resources/news/project-lifecycle.svg",
         heroLayout: "split",
         contact: {
-          name: "Charlotte Glover",
-          email: "c-glover@tti.tamu.edu",
-          title: "Training Coordinator",
+          name: "Training Coordination Team",
+          email: "training@tti.tamu.edu",
+          title: "Professional Development Group",
         },
       },
       slots: {
@@ -54,8 +54,8 @@ describe("TuxEditorialArticle Component", () => {
     });
 
     expect(wrapperSplit.find(".tux-editorial__header-split").exists()).toBe(true);
-    expect(wrapperSplit.text()).toContain("Charlotte Glover");
-    expect(wrapperSplit.text()).toContain("c-glover@tti.tamu.edu");
+    expect(wrapperSplit.text()).toContain("Training Coordination Team");
+    expect(wrapperSplit.text()).toContain("training@tti.tamu.edu");
 
     const violationsSplit = await runComponentAxe(wrapperSplit.element);
     expect(violationsSplit).toEqual([]);
@@ -63,7 +63,7 @@ describe("TuxEditorialArticle Component", () => {
     const wrapperFullBleed = await mountSuspended(TuxEditorialArticle, {
       props: {
         title: "Full Bleed Cinematic Article",
-        heroImage: "/resources/news/mobility-8-server.jpg",
+        heroImage: "/resources/news/computing-cluster.jpg",
         heroLayout: "full-bleed",
       },
       slots: {

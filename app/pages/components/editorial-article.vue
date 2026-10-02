@@ -2,54 +2,54 @@
 /**
  * Component Gallery: TuxEditorialArticle
  * Interactive documentation and sandbox demonstrating hero layouts, sticky TOC,
- * and authentic TTI Inside Lane publishing ergonomics.
+ * and authentic TTI Inside Lane publishing ergonomics with anonymized sample content.
  */
 
 useHead({ title: "TuxEditorialArticle · TUX" });
 
 const activeHero = ref<"boxed" | "full-bleed" | "split" | "inset-banner" | "none">("boxed");
-const activeArticle = ref<"mobility8" | "rims">("mobility8");
+const activeArticle = ref<"cluster" | "lifecycle">("cluster");
 const showToc = ref(true);
 const showProgress = ref(true);
 const showShare = ref(true);
 
 const articles = {
-  mobility8: {
-    title: "New Mobility 8 Server Expands Research Computing Capabilities",
-    category: "Inside Lane",
-    dek: "Permanent University Fund support delivers GPU-accelerated computing power to advance transportation AI and big data analytics.",
+  cluster: {
+    title: "Next-Gen Computing Cluster Expands Transportation AI Capabilities",
+    category: "Research Computing",
+    dek: "High-performance GPU infrastructure delivers accelerated computing power to advance real-time traffic modeling, predictive safety analytics, and connected vehicle simulations across research teams.",
     date: "2026-10-01",
     dateLabel: "October 1, 2026",
     readTime: "3 min read",
-    heroImage: "/resources/news/mobility-8-server.jpg",
-    heroAlt: "Dell high-performance GPU server rack in research data center",
-    heroCaption: "TTI Mobility 8 high-performance computing node deployed at RELLIS campus data facility.",
-    author: "TTI Communications & Research Computing",
-    tags: ["Announcements", "Noteworthy", "Research Computing", "Inside Lane"],
+    heroImage: "/resources/news/computing-cluster.jpg",
+    heroAlt: "High-performance GPU cluster server architecture",
+    heroCaption: "High-performance computing cluster architecture deployed for transportation research simulations.",
+    author: "Transportation Analytics & Computing Initiative",
+    tags: ["Research Computing", "GeoAI", "Traffic Simulation", "Inside Lane"],
     contact: {
-      name: "Network & Information Systems",
-      email: "nis-support@tti.tamu.edu",
-      title: "HPC Infrastructure Group",
-      note: "For questions about compute allocation and GPU cluster access, contact NIS support.",
+      name: "Research Computing Operations",
+      email: "computing-support@tti.tamu.edu",
+      title: "HPC Facility Group",
+      note: "For questions about compute allocation and GPU cluster access, contact the operations team.",
     },
   },
-  rims: {
-    title: "New RIMS Enhancements And Training Opportunities Coming This Fall",
-    category: "Inside Lane",
-    dek: "TTI Talent Development Program rolls out role-based project management tools and hands-on workshops across divisions.",
-    date: "2026-10-01",
-    dateLabel: "October 1, 2026",
+  lifecycle: {
+    title: "Project Lifecycle Management Tools & Fall Workshop Series Announced",
+    category: "Talent Development",
+    dek: "Updated research administration tools, resource planning dashboards, and role-based training workshops roll out to strengthen project delivery and fiscal stewardship.",
+    date: "2026-09-24",
+    dateLabel: "September 24, 2026",
     readTime: "4 min read",
-    heroImage: "/resources/news/rims-enhancements.png",
-    heroAlt: "Research Information Management System graphics showing project lifecycle dashboard",
-    heroCaption: "Updated RIMS financial tracking and resource allocation dashboards.",
-    author: "Talent Development Program",
-    tags: ["Announcements", "Talent Development", "Project Management", "Inside Lane"],
+    heroImage: "/resources/news/project-lifecycle.svg",
+    heroAlt: "Project lifecycle management workflow and workshop diagram",
+    heroCaption: "Interactive project tracking and resource allocation dashboards.",
+    author: "Research Operations & Professional Development",
+    tags: ["Talent Development", "Project Management", "Professional Development", "Inside Lane"],
     contact: {
-      name: "Charlotte Glover",
-      email: "c-glover@tti.tamu.edu",
-      title: "Training Coordinator",
-      note: "For questions regarding training registration and calendar logistics, please contact Charlotte Glover.",
+      name: "Training Coordination Team",
+      email: "training@tti.tamu.edu",
+      title: "Professional Development Group",
+      note: "For questions regarding workshop registration, calendar invites, or course materials, reach out to the training coordinator.",
     },
   },
 };
@@ -104,18 +104,18 @@ const exampleCode = computed(() => `<TuxEditorialArticle
             <button
               type="button"
               class="px-3 py-1.5 text-xs font-bold rounded-sm border transition-all"
-              :class="activeArticle === 'mobility8' ? 'bg-brand-primary text-white border-brand-primary' : 'bg-surface-sunken text-text-primary border-surface-border'"
-              @click="activeArticle = 'mobility8'"
+              :class="activeArticle === 'cluster' ? 'bg-brand-primary text-white border-brand-primary' : 'bg-surface-sunken text-text-primary border-surface-border'"
+              @click="activeArticle = 'cluster'"
             >
-              Mobility 8 Server
+              Computing Cluster
             </button>
             <button
               type="button"
               class="px-3 py-1.5 text-xs font-bold rounded-sm border transition-all"
-              :class="activeArticle === 'rims' ? 'bg-brand-primary text-white border-brand-primary' : 'bg-surface-sunken text-text-primary border-surface-border'"
-              @click="activeArticle = 'rims'"
+              :class="activeArticle === 'lifecycle' ? 'bg-brand-primary text-white border-brand-primary' : 'bg-surface-sunken text-text-primary border-surface-border'"
+              @click="activeArticle = 'lifecycle'"
             >
-              RIMS Training
+              Project Management
             </button>
           </div>
         </div>
@@ -202,104 +202,101 @@ const exampleCode = computed(() => `<TuxEditorialArticle
           :contact="current.contact"
         >
           <!-- Article 1 Body Content -->
-          <template v-if="activeArticle === 'mobility8'">
+          <template v-if="activeArticle === 'cluster'">
             <p>
-              Mobility and Data Science and Visualization division researchers now have access to a
-              powerful new computing resource designed to support the Institute's growing data and
-              analytics needs. Thanks to Permanent University Fund (PUF) support approved earlier this
-              year, the new <strong>Mobility 8</strong> server is now online and being used for research use.
+              Researchers across transportation modeling, data science, and connected infrastructure divisions
+              now have access to an expanded high-performance computing environment engineered specifically for
+              large-scale mobility datasets and complex predictive simulation workflows.
             </p>
 
             <h2 id="system-architecture">Platform Architecture & Capabilities</h2>
             <p>
-              Mobility 8 is a GPU-accelerated, single-node high-performance computing platform designed
-              to bridge the gap between traditional desktop computing and large-scale supercomputing
-              environments. Built on Dell's latest server technology with advanced processors,
-              high-speed memory and expanded storage capacity, the system provides researchers with the
-              computing power needed to analyze increasingly large and complex transportation datasets.
+              The newly commissioned computing cluster combines high-density multi-GPU compute nodes with
+              accelerated interconnects, high-throughput NVMe scratch storage, and dedicated pipeline queues.
+              Designed to bridge the gap between desktop workstations and institutional supercomputing super-clusters,
+              the system provides research groups with the dedicated throughput needed to process multi-terabyte
+              telemetry streams, sensor fusion data, and high-frequency LiDAR scans.
             </p>
 
             <h2 id="research-impact">Expanding Data-Intensive Research</h2>
             <p>
-              The investment reflects TTI's commitment to expanding research capabilities in data-intensive
-              areas such as mobility analytics, geospatial modeling, artificial intelligence, machine
-              learning and emerging GeoAI applications. Researchers are increasingly asked to answer
-              exploratory “what-if” questions, develop prototypes and rapidly evaluate new technologies.
+              This capability reflects the Institute's commitment to advancing frontiers in artificial intelligence,
+              physics-informed neural networks, and real-time corridor optimization. Investigators can rapidly
+              evaluate complex "what-if" scenarios, benchmark micro-simulation traffic models, and deploy generative
+              computer-vision models without queuing constraints.
             </p>
             <p>
-              Mobility 8 enables these activities by providing dedicated computing resources that
-              complement existing cloud platforms, Databricks environments and the Texas A&amp;M
-              High-Performance Research Computing (HPRC) resources.
+              The cluster complements existing cloud architectures and institutional HPC clusters, giving teams
+              unrestricted sandbox environments for algorithmic prototyping, edge sensor telemetry modeling, and
+              digital twin simulations.
             </p>
 
             <h2 id="institutional-legacy">A Proven Track Record of Innovation</h2>
             <p>
-              The system is expected to support a wide range of sponsored research efforts over the next
-              five to seven years. Similar computing infrastructure has played a key role over the last
-              ten years in the development of many of Mobility Division's most visible products,
-              including the <em>Urban Mobility Report</em>, <em>TxDOT Top 100 Congested Roadways</em>,
-              FHWA's <em>Urban Congestion Report</em> and related analytical tools used by transportation
-              agencies across the country.
+              Advanced computing infrastructure continues to serve as the technological backbone for nationwide
+              mobility benchmarks, urban congestion indexes, and statewide safety analytics. Projects supported
+              by these computational capabilities have empowered transportation departments, regional councils,
+              and public transit operators to make evidence-based policy and engineering decisions for more than
+              two decades.
             </p>
 
             <h2 id="deployment-readiness">Production Deployment & Next Steps</h2>
             <p>
-              The successful deployment of Mobility 8 is also a testament to the collaboration between
-              researchers, Financial Services and the Network and Information Systems team, who worked
-              together to identify the optimal solution and ensure the system was ready for production
-              use. Researchers began using the server immediately upon deployment.
+              The deployment was executed through a joint initiative between research scientists, software engineers,
+              and facility systems architects, ensuring compliance with institutional cyber-infrastructure standards
+              and seamless integration with existing research storage volumes. Production workloads and model
+              training jobs began immediately upon commissioning.
             </p>
           </template>
 
           <!-- Article 2 Body Content -->
           <template v-else>
             <p>
-              The TTI Talent Development Program, in collaboration with researchers and subject matter
-              experts across TTI, is excited to announce upcoming enhancements to the Research Information
-              Management System (RIMS) and a series of role-based training opportunities designed to help
-              employees maximize the value of these new tools.
+              The Professional Development Program, in partnership with research administration specialists and
+              senior project investigators across the Institute, is launching an updated Project Lifecycle
+              Management Framework accompanied by a comprehensive, role-based workshop series this fall.
             </p>
 
             <p>
-              TTI continues to invest in resources that support effective project management, personnel
-              planning, and financial oversight throughout the project lifecycle. As part of these ongoing
-              improvements, updates to RIMS will provide Division Heads, Project Managers, and Principal
-              Investigators with enhanced visibility into project finances, staffing commitments, and
-              resource utilization.
+              As research contracts grow in scale and interdisciplinary complexity, proactive project governance,
+              transparent personnel allocation, and rigorous deliverable tracking are essential to sustained
+              excellence. The enhanced framework introduces intuitive milestone dashboards, automated budget
+              burn projections, and standardized quality checkpoints across all project phases.
             </p>
 
             <h2 id="why-attend">Why Attend?</h2>
-            <p>The updated RIMS tools are designed to support more proactive project management by helping users:</p>
+            <p>The updated framework and accompanying tools are designed to streamline research management by enabling teams to:</p>
             <ul>
-              <li>Monitor project budgets and expenditures in real time.</li>
-              <li>Track personnel effort and staffing commitments across tasks.</li>
-              <li>Improve resource planning and workload forecasting.</li>
-              <li>Identify potential budget variances before they become challenges.</li>
-              <li>Strengthen financial oversight and decision-making throughout the life of a project.</li>
+              <li>Monitor project milestone progress and budget expenditures through unified dashboards.</li>
+              <li>Accurately forecast team capacity, task code allocations, and FTE commitments.</li>
+              <li>Identify schedule dependencies and potential resource variances well before critical delivery dates.</li>
+              <li>Standardize data management, sponsor reporting, and institutional compliance requirements.</li>
+              <li>Strengthen collaborative workflows across multidisciplinary research divisions.</li>
             </ul>
 
-            <h2 id="upcoming-sessions">Upcoming Training Sessions</h2>
+            <h2 id="upcoming-sessions">Upcoming Workshop Series</h2>
             <ul>
-              <li><strong>Division Head Training</strong> – Oct. 29, 2026</li>
-              <li><strong>Project Manager Training Pt. 1</strong> – Nov. 4, 2026</li>
-              <li><strong>Project Manager Training Pt. 2</strong> – Nov. 12, 2026</li>
+              <li><strong>Division Leadership Briefing</strong> – High-level portfolio tracking and resource forecasting</li>
+              <li><strong>Project Manager Practicum (Part 1)</strong> – Task scheduling, risk mitigation, and milestone mapping</li>
+              <li><strong>Project Manager Practicum (Part 2)</strong> – Budget oversight, change control, and sponsor reporting</li>
+              <li><strong>Principal Investigator Roundtable</strong> – Research stewardship, compliance, and closeout excellence</li>
             </ul>
 
             <h2 id="what-to-expect">What to Expect</h2>
-            <p>Training participants will learn how to:</p>
+            <p>Workshop participants will gain practical experience in:</p>
             <ul>
-              <li>Utilize RIMS for project budget management and oversight.</li>
-              <li>Forecast personnel effort and project resource needs accurately.</li>
-              <li>Monitor project performance and financial health.</li>
-              <li>Leverage available reporting tools to support planning and executive decision-making.</li>
-              <li>Apply best practices for maintaining accurate and effective project data.</li>
+              <li>Navigating unified project health and progress dashboards.</li>
+              <li>Developing realistic staffing forecasts and resource contingency plans.</li>
+              <li>Applying best practices for project data retention and deliverables quality assurance.</li>
+              <li>Utilizing automated alerting tools to preempt administrative bottlenecks.</li>
+              <li>Facilitating seamless sponsor communication from project kickoff through final publication.</li>
             </ul>
 
-            <h2 id="stay-tuned">Stay Tuned & Registration</h2>
+            <h2 id="stay-tuned">Registration & Course Materials</h2>
             <p>
-              Calendar invitations and registration details have been distributed directly to the
-              appropriate audiences in advance of each session. We encourage all Division Heads, Project
-              Managers, and Principal Investigators to take advantage of these learning opportunities.
+              Registration links, calendar invitations, and participant preparatory guides are available on the
+              institutional professional development portal. Research staff and project leaders are encouraged to
+              reserve seats early for upcoming cohort sessions.
             </p>
           </template>
 
@@ -325,67 +322,79 @@ const exampleCode = computed(() => `<TuxEditorialArticle
       </div>
     </section>
 
-    <!-- Code & Props Reference -->
+    <!-- Implementation Code Sample -->
     <section class="space-y-4">
-      <h2 class="heading--bold text-xl font-bold">Code Example</h2>
-      <TuxCodeBlock :code="exampleCode" language="vue" filename="ArticleView.vue" />
+      <h2 class="text-xl font-bold uppercase font-display text-text-primary">
+        Usage & Code Sample
+      </h2>
+      <div class="p-4 bg-surface-raised border border-surface-border rounded-md font-mono text-xs overflow-x-auto text-text-primary">
+        <pre>{{ exampleCode }}</pre>
+      </div>
     </section>
 
-    <!-- Props Reference Table -->
+    <!-- Component Props Specification Table -->
     <section class="space-y-4">
-      <h2 class="heading--bold text-xl font-bold">Props Reference</h2>
-      <div class="border border-surface-border rounded-md overflow-hidden bg-surface-raised">
-        <table class="w-full text-left text-sm border-collapse">
+      <h2 class="text-xl font-bold uppercase font-display text-text-primary">
+        Props Specification
+      </h2>
+      <div class="overflow-x-auto border border-surface-border rounded-md bg-surface-raised">
+        <table class="w-full text-left border-collapse text-xs">
           <thead>
-            <tr class="bg-surface-sunken border-b border-surface-border text-xs font-mono uppercase text-text-muted">
+            <tr class="border-b border-surface-border bg-surface-sunken font-mono uppercase text-text-muted">
               <th class="p-3">Prop</th>
               <th class="p-3">Type</th>
               <th class="p-3">Default</th>
               <th class="p-3">Description</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-surface-border text-text-secondary">
+          <tbody class="divide-y divide-surface-border font-sans">
             <tr>
-              <td class="p-3 font-mono text-brand-primary font-bold">title</td>
-              <td class="p-3 font-mono">string</td>
-              <td class="p-3 font-mono">required</td>
-              <td class="p-3">Article headline rendered in high-impact condensed display typography.</td>
+              <td class="p-3 font-mono font-bold text-brand-primary">title</td>
+              <td class="p-3 font-mono text-text-secondary">string</td>
+              <td class="p-3 font-mono text-text-muted">required</td>
+              <td class="p-3 text-text-primary">Main article publication title (rendered in responsive Oswald font).</td>
             </tr>
             <tr>
-              <td class="p-3 font-mono text-brand-primary font-bold">heroLayout</td>
-              <td class="p-3 font-mono">'boxed' | 'full-bleed' | 'split' | 'inset-banner' | 'none'</td>
-              <td class="p-3 font-mono">'boxed'</td>
-              <td class="p-3">Visual presentation of the featured hero image.</td>
+              <td class="p-3 font-mono font-bold text-brand-primary">heroLayout</td>
+              <td class="p-3 font-mono text-text-secondary">'boxed' | 'full-bleed' | 'split' | 'inset-banner' | 'none'</td>
+              <td class="p-3 font-mono text-text-muted">'boxed'</td>
+              <td class="p-3 text-text-primary">Selects the hero layout treatment. 'boxed' matches MyTTI Kadence; 'full-bleed' matches EmDash cinematic; 'split' provides a 2-col editorial lead.</td>
             </tr>
             <tr>
-              <td class="p-3 font-mono text-brand-primary font-bold">category</td>
-              <td class="p-3 font-mono">string</td>
-              <td class="p-3 font-mono">'Inside Lane'</td>
-              <td class="p-3">Editorial badge displayed above the title with gold accent rule.</td>
+              <td class="p-3 font-mono font-bold text-brand-primary">heroImage</td>
+              <td class="p-3 font-mono text-text-secondary">string</td>
+              <td class="p-3 font-mono text-text-muted">undefined</td>
+              <td class="p-3 text-text-primary">URL or path to the featured publication header asset.</td>
             </tr>
             <tr>
-              <td class="p-3 font-mono text-brand-primary font-bold">toc</td>
-              <td class="p-3 font-mono">boolean</td>
-              <td class="p-3 font-mono">true</td>
-              <td class="p-3">Renders sticky "On this page" right-rail navigation tracking headings.</td>
+              <td class="p-3 font-mono font-bold text-brand-primary">toc</td>
+              <td class="p-3 font-mono text-text-secondary">boolean</td>
+              <td class="p-3 font-mono text-text-muted">true</td>
+              <td class="p-3 text-text-primary">Automatically detects headings (&lt;h2&gt;) and renders a sticky "On this page" TOC right rail.</td>
             </tr>
             <tr>
-              <td class="p-3 font-mono text-brand-primary font-bold">showReadingProgress</td>
-              <td class="p-3 font-mono">boolean</td>
-              <td class="p-3 font-mono">true</td>
-              <td class="p-3">Displays top viewport reading progress bar during scroll.</td>
+              <td class="p-3 font-mono font-bold text-brand-primary">showReadingProgress</td>
+              <td class="p-3 font-mono text-text-secondary">boolean</td>
+              <td class="p-3 font-mono text-text-muted">true</td>
+              <td class="p-3 text-text-primary">Renders the top reading progress indicator bar tracking viewport scroll depth.</td>
             </tr>
             <tr>
-              <td class="p-3 font-mono text-brand-primary font-bold">showScrollTop</td>
-              <td class="p-3 font-mono">boolean</td>
-              <td class="p-3 font-mono">true</td>
-              <td class="p-3">Floating circular dial with scroll-to-top interaction (EmDash CMS style).</td>
+              <td class="p-3 font-mono font-bold text-brand-primary">showScrollTop</td>
+              <td class="p-3 font-mono text-text-secondary">boolean</td>
+              <td class="p-3 font-mono text-text-muted">true</td>
+              <td class="p-3 text-text-primary">Integrates TuxScrollTop floating circular progress dial button with EmDash geometry.</td>
             </tr>
             <tr>
-              <td class="p-3 font-mono text-brand-primary font-bold">contact</td>
-              <td class="p-3 font-mono">EditorialContact</td>
-              <td class="p-3 font-mono">undefined</td>
-              <td class="p-3">Structured contact card for training coordinators or lead researchers.</td>
+              <td class="p-3 font-mono font-bold text-brand-primary">showShare</td>
+              <td class="p-3 font-mono text-text-secondary">boolean</td>
+              <td class="p-3 font-mono text-text-muted">true</td>
+              <td class="p-3 text-text-primary">Displays copy link button (with animated toast) and email share button.</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-brand-primary">contact</td>
+              <td class="p-3 font-mono text-text-secondary">EditorialContact</td>
+              <td class="p-3 font-mono text-text-muted">undefined</td>
+              <td class="p-3 text-text-primary">Structured institutional contact card with name, email, title, and help desk instructions.</td>
             </tr>
           </tbody>
         </table>

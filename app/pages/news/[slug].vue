@@ -2,6 +2,7 @@
 /**
  * News Article Reader Page [slug].vue
  * Direct parity with MyTTI WordPress publications + EmDash CMS 1.0 reading features.
+ * Features anonymized, public-safe sample transportation research articles.
  * Includes interactive Hero Presentation Switcher to test and experience:
  *  - Boxed (Kadence 16:9)
  *  - Full Bleed (Cinematic)
@@ -11,7 +12,7 @@
  */
 
 const route = useRoute();
-const slug = computed(() => (route.params.slug as string) || "new-mobility-8-server-expands-research-computing-capabilities");
+const slug = computed(() => (route.params.slug as string) || "next-gen-computing-cluster-expands-transportation-ai");
 
 // Hero layout switcher state (default 'boxed' matching MyTTI)
 const heroLayout = ref<"boxed" | "full-bleed" | "split" | "inset-banner" | "none">("boxed");
@@ -38,48 +39,48 @@ interface ArticleData {
 }
 
 const articlesDatabase: Record<string, ArticleData> = {
-  "new-mobility-8-server-expands-research-computing-capabilities": {
-    title: "New Mobility 8 Server Expands Research Computing Capabilities",
-    category: "Inside Lane",
-    dek: "Permanent University Fund support delivers GPU-accelerated computing power to advance transportation AI, machine learning and big data analytics across TTI.",
+  "next-gen-computing-cluster-expands-transportation-ai": {
+    title: "Next-Gen Computing Cluster Expands Transportation AI Capabilities",
+    category: "Research Computing",
+    dek: "High-performance GPU infrastructure delivers accelerated computing power to advance real-time traffic modeling, predictive safety analytics, and connected vehicle simulations across research teams.",
     date: "2026-10-01",
     dateLabel: "October 1, 2026",
     readTime: "3 min read",
-    author: "Mobility Division & Research Computing",
-    heroImage: "/resources/news/mobility-8-server.jpg",
-    heroAlt: "Dell GPU-accelerated high performance computing server rack",
-    heroCaption: "TTI Mobility 8 high-performance computing platform deployed at RELLIS campus data facility.",
-    tags: ["Inside Lane", "Announcements", "Noteworthy", "Research Computing", "GeoAI"],
+    author: "Transportation Analytics & Computing Initiative",
+    heroImage: "/resources/news/computing-cluster.jpg",
+    heroAlt: "High-performance GPU computing cluster server architecture",
+    heroCaption: "High-performance computing cluster architecture deployed for transportation research simulations.",
+    tags: ["Research Computing", "GeoAI", "Traffic Simulation", "High-Performance Computing"],
     contact: {
-      name: "Network & Information Systems",
-      email: "nis-support@tti.tamu.edu",
-      title: "HPC Infrastructure Group",
-      note: "For questions about compute allocation and GPU cluster access, contact the NIS team.",
+      name: "Research Computing Operations",
+      email: "computing-support@tti.tamu.edu",
+      title: "HPC Facility Group",
+      note: "For questions about compute allocation, cluster queues, or data repository access, contact the operations team.",
     },
   },
-  "new-rims-enhancements-and-training-opportunities-coming-this-fall": {
-    title: "New RIMS Enhancements And Training Opportunities Coming This Fall",
-    category: "Inside Lane",
-    dek: "TTI Talent Development Program rolls out role-based project management tools and hands-on workshops across divisions.",
-    date: "2026-10-01",
-    dateLabel: "October 1, 2026",
+  "project-lifecycle-management-tools-and-fall-workshops": {
+    title: "Project Lifecycle Management Tools & Fall Workshop Series Announced",
+    category: "Talent Development",
+    dek: "Updated research administration tools, resource planning dashboards, and role-based training workshops roll out to strengthen project delivery and fiscal stewardship.",
+    date: "2026-09-24",
+    dateLabel: "September 24, 2026",
     readTime: "4 min read",
-    author: "TTI Talent Development Program",
-    heroImage: "/resources/news/rims-enhancements.png",
-    heroAlt: "Research Information Management System graphics showing project lifecycle dashboard",
-    heroCaption: "Updated RIMS financial tracking and resource allocation dashboards.",
-    tags: ["Inside Lane", "Announcements", "Talent Development", "Project Management"],
+    author: "Research Operations & Professional Development",
+    heroImage: "/resources/news/project-lifecycle.svg",
+    heroAlt: "Project lifecycle management workflow and workshop diagram",
+    heroCaption: "Interactive project tracking and resource allocation dashboards.",
+    tags: ["Talent Development", "Project Management", "Professional Development", "Research Administration"],
     contact: {
-      name: "Charlotte Glover",
-      email: "c-glover@tti.tamu.edu",
-      title: "Training Logistics Coordinator",
-      note: "For questions regarding training registration, calendar invites, or course materials, please contact Charlotte Glover.",
+      name: "Training Coordination Team",
+      email: "training@tti.tamu.edu",
+      title: "Professional Development Group",
+      note: "For questions regarding workshop registration, calendar invites, or course materials, reach out to the training coordinator.",
     },
   },
 };
 
 const currentArticle = computed<ArticleData>(() => {
-  return articlesDatabase[slug.value] || articlesDatabase["new-mobility-8-server-expands-research-computing-capabilities"]!;
+  return articlesDatabase[slug.value] || articlesDatabase["next-gen-computing-cluster-expands-transportation-ai"]!;
 });
 
 useHead({
@@ -173,141 +174,129 @@ useHead({
       :contact="currentArticle.contact"
       :back-to="{ label: 'Back to Inside Lane Feed', to: '/news' }"
     >
-      <!-- MOBILITY 8 ARTICLE PROSE -->
-      <template v-if="slug.includes('mobility-8')">
+      <!-- COMPUTING CLUSTER ARTICLE PROSE -->
+      <template v-if="slug.includes('computing') || slug.includes('cluster')">
         <p>
-          Mobility and Data Science and Visualization division researchers now have access to a powerful
-          new computing resource designed to support the Institute's growing data and analytics needs.
-          Thanks to Permanent University Fund (PUF) support approved earlier this year, the new
-          <strong>Mobility 8</strong> server is now online and being used for research use.
+          Researchers across transportation modeling, data science, and connected infrastructure divisions
+          now have access to an expanded high-performance computing environment engineered specifically for
+          large-scale mobility datasets and complex predictive simulation workflows.
         </p>
 
         <h2 id="platform-architecture">Platform Architecture & Capabilities</h2>
         <p>
-          Mobility 8 is a GPU-accelerated, single-node high-performance computing platform designed to
-          bridge the gap between traditional desktop computing and large-scale supercomputing environments.
-          Built on Dell's latest server technology with advanced processors, high-speed memory and expanded
-          storage capacity, the system provides researchers with the computing power needed to analyze
-          increasingly large and complex transportation datasets.
+          The newly commissioned computing cluster combines high-density multi-GPU compute nodes with
+          accelerated interconnects, high-throughput NVMe scratch storage, and dedicated pipeline queues.
+          Designed to bridge the gap between desktop workstations and institutional supercomputing super-clusters,
+          the system provides research groups with the dedicated throughput needed to process multi-terabyte
+          telemetry streams, sensor fusion data, and high-frequency LiDAR scans.
         </p>
 
         <h2 id="research-expansion">Expanding Data-Intensive Research</h2>
         <p>
-          The investment reflects TTI's commitment to expanding research capabilities in data-intensive
-          areas such as mobility analytics, geospatial modeling, artificial intelligence, machine learning
-          and emerging GeoAI applications. Researchers are increasingly asked to answer exploratory
-          “what-if” questions, develop prototypes and rapidly evaluate new technologies.
+          This capability reflects the Institute's commitment to advancing frontiers in artificial intelligence,
+          physics-informed neural networks, and real-time corridor optimization. Investigators can rapidly
+          evaluate complex "what-if" scenarios, benchmark micro-simulation traffic models, and deploy generative
+          computer-vision models without queuing constraints.
         </p>
         <p>
-          Mobility 8 enables these activities by providing dedicated computing resources that complement
-          existing cloud platforms, Databricks environments and the Texas A&amp;M High-Performance
-          Research Computing (HPRC) resources.
+          The cluster complements existing cloud architectures and institutional HPC clusters, giving teams
+          unrestricted sandbox environments for algorithmic prototyping, edge sensor telemetry modeling, and
+          digital twin simulations.
         </p>
 
-        <h2 id="ten-year-legacy">A Decade of Research Computing Impact</h2>
+        <h2 id="ten-year-legacy">A Legacy of Analytical Impact</h2>
         <p>
-          The system is expected to support a wide range of sponsored research efforts over the next five
-          to seven years. Similar computing infrastructure has played a key role over the last ten years
-          in the development of many of Mobility Division's most visible products, including the
-          <em>Urban Mobility Report</em>, <em>TxDOT Top 100 Congested Roadways</em>, FHWA's
-          <em>Urban Congestion Report</em> and related analytical tools used by transportation agencies
-          across the country. Collectively, projects supported by these capabilities have generated
-          millions of dollars in sponsored research over the past decade.
+          Advanced computing infrastructure continues to serve as the technological backbone for nationwide
+          mobility benchmarks, urban congestion indexes, and statewide safety analytics. Projects supported
+          by these computational capabilities have empowered transportation departments, regional councils,
+          and public transit operators to make evidence-based policy and engineering decisions for more than
+          two decades.
         </p>
 
         <h2 id="interdisciplinary-collaboration">Collaborative Deployment & Production Use</h2>
         <p>
-          The successful deployment of Mobility 8 is also a testament to the collaboration between
-          researchers, Financial Services and the Network and Information Systems team, who worked
-          together to identify the optimal solution and ensure the system was ready for production use.
-          Researchers began using the server immediately upon deployment on September 1.
+          The deployment was executed through a joint initiative between research scientists, software engineers,
+          and facility systems architects, ensuring compliance with institutional cyber-infrastructure standards
+          and seamless integration with existing research storage volumes. Production workloads and model
+          training jobs began immediately upon commissioning.
         </p>
 
         <h2 id="future-outlook">Future Outlook</h2>
         <p>
-          As transportation research continues to evolve, investments like Mobility 8 help position TTI
-          to respond more quickly to sponsor needs, explore innovative ideas and demonstrate the “art of
-          the possible” in data-driven transportation solutions. The new platform strengthens the ability
-          to compete for future research opportunities while delivering long-term value to sponsors,
-          partners and the transportation community.
+          As transportation systems become increasingly automated and data-rich, institutional investments in
+          computational agility ensure research teams are prepared to address evolving multimodal challenges—from
+          electric vehicle grid impacts to connected autonomous freight corridors—delivering actionable insights
+          to public sponsors and industry partners nationwide.
         </p>
       </template>
 
-      <!-- RIMS ENHANCEMENTS ARTICLE PROSE -->
+      <!-- PROJECT LIFECYCLE MANAGEMENT ARTICLE PROSE -->
       <template v-else>
         <p>
-          The TTI Talent Development Program, in collaboration with researchers and subject matter experts
-          across TTI, is excited to announce upcoming enhancements to the Research Information Management
-          System (RIMS) and a series of role-based training opportunities designed to help employees
-          maximize the value of these new tools.
+          The Professional Development Program, in partnership with research administration specialists and
+          senior project investigators across the Institute, is launching an updated Project Lifecycle
+          Management Framework accompanied by a comprehensive, role-based workshop series this fall.
         </p>
 
         <p>
-          TTI continues to invest in resources that support effective project management, personnel
-          planning, and financial oversight throughout the project lifecycle. As part of these ongoing
-          improvements, updates to RIMS will provide Division Heads, Project Managers, and Principal
-          Investigators with enhanced visibility into project finances, staffing commitments, and
-          resource utilization.
+          As research contracts grow in scale and interdisciplinary complexity, proactive project governance,
+          transparent personnel allocation, and rigorous deliverable tracking are essential to sustained
+          excellence. The enhanced framework introduces intuitive milestone dashboards, automated budget
+          burn projections, and standardized quality checkpoints across all project phases.
         </p>
 
         <p>
-          To support these enhancements and ensure employees are equipped to fully leverage the system's
-          capabilities, the TTI Talent Development Program has partnered with researchers, project
-          leaders, and key stakeholders across the institute to develop and deliver role-based training
-          opportunities this fall. This effort is being spearheaded by <strong>Michael Manser</strong>,
-          <strong>Brianne Glover</strong> and <strong>Thomas Motyka</strong>, whose expertise and
-          leadership have been instrumental in the development of the training curriculum and rollout
-          strategy.
+          To ensure research teams can immediately capitalize on these tools, the training series provides
+          interactive instruction tailored directly to the operational responsibilities of Principal Investigators,
+          Project Managers, and Division Leadership.
         </p>
 
         <h2 id="why-attend">Why Attend?</h2>
-        <p>The updated RIMS tools are designed to support more proactive project management by helping users:</p>
+        <p>The updated framework and accompanying tools are designed to streamline research management by enabling teams to:</p>
         <ul>
-          <li>Monitor project budgets and expenditures in real time.</li>
-          <li>Track personnel effort and staffing commitments across task codes.</li>
-          <li>Improve resource planning and workload forecasting.</li>
-          <li>Identify potential budget variances before they become challenges.</li>
-          <li>Strengthen financial oversight and decision-making throughout the life of a project.</li>
+          <li>Monitor project milestone progress and budget expenditures through unified dashboards.</li>
+          <li>Accurately forecast team capacity, task code allocations, and FTE commitments.</li>
+          <li>Identify schedule dependencies and potential resource variances well before critical delivery dates.</li>
+          <li>Standardize data management, sponsor reporting, and institutional compliance requirements.</li>
+          <li>Strengthen collaborative workflows across multidisciplinary research divisions.</li>
         </ul>
         <p>
-          Whether you oversee projects at a leadership level, manage project operations or serve as a
-          Principal Investigator, these sessions will provide practical guidance and hands-on instruction
-          tailored to your role.
+          Whether overseeing multiple research programs or leading individual sponsored task orders, these
+          hands-on sessions provide concrete strategies, checklists, and templates to streamline day-to-day
+          operations.
         </p>
 
-        <h2 id="upcoming-training-sessions">Upcoming Training Sessions</h2>
+        <h2 id="upcoming-training-sessions">Upcoming Workshop Series</h2>
         <ul>
-          <li><strong>Division Head Training</strong> – Oct. 29, 2026</li>
-          <li><strong>Project Manager Training Pt. 1</strong> – Nov. 4, 2026</li>
-          <li><strong>Project Manager Training Pt. 2</strong> – Nov. 12, 2026</li>
+          <li><strong>Division Leadership Briefing</strong> – High-level portfolio tracking and resource forecasting</li>
+          <li><strong>Project Manager Practicum (Part 1)</strong> – Task scheduling, risk mitigation, and milestone mapping</li>
+          <li><strong>Project Manager Practicum (Part 2)</strong> – Budget oversight, change control, and sponsor reporting</li>
+          <li><strong>Principal Investigator Roundtable</strong> – Research stewardship, compliance, and closeout excellence</li>
         </ul>
         <p>
-          Additional training opportunities for Principal Investigators and other research personnel
-          will be offered throughout the year.
+          Self-paced interactive modules and downloadable job aids will be available through the institutional
+          learning portal throughout the academic year.
         </p>
 
         <h2 id="what-to-expect">What to Expect</h2>
-        <p>Training participants will learn how to:</p>
+        <p>Workshop participants will gain practical experience in:</p>
         <ul>
-          <li>Utilize RIMS for project budget management and financial oversight.</li>
-          <li>Forecast personnel effort and project resource needs accurately.</li>
-          <li>Monitor project performance and institutional account health.</li>
-          <li>Leverage available reporting tools to support planning and executive decision-making.</li>
-          <li>Apply best practices for maintaining accurate and effective project data.</li>
+          <li>Navigating unified project health and progress dashboards.</li>
+          <li>Developing realistic staffing forecasts and resource contingency plans.</li>
+          <li>Applying best practices for project data retention and deliverables quality assurance.</li>
+          <li>Utilizing automated alerting tools to preempt administrative bottlenecks.</li>
+          <li>Facilitating seamless sponsor communication from project kickoff through final publication.</li>
         </ul>
         <p>
-          Sessions will be facilitated by researchers, project leaders and subject matter experts who
-          have helped shape the latest RIMS enhancements, providing participants with practical insights
-          and real-world applications tailored to their roles.
+          Each session is led by experienced project directors and research administration practitioners who share
+          real-world case studies and actionable lessons learned from successfully delivered major research contracts.
         </p>
 
-        <h2 id="stay-tuned">Stay Tuned & Registration</h2>
+        <h2 id="stay-tuned">Registration & Course Materials</h2>
         <p>
-          Calendar invitations and registration details have been distributed directly to the appropriate
-          audiences in advance of each session. We encourage all Division Heads, Project Managers,
-          Principal Investigators and other research professionals to take advantage of these learning
-          opportunities as we continue enhancing RIMS and strengthening TTI's project management
-          capabilities.
+          Registration links, calendar invitations, and participant preparatory guides are available on the
+          institutional professional development portal. Research staff and project leaders are encouraged to
+          reserve seats early for upcoming cohort sessions.
         </p>
       </template>
 
@@ -319,17 +308,17 @@ useHead({
             Related Publication
           </h3>
           <p class="text-xs text-text-secondary leading-relaxed">
-            <template v-if="slug.includes('mobility-8')">
-              Read about the upcoming RIMS financial enhancements and role-based training workshops this fall.
+            <template v-if="slug.includes('computing') || slug.includes('cluster')">
+              Read about the newly announced Project Lifecycle Management Tools & Fall Workshop Series.
             </template>
             <template v-else>
-              Learn about the newly deployed Mobility 8 GPU server expanding research compute capabilities.
+              Learn about the high-performance computing cluster expanding transportation AI and simulation capabilities.
             </template>
           </p>
           <NuxtLink
-            :to="slug.includes('mobility-8')
-              ? '/news/new-rims-enhancements-and-training-opportunities-coming-this-fall'
-              : '/news/new-mobility-8-server-expands-research-computing-capabilities'"
+            :to="(slug.includes('computing') || slug.includes('cluster'))
+              ? '/news/project-lifecycle-management-tools-and-fall-workshops'
+              : '/news/next-gen-computing-cluster-expands-transportation-ai'"
             class="inline-flex items-center gap-1 text-xs font-bold text-brand-primary hover:underline"
           >
             <span>Switch to Companion Article</span>
@@ -344,7 +333,7 @@ useHead({
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <p class="text-xs font-mono uppercase tracking-wider text-brand-primary font-bold">
-                Texas A&M Transportation Institute
+                Texas A&amp;M Transportation Institute
               </p>
               <h3 class="text-lg font-bold text-text-primary font-display uppercase mt-0.5">
                 Inside Lane Institutional Publications
