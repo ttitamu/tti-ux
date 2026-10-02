@@ -3,9 +3,12 @@
  * TuxEditorialArticle — Flagship publication and article reader component.
  *
  * Implements the modern TTI publication design language (MyTTI / Inside Lane / Kadence)
- * combined with EmDash CMS 1.0 reading ergonomics:
- *  - 4 Hero Image Layouts: 'boxed' (default MyTTI 16:9 card), 'full-bleed' (immersive banner),
- *    'split' (editorial two-column), and 'inset-banner' (panoramic framed banner), plus 'none'.
+ * combined with EmDash CMS 1.0 reading ergonomics and cutting-edge "AI Modern"
+ * research styles inspired by Google DeepMind, Anthropic Research, and OpenAI:
+ *  - 5 Hero Image Layouts: 'boxed' (default MyTTI 16:9 card), 'full-bleed' (immersive banner),
+ *    'split' (editorial two-column), 'inset-banner' (panoramic framed banner),
+ *    and 'ai-modern' (luminous aura mesh, DeepMind/Anthropic meta, stats grid, and key findings),
+ *    plus 'none'.
  *  - Sticky Table of Contents rail ("On this page") auto-tracking active sections via TuxTOC.
  *  - Real-time reading progress indicators: pinned top progress bar + circular TuxScrollTop dial.
  *  - Authentic TTI typography: condensed display headers, dot-separated meta, bold lead paragraph.
@@ -27,6 +30,21 @@ export interface EditorialContact {
   title?: string;
   phone?: string;
   note?: string;
+}
+
+export interface EditorialStat {
+  label: string;
+  value: string;
+  detail?: string;
+}
+
+export interface EditorialCitation {
+  title?: string;
+  authors?: string;
+  journal?: string;
+  year?: number | string;
+  doi?: string;
+  bibtex?: string;
 }
 
 export interface Props {
@@ -53,7 +71,13 @@ export interface Props {
   /** Hero image caption */
   heroCaption?: string;
   /** Hero layout presentation variant */
-  heroLayout?: "boxed" | "full-bleed" | "split" | "inset-banner" | "none";
+  heroLayout?: "boxed" | "full-bleed" | "split" | "inset-banner" | "ai-modern" | "none";
+  /** AI Modern metrics & statistics cluster */
+  stats?: EditorialStat[];
+  /** AI Modern key findings & takeaways */
+  highlights?: string[];
+  /** Academic & research citation reference */
+  citation?: EditorialCitation;
   /** Whether to render the sticky Table of Contents rail */
   toc?: boolean;
   /** Heading selector or article body ID for TOC auto-detection */
@@ -87,6 +111,9 @@ const props = withDefaults(defineProps<Props>(), {
   heroAlt: "",
   heroCaption: "",
   heroLayout: "boxed",
+  stats: () => [],
+  highlights: () => [],
+  citation: undefined,
   toc: true,
   tocTarget: "#article-body",
   showReadingProgress: true,
@@ -99,7 +126,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const progress = ref(0);
 const copied = ref(false);
+const copiedBibtex = ref(false);
 let copyTimeout: ReturnType<typeof setTimeout> | null = null;
+let bibtexTimeout: ReturnType<typeof setTimeout> | null = null;
 let rafId: number | null = null;
 
 const normalizedAuthors = computed<EditorialAuthor[]>(() => {
@@ -123,6 +152,16 @@ const formattedDate = computed(() => {
   } catch {
     return props.date;
   }
+});
+
+const formattedCitationText = computed(() => {
+  if (!props.citation) return "";
+  const c = props.citation;
+  const authors = c.authors || (normalizedAuthors.value.map((a) => a.name).join(", "));
+  const title = c.title || props.title;
+  const year = c.year || (props.date ? new Date(props.date).getFullYear() : 2026);
+  const journal = c.journal || "Texas A&M Transportation Institute Publications";
+  return `${authors} (${year}). "${title}." ${journal}.`;
 });
 
 function handleScroll() {
@@ -154,6 +193,20 @@ async function copyArticleLink() {
   }
 }
 
+async function copyBibtex() {
+  if (!props.citation?.bibtex || typeof window === "undefined" || !navigator.clipboard) return;
+  try {
+    await navigator.clipboard.writeText(props.citation.bibtex);
+    copiedBibtex.value = true;
+    if (bibtexTimeout) clearTimeout(bibtexTimeout);
+    bibtexTimeout = setTimeout(() => {
+      copiedBibtex.value = false;
+    }, 2500);
+  } catch {
+    copiedBibtex.value = false;
+  }
+}
+
 onMounted(() => {
   if (props.showReadingProgress && typeof window !== "undefined") {
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -161,18 +214,19 @@ onMounted(() => {
   }
 });
 
-onBeforeUnmount(() => {
+onUnmounted(() => {
   if (typeof window !== "undefined") {
     window.removeEventListener("scroll", handleScroll);
   }
-  if (rafId !== null) cancelAnimationFrame(rafId);
   if (copyTimeout) clearTimeout(copyTimeout);
+  if (bibtexTimeout) clearTimeout(bibtexTimeout);
+  if (rafId !== null) cancelAnimationFrame(rafId);
 });
 </script>
 
 <template>
-  <div class="tux-editorial-page" :class="[`tux-editorial--hero-${heroLayout}`]">
-    <!-- Top Reading Progress Bar (EmDash & Medium Ergonomics) -->
+  <div class="tux-editorial-page">
+    <!-- Pinned Reading Progress Bar (Top of viewport) -->
     <div
       v-if="showReadingProgress"
       class="tux-editorial__progress-rail"
@@ -251,9 +305,87 @@ onBeforeUnmount(() => {
     <!-- MAIN EDITORIAL CONTENT GRID -->
     <div class="tux-editorial__main">
       <div class="tux-editorial__container">
+        <!-- AI MODERN HERO TREATMENT (Google DeepMind / Anthropic / OpenAI Style) -->
+        <header
+          v-if="heroLayout === 'ai-modern'"
+          class="tux-editorial__header-ai"
+        >
+          <!-- Ambient Luminous Mesh Aura -->
+          <div class="tux-editorial__ai-aura" aria-hidden="true" />
+
+          <!-- Eyebrow Bar: Pulse dot + Category pill -->
+          <div class="tux-editorial__ai-eyebrow">
+            <span class="tux-editorial__ai-pill">
+              <span class="tux-editorial__ai-pulse" aria-hidden="true">
+                <span class="tux-editorial__ai-pulse-ring" />
+                <span class="tux-editorial__ai-pulse-dot" />
+              </span>
+              <span>{{ category || 'Research Intelligence' }}</span>
+            </span>
+            <span class="tux-editorial__ai-kicker">TECHNICAL BRIEF</span>
+          </div>
+
+          <!-- High-Impact Display Headline -->
+          <h1 class="tux-editorial__title tux-editorial__title--ai">
+            {{ title }}
+          </h1>
+
+          <!-- Sleek Dek / Subtitle -->
+          <p v-if="dek" class="tux-editorial__dek tux-editorial__dek--ai">
+            {{ dek }}
+          </p>
+
+          <!-- DeepMind / Anthropic Style Metadata Cluster -->
+          <div class="tux-editorial__ai-meta">
+            <div v-if="normalizedAuthors.length > 0" class="tux-editorial__ai-authors">
+              <div
+                v-for="auth in normalizedAuthors"
+                :key="auth.name"
+                class="tux-editorial__ai-author-chip"
+              >
+                <span class="tux-editorial__ai-avatar" aria-hidden="true">
+                  {{ auth.name.charAt(0) }}
+                </span>
+                <div class="tux-editorial__ai-author-info">
+                  <span class="tux-editorial__ai-author-name">{{ auth.name }}</span>
+                  <span v-if="auth.title || auth.role" class="tux-editorial__ai-author-role">
+                    {{ auth.title || auth.role }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="tux-editorial__ai-meta-pills">
+              <time v-if="date" :datetime="date" class="tux-editorial__ai-date">
+                <Icon name="lucide:calendar" class="w-3.5 h-3.5" aria-hidden="true" />
+                <span>{{ formattedDate }}</span>
+              </time>
+              <span v-if="readTime" class="tux-editorial__ai-readtime">
+                <Icon name="lucide:sparkles" class="w-3.5 h-3.5" aria-hidden="true" />
+                <span>{{ readTime }}</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Framed Cinematic Hero Media -->
+          <div v-if="heroImage" class="tux-editorial__ai-media">
+            <div class="tux-editorial__ai-card">
+              <img
+                :src="heroImage"
+                :alt="heroAlt || title"
+                class="tux-editorial__ai-img"
+              >
+              <div v-if="heroCaption" class="tux-editorial__ai-caption-badge">
+                <Icon name="lucide:info" class="w-3.5 h-3.5 text-brand-primary" aria-hidden="true" />
+                <span>{{ heroCaption }}</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
         <!-- SPLIT HERO TREATMENT (Title left, Image right) -->
         <header
-          v-if="heroLayout === 'split' && heroImage"
+          v-else-if="heroLayout === 'split' && heroImage"
           class="tux-editorial__header-split"
         >
           <div class="tux-editorial__split-copy">
@@ -380,9 +512,86 @@ onBeforeUnmount(() => {
               </div>
             </div>
 
+            <!-- OpenAI / DeepMind Style Metric Stats Grid -->
+            <div
+              v-if="(stats && stats.length > 0) || $slots.stats"
+              class="tux-editorial__stats-wrapper"
+            >
+              <slot name="stats">
+                <div class="tux-editorial__stats-grid">
+                  <div
+                    v-for="stat in stats"
+                    :key="stat.label"
+                    class="tux-editorial__stat-card"
+                  >
+                    <span class="tux-editorial__stat-value">{{ stat.value }}</span>
+                    <span class="tux-editorial__stat-label">{{ stat.label }}</span>
+                    <span v-if="stat.detail" class="tux-editorial__stat-detail">{{ stat.detail }}</span>
+                  </div>
+                </div>
+              </slot>
+            </div>
+
+            <!-- Google DeepMind / Anthropic Style Key Findings & Highlights -->
+            <div
+              v-if="(highlights && highlights.length > 0) || $slots.highlights"
+              class="tux-editorial__highlights-card"
+            >
+              <slot name="highlights">
+                <div class="tux-editorial__highlights-header">
+                  <div class="tux-editorial__highlights-icon-badge" aria-hidden="true">
+                    <Icon name="lucide:sparkles" class="w-4 h-4 text-brand-primary" />
+                  </div>
+                  <span class="tux-editorial__highlights-title">KEY RESEARCH FINDINGS &amp; AT A GLANCE</span>
+                </div>
+                <ul class="tux-editorial__highlights-list">
+                  <li
+                    v-for="(highlight, hIdx) in highlights"
+                    :key="hIdx"
+                    class="tux-editorial__highlights-item"
+                  >
+                    <span class="tux-editorial__highlights-bullet" aria-hidden="true">
+                      <Icon name="lucide:check" class="w-3.5 h-3.5 text-brand-primary" />
+                    </span>
+                    <span class="tux-editorial__highlights-text">{{ highlight }}</span>
+                  </li>
+                </ul>
+              </slot>
+            </div>
+
             <!-- Content Slot / Prose -->
             <div class="tux-editorial__body tux-prose">
               <slot />
+            </div>
+
+            <!-- Anthropic Style Research Citation Block -->
+            <div
+              v-if="citation || $slots.citation"
+              class="tux-editorial__citation-card"
+            >
+              <slot name="citation">
+                <div class="tux-editorial__citation-header">
+                  <div class="flex items-center gap-2">
+                    <Icon name="lucide:book-open" class="w-4 h-4 text-brand-primary" aria-hidden="true" />
+                    <span class="tux-editorial__citation-title">HOW TO CITE THIS RESEARCH</span>
+                  </div>
+                  <button
+                    v-if="citation?.bibtex"
+                    type="button"
+                    class="tux-editorial__citation-copy-btn"
+                    :aria-label="copiedBibtex ? 'BibTeX citation copied' : 'Copy BibTeX citation'"
+                    @click="copyBibtex"
+                  >
+                    <Icon :name="copiedBibtex ? 'lucide:check' : 'lucide:copy'" class="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>{{ copiedBibtex ? 'BibTeX Copied!' : 'Copy BibTeX' }}</span>
+                  </button>
+                </div>
+                <p class="tux-editorial__citation-text">{{ formattedCitationText }}</p>
+                <div v-if="citation?.doi" class="tux-editorial__citation-doi">
+                  <span class="font-mono text-xs uppercase tracking-wider text-text-muted">DOI:</span>
+                  <code class="tux-editorial__citation-code">{{ citation.doi }}</code>
+                </div>
+              </slot>
             </div>
 
             <!-- Tags / Topics Footer -->
@@ -666,7 +875,7 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   padding: 0.3125rem 0.75rem;
-  border-radius: var(--radius-xs, 2px);
+  border-radius: var(--radius-sm);
   margin-bottom: 1.25rem;
   border-left: 3px solid var(--brand-accent);
 }
@@ -751,6 +960,442 @@ onBeforeUnmount(() => {
   font-size: 0.8125rem;
   color: var(--text-muted);
   font-style: italic;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   AI MODERN HERO PRESENTATION (Google DeepMind / Anthropic / OpenAI Style)
+   ══════════════════════════════════════════════════════════════════════════ */
+.tux-editorial__header-ai {
+  position: relative;
+  margin-bottom: 3rem;
+  padding-top: 1rem;
+}
+
+.tux-editorial__ai-aura {
+  position: absolute;
+  top: -2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 64rem;
+  height: 18rem;
+  background: radial-gradient(
+    ellipse at 50% 20%,
+    color-mix(in srgb, var(--brand-primary) 12%, transparent) 0%,
+    color-mix(in srgb, var(--brand-accent) 6%, transparent) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tux-editorial__ai-eyebrow {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.tux-editorial__ai-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  padding: 0.375rem 0.875rem;
+  border-radius: 9999px;
+  font-family: var(--font-bold);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-primary);
+  box-shadow: var(--elevation-flat);
+}
+
+.tux-editorial__ai-pulse {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 8px;
+  height: 8px;
+}
+
+.tux-editorial__ai-pulse-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: var(--brand-primary);
+  opacity: 0.35;
+  animation: tux-ai-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes tux-ai-ping {
+  75%, 100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.tux-editorial__ai-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--brand-primary);
+}
+
+.tux-editorial__ai-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--brand-primary);
+}
+
+.tux-editorial__title--ai {
+  font-size: clamp(2.25rem, 1.75rem + 2.75cqi, 3.75rem);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 1.25rem;
+  max-width: 64rem;
+}
+
+.tux-editorial__dek--ai {
+  font-size: clamp(1.1875rem, 1.05rem + 0.5cqi, 1.375rem);
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 56rem;
+  margin-bottom: 2rem;
+}
+
+.tux-editorial__ai-meta {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding: 1.125rem 0;
+  border-top: 1px solid var(--surface-border);
+  border-bottom: 1px solid var(--surface-border);
+  margin-bottom: 2rem;
+}
+
+.tux-editorial__ai-authors {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.tux-editorial__ai-author-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.tux-editorial__ai-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background-color: var(--brand-primary);
+  color: var(--neutral-0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-bold);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.tux-editorial__ai-author-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.tux-editorial__ai-author-name {
+  font-family: var(--font-bold);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tux-editorial__ai-author-role {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.tux-editorial__ai-meta-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.tux-editorial__ai-date,
+.tux-editorial__ai-readtime {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background-color: var(--surface-sunken);
+  padding: 0.3125rem 0.625rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-border);
+}
+
+.tux-editorial__ai-media {
+  position: relative;
+  z-index: 1;
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.tux-editorial__ai-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--surface-border);
+  box-shadow: 0 16px 36px -12px color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  background-color: var(--surface-sunken);
+}
+
+.tux-editorial__ai-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tux-editorial__ai-caption-badge {
+  position: absolute;
+  bottom: 0.875rem;
+  left: 0.875rem;
+  right: 0.875rem;
+  max-width: calc(100% - 1.75rem);
+  background-color: color-mix(in srgb, var(--surface-page) 90%, transparent);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.875rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   AI MODERN STATS GRID & KEY FINDINGS
+   ══════════════════════════════════════════════════════════════════════════ */
+.tux-editorial__stats-wrapper {
+  margin-bottom: 2.5rem;
+}
+
+.tux-editorial__stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem;
+}
+
+.tux-editorial__stat-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--elevation-rest);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.tux-editorial__stat-card:hover {
+  border-color: var(--brand-primary);
+  transform: translateY(-2px);
+}
+
+.tux-editorial__stat-value {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--brand-primary);
+  line-height: 1.1;
+  margin-bottom: 0.25rem;
+}
+
+.tux-editorial__stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-primary);
+  margin-bottom: 0.375rem;
+}
+
+.tux-editorial__stat-detail {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Google DeepMind / Anthropic Style Key Findings Card */
+.tux-editorial__highlights-card {
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background-color: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-raised));
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 22%, var(--surface-border));
+  border-left: 4px solid var(--brand-primary);
+  border-radius: var(--radius-sm);
+}
+
+.tux-editorial__highlights-header {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 1.125rem;
+}
+
+.tux-editorial__highlights-icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-sm);
+  background-color: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+}
+
+.tux-editorial__highlights-title {
+  font-family: var(--font-bold);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brand-primary);
+}
+
+.tux-editorial__highlights-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.tux-editorial__highlights-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.tux-editorial__highlights-bullet {
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background-color: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tux-editorial__highlights-text {
+  flex: 1;
+}
+
+/* Anthropic Style Citation Block */
+.tux-editorial__citation-card {
+  margin-top: 2.75rem;
+  padding: 1.25rem 1.5rem;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+}
+
+.tux-editorial__citation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.tux-editorial__citation-title {
+  font-family: var(--font-bold);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brand-primary);
+}
+
+.tux-editorial__citation-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  min-height: 44px;
+  background-color: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tux-editorial__citation-copy-btn:hover,
+.tux-editorial__citation-copy-btn:focus-visible {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  background-color: var(--surface-raised);
+  outline: none;
+}
+
+.tux-editorial__citation-text {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0 0 0.5rem;
+}
+
+.tux-editorial__citation-doi {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.tux-editorial__citation-code {
+  background-color: var(--surface-sunken);
+  padding: 0.125rem 0.375rem;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--brand-primary);
+  border: 1px solid var(--surface-border);
 }
 
 /* TWO-COLUMN EDITORIAL READING LAYOUT */

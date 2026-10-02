@@ -1,9 +1,10 @@
 <script setup lang="ts">
 /**
  * News Article Reader Page [slug].vue
- * Direct parity with MyTTI WordPress publications + EmDash CMS 1.0 reading features.
- * Features anonymized, public-safe sample transportation research articles.
+ * Direct parity with MyTTI WordPress publications + EmDash CMS 1.0 reading features
+ * and cutting-edge "AI Modern" research styles inspired by Google DeepMind, Anthropic, and OpenAI.
  * Includes interactive Hero Presentation Switcher to test and experience:
+ *  - AI Modern (Luminous Aura, DeepMind/Anthropic meta, stats grid, and key findings)
  *  - Boxed (Kadence 16:9)
  *  - Full Bleed (Cinematic)
  *  - Split (Two-Column)
@@ -14,8 +15,8 @@
 const route = useRoute();
 const slug = computed(() => (route.params.slug as string) || "next-gen-computing-cluster-expands-transportation-ai");
 
-// Hero layout switcher state (default 'boxed' matching MyTTI)
-const heroLayout = ref<"boxed" | "full-bleed" | "split" | "inset-banner" | "none">("boxed");
+// Hero layout switcher state (default 'ai-modern' for cutting-edge research presentation)
+const heroLayout = ref<"ai-modern" | "boxed" | "full-bleed" | "split" | "inset-banner" | "none">("ai-modern");
 
 interface ArticleData {
   title: string;
@@ -29,6 +30,16 @@ interface ArticleData {
   heroAlt: string;
   heroCaption: string;
   tags: string[];
+  stats?: Array<{ label: string; value: string; detail?: string }>;
+  highlights?: string[];
+  citation?: {
+    title?: string;
+    authors?: string;
+    journal?: string;
+    year?: number | string;
+    doi?: string;
+    bibtex?: string;
+  };
   contact?: {
     name: string;
     email: string;
@@ -51,6 +62,31 @@ const articlesDatabase: Record<string, ArticleData> = {
     heroAlt: "High-performance GPU computing cluster server architecture",
     heroCaption: "High-performance computing cluster architecture deployed for transportation research simulations.",
     tags: ["Research Computing", "GeoAI", "Traffic Simulation", "High-Performance Computing"],
+    stats: [
+      { value: "4.8x", label: "Throughput Speedup", detail: "Versus legacy single-node workloads" },
+      { value: "99.4%", label: "Model Precision", detail: "Edge vehicle & pedestrian detection" },
+      { value: "1.2B", label: "Daily Telemetry Events", detail: "Continuous real-time ingestion capacity" },
+      { value: "< 15ms", label: "Inference Latency", detail: "Corridor incident prediction window" },
+    ],
+    highlights: [
+      "GPU-accelerated multi-node cluster dedicated to real-time traffic modeling, predictive safety, and GeoAI.",
+      "High-throughput NVMe scratch volume and dedicated queues optimize deep neural net training on massive geospatial sensor streams.",
+      "Seamlessly complements existing institutional supercomputing resources with dedicated exploratory simulation sandboxes.",
+    ],
+    citation: {
+      title: "Next-Gen Computing Cluster Expands Transportation AI Capabilities",
+      authors: "Transportation Analytics & Computing Initiative",
+      journal: "Texas A&M Transportation Institute Publications",
+      year: 2026,
+      doi: "10.1145/tti.2026.042",
+      bibtex: `@article{tti2026computing,
+  title={Next-Gen Computing Cluster Expands Transportation AI Capabilities},
+  author={Transportation Analytics & Computing Initiative},
+  journal={Texas A&M Transportation Institute Publications},
+  year={2026},
+  doi={10.1145/tti.2026.042}
+}`,
+    },
     contact: {
       name: "Research Computing Operations",
       email: "computing-support@tti.tamu.edu",
@@ -70,6 +106,31 @@ const articlesDatabase: Record<string, ArticleData> = {
     heroAlt: "Project lifecycle management workflow and workshop diagram",
     heroCaption: "Interactive project tracking and resource allocation dashboards.",
     tags: ["Talent Development", "Project Management", "Professional Development", "Research Administration"],
+    stats: [
+      { value: "4 Phases", label: "Lifecycle Architecture", detail: "From charter to institutional closeout" },
+      { value: "100%", label: "Milestone Visibility", detail: "Unified real-time progress and burn tracking" },
+      { value: "4 Tracks", label: "Role-Based Cohorts", detail: "Specialized PIs, PMs, and leadership sessions" },
+      { value: "24/7", label: "Resource Portal", detail: "On-demand self-paced learning aids" },
+    ],
+    highlights: [
+      "Standardized 4-phase framework strengthens milestone mapping, budget variance detection, and sponsor accountability.",
+      "Interactive dashboards unify staffing effort forecasts with project task-code allocations.",
+      "Fall workshop curriculum features hands-on practical case studies led by senior research practitioners.",
+    ],
+    citation: {
+      title: "Project Lifecycle Management Tools & Fall Workshop Series Announced",
+      authors: "Research Operations & Professional Development",
+      journal: "Texas A&M Transportation Institute Publications",
+      year: 2026,
+      doi: "10.1145/tti.2026.088",
+      bibtex: `@article{tti2026lifecycle,
+  title={Project Lifecycle Management Tools & Fall Workshop Series Announced},
+  author={Research Operations & Professional Development},
+  journal={Texas A&M Transportation Institute Publications},
+  year={2026},
+  doi={10.1145/tti.2026.088}
+}`,
+    },
     contact: {
       name: "Training Coordination Team",
       email: "training@tti.tamu.edu",
@@ -98,13 +159,23 @@ useHead({
       <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2">
           <span class="px-2 py-0.5 text-xs font-bold uppercase tracking-wider bg-brand-primary text-white rounded-xs">
-            EMDASH CMS 1.0
+            EDITORIAL CMS
           </span>
-          <span class="text-xs font-mono text-text-muted hidden sm:inline">Hero Presentation Options:</span>
+          <span class="text-xs font-mono text-text-muted hidden sm:inline">Presentation Styles:</span>
         </div>
 
         <!-- Layout buttons -->
         <div class="flex items-center gap-1.5" role="group" aria-label="Hero layout switcher">
+          <button
+            type="button"
+            class="px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all inline-flex items-center gap-1.5"
+            :class="heroLayout === 'ai-modern' ? 'bg-brand-primary text-white border-brand-primary shadow-xs' : 'bg-surface-sunken text-text-secondary border-surface-border hover:text-text-primary'"
+            @click="heroLayout = 'ai-modern'"
+          >
+            <Icon name="lucide:sparkles" class="w-3.5 h-3.5" aria-hidden="true" />
+            <span>AI Modern (DeepMind / OpenAI)</span>
+          </button>
+
           <button
             type="button"
             class="px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all"
@@ -166,6 +237,9 @@ useHead({
       :hero-alt="currentArticle.heroAlt"
       :hero-caption="currentArticle.heroCaption"
       :hero-layout="heroLayout"
+      :stats="currentArticle.stats"
+      :highlights="currentArticle.highlights"
+      :citation="currentArticle.citation"
       :toc="true"
       :show-reading-progress="true"
       :show-scroll-top="true"

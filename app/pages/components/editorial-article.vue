@@ -2,12 +2,13 @@
 /**
  * Component Gallery: TuxEditorialArticle
  * Interactive documentation and sandbox demonstrating hero layouts, sticky TOC,
- * and authentic TTI Inside Lane publishing ergonomics with anonymized sample content.
+ * and authentic TTI Inside Lane publishing ergonomics with anonymized sample content,
+ * plus cutting-edge "AI Modern" research styles (DeepMind / Anthropic / OpenAI).
  */
 
 useHead({ title: "TuxEditorialArticle · TUX" });
 
-const activeHero = ref<"boxed" | "full-bleed" | "split" | "inset-banner" | "none">("boxed");
+const activeHero = ref<"ai-modern" | "boxed" | "full-bleed" | "split" | "inset-banner" | "none">("ai-modern");
 const activeArticle = ref<"cluster" | "lifecycle">("cluster");
 const showToc = ref(true);
 const showProgress = ref(true);
@@ -26,6 +27,31 @@ const articles = {
     heroCaption: "High-performance computing cluster architecture deployed for transportation research simulations.",
     author: "Transportation Analytics & Computing Initiative",
     tags: ["Research Computing", "GeoAI", "Traffic Simulation", "Inside Lane"],
+    stats: [
+      { value: "4.8x", label: "Throughput Speedup", detail: "Versus legacy single-node workloads" },
+      { value: "99.4%", label: "Model Precision", detail: "Edge vehicle & pedestrian detection" },
+      { value: "1.2B", label: "Daily Telemetry Events", detail: "Continuous real-time ingestion capacity" },
+      { value: "< 15ms", label: "Inference Latency", detail: "Corridor incident prediction window" },
+    ],
+    highlights: [
+      "GPU-accelerated multi-node cluster dedicated to real-time traffic modeling, predictive safety, and GeoAI.",
+      "High-throughput NVMe scratch volume and dedicated queues optimize deep neural net training on massive geospatial sensor streams.",
+      "Seamlessly complements existing institutional supercomputing resources with dedicated exploratory simulation sandboxes.",
+    ],
+    citation: {
+      title: "Next-Gen Computing Cluster Expands Transportation AI Capabilities",
+      authors: "Transportation Analytics & Computing Initiative",
+      journal: "Texas A&M Transportation Institute Publications",
+      year: 2026,
+      doi: "10.1145/tti.2026.042",
+      bibtex: `@article{tti2026computing,
+  title={Next-Gen Computing Cluster Expands Transportation AI Capabilities},
+  author={Transportation Analytics & Computing Initiative},
+  journal={Texas A&M Transportation Institute Publications},
+  year={2026},
+  doi={10.1145/tti.2026.042}
+}`,
+    },
     contact: {
       name: "Research Computing Operations",
       email: "computing-support@tti.tamu.edu",
@@ -45,6 +71,31 @@ const articles = {
     heroCaption: "Interactive project tracking and resource allocation dashboards.",
     author: "Research Operations & Professional Development",
     tags: ["Talent Development", "Project Management", "Professional Development", "Inside Lane"],
+    stats: [
+      { value: "4 Phases", label: "Lifecycle Architecture", detail: "From charter to institutional closeout" },
+      { value: "100%", label: "Milestone Visibility", detail: "Unified real-time progress and burn tracking" },
+      { value: "4 Tracks", label: "Role-Based Cohorts", detail: "Specialized PIs, PMs, and leadership sessions" },
+      { value: "24/7", label: "Resource Portal", detail: "On-demand self-paced learning aids" },
+    ],
+    highlights: [
+      "Standardized 4-phase framework strengthens milestone mapping, budget variance detection, and sponsor accountability.",
+      "Interactive dashboards unify staffing effort forecasts with project task-code allocations.",
+      "Fall workshop curriculum features hands-on practical case studies led by senior research practitioners.",
+    ],
+    citation: {
+      title: "Project Lifecycle Management Tools & Fall Workshop Series Announced",
+      authors: "Research Operations & Professional Development",
+      journal: "Texas A&M Transportation Institute Publications",
+      year: 2026,
+      doi: "10.1145/tti.2026.088",
+      bibtex: `@article{tti2026lifecycle,
+  title={Project Lifecycle Management Tools & Fall Workshop Series Announced},
+  author={Research Operations & Professional Development},
+  journal={Texas A&M Transportation Institute Publications},
+  year={2026},
+  doi={10.1145/tti.2026.088}
+}`,
+    },
     contact: {
       name: "Training Coordination Team",
       email: "training@tti.tamu.edu",
@@ -64,6 +115,9 @@ const exampleCode = computed(() => `<TuxEditorialArticle
   read-time="${current.value.readTime}"
   hero-image="${current.value.heroImage}"
   hero-layout="${activeHero.value}"
+  :stats="${JSON.stringify(current.value.stats, null, 2)}"
+  :highlights="${JSON.stringify(current.value.highlights, null, 2)}"
+  :citation="${JSON.stringify(current.value.citation, null, 2)}"
   :toc="${showToc.value}"
   :show-reading-progress="${showProgress.value}"
   :show-share="${showShare.value}"
@@ -80,9 +134,10 @@ const exampleCode = computed(() => `<TuxEditorialArticle
     <TuxPageHeader eyebrow="component" title="TuxEditorialArticle">
       Flagship publication and article reader component parities the modern
       <strong>MyTTI / Inside Lane</strong> WordPress Kadence theme and integrates
-      <strong>Cloudflare EmDash CMS 1.0</strong> reading ergonomics:
-      switchable hero presentations (<em>boxed</em>, <em>full-bleed</em>, <em>split</em>, <em>inset-banner</em>, <em>none</em>),
-      sticky Table of Contents rail, real-time reading progress indicators, and 100% WCAG 2.2 AAA accessibility.
+      <strong>Cloudflare EmDash CMS 1.0</strong> reading ergonomics alongside
+      <strong>AI Modern</strong> research presentations inspired by Google DeepMind, Anthropic, and OpenAI:
+      switchable hero presentations (<em>ai-modern</em>, <em>boxed</em>, <em>full-bleed</em>, <em>split</em>, <em>inset-banner</em>, <em>none</em>),
+      metric stats grid, key findings cards, sticky Table of Contents rail, real-time reading progress indicators, and 100% WCAG 2.2 AAA accessibility.
     </TuxPageHeader>
 
     <!-- Interactive Playground Controls -->
@@ -94,7 +149,7 @@ const exampleCode = computed(() => `<TuxEditorialArticle
               Publication Sandbox & Hero Switcher
             </h2>
             <p class="text-xs text-text-secondary">
-              Toggle layout variants and sample articles to preview responsive reading ergonomics.
+              Toggle layout variants and sample articles to preview responsive reading ergonomics and AI Modern research styles.
             </p>
           </div>
 
@@ -130,6 +185,7 @@ const exampleCode = computed(() => `<TuxEditorialArticle
               v-model="activeHero"
               class="w-full text-xs font-sans px-2.5 py-1.5 bg-surface-sunken border border-surface-border rounded-sm text-text-primary focus:outline-none focus:border-brand-primary"
             >
+              <option value="ai-modern">AI Modern (DeepMind / OpenAI)</option>
               <option value="boxed">Boxed (Kadence 16:9)</option>
               <option value="full-bleed">Full Bleed (Cinematic)</option>
               <option value="split">Split (Two-Column)</option>
@@ -161,7 +217,7 @@ const exampleCode = computed(() => `<TuxEditorialArticle
                 type="checkbox"
                 class="w-4 h-4 text-brand-primary rounded-xs border-surface-border"
               >
-              <label for="toggle-progress" class="text-xs text-text-secondary">Top Bar & Dial</label>
+              <label for="toggle-progress" class="text-xs text-text-secondary">Top Bar &amp; Dial</label>
             </div>
           </div>
 
@@ -194,6 +250,9 @@ const exampleCode = computed(() => `<TuxEditorialArticle
           :hero-alt="current.heroAlt"
           :hero-caption="current.heroCaption"
           :hero-layout="activeHero"
+          :stats="current.stats"
+          :highlights="current.highlights"
+          :citation="current.citation"
           :toc="showToc"
           :show-reading-progress="showProgress"
           :show-share="showShare"
@@ -325,7 +384,7 @@ const exampleCode = computed(() => `<TuxEditorialArticle
     <!-- Implementation Code Sample -->
     <section class="space-y-4">
       <h2 class="text-xl font-bold uppercase font-display text-text-primary">
-        Usage & Code Sample
+        Usage &amp; Code Sample
       </h2>
       <div class="p-4 bg-surface-raised border border-surface-border rounded-md font-mono text-xs overflow-x-auto text-text-primary">
         <pre>{{ exampleCode }}</pre>
@@ -356,9 +415,27 @@ const exampleCode = computed(() => `<TuxEditorialArticle
             </tr>
             <tr>
               <td class="p-3 font-mono font-bold text-brand-primary">heroLayout</td>
-              <td class="p-3 font-mono text-text-secondary">'boxed' | 'full-bleed' | 'split' | 'inset-banner' | 'none'</td>
+              <td class="p-3 font-mono text-text-secondary">'ai-modern' | 'boxed' | 'full-bleed' | 'split' | 'inset-banner' | 'none'</td>
               <td class="p-3 font-mono text-text-muted">'boxed'</td>
-              <td class="p-3 text-text-primary">Selects the hero layout treatment. 'boxed' matches MyTTI Kadence; 'full-bleed' matches EmDash cinematic; 'split' provides a 2-col editorial lead.</td>
+              <td class="p-3 text-text-primary">Selects the hero layout treatment: 'ai-modern' (DeepMind/Anthropic style with luminous mesh and author badges), 'boxed' (MyTTI Kadence 16:9), 'full-bleed' (cinematic), or 'split'.</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-brand-primary">stats</td>
+              <td class="p-3 font-mono text-text-secondary">EditorialStat[]</td>
+              <td class="p-3 font-mono text-text-muted">[]</td>
+              <td class="p-3 text-text-primary">OpenAI / DeepMind style metrics grid displaying high-impact numerical figures, labels, and micro-details.</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-brand-primary">highlights</td>
+              <td class="p-3 font-mono text-text-secondary">string[]</td>
+              <td class="p-3 font-mono text-text-muted">[]</td>
+              <td class="p-3 text-text-primary">Google DeepMind / Anthropic style executive summary callout card with key takeaway bullet points.</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-mono font-bold text-brand-primary">citation</td>
+              <td class="p-3 font-mono text-text-secondary">EditorialCitation</td>
+              <td class="p-3 font-mono text-text-muted">undefined</td>
+              <td class="p-3 text-text-primary">Anthropic / arXiv research citation box with one-click BibTeX copying, APA format string, and DOI.</td>
             </tr>
             <tr>
               <td class="p-3 font-mono font-bold text-brand-primary">heroImage</td>

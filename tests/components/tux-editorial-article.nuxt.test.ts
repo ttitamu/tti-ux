@@ -75,4 +75,48 @@ describe("TuxEditorialArticle Component", () => {
     const violationsFullBleed = await runComponentAxe(wrapperFullBleed.element);
     expect(violationsFullBleed).toEqual([]);
   });
+
+  it("supports AI Modern style (DeepMind / Anthropic / OpenAI) with stats, highlights, and citation", async () => {
+    const wrapperAi = await mountSuspended(TuxEditorialArticle, {
+      props: {
+        title: "Next-Gen Computing Cluster Expands Transportation AI Capabilities",
+        category: "Research Computing",
+        dek: "High-performance GPU infrastructure delivers accelerated computing power to advance real-time traffic modeling.",
+        heroImage: "/resources/news/computing-cluster.jpg",
+        heroLayout: "ai-modern",
+        author: { name: "Analytics Group", title: "Research Computing" },
+        stats: [
+          { value: "4.8x", label: "Throughput Speedup", detail: "Versus legacy single-node workloads" },
+          { value: "99.4%", label: "Model Precision" },
+        ],
+        highlights: [
+          "GPU-accelerated multi-node cluster dedicated to real-time traffic modeling.",
+          "High-throughput NVMe scratch volume optimizes deep neural net training.",
+        ],
+        citation: {
+          title: "Next-Gen Computing Cluster Expands Transportation AI Capabilities",
+          authors: "Analytics Group",
+          journal: "TTI Research Publications",
+          year: 2026,
+          doi: "10.1145/tti.2026.042",
+          bibtex: "@article{test, title={Test}}",
+        },
+      },
+      slots: {
+        default: () => [h("p", "High-performance compute enables groundbreaking simulation.")],
+      },
+    });
+
+    expect(wrapperAi.find(".tux-editorial__header-ai").exists()).toBe(true);
+    expect(wrapperAi.find(".tux-editorial__stats-grid").exists()).toBe(true);
+    expect(wrapperAi.find(".tux-editorial__highlights-card").exists()).toBe(true);
+    expect(wrapperAi.find(".tux-editorial__citation-card").exists()).toBe(true);
+    expect(wrapperAi.text()).toContain("4.8x");
+    expect(wrapperAi.text()).toContain("Throughput Speedup");
+    expect(wrapperAi.text()).toContain("KEY RESEARCH FINDINGS");
+    expect(wrapperAi.text()).toContain("HOW TO CITE THIS RESEARCH");
+
+    const violationsAi = await runComponentAxe(wrapperAi.element);
+    expect(violationsAi).toEqual([]);
+  });
 });
