@@ -340,7 +340,7 @@
   content: "";
   display: block;
   width: 48px;
-  height: 16px;
+  height: 24px;
   margin-top: 0.625rem;
   background-image: radial-gradient(var(--brand-primary) 1.5px, transparent 1.5px);
   background-size: 8px 8px;
@@ -367,7 +367,7 @@
   content: "";
   display: block;
   width: 48px;
-  height: 16px;
+  height: 24px;
   margin-top: 0.625rem;
   background-image: radial-gradient(var(--brand-accent) 1.5px, transparent 1.5px);
   background-size: 8px 8px;
