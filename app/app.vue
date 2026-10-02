@@ -93,11 +93,11 @@ const highLevelAreas: HighLevelArea[] = [
   },
   {
     id: "editorial",
-    label: "Editorial CMS",
-    icon: "lucide:layout-template",
+    label: "Research Index",
+    icon: "lucide:newspaper",
     to: "/admin",
-    eyebrow: "Web Builder & Pages",
-    groupTitles: ["04 // Editorial CMS", "04b // Content Governance"],
+    eyebrow: "Publications & Releases",
+    groupTitles: ["04 // Research Index", "04b // Content Governance"],
   },
   {
     id: "docs",

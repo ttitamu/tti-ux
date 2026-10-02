@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-02T19:54:19.149Z",
+  "timestamp": "2026-10-02T20:47:35.967Z",
   "system": "TTI-UX (TUX 3.0)",
   "standard": "W3C WCAG 2.2 Level AAA",
   "summary": {
@@ -1199,7 +1199,7 @@
       "file": "TuxEditorialArticle.vue",
       "isInteractive": true,
       "hasMinTouchTarget": true,
-      "hasFocusRing": false,
+      "hasFocusRing": true,
       "hasAria": true,
       "tier": "AAA",
       "contrastStandard": "7.0:1 (AAA)",

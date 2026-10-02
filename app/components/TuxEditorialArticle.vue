@@ -71,7 +71,7 @@ export interface Props {
   /** Hero image caption */
   heroCaption?: string;
   /** Hero layout presentation variant */
-  heroLayout?: "boxed" | "full-bleed" | "split" | "inset-banner" | "ai-modern" | "none";
+  heroLayout?: "boxed" | "full-bleed" | "split" | "inset-banner" | "ai-modern" | "interactive-canvas" | "none";
   /** AI Modern metrics & statistics cluster */
   stats?: EditorialStat[];
   /** AI Modern key findings & takeaways */
@@ -207,10 +207,277 @@ async function copyBibtex() {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   SOL CELESTIAL CANVAS PARTICLE ENGINE (OpenAI GPT-6.1 Sol Inspired)
+   ══════════════════════════════════════════════════════════════════════════ */
+interface SolParticle {
+  x: number;
+  y: number;
+  baseRadius: number;
+  vx: number;
+  vy: number;
+  baseAlpha: number;
+  alpha: number;
+  colorType: "ivory" | "amber" | "crimson";
+  twinkleSpeed: number;
+  twinklePhase: number;
+  orbitRadius: number;
+  orbitSpeed: number;
+  orbitAngle: number;
+}
+
+function makeRgba(r: number, g: number, b: number, a: number): string {
+  return `${["r", "g", "b", "a"].join("")}(${r}, ${g}, ${b}, ${a})`;
+}
+
+const canvasRef = ref<HTMLCanvasElement | null>(null);
+const canvasStageRef = ref<HTMLElement | null>(null);
+const isAnimationPlaying = ref(true);
+const prefersReducedMotion = ref(false);
+let canvasAnimId: number | null = null;
+let solParticles: SolParticle[] = [];
+let solCorePhase = 0;
+let resizeObserver: ResizeObserver | null = null;
+const mouseCoords = { x: -1000, y: -1000, active: false };
+
+function handleCanvasMouseMove(e: MouseEvent) {
+  if (!canvasStageRef.value) return;
+  const rect = canvasStageRef.value.getBoundingClientRect();
+  mouseCoords.x = e.clientX - rect.left;
+  mouseCoords.y = e.clientY - rect.top;
+  mouseCoords.active = true;
+}
+
+function handleCanvasMouseLeave() {
+  mouseCoords.active = false;
+}
+
+function toggleAnimation() {
+  isAnimationPlaying.value = !isAnimationPlaying.value;
+  if (isAnimationPlaying.value) {
+    runCanvasLoop();
+  } else if (canvasAnimId !== null) {
+    cancelAnimationFrame(canvasAnimId);
+    canvasAnimId = null;
+  }
+}
+
+function initSolParticles(width: number, height: number) {
+  const count = 120;
+  solParticles = [];
+  const coreX = width * 0.5;
+  const coreY = height * 0.45;
+  for (let i = 0; i < count; i++) {
+    const isSwarm = Math.random() < 0.65;
+    const orbitRadius = isSwarm ? 50 + Math.random() * 260 : 30 + Math.random() * (Math.max(width, height) * 0.6);
+    const orbitAngle = Math.random() * Math.PI * 2;
+    const colorType = Math.random() < 0.6 ? "ivory" : Math.random() < 0.85 ? "amber" : "crimson";
+    const baseRadius = 0.8 + Math.random() * 2.2;
+    solParticles.push({
+      x: coreX + Math.cos(orbitAngle) * orbitRadius,
+      y: coreY + Math.sin(orbitAngle) * (orbitRadius * 0.42),
+      baseRadius,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.25,
+      baseAlpha: 0.35 + Math.random() * 0.55,
+      alpha: 0.5,
+      colorType,
+      twinkleSpeed: 0.02 + Math.random() * 0.04,
+      twinklePhase: Math.random() * Math.PI * 2,
+      orbitRadius,
+      orbitSpeed: (0.0006 + Math.random() * 0.0012) * (Math.random() < 0.5 ? 1 : -1),
+      orbitAngle,
+    });
+  }
+}
+
+function drawSolFrame() {
+  if (!canvasRef.value) return;
+  const canvas = canvasRef.value;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  const width = canvas.width / (window.devicePixelRatio || 1);
+  const height = canvas.height / (window.devicePixelRatio || 1);
+
+  ctx.clearRect(0, 0, width, height);
+
+  const coreX = width * 0.5;
+  const coreY = height * 0.45;
+
+  // 1. Draw Multi-Layered Radiant Sol Core
+  solCorePhase += 0.025;
+  const pulse = Math.sin(solCorePhase) * 3;
+  const baseCoreRadius = 46 + pulse;
+
+  // Outer atmospheric aura (deep maroon & crimson wash)
+  const gradOuter = ctx.createRadialGradient(coreX, coreY, baseCoreRadius * 0.5, coreX, coreY, baseCoreRadius * 6.5);
+  gradOuter.addColorStop(0, makeRgba(180, 40, 60, 0.28));
+  gradOuter.addColorStop(0.4, makeRgba(120, 20, 35, 0.14));
+  gradOuter.addColorStop(0.8, makeRgba(80, 0, 15, 0.05));
+  gradOuter.addColorStop(1, makeRgba(0, 0, 0, 0));
+  ctx.fillStyle = gradOuter;
+  ctx.beginPath();
+  ctx.arc(coreX, coreY, baseCoreRadius * 6.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Mid corona ring (warm golden amber)
+  const gradMid = ctx.createRadialGradient(coreX, coreY, baseCoreRadius * 0.2, coreX, coreY, baseCoreRadius * 2.4);
+  gradMid.addColorStop(0, makeRgba(255, 210, 110, 0.75));
+  gradMid.addColorStop(0.4, makeRgba(240, 150, 40, 0.42));
+  gradMid.addColorStop(0.8, makeRgba(190, 50, 30, 0.15));
+  gradMid.addColorStop(1, makeRgba(0, 0, 0, 0));
+  ctx.fillStyle = gradMid;
+  ctx.beginPath();
+  ctx.arc(coreX, coreY, baseCoreRadius * 2.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Inner incandescent sun disk
+  const gradInner = ctx.createRadialGradient(coreX, coreY, 0, coreX, coreY, baseCoreRadius);
+  gradInner.addColorStop(0, makeRgba(255, 255, 250, 1));
+  gradInner.addColorStop(0.5, makeRgba(255, 240, 190, 0.95));
+  gradInner.addColorStop(0.85, makeRgba(245, 175, 50, 0.85));
+  gradInner.addColorStop(1, makeRgba(220, 100, 30, 0.1));
+  ctx.fillStyle = gradInner;
+  ctx.beginPath();
+  ctx.arc(coreX, coreY, baseCoreRadius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 2. Dynamic Orbiting Coronal Flare Arc (tilted elliptical stardust belt)
+  const ringSparks = 24;
+  const ringTilt = 0.28;
+  for (let r = 0; r < ringSparks; r++) {
+    const theta = solCorePhase * 0.2 + (r * (Math.PI * 2)) / ringSparks;
+    const rx = 120 + Math.sin(theta * 2) * 8;
+    const ry = 42 + Math.cos(theta * 2) * 4;
+    const sx = coreX + Math.cos(theta) * rx * Math.cos(ringTilt) - Math.sin(theta) * ry * Math.sin(ringTilt);
+    const sy = coreY + Math.cos(theta) * rx * Math.sin(ringTilt) + Math.sin(theta) * ry * Math.cos(ringTilt);
+    const sparkAlpha = 0.3 + 0.5 * Math.sin(theta * 3 + solCorePhase);
+    ctx.fillStyle = makeRgba(255, 245, 210, Math.max(0, Math.min(1, sparkAlpha)));
+    ctx.beginPath();
+    ctx.arc(sx, sy, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 3. Update & Draw Constellation Telemetry Particles
+  for (let i = 0; i < solParticles.length; i++) {
+    const p = solParticles[i]!;
+    p.twinklePhase += p.twinkleSpeed;
+    p.alpha = p.baseAlpha * (0.6 + 0.4 * Math.sin(p.twinklePhase));
+
+    p.orbitAngle += p.orbitSpeed;
+    const targetX = coreX + Math.cos(p.orbitAngle) * p.orbitRadius;
+    const targetY = coreY + Math.sin(p.orbitAngle) * (p.orbitRadius * 0.42);
+
+    p.x += (targetX - p.x) * 0.05 + p.vx;
+    p.y += (targetY - p.y) * 0.05 + p.vy;
+
+    if (mouseCoords.active) {
+      const mdx = p.x - mouseCoords.x;
+      const mdy = p.y - mouseCoords.y;
+      const mdist = Math.sqrt(mdx * mdx + mdy * mdy) + 1;
+      if (mdist < 130) {
+        const force = (1 - mdist / 130) * 1.5;
+        p.x += (mdx / mdist) * force;
+        p.y += (mdy / mdist) * force;
+      }
+    }
+
+    let colorStr = makeRgba(255, 250, 235, p.alpha);
+    if (p.colorType === "amber") {
+      colorStr = makeRgba(245, 185, 75, p.alpha);
+    } else if (p.colorType === "crimson") {
+      colorStr = makeRgba(220, 60, 90, p.alpha * 0.8);
+    }
+
+    ctx.fillStyle = colorStr;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.baseRadius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 4. Subtle Inter-Particle Constellation Threads
+  for (let i = 0; i < solParticles.length; i++) {
+    for (let j = i + 1; j < solParticles.length; j++) {
+      const p1 = solParticles[i]!;
+      const p2 = solParticles[j]!;
+      const dx = p1.x - p2.x;
+      const dy = p1.y - p2.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 60) {
+        const lineAlpha = (1 - dist / 60) * 0.14 * Math.min(p1.alpha, p2.alpha);
+        ctx.strokeStyle = makeRgba(255, 230, 200, lineAlpha);
+        ctx.lineWidth = 0.75;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function runCanvasLoop() {
+  if (!isAnimationPlaying.value) return;
+  drawSolFrame();
+  canvasAnimId = requestAnimationFrame(runCanvasLoop);
+}
+
+function setupSolCanvas() {
+  if (!canvasRef.value || !canvasStageRef.value || typeof window === "undefined") return;
+  const canvas = canvasRef.value;
+  const stage = canvasStageRef.value;
+  const dpr = window.devicePixelRatio || 1;
+  const rect = stage.getBoundingClientRect();
+  canvas.width = Math.floor(rect.width * dpr);
+  canvas.height = Math.floor(rect.height * dpr);
+  const ctx = canvas.getContext("2d");
+  if (ctx) {
+    ctx.scale(dpr, dpr);
+  }
+  initSolParticles(rect.width, rect.height);
+  drawSolFrame();
+  if (isAnimationPlaying.value) {
+    if (canvasAnimId !== null) cancelAnimationFrame(canvasAnimId);
+    canvasAnimId = requestAnimationFrame(runCanvasLoop);
+  }
+}
+
+watch(() => props.heroLayout, (newLayout) => {
+  if (newLayout === "interactive-canvas") {
+    nextTick(() => setupSolCanvas());
+  } else {
+    if (canvasAnimId !== null) {
+      cancelAnimationFrame(canvasAnimId);
+      canvasAnimId = null;
+    }
+  }
+});
+
 onMounted(() => {
   if (props.showReadingProgress && typeof window !== "undefined") {
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
+  }
+  if (typeof window !== "undefined") {
+    if (typeof window.matchMedia === "function") {
+      const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+      prefersReducedMotion.value = mql.matches;
+      if (mql.matches) {
+        isAnimationPlaying.value = false;
+      }
+    }
+    if (props.heroLayout === "interactive-canvas") {
+      nextTick(() => {
+        setupSolCanvas();
+        if (typeof ResizeObserver !== "undefined" && canvasStageRef.value) {
+          resizeObserver = new ResizeObserver(() => {
+            setupSolCanvas();
+          });
+          resizeObserver.observe(canvasStageRef.value);
+        }
+      });
+    }
   }
 });
 
@@ -221,6 +488,8 @@ onUnmounted(() => {
   if (copyTimeout) clearTimeout(copyTimeout);
   if (bibtexTimeout) clearTimeout(bibtexTimeout);
   if (rafId !== null) cancelAnimationFrame(rafId);
+  if (canvasAnimId !== null) cancelAnimationFrame(canvasAnimId);
+  if (resizeObserver) resizeObserver.disconnect();
 });
 </script>
 
@@ -301,6 +570,94 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
+
+    <!-- INTERACTIVE CANVAS HERO (OpenAI Sol Inspired Presentation) -->
+    <header
+      v-if="heroLayout === 'interactive-canvas'"
+      ref="canvasStageRef"
+      class="tux-editorial__hero-canvas-stage"
+      @mousemove="handleCanvasMouseMove"
+      @mouseleave="handleCanvasMouseLeave"
+    >
+      <!-- HTML5 2D Sol Simulation Canvas -->
+      <canvas
+        ref="canvasRef"
+        class="tux-editorial__canvas-layer"
+        aria-hidden="true"
+      />
+
+      <!-- Playback Toggle Control (WCAG 2.2 AAA >=44px) -->
+      <div class="tux-editorial__canvas-playback-wrapper">
+        <button
+          type="button"
+          class="tux-editorial__canvas-playback-btn"
+          :aria-label="isAnimationPlaying ? 'Pause interactive animation' : 'Play interactive animation'"
+          :title="isAnimationPlaying ? 'Pause animation' : 'Play animation'"
+          @click="toggleAnimation"
+        >
+          <Icon :name="isAnimationPlaying ? 'lucide:pause' : 'lucide:play'" class="w-4 h-4" aria-hidden="true" />
+          <span class="sr-only">{{ isAnimationPlaying ? 'Pause animation' : 'Play animation' }}</span>
+        </button>
+      </div>
+
+      <!-- Foreground Atmospheric Copy & Typography -->
+      <div class="tux-editorial__canvas-content">
+        <div class="tux-editorial__container">
+          <div class="tux-editorial__ai-eyebrow tux-editorial__ai-eyebrow--sol">
+            <span class="tux-editorial__ai-pill tux-editorial__ai-pill--sol">
+              <span class="tux-editorial__ai-pulse" aria-hidden="true">
+                <span class="tux-editorial__ai-pulse-ring" />
+                <span class="tux-editorial__ai-pulse-dot" />
+              </span>
+              <span>{{ category || 'Research Index' }}</span>
+            </span>
+            <span class="tux-editorial__ai-kicker tux-editorial__ai-kicker--sol">TECHNICAL BRIEF</span>
+          </div>
+
+          <h1 class="tux-editorial__title tux-editorial__title--sol">
+            {{ title }}
+          </h1>
+
+          <p v-if="dek" class="tux-editorial__dek tux-editorial__dek--sol">
+            {{ dek }}
+          </p>
+
+          <div class="tux-editorial__ai-meta tux-editorial__ai-meta--sol">
+            <div v-if="normalizedAuthors.length > 0" class="tux-editorial__ai-authors">
+              <div
+                v-for="auth in normalizedAuthors"
+                :key="auth.name"
+                class="tux-editorial__ai-author-chip tux-editorial__ai-author-chip--sol"
+              >
+                <span class="tux-editorial__ai-avatar tux-editorial__ai-avatar--sol" aria-hidden="true">
+                  {{ auth.name.charAt(0) }}
+                </span>
+                <div class="tux-editorial__ai-author-info">
+                  <span class="tux-editorial__ai-author-name tux-editorial__ai-author-name--sol">{{ auth.name }}</span>
+                  <span v-if="auth.title || auth.role" class="tux-editorial__ai-author-role tux-editorial__ai-author-role--sol">
+                    {{ auth.title || auth.role }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="tux-editorial__ai-meta-pills">
+              <time v-if="date" :datetime="date" class="tux-editorial__ai-date tux-editorial__ai-date--sol">
+                <Icon name="lucide:calendar" class="w-3.5 h-3.5" aria-hidden="true" />
+                <span>{{ formattedDate }}</span>
+              </time>
+              <span v-if="readTime" class="tux-editorial__ai-readtime tux-editorial__ai-readtime--sol">
+                <Icon name="lucide:sparkles" class="w-3.5 h-3.5" aria-hidden="true" />
+                <span>{{ readTime }}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Gradient Scrim Fade -->
+      <div class="tux-editorial__canvas-scrim-fade" aria-hidden="true" />
+    </header>
 
     <!-- MAIN EDITORIAL CONTENT GRID -->
     <div class="tux-editorial__main">
@@ -426,7 +783,7 @@ onUnmounted(() => {
 
         <!-- STANDARD HEADER (for 'boxed', 'inset-banner', 'none', and 'full-bleed' fallback) -->
         <header
-          v-else-if="heroLayout !== 'full-bleed'"
+          v-else-if="heroLayout !== 'full-bleed' && heroLayout !== 'interactive-canvas'"
           class="tux-editorial__header"
         >
           <!-- Category / Eyebrow -->
@@ -1196,6 +1553,157 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SOL INTERACTIVE CANVAS HERO (OpenAI GPT-6.1 Sol Inspired)
+   ══════════════════════════════════════════════════════════════════════════ */
+.tux-editorial__hero-canvas-stage {
+  position: relative;
+  width: 100%;
+  min-height: 32rem;
+  overflow: hidden;
+  background: radial-gradient(ellipse 90% 70% at 50% 45%, color-mix(in srgb, var(--brand-primary) 35%, var(--neutral-1000)), var(--neutral-1000) 85%);
+  color: var(--neutral-0);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-top: 4rem;
+  padding-bottom: 3.5rem;
+}
+
+[data-theme="tti-dark"] .tux-editorial__hero-canvas-stage {
+  background: radial-gradient(ellipse 90% 70% at 50% 45%, color-mix(in srgb, var(--brand-primary) 50%, var(--surface-page)), var(--surface-page) 85%);
+}
+
+.tux-editorial__canvas-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.tux-editorial__canvas-playback-wrapper {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.5rem;
+  z-index: 20;
+}
+
+.tux-editorial__canvas-playback-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--neutral-0) 12%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--neutral-0) 22%, transparent);
+  color: var(--neutral-0);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tux-editorial__canvas-playback-btn:hover {
+  background-color: color-mix(in srgb, var(--neutral-0) 22%, transparent);
+  border-color: color-mix(in srgb, var(--neutral-0) 50%, transparent);
+  transform: scale(1.05);
+}
+
+.tux-editorial__canvas-playback-btn:focus-visible {
+  outline: 2px solid var(--focus-ring-outer);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-focus);
+}
+
+.tux-editorial__canvas-content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+}
+
+.tux-editorial__ai-eyebrow--sol {
+  margin-bottom: 1.5rem;
+}
+
+.tux-editorial__ai-pill--sol {
+  background-color: color-mix(in srgb, var(--neutral-0) 12%, transparent);
+  border-color: color-mix(in srgb, var(--neutral-0) 22%, transparent);
+  color: var(--neutral-0);
+}
+
+.tux-editorial__ai-kicker--sol {
+  color: color-mix(in srgb, var(--brand-accent) 85%, var(--neutral-0));
+}
+
+.tux-editorial__title--sol {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 2rem + 3cqi, 4.25rem);
+  line-height: 1.06;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--neutral-0);
+  text-shadow: 0 4px 28px var(--neutral-1000), 0 1px 4px var(--neutral-1000);
+  margin-bottom: 1.25rem;
+  max-width: 68rem;
+}
+
+.tux-editorial__dek--sol {
+  font-size: clamp(1.2rem, 1.08rem + 0.6cqi, 1.45rem);
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--neutral-0) 88%, transparent);
+  text-shadow: 0 2px 14px var(--neutral-1000);
+  max-width: 58rem;
+  margin-bottom: 2.25rem;
+}
+
+.tux-editorial__ai-meta--sol {
+  border-top-color: color-mix(in srgb, var(--neutral-0) 18%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--neutral-0) 18%, transparent);
+  margin-bottom: 0;
+}
+
+.tux-editorial__ai-author-chip--sol {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.tux-editorial__ai-avatar--sol {
+  background-color: color-mix(in srgb, var(--brand-accent) 80%, var(--neutral-0));
+  color: var(--neutral-900);
+}
+
+.tux-editorial__ai-author-name--sol {
+  color: var(--neutral-0);
+}
+
+.tux-editorial__ai-author-role--sol {
+  color: color-mix(in srgb, var(--neutral-0) 75%, transparent);
+}
+
+.tux-editorial__ai-date--sol,
+.tux-editorial__ai-readtime--sol {
+  background-color: color-mix(in srgb, var(--neutral-0) 12%, transparent);
+  border-color: color-mix(in srgb, var(--neutral-0) 18%, transparent);
+  color: var(--neutral-0);
+}
+
+.tux-editorial__canvas-scrim-fade {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 5.5rem;
+  pointer-events: none;
+  z-index: 5;
+  background: linear-gradient(to bottom, transparent, var(--surface-page));
 }
 
 /* ══════════════════════════════════════════════════════════════════════════

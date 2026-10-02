@@ -15,8 +15,8 @@
 const route = useRoute();
 const slug = computed(() => (route.params.slug as string) || "next-gen-computing-cluster-expands-transportation-ai");
 
-// Hero layout switcher state (default 'ai-modern' for cutting-edge research presentation)
-const heroLayout = ref<"ai-modern" | "boxed" | "full-bleed" | "split" | "inset-banner" | "none">("ai-modern");
+// Hero layout switcher state (default 'interactive-canvas' for Sol-inspired research presentation)
+const heroLayout = ref<"interactive-canvas" | "ai-modern" | "boxed" | "full-bleed" | "split" | "inset-banner" | "none">("interactive-canvas");
 
 interface ArticleData {
   title: string;
@@ -159,7 +159,7 @@ useHead({
       <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2">
           <span class="px-2 py-0.5 text-xs font-bold uppercase tracking-wider bg-brand-primary text-white rounded-xs">
-            EDITORIAL CMS
+            RESEARCH INDEX
           </span>
           <span class="text-xs font-mono text-text-muted hidden sm:inline">Presentation Styles:</span>
         </div>
@@ -169,11 +169,11 @@ useHead({
           <button
             type="button"
             class="px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all inline-flex items-center gap-1.5"
-            :class="heroLayout === 'ai-modern' ? 'bg-brand-primary text-white border-brand-primary shadow-xs' : 'bg-surface-sunken text-text-secondary border-surface-border hover:text-text-primary'"
-            @click="heroLayout = 'ai-modern'"
+            :class="(heroLayout === 'interactive-canvas' || heroLayout === 'ai-modern') ? 'bg-brand-primary text-white border-brand-primary shadow-xs' : 'bg-surface-sunken text-text-secondary border-surface-border hover:text-text-primary'"
+            @click="heroLayout = 'interactive-canvas'"
           >
             <Icon name="lucide:sparkles" class="w-3.5 h-3.5" aria-hidden="true" />
-            <span>AI Modern (DeepMind / OpenAI)</span>
+            <span>Interactive Canvas (Sol)</span>
           </button>
 
           <button

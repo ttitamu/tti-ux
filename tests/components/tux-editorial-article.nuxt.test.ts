@@ -119,4 +119,40 @@ describe("TuxEditorialArticle Component", () => {
     const violationsAi = await runComponentAxe(wrapperAi.element);
     expect(violationsAi).toEqual([]);
   });
+
+  it("supports Interactive Canvas (Sol) layout with animated canvas, playback controls, and 0 Axe violations", async () => {
+    const wrapperCanvas = await mountSuspended(TuxEditorialArticle, {
+      props: {
+        title: "Next-Gen Computing Cluster Expands Transportation AI Capabilities",
+        category: "Research Index",
+        dek: "High-performance GPU infrastructure delivers accelerated computing power to advance real-time traffic modeling.",
+        heroLayout: "interactive-canvas",
+        author: { name: "Transportation Analytics & Computing Initiative", role: "HPC Facility Group" },
+        date: "2026-10-01",
+        readTime: "3 min read",
+        stats: [
+          { value: "4.8x", label: "Throughput Speedup" },
+        ],
+      },
+      slots: {
+        default: () => [h("p", "Cutting edge transportation AI research.")],
+      },
+    });
+
+    expect(wrapperCanvas.find(".tux-editorial__hero-canvas-stage").exists()).toBe(true);
+    expect(wrapperCanvas.find(".tux-editorial__canvas-layer").exists()).toBe(true);
+    expect(wrapperCanvas.find(".tux-editorial__canvas-playback-btn").exists()).toBe(true);
+    expect(wrapperCanvas.text()).toContain("Research Index");
+    expect(wrapperCanvas.text()).toContain("TECHNICAL BRIEF");
+    expect(wrapperCanvas.text()).toContain("Transportation Analytics & Computing Initiative");
+
+    // Toggle animation playback button
+    const playbackBtn = wrapperCanvas.find(".tux-editorial__canvas-playback-btn");
+    expect(playbackBtn.attributes("aria-label")).toBe("Pause interactive animation");
+    await playbackBtn.trigger("click");
+    expect(playbackBtn.attributes("aria-label")).toBe("Play interactive animation");
+
+    const violationsCanvas = await runComponentAxe(wrapperCanvas.element);
+    expect(violationsCanvas).toEqual([]);
+  });
 });
