@@ -7,12 +7,14 @@
 
 useHead({ title: "TuxHeroCanvas · TUX" });
 
-const activeVariant = ref("sol");
+const activeVariant = ref("corridor");
 const activeBlend = ref("seamless");
 const interactive = ref(true);
 const showControls = ref(true);
 
 const variantOptions = [
+  { value: "corridor", label: "Texas Corridor Network (Kinetic Arterial Flow)" },
+  { value: "network", label: "Autonomous Telemetry Mesh" },
   { value: "sol", label: "Sol Celestial (Corona + Flare Belt)" },
   { value: "constellation", label: "Constellation Telemetry Mesh" },
 ];
@@ -57,10 +59,10 @@ const sampleCode = computed(() => {
           TuxHeroCanvas
         </h1>
         <p class="mt-2 text-base text-text-secondary max-w-3xl leading-relaxed">
-          High-performance HTML5 2D canvas simulation inspired by cutting-edge AI research announcement pages
-          (OpenAI Sol, Google DeepMind, Anthropic Newsroom). Features a radiant breathing corona, tilted orbiting
-          flare arcs, interactive cursor stardust repulsion, and an atmospheric bottom gradient mask that dissolves
-          organically into the article body with zero card boundaries.
+          High-performance HTML5 2D canvas simulation authentic to the Texas A&amp;M Transportation Institute (TTI).
+          Features the <strong>Texas Corridor Network</strong> with double-cased arterial highway vectors, connected
+          autonomous vehicle (CAV) telemetry pulses, radar sensor beacon wavefronts, interactive cursor HUD reticle,
+          and an atmospheric bottom gradient mask that dissolves organically into the page body with zero card boundaries.
         </p>
       </div>
 

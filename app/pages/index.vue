@@ -121,10 +121,10 @@ const recentUpdates = [
 <template>
   <div class="space-y-12">
     <!-- ══════════════════════════════════════════════════════════════════════
-         1. HERO STAGE — Monumental Sol Canvas with Split Layout
+         1. HERO STAGE — Texas Corridor Network & Kinetic Arterial Flow Canvas
          ══════════════════════════════════════════════════════════════════════ -->
     <section class="tux-home-hero -mx-4 sm:-mx-6 lg:-mx-8 -mt-6 sm:-mt-8 mb-8">
-      <TuxHeroCanvas variant="sol" blend="seamless" min-height="600px">
+      <TuxHeroCanvas variant="corridor" blend="seamless" min-height="600px">
         <div class="px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-7xl mx-auto">
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
             
@@ -458,20 +458,20 @@ const recentUpdates = [
         <TuxRoadwayCrossSection :interactive="true" />
       </div>
 
-      <!-- Tab 2: Interactive Particle Canvas -->
+      <!-- Tab 2: Interactive Corridor Simulation Canvas -->
       <div v-show="activeShowcaseTab === 'canvas'" class="space-y-4">
         <div class="rounded-xl overflow-hidden border border-surface-border shadow-xs">
-          <TuxHeroCanvas variant="sol" blend="contained" min-height="380px" class="relative">
+          <TuxHeroCanvas variant="corridor" blend="contained" min-height="380px" class="relative">
             <div class="p-8 sm:p-12 flex flex-col justify-center h-full max-w-2xl space-y-3">
               <span class="text-xs font-mono font-bold uppercase tracking-wider text-brand-accent">
-                HTML5 2D Canvas · Particle Physics
+                HTML5 2D Canvas · Mobility Intelligence
               </span>
               <p class="text-2xl sm:text-3xl font-display font-bold text-neutral-0">
-                Incandescent Particle Physics Engine
+                Kinetic Arterial Flow &amp; Telemetry Simulation
               </p>
               <p class="text-xs sm:text-sm text-neutral-0/80 leading-relaxed">
-                Hardware-accelerated stardust particle repulsion, dynamic node clustering, and celestial radial glow.
-                Move your cursor across the canvas to interact with the gravitational field.
+                Hardware-accelerated corridor vector graph, connected autonomous vehicle (CAV) telemetry pulses,
+                and dynamic interchange routing. Move your cursor across the canvas to interact with the corridor sensor topology.
               </p>
               <div class="pt-2 flex items-center gap-3">
                 <NuxtLink to="/components/hero-canvas" class="welcome-cta welcome-cta--primary">
@@ -730,7 +730,9 @@ const recentUpdates = [
    typography, passing lane roadway rule, and dynamic framework badges. */
 .welcome-hero__panel {
   position: relative;
-  background: var(--tti-maroon);
+  background: color-mix(in srgb, var(--tti-maroon) 85%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid color-mix(in srgb, var(--brand-accent) 25%, transparent);
   border-radius: var(--radius-md);
   padding: 2rem 1.875rem;
