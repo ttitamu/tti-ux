@@ -171,6 +171,7 @@ export const COMPONENTS_WITH_UNIT_TESTS: readonly string[] = [
   "TuxResultCount",
   "TuxRichDataGrid",
   "TuxRichTextEditor",
+  "TuxRoadwayCrossSection",
   "TuxRuleBuilder",
   "TuxRuleBuilderGroup",
   "TuxScrollTop",

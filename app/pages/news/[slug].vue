@@ -252,7 +252,7 @@ useHead({
             @click="heroLayout = 'interactive-canvas'"
           >
             <Icon name="lucide:sparkles" class="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Interactive Canvas (Sol)</span>
+            <span>Interactive Canvas</span>
           </button>
 
           <button

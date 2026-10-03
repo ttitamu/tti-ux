@@ -164,6 +164,7 @@ npm run dev
 | `TuxCorridorStrip`   | tux native SVG           | `/components/geospatial`            |
 | `TuxMapLegend`       | tux native               | `/components/geospatial`            |
 | `TuxMapMarker`       | tux native SVG           | `/components/geospatial`            |
+| `TuxRoadwayCrossSection` | tux native (3D CSS + SVG) | `/components/geospatial`        |
 
 **Forms wrapper family** (added 2026-05-22):
 

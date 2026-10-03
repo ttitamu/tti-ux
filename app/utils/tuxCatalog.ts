@@ -315,6 +315,8 @@ export const tuxCatalog: TuxCatalogEntry[] = [
     blurb: "Interactive data grid — sticky header, row selection, expandable detail, sort + filter chips, bulk-action bar. Landscape-class operational surfaces." },
   { name: "TuxRichTextEditor", to: "/components/rich-text-editor", icon: "lucide:pen-line", family: "components", kind: "component", wraps: "Tiptap + lowlight", category: "forms",
     blurb: "Canonical WYSIWYG — Tiptap-based, 7 toolbar groups, tables, task lists, source-mode toggle, full-screen, syntax highlighting." },
+  { name: "TuxRoadwayCrossSection", to: "/components/geospatial", icon: "lucide:git-commit-horizontal", family: "components", kind: "component", wraps: "tux native 3D + SVG", category: "data-display",
+    blurb: "AASHTO/TxDOT geometric highway cross-section with 2D CAD blueprint profile and 3D pitched spatial perspective analysis." },
   { name: "TuxRuleBuilder", to: "/components/rule-builder", icon: "lucide:filter", family: "components", kind: "component", wraps: "tux native", category: "forms",
     blurb: "Relational query UI — field + operator + value rows, AND/OR groupers, nestable. Sister to faceted TuxFilterPanel." },
   { name: "TuxScrollTop", to: "/components/scroll-top", icon: "lucide:circle-arrow-up", family: "components", kind: "component", wraps: "tux native", category: "navigation",

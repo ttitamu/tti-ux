@@ -120,7 +120,7 @@ describe("TuxEditorialArticle Component", () => {
     expect(violationsAi).toEqual([]);
   });
 
-  it("supports Interactive Canvas (Sol) layout with animated canvas, playback controls, and 0 Axe violations", async () => {
+  it("supports Interactive Canvas layout with animated canvas, playback controls, and 0 Axe violations", async () => {
     const wrapperCanvas = await mountSuspended(TuxEditorialArticle, {
       props: {
         title: "Next-Gen Computing Cluster Expands Transportation AI Capabilities",

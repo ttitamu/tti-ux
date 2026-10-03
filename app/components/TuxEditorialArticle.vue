@@ -1277,6 +1277,7 @@ onUnmounted(() => {
   position: relative;
   z-index: 10;
   width: 100%;
+  background: radial-gradient(ellipse 75% 65% at 30% 45%, color-mix(in srgb, var(--neutral-1000) 50%, transparent) 0%, transparent 80%);
 }
 
 .tux-editorial__ai-eyebrow--sol {
@@ -1284,8 +1285,10 @@ onUnmounted(() => {
 }
 
 .tux-editorial__ai-pill--sol {
-  background-color: color-mix(in srgb, var(--neutral-0) 12%, transparent);
-  border-color: color-mix(in srgb, var(--neutral-0) 22%, transparent);
+  background-color: color-mix(in srgb, var(--neutral-1000) 65%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--neutral-0) 22%, transparent);
   color: var(--neutral-0);
 }
 
@@ -1300,7 +1303,7 @@ onUnmounted(() => {
   font-weight: 700;
   letter-spacing: -0.025em;
   color: var(--neutral-0);
-  text-shadow: 0 4px 28px var(--neutral-1000), 0 1px 4px var(--neutral-1000);
+  text-shadow: 0 2px 14px color-mix(in srgb, var(--neutral-1000) 95%, transparent), 0 8px 32px color-mix(in srgb, var(--neutral-1000) 80%, transparent);
   margin-bottom: 1.25rem;
   max-width: 68rem;
 }
@@ -1308,8 +1311,8 @@ onUnmounted(() => {
 .tux-editorial__dek--sol {
   font-size: clamp(1.2rem, 1.08rem + 0.6cqi, 1.45rem);
   line-height: 1.6;
-  color: color-mix(in srgb, var(--neutral-0) 88%, transparent);
-  text-shadow: 0 2px 14px var(--neutral-1000);
+  color: color-mix(in srgb, var(--neutral-0) 92%, transparent);
+  text-shadow: 0 2px 14px color-mix(in srgb, var(--neutral-1000) 90%, transparent);
   max-width: 58rem;
   margin-bottom: 2.25rem;
 }
@@ -1324,6 +1327,13 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.625rem;
+  background-color: color-mix(in srgb, var(--neutral-1000) 65%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 0.375rem 0.875rem 0.375rem 0.5rem;
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--neutral-0) 22%, transparent);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--neutral-1000) 50%, transparent);
 }
 
 .tux-editorial__ai-avatar--sol {
@@ -1333,6 +1343,7 @@ onUnmounted(() => {
 
 .tux-editorial__ai-author-name--sol {
   color: var(--neutral-0);
+  font-weight: 600;
 }
 
 .tux-editorial__ai-author-role--sol {
@@ -1341,9 +1352,14 @@ onUnmounted(() => {
 
 .tux-editorial__ai-date--sol,
 .tux-editorial__ai-readtime--sol {
-  background-color: color-mix(in srgb, var(--neutral-0) 12%, transparent);
-  border-color: color-mix(in srgb, var(--neutral-0) 18%, transparent);
+  background-color: color-mix(in srgb, var(--neutral-1000) 65%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--neutral-0) 22%, transparent);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--neutral-1000) 50%, transparent);
   color: var(--neutral-0);
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius-full);
 }
 
 

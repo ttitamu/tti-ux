@@ -345,49 +345,193 @@ export const GALLERY_PRESETS: GalleryPreset[] = [
     ariaTitle: "Connected vehicle trajectory particle flow chart",
     ariaSummary: "Four distinct vehicle flow streams converge into an arterial corridor with adaptive signal preemption, demonstrating smooth laminar flow without stop-and-go shockwaves.",
     getOption: (isDark) => {
-      // 4 lanes of vehicle streams
-      const linesData = [
-        { coords: [[10, 80], [30, 80], [50, 75], [70, 70], [95, 70]] },
-        { coords: [[10, 60], [30, 60], [50, 62], [70, 65], [95, 68]] },
-        { coords: [[10, 40], [35, 42], [55, 48], [75, 52], [95, 55]] },
-        { coords: [[10, 20], [35, 25], [55, 30], [75, 38], [95, 45]] },
+      // Highway Corridor Geometry (Y-axis 0-100 represents cross-section; X-axis 0-100 represents longitudinal distance)
+      // Barrier: 88-94 | Managed: 72-86 | GP1: 58-72 | GP2: 44-58 | GP3: 30-44 | Shoulder: 20-30 | Foreslope: 10-20 | Ditch: 5-10 | Backslope: 0-5
+      const managedStream = [
+        { coords: [[2, 79], [25, 79], [50, 80], [75, 79], [98, 79]] },
       ];
+      const gp1Stream = [
+        { coords: [[2, 65], [25, 65], [50, 65], [75, 65], [98, 65]] },
+      ];
+      const gp2Stream = [
+        { coords: [[2, 51], [25, 51], [48, 51], [72, 51], [98, 51]] },
+      ];
+      const gp3Stream = [
+        { coords: [[2, 37], [25, 37], [50, 37], [75, 37], [98, 37]] },
+      ];
+
       return {
-        tooltip: { trigger: "none" },
+        backgroundColor: isDark ? "#0A0A0C" : "#F8FAFC",
+        tooltip: {
+          trigger: "item",
+          formatter: (params: any) => {
+            if (params.data?.name) return `<strong>${params.data.name}</strong>`;
+            return "";
+          },
+        },
         xAxis: { min: 0, max: 100, show: false },
         yAxis: { min: 0, max: 100, show: false },
-        grid: { left: 10, right: 10, top: 10, bottom: 10 },
+        grid: { left: 16, right: 16, top: 16, bottom: 16, containLabel: true },
         series: [
+          // Roadbed & Embankment Cross-Section Strata via Cartesian MarkArea
+          {
+            type: "line",
+            data: [],
+            markArea: {
+              silent: false,
+              data: [
+                // 1. Median Barrier
+                [
+                  { name: "Median SSCB Concrete Barrier (42\")", yAxis: 88, itemStyle: { color: isDark ? "#4B5563" : "#9CA3AF" }, label: { show: true, position: "insideLeft", color: isDark ? "#F3F4F6" : "#1F2937", fontStyle: "normal", fontWeight: "bold", fontSize: 10, offset: [12, 0] } },
+                  { yAxis: 94 },
+                ],
+                // 2. Managed Express HOT Lane
+                [
+                  { name: "TEXpress Managed (HOT Lane · 68 MPH)", yAxis: 72, itemStyle: { color: isDark ? "#1F1D1A" : "#FEF3C7" }, label: { show: true, position: "insideLeft", color: isDark ? "#F59E0B" : "#B45309", fontWeight: "bold", fontSize: 10, offset: [12, 0] } },
+                  { yAxis: 86 },
+                ],
+                // 3. GP Lane 1 (Fast)
+                [
+                  { name: "General Purpose 1 (Fast · 58 MPH)", yAxis: 58, itemStyle: { color: isDark ? "#18181B" : "#F1F5F9" }, label: { show: true, position: "insideLeft", color: isDark ? "#93C5FD" : "#1D4ED8", fontWeight: "bold", fontSize: 10, offset: [12, 0] } },
+                  { yAxis: 72 },
+                ],
+                // 4. GP Lane 2 (Middle)
+                [
+                  { name: "General Purpose 2 (Mid · 51 MPH)", yAxis: 44, itemStyle: { color: isDark ? "#141416" : "#E2E8F0" }, label: { show: true, position: "insideLeft", color: isDark ? "#93C5FD" : "#1D4ED8", fontWeight: "bold", fontSize: 10, offset: [12, 0] } },
+                  { yAxis: 58 },
+                ],
+                // 5. GP Lane 3 (Slow / Freight)
+                [
+                  { name: "General Purpose 3 (Freight · 42 MPH)", yAxis: 30, itemStyle: { color: isDark ? "#18181B" : "#F1F5F9" }, label: { show: true, position: "insideLeft", color: isDark ? "#93C5FD" : "#1D4ED8", fontWeight: "bold", fontSize: 10, offset: [12, 0] } },
+                  { yAxis: 44 },
+                ],
+                // 6. Outside Paved Shoulder (10')
+                [
+                  { name: "10' Paved Outside Shoulder (Rumble Strip)", yAxis: 20, itemStyle: { color: isDark ? "#27272A" : "#CBD5E1" }, label: { show: true, position: "insideLeft", color: isDark ? "#E5E7EB" : "#334155", fontWeight: "bold", fontSize: 9, offset: [12, 0] } },
+                  { yAxis: 30 },
+                ],
+                // 7. Embankment 4:1 Foreslope
+                [
+                  { name: "4:1 Recoverable Embankment Foreslope", yAxis: 10, itemStyle: { color: isDark ? "#233816" : "#4D7C0F" }, label: { show: true, position: "insideLeft", color: "#FEF08A", fontWeight: "bold", fontSize: 9, offset: [12, 0] } },
+                  { yAxis: 20 },
+                ],
+                // 8. Drainage Swale Channel Invert
+                [
+                  { name: "Drainage Swale Invert (-4.5')", yAxis: 5, itemStyle: { color: isDark ? "#064E3B" : "#059669" }, label: { show: true, position: "insideLeft", color: "#67E8F9", fontWeight: "bold", fontSize: 9, offset: [12, 0] } },
+                  { yAxis: 10 },
+                ],
+                // 9. Backslope to ROW
+                [
+                  { name: "3:1 Backslope to TxDOT R.O.W. Limit", yAxis: 0, itemStyle: { color: isDark ? "#1C3312" : "#365314" }, label: { show: true, position: "insideLeft", color: "#FEF08A", fontWeight: "bold", fontSize: 9, offset: [12, 0] } },
+                  { yAxis: 5 },
+                ],
+              ],
+            },
+          },
+
+          // Lane Striping (White Dashed and Solid Lines)
           {
             type: "lines",
             coordinateSystem: "cartesian2d",
             polyline: true,
-            data: linesData,
+            data: [
+              { coords: [[0, 86], [100, 86]] }, // Yellow inside edge line
+            ],
+            lineStyle: { color: "#FBBF24", width: 3, opacity: 0.95 },
+          },
+          {
+            type: "lines",
+            coordinateSystem: "cartesian2d",
+            polyline: true,
+            data: [
+              { coords: [[0, 72], [100, 72]] }, // Managed lane buffer
+              { coords: [[0, 58], [100, 58]] }, // GP 1-2 divider
+              { coords: [[0, 44], [100, 44]] }, // GP 2-3 divider
+            ],
             lineStyle: {
-              color: isDark ? "#333333" : "#E5E7EB",
-              width: 14,
-              opacity: 0.5,
-              curveness: 0.2,
+              color: "#FFFFFF",
+              width: 2,
+              type: "dashed",
+              dashOffset: 4,
+              opacity: 0.8,
             },
           },
           {
             type: "lines",
             coordinateSystem: "cartesian2d",
             polyline: true,
-            data: linesData,
+            data: [
+              { coords: [[0, 30], [100, 30]] }, // Fog line outside edge
+            ],
+            lineStyle: { color: "#FFFFFF", width: 3, opacity: 0.95 },
+          },
+
+          // Vehicle Particle Stream 1: Managed Express Lane (Amber CAVs)
+          {
+            type: "lines",
+            coordinateSystem: "cartesian2d",
+            polyline: true,
+            data: managedStream,
             effect: {
               show: true,
-              period: 3.5,
+              period: 2.6,
+              trailLength: 0.5,
+              symbol: "rect",
+              symbolSize: [14, 7],
+              color: "#F59E0B",
+            },
+            lineStyle: { color: "transparent", width: 0 },
+          },
+
+          // Vehicle Particle Stream 2: GP Fast Lane (High Speed Platoons)
+          {
+            type: "lines",
+            coordinateSystem: "cartesian2d",
+            polyline: true,
+            data: gp1Stream,
+            effect: {
+              show: true,
+              period: 3.2,
+              trailLength: 0.45,
+              symbol: "roundRect",
+              symbolSize: [12, 6],
+              color: "#60A5FA",
+            },
+            lineStyle: { color: "transparent", width: 0 },
+          },
+
+          // Vehicle Particle Stream 3: GP Middle Lane
+          {
+            type: "lines",
+            coordinateSystem: "cartesian2d",
+            polyline: true,
+            data: gp2Stream,
+            effect: {
+              show: true,
+              period: 3.8,
+              trailLength: 0.45,
+              symbol: "roundRect",
+              symbolSize: [12, 6],
+              color: "#93C5FD",
+            },
+            lineStyle: { color: "transparent", width: 0 },
+          },
+
+          // Vehicle Particle Stream 4: GP Slow Lane (Commercial Freight Trucks)
+          {
+            type: "lines",
+            coordinateSystem: "cartesian2d",
+            polyline: true,
+            data: gp3Stream,
+            effect: {
+              show: true,
+              period: 4.6,
               trailLength: 0.6,
-              symbol: "circle",
-              symbolSize: 7,
-              color: isDark ? "#EE9B00" : "#500000",
+              symbol: "rect",
+              symbolSize: [20, 8],
+              color: "#E2E8F0",
             },
-            lineStyle: {
-              color: "#005F73",
-              width: 3,
-              opacity: 0.8,
-            },
+            lineStyle: { color: "transparent", width: 0 },
           },
         ],
       };

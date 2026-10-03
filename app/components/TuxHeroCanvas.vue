@@ -146,34 +146,34 @@ function runLoop() {
 
   ctx.clearRect(0, 0, w, h);
 
-  const cx = w * 0.5;
-  const cy = h * 0.38;
+  const cx = w * 0.74;
+  const cy = h * 0.22;
 
   solBreathPhase += 0.022;
   const breath = Math.sin(solBreathPhase) * 12;
 
-  // 1. Sol Core Glow
+  // 1. Sol Core Glow (positioned in upper quadrant away from headline text)
   if (props.variant === "sol") {
     // Outer atmospheric wash
-    const outerGrad = ctx.createRadialGradient(cx, cy, 20, cx, cy, 230 + breath);
-    outerGrad.addColorStop(0, makeRgba(255, 175, 55, 0.42));
-    outerGrad.addColorStop(0.3, makeRgba(160, 45, 30, 0.28));
-    outerGrad.addColorStop(0.7, makeRgba(80, 0, 0, 0.14));
+    const outerGrad = ctx.createRadialGradient(cx, cy, 20, cx, cy, 210 + breath);
+    outerGrad.addColorStop(0, makeRgba(255, 175, 55, 0.35));
+    outerGrad.addColorStop(0.35, makeRgba(160, 45, 30, 0.22));
+    outerGrad.addColorStop(0.7, makeRgba(80, 0, 0, 0.10));
     outerGrad.addColorStop(1, makeRgba(0, 0, 0, 0));
     ctx.fillStyle = outerGrad;
     ctx.beginPath();
-    ctx.arc(cx, cy, 240 + breath, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 215 + breath, 0, Math.PI * 2);
     ctx.fill();
 
-    // Incandescent inner core
-    const innerGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 68 + breath * 0.4);
-    innerGrad.addColorStop(0, makeRgba(255, 255, 250, 0.95));
-    innerGrad.addColorStop(0.35, makeRgba(255, 220, 130, 0.8));
-    innerGrad.addColorStop(0.75, makeRgba(240, 140, 40, 0.45));
-    innerGrad.addColorStop(1, makeRgba(180, 50, 20, 0));
+    // Warm luminous core (not pure white flash that bleaches text)
+    const innerGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 58 + breath * 0.35);
+    innerGrad.addColorStop(0, makeRgba(255, 240, 180, 0.88));
+    innerGrad.addColorStop(0.35, makeRgba(255, 190, 80, 0.65));
+    innerGrad.addColorStop(0.75, makeRgba(230, 120, 35, 0.35));
+    innerGrad.addColorStop(1, makeRgba(160, 40, 15, 0));
     ctx.fillStyle = innerGrad;
     ctx.beginPath();
-    ctx.arc(cx, cy, 70 + breath * 0.4, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 60 + breath * 0.35, 0, Math.PI * 2);
     ctx.fill();
 
     // Orbiting Coronal Flare Arc Ring
@@ -323,7 +323,7 @@ onUnmounted(() => {
       </template>
     </ClientOnly>
 
-    <!-- Bottom Atmospheric Dissolve Bleed (Seamless integration into body) -->
+    <!-- Bottom Atmospheric Dissolve Bleed (Subtle non-bleaching boundary) -->
     <div
       v-if="blend === 'seamless'"
       class="tux-hero-canvas__bottom-bleed"
@@ -363,15 +363,18 @@ onUnmounted(() => {
   justify-content: flex-end;
   padding-top: 4.5rem;
   padding-bottom: 3.5rem;
+  border-bottom: 1px solid var(--surface-border);
 }
 
 [data-theme="tti-dark"] .tux-hero-canvas {
   background: radial-gradient(ellipse 90% 70% at 50% 45%, color-mix(in srgb, var(--brand-primary) 50%, var(--surface-page)), var(--surface-page) 85%);
+  border-bottom-color: var(--surface-border);
 }
 
-/* Blend Modes */
-.tux-hero-canvas--blend-seamless {
-  /* Gradient alpha mask dissolves bottom stardust smoothly into page */
+/* Blend Modes: Apply mask ONLY to canvas layers, NEVER to slot content */
+.tux-hero-canvas--blend-seamless .tux-hero-canvas__layer,
+.tux-hero-canvas--blend-seamless .tux-hero-canvas__fallback {
+  /* Gradient alpha mask dissolves bottom stardust smoothly into stage background */
   mask-image: linear-gradient(to bottom, black 65%, color-mix(in srgb, black 35%, transparent) 85%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, black 65%, color-mix(in srgb, black 35%, transparent) 85%, transparent 100%);
 }
@@ -385,14 +388,13 @@ onUnmounted(() => {
   border-radius: 0;
 }
 
-/* Atmospheric bottom bleed layer */
 .tux-hero-canvas__bottom-bleed {
   position: absolute;
   inset: auto 0 0 0;
-  height: 8rem;
-  background: linear-gradient(to bottom, transparent, var(--surface-page));
+  height: 2rem;
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--surface-border) 22%, transparent));
   pointer-events: none;
-  z-index: 5;
+  z-index: 1;
 }
 
 .tux-hero-canvas__layer {

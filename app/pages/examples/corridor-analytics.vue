@@ -191,6 +191,21 @@ function triggerDownload() {
       Mainline posted limit reduced to 45 mph. Field compliance is currently <strong>89.2%</strong>.
     </TuxAlert>
 
+    <!-- Geometric Roadway Cross-Section & 3D Spatial Corridor Analysis -->
+    <section class="space-y-3">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <p class="eyebrow">highway geometry & multi-lane cross-section</p>
+          <h2 class="heading--bold text-lg font-bold">Cross-Sectional Corridor Analysis & 3D Spatial Geometry</h2>
+        </div>
+      </div>
+      <TuxRoadwayCrossSection
+        preset="urban-managed"
+        initial-view="3d-perspective"
+        height="520px"
+      />
+    </section>
+
     <!-- Detector Telemetry Table -->
     <section class="space-y-4">
       <div class="flex items-center justify-between flex-wrap gap-3">

@@ -135,7 +135,7 @@ const exampleCode = computed(() => `<TuxEditorialArticle
       Flagship publication and article reader component parities the modern
       <strong>MyTTI / Inside Lane</strong> WordPress Kadence theme and integrates
       <strong>Cloudflare EmDash CMS 1.0</strong> reading ergonomics alongside
-      <strong>Research Index</strong> and <strong>Interactive Canvas (Sol)</strong> research presentations inspired by OpenAI, Google DeepMind, and Anthropic:
+      <strong>Research Index</strong> and <strong>Interactive Canvas</strong> research presentations inspired by OpenAI, Google DeepMind, and Anthropic:
       switchable hero presentations (<em>interactive-canvas</em>, <em>ai-modern</em>, <em>boxed</em>, <em>full-bleed</em>, <em>split</em>, <em>inset-banner</em>, <em>none</em>),
       metric stats grid, key findings cards, sticky Table of Contents rail, real-time reading progress indicators, and 100% WCAG 2.2 AAA accessibility.
     </TuxPageHeader>
@@ -185,7 +185,7 @@ const exampleCode = computed(() => `<TuxEditorialArticle
               v-model="activeHero"
               class="w-full text-xs font-sans px-2.5 py-1.5 bg-surface-sunken border border-surface-border rounded-sm text-text-primary focus:outline-none focus:border-brand-primary"
             >
-              <option value="interactive-canvas">Interactive Canvas (Sol / Research Index)</option>
+              <option value="interactive-canvas">Interactive Canvas (Research Index)</option>
               <option value="ai-modern">AI Modern (Atmospheric Aura)</option>
               <option value="boxed">Boxed (Kadence 16:9)</option>
               <option value="full-bleed">Full Bleed (Cinematic)</option>

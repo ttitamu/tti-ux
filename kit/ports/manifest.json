@@ -1399,7 +1399,7 @@
       }
     },
     "TuxEditorialArticle": {
-      "sourceHash": "bd7fda8170b0144a",
+      "sourceHash": "e11c339bb9e2ecaf",
       "ports": {
         "react": {
           "hash": null
@@ -1407,7 +1407,7 @@
       }
     },
     "TuxECharts": {
-      "sourceHash": "af7b58ddb76f025b",
+      "sourceHash": "85e50415227db5fb",
       "ports": {
         "react": {
           "hash": null
@@ -1415,7 +1415,15 @@
       }
     },
     "TuxHeroCanvas": {
-      "sourceHash": "6b74f6868777de05",
+      "sourceHash": "87013134be85920f",
+      "ports": {
+        "react": {
+          "hash": null
+        }
+      }
+    },
+    "TuxRoadwayCrossSection": {
+      "sourceHash": "a7b73b0685823017",
       "ports": {
         "react": {
           "hash": null

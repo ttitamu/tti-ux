@@ -159,3 +159,4 @@ with a matching source hash in manifest.json.
 | TuxEditorialArticle | react | never ported |
 | TuxECharts | react | never ported |
 | TuxHeroCanvas | react | never ported |
+| TuxRoadwayCrossSection | react | never ported |
