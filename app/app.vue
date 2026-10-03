@@ -850,7 +850,7 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
       </Transition>
 
       <header
-        class="tti-shell-header bg-surface-raised sticky top-0 z-30"
+        class="tti-shell-header sticky top-0 z-30"
         role="banner"
       >
         <div class="px-4 sm:px-6 py-3 flex items-center gap-4">
@@ -1167,6 +1167,14 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
    ai-studio values for cross-product consistency. */
 .tti-shell-header {
   position: sticky;
+  background-color: color-mix(in srgb, var(--surface-raised) 85%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard);
+}
+
+[data-theme="tti-dark"] .tti-shell-header {
+  background-color: color-mix(in srgb, var(--surface-page) 85%, transparent);
 }
 
 .tti-shell-header::before {
@@ -1178,16 +1186,16 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
   height: 3px;
   background: linear-gradient(
     to right,
-    var(--spectrum-maroon, #500000) 0%,
-    var(--spectrum-maroon, #500000) 20%,
-    var(--spectrum-blue, #005480) 20%,
-    var(--spectrum-blue, #005480) 40%,
-    var(--spectrum-teal, #006F79) 40%,
-    var(--spectrum-teal, #006F79) 60%,
-    var(--spectrum-green, #285C4D) 60%,
-    var(--spectrum-green, #285C4D) 80%,
-    var(--spectrum-gold, #CFA935) 80%,
-    var(--spectrum-gold, #CFA935) 100%
+    var(--spectrum-maroon) 0%,
+    var(--spectrum-maroon) 20%,
+    var(--spectrum-blue) 20%,
+    var(--spectrum-blue) 40%,
+    var(--spectrum-teal) 40%,
+    var(--spectrum-teal) 60%,
+    var(--spectrum-green) 60%,
+    var(--spectrum-green) 80%,
+    var(--spectrum-gold) 80%,
+    var(--spectrum-gold) 100%
   );
   z-index: 10;
 }
@@ -1214,7 +1222,8 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
   top: 0;
   left: 0;
   border-radius: var(--radius-sm);
-  background: var(--wash-brand-12);
+  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 18%, transparent);
   pointer-events: none;
   z-index: 1;
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
@@ -1224,12 +1233,19 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
   will-change: transform, width;
 }
 
+[data-theme="tti-dark"] .tux-nav-sliding-pill {
+  background: color-mix(in srgb, var(--brand-accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--brand-accent) 22%, transparent);
+}
+
 .tux-nav-sliding-underline {
   position: absolute;
   bottom: -9px;
   left: 0;
   height: 2px;
-  background: var(--brand-accent, #CFA935);
+  background: var(--brand-accent);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--brand-accent) 50%, transparent);
   pointer-events: none;
   z-index: 2;
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
@@ -1250,7 +1266,7 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
   z-index: 3;
   display: inline-flex;
   align-items: center;
-  padding: 0.375rem 0.625rem;
+  padding: 0.375rem 0.75rem;
   font-family: var(--font-bold);
   font-size: 0.75rem;
   font-weight: 700;
@@ -1269,6 +1285,10 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
 
 .tux-top-nav-link--active {
   color: var(--brand-primary);
+}
+
+[data-theme="tti-dark"] .tux-top-nav-link--active {
+  color: var(--brand-accent);
 }
 
 .tux-version-switcher-btn {

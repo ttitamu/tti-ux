@@ -640,7 +640,7 @@ function onMouseLeaveFlyout() {
 }
 
 .tux-sidebar-link--active {
-  box-shadow: inset 3px 0 0 var(--brand-accent, #CFA935);
+  box-shadow: inset 3px 0 0 var(--brand-accent);
 }
 
 .tux-sidebar-scroll {
