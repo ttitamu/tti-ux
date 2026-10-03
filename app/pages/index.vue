@@ -124,148 +124,94 @@ const recentUpdates = [
          1. HERO STAGE — Texas Corridor Network & Kinetic Arterial Flow Canvas
          ══════════════════════════════════════════════════════════════════════ -->
     <section class="tux-home-hero -mx-4 sm:-mx-6 lg:-mx-8 -mt-6 sm:-mt-8 mb-8">
-      <TuxHeroCanvas variant="corridor" blend="seamless" min-height="600px">
-        <div class="px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-7xl mx-auto">
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
-            
-            <!-- Left Column: Editorial Brand & Mission -->
-            <div class="lg:col-span-7 space-y-6">
-              <TuxSpectrumRibbon height="md" />
+      <TuxHeroCanvas variant="corridor" blend="seamless" min-height="620px">
+        <div class="px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:pb-12 max-w-7xl mx-auto flex flex-col justify-between min-h-[580px] sm:min-h-[620px]">
+          
+          <!-- 1. Across the Top: 5-color Spectrum Ribbon -->
+          <div class="w-full mb-8">
+            <TuxSpectrumRibbon height="md" class="w-full rounded-full overflow-hidden shadow-sm" />
+          </div>
 
-              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-wash-brand-8 border border-wash-brand-22 text-[11px] font-mono font-bold text-brand-accent tracking-wider uppercase">
-                <span class="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse" />
-                <span>Texas A&amp;M Transportation Institute · v{{ version }}</span>
-              </div>
-
-              <div>
-                <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold uppercase italic tracking-tight text-neutral-0 leading-[0.92]">
-                  TTI<br />
-                  <span class="text-brand-accent">DESIGN</span><br />
-                  SYSTEM
-                </h1>
-                <div class="mt-4 flex flex-col gap-1 w-24">
-                  <span class="h-[3px] bg-brand-accent rounded-full block" />
-                  <span class="h-0 border-t-2 border-dashed border-brand-accent block" />
-                </div>
-              </div>
-
-              <p class="text-base sm:text-lg text-neutral-0/90 leading-relaxed max-w-2xl font-body">
-                The unified institutional design system, component laboratory, and spatial intelligence platform
-                for the Texas A&amp;M Transportation Institute. Built for Nuxt 4, Tailwind v4, and mathematically
-                certified WCAG 2.2 Level AAA accessibility.
-              </p>
-
-              <!-- Telemetry Badges -->
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-                <div class="tux-hero-pill">
-                  <Icon name="lucide:boxes" class="w-4 h-4 text-brand-accent flex-shrink-0" aria-hidden="true" />
-                  <div>
-                    <p class="text-xs font-bold font-mono text-neutral-0">{{ catalogCount }} Components</p>
-                    <p class="text-[10px] text-neutral-0/70">100% Verified</p>
-                  </div>
-                </div>
-                <div class="tux-hero-pill">
-                  <Icon name="lucide:shield-check" class="w-4 h-4 text-color-success flex-shrink-0" aria-hidden="true" />
-                  <div>
-                    <p class="text-xs font-bold font-mono text-neutral-0">0 Axe Errors</p>
-                    <p class="text-[10px] text-neutral-0/70">WCAG 2.2 AAA</p>
-                  </div>
-                </div>
-                <div class="tux-hero-pill">
-                  <Icon name="lucide:layers" class="w-4 h-4 text-color-info flex-shrink-0" aria-hidden="true" />
-                  <div>
-                    <p class="text-xs font-bold font-mono text-neutral-0">5 Divisions</p>
-                    <p class="text-[10px] text-neutral-0/70">Spectrum Token</p>
-                  </div>
-                </div>
-                <div class="tux-hero-pill">
-                  <Icon name="lucide:terminal" class="w-4 h-4 text-brand-accent flex-shrink-0" aria-hidden="true" />
-                  <div>
-                    <p class="text-xs font-bold font-mono text-neutral-0">Multi-Platform</p>
-                    <p class="text-[10px] text-neutral-0/70">Vue · React · .NET</p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Action Cluster -->
-              <div class="flex flex-wrap items-center gap-3 pt-2">
-                <NuxtLink
-                  to="/components"
-                  class="px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-brand-primary hover:bg-brand-primary-deep text-neutral-0 shadow-md hover:shadow-lg transition-all flex items-center gap-2 border border-brand-accent/40"
-                >
-                  <span>Explore Component Arsenal ({{ catalogCount }})</span>
-                  <Icon name="lucide:arrow-right" class="w-4 h-4" aria-hidden="true" />
-                </NuxtLink>
-                <a
-                  href="#interactive-showcase"
-                  class="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-neutral-1000/60 hover:bg-neutral-1000/90 text-neutral-0 border border-neutral-0/25 hover:border-brand-accent transition-all flex items-center gap-2"
-                >
-                  <Icon name="lucide:box" class="w-4 h-4 text-brand-accent" aria-hidden="true" />
-                  <span>3D Corridor Visualizer</span>
-                </a>
-                <NuxtLink
-                  to="/components/health"
-                  class="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-neutral-1000/60 hover:bg-neutral-1000/90 text-neutral-0 border border-neutral-0/25 hover:border-color-success transition-all flex items-center gap-2"
-                >
-                  <Icon name="lucide:shield-check" class="w-4 h-4 text-color-success" aria-hidden="true" />
-                  <span>Health &amp; AAA Matrix</span>
-                </NuxtLink>
-                <NuxtLink
-                  to="/tokens/playground"
-                  class="px-3.5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-neutral-1000/60 hover:bg-neutral-1000/90 text-neutral-0 border border-neutral-0/25 hover:border-brand-accent transition-all flex items-center gap-2"
-                >
-                  <Icon name="lucide:sliders" class="w-4 h-4 text-brand-accent" aria-hidden="true" />
-                  <span>Token Studio</span>
-                </NuxtLink>
-              </div>
+          <!-- 2. Top-Left: TTI DESIGN SYSTEM Branding & Mission -->
+          <div class="space-y-4 max-w-2xl">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-wash-brand-8 border border-wash-brand-22 text-[11px] font-mono font-bold text-brand-accent tracking-wider uppercase">
+              <span class="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse" />
+              <span>Texas A&amp;M Transportation Institute · v{{ version }}</span>
             </div>
 
-            <!-- Right Column: The Monumental TTI UX Banner Card -->
-            <div class="lg:col-span-5">
-              <div class="welcome-hero__panel" aria-label="TTI UX: Institutional Design System &amp; Component Library">
-                <div class="welcome-hero__banner">
-                  <div class="welcome-hero__banner-eyebrow">
-                    <span class="welcome-hero__banner-bullet" aria-hidden="true">•</span>
-                    <span>TEXAS A&amp;M TRANSPORTATION INSTITUTE</span>
-                  </div>
-                  <div class="welcome-hero__banner-brand">
-                    <span class="welcome-hero__banner-brand-tti">TTI</span>
-                    <span class="welcome-hero__banner-brand-ux">UX</span>
-                  </div>
-                  <div class="welcome-hero__banner-roadway" aria-hidden="true">
-                    <span class="welcome-hero__roadway-solid" />
-                    <span class="welcome-hero__roadway-dashed" />
-                  </div>
-                  <p class="welcome-hero__banner-subtitle">
-                    Institutional Design System &amp; Component Library
-                  </p>
-                  
-                  <!-- Live Invariant Status Ledger inside the Monument Card -->
-                  <div class="p-3 rounded-lg bg-neutral-1000/40 border border-brand-accent/25 space-y-2 mb-4">
-                    <div class="flex items-center justify-between text-[11px] font-mono">
-                      <span class="text-neutral-0/80">WCAG Level AAA</span>
-                      <span class="text-color-success font-bold">14.8:1 Certified</span>
-                    </div>
-                    <div class="w-full bg-neutral-1000/60 h-1.5 rounded-full overflow-hidden">
-                      <div class="bg-brand-accent h-full w-full" />
-                    </div>
-                    <div class="flex items-center justify-between text-[10px] font-mono text-neutral-0/70">
-                      <span>Axe Core 4.12: 0 Violations</span>
-                      <span>500 Prerendered Routes</span>
-                    </div>
-                  </div>
-
-                  <div class="welcome-hero__banner-chips">
-                    <span class="welcome-hero__chip">v{{ version }}</span>
-                    <span class="welcome-hero__chip">WCAG 2.2 AAA</span>
-                    <span class="welcome-hero__chip">Nuxt 4</span>
-                    <span class="welcome-hero__chip">Tailwind v4</span>
-                    <span class="welcome-hero__chip">{{ catalogCount }} Components</span>
-                  </div>
-                </div>
-              </div>
+            <div>
+              <h1 class="font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold uppercase italic tracking-tight text-neutral-0 leading-[0.88]">
+                TTI<br />
+                <span class="text-brand-accent">DESIGN</span><br />
+                SYSTEM
+              </h1>
             </div>
 
+            <p class="text-base sm:text-lg text-neutral-0/85 leading-relaxed max-w-xl font-body pt-1">
+              The unified institutional design system, component laboratory, and mobility intelligence platform
+              for the Texas A&amp;M Transportation Institute. Built for Nuxt 4, Tailwind v4, and mathematically
+              certified WCAG 2.2 Level AAA accessibility.
+            </p>
+          </div>
+
+          <!-- 3. Bottom Row: Left Action Buttons + Right Faint Angled TUX & AAA Tout -->
+          <div class="pt-8 sm:pt-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <!-- Left: Smaller Buttons (Comfortably above bottom gradient) -->
+            <div class="flex flex-wrap items-center gap-2.5">
+              <NuxtLink
+                to="/components"
+                class="px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-brand-primary hover:bg-brand-primary-deep text-neutral-0 shadow-sm hover:shadow transition-all flex items-center gap-1.5 border border-brand-accent/40"
+              >
+                <span>Explore Components ({{ catalogCount }})</span>
+                <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" aria-hidden="true" />
+              </NuxtLink>
+              <a
+                href="#interactive-showcase"
+                class="px-3.5 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-neutral-1000/60 hover:bg-neutral-1000/90 text-neutral-0/90 border border-neutral-0/25 hover:border-brand-accent transition-all flex items-center gap-1.5"
+              >
+                <Icon name="lucide:box" class="w-3.5 h-3.5 text-brand-accent" aria-hidden="true" />
+                <span>3D Corridor Visualizer</span>
+              </a>
+              <NuxtLink
+                to="/components/health"
+                class="px-3.5 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-neutral-1000/60 hover:bg-neutral-1000/90 text-neutral-0/90 border border-neutral-0/25 hover:border-color-success transition-all flex items-center gap-1.5"
+              >
+                <Icon name="lucide:shield-check" class="w-3.5 h-3.5 text-color-success" aria-hidden="true" />
+                <span>Health &amp; AAA Matrix</span>
+              </NuxtLink>
+              <NuxtLink
+                to="/tokens/playground"
+                class="px-3 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-neutral-1000/60 hover:bg-neutral-1000/90 text-neutral-0/90 border border-neutral-0/25 hover:border-brand-accent transition-all flex items-center gap-1.5"
+              >
+                <Icon name="lucide:sliders" class="w-3.5 h-3.5 text-brand-accent" aria-hidden="true" />
+                <span>Token Studio</span>
+              </NuxtLink>
+            </div>
+
+            <!-- Right: Faint Angled TUX Monogram + Certified WCAG 2.2 Level AAA Tout -->
+            <div class="flex flex-col items-start md:items-end text-left md:text-right select-none">
+              <div
+                class="welcome-hero__faint-monogram text-7xl sm:text-8xl lg:text-9xl translate-x-2 -mb-2"
+                aria-hidden="true"
+              >
+                TUX
+              </div>
+
+              <div class="space-y-1 select-auto">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-neutral-1000/70 border border-brand-accent/30 backdrop-blur-md">
+                  <span class="w-2 h-2 rounded-full bg-color-success animate-pulse" />
+                  <span class="font-mono text-xs font-bold tracking-wider uppercase text-neutral-0">
+                    Certified WCAG 2.2 Level AAA
+                  </span>
+                  <span class="text-[10px] font-mono text-brand-accent font-bold px-1.5 py-0.5 rounded-xs bg-brand-accent/20">
+                    14.8:1
+                  </span>
+                </div>
+                <p class="text-[11px] font-mono text-neutral-0/70 tracking-wide">
+                  0 Axe Violations · 189 Certified Components · 500 Prerendered Routes
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </TuxHeroCanvas>
@@ -726,139 +672,23 @@ const recentUpdates = [
   box-shadow: 0 4px 16px color-mix(in srgb, var(--neutral-1000) 50%, transparent);
 }
 
-/* Right-side maroon panel — bold TTI UX display banner with institutional
-   typography, passing lane roadway rule, and dynamic framework badges. */
-.welcome-hero__panel {
-  position: relative;
-  background: color-mix(in srgb, var(--tti-maroon) 85%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid color-mix(in srgb, var(--brand-accent) 25%, transparent);
-  border-radius: var(--radius-md);
-  padding: 2rem 1.875rem;
-  color: var(--neutral-0);
-  overflow: hidden;
-  min-height: 20rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 0 4px 24px -2px color-mix(in srgb, var(--tti-maroon) 50%, transparent);
-  isolation: isolate;
-}
-
-.welcome-hero__panel::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 85% 15%, color-mix(in srgb, var(--brand-accent) 18%, transparent) 0%, transparent 60%),
-    repeating-linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--brand-accent) 8%, transparent) 0 2px,
-      transparent 2px 18px
-    );
-  z-index: 0;
-  pointer-events: none;
-}
-
-.welcome-hero__banner {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.welcome-hero__banner-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--brand-accent);
-}
-
-.welcome-hero__banner-bullet {
-  font-size: 0.875rem;
-  line-height: 1;
-}
-
-.welcome-hero__banner-brand {
-  margin-top: 1rem;
+/* Faint Angled "TUX" Monogram Watermark */
+.welcome-hero__faint-monogram {
   font-family: var(--font-bold);
   font-weight: 900;
-  font-size: clamp(3.25rem, 5vw, 4.75rem);
-  line-height: 0.92;
-  letter-spacing: -0.025em;
   text-transform: uppercase;
-  display: flex;
-  align-items: baseline;
-  gap: 0.375rem;
-  text-shadow: 0 2px 8px color-mix(in srgb, var(--neutral-1000) 40%, transparent);
+  font-style: italic;
+  letter-spacing: -0.05em;
+  line-height: 0.80;
+  color: color-mix(in srgb, var(--neutral-0) 8%, transparent);
+  pointer-events: none;
+  user-select: none;
+  transform: rotate(-8deg);
+  display: inline-block;
 }
 
-.welcome-hero__banner-brand-tti {
-  color: var(--neutral-0);
-}
-
-.welcome-hero__banner-brand-ux {
-  color: var(--brand-accent);
-}
-
-.welcome-hero__banner-roadway {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  width: 6.5rem;
-  margin: 1rem 0 1.125rem;
-}
-
-.welcome-hero__roadway-solid {
-  display: block;
-  height: 2.5px;
-  background: var(--brand-accent);
-  border-radius: 1px;
-}
-
-.welcome-hero__roadway-dashed {
-  display: block;
-  height: 0;
-  border-top: 2.5px dashed var(--brand-accent);
-}
-
-.welcome-hero__banner-subtitle {
-  margin: 0 0 1.25rem;
-  font-family: var(--font-body);
-  font-size: 1.0625rem;
-  font-weight: 700;
-  line-height: 1.35;
-  color: color-mix(in srgb, var(--neutral-0) 95%, transparent);
-  max-width: 24rem;
-}
-
-.welcome-hero__banner-chips {
-  margin-top: auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4375rem;
-}
-
-.welcome-hero__chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.5625rem;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  line-height: 1.3;
-  color: color-mix(in srgb, var(--neutral-0) 95%, transparent);
-  background: color-mix(in srgb, var(--neutral-1000) 35%, transparent);
-  border: 1px solid color-mix(in srgb, var(--brand-accent) 35%, transparent);
-  border-radius: var(--radius-sm);
-  letter-spacing: 0.02em;
+[data-theme="tti-dark"] .welcome-hero__faint-monogram {
+  color: color-mix(in srgb, var(--neutral-0) 6%, transparent);
 }
 
 /* ──────── VISUAL IDENTITY GLANCE — six tiles showing the system
