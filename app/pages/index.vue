@@ -135,74 +135,74 @@ const recentUpdates = [
           <!-- 2. Top-Left: TTI DESIGN SYSTEM Branding & Mission -->
           <div class="space-y-5 max-w-2xl">
             <div>
-              <h1 class="font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold uppercase italic tracking-tight text-neutral-0 leading-[0.88]">
+              <h1 class="font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold uppercase italic tracking-tight text-text-primary leading-[0.88]">
                 TTI<br />
-                <span class="text-brand-accent">DESIGN</span><br />
+                <span class="text-brand-primary dark:text-brand-accent">DESIGN</span><br />
                 SYSTEM
               </h1>
             </div>
 
-            <p class="text-base sm:text-lg text-neutral-0/85 leading-relaxed max-w-xl font-body pt-1">
+            <p class="text-base sm:text-lg text-text-secondary leading-relaxed max-w-xl font-body pt-1">
               The unified institutional design system, component laboratory, and mobility intelligence platform
               for the Texas A&amp;M Transportation Institute. Built for Nuxt 4, Tailwind v4, and mathematically
               certified WCAG 2.2 Level AAA accessibility.
             </p>
           </div>
 
-          <!-- 3. Bottom Row: Left Action Buttons + Right Faint Angled TUX & AAA Tout -->
+          <!-- 3. Bottom Row: Left Action Buttons + Right Faint Horizontal TUX & AAA Tout -->
           <div class="pt-8 sm:pt-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <!-- Left: Smaller Buttons (Comfortably above bottom gradient) -->
             <div class="flex flex-wrap items-center gap-2.5">
               <NuxtLink
                 to="/components"
-                class="px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-brand-primary hover:bg-brand-primary-deep text-neutral-0 shadow-sm hover:shadow transition-all flex items-center gap-1.5 border border-brand-accent/40"
+                class="px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-brand-primary hover:bg-brand-primary-deep text-text-on-brand shadow-sm hover:shadow transition-all flex items-center gap-1.5 border border-brand-accent/40"
               >
                 <span>Explore Components ({{ catalogCount }})</span>
                 <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" aria-hidden="true" />
               </NuxtLink>
               <a
                 href="#interactive-showcase"
-                class="px-3.5 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-neutral-1000/60 hover:bg-neutral-1000/90 text-neutral-0/90 border border-neutral-0/25 hover:border-brand-accent transition-all flex items-center gap-1.5"
+                class="px-3.5 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-surface-raised hover:bg-surface-page text-text-primary border border-surface-border hover:border-brand-primary dark:border-surface-border transition-all flex items-center gap-1.5 shadow-xs"
               >
-                <Icon name="lucide:box" class="w-3.5 h-3.5 text-brand-accent" aria-hidden="true" />
+                <Icon name="lucide:box" class="w-3.5 h-3.5 text-brand-primary dark:text-brand-accent" aria-hidden="true" />
                 <span>3D Corridor Visualizer</span>
               </a>
               <NuxtLink
                 to="/components/health"
-                class="px-3.5 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-neutral-1000/60 hover:bg-neutral-1000/90 text-neutral-0/90 border border-neutral-0/25 hover:border-color-success transition-all flex items-center gap-1.5"
+                class="px-3.5 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-surface-raised hover:bg-surface-page text-text-primary border border-surface-border hover:border-color-success dark:border-surface-border transition-all flex items-center gap-1.5 shadow-xs"
               >
                 <Icon name="lucide:shield-check" class="w-3.5 h-3.5 text-color-success" aria-hidden="true" />
                 <span>Health &amp; AAA Matrix</span>
               </NuxtLink>
               <NuxtLink
                 to="/tokens/playground"
-                class="px-3 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-neutral-1000/60 hover:bg-neutral-1000/90 text-neutral-0/90 border border-neutral-0/25 hover:border-brand-accent transition-all flex items-center gap-1.5"
+                class="px-3 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-surface-raised hover:bg-surface-page text-text-primary border border-surface-border hover:border-brand-primary dark:border-surface-border transition-all flex items-center gap-1.5 shadow-xs"
               >
-                <Icon name="lucide:sliders" class="w-3.5 h-3.5 text-brand-accent" aria-hidden="true" />
+                <Icon name="lucide:sliders" class="w-3.5 h-3.5 text-brand-primary dark:text-brand-accent" aria-hidden="true" />
                 <span>Token Studio</span>
               </NuxtLink>
             </div>
 
-            <!-- Right: Faint Angled TUX Monogram + Certified WCAG 2.2 Level AAA Tout -->
+            <!-- Right: Faint Straight Horizontal TUX Monogram + Certified WCAG 2.2 Level AAA Tout -->
             <div class="flex flex-col items-start md:items-end text-left md:text-right select-none">
               <div
-                class="welcome-hero__faint-monogram text-7xl sm:text-8xl lg:text-9xl translate-x-2 -mb-2"
+                class="welcome-hero__faint-monogram text-7xl sm:text-8xl lg:text-9xl translate-x-1 mb-1"
                 aria-hidden="true"
               >
                 TUX
               </div>
 
               <div class="space-y-1 select-auto">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-neutral-1000/70 border border-brand-accent/30 backdrop-blur-md">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-surface-raised border border-surface-border shadow-xs backdrop-blur-md">
                   <span class="w-2 h-2 rounded-full bg-color-success animate-pulse" />
-                  <span class="font-mono text-xs font-bold tracking-wider uppercase text-neutral-0">
+                  <span class="font-mono text-xs font-bold tracking-wider uppercase text-text-primary">
                     Certified WCAG 2.2 Level AAA
                   </span>
-                  <span class="text-[10px] font-mono text-brand-accent font-bold px-1.5 py-0.5 rounded-xs bg-brand-accent/20">
+                  <span class="text-[10px] font-mono text-brand-primary dark:text-brand-accent font-bold px-1.5 py-0.5 rounded-xs bg-wash-brand-8 dark:bg-brand-accent/20">
                     14.8:1
                   </span>
                 </div>
-                <p class="text-[11px] font-mono text-neutral-0/70 tracking-wide">
+                <p class="text-[11px] font-mono text-text-muted tracking-wide">
                   0 Axe Violations · 189 Certified Components · 500 Prerendered Routes
                 </p>
               </div>
@@ -651,7 +651,7 @@ const recentUpdates = [
 /* ──────── HERO STAGE ──────── */
 .tux-home-hero {
   position: relative;
-  background-color: var(--neutral-1000);
+  background-color: var(--surface-page);
 }
 
 .tux-hero-pill {
@@ -667,7 +667,7 @@ const recentUpdates = [
   box-shadow: 0 4px 16px color-mix(in srgb, var(--neutral-1000) 50%, transparent);
 }
 
-/* Faint Angled "TUX" Monogram Watermark */
+/* Faint Straight Horizontal "TUX" Monogram Watermark (Unrotated) */
 .welcome-hero__faint-monogram {
   font-family: var(--font-bold);
   font-weight: 900;
@@ -675,10 +675,9 @@ const recentUpdates = [
   font-style: italic;
   letter-spacing: -0.05em;
   line-height: 0.80;
-  color: color-mix(in srgb, var(--neutral-0) 8%, transparent);
+  color: color-mix(in srgb, var(--brand-primary) 8%, transparent);
   pointer-events: none;
   user-select: none;
-  transform: rotate(-8deg);
   display: inline-block;
 }
 

@@ -869,10 +869,14 @@ function runLoop() {
   // VARIANT: WASH (Clean Minimalist Architectural Wash)
   // ══════════════════════════════════════════════════════════════════════════
   if (props.variant === "wash") {
+    const isDark = typeof document !== "undefined" && document.documentElement.getAttribute("data-theme") === "tti-dark";
+
     // 1. Fine Civil Engineering Drafting Grid & Surveyor Coordinate Marks
     ctx.save();
     ctx.lineWidth = 0.5;
-    ctx.strokeStyle = makeRgba(207, 169, 53, 0.035); // 3.5% Warm Gold grid line
+    ctx.strokeStyle = isDark
+      ? makeRgba(207, 169, 53, 0.035) // 3.5% Warm Gold grid line
+      : makeRgba(80, 0, 0, 0.04);      // 4% TTI Maroon grid line
     const gridStep = 72;
     for (let gx = gridStep; gx < w; gx += gridStep) {
       ctx.beginPath();
@@ -889,7 +893,9 @@ function runLoop() {
 
     // Precision Surveyor Intersection Crosshairs (+)
     ctx.lineWidth = 1.0;
-    ctx.strokeStyle = makeRgba(207, 169, 53, 0.08); // 8% Warm Gold crosshairs
+    ctx.strokeStyle = isDark
+      ? makeRgba(207, 169, 53, 0.08)  // 8% Warm Gold crosshairs
+      : makeRgba(80, 0, 0, 0.08);      // 8% TTI Maroon crosshairs
     const markStep = gridStep * 2;
     const crossSize = 3;
     for (let mx = markStep; mx < w; mx += markStep) {
@@ -913,7 +919,9 @@ function runLoop() {
     ctx.moveTo(ruleStartX, ruleY);
     ctx.lineTo(ruleEndX, ruleY);
     ctx.lineWidth = 1.2;
-    ctx.strokeStyle = makeRgba(207, 169, 53, 0.06);
+    ctx.strokeStyle = isDark
+      ? makeRgba(207, 169, 53, 0.06)
+      : makeRgba(80, 0, 0, 0.07);
     ctx.stroke();
 
     // Passing dashed rule (3.5px above)
@@ -922,7 +930,9 @@ function runLoop() {
     ctx.moveTo(ruleStartX, ruleY - 3.5);
     ctx.lineTo(ruleEndX, ruleY - 3.5);
     ctx.lineWidth = 1.0;
-    ctx.strokeStyle = makeRgba(207, 169, 53, 0.05);
+    ctx.strokeStyle = isDark
+      ? makeRgba(207, 169, 53, 0.05)
+      : makeRgba(80, 0, 0, 0.06);
     ctx.stroke();
     ctx.setLineDash([]);
     ctx.restore();
@@ -941,10 +951,17 @@ function runLoop() {
 
     const bloomR = Math.max(w * 0.45, 340) + breath;
     const bloomGrad = ctx.createRadialGradient(focalX, focalY, 0, focalX, focalY, bloomR);
-    bloomGrad.addColorStop(0, makeRgba(207, 169, 53, 0.08)); // Warm Gold ambient glow
-    bloomGrad.addColorStop(0.35, makeRgba(160, 45, 30, 0.12)); // Deep TTI Maroon wash
-    bloomGrad.addColorStop(0.70, makeRgba(80, 15, 20, 0.04));
-    bloomGrad.addColorStop(1, makeRgba(0, 0, 0, 0));
+    if (isDark) {
+      bloomGrad.addColorStop(0, makeRgba(207, 169, 53, 0.08)); // Warm Gold ambient glow
+      bloomGrad.addColorStop(0.35, makeRgba(160, 45, 30, 0.12)); // Deep TTI Maroon wash
+      bloomGrad.addColorStop(0.70, makeRgba(80, 15, 20, 0.04));
+      bloomGrad.addColorStop(1, makeRgba(0, 0, 0, 0));
+    } else {
+      bloomGrad.addColorStop(0, makeRgba(207, 169, 53, 0.08)); // Warm Gold ambient glow
+      bloomGrad.addColorStop(0.35, makeRgba(80, 0, 0, 0.05));  // Delicate Maroon wash
+      bloomGrad.addColorStop(0.70, makeRgba(80, 0, 0, 0.02));
+      bloomGrad.addColorStop(1, makeRgba(0, 0, 0, 0));
+    }
 
     ctx.beginPath();
     ctx.arc(focalX, focalY, bloomR, 0, Math.PI * 2);
@@ -1063,8 +1080,12 @@ onUnmounted(() => {
   position: relative;
   width: 100%;
   overflow: hidden;
-  background: radial-gradient(ellipse 90% 70% at 50% 45%, color-mix(in srgb, var(--brand-primary) 35%, var(--neutral-1000)), var(--neutral-1000) 85%);
-  color: var(--neutral-0);
+  background: radial-gradient(
+    ellipse 95% 75% at 75% 38%,
+    color-mix(in srgb, var(--brand-primary) 6%, var(--surface-page)),
+    var(--surface-page) 85%
+  );
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -1073,14 +1094,19 @@ onUnmounted(() => {
 }
 
 [data-theme="tti-dark"] .tux-hero-canvas {
-  background: radial-gradient(ellipse 90% 70% at 50% 45%, color-mix(in srgb, var(--brand-primary) 50%, var(--surface-page)), var(--surface-page) 85%);
+  background: radial-gradient(
+    ellipse 90% 70% at 50% 45%,
+    color-mix(in srgb, var(--brand-primary) 50%, var(--surface-page)),
+    var(--surface-page) 85%
+  );
+  color: var(--neutral-0);
 }
 
 .tux-hero-canvas--variant-wash {
   background: radial-gradient(
     ellipse 95% 75% at 75% 38%,
-    color-mix(in srgb, var(--brand-primary) 35%, var(--neutral-1000)),
-    var(--neutral-1000) 85%
+    color-mix(in srgb, var(--brand-primary) 8%, var(--surface-page)),
+    var(--surface-page) 88%
   );
 }
 
@@ -1164,13 +1190,19 @@ onUnmounted(() => {
   width: 2.75rem;
   height: 2.75rem;
   border-radius: var(--radius-full);
-  background-color: color-mix(in srgb, var(--neutral-0) 12%, transparent);
+  background-color: color-mix(in srgb, var(--surface-raised) 80%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid color-mix(in srgb, var(--neutral-0) 22%, transparent);
-  color: var(--neutral-0);
+  border: 1px solid var(--surface-border);
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="tti-dark"] .tux-hero-canvas__playback-btn {
+  background-color: color-mix(in srgb, var(--neutral-0) 12%, transparent);
+  border-color: color-mix(in srgb, var(--neutral-0) 22%, transparent);
+  color: var(--neutral-0);
 }
 
 .tux-hero-canvas__playback-btn:hover {
