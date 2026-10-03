@@ -1,7 +1,8 @@
 # AI code review (plan Area F v2) — ADVISORY, changed-files only, via the TTI AI BFF.
 #
-# Calls the gateway's POST /v1/repos/{o}/{r}/pulls/{n}/reviews: a multi-model superPOD PANEL (GPT-OSS 120B,
-# Gemma 4 31B, Devstral 2, poolside Laguna S 2.1) independently reviews the diff, cross-examines each
+# Calls the gateway's POST /v1/repos/{o}/{r}/pulls/{n}/reviews: a multi-model superPOD PANEL
+# (Muse Glimmer 30B, Gemma 4 31B, Mistral Medium 3.5 128B, poolside Laguna S 2.1 — the gateway's
+# REVIEW_PANEL default since 2026-09-30) independently reviews the diff, cross-examines each
 # other's findings, and synthesizes ONE comment — with bounded, receipted
 # Google-PSE web grounding when a reviewer requests verification. The debate
 # logic lives in the GATEWAY on purpose: this vendored file stays a thin
@@ -60,19 +61,34 @@ jobs:
           HEAD_SHA: ${{ github.sha }}
         run: |
           set -eu
+          # Defensive: every file the later steps read starts absent, so a marker
+          # left in a reused /tmp (a host-mode runner) can never be posted or obeyed.
+          rm -f /tmp/pr.diff /tmp/pr.unreviewable /tmp/review.md /tmp/review.notice /tmp/review.posted
           git init -q
           git remote add origin "$SERVER_URL/$REPO"
           hdr="Authorization: basic $(printf 'x-access-token:%s' "$JOB_TOKEN" | base64 | tr -d '\n')"
-          git -c http.extraheader="$hdr" fetch --depth=50 origin "$BASE_REF" "$HEAD_SHA"
-          git checkout -q "$HEAD_SHA"
-          git branch -f _base "origin/$BASE_REF" 2>/dev/null || true
+          # A head or base the forge will not serve is not a failed job (this
+          # one is advisory and exits 0): say why, and the PR gets one line.
+          if git -c http.extraheader="$hdr" fetch --depth=50 origin "$BASE_REF" "$HEAD_SHA" \
+             && git checkout -q "$HEAD_SHA"; then
+            git branch -f _base "origin/$BASE_REF" 2>/dev/null || true
+          else
+            echo "could not fetch this PR's head commit and base branch from the forge" > /tmp/pr.unreviewable
+          fi
 
       - name: Compute changed-files diff (capped)
         if: steps.gate.outputs.skip != 'true'
         run: |
           set -eu
-          BASE=$(git merge-base _base HEAD 2>/dev/null || git rev-parse HEAD~1)
-          git diff --unified=3 "$BASE"...HEAD -- . > /tmp/pr.diff || true
+          [ -f /tmp/pr.unreviewable ] && { cat /tmp/pr.unreviewable; exit 0; }
+          # A diff that could not be computed is said so, never passed on as an
+          # empty one: an empty diff means "nothing to review" and posts nothing.
+          if ! BASE=$(git merge-base _base HEAD 2>/dev/null || git rev-parse -q --verify HEAD~1); then
+            echo "could not find where this PR's branch leaves its base branch" > /tmp/pr.unreviewable
+          elif ! git diff --unified=3 "$BASE"...HEAD -- . > /tmp/pr.diff; then
+            echo "git could not compute this PR's diff" > /tmp/pr.unreviewable
+          fi
+          [ -f /tmp/pr.unreviewable ] && { rm -f /tmp/pr.diff; cat /tmp/pr.unreviewable; exit 0; }
           # cap to stay within the panel's context budget (gateway re-caps too)
           head -c 100000 /tmp/pr.diff > /tmp/pr.capped && mv /tmp/pr.capped /tmp/pr.diff
           echo "diff bytes: $(wc -c < /tmp/pr.diff)"
@@ -89,7 +105,22 @@ jobs:
           SERVER_URL: ${{ github.server_url }}
         run: |
           set -eu
-          if [ ! -s /tmp/pr.diff ]; then echo "empty diff — nothing to review"; echo "" > /tmp/review.md; exit 0; fi
+          if [ -f /tmp/pr.unreviewable ]; then
+            # One line saying why, not a review: no verdict and no panel footer.
+            printf '_The AI panel did not review this change: %s. It will review the next push._\n' \
+              "$(cat /tmp/pr.unreviewable)" > /tmp/review.md
+            : > /tmp/review.notice
+            exit 0
+          fi
+          # An empty diff writes NO review body. It used to write a newline,
+          # which passed the post step's non-empty test and put a header-only
+          # comment on every PR merged before its review job ran
+          # (nis/forgejo-stack#293).
+          if ! grep -q '[^[:space:]]' /tmp/pr.diff 2>/dev/null; then
+            echo "empty diff — nothing to review (the head adds nothing to the base branch; merged before this job ran?) — posting nothing"
+            : > /tmp/review.md
+            exit 0
+          fi
           python3 - <<'PY'
           import json, os, urllib.error, urllib.request
           # Passing "pr" lets the gateway post a REAL Forgejo review with
@@ -110,8 +141,8 @@ jobs:
           fail = None
           for attempt in range(3):
               try:
-                  # Retry ONLY 429 quota. 502/503 are inconclusive (gemma
-                  # timeout / Devstral over-limit) — retrying burns ~4.5 min
+                  # Retry ONLY 429 quota. 502/503 are inconclusive (a panel
+                  # model's timeout or over-limit) — retrying burns ~4.5 min
                   # and will not recover; stop, but fall THROUGH to the
                   # advisory comment below (AI review is advisory — a panel
                   # outage must not red the PR).
@@ -152,6 +183,9 @@ jobs:
               md = ("_The AI panel couldn't review this change right now "
                     "(it will review the next push). Details for admins: "
                     f"{e}_")
+              # A notice, not a review: the post step leaves off the footer
+              # that says the panel reviewed it.
+              open("/tmp/review.notice", "w").close()
           open("/tmp/review.md","w").write(md)
           print("review chars:", len(md))
           PY
@@ -166,13 +200,17 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -eu
-          [ -s /tmp/review.md ] || { echo "no review body"; exit 0; }
+          # Visible text or nothing: a body of only whitespace is the header-
+          # and-footer blank comment that landed on nis/forgejo-stack#293.
+          grep -q '[^[:space:]]' /tmp/review.md 2>/dev/null || { echo "no review body — nothing to post"; exit 0; }
           # I2: the gateway already posted a native review with inline
           # comments + the findings board — don't double-post.
           [ -f /tmp/review.posted ] && { echo "native review posted; no classic comment"; exit 0; }
           # No emoji — the ai-review-bot's maroon Lucide avatar (branding/bot-avatars.py)
           # marks the comment, keeping the house symbology consistent.
-          BODY=$(python3 -c "import json;print(json.dumps({'body':'### AI review · advisory\n\n'+open('/tmp/review.md').read()+'\n\n<sub>A panel of superPOD models reviewed this independently and cross-examined each other; only what survived is shown. Advisory — never a merge gate.</sub>'}))")
+          # A notice (the panel did not review this change) gets no footer:
+          # the footer says the panel reviewed it.
+          BODY=$(python3 -c "import json,os;print(json.dumps({'body':'### AI review · advisory\n\n'+open('/tmp/review.md').read()+('' if os.path.exists('/tmp/review.notice') else '\n\n<sub>A panel of superPOD models reviewed this independently and cross-examined each other; only what survived is shown. Advisory — never a merge gate.</sub>')}))")
           # Post AS ai-review-bot (named identity + maroon avatar in the feed,
           # instead of the anonymous actions "Ghost"); fall back to the job
           # token if the bot PAT lacks issue-write on this repo.
