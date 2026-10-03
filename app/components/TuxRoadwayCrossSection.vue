@@ -17,7 +17,7 @@
  *
  * 100% WCAG 2.2 Level AAA compliant with full keyboard navigation and accessible data tables.
  */
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 
 export interface LaneDefinition {
   id: string;
@@ -75,13 +75,48 @@ const zoomScale = ref(1.0);
 const animatePlatoons = ref(true);
 const selectedLaneIndex = ref<number | null>(null);
 
-// Direct Manipulation Pointer Orbit Drag State
+// Direct Manipulation Pointer Orbit Drag State & Scroll Shielding
 const isDragging = ref(false);
 const hasUserInteracted = ref(false);
+const isSceneActive = ref(false);
+const showScrollShieldNotice = ref(false);
+let scrollNoticeTimeout: ReturnType<typeof setTimeout> | null = null;
+
+const isSceneVisible = ref(true);
+const viewportRef = ref<HTMLElement | null>(null);
+let intersectionObs: IntersectionObserver | null = null;
+
 let dragStartX = 0;
 let dragStartY = 0;
 let dragStartPitch = 0;
 let dragStartYaw = 0;
+
+onMounted(() => {
+  if (typeof IntersectionObserver !== "undefined" && viewportRef.value) {
+    intersectionObs = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          isSceneVisible.value = entry.isIntersecting;
+        }
+      },
+      { threshold: 0.05 }
+    );
+    intersectionObs.observe(viewportRef.value);
+  }
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Escape" && isSceneActive.value) {
+      isSceneActive.value = false;
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
+
+  onBeforeUnmount(() => {
+    window.removeEventListener("keydown", handleKeyDown);
+    intersectionObs?.disconnect();
+    if (scrollNoticeTimeout) clearTimeout(scrollNoticeTimeout);
+  });
+});
 
 function resetCamera() {
   pitchDeg.value = 0;
@@ -114,11 +149,21 @@ function setViewDriver() {
   hasUserInteracted.value = true;
 }
 
+function activateScene() {
+  isSceneActive.value = true;
+  hasUserInteracted.value = true;
+}
+
+function deactivateScene() {
+  isSceneActive.value = false;
+}
+
 function onPointerDown(e: PointerEvent) {
   if (!props.interactive) return;
   const target = e.target as HTMLElement;
   if (target.closest("button, input, select, a, .tux-roadway__3d-controls")) return;
 
+  isSceneActive.value = true;
   isDragging.value = true;
   hasUserInteracted.value = true;
   dragStartX = e.clientX;
@@ -155,9 +200,21 @@ function onPointerUp(e: PointerEvent) {
 
 function onWheel(e: WheelEvent) {
   if (!props.interactive) return;
-  hasUserInteracted.value = true;
-  const zoomStep = -e.deltaY * 0.0015;
-  zoomScale.value = Math.max(0.65, Math.min(1.65, +(zoomScale.value + zoomStep).toFixed(2)));
+
+  // Only intercept zoom if user holds Ctrl/Cmd or has clicked to activate 3D orbit
+  if (e.ctrlKey || e.metaKey || isSceneActive.value) {
+    e.preventDefault();
+    hasUserInteracted.value = true;
+    const zoomStep = -e.deltaY * 0.0015;
+    zoomScale.value = Math.max(0.65, Math.min(1.65, +(zoomScale.value + zoomStep).toFixed(2)));
+  } else {
+    // Pass standard vertical page scroll through; show subtle helpful toast
+    showScrollShieldNotice.value = true;
+    if (scrollNoticeTimeout) clearTimeout(scrollNoticeTimeout);
+    scrollNoticeTimeout = setTimeout(() => {
+      showScrollShieldNotice.value = false;
+    }, 2200);
+  }
 }
 
 // Distance / pop-out factor from Top Dead Center (TDC 0°)
@@ -436,6 +493,25 @@ function losClass(los?: string): string {
       return "text-text-muted bg-surface-sunken border-surface-border";
   }
 }
+
+function getLosDescription(los?: string): string {
+  switch (los) {
+    case "A":
+      return "Level of Service A: Free-flow operations with median speeds at or above speed limit and unrestricted maneuverability.";
+    case "B":
+      return "Level of Service B: Reasonably free-flow operations; slight maneuverability limits with increasing traffic density.";
+    case "C":
+      return "Level of Service C: Stable traffic flow; vehicle speeds near posted limit but lane changing is noticeably restricted.";
+    case "D":
+      return "Level of Service D: Approaching capacity limit; speed declines and maneuverability is severely restricted.";
+    case "E":
+      return "Level of Service E: Highway design capacity threshold; volatile unstable flow with high breakdown risk.";
+    case "F":
+      return "Level of Service F: Forced breakdown flow / gridlock; stop-and-go conditions with long vehicle queues.";
+    default:
+      return "Level of Service rating (AASHTO / Highway Capacity Manual 7th Edition standard)";
+  }
+}
 </script>
 
 <template>
@@ -524,7 +600,9 @@ function losClass(los?: string): string {
            ══════════════════════════════════════════════════════════════════════ -->
       <div
         v-if="currentView === '3d-perspective'"
+        ref="viewportRef"
         class="tux-roadway__3d-viewport"
+        :class="{ 'tux-roadway__3d-viewport--offscreen': !isSceneVisible }"
       >
         <!-- 3D Scene Controller Dock -->
         <div class="tux-roadway__3d-controls" aria-label="3D Spatial Camera Pitch and Orientation Controls">
@@ -636,21 +714,51 @@ function losClass(los?: string): string {
         <!-- 3D Transformed Corridor Canvas Ribbon with Direct-Manipulation Orbit Drag -->
         <div
           class="tux-roadway__perspective-wrapper"
-          :class="{ 'tux-roadway__perspective-wrapper--dragging': isDragging }"
+          :class="{
+            'tux-roadway__perspective-wrapper--dragging': isDragging,
+            'tux-roadway__perspective-wrapper--active': isSceneActive
+          }"
           @pointerdown="onPointerDown"
           @pointermove="onPointerMove"
           @pointerup="onPointerUp"
           @pointercancel="onPointerUp"
-          @wheel.prevent="onWheel"
+          @wheel="onWheel"
         >
+          <!-- Scroll Shield Notification (Appears briefly when scrolling without Ctrl / Activation) -->
+          <Transition name="fade">
+            <div
+              v-if="showScrollShieldNotice"
+              class="tux-roadway__scroll-shield-badge"
+              role="status"
+              aria-live="polite"
+            >
+              <Icon name="lucide:info" class="w-3.5 h-3.5 text-brand-accent shrink-0" aria-hidden="true" />
+              <span>Hold <kbd class="px-1 py-0.5 rounded bg-surface-sunken font-mono text-[10px] border border-surface-border">Ctrl</kbd> + Scroll to zoom corridor, or click to engage 3D orbit</span>
+            </div>
+          </Transition>
+
+          <!-- 3D Orbit Focus Active Pill Badge -->
+          <div
+            v-if="isSceneActive"
+            class="tux-roadway__active-shield-pill"
+            role="button"
+            tabindex="0"
+            @click.stop="deactivateScene"
+            @keydown.enter.stop="deactivateScene"
+            title="Click or press Enter to release 3D orbit focus and resume vertical page scroll"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-color-success animate-pulse" aria-hidden="true" />
+            <span>3D Orbit Active &bull; <kbd class="font-mono text-[9px] uppercase px-1 py-0.5 rounded bg-surface-sunken border border-surface-border">Esc</kbd> or click to release scroll</span>
+          </div>
+
           <!-- Orbit Drag & Zoom Guidance Hint Badge -->
           <div
-            v-if="!hasUserInteracted"
+            v-if="!hasUserInteracted && !isSceneActive"
             class="tux-roadway__interactive-hint"
             aria-hidden="true"
           >
             <Icon name="lucide:move" class="w-3.5 h-3.5 text-brand-primary animate-pulse" />
-            <span>Click &amp; drag to orbit (pitch &amp; yaw) &bull; Scroll to zoom &bull; Tilt away from top-down to pop 3D HUD</span>
+            <span>Click &amp; drag to orbit &bull; Ctrl+Scroll to zoom &bull; Tilt away from top-down to pop 3D HUD</span>
           </div>
 
           <div
@@ -736,12 +844,13 @@ function losClass(los?: string): string {
                     :style="getHudCardStyle(idx, lane)"
                   >
                     <!-- Top Bar: Title & Lane Width Badge -->
-                    <div class="tux-roadway__hud-top" :title="lane.name">
+                    <div class="tux-roadway__hud-top" :title="`Lane Geometry: ${lane.name} (${lane.widthFt} ft standard width)`">
                       <span class="tux-roadway__hud-title">{{ lane.label }}</span>
                       <span
                         v-if="popOutFactor > 0.15 && lane.type !== 'shoulder'"
                         class="tux-roadway__hud-type-tag"
                         :class="`tux-roadway__hud-type-tag--${lane.type}`"
+                        :title="lane.type === 'managed' ? 'TEXpress Managed Lane: Dynamically priced express corridor maintaining 50+ MPH flow' : 'General Purpose Lane: Standard public highway travel lane'"
                       >
                         {{ lane.type === 'managed' ? 'TEXPRESS' : 'GP' }}
                       </span>
@@ -750,8 +859,8 @@ function losClass(los?: string): string {
                     <!-- Main Stats Section: Speed & LOS -->
                     <div v-if="lane.speedMph" class="tux-roadway__hud-stats">
                       <div class="tux-roadway__hud-main-stat">
-                        <span class="tux-roadway__hud-speed">{{ lane.speedMph }} <small>MPH</small></span>
-                        <span v-if="lane.los" class="tux-roadway__hud-los" :class="losClass(lane.los)">
+                        <span class="tux-roadway__hud-speed" :title="`Median travel speed: ${lane.speedMph} MPH`">{{ lane.speedMph }} <small>MPH</small></span>
+                        <span v-if="lane.los" class="tux-roadway__hud-los" :class="losClass(lane.los)" :title="getLosDescription(lane.los)">
                           LOS {{ lane.los }}
                         </span>
                       </div>
@@ -762,12 +871,12 @@ function losClass(los?: string): string {
                         class="tux-roadway__hud-expanded"
                         :style="{ opacity: Math.min(1, (popOutFactor - 0.15) * 2.5) }"
                       >
-                        <div class="tux-roadway__hud-stat-cell">
+                        <div class="tux-roadway__hud-stat-cell" title="Vehicles Per Hour: Hourly traffic flow rate measured by roadbed sensors">
                           <span class="tux-roadway__hud-stat-val">{{ lane.volumeVph?.toLocaleString() ?? '—' }}</span>
                           <span class="tux-roadway__hud-stat-lbl">VPH</span>
                         </div>
                         <div class="tux-roadway__hud-stat-divider" />
-                        <div class="tux-roadway__hud-stat-cell">
+                        <div class="tux-roadway__hud-stat-cell" title="Sensor Occupancy: Percentage of time sensors detect a vehicle. Over 30% indicates severe congestion.">
                           <span class="tux-roadway__hud-stat-val">{{ lane.occupancyPct ?? '—' }}%</span>
                           <span class="tux-roadway__hud-stat-lbl">OCC</span>
                         </div>
@@ -775,7 +884,7 @@ function losClass(los?: string): string {
                     </div>
 
                     <!-- Shoulder Lane Specific Readout -->
-                    <div v-else-if="lane.type === 'shoulder'" class="tux-roadway__hud-shoulder-info">
+                    <div v-else-if="lane.type === 'shoulder'" class="tux-roadway__hud-shoulder-info" :title="`${lane.name}: ${lane.widthFt} ft paved safety and emergency refuge corridor`">
                       <span class="tux-roadway__hud-shoulder-lbl">
                         {{ idx === 0 ? 'Inside Shldr' : 'Outside Shldr' }}
                       </span>
@@ -911,10 +1020,10 @@ function losClass(los?: string): string {
 
               <!-- Front Cross-Section Geotechnical Slab Face (HMAC, Binder, Limestone Base, Subgrade) -->
               <div class="tux-roadway__roadbed-slab-front">
-                <div class="tux-roadway__slab-layer tux-roadway__slab-layer--surface" title="Superpave HMAC Surface Course (2 in)" />
-                <div class="tux-roadway__slab-layer tux-roadway__slab-layer--binder" title="Asphalt Binder Course (3.5 in)" />
-                <div class="tux-roadway__slab-layer tux-roadway__slab-layer--base" title="Crushed Limestone Flexible Base (10 in)" />
-                <div class="tux-roadway__slab-layer tux-roadway__slab-layer--subgrade" title="Lime-Treated Subgrade Foundation (8 in)" />
+                <div class="tux-roadway__slab-layer tux-roadway__slab-layer--surface" title="Superpave HMAC Surface Course (2 in): High-durability stone-matrix asphalt wearing course (TxDOT Item 344)" />
+                <div class="tux-roadway__slab-layer tux-roadway__slab-layer--binder" title="Dense-Graded Asphalt Binder Course (3.5 in): High-modulus structural load distribution course (TxDOT Item 341)" />
+                <div class="tux-roadway__slab-layer tux-roadway__slab-layer--base" title="Crushed Limestone Flexible Base (10 in): TxDOT Item 247 Grade 1 crushed stone foundation course" />
+                <div class="tux-roadway__slab-layer tux-roadway__slab-layer--subgrade" title="Lime-Treated Subgrade Foundation (8 in): Chemically stabilized native subgrade soil" />
               </div>
               <div class="tux-roadway__roadbed-slab-rear" />
             </div>
@@ -922,25 +1031,25 @@ function losClass(los?: string): string {
             <!-- Roadway Hinge Point & Embankment Drainage Channel (Mathematically Sound V-Ditch) -->
             <div class="tux-roadway__3d-embankment">
               <!-- Foreslope descending from shoulder into the ground -->
-              <div class="tux-roadway__foreslope">
+              <div class="tux-roadway__foreslope" title="AASHTO Recoverable Foreslope (4:1): Traversable grade allowing errant vehicles to safely recover or brake without overturning">
                 <div class="tux-roadway__slope-label">{{ activeData.foreslope }}</div>
                 <div class="tux-roadway__grass-texture" />
               </div>
 
               <!-- Drainage Ditch / Swale Channel Invert sunken at bottom -->
-              <div class="tux-roadway__ditch-invert">
+              <div class="tux-roadway__ditch-invert" title="Swale Flowline Invert: Vegetated drainage channel engineered for 10-year storm event runoff capacity">
                 <div class="tux-roadway__water-flow" />
                 <span class="tux-roadway__ditch-label">Drainage Flow Line</span>
               </div>
 
               <!-- Embankment Backslope ascending back to natural grade -->
-              <div class="tux-roadway__backslope">
+              <div class="tux-roadway__backslope" title="AASHTO Backslope (3:1): Stable embankment slope ascending to natural ground elevation">
                 <div class="tux-roadway__backslope-label">{{ activeData.backslope }}</div>
                 <div class="tux-roadway__grass-texture" />
               </div>
 
               <!-- Right-of-Way Buffer Strip & Boundary Fence -->
-              <div class="tux-roadway__row-strip">
+              <div class="tux-roadway__row-strip" title="TxDOT Right-of-Way (R.O.W.) Limit: Legal boundary of state transportation property">
                 <div class="tux-roadway__row-fence">
                   <div class="tux-roadway__row-tag">TxDOT R.O.W. Limit</div>
                 </div>
@@ -1625,12 +1734,74 @@ function losClass(los?: string): string {
   transform-style: preserve-3d;
   padding: 2rem;
   cursor: grab;
+  touch-action: pan-y;
+  position: relative;
+}
+
+.tux-roadway__perspective-wrapper--active,
+.tux-roadway__perspective-wrapper--dragging {
   touch-action: none;
 }
 
 .tux-roadway__perspective-wrapper--dragging {
   cursor: grabbing !important;
   user-select: none;
+}
+
+/* Scroll Shield Notification & Active Focus Badges */
+.tux-roadway__scroll-shield-badge {
+  position: absolute;
+  top: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: var(--radius-full);
+  background-color: var(--surface-raised);
+  border: 1px solid color-mix(in srgb, var(--brand-accent) 35%, var(--surface-border));
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--neutral-1000) 35%, transparent);
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.tux-roadway__active-shield-pill {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 45;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius-full);
+  background-color: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--neutral-1000) 22%, transparent);
+  color: var(--text-secondary);
+  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tux-roadway__active-shield-pill:hover,
+.tux-roadway__active-shield-pill:focus-visible {
+  border-color: var(--brand-primary);
+  color: var(--text-primary);
+  outline: none;
+}
+
+/* Off-screen performance throttling: pause animations when scrolled out of view */
+.tux-roadway__3d-viewport--offscreen .tux-roadway__vehicle,
+.tux-roadway__3d-viewport--offscreen .tux-roadway__water-flow {
+  animation-play-state: paused !important;
 }
 
 .tux-roadway__interactive-hint {
@@ -2009,15 +2180,15 @@ function losClass(los?: string): string {
 }
 
 .tux-roadway__hud-card--popped {
-  width: 140px;
-  padding: 0.45rem 0.55rem;
+  width: 146px;
+  padding: 0.45rem 0.6rem;
   box-shadow: 0 12px 28px -4px color-mix(in srgb, var(--neutral-1000) 50%, transparent);
   border-color: color-mix(in srgb, var(--brand-accent) 35%, var(--surface-border));
 }
 
 .tux-roadway__hud-card--shoulder.tux-roadway__hud-card--popped {
-  width: 96px;
-  padding: 0.35rem 0.45rem;
+  width: 104px;
+  padding: 0.4rem 0.5rem;
 }
 
 .tux-roadway__hud-card--selected {
@@ -2035,7 +2206,7 @@ function losClass(los?: string): string {
 
 .tux-roadway__hud-title {
   display: block;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-family: var(--font-mono);
   font-weight: 700;
   color: var(--text-primary);
@@ -2043,14 +2214,14 @@ function losClass(los?: string): string {
 }
 
 .tux-roadway__hud-card--popped .tux-roadway__hud-title {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 
 .tux-roadway__hud-type-tag {
-  font-size: 0.5rem;
+  font-size: 0.5625rem;
   font-family: var(--font-mono);
-  font-weight: 700;
-  padding: 0.05rem 0.2rem;
+  font-weight: 800;
+  padding: 0.08rem 0.25rem;
   border-radius: var(--radius-sm);
   background-color: var(--surface-sunken);
   color: var(--text-secondary);
@@ -2066,25 +2237,25 @@ function losClass(los?: string): string {
 }
 
 .tux-roadway__hud-stats {
-  margin-top: 0.15rem;
+  margin-top: 0.2rem;
 }
 
 .tux-roadway__hud-main-stat {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
 }
 
 .tux-roadway__hud-speed {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 800;
   color: var(--brand-primary);
 }
 
 .tux-roadway__hud-card--popped .tux-roadway__hud-speed {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
 }
 
 [data-theme="tti-dark"] .tux-roadway__hud-speed {
@@ -2092,16 +2263,16 @@ function losClass(los?: string): string {
 }
 
 .tux-roadway__hud-speed small {
-  font-size: 0.5625rem;
-  font-weight: 600;
+  font-size: 0.625rem;
+  font-weight: 700;
   color: var(--text-muted);
 }
 
 .tux-roadway__hud-los {
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-family: var(--font-mono);
-  font-weight: 700;
-  padding: 0.05rem 0.25rem;
+  font-weight: 800;
+  padding: 0.08rem 0.3rem;
   border-radius: var(--radius-sm);
   border: 1px solid;
 }
@@ -2119,25 +2290,26 @@ function losClass(los?: string): string {
   display: flex;
   flex-direction: column;
   align-items: center;
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
 .tux-roadway__hud-stat-val {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-family: var(--font-mono);
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .tux-roadway__hud-stat-lbl {
-  font-size: 0.5rem;
+  font-size: 0.5625rem;
   font-family: var(--font-mono);
+  font-weight: 700;
   color: var(--text-muted);
 }
 
 .tux-roadway__hud-stat-divider {
   width: 1px;
-  height: 18px;
+  height: 20px;
   background-color: var(--surface-border);
 }
 
@@ -2145,18 +2317,18 @@ function losClass(los?: string): string {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.1rem;
+  gap: 0.15rem;
 }
 
 .tux-roadway__hud-shoulder-lbl {
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-family: var(--font-mono);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-muted);
 }
 
 .tux-roadway__hud-shoulder-sub {
-  font-size: 0.5rem;
+  font-size: 0.5625rem;
   font-family: var(--font-mono);
   color: var(--text-secondary);
 }
@@ -3133,5 +3305,22 @@ function losClass(los?: string): string {
   border-color: var(--brand-primary);
   background-color: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-page));
   box-shadow: var(--elevation-rest);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tux-roadway__vehicle,
+  .tux-roadway__v3d-lidar-puck,
+  .tux-roadway__water-flow,
+  .tux-roadway__interactive-hint {
+    animation: none !important;
+  }
+
+  .tux-roadway__3d-corridor,
+  .tux-roadway__lane-hud-anchor,
+  .tux-roadway__hud-card,
+  .tux-roadway__action-btn,
+  .tux-roadway__lane-kpi-card {
+    transition: none !important;
+  }
 }
 </style>
