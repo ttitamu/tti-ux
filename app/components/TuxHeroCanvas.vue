@@ -362,21 +362,23 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: flex-end;
   padding-top: 4.5rem;
-  padding-bottom: 3.5rem;
-  border-bottom: 1px solid var(--surface-border);
+  padding-bottom: 4rem;
 }
 
 [data-theme="tti-dark"] .tux-hero-canvas {
   background: radial-gradient(ellipse 90% 70% at 50% 45%, color-mix(in srgb, var(--brand-primary) 50%, var(--surface-page)), var(--surface-page) 85%);
-  border-bottom-color: var(--surface-border);
 }
 
 /* Blend Modes: Apply mask ONLY to canvas layers, NEVER to slot content */
+.tux-hero-canvas--blend-seamless {
+  border-bottom: none;
+}
+
 .tux-hero-canvas--blend-seamless .tux-hero-canvas__layer,
 .tux-hero-canvas--blend-seamless .tux-hero-canvas__fallback {
   /* Gradient alpha mask dissolves bottom stardust smoothly into stage background */
-  mask-image: linear-gradient(to bottom, black 65%, color-mix(in srgb, black 35%, transparent) 85%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 65%, color-mix(in srgb, black 35%, transparent) 85%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 55%, color-mix(in srgb, black 35%, transparent) 78%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 55%, color-mix(in srgb, black 35%, transparent) 78%, transparent 100%);
 }
 
 .tux-hero-canvas--blend-contained {
@@ -386,13 +388,21 @@ onUnmounted(() => {
 
 .tux-hero-canvas--blend-full-bleed {
   border-radius: 0;
+  border-bottom: 1px solid var(--surface-border);
 }
 
 .tux-hero-canvas__bottom-bleed {
   position: absolute;
   inset: auto 0 0 0;
-  height: 2rem;
-  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--surface-border) 22%, transparent));
+  height: 14rem;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in srgb, var(--surface-page) 8%, transparent) 30%,
+    color-mix(in srgb, var(--surface-page) 22%, transparent) 55%,
+    color-mix(in srgb, var(--surface-page) 50%, transparent) 78%,
+    var(--surface-page) 100%
+  );
   pointer-events: none;
   z-index: 1;
 }
