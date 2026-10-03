@@ -1415,7 +1415,7 @@
       }
     },
     "TuxHeroCanvas": {
-      "sourceHash": "8d505b140fcd4197",
+      "sourceHash": "1847fd3140edbdd1",
       "ports": {
         "react": {
           "hash": null
@@ -1423,7 +1423,7 @@
       }
     },
     "TuxRoadwayCrossSection": {
-      "sourceHash": "a7b73b0685823017",
+      "sourceHash": "ec3f4a11ee71291b",
       "ports": {
         "react": {
           "hash": null

@@ -660,13 +660,19 @@ function losClass(los?: string): string {
               transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
             }"
           >
-            <!-- Concrete Median Barrier (TxDOT Single Slope) -->
+            <!-- Volumetric Subgrade Earth Foundation Pedestal (Anchors corridor in 3D space) -->
+            <div class="tux-roadway__corridor-pedestal" />
+
+            <!-- Concrete Median Barrier (TxDOT Single-Slope SSCB-42" Extruded in 3D) -->
             <div class="tux-roadway__3d-barrier">
-              <div class="tux-roadway__barrier-cap" />
-              <div class="tux-roadway__barrier-face" />
+              <div class="tux-roadway__barrier-shadow" />
+              <div class="tux-roadway__barrier-top" />
+              <div class="tux-roadway__barrier-flank-right" />
+              <div class="tux-roadway__barrier-flank-left" />
+              <div class="tux-roadway__barrier-front" />
             </div>
 
-            <!-- Asphalt Roadbed Surface with Realistic Markings -->
+            <!-- Asphalt Roadbed Surface with Realistic Markings & Geotechnical Slab Extrusion -->
             <div class="tux-roadway__3d-roadbed">
               <div
                 v-for="(lane, idx) in activeData.lanes"
@@ -682,7 +688,19 @@ function losClass(los?: string): string {
                 <!-- Striping lines -->
                 <div v-if="idx === 0" class="tux-roadway__stripe-yellow" />
                 <div v-else-if="lane.type === 'shoulder'" class="tux-roadway__stripe-white-solid" />
-                <div v-else class="tux-roadway__stripe-white-dashed" />
+                <div v-else class="tux-roadway__stripe-white-dashed">
+                  <!-- Raised Pavement Markers (RPMs / Botts' Dots) along dashed lines -->
+                  <div class="tux-roadway__rpm tux-roadway__rpm--1" />
+                  <div class="tux-roadway__rpm tux-roadway__rpm--2" />
+                  <div class="tux-roadway__rpm tux-roadway__rpm--3" />
+                  <div class="tux-roadway__rpm tux-roadway__rpm--4" />
+                </div>
+
+                <!-- Subtle Wheel Path Compaction Wear in Travel Lanes -->
+                <div v-if="lane.type !== 'shoulder'" class="tux-roadway__wheel-paths">
+                  <div class="tux-roadway__wheel-track tux-roadway__wheel-track--left" />
+                  <div class="tux-roadway__wheel-track tux-roadway__wheel-track--right" />
+                </div>
 
                 <!-- Floating 3D Spatial Telemetry HUD Pane -->
                 <div
@@ -768,7 +786,7 @@ function losClass(los?: string): string {
                   </div>
                 </div>
 
-                <!-- Animated 3D Vehicle Platoon in Lane -->
+                <!-- Animated 3D Volumetric Vehicle Platoon in Lane -->
                 <div
                   v-if="lane.type !== 'shoulder'"
                   class="tux-roadway__platoon-stream"
@@ -786,15 +804,17 @@ function losClass(los?: string): string {
                       animationDelay: `${(v - 1) * 2.8 + (idx * 0.7)}s`
                     }"
                   >
-                    <!-- Soft Ground Contact Shadow on Asphalt -->
+                    <!-- Crisp Ground Contact AO Shadow on Asphalt -->
                     <div class="tux-roadway__v3d-shadow" />
 
-                    <!-- Wheels -->
+                    <!-- 3D Wheels touching asphalt plane -->
                     <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--fl" />
                     <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--fr" />
                     <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--rl" />
                     <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--rr" />
                     <template v-if="getLaneVehicleType(lane, v) === 'truck'">
+                      <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--mid-l" />
+                      <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--mid-r" />
                       <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--rl2" />
                       <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--rr2" />
                     </template>
@@ -805,41 +825,47 @@ function losClass(los?: string): string {
                     <!-- EV Cybernetic Underglow on Asphalt -->
                     <div v-if="getLaneVehicleType(lane, v) === 'ev'" class="tux-roadway__v3d-underglow" />
 
-                    <!-- Extruded 3D Chassis Base Body -->
+                    <!-- Volumetric 3D Chassis Base Body -->
                     <div class="tux-roadway__v3d-chassis">
-                      <!-- Hood -->
-                      <div class="tux-roadway__v3d-hood" />
+                      <!-- Hood Surface -->
+                      <div class="tux-roadway__v3d-hood">
+                        <div class="tux-roadway__v3d-hood-crease" />
+                      </div>
                       <!-- Trunk (for sedan / ev) -->
                       <div
                         v-if="getLaneVehicleType(lane, v) === 'sedan' || getLaneVehicleType(lane, v) === 'ev'"
                         class="tux-roadway__v3d-trunk"
                       />
-                      <!-- 3D Flank Walls -->
+                      <!-- 3D Flank Walls dropping down to ground -->
                       <div class="tux-roadway__v3d-flank tux-roadway__v3d-flank--left" />
                       <div class="tux-roadway__v3d-flank tux-roadway__v3d-flank--right" />
                       <!-- Front Bumper Face with Headlamps -->
                       <div class="tux-roadway__v3d-bumper-front">
                         <div class="tux-roadway__v3d-headlamp tux-roadway__v3d-headlamp--left" />
+                        <div class="tux-roadway__v3d-grille" />
                         <div class="tux-roadway__v3d-headlamp tux-roadway__v3d-headlamp--right" />
                       </div>
                       <!-- Rear Bumper Face with Taillights -->
                       <div class="tux-roadway__v3d-bumper-rear">
                         <div class="tux-roadway__v3d-taillight tux-roadway__v3d-taillight--left" />
+                        <div class="tux-roadway__v3d-license-plate" />
                         <div class="tux-roadway__v3d-taillight tux-roadway__v3d-taillight--right" />
                       </div>
                     </div>
 
-                    <!-- Pickup Truck Open Cargo Bed -->
+                    <!-- Texas Work Pickup Truck Open Bed -->
                     <div v-if="getLaneVehicleType(lane, v) === 'pickup'" class="tux-roadway__v3d-pickup-bed">
                       <div class="tux-roadway__v3d-bed-floor" />
                       <div class="tux-roadway__v3d-bed-rail tux-roadway__v3d-bed-rail--left" />
                       <div class="tux-roadway__v3d-bed-rail tux-roadway__v3d-bed-rail--right" />
                       <div class="tux-roadway__v3d-bed-tailgate" />
+                      <div class="tux-roadway__v3d-headache-rack" />
+                      <div class="tux-roadway__v3d-bed-toolbox" />
                     </div>
 
                     <!-- 3D Elevated Cabin Greenhouse with Sloped Windshields -->
                     <div class="tux-roadway__v3d-cabin">
-                      <!-- Roof Top -->
+                      <!-- Roof Top Surface with Highlight -->
                       <div class="tux-roadway__v3d-roof">
                         <!-- Autonomous Connected EV LIDAR Sensor Puck -->
                         <div v-if="getLaneVehicleType(lane, v) === 'ev'" class="tux-roadway__v3d-lidar" />
@@ -847,8 +873,10 @@ function losClass(los?: string): string {
                         <div v-if="getLaneVehicleType(lane, v) === 'truck'" class="tux-roadway__v3d-truck-fairing" />
                       </div>
                       <!-- Sloped Front Windshield -->
-                      <div class="tux-roadway__v3d-windshield" />
-                      <!-- Rear Window -->
+                      <div class="tux-roadway__v3d-windshield">
+                        <div class="tux-roadway__v3d-glass-glare" />
+                      </div>
+                      <!-- Sloped Rear Window -->
                       <div class="tux-roadway__v3d-backwindow" />
                       <!-- Side Windows -->
                       <div class="tux-roadway__v3d-glass-side tux-roadway__v3d-glass-side--left" />
@@ -880,29 +908,61 @@ function losClass(los?: string): string {
                 <!-- Rumble strip pattern on outside shoulder -->
                 <div v-if="lane.type === 'shoulder' && lane.widthFt >= 8" class="tux-roadway__rumble-strip" />
               </div>
+
+              <!-- Front Cross-Section Geotechnical Slab Face (HMAC, Binder, Limestone Base, Subgrade) -->
+              <div class="tux-roadway__roadbed-slab-front">
+                <div class="tux-roadway__slab-layer tux-roadway__slab-layer--surface" title="Superpave HMAC Surface Course (2 in)" />
+                <div class="tux-roadway__slab-layer tux-roadway__slab-layer--binder" title="Asphalt Binder Course (3.5 in)" />
+                <div class="tux-roadway__slab-layer tux-roadway__slab-layer--base" title="Crushed Limestone Flexible Base (10 in)" />
+                <div class="tux-roadway__slab-layer tux-roadway__slab-layer--subgrade" title="Lime-Treated Subgrade Foundation (8 in)" />
+              </div>
+              <div class="tux-roadway__roadbed-slab-rear" />
             </div>
 
-            <!-- Roadway Hinge Point & Embankment Foreslope -->
+            <!-- Roadway Hinge Point & Embankment Drainage Channel (Mathematically Sound V-Ditch) -->
             <div class="tux-roadway__3d-embankment">
+              <!-- Foreslope descending from shoulder into the ground -->
               <div class="tux-roadway__foreslope">
                 <div class="tux-roadway__slope-label">{{ activeData.foreslope }}</div>
                 <div class="tux-roadway__grass-texture" />
               </div>
 
-              <!-- Drainage Ditch / Swale Channel Invert -->
+              <!-- Drainage Ditch / Swale Channel Invert sunken at bottom -->
               <div class="tux-roadway__ditch-invert">
                 <div class="tux-roadway__water-flow" />
                 <span class="tux-roadway__ditch-label">Drainage Flow Line</span>
               </div>
 
-              <!-- Embankment Backslope to Right-of-Way -->
+              <!-- Embankment Backslope ascending back to natural grade -->
               <div class="tux-roadway__backslope">
                 <div class="tux-roadway__backslope-label">{{ activeData.backslope }}</div>
+                <div class="tux-roadway__grass-texture" />
               </div>
 
-              <!-- Right of Way Fence Line -->
-              <div class="tux-roadway__row-fence">
-                <div class="tux-roadway__row-tag">TxDOT R.O.W. Limit</div>
+              <!-- Right-of-Way Buffer Strip & Boundary Fence -->
+              <div class="tux-roadway__row-strip">
+                <div class="tux-roadway__row-fence">
+                  <div class="tux-roadway__row-tag">TxDOT R.O.W. Limit</div>
+                </div>
+              </div>
+
+              <!-- Earth Cross-Section Cut Face along Front Edge of Embankment -->
+              <div class="tux-roadway__embankment-cut-front">
+                <svg class="tux-roadway__embankment-svg" viewBox="0 0 220 28" preserveAspectRatio="none" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="tuxSoilGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="var(--surface-sunken)" />
+                      <stop offset="35%" stop-color="color-mix(in srgb, var(--brand-secondary) 22%, var(--surface-sunken))" />
+                      <stop offset="100%" stop-color="var(--neutral-900)" />
+                    </linearGradient>
+                  </defs>
+                  <!-- Geotechnical earth polygon matching the ditch cross-section:
+                       Starts at shoulder (0,0), descends foreslope to (73,22), traverses swale invert to (109,22),
+                       ascends backslope to (182,0), traverses ROW strip to (220,0), drops to bedrock base (220,28) -> (0,28) -->
+                  <polygon points="0,0 73,22 109,22 182,0 220,0 220,28 0,28" fill="url(#tuxSoilGrad)" stroke="var(--surface-border)" stroke-width="0.5" />
+                  <!-- Water depth in the swale channel invert -->
+                  <polygon points="73,22 109,22 109,19 73,19" fill="var(--color-info)" opacity="0.6" />
+                </svg>
               </div>
             </div>
           </div>
@@ -1618,24 +1678,83 @@ function losClass(los?: string): string {
   box-shadow: 0 32px 64px -16px color-mix(in srgb, var(--neutral-1000) 50%, transparent);
 }
 
-/* Concrete Barrier Extruded in 3D */
+/* Volumetric Subgrade Earth Foundation Pedestal */
+.tux-roadway__corridor-pedestal {
+  position: absolute;
+  inset: 0;
+  transform: translateZ(-28px);
+  background: var(--neutral-900);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 32px 64px -16px color-mix(in srgb, var(--neutral-1000) 50%, transparent);
+  pointer-events: none;
+}
+
+/* Concrete Barrier Extruded in 3D (TxDOT Single-Slope SSCB-42") */
 .tux-roadway__3d-barrier {
   width: 18px;
   height: 100%;
-  background-color: var(--neutral-400);
-  border-right: 2px solid var(--neutral-600);
-  transform: translateZ(14px);
   position: relative;
-  box-shadow: -4px 0 12px color-mix(in srgb, var(--neutral-1000) 35%, transparent);
+  transform-style: preserve-3d;
+  flex-shrink: 0;
 }
 
-.tux-roadway__barrier-cap {
+.tux-roadway__barrier-shadow {
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
-  height: 6px;
+  bottom: 0;
+  left: 12px;
+  width: 14px;
+  background: linear-gradient(to right, color-mix(in srgb, var(--neutral-1000) 35%, transparent), transparent);
+  transform: translateZ(0.2px);
+  pointer-events: none;
+}
+
+.tux-roadway__barrier-top {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 2px;
+  width: 12px;
   background-color: var(--neutral-300);
+  transform: translateZ(18px);
+  border-left: 1px solid var(--neutral-200);
+  border-right: 1px solid var(--neutral-400);
+}
+
+.tux-roadway__barrier-flank-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 14px;
+  width: 19px;
+  transform-origin: left center;
+  transform: translateZ(18px) rotateY(77deg);
+  background: linear-gradient(to bottom, var(--neutral-400), var(--neutral-500));
+}
+
+.tux-roadway__barrier-flank-left {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 2px;
+  width: 18px;
+  transform-origin: left center;
+  transform: translateZ(18px) rotateY(-90deg);
+  background-color: var(--neutral-500);
+}
+
+.tux-roadway__barrier-front {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 18px;
+  height: 18px;
+  transform-origin: top center;
+  transform: rotateX(-90deg);
+  background-color: var(--neutral-400);
+  border-left: 1px solid var(--neutral-300);
+  border-bottom: 2px solid var(--neutral-600);
 }
 
 /* Roadbed */
@@ -1647,7 +1766,55 @@ function losClass(los?: string): string {
   position: relative;
   overflow: visible;
   transform-style: preserve-3d;
-  border-bottom: 4px solid var(--neutral-900);
+}
+
+/* Front Cross-Section Geotechnical Pavement Slab Face (HMAC, Binder, Base, Subgrade) */
+.tux-roadway__roadbed-slab-front {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 28px;
+  transform-origin: top center;
+  transform: rotateX(-90deg);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 8px color-mix(in srgb, var(--neutral-1000) 50%, transparent);
+}
+
+.tux-roadway__slab-layer--surface {
+  height: 4px;
+  background-color: var(--neutral-900);
+  border-bottom: 1px solid var(--neutral-700);
+}
+
+.tux-roadway__slab-layer--binder {
+  height: 5px;
+  background-color: var(--neutral-700);
+  border-bottom: 1px solid var(--neutral-600);
+}
+
+.tux-roadway__slab-layer--base {
+  height: 10px;
+  background-color: var(--neutral-500);
+  border-bottom: 1px solid var(--neutral-600);
+}
+
+.tux-roadway__slab-layer--subgrade {
+  height: 9px;
+  background-color: color-mix(in srgb, var(--brand-secondary) 22%, var(--surface-sunken));
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.tux-roadway__roadbed-slab-rear {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  height: 28px;
+  transform-origin: bottom center;
+  transform: rotateX(90deg);
+  background-color: var(--neutral-900);
 }
 
 .tux-roadway__3d-lane {
@@ -1715,6 +1882,43 @@ function losClass(los?: string): string {
     var(--neutral-0) 24px,
     transparent 24px,
     transparent 48px
+  );
+}
+
+/* Raised Pavement Markers (Botts' Dots / RPMs) */
+.tux-roadway__rpm {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  left: 50%;
+  transform: translateX(-50%) translateZ(1.5px);
+  border-radius: 1px;
+  background-color: var(--neutral-0);
+  box-shadow: 0 0 3px var(--neutral-0);
+}
+
+.tux-roadway__rpm--1 { top: 15%; }
+.tux-roadway__rpm--2 { top: 40%; }
+.tux-roadway__rpm--3 { top: 65%; }
+.tux-roadway__rpm--4 { top: 90%; }
+
+/* Wheel Path Compaction Wear in Travel Lanes */
+.tux-roadway__wheel-paths {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  justify-content: space-around;
+  padding: 0 10%;
+}
+
+.tux-roadway__wheel-track {
+  width: 22%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--neutral-1000) 12%, transparent),
+    color-mix(in srgb, var(--neutral-1000) 18%, transparent)
   );
 }
 
@@ -1978,26 +2182,26 @@ function losClass(los?: string): string {
 }
 
 .tux-roadway__vehicle--pickup {
-  width: 34px;
-  height: 78px;
+  width: 36px;
+  height: 80px;
 }
 
 .tux-roadway__vehicle--truck {
   width: 40px;
-  height: 116px;
+  height: 128px;
 }
 
-/* 3D Ground Shadow */
+/* Crisp Ground Contact AO Shadow on Asphalt */
 .tux-roadway__v3d-shadow {
   position: absolute;
-  inset: -4px;
-  border-radius: var(--radius-md);
+  inset: -3px;
+  border-radius: var(--radius-sm);
   background-color: color-mix(in srgb, var(--neutral-1000) 50%, transparent);
-  filter: blur(4px);
+  filter: blur(3px);
   transform: translateZ(0.2px);
 }
 
-/* 3D Wheels with Rubber Treads & Alloy Rims */
+/* 3D Wheels touching asphalt plane (Z = 0) */
 .tux-roadway__v3d-wheel {
   position: absolute;
   width: 5px;
@@ -2005,7 +2209,7 @@ function losClass(los?: string): string {
   border-radius: 2px;
   background-color: var(--neutral-900);
   box-shadow: inset 0 0 2px var(--neutral-1000);
-  transform: translateZ(4px);
+  transform: translateZ(3px);
   z-index: 2;
 }
 
@@ -2041,22 +2245,32 @@ function losClass(los?: string): string {
   right: -2px;
 }
 
+.tux-roadway__v3d-wheel--mid-l {
+  top: 38px;
+  left: -2px;
+}
+
+.tux-roadway__v3d-wheel--mid-r {
+  top: 38px;
+  right: -2px;
+}
+
 .tux-roadway__v3d-wheel--rl2 {
-  top: 28px;
+  top: 26px;
   left: -2px;
 }
 
 .tux-roadway__v3d-wheel--rr2 {
-  top: 28px;
+  top: 26px;
   right: -2px;
 }
 
-/* 3D Chassis Base Body */
+/* Volumetric 3D Chassis Base Body */
 .tux-roadway__v3d-chassis {
   position: absolute;
   inset: 2px;
   transform-style: preserve-3d;
-  transform: translateZ(7px);
+  transform: translateZ(8px);
   border-radius: var(--radius-sm);
 }
 
@@ -2073,6 +2287,7 @@ function losClass(los?: string): string {
 .tux-roadway__vehicle--pickup .tux-roadway__v3d-chassis {
   background-color: var(--neutral-300);
   color: var(--neutral-300);
+  transform: translateZ(9px);
 }
 
 .tux-roadway__vehicle--truck .tux-roadway__v3d-chassis {
@@ -2080,10 +2295,11 @@ function losClass(los?: string): string {
   color: var(--brand-primary);
   top: auto;
   bottom: 2px;
-  height: 38px;
+  height: 44px;
+  transform: translateZ(10px);
 }
 
-/* Hood & Trunk Top Surfaces */
+/* Hood & Trunk Top Surfaces with Facet Highlighting */
 .tux-roadway__v3d-hood {
   position: absolute;
   bottom: 0;
@@ -2093,6 +2309,16 @@ function losClass(los?: string): string {
   background-color: inherit;
   border-radius: 0 0 4px 4px;
   box-shadow: inset 0 -2px 4px color-mix(in srgb, var(--neutral-1000) 18%, transparent);
+}
+
+.tux-roadway__v3d-hood-crease {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 50%;
+  width: 1px;
+  background-color: color-mix(in srgb, var(--neutral-1000) 22%, transparent);
+  transform: translateX(-50%);
 }
 
 .tux-roadway__v3d-trunk {
@@ -2106,25 +2332,26 @@ function losClass(los?: string): string {
   box-shadow: inset 0 2px 4px color-mix(in srgb, var(--neutral-1000) 18%, transparent);
 }
 
-/* 3D Flank Walls (Chassis Thickness) */
+/* 3D Flank Walls (Chassis Thickness Dropping to Wheels/Ground) */
 .tux-roadway__v3d-flank {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 7px;
-  background-color: color-mix(in srgb, var(--neutral-1000) 22%, currentColor);
+  width: 8px;
 }
 
 .tux-roadway__v3d-flank--left {
   left: 0;
   transform-origin: left center;
-  transform: rotateY(-90deg);
+  transform: rotateY(90deg);
+  background-color: color-mix(in srgb, currentColor 80%, var(--neutral-1000));
 }
 
 .tux-roadway__v3d-flank--right {
   right: 0;
   transform-origin: right center;
-  transform: rotateY(90deg);
+  transform: rotateY(-90deg);
+  background-color: color-mix(in srgb, currentColor 50%, var(--neutral-1000));
 }
 
 /* Front & Rear Bumpers */
@@ -2133,14 +2360,28 @@ function losClass(los?: string): string {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 7px;
+  height: 8px;
   transform-origin: center bottom;
-  transform: rotateX(-90deg);
-  background-color: color-mix(in srgb, var(--neutral-1000) 35%, currentColor);
+  transform: rotateX(90deg);
+  background-color: color-mix(in srgb, currentColor 70%, var(--neutral-1000));
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 2px;
+}
+
+.tux-roadway__v3d-grille {
+  flex: 1;
+  height: 4px;
+  margin: 0 3px;
+  background: repeating-linear-gradient(
+    to right,
+    var(--neutral-900) 0px,
+    var(--neutral-900) 2px,
+    var(--neutral-600) 2px,
+    var(--neutral-600) 4px
+  );
+  border-radius: 1px;
 }
 
 .tux-roadway__v3d-bumper-rear {
@@ -2148,20 +2389,28 @@ function losClass(los?: string): string {
   top: 0;
   left: 0;
   right: 0;
-  height: 7px;
+  height: 8px;
   transform-origin: center top;
-  transform: rotateX(90deg);
-  background-color: color-mix(in srgb, var(--neutral-1000) 35%, currentColor);
+  transform: rotateX(-90deg);
+  background-color: color-mix(in srgb, currentColor 60%, var(--neutral-1000));
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 2px;
 }
 
+.tux-roadway__v3d-license-plate {
+  width: 8px;
+  height: 3px;
+  background-color: var(--neutral-0);
+  border: 1px solid var(--neutral-800);
+  border-radius: 1px;
+}
+
 /* Headlamps & LED Taillights */
 .tux-roadway__v3d-headlamp {
   width: 6px;
-  height: 3px;
+  height: 4px;
   border-radius: 1px;
   background-color: var(--neutral-0);
   box-shadow: 0 0 8px var(--neutral-0);
@@ -2204,7 +2453,7 @@ function losClass(los?: string): string {
   pointer-events: none;
 }
 
-/* 3D Elevated Cabin (Greenhouse) */
+/* 3D Elevated Cabin Greenhouse with High-Contrast Normal Shading */
 .tux-roadway__v3d-cabin {
   position: absolute;
   top: 18px;
@@ -2212,32 +2461,32 @@ function losClass(los?: string): string {
   left: 3px;
   right: 3px;
   transform-style: preserve-3d;
-  transform: translateZ(18px);
+  transform: translateZ(16px);
 }
 
 .tux-roadway__vehicle--pickup .tux-roadway__v3d-cabin {
   top: auto;
   bottom: 22px;
   height: 26px;
-  transform: translateZ(19px);
+  transform: translateZ(18px);
 }
 
 .tux-roadway__vehicle--truck .tux-roadway__v3d-cabin {
   top: auto;
-  bottom: 18px;
-  height: 22px;
+  bottom: 20px;
+  height: 24px;
   left: 2px;
   right: 2px;
-  transform: translateZ(22px);
+  transform: translateZ(24px);
 }
 
 .tux-roadway__v3d-roof {
   position: absolute;
   inset: 0;
-  background-color: color-mix(in srgb, var(--neutral-1000) 12%, currentColor);
+  background-color: currentColor;
   border-radius: 2px;
   transform-style: preserve-3d;
-  box-shadow: inset 0 0 4px color-mix(in srgb, var(--neutral-1000) 22%, transparent);
+  box-shadow: inset 0 0 4px color-mix(in srgb, var(--neutral-0) 22%, transparent);
 }
 
 .tux-roadway__vehicle--sedan .tux-roadway__v3d-roof {
@@ -2259,18 +2508,28 @@ function losClass(los?: string): string {
 /* Sloped Windshields (Angled Glass) */
 .tux-roadway__v3d-windshield {
   position: absolute;
-  bottom: -11px;
+  bottom: -10px;
   left: 0;
   right: 0;
-  height: 15px;
+  height: 14px;
   transform-origin: top center;
-  transform: rotateX(-45deg);
+  transform: rotateX(-50deg);
   background: linear-gradient(
     to bottom,
-    color-mix(in srgb, var(--color-info) 35%, var(--neutral-1000)),
-    color-mix(in srgb, var(--color-info) 50%, var(--neutral-1000))
+    color-mix(in srgb, var(--color-info) 50%, var(--neutral-900)),
+    color-mix(in srgb, var(--color-info) 22%, var(--neutral-1000))
   );
   border-bottom: 1px solid color-mix(in srgb, var(--neutral-0) 22%, transparent);
+}
+
+.tux-roadway__v3d-glass-glare {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  height: 2px;
+  background: color-mix(in srgb, var(--neutral-0) 50%, transparent);
+  border-radius: 1px;
 }
 
 .tux-roadway__v3d-backwindow {
@@ -2278,9 +2537,9 @@ function losClass(los?: string): string {
   top: -10px;
   left: 0;
   right: 0;
-  height: 13px;
+  height: 14px;
   transform-origin: bottom center;
-  transform: rotateX(45deg);
+  transform: rotateX(50deg);
   background: color-mix(in srgb, var(--color-info) 35%, var(--neutral-1000));
 }
 
@@ -2288,20 +2547,20 @@ function losClass(los?: string): string {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 11px;
+  width: 9px;
   background: color-mix(in srgb, var(--color-info) 22%, var(--neutral-1000));
 }
 
 .tux-roadway__v3d-glass-side--left {
   left: 0;
   transform-origin: left center;
-  transform: rotateY(-90deg);
+  transform: rotateY(90deg);
 }
 
 .tux-roadway__v3d-glass-side--right {
   right: 0;
   transform-origin: right center;
-  transform: rotateY(90deg);
+  transform: rotateY(-90deg);
 }
 
 /* Autonomous Connected Vehicle LIDAR Sensor Puck */
@@ -2329,11 +2588,11 @@ function losClass(los?: string): string {
   }
 }
 
-/* Pickup Bed */
+/* Texas Work Pickup Truck Open Bed with Realistic Toolbox & Rack */
 .tux-roadway__v3d-pickup-bed {
   position: absolute;
   top: 2px;
-  bottom: 50px;
+  bottom: 48px;
   left: 2px;
   right: 2px;
   transform-style: preserve-3d;
@@ -2359,7 +2618,7 @@ function losClass(los?: string): string {
   bottom: 0;
   width: 4px;
   background-color: var(--neutral-300);
-  transform: translateZ(14px);
+  transform: translateZ(15px);
 }
 
 .tux-roadway__v3d-bed-rail--left {
@@ -2377,13 +2636,35 @@ function losClass(los?: string): string {
   right: 0;
   height: 6px;
   background-color: var(--neutral-400);
+  transform: translateZ(15px);
+}
+
+.tux-roadway__v3d-headache-rack {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: var(--neutral-200);
+  transform: translateZ(19px);
+  border-radius: 1px;
+}
+
+.tux-roadway__v3d-bed-toolbox {
+  position: absolute;
+  bottom: 4px;
+  left: 2px;
+  right: 2px;
+  height: 7px;
+  background-color: var(--neutral-400);
+  border: 1px solid var(--neutral-300);
   transform: translateZ(14px);
 }
 
-/* Semi Truck Stacks & Trailer */
+/* Semi Truck Stacks & 53-Ft Dry Van Cargo Trailer */
 .tux-roadway__v3d-stacks {
   position: absolute;
-  bottom: 40px;
+  bottom: 44px;
   left: 4px;
   right: 4px;
   display: flex;
@@ -2393,10 +2674,10 @@ function losClass(los?: string): string {
 
 .tux-roadway__v3d-stack {
   width: 3px;
-  height: 16px;
+  height: 18px;
   background-color: var(--neutral-300);
   box-shadow: 0 0 3px var(--neutral-400);
-  transform: translateZ(28px);
+  transform: translateZ(30px);
   border-radius: 1px;
 }
 
@@ -2405,9 +2686,9 @@ function losClass(los?: string): string {
   top: 2px;
   left: 1px;
   right: 1px;
-  height: 74px;
+  height: 80px;
   transform-style: preserve-3d;
-  transform: translateZ(25px);
+  transform: translateZ(28px);
 }
 
 .tux-roadway__v3d-trailer-top {
@@ -2419,6 +2700,7 @@ function losClass(los?: string): string {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 0 8px color-mix(in srgb, var(--neutral-1000) 18%, transparent);
 }
 
 .tux-roadway__v3d-trailer-brand {
@@ -2434,7 +2716,7 @@ function losClass(los?: string): string {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 20px;
+  width: 26px;
   background: repeating-linear-gradient(
     to bottom,
     var(--neutral-300) 0px,
@@ -2448,13 +2730,13 @@ function losClass(los?: string): string {
 .tux-roadway__v3d-trailer-flank--left {
   left: 0;
   transform-origin: left center;
-  transform: rotateY(-90deg);
+  transform: rotateY(90deg);
 }
 
 .tux-roadway__v3d-trailer-flank--right {
   right: 0;
   transform-origin: right center;
-  transform: rotateY(90deg);
+  transform: rotateY(-90deg);
 }
 
 .tux-roadway__v3d-trailer-front {
@@ -2462,9 +2744,9 @@ function losClass(los?: string): string {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 20px;
+  height: 26px;
   transform-origin: center bottom;
-  transform: rotateX(-90deg);
+  transform: rotateX(90deg);
   background-color: var(--neutral-400);
 }
 
@@ -2473,9 +2755,9 @@ function losClass(los?: string): string {
   top: 0;
   left: 0;
   right: 0;
-  height: 20px;
+  height: 26px;
   transform-origin: center top;
-  transform: rotateX(90deg);
+  transform: rotateX(-90deg);
   background-color: var(--neutral-300);
   border-top: 2px solid var(--color-danger);
   position: relative;
@@ -2495,7 +2777,7 @@ function losClass(los?: string): string {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 4px;
   background: repeating-linear-gradient(
     to right,
     var(--color-danger) 0px,
@@ -2551,25 +2833,34 @@ function losClass(los?: string): string {
   );
 }
 
-/* Embankment 3D Slopes */
+/* Embankment 3D Drainage Channel (AASHTO / TxDOT Trapezoidal V-Ditch) */
 .tux-roadway__3d-embankment {
   width: 220px;
   height: 100%;
-  display: flex;
+  position: relative;
   transform-style: preserve-3d;
+  flex-shrink: 0;
 }
 
+/* Foreslope descending from shoulder into the ground (Z: 0 -> -26px) */
 .tux-roadway__foreslope {
-  flex: 1;
-  height: 100%;
-  background: linear-gradient(to right, color-mix(in srgb, var(--color-success) 70%, var(--neutral-900)), color-mix(in srgb, var(--color-success) 45%, var(--neutral-900)));
-  transform: rotateY(-24deg);
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 76px;
   transform-origin: left center;
-  position: relative;
+  transform: rotateY(17deg);
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--color-success) 45%, var(--neutral-800)),
+    color-mix(in srgb, var(--color-success) 35%, var(--neutral-900))
+  );
+  border-left: 2px solid color-mix(in srgb, var(--neutral-0) 18%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-left: 2px solid color-mix(in srgb, var(--color-success) 55%, var(--neutral-900));
+  box-shadow: inset 0 0 12px color-mix(in srgb, var(--neutral-1000) 35%, transparent);
 }
 
 .tux-roadway__slope-label {
@@ -2581,22 +2872,35 @@ function losClass(los?: string): string {
   padding: 0.15rem 0.4rem;
   border-radius: var(--radius-sm);
   transform: rotate(-90deg);
+  white-space: nowrap;
 }
 
+/* Swale Invert Channel bottom (Sunken at Z = -22px) */
 .tux-roadway__ditch-invert {
-  width: 32px;
-  height: 100%;
-  background-color: color-mix(in srgb, var(--color-info) 50%, var(--neutral-900));
-  position: relative;
+  position: absolute;
+  left: 73px;
+  top: 0;
+  bottom: 0;
+  width: 36px;
+  transform: translateZ(-22px);
+  background: color-mix(in srgb, var(--color-info) 35%, var(--neutral-900));
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 0 8px color-mix(in srgb, var(--neutral-1000) 50%, transparent);
 }
 
 .tux-roadway__water-flow {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--color-info) 35%, transparent), transparent);
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--color-info) 50%, transparent),
+    transparent
+  );
+  border-left: 1px solid color-mix(in srgb, var(--color-info) 35%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--color-info) 35%, transparent);
 }
 
 .tux-roadway__ditch-label {
@@ -2605,18 +2909,27 @@ function losClass(los?: string): string {
   color: color-mix(in srgb, var(--color-info) 80%, var(--neutral-0));
   transform: rotate(-90deg);
   white-space: nowrap;
+  z-index: 2;
 }
 
+/* Backslope ascending back to natural grade (Z: -22px -> 0px) */
 .tux-roadway__backslope {
-  flex: 1;
-  height: 100%;
-  background: linear-gradient(to right, color-mix(in srgb, var(--color-success) 45%, var(--neutral-900)), color-mix(in srgb, var(--color-success) 70%, var(--neutral-900)));
-  transform: rotateY(24deg);
+  position: absolute;
+  left: 109px;
+  top: 0;
+  bottom: 0;
+  width: 76px;
   transform-origin: left center;
-  position: relative;
+  transform: translateZ(-22px) rotateY(-17deg);
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--color-success) 35%, var(--neutral-900)),
+    color-mix(in srgb, var(--color-success) 45%, var(--neutral-800))
+  );
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 0 12px color-mix(in srgb, var(--neutral-1000) 35%, transparent);
 }
 
 .tux-roadway__backslope-label {
@@ -2628,11 +2941,25 @@ function losClass(los?: string): string {
   padding: 0.15rem 0.4rem;
   border-radius: var(--radius-sm);
   transform: rotate(-90deg);
+  white-space: nowrap;
+}
+
+/* Level Right-of-Way strip at Natural Grade (Z = 0) */
+.tux-roadway__row-strip {
+  position: absolute;
+  left: 182px;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--color-success) 50%, var(--neutral-800));
 }
 
 .tux-roadway__row-fence {
-  width: 8px;
-  height: 100%;
+  position: absolute;
+  left: 8px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
   background: repeating-linear-gradient(
     to bottom,
     var(--color-danger) 0px,
@@ -2640,18 +2967,35 @@ function losClass(los?: string): string {
     transparent 8px,
     transparent 16px
   );
-  position: relative;
 }
 
 .tux-roadway__row-tag {
   position: absolute;
   top: 10px;
-  right: 12px;
+  left: 8px;
   font-size: 0.5rem;
   font-family: var(--font-mono);
   font-weight: bold;
   color: var(--color-danger);
   white-space: nowrap;
+}
+
+/* Earth Cross-Section Cut Face along Front Edge of Embankment */
+.tux-roadway__embankment-cut-front {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 220px;
+  height: 28px;
+  transform-origin: top center;
+  transform: rotateX(-90deg);
+  pointer-events: none;
+}
+
+.tux-roadway__embankment-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .tux-roadway__3d-legend {
