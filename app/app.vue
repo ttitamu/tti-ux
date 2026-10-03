@@ -1167,14 +1167,12 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
    ai-studio values for cross-product consistency. */
 .tti-shell-header {
   position: sticky;
-  background-color: color-mix(in srgb, var(--surface-raised) 85%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background-color: var(--surface-raised);
   transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard);
 }
 
 [data-theme="tti-dark"] .tti-shell-header {
-  background-color: color-mix(in srgb, var(--surface-page) 85%, transparent);
+  background-color: var(--surface-page);
 }
 
 .tti-shell-header::before {
