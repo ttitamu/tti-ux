@@ -1,699 +1,444 @@
 <script setup lang="ts">
 import pkg from "../../package.json";
-import { tuxComponentCount } from "../utils/tuxCatalog";
 
-useHead({
-  title: "TTI Design System · TUX 3.0",
-  meta: [
-    {
-      name: "description",
-      content:
-        "The institutional design system, component laboratory, and spatial intelligence platform for the Texas A&M Transportation Institute.",
-    },
-  ],
-});
+useHead({ title: "TUX" });
 
 const version = pkg.version;
-const catalogCount = `${tuxComponentCount}`;
 
-// Recent-changes feed for the home page.
+// Recent-changes feed for the welcome page. Hand-curated rather than
+// parsed from CHANGELOG.md — the changelog is verbose (designed to be
+// read end-to-end) and the home page wants a glanceable shortlist.
+// Update this when shipping a noteworthy batch; the canonical history
+// stays in CHANGELOG.md.
 const recentUpdates = [
   {
-    date: "2026-10-02",
-    title: "Spatial Geometry & 3D Roadway Visualizer",
-    body: "Delivered TuxRoadwayCrossSection with AASHTO/TxDOT roadway anatomy, interactive 3D spatial pitch and yaw controls, 2D vector CAD elevations, pavement structural strata, and embankment hydrology.",
-    to: "/components/geospatial",
-  },
-  {
     date: "2026-10-01",
-    title: "TUX 3.0 Institutional Unification",
-    body: "Aligned all component styles with the TTI Communications identity: 5-band spectrum ribbon, warm surfaces, Warm Gold rules, and sharp buttons.",
+    title: "TUX 3.0 Release",
+    body: "Aligned component styles with the TTI Communications identity: 5-band spectrum ribbon, warm eggshell surfaces, Warm Gold rules, and sharp buttons.",
     to: "/examples/comm-portal",
   },
   {
     date: "2026-09-30",
-    title: "100% WCAG 2.2 AAA Test Coverage",
-    body: "Automated unit tests and Axe-core accessibility checks for all 176+ components. Certified 0 violations and >= 7.0:1 text contrast.",
+    title: "Component Test Coverage",
+    body: "Automated unit tests and Axe-core accessibility checks for all 189 components. 0 violations.",
     to: "/components/health",
   },
   {
     date: "2026-09-28",
-    title: "ECharts Spatial Intelligence Gallery",
-    body: "Deployed high-density transport analytics exhibits including Texas Triangle flow vectors, timespace shockwaves, and maritime port gateways.",
-    to: "/visualizations/echarts",
+    title: "WordPress & Kadence Support",
+    body: "Added Kadence child theme and TTI core plugin with Gutenberg patterns and WCAG AAA stylesheet.",
+    to: "/install/wordpress",
+  },
+  {
+    date: "2026-09-27",
+    title: "WCAG 2.2 Level AAA Stylesheet",
+    body: "Added tux-bridge.css and audit scripts for 7.0:1 text contrast, 44px touch targets, and 3px focus indicators.",
+    to: "/examples/legacy-bridge",
   },
   {
     date: "2026-09-20",
-    title: "Design Token Studio",
-    body: "Interactive editor for inspecting and adjusting CSS design tokens with OKLab perceptual color palettes and JSON export.",
+    title: "Token Studio",
+    body: "Interactive editor for inspecting and adjusting CSS tokens with JSON export.",
     to: "/tokens/playground",
   },
 ];
 
-const componentFamilies = [
-  {
-    title: "Actions & Commands",
-    count: 16,
-    icon: "lucide:mouse-pointer-click",
-    description: "Buttons, Segmented Controls, Command Palette (⌘K), and Floating Action Buttons.",
-    to: "/components#actions",
-    badge: "Interactive",
-  },
-  {
-    title: "Navigation & Shell",
-    count: 24,
-    icon: "lucide:compass",
-    description: "Reactive Sidebar, Site Navigation, Tab Bar, Split Pane, Breadcrumbs, and Rail Navigation.",
-    to: "/components#navigation",
-    badge: "Layout",
-  },
-  {
-    title: "Data Display & Tables",
-    count: 32,
-    icon: "lucide:table-properties",
-    description: "Rich Data Grid, Data Table, Treemap, Record Highlights, Factoids, and Metric Cards.",
-    to: "/components#data-display",
-    badge: "Analytics",
-  },
-  {
-    title: "Feedback & Status",
-    count: 18,
-    icon: "lucide:bell-ring",
-    description: "Alerts, Status Badges, Toast Notification System, Skeletons, and Empty States.",
-    to: "/components#feedback",
-    badge: "Telemetry",
-  },
-  {
-    title: "Forms & Controls",
-    count: 22,
-    icon: "lucide:check-square",
-    description: "Form Fields, Rule Builder, Markdown Editor, File Dropzone, and Inline Validation.",
-    to: "/components#forms",
-    badge: "Inputs",
-  },
-  {
-    title: "AI & Conversational",
-    count: 14,
-    icon: "lucide:bot",
-    description: "Chat Composer, Conversation List, Prompt Chips, Citation Exporter, and MCP Embeds.",
-    to: "/components#ai",
-    badge: "Cognitive",
-  },
-  {
-    title: "Research & Publishing",
-    count: 26,
-    icon: "lucide:book-open",
-    description: "Editorial Article, Hero Canvas, Paper Meta, Author Byline, Citation Export, and Footnotes.",
-    to: "/components#publishing",
-    badge: "Academic",
-  },
-  {
-    title: "Geospatial & Visualization",
-    count: 24,
-    icon: "lucide:map",
-    description: "3D Roadway Cross-Section, Corridor Strip, Map Embed, Legend, and Native SVG Charts.",
-    to: "/components#geospatial",
-    badge: "Corridors",
-  },
-];
+// Headline catalog size for the hero meta line — computed from the
+// catalog source of truth (app/utils/tuxCatalog.ts) so it can never
+// go stale again. The full inventory lives at /components/.
+const catalogCount = `${tuxComponentCount}`;
 
-const telemetryMetrics = [
-  {
-    value: "1,280 mi",
-    label: "Texas Triangle Corridor Network",
-    detail: "High-priority multimodal freight & passenger corridor coverage.",
-  },
-  {
-    value: "4.8M",
-    label: "Tons Daily Commercial Freight",
-    detail: "Real-time statewide intermodal freight telemetry tracking.",
-  },
-  {
-    value: "99.8%",
-    label: "IoT Telemetry Uptime",
-    detail: "High-reliability sensor streaming & predictive safety analytics.",
-  },
-  {
-    value: "0",
-    label: "Axe Accessibility Violations",
-    detail: "Certified Level AAA across all 500 prerendered routes.",
-  },
-];
+// Active showcase tab for the interactive laboratory
+const activeShowcaseTab = ref<"corridor" | "canvas" | "ui">("corridor");
 </script>
 
 <template>
-  <div class="tux-home-page space-y-16">
-    <!-- ══════════════════════════════════════════════════════════════════════
-         1. HERO SECTION: Interactive Hero Canvas with Seamless Cosmic Dissolve
-         ══════════════════════════════════════════════════════════════════════ -->
-    <section class="tux-home-hero relative rounded-2xl overflow-hidden border border-surface-border shadow-lg">
-      <TuxHeroCanvas variant="sol" blend="seamless" min-height="560px">
-        <div class="tux-home-hero__content px-6 sm:px-10 lg:px-12 py-10 sm:py-14 max-w-5xl">
-          <!-- Institutional Ribbon & Eyebrow -->
-          <div class="flex items-center gap-3 mb-4">
-            <TuxSpectrumRibbon height="sm" class="w-32" />
-            <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-brand-accent">
-              TEXAS A&amp;M TRANSPORTATION INSTITUTE · TTI-UX v{{ version }}
-            </span>
-          </div>
-
-          <!-- Hero Headline -->
-          <h1 class="tux-home-hero__title font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-neutral-0 leading-[1.08] mb-5">
-            Engineering the Next Generation of Transportation Experiences
-          </h1>
-
-          <!-- Hero Dek -->
-          <p class="tux-home-hero__dek text-base sm:text-lg lg:text-xl text-neutral-0/85 leading-relaxed max-w-3xl mb-8">
-            The unified institutional design system, component laboratory, and spatial intelligence platform
-            for the Texas A&amp;M Transportation Institute. Built with Nuxt 4, Tailwind v4, and mathematically
-            certified WCAG 2.2 Level AAA accessibility.
-          </p>
-
-          <!-- Telemetry Stats Pill Strip -->
-          <div class="flex flex-wrap items-center gap-2.5 sm:gap-3 mb-8">
-            <div class="tux-home-hero__pill">
-              <Icon name="lucide:blocks" class="w-3.5 h-3.5 text-brand-accent" aria-hidden="true" />
-              <span><strong>{{ catalogCount }}+</strong> Components</span>
-            </div>
-            <div class="tux-home-hero__pill">
-              <Icon name="lucide:shield-check" class="w-3.5 h-3.5 text-color-success" aria-hidden="true" />
-              <span><strong>0</strong> Axe Violations</span>
-            </div>
-            <div class="tux-home-hero__pill">
-              <Icon name="lucide:route" class="w-3.5 h-3.5 text-color-info" aria-hidden="true" />
-              <span><strong>500</strong> Prerendered Routes</span>
-            </div>
-            <div class="tux-home-hero__pill">
-              <Icon name="lucide:layers" class="w-3.5 h-3.5 text-brand-accent" aria-hidden="true" />
-              <span><strong>5</strong> Research Divisions</span>
-            </div>
-          </div>
-
-          <!-- CTA Buttons Cluster -->
-          <div class="flex flex-wrap items-center gap-3 sm:gap-4">
-            <NuxtLink
-              to="/components"
-              class="inline-flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-bold bg-brand-primary text-text-inverse hover:bg-brand-primary-deep shadow-md hover:shadow-lg transition-all"
-            >
-              <span>Explore Component Arsenal ({{ catalogCount }})</span>
-              <Icon name="lucide:arrow-right" class="w-4 h-4" aria-hidden="true" />
-            </NuxtLink>
-
-            <a
-              href="#corridor-showcase"
-              class="inline-flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold bg-neutral-1000/65 backdrop-blur-md border border-neutral-0/22 text-neutral-0 hover:bg-neutral-1000/85 hover:border-neutral-0/50 shadow-xs transition-all"
-            >
-              <Icon name="lucide:box" class="w-4 h-4 text-brand-accent" aria-hidden="true" />
-              <span>3D Corridor Visualizer</span>
-            </a>
-
-            <NuxtLink
-              to="/visualizations/echarts"
-              class="inline-flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold bg-neutral-1000/65 backdrop-blur-md border border-neutral-0/22 text-neutral-0 hover:bg-neutral-1000/85 hover:border-neutral-0/50 shadow-xs transition-all"
-            >
-              <Icon name="lucide:chart-pie" class="w-4 h-4 text-color-info" aria-hidden="true" />
-              <span>Data &amp; Telemetry</span>
-            </NuxtLink>
-
-            <NuxtLink
-              to="/components/health"
-              class="inline-flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold bg-neutral-1000/65 backdrop-blur-md border border-neutral-0/22 text-neutral-0 hover:bg-neutral-1000/85 hover:border-neutral-0/50 shadow-xs transition-all"
-            >
-              <Icon name="lucide:shield-check" class="w-4 h-4 text-color-success" aria-hidden="true" />
-              <span>Health &amp; AAA Matrix</span>
-            </NuxtLink>
-          </div>
-        </div>
-      </TuxHeroCanvas>
-    </section>
-
-    <!-- ══════════════════════════════════════════════════════════════════════
-         2. FEATURED ENGINEERING SHOWCASE: 3D Roadway & Embankment Visualizer
-         ══════════════════════════════════════════════════════════════════════ -->
-    <section id="corridor-showcase" class="space-y-6 pt-2">
-      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-surface-border pb-4">
-        <div>
-          <p class="text-xs font-mono font-bold uppercase tracking-wider text-brand-primary mb-1">
-            Spatial Geometry &amp; Corridor Engineering
-          </p>
-          <h2 class="text-2xl sm:text-3xl font-display font-bold text-text-primary tracking-tight">
-            Real-World Highway Cross-Section Visualizer
-          </h2>
-          <p class="mt-2 text-sm sm:text-base text-text-secondary max-w-3xl leading-relaxed">
-            Transportation analysis demands physical and geometric fidelity. TTI-UX models true AASHTO
-            and TxDOT corridor cross-sections with interactive 3D spatial pitch, 2D vector CAD elevations,
-            pavement structural strata, and embankment geotechnical stability.
-          </p>
-        </div>
-        <NuxtLink
-          to="/components/geospatial"
-          class="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-brand-primary hover:underline whitespace-nowrap self-start sm:self-end"
-        >
-          <span>Geospatial component docs</span>
-          <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" aria-hidden="true" />
-        </NuxtLink>
-      </div>
-
-      <!-- Live Interactive Visualizer Embed -->
-      <div class="rounded-xl overflow-hidden border border-surface-border bg-surface-raised shadow-md">
-        <TuxRoadwayCrossSection :interactive="true" />
-      </div>
-
-      <!-- Engineering Core Pillars Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-        <div class="p-4 rounded-lg bg-surface-raised border border-surface-border space-y-2">
-          <div class="flex items-center gap-2 text-brand-primary font-bold text-sm">
-            <Icon name="lucide:ruler" class="w-4 h-4" aria-hidden="true" />
-            <span>Geometric Accuracy</span>
-          </div>
-          <p class="text-xs text-text-secondary leading-relaxed">
-            Standard AASHTO normal crown cross-slopes (-2.0%), SSCB 42" Jersey barriers, 4:1 recoverable foreslopes, and backslope swales.
-          </p>
-        </div>
-
-        <div class="p-4 rounded-lg bg-surface-raised border border-surface-border space-y-2">
-          <div class="flex items-center gap-2 text-color-info font-bold text-sm">
-            <Icon name="lucide:box" class="w-4 h-4" aria-hidden="true" />
-            <span>3D Spatial Perspective</span>
-          </div>
-          <p class="text-xs text-text-secondary leading-relaxed">
-            Adjustable 3D matrix pitch (15°–75°), yaw rotation, and dynamic connected autonomous vehicle platoons in motion.
-          </p>
-        </div>
-
-        <div class="p-4 rounded-lg bg-surface-raised border border-surface-border space-y-2">
-          <div class="flex items-center gap-2 text-brand-accent font-bold text-sm">
-            <Icon name="lucide:layers" class="w-4 h-4" aria-hidden="true" />
-            <span>Structural Strata</span>
-          </div>
-          <p class="text-xs text-text-secondary leading-relaxed">
-            Layer-by-layer HMAC surface course, binder, crushed stone base, lime subbase, and resilient modulus telemetry.
-          </p>
-        </div>
-
-        <div class="p-4 rounded-lg bg-surface-raised border border-surface-border space-y-2">
-          <div class="flex items-center gap-2 text-color-success font-bold text-sm">
-            <Icon name="lucide:droplets" class="w-4 h-4" aria-hidden="true" />
-            <span>Geotechnical Hydrology</span>
-          </div>
-          <p class="text-xs text-text-secondary leading-relaxed">
-            Bishop circular slip surface stability (FS = 1.84 Stable), FDR soil moisture probe readings, and 10-year storm capacity.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════════════════════════════════
-         3. DATA INTELLIGENCE & TELEMETRY SHOWCASE (ECharts Exhibit)
-         ══════════════════════════════════════════════════════════════════════ -->
-    <section class="space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-surface-border pb-4">
-        <div>
-          <p class="text-xs font-mono font-bold uppercase tracking-wider text-color-info mb-1">
-            Data Intelligence &amp; Telemetry
-          </p>
-          <h2 class="text-2xl sm:text-3xl font-display font-bold text-text-primary tracking-tight">
-            Statewide Multimodal Intelligence
-          </h2>
-          <p class="mt-2 text-sm sm:text-base text-text-secondary max-w-3xl leading-relaxed">
-            High-density interactive graphics engineered for research dashboards, freight telemetry,
-            and statewide infrastructure planning across the Texas Triangle and border gateways.
-          </p>
-        </div>
-        <NuxtLink
-          to="/visualizations/echarts"
-          class="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-color-info hover:underline whitespace-nowrap self-start sm:self-end"
-        >
-          <span>View all ECharts exhibits</span>
-          <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" aria-hidden="true" />
-        </NuxtLink>
-      </div>
-
-      <!-- Telemetry Stat Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div
-          v-for="stat in telemetryMetrics"
-          :key="stat.label"
-          class="p-5 rounded-xl bg-surface-raised border border-surface-border shadow-xs hover:border-brand-primary/40 transition-colors"
-        >
-          <p class="text-2xl sm:text-3xl font-bold font-mono text-brand-primary tracking-tight">
-            {{ stat.value }}
-          </p>
-          <p class="text-sm font-bold text-text-primary mt-1">
-            {{ stat.label }}
-          </p>
-          <p class="text-xs text-text-secondary mt-1 leading-relaxed">
-            {{ stat.detail }}
-          </p>
-        </div>
-      </div>
-
-      <!-- Analytics Feature Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <NuxtLink
-          to="/visualizations/echarts"
-          class="group p-5 rounded-xl bg-surface-raised border border-surface-border hover:border-brand-primary transition-all flex flex-col justify-between space-y-4 shadow-xs"
-        >
-          <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-color-info bg-wash-info-8 px-2 py-0.5 rounded">
-                Exhibit 2.1
-              </span>
-              <Icon name="lucide:arrow-up-right" class="w-4 h-4 text-text-muted group-hover:text-brand-primary transition-colors" aria-hidden="true" />
-            </div>
-            <h3 class="text-base font-bold text-text-primary group-hover:text-brand-primary transition-colors">
-              Texas Triangle Flow Vectors
-            </h3>
-            <p class="text-xs text-text-secondary leading-relaxed">
-              Multimodal freight and passenger spatial vector lines connecting Dallas–Fort Worth, Houston, Austin, and San Antonio.
-            </p>
-          </div>
-          <div class="pt-2 border-t border-surface-border text-[11px] font-mono text-text-muted">
-            Interactive Node Topology · D3 + ECharts
-          </div>
-        </NuxtLink>
-
-        <NuxtLink
-          to="/visualizations/echarts"
-          class="group p-5 rounded-xl bg-surface-raised border border-surface-border hover:border-brand-primary transition-all flex flex-col justify-between space-y-4 shadow-xs"
-        >
-          <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-brand-accent bg-wash-brand-8 px-2 py-0.5 rounded">
-                Exhibit 2.2
-              </span>
-              <Icon name="lucide:arrow-up-right" class="w-4 h-4 text-text-muted group-hover:text-brand-primary transition-colors" aria-hidden="true" />
-            </div>
-            <h3 class="text-base font-bold text-text-primary group-hover:text-brand-primary transition-colors">
-              Timespace Shockwave Simulator
-            </h3>
-            <p class="text-xs text-text-secondary leading-relaxed">
-              Lighthill-Whitham-Richards kinematic wave flow equations simulating bottleneck traffic shockwave propagation.
-            </p>
-          </div>
-          <div class="pt-2 border-t border-surface-border text-[11px] font-mono text-text-muted">
-            Continuous Phase Surface · LWR Physics
-          </div>
-        </NuxtLink>
-
-        <NuxtLink
-          to="/visualizations/echarts"
-          class="group p-5 rounded-xl bg-surface-raised border border-surface-border hover:border-brand-primary transition-all flex flex-col justify-between space-y-4 shadow-xs"
-        >
-          <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-color-success bg-wash-success-8 px-2 py-0.5 rounded">
-                Exhibit 2.3
-              </span>
-              <Icon name="lucide:arrow-up-right" class="w-4 h-4 text-text-muted group-hover:text-brand-primary transition-colors" aria-hidden="true" />
-            </div>
-            <h3 class="text-base font-bold text-text-primary group-hover:text-brand-primary transition-colors">
-              Gulf Maritime Port Gateways
-            </h3>
-            <p class="text-xs text-text-secondary leading-relaxed">
-              Real-time TEU container volume, drayage queue times, and intermodal connectivity at Texas deepwater port terminals.
-            </p>
-          </div>
-          <div class="pt-2 border-t border-surface-border text-[11px] font-mono text-text-muted">
-            Intermodal Telemetry · Freight Logistics
-          </div>
-        </NuxtLink>
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════════════════════════════════
-         4. COMPONENT ARSENAL: Taxonomy by Family
-         ══════════════════════════════════════════════════════════════════════ -->
-    <section class="space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-surface-border pb-4">
-        <div>
-          <p class="text-xs font-mono font-bold uppercase tracking-wider text-brand-primary mb-1">
-            System Inventory
-          </p>
-          <h2 class="text-2xl sm:text-3xl font-display font-bold text-text-primary tracking-tight">
-            The TUX Component Arsenal
-          </h2>
-          <p class="mt-2 text-sm sm:text-base text-text-secondary max-w-3xl leading-relaxed">
-            {{ catalogCount }}+ production components engineered for research publishing, data telemetry,
-            administrative operations, and public communication. Every component meets WCAG 2.2 Level AAA standards.
-          </p>
-        </div>
-        <NuxtLink
-          to="/components"
-          class="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-brand-primary hover:underline whitespace-nowrap self-start sm:self-end"
-        >
-          <span>Browse full directory</span>
-          <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" aria-hidden="true" />
-        </NuxtLink>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <NuxtLink
-          v-for="family in componentFamilies"
-          :key="family.title"
-          :to="family.to"
-          class="group p-5 rounded-xl bg-surface-raised border border-surface-border hover:border-brand-primary hover:shadow-md transition-all flex flex-col justify-between space-y-3"
-        >
-          <div class="space-y-2.5">
-            <div class="flex items-center justify-between">
-              <div class="w-9 h-9 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center group-hover:bg-brand-primary group-hover:text-text-inverse transition-colors">
-                <Icon :name="family.icon" class="w-5 h-5" aria-hidden="true" />
-              </div>
-              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-surface-sunken border border-surface-border text-text-muted">
-                {{ family.count }} primitives
-              </span>
-            </div>
-            <h3 class="text-base font-bold text-text-primary group-hover:text-brand-primary transition-colors">
-              {{ family.title }}
-            </h3>
-            <p class="text-xs text-text-secondary leading-relaxed">
-              {{ family.description }}
-            </p>
-          </div>
-          <div class="pt-2 border-t border-surface-border flex items-center justify-between text-xs font-bold text-brand-primary">
-            <span>Explore family</span>
-            <Icon name="lucide:chevron-right" class="w-4 h-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
-          </div>
-        </NuxtLink>
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════════════════════════════════
-         5. DESIGN FOUNDATIONS & TOKEN ARCHITECTURE
-         ══════════════════════════════════════════════════════════════════════ -->
-    <section class="space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-surface-border pb-4">
-        <div>
-          <p class="text-xs font-mono font-bold uppercase tracking-wider text-brand-primary mb-1">
-            Design Language
-          </p>
-          <h2 class="text-2xl sm:text-3xl font-display font-bold text-text-primary tracking-tight">
-            Institutional Foundations &amp; Token Architecture
-          </h2>
-          <p class="mt-2 text-sm sm:text-base text-text-secondary max-w-3xl leading-relaxed">
-            Built upon strict token invariants: OKLab perceptual color spaces, mathematical wash ladders,
-            and guaranteed Level AAA contrast ratios (>= 7.0:1) with zero bare literal overrides.
-          </p>
-        </div>
-        <NuxtLink
-          to="/tokens"
-          class="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-brand-primary hover:underline whitespace-nowrap self-start sm:self-end"
-        >
-          <span>Token reference guide</span>
-          <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" aria-hidden="true" />
-        </NuxtLink>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Brand Primary -->
-        <NuxtLink to="/tokens" class="p-5 rounded-xl bg-brand-primary text-neutral-0 flex flex-col justify-between h-40 shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <span class="text-[10px] font-mono uppercase tracking-wider text-brand-accent">Brand · Primary</span>
-            <p class="text-xl font-bold font-mono mt-1">#500000</p>
-          </div>
-          <div>
-            <p class="text-xs font-semibold text-neutral-0/90">TTI Maroon</p>
-            <p class="text-[10px] text-neutral-0/70 font-mono">var(--brand-primary) · 14.8:1 AAA</p>
-          </div>
-        </NuxtLink>
-
-        <!-- Brand Accent -->
-        <NuxtLink to="/tokens" class="p-5 rounded-xl bg-brand-accent text-neutral-1000 flex flex-col justify-between h-40 shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <span class="text-[10px] font-mono uppercase tracking-wider text-neutral-900/70">Brand · Accent</span>
-            <p class="text-xl font-bold font-mono mt-1">#CFA935</p>
-          </div>
-          <div>
-            <p class="text-xs font-semibold text-neutral-1000">Warm Gold</p>
-            <p class="text-[10px] text-neutral-1000/70 font-mono">var(--brand-accent) · Active Focus Ring</p>
-          </div>
-        </NuxtLink>
-
-        <!-- Division Spectrum -->
-        <NuxtLink to="/tokens" class="p-5 rounded-xl bg-surface-raised border border-surface-border flex flex-col justify-between h-40 shadow-sm hover:border-brand-primary transition-colors">
-          <div>
-            <span class="text-[10px] font-mono uppercase tracking-wider text-text-muted">Spectrum · 5 Divisions</span>
-            <div class="mt-2 flex h-5 w-full rounded overflow-hidden border border-surface-border">
-              <span class="flex-1 bg-spectrum-maroon" title="Crash Safety" />
-              <span class="flex-1 bg-spectrum-blue" title="Network Modeling" />
-              <span class="flex-1 bg-spectrum-teal" title="Policy Analysis" />
-              <span class="flex-1 bg-spectrum-green" title="Transit Mobility" />
-              <span class="flex-1 bg-spectrum-gold" title="Automated Vehicles" />
-            </div>
-          </div>
-          <div>
-            <p class="text-xs font-semibold text-text-primary">5-Band Division Spectrum</p>
-            <p class="text-[10px] text-text-muted font-mono">Institutional Marcom Standard</p>
-          </div>
-        </NuxtLink>
-
-        <!-- WCAG 2.2 AAA Audit -->
-        <NuxtLink to="/components/health" class="p-5 rounded-xl bg-surface-raised border border-surface-border flex flex-col justify-between h-40 shadow-sm hover:border-color-success transition-colors">
-          <div>
-            <span class="text-[10px] font-mono uppercase tracking-wider text-color-success">Accessibility · Tier AAA</span>
-            <div class="flex items-center gap-1.5 mt-1 text-color-success font-bold text-xl">
-              <Icon name="lucide:shield-check" class="w-5 h-5" aria-hidden="true" />
-              <span>100% Certified</span>
-            </div>
-          </div>
-          <div>
-            <p class="text-xs font-semibold text-text-primary">0 Axe Violations Across All Pages</p>
-            <p class="text-[10px] text-text-muted font-mono">&gt;= 7:1 Contrast · &gt;= 44px Touch Targets</p>
-          </div>
-        </NuxtLink>
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════════════════════════════════
-         6. APPLICATION BLUEPRINTS & ARCHITECTURE
-         ══════════════════════════════════════════════════════════════════════ -->
-    <section class="space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-surface-border pb-4">
-        <div>
-          <p class="text-xs font-mono font-bold uppercase tracking-wider text-brand-primary mb-1">
-            Reference Implementations
-          </p>
-          <h2 class="text-2xl sm:text-3xl font-display font-bold text-text-primary tracking-tight">
-            Enterprise Application Blueprints
-          </h2>
-          <p class="mt-2 text-sm sm:text-base text-text-secondary max-w-3xl leading-relaxed">
-            Real-world layouts demonstrating how TUX components assemble into cohesive institutional portals,
-            data telemetry consoles, and publishing platforms.
-          </p>
-        </div>
-        <NuxtLink
-          to="/examples"
-          class="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-brand-primary hover:underline whitespace-nowrap self-start sm:self-end"
-        >
-          <span>View all 15 blueprints</span>
-          <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" aria-hidden="true" />
-        </NuxtLink>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <TuxCard to="/examples/corridor-analytics">
-          <p class="text-[10px] font-mono uppercase tracking-wider text-color-info">Corridors · Spatial Analytics</p>
-          <h3 class="text-base font-bold text-text-primary mt-1">Corridor Analytics Console</h3>
-          <p class="mt-1 text-xs text-text-secondary leading-relaxed">
-            Integrated 3D highway geometry visualizer, live sensor telemetry, bottleneck shockwaves, and pavement health index.
-          </p>
-        </TuxCard>
-
-        <TuxCard to="/examples/comm-portal">
-          <p class="text-[10px] font-mono uppercase tracking-wider text-brand-primary">Public Portal · tti.tamu.edu</p>
-          <h3 class="text-base font-bold text-text-primary mt-1">TTI Communications Portal</h3>
-          <p class="mt-1 text-xs text-text-secondary leading-relaxed">
-            Institutional home layout with 5-band spectrum ribbon, capability cluster, featured news, and researcher spotlights.
-          </p>
-        </TuxCard>
-
-        <TuxCard to="/examples/atlas">
-          <p class="text-[10px] font-mono uppercase tracking-wider text-color-warning">Governance · Security</p>
-          <h3 class="text-base font-bold text-text-primary mt-1">Atlas Security &amp; Policy Audit</h3>
-          <p class="mt-1 text-xs text-text-secondary leading-relaxed">
-            Internal governance console with compliance finding ledgers, risk meters, and milestone schedule tracking.
-          </p>
-        </TuxCard>
-
-        <TuxCard to="/examples/forgejo-code">
-          <p class="text-[10px] font-mono uppercase tracking-wider text-brand-accent">Developer Tooling · Git</p>
-          <h3 class="text-base font-bold text-text-primary mt-1">TTI Code (Forgejo) Developer Portal</h3>
-          <p class="mt-1 text-xs text-text-secondary leading-relaxed">
-            Self-hosted institutional Git repository browser with branch tree, commit log, pull requests, and file preview.
-          </p>
-        </TuxCard>
-
-        <TuxCard to="/examples/intranet-dashboard">
-          <p class="text-[10px] font-mono uppercase tracking-wider text-color-success">Intranet · my.tti</p>
-          <h3 class="text-base font-bold text-text-primary mt-1">MyTTI Enterprise Intranet</h3>
-          <p class="mt-1 text-xs text-text-secondary leading-relaxed">
-            Employee operations workspace matching my.tti.tamu.edu: application drawer, service grid, calendar, and notices.
-          </p>
-        </TuxCard>
-
-        <TuxCard to="/examples/tti-ai-studio-session">
-          <p class="text-[10px] font-mono uppercase tracking-wider text-brand-primary">AI Research · Assistant</p>
-          <h3 class="text-base font-bold text-text-primary mt-1">TTI AI Studio Research Session</h3>
-          <p class="mt-1 text-xs text-text-secondary leading-relaxed">
-            Research conversational interface with dynamic prompt chips, citation references, and LLM telemetry.
-          </p>
-        </TuxCard>
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════════════════════════════════
-         7. RECENT UPDATES FEED
-         ══════════════════════════════════════════════════════════════════════ -->
-    <section class="space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-surface-border pb-4">
-        <div>
-          <p class="text-xs font-mono font-bold uppercase tracking-wider text-brand-primary mb-1">
-            Changelog Feed
-          </p>
-          <h2 class="text-2xl sm:text-3xl font-display font-bold text-text-primary tracking-tight">
-            Recent System Milestones
-          </h2>
-          <p class="mt-2 text-sm sm:text-base text-text-secondary max-w-3xl leading-relaxed">
-            Continuously advancing institutional capabilities, component ergonomics, and accessibility compliance.
-          </p>
-        </div>
-        <NuxtLink
-          to="/changelog"
-          class="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-brand-primary hover:underline whitespace-nowrap self-start sm:self-end"
-        >
-          <span>Full changelog history</span>
-          <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" aria-hidden="true" />
-        </NuxtLink>
-      </div>
-
-      <div class="space-y-3">
-        <div
-          v-for="u in recentUpdates"
-          :key="u.title"
-          class="p-4 sm:p-5 rounded-xl bg-surface-raised border border-surface-border hover:border-brand-primary/40 transition-colors flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6"
-        >
-          <time class="text-xs font-mono font-bold text-brand-primary flex-shrink-0 w-28">
-            {{ u.date }}
-          </time>
-          <div class="space-y-1 min-w-0 flex-1">
-            <NuxtLink :to="u.to" class="text-sm font-bold text-text-primary hover:text-brand-primary hover:underline transition-colors block">
-              {{ u.title }}
-            </NuxtLink>
-            <p class="text-xs text-text-secondary leading-relaxed">
-              {{ u.body }}
-            </p>
-          </div>
-          <NuxtLink :to="u.to" class="text-xs font-bold text-brand-primary hover:underline flex items-center gap-1 self-start sm:self-center flex-shrink-0">
-            <span>Explore</span>
-            <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" aria-hidden="true" />
+  <div class="space-y-12">
+    <!-- ──────── HERO — split layout, modeled on the slides kit
+         title slide. Left half is editorial copy; right half is a
+         maroon panel with a diagonal-hash overlay + at-a-glance
+         metadata. ──────── -->
+    <section class="welcome-hero">
+      <div class="welcome-hero__copy">
+        <TuxSpectrumRibbon height="md" class="mb-4" />
+        <p class="eyebrow welcome-hero__eyebrow">
+          <span>tti-ux</span>
+          <span class="welcome-version">v{{ version }} · 3.0</span>
+        </p>
+        <h1 class="welcome-hero__title">
+          <span class="welcome-hero__title-line">TTI</span>
+          <span class="welcome-hero__title-line welcome-hero__title-line--maroon">Design</span>
+          <span class="welcome-hero__title-line">System</span>
+        </h1>
+        <span class="welcome-hero__rule" aria-hidden="true" />
+        <p class="welcome-hero__lede">
+          The design system and component library for the Texas A&amp;M Transportation Institute.
+          Engineered for Nuxt 4, Tailwind v4, and WCAG 2.2 Level AAA accessibility.
+        </p>
+        <div class="welcome-hero__actions">
+          <NuxtLink to="/components" class="welcome-cta welcome-cta--primary">
+            <span>Components ({{ catalogCount }})</span>
+            <Icon name="lucide:arrow-right" class="welcome-cta-icon" aria-hidden="true" />
+          </NuxtLink>
+          <NuxtLink to="/components/health" class="welcome-cta">
+            <Icon name="lucide:shield-check" class="welcome-cta-icon text-brand-primary" aria-hidden="true" />
+            <span>Health &amp; AAA Matrix</span>
+          </NuxtLink>
+          <NuxtLink to="/tokens/playground" class="welcome-cta">
+            <Icon name="lucide:sliders" class="welcome-cta-icon" aria-hidden="true" />
+            <span>Token Studio</span>
+          </NuxtLink>
+          <NuxtLink to="/design/tux" class="welcome-cta">
+            <span>Doctrine</span>
           </NuxtLink>
         </div>
       </div>
+
+      <div class="welcome-hero__panel" aria-label="TTI UX: Institutional Design System &amp; Component Library">
+        <div class="welcome-hero__banner">
+          <div class="welcome-hero__banner-eyebrow">
+            <span class="welcome-hero__banner-bullet" aria-hidden="true">•</span>
+            <span>TEXAS A&amp;M TRANSPORTATION INSTITUTE</span>
+          </div>
+          <div class="welcome-hero__banner-brand">
+            <span class="welcome-hero__banner-brand-tti">TTI</span>
+            <span class="welcome-hero__banner-brand-ux">UX</span>
+          </div>
+          <div class="welcome-hero__banner-roadway" aria-hidden="true">
+            <span class="welcome-hero__roadway-solid" />
+            <span class="welcome-hero__roadway-dashed" />
+          </div>
+          <p class="welcome-hero__banner-subtitle">
+            Institutional Design System &amp; Component Library
+          </p>
+          <div class="welcome-hero__banner-chips">
+            <span class="welcome-hero__chip">v{{ version }}</span>
+            <span class="welcome-hero__chip">WCAG 2.2 AAA</span>
+            <span class="welcome-hero__chip">Nuxt 4</span>
+            <span class="welcome-hero__chip">Tailwind v4</span>
+            <span class="welcome-hero__chip">{{ catalogCount }} Components</span>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- ══════════════════════════════════════════════════════════════════════
-         8. MULTI-FRAMEWORK ECOSYSTEM
-         ══════════════════════════════════════════════════════════════════════ -->
+    <!-- ──────── VISUAL IDENTITY AT A GLANCE ──────── -->
+    <section>
+      <p class="eyebrow">at a glance</p>
+      <div class="welcome-updates-header">
+        <h2 class="heading--bold text-2xl font-bold">Visual Identity</h2>
+        <NuxtLink to="/tokens" class="welcome-updates-changelog">
+          <span>Token reference</span>
+          <Icon name="lucide:arrow-right" class="welcome-cta-icon" aria-hidden="true" />
+        </NuxtLink>
+      </div>
+      <div class="welcome-glance">
+        <NuxtLink to="/tokens" class="welcome-glance__tile welcome-glance__tile--maroon">
+          <p class="welcome-glance__label">brand · primary</p>
+          <p class="welcome-glance__value welcome-glance__value--mono">#500000</p>
+          <p class="welcome-glance__caption">TTI Maroon · 14.8:1 AAA</p>
+        </NuxtLink>
+        <NuxtLink to="/tokens" class="welcome-glance__tile welcome-glance__tile--gold">
+          <p class="welcome-glance__label">brand · accent</p>
+          <p class="welcome-glance__value welcome-glance__value--mono">#CFA935</p>
+          <p class="welcome-glance__caption">Warm Gold · Active Focus</p>
+        </NuxtLink>
+        <NuxtLink to="/tokens" class="welcome-glance__tile">
+          <p class="welcome-glance__label">spectrum · 5 divisions</p>
+          <div class="mt-1 flex h-6 w-full rounded-none overflow-hidden border border-surface-border">
+            <span class="flex-1 bg-spectrum-maroon" title="Crash Testing & Roadside Safety" />
+            <span class="flex-1 bg-spectrum-blue" title="Network Modeling & Connected Infrastructure" />
+            <span class="flex-1 bg-spectrum-teal" title="Policy & Economic Analysis" />
+            <span class="flex-1 bg-spectrum-green" title="Transit Mobility & Multimodal" />
+            <span class="flex-1 bg-spectrum-gold" title="Human Factors & Automated Vehicles" />
+          </div>
+          <p class="welcome-glance__caption">5-Band Division Ribbon</p>
+        </NuxtLink>
+        <NuxtLink to="/components/badge" class="welcome-glance__tile">
+          <p class="welcome-glance__label">component · badge</p>
+          <div class="welcome-glance__live">
+            <TuxBadge tier="sensitive">L3 · sensitive</TuxBadge>
+            <TuxBadge status="completed">active</TuxBadge>
+          </div>
+          <p class="welcome-glance__caption">TuxBadge — sharp profile</p>
+        </NuxtLink>
+        <NuxtLink to="/components/alert" class="welcome-glance__tile welcome-glance__tile--wide">
+          <p class="welcome-glance__label">component · alert</p>
+          <div class="welcome-glance__live welcome-glance__live--full">
+            <TuxAlert
+              variant="tip"
+              title="WCAG 2.2 Level AAA Compliant"
+            >
+              Components provide &gt;= 7.0:1 text contrast, &gt;= 44px touch targets,
+              and 3px focus rings.
+            </TuxAlert>
+          </div>
+        </NuxtLink>
+        <NuxtLink to="/components/health" class="welcome-glance__tile">
+          <p class="welcome-glance__label">coverage · census</p>
+          <p class="welcome-glance__value welcome-glance__value--mono text-brand-primary">{{ catalogCount }} / {{ catalogCount }}</p>
+          <p class="welcome-glance__caption">Automated Unit &amp; Axe Tests</p>
+        </NuxtLink>
+        <NuxtLink to="/motion" class="welcome-glance__tile welcome-glance__tile--corner-drop">
+          <span class="welcome-glance__hint">hover me</span>
+          <p class="welcome-glance__label">motion · corner-drop</p>
+          <p class="welcome-glance__value">4px / -4px</p>
+          <p class="welcome-glance__caption">Signature TUX hover offset</p>
+        </NuxtLink>
+      </div>
+    </section>
+
+    <!-- ──────── INTERACTIVE COMPONENT SHOWCASE ──────── -->
+    <section class="space-y-4">
+      <div class="welcome-updates-header">
+        <div>
+          <p class="eyebrow">interactive laboratory</p>
+          <h2 class="heading--bold text-2xl font-bold">Interactive Component Showcase</h2>
+        </div>
+        <NuxtLink to="/components" class="welcome-updates-changelog">
+          <span>Explore all {{ catalogCount }} components</span>
+          <Icon name="lucide:arrow-right" class="welcome-cta-icon" aria-hidden="true" />
+        </NuxtLink>
+      </div>
+      <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
+        Test and inspect our advanced engineering, geospatial, and interactive components in real-time.
+      </p>
+
+      <!-- Showcase Tabs -->
+      <div class="flex items-center gap-2 border-b border-surface-border pb-2 overflow-x-auto">
+        <button
+          type="button"
+          class="showcase-tab-btn"
+          :class="activeShowcaseTab === 'corridor' ? 'showcase-tab-btn--active' : 'showcase-tab-btn--inactive'"
+          @click="activeShowcaseTab = 'corridor'"
+        >
+          <Icon name="lucide:box" class="w-3.5 h-3.5" aria-hidden="true" />
+          <span>3D Roadway Visualizer</span>
+        </button>
+        <button
+          type="button"
+          class="showcase-tab-btn"
+          :class="activeShowcaseTab === 'canvas' ? 'showcase-tab-btn--active' : 'showcase-tab-btn--inactive'"
+          @click="activeShowcaseTab = 'canvas'"
+        >
+          <Icon name="lucide:sparkles" class="w-3.5 h-3.5" aria-hidden="true" />
+          <span>Interactive Particle Canvas</span>
+        </button>
+        <button
+          type="button"
+          class="showcase-tab-btn"
+          :class="activeShowcaseTab === 'ui' ? 'showcase-tab-btn--active' : 'showcase-tab-btn--inactive'"
+          @click="activeShowcaseTab = 'ui'"
+        >
+          <Icon name="lucide:sliders-horizontal" class="w-3.5 h-3.5" aria-hidden="true" />
+          <span>UI Primitives &amp; Controls</span>
+        </button>
+      </div>
+
+      <!-- Tab 1: 3D Roadway & Embankment Visualizer -->
+      <div v-show="activeShowcaseTab === 'corridor'" class="space-y-4">
+        <TuxRoadwayCrossSection :interactive="true" />
+      </div>
+
+      <!-- Tab 2: Interactive Particle Canvas -->
+      <div v-show="activeShowcaseTab === 'canvas'" class="space-y-4">
+        <div class="rounded-xl overflow-hidden border border-surface-border shadow-xs">
+          <TuxHeroCanvas variant="sol" blend="contained" min-height="380px" class="relative">
+            <div class="p-8 sm:p-12 flex flex-col justify-center h-full max-w-2xl space-y-3">
+              <span class="text-xs font-mono font-bold uppercase tracking-wider text-brand-accent">
+                HTML5 2D Canvas · Particle Physics
+              </span>
+              <p class="text-2xl sm:text-3xl font-display font-bold text-neutral-0">
+                Incandescent Particle Physics Engine
+              </p>
+              <p class="text-xs sm:text-sm text-neutral-0/80 leading-relaxed">
+                Hardware-accelerated stardust particle repulsion, dynamic node clustering, and celestial radial glow.
+                Move your cursor across the canvas to interact with the gravitational field.
+              </p>
+              <div class="pt-2 flex items-center gap-3">
+                <NuxtLink to="/components/hero-canvas" class="welcome-cta welcome-cta--primary">
+                  <span>View Canvas Documentation</span>
+                  <Icon name="lucide:arrow-right" class="welcome-cta-icon" aria-hidden="true" />
+                </NuxtLink>
+              </div>
+            </div>
+          </TuxHeroCanvas>
+        </div>
+      </div>
+
+      <!-- Tab 3: UI Primitives & Controls -->
+      <div v-show="activeShowcaseTab === 'ui'" class="p-6 rounded-xl bg-surface-raised border border-surface-border shadow-xs space-y-6">
+        <div>
+          <h3 class="text-base font-bold text-text-primary">Interactive UI Components &amp; Invariants</h3>
+          <p class="text-xs text-text-secondary mt-1">Live demonstration of TUX buttons, badges, and alerts with Level AAA contrast.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="space-y-3">
+            <p class="text-xs font-mono font-bold uppercase tracking-wider text-text-muted">Buttons &amp; Actions</p>
+            <div class="flex flex-wrap gap-2">
+              <TuxButton intent="primary">Primary</TuxButton>
+              <TuxButton intent="secondary">Secondary</TuxButton>
+              <TuxButton intent="ghost">Ghost</TuxButton>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <p class="text-xs font-mono font-bold uppercase tracking-wider text-text-muted">Badges &amp; Status</p>
+            <div class="flex flex-wrap gap-2 items-center">
+              <TuxBadge status="completed">completed</TuxBadge>
+              <TuxBadge status="in-progress">active</TuxBadge>
+              <TuxBadge status="pending">pending</TuxBadge>
+              <TuxBadge tier="sensitive">L3 sensitive</TuxBadge>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <p class="text-xs font-mono font-bold uppercase tracking-wider text-text-muted">Accessibility Guardrails</p>
+            <div class="text-xs font-mono text-text-secondary space-y-1">
+              <p>• &gt;= 7.0:1 Text Contrast</p>
+              <p>• &gt;= 44px Touch Targets</p>
+              <p>• 3px Warm Gold Focus Rings</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ──────── WHAT'S NEW / CHANGELOG SHORTLIST ──────── -->
+    <section>
+      <p class="eyebrow">recent updates</p>
+      <div class="welcome-updates-header">
+        <h2 class="heading--bold text-2xl font-bold">What's new</h2>
+        <NuxtLink to="/changelog" class="welcome-updates-changelog">
+          <span>Full changelog</span>
+          <Icon name="lucide:arrow-right" class="welcome-cta-icon" aria-hidden="true" />
+        </NuxtLink>
+      </div>
+      <ul class="welcome-updates">
+        <li v-for="u in recentUpdates" :key="u.title" class="welcome-update">
+          <time class="welcome-update__date">{{ u.date }}</time>
+          <div class="welcome-update__body">
+            <NuxtLink :to="u.to" class="welcome-update__title">{{ u.title }}</NuxtLink>
+            <p class="welcome-update__text">{{ u.body }}</p>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ──────── APPLICATION EXAMPLES ──────── -->
+    <section>
+      <p class="eyebrow">examples &amp; layouts</p>
+      <div class="welcome-updates-header">
+        <h2 class="heading--bold text-2xl font-bold">Application Examples</h2>
+        <NuxtLink to="/examples" class="welcome-updates-changelog">
+          <span>View all 15 examples</span>
+          <Icon name="lucide:arrow-right" class="welcome-cta-icon" aria-hidden="true" />
+        </NuxtLink>
+      </div>
+      <p class="mt-2 max-w-3xl text-text-secondary leading-relaxed">
+        Reference implementations demonstrating how components assemble into complete TTI applications:
+      </p>
+      <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <TuxCard to="/examples/atlas">
+          <p class="eyebrow text-brand-primary">internal suite · governance</p>
+          <h3 class="text-lg font-bold">Atlas Security &amp; Policy Audit</h3>
+          <p class="mt-1 text-xs text-text-secondary">
+            Compliance and policy audit console with findings ledger, telemetry metrics, and milestone schedule.
+          </p>
+        </TuxCard>
+        <TuxCard to="/examples/forgejo-code">
+          <p class="eyebrow text-brand-primary">developer tool · git</p>
+          <h3 class="text-lg font-bold">TTI Code (Forgejo) Developer Portal</h3>
+          <p class="mt-1 text-xs text-text-secondary">
+            Self-hosted Git repository interface with file browser, pull requests, clone modal, and README display.
+          </p>
+        </TuxCard>
+        <TuxCard to="/examples/comm-portal">
+          <p class="eyebrow text-brand-primary">public marcom · tti.tamu.edu</p>
+          <h3 class="text-lg font-bold">Communications Portal</h3>
+          <p class="mt-1 text-xs text-text-secondary">
+            Public site layout matching tti.tamu.edu: header ribbon, division spectrum, capability cluster, and section navigation.
+          </p>
+        </TuxCard>
+        <TuxCard to="/examples/intranet-dashboard">
+          <p class="eyebrow text-brand-primary">employee intranet · my.tti</p>
+          <h3 class="text-lg font-bold">MyTTI Intranet Dashboard</h3>
+          <p class="mt-1 text-xs text-text-secondary">
+            Intranet layout matching my.tti.tamu.edu: navigation header, application drawer, service grid, calendar, and notices.
+          </p>
+        </TuxCard>
+        <TuxCard to="/examples/landscape-dashboard">
+          <p class="eyebrow text-brand-primary">operations telemetry · it</p>
+          <h3 class="text-lg font-bold">Landscape Operations Dashboard</h3>
+          <p class="mt-1 text-xs text-text-secondary">
+            Telemetry monitoring console with division tags, data tables, treemap visualization, and status alerts.
+          </p>
+        </TuxCard>
+        <TuxCard to="/examples/tti-ai-studio-session">
+          <p class="eyebrow text-brand-primary">research assistant · ai</p>
+          <h3 class="text-lg font-bold">TTI AI Studio Session</h3>
+          <p class="mt-1 text-xs text-text-secondary">
+            Research chat interface with prompt chips, reference citations, model selector, and telemetry details.
+          </p>
+        </TuxCard>
+      </div>
+    </section>
+
+    <!-- ──────── FOUNDATIONS ──────── -->
+    <section>
+      <p class="eyebrow">get started</p>
+      <h2 class="heading--bold text-2xl font-bold">Foundations</h2>
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <TuxCard to="/tokens">
+          <p class="eyebrow">foundations</p>
+          <h3 class="text-xl font-bold">Tokens</h3>
+          <p class="mt-2 text-sm text-text-secondary">
+            Brand colors, surfaces, text roles, shadows, radii — every CSS variable
+            the system exposes, visible at a glance.
+          </p>
+        </TuxCard>
+        <TuxCard to="/typography">
+          <p class="eyebrow">foundations</p>
+          <h3 class="text-xl font-bold">Typography</h3>
+          <p class="mt-2 text-sm text-text-secondary">
+            Public Sans + JetBrains Mono. The <code>heading--bold</code>,
+            <code>heading--display</code>, and eyebrow utilities in context.
+          </p>
+        </TuxCard>
+        <TuxCard to="/motion">
+          <p class="eyebrow">foundations</p>
+          <h3 class="text-xl font-bold">Motion &amp; spacing</h3>
+          <p class="mt-2 text-sm text-text-secondary">
+            Three durations, the 4px spacing ramp, and the tux corner-drop
+            signature.
+          </p>
+        </TuxCard>
+        <TuxCard to="/icons">
+          <p class="eyebrow">foundations</p>
+          <h3 class="text-xl font-bold">Icons</h3>
+          <p class="mt-2 text-sm text-text-secondary">
+            1,755 Lucide glyphs via <code>@nuxt/icon</code>. Click-to-copy
+            in a searchable catalog.
+          </p>
+        </TuxCard>
+        <TuxCard to="/forms">
+          <p class="eyebrow">primitives</p>
+          <h3 class="text-xl font-bold">Forms</h3>
+          <p class="mt-2 text-sm text-text-secondary">
+            Inputs, selects, radios, switches, sliders, and chip inputs — Nuxt UI
+            form primitives with TTI maroon focus rings and consistent label rhythm.
+          </p>
+        </TuxCard>
+        <TuxCard to="/patterns">
+          <p class="eyebrow">beyond components</p>
+          <h3 class="text-xl font-bold">Patterns</h3>
+          <p class="mt-2 text-sm text-text-secondary">
+            Empty states, loading skeletons, confirmation flows, admonition stacks —
+            conventions for the decisions components don't answer.
+          </p>
+        </TuxCard>
+      </div>
+    </section>
+
+    <!-- ──────── MULTI-FRAMEWORK ECOSYSTEM ──────── -->
     <section class="p-6 sm:p-8 rounded-2xl bg-surface-raised border border-surface-border space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -736,33 +481,569 @@ const telemetryMetrics = [
 </template>
 
 <style scoped>
-.tux-home-page {
-  width: 100%;
+/* ──────── HERO — split layout, maroon panel on the right.
+   Container queries so the layout responds to its own width
+   (works in any column the home page lives in). ──────── */
+.welcome-hero {
+  container-type: inline-size;
+  container-name: welcome-hero;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin: -0.5rem 0 1rem;
 }
 
-.tux-home-hero {
+@container welcome-hero (min-width: 44rem) {
+  .welcome-hero {
+    grid-template-columns: minmax(0, 1.4fr) minmax(17rem, 1fr);
+    gap: 2rem;
+    align-items: stretch;
+  }
+}
+
+.welcome-hero__copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.welcome-hero__eyebrow {
+  margin-bottom: 0.625rem;
+}
+
+.welcome-hero__title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.012em;
+  font-size: clamp(2.5rem, 1.6rem + 4cqi, 4rem);
+  line-height: 0.95;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.welcome-hero__title-line {
+  display: block;
+}
+
+.welcome-hero__title-line--maroon {
+  color: var(--brand-primary);
+}
+
+[data-theme="tti-dark"] .welcome-hero__title-line--maroon {
+  color: var(--brand-accent);
+}
+
+.welcome-hero__rule {
+  display: block;
+  width: 5.5rem;
+  height: 4px;
+  background: var(--brand-accent);
+  border-radius: 2px;
+  margin: 1.25rem 0 1.5rem;
+}
+
+.welcome-hero__lede {
+  margin: 0 0 1.25rem;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  max-width: 36rem;
+}
+
+.welcome-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+}
+
+/* Right-side maroon panel — bold TTI UX display banner with institutional
+   typography, passing lane roadway rule, and dynamic framework badges. */
+.welcome-hero__panel {
   position: relative;
-  background-color: var(--neutral-1000);
+  background: var(--tti-maroon);
+  border: 1px solid color-mix(in srgb, var(--brand-accent) 25%, transparent);
+  border-radius: var(--radius-md);
+  padding: 2rem 1.875rem;
+  color: var(--neutral-0);
+  overflow: hidden;
+  min-height: 18rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 20px -2px color-mix(in srgb, var(--tti-maroon) 35%, transparent);
+  isolation: isolate;
 }
 
-.tux-home-hero__content {
+.welcome-hero__panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 85% 15%, color-mix(in srgb, var(--brand-accent) 18%, transparent) 0%, transparent 60%),
+    repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--brand-accent) 8%, transparent) 0 2px,
+      transparent 2px 18px
+    );
+  z-index: 0;
+  pointer-events: none;
+}
+
+.welcome-hero__banner {
   position: relative;
-  z-index: 10;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-.tux-home-hero__pill {
+.welcome-hero__banner-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--brand-accent);
+}
+
+.welcome-hero__banner-bullet {
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.welcome-hero__banner-brand {
+  margin-top: 1rem;
+  font-family: var(--font-bold);
+  font-weight: 900;
+  font-size: clamp(3.25rem, 5vw, 4.75rem);
+  line-height: 0.92;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  text-shadow: 0 2px 8px color-mix(in srgb, var(--neutral-1000) 40%, transparent);
+}
+
+.welcome-hero__banner-brand-tti {
+  color: var(--neutral-0);
+}
+
+.welcome-hero__banner-brand-ux {
+  color: var(--brand-accent);
+}
+
+.welcome-hero__banner-roadway {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 6.5rem;
+  margin: 1rem 0 1.125rem;
+}
+
+.welcome-hero__roadway-solid {
+  display: block;
+  height: 2.5px;
+  background: var(--brand-accent);
+  border-radius: 1px;
+}
+
+.welcome-hero__roadway-dashed {
+  display: block;
+  height: 0;
+  border-top: 2.5px dashed var(--brand-accent);
+}
+
+.welcome-hero__banner-subtitle {
+  margin: 0 0 1.75rem;
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: color-mix(in srgb, var(--neutral-0) 95%, transparent);
+  max-width: 24rem;
+}
+
+.welcome-hero__banner-chips {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4375rem;
+}
+
+.welcome-hero__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5625rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: color-mix(in srgb, var(--neutral-0) 95%, transparent);
+  background: color-mix(in srgb, var(--neutral-1000) 35%, transparent);
+  border: 1px solid color-mix(in srgb, var(--brand-accent) 35%, transparent);
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.02em;
+}
+
+/* ──────── VISUAL IDENTITY GLANCE — six tiles showing the system
+   in the wild (color + type + live components + motion). Each
+   tile is a NuxtLink so the whole grid is navigation. ──────── */
+.welcome-glance {
+  margin-top: 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1rem;
+}
+
+.welcome-glance__tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.125rem 1.125rem 1rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--text-primary);
+  position: relative;
+  overflow: hidden;
+  min-height: 9rem;
+  transition: border-color 0.15s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.welcome-glance__tile:hover,
+.welcome-glance__tile:focus-visible {
+  border-color: var(--brand-primary);
+  outline: none;
+}
+
+.welcome-glance__tile--wide {
+  grid-column: span 2;
+}
+
+@container (max-width: 38rem) {
+  .welcome-glance__tile--wide {
+    grid-column: span 1;
+  }
+}
+
+/* Maroon and gold "color sample" tiles — the tile IS the color. */
+.welcome-glance__tile--maroon {
+  background: var(--tti-maroon);
+  border-color: var(--tti-maroon);
+  color: var(--neutral-0);
+}
+
+.welcome-glance__tile--maroon:hover,
+.welcome-glance__tile--maroon:focus-visible {
+  border-color: var(--brand-accent);
+  box-shadow: 0 0 0 1px var(--brand-accent) inset;
+}
+
+.welcome-glance__tile--gold {
+  background: var(--brand-accent);
+  border-color: var(--brand-accent);
+  color: var(--neutral-1000);
+}
+
+.welcome-glance__tile--gold:hover,
+.welcome-glance__tile--gold:focus-visible {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 1px var(--brand-primary) inset;
+}
+
+.welcome-glance__label {
+  margin: 0;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.welcome-glance__tile--maroon .welcome-glance__label {
+  color: var(--brand-accent);
+}
+
+.welcome-glance__tile--gold .welcome-glance__label {
+  color: color-mix(in srgb, var(--neutral-1000) 75%, transparent);
+}
+
+.welcome-glance__value {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-style: italic;
+  font-family: var(--font-display);
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+}
+
+.welcome-glance__value--mono {
+  font-size: 1rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+.welcome-glance__value--display {
+  font-size: 3.5rem;
+  line-height: 0.9;
+  margin-top: -0.25rem;
+}
+
+.welcome-glance__caption {
+  margin: 0;
+  margin-top: auto;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.welcome-glance__tile--maroon .welcome-glance__caption,
+.welcome-glance__tile--gold .welcome-glance__caption {
+  color: inherit;
+  opacity: 0.85;
+}
+
+.welcome-glance__live {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  margin-bottom: auto;
+}
+
+.welcome-glance__live--full {
+  display: block;
+  margin: 0.25rem 0 0;
+}
+
+.welcome-glance__live--full :deep(.tux-alert) {
+  margin: 0;
+}
+
+/* Corner-drop preview: the tile itself does the corner-drop on
+   hover, so the visitor experiences the signature motion. */
+.welcome-glance__tile--corner-drop {
+  border-color: var(--brand-primary);
+}
+
+.welcome-glance__tile--corner-drop:hover,
+.welcome-glance__tile--corner-drop:focus-visible {
+  transform: translate(4px, -4px);
+  box-shadow: -4px 4px 0 0 var(--brand-primary);
+}
+
+.welcome-glance__hint {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.875rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brand-primary);
+  opacity: 0.75;
+}
+
+/* Version chip in the welcome eyebrow — same monospace + maroon
+   treatment as the header pill, scaled to eyebrow rhythm. */
+.welcome-version {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.5rem;
+  padding: 0.0625rem 0.375rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--brand-primary);
+  background: var(--wash-brand-8);
+  border: 1px solid var(--wash-brand-22);
+  border-radius: var(--radius-sm);
+}
+
+[data-theme="tti-dark"] .welcome-version {
+  color: var(--brand-accent);
+  background: color-mix(in srgb, var(--brand-accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--brand-accent) 22%, transparent);
+}
+
+/* CTA buttons under the welcome paragraph. The primary variant gets
+   a maroon fill; the secondary gets a hairline border. */
+.welcome-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  padding: 0.5rem 0.875rem;
+  font-family: var(--font-bold);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid var(--surface-border);
+  border-radius: 0px !important;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.welcome-cta:hover,
+.welcome-cta:focus-visible {
+  background: var(--surface-sunken);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.welcome-cta--primary {
+  background: var(--tti-maroon);
+  border-color: var(--tti-maroon);
+  color: var(--neutral-0);
+}
+
+.welcome-cta--primary:hover,
+.welcome-cta--primary:focus-visible {
+  background: var(--tti-maroon-deep);
+  border-color: var(--tti-maroon-deep);
+  color: var(--neutral-0);
+}
+
+.welcome-cta-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Showcase tab switcher */
+.showcase-tab-btn {
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.35rem 0.75rem;
-  border-radius: var(--radius-full);
-  background-color: color-mix(in srgb, var(--neutral-1000) 65%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid color-mix(in srgb, var(--neutral-0) 22%, transparent);
-  box-shadow: 0 4px 16px color-mix(in srgb, var(--neutral-1000) 50%, transparent);
+  cursor: pointer;
+  transition: all var(--motion-fast) var(--ease-standard);
+  border: 1px solid transparent;
+}
+
+.showcase-tab-btn--active {
+  background-color: var(--brand-primary);
+  color: var(--neutral-0);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme="tti-dark"] .showcase-tab-btn--active {
+  color: var(--neutral-1000);
+}
+
+.showcase-tab-btn--inactive {
+  color: var(--text-secondary);
+  background-color: transparent;
+}
+
+.showcase-tab-btn--inactive:hover {
+  color: var(--text-primary);
+  background-color: var(--surface-sunken);
+}
+
+/* Recent-updates feed — date column + title + body. */
+.welcome-updates-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.welcome-updates-changelog {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--surface-border);
+  padding-bottom: 1px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.welcome-updates-changelog:hover,
+.welcome-updates-changelog:focus-visible {
+  color: var(--brand-primary);
+  border-color: var(--brand-primary);
+  outline: none;
+}
+
+.welcome-updates {
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--surface-border);
+}
+
+.welcome-update {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.25rem 1.5rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+@container (min-width: 38rem) {
+  .welcome-update {
+    grid-template-columns: 7rem 1fr;
+    gap: 0 1.5rem;
+  }
+}
+
+.welcome-update__date {
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: var(--neutral-0);
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.welcome-update__title {
+  display: block;
+  font-family: var(--font-bold);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.welcome-update__title:hover,
+.welcome-update__title:focus-visible {
+  color: var(--brand-primary);
+  outline: none;
+}
+
+.welcome-update__text {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
 }
 </style>
