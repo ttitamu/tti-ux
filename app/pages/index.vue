@@ -124,21 +124,16 @@ const recentUpdates = [
          1. HERO STAGE — Texas Corridor Network & Kinetic Arterial Flow Canvas
          ══════════════════════════════════════════════════════════════════════ -->
     <section class="tux-home-hero -mx-4 sm:-mx-6 lg:-mx-8 -mt-6 sm:-mt-8 mb-8">
-      <TuxHeroCanvas variant="corridor" blend="seamless" min-height="620px">
-        <div class="px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:pb-12 max-w-7xl mx-auto flex flex-col justify-between min-h-[580px] sm:min-h-[620px]">
+      <TuxHeroCanvas variant="corridor" blend="seamless" min-height="660px">
+        <div class="px-6 sm:px-12 lg:px-20 pt-8 sm:pt-10 lg:pt-12 pb-12 sm:pb-16 max-w-7xl mx-auto flex flex-col justify-between min-h-[620px] sm:min-h-[660px]">
           
           <!-- 1. Across the Top: 5-color Spectrum Ribbon -->
-          <div class="w-full mb-8">
+          <div class="w-full mb-12 sm:mb-16 lg:mb-20">
             <TuxSpectrumRibbon height="md" class="w-full rounded-full overflow-hidden shadow-sm" />
           </div>
 
-          <!-- 2. Top-Left: TTI DESIGN SYSTEM Branding & Mission -->
-          <div class="space-y-4 max-w-2xl">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-wash-brand-8 border border-wash-brand-22 text-[11px] font-mono font-bold text-brand-accent tracking-wider uppercase">
-              <span class="w-1.5 h-1.5 rounded-full bg-brand-accent animate-pulse" />
-              <span>Texas A&amp;M Transportation Institute · v{{ version }}</span>
-            </div>
-
+          <!-- 2. Top-Left: TTI DESIGN SYSTEM Branding & Mission (With generous top and left clearance) -->
+          <div class="space-y-6 max-w-2xl pl-2 sm:pl-4 lg:pl-8 pt-4 sm:pt-6">
             <div>
               <h1 class="font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold uppercase italic tracking-tight text-neutral-0 leading-[0.88]">
                 TTI<br />
@@ -155,9 +150,9 @@ const recentUpdates = [
           </div>
 
           <!-- 3. Bottom Row: Left Action Buttons + Right Faint Angled TUX & AAA Tout -->
-          <div class="pt-8 sm:pt-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <!-- Left: Smaller Buttons (Comfortably above bottom gradient) -->
-            <div class="flex flex-wrap items-center gap-2.5">
+          <div class="pt-10 sm:pt-14 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <!-- Left: Smaller Buttons (Comfortably above bottom gradient, aligned with left inset) -->
+            <div class="pl-2 sm:pl-4 lg:pl-8 flex flex-wrap items-center gap-2.5">
               <NuxtLink
                 to="/components"
                 class="px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-brand-primary hover:bg-brand-primary-deep text-neutral-0 shadow-sm hover:shadow transition-all flex items-center gap-1.5 border border-brand-accent/40"
@@ -189,7 +184,7 @@ const recentUpdates = [
             </div>
 
             <!-- Right: Faint Angled TUX Monogram + Certified WCAG 2.2 Level AAA Tout -->
-            <div class="flex flex-col items-start md:items-end text-left md:text-right select-none">
+            <div class="pr-2 sm:pr-4 lg:pr-8 flex flex-col items-start md:items-end text-left md:text-right select-none">
               <div
                 class="welcome-hero__faint-monogram text-7xl sm:text-8xl lg:text-9xl translate-x-2 -mb-2"
                 aria-hidden="true"
