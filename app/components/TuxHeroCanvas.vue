@@ -21,8 +21,8 @@
  *   - Zero-Color-Ratchet compliant: Strictly token-driven, zero bare hex/rgb in styles.
  */
 interface Props {
-  /** Simulation variant. Defaults to 'corridor'. */
-  variant?: "corridor" | "network" | "sol" | "constellation";
+  /** Simulation variant. Defaults to 'wash'. */
+  variant?: "wash" | "corridor" | "network" | "sol" | "constellation";
   /** Bottom edge blend style. 'seamless' dissolves softly into page surface. */
   blend?: "seamless" | "contained" | "full-bleed";
   /** Whether cursor proximity highlights hubs/links and shows telemetry HUD. */
@@ -34,7 +34,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  variant: "corridor",
+  variant: "wash",
   blend: "seamless",
   interactive: true,
   showControls: true,
@@ -865,6 +865,93 @@ function runLoop() {
     }
   }
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // VARIANT: WASH (Clean Minimalist Architectural Wash)
+  // ══════════════════════════════════════════════════════════════════════════
+  if (props.variant === "wash") {
+    // 1. Fine Civil Engineering Drafting Grid & Surveyor Coordinate Marks
+    ctx.save();
+    ctx.lineWidth = 0.5;
+    ctx.strokeStyle = makeRgba(207, 169, 53, 0.035); // 3.5% Warm Gold grid line
+    const gridStep = 72;
+    for (let gx = gridStep; gx < w; gx += gridStep) {
+      ctx.beginPath();
+      ctx.moveTo(gx, 0);
+      ctx.lineTo(gx, h);
+      ctx.stroke();
+    }
+    for (let gy = gridStep; gy < h; gy += gridStep) {
+      ctx.beginPath();
+      ctx.moveTo(0, gy);
+      ctx.lineTo(w, gy);
+      ctx.stroke();
+    }
+
+    // Precision Surveyor Intersection Crosshairs (+)
+    ctx.lineWidth = 1.0;
+    ctx.strokeStyle = makeRgba(207, 169, 53, 0.08); // 8% Warm Gold crosshairs
+    const markStep = gridStep * 2;
+    const crossSize = 3;
+    for (let mx = markStep; mx < w; mx += markStep) {
+      for (let my = markStep; my < h; my += markStep) {
+        ctx.beginPath();
+        ctx.moveTo(mx - crossSize, my);
+        ctx.lineTo(mx + crossSize, my);
+        ctx.moveTo(mx, my - crossSize);
+        ctx.lineTo(mx, my + crossSize);
+        ctx.stroke();
+      }
+    }
+
+    // 2. Faint Roadway Centerline Reference Rules (Passing Zone Geometry)
+    const ruleY = h * 0.72;
+    const ruleStartX = w * 0.40;
+    const ruleEndX = w * 0.96;
+
+    // Solid base rule
+    ctx.beginPath();
+    ctx.moveTo(ruleStartX, ruleY);
+    ctx.lineTo(ruleEndX, ruleY);
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = makeRgba(207, 169, 53, 0.06);
+    ctx.stroke();
+
+    // Passing dashed rule (3.5px above)
+    ctx.beginPath();
+    ctx.setLineDash([12, 10]);
+    ctx.moveTo(ruleStartX, ruleY - 3.5);
+    ctx.lineTo(ruleEndX, ruleY - 3.5);
+    ctx.lineWidth = 1.0;
+    ctx.strokeStyle = makeRgba(207, 169, 53, 0.05);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // 3. Subtle Ambient Luminous Breathing Bloom (Organic Soft Light)
+    solBreathPhase += 0.015;
+    const breath = Math.sin(solBreathPhase) * 18;
+
+    // Target focal point shifts gently toward cursor when active
+    let focalX = w * 0.72;
+    let focalY = h * 0.38;
+    if (mousePos.value.active) {
+      focalX += (mousePos.value.x - focalX) * 0.08;
+      focalY += (mousePos.value.y - focalY) * 0.08;
+    }
+
+    const bloomR = Math.max(w * 0.45, 340) + breath;
+    const bloomGrad = ctx.createRadialGradient(focalX, focalY, 0, focalX, focalY, bloomR);
+    bloomGrad.addColorStop(0, makeRgba(207, 169, 53, 0.08)); // Warm Gold ambient glow
+    bloomGrad.addColorStop(0.35, makeRgba(160, 45, 30, 0.12)); // Deep TTI Maroon wash
+    bloomGrad.addColorStop(0.70, makeRgba(80, 15, 20, 0.04));
+    bloomGrad.addColorStop(1, makeRgba(0, 0, 0, 0));
+
+    ctx.beginPath();
+    ctx.arc(focalX, focalY, bloomR, 0, Math.PI * 2);
+    ctx.fillStyle = bloomGrad;
+    ctx.fill();
+  }
+
   animId = requestAnimationFrame(runLoop);
 }
 
@@ -987,6 +1074,22 @@ onUnmounted(() => {
 
 [data-theme="tti-dark"] .tux-hero-canvas {
   background: radial-gradient(ellipse 90% 70% at 50% 45%, color-mix(in srgb, var(--brand-primary) 50%, var(--surface-page)), var(--surface-page) 85%);
+}
+
+.tux-hero-canvas--variant-wash {
+  background: radial-gradient(
+    ellipse 95% 75% at 75% 38%,
+    color-mix(in srgb, var(--brand-primary) 35%, var(--neutral-1000)),
+    var(--neutral-1000) 85%
+  );
+}
+
+[data-theme="tti-dark"] .tux-hero-canvas--variant-wash {
+  background: radial-gradient(
+    ellipse 95% 75% at 75% 38%,
+    color-mix(in srgb, var(--brand-primary) 50%, var(--surface-page)),
+    var(--surface-page) 85%
+  );
 }
 
 /* Blend Modes: Apply mask ONLY to canvas layers, NEVER to slot content */

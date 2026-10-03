@@ -124,7 +124,7 @@ const recentUpdates = [
          1. HERO STAGE — Texas Corridor Network & Kinetic Arterial Flow Canvas
          ══════════════════════════════════════════════════════════════════════ -->
     <section class="tux-home-hero -mx-4 sm:-mx-6 lg:-mx-8 -mt-6 sm:-mt-8 mb-8">
-      <TuxHeroCanvas variant="corridor" blend="seamless" min-height="640px">
+      <TuxHeroCanvas variant="wash" blend="seamless" min-height="640px">
         <div class="w-full px-6 sm:px-8 lg:px-10 pt-6 sm:pt-8 lg:pt-10 pb-8 sm:pb-12 flex flex-col justify-between min-h-[600px] sm:min-h-[640px]">
           
           <!-- 1. Across the Top: 5-color Spectrum Ribbon -->
