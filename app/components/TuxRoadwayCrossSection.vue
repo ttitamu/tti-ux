@@ -161,26 +161,84 @@ function onWheel(e: WheelEvent) {
 }
 
 // Distance / pop-out factor from Top Dead Center (TDC 0°)
-// Lifts and billboards 3D text panes when pitched away from top-down
+// Lifts and billboards 3D text panes when pitched or yawed away from top-down
 const popOutFactor = computed(() => {
-  // Starts lifting at 6° pitch, fully billboarded and expanded by 30°
-  return Math.max(0, Math.min(1, (pitchDeg.value - 6) / 24));
+  const pitchF = Math.max(0, Math.min(1, (pitchDeg.value - 6) / 22));
+  const yawF = Math.max(0, Math.min(1, (Math.abs(yawDeg.value) - 6) / 18));
+  return Math.max(pitchF, yawF);
 });
 
-// Billboard transform for floating 3D text panes
-const billboardCardStyle = computed(() => {
+// Staggered longitudinal positioning along the roadbed (0% = top, 100% = bottom)
+// Prevents cards from colliding when expanded in 3D
+function getLaneTargetStationY(idx: number, lane: any): number {
+  if (lane.type === "shoulder") {
+    return idx === 0 ? 10 : 14;
+  }
+  const travelLanes = activeData.value.lanes.filter((l: any) => l.type !== "shoulder");
+  const travelIdx = travelLanes.findIndex((l: any) => l.id === lane.id);
+  if (travelIdx === -1) return 26;
+  // Alternates between upper cluster (26% - 34%) and lower cluster (64% - 70%)
+  // Even travel index = upper, Odd travel index = lower
+  return travelIdx % 2 === 0
+    ? 26 + (travelIdx * 4)
+    : 64 + ((travelIdx - 1) * 3);
+}
+
+// Current Y percentage of the lane HUD anchor along the road
+function getLaneCurrentY(idx: number, lane: any): number {
+  const targetY = getLaneTargetStationY(idx, lane);
   const factor = popOutFactor.value;
-  const liftZ = Math.round(factor * 44);
-  const counterPitch = Math.round(-pitchDeg.value * factor * 0.88);
-  const counterYaw = Math.round(-yawDeg.value * factor * 0.88);
-  const scale = +(1.0 + factor * 0.12).toFixed(2);
+  // In top-down view (factor = 0), all cards sit at 4% (flush at top)
+  // As factor -> 1, they smoothly glide down to their staggered positions
+  return +(4 + factor * (targetY - 4)).toFixed(1);
+}
+
+// Elevation height (Z-axis) above the asphalt in pixels
+function getLaneLiftZ(idx: number): number {
+  const factor = popOutFactor.value;
+  const isSelected = selectedLaneIndex.value === idx;
+  const baseLift = Math.round(factor * 68);
+  const focusBonus = isSelected ? 24 : 0;
+  return baseLift + focusBonus;
+}
+
+// Style for the anchor footprint on the asphalt surface
+function getHudAnchorStyle(idx: number, lane: any) {
+  const currentY = getLaneCurrentY(idx, lane);
+  const isSelected = selectedLaneIndex.value === idx;
+  return {
+    top: `${currentY}%`,
+    zIndex: isSelected ? 50 : 20 + idx,
+    transition: isDragging.value ? "none" : "top 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+  };
+}
+
+// Style for the vertical 3D stanchion pole standing out of the asphalt
+function getStanchionPoleStyle(idx: number) {
+  const liftZ = getLaneLiftZ(idx);
+  return {
+    height: `${liftZ}px`,
+    transition: isDragging.value ? "none" : "height 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+  };
+}
+
+// Style for the floating 3D billboard HUD card
+function getHudCardStyle(idx: number, lane: any) {
+  const factor = popOutFactor.value;
+  const liftZ = getLaneLiftZ(idx);
+
+  // Exact counter-rotation to billboard perpendicular to camera
+  const counterPitch = Math.round(-pitchDeg.value * factor);
+  const counterYaw = Math.round(-yawDeg.value * factor);
 
   return {
-    transform: `translateZ(${liftZ}px) rotateX(${counterPitch}deg) rotateZ(${counterYaw}deg) scale(${scale})`,
+    transform: `translateZ(${liftZ}px) rotateZ(${counterYaw}deg) rotateX(${counterPitch}deg) translateX(-50%)`,
     transformOrigin: "bottom center",
-    transition: isDragging.value ? "none" : "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+    transition: isDragging.value
+      ? "none"
+      : "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), width 0.25s ease, padding 0.25s ease",
   };
-});
+}
 
 // Preset Data Models
 const presets = {
@@ -583,7 +641,7 @@ function losClass(los?: string): string {
           <div
             class="tux-roadway__3d-corridor"
             :style="{
-              transform: `perspective(1000px) scale(${zoomScale}) rotateX(${pitchDeg}deg) rotateY(${rollDeg}deg) rotateZ(${yawDeg}deg)`,
+              transform: `scale(${zoomScale}) rotateX(${pitchDeg}deg) rotateY(${rollDeg}deg) rotateZ(${yawDeg}deg)`,
               transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
             }"
           >
@@ -611,53 +669,86 @@ function losClass(los?: string): string {
                 <div v-else-if="lane.type === 'shoulder'" class="tux-roadway__stripe-white-solid" />
                 <div v-else class="tux-roadway__stripe-white-dashed" />
 
-                <!-- Floating 3D Spatial Telemetry Pane (Pops out when tilted away from Top Dead Center) -->
+                <!-- Floating 3D Spatial Telemetry HUD Pane -->
                 <div
-                  class="tux-roadway__lane-signage"
-                  :class="{
-                    'tux-roadway__lane-signage--popped': popOutFactor > 0.05,
-                    'tux-roadway__lane-signage--selected': selectedLaneIndex === idx
-                  }"
+                  class="tux-roadway__lane-hud-anchor"
+                  :style="getHudAnchorStyle(idx, lane)"
+                  @click.stop="selectedLaneIndex = idx"
                 >
-                  <!-- Vertical Stanchion Pin / Leader Line anchoring HUD card down to roadbed -->
-                  <div
-                    v-if="popOutFactor > 0.08"
-                    class="tux-roadway__signage-stanchion"
-                    :style="{ height: `${Math.round(popOutFactor * 32)}px` }"
-                  >
-                    <div class="tux-roadway__stanchion-dot" />
+                  <!-- Ground Anchor Footprint on Asphalt (Z = 0) -->
+                  <div class="tux-roadway__hud-ground-target">
+                    <div class="tux-roadway__ground-ring" />
+                    <div class="tux-roadway__ground-dot" />
+                    <div
+                      class="tux-roadway__ground-shadow"
+                      :style="{ opacity: (popOutFactor * 0.45).toFixed(2) }"
+                    />
                   </div>
 
-                  <!-- Billboarded Floating HUD Card -->
+                  <!-- Vertical 3D Stanchion Pillar rising from Z=0 up to Z=liftZ -->
                   <div
-                    class="tux-roadway__signage-card"
-                    :style="billboardCardStyle"
+                    v-if="popOutFactor > 0.05"
+                    class="tux-roadway__hud-stanchion-pole"
+                    :style="getStanchionPoleStyle(idx)"
+                  />
+
+                  <!-- Floating 3D Billboard HUD Card at Z=liftZ -->
+                  <div
+                    class="tux-roadway__hud-card"
+                    :class="{
+                      'tux-roadway__hud-card--popped': popOutFactor > 0.12,
+                      'tux-roadway__hud-card--selected': selectedLaneIndex === idx,
+                      'tux-roadway__hud-card--shoulder': lane.type === 'shoulder'
+                    }"
+                    :style="getHudCardStyle(idx, lane)"
                   >
-                    <div class="tux-roadway__signage-top" :title="lane.name">
-                      <span class="tux-roadway__lane-title">{{ lane.label }}</span>
+                    <!-- Top Bar: Title & Lane Width Badge -->
+                    <div class="tux-roadway__hud-top" :title="lane.name">
+                      <span class="tux-roadway__hud-title">{{ lane.label }}</span>
+                      <span
+                        v-if="popOutFactor > 0.15 && lane.type !== 'shoulder'"
+                        class="tux-roadway__hud-type-tag"
+                        :class="`tux-roadway__hud-type-tag--${lane.type}`"
+                      >
+                        {{ lane.type === 'managed' ? 'TEXPRESS' : 'GP' }}
+                      </span>
                     </div>
 
-                    <div v-if="lane.speedMph" class="tux-roadway__signage-stats">
-                      <div class="tux-roadway__signage-main-stat">
-                        <span class="tux-roadway__lane-speed">{{ lane.speedMph }} MPH</span>
-                        <span v-if="lane.los" class="tux-roadway__lane-los" :class="losClass(lane.los)">
+                    <!-- Main Stats Section: Speed & LOS -->
+                    <div v-if="lane.speedMph" class="tux-roadway__hud-stats">
+                      <div class="tux-roadway__hud-main-stat">
+                        <span class="tux-roadway__hud-speed">{{ lane.speedMph }} <small>MPH</small></span>
+                        <span v-if="lane.los" class="tux-roadway__hud-los" :class="losClass(lane.los)">
                           LOS {{ lane.los }}
                         </span>
                       </div>
 
                       <!-- Popped-out expanded real-time telemetry metrics -->
                       <div
-                        v-if="popOutFactor > 0.2"
-                        class="tux-roadway__signage-expanded"
-                        :style="{ opacity: Math.min(1, (popOutFactor - 0.2) * 2) }"
+                        v-if="popOutFactor > 0.15"
+                        class="tux-roadway__hud-expanded"
+                        :style="{ opacity: Math.min(1, (popOutFactor - 0.15) * 2.5) }"
                       >
-                        <span class="tux-roadway__expanded-item">
-                          <strong>{{ lane.volumeVph?.toLocaleString() ?? '—' }}</strong> vph
-                        </span>
-                        <span class="tux-roadway__expanded-item">
-                          <strong>{{ lane.occupancyPct ?? '—' }}%</strong> occ
-                        </span>
+                        <div class="tux-roadway__hud-stat-cell">
+                          <span class="tux-roadway__hud-stat-val">{{ lane.volumeVph?.toLocaleString() ?? '—' }}</span>
+                          <span class="tux-roadway__hud-stat-lbl">VPH</span>
+                        </div>
+                        <div class="tux-roadway__hud-stat-divider" />
+                        <div class="tux-roadway__hud-stat-cell">
+                          <span class="tux-roadway__hud-stat-val">{{ lane.occupancyPct ?? '—' }}%</span>
+                          <span class="tux-roadway__hud-stat-lbl">OCC</span>
+                        </div>
                       </div>
+                    </div>
+
+                    <!-- Shoulder Lane Specific Readout -->
+                    <div v-else-if="lane.type === 'shoulder'" class="tux-roadway__hud-shoulder-info">
+                      <span class="tux-roadway__hud-shoulder-lbl">
+                        {{ idx === 0 ? 'Inside Shldr' : 'Outside Shldr' }}
+                      </span>
+                      <span v-if="popOutFactor > 0.15" class="tux-roadway__hud-shoulder-sub">
+                        {{ lane.widthFt }} FT &bull; Emergency
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1504,7 +1595,8 @@ function losClass(los?: string): string {
   height: 100%;
   background: var(--neutral-800);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  transform-style: preserve-3d;
   border-bottom: 4px solid var(--neutral-900);
 }
 
@@ -1512,11 +1604,13 @@ function losClass(los?: string): string {
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   border-right: 1px dashed color-mix(in srgb, var(--neutral-0) 35%, transparent);
   padding: 0.5rem 0.25rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  overflow: visible;
+  transform-style: preserve-3d;
 }
 
 .tux-roadway__3d-lane:hover {
@@ -1577,107 +1671,179 @@ function losClass(los?: string): string {
 /* ══════════════════════════════════════════════════════════════════════════
    FLOATING 3D POP-OUT TELEMETRY HUD PANE
    ══════════════════════════════════════════════════════════════════════════ */
-.tux-roadway__lane-signage {
-  position: relative;
-  z-index: 25;
+.tux-roadway__lane-hud-anchor {
+  position: absolute;
+  left: 50%;
+  width: 0;
+  height: 0;
   transform-style: preserve-3d;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  cursor: pointer;
 }
 
-.tux-roadway__signage-stanchion {
+/* Ground Anchor Footprint on Asphalt (Z = 0) */
+.tux-roadway__hud-ground-target {
   position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 2px;
-  transform: translateX(-50%);
-  background: linear-gradient(to top, var(--brand-accent), color-mix(in srgb, var(--brand-accent) 22%, transparent));
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%) translateZ(0.5px);
   pointer-events: none;
-  z-index: 1;
+  transform-style: preserve-3d;
 }
 
-.tux-roadway__stanchion-dot {
-  position: absolute;
-  bottom: -2px;
-  left: 50%;
+.tux-roadway__ground-dot {
   width: 6px;
   height: 6px;
   border-radius: var(--radius-full);
-  transform: translateX(-50%);
   background-color: var(--brand-accent);
   box-shadow: 0 0 8px var(--brand-accent);
 }
 
-.tux-roadway__signage-card {
-  position: relative;
-  z-index: 10;
-  width: 95%;
-  min-width: 68px;
-  padding: 0.35rem 0.45rem;
+.tux-roadway__ground-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  transform: translate(-50%, -50%);
+  border: 1px solid color-mix(in srgb, var(--brand-accent) 50%, transparent);
+}
+
+.tux-roadway__ground-shadow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  transform: translate(-50%, -50%);
+  background-color: color-mix(in srgb, var(--neutral-1000) 50%, transparent);
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+/* Vertical 3D Stanchion Pillar */
+.tux-roadway__hud-stanchion-pole {
+  position: absolute;
+  left: -1px;
+  bottom: 0;
+  width: 2px;
+  transform-origin: bottom center;
+  transform: rotateX(-90deg);
+  background: linear-gradient(to top, var(--brand-accent), color-mix(in srgb, var(--brand-accent) 22%, transparent));
+  box-shadow: 0 0 4px var(--brand-accent);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Floating 3D Billboard HUD Card */
+.tux-roadway__hud-card {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 72px;
+  padding: 0.25rem 0.35rem;
   border-radius: var(--radius-sm);
-  background-color: color-mix(in srgb, var(--surface-raised) 90%, transparent);
+  background-color: var(--surface-raised);
   border: 1px solid var(--surface-border);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 8px 24px -4px color-mix(in srgb, var(--neutral-1000) 35%, transparent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--neutral-1000) 35%, transparent);
   text-align: center;
-  cursor: pointer;
+  user-select: none;
   transform-style: preserve-3d;
+  cursor: pointer;
+  z-index: 10;
 }
 
-.tux-roadway__lane-signage--selected .tux-roadway__signage-card {
+.tux-roadway__hud-card--popped {
+  width: 140px;
+  padding: 0.45rem 0.55rem;
+  box-shadow: 0 12px 28px -4px color-mix(in srgb, var(--neutral-1000) 50%, transparent);
+  border-color: color-mix(in srgb, var(--brand-accent) 35%, var(--surface-border));
+}
+
+.tux-roadway__hud-card--shoulder.tux-roadway__hud-card--popped {
+  width: 96px;
+  padding: 0.35rem 0.45rem;
+}
+
+.tux-roadway__hud-card--selected {
+  outline: 2px solid var(--brand-accent);
   border-color: var(--brand-accent);
-  box-shadow: 0 0 14px color-mix(in srgb, var(--brand-accent) 50%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--brand-accent) 50%, transparent), 0 16px 32px color-mix(in srgb, var(--neutral-1000) 50%, transparent);
 }
 
-.tux-roadway__signage-top {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-}
-
-.tux-roadway__lane-title {
-  display: block;
-  font-size: 0.625rem;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tux-roadway__lane-width {
-  font-size: 0.5625rem;
-  font-family: var(--font-mono);
-  color: var(--text-muted);
-}
-
-.tux-roadway__signage-stats {
-  margin-top: 0.15rem;
-}
-
-.tux-roadway__signage-main-stat {
+.tux-roadway__hud-top {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
 }
 
-.tux-roadway__lane-speed {
+.tux-roadway__hud-title {
+  display: block;
+  font-size: 0.625rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.tux-roadway__hud-card--popped .tux-roadway__hud-title {
+  font-size: 0.6875rem;
+}
+
+.tux-roadway__hud-type-tag {
+  font-size: 0.5rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  padding: 0.05rem 0.2rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-sunken);
+  color: var(--text-secondary);
+}
+
+.tux-roadway__hud-type-tag--managed {
+  background-color: color-mix(in srgb, var(--brand-primary) 18%, transparent);
+  color: var(--brand-primary);
+}
+
+[data-theme="tti-dark"] .tux-roadway__hud-type-tag--managed {
+  color: var(--brand-accent);
+}
+
+.tux-roadway__hud-stats {
+  margin-top: 0.15rem;
+}
+
+.tux-roadway__hud-main-stat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.tux-roadway__hud-speed {
   font-size: 0.6875rem;
   font-family: var(--font-mono);
   font-weight: 700;
   color: var(--brand-primary);
 }
 
-[data-theme="tti-dark"] .tux-roadway__lane-speed {
+.tux-roadway__hud-card--popped .tux-roadway__hud-speed {
+  font-size: 0.8125rem;
+}
+
+[data-theme="tti-dark"] .tux-roadway__hud-speed {
   color: var(--brand-accent);
 }
 
-.tux-roadway__lane-los {
+.tux-roadway__hud-speed small {
+  font-size: 0.5625rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.tux-roadway__hud-los {
   font-size: 0.5625rem;
   font-family: var(--font-mono);
   font-weight: 700;
@@ -1686,21 +1852,59 @@ function losClass(los?: string): string {
   border: 1px solid;
 }
 
-.tux-roadway__signage-expanded {
+.tux-roadway__hud-expanded {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  gap: 0.35rem;
   margin-top: 0.35rem;
   padding-top: 0.25rem;
   border-top: 1px dashed var(--surface-border);
-  font-size: 0.5625rem;
-  font-family: var(--font-mono);
-  color: var(--text-secondary);
 }
 
-.tux-roadway__expanded-item strong {
+.tux-roadway__hud-stat-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+
+.tux-roadway__hud-stat-val {
+  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
   color: var(--text-primary);
+}
+
+.tux-roadway__hud-stat-lbl {
+  font-size: 0.5rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.tux-roadway__hud-stat-divider {
+  width: 1px;
+  height: 18px;
+  background-color: var(--surface-border);
+}
+
+.tux-roadway__hud-shoulder-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.tux-roadway__hud-shoulder-lbl {
+  font-size: 0.5625rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.tux-roadway__hud-shoulder-sub {
+  font-size: 0.5rem;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
