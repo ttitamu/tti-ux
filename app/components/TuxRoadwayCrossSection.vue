@@ -49,6 +49,10 @@ interface Props {
   height?: string;
   /** Whether 3D camera controls are enabled */
   interactive?: boolean;
+  /** Initial pitch in degrees (0 = top-down aerial view) */
+  initialPitch?: number;
+  /** Initial yaw in degrees (0 = straight north-south alignment) */
+  initialYaw?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -56,23 +60,127 @@ const props = withDefaults(defineProps<Props>(), {
   initialView: "3d-perspective",
   height: "560px",
   interactive: true,
+  initialPitch: 0,
+  initialYaw: 0,
 });
 
 const currentPreset = ref<"urban-managed" | "rural-divided" | "suburban-arterial">(props.preset);
 const currentView = ref<"3d-perspective" | "2d-engineering" | "structural-layers" | "hydrology-slope">(props.initialView);
 
-// 3D Camera Controls
-const pitchDeg = ref(52); // X-axis pitch (15° to 75°)
-const yawDeg = ref(-14);   // Z-axis yaw (-30° to 30°)
-const rollDeg = ref(2);    // Y-axis tilt (-10° to 10°)
+// 3D Spatial Camera Controls — Starts Top-Down at 0° (Top Dead Center)
+const pitchDeg = ref(props.initialPitch);
+const yawDeg = ref(props.initialYaw);
+const rollDeg = ref(0);
+const zoomScale = ref(1.0);
 const animatePlatoons = ref(true);
 const selectedLaneIndex = ref<number | null>(null);
 
+// Direct Manipulation Pointer Orbit Drag State
+const isDragging = ref(false);
+const hasUserInteracted = ref(false);
+let dragStartX = 0;
+let dragStartY = 0;
+let dragStartPitch = 0;
+let dragStartYaw = 0;
+
 function resetCamera() {
-  pitchDeg.value = 52;
-  yawDeg.value = -14;
-  rollDeg.value = 2;
+  pitchDeg.value = 0;
+  yawDeg.value = 0;
+  rollDeg.value = 0;
+  zoomScale.value = 1.0;
 }
+
+function setViewTopDown() {
+  pitchDeg.value = 0;
+  yawDeg.value = 0;
+  rollDeg.value = 0;
+  zoomScale.value = 1.0;
+  hasUserInteracted.value = true;
+}
+
+function setViewIsometric() {
+  pitchDeg.value = 48;
+  yawDeg.value = -16;
+  rollDeg.value = 0;
+  zoomScale.value = 1.0;
+  hasUserInteracted.value = true;
+}
+
+function setViewDriver() {
+  pitchDeg.value = 68;
+  yawDeg.value = -4;
+  rollDeg.value = 0;
+  zoomScale.value = 1.05;
+  hasUserInteracted.value = true;
+}
+
+function onPointerDown(e: PointerEvent) {
+  if (!props.interactive) return;
+  const target = e.target as HTMLElement;
+  if (target.closest("button, input, select, a, .tux-roadway__3d-controls")) return;
+
+  isDragging.value = true;
+  hasUserInteracted.value = true;
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+  dragStartPitch = pitchDeg.value;
+  dragStartYaw = yawDeg.value;
+
+  (e.currentTarget as HTMLElement)?.setPointerCapture?.(e.pointerId);
+}
+
+function onPointerMove(e: PointerEvent) {
+  if (!isDragging.value) return;
+  const deltaX = e.clientX - dragStartX;
+  const deltaY = e.clientY - dragStartY;
+
+  // Vertical drag: dragging down increases pitch (tilts from top-down to 3D perspective)
+  // Dragging up decreases pitch (tilts toward top-down)
+  const sensitivity = 0.35;
+  const nextPitch = Math.max(0, Math.min(75, dragStartPitch + deltaY * sensitivity));
+  const nextYaw = Math.max(-45, Math.min(45, dragStartYaw + deltaX * sensitivity));
+
+  pitchDeg.value = Math.round(nextPitch);
+  yawDeg.value = Math.round(nextYaw);
+}
+
+function onPointerUp(e: PointerEvent) {
+  if (isDragging.value) {
+    isDragging.value = false;
+    try {
+      (e.currentTarget as HTMLElement)?.releasePointerCapture?.(e.pointerId);
+    } catch {}
+  }
+}
+
+function onWheel(e: WheelEvent) {
+  if (!props.interactive) return;
+  hasUserInteracted.value = true;
+  const zoomStep = -e.deltaY * 0.0015;
+  zoomScale.value = Math.max(0.65, Math.min(1.65, +(zoomScale.value + zoomStep).toFixed(2)));
+}
+
+// Distance / pop-out factor from Top Dead Center (TDC 0°)
+// Lifts and billboards 3D text panes when pitched away from top-down
+const popOutFactor = computed(() => {
+  // Starts lifting at 6° pitch, fully billboarded and expanded by 30°
+  return Math.max(0, Math.min(1, (pitchDeg.value - 6) / 24));
+});
+
+// Billboard transform for floating 3D text panes
+const billboardCardStyle = computed(() => {
+  const factor = popOutFactor.value;
+  const liftZ = Math.round(factor * 44);
+  const counterPitch = Math.round(-pitchDeg.value * factor * 0.88);
+  const counterYaw = Math.round(-yawDeg.value * factor * 0.88);
+  const scale = +(1.0 + factor * 0.12).toFixed(2);
+
+  return {
+    transform: `translateZ(${liftZ}px) rotateX(${counterPitch}deg) rotateZ(${counterYaw}deg) scale(${scale})`,
+    transformOrigin: "bottom center",
+    transition: isDragging.value ? "none" : "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+  };
+});
 
 // Preset Data Models
 const presets = {
@@ -347,16 +455,47 @@ function losClass(los?: string): string {
       >
         <!-- 3D Scene Controller Dock -->
         <div class="tux-roadway__3d-controls" aria-label="3D Spatial Camera Pitch and Orientation Controls">
+          <!-- Preset View Angles -->
+          <div class="tux-roadway__presets-row">
+            <button
+              type="button"
+              class="tux-roadway__angle-btn"
+              :class="{ 'tux-roadway__angle-btn--active': pitchDeg <= 5 }"
+              @click="setViewTopDown"
+              title="Top Dead Center (0° Aerial View)"
+            >
+              Top-Down (0°)
+            </button>
+            <button
+              type="button"
+              class="tux-roadway__angle-btn"
+              :class="{ 'tux-roadway__angle-btn--active': pitchDeg > 35 && pitchDeg < 60 }"
+              @click="setViewIsometric"
+              title="Isometric 3D Perspective (48°)"
+            >
+              Iso 3D (48°)
+            </button>
+            <button
+              type="button"
+              class="tux-roadway__angle-btn"
+              :class="{ 'tux-roadway__angle-btn--active': pitchDeg >= 60 }"
+              @click="setViewDriver"
+              title="Driver Viewpoint (68°)"
+            >
+              Driver (68°)
+            </button>
+          </div>
+
           <div class="tux-roadway__slider-item">
             <label for="pitch-slider" class="tux-roadway__slider-label">
-              <span>Pitch</span>
-              <span class="font-mono text-xs">{{ pitchDeg }}°</span>
+              <span>Pitch Angle</span>
+              <span class="font-mono text-xs">{{ pitchDeg === 0 ? '0° (Top-Down)' : `${pitchDeg}°` }}</span>
             </label>
             <input
               id="pitch-slider"
               v-model.number="pitchDeg"
               type="range"
-              min="15"
+              min="0"
               max="75"
               step="1"
               class="tux-roadway__slider"
@@ -373,8 +512,8 @@ function losClass(los?: string): string {
               id="yaw-slider"
               v-model.number="yawDeg"
               type="range"
-              min="-35"
-              max="35"
+              min="-45"
+              max="45"
               step="1"
               class="tux-roadway__slider"
               aria-label="Roadway 3D Yaw rotation angle"
@@ -382,19 +521,19 @@ function losClass(los?: string): string {
           </div>
 
           <div class="tux-roadway__slider-item">
-            <label for="tilt-slider" class="tux-roadway__slider-label">
-              <span>Roll Tilt</span>
-              <span class="font-mono text-xs">{{ rollDeg }}°</span>
+            <label for="zoom-slider" class="tux-roadway__slider-label">
+              <span>Zoom Scale</span>
+              <span class="font-mono text-xs">{{ Math.round(zoomScale * 100) }}%</span>
             </label>
             <input
-              id="tilt-slider"
-              v-model.number="rollDeg"
+              id="zoom-slider"
+              v-model.number="zoomScale"
               type="range"
-              min="-10"
-              max="10"
-              step="1"
+              min="0.65"
+              max="1.65"
+              step="0.05"
               class="tux-roadway__slider"
-              aria-label="Roadway 3D Roll tilt angle"
+              aria-label="Roadway 3D Zoom Scale"
             />
           </div>
 
@@ -403,9 +542,10 @@ function losClass(los?: string): string {
               type="button"
               class="tux-roadway__action-btn"
               @click="resetCamera"
+              title="Reset to Top-Down View"
             >
               <Icon name="lucide:rotate-ccw" class="w-3 h-3" aria-hidden="true" />
-              <span>Reset Camera</span>
+              <span>Reset</span>
             </button>
 
             <button
@@ -415,17 +555,36 @@ function losClass(los?: string): string {
               @click="animatePlatoons = !animatePlatoons"
             >
               <Icon :name="animatePlatoons ? 'lucide:pause' : 'lucide:play'" class="w-3 h-3" aria-hidden="true" />
-              <span>{{ animatePlatoons ? 'Pause Platoons' : 'Animate' }}</span>
+              <span>{{ animatePlatoons ? 'Pause' : 'Animate' }}</span>
             </button>
           </div>
         </div>
 
-        <!-- 3D Transformed Corridor Canvas Ribbon -->
-        <div class="tux-roadway__perspective-wrapper">
+        <!-- 3D Transformed Corridor Canvas Ribbon with Direct-Manipulation Orbit Drag -->
+        <div
+          class="tux-roadway__perspective-wrapper"
+          :class="{ 'tux-roadway__perspective-wrapper--dragging': isDragging }"
+          @pointerdown="onPointerDown"
+          @pointermove="onPointerMove"
+          @pointerup="onPointerUp"
+          @pointercancel="onPointerUp"
+          @wheel.prevent="onWheel"
+        >
+          <!-- Orbit Drag & Zoom Guidance Hint Badge -->
+          <div
+            v-if="!hasUserInteracted"
+            class="tux-roadway__interactive-hint"
+            aria-hidden="true"
+          >
+            <Icon name="lucide:move" class="w-3.5 h-3.5 text-brand-primary animate-pulse" />
+            <span>Click &amp; drag to orbit (pitch &amp; yaw) &bull; Scroll to zoom &bull; Tilt away from top-down to pop 3D HUD</span>
+          </div>
+
           <div
             class="tux-roadway__3d-corridor"
             :style="{
-              transform: `perspective(1000px) rotateX(${pitchDeg}deg) rotateY(${rollDeg}deg) rotateZ(${yawDeg}deg)`
+              transform: `perspective(1000px) scale(${zoomScale}) rotateX(${pitchDeg}deg) rotateY(${rollDeg}deg) rotateZ(${yawDeg}deg)`,
+              transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
             }"
           >
             <!-- Concrete Median Barrier (TxDOT Single Slope) -->
@@ -452,13 +611,58 @@ function losClass(los?: string): string {
                 <div v-else-if="lane.type === 'shoulder'" class="tux-roadway__stripe-white-solid" />
                 <div v-else class="tux-roadway__stripe-white-dashed" />
 
-                <!-- Lane Header / Identifier in 3D Space -->
-                <div class="tux-roadway__lane-signage">
-                  <span class="tux-roadway__lane-title">{{ lane.name }}</span>
-                  <span v-if="lane.speedMph" class="tux-roadway__lane-speed">{{ lane.speedMph }} MPH</span>
+                <!-- Floating 3D Spatial Telemetry Pane (Pops out when tilted away from Top Dead Center) -->
+                <div
+                  class="tux-roadway__lane-signage"
+                  :class="{
+                    'tux-roadway__lane-signage--popped': popOutFactor > 0.05,
+                    'tux-roadway__lane-signage--selected': selectedLaneIndex === idx
+                  }"
+                >
+                  <!-- Vertical Stanchion Pin / Leader Line anchoring HUD card down to roadbed -->
+                  <div
+                    v-if="popOutFactor > 0.08"
+                    class="tux-roadway__signage-stanchion"
+                    :style="{ height: `${Math.round(popOutFactor * 32)}px` }"
+                  >
+                    <div class="tux-roadway__stanchion-dot" />
+                  </div>
+
+                  <!-- Billboarded Floating HUD Card -->
+                  <div
+                    class="tux-roadway__signage-card"
+                    :style="billboardCardStyle"
+                  >
+                    <div class="tux-roadway__signage-top" :title="lane.name">
+                      <span class="tux-roadway__lane-title">{{ lane.label }}</span>
+                    </div>
+
+                    <div v-if="lane.speedMph" class="tux-roadway__signage-stats">
+                      <div class="tux-roadway__signage-main-stat">
+                        <span class="tux-roadway__lane-speed">{{ lane.speedMph }} MPH</span>
+                        <span v-if="lane.los" class="tux-roadway__lane-los" :class="losClass(lane.los)">
+                          LOS {{ lane.los }}
+                        </span>
+                      </div>
+
+                      <!-- Popped-out expanded real-time telemetry metrics -->
+                      <div
+                        v-if="popOutFactor > 0.2"
+                        class="tux-roadway__signage-expanded"
+                        :style="{ opacity: Math.min(1, (popOutFactor - 0.2) * 2) }"
+                      >
+                        <span class="tux-roadway__expanded-item">
+                          <strong>{{ lane.volumeVph?.toLocaleString() ?? '—' }}</strong> vph
+                        </span>
+                        <span class="tux-roadway__expanded-item">
+                          <strong>{{ lane.occupancyPct ?? '—' }}%</strong> occ
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Animated Vehicle Platoon in Lane -->
+                <!-- Animated 3D Vehicle Platoon in Lane -->
                 <div
                   v-if="lane.type !== 'shoulder'"
                   class="tux-roadway__platoon-stream"
@@ -473,8 +677,62 @@ function losClass(los?: string): string {
                     ]"
                     :style="{ animationDelay: `${(v * 1.4) + (idx * 0.6)}s` }"
                   >
-                    <div class="tux-roadway__vehicle-roof" />
-                    <div class="tux-roadway__vehicle-lights" />
+                    <!-- Soft Ground Contact Shadow on Asphalt -->
+                    <div class="tux-roadway__v3d-shadow" />
+
+                    <!-- 4 Wheels -->
+                    <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--fl" />
+                    <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--fr" />
+                    <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--rl" />
+                    <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--rr" />
+
+                    <!-- Extruded 3D Chassis Body -->
+                    <div class="tux-roadway__v3d-chassis">
+                      <!-- Hood (Facing Forward / Down) -->
+                      <div class="tux-roadway__v3d-hood" />
+                      <!-- Trunk (Facing Rear / Up) -->
+                      <div class="tux-roadway__v3d-trunk" />
+                      <!-- 3D Flank Walls -->
+                      <div class="tux-roadway__v3d-flank tux-roadway__v3d-flank--left" />
+                      <div class="tux-roadway__v3d-flank tux-roadway__v3d-flank--right" />
+                      <!-- Front Bumper Face with Headlamps -->
+                      <div class="tux-roadway__v3d-bumper-front">
+                        <div class="tux-roadway__v3d-headlamp tux-roadway__v3d-headlamp--left" />
+                        <div class="tux-roadway__v3d-headlamp tux-roadway__v3d-headlamp--right" />
+                      </div>
+                      <!-- Rear Bumper Face with Taillights -->
+                      <div class="tux-roadway__v3d-bumper-rear">
+                        <div class="tux-roadway__v3d-taillight tux-roadway__v3d-taillight--left" />
+                        <div class="tux-roadway__v3d-taillight tux-roadway__v3d-taillight--right" />
+                      </div>
+                    </div>
+
+                    <!-- Elevated 3D Cabin Greenhouse with Sloped Windshields -->
+                    <div class="tux-roadway__v3d-cabin">
+                      <!-- Roof Top -->
+                      <div class="tux-roadway__v3d-roof">
+                        <!-- Autonomous Connected Vehicle LIDAR Sensor on Managed Lane -->
+                        <div v-if="lane.type === 'managed'" class="tux-roadway__v3d-lidar" />
+                      </div>
+                      <!-- Sloped Front Windshield -->
+                      <div class="tux-roadway__v3d-windshield" />
+                      <!-- Sloped Rear Window -->
+                      <div class="tux-roadway__v3d-backwindow" />
+                      <!-- Side Windows -->
+                      <div class="tux-roadway__v3d-glass-side tux-roadway__v3d-glass-side--left" />
+                      <div class="tux-roadway__v3d-glass-side tux-roadway__v3d-glass-side--right" />
+                    </div>
+
+                    <!-- Forward Projected Headlight Cones onto Asphalt -->
+                    <div class="tux-roadway__v3d-beam" />
+
+                    <!-- Freight Cargo Trailer for Heavy Commercial Trucks (v === 2) -->
+                    <div v-if="v === 2 && lane.type !== 'managed'" class="tux-roadway__v3d-trailer">
+                      <div class="tux-roadway__v3d-trailer-top" />
+                      <div class="tux-roadway__v3d-trailer-side tux-roadway__v3d-trailer-side--left" />
+                      <div class="tux-roadway__v3d-trailer-side tux-roadway__v3d-trailer-side--right" />
+                      <div class="tux-roadway__v3d-trailer-rear" />
+                    </div>
                   </div>
                 </div>
 
@@ -513,23 +771,23 @@ function losClass(los?: string): string {
         <div class="tux-roadway__3d-legend">
           <div class="flex items-center gap-4 flex-wrap text-xs font-mono">
             <div class="flex items-center gap-1.5">
-              <span class="w-3 h-3 rounded-xs bg-brand-primary" />
+              <span class="w-3 h-3 rounded-sm bg-brand-primary" />
               <span>TEXpress Managed Lane</span>
             </div>
             <div class="flex items-center gap-1.5">
-              <span class="w-3 h-3 rounded-xs bg-neutral-700" />
+              <span class="w-3 h-3 rounded-sm bg-neutral-700" />
               <span>General Purpose Lanes</span>
             </div>
             <div class="flex items-center gap-1.5">
-              <span class="w-3 h-3 rounded-xs bg-neutral-600" />
+              <span class="w-3 h-3 rounded-sm bg-neutral-600" />
               <span>Paved Shoulder (10')</span>
             </div>
             <div class="flex items-center gap-1.5">
-              <span class="w-3 h-3 rounded-xs bg-status-success/60" />
+              <span class="w-3 h-3 rounded-sm bg-status-success/60" />
               <span>Vegetated Foreslope (4:1)</span>
             </div>
             <div class="flex items-center gap-1.5">
-              <span class="w-3 h-3 rounded-xs bg-status-info/80" />
+              <span class="w-3 h-3 rounded-sm bg-status-info/80" />
               <span>Drainage Ditch Swale</span>
             </div>
           </div>
@@ -1068,6 +1326,48 @@ function losClass(los?: string): string {
   box-shadow: var(--elevation-flat);
 }
 
+.tux-roadway__presets-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.tux-roadway__presets-label {
+  font-size: 0.625rem;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.tux-roadway__angle-btn {
+  flex: 1;
+  font-size: 0.625rem;
+  font-family: var(--font-mono);
+  padding: 0.2rem 0.35rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-sunken);
+  color: var(--text-secondary);
+  border: 1px solid var(--surface-border);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.tux-roadway__angle-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--brand-primary);
+}
+
+.tux-roadway__angle-btn--active {
+  background-color: var(--brand-primary);
+  color: var(--text-on-brand);
+  border-color: var(--brand-primary);
+  font-weight: 700;
+}
+
 .tux-roadway__slider-item {
   margin-bottom: 0.5rem;
 }
@@ -1123,6 +1423,47 @@ function losClass(los?: string): string {
   perspective: 1000px;
   transform-style: preserve-3d;
   padding: 2rem;
+  cursor: grab;
+  touch-action: none;
+}
+
+.tux-roadway__perspective-wrapper--dragging {
+  cursor: grabbing !important;
+  user-select: none;
+}
+
+.tux-roadway__interactive-hint {
+  position: absolute;
+  bottom: 2.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 18;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--surface-raised) 90%, transparent);
+  border: 1px solid var(--surface-border);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  box-shadow: 0 4px 16px -2px color-mix(in srgb, var(--neutral-1000) 22%, transparent);
+  pointer-events: none;
+  animation: hintFadeIn 0.4s ease;
+}
+
+@keyframes hintFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 .tux-roadway__3d-corridor {
@@ -1233,14 +1574,68 @@ function losClass(los?: string): string {
   );
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   FLOATING 3D POP-OUT TELEMETRY HUD PANE
+   ══════════════════════════════════════════════════════════════════════════ */
 .tux-roadway__lane-signage {
   position: relative;
-  z-index: 5;
-  background-color: color-mix(in srgb, var(--neutral-1000) 65%, transparent);
-  backdrop-filter: blur(4px);
-  padding: 0.25rem 0.35rem;
+  z-index: 25;
+  transform-style: preserve-3d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tux-roadway__signage-stanchion {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  background: linear-gradient(to top, var(--brand-accent), color-mix(in srgb, var(--brand-accent) 22%, transparent));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.tux-roadway__stanchion-dot {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  transform: translateX(-50%);
+  background-color: var(--brand-accent);
+  box-shadow: 0 0 8px var(--brand-accent);
+}
+
+.tux-roadway__signage-card {
+  position: relative;
+  z-index: 10;
+  width: 95%;
+  min-width: 68px;
+  padding: 0.35rem 0.45rem;
   border-radius: var(--radius-sm);
+  background-color: color-mix(in srgb, var(--surface-raised) 90%, transparent);
+  border: 1px solid var(--surface-border);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 8px 24px -4px color-mix(in srgb, var(--neutral-1000) 35%, transparent);
   text-align: center;
+  cursor: pointer;
+  transform-style: preserve-3d;
+}
+
+.tux-roadway__lane-signage--selected .tux-roadway__signage-card {
+  border-color: var(--brand-accent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--brand-accent) 50%, transparent);
+}
+
+.tux-roadway__signage-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
 }
 
 .tux-roadway__lane-title {
@@ -1248,71 +1643,421 @@ function losClass(los?: string): string {
   font-size: 0.625rem;
   font-family: var(--font-mono);
   font-weight: 700;
-  color: var(--neutral-0);
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.tux-roadway__lane-speed {
-  display: block;
+.tux-roadway__lane-width {
   font-size: 0.5625rem;
   font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.tux-roadway__signage-stats {
+  margin-top: 0.15rem;
+}
+
+.tux-roadway__signage-main-stat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.tux-roadway__lane-speed {
+  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--brand-primary);
+}
+
+[data-theme="tti-dark"] .tux-roadway__lane-speed {
   color: var(--brand-accent);
 }
 
-/* Moving Platoon Simulation */
+.tux-roadway__lane-los {
+  font-size: 0.5625rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  padding: 0.05rem 0.25rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid;
+}
+
+.tux-roadway__signage-expanded {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding-top: 0.25rem;
+  border-top: 1px dashed var(--surface-border);
+  font-size: 0.5625rem;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.tux-roadway__expanded-item strong {
+  color: var(--text-primary);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3D EXTRUDED VEHICLE PLATOON & SPATIAL LIGHTING
+   ══════════════════════════════════════════════════════════════════════════ */
 .tux-roadway__platoon-stream {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  transform-style: preserve-3d;
 }
 
 .tux-roadway__vehicle {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  transform-style: preserve-3d;
   width: 22px;
   height: 38px;
-  border-radius: 4px;
-  background-color: var(--neutral-200);
-  box-shadow: 0 4px 8px color-mix(in srgb, var(--neutral-1000) 50%, transparent);
-  top: -60px;
-}
-
-.tux-roadway__vehicle--sedan {
-  background-color: var(--color-info);
+  top: -80px;
 }
 
 .tux-roadway__vehicle--truck {
   width: 26px;
-  height: 64px;
-  background-color: var(--neutral-400);
-  border-radius: 2px;
+  height: 68px;
 }
 
-.tux-roadway__vehicle--ev {
+/* 3D Ground Shadow */
+.tux-roadway__v3d-shadow {
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: -2px;
+  bottom: -2px;
+  border-radius: 6px;
+  background-color: color-mix(in srgb, var(--neutral-1000) 50%, transparent);
+  filter: blur(3px);
+  transform: translateZ(0px);
+}
+
+/* 3D Wheels */
+.tux-roadway__v3d-wheel {
+  position: absolute;
+  width: 3px;
+  height: 8px;
+  border-radius: 2px;
+  background-color: var(--neutral-900);
+  box-shadow: 0 0 2px var(--neutral-1000);
+  transform: translateZ(2px);
+}
+
+.tux-roadway__v3d-wheel--fl {
+  bottom: 4px;
+  left: -1px;
+}
+
+.tux-roadway__v3d-wheel--fr {
+  bottom: 4px;
+  right: -1px;
+}
+
+.tux-roadway__v3d-wheel--rl {
+  top: 4px;
+  left: -1px;
+}
+
+.tux-roadway__v3d-wheel--rr {
+  top: 4px;
+  right: -1px;
+}
+
+/* 3D Chassis Base */
+.tux-roadway__v3d-chassis {
+  position: absolute;
+  inset: 2px;
+  transform-style: preserve-3d;
+  transform: translateZ(4px);
+  border-radius: 3px;
+}
+
+.tux-roadway__vehicle--sedan .tux-roadway__v3d-chassis {
+  background-color: var(--color-info);
+  color: var(--color-info);
+}
+
+.tux-roadway__vehicle--ev .tux-roadway__v3d-chassis {
   background-color: var(--brand-accent);
+  color: var(--brand-accent);
 }
 
-.tux-roadway__vehicle-roof {
-  position: absolute;
-  top: 8px;
-  left: 3px;
-  right: 3px;
-  bottom: 8px;
-  background-color: color-mix(in srgb, var(--neutral-1000) 22%, transparent);
-  border-radius: 2px;
+.tux-roadway__vehicle--truck .tux-roadway__v3d-chassis {
+  background-color: var(--neutral-400);
+  color: var(--neutral-400);
 }
 
-.tux-roadway__vehicle-lights {
+/* Hood & Trunk Top Surfaces */
+.tux-roadway__v3d-hood {
   position: absolute;
-  bottom: 1px;
-  left: 3px;
-  right: 3px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background-color: inherit;
+  border-radius: 1px 1px 3px 3px;
+}
+
+.tux-roadway__v3d-trunk {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background-color: inherit;
+  border-radius: 3px 3px 1px 1px;
+}
+
+/* 3D Flank Walls (Chassis Thickness) */
+.tux-roadway__v3d-flank {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: color-mix(in srgb, var(--neutral-1000) 22%, currentColor);
+}
+
+.tux-roadway__v3d-flank--left {
+  left: 0;
+  transform-origin: left center;
+  transform: rotateY(-90deg);
+}
+
+.tux-roadway__v3d-flank--right {
+  right: 0;
+  transform-origin: right center;
+  transform: rotateY(90deg);
+}
+
+/* Front & Rear Bumpers */
+.tux-roadway__v3d-bumper-front {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  transform-origin: center bottom;
+  transform: rotateX(-90deg);
+  background-color: color-mix(in srgb, var(--neutral-1000) 35%, currentColor);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1px;
+}
+
+.tux-roadway__v3d-bumper-rear {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  transform-origin: center top;
+  transform: rotateX(90deg);
+  background-color: color-mix(in srgb, var(--neutral-1000) 35%, currentColor);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1px;
+}
+
+/* Headlamps & Dual LED Taillights */
+.tux-roadway__v3d-headlamp {
+  width: 4px;
   height: 2px;
+  border-radius: 1px;
+  background-color: var(--neutral-0);
+  box-shadow: 0 0 6px var(--neutral-0);
+}
+
+.tux-roadway__v3d-taillight {
+  width: 4px;
+  height: 2px;
+  border-radius: 1px;
   background-color: var(--color-danger);
   box-shadow: 0 0 6px var(--color-danger);
+}
+
+/* Forward Projected Headlight Cones onto Asphalt */
+.tux-roadway__v3d-beam {
+  position: absolute;
+  bottom: -38px;
+  left: -6px;
+  width: 34px;
+  height: 38px;
+  pointer-events: none;
+  transform: translateZ(1px);
+  background: radial-gradient(
+    ellipse 65% 100% at 50% 0%,
+    color-mix(in srgb, var(--neutral-0) 35%, transparent) 0%,
+    color-mix(in srgb, var(--brand-accent) 18%, transparent) 40%,
+    transparent 80%
+  );
+  clip-path: polygon(25% 0%, 75% 0%, 100% 100%, 0% 100%);
+}
+
+/* 3D Elevated Cabin (Greenhouse) */
+.tux-roadway__v3d-cabin {
+  position: absolute;
+  top: 8px;
+  bottom: 10px;
+  left: 3px;
+  right: 3px;
+  transform-style: preserve-3d;
+  transform: translateZ(10px);
+}
+
+.tux-roadway__v3d-roof {
+  position: absolute;
+  inset: 0;
+  background-color: color-mix(in srgb, var(--neutral-1000) 22%, currentColor);
+  border-radius: 2px;
+  transform-style: preserve-3d;
+}
+
+.tux-roadway__vehicle--sedan .tux-roadway__v3d-roof {
+  color: var(--color-info);
+}
+
+.tux-roadway__vehicle--ev .tux-roadway__v3d-roof {
+  color: var(--brand-accent);
+}
+
+.tux-roadway__vehicle--truck .tux-roadway__v3d-roof {
+  color: var(--neutral-400);
+}
+
+/* Autonomous Connected Vehicle LIDAR Sensor */
+.tux-roadway__v3d-lidar {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) translateZ(3px);
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--spectrum-teal);
+  box-shadow: 0 0 8px var(--spectrum-teal);
+  animation: pulseLidar 1.6s ease-in-out infinite;
+}
+
+@keyframes pulseLidar {
+  0%, 100% {
+    transform: translate(-50%, -50%) translateZ(3px) scale(0.9);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(-50%, -50%) translateZ(3px) scale(1.15);
+    opacity: 1;
+  }
+}
+
+/* Sloped Windshields (Angled Glass) */
+.tux-roadway__v3d-windshield {
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 5px;
+  transform-origin: top center;
+  transform: rotateX(-45deg);
+  background-color: color-mix(in srgb, var(--color-info) 35%, var(--neutral-1000));
+}
+
+.tux-roadway__v3d-backwindow {
+  position: absolute;
+  top: -4px;
+  left: 0;
+  right: 0;
+  height: 5px;
+  transform-origin: bottom center;
+  transform: rotateX(45deg);
+  background-color: color-mix(in srgb, var(--color-info) 35%, var(--neutral-1000));
+}
+
+.tux-roadway__v3d-glass-side {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: color-mix(in srgb, var(--color-info) 22%, var(--neutral-1000));
+}
+
+.tux-roadway__v3d-glass-side--left {
+  left: 0;
+  transform-origin: left center;
+  transform: rotateY(-90deg);
+}
+
+.tux-roadway__v3d-glass-side--right {
+  right: 0;
+  transform-origin: right center;
+  transform: rotateY(90deg);
+}
+
+/* Heavy Commercial Truck Trailer */
+.tux-roadway__v3d-trailer {
+  position: absolute;
+  top: 2px;
+  left: 1px;
+  right: 1px;
+  height: 44px;
+  transform-style: preserve-3d;
+  transform: translateZ(12px);
+}
+
+.tux-roadway__v3d-trailer-top {
+  position: absolute;
+  inset: 0;
+  background-color: var(--neutral-300);
+  border: 1px solid var(--neutral-400);
+  border-radius: 2px;
+}
+
+.tux-roadway__v3d-trailer-side {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--neutral-400) 0px,
+    var(--neutral-400) 3px,
+    var(--neutral-500) 3px,
+    var(--neutral-500) 4px
+  );
+}
+
+.tux-roadway__v3d-trailer-side--left {
+  left: 0;
+  transform-origin: left center;
+  transform: rotateY(-90deg);
+}
+
+.tux-roadway__v3d-trailer-side--right {
+  right: 0;
+  transform-origin: right center;
+  transform: rotateY(90deg);
+}
+
+.tux-roadway__v3d-trailer-rear {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 12px;
+  transform-origin: top center;
+  transform: rotateX(90deg);
+  background-color: var(--neutral-500);
+  border-bottom: 2px solid var(--color-danger);
 }
 
 .tux-roadway__platoon-stream--animating .tux-roadway__vehicle {
@@ -1455,6 +2200,8 @@ function losClass(los?: string): string {
 }
 
 .tux-roadway__3d-legend {
+  position: relative;
+  z-index: 20;
   background-color: var(--surface-raised);
   border-top: 1px solid var(--surface-border);
   padding: 0.75rem 1.25rem;
