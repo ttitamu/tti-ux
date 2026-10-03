@@ -240,6 +240,21 @@ function getHudCardStyle(idx: number, lane: any) {
   };
 }
 
+// Vehicle type determination for traffic stream simulation
+function getLaneVehicleType(lane: any, vIndex: number): "sedan" | "ev" | "pickup" | "truck" {
+  if (lane.type === "managed") {
+    return "ev";
+  }
+  const id = lane.id;
+  if (id === "l-4" || lane.name.toLowerCase().includes("freight") || lane.name.toLowerCase().includes("slow")) {
+    return vIndex === 1 ? "truck" : "pickup";
+  }
+  if (id === "l-3" || lane.name.toLowerCase().includes("mid")) {
+    return vIndex === 1 ? "pickup" : "sedan";
+  }
+  return "sedan";
+}
+
 // Preset Data Models
 const presets = {
   "urban-managed": {
@@ -760,29 +775,45 @@ function losClass(los?: string): string {
                   :class="{ 'tux-roadway__platoon-stream--animating': animatePlatoons }"
                 >
                   <div
-                    v-for="v in 3"
+                    v-for="v in 2"
                     :key="v"
                     class="tux-roadway__vehicle"
                     :class="[
-                      lane.type === 'managed' ? 'tux-roadway__vehicle--ev' : v === 2 ? 'tux-roadway__vehicle--truck' : 'tux-roadway__vehicle--sedan'
+                      `tux-roadway__vehicle--${getLaneVehicleType(lane, v)}`
                     ]"
-                    :style="{ animationDelay: `${(v * 1.4) + (idx * 0.6)}s` }"
+                    :style="{
+                      top: animatePlatoons ? undefined : `${(v === 1 ? 42 : 78) + ((idx * 15) % 18)}%`,
+                      animationDelay: `${(v - 1) * 2.8 + (idx * 0.7)}s`
+                    }"
                   >
                     <!-- Soft Ground Contact Shadow on Asphalt -->
                     <div class="tux-roadway__v3d-shadow" />
 
-                    <!-- 4 Wheels -->
+                    <!-- Wheels -->
                     <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--fl" />
                     <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--fr" />
                     <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--rl" />
                     <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--rr" />
+                    <template v-if="getLaneVehicleType(lane, v) === 'truck'">
+                      <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--rl2" />
+                      <div class="tux-roadway__v3d-wheel tux-roadway__v3d-wheel--rr2" />
+                    </template>
 
-                    <!-- Extruded 3D Chassis Body -->
+                    <!-- Forward Projected Headlight Cones onto Asphalt -->
+                    <div class="tux-roadway__v3d-beam" />
+
+                    <!-- EV Cybernetic Underglow on Asphalt -->
+                    <div v-if="getLaneVehicleType(lane, v) === 'ev'" class="tux-roadway__v3d-underglow" />
+
+                    <!-- Extruded 3D Chassis Base Body -->
                     <div class="tux-roadway__v3d-chassis">
-                      <!-- Hood (Facing Forward / Down) -->
+                      <!-- Hood -->
                       <div class="tux-roadway__v3d-hood" />
-                      <!-- Trunk (Facing Rear / Up) -->
-                      <div class="tux-roadway__v3d-trunk" />
+                      <!-- Trunk (for sedan / ev) -->
+                      <div
+                        v-if="getLaneVehicleType(lane, v) === 'sedan' || getLaneVehicleType(lane, v) === 'ev'"
+                        class="tux-roadway__v3d-trunk"
+                      />
                       <!-- 3D Flank Walls -->
                       <div class="tux-roadway__v3d-flank tux-roadway__v3d-flank--left" />
                       <div class="tux-roadway__v3d-flank tux-roadway__v3d-flank--right" />
@@ -798,31 +829,50 @@ function losClass(los?: string): string {
                       </div>
                     </div>
 
-                    <!-- Elevated 3D Cabin Greenhouse with Sloped Windshields -->
+                    <!-- Pickup Truck Open Cargo Bed -->
+                    <div v-if="getLaneVehicleType(lane, v) === 'pickup'" class="tux-roadway__v3d-pickup-bed">
+                      <div class="tux-roadway__v3d-bed-floor" />
+                      <div class="tux-roadway__v3d-bed-rail tux-roadway__v3d-bed-rail--left" />
+                      <div class="tux-roadway__v3d-bed-rail tux-roadway__v3d-bed-rail--right" />
+                      <div class="tux-roadway__v3d-bed-tailgate" />
+                    </div>
+
+                    <!-- 3D Elevated Cabin Greenhouse with Sloped Windshields -->
                     <div class="tux-roadway__v3d-cabin">
                       <!-- Roof Top -->
                       <div class="tux-roadway__v3d-roof">
-                        <!-- Autonomous Connected Vehicle LIDAR Sensor on Managed Lane -->
-                        <div v-if="lane.type === 'managed'" class="tux-roadway__v3d-lidar" />
+                        <!-- Autonomous Connected EV LIDAR Sensor Puck -->
+                        <div v-if="getLaneVehicleType(lane, v) === 'ev'" class="tux-roadway__v3d-lidar" />
+                        <!-- Semi Truck Aerodynamic Roof Fairing -->
+                        <div v-if="getLaneVehicleType(lane, v) === 'truck'" class="tux-roadway__v3d-truck-fairing" />
                       </div>
                       <!-- Sloped Front Windshield -->
                       <div class="tux-roadway__v3d-windshield" />
-                      <!-- Sloped Rear Window -->
+                      <!-- Rear Window -->
                       <div class="tux-roadway__v3d-backwindow" />
                       <!-- Side Windows -->
                       <div class="tux-roadway__v3d-glass-side tux-roadway__v3d-glass-side--left" />
                       <div class="tux-roadway__v3d-glass-side tux-roadway__v3d-glass-side--right" />
                     </div>
 
-                    <!-- Forward Projected Headlight Cones onto Asphalt -->
-                    <div class="tux-roadway__v3d-beam" />
+                    <!-- Semi Truck Twin Vertical Chrome Exhaust Stacks -->
+                    <div v-if="getLaneVehicleType(lane, v) === 'truck'" class="tux-roadway__v3d-stacks">
+                      <div class="tux-roadway__v3d-stack tux-roadway__v3d-stack--left" />
+                      <div class="tux-roadway__v3d-stack tux-roadway__v3d-stack--right" />
+                    </div>
 
-                    <!-- Freight Cargo Trailer for Heavy Commercial Trucks (v === 2) -->
-                    <div v-if="v === 2 && lane.type !== 'managed'" class="tux-roadway__v3d-trailer">
-                      <div class="tux-roadway__v3d-trailer-top" />
-                      <div class="tux-roadway__v3d-trailer-side tux-roadway__v3d-trailer-side--left" />
-                      <div class="tux-roadway__v3d-trailer-side tux-roadway__v3d-trailer-side--right" />
-                      <div class="tux-roadway__v3d-trailer-rear" />
+                    <!-- Heavy Commercial 3D Cargo Box Trailer -->
+                    <div v-if="getLaneVehicleType(lane, v) === 'truck'" class="tux-roadway__v3d-trailer">
+                      <div class="tux-roadway__v3d-trailer-top">
+                        <span class="tux-roadway__v3d-trailer-brand">TXDOT FREIGHT</span>
+                      </div>
+                      <div class="tux-roadway__v3d-trailer-flank tux-roadway__v3d-trailer-flank--left" />
+                      <div class="tux-roadway__v3d-trailer-flank tux-roadway__v3d-trailer-flank--right" />
+                      <div class="tux-roadway__v3d-trailer-front" />
+                      <div class="tux-roadway__v3d-trailer-rear">
+                        <div class="tux-roadway__v3d-trailer-lockbar" />
+                        <div class="tux-roadway__v3d-trailer-hazard" />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1922,67 +1972,92 @@ function losClass(los?: string): string {
   left: 50%;
   transform: translateX(-50%);
   transform-style: preserve-3d;
-  width: 22px;
-  height: 38px;
-  top: -80px;
+  width: 32px;
+  height: 72px;
+  top: -140px;
+}
+
+.tux-roadway__vehicle--pickup {
+  width: 34px;
+  height: 78px;
 }
 
 .tux-roadway__vehicle--truck {
-  width: 26px;
-  height: 68px;
+  width: 40px;
+  height: 116px;
 }
 
 /* 3D Ground Shadow */
 .tux-roadway__v3d-shadow {
   position: absolute;
-  left: -2px;
-  right: -2px;
-  top: -2px;
-  bottom: -2px;
-  border-radius: 6px;
+  inset: -4px;
+  border-radius: var(--radius-md);
   background-color: color-mix(in srgb, var(--neutral-1000) 50%, transparent);
-  filter: blur(3px);
-  transform: translateZ(0px);
+  filter: blur(4px);
+  transform: translateZ(0.2px);
 }
 
-/* 3D Wheels */
+/* 3D Wheels with Rubber Treads & Alloy Rims */
 .tux-roadway__v3d-wheel {
   position: absolute;
-  width: 3px;
-  height: 8px;
+  width: 5px;
+  height: 14px;
   border-radius: 2px;
   background-color: var(--neutral-900);
-  box-shadow: 0 0 2px var(--neutral-1000);
-  transform: translateZ(2px);
+  box-shadow: inset 0 0 2px var(--neutral-1000);
+  transform: translateZ(4px);
+  z-index: 2;
+}
+
+.tux-roadway__v3d-wheel::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 6px;
+  border-radius: 1px;
+  background-color: var(--neutral-400);
 }
 
 .tux-roadway__v3d-wheel--fl {
-  bottom: 4px;
-  left: -1px;
+  bottom: 8px;
+  left: -2px;
 }
 
 .tux-roadway__v3d-wheel--fr {
-  bottom: 4px;
-  right: -1px;
+  bottom: 8px;
+  right: -2px;
 }
 
 .tux-roadway__v3d-wheel--rl {
-  top: 4px;
-  left: -1px;
+  top: 10px;
+  left: -2px;
 }
 
 .tux-roadway__v3d-wheel--rr {
-  top: 4px;
-  right: -1px;
+  top: 10px;
+  right: -2px;
 }
 
-/* 3D Chassis Base */
+.tux-roadway__v3d-wheel--rl2 {
+  top: 28px;
+  left: -2px;
+}
+
+.tux-roadway__v3d-wheel--rr2 {
+  top: 28px;
+  right: -2px;
+}
+
+/* 3D Chassis Base Body */
 .tux-roadway__v3d-chassis {
   position: absolute;
   inset: 2px;
   transform-style: preserve-3d;
-  transform: translateZ(4px);
-  border-radius: 3px;
+  transform: translateZ(7px);
+  border-radius: var(--radius-sm);
 }
 
 .tux-roadway__vehicle--sedan .tux-roadway__v3d-chassis {
@@ -1995,9 +2070,17 @@ function losClass(los?: string): string {
   color: var(--brand-accent);
 }
 
+.tux-roadway__vehicle--pickup .tux-roadway__v3d-chassis {
+  background-color: var(--neutral-300);
+  color: var(--neutral-300);
+}
+
 .tux-roadway__vehicle--truck .tux-roadway__v3d-chassis {
-  background-color: var(--neutral-400);
-  color: var(--neutral-400);
+  background-color: var(--brand-primary);
+  color: var(--brand-primary);
+  top: auto;
+  bottom: 2px;
+  height: 38px;
 }
 
 /* Hood & Trunk Top Surfaces */
@@ -2006,9 +2089,10 @@ function losClass(los?: string): string {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 10px;
+  height: 22px;
   background-color: inherit;
-  border-radius: 1px 1px 3px 3px;
+  border-radius: 0 0 4px 4px;
+  box-shadow: inset 0 -2px 4px color-mix(in srgb, var(--neutral-1000) 18%, transparent);
 }
 
 .tux-roadway__v3d-trunk {
@@ -2016,9 +2100,10 @@ function losClass(los?: string): string {
   top: 0;
   left: 0;
   right: 0;
-  height: 8px;
+  height: 16px;
   background-color: inherit;
-  border-radius: 3px 3px 1px 1px;
+  border-radius: 4px 4px 0 0;
+  box-shadow: inset 0 2px 4px color-mix(in srgb, var(--neutral-1000) 18%, transparent);
 }
 
 /* 3D Flank Walls (Chassis Thickness) */
@@ -2026,7 +2111,7 @@ function losClass(los?: string): string {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 4px;
+  width: 7px;
   background-color: color-mix(in srgb, var(--neutral-1000) 22%, currentColor);
 }
 
@@ -2048,14 +2133,14 @@ function losClass(los?: string): string {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 7px;
   transform-origin: center bottom;
   transform: rotateX(-90deg);
   background-color: color-mix(in srgb, var(--neutral-1000) 35%, currentColor);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1px;
+  padding: 0 2px;
 }
 
 .tux-roadway__v3d-bumper-rear {
@@ -2063,68 +2148,96 @@ function losClass(los?: string): string {
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 7px;
   transform-origin: center top;
   transform: rotateX(90deg);
   background-color: color-mix(in srgb, var(--neutral-1000) 35%, currentColor);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1px;
+  padding: 0 2px;
 }
 
-/* Headlamps & Dual LED Taillights */
+/* Headlamps & LED Taillights */
 .tux-roadway__v3d-headlamp {
-  width: 4px;
-  height: 2px;
+  width: 6px;
+  height: 3px;
   border-radius: 1px;
   background-color: var(--neutral-0);
-  box-shadow: 0 0 6px var(--neutral-0);
+  box-shadow: 0 0 8px var(--neutral-0);
 }
 
 .tux-roadway__v3d-taillight {
-  width: 4px;
-  height: 2px;
+  width: 6px;
+  height: 3px;
   border-radius: 1px;
   background-color: var(--color-danger);
-  box-shadow: 0 0 6px var(--color-danger);
+  box-shadow: 0 0 8px var(--color-danger);
 }
 
 /* Forward Projected Headlight Cones onto Asphalt */
 .tux-roadway__v3d-beam {
   position: absolute;
-  bottom: -38px;
-  left: -6px;
-  width: 34px;
-  height: 38px;
+  bottom: -60px;
+  left: -8px;
+  width: 48px;
+  height: 60px;
   pointer-events: none;
-  transform: translateZ(1px);
+  transform: translateZ(0.5px);
   background: radial-gradient(
-    ellipse 65% 100% at 50% 0%,
+    ellipse 70% 100% at 50% 0%,
     color-mix(in srgb, var(--neutral-0) 35%, transparent) 0%,
-    color-mix(in srgb, var(--brand-accent) 18%, transparent) 40%,
+    color-mix(in srgb, var(--brand-accent) 18%, transparent) 45%,
     transparent 80%
   );
   clip-path: polygon(25% 0%, 75% 0%, 100% 100%, 0% 100%);
 }
 
+/* EV Cybernetic Underglow */
+.tux-roadway__v3d-underglow {
+  position: absolute;
+  inset: -2px;
+  border-radius: var(--radius-md);
+  background-color: color-mix(in srgb, var(--spectrum-teal) 35%, transparent);
+  filter: blur(6px);
+  transform: translateZ(0.5px);
+  pointer-events: none;
+}
+
 /* 3D Elevated Cabin (Greenhouse) */
 .tux-roadway__v3d-cabin {
   position: absolute;
-  top: 8px;
-  bottom: 10px;
+  top: 18px;
+  bottom: 22px;
   left: 3px;
   right: 3px;
   transform-style: preserve-3d;
-  transform: translateZ(10px);
+  transform: translateZ(18px);
+}
+
+.tux-roadway__vehicle--pickup .tux-roadway__v3d-cabin {
+  top: auto;
+  bottom: 22px;
+  height: 26px;
+  transform: translateZ(19px);
+}
+
+.tux-roadway__vehicle--truck .tux-roadway__v3d-cabin {
+  top: auto;
+  bottom: 18px;
+  height: 22px;
+  left: 2px;
+  right: 2px;
+  transform: translateZ(22px);
 }
 
 .tux-roadway__v3d-roof {
   position: absolute;
   inset: 0;
-  background-color: color-mix(in srgb, var(--neutral-1000) 22%, currentColor);
+  background-color: color-mix(in srgb, var(--neutral-1000) 12%, currentColor);
   border-radius: 2px;
   transform-style: preserve-3d;
+  box-shadow: inset 0 0 4px color-mix(in srgb, var(--neutral-1000) 22%, transparent);
 }
 
 .tux-roadway__vehicle--sedan .tux-roadway__v3d-roof {
@@ -2135,64 +2248,48 @@ function losClass(los?: string): string {
   color: var(--brand-accent);
 }
 
+.tux-roadway__vehicle--pickup .tux-roadway__v3d-roof {
+  color: var(--neutral-300);
+}
+
 .tux-roadway__vehicle--truck .tux-roadway__v3d-roof {
-  color: var(--neutral-400);
-}
-
-/* Autonomous Connected Vehicle LIDAR Sensor */
-.tux-roadway__v3d-lidar {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) translateZ(3px);
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-full);
-  background-color: var(--spectrum-teal);
-  box-shadow: 0 0 8px var(--spectrum-teal);
-  animation: pulseLidar 1.6s ease-in-out infinite;
-}
-
-@keyframes pulseLidar {
-  0%, 100% {
-    transform: translate(-50%, -50%) translateZ(3px) scale(0.9);
-    opacity: 0.8;
-  }
-  50% {
-    transform: translate(-50%, -50%) translateZ(3px) scale(1.15);
-    opacity: 1;
-  }
+  color: var(--brand-primary);
 }
 
 /* Sloped Windshields (Angled Glass) */
 .tux-roadway__v3d-windshield {
   position: absolute;
-  bottom: -4px;
+  bottom: -11px;
   left: 0;
   right: 0;
-  height: 5px;
+  height: 15px;
   transform-origin: top center;
   transform: rotateX(-45deg);
-  background-color: color-mix(in srgb, var(--color-info) 35%, var(--neutral-1000));
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--color-info) 35%, var(--neutral-1000)),
+    color-mix(in srgb, var(--color-info) 50%, var(--neutral-1000))
+  );
+  border-bottom: 1px solid color-mix(in srgb, var(--neutral-0) 22%, transparent);
 }
 
 .tux-roadway__v3d-backwindow {
   position: absolute;
-  top: -4px;
+  top: -10px;
   left: 0;
   right: 0;
-  height: 5px;
+  height: 13px;
   transform-origin: bottom center;
   transform: rotateX(45deg);
-  background-color: color-mix(in srgb, var(--color-info) 35%, var(--neutral-1000));
+  background: color-mix(in srgb, var(--color-info) 35%, var(--neutral-1000));
 }
 
 .tux-roadway__v3d-glass-side {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 4px;
-  background-color: color-mix(in srgb, var(--color-info) 22%, var(--neutral-1000));
+  width: 11px;
+  background: color-mix(in srgb, var(--color-info) 22%, var(--neutral-1000));
 }
 
 .tux-roadway__v3d-glass-side--left {
@@ -2207,49 +2304,168 @@ function losClass(los?: string): string {
   transform: rotateY(90deg);
 }
 
-/* Heavy Commercial Truck Trailer */
+/* Autonomous Connected Vehicle LIDAR Sensor Puck */
+.tux-roadway__v3d-lidar {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) translateZ(4px);
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background-color: var(--spectrum-teal);
+  box-shadow: 0 0 10px var(--spectrum-teal);
+  animation: pulseLidar 1.6s ease-in-out infinite;
+}
+
+@keyframes pulseLidar {
+  0%, 100% {
+    transform: translate(-50%, -50%) translateZ(4px) scale(0.9);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(-50%, -50%) translateZ(4px) scale(1.15);
+    opacity: 1;
+  }
+}
+
+/* Pickup Bed */
+.tux-roadway__v3d-pickup-bed {
+  position: absolute;
+  top: 2px;
+  bottom: 50px;
+  left: 2px;
+  right: 2px;
+  transform-style: preserve-3d;
+}
+
+.tux-roadway__v3d-bed-floor {
+  position: absolute;
+  inset: 0;
+  transform: translateZ(8px);
+  background: repeating-linear-gradient(
+    to right,
+    var(--neutral-800) 0px,
+    var(--neutral-800) 3px,
+    var(--neutral-900) 3px,
+    var(--neutral-900) 5px
+  );
+  border: 1px solid var(--neutral-700);
+}
+
+.tux-roadway__v3d-bed-rail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: var(--neutral-300);
+  transform: translateZ(14px);
+}
+
+.tux-roadway__v3d-bed-rail--left {
+  left: 0;
+}
+
+.tux-roadway__v3d-bed-rail--right {
+  right: 0;
+}
+
+.tux-roadway__v3d-bed-tailgate {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background-color: var(--neutral-400);
+  transform: translateZ(14px);
+}
+
+/* Semi Truck Stacks & Trailer */
+.tux-roadway__v3d-stacks {
+  position: absolute;
+  bottom: 40px;
+  left: 4px;
+  right: 4px;
+  display: flex;
+  justify-content: space-between;
+  transform-style: preserve-3d;
+}
+
+.tux-roadway__v3d-stack {
+  width: 3px;
+  height: 16px;
+  background-color: var(--neutral-300);
+  box-shadow: 0 0 3px var(--neutral-400);
+  transform: translateZ(28px);
+  border-radius: 1px;
+}
+
 .tux-roadway__v3d-trailer {
   position: absolute;
   top: 2px;
   left: 1px;
   right: 1px;
-  height: 44px;
+  height: 74px;
   transform-style: preserve-3d;
-  transform: translateZ(12px);
+  transform: translateZ(25px);
 }
 
 .tux-roadway__v3d-trailer-top {
   position: absolute;
   inset: 0;
-  background-color: var(--neutral-300);
+  background-color: var(--neutral-200);
   border: 1px solid var(--neutral-400);
   border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.tux-roadway__v3d-trailer-side {
+.tux-roadway__v3d-trailer-brand {
+  font-size: 0.5rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--neutral-700);
+  transform: rotate(-90deg);
+}
+
+.tux-roadway__v3d-trailer-flank {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 12px;
+  width: 20px;
   background: repeating-linear-gradient(
     to bottom,
-    var(--neutral-400) 0px,
+    var(--neutral-300) 0px,
+    var(--neutral-300) 3px,
     var(--neutral-400) 3px,
-    var(--neutral-500) 3px,
-    var(--neutral-500) 4px
+    var(--neutral-400) 5px
   );
+  border-bottom: 2px solid var(--brand-primary);
 }
 
-.tux-roadway__v3d-trailer-side--left {
+.tux-roadway__v3d-trailer-flank--left {
   left: 0;
   transform-origin: left center;
   transform: rotateY(-90deg);
 }
 
-.tux-roadway__v3d-trailer-side--right {
+.tux-roadway__v3d-trailer-flank--right {
   right: 0;
   transform-origin: right center;
   transform: rotateY(90deg);
+}
+
+.tux-roadway__v3d-trailer-front {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  transform-origin: center bottom;
+  transform: rotateX(-90deg);
+  background-color: var(--neutral-400);
 }
 
 .tux-roadway__v3d-trailer-rear {
@@ -2257,30 +2473,65 @@ function losClass(los?: string): string {
   top: 0;
   left: 0;
   right: 0;
-  height: 12px;
-  transform-origin: top center;
+  height: 20px;
+  transform-origin: center top;
   transform: rotateX(90deg);
-  background-color: var(--neutral-500);
-  border-bottom: 2px solid var(--color-danger);
+  background-color: var(--neutral-300);
+  border-top: 2px solid var(--color-danger);
+  position: relative;
+}
+
+.tux-roadway__v3d-trailer-lockbar {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--neutral-600);
+}
+
+.tux-roadway__v3d-trailer-hazard {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: repeating-linear-gradient(
+    to right,
+    var(--color-danger) 0px,
+    var(--color-danger) 4px,
+    var(--neutral-0) 4px,
+    var(--neutral-0) 8px
+  );
+}
+
+.tux-roadway__v3d-truck-fairing {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(to top, var(--brand-primary), color-mix(in srgb, var(--brand-primary) 70%, var(--neutral-0)));
+  border-radius: 2px;
 }
 
 .tux-roadway__platoon-stream--animating .tux-roadway__vehicle {
-  animation: vehicleDrive 4.5s linear infinite;
+  animation: vehicleDrive 5.5s linear infinite;
 }
 
 @keyframes vehicleDrive {
   0% {
-    top: -80px;
+    top: -120px;
     opacity: 0;
   }
-  15% {
+  12% {
     opacity: 1;
   }
-  85% {
+  88% {
     opacity: 1;
   }
   100% {
-    top: 420px;
+    top: 440px;
     opacity: 0;
   }
 }
