@@ -1,0 +1,17 @@
+@*
+ * TuxMapMarker.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<svg class="tux-map-marker">
+    @ChildContent
+</svg>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Kind { get; set; };
+    [Parameter] public string Number { get; set; } = undefined;
+    [Parameter] public int ToneIndex { get; set; } = undefined;
+    [Parameter] public string Size { get; set; } = md;
+    [Parameter] public string Title { get; set; } = "undefined";
+}

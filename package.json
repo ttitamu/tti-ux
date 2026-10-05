@@ -57,6 +57,8 @@
     "build:framework": "node scripts/build-framework-targets.mjs",
     "build:elements": "node scripts/build-elements.mjs",
     "build:cem": "node scripts/gen-cem.mjs",
+    "sync:engine": "node scripts/sync-engine.mjs --sync",
+    "watch:sync": "node scripts/sync-engine.mjs --watch",
     "test:root": "vitest run",
     "test:all": "node scripts/test-all-suites.mjs",
     "test:quality": "node scripts/test-all-suites.mjs"

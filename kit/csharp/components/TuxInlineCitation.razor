@@ -1,0 +1,18 @@
+@*
+ * TuxInlineCitation.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<UPopover class="tux-inline-citation">
+    @ChildContent
+</UPopover>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public int N { get; set; };
+    [Parameter] public string Title { get; set; };
+    [Parameter] public string Href { get; set; } = "undefined";
+    [Parameter] public string Excerpt { get; set; } = "undefined";
+    [Parameter] public string Score { get; set; } = undefined;
+    [Parameter] public string Label { get; set; } = "undefined";
+}

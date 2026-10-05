@@ -1,0 +1,26 @@
+// TuxNewsCollection.swift — SwiftUI View Component.
+// Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+
+import SwiftUI
+
+public struct TuxNewsCollection<Content: View>: View {
+    public var items: String
+    public var layout: String = stacked
+    public var columns: String = 3
+    public var readMore: String = "Read"
+    private let content: Content
+
+    public init(
+        @ViewBuilder content: () -> Content
+    ) {
+        self.content = content()
+    }
+
+    public var body: some View {
+        HStack {
+            content
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+    }
+}

@@ -1,0 +1,19 @@
+@*
+ * TuxLoadMore.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-load-more">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public int Loaded { get; set; };
+    [Parameter] public int Total { get; set; };
+    [Parameter] public bool Loading { get; set; } = false;
+    [Parameter] public string Noun { get; set; } = "undefined";
+    [Parameter] public string NounPlural { get; set; } = "undefined";
+    [Parameter] public string Label { get; set; } = "Load";
+    [Parameter] public string TerminalLabel { get; set; } = "All";
+}

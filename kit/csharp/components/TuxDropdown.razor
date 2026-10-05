@@ -1,0 +1,15 @@
+@*
+ * TuxDropdown.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-dropdown">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Label { get; set; };
+    [Parameter] public string Items { get; set; };
+    [Parameter] public string To { get; set; };
+}

@@ -1,0 +1,18 @@
+@*
+ * TuxFocusView.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<Teleport class="tux-focus-view">
+    @ChildContent
+</Teleport>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool Open { get; set; } = false;
+    [Parameter] public string Title { get; set; } = "undefined";
+    [Parameter] public string Eyebrow { get; set; } = "undefined";
+    [Parameter] public bool DismissOnBackdropClick { get; set; } = true;
+    [Parameter] public bool DismissOnEscape { get; set; } = true;
+    [Parameter] public string BackLabel { get; set; } = "Close";
+}

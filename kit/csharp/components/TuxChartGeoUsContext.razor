@@ -1,0 +1,16 @@
+@*
+ * TuxChartGeoUsContext.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<svg class="tux-chart-geo-us-context">
+    @ChildContent
+</svg>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string States { get; set; };
+    [Parameter] public string Highlight { get; set; };
+    [Parameter] public string LegendLabel { get; set; };
+    [Parameter] public string LegendStops { get; set; };
+}

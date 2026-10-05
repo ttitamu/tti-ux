@@ -1,0 +1,13 @@
+@*
+ * TuxFrameworkSwitcher.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-framework-switcher">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Mode { get; set; } = compact;
+}

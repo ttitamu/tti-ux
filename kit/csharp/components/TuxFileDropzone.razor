@@ -1,0 +1,20 @@
+@*
+ * TuxFileDropzone.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-file-dropzone">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string ModelValue { get; set; } = "()";
+    [Parameter] public string Accept { get; set; } = "undefined";
+    [Parameter] public bool Multiple { get; set; } = false;
+    [Parameter] public int MaxSize { get; set; } = 50;
+    [Parameter] public int MaxFiles { get; set; } = 10;
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public string Label { get; set; } = "undefined";
+    [Parameter] public string Hint { get; set; } = "undefined";
+}

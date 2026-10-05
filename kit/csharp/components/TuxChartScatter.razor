@@ -1,0 +1,27 @@
+@*
+ * TuxChartScatter.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<figure class="tux-chart-scatter">
+    @ChildContent
+</figure>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Series { get; set; };
+    [Parameter] public string XLabel { get; set; } = "x";
+    [Parameter] public string YLabel { get; set; } = "y";
+    [Parameter] public int Width { get; set; } = 640;
+    [Parameter] public int Height { get; set; } = 320;
+    [Parameter] public bool Trendline { get; set; } = false;
+    [Parameter] public bool Legend { get; set; } = true;
+    [Parameter] public bool Gridlines { get; set; } = true;
+    [Parameter] public int XTicks { get; set; } = 6;
+    [Parameter] public int YTicks { get; set; } = 5;
+    [Parameter] public string Format { get; set; } = "(n:";
+    [Parameter] public int Decimals { get; set; } = 2;
+    [Parameter] public string AriaSummary { get; set; } = "undefined";
+    [Parameter] public string Units { get; set; } = "undefined";
+    [Parameter] public bool Tooltip { get; set; } = true;
+}

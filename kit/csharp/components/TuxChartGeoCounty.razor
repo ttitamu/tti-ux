@@ -1,0 +1,15 @@
+@*
+ * TuxChartGeoCounty.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<svg class="tux-chart-geo-county">
+    @ChildContent
+</svg>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Counties { get; set; };
+    [Parameter] public string LegendLabel { get; set; };
+    [Parameter] public string LegendStops { get; set; };
+}

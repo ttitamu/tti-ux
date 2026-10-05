@@ -1,0 +1,18 @@
+@*
+ * TuxTooltip.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<TooltipProvider class="tux-tooltip">
+    @ChildContent
+</TooltipProvider>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Text { get; set; };
+    [Parameter] public string Title { get; set; } = "undefined";
+    [Parameter] public string Kbds { get; set; } = "undefined";
+    [Parameter] public string Side { get; set; } = top;
+    [Parameter] public bool Arrow { get; set; } = true;
+    [Parameter] public bool Disabled { get; set; } = false;
+}

@@ -1,0 +1,15 @@
+@*
+ * TuxCommandBar.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-command-bar">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public int SelectedCount { get; set; } = 0;
+    [Parameter] public string Density { get; set; } = compact;
+    [Parameter] public bool Bordered { get; set; } = true;
+}

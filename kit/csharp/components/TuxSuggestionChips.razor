@@ -1,0 +1,16 @@
+@*
+ * TuxSuggestionChips.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<section class="tux-suggestion-chips">
+    @ChildContent
+</section>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Items { get; set; };
+    [Parameter] public string Label { get; set; } = "undefined";
+    [Parameter] public string AriaLabel { get; set; } = "undefined";
+    [Parameter] public bool NoArrow { get; set; } = false;
+}

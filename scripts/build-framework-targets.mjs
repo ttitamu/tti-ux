@@ -240,6 +240,142 @@ export function renderWordPress(themes) {
   return JSON.stringify(doc, null, 2) + "\n";
 }
 
+export function renderPython(themes) {
+  const lines = [
+    `# ${GENERATED_NOTE}`,
+    '"""',
+    "Resolved design-token literals for Python environments (Streamlit, Dash,",
+    "Jupyter, Matplotlib, backend report generators).",
+    '"""',
+    "",
+    "from typing import Dict, Any",
+    "",
+    "class TuxTokens:",
+  ];
+  for (const [theme, values] of Object.entries(themes)) {
+    const themeKey = theme.replace(/-/g, "_").toUpperCase();
+    lines.push(`    ${themeKey}: Dict[str, str] = {`);
+    for (const [k, v] of Object.entries(values)) {
+      lines.push(`        "${k}": "${csEscape(v)}",`);
+    }
+    lines.push("    }");
+    lines.push("");
+  }
+  lines.push("    @classmethod");
+  lines.push('    def get(cls, name: str, theme: str = "tti") -> str:');
+  lines.push('        mapping = {"tti": cls.TTI, "tti-dark": cls.TTI_DARK, "tti-hc": cls.TTI_HC}');
+  lines.push('        return mapping.get(theme, cls.TTI).get(name, "")');
+  lines.push("");
+  return lines.join("\n") + "\n";
+}
+
+export function renderPhp(themes) {
+  const lines = [
+    "<?php",
+    `// ${GENERATED_NOTE}`,
+    "//",
+    "// Resolved design-token literals for PHP & WordPress / Kadence environments.",
+    "",
+    "namespace Tti\\Tux;",
+    "",
+    "final class TuxTokens",
+    "{",
+  ];
+  for (const [theme, values] of Object.entries(themes)) {
+    const themeConst = theme.replace(/-/g, "_").toUpperCase();
+    lines.push(`    public const ${themeConst} = [`);
+    for (const [k, v] of Object.entries(values)) {
+      lines.push(`        '${k}' => '${csEscape(v)}',`);
+    }
+    lines.push("    ];");
+    lines.push("");
+  }
+  lines.push("    public static function get(string $name, string $theme = 'tti'): string");
+  lines.push("    {");
+  lines.push("        $map = [");
+  lines.push("            'tti' => self::TTI,");
+  lines.push("            'tti-dark' => self::TTI_DARK,");
+  lines.push("            'tti-hc' => self::TTI_HC,");
+  lines.push("        ];");
+  lines.push("        $themeMap = $map[$theme] ?? self::TTI;");
+  lines.push("        return $themeMap[$name] ?? '';");
+  lines.push("    }");
+  lines.push("}");
+  lines.push("");
+  return lines.join("\n");
+}
+
+export function renderSwift(themes) {
+  const cls = { tti: "Tti", "tti-dark": "TtiDark", "tti-hc": "TtiHc" };
+  const lines = [
+    `// ${GENERATED_NOTE}`,
+    "//",
+    "// Resolved design-token literals for Swift & SwiftUI iOS / macOS applications.",
+    "",
+    "import SwiftUI",
+    "",
+    "public enum TuxTokens {",
+  ];
+  for (const [theme, values] of Object.entries(themes)) {
+    lines.push(`    public enum ${cls[theme]} {`);
+    for (const [name, value] of Object.entries(values)) {
+      const camel = name.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
+      lines.push(`        public static let ${camel} = "${csEscape(value)}"`);
+    }
+    lines.push("    }");
+    lines.push("");
+  }
+  lines.push("}");
+  lines.push("");
+  return lines.join("\n");
+}
+
+export function renderKotlin(themes) {
+  const cls = { tti: "Tti", "tti-dark": "TtiDark", "tti-hc": "TtiHc" };
+  const lines = [
+    `// ${GENERATED_NOTE}`,
+    "//",
+    "// Resolved design-token literals for Kotlin & Jetpack Compose Android applications.",
+    "",
+    "package edu.tamu.tti.tux",
+    "",
+    "object TuxTokens {",
+  ];
+  for (const [theme, values] of Object.entries(themes)) {
+    lines.push(`    object ${cls[theme]} {`);
+    for (const [name, value] of Object.entries(values)) {
+      const constName = name.replace(/-/g, "_").toUpperCase();
+      lines.push(`        const val ${constName} = "${csEscape(value)}"`);
+    }
+    lines.push("    }");
+    lines.push("");
+  }
+  lines.push("}");
+  lines.push("");
+  return lines.join("\n");
+}
+
+export function renderJavaScript(themes) {
+  const body = JSON.stringify(themes, null, 2);
+  const lines = [
+    `/**`,
+    ` * ${GENERATED_NOTE}`,
+    ` *`,
+    ` * Resolved design tokens for Vanilla JavaScript & Web Component runtimes.`,
+    ` */`,
+    "",
+    `export const tuxTokens = ${body};`,
+    "",
+    `export function tuxVar(name) {`,
+    "  return `--${name}`;",
+    "}",
+    "",
+    "export default tuxTokens;",
+    "",
+  ];
+  return lines.join("\n");
+}
+
 // ---------------------------------------------------------------------------
 // CLI
 // ---------------------------------------------------------------------------
@@ -250,6 +386,11 @@ export function generate() {
     ["kit/csharp/TuxTokens.cs", renderCsharp(themes)],
     ["kit/react/tux-tokens.ts", renderReact(themes)],
     ["kit/wp/theme.json", renderWordPress(themes)],
+    ["kit/python/tux_tokens.py", renderPython(themes)],
+    ["kit/php/TuxTokens.php", renderPhp(themes)],
+    ["kit/swift/TuxTokens.swift", renderSwift(themes)],
+    ["kit/kotlin/TuxTokens.kt", renderKotlin(themes)],
+    ["kit/js/tux-tokens.js", renderJavaScript(themes)],
   ]);
 }
 

@@ -1,0 +1,16 @@
+@*
+ * TuxInfoLabel.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<label class="tux-info-label">
+    @ChildContent
+</label>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string For { get; set; } = "undefined";
+    [Parameter] public bool Required { get; set; } = false;
+    [Parameter] public string Trigger { get; set; } = hover;
+    [Parameter] public string InfoAriaLabel { get; set; } = "More";
+}

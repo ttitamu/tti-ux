@@ -1,0 +1,19 @@
+@*
+ * TuxFundingSource.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<component class="tux-funding-source">
+    @ChildContent
+</component>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Funder { get; set; };
+    [Parameter] public string Abbrev { get; set; } = "undefined";
+    [Parameter] public string Logo { get; set; } = "undefined";
+    [Parameter] public string Grant { get; set; } = "undefined";
+    [Parameter] public string To { get; set; } = "undefined";
+    [Parameter] public string Size { get; set; } = md;
+    [Parameter] public string Layout { get; set; } = inline;
+}

@@ -1,0 +1,15 @@
+@*
+ * TuxContextMeter.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<UPopover class="tux-context-meter">
+    @ChildContent
+</UPopover>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public int Used { get; set; };
+    [Parameter] public int Max { get; set; };
+    [Parameter] public string Breakdown { get; set; } = "undefined";
+}

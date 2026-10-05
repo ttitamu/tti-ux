@@ -1,0 +1,15 @@
+@*
+ * TuxValidationSummary.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-validation-summary">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Errors { get; set; };
+    [Parameter] public string Title { get; set; } = "Please";
+    [Parameter] public string Variant { get; set; } = error;
+}

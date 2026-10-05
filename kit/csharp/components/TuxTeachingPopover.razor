@@ -1,0 +1,21 @@
+@*
+ * TuxTeachingPopover.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<Teleport class="tux-teaching-popover">
+    @ChildContent
+</Teleport>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool ModelValue { get; set; } = false;
+    [Parameter] public int Step { get; set; } = 1;
+    [Parameter] public int TotalSteps { get; set; } = 1;
+    [Parameter] public string Title { get; set; } = "undefined";
+    [Parameter] public bool OnBrand { get; set; } = false;
+    [Parameter] public bool NoDismiss { get; set; } = false;
+    [Parameter] public string PrimaryLabel { get; set; } = "undefined";
+    [Parameter] public string SecondaryLabel { get; set; } = "Skip";
+    [Parameter] public bool NoSecondary { get; set; } = false;
+}

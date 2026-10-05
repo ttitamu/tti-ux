@@ -1,0 +1,23 @@
+@*
+ * TuxComposer.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-composer">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string ModelValue { get; set; };
+    [Parameter] public string Placeholder { get; set; } = "Ask";
+    [Parameter] public string Models { get; set; } = "()";
+    [Parameter] public string ModelId { get; set; } = "undefined";
+    [Parameter] public int MaxLength { get; set; } = 32000;
+    [Parameter] public string Hint { get; set; } = "⌘↵";
+    [Parameter] public bool HideAttach { get; set; } = false;
+    [Parameter] public string AttachLabel { get; set; } = "Attach";
+    [Parameter] public string AttachIcon { get; set; } = "lucide:plus";
+    [Parameter] public bool Cancelable { get; set; } = false;
+    [Parameter] public string CancelLabel { get; set; } = "Cancel";
+}

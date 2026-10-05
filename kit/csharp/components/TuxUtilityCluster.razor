@@ -1,0 +1,25 @@
+@*
+ * TuxUtilityCluster.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-utility-cluster">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Current { get; set; } = "undefined";
+    [Parameter] public bool SignedIn { get; set; } = false;
+    [Parameter] public string Entitled { get; set; } = "undefined";
+    [Parameter] public bool HideSwitcher { get; set; } = false;
+    [Parameter] public bool HideTheme { get; set; } = false;
+    [Parameter] public string UserMenu { get; set; } = "undefined";
+    [Parameter] public string State { get; set; };
+    [Parameter] public string Identity { get; set; };
+    [Parameter] public string SignInHref { get; set; };
+    [Parameter] public string SignInLabel { get; set; };
+    [Parameter] public string Items { get; set; };
+    [Parameter] public string Prefs { get; set; };
+    [Parameter] public string StatusLine { get; set; };
+}

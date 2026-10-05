@@ -1,0 +1,18 @@
+@*
+ * TuxTOC.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<nav class="tux-toc">
+    @ChildContent
+</nav>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Items { get; set; } = "undefined";
+    [Parameter] public string Target { get; set; } = "article";
+    [Parameter] public string Levels { get; set; } = "()";
+    [Parameter] public string Title { get; set; } = "On";
+    [Parameter] public bool NoTitle { get; set; } = false;
+    [Parameter] public string Variant { get; set; } = comm;
+}

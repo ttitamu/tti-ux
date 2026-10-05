@@ -1,0 +1,18 @@
+@*
+ * TuxSlideover.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<dialog class="tux-slideover">
+    @ChildContent
+</dialog>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Side { get; set; } = right;
+    [Parameter] public string Size { get; set; } = "undefined";
+    [Parameter] public string Title { get; set; } = "undefined";
+    [Parameter] public string Eyebrow { get; set; } = "undefined";
+    [Parameter] public bool ShowClose { get; set; } = true;
+    [Parameter] public bool CloseOnBackdrop { get; set; } = true;
+}

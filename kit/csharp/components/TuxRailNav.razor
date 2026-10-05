@@ -1,0 +1,15 @@
+@*
+ * TuxRailNav.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<nav class="tux-rail-nav">
+    @ChildContent
+</nav>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Items { get; set; } = "RailItem[][];";
+    [Parameter] public bool Collapsed { get; set; } = false;
+    [Parameter] public string AriaLabel { get; set; } = "Primary";
+}

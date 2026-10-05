@@ -1,0 +1,17 @@
+@*
+ * TuxTableCaption.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-table-caption">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Label { get; set; } = "Table";
+    [Parameter] public string Number { get; set; };
+    [Parameter] public string Caption { get; set; } = "undefined";
+    [Parameter] public string Source { get; set; } = "undefined";
+    [Parameter] public string Placement { get; set; } = above;
+}

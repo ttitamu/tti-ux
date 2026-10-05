@@ -1,0 +1,22 @@
+@*
+ * TuxReactiveSidebar.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<nav class="tux-reactive-sidebar">
+    @ChildContent
+</nav>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Sections { get; set; };
+    [Parameter] public string AllSections { get; set; } = "undefined";
+    [Parameter] public bool Collapsed { get; set; } = false;
+    [Parameter] public string ActiveAreaTitle { get; set; } = "Workspace";
+    [Parameter] public string ActiveAreaIcon { get; set; } = "lucide:layers";
+    [Parameter] public bool Search { get; set; } = true;
+    [Parameter] public string SearchPlaceholder { get; set; } = "Filter";
+    [Parameter] public bool ShowAll { get; set; } = false;
+    [Parameter] public bool DefaultExpanded { get; set; } = false;
+    [Parameter] public bool Exclusive { get; set; } = false;
+}

@@ -1,0 +1,17 @@
+@*
+ * TuxModal.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<UModal class="tux-modal">
+    @ChildContent
+</UModal>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool Open { get; set; } = false;
+    [Parameter] public string Title { get; set; } = "undefined";
+    [Parameter] public string Eyebrow { get; set; } = "undefined";
+    [Parameter] public string Size { get; set; } = undefined;
+    [Parameter] public string Variant { get; set; } = standard;
+}

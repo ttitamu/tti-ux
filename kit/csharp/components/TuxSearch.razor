@@ -1,0 +1,28 @@
+@*
+ * TuxSearch.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-search">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string ModelValue { get; set; };
+    [Parameter] public string Variant { get; set; } = "field";
+    [Parameter] public string BlockBar { get; set; } = "field";
+    [Parameter] public string Size { get; set; } = regular;
+    [Parameter] public string Placeholder { get; set; } = "Search";
+    [Parameter] public string Heading { get; set; } = "undefined";
+    [Parameter] public string Lede { get; set; } = "undefined";
+    [Parameter] public string AriaLabel { get; set; } = "undefined";
+    [Parameter] public string ActionLabel { get; set; } = "Search";
+    [Parameter] public string ActionIcon { get; set; } = "undefined";
+    [Parameter] public string LeadingIcon { get; set; } = lucide:search;
+    [Parameter] public bool Clearable { get; set; } = true;
+    [Parameter] public bool Loading { get; set; } = false;
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public bool CornerDrop { get; set; } = false;
+    [Parameter] public bool ForceFocus { get; set; } = false;
+}

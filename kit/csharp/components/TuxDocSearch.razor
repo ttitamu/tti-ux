@@ -1,0 +1,15 @@
+@*
+ * TuxDocSearch.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-doc-search">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Items { get; set; } = "undefined";
+    [Parameter] public string Placeholder { get; set; } = "Search";
+    [Parameter] public int MaxResults { get; set; } = 8;
+}

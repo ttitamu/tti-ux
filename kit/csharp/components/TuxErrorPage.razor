@@ -1,0 +1,19 @@
+@*
+ * TuxErrorPage.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<section class="tux-error-page">
+    @ChildContent
+</section>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Code { get; set; } = "404";
+    [Parameter] public string Title { get; set; } = "undefined";
+    [Parameter] public string Lede { get; set; } = "undefined";
+    [Parameter] public string Actions { get; set; } = "undefined";
+    [Parameter] public bool Inline { get; set; } = false;
+    [Parameter] public string Icon { get; set; } = "undefined";
+    [Parameter] public string Details { get; set; } = "undefined";
+}

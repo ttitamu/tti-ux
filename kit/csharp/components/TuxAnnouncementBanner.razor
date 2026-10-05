@@ -1,0 +1,19 @@
+@*
+ * TuxAnnouncementBanner.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<Transition class="tux-announcement-banner">
+    @ChildContent
+</Transition>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Id { get; set; } = "undefined";
+    [Parameter] public string Tone { get; set; } = "info";
+    [Parameter] public string Icon { get; set; } = "undefined";
+    [Parameter] public string Eyebrow { get; set; } = "undefined";
+    [Parameter] public string Message { get; set; } = "undefined";
+    [Parameter] public string Action { get; set; } = "undefined";
+    [Parameter] public bool Dismissable { get; set; } = true;
+}

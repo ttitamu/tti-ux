@@ -1,0 +1,16 @@
+@*
+ * TuxSplashScreen.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<Transition class="tux-splash-screen">
+    @ChildContent
+</Transition>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool Loaded { get; set; } = false;
+    [Parameter] public string Status { get; set; } = "Loading…";
+    [Parameter] public bool Hidden { get; set; } = false;
+    [Parameter] public int FadeDelay { get; set; } = 300;
+}

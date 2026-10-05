@@ -1,0 +1,18 @@
+@*
+ * TuxEmptyState.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-empty-state">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Kind { get; set; } = "undefined";
+    [Parameter] public string Icon { get; set; } = "undefined";
+    [Parameter] public string Title { get; set; } = "undefined";
+    [Parameter] public string Description { get; set; } = "undefined";
+    [Parameter] public bool NoCard { get; set; } = false;
+    [Parameter] public bool Compact { get; set; } = false;
+}

@@ -1,0 +1,14 @@
+@*
+ * TuxButton.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<UButton class="tux-button">
+    @ChildContent
+</UButton>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Intent { get; set; } = "primary";
+    [Parameter] public string Shape { get; set; } = "default";
+}

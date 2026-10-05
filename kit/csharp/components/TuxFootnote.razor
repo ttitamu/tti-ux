@@ -1,0 +1,15 @@
+@*
+ * TuxFootnote.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<UPopover class="tux-footnote">
+    @ChildContent
+</UPopover>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public int N { get; set; };
+    [Parameter] public string Text { get; set; };
+    [Parameter] public string IdPrefix { get; set; } = "fn";
+}

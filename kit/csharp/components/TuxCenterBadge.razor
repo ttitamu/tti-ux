@@ -1,0 +1,19 @@
+@*
+ * TuxCenterBadge.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<span class="tux-center-badge">
+    @ChildContent
+</span>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Center { get; set; } = undefined;
+    [Parameter] public string Label { get; set; } = "undefined";
+    [Parameter] public string Icon { get; set; } = "undefined";
+    [Parameter] public int ToneIndex { get; set; } = 2;
+    [Parameter] public bool Short { get; set; } = false;
+    [Parameter] public string Size { get; set; } = md;
+    [Parameter] public string Layout { get; set; } = chip;
+}

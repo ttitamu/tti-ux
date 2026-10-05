@@ -1,0 +1,42 @@
+/**
+ * <tux-treemap> — HTML5 Web Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ */
+export class TuxTreemapElement extends HTMLElement {
+  static get observedAttributes() {
+    return ["data", "width", "height", "max-depth", "color-by", "unit", "aria-label"];
+  }
+
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+
+  connectedCallback() {
+    this.render();
+  }
+
+  attributeChangedCallback() {
+    this.render();
+  }
+
+  render() {
+    if (!this.shadowRoot) return;
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: inline-flex;
+          align-items: center;
+          font-family: var(--font-body, system-ui);
+        }
+      </style>
+      <div class="tux-treemap">
+        <slot></slot>
+      </div>
+    `;
+  }
+}
+
+if (!customElements.get('tux-treemap')) {
+  customElements.define('tux-treemap', TuxTreemapElement);
+}

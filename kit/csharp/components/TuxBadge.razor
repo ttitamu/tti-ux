@@ -1,0 +1,23 @@
+@*
+ * TuxBadge.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<UBadge class="tux-badge">
+    @ChildContent
+</UBadge>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Tier { get; set; } = "undefined";
+    [Parameter] public string Status { get; set; } = "undefined";
+    [Parameter] public string Tone { get; set; } = "undefined";
+    [Parameter] public string Kind { get; set; } = "default";
+    [Parameter] public string Variant { get; set; } = "undefined";
+    [Parameter] public bool Bold { get; set; } = false;
+    [Parameter] public bool Dot { get; set; } = false;
+    [Parameter] public string Icon { get; set; } = "undefined";
+    [Parameter] public string Count { get; set; } = undefined;
+    [Parameter] public string Label { get; set; } = "undefined";
+    [Parameter] public bool Uppercase { get; set; } = false;
+}

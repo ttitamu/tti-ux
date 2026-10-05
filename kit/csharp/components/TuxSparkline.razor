@@ -1,0 +1,23 @@
+@*
+ * TuxSparkline.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<span class="tux-sparkline">
+    @ChildContent
+</span>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Data { get; set; };
+    [Parameter] public int Width { get; set; } = 120;
+    [Parameter] public int Height { get; set; } = 32;
+    [Parameter] public string Tone { get; set; } = "brand";
+    [Parameter] public int StrokeWidth { get; set; } = 1.5;
+    [Parameter] public bool ShowArea { get; set; } = false;
+    [Parameter] public bool ShowLastPoint { get; set; } = true;
+    [Parameter] public bool ShowDelta { get; set; } = false;
+    [Parameter] public string DeltaFormat { get; set; } = percent;
+    [Parameter] public string AriaSummary { get; set; } = "undefined";
+    [Parameter] public string Units { get; set; } = "undefined";
+}

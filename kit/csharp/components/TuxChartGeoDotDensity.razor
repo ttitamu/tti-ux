@@ -1,0 +1,14 @@
+@*
+ * TuxChartGeoDotDensity.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<svg class="tux-chart-geo-dot-density">
+    @ChildContent
+</svg>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public int Dots { get; set; };
+    [Parameter] public string DotLegend { get; set; };
+}

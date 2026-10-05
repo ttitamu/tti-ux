@@ -1,0 +1,17 @@
+@*
+ * TuxChatMessage.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<article class="tux-chat-message">
+    @ChildContent
+</article>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Role { get; set; } = "user";
+    [Parameter] public string Author { get; set; };
+    [Parameter] public string Timestamp { get; set; } = "undefined";
+    [Parameter] public string Meta { get; set; } = "undefined";
+    [Parameter] public string Initials { get; set; } = "undefined";
+}

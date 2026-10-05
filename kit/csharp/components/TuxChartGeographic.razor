@@ -1,0 +1,26 @@
+@*
+ * TuxChartGeographic.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-chart-geographic">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Kind { get; set; };
+    [Parameter] public string Palette { get; set; } = "maroon";
+    [Parameter] public string Title { get; set; };
+    [Parameter] public string LegendLabel { get; set; } = "Value";
+    [Parameter] public string LegendStops { get; set; } = "()";
+    [Parameter] public bool ShowLegend { get; set; } = true;
+    [Parameter] public string Counties { get; set; } = "()";
+    [Parameter] public string Districts { get; set; } = "()";
+    [Parameter] public string States { get; set; } = "()";
+    [Parameter] public string Highlight { get; set; } = "TX";
+    [Parameter] public int Dots { get; set; } = 600;
+    [Parameter] public string DotLegend { get; set; } = "1";
+    [Parameter] public string Flows { get; set; } = "()";
+    [Parameter] public string FlowLegend { get; set; } = "Daily";
+}

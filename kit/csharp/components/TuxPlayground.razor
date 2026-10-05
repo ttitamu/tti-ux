@@ -1,0 +1,24 @@
+@*
+ * TuxPlayground.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-playground">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Tag { get; set; } = "undefined";
+    [Parameter] public string ComponentName { get; set; } = "undefined";
+    [Parameter] public string Controls { get; set; };
+    [Parameter] public string Presets { get; set; } = "()";
+    [Parameter] public string Title { get; set; } = "Interactive";
+    [Parameter] public string Eyebrow { get; set; } = "Live";
+    [Parameter] public string SlotProp { get; set; } = "undefined";
+    [Parameter] public string DefaultSlotText { get; set; } = "undefined";
+    [Parameter] public bool SelfClosing { get; set; } = false;
+    [Parameter] public string CodeTemplate { get; set; } = "undefined";
+    [Parameter] public string PreviewPadding { get; set; } = "p-8";
+    [Parameter] public bool EnableDeepLinking { get; set; } = true;
+}

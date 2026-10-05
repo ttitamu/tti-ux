@@ -1,0 +1,18 @@
+@*
+ * TuxRoadwayCrossSection.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-roadway-cross-section">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Preset { get; set; } = urban-managed;
+    [Parameter] public string InitialView { get; set; } = 3d-perspective;
+    [Parameter] public string Height { get; set; } = "560px";
+    [Parameter] public bool Interactive { get; set; } = true;
+    [Parameter] public int InitialPitch { get; set; } = 0;
+    [Parameter] public int InitialYaw { get; set; } = 0;
+}

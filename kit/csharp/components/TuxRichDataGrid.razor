@@ -1,0 +1,36 @@
+@*
+ * TuxRichDataGrid.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-rich-data-grid">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Columns { get; set; };
+    [Parameter] public string Rows { get; set; };
+    [Parameter] public string RowKey { get; set; } = "id";
+    [Parameter] public string Title { get; set; } = "undefined";
+    [Parameter] public string Meta { get; set; } = "undefined";
+    [Parameter] public string SearchPlaceholder { get; set; } = "Search…";
+    [Parameter] public bool ShowSearch { get; set; } = true;
+    [Parameter] public bool ShowFilter { get; set; } = true;
+    [Parameter] public bool ShowColumns { get; set; } = true;
+    [Parameter] public bool ShowExport { get; set; } = true;
+    [Parameter] public string Filters { get; set; } = "()";
+    [Parameter] public string Selected { get; set; } = ();
+    [Parameter] public bool SelectionDisabled { get; set; } = false;
+    [Parameter] public string BulkActions { get; set; } = "()";
+    [Parameter] public string Expanded { get; set; } = ();
+    [Parameter] public bool ExpansionDisabled { get; set; } = false;
+    [Parameter] public string SortKey { get; set; } = "undefined";
+    [Parameter] public string SortDir { get; set; } = undefined;
+    [Parameter] public string MaxHeight { get; set; } = "440px";
+    [Parameter] public bool Virtualized { get; set; } = false;
+    [Parameter] public int VirtualRowHeight { get; set; } = 44;
+    [Parameter] public string Density { get; set; } = comfortable;
+    [Parameter] public string PaginationLabel { get; set; };
+    [Parameter] public string PaginationTokens { get; set; } = "()";
+}

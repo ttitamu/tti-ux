@@ -1,0 +1,19 @@
+@*
+ * TuxProgram.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<article class="tux-program">
+    @ChildContent
+</article>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Name { get; set; };
+    [Parameter] public string Eyebrow { get; set; } = "undefined";
+    [Parameter] public string Summary { get; set; } = "undefined";
+    [Parameter] public string Hero { get; set; } = "undefined";
+    [Parameter] public string Leads { get; set; } = "undefined";
+    [Parameter] public string Funders { get; set; } = "undefined";
+    [Parameter] public string Metrics { get; set; } = "undefined";
+}

@@ -1,0 +1,25 @@
+@*
+ * TuxChartDonut.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<figure class="tux-chart-donut">
+    @ChildContent
+</figure>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Slices { get; set; };
+    [Parameter] public int Size { get; set; } = 280;
+    [Parameter] public int Thickness { get; set; } = 0.5;
+    [Parameter] public bool SliceLabels { get; set; } = true;
+    [Parameter] public bool Legend { get; set; } = false;
+    [Parameter] public string CenterLabel { get; set; } = "undefined";
+    [Parameter] public string CenterValue { get; set; } = undefined;
+    [Parameter] public int MinSlice { get; set; } = 3;
+    [Parameter] public string Format { get; set; } = "(n:";
+    [Parameter] public int Decimals { get; set; } = 1;
+    [Parameter] public string AriaSummary { get; set; } = "undefined";
+    [Parameter] public string Units { get; set; } = "undefined";
+    [Parameter] public bool Tooltip { get; set; } = true;
+}

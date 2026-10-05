@@ -1,0 +1,17 @@
+@*
+ * TuxHeroCanvas.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-hero-canvas">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Variant { get; set; } = wash;
+    [Parameter] public string Blend { get; set; } = seamless;
+    [Parameter] public bool Interactive { get; set; } = true;
+    [Parameter] public bool ShowControls { get; set; } = true;
+    [Parameter] public string MinHeight { get; set; } = "32rem";
+}

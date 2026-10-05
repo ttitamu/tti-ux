@@ -1,0 +1,42 @@
+/**
+ * <tux-teaching-popover> — HTML5 Web Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ */
+export class TuxTeachingPopoverElement extends HTMLElement {
+  static get observedAttributes() {
+    return ["model-value", "step", "total-steps", "title", "on-brand", "no-dismiss", "primary-label", "secondary-label", "no-secondary"];
+  }
+
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+
+  connectedCallback() {
+    this.render();
+  }
+
+  attributeChangedCallback() {
+    this.render();
+  }
+
+  render() {
+    if (!this.shadowRoot) return;
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: inline-flex;
+          align-items: center;
+          font-family: var(--font-body, system-ui);
+        }
+      </style>
+      <Teleport class="tux-teaching-popover">
+        <slot></slot>
+      </Teleport>
+    `;
+  }
+}
+
+if (!customElements.get('tux-teaching-popover')) {
+  customElements.define('tux-teaching-popover', TuxTeachingPopoverElement);
+}

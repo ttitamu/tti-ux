@@ -1,0 +1,20 @@
+@*
+ * TuxReportWebFrame.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<article class="tux-report-web-frame">
+    @ChildContent
+</article>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Eyebrow { get; set; } = "undefined";
+    [Parameter] public string Title { get; set; } = "undefined";
+    [Parameter] public string Lede { get; set; } = "undefined";
+    [Parameter] public string Byline { get; set; } = "undefined";
+    [Parameter] public string Date { get; set; } = "undefined";
+    [Parameter] public string ReadingTime { get; set; } = "undefined";
+    [Parameter] public string Toc { get; set; } = "()";
+    [Parameter] public string Width { get; set; } = "default";
+}

@@ -1,0 +1,26 @@
+@*
+ * TuxChartHistogram.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<figure class="tux-chart-histogram">
+    @ChildContent
+</figure>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Values { get; set; };
+    [Parameter] public int Width { get; set; } = 640;
+    [Parameter] public int Height { get; set; } = 280;
+    [Parameter] public int BinCount { get; set; } = 12;
+    [Parameter] public string Percentiles { get; set; } = "()";
+    [Parameter] public bool Normalize { get; set; } = false;
+    [Parameter] public bool Gridlines { get; set; } = true;
+    [Parameter] public int Ticks { get; set; } = 5;
+    [Parameter] public string XLabel { get; set; } = "undefined";
+    [Parameter] public string Format { get; set; } = "(n:";
+    [Parameter] public int Decimals { get; set; } = 1;
+    [Parameter] public string AriaSummary { get; set; } = "undefined";
+    [Parameter] public string Units { get; set; } = "undefined";
+    [Parameter] public bool Tooltip { get; set; } = true;
+}

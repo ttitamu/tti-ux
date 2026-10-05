@@ -1,0 +1,19 @@
+@*
+ * TuxAbstract.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<section class="tux-abstract">
+    @ChildContent
+</section>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Background { get; set; } = "undefined";
+    [Parameter] public string Methods { get; set; } = "undefined";
+    [Parameter] public string Results { get; set; } = "undefined";
+    [Parameter] public string Conclusion { get; set; } = "undefined";
+    [Parameter] public string Keywords { get; set; } = "undefined";
+    [Parameter] public string Variant { get; set; } = structured;
+    [Parameter] public string Level { get; set; } = 4;
+}

@@ -1,0 +1,14 @@
+@*
+ * TuxMenuBar.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-menu-bar">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Menus { get; set; };
+    [Parameter] public bool RenderOnMac { get; set; } = false;
+}

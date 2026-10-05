@@ -1,0 +1,16 @@
+@*
+ * TuxKbd.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<span class="tux-kbd">
+    @ChildContent
+</span>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Value { get; set; } = "undefined";
+    [Parameter] public string Keys { get; set; } = "undefined";
+    [Parameter] public string Size { get; set; } = sm;
+    [Parameter] public string Separator { get; set; };
+}

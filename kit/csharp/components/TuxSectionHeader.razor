@@ -1,0 +1,18 @@
+@*
+ * TuxSectionHeader.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<header class="tux-section-header">
+    @ChildContent
+</header>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Level { get; set; } = 2;
+    [Parameter] public string Title { get; set; } = "undefined";
+    [Parameter] public string SecondaryTitle { get; set; } = "undefined";
+    [Parameter] public string Subtitle { get; set; } = "undefined";
+    [Parameter] public string Kicker { get; set; } = "undefined";
+    [Parameter] public string Variant { get; set; } = institutional;
+}

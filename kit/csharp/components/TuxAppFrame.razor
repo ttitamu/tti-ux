@@ -1,0 +1,17 @@
+@*
+ * TuxAppFrame.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<header class="tux-app-frame">
+    @ChildContent
+</header>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Title { get; set; } = "undefined";
+    [Parameter] public string Eyebrow { get; set; } = "undefined";
+    [Parameter] public bool UseSystemAccent { get; set; } = false;
+    [Parameter] public bool UnifiedToolbar { get; set; } = true;
+    [Parameter] public bool ForceChrome { get; set; } = false;
+}

@@ -1,0 +1,21 @@
+@*
+ * TuxLab.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<article class="tux-lab">
+    @ChildContent
+</article>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Name { get; set; };
+    [Parameter] public string Summary { get; set; } = "undefined";
+    [Parameter] public string Logo { get; set; } = "undefined";
+    [Parameter] public int ProjectsCount { get; set; } = undefined;
+    [Parameter] public int PeopleCount { get; set; } = undefined;
+    [Parameter] public string Location { get; set; } = "undefined";
+    [Parameter] public string Leaders { get; set; } = "undefined";
+    [Parameter] public string Focus { get; set; } = "undefined";
+    [Parameter] public string To { get; set; } = "undefined";
+}

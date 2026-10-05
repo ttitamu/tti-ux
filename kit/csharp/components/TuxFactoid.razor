@@ -1,0 +1,18 @@
+@*
+ * TuxFactoid.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<section class="tux-factoid">
+    @ChildContent
+</section>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Items { get; set; };
+    [Parameter] public string Variant { get; set; } = default;
+    [Parameter] public string Columns { get; set; } = 3;
+    [Parameter] public string Eyebrow { get; set; } = "undefined";
+    [Parameter] public string Title { get; set; } = "undefined";
+    [Parameter] public string Dek { get; set; } = "undefined";
+}

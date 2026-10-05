@@ -1,0 +1,21 @@
+@*
+ * TuxSignupFeature.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<section class="tux-signup-feature">
+    @ChildContent
+</section>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Title { get; set; };
+    [Parameter] public string Eyebrow { get; set; } = "undefined";
+    [Parameter] public string Dek { get; set; } = "undefined";
+    [Parameter] public string ActionLabel { get; set; } = "Subscribe";
+    [Parameter] public string Placeholder { get; set; } = "your@email.edu";
+    [Parameter] public string Consent { get; set; } = "We";
+    [Parameter] public string ModelValue { get; set; };
+    [Parameter] public string Tone { get; set; } = neutral;
+    [Parameter] public string Variant { get; set; } = default;
+}
