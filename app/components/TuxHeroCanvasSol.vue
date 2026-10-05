@@ -34,9 +34,10 @@ interface Props {
   minHeight?: string;
   /**
    * Presentation mode:
-   *  - 'cinematic-dark' (Default): Signature deep-space nocturnal stage with
-   *    incandescent golden flare core and luminous typography across both light & dark themes.
-   *  - 'adaptive': Adapts stage background and inverts tensor particles in light mode.
+   *  - 'adaptive' (Default): Genuinely adapts to active theme. High-contrast
+   *    crimson/amber/slate computing cluster on light surface, and incandescent
+   *    celestial corona on dark surface.
+   *  - 'cinematic-dark': Forces nocturnal stage across both light & dark themes.
    */
   mode?: "cinematic-dark" | "adaptive";
 }
@@ -46,7 +47,7 @@ const props = withDefaults(defineProps<Props>(), {
   interactive: true,
   showControls: true,
   minHeight: "34rem",
-  mode: "cinematic-dark",
+  mode: "adaptive",
 });
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
@@ -163,7 +164,7 @@ function runLoop() {
   ctx.clearRect(0, 0, w, h);
 
   const isThemeDark = typeof document !== "undefined" && document.documentElement.getAttribute("data-theme") === "tti-dark";
-  const renderDark = props.mode === "cinematic-dark" || isThemeDark;
+  const renderDark = props.mode === "cinematic-dark" ? true : isThemeDark;
 
   // 1. Incandescent Solar / Computing Cluster Core
   const cx = w * 0.74;
@@ -171,47 +172,73 @@ function runLoop() {
   solBreathPhase += 0.022;
   const breath = Math.sin(solBreathPhase) * 14;
 
-  // Outer Coronal Aura
-  const outerGrad = ctx.createRadialGradient(cx, cy, 20, cx, cy, 220 + breath);
   if (renderDark) {
+    // Dark mode: Incandescent Solar Core
+    const outerGrad = ctx.createRadialGradient(cx, cy, 20, cx, cy, 220 + breath);
     outerGrad.addColorStop(0, makeRgba(255, 185, 65, 0.42));
     outerGrad.addColorStop(0.35, makeRgba(160, 45, 30, 0.26));
     outerGrad.addColorStop(0.7, makeRgba(80, 0, 0, 0.12));
     outerGrad.addColorStop(1, makeRgba(0, 0, 0, 0));
-  } else {
-    outerGrad.addColorStop(0, makeRgba(217, 119, 6, 0.45));
-    outerGrad.addColorStop(0.35, makeRgba(160, 45, 30, 0.35));
-    outerGrad.addColorStop(0.7, makeRgba(80, 0, 0, 0.18));
-    outerGrad.addColorStop(1, makeRgba(0, 0, 0, 0));
-  }
-  ctx.fillStyle = outerGrad;
-  ctx.beginPath();
-  ctx.arc(cx, cy, 225 + breath, 0, Math.PI * 2);
-  ctx.fill();
+    ctx.fillStyle = outerGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 225 + breath, 0, Math.PI * 2);
+    ctx.fill();
 
-  // Inner Radiant Fusion Core
-  const innerGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 64 + breath * 0.35);
-  if (renderDark) {
+    const innerGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 64 + breath * 0.35);
     innerGrad.addColorStop(0, makeRgba(255, 248, 210, 0.95));
     innerGrad.addColorStop(0.35, makeRgba(255, 195, 85, 0.75));
     innerGrad.addColorStop(0.75, makeRgba(230, 120, 35, 0.42));
     innerGrad.addColorStop(1, makeRgba(160, 40, 15, 0));
+    ctx.fillStyle = innerGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 66 + breath * 0.35, 0, Math.PI * 2);
+    ctx.fill();
   } else {
-    innerGrad.addColorStop(0, makeRgba(245, 158, 11, 0.92));
-    innerGrad.addColorStop(0.35, makeRgba(217, 119, 6, 0.78));
-    innerGrad.addColorStop(0.75, makeRgba(160, 45, 30, 0.55));
-    innerGrad.addColorStop(1, makeRgba(80, 0, 0, 0));
+    // Light mode: High-Contrast Computing Cluster Fusion Core & Orbital Rings
+    const outerGrad = ctx.createRadialGradient(cx, cy, 20, cx, cy, 215 + breath);
+    outerGrad.addColorStop(0, makeRgba(217, 119, 6, 0.26)); // Warm Gold ambient radiation
+    outerGrad.addColorStop(0.35, makeRgba(160, 45, 30, 0.18)); // TTI Maroon wash
+    outerGrad.addColorStop(0.70, makeRgba(80, 0, 0, 0.06)); // Deep Maroon outer envelope
+    outerGrad.addColorStop(1, makeRgba(80, 0, 0, 0));
+    ctx.fillStyle = outerGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 220 + breath, 0, Math.PI * 2);
+    ctx.fill();
+
+    const innerGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 62 + breath * 0.35);
+    innerGrad.addColorStop(0, makeRgba(160, 45, 30, 0.88)); // Dense TTI Crimson nucleus
+    innerGrad.addColorStop(0.35, makeRgba(217, 119, 6, 0.75)); // Amber coronal boundary
+    innerGrad.addColorStop(0.75, makeRgba(245, 158, 11, 0.35)); // Golden transition
+    innerGrad.addColorStop(1, makeRgba(245, 158, 11, 0));
+    ctx.fillStyle = innerGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 64 + breath * 0.35, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Concentric Vector Trajectory / Telemetry Rings
+    ctx.save();
+    ctx.lineWidth = 1.0;
+    ctx.strokeStyle = makeRgba(160, 45, 30, 0.26);
+    ctx.setLineDash([8, 8]);
+    ctx.beginPath();
+    ctx.arc(cx, cy, 88 + breath * 0.3, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = makeRgba(217, 119, 6, 0.22);
+    ctx.setLineDash([16, 12]);
+    ctx.beginPath();
+    ctx.arc(cx, cy, 142 + breath * 0.5, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
   }
-  ctx.fillStyle = innerGrad;
-  ctx.beginPath();
-  ctx.arc(cx, cy, 66 + breath * 0.35, 0, Math.PI * 2);
-  ctx.fill();
 
   // 2. Orbiting Coronal Flare Arc Ring
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(-0.18);
-  for (const spark of flareSparks) {
+  for (let i = 0; i < flareSparks.length; i++) {
+    const spark = flareSparks[i]!;
     spark.angle += spark.speed;
     const sx = Math.cos(spark.angle) * spark.orbitRadiusX;
     const sy = Math.sin(spark.angle) * spark.orbitRadiusY;
@@ -220,7 +247,9 @@ function runLoop() {
     if (renderDark) {
       ctx.fillStyle = makeRgba(255, 225, 160, spark.alpha * depthAlpha);
     } else {
-      ctx.fillStyle = makeRgba(180, 83, 9, spark.alpha * depthAlpha * 1.3);
+      ctx.fillStyle = i % 2 === 0
+        ? makeRgba(160, 45, 30, spark.alpha * depthAlpha * 0.95)
+        : makeRgba(217, 119, 6, spark.alpha * depthAlpha * 0.95);
     }
     ctx.beginPath();
     ctx.arc(sx, sy, spark.size, 0, Math.PI * 2);
@@ -241,7 +270,7 @@ function runLoop() {
           ctx.strokeStyle = makeRgba(255, 210, 150, factor * 0.28);
           ctx.lineWidth = 0.75;
         } else {
-          ctx.strokeStyle = makeRgba(160, 45, 30, factor * 0.55);
+          ctx.strokeStyle = makeRgba(160, 45, 30, factor * 0.36);
           ctx.lineWidth = 1.0;
         }
         ctx.beginPath();
@@ -279,12 +308,23 @@ function runLoop() {
 
     if (renderDark) {
       ctx.fillStyle = makeRgba(255, 240, 215, currentAlpha);
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+      ctx.fill();
     } else {
-      ctx.fillStyle = makeRgba(80, 0, 0, currentAlpha * 1.35);
+      ctx.fillStyle = makeRgba(80, 0, 0, currentAlpha * 0.88);
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (node.radius > 1.4) {
+        ctx.strokeStyle = makeRgba(217, 119, 6, currentAlpha * 0.5);
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, node.radius + 1.8, 0, Math.PI * 2);
+        ctx.stroke();
+      }
     }
-    ctx.beginPath();
-    ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
-    ctx.fill();
   }
 
   animId = requestAnimationFrame(runLoop);
@@ -401,10 +441,10 @@ onUnmounted(() => {
   overflow: hidden;
   background: radial-gradient(
     ellipse 95% 85% at 74% 22%,
-    color-mix(in srgb, var(--brand-primary) 35%, var(--neutral-1000)),
-    var(--neutral-1000) 88%
+    color-mix(in srgb, var(--brand-primary) 6%, var(--surface-page)),
+    var(--surface-page) 88%
   );
-  color: var(--neutral-0);
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -421,17 +461,7 @@ onUnmounted(() => {
   color: var(--neutral-0);
 }
 
-/* Adaptive mode allows light theme background when explicitly selected */
-.tux-hero-canvas-sol--mode-adaptive {
-  background: radial-gradient(
-    ellipse 95% 80% at 74% 22%,
-    color-mix(in srgb, var(--brand-primary) 8%, var(--surface-page)),
-    var(--surface-page) 88%
-  );
-  color: var(--text-primary);
-}
-
-[data-theme="tti-dark"] .tux-hero-canvas-sol--mode-adaptive {
+.tux-hero-canvas-sol--mode-cinematic-dark {
   background: radial-gradient(
     ellipse 95% 85% at 74% 22%,
     color-mix(in srgb, var(--brand-primary) 50%, var(--neutral-1000)),
@@ -509,19 +539,32 @@ onUnmounted(() => {
   width: 2.75rem;
   height: 2.75rem;
   border-radius: var(--radius-full);
-  background-color: color-mix(in srgb, var(--neutral-0) 12%, transparent);
+  background-color: color-mix(in srgb, var(--surface-raised) 80%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid color-mix(in srgb, var(--neutral-0) 22%, transparent);
-  color: var(--neutral-0);
+  border: 1px solid var(--surface-border);
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .tux-hero-canvas-sol__playback-btn:hover {
+  background-color: color-mix(in srgb, var(--surface-raised) 90%, transparent);
+  border-color: var(--text-primary);
+  transform: scale(1.05);
+}
+
+[data-theme="tti-dark"] .tux-hero-canvas-sol__playback-btn,
+.tux-hero-canvas-sol--mode-cinematic-dark .tux-hero-canvas-sol__playback-btn {
+  background-color: color-mix(in srgb, var(--neutral-0) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--neutral-0) 22%, transparent);
+  color: var(--neutral-0);
+}
+
+[data-theme="tti-dark"] .tux-hero-canvas-sol__playback-btn:hover,
+.tux-hero-canvas-sol--mode-cinematic-dark .tux-hero-canvas-sol__playback-btn:hover {
   background-color: color-mix(in srgb, var(--neutral-0) 22%, transparent);
   border-color: color-mix(in srgb, var(--neutral-0) 50%, transparent);
-  transform: scale(1.05);
 }
 
 .tux-hero-canvas-sol__playback-btn:focus-visible {
