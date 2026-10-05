@@ -422,9 +422,11 @@ const shouldShowBreadcrumbs = computed(() => {
     "/install",
     "/docs",
     "/changelog",
-    "/p/",
-    "/examples/",
-    "/design/",
+    "/p",
+    "/examples",
+    "/design",
+    "/news",
+    "/components/portal-shell",
   ];
   if (localBreadcrumbPrefixes.some((prefix) => route.path === prefix || route.path.startsWith(`${prefix}/`))) {
     return false;

@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-10-03T02:24:34.401Z",
+  "timestamp": "2026-10-05T21:48:00.997Z",
   "system": "TTI-UX (TUX 3.0)",
   "standard": "W3C WCAG 2.2 Level AAA",
   "summary": {
-    "totalComponents": 176,
-    "aaaCompliantComponents": 176,
+    "totalComponents": 177,
+    "aaaCompliantComponents": 177,
     "aaaComplianceRate": 100,
     "contrastPairsTested": 11,
     "contrastPassRate": 100,
@@ -1478,6 +1478,22 @@
     "TuxHeroCanvas": {
       "name": "TuxHeroCanvas",
       "file": "TuxHeroCanvas.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxHeroCanvasSol": {
+      "name": "TuxHeroCanvasSol",
+      "file": "TuxHeroCanvasSol.vue",
       "isInteractive": true,
       "hasMinTouchTarget": true,
       "hasFocusRing": true,

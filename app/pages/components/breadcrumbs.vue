@@ -64,10 +64,10 @@ const breadcrumbsPresets: TuxPlaygroundPreset[] = [
 ];
 
 const exampleVue = `<TuxBreadcrumbs :trail="[
-  { label: 'Home',                       to: '/' },
-  { label: 'Research',                   to: '/research' },
-  { label: 'Transportation safety',      to: '/research/safety' },
-  { label: 'Connected Vehicle Pilot' },
+  { label: 'Home',           to: '/' },
+  { label: 'Components',     to: '/components' },
+  { label: 'Navigation',     to: '/components' },
+  { label: 'TuxBreadcrumbs' },
 ]" />`;
 
 const depthsVue = `<TuxBreadcrumbs :trail="trailL2" />
@@ -78,20 +78,20 @@ const trailHome = [{ label: "Home" }];
 
 const trailL2 = [
   { label: "Home", to: "/" },
-  { label: "Research" },
+  { label: "Components" },
 ];
 
 const trailL3 = [
   { label: "Home", to: "/" },
-  { label: "Research", to: "/research" },
-  { label: "Transportation safety" },
+  { label: "Components", to: "/components" },
+  { label: "Navigation" },
 ];
 
 const trailArticle = [
   { label: "Home", to: "/" },
-  { label: "Research", to: "/research" },
-  { label: "Transportation safety", to: "/research/safety" },
-  { label: "Connected Vehicle Pilot" },
+  { label: "Components", to: "/components" },
+  { label: "Navigation", to: "/components" },
+  { label: "TuxBreadcrumbs" },
 ];
 
 function resolveTrail(depth: string) {
