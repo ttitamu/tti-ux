@@ -61,6 +61,8 @@ interface Props {
   codeTemplate?: (values: Record<string, any>) => string;
   /** Optional component source SFC to expose in a Source tab */
   source?: string;
+  /** Optional Power BI JSON snippet or PBIR fragment */
+  powerbi?: string;
   /** Optional preview container padding (default "p-8") */
   previewPadding?: string;
   /** Enable two-way synchronization with URL query parameters (default true) */
@@ -78,6 +80,7 @@ const props = withDefaults(defineProps<Props>(), {
   selfClosing: false,
   codeTemplate: undefined,
   source: undefined,
+  powerbi: undefined,
   previewPadding: "p-8",
   enableDeepLinking: true,
 });
@@ -438,7 +441,7 @@ const generatedCliCommand = computed(() => {
         previewPadding,
       ]"
     >
-      <div class="max-w-full">
+      <div class="w-full max-w-full flex justify-center">
         <slot :values="values" />
       </div>
     </div>
@@ -537,6 +540,7 @@ const generatedCliCommand = computed(() => {
       <TuxExample
         :vue="generatedVueCode"
         :source="source"
+        :powerbi="powerbi"
         preview-padding="hidden"
         title="Dynamic Component Syntax"
       >

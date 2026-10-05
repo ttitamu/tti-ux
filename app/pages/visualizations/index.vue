@@ -283,28 +283,25 @@ function getCategoryLabel(catId?: string) {
           <tbody class="align-top divide-y divide-surface-border text-text-secondary">
             <tr>
               <td class="py-2.5 pr-4 font-mono text-xs">chart-cartesian</td>
-              <td class="py-2.5 pr-4">bar, column, line, area, scatter</td>
-              <td class="py-2.5">Power BI tab on respective chart pages</td>
+              <td class="py-2.5 pr-4">bar, column, line, area, scatter, histogram</td>
+              <td class="py-2.5">Power BI tab on respective cartesian chart workbenches</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 pr-4 font-mono text-xs">card-chrome</td>
+              <td class="py-2.5 pr-4">kpi cards, sparklines, gauges, donuts, content containers</td>
+              <td class="py-2.5">Power BI tab on sparkline, gauge, and donut workbenches</td>
             </tr>
             <tr>
               <td class="py-2.5 pr-4 font-mono text-xs">table-chrome</td>
-              <td class="py-2.5 pr-4">tableEx</td>
+              <td class="py-2.5 pr-4">tableEx, data grid containers</td>
               <td class="py-2.5">
                 <NuxtLink to="/components/data-table" class="link-tti">Data table showcase</NuxtLink>
               </td>
             </tr>
             <tr>
-              <td class="py-2.5 pr-4 font-mono text-xs">card-chrome</td>
-              <td class="py-2.5 pr-4">every content visual</td>
-              <td class="py-2.5">
-                Container rule — see
-                <NuxtLink to="/install/power-bi" class="link-tti">setup documentation</NuxtLink>
-              </td>
-            </tr>
-            <tr>
               <td class="py-2.5 pr-4 text-text-muted font-mono text-xs">—</td>
-              <td class="py-2.5 pr-4 text-text-muted">donut, gauge, heatmap, histogram, sunburst, geographic</td>
-              <td class="py-2.5 text-text-muted">Custom native SVG visual or R plot integration</td>
+              <td class="py-2.5 pr-4 text-text-muted">heatmap, sunburst, geographic projections</td>
+              <td class="py-2.5 text-text-muted">Native SVG component or R plot integration</td>
             </tr>
           </tbody>
         </table>

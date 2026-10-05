@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Per ADR-0010, keep top-level <script setup> expressions plain JS.
 import pbiCartesian from "../../../kit/powerbi/pbir/fragments/tti/chart-cartesian.json?raw";
+import tuxChartScatterSource from "~/components/TuxChartScatter.vue?raw";
 
 useHead({ title: "TuxChartScatter · TUX" });
 
@@ -56,18 +57,96 @@ const bubbleData = [
   },
 ];
 
+const datasetMap = {
+  training: {
+    series: crewTraining,
+    codeSeries: "crewTraining",
+    xLabel: "Hours of training",
+    yLabel: "Errors per shift",
+  },
+  corridors: {
+    series: corridorData,
+    codeSeries: "corridorData",
+    xLabel: "Vehicle miles / capita",
+    yLabel: "Safety score",
+  },
+  bubble: {
+    series: bubbleData,
+    codeSeries: "bubbleData",
+    xLabel: "Months elapsed",
+    yLabel: "Completion score",
+  },
+};
+
+const scatterControls = [
+  {
+    prop: "dataset",
+    label: "Telemetry Dataset",
+    type: "select" as const,
+    options: [
+      { label: "Operations Training vs Errors (1 Series)", value: "training" },
+      { label: "Urban vs Rural Corridors (2 Series)", value: "corridors" },
+      { label: "Project Portfolio Investment (Bubble Sizes)", value: "bubble" },
+    ],
+    defaultValue: "training",
+    description: "Multi-dimensional observation telemetry",
+  },
+  {
+    prop: "trendline",
+    label: "Regression Trendline (R²)",
+    type: "boolean" as const,
+    defaultValue: true,
+    description: "Compute and render linear regression line with coefficient of determination",
+  },
+];
+
+const scatterPresets = [
+  {
+    name: "training-regression",
+    label: "Linear Regression Trendline (R²)",
+    description: "Negative correlation slope showing training impact on errors",
+    icon: "lucide:trending-down",
+    values: {
+      dataset: "training",
+      trendline: true,
+    },
+  },
+  {
+    name: "corridor-comparison",
+    label: "Urban vs Rural Corridors",
+    description: "Two-series correlation with individual per-series regression fits",
+    icon: "lucide:git-compare",
+    values: {
+      dataset: "corridors",
+      trendline: true,
+    },
+  },
+  {
+    name: "portfolio-bubble",
+    label: "Bubble Point Sizing",
+    description: "3rd dimension variable radius representing capital budget",
+    icon: "lucide:circle-dot",
+    values: {
+      dataset: "bubble",
+      trendline: false,
+    },
+  },
+];
+
 const basicVue = `<tux-chart-scatter
   x-label="Hours of training"
   y-label="Errors per shift"
   :series="crewTraining"
   trendline
 />`;
+
 const multiVue = `<tux-chart-scatter
   x-label="Vehicle miles / capita"
   y-label="Safety score"
   :series="corridorData"
   trendline
 />`;
+
 const bubbleVue = `<tux-chart-scatter
   x-label="Months elapsed"
   y-label="Completion score"
@@ -85,6 +164,36 @@ const bubbleVue = `<tux-chart-scatter
       where <strong>both axes need names</strong>.
     </TuxPageHeader>
 
+    <!-- Interactive Props & Telemetry Workbench -->
+    <section>
+      <TuxPlayground
+        tag="tux-chart-scatter"
+        component-name="TuxChartScatter"
+        title="Scatter Plot & Correlation Workbench"
+        eyebrow="Interactive Telemetry Lab"
+        :controls="scatterControls"
+        :presets="scatterPresets"
+        :source="tuxChartScatterSource"
+        :powerbi="pbiCartesian"
+        :code-template="(values) => {
+          const ds = datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.training;
+          const trendAttr = values.trendline ? '\n  trendline' : '';
+          return `<tux-chart-scatter\n  x-label=\x22${ds.xLabel}\x22\n  y-label=\x22${ds.yLabel}\x22\n  :series=\x22${ds.codeSeries}\x22${trendAttr}\n/>`;
+        }"
+      >
+        <template #default="{ values }">
+          <div class="w-full max-w-3xl">
+            <TuxChartScatter
+              :x-label="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.training).xLabel"
+              :y-label="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.training).yLabel"
+              :series="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.training).series"
+              :trendline="values.trendline"
+            />
+          </div>
+        </template>
+      </TuxPlayground>
+    </section>
+
     <section>
       <p class="eyebrow">flagship · single series + trendline</p>
       <h2 class="heading--bold text-xl font-bold">Training hours vs errors</h2>
@@ -93,7 +202,7 @@ const bubbleVue = `<tux-chart-scatter
         fewer errors. The R² shows how tightly the dots cluster
         around the line.
       </p>
-      <TuxExample :powerbi="pbiCartesian" class="mt-4" :vue="basicVue">
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartScatterSource" class="mt-4" :vue="basicVue">
         <TuxChartScatter
           x-label="Hours of training"
           y-label="Errors per shift"
@@ -111,7 +220,7 @@ const bubbleVue = `<tux-chart-scatter
         groups show the same direction of correlation but at different
         levels — common in transportation data.
       </p>
-      <TuxExample class="mt-4" :vue="multiVue">
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartScatterSource" class="mt-4" :vue="multiVue">
         <TuxChartScatter
           x-label="Vehicle miles / capita"
           y-label="Safety score"
@@ -130,7 +239,7 @@ const bubbleVue = `<tux-chart-scatter
         on each circle gives you a free hover-tooltip with the
         point label + values.
       </p>
-      <TuxExample class="mt-4" :vue="bubbleVue">
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartScatterSource" class="mt-4" :vue="bubbleVue">
         <TuxChartScatter
           x-label="Months elapsed"
           y-label="Completion score"

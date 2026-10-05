@@ -6,16 +6,8 @@
 // type annotations, `satisfies` all break it with "Unexpected token"),
 // but an external .ts import sidesteps that entirely.
 import { bandSeries, brushRange } from "./chart-line.demo-data";
-
-// Note for future authors: keep top-level expressions in this script
-// block as plain JS. Nuxt's page-extract pass uses a JS-only parser
-// path that doesn't honor `lang="ts"`, and any TS-only syntax (`as`,
-// type annotations, `satisfies`) surfaces as a confusing
-// "?macro=true — Error parsing JavaScript expression (1:30)" with
-// the position pointing nowhere useful. Type-annotated locals are
-// fine inside function bodies; the constraint is on the top-level
-// statements the macro extractor walks.
 import pbiCartesian from "../../../kit/powerbi/pbir/fragments/tti/chart-cartesian.json?raw";
+import tuxChartLineSource from "~/components/TuxChartLine.vue?raw";
 
 useHead({ title: "TuxChartLine · TUX" });
 
@@ -37,6 +29,121 @@ const previousSeries = [
     label: "Files ingested (M)",
     data:     [22.1, 24.7, 28.3, 30.1, 33.4, 35.8, 38.9, 41.2],
     previous: [18.5, 20.4, 22.1, 24.6, 27.0, 28.4, 30.2, 32.1],
+  },
+];
+
+const datasetMap = {
+  single: {
+    labels: months,
+    series: singleSeries,
+    codeLabels: "months",
+    codeSeries: "singleSeries",
+  },
+  multi: {
+    labels: months,
+    series: multiSeries,
+    codeLabels: "months",
+    codeSeries: "multiSeries",
+  },
+  previous: {
+    labels: months.slice(0, 8),
+    series: previousSeries,
+    codeLabels: "months",
+    codeSeries: "previousSeries",
+  },
+  band: {
+    labels: months,
+    series: bandSeries,
+    codeLabels: "months",
+    codeSeries: "bandSeries",
+  },
+};
+
+const lineControls = [
+  {
+    prop: "dataset",
+    label: "Telemetry Dataset",
+    type: "select" as const,
+    options: [
+      { label: "Annual Ingest Rate (Single Series)", value: "single" },
+      { label: "Scan Operations (Active / Queued / Failed)", value: "multi" },
+      { label: "Prior Period Comparison (Ingest M)", value: "previous" },
+      { label: "Confidence Band Model (CI Upper/Lower)", value: "band" },
+    ],
+    defaultValue: "multi",
+    description: "Multi-point telemetry time series dataset",
+  },
+  {
+    prop: "markers",
+    label: "Show Point Markers",
+    type: "boolean" as const,
+    defaultValue: true,
+    description: "Render circle markers at each observation point",
+  },
+  {
+    prop: "brush",
+    label: "Interactive Range Brush",
+    type: "boolean" as const,
+    defaultValue: false,
+    description: "Provide interactive two-way window zoom scrub handles",
+  },
+  {
+    prop: "legend",
+    label: "Show Series Legend",
+    type: "boolean" as const,
+    defaultValue: true,
+    description: "Display series legend strip",
+  },
+];
+
+const linePresets = [
+  {
+    name: "multi-operations",
+    label: "Operations Telemetry (Multi-Series)",
+    description: "3-series operations timeline with point markers and legend",
+    icon: "lucide:activity",
+    values: {
+      dataset: "multi",
+      markers: true,
+      brush: false,
+      legend: true,
+    },
+  },
+  {
+    name: "prior-period-overlay",
+    label: "Prior Period Comparison",
+    description: "Dashed 60% opacity companion overlay representing prior time window",
+    icon: "lucide:git-compare",
+    values: {
+      dataset: "previous",
+      markers: true,
+      brush: false,
+      legend: false,
+    },
+  },
+  {
+    name: "confidence-band",
+    label: "Confidence Band Model",
+    description: "Translucent CI boundary fill backing forecast curve",
+    icon: "lucide:trending-up",
+    values: {
+      dataset: "band",
+      markers: false,
+      brush: false,
+      legend: false,
+    },
+  },
+  {
+    name: "timeline-brush",
+    label: "Interactive Range Brush",
+    description: "Draggable timeline window scrub bar for wide telemetry ranges",
+    icon: "lucide:sliders",
+    values: {
+      dataset: "single",
+      markers: true,
+      brush: true,
+      legend: false,
+    },
   },
 ];
 
@@ -66,7 +173,6 @@ const brushVue = `<!-- Two-way bound range; drag the handles below the chart -->
   :series="singleSeries"
   brush
 />`;
-
 
 const focusOpen = ref(false);
 const focusVue = `<UButton icon="lucide:maximize" @click="focusOpen = true">Open in focus mode</UButton>
@@ -101,6 +207,41 @@ const focusVue = `<UButton icon="lucide:maximize" @click="focusOpen = true">Open
       </span>
     </TuxPageHeader>
 
+    <!-- Interactive Props & Telemetry Workbench -->
+    <section>
+      <TuxPlayground
+        tag="tux-chart-line"
+        component-name="TuxChartLine"
+        title="Line Chart & Telemetry Series Workbench"
+        eyebrow="Interactive Telemetry Lab"
+        :controls="lineControls"
+        :presets="linePresets"
+        :source="tuxChartLineSource"
+        :powerbi="pbiCartesian"
+        :code-template="(values) => {
+          const ds = datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.multi;
+          const markerAttr = values.markers ? '\n  markers' : '';
+          const brushAttr = values.brush ? '\n  brush' : '';
+          const legendAttr = values.legend ? '\n  legend' : '';
+          return `<tux-chart-line\n  :labels=\x22${ds.codeLabels}\x22\n  :series=\x22${ds.codeSeries}\x22${markerAttr}${brushAttr}${legendAttr}\n  :width=\x22640\x22\n  :height=\x22280\x22\n/>`;
+        }"
+      >
+        <template #default="{ values }">
+          <div class="w-full max-w-3xl">
+            <TuxChartLine
+              :labels="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.multi).labels"
+              :series="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.multi).series"
+              :markers="values.markers"
+              :brush="values.brush"
+              :legend="values.legend"
+              :width="640"
+              :height="280"
+            />
+          </div>
+        </template>
+      </TuxPlayground>
+    </section>
+
     <section>
       <p class="eyebrow">flagship · single series</p>
       <h2 class="heading--bold text-xl font-bold">Annual ingest rate</h2>
@@ -109,94 +250,91 @@ const focusVue = `<UButton icon="lucide:maximize" @click="focusOpen = true">Open
         carries series identity — even without a legend, the reader
         sees the final value at a glance.
       </p>
-      <TuxExample :powerbi="pbiCartesian" class="mt-4" :vue="basicVue">
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartLineSource" class="mt-4" :vue="basicVue">
         <TuxChartLine :labels="months" :series="singleSeries" />
       </TuxExample>
     </section>
 
     <section>
-      <p class="eyebrow">multi-series · markers</p>
-      <h2 class="heading--bold text-xl font-bold">Scan throughput by status</h2>
+      <p class="eyebrow">multi-series</p>
+      <h2 class="heading--bold text-xl font-bold">Scan operations by status</h2>
       <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
-        Three series — palette indexes 1, 2, 3 (maroon / slate teal /
-        wheat). Markers on every point make individual data points
-        clickable in interactive consumers. Legend stays off; the
-        end-of-line labels carry identity.
+        Three series walking the palette (maroon / slate teal / wheat).
+        Pass <code>markers</code> to drop dots on each observation
+        point; helpful when data isn't dense.
       </p>
-      <TuxExample class="mt-4" :vue="multiVue">
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartLineSource" class="mt-4" :vue="multiVue">
         <TuxChartLine :labels="months" :series="multiSeries" markers />
       </TuxExample>
     </section>
 
     <section>
-      <p class="eyebrow">previous-period overlay</p>
-      <h2 class="heading--bold text-xl font-bold">Current week vs prior week</h2>
+      <p class="eyebrow">comparison overlay · prior period</p>
+      <h2 class="heading--bold text-xl font-bold">Same metric, prior window</h2>
       <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
         Pass <code>series[i].previous</code> with the same length as
-        <code>data</code>. The component renders a 60% opacity dashed
-        companion in the same hue family — the visual cue that says
-        "same metric, prior window."
+        <code>data</code>. The component draws a 60%-opacity dashed
+        line in the same hue behind the primary — an instant read on
+        "ahead or behind last year" without taking a whole extra series
+        color.
       </p>
-      <TuxExample class="mt-4" :vue="prevVue">
-        <TuxChartLine
-          :labels="months.slice(3)"
-          :series="previousSeries"
-          markers
-          aria-summary="Files ingested (M), comparison of current 8-week window to prior 8-week window. Current ranges 22 to 41; prior ranged 18 to 32."
-        />
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartLineSource" class="mt-4" :vue="prevVue">
+        <TuxChartLine :labels="months.slice(0, 8)" :series="previousSeries" markers />
       </TuxExample>
     </section>
 
     <section>
-      <p class="eyebrow">confidence band</p>
-      <h2 class="heading--bold text-xl font-bold">Estimated rate with 95% CI</h2>
+      <p class="eyebrow">statistical · confidence band</p>
+      <h2 class="heading--bold text-xl font-bold">Estimate with uncertainty band</h2>
       <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
-        Pass <code>series[i].band</code> as an array of
-        <code>[low, high]</code> tuples. Soft fill in the same hue
-        family. Use for forecasts, estimates, and any chart where the
-        reader needs to see uncertainty alongside the central line.
+        Pass <code>series[i].band</code> as an array of <code>[low, high]</code>
+        tuples. Renders a soft 12%-opacity fill behind the line — right
+        for projections, sensor error margins, or 95% CIs.
       </p>
-      <TuxExample class="mt-4" :vue="bandVue">
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartLineSource" class="mt-4" :vue="bandVue">
         <TuxChartLine :labels="months" :series="bandSeries" />
       </TuxExample>
     </section>
 
     <section>
-      <p class="eyebrow">hover tooltip · keyboard arrow nav</p>
-      <h2 class="heading--bold text-xl font-bold">Pointer-driven readout</h2>
+      <p class="eyebrow">interactive · crosshair tooltip</p>
+      <h2 class="heading--bold text-xl font-bold">Inspect values across series</h2>
       <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
-        On by default. Hover, click into the plot area, or tab focus +
-        arrow-key to cycle through data points. The tooltip shows every
-        series' value at the active index, with a 60%-opacity "previous"
-        readout when applicable.
+        Hover or tap to drop a vertical cursor rule; the floating
+        card shows values across all series at that x-position.
+        Keyboard accessible: Tab into the chart, Arrow keys scrub.
       </p>
-      <TuxExample class="mt-4" :vue="tooltipVue">
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartLineSource" class="mt-4" :vue="tooltipVue">
         <TuxChartLine :labels="months" :series="multiSeries" markers />
       </TuxExample>
     </section>
 
     <section>
-      <p class="eyebrow">brush selector · drill into a window</p>
-      <h2 class="heading--bold text-xl font-bold">Drag the handles below</h2>
+      <p class="eyebrow">interactive · timeline brush</p>
+      <h2 class="heading--bold text-xl font-bold">Pan and zoom over long ranges</h2>
       <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
-        Pass <code>brush</code> + <code>v-model:range</code> to get a
-        compact preview strip below the main chart with two draggable
-        handles. The main chart rescales to the window. Drag the window
-        itself (between the handles) to pan; drag handles to resize.
-        Carry-forward from the Charts UI Kit absorption.
+        Pass <code>brush</code> to render a mini-map strip beneath the
+        chart. Drag the handles or pan the window to zoom into a
+        subset of the series without page-level controls. Two-way
+        bind with <code>v-model:range="[startIndex, endIndex]"</code>.
       </p>
-      <TuxExample class="mt-4" :vue="brushVue">
-        <TuxChartLine
-          v-model:range="brushRange"
-          :labels="months"
-          :series="singleSeries"
-          brush
-        />
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartLineSource" class="mt-4" :vue="brushVue">
+        <div class="space-y-2">
+          <p class="text-xs text-text-muted font-mono">
+            Visible: months[{{ brushRange[0] }}..{{ brushRange[1] }}] = {{ months[brushRange[0]] }}–{{ months[brushRange[1]] }}
+          </p>
+          <TuxChartLine
+            v-model:range="brushRange"
+            :labels="months"
+            :series="singleSeries"
+            brush
+          />
+        </div>
       </TuxExample>
     </section>
 
     <section>
-      <p class="eyebrow">composition · open in focus mode</p>
+      <p class="eyebrow">modal · focus view</p>
       <h2 class="heading--bold text-xl font-bold">Pin the chart full-viewport</h2>
       <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
         Compose with <NuxtLink to="/components/focus-view" class="link-tti">TuxFocusView</NuxtLink>
@@ -205,8 +343,8 @@ const focusVue = `<UButton icon="lucide:maximize" @click="focusOpen = true">Open
         room for analysis. The brush + tooltip still work inside the
         overlay.
       </p>
-      <TuxExample class="mt-4" :vue="focusVue">
-        <UButton icon="lucide:maximize" @click="focusOpen = true;">Open in focus mode</UButton>
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartLineSource" class="mt-4" :vue="focusVue">
+        <UButton icon="lucide:maximize" @click="focusOpen = true">Open in focus mode</UButton>
         <TuxFocusView
           v-model:open="focusOpen"
           eyebrow="Exhibit 11.04"
@@ -236,7 +374,7 @@ const focusVue = `<UButton icon="lucide:maximize" @click="focusOpen = true">Open
         source citation below). This is the report rhythm; bare lines
         belong in dashboard tiles.
       </p>
-      <TuxExample class="mt-4" :vue="framedVue">
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartLineSource" class="mt-4" :vue="framedVue">
         <TuxChartFrame
           eyebrow="Exhibit 11.04"
           title="Monthly ingest rate"

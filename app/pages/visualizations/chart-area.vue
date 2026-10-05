@@ -1,10 +1,12 @@
 <script setup lang="ts">
 // Per ADR-0010, keep top-level <script setup> expressions plain JS.
 import pbiCartesian from "../../../kit/powerbi/pbir/fragments/tti/chart-cartesian.json?raw";
+import tuxChartAreaSource from "~/components/TuxChartArea.vue?raw";
 
 useHead({ title: "TuxChartArea · TUX" });
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const recentMonths = months.slice(0, 8);
 
 const singleSeries = [
   {
@@ -20,7 +22,77 @@ const stackedSeries = [
   { key: "geojson", label: "GeoJSON", data: [4, 5, 6, 7, 9, 11, 12, 14] },
 ];
 
-const recentMonths = months.slice(0, 8);
+const datasetMap = {
+  single: {
+    labels: months,
+    series: singleSeries,
+    codeLabels: "months",
+    codeSeries: "singleSeries",
+  },
+  stacked: {
+    labels: recentMonths,
+    series: stackedSeries,
+    codeLabels: "recentMonths",
+    codeSeries: "stackedSeries",
+  },
+};
+
+const areaControls = [
+  {
+    prop: "dataset",
+    label: "Telemetry Dataset",
+    type: "select" as const,
+    options: [
+      { label: "Annual Ingest Volume (Single Series)", value: "single" },
+      { label: "Corpus File Formats (Stacked 3 Series)", value: "stacked" },
+    ],
+    defaultValue: "stacked",
+    description: "Transportation operations time series dataset",
+  },
+  {
+    prop: "variant",
+    label: "Area Stacking",
+    type: "select" as const,
+    options: [
+      { label: "Overlay (Translucent fill from zero)", value: "overlay" },
+      { label: "Stacked (Cumulative band layers)", value: "stacked" },
+    ],
+    defaultValue: "stacked",
+    description: "Visual layering mode",
+  },
+  {
+    prop: "legend",
+    label: "Show Legend",
+    type: "boolean" as const,
+    defaultValue: true,
+    description: "Display series legend strip",
+  },
+];
+
+const areaPresets = [
+  {
+    name: "stacked-composition",
+    label: "Stacked Corpus Composition",
+    description: "Multi-layer cumulative bands showing total volume composition",
+    icon: "lucide:layers",
+    values: {
+      dataset: "stacked",
+      variant: "stacked",
+      legend: true,
+    },
+  },
+  {
+    name: "single-volume",
+    label: "Cumulative Ingest Volume",
+    description: "Single-series overlay area fill with end-of-line value callout",
+    icon: "lucide:trending-up",
+    values: {
+      dataset: "single",
+      variant: "overlay",
+      legend: false,
+    },
+  },
+];
 
 const basicVue = `<tux-chart-area :labels="months" :series="singleSeries" />`;
 const stackedVue = `<tux-chart-area :labels="months" :series="stackedSeries" variant="stacked" legend />`;
@@ -44,6 +116,37 @@ const compositionVue = `<!-- "KPI strip over stacked area" — pattern absorbed 
       as TuxChartLine for easy switching.
     </TuxPageHeader>
 
+    <!-- Interactive Props & Telemetry Workbench -->
+    <section>
+      <TuxPlayground
+        tag="tux-chart-area"
+        component-name="TuxChartArea"
+        title="Area Chart & Telemetry Volume Workbench"
+        eyebrow="Interactive Telemetry Lab"
+        :controls="areaControls"
+        :presets="areaPresets"
+        :source="tuxChartAreaSource"
+        :powerbi="pbiCartesian"
+        :code-template="(values) => {
+          const ds = datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.stacked;
+          const varAttr = values.variant !== 'overlay' ? `\n  variant=\x22${values.variant}\x22` : '';
+          const legAttr = values.legend ? '\n  legend' : '';
+          return `<tux-chart-area\n  :labels=\x22${ds.codeLabels}\x22\n  :series=\x22${ds.codeSeries}\x22${varAttr}${legAttr}\n/>`;
+        }"
+      >
+        <template #default="{ values }">
+          <div class="w-full max-w-3xl">
+            <TuxChartArea
+              :labels="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.stacked).labels"
+              :series="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.stacked).series"
+              :variant="values.variant"
+              :legend="values.legend"
+            />
+          </div>
+        </template>
+      </TuxPlayground>
+    </section>
+
     <section>
       <p class="eyebrow">flagship · single series</p>
       <h2 class="heading--bold text-xl font-bold">Files ingested</h2>
@@ -52,7 +155,7 @@ const compositionVue = `<!-- "KPI strip over stacked area" — pattern absorbed 
         opacity, edged with a crisp top line. End-of-area value label
         colored to series.
       </p>
-      <TuxExample :powerbi="pbiCartesian" class="mt-4" :vue="basicVue">
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartAreaSource" class="mt-4" :vue="basicVue">
         <TuxChartArea :labels="months" :series="singleSeries" />
       </TuxExample>
     </section>
@@ -65,7 +168,7 @@ const compositionVue = `<!-- "KPI strip over stacked area" — pattern absorbed 
         top edge of the stack is the total. Each band fills with 0.78
         opacity so series identity stays legible.
       </p>
-      <TuxExample class="mt-4" :vue="stackedVue">
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartAreaSource" class="mt-4" :vue="stackedVue">
         <TuxChartArea
           :labels="recentMonths"
           :series="stackedSeries"
@@ -84,7 +187,7 @@ const compositionVue = `<!-- "KPI strip over stacked area" — pattern absorbed 
         <code>TuxBigStat</code> above the area chart so the operator
         reads the headline numbers first, then sees the shape.
       </p>
-      <TuxExample class="mt-4" :vue="compositionVue">
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartAreaSource" class="mt-4" :vue="compositionVue">
         <div class="space-y-4">
           <div class="grid grid-cols-4 gap-4">
             <TuxBigStat label="Total"   :value="184" suffix="M" delta="+12% MoM" />

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import tuxChartFrameSource from "~/components/TuxChartFrame.vue?raw";
+
 useHead({ title: "TuxChartFrame · TUX" });
 
 const corridorLabels = [
@@ -14,6 +16,82 @@ const corridorSeries = [
     key: "tti",
     label: "Congestion Index",
     data: [1.84, 1.68, 1.55, 1.48, 1.41],
+  },
+];
+
+const frameControls = [
+  {
+    prop: "eyebrow",
+    label: "Exhibit Eyebrow",
+    type: "text" as const,
+    defaultValue: "Exhibit 4.02 · TxDOT Project 0-6999",
+    description: "Tracked uppercase exhibit label",
+  },
+  {
+    prop: "title",
+    label: "Display Title",
+    type: "text" as const,
+    defaultValue: "Corridor Travel Time Index",
+    description: "Display-face title rendered in Oswald typography",
+  },
+  {
+    prop: "subtitle",
+    label: "Subtitle / Lede",
+    type: "text" as const,
+    defaultValue: "Peak congestion index across top 5 urban corridors statewide.",
+    description: "Contextual lede preceding signature rule",
+  },
+  {
+    prop: "source",
+    label: "Source Citation",
+    type: "text" as const,
+    defaultValue: "Source: TTI Urban Mobility Report 2026, Table 3. TxDOT Project 0-6999.",
+    description: "Formal source line rendered in the footer",
+  },
+  {
+    prop: "notes",
+    label: "Methodological Notes",
+    type: "text" as const,
+    defaultValue: "Index reflects average peak travel time relative to free-flow conditions.",
+    description: "Methodological note preceding source line",
+  },
+  {
+    prop: "bare",
+    label: "Bare Mode (Omit Signature Rule)",
+    type: "boolean" as const,
+    defaultValue: false,
+    description: "Omit maroon signature rule for compact dashboard tile layouts",
+  },
+];
+
+const framePresets = [
+  {
+    name: "publication-exhibit",
+    label: "Formal Publication Exhibit",
+    description: "Numbered exhibit with Oswald header, maroon signature rule, and notes",
+    icon: "lucide:file-text",
+    values: {
+      eyebrow: "Exhibit 4.02 · TxDOT Project 0-6999",
+      title: "Corridor Travel Time Index",
+      subtitle: "Peak congestion index across top 5 urban corridors statewide.",
+      source: "Source: TTI Urban Mobility Report 2026, Table 3. TxDOT Project 0-6999.",
+      notes: "Index reflects average peak travel time relative to free-flow conditions.",
+      bare: false,
+    },
+  },
+  {
+    name: "dashboard-tile",
+    label: "Compact Telemetry Tile",
+    description: "Streamlined bare frame for high-density monitoring dashboards",
+    icon: "lucide:layout-grid",
+    values: {
+      eyebrow: "Telemetry Feed 01",
+      title: "IH-35 Northbound Flow",
+      subtitle: "",
+      source: "Sensor Loop 14A · Live",
+      notes: "",
+      bare: true,
+    },
   },
 ];
 
@@ -77,6 +155,47 @@ const slotFooterVue = `<TuxChartFrame
       </span>
     </TuxPageHeader>
 
+    <!-- Interactive Props Workbench -->
+    <section>
+      <TuxPlayground
+        tag="tux-chart-frame"
+        component-name="TuxChartFrame"
+        title="Editorial Frame Workbench"
+        eyebrow="Interactive Publication Frame"
+        :controls="frameControls"
+        :presets="framePresets"
+        :source="tuxChartFrameSource"
+        :code-template="(values) => {
+          const ebAttr = values.eyebrow ? `\n  eyebrow=\x22${values.eyebrow}\x22` : '';
+          const titleAttr = values.title ? `\n  title=\x22${values.title}\x22` : '';
+          const subAttr = values.subtitle ? `\n  subtitle=\x22${values.subtitle}\x22` : '';
+          const srcAttr = values.source ? `\n  source=\x22${values.source}\x22` : '';
+          const notesAttr = values.notes ? `\n  notes=\x22${values.notes}\x22` : '';
+          const bareAttr = values.bare ? '\n  bare' : '';
+          return `<tux-chart-frame${ebAttr}${titleAttr}${subAttr}${srcAttr}${notesAttr}${bareAttr}>\n  <!-- Chart visual slot -->\n</tux-chart-frame>`;
+        }"
+      >
+        <template #default="{ values }">
+          <div class="w-full max-w-3xl">
+            <TuxChartFrame
+              :eyebrow="values.eyebrow"
+              :title="values.title"
+              :subtitle="values.subtitle"
+              :source="values.source"
+              :notes="values.notes"
+              :bare="values.bare"
+            >
+              <TuxChartBar
+                :labels="corridorLabels"
+                :series="corridorSeries"
+                orientation="horizontal"
+              />
+            </TuxChartFrame>
+          </div>
+        </template>
+      </TuxPlayground>
+    </section>
+
     <!-- 01 Standard Editorial Exhibit -->
     <section>
       <p class="eyebrow">editorial exhibit</p>
@@ -85,7 +204,7 @@ const slotFooterVue = `<TuxChartFrame
         The default presentation establishes an authoritative publication rhythm with an
         eyebrow tag, Oswald headline, maroon accent rule, and formal source line.
       </p>
-      <TuxExample class="mt-4" :vue="standardVue">
+      <TuxExample class="mt-4" :vue="standardVue" :source="tuxChartFrameSource">
         <TuxChartFrame
           eyebrow="Exhibit 4.02 · TxDOT Project 0-6999"
           title="Corridor Travel Time Index"
@@ -110,7 +229,7 @@ const slotFooterVue = `<TuxChartFrame
         Pass <code>:bare="true"</code> to omit the maroon signature rule and streamline the
         typography, optimal for dense operational dashboards and multi-column telemetry grids.
       </p>
-      <TuxExample class="mt-4" :vue="bareVue">
+      <TuxExample class="mt-4" :vue="bareVue" :source="tuxChartFrameSource">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <TuxChartFrame
             eyebrow="Telemetry Feed 01"
@@ -146,7 +265,7 @@ const slotFooterVue = `<TuxChartFrame
         Use the <code>#footer</code> slot to append interactive controls, data export links,
         or governance badges directly below the source citation.
       </p>
-      <TuxExample class="mt-4" :vue="slotFooterVue">
+      <TuxExample class="mt-4" :vue="slotFooterVue" :source="tuxChartFrameSource">
         <TuxChartFrame
           eyebrow="Exhibit 8.01"
           title="Freight Corridor Tonnage"
