@@ -116,6 +116,42 @@ const recentUpdates = [
     to: "/tokens/playground",
   },
 ];
+
+// Developer DX: One-click install command copy state
+const copiedInstall = ref(false);
+function copyInstallCommand() {
+  if (typeof navigator !== "undefined" && navigator.clipboard) {
+    navigator.clipboard.writeText("npm i @tti/tti-ux");
+    copiedInstall.value = true;
+    setTimeout(() => {
+      copiedInstall.value = false;
+    }, 2000);
+  }
+}
+
+// Accessibility: High-contrast toggle for quick AAA evaluation
+const colorMode = useColorMode();
+const isHighContrast = computed(() => colorMode.preference === "tti-hc");
+function toggleHighContrast() {
+  colorMode.preference = isHighContrast.value ? "tti" : "tti-hc";
+}
+
+// 12 Synchronized Ecosystem Targets
+const ecosystemTargets = [
+  { name: "Vue 3 / Nuxt 4", id: "vue", pkg: "@tti/tti-ux", to: "/install/nuxt-studio", icon: "lucide:layers", desc: "Canonical SFCs, auto-imports & SSR layer" },
+  { name: "React 19 JSX", id: "react", pkg: "@tti/tti-ux-react", to: "/install/react", icon: "lucide:atom", desc: "Native React components & typed hooks" },
+  { name: "Web Components", id: "elements", pkg: "@tti/tti-ux-elements", to: "/install", icon: "lucide:code", desc: "Framework-agnostic custom elements" },
+  { name: "HTML & Tokens", id: "html", pkg: "tux-tokens.css", to: "/tokens", icon: "lucide:file-code", desc: "Light, Dark & AAA custom properties" },
+  { name: "CSS Utility & Bridge", id: "css", pkg: "tux-bridge.css", to: "/examples/legacy-bridge", icon: "lucide:palette", desc: "Drop-in WCAG 2.2 AAA styles & ops" },
+  { name: "WordPress & Kadence", id: "wordpress", pkg: "@tti/tti-ux-wordpress", to: "/install/wordpress", icon: "lucide:file-text", desc: "Kadence blocks & Gutenberg patterns" },
+  { name: "PHP Helpers", id: "php", pkg: "tti-ux-php", to: "/install/wordpress", icon: "lucide:server", desc: "Server-side templates & markup helpers" },
+  { name: ".NET Blazor / Razor", id: "dotnet", pkg: "@tti/tti-ux-razor", to: "/install/dotnet", icon: "lucide:cpu", desc: "C# Razor components & tag helpers" },
+  { name: "C# / .NET Assemblies", id: "csharp", pkg: "TTI.UX.Core", to: "/install/dotnet", icon: "lucide:binary", desc: "Strongly typed C# models & token constants" },
+  { name: "Python / Data Apps", id: "python", pkg: "tti-ux-python", to: "/install", icon: "lucide:terminal", desc: "Streamlit, Dash & Jupyter theme bridges" },
+  { name: "Modern JavaScript", id: "js", pkg: "@tti/tti-ux-js", to: "/install", icon: "lucide:braces", desc: "Universal ESM/CJS bundles & runtime utilities" },
+  { name: "Swift / iOS Native", id: "swift", pkg: "TTIUXSwift", to: "/install", icon: "lucide:smartphone", desc: "SwiftUI views, tokens & Dynamic Type" },
+  { name: "Kotlin / Android Native", id: "kotlin", pkg: "tti-ux-kotlin", to: "/install", icon: "lucide:tablet", desc: "Jetpack Compose composables & Material 3" },
+];
 </script>
 
 <template>
@@ -128,13 +164,17 @@ const recentUpdates = [
         <div class="w-full px-6 sm:px-8 lg:px-10 pt-6 sm:pt-8 lg:pt-10 pb-8 sm:pb-12 flex flex-col justify-between min-h-[600px] sm:min-h-[640px]">
           
           <!-- 1. Across the Top: 5-color Spectrum Ribbon -->
-          <div class="w-full mb-10 sm:mb-12 lg:mb-16">
+          <div class="w-full mb-8 sm:mb-10 lg:mb-12">
             <TuxSpectrumRibbon height="md" class="w-full rounded-full overflow-hidden shadow-sm" />
           </div>
 
-          <!-- 2. Top-Left: TTI DESIGN SYSTEM Branding & Mission -->
-          <div class="space-y-5 max-w-2xl">
+          <!-- 2. Top-Left: TTI DESIGN SYSTEM Branding, Mission & Persona Gateways -->
+          <div class="space-y-4 max-w-2xl">
             <div>
+              <p class="font-mono text-xs uppercase tracking-widest text-brand-primary dark:text-brand-accent font-bold mb-2 flex items-center gap-2">
+                <span class="inline-block w-2 h-2 rounded-full bg-brand-primary dark:bg-brand-accent"></span>
+                <span>Texas A&amp;M Transportation Institute · State of Texas Mobility Research</span>
+              </p>
               <h1 class="font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold uppercase italic tracking-tight text-text-primary leading-[0.88]">
                 TTI<br />
                 <span class="text-brand-primary dark:text-brand-accent">DESIGN</span><br />
@@ -147,43 +187,80 @@ const recentUpdates = [
               for the Texas A&amp;M Transportation Institute. Built for Nuxt 4, Tailwind v4, and mathematically
               certified WCAG 2.2 Level AAA accessibility.
             </p>
+
+            <!-- Developer DX Quick Install Box + Persona Jump Chips -->
+            <div class="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-xl">
+              <div class="flex items-center justify-between px-3.5 py-2 rounded-lg bg-surface-raised/90 border border-surface-border text-xs font-mono font-medium text-text-primary shadow-xs flex-1">
+                <div class="flex items-center gap-2 truncate">
+                  <span class="text-brand-primary dark:text-brand-accent font-bold select-none">$</span>
+                  <span class="select-all">npm i @tti/tti-ux</span>
+                </div>
+                <button
+                  type="button"
+                  class="ml-3 inline-flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-sans font-bold text-text-secondary hover:text-brand-primary hover:bg-surface-sunken border border-transparent hover:border-surface-border transition-all cursor-pointer shrink-0"
+                  :title="copiedInstall ? 'Copied to clipboard' : 'Copy install command'"
+                  @click="copyInstallCommand"
+                >
+                  <Icon :name="copiedInstall ? 'lucide:check' : 'lucide:copy'" class="w-3.5 h-3.5 text-brand-primary dark:text-brand-accent" />
+                  <span>{{ copiedInstall ? 'Copied!' : 'Copy' }}</span>
+                </button>
+              </div>
+
+              <!-- Persona Quick Navigation Jump Chips -->
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <a
+                  href="#component-arsenal"
+                  class="px-2.5 py-1.5 rounded text-[11px] font-mono font-semibold bg-surface-raised/80 hover:bg-surface-raised text-text-secondary hover:text-text-primary border border-surface-border hover:border-brand-primary transition-all shadow-2xs"
+                  title="Jump to component families"
+                >
+                  For Developers
+                </a>
+                <a
+                  href="#interactive-showcase"
+                  class="px-2.5 py-1.5 rounded text-[11px] font-mono font-semibold bg-surface-raised/80 hover:bg-surface-raised text-text-secondary hover:text-text-primary border border-surface-border hover:border-brand-primary transition-all shadow-2xs"
+                  title="Jump to 3D corridor visualizer and laboratory"
+                >
+                  For Researchers
+                </a>
+              </div>
+            </div>
           </div>
 
           <!-- 3. Bottom Row: Left Action Buttons + Right Faint Horizontal TUX & AAA Tout -->
           <div class="pt-8 sm:pt-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <!-- Left: Smaller Buttons (Comfortably above bottom gradient) -->
+            <!-- Left: Buttons with Distinct Visual Hierarchy -->
             <div class="flex flex-wrap items-center gap-2.5">
               <NuxtLink
                 to="/components"
-                class="px-4 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-brand-primary hover:bg-brand-primary-deep text-text-on-brand shadow-sm hover:shadow transition-all flex items-center gap-1.5 border border-brand-accent/40"
+                class="px-4 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider bg-brand-primary hover:bg-brand-primary-deep text-text-on-brand shadow-sm hover:shadow transition-all flex items-center gap-2 border border-brand-accent/40"
               >
                 <span>Explore Components ({{ catalogCount }})</span>
                 <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" aria-hidden="true" />
               </NuxtLink>
               <a
                 href="#interactive-showcase"
-                class="px-3.5 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-surface-raised hover:bg-surface-page text-text-primary border border-surface-border hover:border-brand-primary dark:border-surface-border transition-all flex items-center gap-1.5 shadow-xs"
+                class="px-3.5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider bg-surface-raised hover:bg-surface-page text-text-primary border border-surface-border hover:border-brand-primary dark:border-surface-border transition-all flex items-center gap-2 shadow-xs"
               >
                 <Icon name="lucide:box" class="w-3.5 h-3.5 text-brand-primary dark:text-brand-accent" aria-hidden="true" />
                 <span>3D Corridor Visualizer</span>
               </a>
               <NuxtLink
                 to="/components/health"
-                class="px-3.5 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-surface-raised hover:bg-surface-page text-text-primary border border-surface-border hover:border-color-success dark:border-surface-border transition-all flex items-center gap-1.5 shadow-xs"
+                class="px-3.5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider bg-surface-raised hover:bg-surface-page text-text-secondary hover:text-text-primary border border-surface-border hover:border-color-success dark:border-surface-border transition-all flex items-center gap-2 shadow-xs"
               >
                 <Icon name="lucide:shield-check" class="w-3.5 h-3.5 text-color-success" aria-hidden="true" />
                 <span>Health &amp; AAA Matrix</span>
               </NuxtLink>
               <NuxtLink
                 to="/tokens/playground"
-                class="px-3 py-2 rounded-md text-xs font-bold uppercase tracking-wider bg-surface-raised hover:bg-surface-page text-text-primary border border-surface-border hover:border-brand-primary dark:border-surface-border transition-all flex items-center gap-1.5 shadow-xs"
+                class="px-3.5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider bg-surface-raised hover:bg-surface-page text-text-secondary hover:text-text-primary border border-surface-border hover:border-brand-primary dark:border-surface-border transition-all flex items-center gap-2 shadow-xs"
               >
                 <Icon name="lucide:sliders" class="w-3.5 h-3.5 text-brand-primary dark:text-brand-accent" aria-hidden="true" />
                 <span>Token Studio</span>
               </NuxtLink>
             </div>
 
-            <!-- Right: Faint Straight Horizontal TUX Monogram + Certified WCAG 2.2 Level AAA Tout -->
+            <!-- Right: Faint Straight Horizontal TUX Monogram + Certified WCAG 2.2 Level AAA Tout with Interactive High-Contrast Toggle -->
             <div class="flex flex-col items-start md:items-end text-left md:text-right select-none">
               <div
                 class="welcome-hero__faint-monogram text-7xl sm:text-8xl lg:text-9xl translate-x-1 mb-1"
@@ -192,7 +269,7 @@ const recentUpdates = [
                 TUX
               </div>
 
-              <div class="space-y-1 select-auto">
+              <div class="space-y-2 select-auto">
                 <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-surface-raised border border-surface-border shadow-xs backdrop-blur-md">
                   <span class="w-2 h-2 rounded-full bg-color-success animate-pulse" />
                   <span class="font-mono text-xs font-bold tracking-wider uppercase text-text-primary">
@@ -202,6 +279,26 @@ const recentUpdates = [
                     14.8:1
                   </span>
                 </div>
+
+                <div class="flex items-center justify-start md:justify-end gap-2">
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1.5 text-[11px] font-mono font-semibold px-2.5 py-1 rounded bg-surface-raised hover:bg-surface-sunken border border-surface-border text-text-secondary hover:text-text-primary transition-all cursor-pointer shadow-2xs"
+                    :title="isHighContrast ? 'Disable high-contrast mode' : 'Enable pure black/white high-contrast mode (WCAG AAA)'"
+                    @click="toggleHighContrast"
+                  >
+                    <Icon :name="isHighContrast ? 'lucide:eye-off' : 'lucide:eye'" class="w-3.5 h-3.5 text-brand-accent" />
+                    <span>{{ isHighContrast ? 'Exit High-Contrast' : 'High-Contrast AAA (7:1)' }}</span>
+                  </button>
+                  <NuxtLink
+                    to="/accessibility"
+                    class="text-[11px] font-mono text-brand-primary dark:text-brand-accent hover:underline px-1 py-0.5"
+                    title="View institutional accessibility statement"
+                  >
+                    Audit Report &rarr;
+                  </NuxtLink>
+                </div>
+
                 <p class="text-[11px] font-mono text-text-muted tracking-wide">
                   0 Axe Violations · 189 Certified Components · 500 Prerendered Routes
                 </p>
@@ -285,7 +382,7 @@ const recentUpdates = [
     <!-- ══════════════════════════════════════════════════════════════════════
          3. THE COMPONENT ARSENAL: Full Taxonomy by Family
          ══════════════════════════════════════════════════════════════════════ -->
-    <section class="space-y-6">
+    <section id="component-arsenal" class="space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-surface-border pb-4">
         <div>
           <p class="eyebrow">institutional component library</p>
@@ -397,6 +494,39 @@ const recentUpdates = [
       <!-- Tab 1: 3D Roadway & Embankment Visualizer -->
       <div v-show="activeShowcaseTab === 'corridor'" class="space-y-4">
         <TuxRoadwayCrossSection :interactive="true" />
+
+        <!-- Spatial Corridor Context & Next-Step Signposting -->
+        <div class="p-4 rounded-xl bg-surface-raised border border-surface-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-brand-primary text-white uppercase tracking-wider">
+                Geospatial &amp; CAD
+              </span>
+              <h4 class="text-xs font-bold text-text-primary font-mono m-0">
+                &lt;TuxRoadwayCrossSection /&gt; · AASHTO &amp; TxDOT Geometric Modeling
+              </h4>
+            </div>
+            <p class="text-xs text-text-secondary m-0">
+              Native CSS 3D corridor cut with volumetric geotechnical strata, hydrodynamic drainage swale, and real-time HCM Level of Service (LOS) telemetry.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0 flex-wrap">
+            <NuxtLink
+              to="/components/geospatial"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold bg-surface-sunken hover:bg-surface-page border border-surface-border text-text-primary hover:border-brand-primary transition-all shadow-2xs"
+            >
+              <span>Component Docs</span>
+              <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" />
+            </NuxtLink>
+            <NuxtLink
+              to="/examples/corridor-analytics"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold bg-brand-primary text-text-on-brand hover:bg-brand-primary-deep transition-all shadow-2xs"
+            >
+              <span>Live Corridor Analytics</span>
+              <Icon name="lucide:external-link" class="w-3.5 h-3.5" />
+            </NuxtLink>
+          </div>
+        </div>
       </div>
 
       <!-- Tab 2: Interactive Corridor Simulation Canvas -->
@@ -581,43 +711,48 @@ const recentUpdates = [
     </section>
 
     <!-- ══════════════════════════════════════════════════════════════════════
-         7. MULTI-FRAMEWORK ECOSYSTEM
+         7. MULTI-FRAMEWORK & MULTI-LANGUAGE ECOSYSTEM
          ══════════════════════════════════════════════════════════════════════ -->
-    <section class="p-6 sm:p-8 rounded-2xl bg-surface-raised border border-surface-border space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <section class="p-6 sm:p-8 rounded-2xl bg-surface-raised border border-surface-border space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <span class="text-[10px] font-mono uppercase tracking-wider text-brand-primary font-bold">Multi-Target Generation</span>
-          <h2 class="text-xl font-bold text-text-primary mt-1">Multi-Framework Port Pipeline</h2>
-          <p class="text-xs sm:text-sm text-text-secondary mt-1 max-w-2xl leading-relaxed">
-            Write once in canonical Vue 3 SFCs. Automated CI codegen ports components to React 19 JSX,
-            Framework-Agnostic Web Components, and .NET Razor/Blazor assemblies with zero drift.
+          <span class="text-[10px] font-mono uppercase tracking-wider text-brand-primary dark:text-brand-accent font-bold">Cross-Platform Architecture</span>
+          <h2 class="text-xl sm:text-2xl font-bold text-text-primary mt-1">Institutional Ecosystem &amp; Synchronized Targets</h2>
+          <p class="text-xs sm:text-sm text-text-secondary mt-1 max-w-3xl leading-relaxed">
+            Native design tokens, primitives, and component schemas synchronized across web, enterprise systems, and native mobile platforms with zero visual or behavioral drift.
           </p>
         </div>
         <NuxtLink
           to="/install"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold bg-surface-sunken hover:bg-surface-raised border border-surface-border text-text-primary hover:border-brand-primary transition-all self-start sm:self-center"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold bg-surface-sunken hover:bg-surface-raised border border-surface-border text-text-primary hover:border-brand-primary transition-all self-start sm:self-center shrink-0 shadow-2xs"
         >
           <span>Installation Guide</span>
-          <Icon name="lucide:package" class="w-4 h-4 text-brand-primary" aria-hidden="true" />
+          <Icon name="lucide:package" class="w-4 h-4 text-brand-primary dark:text-brand-accent" aria-hidden="true" />
         </NuxtLink>
       </div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-        <NuxtLink to="/install/nuxt-studio" class="p-3 rounded-lg bg-surface-sunken border border-surface-border hover:border-brand-primary text-center space-y-1 block transition-colors">
-          <p class="text-xs font-bold text-text-primary">Vue 3 / Nuxt 4</p>
-          <p class="text-[10px] font-mono text-text-muted">@tti/tti-ux</p>
-        </NuxtLink>
-        <NuxtLink to="/install/react" class="p-3 rounded-lg bg-surface-sunken border border-surface-border hover:border-brand-primary text-center space-y-1 block transition-colors">
-          <p class="text-xs font-bold text-text-primary">React 19 JSX</p>
-          <p class="text-[10px] font-mono text-text-muted">@tti/tti-ux-react</p>
-        </NuxtLink>
-        <NuxtLink to="/install" class="p-3 rounded-lg bg-surface-sunken border border-surface-border hover:border-brand-primary text-center space-y-1 block transition-colors">
-          <p class="text-xs font-bold text-text-primary">Web Components</p>
-          <p class="text-[10px] font-mono text-text-muted">@tti/tti-ux-elements</p>
-        </NuxtLink>
-        <NuxtLink to="/install/dotnet" class="p-3 rounded-lg bg-surface-sunken border border-surface-border hover:border-brand-primary text-center space-y-1 block transition-colors">
-          <p class="text-xs font-bold text-text-primary">.NET Blazor / Razor</p>
-          <p class="text-[10px] font-mono text-text-muted">@tti/tti-ux-razor</p>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 pt-2">
+        <NuxtLink
+          v-for="target in ecosystemTargets"
+          :key="target.id"
+          :to="target.to"
+          class="p-3.5 rounded-xl bg-surface-sunken border border-surface-border hover:border-brand-primary transition-all block group shadow-2xs hover:shadow-xs"
+        >
+          <div class="flex items-center justify-between mb-2">
+            <Icon :name="target.icon" class="w-4 h-4 text-brand-primary dark:text-brand-accent" aria-hidden="true" />
+            <span class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-surface-raised text-text-muted font-semibold">
+              {{ target.id }}
+            </span>
+          </div>
+          <p class="text-xs font-bold text-text-primary group-hover:text-brand-primary transition-colors">
+            {{ target.name }}
+          </p>
+          <p class="text-[10px] font-mono text-brand-primary dark:text-brand-accent truncate mt-0.5">
+            {{ target.pkg }}
+          </p>
+          <p class="text-[11px] text-text-secondary leading-snug mt-1 line-clamp-2">
+            {{ target.desc }}
+          </p>
         </NuxtLink>
       </div>
     </section>
