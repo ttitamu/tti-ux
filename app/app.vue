@@ -420,13 +420,13 @@ const shouldShowBreadcrumbs = computed(() => {
 
   const localBreadcrumbPrefixes = [
     "/install",
-    "/docs/",
+    "/docs",
     "/changelog",
     "/p/",
     "/examples/",
     "/design/",
   ];
-  if (localBreadcrumbPrefixes.some((prefix) => route.path.startsWith(prefix))) {
+  if (localBreadcrumbPrefixes.some((prefix) => route.path === prefix || route.path.startsWith(`${prefix}/`))) {
     return false;
   }
 
