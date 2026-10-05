@@ -1,40 +1,130 @@
 <script setup lang="ts">
 /**
- * /components/citation-export — Dedicated showcase for TuxCitationExport.
+ * /components/citation-export — Interactive workbench for TuxCitationExport.
  */
-import type { TuxCitationData } from "../../components/TuxCitationExport.vue";
+import tuxCitationExportSource from "~/components/TuxCitationExport.vue?raw";
+import type { TuxCitationData } from "~/components/TuxCitationExport.vue";
+import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
 
 useHead({ title: "TuxCitationExport · Components · TUX" });
 
-const sampleCitation: TuxCitationData = {
-  authors: ["Hassan, M.", "Velazquez, L.", "Chen, R."],
-  title: "Enduring infrastructure cues vs novelty effects: a 36-month follow-up on twelve rural intersection treatments.",
-  venue: "Transportation Research Record",
-  year: 2025,
-  volume: 2671,
-  issue: 4,
-  pages: "118-134",
-  doi: "10.1177/03611981251123456",
-  publisher: "SAGE Publications",
-};
-
-const triggerLabel = ref("Cite this research");
-const buttonVariant = ref<"outline" | "solid" | "ghost">("outline");
-
-const sampleVue = computed(() => `<TuxCitationExport
-  :citation="{
-    authors: ['Hassan, M.', 'Velazquez, L.', 'Chen, R.'],
-    title: 'Enduring infrastructure cues vs novelty effects…',
-    venue: 'Transportation Research Record',
+const citationsDatabase: Record<string, TuxCitationData> = {
+  journal: {
+    authors: ["Hassan, M.", "Velazquez, L.", "Chen, R."],
+    title: "Enduring infrastructure cues vs novelty effects: a 36-month follow-up on twelve rural intersection treatments.",
+    venue: "Transportation Research Record",
     year: 2025,
     volume: 2671,
     issue: 4,
-    pages: '118-134',
-    doi: '10.1177/03611981251123456'
-  }"
-  label="${triggerLabel.value}"
-  variant="${buttonVariant.value}"
-/>`);
+    pages: "118-134",
+    doi: "10.1177/03611981251123456",
+    publisher: "SAGE Publications",
+  },
+  conference: {
+    authors: ["Guevara, A.", "Perez, K.", "Balke, K."],
+    title: "Connected corridor telemetry and automated queue-warning optimization under high-speed rural conditions.",
+    venue: "Transportation Research Board 105th Annual Meeting",
+    year: 2026,
+    pages: "1-16",
+    doi: "10.1145/trb.2026.1042",
+    publisher: "National Academies of Sciences, Engineering, and Medicine",
+  },
+  "technical-report": {
+    authors: ["Texas A&M Transportation Institute", "FHWA Office of Safety"],
+    title: "National Work Zone Data Initiative (WZDI) Technical Implementation & Architecture Specification.",
+    venue: "Federal Highway Administration Technical Report Series",
+    year: 2026,
+    volume: "FHWA-HRT-26-004",
+    doi: "10.21949/1528741",
+    publisher: "U.S. Department of Transportation",
+  },
+};
+
+const citationControls: TuxPropControl[] = [
+  {
+    prop: "label",
+    label: "Trigger Button Label",
+    type: "text",
+    defaultValue: "Cite this paper",
+    description: "Visible button label text for the citation dropdown trigger",
+  },
+  {
+    prop: "variant",
+    label: "Button Variant",
+    type: "select",
+    options: [
+      { label: "Outline (Institutional Default)", value: "outline" },
+      { label: "Solid (Brand Primary)", value: "solid" },
+      { label: "Ghost (Minimal Utility)", value: "ghost" },
+    ],
+    defaultValue: "outline",
+    description: "Visual styling variant of the dropdown button",
+  },
+  {
+    prop: "sampleType",
+    label: "Publication Schema",
+    type: "select",
+    options: [
+      { label: "Peer-Reviewed Journal Article (TRR)", value: "journal" },
+      { label: "Conference Proceedings Paper (TRB)", value: "conference" },
+      { label: "Federal Technical Report (FHWA)", value: "technical-report" },
+    ],
+    defaultValue: "journal",
+    description: "Sample citation metadata dataset passed to the export formatter",
+  },
+];
+
+const citationPresets: TuxPlaygroundPreset[] = [
+  {
+    name: "journal-paper",
+    label: "Journal Article (Outline)",
+    description: "Standard peer-reviewed TRR journal article with full volume, issue, and DOI",
+    icon: "lucide:book-open",
+    values: {
+      label: "Cite this paper",
+      variant: "outline",
+      sampleType: "journal",
+    },
+  },
+  {
+    name: "conference-proceeding",
+    label: "TRB Proceedings (Solid)",
+    description: "High-contrast primary button trigger for national conference papers and preprints",
+    icon: "lucide:presentation",
+    values: {
+      label: "Cite presentation",
+      variant: "solid",
+      sampleType: "conference",
+    },
+  },
+  {
+    name: "technical-brief",
+    label: "Technical Report (Ghost)",
+    description: "Subtle ghost button for document sidebars, appendix pages, and sponsor data packages",
+    icon: "lucide:file-text",
+    values: {
+      label: "Cite report",
+      variant: "ghost",
+      sampleType: "technical-report",
+    },
+  },
+];
+
+const codeTemplate = (values: Record<string, any>) => {
+  const currentCitation = citationsDatabase[values.sampleType || "journal"] || citationsDatabase.journal!;
+  const labelAttr = values.label ? `\n  label="${values.label}"` : "";
+  const variantAttr = values.variant && values.variant !== "outline" ? `\n  variant="${values.variant}"` : "";
+
+  return `<tux-citation-export
+  :citation="{
+    authors: ${JSON.stringify(currentCitation.authors)},
+    title: ${JSON.stringify(currentCitation.title)},
+    venue: ${JSON.stringify(currentCitation.venue)},
+    year: ${currentCitation.year},
+    doi: ${JSON.stringify(currentCitation.doi)}
+  }"${labelAttr}${variantAttr}
+/>`;
+};
 </script>
 
 <template>
@@ -42,123 +132,81 @@ const sampleVue = computed(() => `<TuxCitationExport
     <TuxPageHeader eyebrow="components · research & publishing" title="TuxCitationExport">
       Standardized academic citation export menu supporting APA, Chicago,
       MLA, IEEE, BibTeX, and RIS formats with 1-click clipboard copying.
+      Pairs seamlessly with <code>TuxPaperMeta</code>, publication headers,
+      or sticky action sidebars on research deliverables.
     </TuxPageHeader>
 
-    <!-- Interactive Showcase -->
+    <!-- Interactive Props Workbench -->
+    <section>
+      <TuxPlayground
+        tag="tux-citation-export"
+        component-name="TuxCitationExport"
+        title="Citation Export Workbench"
+        eyebrow="Interactive Academic Exporter"
+        :controls="citationControls"
+        :presets="citationPresets"
+        :source="tuxCitationExportSource"
+        :code-template="codeTemplate"
+        preview-padding="p-6 sm:p-8"
+      >
+        <template #default="{ values }">
+          <div class="w-full max-w-3xl space-y-4">
+            <!-- Simulated Paper Header Card -->
+            <div class="flex items-center justify-between flex-wrap gap-4 p-5 bg-surface-raised rounded-xl border border-surface-border shadow-xs">
+              <div class="space-y-1 max-w-xl">
+                <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-surface-sunken border border-surface-border text-brand-primary font-bold">
+                  {{ values.sampleType === 'journal' ? 'Peer-Reviewed Paper' : values.sampleType === 'conference' ? 'Conference Paper' : 'Technical Report' }}
+                </span>
+                <h3 class="text-base font-bold text-text-primary leading-snug">
+                  {{ citationsDatabase[values.sampleType || 'journal']?.title }}
+                </h3>
+                <p class="text-xs text-text-secondary">
+                  {{ citationsDatabase[values.sampleType || 'journal']?.authors.join(', ') }} ·
+                  <span class="font-medium text-text-primary">{{ citationsDatabase[values.sampleType || 'journal']?.venue }}</span>
+                  ({{ citationsDatabase[values.sampleType || 'journal']?.year }})
+                </p>
+                <p class="text-xs font-mono text-text-muted">
+                  DOI: {{ citationsDatabase[values.sampleType || 'journal']?.doi }}
+                </p>
+              </div>
+
+              <!-- Interactive Citation Trigger Component -->
+              <div class="flex-shrink-0">
+                <TuxCitationExport
+                  :citation="citationsDatabase[values.sampleType || 'journal'] || citationsDatabase.journal!"
+                  :label="values.label"
+                  :variant="values.variant"
+                />
+              </div>
+            </div>
+          </div>
+        </template>
+      </TuxPlayground>
+    </section>
+
+    <!-- Supported Formats Matrix -->
     <section class="space-y-4">
-      <div class="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <p class="eyebrow">interactive showcase</p>
-          <h2 class="heading--bold text-xl font-bold">Citation Trigger & Formats</h2>
+      <p class="eyebrow">supported formats</p>
+      <h2 class="heading--bold text-xl font-bold">Academic Formats &amp; Compatibility</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="p-4 bg-surface-raised rounded-lg border border-surface-border space-y-1.5">
+          <span class="font-mono font-bold text-brand-primary block text-sm">APA (7th Edition)</span>
+          <p class="text-xs text-text-secondary leading-relaxed">
+            Standard author-date format required across social sciences, human factors, and transportation behavior studies.
+          </p>
         </div>
-
-        <!-- Controls -->
-        <div class="flex items-center gap-3 text-xs bg-surface-sunken p-2 rounded-lg border border-surface-border">
-          <div class="flex items-center gap-1.5">
-            <span class="text-text-muted">Variant:</span>
-            <select
-              v-model="buttonVariant"
-              aria-label="Citation button variant"
-              class="bg-surface-raised border border-surface-border rounded px-1.5 py-0.5 text-xs text-text-primary"
-            >
-              <option value="outline">outline</option>
-              <option value="solid">solid</option>
-              <option value="ghost">ghost</option>
-            </select>
-          </div>
-          <div class="flex items-center gap-1.5 pl-2 border-l border-surface-border">
-            <span class="text-text-muted">Label:</span>
-            <input
-              v-model="triggerLabel"
-              type="text"
-              aria-label="Citation button label"
-              class="bg-surface-raised border border-surface-border rounded px-2 py-0.5 text-xs text-text-primary w-32"
-            />
-          </div>
+        <div class="p-4 bg-surface-raised rounded-lg border border-surface-border space-y-1.5">
+          <span class="font-mono font-bold text-brand-primary block text-sm">IEEE</span>
+          <p class="text-xs text-text-secondary leading-relaxed">
+            Bracketed numerical citation schema standard across ITS, connected vehicle engineering, and computational disciplines.
+          </p>
         </div>
-      </div>
-
-      <!-- Preview Card -->
-      <div class="bg-surface-raised p-6 rounded-xl border border-surface-border shadow-xs space-y-6">
-        <div class="flex items-center justify-between p-4 bg-surface-sunken rounded-lg border border-surface-border">
-          <div class="space-y-1 max-w-xl">
-            <p class="text-xs font-mono text-text-muted">Paper: TRR-2025-0982</p>
-            <p class="text-sm font-semibold text-text-primary">{{ sampleCitation.title }}</p>
-            <p class="text-xs text-text-secondary">{{ sampleCitation.venue }} ({{ sampleCitation.year }}) · DOI: {{ sampleCitation.doi }}</p>
-          </div>
-
-          <div class="flex-shrink-0">
-            <TuxCitationExport
-              :citation="sampleCitation"
-              :label="triggerLabel"
-              :variant="buttonVariant"
-            />
-          </div>
+        <div class="p-4 bg-surface-raised rounded-lg border border-surface-border space-y-1.5">
+          <span class="font-mono font-bold text-brand-primary block text-sm">BibTeX &amp; RIS</span>
+          <p class="text-xs text-text-secondary leading-relaxed">
+            Structured machine-readable formats for instant import into Overleaf, Zotero, Mendeley, and EndNote libraries.
+          </p>
         </div>
-
-        <!-- Format breakdown preview -->
-        <div class="space-y-2">
-          <p class="text-xs font-mono font-semibold uppercase text-text-muted">Supported Output Formats</p>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-            <div class="p-3 bg-surface-sunken/60 rounded-lg border border-surface-border">
-              <span class="font-mono font-bold text-brand-primary block mb-1">APA (7th ed.)</span>
-              <p class="text-text-secondary">Author-date citation format common in social and behavioral sciences.</p>
-            </div>
-            <div class="p-3 bg-surface-sunken/60 rounded-lg border border-surface-border">
-              <span class="font-mono font-bold text-brand-primary block mb-1">IEEE</span>
-              <p class="text-text-secondary">Bracketed numerical standard for engineering and computing literature.</p>
-            </div>
-            <div class="p-3 bg-surface-sunken/60 rounded-lg border border-surface-border">
-              <span class="font-mono font-bold text-brand-primary block mb-1">BibTeX & RIS</span>
-              <p class="text-text-secondary">Structured records compatible with Zotero, Mendeley, and Overleaf / LaTeX.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Usage Code -->
-    <section class="space-y-3">
-      <p class="eyebrow">usage syntax</p>
-      <h2 class="heading--bold text-xl font-bold">Code snippet</h2>
-      <TuxCodeBlock :code="sampleVue" lang="vue" />
-    </section>
-
-    <!-- Props Table -->
-    <section class="space-y-3">
-      <p class="eyebrow">api reference</p>
-      <h2 class="heading--bold text-xl font-bold">Props</h2>
-      <div class="overflow-x-auto rounded-lg border border-surface-border">
-        <table class="w-full text-left text-sm">
-          <thead class="bg-surface-sunken text-xs font-mono font-semibold text-text-secondary uppercase border-b border-surface-border">
-            <tr>
-              <th class="p-3">Prop</th>
-              <th class="p-3">Type</th>
-              <th class="p-3">Default</th>
-              <th class="p-3">Description</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-surface-border font-mono text-xs">
-            <tr class="hover:bg-surface-sunken/40">
-              <td class="p-3 font-semibold text-brand-primary">citation</td>
-              <td class="p-3 text-text-secondary">TuxCitationData</td>
-              <td class="p-3 text-text-muted">required</td>
-              <td class="p-3 font-sans text-text-secondary">Source metadata object containing authors, title, venue, year, doi, etc.</td>
-            </tr>
-            <tr class="hover:bg-surface-sunken/40">
-              <td class="p-3 font-semibold text-brand-primary">label</td>
-              <td class="p-3 text-text-secondary">string</td>
-              <td class="p-3 text-text-muted">"Cite"</td>
-              <td class="p-3 font-sans text-text-secondary">Visible trigger button label text.</td>
-            </tr>
-            <tr class="hover:bg-surface-sunken/40">
-              <td class="p-3 font-semibold text-brand-primary">variant</td>
-              <td class="p-3 text-text-secondary">"ghost" | "outline" | "solid"</td>
-              <td class="p-3 text-text-muted">"outline"</td>
-              <td class="p-3 font-sans text-text-secondary">Visual styling variant passed to the trigger button.</td>
-            </tr>
-          </tbody>
-        </table>
       </div>
     </section>
   </div>
