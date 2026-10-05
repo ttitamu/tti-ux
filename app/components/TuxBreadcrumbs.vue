@@ -103,8 +103,10 @@ withDefaults(defineProps<Props>(), {
   container-name: tux-breadcrumbs;
   font-family: var(--font-bold);
   font-size: 0.875rem;
-  line-height: 1;
+  line-height: 1.4;
   color: var(--text-secondary);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .tux-breadcrumbs__list {
@@ -115,12 +117,16 @@ withDefaults(defineProps<Props>(), {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.625rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .tux-breadcrumbs__item {
   display: inline-flex;
   align-items: center;
   gap: 0.625rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .tux-breadcrumbs__separator {
@@ -181,6 +187,9 @@ withDefaults(defineProps<Props>(), {
 .tux-breadcrumbs__link {
   font-style: italic;
   font-weight: 400;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-width: 0;
 }
 
 .tux-breadcrumbs__home:hover,
@@ -196,5 +205,8 @@ withDefaults(defineProps<Props>(), {
 .tux-breadcrumbs__current {
   font-weight: 400;
   color: var(--text-primary);
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-width: 0;
 }
 </style>

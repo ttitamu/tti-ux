@@ -76,11 +76,11 @@ watch(
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-border pb-5">
       <div class="space-y-1">
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <TuxBadge tone="primary">v3.0.0 Web Builder</TuxBadge>
           <span class="eyebrow">Zero-Terminal CMS Authoring Suite</span>
         </div>
-        <h1 class="text-3xl font-bold tracking-tight text-text-primary m-0">
+        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-text-primary m-0">
           Tux Desk Web Builder & Source Editor
         </h1>
         <p class="text-text-muted text-sm m-0">
@@ -90,14 +90,14 @@ watch(
 
       <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
         <!-- Preset Quick Switcher -->
-        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface-raised border border-surface-border text-xs">
-          <UIcon name="lucide:layout-template" class="w-3.5 h-3.5 text-brand-primary" />
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface-raised border border-surface-border text-xs max-w-full">
+          <UIcon name="lucide:layout-template" class="w-3.5 h-3.5 text-brand-primary shrink-0" />
           <span class="text-text-muted text-[11px] font-medium hidden md:inline">Preset:</span>
           <select
             v-model="selectedPresetId"
             data-test="preset-select"
             aria-label="Preset quick switcher"
-            class="bg-transparent text-text-primary text-xs font-semibold focus:outline-none cursor-pointer"
+            class="bg-transparent text-text-primary text-xs font-semibold focus:outline-none cursor-pointer max-w-[140px] sm:max-w-[220px] lg:max-w-[280px] xl:max-w-none truncate"
             @change="applyPreset(selectedPresetId)"
           >
             <option

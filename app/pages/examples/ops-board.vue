@@ -33,30 +33,32 @@ useHead({ title: "Example · ops board · TUX" });
         Poller load
         <TuxSparkline :data="loadTrend" :width="120" :height="28" show-area />
       </p>
-      <table class="tux-ops-table">
-        <thead>
-          <tr>
-            <th>Host</th>
-            <th>Service</th>
-            <th>Status</th>
-            <th>Duration</th>
-            <th>Status information</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="h in hosts"
-            :key="h.name + h.service"
-            :class="`tux-status-row--${h.state}`"
-          >
-            <td>{{ h.name }}</td>
-            <td>{{ h.service }}</td>
-            <td><TuxStatus :state="h.state" /></td>
-            <td>{{ h.duration }}</td>
-            <td>{{ h.info }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="overflow-x-auto rounded-lg border border-surface-border">
+        <table class="tux-ops-table w-full">
+          <thead>
+            <tr>
+              <th>Host</th>
+              <th>Service</th>
+              <th>Status</th>
+              <th>Duration</th>
+              <th>Status information</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="h in hosts"
+              :key="h.name + h.service"
+              :class="`tux-status-row--${h.state}`"
+            >
+              <td>{{ h.name }}</td>
+              <td>{{ h.service }}</td>
+              <td><TuxStatus :state="h.state" /></td>
+              <td>{{ h.duration }}</td>
+              <td>{{ h.info }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
   </div>
 </template>

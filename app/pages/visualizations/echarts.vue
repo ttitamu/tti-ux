@@ -2094,8 +2094,8 @@ onUnmounted(() => {
 
           <!-- Interactive Playback Toolbar -->
           <div class="p-3 bg-surface-sunken border border-surface-border rounded-md space-y-3">
-            <div class="flex items-center justify-between gap-4">
-              <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   aria-label="Step back one year"
@@ -2184,7 +2184,7 @@ onUnmounted(() => {
             </div>
 
             <!-- Dataset Switcher: Commute Modes vs UTP Capital Allocation -->
-            <div class="flex items-center gap-1.5 p-1 bg-surface-sunken border border-surface-border rounded-md" role="group" aria-label="Morph dataset">
+            <div class="flex flex-wrap items-center gap-1.5 p-1 bg-surface-sunken border border-surface-border rounded-md" role="group" aria-label="Morph dataset">
               <button
                 type="button"
                 class="min-h-[44px] px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all"
@@ -2339,7 +2339,7 @@ onUnmounted(() => {
           </div>
 
           <!-- Incident Severity Selector -->
-          <div class="flex items-center gap-1.5 p-1 bg-surface-sunken border border-surface-border rounded-md" role="group" aria-label="Incident severity">
+          <div class="flex flex-wrap items-center gap-1.5 p-1 bg-surface-sunken border border-surface-border rounded-md" role="group" aria-label="Incident severity">
             <button
               type="button"
               class="min-h-[44px] px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-xs border transition-all"
@@ -2439,7 +2439,7 @@ onUnmounted(() => {
 
       <!-- Quick Preset Selector Ribbon -->
       <div
-        class="flex items-center gap-2 overflow-x-auto pb-3 mb-4 scrollbar-thin"
+        class="flex items-center gap-2 overflow-x-auto pb-3 mb-4 scrollbar-thin max-w-full min-w-0"
         role="group"
         aria-label="Preset quick switcher"
       >

@@ -203,15 +203,16 @@ const filteredIssues = computed(() => {
     </div>
 
     <!-- Tab Switcher -->
-    <div class="flex items-center gap-2 border-b border-surface-border pb-2">
+    <div class="flex items-center gap-2 border-b border-surface-border pb-2 overflow-x-auto max-w-full">
       <button
         type="button"
-        class="px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2"
+        class="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all flex items-center gap-1.5 sm:gap-2 shrink-0"
         :class="activeTab === 'pages' ? 'bg-brand-primary text-text-on-brand shadow-sm' : 'text-text-muted hover:text-text-primary hover:bg-surface-raised'"
         @click="activeTab = 'pages'"
       >
         <UIcon name="lucide:files" class="w-4 h-4" />
-        <span>Documentation Pages</span>
+        <span class="sm:hidden">Pages</span>
+        <span class="hidden sm:inline">Documentation Pages</span>
         <span class="text-xs px-1.5 py-0.2 rounded bg-black/20 text-white font-mono">
           {{ filteredPages.length }}
         </span>
@@ -219,12 +220,13 @@ const filteredIssues = computed(() => {
 
       <button
         type="button"
-        class="px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2"
+        class="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all flex items-center gap-1.5 sm:gap-2 shrink-0"
         :class="activeTab === 'issues' ? 'bg-brand-primary text-text-on-brand shadow-sm' : 'text-text-muted hover:text-text-primary hover:bg-surface-raised'"
         @click="activeTab = 'issues'"
       >
         <UIcon name="lucide:message-square-warning" class="w-4 h-4" />
-        <span>Reader Issues Triage</span>
+        <span class="sm:hidden">Issues Triage</span>
+        <span class="hidden sm:inline">Reader Issues Triage</span>
         <span
           class="text-xs px-1.5 py-0.2 rounded font-mono"
           :class="(systemStats?.counts?.openIssues ?? 0) > 0 ? 'bg-amber-500 text-black font-bold' : 'bg-surface-sunken text-text-muted'"
@@ -239,12 +241,12 @@ const filteredIssues = computed(() => {
       <!-- Enterprise Action Ribbon -->
       <TuxCommandBar>
         <template #actions>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2 max-w-full">
             <input
               v-model="newTitle"
               type="text"
               placeholder="Quick create page title (e.g. Smart Corridors)..."
-              class="px-3 py-1 text-xs rounded bg-surface-raised border border-surface-border text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary w-64 sm:w-80"
+              class="px-3 py-1 text-xs rounded bg-surface-raised border border-surface-border text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary w-full sm:w-80 min-w-0"
               @keydown.enter="createPage()"
             />
             <TuxButton

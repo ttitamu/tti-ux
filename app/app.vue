@@ -623,13 +623,13 @@ watch(() => route.fullPath, () => {
   sidebarOpen.value = false;
 });
 
-// Auto-collapse sidebar on builder/admin pages on desktop for maximum workspace
+// Auto-collapse sidebar on tablet viewports (<1024px) or builder/admin pages on desktop for maximum workspace
 // and initialize window listeners for navigation indicators and version dropdown
 onMounted(() => {
-  if (isFullWidth.value && typeof window !== "undefined" && window.innerWidth >= 768) {
-    desktopSidebarCollapsed.value = true;
-  }
   if (typeof window !== "undefined") {
+    if (window.innerWidth < 1024 || isFullWidth.value) {
+      desktopSidebarCollapsed.value = true;
+    }
     const saved = window.sessionStorage.getItem("tux-preview-version");
     if (saved && releases.some((r) => r.version === saved)) {
       selectedVersion.value = saved;
@@ -1208,7 +1208,7 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
         </div>
       </header>
 
-      <div class="flex flex-1 min-h-0">
+      <div class="flex flex-1 min-h-0 min-w-0">
         <!-- Sidebar backdrop (mobile only) -->
         <div
           v-if="sidebarOpen"

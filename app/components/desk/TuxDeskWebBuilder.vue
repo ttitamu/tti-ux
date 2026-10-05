@@ -225,7 +225,7 @@ function onSelectPreset(preset: TuxDeskPreset) {
 </script>
 
 <template>
-  <div class="tux-desk-web-builder flex flex-col bg-surface-raised border border-surface-border rounded-xl overflow-hidden shadow-xs">
+  <div class="tux-desk-web-builder flex flex-col bg-surface-raised border border-surface-border rounded-xl overflow-hidden shadow-xs max-w-full min-w-0">
     <!-- 1. Builder Top Command Bar -->
     <header class="px-3 py-2 bg-surface-sunken border-b border-surface-border flex items-center justify-between gap-2 overflow-x-auto text-xs flex-nowrap">
       <!-- Left: Tools & Drawer Toggles -->

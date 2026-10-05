@@ -119,6 +119,13 @@ defineSlots<{
   margin-bottom: 1.5rem;
   display: grid;
   gap: 2.5rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.tux-page-header__copy {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .tux-page-header--has-media {
@@ -170,6 +177,9 @@ defineSlots<{
   letter-spacing: var(--tracking-normal);
   color: var(--text-primary);
   margin: 0;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* Rhythm — heading + body sizes. Hero title uses clamp() so it scales
@@ -189,6 +199,9 @@ defineSlots<{
   max-width: 36rem;
   color: var(--text-secondary);
   line-height: 1.55;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .tux-page-header--hero .tux-page-header__body {

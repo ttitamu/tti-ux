@@ -161,6 +161,8 @@ withDefaults(defineProps<Props>(), {
   border: 1px solid var(--surface-border);
   color: var(--text-primary);
   font-weight: 500;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Fenced code — let Shiki / the parser own coloring; we only set the
@@ -175,6 +177,7 @@ withDefaults(defineProps<Props>(), {
   background: var(--surface-sunken);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
+  max-width: 100%;
   overflow-x: auto;
 }
 
@@ -183,6 +186,8 @@ withDefaults(defineProps<Props>(), {
   padding: 0;
   border: none;
   color: var(--text-primary);
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 /* Links — clean, dignified link styling in TTI maroon or subtle secondary, never loud blue */
@@ -219,7 +224,10 @@ withDefaults(defineProps<Props>(), {
    2px maroon underline on the header row, 1px sand border between
    rows. Body cells in Open Sans, mono content in JetBrains. */
 .tux-prose :deep(table) {
-  width: 100%;
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-collapse: collapse;
   margin: 1.25rem 0;
   font-size: 0.875rem;
