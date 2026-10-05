@@ -50,6 +50,7 @@ const catalogNav = (family: TuxCatalogFamily) =>
 interface HighLevelArea {
   id: string;
   label: string;
+  shortLabel?: string;
   icon: string;
   to: string;
   eyebrow?: string;
@@ -60,6 +61,7 @@ const highLevelAreas: HighLevelArea[] = [
   {
     id: "foundations",
     label: "Foundations",
+    shortLabel: "Foundations",
     icon: "lucide:palette",
     to: "/tokens",
     eyebrow: "Design Language",
@@ -68,6 +70,7 @@ const highLevelAreas: HighLevelArea[] = [
   {
     id: "components",
     label: "Component Lab",
+    shortLabel: "Components",
     icon: "lucide:blocks",
     to: "/components",
     eyebrow: "UI Primitives & Kits",
@@ -86,6 +89,7 @@ const highLevelAreas: HighLevelArea[] = [
   {
     id: "visualizations",
     label: "Data & Telemetry",
+    shortLabel: "Telemetry",
     icon: "lucide:chart-pie",
     to: "/visualizations",
     eyebrow: "BI & Visualization",
@@ -101,6 +105,7 @@ const highLevelAreas: HighLevelArea[] = [
   {
     id: "editorial",
     label: "Research Index",
+    shortLabel: "Research",
     icon: "lucide:newspaper",
     to: "/admin",
     eyebrow: "Publications & Releases",
@@ -109,6 +114,7 @@ const highLevelAreas: HighLevelArea[] = [
   {
     id: "docs",
     label: "Docs & SDKs",
+    shortLabel: "Docs",
     icon: "lucide:book-open",
     to: "/docs",
     eyebrow: "Guides & Architecture",
@@ -1006,7 +1012,7 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
         class="tti-shell-header sticky top-0 z-30"
         role="banner"
       >
-        <div class="px-4 sm:px-6 py-3 flex items-center gap-4">
+        <div class="px-2 sm:px-4 xl:px-6 py-2 sm:py-3 flex items-center gap-1 sm:gap-2 lg:gap-2.5 xl:gap-4">
           <UButton
             icon="lucide:menu"
             color="neutral"
@@ -1022,7 +1028,7 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
                line above the product name, the same rhythm consuming
                apps will use. `logoSize` is shrunk a hair (32px) so the
                header keeps the same vertical density it had before. -->
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 sm:gap-3 shrink-0">
             <TuxIdentity
               level="center"
               superhead="Texas A&M Transportation Institute"
@@ -1031,27 +1037,27 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
               :logo-size="32"
             />
             <!-- Version Switcher Dropdown -->
-            <div ref="versionDropdownRef" class="relative hidden sm:inline-block">
+            <div ref="versionDropdownRef" class="relative hidden sm:inline-block shrink-0">
               <button
                 type="button"
-                class="tux-version-switcher-btn inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono font-semibold bg-surface-sunken hover:bg-surface-raised border border-surface-border hover:border-brand-primary/40 text-text-secondary hover:text-text-primary transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-brand-primary"
+                class="tux-version-switcher-btn inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono font-semibold bg-surface-sunken hover:bg-surface-raised border border-surface-border hover:border-brand-primary/40 text-text-secondary hover:text-text-primary transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-brand-primary whitespace-nowrap"
                 :aria-expanded="versionMenuOpen"
                 aria-haspopup="true"
                 aria-label="Select system release version"
                 @click="versionMenuOpen = !versionMenuOpen"
               >
                 <span
-                  class="w-1.5 h-1.5 rounded-full"
+                  class="w-1.5 h-1.5 rounded-full shrink-0"
                   :class="selectedVersion === `v${pkgVersion}` ? 'bg-status-ok' : 'bg-status-warning animate-pulse'"
                 />
                 <span class="font-bold text-text-primary">{{ selectedVersion }}</span>
                 <span
-                  class="text-[9px] uppercase tracking-wide font-bold px-1 rounded"
+                  class="text-[9px] uppercase tracking-wide font-bold px-1 rounded hidden 2xl:inline"
                   :class="selectedVersion === `v${pkgVersion}` ? 'text-brand-primary bg-wash-brand-12' : 'text-amber-700 dark:text-amber-300 bg-amber-500/15'"
                 >
                   {{ selectedVersion === `v${pkgVersion}` ? 'latest' : 'simulated' }}
                 </span>
-                <UIcon name="lucide:chevron-down" class="w-3.5 h-3.5 text-text-muted transition-transform duration-200" :class="{ 'rotate-180': versionMenuOpen }" />
+                <UIcon name="lucide:chevron-down" class="w-3.5 h-3.5 text-text-muted transition-transform duration-200 shrink-0" :class="{ 'rotate-180': versionMenuOpen }" />
               </button>
 
               <!-- Dropdown Popover Menu -->
@@ -1127,15 +1133,15 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
           </div>
 
           <!-- Mobile/Compact Area Switcher (< lg) -->
-          <div class="lg:hidden relative flex items-center ml-2">
+          <div class="lg:hidden relative flex items-center ml-0.5 sm:ml-2 shrink-0">
             <select
               v-model="activeAreaId"
-              class="text-xs font-bold uppercase tracking-wider bg-surface-sunken border border-surface-border rounded-md px-2 py-1 text-brand-primary focus:outline-none focus:border-brand-primary font-mono cursor-pointer"
+              class="text-[11px] sm:text-xs font-bold uppercase tracking-wider bg-surface-sunken border border-surface-border rounded-md px-1 sm:px-2 py-1 text-brand-primary focus:outline-none focus:border-brand-primary font-mono cursor-pointer max-w-[95px] sm:max-w-none truncate"
               aria-label="Select work area"
               @change="navigateTo(currentArea.to)"
             >
               <option v-for="area in highLevelAreas" :key="area.id" :value="area.id">
-                {{ area.label }}
+                {{ area.shortLabel || area.label }}
               </option>
             </select>
           </div>
@@ -1143,7 +1149,7 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
           <!-- Desktop High-Level Area Switcher (lg+) with sliding indicator -->
           <nav
             ref="navContainerRef"
-            class="tux-top-nav hidden lg:flex items-center gap-1.5 ml-3 relative"
+            class="tux-top-nav hidden lg:flex items-center gap-1 xl:gap-1.5 ml-1 xl:ml-3 relative shrink-0"
             aria-label="Primary areas"
           >
             <!-- Sliding active pill highlight -->
@@ -1169,29 +1175,33 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
               :class="{ 'tux-top-nav-link--active': currentArea.id === area.id }"
               @click="activeAreaId = area.id; showAllAreasInSidebar = false"
             >
-              <UIcon :name="area.icon" class="w-3.5 h-3.5 mr-1" />
-              <span>{{ area.label }}</span>
+              <UIcon :name="area.icon" class="w-3.5 h-3.5 mr-1 shrink-0" />
+              <span class="hidden 2xl:inline">{{ area.label }}</span>
+              <span class="2xl:hidden">{{ area.shortLabel || area.label }}</span>
             </NuxtLink>
           </nav>
 
-          <div class="flex-1" />
+          <div class="flex-1 min-w-[8px]" />
 
           <!-- Multi-language code preference switcher -->
-          <TuxFrameworkSwitcher mode="compact" class="hidden md:inline-flex mr-2" />
+          <div class="hidden md:inline-flex items-center">
+            <TuxFrameworkSwitcher mode="compact" class="mr-1 sm:mr-2 shrink-0" />
+          </div>
 
           <!-- Utility Cluster with Quick Search Trigger -->
-          <TuxUtilityCluster current="tux">
+          <TuxUtilityCluster current="tux" class="shrink-0">
             <template #search>
               <button
                 type="button"
-                class="tux-header-search-btn hidden sm:inline-flex"
+                class="tux-header-search-btn inline-flex"
                 aria-label="Open command palette (Press ⌘K or /)"
                 title="Open command palette (Press ⌘K or /)"
                 @click="paletteRef?.open()"
               >
-                <UIcon name="lucide:search" class="w-3.5 h-3.5" />
-                <span class="tux-header-search-label">Quick search...</span>
-                <kbd class="tux-header-search-kbd">⌘K</kbd>
+                <UIcon name="lucide:search" class="w-3.5 h-3.5 shrink-0" />
+                <span class="tux-header-search-label hidden 2xl:inline">Quick search...</span>
+                <span class="tux-header-search-label hidden xl:inline 2xl:hidden">Search...</span>
+                <kbd class="tux-header-search-kbd hidden sm:inline shrink-0">⌘K</kbd>
               </button>
             </template>
           </TuxUtilityCluster>
@@ -1428,17 +1438,33 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
   z-index: 3;
   display: inline-flex;
   align-items: center;
-  padding: 0.375rem 0.75rem;
+  padding: 0.2rem 0.35rem;
   font-family: var(--font-bold);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--text-secondary);
   border-radius: var(--radius-sm);
   transition: color var(--motion-fast) var(--ease-standard);
   text-decoration: none;
   background: transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@media (min-width: 1280px) {
+  .tux-top-nav-link {
+    padding: 0.3125rem 0.6rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+  }
+}
+
+@media (min-width: 1536px) {
+  .tux-top-nav-link {
+    padding: 0.375rem 0.75rem;
+  }
 }
 
 .tux-top-nav-link:hover {
@@ -1464,8 +1490,8 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
 .tux-header-search-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.3125rem 0.625rem;
+  gap: 0.375rem;
+  padding: 0.3125rem 0.5rem;
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--text-muted);
@@ -1473,7 +1499,23 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all var(--motion-fast) var(--ease-standard);
+}
+
+@media (min-width: 1280px) {
+  .tux-header-search-btn {
+    gap: 0.5rem;
+    padding: 0.3125rem 0.625rem;
+  }
+}
+
+/* Collapse long institutional superhead on screens under 2xl (1536px) to avoid header crowding */
+@media (max-width: 1535px) {
+  .tti-shell-header :deep(.tux-identity__superhead) {
+    display: none;
+  }
 }
 
 .tux-header-search-btn:hover {

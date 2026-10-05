@@ -80,14 +80,14 @@ const menuItems = computed(() => [
       <UDropdownMenu :items="menuItems" :ui="{ content: 'w-64' }">
         <button
           type="button"
-          class="tux-framework-btn inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono font-semibold bg-surface-sunken border border-surface-border rounded-md text-text-primary hover:bg-surface-raised hover:border-brand-primary transition-colors cursor-pointer focus:outline-hidden"
+          class="tux-framework-btn inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono font-semibold bg-surface-sunken border border-surface-border rounded-md text-text-primary hover:bg-surface-raised hover:border-brand-primary transition-colors cursor-pointer focus:outline-hidden whitespace-nowrap shrink-0"
           :title="`Preferred code syntax: ${currentMeta.label} (click to switch)`"
           aria-label="Select preferred framework syntax"
         >
-          <UIcon :name="currentMeta.icon" class="w-3.5 h-3.5 text-brand-primary" />
-          <span class="hidden sm:inline font-sans text-xs font-semibold text-text-secondary">Code:</span>
-          <span class="font-bold text-text-primary">{{ currentMeta.shortLabel }}</span>
-          <UIcon name="lucide:chevron-down" class="w-3 h-3 text-text-muted ml-0.5" />
+          <UIcon :name="currentMeta.icon" class="w-3.5 h-3.5 text-brand-primary shrink-0" />
+          <span class="hidden xl:inline font-sans text-xs font-semibold text-text-secondary whitespace-nowrap">Code:</span>
+          <span class="font-bold text-text-primary whitespace-nowrap">{{ currentMeta.shortLabel }}</span>
+          <UIcon name="lucide:chevron-down" class="w-3 h-3 text-text-muted ml-0.5 shrink-0" />
         </button>
 
         <template #item-trailing="{ item }">

@@ -171,6 +171,8 @@ function toggleHighContrast() {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .tux-utility-cluster__theme {
@@ -200,6 +202,12 @@ function toggleHighContrast() {
 .tux-utility-cluster__hc-btn--active:hover {
   background: var(--brand-primary-deep);
   color: var(--neutral-0);
+}
+
+@media (max-width: 639px) {
+  .tux-utility-cluster__hc-btn {
+    display: none !important;
+  }
 }
 
 @media (forced-colors: active) {
