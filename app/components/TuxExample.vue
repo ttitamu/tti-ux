@@ -613,7 +613,7 @@ async function copyActive() {
 </script>
 
 <template>
-  <div class="tux-example rounded-md border border-surface-border overflow-hidden">
+  <div class="tux-example rounded-md border border-surface-border overflow-hidden min-w-0 max-w-full">
     <div
       v-if="title"
       class="px-4 py-2 bg-surface-sunken border-b border-surface-border text-xs font-semibold uppercase text-text-secondary"
@@ -624,12 +624,12 @@ async function copyActive() {
 
     <div
       ref="previewRef"
-      :class="['tux-example__preview bg-surface-raised', previewPadding]"
+      :class="['tux-example__preview bg-surface-raised min-w-0 max-w-full overflow-x-auto', previewPadding]"
     >
       <slot />
     </div>
 
-    <div class="flex items-center border-t border-surface-border bg-surface-sunken overflow-x-auto">
+    <div class="flex items-center border-t border-surface-border bg-surface-sunken overflow-x-auto min-w-0 max-w-full">
       <button
         v-for="t in tabs"
         :key="t.id"
@@ -659,21 +659,21 @@ async function copyActive() {
       </button>
     </div>
 
-    <div class="tux-example__code bg-surface-sunken">
+    <div class="tux-example__code bg-surface-sunken min-w-0 max-w-full overflow-hidden">
       <ClientOnly v-if="activeTab === 'html'">
         <!-- v-html is safe: `highlightedCode` is Shiki SSR output of
              code samples authored in the repo, not user input. -->
         <!-- eslint-disable-next-line vue/no-v-html -->
-        <div v-if="highlightedCode" class="shiki-wrap" v-html="highlightedCode" />
-        <pre v-else class="m-0 p-4 text-xs font-mono overflow-auto max-h-96"><code>{{ rendered || "(awaiting mount)" }}</code></pre>
+        <div v-if="highlightedCode" class="shiki-wrap min-w-0 max-w-full overflow-x-auto" v-html="highlightedCode" />
+        <pre v-else class="m-0 p-4 text-xs font-mono overflow-auto max-h-96 max-w-full"><code>{{ rendered || "(awaiting mount)" }}</code></pre>
         <template #fallback>
           <pre class="m-0 p-4 text-xs font-mono text-text-muted">Loading rendered HTML…</pre>
         </template>
       </ClientOnly>
-      <div v-else>
+      <div v-else class="min-w-0 max-w-full overflow-hidden">
         <!-- eslint-disable-next-line vue/no-v-html -->
-        <div v-if="highlightedCode" class="shiki-wrap" v-html="highlightedCode" />
-        <pre v-else class="m-0 p-4 text-xs font-mono overflow-auto max-h-96"><code>{{ activeCode }}</code></pre>
+        <div v-if="highlightedCode" class="shiki-wrap min-w-0 max-w-full overflow-x-auto" v-html="highlightedCode" />
+        <pre v-else class="m-0 p-4 text-xs font-mono overflow-auto max-h-96 max-w-full"><code>{{ activeCode }}</code></pre>
       </div>
     </div>
   </div>
@@ -683,6 +683,11 @@ async function copyActive() {
 /* Shiki emits `<pre class="shiki shiki-themes ..." style="background-color:..">`.
    We let it keep its color scheme (that's the whole point), but pin sizing
    and scroll behavior to match the rest of the style guide. */
+.tux-example__code .shiki-wrap {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
 .tux-example__code .shiki-wrap pre.shiki {
   margin: 0;
   padding: 1rem;
@@ -690,5 +695,6 @@ async function copyActive() {
   line-height: 1.6;
   max-height: 24rem;
   overflow: auto;
+  max-width: 100%;
 }
 </style>

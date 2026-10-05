@@ -388,7 +388,7 @@ async function copyTag(compName: string, e: Event) {
     </div>
 
     <!-- VIEW 1: Rich Card Grid -->
-    <section v-else-if="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <section v-else-if="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       <TuxCard
         v-for="c in filteredComponents"
         :key="c.name"
@@ -434,9 +434,9 @@ async function copyTag(compName: string, e: Event) {
         </div>
 
         <!-- Footer: Target Ecosystem Pills & Copy Tag Button -->
-        <div class="mt-4 pt-3 border-t border-surface-border/60 flex items-center justify-between gap-2">
+        <div class="mt-4 pt-3 border-t border-surface-border/60 flex items-center justify-between gap-2 flex-wrap">
           <!-- Supported Targets Badges -->
-          <div class="flex items-center gap-1 text-[11px] font-mono text-text-muted" title="Synchronized across Vue, React, Custom Elements, C#/.NET, Python, PHP, Swift, and Kotlin">
+          <div class="flex items-center gap-1 text-[11px] font-mono text-text-muted flex-wrap" title="Synchronized across Vue, React, Custom Elements, C#/.NET, Python, PHP, Swift, and Kotlin">
             <span class="px-1.5 py-0.5 rounded bg-surface-sunken border border-surface-border text-[10px]">Vue</span>
             <span class="px-1.5 py-0.5 rounded bg-surface-sunken border border-surface-border text-[10px]">React</span>
             <span class="px-1.5 py-0.5 rounded bg-surface-sunken border border-surface-border text-[10px]">.NET</span>

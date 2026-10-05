@@ -1012,7 +1012,7 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
         class="tti-shell-header sticky top-0 z-30"
         role="banner"
       >
-        <div class="px-2 sm:px-4 xl:px-6 py-2 sm:py-3 flex items-center gap-1 sm:gap-2 lg:gap-2.5 xl:gap-4">
+        <div class="px-2 sm:px-4 lg:px-3 xl:px-6 py-2 sm:py-3 flex items-center gap-1 sm:gap-2 lg:gap-1.5 xl:gap-4">
           <UButton
             icon="lucide:menu"
             color="neutral"
@@ -1149,7 +1149,7 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
           <!-- Desktop High-Level Area Switcher (lg+) with sliding indicator -->
           <nav
             ref="navContainerRef"
-            class="tux-top-nav hidden lg:flex items-center gap-1 xl:gap-1.5 ml-1 xl:ml-3 relative shrink-0"
+            class="tux-top-nav hidden lg:flex items-center gap-0.5 xl:gap-1.5 ml-0.5 xl:ml-3 relative shrink-0"
             aria-label="Primary areas"
           >
             <!-- Sliding active pill highlight -->
@@ -1438,9 +1438,9 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
   z-index: 3;
   display: inline-flex;
   align-items: center;
-  padding: 0.2rem 0.35rem;
+  padding: 0.2rem 0.25rem;
   font-family: var(--font-bold);
-  font-size: 0.7rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;

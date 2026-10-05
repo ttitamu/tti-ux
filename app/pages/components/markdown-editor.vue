@@ -49,7 +49,7 @@ const sampleVue = computed(() => `<TuxMarkdownEditor
         </div>
 
         <!-- Controls Toolbar -->
-        <div class="flex items-center gap-3 text-xs bg-surface-sunken p-2 rounded-lg border border-surface-border">
+        <div class="flex items-center gap-2 sm:gap-3 text-xs bg-surface-sunken p-2 rounded-lg border border-surface-border flex-wrap">
           <label class="flex items-center gap-1.5 cursor-pointer text-text-secondary hover:text-text-primary">
             <input v-model="previewEnabled" type="checkbox" class="rounded border-surface-border text-brand-primary" />
             <span>Enable Preview</span>

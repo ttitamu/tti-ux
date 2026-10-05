@@ -355,7 +355,7 @@ const generatedCliCommand = computed(() => {
 </script>
 
 <template>
-  <div class="tux-playground rounded-lg border border-surface-border bg-surface-page overflow-hidden shadow-xs">
+  <div class="tux-playground rounded-lg border border-surface-border bg-surface-page overflow-hidden shadow-xs min-w-0 max-w-full">
     <!-- Header with Eyebrow, Title, and Action Toolbar -->
     <div class="px-5 py-3.5 bg-surface-sunken border-b border-surface-border flex items-center justify-between gap-4 flex-wrap">
       <div>

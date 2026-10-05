@@ -92,11 +92,11 @@ const props = withDefaults(defineProps<Props>(), {
     </div>
 
     <!-- Two-Tone Rule Variant (tti.tamu.edu/capabilities parity) -->
-    <div v-else-if="props.variant === 'two-tone-rule'" class="relative">
-      <div class="flex items-center gap-3 sm:gap-4 w-full">
+    <div v-else-if="props.variant === 'two-tone-rule'" class="relative min-w-0 max-w-full">
+      <div class="flex items-center gap-2 sm:gap-4 w-full min-w-0">
         <component
           :is="`h${props.level}`"
-          class="uppercase tracking-tight text-brand-primary whitespace-nowrap flex-shrink-0 flex items-baseline gap-2 font-display"
+          class="uppercase tracking-tight text-brand-primary sm:whitespace-nowrap flex items-baseline flex-wrap sm:flex-nowrap gap-1.5 sm:gap-2 font-display min-w-0"
           :class="{
             'text-2xl md:text-3xl': props.level === 1,
             'text-xl md:text-2xl': props.level === 2,
@@ -108,7 +108,7 @@ const props = withDefaults(defineProps<Props>(), {
           <span v-if="props.secondaryTitle" class="font-light text-brand-primary/80">{{ props.secondaryTitle }}</span>
         </component>
         <!-- Trailing Warm Gold Keyline Rule -->
-        <div class="flex-1 h-[2px] sm:h-[3px] bg-brand-accent" role="presentation" />
+        <div class="flex-1 min-w-[16px] h-[2px] sm:h-[3px] bg-brand-accent shrink-0 sm:shrink" role="presentation" />
       </div>
     </div>
 

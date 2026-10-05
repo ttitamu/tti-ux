@@ -189,7 +189,7 @@ function exportHealthReport() {
         and living showcase documentation.
       </TuxPageHeader>
 
-      <div class="flex items-center gap-2 pt-2 shrink-0">
+      <div class="flex items-center gap-2 pt-2 flex-wrap sm:shrink-0">
         <button
           type="button"
           class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-mono font-medium rounded-lg border border-surface-border bg-surface-raised hover:bg-surface-sunken text-text-primary transition-colors cursor-pointer"
@@ -287,12 +287,12 @@ function exportHealthReport() {
 
     <!-- Health Quality Tier Distribution -->
     <div class="p-5 rounded-xl border border-surface-border bg-surface-sunken/40 space-y-3">
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-4">
         <div class="flex items-center gap-2">
           <UIcon name="lucide:gauge" class="w-4 h-4 text-brand-primary" />
           <h2 class="text-sm font-semibold text-text-primary">System Quality Distribution</h2>
         </div>
-        <span class="text-xs text-text-muted font-mono">Weighted composite score (Showcase 30% · Test 35% · Ports 20% · Metadata 15%)</span>
+        <span class="text-xs text-text-muted font-mono leading-relaxed">Weighted composite score (Showcase 30% · Test 35% · Ports 20% · Metadata 15%)</span>
       </div>
 
       <!-- Segmented Bar -->
