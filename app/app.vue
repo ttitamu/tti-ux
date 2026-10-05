@@ -5,7 +5,14 @@
 // Version surfaced in the header pill + welcome page. Sourced from
 // package.json so a `npm version` bump propagates without code edits.
 import pkg from "../package.json";
-import { tuxCatalog, catalogByCategory, catalogByVizCategory, type TuxCatalogFamily } from "./utils/tuxCatalog";
+import {
+  tuxCatalog,
+  catalogByCategory,
+  catalogByVizCategory,
+  type TuxCatalogFamily,
+  TUX_COMPONENT_CATEGORIES,
+  TUX_VIZ_CATEGORIES,
+} from "./utils/tuxCatalog";
 import { tuxTokensCatalog } from "./utils/tuxTokensCatalog";
 import type { Command, CommandGroup } from "./components/TuxCommandPalette.vue";
 
@@ -278,6 +285,147 @@ function handleGlobalClick(event: MouseEvent) {
     versionMenuOpen.value = false;
   }
 }
+
+interface Crumb {
+  label: string;
+  to?: string;
+  href?: string;
+}
+
+const breadcrumbTrail = computed<Crumb[]>(() => {
+  if (Array.isArray(route.meta?.breadcrumbs) && route.meta.breadcrumbs.length > 0) {
+    return route.meta.breadcrumbs as Crumb[];
+  }
+
+  const p = route.path;
+  if (p === "/" || !p) {
+    return [];
+  }
+
+  const crumbs: Crumb[] = [{ label: "Home", to: "/" }];
+
+  if (p.startsWith("/components")) {
+    if (p === "/components") {
+      crumbs.push({ label: "Component Lab" });
+      return crumbs;
+    }
+    crumbs.push({ label: "Component Lab", to: "/components" });
+
+    const entry = tuxCatalog.find((e) => e.to === p);
+    if (entry) {
+      if (entry.category) {
+        const catMeta = TUX_COMPONENT_CATEGORIES.find((c) => c.id === entry.category);
+        if (catMeta) {
+          crumbs.push({
+            label: catMeta.label,
+            to: `/components?cat=${catMeta.id}`,
+          });
+        }
+      }
+      crumbs.push({ label: entry.name });
+      return crumbs;
+    }
+
+    const slug = p.replace("/components/", "").replace(/-/g, " ");
+    const formatted = slug.charAt(0).toUpperCase() + slug.slice(1);
+    crumbs.push({ label: formatted });
+    return crumbs;
+  }
+
+  if (p.startsWith("/visualizations") || p.startsWith("/reports")) {
+    const isReports = p.startsWith("/reports");
+    const parentTo = isReports ? "/reports" : "/visualizations";
+    const parentLabel = isReports ? "Reports & Briefs" : "Data & Telemetry";
+
+    if (p === parentTo) {
+      crumbs.push({ label: parentLabel });
+      return crumbs;
+    }
+    crumbs.push({ label: parentLabel, to: parentTo });
+
+    const entry = tuxCatalog.find((e) => e.to === p);
+    if (entry) {
+      if (entry.vizCategory) {
+        const vizMeta = TUX_VIZ_CATEGORIES.find((v) => v.id === entry.vizCategory);
+        if (vizMeta) {
+          crumbs.push({ label: vizMeta.label });
+        }
+      }
+      crumbs.push({ label: entry.name });
+      return crumbs;
+    }
+
+    const slug = p.split("/").filter(Boolean).pop() || "";
+    const formatted = slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+    crumbs.push({ label: formatted });
+    return crumbs;
+  }
+
+  if (p.startsWith("/tokens") || p.startsWith("/design/")) {
+    crumbs.push({ label: "Foundations", to: "/tokens" });
+    if (p === "/tokens") {
+      return crumbs;
+    }
+    if (p === "/contrast-audit") {
+      crumbs.push({ label: "Contrast Audit (WCAG AAA)" });
+      return crumbs;
+    }
+    const slug = p.split("/").filter(Boolean).pop() || "";
+    const formatted = slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+    crumbs.push({ label: formatted });
+    return crumbs;
+  }
+
+  if (p.startsWith("/news/") || p.startsWith("/admin") || p.startsWith("/desk") || p.startsWith("/p/")) {
+    crumbs.push({ label: "Research Index", to: "/admin" });
+    if (p === "/admin") {
+      return crumbs;
+    }
+    const slug = p.split("/").filter(Boolean).pop() || "";
+    const formatted = slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+    crumbs.push({ label: formatted });
+    return crumbs;
+  }
+
+  if (p.startsWith("/docs") || p.startsWith("/getting-started") || p.startsWith("/install") || p.startsWith("/changelog")) {
+    crumbs.push({ label: "Docs & SDKs", to: "/docs" });
+    if (p === "/docs") {
+      return crumbs;
+    }
+    const slug = p.split("/").filter(Boolean).pop() || "";
+    const formatted = slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+    crumbs.push({ label: formatted });
+    return crumbs;
+  }
+
+  crumbs.push({ label: currentArea.value.label, to: currentArea.value.to });
+  const lastSeg = p.split("/").filter(Boolean).pop() || "";
+  if (lastSeg) {
+    const formatted = lastSeg.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+    crumbs.push({ label: formatted });
+  }
+  return crumbs;
+});
+
+const shouldShowBreadcrumbs = computed(() => {
+  if (route.path === "/" || !route.path) return false;
+  if (route.meta?.layout === false) return false;
+  if (route.meta?.hideBreadcrumbs || route.meta?.hideGlobalBreadcrumbs) return false;
+
+  const localBreadcrumbPrefixes = [
+    "/install",
+    "/docs/",
+    "/changelog",
+    "/p/",
+    "/examples/",
+    "/design/",
+  ];
+  if (localBreadcrumbPrefixes.some((prefix) => route.path.startsWith(prefix))) {
+    return false;
+  }
+
+  return breadcrumbTrail.value.length > 1;
+});
 
 const showAllAreasInSidebar = ref(false);
 
@@ -813,6 +961,11 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
     </template>
 
     <div v-else class="min-h-screen flex flex-col bg-surface-eggshell text-text-primary">
+      <!-- Accessible Skip to Content Link (WCAG 2.4.1) -->
+      <a href="#main-content" class="tux-skip-link">
+        Skip to main content
+      </a>
+
       <!-- Historical Visual Era Simulation Notice Banner -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
@@ -1103,7 +1256,7 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
           />
         </div>
 
-        <main class="flex-1 min-w-0">
+        <main id="main-content" class="flex-1 min-w-0" tabindex="-1">
           <div
             :class="[
               isFullWidth
@@ -1111,6 +1264,14 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
                 : 'w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8',
             ]"
           >
+            <!-- Global Breadcrumbs for Deep Navigation Trail -->
+            <div
+              v-if="shouldShowBreadcrumbs"
+              class="tux-shell-breadcrumbs mb-4 sm:mb-6"
+            >
+              <TuxBreadcrumbs :trail="breadcrumbTrail" />
+            </div>
+
             <NuxtLayout>
               <NuxtPage />
             </NuxtLayout>
@@ -1373,5 +1534,36 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
   color: var(--brand-accent);
   background: color-mix(in srgb, var(--brand-accent) 12%, transparent);
   border-color: color-mix(in srgb, var(--brand-accent) 22%, transparent);
+}
+
+/* Accessible Skip to Main Content Link (WCAG 2.4.1) */
+.tux-skip-link {
+  position: fixed;
+  top: -9999px;
+  left: 1rem;
+  z-index: 1000;
+  background-color: var(--brand-primary);
+  color: var(--neutral-0);
+  padding: 0.625rem 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  border: 2px solid var(--neutral-0);
+  transition: top var(--motion-fast) var(--ease-standard);
+}
+
+.tux-skip-link:focus {
+  top: 1rem;
+  outline: 3px solid var(--focus-ring-outer);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Shell breadcrumb container spacing */
+.tux-shell-breadcrumbs {
+  padding-bottom: 0.5rem;
 }
 </style>

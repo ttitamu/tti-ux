@@ -5,8 +5,20 @@ import { useTuxClipboard } from "../../composables/useTuxClipboard";
 
 useHead({ title: "Components · TUX" });
 
+const route = useRoute();
 const searchQuery = ref("");
 const selectedCategory = ref<string>("all");
+
+watch(
+  () => route.query.cat,
+  (cat) => {
+    if (typeof cat === "string" && cat.length > 0) {
+      selectedCategory.value = cat;
+    }
+  },
+  { immediate: true },
+);
+
 const selectedEcosystem = ref<"all" | "web" | "mobile" | "backend">("all");
 const selectedTier = ref<"all" | "stable" | "beta">("all");
 const viewMode = ref<"grid" | "table" | "preview">("grid");

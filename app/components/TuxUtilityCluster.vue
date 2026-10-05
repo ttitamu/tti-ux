@@ -40,6 +40,8 @@ interface Props {
   hideSwitcher?: boolean;
   /** Hide the built-in theme toggle (portal renders its own). */
   hideTheme?: boolean;
+  /** Hide the built-in high-contrast toggle. Defaults to false. */
+  hideHighContrast?: boolean;
   /** TuxUserMenu passthrough. Omit (and omit #identity) on
    *  unauthenticated products. */
   userMenu?: {
@@ -59,6 +61,7 @@ const props = withDefaults(defineProps<Props>(), {
   entitled: undefined,
   hideSwitcher: false,
   hideTheme: false,
+  hideHighContrast: false,
   userMenu: undefined,
 });
 
@@ -70,19 +73,43 @@ const { apps, heading, footerText } = useTuxApps({
   entitled: () => props.entitled,
 });
 
-// Theme toggle — tti ↔ tti-dark only (ADR-0006 keeps tti-hc out of
-// the casual cycle). colorMode is repurposed as the theme selector
-// (dataValue: "theme" in the layer's nuxt.config).
+// Theme toggle — tti ↔ tti-dark and accessible WCAG AAA tti-hc.
 const colorMode = useColorMode();
 const isDark = computed(() => colorMode.preference === "tti-dark");
+const isHighContrast = computed(() => colorMode.preference === "tti-hc");
+const lastNormalTheme = ref<"tti" | "tti-dark">("tti");
+
 const themeIcon = computed(() => (isDark.value ? "lucide:sun" : "lucide:moon"));
 const themeLabel = computed(() =>
   isDark.value ? "Switch to light theme" : "Switch to dark theme",
 );
+const hcLabel = computed(() =>
+  isHighContrast.value ? "Exit high-contrast mode" : "Enable WCAG AAA high-contrast mode",
+);
+
 const themeAnnouncement = ref("");
+
 function toggleTheme() {
+  if (isHighContrast.value) {
+    colorMode.preference = isDark.value ? "tti" : "tti-dark";
+    themeAnnouncement.value = isDark.value ? "Theme: light" : "Theme: dark";
+    return;
+  }
   colorMode.preference = isDark.value ? "tti" : "tti-dark";
-  themeAnnouncement.value = isDark.value ? "Theme: dark" : "Theme: light";
+  themeAnnouncement.value = isDark.value ? "Theme: light" : "Theme: dark";
+}
+
+function toggleHighContrast() {
+  if (isHighContrast.value) {
+    colorMode.preference = lastNormalTheme.value;
+    themeAnnouncement.value = `Theme: ${lastNormalTheme.value === "tti-dark" ? "dark" : "light"}`;
+  } else {
+    if (colorMode.preference === "tti" || colorMode.preference === "tti-dark") {
+      lastNormalTheme.value = colorMode.preference;
+    }
+    colorMode.preference = "tti-hc";
+    themeAnnouncement.value = "Theme: high-contrast (WCAG AAA)";
+  }
 }
 </script>
 
@@ -93,9 +120,23 @@ function toggleTheme() {
 
     <ClientOnly v-if="!hideTheme">
       <button
+        v-if="!hideHighContrast"
+        type="button"
+        class="tux-utility-cluster__theme tux-utility-cluster__hc-btn"
+        :class="{ 'tux-utility-cluster__hc-btn--active': isHighContrast }"
+        :aria-label="hcLabel"
+        :aria-pressed="isHighContrast"
+        :title="hcLabel"
+        @click="toggleHighContrast"
+      >
+        <Icon name="lucide:accessibility" :size="16" />
+      </button>
+
+      <button
         type="button"
         class="tux-utility-cluster__theme"
         :aria-label="themeLabel"
+        :title="themeLabel"
         @click="toggleTheme"
       >
         <Icon :name="themeIcon" :size="16" />
@@ -150,6 +191,15 @@ function toggleTheme() {
 .tux-utility-cluster__theme:hover {
   background: color-mix(in srgb, var(--text-primary) 8%, transparent);
   color: var(--text-primary);
+}
+
+.tux-utility-cluster__hc-btn--active {
+  background: var(--brand-primary);
+  color: var(--neutral-0);
+}
+.tux-utility-cluster__hc-btn--active:hover {
+  background: var(--brand-primary-deep);
+  color: var(--neutral-0);
 }
 
 @media (forced-colors: active) {

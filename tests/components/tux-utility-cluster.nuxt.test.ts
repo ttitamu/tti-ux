@@ -45,4 +45,22 @@ describe("TuxUtilityCluster Component", () => {
     const violations = await runComponentAxe(wrapper.element);
     expect(violations).toEqual([]);
   });
+
+  it("supports toggling WCAG AAA high-contrast mode", async () => {
+    const wrapper = await mountSuspended(TuxUtilityCluster, {
+      props: {
+        current: "tti-ux",
+      },
+    });
+
+    const hcBtn = wrapper.find(".tux-utility-cluster__hc-btn");
+    expect(hcBtn.exists()).toBe(true);
+    expect(hcBtn.attributes("aria-label")).toContain("high-contrast");
+
+    await hcBtn.trigger("click");
+    expect(wrapper.find(".tux-utility-cluster__hc-btn--active").exists()).toBe(true);
+
+    const violations = await runComponentAxe(wrapper.element);
+    expect(violations).toEqual([]);
+  });
 });
