@@ -15,7 +15,15 @@
  */
 import { computed, onMounted } from "vue";
 
-export type TuxFrameworkId = "vue" | "react" | "wc" | "razor";
+export type TuxFrameworkId =
+  | "vue"
+  | "react"
+  | "wc"
+  | "razor"
+  | "python"
+  | "php"
+  | "swift"
+  | "kotlin";
 
 export interface TuxFrameworkMeta {
   id: TuxFrameworkId;
@@ -43,7 +51,7 @@ export const TUX_FRAMEWORKS: readonly TuxFrameworkMeta[] = [
     shortLabel: "React",
     badge: "JSX / TSX",
     icon: "lucide:atom",
-    description: "Gutenberg blocks, Kadence & React web apps",
+    description: "React 19, Gutenberg blocks & Kadence",
     targetPackage: "@tti/tti-ux-react",
   },
   {
@@ -58,11 +66,47 @@ export const TUX_FRAMEWORKS: readonly TuxFrameworkMeta[] = [
   {
     id: "razor",
     label: ".NET Razor / Blazor",
-    shortLabel: ".NET",
+    shortLabel: ".NET / C#",
     badge: "C# / Razor",
     icon: "lucide:hash",
     description: "ASP.NET Core Tag Helpers & Blazor components",
     targetPackage: "Tti.Tux.AspNetCore / Tti.Tux.Blazor",
+  },
+  {
+    id: "python",
+    label: "Python (Streamlit/Dash)",
+    shortLabel: "Python",
+    badge: "Python 3.10+",
+    icon: "lucide:terminal",
+    description: "Python dataclasses, Streamlit & Dash components",
+    targetPackage: "tti-ux-python",
+  },
+  {
+    id: "php",
+    label: "PHP / WordPress",
+    shortLabel: "PHP",
+    badge: "PHP 8.2+",
+    icon: "lucide:file-type-2",
+    description: "PHP 8.2+ classes, theme.json & WordPress blocks",
+    targetPackage: "tti-ux-php",
+  },
+  {
+    id: "swift",
+    label: "SwiftUI / iOS",
+    shortLabel: "Swift",
+    badge: "SwiftUI",
+    icon: "lucide:smartphone",
+    description: "Swift 5.9+ SwiftUI Views & Design Tokens",
+    targetPackage: "TtiUxSwift",
+  },
+  {
+    id: "kotlin",
+    label: "Jetpack Compose",
+    shortLabel: "Kotlin",
+    badge: "Compose",
+    icon: "lucide:smartphone-charging",
+    description: "Kotlin 2.0+ Jetpack Compose Composables",
+    targetPackage: "edu.tamu.tti.ux",
   },
 ] as const;
 

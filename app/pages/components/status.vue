@@ -2,10 +2,97 @@
 import tuxStatusSource from "~/components/TuxStatus.vue?raw";
 import tuxOpsCss from "../../../kit/css/tux-ops.css?raw";
 import { TUX_OPS_STATES } from "../../utils/tux-ops";
+import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
 
 useHead({ title: "TuxStatus · TUX" });
 
 const states = TUX_OPS_STATES;
+
+const statusControls: TuxPropControl[] = [
+  {
+    prop: "state",
+    label: "Operational State",
+    type: "select",
+    options: ["ok", "warning", "unknown", "critical", "pending", "maintenance"],
+    defaultValue: "ok",
+    description: "System health state ramp",
+  },
+  {
+    prop: "kind",
+    label: "Display Kind",
+    type: "select",
+    options: [
+      { label: "Pill Chip", value: "chip" },
+      { label: "Text Label", value: "text" },
+      { label: "Indicator Dot", value: "dot" },
+    ],
+    defaultValue: "chip",
+  },
+  {
+    prop: "acked",
+    label: "Acknowledged Incident",
+    type: "boolean",
+    defaultValue: false,
+    description: "Sinks chip fill indicating active incident triage",
+  },
+  {
+    prop: "label",
+    label: "Custom Label Override",
+    type: "text",
+    defaultValue: "",
+  },
+];
+
+const statusPresets: TuxPlaygroundPreset[] = [
+  {
+    name: "healthy-production",
+    label: "Production Operational",
+    description: "Standard OK operational state for healthy services",
+    icon: "lucide:check-circle-2",
+    values: {
+      state: "ok",
+      kind: "chip",
+      acked: false,
+      label: "",
+    },
+  },
+  {
+    name: "critical-outage",
+    label: "Critical Outage",
+    description: "High-priority critical alert requiring immediate response",
+    icon: "lucide:alert-octagon",
+    values: {
+      state: "critical",
+      kind: "chip",
+      acked: false,
+      label: "",
+    },
+  },
+  {
+    name: "triage-acked",
+    label: "Incident Acknowledged",
+    description: "Active incident currently being addressed by engineering",
+    icon: "lucide:clock",
+    values: {
+      state: "critical",
+      kind: "chip",
+      acked: true,
+      label: "ACKNOWLEDGED",
+    },
+  },
+  {
+    name: "scheduled-window",
+    label: "Maintenance Window",
+    description: "Scheduled downtime or system update in progress",
+    icon: "lucide:wrench",
+    values: {
+      state: "maintenance",
+      kind: "chip",
+      acked: false,
+      label: "MAINT",
+    },
+  },
+];
 
 const chipVue = `<tux-status state="ok" />
 <tux-status state="warning" />
@@ -42,6 +129,32 @@ const overlayVue = `<!-- Consumer markup you do not own. Map onto TUX classes. -
       (<code>kit/css/tux-ops.css</code>), the same way charts
       expose a Power BI tab.
     </TuxPageHeader>
+
+    <!-- Interactive Props Workbench -->
+    <section>
+      <TuxPlayground
+        tag="tux-status"
+        component-name="TuxStatus"
+        title="TuxStatus Workbench"
+        eyebrow="Interactive Component Playground"
+        :controls="statusControls"
+        :presets="statusPresets"
+      >
+        <template #default="{ values }">
+          <div class="flex items-center gap-3">
+            <TuxStatus
+              :state="values.state"
+              :kind="values.kind"
+              :acked="values.acked"
+              :label="values.label || undefined"
+            />
+            <span class="text-xs font-mono text-text-secondary">
+              service: sensor-feed-04.tti.tamu.edu
+            </span>
+          </div>
+        </template>
+      </TuxPlayground>
+    </section>
 
     <section>
       <p class="eyebrow">ramp</p>

@@ -1023,6 +1023,9 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
 
           <div class="flex-1" />
 
+          <!-- Multi-language code preference switcher -->
+          <TuxFrameworkSwitcher mode="compact" class="hidden md:inline-flex mr-2" />
+
           <!-- Utility Cluster with Quick Search Trigger -->
           <TuxUtilityCluster current="tux">
             <template #search>

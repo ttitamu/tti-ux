@@ -30,6 +30,14 @@ interface Props {
   wc?: string;
   /** Optional Razor / C# tag helper code (auto-derived from vue if omitted). */
   razor?: string;
+  /** Optional Python code (auto-derived from vue if omitted). */
+  python?: string;
+  /** Optional PHP code (auto-derived from vue if omitted). */
+  php?: string;
+  /** Optional Swift code (auto-derived from vue if omitted). */
+  swift?: string;
+  /** Optional Kotlin code (auto-derived from vue if omitted). */
+  kotlin?: string;
   /** Optional component source SFC to expose in a `Source` tab. */
   source?: string;
   /** Optional drop-in CSS (overlay class API). Shown in a `CSS` tab. */
@@ -48,13 +56,29 @@ const props = withDefaults(defineProps<Props>(), {
   react: undefined,
   wc: undefined,
   razor: undefined,
+  python: undefined,
+  php: undefined,
+  swift: undefined,
+  kotlin: undefined,
   source: undefined,
   css: undefined,
   powerbi: undefined,
   title: undefined,
 });
 
-type Tab = "vue" | "react" | "wc" | "razor" | "html" | "css" | "source" | "powerbi";
+type Tab =
+  | "vue"
+  | "react"
+  | "wc"
+  | "razor"
+  | "python"
+  | "php"
+  | "swift"
+  | "kotlin"
+  | "html"
+  | "css"
+  | "source"
+  | "powerbi";
 
 const { framework, setFramework } = useTuxFramework();
 const activeTab = ref<Tab>("vue");
@@ -172,9 +196,178 @@ ${tagHelper.trim()}
 ${blazor.trim()}`;
 }
 
+function deriveSwift(vue: string): string {
+  if (!vue) return "";
+  const components = extractTuxComponents(vue);
+  const mainComp = components[0] || "TuxComponent";
+
+  const attrs: string[] = [];
+  const attrMatches = vue.matchAll(/([:@]?)([a-zA-Z0-9_-]+)="([^"]*)"/g);
+  for (const m of attrMatches) {
+    const isBound = m[1] === ":";
+    const name = m[2];
+    const val = m[3];
+    if (name === "class" || name === "style") continue;
+    const camel = name.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
+    if (isBound) {
+      if (val === "true" || val === "false") {
+        attrs.push(`${camel}: ${val}`);
+      } else if (!isNaN(Number(val))) {
+        attrs.push(`${camel}: ${val}`);
+      } else {
+        attrs.push(`${camel}: .${val.replace(/['"]/g, "")}`);
+      }
+    } else {
+      attrs.push(`${camel}: "${val}"`);
+    }
+  }
+
+  const textMatch = vue.match(/>([^<]+)<\//);
+  const innerText = textMatch ? textMatch[1].trim() : "";
+  const attrStr = attrs.length > 0 ? `(\n    ${attrs.join(",\n    ")}\n)` : "()";
+
+  const body = innerText
+    ? `${mainComp}${attrStr} {\n    Text("${innerText}")\n}`
+    : `${mainComp}${attrStr}`;
+
+  return `// SwiftUI · TtiUxSwift
+import SwiftUI
+import TtiUxSwift
+
+struct DemoView: View {
+    var body: some View {
+        ${body.split("\n").join("\n        ")}
+    }
+}`;
+}
+
+function deriveKotlin(vue: string): string {
+  if (!vue) return "";
+  const components = extractTuxComponents(vue);
+  const mainComp = components[0] || "TuxComponent";
+
+  const attrs: string[] = [];
+  const attrMatches = vue.matchAll(/([:@]?)([a-zA-Z0-9_-]+)="([^"]*)"/g);
+  for (const m of attrMatches) {
+    const isBound = m[1] === ":";
+    const name = m[2];
+    const val = m[3];
+    if (name === "class" || name === "style") continue;
+    const camel = name.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
+    if (isBound) {
+      if (val === "true" || val === "false") {
+        attrs.push(`${camel} = ${val}`);
+      } else if (!isNaN(Number(val))) {
+        attrs.push(`${camel} = ${val}`);
+      } else {
+        attrs.push(`${camel} = "${val.replace(/['"]/g, "")}"`);
+      }
+    } else {
+      attrs.push(`${camel} = "${val}"`);
+    }
+  }
+
+  const textMatch = vue.match(/>([^<]+)<\//);
+  const innerText = textMatch ? textMatch[1].trim() : "";
+  const attrStr = attrs.length > 0 ? `(\n    ${attrs.join(",\n    ")}\n)` : "()";
+
+  const body = innerText
+    ? `${mainComp}${attrStr} {\n    Text("${innerText}")\n}`
+    : `${mainComp}${attrStr}`;
+
+  return `// Jetpack Compose · edu.tamu.tti.ux
+import androidx.compose.runtime.Composable
+import androidx.compose.material3.Text
+import edu.tamu.tti.ux.components.${mainComp}
+
+@Composable
+fun DemoScreen() {
+    ${body.split("\n").join("\n    ")}
+}`;
+}
+
+function derivePython(vue: string): string {
+  if (!vue) return "";
+  const components = extractTuxComponents(vue);
+  const mainComp = components[0] || "TuxComponent";
+  const pyFunc = mainComp.replace(/^Tux/, "").replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
+
+  const kwargs: string[] = [];
+  const attrMatches = vue.matchAll(/([:@]?)([a-zA-Z0-9_-]+)="([^"]*)"/g);
+  for (const m of attrMatches) {
+    const isBound = m[1] === ":";
+    const name = m[2];
+    const val = m[3];
+    if (name === "class" || name === "style") continue;
+    const snake = name.replace(/-([a-z0-9])/g, (_, c) => `_${c}`).toLowerCase();
+    if (isBound) {
+      if (val === "true") kwargs.push(`${snake}=True`);
+      else if (val === "false") kwargs.push(`${snake}=False`);
+      else if (!isNaN(Number(val))) kwargs.push(`${snake}=${val}`);
+      else kwargs.push(`${snake}="${val.replace(/['"]/g, "")}"`);
+    } else {
+      kwargs.push(`${snake}="${val}"`);
+    }
+  }
+
+  const textMatch = vue.match(/>([^<]+)<\//);
+  const innerText = textMatch ? textMatch[1].trim() : "";
+  if (innerText) {
+    kwargs.unshift(`"${innerText}"`);
+  }
+
+  const kwargStr = kwargs.length > 0 ? `\n    ${kwargs.join(",\n    ")}\n` : "";
+
+  return `# Python 3.10+ · Streamlit / Dash / TTI-UX
+import tux
+
+tux.${pyFunc}(${kwargStr})`;
+}
+
+function derivePhp(vue: string): string {
+  if (!vue) return "";
+  const components = extractTuxComponents(vue);
+  const mainComp = components[0] || "TuxComponent";
+
+  const args: string[] = [];
+  const attrMatches = vue.matchAll(/([:@]?)([a-zA-Z0-9_-]+)="([^"]*)"/g);
+  for (const m of attrMatches) {
+    const isBound = m[1] === ":";
+    const name = m[2];
+    const val = m[3];
+    if (name === "class" || name === "style") continue;
+    if (isBound) {
+      if (val === "true") args.push(`'${name}' => true`);
+      else if (val === "false") args.push(`'${name}' => false`);
+      else if (!isNaN(Number(val))) args.push(`'${name}' => ${val}`);
+      else args.push(`'${name}' => '${val.replace(/['"]/g, "")}'`);
+    } else {
+      args.push(`'${name}' => '${val}'`);
+    }
+  }
+
+  const textMatch = vue.match(/>([^<]+)<\//);
+  const innerText = textMatch ? textMatch[1].trim() : "";
+  if (innerText) {
+    args.push(`'content' => '${innerText}'`);
+  }
+
+  const argStr = args.length > 0 ? `[\n    ${args.join(",\n    ")},\n]` : "[]";
+
+  return `<?php
+// PHP 8.2+ · WordPress Block / TTI-UX
+use Tti\\Ux\\Components\\${mainComp};
+
+echo ${mainComp}::render(${argStr});`;
+}
+
 const activeReactCode = computed(() => props.react ?? deriveReact(props.vue ?? ""));
 const activeWcCode = computed(() => props.wc ?? deriveWebComponent(props.vue ?? ""));
 const activeRazorCode = computed(() => props.razor ?? deriveRazor(props.vue ?? ""));
+const activeSwiftCode = computed(() => props.swift ?? deriveSwift(props.vue ?? ""));
+const activeKotlinCode = computed(() => props.kotlin ?? deriveKotlin(props.vue ?? ""));
+const activePythonCode = computed(() => props.python ?? derivePython(props.vue ?? ""));
+const activePhpCode = computed(() => props.php ?? derivePhp(props.vue ?? ""));
 
 // Pre-highlight static framework tabs at SSR time
 const { data: vueHighlighted } = await useAsyncData(
@@ -213,6 +406,42 @@ const { data: razorHighlighted } = await useAsyncData(
   { watch: [() => activeRazorCode.value, shikiTheme] },
 );
 
+const { data: swiftHighlighted } = await useAsyncData(
+  () => `tux-example-swift:${shikiTheme.value}:${hashCode(activeSwiftCode.value)}`,
+  () =>
+    activeSwiftCode.value
+      ? highlight(activeSwiftCode.value, { lang: "swift", theme: shikiTheme.value })
+      : Promise.resolve(""),
+  { watch: [() => activeSwiftCode.value, shikiTheme] },
+);
+
+const { data: kotlinHighlighted } = await useAsyncData(
+  () => `tux-example-kotlin:${shikiTheme.value}:${hashCode(activeKotlinCode.value)}`,
+  () =>
+    activeKotlinCode.value
+      ? highlight(activeKotlinCode.value, { lang: "kotlin", theme: shikiTheme.value })
+      : Promise.resolve(""),
+  { watch: [() => activeKotlinCode.value, shikiTheme] },
+);
+
+const { data: pythonHighlighted } = await useAsyncData(
+  () => `tux-example-python:${shikiTheme.value}:${hashCode(activePythonCode.value)}`,
+  () =>
+    activePythonCode.value
+      ? highlight(activePythonCode.value, { lang: "python", theme: shikiTheme.value })
+      : Promise.resolve(""),
+  { watch: [() => activePythonCode.value, shikiTheme] },
+);
+
+const { data: phpHighlighted } = await useAsyncData(
+  () => `tux-example-php:${shikiTheme.value}:${hashCode(activePhpCode.value)}`,
+  () =>
+    activePhpCode.value
+      ? highlight(activePhpCode.value, { lang: "php", theme: shikiTheme.value })
+      : Promise.resolve(""),
+  { watch: [() => activePhpCode.value, shikiTheme] },
+);
+
 const { data: sourceHighlighted } = await useAsyncData(
   () => `tux-example-src:${shikiTheme.value}:${hashCode(props.source ?? "")}`,
   () =>
@@ -245,6 +474,10 @@ const tabs = computed(() => {
   if (activeReactCode.value) t.push({ id: "react", label: "React" });
   if (activeWcCode.value) t.push({ id: "wc", label: "Web Component" });
   if (activeRazorCode.value) t.push({ id: "razor", label: "Razor (.NET)" });
+  if (activePythonCode.value) t.push({ id: "python", label: "Python" });
+  if (activePhpCode.value) t.push({ id: "php", label: "PHP" });
+  if (activeSwiftCode.value) t.push({ id: "swift", label: "Swift" });
+  if (activeKotlinCode.value) t.push({ id: "kotlin", label: "Kotlin" });
   t.push({ id: "html", label: "HTML (DOM)" });
   if (props.css) t.push({ id: "css", label: "CSS" });
   if (props.powerbi) t.push({ id: "powerbi", label: "Power BI" });
@@ -265,8 +498,17 @@ watch(
 
 function onSelectTab(tabId: Tab) {
   activeTab.value = tabId;
-  // If user clicked one of the core frameworks, synchronize globally
-  if (tabId === "vue" || tabId === "react" || tabId === "wc" || tabId === "razor") {
+  // If user clicked one of the supported frameworks, synchronize globally
+  if (
+    tabId === "vue" ||
+    tabId === "react" ||
+    tabId === "wc" ||
+    tabId === "razor" ||
+    tabId === "python" ||
+    tabId === "php" ||
+    tabId === "swift" ||
+    tabId === "kotlin"
+  ) {
     setFramework(tabId, { notify: false });
   }
 }
@@ -288,6 +530,14 @@ watch([activeTab, shikiTheme], async ([tab, theme]) => {
     reactHighlighted.value = await highlight(activeReactCode.value, { lang: "tsx", theme });
   } else if (tab === "wc" && activeWcCode.value) {
     wcHighlighted.value = await highlight(activeWcCode.value, { lang: "html", theme });
+  } else if (tab === "swift" && activeSwiftCode.value) {
+    swiftHighlighted.value = await highlight(activeSwiftCode.value, { lang: "swift", theme });
+  } else if (tab === "kotlin" && activeKotlinCode.value) {
+    kotlinHighlighted.value = await highlight(activeKotlinCode.value, { lang: "kotlin", theme });
+  } else if (tab === "python" && activePythonCode.value) {
+    pythonHighlighted.value = await highlight(activePythonCode.value, { lang: "python", theme });
+  } else if (tab === "php" && activePhpCode.value) {
+    phpHighlighted.value = await highlight(activePhpCode.value, { lang: "php", theme });
   }
 });
 
@@ -331,6 +581,10 @@ const activeCode = computed(() => {
   if (activeTab.value === "wc") return activeWcCode.value;
   if (activeTab.value === "html") return rendered.value;
   if (activeTab.value === "razor") return activeRazorCode.value;
+  if (activeTab.value === "swift") return activeSwiftCode.value;
+  if (activeTab.value === "kotlin") return activeKotlinCode.value;
+  if (activeTab.value === "python") return activePythonCode.value;
+  if (activeTab.value === "php") return activePhpCode.value;
   if (activeTab.value === "css") return props.css ?? "";
   if (activeTab.value === "powerbi") return props.powerbi ?? "";
   return props.source ?? "";
@@ -342,6 +596,10 @@ const highlightedCode = computed<string | null>(() => {
   if (activeTab.value === "wc") return wcHighlighted.value || null;
   if (activeTab.value === "html") return renderedHighlighted.value;
   if (activeTab.value === "razor") return razorHighlighted.value || null;
+  if (activeTab.value === "swift") return swiftHighlighted.value || null;
+  if (activeTab.value === "kotlin") return kotlinHighlighted.value || null;
+  if (activeTab.value === "python") return pythonHighlighted.value || null;
+  if (activeTab.value === "php") return phpHighlighted.value || null;
   if (activeTab.value === "source") return sourceHighlighted.value || null;
   if (activeTab.value === "css") return cssHighlighted.value || null;
   if (activeTab.value === "powerbi") return powerbiHighlighted.value || null;

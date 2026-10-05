@@ -25,6 +25,10 @@ describe("TuxExample Component", () => {
     expect(wrapper.text()).toContain("React");
     expect(wrapper.text()).toContain("Web Component");
     expect(wrapper.text()).toContain("Razor (.NET)");
+    expect(wrapper.text()).toContain("Python");
+    expect(wrapper.text()).toContain("PHP");
+    expect(wrapper.text()).toContain("Swift");
+    expect(wrapper.text()).toContain("Kotlin");
     expect(wrapper.text()).toContain("HTML (DOM)");
 
     // Copy button

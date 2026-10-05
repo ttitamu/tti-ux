@@ -19,11 +19,15 @@ describe("TuxFrameworkSwitcher Component", () => {
     expect(tablist.attributes("aria-label")).toBe("Preferred code framework");
 
     const tabs = wrapper.findAll("[role='tab']");
-    expect(tabs.length).toBe(4);
+    expect(tabs.length).toBe(8);
     expect(wrapper.text()).toContain("Vue");
     expect(wrapper.text()).toContain("React");
     expect(wrapper.text()).toContain("Web Comp");
     expect(wrapper.text()).toContain(".NET");
+    expect(wrapper.text()).toContain("Python");
+    expect(wrapper.text()).toContain("PHP");
+    expect(wrapper.text()).toContain("Swift");
+    expect(wrapper.text()).toContain("Kotlin");
 
     const violations = await runComponentAxe(wrapper.element);
     expect(violations).toEqual([]);

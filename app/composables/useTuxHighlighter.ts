@@ -22,6 +22,7 @@ import type { Highlighter, BundledLanguage, BundledTheme } from "shiki";
 const COMMON_LANGS: BundledLanguage[] = [
   "ts", "tsx", "js", "vue", "html", "css", "scss", "csharp", "razor",
   "json", "yaml", "md", "bash", "shell", "python", "go", "rust", "sql",
+  "swift", "kotlin", "php",
 ];
 
 const THEMES: BundledTheme[] = [

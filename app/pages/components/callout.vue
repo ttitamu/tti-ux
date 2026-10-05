@@ -1,5 +1,77 @@
 <script setup lang="ts">
+import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
+
 useHead({ title: "TuxCallout · TUX" });
+
+const calloutControls: TuxPropControl[] = [
+  {
+    prop: "kind",
+    label: "Callout Kind",
+    type: "select",
+    options: ["stat", "fact", "quote"],
+    defaultValue: "stat",
+    description: "Determines default eyebrow and semantic role",
+  },
+  {
+    prop: "variant",
+    label: "Border Variant",
+    type: "select",
+    options: ["default", "bold", "elegant"],
+    defaultValue: "default",
+    description: "Signature left-rule border styling",
+  },
+  {
+    prop: "eyebrow",
+    label: "Custom Eyebrow Override",
+    type: "text",
+    defaultValue: "",
+  },
+  {
+    prop: "content",
+    label: "Callout Body Content",
+    type: "text",
+    defaultValue: "Compliance gains held steady through the 36-month follow-up window — suggesting the treatments work via persistent infrastructure cues.",
+  },
+];
+
+const calloutPresets: TuxPlaygroundPreset[] = [
+  {
+    name: "empirical-stat",
+    label: "Empirical Finding (Stat)",
+    description: "Highlights key statistical metric with default soft maroon hairline",
+    icon: "lucide:trending-up",
+    values: {
+      kind: "stat",
+      variant: "default",
+      eyebrow: "Key Finding",
+      content: "Compliance gains held steady through the 36-month follow-up window — suggesting the treatments work via persistent infrastructure cues.",
+    },
+  },
+  {
+    name: "investigator-quote",
+    label: "Researcher Voice (Quote)",
+    description: "Editorial quote with 8px diagonal hash accent rule",
+    icon: "lucide:quote",
+    values: {
+      kind: "quote",
+      variant: "elegant",
+      eyebrow: "Voice",
+      content: "What surprised us was the durability of the effect — three years out, we expected some regression toward baseline. We didn't see it.",
+    },
+  },
+  {
+    name: "bold-fact",
+    label: "Prominent Landmark (Fact)",
+    description: "Three stacked maroon bars for high-impact landing pages",
+    icon: "lucide:sparkles",
+    values: {
+      kind: "fact",
+      variant: "bold",
+      eyebrow: "Worth Noting",
+      content: "The Texas Triangle's monitored corridors carry an average 2.1M vehicles per day — roughly half of the state's total continuously instrumented network.",
+    },
+  },
+];
 
 const exampleVue = `<TuxCallout kind="stat">
   <p>
@@ -18,6 +90,32 @@ const exampleVue = `<TuxCallout kind="stat">
       signature. Use sparingly — <strong>≤2 callouts per article</strong>;
       each one breaks reading flow.
     </TuxPageHeader>
+
+    <!-- Interactive Props Workbench -->
+    <section>
+      <TuxPlayground
+        tag="tux-callout"
+        component-name="TuxCallout"
+        title="TuxCallout Workbench"
+        eyebrow="Interactive Component Playground"
+        :controls="calloutControls"
+        :presets="calloutPresets"
+        slot-prop="content"
+        default-slot-text="Compliance gains held steady through the 36-month follow-up window."
+      >
+        <template #default="{ values }">
+          <div class="max-w-xl">
+            <TuxCallout
+              :kind="values.kind"
+              :variant="values.variant"
+              :eyebrow="values.eyebrow || undefined"
+            >
+              <p>{{ values.content }}</p>
+            </TuxCallout>
+          </div>
+        </template>
+      </TuxPlayground>
+    </section>
 
     <section>
       <p class="eyebrow">canonical</p>
