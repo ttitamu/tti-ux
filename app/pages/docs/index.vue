@@ -265,6 +265,28 @@ async function copyCommand(item: SdkTarget, e: Event) {
       </div>
     </div>
 
+    <!-- Featured: Communications Team Handover Banner -->
+    <div class="p-5 rounded-xl border border-brand-primary/40 bg-brand-primary/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="space-y-1">
+        <div class="flex items-center gap-2">
+          <TuxBadge tone="brand" variant="soft" class="font-mono text-[10px]">Prime Time Ready</TuxBadge>
+          <span class="text-xs font-mono text-brand-primary font-bold">COMMUNICATIONS &amp; MARKETING TRANSITION</span>
+        </div>
+        <h2 class="text-base font-bold text-text-primary">Communications Team Handover Runbook</h2>
+        <p class="text-xs text-text-secondary max-w-2xl">
+          Everything the Comm team needs to take over, publish, and maintain TTI-UX 3.0: WordPress &amp; Kadence child themes, Gutenberg block patterns, Nuxt Studio visual microsites, brand tokens, and automated quality checks.
+        </p>
+      </div>
+
+      <NuxtLink
+        to="/docs/comm-handover"
+        class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-mono font-medium rounded-lg bg-brand-primary text-text-on-brand hover:bg-brand-primary-deep transition-colors shrink-0 shadow-sm"
+      >
+        <span>Open Handover Runbook</span>
+        <UIcon name="lucide:arrow-right" class="w-4 h-4" />
+      </NuxtLink>
+    </div>
+
     <!-- Core Documentation & Guides Hub -->
     <section class="space-y-4">
       <div class="flex items-center justify-between">

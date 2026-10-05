@@ -51,6 +51,7 @@ import TuxChartHistogram from "../../../app/components/TuxChartHistogram.vue";
 import TuxChartLine from "../../../app/components/TuxChartLine.vue";
 import TuxChartScatter from "../../../app/components/TuxChartScatter.vue";
 import TuxChartSunburst from "../../../app/components/TuxChartSunburst.vue";
+import TuxChatBubble from "../../../app/components/TuxChatBubble.vue";
 import TuxChatMessage from "../../../app/components/TuxChatMessage.vue";
 import TuxCitationExport from "../../../app/components/TuxCitationExport.vue";
 import TuxCitations from "../../../app/components/TuxCitations.vue";
@@ -75,6 +76,7 @@ import TuxDocSearch from "../../../app/components/TuxDocSearch.vue";
 import TuxDocsSidebar from "../../../app/components/TuxDocsSidebar.vue";
 import TuxDocsSidebarNode from "../../../app/components/TuxDocsSidebarNode.vue";
 import TuxDropdown from "../../../app/components/TuxDropdown.vue";
+import TuxECharts from "../../../app/components/TuxECharts.vue";
 import TuxEditorialArticle from "../../../app/components/TuxEditorialArticle.vue";
 import TuxEmptyState from "../../../app/components/TuxEmptyState.vue";
 import TuxErrorPage from "../../../app/components/TuxErrorPage.vue";
@@ -92,6 +94,8 @@ import TuxFootnote from "../../../app/components/TuxFootnote.vue";
 import TuxFormField from "../../../app/components/TuxFormField.vue";
 import TuxFrameworkSwitcher from "../../../app/components/TuxFrameworkSwitcher.vue";
 import TuxFundingSource from "../../../app/components/TuxFundingSource.vue";
+import TuxHeroCanvas from "../../../app/components/TuxHeroCanvas.vue";
+import TuxHeroCanvasSol from "../../../app/components/TuxHeroCanvasSol.vue";
 import TuxIconFeature from "../../../app/components/TuxIconFeature.vue";
 import TuxIdentity from "../../../app/components/TuxIdentity.vue";
 import TuxInfiniteScroll from "../../../app/components/TuxInfiniteScroll.vue";
@@ -138,8 +142,10 @@ import TuxResearcher from "../../../app/components/TuxResearcher.vue";
 import TuxResultCount from "../../../app/components/TuxResultCount.vue";
 import TuxRichDataGrid from "../../../app/components/TuxRichDataGrid.vue";
 import TuxRichTextEditor from "../../../app/components/TuxRichTextEditor.vue";
+import TuxRoadwayCrossSection from "../../../app/components/TuxRoadwayCrossSection.vue";
 import TuxRuleBuilder from "../../../app/components/TuxRuleBuilder.vue";
 import TuxRuleBuilderGroup from "../../../app/components/TuxRuleBuilderGroup.vue";
+import TuxScrollTop from "../../../app/components/TuxScrollTop.vue";
 import TuxSearch from "../../../app/components/TuxSearch.vue";
 import TuxSectionHeader from "../../../app/components/TuxSectionHeader.vue";
 import TuxShortcutsHelp from "../../../app/components/TuxShortcutsHelp.vue";
@@ -629,6 +635,16 @@ if (typeof customElements !== "undefined" && !customElements.get("tux-chart-sunb
   customElements.define("tux-chart-sunburst", TuxChartSunburstElement);
 }
 
+export const TuxChatBubbleElement = defineCustomElement(TuxChatBubble, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-chat-bubble")) {
+  customElements.define("tux-chat-bubble", TuxChatBubbleElement);
+}
+
 export const TuxChatMessageElement = defineCustomElement(TuxChatMessage, {
   shadowRoot: false,
   configureApp(app) {
@@ -869,6 +885,16 @@ if (typeof customElements !== "undefined" && !customElements.get("tux-dropdown")
   customElements.define("tux-dropdown", TuxDropdownElement);
 }
 
+export const TuxEChartsElement = defineCustomElement(TuxECharts, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-e-charts")) {
+  customElements.define("tux-e-charts", TuxEChartsElement);
+}
+
 export const TuxEditorialArticleElement = defineCustomElement(TuxEditorialArticle, {
   shadowRoot: false,
   configureApp(app) {
@@ -1037,6 +1063,26 @@ export const TuxFundingSourceElement = defineCustomElement(TuxFundingSource, {
 });
 if (typeof customElements !== "undefined" && !customElements.get("tux-funding-source")) {
   customElements.define("tux-funding-source", TuxFundingSourceElement);
+}
+
+export const TuxHeroCanvasElement = defineCustomElement(TuxHeroCanvas, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-hero-canvas")) {
+  customElements.define("tux-hero-canvas", TuxHeroCanvasElement);
+}
+
+export const TuxHeroCanvasSolElement = defineCustomElement(TuxHeroCanvasSol, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-hero-canvas-sol")) {
+  customElements.define("tux-hero-canvas-sol", TuxHeroCanvasSolElement);
 }
 
 export const TuxIconFeatureElement = defineCustomElement(TuxIconFeature, {
@@ -1499,6 +1545,16 @@ if (typeof customElements !== "undefined" && !customElements.get("tux-rich-text-
   customElements.define("tux-rich-text-editor", TuxRichTextEditorElement);
 }
 
+export const TuxRoadwayCrossSectionElement = defineCustomElement(TuxRoadwayCrossSection, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-roadway-cross-section")) {
+  customElements.define("tux-roadway-cross-section", TuxRoadwayCrossSectionElement);
+}
+
 export const TuxRuleBuilderElement = defineCustomElement(TuxRuleBuilder, {
   shadowRoot: false,
   configureApp(app) {
@@ -1517,6 +1573,16 @@ export const TuxRuleBuilderGroupElement = defineCustomElement(TuxRuleBuilderGrou
 });
 if (typeof customElements !== "undefined" && !customElements.get("tux-rule-builder-group")) {
   customElements.define("tux-rule-builder-group", TuxRuleBuilderGroupElement);
+}
+
+export const TuxScrollTopElement = defineCustomElement(TuxScrollTop, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-scroll-top")) {
+  customElements.define("tux-scroll-top", TuxScrollTopElement);
 }
 
 export const TuxSearchElement = defineCustomElement(TuxSearch, {

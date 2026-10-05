@@ -785,6 +785,66 @@ function copyScaffoldCode() {
       </div>
     </div>
 
+    <!-- Quick-Start Scaffolding Bar -->
+    <div class="p-5 rounded-xl border border-surface-border bg-surface-card space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 class="text-sm font-bold text-text-primary flex items-center gap-2">
+            <UIcon name="lucide:rocket" class="w-4 h-4 text-brand-primary" />
+            <span>Fast Scaffolding Paths for Production Applications</span>
+          </h2>
+          <p class="text-xs text-text-muted mt-0.5">
+            Select the fastest path to launch a new digital asset aligned with TTI Communications guidelines:
+          </p>
+        </div>
+        <NuxtLink
+          to="/docs/comm-handover"
+          class="text-xs text-brand-primary hover:underline font-mono font-medium inline-flex items-center gap-1 shrink-0"
+        >
+          <span>Comm Handover Guide</span>
+          <UIcon name="lucide:arrow-right" class="w-3.5 h-3.5" />
+        </NuxtLink>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+        <div class="p-3 rounded-lg bg-surface-sunken border border-surface-border flex flex-col justify-between space-y-2">
+          <div>
+            <span class="text-[10px] font-mono font-bold uppercase text-brand-primary">1. Visual Microsites &amp; Papers</span>
+            <p class="text-xs font-semibold text-text-primary mt-1">Nuxt Studio Starter Template</p>
+            <p class="text-[11px] text-text-muted mt-0.5">Zero-code markdown editing for researchers &amp; communications authors.</p>
+          </div>
+          <NuxtLink to="/install/nuxt-studio" class="text-xs text-brand-primary hover:underline font-medium inline-flex items-center gap-1">
+            <span>templates/tux-starter-content</span>
+            <UIcon name="lucide:arrow-right" class="w-3 h-3" />
+          </NuxtLink>
+        </div>
+
+        <div class="p-3 rounded-lg bg-surface-sunken border border-surface-border flex flex-col justify-between space-y-2">
+          <div>
+            <span class="text-[10px] font-mono font-bold uppercase text-brand-primary">2. WordPress &amp; Intranets</span>
+            <p class="text-xs font-semibold text-text-primary mt-1">Kadence Child Theme &amp; Plugin</p>
+            <p class="text-[11px] text-text-muted mt-0.5">Pre-wired palette, 0px button geometry, utility bar, and Gutenberg patterns.</p>
+          </div>
+          <NuxtLink to="/install/wordpress" class="text-xs text-brand-primary hover:underline font-medium inline-flex items-center gap-1">
+            <span>packages/wordpress/kadence-child-tti</span>
+            <UIcon name="lucide:arrow-right" class="w-3 h-3" />
+          </NuxtLink>
+        </div>
+
+        <div class="p-3 rounded-lg bg-surface-sunken border border-surface-border flex flex-col justify-between space-y-2">
+          <div>
+            <span class="text-[10px] font-mono font-bold uppercase text-brand-primary">3. Enterprise Nuxt &amp; React</span>
+            <p class="text-xs font-semibold text-text-primary mt-1">Layer &amp; Component Packages</p>
+            <p class="text-[11px] text-text-muted mt-0.5">183 auto-imported Nuxt components or 26 native React TSX primitives.</p>
+          </div>
+          <NuxtLink to="/docs" class="text-xs text-brand-primary hover:underline font-medium inline-flex items-center gap-1">
+            <span>Multi-Platform SDK Hub</span>
+            <UIcon name="lucide:arrow-right" class="w-3 h-3" />
+          </NuxtLink>
+        </div>
+      </div>
+    </div>
+
     <!-- Live Stage & Inspector -->
     <section class="border border-surface-border rounded-lg bg-surface-raised overflow-hidden shadow-sm">
       <!-- Stage Control Bar -->

@@ -5,9 +5,9 @@ A turnkey, Git-backed content site and microsite template powered by **TTI-UX (T
 ## Highlights
 
 - **Visual In-Browser Editing**: Non-technical authors can edit content, write articles, and tweak TUX components visually using [Nuxt Studio](https://nuxt.studio).
-- **140+ TUX Components**: Seamlessly author using MDC (Markdown Component) syntax like `::tux-big-stat`, `::tux-card`, `::tux-alert`, and `::tux-researcher`.
+- **183 TUX Components**: Seamlessly author using MDC (Markdown Component) syntax like `::tux-big-stat`, `::tux-card`, `::tux-alert`, and `::tux-researcher`.
 - **Zero-Server Hosting**: Pre-renders to 100% static HTML via GitHub Actions or Forgejo CI. Deployable directly to GitHub Pages, Forgejo Pages, or Cloudflare Pages.
-- **Institutional Brand & WCAG AAA Parity**: Ships with Texas A&M maroon palette, typography (`Open Sans`, `Oswald`, `Work Sans`), and light/dark theme switcher.
+- **Institutional Brand & WCAG AAA Parity**: Ships with Texas A&M maroon palette (`#500000`, `#3C0000`, `#CFA935`), typography (`Roboto`, `Oswald`, `Work Sans`), and light/dark theme switcher.
 
 ## Quick Start (Developers)
 

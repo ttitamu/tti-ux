@@ -9,6 +9,8 @@ const routes = [
   "/install/dotnet",
   "/install/power-bi",
   "/install/nuxt-studio",
+  "/docs/comm-handover",
+  "/kits",
 ];
 
 const viewports = [
