@@ -305,12 +305,12 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- INTERACTIVE CANVAS HERO (OpenAI Sol Inspired Presentation) -->
+    <!-- INTERACTIVE CANVAS HERO (High-Performance Computing Cluster / Sol Presentation) -->
     <header
       v-if="heroLayout === 'interactive-canvas'"
       class="tux-editorial__hero-canvas-wrapper"
     >
-      <TuxHeroCanvas variant="sol" blend="seamless">
+      <TuxHeroCanvasSol blend="seamless">
         <!-- Foreground Atmospheric Copy & Typography -->
       <div class="tux-editorial__canvas-content">
         <div class="tux-editorial__container">
@@ -366,7 +366,7 @@ onUnmounted(() => {
         </div>
       </div>
 
-      </TuxHeroCanvas>
+      </TuxHeroCanvasSol>
     </header>
 
     <!-- MAIN EDITORIAL CONTENT GRID -->

@@ -26,8 +26,9 @@ const blendOptions = [
 ];
 
 const sampleCode = computed(() => {
-  return `<TuxHeroCanvas
-  variant="${activeVariant.value}"
+  if (activeVariant.value === "sol") {
+    return `<!-- Dedicated Sub-Component: High-Performance Computing & Sol Briefs -->
+<TuxHeroCanvasSol
   blend="${activeBlend.value}"
   :interactive="${interactive.value}"
   :show-controls="${showControls.value}"
@@ -41,6 +42,25 @@ const sampleCode = computed(() => {
     </h1>
     <p class="text-lg text-white/80 max-w-2xl mx-auto">
       Accelerating high-performance AI simulations across transportation research divisions.
+    </p>
+  </div>
+</TuxHeroCanvasSol>
+
+<!-- Or via Namespaced / Parent Delegation: -->
+<!-- <TuxHeroCanvas variant="sol" blend="${activeBlend.value}" /> -->`;
+  }
+  return `<TuxHeroCanvas
+  variant="${activeVariant.value}"
+  blend="${activeBlend.value}"
+  :interactive="${interactive.value}"
+  :show-controls="${showControls.value}"
+>
+  <div class="max-w-4xl mx-auto px-6 text-center py-12">
+    <h1 class="text-4xl sm:text-6xl font-bold font-display tracking-tight text-text-primary mb-4">
+      Texas Mobility Intelligence
+    </h1>
+    <p class="text-lg text-text-secondary max-w-2xl mx-auto">
+      Corridor network telemetry and multi-modal transit analytics across canonical Texas hubs.
     </p>
   </div>
 </TuxHeroCanvas>`;
@@ -143,14 +163,23 @@ const sampleCode = computed(() => {
           min-height="28rem"
         >
           <div class="max-w-3xl mx-auto px-6 text-center py-12">
-            <span class="inline-flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase tracking-wider bg-white/12 text-white rounded-full border border-white/20 mb-4 backdrop-blur-md">
+            <span
+              class="inline-flex items-center gap-2 px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full border mb-4 backdrop-blur-md transition-colors"
+              :class="activeVariant === 'sol' ? 'bg-white/12 text-white border-white/20' : 'bg-surface-raised text-text-primary border-surface-border'"
+            >
               <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>Research Index Presentation</span>
             </span>
-            <h2 class="text-3xl sm:text-5xl font-bold font-display tracking-tight text-white mb-4">
+            <h2
+              class="text-3xl sm:text-5xl font-bold font-display tracking-tight mb-4 transition-colors"
+              :class="activeVariant === 'sol' ? 'text-white' : 'text-text-primary'"
+            >
               Autonomous Systems & Corridor AI
             </h2>
-            <p class="text-base sm:text-lg text-white/80 max-w-xl mx-auto leading-relaxed">
+            <p
+              class="text-base sm:text-lg max-w-xl mx-auto leading-relaxed transition-colors"
+              :class="activeVariant === 'sol' ? 'text-white/80' : 'text-text-secondary'"
+            >
               Evaluating multi-agent trajectory prediction, dynamic signal actuation, and edge computer-vision models.
             </p>
           </div>

@@ -125,6 +125,7 @@ export const COMPONENTS_WITH_UNIT_TESTS: readonly string[] = [
   "TuxFormField",
   "TuxFundingSource",
   "TuxHeroCanvas",
+  "TuxHeroCanvasSol",
   "TuxIconFeature",
   "TuxIdentity",
   "TuxInfiniteScroll",

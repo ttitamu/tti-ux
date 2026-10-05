@@ -160,3 +160,4 @@ with a matching source hash in manifest.json.
 | TuxECharts | react | never ported |
 | TuxHeroCanvas | react | never ported |
 | TuxRoadwayCrossSection | react | never ported |
+| TuxHeroCanvasSol | react | never ported |

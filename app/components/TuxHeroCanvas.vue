@@ -20,6 +20,13 @@
  *   - 100% WCAG 2.2 Level AAA: Accessible playback toggle (>=44px), prefers-reduced-motion auto-pause.
  *   - Zero-Color-Ratchet compliant: Strictly token-driven, zero bare hex/rgb in styles.
  */
+import TuxHeroCanvasSol from "./TuxHeroCanvasSol.vue";
+
+defineOptions({
+  name: "TuxHeroCanvas",
+  Sol: TuxHeroCanvasSol,
+});
+
 interface Props {
   /** Simulation variant. Defaults to 'wash'. */
   variant?: "wash" | "corridor" | "network" | "sol" | "constellation";
@@ -319,17 +326,7 @@ interface StardustNode {
   twinkleSpeed: number;
 }
 
-interface FlareSpark {
-  angle: number;
-  speed: number;
-  orbitRadiusX: number;
-  orbitRadiusY: number;
-  size: number;
-  alpha: number;
-}
-
 let stardustNodes: StardustNode[] = [];
-let flareSparks: FlareSpark[] = [];
 let solBreathPhase = 0;
 let globalCycleTime = 0;
 
@@ -416,19 +413,6 @@ function initSimulation(w: number, h: number) {
       alpha: Math.random() * 0.5 + 0.2,
       twinklePhase: Math.random() * Math.PI * 2,
       twinkleSpeed: 0.02 + Math.random() * 0.03,
-    });
-  }
-
-  flareSparks = [];
-  const flareCount = 20;
-  for (let i = 0; i < flareCount; i++) {
-    flareSparks.push({
-      angle: (i / flareCount) * Math.PI * 2,
-      speed: 0.006 + Math.random() * 0.004,
-      orbitRadiusX: 180 + Math.random() * 25,
-      orbitRadiusY: 50 + Math.random() * 15,
-      size: Math.random() * 2.0 + 1.0,
-      alpha: Math.random() * 0.5 + 0.35,
     });
   }
 }
@@ -766,56 +750,9 @@ function runLoop() {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // VARIANT: SOL (Legacy Incandescent Corona & Flare Arc)
-  // ══════════════════════════════════════════════════════════════════════════
-  if (props.variant === "sol") {
-    const cx = w * 0.74;
-    const cy = h * 0.22;
-    solBreathPhase += 0.022;
-    const breath = Math.sin(solBreathPhase) * 12;
-
-    const outerGrad = ctx.createRadialGradient(cx, cy, 20, cx, cy, 210 + breath);
-    outerGrad.addColorStop(0, makeRgba(255, 175, 55, 0.35));
-    outerGrad.addColorStop(0.35, makeRgba(160, 45, 30, 0.22));
-    outerGrad.addColorStop(0.7, makeRgba(80, 0, 0, 0.10));
-    outerGrad.addColorStop(1, makeRgba(0, 0, 0, 0));
-    ctx.fillStyle = outerGrad;
-    ctx.beginPath();
-    ctx.arc(cx, cy, 215 + breath, 0, Math.PI * 2);
-    ctx.fill();
-
-    const innerGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 58 + breath * 0.35);
-    innerGrad.addColorStop(0, makeRgba(255, 240, 180, 0.88));
-    innerGrad.addColorStop(0.35, makeRgba(255, 190, 80, 0.65));
-    innerGrad.addColorStop(0.75, makeRgba(230, 120, 35, 0.35));
-    innerGrad.addColorStop(1, makeRgba(160, 40, 15, 0));
-    ctx.fillStyle = innerGrad;
-    ctx.beginPath();
-    ctx.arc(cx, cy, 60 + breath * 0.35, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Orbiting Coronal Flare Arc Ring
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(-0.18);
-    for (const spark of flareSparks) {
-      spark.angle += spark.speed;
-      const sx = Math.cos(spark.angle) * spark.orbitRadiusX;
-      const sy = Math.sin(spark.angle) * spark.orbitRadiusY;
-      const depthAlpha = ((Math.sin(spark.angle) + 1) / 2) * 0.5 + 0.35;
-
-      ctx.fillStyle = makeRgba(255, 220, 150, spark.alpha * depthAlpha);
-      ctx.beginPath();
-      ctx.arc(sx, sy, spark.size, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-  }
-
-  // ══════════════════════════════════════════════════════════════════════════
   // VARIANT: CONSTELLATION (Stardust Swarm)
   // ══════════════════════════════════════════════════════════════════════════
-  if (props.variant === "constellation" || props.variant === "sol") {
+  if (props.variant === "constellation") {
     const maxLineDist = 65;
     for (let i = 0; i < stardustNodes.length; i++) {
       for (let j = i + 1; j < stardustNodes.length; j++) {
@@ -1024,7 +961,18 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <TuxHeroCanvasSol
+    v-if="variant === 'sol'"
+    :blend="blend"
+    :interactive="interactive"
+    :show-controls="showControls"
+    :min-height="minHeight"
+  >
+    <slot />
+  </TuxHeroCanvasSol>
+
   <div
+    v-else
     ref="stageRef"
     class="tux-hero-canvas"
     :class="[

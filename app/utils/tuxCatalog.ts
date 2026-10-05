@@ -70,6 +70,7 @@ export const INTERNAL_COMPONENTS = [
   "TuxStalenessBanner",
   "TuxFrameworkSwitcher",
   "TuxPlayground",
+  "TuxHeroCanvasSol",
 ];
 
 export const tuxCatalog: TuxCatalogEntry[] = [
