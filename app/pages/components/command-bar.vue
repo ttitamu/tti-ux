@@ -109,6 +109,7 @@ const selectionVue = `<TuxCommandBar
         eyebrow="Interactive Component Playground"
         :controls="commandBarControls"
         :presets="commandBarPresets"
+        :source="tuxCommandBarSource"
       >
         <template #default="{ values }">
           <div class="p-6 bg-surface-raised rounded-xl border border-surface-border w-full">

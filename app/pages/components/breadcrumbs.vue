@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import tuxBreadcrumbsSource from "~/components/TuxBreadcrumbs.vue?raw";
 import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
 
 useHead({ title: "TuxBreadcrumbs · TUX" });
@@ -69,6 +70,10 @@ const exampleVue = `<TuxBreadcrumbs :trail="[
   { label: 'Connected Vehicle Pilot' },
 ]" />`;
 
+const depthsVue = `<TuxBreadcrumbs :trail="trailL2" />
+<TuxBreadcrumbs :trail="trailL3" />
+<TuxBreadcrumbs :trail="trailArticle" />`;
+
 const trailHome = [{ label: "Home" }];
 
 const trailL2 = [
@@ -115,6 +120,7 @@ function resolveTrail(depth: string) {
         eyebrow="Interactive Component Playground"
         :controls="breadcrumbsControls"
         :presets="breadcrumbsPresets"
+        :source="tuxBreadcrumbsSource"
       >
         <template #default="{ values }">
           <div class="p-6 bg-surface-raised rounded-xl border border-surface-border w-full">
@@ -132,7 +138,7 @@ function resolveTrail(depth: string) {
     <section>
       <p class="eyebrow">canonical</p>
       <h2 class="heading--bold text-xl font-bold">L3 article trail</h2>
-      <TuxExample class="mt-4" :vue="exampleVue">
+      <TuxExample class="mt-4" :vue="exampleVue" :source="tuxBreadcrumbsSource">
         <TuxBreadcrumbs :trail="trailArticle" aria-label="Breadcrumb — canonical" />
       </TuxExample>
     </section>
@@ -144,7 +150,7 @@ function resolveTrail(depth: string) {
         Same component handles every depth. Final crumb is always
         non-link, plain-text, current page.
       </p>
-      <TuxExample class="mt-4">
+      <TuxExample class="mt-4" :vue="depthsVue" :source="tuxBreadcrumbsSource">
         <div class="space-y-5">
           <TuxBreadcrumbs :trail="trailL2" aria-label="Breadcrumb — L2 depth" />
           <TuxBreadcrumbs :trail="trailL3" aria-label="Breadcrumb — L3 depth" />

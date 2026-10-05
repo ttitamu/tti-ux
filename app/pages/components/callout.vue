@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import tuxCalloutSource from "~/components/TuxCallout.vue?raw";
 import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
 
 useHead({ title: "TuxCallout · TUX" });
@@ -80,6 +81,26 @@ const exampleVue = `<TuxCallout kind="stat">
     than a novelty effect.
   </p>
 </TuxCallout>`;
+
+const kindsVue = `<TuxCallout kind="fact">
+  <p>The Texas Triangle's monitored corridors carry an average 2.1M vehicles per day.</p>
+</TuxCallout>
+<TuxCallout kind="stat">
+  <p>Treated intersections showed a 37% reduction in stop-line non-compliance.</p>
+</TuxCallout>
+<TuxCallout kind="quote">
+  <p>"What surprised us was the durability of the effect." — Dr. R. Hassan</p>
+</TuxCallout>`;
+
+const variantsVue = `<TuxCallout variant="default" kind="fact">
+  <p>Default style — soft-faded maroon hairline.</p>
+</TuxCallout>
+<TuxCallout variant="bold" kind="fact">
+  <p>Bold style — three stacked maroon bars.</p>
+</TuxCallout>
+<TuxCallout variant="elegant" kind="fact">
+  <p>Elegant style — 8px diagonal hash with vertical fade mask.</p>
+</TuxCallout>`;
 </script>
 
 <template>
@@ -100,6 +121,7 @@ const exampleVue = `<TuxCallout kind="stat">
         eyebrow="Interactive Component Playground"
         :controls="calloutControls"
         :presets="calloutPresets"
+        :source="tuxCalloutSource"
         slot-prop="content"
         default-slot-text="Compliance gains held steady through the 36-month follow-up window."
       >
@@ -120,7 +142,7 @@ const exampleVue = `<TuxCallout kind="stat">
     <section>
       <p class="eyebrow">canonical</p>
       <h2 class="heading--bold text-xl font-bold">Default · in body context</h2>
-      <TuxExample class="mt-4" :vue="exampleVue">
+      <TuxExample class="mt-4" :vue="exampleVue" :source="tuxCalloutSource">
         <div>
           <p class="text-text-secondary leading-relaxed mb-4">
             Roadway departure crashes account for more than half of rural
@@ -151,7 +173,7 @@ const exampleVue = `<TuxCallout kind="stat">
         <code>stat</code> → "Key finding", <code>quote</code> → "Voice".
         Override with <code>eyebrow="..."</code>.
       </p>
-      <TuxExample class="mt-4">
+      <TuxExample class="mt-4" :vue="kindsVue" :source="tuxCalloutSource">
         <div class="space-y-6">
           <TuxCallout kind="fact">
             <p>The Texas Triangle's monitored corridors carry an average
@@ -180,7 +202,7 @@ const exampleVue = `<TuxCallout kind="stat">
         decreasing in length and opacity. Elegant = 8px diagonal maroon
         hash with vertical fade mask.
       </p>
-      <TuxExample class="mt-4">
+      <TuxExample class="mt-4" :vue="variantsVue" :source="tuxCalloutSource">
         <div class="space-y-6">
           <TuxCallout variant="default" kind="fact">
             <p>Default style — the quietest. The hairline rule reads as

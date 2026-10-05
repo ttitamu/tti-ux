@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import tuxCardSource from "~/components/TuxCard.vue?raw";
+
 useHead({ title: "TuxCard · TUX" });
 
 const staticVue = `<tux-card>
@@ -108,10 +110,12 @@ const cardPresets: TuxPlaygroundPreset[] = [
     <section>
       <TuxPlayground
         tag="tux-card"
+        component-name="TuxCard"
         title="TuxCard Workbench"
         eyebrow="Interactive Component Playground"
         :controls="cardControls"
         :presets="cardPresets"
+        :source="tuxCardSource"
         :code-template="(values) => {
           const toAttr = values.to ? ` to=\x22${values.to}\x22` : '';
           const padAttr = values.padded === false ? ' :padded=\x22false\x22' : '';
@@ -135,7 +139,7 @@ const cardPresets: TuxPlaygroundPreset[] = [
     <section>
       <p class="eyebrow">static</p>
       <h2 class="heading--bold text-xl font-bold">Without `to`</h2>
-      <TuxExample class="mt-4" :vue="staticVue">
+      <TuxExample class="mt-4" :vue="staticVue" :source="tuxCardSource">
         <TuxCard>
           <p class="eyebrow">project · 2026-04-22</p>
           <h3 class="text-xl font-bold">Corridor safety review</h3>
@@ -153,7 +157,7 @@ const cardPresets: TuxPlaygroundPreset[] = [
         Hover to see the corner-drop + arrow. The destination (/tokens) works —
         click to navigate back.
       </p>
-      <TuxExample :vue="linkedVue">
+      <TuxExample :vue="linkedVue" :source="tuxCardSource">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <TuxCard to="/tokens">
             <p class="eyebrow">foundations</p>

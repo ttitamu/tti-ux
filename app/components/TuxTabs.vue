@@ -71,8 +71,13 @@ const local = computed({
       content: 'tux-tabs__content',
     }"
   >
-    <template #default="slotProps">
-      <slot v-bind="slotProps" />
+    <template v-if="$slots.trigger" #default="slotProps">
+      <slot name="trigger" v-bind="slotProps" />
+    </template>
+    <template #content="slotProps">
+      <slot name="content" v-bind="slotProps">
+        <slot v-bind="slotProps" />
+      </slot>
     </template>
   </UTabs>
 </template>

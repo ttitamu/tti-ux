@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import tuxBigStatSource from "~/components/TuxBigStat.vue?raw";
+import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
+
 useHead({ title: "TuxBigStat · TUX" });
 
 const exampleVue = `<TuxBigStat
@@ -8,7 +11,23 @@ const exampleVue = `<TuxBigStat
   source="FY 2025 sponsored research report"
 />`;
 
-import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
+const sizesVue = `<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+  <TuxBigStat size="lg" :value="412" suffix=" mi" label="Instrumented freight corridor" />
+  <TuxBigStat size="md" :value="650" suffix="+" label="Active research projects" />
+  <TuxBigStat size="sm" :value="23" label="States with TTI deployments" />
+</div>`;
+
+const tonesVue = `<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+  <TuxBigStat tone="maroon" :value="93.4" suffix="%" label="Classifier precision (CLS-204)" />
+  <TuxBigStat tone="gold" :value="60" suffix=" yrs" label="Of transportation research" />
+  <TuxBigStat tone="neutral" :value="1.4" suffix="K" label="Researchers + grad assistants" />
+</div>`;
+
+const variantsVue = `<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+  <TuxBigStat variant="default" :value="2.1" suffix="M" label="Vehicles per day · monitored corridors" />
+  <TuxBigStat variant="bold" :value="84" suffix="%" label="Reduction in roadway-departure crashes" />
+  <TuxBigStat variant="elegant" :value="37" suffix="%" label="Stop-line non-compliance reduction" />
+</div>`;
 
 const bigStatControls: TuxPropControl[] = [
   {
@@ -134,10 +153,12 @@ const bigStatPresets: TuxPlaygroundPreset[] = [
     <section>
       <TuxPlayground
         tag="tux-big-stat"
+        component-name="TuxBigStat"
         title="TuxBigStat Workbench"
         eyebrow="Interactive Component Playground"
         :controls="bigStatControls"
         :presets="bigStatPresets"
+        :source="tuxBigStatSource"
         :self-closing="true"
       >
         <template #default="{ values }">
@@ -157,7 +178,7 @@ const bigStatPresets: TuxPlaygroundPreset[] = [
     <section>
       <p class="eyebrow">canonical</p>
       <h2 class="heading--bold text-xl font-bold">Default · medium · maroon</h2>
-      <TuxExample class="mt-4" :vue="exampleVue">
+      <TuxExample class="mt-4" :vue="exampleVue" :source="tuxBigStatSource">
         <TuxBigStat
           :value="126"
           suffix="M"
@@ -175,7 +196,7 @@ const bigStatPresets: TuxPlaygroundPreset[] = [
         <code>md</code> = 96px dashboard hero (default),
         <code>sm</code> = 64px in-card metric.
       </p>
-      <TuxExample class="mt-4">
+      <TuxExample class="mt-4" :vue="sizesVue" :source="tuxBigStatSource">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <TuxBigStat size="lg" :value="412" suffix=" mi" label="Instrumented freight corridor" />
           <TuxBigStat size="md" :value="650" suffix="+" label="Active research projects" />
@@ -191,7 +212,7 @@ const bigStatPresets: TuxPlaygroundPreset[] = [
         Maroon is canonical. Gold for emphasis on landing surfaces. Neutral
         for supporting metrics that shouldn't compete with brand stats.
       </p>
-      <TuxExample class="mt-4">
+      <TuxExample class="mt-4" :vue="tonesVue" :source="tuxBigStatSource">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <TuxBigStat tone="maroon"  :value="93.4" suffix="%" label="Classifier precision (CLS-204)" />
           <TuxBigStat tone="gold"    :value="60"   suffix=" yrs" label="Of transportation research" />
@@ -208,7 +229,7 @@ const bigStatPresets: TuxPlaygroundPreset[] = [
         Work Sans 800 italic (bold), Georgia italic (elegant). The label
         stays Open Sans throughout — the eyebrow rhythm is constant.
       </p>
-      <TuxExample class="mt-4">
+      <TuxExample class="mt-4" :vue="variantsVue" :source="tuxBigStatSource">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <TuxBigStat variant="default" :value="2.1" suffix="M" label="Vehicles per day · monitored corridors" />
           <TuxBigStat variant="bold"    :value="84"  suffix="%" label="Reduction in roadway-departure crashes" />

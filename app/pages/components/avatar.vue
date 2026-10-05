@@ -121,6 +121,7 @@ const standaloneVue = `<!-- Inside a labelled control (default): decorative, hid
         eyebrow="Interactive Component Playground"
         :controls="avatarControls"
         :presets="avatarPresets"
+        :source="tuxAvatarSource"
       >
         <template #default="{ values }">
           <div class="flex items-center gap-4">

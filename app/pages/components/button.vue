@@ -185,10 +185,12 @@ const buttonPresets: TuxPlaygroundPreset[] = [
     <section>
       <TuxPlayground
         tag="tux-button"
+        component-name="TuxButton"
         title="TuxButton Workbench"
         eyebrow="Interactive Component Playground"
         :controls="buttonControls"
         :presets="buttonPresets"
+        :source="tuxButtonSource"
         slot-prop="label"
         default-slot-text="Execute Analysis"
       >
@@ -226,7 +228,7 @@ const buttonPresets: TuxPlaygroundPreset[] = [
     <section>
       <p class="eyebrow">with icon</p>
       <h2 class="heading--bold text-xl font-bold">Leading &amp; trailing icons</h2>
-      <TuxExample class="mt-4" :vue="iconsVue">
+      <TuxExample class="mt-4" :vue="iconsVue" :source="tuxButtonSource">
         <div class="flex flex-wrap gap-3">
           <TuxButton intent="primary" icon="lucide:play">Run</TuxButton>
           <TuxButton intent="secondary" icon="lucide:download">Export CSV</TuxButton>
@@ -239,7 +241,7 @@ const buttonPresets: TuxPlaygroundPreset[] = [
     <section>
       <p class="eyebrow">states</p>
       <h2 class="heading--bold text-xl font-bold">Loading &amp; disabled</h2>
-      <TuxExample class="mt-4" :vue="statesVue">
+      <TuxExample class="mt-4" :vue="statesVue" :source="tuxButtonSource">
         <div class="flex flex-wrap gap-3">
           <TuxButton intent="primary" :loading="loading" icon="lucide:refresh-cw" @click="simulateWork">
             {{ loading ? "Working…" : "Click to load for 2s" }}
@@ -253,7 +255,7 @@ const buttonPresets: TuxPlaygroundPreset[] = [
     <section>
       <p class="eyebrow">sizes</p>
       <h2 class="heading--bold text-xl font-bold">All sizes</h2>
-      <TuxExample class="mt-4" :vue="sizesVue">
+      <TuxExample class="mt-4" :vue="sizesVue" :source="tuxButtonSource">
         <div class="flex flex-wrap gap-3 items-center">
           <TuxButton v-for="s in sizes" :key="s" intent="primary" :size="s">
             Size {{ s }}
@@ -268,7 +270,7 @@ const buttonPresets: TuxPlaygroundPreset[] = [
       <p class="text-sm text-text-secondary mb-3">
         Pass <code>to</code> and TuxButton renders as <code>NuxtLink</code> under the hood.
       </p>
-      <TuxExample :vue="linkVue">
+      <TuxExample :vue="linkVue" :source="tuxButtonSource">
         <div class="flex flex-wrap gap-3">
           <TuxButton intent="primary" to="/tokens" trailing-icon="lucide:arrow-right">
             Browse tokens

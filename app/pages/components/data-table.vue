@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import tuxDataTableSource from "~/components/TuxDataTable.vue?raw";
 import pbiTable from "../../../kit/powerbi/pbir/fragments/tti/table-chrome.json?raw";
 
 useHead({ title: "TuxDataTable · TUX" });
@@ -202,6 +203,32 @@ const sortableVue = `<TuxDataTable
   source="Source: TxDOT CRIS, FHWA HPMS · Compiled by TTI Center for Transportation Safety, 2024."
 />`;
 
+const groupedVue = `<TuxDataTable
+  table-number="Table 6-1"
+  caption="Major capital projects in flight, by region"
+  :columns="groupedColumns"
+  :groups="groups"
+  :footnotes="groupedFootnotes"
+/>`;
+
+const denseVue = `<TuxDataTable
+  table-number="Table A-7 (excerpt)"
+  caption="Pavement segment inventory · I-35 northbound, MP 220–296"
+  :columns="denseColumns"
+  :rows="denseRows"
+  density="compact"
+  sticky
+  max-height="20rem"
+/>`;
+
+const comparisonVue = `<TuxDataTable
+  table-number="Table 8-3"
+  caption="Operational results · I-635 LBJ Express · before vs. after"
+  :columns="comparisonColumns"
+  :rows="comparisonRows"
+  :banded="false"
+/>`;
+
 function pciClass(value: number): string {
   if (value >= 80) return "pci pci--good";
   if (value >= 60) return "pci pci--fair";
@@ -238,7 +265,7 @@ function pciClass(value: number): string {
         footnote superscript next to district names links to the formal
         note block under the table.
       </p>
-      <TuxExample :powerbi="pbiTable" class="mt-4" :vue="sortableVue">
+      <TuxExample :powerbi="pbiTable" class="mt-4" :vue="sortableVue" :source="tuxDataTableSource">
         <TuxDataTable
           v-model:sort-key="sortKey"
           v-model:sort-dir="sortDir"
@@ -265,7 +292,7 @@ function pciClass(value: number): string {
         schedule-progress bar without the component knowing about
         either pattern.
       </p>
-      <TuxExample class="mt-4">
+      <TuxExample class="mt-4" :vue="groupedVue" :source="tuxDataTableSource">
         <TuxDataTable
           table-number="Table 6-1"
           caption="Major capital projects in flight, by region"
@@ -318,7 +345,7 @@ function pciClass(value: number): string {
         PCI cells are color-coded by band (good ≥ 80 green, fair 60–79
         gold, poor &lt; 60 red).
       </p>
-      <TuxExample class="mt-4">
+      <TuxExample class="mt-4" :vue="denseVue" :source="tuxDataTableSource">
         <TuxDataTable
           table-number="Table A-7 (excerpt)"
           caption="Pavement segment inventory · I-35 northbound, MP 220–296"
@@ -349,7 +376,7 @@ function pciClass(value: number): string {
         and the convention is local to the metric: lower is good
         for delay, higher is good for speed.
       </p>
-      <TuxExample class="mt-4">
+      <TuxExample class="mt-4" :vue="comparisonVue" :source="tuxDataTableSource">
         <TuxDataTable
           table-number="Table 8-3"
           caption="Operational results · I-635 LBJ Express · before vs. after"

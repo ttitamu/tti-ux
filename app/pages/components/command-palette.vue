@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import tuxCommandPaletteSource from "~/components/TuxCommandPalette.vue?raw";
 import type { TuxPropControl } from "~/components/TuxPlayground.vue";
 import type { CommandGroup } from "~/components/TuxCommandPalette.vue";
 
@@ -138,8 +139,10 @@ const sampleGroups: CommandGroup[] = [
     <section>
       <TuxPlayground
         tag="tux-command-palette"
+        component-name="TuxCommandPalette"
         title="TuxCommandPalette Workbench"
         :controls="playgroundControls"
+        :source="tuxCommandPaletteSource"
         :self-closing="true"
       >
         <template #default="{ values }">

@@ -143,10 +143,12 @@ const alertPresets: TuxPlaygroundPreset[] = [
     <section>
       <TuxPlayground
         tag="tux-alert"
+        component-name="TuxAlert"
         title="TuxAlert Workbench"
         eyebrow="Interactive Component Playground"
         :controls="alertControls"
         :presets="alertPresets"
+        :source="tuxAlertSource"
         :self-closing="true"
       >
         <template #default="{ values }">
@@ -191,7 +193,7 @@ const alertPresets: TuxPlaygroundPreset[] = [
         Omit <code>description</code> for a single-line admonition — good for
         inline heads-up messages in table cells or form fields.
       </p>
-      <TuxExample :vue="compactVue">
+      <TuxExample :vue="compactVue" :source="tuxAlertSource">
         <TuxAlert variant="tip" title="Use `heading--bold` for section titles, not page chrome." />
       </TuxExample>
     </section>
@@ -199,7 +201,7 @@ const alertPresets: TuxPlaygroundPreset[] = [
     <section>
       <p class="eyebrow">custom icon</p>
       <h2 class="heading--bold text-xl font-bold">Override icon</h2>
-      <TuxExample :vue="iconVue">
+      <TuxExample :vue="iconVue" :source="tuxAlertSource">
         <TuxAlert
           variant="info"
           icon="lucide:database"

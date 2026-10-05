@@ -2,25 +2,103 @@
 /**
  * /components/form-field — Dedicated showcase for TuxFormField.
  */
+import tuxFormFieldSource from "~/components/TuxFormField.vue?raw";
+import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
+
 useHead({ title: "TuxFormField · Components · TUX" });
 
-const layout = ref<"stacked" | "inline">("stacked");
-const isRequired = ref(true);
-const showHelp = ref(true);
-const triggerError = ref(false);
+const formFieldControls: TuxPropControl[] = [
+  {
+    prop: "label",
+    label: "Field Label",
+    type: "text",
+    defaultValue: "Principal Investigator Email",
+  },
+  {
+    prop: "layout",
+    label: "Layout Geometry",
+    type: "select",
+    options: ["stacked", "inline"],
+    defaultValue: "stacked",
+  },
+  {
+    prop: "required",
+    label: "Required Field",
+    type: "boolean",
+    defaultValue: true,
+  },
+  {
+    prop: "hint",
+    label: "Hint Text",
+    type: "text",
+    defaultValue: "Institutional @tti.tamu.edu address preferred.",
+  },
+  {
+    prop: "help",
+    label: "Info Popover Help",
+    type: "text",
+    defaultValue: "Used strictly for project notification dispatches and access verification.",
+  },
+  {
+    prop: "error",
+    label: "Validation Error Message",
+    type: "text",
+    defaultValue: "",
+  },
+];
+
+const formFieldPresets: TuxPlaygroundPreset[] = [
+  {
+    name: "required-email",
+    label: "Required Email",
+    description: "Standard stacked research field with hint & help popover",
+    icon: "lucide:mail",
+    values: {
+      label: "Principal Investigator Email",
+      layout: "stacked",
+      required: true,
+      hint: "Institutional @tti.tamu.edu address preferred.",
+      help: "Used strictly for project notification dispatches and access verification.",
+      error: "",
+    },
+  },
+  {
+    name: "project-id-inline",
+    label: "Inline Project ID",
+    description: "Horizontal layout for dense administrative forms",
+    icon: "lucide:hash",
+    values: {
+      label: "Project Charge Number",
+      layout: "inline",
+      required: true,
+      hint: "7-digit TxDOT research agreement code.",
+      help: "Found on your sponsored research agreement header.",
+      error: "",
+    },
+  },
+  {
+    name: "validation-error",
+    label: "Simulated Error",
+    description: "Invalid state wiring aria-invalid and high-contrast error message",
+    icon: "lucide:alert-circle",
+    values: {
+      label: "Account Number",
+      layout: "stacked",
+      required: true,
+      hint: "Must match active FRS account format.",
+      help: "",
+      error: "Enter a valid 6-digit departmental account number.",
+    },
+  },
+];
 
 const emailValue = ref("");
-const errorMessage = computed(() =>
-  triggerError.value ? "Enter a valid institutional email address ending with @tti.tamu.edu." : ""
-);
-
-const sampleVue = computed(() => `<TuxFormField
+const sampleVue = `<TuxFormField
   label="Principal Investigator Email"
-  layout="${layout.value}"
-  ${isRequired.value ? "required" : ""}
-  ${showHelp.value ? 'help="Used strictly for project notification dispatches and access verification."' : ""}
+  layout="stacked"
+  required
+  help="Used strictly for project notification dispatches and access verification."
   hint="Institutional @tti.tamu.edu address preferred."
-  ${triggerError.value ? 'error="Enter a valid institutional email address."' : ""}
 >
   <template #default="{ inputId, ariaDescribedby, ariaInvalid, ariaRequired }">
     <UInput
@@ -33,7 +111,7 @@ const sampleVue = computed(() => `<TuxFormField
       :aria-required="ariaRequired"
     />
   </template>
-</TuxFormField>`);
+</TuxFormField>`;
 </script>
 
 <template>
@@ -43,68 +121,77 @@ const sampleVue = computed(() => `<TuxFormField
       info-popover help, input slot with automatic a11y attributes, hint text, and inline validation errors.
     </TuxPageHeader>
 
-    <!-- Interactive Showcase -->
-    <section class="space-y-4">
-      <div class="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <p class="eyebrow">interactive showcase</p>
-          <h2 class="heading--bold text-xl font-bold">Field Cluster & a11y Scope</h2>
-        </div>
-
-        <!-- Controls -->
-        <div class="flex items-center gap-3 text-xs bg-surface-sunken p-2 rounded-lg border border-surface-border">
-          <div class="flex items-center gap-1.5">
-            <span class="text-text-muted">Layout:</span>
-            <select v-model="layout" aria-label="Layout" class="bg-surface-raised border border-surface-border rounded px-1.5 py-0.5 text-xs text-text-primary">
-              <option value="stacked">stacked</option>
-              <option value="inline">inline</option>
-            </select>
+    <!-- Interactive Props Workbench -->
+    <section>
+      <TuxPlayground
+        tag="tux-form-field"
+        component-name="TuxFormField"
+        title="TuxFormField Workbench"
+        eyebrow="Interactive Component Playground"
+        :controls="formFieldControls"
+        :presets="formFieldPresets"
+        :source="tuxFormFieldSource"
+        :code-template="(values) => {
+          const layoutAttr = values.layout !== 'stacked' ? ` layout=\x22${values.layout}\x22` : '';
+          const reqAttr = values.required ? ' required' : '';
+          const hintAttr = values.hint ? ` hint=\x22${values.hint}\x22` : '';
+          const helpAttr = values.help ? ` help=\x22${values.help}\x22` : '';
+          const errAttr = values.error ? ` error=\x22${values.error}\x22` : '';
+          return `<TuxFormField\n  label=\x22${values.label}\x22${layoutAttr}${reqAttr}${hintAttr}${helpAttr}${errAttr}\n>\n  <template #default=\x22{ inputId, ariaDescribedby, ariaInvalid, ariaRequired }\x22>\n    <UInput\n      :id=\x22inputId\x22\n      type=\x22text\x22\n      :aria-describedby=\x22ariaDescribedby\x22\n      :aria-invalid=\x22ariaInvalid\x22\n      :aria-required=\x22ariaRequired\x22\n    />\n  </template>\n</TuxFormField>`;
+        }"
+      >
+        <template #default="{ values }">
+          <div class="max-w-xl w-full">
+            <TuxFormField
+              :label="values.label"
+              :layout="values.layout"
+              :required="values.required"
+              :hint="values.hint || undefined"
+              :help="values.help || undefined"
+              :error="values.error || undefined"
+            >
+              <template #default="{ inputId, ariaDescribedby, ariaInvalid, ariaRequired }">
+                <UInput
+                  :id="inputId"
+                  v-model="emailValue"
+                  type="text"
+                  placeholder="Enter value..."
+                  :aria-describedby="ariaDescribedby"
+                  :aria-invalid="ariaInvalid"
+                  :aria-required="ariaRequired"
+                />
+              </template>
+            </TuxFormField>
           </div>
-          <label class="flex items-center gap-1.5 pl-2 border-l border-surface-border cursor-pointer text-text-secondary hover:text-text-primary">
-            <input v-model="isRequired" type="checkbox" class="rounded border-surface-border text-brand-primary" />
-            <span>Required</span>
-          </label>
-          <label class="flex items-center gap-1.5 cursor-pointer text-text-secondary hover:text-text-primary">
-            <input v-model="showHelp" type="checkbox" class="rounded border-surface-border text-brand-primary" />
-            <span>Help Icon</span>
-          </label>
-          <label class="flex items-center gap-1.5 cursor-pointer text-text-secondary hover:text-text-primary">
-            <input v-model="triggerError" type="checkbox" class="rounded border-surface-border text-brand-primary" />
-            <span>Simulate Error</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Preview -->
-      <div class="bg-surface-raised p-6 rounded-xl border border-surface-border shadow-xs space-y-4 max-w-xl">
-        <TuxFormField
-          label="Principal Investigator Email"
-          :layout="layout"
-          :required="isRequired"
-          :help="showHelp ? 'Used strictly for project notification dispatches and access verification.' : undefined"
-          hint="Institutional @tti.tamu.edu address preferred."
-          :error="errorMessage"
-        >
-          <template #default="{ inputId, ariaDescribedby, ariaInvalid, ariaRequired }">
-            <UInput
-              :id="inputId"
-              v-model="emailValue"
-              type="email"
-              placeholder="researcher@tti.tamu.edu"
-              :aria-describedby="ariaDescribedby"
-              :aria-invalid="ariaInvalid"
-              :aria-required="ariaRequired"
-            />
-          </template>
-        </TuxFormField>
-      </div>
+        </template>
+      </TuxPlayground>
     </section>
 
     <!-- Code Snippet -->
     <section class="space-y-3">
       <p class="eyebrow">usage syntax</p>
-      <h2 class="heading--bold text-xl font-bold">Code snippet</h2>
-      <TuxCodeBlock :code="sampleVue" lang="vue" />
+      <h2 class="heading--bold text-xl font-bold">Standard Form Field Cluster</h2>
+      <TuxExample class="mt-4" :vue="sampleVue" :source="tuxFormFieldSource">
+        <div class="max-w-xl">
+          <TuxFormField
+            label="Principal Investigator Email"
+            required
+            hint="Institutional @tti.tamu.edu address preferred."
+            help="Used strictly for project notification dispatches and access verification."
+          >
+            <template #default="{ inputId, ariaDescribedby, ariaInvalid, ariaRequired }">
+              <UInput
+                :id="inputId"
+                type="email"
+                placeholder="researcher@tti.tamu.edu"
+                :aria-describedby="ariaDescribedby"
+                :aria-invalid="ariaInvalid"
+                :aria-required="ariaRequired"
+              />
+            </template>
+          </TuxFormField>
+        </div>
+      </TuxExample>
     </section>
 
     <!-- Props Table -->

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import tuxBadgeSource from "~/components/TuxBadge.vue?raw";
+import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
+
 useHead({ title: "TuxBadge · TUX" });
 
 const tiers = ["public", "internal", "sensitive", "restricted"] as const;
@@ -48,8 +51,6 @@ const countVue = `<TuxBadge kind="count" :count="42">pdf</TuxBadge>
 <TuxBadge kind="count" :count="11">md</TuxBadge>
 <TuxBadge kind="count" :count="3">xlsx</TuxBadge>
 <TuxBadge kind="count" :count="1204">csv</TuxBadge>`;
-
-import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
 
 const badgeControls: TuxPropControl[] = [
   {
@@ -165,10 +166,12 @@ const badgePresets: TuxPlaygroundPreset[] = [
     <section>
       <TuxPlayground
         tag="tux-badge"
+        component-name="TuxBadge"
         title="TuxBadge Workbench"
         eyebrow="Interactive Component Playground"
         :controls="badgeControls"
         :presets="badgePresets"
+        :source="tuxBadgeSource"
         slot-prop="label"
         default-slot-text="Active Sensor Node"
       >
@@ -192,7 +195,7 @@ const badgePresets: TuxPlaygroundPreset[] = [
       <p class="text-sm text-text-secondary mb-3">
         Pre-configured security classification badges according to institutional data policies.
       </p>
-      <TuxExample class="mt-4" :vue="tiersVue">
+      <TuxExample class="mt-4" :vue="tiersVue" :source="tuxBadgeSource">
         <div class="flex flex-wrap gap-2">
           <TuxBadge v-for="t in tiers" :key="t" :tier="t" />
         </div>
@@ -205,7 +208,7 @@ const badgePresets: TuxPlaygroundPreset[] = [
       <p class="text-sm text-text-secondary mb-3">
         Lifecycle states with integrated status-dot indicator and animated spinner for in-flight tasks.
       </p>
-      <TuxExample class="mt-4" :vue="statusVue">
+      <TuxExample class="mt-4" :vue="statusVue" :source="tuxBadgeSource">
         <div class="flex flex-wrap gap-2">
           <TuxBadge v-for="s in statuses" :key="s" :status="s" />
         </div>
@@ -218,7 +221,7 @@ const badgePresets: TuxPlaygroundPreset[] = [
       <p class="text-sm text-text-secondary mb-3">
         High-contrast solid backgrounds for urgent callouts, prominent table headers, or critical operational flags.
       </p>
-      <TuxExample class="mt-4" :vue="boldVue">
+      <TuxExample class="mt-4" :vue="boldVue" :source="tuxBadgeSource">
         <div class="flex flex-wrap gap-2">
           <TuxBadge tone="brand" bold>BRAND SOLID</TuxBadge>
           <TuxBadge tone="success" bold>LIVE STREAM</TuxBadge>
@@ -235,7 +238,7 @@ const badgePresets: TuxPlaygroundPreset[] = [
       <p class="text-sm text-text-secondary mb-3">
         Explicit <code>dot</code> prop with pulsing animation on active/critical tones, or <code>icon</code> prop for semantic icons.
       </p>
-      <TuxExample class="mt-4" :vue="iconDotVue">
+      <TuxExample class="mt-4" :vue="iconDotVue" :source="tuxBadgeSource">
         <div class="flex flex-wrap gap-2">
           <TuxBadge tone="success" dot>Active Sensor</TuxBadge>
           <TuxBadge tone="danger" dot>Alert Triggered</TuxBadge>
@@ -252,7 +255,7 @@ const badgePresets: TuxPlaygroundPreset[] = [
       <p class="text-sm text-text-secondary mb-3">
         Monospace + outline to read as machine tokens, not editorial copy.
       </p>
-      <TuxExample :vue="tagsVue">
+      <TuxExample :vue="tagsVue" :source="tuxBadgeSource">
         <div class="flex flex-wrap gap-2">
           <TuxBadge v-for="t in tags" :key="t" kind="tag">{{ t }}</TuxBadge>
         </div>
@@ -262,7 +265,7 @@ const badgePresets: TuxPlaygroundPreset[] = [
     <section>
       <p class="eyebrow">facet · count</p>
       <h2 class="heading--bold text-xl font-bold">Counts</h2>
-      <TuxExample class="mt-4" :vue="countVue">
+      <TuxExample class="mt-4" :vue="countVue" :source="tuxBadgeSource">
         <div class="flex flex-wrap gap-2">
           <TuxBadge kind="count" :count="42">pdf</TuxBadge>
           <TuxBadge kind="count" :count="11">md</TuxBadge>

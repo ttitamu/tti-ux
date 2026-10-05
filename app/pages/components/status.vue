@@ -139,6 +139,7 @@ const overlayVue = `<!-- Consumer markup you do not own. Map onto TUX classes. -
         eyebrow="Interactive Component Playground"
         :controls="statusControls"
         :presets="statusPresets"
+        :source="tuxStatusSource"
       >
         <template #default="{ values }">
           <div class="flex items-center gap-3">
@@ -179,13 +180,13 @@ const overlayVue = `<!-- Consumer markup you do not own. Map onto TUX classes. -
     <section>
       <p class="eyebrow">roles</p>
       <h2 class="heading--bold text-xl font-bold">Text and dot</h2>
-      <TuxExample class="mt-4" :vue="textVue" :css="tuxOpsCss">
+      <TuxExample class="mt-4" :vue="textVue" :css="tuxOpsCss" :source="tuxStatusSource">
         <div class="flex flex-wrap gap-4 items-center">
           <TuxStatus state="ok" kind="text" />
           <TuxStatus state="critical" kind="text" />
         </div>
       </TuxExample>
-      <TuxExample class="mt-4" :vue="dotVue" :css="tuxOpsCss">
+      <TuxExample class="mt-4" :vue="dotVue" :css="tuxOpsCss" :source="tuxStatusSource">
         <div class="flex flex-wrap gap-3 items-center">
           <TuxStatus state="ok" kind="dot" />
           <TuxStatus state="warning" kind="dot" />
@@ -202,7 +203,7 @@ const overlayVue = `<!-- Consumer markup you do not own. Map onto TUX classes. -
         <code>--surface-sunken</code> — not pending grey, which
         reads as UNKNOWN in the dark theme.
       </p>
-      <TuxExample class="mt-4" :vue="ackedVue" :css="tuxOpsCss">
+      <TuxExample class="mt-4" :vue="ackedVue" :css="tuxOpsCss" :source="tuxStatusSource">
         <div class="flex flex-wrap gap-2">
           <TuxStatus state="critical" />
           <TuxStatus state="critical" acked />

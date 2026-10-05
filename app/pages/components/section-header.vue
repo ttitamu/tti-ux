@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import tuxSectionHeaderSource from "~/components/TuxSectionHeader.vue?raw";
 import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
 
 useHead({ title: "TuxSectionHeader · TUX" });
@@ -125,6 +126,7 @@ const subtitleVue = `<tux-section-header :level="2" subtitle="4,218 documents ac
         eyebrow="Interactive Component Playground"
         :controls="sectionHeaderControls"
         :presets="sectionHeaderPresets"
+        :source="tuxSectionHeaderSource"
       >
         <template #default="{ values }">
           <div class="p-6 bg-surface-raised rounded-xl border border-surface-border w-full">
@@ -143,7 +145,7 @@ const subtitleVue = `<tux-section-header :level="2" subtitle="4,218 documents ac
     <section>
       <p class="eyebrow">level 1</p>
       <h2 class="heading--bold text-xl font-bold">Biggest section heading</h2>
-      <TuxExample class="mt-4" :vue="level1Vue">
+      <TuxExample class="mt-4" :vue="level1Vue" :source="tuxSectionHeaderSource">
         <TuxSectionHeader :level="1" subtitle="Level 1 — the biggest">
           Research grants overview
         </TuxSectionHeader>
@@ -157,7 +159,7 @@ const subtitleVue = `<tux-section-header :level="2" subtitle="4,218 documents ac
     <section>
       <p class="eyebrow">level 2 (default)</p>
       <h2 class="heading--bold text-xl font-bold">Default section heading</h2>
-      <TuxExample class="mt-4" :vue="level2Vue">
+      <TuxExample class="mt-4" :vue="level2Vue" :source="tuxSectionHeaderSource">
         <TuxSectionHeader :level="2" subtitle="Level 2 — default">
           Classification tiers
         </TuxSectionHeader>
@@ -167,7 +169,7 @@ const subtitleVue = `<tux-section-header :level="2" subtitle="4,218 documents ac
     <section>
       <p class="eyebrow">level 3</p>
       <h2 class="heading--bold text-xl font-bold">Smallest variant</h2>
-      <TuxExample class="mt-4" :vue="level3Vue">
+      <TuxExample class="mt-4" :vue="level3Vue" :source="tuxSectionHeaderSource">
         <TuxSectionHeader :level="3">Tag namespaces</TuxSectionHeader>
       </TuxExample>
     </section>
@@ -175,7 +177,7 @@ const subtitleVue = `<tux-section-header :level="2" subtitle="4,218 documents ac
     <section>
       <p class="eyebrow">with subtitle</p>
       <h2 class="heading--bold text-xl font-bold">Metadata below the bar</h2>
-      <TuxExample class="mt-4" :vue="subtitleVue">
+      <TuxExample class="mt-4" :vue="subtitleVue" :source="tuxSectionHeaderSource">
         <TuxSectionHeader :level="2" subtitle="4,218 documents across 17 indices">
           Index catalog
         </TuxSectionHeader>

@@ -59,6 +59,8 @@ interface Props {
   selfClosing?: boolean;
   /** Optional custom code generator */
   codeTemplate?: (values: Record<string, any>) => string;
+  /** Optional component source SFC to expose in a Source tab */
+  source?: string;
   /** Optional preview container padding (default "p-8") */
   previewPadding?: string;
   /** Enable two-way synchronization with URL query parameters (default true) */
@@ -75,6 +77,7 @@ const props = withDefaults(defineProps<Props>(), {
   defaultSlotText: undefined,
   selfClosing: false,
   codeTemplate: undefined,
+  source: undefined,
   previewPadding: "p-8",
   enableDeepLinking: true,
 });
@@ -533,6 +536,7 @@ const generatedCliCommand = computed(() => {
     <div class="tux-playground__code-wrapper">
       <TuxExample
         :vue="generatedVueCode"
+        :source="source"
         preview-padding="hidden"
         title="Dynamic Component Syntax"
       >

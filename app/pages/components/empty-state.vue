@@ -164,6 +164,7 @@ const presetOverrideVue = `<!-- Override one field; preset fills the rest. -->
         eyebrow="Interactive Component Playground"
         :controls="emptyStateControls"
         :presets="emptyStatePresets"
+        :source="tuxEmptyStateSource"
       >
         <template #default="{ values }">
           <div class="p-6 bg-surface-raised rounded-xl border border-surface-border w-full flex justify-center">
@@ -208,7 +209,7 @@ const presetOverrideVue = `<!-- Override one field; preset fills the rest. -->
         No description, no action. Fine for transient "loaded zero rows"
         cases where there's nothing actionable the user can do.
       </p>
-      <TuxExample :vue="minimalVue">
+      <TuxExample :vue="minimalVue" :source="tuxEmptyStateSource">
         <TuxEmptyState icon="lucide:inbox" title="No records found" />
       </TuxExample>
     </section>
@@ -220,7 +221,7 @@ const presetOverrideVue = `<!-- Override one field; preset fills the rest. -->
         Pass <code>no-card</code> when the empty state IS the page — e.g. a
         "no search results" state that fills the content column directly.
       </p>
-      <TuxExample :vue="noCardVue">
+      <TuxExample :vue="noCardVue" :source="tuxEmptyStateSource">
         <TuxEmptyState
           no-card
           icon="lucide:search-x"
@@ -239,7 +240,7 @@ const presetOverrideVue = `<!-- Override one field; preset fills the rest. -->
         sidebar widget. Reduces icon, heading, and padding without
         changing the content shape.
       </p>
-      <TuxExample :vue="compactVue">
+      <TuxExample :vue="compactVue" :source="tuxEmptyStateSource">
         <TuxEmptyState
           compact
           icon="lucide:filter-x"
@@ -258,7 +259,7 @@ const presetOverrideVue = `<!-- Override one field; preset fills the rest. -->
         explicit <code>icon</code> / <code>title</code> /
         <code>description</code> props still win when set.
       </p>
-      <TuxExample :vue="presetVue">
+      <TuxExample :vue="presetVue" :source="tuxEmptyStateSource">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <TuxEmptyState kind="no-data" compact />
           <TuxEmptyState kind="no-results" compact>
@@ -283,7 +284,7 @@ const presetOverrideVue = `<!-- Override one field; preset fills the rest. -->
         title or description to match the surface's voice. The icon
         still defaults from the preset unless you replace it too.
       </p>
-      <TuxExample :vue="presetOverrideVue">
+      <TuxExample :vue="presetOverrideVue" :source="tuxEmptyStateSource">
         <TuxEmptyState kind="first-run" title="Welcome to Landscape">
           <TuxButton intent="primary" icon="lucide:plus">Create your first index</TuxButton>
         </TuxEmptyState>
