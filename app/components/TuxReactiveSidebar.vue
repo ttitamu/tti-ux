@@ -228,7 +228,7 @@ function onMouseLeaveFlyout() {
 <template>
   <nav
     class="tux-reactive-sidebar select-none transition-all duration-200 h-full min-h-0 flex flex-col overflow-hidden"
-    :class="collapsed ? 'w-16' : 'w-72 lg:w-80'"
+    :class="collapsed ? 'w-16' : 'w-full'"
     :aria-label="activeAreaTitle"
     data-testid="tux-reactive-sidebar"
   >
