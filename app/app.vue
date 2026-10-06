@@ -625,6 +625,41 @@ watch(() => route.fullPath, () => {
   sidebarOpen.value = false;
 });
 
+const userManuallyToggledSidebar = ref(false);
+
+function toggleDesktopSidebar() {
+  userManuallyToggledSidebar.value = true;
+  desktopSidebarCollapsed.value = !desktopSidebarCollapsed.value;
+}
+
+function handleWindowResize() {
+  updateNavIndicator();
+  if (typeof window !== "undefined") {
+    // When resizing into tablet/laptop viewports (<1024px), collapse sidebar to mini-rail
+    // so main content retains sufficient breathing room
+    if (window.innerWidth < 1024) {
+      if (!desktopSidebarCollapsed.value) {
+        desktopSidebarCollapsed.value = true;
+      }
+    } else if (window.innerWidth >= 1024 && !userManuallyToggledSidebar.value && !isFullWidth.value) {
+      // Re-expand on large screens if user hasn't explicitly collapsed it
+      if (desktopSidebarCollapsed.value) {
+        desktopSidebarCollapsed.value = false;
+      }
+    }
+    // Auto-close mobile drawer when scaling up to desktop (>=768px)
+    if (window.innerWidth >= 768 && sidebarOpen.value) {
+      sidebarOpen.value = false;
+    }
+  }
+}
+
+function handleGlobalKeydown(event: KeyboardEvent) {
+  if (event.key === "Escape" && sidebarOpen.value) {
+    sidebarOpen.value = false;
+  }
+}
+
 // Auto-collapse sidebar on tablet viewports (<1024px) or builder/admin pages on desktop for maximum workspace
 // and initialize window listeners for navigation indicators and version dropdown
 onMounted(() => {
@@ -640,7 +675,8 @@ onMounted(() => {
       document.documentElement.setAttribute("data-tux-version", pkgVersion);
     }
     window.addEventListener("click", handleGlobalClick);
-    window.addEventListener("resize", updateNavIndicator);
+    window.addEventListener("resize", handleWindowResize);
+    window.addEventListener("keydown", handleGlobalKeydown);
     nextTick(() => {
       updateNavIndicator();
       setTimeout(updateNavIndicator, 150);
@@ -651,7 +687,8 @@ onMounted(() => {
 onUnmounted(() => {
   if (typeof window !== "undefined") {
     window.removeEventListener("click", handleGlobalClick);
-    window.removeEventListener("resize", updateNavIndicator);
+    window.removeEventListener("resize", handleWindowResize);
+    window.removeEventListener("keydown", handleGlobalKeydown);
   }
 });
 
@@ -1021,7 +1058,9 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
             variant="ghost"
             size="sm"
             class="md:hidden"
-            aria-label="Open navigation"
+            :aria-expanded="sidebarOpen"
+            aria-controls="tux-mobile-drawer"
+            aria-label="Open navigation menu"
             @click="sidebarOpen = !sidebarOpen;"
           />
 
@@ -1212,48 +1251,57 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
 
       <div class="flex flex-1 min-h-0 min-w-0">
         <!-- Sidebar backdrop (mobile only) -->
-        <div
-          v-if="sidebarOpen"
-          class="fixed inset-0 z-10 bg-black/40 md:hidden"
-          aria-hidden="true"
-          @click="sidebarOpen = false"
-        />
+        <Transition
+          enter-active-class="transition-opacity duration-200 ease-out"
+          enter-from-class="opacity-0"
+          enter-to-class="opacity-100"
+          leave-active-class="transition-opacity duration-150 ease-in"
+          leave-from-class="opacity-100"
+          leave-to-class="opacity-0"
+        >
+          <div
+            v-if="sidebarOpen"
+            class="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs md:hidden"
+            aria-hidden="true"
+            @click="sidebarOpen = false"
+          />
+        </Transition>
 
-        <!-- Sidebar — fixed-positioned on mobile (slides in from left
-             with the menu toggle), static-positioned on desktop. We use
-             `md:transform-none` (rather than `md:translate-x-0`) so the
-             desktop sidebar doesn't carry a `transform` declaration —
-             a transformed static element creates a stacking context that
-             paints over the sticky header (z-index doesn't apply to
-             static elements, so the header's z-30 wouldn't help).
-             The chrome (border, surface, slide-in) is provided here; the
-             inner `<TuxDocsSidebar>` carries the navigation landmark,
-             collapsible groups, active-trail highlighting, filter, and
-             sessionStorage-persisted collapse state. The outer is a
-             plain <div> to avoid a duplicate "navigation" landmark. -->
-        <!-- Sticky on desktop so the sidebar stays pinned to the
-             viewport as the page scrolls — otherwise the flex row's
-             stretch makes the sidebar as tall as the main content,
-             and you scroll past it (and the tapered hairline rides
-             down into the footer). `md:self-start` opts this child
-             out of the flex parent's default stretch so sticky can
-             actually take effect, and `md:max-h-[calc(100vh-57px)]`
-             caps the sidebar at the viewport minus the 57px sticky
-             header. `overflow-x-hidden` on the inner scroll wrapper
-             clips any horizontal overflow from long item labels
-             (the leaf links also truncate with ellipsis, but this is
-             a belt-and-braces guard so a runaway label can never
-             trigger a horizontal scrollbar). -->
-        <!-- Sidebar — Reactive Dual-Mode (w-80 expanded, w-16 collapsed) -->
+        <!-- Mobile Sidebar Drawer (<768px): fixed overlay, 0px in document flow when closed -->
+        <Transition
+          enter-active-class="transition-transform duration-200 ease-out"
+          enter-from-class="-translate-x-full"
+          enter-to-class="translate-x-0"
+          leave-active-class="transition-transform duration-150 ease-in"
+          leave-from-class="translate-x-0"
+          leave-to-class="-translate-x-full"
+        >
+          <div
+            v-if="sidebarOpen"
+            id="tux-mobile-drawer"
+            class="fixed inset-y-0 left-0 top-[57px] z-50 w-72 sm:w-80 bg-surface-raised border-r border-surface-border flex flex-col overflow-hidden shadow-2xl md:hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile Navigation"
+          >
+            <TuxReactiveSidebar
+              :sections="activeSidebarSections"
+              :all-sections="navTree"
+              :show-all="showAllAreasInSidebar"
+              :collapsed="false"
+              :active-area-title="currentArea.label"
+              :active-area-icon="currentArea.icon"
+              :search="true"
+              @update:show-all="showAllAreasInSidebar = $event"
+              @toggle-collapse="sidebarOpen = false"
+            />
+          </div>
+        </Transition>
+
+        <!-- Desktop Sidebar (>=768px): in-flow flex item, hidden on mobile so it occupies 0px width -->
         <div
-          :class="[
-            'tti-shell-sidebar bg-surface-raised flex-shrink-0 transition-all duration-200 border-r border-surface-border relative',
-            desktopSidebarCollapsed ? 'w-16' : 'w-72 lg:w-80',
-            'md:sticky md:top-[57px] md:self-start md:h-[calc(100vh-57px)] md:max-h-[calc(100vh-57px)] md:flex md:flex-col md:overflow-hidden',
-            'md:translate-x-0 md:transform-none',
-            'fixed inset-y-0 left-0 top-[57px] z-20 h-[calc(100vh-57px)] flex flex-col overflow-hidden',
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
-          ]"
+          class="tti-shell-sidebar bg-surface-raised flex-shrink-0 transition-all duration-200 border-r border-surface-border relative hidden md:flex md:flex-col md:sticky md:top-[57px] md:self-start md:h-[calc(100vh-57px)] md:max-h-[calc(100vh-57px)] md:overflow-hidden"
+          :class="desktopSidebarCollapsed ? 'w-16' : 'w-72 lg:w-80'"
         >
           <TuxReactiveSidebar
             :sections="activeSidebarSections"
@@ -1264,7 +1312,7 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
             :active-area-icon="currentArea.icon"
             :search="true"
             @update:show-all="showAllAreasInSidebar = $event"
-            @toggle-collapse="desktopSidebarCollapsed = !desktopSidebarCollapsed"
+            @toggle-collapse="toggleDesktopSidebar"
           />
         </div>
 
