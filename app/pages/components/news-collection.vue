@@ -46,8 +46,8 @@ const exampleVue = `<TuxNewsCollection :items="items" layout="stacked" />`;
       + headline + dek + read-more link. Two layouts: <strong>stacked</strong>
       (vertical list, thumb left) for /news landing pages, and
       <strong>grid</strong> (card grid, thumb above) for "recent news"
-      sections on a hub. Dates render as <code>&lt;time&gt;</code> with ISO
-      <code>datetime</code> attributes.
+      sections on a hub. Pairs with <NuxtLink to="/components/editorial-article" class="text-brand-primary underline">TuxEditorialArticle</NuxtLink>
+      for full article reading surfaces. See also live <NuxtLink to="/news" class="text-brand-primary underline">/news feed</NuxtLink>.
     </TuxPageHeader>
 
     <section>

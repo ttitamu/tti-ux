@@ -1,0 +1,19 @@
+@*
+ * TuxAlphaNav.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<nav class="tux-alpha-nav">
+    @ChildContent
+</nav>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Letters { get; set; } = "()";
+    [Parameter] public string Available { get; set; } = "undefined";
+    [Parameter] public string Mode { get; set; } = anchor;
+    [Parameter] public bool Sticky { get; set; } = false;
+    [Parameter] public bool ShowAll { get; set; } = false;
+    [Parameter] public string ModelValue { get; set; } = null;
+    [Parameter] public string AriaLabel { get; set; } = "Jump";
+}

@@ -1,0 +1,149 @@
+/**
+ * tux-code-block.css — standalone code block styles
+ * Part of @tti/tti-ux-react
+ */
+
+.tux-codeblock {
+  container-type: inline-size;
+  container-name: tux-codeblock;
+  margin: 1.25rem 0;
+  border: 1px solid var(--surface-border, #d8d6d2);
+  border-radius: var(--radius-md, 6px);
+  background: var(--surface-raised, #ffffff);
+  overflow: hidden;
+}
+
+.tux-codeblock__caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.875rem;
+  background: var(--surface-sunken, #f4f3f0);
+  border-bottom: 1px solid var(--surface-border, #d8d6d2);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.75rem;
+}
+
+.tux-codeblock__filename {
+  color: var(--text-secondary, #4a4846);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.tux-codeblock__lang {
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brand-primary, #500000);
+}
+
+.tux-codeblock__body {
+  position: relative;
+}
+
+.tux-codeblock__actions {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.tux-codeblock:hover .tux-codeblock__actions,
+.tux-codeblock:focus-within .tux-codeblock__actions {
+  opacity: 1;
+}
+
+.tux-codeblock__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  font-family: var(--font-bold, inherit);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary, #4a4846);
+  background: var(--surface-page, #ffffff);
+  border: 1px solid var(--surface-border, #d8d6d2);
+  border-radius: var(--radius-md, 6px);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.tux-codeblock__action:hover,
+.tux-codeblock__action:focus-visible {
+  color: var(--brand-primary, #500000);
+  border-color: color-mix(in srgb, var(--brand-primary, #500000) 40%, var(--surface-border, #d8d6d2));
+  outline: none;
+}
+
+.tux-codeblock__action-icon {
+  width: 0.8125rem;
+  height: 0.8125rem;
+}
+
+.tux-codeblock__rendered pre {
+  margin: 0;
+  padding: 1rem 1.125rem;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+.tux-codeblock__fallback {
+  margin: 0;
+  padding: 1rem 1.125rem;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text-primary, #1e1e1e);
+  overflow-x: auto;
+  background: transparent;
+}
+
+.tux-codeblock__line {
+  display: block;
+  white-space: pre;
+}
+
+.tux-codeblock__line-no {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  display: inline-block;
+  width: 2.5rem;
+  margin-right: 1rem;
+  text-align: right;
+  color: var(--text-muted, #767471);
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.tux-codeblock--with-lines .tux-codeblock__rendered pre code {
+  counter-reset: tux-line;
+}
+
+.tux-codeblock--with-lines .tux-codeblock__rendered .line {
+  counter-increment: tux-line;
+}
+
+.tux-codeblock--with-lines .tux-codeblock__rendered .line::before {
+  content: counter(tux-line);
+  display: inline-block;
+  width: 2.25rem;
+  margin-right: 1rem;
+  text-align: right;
+  color: var(--text-muted, #767471);
+  font-variant-numeric: tabular-nums;
+}

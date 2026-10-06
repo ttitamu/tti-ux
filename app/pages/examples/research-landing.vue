@@ -278,7 +278,7 @@ const testimonials = [
             items: [
               { label: 'Industry liaison',         to: '#', description: 'Single point of contact for IP, licensing, joint research.' },
               { label: 'Co-funded programs',       to: '#' },
-              { label: 'Collaboration agreement',  href: 'https://tamus.edu/legal/cra' },
+              { label: 'Collaboration agreement',  href: 'https://tti.tamu.edu/research/' },
             ],
           },
           {

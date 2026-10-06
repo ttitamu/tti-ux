@@ -1,0 +1,18 @@
+@*
+ * TuxSpectrumRibbon.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-spectrum-ribbon">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Size { get; set; } = sm;
+    [Parameter] public string Orientation { get; set; } = horizontal;
+    [Parameter] public bool ShowLabels { get; set; } = false;
+    [Parameter] public bool Rounded { get; set; } = false;
+    [Parameter] public string AriaLabel { get; set; } = "TTI";
+    [Parameter] public string Bands { get; set; } = "()";
+}

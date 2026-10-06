@@ -56,7 +56,7 @@ const universityNav = {
     {
       label: "About",
       dropdown: [
-        { label: "Mission",    to: "#", description: "How TTI fits in TAMUS" },
+        { label: "Mission",    to: "#", description: "TTI vision, impact, and research mandate" },
         { label: "Leadership", to: "#" },
         { label: "Centers",    to: "#" },
         { label: "Contact",    to: "#" },

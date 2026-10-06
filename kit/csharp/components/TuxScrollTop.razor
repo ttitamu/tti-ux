@@ -1,0 +1,15 @@
+@*
+ * TuxScrollTop.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<button class="tux-scroll-top">
+    @ChildContent
+</button>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public int Threshold { get; set; } = 160;
+    [Parameter] public string Position { get; set; } = bottom-right;
+    [Parameter] public string AriaLabel { get; set; } = "Scroll";
+}

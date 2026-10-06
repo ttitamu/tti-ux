@@ -1,0 +1,27 @@
+@*
+ * TuxChartArea.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<figure class="tux-chart-area">
+    @ChildContent
+</figure>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Labels { get; set; };
+    [Parameter] public string Series { get; set; };
+    [Parameter] public int Width { get; set; } = 640;
+    [Parameter] public int Height { get; set; } = 280;
+    [Parameter] public string Variant { get; set; } = overlay;
+    [Parameter] public bool Markers { get; set; } = false;
+    [Parameter] public bool EndLabels { get; set; } = true;
+    [Parameter] public bool Legend { get; set; } = false;
+    [Parameter] public bool Gridlines { get; set; } = true;
+    [Parameter] public int Ticks { get; set; } = 5;
+    [Parameter] public string Format { get; set; } = "(n:";
+    [Parameter] public int Decimals { get; set; } = 1;
+    [Parameter] public string AriaSummary { get; set; } = "undefined";
+    [Parameter] public string Units { get; set; } = "undefined";
+    [Parameter] public bool Tooltip { get; set; } = true;
+}

@@ -1,0 +1,17 @@
+@*
+ * TuxCapabilityCluster.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<section class="tux-capability-cluster">
+    @ChildContent
+</section>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Title { get; set; } = "RESEARCH";
+    [Parameter] public string Kicker { get; set; } = "Research";
+    [Parameter] public string Subtitle { get; set; } = "Applied";
+    [Parameter] public string Capabilities { get; set; } = "()";
+    [Parameter] public string Columns { get; set; } = 3;
+}

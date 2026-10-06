@@ -1,0 +1,116 @@
+/* TuxAlert — byte-equivalent styles for React port
+ * Derived from app/components/TuxAlert.vue + Docusaurus-style left-bar admonitions.
+ * Uses tokens from @tti/tti-ux kit CSS. */
+
+.tux-alert {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-sm, 4px);
+  border-left-width: 4px;
+  border-left-style: solid;
+  font-family: var(--font-body);
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.tux-alert__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.tux-alert__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.tux-alert__title {
+  margin: 0;
+  font-family: var(--font-bold, var(--font-body));
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: inherit;
+}
+
+.tux-alert__body {
+  font-size: 0.875rem;
+  color: inherit;
+  opacity: 0.95;
+}
+
+.tux-alert__close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.7;
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tux-alert__close:hover {
+  opacity: 1;
+}
+
+/* 8 Variants */
+.tux-alert--note {
+  background-color: var(--surface-raised, #f9fafb);
+  border-left-color: var(--text-muted, #9ca3af);
+  color: var(--text-primary, #111827);
+}
+
+.tux-alert--tip {
+  background-color: var(--wash-tip-12, rgba(167, 139, 250, 0.12));
+  border-left-color: #a78bfa;
+  color: #5b21b6;
+}
+
+.tux-alert--info {
+  background-color: var(--wash-info-12, rgba(60, 90, 135, 0.12));
+  border-left-color: var(--color-info, #3c5a87);
+  color: var(--color-info, #3c5a87);
+}
+
+.tux-alert--important {
+  background-color: var(--wash-brand-08, rgba(80, 0, 0, 0.08));
+  border-left-color: var(--brand-primary, #500000);
+  color: var(--brand-primary, #500000);
+}
+
+.tux-alert--success {
+  background-color: var(--wash-success-12, rgba(22, 101, 52, 0.12));
+  border-left-color: var(--color-success, #166534);
+  color: var(--color-success, #166534);
+}
+
+.tux-alert--warning {
+  background-color: var(--wash-gold-15, rgba(207, 169, 53, 0.18));
+  border-left-color: var(--brand-accent, #cfa935);
+  color: var(--color-warning-text, #854d0e);
+}
+
+.tux-alert--danger {
+  background-color: var(--wash-error-12, rgba(185, 28, 28, 0.12));
+  border-left-color: var(--color-error, #b91c1c);
+  color: var(--color-error, #b91c1c);
+}
+
+.tux-alert--compliance {
+  background-color: var(--brand-primary, #500000);
+  border-left-color: transparent;
+  border-left-width: 0px;
+  color: #ffffff;
+}

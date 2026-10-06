@@ -1,0 +1,13 @@
+{
+  "name": "@tti/create-tux-site",
+  "version": "1.0.0",
+  "description": "Interactive project generator for TTI-UX design system sites across Nuxt, React, .NET, and WordPress",
+  "type": "module",
+  "bin": {
+    "create-tux-site": "./index.mjs"
+  },
+  "publishConfig": {
+    "registry": "https://code.tti.tamu.edu/api/packages/tti/npm/"
+  },
+  "license": "Apache-2.0"
+}

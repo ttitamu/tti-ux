@@ -1,17 +1,7 @@
 <script setup lang="ts">
-// /install — the one page for the whole kit/ tier.
-//
-// kit/ ships nine generated framework targets that a consumer installs
-// into their own stack, and until now none of them had a page. This is
-// deliberately ONE page with a target list rather than a nav group: the
-// owner rejected "Kit targets" / "Platforms" / "Integrations" as sidebar
-// sections, and a directory listing wearing an intent label is the same
-// thing. Targets that grow their own setup story (Power BI has one) get
-// a child page; the rest are a row here.
-//
-// Doctrine body comes from design/kit-pipeline.md, rendered the same way
-// design/[doc].vue does it — raw import + parseMarkdown at SSR so fenced
-// code ships pre-highlighted.
+// /install — Central installation and distribution hub for TUX.
+// Provides setup instructions for Nuxt 4, React, .NET, WordPress,
+// standalone CSS tokens, and Power BI.
 
 useHead({ title: "Install · TUX" });
 
@@ -33,85 +23,136 @@ interface Target {
   consumer: string;
   blurb: string;
   to?: string;
+  badge?: string;
 }
 
-/** Tier-1 emitted targets. Every one is generated from design/tokens.json
- *  and byte-locked by tests/tux-kit-targets.test.ts. */
 const targets: Target[] = [
   {
-    label: "Nuxt layer",
+    label: "Nuxt 4 Layer",
     path: "@tti/tti-ux",
-    consumer: "Nuxt 4 apps",
-    blurb: "The full system — components, tokens, and the app shell. `extends: ['@tti/tti-ux']` in nuxt.config.ts. Everything else on this page exists for consumers who can't run the Nuxt layer.",
+    consumer: "Nuxt 4 applications",
+    blurb: "The complete system — 183 auto-imported components, design tokens, and the responsive application shell via extends: ['@tti/tti-ux'].",
+    badge: "Recommended",
   },
   {
-    label: "CSS custom properties",
+    label: "CSS Custom Properties",
     path: "kit/css/tux-tokens.css",
-    consumer: "any web page",
-    blurb: "Every token as a CSS custom property, per theme. Zero build step — link it and the variables are live. Pairs with tux-bootstrap.css to re-skin a Bootstrap 4 app with no markup changes.",
+    consumer: "Any web application",
+    blurb: "Zero build step required. Pre-compiled CSS custom properties covering Light, Dark, and High-Contrast themes.",
   },
   {
-    label: "SCSS partial",
-    path: "kit/scss/_tux-bootstrap.scss",
-    consumer: "Bootstrap builds",
-    blurb: "Bootstrap variable overrides for builds that compile SCSS rather than loading the prebuilt CSS.",
+    label: "Operational Utility CSS",
+    path: "kit/css/tux-ops.css",
+    consumer: "Dashboards & telemetry",
+    blurb: "Status chips, table row tints, gold heading keylines, and hairline chrome classes for rapid administrative styling.",
   },
   {
-    label: "React tokens",
-    path: "kit/react/tux-tokens.ts",
-    consumer: "React / TS apps",
-    blurb: "Per-theme resolved token maps plus a tuxVar() helper. Component ports ship separately as @tti/tti-ux-react.",
+    label: "WCAG AAA Bridge",
+    path: "kit/css/tux-bridge.css",
+    consumer: "Legacy HTML & tables",
+    blurb: "Drop-in stylesheet elevating raw HTML tables, form elements, and buttons to WCAG 2.2 Level AAA standards.",
   },
   {
-    label: "C# tokens",
-    path: "kit/csharp/TuxTokens.cs",
-    consumer: ".NET — WPF, MAUI, Blazor",
-    blurb: "Per-theme static classes of resolved literals plus an All dictionary for dynamic lookup. For report generators and desktop surfaces with no CSS layer.",
+    label: "React Ecosystem",
+    path: "@tti/tti-ux-react",
+    consumer: "React & TypeScript apps",
+    blurb: "Native React 18/19 components, TypeScript interfaces, and token stylesheets for single-page applications.",
+    to: "/install/react",
   },
   {
-    label: "WordPress theme.json",
-    path: "kit/wp/theme.json",
-    consumer: "block themes",
-    blurb: "Palette, font families, spacing and radius as block-theme settings — for marcom sites.",
+    label: "C# / ASP.NET / Blazor",
+    path: "Tti.Tux.AspNetCore / Blazor",
+    consumer: ".NET enterprise services",
+    blurb: "ASP.NET Core Tag Helpers, Blazor component library, and MVC 5.3 Bootstrap compatibility bridge.",
+    to: "/install/dotnet",
   },
   {
-    label: "Brand env",
-    path: "kit/env/brand.env",
-    consumer: "CI, scripts, containers",
-    blurb: "The brand constants as shell variables, for anything that needs a hex without parsing JSON.",
+    label: "WordPress & Kadence",
+    path: "tti-ux-core / tux-php",
+    consumer: "WordPress sites",
+    blurb: "Turnkey plugin with Kadence theme styling hooks, Gutenberg block patterns, and PHP view helpers.",
+    to: "/install/wordpress",
   },
   {
-    label: "Power BI",
+    label: "Power BI & Fabric",
     path: "kit/powerbi/",
-    consumer: "Power BI · Fabric",
-    blurb: "Report themes, PBIR fragments, a drop-in page shell, and the DAX module behind the in-report light/dark toggle. The largest target by some distance — 51 files — and the only one with its own setup page.",
+    consumer: "Business Intelligence",
+    blurb: "Report themes, PBIR visual fragments, page shell chrome, and DAX measures for light/dark reporting.",
     to: "/install/power-bi",
   },
+  {
+    label: "Nuxt Studio Starter",
+    path: "templates/tux-starter-content",
+    consumer: "Microsites & publishing",
+    blurb: "Browser-based visual authoring for researchers and communication teams with Git-backed deployment.",
+    to: "/install/nuxt-studio",
+  },
+  {
+    label: "Brand Environment",
+    path: "kit/env/brand.env",
+    consumer: "CI/CD & container scripts",
+    blurb: "Brand color constants exported as POSIX shell variables for build pipelines and scripts.",
+  },
 ];
+
+const nuxtInstallCode = `npm install @tti/tti-ux`;
+const nuxtConfigCode = `// nuxt.config.ts
+export default defineNuxtConfig({
+  extends: ["@tti/tti-ux"],
+});`;
+
+const cssInstallCode = `<!-- Add to <head> of any web page -->
+<link rel="stylesheet" href="node_modules/@tti/tti-ux/kit/css/tux-tokens.css">
+<link rel="stylesheet" href="node_modules/@tti/tti-ux/kit/css/tux-ops.css">`;
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="space-y-10">
     <TuxBreadcrumbs :trail="[{ label: 'Home', to: '/' }, { label: 'Install' }]" />
 
-    <TuxPageHeader eyebrow="kit" title="Install">
-      TUX ships to consumers that can't run the Nuxt layer — .NET report
-      generators, plain React apps, WordPress marcom sites, Power BI.
-      Everything below is generated from
-      <code>design/tokens.json</code> and committed, so the same token
-      edit reaches every target in one build.
+    <TuxPageHeader eyebrow="distribution" title="Install & Setup">
+      TUX distributes design tokens and components across multiple development stacks.
+      Applications can extend the full Nuxt 4 layer or consume standalone stylesheets,
+      React packages, .NET libraries, WordPress plugins, or Power BI themes.
     </TuxPageHeader>
 
-    <TuxAlert variant="info" title="Same input, same bytes">
-      <template #description>
-        These are deterministic emitters, not ports. A lock test fails CI if
-        a committed artifact drifts from its generator, so no model ever
-        transcribes a hex value into one of these files.
-      </template>
-    </TuxAlert>
+    <!-- Quick Start: Primary Nuxt 4 Installation -->
+    <section class="space-y-4">
+      <TuxSectionHeader title="Nuxt 4 Installation (Recommended)" />
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="space-y-2">
+          <p class="text-sm font-semibold text-text-primary">1. Install package</p>
+          <TuxCodeBlock :code="nuxtInstallCode" language="sh" filename="terminal" />
+        </div>
+        <div class="space-y-2">
+          <p class="text-sm font-semibold text-text-primary">2. Extend layer in nuxt.config.ts</p>
+          <TuxCodeBlock :code="nuxtConfigCode" language="ts" filename="nuxt.config.ts" />
+        </div>
+      </div>
+      <p class="text-xs text-text-muted">
+        Extending the layer automatically configures Tailwind v4 theme variables, KaTeX math styles,
+        and auto-imports all 183 Tux* components for use in both Vue templates and Markdown content.
+      </p>
+    </section>
 
-    <section class="space-y-3">
-      <TuxSectionHeader title="Targets" />
+    <!-- Quick Start: Standalone CSS -->
+    <section class="space-y-4">
+      <TuxSectionHeader title="Standalone CSS (Non-Nuxt Apps)" />
+      <div class="space-y-2">
+        <p class="text-sm text-text-secondary">
+          For static HTML, React, Angular, or legacy PHP stacks, link pre-compiled tokens directly.
+          No compilation or Node.js runtime required:
+        </p>
+        <TuxCodeBlock :code="cssInstallCode" language="html" filename="index.html" />
+      </div>
+    </section>
+
+    <!-- Available Distribution Targets -->
+    <section class="space-y-4">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <TuxSectionHeader title="Available Targets" />
+        <span class="text-xs text-text-muted">10 compiled framework targets</span>
+      </div>
       <div class="grid gap-3 sm:grid-cols-2">
         <TuxCard
           v-for="t in targets"
@@ -119,19 +160,35 @@ const targets: Target[] = [
           :to="t.to"
           class="h-full"
         >
-          <p class="eyebrow">{{ t.consumer }}</p>
-          <h3 class="mt-1 text-base font-semibold">{{ t.label }}</h3>
-          <p class="mt-1 text-sm text-[var(--text-muted)]">
-            <code>{{ t.path }}</code>
+          <div class="flex items-center justify-between gap-2">
+            <p class="eyebrow">{{ t.consumer }}</p>
+            <span
+              v-if="t.badge"
+              class="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded bg-brand-primary text-white"
+            >
+              {{ t.badge }}
+            </span>
+            <span
+              v-else-if="t.to"
+              class="inline-flex items-center gap-1 text-xs text-brand-primary font-medium"
+            >
+              <span>Setup Guide</span>
+              <Icon name="lucide:arrow-right" class="w-3.5 h-3.5" aria-hidden="true" />
+            </span>
+          </div>
+          <h3 class="mt-1 text-base font-semibold text-text-primary">{{ t.label }}</h3>
+          <p class="mt-1 text-xs font-mono text-text-muted">
+            {{ t.path }}
           </p>
-          <p class="mt-2 text-sm">{{ t.blurb }}</p>
+          <p class="mt-2 text-sm text-text-secondary">{{ t.blurb }}</p>
         </TuxCard>
       </div>
     </section>
 
-    <section class="space-y-3">
+    <!-- Technical Pipeline Documentation -->
+    <section class="space-y-4">
       <TuxSectionHeader
-        title="How the pipeline works"
+        title="Distribution Architecture"
         subtitle="design/kit-pipeline.md"
       />
       <TuxProse>

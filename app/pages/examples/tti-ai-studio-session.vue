@@ -150,10 +150,10 @@ const composerDraft = ref("");
           :breakdown="contextMeter.breakdown"
           :model-label="contextMeter.modelLabel"
         />
-        <TuxButton intent="primary" icon="lucide:command" @click="cmdRef?.open()">
+        <TuxButton intent="primary" icon="lucide:command" shape="sharp" @click="cmdRef?.open()">
           Commands · ⌘K
         </TuxButton>
-        <TuxButton intent="ghost" icon="lucide:download">
+        <TuxButton intent="ghost" icon="lucide:download" shape="sharp">
           Export transcript
         </TuxButton>
         <!-- Cross-app switcher — hop to Landscape or the TUX docs
@@ -174,7 +174,7 @@ const composerDraft = ref("");
     >
       Your scoped corpus (<code>grants-2024-2026</code>) includes
       ITAR-marked documents. Generated outputs may not be exported
-      outside TAMUS without tier-3 token verification.
+      outside TTI without tier-3 verification.
     </TuxAlert>
 
     <!-- Two-column: main chat + right rail with corpus + sessions -->

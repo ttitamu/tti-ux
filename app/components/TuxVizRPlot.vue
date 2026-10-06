@@ -55,8 +55,8 @@ const altText = computed(() => props.alt || props.title);
 </script>
 
 <template>
-  <figure class="tux-viz-rplot">
-    <header class="tux-viz-rplot__head">
+  <figure class="tux-viz-rplot" :aria-label="title">
+    <div class="tux-viz-rplot__head">
       <div class="tux-viz-rplot__title-block">
         <p v-if="eyebrow" class="eyebrow">{{ eyebrow }}</p>
         <component :is="`h${level}`" class="tux-viz-rplot__title">{{ title }}</component>
@@ -65,7 +65,7 @@ const altText = computed(() => props.alt || props.title);
         <UIcon name="lucide:square-sigma" class="tux-viz-rplot__chip-icon" />
         R · {{ kind }}
       </span>
-    </header>
+    </div>
     <div class="tux-viz-rplot__stage" :style="{ aspectRatio: ratio }">
       <img
         v-if="kind === 'image'"

@@ -1,0 +1,16 @@
+@*
+ * TuxDescriptionList.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-description-list">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Items { get; set; };
+    [Parameter] public string Layout { get; set; } = inline;
+    [Parameter] public string Emphasis { get; set; } = editorial;
+    [Parameter] public string Title { get; set; } = "undefined";
+}

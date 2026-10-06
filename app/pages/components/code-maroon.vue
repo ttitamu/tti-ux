@@ -11,19 +11,16 @@ const exampleVue = `<TuxCodeMaroon
   tone="error"
   title="Code Maroon active"
   message="Shelter in place. Avoid the Rellis Headquarters Building until further notice."
-  details-url="https://rellis.tamus.edu/emergency/"
+  details-url="https://tti.tamu.edu/emergency/"
 />`;
 </script>
 
 <template>
   <div class="space-y-12">
     <TuxPageHeader eyebrow="component" title="TuxCodeMaroon">
-      Institutional emergency alert banner. TAMUS's Code Maroon is the
-      mandatory emergency-notification system; Rellis Campus (where
-      TTI lives) routes through
-      <a class="link-tti" href="https://rellis.tamus.edu/emergency/" target="_blank" rel="noopener">rellis.tamus.edu/emergency/</a>.
-      When an alert is active, this banner pins to the top of every
-      page above all other chrome.
+      Institutional emergency alert banner. Used for emergency notifications
+      across TTI headquarters and research facilities. When an alert is active,
+      this banner pins to the top of the viewport above all other page chrome.
     </TuxPageHeader>
 
     <section class="space-y-3">

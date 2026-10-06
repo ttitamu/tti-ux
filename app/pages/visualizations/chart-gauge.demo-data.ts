@@ -20,3 +20,9 @@ export const slaBands: Band[] = [
   { from: 95, to: 99,  tone: "warning"  },
   { from: 99, to: 100, tone: "success"    },
 ];
+
+export const corridorBands: Band[] = [
+  { from: 0,  to: 45,  tone: "success" },
+  { from: 45, to: 75,  tone: "warning" },
+  { from: 75, to: 100, tone: "error" },
+];

@@ -1,0 +1,17 @@
+@*
+ * TuxCookieConsent.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<Teleport class="tux-cookie-consent">
+    @ChildContent
+</Teleport>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string StorageKey { get; set; } = "tux-cookie-consent";
+    [Parameter] public string Position { get; set; } = "bottom-right";
+    [Parameter] public string Message { get; set; } = "We";
+    [Parameter] public string PrivacyHref { get; set; } = "/privacy";
+    [Parameter] public bool InitiallyExpanded { get; set; } = false;
+}

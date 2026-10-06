@@ -1,0 +1,17 @@
+@*
+ * TuxBetaRibbon.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-beta-ribbon">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Variant { get; set; } = "corner";
+    [Parameter] public string Kind { get; set; } = "preview";
+    [Parameter] public string Label { get; set; } = "undefined";
+    [Parameter] public string Corner { get; set; } = "top-right";
+    [Parameter] public string Message { get; set; } = "undefined";
+}

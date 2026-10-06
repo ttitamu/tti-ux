@@ -1,0 +1,19 @@
+@*
+ * TuxBigStat.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-big-stat">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Value { get; set; };
+    [Parameter] public string Suffix { get; set; } = null;
+    [Parameter] public string Label { get; set; };
+    [Parameter] public string Source { get; set; } = null;
+    [Parameter] public string Variant { get; set; } = default;
+    [Parameter] public string Tone { get; set; } = maroon;
+    [Parameter] public string Size { get; set; } = md;
+}

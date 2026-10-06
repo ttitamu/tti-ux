@@ -16,7 +16,7 @@ const glossary = [
   { term: "Drift",  letter: "D", definition: "Disagreement between the agent's local index and the central record. The drift reconciler runs hourly to close drift entries." },
   { term: "Grant",  letter: "G", definition: "A funded research project. Drives corpus boundaries; ITAR-marked grants get tier-3 access controls." },
   { term: "Heartbeat", letter: "H", definition: "Liveness signal from an agent. Stale heartbeats (no signal in 6 minutes) trigger an investigation chip in the dashboard." },
-  { term: "ITAR",   letter: "I", definition: "International Traffic in Arms Regulations. Files marked ITAR can't leave TAMUS without tier-3 token verification." },
+  { term: "ITAR",   letter: "I", definition: "International Traffic in Arms Regulations. Export-controlled files require Tier 3 institutional token verification." },
 ];
 </script>
 

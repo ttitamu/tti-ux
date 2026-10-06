@@ -19,8 +19,8 @@ const warningVue = `<tux-announcement-banner
 const urgentVue = `<tux-announcement-banner
   tone="urgent"
   eyebrow="security advisory"
-  message="Reset your TAMUS password by EOW \u2014 see ticket SEC-2041."
-  :action="{ label: 'Reset password', href: 'https://account.tamus.edu' }"
+  message="Reset your TTI network credentials by EOW \\u2014 see ticket SEC-2041."
+  :action="{ label: 'Reset password', href: 'https://identity.tti.tamu.edu' }"
 />`;
 </script>
 
@@ -67,8 +67,8 @@ const urgentVue = `<tux-announcement-banner
         <TuxAnnouncementBanner
           tone="urgent"
           eyebrow="security advisory"
-          message="Reset your TAMUS password by EOW — see ticket SEC-2041."
-          :action="{ label: 'Reset password', href: 'https://account.tamus.edu' }"
+          message="Reset your TTI network credentials by EOW — see ticket SEC-2041."
+          :action="{ label: 'Reset password', href: 'https://identity.tti.tamu.edu' }"
         />
       </TuxExample>
     </section>

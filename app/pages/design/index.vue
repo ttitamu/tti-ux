@@ -26,7 +26,7 @@ const titleMap: Record<string, { title: string; blurb: string }> = {
   },
   palette: {
     title: "Palette + visual identity",
-    blurb: "TTI palette reconciliation across PPTX/PDF sources, visual identity cues to preserve, relationship to TAMUS.",
+    blurb: "TTI palette reconciliation across design assets, visual identity cues to preserve, and institutional color hierarchy.",
   },
   "unification-plan": {
     title: "Unification plan — one suite, one system",
@@ -51,6 +51,10 @@ const titleMap: Record<string, { title: string; blurb: string }> = {
   "kit-pipeline": {
     title: "Kit pipeline — framework targets",
     blurb: "The two-tier doctrine: deterministic token emitters (C#, React, WordPress, Power BI) vs component ports — the port ledger, the drift bot, and the superPOD review loop.",
+  },
+  "ops-surfaces": {
+    title: "Operational surfaces",
+    blurb: "How monitoring boards consume TUX: overlay class API vs owned document. Vue / HTML / CSS / Source. Maroon is never a state.",
   },
   "tauri-bindings": {
     title: "Tauri bindings reference",

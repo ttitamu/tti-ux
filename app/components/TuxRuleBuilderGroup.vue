@@ -198,10 +198,10 @@ function onBetweenChange(rule: Rule, idx: 0 | 1, raw: string) {
       'tux-rule-builder-group--nested': !isRoot,
     }"
   >
-    <header class="tux-rule-builder-group__header">
+    <div class="tux-rule-builder-group__header">
       <div
         class="tux-rule-builder-group__combinator"
-        role="radiogroup"
+        role="group"
         aria-label="Combinator"
       >
         <button
@@ -232,7 +232,7 @@ function onBetweenChange(rule: Rule, idx: 0 | 1, raw: string) {
       >
         <UIcon name="lucide:x" class="tux-rule-builder-group__remove-icon" aria-hidden="true" />
       </button>
-    </header>
+    </div>
 
     <ol class="tux-rule-builder-group__children">
       <li

@@ -1,23 +1,21 @@
 <script setup lang="ts">
 // TuxCodeMaroon — institutional emergency alert banner.
 //
-// TAMU's Code Maroon is TAMUS's mandatory emergency-notification
-// system. Rellis Campus (where TTI lives) routes through
-// https://rellis.tamus.edu/emergency/ — same system, RELLIS-scoped
-// alerts. When an alert is active, this banner pins to the top of
-// every page (above all other chrome) until the user explicitly
-// dismisses it (when allowed) or the alert clears upstream.
+// TuxCodeMaroon — institutional emergency alert banner.
 //
-// **This banner doesn't theme.** Code Maroon is system-wide safety
-// messaging, not a brand surface. Severity colors (alert / warning /
-// info) are hard-coded — they don't honor `data-theme="tti-dark"` or
-// `tti-hc`. Visual recognition matters more than palette consistency
-// during emergencies.
+// TTI's emergency notification system broadcasts urgent safety alerts.
+// RELLIS Campus (where TTI headquarters is located) and regional facilities
+// route alerts through this surface. When an alert is active, this banner
+// pins to the top of every page (above all other chrome) until the user
+// explicitly dismisses it (when allowed) or the alert clears upstream.
+//
+// **This banner doesn't theme.** Safety messaging maintains high-visibility
+// color semantics. Severity colors (alert / warning / info) are hard-coded
+// to preserve instant recognition during emergency events.
 //
 // Wiring: pass `:active="false"` when no alert. Mount the banner
-// above your site header. Real consumers will fetch alert state from
-// the institutional feed (Rellis API, Code Maroon RSS, etc.) and
-// drive `active` + `message` from that.
+// above your site header. Consuming applications fetch alert state from
+// the institutional feed and drive `active` + `message` from that.
 
 interface Props {
   /** Show the banner. Drive from your alert feed. Defaults to false
@@ -30,8 +28,8 @@ interface Props {
   title?: string;
   /** The alert message. Required when active. */
   message?: string;
-  /** Link to the full alert page. Defaults to the Rellis emergency
-   *  portal — override for non-Rellis consumers. */
+  /** Link to the full alert page. Defaults to the TTI emergency
+   *  portal — override for specific facility consumers. */
   detailsUrl?: string;
   /** Link text. */
   detailsLabel?: string;
@@ -49,7 +47,7 @@ const props = withDefaults(defineProps<Props>(), {
   tone: "error",
   title: "Emergency alert",
   message: undefined,
-  detailsUrl: "https://rellis.tamus.edu/emergency/",
+  detailsUrl: "https://tti.tamu.edu/emergency/",
   detailsLabel: "View details",
   dismissible: false,
   modelValue: false,
@@ -89,7 +87,7 @@ const toneIcon = computed(() => {
         `tux-codemaroon--${tone}`,
         { 'tux-codemaroon--sticky': sticky },
       ]"
-      role="error"
+      role="alert"
       aria-live="assertive"
     >
       <div class="tux-codemaroon__inner">

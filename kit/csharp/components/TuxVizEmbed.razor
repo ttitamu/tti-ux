@@ -1,0 +1,22 @@
+@*
+ * TuxVizEmbed.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<figure class="tux-viz-embed">
+    @ChildContent
+</figure>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Src { get; set; };
+    [Parameter] public string Provider { get; set; } = "generic";
+    [Parameter] public string Title { get; set; };
+    [Parameter] public string Eyebrow { get; set; } = "undefined";
+    [Parameter] public string Ratio { get; set; } = "16/9";
+    [Parameter] public string Sandbox { get; set; } = "undefined";
+    [Parameter] public string Referrerpolicy { get; set; } = "strict-origin-when-cross-origin";
+    [Parameter] public bool OpenInNew { get; set; } = true;
+    [Parameter] public string PosterSrc { get; set; } = "undefined";
+    [Parameter] public string PosterAlt { get; set; };
+}

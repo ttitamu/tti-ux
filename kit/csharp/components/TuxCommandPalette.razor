@@ -1,0 +1,18 @@
+@*
+ * TuxCommandPalette.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<dialog class="tux-command-palette">
+    @ChildContent
+</dialog>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Groups { get; set; };
+    [Parameter] public string Placeholder { get; set; } = "Type";
+    [Parameter] public bool DisableHotkey { get; set; } = false;
+    [Parameter] public string Hotkey { get; set; } = "k";
+    [Parameter] public bool ShowTabs { get; set; } = true;
+    [Parameter] public string DefaultTab { get; set; } = "all";
+}

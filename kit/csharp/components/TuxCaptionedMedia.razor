@@ -1,0 +1,20 @@
+@*
+ * TuxCaptionedMedia.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<figure class="tux-captioned-media">
+    @ChildContent
+</figure>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Src { get; set; } = "undefined";
+    [Parameter] public string Alt { get; set; };
+    [Parameter] public string Caption { get; set; } = "undefined";
+    [Parameter] public string Credit { get; set; } = "undefined";
+    [Parameter] public string Eyebrow { get; set; } = "undefined";
+    [Parameter] public string Aspect { get; set; } = 16/9;
+    [Parameter] public string Align { get; set; } = full;
+    [Parameter] public string Tone { get; set; } = maroon;
+}

@@ -1,0 +1,23 @@
+@*
+ * TuxCorridorStrip.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<figure class="tux-corridor-strip">
+    @ChildContent
+</figure>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Name { get; set; } = "undefined";
+    [Parameter] public int FromMile { get; set; };
+    [Parameter] public int ToMile { get; set; };
+    [Parameter] public string Segments { get; set; } = "undefined";
+    [Parameter] public string Events { get; set; } = "undefined";
+    [Parameter] public string Values { get; set; } = "undefined";
+    [Parameter] public string ValuesLabel { get; set; } = "undefined";
+    [Parameter] public string Direction { get; set; } = "undefined";
+    [Parameter] public int Width { get; set; } = 800;
+    [Parameter] public int Height { get; set; } = 140;
+    [Parameter] public int TickEvery { get; set; } = 5;
+}

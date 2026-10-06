@@ -1,0 +1,21 @@
+@*
+ * TuxChartLine.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<figure class="tux-chart-line">
+    @ChildContent
+</figure>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Labels { get; set; };
+    [Parameter] public string Series { get; set; };
+    [Parameter] public int Width { get; set; } = 640;
+    [Parameter] public int Height { get; set; } = 280;
+    [Parameter] public bool Markers { get; set; } = false;
+    [Parameter] public bool EndLabels { get; set; } = true;
+    [Parameter] public bool Legend { get; set; } = false;
+    [Parameter] public bool Gridlines { get; set; } = true;
+    [Parameter] public int YTicks { get; set; } = 5;
+}

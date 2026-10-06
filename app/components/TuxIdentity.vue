@@ -14,9 +14,8 @@
 //                center      — superhead + center name
 //                department  — superhead + department name + thin rule
 //
-// Pair with `<TuxFooter>` and the mandatory TAMUS subfooter on every
-// shipped surface. Logo swaps light/dark via the existing
-// `.logo-light-only` / `.logo-dark-only` rules in tux.css.
+// Pair with `<TuxFooter>` on every shipped surface. Logo swaps light/dark via
+// the existing `.logo-light-only` / `.logo-dark-only` rules in tux.css.
 
 interface Props {
   /** Display name. Required. Examples: "Texas A&M Transportation Institute",

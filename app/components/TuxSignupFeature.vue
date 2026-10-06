@@ -73,6 +73,7 @@ const headingClass = computed(() => {
       `tux-signup--${tone}`,
       `tux-signup--${variant}`,
     ]"
+    :aria-label="title"
   >
     <div class="tux-signup__copy">
       <p v-if="eyebrow" class="tux-signup__eyebrow">{{ eyebrow }}</p>
@@ -86,6 +87,7 @@ const headingClass = computed(() => {
           v-model="localValue"
           type="email"
           :placeholder="placeholder"
+          :aria-label="placeholder || 'Email address'"
           required
           class="tux-signup__input"
           autocomplete="email"

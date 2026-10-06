@@ -1,0 +1,18 @@
+@*
+ * TuxPageHeader.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<header class="tux-page-header">
+    @ChildContent
+</header>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Eyebrow { get; set; } = "undefined";
+    [Parameter] public string Title { get; set; };
+    [Parameter] public string Level { get; set; } = 1;
+    [Parameter] public string Tone { get; set; } = plain;
+    [Parameter] public string Rhythm { get; set; } = compact;
+    [Parameter] public string Variant { get; set; } = default;
+}

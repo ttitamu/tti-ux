@@ -1,0 +1,14 @@
+{
+  "name": "tti/tux-php",
+  "description": "PHP and Blade helpers for the TTI Design System (TUX).",
+  "type": "library",
+  "license": "Apache-2.0",
+  "autoload": {
+    "psr-4": {
+      "Tti\\Tux\\": "src/"
+    }
+  },
+  "require": {
+    "php": ">=8.1"
+  }
+}

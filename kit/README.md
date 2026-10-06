@@ -6,9 +6,11 @@ Nuxt/Vue. This is the "dogfood the visuals" layer from
 add a `<link>` or two and an existing app takes on the TTI look with **no markup
 changes**, so a later re-platform to Vue/Nuxt is visually invisible.
 
-Everything here is **generated** from [`design/tokens.json`](../design/tokens.json)
+Token files are **generated** from [`design/tokens.json`](../design/tokens.json)
 via `npm run build:tokens` — the single source of truth. Don't hand-edit
-generated files (`css/tux-tokens.css`, `scss/_tux-bootstrap.scss`).
+generated files (`css/tux-tokens.css`, `scss/_tux-bootstrap.scss`). Recipe
+CSS (`tux-bootstrap.css`, `tux-ops.css`) is hand-maintained and references
+those tokens; never copy a hex into it.
 
 ## What's here
 
@@ -16,6 +18,7 @@ generated files (`css/tux-tokens.css`, `scss/_tux-bootstrap.scss`).
 |---|---|
 | `css/tux-tokens.css` | All tux design tokens as CSS custom properties, for all three themes (`tti`, `tti-dark`, `tti-hc`). Generated. |
 | `css/tux-bootstrap.css` | A **Bootstrap 4 re-skin** that maps Bootstrap's class API onto the tux tokens. Theme-reactive. |
+| `css/tux-ops.css` | **Operational recipes** — status chips, row tints, gold heading keyline, hairline table/rail. For monitoring overlays that cannot run Vue. Theme-reactive. Hand-maintained (token *references*, like the Bootstrap re-skin). |
 | `scss/_tux-bootstrap.scss` | Bootstrap 4 SCSS `$variable` overrides (tti light literals) for apps that **recompile** Bootstrap. Generated. |
 | `env/brand.env` | Flat resolved `TUX_<THEME>_<GROUP>_<TOKEN>=#hex` pairs for **shell / Go-template / Python** consumers (Forgejo overlay `apply-branding.sh`, compose-stack `make brand` fan-outs). Generated (`npm run build:brand-env`) with atomic-rename fail-safety. |
 | `powerbi/tti-theme.json` + `powerbi/tti-theme-dark.json` | **Power BI report themes** — 10-series dataColors from the chart ramp, tux fonts, theme-invariant brand block. Generated (`npm run build:powerbi`); the reporting repo re-vendors at a pinned tag. |
@@ -28,11 +31,13 @@ generated files (`css/tux-tokens.css`, `scss/_tux-bootstrap.scss`).
 | Vue/Nuxt product | the Nuxt layer itself | `extends: ["github:ttitamu/tti-ux#vX.Y.Z"]` |
 | Any web app with its own CSS (Forgejo overlay pages, static sites, WordPress) | `css/tux-tokens.css` | `<link>` from jsDelivr at a pinned tag, or vendor verbatim with the source ref in a comment |
 | Bootstrap 4 apps (RIMS, BIMS) | `css/tux-tokens.css` + `css/tux-bootstrap.css` | see below |
+| Ops / monitoring overlays (Nagios CGI, AAP, static boards) | `css/tux-tokens.css` + `css/tux-ops.css` | map host markup onto `.tux-status--*` — never add host selectors to this kit |
 | Shell / Go templates / Python theming scripts | `env/brand.env` | `source` it / parse KEY=value; re-vendor at pin-bump |
 | Power BI / Fabric reports | `powerbi/*.json` | import as report theme; re-vendor at pin-bump |
 
-All five are generated from `design/tokens.json` — the same anchors, ramps,
-and semantic decisions everywhere. CDN base:
+Tokens and themes are generated from `design/tokens.json`. Recipe CSS
+(`tux-bootstrap.css`, `tux-ops.css`) references those tokens and is
+hand-maintained. CDN base:
 `https://cdn.jsdelivr.net/gh/ttitamu/tti-ux@<tag>/kit/…`
 
 ## Token naming — rename, don't alias
@@ -92,6 +97,23 @@ theme-flipping `--text-inverse`; filled brand panels use the always-dark
 
 Load `css/tux-tokens.css` and consume the custom properties directly:
 `var(--brand-primary)`, `var(--surface-page)`, `var(--text-primary)`, etc.
+
+## Use it — ops / monitoring overlays
+
+Drop in after tokens. Map the host's classes onto TUX names in the
+consuming repo — never add `.serviceOK` here.
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ttitamu/tti-ux@<tag>/kit/css/tux-tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ttitamu/tti-ux@<tag>/kit/css/tux-ops.css">
+
+<span class="tux-status tux-status--critical">CRITICAL</span>
+<h2 class="tux-ops-heading">Current problems</h2>
+<table class="tux-ops-table">…</table>
+```
+
+Vue apps use `<TuxStatus state="critical" />` instead; the classes are
+the same file. See `design/ops-surfaces.md`.
 
 ## CDN
 

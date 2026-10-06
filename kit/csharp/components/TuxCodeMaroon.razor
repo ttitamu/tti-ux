@@ -1,0 +1,21 @@
+@*
+ * TuxCodeMaroon.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<Transition class="tux-code-maroon">
+    @ChildContent
+</Transition>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool Active { get; set; } = false;
+    [Parameter] public string Tone { get; set; } = error;
+    [Parameter] public string Title { get; set; } = "Emergency";
+    [Parameter] public string Message { get; set; } = "undefined";
+    [Parameter] public string DetailsUrl { get; set; } = "https://tti.tamu.edu/emergency/";
+    [Parameter] public string DetailsLabel { get; set; } = "View";
+    [Parameter] public bool Dismissible { get; set; } = false;
+    [Parameter] public bool ModelValue { get; set; } = false;
+    [Parameter] public bool Sticky { get; set; } = false;
+}

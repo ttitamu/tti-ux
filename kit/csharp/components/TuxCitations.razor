@@ -1,0 +1,14 @@
+@*
+ * TuxCitations.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<section class="tux-citations">
+    @ChildContent
+</section>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Items { get; set; };
+    [Parameter] public string Label { get; set; } = "sources";
+}

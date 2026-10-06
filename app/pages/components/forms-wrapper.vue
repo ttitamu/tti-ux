@@ -55,7 +55,7 @@ function onConfirm() {
           label="Email"
           required
           help="We'll only use this to send session-recovery codes — no marketing email, no third-party sharing."
-          hint="TTI / TAMUS addresses preferred."
+          hint="Institutional @tti.tamu.edu addresses preferred."
           :error="emailError"
         >
           <template

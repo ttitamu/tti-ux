@@ -1,0 +1,23 @@
+@*
+ * TuxCardCarousel.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-card-carousel">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Items { get; set; } = "undefined";
+    [Parameter] public string Eyebrow { get; set; } = "undefined";
+    [Parameter] public string Title { get; set; } = "undefined";
+    [Parameter] public bool Bare { get; set; } = false;
+    [Parameter] public bool Arrows { get; set; } = true;
+    [Parameter] public bool Dots { get; set; } = false;
+    [Parameter] public bool Loop { get; set; } = false;
+    [Parameter] public int SlidesToScroll { get; set; } = 1;
+    [Parameter] public string Align { get; set; } = start;
+    [Parameter] public string Gap { get; set; } = "1rem";
+    [Parameter] public string AriaLabel { get; set; } = "Carousel";
+}

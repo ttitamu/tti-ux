@@ -84,6 +84,27 @@ const aadtGradient = {
       </div>
     </section>
 
+    <!-- Highway Cross-Section Geometry & 3D Spatial Embankment -->
+    <section class="space-y-4">
+      <div class="space-y-1">
+        <p class="eyebrow">highway engineering & geometric cross-section</p>
+        <h2 class="heading--bold text-xl font-bold">TuxRoadwayCrossSection — 2D Flat Geometry & 3D Spatial Perspective</h2>
+        <p class="text-sm text-text-secondary max-w-3xl">
+          Unlike 1D strip diagrams, <code>TuxRoadwayCrossSection</code> models true civil engineering highway geometry:
+          travel lanes with markings, paved shoulders with rumble strips, crown slope (-2.0%), pavement structural layers
+          (HMAC, base, subgrade), and embankment cross-sections (4:1 recoverable foreslope, ditch invert flow line, and backslope).
+          Toggle seamlessly between <strong>2D CAD Blueprint Profile</strong> and <strong>3D Spatial Perspective</strong>
+          with interactive pitch/yaw sliders, animated vehicle platoons, and lane-by-lane telemetry.
+        </p>
+      </div>
+
+      <TuxRoadwayCrossSection
+        preset="urban-managed"
+        initial-view="3d-perspective"
+        height="540px"
+      />
+    </section>
+
     <section class="space-y-3">
       <p class="eyebrow">map embed · library-agnostic</p>
       <h2 class="heading--bold text-xl font-bold">TuxMapEmbed</h2>

@@ -1,0 +1,49 @@
+/* TuxCard — byte-equivalent styles for React port
+ * Derived from app/components/TuxCard.vue + tokens.css card-static / card-linked.
+ * Uses tokens from @tti/tti-ux kit CSS. */
+
+.card-static,
+.card-linked {
+  position: relative;
+  background-color: var(--surface-raised, #ffffff);
+  border: 1px solid var(--surface-border, #e5e7eb);
+  border-radius: var(--radius-sm, 4px);
+  box-sizing: border-box;
+  transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-linked {
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.card-linked:hover {
+  border-color: var(--brand-primary, #500000);
+  box-shadow: var(--elevation-2, 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06));
+  transform: translateY(-2px);
+}
+
+.card-linked:focus-visible {
+  outline: 3px solid var(--brand-accent, #cfa935);
+  outline-offset: 2px;
+}
+
+.card-linked__arrow {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: var(--text-muted, #9ca3af);
+  transition: all 150ms ease;
+  pointer-events: none;
+}
+
+.card-linked:hover .card-linked__arrow {
+  color: var(--brand-primary, #500000);
+  transform: translate(2px, -2px);
+}
+
+.card-padded {
+  padding: 1.5rem;
+}

@@ -52,3 +52,18 @@ export const controlDelays: number[] = (() => {
   }
   return out;
 })();
+
+/** 260 freeway radar spot-speed observations (mph) — radar sensor telemetry
+ *  around posted 65 mph speed limit with pacing distribution. */
+export const speedReadings: number[] = (() => {
+  const rand = mulberry32(1845);
+  const out: number[] = [];
+  while (out.length < 260) {
+    const [z1, z2] = gaussianPair(rand);
+    for (const z of [z1, z2]) {
+      if (out.length >= 260) break;
+      out.push(Number(Math.max(40, Math.min(95, 68.2 + 5.6 * z)).toFixed(1)));
+    }
+  }
+  return out;
+})();

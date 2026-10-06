@@ -1,0 +1,26 @@
+@*
+ * TuxCommHero.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<section class="tux-comm-hero">
+    @ChildContent
+</section>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Eyebrow { get; set; } = "TEXAS";
+    [Parameter] public string Title { get; set; };
+    [Parameter] public string AccentTitle { get; set; };
+    [Parameter] public string Lead { get; set; };
+    [Parameter] public string PrimaryActionText { get; set; };
+    [Parameter] public string PrimaryActionTo { get; set; };
+    [Parameter] public string PrimaryActionHref { get; set; };
+    [Parameter] public string SecondaryActionText { get; set; };
+    [Parameter] public string SecondaryActionTo { get; set; };
+    [Parameter] public string SecondaryActionHref { get; set; };
+    [Parameter] public string ImageSrc { get; set; };
+    [Parameter] public string ImageAlt { get; set; } = "TTI";
+    [Parameter] public string ImageBadge { get; set; };
+    [Parameter] public bool Chamfer { get; set; } = true;
+}

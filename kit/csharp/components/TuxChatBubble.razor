@@ -1,0 +1,22 @@
+@*
+ * TuxChatBubble.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-chat-bubble">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Mode { get; set; } = bubble;
+    [Parameter] public string Role { get; set; } = assistant;
+    [Parameter] public string Title { get; set; } = "Assistant";
+    [Parameter] public string Subtitle { get; set; } = "Institutional";
+    [Parameter] public string State { get; set; } = idle;
+    [Parameter] public string Teaser { get; set; } = "undefined";
+    [Parameter] public string Tail { get; set; } = none;
+    [Parameter] public bool Dismissible { get; set; } = false;
+    [Parameter] public bool Open { get; set; } = true;
+    [Parameter] public string Suggestions { get; set; } = "()";
+}

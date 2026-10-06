@@ -82,6 +82,8 @@ const collapsed = ref(props.initialCollapsed);
       v-model:collapsed="collapsed"
       collapsible
       resizable
+      role="navigation"
+      aria-label="Application sidebar"
     >
       <template v-if="$slots['rail-header']" #header="scope">
         <slot name="rail-header" v-bind="scope" />
@@ -98,16 +100,21 @@ const collapsed = ref(props.initialCollapsed);
 
     <UDashboardPanel>
       <template v-if="$slots.header" #header>
-        <slot name="header" />
+        <header role="banner" class="w-full">
+          <slot name="header" />
+        </header>
       </template>
 
       <template #body>
-        <slot />
+        <main id="main-content" class="flex-1 w-full" aria-label="Main content">
+          <slot />
+        </main>
       </template>
     </UDashboardPanel>
 
     <aside
       v-if="$slots.aside"
+      aria-label="Application sidebar details"
       class="tux-sidebar-layout__aside"
       :style="{ width: asideWidth }"
     >

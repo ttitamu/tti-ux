@@ -1,30 +1,104 @@
 <script setup lang="ts">
+import tuxBreadcrumbsSource from "~/components/TuxBreadcrumbs.vue?raw";
+import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
+
 useHead({ title: "TuxBreadcrumbs · TUX" });
 
+const breadcrumbsControls: TuxPropControl[] = [
+  {
+    prop: "trailDepth",
+    label: "Breadcrumb Depth",
+    type: "select",
+    options: ["article", "research", "home-only"],
+    defaultValue: "article",
+  },
+  {
+    prop: "delimiter",
+    label: "Delimiter Glyph",
+    type: "select",
+    options: ["pipe", "chevron", "slash"],
+    defaultValue: "pipe",
+  },
+  {
+    prop: "homeIcon",
+    label: "Show Root Home Icon",
+    type: "boolean",
+    defaultValue: true,
+  },
+];
+
+const breadcrumbsPresets: TuxPlaygroundPreset[] = [
+  {
+    name: "article",
+    label: "Deep Article Trail",
+    description: "4-level deep research article trail with terminal page label",
+    icon: "lucide:route",
+    values: {
+      trailDepth: "article",
+      delimiter: "pipe",
+      homeIcon: true,
+    },
+  },
+  {
+    name: "research",
+    label: "Section Level 2",
+    description: "2-level shallow trail for high-level division index pages",
+    icon: "lucide:folder",
+    values: {
+      trailDepth: "research",
+      delimiter: "pipe",
+      homeIcon: true,
+    },
+  },
+  {
+    name: "chevron-delimit",
+    label: "Chevron Delimited",
+    description: "Mobile and narrow layout chevron delimiter style",
+    icon: "lucide:chevron-right",
+    values: {
+      trailDepth: "article",
+      delimiter: "chevron",
+      homeIcon: true,
+    },
+  },
+];
+
 const exampleVue = `<TuxBreadcrumbs :trail="[
-  { label: 'Home',                       to: '/' },
-  { label: 'Research',                   to: '/research' },
-  { label: 'Transportation safety',      to: '/research/safety' },
-  { label: 'Connected Vehicle Pilot' },
+  { label: 'Home',           to: '/' },
+  { label: 'Components',     to: '/components' },
+  { label: 'Navigation',     to: '/components' },
+  { label: 'TuxBreadcrumbs' },
 ]" />`;
+
+const depthsVue = `<TuxBreadcrumbs :trail="trailL2" />
+<TuxBreadcrumbs :trail="trailL3" />
+<TuxBreadcrumbs :trail="trailArticle" />`;
+
+const trailHome = [{ label: "Home" }];
 
 const trailL2 = [
   { label: "Home", to: "/" },
-  { label: "Research" },
+  { label: "Components" },
 ];
 
 const trailL3 = [
   { label: "Home", to: "/" },
-  { label: "Research", to: "/research" },
-  { label: "Transportation safety" },
+  { label: "Components", to: "/components" },
+  { label: "Navigation" },
 ];
 
 const trailArticle = [
   { label: "Home", to: "/" },
-  { label: "Research", to: "/research" },
-  { label: "Transportation safety", to: "/research/safety" },
-  { label: "Connected Vehicle Pilot" },
+  { label: "Components", to: "/components" },
+  { label: "Navigation", to: "/components" },
+  { label: "TuxBreadcrumbs" },
 ];
+
+function resolveTrail(depth: string) {
+  if (depth === "home-only") return trailHome;
+  if (depth === "research") return trailL2;
+  return trailArticle;
+}
 </script>
 
 <template>
@@ -37,10 +111,34 @@ const trailArticle = [
       ≥35rem viewports, chevron below.
     </TuxPageHeader>
 
+    <!-- Interactive Component Playground with Presets & Deep-Linking -->
+    <section>
+      <TuxPlayground
+        tag="tux-breadcrumbs"
+        component-name="TuxBreadcrumbs"
+        title="TuxBreadcrumbs Workbench"
+        eyebrow="Interactive Component Playground"
+        :controls="breadcrumbsControls"
+        :presets="breadcrumbsPresets"
+        :source="tuxBreadcrumbsSource"
+      >
+        <template #default="{ values }">
+          <div class="p-6 bg-surface-raised rounded-xl border border-surface-border w-full">
+            <TuxBreadcrumbs
+              :trail="resolveTrail(values.trailDepth)"
+              :delimiter="values.delimiter"
+              :home-icon="values.homeIcon"
+              aria-label="Playground breadcrumb preview"
+            />
+          </div>
+        </template>
+      </TuxPlayground>
+    </section>
+
     <section>
       <p class="eyebrow">canonical</p>
       <h2 class="heading--bold text-xl font-bold">L3 article trail</h2>
-      <TuxExample class="mt-4" :vue="exampleVue">
+      <TuxExample class="mt-4" :vue="exampleVue" :source="tuxBreadcrumbsSource">
         <TuxBreadcrumbs :trail="trailArticle" aria-label="Breadcrumb — canonical" />
       </TuxExample>
     </section>
@@ -52,48 +150,13 @@ const trailArticle = [
         Same component handles every depth. Final crumb is always
         non-link, plain-text, current page.
       </p>
-      <TuxExample class="mt-4">
+      <TuxExample class="mt-4" :vue="depthsVue" :source="tuxBreadcrumbsSource">
         <div class="space-y-5">
           <TuxBreadcrumbs :trail="trailL2" aria-label="Breadcrumb — L2 depth" />
           <TuxBreadcrumbs :trail="trailL3" aria-label="Breadcrumb — L3 depth" />
           <TuxBreadcrumbs :trail="trailArticle" aria-label="Breadcrumb — article depth" />
         </div>
       </TuxExample>
-    </section>
-
-    <section>
-      <p class="eyebrow">no home icon</p>
-      <h2 class="heading--bold text-xl font-bold">Without the home glyph</h2>
-      <p class="text-sm text-text-secondary mb-3">
-        Pass <code>:home-icon="false"</code> when the first crumb shouldn't
-        be the home root — for example, an embedded sub-app where the
-        breadcrumb starts mid-tree.
-      </p>
-      <TuxExample class="mt-4">
-        <TuxBreadcrumbs :home-icon="false" :trail="trailArticle" aria-label="Breadcrumb — no home icon" />
-      </TuxExample>
-    </section>
-
-    <section>
-      <p class="eyebrow">chevron mode</p>
-      <h2 class="heading--bold text-xl font-bold">Chevron at all sizes</h2>
-      <p class="text-sm text-text-secondary mb-3">
-        Pass <code>chevron</code> to use <code>›</code> separators at every
-        viewport. Useful in tight chrome where the pipe rule looks heavy.
-      </p>
-      <TuxExample class="mt-4">
-        <TuxBreadcrumbs chevron :trail="trailArticle" aria-label="Breadcrumb — chevron separators" />
-      </TuxExample>
-    </section>
-
-    <section>
-      <p class="eyebrow">props</p>
-      <h2 class="heading--bold text-xl font-bold">Props reference</h2>
-      <ul class="mt-4 space-y-2 text-sm">
-        <li><code>trail</code> — array of <code>{ label, to?, href? }</code>. Required. Last item is the current page (no link).</li>
-        <li><code>homeIcon</code> — show the home icon on the first crumb. Defaults to <code>true</code>.</li>
-        <li><code>chevron</code> — use <code>›</code> separators at every viewport. Defaults to <code>false</code> (pipe rule, collapsing to chevron under 35rem).</li>
-      </ul>
     </section>
   </div>
 </template>

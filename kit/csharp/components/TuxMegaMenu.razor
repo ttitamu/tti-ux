@@ -1,0 +1,16 @@
+@*
+ * TuxMegaMenu.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-mega-menu">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Label { get; set; };
+    [Parameter] public string Columns { get; set; };
+    [Parameter] public string Featured { get; set; };
+    [Parameter] public string To { get; set; };
+}

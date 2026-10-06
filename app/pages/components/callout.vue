@@ -1,5 +1,78 @@
 <script setup lang="ts">
+import tuxCalloutSource from "~/components/TuxCallout.vue?raw";
+import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
+
 useHead({ title: "TuxCallout · TUX" });
+
+const calloutControls: TuxPropControl[] = [
+  {
+    prop: "kind",
+    label: "Callout Kind",
+    type: "select",
+    options: ["stat", "fact", "quote"],
+    defaultValue: "stat",
+    description: "Determines default eyebrow and semantic role",
+  },
+  {
+    prop: "variant",
+    label: "Border Variant",
+    type: "select",
+    options: ["default", "bold", "elegant"],
+    defaultValue: "default",
+    description: "Signature left-rule border styling",
+  },
+  {
+    prop: "eyebrow",
+    label: "Custom Eyebrow Override",
+    type: "text",
+    defaultValue: "",
+  },
+  {
+    prop: "content",
+    label: "Callout Body Content",
+    type: "text",
+    defaultValue: "Compliance gains held steady through the 36-month follow-up window — suggesting the treatments work via persistent infrastructure cues.",
+  },
+];
+
+const calloutPresets: TuxPlaygroundPreset[] = [
+  {
+    name: "empirical-stat",
+    label: "Empirical Finding (Stat)",
+    description: "Highlights key statistical metric with default soft maroon hairline",
+    icon: "lucide:trending-up",
+    values: {
+      kind: "stat",
+      variant: "default",
+      eyebrow: "Key Finding",
+      content: "Compliance gains held steady through the 36-month follow-up window — suggesting the treatments work via persistent infrastructure cues.",
+    },
+  },
+  {
+    name: "investigator-quote",
+    label: "Researcher Voice (Quote)",
+    description: "Editorial quote with 8px diagonal hash accent rule",
+    icon: "lucide:quote",
+    values: {
+      kind: "quote",
+      variant: "elegant",
+      eyebrow: "Voice",
+      content: "What surprised us was the durability of the effect — three years out, we expected some regression toward baseline. We didn't see it.",
+    },
+  },
+  {
+    name: "bold-fact",
+    label: "Prominent Landmark (Fact)",
+    description: "Three stacked maroon bars for high-impact landing pages",
+    icon: "lucide:sparkles",
+    values: {
+      kind: "fact",
+      variant: "bold",
+      eyebrow: "Worth Noting",
+      content: "The Texas Triangle's monitored corridors carry an average 2.1M vehicles per day — roughly half of the state's total continuously instrumented network.",
+    },
+  },
+];
 
 const exampleVue = `<TuxCallout kind="stat">
   <p>
@@ -7,6 +80,26 @@ const exampleVue = `<TuxCallout kind="stat">
     suggesting the treatments work via persistent infrastructure cues rather
     than a novelty effect.
   </p>
+</TuxCallout>`;
+
+const kindsVue = `<TuxCallout kind="fact">
+  <p>The Texas Triangle's monitored corridors carry an average 2.1M vehicles per day.</p>
+</TuxCallout>
+<TuxCallout kind="stat">
+  <p>Treated intersections showed a 37% reduction in stop-line non-compliance.</p>
+</TuxCallout>
+<TuxCallout kind="quote">
+  <p>"What surprised us was the durability of the effect." — Dr. R. Hassan</p>
+</TuxCallout>`;
+
+const variantsVue = `<TuxCallout variant="default" kind="fact">
+  <p>Default style — soft-faded maroon hairline.</p>
+</TuxCallout>
+<TuxCallout variant="bold" kind="fact">
+  <p>Bold style — three stacked maroon bars.</p>
+</TuxCallout>
+<TuxCallout variant="elegant" kind="fact">
+  <p>Elegant style — 8px diagonal hash with vertical fade mask.</p>
 </TuxCallout>`;
 </script>
 
@@ -19,10 +112,37 @@ const exampleVue = `<TuxCallout kind="stat">
       each one breaks reading flow.
     </TuxPageHeader>
 
+    <!-- Interactive Props Workbench -->
+    <section>
+      <TuxPlayground
+        tag="tux-callout"
+        component-name="TuxCallout"
+        title="TuxCallout Workbench"
+        eyebrow="Interactive Component Playground"
+        :controls="calloutControls"
+        :presets="calloutPresets"
+        :source="tuxCalloutSource"
+        slot-prop="content"
+        default-slot-text="Compliance gains held steady through the 36-month follow-up window."
+      >
+        <template #default="{ values }">
+          <div class="max-w-xl">
+            <TuxCallout
+              :kind="values.kind"
+              :variant="values.variant"
+              :eyebrow="values.eyebrow || undefined"
+            >
+              <p>{{ values.content }}</p>
+            </TuxCallout>
+          </div>
+        </template>
+      </TuxPlayground>
+    </section>
+
     <section>
       <p class="eyebrow">canonical</p>
       <h2 class="heading--bold text-xl font-bold">Default · in body context</h2>
-      <TuxExample class="mt-4" :vue="exampleVue">
+      <TuxExample class="mt-4" :vue="exampleVue" :source="tuxCalloutSource">
         <div>
           <p class="text-text-secondary leading-relaxed mb-4">
             Roadway departure crashes account for more than half of rural
@@ -53,7 +173,7 @@ const exampleVue = `<TuxCallout kind="stat">
         <code>stat</code> → "Key finding", <code>quote</code> → "Voice".
         Override with <code>eyebrow="..."</code>.
       </p>
-      <TuxExample class="mt-4">
+      <TuxExample class="mt-4" :vue="kindsVue" :source="tuxCalloutSource">
         <div class="space-y-6">
           <TuxCallout kind="fact">
             <p>The Texas Triangle's monitored corridors carry an average
@@ -82,7 +202,7 @@ const exampleVue = `<TuxCallout kind="stat">
         decreasing in length and opacity. Elegant = 8px diagonal maroon
         hash with vertical fade mask.
       </p>
-      <TuxExample class="mt-4">
+      <TuxExample class="mt-4" :vue="variantsVue" :source="tuxCalloutSource">
         <div class="space-y-6">
           <TuxCallout variant="default" kind="fact">
             <p>Default style — the quietest. The hairline rule reads as

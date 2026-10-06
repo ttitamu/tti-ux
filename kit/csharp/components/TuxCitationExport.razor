@@ -1,0 +1,15 @@
+@*
+ * TuxCitationExport.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<UDropdownMenu class="tux-citation-export">
+    @ChildContent
+</UDropdownMenu>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Citation { get; set; };
+    [Parameter] public string Label { get; set; } = "Cite";
+    [Parameter] public string Variant { get; set; } = outline;
+}

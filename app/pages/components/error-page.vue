@@ -13,7 +13,7 @@ const fiveHundredVue = `<tux-error-page code="500">
 
 const customVue = `<tux-error-page
   code="403"
-  title="Restricted to TAMUS sponsors"
+  title="Restricted to TTI sponsors"
   lede="This corridor study is gated to TxDOT \u00b7 FHWA sponsors. Sign in with a sponsor account."
   :actions="[
     { label: 'Sign in as sponsor', to: '/sign-in?role=sponsor', intent: 'primary', icon: 'lucide:log-in' },
@@ -60,7 +60,7 @@ const customVue = `<tux-error-page
       <TuxExample class="mt-4" :vue="customVue">
         <TuxErrorPage
           code="403"
-          title="Restricted to TAMUS sponsors"
+          title="Restricted to TTI sponsors"
           lede="This corridor study is gated to TxDOT · FHWA sponsors. Sign in with a sponsor account."
           inline
           :actions="[

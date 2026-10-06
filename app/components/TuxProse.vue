@@ -84,6 +84,36 @@ withDefaults(defineProps<Props>(), {
   color: var(--text-primary);
 }
 
+.tux-prose :deep(h1),
+.tux-prose :deep(h2),
+.tux-prose :deep(h3),
+.tux-prose :deep(h4),
+.tux-prose :deep(h5),
+.tux-prose :deep(h6) {
+  color: var(--text-primary);
+}
+
+.tux-prose :deep(h1 a),
+.tux-prose :deep(h2 a),
+.tux-prose :deep(h3 a),
+.tux-prose :deep(h4 a),
+.tux-prose :deep(h5 a),
+.tux-prose :deep(h6 a) {
+  color: inherit !important;
+  text-decoration: none !important;
+  border-bottom: none !important;
+}
+
+.tux-prose :deep(h1 a:hover),
+.tux-prose :deep(h2 a:hover),
+.tux-prose :deep(h3 a:hover),
+.tux-prose :deep(h4 a:hover),
+.tux-prose :deep(h5 a:hover),
+.tux-prose :deep(h6 a:hover) {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
 /* Body — Open Sans, comfortably leaded for sustained reading. */
 .tux-prose :deep(p) {
   font-family: var(--font-body);
@@ -121,16 +151,18 @@ withDefaults(defineProps<Props>(), {
   font-style: italic;
 }
 
-/* Inline code — JetBrains Mono in the sunken surface with a maroon
-   text tint, matching `link-tti`'s navy. Reads as "machine token"
-   without competing with the prose voice. */
+/* Inline code — JetBrains Mono in sunken surface with clean readable tone */
 .tux-prose :deep(code) {
   font-family: var(--font-mono);
   font-size: 0.8125rem;
   background: var(--surface-sunken);
   padding: 0.125rem 0.375rem;
   border-radius: var(--radius-sm);
-  color: var(--brand-primary);
+  border: 1px solid var(--surface-border);
+  color: var(--text-primary);
+  font-weight: 500;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Fenced code — let Shiki / the parser own coloring; we only set the
@@ -145,33 +177,57 @@ withDefaults(defineProps<Props>(), {
   background: var(--surface-sunken);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
+  max-width: 100%;
   overflow-x: auto;
 }
 
 .tux-prose :deep(pre code) {
   background: transparent;
   padding: 0;
+  border: none;
   color: var(--text-primary);
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
-/* Links — navy with hairline underline, matching `.link-tti`. */
+/* Links — clean, dignified link styling in TTI maroon or subtle secondary, never loud blue */
 .tux-prose :deep(a) {
-  color: var(--brand-secondary);
+  color: var(--brand-primary);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
-  text-decoration-color: color-mix(in srgb, var(--brand-secondary) 35%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--brand-primary) 35%, transparent);
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 
 .tux-prose :deep(a:hover) {
-  text-decoration-color: var(--brand-secondary);
+  color: color-mix(in srgb, var(--brand-primary) 85%, black);
+  text-decoration-color: currentColor;
+}
+
+.tux-prose :deep(a code) {
+  color: inherit;
+  border-color: currentColor;
+}
+
+[data-theme="tti-dark"] .tux-prose :deep(a) {
+  color: var(--brand-accent);
+  text-decoration-color: color-mix(in srgb, var(--brand-accent) 35%, transparent);
+}
+
+[data-theme="tti-dark"] .tux-prose :deep(a:hover) {
+  color: color-mix(in srgb, var(--brand-accent) 85%, white);
+  text-decoration-color: currentColor;
 }
 
 /* Tables — same rhythm as `TuxTable`: uppercase Work Sans headers,
    2px maroon underline on the header row, 1px sand border between
    rows. Body cells in Open Sans, mono content in JetBrains. */
 .tux-prose :deep(table) {
-  width: 100%;
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-collapse: collapse;
   margin: 1.25rem 0;
   font-size: 0.875rem;

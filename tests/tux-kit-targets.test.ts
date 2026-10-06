@@ -375,6 +375,18 @@ describe("resolution semantics", () => {
     expect(themes[1]).toContain("#6BB4C0");
   });
 
+  it("operational status ramp resolves (ADR-0013) — not the semantic palette", () => {
+    expect(cs).toContain('public const string StatusOk = "#258818";');
+    expect(cs).toContain('public const string StatusCritical = "#A02828";');
+    expect(cs).toContain('public const string StatusUnknown = "#BC5B00";');
+    expect(react).toContain('"status-ok": "#258818"');
+    expect(react).toContain('"status-critical": "#A02828"');
+    const wpStatus = wp.settings.color.palette.find(
+      (p: { slug: string }) => p.slug === "tux-status-critical",
+    );
+    expect(wpStatus.color).toBe("#A02828");
+  });
+
   it("wash ladder computes to rgba over the THEME's anchor", () => {
     expect(react).toContain('"wash-brand-8": "rgba(92, 0, 37, 0.08)"'); // tti
     expect(react).toContain('"wash-brand-8": "rgba(107, 180, 192, 0.08)"'); // tti-dark

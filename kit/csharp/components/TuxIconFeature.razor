@@ -1,0 +1,15 @@
+@*
+ * TuxIconFeature.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<ul class="tux-icon-feature">
+    @ChildContent
+</ul>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Items { get; set; };
+    [Parameter] public string Layout { get; set; } = grid;
+    [Parameter] public string Columns { get; set; } = 3;
+}

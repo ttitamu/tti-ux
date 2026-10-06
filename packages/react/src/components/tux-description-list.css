@@ -1,0 +1,93 @@
+/**
+ * tux-description-list.css — term / definition pair styles
+ * Part of @tti/tti-ux-react
+ */
+
+.tux-dl-wrap {
+  margin: 1rem 0;
+}
+
+.tux-dl__title {
+  margin: 0 0 0.875rem;
+  font-family: var(--font-body, system-ui, -apple-system, sans-serif);
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider, 0.05em);
+  color: var(--text-primary, #1e1e1e);
+  padding-bottom: 0.625rem;
+  border-bottom: 2px solid var(--brand-primary, #500000);
+}
+
+.tux-dl {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body, system-ui, -apple-system, sans-serif);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Inline layout — term left, value right */
+.tux-dl--inline {
+  display: grid;
+  grid-template-columns: minmax(8rem, max-content) 1fr;
+  gap: 0.5rem 1.25rem;
+}
+
+.tux-dl--inline .tux-dl__term {
+  grid-column: 1;
+}
+
+.tux-dl--inline .tux-dl__value {
+  grid-column: 2;
+  margin: 0;
+}
+
+/* Stacked layout — term above, value below */
+.tux-dl--stacked .tux-dl__term {
+  margin-top: 1rem;
+}
+
+.tux-dl--stacked .tux-dl__term:first-child {
+  margin-top: 0;
+}
+
+.tux-dl--stacked .tux-dl__value {
+  margin: 0.25rem 0 0;
+}
+
+/* Editorial emphasis — uppercase tracked terms */
+.tux-dl--editorial .tux-dl__term {
+  font-family: var(--font-body, system-ui, -apple-system, sans-serif);
+  font-weight: 600;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider, 0.05em);
+  color: var(--text-muted, #767471);
+  align-self: baseline;
+}
+
+.tux-dl--editorial .tux-dl__value {
+  color: var(--text-primary, #1e1e1e);
+}
+
+/* Data emphasis — mono terms, tabular numerals on values */
+.tux-dl--data .tux-dl__term {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-weight: 500;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #4a4846);
+  align-self: baseline;
+}
+
+.tux-dl--data .tux-dl__value {
+  font-family: var(--font-body, system-ui, -apple-system, sans-serif);
+  color: var(--text-primary, #1e1e1e);
+  font-variant-numeric: tabular-nums;
+}
+
+.tux-dl--data .tux-dl__value code {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.8125rem;
+  color: var(--brand-primary, #500000);
+}

@@ -1,0 +1,448 @@
+/*
+ * tux-bridge.css — Legacy Modernization Bridge & WCAG 2.2 AAA Drop-In Stylesheet
+ *
+ * Texas A&M Transportation Institute (TTI) — UX Design System (TUX 3.0)
+ * ADR-0016: Zero-JS drop-in stylesheet to bridge legacy TTI websites, WordPress,
+ * ASP.NET, PHP, and CGI tools to 2026 aesthetics with WCAG 2.2 AAA compliance.
+ *
+ * Usage:
+ *   1. Scoped Mode (recommended for embedded tools):
+ *      Wrap your legacy container with <div class="tux-bridge"> ... </div>
+ *   2. Global Mode (for full legacy pages):
+ *      Add class "tux-bridge-global" to <body> or <html class="tux-bridge-global">
+ *      or link directly: <link rel="stylesheet" href="/css/tux-bridge.css">
+ *
+ * WCAG 2.2 Level AAA Guarantees:
+ *   - 1.4.6 Contrast (Enhanced): >= 7.0:1 for normal text, >= 4.5:1 for large text.
+ *     * Maroon (#500000) on White: 15.66:1
+ *     * Text Primary (#111827) on White: 17.74:1
+ *     * Text Secondary (#374151) on White: 10.31:1 (exceeds 7.0:1)
+ *     * Muted Slate (#4B5563) on White: 7.56:1 (exceeds 7.0:1)
+ *     * Gold (#CFA935) on Dark Charcoal (#221F1F): 7.31:1
+ *     * Gold on White (2.24:1) is STRICTLY restricted to non-text accents and borders.
+ *   - 2.4.13 Focus Appearance (AAA): Minimum 3px solid outline with 2px offset
+ *     and dual-boundary ring ensuring >= 3:1 contrast against any background.
+ *   - 2.5.8 Target Size (Enhanced - AAA): All interactive controls feature
+ *     a minimum 44x44 CSS pixel bounding target (min-height: 44px).
+ *   - 1.4.8 Visual Presentation (AAA): Line height 1.6, max measure <= 75ch,
+ *     left-aligned typography, tabular numerals for scanning.
+ */
+
+:root {
+  --tux-bridge-font: var(--font-body, "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif);
+  --tux-bridge-font-mono: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+  --tux-bridge-maroon: var(--brand-primary, #500000);
+  --tux-bridge-maroon-dark: #3b0000;
+  --tux-bridge-gold: var(--brand-accent, #cfa935);
+  --tux-bridge-charcoal: #221f1f;
+  --tux-bridge-text: #111827;
+  --tux-bridge-text-secondary: #374151;
+  --tux-bridge-text-muted: #4b5563;
+  --tux-bridge-surface: #ffffff;
+  --tux-bridge-surface-muted: #f9fafb;
+  --tux-bridge-surface-stripe: #f3f4f6;
+  --tux-bridge-border: #d1d5db;
+  --tux-bridge-border-strong: #4b5563;
+  --tux-bridge-radius: 0px; /* Sharp 0px geometry matching TTI Kadence Comm standard */
+  --tux-bridge-min-target: 44px; /* WCAG 2.5.8 Target Size AAA */
+  --tux-bridge-focus-width: 3px; /* WCAG 2.4.13 Focus Appearance AAA */
+  --tux-bridge-focus-offset: 2px;
+}
+
+/* Dark Theme Overrides */
+[data-theme="tti-dark"] {
+  --tux-bridge-text: #f9fafb;
+  --tux-bridge-text-secondary: #e5e7eb;
+  --tux-bridge-text-muted: #d1d5db;
+  --tux-bridge-surface: #1e1e1e;
+  --tux-bridge-surface-muted: #171717;
+  --tux-bridge-surface-stripe: #262626;
+  --tux-bridge-border: #404040;
+  --tux-bridge-border-strong: #737373;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   1. Typography & Content Rhythm (WCAG 1.4.8 / 1.4.12)
+   ─────────────────────────────────────────────────────────────────── */
+
+.tux-bridge,
+.tux-bridge-global body,
+body.tux-bridge-global {
+  font-family: var(--tux-bridge-font);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--tux-bridge-text);
+  background-color: var(--tux-bridge-surface);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.tux-bridge p,
+.tux-bridge-global p {
+  max-width: 75ch; /* WCAG 1.4.8: width <= 80 characters */
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  line-height: 1.6;
+  color: var(--tux-bridge-text);
+}
+
+.tux-bridge h1,
+.tux-bridge h2,
+.tux-bridge h3,
+.tux-bridge h4,
+.tux-bridge h5,
+.tux-bridge h6,
+.tux-bridge-global h1,
+.tux-bridge-global h2,
+.tux-bridge-global h3,
+.tux-bridge-global h4,
+.tux-bridge-global h5,
+.tux-bridge-global h6 {
+  font-family: var(--tux-bridge-font);
+  font-weight: 700;
+  color: var(--tux-bridge-maroon);
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.25;
+}
+
+/* Institutional Heading 1 & 2: Aggie Maroon with Warm Gold Underline Accent (ADR-0015) */
+.tux-bridge h1,
+.tux-bridge-global h1 {
+  font-size: 2rem;
+  border-bottom: 3px solid var(--tux-bridge-gold);
+  padding-bottom: 0.625rem;
+  margin-bottom: 1.25rem;
+}
+
+.tux-bridge h2,
+.tux-bridge-global h2 {
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--tux-bridge-gold);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tux-bridge h3,
+.tux-bridge-global h3 {
+  font-size: 1.25rem;
+}
+
+.tux-bridge h4,
+.tux-bridge-global h4 {
+  font-size: 1.125rem;
+}
+
+/* Accessible Hyperlinks (WCAG 1.4.1 / 1.4.6) */
+.tux-bridge a,
+.tux-bridge-global a {
+  color: var(--tux-bridge-maroon);
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  font-weight: 600;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.tux-bridge a:hover,
+.tux-bridge-global a:hover {
+  color: var(--tux-bridge-maroon-dark);
+  background-color: rgba(80, 0, 0, 0.08);
+}
+
+.tux-bridge a:focus-visible,
+.tux-bridge-global a:focus-visible {
+  outline: var(--tux-bridge-focus-width) solid var(--tux-bridge-maroon);
+  outline-offset: var(--tux-bridge-focus-offset);
+  border-radius: 2px;
+  background-color: rgba(80, 0, 0, 0.08);
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   2. Tables — Modernized Legacy Data Tables (WCAG 1.4.6 / 1.4.8)
+   ─────────────────────────────────────────────────────────────────── */
+
+.tux-bridge-table-container,
+.tux-bridge .table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--tux-bridge-border);
+}
+
+.tux-bridge table,
+.tux-bridge-global table,
+table.tux-bridge-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  text-align: left;
+  background-color: var(--tux-bridge-surface);
+  margin-bottom: 1.5rem;
+}
+
+.tux-bridge table caption,
+.tux-bridge-global table caption {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--tux-bridge-text);
+  padding: 0.75rem 0;
+  text-align: left;
+  caption-side: top;
+}
+
+/* Aggie Maroon Header with Signature Warm Gold Bottom Accent */
+.tux-bridge thead th,
+.tux-bridge th,
+.tux-bridge-global thead th,
+table.tux-bridge-table thead th {
+  background-color: var(--tux-bridge-maroon);
+  color: #ffffff; /* 15.66:1 contrast ratio — AAA certified */
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.025em;
+  padding: 0.75rem 1rem;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: 3px solid var(--tux-bridge-gold);
+  white-space: nowrap;
+}
+
+.tux-bridge tbody td,
+.tux-bridge td,
+.tux-bridge-global tbody td,
+table.tux-bridge-table tbody td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--tux-bridge-border);
+  color: var(--tux-bridge-text);
+  font-variant-numeric: tabular-nums; /* Prevents layout jitter during data scanning */
+  vertical-align: middle;
+}
+
+/* Accessible Alternating Zebra Striping */
+.tux-bridge tbody tr:nth-child(even),
+.tux-bridge-global tbody tr:nth-child(even),
+table.tux-bridge-table tbody tr:nth-child(even) {
+  background-color: var(--tux-bridge-surface-muted);
+}
+
+/* Hover Accent for Rapid Visual Tracking */
+.tux-bridge tbody tr:hover,
+.tux-bridge-global tbody tr:hover,
+table.tux-bridge-table tbody tr:hover {
+  background-color: rgba(80, 0, 0, 0.04);
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   3. Forms & Inputs (WCAG 2.5.8 Target Size / 2.4.13 Focus Appearance)
+   ─────────────────────────────────────────────────────────────────── */
+
+.tux-bridge label,
+.tux-bridge-global label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--tux-bridge-text);
+  margin-bottom: 0.375rem;
+}
+
+.tux-bridge input[type="text"],
+.tux-bridge input[type="search"],
+.tux-bridge input[type="email"],
+.tux-bridge input[type="tel"],
+.tux-bridge input[type="number"],
+.tux-bridge input[type="password"],
+.tux-bridge input[type="date"],
+.tux-bridge select,
+.tux-bridge textarea,
+.tux-bridge-global input[type="text"],
+.tux-bridge-global input[type="search"],
+.tux-bridge-global input[type="email"],
+.tux-bridge-global input[type="tel"],
+.tux-bridge-global input[type="number"],
+.tux-bridge-global input[type="password"],
+.tux-bridge-global input[type="date"],
+.tux-bridge-global select,
+.tux-bridge-global textarea {
+  min-height: var(--tux-bridge-min-target); /* 44px touch target AAA */
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--tux-bridge-text);
+  background-color: var(--tux-bridge-surface);
+  border: 2px solid var(--tux-bridge-border-strong); /* 7.56:1 contrast against white */
+  border-radius: var(--tux-bridge-radius);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.tux-bridge input::placeholder,
+.tux-bridge textarea::placeholder,
+.tux-bridge-global input::placeholder,
+.tux-bridge-global textarea::placeholder {
+  color: var(--tux-bridge-text-muted); /* 7.56:1 contrast ratio — passes AAA */
+  opacity: 1;
+}
+
+/* WCAG 2.2 AAA Focus Appearance Indicator (2.4.13) */
+.tux-bridge input:focus,
+.tux-bridge select:focus,
+.tux-bridge textarea:focus,
+.tux-bridge button:focus,
+.tux-bridge-global input:focus,
+.tux-bridge-global select:focus,
+.tux-bridge-global textarea:focus,
+.tux-bridge-global button:focus {
+  outline: var(--tux-bridge-focus-width) solid var(--tux-bridge-maroon);
+  outline-offset: var(--tux-bridge-focus-offset);
+  border-color: var(--tux-bridge-maroon);
+  box-shadow: 0 0 0 2px var(--tux-bridge-surface), 0 0 0 5px var(--tux-bridge-maroon);
+}
+
+/* Accessible Checkboxes & Radios with Guaranteed 44px Hit Target */
+.tux-bridge-check-label,
+.tux-bridge .checkbox-inline,
+.tux-bridge .radio-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: var(--tux-bridge-min-target);
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--tux-bridge-text);
+}
+
+.tux-bridge input[type="checkbox"],
+.tux-bridge input[type="radio"],
+.tux-bridge-global input[type="checkbox"],
+.tux-bridge-global input[type="radio"] {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--tux-bridge-maroon);
+  cursor: pointer;
+  margin: 0;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   4. Buttons & Controls (WCAG 2.5.8 Target Size / Kadence 0px Shape)
+   ─────────────────────────────────────────────────────────────────── */
+
+.tux-bridge button,
+.tux-bridge input[type="submit"],
+.tux-bridge input[type="button"],
+.tux-bridge .btn,
+.tux-bridge-global button,
+.tux-bridge-global input[type="submit"],
+.tux-bridge-global input[type="button"],
+.tux-bridge-global .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: var(--tux-bridge-min-target); /* 44px height */
+  min-width: var(--tux-bridge-min-target);
+  padding: 0.625rem 1.5rem;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: var(--tux-bridge-radius); /* 0px Kadence institutional alignment */
+  box-sizing: border-box;
+  background-color: var(--tux-bridge-maroon);
+  color: #ffffff; /* 15.66:1 contrast ratio */
+  border: 2px solid var(--tux-bridge-maroon);
+  transition: background-color 150ms ease, border-color 150ms ease, transform 100ms ease;
+}
+
+.tux-bridge button:hover,
+.tux-bridge input[type="submit"]:hover,
+.tux-bridge input[type="button"]:hover,
+.tux-bridge .btn:hover,
+.tux-bridge-global button:hover,
+.tux-bridge-global input[type="submit"]:hover,
+.tux-bridge-global input[type="button"]:hover,
+.tux-bridge-global .btn:hover {
+  background-color: var(--tux-bridge-maroon-dark);
+  border-color: var(--tux-bridge-maroon-dark);
+  color: #ffffff;
+}
+
+.tux-bridge button:active,
+.tux-bridge-global button:active {
+  transform: translateY(1px);
+}
+
+/* Secondary / Outline Button */
+.tux-bridge .btn-secondary,
+.tux-bridge .btn-outline,
+.tux-bridge-global .btn-secondary,
+.tux-bridge-global .btn-outline {
+  background-color: transparent;
+  color: var(--tux-bridge-maroon);
+  border: 2px solid var(--tux-bridge-maroon);
+}
+
+.tux-bridge .btn-secondary:hover,
+.tux-bridge .btn-outline:hover,
+.tux-bridge-global .btn-secondary:hover,
+.tux-bridge-global .btn-outline:hover {
+  background-color: var(--tux-bridge-maroon);
+  color: #ffffff;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   5. Structural Containers: Cards, Badges, Callouts
+   ─────────────────────────────────────────────────────────────────── */
+
+.tux-bridge-card,
+.tux-bridge .card,
+.tux-bridge-global .card {
+  background-color: var(--tux-bridge-surface);
+  border: 1px solid var(--tux-bridge-border);
+  border-top: 4px solid var(--tux-bridge-maroon); /* Iconic institutional accent */
+  border-radius: var(--tux-bridge-radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tux-bridge-alert,
+.tux-bridge .alert,
+.tux-bridge-global .alert {
+  border-left: 4px solid var(--tux-bridge-gold);
+  background-color: var(--tux-bridge-surface-muted);
+  border-top: 1px solid var(--tux-bridge-border);
+  border-right: 1px solid var(--tux-bridge-border);
+  border-bottom: 1px solid var(--tux-bridge-border);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  color: var(--tux-bridge-text);
+  font-weight: 500;
+}
+
+.tux-bridge-badge,
+.tux-bridge .badge,
+.tux-bridge-global .badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: var(--tux-bridge-radius);
+  background-color: var(--tux-bridge-charcoal);
+  color: var(--tux-bridge-gold); /* 7.31:1 contrast on dark charcoal — AAA compliant */
+  border: 1px solid var(--tux-bridge-gold);
+}
+
+.tux-bridge-badge--maroon {
+  background-color: var(--tux-bridge-maroon);
+  color: #ffffff; /* 15.66:1 */
+  border: 1px solid var(--tux-bridge-maroon);
+}

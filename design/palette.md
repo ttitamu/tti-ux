@@ -63,6 +63,57 @@ The 8-step categorical chart palette and the maroon/slate map ramps follow the s
 
 `themes.tti` and `themes.tti-hc` only declare `brand` + `surface` + `text` because their semantic / chart / map values inherit from the base `color.semantic` block. `themes.tti-dark` additionally declares `semantic`, `focus`, `chart`, and `map` because every one of those needs lifted values to clear AAA on dark surfaces. That asymmetry is real; don't flatten it by inheriting through to dark.
 
+## Operational status ramp
+
+Separate from the semantic palette, and for a specific reason: `semantic` is a
+**sentiment** palette (good / neutral / bad), and it cannot express the five
+states an operations surface has to separate at a glance.
+
+Two concrete failures that forced the split, both found building the Nagios
+overlay:
+
+- `semantic.success` `#3D5328` is a deep olive tuned to clear AAA *as text on
+  white*. Used as a cell tint it loses its hue and reads grey-green.
+- There is **no orange**, so UNKNOWN had to borrow `chart.5` `#8C5A3C` — a clay
+  brown that reads as a weak red and collides with CRITICAL, after which
+  PENDING's neutral grey sat too close to that near-grey brown.
+
+Hues are inherited from what Nagios Core itself ships, because green → yellow →
+orange → red is operator muscle memory. `maintenance` is the exception — Nagios
+has no colour for it because it is not a severity at all, so it takes TTI's own
+blue (`brand.secondary`'s hue) and sits off the ramp:
+
+| State | Nagios stock | `tti` base | `tti` fill | `tti-dark` base | `tti-dark` fill |
+|---|---|---|---|---|---|
+| ok | `#33FF00` | `#258818` | `#93F387` | `#90F084` | `#86E67A` |
+| warning | `#FFFF00` | `#7A7A00` | `#ECEE55` | `#FDFF68` | `#E6E74C` |
+| unknown | `#FF9900` | `#BC5B00` | `#FF9B5A` | `#FC8731` | `#FF8A37` |
+| critical | `#F83838` | `#A02828` | `#FF544D` | `#F14440` | `#FC4F49` |
+| pending | `#ACACAC` | `#747474` | `#DEDEDE` | `#ABABAB` | `#D1D1D1` |
+| maintenance | — (TTI blue) | `#0566C7` | `#85BAFF` | `#53A0FF` | `#85BAFF` |
+
+Three roles per state — `base` (text, edges, identity), `fill` (a chip), `ink`
+(the word inside it) — because on a light surface a colour dark enough to be
+legible as text is necessarily dark, and dark yellow is olive while dark orange
+is brown. Hue lives in the fill.
+
+`tti-hc` renders outlined chips instead: fill is the page surface, ink is the
+base, and every base clears AAA.
+
+Chip lightness descends with severity across the **warm** hues (warning →
+unknown → critical), so severity reads as weight as well as hue — the channel
+that still works for a reader who cannot separate them. It stops short of `ok`
+on purpose: yellow's natural lightness sits above green's, and forcing it below
+turns it olive rather than yellow.
+
+Derivation rules and their guards are in
+[ADR-0013](../docs/adr/0013-operational-status-ramp.md); `npm run audit:status`
+enforces them and needs neither a browser nor a build.
+
+**Note for BI:** Power BI's `good` / `neutral` / `bad` still resolve to the
+*semantic* palette, deliberately — re-pointing them would change every report
+already built on `tti-theme.json`. See the ADR's "deliberately not done".
+
 ## High-contrast (508) palette
 
 From `TTI-presentation-template-highcontrast-508.pptx`:

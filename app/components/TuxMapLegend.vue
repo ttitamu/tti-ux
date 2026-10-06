@@ -63,10 +63,10 @@ function gradientCss(stops?: Array<{ color: string }>): string {
 
 <template>
   <div class="tux-map-legend" :class="`tux-map-legend--${layout}`">
-    <header v-if="eyebrow || title" class="tux-map-legend__header">
+    <div v-if="eyebrow || title" class="tux-map-legend__header">
       <p v-if="eyebrow" class="eyebrow">{{ eyebrow }}</p>
       <p v-if="title" class="tux-map-legend__title">{{ title }}</p>
-    </header>
+    </div>
 
     <ul v-if="layout === 'stacked' && entries" class="tux-map-legend__list">
       <li

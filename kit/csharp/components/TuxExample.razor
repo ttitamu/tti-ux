@@ -1,0 +1,21 @@
+@*
+ * TuxExample.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-example">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Vue { get; set; } = "undefined";
+    [Parameter] public string React { get; set; } = "undefined";
+    [Parameter] public string Wc { get; set; } = "undefined";
+    [Parameter] public string Razor { get; set; } = "undefined";
+    [Parameter] public string Source { get; set; } = "undefined";
+    [Parameter] public string Css { get; set; } = "undefined";
+    [Parameter] public string Powerbi { get; set; } = "undefined";
+    [Parameter] public string Title { get; set; } = "undefined";
+    [Parameter] public string PreviewPadding { get; set; } = "p-6";
+}

@@ -171,11 +171,11 @@ function escape(s: string): string {
 }
 
 .tux-docs-sidebar__summary--depth-0 {
-  font-family: var(--font-bold);
+  font-family: var(--font-mono);
   font-weight: 700;
   font-size: 0.6875rem;
   text-transform: uppercase;
-  letter-spacing: var(--tracking-wider);
+  letter-spacing: 0.08em;
   color: var(--text-secondary);
   padding: 0.5rem 0.5rem;
 }
@@ -303,6 +303,9 @@ function escape(s: string): string {
   color: var(--brand-primary);
   font-weight: 700;
   background: var(--wash-brand-12);
+  border-left: 3px solid var(--brand-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding-left: calc(0.5rem - 3px);
 }
 
 /* Summary rows whose subtree contains the active item get bold

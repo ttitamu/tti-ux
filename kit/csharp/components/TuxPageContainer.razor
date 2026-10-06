@@ -1,0 +1,15 @@
+@*
+ * TuxPageContainer.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<component class="tux-page-container">
+    @ChildContent
+</component>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Width { get; set; } = default;
+    [Parameter] public bool Flush { get; set; } = false;
+    [Parameter] public string As { get; set; } = "div";
+}

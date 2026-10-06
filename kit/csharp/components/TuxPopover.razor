@@ -1,0 +1,19 @@
+@*
+ * TuxPopover.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<UPopover class="tux-popover">
+    @ChildContent
+</UPopover>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Title { get; set; } = "undefined";
+    [Parameter] public string Body { get; set; } = "undefined";
+    [Parameter] public string Mode { get; set; } = click;
+    [Parameter] public string Side { get; set; } = bottom;
+    [Parameter] public bool Arrow { get; set; } = true;
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public string Width { get; set; } = md;
+}

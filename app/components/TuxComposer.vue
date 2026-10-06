@@ -100,6 +100,7 @@ function onKey(e: KeyboardEvent) {
         v-model="local"
         class="tux-composer__textarea"
         :placeholder="placeholder"
+        :aria-label="placeholder || 'Message composer'"
         :maxlength="maxLength"
         rows="3"
         @keydown="onKey"

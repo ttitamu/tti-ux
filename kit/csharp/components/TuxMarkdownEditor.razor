@@ -1,0 +1,20 @@
+@*
+ * TuxMarkdownEditor.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-markdown-editor">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string ModelValue { get; set; };
+    [Parameter] public int Rows { get; set; } = 12;
+    [Parameter] public int MinLength { get; set; } = undefined;
+    [Parameter] public int MaxLength { get; set; } = undefined;
+    [Parameter] public string Placeholder { get; set; } = "Write";
+    [Parameter] public bool Preview { get; set; } = true;
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public string AriaLabel { get; set; } = "Markdown";
+}

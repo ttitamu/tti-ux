@@ -1,0 +1,96 @@
+/* packages/react/src/components/tux-accordion.css */
+.tux-accordion {
+  width: 100%;
+  font-family: var(--font-body, system-ui, -apple-system, sans-serif);
+}
+
+.tux-accordion__item {
+  border-bottom: 1px solid var(--surface-border, #e5e7eb);
+}
+.tux-accordion__item:first-child {
+  border-top: 2px solid var(--brand-primary, #500000);
+}
+
+.tux-accordion__summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.125rem 0.25rem 1.125rem 0;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  color: var(--text-primary, #111827);
+  transition: background-color 0.15s ease;
+}
+.tux-accordion__summary::-webkit-details-marker { display: none; }
+
+.tux-accordion__summary:hover {
+  background: var(--wash-brand-4, rgba(80, 0, 0, 0.04));
+}
+
+.tux-accordion__summary-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.tux-accordion__eyebrow {
+  font-family: var(--font-bold, system-ui, sans-serif);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--brand-primary, #500000);
+}
+
+.tux-accordion__title {
+  font-family: var(--font-bold, system-ui, sans-serif);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--text-primary, #111827);
+}
+
+.tux-accordion--publication .tux-accordion__title {
+  font-family: var(--font-elegant, Georgia, serif);
+  font-weight: 400;
+  font-style: italic;
+  font-size: 1.125rem;
+}
+
+.tux-accordion__meta {
+  font-family: var(--font-body, system-ui, sans-serif);
+  font-size: 0.8125rem;
+  color: var(--text-muted, #6b7280);
+  line-height: 1.4;
+}
+
+.tux-accordion__chevron {
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.1875rem;
+  color: var(--brand-primary, #500000);
+  transition: transform 0.2s ease;
+}
+
+.tux-accordion__item[open] .tux-accordion__chevron {
+  transform: rotate(45deg);
+}
+
+.tux-accordion__content {
+  padding: 0 0 1.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--text-secondary, #374151);
+}
+
+.tux-accordion__content p {
+  margin: 0 0 0.75rem;
+}
+.tux-accordion__content p:last-child {
+  margin-bottom: 0;
+}

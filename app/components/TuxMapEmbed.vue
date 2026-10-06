@@ -81,11 +81,11 @@ const surfaceStyle = computed(() => {
 
 <template>
   <figure class="tux-map-embed">
-    <header v-if="eyebrow || title || subtitle" class="tux-map-embed__header">
+    <div v-if="eyebrow || title || subtitle" class="tux-map-embed__header">
       <p v-if="eyebrow" class="eyebrow">{{ eyebrow }}</p>
       <h3 v-if="title" class="tux-map-embed__title">{{ title }}</h3>
       <p v-if="subtitle" class="tux-map-embed__subtitle">{{ subtitle }}</p>
-    </header>
+    </div>
 
     <div class="tux-map-embed__surface" :style="surfaceStyle">
       <div

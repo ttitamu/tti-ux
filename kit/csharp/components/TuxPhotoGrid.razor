@@ -1,0 +1,16 @@
+@*
+ * TuxPhotoGrid.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<ul class="tux-photo-grid">
+    @ChildContent
+</ul>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Items { get; set; };
+    [Parameter] public string Kind { get; set; } = photo;
+    [Parameter] public string Columns { get; set; } = 3;
+    [Parameter] public string Aspect { get; set; } = undefined;
+}

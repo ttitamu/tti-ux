@@ -95,6 +95,7 @@ const apps = computed(() => props.apps);
 
     <template #content>
       <div class="tux-app-switcher__panel">
+        <TuxSpectrumRibbon height="sm" class="-mx-4 -mt-4 mb-3" />
         <header class="tux-app-switcher__heading">
           <p class="eyebrow">texas a&amp;m transportation institute</p>
           <h3>{{ heading }}</h3>
@@ -220,7 +221,7 @@ const apps = computed(() => props.apps);
   gap: 0.625rem;
   padding: 0.625rem 0.75rem;
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--surface-page);
   color: var(--text-primary);
   text-decoration: none;

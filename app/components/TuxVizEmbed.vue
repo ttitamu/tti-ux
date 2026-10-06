@@ -91,8 +91,8 @@ function onError() { errored.value = true; loaded.value = true; }
 </script>
 
 <template>
-  <figure class="tux-viz-embed">
-    <header class="tux-viz-embed__head">
+  <figure class="tux-viz-embed" :aria-label="title">
+    <div class="tux-viz-embed__head">
       <div class="tux-viz-embed__title-block">
         <p v-if="eyebrow" class="eyebrow">{{ eyebrow }}</p>
         <h3 class="tux-viz-embed__title">{{ title }}</h3>
@@ -111,7 +111,7 @@ function onError() { errored.value = true; loaded.value = true; }
         <UIcon name="lucide:arrow-up-right" class="tux-viz-embed__open-icon" />
         Open
       </a>
-    </header>
+    </div>
     <div class="tux-viz-embed__stage" :style="{ aspectRatio: ratio }">
       <img
         v-if="usePoster"

@@ -1,0 +1,17 @@
+@*
+ * TuxFigureCaption.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<figure class="tux-figure-caption">
+    @ChildContent
+</figure>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Label { get; set; } = "Figure";
+    [Parameter] public string Number { get; set; };
+    [Parameter] public string Caption { get; set; } = "undefined";
+    [Parameter] public string Source { get; set; } = "undefined";
+    [Parameter] public string Placement { get; set; } = below;
+}

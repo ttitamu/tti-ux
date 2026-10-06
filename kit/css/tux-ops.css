@@ -1,0 +1,193 @@
+/*
+ * tux-ops.css — operational surface recipes.
+ *
+ * Drop in AFTER tux-tokens.css. Theme-reactive: set
+ * data-theme="tti" | "tti-dark" | "tti-hc" on <html>.
+ *
+ * This is the class API for monitoring / ops boards that cannot run
+ * Vue (Nagios CGI overlays, AAP dashboards, plain HTML). It is the
+ * CSS tab on TuxStatus in the style guide — same contract as the
+ * Power BI tab on charts.
+ *
+ * Class names are TUX-owned. Do not add a host application's
+ * selectors here (.serviceOK, .statusOK, Bootstrap, Forgejo). The
+ * consumer maps their markup onto these classes. That is the overlay
+ * lesson: paint with recipes, do not fork the host into the kit.
+ *
+ * Tokens only. No hex. Maroon is chrome, never a state. Gold is the
+ * heading keyline, never heading text. Status hues are --status-*
+ * (ADR-0013). See design/ops-surfaces.md and ADR-0014.
+ */
+
+/* ── Status chip / text / dot ─────────────────────────────────────── */
+
+.tux-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0.125rem 0.5rem;
+  font-family: var(--font-bold);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wider);
+  line-height: 1.25;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: var(--status-pending-fill);
+  color: var(--status-pending-ink);
+}
+
+.tux-status--ok {
+  background: var(--status-ok-fill);
+  color: var(--status-ok-ink);
+}
+.tux-status--warning {
+  background: var(--status-warning-fill);
+  color: var(--status-warning-ink);
+}
+.tux-status--unknown {
+  background: var(--status-unknown-fill);
+  color: var(--status-unknown-ink);
+}
+.tux-status--critical {
+  background: var(--status-critical-fill);
+  color: var(--status-critical-ink);
+}
+.tux-status--pending {
+  background: var(--status-pending-fill);
+  color: var(--status-pending-ink);
+}
+.tux-status--maintenance {
+  background: var(--status-maintenance-fill);
+  color: var(--status-maintenance-ink);
+}
+
+.tux-status--text {
+  padding: 0;
+  background: transparent;
+  border-color: transparent;
+}
+.tux-status--text.tux-status--ok { color: var(--status-ok); }
+.tux-status--text.tux-status--warning { color: var(--status-warning); }
+.tux-status--text.tux-status--unknown { color: var(--status-unknown); }
+.tux-status--text.tux-status--critical { color: var(--status-critical); }
+.tux-status--text.tux-status--pending { color: var(--status-pending); }
+.tux-status--text.tux-status--maintenance { color: var(--status-maintenance); }
+
+.tux-status--dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+  border-radius: 999px;
+  color: transparent;
+  font-size: 0;
+}
+.tux-status--dot.tux-status--ok { background: var(--status-ok); }
+.tux-status--dot.tux-status--warning { background: var(--status-warning); }
+.tux-status--dot.tux-status--unknown { background: var(--status-unknown); }
+.tux-status--dot.tux-status--critical { background: var(--status-critical); }
+.tux-status--dot.tux-status--pending { background: var(--status-pending); }
+.tux-status--dot.tux-status--maintenance { background: var(--status-maintenance); }
+
+/*
+ * Acknowledged: still a live problem, but it has an owner, so it
+ * stops competing. --surface-sunken, not pending grey — grey read as
+ * UNKNOWN/PENDING in dark mode.
+ */
+.tux-status--acked {
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  border-color: var(--surface-border);
+}
+
+/* ── Status row tints (30% fill into raised, so body text stays) ─── */
+
+.tux-status-row--ok {
+  background: color-mix(in srgb, var(--status-ok-fill) 30%, var(--surface-raised));
+}
+.tux-status-row--warning {
+  background: color-mix(in srgb, var(--status-warning-fill) 30%, var(--surface-raised));
+}
+.tux-status-row--unknown {
+  background: color-mix(in srgb, var(--status-unknown-fill) 30%, var(--surface-raised));
+}
+.tux-status-row--critical {
+  background: color-mix(in srgb, var(--status-critical-fill) 30%, var(--surface-raised));
+}
+.tux-status-row--pending {
+  background: color-mix(in srgb, var(--status-pending-fill) 30%, var(--surface-raised));
+}
+.tux-status-row--maintenance {
+  background: color-mix(in srgb, var(--status-maintenance-fill) 30%, var(--surface-raised));
+}
+.tux-status-row--acked {
+  background: var(--surface-sunken);
+}
+
+/* ── Ops heading: gold keyline, never gold text, never maroon slab ─ */
+
+.tux-ops-heading {
+  position: relative;
+  margin: 0;
+  padding-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-family: var(--font-bold);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+}
+
+.tux-ops-heading::after {
+  content: "";
+  display: block;
+  width: 64px;
+  height: 3px;
+  margin-top: 0.625rem;
+  background: var(--brand-accent);
+  border-radius: 1.5px;
+}
+
+/* ── Hairline chrome (not a maroon slab) ─────────────────────────── */
+
+.tux-ops-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+}
+
+.tux-ops-table th {
+  text-align: left;
+  font-family: var(--font-bold);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--surface-border);
+  padding: 0.5rem 0.75rem;
+}
+
+.tux-ops-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--surface-border) 55%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+
+.tux-ops-rail {
+  background: var(--surface-page);
+  border-right: 1px solid var(--surface-border);
+  color: var(--text-primary);
+}

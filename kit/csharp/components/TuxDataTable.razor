@@ -1,0 +1,28 @@
+@*
+ * TuxDataTable.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<figure class="tux-data-table">
+    @ChildContent
+</figure>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Columns { get; set; };
+    [Parameter] public string Rows { get; set; } = "()";
+    [Parameter] public string Groups { get; set; } = "()";
+    [Parameter] public string RowKey { get; set; } = "id";
+    [Parameter] public string TableNumber { get; set; };
+    [Parameter] public string Caption { get; set; };
+    [Parameter] public string Description { get; set; };
+    [Parameter] public string SortKey { get; set; } = "undefined";
+    [Parameter] public string SortDir { get; set; } = undefined;
+    [Parameter] public bool Sticky { get; set; } = false;
+    [Parameter] public string MaxHeight { get; set; } = "20rem";
+    [Parameter] public string Density { get; set; } = comfortable;
+    [Parameter] public bool Banded { get; set; } = true;
+    [Parameter] public string Footnotes { get; set; } = "()";
+    [Parameter] public string Source { get; set; };
+    [Parameter] public string Totals { get; set; } = "undefined";
+}

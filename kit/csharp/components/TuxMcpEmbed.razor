@@ -1,0 +1,21 @@
+@*
+ * TuxMcpEmbed.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<section class="tux-mcp-embed">
+    @ChildContent
+</section>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string AppName { get; set; };
+    [Parameter] public string AppIcon { get; set; } = "lucide:plug";
+    [Parameter] public string AppIconUrl { get; set; } = "undefined";
+    [Parameter] public string Source { get; set; } = "undefined";
+    [Parameter] public bool Loading { get; set; } = false;
+    [Parameter] public bool Collapsible { get; set; } = true;
+    [Parameter] public bool Expandable { get; set; } = true;
+    [Parameter] public bool Closable { get; set; } = true;
+    [Parameter] public bool Collapsed { get; set; } = false;
+}

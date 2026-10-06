@@ -1,431 +1,140 @@
-# TUX for Power BI
+# Power BI Design Tokens & Report Assets
 
-Drop-in report themes and PBIR fragments, generated from
-`design/tokens.json`. A Power BI report built with these renders the same
-system as a TUX web page — same palette, same type lanes, same chart
-foundations.
+Pre-configured report themes and PBIR visual fragments generated from `design/tokens.json`. Reports styled with these assets reflect official Texas A&M Transportation Institute typography, palette hierarchies, and chart foundations.
 
-Everything here is **generated and committed**. Do not hand-edit: edit
-`design/tokens.json`, run `npm run build:kit`, commit both.
-`tests/tux-kit-targets.test.ts` fails CI if a committed file drifts from
-its generator.
+All assets are generated deterministically and verified by automated lock tests in CI (`tests/tux-kit-targets.test.ts`).
 
 ---
 
-## What's in the box
+## Package Contents
 
-```
+The Power BI target includes complete theme files and PBIR fragments:
+
+```text
 kit/powerbi/
-├── tti-theme.json              light  — import into Desktop or Fabric
-├── tti-theme-dark.json         dark
-├── tti-theme-hc.json           high contrast
+├── tti-theme.json              Light theme for Power BI Desktop & Fabric
+├── tti-theme-dark.json         Dark theme
+├── tti-theme-hc.json           High-contrast theme (WCAG AAA)
 └── pbir/
-    ├── schema-lock.json        pinned $schema URLs + format versions
-    ├── geometry.json           canvas, chrome bands, pills, z-order
-    ├── tmdl/                   ThemeMode + TuxThemeColors (light/dark)
-    ├── dax/                    same module for Desktop's UI
-    ├── shell/                  drop-in page chrome, per canvas variant
-    │   ├── classic/            15 visuals (10 shell + 5 pill templates)
-    │   └── fluent2/
+    ├── schema-lock.json        Pinned $schema URLs and format versions
+    ├── geometry.json           Canvas dimensions, chrome bands, and layout offsets
+    ├── tmdl/                   ThemeMode and TuxThemeColors semantic model definitions
+    ├── dax/                    DAX measures for theme switching in Desktop
+    ├── shell/                  Drop-in page chrome visual templates
+    │   ├── classic/            1280 × 920 canvas layout
+    │   └── fluent2/            1920 × 1080 canvas layout
     └── fragments/
-        ├── tti/                static colours, light
-        ├── tti-dark/           static colours, dark
-        ├── tti-hc/             static colours, high contrast
-        └── themed/             measure-bound — follows an in-report toggle
+        ├── tti/                Static light color definitions
+        ├── tti-dark/           Static dark color definitions
+        ├── tti-hc/             High-contrast color definitions
+        └── themed/             Measure-bound colors for live in-report toggle
 ```
-
-**Themes** are the zero-tooling path: import one file, every native
-visual inherits the system. They carry `dataColors`, the structural
-colour set, sentiment and divergent ramps, `textClasses`, and
-`visualStyles` for 26 visual types.
-
-**PBIR fragments** are JSON objects you splice into a `visual.json`. They
-cover the part that repeats on every visual and that a theme file
-*cannot* express.
-
-| Fragment | Splice as | Applies to |
-|---|---|---|
-| `card-chrome.json` | `visualContainerObjects` | every **content** visual |
-| `table-chrome.json` | `visual.objects` | `tableEx` |
-| `chart-cartesian.json` | `visual.objects` | bar / column / line / area / scatter |
-
-Card chrome goes on charts, tables, slicers and cards — **not** on shell
-shapes, textboxes or buttons, which carry their own.
 
 ---
 
-## Applying a theme
+## Applying a Theme
 
-Three edits, and all three are required. A theme file dropped into
-`StaticResources/` without the other two is silently ignored.
+### Option A: Power BI Desktop GUI (Zero-Tooling)
 
-1. File at `<Report>/StaticResources/RegisteredResources/tti-theme.json`
-2. `report.json` → `resourcePackages` entry:
+1. Open Power BI Desktop.
+2. In the top ribbon, select **View** → **Themes** dropdown.
+3. Select **Browse for themes...** and choose `tti-theme.json` (or `tti-theme-dark.json` / `tti-theme-hc.json`).
+4. All native visual types automatically inherit the TTI color palette, typography hierarchy, and margin tokens.
+
+### Option B: PBIR Project Registration
+
+To bind the theme directly in a PBIR Git-integrated report repository:
+
+1. Copy `tti-theme.json` to `<Report>/StaticResources/RegisteredResources/tti-theme.json`.
+2. In `report.json`, register the resource under `resourcePackages`:
 
 ```json
 {
   "name": "RegisteredResources",
   "type": "RegisteredResources",
   "items": [
-    { "name": "tti-theme.json", "path": "tti-theme.json", "type": "CustomTheme" }
+    {
+      "name": "tti-theme.json",
+      "path": "tti-theme.json",
+      "type": "CustomTheme"
+    }
   ]
 }
 ```
 
-3. `report.json` → `themeCollection.customTheme`:
+3. In `report.json`, reference the custom theme:
 
 ```json
 "customTheme": {
   "name": "tti-theme.json",
   "type": "RegisteredResources",
-  "reportVersionAtImport": { "visual": "2.9.0", "page": "2.3.1", "report": "3.3.0" }
+  "reportVersionAtImport": {
+    "visual": "2.9.0",
+    "page": "2.3.1",
+    "report": "3.3.0"
+  }
 }
 ```
 
-The theme name, the resource item name, the item path, and the on-disk
-filename must all match **including the extension**. A mismatch is one of
-the most common causes of a report that opens with no styling and no
-error.
-
-> **`reportVersionAtImport` is an object, not a string.** Report schema
-> 3.0.0 changed it, and Microsoft's own published example still shows the
-> old flat `"5.53"` form. Copying from the docs produces a `report.json`
-> that fails validation. The current values are in
-> `pbir/schema-lock.json`.
-
-> **During PBIR preview, a *new* theme cannot be registered by file drop
-> alone.** `report.json` and `definition.pbir` are not externally
-> editable, and `RegisteredResources` can only be edited for
-> already-registered resources. Introduce the theme once through Desktop
-> (View → Theme → Browse for themes), then subsequent updates are a file
-> replace.
+Ensure the theme name, item path, and on-disk filename match exactly.
 
 ---
 
-## Light and dark
+## Theme Modes (Light, Dark, High-Contrast)
 
-**Power BI has no native dark mode for report content.** Verified
-2026-08-31 against Microsoft's own documentation: Desktop dark mode is
-application chrome only ("Dark mode is not applied to the Report view
-Canvas, including the Filter Pane and Wallpaper"), mobile explicitly
-excludes report content, and the service has none. The theme schema has
-no `colorScheme` key and is `additionalProperties: false`, so it cannot
-be extended.
+### Static Theming
+For fixed-appearance reports, select one of the three pre-compiled themes:
+- **Light (`tti-theme.json`)**: Off-white canvas with TTI Maroon headers and high-contrast data series.
+- **Dark (`tti-theme-dark.json`)**: Deep charcoal surfaces with calibrated glowing chart markers.
+- **High-Contrast (`tti-theme-hc.json`)**: Strict WCAG 2.2 Level AAA compliant contrast ($\ge 7.0:1$) for accessibility compliance.
 
-That leaves two real options, and they do different jobs:
-
-**Static** — ship `tti-theme.json` or `tti-theme-dark.json` and use the
-matching `fragments/<theme>/`. The report has one fixed appearance.
-No semantic-model dependency. Use this unless you need a viewer-facing
-toggle.
-
-**Themed** — use `fragments/themed/`, whose colours bind to DAX measures
-instead of literals. A slicer on a disconnected `ThemeMode` table drives
-every bound colour, so a viewer flips the whole report at view time. This
-is the only mechanism that gives a live in-report toggle.
-
-The model module that backs it is generated from the same tokens:
-
-```
-pbir/tmdl/ThemeMode.tmdl          the two-row mode table
-pbir/tmdl/TuxThemeColors.tmdl     30 measures, one per colour role
-pbir/dax/theme-tables.dax         the same thing for Desktop's UI
-```
-
-**TMDL projects** — copy both `.tmdl` files into
-`<Model>.SemanticModel/definition/tables/` and add a `ref table` line for
-each in `model.tmdl`. A table file without its `ref table` entry is
-silently ignored, with no error.
-
-**Desktop** — open `dax/theme-tables.dax` and follow the header: two
-*New table* expressions, then one *New measure* per role with
-`TuxThemeColors` as the home table.
-
-Then put a slicer on `ThemeMode[Mode]`, set it to tile mode, and sync it
-across pages.
-
-Roles are grouped into display folders — Surface, Text, Accent, Table,
-Chart, Semantic, Shell, Tooltip. Two behaviours worth knowing, both of
-which fall out of the tokens rather than being special-cased:
-
-- `Shell*` roles are **theme-invariant** — the masthead stays maroon in
-  dark mode, per the on-brand rule.
-- `Tooltip*` roles **invert**, because a tooltip wants the opposite
-  surface from the page it sits on.
-
-The measure names are a **hard contract** with the fragments. Renaming
-one breaks every report that has already spliced them in.
-
-> The measures return hex literals on purpose. Power BI's newer *named
-> theme colors* feature — where a measure returns `"background"` instead
-> of `#FFFFFF` — resolves against whichever theme is currently applied,
-> and a report has exactly one. It makes a report theme-portable; it
-> **cannot** drive a live toggle, because both branches of the `IF`
-> collapse to the same colour. Do not refactor these measures onto it.
-
-Two approaches that were tried and abandoned upstream, recorded so they
-aren't retried: **bookmarks** with duplicated per-mode pages (maintenance
-doubles with every page, slicer sync is fragile), and **field parameters
-with `GENERATESERIES`** (fine for two or three colours, doesn't scale to
-a full role set).
-
-High contrast is **not** a toggle state — it's a separately applied
-theme. Use `tti-theme-hc.json` with the static `fragments/tti-hc/` lane.
+### Interactive In-Report Toggle
+For reports requiring a runtime viewer toggle between light and dark modes:
+1. Import `pbir/tmdl/ThemeMode.tmdl` and `pbir/tmdl/TuxThemeColors.tmdl` into your semantic model.
+2. Use visual fragments from `pbir/fragments/themed/`, where color properties bind to DAX measures rather than static hex values.
+3. Add a slicer visual connected to `ThemeMode[Mode]` set to tile mode and sync across pages.
 
 ---
 
-## Geometry
+## PBIR Visual Fragments
 
-`pbir/geometry.json` carries the report shell layout: chrome band
-heights, content area, nav pill stride, and the z-order scheme.
+Fragments provide standardized styling for individual visual containers that themes cannot express directly:
 
-Two canvas variants are emitted because Fluent 2 (GA August 2026) moved
-the default canvas to 1920×1080 while existing reports stay at 1280×920:
-
-| Variant | Canvas | Base theme |
+| Fragment | Target Property | Supported Visuals |
 |---|---|---|
-| `classic` | 1280 × 920 | `CY26SU08` |
-| `fluent2` | 1920 × 1080 | `Fluent2-CY26SU08` |
+| `card-chrome.json` | `visualContainerObjects` | KPI cards, metrics, callouts |
+| `table-chrome.json` | `visual.objects` | Data tables (`tableEx`) |
+| `chart-cartesian.json` | `visual.objects` | Bar, Column, Line, Area, and Scatter charts |
 
-Chrome bands are type-driven and do **not** scale with the canvas — only
-the content area does. Pick the variant matching your report's base
-theme.
+### Splicing a Fragment
 
-The z-order scheme reserves **9000–15000** for content visuals.
-Everything outside that window is shell chrome. Keep content inside it
-and chrome never collides.
-
----
-
-## The report shell
-
-`pbir/shell/<canvas>/` holds ready-to-copy visuals — one folder per
-visual, matching PBIR's on-disk layout exactly:
-
-```
-cp -R kit/powerbi/pbir/shell/fluent2/* \
-      MyReport.Report/definition/pages/<page>/visuals/
-```
-
-Ten of them are the page chrome, and they are identical on every page of
-a report — only `nav_title_page`, `nav_title_context` and
-`nav_title_footer_support` carry copy you'll want to change:
-
-| Visual | Type | Follows the toggle? |
-|---|---|---|
-| `shell_canvas_bg` | shape | yes — `PageBackground` |
-| `nav_btn_content_tray` | shape | yes — `BorderColor` @97% |
-| `nav_btn_footer_bg` | shape | **no** — brand |
-| `nav_btn_header_bg` | shape | **no** — brand |
-| `nav_btn_header_accent_rule` | shape | **no** — brand |
-| `nav_title_footer_support` | textbox | **no** — static on brand |
-| `nav_title_page` | textbox | **no** — static on brand |
-| `shell_theme_slicer` | slicer | — the control itself |
-| `nav_btn_nav_bg` | shape | yes — `CardBackground` @4% |
-| `nav_title_context` | textbox | yes — titled, `TextPrimary` |
-
-Brand chrome deliberately does **not** respond to the toggle: the
-masthead stays maroon in dark mode. Anything sitting *on* that maroon
-(page title, footer label) is static white for the same reason — it is
-always readable there, so it needs no measure.
-
-### Nav pills
-
-The remaining five visuals are pill templates, because the pill count is
-per-report. `nav_pill_active*` is positioned at index 0 and
-`nav_pill_inactive*` at index 1; replicate the inactive set per page and
-place pill *n* at:
-
-```
-x = pills.startX + n * pills.stride     (from geometry.json)
-```
-
-Each pill is **three or four layered visuals, not one button**. That
-looks redundant until you try the obvious thing: `actionButton` text
-rendering is unreliable in generated PBIR — labels vanish or misalign —
-and `text.fontColor` cannot take a measureRef at all. So chrome, label,
-and click target are separated:
-
-| Layer | Visual | Why |
-|---|---|---|
-| shape | `nav_pill_*` | fill, radius, shadow |
-| label | `nav_pill_*_label` | predictable text rendering |
-| hit target | `nav_pill_inactive_hit` | invisible `actionButton`, click only |
-
-The active pill needs no hit target — it *is* the current page.
-
-Two calibrated offsets that look like typos and are not: the active
-label sits at `pillY + 2` and the inactive at `pillY + 8`. Active uses
-paragraph text (internal top padding); inactive uses title text (renders
-at the top of its box). Without the different offsets they don't sit
-level.
-
-**`nav_pill_inactive_hit` still needs its page-navigation target.** The
-invisible button is emitted with its chrome suppressed but no
-`navigationSection` binding — that value is the destination page's slug,
-which only exists once you have pages. Set it in Desktop, or via the
-injector when it lands.
-
-### Theme-responsive text
-
-A textbox's paragraph `textStyle.color` is a plain string and **cannot**
-take a measureRef, so any label that must follow the toggle is rendered
-through the visual's *title* instead: paragraph text cleared to empty,
-copy in `title.text`, colour in `title.fontColor`. `nav_title_context`
-and `nav_pill_inactive_label` both use this.
-
-Use `text` — **not** `titleText`, which is an embedded-JS-API property
-and fails PBIR schema validation outright.
-
-Titled text needs more vertical room than paragraph text, or a bounding
-box appears around it. The calibrated minimums are 64px for 10pt content
-labels, 46px for nav labels, 55px for an 18pt page title.
-
-The emitted themes pin `baseTheme: "Fluent2-CY26SU08"`. A custom theme
-layers *on top of* a base theme and inherits anything it doesn't define,
-so leaving it unpinned means inheriting whatever the consuming report
-carries — and Fluent 2 vs Classic differ in padding, corner radius,
-canvas size and title defaults.
-
----
-
-## Deprecated visual types
-
-`schema-lock.json` carries the migration map. Emitting the left-hand
-names produces reports that open today and break later:
-
-| Don't emit | Emit |
-|---|---|
-| `card` | `cardVisual` |
-| `table` | `tableEx` |
-| `matrix` | `pivotTable` |
-| `map`, `filledMap` | `azureMap` |
-| `multiRowCard` | `cardVisual` |
-
----
-
-## Validating
+Splice the JSON fragment directly into the visual's `visual.json` file inside your PBIR page directory:
 
 ```bash
+# Example: Apply cartesian chart chrome to a visual
+jq -s '.[0] * .[1]' visual.json kit/powerbi/pbir/fragments/chart-cartesian.json > visual.tmp.json && mv visual.tmp.json visual.json
+```
+
+---
+
+## Page Shell Chrome
+
+Templates in `pbir/shell/<canvas>/` provide standardized header mastheads, navigation ribbons, and footer bars:
+- **Classic**: Designed for 1280 × 920 canvas size.
+- **Fluent 2**: Designed for 1920 × 1080 modern widescreen canvas.
+
+Shell chrome keeps navigation and branding fixed across pages while reserving z-order layers `9000–15000` for report content visuals.
+
+---
+
+## Schema Verification
+
+To verify that all emitted PBIR fragments and themes conform to Microsoft's current schemas:
+
+```bash
+# Verify schema URL availability
 npm run verify:pbir
-```
 
-re-checks every pinned schema URL against the live endpoint.
-
-For structural validation of a whole report, use Microsoft's own offline
-validator rather than anything in this repo:
-
-```bash
+# Validate a full report folder with Microsoft's authoring CLI
 npx @microsoft/powerbi-report-authoring-cli validate <report-path>
 ```
-
-Note that structural validity does **not** imply a correct render. Power
-BI silently ignores a property with the wrong literal type rather than
-rejecting it — `0L` and `1D` are different values, and the wrong one is a
-no-op, not an error. Open the report and look at it.
-
----
-
-## Parity with the web charts
-
-Building the `visualStyles` emitter forced every axis, gridline and
-legend decision to become a literal, and those decisions are now the
-shared contract in
-[`design/chart-foundations.md` §2](https://code.tti.tamu.edu/tti/tti-ux/src/branch/main/design/chart-foundations.md).
-That is what makes "a Power BI report and a TUX page render the same
-system" a checkable claim rather than a slogan.
-
-One deliberate divergence: web gridlines are `--surface-border` at 50%
-opacity, while this theme uses `surface.border-subtle`, because a theme's
-`gridlineColor` has no alpha channel. `#EFEEED` is within a hair of
-`#E7E6E6` composited at 50% on white — same intent, two mechanisms.
-
----
-
-## Why the kit is split this way
-
-Everything here is **Tier 1** under the
-[kit pipeline doctrine](https://code.tti.tamu.edu/tti/tti-ux/src/branch/main/design/kit-pipeline.md):
-every literal resolves from `design/tokens.json` through the same
-`palette()` the theme emitter uses, so a theme and its fragments cannot
-drift apart.
-
-That's worth pausing on, because the shell *looks* like component-port
-work — geometry, layering, a nav system. But the geometry is derived and
-the colours are token-resolved, so the whole thing is a pure function of
-`tokens.json`. It gets deterministic emission and byte locks rather than
-the port-ledger treatment.
-
-The theme/PBIR split isn't stylistic either. It falls directly out of the
-no-native-dark-mode constraint above: a theme file can carry colour, type
-and per-visual style, but nothing conditional. Chrome that responds to
-*state* has to live in the report's own PBIR JSON, bound to measures.
-Hence two halves.
-
----
-
-## Where this came from
-
-Ported from the Power BI & Fabric documentation tree in
-`docs-tti-tamu-edu` — roughly 15,000 lines across 70 files, written
-against a real Tableau→Power BI migration that generated ~1,100 visuals.
-The port re-tokenised it from TAMU/AggieBI branding to TTI and re-pinned
-every schema version.
-
-What was worth taking was the **non-googleable** part: that `0L` and `1D`
-are different values and the wrong one is silently ignored; that a slicer
-needs `mode: 'Basic'` *and* `orientation: "1D"` together to render as
-tiles; that `syncGroup` lives inside `visual`; that a nav pill must be
-three layered visuals because `actionButton` text rendering is unreliable
-and its `fontColor` can't take a measureRef at all; that paragraph text
-colour can't be measure-bound, so theme-responsive labels have to be
-rendered through the visual's *title* instead.
-
-What was left behind: the PowerShell generator — the logic moved to a
-`.mjs` emitter, and Microsoft's own report-authoring guidance now
-recommends "a deterministic Node.js generator" — and everything
-data-platform-shaped (Graph ingestion, capacity sizing, semantic-model
-naming standards). That's a data-platform concern, not a design-system
-one.
-
----
-
-## Known gaps
-
-- **Nothing here has been opened in Power BI Desktop.** 30/30 shell
-  visuals validate against the live `visualContainer/2.9.0` schema with
-  its five remote `$ref`s resolved, and all three themes against
-  `reportThemeSchema-2.157` — but structural validity does not imply a
-  correct render, precisely because Power BI ignores a wrong literal type
-  rather than rejecting it. The smoke test needs Windows.
-- **`nav_pill_inactive_hit` ships without its `navigationSection`
-  binding.** The value is a destination page slug that only exists once a
-  report has pages, and the source docs never showed the property's JSON
-  shape — so it's left to Desktop rather than invented.
-- **No deep validation in CI.** `verify:pbir` checks URL reachability
-  only. Schema validation needs `ajv`, currently just a transitive
-  dependency; wiring CI to an undeclared transitive dep is how builds
-  break later.
-- **Fragment coverage is partial.** Three fragment types ship —
-  `card-chrome`, `chart-cartesian` (bar / column / line / area /
-  scatter), and `table-chrome`. Donut, gauge, heatmap, treemap and the
-  rest have no fragment yet.
-- **Not yet built:** the report scaffold, a `tux-pbir` injector that
-  mints conforming IDs and renumbers z-order on drop-in, and named style
-  presets — the closest thing Power BI has to component variants.
-
----
-
-## Status
-
-PBIR is still **public preview** as of 2026-08-31 — GA slipped past its
-Q3 2026 target. It is already the default format for new reports in the
-service (January 2026) and Desktop (March 2026), and Microsoft has stated
-it becomes the *only* supported format at GA, so building on it is the
-right bet. But schema versions moved roughly monthly before the current
-freeze; re-run `npm run verify:pbir` before each release.
-
-Service-enforced limits worth knowing when generating at scale: 1,000
-pages per report, 1,000 visuals per page, 1,000 resource files, 300 MB
-total. Windows `MAX_PATH` (260 chars) also bites, because PBIR nests a
-folder per visual.

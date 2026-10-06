@@ -1,0 +1,17 @@
+@*
+ * TuxArtifact.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<section class="tux-artifact">
+    @ChildContent
+</section>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Title { get; set; };
+    [Parameter] public string Meta { get; set; } = "undefined";
+    [Parameter] public string Icon { get; set; } = "lucide:file-code";
+    [Parameter] public string Actions { get; set; } = "()";
+    [Parameter] public bool Busy { get; set; } = false;
+}

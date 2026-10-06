@@ -1,23 +1,81 @@
 <script setup lang="ts">
+import tuxAccordionSource from "~/components/TuxAccordion.vue?raw";
+import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
+
 useHead({ title: "TuxAccordion · TUX" });
+
+const accordionControls: TuxPropControl[] = [
+  {
+    prop: "kind",
+    label: "Disclosure Style",
+    type: "select",
+    options: ["faq", "publication"],
+    defaultValue: "faq",
+    description: "FAQ bold questions or publication Georgia-italic citations with meta line",
+  },
+  {
+    prop: "single",
+    label: "Mutually Exclusive (Single)",
+    type: "boolean",
+    defaultValue: false,
+    description: "Opening an item closes the others (native details name group)",
+  },
+];
+
+const accordionPresets: TuxPlaygroundPreset[] = [
+  {
+    name: "faq-corridor",
+    label: "Technical FAQ (Multi)",
+    description: "Standard disclosure group for system architecture and operations",
+    icon: "lucide:help-circle",
+    values: {
+      kind: "faq",
+      single: false,
+    },
+  },
+  {
+    name: "single-exclusive",
+    label: "Mutually Exclusive (Single)",
+    description: "Radio-style disclosure group where opening an item collapses others",
+    icon: "lucide:list-collapse",
+    values: {
+      kind: "faq",
+      single: true,
+    },
+  },
+  {
+    name: "publication-citations",
+    label: "Research Publications",
+    description: "Citation rhythm with elegant italic titles and metadata summary",
+    icon: "lucide:book-open",
+    values: {
+      kind: "publication",
+      single: false,
+    },
+  },
+];
 
 const faqItems = [
   {
+    eyebrow: "architecture",
     title: "What does Landscape do that diskover doesn't?",
-    content: "Landscape ships per-institution themes and a classifier-aware indexing pipeline. The treemap, search facets, and audit trail are reimplemented on a modern stack — TanStack Virtual + OpenSearch instead of D3 v3 + ElasticSearch. It also bakes in TAMUS access tiers and ITAR compliance markers as first-class concerns.",
+    content: "Landscape provides configurable institutional themes and a classifier-aware indexing pipeline. The treemap, search facets, and audit trail run on TanStack Virtual and OpenSearch, incorporating TTI data-governance tiers and ITAR compliance markers as first-class controls.",
     defaultOpen: true,
   },
   {
+    eyebrow: "security · rbac",
     title: "How does authentication work for IT vs research staff?",
     content: "Entra ID via oauth2-proxy at the edge — the app receives header-based identity. IT users get full RBAC; research staff get scoped tokens issued via the agent-tokens v2 system (hashed, scoped, revocable per-corpus).",
   },
   {
+    eyebrow: "tooling",
     title: "Is there a CLI?",
     content: "Yes. `landscape agent watch /path` indexes a directory and streams events to the central OpenSearch. `landscape agent token` manages scoped tokens. `landscape classifier list` shows the classifier catalog.",
   },
   {
+    eyebrow: "deployment",
     title: "Can I deploy Landscape air-gapped?",
-    content: "The current target is TAMUS-network deployments. Air-gapped is feasible — fonts self-host (already wired), OpenSearch is offline-installable, and the only outbound dependencies are the Lucide CDN (replaceable with the bundled Iconify set) and Google Fonts (replaceable with self-hosted equivalents).",
+    content: "The primary target is TTI internal network deployments. Offline or air-gapped installations are supported: fonts self-host locally, OpenSearch runs on-premise, and icon bundles package locally with zero external network dependencies.",
   },
 ];
 
@@ -39,7 +97,9 @@ const publicationItems = [
   },
 ];
 
-const exampleVue = `<TuxAccordion :items="faqItems" />`;
+const exampleVue = `<tux-accordion :items="faqItems" />`;
+const singleVue = `<tux-accordion single :items="faqItems" />`;
+const pubVue = `<tux-accordion kind="publication" :items="publicationItems" />`;
 </script>
 
 <template>
@@ -52,10 +112,39 @@ const exampleVue = `<TuxAccordion :items="faqItems" />`;
       <strong>publication</strong> (italic title + meta line for citations).
     </TuxPageHeader>
 
+    <!-- Interactive Props Workbench -->
+    <section>
+      <TuxPlayground
+        tag="tux-accordion"
+        component-name="TuxAccordion"
+        title="TuxAccordion Workbench"
+        eyebrow="Interactive Component Playground"
+        :controls="accordionControls"
+        :presets="accordionPresets"
+        :source="tuxAccordionSource"
+        :code-template="(values) => {
+          const kindAttr = values.kind !== 'faq' ? ` kind=\x22${values.kind}\x22` : '';
+          const singleAttr = values.single ? ' single' : '';
+          const itemsVar = values.kind === 'publication' ? 'publicationItems' : 'faqItems';
+          return `<tux-accordion :items=\x22${itemsVar}\x22${kindAttr}${singleAttr} />`;
+        }"
+      >
+        <template #default="{ values }">
+          <div class="w-full max-w-2xl">
+            <TuxAccordion
+              :items="values.kind === 'publication' ? publicationItems : faqItems"
+              :kind="values.kind"
+              :single="values.single"
+            />
+          </div>
+        </template>
+      </TuxPlayground>
+    </section>
+
     <section>
       <p class="eyebrow">canonical</p>
       <h2 class="heading--bold text-xl font-bold">FAQ</h2>
-      <TuxExample class="mt-4" :vue="exampleVue">
+      <TuxExample class="mt-4" :vue="exampleVue" :source="tuxAccordionSource">
         <TuxAccordion :items="faqItems" />
       </TuxExample>
     </section>
@@ -69,7 +158,7 @@ const exampleVue = `<TuxAccordion :items="faqItems" />`;
         <code>&lt;details&gt;</code> — graceful degradation in older
         browsers (they allow multiple open).
       </p>
-      <TuxExample class="mt-4">
+      <TuxExample class="mt-4" :vue="singleVue" :source="tuxAccordionSource">
         <TuxAccordion single :items="faqItems" />
       </TuxExample>
     </section>
@@ -83,7 +172,7 @@ const exampleVue = `<TuxAccordion :items="faqItems" />`;
         citation line below the title in the summary. Click to expand the
         abstract.
       </p>
-      <TuxExample class="mt-4">
+      <TuxExample class="mt-4" :vue="pubVue" :source="tuxAccordionSource">
         <TuxAccordion kind="publication" :items="publicationItems" />
       </TuxExample>
     </section>
@@ -96,7 +185,7 @@ const exampleVue = `<TuxAccordion :items="faqItems" />`;
         richer than a single string — lists, tables, embedded components.
         Falls back to <code>item.content</code> when the slot is empty.
       </p>
-      <TuxExample class="mt-4">
+      <TuxExample class="mt-4" :source="tuxAccordionSource">
         <TuxAccordion
 :items="[
           { title: 'How does the agent file-watcher work?', defaultOpen: true },

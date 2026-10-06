@@ -40,6 +40,7 @@ const titles: Record<string, string> = {
   "tauri-bindings":    "Tauri bindings reference",
   "visual-language-evolution": "Visual language evolution",
   "kit-pipeline":      "Kit pipeline — framework targets",
+  "ops-surfaces":      "Operational surfaces — overlay + owned board",
 };
 
 function titleFor(slug: string): string {
@@ -64,7 +65,15 @@ if (!source.value) {
 // this path uses the same parser the build-time pipeline does.
 const { data: parsed } = await useAsyncData(
   () => `design-doc:${docName.value}`,
-  () => parseMarkdown(source.value!),
+  () => parseMarkdown(source.value!, {
+    remark: {
+      plugins: {
+        "remark-md-links": {
+          options: { currentPath: `design/${docName.value}.md` },
+        },
+      },
+    },
+  }),
   { watch: [source] },
 );
 
@@ -91,58 +100,84 @@ const otherDocs = computed(() =>
 
 <template>
   <div class="space-y-8">
-    <TuxBreadcrumbs
-      :trail="[
-        { label: 'Home',   to: '/' },
-        { label: 'Design', to: '/design' },
-        { label: titleFor(docName) },
-      ]"
-    />
-
-    <TuxProse>
-      <MDCRenderer
-        v-if="parsed"
-        :body="parsed.body"
-        :data="parsed.data"
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <TuxBreadcrumbs
+        :trail="[
+          { label: 'Home',   to: '/' },
+          { label: 'Design', to: '/design' },
+          { label: titleFor(docName) },
+        ]"
       />
-    </TuxProse>
+      <TuxDocSearch class="sm:max-w-xs" />
+    </div>
 
-    <!-- Prev / next surround — same idiom as Nuxt UI's ContentSurround.
-         Anchored at article bottom for long-form reading flow. -->
-    <nav
-      v-if="surround.prev || surround.next"
-      class="tux-doc-surround"
-      aria-label="Adjacent design docs"
-    >
-      <NuxtLink
-        v-if="surround.prev"
-        :to="`/design/${surround.prev}`"
-        class="tux-doc-surround__link tux-doc-surround__link--prev"
-        data-tux-elevation="rest"
-      >
-        <span class="eyebrow tux-doc-surround__eyebrow">
-          <Icon name="lucide:arrow-left" aria-hidden="true" class="w-3 h-3" />
-          previous
-        </span>
-        <span class="tux-doc-surround__title">{{ titleFor(surround.prev) }}</span>
-      </NuxtLink>
-      <span v-else class="tux-doc-surround__spacer" />
+    <div class="xl:grid xl:grid-cols-[minmax(0,1fr)_300px] 2xl:grid-cols-[minmax(0,1fr)_340px] gap-10 xl:gap-12 2xl:gap-16 items-start">
+      <div class="space-y-8 min-w-0">
+        <TuxStalenessBanner
+          :verified-until="parsed?.data?.verifiedUntil"
+          :last-verified="parsed?.data?.lastVerified || parsed?.data?.date"
+          :review-cadence-days="parsed?.data?.reviewCadenceDays"
+          :owner="parsed?.data?.owner || parsed?.data?.author"
+          :page-id="docName"
+        />
 
-      <NuxtLink
-        v-if="surround.next"
-        :to="`/design/${surround.next}`"
-        class="tux-doc-surround__link tux-doc-surround__link--next"
-        data-tux-elevation="rest"
-      >
-        <span class="eyebrow tux-doc-surround__eyebrow">
-          next
-          <Icon name="lucide:arrow-right" aria-hidden="true" class="w-3 h-3" />
-        </span>
-        <span class="tux-doc-surround__title">{{ titleFor(surround.next) }}</span>
-      </NuxtLink>
-    </nav>
+        <article>
+          <TuxProse>
+            <MDCRenderer
+              v-if="parsed"
+              :body="parsed.body"
+              :data="parsed.data"
+            />
+          </TuxProse>
+        </article>
 
-    <aside class="border-t border-surface-border pt-6">
+        <TuxFeedback
+          :page-id="`design:${docName}`"
+        />
+
+        <!-- Prev / next surround — same idiom as Nuxt UI's ContentSurround.
+             Anchored at article bottom for long-form reading flow. -->
+        <nav
+          v-if="surround.prev || surround.next"
+          class="tux-doc-surround"
+          aria-label="Adjacent design docs"
+        >
+          <NuxtLink
+            v-if="surround.prev"
+            :to="`/design/${surround.prev}`"
+            class="tux-doc-surround__link tux-doc-surround__link--prev"
+            data-tux-elevation="rest"
+          >
+            <span class="eyebrow tux-doc-surround__eyebrow">
+              <Icon name="lucide:arrow-left" aria-hidden="true" class="w-3 h-3" />
+              previous
+            </span>
+            <span class="tux-doc-surround__title">{{ titleFor(surround.prev) }}</span>
+          </NuxtLink>
+          <span v-else class="tux-doc-surround__spacer" />
+
+          <NuxtLink
+            v-if="surround.next"
+            :to="`/design/${surround.next}`"
+            class="tux-doc-surround__link tux-doc-surround__link--next"
+            data-tux-elevation="rest"
+          >
+            <span class="eyebrow tux-doc-surround__eyebrow">
+              next
+              <Icon name="lucide:arrow-right" aria-hidden="true" class="w-3 h-3" />
+            </span>
+            <span class="tux-doc-surround__title">{{ titleFor(surround.next) }}</span>
+          </NuxtLink>
+        </nav>
+      </div>
+
+      <!-- Right-rail sticky Table of Contents -->
+      <aside aria-label="Table of contents" class="hidden xl:block sticky top-20">
+        <TuxTOC target="article" />
+      </aside>
+    </div>
+
+    <aside aria-label="Related design documents" class="border-t border-surface-border pt-6">
       <p class="eyebrow">other design docs</p>
       <ul class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm">
         <li v-for="d in otherDocs" :key="d">

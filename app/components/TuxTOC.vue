@@ -34,6 +34,8 @@ interface Props {
   title?: string;
   /** Hide the title (useful when the consumer wraps in their own header). */
   noTitle?: boolean;
+  /** Visual variant: 'comm' (signature Maroon title + Warm Gold rule) or 'classic'. */
+  variant?: "comm" | "classic";
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -42,6 +44,7 @@ const props = withDefaults(defineProps<Props>(), {
   levels: () => [2, 3],
   title: "On this page",
   noTitle: false,
+  variant: "comm",
 });
 
 const detectedItems = ref<TocItem[]>([]);
@@ -141,8 +144,13 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <nav v-if="items.length > 0" class="tux-toc" :aria-label="title">
-    <p v-if="!noTitle" class="tux-toc__title">{{ title }}</p>
+  <nav v-if="items.length > 0" class="tux-toc" :class="`tux-toc--${variant}`" :aria-label="title">
+    <div v-if="!noTitle" class="tux-toc__header mb-3">
+      <p class="tux-toc__title">
+        {{ title }}
+      </p>
+      <div v-if="variant === 'comm'" class="h-[2.5px] w-full bg-brand-accent mt-1" role="presentation" />
+    </div>
     <ol class="tux-toc__list">
       <li
         v-for="item in items"
@@ -164,21 +172,39 @@ onBeforeUnmount(() => {
 <style scoped>
 .tux-toc {
   font-family: var(--font-body);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   width: 100%;
-  max-width: 14rem;
+  max-width: 100%;
 }
 
 .tux-toc__title {
-  margin: 0 0 0.625rem;
-  padding-bottom: 0.4375rem;
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--surface-border);
-  font-family: var(--font-body);
+  font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   text-transform: uppercase;
-  letter-spacing: var(--tracking-wider);
+  letter-spacing: 0.08em;
   color: var(--text-muted);
+}
+
+.tux-toc--comm .tux-toc__title {
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+  font-family: var(--font-display);
+  color: var(--brand-primary);
+  font-weight: 800;
+  font-size: 0.8125rem;
+  letter-spacing: 0.05em;
+}
+
+.tux-toc--comm .tux-toc__link--active {
+  color: var(--brand-primary);
+  border-left-color: var(--brand-accent);
+  background: var(--surface-sunken);
+  font-weight: 700;
 }
 
 .tux-toc__list {
@@ -197,19 +223,21 @@ onBeforeUnmount(() => {
 
 .tux-toc__link {
   display: block;
-  padding: 0.25rem 0 0.25rem 0.625rem;
-  font-size: 0.8125rem;
+  padding: 0.3125rem 0.5rem 0.3125rem 0.75rem;
+  font-size: 0.875rem;
   line-height: 1.45;
   color: var(--text-muted);
   text-decoration: none;
   border-left: 2px solid transparent;
   margin-left: -2px;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .tux-toc__link:hover,
 .tux-toc__link:focus-visible {
   color: var(--text-primary);
+  background: var(--surface-sunken);
   outline: none;
 }
 
@@ -217,5 +245,11 @@ onBeforeUnmount(() => {
   color: var(--brand-primary);
   font-weight: 600;
   border-left-color: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+}
+
+[data-theme="tti-hc"] .tux-toc__link--active {
+  border-left-width: 3px;
+  background: transparent;
 }
 </style>

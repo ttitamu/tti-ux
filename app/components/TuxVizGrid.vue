@@ -40,7 +40,11 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <section class="tux-viz-grid" :class="`tux-viz-grid--${cols}`">
+  <section
+    class="tux-viz-grid"
+    :class="`tux-viz-grid--${cols}`"
+    :aria-label="title || 'Visualization Grid'"
+  >
     <header
       v-if="eyebrow || title || dek || $slots.header"
       class="tux-viz-grid__head"

@@ -1,0 +1,15 @@
+@*
+ * TuxAccordion.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-accordion">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Items { get; set; };
+    [Parameter] public string Kind { get; set; } = faq;
+    [Parameter] public bool Single { get; set; } = false;
+}

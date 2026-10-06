@@ -1,0 +1,15 @@
+@*
+ * TuxChartGeoDistricts.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<svg class="tux-chart-geo-districts">
+    @ChildContent
+</svg>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Districts { get; set; };
+    [Parameter] public string LegendLabel { get; set; };
+    [Parameter] public string LegendStops { get; set; };
+}

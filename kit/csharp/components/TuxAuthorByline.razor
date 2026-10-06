@@ -1,0 +1,15 @@
+@*
+ * TuxAuthorByline.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<section class="tux-author-byline">
+    @ChildContent
+</section>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Authors { get; set; };
+    [Parameter] public string Affiliations { get; set; } = "()";
+    [Parameter] public string Layout { get; set; } = compact;
+}

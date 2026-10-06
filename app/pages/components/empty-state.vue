@@ -1,7 +1,110 @@
 <script setup lang="ts">
 import tuxEmptyStateSource from "~/components/TuxEmptyState.vue?raw";
+import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
 
 useHead({ title: "TuxEmptyState · TUX" });
+
+const emptyStateControls: TuxPropControl[] = [
+  {
+    prop: "kind",
+    label: "Preset Kind",
+    type: "select",
+    options: ["no-data", "no-results", "not-found", "no-permissions", "first-run"],
+    defaultValue: "no-data",
+  },
+  {
+    prop: "title",
+    label: "Title Override",
+    type: "text",
+    defaultValue: "",
+  },
+  {
+    prop: "description",
+    label: "Description Override",
+    type: "text",
+    defaultValue: "",
+  },
+  {
+    prop: "noCard",
+    label: "Without Card Frame",
+    type: "boolean",
+    defaultValue: false,
+  },
+  {
+    prop: "compact",
+    label: "Compact Layout",
+    type: "boolean",
+    defaultValue: false,
+  },
+];
+
+const emptyStatePresets: TuxPlaygroundPreset[] = [
+  {
+    name: "no-data",
+    label: "Empty Dataset",
+    description: "Initial empty state before records or models are created",
+    icon: "lucide:inbox",
+    values: {
+      kind: "no-data",
+      title: "",
+      description: "",
+      noCard: false,
+      compact: false,
+    },
+  },
+  {
+    name: "no-results",
+    label: "No Search Matches",
+    description: "Filtered view returned zero rows; suggests widening query",
+    icon: "lucide:search-x",
+    values: {
+      kind: "no-results",
+      title: "",
+      description: "",
+      noCard: false,
+      compact: false,
+    },
+  },
+  {
+    name: "not-found",
+    label: "Missing Entity",
+    description: "Requested resource does not exist or has been relocated",
+    icon: "lucide:circle-off",
+    values: {
+      kind: "not-found",
+      title: "",
+      description: "",
+      noCard: false,
+      compact: false,
+    },
+  },
+  {
+    name: "no-permissions",
+    label: "Access Restricted",
+    description: "User authentication or role level does not permit viewing",
+    icon: "lucide:lock",
+    values: {
+      kind: "no-permissions",
+      title: "",
+      description: "",
+      noCard: false,
+      compact: false,
+    },
+  },
+  {
+    name: "first-run",
+    label: "Onboarding Welcome",
+    description: "First-run onboarding prompt encouraging creation",
+    icon: "lucide:sparkles",
+    values: {
+      kind: "first-run",
+      title: "",
+      description: "",
+      noCard: false,
+      compact: false,
+    },
+  },
+];
 
 const basicVue = `<tux-empty-state
   icon="lucide:folder-plus"
@@ -52,6 +155,37 @@ const presetOverrideVue = `<!-- Override one field; preset fills the rest. -->
       next, not just that there's nothing here.
     </TuxPageHeader>
 
+    <!-- Interactive Component Playground with Presets & Deep-Linking -->
+    <section>
+      <TuxPlayground
+        tag="tux-empty-state"
+        component-name="TuxEmptyState"
+        title="TuxEmptyState Workbench"
+        eyebrow="Interactive Component Playground"
+        :controls="emptyStateControls"
+        :presets="emptyStatePresets"
+        :source="tuxEmptyStateSource"
+      >
+        <template #default="{ values }">
+          <div class="p-6 bg-surface-raised rounded-xl border border-surface-border w-full flex justify-center">
+            <div class="w-full max-w-lg">
+              <TuxEmptyState
+                :kind="values.kind"
+                :title="values.title || undefined"
+                :description="values.description || undefined"
+                :no-card="values.noCard"
+                :compact="values.compact"
+              >
+                <TuxButton intent="primary" size="sm" icon="lucide:plus">
+                  Take Action
+                </TuxButton>
+              </TuxEmptyState>
+            </div>
+          </div>
+        </template>
+      </TuxPlayground>
+    </section>
+
     <section>
       <p class="eyebrow">first-run</p>
       <h2 class="heading--bold text-xl font-bold">With action</h2>
@@ -75,7 +209,7 @@ const presetOverrideVue = `<!-- Override one field; preset fills the rest. -->
         No description, no action. Fine for transient "loaded zero rows"
         cases where there's nothing actionable the user can do.
       </p>
-      <TuxExample :vue="minimalVue">
+      <TuxExample :vue="minimalVue" :source="tuxEmptyStateSource">
         <TuxEmptyState icon="lucide:inbox" title="No records found" />
       </TuxExample>
     </section>
@@ -87,7 +221,7 @@ const presetOverrideVue = `<!-- Override one field; preset fills the rest. -->
         Pass <code>no-card</code> when the empty state IS the page — e.g. a
         "no search results" state that fills the content column directly.
       </p>
-      <TuxExample :vue="noCardVue">
+      <TuxExample :vue="noCardVue" :source="tuxEmptyStateSource">
         <TuxEmptyState
           no-card
           icon="lucide:search-x"
@@ -106,7 +240,7 @@ const presetOverrideVue = `<!-- Override one field; preset fills the rest. -->
         sidebar widget. Reduces icon, heading, and padding without
         changing the content shape.
       </p>
-      <TuxExample :vue="compactVue">
+      <TuxExample :vue="compactVue" :source="tuxEmptyStateSource">
         <TuxEmptyState
           compact
           icon="lucide:filter-x"
@@ -125,7 +259,7 @@ const presetOverrideVue = `<!-- Override one field; preset fills the rest. -->
         explicit <code>icon</code> / <code>title</code> /
         <code>description</code> props still win when set.
       </p>
-      <TuxExample :vue="presetVue">
+      <TuxExample :vue="presetVue" :source="tuxEmptyStateSource">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <TuxEmptyState kind="no-data" compact />
           <TuxEmptyState kind="no-results" compact>
@@ -150,7 +284,7 @@ const presetOverrideVue = `<!-- Override one field; preset fills the rest. -->
         title or description to match the surface's voice. The icon
         still defaults from the preset unless you replace it too.
       </p>
-      <TuxExample :vue="presetOverrideVue">
+      <TuxExample :vue="presetOverrideVue" :source="tuxEmptyStateSource">
         <TuxEmptyState kind="first-run" title="Welcome to Landscape">
           <TuxButton intent="primary" icon="lucide:plus">Create your first index</TuxButton>
         </TuxEmptyState>

@@ -48,12 +48,19 @@ interface Props {
    *  - hero              — text-5xl heading + larger body. Landing surfaces.
    */
   rhythm?: "compact" | "hero";
+  /** Style variant voice:
+   *  - default (default) — clean Oswald display heading without underline decoration.
+   *  - bold              — Work Sans heading with roadway passing lane underline.
+   *  - elegant           — Georgia serif heading with diagonal slashes.
+   */
+  variant?: "default" | "bold" | "elegant";
 }
 
 withDefaults(defineProps<Props>(), {
   level: 1,
   tone: "plain",
   rhythm: "compact",
+  variant: "default",
   eyebrow: undefined,
 });
 
@@ -72,6 +79,7 @@ defineSlots<{
     :class="[
       `tux-page-header--${tone}`,
       `tux-page-header--${rhythm}`,
+      `tux-page-header--${variant}`,
       $slots.media ? 'tux-page-header--has-media' : '',
     ]"
   >
@@ -79,7 +87,11 @@ defineSlots<{
       <p v-if="eyebrow" class="eyebrow tux-page-header__eyebrow">{{ eyebrow }}</p>
       <component
         :is="`h${level}`"
-        class="heading--bold font-bold tux-page-header__title"
+        class="font-bold tux-page-header__title"
+        :class="{
+          'heading--bold': variant === 'bold',
+          'heading--elegant': variant === 'elegant',
+        }"
       >
         {{ title }}
       </component>
@@ -107,6 +119,13 @@ defineSlots<{
   margin-bottom: 1.5rem;
   display: grid;
   gap: 2.5rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.tux-page-header__copy {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .tux-page-header--has-media {
@@ -153,6 +172,16 @@ defineSlots<{
   color: rgba(255, 255, 255, 0.92);
 }
 
+.tux-page-header__title {
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-normal);
+  color: var(--text-primary);
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
 /* Rhythm — heading + body sizes. Hero title uses clamp() so it scales
    fluidly with the container instead of jumping at a breakpoint. */
 .tux-page-header--compact .tux-page-header__title {
@@ -170,6 +199,9 @@ defineSlots<{
   max-width: 36rem;
   color: var(--text-secondary);
   line-height: 1.55;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .tux-page-header--hero .tux-page-header__body {

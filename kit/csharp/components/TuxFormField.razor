@@ -1,0 +1,19 @@
+@*
+ * TuxFormField.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-form-field">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Label { get; set; };
+    [Parameter] public string Help { get; set; } = "undefined";
+    [Parameter] public string Hint { get; set; } = "undefined";
+    [Parameter] public string Error { get; set; } = "undefined";
+    [Parameter] public bool Required { get; set; } = false;
+    [Parameter] public string InputId { get; set; } = "undefined";
+    [Parameter] public string Layout { get; set; } = stacked;
+}

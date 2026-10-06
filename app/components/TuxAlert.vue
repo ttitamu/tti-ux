@@ -68,6 +68,9 @@ const mapped = computed(
     :class="`tux-alert tux-alert--${variant}`"
     :style="{ borderLeftWidth: mapped.width, borderLeftStyle: 'solid', borderLeftColor: mapped.bar }"
   >
+    <template v-if="$slots.default && !$slots.description" #description="slotData">
+      <slot v-bind="slotData" />
+    </template>
     <template v-for="(_, name) in $slots" #[name]="slotData">
       <slot :name="name" v-bind="slotData" />
     </template>

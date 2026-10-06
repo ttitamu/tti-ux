@@ -18,7 +18,7 @@
  * The status-code numeral is rendered in display type at editorial
  * scale — TTI uses this rhythm on tti.tamu.edu's error templates.
  */
-type ErrorCode = "404" | "500" | "403" | "503" | (string & {});
+type ErrorCode = "404" | "500" | "403" | "401" | "503" | (string & {});
 
 interface Action {
   label: string;
@@ -26,6 +26,7 @@ interface Action {
   href?: string;
   intent?: "primary" | "secondary" | "ghost";
   icon?: string;
+  onClick?: (event: MouseEvent) => void;
 }
 
 interface Props {
@@ -37,6 +38,8 @@ interface Props {
   inline?: boolean;
   /** Lucide icon for the medallion. Defaults are per-code. */
   icon?: string;
+  /** Technical details or stack trace for debugging. */
+  details?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -46,52 +49,63 @@ const props = withDefaults(defineProps<Props>(), {
   actions: undefined,
   inline: false,
   icon: undefined,
+  details: undefined,
 });
 
 const defaults: Record<string, { title: string; lede: string; icon: string; actions: Action[] }> = {
   "404": {
-    title: "Page not found",
-    lede: "The page you're looking for has moved, been retired, or never existed. The links below should get you back on track.",
+    title: "Page Not Found",
+    lede: "The requested route has moved, been retired, or never existed in the TUX ecosystem. Use the links below to return to safety or search the catalog.",
     icon: "lucide:compass",
     actions: [
-      { label: "Back to home", to: "/", intent: "primary", icon: "lucide:home" },
-      { label: "Go back", to: "#back", intent: "ghost", icon: "lucide:arrow-left" },
+      { label: "Return to Home", to: "/", intent: "primary", icon: "lucide:home" },
+      { label: "Browse Component Lab", to: "/components", intent: "secondary", icon: "lucide:blocks" },
     ],
   },
-  "500": {
-    title: "Something went wrong on our end",
-    lede: "An unexpected error stopped this page from loading. The team has been notified. Try again in a minute, or check the status page if it persists.",
-    icon: "lucide:server-crash",
+  "401": {
+    title: "Authentication Required",
+    lede: "Your session has expired or requires valid TTI credentials to proceed.",
+    icon: "lucide:shield-alert",
     actions: [
-      { label: "Try again", to: "#retry", intent: "primary", icon: "lucide:refresh-cw" },
-      { label: "Status page", href: "https://status.tti.tamu.edu", intent: "secondary", icon: "lucide:activity" },
+      { label: "Sign in with TTI Account", to: "/login", intent: "primary", icon: "lucide:log-in" },
+      { label: "Return to Home", to: "/", intent: "ghost", icon: "lucide:home" },
     ],
   },
   "403": {
-    title: "You don't have access to this page",
-    lede: "Your TAMUS account doesn't have permission for this resource. Sign in with a different account, or request access from the resource owner.",
+    title: "Access Forbidden",
+    lede: "Your account does not have permission to access this resource. Contact your division administrator or TTI IT support.",
     icon: "lucide:lock",
     actions: [
-      { label: "Sign in", to: "/sign-in", intent: "primary", icon: "lucide:log-in" },
-      { label: "Back to home", to: "/", intent: "ghost", icon: "lucide:home" },
+      { label: "Request Access", href: "mailto:helpdesk@tti.tamu.edu?subject=Access%20Request", intent: "primary", icon: "lucide:mail" },
+      { label: "Return to Home", to: "/", intent: "ghost", icon: "lucide:home" },
+    ],
+  },
+  "500": {
+    title: "Internal System Error",
+    lede: "An unexpected server condition halted this request. Automated telemetry has recorded this exception for the TTI DevOps team. Try refreshing the page.",
+    icon: "lucide:server-crash",
+    actions: [
+      { label: "Reload Page", href: "javascript:window.location.reload()", intent: "primary", icon: "lucide:refresh-cw" },
+      { label: "Check System Health", to: "/components/health", intent: "secondary", icon: "lucide:activity" },
     ],
   },
   "503": {
-    title: "Down for maintenance",
-    lede: "We're upgrading the system. Service will be back shortly. Check the status page for the latest.",
-    icon: "lucide:hard-hat",
+    title: "Service Under Scheduled Maintenance",
+    lede: "The requested service is temporarily offline for scheduled system upgrades and database migrations. All data remains secure and service will restore shortly.",
+    icon: "lucide:wrench",
     actions: [
-      { label: "Status page", href: "https://status.tti.tamu.edu", intent: "primary", icon: "lucide:activity" },
+      { label: "Check System Health", to: "/components/health", intent: "primary", icon: "lucide:activity" },
+      { label: "Return to Home", to: "/", intent: "ghost", icon: "lucide:home" },
     ],
   },
 };
 
 const fallback: { title: string; lede: string; icon: string; actions: Action[] } = {
-  title: "Something unexpected happened",
-  lede: "An error stopped this page from loading. Try the home page or contact support if the problem persists.",
+  title: "Something Unexpected Happened",
+  lede: "An unhandled condition interrupted this page. Please return home or contact TTI Help Desk if the problem persists.",
   icon: "lucide:circle-alert",
   actions: [
-    { label: "Back to home", to: "/", intent: "primary", icon: "lucide:home" },
+    { label: "Return to Home", to: "/", intent: "primary", icon: "lucide:home" },
   ],
 };
 
@@ -110,14 +124,17 @@ const resolvedActions = computed(() => props.actions ?? preset.value.actions);
     aria-live="polite"
   >
     <div class="tux-error-page__inner">
+      <TuxSpectrumRibbon height="sm" class="mb-6 rounded-none shadow-xs" />
+
       <div class="tux-error-page__medallion" aria-hidden="true">
         <UIcon :name="resolvedIcon" class="tux-error-page__icon" />
       </div>
 
-      <p class="eyebrow tux-error-page__eyebrow">error</p>
+      <p class="eyebrow tux-error-page__eyebrow">system response</p>
       <p class="tux-error-page__code" aria-hidden="true">{{ code }}</p>
 
       <h1 class="heading--bold tux-error-page__title">{{ resolvedTitle }}</h1>
+      <span class="tux-error-page__rule" aria-hidden="true" />
       <p class="tux-error-page__lede">{{ resolvedLede }}</p>
 
       <div v-if="resolvedActions.length" class="tux-error-page__actions">
@@ -128,13 +145,25 @@ const resolvedActions = computed(() => props.actions ?? preset.value.actions);
           :href="a.href"
           :intent="a.intent ?? (i === 0 ? 'primary' : 'ghost')"
           :icon="a.icon"
+          shape="sharp"
+          @click="a.onClick ? a.onClick($event) : undefined"
         >
           {{ a.label }}
         </TuxButton>
       </div>
 
+      <div v-if="details" class="mt-6 text-left p-3 rounded-none bg-surface-sunken border border-surface-border text-xs font-mono text-text-muted overflow-x-auto">
+        <p class="font-bold text-text-secondary mb-1">Diagnostic Details:</p>
+        <pre class="m-0 whitespace-pre-wrap">{{ details }}</pre>
+      </div>
+
       <div v-if="$slots.support" class="tux-error-page__support">
         <slot name="support" />
+      </div>
+      <div v-else class="tux-error-page__support">
+        <p class="m-0 text-xs text-text-muted">
+          Need assistance? Contact <a href="mailto:helpdesk@tti.tamu.edu" class="text-brand-primary underline font-medium">TTI Help Desk</a> (979-317-2000) or check the <NuxtLink to="/components/health" class="text-brand-primary underline">Component Health Matrix</NuxtLink>.
+        </p>
       </div>
     </div>
   </section>

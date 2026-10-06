@@ -66,6 +66,16 @@
           "name": "TUX Surface Border"
         },
         {
+          "slug": "tux-surface-eggshell",
+          "color": "#F9F9F7",
+          "name": "TUX Surface Eggshell"
+        },
+        {
+          "slug": "tux-surface-cool-gray",
+          "color": "#E8E8E8",
+          "name": "TUX Surface Cool Gray"
+        },
+        {
           "slug": "tux-text-primary",
           "color": "#221F1F",
           "name": "TUX Text Primary"
@@ -84,6 +94,41 @@
           "slug": "tux-text-inverse",
           "color": "#FFFFFF",
           "name": "TUX Text Inverse"
+        },
+        {
+          "slug": "tux-text-charcoal",
+          "color": "#232323",
+          "name": "TUX Text Charcoal"
+        },
+        {
+          "slug": "tux-text-dark",
+          "color": "#040404",
+          "name": "TUX Text Dark"
+        },
+        {
+          "slug": "tux-spectrum-maroon",
+          "color": "#701D35",
+          "name": "TUX Spectrum Maroon"
+        },
+        {
+          "slug": "tux-spectrum-blue",
+          "color": "#566A8A",
+          "name": "TUX Spectrum Blue"
+        },
+        {
+          "slug": "tux-spectrum-teal",
+          "color": "#66999B",
+          "name": "TUX Spectrum Teal"
+        },
+        {
+          "slug": "tux-spectrum-green",
+          "color": "#849974",
+          "name": "TUX Spectrum Green"
+        },
+        {
+          "slug": "tux-spectrum-gold",
+          "color": "#E5B350",
+          "name": "TUX Spectrum Gold"
         },
         {
           "slug": "tux-color-success",
@@ -109,6 +154,36 @@
           "slug": "tux-color-info",
           "color": "#1F5D66",
           "name": "TUX Color Info"
+        },
+        {
+          "slug": "tux-status-ok",
+          "color": "#258818",
+          "name": "TUX Status Ok"
+        },
+        {
+          "slug": "tux-status-warning",
+          "color": "#7A7A00",
+          "name": "TUX Status Warning"
+        },
+        {
+          "slug": "tux-status-unknown",
+          "color": "#BC5B00",
+          "name": "TUX Status Unknown"
+        },
+        {
+          "slug": "tux-status-critical",
+          "color": "#A02828",
+          "name": "TUX Status Critical"
+        },
+        {
+          "slug": "tux-status-pending",
+          "color": "#747474",
+          "name": "TUX Status Pending"
+        },
+        {
+          "slug": "tux-status-maintenance",
+          "color": "#0566C7",
+          "name": "TUX Status Maintenance"
         },
         {
           "slug": "tux-chart-1",

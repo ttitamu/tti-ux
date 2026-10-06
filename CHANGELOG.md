@@ -3,6 +3,67 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.0.0] — 2026-10-01
+
+### Added — TUX 3.0 & Comm Brand Transformation (2026-10-01)
+
+Major institutional release harmonizing TUX and its operational suites (**Atlas**, **Landscape**, **Forgejo / TTI Code**, **AI Studio**, and **TUX itself**) with the official Texas A&M Transportation Institute Communications redesign (`tti.tamu.edu` & `my.tti.tamu.edu`), achieving 100% component unit test coverage, and formalizing W3C WCAG 2.2 Level AAA architecture.
+
+#### 1. 100% Component Health & Census Milestone
+- **183 Component Test Suites**: Completed 22 waves of mounted Nuxt and in-component `axe-core` accessibility test suites across `tests/components/` covering 100% of the system census (183 components).
+- **Zero Untested Primitives**: Elevated all 183 components into **Tier 1 · Verified** ($\ge 80$ Health Score). Tier 2 (Maturing) and Tier 3 (Untested) are completely extinguished.
+- **Unified Quality Pipeline**: Orchestrated 6-stage institutional quality gate (`scripts/test-all-suites.mjs` / `npm run test:all`) verifying tokens, status palette, WCAG AAA math, 236 Vitest files (739 tests), and 0 Axe violations across 245 prerendered routes.
+
+#### 2. W3C WCAG 2.2 Level AAA Architecture & Zero-JS Bridge
+- **`kit/css/tux-bridge.css`**: Turnkey drop-in stylesheet modernizing raw HTML tables, form controls, buttons, and callouts to 2026 TTI design aesthetics and certified WCAG 2.2 Level AAA compliance.
+- **Mathematical AAA Auditor**: Dedicated auditor (`scripts/audit-wcag-aaa.mjs` / `npm run audit:aaa`) calculating luminance ratios ($\ge 7.0:1$ for body copy, $\ge 3.0:1$ for control boundaries), interactive touch targets ($\ge 44\times 44\text{px}$), and focus appearance ($\ge 3\text{px}$ dual-ring outline).
+- **Institutional Audit Ledger**: Generated `app/utils/a11yAuditLedger.json` certifying 100% AAA compliance across all 183 components.
+- **ADR-0016**: Recorded architectural decision for non-invasive retrofitting of older TTI web assets.
+
+#### 3. Comm Redesign & MyTTI Intranet Brand Alignment
+- **5-Band Institutional Spectrum**: Added `--spectrum-maroon` (`#500000`), `--spectrum-blue` (`#005480`), `--spectrum-teal` (`#006F79`), `--spectrum-green` (`#285C4D`), and `--spectrum-gold` (`#CFA935`), formally mapped to TTI's 5 official research divisions in `app/utils/tuxCatalog.ts`.
+- **Editorial Surface Washes**: Added `--surface-eggshell` (`#F9F9F7`), `--surface-cool-gray` (`#E8E8E8`), and high-contrast charcoal typography tokens (`#040404`, `#232323`).
+- **Core Comm & Intranet Primitives**:
+  - `<TuxSpectrumRibbon>`: 5-band division color ribbon with responsive heights (`sm`, `md`, `lg`).
+  - `<TuxSpectrumFacts>`: 5-column metric banner directly mapping the 5 spectrum division colors.
+  - `<TuxCommHero>`: Architectural hero header with diagonal-cut canvas, deep maroon slab, and warm gold accent mark.
+  - `<TuxSectionHeader>` `variant="two-tone-rule"`: Bold Line 1 + Light Line 2 with inline horizontal Warm Gold keyline.
+  - `<TuxEventCalendarRow>`: Intranet calendar row with green date chips (`30 SEP`), category badge, and action CTA.
+  - `<TuxTileGrid>`: 6-tile square service launcher grid with maroon line icons.
+  - `<TuxCapabilityCluster>`: Circular dark node medallions with white icons and concentric orbital halos.
+  - `<TuxTOC>` `variant="comm"`: Sticky "On This Page" card with Warm Gold keyline.
+
+#### 4. TUX Global Shell, Navigation & Theme Overhaul
+- **Spectrum Header Crown**: Crowned `.tti-shell-header::before` in `app/app.vue` with the 3px 5-band spectrum ribbon.
+- **De-Nuxting Live Status**: Replaced generic Nuxt `bg-emerald-500` pulse with an institutional Warm Gold (`bg-brand-accent`) pulse dot.
+- **Warm Gold Navigation Keylines**: Replaced pill indicators with sharp Warm Gold underline rules on active top-nav links and inset left keylines on sidebar links.
+- **Sharp Button Geometry**: Standardized `shape="sharp"` (`border-radius: 0px`) across interactive buttons to match Kadence/Comm button geometry.
+- **Editorial Canvas Wash**: Set application background canvas to `bg-surface-eggshell` (`#F9F9F7`).
+
+#### 5. Operational Suite Portals & Showcases
+- **Atlas Security & Policy Audit Portal** (`/examples/atlas`): M365, Azure, NIST 800-171, and CJIS compliance portal with spectrum facts banner, 6-tile governance launcher, findings table, and milestone calendar.
+- **TTI Code (Forgejo) Developer Portal** (`/examples/forgejo-code`): Self-hosted Git server browser, pull request status, CAV division badge, clone drawer, and README well.
+- **Public Comm Redesign Showcase** (`/examples/comm-portal`): Complete replication of the new `tti.tamu.edu` public portal.
+- **MyTTI Intranet Dashboard** (`/examples/intranet-dashboard`): Complete replication of `my.tti.tamu.edu` intranet with `MY APPS ☰` off-canvas drawer launcher.
+- **Landscape Dashboard Re-Skin** (`/examples/landscape-dashboard`) & **TTI AI Studio Session Re-Skin** (`/examples/tti-ai-studio-session`).
+
+#### 6. Turnkey WordPress & Kadence Integration
+- **Kadence Child Theme** (`packages/wordpress/kadence-child-tti`): Zero-radius button styling, Aggie Maroon & Warm Gold palette injection, Tier 1 utility bar, and automatic WCAG AAA bridge enqueuing.
+- **TTI-UX Core Plugin v3.0.0** (`packages/wordpress/tti-ux-core`): Expanded shortcodes (`[tux_stat]`, `[tux_alert]`, `[tux_card]`, `[tux_heading]`, `[tux_portal_header]`, `[tux_staleness]`) and institutional Gutenberg block patterns.
+- **WordPress Documentation Hub** (`/install/wordpress`): 4-tab interactive developer hub.
+
+#### 7. Cross-Platform Parity & Target Releases
+- **React (`@tti/tti-ux-react` v3.0.0)**: 21 canonical component ports, 26 Vitest test suites (87 tests passing), version-locked to `@tti/tti-ux`.
+- **Web Components (`@tti/tti-ux-elements` v3.0.0)**: 170 custom elements compiled in `packages/elements/dist/tux-elements.js`.
+- **.NET 8 & 9**: Verified clean build for `Tti.Tux.AspNetCore` & `Tti.Tux.Blazor`.
+- **PHP**: Zero syntax errors across `packages/php/tux-php` and WordPress plugins.
+- **Power BI**: PBIR components byte-locked and verified.
+
+#### 8. Architectural Decision Records
+- **ADR-0014**: Operational surfaces as a kit target.
+- **ADR-0015**: Brand alignment with TTI Communications & interactive design token playground.
+- **ADR-0016**: Legacy modernization bridge (`tux-bridge.css`) & WCAG 2.2 AAA architecture.
+
 ## [2.2.0] — 2026-09-08
 
 ### Fixed — Batch M: the control radius rule (2026-09-08)

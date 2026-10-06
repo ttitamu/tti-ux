@@ -40,6 +40,7 @@ withDefaults(defineProps<Props>(), {
   <section
     class="tux-sidebar-block"
     :class="`tux-sidebar-block--${variant}`"
+    :aria-label="title"
   >
     <header class="tux-sidebar-block__header">
       <p v-if="eyebrow" class="tux-sidebar-block__eyebrow">{{ eyebrow }}</p>

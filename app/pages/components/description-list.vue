@@ -6,7 +6,7 @@ const eventItems = [
   { term: "Time",      value: "9:00 AM – 4:00 PM CDT" },
   { term: "Location",  value: "Rellis Conference Center · Building 4202" },
   { term: "Capacity",  value: "120 attendees" },
-  { term: "Cost",      value: "Free for TAMUS staff; $75 external" },
+  { term: "Cost",      value: "Free for TTI staff; $75 external" },
 ];
 
 const fileItems = [

@@ -1,0 +1,23 @@
+@*
+ * TuxResearcher.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<article class="tux-researcher">
+    @ChildContent
+</article>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Name { get; set; };
+    [Parameter] public string Role { get; set; };
+    [Parameter] public string Portrait { get; set; } = "undefined";
+    [Parameter] public string Center { get; set; } = "undefined";
+    [Parameter] public string Orcid { get; set; } = "undefined";
+    [Parameter] public string Email { get; set; } = "undefined";
+    [Parameter] public string Bio { get; set; } = "undefined";
+    [Parameter] public string Projects { get; set; } = "undefined";
+    [Parameter] public string Metrics { get; set; } = "undefined";
+    [Parameter] public string Layout { get; set; } = default;
+    [Parameter] public string To { get; set; } = "undefined";
+}

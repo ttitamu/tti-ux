@@ -39,7 +39,7 @@ tux is authored in Vue 3 + Nuxt UI and today only ships to Nuxt apps via
 the layer model (ADR-0003). But the real consumer landscape across TTI is
 not Nuxt:
 
-- **~190 WordPress sites** (research microsites + the intranet
+- **WordPress sites** (research microsites + the intranet
   `my.tti.tamu.edu`, which runs **Kadence theme + Kadence Blocks** — i.e.
   already Gutenberg/React, with in-house custom plugins). Page-building
   across the fleet spans **Gutenberg/Kadence Blocks and Elementor**; both
@@ -69,7 +69,7 @@ Two hard constraints shaped the decision:
    components. "Author in Vue, get idiomatic React/Razor for free" is not
    real at production quality.
 2. **Hand-writing idiomatic components per framework does not scale** to
-   190+ consumers with a single maintainer. The maintenance cost, not the
+   a wide consumer fleet with a single maintainer. The maintenance cost, not the
    per-target polish, is the binding constraint.
 
 The only primitive that genuinely runs unmodified in WordPress, React,
@@ -116,7 +116,7 @@ is the **Web Component (Custom Element)**.
    per-framework components.** We consciously trade some native-feel in
    React/Razor (consumers use a `<tux-*>` element rather than a native
    component) for single-source authoring + automatic generation. At
-   190-consumer, bridge-period scale, single-source wins.
+   multi-consumer, bridge-period scale, single-source wins.
 
 ## Consequences
 

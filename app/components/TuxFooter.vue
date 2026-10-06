@@ -1,13 +1,9 @@
 <script setup lang="ts">
 // TuxFooter — the unified institutional footer.
 //
-// One footer to rule them all. Earlier we shipped three separate
-// pieces (slim TuxFooter for app dashboards, TuxMarketingFooter for
-// marcom surfaces, TuxSubfooter for the TAMUS legal strip), but in
-// practice tti.tamu.edu / tamu.edu / pvamu.edu all run the same
-// shape — a maroon marketing block stacked on a black legal strip —
-// and our consumers (Landscape, tti-ai-studio, the style guide, marcom
-// pages) all need the same thing. So this is one component.
+// One footer for all surfaces. Combines a maroon contact and resources
+// block with a clean legal baseline. Serves both marketing/docs pages and
+// compact application dashboards.
 //
 // Layout:
 //
@@ -17,31 +13,23 @@
 //   │                          [col]    [col]    [col] │
 //   └────────────────────────────────────────────────┘
 //   ┌──────────────────── black ─────────────────────┐
-//   │  [A member of TAMUS]   tagline + © + state     │
+//   │  [TTI agency link]     tagline + © + state     │
 //   │                        compliance links        │
 //   │                        [#preferences slot]     │
 //   └────────────────────────────────────────────────┘
 //
-// The black legal strip is intentionally minimal — TAMUS lockup
+// The black legal strip is intentionally minimal — TTI agency link
 // left, © + name right, optional #preferences slot below. The
 // TTI-specific tagline ("Coordinated Statewide Transportation
 // Research Program") lives in the marketing section just below
 // the institution name, where it carries more editorial weight.
 //
-// **State-agency compliance links** (Veterans Portal, Open Records,
-// Risk/Fraud Hotline, etc.) belong in the user-passed `columns` —
-// the production tti.tamu.edu / tamu.edu pattern is to surface
-// them in the marketing-shape link inventory, not duplicate them
-// in a sub-bar. Earlier versions of this component shipped a
-// non-configurable legal-link list at the bottom; that left the
-// rendered footer with awkward duplication (Texas Veterans Portal
-// appearing twice, etc.) and was dropped in favor of the
-// production pattern.
+// State-agency compliance links (Veterans Portal, Open Records,
+// Risk/Fraud Hotline, etc.) belong in the user-passed `columns`.
 //
 // The maroon marketing section is configurable: pass `social` and
 // `columns` to populate it. Pass nothing and you get just the
-// identity block + the TAMUS lockup strip, which is the right
-// shape for an app dashboard.
+// identity block + the legal strip, suitable for app dashboards.
 
 interface SocialLink {
   /** Lucide icon name, e.g. "lucide:linkedin", "lucide:facebook".
@@ -113,7 +101,7 @@ interface Props {
 
 withDefaults(defineProps<Props>(), {
   name: "Texas A&M Transportation Institute",
-  address: "3135 TAMU\nCollege Station, TX 77843-3135",
+  address: "Texas A&M Transportation Institute\nCollege Station, TX 77843",
   phone: "(979) 317-2000",
   logo: "/logo.svg",
   logoSize: 80,
@@ -240,21 +228,17 @@ function isInternal(href: string) {
       </div>
     </div>
 
-    <!-- ────────── BLACK LEGAL STRIP — minimal: TAMUS line left,
+    <!-- ────────── BLACK LEGAL STRIP — minimal: agency line left,
          © right, optional preferences below if used. State-agency
-         links live in `columns` above (production tti.tamu.edu /
-         tamu.edu pattern). The left side renders as a single plain
-         link to match the comm-team's Kadence footer; the © line
-         optionally wraps in `copyrightHref` to the institution's
-         copyright-statement page. ────────── -->
+         links live in `columns` above. ────────── -->
     <div class="tux-footer__legal">
       <div class="tux-footer__legal-inner">
         <a
-          href="https://www.tamus.edu/"
+          href="https://tti.tamu.edu/"
           target="_blank"
           rel="noopener"
-          class="tux-footer__tamus-link"
-        >A member of the Texas A&amp;M University System</a>
+          class="tux-footer__agency-link"
+        >Texas A&amp;M Transportation Institute</a>
 
         <p class="tux-footer__copy">
           <a
@@ -533,11 +517,9 @@ function isInternal(href: string) {
   }
 }
 
-/* Plain link to TAMUS — single line, matches the comm-team Kadence
-   footer rather than a stacked eyebrow + name lockup. The underline
-   on hover/focus is the only affordance; the row reads as ordinary
-   legal-strip prose otherwise. */
-.tux-footer__tamus-link {
+/* Plain link to institution — single line, matches institutional
+   guidelines. The underline on hover/focus is the primary affordance. */
+.tux-footer__agency-link {
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
@@ -545,8 +527,8 @@ function isInternal(href: string) {
   transition: color 0.15s ease;
 }
 
-.tux-footer__tamus-link:hover,
-.tux-footer__tamus-link:focus-visible {
+.tux-footer__agency-link:hover,
+.tux-footer__agency-link:focus-visible {
   color: var(--text-on-brand);
   text-decoration: underline;
   text-underline-offset: 2px;

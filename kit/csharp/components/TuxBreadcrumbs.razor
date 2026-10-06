@@ -1,0 +1,16 @@
+@*
+ * TuxBreadcrumbs.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<nav class="tux-breadcrumbs">
+    @ChildContent
+</nav>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Trail { get; set; };
+    [Parameter] public bool HomeIcon { get; set; } = true;
+    [Parameter] public bool Chevron { get; set; } = false;
+    [Parameter] public string AriaLabel { get; set; } = "Breadcrumb";
+}

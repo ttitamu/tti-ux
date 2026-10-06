@@ -1,0 +1,101 @@
+/* packages/react/src/components/tux-dropdown.css */
+.tux-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.tux-dropdown__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  padding: 0.5rem 0.875rem;
+  font-family: var(--font-bold, system-ui, -apple-system, sans-serif);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-primary, #111827);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-md, 6px);
+  cursor: pointer;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: background-color 0.15s ease, color 0.15s ease, border-bottom-color 0.15s ease;
+}
+
+.tux-dropdown__trigger:hover,
+.tux-dropdown__trigger:focus-visible,
+.tux-dropdown__trigger[aria-expanded="true"] {
+  background: var(--wash-brand-6, rgba(80, 0, 0, 0.06));
+  color: var(--brand-primary, #500000);
+  outline: none;
+}
+
+.tux-dropdown__trigger--active {
+  color: var(--brand-primary, #500000);
+  border-bottom-color: var(--brand-primary, #500000);
+}
+
+.tux-dropdown__chevron {
+  width: 0.75rem;
+  height: 0.75rem;
+  transition: transform 0.18s ease;
+}
+
+.tux-dropdown__chevron--open {
+  transform: rotate(180deg);
+}
+
+.tux-dropdown__panel {
+  position: absolute;
+  top: calc(100% + 0.375rem);
+  left: 0;
+  min-width: 14rem;
+  padding: 0.375rem;
+  background: var(--surface-page, #ffffff);
+  border: 1px solid var(--surface-border, #e5e7eb);
+  border-top: 2px solid var(--brand-primary, #500000);
+  border-radius: var(--radius-sm, 4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+.tux-dropdown__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tux-dropdown__link {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-body, system-ui, sans-serif);
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--text-primary, #111827);
+  text-decoration: none;
+  border-radius: var(--radius-sm, 4px);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tux-dropdown__link:hover,
+.tux-dropdown__link:focus-visible {
+  background: var(--wash-brand-6, rgba(80, 0, 0, 0.06));
+  color: var(--brand-primary, #500000);
+  outline: none;
+}
+
+.tux-dropdown__link-label {
+  display: block;
+  font-weight: 600;
+}
+
+.tux-dropdown__link-description {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-muted, #6b7280);
+  line-height: 1.4;
+}

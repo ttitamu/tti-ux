@@ -20,7 +20,7 @@ const headerVue = `<TuxAuthorByline
   ]"
   :affiliations="[
     'Texas A&M Transportation Institute',
-    'Department of Civil Engineering, Texas A&M University',
+    'Materials & Pavements Division, Texas A&M Transportation Institute',
   ]"
 />
 
@@ -67,7 +67,7 @@ const headerVue = `<TuxAuthorByline
           ]"
           :affiliations="[
             'Texas A&M Transportation Institute',
-            'Department of Civil Engineering, Texas A&M University',
+            'Materials & Pavements Division, Texas A&M Transportation Institute',
           ]"
         />
         <TuxPaperMeta

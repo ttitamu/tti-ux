@@ -1,0 +1,15 @@
+@*
+ * TuxCallout.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<aside class="tux-callout">
+    @ChildContent
+</aside>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Kind { get; set; } = fact;
+    [Parameter] public string Eyebrow { get; set; } = null;
+    [Parameter] public string Variant { get; set; } = default;
+}

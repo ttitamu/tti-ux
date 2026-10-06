@@ -1,0 +1,14 @@
+@*
+ * TuxChartGeoFlow.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<svg class="tux-chart-geo-flow">
+    @ChildContent
+</svg>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Flows { get; set; };
+    [Parameter] public string FlowLegend { get; set; };
+}

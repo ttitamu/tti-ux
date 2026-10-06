@@ -84,37 +84,39 @@ function isInternal(href: string) {
       :key="idx"
       class="tux-photo-grid__item"
     >
-      <component
-        :is="item.href ? (isInternal(item.href) ? 'NuxtLink' : 'a') : 'figure'"
-        :to="item.href && isInternal(item.href) ? item.href : undefined"
-        :href="item.href && !isInternal(item.href) ? item.href : undefined"
-        class="tux-photo-grid__tile"
-      >
-        <img
-          v-if="item.src"
-          :src="item.src"
-          :alt="item.alt ?? ''"
-          class="tux-photo-grid__img"
-          loading="lazy"
+      <figure class="tux-photo-grid__figure">
+        <component
+          :is="item.href ? (isInternal(item.href) ? 'NuxtLink' : 'a') : 'div'"
+          :to="item.href && isInternal(item.href) ? item.href : undefined"
+          :href="item.href && !isInternal(item.href) ? item.href : undefined"
+          class="tux-photo-grid__tile"
         >
-        <div
-          v-else
-          class="tux-photo-grid__placeholder"
-          :class="`tux-photo-grid__placeholder--${toneFor(item, idx)}`"
-          :aria-label="item.alt ?? 'placeholder'"
-          role="img"
-        >
-          <span class="tux-photo-grid__placeholder-label">{{ item.alt ?? 'placeholder' }}</span>
-        </div>
-      </component>
+          <img
+            v-if="item.src"
+            :src="item.src"
+            :alt="item.alt ?? ''"
+            class="tux-photo-grid__img"
+            loading="lazy"
+          >
+          <div
+            v-else
+            class="tux-photo-grid__placeholder"
+            :class="`tux-photo-grid__placeholder--${toneFor(item, idx)}`"
+            :aria-label="item.alt ?? 'placeholder'"
+            role="img"
+          >
+            <span class="tux-photo-grid__placeholder-label">{{ item.alt ?? 'placeholder' }}</span>
+          </div>
+        </component>
 
-      <figcaption
-        v-if="kind === 'photo' && (item.caption || item.credit)"
-        class="tux-photo-grid__caption"
-      >
-        <span v-if="item.caption" class="tux-photo-grid__caption-text">{{ item.caption }}</span>
-        <span v-if="item.credit" class="tux-photo-grid__caption-credit">{{ item.credit }}</span>
-      </figcaption>
+        <figcaption
+          v-if="kind === 'photo' && (item.caption || item.credit)"
+          class="tux-photo-grid__caption"
+        >
+          <span v-if="item.caption" class="tux-photo-grid__caption-text">{{ item.caption }}</span>
+          <span v-if="item.credit" class="tux-photo-grid__caption-credit">{{ item.credit }}</span>
+        </figcaption>
+      </figure>
     </li>
   </ul>
 </template>
@@ -131,7 +133,14 @@ function isInternal(href: string) {
 .tux-photo-grid__item {
   display: flex;
   flex-direction: column;
+}
+
+.tux-photo-grid__figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
   gap: 0.625rem;
+  width: 100%;
 }
 
 .tux-photo-grid__tile {

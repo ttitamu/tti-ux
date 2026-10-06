@@ -1,11 +1,5 @@
 <script setup lang="ts">
 // /changelog — renders the repo's CHANGELOG.md as a navigable page.
-//
-// Same pipeline as /design/[doc] — markdown imported as raw text at
-// build time via Vite's ?raw query, parsed at SSR via parseMarkdown
-// so fenced code blocks ship pre-highlighted through Shiki. The
-// prose typography is provided by `<TuxProse>` (the same wrapper
-// /design/[doc] uses), so both pages stay in lock-step automatically.
 import changelogSource from "../../CHANGELOG.md?raw";
 
 useHead({ title: "Changelog · TUX" });
@@ -14,20 +8,41 @@ const { data: parsed } = await useAsyncData(
   "changelog",
   () => parseMarkdown(changelogSource),
 );
+
+const majorReleases = [
+  { tag: "v3.0.0", date: "2026-10-01", id: "_300-2026-10-01", label: "Comm Brand & 100% Census", latest: true },
+  { tag: "v2.2.0", date: "2026-09-08", id: "_220-2026-09-08", label: "Control Radius Standardization" },
+  { tag: "v2.1.0", date: "2026-09-01", id: "_210-2026-09-01", label: "Navigation Restructure & Kits" },
+  { tag: "v2.0.0", date: "2026-08-19", id: "_200-2026-08-19", label: "Multi-Language Monorepo" },
+  { tag: "v1.8.0", date: "2026-07-30", id: "_180-2026-07-30", label: "Color Tokens & Themes" },
+];
 </script>
 
 <template>
   <div class="space-y-8">
-    <TuxPageHeader eyebrow="release log" title="Changelog">
-      Versioned record of what's shipped — components added, doctrine
-      changes, breaking adjustments. Follows
-      <a href="https://keepachangelog.com/" target="_blank" rel="noopener" class="link-tti">Keep a Changelog</a>
-      conventions and
-      <a href="https://semver.org/" target="_blank" rel="noopener" class="link-tti">Semantic Versioning</a>.
-      The canonical source is
-      <a href="https://github.com/anthonyguevara/tti-ux-test/blob/main/CHANGELOG.md" target="_blank" rel="noopener" class="link-tti">CHANGELOG.md</a>
-      in the repo; this page is just a friendlier read of it.
+    <TuxBreadcrumbs :trail="[{ label: 'Home', to: '/' }, { label: 'Changelog' }]" />
+
+    <TuxPageHeader eyebrow="releases" title="Changelog">
+      Chronological release history documenting new components, accessibility enhancements,
+      and architecture upgrades across all versions of TUX.
     </TuxPageHeader>
+
+    <!-- Quick Milestone Navigation -->
+    <div class="p-4 bg-surface-raised border border-surface-border rounded-md space-y-2">
+      <p class="text-xs font-semibold text-text-muted uppercase tracking-wider">Major Release Milestones</p>
+      <div class="flex flex-wrap gap-2">
+        <a
+          v-for="rel in majorReleases"
+          :key="rel.tag"
+          :href="'#' + rel.id"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono rounded border border-surface-border bg-surface-sunken hover:border-brand-primary hover:text-brand-primary transition-colors text-text-primary"
+        >
+          <span class="font-bold">{{ rel.tag }}</span>
+          <span class="text-text-muted font-sans hidden sm:inline">· {{ rel.label }}</span>
+          <span v-if="rel.latest" class="px-1.5 py-0.5 text-[10px] rounded bg-brand-primary text-white font-sans font-semibold">latest</span>
+        </a>
+      </div>
+    </div>
 
     <TuxProse>
       <MDCRenderer

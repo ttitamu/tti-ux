@@ -29,6 +29,7 @@
  * better.
  */
 import { computed } from "vue";
+import { DialogTitle, DialogDescription } from "reka-ui";
 
 interface Props {
   open?: boolean;
@@ -110,6 +111,7 @@ function handleUpdate(value: boolean) {
 <template>
   <UModal
     :open="open"
+    :title="title"
     :ui="sheetUi || (sizeClass ? { content: sizeClass } : undefined)"
     @update:open="handleUpdate"
   >
@@ -123,10 +125,17 @@ function handleUpdate(value: boolean) {
           class="tux-modal__sheet-handle"
           aria-hidden="true"
         />
-        <p v-if="eyebrow" class="eyebrow" style="margin-bottom: 0.25rem">{{ eyebrow }}</p>
-        <h3 class="heading--bold text-xl font-extrabold text-text-primary" style="margin: 0">
-          {{ title }}
-        </h3>
+        <DialogDescription v-if="eyebrow" as-child>
+          <p class="eyebrow" style="margin-bottom: 0.25rem">{{ eyebrow }}</p>
+        </DialogDescription>
+        <DialogTitle v-if="title" as-child>
+          <h3 class="heading--bold text-xl font-extrabold text-text-primary" style="margin: 0">
+            {{ title }}
+          </h3>
+        </DialogTitle>
+        <DialogTitle v-else as-child>
+          <span class="sr-only">Dialog</span>
+        </DialogTitle>
       </div>
     </template>
 

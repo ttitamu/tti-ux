@@ -126,7 +126,7 @@ const showFallback = computed(() =>
     <div v-else-if="isTerminal" class="tux-infinite-scroll__terminal">
       <span class="tux-infinite-scroll__rule" aria-hidden="true" />
       <span class="tux-infinite-scroll__terminal-text">
-        End of list · {{ total.toLocaleString() }}<template v-if="noun"> {{ nounPlural ?? noun + 's' }}</template>
+        End of list · {{ total.toLocaleString() }}{{ noun ? (' ' + (nounPlural ?? noun + 's')) : '' }}
       </span>
       <span class="tux-infinite-scroll__rule" aria-hidden="true" />
     </div>

@@ -1,0 +1,16 @@
+@*
+ * TuxAlert.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<UAlert class="tux-alert">
+    @ChildContent
+</UAlert>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Variant { get; set; } = "info";
+    [Parameter] public string Title { get; set; } = "undefined";
+    [Parameter] public string Description { get; set; } = "undefined";
+    [Parameter] public string Icon { get; set; } = "undefined";
+}

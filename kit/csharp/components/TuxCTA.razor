@@ -1,0 +1,17 @@
+@*
+ * TuxCTA.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<section class="tux-cta">
+    @ChildContent
+</section>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Eyebrow { get; set; } = null;
+    [Parameter] public string Title { get; set; };
+    [Parameter] public string Dek { get; set; } = null;
+    [Parameter] public string Tone { get; set; } = maroon;
+    [Parameter] public string Variant { get; set; } = default;
+}

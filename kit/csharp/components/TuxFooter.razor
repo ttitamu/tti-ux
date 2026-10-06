@@ -1,0 +1,23 @@
+@*
+ * TuxFooter.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<footer class="tux-footer">
+    @ChildContent
+</footer>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Name { get; set; } = "Texas";
+    [Parameter] public string Address { get; set; } = "Texas";
+    [Parameter] public string Phone { get; set; } = (979);
+    [Parameter] public string Logo { get; set; } = "/logo.svg";
+    [Parameter] public int LogoSize { get; set; } = 80;
+    [Parameter] public string BrandLockup { get; set; } = /TTI_white.png;
+    [Parameter] public string BrandLockupAlt { get; set; } = "Texas";
+    [Parameter] public string Social { get; set; } = "()";
+    [Parameter] public string Columns { get; set; } = "()";
+    [Parameter] public string Tagline { get; set; } = "Coordinated";
+    [Parameter] public int Year { get; set; } = ();
+}

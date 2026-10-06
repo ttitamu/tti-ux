@@ -4,10 +4,10 @@ useHead({ title: "TuxFooter · TUX" });
 // Demo data — same shape as what app.vue passes for the live footer.
 const demoSocial = [
   { icon: "lucide:linkedin",  label: "LinkedIn",  href: "https://www.linkedin.com/company/texas-a-m-transportation-institute/" },
-  { icon: "lucide:facebook",  label: "Facebook",  href: "https://www.facebook.com/TTITAMUS" },
-  { icon: "lucide:instagram", label: "Instagram", href: "https://www.instagram.com/ttitamus/" },
+  { icon: "lucide:facebook",  label: "Facebook",  href: "https://www.facebook.com/tti.tamu.edu" },
+  { icon: "lucide:instagram", label: "Instagram", href: "https://www.instagram.com/tti_tamu/" },
   { icon: "lucide:youtube",   label: "YouTube",   href: "https://www.youtube.com/user/TTIVideoChannel" },
-  { icon: "lucide:twitter",   label: "X (Twitter)", href: "https://x.com/TTITAMUS" },
+  { icon: "lucide:twitter",   label: "X (Twitter)", href: "https://x.com/tti_tamu" },
 ];
 
 const demoColumns = [
@@ -23,10 +23,10 @@ const demoColumns = [
   {
     heading: "Policies",
     links: [
-      { label: "TAMUS Risk, Fraud & Misconduct Hotline", href: "#" },
-      { label: "Digital Accessibility",                  href: "#" },
-      { label: "Site Policies",                          href: "#" },
-      { label: "Open Records Policy",                    href: "#" },
+      { label: "Risk, Fraud & Misconduct Hotline", href: "#" },
+      { label: "Digital Accessibility",            href: "#" },
+      { label: "Site Policies",                    href: "#" },
+      { label: "Open Records Policy",              href: "#" },
     ],
   },
 ];
@@ -55,15 +55,9 @@ const slimExampleVue = `<!-- Pass no columns / no social — you get the
 <template>
   <div class="space-y-12">
     <TuxPageHeader eyebrow="component" title="TuxFooter">
-      The unified institutional footer. Maroon marketing top + black
-      legal strip in a single component, mirroring the shape every
-      tti.tamu.edu / tamu.edu / pvamu.edu surface uses. Earlier we
-      shipped this as three pieces (slim app footer, marketing
-      footer, TAMUS legal subfooter) — collapsed into one because
-      every shipped TTI surface needs the same anchor.
-      <strong>The black legal strip is mandatory and not
-      configurable</strong> — TAMUS lockup, tagline, and state-agency
-      links are fixed per AggieUX policy.
+      Institutional footer for TTI digital products. Combines a maroon contact
+      and resources block with an accessible legal baseline. Supports both full
+      navigation layouts and compact operational dashboard views.
     </TuxPageHeader>
 
     <section>
@@ -112,8 +106,7 @@ const slimExampleVue = `<!-- Pass no columns / no social — you get the
       <p class="eyebrow">props</p>
       <h2 class="heading--bold text-xl font-bold">Props</h2>
       <ul class="mt-4 space-y-2 text-sm">
-        <li><code>name</code> — institution name. Defaults to TTI.
-          Override for sibling-institution builds (PVAMU, Tarleton, WTAMU).</li>
+        <li><code>name</code> — institution name. Defaults to Texas A&M Transportation Institute.</li>
         <li><code>address</code> — multi-line address (split on newlines).</li>
         <li><code>phone</code> — phone number, rendered as a
           <code>tel:</code> link. Pass <code>null</code> to hide.</li>

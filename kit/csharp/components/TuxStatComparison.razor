@@ -1,0 +1,21 @@
+@*
+ * TuxStatComparison.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-stat-comparison">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Eyebrow { get; set; } = "undefined";
+    [Parameter] public int Current { get; set; };
+    [Parameter] public int Previous { get; set; };
+    [Parameter] public string Suffix { get; set; } = "undefined";
+    [Parameter] public string Label { get; set; } = "undefined";
+    [Parameter] public string Layout { get; set; } = row;
+    [Parameter] public int Decimals { get; set; } = 1;
+    [Parameter] public string Polarity { get; set; } = direct;
+    [Parameter] public string DeltaFormat { get; set; } = abs+pct;
+}

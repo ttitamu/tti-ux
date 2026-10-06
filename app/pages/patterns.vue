@@ -148,7 +148,7 @@ function simulateLoad() {
         <TuxAlert
           variant="compliance"
           title="Export controlled"
-          description="This record contains export-controlled research data. Do not share outside TAMUS."
+          description="This record contains export-controlled research data. Do not distribute outside authorized TTI networks."
         />
       </div>
     </section>

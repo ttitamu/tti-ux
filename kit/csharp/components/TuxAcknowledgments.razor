@@ -1,0 +1,17 @@
+@*
+ * TuxAcknowledgments.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<section class="tux-acknowledgments">
+    @ChildContent
+</section>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Funding { get; set; } = "undefined";
+    [Parameter] public string Acknowledgments { get; set; } = "undefined";
+    [Parameter] public string Conflicts { get; set; } = "undefined";
+    [Parameter] public string Ethics { get; set; } = "undefined";
+    [Parameter] public string Level { get; set; } = 4;
+}

@@ -6,12 +6,12 @@ const password = ref("");
 const textarea = ref("");
 const search = ref("");
 
-// Classification tiers reflect the TAMUS data-classification policy —
+// Classification tiers reflect the TTI data-classification policy —
 // public / internal / sensitive / restricted — shared across all consuming
 // apps, not specific to any one.
 const selectOptions = [
   { label: "Public",     value: "public",     description: "Discoverable by default" },
-  { label: "Internal",   value: "internal",   description: "TAMUS-only" },
+  { label: "Internal",   value: "internal",   description: "TTI-only" },
   { label: "Sensitive",  value: "sensitive",  description: "PII / confidential" },
   { label: "Restricted", value: "restricted", description: "Export-controlled / legal" },
 ];
@@ -114,7 +114,7 @@ v-model="radio" :items="[
 
         <UFormField
           label="Record is publicly discoverable"
-          help="When off, only TAMUS-authenticated users can see this record."
+          help="When off, only TTI-authenticated users can see this record."
         >
           <USwitch v-model="toggle" />
         </UFormField>

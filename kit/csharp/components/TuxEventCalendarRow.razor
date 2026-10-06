@@ -1,0 +1,22 @@
+@*
+ * TuxEventCalendarRow.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<article class="tux-event-calendar-row">
+    @ChildContent
+</article>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Day { get; set; };
+    [Parameter] public string Month { get; set; };
+    [Parameter] public string Title { get; set; };
+    [Parameter] public string Time { get; set; };
+    [Parameter] public string Location { get; set; };
+    [Parameter] public string Category { get; set; };
+    [Parameter] public string To { get; set; };
+    [Parameter] public string Href { get; set; };
+    [Parameter] public string ActionText { get; set; } = "View";
+    [Parameter] public string ChipTone { get; set; } = green;
+}

@@ -1,0 +1,13 @@
+@*
+ * TuxContextPanel.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<aside class="tux-context-panel">
+    @ChildContent
+</aside>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Width { get; set; } = 320;
+}

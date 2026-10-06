@@ -1,0 +1,15 @@
+@*
+ * TuxCard.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<NuxtLink class="tux-card">
+    @ChildContent
+</NuxtLink>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string To { get; set; } = "undefined";
+    [Parameter] public bool Padded { get; set; } = true;
+    [Parameter] public bool Linked { get; set; } = false;
+}

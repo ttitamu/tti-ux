@@ -125,7 +125,7 @@ const corridorEvents = [
       ]"
       :affiliations="[
         'Texas A&M Transportation Institute, Roadway Safety Division',
-        'Department of Civil Engineering, Texas A&M University',
+        'Materials & Pavements Division, Texas A&M Transportation Institute',
       ]"
     />
 

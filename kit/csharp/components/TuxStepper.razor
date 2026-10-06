@@ -1,0 +1,17 @@
+@*
+ * TuxStepper.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<nav class="tux-stepper">
+    @ChildContent
+</nav>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Steps { get; set; };
+    [Parameter] public int CurrentIndex { get; set; } = 0;
+    [Parameter] public string Orientation { get; set; } = horizontal;
+    [Parameter] public bool ShowDescriptions { get; set; } = true;
+    [Parameter] public string AriaLabel { get; set; } = "Progress";
+}

@@ -50,14 +50,12 @@ const tiles = [
 <template>
   <div class="space-y-8">
     <TuxPageHeader eyebrow="primitives" title="Forms">
-      Nuxt UI form primitives with TTI theming — maroon focus rings,
-      consistent label styling, and the tux <code>heading--bold</code>
-      for section titles inside forms. No Tux wrappers here yet:
-      Nuxt UI's form primitives don't need deviation to fit the brand.
+      Standardized form controls with institutional TTI theming — 3px high-contrast focus rings,
+      accessible field labels, and integrated validation states.
       <br><br>
       <span class="text-sm text-text-muted">
-        These pages document the full state matrix per primitive.
-        For an end-to-end form composing all of them at once, see
+        These pages document the state matrix per primitive.
+        For an end-to-end composite form example, see
         <NuxtLink to="/forms/all-in-one" class="link-tti">the all-in-one demo</NuxtLink>.
       </span>
     </TuxPageHeader>

@@ -2,36 +2,56 @@
 /**
  * TuxBadge — TTI-flavored badge family built on UBadge.
  *
- * Six shapes:
- *   <tux-badge tier="sensitive" />                 classification tier
- *   <tux-badge status="running" />                 lifecycle state (spinner on running)
- *   <tux-badge tone="warning">WIP</tux-badge>      generic semantic-color label
- *   <tux-badge kind="tag">topic:safety</tux-badge> mono-font tag
- *   <tux-badge kind="count" :count="11">md</tux-badge>  facet + count
- *   <tux-badge>generic</tux-badge>                 default neutral
- *
- * `tone` is the open-ended sibling of `tier`/`status`: a plain semantic
- * color (info/success/warning/error/neutral) with no lifecycle affordance
- * (no dot, no spinner). Use it for inline doc labels — "Work in Progress",
- * "Available", "Evolving Standard" — where tier/status semantics don't fit.
- *
- * Under the hood: UBadge with `:ui` saturation overrides, plus a `#leading`
- * slot for the status-dot / spinning-loader affordance that raw UBadge
- * strips. Keeps UBadge's accessibility + theming; adds editorial weight.
+ * Unified badge, tag, count, and operational lifecycle status component.
+ * Supports:
+ *   - Security / classification tiers: tier="public|internal|sensitive|restricted"
+ *   - Operational & lifecycle status: status="running|completed|failed|queued|paused|cancelled|published|draft|expired|verified"
+ *   - Semantic tone labels: tone="info|success|warning|error|danger|brand|neutral|muted|custom"
+ *   - Bold mode: bold or variant="bold|solid"
+ *   - Leading status indicators: dot (with optional pulsing animation) and icon="lucide:..."
+ *   - Monospace tags: kind="tag"
+ *   - Facet counts: kind="count" :count="11"
  */
 
-type Tier = "public" | "internal" | "sensitive" | "restricted";
-type Status = "running" | "completed" | "failed" | "queued" | "paused" | "cancelled";
-type Tone = "info" | "success" | "warning" | "error" | "neutral" | "muted" | "custom";
-type Kind = "tag" | "count" | "default";
+export type TuxBadgeTier = "public" | "internal" | "sensitive" | "restricted";
+export type TuxBadgeStatus =
+  | "running"
+  | "completed"
+  | "failed"
+  | "queued"
+  | "paused"
+  | "cancelled"
+  | "published"
+  | "draft"
+  | "expired"
+  | "verified";
+
+export type TuxBadgeTone =
+  | "info"
+  | "success"
+  | "warning"
+  | "error"
+  | "danger"
+  | "brand"
+  | "neutral"
+  | "muted"
+  | "custom";
+
+export type TuxBadgeKind = "tag" | "count" | "default";
+export type TuxBadgeVariant = "solid" | "soft" | "outline" | "subtle" | "bold";
 
 interface Props {
-  tier?: Tier;
-  status?: Status;
-  tone?: Tone;
-  kind?: Kind;
+  tier?: TuxBadgeTier;
+  status?: TuxBadgeStatus;
+  tone?: TuxBadgeTone;
+  kind?: TuxBadgeKind;
+  variant?: TuxBadgeVariant;
+  bold?: boolean;
+  dot?: boolean;
+  icon?: string;
   count?: number | string;
   label?: string;
+  uppercase?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -39,8 +59,13 @@ const props = withDefaults(defineProps<Props>(), {
   tier: undefined,
   status: undefined,
   tone: undefined,
+  variant: undefined,
+  bold: false,
+  dot: false,
+  icon: undefined,
   count: undefined,
   label: undefined,
+  uppercase: false,
 });
 
 const mode = computed<"tier" | "status" | "tone" | "kind">(() =>
@@ -49,53 +74,54 @@ const mode = computed<"tier" | "status" | "tone" | "kind">(() =>
 
 type UColor = "info" | "neutral" | "primary" | "success" | "warning" | "error";
 
-const tierColor: Record<Tier, UColor> = {
+const tierColor: Record<TuxBadgeTier, UColor> = {
   public: "info",
   internal: "neutral",
   sensitive: "primary",
   restricted: "primary",
 };
 
-// `tone` maps 1:1 onto UBadge's semantic palette — it IS the open color set.
-const toneColor: Record<Tone, UColor> = {
+// `tone` maps onto UBadge's semantic palette — it IS the open color set.
+const toneColor: Record<TuxBadgeTone, UColor> = {
   info: "info",
   success: "success",
   warning: "warning",
   error: "error",
+  danger: "error",
+  brand: "primary",
   neutral: "neutral",
   muted: "neutral", // low-emphasis grey alias (used by split-pane showcase)
-  // custom: escape hatch for domain palettes the closed set can't cover
-  // (docs-tti's StatusPill: decided / implemented / locked / special …).
-  // Colors come from the --tux-badge-bg/fg/border custom-property hooks —
-  // which MUST point at tokens, never raw hex; a consumer's audit:tokens
-  // run keeps that honest. Base color is neutral; .tux-badge--custom
-  // (tux.css) applies the hooks.
   custom: "neutral",
 };
 
-const statusColor: Record<Status, UColor> = {
+const statusColor: Record<TuxBadgeStatus, UColor> = {
   completed: "success",
   running: "warning",
   failed: "error",
   queued: "neutral",
-  // paused: an in-flight job the operator halted (resumable) — info blue,
-  // distinct from the amber of an actively-running job.
   paused: "info",
-  // cancelled: stopped on purpose (operator / restart), NOT an error —
-  // neutral grey so it doesn't read as a failure.
   cancelled: "neutral",
+  published: "success",
+  draft: "warning",
+  expired: "error",
+  verified: "success",
 };
 
 const uColor = computed<UColor>(() => {
-  if (mode.value === "tier") return tierColor[props.tier as Tier];
-  if (mode.value === "status") return statusColor[props.status as Status];
-  if (mode.value === "tone") return toneColor[props.tone as Tone];
+  if (mode.value === "tier") return tierColor[props.tier as TuxBadgeTier];
+  if (mode.value === "status") return statusColor[props.status as TuxBadgeStatus];
+  if (mode.value === "tone") return toneColor[props.tone as TuxBadgeTone];
   return "neutral";
 });
 
-const uVariant = computed<"solid" | "soft" | "outline">(() => {
-  if (props.tier === "restricted") return "solid";
-  if (props.kind === "tag") return "outline";
+const isBold = computed(
+  () => props.bold || props.variant === "bold" || props.variant === "solid" || props.tier === "restricted"
+);
+
+const uVariant = computed<"solid" | "soft" | "outline" | "subtle">(() => {
+  if (isBold.value) return "solid";
+  if (props.kind === "tag" || props.variant === "outline") return "outline";
+  if (props.variant === "subtle") return "subtle";
   return "soft";
 });
 
@@ -104,15 +130,46 @@ const uBadgeUi = {
 };
 
 const dotColor = computed(() => {
-  if (mode.value !== "status") return "";
-  return {
-    completed: "var(--color-success)",
-    running: "var(--brand-accent)",
-    failed: "var(--color-error)",
-    queued: "var(--text-muted)",
-    paused: "var(--color-info)",
-    cancelled: "var(--text-muted)",
-  }[props.status as Status];
+  if (props.status) {
+    return {
+      completed: "var(--color-success)",
+      running: "var(--brand-accent)",
+      failed: "var(--color-error)",
+      queued: "var(--text-muted)",
+      paused: "var(--color-info)",
+      cancelled: "var(--text-muted)",
+      published: "var(--color-success)",
+      draft: "var(--brand-accent)",
+      expired: "var(--color-error)",
+      verified: "var(--color-success)",
+    }[props.status];
+  }
+  if (props.dot) {
+    if (props.tone === "brand") return "var(--brand-primary)";
+    if (props.tone === "success") return "var(--color-success)";
+    if (props.tone === "warning") return "var(--brand-accent)";
+    if (props.tone === "danger" || props.tone === "error") return "var(--color-error)";
+    if (props.tone === "info") return "var(--color-info)";
+    return "var(--text-muted)";
+  }
+  return "";
+});
+
+const hasDot = computed(() => {
+  if (props.icon) return false;
+  if (props.dot) return true;
+  if (mode.value === "status" && props.status !== "running") return true;
+  return false;
+});
+
+const shouldPulseDot = computed(() => {
+  return (
+    props.dot &&
+    (props.tone === "success" ||
+      props.tone === "danger" ||
+      props.tone === "error" ||
+      props.status === "published")
+  );
 });
 
 const isTagFont = computed(() => props.kind === "tag");
@@ -128,18 +185,25 @@ const isWarningColor = computed(() => uColor.value === "warning");
     :ui="uBadgeUi"
     :class="[
       isTagFont && 'font-mono font-normal',
-      isWarningColor && 'tux-badge--warning',
+      props.uppercase && 'font-mono uppercase tracking-wider text-[10px] font-bold',
+      isWarningColor && !isBold && 'tux-badge--warning',
       mode === 'tone' && tone === 'custom' && 'tux-badge--custom',
       mode === 'tier' && tier && `tux-badge--tier-${tier}`,
       mode === 'status' && status && `tux-badge--status-${status}`,
+      isBold && 'font-bold shadow-xs',
     ]"
+    data-testid="tux-badge"
   >
-    <template v-if="mode === 'status' && status === 'running'" #leading>
-      <UIcon name="lucide:loader-2" class="w-3 h-3 animate-spin" />
+    <template v-if="props.icon" #leading>
+      <UIcon :name="props.icon" class="w-3 h-3 flex-shrink-0" aria-hidden="true" />
     </template>
-    <template v-else-if="mode === 'status'" #leading>
+    <template v-else-if="mode === 'status' && status === 'running'" #leading>
+      <UIcon name="lucide:loader-2" class="w-3 h-3 animate-spin" aria-hidden="true" />
+    </template>
+    <template v-else-if="hasDot" #leading>
       <span
-        class="inline-block w-1.5 h-1.5 rounded-full"
+        class="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0"
+        :class="shouldPulseDot && 'animate-pulse'"
         :style="{ background: dotColor }"
         aria-hidden="true"
       />

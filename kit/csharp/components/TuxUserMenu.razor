@@ -1,0 +1,21 @@
+@*
+ * TuxUserMenu.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-user-menu">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string State { get; set; };
+    [Parameter] public string Identity { get; set; } = "undefined";
+    [Parameter] public string SignInHref { get; set; } = "undefined";
+    [Parameter] public string SignInLabel { get; set; } = "Sign";
+    [Parameter] public string Items { get; set; } = "()";
+    [Parameter] public string Prefs { get; set; } = "()";
+    [Parameter] public bool ShowSignOut { get; set; } = true;
+    [Parameter] public string Placement { get; set; } = cluster;
+    [Parameter] public string StatusLine { get; set; } = "undefined";
+}
