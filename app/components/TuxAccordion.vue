@@ -49,6 +49,15 @@ const props = withDefaults(defineProps<Props>(), {
 // don't collide. useId() gives us a stable SSR-safe id.
 const groupId = useId();
 const groupName = computed(() => (props.single ? `tux-accordion-${groupId}` : undefined));
+
+function onToggle(e: Event) {
+  const target = e.currentTarget as HTMLDetailsElement;
+  if (target && target.open) {
+    setTimeout(() => {
+      target.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, 60);
+  }
+}
 </script>
 
 <template>
@@ -59,6 +68,7 @@ const groupName = computed(() => (props.single ? `tux-accordion-${groupId}` : un
       :name="groupName"
       :open="item.defaultOpen"
       class="tux-accordion__item"
+      @toggle="onToggle"
     >
       <summary class="tux-accordion__summary">
         <div class="tux-accordion__summary-content">
@@ -89,6 +99,8 @@ const groupName = computed(() => (props.single ? `tux-accordion-${groupId}` : un
 
 .tux-accordion__item {
   border-bottom: 1px solid var(--surface-border);
+  scroll-margin-top: 5rem;
+  scroll-margin-bottom: 2rem;
 }
 .tux-accordion__item:first-child {
   border-top: 2px solid var(--brand-primary);

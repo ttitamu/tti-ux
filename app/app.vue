@@ -65,7 +65,7 @@ const highLevelAreas: HighLevelArea[] = [
     icon: "lucide:palette",
     to: "/tokens",
     eyebrow: "Design Language",
-    groupTitles: ["01 // Doctrine", "02 // Foundations"],
+    groupTitles: ["Doctrine", "Foundations"],
   },
   {
     id: "components",
@@ -75,15 +75,15 @@ const highLevelAreas: HighLevelArea[] = [
     to: "/components",
     eyebrow: "UI Primitives & Kits",
     groupTitles: [
-      "03 // Overview & Doctrine",
-      "03a // Actions & Commands",
-      "03b // Navigation & Layout",
-      "03c // Data Display & Tables",
-      "03d // Feedback & Alerts",
-      "03e // Forms & Controls",
-      "03f // AI & Conversational",
-      "03g // Research & Publishing",
-      "05 // Suites & Kits",
+      "Overview & Doctrine",
+      "Actions & Commands",
+      "Navigation & Layout",
+      "Data Display & Tables",
+      "Feedback & Alerts",
+      "Forms & Controls",
+      "AI & Conversational",
+      "Research & Publishing",
+      "Suites & Kits",
     ],
   },
   {
@@ -94,12 +94,12 @@ const highLevelAreas: HighLevelArea[] = [
     to: "/visualizations",
     eyebrow: "BI & Visualization",
     groupTitles: [
-      "06 // Overview & Foundations",
-      "06a // Timeseries & Trends",
-      "06b // Geospatial & Maps",
-      "06c // Statistical & Distributions",
-      "06d // BI & Analytics Embeds",
-      "06e // Publishing & Print Reports",
+      "Overview & Foundations",
+      "Timeseries & Trends",
+      "Geospatial & Maps",
+      "Statistical & Distributions",
+      "BI & Analytics Embeds",
+      "Publishing & Print Reports",
     ],
   },
   {
@@ -109,7 +109,7 @@ const highLevelAreas: HighLevelArea[] = [
     icon: "lucide:newspaper",
     to: "/admin",
     eyebrow: "Publications & Releases",
-    groupTitles: ["04 // Research Index", "04b // Content Governance"],
+    groupTitles: ["Editorial CMS", "Content Governance"],
   },
   {
     id: "docs",
@@ -118,7 +118,7 @@ const highLevelAreas: HighLevelArea[] = [
     icon: "lucide:book-open",
     to: "/docs",
     eyebrow: "Guides & Architecture",
-    groupTitles: ["00 // Overview", "00b // Architecture & ADRs"],
+    groupTitles: ["Overview", "Architecture & ADRs"],
   },
 ];
 
@@ -448,7 +448,7 @@ const activeSidebarSections = computed(() => {
 
 const navTree = [
   {
-    label: "00 // Overview",
+    label: "Overview",
     children: [
       { label: "Home",            to: "/",                icon: "lucide:home" },
       { label: "Getting started", to: "/getting-started", icon: "lucide:compass" },
@@ -458,7 +458,7 @@ const navTree = [
     ],
   },
   {
-    label: "00b // Architecture & ADRs",
+    label: "Architecture & ADRs",
     children: [
       { label: "ADR Index", to: "/docs/adr", icon: "lucide:layers" },
       { label: "Visual language", to: "/design/visual-language-evolution", icon: "lucide:eye" },
@@ -466,7 +466,7 @@ const navTree = [
     ],
   },
   {
-    label: "01 // Doctrine",
+    label: "Doctrine",
     children: [
       { label: "Doctrine",     to: "/design/tux",                 icon: "lucide:book-open" },
       { label: "Unification plan", to: "/design/unification-plan", icon: "lucide:combine" },
@@ -478,7 +478,7 @@ const navTree = [
     ],
   },
   {
-    label: "02 // Foundations",
+    label: "Foundations",
     children: [
       { label: "Tokens",         to: "/tokens",         icon: "lucide:palette" },
       { label: "Token Playground", to: "/tokens/playground", icon: "lucide:sliders" },
@@ -494,30 +494,30 @@ const navTree = [
     ],
   },
   {
-    label: "03 // Overview & Doctrine",
+    label: "Overview & Doctrine",
     children: [
       { label: "Components doctrine", to: "/design/components", icon: "lucide:book-marked" },
       { label: "All components index", to: "/components", icon: "lucide:blocks" },
     ],
   },
   {
-    label: "03a // Actions & Commands",
+    label: "Actions & Commands",
     children: catalogByCategory("actions"),
   },
   {
-    label: "03b // Navigation & Layout",
+    label: "Navigation & Layout",
     children: catalogByCategory("navigation"),
   },
   {
-    label: "03c // Data Display & Tables",
+    label: "Data Display & Tables",
     children: catalogByCategory("data-display"),
   },
   {
-    label: "03d // Feedback & Alerts",
+    label: "Feedback & Alerts",
     children: catalogByCategory("feedback"),
   },
   {
-    label: "03e // Forms & Controls",
+    label: "Forms & Controls",
     children: [
       ...catalogByCategory("forms"),
       { label: "Forms guide",          to: "/forms",                    icon: "lucide:clipboard-list" },
@@ -531,15 +531,15 @@ const navTree = [
     ],
   },
   {
-    label: "03f // AI & Conversational",
+    label: "AI & Conversational",
     children: catalogByCategory("ai"),
   },
   {
-    label: "03g // Research & Publishing",
+    label: "Research & Publishing",
     children: catalogByCategory("publishing"),
   },
   {
-    label: "04 // Editorial CMS",
+    label: "Editorial CMS",
     children: [
       { label: "Editorial Desk", to: "/admin", icon: "lucide:layout-dashboard" },
       { label: "Editor Playground", to: "/desk", icon: "lucide:layout-template" },
@@ -548,7 +548,7 @@ const navTree = [
     ],
   },
   {
-    label: "04b // Content Governance",
+    label: "Content Governance",
     children: [
       { label: "Document Verification", to: "/admin", icon: "lucide:shield-check" },
       { label: "Review Cadence", to: "/admin", icon: "lucide:calendar-clock" },
@@ -556,7 +556,7 @@ const navTree = [
     ],
   },
   {
-    label: "05 // Suites & Kits",
+    label: "Suites & Kits",
     children: [
       { label: "Kits overview", to: "/examples", icon: "lucide:library" },
       { label: "Compositions doctrine", to: "/design/compositions", icon: "lucide:blocks" },
@@ -579,7 +579,7 @@ const navTree = [
     ],
   },
   {
-    label: "06 // Overview & Foundations",
+    label: "Overview & Foundations",
     children: [
       { label: "Visualizations overview", to: "/visualizations", icon: "lucide:chart-pie" },
       { label: "Reports overview", to: "/reports", icon: "lucide:file-output" },
@@ -587,23 +587,23 @@ const navTree = [
     ],
   },
   {
-    label: "06a // Timeseries & Trends",
+    label: "Timeseries & Trends",
     children: catalogByVizCategory("timeseries"),
   },
   {
-    label: "06b // Geospatial & Maps",
+    label: "Geospatial & Maps",
     children: catalogByVizCategory("geospatial"),
   },
   {
-    label: "06c // Statistical & Distributions",
+    label: "Statistical & Distributions",
     children: catalogByVizCategory("statistical"),
   },
   {
-    label: "06d // BI & Analytics Embeds",
+    label: "BI & Analytics Embeds",
     children: catalogByVizCategory("embeds"),
   },
   {
-    label: "06e // Publishing & Print Reports",
+    label: "Publishing & Print Reports",
     children: catalogNav("reports"),
   },
 ];
@@ -630,6 +630,30 @@ const userManuallyToggledSidebar = ref(false);
 function toggleDesktopSidebar() {
   userManuallyToggledSidebar.value = true;
   desktopSidebarCollapsed.value = !desktopSidebarCollapsed.value;
+}
+
+const componentCategoryMap: Record<string, string> = {
+  "Actions & Commands": "actions",
+  "Navigation & Layout": "navigation",
+  "Data Display & Tables": "data-display",
+  "Feedback & Alerts": "feedback",
+  "Forms & Controls": "forms",
+  "AI & Conversational": "ai",
+  "Research & Publishing": "publishing",
+  "Overview & Doctrine": "all",
+};
+
+function handleSidebarSectionClick(sectionLabel: string) {
+  const cat = componentCategoryMap[sectionLabel];
+  if (cat && route.path === "/components") {
+    router.replace({ path: "/components", query: cat === "all" ? undefined : { cat } });
+    if (typeof document !== "undefined") {
+      nextTick(() => {
+        const el = document.getElementById("component-catalog-grid") || document.getElementById("component-catalog-toolbar");
+        el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }
 }
 
 function handleWindowResize() {
@@ -1314,6 +1338,7 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
               :search="true"
               @update:show-all="showAllAreasInSidebar = $event"
               @toggle-collapse="sidebarOpen = false"
+              @section-click="handleSidebarSectionClick"
             />
           </div>
         </Transition>
@@ -1333,6 +1358,7 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
             :search="true"
             @update:show-all="showAllAreasInSidebar = $event"
             @toggle-collapse="toggleDesktopSidebar"
+            @section-click="handleSidebarSectionClick"
           />
         </div>
 

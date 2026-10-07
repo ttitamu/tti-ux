@@ -58,6 +58,7 @@ const emit = defineEmits<{
   (e: "update:collapsed", value: boolean): void;
   (e: "toggle-collapse"): void;
   (e: "update:showAll", value: boolean): void;
+  (e: "section-click", label: string): void;
 }>();
 
 const route = useRoute();
@@ -79,7 +80,8 @@ function isSectionExpanded(label: string): boolean {
   return expandedSectionLabels.value.has(label);
 }
 
-function toggleSection(label: string) {
+function toggleSection(label: string, event?: MouseEvent) {
+  const isExpanding = !expandedSectionLabels.value.has(label);
   if (expandedSectionLabels.value.has(label)) {
     expandedSectionLabels.value.delete(label);
   } else {
@@ -88,6 +90,16 @@ function toggleSection(label: string) {
     }
     expandedSectionLabels.value.add(label);
   }
+
+  // Smooth scroll within the sidebar container so newly opened items are visible
+  if (isExpanding && event?.currentTarget) {
+    const el = event.currentTarget as HTMLElement;
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, 80);
+  }
+
+  emit("section-click", label);
 }
 
 function expandAll() {
@@ -380,7 +392,7 @@ function onMouseLeaveFlyout() {
               ? 'bg-brand-primary/8 border-brand-primary/25 text-brand-primary font-bold'
               : 'border-transparent text-text-muted hover:text-text-primary'
           ]"
-          @click="toggleSection(section.label)"
+          @click="toggleSection(section.label, $event)"
         >
           <div class="flex items-center gap-1.5 min-w-0">
             <UIcon
@@ -450,11 +462,19 @@ function onMouseLeaveFlyout() {
           </div>
         </div>
 
-        <!-- Section Children Links (collapsible) -->
-        <ul
-          v-if="isSectionExpanded(section.label) && section.children?.length"
-          class="space-y-0.5 list-none m-0 p-0 pl-2.5 pt-0.5"
+        <!-- Section Children Links (collapsible) with smooth accordion animation -->
+        <Transition
+          enter-active-class="transition-all duration-200 ease-out"
+          enter-from-class="opacity-0 max-h-0"
+          enter-to-class="opacity-100 max-h-[1200px]"
+          leave-active-class="transition-all duration-150 ease-in"
+          leave-from-class="opacity-100 max-h-[1200px]"
+          leave-to-class="opacity-0 max-h-0"
         >
+          <ul
+            v-if="isSectionExpanded(section.label) && section.children?.length"
+            class="space-y-0.5 list-none m-0 p-0 pl-2.5 pt-0.5 overflow-hidden"
+          >
           <li v-for="child in section.children" :key="child.to">
             <NuxtLink
               :to="child.to"
@@ -483,7 +503,8 @@ function onMouseLeaveFlyout() {
             </NuxtLink>
           </li>
         </ul>
-      </div>
+      </Transition>
+    </div>
     </div>
 
     <!-- 4. Collapsed Mini-Rail (Width w-16 / 4rem) -->

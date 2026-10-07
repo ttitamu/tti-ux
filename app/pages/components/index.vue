@@ -6,14 +6,33 @@ import { useTuxClipboard } from "../../composables/useTuxClipboard";
 useHead({ title: "Components · TUX" });
 
 const route = useRoute();
+const router = useRouter();
 const searchQuery = ref("");
 const selectedCategory = ref<string>("all");
+
+function selectCategory(catId: string, shouldScroll = true) {
+  selectedCategory.value = catId;
+  const targetQuery = catId === "all" ? {} : { cat: catId };
+  router.replace({ path: "/components", query: targetQuery });
+  if (shouldScroll && typeof document !== "undefined") {
+    nextTick(() => {
+      document.getElementById("component-catalog-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+}
 
 watch(
   () => route.query.cat,
   (cat) => {
     if (typeof cat === "string" && cat.length > 0) {
       selectedCategory.value = cat;
+      if (typeof document !== "undefined") {
+        nextTick(() => {
+          document.getElementById("component-catalog-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+    } else {
+      selectedCategory.value = "all";
     }
   },
   { immediate: true },
@@ -268,7 +287,7 @@ async function copyTag(compName: string, e: Event) {
               ? 'bg-brand-primary text-text-inverse border-brand-primary shadow-xs'
               : 'bg-surface-sunken text-text-muted border-surface-border hover:text-text-primary hover:bg-surface-raised'
           ]"
-          @click="selectedCategory = 'all'"
+          @click="selectCategory('all')"
         >
           <span>All Categories</span>
           <span
@@ -289,7 +308,7 @@ async function copyTag(compName: string, e: Event) {
               ? 'bg-brand-primary text-text-inverse border-brand-primary shadow-xs'
               : 'bg-surface-sunken text-text-muted border-surface-border hover:text-text-primary hover:bg-surface-raised'
           ]"
-          @click="selectedCategory = cat.id"
+          @click="selectCategory(cat.id)"
         >
           <UIcon :name="cat.icon" class="w-3.5 h-3.5" />
           <span>{{ cat.label }}</span>
@@ -362,9 +381,11 @@ async function copyTag(compName: string, e: Event) {
       </div>
     </div>
 
-    <!-- Active Filter Summary -->
-    <div
-      v-if="searchQuery || selectedCategory !== 'all' || selectedEcosystem !== 'all' || selectedTier !== 'all'"
+    <!-- Catalog Results Container -->
+    <div id="component-catalog-grid" class="scroll-mt-24 space-y-4">
+      <!-- Active Filter Summary -->
+      <div
+        v-if="searchQuery || selectedCategory !== 'all' || selectedEcosystem !== 'all' || selectedTier !== 'all'"
       class="flex items-center justify-between text-xs text-text-muted pt-1 border-t border-surface-border"
     >
       <span>Showing {{ filteredComponents.length }} of {{ allComponents.length }} components</span>
@@ -572,6 +593,7 @@ async function copyTag(compName: string, e: Event) {
           </NuxtLink>
         </div>
       </div>
+    </div>
     </div>
   </div>
 </template>
