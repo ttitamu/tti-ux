@@ -1225,7 +1225,7 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
           <div class="flex-1 min-w-[8px]" />
 
           <!-- Multi-language code preference switcher -->
-          <div class="hidden md:inline-flex items-center">
+          <div class="hidden xl:inline-flex items-center">
             <TuxFrameworkSwitcher mode="compact" class="mr-1 sm:mr-2 shrink-0" />
           </div>
 

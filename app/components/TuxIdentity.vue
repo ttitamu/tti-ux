@@ -62,10 +62,9 @@ const isInternalLink = computed(() =>
 </script>
 
 <template>
-  <component
-    :is="href ? (isInternalLink ? 'NuxtLink' : 'a') : 'div'"
-    :to="isInternalLink ? href : undefined"
-    :href="!isInternalLink && href ? href : undefined"
+  <NuxtLink
+    v-if="href && isInternalLink"
+    :to="href"
     class="tux-identity"
     :class="[
       `tux-identity--${orientation}`,
@@ -97,7 +96,80 @@ const isInternalLink = computed(() =>
       <div v-if="showRule" class="tux-identity__rule" aria-hidden="true" />
       <span class="tux-identity__name">{{ name }}</span>
     </div>
-  </component>
+  </NuxtLink>
+
+  <a
+    v-else-if="href"
+    :href="href"
+    target="_blank"
+    rel="noopener"
+    class="tux-identity"
+    :class="[
+      `tux-identity--${orientation}`,
+      `tux-identity--${kind}`,
+      `tux-identity--${level}`,
+    ]"
+  >
+    <template v-if="kind === 'lockup'">
+      <img
+        src="/logo.svg"
+        alt=""
+        aria-hidden="true"
+        :width="computedLogoSize"
+        :height="computedLogoSize"
+        class="tux-identity__logo logo-light-only"
+      >
+      <img
+        src="/logo-dark.svg"
+        alt=""
+        aria-hidden="true"
+        :width="computedLogoSize"
+        :height="computedLogoSize"
+        class="tux-identity__logo logo-dark-only"
+      >
+    </template>
+
+    <div class="tux-identity__copy">
+      <span v-if="showSuperhead" class="tux-identity__superhead">{{ superhead }}</span>
+      <div v-if="showRule" class="tux-identity__rule" aria-hidden="true" />
+      <span class="tux-identity__name">{{ name }}</span>
+    </div>
+  </a>
+
+  <div
+    v-else
+    class="tux-identity"
+    :class="[
+      `tux-identity--${orientation}`,
+      `tux-identity--${kind}`,
+      `tux-identity--${level}`,
+    ]"
+  >
+    <template v-if="kind === 'lockup'">
+      <img
+        src="/logo.svg"
+        alt=""
+        aria-hidden="true"
+        :width="computedLogoSize"
+        :height="computedLogoSize"
+        class="tux-identity__logo logo-light-only"
+      >
+      <img
+        src="/logo-dark.svg"
+        alt=""
+        aria-hidden="true"
+        :width="computedLogoSize"
+        :height="computedLogoSize"
+        class="tux-identity__logo logo-dark-only"
+      >
+    </template>
+
+    <div class="tux-identity__copy">
+      <span v-if="showSuperhead" class="tux-identity__superhead">{{ superhead }}</span>
+      <div v-if="showRule" class="tux-identity__rule" aria-hidden="true" />
+      <span class="tux-identity__name">{{ name }}</span>
+    </div>
+  </div>
 </template>
 
 <style scoped>

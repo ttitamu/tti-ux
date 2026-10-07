@@ -102,7 +102,10 @@ async function createPage(preset?: TuxDeskPreset) {
     showPresetDrawer.value = false;
     await navigateTo(`/admin/pages/${res.id}`);
   } catch (err) {
-    alert("Could not create page.");
+    // If backend API endpoint is unavailable (e.g. static site preview mode),
+    // fallback seamlessly to the interactive client-side Tux Desk Web Builder playground!
+    const presetId = preset?.id || "research-program";
+    await navigateTo(`/desk?title=${encodeURIComponent(title)}&preset=${presetId}`);
   } finally {
     creating.value = false;
   }

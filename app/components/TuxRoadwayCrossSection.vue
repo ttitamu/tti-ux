@@ -60,8 +60,8 @@ const props = withDefaults(defineProps<Props>(), {
   initialView: "3d-perspective",
   height: "560px",
   interactive: true,
-  initialPitch: 0,
-  initialYaw: 0,
+  initialPitch: 48,
+  initialYaw: -16,
 });
 
 const currentPreset = ref<"urban-managed" | "rural-divided" | "suburban-arterial">(props.preset);
@@ -2395,17 +2395,20 @@ function getLosDescription(los?: string): string {
   transform: translateX(-50%);
   transform-style: preserve-3d;
   width: 32px;
+  max-width: 78%;
   height: 72px;
   top: -140px;
 }
 
 .tux-roadway__vehicle--pickup {
   width: 36px;
+  max-width: 78%;
   height: 80px;
 }
 
 .tux-roadway__vehicle--truck {
   width: 40px;
+  max-width: 78%;
   height: 128px;
 }
 

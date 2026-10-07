@@ -22,13 +22,17 @@ useHead({
   title: "Tux Desk · Visual Web Builder & Source Editor",
 });
 
-const selectedPresetId = ref("research-program");
-const defaultPreset = getDeskPreset("research-program")!;
+const route = useRoute();
+const initialPresetId = (typeof route.query.preset === "string" && getDeskPreset(route.query.preset)) ? route.query.preset : "research-program";
+const initialTitle = (typeof route.query.title === "string" && route.query.title.trim()) ? route.query.title.trim() : null;
 
-const doc = ref<JSONContent>(clonePresetDoc("research-program")!);
+const selectedPresetId = ref(initialPresetId);
+const defaultPreset = getDeskPreset(initialPresetId)!;
+
+const doc = ref<JSONContent>(clonePresetDoc(initialPresetId)!);
 const pageMeta = ref({
-  title: defaultPreset.title,
-  slug: defaultPreset.suggestedSlug,
+  title: initialTitle || defaultPreset.title,
+  slug: initialTitle ? initialTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : defaultPreset.suggestedSlug,
   reviewCadenceDays: defaultPreset.reviewCadenceDays,
   status: "draft",
 });

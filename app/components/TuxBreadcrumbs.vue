@@ -110,23 +110,28 @@ withDefaults(defineProps<Props>(), {
 }
 
 .tux-breadcrumbs__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
   gap: 0.625rem;
   min-width: 0;
   max-width: 100%;
 }
 
 .tux-breadcrumbs__item {
-  display: inline-flex;
-  align-items: center;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
   gap: 0.625rem;
   min-width: 0;
   max-width: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
 }
 
 .tux-breadcrumbs__separator {
@@ -147,7 +152,7 @@ withDefaults(defineProps<Props>(), {
     color: var(--text-muted);
     font-size: 0.875rem;
   }
-  .tux-breadcrumbs__separator::after {
+  .tux-breadcrumbs:not(.tux-breadcrumbs--chevron) .tux-breadcrumbs__separator::after {
     content: "›";
   }
 }

@@ -752,21 +752,20 @@ function copyScaffoldCode() {
   <div class="space-y-12">
     <!-- Hub Header -->
     <TuxPageHeader
-      eyebrow="APPLICATION SUITES & WORKFLOW KITS"
-      title="Workflow Kits & Application Suites"
+      eyebrow="EXPERIMENTAL APPLICATION PROTOTYPES & REFERENCE SUITES"
+      title="Workflow Kits & Application Explorations"
     >
-      Production application archetypes, multi-device viewport simulators, and
-      architectural blueprints for Texas A&M Transportation Institute digital systems.
-      Toggle between the live interactive stage, component composition maps, and ready-to-copy
-      starter scaffolding.
+      Exploratory application archetypes, multi-device viewport simulators, and
+      architectural reference blueprints for Texas A&M Transportation Institute digital systems.
+      These kits showcase component composition possibilities across research, operations, and publishing workflows — provided as architectural inspiration and scaffolds, not mandatory mandates.
     </TuxPageHeader>
 
     <!-- Key Metrics Ribbon -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="p-4 rounded-md bg-surface-raised border border-surface-border">
-        <p class="eyebrow">Application Suites</p>
-        <p class="text-2xl font-bold text-text-primary mt-1">10 Suites</p>
-        <p class="text-xs text-text-muted mt-0.5">Turnkey production archetypes</p>
+        <p class="eyebrow">Reference Archetypes</p>
+        <p class="text-2xl font-bold text-text-primary mt-1">10 Explorations</p>
+        <p class="text-xs text-text-muted mt-0.5">Exploratory pattern compositions</p>
       </div>
       <div class="p-4 rounded-md bg-surface-raised border border-surface-border">
         <p class="eyebrow">Accessibility Standard</p>
@@ -791,10 +790,10 @@ function copyScaffoldCode() {
         <div>
           <h2 class="text-sm font-bold text-text-primary flex items-center gap-2">
             <UIcon name="lucide:rocket" class="w-4 h-4 text-brand-primary" />
-            <span>Fast Scaffolding Paths for Production Applications</span>
+            <span>Exploratory Scaffolding Starter Blueprints</span>
           </h2>
           <p class="text-xs text-text-muted mt-0.5">
-            Select the fastest path to launch a new digital asset aligned with TTI Communications guidelines:
+            Select a starter blueprint path to experiment with component compositions for your research or project needs:
           </p>
         </div>
         <NuxtLink
