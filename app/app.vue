@@ -1173,11 +1173,11 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
             </div>
           </div>
 
-          <!-- Mobile/Compact Area Switcher (< lg) -->
-          <div class="lg:hidden relative flex items-center ml-0.5 sm:ml-2 shrink-0">
+          <!-- Tablet Compact Area Switcher (sm to lg) -->
+          <div class="hidden sm:flex lg:hidden relative items-center ml-2 shrink-0">
             <select
               v-model="activeAreaId"
-              class="text-[11px] sm:text-xs font-bold uppercase tracking-wider bg-surface-sunken border border-surface-border rounded-md px-1 sm:px-2 py-1 text-brand-primary focus:outline-none focus:border-brand-primary font-mono cursor-pointer max-w-[95px] sm:max-w-none truncate"
+              class="text-xs font-bold uppercase tracking-wider bg-surface-sunken border border-surface-border rounded-md px-2 py-1 text-brand-primary focus:outline-none focus:border-brand-primary font-mono cursor-pointer truncate"
               aria-label="Select work area"
               @change="navigateTo(currentArea.to)"
             >
@@ -1284,6 +1284,26 @@ const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transp
             aria-modal="true"
             aria-label="Mobile Navigation"
           >
+            <!-- Mobile Primary Sections Scoping Dock -->
+            <div class="p-2.5 bg-surface-sunken/80 border-b border-surface-border flex-shrink-0">
+              <div class="text-[9px] font-mono font-bold uppercase tracking-wider text-text-muted mb-1.5 px-0.5">
+                Primary Sections
+              </div>
+              <div class="flex flex-wrap gap-1">
+                <NuxtLink
+                  v-for="area in highLevelAreas"
+                  :key="area.id"
+                  :to="area.to"
+                  class="px-2 py-1 rounded text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors no-underline"
+                  :class="currentArea.id === area.id ? 'bg-brand-primary text-text-on-brand font-bold shadow-xs' : 'bg-surface-raised text-text-secondary hover:text-text-primary border border-surface-border'"
+                  @click="activeAreaId = area.id; showAllAreasInSidebar = false; sidebarOpen = false;"
+                >
+                  <UIcon :name="area.icon" class="w-3.5 h-3.5 shrink-0" />
+                  <span>{{ area.shortLabel || area.label }}</span>
+                </NuxtLink>
+              </div>
+            </div>
+
             <TuxReactiveSidebar
               :sections="activeSidebarSections"
               :all-sections="navTree"

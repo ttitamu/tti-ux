@@ -615,7 +615,7 @@ function getLosDescription(los?: string): string {
               @click="setViewTopDown"
               title="Top Dead Center (0° Aerial View)"
             >
-              Top-Down (0°)
+              Top (0°)
             </button>
             <button
               type="button"
@@ -624,7 +624,7 @@ function getLosDescription(los?: string): string {
               @click="setViewIsometric"
               title="Isometric 3D Perspective (48°)"
             >
-              Iso 3D (48°)
+              Iso (48°)
             </button>
             <button
               type="button"
@@ -1632,7 +1632,7 @@ function getLosDescription(los?: string): string {
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
   padding: 0.75rem;
-  width: 13rem;
+  width: 15.5rem;
   box-shadow: var(--elevation-flat);
 }
 

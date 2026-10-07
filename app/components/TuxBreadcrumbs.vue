@@ -99,8 +99,6 @@ withDefaults(defineProps<Props>(), {
 
 <style scoped>
 .tux-breadcrumbs {
-  container-type: inline-size;
-  container-name: tux-breadcrumbs;
   font-family: var(--font-bold);
   font-size: 0.875rem;
   line-height: 1.4;
@@ -132,6 +130,7 @@ withDefaults(defineProps<Props>(), {
   margin: 0 !important;
   padding: 0 !important;
   list-style: none !important;
+  white-space: nowrap !important;
 }
 
 .tux-breadcrumbs__separator {
@@ -142,9 +141,9 @@ withDefaults(defineProps<Props>(), {
   flex-shrink: 0;
 }
 
-/* On narrow containers, swap the pipe rule for a chevron — pipes feel
-   cramped under ~30rem of inline space. */
-@container tux-breadcrumbs (max-width: 30rem) {
+/* On narrow viewports, swap the pipe rule for a chevron — pipes feel
+   cramped under 640px. */
+@media (max-width: 640px) {
   .tux-breadcrumbs__separator {
     width: auto;
     height: auto;
@@ -171,6 +170,12 @@ withDefaults(defineProps<Props>(), {
   font-weight: 700;
   text-decoration: none;
   transition: color 0.15s ease, text-decoration-color 0.15s ease;
+  white-space: nowrap !important;
+}
+
+.tux-breadcrumbs__current {
+  white-space: nowrap !important;
+  color: var(--text-primary);
 }
 
 .tux-breadcrumbs__home {
@@ -181,6 +186,7 @@ withDefaults(defineProps<Props>(), {
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
   text-decoration-color: color-mix(in srgb, var(--brand-secondary) 35%, transparent);
+  white-space: nowrap !important;
 }
 
 .tux-breadcrumbs__home-icon {
@@ -192,8 +198,7 @@ withDefaults(defineProps<Props>(), {
 .tux-breadcrumbs__link {
   font-style: italic;
   font-weight: 400;
-  word-break: break-word;
-  overflow-wrap: break-word;
+  white-space: nowrap !important;
   min-width: 0;
 }
 
