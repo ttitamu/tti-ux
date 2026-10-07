@@ -1636,6 +1636,52 @@ function getLosDescription(los?: string): string {
   box-shadow: var(--elevation-flat);
 }
 
+@media (max-width: 639px) {
+  .tux-roadway__3d-viewport {
+    min-height: 0;
+    flex-direction: column-reverse;
+  }
+
+  .tux-roadway__3d-controls {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: auto;
+    margin: 0.5rem;
+  }
+
+  .tux-roadway-cross-section .tux-roadway__perspective-wrapper {
+    padding: 0.5rem;
+    min-height: 18rem;
+  }
+
+  .tux-roadway__mode-pills {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tux-roadway__mode-btn {
+    flex: 0 0 auto;
+    min-height: 40px;
+    white-space: nowrap;
+  }
+
+  .tux-roadway-cross-section .tux-roadway__angle-btn {
+    min-height: 36px;
+  }
+
+  .tux-roadway__controls-row,
+  .tux-roadway__control-group {
+    width: 100%;
+  }
+
+  .tux-roadway__select {
+    flex: 1;
+    min-height: 40px;
+  }
+}
+
 .tux-roadway__presets-row {
   display: flex;
   align-items: center;

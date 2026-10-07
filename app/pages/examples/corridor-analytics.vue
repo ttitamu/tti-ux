@@ -74,14 +74,14 @@ function triggerDownload() {
 
     <!-- Operational Control Strip -->
     <div class="p-4 bg-surface-raised border border-surface-border rounded-xl shadow-xs flex items-center justify-between flex-wrap gap-4">
-      <div class="flex items-center gap-3 flex-wrap">
-        <div class="flex items-center gap-2">
-          <UIcon name="lucide:route" class="w-4 h-4 text-brand-primary" />
+      <div class="flex items-center gap-3 flex-wrap min-w-0 max-w-full">
+        <div class="flex items-center gap-2 min-w-0 max-w-full">
+          <UIcon name="lucide:route" class="w-4 h-4 shrink-0 text-brand-primary" />
           <span class="text-xs font-mono font-semibold uppercase text-text-muted">Corridor:</span>
           <select
             v-model="selectedCorridor"
             aria-label="Select Transportation Corridor"
-            class="bg-surface-sunken border border-surface-border rounded-md px-2.5 py-1.5 text-xs font-medium text-text-primary focus:border-brand-primary"
+            class="min-w-0 max-w-full bg-surface-sunken border border-surface-border rounded-md px-2.5 py-1.5 text-xs font-medium text-text-primary focus:border-brand-primary"
           >
             <option v-for="c in corridorOptions" :key="c.id" :value="c.id">
               {{ c.name }}
@@ -103,13 +103,13 @@ function triggerDownload() {
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 flex-wrap min-w-0 max-w-full">
         <div class="flex items-center gap-2 text-xs font-mono text-text-secondary">
           <TuxStatus state="ok" />
           <span>Feed Ingest Active (20ms latency)</span>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
           <TuxCitationExport :citation="datasetCitation" label="Cite dataset" variant="outline" />
           <TuxButton intent="primary" size="sm" icon="lucide:download" @click="triggerDownload">
             Export CSV

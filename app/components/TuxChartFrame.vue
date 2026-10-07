@@ -74,6 +74,12 @@ withDefaults(defineProps<Props>(), {
   container-name: tux-chart-frame;
 }
 
+@container tux-chart-frame (max-width: 28rem) {
+  .tux-chart-frame__title {
+    font-size: 1rem;
+  }
+}
+
 .tux-chart-frame__caption {
   margin-bottom: 1rem;
 }

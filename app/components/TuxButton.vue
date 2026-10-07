@@ -54,7 +54,7 @@ const shapeClass = computed(() => {
   if (props.shape === "pill") {
     return "!rounded-full";
   }
-  return "";
+  return "!rounded-xs";
 });
 </script>
 
@@ -62,7 +62,11 @@ const shapeClass = computed(() => {
   <UButton
     :color="mapped.color"
     :variant="mapped.variant"
-    :class="[mapped.klass, shapeClass]"
+    :class="[
+      mapped.klass,
+      shapeClass,
+      'active:scale-[0.98] transition-all duration-150 font-semibold tracking-tight min-h-[38px] sm:min-h-[34px] focus-visible:ring-2 focus-visible:ring-brand-primary/50 focus-visible:ring-offset-2',
+    ]"
     v-bind="$attrs"
   >
     <template v-for="(_, name) in $slots" #[name]="slotData">

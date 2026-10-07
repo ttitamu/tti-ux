@@ -124,10 +124,16 @@ function onPick(item: ChipItem, index: number) {
   color: var(--text-primary);
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-xs, 2px);
+  min-height: 2.25rem;
+  max-width: 100%;
   cursor: pointer;
   text-align: left;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.tux-suggestion-chips__chip:active {
+  transform: scale(0.98);
 }
 
 .tux-suggestion-chips__chip:hover,
@@ -146,7 +152,7 @@ function onPick(item: ChipItem, index: number) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 28rem;
+  max-width: min(28rem, calc(100cqw - 4rem));
 }
 
 .tux-suggestion-chips__chip-icon {

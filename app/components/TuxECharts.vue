@@ -259,12 +259,19 @@ defineExpose({
 .tux-echarts {
   position: relative;
   width: 100%;
+  max-width: 100%;
   border-radius: var(--radius-sm);
   background-color: var(--surface-raised);
   border: 1px solid var(--surface-border);
-  padding: var(--space-4);
+  padding: var(--space-2);
   overflow: hidden;
   transition: border-color 0.15s ease;
+}
+
+@media (min-width: 640px) {
+  .tux-echarts {
+    padding: var(--space-4);
+  }
 }
 
 .tux-echarts:focus-visible {

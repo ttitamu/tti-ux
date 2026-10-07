@@ -119,6 +119,8 @@ const toneClass = computed(() => `tux-center-badge--c${Math.max(1, Math.min(8, r
   text-transform: uppercase;
   letter-spacing: var(--tracking-wider, 0.05em);
   line-height: 1;
+  max-width: 100%;
+  white-space: nowrap;
 }
 
 .tux-center-badge__icon {
@@ -127,6 +129,8 @@ const toneClass = computed(() => `tux-center-badge--c${Math.max(1, Math.min(8, r
 
 .tux-center-badge__label {
   font-size: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tux-center-badge--sm {

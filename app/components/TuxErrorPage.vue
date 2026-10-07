@@ -176,6 +176,8 @@ const resolvedActions = computed(() => props.actions ?? preset.value.actions);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
   min-height: 70vh;
   padding: 3rem 1.5rem;
   text-align: center;

@@ -127,8 +127,9 @@ function onRemove(e: MouseEvent) {
   color: var(--text-primary);
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-xs, 2px);
   white-space: nowrap;
+  max-width: 100%;
   transition:
     background-color 0.15s ease,
     border-color 0.15s ease,
@@ -219,6 +220,7 @@ function onRemove(e: MouseEvent) {
 }
 
 .tux-removable-chip__remove {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -226,11 +228,17 @@ function onRemove(e: MouseEvent) {
   margin-left: 0.125rem;
   background: transparent;
   border: 0;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-xs, 2px);
   color: var(--text-muted);
   cursor: pointer;
   flex-shrink: 0;
   transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tux-removable-chip__remove::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
 }
 
 .tux-removable-chip__remove:hover,

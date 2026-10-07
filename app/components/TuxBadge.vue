@@ -52,6 +52,7 @@ interface Props {
   count?: number | string;
   label?: string;
   uppercase?: boolean;
+  shape?: "default" | "sharp" | "pill";
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -66,6 +67,7 @@ const props = withDefaults(defineProps<Props>(), {
   count: undefined,
   label: undefined,
   uppercase: false,
+  shape: "default",
 });
 
 const mode = computed<"tier" | "status" | "tone" | "kind">(() =>
@@ -126,8 +128,14 @@ const uVariant = computed<"solid" | "soft" | "outline" | "subtle">(() => {
 });
 
 const uBadgeUi = {
-  base: "font-semibold",
+  base: "font-semibold tracking-tight inline-flex items-center gap-1.5 whitespace-nowrap max-w-full border border-surface-border/40",
 };
+
+const shapeClass = computed(() => {
+  if (props.shape === "sharp") return "!rounded-none";
+  if (props.shape === "pill") return "!rounded-full";
+  return "!rounded-xs";
+});
 
 const dotColor = computed(() => {
   if (props.status) {
@@ -184,6 +192,7 @@ const isWarningColor = computed(() => uColor.value === "warning");
     :variant="uVariant"
     :ui="uBadgeUi"
     :class="[
+      shapeClass,
       isTagFont && 'font-mono font-normal',
       props.uppercase && 'font-mono uppercase tracking-wider text-[10px] font-bold',
       isWarningColor && !isBold && 'tux-badge--warning',
