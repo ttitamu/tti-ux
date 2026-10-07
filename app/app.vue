@@ -228,12 +228,20 @@ const versionDropdownRef = ref<HTMLElement | null>(null);
 
 const releases = [
   {
-    version: "v3.0.0",
-    title: "Comm Rebrand & Tokens",
-    era: "Modern Marcom Rebrand · 5-Band Spectrum & Sharp Geometry",
+    version: "v3.0.1",
+    title: "Editorial Polish & Navigation",
+    era: "Modern Marcom Rebrand · Numberless Nav & Smooth Accordions",
     badge: "Current",
     badgeClass: "bg-wash-brand-12 text-brand-primary border border-brand-primary/20",
     route: "/",
+  },
+  {
+    version: "v3.0.0",
+    title: "Comm Rebrand & Tokens",
+    era: "Modern Marcom Rebrand · 5-Band Spectrum & Sharp Geometry",
+    badge: "Stable",
+    badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
+    route: "/changelog#_300-2026-10-01",
   },
   {
     version: "v2.2.0",

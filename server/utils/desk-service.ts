@@ -4,6 +4,7 @@ import { getDeskDb, type DeskDb } from "../db/client";
 import { pages, revisions, orgUnits, users, issues, events, media } from "../db/schema";
 import type { PageStatus, Visibility, FeedbackReason, MediaKind } from "../db/types";
 import { isVerificationStale, shouldOpenFeedbackIssue } from "../../app/utils/desk/governance";
+import pkg from "../../package.json";
 
 export interface DeskActor {
   userId: string;
@@ -396,7 +397,7 @@ export function createDeskService(db: DeskDb, actor: DeskActor, defaultOrgId: st
 
       return {
         status: "healthy",
-        version: "3.0.0",
+        version: pkg.version,
         engine: "PGlite (in-process Wasm Postgres)",
         counts: {
           totalPages: allPages.length,

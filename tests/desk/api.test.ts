@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { openDesk } from "../../server/utils/desk-service";
+import pkg from "../../package.json";
 
 describe("Tux Desk API Service", () => {
   it("lists seeded pages with freshness metadata", async () => {
@@ -115,7 +116,7 @@ describe("Tux Desk API Service", () => {
     const { service } = await openDesk();
     const stats = await service.getSystemStats();
     expect(stats.status).toBe("healthy");
-    expect(stats.version).toBe("3.0.0");
+    expect(stats.version).toBe(pkg.version);
     expect(stats.counts.totalPages).toBeGreaterThan(0);
     expect(stats.engine).toContain("PGlite");
   });

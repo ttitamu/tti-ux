@@ -3,6 +3,36 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.0.1] — 2026-10-07
+
+### Added & Changed — Editorial Polish, Smooth Accordions & Responsive Navigation (2026-10-07)
+
+Maintenance and UX polish release delivering numberless editorial navigation, animated accordion scrolling, multi-viewport responsive alignment, and 3D corridor visualizer fixes.
+
+#### 1. Editorial & Numberless Navigation
+- **Stripped Numbered Engineering Prefixes**: Omitted all raw batch numbers (`00 //`, `01 //`, `03a //`, `04b //`, `06e //`, etc.) from high-level group titles, sidebar categories, mobile drawer lists, and section headers in favor of clean institutional titles (*Overview*, *Doctrine*, *Foundations*, *Actions & Commands*, *Navigation & Layout*, *Data Display & Tables*, *Feedback & Alerts*, *Forms & Controls*, *AI & Conversational*, *Editorial CMS*, *Content Governance*, *Suites & Kits*, *Timeseries & Trends*, *Geospatial & Maps*, etc.).
+- **Automatic Badge Box Suppression**: Omission of `//` delimiters automatically collapses sidebar prefix badge boxes without breaking schema or routing.
+
+#### 2. Smooth Accordion Animations & Catalog Scroll Sync
+- **Sidebar Accordions**: Added smooth height and opacity transitions (`max-h-0` to `max-h-[1200px]`, `opacity-0` to `opacity-100`) to collapsible navigation groups in `<TuxReactiveSidebar>`. Expanding sections smoothly scroll into view within the sidebar container (`scrollIntoView({ behavior: 'smooth', block: 'nearest' })`).
+- **Component Lab Category Sync**: Selecting a category in the sidebar while on `/components` (or clicking category pills) now updates the query state (`/components?cat=...`) and smoothly scrolls the viewport to `#component-catalog-grid`.
+- **In-Page `<TuxAccordion>`**: Added `@toggle="onToggle"` event listener with smooth scrolling on expansion and protective `scroll-margin-top: 5rem` to avoid collisions with sticky headers.
+
+#### 3. Responsive Shell & Mobile Viewport Polish
+- **Mobile Drawer Streamlining**: Added high-contrast primary section badges (*Foundations*, *Components*, *Telemetry*, *Research*, *Docs*) at the top of the mobile drawer.
+- **Viewport Layout**: Fixed side margin attribution and eliminated horizontal whitespace blowouts across iOS and compact viewports.
+- **Breadcrumb Text Wrapping**: Resolved vertical collapse and text clipping on `/design/tux` and deep doctrine pages.
+- **Logo Route Navigation**: Fixed TTI logo and home title links across the shell to reliably navigate back to the root (`/`).
+
+#### 4. 3D Corridor Visualizer & Editorial CMS Fallbacks
+- **Roadway Perspective Defaults**: Corrected desktop and mobile pitch, roll, and focal plane defaults so 3D lanes orient realistically without collapsing into a single lane flat blob.
+- **Interactive Controls**: Repaired slider labels and responsive panel wrapping on desktop displays.
+- **Editorial Desk Builder Fallback**: Ensured editor playground and component block palette load gracefully in unauthenticated preview environments.
+
+#### 5. Verification & Standards Compliance
+- **100% WCAG 2.2 AAA Compliance**: Re-certified zero accessibility violations across all components and templates (`scripts/audit-wcag-aaa.mjs`).
+- **Full Test Suite Integrity**: 218 Nuxt test suites (677 tests) and 26 React test suites (87 tests) passing 100%.
+
 ## [3.0.0] — 2026-10-01
 
 ### Added — TUX 3.0 & Comm Brand Transformation (2026-10-01)
