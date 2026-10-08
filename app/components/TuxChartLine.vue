@@ -52,6 +52,8 @@
  *   />
  */
 
+export type TuxChartMarkerShape = "circle" | "square" | "triangle" | "diamond" | "cross" | "star";
+
 interface Series {
   key: string;
   label: string;
@@ -65,6 +67,12 @@ interface Series {
   /** Override the auto-assigned palette index (1..8). Default is
    *  position in the `series` array. */
   toneIndex?: number;
+  /** Custom stroke-dasharray (e.g. "6 4", "none"). Overrides the
+   *  auto-assigned stroke pattern. */
+  dashArray?: string;
+  /** Custom geometric marker glyph shape. Overrides the
+   *  auto-assigned marker shape. */
+  marker?: TuxChartMarkerShape;
 }
 
 interface Props {
@@ -78,6 +86,18 @@ interface Props {
   height?: number;
   /** Show data-point markers on each line. */
   markers?: boolean;
+  /** Enforce distinct geometric marker glyphs (circle, square, triangle,
+   *  diamond, cross, star) instead of uniform circles. Default: true. */
+  distinctMarkers?: boolean;
+  /** Radius of markers in px. Default: 3.5. */
+  markerRadius?: number;
+  /** Stroke width of primary lines in px. Default: 2.
+   *  Elevate to 2.5 or 3 for low-vision accessibility. */
+  strokeWidth?: number;
+  /** Enable distinct stroke dash patterns per series for colorblind
+   *  and monochrome accessibility. Default: true when series.length > 1;
+   *  false for single-series. Set false to force solid lines. */
+  patterns?: boolean;
   /** Show end-of-line value labels colored to match the series. */
   endLabels?: boolean;
   /** Show the legend below the chart. Off by default — end-of-line
@@ -114,6 +134,10 @@ const props = withDefaults(defineProps<Props>(), {
   width: 640,
   height: 280,
   markers: false,
+  distinctMarkers: true,
+  markerRadius: 3.5,
+  strokeWidth: 2,
+  patterns: undefined,
   endLabels: true,
   legend: false,
   gridlines: true,
@@ -198,6 +222,86 @@ function toneVar(idx: number) {
   // Clamp, don't wrap — tuxSeriesTone takes a 0-based fallback index,
   // so idx-1 keeps existing 1-based call sites unchanged.
   return `var(--chart-${tuxSeriesTone(idx - 1)})`;
+}
+
+/** Canonical stroke-dasharray cycle for multi-series distinction across CVD / monochrome print.
+ *  Carefully calibrated so dash lengths and frequencies are perceptually distinct. */
+const TUX_SERIES_DASH_PATTERNS = [
+  "none",         // Series 0: Solid
+  "8 4",          // Series 1: Dashed
+  "2 3",          // Series 2: Dotted
+  "8 3 2 3",      // Series 3: Dash-dot
+  "14 5",         // Series 4: Long dash
+  "1 3",          // Series 5: Dense dot
+  "10 3 2 3 2 3", // Series 6: Dash-double-dot
+  "5 3",          // Series 7: Short dash
+] as const;
+
+/** Canonical geometric marker glyph sequence. */
+const TUX_SERIES_MARKERS: TuxChartMarkerShape[] = [
+  "circle",
+  "square",
+  "triangle",
+  "diamond",
+  "cross",
+  "star",
+];
+
+function getSeriesDashArray(s: Series, index: number): string {
+  if (s.dashArray !== undefined) return s.dashArray;
+  // If explicitly disabled
+  if (props.patterns === false) return "none";
+  // If explicitly enabled or default auto (enabled when multi-series)
+  const isEnabled = props.patterns === true || (props.patterns === undefined && props.series.length > 1);
+  if (!isEnabled) return "none";
+  return TUX_SERIES_DASH_PATTERNS[index % TUX_SERIES_DASH_PATTERNS.length];
+}
+
+function getSeriesMarker(s: Series, index: number): TuxChartMarkerShape {
+  if (s.marker !== undefined) return s.marker;
+  if (!props.distinctMarkers) return "circle";
+  return TUX_SERIES_MARKERS[index % TUX_SERIES_MARKERS.length];
+}
+
+function getMarkerPath(cx: number, cy: number, shape: TuxChartMarkerShape, r: number = props.markerRadius): string {
+  switch (shape) {
+    case "square": {
+      const s = r * 0.9;
+      return `M ${(cx - s).toFixed(2)},${(cy - s).toFixed(2)} h ${(2 * s).toFixed(2)} v ${(2 * s).toFixed(2)} h ${(-2 * s).toFixed(2)} Z`;
+    }
+    case "triangle": {
+      const topY = cy - r * 1.25;
+      const botY = cy + r * 0.85;
+      const dX = r * 1.15;
+      return `M ${cx.toFixed(2)},${topY.toFixed(2)} L ${(cx + dX).toFixed(2)},${botY.toFixed(2)} L ${(cx - dX).toFixed(2)},${botY.toFixed(2)} Z`;
+    }
+    case "diamond": {
+      const d = r * 1.25;
+      return `M ${cx.toFixed(2)},${(cy - d).toFixed(2)} L ${(cx + d).toFixed(2)},${cy.toFixed(2)} L ${cx.toFixed(2)},${(cy + d).toFixed(2)} L ${(cx - d).toFixed(2)},${cy.toFixed(2)} Z`;
+    }
+    case "cross": {
+      const t = r * 0.38;
+      const arm = r * 1.15;
+      return `M ${(cx - t).toFixed(2)},${(cy - arm).toFixed(2)} h ${(2 * t).toFixed(2)} v ${(arm - t).toFixed(2)} h ${(arm - t).toFixed(2)} v ${(2 * t).toFixed(2)} h ${(-arm + t).toFixed(2)} v ${(arm - t).toFixed(2)} h ${(-2 * t).toFixed(2)} v ${(-arm + t).toFixed(2)} h ${(-arm + t).toFixed(2)} v ${(-2 * t).toFixed(2)} h ${(arm - t).toFixed(2)} Z`;
+    }
+    case "star": {
+      const pts: string[] = [];
+      const outerR = r * 1.3;
+      const innerR = r * 0.55;
+      for (let i = 0; i < 10; i++) {
+        const angle = -Math.PI / 2 + (i * Math.PI) / 5;
+        const rad = i % 2 === 0 ? outerR : innerR;
+        const px = (cx + rad * Math.cos(angle)).toFixed(2);
+        const py = (cy + rad * Math.sin(angle)).toFixed(2);
+        pts.push(`${i === 0 ? "M" : "L"} ${px},${py}`);
+      }
+      return `${pts.join(" ")} Z`;
+    }
+    case "circle":
+    default: {
+      return `M ${cx.toFixed(2)},${cy.toFixed(2)} m -${r.toFixed(2)},0 a ${r.toFixed(2)},${r.toFixed(2)} 0 1,0 ${(2 * r).toFixed(2)},0 a ${r.toFixed(2)},${r.toFixed(2)} 0 1,0 ${(-2 * r).toFixed(2)},0`;
+    }
+  }
 }
 
 // Auto-derive an SR summary covering all series.
@@ -498,32 +602,39 @@ function onBrushUp() {
         />
       </g>
 
-      <!-- Primary lines -->
+      <!-- Primary lines with accessible stroke-dash patterns -->
       <g class="tux-chart-line__lines">
         <path
           v-for="(s, i) in visibleSeries"
           :key="`line-${s.key}`"
           :d="linePath(s.data)"
-          :style="{ stroke: toneVar(s.toneIndex ?? i + 1) }"
+          :style="{
+            stroke: toneVar(s.toneIndex ?? i + 1),
+            strokeDasharray: getSeriesDashArray(s, i) !== 'none' ? getSeriesDashArray(s, i) : undefined,
+          }"
           class="tux-chart-line__line"
+          :class="[
+            `tux-chart-line__line--series-${i}`,
+            getSeriesDashArray(s, i) !== 'none' ? 'tux-chart-line__line--patterned' : null,
+          ]"
           fill="none"
-          stroke-width="2"
+          :stroke-width="strokeWidth"
         />
       </g>
 
-      <!-- Markers -->
+      <!-- Markers with accessible distinct geometric glyphs -->
       <g v-if="markers" class="tux-chart-line__markers">
         <template
           v-for="(s, i) in visibleSeries"
           :key="`mk-${s.key}`"
         >
-          <circle
+          <path
             v-for="(v, j) in s.data"
             :key="`mk-${s.key}-${j}`"
-            :cx="xAt(j, s.data.length)"
-            :cy="yAt(v)"
-            r="3"
+            :d="getMarkerPath(xAt(j, s.data.length), yAt(v), getSeriesMarker(s, i))"
             :style="{ fill: toneVar(s.toneIndex ?? i + 1) }"
+            class="tux-chart-line__marker"
+            :class="`tux-chart-line__marker--${getSeriesMarker(s, i)}`"
           />
         </template>
       </g>
@@ -554,13 +665,11 @@ function onBrushUp() {
           class="tux-chart-line__hover-guide"
         />
         <template v-if="hoverIndex !== null">
-          <circle
+          <path
             v-for="(s, i) in visibleSeries"
             :key="`focus-${s.key}`"
-            :cx="hoverX"
-            :cy="yAt(s.data[hoverIndex] as number)"
-            r="4"
-            :style="{ stroke: toneVar(s.toneIndex ?? i + 1) }"
+            :d="getMarkerPath(hoverX, yAt(s.data[hoverIndex] as number), getSeriesMarker(s, i), 4.5)"
+            :style="{ fill: toneVar(s.toneIndex ?? i + 1) }"
             class="tux-chart-line__hover-dot"
           />
         </template>
@@ -704,13 +813,38 @@ function onBrushUp() {
       <li
         v-for="(s, i) in series"
         :key="`leg-${s.key}`"
+        class="tux-chart-line__legend-item"
       >
         <span
           class="tux-chart-line__legend-swatch"
-          :style="{ background: toneVar(s.toneIndex ?? i + 1) }"
+          :title="`${s.label} (${getSeriesMarker(s, i)} marker, ${getSeriesDashArray(s, i) !== 'none' ? 'dashed' : 'solid'})`"
           aria-hidden="true"
-        />
-        {{ s.label }}
+        >
+          <svg
+            width="26"
+            height="12"
+            viewBox="0 0 26 12"
+            class="tux-chart-line__legend-sample"
+          >
+            <!-- Sample line stroke with series dash pattern -->
+            <line
+              x1="0"
+              y1="6"
+              x2="26"
+              y2="6"
+              :stroke="toneVar(s.toneIndex ?? i + 1)"
+              :stroke-width="strokeWidth"
+              :stroke-dasharray="getSeriesDashArray(s, i) !== 'none' ? getSeriesDashArray(s, i) : undefined"
+            />
+            <!-- Centered sample marker glyph -->
+            <path
+              v-if="markers || distinctMarkers"
+              :d="getMarkerPath(13, 6, getSeriesMarker(s, i), 3.2)"
+              :fill="toneVar(s.toneIndex ?? i + 1)"
+            />
+          </svg>
+        </span>
+        <span class="tux-chart-line__legend-label">{{ s.label }}</span>
       </li>
     </ul>
   </figure>
@@ -768,10 +902,19 @@ function onBrushUp() {
   gap: 0.375rem;
 }
 .tux-chart-line__legend-swatch {
-  display: inline-block;
-  width: 0.625rem;
-  height: 0.625rem;
-  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.625rem;
+  height: 0.75rem;
+  flex-shrink: 0;
+}
+.tux-chart-line__legend-sample {
+  display: block;
+  overflow: visible;
+}
+.tux-chart-line__marker {
+  transition: opacity 0.15s ease-out;
 }
 
 /* ---- Hover layer ---- */
