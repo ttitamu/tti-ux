@@ -80,19 +80,78 @@
 .tux-status--text.tux-status--maintenance { color: var(--status-maintenance); }
 
 .tux-status--dot {
-  width: 0.5rem;
-  height: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.875rem;
+  height: 0.875rem;
   padding: 0;
   border-radius: 999px;
   color: transparent;
   font-size: 0;
+  line-height: 1;
+  vertical-align: middle;
+  flex-shrink: 0;
 }
-.tux-status--dot.tux-status--ok { background: var(--status-ok); }
-.tux-status--dot.tux-status--warning { background: var(--status-warning); }
-.tux-status--dot.tux-status--unknown { background: var(--status-unknown); }
-.tux-status--dot.tux-status--critical { background: var(--status-critical); }
-.tux-status--dot.tux-status--pending { background: var(--status-pending); }
-.tux-status--dot.tux-status--maintenance { background: var(--status-maintenance); }
+.tux-status--dot:not(.tux-status--has-glyph) {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+.tux-status--dot.tux-status--ok:not(.tux-status--has-glyph) { background: var(--status-ok); }
+.tux-status--dot.tux-status--warning:not(.tux-status--has-glyph) { background: var(--status-warning); }
+.tux-status--dot.tux-status--unknown:not(.tux-status--has-glyph) { background: var(--status-unknown); }
+.tux-status--dot.tux-status--critical:not(.tux-status--has-glyph) { background: var(--status-critical); }
+.tux-status--dot.tux-status--pending:not(.tux-status--has-glyph) { background: var(--status-pending); }
+.tux-status--dot.tux-status--maintenance:not(.tux-status--has-glyph) { background: var(--status-maintenance); }
+
+.tux-status--dot.tux-status--has-glyph {
+  background: transparent;
+  border: none;
+}
+
+/* ── Multi-channel redundant shape glyphs (WCAG 2.2 AAA / CVD) ────── */
+
+.tux-status__glyph {
+  display: inline-block;
+  flex-shrink: 0;
+  overflow: visible;
+  vertical-align: middle;
+}
+
+.tux-status__glyph--dot {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.tux-status__glyph--inline {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: 0.25rem;
+}
+
+.tux-status--ok .tux-status__shape-bg { fill: var(--status-ok); }
+.tux-status--warning .tux-status__shape-bg { fill: var(--status-warning); }
+.tux-status--unknown .tux-status__shape-bg { fill: var(--status-unknown); }
+.tux-status--critical .tux-status__shape-bg { fill: var(--status-critical); }
+.tux-status--pending .tux-status__shape-bg { fill: var(--status-pending); }
+.tux-status--maintenance .tux-status__shape-bg { fill: var(--status-maintenance); }
+
+.tux-status__shape-fg {
+  stroke: var(--text-on-brand);
+}
+.tux-status__shape-fg--dark {
+  stroke: var(--neutral-900);
+}
+
+.tux-status--acked .tux-status__shape-bg {
+  fill: var(--surface-sunken);
+  stroke: var(--surface-border);
+  stroke-width: 1;
+}
+.tux-status--acked .tux-status__shape-fg,
+.tux-status--acked .tux-status__shape-fg--dark {
+  stroke: var(--text-muted);
+}
 
 /*
  * Acknowledged: still a live problem, but it has an owner, so it

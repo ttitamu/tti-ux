@@ -53,6 +53,13 @@ interface Props {
   label?: string;
   uppercase?: boolean;
   shape?: "default" | "sharp" | "pill";
+  /**
+   * Multi-channel shape encoding (WCAG 2.2 AAA / CVD accessibility).
+   * Replaces uniform dots with distinct shape micro-glyphs:
+   * (e.g. check-circle for completed/success, alert-triangle for warning/draft,
+   * alert-octagon for failed/error/danger, clock for queued, shield for verified/tier).
+   */
+  glyph?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -63,6 +70,7 @@ const props = withDefaults(defineProps<Props>(), {
   variant: undefined,
   bold: false,
   dot: false,
+  glyph: false,
   icon: undefined,
   count: undefined,
   label: undefined,
@@ -184,6 +192,47 @@ const isTagFont = computed(() => props.kind === "tag");
 // Nuxt UI's warning text on amber-50 bg under-contrasts. Tag so tux.css
 // can pull it to amber-800 — mirrors the TuxAlert warning fix.
 const isWarningColor = computed(() => uColor.value === "warning");
+
+const statusGlyphIcon: Record<TuxBadgeStatus, string> = {
+  completed: "lucide:check-circle-2",
+  running: "lucide:loader-2",
+  failed: "lucide:alert-octagon",
+  queued: "lucide:clock",
+  paused: "lucide:pause-circle",
+  cancelled: "lucide:slash",
+  published: "lucide:check-circle-2",
+  draft: "lucide:file-edit",
+  expired: "lucide:alert-octagon",
+  verified: "lucide:shield-check",
+};
+
+const toneGlyphIcon: Record<TuxBadgeTone, string> = {
+  success: "lucide:check-circle-2",
+  warning: "lucide:alert-triangle",
+  danger: "lucide:alert-octagon",
+  error: "lucide:alert-octagon",
+  info: "lucide:info",
+  brand: "lucide:sparkles",
+  neutral: "lucide:circle-dot",
+  muted: "lucide:circle",
+  custom: "lucide:circle",
+};
+
+const tierGlyphIcon: Record<TuxBadgeTier, string> = {
+  public: "lucide:globe",
+  internal: "lucide:building-2",
+  sensitive: "lucide:shield-alert",
+  restricted: "lucide:lock",
+};
+
+const activeGlyphIcon = computed(() => {
+  if (props.icon) return props.icon;
+  if (!props.glyph) return undefined;
+  if (props.status) return statusGlyphIcon[props.status];
+  if (props.tone) return toneGlyphIcon[props.tone];
+  if (props.tier) return tierGlyphIcon[props.tier];
+  return undefined;
+});
 </script>
 
 <template>
@@ -205,6 +254,17 @@ const isWarningColor = computed(() => uColor.value === "warning");
   >
     <template v-if="props.icon" #leading>
       <UIcon :name="props.icon" class="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+    </template>
+    <template v-else-if="activeGlyphIcon" #leading>
+      <UIcon
+        :name="activeGlyphIcon"
+        class="w-3.5 h-3.5 flex-shrink-0"
+        :class="[
+          status === 'running' && 'animate-spin',
+          shouldPulseDot && 'animate-pulse',
+        ]"
+        aria-hidden="true"
+      />
     </template>
     <template v-else-if="mode === 'status' && status === 'running'" #leading>
       <UIcon name="lucide:loader-2" class="w-3 h-3 animate-spin" aria-hidden="true" />

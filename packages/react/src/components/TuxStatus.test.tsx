@@ -41,4 +41,14 @@ describe("TuxStatus (React port)", () => {
     render(<TuxStatus state="maintenance" label="SCHEDULED" />);
     expect(screen.getByText("SCHEDULED")).toBeDefined();
   });
+
+  it("renders accessible multi-channel SVG shape glyphs in dot and chip modes", () => {
+    const { container: dotContainer } = render(<TuxStatus state="critical" kind="dot" />);
+    expect(dotContainer.querySelector("svg.tux-status__glyph")).toBeDefined();
+    expect(dotContainer.querySelector("polygon.tux-status__shape-bg")).toBeDefined();
+
+    const { container: chipContainer } = render(<TuxStatus state="ok" kind="chip" glyph />);
+    expect(chipContainer.querySelector("svg.tux-status__glyph--inline")).toBeDefined();
+    expect(screen.getByText("OK")).toBeDefined();
+  });
 });

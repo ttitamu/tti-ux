@@ -49,4 +49,15 @@ describe("TuxBadge (React port)", () => {
     expect(badge?.className).toContain("tux-badge--bold");
     expect(badge?.className).toContain("tux-badge--lg");
   });
+
+  it("renders accessible multi-channel shape glyphs for colorblind accessibility", () => {
+    const { container: successContainer } = render(<TuxBadge tone="success" glyph label="PASSED" />);
+    expect(successContainer.querySelector(".tux-badge__glyph svg circle")).toBeDefined();
+
+    const { container: warningContainer } = render(<TuxBadge tone="warning" glyph label="REVIEW" />);
+    expect(warningContainer.querySelector(".tux-badge__glyph svg path")).toBeDefined();
+
+    const { container: errorContainer } = render(<TuxBadge tone="error" glyph label="BLOCKED" />);
+    expect(errorContainer.querySelector(".tux-badge__glyph svg polygon")).toBeDefined();
+  });
 });

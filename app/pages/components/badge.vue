@@ -92,7 +92,27 @@ const badgeControls: TuxPropControl[] = [
     options: ["", "lucide:sparkles", "lucide:shield-check", "lucide:clock", "lucide:database", "lucide:activity"],
     defaultValue: "",
   },
+  {
+    prop: "glyph",
+    label: "Shape Glyph (CVD)",
+    type: "boolean",
+    defaultValue: false,
+    description: "Multi-channel shape redundancy replacing uniform dots with semantic glyphs",
+  },
 ];
+
+const glyphBadgesVue = `<!-- Operational Lifecycle Badges with Multi-Channel Shape Redundancy -->
+<TuxBadge status="completed" glyph />
+<TuxBadge status="running" glyph />
+<TuxBadge status="failed" glyph />
+<TuxBadge status="draft" glyph />
+<TuxBadge status="verified" glyph />
+
+<!-- Semantic Tones with Shape Glyphs -->
+<TuxBadge tone="success" glyph>PASSED</TuxBadge>
+<TuxBadge tone="warning" glyph>REVIEW</TuxBadge>
+<TuxBadge tone="danger" glyph>CRITICAL</TuxBadge>
+<TuxBadge tone="info" glyph>NOTICE</TuxBadge>`;
 
 const badgePresets: TuxPlaygroundPreset[] = [
   {
@@ -151,6 +171,21 @@ const badgePresets: TuxPlaygroundPreset[] = [
       icon: "lucide:database",
     },
   },
+  {
+    name: "cvd-accessible-shape",
+    label: "Accessible Shape Glyph (CVD)",
+    description: "Multi-channel redundant shape glyph replacing uniform dots for colorblind safety",
+    icon: "lucide:shield-check",
+    values: {
+      tone: "danger",
+      label: "Critical Security Trigger",
+      size: "sm",
+      bold: false,
+      dot: true,
+      glyph: true,
+      icon: "",
+    },
+  },
 ];
 </script>
 
@@ -181,6 +216,7 @@ const badgePresets: TuxPlaygroundPreset[] = [
             :size="values.size"
             :bold="values.bold"
             :dot="values.dot"
+            :glyph="values.glyph"
             :icon="values.icon || undefined"
           >
             {{ values.label }}
@@ -245,6 +281,36 @@ const badgePresets: TuxPlaygroundPreset[] = [
           <TuxBadge tone="brand" icon="lucide:shield-check">Secured</TuxBadge>
           <TuxBadge tone="info" icon="lucide:database">PostgreSQL</TuxBadge>
           <TuxBadge tone="neutral" icon="lucide:file-text">Draft Spec</TuxBadge>
+        </div>
+      </TuxExample>
+    </section>
+
+    <section>
+      <p class="eyebrow">colorblindness & cvd</p>
+      <h2 class="heading--bold text-xl font-bold">Multi-Channel Redundant Shape Badges</h2>
+      <p class="text-sm text-text-secondary mb-3">
+        When operational state or security severity is communicated via color alone, users with
+        color vision deficiencies (Protanopia / Deuteranopia / Tritanopia) cannot reliably distinguish healthy
+        from failing states. Passing <code>glyph</code> replaces or augments status dots with
+        shape-coded semantic micro-glyphs (check-circle, alert-octagon, alert-triangle, shield-check).
+      </p>
+      <TuxExample class="mt-4" :vue="glyphBadgesVue" :source="tuxBadgeSource">
+        <div class="space-y-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-mono text-text-secondary w-28">LIFECYCLE:</span>
+            <TuxBadge status="completed" glyph />
+            <TuxBadge status="running" glyph />
+            <TuxBadge status="failed" glyph />
+            <TuxBadge status="draft" glyph />
+            <TuxBadge status="verified" glyph />
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-mono text-text-secondary w-28">SEMANIC TONES:</span>
+            <TuxBadge tone="success" glyph>PASSED</TuxBadge>
+            <TuxBadge tone="warning" glyph>REVIEW</TuxBadge>
+            <TuxBadge tone="danger" glyph>CRITICAL</TuxBadge>
+            <TuxBadge tone="info" glyph>NOTICE</TuxBadge>
+          </div>
         </div>
       </TuxExample>
     </section>
