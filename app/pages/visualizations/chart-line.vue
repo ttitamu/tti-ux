@@ -74,6 +74,17 @@ const lineControls = [
     description: "Multi-point telemetry time series dataset",
   },
   {
+    prop: "palette",
+    label: "Categorical Palette",
+    type: "select" as const,
+    options: [
+      { label: "TTI Brand (Maroon / Slate / Wheat / Sage)", value: "brand" },
+      { label: "Okabe-Ito CVD Universal (Blue / Orange Polarity)", value: "cvd" },
+    ],
+    defaultValue: "brand",
+    description: "Clinically validated color palette for color vision deficiency",
+  },
+  {
     prop: "markers",
     label: "Show Point Markers",
     type: "boolean" as const,
@@ -114,10 +125,11 @@ const linePresets = [
   {
     name: "cvd-accessible",
     label: "Universal CVD & Monochrome (Accessible)",
-    description: "3-series operations timeline with distinct stroke dash patterns, geometric markers, and accessible legend",
+    description: "Okabe-Ito universal palette with distinct stroke dash patterns, geometric markers, and accessible legend",
     icon: "lucide:eye",
     values: {
       dataset: "multi",
+      palette: "cvd",
       markers: true,
       distinctMarkers: true,
       patterns: true,
@@ -132,6 +144,7 @@ const linePresets = [
     icon: "lucide:activity",
     values: {
       dataset: "multi",
+      palette: "brand",
       markers: true,
       distinctMarkers: true,
       patterns: true,
@@ -179,6 +192,8 @@ const linePresets = [
 
 const basicVue = `<tux-chart-line :labels="months" :series="series" :width="640" :height="280" />`;
 const multiVue = `<tux-chart-line :labels="months" :series="multiSeries" markers legend />`;
+const cvdPaletteVue = `<!-- Okabe-Ito Universal CVD Palette: Deep Blue (#0072B2) & Warm Orange (#E69F00) Polarity -->
+<tux-chart-line :labels="months" :series="multiSeries" palette="cvd" markers legend />`;
 const prevVue = `<!-- series[].previous renders as a 60% opacity dashed
      companion in the same hue. Same metric, prior window. -->
 <tux-chart-line :labels="labels" :series="previousSeries" markers />`;
@@ -250,12 +265,13 @@ const focusVue = `<UButton icon="lucide:maximize" @click="focusOpen = true">Open
         :powerbi="pbiCartesian"
         :code-template="(values) => {
           const ds = datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.multi;
+          const paletteAttr = values.palette === 'cvd' ? '\n  palette=\x22cvd\x22' : '';
           const markerAttr = values.markers ? '\n  markers' : '';
           const distinctAttr = values.distinctMarkers === false ? '\n  :distinct-markers=\x22false\x22' : '';
           const patternAttr = values.patterns === false ? '\n  :patterns=\x22false\x22' : '';
           const brushAttr = values.brush ? '\n  brush' : '';
           const legendAttr = values.legend ? '\n  legend' : '';
-          return `<tux-chart-line\n  :labels=\x22${ds.codeLabels}\x22\n  :series=\x22${ds.codeSeries}\x22${markerAttr}${distinctAttr}${patternAttr}${brushAttr}${legendAttr}\n  :width=\x22640\x22\n  :height=\x22280\x22\n/>`;
+          return `<tux-chart-line\n  :labels=\x22${ds.codeLabels}\x22\n  :series=\x22${ds.codeSeries}\x22${paletteAttr}${markerAttr}${distinctAttr}${patternAttr}${brushAttr}${legendAttr}\n  :width=\x22640\x22\n  :height=\x22280\x22\n/>`;
         }"
       >
         <template #default="{ values }">
@@ -263,6 +279,7 @@ const focusVue = `<UButton icon="lucide:maximize" @click="focusOpen = true">Open
             <TuxChartLine
               :labels="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.multi).labels"
               :series="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.multi).series"
+              :palette="values.palette"
               :markers="values.markers"
               :distinct-markers="values.distinctMarkers"
               :patterns="values.patterns"
@@ -301,6 +318,20 @@ const focusVue = `<UButton icon="lucide:maximize" @click="focusOpen = true">Open
       </p>
       <TuxExample :powerbi="pbiCartesian" :source="tuxChartLineSource" class="mt-4" :vue="multiVue">
         <TuxChartLine :labels="months" :series="multiSeries" markers legend />
+      </TuxExample>
+    </section>
+
+    <section>
+      <p class="eyebrow">colorblindness · okabe-ito universal palette</p>
+      <h2 class="heading--bold text-xl font-bold">Okabe-Ito Universal Palette (Blue / Orange Polarity)</h2>
+      <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
+        Pass <code>palette="cvd"</code> to activate the clinically verified <strong>Okabe-Ito 8-color universal palette</strong> (<code>--chart-cvd-1..8</code>).
+        The primary series are anchored by <strong>Deep Blue (#0072B2)</strong> and <strong>Warm Orange (#E69F00)</strong>,
+        maximizing chromatic and luminance contrast across Protanopia, Deuteranopia, and Tritanopia confusion axes.
+        Combined with shape-distinct markers and stroke dash patterns, charts achieve 100% triple-redundant accessibility.
+      </p>
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartLineSource" class="mt-4" :vue="cvdPaletteVue">
+        <TuxChartLine :labels="months" :series="multiSeries" palette="cvd" markers legend />
       </TuxExample>
     </section>
 

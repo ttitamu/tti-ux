@@ -144,4 +144,29 @@ describe("TuxChartLine Component", () => {
     expect(solidLines[0].attributes("style")).not.toContain("stroke-dasharray");
     expect(solidLines[1].attributes("style")).not.toContain("stroke-dasharray");
   });
+
+  it("applies Okabe-Ito universal palette when palette='cvd'", async () => {
+    const wrapper = await mountSuspended(TuxChartLine, {
+      props: {
+        labels: ["Q1", "Q2", "Q3"],
+        series: [
+          { key: "north", label: "North Bound", data: [50, 60, 55] },
+          { key: "south", label: "South Bound", data: [45, 52, 58] },
+        ],
+        palette: "cvd",
+        legend: true,
+      },
+    });
+
+    const root = wrapper.find(".tux-chart-line");
+    expect(root.classes()).toContain("tux-chart--cvd");
+    expect(root.attributes("data-chart-palette")).toBe("cvd");
+
+    const lines = wrapper.findAll(".tux-chart-line__line");
+    expect(lines[0].attributes("style")).toContain("var(--chart-cvd-1, var(--chart-1))");
+    expect(lines[1].attributes("style")).toContain("var(--chart-cvd-2, var(--chart-2))");
+
+    const violations = await runComponentAxe(wrapper.element);
+    expect(violations).toEqual([]);
+  });
 });

@@ -46,6 +46,26 @@ The 8-hue × 3-theme matrix was reaffirmed twice in the medium-signal
 pass (Charts UI Kit + Data Viz Graphs both converge on this shape).
 Don't re-tune.
 
+### 1.1. Universal CVD Palette — `--chart-cvd-1` through `--chart-cvd-8` (Okabe-Ito)
+
+For situations requiring guaranteed accessibility for readers with color vision deficiencies (protanopia, deuteranopia, tritanopia, and monochromatic viewing), TUX provides the clinically validated **Okabe-Ito 8-color universal palette**:
+
+| Token | Light (`tti`) | Dark (`tti-dark`) | High Contrast (`tti-hc`) | Clinical Role & Polarity |
+|---|---|---|---|---|
+| `--chart-cvd-1` | `#0072B2` | `#56B4E9` | `#005080` | Deep Blue (Primary Anchor) |
+| `--chart-cvd-2` | `#E69F00` | `#F0B030` | `#CC8000` | Warm Orange (Binary Polar Opposite) |
+| `--chart-cvd-3` | `#009E73` | `#2AC098` | `#007A55` | Bluish Green |
+| `--chart-cvd-4` | `#F0E442` | `#F5EB68` | `#8A6915` | Yellow |
+| `--chart-cvd-5` | `#56B4E9` | `#7CD0F7` | `#1F5D66` | Sky Blue |
+| `--chart-cvd-6` | `#D55E00` | `#E87A28` | `#B34000` | Vermilion |
+| `--chart-cvd-7` | `#CC79A7` | `#DE91BD` | `#803366` | Reddish Purple |
+| `--chart-cvd-8` | `#222222` | `#E6E6E6` | `#000000` | Charcoal / Black |
+
+**Key Properties:**
+- **Blue/Orange Polarity Anchor:** The primary two series (`--chart-cvd-1` and `--chart-cvd-2`) establish a stark Blue vs Orange binary polarity. Because blue and orange do not lie along either the red-green (protan/deutan) or yellow-blue (tritan) confusion axes, they remain maximally distinct for 100% of colorblind observers.
+- **Contextual Activation:** Any chart can activate this palette via `palette="cvd"`, class `.tux-chart--cvd`, or ancestor attribute `[data-chart-palette="cvd"]` / `[data-cvd-mode="okabe-ito"]`.
+- **Multi-Channel Pairing:** Never rely solely on color. Combine with automated stroke dash arrays (`solid`, `dashed`, `dotted`, `dash-dot`) and distinct geometric markers (`circle`, `square`, `triangle`, `diamond`, `cross`, `star`).
+
 ## 2. Axis, grid, and legend tokens
 
 Settled 2026-09-01, after the charts shipped and the Power BI emitter

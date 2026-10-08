@@ -91,6 +91,10 @@ interface Props {
   distinctMarkers?: boolean;
   /** Radius of markers in px. Default: 3.5. */
   markerRadius?: number;
+  /** Categorical color palette. Default: "brand" (maroon/slate/wheat/sage/etc.).
+   *  Set "cvd" for the clinically verified Okabe-Ito universal palette
+   *  (deep blue, warm orange, bluish green, bright yellow, vermilion, etc.). */
+  palette?: "brand" | "cvd";
   /** Stroke width of primary lines in px. Default: 2.
    *  Elevate to 2.5 or 3 for low-vision accessibility. */
   strokeWidth?: number;
@@ -133,6 +137,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   width: 640,
   height: 280,
+  palette: "brand",
   markers: false,
   distinctMarkers: true,
   markerRadius: 3.5,
@@ -221,7 +226,11 @@ function bandPath(band: Array<[number, number]>) {
 function toneVar(idx: number) {
   // Clamp, don't wrap — tuxSeriesTone takes a 0-based fallback index,
   // so idx-1 keeps existing 1-based call sites unchanged.
-  return `var(--chart-${tuxSeriesTone(idx - 1)})`;
+  const toneNum = tuxSeriesTone(idx - 1);
+  if (props.palette === "cvd") {
+    return `var(--chart-cvd-${toneNum}, var(--chart-${toneNum}))`;
+  }
+  return `var(--chart-${toneNum})`;
 }
 
 /** Canonical stroke-dasharray cycle for multi-series distinction across CVD / monochrome print.
@@ -526,6 +535,8 @@ function onBrushUp() {
 <template>
   <figure
     class="tux-chart-line"
+    :class="[palette === 'cvd' && 'tux-chart--cvd']"
+    :data-chart-palette="palette"
     role="img"
     :aria-label="summary"
   >

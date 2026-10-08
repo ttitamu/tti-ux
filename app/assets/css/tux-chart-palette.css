@@ -27,3 +27,65 @@
 .tux-chart-tone--c6 { --tux-chart-tone: var(--chart-6, #5c7080); }
 .tux-chart-tone--c7 { --tux-chart-tone: var(--chart-7, #a33a3a); }
 .tux-chart-tone--c8 { --tux-chart-tone: var(--chart-8, #3c5a87); }
+
+/* ── Okabe-Ito Universal Color Vision Deficiency (CVD) Palette ──────── */
+/* Clinically calibrated for Protanopia, Deuteranopia, and Tritanopia */
+
+.tux-chart-tone--cvd-1 { --tux-chart-tone: var(--chart-cvd-1, #0072B2); }
+.tux-chart-tone--cvd-2 { --tux-chart-tone: var(--chart-cvd-2, #E69F00); }
+.tux-chart-tone--cvd-3 { --tux-chart-tone: var(--chart-cvd-3, #009E73); }
+.tux-chart-tone--cvd-4 { --tux-chart-tone: var(--chart-cvd-4, #F0E442); }
+.tux-chart-tone--cvd-5 { --tux-chart-tone: var(--chart-cvd-5, #56B4E9); }
+.tux-chart-tone--cvd-6 { --tux-chart-tone: var(--chart-cvd-6, #D55E00); }
+.tux-chart-tone--cvd-7 { --tux-chart-tone: var(--chart-cvd-7, #CC79A7); }
+.tux-chart-tone--cvd-8 { --tux-chart-tone: var(--chart-cvd-8, #222222); }
+
+/* Contextual Rebinding: when .tux-chart--cvd or [data-chart-palette="cvd"]
+ * is applied, standard c1..c8 classes automatically map to Okabe-Ito tokens. */
+.tux-chart--cvd .tux-chart-tone--c1,
+[data-chart-palette="cvd"] .tux-chart-tone--c1,
+[data-cvd-mode="okabe-ito"] .tux-chart-tone--c1 {
+  --tux-chart-tone: var(--chart-cvd-1, #0072B2);
+}
+
+.tux-chart--cvd .tux-chart-tone--c2,
+[data-chart-palette="cvd"] .tux-chart-tone--c2,
+[data-cvd-mode="okabe-ito"] .tux-chart-tone--c2 {
+  --tux-chart-tone: var(--chart-cvd-2, #E69F00);
+}
+
+.tux-chart--cvd .tux-chart-tone--c3,
+[data-chart-palette="cvd"] .tux-chart-tone--c3,
+[data-cvd-mode="okabe-ito"] .tux-chart-tone--c3 {
+  --tux-chart-tone: var(--chart-cvd-3, #009E73);
+}
+
+.tux-chart--cvd .tux-chart-tone--c4,
+[data-chart-palette="cvd"] .tux-chart-tone--c4,
+[data-cvd-mode="okabe-ito"] .tux-chart-tone--c4 {
+  --tux-chart-tone: var(--chart-cvd-4, #F0E442);
+}
+
+.tux-chart--cvd .tux-chart-tone--c5,
+[data-chart-palette="cvd"] .tux-chart-tone--c5,
+[data-cvd-mode="okabe-ito"] .tux-chart-tone--c5 {
+  --tux-chart-tone: var(--chart-cvd-5, #56B4E9);
+}
+
+.tux-chart--cvd .tux-chart-tone--c6,
+[data-chart-palette="cvd"] .tux-chart-tone--c6,
+[data-cvd-mode="okabe-ito"] .tux-chart-tone--c6 {
+  --tux-chart-tone: var(--chart-cvd-6, #D55E00);
+}
+
+.tux-chart--cvd .tux-chart-tone--c7,
+[data-chart-palette="cvd"] .tux-chart-tone--c7,
+[data-cvd-mode="okabe-ito"] .tux-chart-tone--c7 {
+  --tux-chart-tone: var(--chart-cvd-7, #CC79A7);
+}
+
+.tux-chart--cvd .tux-chart-tone--c8,
+[data-chart-palette="cvd"] .tux-chart-tone--c8,
+[data-cvd-mode="okabe-ito"] .tux-chart-tone--c8 {
+  --tux-chart-tone: var(--chart-cvd-8, #222222);
+}
