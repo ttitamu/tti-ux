@@ -1,0 +1,42 @@
+# .security-ignore — unified suppression / VEX-style allowlist, compiled by the seeded baseline gate
+# (.forgejo/workflows/baseline.yml, "Compile suppressions"). Format, one per line:
+#   <tool>  <id-or-fingerprint>  <reason...>  [expires=YYYY-MM-DD]
+# An expired (or malformed) line stops suppressing and the finding re-surfaces, by design.
+
+# braces 3.0.3 — CVE-2026-93687 / GHSA-vfj7-8cjw-p6xm: stack overflow from deeply nested brace patterns (CWE-674);
+# braces caps input LENGTH at 10,000 characters but not nesting depth. No fixed release (3.0.3 is the latest;
+# micromatch/braces PR #72 open, unmerged). tti-ux is NOT AFFECTED: the only path in package-lock.json is
+# nuxt -> @nuxt/nitro-server -> nitropack -> globby -> fast-glob -> micromatch -> braces (trivy counts it as a
+# production dep only because a Nuxt layer lists nuxt under "dependencies"); nitropack runs it at build/dev time on
+# glob patterns hard-coded in nitropack or taken from nuxt config, never on request input. tti-ux ships as source
+# (a Nuxt layer): the published @tti/tti-ux 2.0.0 tarball (sha256 948c7200...) and this branch's tree were grepped
+# on 2026-10-04 for braces' code ('exceeds max characters', 'expanded array length exceeds range limit',
+# 'isInvalidBrace', 'encloseBrace') and contain none. Suppressed under Tony's 2026-10-03/04 braces policy.
+# On expiry: if `npm view braces version` > 3.0.3, run `npm update braces --package-lock-only` and delete this
+# line; otherwise re-review and renew. The id MUST be the CVE id (the GHSA id does not suppress).
+# Re-checked 2026-10-08 against 3.0.0: the `npm pack` tarball and the Pages build (NUXT_PAGES=1 nuxt generate) contain no
+# braces or micromatch code; the only path is still nitropack's build-time globbing.
+trivy  CVE-2026-93687  braces 3.0.3 build/dev-only via nuxt to nitropack, globby, fast-glob, micromatch; only build-time glob patterns reach it; not in the published package or the shipped layer source; no upstream fix (braces PR 72 open)  expires=2026-11-02
+
+# node-forge 1.4.0 (package-lock.json), RSA PKCS#1 v1.5 signature forgery, published 2026-09-03 with no fixed release
+# (1.4.0 is the latest). It arrives only through listhen, the dev server's self-signed-certificate helper, under
+# nuxt -> @nuxt/cli, nuxt -> @nuxt/nitro-server -> nitropack (its dev server) and @nuxt/image -> ipx (ipx's CLI).
+# tti-ux ships as source (the Nuxt layer and the @tti/tti-ux package) plus the Pages site from `nuxt generate`; neither
+# contains node-forge (checked 2026-10-08), and a consumer's own nuxt brings its own copy. On expiry: if
+# `npm view node-forge version` > 1.4.0, run `npm update node-forge --package-lock-only` and delete this line; otherwise
+# re-review and renew.
+trivy  CVE-2026-85393  node-forge 1.4.0 dev-server-only via listhen under @nuxt/cli, nitropack and the ipx CLI; not in the published package, the layer source or the Pages output; no upstream fix  expires=2026-11-02
+
+# simple-git 3.36.0 and @simple-git/argv-parser 1.1.1 (package-lock.json), published 2026-09-29, fixed only in simple-git
+# 4.0.1 / argv-parser 2.0.1. Two paths, both @nuxt/devtools: nuxt 4.5.1 -> @nuxt/devtools 3.4.1 (simple-git ^3.36.0),
+# and this repo's own devDependency "@nuxt/devtools": "^2.0.0" -> 2.7.0 (simple-git ^3.28.0). 4.x cannot be forced: devtools does `import Git from 'simple-git'` and 4.0 dropped the default export, so an npm override
+# breaks `nuxt prepare` (tried in nis/template-service 2026-10-08). Devtools calls it only in the dev server, with
+# constant arguments (branch, revparse --short HEAD, status) on the project's own root, and returns before that in a
+# production build (both versions gate on nuxt.options.dev). On expiry: both paths must move. Drop the direct
+# @nuxt/devtools devDependency (nuxt brings its own) or raise it to a release on simple-git 4, and `npm update nuxt` once
+# nuxt's devtools range allows simple-git 4; then delete these lines. Moving only one leaves simple-git 3 in the lockfile,
+# and trivy skips a package that becomes dev-only, so the gate would go green with it still installed.
+trivy  CVE-2026-102826  simple-git 3 dev-server-only via nuxt, @nuxt/devtools 3.x; 4.x breaks devtools; not in the published package or the Pages output  expires=2026-11-02
+trivy  CVE-2026-102827  simple-git 3 dev-server-only via nuxt, @nuxt/devtools 3.x; 4.x breaks devtools; not in the published package or the Pages output  expires=2026-11-02
+trivy  CVE-2026-102828  simple-git 3 dev-server-only via nuxt, @nuxt/devtools 3.x; 4.x breaks devtools; not in the published package or the Pages output  expires=2026-11-02
+trivy  CVE-2026-102829  @simple-git/argv-parser 1.x under simple-git 3, dev-server-only; 2.x needs simple-git 4; not in the published package or the Pages output  expires=2026-11-02

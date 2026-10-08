@@ -3,6 +3,26 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Security — `@nuxtjs/mdc` ^0.21.1 → ^0.22.2 and the lockfile's HIGH/CRITICAL advisories (2026-10-08)
+
+- **`@nuxtjs/mdc` ^0.22.2, CVE-2026-63671 (HIGH, GHSA-mxm6-v9r6-r94c).** Below 0.22.1, mdc's
+  markdown sanitizer lets `javascript:` on an SVG `<a xlink:href>` and a `data:text/html` `src`
+  through. Everything tux renders through MDC (`TuxProse`, `TuxMarkdownEditor`, `/design/*`,
+  `/changelog`, `/install`) sits behind that sanitizer, and so does every consumer that extends the
+  layer. The floor is 0.22.2, not 0.22.0, which is still vulnerable. #59 held this for 3.0; 3.0.0
+  shipped without it, so it lands now and supersedes #59. Consumers on an older tux keep their own
+  `"@nuxtjs/mdc": "$@nuxtjs/mdc"` override until they take this release.
+- **Lockfile, within the declared ranges:** devalue 5.9.4, js-yaml 4.3.2, seroval 1.6.8,
+  shell-quote 1.12.0, sharp 0.35.5, source-map-js 1.2.2, svgo 4.1.0, undici 8.11.2, vue 3.5.43.
+  The `brace-expansion` override moves 5.0.9 → 5.0.12 (CVE-2026-102276, CVE-2026-102278).
+- **Dated suppressions in `.security-ignore`, expiring 2026-11-02:** node-forge and braces (no
+  fixed release) and simple-git / `@simple-git/argv-parser` (fixed only in simple-git 4, which
+  `@nuxt/devtools` 3.x cannot load). All four are dev-server or build-time only.
+- **`scan.yml` retired.** It ran the same trivy scan as the required `baseline-security` gate,
+  without `.security-ignore`, so it could not go green and cost a runner slot on every push.
+
 ## [3.0.0] — 2026-10-01
 
 ### Added — TUX 3.0 & Comm Brand Transformation (2026-10-01)
