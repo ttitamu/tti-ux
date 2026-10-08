@@ -3,14 +3,13 @@ TuxSpectrumRibbon — Python component & Streamlit / Dash renderer.
 Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
 """
 from dataclasses import dataclass
-from typing import Optional
 
 @dataclass
 class TuxSpectrumRibbon:
-    size: str = sm
-    orientation: str = horizontal
-    show_labels: bool = false
-    rounded: bool = false
+    size: str = "sm"
+    orientation: str = "horizontal"
+    show_labels: bool = False
+    rounded: bool = False
     aria_label: str = "TTI"
     bands: str = "()"
 

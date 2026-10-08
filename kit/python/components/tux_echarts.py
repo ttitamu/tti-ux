@@ -7,15 +7,15 @@ from typing import Optional
 
 @dataclass
 class TuxECharts:
-    options: str = None
+    options: Optional[str] = None
     height: str = "380px"
     width: str = "100%"
     aria_title: str = "Interactive"
-    aria_summary: str = None
-    extensions: str = None
-    maps: str = None
-    loading: bool = false
-    not_merge: bool = false
+    aria_summary: Optional[str] = None
+    extensions: Optional[str] = None
+    maps: Optional[str] = None
+    loading: bool = False
+    not_merge: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-echarts">{content}</div>'

@@ -9,15 +9,15 @@ from typing import Optional
 class TuxFooter:
     name: str = "Texas"
     address: str = "Texas"
-    phone: str = (979)
+    phone: str = "(979)"
     logo: str = "/logo.svg"
     logo_size: int = 80
-    brand_lockup: str = /TTI_white.png
+    brand_lockup: str = "/TTI_white.png"
     brand_lockup_alt: str = "Texas"
     social: str = "()"
     columns: str = "()"
     tagline: str = "Coordinated"
-    year: int = ()
+    year: Optional[int] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<footer class="tux-footer">{content}</footer>'

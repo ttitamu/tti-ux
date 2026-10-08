@@ -8,11 +8,11 @@ from typing import Optional
 @dataclass
 class TuxAlphaNav:
     letters: str = "()"
-    available: str = "undefined"
-    mode: str = anchor
-    sticky: bool = false
-    show_all: bool = false
-    model_value: str = null
+    available: Optional[str] = None
+    mode: str = "anchor"
+    sticky: bool = False
+    show_all: bool = False
+    model_value: Optional[str] = None
     aria_label: str = "Jump"
 
     def render_html(self, content: str = "") -> str:

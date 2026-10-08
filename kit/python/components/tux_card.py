@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxCard:
-    to: str = "undefined"
-    padded: bool = true
-    linked: bool = false
+    to: Optional[str] = None
+    padded: bool = True
+    linked: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<NuxtLink class="tux-card">{content}</NuxtLink>'

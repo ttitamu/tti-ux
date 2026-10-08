@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxInfoLabel:
-    for: str = "undefined"
-    required: bool = false
-    trigger: str = hover
+    for_: Optional[str] = None
+    required: bool = False
+    trigger: str = "hover"
     info_aria_label: str = "More"
 
     def render_html(self, content: str = "") -> str:

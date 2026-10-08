@@ -10,7 +10,7 @@ class TuxReactionBar:
     model_value: str = "()"
     reactions: str = "()"
     counts: str = "()"
-    size: str = None
+    size: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-reaction-bar">{content}</div>'

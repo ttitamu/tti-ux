@@ -20,6 +20,15 @@ conventions and [Semantic Versioning](https://semver.org/).
 - **Dated suppressions in `.security-ignore`, expiring 2026-11-02:** node-forge and braces (no
   fixed release) and simple-git / `@simple-git/argv-parser` (fixed only in simple-git 4, which
   `@nuxt/devtools` 3.x cannot load). All four are dev-server or build-time only.
+- **The Python kit is valid Python.** `scripts/sync-engine.mjs`'s `emitPython` wrote JS literals
+  (`true`, `false`, `null`, `undefined`) and unquoted enum defaults (`error`, `md`) into
+  `kit/python/components/*.py`: 333 undefined names, so importing almost any module raised
+  `NameError`, and the props named `for` and `as` made four files a syntax error. Defaults now go
+  through `pythonDefault()` (True/False/None, quoted strings, `Optional[...]` for a None default),
+  keyword names get PEP 8's trailing underscore (`for_`, `as_`), and `Optional` is imported only
+  where used. All 177 modules regenerated (the Python target only; this also picks up the props
+  added to four components since the last sync and the missing `tux_hero_canvas_sol.py`): pyflakes
+  is clean and every dataclass instantiates with its defaults.
 - **`scan.yml` retired.** It ran the same trivy scan as the required `baseline-security` gate,
   without `.security-ignore`, so it could not go green and cost a runner slot on every push.
 

@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxModal:
-    open: bool = false
-    title: str = "undefined"
-    eyebrow: str = "undefined"
-    size: str = undefined
-    variant: str = standard
+    open: bool = False
+    title: Optional[str] = None
+    eyebrow: Optional[str] = None
+    size: Optional[str] = None
+    variant: str = "standard"
 
     def render_html(self, content: str = "") -> str:
         return f'<UModal class="tux-modal">{content}</UModal>'

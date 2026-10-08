@@ -7,18 +7,18 @@ from typing import Optional
 
 @dataclass
 class TuxChartGauge:
-    value: int = None
+    value: Optional[int] = None
     min: int = 0
     max: int = 100
     size: int = 240
-    variant: str = arc
+    variant: str = "arc"
     bands: str = "()"
-    center_label: str = "undefined"
-    center_value: str = undefined
-    units: str = "undefined"
+    center_label: Optional[str] = None
+    center_value: Optional[str] = None
+    units: Optional[str] = None
     format: str = "(n:"
     decimals: int = 1
-    aria_summary: str = "undefined"
+    aria_summary: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-chart-gauge">{content}</figure>'

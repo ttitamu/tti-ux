@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxAccordion:
-    items: str = None
-    kind: str = faq
-    single: bool = false
+    items: Optional[str] = None
+    kind: str = "faq"
+    single: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-accordion">{content}</div>'

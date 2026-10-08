@@ -7,12 +7,12 @@ from typing import Optional
 
 @dataclass
 class TuxSectionHeader:
-    level: str = 2
-    title: str = "undefined"
-    secondary_title: str = "undefined"
-    subtitle: str = "undefined"
-    kicker: str = "undefined"
-    variant: str = institutional
+    level: str = "2"
+    title: Optional[str] = None
+    secondary_title: Optional[str] = None
+    subtitle: Optional[str] = None
+    kicker: Optional[str] = None
+    variant: str = "institutional"
 
     def render_html(self, content: str = "") -> str:
         return f'<header class="tux-section-header">{content}</header>'

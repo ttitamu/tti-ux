@@ -7,14 +7,14 @@ from typing import Optional
 
 @dataclass
 class TuxStalenessBanner:
-    stale: bool = false
-    verified_until: str = undefined
-    last_verified: str = undefined
+    stale: bool = False
+    verified_until: Optional[str] = None
+    last_verified: Optional[str] = None
     review_cadence_days: int = 90
-    owner: str = "undefined"
-    page_id: str = "undefined"
-    dismissable: bool = true
-    show_verified_badge: bool = false
+    owner: Optional[str] = None
+    page_id: Optional[str] = None
+    dismissable: bool = True
+    show_verified_badge: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-staleness-banner">{content}</div>'

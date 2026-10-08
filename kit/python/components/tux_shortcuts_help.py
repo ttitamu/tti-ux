@@ -7,7 +7,7 @@ from typing import Optional
 
 @dataclass
 class TuxShortcutsHelp:
-    groups: str = None
+    groups: Optional[str] = None
     sequence_separator: str = "then"
 
     def render_html(self, content: str = "") -> str:

@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxAppSwitcher:
-    apps: str = None
+    apps: Optional[str] = None
     aria_label: str = "Switch"
     heading: str = "TTI"
-    footer_text: str = "undefined"
-    presentation: str = popover
+    footer_text: Optional[str] = None
+    presentation: str = "popover"
 
     def render_html(self, content: str = "") -> str:
         return f'<UPopover class="tux-app-switcher">{content}</UPopover>'

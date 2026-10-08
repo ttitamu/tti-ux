@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxPhotoGrid:
-    items: str = None
-    kind: str = photo
-    columns: str = 3
-    aspect: str = undefined
+    items: Optional[str] = None
+    kind: str = "photo"
+    columns: str = "3"
+    aspect: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<ul class="tux-photo-grid">{content}</ul>'

@@ -7,12 +7,12 @@ from typing import Optional
 
 @dataclass
 class TuxReportWebFrame:
-    eyebrow: str = "undefined"
-    title: str = "undefined"
-    lede: str = "undefined"
-    byline: str = "undefined"
-    date: str = "undefined"
-    reading_time: str = "undefined"
+    eyebrow: Optional[str] = None
+    title: Optional[str] = None
+    lede: Optional[str] = None
+    byline: Optional[str] = None
+    date: Optional[str] = None
+    reading_time: Optional[str] = None
     toc: str = "()"
     width: str = "default"
 

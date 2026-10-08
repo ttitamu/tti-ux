@@ -8,9 +8,9 @@ from typing import Optional
 @dataclass
 class TuxAlert:
     variant: str = "info"
-    title: str = "undefined"
-    description: str = "undefined"
-    icon: str = "undefined"
+    title: Optional[str] = None
+    description: Optional[str] = None
+    icon: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<UAlert class="tux-alert">{content}</UAlert>'

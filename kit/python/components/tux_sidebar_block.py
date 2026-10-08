@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxSidebarBlock:
-    title: str = None
-    eyebrow: str = "undefined"
-    icon: str = "undefined"
-    variant: str = default
+    title: Optional[str] = None
+    eyebrow: Optional[str] = None
+    icon: Optional[str] = None
+    variant: str = "default"
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-sidebar-block">{content}</section>'

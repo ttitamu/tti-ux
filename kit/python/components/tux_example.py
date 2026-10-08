@@ -7,14 +7,18 @@ from typing import Optional
 
 @dataclass
 class TuxExample:
-    vue: str = "undefined"
-    react: str = "undefined"
-    wc: str = "undefined"
-    razor: str = "undefined"
-    source: str = "undefined"
-    css: str = "undefined"
-    powerbi: str = "undefined"
-    title: str = "undefined"
+    vue: Optional[str] = None
+    react: Optional[str] = None
+    wc: Optional[str] = None
+    razor: Optional[str] = None
+    python: Optional[str] = None
+    php: Optional[str] = None
+    swift: Optional[str] = None
+    kotlin: Optional[str] = None
+    source: Optional[str] = None
+    css: Optional[str] = None
+    powerbi: Optional[str] = None
+    title: Optional[str] = None
     preview_padding: str = "p-6"
 
     def render_html(self, content: str = "") -> str:

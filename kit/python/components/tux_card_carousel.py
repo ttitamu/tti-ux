@@ -7,15 +7,15 @@ from typing import Optional
 
 @dataclass
 class TuxCardCarousel:
-    items: str = "undefined"
-    eyebrow: str = "undefined"
-    title: str = "undefined"
-    bare: bool = false
-    arrows: bool = true
-    dots: bool = false
-    loop: bool = false
+    items: Optional[str] = None
+    eyebrow: Optional[str] = None
+    title: Optional[str] = None
+    bare: bool = False
+    arrows: bool = True
+    dots: bool = False
+    loop: bool = False
     slides_to_scroll: int = 1
-    align: str = start
+    align: str = "start"
     gap: str = "1rem"
     aria_label: str = "Carousel"
 

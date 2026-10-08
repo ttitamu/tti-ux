@@ -8,10 +8,10 @@ from typing import Optional
 @dataclass
 class TuxFigureCaption:
     label: str = "Figure"
-    number: str = None
-    caption: str = "undefined"
-    source: str = "undefined"
-    placement: str = below
+    number: Optional[str] = None
+    caption: Optional[str] = None
+    source: Optional[str] = None
+    placement: str = "below"
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-figure-caption">{content}</figure>'

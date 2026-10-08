@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxBranchNav:
-    model_value: int = None
-    total: int = None
-    loop: bool = false
-    hide_singleton: bool = true
+    model_value: Optional[int] = None
+    total: Optional[int] = None
+    loop: bool = False
+    hide_singleton: bool = True
     aria_label: str = "Response"
 
     def render_html(self, content: str = "") -> str:

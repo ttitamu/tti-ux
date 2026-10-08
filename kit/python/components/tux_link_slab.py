@@ -7,8 +7,8 @@ from typing import Optional
 
 @dataclass
 class TuxLinkSlab:
-    links: str = None
-    tone: str = plain
+    links: Optional[str] = None
+    tone: str = "plain"
     aria_label: str = "Section"
 
     def render_html(self, content: str = "") -> str:

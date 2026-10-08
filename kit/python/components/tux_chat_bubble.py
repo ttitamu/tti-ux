@@ -7,15 +7,15 @@ from typing import Optional
 
 @dataclass
 class TuxChatBubble:
-    mode: str = bubble
-    role: str = assistant
+    mode: str = "bubble"
+    role: str = "assistant"
     title: str = "Assistant"
     subtitle: str = "Institutional"
-    state: str = idle
-    teaser: str = "undefined"
-    tail: str = none
-    dismissible: bool = false
-    open: bool = true
+    state: str = "idle"
+    teaser: Optional[str] = None
+    tail: str = "none"
+    dismissible: bool = False
+    open: bool = True
     suggestions: str = "()"
 
     def render_html(self, content: str = "") -> str:

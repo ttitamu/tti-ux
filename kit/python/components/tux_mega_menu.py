@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxMegaMenu:
-    label: str = None
-    columns: str = None
-    featured: str = None
-    to: str = None
+    label: Optional[str] = None
+    columns: Optional[str] = None
+    featured: Optional[str] = None
+    to: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-mega-menu">{content}</div>'

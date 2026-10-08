@@ -7,15 +7,15 @@ from typing import Optional
 
 @dataclass
 class TuxSignupFeature:
-    title: str = None
-    eyebrow: str = "undefined"
-    dek: str = "undefined"
+    title: Optional[str] = None
+    eyebrow: Optional[str] = None
+    dek: Optional[str] = None
     action_label: str = "Subscribe"
     placeholder: str = "your@email.edu"
     consent: str = "We"
-    model_value: str = None
-    tone: str = neutral
-    variant: str = default
+    model_value: Optional[str] = None
+    tone: str = "neutral"
+    variant: str = "default"
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-signup-feature">{content}</section>'

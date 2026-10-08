@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxStatus:
-    state: str = None
+    state: Optional[str] = None
     kind: str = "chip"
-    acked: bool = false
-    label: str = "undefined"
+    acked: bool = False
+    label: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<span class="tux-status">{content}</span>'
