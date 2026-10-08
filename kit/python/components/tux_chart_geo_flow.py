@@ -7,8 +7,8 @@ from typing import Optional
 
 @dataclass
 class TuxChartGeoFlow:
-    flows: str = None
-    flow_legend: str = None
+    flows: Optional[str] = None
+    flow_legend: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<svg class="tux-chart-geo-flow">{content}</svg>'

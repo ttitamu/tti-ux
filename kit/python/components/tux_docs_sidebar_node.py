@@ -7,14 +7,14 @@ from typing import Optional
 
 @dataclass
 class TuxDocsSidebarNode:
-    section: str = None
-    path: str = None
-    query: str = None
-    open_map: str = None
-    is_open: str = None
-    is_active: str = None
-    on_toggle: str = None
-    depth: int = None
+    section: Optional[str] = None
+    path: Optional[str] = None
+    query: Optional[str] = None
+    open_map: Optional[str] = None
+    is_open: Optional[str] = None
+    is_active: Optional[str] = None
+    on_toggle: Optional[str] = None
+    depth: Optional[int] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<li class="tux-docs-sidebar-node">{content}</li>'

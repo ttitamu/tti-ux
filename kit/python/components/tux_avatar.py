@@ -7,13 +7,13 @@ from typing import Optional
 
 @dataclass
 class TuxAvatar:
-    name: str = "undefined"
-    initials: str = "undefined"
-    photo_url: str = "undefined"
-    size: str = md
-    dot: str = undefined
-    decorative: bool = true
-    alt: str = "undefined"
+    name: Optional[str] = None
+    initials: Optional[str] = None
+    photo_url: Optional[str] = None
+    size: str = "md"
+    dot: Optional[str] = None
+    decorative: bool = True
+    alt: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<span class="tux-avatar">{content}</span>'

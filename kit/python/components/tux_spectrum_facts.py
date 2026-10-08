@@ -8,10 +8,10 @@ from typing import Optional
 @dataclass
 class TuxSpectrumFacts:
     title: str = "QUICK"
-    subtitle: str = None
+    subtitle: Optional[str] = None
     items: str = "()"
-    tone: str = dark
-    show_top_ribbon: bool = true
+    tone: str = "dark"
+    show_top_ribbon: bool = True
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-spectrum-facts">{content}</section>'

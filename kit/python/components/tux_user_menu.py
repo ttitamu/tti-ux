@@ -7,15 +7,15 @@ from typing import Optional
 
 @dataclass
 class TuxUserMenu:
-    state: str = None
-    identity: str = "undefined"
-    sign_in_href: str = "undefined"
+    state: Optional[str] = None
+    identity: Optional[str] = None
+    sign_in_href: Optional[str] = None
     sign_in_label: str = "Sign"
     items: str = "()"
     prefs: str = "()"
-    show_sign_out: bool = true
-    placement: str = cluster
-    status_line: str = "undefined"
+    show_sign_out: bool = True
+    placement: str = "cluster"
+    status_line: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-user-menu">{content}</div>'

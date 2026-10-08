@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxNewsCollection:
-    items: str = None
-    layout: str = stacked
-    columns: str = 3
+    items: Optional[str] = None
+    layout: str = "stacked"
+    columns: str = "3"
     read_more: str = "Read"
 
     def render_html(self, content: str = "") -> str:

@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxCitationExport:
-    citation: str = None
+    citation: Optional[str] = None
     label: str = "Cite"
-    variant: str = outline
+    variant: str = "outline"
 
     def render_html(self, content: str = "") -> str:
         return f'<UDropdownMenu class="tux-citation-export">{content}</UDropdownMenu>'

@@ -7,21 +7,21 @@ from typing import Optional
 
 @dataclass
 class TuxChartArea:
-    labels: str = None
-    series: str = None
+    labels: Optional[str] = None
+    series: Optional[str] = None
     width: int = 640
     height: int = 280
-    variant: str = overlay
-    markers: bool = false
-    end_labels: bool = true
-    legend: bool = false
-    gridlines: bool = true
+    variant: str = "overlay"
+    markers: bool = False
+    end_labels: bool = True
+    legend: bool = False
+    gridlines: bool = True
     ticks: int = 5
     format: str = "(n:"
     decimals: int = 1
-    aria_summary: str = "undefined"
-    units: str = "undefined"
-    tooltip: bool = true
+    aria_summary: Optional[str] = None
+    units: Optional[str] = None
+    tooltip: bool = True
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-chart-area">{content}</figure>'

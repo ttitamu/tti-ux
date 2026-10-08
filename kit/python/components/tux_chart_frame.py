@@ -7,12 +7,12 @@ from typing import Optional
 
 @dataclass
 class TuxChartFrame:
-    eyebrow: str = None
-    title: str = None
-    subtitle: str = None
-    source: str = None
-    notes: str = None
-    bare: bool = false
+    eyebrow: Optional[str] = None
+    title: Optional[str] = None
+    subtitle: Optional[str] = None
+    source: Optional[str] = None
+    notes: Optional[str] = None
+    bare: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-chart-frame">{content}</figure>'

@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxTestimonial:
-    items: str = None
-    layout: str = grid
-    columns: str = 3
-    variant: str = default
+    items: Optional[str] = None
+    layout: str = "grid"
+    columns: str = "3"
+    variant: str = "default"
 
     def render_html(self, content: str = "") -> str:
         return f'<ul class="tux-testimonial">{content}</ul>'

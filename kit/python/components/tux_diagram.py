@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxDiagram:
-    code: str = None
-    caption: str = "undefined"
-    eyebrow: str = "undefined"
+    code: Optional[str] = None
+    caption: Optional[str] = None
+    eyebrow: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-diagram">{content}</figure>'

@@ -7,21 +7,21 @@ from typing import Optional
 
 @dataclass
 class TuxChartHeatmap:
-    rows: str = None
-    cols: str = None
-    values: str = None
+    rows: Optional[str] = None
+    cols: Optional[str] = None
+    values: Optional[str] = None
     width: int = 640
     height: int = 280
-    ramp: str = maroon
-    bins: str = 5
-    value_labels: bool = false
-    legend: bool = true
+    ramp: str = "maroon"
+    bins: str = "5"
+    value_labels: bool = False
+    legend: bool = True
     col_label_every: int = 0
     format: str = "(n:"
     decimals: int = 1
-    aria_summary: str = "undefined"
-    units: str = "undefined"
-    tooltip: bool = true
+    aria_summary: Optional[str] = None
+    units: Optional[str] = None
+    tooltip: bool = True
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-chart-heatmap">{content}</figure>'

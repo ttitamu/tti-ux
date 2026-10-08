@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxMetroInset:
-    name: str = None
-    highway_label: str = None
+    name: Optional[str] = None
+    highway_label: Optional[str] = None
     height: int = 220
     palette: str = "maroon"
-    seed: str = None
+    seed: Optional[str] = None
     cols: int = 8
     rows: int = 6
 

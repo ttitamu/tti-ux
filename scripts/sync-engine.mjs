@@ -546,12 +546,37 @@ ${props}
 `;
 }
 
+/**
+ * A prop's default as a Python literal. The schema carries JS values and raw
+ * withDefaults text, so `true`/`false`, `null`/`undefined` and an unquoted
+ * enum member (`error`, `md`) would otherwise land in Python as undefined
+ * names: a NameError the moment the module is imported.
+ */
+export function pythonDefault(p) {
+  const v = p.defaultValue;
+  if (v === undefined || v === null || v === "undefined" || v === "null") return "None";
+  if (p.type === "boolean") return v === true || v === "true" ? "True" : "False";
+  if (p.type === "number") return /^-?\d+(\.\d+)?$/.test(String(v)) ? String(v) : "None";
+  return JSON.stringify(String(v));
+}
+
+// Python's hard keywords: a prop named `for` or `as` is a syntax error as a field
+// name, so it gets PEP 8's trailing underscore (`for_`, `as_`).
+const PYTHON_KEYWORDS = new Set(["False", "None", "True", "and", "as", "assert", "async", "await", "break", "class",
+  "continue", "def", "del", "elif", "else", "except", "finally", "for", "from", "global", "if", "import", "in", "is",
+  "lambda", "nonlocal", "not", "or", "pass", "raise", "return", "try", "while", "with", "yield"]);
+
+export function pythonName(propName) {
+  const name = toSnakeCase(propName);
+  return PYTHON_KEYWORDS.has(name) ? `${name}_` : name;
+}
+
 export function emitPython(schema) {
   const fields = schema.props
     .map((p) => {
       const type = p.type === "boolean" ? "bool" : p.type === "number" ? "int" : "str";
-      const def = p.defaultValue !== undefined ? (p.type === "string" ? ` = "${p.defaultValue}"` : ` = ${p.defaultValue}`) : " = None";
-      return `    ${toSnakeCase(p.name)}: ${type}${def}`;
+      const def = pythonDefault(p);
+      return `    ${pythonName(p.name)}: ${def === "None" ? `Optional[${type}]` : type} = ${def}`;
     })
     .join("\n");
 
@@ -560,8 +585,7 @@ ${schema.name} — Python component & Streamlit / Dash renderer.
 Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
 """
 from dataclasses import dataclass
-from typing import Optional
-
+${fields.includes("Optional[") ? "from typing import Optional\n" : ""}
 @dataclass
 class ${schema.name}:
 ${fields || "    pass"}

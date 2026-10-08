@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxBreadcrumbs:
-    trail: str = None
-    home_icon: bool = true
-    chevron: bool = false
+    trail: Optional[str] = None
+    home_icon: bool = True
+    chevron: bool = False
     aria_label: str = "Breadcrumb"
 
     def render_html(self, content: str = "") -> str:

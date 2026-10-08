@@ -7,13 +7,13 @@ from typing import Optional
 
 @dataclass
 class TuxAbstract:
-    background: str = "undefined"
-    methods: str = "undefined"
-    results: str = "undefined"
-    conclusion: str = "undefined"
-    keywords: str = "undefined"
-    variant: str = structured
-    level: str = 4
+    background: Optional[str] = None
+    methods: Optional[str] = None
+    results: Optional[str] = None
+    conclusion: Optional[str] = None
+    keywords: Optional[str] = None
+    variant: str = "structured"
+    level: str = "4"
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-abstract">{content}</section>'

@@ -7,13 +7,13 @@ from typing import Optional
 
 @dataclass
 class TuxCenterBadge:
-    center: str = undefined
-    label: str = "undefined"
-    icon: str = "undefined"
+    center: Optional[str] = None
+    label: Optional[str] = None
+    icon: Optional[str] = None
     tone_index: int = 2
-    short: bool = false
-    size: str = md
-    layout: str = chip
+    short: bool = False
+    size: str = "md"
+    layout: str = "chip"
 
     def render_html(self, content: str = "") -> str:
         return f'<span class="tux-center-badge">{content}</span>'

@@ -7,7 +7,7 @@ from typing import Optional
 
 @dataclass
 class TuxCitations:
-    items: str = None
+    items: Optional[str] = None
     label: str = "sources"
 
     def render_html(self, content: str = "") -> str:

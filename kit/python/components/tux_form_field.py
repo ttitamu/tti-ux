@@ -7,13 +7,13 @@ from typing import Optional
 
 @dataclass
 class TuxFormField:
-    label: str = None
-    help: str = "undefined"
-    hint: str = "undefined"
-    error: str = "undefined"
-    required: bool = false
-    input_id: str = "undefined"
-    layout: str = stacked
+    label: Optional[str] = None
+    help: Optional[str] = None
+    hint: Optional[str] = None
+    error: Optional[str] = None
+    required: bool = False
+    input_id: Optional[str] = None
+    layout: str = "stacked"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-form-field">{content}</div>'

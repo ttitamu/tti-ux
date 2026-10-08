@@ -7,13 +7,13 @@ from typing import Optional
 
 @dataclass
 class TuxInfiniteScroll:
-    loaded: int = None
-    total: int = None
-    loading: bool = false
-    keyboard_fallback: bool = false
+    loaded: Optional[int] = None
+    total: Optional[int] = None
+    loading: bool = False
+    keyboard_fallback: bool = False
     root_margin: str = "200px"
-    noun: str = "undefined"
-    noun_plural: str = "undefined"
+    noun: Optional[str] = None
+    noun_plural: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-infinite-scroll">{content}</div>'

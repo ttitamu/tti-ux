@@ -7,16 +7,16 @@ from typing import Optional
 
 @dataclass
 class TuxPortalHeader:
-    mode: str = comm
+    mode: str = "comm"
     agency_name: str = "Texas"
     agency_url: str = "https://tti.tamu.edu"
     home_url: str = "/"
-    portal_title: str = None
-    portal_badge: str = None
-    portal_badge_variant: str = gold
+    portal_title: Optional[str] = None
+    portal_badge: Optional[str] = None
+    portal_badge_variant: str = "gold"
     utility_links: str = "()"
-    show_search: bool = true
-    show_spectrum_ribbon: bool = false
+    show_search: bool = True
+    show_spectrum_ribbon: bool = False
     intranet_apps: str = "()"
 
     def render_html(self, content: str = "") -> str:

@@ -7,15 +7,15 @@ from typing import Optional
 
 @dataclass
 class TuxRichTextEditor:
-    model_value: str = None
+    model_value: Optional[str] = None
     placeholder: str = "Start"
-    disabled: bool = false
+    disabled: bool = False
     min_height: str = "12rem"
     max_height: str = "auto"
-    toolbar: str = ()
-    heading_levels: str = ()
-    show_count: bool = true
-    fullscreenable: bool = true
+    toolbar: str = "()"
+    heading_levels: str = "()"
+    show_count: bool = True
+    fullscreenable: bool = True
     aria_label: str = "Rich"
 
     def render_html(self, content: str = "") -> str:

@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxSuggestionChips:
-    items: str = None
-    label: str = "undefined"
-    aria_label: str = "undefined"
-    no_arrow: bool = false
+    items: Optional[str] = None
+    label: Optional[str] = None
+    aria_label: Optional[str] = None
+    no_arrow: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-suggestion-chips">{content}</section>'

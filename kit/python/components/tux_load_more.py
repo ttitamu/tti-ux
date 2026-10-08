@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxLoadMore:
-    loaded: int = None
-    total: int = None
-    loading: bool = false
-    noun: str = "undefined"
-    noun_plural: str = "undefined"
+    loaded: Optional[int] = None
+    total: Optional[int] = None
+    loading: bool = False
+    noun: Optional[str] = None
+    noun_plural: Optional[str] = None
     label: str = "Load"
     terminal_label: str = "All"
 

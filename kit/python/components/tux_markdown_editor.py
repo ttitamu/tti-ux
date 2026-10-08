@@ -7,13 +7,13 @@ from typing import Optional
 
 @dataclass
 class TuxMarkdownEditor:
-    model_value: str = None
+    model_value: Optional[str] = None
     rows: int = 12
-    min_length: int = undefined
-    max_length: int = undefined
+    min_length: Optional[int] = None
+    max_length: Optional[int] = None
     placeholder: str = "Write"
-    preview: bool = true
-    disabled: bool = false
+    preview: bool = True
+    disabled: bool = False
     aria_label: str = "Markdown"
 
     def render_html(self, content: str = "") -> str:

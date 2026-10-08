@@ -7,7 +7,7 @@ from typing import Optional
 
 @dataclass
 class TuxTabBar:
-    items: str = None
+    items: Optional[str] = None
     aria_label: str = "Primary"
 
     def render_html(self, content: str = "") -> str:

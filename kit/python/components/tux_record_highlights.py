@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxRecordHighlights:
-    title: str = None
-    eyebrow: str = "undefined"
-    icon: str = "undefined"
+    title: Optional[str] = None
+    eyebrow: Optional[str] = None
+    icon: Optional[str] = None
     items: str = "()"
 
     def render_html(self, content: str = "") -> str:

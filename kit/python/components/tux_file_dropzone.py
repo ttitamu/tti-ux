@@ -8,13 +8,13 @@ from typing import Optional
 @dataclass
 class TuxFileDropzone:
     model_value: str = "()"
-    accept: str = "undefined"
-    multiple: bool = false
+    accept: Optional[str] = None
+    multiple: bool = False
     max_size: int = 50
     max_files: int = 10
-    disabled: bool = false
-    label: str = "undefined"
-    hint: str = "undefined"
+    disabled: bool = False
+    label: Optional[str] = None
+    hint: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-file-dropzone">{content}</div>'

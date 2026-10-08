@@ -7,7 +7,7 @@ from typing import Optional
 
 @dataclass
 class TuxDocSearch:
-    items: str = "undefined"
+    items: Optional[str] = None
     placeholder: str = "Search"
     max_results: int = 8
 

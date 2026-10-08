@@ -8,12 +8,12 @@ from typing import Optional
 @dataclass
 class TuxErrorPage:
     code: str = "404"
-    title: str = "undefined"
-    lede: str = "undefined"
-    actions: str = "undefined"
-    inline: bool = false
-    icon: str = "undefined"
-    details: str = "undefined"
+    title: Optional[str] = None
+    lede: Optional[str] = None
+    actions: Optional[str] = None
+    inline: bool = False
+    icon: Optional[str] = None
+    details: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-error-page">{content}</section>'

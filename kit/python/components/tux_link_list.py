@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxLinkList:
-    groups: str = None
-    layout: str = columns
-    columns: str = 3
+    groups: Optional[str] = None
+    layout: str = "columns"
+    columns: str = "3"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-link-list">{content}</div>'

@@ -7,12 +7,12 @@ from typing import Optional
 
 @dataclass
 class TuxChartGeographic:
-    kind: str = None
+    kind: Optional[str] = None
     palette: str = "maroon"
-    title: str = None
+    title: Optional[str] = None
     legend_label: str = "Value"
     legend_stops: str = "()"
-    show_legend: bool = true
+    show_legend: bool = True
     counties: str = "()"
     districts: str = "()"
     states: str = "()"

@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxSiteNav:
-    identity: str = None
+    identity: Optional[str] = None
     primary_nav: str = "()"
     utility_nav: str = "()"
-    search: bool = false
-    sticky: bool = false
+    search: bool = False
+    sticky: bool = False
     aria_label: str = "Primary"
 
     def render_html(self, content: str = "") -> str:

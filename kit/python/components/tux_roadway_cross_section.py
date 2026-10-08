@@ -3,14 +3,13 @@ TuxRoadwayCrossSection — Python component & Streamlit / Dash renderer.
 Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
 """
 from dataclasses import dataclass
-from typing import Optional
 
 @dataclass
 class TuxRoadwayCrossSection:
-    preset: str = urban-managed
-    initial_view: str = 3d-perspective
+    preset: str = "urban-managed"
+    initial_view: str = "3d-perspective"
     height: str = "560px"
-    interactive: bool = true
+    interactive: bool = True
     initial_pitch: int = 0
     initial_yaw: int = 0
 

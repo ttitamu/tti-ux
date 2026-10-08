@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxValidationSummary:
-    errors: str = None
+    errors: Optional[str] = None
     title: str = "Please"
-    variant: str = error
+    variant: str = "error"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-validation-summary">{content}</div>'

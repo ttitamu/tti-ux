@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxArtifact:
-    title: str = None
-    meta: str = "undefined"
+    title: Optional[str] = None
+    meta: Optional[str] = None
     icon: str = "lucide:file-code"
     actions: str = "()"
-    busy: bool = false
+    busy: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-artifact">{content}</section>'

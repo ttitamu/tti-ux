@@ -7,14 +7,14 @@ from typing import Optional
 
 @dataclass
 class TuxPagination:
-    total: int = None
-    model_value: int = None
+    total: Optional[int] = None
+    model_value: Optional[int] = None
     page_size: int = 20
     sibling_count: int = 1
     boundary_count: int = 1
-    show_status: bool = false
+    show_status: bool = False
     noun: str = "result"
-    plural_noun: str = "undefined"
+    plural_noun: Optional[str] = None
     aria_label: str = "Pagination"
 
     def render_html(self, content: str = "") -> str:
