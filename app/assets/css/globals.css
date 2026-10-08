@@ -391,4 +391,39 @@ h1 a:hover, h2 a:hover, h3 a:hover, h4 a:hover, h5 a:hover, h6 a:hover {
   --focus-ring-inner: #161a22;
 }
 
+/* =====================================================
+   Live Color Vision Deficiency (CVD) Simulation Filters
+   Applies clinical SVG color matrices across the viewport
+   for accessibility verification, audits, and demonstrations.
+   ===================================================== */
+
+html[data-cvd-simulation="deuteranopia"] {
+  filter: url("#tux-filter-deuteranopia") !important;
+}
+
+html[data-cvd-simulation="protanopia"] {
+  filter: url("#tux-filter-protanopia") !important;
+}
+
+html[data-cvd-simulation="tritanopia"] {
+  filter: url("#tux-filter-tritanopia") !important;
+}
+
+html[data-cvd-simulation="achromatopsia"] {
+  filter: url("#tux-filter-achromatopsia") !important;
+}
+
+/* =====================================================
+   Enhanced Stroke Widths (+1px) for Low-Vision Clarity
+   ===================================================== */
+
+[data-vision-stroke="heavy"] .tux-chart-line__line {
+  stroke-width: 3.5px !important;
+}
+
+[data-vision-stroke="heavy"] .tux-chart-line__marker {
+  transform: scale(1.35);
+  transform-origin: center;
+}
+
 

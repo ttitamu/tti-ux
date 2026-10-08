@@ -63,4 +63,21 @@ describe("TuxUtilityCluster Component", () => {
     const violations = await runComponentAxe(wrapper.element);
     expect(violations).toEqual([]);
   });
+
+  it("renders vision preferences button and opens vision modal on click", async () => {
+    const wrapper = await mountSuspended(TuxUtilityCluster, {
+      props: {
+        current: "tti-ux",
+      },
+    });
+
+    const visionBtn = wrapper.find(".tux-utility-cluster__vision-btn");
+    expect(visionBtn.exists()).toBe(true);
+    expect(visionBtn.attributes("aria-label")).toContain("Vision & Accessibility Preferences");
+
+    await visionBtn.trigger("click");
+
+    const violations = await runComponentAxe(wrapper.element);
+    expect(violations).toEqual([]);
+  });
 });
