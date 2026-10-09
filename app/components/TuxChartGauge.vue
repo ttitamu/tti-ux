@@ -35,6 +35,7 @@
  *   />
  */
 import { computed } from "vue";
+import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
 
 interface Band {
   /** Inclusive lower bound (in same scale as value). */
@@ -88,6 +89,8 @@ const props = withDefaults(defineProps<Props>(), {
   decimals: 1,
   ariaSummary: undefined,
 });
+
+const { prefs: visionPrefs } = useTuxVisionPrefs();
 
 const cx = computed(() => props.size / 2);
 const cy = computed(() => props.size / 2);
@@ -186,7 +189,14 @@ const fillToneClass = computed(() => {
 </script>
 
 <template>
-  <figure class="tux-chart-gauge" role="figure" :aria-label="ariaSummary">
+  <figure
+    class="tux-chart-gauge"
+    :class="[visionPrefs.cvdMode !== 'brand' && 'tux-chart--cvd']"
+    :data-cvd-mode="visionPrefs.cvdMode"
+    :data-vision-stroke="visionPrefs.heavyStrokes ? 'heavy' : undefined"
+    role="figure"
+    :aria-label="ariaSummary"
+  >
     <div class="tux-chart-gauge__wrap">
       <svg
         :viewBox="`0 0 ${size} ${size}`"
@@ -199,7 +209,7 @@ const fillToneClass = computed(() => {
              behind the fill as a backing rail). -->
         <path
           :d="trackPath"
-          :stroke-width="trackW"
+          :stroke-width="visionPrefs.heavyStrokes ? trackW + 2 : trackW"
           class="tux-chart-gauge__track"
           fill="none"
         />
@@ -232,6 +242,7 @@ const fillToneClass = computed(() => {
             :y1="cy"
             :x2="needleEnd.x"
             :y2="needleEnd.y"
+            :stroke-width="visionPrefs.heavyStrokes ? 4.5 : 3"
             class="tux-chart-gauge__needle"
           />
           <circle

@@ -102,7 +102,10 @@ export function applyVisionPreferences(prefs: TuxVisionPreferences) {
       const idx = i + 1;
       root.style.setProperty(`--chart-${idx}`, hex);
       root.style.setProperty(`--tux-chart-tone--c${idx}`, hex);
-      if (prefs.cvdMode === "okabe-ito") {
+      if (prefs.cvdMode === "brand") {
+        const okabeHex = isDark ? CVD_PALETTES_DARK["okabe-ito"][i]! : CVD_PALETTES["okabe-ito"][i]!;
+        root.style.setProperty(`--chart-cvd-${idx}`, okabeHex);
+      } else {
         root.style.setProperty(`--chart-cvd-${idx}`, hex);
       }
     });
@@ -125,8 +128,12 @@ export function applyVisionPreferences(prefs: TuxVisionPreferences) {
     root.setAttribute("data-theme-variant", "soft");
     root.setAttribute("data-vision-comfort", "anti-halation");
     root.classList.add("dark");
-    if (!root.getAttribute("data-theme") || root.getAttribute("data-theme") === "tti") {
-      root.setAttribute("data-theme", "tti-dark");
+    root.classList.add("tti-dark");
+    root.setAttribute("data-theme", "tti-dark");
+    try {
+      window.localStorage.setItem("nuxt-color-mode", "tti-dark");
+    } catch {
+      // Ignore storage access error
     }
   } else {
     if (root.getAttribute("data-theme-variant") === "soft") {
@@ -139,7 +146,8 @@ export function applyVisionPreferences(prefs: TuxVisionPreferences) {
       const colorModePref = window.localStorage.getItem("nuxt-color-mode");
       if (colorModePref === "light" || colorModePref === "tti") {
         root.classList.remove("dark");
-        root.removeAttribute("data-theme");
+        root.classList.remove("tti-dark");
+        root.setAttribute("data-theme", "tti");
       }
     } catch {
       // Ignore storage access error

@@ -190,4 +190,69 @@ describe("useTuxVisionPrefs — Institutional Vision & Accessibility Engine", ()
       expect(root.getAttribute("data-cvd-simulation")).toBeNull();
     });
   });
+
+  describe("6. Apache ECharts Universal Vision Integration", () => {
+    it("createTuxEChartsTheme generates Okabe-Ito CVD colors", async () => {
+      const { createTuxEChartsTheme } = await import("../app/utils/tuxEChartsTheme");
+      const theme = createTuxEChartsTheme(false, { cvdMode: "okabe-ito" });
+
+      expect(theme.color[0]).toBe(CVD_PALETTES["okabe-ito"][0]);
+      expect(theme.color[1]).toBe(CVD_PALETTES["okabe-ito"][1]);
+      expect(theme.color[2]).toBe(CVD_PALETTES["okabe-ito"][2]);
+    });
+
+    it("createTuxEChartsTheme applies anti-halation soft dark surfaces", async () => {
+      const { createTuxEChartsTheme } = await import("../app/utils/tuxEChartsTheme");
+      const theme = createTuxEChartsTheme(true, { softDark: true });
+
+      expect(theme.textStyle.color).toBe("#E6EDF3");
+      expect(theme.title.textStyle.color).toBe("#F0F6FC");
+      expect(theme.categoryAxis.axisLine.lineStyle.color).toBe("#384152");
+      expect(theme.tooltip.backgroundColor).toBe("#1F2430");
+      expect(theme.tooltip.borderColor).toBe("#384152");
+    });
+
+    it("createTuxEChartsTheme applies heavy stroke widths", async () => {
+      const { createTuxEChartsTheme } = await import("../app/utils/tuxEChartsTheme");
+      const theme = createTuxEChartsTheme(false, { heavyStrokes: true });
+
+      expect(theme.line.lineStyle.width).toBe(3.5);
+      expect(theme.line.itemStyle.borderWidth).toBe(3);
+    });
+
+    it("adaptOptionsForVision applies multi-channel redundancy (markers, dashes, strokes, colors)", async () => {
+      const { adaptOptionsForVision } = await import("../app/utils/tuxEChartsTheme");
+      const input = {
+        series: [
+          { type: "line", name: "Traffic Flow", data: [10, 20, 30] },
+          { type: "line", name: "Speed Index", data: [40, 50, 60] },
+          { type: "bar", name: "Volume", data: [5, 15, 25] },
+        ],
+      };
+
+      const adapted = adaptOptionsForVision(input as any, false, {
+        ...DEFAULT_VISION_PREFERENCES,
+        cvdMode: "okabe-ito",
+        distinctMarkers: true,
+        patterns: true,
+        heavyStrokes: true,
+      }) as any;
+
+      // Color assigned
+      expect(adapted.color[0]).toBe(CVD_PALETTES["okabe-ito"][0]);
+
+      // Distinct markers applied
+      expect(adapted.series[0].symbol).toBe("circle");
+      expect(adapted.series[0].symbolSize).toBe(10);
+      expect(adapted.series[1].symbol).toBe("rect");
+
+      // Distinct line dash types applied
+      expect(adapted.series[0].lineStyle.type).toBe("solid");
+      expect(adapted.series[1].lineStyle.type).toBe("dashed");
+
+      // Heavy strokes applied
+      expect(adapted.series[0].lineStyle.width).toBeGreaterThanOrEqual(3.5);
+      expect(adapted.series[2].itemStyle.borderWidth).toBeGreaterThanOrEqual(1.5);
+    });
+  });
 });

@@ -395,7 +395,9 @@ h1 a:hover, h2 a:hover, h3 a:hover, h4 a:hover, h5 a:hover, h6 a:hover {
 }
 
 html[data-vision-comfort="anti-halation"],
-[data-vision-comfort="anti-halation"] body {
+[data-vision-comfort="anti-halation"] body,
+[data-vision-comfort="anti-halation"] .tux-default-layout,
+[data-vision-comfort="anti-halation"] .tti-shell-main {
   background-color: #161a22 !important;
   color: #e6edf3 !important;
   color-scheme: dark !important;
@@ -408,8 +410,17 @@ html[data-vision-comfort="anti-halation"],
 [data-vision-comfort="anti-halation"] .tux-modal__panel,
 [data-vision-comfort="anti-halation"] .tux-drawer__panel,
 [data-vision-comfort="anti-halation"] .tux-table,
+[data-vision-comfort="anti-halation"] .tux-echarts,
+[data-vision-comfort="anti-halation"] .tux-code-block,
+[data-vision-comfort="anti-halation"] .tux-workbench,
+[data-vision-comfort="anti-halation"] .tux-example,
+[data-vision-comfort="anti-halation"] .tux-preview,
+[data-vision-comfort="anti-halation"] .tux-metric-card,
+[data-vision-comfort="anti-halation"] .tux-stat,
+[data-vision-comfort="anti-halation"] .tux-big-stat,
 [data-vision-comfort="anti-halation"] [role="dialog"],
-[data-vision-comfort="anti-halation"] [role="menu"] {
+[data-vision-comfort="anti-halation"] [role="menu"],
+[data-vision-comfort="anti-halation"] [role="region"] {
   background-color: #1f2430 !important;
   border-color: #384152 !important;
   color: #e6edf3 !important;
@@ -417,7 +428,9 @@ html[data-vision-comfort="anti-halation"],
 
 [data-vision-comfort="anti-halation"] input,
 [data-vision-comfort="anti-halation"] select,
-[data-vision-comfort="anti-halation"] textarea {
+[data-vision-comfort="anti-halation"] textarea,
+[data-vision-comfort="anti-halation"] pre,
+[data-vision-comfort="anti-halation"] code:not(pre code) {
   background-color: #0f1217 !important;
   border-color: #384152 !important;
   color: #e6edf3 !important;
@@ -466,15 +479,50 @@ html[data-cvd-simulation="achromatopsia"] {
 
 [data-vision-stroke="heavy"] .tux-chart-bar__bar {
   stroke: currentColor !important;
-  stroke-width: 1.5px !important;
+  stroke-width: 2px !important;
 }
 
 [data-vision-stroke="heavy"] .tux-chart-area__top-line {
   stroke-width: 3.5px !important;
 }
 
+[data-vision-stroke="heavy"] .tux-chart-scatter__dot {
+  stroke: var(--surface-page, #161a22) !important;
+  stroke-width: 2px !important;
+}
+
+[data-vision-stroke="heavy"] .tux-chart-scatter__trend {
+  stroke-width: 2.5px !important;
+}
+
+[data-vision-stroke="heavy"] .tux-chart-histogram__bar {
+  stroke: var(--surface-page, #161a22) !important;
+  stroke-width: 2.5px !important;
+}
+
+[data-vision-stroke="heavy"] .tux-chart-sunburst path {
+  stroke-width: 3px !important;
+}
+
+[data-vision-stroke="heavy"] .tux-chart-gauge__needle {
+  stroke-width: 4.5px !important;
+}
+
+[data-vision-stroke="heavy"] .tux-chart-gauge__track {
+  stroke-width: 14px !important;
+}
+
+[data-vision-stroke="heavy"] .tux-sparkline__line {
+  stroke-width: 2.75px !important;
+}
+
+[data-vision-stroke="heavy"] .tux-sparkline__last {
+  r: 3.5 !important;
+}
+
 [data-vision-stroke="heavy"] .tux-card,
 [data-vision-stroke="heavy"] .tux-button,
+[data-vision-stroke="heavy"] .tux-badge,
 [data-vision-stroke="heavy"] input,
 [data-vision-stroke="heavy"] select,
 [data-vision-stroke="heavy"] textarea {

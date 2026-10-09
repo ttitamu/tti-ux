@@ -22,6 +22,9 @@
  * comparison overlays (multiple series), or anything where the
  * reader needs to read a value off a tick. This is a glance widget.
  */
+import { computed } from "vue";
+import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
+
 type Tone = "brand" | "success" | "error" | "warning" | "neutral";
 
 interface Props {
@@ -61,6 +64,12 @@ const props = withDefaults(defineProps<Props>(), {
   units: undefined,
 });
 
+const { prefs: visionPrefs } = useTuxVisionPrefs();
+
+const effectiveStrokeWidth = computed(() => {
+  return visionPrefs.value.heavyStrokes ? Math.max(props.strokeWidth + 1, 2.5) : props.strokeWidth;
+});
+
 const points = computed(() => {
   const d = props.data;
   if (d.length < 2) return { path: "", area: "", last: null as null | { x: number; y: number } };
@@ -69,7 +78,7 @@ const points = computed(() => {
   const span = max - min || 1;
   const w = props.width;
   const h = props.height;
-  const pad = props.strokeWidth + 1;
+  const pad = effectiveStrokeWidth.value + 1;
   const innerW = w - pad * 2;
   const innerH = h - pad * 2;
 
@@ -130,7 +139,12 @@ const arrowIcon = computed(() => {
 </script>
 
 <template>
-  <span class="tux-sparkline" :class="`tux-sparkline--${tone}`">
+  <span
+    class="tux-sparkline"
+    :class="`tux-sparkline--${tone}`"
+    :data-cvd-mode="visionPrefs.cvdMode"
+    :data-vision-stroke="visionPrefs.heavyStrokes ? 'heavy' : undefined"
+  >
     <svg
       :width="width"
       :height="height"
@@ -149,7 +163,7 @@ const arrowIcon = computed(() => {
       <path
         v-if="points.path"
         :d="points.path"
-        :stroke-width="strokeWidth"
+        :stroke-width="effectiveStrokeWidth"
         class="tux-sparkline__line"
         fill="none"
         stroke-linecap="round"
@@ -159,7 +173,7 @@ const arrowIcon = computed(() => {
         v-if="showLastPoint && points.last"
         :cx="points.last.x"
         :cy="points.last.y"
-        :r="Math.max(strokeWidth + 0.5, 2)"
+        :r="Math.max(effectiveStrokeWidth + 0.5, 2)"
         class="tux-sparkline__last"
       />
     </svg>

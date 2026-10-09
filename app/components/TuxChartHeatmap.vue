@@ -39,6 +39,7 @@
  *   />
  */
 import { computed, ref } from "vue";
+import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
 
 interface Props {
   /** Row (y) category labels, rendered top → bottom. */
@@ -94,6 +95,8 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   hover: [payload: { row: number; col: number; rowLabel: string; colLabel: string; value: number | null } | null];
 }>();
+
+const { prefs: visionPrefs } = useTuxVisionPrefs();
 
 // Layout — family-standard margins (tuxChartScale) so a heatmap
 // stacked above a bar chart keeps the shared left gutter.
@@ -294,6 +297,8 @@ const tooltipTopPercent = computed(() => {
     role="figure"
     :aria-label="ariaSummary"
     :data-ramp="ramp"
+    :data-cvd-mode="visionPrefs.cvdMode"
+    :data-vision-stroke="visionPrefs.heavyStrokes ? 'heavy' : undefined"
   >
     <svg
       :viewBox="`0 0 ${width} ${height}`"
@@ -509,6 +514,15 @@ const tooltipTopPercent = computed(() => {
   stroke: var(--brand-accent, #ddac37);
   stroke-width: 2;
   pointer-events: none;
+}
+
+[data-vision-stroke="heavy"] .tux-chart-heatmap__cell {
+  stroke: var(--surface-page);
+  stroke-width: 1.5px;
+}
+
+[data-vision-stroke="heavy"] .tux-chart-heatmap__hover-ring {
+  stroke-width: 3.5px;
 }
 
 

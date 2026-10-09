@@ -37,6 +37,7 @@
  *   />
  */
 import { computed } from "vue";
+import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
 
 interface Point {
   x: number;
@@ -117,8 +118,11 @@ const props = withDefaults(defineProps<Props>(), {
   tooltip: true,
 });
 
+const { prefs: visionPrefs } = useTuxVisionPrefs();
+
 function getSeriesMarker(index: number): TuxChartMarkerShape {
-  if (!props.distinctMarkers) return "circle";
+  const useDistinct = props.distinctMarkers ?? visionPrefs.value.distinctMarkers;
+  if (!useDistinct) return "circle";
   return TUX_SERIES_MARKERS[index % TUX_SERIES_MARKERS.length];
 }
 
@@ -348,8 +352,10 @@ function hoverToneClass(seriesIdx: number): string {
 <template>
   <figure
     class="tux-chart-scatter"
-    :class="[palette === 'cvd' && 'tux-chart--cvd']"
+    :class="[(palette === 'cvd' || visionPrefs.cvdMode !== 'brand') && 'tux-chart--cvd']"
     :data-chart-palette="palette"
+    :data-cvd-mode="visionPrefs.cvdMode"
+    :data-vision-stroke="visionPrefs.heavyStrokes ? 'heavy' : undefined"
     role="figure"
     :aria-label="ariaSummary"
   >
@@ -446,7 +452,12 @@ function hoverToneClass(seriesIdx: number): string {
           <path
             v-for="(p, j) in s.points"
             :key="`pt-${i}-${j}`"
-            :d="getMarkerPath(xCoord(p.x), yCoord(p.y), getSeriesMarker(i), hovered && hovered.seriesIdx === i && hovered.pointIdx === j ? (p.size ?? 5) + 2 : (p.size ?? 5))"
+            :d="getMarkerPath(
+              xCoord(p.x),
+              yCoord(p.y),
+              getSeriesMarker(i),
+              (hovered && hovered.seriesIdx === i && hovered.pointIdx === j ? (p.size ?? 5) + 2 : (p.size ?? 5)) + (visionPrefs.heavyStrokes ? 1.5 : 0)
+            )"
             :class="[
               'tux-chart-scatter__dot',
               toneClass(s, i),

@@ -33,20 +33,26 @@ const currentPreset = computed<GalleryPreset>(() => {
   return GALLERY_PRESETS.find((p) => p.id === selectedPresetId.value) || GALLERY_PRESETS[0];
 });
 
-// Reactivity to dark/light theme switch
+// Reactivity to dark/light theme switch & vision preferences
+const { prefs: visionPrefs } = useTuxVisionPrefs();
 const isDark = ref(false);
+
 onMounted(() => {
   if (typeof window !== "undefined") {
-    isDark.value = document.documentElement.getAttribute("data-theme") === "tti-dark" ||
-      document.documentElement.classList.contains("dark");
+    const updateIsDark = () => {
+      isDark.value =
+        document.documentElement.getAttribute("data-theme") === "tti-dark" ||
+        document.documentElement.classList.contains("dark") ||
+        visionPrefs.value.softDark;
+    };
 
-    const observer = new MutationObserver(() => {
-      isDark.value = document.documentElement.getAttribute("data-theme") === "tti-dark" ||
-        document.documentElement.classList.contains("dark");
-    });
+    updateIsDark();
+    watch(visionPrefs, updateIsDark, { deep: true });
+
+    const observer = new MutationObserver(updateIsDark);
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ["data-theme", "class"],
+      attributeFilter: ["data-theme", "class", "data-vision-comfort"],
     });
   }
 });

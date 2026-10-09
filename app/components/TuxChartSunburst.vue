@@ -22,6 +22,8 @@
  * source-line rhythm.
  */
 
+import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
+
 interface SunburstChild { label: string; value: number }
 interface SunburstGroup { label: string; children: SunburstChild[] }
 
@@ -48,6 +50,8 @@ const props = withDefaults(defineProps<Props>(), {
   tooltip: true,
 });
 
+const { prefs: visionPrefs } = useTuxVisionPrefs();
+
 const emit = defineEmits<{
   hover: [payload: { index: number; kind: "group" | "child"; label: string; value: number; share: number; group?: string } | null];
 }>();
@@ -56,6 +60,7 @@ const palette = computed<string[]>(() =>
   props.palette ?? [
     "var(--chart-1)", "var(--chart-2)", "var(--chart-3)",
     "var(--chart-4)", "var(--chart-5)", "var(--chart-6)",
+    "var(--chart-7)", "var(--chart-8)",
   ],
 );
 
@@ -238,7 +243,15 @@ const tooltipPos = computed(() => {
 </script>
 
 <template>
-  <div class="tux-chart-sunburst" :class="{ 'tux-chart-sunburst--bare': !showLegend }">
+  <div
+    class="tux-chart-sunburst"
+    :class="[
+      { 'tux-chart-sunburst--bare': !showLegend },
+      visionPrefs.cvdMode !== 'brand' && 'tux-chart--cvd'
+    ]"
+    :data-cvd-mode="visionPrefs.cvdMode"
+    :data-vision-stroke="visionPrefs.heavyStrokes ? 'heavy' : undefined"
+  >
     <div class="tux-chart-sunburst__wrap">
       <svg
         :viewBox="`0 0 ${size} ${size}`"
@@ -257,7 +270,7 @@ const tooltipPos = computed(() => {
         :fill="a.color"
         :fill-opacity="a.opacity"
         stroke="var(--surface-page)"
-        stroke-width="1"
+        :stroke-width="visionPrefs.heavyStrokes ? 3 : 1"
         :class="{
           'tux-chart-sunburst__arc--dim': hoverIndex !== null && hoverIndex !== flat.childFlat[i],
         }"
@@ -272,7 +285,7 @@ const tooltipPos = computed(() => {
         :d="arcPath(cx, cy, rIn, rMid, a.start, a.end)"
         :fill="a.color"
         stroke="var(--surface-page)"
-        stroke-width="1.5"
+        :stroke-width="visionPrefs.heavyStrokes ? 3.5 : 1.5"
         :class="{
           'tux-chart-sunburst__arc--dim': hoverIndex !== null && hoverIndex !== flat.groupFlat[i],
         }"

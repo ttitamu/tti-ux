@@ -33,6 +33,7 @@
  *   />
  */
 import { computed } from "vue";
+import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
 
 interface Props {
   /** Raw sample values — the component bins them. */
@@ -82,6 +83,8 @@ const props = withDefaults(defineProps<Props>(), {
   units: undefined,
   tooltip: true,
 });
+
+const { prefs: visionPrefs } = useTuxVisionPrefs();
 
 const emit = defineEmits<{
   hover: [payload: { index: number; from: number; to: number; count: number; share: number } | null];
@@ -228,7 +231,15 @@ const tooltipAnchorPercent = computed(() => {
 </script>
 
 <template>
-  <figure class="tux-chart-histogram" role="figure" :aria-label="ariaSummary">
+  <figure
+    class="tux-chart-histogram"
+    :class="[visionPrefs.cvdMode !== 'brand' && 'tux-chart--cvd']"
+    :data-cvd-mode="visionPrefs.cvdMode"
+    :data-vision-stroke="visionPrefs.heavyStrokes ? 'heavy' : undefined"
+    :data-cvd-patterns="String(visionPrefs.patterns)"
+    role="figure"
+    :aria-label="ariaSummary"
+  >
     <svg
       :viewBox="`0 0 ${width} ${height}`"
       :width="width"
@@ -307,6 +318,19 @@ const tooltipAnchorPercent = computed(() => {
         >
           <title>{{ format(edges[i]!) }}–{{ format(edges[i + 1]!) }}: {{ c }}</title>
         </rect>
+        <g v-if="visionPrefs.patterns" class="tux-chart-histogram__patterns">
+          <rect
+            v-for="(_, i) in counts"
+            :key="`b-pat-${i}`"
+            :x="barRect(i).x"
+            :y="barRect(i).y"
+            :width="barRect(i).w"
+            :height="barRect(i).h"
+            fill="url(#tux-pattern-diagonal-1)"
+            opacity="0.3"
+            class="tux-chart-histogram__pattern-overlay pointer-events-none"
+          />
+        </g>
       </g>
 
       <!-- Percentile markers -->

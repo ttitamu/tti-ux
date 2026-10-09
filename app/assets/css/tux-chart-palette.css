@@ -45,6 +45,13 @@
   --chart-6: var(--chart-cvd-6, #D55E00);
   --chart-7: var(--chart-cvd-7, #CC79A7);
   --chart-8: var(--chart-cvd-8, #222222);
+
+  /* Sequential Heatmap & Choropleth ramps (Universal Blue) */
+  --map-seq-maroon-1: #E0F3F8;
+  --map-seq-maroon-2: #A0D2EB;
+  --map-seq-maroon-3: #56B4E9;
+  --map-seq-maroon-4: #0072B2;
+  --map-seq-maroon-5: #004C78;
 }
 
 html.dark[data-cvd-mode="okabe-ito"],
@@ -57,7 +64,22 @@ html.dark[data-cvd-mode="okabe-ito"],
   --chart-6: #E87A28;
   --chart-7: #DE91BD;
   --chart-8: #E6E6E6;
+
+  --map-seq-maroon-1: #002B45;
+  --map-seq-maroon-2: #004C78;
+  --map-seq-maroon-3: #0072B2;
+  --map-seq-maroon-4: #56B4E9;
+  --map-seq-maroon-5: #A0D2EB;
 }
+
+[data-cvd-mode="okabe-ito"] .tux-sparkline--brand   { --tux-spark-color: #0072B2; }
+[data-cvd-mode="okabe-ito"] .tux-sparkline--success { --tux-spark-color: #009E73; }
+[data-cvd-mode="okabe-ito"] .tux-sparkline--warning { --tux-spark-color: #E69F00; }
+[data-cvd-mode="okabe-ito"] .tux-sparkline--error   { --tux-spark-color: #D55E00; }
+
+[data-cvd-mode="okabe-ito"] .tux-chart-gauge__band--success { stroke: #009E73 !important; }
+[data-cvd-mode="okabe-ito"] .tux-chart-gauge__band--warning { stroke: #E69F00 !important; }
+[data-cvd-mode="okabe-ito"] .tux-chart-gauge__band--error   { stroke: #D55E00 !important; }
 
 .tux-chart--cvd .tux-chart-tone--c1,
 [data-chart-palette="cvd"] .tux-chart-tone--c1,
@@ -94,6 +116,13 @@ html.dark[data-cvd-mode="okabe-ito"],
   --chart-6: #009E73;
   --chart-7: #CC79A7;
   --chart-8: #111111;
+
+  /* Sequential Heatmap & Choropleth ramps */
+  --map-seq-maroon-1: #E0F3F8;
+  --map-seq-maroon-2: #84C5EC;
+  --map-seq-maroon-3: #56B4E9;
+  --map-seq-maroon-4: #0072B2;
+  --map-seq-maroon-5: #003657;
 }
 
 html.dark[data-cvd-mode="deutan-protan"],
@@ -106,7 +135,22 @@ html.dark[data-cvd-mode="deutan-protan"],
   --chart-6: #2AC098;
   --chart-7: #DE91BD;
   --chart-8: #F0F6FC;
+
+  --map-seq-maroon-1: #002238;
+  --map-seq-maroon-2: #003657;
+  --map-seq-maroon-3: #0072B2;
+  --map-seq-maroon-4: #56B4E9;
+  --map-seq-maroon-5: #84C5EC;
 }
+
+[data-cvd-mode="deutan-protan"] .tux-sparkline--brand   { --tux-spark-color: #0072B2; }
+[data-cvd-mode="deutan-protan"] .tux-sparkline--success { --tux-spark-color: #56B4E9; }
+[data-cvd-mode="deutan-protan"] .tux-sparkline--warning { --tux-spark-color: #F0E442; }
+[data-cvd-mode="deutan-protan"] .tux-sparkline--error   { --tux-spark-color: #D55E00; }
+
+[data-cvd-mode="deutan-protan"] .tux-chart-gauge__band--success { stroke: #56B4E9 !important; }
+[data-cvd-mode="deutan-protan"] .tux-chart-gauge__band--warning { stroke: #F0E442 !important; }
+[data-cvd-mode="deutan-protan"] .tux-chart-gauge__band--error   { stroke: #D55E00 !important; }
 
 [data-cvd-mode="deutan-protan"] .tux-chart-tone--c1 { --tux-chart-tone: var(--chart-1); }
 [data-cvd-mode="deutan-protan"] .tux-chart-tone--c2 { --tux-chart-tone: var(--chart-2); }
@@ -127,6 +171,13 @@ html.dark[data-cvd-mode="deutan-protan"],
   --chart-6: #3F5A6F;
   --chart-7: #8C5A3C;
   --chart-8: #111111;
+
+  /* Sequential Heatmap & Choropleth ramps */
+  --map-seq-maroon-1: #E6F3F1;
+  --map-seq-maroon-2: #A8DCD4;
+  --map-seq-maroon-3: #4A8892;
+  --map-seq-maroon-4: #005F73;
+  --map-seq-maroon-5: #003742;
 }
 
 html.dark[data-cvd-mode="tritan"],
@@ -139,7 +190,22 @@ html.dark[data-cvd-mode="tritan"],
   --chart-6: #6B8DA3;
   --chart-7: #B58463;
   --chart-8: #F0F6FC;
+
+  --map-seq-maroon-1: #001F25;
+  --map-seq-maroon-2: #003742;
+  --map-seq-maroon-3: #005F73;
+  --map-seq-maroon-4: #4A8892;
+  --map-seq-maroon-5: #A8DCD4;
 }
+
+[data-cvd-mode="tritan"] .tux-sparkline--brand   { --tux-spark-color: #CC79A7; }
+[data-cvd-mode="tritan"] .tux-sparkline--success { --tux-spark-color: #009E73; }
+[data-cvd-mode="tritan"] .tux-sparkline--warning { --tux-spark-color: #500000; }
+[data-cvd-mode="tritan"] .tux-sparkline--error   { --tux-spark-color: #D55E00; }
+
+[data-cvd-mode="tritan"] .tux-chart-gauge__band--success { stroke: #009E73 !important; }
+[data-cvd-mode="tritan"] .tux-chart-gauge__band--warning { stroke: #500000 !important; }
+[data-cvd-mode="tritan"] .tux-chart-gauge__band--error   { stroke: #D55E00 !important; }
 
 [data-cvd-mode="tritan"] .tux-chart-tone--c1 { --tux-chart-tone: var(--chart-1); }
 [data-cvd-mode="tritan"] .tux-chart-tone--c2 { --tux-chart-tone: var(--chart-2); }
@@ -160,6 +226,13 @@ html.dark[data-cvd-mode="tritan"],
   --chart-6: #DDDDDD;
   --chart-7: #555555;
   --chart-8: #000000;
+
+  /* Sequential Heatmap & Choropleth ramps (Luminance) */
+  --map-seq-maroon-1: #F5F5F5;
+  --map-seq-maroon-2: #CCCCCC;
+  --map-seq-maroon-3: #888888;
+  --map-seq-maroon-4: #444444;
+  --map-seq-maroon-5: #000000;
 }
 
 html.dark[data-cvd-mode="monochrome"],
@@ -172,7 +245,22 @@ html.dark[data-cvd-mode="monochrome"],
   --chart-6: #57606A;
   --chart-7: #424A53;
   --chart-8: #FFFFFF;
+
+  --map-seq-maroon-1: #111111;
+  --map-seq-maroon-2: #333333;
+  --map-seq-maroon-3: #666666;
+  --map-seq-maroon-4: #AAAAAA;
+  --map-seq-maroon-5: #FFFFFF;
 }
+
+[data-cvd-mode="monochrome"] .tux-sparkline--brand   { --tux-spark-color: #111111; }
+[data-cvd-mode="monochrome"] .tux-sparkline--success { --tux-spark-color: #777777; }
+[data-cvd-mode="monochrome"] .tux-sparkline--warning { --tux-spark-color: #999999; }
+[data-cvd-mode="monochrome"] .tux-sparkline--error   { --tux-spark-color: #222222; }
+
+[data-cvd-mode="monochrome"] .tux-chart-gauge__band--success { stroke: #777777 !important; }
+[data-cvd-mode="monochrome"] .tux-chart-gauge__band--warning { stroke: #BBBBBB !important; }
+[data-cvd-mode="monochrome"] .tux-chart-gauge__band--error   { stroke: #222222 !important; }
 
 [data-cvd-mode="monochrome"] .tux-chart-tone--c1 { --tux-chart-tone: var(--chart-1); }
 [data-cvd-mode="monochrome"] .tux-chart-tone--c2 { --tux-chart-tone: var(--chart-2); }

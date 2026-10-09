@@ -14,7 +14,8 @@
  *   - Zero-Color-Ratchet compliant styles
  */
 import type { ECharts, EChartsCoreOption } from "echarts";
-import { createTuxEChartsTheme } from "~/utils/tuxEChartsTheme";
+import { createTuxEChartsTheme, adaptOptionsForVision } from "~/utils/tuxEChartsTheme";
+import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
 
 interface Props {
   /** ECharts option specification */
@@ -51,6 +52,7 @@ const emit = defineEmits<{
   (e: "chartHover", params: any): void;
 }>();
 
+const { prefs: visionPrefs } = useTuxVisionPrefs();
 const chartContainerRef = ref<HTMLDivElement | null>(null);
 let chartInstance: ECharts | null = null;
 let resizeObserver: ResizeObserver | null = null;
@@ -67,10 +69,13 @@ async function initChart() {
 
   // Determine dark or light mode
   const isDark = document.documentElement.getAttribute("data-theme") === "tti-dark" ||
-    document.documentElement.classList.contains("dark");
+    document.documentElement.classList.contains("dark") ||
+    visionPrefs.value.softDark;
 
-  const themeName = isDark ? "tux-dark" : "tux-light";
-  echarts.registerTheme(themeName, createTuxEChartsTheme(isDark));
+  const themeName = isDark
+    ? (visionPrefs.value.softDark ? "tux-soft-dark" : "tux-dark")
+    : "tux-light";
+  echarts.registerTheme(themeName, createTuxEChartsTheme(isDark, visionPrefs.value));
 
   // Dynamically load extensions if option requires them
   const optStr = JSON.stringify(props.options || {});
@@ -145,7 +150,8 @@ async function initChart() {
     emit("chartHover", params);
   });
 
-  chartInstance.setOption(props.options);
+  const adapted = adaptOptionsForVision(props.options, isDark, visionPrefs.value);
+  chartInstance.setOption(adapted);
 
   if (props.loading) {
     chartInstance.showLoading();
@@ -164,8 +170,20 @@ watch(
   () => props.options,
   (newOpts) => {
     if (chartInstance) {
-      chartInstance.setOption(newOpts, props.notMerge);
+      const isDark = document.documentElement.getAttribute("data-theme") === "tti-dark" ||
+        document.documentElement.classList.contains("dark") ||
+        visionPrefs.value.softDark;
+      const adapted = adaptOptionsForVision(newOpts, isDark, visionPrefs.value);
+      chartInstance.setOption(adapted, props.notMerge);
     }
+  },
+  { deep: true },
+);
+
+watch(
+  visionPrefs,
+  () => {
+    initChart();
   },
   { deep: true },
 );
@@ -189,14 +207,23 @@ onMounted(() => {
       resizeObserver.observe(chartContainerRef.value);
     }
 
-    // Theme mutation observer on document.documentElement
+    // Theme & Vision mutation observer on document.documentElement
     if (typeof MutationObserver !== "undefined") {
       themeObserver = new MutationObserver(() => {
         initChart();
       });
       themeObserver.observe(document.documentElement, {
         attributes: true,
-        attributeFilter: ["data-theme", "class"],
+        attributeFilter: [
+          "data-theme",
+          "class",
+          "data-cvd-mode",
+          "data-cvd-simulation",
+          "data-cvd-patterns",
+          "data-cvd-markers",
+          "data-vision-comfort",
+          "data-vision-stroke",
+        ],
       });
     }
   });
@@ -219,7 +246,15 @@ onUnmounted(() => {
 
 defineExpose({
   getChartInstance: () => chartInstance,
-  setOption: (opt: EChartsCoreOption, notMerge?: boolean) => chartInstance?.setOption(opt, notMerge),
+  setOption: (opt: EChartsCoreOption, notMerge?: boolean) => {
+    const isDark = typeof document !== "undefined" && (
+      document.documentElement.getAttribute("data-theme") === "tti-dark" ||
+      document.documentElement.classList.contains("dark") ||
+      visionPrefs.value.softDark
+    );
+    const adapted = adaptOptionsForVision(opt, Boolean(isDark), visionPrefs.value);
+    chartInstance?.setOption(adapted, notMerge);
+  },
   resize: handleResize,
   dispatchAction: (payload: any) => chartInstance?.dispatchAction(payload),
 });
@@ -229,6 +264,8 @@ defineExpose({
   <div
     class="tux-echarts"
     :style="{ height, width }"
+    :data-cvd-mode="visionPrefs.cvdMode"
+    :data-vision-stroke="visionPrefs.heavyStrokes ? 'heavy' : undefined"
     role="img"
     :aria-label="ariaTitle"
     tabindex="0"

@@ -72,6 +72,8 @@ interface Props {
   flowLegend?: string;
 }
 
+import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
+
 const props = withDefaults(defineProps<Props>(), {
   palette: "maroon",
   title: "",
@@ -88,6 +90,15 @@ const props = withDefaults(defineProps<Props>(), {
   flowLegend: "Daily trips (thousands)",
 });
 
+const { prefs: visionPrefs } = useTuxVisionPrefs();
+
+const resolvedPalette = computed<Palette>(() => {
+  if (props.palette === "maroon" && visionPrefs.value.cvdMode !== "brand") {
+    return "cvd";
+  }
+  return props.palette;
+});
+
 const KIND_COMPONENTS: Record<Kind, ReturnType<typeof defineAsyncComponent>> = {
   "county": defineAsyncComponent(() => import("./TuxChartGeoCounty.vue")),
   "districts": defineAsyncComponent(() => import("./TuxChartGeoDistricts.vue")),
@@ -101,7 +112,7 @@ const kindComponent = computed(() => KIND_COMPONENTS[props.kind]);
 /** Only the props the active kind's child declares — no fallthrough. */
 const childProps = computed(() => {
   const shared = {
-    palette: props.palette,
+    palette: resolvedPalette.value,
     title: props.title,
     showLegend: props.showLegend,
   };
@@ -126,7 +137,12 @@ const childProps = computed(() => {
 </script>
 
 <template>
-  <div class="tux-chart-geographic" :data-kind="kind">
+  <div
+    class="tux-chart-geographic"
+    :data-kind="kind"
+    :data-cvd-mode="visionPrefs.cvdMode"
+    :data-vision-stroke="visionPrefs.heavyStrokes ? 'heavy' : undefined"
+  >
     <component :is="kindComponent" v-bind="childProps" />
   </div>
 </template>
