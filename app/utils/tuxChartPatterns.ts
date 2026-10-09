@@ -49,5 +49,5 @@ export function tuxSeriesPattern(index: number, fallbackNone = false): TuxChartP
     "vertical",
     "diamonds",
   ];
-  return patternsWithoutNone[index % patternsWithoutNone.length];
+  return patternsWithoutNone[index % patternsWithoutNone.length]!;
 }
