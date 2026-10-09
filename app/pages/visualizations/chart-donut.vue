@@ -88,6 +88,24 @@ const donutControls = [
     description: "Hole ratio (0.50 = classic donut hole)",
   },
   {
+    prop: "palette",
+    label: "Color Palette",
+    type: "select" as const,
+    options: [
+      { label: "Aggie Brand Anchor (--chart-1..8)", value: "brand" },
+      { label: "Okabe-Ito Universal CVD (--chart-cvd-1..8)", value: "cvd" },
+    ],
+    defaultValue: "brand",
+    description: "Color system: brand maroon anchor or Okabe-Ito colorblindness-safe palette",
+  },
+  {
+    prop: "patterns",
+    label: "SVG Pattern Hatching",
+    type: "boolean" as const,
+    defaultValue: false,
+    description: "Overlay high-contrast dual-line SVG hatchings across wedges for CVD legibility",
+  },
+  {
     prop: "sliceLabels",
     label: "Outer Callout Labels",
     type: "boolean" as const,
@@ -105,12 +123,29 @@ const donutControls = [
 
 const donutPresets = [
   {
+    name: "cvd-accessible",
+    label: "Universal CVD & Pattern Hatching",
+    description: "Okabe-Ito barrier-free palette with dual-line SVG texture hatching and matching legend swatches",
+    icon: "lucide:eye",
+    values: {
+      dataset: "trafficSources",
+      palette: "cvd",
+      patterns: true,
+      size: 280,
+      thickness: 0.5,
+      sliceLabels: false,
+      legend: true,
+    },
+  },
+  {
     name: "data-archive-formats",
     label: "Data Archive Formats",
     description: "File type share with center total and external callout labels",
     icon: "lucide:file-text",
     values: {
       dataset: "fileTypes",
+      palette: "brand",
+      patterns: false,
       size: 300,
       thickness: 0.5,
       sliceLabels: true,
@@ -124,6 +159,8 @@ const donutPresets = [
     icon: "lucide:layers",
     values: {
       dataset: "trafficSources",
+      palette: "brand",
+      patterns: false,
       size: 240,
       thickness: 0.5,
       sliceLabels: false,
@@ -137,6 +174,8 @@ const donutPresets = [
     icon: "lucide:alert-circle",
     values: {
       dataset: "crashModes",
+      palette: "brand",
+      patterns: false,
       size: 300,
       thickness: 0.65,
       sliceLabels: true,
@@ -144,6 +183,14 @@ const donutPresets = [
     },
   },
 ];
+
+const cvdPatternVue = `<!-- Okabe-Ito CVD palette with high-contrast dual-line SVG texture hatching -->
+<tux-chart-donut
+  :slices="trafficSources"
+  palette="cvd"
+  patterns
+  legend
+/>`;
 
 const basicVue = `<tux-chart-donut
   :slices="[
@@ -190,17 +237,21 @@ const framedVue = `<tux-chart-frame
         :powerbi="pbiCard"
         :code-template="(values) => {
           const ds = datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.fileTypes;
+          const palAttr = values.palette === 'cvd' ? '\n  palette=\x22cvd\x22' : '';
+          const patAttr = values.patterns ? '\n  patterns' : '';
           const sizeAttr = values.size !== 320 ? `\n  :size=\x22${values.size}\x22` : '';
           const thickAttr = values.thickness !== 0.5 ? `\n  :thickness=\x22${values.thickness}\x22` : '';
           const labelAttr = !values.sliceLabels ? '\n  :slice-labels=\x22false\x22' : '';
           const legendAttr = values.legend ? '\n  legend' : '';
-          return `<tux-chart-donut\n  :slices=\x22${ds.label}\x22\n  center-label=\x22${ds.centerLabel}\x22\n  :center-value=\x22${ds.centerValue}\x22${sizeAttr}${thickAttr}${labelAttr}${legendAttr}\n/>`;
+          return `<tux-chart-donut\n  :slices=\x22${ds.label}\x22${palAttr}${patAttr}\n  center-label=\x22${ds.centerLabel}\x22\n  :center-value=\x22${ds.centerValue}\x22${sizeAttr}${thickAttr}${labelAttr}${legendAttr}\n/>`;
         }"
       >
         <template #default="{ values }">
           <div class="w-full flex justify-center py-4">
             <TuxChartDonut
               :slices="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.fileTypes).slices"
+              :palette="values.palette"
+              :patterns="values.patterns"
               :size="Number(values.size)"
               :thickness="Number(values.thickness)"
               :slice-labels="values.sliceLabels"
@@ -211,6 +262,24 @@ const framedVue = `<tux-chart-frame
           </div>
         </template>
       </TuxPlayground>
+    </section>
+
+    <section>
+      <p class="eyebrow">accessible · cvd texture hatching</p>
+      <h2 class="heading--bold text-xl font-bold">Universal CVD & Monochrome Pattern Hatching</h2>
+      <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
+        Pass <code>palette="cvd"</code> and <code>patterns</code> to overlay high-contrast dual-line SVG texture hatchings
+        across slices. The bottom breakdown table swatches reflect the respective pattern and color,
+        eliminating reliance on hue alone to identify wedge categories.
+      </p>
+      <TuxExample class="mt-4" :vue="cvdPatternVue" :source="tuxChartDonutSource" :powerbi="pbiCard">
+        <TuxChartDonut
+          :slices="trafficSources"
+          palette="cvd"
+          patterns
+          legend
+        />
+      </TuxExample>
     </section>
 
     <section>

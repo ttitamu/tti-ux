@@ -110,12 +110,12 @@ function MessageBubble({ role, children, model, timestamp, sources, onCopy, onRe
       }}
     >
       <div style={{ flexShrink: 0, width: 32, height: 32, borderRadius: 4, background: isUser ? "var(--surface-sunken)" : "var(--brand-primary)", color: isUser ? "var(--text-primary)" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.04em" }}>
-        {isUser ? "AG" : <ChatIcon name="sparkles" size={16} />}
+        {isUser ? "DU" : <ChatIcon name="sparkles" size={16} />}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 6 }}>
           <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--text-primary)" }}>
-            {isUser ? "Anthony Guevara" : "tti-ai-chat"}
+            {isUser ? "Demo User" : "tti-ai-chat"}
           </span>
           {model && !isUser ? (
             <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--text-muted)" }}>{model}</span>

@@ -32,6 +32,7 @@
  *     total. Use for compositional time-series.
  */
 import { computed } from "vue";
+import { tuxSeriesPattern, type TuxChartPatternKind } from "../utils/tuxChartPatterns";
 
 interface Series {
   key: string;
@@ -45,6 +46,11 @@ interface Props {
   series: Series[];
   width?: number;
   height?: number;
+  /** Categorical color palette. Default: "brand". Set "cvd" for Okabe-Ito. */
+  palette?: "brand" | "cvd";
+  /** Enable multi-channel SVG texture hatching patterns.
+   *  Default: true when series.length > 1. Set false to disable. */
+  patterns?: boolean;
   variant?: "overlay" | "stacked";
   /** Render data-point markers on each line. Default false (area
    *  chart usually doesn't need them). */
@@ -70,6 +76,8 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   width: 640,
   height: 280,
+  palette: "brand",
+  patterns: undefined,
   variant: "overlay",
   markers: false,
   endLabels: true,
@@ -155,7 +163,13 @@ interface AreaPath {
   topLine: string;
   endLabel: { x: number; y: number; text: string };
   toneClass: string;
+  patternKind: TuxChartPatternKind;
 }
+
+const patternsEnabled = computed(() => {
+  if (props.patterns !== undefined) return props.patterns;
+  return props.series.length > 1 || isStacked.value;
+});
 
 const areaPaths = computed<AreaPath[]>(() => {
   if (isStacked.value && stackedSeries.value) {
@@ -181,6 +195,7 @@ const areaPaths = computed<AreaPath[]>(() => {
           text: props.format(last),
         },
         toneClass: toneClass(s, i),
+        patternKind: tuxSeriesPattern(i, false),
       };
     });
   }
@@ -201,6 +216,7 @@ const areaPaths = computed<AreaPath[]>(() => {
         text: props.format(last),
       },
       toneClass: toneClass(s, i),
+      patternKind: tuxSeriesPattern(i, false),
     };
   });
 });
@@ -287,7 +303,13 @@ function focusY(seriesIdx: number, idx: number): number {
 </script>
 
 <template>
-  <figure class="tux-chart-area" role="figure" :aria-label="ariaSummary">
+  <figure
+    class="tux-chart-area"
+    :class="[palette === 'cvd' && 'tux-chart--cvd']"
+    :data-chart-palette="palette"
+    role="figure"
+    :aria-label="ariaSummary"
+  >
     <svg
       :viewBox="`0 0 ${width} ${height}`"
       :width="width"
@@ -295,6 +317,8 @@ function focusY(seriesIdx: number, idx: number): number {
       preserveAspectRatio="xMidYMid meet"
       class="tux-chart-area__svg"
     >
+      <TuxChartPatternsDefs />
+
       <!-- Gridlines -->
       <g v-if="gridlines" class="tux-chart-area__gridlines">
         <line
@@ -337,16 +361,24 @@ function focusY(seriesIdx: number, idx: number): number {
            so the visual stack reads as expected). For "overlay"
            variant, opacity is reduced. -->
       <g class="tux-chart-area__areas">
-        <path
-          v-for="(area, i) in areaPaths"
-          :key="`area-${i}`"
-          :d="area.path"
-          :class="[
-            'tux-chart-area__area',
-            area.toneClass,
-            isStacked ? 'tux-chart-area__area--stacked' : 'tux-chart-area__area--overlay',
-          ]"
-        />
+        <template v-for="(area, i) in areaPaths" :key="`area-${i}`">
+          <path
+            :d="area.path"
+            :class="[
+              'tux-chart-area__area',
+              area.toneClass,
+              isStacked ? 'tux-chart-area__area--stacked' : 'tux-chart-area__area--overlay',
+            ]"
+          />
+          <!-- Pattern hatching overlay for CVD / monochrome redundancy -->
+          <path
+            v-if="patternsEnabled && area.patternKind !== 'none'"
+            :d="area.path"
+            :fill="`url(#tux-pat-${area.patternKind})`"
+            class="tux-chart-area__pattern-overlay"
+            pointer-events="none"
+          />
+        </template>
       </g>
 
       <!-- Top line of each band — crisper edge than the fill alone. -->
@@ -450,7 +482,18 @@ function focusY(seriesIdx: number, idx: number): number {
         :key="`leg-${i}`"
         :class="['tux-chart-area__legend-item', area.toneClass]"
       >
-        <span class="tux-chart-area__legend-swatch" />
+        <svg viewBox="0 0 12 12" width="12" height="12" class="tux-chart-area__legend-swatch" aria-hidden="true">
+          <rect x="0" y="0" width="12" height="12" rx="2" fill="var(--tux-chart-tone)" />
+          <rect
+            v-if="patternsEnabled && area.patternKind !== 'none'"
+            x="0"
+            y="0"
+            width="12"
+            height="12"
+            rx="2"
+            :fill="`url(#tux-pat-${area.patternKind})`"
+          />
+        </svg>
         <span>{{ area.series.label }}</span>
       </li>
     </ul>
@@ -484,6 +527,11 @@ function focusY(seriesIdx: number, idx: number): number {
 .tux-chart-area__area {
   fill: var(--tux-chart-tone, var(--chart-1, var(--brand-primary)));
 }
+
+.tux-chart-area__pattern-overlay {
+  pointer-events: none;
+}
+
 .tux-chart-area__area--overlay {
   opacity: 0.22;
 }
@@ -520,10 +568,12 @@ function focusY(seriesIdx: number, idx: number): number {
 }
 
 .tux-chart-area__legend-swatch {
-  width: 10px;
-  height: 10px;
+  display: inline-block;
+  vertical-align: middle;
+  width: 12px;
+  height: 12px;
   border-radius: 2px;
-  background: var(--tux-chart-tone);
+  flex-shrink: 0;
 }
 
 /* ---- Hover layer ---- */

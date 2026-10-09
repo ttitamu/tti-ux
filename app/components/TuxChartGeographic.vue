@@ -48,7 +48,7 @@
  * source-line rhythm.
  */
 type Kind = "county" | "districts" | "us-context" | "dot-density" | "flow";
-type Palette = "maroon" | "slate";
+type Palette = "maroon" | "slate" | "cvd";
 
 interface DistrictDatum { id: number; value: number }
 interface USStateDatum { code: string; value: number }

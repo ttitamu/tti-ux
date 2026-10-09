@@ -1,7 +1,6 @@
-import { mountSuspended } from "@nuxt/test-utils/runtime";
+// @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import { defineComponent, h } from "vue";
-import { runComponentAxe } from "../axe-helper";
+import { runComponentAxe } from "./axe-helper";
 
 /** Helper relative luminance and contrast ratio according to WCAG 2.2 */
 function getRelativeLuminance(hex: string): number {
@@ -52,41 +51,25 @@ describe("Anti-Halation Soft Dark Theme (Astigmatism Comfort)", () => {
   });
 
   it("mounts soft dark container and passes axe accessibility checks", async () => {
-    const SoftDarkTestContainer = defineComponent({
-      props: {
-        themeVariant: { type: String, default: "soft" },
-      },
-      setup(props) {
-        return () =>
-          h(
-            "div",
-            {
-              class: "tux-theme--soft-dark p-6",
-              "data-theme": "tti-dark",
-              "data-theme-variant": props.themeVariant,
-              "data-vision-comfort": "anti-halation",
-            },
-            [
-              h("h1", { class: "heading--bold text-xl font-bold mb-2" }, "Astigmatism Comfort Mode"),
-              h(
-                "p",
-                { class: "text-sm text-text-secondary leading-relaxed" },
-                "Calibrated slate-charcoal canvas eliminates optical halation.",
-              ),
-              h("div", { class: "mt-4 p-4 border rounded" }, "Card container with soft borders"),
-            ],
-          );
-      },
-    });
+    const container = document.createElement("div");
+    container.className = "tux-theme--soft-dark p-6";
+    container.setAttribute("data-theme", "tti-dark");
+    container.setAttribute("data-theme-variant", "soft");
+    container.setAttribute("data-vision-comfort", "anti-halation");
+    container.innerHTML = `
+      <h1 class="heading--bold text-xl font-bold mb-2">Astigmatism Comfort Mode</h1>
+      <p class="text-sm text-text-secondary leading-relaxed">
+        Calibrated slate-charcoal canvas eliminates optical halation.
+      </p>
+      <div class="mt-4 p-4 border rounded">Card container with soft borders</div>
+    `;
 
-    const wrapper = await mountSuspended(SoftDarkTestContainer);
+    expect(container.getAttribute("data-theme")).toBe("tti-dark");
+    expect(container.getAttribute("data-theme-variant")).toBe("soft");
+    expect(container.getAttribute("data-vision-comfort")).toBe("anti-halation");
+    expect(container.classList.contains("tux-theme--soft-dark")).toBe(true);
 
-    expect(wrapper.attributes("data-theme")).toBe("tti-dark");
-    expect(wrapper.attributes("data-theme-variant")).toBe("soft");
-    expect(wrapper.attributes("data-vision-comfort")).toBe("anti-halation");
-    expect(wrapper.classes()).toContain("tux-theme--soft-dark");
-
-    const violations = await runComponentAxe(wrapper.element);
+    const violations = await runComponentAxe(container);
     expect(violations).toEqual([]);
   });
 });

@@ -92,14 +92,30 @@ const FONT_DISPLAY = family(val(tokens.globals.font.display)); // Oswald
  * and its fragments cannot disagree.
  */
 export function palette(themeName) {
-  const theme = tokens.themes[themeName];
+  const isCvd = themeName === "tti-cvd";
+  const baseThemeName = isCvd ? "tti" : themeName;
+  const theme = tokens.themes[baseThemeName];
   if (!theme) throw new Error(`unknown theme: ${themeName}`);
   const r = (v) => resolveRef(v, theme);
 
-  const chart = Object.keys(theme.chart)
-    .filter((k) => /^\d+$/.test(k))
-    .sort((a, b) => Number(a) - Number(b))
-    .map((k) => r(val(theme.chart[k])));
+  let chart;
+  if (isCvd) {
+    chart = [
+      r(val(theme.chart["cvd-1"])),
+      r(val(theme.chart["cvd-2"])),
+      r(val(theme.chart["cvd-3"])),
+      r(val(theme.chart["cvd-4"])),
+      r(val(theme.chart["cvd-5"])),
+      r(val(theme.chart["cvd-6"])),
+      r(val(theme.chart["cvd-7"])),
+      r(val(theme.chart["cvd-8"])),
+    ];
+  } else {
+    chart = Object.keys(theme.chart)
+      .filter((k) => /^\d+$/.test(k))
+      .sort((a, b) => Number(a) - Number(b))
+      .map((k) => r(val(theme.chart[k])));
+  }
 
   return {
     chart,
@@ -448,6 +464,7 @@ const THEME_NAMES = {
   tti: "TTI (tux)",
   "tti-dark": "TTI Dark (tux)",
   "tti-hc": "TTI High Contrast (tux)",
+  "tti-cvd": "TTI CVD Okabe-Ito (tux)",
 };
 
 export function buildTheme(themeName) {
@@ -506,6 +523,7 @@ export const THEME_TARGETS = [
   ["tti", "kit/powerbi/tti-theme.json"],
   ["tti-dark", "kit/powerbi/tti-theme-dark.json"],
   ["tti-hc", "kit/powerbi/tti-theme-hc.json"],
+  ["tti-cvd", "kit/powerbi/tti-theme-cvd.json"],
 ];
 
 export function generate() {

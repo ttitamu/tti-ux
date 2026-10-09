@@ -56,6 +56,17 @@ interface Series {
   toneIndex?: number;
 }
 
+export type TuxChartMarkerShape = "circle" | "square" | "triangle" | "diamond" | "cross" | "star";
+
+const TUX_SERIES_MARKERS: TuxChartMarkerShape[] = [
+  "circle",
+  "square",
+  "triangle",
+  "diamond",
+  "cross",
+  "star",
+];
+
 interface Props {
   series: Series[];
   /** X-axis label. */
@@ -64,6 +75,11 @@ interface Props {
   yLabel?: string;
   width?: number;
   height?: number;
+  /** Categorical color palette. Default: "brand". Set "cvd" for Okabe-Ito. */
+  palette?: "brand" | "cvd";
+  /** Enforce distinct geometric marker glyphs (circle, square, triangle,
+   *  diamond, cross, star) instead of uniform circles. Default: true. */
+  distinctMarkers?: boolean;
   /** Render a linear-regression trendline per series. Default false. */
   trendline?: boolean;
   /** Show legend below. Default true (axes labels carry less identity
@@ -87,6 +103,8 @@ const props = withDefaults(defineProps<Props>(), {
   yLabel: "y",
   width: 640,
   height: 320,
+  palette: "brand",
+  distinctMarkers: true,
   trendline: false,
   legend: true,
   gridlines: true,
@@ -98,6 +116,50 @@ const props = withDefaults(defineProps<Props>(), {
   units: undefined,
   tooltip: true,
 });
+
+function getSeriesMarker(index: number): TuxChartMarkerShape {
+  if (!props.distinctMarkers) return "circle";
+  return TUX_SERIES_MARKERS[index % TUX_SERIES_MARKERS.length];
+}
+
+function getMarkerPath(cx: number, cy: number, shape: TuxChartMarkerShape, r: number): string {
+  switch (shape) {
+    case "square": {
+      const s = r * 0.9;
+      return `M ${(cx - s).toFixed(2)},${(cy - s).toFixed(2)} h ${(2 * s).toFixed(2)} v ${(2 * s).toFixed(2)} h ${(-2 * s).toFixed(2)} Z`;
+    }
+    case "triangle": {
+      const topY = cy - r * 1.25;
+      const botY = cy + r * 0.85;
+      const dX = r * 1.15;
+      return `M ${cx.toFixed(2)},${topY.toFixed(2)} L ${(cx + dX).toFixed(2)},${botY.toFixed(2)} L ${(cx - dX).toFixed(2)},${botY.toFixed(2)} Z`;
+    }
+    case "diamond": {
+      const dR = r * 1.2;
+      return `M ${cx.toFixed(2)},${(cy - dR).toFixed(2)} L ${(cx + dR).toFixed(2)},${cy.toFixed(2)} L ${cx.toFixed(2)},${(cy + dR).toFixed(2)} L ${(cx - dR).toFixed(2)},${cy.toFixed(2)} Z`;
+    }
+    case "cross": {
+      const arm = r * 1.1;
+      const t = r * 0.35;
+      return `M ${(cx - t).toFixed(2)},${(cy - arm).toFixed(2)} h ${(2 * t).toFixed(2)} v ${(arm - t).toFixed(2)} h ${(arm - t).toFixed(2)} v ${(2 * t).toFixed(2)} h ${-(arm - t).toFixed(2)} v ${(arm - t).toFixed(2)} h ${-(2 * t).toFixed(2)} v ${-(arm - t).toFixed(2)} h ${-(arm - t).toFixed(2)} v ${-(2 * t).toFixed(2)} h ${(arm - t).toFixed(2)} Z`;
+    }
+    case "star": {
+      const pts: string[] = [];
+      const outerR = r * 1.25;
+      const innerR = r * 0.55;
+      for (let i = 0; i < 10; i++) {
+        const radius = i % 2 === 0 ? outerR : innerR;
+        const angle = -Math.PI / 2 + (i * Math.PI) / 5;
+        pts.push(`${(cx + radius * Math.cos(angle)).toFixed(2)},${(cy + radius * Math.sin(angle)).toFixed(2)}`);
+      }
+      return `M ${pts.join(" L ")} Z`;
+    }
+    case "circle":
+    default: {
+      return `M ${(cx - r).toFixed(2)},${cy.toFixed(2)} a ${r.toFixed(2)},${r.toFixed(2)} 0 1,0 ${(2 * r).toFixed(2)},0 a ${r.toFixed(2)},${r.toFixed(2)} 0 1,0 ${(-2 * r).toFixed(2)},0 Z`;
+    }
+  }
+}
 
 const emit = defineEmits<{
   hover: [payload: { seriesKey: string; seriesLabel: string; x: number; y: number; label?: string } | null];
@@ -284,7 +346,13 @@ function hoverToneClass(seriesIdx: number): string {
 </script>
 
 <template>
-  <figure class="tux-chart-scatter" role="figure" :aria-label="ariaSummary">
+  <figure
+    class="tux-chart-scatter"
+    :class="[palette === 'cvd' && 'tux-chart--cvd']"
+    :data-chart-palette="palette"
+    role="figure"
+    :aria-label="ariaSummary"
+  >
     <svg
       :viewBox="`0 0 ${width} ${height}`"
       :width="width"
@@ -372,15 +440,13 @@ function hoverToneClass(seriesIdx: number): string {
         </template>
       </g>
 
-      <!-- Dots -->
+      <!-- Dots / Distinct Geometric Markers for Multi-Channel CVD Accessibility -->
       <g class="tux-chart-scatter__dots">
         <template v-for="(s, i) in series" :key="`s-${i}`">
-          <circle
+          <path
             v-for="(p, j) in s.points"
             :key="`pt-${i}-${j}`"
-            :cx="xCoord(p.x)"
-            :cy="yCoord(p.y)"
-            :r="hovered && hovered.seriesIdx === i && hovered.pointIdx === j ? (p.size ?? 5) + 2 : (p.size ?? 5)"
+            :d="getMarkerPath(xCoord(p.x), yCoord(p.y), getSeriesMarker(i), hovered && hovered.seriesIdx === i && hovered.pointIdx === j ? (p.size ?? 5) + 2 : (p.size ?? 5))"
             :class="[
               'tux-chart-scatter__dot',
               toneClass(s, i),
@@ -391,7 +457,7 @@ function hoverToneClass(seriesIdx: number): string {
             @pointerleave="onDotLeave"
           >
             <title>{{ s.label }}{{ p.label ? ' · ' + p.label : '' }}: ({{ format(p.x) }}, {{ format(p.y) }})</title>
-          </circle>
+          </path>
         </template>
       </g>
     </svg>
@@ -434,7 +500,14 @@ function hoverToneClass(seriesIdx: number): string {
         :key="s.key"
         :class="['tux-chart-scatter__legend-item', toneClass(s, i)]"
       >
-        <span class="tux-chart-scatter__legend-swatch" />
+        <svg viewBox="0 0 14 14" width="14" height="14" class="tux-chart-scatter__legend-swatch" aria-hidden="true">
+          <path
+            :d="getMarkerPath(7, 7, getSeriesMarker(i), 4.5)"
+            fill="var(--tux-chart-tone)"
+            stroke="var(--surface-page)"
+            stroke-width="1"
+          />
+        </svg>
         <span>{{ s.label }} <span class="tux-chart-scatter__legend-count">({{ s.points.length }})</span></span>
         <span v-if="trendline && trends[i]?.trend" class="tux-chart-scatter__legend-r2">
           R² = {{ trends[i].trend!.r2.toFixed(decimals) }}
@@ -476,14 +549,17 @@ function hoverToneClass(seriesIdx: number): string {
 
 .tux-chart-scatter__dot {
   fill: var(--tux-chart-tone, var(--chart-1, var(--brand-primary)));
-  opacity: 0.78;
-  transition: opacity 120ms ease-out, r 120ms ease-out;
+  stroke: var(--surface-page);
+  stroke-width: 1;
+  opacity: 0.85;
+  transition: opacity 120ms ease-out, transform 120ms ease-out;
   cursor: pointer;
 }
 
 .tux-chart-scatter__dot:hover,
 .tux-chart-scatter__dot--active {
   opacity: 1;
+  stroke-width: 1.5;
 }
 
 /* The keyboard-active dot (arrow keys on the svg) mirrors the old
@@ -500,7 +576,6 @@ function hoverToneClass(seriesIdx: number): string {
 }
 
 /* Palette */
-
 
 .tux-chart-scatter__legend {
   list-style: none;
@@ -520,10 +595,11 @@ function hoverToneClass(seriesIdx: number): string {
 }
 
 .tux-chart-scatter__legend-swatch {
-  background: var(--tux-chart-tone);
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+  display: inline-block;
+  vertical-align: middle;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 

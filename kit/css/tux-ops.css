@@ -250,21 +250,3 @@
   border-right: 1px solid var(--surface-border);
   color: var(--text-primary);
 }
-
-/* ── Anti-Halation Soft Dark Theme (Astigmatism Comfort) ────────── */
-[data-theme="tti-dark"][data-theme-variant="soft"],
-[data-theme="tti-soft-dark"],
-[data-theme-variant="soft-dark"],
-[data-vision-comfort="anti-halation"],
-.tux-theme--soft-dark {
-  --surface-page: #161a22;
-  --surface-raised: #1f2430;
-  --surface-sunken: #0f1217;
-  --surface-border: #384152;
-  --surface-border-subtle: #282f3d;
-  --text-primary: #e6edf3;
-  --text-secondary: #9da7b5;
-  --text-muted: #768390;
-  --text-charcoal: #e6edf3;
-  --text-dark: #f0f6fc;
-}

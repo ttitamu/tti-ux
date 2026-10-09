@@ -8,6 +8,7 @@ with a matching source hash in manifest.json.
 | Component | Target | Status |
 |---|---|---|
 | TuxAbstract | react | never ported |
+| TuxAccordion | react | STALE (source moved since port) |
 | TuxAcknowledgments | react | never ported |
 | TuxActivityTimeline | react | never ported |
 | TuxAlert | react | STALE (source moved since port) |
@@ -17,8 +18,11 @@ with a matching source hash in manifest.json.
 | TuxAppSwitcher | react | never ported |
 | TuxArtifact | react | never ported |
 | TuxAuthorByline | react | never ported |
+| TuxBadge | react | STALE (source moved since port) |
 | TuxBlockquote | react | never ported |
 | TuxBranchNav | react | never ported |
+| TuxBreadcrumbs | react | STALE (source moved since port) |
+| TuxButton | react | STALE (source moved since port) |
 | TuxCTA | react | never ported |
 | TuxCaptionedMedia | react | never ported |
 | TuxCardCarousel | react | never ported |
@@ -120,12 +124,14 @@ with a matching source hash in manifest.json.
 | TuxSparkline | react | never ported |
 | TuxSplashScreen | react | never ported |
 | TuxSplitPane | react | never ported |
+| TuxStatus | react | STALE (source moved since port) |
 | TuxStatusToast | react | never ported |
 | TuxStepper | react | never ported |
 | TuxSuggestionChips | react | never ported |
 | TuxTOC | react | never ported |
 | TuxTabBar | react | never ported |
 | TuxTable | react | never ported |
+| TuxTabs | react | STALE (source moved since port) |
 | TuxTeachingPopover | react | never ported |
 | TuxTestimonial | react | never ported |
 | TuxTooltip | react | never ported |
@@ -161,3 +167,5 @@ with a matching source hash in manifest.json.
 | TuxHeroCanvas | react | never ported |
 | TuxRoadwayCrossSection | react | never ported |
 | TuxHeroCanvasSol | react | never ported |
+| TuxChartPatternsDefs | react | never ported |
+| TuxVisionPreferencesModal | react | never ported |

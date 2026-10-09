@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-10-08T20:23:41.217Z",
+  "timestamp": "2026-10-09T00:42:48.297Z",
   "system": "TTI-UX (TUX 3.0)",
   "standard": "W3C WCAG 2.2 Level AAA",
   "summary": {
-    "totalComponents": 178,
-    "aaaCompliantComponents": 178,
+    "totalComponents": 179,
+    "aaaCompliantComponents": 179,
     "aaaComplianceRate": 100,
     "contrastPairsTested": 11,
     "contrastPassRate": 100,
@@ -771,6 +771,20 @@
       "notes": [
         "Non-interactive / semantic layout component",
         "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxChartPatternsDefs": {
+      "name": "TuxChartPatternsDefs",
+      "file": "TuxChartPatternsDefs.vue",
+      "isInteractive": false,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": false,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "n/a",
+      "notes": [
+        "Non-interactive / semantic layout component"
       ]
     },
     "TuxChartScatter": {

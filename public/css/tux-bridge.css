@@ -61,6 +61,22 @@
   --tux-bridge-border-strong: #737373;
 }
 
+/* Anti-Halation Soft Dark Overrides (Astigmatism Comfort) */
+[data-theme="tti-dark"][data-theme-variant="soft"],
+[data-theme="tti-soft-dark"],
+[data-theme-variant="soft-dark"],
+[data-vision-comfort="anti-halation"],
+.tux-bridge--soft-dark {
+  --tux-bridge-text: #e6edf3;
+  --tux-bridge-text-secondary: #9da7b5;
+  --tux-bridge-text-muted: #768390;
+  --tux-bridge-surface: #1f2430;
+  --tux-bridge-surface-muted: #161a22;
+  --tux-bridge-surface-stripe: #282f3d;
+  --tux-bridge-border: #384152;
+  --tux-bridge-border-strong: #9da7b5;
+}
+
 /* ───────────────────────────────────────────────────────────────────
    1. Typography & Content Rhythm (WCAG 1.4.8 / 1.4.12)
    ─────────────────────────────────────────────────────────────────── */
