@@ -148,14 +148,13 @@ const renderedBands = computed<RenderedBand[]>(() => {
   return props.bands.map((b) => {
     const sa = valueToAngle(b.from);
     const ea = valueToAngle(b.to);
-    let toneClass = "";
-    if (b.tone === "success") toneClass = "tux-chart-gauge__band--success";
-    else if (b.tone === "warning") toneClass = "tux-chart-gauge__band--warning";
-    else if (b.tone === "error") toneClass = "tux-chart-gauge__band--error";
-    else {
-      const tone = tuxSeriesTone(0, b.toneIndex ?? 1);
-      toneClass = `tux-chart-gauge__band--c${tone} tux-chart-tone--c${tone}`;
-    }
+    const toneClass = b.tone === "success"
+      ? "tux-chart-gauge__band--success"
+      : b.tone === "warning"
+        ? "tux-chart-gauge__band--warning"
+        : b.tone === "error"
+          ? "tux-chart-gauge__band--error"
+          : `tux-chart-gauge__band--c${tuxSeriesTone(0, b.toneIndex ?? 1)} tux-chart-tone--c${tuxSeriesTone(0, b.toneIndex ?? 1)}`;
     return { path: arcPath(sa, ea, radius.value), toneClass };
   });
 });

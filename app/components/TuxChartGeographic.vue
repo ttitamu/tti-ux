@@ -47,6 +47,8 @@
  * Wrap in `<TuxChartFrame>` for the eyebrow + Oswald title +
  * source-line rhythm.
  */
+import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
+
 type Kind = "county" | "districts" | "us-context" | "dot-density" | "flow";
 type Palette = "maroon" | "slate" | "cvd";
 
@@ -71,8 +73,6 @@ interface Props {
   flows?: FlowDatum[];
   flowLegend?: string;
 }
-
-import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
 
 const props = withDefaults(defineProps<Props>(), {
   palette: "maroon",
