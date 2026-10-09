@@ -74,11 +74,36 @@ const lineControls = [
     description: "Multi-point telemetry time series dataset",
   },
   {
+    prop: "palette",
+    label: "Categorical Palette",
+    type: "select" as const,
+    options: [
+      { label: "TTI Brand (Maroon / Slate / Wheat / Sage)", value: "brand" },
+      { label: "Okabe-Ito CVD Universal (Blue / Orange Polarity)", value: "cvd" },
+    ],
+    defaultValue: "brand",
+    description: "Clinically validated color palette for color vision deficiency",
+  },
+  {
     prop: "markers",
     label: "Show Point Markers",
     type: "boolean" as const,
     defaultValue: true,
-    description: "Render circle markers at each observation point",
+    description: "Render geometric markers at each observation point",
+  },
+  {
+    prop: "distinctMarkers",
+    label: "Distinct Geometric Markers",
+    type: "boolean" as const,
+    defaultValue: true,
+    description: "Cycle unique shapes (circle, square, triangle, diamond, cross, star) per series for CVD legibility",
+  },
+  {
+    prop: "patterns",
+    label: "Accessible Dash Patterns",
+    type: "boolean" as const,
+    defaultValue: true,
+    description: "Cycle stroke dash patterns (solid, dashed, dotted, dash-dot) per series for monochrome / CVD distinction",
   },
   {
     prop: "brush",
@@ -92,11 +117,26 @@ const lineControls = [
     label: "Show Series Legend",
     type: "boolean" as const,
     defaultValue: true,
-    description: "Display series legend strip",
+    description: "Display series legend strip with accessible stroke samples",
   },
 ];
 
 const linePresets = [
+  {
+    name: "cvd-accessible",
+    label: "Universal CVD & Monochrome (Accessible)",
+    description: "Okabe-Ito universal palette with distinct stroke dash patterns, geometric markers, and accessible legend",
+    icon: "lucide:eye",
+    values: {
+      dataset: "multi",
+      palette: "cvd",
+      markers: true,
+      distinctMarkers: true,
+      patterns: true,
+      brush: false,
+      legend: true,
+    },
+  },
   {
     name: "multi-operations",
     label: "Operations Telemetry (Multi-Series)",
@@ -104,7 +144,10 @@ const linePresets = [
     icon: "lucide:activity",
     values: {
       dataset: "multi",
+      palette: "brand",
       markers: true,
+      distinctMarkers: true,
+      patterns: true,
       brush: false,
       legend: true,
     },
@@ -148,7 +191,9 @@ const linePresets = [
 ];
 
 const basicVue = `<tux-chart-line :labels="months" :series="series" :width="640" :height="280" />`;
-const multiVue = `<tux-chart-line :labels="months" :series="multiSeries" markers />`;
+const multiVue = `<tux-chart-line :labels="months" :series="multiSeries" markers legend />`;
+const cvdPaletteVue = `<!-- Okabe-Ito Universal CVD Palette: Deep Blue (#0072B2) & Warm Orange (#E69F00) Polarity -->
+<tux-chart-line :labels="months" :series="multiSeries" palette="cvd" markers legend />`;
 const prevVue = `<!-- series[].previous renders as a 60% opacity dashed
      companion in the same hue. Same metric, prior window. -->
 <tux-chart-line :labels="labels" :series="previousSeries" markers />`;
@@ -220,10 +265,13 @@ const focusVue = `<UButton icon="lucide:maximize" @click="focusOpen = true">Open
         :powerbi="pbiCartesian"
         :code-template="(values) => {
           const ds = datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.multi;
+          const paletteAttr = values.palette === 'cvd' ? '\n  palette=\x22cvd\x22' : '';
           const markerAttr = values.markers ? '\n  markers' : '';
+          const distinctAttr = values.distinctMarkers === false ? '\n  :distinct-markers=\x22false\x22' : '';
+          const patternAttr = values.patterns === false ? '\n  :patterns=\x22false\x22' : '';
           const brushAttr = values.brush ? '\n  brush' : '';
           const legendAttr = values.legend ? '\n  legend' : '';
-          return `<tux-chart-line\n  :labels=\x22${ds.codeLabels}\x22\n  :series=\x22${ds.codeSeries}\x22${markerAttr}${brushAttr}${legendAttr}\n  :width=\x22640\x22\n  :height=\x22280\x22\n/>`;
+          return `<tux-chart-line\n  :labels=\x22${ds.codeLabels}\x22\n  :series=\x22${ds.codeSeries}\x22${paletteAttr}${markerAttr}${distinctAttr}${patternAttr}${brushAttr}${legendAttr}\n  :width=\x22640\x22\n  :height=\x22280\x22\n/>`;
         }"
       >
         <template #default="{ values }">
@@ -231,7 +279,10 @@ const focusVue = `<UButton icon="lucide:maximize" @click="focusOpen = true">Open
             <TuxChartLine
               :labels="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.multi).labels"
               :series="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.multi).series"
+              :palette="values.palette"
               :markers="values.markers"
+              :distinct-markers="values.distinctMarkers"
+              :patterns="values.patterns"
               :brush="values.brush"
               :legend="values.legend"
               :width="640"
@@ -256,15 +307,31 @@ const focusVue = `<UButton icon="lucide:maximize" @click="focusOpen = true">Open
     </section>
 
     <section>
-      <p class="eyebrow">multi-series</p>
-      <h2 class="heading--bold text-xl font-bold">Scan operations by status</h2>
+      <p class="eyebrow">multi-series · universal cvd redundancy</p>
+      <h2 class="heading--bold text-xl font-bold">Scan operations by status (CVD & Monochrome Safe)</h2>
       <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
-        Three series walking the palette (maroon / slate teal / wheat).
-        Pass <code>markers</code> to drop dots on each observation
-        point; helpful when data isn't dense.
+        Three series walking the palette with <strong>multi-channel redundant encoding</strong>:
+        each series automatically receives a unique <strong>stroke-dash pattern</strong> (solid, dashed, dotted)
+        and distinct <strong>geometric marker glyph</strong> (circle ●, square ■, triangle ▲).
+        The legend renders the exact line sample and marker glyph, ensuring instant legibility across all forms of
+        colorblindness (Deutan, Protan, Tritan) and low-toner monochrome printouts.
       </p>
       <TuxExample :powerbi="pbiCartesian" :source="tuxChartLineSource" class="mt-4" :vue="multiVue">
-        <TuxChartLine :labels="months" :series="multiSeries" markers />
+        <TuxChartLine :labels="months" :series="multiSeries" markers legend />
+      </TuxExample>
+    </section>
+
+    <section>
+      <p class="eyebrow">colorblindness · okabe-ito universal palette</p>
+      <h2 class="heading--bold text-xl font-bold">Okabe-Ito Universal Palette (Blue / Orange Polarity)</h2>
+      <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
+        Pass <code>palette="cvd"</code> to activate the clinically verified <strong>Okabe-Ito 8-color universal palette</strong> (<code>--chart-cvd-1..8</code>).
+        The primary series are anchored by <strong>Deep Blue (#0072B2)</strong> and <strong>Warm Orange (#E69F00)</strong>,
+        maximizing chromatic and luminance contrast across Protanopia, Deuteranopia, and Tritanopia confusion axes.
+        Combined with shape-distinct markers and stroke dash patterns, charts achieve 100% triple-redundant accessibility.
+      </p>
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartLineSource" class="mt-4" :vue="cvdPaletteVue">
+        <TuxChartLine :labels="months" :series="multiSeries" palette="cvd" markers legend />
       </TuxExample>
     </section>
 

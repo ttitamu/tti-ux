@@ -42,6 +42,8 @@ interface Props {
   hideTheme?: boolean;
   /** Hide the built-in high-contrast toggle. Defaults to false. */
   hideHighContrast?: boolean;
+  /** Hide the vision & accessibility preferences modal toggle. Defaults to false. */
+  hideVisionPrefs?: boolean;
   /** TuxUserMenu passthrough. Omit (and omit #identity) on
    *  unauthenticated products. */
   userMenu?: {
@@ -62,6 +64,7 @@ const props = withDefaults(defineProps<Props>(), {
   hideSwitcher: false,
   hideTheme: false,
   hideHighContrast: false,
+  hideVisionPrefs: false,
   userMenu: undefined,
 });
 
@@ -88,6 +91,7 @@ const hcLabel = computed(() =>
 );
 
 const themeAnnouncement = ref("");
+const visionModalOpen = ref(false);
 
 function toggleTheme() {
   if (isHighContrast.value) {
@@ -120,6 +124,17 @@ function toggleHighContrast() {
 
     <ClientOnly v-if="!hideTheme">
       <button
+        v-if="!hideVisionPrefs"
+        type="button"
+        class="tux-utility-cluster__theme tux-utility-cluster__vision-btn"
+        aria-label="Vision & Accessibility Preferences"
+        title="Vision & Accessibility Preferences"
+        @click="visionModalOpen = true"
+      >
+        <Icon name="lucide:sliders-horizontal" :size="16" />
+      </button>
+
+      <button
         v-if="!hideHighContrast"
         type="button"
         class="tux-utility-cluster__theme tux-utility-cluster__hc-btn"
@@ -141,6 +156,9 @@ function toggleHighContrast() {
       >
         <Icon :name="themeIcon" :size="16" />
       </button>
+
+      <TuxVisionPreferencesModal v-model:open="visionModalOpen" />
+
       <template #fallback>
         <div class="tux-utility-cluster__theme" aria-hidden="true" />
       </template>

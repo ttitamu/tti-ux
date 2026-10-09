@@ -92,6 +92,24 @@ const scatterControls = [
     description: "Multi-dimensional observation telemetry",
   },
   {
+    prop: "palette",
+    label: "Color Palette",
+    type: "select" as const,
+    options: [
+      { label: "Aggie Brand Anchor (--chart-1..8)", value: "brand" },
+      { label: "Okabe-Ito Universal CVD (--chart-cvd-1..8)", value: "cvd" },
+    ],
+    defaultValue: "brand",
+    description: "Color system: brand maroon anchor or Okabe-Ito colorblindness-safe palette",
+  },
+  {
+    prop: "distinctMarkers",
+    label: "Distinct Geometric Markers",
+    type: "boolean" as const,
+    defaultValue: true,
+    description: "Cycle unique glyphs (circle, square, triangle, diamond, cross, star) per series for CVD legibility",
+  },
+  {
     prop: "trendline",
     label: "Regression Trendline (R²)",
     type: "boolean" as const,
@@ -102,12 +120,26 @@ const scatterControls = [
 
 const scatterPresets = [
   {
+    name: "cvd-accessible",
+    label: "Universal CVD & Distinct Markers",
+    description: "Okabe-Ito barrier-free palette with distinct geometric glyphs per series and matching legend",
+    icon: "lucide:eye",
+    values: {
+      dataset: "corridors",
+      palette: "cvd",
+      distinctMarkers: true,
+      trendline: true,
+    },
+  },
+  {
     name: "training-regression",
     label: "Linear Regression Trendline (R²)",
     description: "Negative correlation slope showing training impact on errors",
     icon: "lucide:trending-down",
     values: {
       dataset: "training",
+      palette: "brand",
+      distinctMarkers: true,
       trendline: true,
     },
   },
@@ -118,6 +150,8 @@ const scatterPresets = [
     icon: "lucide:git-compare",
     values: {
       dataset: "corridors",
+      palette: "brand",
+      distinctMarkers: true,
       trendline: true,
     },
   },
@@ -128,6 +162,8 @@ const scatterPresets = [
     icon: "lucide:circle-dot",
     values: {
       dataset: "bubble",
+      palette: "brand",
+      distinctMarkers: false,
       trendline: false,
     },
   },
@@ -137,6 +173,16 @@ const basicVue = `<tux-chart-scatter
   x-label="Hours of training"
   y-label="Errors per shift"
   :series="crewTraining"
+  trendline
+/>`;
+
+const cvdScatterVue = `<!-- Okabe-Ito CVD palette with unique geometric glyphs per series -->
+<tux-chart-scatter
+  x-label="Vehicle miles / capita"
+  y-label="Safety score"
+  :series="corridorData"
+  palette="cvd"
+  distinct-markers
   trendline
 />`;
 
@@ -177,8 +223,10 @@ const bubbleVue = `<tux-chart-scatter
         :powerbi="pbiCartesian"
         :code-template="(values) => {
           const ds = datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.training;
+          const palAttr = values.palette === 'cvd' ? '\n  palette=\x22cvd\x22' : '';
+          const markerAttr = values.distinctMarkers === false ? '\n  :distinct-markers=\x22false\x22' : '';
           const trendAttr = values.trendline ? '\n  trendline' : '';
-          return `<tux-chart-scatter\n  x-label=\x22${ds.xLabel}\x22\n  y-label=\x22${ds.yLabel}\x22\n  :series=\x22${ds.codeSeries}\x22${trendAttr}\n/>`;
+          return `<tux-chart-scatter\n  x-label=\x22${ds.xLabel}\x22\n  y-label=\x22${ds.yLabel}\x22\n  :series=\x22${ds.codeSeries}\x22${palAttr}${markerAttr}${trendAttr}\n/>`;
         }"
       >
         <template #default="{ values }">
@@ -187,11 +235,34 @@ const bubbleVue = `<tux-chart-scatter
               :x-label="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.training).xLabel"
               :y-label="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.training).yLabel"
               :series="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.training).series"
+              :palette="values.palette"
+              :distinct-markers="values.distinctMarkers"
               :trendline="values.trendline"
             />
           </div>
         </template>
       </TuxPlayground>
+    </section>
+
+    <section>
+      <p class="eyebrow">accessible · cvd geometric markers</p>
+      <h2 class="heading--bold text-xl font-bold">Universal CVD & Distinct Geometric Markers</h2>
+      <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
+        Pass <code>palette="cvd"</code> and <code>distinctMarkers</code> so each series displays a
+        unique geometric glyph (circle ●, square ■, triangle ▲, diamond ◆, cross ✚, star ★).
+        The legend swatches pair the exact marker glyph and regression rule, guaranteeing that
+        observations from overlapping series can be disambiguated regardless of color perception.
+      </p>
+      <TuxExample :powerbi="pbiCartesian" :source="tuxChartScatterSource" class="mt-4" :vue="cvdScatterVue">
+        <TuxChartScatter
+          x-label="Vehicle miles / capita"
+          y-label="Safety score"
+          :series="corridorData"
+          palette="cvd"
+          distinct-markers
+          trendline
+        />
+      </TuxExample>
     </section>
 
     <section>

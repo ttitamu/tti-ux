@@ -34,6 +34,21 @@ export default defineNuxtConfig({
   app: {
     pageTransition: { name: "page", mode: "out-in" },
     layoutTransition: { name: "layout", mode: "out-in" },
+    head: {
+      // `lang` is required for screen readers to pick the right voice
+      // and for axe's `html-has-lang` rule. Sets `<html lang="en">`.
+      htmlAttrs: { lang: "en" },
+      title: "tti-ux",
+      meta: [
+        { charset: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        {
+          name: "description",
+          content:
+            "Living style guide for the TTI design system — Nuxt 4 + Nuxt UI, themed for Texas A&M Transportation Institute.",
+        },
+      ],
+    },
   },
 
   // GitHub Pages deploy.
@@ -226,23 +241,6 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()] as unknown as never[],
   },
 
-  app: {
-    head: {
-      // `lang` is required for screen readers to pick the right voice
-      // and for axe's `html-has-lang` rule. Sets `<html lang="en">`.
-      htmlAttrs: { lang: "en" },
-      title: "tti-ux",
-      meta: [
-        { charset: "utf-8" },
-        { name: "viewport", content: "width=device-width, initial-scale=1" },
-        {
-          name: "description",
-          content:
-            "Living style guide for the TTI design system — Nuxt 4 + Nuxt UI, themed for Texas A&M Transportation Institute.",
-        },
-      ],
-    },
-  },
 
   typescript: {
     strict: true,

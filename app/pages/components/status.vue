@@ -41,6 +41,13 @@ const statusControls: TuxPropControl[] = [
     type: "text",
     defaultValue: "",
   },
+  {
+    prop: "glyph",
+    label: "Shape Glyph (CVD Redundancy)",
+    type: "boolean",
+    defaultValue: false,
+    description: "Embeds accessible geometric micro-glyph (circle, triangle, octagon, rect, clock, diamond)",
+  },
 ];
 
 const statusPresets: TuxPlaygroundPreset[] = [
@@ -88,8 +95,22 @@ const statusPresets: TuxPlaygroundPreset[] = [
     values: {
       state: "maintenance",
       kind: "chip",
+      glyph: false,
       acked: false,
       label: "MAINT",
+    },
+  },
+  {
+    name: "cvd-accessible-shape",
+    label: "Accessible Shape Glyph (CVD)",
+    description: "Multi-channel redundant shape encoding eliminating color-alone reliance",
+    icon: "lucide:shield-check",
+    values: {
+      state: "critical",
+      kind: "chip",
+      glyph: true,
+      acked: false,
+      label: "",
     },
   },
 ];
@@ -106,7 +127,17 @@ const textVue = `<tux-status state="ok" kind="text" />
 
 const dotVue = `<tux-status state="ok" kind="dot" />
 <tux-status state="warning" kind="dot" />
-<tux-status state="critical" kind="dot" />`;
+<tux-status state="critical" kind="dot" />
+<tux-status state="maintenance" kind="dot" />
+<tux-status state="pending" kind="dot" />
+<tux-status state="unknown" kind="dot" />`;
+
+const glyphVue = `<tux-status state="ok" glyph />
+<tux-status state="warning" glyph />
+<tux-status state="critical" glyph />
+<tux-status state="maintenance" glyph />
+<tux-status state="pending" glyph />
+<tux-status state="unknown" glyph />`;
 
 const ackedVue = `<tux-status state="critical" />
 <tux-status state="critical" acked />`;
@@ -146,6 +177,7 @@ const overlayVue = `<!-- Consumer markup you do not own. Map onto TUX classes. -
             <TuxStatus
               :state="values.state"
               :kind="values.kind"
+              :glyph="values.glyph"
               :acked="values.acked"
               :label="values.label || undefined"
             />
@@ -187,10 +219,28 @@ const overlayVue = `<!-- Consumer markup you do not own. Map onto TUX classes. -
         </div>
       </TuxExample>
       <TuxExample class="mt-4" :vue="dotVue" :css="tuxOpsCss" :source="tuxStatusSource">
-        <div class="flex flex-wrap gap-3 items-center">
-          <TuxStatus state="ok" kind="dot" />
-          <TuxStatus state="warning" kind="dot" />
-          <TuxStatus state="critical" kind="dot" />
+        <div class="flex flex-wrap gap-5 items-center">
+          <div v-for="s in states" :key="s" class="flex items-center gap-2 text-xs font-mono">
+            <TuxStatus :state="s" kind="dot" />
+            <span class="text-text-secondary uppercase">{{ s }}</span>
+          </div>
+        </div>
+      </TuxExample>
+    </section>
+
+    <section>
+      <p class="eyebrow">colorblindness & cvd</p>
+      <h2 class="heading--bold text-xl font-bold">Multi-Channel Redundant Glyphs</h2>
+      <p class="text-sm text-text-secondary mb-3">
+        Under severe Protanopia (red blindness) or Deuteranopia (green blindness),
+        relying on colored dots alone violates <strong>WCAG 1.4.1 (Use of Color)</strong>.
+        TuxStatus provides redundant geometric silhouettes: <strong>Circle</strong> (OK),
+        <strong>Upright Triangle</strong> (Warning), <strong>Stop Sign Octagon</strong> (Critical),
+        <strong>Square</strong> (Maintenance), <strong>Clock</strong> (Pending), and <strong>Diamond</strong> (Unknown).
+      </p>
+      <TuxExample class="mt-4" :vue="glyphVue" :css="tuxOpsCss" :source="tuxStatusSource">
+        <div class="flex flex-wrap gap-2">
+          <TuxStatus v-for="s in states" :key="s" :state="s" glyph />
         </div>
       </TuxExample>
     </section>

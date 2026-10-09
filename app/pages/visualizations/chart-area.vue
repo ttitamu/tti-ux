@@ -50,6 +50,24 @@ const areaControls = [
     description: "Transportation operations time series dataset",
   },
   {
+    prop: "palette",
+    label: "Color Palette",
+    type: "select" as const,
+    options: [
+      { label: "Aggie Brand Anchor (--chart-1..8)", value: "brand" },
+      { label: "Okabe-Ito Universal CVD (--chart-cvd-1..8)", value: "cvd" },
+    ],
+    defaultValue: "brand",
+    description: "Color system: brand maroon anchor or Okabe-Ito colorblindness-safe palette",
+  },
+  {
+    prop: "patterns",
+    label: "SVG Pattern Hatching",
+    type: "boolean" as const,
+    defaultValue: false,
+    description: "Overlay high-contrast dual-line SVG hatchings across area bands for CVD legibility",
+  },
+  {
     prop: "variant",
     label: "Area Stacking",
     type: "select" as const,
@@ -71,12 +89,27 @@ const areaControls = [
 
 const areaPresets = [
   {
+    name: "cvd-accessible",
+    label: "Universal CVD & Pattern Hatching",
+    description: "Okabe-Ito barrier-free palette with stacked SVG pattern hatchings and matching legend swatches",
+    icon: "lucide:eye",
+    values: {
+      dataset: "stacked",
+      palette: "cvd",
+      patterns: true,
+      variant: "stacked",
+      legend: true,
+    },
+  },
+  {
     name: "stacked-composition",
     label: "Stacked Corpus Composition",
     description: "Multi-layer cumulative bands showing total volume composition",
     icon: "lucide:layers",
     values: {
       dataset: "stacked",
+      palette: "brand",
+      patterns: false,
       variant: "stacked",
       legend: true,
     },
@@ -88,11 +121,23 @@ const areaPresets = [
     icon: "lucide:trending-up",
     values: {
       dataset: "single",
+      palette: "brand",
+      patterns: false,
       variant: "overlay",
       legend: false,
     },
   },
 ];
+
+const cvdPatternVue = `<!-- Okabe-Ito CVD palette with high-contrast dual-line SVG texture hatching -->
+<tux-chart-area
+  :labels="recentMonths"
+  :series="stackedSeries"
+  palette="cvd"
+  patterns
+  variant="stacked"
+  legend
+/>`;
 
 const basicVue = `<tux-chart-area :labels="months" :series="singleSeries" />`;
 const stackedVue = `<tux-chart-area :labels="months" :series="stackedSeries" variant="stacked" legend />`;
@@ -129,9 +174,11 @@ const compositionVue = `<!-- "KPI strip over stacked area" — pattern absorbed 
         :powerbi="pbiCartesian"
         :code-template="(values) => {
           const ds = datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.stacked;
+          const palAttr = values.palette === 'cvd' ? '\n  palette=\x22cvd\x22' : '';
+          const patAttr = values.patterns ? '\n  patterns' : '';
           const varAttr = values.variant !== 'overlay' ? `\n  variant=\x22${values.variant}\x22` : '';
           const legAttr = values.legend ? '\n  legend' : '';
-          return `<tux-chart-area\n  :labels=\x22${ds.codeLabels}\x22\n  :series=\x22${ds.codeSeries}\x22${varAttr}${legAttr}\n/>`;
+          return `<tux-chart-area\n  :labels=\x22${ds.codeLabels}\x22\n  :series=\x22${ds.codeSeries}\x22${palAttr}${patAttr}${varAttr}${legAttr}\n/>`;
         }"
       >
         <template #default="{ values }">
@@ -139,12 +186,34 @@ const compositionVue = `<!-- "KPI strip over stacked area" — pattern absorbed 
             <TuxChartArea
               :labels="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.stacked).labels"
               :series="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.stacked).series"
+              :palette="values.palette"
+              :patterns="values.patterns"
               :variant="values.variant"
               :legend="values.legend"
             />
           </div>
         </template>
       </TuxPlayground>
+    </section>
+
+    <section>
+      <p class="eyebrow">accessible · cvd texture hatching</p>
+      <h2 class="heading--bold text-xl font-bold">Universal CVD & Monochrome Pattern Hatching</h2>
+      <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
+        Pass <code>palette="cvd"</code> and <code>patterns</code> to overlay tactile dual-line SVG hatchings
+        across stacked area bands. Each layer is immediately distinguishable by texture in addition to color,
+        satisfying WCAG 1.4.1 (Use of Color) under monochrome print and any variant of color vision deficiency.
+      </p>
+      <TuxExample class="mt-4" :vue="cvdPatternVue" :source="tuxChartAreaSource" :powerbi="pbiCartesian">
+        <TuxChartArea
+          :labels="recentMonths"
+          :series="stackedSeries"
+          palette="cvd"
+          patterns
+          variant="stacked"
+          legend
+        />
+      </TuxExample>
     </section>
 
     <section>

@@ -5,8 +5,8 @@ useHead({ title: "TuxUtilityCluster · TUX" });
 const signedIn = {
   state: "signed-in" as const,
   identity: {
-    name: "Guevara, Anthony",
-    email: "a-guevara@tti.tamu.edu",
+    name: "User, Demo",
+    email: "duser@tti.tamu.edu",
     department: "NET",
   },
   items: [

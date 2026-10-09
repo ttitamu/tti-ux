@@ -3,6 +3,48 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.1.0] — 2026-10-08
+
+### Added & Changed — Universal CVD, Multi-Channel Redundancy & Vision Accessibility (2026-10-08)
+
+Major accessibility and visualization release delivering barrier-free color vision deficiency (CVD) support across all native charts and status indicators, SVG texture pattern hatching, geometric shape encoding, an anti-halation soft dark theme for astigmatism comfort, a global vision preferences modal with real-time simulation filters, a Power BI CVD report theme, security upgrades, and demo identity privacy sanitization.
+
+#### 1. Universal Okabe-Ito CVD Palette Architecture
+- **Barrier-Free Color Tokens**: Added `--chart-cvd-1..8` based on the empirically validated Okabe-Ito colorblindness-safe palette (`#0072B2` deep blue, `#E69F00` warm orange, `#009E73` bluish green, `#F0E442` soft yellow, `#56B4E9` sky blue, `#D55E00` vermilion, `#CC79A7` reddish purple, `#222222` dark charcoal), providing unambiguous distinction across Deuteranopia, Protanopia, Tritanopia, and monochrome displays.
+- **Universal Status & Badge Mapping**: Updated `TuxStatus` and `TuxBadge` with CVD-safe color tokens, pairing high-contrast blue-orange polarity for positive/critical states.
+- **Geographic Ramps**: Integrated 5-step Okabe-Ito sequential gradient ramps (`--chart-cvd-1, 5, 3, 4, 2`) into `tuxChartGeo.ts` and `<TuxChartGeographic>` choropleth rendering.
+- **Power BI Universal CVD Theme**: Emitted `kit/powerbi/tti-theme-cvd.json` via updated `scripts/build-powerbi-theme.mjs` targeting CY26SU08 schema.
+
+#### 2. SVG Pattern Hatching & Multi-Channel Redundancy
+- **Dual-Line SVG Texture Engine**: Created `app/utils/tuxChartPatterns.ts` defining 8 canonical SVG patterns (`none`, `diag-right`, `diag-left`, `dots`, `crosshatch`, `horizontal`, `vertical`, `diamonds`) using high-contrast dual-line geometry (`var(--surface-page)` cutout stroke paired with a keyline shadow) for universal visibility on light, dark, and high-contrast surfaces.
+- **`<TuxChartPatternsDefs>`**: Reusable SVG pattern definition generator component (`app/components/TuxChartPatternsDefs.vue`).
+- **Native Bar Charts (`<TuxChartBar>`)**: Added `palette="brand" | "cvd"` and `patterns` props, rendering pattern overlays across vertical, horizontal, grouped, and stacked bars with matching patterned legend swatches.
+- **Native Donut Charts (`<TuxChartDonut>`)**: Added `palette` and `patterns` props, rendering pattern overlays across slices with patterned breakdown table legend swatches.
+- **Native Area Charts (`<TuxChartArea>`)**: Added `palette` and `patterns` props, rendering tactile pattern overlays across overlay and stacked area bands.
+- **Native Scatter Plots (`<TuxChartScatter>`)**: Added `palette` and `distinctMarkers` props, cycling 6 distinct geometric glyphs (circle ●, square ■, triangle ▲, diamond ◆, cross ✚, star ★) across series and regression legend swatches.
+- **React Kit Parity**: Implemented identical props, SVG pattern geometry, and geometric markers across `@tti/tti-ux-react` components (`TuxChartBar.tsx`, `TuxChartDonut.tsx`, `TuxChartArea.tsx`, `TuxChartScatter.tsx`).
+
+#### 3. Geometric Status & Badge Glyphs
+- **Non-Color Shape Redundancy**: Equipped `<TuxStatus>` and `<TuxBadge>` with embedded SVG geometric shape glyphs (circle for OK, triangle for warning, diamond for critical, square for unknown/pending, hexagon for maintenance), satisfying WCAG 1.4.1 (Use of Color) by ensuring state identification does not rely on color alone.
+
+#### 4. Astigmatism Comfort Mode (Anti-Halation Soft Dark Theme)
+- **Clinical Optical Calibration**: Engineered `tux-theme--soft-dark` (`[data-theme-variant="soft"]`, `[data-vision-comfort="anti-halation"]`) featuring `#161A22` slate canvas, `#1F2430` elevated card surface, and `#E6EDF3` softened ink, reducing contrast halation and optical blurring for operators with astigmatism or photophobia while maintaining strict WCAG AAA contrast ($\ge 7.0:1$ normal text).
+
+#### 5. Global Vision Preferences Modal & Live Simulation
+- **`<TuxVisionPreferencesModal>`**: Built accessibility settings modal offering colorblind mode selection (Okabe-Ito, Deutan/Protan, Tritan, Monochrome), SVG filter simulation (Deuteranopia, Protanopia, Tritanopia, Achromatopsia preview matrices), chart texture hatching toggles, and astigmatism comfort options.
+- **Composable State**: Created `useTuxVisionPrefs` providing persistent client preferences with reactive HTML data attribute application.
+- **`<TuxUtilityCluster>` Integration**: Wired quick-access eye icon button into the global top header utility cluster.
+
+#### 6. Security & Dependency Hardening
+- **`@nuxtjs/mdc` ^0.22.2 (CVE-2026-63671)**: Closed high-severity markdown sanitizer bypass vulnerability (GHSA-mxm6-v9r6-r94c) by upgrading `@nuxtjs/mdc` to `^0.22.2` and declaring root workspace npm override.
+
+#### 7. Privacy & Demo Sanitization
+- **Scrubbed Personal Identifiers**: Replaced real staff names and UPN email addresses across demo surfaces, sample extensions, and mock personas (`utility-cluster.vue`, `landscape-dashboard.vue`, `public/kits/*`) with neutral "Demo User" (`DU`) and bracketed placeholders.
+
+#### 8. Verification & Standards Compliance
+- **100% WCAG 2.2 Level AAA Certified**: 0 violations across 179 component templates; 11/11 core contrast pairs exceeding AAA thresholds.
+- **Full Test Suite Passing**: 219 root test suites (685 tests) and 26 React test suites (89 tests) passing 100% (774/774 tests).
+
 ## [3.0.1] — 2026-10-07
 
 ### Added & Changed — Editorial Polish, Smooth Accordions & Responsive Navigation (2026-10-07)

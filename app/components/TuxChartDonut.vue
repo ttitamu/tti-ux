@@ -40,6 +40,7 @@
  *   />
  */
 import { computed } from "vue";
+import { tuxSeriesPattern, type TuxChartPatternKind } from "../utils/tuxChartPatterns";
 
 interface Slice {
   key: string;
@@ -53,6 +54,11 @@ interface Props {
   slices: Slice[];
   /** Render width in CSS px. Square layout — height matches. */
   size?: number;
+  /** Categorical color palette. Default: "brand". Set "cvd" for the Okabe-Ito universal palette. */
+  palette?: "brand" | "cvd";
+  /** Enable multi-channel SVG texture hatching patterns.
+   *  Default: true when slices.length > 1. Set false to disable. */
+  patterns?: boolean;
   /** Donut thickness ratio (0..1; 0 = pie, 1 = full hole). Default 0.5. */
   thickness?: number;
   /** Show slice labels on the outside of the ring? Default true.
@@ -82,6 +88,8 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   size: 280,
+  palette: "brand",
+  patterns: undefined,
   thickness: 0.5,
   sliceLabels: true,
   legend: false,
@@ -187,6 +195,7 @@ const arcs = computed<Arc[]>(() => {
       Math.sin(mid) > 0.15 ? "start" : Math.sin(mid) < -0.15 ? "end" : "middle";
 
     const tone = tuxSeriesTone(i, s.toneIndex);
+    const patternKind = tuxSeriesPattern(i, false);
 
     return {
       slice: s,
@@ -197,8 +206,14 @@ const arcs = computed<Arc[]>(() => {
       d,
       labelPos: { x: labelP.x, y: labelP.y + 4, anchor },
       toneClass: `tux-chart-donut__slice--c${tone} tux-chart-tone--c${tone}`,
+      patternKind,
     };
   });
+});
+
+const patternsEnabled = computed(() => {
+  if (props.patterns !== undefined) return props.patterns;
+  return arcs.value.length > 1;
 });
 
 const ariaSummary = computed(() => {
@@ -272,7 +287,13 @@ const tooltipPos = computed(() => {
 </script>
 
 <template>
-  <figure class="tux-chart-donut" role="figure" :aria-label="ariaSummary">
+  <figure
+    class="tux-chart-donut"
+    :class="[palette === 'cvd' && 'tux-chart--cvd']"
+    :data-chart-palette="palette"
+    role="figure"
+    :aria-label="ariaSummary"
+  >
     <div class="tux-chart-donut__wrap">
       <svg
         :viewBox="`0 0 ${size} ${size}`"
@@ -285,24 +306,34 @@ const tooltipPos = computed(() => {
         :aria-label="`${arcs.length} slices; use arrow keys to read each.`"
         @keydown="onDonutKey"
       >
+        <TuxChartPatternsDefs />
+
         <g class="tux-chart-donut__slices" @pointerleave="onSlicesLeave">
-          <path
-            v-for="(arc, i) in arcs"
-            :key="arc.slice.key"
-            :d="arc.d"
-            :class="[
-              'tux-chart-donut__slice',
-              arc.toneClass,
-              {
-                'tux-chart-donut__slice--active': hoverIndex === i,
-                'tux-chart-donut__slice--dim': hoverIndex !== null && hoverIndex !== i,
-              },
-            ]"
-            :style="`--tux-chart-stagger-index: ${i};`"
-            @pointerenter="onSliceEnter(i)"
-          >
-            <title>{{ arc.slice.label }} · {{ format(arc.slice.value) }} ({{ fmtPercent(arc.fraction) }})</title>
-          </path>
+          <template v-for="(arc, i) in arcs" :key="arc.slice.key">
+            <path
+              :d="arc.d"
+              :class="[
+                'tux-chart-donut__slice',
+                arc.toneClass,
+                {
+                  'tux-chart-donut__slice--active': hoverIndex === i,
+                  'tux-chart-donut__slice--dim': hoverIndex !== null && hoverIndex !== i,
+                },
+              ]"
+              :style="`--tux-chart-stagger-index: ${i};`"
+              @pointerenter="onSliceEnter(i)"
+            >
+              <title>{{ arc.slice.label }} · {{ format(arc.slice.value) }} ({{ fmtPercent(arc.fraction) }})</title>
+            </path>
+            <!-- Pattern hatching overlay for CVD / monochrome redundancy -->
+            <path
+              v-if="patternsEnabled && arc.patternKind !== 'none'"
+              :d="arc.d"
+              :fill="`url(#tux-pat-${arc.patternKind})`"
+              class="tux-chart-donut__pattern-overlay"
+              pointer-events="none"
+            />
+          </template>
         </g>
 
         <g v-if="sliceLabels" class="tux-chart-donut__labels">
@@ -357,7 +388,18 @@ const tooltipPos = computed(() => {
         :key="`leg-${arc.slice.key}`"
         :class="['tux-chart-donut__legend-item', arc.toneClass]"
       >
-        <span class="tux-chart-donut__legend-swatch" />
+        <svg viewBox="0 0 12 12" width="12" height="12" class="tux-chart-donut__legend-swatch" aria-hidden="true">
+          <rect x="0" y="0" width="12" height="12" rx="2" fill="var(--tux-chart-tone)" />
+          <rect
+            v-if="patternsEnabled && arc.patternKind !== 'none'"
+            x="0"
+            y="0"
+            width="12"
+            height="12"
+            rx="2"
+            :fill="`url(#tux-pat-${arc.patternKind})`"
+          />
+        </svg>
         <span class="tux-chart-donut__legend-label">
           {{ arc.slice.label }}
         </span>
@@ -489,10 +531,15 @@ const tooltipPos = computed(() => {
   color: var(--text-secondary);
 }
 
+.tux-chart-donut__pattern-overlay {
+  pointer-events: none;
+}
+
 .tux-chart-donut__legend-swatch {
-  background: var(--tux-chart-tone);
-  width: 10px;
-  height: 10px;
+  display: inline-block;
+  vertical-align: middle;
+  width: 12px;
+  height: 12px;
   border-radius: 2px;
   flex-shrink: 0;
 }

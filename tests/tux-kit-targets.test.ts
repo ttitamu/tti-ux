@@ -92,7 +92,7 @@ describe("Power BI kit ↔ generators", () => {
     const themes = [...powerbi.keys()].filter((rel) =>
       /^kit\/powerbi\/tti-theme[\w-]*\.json$/.test(rel),
     );
-    expect(themes).toHaveLength(3);
+    expect(themes).toHaveLength(4);
     for (const rel of themes) {
       const illegal = Object.keys(JSON.parse(powerbi.get(rel)!)).filter(
         (k) => !LEGAL.has(k),
@@ -106,6 +106,7 @@ describe("Power BI kit ↔ generators", () => {
       "kit/powerbi/tti-theme.json",
       "kit/powerbi/tti-theme-dark.json",
       "kit/powerbi/tti-theme-hc.json",
+      "kit/powerbi/tti-theme-cvd.json",
     ]) {
       const t = JSON.parse(powerbi.get(rel)!);
       expect(t.baseTheme, rel).toBe("Fluent2-CY26SU08");

@@ -84,6 +84,7 @@ describe("raw color-literal ratchet", () => {
     "TuxStepper.vue": [1, 0],
     "TuxTeachingPopover.vue": [4, 0],
     "TuxTestimonial.vue": [3, 2], // photo-overlay gradient art
+    "TuxVisionPreferencesModal.vue": [43, 0], // CVD preview swatches
   };
 
   it("no component exceeds (or silently shrinks) its literal budget", () => {

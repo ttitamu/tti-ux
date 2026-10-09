@@ -1,6 +1,6 @@
 {
   "name": "@tti/tti-ux",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "description": "TUX — the TTI design system: Nuxt layer, design tokens, and audit tooling. Published from code.tti.tamu.edu (Forgejo npm registry).",
   "publishConfig": {
     "registry": "https://code.tti.tamu.edu/api/packages/tti/npm/"
@@ -72,7 +72,7 @@
     "@nuxt/image": "^2.0.0",
     "@nuxt/ui": "^4.6.1",
     "@nuxtjs/color-mode": "^4.0.0",
-    "@nuxtjs/mdc": "^0.21.1",
+    "@nuxtjs/mdc": "^0.22.2",
     "@tailwindcss/vite": "^4.0.0",
     "@tanstack/vue-virtual": "^3.13.0",
     "@tiptap/core": "^3.31.3",
@@ -127,6 +127,7 @@
     "@vue/test-utils": "^2.4.11",
     "axe-core": "^4.11.3",
     "d3-geo": "^3.1.1",
+    "eslint": "^10.12.0",
     "happy-dom": "^20.14.5",
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
@@ -141,9 +142,14 @@
     "vitest": "^4.1.10",
     "vue-tsc": "^3.3.3"
   },
+  "//": [
+    "overrides[@nuxtjs/mdc] only shapes THIS repo's install; npm ignores a dependency's overrides, so consumers get the ^0.22.2 range above and nothing else.",
+    "packages/react peer-depends on @tti/tti-ux ^2.0.0, so npm installs a published copy (<= 2.2.0) that still declares @nuxtjs/mdc ^0.21.1 (CVE-2026-63671); the override moves that copy onto our range. Drop it once that peer resolves to a release carrying this bump."
+  ],
   "overrides": {
     "sharp": "^0.35.0",
-    "brace-expansion": "5.0.9"
+    "brace-expansion": "5.0.9",
+    "@nuxtjs/mdc": "$@nuxtjs/mdc"
   },
   "bin": {
     "tux-audit": "scripts/tux-audit.mjs"

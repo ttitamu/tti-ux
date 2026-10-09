@@ -88,5 +88,35 @@ describe("TuxBadge Component", () => {
     const violations = await runComponentAxe(countWrapper.element);
     expect(violations).toEqual([]);
   });
+
+  it("supports multi-channel shape glyph redundancy for colorblind accessibility", async () => {
+    // 1. Status completed with glyph renders check-circle icon
+    const completedGlyphWrapper = await mountSuspended(TuxBadge, {
+      props: { status: "completed", glyph: true },
+    });
+    const completedIcon = completedGlyphWrapper.findComponent({ name: "UIcon" });
+    expect(completedIcon.exists()).toBe(true);
+    expect(completedIcon.props("name")).toBe("lucide:check-circle-2");
+
+    // 2. Status failed with glyph renders alert-octagon icon
+    const failedGlyphWrapper = await mountSuspended(TuxBadge, {
+      props: { status: "failed", glyph: true },
+    });
+    const failedIcon = failedGlyphWrapper.findComponent({ name: "UIcon" });
+    expect(failedIcon.exists()).toBe(true);
+    expect(failedIcon.props("name")).toBe("lucide:alert-octagon");
+
+    // 3. Tone warning with glyph renders alert-triangle icon
+    const warningGlyphWrapper = await mountSuspended(TuxBadge, {
+      props: { tone: "warning", glyph: true },
+      slots: { default: () => "CAUTION" },
+    });
+    const warningIcon = warningGlyphWrapper.findComponent({ name: "UIcon" });
+    expect(warningIcon.exists()).toBe(true);
+    expect(warningIcon.props("name")).toBe("lucide:alert-triangle");
+
+    const violations = await runComponentAxe(completedGlyphWrapper.element);
+    expect(violations).toEqual([]);
+  });
 });
 

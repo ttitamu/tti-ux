@@ -44,6 +44,7 @@
  *   />
  */
 import { computed } from "vue";
+import { tuxSeriesPattern, type TuxChartPatternKind } from "../utils/tuxChartPatterns";
 
 interface Series {
   key: string;
@@ -62,6 +63,11 @@ interface Props {
   width?: number;
   /** Render height in CSS px. */
   height?: number;
+  /** Categorical color palette. Default: "brand". Set "cvd" for the Okabe-Ito universal palette. */
+  palette?: "brand" | "cvd";
+  /** Enable multi-channel SVG texture hatching patterns.
+   *  Default: true when multi-series or stacked. Set false to disable. */
+  patterns?: boolean;
   /** Orientation. Default "vertical". */
   orientation?: "vertical" | "horizontal";
   /** Grouped (side-by-side) or stacked when multi-series.
@@ -98,6 +104,8 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   width: 640,
   height: 280,
+  palette: "brand",
+  patterns: undefined,
   orientation: "vertical",
   variant: "grouped",
   valueLabels: true,
@@ -227,6 +235,18 @@ function categoryToneClass(catIndex: number): string {
   return `tux-chart-bar__series--c${tone} tux-chart-tone--c${tone}`;
 }
 
+const patternsEnabled = computed(() => {
+  if (props.patterns !== undefined) return props.patterns;
+  return props.series.length > 1 || isStacked.value;
+});
+
+function getBarPattern(seriesIdx: number, catIdx: number): TuxChartPatternKind {
+  if (props.series.length === 1) {
+    return tuxSeriesPattern(catIdx, false);
+  }
+  return tuxSeriesPattern(seriesIdx, false);
+}
+
 // Iteration helper: stacked needs cumulative base per category.
 function stackedBars(): Array<{
   catIndex: number;
@@ -235,6 +255,7 @@ function stackedBars(): Array<{
   value: number;
   base: number;
   toneClass: string;
+  patternKind: TuxChartPatternKind;
 }> {
   const out: Array<{
     catIndex: number;
@@ -243,6 +264,7 @@ function stackedBars(): Array<{
     value: number;
     base: number;
     toneClass: string;
+    patternKind: TuxChartPatternKind;
   }> = [];
   for (let i = 0; i < props.labels.length; i++) {
     let base = 0;
@@ -255,6 +277,7 @@ function stackedBars(): Array<{
         value: base + v,
         base,
         toneClass: toneClass(s, j),
+        patternKind: getBarPattern(j, i),
       });
       base += v;
     });
@@ -413,6 +436,8 @@ const highlightRect = computed(() => {
 <template>
   <figure
     class="tux-chart-bar"
+    :class="[palette === 'cvd' && 'tux-chart--cvd']"
+    :data-chart-palette="palette"
     role="figure"
     :aria-label="ariaSummary"
     :data-orient="orientation"
@@ -424,6 +449,8 @@ const highlightRect = computed(() => {
       preserveAspectRatio="xMidYMid meet"
       class="tux-chart-bar__svg"
     >
+      <TuxChartPatternsDefs />
+
       <!-- Gridlines -->
       <g v-if="gridlines" class="tux-chart-bar__gridlines">
         <template v-if="!isHorizontal">
@@ -516,6 +543,17 @@ const highlightRect = computed(() => {
               :class="['tux-chart-bar__bar', series.length === 1 ? categoryToneClass(i) : toneClass(s, j)]"
               :style="`--tux-chart-stagger-index: ${i};`"
             />
+            <!-- Pattern hatching overlay for CVD / monochrome redundancy -->
+            <rect
+              v-if="patternsEnabled && getBarPattern(j, i) !== 'none'"
+              :x="barRect(i, j, v).x"
+              :y="barRect(i, j, v).y"
+              :width="barRect(i, j, v).w"
+              :height="Math.max(0, barRect(i, j, v).h)"
+              :fill="`url(#tux-pat-${getBarPattern(j, i)})`"
+              class="tux-chart-bar__pattern-overlay"
+              pointer-events="none"
+            />
             <text
               v-if="valueLabels"
               :x="valueLabelPos(barRect(i, j, v)).x"
@@ -539,6 +577,17 @@ const highlightRect = computed(() => {
             :height="Math.max(0, barRect(seg.catIndex, seg.seriesIndex, seg.value, seg.base).h)"
             :class="['tux-chart-bar__bar', seg.toneClass]"
             :style="`--tux-chart-stagger-index: ${seg.catIndex};`"
+          />
+          <!-- Stacked segment pattern hatching overlay -->
+          <rect
+            v-if="patternsEnabled && seg.patternKind !== 'none'"
+            :x="barRect(seg.catIndex, seg.seriesIndex, seg.value, seg.base).x"
+            :y="barRect(seg.catIndex, seg.seriesIndex, seg.value, seg.base).y"
+            :width="barRect(seg.catIndex, seg.seriesIndex, seg.value, seg.base).w"
+            :height="Math.max(0, barRect(seg.catIndex, seg.seriesIndex, seg.value, seg.base).h)"
+            :fill="`url(#tux-pat-${seg.patternKind})`"
+            class="tux-chart-bar__pattern-overlay"
+            pointer-events="none"
           />
         </template>
       </g>
@@ -616,7 +665,18 @@ const highlightRect = computed(() => {
         :key="s.key"
         :class="['tux-chart-bar__legend-item', toneClass(s, i)]"
       >
-        <span class="tux-chart-bar__legend-swatch" />
+        <svg viewBox="0 0 12 12" width="12" height="12" class="tux-chart-bar__legend-swatch" aria-hidden="true">
+          <rect x="0" y="0" width="12" height="12" rx="2" fill="var(--tux-chart-tone)" />
+          <rect
+            v-if="patternsEnabled && getBarPattern(i, 0) !== 'none'"
+            x="0"
+            y="0"
+            width="12"
+            height="12"
+            rx="2"
+            :fill="`url(#tux-pat-${getBarPattern(i, 0)})`"
+          />
+        </svg>
         <span class="tux-chart-bar__legend-label">{{ s.label }}</span>
       </li>
     </ul>
@@ -657,6 +717,10 @@ const highlightRect = computed(() => {
   transition: fill 120ms ease-out;
 }
 
+.tux-chart-bar__pattern-overlay {
+  pointer-events: none;
+}
+
 .tux-chart-bar__bar--comparison {
   opacity: 0.32;
 }
@@ -688,9 +752,11 @@ const highlightRect = computed(() => {
 }
 
 .tux-chart-bar__legend-swatch {
-  background: var(--tux-chart-tone);
-  width: 10px;
-  height: 10px;
+  display: inline-block;
+  vertical-align: middle;
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
   border-radius: 2px;
 }
 

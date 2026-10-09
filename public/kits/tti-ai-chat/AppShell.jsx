@@ -84,9 +84,9 @@ function ChatSidebar({ conversations, activeId, onSelect, onNew, collapsed, onTo
 
       {/* Footer */}
       <footer style={{ padding: "10px 14px", borderTop: "1px solid var(--surface-border)", display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ width: 28, height: 28, borderRadius: 14, background: "var(--brand-primary)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: 700 }}>AG</div>
+        <div style={{ width: 28, height: 28, borderRadius: 14, background: "var(--brand-primary)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: 700 }}>DU</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: "0.8rem", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Anthony Guevara</div>
+          <div style={{ fontSize: "0.8rem", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Demo User</div>
           <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Research IT · TTI</div>
         </div>
         <button title="Settings" style={{ border: "none", background: "transparent", cursor: "pointer", color: "var(--text-muted)", padding: 6 }}>

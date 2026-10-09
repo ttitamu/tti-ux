@@ -7,10 +7,19 @@
  * `kind="districts"` never downloads county or US-state geometry.
  */
 
-export type TuxGeoPalette = "maroon" | "slate";
+export type TuxGeoPalette = "maroon" | "slate" | "cvd";
 
-/** Five-step sequential ramp, themed via the map tokens. */
+/** Five-step sequential ramp, themed via the map tokens or Okabe-Ito CVD tokens. */
 export function tuxGeoRamp(palette: TuxGeoPalette): string[] {
+  if (palette === "cvd") {
+    return [
+      "var(--chart-cvd-1, #0072B2)",
+      "var(--chart-cvd-5, #56B4E9)",
+      "var(--chart-cvd-3, #009E73)",
+      "var(--chart-cvd-4, #F0E442)",
+      "var(--chart-cvd-2, #E69F00)",
+    ];
+  }
   if (palette === "slate") {
     return [
       "var(--map-seq-slate-1)",

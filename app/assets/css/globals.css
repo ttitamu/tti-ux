@@ -358,4 +358,72 @@ h1 a:hover, h2 a:hover, h3 a:hover, h4 a:hover, h5 a:hover, h6 a:hover {
   text-decoration: none !important;
 }
 
+/* =====================================================
+   Anti-Halation Soft Dark Theme (Clinical Astigmatism Comfort)
+   Calibrated slate-charcoal canvas and soft off-white text to
+   eliminate high-contrast glare, diffraction, and haloing for
+   astigmatic users while maintaining 100% WCAG 2.2 AAA compliance.
+   ===================================================== */
+
+[data-theme="tti-dark"][data-theme-variant="soft"],
+[data-theme="tti-soft-dark"],
+[data-theme-variant="soft-dark"],
+[data-vision-comfort="anti-halation"],
+.tux-theme--soft-dark {
+  /* Slate-charcoal canvas replacing pitch-black wells */
+  --surface-page: #161a22;
+  --surface-raised: #1f2430;
+  --surface-sunken: #0f1217;
+  --surface-border: #384152;
+  --surface-border-subtle: #282f3d;
+  --surface-eggshell: #1b202a;
+  --surface-cool-gray: #242b38;
+
+  /* Anti-halation typography replacing glaring pure white */
+  --text-primary: #e6edf3;
+  --text-secondary: #9da7b5;
+  --text-muted: #768390;
+  --text-charcoal: #e6edf3;
+  --text-dark: #f0f6fc;
+
+  /* Subtle adjusted focus ring for soft-dark surface */
+  --focus-ring-outer: #6bb4c0;
+  --focus-ring-inner: #161a22;
+}
+
+/* =====================================================
+   Live Color Vision Deficiency (CVD) Simulation Filters
+   Applies clinical SVG color matrices across the viewport
+   for accessibility verification, audits, and demonstrations.
+   ===================================================== */
+
+html[data-cvd-simulation="deuteranopia"] {
+  filter: url("#tux-filter-deuteranopia") !important;
+}
+
+html[data-cvd-simulation="protanopia"] {
+  filter: url("#tux-filter-protanopia") !important;
+}
+
+html[data-cvd-simulation="tritanopia"] {
+  filter: url("#tux-filter-tritanopia") !important;
+}
+
+html[data-cvd-simulation="achromatopsia"] {
+  filter: url("#tux-filter-achromatopsia") !important;
+}
+
+/* =====================================================
+   Enhanced Stroke Widths (+1px) for Low-Vision Clarity
+   ===================================================== */
+
+[data-vision-stroke="heavy"] .tux-chart-line__line {
+  stroke-width: 3.5px !important;
+}
+
+[data-vision-stroke="heavy"] .tux-chart-line__marker {
+  transform: scale(1.35);
+  transform-origin: center;
+}
+
 

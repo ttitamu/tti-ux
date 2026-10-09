@@ -71,6 +71,8 @@ export const INTERNAL_COMPONENTS = [
   "TuxFrameworkSwitcher",
   "TuxPlayground",
   "TuxHeroCanvasSol",
+  "TuxChartPatternsDefs",
+  "TuxVisionPreferencesModal",
 ];
 
 export const tuxCatalog: TuxCatalogEntry[] = [

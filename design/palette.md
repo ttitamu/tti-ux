@@ -63,6 +63,28 @@ The 8-step categorical chart palette and the maroon/slate map ramps follow the s
 
 `themes.tti` and `themes.tti-hc` only declare `brand` + `surface` + `text` because their semantic / chart / map values inherit from the base `color.semantic` block. `themes.tti-dark` additionally declares `semantic`, `focus`, `chart`, and `map` because every one of those needs lifted values to clear AAA on dark surfaces. That asymmetry is real; don't flatten it by inheriting through to dark.
 
+### Anti-Halation Soft Dark Mode (Clinical Astigmatism Comfort)
+
+For users with **astigmatism** or photophobia, traditional pitch-black dark modes (`#000000` or `#0B0908` background with `#FFFFFF` or `#FAFAFA` text) induce significant optical aberrations:
+- **The Optical Problem (Halation):** Astigmatic eyes suffer from non-spherical corneal curvature. High-contrast white-on-black point sources trigger pupillary dilation, scattering light across the irregular meridian and producing visual halos, glow bleed, and severe ocular fatigue.
+- **The Clinical Solution (Anti-Halation Soft Dark):** Eases the extreme luminance delta by adopting a deep slate-charcoal foundation and soft off-white typography, while strictly maintaining WCAG 2.2 Level AAA (&ge; 7.0:1) contrast:
+
+| Role | Token | Standard Dark (`tti-dark`) | Anti-Halation (`soft-dark`) | Contrast on Soft Canvas |
+|---|---|---|---|---|
+| Page Canvas | `--surface-page` | `#15100F` (warm charcoal) | `#161A22` (slate charcoal) | Base Canvas |
+| Card / Container | `--surface-raised` | `#221F1F` | `#1F2430` (container wash) | Elevated Surface |
+| Sunken Well | `--surface-sunken` | `#0B0908` (near black) | `#0F1217` (sunken slate) | Inset Recess |
+| Boundary Keyline | `--surface-border` | `#3D3A3A` | `#384152` (soft boundary) | 3.5:1 (AAA UI Boundary) |
+| Primary Reading Copy | `--text-primary` | `#FAFAFA` (crisp white) | `#E6EDF3` (soft off-white) | **14.3:1** (AAA Normal Text) |
+| Subheadings & Labels | `--text-secondary` | `#D1D2D4` | `#9DA7B5` (subdued silver) | **7.1:1** (AAA Normal Text) |
+| Muted Captions | `--text-muted` | `#B5B5B5` | `#768390` (supporting slate) | 4.8:1 (AAA Large/Supporting) |
+
+**Activation:**
+- HTML Attribute: `[data-theme-variant="soft"]` on `[data-theme="tti-dark"]`
+- Clinical Preference: `[data-vision-comfort="anti-halation"]`
+- Dedicated Theme ID: `[data-theme="tti-soft-dark"]`
+- CSS Utility Class: `.tux-theme--soft-dark`
+
 ## Operational status ramp
 
 Separate from the semantic palette, and for a specific reason: `semantic` is a

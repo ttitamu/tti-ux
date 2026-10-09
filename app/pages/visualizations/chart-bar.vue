@@ -82,6 +82,24 @@ const barControls = [
     description: "Multi-series presentation variant",
   },
   {
+    prop: "palette",
+    label: "Color Palette",
+    type: "select" as const,
+    options: [
+      { label: "Aggie Brand Anchor (--chart-1..8)", value: "brand" },
+      { label: "Okabe-Ito Universal CVD (--chart-cvd-1..8)", value: "cvd" },
+    ],
+    defaultValue: "brand",
+    description: "Color system: brand maroon anchor or Okabe-Ito colorblindness-safe palette",
+  },
+  {
+    prop: "patterns",
+    label: "SVG Pattern Hatching",
+    type: "boolean" as const,
+    defaultValue: false,
+    description: "Overlay high-contrast dual-line SVG hatchings (diagonal, dots, crosshatch) per series for CVD legibility",
+  },
+  {
     prop: "orientation",
     label: "Axis Orientation",
     type: "select" as const,
@@ -103,12 +121,28 @@ const barControls = [
 
 const barPresets = [
   {
+    name: "cvd-accessible",
+    label: "Universal CVD & Pattern Hatching",
+    description: "Okabe-Ito universal palette with dual-line SVG texture hatching and matching legend swatches",
+    icon: "lucide:eye",
+    values: {
+      dataset: "traffic",
+      palette: "cvd",
+      patterns: true,
+      variant: "grouped",
+      orientation: "vertical",
+      legend: true,
+    },
+  },
+  {
     name: "grouped-traffic",
     label: "Grouped Scan Throughput",
     description: "Side-by-side active/queued/failed series with legend",
     icon: "lucide:bar-chart-2",
     values: {
       dataset: "traffic",
+      palette: "brand",
+      patterns: false,
       variant: "grouped",
       orientation: "vertical",
       legend: true,
@@ -121,6 +155,8 @@ const barPresets = [
     icon: "lucide:layers",
     values: {
       dataset: "traffic",
+      palette: "brand",
+      patterns: false,
       variant: "stacked",
       orientation: "vertical",
       legend: true,
@@ -133,6 +169,8 @@ const barPresets = [
     icon: "lucide:align-left",
     values: {
       dataset: "corridors",
+      palette: "brand",
+      patterns: false,
       variant: "grouped",
       orientation: "horizontal",
       legend: false,
@@ -145,6 +183,8 @@ const barPresets = [
     icon: "lucide:git-compare",
     values: {
       dataset: "projections",
+      palette: "brand",
+      patterns: false,
       variant: "grouped",
       orientation: "vertical",
       legend: false,
@@ -157,6 +197,15 @@ const basicVue = `<tux-chart-bar
   :series="[
     { key: 'ingest', label: 'Files ingested', data: [12, 18, 24, 31, 28, 35] },
   ]"
+/>`;
+
+const cvdPatternVue = `<!-- Okabe-Ito CVD palette with high-contrast dual-line SVG texture hatching -->
+<tux-chart-bar
+  :labels="months"
+  :series="trafficByStatus"
+  palette="cvd"
+  patterns
+  legend
 />`;
 
 const groupedVue = `<tux-chart-bar :labels="months" :series="trafficByStatus" legend />`;
@@ -215,10 +264,12 @@ const framedVue = `<tux-chart-frame
         :powerbi="pbiCartesian"
         :code-template="(values) => {
           const ds = datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.traffic;
+          const palAttr = values.palette === 'cvd' ? '\n  palette=\x22cvd\x22' : '';
+          const patAttr = values.patterns ? '\n  patterns' : '';
           const varAttr = values.variant !== 'grouped' ? `\n  variant=\x22${values.variant}\x22` : '';
           const orientAttr = values.orientation !== 'vertical' ? `\n  orientation=\x22${values.orientation}\x22` : '';
           const legAttr = values.legend ? '\n  legend' : '';
-          return `<tux-chart-bar\n  :labels=\x22${ds.codeLabels}\x22\n  :series=\x22${ds.codeSeries}\x22${varAttr}${orientAttr}${legAttr}\n/>`;
+          return `<tux-chart-bar\n  :labels=\x22${ds.codeLabels}\x22\n  :series=\x22${ds.codeSeries}\x22${palAttr}${patAttr}${varAttr}${orientAttr}${legAttr}\n/>`;
         }"
       >
         <template #default="{ values }">
@@ -226,6 +277,8 @@ const framedVue = `<tux-chart-frame
             <TuxChartBar
               :labels="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.traffic).labels"
               :series="(datasetMap[values.dataset as keyof typeof datasetMap] || datasetMap.traffic).series"
+              :palette="values.palette"
+              :patterns="values.patterns"
               :variant="values.variant"
               :orientation="values.orientation"
               :legend="values.legend"
@@ -235,6 +288,21 @@ const framedVue = `<tux-chart-frame
           </div>
         </template>
       </TuxPlayground>
+    </section>
+
+    <section>
+      <p class="eyebrow">accessible · cvd texture hatching</p>
+      <h2 class="heading--bold text-xl font-bold">Universal CVD & Monochrome Pattern Hatching</h2>
+      <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
+        Pass <code>palette="cvd"</code> and <code>patterns</code> to activate multi-channel redundancy.
+        Each series receives an overlay of high-contrast dual-line SVG texture hatching
+        (diagonal right, dots, crosshatch, diagonal left) paired with Okabe-Ito barrier-free hues.
+        The legend swatches replicate both color and pattern, ensuring instant readability for users
+        with Deuteranopia, Protanopia, Tritanopia, or when printed on black-and-white laser printers.
+      </p>
+      <TuxExample class="mt-4" :vue="cvdPatternVue" :source="tuxChartBarSource" :powerbi="pbiCartesian">
+        <TuxChartBar :labels="months" :series="trafficByStatus" palette="cvd" patterns legend />
+      </TuxExample>
     </section>
 
     <section>

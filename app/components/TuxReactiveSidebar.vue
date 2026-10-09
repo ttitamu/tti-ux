@@ -95,7 +95,7 @@ function toggleSection(label: string, event?: MouseEvent) {
   if (isExpanding && event?.currentTarget) {
     const el = event.currentTarget as HTMLElement;
     setTimeout(() => {
-      el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      el?.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
     }, 80);
   }
 

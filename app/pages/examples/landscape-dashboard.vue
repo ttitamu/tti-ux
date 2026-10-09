@@ -285,10 +285,10 @@ const studyCorridorEvents = [
       <div class="px-3 py-3 border-t border-surface-border">
         <div class="flex items-center gap-2.5">
           <div class="w-7 h-7 rounded-full bg-surface-sunken text-text-secondary grid place-items-center font-semibold text-xs flex-shrink-0">
-            AG
+            DU
           </div>
           <div v-if="!collapsed" class="min-w-0 flex-1">
-            <p class="text-xs font-semibold text-text-primary truncate">A. Guevara</p>
+            <p class="text-xs font-semibold text-text-primary truncate">D. User</p>
             <p class="text-xs text-text-muted truncate">IT · TTI</p>
           </div>
         </div>
