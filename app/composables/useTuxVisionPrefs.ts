@@ -4,9 +4,9 @@
  * dash patterns, distinct markers, astigmatism anti-halation, and heavy keylines).
  *
  * Persisted in localStorage ("tux-vision-prefs") and automatically synchronized
- * to document.documentElement attributes and SVG simulation filters.
+ * to document.documentElement attributes, dynamic CSS custom properties, and SVG simulation filters.
  */
-import { onMounted, watch } from "vue";
+import { onMounted, ref, watch, type Ref } from "vue";
 import { useTuxPersistedRef } from "./useTuxPersistedRef";
 
 export interface TuxVisionPreferences {
@@ -36,12 +36,77 @@ export const DEFAULT_VISION_PREFERENCES: TuxVisionPreferences = {
   heavyStrokes: false,
 };
 
+/** Categorical Color Vision Deficiency palette ramps (Light mode) */
+export const CVD_PALETTES: Record<TuxVisionPreferences["cvdMode"], string[]> = {
+  brand: [
+    "#500000", "#3F5A6F", "#C7973C", "#6B8E5A",
+    "#8C5A3C", "#5C7080", "#A33A3A", "#3C5A87",
+  ],
+  "okabe-ito": [
+    "#0072B2", "#E69F00", "#009E73", "#F0E442",
+    "#56B4E9", "#D55E00", "#CC79A7", "#222222",
+  ],
+  "deutan-protan": [
+    "#0072B2", "#E69F00", "#56B4E9", "#D55E00",
+    "#F0E442", "#009E73", "#CC79A7", "#111111",
+  ],
+  tritan: [
+    "#CC79A7", "#009E73", "#D55E00", "#500000",
+    "#0072B2", "#3F5A6F", "#8C5A3C", "#111111",
+  ],
+  monochrome: [
+    "#111111", "#444444", "#777777", "#999999",
+    "#bbbbbb", "#dddddd", "#555555", "#000000",
+  ],
+};
+
+/** Categorical Color Vision Deficiency palette ramps (Dark & Soft-Dark mode) */
+export const CVD_PALETTES_DARK: Record<TuxVisionPreferences["cvdMode"], string[]> = {
+  brand: [
+    "#c47585", "#6B8DA3", "#E0BC60", "#93B57E",
+    "#B58463", "#8AA0B2", "#D67272", "#6E8FBE",
+  ],
+  "okabe-ito": [
+    "#56B4E9", "#F0B030", "#2AC098", "#F5EB68",
+    "#7CD0F7", "#E87A28", "#DE91BD", "#E6E6E6",
+  ],
+  "deutan-protan": [
+    "#56B4E9", "#F0B030", "#7CD0F7", "#E87A28",
+    "#F5EB68", "#2AC098", "#DE91BD", "#F0F6FC",
+  ],
+  tritan: [
+    "#DE91BD", "#2AC098", "#E87A28", "#C47585",
+    "#56B4E9", "#6B8DA3", "#B58463", "#F0F6FC",
+  ],
+  monochrome: [
+    "#F0F6FC", "#D0D7DE", "#AFB8C1", "#8C959F",
+    "#6E7781", "#57606A", "#424A53", "#FFFFFF",
+  ],
+};
+
 export function applyVisionPreferences(prefs: TuxVisionPreferences) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
 
-  // 1. CVD Mode
+  // 1. CVD Mode & Dynamic custom properties site-wide
   root.setAttribute("data-cvd-mode", prefs.cvdMode);
+
+  const isDark =
+    root.classList.contains("dark") ||
+    root.getAttribute("data-theme") === "tti-dark" ||
+    prefs.softDark;
+
+  const palette = isDark ? CVD_PALETTES_DARK[prefs.cvdMode] : CVD_PALETTES[prefs.cvdMode];
+  if (palette) {
+    palette.forEach((hex, i) => {
+      const idx = i + 1;
+      root.style.setProperty(`--chart-${idx}`, hex);
+      root.style.setProperty(`--tux-chart-tone--c${idx}`, hex);
+      if (prefs.cvdMode === "okabe-ito") {
+        root.style.setProperty(`--chart-cvd-${idx}`, hex);
+      }
+    });
+  }
 
   // 2. CVD Simulation
   if (prefs.cvdSimulation && prefs.cvdSimulation !== "none") {
@@ -59,12 +124,25 @@ export function applyVisionPreferences(prefs: TuxVisionPreferences) {
   if (prefs.softDark) {
     root.setAttribute("data-theme-variant", "soft");
     root.setAttribute("data-vision-comfort", "anti-halation");
+    root.classList.add("dark");
+    if (!root.getAttribute("data-theme") || root.getAttribute("data-theme") === "tti") {
+      root.setAttribute("data-theme", "tti-dark");
+    }
   } else {
     if (root.getAttribute("data-theme-variant") === "soft") {
       root.removeAttribute("data-theme-variant");
     }
     if (root.getAttribute("data-vision-comfort") === "anti-halation") {
       root.removeAttribute("data-vision-comfort");
+    }
+    try {
+      const colorModePref = window.localStorage.getItem("nuxt-color-mode");
+      if (colorModePref === "light" || colorModePref === "tti") {
+        root.classList.remove("dark");
+        root.removeAttribute("data-theme");
+      }
+    } catch {
+      // Ignore storage access error
     }
   }
 
@@ -76,32 +154,43 @@ export function applyVisionPreferences(prefs: TuxVisionPreferences) {
   }
 }
 
-export function useTuxVisionPrefs() {
-  const prefs = useTuxPersistedRef<TuxVisionPreferences>(
-    () => "tux-vision-prefs",
-    DEFAULT_VISION_PREFERENCES,
-  );
+// Module-level singleton state for instant reactivity across all component instances
+let sharedPrefs: Ref<TuxVisionPreferences> | null = null;
 
-  function reset() {
-    prefs.value = { ...DEFAULT_VISION_PREFERENCES };
-    applyVisionPreferences(prefs.value);
+export function useTuxVisionPrefs() {
+  if (!sharedPrefs) {
+    sharedPrefs = useTuxPersistedRef<TuxVisionPreferences>(
+      () => "tux-vision-prefs",
+      DEFAULT_VISION_PREFERENCES,
+    );
+
+    watch(
+      sharedPrefs,
+      (newVal) => {
+        applyVisionPreferences(newVal);
+      },
+      { deep: true },
+    );
   }
 
-  watch(
-    prefs,
-    (newVal) => {
-      applyVisionPreferences(newVal);
-    },
-    { deep: true },
-  );
-
   onMounted(() => {
-    applyVisionPreferences(prefs.value);
+    if (sharedPrefs) {
+      applyVisionPreferences(sharedPrefs.value);
+    }
   });
 
   return {
-    prefs,
-    reset,
-    apply: () => applyVisionPreferences(prefs.value),
+    prefs: sharedPrefs,
+    reset: () => {
+      if (sharedPrefs) {
+        sharedPrefs.value = { ...DEFAULT_VISION_PREFERENCES };
+        applyVisionPreferences(sharedPrefs.value);
+      }
+    },
+    apply: () => {
+      if (sharedPrefs) {
+        applyVisionPreferences(sharedPrefs.value);
+      }
+    },
   };
 }

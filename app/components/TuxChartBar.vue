@@ -235,9 +235,17 @@ function categoryToneClass(catIndex: number): string {
   return `tux-chart-bar__series--c${tone} tux-chart-tone--c${tone}`;
 }
 
+const { prefs: visionPrefs } = useTuxVisionPrefs();
+
 const patternsEnabled = computed(() => {
   if (props.patterns !== undefined) return props.patterns;
+  if (visionPrefs.value.patterns !== undefined) return visionPrefs.value.patterns;
   return props.series.length > 1 || isStacked.value;
+});
+
+const showValueLabels = computed(() => {
+  if (props.valueLabels === false || visionPrefs.value.directLabels === false) return false;
+  return props.valueLabels;
 });
 
 function getBarPattern(seriesIdx: number, catIdx: number): TuxChartPatternKind {
@@ -436,8 +444,9 @@ const highlightRect = computed(() => {
 <template>
   <figure
     class="tux-chart-bar"
-    :class="[palette === 'cvd' && 'tux-chart--cvd']"
+    :class="[(palette === 'cvd' || visionPrefs.cvdMode !== 'brand') && 'tux-chart--cvd']"
     :data-chart-palette="palette"
+    :data-cvd-mode="visionPrefs.cvdMode"
     role="figure"
     :aria-label="ariaSummary"
     :data-orient="orientation"
@@ -555,7 +564,7 @@ const highlightRect = computed(() => {
               pointer-events="none"
             />
             <text
-              v-if="valueLabels"
+              v-if="showValueLabels"
               :x="valueLabelPos(barRect(i, j, v)).x"
               :y="valueLabelPos(barRect(i, j, v)).y"
               :text-anchor="valueLabelPos(barRect(i, j, v)).anchor"

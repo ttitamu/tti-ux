@@ -5,18 +5,13 @@
  * Each tone class sets ONE custom property, `--tux-chart-tone`;
  * component styles consume it per part (`fill: var(--tux-chart-tone)`
  * on an area, `stroke:` on a line, `background:` on a legend swatch).
- * Before this file, every chart component pasted the full 8-rule ramp
- * — with these hex fallbacks — once per part (~135 duplicated
- * declarations across six components), so a palette change meant
- * editing six files. Now it means editing this one.
  *
- * The fallbacks mirror design/tokens.json's light-theme chart ramp for
- * contexts where tokens.css didn't load (Storybook-less embeds, unit
- * snapshots); themed values still win through --chart-1..8.
- *
- * Components keep their own `tux-chart-<name>__series--cN` classes on
- * the same elements purely as consumer styling hooks — they carry no
- * styles here anymore.
+ * Supports all 5 institutional vision modes:
+ *   - "brand" (Institutional Maroon & Slate)
+ *   - "okabe-ito" (Universal Color Vision Deficiency)
+ *   - "deutan-protan" (Red-Green Deficient Optimized)
+ *   - "tritan" (Blue-Yellow Deficient Safe)
+ *   - "monochrome" (Achromatopsia & High-Luminance Mono)
  */
 
 .tux-chart-tone--c1 { --tux-chart-tone: var(--chart-1, var(--brand-primary)); }
@@ -29,8 +24,6 @@
 .tux-chart-tone--c8 { --tux-chart-tone: var(--chart-8, #3c5a87); }
 
 /* ── Okabe-Ito Universal Color Vision Deficiency (CVD) Palette ──────── */
-/* Clinically calibrated for Protanopia, Deuteranopia, and Tritanopia */
-
 .tux-chart-tone--cvd-1 { --tux-chart-tone: var(--chart-cvd-1, #0072B2); }
 .tux-chart-tone--cvd-2 { --tux-chart-tone: var(--chart-cvd-2, #E69F00); }
 .tux-chart-tone--cvd-3 { --tux-chart-tone: var(--chart-cvd-3, #009E73); }
@@ -40,52 +33,175 @@
 .tux-chart-tone--cvd-7 { --tux-chart-tone: var(--chart-cvd-7, #CC79A7); }
 .tux-chart-tone--cvd-8 { --tux-chart-tone: var(--chart-cvd-8, #222222); }
 
-/* Contextual Rebinding: when .tux-chart--cvd or [data-chart-palette="cvd"]
- * is applied, standard c1..c8 classes automatically map to Okabe-Ito tokens. */
+/* ── 1. Okabe-Ito Universal Rebinding ─────────────────────────────────── */
+[data-cvd-mode="okabe-ito"],
+.tux-chart--cvd,
+[data-chart-palette="cvd"] {
+  --chart-1: var(--chart-cvd-1, #0072B2);
+  --chart-2: var(--chart-cvd-2, #E69F00);
+  --chart-3: var(--chart-cvd-3, #009E73);
+  --chart-4: var(--chart-cvd-4, #F0E442);
+  --chart-5: var(--chart-cvd-5, #56B4E9);
+  --chart-6: var(--chart-cvd-6, #D55E00);
+  --chart-7: var(--chart-cvd-7, #CC79A7);
+  --chart-8: var(--chart-cvd-8, #222222);
+}
+
+html.dark[data-cvd-mode="okabe-ito"],
+[data-theme="tti-dark"][data-cvd-mode="okabe-ito"] {
+  --chart-1: #56B4E9;
+  --chart-2: #F0B030;
+  --chart-3: #2AC098;
+  --chart-4: #F5EB68;
+  --chart-5: #7CD0F7;
+  --chart-6: #E87A28;
+  --chart-7: #DE91BD;
+  --chart-8: #E6E6E6;
+}
+
 .tux-chart--cvd .tux-chart-tone--c1,
 [data-chart-palette="cvd"] .tux-chart-tone--c1,
-[data-cvd-mode="okabe-ito"] .tux-chart-tone--c1 {
-  --tux-chart-tone: var(--chart-cvd-1, #0072B2);
-}
-
+[data-cvd-mode="okabe-ito"] .tux-chart-tone--c1 { --tux-chart-tone: var(--chart-1, #0072B2); }
 .tux-chart--cvd .tux-chart-tone--c2,
 [data-chart-palette="cvd"] .tux-chart-tone--c2,
-[data-cvd-mode="okabe-ito"] .tux-chart-tone--c2 {
-  --tux-chart-tone: var(--chart-cvd-2, #E69F00);
-}
-
+[data-cvd-mode="okabe-ito"] .tux-chart-tone--c2 { --tux-chart-tone: var(--chart-2, #E69F00); }
 .tux-chart--cvd .tux-chart-tone--c3,
 [data-chart-palette="cvd"] .tux-chart-tone--c3,
-[data-cvd-mode="okabe-ito"] .tux-chart-tone--c3 {
-  --tux-chart-tone: var(--chart-cvd-3, #009E73);
-}
-
+[data-cvd-mode="okabe-ito"] .tux-chart-tone--c3 { --tux-chart-tone: var(--chart-3, #009E73); }
 .tux-chart--cvd .tux-chart-tone--c4,
 [data-chart-palette="cvd"] .tux-chart-tone--c4,
-[data-cvd-mode="okabe-ito"] .tux-chart-tone--c4 {
-  --tux-chart-tone: var(--chart-cvd-4, #F0E442);
-}
-
+[data-cvd-mode="okabe-ito"] .tux-chart-tone--c4 { --tux-chart-tone: var(--chart-4, #F0E442); }
 .tux-chart--cvd .tux-chart-tone--c5,
 [data-chart-palette="cvd"] .tux-chart-tone--c5,
-[data-cvd-mode="okabe-ito"] .tux-chart-tone--c5 {
-  --tux-chart-tone: var(--chart-cvd-5, #56B4E9);
-}
-
+[data-cvd-mode="okabe-ito"] .tux-chart-tone--c5 { --tux-chart-tone: var(--chart-5, #56B4E9); }
 .tux-chart--cvd .tux-chart-tone--c6,
 [data-chart-palette="cvd"] .tux-chart-tone--c6,
-[data-cvd-mode="okabe-ito"] .tux-chart-tone--c6 {
-  --tux-chart-tone: var(--chart-cvd-6, #D55E00);
-}
-
+[data-cvd-mode="okabe-ito"] .tux-chart-tone--c6 { --tux-chart-tone: var(--chart-6, #D55E00); }
 .tux-chart--cvd .tux-chart-tone--c7,
 [data-chart-palette="cvd"] .tux-chart-tone--c7,
-[data-cvd-mode="okabe-ito"] .tux-chart-tone--c7 {
-  --tux-chart-tone: var(--chart-cvd-7, #CC79A7);
-}
-
+[data-cvd-mode="okabe-ito"] .tux-chart-tone--c7 { --tux-chart-tone: var(--chart-7, #CC79A7); }
 .tux-chart--cvd .tux-chart-tone--c8,
 [data-chart-palette="cvd"] .tux-chart-tone--c8,
-[data-cvd-mode="okabe-ito"] .tux-chart-tone--c8 {
-  --tux-chart-tone: var(--chart-cvd-8, #222222);
+[data-cvd-mode="okabe-ito"] .tux-chart-tone--c8 { --tux-chart-tone: var(--chart-8, #222222); }
+
+/* ── 2. Deutan / Protan Safe Rebinding ────────────────────────────────── */
+[data-cvd-mode="deutan-protan"] {
+  --chart-1: #0072B2;
+  --chart-2: #E69F00;
+  --chart-3: #56B4E9;
+  --chart-4: #D55E00;
+  --chart-5: #F0E442;
+  --chart-6: #009E73;
+  --chart-7: #CC79A7;
+  --chart-8: #111111;
+}
+
+html.dark[data-cvd-mode="deutan-protan"],
+[data-theme="tti-dark"][data-cvd-mode="deutan-protan"] {
+  --chart-1: #56B4E9;
+  --chart-2: #F0B030;
+  --chart-3: #7CD0F7;
+  --chart-4: #E87A28;
+  --chart-5: #F5EB68;
+  --chart-6: #2AC098;
+  --chart-7: #DE91BD;
+  --chart-8: #F0F6FC;
+}
+
+[data-cvd-mode="deutan-protan"] .tux-chart-tone--c1 { --tux-chart-tone: var(--chart-1); }
+[data-cvd-mode="deutan-protan"] .tux-chart-tone--c2 { --tux-chart-tone: var(--chart-2); }
+[data-cvd-mode="deutan-protan"] .tux-chart-tone--c3 { --tux-chart-tone: var(--chart-3); }
+[data-cvd-mode="deutan-protan"] .tux-chart-tone--c4 { --tux-chart-tone: var(--chart-4); }
+[data-cvd-mode="deutan-protan"] .tux-chart-tone--c5 { --tux-chart-tone: var(--chart-5); }
+[data-cvd-mode="deutan-protan"] .tux-chart-tone--c6 { --tux-chart-tone: var(--chart-6); }
+[data-cvd-mode="deutan-protan"] .tux-chart-tone--c7 { --tux-chart-tone: var(--chart-7); }
+[data-cvd-mode="deutan-protan"] .tux-chart-tone--c8 { --tux-chart-tone: var(--chart-8); }
+
+/* ── 3. Tritanopia Safe Rebinding ─────────────────────────────────────── */
+[data-cvd-mode="tritan"] {
+  --chart-1: #CC79A7;
+  --chart-2: #009E73;
+  --chart-3: #D55E00;
+  --chart-4: #500000;
+  --chart-5: #0072B2;
+  --chart-6: #3F5A6F;
+  --chart-7: #8C5A3C;
+  --chart-8: #111111;
+}
+
+html.dark[data-cvd-mode="tritan"],
+[data-theme="tti-dark"][data-cvd-mode="tritan"] {
+  --chart-1: #DE91BD;
+  --chart-2: #2AC098;
+  --chart-3: #E87A28;
+  --chart-4: #C47585;
+  --chart-5: #56B4E9;
+  --chart-6: #6B8DA3;
+  --chart-7: #B58463;
+  --chart-8: #F0F6FC;
+}
+
+[data-cvd-mode="tritan"] .tux-chart-tone--c1 { --tux-chart-tone: var(--chart-1); }
+[data-cvd-mode="tritan"] .tux-chart-tone--c2 { --tux-chart-tone: var(--chart-2); }
+[data-cvd-mode="tritan"] .tux-chart-tone--c3 { --tux-chart-tone: var(--chart-3); }
+[data-cvd-mode="tritan"] .tux-chart-tone--c4 { --tux-chart-tone: var(--chart-4); }
+[data-cvd-mode="tritan"] .tux-chart-tone--c5 { --tux-chart-tone: var(--chart-5); }
+[data-cvd-mode="tritan"] .tux-chart-tone--c6 { --tux-chart-tone: var(--chart-6); }
+[data-cvd-mode="tritan"] .tux-chart-tone--c7 { --tux-chart-tone: var(--chart-7); }
+[data-cvd-mode="tritan"] .tux-chart-tone--c8 { --tux-chart-tone: var(--chart-8); }
+
+/* ── 4. Monochrome & Achromatopsia Rebinding ─────────────────────────── */
+[data-cvd-mode="monochrome"] {
+  --chart-1: #111111;
+  --chart-2: #444444;
+  --chart-3: #777777;
+  --chart-4: #999999;
+  --chart-5: #BBBBBB;
+  --chart-6: #DDDDDD;
+  --chart-7: #555555;
+  --chart-8: #000000;
+}
+
+html.dark[data-cvd-mode="monochrome"],
+[data-theme="tti-dark"][data-cvd-mode="monochrome"] {
+  --chart-1: #F0F6FC;
+  --chart-2: #D0D7DE;
+  --chart-3: #AFB8C1;
+  --chart-4: #8C959F;
+  --chart-5: #6E7781;
+  --chart-6: #57606A;
+  --chart-7: #424A53;
+  --chart-8: #FFFFFF;
+}
+
+[data-cvd-mode="monochrome"] .tux-chart-tone--c1 { --tux-chart-tone: var(--chart-1); }
+[data-cvd-mode="monochrome"] .tux-chart-tone--c2 { --tux-chart-tone: var(--chart-2); }
+[data-cvd-mode="monochrome"] .tux-chart-tone--c3 { --tux-chart-tone: var(--chart-3); }
+[data-cvd-mode="monochrome"] .tux-chart-tone--c4 { --tux-chart-tone: var(--chart-4); }
+[data-cvd-mode="monochrome"] .tux-chart-tone--c5 { --tux-chart-tone: var(--chart-5); }
+[data-cvd-mode="monochrome"] .tux-chart-tone--c6 { --tux-chart-tone: var(--chart-6); }
+[data-cvd-mode="monochrome"] .tux-chart-tone--c7 { --tux-chart-tone: var(--chart-7); }
+[data-cvd-mode="monochrome"] .tux-chart-tone--c8 { --tux-chart-tone: var(--chart-8); }
+
+/* ── 5. Multi-Channel Redundancy CSS Overrides ───────────────────────── */
+[data-cvd-patterns="false"] .tux-chart-bar__pattern-overlay,
+[data-cvd-patterns="false"] .tux-chart-donut__pattern-overlay,
+[data-cvd-patterns="false"] .tux-chart-area__pattern-overlay {
+  display: none !important;
+}
+
+[data-cvd-patterns="false"] .tux-chart-line__line {
+  stroke-dasharray: none !important;
+}
+
+[data-cvd-markers="true"] .tux-chart-line__markers {
+  display: inline !important;
+  visibility: visible !important;
+}
+
+[data-cvd-labels="false"] .tux-chart-line__end-labels,
+[data-cvd-labels="false"] .tux-chart-bar__value-label,
+[data-cvd-labels="false"] .tux-chart-donut__labels,
+[data-cvd-labels="false"] .tux-chart-area__end-labels {
+  display: none !important;
 }

@@ -49,10 +49,13 @@ const props = withDefaults(defineProps<Props>(), {
   glyph: undefined,
 });
 
+const { prefs: visionPrefs } = useTuxVisionPrefs();
+
 const text = computed(() => props.label ?? LABELS[props.state]);
 
 const showGlyph = computed(() => {
   if (props.glyph !== undefined) return props.glyph;
+  if (visionPrefs.value.distinctMarkers) return true;
   return props.kind === "dot";
 });
 </script>

@@ -370,7 +370,10 @@ h1 a:hover, h2 a:hover, h3 a:hover, h4 a:hover, h5 a:hover, h6 a:hover {
 [data-theme-variant="soft-dark"],
 [data-vision-comfort="anti-halation"],
 .tux-theme--soft-dark {
+  color-scheme: dark !important;
+
   /* Slate-charcoal canvas replacing pitch-black wells */
+  --surface-canvas: #161a22;
   --surface-page: #161a22;
   --surface-raised: #1f2430;
   --surface-sunken: #0f1217;
@@ -389,6 +392,35 @@ h1 a:hover, h2 a:hover, h3 a:hover, h4 a:hover, h5 a:hover, h6 a:hover {
   /* Subtle adjusted focus ring for soft-dark surface */
   --focus-ring-outer: #6bb4c0;
   --focus-ring-inner: #161a22;
+}
+
+html[data-vision-comfort="anti-halation"],
+[data-vision-comfort="anti-halation"] body {
+  background-color: #161a22 !important;
+  color: #e6edf3 !important;
+  color-scheme: dark !important;
+}
+
+[data-vision-comfort="anti-halation"] .tti-shell-header,
+[data-vision-comfort="anti-halation"] .tti-shell-sidebar,
+[data-vision-comfort="anti-halation"] .tux-card,
+[data-vision-comfort="anti-halation"] .tux-slab,
+[data-vision-comfort="anti-halation"] .tux-modal__panel,
+[data-vision-comfort="anti-halation"] .tux-drawer__panel,
+[data-vision-comfort="anti-halation"] .tux-table,
+[data-vision-comfort="anti-halation"] [role="dialog"],
+[data-vision-comfort="anti-halation"] [role="menu"] {
+  background-color: #1f2430 !important;
+  border-color: #384152 !important;
+  color: #e6edf3 !important;
+}
+
+[data-vision-comfort="anti-halation"] input,
+[data-vision-comfort="anti-halation"] select,
+[data-vision-comfort="anti-halation"] textarea {
+  background-color: #0f1217 !important;
+  border-color: #384152 !important;
+  color: #e6edf3 !important;
 }
 
 /* =====================================================
@@ -423,7 +455,31 @@ html[data-cvd-simulation="achromatopsia"] {
 
 [data-vision-stroke="heavy"] .tux-chart-line__marker {
   transform: scale(1.35);
+  transform-box: fill-box;
   transform-origin: center;
 }
+
+[data-vision-stroke="heavy"] .tux-chart-donut__slice {
+  stroke: var(--surface-page, #161a22) !important;
+  stroke-width: 3.5px !important;
+}
+
+[data-vision-stroke="heavy"] .tux-chart-bar__bar {
+  stroke: currentColor !important;
+  stroke-width: 1.5px !important;
+}
+
+[data-vision-stroke="heavy"] .tux-chart-area__top-line {
+  stroke-width: 3.5px !important;
+}
+
+[data-vision-stroke="heavy"] .tux-card,
+[data-vision-stroke="heavy"] .tux-button,
+[data-vision-stroke="heavy"] input,
+[data-vision-stroke="heavy"] select,
+[data-vision-stroke="heavy"] textarea {
+  border-width: 2px !important;
+}
+
 
 

@@ -166,9 +166,17 @@ interface AreaPath {
   patternKind: TuxChartPatternKind;
 }
 
+const { prefs: visionPrefs } = useTuxVisionPrefs();
+
 const patternsEnabled = computed(() => {
   if (props.patterns !== undefined) return props.patterns;
+  if (visionPrefs.value.patterns !== undefined) return visionPrefs.value.patterns;
   return props.series.length > 1 || isStacked.value;
+});
+
+const showEndLabels = computed(() => {
+  if (props.endLabels === false || visionPrefs.value.directLabels === false) return false;
+  return props.endLabels;
 });
 
 const areaPaths = computed<AreaPath[]>(() => {
@@ -305,8 +313,9 @@ function focusY(seriesIdx: number, idx: number): number {
 <template>
   <figure
     class="tux-chart-area"
-    :class="[palette === 'cvd' && 'tux-chart--cvd']"
+    :class="[(palette === 'cvd' || visionPrefs.cvdMode !== 'brand') && 'tux-chart--cvd']"
     :data-chart-palette="palette"
+    :data-cvd-mode="visionPrefs.cvdMode"
     role="figure"
     :aria-label="ariaSummary"
   >
@@ -393,7 +402,7 @@ function focusY(seriesIdx: number, idx: number): number {
       </g>
 
       <!-- End-of-area value labels -->
-      <g v-if="endLabels" class="tux-chart-area__end-labels">
+      <g v-if="showEndLabels" class="tux-chart-area__end-labels">
         <text
           v-for="(area, i) in areaPaths"
           :key="`elbl-${i}`"

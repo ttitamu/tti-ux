@@ -80,24 +80,6 @@ function onClose() {
     size="2xl"
     @update:open="emit('update:open', $event)"
   >
-    <!-- Hidden Global SVG Filters for Live Simulation -->
-    <svg id="tux-cvd-filters" aria-hidden="true" style="position: absolute; width: 0; height: 0; pointer-events: none;">
-      <defs>
-        <filter id="tux-filter-deuteranopia">
-          <feColorMatrix type="matrix" values="0.625 0.375 0 0 0  0.7 0.3 0 0 0  0 0.3 0.7 0 0  0 0 0 1 0" />
-        </filter>
-        <filter id="tux-filter-protanopia">
-          <feColorMatrix type="matrix" values="0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0" />
-        </filter>
-        <filter id="tux-filter-tritanopia">
-          <feColorMatrix type="matrix" values="0.95 0.05 0 0 0  0 0.433 0.567 0 0  0 0.475 0.525 0 0  0 0 0 1 0" />
-        </filter>
-        <filter id="tux-filter-achromatopsia">
-          <feColorMatrix type="matrix" values="0.299 0.587 0.114 0 0  0.299 0.587 0.114 0 0  0.299 0.587 0.114 0 0  0 0 0 1 0" />
-        </filter>
-      </defs>
-    </svg>
-
     <div class="space-y-6 text-text-primary">
       <!-- Section 1: Color Vision Deficiency Mode -->
       <section class="space-y-3">

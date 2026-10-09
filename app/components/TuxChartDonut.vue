@@ -211,9 +211,17 @@ const arcs = computed<Arc[]>(() => {
   });
 });
 
+const { prefs: visionPrefs } = useTuxVisionPrefs();
+
 const patternsEnabled = computed(() => {
   if (props.patterns !== undefined) return props.patterns;
+  if (visionPrefs.value.patterns !== undefined) return visionPrefs.value.patterns;
   return arcs.value.length > 1;
+});
+
+const showSliceLabels = computed(() => {
+  if (props.sliceLabels === false || visionPrefs.value.directLabels === false) return false;
+  return props.sliceLabels;
 });
 
 const ariaSummary = computed(() => {
@@ -289,8 +297,9 @@ const tooltipPos = computed(() => {
 <template>
   <figure
     class="tux-chart-donut"
-    :class="[palette === 'cvd' && 'tux-chart--cvd']"
+    :class="[(palette === 'cvd' || visionPrefs.cvdMode !== 'brand') && 'tux-chart--cvd']"
     :data-chart-palette="palette"
+    :data-cvd-mode="visionPrefs.cvdMode"
     role="figure"
     :aria-label="ariaSummary"
   >
@@ -336,7 +345,7 @@ const tooltipPos = computed(() => {
           </template>
         </g>
 
-        <g v-if="sliceLabels" class="tux-chart-donut__labels">
+        <g v-if="showSliceLabels" class="tux-chart-donut__labels">
           <text
             v-for="arc in arcs"
             :key="`lbl-${arc.slice.key}`"

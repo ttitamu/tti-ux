@@ -225,9 +225,16 @@ const tierGlyphIcon: Record<TuxBadgeTier, string> = {
   restricted: "lucide:lock",
 };
 
+const { prefs: visionPrefs } = useTuxVisionPrefs();
+
+const isGlyphActive = computed(() => {
+  if (props.glyph) return true;
+  return visionPrefs.value.distinctMarkers && (hasDot.value || props.status !== undefined || props.tone !== undefined || props.tier !== undefined);
+});
+
 const activeGlyphIcon = computed(() => {
   if (props.icon) return props.icon;
-  if (!props.glyph) return undefined;
+  if (!isGlyphActive.value) return undefined;
   if (props.status) return statusGlyphIcon[props.status];
   if (props.tone) return toneGlyphIcon[props.tone];
   if (props.tier) return tierGlyphIcon[props.tier];

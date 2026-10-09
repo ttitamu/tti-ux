@@ -161,13 +161,24 @@ const emit = defineEmits<{
   hover: [payload: { index: number; label: string; values: Array<{ key: string; label: string; value: number }> } | null];
 }>();
 
+const { prefs: visionPrefs } = useTuxVisionPrefs();
+
+const effectiveStrokeWidth = computed(() => {
+  const base = props.strokeWidth ?? 2;
+  return visionPrefs.value.heavyStrokes ? base + 1.5 : base;
+});
+
 // Layout — family-standard left/bottom (tuxChartScale) so stacked
 // exhibits baseline-align; top stays taller for breathing room and
 // right widens when end-of-line labels render.
 const padTop = 24;
 const padBottom = TUX_CHART_MARGINS.bottom;
 const padLeft = TUX_CHART_MARGINS.left;
-const padRight = computed(() => (props.endLabels ? 64 : 16));
+const showEndLabels = computed(() => {
+  if (props.endLabels === false || visionPrefs.value.directLabels === false) return false;
+  return props.endLabels;
+});
+const padRight = computed(() => (showEndLabels.value ? 64 : 16));
 
 const plotW = computed(() => Math.max(0, props.width - padLeft - padRight.value));
 const plotH = computed(() => Math.max(0, props.height - padTop - padBottom));
@@ -259,16 +270,25 @@ const TUX_SERIES_MARKERS: TuxChartMarkerShape[] = [
 function getSeriesDashArray(s: Series, index: number): string {
   if (s.dashArray !== undefined) return s.dashArray;
   // If explicitly disabled
-  if (props.patterns === false) return "none";
-  // If explicitly enabled or default auto (enabled when multi-series)
-  const isEnabled = props.patterns === true || (props.patterns === undefined && props.series.length > 1);
+  if (props.patterns === false || visionPrefs.value.patterns === false) return "none";
+  // If explicitly enabled or default auto (enabled when multi-series or global patterns active)
+  const isEnabled =
+    props.patterns === true ||
+    visionPrefs.value.patterns === true ||
+    (props.patterns === undefined && props.series.length > 1);
   if (!isEnabled) return "none";
   return TUX_SERIES_DASH_PATTERNS[index % TUX_SERIES_DASH_PATTERNS.length];
 }
 
+const showMarkers = computed(() => {
+  if (props.markers) return true;
+  return visionPrefs.value.distinctMarkers;
+});
+
 function getSeriesMarker(s: Series, index: number): TuxChartMarkerShape {
   if (s.marker !== undefined) return s.marker;
-  if (!props.distinctMarkers) return "circle";
+  const useDistinct = props.distinctMarkers ?? visionPrefs.value.distinctMarkers;
+  if (!useDistinct) return "circle";
   return TUX_SERIES_MARKERS[index % TUX_SERIES_MARKERS.length];
 }
 
@@ -535,8 +555,9 @@ function onBrushUp() {
 <template>
   <figure
     class="tux-chart-line"
-    :class="[palette === 'cvd' && 'tux-chart--cvd']"
+    :class="[(palette === 'cvd' || visionPrefs.cvdMode !== 'brand') && 'tux-chart--cvd']"
     :data-chart-palette="palette"
+    :data-cvd-mode="visionPrefs.cvdMode"
     role="img"
     :aria-label="summary"
   >
@@ -626,15 +647,16 @@ function onBrushUp() {
           class="tux-chart-line__line"
           :class="[
             `tux-chart-line__line--series-${i}`,
+            `tux-chart-tone--c${tuxSeriesTone((s.toneIndex ?? i + 1) - 1)}`,
             getSeriesDashArray(s, i) !== 'none' ? 'tux-chart-line__line--patterned' : null,
           ]"
           fill="none"
-          :stroke-width="strokeWidth"
+          :stroke-width="effectiveStrokeWidth"
         />
       </g>
 
       <!-- Markers with accessible distinct geometric glyphs -->
-      <g v-if="markers" class="tux-chart-line__markers">
+      <g v-if="showMarkers" class="tux-chart-line__markers">
         <template
           v-for="(s, i) in visibleSeries"
           :key="`mk-${s.key}`"
@@ -651,7 +673,7 @@ function onBrushUp() {
       </g>
 
       <!-- End-of-line value labels -->
-      <g v-if="endLabels" class="tux-chart-line__end-labels">
+      <g v-if="showEndLabels" class="tux-chart-line__end-labels">
         <text
           v-for="(s, i) in visibleSeries"
           :key="`end-${s.key}`"
