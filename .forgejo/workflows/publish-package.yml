@@ -1,94 +1,114 @@
-# Publish @tti/tti-ux to the Forgejo npm registry on every version tag.
+# Publish @tti/tti-ux to the forge's npm registry (scope @tti, owner tti):
+#   https://code.tti.tamu.edu/api/packages/tti/npm/
 #
-# Forgejo (code.tti.tamu.edu) is the CANONICAL package source for tux;
-# the GitHub repo is a mirror whose only job is the GitHub Pages deploy
-# of ux.tti.tamu.edu. Consumers install via the @tti scope:
+# Forgejo (code.tti.tamu.edu) is the canonical package source for tux; the
+# GitHub repo is a mirror for the Pages deploy of ux.tti.tamu.edu. Consumers
+# add one line to their .npmrc (no token: the tti org is public, so the
+# registry reads anonymously):
 #   @tti:registry=https://code.tti.tamu.edu/api/packages/tti/npm/
 #
-# No build step on purpose: package.json "files" lists committed
-# content (app/, kit/, scripts/, docs/, …), so `npm publish` packs the
-# repo as-tagged. Generated artifacts (kit/css, kit/scss) are committed
-# by `npm run build:kit` before release — publishing never regenerates.
+# Triggers:
+#   - a pushed tag v<version> publishes that tag (the release commit sets
+#     package.json's version; the tag must match it);
+#   - workflow_dispatch with an EXISTING tag publishes it from here, with this
+#     workflow's tooling. That is how tags cut before this workflow existed are
+#     backfilled (v1.6.0, v1.7.0, the prereleases of untagged trees that
+#     consumers pin). Publishing a version that is already there is a no-op.
 #
-# Auth: REQUIRES the repo secret PACKAGE_TOKEN — a user access token
-# with package:write. The workflow's automatic job token was tried
-# first (v2.0.0 run 523) and the registry rejected it with ENEEDAUTH,
-# so the job-token fallback exists only to produce a clear error
-# message, not as a working path. v2.0.0 itself was published
-# manually with an owner token; every later tag publishes here.
-# House security idiom applies: values reach the shell through env:,
-# never ${{ }} inside run:.
+# What gets published, and the checks, are in scripts/publish-registry.mjs:
+# the layer, then (a step of its own) the React ports @tti/tti-ux-react when
+# packages/react is version-locked to the tag. Those ports don't compile on
+# main as of 2026-10-16 (the sync engine writes `prop??:` into 142 of them), so
+# until that is fixed a main-line tag publishes the layer and then fails on
+# the React step.
+# The tooling is checked out from this run's own commit and the tag into a
+# separate directory, so a backfilled tag is packed as-tagged but published
+# with today's rules.
+#
+# Auth: secret PACKAGES_PUBLISH_TOKEN, a write:package token of the Entra
+# service account svc-tti-packages, which reaches the registry through the tti
+# team "package-publishers" (Packages: write, nothing else). The automatic job
+# token can't do this: Forgejo v17 grants an Actions token only READ on an
+# org's packages (services/packages/perm.go, "TODO: ActionUser permission
+# check"). Never a person's token, never a local account.
+#
+# The job publishes to the PUBLIC registry URL, over TLS: a Linux job reaches
+# it (run 11216 of A-Guevara/macos-runner-smoke, 2026-10-16), and that is the
+# URL every consumer's lockfile records.
+#
+# House idiom: values reach the shell through env:, never ${{ }} inside run:.
 name: publish-package
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "An existing tag to publish, e.g. v1.7.0"
+        required: true
+        type: string
+
+concurrency:
+  group: publish-package
+  cancel-in-progress: false
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      REGISTRY: https://code.tti.tamu.edu/api/packages/tti/npm/
     steps:
-      - name: Authenticated checkout (tag)
+      - name: Check out the tooling and the tag
         env:
           SERVER_URL: ${{ github.server_url }}
           REPO: ${{ github.repository }}
           JOB_TOKEN: ${{ github.token }}
-          TAG_REF: ${{ github.ref_name }}
+          TOOLING_SHA: ${{ github.sha }}
+          EVENT: ${{ github.event_name }}
+          PUSHED_TAG: ${{ github.ref_name }}
+          INPUT_TAG: ${{ github.event.inputs.tag }}
         run: |
           set -eu
-          git init -q .
-          AUTH_URL=$(printf '%s' "$SERVER_URL" | sed "s#https://#https://oauth2:${JOB_TOKEN}@#")
-          git remote add origin "$AUTH_URL/$REPO.git"
-          git fetch -q --depth 1 origin "refs/tags/$TAG_REF:refs/tags/$TAG_REF"
-          git checkout -q "refs/tags/$TAG_REF"
+          if [ "$EVENT" = workflow_dispatch ]; then TAG=$INPUT_TAG; else TAG=$PUSHED_TAG; fi
+          # Validate before the value goes anywhere (GITHUB_ENV, a git ref). The
+          # character check comes first: grep matches line by line, so a value
+          # with a newline in it could otherwise pass on its first line alone.
+          case "$TAG" in
+            "" | *[!0-9A-Za-z.-]*) echo "::error::not a release tag (unexpected characters)"; exit 1 ;;
+          esac
+          if ! printf '%s' "$TAG" | grep -Eqx 'v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?'; then
+            echo "::error::not a release tag: $TAG"; exit 1
+          fi
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          # The job token in a header (never in remote config); works on a private repo too.
+          hdr="Authorization: basic $(printf 'x-access-token:%s' "$JOB_TOKEN" | base64 | tr -d '\n')"
+          for d in tooling pkg; do git init -q "$d"; git -C "$d" remote add origin "$SERVER_URL/$REPO"; done
+          git -C tooling -c http.extraheader="$hdr" fetch -q --depth=1 origin "$TOOLING_SHA"
+          git -C tooling checkout -q FETCH_HEAD
+          git -C pkg -c http.extraheader="$hdr" fetch -q --depth=1 origin "refs/tags/$TAG:refs/tags/$TAG"
+          git -C pkg checkout -q "refs/tags/$TAG"
+          echo "tag $TAG is $(git -C pkg rev-parse HEAD); tooling at $(git -C tooling rev-parse HEAD)"
+          node --version; npm --version
 
-      - name: Verify tag matches package.json version
+      - name: Publish @tti/tti-ux
         env:
-          TAG_REF: ${{ github.ref_name }}
+          PUBLISH_TOKEN: ${{ secrets.PACKAGES_PUBLISH_TOKEN }}
         run: |
           set -eu
-          PKG_VERSION=$(node -p "require('./package.json').version" 2>/dev/null \
-            || sed -n 's/^  "version": "\(.*\)",$/\1/p' package.json)
-          if [ "v$PKG_VERSION" != "$TAG_REF" ]; then
-            echo "::error::tag $TAG_REF != package.json version $PKG_VERSION — retag or bump before publishing"
+          if [ -z "${PUBLISH_TOKEN:-}" ]; then
+            echo "::error::secret PACKAGES_PUBLISH_TOKEN is missing: the write:package token of svc-tti-packages (see this file's header)"
             exit 1
           fi
+          node tooling/scripts/publish-registry.mjs --package layer --tag "$TAG" --pkg-dir pkg --registry "$REGISTRY"
 
-      - name: Publish to the Forgejo npm registry
+      # The React ports ride the same tag only when version-locked to it (the
+      # script says "layer only" otherwise). After the layer, and a step of
+      # their own: a React build failure is red here with the layer already out,
+      # and re-running the tag publishes only what is missing.
+      - name: Publish @tti/tti-ux-react (when version-locked)
         env:
-          SERVER_URL: ${{ github.server_url }}
-          JOB_TOKEN: ${{ github.token }}
-          PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
+          PUBLISH_TOKEN: ${{ secrets.PACKAGES_PUBLISH_TOKEN }}
         run: |
           set -eu
-          command -v npm >/dev/null 2>&1 || {
-            echo "::error::npm not on runner image — install Node on the A1 runner or switch runs-on"; exit 1; }
-          if [ -z "${PACKAGE_TOKEN:-}" ]; then
-            echo "::error::PACKAGE_TOKEN secret missing. The automatic job token cannot write packages (ENEEDAUTH, run 523). Add a repo Actions secret PACKAGE_TOKEN containing a user token with package:write, then re-run."
-            exit 1
-          fi
-          # On the runner, github.server_url resolves to the INTERNAL
-          # address (host.containers.internal:PORT), not the public
-          # hostname — publish through it, and write auth for both
-          # hosts so publishConfig's public URL also resolves.
-          REG="$SERVER_URL/api/packages/tti/npm/"
-          RUNNER_HOST=$(printf '%s' "$SERVER_URL" | sed 's#^https\{0,1\}://##')
-          {
-            printf '@tti:registry=%s\n' "$REG"
-            printf '//%s/api/packages/tti/npm/:_authToken=%s\n' "$RUNNER_HOST" "$PACKAGE_TOKEN"
-            printf '//code.tti.tamu.edu/api/packages/tti/npm/:_authToken=%s\n' "$PACKAGE_TOKEN"
-          } > "$HOME/.npmrc"
-          # --registry beats publishConfig (which pins the public URL,
-          # unreachable as-such from inside the runner network).
-          # --ignore-scripts: postinstall (nuxt prepare) is for
-          # consumers, not the publish pack.
-          npm publish --ignore-scripts --registry "$REG"
-          echo "published @tti/tti-ux@${GITHUB_REF_NAME#v} via $REG"
-          # Workspace packages ride the same tag. The react package
-          # needs its build (tsc) — run it explicitly since publish
-          # uses --ignore-scripts.
-          if [ -f packages/react/package.json ]; then
-            npm ci --ignore-scripts >/dev/null 2>&1 || npm install --ignore-scripts >/dev/null
-            npm run build -w @tti/tti-ux-react
-            npm publish -w @tti/tti-ux-react --ignore-scripts --registry "$REG"
-            echo "published @tti/tti-ux-react@${GITHUB_REF_NAME#v} via $REG"
-          fi
+          node tooling/scripts/publish-registry.mjs --package react --tag "$TAG" --pkg-dir pkg --registry "$REGISTRY"
