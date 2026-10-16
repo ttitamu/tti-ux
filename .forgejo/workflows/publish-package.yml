@@ -27,7 +27,11 @@
 #
 # Auth: secret PACKAGES_PUBLISH_TOKEN, a write:package token of the Entra
 # service account svc-tti-packages, which reaches the registry through the tti
-# team "package-publishers" (Packages: write, nothing else). The automatic job
+# team "package-publishers" (Packages: write, nothing else), with this repo
+# added to the team: Forgejo also wants Packages-write on the repository a
+# package's repository.url names (2.x/3.x name this one, and were refused with
+# 403 "no permission to upload this package" until it was added; v1 names
+# GitHub, so it published without). The automatic job
 # token can't do this: Forgejo v17 grants an Actions token only READ on an
 # org's packages (services/packages/perm.go, "TODO: ActionUser permission
 # check"). Never a person's token, never a local account.
