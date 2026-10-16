@@ -189,7 +189,7 @@ function summary(lines) {
 }
 
 // Pack dir, unpack, run `fix` on the manifest, repack, and publish unless the version is there.
-async function publishOne({ name, dir, version, prerelease, tag, registry, dryRun, work, fix }) {
+async function publishOne({ name, dir, version, prerelease, tag, registry, dryRun, work, fix, token }) {
   const slot = mkdtempSync(join(work, "pkg-"));
   const first = pack(dir, slot);
   const stage = join(slot, "stage");
@@ -232,7 +232,6 @@ async function publishOne({ name, dir, version, prerelease, tag, registry, dryRu
     return;
   }
 
-  const token = process.env.PUBLISH_TOKEN;
   if (!token) die("PUBLISH_TOKEN is not set (the publishing service account's write:package token)");
   // Auth goes in a throwaway userconfig (0600), keyed to the registry's host+path, and the
   // publish runs from the temp dir, so no project .npmrc or publishConfig can redirect it.
@@ -255,6 +254,11 @@ async function publishOne({ name, dir, version, prerelease, tag, registry, dryRu
 }
 
 async function main() {
+  // Out of the environment before anything else runs: the React build runs tsc (third-party
+  // code) and every child inherits process.env. The token only ever reaches npm publish, through
+  // the 0600 userconfig.
+  const token = process.env.PUBLISH_TOKEN;
+  delete process.env.PUBLISH_TOKEN;
   const args = parseArgs(process.argv.slice(2));
   const m = TAG_RE.exec(args.tag);
   if (!m) die(`not a release tag: ${args.tag} (want v<major>.<minor>.<patch>[-<prerelease>])`);
@@ -265,7 +269,7 @@ async function main() {
   if (pkg.version !== version) die(`tag ${args.tag} != package.json version ${pkg.version}: tag the release commit that sets ${version}`);
 
   const work = mkdtempSync(join(tmpdir(), "tux-publish-"));
-  const common = { version, prerelease, tag: args.tag, registry: args.registry, dryRun: args.dryRun, work };
+  const common = { version, prerelease, tag: args.tag, registry: args.registry, dryRun: args.dryRun, work, token };
   try {
     // The layer first, packed before anything is installed in the checkout.
     if (args.package !== "react") await publishOne({ ...common, name: SCOPED_NAME, dir: pkgDir, fix: normalise });
