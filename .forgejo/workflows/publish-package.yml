@@ -17,10 +17,10 @@
 #
 # What gets published, and the checks, are in scripts/publish-registry.mjs:
 # the layer, then (a step of its own) the React ports @tti/tti-ux-react when
-# packages/react is version-locked to the tag. Those ports don't compile on
-# main as of 2026-10-16 (the sync engine writes `prop??:` into 142 of them), so
-# until that is fixed a main-line tag publishes the layer and then fails on
-# the React step.
+# packages/react is version-locked to the tag. Tag the release commit and let
+# this publish both; a hand `npm publish` of the same version races the React
+# step (v3.2.1, run 11312: the version appeared between its check and its
+# upload, so the step failed although both packages were out).
 # The tooling is checked out from this run's own commit and the tag into a
 # separate directory, so a backfilled tag is packed as-tagged but published
 # with today's rules.
