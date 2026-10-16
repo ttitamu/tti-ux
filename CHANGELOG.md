@@ -16,7 +16,12 @@ conventions and [Semantic Versioning](https://semver.org/).
   `scripts/publish-registry.mjs`: the tag must equal `version`; v1 tags are published under the
   `@tti` scope with `name` rewritten and `private` lifted; no install script is ever published;
   an existing version is a no-op; "latest" never moves backwards (older versions go to the
-  `backfill` dist-tag, prereleases to their first identifier).
+  `backfill` dist-tag, prereleases to their first identifier, never to `latest` or `backfill`).
+- **`@tti/tti-ux-react` still rides the tag train** when `packages/react` is version-locked to the
+  tag, in a step of its own after the layer. It doesn't build on main today: the sync engine
+  writes `prop??: type` into 142 of its `.tsx` files (since 7aac84d), so `tsc` fails and nothing
+  of it has ever been published. Until that is fixed, a main-line tag publishes the layer and
+  then fails on the React step; the backfilled versions are not version-locked and skip it.
 - **`nuxt prepare` is `prepare`, not `postinstall`.** It prepares this repo's own `.nuxt` and
   still runs on `npm install`/`npm ci` in a checkout of tux. npm never runs `prepare` for a
   registry dependency, so a consumer no longer gets an install script it doesn't need (npm 12

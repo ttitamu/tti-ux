@@ -1,7 +1,7 @@
 // The registry publish rules (scripts/publish-registry.mjs): which tags publish,
 // which dist-tag a version gets, and what the published manifest may carry.
 import { describe, expect, it } from "vitest";
-import { DIST_TAG_RE, distTagFor, normalise, PublishError, TAG_RE } from "../scripts/publish-registry.mjs";
+import { checkReact, DIST_TAG_RE, distTagFor, normalise, PublishError, TAG_RE } from "../scripts/publish-registry.mjs";
 
 function expectDie(fn, message) {
   expect(fn).toThrow(PublishError);
@@ -34,6 +34,10 @@ describe("dist-tags", () => {
     expect(distTagFor("4.0.0-0", "0", "3.1.0")).toBe("next");
     expect(distTagFor("4.0.0-rc1.2", "rc1.2", "3.1.0")).toBe("next");
   });
+  it("never lets a prerelease take latest or backfill (latest could then move backwards)", () => {
+    expect(distTagFor("4.0.0-latest.1", "latest.1", "3.1.0")).toBe("next");
+    expect(distTagFor("4.0.0-backfill.1", "backfill.1", "3.1.0")).toBe("next");
+  });
   it("never yields a tag the forge refuses (no digits: go-version would read it as a version)", () => {
     for (const t of ["latest", "backfill", "next", "work-surface", "vision"]) expect(DIST_TAG_RE.test(t), t).toBe(true);
     for (const t of ["release-1.x", "v1-line", "1.7", "Rc"]) expect(DIST_TAG_RE.test(t), t).toBe(false);
@@ -61,5 +65,18 @@ describe("the published manifest", () => {
       "refusing to publish an install script");
     expectDie(() => normalise({ name: "@tti/tti-ux", version: "3.2.0", scripts: { preinstall: "nuxt prepare" } }, "3.2.0"),
       "refusing to publish an install script: preinstall");
+  });
+});
+
+describe("the React ports' manifest", () => {
+  const ok = { name: "@tti/tti-ux-react", version: "3.2.0", scripts: { build: "tsc -p tsconfig.build.json", prepublishOnly: "npm run build" } };
+  it("passes when version-locked and free of install scripts", () => {
+    expect(checkReact(structuredClone(ok), "3.2.0")).toEqual([]);
+  });
+  it("refuses another name, another version, private, or an install script", () => {
+    expectDie(() => checkReact({ ...ok, name: "@tti/tti-ux" }, "3.2.0"), 'expected "@tti/tti-ux-react"');
+    expectDie(() => checkReact(structuredClone(ok), "3.2.1"), "is not 3.2.1");
+    expectDie(() => checkReact({ ...ok, private: true }, "3.2.0"), "private: true");
+    expectDie(() => checkReact({ ...ok, scripts: { postinstall: "nuxt prepare" } }, "3.2.0"), "refusing to publish an install script");
   });
 });

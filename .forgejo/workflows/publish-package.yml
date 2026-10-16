@@ -15,7 +15,12 @@
 #     backfilled (v1.6.0, v1.7.0, the prereleases of untagged trees that
 #     consumers pin). Publishing a version that is already there is a no-op.
 #
-# What gets published, and the checks, are in scripts/publish-registry.mjs.
+# What gets published, and the checks, are in scripts/publish-registry.mjs:
+# the layer, then (a step of its own) the React ports @tti/tti-ux-react when
+# packages/react is version-locked to the tag. Those ports don't compile on
+# main as of 2026-10-16 (the sync engine writes `prop??:` into 142 of them), so
+# until that is fixed a main-line tag publishes the layer and then fails on
+# the React step.
 # The tooling is checked out from this run's own commit and the tag into a
 # separate directory, so a backfilled tag is packed as-tagged but published
 # with today's rules.
@@ -66,7 +71,12 @@ jobs:
         run: |
           set -eu
           if [ "$EVENT" = workflow_dispatch ]; then TAG=$INPUT_TAG; else TAG=$PUSHED_TAG; fi
-          # Validate before the value goes anywhere (GITHUB_ENV, a git ref).
+          # Validate before the value goes anywhere (GITHUB_ENV, a git ref). The
+          # character check comes first: grep matches line by line, so a value
+          # with a newline in it could otherwise pass on its first line alone.
+          case "$TAG" in
+            "" | *[!0-9A-Za-z.-]*) echo "::error::not a release tag (unexpected characters)"; exit 1 ;;
+          esac
           if ! printf '%s' "$TAG" | grep -Eqx 'v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?'; then
             echo "::error::not a release tag: $TAG"; exit 1
           fi
@@ -81,7 +91,7 @@ jobs:
           echo "tag $TAG is $(git -C pkg rev-parse HEAD); tooling at $(git -C tooling rev-parse HEAD)"
           node --version; npm --version
 
-      - name: Publish
+      - name: Publish @tti/tti-ux
         env:
           PUBLISH_TOKEN: ${{ secrets.PACKAGES_PUBLISH_TOKEN }}
         run: |
@@ -90,4 +100,15 @@ jobs:
             echo "::error::secret PACKAGES_PUBLISH_TOKEN is missing: the write:package token of svc-tti-packages (see this file's header)"
             exit 1
           fi
-          node tooling/scripts/publish-registry.mjs --tag "$TAG" --pkg-dir pkg --registry "$REGISTRY"
+          node tooling/scripts/publish-registry.mjs --package layer --tag "$TAG" --pkg-dir pkg --registry "$REGISTRY"
+
+      # The React ports ride the same tag only when version-locked to it (the
+      # script says "layer only" otherwise). After the layer, and a step of
+      # their own: a React build failure is red here with the layer already out,
+      # and re-running the tag publishes only what is missing.
+      - name: Publish @tti/tti-ux-react (when version-locked)
+        env:
+          PUBLISH_TOKEN: ${{ secrets.PACKAGES_PUBLISH_TOKEN }}
+        run: |
+          set -eu
+          node tooling/scripts/publish-registry.mjs --package react --tag "$TAG" --pkg-dir pkg --registry "$REGISTRY"
