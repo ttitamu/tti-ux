@@ -5,24 +5,24 @@
 import React from 'react';
 
 export interface TuxAnnouncementBannerProps {
-  id??: string;
-  tone??: string;
-  icon??: string;
-  eyebrow??: string;
-  message??: string;
-  action??: string;
-  dismissable??: boolean;
+  id?: string;
+  tone?: string;
+  icon?: string;
+  eyebrow?: string;
+  message?: string;
+  action?: string;
+  dismissable?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxAnnouncementBanner: React.FC<TuxAnnouncementBannerProps> = ({
-  id = "undefined", tone = "info", icon = "undefined", eyebrow = "undefined", message = "undefined", action = "undefined", dismissable = true, children, className = ''
+  id, tone = "info", icon, eyebrow, message, action, dismissable = true, children, className = ''
 }) => {
   return (
-    <Transition className={`tux-announcement-banner ${className}`.trim()}>
+    <div className={`tux-announcement-banner ${className}`.trim()}>
       {children}
-    </Transition>
+    </div>
   );
 };
 

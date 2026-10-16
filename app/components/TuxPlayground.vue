@@ -25,7 +25,7 @@ export interface TuxPropControl {
   prop: string;
   label?: string;
   type: "select" | "boolean" | "text" | "number";
-  options?: readonly string[] | TuxPropOption[];
+  options?: readonly (string | number)[] | TuxPropOption[];
   defaultValue: any;
   description?: string;
 }
@@ -482,10 +482,10 @@ const generatedCliCommand = computed(() => {
             >
               <option
                 v-for="opt in ctrl.options"
-                :key="typeof opt === 'string' ? opt : opt.value"
-                :value="typeof opt === 'string' ? opt : opt.value"
+                :key="typeof opt === 'object' ? opt.value : opt"
+                :value="typeof opt === 'object' ? opt.value : opt"
               >
-                {{ typeof opt === 'string' ? (opt || '(none)') : opt.label }}
+                {{ typeof opt === 'object' ? opt.label : (String(opt) || '(none)') }}
               </option>
             </select>
           </div>
@@ -519,7 +519,7 @@ const generatedCliCommand = computed(() => {
               type="text"
               class="w-full text-xs font-mono bg-surface-sunken border border-surface-border rounded px-2 py-1 text-text-primary focus:outline-hidden focus:border-brand-primary"
               :placeholder="`Enter ${ctrl.label || ctrl.prop}...`"
-            />
+            >
           </div>
 
           <!-- Number Input Control -->
@@ -529,7 +529,7 @@ const generatedCliCommand = computed(() => {
               :aria-label="ctrl.label || ctrl.prop"
               type="number"
               class="w-full text-xs font-mono bg-surface-sunken border border-surface-border rounded px-2 py-1 text-text-primary focus:outline-hidden focus:border-brand-primary"
-            />
+            >
           </div>
         </div>
       </div>
@@ -685,7 +685,7 @@ const generatedCliCommand = computed(() => {
                   readonly
                   :value="shareUrl"
                   class="flex-1 text-xs font-mono bg-surface-sunken border border-surface-border rounded px-3 py-2 text-text-primary select-all"
-                />
+                >
                 <button
                   type="button"
                   class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded bg-brand-primary text-white hover:bg-brand-primary/90 cursor-pointer transition-colors shrink-0"

@@ -221,13 +221,6 @@ const examplePages = [
 // clean and side-steps the HTML-attribute-vs-JS-template-literal
 // escaping mess for code snippets containing double quotes.
 const factoidTitle = `tti-ux v${version}`;
-const installSnippet = [
-  "git clone https://github.com/ttitamu/tti-ux.git",
-  "cd tti-ux",
-  "npm install",
-  "npm run dev",
-  "# → http://localhost:3030",
-].join("\n");
 const consumeSnippet = [
   "// nuxt.config.ts of the consuming app",
   "export default defineNuxtConfig({",

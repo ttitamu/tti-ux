@@ -9,15 +9,17 @@ public struct TuxChartScatter<Content: View>: View {
     public var yLabel: String = "y"
     public var width: Int = 640
     public var height: Int = 320
+    public var palette: String = "brand"
+    public var distinctMarkers: Bool = true
     public var trendline: Bool = false
     public var legend: Bool = true
     public var gridlines: Bool = true
     public var xTicks: Int = 6
     public var yTicks: Int = 5
-    public var format: String = "(n:"
+    public var format: String
     public var decimals: Int = 2
-    public var ariaSummary: String = "undefined"
-    public var units: String = "undefined"
+    public var ariaSummary: String
+    public var units: String
     public var tooltip: Bool = true
     private let content: Content
 

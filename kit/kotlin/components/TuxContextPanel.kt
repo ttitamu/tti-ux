@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxContextPanel(
-    width: String = 320,
+    width: String = "320",
     content: @Composable () -> Unit = {}
 ) {
     Row(

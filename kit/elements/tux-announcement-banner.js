@@ -30,9 +30,9 @@ export class TuxAnnouncementBannerElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <Transition class="tux-announcement-banner">
+      <div class="tux-announcement-banner">
         <slot></slot>
-      </Transition>
+      </div>
     `;
   }
 }

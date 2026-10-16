@@ -51,7 +51,7 @@ if (!source.value) {
 const pageTitle = computed(() => {
   if (!source.value) return "Docs";
   const firstHeading = source.value.match(/^#\s+(.+)$/m);
-  if (firstHeading) return firstHeading[1].trim();
+  if (firstHeading?.[1]) return firstHeading[1].trim();
   return currentSlug.value.split("/").pop() || "Docs";
 });
 
@@ -75,19 +75,53 @@ const { data: parsed } = await useAsyncData(
 
 const crumbs = computed(() => {
   const parts = currentSlug.value.split("/").filter(Boolean);
-  const items = [
+  const items: { label: string; to?: string }[] = [
     { label: "Home", to: "/" },
-    { label: "Docs", to: "/docs/adr" },
+    { label: "Docs", to: "/docs" },
   ];
+
+  if (parts.length === 0 || (parts.length === 1 && parts[0] === "index")) {
+    return items;
+  }
+
+  // Handle ADR routes
+  if (parts[0] === "adr") {
+    if (parts.length === 1 || parts[1] === "README") {
+      items.push({ label: "ADRs" });
+      return items;
+    }
+    items.push({ label: "ADRs", to: "/docs/adr" });
+
+    // Clean leaf ADR crumb: "ADR 0012" or concise title
+    const adrMatch = pageTitle.value.match(/^(ADR\s*[\d]+)/i);
+    const leaf = adrMatch?.[1]
+      ? adrMatch[1].replace(/\s+/, " ")
+      : (pageTitle.value.length > 32 ? `${pageTitle.value.slice(0, 30).trim()}…` : pageTitle.value);
+    items.push({ label: leaf });
+    return items;
+  }
+
+  // Handle general doc folders (guides, audits, etc.)
   let accumulated = "/docs";
   for (let i = 0; i < parts.length; i++) {
-    const part = parts[i];
+    const part = parts[i] ?? "";
     accumulated += `/${part}`;
     const isLast = i === parts.length - 1;
-    items.push({
-      label: isLast ? pageTitle.value : part.toUpperCase(),
-      to: isLast ? undefined : accumulated,
-    });
+
+    if (isLast) {
+      const leaf = pageTitle.value.length > 36
+        ? pageTitle.value.slice(0, 34).trim() + "…"
+        : pageTitle.value;
+      items.push({ label: leaf });
+    } else {
+      const folderLabel = part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, " ");
+      const targetRel = accumulated.replace(/^\/docs\//, "");
+      const hasRoute = Boolean(docMap.value[targetRel] || docMap.value[`${targetRel}/README`]);
+      items.push({
+        label: folderLabel,
+        to: hasRoute ? accumulated : undefined,
+      });
+    }
   }
   return items;
 });

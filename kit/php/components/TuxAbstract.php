@@ -7,13 +7,13 @@ namespace Tti\Tux\Components;
 
 final class TuxAbstract
 {
-    public string $background = 'undefined';
-    public string $methods = 'undefined';
-    public string $results = 'undefined';
-    public string $conclusion = 'undefined';
-    public string $keywords = 'undefined';
-    public string $variant = structured;
-    public string $level = 4;
+    public string $background;
+    public string $methods;
+    public string $results;
+    public string $conclusion;
+    public string $keywords;
+    public string $variant = 'structured';
+    public int $level = 4;
 
     public function __construct(array $attributes = [])
     {

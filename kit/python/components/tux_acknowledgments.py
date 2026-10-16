@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxAcknowledgments:
-    funding: str = "undefined"
-    acknowledgments: str = "undefined"
-    conflicts: str = "undefined"
-    ethics: str = "undefined"
-    level: str = 4
+    funding: str = None
+    acknowledgments: str = None
+    conflicts: str = None
+    ethics: str = None
+    level: int = 4
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-acknowledgments">{content}</section>'

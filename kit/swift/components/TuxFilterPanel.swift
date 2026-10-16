@@ -5,7 +5,7 @@ import SwiftUI
 
 public struct TuxFilterPanel<Content: View>: View {
     public var facets: String
-    public var modelValue: String = "()"
+    public var modelValue: String
     public var title: String
     private let content: Content
 

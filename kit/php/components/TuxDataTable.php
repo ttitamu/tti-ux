@@ -8,21 +8,21 @@ namespace Tti\Tux\Components;
 final class TuxDataTable
 {
     public string $columns;
-    public string $rows = '()';
-    public string $groups = '()';
+    public string $rows;
+    public string $groups;
     public string $rowKey = 'id';
     public string $tableNumber;
     public string $caption;
     public string $description;
-    public string $sortKey = 'undefined';
-    public string $sortDir = undefined;
+    public string $sortKey;
+    public string $sortDir;
     public bool $sticky = false;
     public string $maxHeight = '20rem';
-    public string $density = comfortable;
+    public string $density = 'comfortable';
     public bool $banded = true;
-    public string $footnotes = '()';
+    public string $footnotes;
     public string $source;
-    public string $totals = 'undefined';
+    public string $totals;
 
     public function __construct(array $attributes = [])
     {

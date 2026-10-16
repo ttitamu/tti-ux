@@ -5,9 +5,9 @@ import SwiftUI
 
 public struct TuxArtifact<Content: View>: View {
     public var title: String
-    public var meta: String = "undefined"
+    public var meta: String
     public var icon: String = "lucide:file-code"
-    public var actions: String = "()"
+    public var actions: String
     public var busy: Bool = false
     private let content: Content
 

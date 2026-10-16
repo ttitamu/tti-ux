@@ -11,7 +11,7 @@ final class TuxCommentThread
     public string $authors;
     public string $currentUser;
     public bool $hideResolved = true;
-    public string $size = md;
+    public string $size = 'md';
 
     public function __construct(array $attributes = [])
     {

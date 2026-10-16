@@ -12,10 +12,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxModal(
     open: Boolean = false,
-    title: String = "undefined",
-    eyebrow: String = "undefined",
-    size: String = undefined,
-    variant: String = standard,
+    title: String,
+    eyebrow: String,
+    size: String,
+    variant: String = "standard",
     content: @Composable () -> Unit = {}
 ) {
     Row(

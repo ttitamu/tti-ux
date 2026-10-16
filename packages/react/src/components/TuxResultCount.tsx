@@ -5,20 +5,20 @@
 import React from 'react';
 
 export interface TuxResultCountProps {
-  page?: number;
-  pageSize?: number;
-  total?: number;
-  noun??: string;
-  nounPlural??: string;
-  pageSizeOptions??: string;
-  hideRange??: boolean;
-  pageSizeLabel??: string;
+  page: number;
+  pageSize: number;
+  total: number;
+  noun?: string;
+  nounPlural?: string;
+  pageSizeOptions?: string;
+  hideRange?: boolean;
+  pageSizeLabel?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxResultCount: React.FC<TuxResultCountProps> = ({
-  page, pageSize, total, noun = "undefined", nounPlural = "undefined", pageSizeOptions = "undefined", hideRange = false, pageSizeLabel = "per", children, className = ''
+  page, pageSize, total, noun, nounPlural, pageSizeOptions, hideRange = false, pageSizeLabel, children, className = ''
 }) => {
   return (
     <div className={`tux-result-count ${className}`.trim()}>

@@ -5,15 +5,15 @@
 import React from 'react';
 
 export interface TuxChartDonutProps {
-  slices?: string;
+  slices: string;
   size?: number;
-  palette?: 'brand' | 'cvd';
+  palette?: "brand" | "cvd";
   patterns?: boolean;
   thickness?: number;
   sliceLabels?: boolean;
   legend?: boolean;
   centerLabel?: string;
-  centerValue?: string | number;
+  centerValue?: string;
   minSlice?: number;
   format?: string;
   decimals?: number;
@@ -25,30 +25,10 @@ export interface TuxChartDonutProps {
 }
 
 export const TuxChartDonut: React.FC<TuxChartDonutProps> = ({
-  slices,
-  size = 280,
-  palette = 'brand',
-  patterns = true,
-  thickness = 0.5,
-  sliceLabels = true,
-  legend = false,
-  centerLabel,
-  centerValue,
-  minSlice = 3,
-  format = '(n:',
-  decimals = 1,
-  ariaSummary,
-  units,
-  tooltip = true,
-  children,
-  className = ''
+  slices, size = 280, palette = "brand", patterns = false, thickness = 0.5, sliceLabels = true, legend = false, centerLabel, centerValue, minSlice = 3, format, decimals = 1, ariaSummary, units, tooltip = true, children, className = ''
 }) => {
-  const cvdClass = palette === 'cvd' ? 'tux-chart--cvd' : '';
   return (
-    <figure
-      className={`tux-chart-donut ${cvdClass} ${className}`.trim()}
-      data-chart-palette={palette}
-    >
+    <figure className={`tux-chart-donut ${className}`.trim()}>
       {children}
     </figure>
   );

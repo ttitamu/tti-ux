@@ -8,7 +8,7 @@ from typing import Optional
 @dataclass
 class TuxTabBar:
     items: str = None
-    aria_label: str = "Primary"
+    aria_label: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<nav class="tux-tab-bar">{content}</nav>'

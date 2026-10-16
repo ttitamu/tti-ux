@@ -5,10 +5,10 @@ import SwiftUI
 
 public struct TuxBlockquote<Content: View>: View {
     public var quote: String
-    public var attribution: String = null
-    public var role: String = null
-    public var layout: String = centered
-    public var variant: String = default
+    public var attribution: String
+    public var role: String
+    public var layout: String = "centered"
+    public var variant: String = "default"
     private let content: Content
 
     public init(

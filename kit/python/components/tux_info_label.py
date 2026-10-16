@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxInfoLabel:
-    for: str = "undefined"
+    for: str = None
     required: bool = false
-    trigger: str = hover
-    info_aria_label: str = "More"
+    trigger: str = "hover"
+    info_aria_label: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<label class="tux-info-label">{content}</label>'

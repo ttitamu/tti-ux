@@ -11,17 +11,19 @@ final class TuxChartBar
     public string $series;
     public int $width = 640;
     public int $height = 280;
-    public string $orientation = vertical;
-    public string $variant = grouped;
+    public string $palette = 'brand';
+    public bool $patterns = false;
+    public string $orientation = 'vertical';
+    public string $variant = 'grouped';
     public bool $valueLabels = true;
     public bool $inBarLabels = false;
     public bool $gridlines = true;
     public bool $legend = false;
     public int $ticks = 5;
-    public string $format = '(n:';
+    public string $format;
     public int $decimals = 1;
-    public string $ariaSummary = 'undefined';
-    public string $units = 'undefined';
+    public string $ariaSummary;
+    public string $units;
     public bool $tooltip = true;
 
     public function __construct(array $attributes = [])

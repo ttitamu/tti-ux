@@ -7,7 +7,7 @@ from typing import Optional
 
 @dataclass
 class TuxFrameworkSwitcher:
-    mode: str = compact
+    mode: str = "compact"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-framework-switcher">{content}</div>'

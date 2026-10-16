@@ -7,13 +7,13 @@ from typing import Optional
 
 @dataclass
 class TuxAlphaNav:
-    letters: str = "()"
-    available: str = "undefined"
-    mode: str = anchor
+    letters: str = None
+    available: str = None
+    mode: str = "anchor"
     sticky: bool = false
     show_all: bool = false
-    model_value: str = null
-    aria_label: str = "Jump"
+    model_value: str = None
+    aria_label: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<nav class="tux-alpha-nav">{content}</nav>'

@@ -11,7 +11,6 @@ definePageMeta({
 });
 
 const route = useRoute();
-const router = useRouter();
 const pageId = computed(() => String(route.params.id));
 
 const { data: page, refresh, error } = await useAsyncData(
@@ -62,7 +61,7 @@ const rollingBackId = ref<string | null>(null);
 async function loadRevisions() {
   loadingRevisions.value = true;
   try {
-    revisionsList.value = await $fetch(`/api/pages/${pageId.value}/revisions`);
+    revisionsList.value = await $fetch<any[]>(`/api/pages/${pageId.value}/revisions`);
   } catch (err) {
     console.error("Failed to load revisions", err);
   } finally {
@@ -117,7 +116,7 @@ async function rollbackTo(revId: string) {
     }
     statusMessage.value = "Rolled back to selected revision successfully!";
     await Promise.all([refresh(), loadRevisions()]);
-  } catch (err) {
+  } catch {
     alert("Failed to rollback revision.");
   } finally {
     rollingBackId.value = null;
@@ -128,7 +127,7 @@ async function saveDraft() {
   saving.value = true;
   statusMessage.value = "";
   try {
-    await $fetch(`/api/pages/${pageId.value}`, {
+    await $fetch<any>(`/api/pages/${pageId.value}`, {
       method: "PUT",
       body: {
         title: formTitle.value.trim(),
@@ -140,7 +139,7 @@ async function saveDraft() {
     statusMessage.value = "Draft saved successfully.";
     await refresh();
     if (showRevisions.value) loadRevisions();
-  } catch (err) {
+  } catch {
     statusMessage.value = "Failed to save draft.";
   } finally {
     saving.value = false;
@@ -152,7 +151,7 @@ async function publishPage() {
   statusMessage.value = "";
   try {
     // First save draft
-    await $fetch(`/api/pages/${pageId.value}`, {
+    await $fetch<any>(`/api/pages/${pageId.value}`, {
       method: "PUT",
       body: {
         title: formTitle.value.trim(),
@@ -162,13 +161,13 @@ async function publishPage() {
       },
     });
     // Then trigger publish
-    await $fetch(`/api/pages/${pageId.value}/publish`, {
+    await $fetch<any>(`/api/pages/${pageId.value}/publish`, {
       method: "POST",
     });
     statusMessage.value = "Page published successfully! Public route live at /p/" + formSlug.value;
     await refresh();
     if (showRevisions.value) loadRevisions();
-  } catch (err) {
+  } catch {
     statusMessage.value = "Failed to publish page.";
   } finally {
     publishing.value = false;

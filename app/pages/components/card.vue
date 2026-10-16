@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import tuxCardSource from "~/components/TuxCard.vue?raw";
 
+import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
+
 useHead({ title: "TuxCard · TUX" });
 
 const staticVue = `<tux-card>
@@ -18,8 +20,6 @@ const linkedVue = `<tux-card to="/tokens">
     Every CSS variable the system exposes.
   </p>
 </tux-card>`;
-
-import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
 
 const cardControls: TuxPropControl[] = [
   {

@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCallout(
-    kind: String = fact,
-    eyebrow: String = null,
-    variant: String = default,
+    kind: String = "fact",
+    eyebrow: String,
+    variant: String = "default",
     content: @Composable () -> Unit = {}
 ) {
     Row(

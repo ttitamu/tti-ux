@@ -4,7 +4,7 @@
  */
 export class TuxBadgeElement extends HTMLElement {
   static get observedAttributes() {
-    return ["tier", "status", "tone", "kind", "variant", "bold", "dot", "icon", "count", "label", "uppercase"];
+    return ["tier", "status", "tone", "kind", "variant", "bold", "dot", "icon", "count", "label", "uppercase", "shape", "glyph"];
   }
 
   constructor() {
@@ -30,9 +30,9 @@ export class TuxBadgeElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <UBadge class="tux-badge">
+      <div class="tux-badge">
         <slot></slot>
-      </UBadge>
+      </div>
     `;
   }
 }

@@ -7,7 +7,7 @@ from typing import Optional
 
 @dataclass
 class TuxContextPanel:
-    width: str = 320
+    width: str = "320"
 
     def render_html(self, content: str = "") -> str:
         return f'<aside class="tux-context-panel">{content}</aside>'

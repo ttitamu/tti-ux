@@ -7,16 +7,18 @@ from typing import Optional
 
 @dataclass
 class TuxPlayground:
-    tag: str = "undefined"
-    component_name: str = "undefined"
+    tag: str = None
+    component_name: str = None
     controls: str = None
-    presets: str = "()"
-    title: str = "Interactive"
-    eyebrow: str = "Live"
-    slot_prop: str = "undefined"
-    default_slot_text: str = "undefined"
+    presets: str = None
+    title: str = None
+    eyebrow: str = None
+    slot_prop: str = None
+    default_slot_text: str = None
     self_closing: bool = false
-    code_template: str = "undefined"
+    code_template: str = None
+    source: str = None
+    powerbi: str = None
     preview_padding: str = "p-8"
     enable_deep_linking: bool = true
 

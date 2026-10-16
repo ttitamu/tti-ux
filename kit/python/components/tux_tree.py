@@ -8,8 +8,8 @@ from typing import Optional
 @dataclass
 class TuxTree:
     items: str = None
-    default_expanded: str = "undefined"
-    storage_key: str = "undefined"
+    default_expanded: str = None
+    storage_key: str = None
     show_guides: bool = true
     aria_label: str = "Tree"
 

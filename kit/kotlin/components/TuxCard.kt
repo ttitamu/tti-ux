@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCard(
-    to: String = "undefined",
+    to: String,
     padded: Boolean = true,
     linked: Boolean = false,
     content: @Composable () -> Unit = {}

@@ -9,9 +9,9 @@ final class TuxFigureCaption
 {
     public string $label = 'Figure';
     public string $number;
-    public string $caption = 'undefined';
-    public string $source = 'undefined';
-    public string $placement = below;
+    public string $caption;
+    public string $source;
+    public string $placement = 'below';
 
     public function __construct(array $attributes = [])
     {

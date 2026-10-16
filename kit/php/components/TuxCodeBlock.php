@@ -8,8 +8,8 @@ namespace Tti\Tux\Components;
 final class TuxCodeBlock
 {
     public string $code;
-    public string $lang = text;
-    public string $filename = 'undefined';
+    public string $lang = 'text';
+    public string $filename;
     public bool $lineNumbers = false;
     public bool $noCopy = false;
     public bool $noDownload = false;

@@ -11,7 +11,7 @@ class TuxCommentThread:
     authors: str = None
     current_user: str = None
     hide_resolved: bool = true
-    size: str = md
+    size: str = "md"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-comment-thread">{content}</div>'

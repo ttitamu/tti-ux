@@ -8,7 +8,7 @@ namespace Tti\Tux\Components;
 final class TuxCommandPalette
 {
     public string $groups;
-    public string $placeholder = 'Type';
+    public string $placeholder;
     public bool $disableHotkey = false;
     public string $hotkey = 'k';
     public bool $showTabs = true;

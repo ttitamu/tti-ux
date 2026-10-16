@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxConversationList(
     groups: String,
-    activeId: String = null,
+    activeId: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

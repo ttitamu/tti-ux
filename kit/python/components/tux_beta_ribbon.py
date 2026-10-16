@@ -9,9 +9,9 @@ from typing import Optional
 class TuxBetaRibbon:
     variant: str = "corner"
     kind: str = "preview"
-    label: str = "undefined"
+    label: str = None
     corner: str = "top-right"
-    message: str = "undefined"
+    message: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-beta-ribbon">{content}</div>'

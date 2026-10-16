@@ -5,22 +5,22 @@
 import React from 'react';
 
 export interface TuxModalProps {
-  open??: boolean;
-  title??: string;
-  eyebrow??: string;
-  size??: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
-  variant??: "standard" | "sheet" | "auto";
+  open?: boolean;
+  title?: string;
+  eyebrow?: string;
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
+  variant?: "standard" | "sheet" | "auto";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxModal: React.FC<TuxModalProps> = ({
-  open = false, title = "undefined", eyebrow = "undefined", size = undefined, variant = standard, children, className = ''
+  open = false, title, eyebrow, size, variant = "standard", children, className = ''
 }) => {
   return (
-    <UModal className={`tux-modal ${className}`.trim()}>
+    <div className={`tux-modal ${className}`.trim()}>
       {children}
-    </UModal>
+    </div>
   );
 };
 

@@ -166,8 +166,9 @@ function startResize(handle: "left" | "right" | "bottom-left" | "bottom-right", 
 
   const el = (nodeWrapperRef.value?.$el || nodeWrapperRef.value) as HTMLElement | null;
   if (!el) return;
+  const targetEl = el;
 
-  const parentEl = (el.closest(".ProseMirror") || el.parentElement) as HTMLElement | null;
+  const parentEl = (targetEl.closest(".ProseMirror") || targetEl.parentElement) as HTMLElement | null;
   if (!parentEl) return;
 
   isResizing.value = true;
@@ -187,7 +188,7 @@ function startResize(handle: "left" | "right" | "bottom-left" | "bottom-right", 
     activeGridHighlight.value = { start: currentStart, end: currentEnd };
   }
 
-  el.style.transition = "none";
+  targetEl.style.transition = "none";
 
   function onMove(e: MouseEvent | PointerEvent) {
     const hoveredCol = calcGridColumnFromCoord(e.clientX, parentRect, 12);
@@ -214,9 +215,9 @@ function startResize(handle: "left" | "right" | "bottom-left" | "bottom-right", 
     // Zero-latency DOM updates during drag
     const leftPct = `${Math.round(((currentStart - 1) / 12) * 10000) / 100}%`;
     const widthPct = `${Math.round((newSpan / 12) * 10000) / 100}%`;
-    el.style.marginLeft = leftPct;
-    el.style.marginRight = "auto";
-    el.style.width = widthPct;
+    targetEl.style.marginLeft = leftPct;
+    targetEl.style.marginRight = "auto";
+    targetEl.style.width = widthPct;
   }
 
   function onEnd() {
@@ -233,7 +234,7 @@ function startResize(handle: "left" | "right" | "bottom-left" | "bottom-right", 
 
     setColumns(finalStart, finalSpan, "");
 
-    el.style.transition = "";
+    targetEl.style.transition = "";
     isResizing.value = false;
     dragStartCol.value = null;
     dragEndCol.value = null;
@@ -541,7 +542,7 @@ function moveNode(direction: -1 | 1) {
             :aria-label="field.label"
             class="tux-desk-node-view__input"
             @input="onFieldInput(field.key, $event)"
-          />
+          >
         </div>
       </div>
     </div>

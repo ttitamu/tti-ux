@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 fun TuxCookieConsent(
     storageKey: String = "tux-cookie-consent",
     position: String = "bottom-right",
-    message: String = "We",
+    message: String,
     privacyHref: String = "/privacy",
     initiallyExpanded: Boolean = false,
     content: @Composable () -> Unit = {}

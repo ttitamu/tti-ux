@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxCommHero
 {
-    public string $eyebrow = 'TEXAS';
+    public string $eyebrow;
     public string $title;
     public string $accentTitle;
     public string $lead;
@@ -18,7 +18,7 @@ final class TuxCommHero
     public string $secondaryActionTo;
     public string $secondaryActionHref;
     public string $imageSrc;
-    public string $imageAlt = 'TTI';
+    public string $imageAlt;
     public string $imageBadge;
     public bool $chamfer = true;
 

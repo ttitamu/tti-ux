@@ -7,14 +7,14 @@ from typing import Optional
 
 @dataclass
 class TuxCorridorStrip:
-    name: str = "undefined"
+    name: str = None
     from_mile: int = None
     to_mile: int = None
-    segments: str = "undefined"
-    events: str = "undefined"
-    values: str = "undefined"
-    values_label: str = "undefined"
-    direction: str = "undefined"
+    segments: str = None
+    events: str = None
+    values: str = None
+    values_label: str = None
+    direction: str = None
     width: int = 800
     height: int = 140
     tick_every: int = 5

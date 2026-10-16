@@ -9,8 +9,8 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string For { get; set; } = "undefined";
+    [Parameter] public string For { get; set; };
     [Parameter] public bool Required { get; set; } = false;
-    [Parameter] public string Trigger { get; set; } = hover;
-    [Parameter] public string InfoAriaLabel { get; set; } = "More";
+    [Parameter] public string Trigger { get; set; } = "hover";
+    [Parameter] public string InfoAriaLabel { get; set; };
 }

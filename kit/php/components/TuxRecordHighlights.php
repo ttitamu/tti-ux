@@ -8,9 +8,9 @@ namespace Tti\Tux\Components;
 final class TuxRecordHighlights
 {
     public string $title;
-    public string $eyebrow = 'undefined';
-    public string $icon = 'undefined';
-    public string $items = '()';
+    public string $eyebrow;
+    public string $icon;
+    public string $items;
 
     public function __construct(array $attributes = [])
     {

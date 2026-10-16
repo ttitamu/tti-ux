@@ -14,8 +14,8 @@ fun TuxReportFrame(
     size: String = "letter",
     density: String = "editorial",
     breakAfter: Boolean = false,
-    title: String = "undefined",
-    eyebrow: String = "undefined",
+    title: String,
+    eyebrow: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

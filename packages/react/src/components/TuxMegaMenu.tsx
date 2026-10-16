@@ -5,10 +5,10 @@
 import React from 'react';
 
 export interface TuxMegaMenuProps {
-  label?: string;
-  columns?: string;
-  featured??: string;
-  to??: string;
+  label: string;
+  columns: string;
+  featured?: string;
+  to?: string;
   children?: React.ReactNode;
   className?: string;
 }

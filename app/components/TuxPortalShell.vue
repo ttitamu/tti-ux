@@ -70,6 +70,7 @@ const props = withDefaults(defineProps<Props>(), {
   actionText: "",
   actionTo: "",
   actionHref: "",
+  utilityLinks: undefined,
   agencyName: "Texas A&M Transportation Institute",
   agencyUrl: "https://tti.tamu.edu",
   homeUrl: "/",

@@ -11,15 +11,15 @@ final class TuxChartHistogram
     public int $width = 640;
     public int $height = 280;
     public int $binCount = 12;
-    public string $percentiles = '()';
+    public string $percentiles;
     public bool $normalize = false;
     public bool $gridlines = true;
     public int $ticks = 5;
-    public string $xLabel = 'undefined';
-    public string $format = '(n:';
+    public string $xLabel;
+    public string $format;
     public int $decimals = 1;
-    public string $ariaSummary = 'undefined';
-    public string $units = 'undefined';
+    public string $ariaSummary;
+    public string $units;
     public bool $tooltip = true;
 
     public function __construct(array $attributes = [])

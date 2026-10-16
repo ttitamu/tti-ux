@@ -30,7 +30,7 @@ const filteredPresets = computed(() => {
 });
 
 const currentPreset = computed<GalleryPreset>(() => {
-  return GALLERY_PRESETS.find((p) => p.id === selectedPresetId.value) || GALLERY_PRESETS[0];
+  return GALLERY_PRESETS.find((p) => p.id === selectedPresetId.value) ?? GALLERY_PRESETS[0]!;
 });
 
 // Reactivity to dark/light theme switch & vision preferences
@@ -59,6 +59,15 @@ onMounted(() => {
 
 function selectPreset(id: string) {
   selectedPresetId.value = id;
+}
+
+function featurePresetInStage(id: string) {
+  selectPreset(id);
+  nextTick(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 960, behavior: "smooth" });
+    }
+  });
 }
 
 // ============================================================================
@@ -266,7 +275,7 @@ function setRacingSpeed(speed: number) {
 }
 
 const dynamicRacingBarOption = computed<EChartsCoreOption>(() => {
-  const currentData = RACING_DATA_HISTORY[racingYear.value] || RACING_DATA_HISTORY[2026];
+  const currentData = RACING_DATA_HISTORY[racingYear.value] ?? RACING_DATA_HISTORY[2026] ?? [];
   const sorted = [...currentData].sort((a, b) => a.value - b.value);
 
   return {
@@ -562,7 +571,7 @@ function toggleTelemetryStreaming() {
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
       
-      const lastSpd = streamSpeed.value[streamSpeed.value.length - 1];
+      const lastSpd = streamSpeed.value[streamSpeed.value.length - 1] ?? 60;
       const deltaSpd = (Math.random() - 0.48) * 4;
       const nextSpd = Math.max(20, Math.min(80, Math.round((lastSpd + deltaSpd) * 10) / 10));
 
@@ -698,7 +707,7 @@ const TXDOT_DISTRICT_DATABASE: Record<string, DistrictRecord> = {
   Childress: { name: "Childress", abbr: "CHS", utpScore: 44, letting: 180, laneMiles: 5200, defBridges: 2.6, hq: "Childress, TX", corridors: "US-287, US-83, US-62" },
 };
 
-const selectedDistrict = ref<DistrictRecord>(TXDOT_DISTRICT_DATABASE["Houston"]);
+const selectedDistrict = ref<DistrictRecord>(TXDOT_DISTRICT_DATABASE["Houston"]!);
 
 // Maritime Ports Database
 interface MaritimePortRecord {
@@ -804,7 +813,7 @@ const GULF_PORTS_DATABASE: Record<string, MaritimePortRecord> = {
   },
 };
 
-const selectedPort = ref<MaritimePortRecord>(GULF_PORTS_DATABASE["Port of Houston"]);
+const selectedPort = ref<MaritimePortRecord>(GULF_PORTS_DATABASE["Port of Houston"]!);
 
 // Border Gateways Database
 interface BorderGatewayRecord {
@@ -928,36 +937,40 @@ const BORDER_GATEWAYS_DATABASE: Record<string, BorderGatewayRecord> = {
   },
 };
 
-const selectedBorder = ref<BorderGatewayRecord>(BORDER_GATEWAYS_DATABASE["World Trade Bridge"]);
+const selectedBorder = ref<BorderGatewayRecord>(BORDER_GATEWAYS_DATABASE["World Trade Bridge"]!);
 
 function onChartClick(params: any) {
-  if (activeMapMode.value === "txdot-districts" && params.name && TXDOT_DISTRICT_DATABASE[params.name]) {
-    selectedDistrict.value = TXDOT_DISTRICT_DATABASE[params.name];
-  } else if (activeMapMode.value === "gulf-maritime" && params.name && GULF_PORTS_DATABASE[params.name]) {
-    selectedPort.value = GULF_PORTS_DATABASE[params.name];
-  } else if (activeMapMode.value === "border-gateways" && params.name && BORDER_GATEWAYS_DATABASE[params.name]) {
-    selectedBorder.value = BORDER_GATEWAYS_DATABASE[params.name];
+  const name = params?.name as string | undefined;
+  if (!name) return;
+  if (activeMapMode.value === "txdot-districts") {
+    const rec = TXDOT_DISTRICT_DATABASE[name];
+    if (rec) selectedDistrict.value = rec;
+  } else if (activeMapMode.value === "gulf-maritime") {
+    const rec = GULF_PORTS_DATABASE[name];
+    if (rec) selectedPort.value = rec;
+  } else if (activeMapMode.value === "border-gateways") {
+    const rec = BORDER_GATEWAYS_DATABASE[name];
+    if (rec) selectedBorder.value = rec;
   }
 }
 
 function onChartHover(params: any) {
-  if (activeMapMode.value === "txdot-districts" && params.name && TXDOT_DISTRICT_DATABASE[params.name]) {
-    selectedDistrict.value = TXDOT_DISTRICT_DATABASE[params.name];
-  } else if (activeMapMode.value === "gulf-maritime" && params.name && GULF_PORTS_DATABASE[params.name]) {
-    selectedPort.value = GULF_PORTS_DATABASE[params.name];
-  } else if (activeMapMode.value === "border-gateways" && params.name && BORDER_GATEWAYS_DATABASE[params.name]) {
-    selectedBorder.value = BORDER_GATEWAYS_DATABASE[params.name];
+  const name = params?.name as string | undefined;
+  if (!name) return;
+  if (activeMapMode.value === "txdot-districts") {
+    const rec = TXDOT_DISTRICT_DATABASE[name];
+    if (rec) selectedDistrict.value = rec;
+  } else if (activeMapMode.value === "gulf-maritime") {
+    const rec = GULF_PORTS_DATABASE[name];
+    if (rec) selectedPort.value = rec;
+  } else if (activeMapMode.value === "border-gateways") {
+    const rec = BORDER_GATEWAYS_DATABASE[name];
+    if (rec) selectedBorder.value = rec;
   }
 }
 
 // Flow mode selector for Texas Triangle
 const activeFlowMode = ref<"all" | "truck" | "rail" | "air">("all");
-
-// Maritime mode selector
-const activeMaritimeMetric = ref<"all" | "energy" | "container" | "dwell">("all");
-
-// Border mode selector
-const activeBorderMetric = ref<"trade" | "trucks" | "wait" | "fast">("trade");
 
 const commandCenterMapOption = computed<EChartsCoreOption>(() => {
   const dark = isDark.value;
@@ -1319,7 +1332,7 @@ const commandCenterMapOption = computed<EChartsCoreOption>(() => {
 
     const linesData = tradeConnectors.map((c) => ({
       name: c.name,
-      coords: [BORDER_GATEWAYS_DATABASE[c.from].coords, c.toCoords],
+      coords: [BORDER_GATEWAYS_DATABASE[c.from]?.coords ?? [0, 0], c.toCoords],
     }));
 
     const scatterData = gatewaysList.map((g) => ({
@@ -2163,7 +2176,7 @@ onUnmounted(() => {
                 :aria-valuenow="racingYear"
                 :aria-valuemin="2015"
                 :aria-valuemax="2026"
-              />
+              >
             </div>
           </div>
 
@@ -2625,7 +2638,7 @@ onUnmounted(() => {
             <button
               type="button"
               class="min-h-[44px] px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider rounded-xs border border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white transition-all inline-flex items-center gap-1.5 shrink-0"
-              @click="selectPreset(preset.id); $nextTick(() => { window.scrollTo({ top: 960, behavior: 'smooth' }) })"
+              @click="featurePresetInStage(preset.id)"
             >
               <span>Feature In Main Stage</span>
               <span aria-hidden="true">↑</span>

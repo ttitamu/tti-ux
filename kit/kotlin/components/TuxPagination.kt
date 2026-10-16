@@ -18,7 +18,7 @@ fun TuxPagination(
     boundaryCount: Int = 1,
     showStatus: Boolean = false,
     noun: String = "result",
-    pluralNoun: String = "undefined",
+    pluralNoun: String,
     ariaLabel: String = "Pagination",
     content: @Composable () -> Unit = {}
 ) {

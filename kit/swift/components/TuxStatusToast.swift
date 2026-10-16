@@ -4,7 +4,7 @@
 import SwiftUI
 
 public struct TuxStatusToast<Content: View>: View {
-    public var edge: String = bottom
+    public var edge: String = "bottom"
     private let content: Content
 
     public init(

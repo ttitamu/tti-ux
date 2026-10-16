@@ -4,7 +4,7 @@
  */
 export class TuxChartBarElement extends HTMLElement {
   static get observedAttributes() {
-    return ["labels", "series", "width", "height", "orientation", "variant", "value-labels", "in-bar-labels", "gridlines", "legend", "ticks", "format", "decimals", "aria-summary", "units", "tooltip"];
+    return ["labels", "series", "width", "height", "palette", "patterns", "orientation", "variant", "value-labels", "in-bar-labels", "gridlines", "legend", "ticks", "format", "decimals", "aria-summary", "units", "tooltip"];
   }
 
   constructor() {

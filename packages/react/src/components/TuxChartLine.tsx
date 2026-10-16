@@ -5,16 +5,16 @@
 import React from 'react';
 
 export interface TuxChartLineProps {
-  labels?: string;
-  series?: string;
+  labels: string;
+  series: string;
   width?: number;
   height?: number;
-  palette?: 'brand' | 'cvd';
-  patterns?: boolean;
+  markers?: boolean;
   distinctMarkers?: boolean;
   markerRadius?: number;
+  palette?: "brand" | "cvd";
   strokeWidth?: number;
-  markers?: boolean;
+  patterns?: boolean;
   endLabels?: boolean;
   legend?: boolean;
   gridlines?: boolean;
@@ -24,29 +24,10 @@ export interface TuxChartLineProps {
 }
 
 export const TuxChartLine: React.FC<TuxChartLineProps> = ({
-  labels,
-  series,
-  width = 640,
-  height = 280,
-  palette = 'brand',
-  patterns = true,
-  distinctMarkers = true,
-  markerRadius = 3.5,
-  strokeWidth = 2,
-  markers = false,
-  endLabels = true,
-  legend = false,
-  gridlines = true,
-  yTicks = 5,
-  children,
-  className = ''
+  labels, series, width = 640, height = 280, markers = false, distinctMarkers = true, markerRadius = 3.5, palette = "brand", strokeWidth = 2, patterns = false, endLabels = true, legend = false, gridlines = true, yTicks = 5, children, className = ''
 }) => {
-  const cvdClass = palette === 'cvd' ? 'tux-chart--cvd' : '';
   return (
-    <figure
-      className={`tux-chart-line ${cvdClass} ${className}`.trim()}
-      data-chart-palette={palette}
-    >
+    <figure className={`tux-chart-line ${className}`.trim()}>
       {children}
     </figure>
   );

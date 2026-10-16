@@ -5,16 +5,16 @@
 import React from 'react';
 
 export interface TuxReactionBarProps {
-  modelValue??: string;
-  reactions??: string;
-  counts??: string;
-  size??: "sm" | "md";
+  modelValue?: string;
+  reactions?: string;
+  counts?: string;
+  size?: "sm" | "md";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxReactionBar: React.FC<TuxReactionBarProps> = ({
-  modelValue = "()", reactions = "()", counts = "()", size, children, className = ''
+  modelValue, reactions, counts, size, children, className = ''
 }) => {
   return (
     <div className={`tux-reaction-bar ${className}`.trim()}>

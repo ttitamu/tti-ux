@@ -309,7 +309,7 @@ function submitFeedback() {
           placeholder="Search corridors, sensors, datasets, or researchers..."
           class="w-full px-3 py-2 text-sm bg-surface-page border border-surface-border rounded-none focus:outline-none focus:border-brand-primary"
           autofocus
-        />
+        >
 
         <div class="mt-4 space-y-2 text-xs text-text-secondary">
           <div class="font-semibold uppercase tracking-wider text-text-muted">Suggested Queries</div>

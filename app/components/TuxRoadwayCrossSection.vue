@@ -149,11 +149,6 @@ function setViewDriver() {
   hasUserInteracted.value = true;
 }
 
-function activateScene() {
-  isSceneActive.value = true;
-  hasUserInteracted.value = true;
-}
-
 function deactivateScene() {
   isSceneActive.value = false;
 }
@@ -194,7 +189,9 @@ function onPointerUp(e: PointerEvent) {
     isDragging.value = false;
     try {
       (e.currentTarget as HTMLElement)?.releasePointerCapture?.(e.pointerId);
-    } catch {}
+    } catch {
+      // Ignore pointer capture release errors
+    }
   }
 }
 
@@ -280,7 +277,7 @@ function getStanchionPoleStyle(idx: number) {
 }
 
 // Style for the floating 3D billboard HUD card
-function getHudCardStyle(idx: number, lane: any) {
+function getHudCardStyle(idx: number, _lane: any) {
   const factor = popOutFactor.value;
   const liftZ = getLaneLiftZ(idx);
 
@@ -612,8 +609,8 @@ function getLosDescription(los?: string): string {
               type="button"
               class="tux-roadway__angle-btn"
               :class="{ 'tux-roadway__angle-btn--active': pitchDeg <= 5 }"
-              @click="setViewTopDown"
               title="Top Dead Center (0° Aerial View)"
+              @click="setViewTopDown"
             >
               Top (0°)
             </button>
@@ -621,8 +618,8 @@ function getLosDescription(los?: string): string {
               type="button"
               class="tux-roadway__angle-btn"
               :class="{ 'tux-roadway__angle-btn--active': pitchDeg > 35 && pitchDeg < 60 }"
-              @click="setViewIsometric"
               title="Isometric 3D Perspective (48°)"
+              @click="setViewIsometric"
             >
               Iso (48°)
             </button>
@@ -630,8 +627,8 @@ function getLosDescription(los?: string): string {
               type="button"
               class="tux-roadway__angle-btn"
               :class="{ 'tux-roadway__angle-btn--active': pitchDeg >= 60 }"
-              @click="setViewDriver"
               title="Driver Viewpoint (68°)"
+              @click="setViewDriver"
             >
               Driver (68°)
             </button>
@@ -651,7 +648,7 @@ function getLosDescription(los?: string): string {
               step="1"
               class="tux-roadway__slider"
               aria-label="Roadway 3D Pitch angle"
-            />
+            >
           </div>
 
           <div class="tux-roadway__slider-item">
@@ -668,7 +665,7 @@ function getLosDescription(los?: string): string {
               step="1"
               class="tux-roadway__slider"
               aria-label="Roadway 3D Yaw rotation angle"
-            />
+            >
           </div>
 
           <div class="tux-roadway__slider-item">
@@ -685,15 +682,15 @@ function getLosDescription(los?: string): string {
               step="0.05"
               class="tux-roadway__slider"
               aria-label="Roadway 3D Zoom Scale"
-            />
+            >
           </div>
 
           <div class="flex items-center gap-2 pt-1 border-t border-surface-border mt-1">
             <button
               type="button"
               class="tux-roadway__action-btn"
-              @click="resetCamera"
               title="Reset to Top-Down View"
+              @click="resetCamera"
             >
               <Icon name="lucide:rotate-ccw" class="w-3 h-3" aria-hidden="true" />
               <span>Reset</span>
@@ -743,9 +740,9 @@ function getLosDescription(los?: string): string {
             class="tux-roadway__active-shield-pill"
             role="button"
             tabindex="0"
+            title="Click or press Enter to release 3D orbit focus and resume vertical page scroll"
             @click.stop="deactivateScene"
             @keydown.enter.stop="deactivateScene"
-            title="Click or press Enter to release 3D orbit focus and resume vertical page scroll"
           >
             <span class="w-1.5 h-1.5 rounded-full bg-color-success animate-pulse" aria-hidden="true" />
             <span>3D Orbit Active &bull; <kbd class="font-mono text-[9px] uppercase px-1 py-0.5 rounded bg-surface-sunken border border-surface-border">Esc</kbd> or click to release scroll</span>

@@ -8,7 +8,7 @@ namespace Tti\Tux\Components;
 final class TuxFeedback
 {
     public string $pageId;
-    public string $title = 'Was';
+    public string $title;
     public string $endpoint = '/api/feedback';
     public bool $allowDetails = true;
 

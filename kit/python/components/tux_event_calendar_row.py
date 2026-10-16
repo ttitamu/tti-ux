@@ -15,8 +15,8 @@ class TuxEventCalendarRow:
     category: str = None
     to: str = None
     href: str = None
-    action_text: str = "View"
-    chip_tone: str = green
+    action_text: str = None
+    chip_tone: str = "green"
 
     def render_html(self, content: str = "") -> str:
         return f'<article class="tux-event-calendar-row">{content}</article>'

@@ -8,9 +8,9 @@ namespace Tti\Tux\Components;
 final class TuxAlert
 {
     public string $variant = 'info';
-    public string $title = 'undefined';
-    public string $description = 'undefined';
-    public string $icon = 'undefined';
+    public string $title;
+    public string $description;
+    public string $icon;
 
     public function __construct(array $attributes = [])
     {
@@ -24,7 +24,7 @@ final class TuxAlert
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<UAlert class="tux-alert">%s</UAlert>',
+            '<div class="tux-alert">%s</div>',
             $content
         );
     }

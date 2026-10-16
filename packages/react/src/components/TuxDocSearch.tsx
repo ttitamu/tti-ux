@@ -5,15 +5,15 @@
 import React from 'react';
 
 export interface TuxDocSearchProps {
-  items??: string;
-  placeholder??: string;
-  maxResults??: number;
+  items?: string;
+  placeholder?: string;
+  maxResults?: number;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxDocSearch: React.FC<TuxDocSearchProps> = ({
-  items = "undefined", placeholder = "Search", maxResults = 8, children, className = ''
+  items, placeholder, maxResults = 8, children, className = ''
 }) => {
   return (
     <div className={`tux-doc-search ${className}`.trim()}>

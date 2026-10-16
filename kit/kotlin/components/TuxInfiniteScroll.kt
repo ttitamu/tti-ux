@@ -16,8 +16,8 @@ fun TuxInfiniteScroll(
     loading: Boolean = false,
     keyboardFallback: Boolean = false,
     rootMargin: String = "200px",
-    noun: String = "undefined",
-    nounPlural: String = "undefined",
+    noun: String,
+    nounPlural: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

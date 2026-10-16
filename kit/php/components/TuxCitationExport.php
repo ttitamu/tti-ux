@@ -9,7 +9,7 @@ final class TuxCitationExport
 {
     public string $citation;
     public string $label = 'Cite';
-    public string $variant = outline;
+    public string $variant = 'outline';
 
     public function __construct(array $attributes = [])
     {
@@ -23,7 +23,7 @@ final class TuxCitationExport
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<UDropdownMenu class="tux-citation-export">%s</UDropdownMenu>',
+            '<div class="tux-citation-export">%s</div>',
             $content
         );
     }

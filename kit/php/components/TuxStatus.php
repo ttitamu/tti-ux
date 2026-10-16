@@ -10,7 +10,8 @@ final class TuxStatus
     public string $state;
     public string $kind = 'chip';
     public bool $acked = false;
-    public string $label = 'undefined';
+    public string $label;
+    public bool $glyph = false;
 
     public function __construct(array $attributes = [])
     {

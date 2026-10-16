@@ -4,12 +4,12 @@
 import SwiftUI
 
 public struct TuxAnnouncementBanner<Content: View>: View {
-    public var id: String = "undefined"
+    public var id: String
     public var tone: String = "info"
-    public var icon: String = "undefined"
-    public var eyebrow: String = "undefined"
-    public var message: String = "undefined"
-    public var action: String = "undefined"
+    public var icon: String
+    public var eyebrow: String
+    public var message: String
+    public var action: String
     public var dismissable: Bool = true
     private let content: Content
 

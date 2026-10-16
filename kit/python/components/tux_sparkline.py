@@ -15,9 +15,9 @@ class TuxSparkline:
     show_area: bool = false
     show_last_point: bool = true
     show_delta: bool = false
-    delta_format: str = percent
-    aria_summary: str = "undefined"
-    units: str = "undefined"
+    delta_format: str = "percent"
+    aria_summary: str = None
+    units: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<span class="tux-sparkline">{content}</span>'

@@ -6,7 +6,7 @@
  * Persisted in localStorage ("tux-vision-prefs") and automatically synchronized
  * to document.documentElement attributes, dynamic CSS custom properties, and SVG simulation filters.
  */
-import { onMounted, ref, watch, type Ref } from "vue";
+import { onMounted, watch, type Ref } from "vue";
 import { useTuxPersistedRef } from "./useTuxPersistedRef";
 
 export interface TuxVisionPreferences {

@@ -7,17 +7,17 @@ namespace Tti\Tux\Components;
 
 final class TuxFooter
 {
-    public string $name = 'Texas';
-    public string $address = 'Texas';
-    public string $phone = (979);
+    public string $name;
+    public string $address;
+    public string $phone;
     public string $logo = '/logo.svg';
     public int $logoSize = 80;
-    public string $brandLockup = /TTI_white.png;
-    public string $brandLockupAlt = 'Texas';
-    public string $social = '()';
-    public string $columns = '()';
-    public string $tagline = 'Coordinated';
-    public int $year = ();
+    public string $brandLockup = '/TTI_white.png';
+    public string $brandLockupAlt;
+    public string $social;
+    public string $columns;
+    public string $tagline;
+    public int $year;
 
     public function __construct(array $attributes = [])
     {

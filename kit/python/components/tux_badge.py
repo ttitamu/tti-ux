@@ -7,17 +7,19 @@ from typing import Optional
 
 @dataclass
 class TuxBadge:
-    tier: str = "undefined"
-    status: str = "undefined"
-    tone: str = "undefined"
+    tier: str = None
+    status: str = None
+    tone: str = None
     kind: str = "default"
-    variant: str = "undefined"
+    variant: str = None
     bold: bool = false
     dot: bool = false
-    icon: str = "undefined"
-    count: str = undefined
-    label: str = "undefined"
+    icon: str = None
+    count: str = None
+    label: str = None
     uppercase: bool = false
+    shape: str = "default"
+    glyph: bool = false
 
     def render_html(self, content: str = "") -> str:
-        return f'<UBadge class="tux-badge">{content}</UBadge>'
+        return f'<div class="tux-badge">{content}</div>'

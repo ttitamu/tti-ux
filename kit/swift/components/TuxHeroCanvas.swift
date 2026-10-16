@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxHeroCanvas<Content: View>: View {
-    public var variant: String = wash
-    public var blend: String = seamless
+    public var variant: String = "wash"
+    public var blend: String = "seamless"
     public var interactive: Bool = true
     public var showControls: Bool = true
     public var minHeight: String = "32rem"

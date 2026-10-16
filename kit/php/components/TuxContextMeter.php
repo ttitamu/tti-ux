@@ -9,7 +9,7 @@ final class TuxContextMeter
 {
     public int $used;
     public int $max;
-    public string $breakdown = 'undefined';
+    public string $breakdown;
 
     public function __construct(array $attributes = [])
     {
@@ -23,7 +23,7 @@ final class TuxContextMeter
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<UPopover class="tux-context-meter">%s</UPopover>',
+            '<div class="tux-context-meter">%s</div>',
             $content
         );
     }

@@ -5,8 +5,8 @@
 import React from 'react';
 
 export interface TuxShortcutsHelpProps {
-  groups?: string;
-  sequenceSeparator??: string;
+  groups: string;
+  sequenceSeparator?: string;
   children?: React.ReactNode;
   className?: string;
 }

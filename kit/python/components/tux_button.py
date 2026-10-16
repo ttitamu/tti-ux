@@ -11,4 +11,4 @@ class TuxButton:
     shape: str = "default"
 
     def render_html(self, content: str = "") -> str:
-        return f'<UButton class="tux-button">{content}</UButton>'
+        return f'<div class="tux-button">{content}</div>'

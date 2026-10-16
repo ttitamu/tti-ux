@@ -5,10 +5,10 @@ import SwiftUI
 
 public struct TuxCardSlab<Content: View>: View {
     public var cards: String
-    public var columns: String = 3
-    public var aspect: String = 4/5
-    public var heading: String = "undefined"
-    public var eyebrow: String = "undefined"
+    public var columns: Int = 3
+    public var aspect: String = "4/5"
+    public var heading: String
+    public var eyebrow: String
     public var inset: Bool = false
     private let content: Content
 

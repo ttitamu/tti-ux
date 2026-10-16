@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxCardCarousel(props = {}, children = '') {
-  const el = document.createElement('div');
+  const el = document.createElement('section');
   el.className = 'tux-card-carousel';
   if (typeof children === 'string') {
     el.innerHTML = children;

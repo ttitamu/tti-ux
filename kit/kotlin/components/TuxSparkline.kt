@@ -19,9 +19,9 @@ fun TuxSparkline(
     showArea: Boolean = false,
     showLastPoint: Boolean = true,
     showDelta: Boolean = false,
-    deltaFormat: String = percent,
-    ariaSummary: String = "undefined",
-    units: String = "undefined",
+    deltaFormat: String = "percent",
+    ariaSummary: String,
+    units: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

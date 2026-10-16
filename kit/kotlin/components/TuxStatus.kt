@@ -14,7 +14,8 @@ fun TuxStatus(
     state: String,
     kind: String = "chip",
     acked: Boolean = false,
-    label: String = "undefined",
+    label: String,
+    glyph: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {
     Row(

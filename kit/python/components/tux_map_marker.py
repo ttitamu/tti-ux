@@ -8,10 +8,10 @@ from typing import Optional
 @dataclass
 class TuxMapMarker:
     kind: str = None
-    number: str = undefined
-    tone_index: int = undefined
-    size: str = md
-    title: str = "undefined"
+    number: str = None
+    tone_index: int = None
+    size: str = "md"
+    title: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<svg class="tux-map-marker">{content}</svg>'

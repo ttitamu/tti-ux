@@ -5,8 +5,8 @@ import SwiftUI
 
 public struct TuxLinkList<Content: View>: View {
     public var groups: String
-    public var layout: String = columns
-    public var columns: String = 3
+    public var layout: String = "columns"
+    public var columns: Int = 3
     private let content: Content
 
     public init(

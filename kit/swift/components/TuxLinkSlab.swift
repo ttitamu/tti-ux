@@ -5,8 +5,8 @@ import SwiftUI
 
 public struct TuxLinkSlab<Content: View>: View {
     public var links: String
-    public var tone: String = plain
-    public var ariaLabel: String = "Section"
+    public var tone: String = "plain"
+    public var ariaLabel: String
     private let content: Content
 
     public init(

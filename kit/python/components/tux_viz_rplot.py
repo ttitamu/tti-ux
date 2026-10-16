@@ -10,12 +10,12 @@ class TuxVizRPlot:
     src: str = None
     kind: str = "image"
     title: str = None
-    eyebrow: str = "undefined"
+    eyebrow: str = None
     ratio: str = "16/10"
     alt: str = None
-    src2x: str = "undefined"
-    source: str = "undefined"
-    level: str = 3
+    src2x: str = None
+    source: str = None
+    level: int = 3
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-viz-rplot">{content}</figure>'

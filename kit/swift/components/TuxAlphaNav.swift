@@ -4,13 +4,13 @@
 import SwiftUI
 
 public struct TuxAlphaNav<Content: View>: View {
-    public var letters: String = "()"
-    public var available: String = "undefined"
-    public var mode: String = anchor
+    public var letters: String
+    public var available: String
+    public var mode: String = "anchor"
     public var sticky: Bool = false
     public var showAll: Bool = false
-    public var modelValue: String = null
-    public var ariaLabel: String = "Jump"
+    public var modelValue: String
+    public var ariaLabel: String
     private let content: Content
 
     public init(

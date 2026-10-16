@@ -7,13 +7,13 @@ from typing import Optional
 
 @dataclass
 class TuxReportWebFrame:
-    eyebrow: str = "undefined"
-    title: str = "undefined"
-    lede: str = "undefined"
-    byline: str = "undefined"
-    date: str = "undefined"
-    reading_time: str = "undefined"
-    toc: str = "()"
+    eyebrow: str = None
+    title: str = None
+    lede: str = None
+    byline: str = None
+    date: str = None
+    reading_time: str = None
+    toc: str = None
     width: str = "default"
 
     def render_html(self, content: str = "") -> str:

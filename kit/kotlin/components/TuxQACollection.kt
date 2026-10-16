@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxQACollection(
     items: String,
-    variant: String = default,
+    variant: String = "default",
     content: @Composable () -> Unit = {}
 ) {
     Row(

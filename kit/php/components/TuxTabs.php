@@ -8,10 +8,10 @@ namespace Tti\Tux\Components;
 final class TuxTabs
 {
     public string $items;
-    public string $modelValue = undefined;
-    public string $orientation = horizontal;
-    public string $size = md;
-    public string $variant = default;
+    public string $modelValue;
+    public string $orientation = 'horizontal';
+    public string $size = 'md';
+    public string $variant = 'default';
 
     public function __construct(array $attributes = [])
     {
@@ -25,7 +25,7 @@ final class TuxTabs
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<UTabs class="tux-tabs">%s</UTabs>',
+            '<div class="tux-tabs">%s</div>',
             $content
         );
     }

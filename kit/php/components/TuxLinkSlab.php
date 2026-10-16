@@ -8,8 +8,8 @@ namespace Tti\Tux\Components;
 final class TuxLinkSlab
 {
     public string $links;
-    public string $tone = plain;
-    public string $ariaLabel = 'Section';
+    public string $tone = 'plain';
+    public string $ariaLabel;
 
     public function __construct(array $attributes = [])
     {

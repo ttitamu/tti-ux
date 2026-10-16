@@ -13,12 +13,12 @@ import androidx.compose.ui.unit.dp
 fun TuxMarkdownEditor(
     modelValue: String,
     rows: Int = 12,
-    minLength: Int = undefined,
-    maxLength: Int = undefined,
-    placeholder: String = "Write",
+    minLength: Int,
+    maxLength: Int,
+    placeholder: String,
     preview: Boolean = true,
     disabled: Boolean = false,
-    ariaLabel: String = "Markdown",
+    ariaLabel: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

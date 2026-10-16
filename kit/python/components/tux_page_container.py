@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxPageContainer:
-    width: str = default
+    width: str = "default"
     flush: bool = false
     as: str = "div"
 
     def render_html(self, content: str = "") -> str:
-        return f'<component class="tux-page-container">{content}</component>'
+        return f'<div class="tux-page-container">{content}</div>'

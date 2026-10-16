@@ -277,7 +277,7 @@ function getSeriesDashArray(s: Series, index: number): string {
     visionPrefs.value.patterns === true ||
     (props.patterns === undefined && props.series.length > 1);
   if (!isEnabled) return "none";
-  return TUX_SERIES_DASH_PATTERNS[index % TUX_SERIES_DASH_PATTERNS.length];
+  return TUX_SERIES_DASH_PATTERNS[index % TUX_SERIES_DASH_PATTERNS.length] ?? "none";
 }
 
 const showMarkers = computed(() => {
@@ -289,7 +289,7 @@ function getSeriesMarker(s: Series, index: number): TuxChartMarkerShape {
   if (s.marker !== undefined) return s.marker;
   const useDistinct = props.distinctMarkers ?? visionPrefs.value.distinctMarkers;
   if (!useDistinct) return "circle";
-  return TUX_SERIES_MARKERS[index % TUX_SERIES_MARKERS.length];
+  return TUX_SERIES_MARKERS[index % TUX_SERIES_MARKERS.length] ?? "circle";
 }
 
 function getMarkerPath(cx: number, cy: number, shape: TuxChartMarkerShape, r: number = props.markerRadius): string {

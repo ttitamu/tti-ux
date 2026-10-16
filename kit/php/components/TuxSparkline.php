@@ -15,9 +15,9 @@ final class TuxSparkline
     public bool $showArea = false;
     public bool $showLastPoint = true;
     public bool $showDelta = false;
-    public string $deltaFormat = percent;
-    public string $ariaSummary = 'undefined';
-    public string $units = 'undefined';
+    public string $deltaFormat = 'percent';
+    public string $ariaSummary;
+    public string $units;
 
     public function __construct(array $attributes = [])
     {

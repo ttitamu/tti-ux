@@ -15,7 +15,7 @@ fun TuxCommentThread(
     authors: String,
     currentUser: String,
     hideResolved: Boolean = true,
-    size: String = md,
+    size: String = "md",
     content: @Composable () -> Unit = {}
 ) {
     Row(

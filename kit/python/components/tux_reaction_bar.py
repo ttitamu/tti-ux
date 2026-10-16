@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxReactionBar:
-    model_value: str = "()"
-    reactions: str = "()"
-    counts: str = "()"
+    model_value: str = None
+    reactions: str = None
+    counts: str = None
     size: str = None
 
     def render_html(self, content: str = "") -> str:

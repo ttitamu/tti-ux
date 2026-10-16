@@ -8,9 +8,9 @@ namespace Tti\Tux\Components;
 final class TuxNewsCollection
 {
     public string $items;
-    public string $layout = stacked;
-    public string $columns = 3;
-    public string $readMore = 'Read';
+    public string $layout = 'stacked';
+    public int $columns = 3;
+    public string $readMore;
 
     public function __construct(array $attributes = [])
     {

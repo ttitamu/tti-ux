@@ -9,6 +9,11 @@ public struct TuxChartLine<Content: View>: View {
     public var width: Int = 640
     public var height: Int = 280
     public var markers: Bool = false
+    public var distinctMarkers: Bool = true
+    public var markerRadius: Int = 3.5
+    public var palette: String = "brand"
+    public var strokeWidth: Int = 2
+    public var patterns: Bool = false
     public var endLabels: Bool = true
     public var legend: Bool = false
     public var gridlines: Bool = true

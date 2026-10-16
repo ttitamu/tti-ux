@@ -4,7 +4,7 @@
 import SwiftUI
 
 public struct TuxContextPanel<Content: View>: View {
-    public var width: String = 320
+    public var width: String = "320"
     private let content: Content
 
     public init(

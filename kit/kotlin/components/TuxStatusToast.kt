@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxStatusToast(
-    edge: String = bottom,
+    edge: String = "bottom",
     content: @Composable () -> Unit = {}
 ) {
     Row(

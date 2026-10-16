@@ -5,16 +5,16 @@
 import React from 'react';
 
 export interface TuxRecordHighlightsProps {
-  title?: string;
-  eyebrow??: string;
-  icon??: string;
-  items??: string;
+  title: string;
+  eyebrow?: string;
+  icon?: string;
+  items?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxRecordHighlights: React.FC<TuxRecordHighlightsProps> = ({
-  title, eyebrow = "undefined", icon = "undefined", items = "()", children, className = ''
+  title, eyebrow, icon, items, children, className = ''
 }) => {
   return (
     <div className={`tux-record-highlights ${className}`.trim()}>

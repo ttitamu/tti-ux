@@ -30,9 +30,9 @@ export class TuxCookieConsentElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <Teleport class="tux-cookie-consent">
+      <div class="tux-cookie-consent">
         <slot></slot>
-      </Teleport>
+      </div>
     `;
   }
 }

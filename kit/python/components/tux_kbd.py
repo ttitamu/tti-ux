@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxKbd:
-    value: str = "undefined"
-    keys: str = "undefined"
-    size: str = sm
+    value: str = None
+    keys: str = None
+    size: str = "sm"
     separator: str = None
 
     def render_html(self, content: str = "") -> str:

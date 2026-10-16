@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxSpectrumFacts
 {
-    public string $title = 'QUICK';
+    public string $title;
     public string $subtitle;
-    public string $items = '()';
-    public string $tone = dark;
+    public string $items;
+    public string $tone = 'dark';
     public bool $showTopRibbon = true;
 
     public function __construct(array $attributes = [])

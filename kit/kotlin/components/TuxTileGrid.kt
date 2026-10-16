@@ -11,11 +11,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxTileGrid(
-    title: String = "Safety",
+    title: String,
     subtitle: String,
-    tiles: String = "()",
-    columns: String = 3,
-    surface: String = eggshell,
+    tiles: String,
+    columns: Int = 3,
+    surface: String = "eggshell",
     content: @Composable () -> Unit = {}
 ) {
     Row(

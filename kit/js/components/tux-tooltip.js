@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxTooltip(props = {}, children = '') {
-  const el = document.createElement('TooltipProvider');
+  const el = document.createElement('div');
   el.className = 'tux-tooltip';
   if (typeof children === 'string') {
     el.innerHTML = children;

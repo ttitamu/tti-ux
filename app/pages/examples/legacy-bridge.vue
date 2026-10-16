@@ -313,7 +313,7 @@ function copyCode() {
 
               <div>
                 <label for="mod-facility">Highway Corridor</label>
-                <input id="mod-facility" v-model="queryFilters.facility" type="text" placeholder="e.g. SH-6, I-35, US-290" />
+                <input id="mod-facility" v-model="queryFilters.facility" type="text" placeholder="e.g. SH-6, I-35, US-290" >
               </div>
 
               <div>
@@ -330,7 +330,7 @@ function copyCode() {
 
             <div class="flex items-center justify-between flex-wrap gap-4 mt-6 pt-4 border-t border-surface-border">
               <label class="tux-bridge-check-label">
-                <input v-model="queryFilters.verifiedOnly" type="checkbox" />
+                <input v-model="queryFilters.verifiedOnly" type="checkbox" >
                 <span>Show verified crash records only</span>
               </label>
 
@@ -435,7 +435,7 @@ function copyCode() {
                   </td>
                   <td class="w-32 py-1">Highway:</td>
                   <td>
-                    <input type="text" value="SH-6" class="h-5 px-1 text-xs border border-gray-400 w-40" />
+                    <input type="text" value="SH-6" class="h-5 px-1 text-xs border border-gray-400 w-40" >
                   </td>
                 </tr>
                 <tr>
@@ -448,14 +448,14 @@ function copyCode() {
                   <td class="py-1">Options:</td>
                   <td>
                     <label class="text-[11px] inline-flex items-center gap-1">
-                      <input type="checkbox" checked /> Verified Only
+                      <input type="checkbox" checked > Verified Only
                     </label>
                   </td>
                 </tr>
                 <tr>
                   <td colspan="4" class="pt-2 text-right">
-                    <input type="button" value="Clear" class="px-2 py-0.5 text-xs bg-gray-200 border border-gray-400 mr-2" />
-                    <input type="submit" value="Submit Query" class="px-3 py-0.5 text-xs bg-gray-300 border border-gray-500 font-bold" />
+                    <input type="button" value="Clear" class="px-2 py-0.5 text-xs bg-gray-200 border border-gray-400 mr-2" >
+                    <input type="submit" value="Submit Query" class="px-3 py-0.5 text-xs bg-gray-300 border border-gray-500 font-bold" >
                   </td>
                 </tr>
               </tbody>

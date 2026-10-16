@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxPageContainer(
-    width: String = default,
+    width: String = "default",
     flush: Boolean = false,
     as: String = "div",
     content: @Composable () -> Unit = {}

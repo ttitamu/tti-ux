@@ -12,14 +12,14 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxUserMenu(
     state: String,
-    identity: String = "undefined",
-    signInHref: String = "undefined",
-    signInLabel: String = "Sign",
-    items: String = "()",
-    prefs: String = "()",
+    identity: String,
+    signInHref: String,
+    signInLabel: String,
+    items: String,
+    prefs: String,
     showSignOut: Boolean = true,
-    placement: String = cluster,
-    statusLine: String = "undefined",
+    placement: String = "cluster",
+    statusLine: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

@@ -4,7 +4,7 @@
 import SwiftUI
 
 public struct TuxFrameworkSwitcher<Content: View>: View {
-    public var mode: String = compact
+    public var mode: String = "compact"
     private let content: Content
 
     public init(

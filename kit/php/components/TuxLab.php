@@ -8,14 +8,14 @@ namespace Tti\Tux\Components;
 final class TuxLab
 {
     public string $name;
-    public string $summary = 'undefined';
-    public string $logo = 'undefined';
-    public int $projectsCount = undefined;
-    public int $peopleCount = undefined;
-    public string $location = 'undefined';
-    public string $leaders = 'undefined';
-    public string $focus = 'undefined';
-    public string $to = 'undefined';
+    public string $summary;
+    public string $logo;
+    public int $projectsCount;
+    public int $peopleCount;
+    public string $location;
+    public string $leaders;
+    public string $focus;
+    public string $to;
 
     public function __construct(array $attributes = [])
     {

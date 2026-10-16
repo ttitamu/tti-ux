@@ -15,14 +15,14 @@ fun TuxChartGauge(
     min: Int = 0,
     max: Int = 100,
     size: Int = 240,
-    variant: String = arc,
-    bands: String = "()",
-    centerLabel: String = "undefined",
-    centerValue: String = undefined,
-    units: String = "undefined",
-    format: String = "(n:",
+    variant: String = "arc",
+    bands: String,
+    centerLabel: String,
+    centerValue: String,
+    units: String,
+    format: String,
     decimals: Int = 1,
-    ariaSummary: String = "undefined",
+    ariaSummary: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

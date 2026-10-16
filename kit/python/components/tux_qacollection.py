@@ -8,7 +8,7 @@ from typing import Optional
 @dataclass
 class TuxQACollection:
     items: str = None
-    variant: str = default
+    variant: str = "default"
 
     def render_html(self, content: str = "") -> str:
         return f'<ol class="tux-qacollection">{content}</ol>'

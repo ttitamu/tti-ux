@@ -8,8 +8,8 @@ namespace Tti\Tux\Components;
 final class TuxLinkList
 {
     public string $groups;
-    public string $layout = columns;
-    public string $columns = 3;
+    public string $layout = 'columns';
+    public int $columns = 3;
 
     public function __construct(array $attributes = [])
     {

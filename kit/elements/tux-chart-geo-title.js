@@ -30,9 +30,9 @@ export class TuxChartGeoTitleElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <text class="tux-chart-geo-title">
+      <div class="tux-chart-geo-title">
         <slot></slot>
-      </text>
+      </div>
     `;
   }
 }

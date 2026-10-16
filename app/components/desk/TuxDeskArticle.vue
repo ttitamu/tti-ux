@@ -76,11 +76,8 @@ const fallbackHtml = computed(() => {
     <!-- Mixed Prose & Module Blocks -->
     <div v-if="blocks.length > 0" class="tux-desk-article__body space-y-6">
       <template v-for="(block, index) in blocks" :key="index">
-        <div
-          v-if="block.type === 'html'"
-          class="tux-prose"
-          v-html="block.html"
-        />
+        <!-- eslint-disable-next-line vue/no-v-html -->
+        <div v-if="block.type === 'html'" class="tux-prose" v-html="block.html" />
         <TuxDeskModuleBlock
           v-else-if="block.type === 'module'"
           :kind="block.kind"
@@ -90,11 +87,8 @@ const fallbackHtml = computed(() => {
     </div>
 
     <!-- Fallback prose renderer -->
-    <div
-      v-else-if="fallbackHtml"
-      class="tux-prose"
-      v-html="fallbackHtml"
-    />
+    <!-- eslint-disable-next-line vue/no-v-html -->
+    <div v-else-if="fallbackHtml" class="tux-prose" v-html="fallbackHtml" />
 
     <!-- Reader Feedback Widget -->
     <TuxFeedback

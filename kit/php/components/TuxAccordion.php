@@ -8,7 +8,7 @@ namespace Tti\Tux\Components;
 final class TuxAccordion
 {
     public string $items;
-    public string $kind = faq;
+    public string $kind = 'faq';
     public bool $single = false;
 
     public function __construct(array $attributes = [])

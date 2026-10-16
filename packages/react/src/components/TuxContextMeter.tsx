@@ -5,20 +5,20 @@
 import React from 'react';
 
 export interface TuxContextMeterProps {
-  used?: number;
-  max?: number;
-  breakdown??: string;
+  used: number;
+  max: number;
+  breakdown?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxContextMeter: React.FC<TuxContextMeterProps> = ({
-  used, max, breakdown = "undefined", children, className = ''
+  used, max, breakdown, children, className = ''
 }) => {
   return (
-    <UPopover className={`tux-context-meter ${className}`.trim()}>
+    <div className={`tux-context-meter ${className}`.trim()}>
       {children}
-    </UPopover>
+    </div>
   );
 };
 

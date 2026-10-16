@@ -8,14 +8,14 @@ from typing import Optional
 @dataclass
 class TuxCodeMaroon:
     active: bool = false
-    tone: str = error
-    title: str = "Emergency"
-    message: str = "undefined"
+    tone: str = "error"
+    title: str = None
+    message: str = None
     details_url: str = "https://tti.tamu.edu/emergency/"
-    details_label: str = "View"
+    details_label: str = None
     dismissible: bool = false
     model_value: bool = false
     sticky: bool = false
 
     def render_html(self, content: str = "") -> str:
-        return f'<Transition class="tux-code-maroon">{content}</Transition>'
+        return f'<div class="tux-code-maroon">{content}</div>'

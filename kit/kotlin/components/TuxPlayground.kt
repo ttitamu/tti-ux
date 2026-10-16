@@ -11,16 +11,18 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxPlayground(
-    tag: String = "undefined",
-    componentName: String = "undefined",
+    tag: String,
+    componentName: String,
     controls: String,
-    presets: String = "()",
-    title: String = "Interactive",
-    eyebrow: String = "Live",
-    slotProp: String = "undefined",
-    defaultSlotText: String = "undefined",
+    presets: String,
+    title: String,
+    eyebrow: String,
+    slotProp: String,
+    defaultSlotText: String,
     selfClosing: Boolean = false,
-    codeTemplate: String = "undefined",
+    codeTemplate: String,
+    source: String,
+    powerbi: String,
     previewPadding: String = "p-8",
     enableDeepLinking: Boolean = true,
     content: @Composable () -> Unit = {}

@@ -5,7 +5,7 @@
 import React from 'react';
 
 export interface TuxProseProps {
-  as??: string;
+  as?: string;
   children?: React.ReactNode;
   className?: string;
 }
@@ -14,9 +14,9 @@ export const TuxProse: React.FC<TuxProseProps> = ({
   as = "article", children, className = ''
 }) => {
   return (
-    <component className={`tux-prose ${className}`.trim()}>
+    <div className={`tux-prose ${className}`.trim()}>
       {children}
-    </component>
+    </div>
   );
 };
 

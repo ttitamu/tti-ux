@@ -6,7 +6,7 @@ import SwiftUI
 public struct TuxStepper<Content: View>: View {
     public var steps: String
     public var currentIndex: Int = 0
-    public var orientation: String = horizontal
+    public var orientation: String = "horizontal"
     public var showDescriptions: Bool = true
     public var ariaLabel: String = "Progress"
     private let content: Content

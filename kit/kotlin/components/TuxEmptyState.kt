@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxEmptyState(
-    kind: String = "undefined",
-    icon: String = "undefined",
-    title: String = "undefined",
-    description: String = "undefined",
+    kind: String,
+    icon: String,
+    title: String,
+    description: String,
     noCard: Boolean = false,
     compact: Boolean = false,
     content: @Composable () -> Unit = {}

@@ -5,17 +5,17 @@
 import React from 'react';
 
 export interface TuxCommentThreadProps {
-  modelValue?: string;
-  authors?: string;
-  currentUser?: string;
-  hideResolved??: boolean;
-  size??: "sm" | "md";
+  modelValue: string;
+  authors: string;
+  currentUser: string;
+  hideResolved?: boolean;
+  size?: "sm" | "md";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxCommentThread: React.FC<TuxCommentThreadProps> = ({
-  modelValue, authors, currentUser, hideResolved = true, size = md, children, className = ''
+  modelValue, authors, currentUser, hideResolved = true, size = "md", children, className = ''
 }) => {
   return (
     <div className={`tux-comment-thread ${className}`.trim()}>

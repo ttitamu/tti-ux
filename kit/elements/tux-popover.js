@@ -30,9 +30,9 @@ export class TuxPopoverElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <UPopover class="tux-popover">
+      <div class="tux-popover">
         <slot></slot>
-      </UPopover>
+      </div>
     `;
   }
 }

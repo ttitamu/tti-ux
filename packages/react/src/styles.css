@@ -27,22 +27,53 @@
 @import "./components/tux-section-header.css";
 @import "./components/tux-empty-state.css";
 @import "./components/tux-status.css";
+@import "./components/tux-hero-canvas-sol.css";
 
-/* Anti-Halation Soft Dark Overrides (Astigmatism Comfort) */
+/* Anti-Halation Soft Dark Overrides (Astigmatism Comfort - 100% WCAG 2.2 AAA Compliant) */
 [data-theme="tti-dark"][data-theme-variant="soft"],
 [data-theme="tti-soft-dark"],
 [data-theme-variant="soft-dark"],
 [data-vision-comfort="anti-halation"],
 .tux-theme--soft-dark {
+  color-scheme: dark !important;
+
+  /* Lifted brand teal tuned for >= 7.2:1 AAA contrast on #1f2430 */
+  --brand-primary: #74bdca;
+  --color-brand-primary: var(--brand-primary);
+
+  /* Slate-charcoal canvas replacing pitch-black wells */
+  --surface-canvas: #161a22;
   --surface-page: #161a22;
   --surface-raised: #1f2430;
   --surface-sunken: #0f1217;
   --surface-border: #384152;
   --surface-border-subtle: #282f3d;
+  --surface-eggshell: #1b202a;
+  --surface-cool-gray: #242b38;
+
+  --color-surface-page: var(--surface-page);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-border: var(--surface-border);
+  --color-surface-border-subtle: var(--surface-border-subtle);
+  --color-surface-eggshell: var(--surface-eggshell);
+  --color-surface-cool-gray: var(--surface-cool-gray);
+
+  /* Anti-halation typography replacing glaring pure white (all >= 7.2:1 AAA on #1f2430) */
   --text-primary: #e6edf3;
-  --text-secondary: #9da7b5;
-  --text-muted: #768390;
+  --text-secondary: #c2ccd6;
+  --text-muted: #a6b2bf;
   --text-charcoal: #e6edf3;
   --text-dark: #f0f6fc;
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-charcoal: var(--text-charcoal);
+  --color-text-dark: var(--text-dark);
+
+  /* Subtle adjusted focus ring for soft-dark surface */
+  --focus-ring-outer: #74bdca;
+  --focus-ring-inner: #161a22;
 }
 

@@ -15,7 +15,7 @@ fun TuxBranchNav(
     total: Int,
     loop: Boolean = false,
     hideSingleton: Boolean = true,
-    ariaLabel: String = "Response",
+    ariaLabel: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

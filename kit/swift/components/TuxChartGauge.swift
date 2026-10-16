@@ -8,14 +8,14 @@ public struct TuxChartGauge<Content: View>: View {
     public var min: Int = 0
     public var max: Int = 100
     public var size: Int = 240
-    public var variant: String = arc
-    public var bands: String = "()"
-    public var centerLabel: String = "undefined"
-    public var centerValue: String = undefined
-    public var units: String = "undefined"
-    public var format: String = "(n:"
+    public var variant: String = "arc"
+    public var bands: String
+    public var centerLabel: String
+    public var centerValue: String
+    public var units: String
+    public var format: String
     public var decimals: Int = 1
-    public var ariaSummary: String = "undefined"
+    public var ariaSummary: String
     private let content: Content
 
     public init(

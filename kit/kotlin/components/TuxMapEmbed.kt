@@ -11,14 +11,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxMapEmbed(
-    src: String = "undefined",
-    eyebrow: String = "undefined",
-    title: String = "undefined",
-    subtitle: String = "undefined",
-    source: String = "undefined",
-    aspect: String = 16/9,
-    height: Int = undefined,
-    iframeTitle: String = "undefined",
+    src: String,
+    eyebrow: String,
+    title: String,
+    subtitle: String,
+    source: String,
+    aspect: String = "16/9",
+    height: Int,
+    iframeTitle: String,
     attribution: Boolean = true,
     skeleton: Boolean = true,
     content: @Composable () -> Unit = {}

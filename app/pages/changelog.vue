@@ -10,7 +10,9 @@ const { data: parsed } = await useAsyncData(
 );
 
 const majorReleases = [
-  { tag: "v3.1.0", date: "2026-10-08", id: "_310-2026-10-08", label: "Universal CVD & Vision Accessibility", latest: true },
+  { tag: "v3.2.1", date: "2026-10-16", id: "_321-2026-10-16", label: "Breadcrumb Hierarchy Overhaul & Header Flex Resilience", latest: true },
+  { tag: "v3.2.0", date: "2026-10-16", id: "_320-2026-10-16", label: "Zero-Warning Quality Gates & Cross-Framework Parity" },
+  { tag: "v3.1.0", date: "2026-10-08", id: "_310-2026-10-08", label: "Universal CVD & Vision Accessibility" },
   { tag: "v3.0.1", date: "2026-10-07", id: "_301-2026-10-07", label: "Editorial Polish & Navigation" },
   { tag: "v3.0.0", date: "2026-10-01", id: "_300-2026-10-01", label: "Comm Brand & 100% Census" },
   { tag: "v2.2.0", date: "2026-09-08", id: "_220-2026-09-08", label: "Control Radius Standardization" },

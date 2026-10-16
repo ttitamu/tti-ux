@@ -156,7 +156,7 @@ const emit = defineEmits<{
               :alt="imageAlt"
               class="w-full h-64 sm:h-80 lg:h-96 object-cover object-center transition-transform duration-500 hover:scale-102"
               loading="lazy"
-            />
+            >
             <div
               v-else
               class="w-full h-64 sm:h-80 lg:h-96 bg-neutral-800 flex flex-col items-center justify-center p-6 text-center text-white/60"

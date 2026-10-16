@@ -10,27 +10,27 @@ final class TuxRichDataGrid
     public string $columns;
     public string $rows;
     public string $rowKey = 'id';
-    public string $title = 'undefined';
-    public string $meta = 'undefined';
+    public string $title;
+    public string $meta;
     public string $searchPlaceholder = 'Search…';
     public bool $showSearch = true;
     public bool $showFilter = true;
     public bool $showColumns = true;
     public bool $showExport = true;
-    public string $filters = '()';
-    public string $selected = ();
+    public string $filters;
+    public string $selected;
     public bool $selectionDisabled = false;
-    public string $bulkActions = '()';
-    public string $expanded = ();
+    public string $bulkActions;
+    public string $expanded;
     public bool $expansionDisabled = false;
-    public string $sortKey = 'undefined';
-    public string $sortDir = undefined;
+    public string $sortKey;
+    public string $sortDir;
     public string $maxHeight = '440px';
     public bool $virtualized = false;
     public int $virtualRowHeight = 44;
-    public string $density = comfortable;
+    public string $density = 'comfortable';
     public string $paginationLabel;
-    public string $paginationTokens = '()';
+    public string $paginationTokens;
 
     public function __construct(array $attributes = [])
     {

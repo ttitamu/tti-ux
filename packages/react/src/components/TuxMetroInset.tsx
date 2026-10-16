@@ -5,13 +5,13 @@
 import React from 'react';
 
 export interface TuxMetroInsetProps {
-  name?: string;
-  highwayLabel??: string;
-  height??: number;
-  palette??: string;
-  seed??: string;
-  cols??: number;
-  rows??: number;
+  name: string;
+  highwayLabel?: string;
+  height?: number;
+  palette?: string;
+  seed?: string;
+  cols?: number;
+  rows?: number;
   children?: React.ReactNode;
   className?: string;
 }

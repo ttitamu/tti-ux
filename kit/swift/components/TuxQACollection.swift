@@ -5,7 +5,7 @@ import SwiftUI
 
 public struct TuxQACollection<Content: View>: View {
     public var items: String
-    public var variant: String = default
+    public var variant: String = "default"
     private let content: Content
 
     public init(

@@ -13,4 +13,4 @@ class TuxSplashScreen:
     fade_delay: int = 300
 
     def render_html(self, content: str = "") -> str:
-        return f'<Transition class="tux-splash-screen">{content}</Transition>'
+        return f'<div class="tux-splash-screen">{content}</div>'

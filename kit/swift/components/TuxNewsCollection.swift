@@ -5,9 +5,9 @@ import SwiftUI
 
 public struct TuxNewsCollection<Content: View>: View {
     public var items: String
-    public var layout: String = stacked
-    public var columns: String = 3
-    public var readMore: String = "Read"
+    public var layout: String = "stacked"
+    public var columns: Int = 3
+    public var readMore: String
     private let content: Content
 
     public init(

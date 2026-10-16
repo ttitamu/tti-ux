@@ -5,9 +5,9 @@
 import React from 'react';
 
 export interface TuxChartGeoDistrictsProps {
-  districts?: string;
-  legendLabel?: string;
-  legendStops?: string;
+  districts: string;
+  legendLabel: string;
+  legendStops: string;
   children?: React.ReactNode;
   className?: string;
 }

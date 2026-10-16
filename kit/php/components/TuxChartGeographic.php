@@ -11,16 +11,16 @@ final class TuxChartGeographic
     public string $palette = 'maroon';
     public string $title;
     public string $legendLabel = 'Value';
-    public string $legendStops = '()';
+    public string $legendStops;
     public bool $showLegend = true;
-    public string $counties = '()';
-    public string $districts = '()';
-    public string $states = '()';
+    public string $counties;
+    public string $districts;
+    public string $states;
     public string $highlight = 'TX';
     public int $dots = 600;
-    public string $dotLegend = '1';
-    public string $flows = '()';
-    public string $flowLegend = 'Daily';
+    public string $dotLegend;
+    public string $flows;
+    public string $flowLegend;
 
     public function __construct(array $attributes = [])
     {

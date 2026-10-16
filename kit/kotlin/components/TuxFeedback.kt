@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxFeedback(
     pageId: String,
-    title: String = "Was",
+    title: String,
     endpoint: String = "/api/feedback",
     allowDetails: Boolean = true,
     content: @Composable () -> Unit = {}

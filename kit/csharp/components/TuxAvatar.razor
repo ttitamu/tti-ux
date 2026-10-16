@@ -9,11 +9,11 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Name { get; set; } = "undefined";
-    [Parameter] public string Initials { get; set; } = "undefined";
-    [Parameter] public string PhotoUrl { get; set; } = "undefined";
-    [Parameter] public string Size { get; set; } = md;
-    [Parameter] public string Dot { get; set; } = undefined;
+    [Parameter] public string Name { get; set; };
+    [Parameter] public string Initials { get; set; };
+    [Parameter] public string PhotoUrl { get; set; };
+    [Parameter] public string Size { get; set; } = "md";
+    [Parameter] public string Dot { get; set; };
     [Parameter] public bool Decorative { get; set; } = true;
-    [Parameter] public string Alt { get; set; } = "undefined";
+    [Parameter] public string Alt { get; set; };
 }

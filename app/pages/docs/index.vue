@@ -347,7 +347,7 @@ async function copyCommand(item: SdkTarget, e: Event) {
             type="search"
             placeholder="Filter SDKs…"
             class="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg bg-surface-sunken border border-surface-border text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary"
-          />
+          >
         </div>
       </div>
 

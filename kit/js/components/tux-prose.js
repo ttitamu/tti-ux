@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxProse(props = {}, children = '') {
-  const el = document.createElement('component');
+  const el = document.createElement('div');
   el.className = 'tux-prose';
   if (typeof children === 'string') {
     el.innerHTML = children;

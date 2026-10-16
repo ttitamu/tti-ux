@@ -132,7 +132,7 @@ if (process.env.AUDIT_DEBUG === "1") {
   const diag = await page.evaluate(() => {
     const results = {};
     for (const col of document.querySelectorAll(".audit__column[data-theme]")) {
-      const theme = col.dataset.theme;
+      const theme = col.dataset.auditTheme || col.dataset.theme;
       const colCs = window.getComputedStyle(col);
       results[theme] = {
         brandPrimary: colCs.getPropertyValue("--brand-primary").trim(),
@@ -239,7 +239,7 @@ const results = await page.evaluate(() => {
   const reports = [];
   const columns = document.querySelectorAll(".audit__column[data-theme]");
   for (const col of columns) {
-    const theme = col.dataset.theme;
+    const theme = col.dataset.auditTheme || col.dataset.theme;
     // Walk every element with directly-rendered text (i.e., owning a child
     // text node). Skip elements whose only contribution is wrapping
     // children — those are audited at the leaf level.

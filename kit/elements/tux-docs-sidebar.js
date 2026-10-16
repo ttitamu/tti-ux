@@ -30,9 +30,9 @@ export class TuxDocsSidebarElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <div class="tux-docs-sidebar">
+      <nav class="tux-docs-sidebar">
         <slot></slot>
-      </div>
+      </nav>
     `;
   }
 }

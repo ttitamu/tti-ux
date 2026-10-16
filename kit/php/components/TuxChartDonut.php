@@ -9,16 +9,18 @@ final class TuxChartDonut
 {
     public string $slices;
     public int $size = 280;
+    public string $palette = 'brand';
+    public bool $patterns = false;
     public int $thickness = 0.5;
     public bool $sliceLabels = true;
     public bool $legend = false;
-    public string $centerLabel = 'undefined';
-    public string $centerValue = undefined;
+    public string $centerLabel;
+    public string $centerValue;
     public int $minSlice = 3;
-    public string $format = '(n:';
+    public string $format;
     public int $decimals = 1;
-    public string $ariaSummary = 'undefined';
-    public string $units = 'undefined';
+    public string $ariaSummary;
+    public string $units;
     public bool $tooltip = true;
 
     public function __construct(array $attributes = [])

@@ -14,10 +14,10 @@ fun TuxTeachingPopover(
     modelValue: Boolean = false,
     step: Int = 1,
     totalSteps: Int = 1,
-    title: String = "undefined",
+    title: String,
     onBrand: Boolean = false,
     noDismiss: Boolean = false,
-    primaryLabel: String = "undefined",
+    primaryLabel: String,
     secondaryLabel: String = "Skip",
     noSecondary: Boolean = false,
     content: @Composable () -> Unit = {}

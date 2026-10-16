@@ -12,6 +12,11 @@ class TuxChartLine:
     width: int = 640
     height: int = 280
     markers: bool = false
+    distinct_markers: bool = true
+    marker_radius: int = 3.5
+    palette: str = "brand"
+    stroke_width: int = 2
+    patterns: bool = false
     end_labels: bool = true
     legend: bool = false
     gridlines: bool = true

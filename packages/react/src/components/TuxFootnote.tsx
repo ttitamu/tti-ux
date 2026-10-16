@@ -5,9 +5,9 @@
 import React from 'react';
 
 export interface TuxFootnoteProps {
-  n?: number;
-  text?: string;
-  idPrefix??: string;
+  n: number;
+  text: string;
+  idPrefix?: string;
   children?: React.ReactNode;
   className?: string;
 }
@@ -16,9 +16,9 @@ export const TuxFootnote: React.FC<TuxFootnoteProps> = ({
   n, text, idPrefix = "fn", children, className = ''
 }) => {
   return (
-    <UPopover className={`tux-footnote ${className}`.trim()}>
+    <div className={`tux-footnote ${className}`.trim()}>
       {children}
-    </UPopover>
+    </div>
   );
 };
 

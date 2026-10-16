@@ -5,37 +5,37 @@
 import React from 'react';
 
 export interface TuxEditorialArticleProps {
-  title?: string;
-  category??: string;
-  dek??: string;
-  date??: string;
-  dateLabel??: string;
-  readTime??: string;
-  author??: "string" | "EditorialAuthor";
-  authors??: string;
-  heroImage??: string;
-  heroAlt??: string;
-  heroCaption??: string;
-  heroLayout??: "boxed" | "full-bleed" | "split" | "inset-banner" | "ai-modern" | "interactive-canvas" | "none";
-  stats??: string;
-  highlights??: string;
-  citation??: string;
-  toc??: boolean;
-  tocTarget??: string;
-  showReadingProgress??: boolean;
-  showScrollTop??: boolean;
-  showShare??: boolean;
-  tags??: string;
-  contact??: string;
-  backTo??: string;
-  label?: string;
-  to?: string;
+  title: string;
+  category?: string;
+  dek?: string;
+  date?: string;
+  dateLabel?: string;
+  readTime?: string;
+  author?: string;
+  authors?: string;
+  heroImage?: string;
+  heroAlt?: string;
+  heroCaption?: string;
+  heroLayout?: "boxed" | "full-bleed" | "split" | "inset-banner" | "ai-modern" | "interactive-canvas" | "none";
+  stats?: string;
+  highlights?: string;
+  citation?: string;
+  toc?: boolean;
+  tocTarget?: string;
+  showReadingProgress?: boolean;
+  showScrollTop?: boolean;
+  showShare?: boolean;
+  tags?: string;
+  contact?: string;
+  backTo?: string;
+  label: string;
+  to: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxEditorialArticle: React.FC<TuxEditorialArticleProps> = ({
-  title, category = "Inside", dek, date, dateLabel, readTime, author, authors = "()", heroImage, heroAlt, heroCaption, heroLayout = boxed, stats = "()", highlights = "()", citation = "undefined", toc = true, tocTarget = "#article-body", showReadingProgress = true, showScrollTop = true, showShare = true, tags = "()", contact = "undefined", backTo = "undefined", label, to, children, className = ''
+  title, category, dek, date, dateLabel, readTime, author, authors, heroImage, heroAlt, heroCaption, heroLayout = "boxed", stats, highlights, citation, toc = true, tocTarget = "#article-body", showReadingProgress = true, showScrollTop = true, showShare = true, tags, contact, backTo, label, to, children, className = ''
 }) => {
   return (
     <div className={`tux-editorial-article ${className}`.trim()}>

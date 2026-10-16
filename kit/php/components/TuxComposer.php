@@ -8,13 +8,13 @@ namespace Tti\Tux\Components;
 final class TuxComposer
 {
     public string $modelValue;
-    public string $placeholder = 'Ask';
-    public string $models = '()';
-    public string $modelId = 'undefined';
+    public string $placeholder;
+    public string $models;
+    public string $modelId;
     public int $maxLength = 32000;
-    public string $hint = '⌘↵';
+    public string $hint;
     public bool $hideAttach = false;
-    public string $attachLabel = 'Attach';
+    public string $attachLabel;
     public string $attachIcon = 'lucide:plus';
     public bool $cancelable = false;
     public string $cancelLabel = 'Cancel';

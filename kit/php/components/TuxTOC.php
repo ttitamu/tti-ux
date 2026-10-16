@@ -7,12 +7,12 @@ namespace Tti\Tux\Components;
 
 final class TuxTOC
 {
-    public string $items = 'undefined';
+    public string $items;
     public string $target = 'article';
-    public string $levels = '()';
-    public string $title = 'On';
+    public string $levels;
+    public string $title;
     public bool $noTitle = false;
-    public string $variant = comm;
+    public string $variant = 'comm';
 
     public function __construct(array $attributes = [])
     {

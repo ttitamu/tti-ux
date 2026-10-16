@@ -6,10 +6,10 @@ import SwiftUI
 public struct TuxInlineCitation<Content: View>: View {
     public var n: Int
     public var title: String
-    public var href: String = "undefined"
-    public var excerpt: String = "undefined"
-    public var score: String = undefined
-    public var label: String = "undefined"
+    public var href: String
+    public var excerpt: String
+    public var score: String
+    public var label: String
     private let content: Content
 
     public init(

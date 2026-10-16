@@ -9,11 +9,11 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Background { get; set; } = "undefined";
-    [Parameter] public string Methods { get; set; } = "undefined";
-    [Parameter] public string Results { get; set; } = "undefined";
-    [Parameter] public string Conclusion { get; set; } = "undefined";
-    [Parameter] public string Keywords { get; set; } = "undefined";
-    [Parameter] public string Variant { get; set; } = structured;
-    [Parameter] public string Level { get; set; } = 4;
+    [Parameter] public string Background { get; set; };
+    [Parameter] public string Methods { get; set; };
+    [Parameter] public string Results { get; set; };
+    [Parameter] public string Conclusion { get; set; };
+    [Parameter] public string Keywords { get; set; };
+    [Parameter] public string Variant { get; set; } = "structured";
+    [Parameter] public int Level { get; set; } = 4;
 }

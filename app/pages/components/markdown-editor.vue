@@ -51,15 +51,15 @@ const sampleVue = computed(() => `<TuxMarkdownEditor
         <!-- Controls Toolbar -->
         <div class="flex items-center gap-2 sm:gap-3 text-xs bg-surface-sunken p-2 rounded-lg border border-surface-border flex-wrap">
           <label class="flex items-center gap-1.5 cursor-pointer text-text-secondary hover:text-text-primary">
-            <input v-model="previewEnabled" type="checkbox" class="rounded border-surface-border text-brand-primary" />
+            <input v-model="previewEnabled" type="checkbox" class="rounded border-surface-border text-brand-primary" >
             <span>Enable Preview</span>
           </label>
           <label class="flex items-center gap-1.5 cursor-pointer text-text-secondary hover:text-text-primary">
-            <input v-model="enforceLimits" type="checkbox" class="rounded border-surface-border text-brand-primary" />
+            <input v-model="enforceLimits" type="checkbox" class="rounded border-surface-border text-brand-primary" >
             <span>Min/Max Limits</span>
           </label>
           <label class="flex items-center gap-1.5 cursor-pointer text-text-secondary hover:text-text-primary">
-            <input v-model="disabled" type="checkbox" class="rounded border-surface-border text-brand-primary" />
+            <input v-model="disabled" type="checkbox" class="rounded border-surface-border text-brand-primary" >
             <span>Disabled</span>
           </label>
           <div class="flex items-center gap-1 pl-2 border-l border-surface-border">

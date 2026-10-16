@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxRailNav
 {
-    public string $items = 'RailItem[][];';
+    public string $items = 'RailItem[';
     public bool $collapsed = false;
     public string $ariaLabel = 'Primary';
 

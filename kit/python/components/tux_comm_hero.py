@@ -7,7 +7,7 @@ from typing import Optional
 
 @dataclass
 class TuxCommHero:
-    eyebrow: str = "TEXAS"
+    eyebrow: str = None
     title: str = None
     accent_title: str = None
     lead: str = None
@@ -18,7 +18,7 @@ class TuxCommHero:
     secondary_action_to: str = None
     secondary_action_href: str = None
     image_src: str = None
-    image_alt: str = "TTI"
+    image_alt: str = None
     image_badge: str = None
     chamfer: bool = true
 

@@ -10,8 +10,8 @@ class TuxReportFrame:
     size: str = "letter"
     density: str = "editorial"
     break_after: bool = false
-    title: str = "undefined"
-    eyebrow: str = "undefined"
+    title: str = None
+    eyebrow: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<article class="tux-report-frame">{content}</article>'

@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxFilterPanel(
     facets: String,
-    modelValue: String = "()",
+    modelValue: String,
     title: String,
     content: @Composable () -> Unit = {}
 ) {

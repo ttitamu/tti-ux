@@ -5,14 +5,14 @@
 import React from 'react';
 
 export interface TuxDocsSidebarNodeProps {
-  section?: string;
-  path?: string;
-  query?: string;
-  openMap?: string;
-  isOpen?: string;
-  isActive?: string;
-  onToggle?: string;
-  depth?: number;
+  section: string;
+  path: string;
+  query: string;
+  openMap: string;
+  isOpen: string;
+  isActive: string;
+  onToggle: string;
+  depth: number;
   children?: React.ReactNode;
   className?: string;
 }

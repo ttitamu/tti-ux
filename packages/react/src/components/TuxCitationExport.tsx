@@ -5,20 +5,20 @@
 import React from 'react';
 
 export interface TuxCitationExportProps {
-  citation?: string;
-  label??: string;
-  variant??: "ghost" | "outline" | "solid";
+  citation: string;
+  label?: string;
+  variant?: "ghost" | "outline" | "solid";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxCitationExport: React.FC<TuxCitationExportProps> = ({
-  citation, label = "Cite", variant = outline, children, className = ''
+  citation, label = "Cite", variant = "outline", children, className = ''
 }) => {
   return (
-    <UDropdownMenu className={`tux-citation-export ${className}`.trim()}>
+    <div className={`tux-citation-export ${className}`.trim()}>
       {children}
-    </UDropdownMenu>
+    </div>
   );
 };
 

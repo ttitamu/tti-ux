@@ -14,6 +14,11 @@
     [Parameter] public int Width { get; set; } = 640;
     [Parameter] public int Height { get; set; } = 280;
     [Parameter] public bool Markers { get; set; } = false;
+    [Parameter] public bool DistinctMarkers { get; set; } = true;
+    [Parameter] public int MarkerRadius { get; set; } = 3.5;
+    [Parameter] public string Palette { get; set; } = "brand";
+    [Parameter] public int StrokeWidth { get; set; } = 2;
+    [Parameter] public bool Patterns { get; set; } = false;
     [Parameter] public bool EndLabels { get; set; } = true;
     [Parameter] public bool Legend { get; set; } = false;
     [Parameter] public bool Gridlines { get; set; } = true;

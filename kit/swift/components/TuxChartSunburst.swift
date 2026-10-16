@@ -7,10 +7,10 @@ public struct TuxChartSunburst<Content: View>: View {
     public var data: String
     public var size: Int = 320
     public var centerLabel: String = "Total"
-    public var formatTotal: String = "undefined"
-    public var formatValue: String = "undefined"
+    public var formatTotal: String
+    public var formatValue: String
     public var showLegend: Bool = true
-    public var palette: String = "undefined"
+    public var palette: String
     public var tooltip: Bool = true
     private let content: Content
 

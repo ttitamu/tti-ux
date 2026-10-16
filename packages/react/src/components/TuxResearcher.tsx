@@ -5,23 +5,23 @@
 import React from 'react';
 
 export interface TuxResearcherProps {
-  name?: string;
-  role?: string;
-  portrait??: string;
-  center??: string;
-  orcid??: string;
-  email??: string;
-  bio??: string;
-  projects??: string;
-  metrics??: string;
-  layout??: "default" | "horizontal" | "inline";
-  to??: string;
+  name: string;
+  role: string;
+  portrait?: string;
+  center?: string;
+  orcid?: string;
+  email?: string;
+  bio?: string;
+  projects?: string;
+  metrics?: string;
+  layout?: "default" | "horizontal" | "inline";
+  to?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxResearcher: React.FC<TuxResearcherProps> = ({
-  name, role, portrait = "undefined", center = "undefined", orcid = "undefined", email = "undefined", bio = "undefined", projects = "undefined", metrics = "undefined", layout = default, to = "undefined", children, className = ''
+  name, role, portrait, center, orcid, email, bio, projects, metrics, layout = "default", to, children, className = ''
 }) => {
   return (
     <article className={`tux-researcher ${className}`.trim()}>

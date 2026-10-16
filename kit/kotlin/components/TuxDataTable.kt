@@ -12,21 +12,21 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxDataTable(
     columns: String,
-    rows: String = "()",
-    groups: String = "()",
+    rows: String,
+    groups: String,
     rowKey: String = "id",
     tableNumber: String,
     caption: String,
     description: String,
-    sortKey: String = "undefined",
-    sortDir: String = undefined,
+    sortKey: String,
+    sortDir: String,
     sticky: Boolean = false,
     maxHeight: String = "20rem",
-    density: String = comfortable,
+    density: String = "comfortable",
     banded: Boolean = true,
-    footnotes: String = "()",
+    footnotes: String,
     source: String,
-    totals: String = "undefined",
+    totals: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

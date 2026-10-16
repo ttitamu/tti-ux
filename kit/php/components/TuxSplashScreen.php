@@ -24,7 +24,7 @@ final class TuxSplashScreen
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<Transition class="tux-splash-screen">%s</Transition>',
+            '<div class="tux-splash-screen">%s</div>',
             $content
         );
     }

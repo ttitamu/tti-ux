@@ -6,9 +6,9 @@ import SwiftUI
 public struct TuxChatMessage<Content: View>: View {
     public var role: String = "user"
     public var author: String
-    public var timestamp: String = "undefined"
-    public var meta: String = "undefined"
-    public var initials: String = "undefined"
+    public var timestamp: String
+    public var meta: String
+    public var initials: String
     private let content: Content
 
     public init(

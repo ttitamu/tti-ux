@@ -5,10 +5,10 @@ import SwiftUI
 
 public struct TuxTabs<Content: View>: View {
     public var items: String
-    public var modelValue: String = undefined
-    public var orientation: String = horizontal
-    public var size: String = md
-    public var variant: String = default
+    public var modelValue: String
+    public var orientation: String = "horizontal"
+    public var size: String = "md"
+    public var variant: String = "default"
     private let content: Content
 
     public init(

@@ -12,4 +12,4 @@ class TuxChartGeoTitle:
     y: int = None
 
     def render_html(self, content: str = "") -> str:
-        return f'<text class="tux-chart-geo-title">{content}</text>'
+        return f'<div class="tux-chart-geo-title">{content}</div>'

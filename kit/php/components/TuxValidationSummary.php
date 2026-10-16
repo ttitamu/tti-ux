@@ -8,8 +8,8 @@ namespace Tti\Tux\Components;
 final class TuxValidationSummary
 {
     public string $errors;
-    public string $title = 'Please';
-    public string $variant = error;
+    public string $title;
+    public string $variant = 'error';
 
     public function __construct(array $attributes = [])
     {

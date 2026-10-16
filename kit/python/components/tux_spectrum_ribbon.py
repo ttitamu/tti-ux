@@ -7,12 +7,12 @@ from typing import Optional
 
 @dataclass
 class TuxSpectrumRibbon:
-    size: str = sm
-    orientation: str = horizontal
+    size: str = "sm"
+    orientation: str = "horizontal"
     show_labels: bool = false
     rounded: bool = false
-    aria_label: str = "TTI"
-    bands: str = "()"
+    aria_label: str = None
+    bands: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-spectrum-ribbon">{content}</div>'

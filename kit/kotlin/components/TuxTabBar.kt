@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxTabBar(
     items: String,
-    ariaLabel: String = "Primary",
+    ariaLabel: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

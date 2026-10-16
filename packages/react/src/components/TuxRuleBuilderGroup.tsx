@@ -5,9 +5,9 @@
 import React from 'react';
 
 export interface TuxRuleBuilderGroupProps {
-  modelValue?: string;
-  depth?: number;
-  isRoot??: boolean;
+  modelValue: string;
+  depth: number;
+  isRoot?: boolean;
   children?: React.ReactNode;
   className?: string;
 }

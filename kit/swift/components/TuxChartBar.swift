@@ -8,17 +8,19 @@ public struct TuxChartBar<Content: View>: View {
     public var series: String
     public var width: Int = 640
     public var height: Int = 280
-    public var orientation: String = vertical
-    public var variant: String = grouped
+    public var palette: String = "brand"
+    public var patterns: Bool = false
+    public var orientation: String = "vertical"
+    public var variant: String = "grouped"
     public var valueLabels: Bool = true
     public var inBarLabels: Bool = false
     public var gridlines: Bool = true
     public var legend: Bool = false
     public var ticks: Int = 5
-    public var format: String = "(n:"
+    public var format: String
     public var decimals: Int = 1
-    public var ariaSummary: String = "undefined"
-    public var units: String = "undefined"
+    public var ariaSummary: String
+    public var units: String
     public var tooltip: Bool = true
     private let content: Content
 

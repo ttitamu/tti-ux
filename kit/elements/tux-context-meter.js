@@ -30,9 +30,9 @@ export class TuxContextMeterElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <UPopover class="tux-context-meter">
+      <div class="tux-context-meter">
         <slot></slot>
-      </UPopover>
+      </div>
     `;
   }
 }

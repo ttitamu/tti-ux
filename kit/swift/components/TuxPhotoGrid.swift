@@ -5,9 +5,9 @@ import SwiftUI
 
 public struct TuxPhotoGrid<Content: View>: View {
     public var items: String
-    public var kind: String = photo
-    public var columns: String = 3
-    public var aspect: String = undefined
+    public var kind: String = "photo"
+    public var columns: Int = 3
+    public var aspect: String
     private let content: Content
 
     public init(

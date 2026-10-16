@@ -4,13 +4,13 @@
 import SwiftUI
 
 public struct TuxAvatar<Content: View>: View {
-    public var name: String = "undefined"
-    public var initials: String = "undefined"
-    public var photoUrl: String = "undefined"
-    public var size: String = md
-    public var dot: String = undefined
+    public var name: String
+    public var initials: String
+    public var photoUrl: String
+    public var size: String = "md"
+    public var dot: String
     public var decorative: Bool = true
-    public var alt: String = "undefined"
+    public var alt: String
     private let content: Content
 
     public init(

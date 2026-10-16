@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 fun TuxCitationExport(
     citation: String,
     label: String = "Cite",
-    variant: String = outline,
+    variant: String = "outline",
     content: @Composable () -> Unit = {}
 ) {
     Row(

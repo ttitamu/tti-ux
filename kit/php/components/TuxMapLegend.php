@@ -7,11 +7,11 @@ namespace Tti\Tux\Components;
 
 final class TuxMapLegend
 {
-    public string $title = 'undefined';
-    public string $eyebrow = 'undefined';
-    public string $entries = 'undefined';
-    public string $layout = stacked;
-    public string $gradient = 'undefined';
+    public string $title;
+    public string $eyebrow;
+    public string $entries;
+    public string $layout = 'stacked';
+    public string $gradient;
     public string $minLabel;
     public string $maxLabel;
     public string $css;

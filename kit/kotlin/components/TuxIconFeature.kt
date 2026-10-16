@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxIconFeature(
     items: String,
-    layout: String = grid,
-    columns: String = 3,
+    layout: String = "grid",
+    columns: Int = 3,
     content: @Composable () -> Unit = {}
 ) {
     Row(

@@ -10,12 +10,12 @@ class TuxTeachingPopover:
     model_value: bool = false
     step: int = 1
     total_steps: int = 1
-    title: str = "undefined"
+    title: str = None
     on_brand: bool = false
     no_dismiss: bool = false
-    primary_label: str = "undefined"
+    primary_label: str = None
     secondary_label: str = "Skip"
     no_secondary: bool = false
 
     def render_html(self, content: str = "") -> str:
-        return f'<Teleport class="tux-teaching-popover">{content}</Teleport>'
+        return f'<div class="tux-teaching-popover">{content}</div>'

@@ -7,8 +7,8 @@ from typing import Optional
 
 @dataclass
 class TuxHeroCanvas:
-    variant: str = wash
-    blend: str = seamless
+    variant: str = "wash"
+    blend: str = "seamless"
     interactive: bool = true
     show_controls: bool = true
     min_height: str = "32rem"

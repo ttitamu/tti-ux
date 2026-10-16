@@ -7,12 +7,12 @@ namespace Tti\Tux\Components;
 
 final class TuxAnnouncementBanner
 {
-    public string $id = 'undefined';
+    public string $id;
     public string $tone = 'info';
-    public string $icon = 'undefined';
-    public string $eyebrow = 'undefined';
-    public string $message = 'undefined';
-    public string $action = 'undefined';
+    public string $icon;
+    public string $eyebrow;
+    public string $message;
+    public string $action;
     public bool $dismissable = true;
 
     public function __construct(array $attributes = [])
@@ -27,7 +27,7 @@ final class TuxAnnouncementBanner
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<Transition class="tux-announcement-banner">%s</Transition>',
+            '<div class="tux-announcement-banner">%s</div>',
             $content
         );
     }

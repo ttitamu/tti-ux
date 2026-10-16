@@ -6,12 +6,12 @@ import SwiftUI
 public struct TuxMarkdownEditor<Content: View>: View {
     public var modelValue: String
     public var rows: Int = 12
-    public var minLength: Int = undefined
-    public var maxLength: Int = undefined
-    public var placeholder: String = "Write"
+    public var minLength: Int
+    public var maxLength: Int
+    public var placeholder: String
     public var preview: Bool = true
     public var disabled: Bool = false
-    public var ariaLabel: String = "Markdown"
+    public var ariaLabel: String
     private let content: Content
 
     public init(

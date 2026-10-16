@@ -5,15 +5,15 @@
 import React from 'react';
 
 export interface TuxValidationSummaryProps {
-  errors?: string;
-  title??: string;
-  variant??: "error" | "warning";
+  errors: string;
+  title?: string;
+  variant?: "error" | "warning";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxValidationSummary: React.FC<TuxValidationSummaryProps> = ({
-  errors, title = "Please", variant = error, children, className = ''
+  errors, title, variant = "error", children, className = ''
 }) => {
   return (
     <div className={`tux-validation-summary ${className}`.trim()}>

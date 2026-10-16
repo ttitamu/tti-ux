@@ -6,9 +6,9 @@ import SwiftUI
 public struct TuxFAB<Content: View>: View {
     public var icon: String
     public var extended: Bool = false
-    public var size: String = md
-    public var side: String = right
-    public var ariaLabel: String = "undefined"
+    public var size: String = "md"
+    public var side: String = "right"
+    public var ariaLabel: String
     public var disabled: Bool = false
     private let content: Content
 

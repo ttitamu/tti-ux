@@ -9,15 +9,15 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Name { get; set; } = "Texas";
-    [Parameter] public string Address { get; set; } = "Texas";
-    [Parameter] public string Phone { get; set; } = (979);
+    [Parameter] public string Name { get; set; };
+    [Parameter] public string Address { get; set; };
+    [Parameter] public string Phone { get; set; };
     [Parameter] public string Logo { get; set; } = "/logo.svg";
     [Parameter] public int LogoSize { get; set; } = 80;
-    [Parameter] public string BrandLockup { get; set; } = /TTI_white.png;
-    [Parameter] public string BrandLockupAlt { get; set; } = "Texas";
-    [Parameter] public string Social { get; set; } = "()";
-    [Parameter] public string Columns { get; set; } = "()";
-    [Parameter] public string Tagline { get; set; } = "Coordinated";
-    [Parameter] public int Year { get; set; } = ();
+    [Parameter] public string BrandLockup { get; set; } = "/TTI_white.png";
+    [Parameter] public string BrandLockupAlt { get; set; };
+    [Parameter] public string Social { get; set; };
+    [Parameter] public string Columns { get; set; };
+    [Parameter] public string Tagline { get; set; };
+    [Parameter] public int Year { get; set; };
 }

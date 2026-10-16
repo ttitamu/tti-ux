@@ -11,12 +11,12 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxPageHeader(
-    eyebrow: String = "undefined",
+    eyebrow: String,
     title: String,
-    level: String = 1,
-    tone: String = plain,
-    rhythm: String = compact,
-    variant: String = default,
+    level: Int = 1,
+    tone: String = "plain",
+    rhythm: String = "compact",
+    variant: String = "default",
     content: @Composable () -> Unit = {}
 ) {
     Row(

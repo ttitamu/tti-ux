@@ -11,17 +11,19 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxBadge(
-    tier: String = "undefined",
-    status: String = "undefined",
-    tone: String = "undefined",
+    tier: String,
+    status: String,
+    tone: String,
     kind: String = "default",
-    variant: String = "undefined",
+    variant: String,
     bold: Boolean = false,
     dot: Boolean = false,
-    icon: String = "undefined",
-    count: String = undefined,
-    label: String = "undefined",
+    icon: String,
+    count: String,
+    label: String,
     uppercase: Boolean = false,
+    shape: String = "default",
+    glyph: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {
     Row(

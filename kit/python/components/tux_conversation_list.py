@@ -8,7 +8,7 @@ from typing import Optional
 @dataclass
 class TuxConversationList:
     groups: str = None
-    active_id: str = null
+    active_id: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<nav class="tux-conversation-list">{content}</nav>'

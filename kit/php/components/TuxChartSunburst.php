@@ -10,10 +10,10 @@ final class TuxChartSunburst
     public string $data;
     public int $size = 320;
     public string $centerLabel = 'Total';
-    public string $formatTotal = 'undefined';
-    public string $formatValue = 'undefined';
+    public string $formatTotal;
+    public string $formatValue;
     public bool $showLegend = true;
-    public string $palette = 'undefined';
+    public string $palette;
     public bool $tooltip = true;
 
     public function __construct(array $attributes = [])

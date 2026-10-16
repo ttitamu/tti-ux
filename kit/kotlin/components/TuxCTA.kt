@@ -11,11 +11,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCTA(
-    eyebrow: String = null,
+    eyebrow: String,
     title: String,
-    dek: String = null,
-    tone: String = maroon,
-    variant: String = default,
+    dek: String,
+    tone: String = "maroon",
+    variant: String = "default",
     content: @Composable () -> Unit = {}
 ) {
     Row(

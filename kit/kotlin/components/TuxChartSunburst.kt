@@ -14,10 +14,10 @@ fun TuxChartSunburst(
     data: String,
     size: Int = 320,
     centerLabel: String = "Total",
-    formatTotal: String = "undefined",
-    formatValue: String = "undefined",
+    formatTotal: String,
+    formatValue: String,
     showLegend: Boolean = true,
-    palette: String = "undefined",
+    palette: String,
     tooltip: Boolean = true,
     content: @Composable () -> Unit = {}
 ) {

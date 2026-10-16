@@ -9,7 +9,7 @@ from typing import Optional
 class TuxStepper:
     steps: str = None
     current_index: int = 0
-    orientation: str = horizontal
+    orientation: str = "horizontal"
     show_descriptions: bool = true
     aria_label: str = "Progress"
 

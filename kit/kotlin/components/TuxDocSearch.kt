@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxDocSearch(
-    items: String = "undefined",
-    placeholder: String = "Search",
+    items: String,
+    placeholder: String,
     maxResults: Int = 8,
     content: @Composable () -> Unit = {}
 ) {

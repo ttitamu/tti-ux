@@ -5,17 +5,17 @@
 import React from 'react';
 
 export interface TuxCTAProps {
-  eyebrow??: "string" | "null";
-  title?: string;
-  dek??: "string" | "null";
-  tone??: "maroon" | "gold" | "neutral";
-  variant??: "default" | "bold" | "elegant";
+  eyebrow?: string;
+  title: string;
+  dek?: string;
+  tone?: "maroon" | "gold" | "neutral";
+  variant?: "default" | "bold" | "elegant";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxCTA: React.FC<TuxCTAProps> = ({
-  eyebrow = null, title, dek = null, tone = maroon, variant = default, children, className = ''
+  eyebrow, title, dek, tone = "maroon", variant = "default", children, className = ''
 }) => {
   return (
     <section className={`tux-cta ${className}`.trim()}>

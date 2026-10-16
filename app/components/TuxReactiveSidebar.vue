@@ -137,8 +137,8 @@ function sectionTarget(section: NavSection): string {
 function parseSectionLabel(rawLabel: string): { prefix: string | null; title: string } {
   if (rawLabel.includes("//")) {
     const parts = rawLabel.split("//");
-    const prefix = parts[0].trim().toUpperCase();
-    const title = parts[1].trim();
+    const prefix = (parts[0] ?? "").trim().toUpperCase();
+    const title = (parts[1] ?? "").trim();
     return { prefix, title };
   }
   return { prefix: null, title: rawLabel };
@@ -172,26 +172,25 @@ const sourceSections = computed(() => {
 });
 
 // Filtered sections in expanded mode
-const filteredSections = computed(() => {
+const filteredSections = computed<NavSection[]>(() => {
   const q = searchQuery.value.trim().toLowerCase();
   if (!q) return sourceSections.value;
 
-  return sourceSections.value
-    .map((section) => {
-      const sectionMatches = section.label.toLowerCase().includes(q);
-      const matchingChildren = (section.children || []).filter(
-        (c) => c.label.toLowerCase().includes(q) || (c.to && c.to.toLowerCase().includes(q))
-      );
+  const out: NavSection[] = [];
+  for (const section of sourceSections.value) {
+    const sectionMatches = section.label.toLowerCase().includes(q);
+    const matchingChildren = (section.children || []).filter(
+      (c) => c.label.toLowerCase().includes(q) || (c.to && c.to.toLowerCase().includes(q))
+    );
 
-      if (sectionMatches || matchingChildren.length > 0) {
-        return {
-          ...section,
-          children: sectionMatches ? section.children : matchingChildren,
-        };
-      }
-      return null;
-    })
-    .filter((s): s is NavSection => s !== null);
+    if (sectionMatches || matchingChildren.length > 0) {
+      out.push({
+        ...section,
+        children: sectionMatches ? section.children : matchingChildren,
+      });
+    }
+  }
+  return out;
 });
 
 const totalMatchCount = computed(() => {
@@ -206,6 +205,11 @@ const railSections = computed(() => {
   return props.allSections && props.allSections.length > 0
     ? props.allSections
     : props.sections;
+});
+
+const hoveredRailSection = computed<NavSection | null>(() => {
+  if (hoveredSectionIndex.value === null) return null;
+  return railSections.value[hoveredSectionIndex.value] ?? null;
 });
 
 // Popout flyout hover handling in collapsed mode
@@ -311,7 +315,7 @@ function onMouseLeaveFlyout() {
           type="search"
           :placeholder="searchPlaceholder"
           class="w-full pl-8 pr-7 py-1.5 text-xs rounded-lg bg-surface-sunken border border-surface-border text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary transition-colors"
-        />
+        >
         <button
           v-if="searchQuery"
           type="button"
@@ -560,7 +564,7 @@ function onMouseLeaveFlyout() {
       <!-- 5. Hover Flyout Popout Card (Teleported to body for overflow break-out) -->
       <Teleport to="body">
         <div
-          v-if="collapsed && hoveredSectionIndex !== null && railSections[hoveredSectionIndex]"
+          v-if="collapsed && hoveredRailSection"
           class="tux-sidebar-popout-flyout fixed z-50 animate-flyoutIn"
           :style="{
             top: `${flyoutTop}px`,
@@ -577,25 +581,25 @@ function onMouseLeaveFlyout() {
             <div class="flex items-center justify-between pb-2 border-b border-surface-border">
               <div class="flex items-center gap-2 min-w-0">
                 <div class="w-6 h-6 rounded bg-brand-primary/10 flex items-center justify-center text-brand-primary flex-shrink-0">
-                  <UIcon :name="sectionIcon(railSections[hoveredSectionIndex])" class="w-3.5 h-3.5" />
+                  <UIcon :name="sectionIcon(hoveredRailSection)" class="w-3.5 h-3.5" />
                 </div>
                 <div class="min-w-0">
                   <h4 class="font-bold text-text-primary m-0 truncate text-xs flex items-center gap-1.5">
                     <span
-                      v-if="parseSectionLabel(railSections[hoveredSectionIndex].label).prefix"
+                      v-if="parseSectionLabel(hoveredRailSection.label).prefix"
                       class="text-[9px] font-mono font-bold px-1 py-0.2 rounded bg-surface-sunken border border-surface-border text-text-muted flex-shrink-0"
                     >
-                      {{ parseSectionLabel(railSections[hoveredSectionIndex].label).prefix }}
+                      {{ parseSectionLabel(hoveredRailSection.label).prefix }}
                     </span>
-                    <span class="truncate">{{ parseSectionLabel(railSections[hoveredSectionIndex].label).title }}</span>
+                    <span class="truncate">{{ parseSectionLabel(hoveredRailSection.label).title }}</span>
                   </h4>
                   <span class="text-[9px] font-mono text-text-muted block truncate uppercase tracking-wider">
-                    {{ railSections[hoveredSectionIndex].children?.length || 1 }} destinations
+                    {{ hoveredRailSection.children?.length || 1 }} destinations
                   </span>
                 </div>
               </div>
               <NuxtLink
-                :to="sectionTarget(railSections[hoveredSectionIndex])"
+                :to="sectionTarget(hoveredRailSection)"
                 class="text-[10px] font-bold text-brand-primary hover:underline flex items-center gap-0.5 flex-shrink-0"
               >
                 <span>Jump</span>
@@ -605,11 +609,11 @@ function onMouseLeaveFlyout() {
 
             <!-- Popout Children Links -->
             <ul
-              v-if="railSections[hoveredSectionIndex].children?.length"
+              v-if="hoveredRailSection.children?.length"
               class="space-y-1 list-none m-0 p-0 max-h-[260px] overflow-y-auto pr-1"
             >
               <li
-                v-for="child in railSections[hoveredSectionIndex].children"
+                v-for="child in hoveredRailSection.children"
                 :key="child.to"
               >
                 <NuxtLink

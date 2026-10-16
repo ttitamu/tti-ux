@@ -5,12 +5,12 @@
 import React from 'react';
 
 export interface TuxChartScatterProps {
-  series?: string;
+  series: string;
   xLabel?: string;
   yLabel?: string;
   width?: number;
   height?: number;
-  palette?: 'brand' | 'cvd';
+  palette?: "brand" | "cvd";
   distinctMarkers?: boolean;
   trendline?: boolean;
   legend?: boolean;
@@ -27,32 +27,10 @@ export interface TuxChartScatterProps {
 }
 
 export const TuxChartScatter: React.FC<TuxChartScatterProps> = ({
-  series,
-  xLabel = 'x',
-  yLabel = 'y',
-  width = 640,
-  height = 320,
-  palette = 'brand',
-  distinctMarkers = true,
-  trendline = false,
-  legend = true,
-  gridlines = true,
-  xTicks = 6,
-  yTicks = 5,
-  format = '(n:',
-  decimals = 2,
-  ariaSummary,
-  units,
-  tooltip = true,
-  children,
-  className = ''
+  series, xLabel = "x", yLabel = "y", width = 640, height = 320, palette = "brand", distinctMarkers = true, trendline = false, legend = true, gridlines = true, xTicks = 6, yTicks = 5, format, decimals = 2, ariaSummary, units, tooltip = true, children, className = ''
 }) => {
-  const cvdClass = palette === 'cvd' ? 'tux-chart--cvd' : '';
   return (
-    <figure
-      className={`tux-chart-scatter ${cvdClass} ${className}`.trim()}
-      data-chart-palette={palette}
-    >
+    <figure className={`tux-chart-scatter ${className}`.trim()}>
       {children}
     </figure>
   );

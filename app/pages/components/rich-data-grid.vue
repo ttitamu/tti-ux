@@ -53,12 +53,9 @@ const sortedRows = computed(() => {
   rows.sort((a, b) => {
     const av = (a as Record<string, unknown>)[sortKey.value];
     const bv = (b as Record<string, unknown>)[sortKey.value];
-    let cmp = 0;
-    if (typeof av === "number" && typeof bv === "number") {
-      cmp = av - bv;
-    } else {
-      cmp = String(av).localeCompare(String(bv));
-    }
+    const cmp = typeof av === "number" && typeof bv === "number"
+      ? av - bv
+      : String(av).localeCompare(String(bv));
     return sortDir.value === "asc" ? cmp : -cmp;
   });
   return rows;

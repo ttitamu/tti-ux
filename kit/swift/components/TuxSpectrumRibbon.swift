@@ -4,12 +4,12 @@
 import SwiftUI
 
 public struct TuxSpectrumRibbon<Content: View>: View {
-    public var size: String = sm
-    public var orientation: String = horizontal
+    public var size: String = "sm"
+    public var orientation: String = "horizontal"
     public var showLabels: Bool = false
     public var rounded: Bool = false
-    public var ariaLabel: String = "TTI"
-    public var bands: String = "()"
+    public var ariaLabel: String
+    public var bands: String
     private let content: Content
 
     public init(

@@ -5,15 +5,15 @@
 import React from 'react';
 
 export interface TuxRailNavProps {
-  items?: string;
-  collapsed??: boolean;
-  ariaLabel??: string;
+  items: string;
+  collapsed?: boolean;
+  ariaLabel?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxRailNav: React.FC<TuxRailNavProps> = ({
-  items = "RailItem[][];", collapsed = false, ariaLabel = "Primary", children, className = ''
+  items = "RailItem[", collapsed = false, ariaLabel = "Primary", children, className = ''
 }) => {
   return (
     <nav className={`tux-rail-nav ${className}`.trim()}>

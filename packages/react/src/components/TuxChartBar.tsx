@@ -5,11 +5,11 @@
 import React from 'react';
 
 export interface TuxChartBarProps {
-  labels?: string;
-  series?: string;
+  labels: string;
+  series: string;
   width?: number;
   height?: number;
-  palette?: 'brand' | 'cvd';
+  palette?: "brand" | "cvd";
   patterns?: boolean;
   orientation?: "vertical" | "horizontal";
   variant?: "grouped" | "stacked";
@@ -28,33 +28,10 @@ export interface TuxChartBarProps {
 }
 
 export const TuxChartBar: React.FC<TuxChartBarProps> = ({
-  labels,
-  series,
-  width = 640,
-  height = 280,
-  palette = 'brand',
-  patterns = true,
-  orientation = 'vertical',
-  variant = 'grouped',
-  valueLabels = true,
-  inBarLabels = false,
-  gridlines = true,
-  legend = false,
-  ticks = 5,
-  format = '(n:',
-  decimals = 1,
-  ariaSummary,
-  units,
-  tooltip = true,
-  children,
-  className = ''
+  labels, series, width = 640, height = 280, palette = "brand", patterns = false, orientation = "vertical", variant = "grouped", valueLabels = true, inBarLabels = false, gridlines = true, legend = false, ticks = 5, format, decimals = 1, ariaSummary, units, tooltip = true, children, className = ''
 }) => {
-  const cvdClass = palette === 'cvd' ? 'tux-chart--cvd' : '';
   return (
-    <figure
-      className={`tux-chart-bar ${cvdClass} ${className}`.trim()}
-      data-chart-palette={palette}
-    >
+    <figure className={`tux-chart-bar ${className}`.trim()}>
       {children}
     </figure>
   );

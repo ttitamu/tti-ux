@@ -11,7 +11,7 @@ final class TuxBranchNav
     public int $total;
     public bool $loop = false;
     public bool $hideSingleton = true;
-    public string $ariaLabel = 'Response';
+    public string $ariaLabel;
 
     public function __construct(array $attributes = [])
     {

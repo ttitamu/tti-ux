@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxCookieConsent(props = {}, children = '') {
-  const el = document.createElement('Teleport');
+  const el = document.createElement('div');
   el.className = 'tux-cookie-consent';
   if (typeof children === 'string') {
     el.innerHTML = children;

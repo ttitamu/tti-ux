@@ -98,7 +98,7 @@ const searchDepartment = ref("all");
                 aria-label="Search staff directory by name, email, or specialty"
                 placeholder="Search by name, email, or specialty..."
                 class="w-full pl-9 pr-4 py-2.5 text-sm bg-surface-sunken border border-surface-border focus:border-brand-primary focus:outline-hidden"
-              />
+              >
             </div>
             <select
               v-model="searchDepartment"

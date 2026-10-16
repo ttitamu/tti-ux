@@ -8,10 +8,10 @@ from typing import Optional
 @dataclass
 class TuxCardSlab:
     cards: str = None
-    columns: str = 3
-    aspect: str = 4/5
-    heading: str = "undefined"
-    eyebrow: str = "undefined"
+    columns: int = 3
+    aspect: str = "4/5"
+    heading: str = None
+    eyebrow: str = None
     inset: bool = false
 
     def render_html(self, content: str = "") -> str:

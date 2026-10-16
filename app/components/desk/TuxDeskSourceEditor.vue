@@ -86,7 +86,7 @@ function scheduleAutoApply() {
   }, 800);
 }
 
-function applyChanges(silent = false) {
+function applyChanges(_silent = false) {
   parseError.value = null;
   try {
     let newDoc: JSONContent;

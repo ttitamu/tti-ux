@@ -4,12 +4,12 @@
 import SwiftUI
 
 public struct TuxRoadwayCrossSection<Content: View>: View {
-    public var preset: String = urban-managed
-    public var initialView: String = 3d-perspective
+    public var preset: String = "urban-managed"
+    public var initialView: String = "3d-perspective"
     public var height: String = "560px"
     public var interactive: Bool = true
-    public var initialPitch: Int = 0
-    public var initialYaw: Int = 0
+    public var initialPitch: Int = 48
+    public var initialYaw: Int = -16
     private let content: Content
 
     public init(

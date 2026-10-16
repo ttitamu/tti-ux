@@ -5,7 +5,7 @@ import SwiftUI
 
 public struct TuxCommandPalette<Content: View>: View {
     public var groups: String
-    public var placeholder: String = "Type"
+    public var placeholder: String
     public var disableHotkey: Bool = false
     public var hotkey: String = "k"
     public var showTabs: Bool = true

@@ -43,6 +43,8 @@ const props = withDefaults(defineProps<Props>(), {
   width: "100%",
   ariaTitle: "Interactive data visualization",
   ariaSummary: "",
+  extensions: undefined,
+  maps: undefined,
   loading: false,
   notMerge: false,
 });

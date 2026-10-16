@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxInfoLabel(
-    for: String = "undefined",
+    for: String,
     required: Boolean = false,
-    trigger: String = hover,
-    infoAriaLabel: String = "More",
+    trigger: String = "hover",
+    infoAriaLabel: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

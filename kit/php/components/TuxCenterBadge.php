@@ -7,13 +7,13 @@ namespace Tti\Tux\Components;
 
 final class TuxCenterBadge
 {
-    public string $center = undefined;
-    public string $label = 'undefined';
-    public string $icon = 'undefined';
+    public string $center;
+    public string $label;
+    public string $icon;
     public int $toneIndex = 2;
     public bool $short = false;
-    public string $size = md;
-    public string $layout = chip;
+    public string $size = 'md';
+    public string $layout = 'chip';
 
     public function __construct(array $attributes = [])
     {

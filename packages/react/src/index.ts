@@ -146,7 +146,29 @@ export type {
   TuxOpsKind,
 } from "./components/TuxStatus";
 
+export { TuxChartPatternsDefs } from "./components/TuxChartPatternsDefs";
+export type { TuxChartPatternsDefsProps } from "./components/TuxChartPatternsDefs";
+
+export { TuxHeroCanvasSol } from "./components/TuxHeroCanvasSol";
+export type {
+  TuxHeroCanvasSolProps,
+  TuxHeroCanvasSolBlend,
+  TuxHeroCanvasSolMode,
+} from "./components/TuxHeroCanvasSol";
+
+export {
+  TuxVisionPreferencesModal,
+  DEFAULT_VISION_PREFERENCES,
+} from "./components/TuxVisionPreferencesModal";
+export type {
+  TuxVisionPreferencesModalProps,
+  TuxVisionPreferences,
+  TuxCvdMode,
+  TuxCvdSimulation,
+} from "./components/TuxVisionPreferencesModal";
+
 // Hooks
 export { useTuxTheme } from "./hooks/useTuxTheme";
 export type { TuxTheme } from "./hooks/useTuxTheme";
+
 

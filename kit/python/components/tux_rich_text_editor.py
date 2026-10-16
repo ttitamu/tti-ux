@@ -8,15 +8,15 @@ from typing import Optional
 @dataclass
 class TuxRichTextEditor:
     model_value: str = None
-    placeholder: str = "Start"
+    placeholder: str = None
     disabled: bool = false
     min_height: str = "12rem"
     max_height: str = "auto"
-    toolbar: str = ()
-    heading_levels: str = ()
+    toolbar: str = None
+    heading_levels: str = None
     show_count: bool = true
     fullscreenable: bool = true
-    aria_label: str = "Rich"
+    aria_label: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-rich-text-editor">{content}</div>'

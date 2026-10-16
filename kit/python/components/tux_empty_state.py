@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxEmptyState:
-    kind: str = "undefined"
-    icon: str = "undefined"
-    title: str = "undefined"
-    description: str = "undefined"
+    kind: str = None
+    icon: str = None
+    title: str = None
+    description: str = None
     no_card: bool = false
     compact: bool = false
 

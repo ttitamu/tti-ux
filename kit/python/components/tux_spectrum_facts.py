@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxSpectrumFacts:
-    title: str = "QUICK"
+    title: str = None
     subtitle: str = None
-    items: str = "()"
-    tone: str = dark
+    items: str = None
+    tone: str = "dark"
     show_top_ribbon: bool = true
 
     def render_html(self, content: str = "") -> str:

@@ -8,10 +8,10 @@ namespace Tti\Tux\Components;
 final class TuxBlockquote
 {
     public string $quote;
-    public string $attribution = null;
-    public string $role = null;
-    public string $layout = centered;
-    public string $variant = default;
+    public string $attribution;
+    public string $role;
+    public string $layout = 'centered';
+    public string $variant = 'default';
 
     public function __construct(array $attributes = [])
     {

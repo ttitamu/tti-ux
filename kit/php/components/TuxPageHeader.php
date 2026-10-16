@@ -7,12 +7,12 @@ namespace Tti\Tux\Components;
 
 final class TuxPageHeader
 {
-    public string $eyebrow = 'undefined';
+    public string $eyebrow;
     public string $title;
-    public string $level = 1;
-    public string $tone = plain;
-    public string $rhythm = compact;
-    public string $variant = default;
+    public int $level = 1;
+    public string $tone = 'plain';
+    public string $rhythm = 'compact';
+    public string $variant = 'default';
 
     public function __construct(array $attributes = [])
     {

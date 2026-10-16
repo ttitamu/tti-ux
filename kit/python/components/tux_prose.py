@@ -10,4 +10,4 @@ class TuxProse:
     as: str = "article"
 
     def render_html(self, content: str = "") -> str:
-        return f'<component class="tux-prose">{content}</component>'
+        return f'<div class="tux-prose">{content}</div>'

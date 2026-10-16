@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxDocsSidebar(props = {}, children = '') {
-  const el = document.createElement('div');
+  const el = document.createElement('nav');
   el.className = 'tux-docs-sidebar';
   if (typeof children === 'string') {
     el.innerHTML = children;

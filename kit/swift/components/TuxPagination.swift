@@ -11,7 +11,7 @@ public struct TuxPagination<Content: View>: View {
     public var boundaryCount: Int = 1
     public var showStatus: Bool = false
     public var noun: String = "result"
-    public var pluralNoun: String = "undefined"
+    public var pluralNoun: String
     public var ariaLabel: String = "Pagination"
     private let content: Content
 

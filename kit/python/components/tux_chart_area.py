@@ -11,16 +11,18 @@ class TuxChartArea:
     series: str = None
     width: int = 640
     height: int = 280
-    variant: str = overlay
+    palette: str = "brand"
+    patterns: bool = false
+    variant: str = "overlay"
     markers: bool = false
     end_labels: bool = true
     legend: bool = false
     gridlines: bool = true
     ticks: int = 5
-    format: str = "(n:"
+    format: str = None
     decimals: int = 1
-    aria_summary: str = "undefined"
-    units: str = "undefined"
+    aria_summary: str = None
+    units: str = None
     tooltip: bool = true
 
     def render_html(self, content: str = "") -> str:

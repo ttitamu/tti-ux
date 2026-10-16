@@ -5,12 +5,12 @@ import SwiftUI
 
 public struct TuxProgram<Content: View>: View {
     public var name: String
-    public var eyebrow: String = "undefined"
-    public var summary: String = "undefined"
-    public var hero: String = "undefined"
-    public var leads: String = "undefined"
-    public var funders: String = "undefined"
-    public var metrics: String = "undefined"
+    public var eyebrow: String
+    public var summary: String
+    public var hero: String
+    public var leads: String
+    public var funders: String
+    public var metrics: String
     private let content: Content
 
     public init(

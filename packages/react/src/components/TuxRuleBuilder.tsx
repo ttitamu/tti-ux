@@ -5,10 +5,10 @@
 import React from 'react';
 
 export interface TuxRuleBuilderProps {
-  modelValue?: string;
-  fields?: string;
-  showActions??: boolean;
-  maxDepth??: number;
+  modelValue: string;
+  fields: string;
+  showActions?: boolean;
+  maxDepth?: number;
   children?: React.ReactNode;
   className?: string;
 }

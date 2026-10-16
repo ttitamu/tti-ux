@@ -11,14 +11,18 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxExample(
-    vue: String = "undefined",
-    react: String = "undefined",
-    wc: String = "undefined",
-    razor: String = "undefined",
-    source: String = "undefined",
-    css: String = "undefined",
-    powerbi: String = "undefined",
-    title: String = "undefined",
+    vue: String,
+    react: String,
+    wc: String,
+    razor: String,
+    python: String,
+    php: String,
+    swift: String,
+    kotlin: String,
+    source: String,
+    css: String,
+    powerbi: String,
+    title: String,
     previewPadding: String = "p-6",
     content: @Composable () -> Unit = {}
 ) {

@@ -10,12 +10,12 @@ class TuxVizEmbed:
     src: str = None
     provider: str = "generic"
     title: str = None
-    eyebrow: str = "undefined"
+    eyebrow: str = None
     ratio: str = "16/9"
-    sandbox: str = "undefined"
+    sandbox: str = None
     referrerpolicy: str = "strict-origin-when-cross-origin"
     open_in_new: bool = true
-    poster_src: str = "undefined"
+    poster_src: str = None
     poster_alt: str = None
 
     def render_html(self, content: str = "") -> str:

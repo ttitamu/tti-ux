@@ -78,7 +78,7 @@ const sampleVue = computed(() => `<TuxAuthorByline
             </select>
           </div>
           <label class="flex items-center gap-1.5 pl-2 border-l border-surface-border cursor-pointer text-text-secondary hover:text-text-primary">
-            <input v-model="showOrcid" type="checkbox" class="rounded border-surface-border text-brand-primary" />
+            <input v-model="showOrcid" type="checkbox" class="rounded border-surface-border text-brand-primary" >
             <span>Show ORCID</span>
           </label>
         </div>

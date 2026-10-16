@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCenterBadge(
-    center: String = undefined,
-    label: String = "undefined",
-    icon: String = "undefined",
+    center: String,
+    label: String,
+    icon: String,
     toneIndex: Int = 2,
     short: Boolean = false,
-    size: String = md,
-    layout: String = chip,
+    size: String = "md",
+    layout: String = "chip",
     content: @Composable () -> Unit = {}
 ) {
     Row(

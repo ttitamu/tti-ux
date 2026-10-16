@@ -8,7 +8,7 @@ public struct TuxCommentThread<Content: View>: View {
     public var authors: String
     public var currentUser: String
     public var hideResolved: Bool = true
-    public var size: String = md
+    public var size: String = "md"
     private let content: Content
 
     public init(

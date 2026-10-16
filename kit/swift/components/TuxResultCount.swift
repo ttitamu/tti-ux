@@ -7,11 +7,11 @@ public struct TuxResultCount<Content: View>: View {
     public var page: Int
     public var pageSize: Int
     public var total: Int
-    public var noun: String = "undefined"
-    public var nounPlural: String = "undefined"
-    public var pageSizeOptions: String = "undefined"
+    public var noun: String
+    public var nounPlural: String
+    public var pageSizeOptions: String
     public var hideRange: Bool = false
-    public var pageSizeLabel: String = "per"
+    public var pageSizeLabel: String
     private let content: Content
 
     public init(

@@ -7,7 +7,7 @@ from typing import Optional
 
 @dataclass
 class TuxRailNav:
-    items: str = "RailItem[][];"
+    items: str = "RailItem["
     collapsed: bool = false
     aria_label: str = "Primary"
 

@@ -60,19 +60,19 @@ interface SystemStats {
 
 const activeTab = ref<"pages" | "issues">("pages");
 
-const { data: pages, refresh: refreshPages } = await useAsyncData<DeskPage[]>(
+const { data: pages } = await useAsyncData<DeskPage[]>(
   "admin-pages-list",
-  () => $fetch("/api/pages")
+  () => $fetch<DeskPage[]>("/api/pages")
 );
 
 const { data: systemStats, refresh: refreshStats } = await useAsyncData<SystemStats>(
   "admin-system-stats",
-  () => $fetch("/api/system/stats")
+  () => $fetch<SystemStats>("/api/system/stats")
 );
 
 const { data: issuesList, refresh: refreshIssues } = await useAsyncData<DeskIssue[]>(
   "admin-issues-list",
-  () => $fetch("/api/issues")
+  () => $fetch<DeskIssue[]>("/api/issues")
 );
 
 const newTitle = ref("");
@@ -101,7 +101,7 @@ async function createPage(preset?: TuxDeskPreset) {
     newTitle.value = "";
     showPresetDrawer.value = false;
     await navigateTo(`/admin/pages/${res.id}`);
-  } catch (err) {
+  } catch {
     // If backend API endpoint is unavailable (e.g. static site preview mode),
     // fallback seamlessly to the interactive client-side Tux Desk Web Builder playground!
     const presetId = preset?.id || "research-program";
@@ -119,7 +119,7 @@ async function resolveIssue(id: string) {
       body: { note: "Resolved by editorial staff in TUX Admin" },
     });
     await Promise.all([refreshIssues(), refreshStats()]);
-  } catch (err) {
+  } catch {
     alert("Failed to resolve issue.");
   } finally {
     resolvingId.value = null;
@@ -251,7 +251,7 @@ const filteredIssues = computed(() => {
               placeholder="Quick create page title (e.g. Smart Corridors)..."
               class="px-3 py-1 text-xs rounded bg-surface-raised border border-surface-border text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary w-full sm:w-80 min-w-0"
               @keydown.enter="createPage()"
-            />
+            >
             <TuxButton
               intent="primary"
               size="sm"
@@ -296,7 +296,7 @@ const filteredIssues = computed(() => {
               type="search"
               placeholder="Filter pages..."
               class="pl-8 pr-2.5 py-1 text-xs rounded bg-surface-raised border border-surface-border text-text-primary focus:outline-none focus:border-brand-primary"
-            />
+            >
           </div>
         </template>
       </TuxCommandBar>
@@ -420,7 +420,8 @@ const filteredIssues = computed(() => {
               <tr v-for="issue in filteredIssues" :key="issue.id" class="hover:bg-surface-sunken/50 transition-colors">
                 <td class="py-3.5 px-4">
                   <div class="space-y-1">
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono font-bold uppercase"
+                    <span
+class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono font-bold uppercase"
                       :class="issue.payload?.reason === 'outdated' ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300' : 'bg-surface-sunken text-text-primary border border-surface-border'"
                     >
                       <UIcon name="lucide:alert-circle" class="w-3 h-3" />

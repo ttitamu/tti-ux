@@ -4,12 +4,12 @@
 import SwiftUI
 
 public struct TuxSectionHeader<Content: View>: View {
-    public var level: String = 2
-    public var title: String = "undefined"
-    public var secondaryTitle: String = "undefined"
-    public var subtitle: String = "undefined"
-    public var kicker: String = "undefined"
-    public var variant: String = institutional
+    public var level: Int = 2
+    public var title: String
+    public var secondaryTitle: String
+    public var subtitle: String
+    public var kicker: String
+    public var variant: String = "institutional"
     private let content: Content
 
     public init(

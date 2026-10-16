@@ -6,15 +6,15 @@ import SwiftUI
 public struct TuxResearcher<Content: View>: View {
     public var name: String
     public var role: String
-    public var portrait: String = "undefined"
-    public var center: String = "undefined"
-    public var orcid: String = "undefined"
-    public var email: String = "undefined"
-    public var bio: String = "undefined"
-    public var projects: String = "undefined"
-    public var metrics: String = "undefined"
-    public var layout: String = default
-    public var to: String = "undefined"
+    public var portrait: String
+    public var center: String
+    public var orcid: String
+    public var email: String
+    public var bio: String
+    public var projects: String
+    public var metrics: String
+    public var layout: String = "default"
+    public var to: String
     private let content: Content
 
     public init(

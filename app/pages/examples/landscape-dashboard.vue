@@ -10,8 +10,8 @@ definePageMeta({ layout: false });
 
 const breadcrumb = [
   { label: "Home", to: "/" },
-  { label: "Indices", to: "/examples/landscape-dashboard" },
-  { label: "/research" },
+  { label: "Compositions", to: "/examples" },
+  { label: "Landscape Dashboard" },
 ];
 
 // Primary rail nav for the Landscape app shell. Two groups so the

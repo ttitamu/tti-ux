@@ -10,7 +10,7 @@
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public string Items { get; set; };
-    [Parameter] public string Layout { get; set; } = stacked;
-    [Parameter] public string Columns { get; set; } = 3;
-    [Parameter] public string ReadMore { get; set; } = "Read";
+    [Parameter] public string Layout { get; set; } = "stacked";
+    [Parameter] public int Columns { get; set; } = 3;
+    [Parameter] public string ReadMore { get; set; };
 }

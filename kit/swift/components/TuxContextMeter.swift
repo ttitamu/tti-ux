@@ -6,7 +6,7 @@ import SwiftUI
 public struct TuxContextMeter<Content: View>: View {
     public var used: Int
     public var max: Int
-    public var breakdown: String = "undefined"
+    public var breakdown: String
     private let content: Content
 
     public init(

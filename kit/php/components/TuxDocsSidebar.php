@@ -10,8 +10,8 @@ final class TuxDocsSidebar
     public string $tree;
     public string $title = 'Docs';
     public bool $search = true;
-    public string $searchPlaceholder = 'Filter';
-    public string $storageKey = tux-docs-sidebar;
+    public string $searchPlaceholder;
+    public string $storageKey = 'tux-docs-sidebar';
     public bool $exclusiveTopLevel = false;
 
     public function __construct(array $attributes = [])
@@ -26,7 +26,7 @@ final class TuxDocsSidebar
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<div class="tux-docs-sidebar">%s</div>',
+            '<nav class="tux-docs-sidebar">%s</nav>',
             $content
         );
     }

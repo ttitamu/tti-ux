@@ -5,15 +5,15 @@
 import React from 'react';
 
 export interface TuxAuthorBylineProps {
-  authors?: string;
-  affiliations??: string;
-  layout??: "compact" | "stacked";
+  authors: string;
+  affiliations?: string;
+  layout?: "compact" | "stacked";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxAuthorByline: React.FC<TuxAuthorBylineProps> = ({
-  authors, affiliations = "()", layout = compact, children, className = ''
+  authors, affiliations, layout = "compact", children, className = ''
 }) => {
   return (
     <section className={`tux-author-byline ${className}`.trim()}>

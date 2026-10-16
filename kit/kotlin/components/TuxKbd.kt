@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxKbd(
-    value: String = "undefined",
-    keys: String = "undefined",
-    size: String = sm,
+    value: String,
+    keys: String,
+    size: String = "sm",
     separator: String,
     content: @Composable () -> Unit = {}
 ) {

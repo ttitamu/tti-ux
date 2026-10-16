@@ -7,12 +7,12 @@ namespace Tti\Tux\Components;
 
 final class TuxRoadwayCrossSection
 {
-    public string $preset = urban-managed;
-    public string $initialView = 3d-perspective;
+    public string $preset = 'urban-managed';
+    public string $initialView = '3d-perspective';
     public string $height = '560px';
     public bool $interactive = true;
-    public int $initialPitch = 0;
-    public int $initialYaw = 0;
+    public int $initialPitch = 48;
+    public int $initialYaw = -16;
 
     public function __construct(array $attributes = [])
     {

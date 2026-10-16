@@ -368,13 +368,13 @@ function handleActionClick(event: MouseEvent) {
                 src="/resources/logos/tti-logo-color.png"
                 alt="Texas A&M Transportation Institute"
                 class="h-9 sm:h-10 w-auto object-contain dark:hidden transition-transform group-hover:scale-[1.02]"
-              />
+              >
               <!-- Official TTI White Logo (Dark Mode) -->
               <img
                 src="/resources/logos/tti-logo-white.png"
                 alt="Texas A&M Transportation Institute"
                 class="h-9 sm:h-10 w-auto object-contain hidden dark:block transition-transform group-hover:scale-[1.02]"
-              />
+              >
             </NuxtLink>
           </slot>
 
@@ -570,12 +570,12 @@ function handleActionClick(event: MouseEvent) {
               src="/resources/logos/tti-logo-color.png"
               alt="Texas A&M Transportation Institute"
               class="h-8 w-auto dark:hidden"
-            />
+            >
             <img
               src="/resources/logos/tti-logo-white.png"
               alt="Texas A&M Transportation Institute"
               class="h-8 w-auto hidden dark:block"
-            />
+            >
           </div>
           <button
             type="button"

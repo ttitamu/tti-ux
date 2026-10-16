@@ -11,17 +11,17 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxFooter(
-    name: String = "Texas",
-    address: String = "Texas",
-    phone: String = (979),
+    name: String,
+    address: String,
+    phone: String,
     logo: String = "/logo.svg",
     logoSize: Int = 80,
-    brandLockup: String = /TTI_white.png,
-    brandLockupAlt: String = "Texas",
-    social: String = "()",
-    columns: String = "()",
-    tagline: String = "Coordinated",
-    year: Int = (),
+    brandLockup: String = "/TTI_white.png",
+    brandLockupAlt: String,
+    social: String,
+    columns: String,
+    tagline: String,
+    year: Int,
     content: @Composable () -> Unit = {}
 ) {
     Row(

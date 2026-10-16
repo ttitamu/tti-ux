@@ -4,14 +4,14 @@
 import SwiftUI
 
 public struct TuxPaperMeta<Content: View>: View {
-    public var doi: String = "undefined"
-    public var license: String = "undefined"
-    public var funders: String = "undefined"
-    public var published: String = "undefined"
-    public var version: String = "undefined"
-    public var type: String = "undefined"
-    public var pages: String = "undefined"
-    public var venue: String = "undefined"
+    public var doi: String
+    public var license: String
+    public var funders: String
+    public var published: String
+    public var version: String
+    public var type: String
+    public var pages: String
+    public var venue: String
     private let content: Content
 
     public init(

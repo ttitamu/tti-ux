@@ -5,7 +5,7 @@ import SwiftUI
 
 public struct TuxCommandBar<Content: View>: View {
     public var selectedCount: Int = 0
-    public var density: String = compact
+    public var density: String = "compact"
     public var bordered: Bool = true
     private let content: Content
 

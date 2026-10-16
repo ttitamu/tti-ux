@@ -8,10 +8,10 @@ from typing import Optional
 @dataclass
 class TuxTabs:
     items: str = None
-    model_value: str = undefined
-    orientation: str = horizontal
-    size: str = md
-    variant: str = default
+    model_value: str = None
+    orientation: str = "horizontal"
+    size: str = "md"
+    variant: str = "default"
 
     def render_html(self, content: str = "") -> str:
-        return f'<UTabs class="tux-tabs">{content}</UTabs>'
+        return f'<div class="tux-tabs">{content}</div>'

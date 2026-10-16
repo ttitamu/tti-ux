@@ -12,9 +12,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxVizGrid(
     cols: String = "2",
-    eyebrow: String = "undefined",
-    title: String = "undefined",
-    dek: String = "undefined",
+    eyebrow: String,
+    title: String,
+    dek: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

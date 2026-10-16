@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxReportPrintSheet
 {
-    public string $size = letter;
+    public string $size = 'letter';
     public string $margin = '0.6in';
 
     public function __construct(array $attributes = [])

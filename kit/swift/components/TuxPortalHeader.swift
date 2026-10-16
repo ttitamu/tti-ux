@@ -4,17 +4,17 @@
 import SwiftUI
 
 public struct TuxPortalHeader<Content: View>: View {
-    public var mode: String = comm
-    public var agencyName: String = "Texas"
+    public var mode: String = "comm"
+    public var agencyName: String
     public var agencyUrl: String = "https://tti.tamu.edu"
     public var homeUrl: String = "/"
     public var portalTitle: String
     public var portalBadge: String
-    public var portalBadgeVariant: String = gold
-    public var utilityLinks: String = "()"
+    public var portalBadgeVariant: String = "gold"
+    public var utilityLinks: String
     public var showSearch: Bool = true
     public var showSpectrumRibbon: Bool = false
-    public var intranetApps: String = "()"
+    public var intranetApps: String
     private let content: Content
 
     public init(

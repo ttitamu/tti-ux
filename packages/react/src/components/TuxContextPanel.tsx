@@ -5,13 +5,13 @@
 import React from 'react';
 
 export interface TuxContextPanelProps {
-  width??: "string" | "number";
+  width?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxContextPanel: React.FC<TuxContextPanelProps> = ({
-  width = 320, children, className = ''
+  width = "320", children, className = ''
 }) => {
   return (
     <aside className={`tux-context-panel ${className}`.trim()}>

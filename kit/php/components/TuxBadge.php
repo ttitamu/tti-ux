@@ -7,17 +7,19 @@ namespace Tti\Tux\Components;
 
 final class TuxBadge
 {
-    public string $tier = 'undefined';
-    public string $status = 'undefined';
-    public string $tone = 'undefined';
+    public string $tier;
+    public string $status;
+    public string $tone;
     public string $kind = 'default';
-    public string $variant = 'undefined';
+    public string $variant;
     public bool $bold = false;
     public bool $dot = false;
-    public string $icon = 'undefined';
-    public string $count = undefined;
-    public string $label = 'undefined';
+    public string $icon;
+    public string $count;
+    public string $label;
     public bool $uppercase = false;
+    public string $shape = 'default';
+    public bool $glyph = false;
 
     public function __construct(array $attributes = [])
     {
@@ -31,7 +33,7 @@ final class TuxBadge
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<UBadge class="tux-badge">%s</UBadge>',
+            '<div class="tux-badge">%s</div>',
             $content
         );
     }

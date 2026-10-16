@@ -12,9 +12,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxTestimonial(
     items: String,
-    layout: String = grid,
-    columns: String = 3,
-    variant: String = default,
+    layout: String = "grid",
+    columns: Int = 3,
+    variant: String = "default",
     content: @Composable () -> Unit = {}
 ) {
     Row(

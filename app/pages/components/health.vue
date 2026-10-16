@@ -3,10 +3,8 @@ import {
   getTuxHealthCatalog,
   getTuxHealthSummary,
   filterHealthCatalog,
-  type TuxComponentHealth,
   type TuxHealthTier,
 } from "~/utils/tuxHealthCatalog";
-import { TUX_COMPONENT_CATEGORIES, TUX_VIZ_CATEGORIES } from "~/utils/tuxCatalog";
 
 useHead({ title: "Component Health & Qualification · TUX" });
 
@@ -102,7 +100,7 @@ function shareDeepLink() {
 }
 
 const filteredItems = computed(() => {
-  let list = filterHealthCatalog(allItems.value, {
+  const list = filterHealthCatalog(allItems.value, {
     query: searchQuery.value,
     category: selectedCategory.value,
     tier: selectedTier.value,
@@ -140,12 +138,6 @@ function toggleSort(col: "score" | "name" | "category" | "test" | "a11y") {
   }
 }
 
-function getTierTone(tier: TuxHealthTier) {
-  if (tier === "excellent") return "success";
-  if (tier === "fair") return "warning";
-  return "danger";
-}
-
 function getTierColorClass(tier: TuxHealthTier) {
   if (tier === "excellent") return "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
   if (tier === "fair") return "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20";
@@ -181,6 +173,7 @@ function exportHealthReport() {
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
       <TuxPageHeader
+        class="flex-1 min-w-0 w-full"
         eyebrow="system telemetry"
         title="Component Health & Qualification"
       >
@@ -194,8 +187,8 @@ function exportHealthReport() {
           type="button"
           class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-mono font-medium rounded-lg border border-surface-border bg-surface-raised hover:bg-surface-sunken text-text-primary transition-colors cursor-pointer"
           :class="{ 'border-emerald-500 text-emerald-600': copiedLink }"
-          @click="shareDeepLink"
           aria-label="Share filtered health view URL"
+          @click="shareDeepLink"
         >
           <UIcon :name="copiedLink ? 'lucide:check' : 'lucide:share-2'" class="w-3.5 h-3.5" :class="{ 'text-emerald-500': copiedLink }" />
           <span>{{ copiedLink ? "Copied Link" : "Share View" }}</span>
@@ -347,7 +340,7 @@ function exportHealthReport() {
         >
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-rose-500" />
-            <span class="text-xs font-medium text-text-primary">Tier 3 · Untested (<50)</span>
+            <span class="text-xs font-medium text-text-primary">Tier 3 · Untested (&lt;50)</span>
           </div>
           <span class="text-xs font-mono font-bold text-rose-600 dark:text-rose-400">{{ summary.tiers.needsAttention }}</span>
         </div>
@@ -475,7 +468,7 @@ function exportHealthReport() {
           type="search"
           placeholder="Filter matrix (name, category, wraps, blurb)…"
           class="w-full pl-9 pr-8 py-2 text-sm rounded-lg bg-surface-sunken border border-surface-border text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary transition-colors"
-        />
+        >
         <button
           v-if="searchQuery"
           type="button"

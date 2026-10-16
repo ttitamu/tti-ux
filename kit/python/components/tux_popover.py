@@ -7,13 +7,13 @@ from typing import Optional
 
 @dataclass
 class TuxPopover:
-    title: str = "undefined"
-    body: str = "undefined"
-    mode: str = click
-    side: str = bottom
+    title: str = None
+    body: str = None
+    mode: str = "click"
+    side: str = "bottom"
     arrow: bool = true
     disabled: bool = false
-    width: str = md
+    width: str = "md"
 
     def render_html(self, content: str = "") -> str:
-        return f'<UPopover class="tux-popover">{content}</UPopover>'
+        return f'<div class="tux-popover">{content}</div>'

@@ -11,14 +11,14 @@ final class TuxChartGauge
     public int $min = 0;
     public int $max = 100;
     public int $size = 240;
-    public string $variant = arc;
-    public string $bands = '()';
-    public string $centerLabel = 'undefined';
-    public string $centerValue = undefined;
-    public string $units = 'undefined';
-    public string $format = '(n:';
+    public string $variant = 'arc';
+    public string $bands;
+    public string $centerLabel;
+    public string $centerValue;
+    public string $units;
+    public string $format;
     public int $decimals = 1;
-    public string $ariaSummary = 'undefined';
+    public string $ariaSummary;
 
     public function __construct(array $attributes = [])
     {

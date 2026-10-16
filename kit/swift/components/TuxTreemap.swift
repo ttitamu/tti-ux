@@ -8,9 +8,9 @@ public struct TuxTreemap<Content: View>: View {
     public var width: Int = 720
     public var height: Int = 460
     public var maxDepth: Int = 2
-    public var colorBy: String = size
-    public var unit: String = bytes
-    public var ariaLabel: String = "Treemap"
+    public var colorBy: String = "size"
+    public var unit: String = "bytes"
+    public var ariaLabel: String
     private let content: Content
 
     public init(

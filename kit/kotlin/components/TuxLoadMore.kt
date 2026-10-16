@@ -14,10 +14,10 @@ fun TuxLoadMore(
     loaded: Int,
     total: Int,
     loading: Boolean = false,
-    noun: String = "undefined",
-    nounPlural: String = "undefined",
-    label: String = "Load",
-    terminalLabel: String = "All",
+    noun: String,
+    nounPlural: String,
+    label: String,
+    terminalLabel: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

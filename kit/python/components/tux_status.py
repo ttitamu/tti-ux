@@ -10,7 +10,8 @@ class TuxStatus:
     state: str = None
     kind: str = "chip"
     acked: bool = false
-    label: str = "undefined"
+    label: str = None
+    glyph: bool = false
 
     def render_html(self, content: str = "") -> str:
         return f'<span class="tux-status">{content}</span>'

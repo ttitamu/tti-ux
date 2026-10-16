@@ -5,7 +5,7 @@ import SwiftUI
 
 public struct TuxAccordion<Content: View>: View {
     public var items: String
-    public var kind: String = faq
+    public var kind: String = "faq"
     public var single: Bool = false
     private let content: Content
 

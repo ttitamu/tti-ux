@@ -9,10 +9,10 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Items { get; set; } = "undefined";
+    [Parameter] public string Items { get; set; };
     [Parameter] public string Target { get; set; } = "article";
-    [Parameter] public string Levels { get; set; } = "()";
-    [Parameter] public string Title { get; set; } = "On";
+    [Parameter] public string Levels { get; set; };
+    [Parameter] public string Title { get; set; };
     [Parameter] public bool NoTitle { get; set; } = false;
-    [Parameter] public string Variant { get; set; } = comm;
+    [Parameter] public string Variant { get; set; } = "comm";
 }

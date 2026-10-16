@@ -7,12 +7,12 @@ from typing import Optional
 
 @dataclass
 class TuxTOC:
-    items: str = "undefined"
+    items: str = None
     target: str = "article"
-    levels: str = "()"
-    title: str = "On"
+    levels: str = None
+    title: str = None
     no_title: bool = false
-    variant: str = comm
+    variant: str = "comm"
 
     def render_html(self, content: str = "") -> str:
         return f'<nav class="tux-toc">{content}</nav>'

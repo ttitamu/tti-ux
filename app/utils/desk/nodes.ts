@@ -15,13 +15,13 @@ import {
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     deskVideo: {
-      setDeskVideo: (options: { src: string; title?: string }) => ReturnType;
+      setDeskVideo: (_options: { src: string; title?: string }) => ReturnType;
     };
     deskVimeo: {
-      setDeskVimeo: (options: { src: string }) => ReturnType;
+      setDeskVimeo: (_options: { src: string }) => ReturnType;
     };
     deskModule: {
-      setDeskModule: (options: { kind: ModuleKind; payload?: Record<string, string> }) => ReturnType;
+      setDeskModule: (_options: { kind: ModuleKind; payload?: Record<string, string> }) => ReturnType;
     };
   }
 }
@@ -251,7 +251,7 @@ export const DeskModule = Node.create({
           if (!(element instanceof HTMLElement)) return false;
           const kind = element.getAttribute("data-desk-module") || "";
           if (!isModuleKind(kind)) return false;
-          let payload: unknown = {};
+          let payload: unknown;
           try {
             payload = JSON.parse(element.getAttribute("data-payload") || "{}");
           } catch {

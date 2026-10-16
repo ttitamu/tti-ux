@@ -8,15 +8,15 @@ namespace Tti\Tux\Components;
 final class TuxRichTextEditor
 {
     public string $modelValue;
-    public string $placeholder = 'Start';
+    public string $placeholder;
     public bool $disabled = false;
     public string $minHeight = '12rem';
     public string $maxHeight = 'auto';
-    public string $toolbar = ();
-    public string $headingLevels = ();
+    public string $toolbar;
+    public string $headingLevels;
     public bool $showCount = true;
     public bool $fullscreenable = true;
-    public string $ariaLabel = 'Rich';
+    public string $ariaLabel;
 
     public function __construct(array $attributes = [])
     {

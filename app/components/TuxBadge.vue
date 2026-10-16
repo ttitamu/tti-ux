@@ -16,9 +16,11 @@
 export type TuxBadgeTier = "public" | "internal" | "sensitive" | "restricted";
 export type TuxBadgeStatus =
   | "running"
+  | "in-progress"
   | "completed"
   | "failed"
   | "queued"
+  | "pending"
   | "paused"
   | "cancelled"
   | "published"
@@ -29,10 +31,13 @@ export type TuxBadgeStatus =
 export type TuxBadgeTone =
   | "info"
   | "success"
+  | "ok"
   | "warning"
+  | "warn"
   | "error"
   | "danger"
   | "brand"
+  | "primary"
   | "neutral"
   | "muted"
   | "custom";
@@ -95,10 +100,13 @@ const tierColor: Record<TuxBadgeTier, UColor> = {
 const toneColor: Record<TuxBadgeTone, UColor> = {
   info: "info",
   success: "success",
+  ok: "success",
   warning: "warning",
+  warn: "warning",
   error: "error",
   danger: "error",
   brand: "primary",
+  primary: "primary",
   neutral: "neutral",
   muted: "neutral", // low-emphasis grey alias (used by split-pane showcase)
   custom: "neutral",
@@ -107,8 +115,10 @@ const toneColor: Record<TuxBadgeTone, UColor> = {
 const statusColor: Record<TuxBadgeStatus, UColor> = {
   completed: "success",
   running: "warning",
+  "in-progress": "warning",
   failed: "error",
   queued: "neutral",
+  pending: "neutral",
   paused: "info",
   cancelled: "neutral",
   published: "success",
@@ -150,8 +160,10 @@ const dotColor = computed(() => {
     return {
       completed: "var(--color-success)",
       running: "var(--brand-accent)",
+      "in-progress": "var(--brand-accent)",
       failed: "var(--color-error)",
       queued: "var(--text-muted)",
+      pending: "var(--text-muted)",
       paused: "var(--color-info)",
       cancelled: "var(--text-muted)",
       published: "var(--color-success)",
@@ -161,9 +173,9 @@ const dotColor = computed(() => {
     }[props.status];
   }
   if (props.dot) {
-    if (props.tone === "brand") return "var(--brand-primary)";
-    if (props.tone === "success") return "var(--color-success)";
-    if (props.tone === "warning") return "var(--brand-accent)";
+    if (props.tone === "brand" || props.tone === "primary") return "var(--brand-primary)";
+    if (props.tone === "success" || props.tone === "ok") return "var(--color-success)";
+    if (props.tone === "warning" || props.tone === "warn") return "var(--brand-accent)";
     if (props.tone === "danger" || props.tone === "error") return "var(--color-error)";
     if (props.tone === "info") return "var(--color-info)";
     return "var(--text-muted)";
@@ -174,7 +186,7 @@ const dotColor = computed(() => {
 const hasDot = computed(() => {
   if (props.icon) return false;
   if (props.dot) return true;
-  if (mode.value === "status" && props.status !== "running") return true;
+  if (mode.value === "status" && props.status !== "running" && props.status !== "in-progress") return true;
   return false;
 });
 
@@ -182,6 +194,7 @@ const shouldPulseDot = computed(() => {
   return (
     props.dot &&
     (props.tone === "success" ||
+      props.tone === "ok" ||
       props.tone === "danger" ||
       props.tone === "error" ||
       props.status === "published")
@@ -196,8 +209,10 @@ const isWarningColor = computed(() => uColor.value === "warning");
 const statusGlyphIcon: Record<TuxBadgeStatus, string> = {
   completed: "lucide:check-circle-2",
   running: "lucide:loader-2",
+  "in-progress": "lucide:loader-2",
   failed: "lucide:alert-octagon",
   queued: "lucide:clock",
+  pending: "lucide:clock",
   paused: "lucide:pause-circle",
   cancelled: "lucide:slash",
   published: "lucide:check-circle-2",
@@ -208,11 +223,14 @@ const statusGlyphIcon: Record<TuxBadgeStatus, string> = {
 
 const toneGlyphIcon: Record<TuxBadgeTone, string> = {
   success: "lucide:check-circle-2",
+  ok: "lucide:check-circle-2",
   warning: "lucide:alert-triangle",
+  warn: "lucide:alert-triangle",
   danger: "lucide:alert-octagon",
   error: "lucide:alert-octagon",
   info: "lucide:info",
   brand: "lucide:sparkles",
+  primary: "lucide:sparkles",
   neutral: "lucide:circle-dot",
   muted: "lucide:circle",
   custom: "lucide:circle",

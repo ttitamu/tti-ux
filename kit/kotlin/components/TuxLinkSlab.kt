@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxLinkSlab(
     links: String,
-    tone: String = plain,
-    ariaLabel: String = "Section",
+    tone: String = "plain",
+    ariaLabel: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

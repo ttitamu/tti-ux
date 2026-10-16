@@ -8,8 +8,8 @@ from typing import Optional
 @dataclass
 class TuxIconFeature:
     items: str = None
-    layout: str = grid
-    columns: str = 3
+    layout: str = "grid"
+    columns: int = 3
 
     def render_html(self, content: str = "") -> str:
         return f'<ul class="tux-icon-feature">{content}</ul>'

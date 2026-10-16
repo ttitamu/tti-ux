@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxCommandBar(
     selectedCount: Int = 0,
-    density: String = compact,
+    density: String = "compact",
     bordered: Boolean = true,
     content: @Composable () -> Unit = {}
 ) {

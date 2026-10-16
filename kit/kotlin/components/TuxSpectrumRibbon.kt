@@ -11,12 +11,12 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxSpectrumRibbon(
-    size: String = sm,
-    orientation: String = horizontal,
+    size: String = "sm",
+    orientation: String = "horizontal",
     showLabels: Boolean = false,
     rounded: Boolean = false,
-    ariaLabel: String = "TTI",
-    bands: String = "()",
+    ariaLabel: String,
+    bands: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

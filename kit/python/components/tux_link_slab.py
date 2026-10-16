@@ -8,8 +8,8 @@ from typing import Optional
 @dataclass
 class TuxLinkSlab:
     links: str = None
-    tone: str = plain
-    aria_label: str = "Section"
+    tone: str = "plain"
+    aria_label: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<nav class="tux-link-slab">{content}</nav>'

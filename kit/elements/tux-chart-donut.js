@@ -4,7 +4,7 @@
  */
 export class TuxChartDonutElement extends HTMLElement {
   static get observedAttributes() {
-    return ["slices", "size", "thickness", "slice-labels", "legend", "center-label", "center-value", "min-slice", "format", "decimals", "aria-summary", "units", "tooltip"];
+    return ["slices", "size", "palette", "patterns", "thickness", "slice-labels", "legend", "center-label", "center-value", "min-slice", "format", "decimals", "aria-summary", "units", "tooltip"];
   }
 
   constructor() {

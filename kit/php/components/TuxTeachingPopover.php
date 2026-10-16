@@ -10,10 +10,10 @@ final class TuxTeachingPopover
     public bool $modelValue = false;
     public int $step = 1;
     public int $totalSteps = 1;
-    public string $title = 'undefined';
+    public string $title;
     public bool $onBrand = false;
     public bool $noDismiss = false;
-    public string $primaryLabel = 'undefined';
+    public string $primaryLabel;
     public string $secondaryLabel = 'Skip';
     public bool $noSecondary = false;
 
@@ -29,7 +29,7 @@ final class TuxTeachingPopover
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<Teleport class="tux-teaching-popover">%s</Teleport>',
+            '<div class="tux-teaching-popover">%s</div>',
             $content
         );
     }

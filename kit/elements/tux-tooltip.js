@@ -30,9 +30,9 @@ export class TuxTooltipElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <TooltipProvider class="tux-tooltip">
+      <div class="tux-tooltip">
         <slot></slot>
-      </TooltipProvider>
+      </div>
     `;
   }
 }

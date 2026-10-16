@@ -8,8 +8,8 @@ namespace Tti\Tux\Components;
 final class TuxDiagram
 {
     public string $code;
-    public string $caption = 'undefined';
-    public string $eyebrow = 'undefined';
+    public string $caption;
+    public string $eyebrow;
 
     public function __construct(array $attributes = [])
     {

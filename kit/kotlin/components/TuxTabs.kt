@@ -12,10 +12,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxTabs(
     items: String,
-    modelValue: String = undefined,
-    orientation: String = horizontal,
-    size: String = md,
-    variant: String = default,
+    modelValue: String,
+    orientation: String = "horizontal",
+    size: String = "md",
+    variant: String = "default",
     content: @Composable () -> Unit = {}
 ) {
     Row(

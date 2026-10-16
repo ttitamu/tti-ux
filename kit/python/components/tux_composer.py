@@ -8,13 +8,13 @@ from typing import Optional
 @dataclass
 class TuxComposer:
     model_value: str = None
-    placeholder: str = "Ask"
-    models: str = "()"
-    model_id: str = "undefined"
+    placeholder: str = None
+    models: str = None
+    model_id: str = None
     max_length: int = 32000
-    hint: str = "⌘↵"
+    hint: str = None
     hide_attach: bool = false
-    attach_label: str = "Attach"
+    attach_label: str = None
     attach_icon: str = "lucide:plus"
     cancelable: bool = false
     cancel_label: str = "Cancel"

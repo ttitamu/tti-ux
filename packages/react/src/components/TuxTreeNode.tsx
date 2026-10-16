@@ -5,11 +5,11 @@
 import React from 'react';
 
 export interface TuxTreeNodeProps {
-  node?: string;
-  depth?: number;
-  selectedId??: string;
-  isExpanded?: string;
-  showGuides?: boolean;
+  node: string;
+  depth: number;
+  selectedId?: string;
+  isExpanded: string;
+  showGuides: boolean;
   children?: React.ReactNode;
   className?: string;
 }

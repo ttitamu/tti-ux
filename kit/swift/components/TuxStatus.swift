@@ -7,7 +7,8 @@ public struct TuxStatus<Content: View>: View {
     public var state: String
     public var kind: String = "chip"
     public var acked: Bool = false
-    public var label: String = "undefined"
+    public var label: String
+    public var glyph: Bool = false
     private let content: Content
 
     public init(

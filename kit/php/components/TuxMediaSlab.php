@@ -7,15 +7,15 @@ namespace Tti\Tux\Components;
 
 final class TuxMediaSlab
 {
-    public string $src = 'undefined';
+    public string $src;
     public string $alt;
-    public string $eyebrow = 'undefined';
+    public string $eyebrow;
     public string $title;
-    public string $dek = 'undefined';
-    public string $layout = overlay;
-    public string $imageSide = right;
-    public string $height = standard;
-    public string $tone = maroon;
+    public string $dek;
+    public string $layout = 'overlay';
+    public string $imageSide = 'right';
+    public string $height = 'standard';
+    public string $tone = 'maroon';
 
     public function __construct(array $attributes = [])
     {

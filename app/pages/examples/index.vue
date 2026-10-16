@@ -299,7 +299,7 @@ const filteredExamples = computed(() => {
           type="text"
           placeholder="Filter by title or component..."
           class="w-full pl-9 pr-8 py-1.5 text-xs bg-surface-raised border border-surface-border rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary"
-        />
+        >
         <button
           v-if="searchQuery"
           type="button"

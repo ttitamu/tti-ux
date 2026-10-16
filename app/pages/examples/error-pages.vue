@@ -62,11 +62,11 @@ const simulatedTrace = ref(`[InstitutionalTraceException]: Connection timeout to
 
         <div class="flex items-center gap-4">
           <label class="flex items-center gap-2 text-xs font-mono text-text-secondary cursor-pointer">
-            <input type="checkbox" v-model="showDiagnostics" class="accent-brand-primary cursor-pointer" />
+            <input v-model="showDiagnostics" type="checkbox" class="accent-brand-primary cursor-pointer" >
             <span>Show Diagnostic Well</span>
           </label>
           <label class="flex items-center gap-2 text-xs font-mono text-text-secondary cursor-pointer">
-            <input type="checkbox" v-model="inlineMode" class="accent-brand-primary cursor-pointer" />
+            <input v-model="inlineMode" type="checkbox" class="accent-brand-primary cursor-pointer" >
             <span>Inline Container Mode</span>
           </label>
         </div>
@@ -79,14 +79,14 @@ const simulatedTrace = ref(`[InstitutionalTraceException]: Connection timeout to
           <input
             v-model="customTitle"
             class="w-full bg-surface-sunken border border-surface-border px-3 py-1.5 text-text-primary rounded-none focus:outline-brand-primary"
-          />
+          >
         </div>
         <div>
           <label class="block text-text-muted mb-1">Custom Lede:</label>
           <input
             v-model="customLede"
             class="w-full bg-surface-sunken border border-surface-border px-3 py-1.5 text-text-primary rounded-none focus:outline-brand-primary"
-          />
+          >
         </div>
       </div>
     </div>

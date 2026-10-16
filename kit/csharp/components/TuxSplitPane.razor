@@ -9,11 +9,11 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string ModelValue { get; set; } = null;
+    [Parameter] public string ModelValue { get; set; };
     [Parameter] public string InitialListWidth { get; set; } = "320px";
     [Parameter] public int MinListWidth { get; set; } = 220;
     [Parameter] public int MaxListWidth { get; set; } = 560;
-    [Parameter] public string Id { get; set; } = "undefined";
+    [Parameter] public string Id { get; set; };
     [Parameter] public string InitialBottomHeight { get; set; } = "160px";
     [Parameter] public bool ShowBottom { get; set; } = false;
     [Parameter] public string ListLabel { get; set; } = "Records";

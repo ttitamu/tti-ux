@@ -55,7 +55,7 @@ const snippet = `<TuxCommHero
 
       <div class="p-4 bg-surface-raised border border-surface-border flex items-center justify-between">
         <label class="inline-flex items-center gap-2 text-xs font-bold text-text-primary cursor-pointer">
-          <input v-model="chamfer" type="checkbox" class="accent-brand-primary" />
+          <input v-model="chamfer" type="checkbox" class="accent-brand-primary" >
           <span>Enable Diagonal Chamfer Canvas Cut</span>
         </label>
       </div>

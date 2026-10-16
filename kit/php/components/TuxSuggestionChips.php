@@ -8,8 +8,8 @@ namespace Tti\Tux\Components;
 final class TuxSuggestionChips
 {
     public string $items;
-    public string $label = 'undefined';
-    public string $ariaLabel = 'undefined';
+    public string $label;
+    public string $ariaLabel;
     public bool $noArrow = false;
 
     public function __construct(array $attributes = [])

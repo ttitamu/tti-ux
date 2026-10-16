@@ -10,8 +10,8 @@
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public string Items { get; set; };
-    [Parameter] public string DefaultExpanded { get; set; } = "undefined";
-    [Parameter] public string StorageKey { get; set; } = "undefined";
+    [Parameter] public string DefaultExpanded { get; set; };
+    [Parameter] public string StorageKey { get; set; };
     [Parameter] public bool ShowGuides { get; set; } = true;
     [Parameter] public string AriaLabel { get; set; } = "Tree";
 }

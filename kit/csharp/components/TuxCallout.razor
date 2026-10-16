@@ -9,7 +9,7 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Kind { get; set; } = fact;
-    [Parameter] public string Eyebrow { get; set; } = null;
-    [Parameter] public string Variant { get; set; } = default;
+    [Parameter] public string Kind { get; set; } = "fact";
+    [Parameter] public string Eyebrow { get; set; };
+    [Parameter] public string Variant { get; set; } = "default";
 }

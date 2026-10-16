@@ -11,12 +11,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxUtilityCluster(
-    current: String = "undefined",
+    current: String,
     signedIn: Boolean = false,
-    entitled: String = "undefined",
+    entitled: String,
     hideSwitcher: Boolean = false,
     hideTheme: Boolean = false,
-    userMenu: String = "undefined",
+    hideHighContrast: Boolean = false,
+    hideVisionPrefs: Boolean = false,
+    userMenu: String,
     state: String,
     identity: String,
     signInHref: String,

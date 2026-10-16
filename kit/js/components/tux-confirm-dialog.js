@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxConfirmDialog(props = {}, children = '') {
-  const el = document.createElement('TuxModal');
+  const el = document.createElement('div');
   el.className = 'tux-confirm-dialog';
   if (typeof children === 'string') {
     el.innerHTML = children;

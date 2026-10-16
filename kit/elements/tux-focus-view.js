@@ -30,9 +30,9 @@ export class TuxFocusViewElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <Teleport class="tux-focus-view">
+      <div class="tux-focus-view">
         <slot></slot>
-      </Teleport>
+      </div>
     `;
   }
 }

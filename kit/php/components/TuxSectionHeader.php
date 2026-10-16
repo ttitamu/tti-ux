@@ -7,12 +7,12 @@ namespace Tti\Tux\Components;
 
 final class TuxSectionHeader
 {
-    public string $level = 2;
-    public string $title = 'undefined';
-    public string $secondaryTitle = 'undefined';
-    public string $subtitle = 'undefined';
-    public string $kicker = 'undefined';
-    public string $variant = institutional;
+    public int $level = 2;
+    public string $title;
+    public string $secondaryTitle;
+    public string $subtitle;
+    public string $kicker;
+    public string $variant = 'institutional';
 
     public function __construct(array $attributes = [])
     {

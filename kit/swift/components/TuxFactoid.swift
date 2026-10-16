@@ -5,11 +5,11 @@ import SwiftUI
 
 public struct TuxFactoid<Content: View>: View {
     public var items: String
-    public var variant: String = default
-    public var columns: String = 3
-    public var eyebrow: String = "undefined"
-    public var title: String = "undefined"
-    public var dek: String = "undefined"
+    public var variant: String = "default"
+    public var columns: Int = 3
+    public var eyebrow: String
+    public var title: String
+    public var dek: String
     private let content: Content
 
     public init(

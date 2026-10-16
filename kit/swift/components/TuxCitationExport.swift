@@ -6,7 +6,7 @@ import SwiftUI
 public struct TuxCitationExport<Content: View>: View {
     public var citation: String
     public var label: String = "Cite"
-    public var variant: String = outline
+    public var variant: String = "outline"
     private let content: Content
 
     public init(

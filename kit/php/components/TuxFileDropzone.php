@@ -7,14 +7,14 @@ namespace Tti\Tux\Components;
 
 final class TuxFileDropzone
 {
-    public string $modelValue = '()';
-    public string $accept = 'undefined';
+    public string $modelValue;
+    public string $accept;
     public bool $multiple = false;
     public int $maxSize = 50;
     public int $maxFiles = 10;
     public bool $disabled = false;
-    public string $label = 'undefined';
-    public string $hint = 'undefined';
+    public string $label;
+    public string $hint;
 
     public function __construct(array $attributes = [])
     {

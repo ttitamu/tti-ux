@@ -5,14 +5,14 @@ import SwiftUI
 
 public struct TuxSignupFeature<Content: View>: View {
     public var title: String
-    public var eyebrow: String = "undefined"
-    public var dek: String = "undefined"
+    public var eyebrow: String
+    public var dek: String
     public var actionLabel: String = "Subscribe"
     public var placeholder: String = "your@email.edu"
-    public var consent: String = "We"
+    public var consent: String
     public var modelValue: String
-    public var tone: String = neutral
-    public var variant: String = default
+    public var tone: String = "neutral"
+    public var variant: String = "default"
     private let content: Content
 
     public init(

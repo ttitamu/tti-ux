@@ -67,6 +67,7 @@ withDefaults(defineProps<Props>(), {
           v-if="idx === trail.length - 1"
           aria-current="page"
           class="tux-breadcrumbs__current"
+          :title="crumb.label"
         >{{ crumb.label }}</span>
 
         <!-- Home crumb (with icon) -->
@@ -75,6 +76,7 @@ withDefaults(defineProps<Props>(), {
           :to="crumb.to ?? '/'"
           :href="crumb.href"
           class="tux-breadcrumbs__home"
+          :title="crumb.label"
         >
           <Icon
             v-if="homeIcon"
@@ -85,13 +87,19 @@ withDefaults(defineProps<Props>(), {
           <span>{{ crumb.label }}</span>
         </NuxtLink>
 
-        <!-- Intermediate crumbs — italic link -->
+        <!-- Intermediate crumbs — italic link or plain text if no link -->
         <NuxtLink
-          v-else
+          v-else-if="crumb.to || crumb.href"
           :to="crumb.to"
           :href="crumb.href"
           class="tux-breadcrumbs__link"
+          :title="crumb.label"
         >{{ crumb.label }}</NuxtLink>
+        <span
+          v-else
+          class="tux-breadcrumbs__intermediate-text"
+          :title="crumb.label"
+        >{{ crumb.label }}</span>
       </li>
     </ol>
   </nav>
@@ -170,12 +178,7 @@ withDefaults(defineProps<Props>(), {
   font-weight: 700;
   text-decoration: none;
   transition: color 0.15s ease, text-decoration-color 0.15s ease;
-  white-space: nowrap !important;
-}
-
-.tux-breadcrumbs__current {
-  white-space: nowrap !important;
-  color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .tux-breadcrumbs__home {
@@ -186,7 +189,7 @@ withDefaults(defineProps<Props>(), {
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
   text-decoration-color: color-mix(in srgb, var(--brand-secondary) 35%, transparent);
-  white-space: nowrap !important;
+  white-space: nowrap;
 }
 
 .tux-breadcrumbs__home-icon {
@@ -195,11 +198,19 @@ withDefaults(defineProps<Props>(), {
   flex-shrink: 0;
 }
 
-.tux-breadcrumbs__link {
+.tux-breadcrumbs__link,
+.tux-breadcrumbs__intermediate-text {
   font-style: italic;
   font-weight: 400;
-  white-space: nowrap !important;
+  white-space: nowrap;
+  max-width: min(20rem, 100%);
+  overflow: hidden;
+  text-overflow: ellipsis;
   min-width: 0;
+}
+
+.tux-breadcrumbs__intermediate-text {
+  color: var(--text-muted);
 }
 
 .tux-breadcrumbs__home:hover,
@@ -215,8 +226,10 @@ withDefaults(defineProps<Props>(), {
 .tux-breadcrumbs__current {
   font-weight: 400;
   color: var(--text-primary);
-  word-break: break-word;
-  overflow-wrap: break-word;
+  max-width: min(32rem, 100%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   min-width: 0;
 }
 </style>

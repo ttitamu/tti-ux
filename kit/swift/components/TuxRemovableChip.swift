@@ -4,12 +4,12 @@
 import SwiftUI
 
 public struct TuxRemovableChip<Content: View>: View {
-    public var icon: String = "undefined"
+    public var icon: String
     public var removable: Bool = false
-    public var size: String = md
+    public var size: String = "md"
     public var selected: Bool = false
     public var disabled: Bool = false
-    public var removeLabel: String = "undefined"
+    public var removeLabel: String
     public var clickToRemove: Bool = false
     private let content: Content
 

@@ -4,7 +4,7 @@
  */
 export class TuxChartAreaElement extends HTMLElement {
   static get observedAttributes() {
-    return ["labels", "series", "width", "height", "variant", "markers", "end-labels", "legend", "gridlines", "ticks", "format", "decimals", "aria-summary", "units", "tooltip"];
+    return ["labels", "series", "width", "height", "palette", "patterns", "variant", "markers", "end-labels", "legend", "gridlines", "ticks", "format", "decimals", "aria-summary", "units", "tooltip"];
   }
 
   constructor() {

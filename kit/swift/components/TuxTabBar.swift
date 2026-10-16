@@ -5,7 +5,7 @@ import SwiftUI
 
 public struct TuxTabBar<Content: View>: View {
     public var items: String
-    public var ariaLabel: String = "Primary"
+    public var ariaLabel: String
     private let content: Content
 
     public init(

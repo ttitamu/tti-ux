@@ -9,8 +9,8 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Variant { get; set; } = wash;
-    [Parameter] public string Blend { get; set; } = seamless;
+    [Parameter] public string Variant { get; set; } = "wash";
+    [Parameter] public string Blend { get; set; } = "seamless";
     [Parameter] public bool Interactive { get; set; } = true;
     [Parameter] public bool ShowControls { get; set; } = true;
     [Parameter] public string MinHeight { get; set; } = "32rem";

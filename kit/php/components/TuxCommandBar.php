@@ -8,7 +8,7 @@ namespace Tti\Tux\Components;
 final class TuxCommandBar
 {
     public int $selectedCount = 0;
-    public string $density = compact;
+    public string $density = 'compact';
     public bool $bordered = true;
 
     public function __construct(array $attributes = [])

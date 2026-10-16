@@ -7,12 +7,12 @@ namespace Tti\Tux\Components;
 
 final class TuxRemovableChip
 {
-    public string $icon = 'undefined';
+    public string $icon;
     public bool $removable = false;
-    public string $size = md;
+    public string $size = 'md';
     public bool $selected = false;
     public bool $disabled = false;
-    public string $removeLabel = 'undefined';
+    public string $removeLabel;
     public bool $clickToRemove = false;
 
     public function __construct(array $attributes = [])

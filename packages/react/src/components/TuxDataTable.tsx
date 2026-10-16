@@ -5,28 +5,28 @@
 import React from 'react';
 
 export interface TuxDataTableProps {
-  columns?: string;
-  rows??: string;
-  groups??: string;
-  rowKey??: string;
-  tableNumber??: string;
-  caption??: string;
-  description??: string;
-  sortKey??: string;
-  sortDir??: "asc" | "desc";
-  sticky??: boolean;
-  maxHeight??: string;
-  density??: "comfortable" | "compact";
-  banded??: boolean;
-  footnotes??: string;
-  source??: string;
-  totals??: string;
+  columns: string;
+  rows?: string;
+  groups?: string;
+  rowKey?: string;
+  tableNumber?: string;
+  caption?: string;
+  description?: string;
+  sortKey?: string;
+  sortDir?: "asc" | "desc";
+  sticky?: boolean;
+  maxHeight?: string;
+  density?: "comfortable" | "compact";
+  banded?: boolean;
+  footnotes?: string;
+  source?: string;
+  totals?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxDataTable: React.FC<TuxDataTableProps> = ({
-  columns, rows = "()", groups = "()", rowKey = "id", tableNumber, caption, description, sortKey = "undefined", sortDir = undefined, sticky = false, maxHeight = "20rem", density = comfortable, banded = true, footnotes = "()", source, totals = "undefined", children, className = ''
+  columns, rows, groups, rowKey = "id", tableNumber, caption, description, sortKey, sortDir, sticky = false, maxHeight = "20rem", density = "comfortable", banded = true, footnotes, source, totals, children, className = ''
 }) => {
   return (
     <figure className={`tux-data-table ${className}`.trim()}>

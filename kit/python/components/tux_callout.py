@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxCallout:
-    kind: str = fact
-    eyebrow: str = null
-    variant: str = default
+    kind: str = "fact"
+    eyebrow: str = None
+    variant: str = "default"
 
     def render_html(self, content: str = "") -> str:
         return f'<aside class="tux-callout">{content}</aside>'

@@ -14,12 +14,12 @@ fun TuxVizRPlot(
     src: String,
     kind: String = "image",
     title: String,
-    eyebrow: String = "undefined",
+    eyebrow: String,
     ratio: String = "16/10",
     alt: String,
-    src2x: String = "undefined",
-    source: String = "undefined",
-    level: String = 3,
+    src2x: String,
+    source: String,
+    level: Int = 3,
     content: @Composable () -> Unit = {}
 ) {
     Row(

@@ -9,16 +9,18 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Tag { get; set; } = "undefined";
-    [Parameter] public string ComponentName { get; set; } = "undefined";
+    [Parameter] public string Tag { get; set; };
+    [Parameter] public string ComponentName { get; set; };
     [Parameter] public string Controls { get; set; };
-    [Parameter] public string Presets { get; set; } = "()";
-    [Parameter] public string Title { get; set; } = "Interactive";
-    [Parameter] public string Eyebrow { get; set; } = "Live";
-    [Parameter] public string SlotProp { get; set; } = "undefined";
-    [Parameter] public string DefaultSlotText { get; set; } = "undefined";
+    [Parameter] public string Presets { get; set; };
+    [Parameter] public string Title { get; set; };
+    [Parameter] public string Eyebrow { get; set; };
+    [Parameter] public string SlotProp { get; set; };
+    [Parameter] public string DefaultSlotText { get; set; };
     [Parameter] public bool SelfClosing { get; set; } = false;
-    [Parameter] public string CodeTemplate { get; set; } = "undefined";
+    [Parameter] public string CodeTemplate { get; set; };
+    [Parameter] public string Source { get; set; };
+    [Parameter] public string Powerbi { get; set; };
     [Parameter] public string PreviewPadding { get; set; } = "p-8";
     [Parameter] public bool EnableDeepLinking { get; set; } = true;
 }

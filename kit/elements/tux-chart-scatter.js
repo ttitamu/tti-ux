@@ -4,7 +4,7 @@
  */
 export class TuxChartScatterElement extends HTMLElement {
   static get observedAttributes() {
-    return ["series", "x-label", "y-label", "width", "height", "trendline", "legend", "gridlines", "x-ticks", "y-ticks", "format", "decimals", "aria-summary", "units", "tooltip"];
+    return ["series", "x-label", "y-label", "width", "height", "palette", "distinct-markers", "trendline", "legend", "gridlines", "x-ticks", "y-ticks", "format", "decimals", "aria-summary", "units", "tooltip"];
   }
 
   constructor() {

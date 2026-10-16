@@ -4,12 +4,14 @@
 import SwiftUI
 
 public struct TuxUtilityCluster<Content: View>: View {
-    public var current: String = "undefined"
+    public var current: String
     public var signedIn: Bool = false
-    public var entitled: String = "undefined"
+    public var entitled: String
     public var hideSwitcher: Bool = false
     public var hideTheme: Bool = false
-    public var userMenu: String = "undefined"
+    public var hideHighContrast: Bool = false
+    public var hideVisionPrefs: Bool = false
+    public var userMenu: String
     public var state: String
     public var identity: String
     public var signInHref: String

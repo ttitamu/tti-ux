@@ -8,9 +8,9 @@ from typing import Optional
 @dataclass
 class TuxNewsCollection:
     items: str = None
-    layout: str = stacked
-    columns: str = 3
-    read_more: str = "Read"
+    layout: str = "stacked"
+    columns: int = 3
+    read_more: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<ul class="tux-news-collection">{content}</ul>'

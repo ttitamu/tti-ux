@@ -11,14 +11,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxPaperMeta(
-    doi: String = "undefined",
-    license: String = "undefined",
-    funders: String = "undefined",
-    published: String = "undefined",
-    version: String = "undefined",
-    type: String = "undefined",
-    pages: String = "undefined",
-    venue: String = "undefined",
+    doi: String,
+    license: String,
+    funders: String,
+    published: String,
+    version: String,
+    type: String,
+    pages: String,
+    venue: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

@@ -191,7 +191,7 @@ export function mdcToDoc(mdcText: string): JSONContent {
 
   let i = 0;
   while (i < lines.length) {
-    const line = lines[i];
+    const line = lines[i] ?? "";
 
     // Skip empty lines
     if (!line.trim()) {
@@ -202,7 +202,7 @@ export function mdcToDoc(mdcText: string): JSONContent {
     // Check for MDC block: ::tux-[kind] or ::tux-[kind]{...}
     const mdcOpenMatch = /^::tux-([a-zA-Z0-9_-]+)(?:\{(.*?)\})?/.exec(line.trim());
     if (mdcOpenMatch) {
-      const rawKind = mdcOpenMatch[1].toLowerCase();
+      const rawKind = (mdcOpenMatch[1] ?? "").toLowerCase();
       // Map alias 'alert' -> 'callout'
       const kindStr = rawKind === "alert" ? "callout" : rawKind;
       const kind: ModuleKind = isModuleKind(kindStr) ? kindStr : "callout";
@@ -214,7 +214,10 @@ export function mdcToDoc(mdcText: string): JSONContent {
         const attrRegex = /([a-zA-Z0-9_]+)=(?:"([^"]*)"|'([^']*)'|(\S+))/g;
         let match: RegExpExecArray | null;
         while ((match = attrRegex.exec(mdcOpenMatch[2])) !== null) {
-          payload[match[1]] = match[2] ?? match[3] ?? match[4] ?? "";
+          const attrKey = match[1];
+          if (attrKey) {
+            payload[attrKey] = match[2] ?? match[3] ?? match[4] ?? "";
+          }
         }
       }
 
@@ -225,7 +228,7 @@ export function mdcToDoc(mdcText: string): JSONContent {
       const bodyLines: string[] = [];
 
       while (i < lines.length) {
-        const curLine = lines[i];
+        const curLine = lines[i] ?? "";
         if (curLine.trim() === "::") {
           i++; // past closing ::
           break;
@@ -269,8 +272,8 @@ export function mdcToDoc(mdcText: string): JSONContent {
       const lang = line.slice(3).trim();
       const codeLines: string[] = [];
       i++;
-      while (i < lines.length && !lines[i].startsWith("```")) {
-        codeLines.push(lines[i]);
+      while (i < lines.length && !(lines[i] ?? "").startsWith("```")) {
+        codeLines.push(lines[i] ?? "");
         i++;
       }
       i++; // past closing ```
@@ -285,11 +288,11 @@ export function mdcToDoc(mdcText: string): JSONContent {
     // Headings: #, ##, ###
     const headingMatch = /^(#{1,6})\s+(.*)$/.exec(line);
     if (headingMatch) {
-      const level = headingMatch[1].length;
+      const level = (headingMatch[1] ?? "#").length;
       content.push({
         type: "heading",
         attrs: { level },
-        content: parseInlineMarks(headingMatch[2].trim()),
+        content: parseInlineMarks((headingMatch[2] ?? "").trim()),
       });
       i++;
       continue;
@@ -298,8 +301,8 @@ export function mdcToDoc(mdcText: string): JSONContent {
     // Blockquote: > text
     if (line.startsWith(">")) {
       const quoteLines: string[] = [];
-      while (i < lines.length && lines[i].startsWith(">")) {
-        quoteLines.push(lines[i].replace(/^>\s?/, ""));
+      while (i < lines.length && (lines[i] ?? "").startsWith(">")) {
+        quoteLines.push((lines[i] ?? "").replace(/^>\s?/, ""));
         i++;
       }
       content.push({
@@ -317,8 +320,8 @@ export function mdcToDoc(mdcText: string): JSONContent {
     // Bullet List: - or *
     if (/^[-*]\s+/.test(line)) {
       const listItems: JSONContent[] = [];
-      while (i < lines.length && /^[-*]\s+/.test(lines[i])) {
-        const itemText = lines[i].replace(/^[-*]\s+/, "").trim();
+      while (i < lines.length && /^[-*]\s+/.test(lines[i] ?? "")) {
+        const itemText = (lines[i] ?? "").replace(/^[-*]\s+/, "").trim();
         listItems.push({
           type: "listItem",
           content: [
@@ -340,8 +343,8 @@ export function mdcToDoc(mdcText: string): JSONContent {
     // Ordered List: 1.
     if (/^\d+\.\s+/.test(line)) {
       const listItems: JSONContent[] = [];
-      while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
-        const itemText = lines[i].replace(/^\d+\.\s+/, "").trim();
+      while (i < lines.length && /^\d+\.\s+/.test(lines[i] ?? "")) {
+        const itemText = (lines[i] ?? "").replace(/^\d+\.\s+/, "").trim();
         listItems.push({
           type: "listItem",
           content: [
@@ -375,16 +378,16 @@ export function mdcToDoc(mdcText: string): JSONContent {
     const pLines: string[] = [];
     while (
       i < lines.length &&
-      lines[i].trim() &&
-      !lines[i].startsWith("#") &&
-      !lines[i].startsWith(">") &&
-      !lines[i].startsWith("```") &&
-      !lines[i].startsWith("::") &&
-      !/^[-*]\s+/.test(lines[i]) &&
-      !/^\d+\.\s+/.test(lines[i]) &&
-      !/^!\[.*?\]\(.*?\)$/.test(lines[i].trim())
+      (lines[i] ?? "").trim() &&
+      !(lines[i] ?? "").startsWith("#") &&
+      !(lines[i] ?? "").startsWith(">") &&
+      !(lines[i] ?? "").startsWith("```") &&
+      !(lines[i] ?? "").startsWith("::") &&
+      !/^[-*]\s+/.test(lines[i] ?? "") &&
+      !/^\d+\.\s+/.test(lines[i] ?? "") &&
+      !/^!\[.*?\]\(.*?\)$/.test((lines[i] ?? "").trim())
     ) {
-      pLines.push(lines[i].trim());
+      pLines.push((lines[i] ?? "").trim());
       i++;
     }
 

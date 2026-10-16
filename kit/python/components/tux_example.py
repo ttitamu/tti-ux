@@ -7,14 +7,18 @@ from typing import Optional
 
 @dataclass
 class TuxExample:
-    vue: str = "undefined"
-    react: str = "undefined"
-    wc: str = "undefined"
-    razor: str = "undefined"
-    source: str = "undefined"
-    css: str = "undefined"
-    powerbi: str = "undefined"
-    title: str = "undefined"
+    vue: str = None
+    react: str = None
+    wc: str = None
+    razor: str = None
+    python: str = None
+    php: str = None
+    swift: str = None
+    kotlin: str = None
+    source: str = None
+    css: str = None
+    powerbi: str = None
+    title: str = None
     preview_padding: str = "p-6"
 
     def render_html(self, content: str = "") -> str:

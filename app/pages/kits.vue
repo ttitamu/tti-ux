@@ -656,8 +656,8 @@ const selectedViewport = ref<"desktop" | "laptop" | "tablet" | "mobile">("deskto
 const selectedScaffoldTarget = ref<"nuxt" | "react">("nuxt");
 const copied = ref(false);
 
-const activeKit = computed(() => {
-  return kits.find((k) => k.id === selectedKitId.value) ?? kits[0];
+const activeKit = computed<KitDefinition>(() => {
+  return kits.find((k) => k.id === selectedKitId.value) ?? kits[0]!;
 });
 
 // Viewport pixel dimensions

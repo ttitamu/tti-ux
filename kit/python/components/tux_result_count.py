@@ -10,11 +10,11 @@ class TuxResultCount:
     page: int = None
     page_size: int = None
     total: int = None
-    noun: str = "undefined"
-    noun_plural: str = "undefined"
-    page_size_options: str = "undefined"
+    noun: str = None
+    noun_plural: str = None
+    page_size_options: str = None
     hide_range: bool = false
-    page_size_label: str = "per"
+    page_size_label: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-result-count">{content}</div>'

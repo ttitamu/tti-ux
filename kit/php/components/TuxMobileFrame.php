@@ -9,13 +9,13 @@ final class TuxMobileFrame
 {
     public string $platform = 'ios';
     public int $width = 280;
-    public string $color = undefined;
+    public string $color;
     public bool $statusBar = true;
     public string $time = '9:41';
     public bool $notch = true;
     public bool $homeIndicator = true;
     public string $navStyle = 'gesture';
-    public string $ariaLabel = 'undefined';
+    public string $ariaLabel;
 
     public function __construct(array $attributes = [])
     {

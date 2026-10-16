@@ -5,21 +5,21 @@
 import React from 'react';
 
 export interface TuxMobileFrameProps {
-  platform??: string;
-  width??: number;
-  color??: "IosColor" | "AndroidColor";
-  statusBar??: boolean;
-  time??: string;
-  notch??: boolean;
-  homeIndicator??: boolean;
-  navStyle??: string;
-  ariaLabel??: string;
+  platform?: string;
+  width?: number;
+  color?: string;
+  statusBar?: boolean;
+  time?: string;
+  notch?: boolean;
+  homeIndicator?: boolean;
+  navStyle?: string;
+  ariaLabel?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxMobileFrame: React.FC<TuxMobileFrameProps> = ({
-  platform = "ios", width = 280, color = undefined, statusBar = true, time = "9:41", notch = true, homeIndicator = true, navStyle = "gesture", ariaLabel = "undefined", children, className = ''
+  platform = "ios", width = 280, color, statusBar = true, time = "9:41", notch = true, homeIndicator = true, navStyle = "gesture", ariaLabel, children, className = ''
 }) => {
   return (
     <figure className={`tux-mobile-frame ${className}`.trim()}>

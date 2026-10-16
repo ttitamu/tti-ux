@@ -8,14 +8,14 @@ namespace Tti\Tux\Components;
 final class TuxSignupFeature
 {
     public string $title;
-    public string $eyebrow = 'undefined';
-    public string $dek = 'undefined';
+    public string $eyebrow;
+    public string $dek;
     public string $actionLabel = 'Subscribe';
     public string $placeholder = 'your@email.edu';
-    public string $consent = 'We';
+    public string $consent;
     public string $modelValue;
-    public string $tone = neutral;
-    public string $variant = default;
+    public string $tone = 'neutral';
+    public string $variant = 'default';
 
     public function __construct(array $attributes = [])
     {

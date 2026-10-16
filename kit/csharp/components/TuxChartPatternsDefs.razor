@@ -1,0 +1,13 @@
+@*
+ * TuxChartPatternsDefs.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<defs class="tux-chart-patterns-defs">
+    @ChildContent
+</defs>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Prefix { get; set; } = "tux-pat-";
+}

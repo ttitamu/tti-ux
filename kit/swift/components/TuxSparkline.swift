@@ -12,9 +12,9 @@ public struct TuxSparkline<Content: View>: View {
     public var showArea: Bool = false
     public var showLastPoint: Bool = true
     public var showDelta: Bool = false
-    public var deltaFormat: String = percent
-    public var ariaSummary: String = "undefined"
-    public var units: String = "undefined"
+    public var deltaFormat: String = "percent"
+    public var ariaSummary: String
+    public var units: String
     private let content: Content
 
     public init(

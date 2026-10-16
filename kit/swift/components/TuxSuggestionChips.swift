@@ -5,8 +5,8 @@ import SwiftUI
 
 public struct TuxSuggestionChips<Content: View>: View {
     public var items: String
-    public var label: String = "undefined"
-    public var ariaLabel: String = "undefined"
+    public var label: String
+    public var ariaLabel: String
     public var noArrow: Bool = false
     private let content: Content
 

@@ -5,23 +5,23 @@
 import React from 'react';
 
 export interface TuxFocusViewProps {
-  open??: boolean;
-  title??: string;
-  eyebrow??: string;
-  dismissOnBackdropClick??: boolean;
-  dismissOnEscape??: boolean;
-  backLabel??: string;
+  open?: boolean;
+  title?: string;
+  eyebrow?: string;
+  dismissOnBackdropClick?: boolean;
+  dismissOnEscape?: boolean;
+  backLabel?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxFocusView: React.FC<TuxFocusViewProps> = ({
-  open = false, title = "undefined", eyebrow = "undefined", dismissOnBackdropClick = true, dismissOnEscape = true, backLabel = "Close", children, className = ''
+  open = false, title, eyebrow, dismissOnBackdropClick = true, dismissOnEscape = true, backLabel = "Close", children, className = ''
 }) => {
   return (
-    <Teleport className={`tux-focus-view ${className}`.trim()}>
+    <div className={`tux-focus-view ${className}`.trim()}>
       {children}
-    </Teleport>
+    </div>
   );
 };
 

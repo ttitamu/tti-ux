@@ -8,8 +8,8 @@ from typing import Optional
 @dataclass
 class TuxScrollTop:
     threshold: int = 160
-    position: str = bottom-right
-    aria_label: str = "Scroll"
+    position: str = "bottom-right"
+    aria_label: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<button class="tux-scroll-top">{content}</button>'

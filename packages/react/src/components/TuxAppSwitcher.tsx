@@ -5,22 +5,22 @@
 import React from 'react';
 
 export interface TuxAppSwitcherProps {
-  apps?: string;
-  ariaLabel??: string;
-  heading??: string;
-  footerText??: string;
-  presentation??: "popover" | "sheet";
+  apps: string;
+  ariaLabel?: string;
+  heading?: string;
+  footerText?: string;
+  presentation?: "popover" | "sheet";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxAppSwitcher: React.FC<TuxAppSwitcherProps> = ({
-  apps, ariaLabel = "Switch", heading = "TTI", footerText = "undefined", presentation = popover, children, className = ''
+  apps, ariaLabel, heading, footerText, presentation = "popover", children, className = ''
 }) => {
   return (
-    <UPopover className={`tux-app-switcher ${className}`.trim()}>
+    <div className={`tux-app-switcher ${className}`.trim()}>
       {children}
-    </UPopover>
+    </div>
   );
 };
 

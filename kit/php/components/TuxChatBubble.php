@@ -7,16 +7,16 @@ namespace Tti\Tux\Components;
 
 final class TuxChatBubble
 {
-    public string $mode = bubble;
-    public string $role = assistant;
+    public string $mode = 'bubble';
+    public string $role = 'assistant';
     public string $title = 'Assistant';
-    public string $subtitle = 'Institutional';
-    public string $state = idle;
-    public string $teaser = 'undefined';
-    public string $tail = none;
+    public string $subtitle;
+    public string $state = 'idle';
+    public string $teaser;
+    public string $tail = 'none';
     public bool $dismissible = false;
     public bool $open = true;
-    public string $suggestions = '()';
+    public string $suggestions;
 
     public function __construct(array $attributes = [])
     {

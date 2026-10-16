@@ -5,15 +5,15 @@
 import React from 'react';
 
 export interface TuxFilterPanelProps {
-  facets?: string;
-  modelValue??: string;
-  title??: string;
+  facets: string;
+  modelValue?: string;
+  title?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxFilterPanel: React.FC<TuxFilterPanelProps> = ({
-  facets, modelValue = "()", title, children, className = ''
+  facets, modelValue, title, children, className = ''
 }) => {
   return (
     <aside className={`tux-filter-panel ${className}`.trim()}>

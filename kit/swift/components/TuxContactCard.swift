@@ -5,14 +5,14 @@ import SwiftUI
 
 public struct TuxContactCard<Content: View>: View {
     public var name: String
-    public var role: String = "undefined"
-    public var affiliation: String = "undefined"
-    public var credentials: String = "undefined"
-    public var image: String = "undefined"
-    public var initial: String = "undefined"
-    public var tone: String = maroon
-    public var contacts: String = "()"
-    public var layout: String = vertical
+    public var role: String
+    public var affiliation: String
+    public var credentials: String
+    public var image: String
+    public var initial: String
+    public var tone: String = "maroon"
+    public var contacts: String
+    public var layout: String = "vertical"
     private let content: Content
 
     public init(

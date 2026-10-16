@@ -5,8 +5,8 @@
 import React from 'react';
 
 export interface TuxCitationsProps {
-  items?: string;
-  label??: string;
+  items: string;
+  label?: string;
   children?: React.ReactNode;
   className?: string;
 }

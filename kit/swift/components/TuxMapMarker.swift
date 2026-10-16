@@ -5,10 +5,10 @@ import SwiftUI
 
 public struct TuxMapMarker<Content: View>: View {
     public var kind: String
-    public var number: String = undefined
-    public var toneIndex: Int = undefined
-    public var size: String = md
-    public var title: String = "undefined"
+    public var number: String
+    public var toneIndex: Int
+    public var size: String = "md"
+    public var title: String
     private let content: Content
 
     public init(

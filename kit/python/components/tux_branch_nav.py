@@ -11,7 +11,7 @@ class TuxBranchNav:
     total: int = None
     loop: bool = false
     hide_singleton: bool = true
-    aria_label: str = "Response"
+    aria_label: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<nav class="tux-branch-nav">{content}</nav>'

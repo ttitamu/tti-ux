@@ -11,16 +11,18 @@ final class TuxChartArea
     public string $series;
     public int $width = 640;
     public int $height = 280;
-    public string $variant = overlay;
+    public string $palette = 'brand';
+    public bool $patterns = false;
+    public string $variant = 'overlay';
     public bool $markers = false;
     public bool $endLabels = true;
     public bool $legend = false;
     public bool $gridlines = true;
     public int $ticks = 5;
-    public string $format = '(n:';
+    public string $format;
     public int $decimals = 1;
-    public string $ariaSummary = 'undefined';
-    public string $units = 'undefined';
+    public string $ariaSummary;
+    public string $units;
     public bool $tooltip = true;
 
     public function __construct(array $attributes = [])

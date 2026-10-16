@@ -3,15 +3,15 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  *@
 
-<UTabs class="tux-tabs">
+<div class="tux-tabs">
     @ChildContent
-</UTabs>
+</div>
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public string Items { get; set; };
-    [Parameter] public string ModelValue { get; set; } = undefined;
-    [Parameter] public string Orientation { get; set; } = horizontal;
-    [Parameter] public string Size { get; set; } = md;
-    [Parameter] public string Variant { get; set; } = default;
+    [Parameter] public string ModelValue { get; set; };
+    [Parameter] public string Orientation { get; set; } = "horizontal";
+    [Parameter] public string Size { get; set; } = "md";
+    [Parameter] public string Variant { get; set; } = "default";
 }

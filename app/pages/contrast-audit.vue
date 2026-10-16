@@ -1,19 +1,21 @@
 <script setup lang="ts">
-// /contrast-audit — every contrast-risk Tux component rendered three
-// times side-by-side, one column per theme (tti / tti-dark / tti-hc).
+// /contrast-audit — every contrast-risk Tux component rendered four
+// times side-by-side, one column per theme (tti / tti-dark / tti-soft-dark / tti-hc),
+// plus the 5-mode Color Vision Deficiency (CVD) categorical palette matrix.
 // The page is the input to scripts/audit-contrast.mjs (puppeteer +
 // WCAG ratio computation) and also a standalone visual review tool.
 //
 // Theming: tokens.css scopes every theme's CSS vars under
 // [data-theme="…"], so wrapping each column in a data-theme div
-// renders three independent themes on one page. The browser's own
+// renders independent themes on one page. The browser's own
 // active theme (from <html data-theme>) doesn't apply inside these
 // wrappers because the attribute selector matches the closer
 // ancestor.
 //
-// Adding a component to the audit: drop it into the <ColumnContent>
-// component below. It renders once but appears three times — one in
-// each themed column.
+// Adding a component to the audit: drop it into the column template
+// below. It renders once per themed column.
+
+import { CVD_PALETTES, CVD_PALETTES_DARK } from "~/composables/useTuxVisionPrefs";
 
 useHead({ title: "Contrast audit · TUX" });
 
@@ -26,9 +28,113 @@ definePageMeta({
 });
 
 const themes = [
-  { id: "tti",      label: "Light",         description: "Default theme — TTI maroon on near-white surface." },
-  { id: "tti-dark", label: "Dark",          description: "Dark mode — same brand vocabulary, inverted surfaces." },
-  { id: "tti-hc",   label: "High-contrast", description: "WCAG AAA opt-in — pure black/white + bolder borders." },
+  {
+    id: "tti",
+    dataTheme: "tti",
+    variant: undefined,
+    visionComfort: undefined,
+    label: "Light",
+    badge: 'data-theme="tti"',
+    description: "Default theme — TTI maroon on near-white surface.",
+  },
+  {
+    id: "tti-dark",
+    dataTheme: "tti-dark",
+    variant: undefined,
+    visionComfort: undefined,
+    label: "Dark",
+    badge: 'data-theme="tti-dark"',
+    description: "Dark mode — same brand vocabulary, inverted surfaces.",
+  },
+  {
+    id: "tti-soft-dark",
+    dataTheme: "tti-dark",
+    variant: "soft",
+    visionComfort: "anti-halation",
+    label: "Soft Dark",
+    badge: 'data-theme="tti-dark" data-theme-variant="soft"',
+    description: "Anti-halation comfort — slate-charcoal (#161A22) + softened ink for astigmatism.",
+  },
+  {
+    id: "tti-hc",
+    dataTheme: "tti-hc",
+    variant: undefined,
+    visionComfort: undefined,
+    label: "High-contrast",
+    badge: 'data-theme="tti-hc"',
+    description: "WCAG AAA opt-in — pure black/white + bolder borders.",
+  },
+];
+
+const chartTokenSwatches = [
+  { token: "--chart-1", label: "Series 1 · Brand" },
+  { token: "--chart-2", label: "Series 2 · Brand" },
+  { token: "--chart-3", label: "Series 3 · Brand" },
+  { token: "--chart-4", label: "Series 4 · Brand" },
+  { token: "--chart-cvd-1", label: "CVD 1 · Okabe-Ito" },
+  { token: "--chart-cvd-2", label: "CVD 2 · Okabe-Ito" },
+  { token: "--chart-cvd-3", label: "CVD 3 · Okabe-Ito" },
+  { token: "--chart-cvd-4", label: "CVD 4 · Okabe-Ito" },
+];
+
+const cvdMatrixModes = [
+  {
+    id: "brand" as const,
+    label: "TTI Brand Standard",
+    tag: 'data-cvd-mode="brand"',
+    light: CVD_PALETTES.brand,
+    dark: CVD_PALETTES_DARK.brand,
+  },
+  {
+    id: "okabe-ito" as const,
+    label: "Okabe-Ito Universal CVD",
+    tag: 'data-cvd-mode="okabe-ito"',
+    light: CVD_PALETTES["okabe-ito"],
+    dark: CVD_PALETTES_DARK["okabe-ito"],
+  },
+  {
+    id: "deutan-protan" as const,
+    label: "Deutan / Protan Safe",
+    tag: 'data-cvd-mode="deutan-protan"',
+    light: CVD_PALETTES["deutan-protan"],
+    dark: CVD_PALETTES_DARK["deutan-protan"],
+  },
+  {
+    id: "tritan" as const,
+    label: "Tritanopia Safe",
+    tag: 'data-cvd-mode="tritan"',
+    light: CVD_PALETTES.tritan,
+    dark: CVD_PALETTES_DARK.tritan,
+  },
+  {
+    id: "monochrome" as const,
+    label: "Monochrome / Achromatopsia",
+    tag: 'data-cvd-mode="monochrome"',
+    light: CVD_PALETTES.monochrome,
+    dark: CVD_PALETTES_DARK.monochrome,
+  },
+];
+
+const auditFooterColumns = [
+  {
+    heading: "State Resources",
+    links: [
+      { label: "The State of Texas", href: "#" },
+      { label: "Texas Veterans Portal", href: "#" },
+    ],
+  },
+  {
+    heading: "Policies",
+    links: [
+      { label: "Site Policies", href: "#" },
+      { label: "Open Records", href: "#" },
+    ],
+  },
+];
+
+const auditFooterSocial = [
+  { icon: "lucide:linkedin", label: "LinkedIn", href: "#" },
+  { icon: "lucide:facebook", label: "Facebook", href: "#" },
 ];
 </script>
 
@@ -38,10 +144,12 @@ const themes = [
       <p class="eyebrow">tooling</p>
       <h1 class="heading--bold text-2xl font-bold">Contrast audit</h1>
       <p class="audit__intro">
-        Every contrast-risk surface rendered in all three themes side-by-side.
-        Run <code>npm&nbsp;run&nbsp;audit:contrast</code> to crawl this page
-        with puppeteer, compute WCAG 2.2 contrast ratios for every text/background
-        pair, and fail on regressions. CI gates on
+        Every contrast-risk surface rendered across all four institutional themes
+        (<code>tti</code>, <code>tti-dark</code>, <code>tti-soft-dark</code>,
+        and <code>tti-hc</code>) plus the five Color Vision Deficiency (CVD)
+        categorical palettes. Run <code>npm&nbsp;run&nbsp;audit:contrast</code>
+        to crawl this page with puppeteer, compute WCAG 2.2 contrast ratios for
+        every text/background pair, and fail on regressions. CI gates on
         <strong>AAA (7:1 normal · 4.5:1 large)</strong> — see the
         <NuxtLink to="/accessibility" class="link-tti">accessibility page</NuxtLink>
         for the full conformance statement.
@@ -52,12 +160,15 @@ const themes = [
       <section
         v-for="theme in themes"
         :key="theme.id"
-        :data-theme="theme.id"
+        :data-theme="theme.dataTheme"
+        :data-theme-variant="theme.variant"
+        :data-vision-comfort="theme.visionComfort"
+        :data-audit-theme="theme.id"
         class="audit__column"
       >
         <header class="audit__column-header">
           <p class="audit__theme-label">{{ theme.label }}</p>
-          <p class="audit__theme-id">data-theme="{{ theme.id }}"</p>
+          <p class="audit__theme-id">{{ theme.badge }}</p>
           <p class="audit__theme-desc">{{ theme.description }}</p>
         </header>
 
@@ -113,6 +224,28 @@ const themes = [
             <div class="audit__swatch" style="background: var(--surface-sunken); color: var(--text-secondary);">
               <span class="audit__swatch-name">surface-sunken</span>
               <span class="audit__swatch-on">secondary text</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ──────── CVD & CHART PALETTE TOKENS ──────── -->
+        <section class="audit__section" data-audit-group="cvd-palettes">
+          <p class="audit__section-label">chart &amp; CVD series tokens</p>
+          <div class="audit__swatch-grid">
+            <div
+              v-for="item in chartTokenSwatches"
+              :key="item.token"
+              class="audit__chart-chip"
+            >
+              <span
+                class="audit__chart-dot"
+                :style="{ background: `var(${item.token})` }"
+                aria-hidden="true"
+              />
+              <div class="audit__chart-meta">
+                <span class="audit__swatch-name">{{ item.token }}</span>
+                <span class="audit__chart-sub">{{ item.label }}</span>
+              </div>
             </div>
           </div>
         </section>
@@ -231,7 +364,7 @@ const themes = [
         <section class="audit__section" data-audit-group="forms">
           <p class="audit__section-label">form controls</p>
           <div class="audit__form-row">
-            <label class="audit__label" for="audit-input-{{ theme.id }}">Text input</label>
+            <label class="audit__label" :for="`audit-input-${theme.id}`">Text input</label>
             <input
               :id="`audit-input-${theme.id}`"
               type="text"
@@ -255,25 +388,67 @@ const themes = [
           <div class="audit__footer-frame">
             <TuxFooter
               tagline=""
-              :columns="[
-                { heading: 'State Resources', links: [
-                  { label: 'The State of Texas',         href: '#' },
-                  { label: 'Texas Veterans Portal',      href: '#' },
-                ]},
-                { heading: 'Policies', links: [
-                  { label: 'Site Policies', href: '#' },
-                  { label: 'Open Records', href: '#' },
-                ]},
-              ]"
-              :social="[
-                { icon: 'lucide:linkedin', label: 'LinkedIn', href: '#' },
-                { icon: 'lucide:facebook', label: 'Facebook', href: '#' },
-              ]"
+              :columns="auditFooterColumns"
+              :social="auditFooterSocial"
             />
           </div>
         </section>
       </section>
     </div>
+
+    <!-- ──────── CVD CATEGORICAL PALETTE VERIFICATION MATRIX ──────── -->
+    <section class="audit__cvd-matrix" aria-label="Color Vision Deficiency Categorical Palettes">
+      <div class="audit__cvd-header">
+        <p class="eyebrow">vision accessibility</p>
+        <h2 class="heading--bold text-xl font-bold">CVD Categorical Palette Matrix (Light vs. Dark / Soft-Dark)</h2>
+        <p class="audit__intro">
+          All five categorical telemetry ramps defined in <code>useTuxVisionPrefs</code>
+          (<code>--chart-1..8</code> and <code>--chart-cvd-1..8</code>), paired with
+          high-contrast surface cutouts and geometric markers for triple-channel redundancy.
+        </p>
+      </div>
+
+      <div class="audit__cvd-grid">
+        <div
+          v-for="mode in cvdMatrixModes"
+          :key="mode.id"
+          class="audit__cvd-card"
+        >
+          <div class="audit__cvd-card-head">
+            <p class="audit__theme-label">{{ mode.label }}</p>
+            <p class="audit__theme-id">{{ mode.tag }}</p>
+          </div>
+
+          <div class="audit__cvd-ramp-group">
+            <p class="audit__section-label">Light surface (#FAF8F5)</p>
+            <div class="audit__cvd-swatches audit__cvd-swatches--light">
+              <div
+                v-for="(hex, idx) in mode.light"
+                :key="`light-${mode.id}-${idx}`"
+                class="audit__cvd-stop"
+              >
+                <span class="audit__cvd-bar" :style="{ backgroundColor: hex }" />
+                <span class="audit__cvd-hex">{{ hex }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="audit__cvd-ramp-group">
+            <p class="audit__section-label">Dark &amp; Soft-Dark surface (#161A22)</p>
+            <div class="audit__cvd-swatches audit__cvd-swatches--dark">
+              <div
+                v-for="(hex, idx) in mode.dark"
+                :key="`dark-${mode.id}-${idx}`"
+                class="audit__cvd-stop audit__cvd-stop--dark"
+              >
+                <span class="audit__cvd-bar" :style="{ backgroundColor: hex }" />
+                <span class="audit__cvd-hex audit__cvd-hex--dark">{{ hex }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -293,7 +468,7 @@ const themes = [
 
 .audit__intro {
   margin: 0.75rem 0 0;
-  max-width: 50rem;
+  max-width: 54rem;
   font-size: 0.875rem;
   color: var(--text-secondary);
   line-height: 1.55;
@@ -307,17 +482,23 @@ const themes = [
   border-radius: var(--radius-sm);
 }
 
-/* The three theme columns. Each <section> sets its own data-theme,
-   and CSS vars resolve to that theme's definitions for everything
-   inside it. */
+/* The four theme columns. Each <section> sets its own data-theme
+   (plus optional data-theme-variant="soft"), and CSS vars resolve
+   to that theme's definitions for everything inside it. */
 .audit__columns {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
   align-items: stretch;
 }
 
-@media (max-width: 80rem) {
+@media (max-width: 96rem) {
+  .audit__columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 56rem) {
   .audit__columns {
     grid-template-columns: 1fr;
   }
@@ -329,6 +510,7 @@ const themes = [
   background: var(--surface-page);
   color: var(--text-primary);
   border-right: 1px solid var(--surface-border);
+  border-bottom: 1px solid var(--surface-border);
   padding: 1.25rem 1.25rem 3rem;
 }
 
@@ -525,5 +707,119 @@ const themes = [
   border-radius: var(--radius-sm);
   overflow: hidden;
   font-size: 0.75rem;
+}
+
+/* Chart & CVD series token chips inside audited columns */
+.audit__chart-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4375rem 0.625rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+}
+
+.audit__chart-dot {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  border: 1px solid var(--surface-border);
+}
+
+.audit__chart-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.audit__chart-sub {
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+}
+
+/* CVD Categorical Palette Verification Matrix */
+.audit__cvd-matrix {
+  padding: 2rem;
+  background: var(--surface-page);
+  border-top: 2px solid var(--surface-border);
+}
+
+.audit__cvd-header {
+  margin-bottom: 1.5rem;
+}
+
+.audit__cvd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+  gap: 1rem;
+}
+
+.audit__cvd-card {
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.audit__cvd-card-head {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.audit__cvd-ramp-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.audit__cvd-swatches {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.375rem;
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-border);
+}
+
+.audit__cvd-swatches--light {
+  background: #faf8f5;
+}
+
+.audit__cvd-swatches--dark {
+  background: #161a22;
+}
+
+.audit__cvd-stop {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+}
+
+.audit__cvd-bar {
+  display: block;
+  height: 1.25rem;
+  border-radius: 0.1875rem;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.audit__cvd-stop--dark .audit__cvd-bar {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.audit__cvd-hex {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #1f1c1c;
+}
+
+.audit__cvd-hex--dark {
+  color: #e6edf3;
 }
 </style>

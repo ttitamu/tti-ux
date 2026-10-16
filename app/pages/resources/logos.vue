@@ -226,7 +226,7 @@ const squareMarks: LogoItem[] = [
               :src="`/resources/logos/${item.file}`"
               :alt="item.name"
               class="max-h-14 max-w-full object-contain"
-            />
+            >
           </div>
 
           <!-- Metadata & Actions -->
@@ -315,7 +315,7 @@ const squareMarks: LogoItem[] = [
               :src="`/resources/logos/${item.file}`"
               :alt="item.name"
               class="max-h-16 max-w-16 object-contain"
-            />
+            >
           </div>
 
           <div class="p-3 flex-1 flex flex-col justify-between space-y-2">

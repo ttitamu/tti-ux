@@ -3,6 +3,63 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.2.1] — 2026-10-16
+
+### Fixed — Breadcrumb Hierarchy Overhaul, Defensive CSS Truncation & Header Flex Resilience (2026-10-16)
+
+Patch release resolving breadcrumb navigation anomalies, circular/duplicate links, 404 targets, and container query min-content header collapse inside flexbox rows across Vue 3 and React 19.
+
+#### 1. Breadcrumb Hierarchy & Routing Overhaul
+- **Architecture Decision Records (`/docs/[...slug]`)**: Eliminated duplicate `/docs/adr` intermediate hops, linked "Docs" root to `/docs`, mapped ADR index to `Home > Docs > ADRs`, and shortened leaf ADR crumbs to clean canonical tokens (e.g. `Home > Docs > ADRs > ADR-0012` instead of 100+ character H1 strings).
+- **Doc Folder Verification**: Added route resolution checks before rendering intermediate guide and audit crumb links, preventing 404 targets on non-index directories.
+- **Example Pages**: Fixed `/examples/landscape-dashboard` removing literal `/research` path string and self-referencing links in favor of `Home > Compositions > Landscape Dashboard`. Shortened long session labels in `/examples/tti-ai-studio-session`.
+- **Foundations & Contrast Audit**: Fixed unreachable `/contrast-audit` crumb branch in `app.vue`, mapping correctly to `Home > Foundations > Contrast Audit (WCAG AAA)`. Corrected `/components/health` leaf label from generic `Health` to `Component Health`.
+- **Visualizations & Telemetry**: Added active query parameter links (`/visualizations?cat=<id>`) to category intermediate crumbs, removing dead anchor elements.
+- **Design Docs & Desk**: Shortened design doc leaf titles (e.g. `Unification plan` instead of `Unification plan — one suite, one system`) and added 36-character defensive truncation on dynamic `/p/[slug]` titles.
+
+#### 2. Defensive CSS & Cross-Framework Parity
+- **Defensive Truncation in Vue & React**: Added `max-width: min(32rem, 100%)`, `overflow: hidden`, and `text-overflow: ellipsis` to `.tux-breadcrumbs__current` and `max-width: min(20rem, 100%)` to `.tux-breadcrumbs__link`. Removed duplicate `white-space: nowrap !important;` overrides that inhibited text wrapping and boundary constraints.
+- **Title Tooltips**: Added `:title` / `title` attributes on all crumb items in `TuxBreadcrumbs.vue` and `TuxBreadcrumbs.tsx`, ensuring truncated labels reveal full text on mouse hover while preserving screen reader accessible text.
+- **Intermediate Text Fallbacks**: Added `.tux-breadcrumbs__intermediate-text` rendering for intermediate crumbs without `to` or `href`, preventing empty `<a>` tags.
+
+#### 3. Flex Container Query Header Resilience
+- **Page Header Width Constraint**: Added `width: 100%;` to `.tux-page-header` in `TuxPageHeader.vue`, preventing container query `inline-size` flex items with `word-break: break-word` from collapsing into a 1-character vertical column.
+- **Component Health Layout**: Added `class="flex-1 min-w-0 w-full"` to `<TuxPageHeader>` in `app/pages/components/health.vue` ensuring fluid flex-item expansion alongside action buttons.
+
+## [3.2.0] — 2026-10-16
+
+### Added & Changed — Zero-Warning Quality Gates, Cross-Framework Parity & Soft-Dark AAA Calibration (2026-10-16)
+
+Major quality, synchronization, and compliance release delivering zero-error TypeScript and zero-warning ESLint enforcement, full cross-framework component parity across Vue 3 and React 19, Universal Sync Engine refactoring across all 11 targets, 100% WCAG 2.2 Level AAA calibration for the anti-halation soft-dark theme, comprehensive 4-column contrast and CVD palette audits, upgraded modern dependencies, and hardened continuous integration quality gates.
+
+#### 1. Track 1 — Typecheck & Lint Zero Architecture
+- **Complete TypeScript Remediation**: Resolved all 200 TypeScript compilation errors across 30 files (`app/components/`, `app/composables/`, `app/utils/`, and `tests/`), achieving 100% clean typecheck without loose `any` casts.
+- **Zero ESLint Warnings**: Resolved all 262 ESLint warnings across the entire repository to establish a permanent `0 errors, 0 warnings` baseline.
+- **Headless DOM Resilience**: Added defensive guards to `TuxAccordion.vue` to ensure `scrollIntoView` safely no-ops in headless, SSR, or simulated jsdom test environments.
+- **Enforced CI Quality Gate**: Promoted `typecheck` to a non-negotiable blocking gate in `.github/workflows/audit-contrast.yml`.
+
+#### 2. Track 2 — Dependencies & Security Hardening
+- **Tiptap Ecosystem Unification**: Upgraded and aligned all 19 `@tiptap/*` rich text editor extensions to `^3.32.0`.
+- **Core Tooling & Runtime Upgrades**: Upgraded `katex` to `^0.19.0`, `@nuxt/devtools` to `^3.4.3`, and `puppeteer` to `^25.14.0`.
+- **Supply Chain Overrides**: Locked `brace-expansion` to `^5.0.12` and `esbuild` to `^0.28.2` via root workspace npm overrides, maintaining 0 Critical / 0 High security vulnerabilities.
+- **Framework Alignment**: Aligned Nuxt 4.6.2, Vue 3.5.44, React 19.3.1, and Vitest 4.1.12 across root and workspace packages.
+
+#### 3. Track 3 — Anti-Halation Soft-Dark AAA Calibration & Contrast Matrix
+- **100% WCAG 2.2 AAA Compliant Soft Dark Theme**: Re-engineered `tti-soft-dark` (`[data-theme="tti-dark"][data-theme-variant="soft"]`) tokens in `globals.css` and `packages/react/src/styles.css`. Raised `--text-secondary` to `#C2CCD6` ($9.54:1$ on `#1F2430`), `--text-muted` to `#A6B2BF` ($7.20:1$ on `#1F2430`), and `--brand-primary` to `#74BDCA` ($7.26:1$), eliminating contrast halation while exceeding the strict AAA threshold ($7.0:1$).
+- **Scoped Tailwind Variable Bindings**: Bound `--color-surface-*` and `--color-text-*` CSS custom properties for soft-dark mode, enabling full visual fidelity inside scoped card and column containers.
+- **Expanded 4-Column Contrast Audit**: Updated `/contrast-audit` (`app/pages/contrast-audit.vue`) and `scripts/audit-contrast.mjs` to render and crawl a 4th dedicated column for `tti-soft-dark` alongside `tti`, `tti-dark`, and `tti-hc`.
+- **CVD Categorical Palette Matrix**: Integrated a 5-mode matrix (`brand`, `okabe-ito`, `deutan-protan`, `tritan`, `monochrome`) into `/contrast-audit` validating all colorblind ramps on light (`#FAF8F5`) and dark/soft-dark (`#161A22`) backgrounds.
+
+#### 4. Track 3 — Cross-Framework React Ports & Universal Sync Engine
+- **Universal Sync Engine Fix (`scripts/sync-engine.mjs`)**: Refactored `parseVue`, `emitReact`, and language emitters across all 11 target languages, resolving non-intrinsic tags and invalid default destructuring, reducing `@tti/tti-ux-react` build errors from 1,431 to 0. Corrected `isHandcraftedReact` guard to prevent overwriting handcrafted ports during sync.
+- **`<TuxChartPatternsDefs>` React Port**: Shipped native React port (`TuxChartPatternsDefs.tsx`) providing 7 dual-line high-contrast SVG texture patterns (`diag-right`, `diag-left`, `dots`, `crosshatch`, `horizontal`, `vertical`, `diamonds`) with custom prefix support.
+- **`<TuxHeroCanvasSol>` React Port**: Shipped dedicated Sol celestial / computing cluster hero stage (`TuxHeroCanvasSol.tsx` + `tux-hero-canvas-sol.css`) with interactive physics, accessible play/pause control ($\ge 44\text{px}$ target), seamless atmospheric bottom dissolve, and `prefers-reduced-motion` detection.
+- **`<TuxVisionPreferencesModal>` React Port**: Shipped accessible settings modal (`TuxVisionPreferencesModal.tsx`) with 5 CVD modes, 5 real-time SVG simulation filters, and astigmatism comfort toggles.
+- **Test Invariants & Port Manifest**: Added dedicated Vitest suites for all new components in `@tti/tti-ux-react` (29 files, 97 passing tests) and `tests/components/` (228 files passing). Synchronized `kit/ports/manifest.json`, `kit/ports/QUEUE.md`, and `app/utils/tuxHealthCatalog.ts`.
+
+#### 5. CI Pipeline Hardening
+- **Multi-Package CI Verification**: Hardened `.github/workflows/audit-contrast.yml` with 9 automated blocking checks, adding `@tti/tti-ux-react` unit tests, React build verification, ADR-0013 status palette checks, automated WCAG 2.2 AAA checks, and port manifest census validation.
+
 ## [3.1.0] — 2026-10-08
 
 ### Added & Changed — Universal CVD, Multi-Channel Redundancy & Vision Accessibility (2026-10-08)

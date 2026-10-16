@@ -4,14 +4,13 @@
  * offering color vision deficiency (CVD) modes, real-time SVG filter simulation,
  * multi-channel chart redundancy controls, and anti-halation astigmatism comfort.
  */
-import { computed } from "vue";
 import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
 
 interface Props {
   open?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   open: false,
 });
 

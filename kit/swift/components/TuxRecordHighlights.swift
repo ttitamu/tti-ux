@@ -5,9 +5,9 @@ import SwiftUI
 
 public struct TuxRecordHighlights<Content: View>: View {
     public var title: String
-    public var eyebrow: String = "undefined"
-    public var icon: String = "undefined"
-    public var items: String = "()"
+    public var eyebrow: String
+    public var icon: String
+    public var items: String
     private let content: Content
 
     public init(

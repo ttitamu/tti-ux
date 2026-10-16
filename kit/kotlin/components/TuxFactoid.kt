@@ -12,11 +12,11 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxFactoid(
     items: String,
-    variant: String = default,
-    columns: String = 3,
-    eyebrow: String = "undefined",
-    title: String = "undefined",
-    dek: String = "undefined",
+    variant: String = "default",
+    columns: Int = 3,
+    eyebrow: String,
+    title: String,
+    dek: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

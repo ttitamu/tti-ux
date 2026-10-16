@@ -7,14 +7,14 @@ namespace Tti\Tux\Components;
 
 final class TuxMapEmbed
 {
-    public string $src = 'undefined';
-    public string $eyebrow = 'undefined';
-    public string $title = 'undefined';
-    public string $subtitle = 'undefined';
-    public string $source = 'undefined';
-    public string $aspect = 16/9;
-    public int $height = undefined;
-    public string $iframeTitle = 'undefined';
+    public string $src;
+    public string $eyebrow;
+    public string $title;
+    public string $subtitle;
+    public string $source;
+    public string $aspect = '16/9';
+    public int $height;
+    public string $iframeTitle;
     public bool $attribution = true;
     public bool $skeleton = true;
 

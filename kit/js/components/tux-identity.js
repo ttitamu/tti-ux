@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxIdentity(props = {}, children = '') {
-  const el = document.createElement('component');
+  const el = document.createElement('div');
   el.className = 'tux-identity';
   if (typeof children === 'string') {
     el.innerHTML = children;

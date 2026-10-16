@@ -5,21 +5,21 @@ import SwiftUI
 
 public struct TuxDataTable<Content: View>: View {
     public var columns: String
-    public var rows: String = "()"
-    public var groups: String = "()"
+    public var rows: String
+    public var groups: String
     public var rowKey: String = "id"
     public var tableNumber: String
     public var caption: String
     public var description: String
-    public var sortKey: String = "undefined"
-    public var sortDir: String = undefined
+    public var sortKey: String
+    public var sortDir: String
     public var sticky: Bool = false
     public var maxHeight: String = "20rem"
-    public var density: String = comfortable
+    public var density: String = "comfortable"
     public var banded: Bool = true
-    public var footnotes: String = "()"
+    public var footnotes: String
     public var source: String
-    public var totals: String = "undefined"
+    public var totals: String
     private let content: Content
 
     public init(

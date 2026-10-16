@@ -8,7 +8,7 @@ from typing import Optional
 @dataclass
 class TuxFeedback:
     page_id: str = None
-    title: str = "Was"
+    title: str = None
     endpoint: str = "/api/feedback"
     allow_details: bool = true
 

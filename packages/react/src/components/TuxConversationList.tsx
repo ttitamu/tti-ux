@@ -5,14 +5,14 @@
 import React from 'react';
 
 export interface TuxConversationListProps {
-  groups?: string;
-  activeId??: "string" | "null";
+  groups: string;
+  activeId?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxConversationList: React.FC<TuxConversationListProps> = ({
-  groups, activeId = null, children, className = ''
+  groups, activeId, children, className = ''
 }) => {
   return (
     <nav className={`tux-conversation-list ${className}`.trim()}>

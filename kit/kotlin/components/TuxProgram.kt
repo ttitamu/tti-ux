@@ -12,12 +12,12 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxProgram(
     name: String,
-    eyebrow: String = "undefined",
-    summary: String = "undefined",
-    hero: String = "undefined",
-    leads: String = "undefined",
-    funders: String = "undefined",
-    metrics: String = "undefined",
+    eyebrow: String,
+    summary: String,
+    hero: String,
+    leads: String,
+    funders: String,
+    metrics: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

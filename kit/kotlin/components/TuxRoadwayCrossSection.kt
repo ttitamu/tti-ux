@@ -11,12 +11,12 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxRoadwayCrossSection(
-    preset: String = urban-managed,
-    initialView: String = 3d-perspective,
+    preset: String = "urban-managed",
+    initialView: String = "3d-perspective",
     height: String = "560px",
     interactive: Boolean = true,
-    initialPitch: Int = 0,
-    initialYaw: Int = 0,
+    initialPitch: Int = 48,
+    initialYaw: Int = -16,
     content: @Composable () -> Unit = {}
 ) {
     Row(

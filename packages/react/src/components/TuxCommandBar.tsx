@@ -5,15 +5,15 @@
 import React from 'react';
 
 export interface TuxCommandBarProps {
-  selectedCount??: number;
-  density??: "compact" | "comfortable";
-  bordered??: boolean;
+  selectedCount?: number;
+  density?: "compact" | "comfortable";
+  bordered?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxCommandBar: React.FC<TuxCommandBarProps> = ({
-  selectedCount = 0, density = compact, bordered = true, children, className = ''
+  selectedCount = 0, density = "compact", bordered = true, children, className = ''
 }) => {
   return (
     <div className={`tux-command-bar ${className}`.trim()}>

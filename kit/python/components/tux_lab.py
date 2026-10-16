@@ -8,14 +8,14 @@ from typing import Optional
 @dataclass
 class TuxLab:
     name: str = None
-    summary: str = "undefined"
-    logo: str = "undefined"
-    projects_count: int = undefined
-    people_count: int = undefined
-    location: str = "undefined"
-    leaders: str = "undefined"
-    focus: str = "undefined"
-    to: str = "undefined"
+    summary: str = None
+    logo: str = None
+    projects_count: int = None
+    people_count: int = None
+    location: str = None
+    leaders: str = None
+    focus: str = None
+    to: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<article class="tux-lab">{content}</article>'

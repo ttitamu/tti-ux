@@ -4,14 +4,14 @@
 import SwiftUI
 
 public struct TuxCorridorStrip<Content: View>: View {
-    public var name: String = "undefined"
+    public var name: String
     public var fromMile: Int
     public var toMile: Int
-    public var segments: String = "undefined"
-    public var events: String = "undefined"
-    public var values: String = "undefined"
-    public var valuesLabel: String = "undefined"
-    public var direction: String = "undefined"
+    public var segments: String
+    public var events: String
+    public var values: String
+    public var valuesLabel: String
+    public var direction: String
     public var width: Int = 800
     public var height: Int = 140
     public var tickEvery: Int = 5

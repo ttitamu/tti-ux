@@ -4,7 +4,7 @@
 import SwiftUI
 
 public struct TuxPageContainer<Content: View>: View {
-    public var width: String = default
+    public var width: String = "default"
     public var flush: Bool = false
     public var as: String = "div"
     private let content: Content

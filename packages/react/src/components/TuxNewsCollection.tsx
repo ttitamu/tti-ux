@@ -5,16 +5,16 @@
 import React from 'react';
 
 export interface TuxNewsCollectionProps {
-  items?: string;
-  layout??: "stacked" | "grid";
-  columns??: "2" | "3";
-  readMore??: string;
+  items: string;
+  layout?: "stacked" | "grid";
+  columns?: number;
+  readMore?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxNewsCollection: React.FC<TuxNewsCollectionProps> = ({
-  items, layout = stacked, columns = 3, readMore = "Read", children, className = ''
+  items, layout = "stacked", columns = 3, readMore, children, className = ''
 }) => {
   return (
     <ul className={`tux-news-collection ${className}`.trim()}>

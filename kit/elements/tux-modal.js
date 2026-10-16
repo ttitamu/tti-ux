@@ -30,9 +30,9 @@ export class TuxModalElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <UModal class="tux-modal">
+      <div class="tux-modal">
         <slot></slot>
-      </UModal>
+      </div>
     `;
   }
 }

@@ -8,9 +8,9 @@ from typing import Optional
 @dataclass
 class TuxVizGrid:
     cols: str = "2"
-    eyebrow: str = "undefined"
-    title: str = "undefined"
-    dek: str = "undefined"
+    eyebrow: str = None
+    title: str = None
+    dek: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-viz-grid">{content}</section>'

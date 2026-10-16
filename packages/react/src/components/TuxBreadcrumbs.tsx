@@ -74,13 +74,14 @@ export const TuxBreadcrumbs = forwardRef<HTMLElement, TuxBreadcrumbsProps>(
                 )}
 
                 {isLast ? (
-                  <span aria-current="page" className="tux-breadcrumbs__current">
+                  <span aria-current="page" className="tux-breadcrumbs__current" title={crumb.label}>
                     {crumb.label}
                   </span>
                 ) : isFirst ? (
                   <a
                     href={targetUrl ?? "/"}
                     className="tux-breadcrumbs__home"
+                    title={crumb.label}
                   >
                     {homeIcon && (
                       <svg
@@ -99,13 +100,21 @@ export const TuxBreadcrumbs = forwardRef<HTMLElement, TuxBreadcrumbsProps>(
                     )}
                     <span>{crumb.label}</span>
                   </a>
-                ) : (
+                ) : targetUrl ? (
                   <a
                     href={targetUrl}
                     className="tux-breadcrumbs__link"
+                    title={crumb.label}
                   >
                     {crumb.label}
                   </a>
+                ) : (
+                  <span
+                    className="tux-breadcrumbs__intermediate-text"
+                    title={crumb.label}
+                  >
+                    {crumb.label}
+                  </span>
                 )}
               </li>
             );

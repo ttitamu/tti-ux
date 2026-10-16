@@ -226,7 +226,7 @@ const gridStyle = computed(() => moduleGridStyle(props.payload));
     <!-- CTA -->
     <div v-else-if="view.kind === 'cta'" class="my-8">
       <TuxCTA
-        :title="view.payload.title"
+        :title="view.payload.title || ''"
         :dek="view.payload.body"
         tone="maroon"
       >

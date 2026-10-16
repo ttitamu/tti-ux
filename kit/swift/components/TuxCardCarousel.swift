@@ -4,15 +4,15 @@
 import SwiftUI
 
 public struct TuxCardCarousel<Content: View>: View {
-    public var items: String = "undefined"
-    public var eyebrow: String = "undefined"
-    public var title: String = "undefined"
+    public var items: String
+    public var eyebrow: String
+    public var title: String
     public var bare: Bool = false
     public var arrows: Bool = true
     public var dots: Bool = false
     public var loop: Bool = false
     public var slidesToScroll: Int = 1
-    public var align: String = start
+    public var align: String = "start"
     public var gap: String = "1rem"
     public var ariaLabel: String = "Carousel"
     private let content: Content

@@ -5,17 +5,17 @@
 import React from 'react';
 
 export interface TuxAcknowledgmentsProps {
-  funding??: string;
-  acknowledgments??: string;
-  conflicts??: string;
-  ethics??: string;
-  level??: "2" | "3" | "4" | "5";
+  funding?: string;
+  acknowledgments?: string;
+  conflicts?: string;
+  ethics?: string;
+  level?: number;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxAcknowledgments: React.FC<TuxAcknowledgmentsProps> = ({
-  funding = "undefined", acknowledgments = "undefined", conflicts = "undefined", ethics = "undefined", level = 4, children, className = ''
+  funding, acknowledgments, conflicts, ethics, level = 4, children, className = ''
 }) => {
   return (
     <section className={`tux-acknowledgments ${className}`.trim()}>

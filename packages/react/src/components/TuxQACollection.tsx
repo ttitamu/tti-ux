@@ -5,14 +5,14 @@
 import React from 'react';
 
 export interface TuxQACollectionProps {
-  items?: string;
-  variant??: "default" | "bold" | "elegant";
+  items: string;
+  variant?: "default" | "bold" | "elegant";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxQACollection: React.FC<TuxQACollectionProps> = ({
-  items, variant = default, children, className = ''
+  items, variant = "default", children, className = ''
 }) => {
   return (
     <ol className={`tux-qacollection ${className}`.trim()}>

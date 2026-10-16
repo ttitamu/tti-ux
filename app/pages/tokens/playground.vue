@@ -163,11 +163,13 @@ function applyPreset(p: Preset) {
 
 // Initialize with TTI Kadence preset
 onMounted(() => {
-  applyPreset(presets[0]);
+  if (presets[0]) applyPreset(presets[0]);
   try {
     const stored = localStorage.getItem("tux-token-ideas");
     if (stored) savedIdeas.value = JSON.parse(stored);
-  } catch (_) {}
+  } catch {
+    // ignore storage errors
+  }
 });
 
 // Generated Code Snippets
@@ -254,7 +256,9 @@ async function copyToClipboard(text: string, key: string) {
     setTimeout(() => {
       if (copiedKey.value === key) copiedKey.value = null;
     }, 2000);
-  } catch (_) {}
+  } catch {
+    // ignore clipboard errors
+  }
 }
 
 // Open Forgejo Modal
@@ -313,7 +317,9 @@ function saveLocalIdea() {
   savedIdeas.value.unshift(newIdea);
   try {
     localStorage.setItem("tux-token-ideas", JSON.stringify(savedIdeas.value.slice(0, 10)));
-  } catch (_) {}
+  } catch {
+    // ignore storage errors
+  }
   copiedKey.value = "idea-saved";
   setTimeout(() => {
     if (copiedKey.value === "idea-saved") copiedKey.value = null;
@@ -352,7 +358,7 @@ function saveLocalIdea() {
           intent="secondary"
           size="sm"
           icon="lucide:refresh-cw"
-          @click="applyPreset(presets[0])"
+          @click="presets[0] && applyPreset(presets[0])"
         >
           Reset to Comm Parity
         </TuxButton>
@@ -500,7 +506,7 @@ function saveLocalIdea() {
               aria-label="Custom primary color"
               class="w-8 h-8 rounded border border-surface-border cursor-pointer bg-transparent"
               title="Custom primary color"
-            />
+            >
           </div>
         </div>
 
@@ -532,7 +538,7 @@ function saveLocalIdea() {
               aria-label="Custom accent color"
               class="w-8 h-8 rounded border border-surface-border cursor-pointer bg-transparent"
               title="Custom accent color"
-            />
+            >
           </div>
         </div>
 
@@ -697,7 +703,7 @@ function saveLocalIdea() {
                     borderRadius: `${radius}px`,
                     borderColor: 'var(--surface-border, #ccc)',
                   }"
-                />
+                >
               </div>
 
               <div>
@@ -725,7 +731,7 @@ function saveLocalIdea() {
                   v-model="sampleCheckbox"
                   type="checkbox"
                   class="cursor-pointer accent-[var(--brand-primary)]"
-                />
+                >
                 <span>Include Executive Briefing</span>
               </label>
 
@@ -735,7 +741,7 @@ function saveLocalIdea() {
                   type="checkbox"
                   role="switch"
                   class="cursor-pointer accent-[var(--brand-primary)]"
-                />
+                >
                 <span>Peer-Review Complete</span>
               </label>
             </div>
@@ -963,7 +969,7 @@ function saveLocalIdea() {
               v-model="issueTitle"
               type="text"
               class="w-full text-xs font-mono px-3 py-2 rounded-lg bg-surface-sunken border border-surface-border text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
-            />
+            >
           </div>
 
           <div>

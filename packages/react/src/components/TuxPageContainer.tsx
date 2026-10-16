@@ -5,20 +5,20 @@
 import React from 'react';
 
 export interface TuxPageContainerProps {
-  width??: "default" | "wide" | "prose";
-  flush??: boolean;
-  as??: string;
+  width?: "default" | "wide" | "prose";
+  flush?: boolean;
+  as?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxPageContainer: React.FC<TuxPageContainerProps> = ({
-  width = default, flush = false, as = "div", children, className = ''
+  width = "default", flush = false, as = "div", children, className = ''
 }) => {
   return (
-    <component className={`tux-page-container ${className}`.trim()}>
+    <div className={`tux-page-container ${className}`.trim()}>
       {children}
-    </component>
+    </div>
   );
 };
 

@@ -7,8 +7,8 @@ from typing import Optional
 
 @dataclass
 class TuxAppFrame:
-    title: str = "undefined"
-    eyebrow: str = "undefined"
+    title: str = None
+    eyebrow: str = None
     use_system_accent: bool = false
     unified_toolbar: bool = true
     force_chrome: bool = false

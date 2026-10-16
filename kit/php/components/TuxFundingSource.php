@@ -8,12 +8,12 @@ namespace Tti\Tux\Components;
 final class TuxFundingSource
 {
     public string $funder;
-    public string $abbrev = 'undefined';
-    public string $logo = 'undefined';
-    public string $grant = 'undefined';
-    public string $to = 'undefined';
-    public string $size = md;
-    public string $layout = inline;
+    public string $abbrev;
+    public string $logo;
+    public string $grant;
+    public string $to;
+    public string $size = 'md';
+    public string $layout = 'inline';
 
     public function __construct(array $attributes = [])
     {
@@ -27,7 +27,7 @@ final class TuxFundingSource
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<component class="tux-funding-source">%s</component>',
+            '<div class="tux-funding-source">%s</div>',
             $content
         );
     }

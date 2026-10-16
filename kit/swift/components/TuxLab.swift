@@ -5,14 +5,14 @@ import SwiftUI
 
 public struct TuxLab<Content: View>: View {
     public var name: String
-    public var summary: String = "undefined"
-    public var logo: String = "undefined"
-    public var projectsCount: Int = undefined
-    public var peopleCount: Int = undefined
-    public var location: String = "undefined"
-    public var leaders: String = "undefined"
-    public var focus: String = "undefined"
-    public var to: String = "undefined"
+    public var summary: String
+    public var logo: String
+    public var projectsCount: Int
+    public var peopleCount: Int
+    public var location: String
+    public var leaders: String
+    public var focus: String
+    public var to: String
     private let content: Content
 
     public init(

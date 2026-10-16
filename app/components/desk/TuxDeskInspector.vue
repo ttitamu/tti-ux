@@ -243,7 +243,7 @@ function onMetaFieldChange(field: keyof PageMeta, val: any) {
                 ]"
                 :title="`Column ${c}${c >= colStart && c <= colEnd ? ' (Active)' : ''}`"
                 @click="onColumnCellClick(c)"
-                @mouseenter="activeGridHighlight && (activeGridHighlight.value = { start: colStart, end: colEnd })"
+                @mouseenter="activeGridHighlight = { start: colStart, end: colEnd }"
               >
                 {{ c }}
               </button>
@@ -390,7 +390,7 @@ function onMetaFieldChange(field: keyof PageMeta, val: any) {
               :aria-label="field.label"
               class="w-full px-2.5 py-1.5 rounded-md bg-surface-sunken border border-surface-border focus:border-brand-primary outline-none text-text-primary text-xs"
               @input="updateField(field.key, ($event.target as HTMLInputElement).value)"
-            />
+            >
           </div>
         </div>
       </div>
@@ -443,7 +443,7 @@ function onMetaFieldChange(field: keyof PageMeta, val: any) {
             placeholder="e.g. Connected Corridors Program"
             class="w-full px-2.5 py-1.5 rounded-md bg-surface-sunken border border-surface-border focus:border-brand-primary outline-none text-text-primary text-xs"
             @input="onMetaFieldChange('title', ($event.target as HTMLInputElement).value)"
-          />
+          >
         </div>
 
         <div class="space-y-1">
@@ -458,7 +458,7 @@ function onMetaFieldChange(field: keyof PageMeta, val: any) {
               placeholder="connected-corridors"
               class="w-full px-2 py-1 rounded-md bg-surface-sunken border border-surface-border focus:border-brand-primary outline-none text-text-primary font-mono text-xs"
               @input="onMetaFieldChange('slug', ($event.target as HTMLInputElement).value)"
-            />
+            >
           </div>
         </div>
 

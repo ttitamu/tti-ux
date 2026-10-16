@@ -10,10 +10,10 @@ final class TuxLoadMore
     public int $loaded;
     public int $total;
     public bool $loading = false;
-    public string $noun = 'undefined';
-    public string $nounPlural = 'undefined';
-    public string $label = 'Load';
-    public string $terminalLabel = 'All';
+    public string $noun;
+    public string $nounPlural;
+    public string $label;
+    public string $terminalLabel;
 
     public function __construct(array $attributes = [])
     {

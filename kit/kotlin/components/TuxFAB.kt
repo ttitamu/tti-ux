@@ -13,9 +13,9 @@ import androidx.compose.ui.unit.dp
 fun TuxFAB(
     icon: String,
     extended: Boolean = false,
-    size: String = md,
-    side: String = right,
-    ariaLabel: String = "undefined",
+    size: String = "md",
+    side: String = "right",
+    ariaLabel: String,
     disabled: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {

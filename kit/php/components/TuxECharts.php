@@ -10,7 +10,7 @@ final class TuxECharts
     public string $options;
     public string $height = '380px';
     public string $width = '100%';
-    public string $ariaTitle = 'Interactive';
+    public string $ariaTitle;
     public string $ariaSummary;
     public string $extensions;
     public string $maps;

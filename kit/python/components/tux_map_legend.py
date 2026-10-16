@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxMapLegend:
-    title: str = "undefined"
-    eyebrow: str = "undefined"
-    entries: str = "undefined"
-    layout: str = stacked
-    gradient: str = "undefined"
+    title: str = None
+    eyebrow: str = None
+    entries: str = None
+    layout: str = "stacked"
+    gradient: str = None
     min_label: str = None
     max_label: str = None
     css: str = None

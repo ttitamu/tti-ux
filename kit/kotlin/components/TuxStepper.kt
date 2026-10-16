@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 fun TuxStepper(
     steps: String,
     currentIndex: Int = 0,
-    orientation: String = horizontal,
+    orientation: String = "horizontal",
     showDescriptions: Boolean = true,
     ariaLabel: String = "Progress",
     content: @Composable () -> Unit = {}

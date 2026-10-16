@@ -12,9 +12,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxSidebarBlock(
     title: String,
-    eyebrow: String = "undefined",
-    icon: String = "undefined",
-    variant: String = default,
+    eyebrow: String,
+    icon: String,
+    variant: String = "default",
     content: @Composable () -> Unit = {}
 ) {
     Row(

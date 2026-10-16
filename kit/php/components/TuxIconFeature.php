@@ -8,8 +8,8 @@ namespace Tti\Tux\Components;
 final class TuxIconFeature
 {
     public string $items;
-    public string $layout = grid;
-    public string $columns = 3;
+    public string $layout = 'grid';
+    public int $columns = 3;
 
     public function __construct(array $attributes = [])
     {

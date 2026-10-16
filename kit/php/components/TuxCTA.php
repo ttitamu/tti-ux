@@ -7,11 +7,11 @@ namespace Tti\Tux\Components;
 
 final class TuxCTA
 {
-    public string $eyebrow = null;
+    public string $eyebrow;
     public string $title;
-    public string $dek = null;
-    public string $tone = maroon;
-    public string $variant = default;
+    public string $dek;
+    public string $tone = 'maroon';
+    public string $variant = 'default';
 
     public function __construct(array $attributes = [])
     {

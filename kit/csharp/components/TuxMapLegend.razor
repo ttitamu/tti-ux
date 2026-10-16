@@ -9,11 +9,11 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Title { get; set; } = "undefined";
-    [Parameter] public string Eyebrow { get; set; } = "undefined";
-    [Parameter] public string Entries { get; set; } = "undefined";
-    [Parameter] public string Layout { get; set; } = stacked;
-    [Parameter] public string Gradient { get; set; } = "undefined";
+    [Parameter] public string Title { get; set; };
+    [Parameter] public string Eyebrow { get; set; };
+    [Parameter] public string Entries { get; set; };
+    [Parameter] public string Layout { get; set; } = "stacked";
+    [Parameter] public string Gradient { get; set; };
     [Parameter] public string MinLabel { get; set; };
     [Parameter] public string MaxLabel { get; set; };
     [Parameter] public string Css { get; set; };

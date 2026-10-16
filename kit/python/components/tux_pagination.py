@@ -14,7 +14,7 @@ class TuxPagination:
     boundary_count: int = 1
     show_status: bool = false
     noun: str = "result"
-    plural_noun: str = "undefined"
+    plural_noun: str = None
     aria_label: str = "Pagination"
 
     def render_html(self, content: str = "") -> str:

@@ -5,17 +5,17 @@
 import React from 'react';
 
 export interface TuxBlockquoteProps {
-  quote?: string;
-  attribution??: "string" | "null";
-  role??: "string" | "null";
-  layout??: "centered" | "drop-cap";
-  variant??: "default" | "bold" | "elegant";
+  quote: string;
+  attribution?: string;
+  role?: string;
+  layout?: "centered" | "drop-cap";
+  variant?: "default" | "bold" | "elegant";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxBlockquote: React.FC<TuxBlockquoteProps> = ({
-  quote, attribution = null, role = null, layout = centered, variant = default, children, className = ''
+  quote, attribution, role, layout = "centered", variant = "default", children, className = ''
 }) => {
   return (
     <figure className={`tux-blockquote ${className}`.trim()}>

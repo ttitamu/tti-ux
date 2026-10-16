@@ -12,9 +12,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxPhotoGrid(
     items: String,
-    kind: String = photo,
-    columns: String = 3,
-    aspect: String = undefined,
+    kind: String = "photo",
+    columns: Int = 3,
+    aspect: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

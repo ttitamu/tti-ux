@@ -8,10 +8,10 @@ namespace Tti\Tux\Components;
 final class TuxAppSwitcher
 {
     public string $apps;
-    public string $ariaLabel = 'Switch';
-    public string $heading = 'TTI';
-    public string $footerText = 'undefined';
-    public string $presentation = popover;
+    public string $ariaLabel;
+    public string $heading;
+    public string $footerText;
+    public string $presentation = 'popover';
 
     public function __construct(array $attributes = [])
     {
@@ -25,7 +25,7 @@ final class TuxAppSwitcher
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<UPopover class="tux-app-switcher">%s</UPopover>',
+            '<div class="tux-app-switcher">%s</div>',
             $content
         );
     }

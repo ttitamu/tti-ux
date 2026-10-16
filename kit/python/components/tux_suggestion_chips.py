@@ -8,8 +8,8 @@ from typing import Optional
 @dataclass
 class TuxSuggestionChips:
     items: str = None
-    label: str = "undefined"
-    aria_label: str = "undefined"
+    label: str = None
+    aria_label: str = None
     no_arrow: bool = false
 
     def render_html(self, content: str = "") -> str:

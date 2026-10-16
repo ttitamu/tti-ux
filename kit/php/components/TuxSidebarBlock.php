@@ -8,9 +8,9 @@ namespace Tti\Tux\Components;
 final class TuxSidebarBlock
 {
     public string $title;
-    public string $eyebrow = 'undefined';
-    public string $icon = 'undefined';
-    public string $variant = default;
+    public string $eyebrow;
+    public string $icon;
+    public string $variant = 'default';
 
     public function __construct(array $attributes = [])
     {

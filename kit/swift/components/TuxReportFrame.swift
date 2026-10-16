@@ -7,8 +7,8 @@ public struct TuxReportFrame<Content: View>: View {
     public var size: String = "letter"
     public var density: String = "editorial"
     public var breakAfter: Bool = false
-    public var title: String = "undefined"
-    public var eyebrow: String = "undefined"
+    public var title: String
+    public var eyebrow: String
     private let content: Content
 
     public init(

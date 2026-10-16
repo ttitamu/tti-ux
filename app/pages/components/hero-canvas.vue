@@ -7,8 +7,8 @@
 
 useHead({ title: "TuxHeroCanvas · TUX" });
 
-const activeVariant = ref("corridor");
-const activeBlend = ref("seamless");
+const activeVariant = ref<"wash" | "corridor" | "network" | "sol" | "constellation">("corridor");
+const activeBlend = ref<"seamless" | "contained" | "full-bleed">("seamless");
 const interactive = ref(true);
 const showControls = ref(true);
 

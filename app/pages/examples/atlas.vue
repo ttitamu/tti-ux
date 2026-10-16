@@ -186,6 +186,25 @@ const policyFindings = [
     lastScanned: "1 hour ago",
   },
 ];
+
+const atlasFooterColumns = [
+  {
+    heading: "Atlas Security Operations",
+    links: [
+      { label: "Security Operations Center", href: "#" },
+      { label: "TTI Information Security", href: "https://tti.tamu.edu/" },
+      { label: "Incident Reporting Hotline", href: "#" },
+    ],
+  },
+  {
+    heading: "State Compliance",
+    links: [
+      { label: "Texas DIR StateRAMP", href: "https://dir.texas.gov/" },
+      { label: "NIST Computer Security Resource Center", href: "https://csrc.nist.gov/" },
+      { label: "Open Records Policy", href: "https://tti.tamu.edu/notices-policies/open-records-policy/" },
+    ],
+  },
+];
 </script>
 
 <template>
@@ -324,24 +343,7 @@ const policyFindings = [
 
     <!-- Institutional Footer -->
     <TuxFooter
-      :columns="[
-        {
-          heading: 'Atlas Security Operations',
-          links: [
-            { label: 'Security Operations Center', href: '#' },
-            { label: 'TTI Information Security', href: 'https://tti.tamu.edu/' },
-            { label: 'Incident Reporting Hotline', href: '#' },
-          ]
-        },
-        {
-          heading: 'State Compliance',
-          links: [
-            { label: 'Texas DIR StateRAMP', href: 'https://dir.texas.gov/' },
-            { label: 'NIST Computer Security Resource Center', href: 'https://csrc.nist.gov/' },
-            { label: 'Open Records Policy', href: 'https://tti.tamu.edu/notices-policies/open-records-policy/' },
-          ]
-        }
-      ]"
+      :columns="atlasFooterColumns"
       copyright-text="© 2026 Texas A&M Transportation Institute · Atlas Governance Engine"
       copyright-href="https://tti.tamu.edu/notices-policies/copyright-statement/"
     />

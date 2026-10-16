@@ -4,14 +4,14 @@
 import SwiftUI
 
 public struct TuxMapEmbed<Content: View>: View {
-    public var src: String = "undefined"
-    public var eyebrow: String = "undefined"
-    public var title: String = "undefined"
-    public var subtitle: String = "undefined"
-    public var source: String = "undefined"
-    public var aspect: String = 16/9
-    public var height: Int = undefined
-    public var iframeTitle: String = "undefined"
+    public var src: String
+    public var eyebrow: String
+    public var title: String
+    public var subtitle: String
+    public var source: String
+    public var aspect: String = "16/9"
+    public var height: Int
+    public var iframeTitle: String
     public var attribution: Bool = true
     public var skeleton: Bool = true
     private let content: Content

@@ -30,9 +30,9 @@ export class TuxCardElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <NuxtLink class="tux-card">
+      <div class="tux-card">
         <slot></slot>
-      </NuxtLink>
+      </div>
     `;
   }
 }

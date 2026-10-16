@@ -12,6 +12,11 @@ final class TuxChartLine
     public int $width = 640;
     public int $height = 280;
     public bool $markers = false;
+    public bool $distinctMarkers = true;
+    public int $markerRadius = 3.5;
+    public string $palette = 'brand';
+    public int $strokeWidth = 2;
+    public bool $patterns = false;
     public bool $endLabels = true;
     public bool $legend = false;
     public bool $gridlines = true;

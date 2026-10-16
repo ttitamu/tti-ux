@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxDiagram(
     code: String,
-    caption: String = "undefined",
-    eyebrow: String = "undefined",
+    caption: String,
+    eyebrow: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

@@ -12,15 +12,17 @@ final class TuxChartScatter
     public string $yLabel = 'y';
     public int $width = 640;
     public int $height = 320;
+    public string $palette = 'brand';
+    public bool $distinctMarkers = true;
     public bool $trendline = false;
     public bool $legend = true;
     public bool $gridlines = true;
     public int $xTicks = 6;
     public int $yTicks = 5;
-    public string $format = '(n:';
+    public string $format;
     public int $decimals = 2;
-    public string $ariaSummary = 'undefined';
-    public string $units = 'undefined';
+    public string $ariaSummary;
+    public string $units;
     public bool $tooltip = true;
 
     public function __construct(array $attributes = [])

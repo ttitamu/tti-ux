@@ -5,8 +5,8 @@
 import React from 'react';
 
 export interface TuxActivityTimelineProps {
-  items?: string;
-  dense??: boolean;
+  items: string;
+  dense?: boolean;
   children?: React.ReactNode;
   className?: string;
 }

@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxPopover(
-    title: String = "undefined",
-    body: String = "undefined",
-    mode: String = click,
-    side: String = bottom,
+    title: String,
+    body: String,
+    mode: String = "click",
+    side: String = "bottom",
     arrow: Boolean = true,
     disabled: Boolean = false,
-    width: String = md,
+    width: String = "md",
     content: @Composable () -> Unit = {}
 ) {
     Row(

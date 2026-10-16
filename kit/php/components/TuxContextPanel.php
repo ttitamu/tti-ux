@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxContextPanel
 {
-    public string $width = 320;
+    public string $width = '320';
 
     public function __construct(array $attributes = [])
     {

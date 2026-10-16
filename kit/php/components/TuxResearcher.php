@@ -9,15 +9,15 @@ final class TuxResearcher
 {
     public string $name;
     public string $role;
-    public string $portrait = 'undefined';
-    public string $center = 'undefined';
-    public string $orcid = 'undefined';
-    public string $email = 'undefined';
-    public string $bio = 'undefined';
-    public string $projects = 'undefined';
-    public string $metrics = 'undefined';
-    public string $layout = default;
-    public string $to = 'undefined';
+    public string $portrait;
+    public string $center;
+    public string $orcid;
+    public string $email;
+    public string $bio;
+    public string $projects;
+    public string $metrics;
+    public string $layout = 'default';
+    public string $to;
 
     public function __construct(array $attributes = [])
     {

@@ -7,12 +7,12 @@ namespace Tti\Tux\Components;
 
 final class TuxSpectrumRibbon
 {
-    public string $size = sm;
-    public string $orientation = horizontal;
+    public string $size = 'sm';
+    public string $orientation = 'horizontal';
     public bool $showLabels = false;
     public bool $rounded = false;
-    public string $ariaLabel = 'TTI';
-    public string $bands = '()';
+    public string $ariaLabel;
+    public string $bands;
 
     public function __construct(array $attributes = [])
     {

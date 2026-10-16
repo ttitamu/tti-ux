@@ -63,7 +63,7 @@ const snippet = computed(() => {
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Division Labels</label>
             <label class="inline-flex items-center gap-2 text-xs font-medium text-text-primary cursor-pointer">
-              <input v-model="showLabels" type="checkbox" class="accent-brand-primary" />
+              <input v-model="showLabels" type="checkbox" class="accent-brand-primary" >
               <span>Show Division Names (lg/xl)</span>
             </label>
           </div>
@@ -71,7 +71,7 @@ const snippet = computed(() => {
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Border Geometry</label>
             <label class="inline-flex items-center gap-2 text-xs font-medium text-text-primary cursor-pointer">
-              <input v-model="rounded" type="checkbox" class="accent-brand-primary" />
+              <input v-model="rounded" type="checkbox" class="accent-brand-primary" >
               <span>Rounded Corners (rounded-md)</span>
             </label>
           </div>

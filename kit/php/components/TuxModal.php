@@ -8,10 +8,10 @@ namespace Tti\Tux\Components;
 final class TuxModal
 {
     public bool $open = false;
-    public string $title = 'undefined';
-    public string $eyebrow = 'undefined';
-    public string $size = undefined;
-    public string $variant = standard;
+    public string $title;
+    public string $eyebrow;
+    public string $size;
+    public string $variant = 'standard';
 
     public function __construct(array $attributes = [])
     {
@@ -25,7 +25,7 @@ final class TuxModal
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<UModal class="tux-modal">%s</UModal>',
+            '<div class="tux-modal">%s</div>',
             $content
         );
     }

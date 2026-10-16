@@ -5,24 +5,24 @@
 import React from 'react';
 
 export interface TuxIdentityProps {
-  name?: string;
-  superhead??: "string" | "null";
-  level??: "institution" | "center" | "department";
-  orientation??: "horizontal" | "stacked";
-  kind??: "lockup" | "text";
-  href??: "string" | "null";
-  logoSize??: number;
+  name: string;
+  superhead?: string;
+  level?: "institution" | "center" | "department";
+  orientation?: "horizontal" | "stacked";
+  kind?: "lockup" | "text";
+  href?: string;
+  logoSize?: number;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxIdentity: React.FC<TuxIdentityProps> = ({
-  name, superhead = null, level = institution, orientation = horizontal, kind = lockup, href = null, logoSize = 0, children, className = ''
+  name, superhead, level = "institution", orientation = "horizontal", kind = "lockup", href, logoSize = 0, children, className = ''
 }) => {
   return (
-    <component className={`tux-identity ${className}`.trim()}>
+    <div className={`tux-identity ${className}`.trim()}>
       {children}
-    </component>
+    </div>
   );
 };
 

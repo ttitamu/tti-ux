@@ -5,14 +5,14 @@ import SwiftUI
 
 public struct TuxUserMenu<Content: View>: View {
     public var state: String
-    public var identity: String = "undefined"
-    public var signInHref: String = "undefined"
-    public var signInLabel: String = "Sign"
-    public var items: String = "()"
-    public var prefs: String = "()"
+    public var identity: String
+    public var signInHref: String
+    public var signInLabel: String
+    public var items: String
+    public var prefs: String
     public var showSignOut: Bool = true
-    public var placement: String = cluster
-    public var statusLine: String = "undefined"
+    public var placement: String = "cluster"
+    public var statusLine: String
     private let content: Content
 
     public init(

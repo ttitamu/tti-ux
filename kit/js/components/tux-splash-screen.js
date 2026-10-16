@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxSplashScreen(props = {}, children = '') {
-  const el = document.createElement('Transition');
+  const el = document.createElement('div');
   el.className = 'tux-splash-screen';
   if (typeof children === 'string') {
     el.innerHTML = children;

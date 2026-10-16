@@ -130,8 +130,8 @@ const composerDraft = ref("");
     <TuxBreadcrumbs
       :trail="[
         { label: 'Home',         to: '/' },
-        { label: 'Sessions',     to: '#' },
-        { label: 'Compare CLS-204 vs CLS-211 on grant subset' },
+        { label: 'Compositions', to: '/examples' },
+        { label: 'Compare CLS-204 vs CLS-211' },
       ]"
     />
 

@@ -10,11 +10,11 @@
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public bool Stale { get; set; } = false;
-    [Parameter] public string VerifiedUntil { get; set; } = undefined;
-    [Parameter] public string LastVerified { get; set; } = undefined;
+    [Parameter] public string VerifiedUntil { get; set; };
+    [Parameter] public string LastVerified { get; set; };
     [Parameter] public int ReviewCadenceDays { get; set; } = 90;
-    [Parameter] public string Owner { get; set; } = "undefined";
-    [Parameter] public string PageId { get; set; } = "undefined";
+    [Parameter] public string Owner { get; set; };
+    [Parameter] public string PageId { get; set; };
     [Parameter] public bool Dismissable { get; set; } = true;
     [Parameter] public bool ShowVerifiedBadge { get; set; } = false;
 }

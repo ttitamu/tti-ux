@@ -5,7 +5,7 @@ import SwiftUI
 
 public struct TuxConversationList<Content: View>: View {
     public var groups: String
-    public var activeId: String = null
+    public var activeId: String
     private let content: Content
 
     public init(

@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxAlert(props = {}, children = '') {
-  const el = document.createElement('UAlert');
+  const el = document.createElement('div');
   el.className = 'tux-alert';
   if (typeof children === 'string') {
     el.innerHTML = children;

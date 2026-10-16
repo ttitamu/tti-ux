@@ -8,7 +8,7 @@ from typing import Optional
 @dataclass
 class TuxCommandPalette:
     groups: str = None
-    placeholder: str = "Type"
+    placeholder: str = None
     disable_hotkey: bool = false
     hotkey: str = "k"
     show_tabs: bool = true

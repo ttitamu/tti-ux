@@ -12,11 +12,11 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxIdentity(
     name: String,
-    superhead: String = null,
-    level: String = institution,
-    orientation: String = horizontal,
-    kind: String = lockup,
-    href: String = null,
+    superhead: String,
+    level: String = "institution",
+    orientation: String = "horizontal",
+    kind: String = "lockup",
+    href: String,
     logoSize: Int = 0,
     content: @Composable () -> Unit = {}
 ) {

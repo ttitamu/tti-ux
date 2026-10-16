@@ -5,8 +5,8 @@ import SwiftUI
 
 public struct TuxFocusView<Content: View>: View {
     public var open: Bool = false
-    public var title: String = "undefined"
-    public var eyebrow: String = "undefined"
+    public var title: String
+    public var eyebrow: String
     public var dismissOnBackdropClick: Bool = true
     public var dismissOnEscape: Bool = true
     public var backLabel: String = "Close"

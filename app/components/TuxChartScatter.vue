@@ -123,7 +123,7 @@ const { prefs: visionPrefs } = useTuxVisionPrefs();
 function getSeriesMarker(index: number): TuxChartMarkerShape {
   const useDistinct = props.distinctMarkers ?? visionPrefs.value.distinctMarkers;
   if (!useDistinct) return "circle";
-  return TUX_SERIES_MARKERS[index % TUX_SERIES_MARKERS.length];
+  return TUX_SERIES_MARKERS[index % TUX_SERIES_MARKERS.length] ?? "circle";
 }
 
 function getMarkerPath(cx: number, cy: number, shape: TuxChartMarkerShape, r: number): string {

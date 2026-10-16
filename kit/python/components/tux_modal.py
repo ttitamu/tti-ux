@@ -8,10 +8,10 @@ from typing import Optional
 @dataclass
 class TuxModal:
     open: bool = false
-    title: str = "undefined"
-    eyebrow: str = "undefined"
-    size: str = undefined
-    variant: str = standard
+    title: str = None
+    eyebrow: str = None
+    size: str = None
+    variant: str = "standard"
 
     def render_html(self, content: str = "") -> str:
-        return f'<UModal class="tux-modal">{content}</UModal>'
+        return f'<div class="tux-modal">{content}</div>'

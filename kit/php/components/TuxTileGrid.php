@@ -7,11 +7,11 @@ namespace Tti\Tux\Components;
 
 final class TuxTileGrid
 {
-    public string $title = 'Safety';
+    public string $title;
     public string $subtitle;
-    public string $tiles = '()';
-    public string $columns = 3;
-    public string $surface = eggshell;
+    public string $tiles;
+    public int $columns = 3;
+    public string $surface = 'eggshell';
 
     public function __construct(array $attributes = [])
     {

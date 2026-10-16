@@ -5,15 +5,15 @@
 import React from 'react';
 
 export interface TuxDiagramProps {
-  code?: string;
-  caption??: string;
-  eyebrow??: string;
+  code: string;
+  caption?: string;
+  eyebrow?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxDiagram: React.FC<TuxDiagramProps> = ({
-  code, caption = "undefined", eyebrow = "undefined", children, className = ''
+  code, caption, eyebrow, children, className = ''
 }) => {
   return (
     <figure className={`tux-diagram ${className}`.trim()}>

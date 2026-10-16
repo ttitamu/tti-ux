@@ -8,12 +8,12 @@ from typing import Optional
 @dataclass
 class TuxReactiveSidebar:
     sections: str = None
-    all_sections: str = "undefined"
+    all_sections: str = None
     collapsed: bool = false
-    active_area_title: str = "Workspace"
+    active_area_title: str = None
     active_area_icon: str = "lucide:layers"
     search: bool = true
-    search_placeholder: str = "Filter"
+    search_placeholder: str = None
     show_all: bool = false
     default_expanded: bool = false
     exclusive: bool = false

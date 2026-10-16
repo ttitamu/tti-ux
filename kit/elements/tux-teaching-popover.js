@@ -30,9 +30,9 @@ export class TuxTeachingPopoverElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <Teleport class="tux-teaching-popover">
+      <div class="tux-teaching-popover">
         <slot></slot>
-      </Teleport>
+      </div>
     `;
   }
 }

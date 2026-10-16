@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxCommandPalette(
     groups: String,
-    placeholder: String = "Type",
+    placeholder: String,
     disableHotkey: Boolean = false,
     hotkey: String = "k",
     showTabs: Boolean = true,

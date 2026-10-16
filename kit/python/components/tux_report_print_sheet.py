@@ -7,7 +7,7 @@ from typing import Optional
 
 @dataclass
 class TuxReportPrintSheet:
-    size: str = letter
+    size: str = "letter"
     margin: str = "0.6in"
 
     def render_html(self, content: str = "") -> str:

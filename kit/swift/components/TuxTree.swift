@@ -5,8 +5,8 @@ import SwiftUI
 
 public struct TuxTree<Content: View>: View {
     public var items: String
-    public var defaultExpanded: String = "undefined"
-    public var storageKey: String = "undefined"
+    public var defaultExpanded: String
+    public var storageKey: String
     public var showGuides: Bool = true
     public var ariaLabel: String = "Tree"
     private let content: Content

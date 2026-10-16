@@ -30,9 +30,9 @@ export class TuxSplashScreenElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <Transition class="tux-splash-screen">
+      <div class="tux-splash-screen">
         <slot></slot>
-      </Transition>
+      </div>
     `;
   }
 }

@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxSlideover
 {
-    public string $side = right;
-    public string $size = 'undefined';
-    public string $title = 'undefined';
-    public string $eyebrow = 'undefined';
+    public string $side = 'right';
+    public string $size;
+    public string $title;
+    public string $eyebrow;
     public bool $showClose = true;
     public bool $closeOnBackdrop = true;
 

@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxKbd
 {
-    public string $value = 'undefined';
-    public string $keys = 'undefined';
-    public string $size = sm;
+    public string $value;
+    public string $keys;
+    public string $size = 'sm';
     public string $separator;
 
     public function __construct(array $attributes = [])

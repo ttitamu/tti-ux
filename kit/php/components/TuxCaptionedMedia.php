@@ -7,14 +7,14 @@ namespace Tti\Tux\Components;
 
 final class TuxCaptionedMedia
 {
-    public string $src = 'undefined';
+    public string $src;
     public string $alt;
-    public string $caption = 'undefined';
-    public string $credit = 'undefined';
-    public string $eyebrow = 'undefined';
-    public string $aspect = 16/9;
-    public string $align = full;
-    public string $tone = maroon;
+    public string $caption;
+    public string $credit;
+    public string $eyebrow;
+    public string $aspect = '16/9';
+    public string $align = 'full';
+    public string $tone = 'maroon';
 
     public function __construct(array $attributes = [])
     {

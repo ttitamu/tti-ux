@@ -9,10 +9,10 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Side { get; set; } = right;
-    [Parameter] public string Size { get; set; } = "undefined";
-    [Parameter] public string Title { get; set; } = "undefined";
-    [Parameter] public string Eyebrow { get; set; } = "undefined";
+    [Parameter] public string Side { get; set; } = "right";
+    [Parameter] public string Size { get; set; };
+    [Parameter] public string Title { get; set; };
+    [Parameter] public string Eyebrow { get; set; };
     [Parameter] public bool ShowClose { get; set; } = true;
     [Parameter] public bool CloseOnBackdrop { get; set; } = true;
 }

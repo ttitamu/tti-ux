@@ -9,13 +9,13 @@ from typing import Optional
 class TuxConfirmDialog:
     open: bool = false
     title: str = None
-    eyebrow: str = "undefined"
-    confirm_label: str = "undefined"
+    eyebrow: str = None
+    confirm_label: str = None
     cancel_label: str = "Cancel"
-    variant: str = destructive
+    variant: str = "destructive"
     confirm_disabled: bool = false
     loading: bool = false
-    size: str = sm
+    size: str = "sm"
 
     def render_html(self, content: str = "") -> str:
-        return f'<TuxModal class="tux-confirm-dialog">{content}</TuxModal>'
+        return f'<div class="tux-confirm-dialog">{content}</div>'

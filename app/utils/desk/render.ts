@@ -1,5 +1,5 @@
 import type { JSONContent } from "@tiptap/core";
-import { generateHTML, generateJSON } from "@tiptap/html";
+import { generateHTML } from "@tiptap/html";
 import sanitizeHtml from "sanitize-html";
 import { isSafeHttpUrl } from "./embed";
 import { deskRenderExtensions } from "./extensions";
@@ -183,7 +183,7 @@ export function sanitizeDeskHtml(html: string): string {
         if (src.startsWith("/api/media/") || allowedSrc(src)) {
           return { tagName, attribs: { ...attribs, controls: "true" } };
         }
-        return { tagName, attribs: "span" };
+        return { tagName: "span", attribs: {} };
       },
       iframe: (tagName, attribs) => {
         const src = attribs.src || "";
@@ -197,8 +197,6 @@ export function sanitizeDeskHtml(html: string): string {
     },
   });
 }
-
-const SAFE_HREF = /^(https?:\/\/|\/|#|mailto:)/i;
 
 export function renderSimpleMarkdown(source: string): string {
   const lines = source.replaceAll("\r\n", "\n").split("\n");

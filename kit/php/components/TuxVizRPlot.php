@@ -10,12 +10,12 @@ final class TuxVizRPlot
     public string $src;
     public string $kind = 'image';
     public string $title;
-    public string $eyebrow = 'undefined';
+    public string $eyebrow;
     public string $ratio = '16/10';
     public string $alt;
-    public string $src2x = 'undefined';
-    public string $source = 'undefined';
-    public string $level = 3;
+    public string $src2x;
+    public string $source;
+    public int $level = 3;
 
     public function __construct(array $attributes = [])
     {

@@ -8,11 +8,11 @@ from typing import Optional
 @dataclass
 class TuxFocusView:
     open: bool = false
-    title: str = "undefined"
-    eyebrow: str = "undefined"
+    title: str = None
+    eyebrow: str = None
     dismiss_on_backdrop_click: bool = true
     dismiss_on_escape: bool = true
     back_label: str = "Close"
 
     def render_html(self, content: str = "") -> str:
-        return f'<Teleport class="tux-focus-view">{content}</Teleport>'
+        return f'<div class="tux-focus-view">{content}</div>'

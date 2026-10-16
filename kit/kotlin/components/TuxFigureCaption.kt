@@ -13,9 +13,9 @@ import androidx.compose.ui.unit.dp
 fun TuxFigureCaption(
     label: String = "Figure",
     number: String,
-    caption: String = "undefined",
-    source: String = "undefined",
-    placement: String = below,
+    caption: String,
+    source: String,
+    placement: String = "below",
     content: @Composable () -> Unit = {}
 ) {
     Row(

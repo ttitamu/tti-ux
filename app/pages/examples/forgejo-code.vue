@@ -197,7 +197,7 @@ async function copyCloneUrl() {
                 readonly
                 aria-label="Repository Git clone URL"
                 class="px-2.5 py-1.5 text-xs font-mono bg-surface-raised border border-surface-border text-text-primary w-52 sm:w-64 truncate focus:outline-none"
-              />
+              >
               <button
                 type="button"
                 class="px-2.5 py-1.5 text-xs font-bold font-mono bg-brand-primary text-text-inverse hover:bg-brand-primary-deep transition-colors cursor-pointer border border-l-0 border-brand-primary"

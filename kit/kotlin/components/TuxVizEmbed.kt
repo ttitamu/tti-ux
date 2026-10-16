@@ -14,12 +14,12 @@ fun TuxVizEmbed(
     src: String,
     provider: String = "generic",
     title: String,
-    eyebrow: String = "undefined",
+    eyebrow: String,
     ratio: String = "16/9",
-    sandbox: String = "undefined",
+    sandbox: String,
     referrerpolicy: String = "strict-origin-when-cross-origin",
     openInNew: Boolean = true,
-    posterSrc: String = "undefined",
+    posterSrc: String,
     posterAlt: String,
     content: @Composable () -> Unit = {}
 ) {

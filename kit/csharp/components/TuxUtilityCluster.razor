@@ -9,12 +9,14 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Current { get; set; } = "undefined";
+    [Parameter] public string Current { get; set; };
     [Parameter] public bool SignedIn { get; set; } = false;
-    [Parameter] public string Entitled { get; set; } = "undefined";
+    [Parameter] public string Entitled { get; set; };
     [Parameter] public bool HideSwitcher { get; set; } = false;
     [Parameter] public bool HideTheme { get; set; } = false;
-    [Parameter] public string UserMenu { get; set; } = "undefined";
+    [Parameter] public bool HideHighContrast { get; set; } = false;
+    [Parameter] public bool HideVisionPrefs { get; set; } = false;
+    [Parameter] public string UserMenu { get; set; };
     [Parameter] public string State { get; set; };
     [Parameter] public string Identity { get; set; };
     [Parameter] public string SignInHref { get; set; };

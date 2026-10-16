@@ -49,6 +49,7 @@ import TuxChartGeographic from "../../../app/components/TuxChartGeographic.vue";
 import TuxChartHeatmap from "../../../app/components/TuxChartHeatmap.vue";
 import TuxChartHistogram from "../../../app/components/TuxChartHistogram.vue";
 import TuxChartLine from "../../../app/components/TuxChartLine.vue";
+import TuxChartPatternsDefs from "../../../app/components/TuxChartPatternsDefs.vue";
 import TuxChartScatter from "../../../app/components/TuxChartScatter.vue";
 import TuxChartSunburst from "../../../app/components/TuxChartSunburst.vue";
 import TuxChatBubble from "../../../app/components/TuxChatBubble.vue";
@@ -180,6 +181,7 @@ import TuxTreemap from "../../../app/components/TuxTreemap.vue";
 import TuxUserMenu from "../../../app/components/TuxUserMenu.vue";
 import TuxUtilityCluster from "../../../app/components/TuxUtilityCluster.vue";
 import TuxValidationSummary from "../../../app/components/TuxValidationSummary.vue";
+import TuxVisionPreferencesModal from "../../../app/components/TuxVisionPreferencesModal.vue";
 import TuxVizEmbed from "../../../app/components/TuxVizEmbed.vue";
 import TuxVizGrid from "../../../app/components/TuxVizGrid.vue";
 import TuxVizRPlot from "../../../app/components/TuxVizRPlot.vue";
@@ -613,6 +615,16 @@ export const TuxChartLineElement = defineCustomElement(TuxChartLine, {
 });
 if (typeof customElements !== "undefined" && !customElements.get("tux-chart-line")) {
   customElements.define("tux-chart-line", TuxChartLineElement);
+}
+
+export const TuxChartPatternsDefsElement = defineCustomElement(TuxChartPatternsDefs, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-chart-patterns-defs")) {
+  customElements.define("tux-chart-patterns-defs", TuxChartPatternsDefsElement);
 }
 
 export const TuxChartScatterElement = defineCustomElement(TuxChartScatter, {
@@ -1923,6 +1935,16 @@ export const TuxValidationSummaryElement = defineCustomElement(TuxValidationSumm
 });
 if (typeof customElements !== "undefined" && !customElements.get("tux-validation-summary")) {
   customElements.define("tux-validation-summary", TuxValidationSummaryElement);
+}
+
+export const TuxVisionPreferencesModalElement = defineCustomElement(TuxVisionPreferencesModal, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-vision-preferences-modal")) {
+  customElements.define("tux-vision-preferences-modal", TuxVisionPreferencesModalElement);
 }
 
 export const TuxVizEmbedElement = defineCustomElement(TuxVizEmbed, {

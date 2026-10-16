@@ -12,8 +12,8 @@ final class TuxInfiniteScroll
     public bool $loading = false;
     public bool $keyboardFallback = false;
     public string $rootMargin = '200px';
-    public string $noun = 'undefined';
-    public string $nounPlural = 'undefined';
+    public string $noun;
+    public string $nounPlural;
 
     public function __construct(array $attributes = [])
     {

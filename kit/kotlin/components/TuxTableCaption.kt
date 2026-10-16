@@ -13,9 +13,9 @@ import androidx.compose.ui.unit.dp
 fun TuxTableCaption(
     label: String = "Table",
     number: String,
-    caption: String = "undefined",
-    source: String = "undefined",
-    placement: String = above,
+    caption: String,
+    source: String,
+    placement: String = "above",
     content: @Composable () -> Unit = {}
 ) {
     Row(

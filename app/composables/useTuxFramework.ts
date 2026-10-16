@@ -159,8 +159,8 @@ export function useTuxFramework() {
     }
   }
 
-  const currentMeta = computed(() => {
-    return TUX_FRAMEWORKS.find((f) => f.id === framework.value) || TUX_FRAMEWORKS[0];
+  const currentMeta = computed<TuxFrameworkMeta>(() => {
+    return TUX_FRAMEWORKS.find((f) => f.id === framework.value) ?? TUX_FRAMEWORKS[0]!;
   });
 
   return {

@@ -4,11 +4,11 @@
 import SwiftUI
 
 public struct TuxCapabilityCluster<Content: View>: View {
-    public var title: String = "RESEARCH"
-    public var kicker: String = "Research"
-    public var subtitle: String = "Applied"
-    public var capabilities: String = "()"
-    public var columns: String = 3
+    public var title: String
+    public var kicker: String
+    public var subtitle: String
+    public var capabilities: String
+    public var columns: Int = 3
     private let content: Content
 
     public init(

@@ -12,9 +12,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxNewsCollection(
     items: String,
-    layout: String = stacked,
-    columns: String = 3,
-    readMore: String = "Read",
+    layout: String = "stacked",
+    columns: Int = 3,
+    readMore: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

@@ -7,17 +7,17 @@ namespace Tti\Tux\Components;
 
 final class TuxPortalHeader
 {
-    public string $mode = comm;
-    public string $agencyName = 'Texas';
+    public string $mode = 'comm';
+    public string $agencyName;
     public string $agencyUrl = 'https://tti.tamu.edu';
     public string $homeUrl = '/';
     public string $portalTitle;
     public string $portalBadge;
-    public string $portalBadgeVariant = gold;
-    public string $utilityLinks = '()';
+    public string $portalBadgeVariant = 'gold';
+    public string $utilityLinks;
     public bool $showSearch = true;
     public bool $showSpectrumRibbon = false;
-    public string $intranetApps = '()';
+    public string $intranetApps;
 
     public function __construct(array $attributes = [])
     {

@@ -266,7 +266,7 @@ export function sanitizePayload(kind: ModuleKind, raw: unknown): Record<string, 
   if (typeof input._width === "string") {
     const trimmed = input._width.trim();
     const match = trimmed.match(/^(\d{2,3})%$/);
-    if (match) {
+    if (match?.[1]) {
       const num = parseInt(match[1], 10);
       if (num >= 20 && num <= 100) {
         out._width = `${num}%`;
@@ -299,12 +299,12 @@ export function sanitizePayload(kind: ModuleKind, raw: unknown): Record<string, 
   return out;
 }
 
-export interface ModuleGridStyle {
+export type ModuleGridStyle = {
   width: string;
   maxWidth: string;
   marginLeft: string;
   marginRight: string;
-}
+};
 
 export function calcGridColumnFromCoord(
   clientX: number,

@@ -7,8 +7,8 @@ from typing import Optional
 
 @dataclass
 class TuxDocSearch:
-    items: str = "undefined"
-    placeholder: str = "Search"
+    items: str = None
+    placeholder: str = None
     max_results: int = 8
 
     def render_html(self, content: str = "") -> str:

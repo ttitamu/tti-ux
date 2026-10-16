@@ -11,11 +11,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxMapLegend(
-    title: String = "undefined",
-    eyebrow: String = "undefined",
-    entries: String = "undefined",
-    layout: String = stacked,
-    gradient: String = "undefined",
+    title: String,
+    eyebrow: String,
+    entries: String,
+    layout: String = "stacked",
+    gradient: String,
     minLabel: String,
     maxLabel: String,
     css: String,

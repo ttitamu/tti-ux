@@ -7,16 +7,18 @@ namespace Tti\Tux\Components;
 
 final class TuxPlayground
 {
-    public string $tag = 'undefined';
-    public string $componentName = 'undefined';
+    public string $tag;
+    public string $componentName;
     public string $controls;
-    public string $presets = '()';
-    public string $title = 'Interactive';
-    public string $eyebrow = 'Live';
-    public string $slotProp = 'undefined';
-    public string $defaultSlotText = 'undefined';
+    public string $presets;
+    public string $title;
+    public string $eyebrow;
+    public string $slotProp;
+    public string $defaultSlotText;
     public bool $selfClosing = false;
-    public string $codeTemplate = 'undefined';
+    public string $codeTemplate;
+    public string $source;
+    public string $powerbi;
     public string $previewPadding = 'p-8';
     public bool $enableDeepLinking = true;
 

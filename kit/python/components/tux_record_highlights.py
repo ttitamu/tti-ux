@@ -8,9 +8,9 @@ from typing import Optional
 @dataclass
 class TuxRecordHighlights:
     title: str = None
-    eyebrow: str = "undefined"
-    icon: str = "undefined"
-    items: str = "()"
+    eyebrow: str = None
+    icon: str = None
+    items: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-record-highlights">{content}</div>'

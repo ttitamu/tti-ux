@@ -30,9 +30,9 @@ export class TuxCitationExportElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <UDropdownMenu class="tux-citation-export">
+      <div class="tux-citation-export">
         <slot></slot>
-      </UDropdownMenu>
+      </div>
     `;
   }
 }

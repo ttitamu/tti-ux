@@ -19,8 +19,8 @@ fun TuxEventCalendarRow(
     category: String,
     to: String,
     href: String,
-    actionText: String = "View",
-    chipTone: String = green,
+    actionText: String,
+    chipTone: String = "green",
     content: @Composable () -> Unit = {}
 ) {
     Row(

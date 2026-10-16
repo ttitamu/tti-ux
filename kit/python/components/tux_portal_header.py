@@ -7,17 +7,17 @@ from typing import Optional
 
 @dataclass
 class TuxPortalHeader:
-    mode: str = comm
-    agency_name: str = "Texas"
+    mode: str = "comm"
+    agency_name: str = None
     agency_url: str = "https://tti.tamu.edu"
     home_url: str = "/"
     portal_title: str = None
     portal_badge: str = None
-    portal_badge_variant: str = gold
-    utility_links: str = "()"
+    portal_badge_variant: str = "gold"
+    utility_links: str = None
     show_search: bool = true
     show_spectrum_ribbon: bool = false
-    intranet_apps: str = "()"
+    intranet_apps: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<header class="tux-portal-header">{content}</header>'

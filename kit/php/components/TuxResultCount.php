@@ -10,11 +10,11 @@ final class TuxResultCount
     public int $page;
     public int $pageSize;
     public int $total;
-    public string $noun = 'undefined';
-    public string $nounPlural = 'undefined';
-    public string $pageSizeOptions = 'undefined';
+    public string $noun;
+    public string $nounPlural;
+    public string $pageSizeOptions;
     public bool $hideRange = false;
-    public string $pageSizeLabel = 'per';
+    public string $pageSizeLabel;
 
     public function __construct(array $attributes = [])
     {

@@ -8,8 +8,8 @@ namespace Tti\Tux\Components;
 final class TuxFocusView
 {
     public bool $open = false;
-    public string $title = 'undefined';
-    public string $eyebrow = 'undefined';
+    public string $title;
+    public string $eyebrow;
     public bool $dismissOnBackdropClick = true;
     public bool $dismissOnEscape = true;
     public string $backLabel = 'Close';
@@ -26,7 +26,7 @@ final class TuxFocusView
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<Teleport class="tux-focus-view">%s</Teleport>',
+            '<div class="tux-focus-view">%s</div>',
             $content
         );
     }

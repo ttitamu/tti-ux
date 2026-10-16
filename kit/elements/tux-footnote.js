@@ -30,9 +30,9 @@ export class TuxFootnoteElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <UPopover class="tux-footnote">
+      <div class="tux-footnote">
         <slot></slot>
-      </UPopover>
+      </div>
     `;
   }
 }

@@ -8,9 +8,9 @@ namespace Tti\Tux\Components;
 final class TuxTooltip
 {
     public string $text;
-    public string $title = 'undefined';
-    public string $kbds = 'undefined';
-    public string $side = top;
+    public string $title;
+    public string $kbds;
+    public string $side = 'top';
     public bool $arrow = true;
     public bool $disabled = false;
 
@@ -26,7 +26,7 @@ final class TuxTooltip
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<TooltipProvider class="tux-tooltip">%s</TooltipProvider>',
+            '<div class="tux-tooltip">%s</div>',
             $content
         );
     }

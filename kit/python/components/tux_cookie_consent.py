@@ -9,9 +9,9 @@ from typing import Optional
 class TuxCookieConsent:
     storage_key: str = "tux-cookie-consent"
     position: str = "bottom-right"
-    message: str = "We"
+    message: str = None
     privacy_href: str = "/privacy"
     initially_expanded: bool = false
 
     def render_html(self, content: str = "") -> str:
-        return f'<Teleport class="tux-cookie-consent">{content}</Teleport>'
+        return f'<div class="tux-cookie-consent">{content}</div>'

@@ -11,17 +11,17 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxPortalHeader(
-    mode: String = comm,
-    agencyName: String = "Texas",
+    mode: String = "comm",
+    agencyName: String,
     agencyUrl: String = "https://tti.tamu.edu",
     homeUrl: String = "/",
     portalTitle: String,
     portalBadge: String,
-    portalBadgeVariant: String = gold,
-    utilityLinks: String = "()",
+    portalBadgeVariant: String = "gold",
+    utilityLinks: String,
     showSearch: Boolean = true,
     showSpectrumRibbon: Boolean = false,
-    intranetApps: String = "()",
+    intranetApps: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

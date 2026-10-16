@@ -13,16 +13,18 @@ import androidx.compose.ui.unit.dp
 fun TuxChartDonut(
     slices: String,
     size: Int = 280,
+    palette: String = "brand",
+    patterns: Boolean = false,
     thickness: Int = 0.5,
     sliceLabels: Boolean = true,
     legend: Boolean = false,
-    centerLabel: String = "undefined",
-    centerValue: String = undefined,
+    centerLabel: String,
+    centerValue: String,
     minSlice: Int = 3,
-    format: String = "(n:",
+    format: String,
     decimals: Int = 1,
-    ariaSummary: String = "undefined",
-    units: String = "undefined",
+    ariaSummary: String,
+    units: String,
     tooltip: Boolean = true,
     content: @Composable () -> Unit = {}
 ) {

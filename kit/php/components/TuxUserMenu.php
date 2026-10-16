@@ -8,14 +8,14 @@ namespace Tti\Tux\Components;
 final class TuxUserMenu
 {
     public string $state;
-    public string $identity = 'undefined';
-    public string $signInHref = 'undefined';
-    public string $signInLabel = 'Sign';
-    public string $items = '()';
-    public string $prefs = '()';
+    public string $identity;
+    public string $signInHref;
+    public string $signInLabel;
+    public string $items;
+    public string $prefs;
     public bool $showSignOut = true;
-    public string $placement = cluster;
-    public string $statusLine = 'undefined';
+    public string $placement = 'cluster';
+    public string $statusLine;
 
     public function __construct(array $attributes = [])
     {

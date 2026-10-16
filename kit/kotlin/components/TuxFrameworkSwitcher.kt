@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxFrameworkSwitcher(
-    mode: String = compact,
+    mode: String = "compact",
     content: @Composable () -> Unit = {}
 ) {
     Row(

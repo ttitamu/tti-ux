@@ -5,8 +5,8 @@
 import React from 'react';
 
 export interface TuxMenuBarProps {
-  menus?: string;
-  renderOnMac??: boolean;
+  menus: string;
+  renderOnMac?: boolean;
   children?: React.ReactNode;
   className?: string;
 }

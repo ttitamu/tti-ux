@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxTree(
     items: String,
-    defaultExpanded: String = "undefined",
-    storageKey: String = "undefined",
+    defaultExpanded: String,
+    storageKey: String,
     showGuides: Boolean = true,
     ariaLabel: String = "Tree",
     content: @Composable () -> Unit = {}

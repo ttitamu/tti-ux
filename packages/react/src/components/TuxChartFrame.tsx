@@ -5,12 +5,12 @@
 import React from 'react';
 
 export interface TuxChartFrameProps {
-  eyebrow??: string;
-  title??: string;
-  subtitle??: string;
-  source??: string;
-  notes??: string;
-  bare??: boolean;
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
+  source?: string;
+  notes?: string;
+  bare?: boolean;
   children?: React.ReactNode;
   className?: string;
 }

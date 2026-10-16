@@ -10,10 +10,10 @@ class TuxLoadMore:
     loaded: int = None
     total: int = None
     loading: bool = false
-    noun: str = "undefined"
-    noun_plural: str = "undefined"
-    label: str = "Load"
-    terminal_label: str = "All"
+    noun: str = None
+    noun_plural: str = None
+    label: str = None
+    terminal_label: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-load-more">{content}</div>'

@@ -9,10 +9,10 @@ from typing import Optional
 class TuxInlineCitation:
     n: int = None
     title: str = None
-    href: str = "undefined"
-    excerpt: str = "undefined"
-    score: str = undefined
-    label: str = "undefined"
+    href: str = None
+    excerpt: str = None
+    score: str = None
+    label: str = None
 
     def render_html(self, content: str = "") -> str:
-        return f'<UPopover class="tux-inline-citation">{content}</UPopover>'
+        return f'<div class="tux-inline-citation">{content}</div>'

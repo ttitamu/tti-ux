@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxButton(props = {}, children = '') {
-  const el = document.createElement('UButton');
+  const el = document.createElement('div');
   el.className = 'tux-button';
   if (typeof children === 'string') {
     el.innerHTML = children;

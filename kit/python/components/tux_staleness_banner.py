@@ -8,11 +8,11 @@ from typing import Optional
 @dataclass
 class TuxStalenessBanner:
     stale: bool = false
-    verified_until: str = undefined
-    last_verified: str = undefined
+    verified_until: str = None
+    last_verified: str = None
     review_cadence_days: int = 90
-    owner: str = "undefined"
-    page_id: str = "undefined"
+    owner: str = None
+    page_id: str = None
     dismissable: bool = true
     show_verified_badge: bool = false
 

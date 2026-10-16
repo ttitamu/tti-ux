@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxReactionBar(
-    modelValue: String = "()",
-    reactions: String = "()",
-    counts: String = "()",
+    modelValue: String,
+    reactions: String,
+    counts: String,
     size: String,
     content: @Composable () -> Unit = {}
 ) {

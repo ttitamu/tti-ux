@@ -4,13 +4,13 @@
 import SwiftUI
 
 public struct TuxCenterBadge<Content: View>: View {
-    public var center: String = undefined
-    public var label: String = "undefined"
-    public var icon: String = "undefined"
+    public var center: String
+    public var label: String
+    public var icon: String
     public var toneIndex: Int = 2
     public var short: Bool = false
-    public var size: String = md
-    public var layout: String = chip
+    public var size: String = "md"
+    public var layout: String = "chip"
     private let content: Content
 
     public init(

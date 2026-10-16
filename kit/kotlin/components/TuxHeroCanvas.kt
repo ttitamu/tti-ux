@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxHeroCanvas(
-    variant: String = wash,
-    blend: String = seamless,
+    variant: String = "wash",
+    blend: String = "seamless",
     interactive: Boolean = true,
     showControls: Boolean = true,
     minHeight: String = "32rem",

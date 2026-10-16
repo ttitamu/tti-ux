@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxTileGrid:
-    title: str = "Safety"
+    title: str = None
     subtitle: str = None
-    tiles: str = "()"
-    columns: str = 3
-    surface: str = eggshell
+    tiles: str = None
+    columns: int = 3
+    surface: str = "eggshell"
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-tile-grid">{content}</section>'

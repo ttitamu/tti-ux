@@ -5,26 +5,26 @@
 import React from 'react';
 
 export interface TuxCommHeroProps {
-  eyebrow??: string;
-  title?: string;
-  accentTitle??: string;
-  lead??: string;
-  primaryActionText??: string;
-  primaryActionTo??: string;
-  primaryActionHref??: string;
-  secondaryActionText??: string;
-  secondaryActionTo??: string;
-  secondaryActionHref??: string;
-  imageSrc??: string;
-  imageAlt??: string;
-  imageBadge??: string;
-  chamfer??: boolean;
+  eyebrow?: string;
+  title: string;
+  accentTitle?: string;
+  lead?: string;
+  primaryActionText?: string;
+  primaryActionTo?: string;
+  primaryActionHref?: string;
+  secondaryActionText?: string;
+  secondaryActionTo?: string;
+  secondaryActionHref?: string;
+  imageSrc?: string;
+  imageAlt?: string;
+  imageBadge?: string;
+  chamfer?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxCommHero: React.FC<TuxCommHeroProps> = ({
-  eyebrow = "TEXAS", title, accentTitle, lead, primaryActionText, primaryActionTo, primaryActionHref, secondaryActionText, secondaryActionTo, secondaryActionHref, imageSrc, imageAlt = "TTI", imageBadge, chamfer = true, children, className = ''
+  eyebrow, title, accentTitle, lead, primaryActionText, primaryActionTo, primaryActionHref, secondaryActionText, secondaryActionTo, secondaryActionHref, imageSrc, imageAlt, imageBadge, chamfer = true, children, className = ''
 }) => {
   return (
     <section className={`tux-comm-hero ${className}`.trim()}>

@@ -7,14 +7,14 @@ namespace Tti\Tux\Components;
 
 final class TuxCorridorStrip
 {
-    public string $name = 'undefined';
+    public string $name;
     public int $fromMile;
     public int $toMile;
-    public string $segments = 'undefined';
-    public string $events = 'undefined';
-    public string $values = 'undefined';
-    public string $valuesLabel = 'undefined';
-    public string $direction = 'undefined';
+    public string $segments;
+    public string $events;
+    public string $values;
+    public string $valuesLabel;
+    public string $direction;
     public int $width = 800;
     public int $height = 140;
     public int $tickEvery = 5;

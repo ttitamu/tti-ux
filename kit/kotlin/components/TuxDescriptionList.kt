@@ -12,9 +12,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxDescriptionList(
     items: String,
-    layout: String = inline,
-    emphasis: String = editorial,
-    title: String = "undefined",
+    layout: String = "inline",
+    emphasis: String = "editorial",
+    title: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

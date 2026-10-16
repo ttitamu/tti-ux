@@ -11,7 +11,7 @@ interface Props {
   prefix?: string;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   prefix: "tux-pat-",
 });
 </script>

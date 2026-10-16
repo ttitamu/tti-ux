@@ -5,17 +5,17 @@
 import React from 'react';
 
 export interface TuxCapabilityClusterProps {
-  title??: string;
-  kicker??: string;
-  subtitle??: string;
-  capabilities??: string;
-  columns??: "2" | "3" | "4";
+  title?: string;
+  kicker?: string;
+  subtitle?: string;
+  capabilities?: string;
+  columns?: number;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxCapabilityCluster: React.FC<TuxCapabilityClusterProps> = ({
-  title = "RESEARCH", kicker = "Research", subtitle = "Applied", capabilities = "()", columns = 3, children, className = ''
+  title, kicker, subtitle, capabilities, columns = 3, children, className = ''
 }) => {
   return (
     <section className={`tux-capability-cluster ${className}`.trim()}>

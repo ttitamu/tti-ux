@@ -9,9 +9,9 @@ from typing import Optional
 class TuxChatMessage:
     role: str = "user"
     author: str = None
-    timestamp: str = "undefined"
-    meta: str = "undefined"
-    initials: str = "undefined"
+    timestamp: str = None
+    meta: str = None
+    initials: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<article class="tux-chat-message">{content}</article>'

@@ -12,13 +12,13 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxComposer(
     modelValue: String,
-    placeholder: String = "Ask",
-    models: String = "()",
-    modelId: String = "undefined",
+    placeholder: String,
+    models: String,
+    modelId: String,
     maxLength: Int = 32000,
-    hint: String = "⌘↵",
+    hint: String,
     hideAttach: Boolean = false,
-    attachLabel: String = "Attach",
+    attachLabel: String,
     attachIcon: String = "lucide:plus",
     cancelable: Boolean = false,
     cancelLabel: String = "Cancel",

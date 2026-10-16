@@ -7,14 +7,14 @@ public struct TuxSearch<Content: View>: View {
     public var modelValue: String
     public var variant: String = "field"
     public var blockBar: String = "field"
-    public var size: String = regular
+    public var size: String = "regular"
     public var placeholder: String = "Search"
-    public var heading: String = "undefined"
-    public var lede: String = "undefined"
-    public var ariaLabel: String = "undefined"
+    public var heading: String
+    public var lede: String
+    public var ariaLabel: String
     public var actionLabel: String = "Search"
-    public var actionIcon: String = "undefined"
-    public var leadingIcon: String = lucide:search
+    public var actionIcon: String
+    public var leadingIcon: String = "lucide:search"
     public var clearable: Bool = true
     public var loading: Bool = false
     public var disabled: Bool = false

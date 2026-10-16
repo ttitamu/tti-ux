@@ -9,12 +9,12 @@ final class TuxMarkdownEditor
 {
     public string $modelValue;
     public int $rows = 12;
-    public int $minLength = undefined;
-    public int $maxLength = undefined;
-    public string $placeholder = 'Write';
+    public int $minLength;
+    public int $maxLength;
+    public string $placeholder;
     public bool $preview = true;
     public bool $disabled = false;
-    public string $ariaLabel = 'Markdown';
+    public string $ariaLabel;
 
     public function __construct(array $attributes = [])
     {

@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxCodeBlock(
     code: String,
-    lang: String = text,
-    filename: String = "undefined",
+    lang: String = "text",
+    filename: String,
     lineNumbers: Boolean = false,
     noCopy: Boolean = false,
     noDownload: Boolean = false,

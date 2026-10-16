@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxModal(props = {}, children = '') {
-  const el = document.createElement('UModal');
+  const el = document.createElement('div');
   el.className = 'tux-modal';
   if (typeof children === 'string') {
     el.innerHTML = children;

@@ -11,15 +11,17 @@
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public string Slices { get; set; };
     [Parameter] public int Size { get; set; } = 280;
+    [Parameter] public string Palette { get; set; } = "brand";
+    [Parameter] public bool Patterns { get; set; } = false;
     [Parameter] public int Thickness { get; set; } = 0.5;
     [Parameter] public bool SliceLabels { get; set; } = true;
     [Parameter] public bool Legend { get; set; } = false;
-    [Parameter] public string CenterLabel { get; set; } = "undefined";
-    [Parameter] public string CenterValue { get; set; } = undefined;
+    [Parameter] public string CenterLabel { get; set; };
+    [Parameter] public string CenterValue { get; set; };
     [Parameter] public int MinSlice { get; set; } = 3;
-    [Parameter] public string Format { get; set; } = "(n:";
+    [Parameter] public string Format { get; set; };
     [Parameter] public int Decimals { get; set; } = 1;
-    [Parameter] public string AriaSummary { get; set; } = "undefined";
-    [Parameter] public string Units { get; set; } = "undefined";
+    [Parameter] public string AriaSummary { get; set; };
+    [Parameter] public string Units { get; set; };
     [Parameter] public bool Tooltip { get; set; } = true;
 }

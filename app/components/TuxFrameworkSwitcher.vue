@@ -15,7 +15,7 @@
  *   - "auto"      : Segmented on xl+, dropdown on smaller screens
  */
 import { computed } from "vue";
-import { useTuxFramework, type TuxFrameworkId } from "../composables/useTuxFramework";
+import { useTuxFramework } from "../composables/useTuxFramework";
 
 interface Props {
   /** Display mode: "compact" (dropdown) | "segmented" (pill strip) | "auto" */

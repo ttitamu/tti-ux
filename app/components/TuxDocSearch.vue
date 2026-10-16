@@ -165,7 +165,7 @@ onBeforeUnmount(() => {
         aria-controls="tux-doc-search-results"
         @focus="isOpen = query.trim().length > 0"
         @blur="onBlur"
-      />
+      >
       <span
         v-if="!query"
         class="absolute right-2 px-1.5 py-0.5 text-[10px] font-mono border border-surface-border text-text-muted rounded bg-surface-sunken pointer-events-none"

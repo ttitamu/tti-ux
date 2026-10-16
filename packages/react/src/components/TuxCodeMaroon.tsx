@@ -5,26 +5,26 @@
 import React from 'react';
 
 export interface TuxCodeMaroonProps {
-  active??: boolean;
-  tone??: "error" | "warning" | "info";
-  title??: string;
-  message??: string;
-  detailsUrl??: string;
-  detailsLabel??: string;
-  dismissible??: boolean;
-  modelValue??: boolean;
-  sticky??: boolean;
+  active?: boolean;
+  tone?: "error" | "warning" | "info";
+  title?: string;
+  message?: string;
+  detailsUrl?: string;
+  detailsLabel?: string;
+  dismissible?: boolean;
+  modelValue?: boolean;
+  sticky?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxCodeMaroon: React.FC<TuxCodeMaroonProps> = ({
-  active = false, tone = error, title = "Emergency", message = "undefined", detailsUrl = "https://tti.tamu.edu/emergency/", detailsLabel = "View", dismissible = false, modelValue = false, sticky = false, children, className = ''
+  active = false, tone = "error", title, message, detailsUrl = "https://tti.tamu.edu/emergency/", detailsLabel, dismissible = false, modelValue = false, sticky = false, children, className = ''
 }) => {
   return (
-    <Transition className={`tux-code-maroon ${className}`.trim()}>
+    <div className={`tux-code-maroon ${className}`.trim()}>
       {children}
-    </Transition>
+    </div>
   );
 };
 

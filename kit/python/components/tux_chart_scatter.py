@@ -12,15 +12,17 @@ class TuxChartScatter:
     y_label: str = "y"
     width: int = 640
     height: int = 320
+    palette: str = "brand"
+    distinct_markers: bool = true
     trendline: bool = false
     legend: bool = true
     gridlines: bool = true
     x_ticks: int = 6
     y_ticks: int = 5
-    format: str = "(n:"
+    format: str = None
     decimals: int = 2
-    aria_summary: str = "undefined"
-    units: str = "undefined"
+    aria_summary: str = None
+    units: str = None
     tooltip: bool = true
 
     def render_html(self, content: str = "") -> str:

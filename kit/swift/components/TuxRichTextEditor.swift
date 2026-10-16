@@ -5,15 +5,15 @@ import SwiftUI
 
 public struct TuxRichTextEditor<Content: View>: View {
     public var modelValue: String
-    public var placeholder: String = "Start"
+    public var placeholder: String
     public var disabled: Bool = false
     public var minHeight: String = "12rem"
     public var maxHeight: String = "auto"
-    public var toolbar: String = ()
-    public var headingLevels: String = ()
+    public var toolbar: String
+    public var headingLevels: String
     public var showCount: Bool = true
     public var fullscreenable: Bool = true
-    public var ariaLabel: String = "Rich"
+    public var ariaLabel: String
     private let content: Content
 
     public init(

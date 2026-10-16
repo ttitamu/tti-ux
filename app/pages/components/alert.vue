@@ -3,6 +3,8 @@
 // no duplication. That powers the `Source` tab on the gallery example below.
 import tuxAlertSource from "~/components/TuxAlert.vue?raw";
 
+import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
+
 useHead({ title: "TuxAlert · TUX" });
 
 const variants = [
@@ -36,8 +38,6 @@ const iconVue = `<tux-alert
   title="Saved to server"
   description="Pass any Lucide icon name via \`icon\` to override the variant default."
 />`;
-
-import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
 
 const alertControls: TuxPropControl[] = [
   {

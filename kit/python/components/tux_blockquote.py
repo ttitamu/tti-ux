@@ -8,10 +8,10 @@ from typing import Optional
 @dataclass
 class TuxBlockquote:
     quote: str = None
-    attribution: str = null
-    role: str = null
-    layout: str = centered
-    variant: str = default
+    attribution: str = None
+    role: str = None
+    layout: str = "centered"
+    variant: str = "default"
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-blockquote">{content}</figure>'

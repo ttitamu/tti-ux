@@ -21,7 +21,7 @@ final class TuxProse
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<component class="tux-prose">%s</component>',
+            '<div class="tux-prose">%s</div>',
             $content
         );
     }

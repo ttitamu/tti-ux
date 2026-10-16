@@ -12,8 +12,8 @@ public struct TuxEventCalendarRow<Content: View>: View {
     public var category: String
     public var to: String
     public var href: String
-    public var actionText: String = "View"
-    public var chipTone: String = green
+    public var actionText: String
+    public var chipTone: String = "green"
     private let content: Content
 
     public init(

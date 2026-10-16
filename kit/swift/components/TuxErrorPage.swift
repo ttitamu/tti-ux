@@ -5,12 +5,12 @@ import SwiftUI
 
 public struct TuxErrorPage<Content: View>: View {
     public var code: String = "404"
-    public var title: String = "undefined"
-    public var lede: String = "undefined"
-    public var actions: String = "undefined"
+    public var title: String
+    public var lede: String
+    public var actions: String
     public var inline: Bool = false
-    public var icon: String = "undefined"
-    public var details: String = "undefined"
+    public var icon: String
+    public var details: String
     private let content: Content
 
     public init(

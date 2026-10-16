@@ -8,12 +8,12 @@ namespace Tti\Tux\Components;
 final class TuxErrorPage
 {
     public string $code = '404';
-    public string $title = 'undefined';
-    public string $lede = 'undefined';
-    public string $actions = 'undefined';
+    public string $title;
+    public string $lede;
+    public string $actions;
     public bool $inline = false;
-    public string $icon = 'undefined';
-    public string $details = 'undefined';
+    public string $icon;
+    public string $details;
 
     public function __construct(array $attributes = [])
     {

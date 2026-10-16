@@ -8,12 +8,12 @@ from typing import Optional
 @dataclass
 class TuxFundingSource:
     funder: str = None
-    abbrev: str = "undefined"
-    logo: str = "undefined"
-    grant: str = "undefined"
-    to: str = "undefined"
-    size: str = md
-    layout: str = inline
+    abbrev: str = None
+    logo: str = None
+    grant: str = None
+    to: str = None
+    size: str = "md"
+    layout: str = "inline"
 
     def render_html(self, content: str = "") -> str:
-        return f'<component class="tux-funding-source">{content}</component>'
+        return f'<div class="tux-funding-source">{content}</div>'

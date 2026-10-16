@@ -8,10 +8,10 @@ namespace Tti\Tux\Components;
 final class TuxMapMarker
 {
     public string $kind;
-    public string $number = undefined;
-    public int $toneIndex = undefined;
-    public string $size = md;
-    public string $title = 'undefined';
+    public string $number;
+    public int $toneIndex;
+    public string $size = 'md';
+    public string $title;
 
     public function __construct(array $attributes = [])
     {

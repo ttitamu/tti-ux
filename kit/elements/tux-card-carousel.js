@@ -30,9 +30,9 @@ export class TuxCardCarouselElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <div class="tux-card-carousel">
+      <section class="tux-card-carousel">
         <slot></slot>
-      </div>
+      </section>
     `;
   }
 }

@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxHeroCanvas
 {
-    public string $variant = wash;
-    public string $blend = seamless;
+    public string $variant = 'wash';
+    public string $blend = 'seamless';
     public bool $interactive = true;
     public bool $showControls = true;
     public string $minHeight = '32rem';

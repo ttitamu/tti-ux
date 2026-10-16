@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxCard
 {
-    public string $to = 'undefined';
+    public string $to;
     public bool $padded = true;
     public bool $linked = false;
 
@@ -23,7 +23,7 @@ final class TuxCard
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<NuxtLink class="tux-card">%s</NuxtLink>',
+            '<div class="tux-card">%s</div>',
             $content
         );
     }

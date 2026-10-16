@@ -6,13 +6,13 @@ import SwiftUI
 public struct TuxMobileFrame<Content: View>: View {
     public var platform: String = "ios"
     public var width: Int = 280
-    public var color: String = undefined
+    public var color: String
     public var statusBar: Bool = true
     public var time: String = "9:41"
     public var notch: Bool = true
     public var homeIndicator: Bool = true
     public var navStyle: String = "gesture"
-    public var ariaLabel: String = "undefined"
+    public var ariaLabel: String
     private let content: Content
 
     public init(

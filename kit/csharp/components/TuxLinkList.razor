@@ -10,6 +10,6 @@
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public string Groups { get; set; };
-    [Parameter] public string Layout { get; set; } = columns;
-    [Parameter] public string Columns { get; set; } = 3;
+    [Parameter] public string Layout { get; set; } = "columns";
+    [Parameter] public int Columns { get; set; } = 3;
 }

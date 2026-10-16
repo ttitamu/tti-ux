@@ -8,14 +8,14 @@ from typing import Optional
 @dataclass
 class TuxSignupFeature:
     title: str = None
-    eyebrow: str = "undefined"
-    dek: str = "undefined"
+    eyebrow: str = None
+    dek: str = None
     action_label: str = "Subscribe"
     placeholder: str = "your@email.edu"
-    consent: str = "We"
+    consent: str = None
     model_value: str = None
-    tone: str = neutral
-    variant: str = default
+    tone: str = "neutral"
+    variant: str = "default"
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-signup-feature">{content}</section>'

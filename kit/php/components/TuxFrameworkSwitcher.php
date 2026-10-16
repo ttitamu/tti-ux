@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxFrameworkSwitcher
 {
-    public string $mode = compact;
+    public string $mode = 'compact';
 
     public function __construct(array $attributes = [])
     {

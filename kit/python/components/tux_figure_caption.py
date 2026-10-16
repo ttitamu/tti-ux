@@ -9,9 +9,9 @@ from typing import Optional
 class TuxFigureCaption:
     label: str = "Figure"
     number: str = None
-    caption: str = "undefined"
-    source: str = "undefined"
-    placement: str = below
+    caption: str = None
+    source: str = None
+    placement: str = "below"
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-figure-caption">{content}</figure>'

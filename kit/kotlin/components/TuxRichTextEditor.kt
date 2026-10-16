@@ -12,15 +12,15 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxRichTextEditor(
     modelValue: String,
-    placeholder: String = "Start",
+    placeholder: String,
     disabled: Boolean = false,
     minHeight: String = "12rem",
     maxHeight: String = "auto",
-    toolbar: String = (),
-    headingLevels: String = (),
+    toolbar: String,
+    headingLevels: String,
     showCount: Boolean = true,
     fullscreenable: Boolean = true,
-    ariaLabel: String = "Rich",
+    ariaLabel: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

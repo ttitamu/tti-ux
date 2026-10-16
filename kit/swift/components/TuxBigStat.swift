@@ -5,12 +5,12 @@ import SwiftUI
 
 public struct TuxBigStat<Content: View>: View {
     public var value: String
-    public var suffix: String = null
+    public var suffix: String
     public var label: String
-    public var source: String = null
-    public var variant: String = default
-    public var tone: String = maroon
-    public var size: String = md
+    public var source: String
+    public var variant: String = "default"
+    public var tone: String = "maroon"
+    public var size: String = "md"
     private let content: Content
 
     public init(

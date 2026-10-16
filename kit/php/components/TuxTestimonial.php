@@ -8,9 +8,9 @@ namespace Tti\Tux\Components;
 final class TuxTestimonial
 {
     public string $items;
-    public string $layout = grid;
-    public string $columns = 3;
-    public string $variant = default;
+    public string $layout = 'grid';
+    public int $columns = 3;
+    public string $variant = 'default';
 
     public function __construct(array $attributes = [])
     {

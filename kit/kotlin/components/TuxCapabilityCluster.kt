@@ -11,11 +11,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCapabilityCluster(
-    title: String = "RESEARCH",
-    kicker: String = "Research",
-    subtitle: String = "Applied",
-    capabilities: String = "()",
-    columns: String = 3,
+    title: String,
+    kicker: String,
+    subtitle: String,
+    capabilities: String,
+    columns: Int = 3,
     content: @Composable () -> Unit = {}
 ) {
     Row(

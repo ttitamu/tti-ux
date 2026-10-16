@@ -5,17 +5,17 @@
 import React from 'react';
 
 export interface TuxTileGridProps {
-  title??: string;
-  subtitle??: string;
-  tiles??: string;
-  columns??: "2" | "3" | "4";
-  surface??: "eggshell" | "raised";
+  title?: string;
+  subtitle?: string;
+  tiles?: string;
+  columns?: number;
+  surface?: "eggshell" | "raised";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxTileGrid: React.FC<TuxTileGridProps> = ({
-  title = "Safety", subtitle, tiles = "()", columns = 3, surface = eggshell, children, className = ''
+  title, subtitle, tiles, columns = 3, surface = "eggshell", children, className = ''
 }) => {
   return (
     <section className={`tux-tile-grid ${className}`.trim()}>

@@ -30,9 +30,9 @@ export class TuxTabsElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <UTabs class="tux-tabs">
+      <div class="tux-tabs">
         <slot></slot>
-      </UTabs>
+      </div>
     `;
   }
 }

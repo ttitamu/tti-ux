@@ -7,7 +7,7 @@ from typing import Optional
 
 @dataclass
 class TuxStatusToast:
-    edge: str = bottom
+    edge: str = "bottom"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-status-toast">{content}</div>'

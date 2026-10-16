@@ -12,9 +12,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxTooltip(
     text: String,
-    title: String = "undefined",
-    kbds: String = "undefined",
-    side: String = top,
+    title: String,
+    kbds: String,
+    side: String = "top",
     arrow: Boolean = true,
     disabled: Boolean = false,
     content: @Composable () -> Unit = {}

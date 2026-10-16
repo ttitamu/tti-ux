@@ -4,7 +4,7 @@
  */
 export class TuxUtilityClusterElement extends HTMLElement {
   static get observedAttributes() {
-    return ["current", "signed-in", "entitled", "hide-switcher", "hide-theme", "user-menu", "state", "identity", "sign-in-href", "sign-in-label", "items", "prefs", "status-line"];
+    return ["current", "signed-in", "entitled", "hide-switcher", "hide-theme", "hide-high-contrast", "hide-vision-prefs", "user-menu", "state", "identity", "sign-in-href", "sign-in-label", "items", "prefs", "status-line"];
   }
 
   constructor() {

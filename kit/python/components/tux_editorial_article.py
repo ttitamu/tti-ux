@@ -8,28 +8,28 @@ from typing import Optional
 @dataclass
 class TuxEditorialArticle:
     title: str = None
-    category: str = "Inside"
+    category: str = None
     dek: str = None
     date: str = None
     date_label: str = None
     read_time: str = None
     author: str = None
-    authors: str = "()"
+    authors: str = None
     hero_image: str = None
     hero_alt: str = None
     hero_caption: str = None
-    hero_layout: str = boxed
-    stats: str = "()"
-    highlights: str = "()"
-    citation: str = "undefined"
+    hero_layout: str = "boxed"
+    stats: str = None
+    highlights: str = None
+    citation: str = None
     toc: bool = true
     toc_target: str = "#article-body"
     show_reading_progress: bool = true
     show_scroll_top: bool = true
     show_share: bool = true
-    tags: str = "()"
-    contact: str = "undefined"
-    back_to: str = "undefined"
+    tags: str = None
+    contact: str = None
+    back_to: str = None
     label: str = None
     to: str = None
 

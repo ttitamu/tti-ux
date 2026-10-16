@@ -30,9 +30,9 @@ export class TuxFundingSourceElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <component class="tux-funding-source">
+      <div class="tux-funding-source">
         <slot></slot>
-      </component>
+      </div>
     `;
   }
 }

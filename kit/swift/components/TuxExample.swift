@@ -4,14 +4,18 @@
 import SwiftUI
 
 public struct TuxExample<Content: View>: View {
-    public var vue: String = "undefined"
-    public var react: String = "undefined"
-    public var wc: String = "undefined"
-    public var razor: String = "undefined"
-    public var source: String = "undefined"
-    public var css: String = "undefined"
-    public var powerbi: String = "undefined"
-    public var title: String = "undefined"
+    public var vue: String
+    public var react: String
+    public var wc: String
+    public var razor: String
+    public var python: String
+    public var php: String
+    public var swift: String
+    public var kotlin: String
+    public var source: String
+    public var css: String
+    public var powerbi: String
+    public var title: String
     public var previewPadding: String = "p-6"
     private let content: Content
 

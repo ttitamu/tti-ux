@@ -13,9 +13,9 @@ import androidx.compose.ui.unit.dp
 fun TuxChatMessage(
     role: String = "user",
     author: String,
-    timestamp: String = "undefined",
-    meta: String = "undefined",
-    initials: String = "undefined",
+    timestamp: String,
+    meta: String,
+    initials: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

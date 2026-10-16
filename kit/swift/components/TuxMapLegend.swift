@@ -4,11 +4,11 @@
 import SwiftUI
 
 public struct TuxMapLegend<Content: View>: View {
-    public var title: String = "undefined"
-    public var eyebrow: String = "undefined"
-    public var entries: String = "undefined"
-    public var layout: String = stacked
-    public var gradient: String = "undefined"
+    public var title: String
+    public var eyebrow: String
+    public var entries: String
+    public var layout: String = "stacked"
+    public var gradient: String
     public var minLabel: String
     public var maxLabel: String
     public var css: String

@@ -14,8 +14,8 @@ fun TuxDocsSidebar(
     tree: String,
     title: String = "Docs",
     search: Boolean = true,
-    searchPlaceholder: String = "Filter",
-    storageKey: String = tux-docs-sidebar,
+    searchPlaceholder: String,
+    storageKey: String = "tux-docs-sidebar",
     exclusiveTopLevel: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {

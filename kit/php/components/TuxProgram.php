@@ -8,12 +8,12 @@ namespace Tti\Tux\Components;
 final class TuxProgram
 {
     public string $name;
-    public string $eyebrow = 'undefined';
-    public string $summary = 'undefined';
-    public string $hero = 'undefined';
-    public string $leads = 'undefined';
-    public string $funders = 'undefined';
-    public string $metrics = 'undefined';
+    public string $eyebrow;
+    public string $summary;
+    public string $hero;
+    public string $leads;
+    public string $funders;
+    public string $metrics;
 
     public function __construct(array $attributes = [])
     {

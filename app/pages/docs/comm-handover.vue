@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { useTuxClipboard } from "~/composables/useTuxClipboard";
 
 useHead({ title: "Communications Handover Runbook · TUX" });

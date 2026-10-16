@@ -6,7 +6,7 @@ import SwiftUI
 public struct TuxCookieConsent<Content: View>: View {
     public var storageKey: String = "tux-cookie-consent"
     public var position: String = "bottom-right"
-    public var message: String = "We"
+    public var message: String
     public var privacyHref: String = "/privacy"
     public var initiallyExpanded: Bool = false
     private let content: Content

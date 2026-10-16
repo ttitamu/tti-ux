@@ -4,15 +4,15 @@
 import SwiftUI
 
 public struct TuxMediaSlab<Content: View>: View {
-    public var src: String = "undefined"
+    public var src: String
     public var alt: String
-    public var eyebrow: String = "undefined"
+    public var eyebrow: String
     public var title: String
-    public var dek: String = "undefined"
-    public var layout: String = overlay
-    public var imageSide: String = right
-    public var height: String = standard
-    public var tone: String = maroon
+    public var dek: String
+    public var layout: String = "overlay"
+    public var imageSide: String = "right"
+    public var height: String = "standard"
+    public var tone: String = "maroon"
     private let content: Content
 
     public init(

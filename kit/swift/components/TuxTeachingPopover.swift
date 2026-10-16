@@ -7,10 +7,10 @@ public struct TuxTeachingPopover<Content: View>: View {
     public var modelValue: Bool = false
     public var step: Int = 1
     public var totalSteps: Int = 1
-    public var title: String = "undefined"
+    public var title: String
     public var onBrand: Bool = false
     public var noDismiss: Bool = false
-    public var primaryLabel: String = "undefined"
+    public var primaryLabel: String
     public var secondaryLabel: String = "Skip"
     public var noSecondary: Bool = false
     private let content: Content

@@ -50,25 +50,9 @@ export interface GalleryPreset {
   height?: string;
   ariaTitle: string;
   ariaSummary: string;
-  getOption: (isDark: boolean) => EChartsCoreOption;
+  getOption: (_isDark: boolean) => EChartsCoreOption;
   isAnimated?: boolean;
 }
-
-// Color helpers for dark/light adaptation
-const TUX_COLORS = {
-  maroon: "#500000",
-  maroonLight: "#7A1C1C",
-  teal: "#005F73",
-  tealLight: "#0A9396",
-  sage: "#94D2BD",
-  sand: "#E9D8A6",
-  gold: "#EE9B00",
-  rust: "#CA6702",
-  orange: "#BB3E03",
-  crimson: "#AE2012",
-  forest: "#2B9348",
-  slate: "#4B5563",
-};
 
 export const GALLERY_PRESETS: GalleryPreset[] = [
   // 1. BASIC PIE / NIGHTINGALE ROSE
@@ -820,7 +804,7 @@ export const GALLERY_PRESETS: GalleryPreset[] = [
       const start = new Date("2026-01-01");
       for (let i = 0; i < 365; i++) {
         const d = new Date(start.getTime() + i * 86400000);
-        const dateStr = d.toISOString().split("T")[0];
+        const dateStr = d.toISOString().split("T")[0] ?? "";
         const dayOfWeek = d.getDay();
         const base = dayOfWeek === 5 ? 42 : dayOfWeek === 0 || dayOfWeek === 6 ? 18 : 28;
         const randomFactor = Math.floor(Math.sin(i * 0.1) * 8);
@@ -1636,7 +1620,7 @@ export const GALLERY_PRESETS: GalleryPreset[] = [
       const matrixData: [number, number, number][] = [];
       days.forEach((day, dayIdx) => {
         hours.forEach((_, hourIdx) => {
-          let delay = 1.0;
+          let delay: number;
           const isWeekend = dayIdx >= 5;
           if (!isWeekend) {
             if (hourIdx >= 7 && hourIdx <= 9) {

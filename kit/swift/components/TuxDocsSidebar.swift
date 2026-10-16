@@ -7,8 +7,8 @@ public struct TuxDocsSidebar<Content: View>: View {
     public var tree: String
     public var title: String = "Docs"
     public var search: Bool = true
-    public var searchPlaceholder: String = "Filter"
-    public var storageKey: String = tux-docs-sidebar
+    public var searchPlaceholder: String
+    public var storageKey: String = "tux-docs-sidebar"
     public var exclusiveTopLevel: Bool = false
     private let content: Content
 

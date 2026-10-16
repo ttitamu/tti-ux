@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxCapabilityCluster:
-    title: str = "RESEARCH"
-    kicker: str = "Research"
-    subtitle: str = "Applied"
-    capabilities: str = "()"
-    columns: str = 3
+    title: str = None
+    kicker: str = None
+    subtitle: str = None
+    capabilities: str = None
+    columns: int = 3
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-capability-cluster">{content}</section>'

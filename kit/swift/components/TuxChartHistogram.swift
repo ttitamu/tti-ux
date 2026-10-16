@@ -8,15 +8,15 @@ public struct TuxChartHistogram<Content: View>: View {
     public var width: Int = 640
     public var height: Int = 280
     public var binCount: Int = 12
-    public var percentiles: String = "()"
+    public var percentiles: String
     public var normalize: Bool = false
     public var gridlines: Bool = true
     public var ticks: Int = 5
-    public var xLabel: String = "undefined"
-    public var format: String = "(n:"
+    public var xLabel: String
+    public var format: String
     public var decimals: Int = 1
-    public var ariaSummary: String = "undefined"
-    public var units: String = "undefined"
+    public var ariaSummary: String
+    public var units: String
     public var tooltip: Bool = true
     private let content: Content
 

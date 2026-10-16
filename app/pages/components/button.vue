@@ -3,6 +3,8 @@
 // so the `Source` tab below can expose the component without duplication.
 import tuxButtonSource from "~/components/TuxButton.vue?raw";
 
+import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
+
 useHead({ title: "TuxButton · TUX" });
 
 const loading = ref(false);
@@ -43,8 +45,6 @@ const linkVue = `<tux-button intent="primary" to="/tokens" trailing-icon="lucide
 <tux-button intent="secondary" to="/components" icon="lucide:layers">
   All components
 </tux-button>`;
-
-import type { TuxPropControl, TuxPlaygroundPreset } from "~/components/TuxPlayground.vue";
 
 const buttonControls: TuxPropControl[] = [
   {

@@ -4,7 +4,7 @@
 import SwiftUI
 
 public struct TuxCommHero<Content: View>: View {
-    public var eyebrow: String = "TEXAS"
+    public var eyebrow: String
     public var title: String
     public var accentTitle: String
     public var lead: String
@@ -15,7 +15,7 @@ public struct TuxCommHero<Content: View>: View {
     public var secondaryActionTo: String
     public var secondaryActionHref: String
     public var imageSrc: String
-    public var imageAlt: String = "TTI"
+    public var imageAlt: String
     public var imageBadge: String
     public var chamfer: Bool = true
     private let content: Content

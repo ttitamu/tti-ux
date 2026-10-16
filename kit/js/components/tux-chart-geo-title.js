@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxChartGeoTitle(props = {}, children = '') {
-  const el = document.createElement('text');
+  const el = document.createElement('div');
   el.className = 'tux-chart-geo-title';
   if (typeof children === 'string') {
     el.innerHTML = children;

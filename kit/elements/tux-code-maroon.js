@@ -30,9 +30,9 @@ export class TuxCodeMaroonElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <Transition class="tux-code-maroon">
+      <div class="tux-code-maroon">
         <slot></slot>
-      </Transition>
+      </div>
     `;
   }
 }

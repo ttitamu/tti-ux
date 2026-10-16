@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxAnnouncementBanner(props = {}, children = '') {
-  const el = document.createElement('Transition');
+  const el = document.createElement('div');
   el.className = 'tux-announcement-banner';
   if (typeof children === 'string') {
     el.innerHTML = children;

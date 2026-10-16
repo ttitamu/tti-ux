@@ -25,11 +25,15 @@ useHead({
   title: computed(() => `${page.value?.title || 'Documentation'} · TUX`),
 });
 
-const crumbs = computed(() => [
-  { label: "Home", to: "/" },
-  { label: "Desk", to: "/admin" },
-  { label: page.value?.title || slug.value },
-]);
+const crumbs = computed(() => {
+  const fullTitle = page.value?.title || slug.value;
+  const leafLabel = fullTitle.length > 36 ? `${fullTitle.slice(0, 34).trim()}…` : fullTitle;
+  return [
+    { label: "Home", to: "/" },
+    { label: "Desk", to: "/admin" },
+    { label: leafLabel },
+  ];
+});
 </script>
 
 <template>

@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxContextMeter(props = {}, children = '') {
-  const el = document.createElement('UPopover');
+  const el = document.createElement('div');
   el.className = 'tux-context-meter';
   if (typeof children === 'string') {
     el.innerHTML = children;

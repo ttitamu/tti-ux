@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxTeachingPopover(props = {}, children = '') {
-  const el = document.createElement('Teleport');
+  const el = document.createElement('div');
   el.className = 'tux-teaching-popover';
   if (typeof children === 'string') {
     el.innerHTML = children;

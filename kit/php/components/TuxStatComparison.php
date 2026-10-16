@@ -7,15 +7,15 @@ namespace Tti\Tux\Components;
 
 final class TuxStatComparison
 {
-    public string $eyebrow = 'undefined';
+    public string $eyebrow;
     public int $current;
     public int $previous;
-    public string $suffix = 'undefined';
-    public string $label = 'undefined';
-    public string $layout = row;
+    public string $suffix;
+    public string $label;
+    public string $layout = 'row';
     public int $decimals = 1;
-    public string $polarity = direct;
-    public string $deltaFormat = abs+pct;
+    public string $polarity = 'direct';
+    public string $deltaFormat = 'abs+pct';
 
     public function __construct(array $attributes = [])
     {

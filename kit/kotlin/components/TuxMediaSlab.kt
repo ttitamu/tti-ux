@@ -11,15 +11,15 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxMediaSlab(
-    src: String = "undefined",
+    src: String,
     alt: String,
-    eyebrow: String = "undefined",
+    eyebrow: String,
     title: String,
-    dek: String = "undefined",
-    layout: String = overlay,
-    imageSide: String = right,
-    height: String = standard,
-    tone: String = maroon,
+    dek: String,
+    layout: String = "overlay",
+    imageSide: String = "right",
+    height: String = "standard",
+    tone: String = "maroon",
     content: @Composable () -> Unit = {}
 ) {
     Row(

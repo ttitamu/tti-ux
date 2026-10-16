@@ -7,14 +7,14 @@ from typing import Optional
 
 @dataclass
 class TuxPaperMeta:
-    doi: str = "undefined"
-    license: str = "undefined"
-    funders: str = "undefined"
-    published: str = "undefined"
-    version: str = "undefined"
-    type: str = "undefined"
-    pages: str = "undefined"
-    venue: str = "undefined"
+    doi: str = None
+    license: str = None
+    funders: str = None
+    published: str = None
+    version: str = None
+    type: str = None
+    pages: str = None
+    venue: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<dl class="tux-paper-meta">{content}</dl>'

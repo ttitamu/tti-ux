@@ -8,12 +8,12 @@ from typing import Optional
 @dataclass
 class TuxIdentity:
     name: str = None
-    superhead: str = null
-    level: str = institution
-    orientation: str = horizontal
-    kind: str = lockup
-    href: str = null
+    superhead: str = None
+    level: str = "institution"
+    orientation: str = "horizontal"
+    kind: str = "lockup"
+    href: str = None
     logo_size: int = 0
 
     def render_html(self, content: str = "") -> str:
-        return f'<component class="tux-identity">{content}</component>'
+        return f'<div class="tux-identity">{content}</div>'

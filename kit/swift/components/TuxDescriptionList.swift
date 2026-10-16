@@ -5,9 +5,9 @@ import SwiftUI
 
 public struct TuxDescriptionList<Content: View>: View {
     public var items: String
-    public var layout: String = inline
-    public var emphasis: String = editorial
-    public var title: String = "undefined"
+    public var layout: String = "inline"
+    public var emphasis: String = "editorial"
+    public var title: String
     private let content: Content
 
     public init(

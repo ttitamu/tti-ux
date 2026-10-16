@@ -5,8 +5,8 @@ import SwiftUI
 
 public struct TuxIconFeature<Content: View>: View {
     public var items: String
-    public var layout: String = grid
-    public var columns: String = 3
+    public var layout: String = "grid"
+    public var columns: Int = 3
     private let content: Content
 
     public init(

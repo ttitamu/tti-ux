@@ -12,11 +12,11 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxCodeMaroon(
     active: Boolean = false,
-    tone: String = error,
-    title: String = "Emergency",
-    message: String = "undefined",
+    tone: String = "error",
+    title: String,
+    message: String,
     detailsUrl: String = "https://tti.tamu.edu/emergency/",
-    detailsLabel: String = "View",
+    detailsLabel: String,
     dismissible: Boolean = false,
     modelValue: Boolean = false,
     sticky: Boolean = false,

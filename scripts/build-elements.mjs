@@ -87,6 +87,7 @@ export async function bundleElements() {
 
   await build({
     logLevel: "warn",
+    publicDir: path.resolve(ROOT, "public"),
     resolve: {
       alias: {
         "~": path.resolve(ROOT, "app"),

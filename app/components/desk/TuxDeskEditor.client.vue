@@ -9,7 +9,6 @@ import FileHandler from "@tiptap/extension-file-handler";
 import Placeholder from "@tiptap/extension-placeholder";
 import type { Editor, JSONContent } from "@tiptap/core";
 import { EditorContent, useEditor, VueNodeViewRenderer } from "@tiptap/vue-3";
-import { assertNever, type MediaKind } from "../../utils/desk/types";
 import { parseMediaUrl } from "../../utils/desk/embed";
 import { deskRenderExtensions } from "../../utils/desk/extensions";
 import { MEDIA_ACCEPT } from "../../utils/desk/media";
@@ -48,7 +47,7 @@ function emitState(instance: Editor) {
   emit("update:html", sanitizeDeskHtml(instance.getHTML()));
 }
 
-const uploadError = ref("");
+const _uploadError = ref("");
 
 function insertMediaUrl(url: string) {
   if (!editor.value || !url.trim()) return;
@@ -144,6 +143,7 @@ const editor = useEditor({
   editorProps: {
     attributes: {
       class: "tux-prose tux-desk-editor__doc focus:outline-none min-h-[220px] p-4",
+      "aria-label": "Rich text document editor",
     },
   },
   onCreate: ({ editor: instance }) => {

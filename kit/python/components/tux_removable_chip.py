@@ -7,12 +7,12 @@ from typing import Optional
 
 @dataclass
 class TuxRemovableChip:
-    icon: str = "undefined"
+    icon: str = None
     removable: bool = false
-    size: str = md
+    size: str = "md"
     selected: bool = false
     disabled: bool = false
-    remove_label: str = "undefined"
+    remove_label: str = None
     click_to_remove: bool = false
 
     def render_html(self, content: str = "") -> str:

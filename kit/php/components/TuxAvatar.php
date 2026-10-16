@@ -7,13 +7,13 @@ namespace Tti\Tux\Components;
 
 final class TuxAvatar
 {
-    public string $name = 'undefined';
-    public string $initials = 'undefined';
-    public string $photoUrl = 'undefined';
-    public string $size = md;
-    public string $dot = undefined;
+    public string $name;
+    public string $initials;
+    public string $photoUrl;
+    public string $size = 'md';
+    public string $dot;
     public bool $decorative = true;
-    public string $alt = 'undefined';
+    public string $alt;
 
     public function __construct(array $attributes = [])
     {

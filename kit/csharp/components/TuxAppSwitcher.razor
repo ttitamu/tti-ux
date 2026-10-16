@@ -3,15 +3,15 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  *@
 
-<UPopover class="tux-app-switcher">
+<div class="tux-app-switcher">
     @ChildContent
-</UPopover>
+</div>
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public string Apps { get; set; };
-    [Parameter] public string AriaLabel { get; set; } = "Switch";
-    [Parameter] public string Heading { get; set; } = "TTI";
-    [Parameter] public string FooterText { get; set; } = "undefined";
-    [Parameter] public string Presentation { get; set; } = popover;
+    [Parameter] public string AriaLabel { get; set; };
+    [Parameter] public string Heading { get; set; };
+    [Parameter] public string FooterText { get; set; };
+    [Parameter] public string Presentation { get; set; } = "popover";
 }

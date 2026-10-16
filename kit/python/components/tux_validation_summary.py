@@ -8,8 +8,8 @@ from typing import Optional
 @dataclass
 class TuxValidationSummary:
     errors: str = None
-    title: str = "Please"
-    variant: str = error
+    title: str = None
+    variant: str = "error"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-validation-summary">{content}</div>'

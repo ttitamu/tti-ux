@@ -13,13 +13,13 @@ import androidx.compose.ui.unit.dp
 fun TuxConfirmDialog(
     open: Boolean = false,
     title: String,
-    eyebrow: String = "undefined",
-    confirmLabel: String = "undefined",
+    eyebrow: String,
+    confirmLabel: String,
     cancelLabel: String = "Cancel",
-    variant: String = destructive,
+    variant: String = "destructive",
     confirmDisabled: Boolean = false,
     loading: Boolean = false,
-    size: String = sm,
+    size: String = "sm",
     content: @Composable () -> Unit = {}
 ) {
     Row(

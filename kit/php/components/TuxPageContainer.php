@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxPageContainer
 {
-    public string $width = default;
+    public string $width = 'default';
     public bool $flush = false;
     public string $as = 'div';
 
@@ -23,7 +23,7 @@ final class TuxPageContainer
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<component class="tux-page-container">%s</component>',
+            '<div class="tux-page-container">%s</div>',
             $content
         );
     }

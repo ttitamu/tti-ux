@@ -8,12 +8,12 @@ namespace Tti\Tux\Components;
 final class TuxBigStat
 {
     public string $value;
-    public string $suffix = null;
+    public string $suffix;
     public string $label;
-    public string $source = null;
-    public string $variant = default;
-    public string $tone = maroon;
-    public string $size = md;
+    public string $source;
+    public string $variant = 'default';
+    public string $tone = 'maroon';
+    public string $size = 'md';
 
     public function __construct(array $attributes = [])
     {

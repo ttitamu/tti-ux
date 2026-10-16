@@ -11,12 +11,12 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxRemovableChip(
-    icon: String = "undefined",
+    icon: String,
     removable: Boolean = false,
-    size: String = md,
+    size: String = "md",
     selected: Boolean = false,
     disabled: Boolean = false,
-    removeLabel: String = "undefined",
+    removeLabel: String,
     clickToRemove: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {

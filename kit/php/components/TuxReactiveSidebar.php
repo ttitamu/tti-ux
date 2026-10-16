@@ -8,12 +8,12 @@ namespace Tti\Tux\Components;
 final class TuxReactiveSidebar
 {
     public string $sections;
-    public string $allSections = 'undefined';
+    public string $allSections;
     public bool $collapsed = false;
-    public string $activeAreaTitle = 'Workspace';
+    public string $activeAreaTitle;
     public string $activeAreaIcon = 'lucide:layers';
     public bool $search = true;
-    public string $searchPlaceholder = 'Filter';
+    public string $searchPlaceholder;
     public bool $showAll = false;
     public bool $defaultExpanded = false;
     public bool $exclusive = false;

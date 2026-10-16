@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 fun TuxContextMeter(
     used: Int,
     max: Int,
-    breakdown: String = "undefined",
+    breakdown: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

@@ -5,11 +5,11 @@
 import React from 'react';
 
 export interface TuxChartGeoChoroplethLegendProps {
-  ramp?: string;
-  label?: string;
-  stops?: string;
-  x?: number;
-  y?: number;
+  ramp: string;
+  label: string;
+  stops: string;
+  x: number;
+  y: number;
   children?: React.ReactNode;
   className?: string;
 }

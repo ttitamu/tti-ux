@@ -5,17 +5,17 @@
 import React from 'react';
 
 export interface TuxChatMessageProps {
-  role??: string;
-  author?: string;
-  timestamp??: string;
-  meta??: string;
-  initials??: string;
+  role?: string;
+  author: string;
+  timestamp?: string;
+  meta?: string;
+  initials?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxChatMessage: React.FC<TuxChatMessageProps> = ({
-  role = "user", author, timestamp = "undefined", meta = "undefined", initials = "undefined", children, className = ''
+  role = "user", author, timestamp, meta, initials, children, className = ''
 }) => {
   return (
     <article className={`tux-chat-message ${className}`.trim()}>

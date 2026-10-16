@@ -4,14 +4,14 @@
 import SwiftUI
 
 public struct TuxFileDropzone<Content: View>: View {
-    public var modelValue: String = "()"
-    public var accept: String = "undefined"
+    public var modelValue: String
+    public var accept: String
     public var multiple: Bool = false
     public var maxSize: Int = 50
     public var maxFiles: Int = 10
     public var disabled: Bool = false
-    public var label: String = "undefined"
-    public var hint: String = "undefined"
+    public var label: String
+    public var hint: String
     private let content: Content
 
     public init(

@@ -8,12 +8,12 @@ namespace Tti\Tux\Components;
 final class TuxFormField
 {
     public string $label;
-    public string $help = 'undefined';
-    public string $hint = 'undefined';
-    public string $error = 'undefined';
+    public string $help;
+    public string $hint;
+    public string $error;
     public bool $required = false;
-    public string $inputId = 'undefined';
-    public string $layout = stacked;
+    public string $inputId;
+    public string $layout = 'stacked';
 
     public function __construct(array $attributes = [])
     {

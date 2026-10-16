@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxStatusToast
 {
-    public string $edge = bottom;
+    public string $edge = 'bottom';
 
     public function __construct(array $attributes = [])
     {

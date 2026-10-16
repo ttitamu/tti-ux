@@ -5,21 +5,21 @@
 import React from 'react';
 
 export interface TuxEChartsProps {
-  options?: string;
-  height??: string;
-  width??: string;
-  ariaTitle??: string;
-  ariaSummary??: string;
-  extensions??: "("wordcloud" | "liquidfill")[]";
-  maps??: "("USA_ALBERS" | "TEXAS_COUNTIES" | "TXDOT_DISTRICTS")[]";
-  loading??: boolean;
-  notMerge??: boolean;
+  options: string;
+  height?: string;
+  width?: string;
+  ariaTitle?: string;
+  ariaSummary?: string;
+  extensions?: string;
+  maps?: string;
+  loading?: boolean;
+  notMerge?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxECharts: React.FC<TuxEChartsProps> = ({
-  options, height = "380px", width = "100%", ariaTitle = "Interactive", ariaSummary, extensions, maps, loading = false, notMerge = false, children, className = ''
+  options, height = "380px", width = "100%", ariaTitle, ariaSummary, extensions, maps, loading = false, notMerge = false, children, className = ''
 }) => {
   return (
     <div className={`tux-echarts ${className}`.trim()}>

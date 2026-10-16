@@ -7,13 +7,13 @@ namespace Tti\Tux\Components;
 
 final class TuxPopover
 {
-    public string $title = 'undefined';
-    public string $body = 'undefined';
-    public string $mode = click;
-    public string $side = bottom;
+    public string $title;
+    public string $body;
+    public string $mode = 'click';
+    public string $side = 'bottom';
     public bool $arrow = true;
     public bool $disabled = false;
-    public string $width = md;
+    public string $width = 'md';
 
     public function __construct(array $attributes = [])
     {
@@ -27,7 +27,7 @@ final class TuxPopover
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<UPopover class="tux-popover">%s</UPopover>',
+            '<div class="tux-popover">%s</div>',
             $content
         );
     }

@@ -9,15 +9,15 @@ public struct TuxChartHeatmap<Content: View>: View {
     public var values: String
     public var width: Int = 640
     public var height: Int = 280
-    public var ramp: String = maroon
-    public var bins: String = 5
+    public var ramp: String = "maroon"
+    public var bins: Int = 5
     public var valueLabels: Bool = false
     public var legend: Bool = true
     public var colLabelEvery: Int = 0
-    public var format: String = "(n:"
+    public var format: String
     public var decimals: Int = 1
-    public var ariaSummary: String = "undefined"
-    public var units: String = "undefined"
+    public var ariaSummary: String
+    public var units: String
     public var tooltip: Bool = true
     private let content: Content
 

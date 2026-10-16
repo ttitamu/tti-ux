@@ -8,9 +8,9 @@ from typing import Optional
 @dataclass
 class TuxDescriptionList:
     items: str = None
-    layout: str = inline
-    emphasis: str = editorial
-    title: str = "undefined"
+    layout: str = "inline"
+    emphasis: str = "editorial"
+    title: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-description-list">{content}</div>'

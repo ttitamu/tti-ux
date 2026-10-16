@@ -15,16 +15,16 @@ fun TuxChartGeographic(
     palette: String = "maroon",
     title: String,
     legendLabel: String = "Value",
-    legendStops: String = "()",
+    legendStops: String,
     showLegend: Boolean = true,
-    counties: String = "()",
-    districts: String = "()",
-    states: String = "()",
+    counties: String,
+    districts: String,
+    states: String,
     highlight: String = "TX",
     dots: Int = 600,
-    dotLegend: String = "1",
-    flows: String = "()",
-    flowLegend: String = "Daily",
+    dotLegend: String,
+    flows: String,
+    flowLegend: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

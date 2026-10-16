@@ -5,13 +5,13 @@
 import React from 'react';
 
 export interface TuxStatusToastProps {
-  edge??: "bottom" | "top";
+  edge?: "bottom" | "top";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxStatusToast: React.FC<TuxStatusToastProps> = ({
-  edge = bottom, children, className = ''
+  edge = "bottom", children, className = ''
 }) => {
   return (
     <div className={`tux-status-toast ${className}`.trim()}>

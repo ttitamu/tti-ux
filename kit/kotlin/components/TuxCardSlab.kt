@@ -12,10 +12,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxCardSlab(
     cards: String,
-    columns: String = 3,
-    aspect: String = 4/5,
-    heading: String = "undefined",
-    eyebrow: String = "undefined",
+    columns: Int = 3,
+    aspect: String = "4/5",
+    heading: String,
+    eyebrow: String,
     inset: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {

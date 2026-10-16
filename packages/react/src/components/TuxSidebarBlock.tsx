@@ -5,16 +5,16 @@
 import React from 'react';
 
 export interface TuxSidebarBlockProps {
-  title?: string;
-  eyebrow??: string;
-  icon??: string;
-  variant??: "default" | "bordered" | "filled";
+  title: string;
+  eyebrow?: string;
+  icon?: string;
+  variant?: "default" | "bordered" | "filled";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxSidebarBlock: React.FC<TuxSidebarBlockProps> = ({
-  title, eyebrow = "undefined", icon = "undefined", variant = default, children, className = ''
+  title, eyebrow, icon, variant = "default", children, className = ''
 }) => {
   return (
     <section className={`tux-sidebar-block ${className}`.trim()}>

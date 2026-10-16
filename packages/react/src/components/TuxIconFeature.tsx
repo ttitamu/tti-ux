@@ -5,15 +5,15 @@
 import React from 'react';
 
 export interface TuxIconFeatureProps {
-  items?: string;
-  layout??: "grid" | "list";
-  columns??: "2" | "3" | "4";
+  items: string;
+  layout?: "grid" | "list";
+  columns?: number;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxIconFeature: React.FC<TuxIconFeatureProps> = ({
-  items, layout = grid, columns = 3, children, className = ''
+  items, layout = "grid", columns = 3, children, className = ''
 }) => {
   return (
     <ul className={`tux-icon-feature ${className}`.trim()}>

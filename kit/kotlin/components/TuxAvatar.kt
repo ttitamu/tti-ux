@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxAvatar(
-    name: String = "undefined",
-    initials: String = "undefined",
-    photoUrl: String = "undefined",
-    size: String = md,
-    dot: String = undefined,
+    name: String,
+    initials: String,
+    photoUrl: String,
+    size: String = "md",
+    dot: String,
     decorative: Boolean = true,
-    alt: String = "undefined",
+    alt: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

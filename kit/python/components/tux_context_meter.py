@@ -9,7 +9,7 @@ from typing import Optional
 class TuxContextMeter:
     used: int = None
     max: int = None
-    breakdown: str = "undefined"
+    breakdown: str = None
 
     def render_html(self, content: str = "") -> str:
-        return f'<UPopover class="tux-context-meter">{content}</UPopover>'
+        return f'<div class="tux-context-meter">{content}</div>'

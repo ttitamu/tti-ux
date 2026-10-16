@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxReactionBar<Content: View>: View {
-    public var modelValue: String = "()"
-    public var reactions: String = "()"
-    public var counts: String = "()"
+    public var modelValue: String
+    public var reactions: String
+    public var counts: String
     public var size: String
     private let content: Content
 

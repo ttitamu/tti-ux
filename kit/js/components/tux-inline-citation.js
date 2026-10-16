@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxInlineCitation(props = {}, children = '') {
-  const el = document.createElement('UPopover');
+  const el = document.createElement('div');
   el.className = 'tux-inline-citation';
   if (typeof children === 'string') {
     el.innerHTML = children;

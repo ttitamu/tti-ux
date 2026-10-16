@@ -12,12 +12,12 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxBigStat(
     value: String,
-    suffix: String = null,
+    suffix: String,
     label: String,
-    source: String = null,
-    variant: String = default,
-    tone: String = maroon,
-    size: String = md,
+    source: String,
+    variant: String = "default",
+    tone: String = "maroon",
+    size: String = "md",
     content: @Composable () -> Unit = {}
 ) {
     Row(

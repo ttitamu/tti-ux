@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxSlideover:
-    side: str = right
-    size: str = "undefined"
-    title: str = "undefined"
-    eyebrow: str = "undefined"
+    side: str = "right"
+    size: str = None
+    title: str = None
+    eyebrow: str = None
     show_close: bool = true
     close_on_backdrop: bool = true
 

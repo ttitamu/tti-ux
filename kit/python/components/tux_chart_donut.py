@@ -9,16 +9,18 @@ from typing import Optional
 class TuxChartDonut:
     slices: str = None
     size: int = 280
+    palette: str = "brand"
+    patterns: bool = false
     thickness: int = 0.5
     slice_labels: bool = true
     legend: bool = false
-    center_label: str = "undefined"
-    center_value: str = undefined
+    center_label: str = None
+    center_value: str = None
     min_slice: int = 3
-    format: str = "(n:"
+    format: str = None
     decimals: int = 1
-    aria_summary: str = "undefined"
-    units: str = "undefined"
+    aria_summary: str = None
+    units: str = None
     tooltip: bool = true
 
     def render_html(self, content: str = "") -> str:

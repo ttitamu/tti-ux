@@ -30,9 +30,9 @@ export class TuxConfirmDialogElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <TuxModal class="tux-confirm-dialog">
+      <div class="tux-confirm-dialog">
         <slot></slot>
-      </TuxModal>
+      </div>
     `;
   }
 }

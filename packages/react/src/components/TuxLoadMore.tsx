@@ -5,19 +5,19 @@
 import React from 'react';
 
 export interface TuxLoadMoreProps {
-  loaded?: number;
-  total?: number;
-  loading??: boolean;
-  noun??: string;
-  nounPlural??: string;
-  label??: string;
-  terminalLabel??: string;
+  loaded: number;
+  total: number;
+  loading?: boolean;
+  noun?: string;
+  nounPlural?: string;
+  label?: string;
+  terminalLabel?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxLoadMore: React.FC<TuxLoadMoreProps> = ({
-  loaded, total, loading = false, noun = "undefined", nounPlural = "undefined", label = "Load", terminalLabel = "All", children, className = ''
+  loaded, total, loading = false, noun, nounPlural, label, terminalLabel, children, className = ''
 }) => {
   return (
     <div className={`tux-load-more ${className}`.trim()}>

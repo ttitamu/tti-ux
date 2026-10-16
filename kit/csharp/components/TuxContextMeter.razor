@@ -3,13 +3,13 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  *@
 
-<UPopover class="tux-context-meter">
+<div class="tux-context-meter">
     @ChildContent
-</UPopover>
+</div>
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public int Used { get; set; };
     [Parameter] public int Max { get; set; };
-    [Parameter] public string Breakdown { get; set; } = "undefined";
+    [Parameter] public string Breakdown { get; set; };
 }

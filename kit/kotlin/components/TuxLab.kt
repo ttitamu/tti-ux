@@ -12,14 +12,14 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxLab(
     name: String,
-    summary: String = "undefined",
-    logo: String = "undefined",
-    projectsCount: Int = undefined,
-    peopleCount: Int = undefined,
-    location: String = "undefined",
-    leaders: String = "undefined",
-    focus: String = "undefined",
-    to: String = "undefined",
+    summary: String,
+    logo: String,
+    projectsCount: Int,
+    peopleCount: Int,
+    location: String,
+    leaders: String,
+    focus: String,
+    to: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

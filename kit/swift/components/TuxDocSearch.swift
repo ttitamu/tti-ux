@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxDocSearch<Content: View>: View {
-    public var items: String = "undefined"
-    public var placeholder: String = "Search"
+    public var items: String
+    public var placeholder: String
     public var maxResults: Int = 8
     private let content: Content
 

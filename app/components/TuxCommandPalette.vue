@@ -395,7 +395,7 @@ if (!props.disableHotkey) {
       </div>
 
       <!-- Results List -->
-      <ul v-else class="tux-cmd__list" role="listbox">
+      <ul v-else class="tux-cmd__list" role="listbox" aria-label="Commands and suggestions">
         <template v-for="(group, gIdx) in filteredGroups" :key="`${group.heading}-${gIdx}`">
           <li class="tux-cmd__group-heading" role="presentation">{{ group.heading }}</li>
           <li

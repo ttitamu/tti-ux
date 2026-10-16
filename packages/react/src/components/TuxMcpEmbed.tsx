@@ -5,21 +5,21 @@
 import React from 'react';
 
 export interface TuxMcpEmbedProps {
-  appName?: string;
-  appIcon??: string;
-  appIconUrl??: string;
-  source??: string;
-  loading??: boolean;
-  collapsible??: boolean;
-  expandable??: boolean;
-  closable??: boolean;
-  collapsed??: boolean;
+  appName: string;
+  appIcon?: string;
+  appIconUrl?: string;
+  source?: string;
+  loading?: boolean;
+  collapsible?: boolean;
+  expandable?: boolean;
+  closable?: boolean;
+  collapsed?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxMcpEmbed: React.FC<TuxMcpEmbedProps> = ({
-  appName, appIcon = "lucide:plug", appIconUrl = "undefined", source = "undefined", loading = false, collapsible = true, expandable = true, closable = true, collapsed = false, children, className = ''
+  appName, appIcon = "lucide:plug", appIconUrl, source, loading = false, collapsible = true, expandable = true, closable = true, collapsed = false, children, className = ''
 }) => {
   return (
     <section className={`tux-mcp-embed ${className}`.trim()}>

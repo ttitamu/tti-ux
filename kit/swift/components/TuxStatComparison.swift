@@ -4,15 +4,15 @@
 import SwiftUI
 
 public struct TuxStatComparison<Content: View>: View {
-    public var eyebrow: String = "undefined"
+    public var eyebrow: String
     public var current: Int
     public var previous: Int
-    public var suffix: String = "undefined"
-    public var label: String = "undefined"
-    public var layout: String = row
+    public var suffix: String
+    public var label: String
+    public var layout: String = "row"
     public var decimals: Int = 1
-    public var polarity: String = direct
-    public var deltaFormat: String = abs+pct
+    public var polarity: String = "direct"
+    public var deltaFormat: String = "abs+pct"
     private let content: Content
 
     public init(

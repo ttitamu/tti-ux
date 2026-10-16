@@ -5,18 +5,18 @@
 import React from 'react';
 
 export interface TuxTOCProps {
-  items??: string;
-  target??: string;
-  levels??: string;
-  title??: string;
-  noTitle??: boolean;
-  variant??: "comm" | "classic";
+  items?: string;
+  target?: string;
+  levels?: string;
+  title?: string;
+  noTitle?: boolean;
+  variant?: "comm" | "classic";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxTOC: React.FC<TuxTOCProps> = ({
-  items = "undefined", target = "article", levels = "()", title = "On", noTitle = false, variant = comm, children, className = ''
+  items, target = "article", levels, title, noTitle = false, variant = "comm", children, className = ''
 }) => {
   return (
     <nav className={`tux-toc ${className}`.trim()}>

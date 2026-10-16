@@ -30,9 +30,9 @@ export class TuxAlertElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <UAlert class="tux-alert">
+      <div class="tux-alert">
         <slot></slot>
-      </UAlert>
+      </div>
     `;
   }
 }

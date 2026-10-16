@@ -11,16 +11,16 @@ class TuxChartGeographic:
     palette: str = "maroon"
     title: str = None
     legend_label: str = "Value"
-    legend_stops: str = "()"
+    legend_stops: str = None
     show_legend: bool = true
-    counties: str = "()"
-    districts: str = "()"
-    states: str = "()"
+    counties: str = None
+    districts: str = None
+    states: str = None
     highlight: str = "TX"
     dots: int = 600
-    dot_legend: str = "1"
-    flows: str = "()"
-    flow_legend: str = "Daily"
+    dot_legend: str = None
+    flows: str = None
+    flow_legend: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-chart-geographic">{content}</div>'

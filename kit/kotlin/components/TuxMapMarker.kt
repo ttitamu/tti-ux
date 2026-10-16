@@ -12,10 +12,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxMapMarker(
     kind: String,
-    number: String = undefined,
-    toneIndex: Int = undefined,
-    size: String = md,
-    title: String = "undefined",
+    number: String,
+    toneIndex: Int,
+    size: String = "md",
+    title: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

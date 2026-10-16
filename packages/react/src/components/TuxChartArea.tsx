@@ -5,11 +5,11 @@
 import React from 'react';
 
 export interface TuxChartAreaProps {
-  labels?: string;
-  series?: string;
+  labels: string;
+  series: string;
   width?: number;
   height?: number;
-  palette?: 'brand' | 'cvd';
+  palette?: "brand" | "cvd";
   patterns?: boolean;
   variant?: "overlay" | "stacked";
   markers?: boolean;
@@ -27,32 +27,10 @@ export interface TuxChartAreaProps {
 }
 
 export const TuxChartArea: React.FC<TuxChartAreaProps> = ({
-  labels,
-  series,
-  width = 640,
-  height = 280,
-  palette = 'brand',
-  patterns = true,
-  variant = 'overlay',
-  markers = false,
-  endLabels = true,
-  legend = false,
-  gridlines = true,
-  ticks = 5,
-  format = '(n:',
-  decimals = 1,
-  ariaSummary,
-  units,
-  tooltip = true,
-  children,
-  className = ''
+  labels, series, width = 640, height = 280, palette = "brand", patterns = false, variant = "overlay", markers = false, endLabels = true, legend = false, gridlines = true, ticks = 5, format, decimals = 1, ariaSummary, units, tooltip = true, children, className = ''
 }) => {
-  const cvdClass = palette === 'cvd' ? 'tux-chart--cvd' : '';
   return (
-    <figure
-      className={`tux-chart-area ${cvdClass} ${className}`.trim()}
-      data-chart-palette={palette}
-    >
+    <figure className={`tux-chart-area ${className}`.trim()}>
       {children}
     </figure>
   );

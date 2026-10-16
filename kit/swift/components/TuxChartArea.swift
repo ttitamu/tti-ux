@@ -8,16 +8,18 @@ public struct TuxChartArea<Content: View>: View {
     public var series: String
     public var width: Int = 640
     public var height: Int = 280
-    public var variant: String = overlay
+    public var palette: String = "brand"
+    public var patterns: Bool = false
+    public var variant: String = "overlay"
     public var markers: Bool = false
     public var endLabels: Bool = true
     public var legend: Bool = false
     public var gridlines: Bool = true
     public var ticks: Int = 5
-    public var format: String = "(n:"
+    public var format: String
     public var decimals: Int = 1
-    public var ariaSummary: String = "undefined"
-    public var units: String = "undefined"
+    public var ariaSummary: String
+    public var units: String
     public var tooltip: Bool = true
     private let content: Content
 

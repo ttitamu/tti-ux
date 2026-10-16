@@ -54,7 +54,7 @@ function onToggle(e: Event) {
   const target = e.currentTarget as HTMLDetailsElement;
   if (target && target.open) {
     setTimeout(() => {
-      target.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      target.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
     }, 60);
   }
 }

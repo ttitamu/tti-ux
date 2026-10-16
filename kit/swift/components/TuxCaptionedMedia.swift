@@ -4,14 +4,14 @@
 import SwiftUI
 
 public struct TuxCaptionedMedia<Content: View>: View {
-    public var src: String = "undefined"
+    public var src: String
     public var alt: String
-    public var caption: String = "undefined"
-    public var credit: String = "undefined"
-    public var eyebrow: String = "undefined"
-    public var aspect: String = 16/9
-    public var align: String = full
-    public var tone: String = maroon
+    public var caption: String
+    public var credit: String
+    public var eyebrow: String
+    public var aspect: String = "16/9"
+    public var align: String = "full"
+    public var tone: String = "maroon"
     private let content: Content
 
     public init(

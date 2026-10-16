@@ -9,7 +9,7 @@ from typing import Optional
 class TuxCitationExport:
     citation: str = None
     label: str = "Cite"
-    variant: str = outline
+    variant: str = "outline"
 
     def render_html(self, content: str = "") -> str:
-        return f'<UDropdownMenu class="tux-citation-export">{content}</UDropdownMenu>'
+        return f'<div class="tux-citation-export">{content}</div>'

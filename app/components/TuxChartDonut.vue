@@ -40,7 +40,7 @@
  *   />
  */
 import { computed } from "vue";
-import { tuxSeriesPattern, type TuxChartPatternKind } from "../utils/tuxChartPatterns";
+import { tuxSeriesPattern } from "../utils/tuxChartPatterns";
 
 interface Slice {
   key: string;
@@ -163,6 +163,7 @@ interface Arc {
   d: string;
   labelPos: { x: number; y: number; anchor: "start" | "middle" | "end" };
   toneClass: string;
+  patternKind: string;
 }
 
 const arcs = computed<Arc[]>(() => {

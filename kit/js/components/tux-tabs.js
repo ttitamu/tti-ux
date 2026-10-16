@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxTabs(props = {}, children = '') {
-  const el = document.createElement('UTabs');
+  const el = document.createElement('div');
   el.className = 'tux-tabs';
   if (typeof children === 'string') {
     el.innerHTML = children;

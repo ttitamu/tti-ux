@@ -5,12 +5,12 @@ import SwiftUI
 
 public struct TuxFormField<Content: View>: View {
     public var label: String
-    public var help: String = "undefined"
-    public var hint: String = "undefined"
-    public var error: String = "undefined"
+    public var help: String
+    public var hint: String
+    public var error: String
     public var required: Bool = false
-    public var inputId: String = "undefined"
-    public var layout: String = stacked
+    public var inputId: String
+    public var layout: String = "stacked"
     private let content: Content
 
     public init(

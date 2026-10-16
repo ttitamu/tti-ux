@@ -12,8 +12,8 @@ class TuxInfiniteScroll:
     loading: bool = false
     keyboard_fallback: bool = false
     root_margin: str = "200px"
-    noun: str = "undefined"
-    noun_plural: str = "undefined"
+    noun: str = None
+    noun_plural: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-infinite-scroll">{content}</div>'

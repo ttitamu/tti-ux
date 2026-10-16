@@ -9,7 +9,7 @@ final class TuxStepper
 {
     public string $steps;
     public int $currentIndex = 0;
-    public string $orientation = horizontal;
+    public string $orientation = 'horizontal';
     public bool $showDescriptions = true;
     public string $ariaLabel = 'Progress';
 

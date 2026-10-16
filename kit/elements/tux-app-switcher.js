@@ -30,9 +30,9 @@ export class TuxAppSwitcherElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <UPopover class="tux-app-switcher">
+      <div class="tux-app-switcher">
         <slot></slot>
-      </UPopover>
+      </div>
     `;
   }
 }

@@ -30,9 +30,9 @@ export class TuxButtonElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <UButton class="tux-button">
+      <div class="tux-button">
         <slot></slot>
-      </UButton>
+      </div>
     `;
   }
 }

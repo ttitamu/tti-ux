@@ -23,7 +23,7 @@ final class TuxFootnote
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<UPopover class="tux-footnote">%s</UPopover>',
+            '<div class="tux-footnote">%s</div>',
             $content
         );
     }

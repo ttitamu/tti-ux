@@ -7,15 +7,15 @@ namespace Tti\Tux\Components;
 
 final class TuxCardCarousel
 {
-    public string $items = 'undefined';
-    public string $eyebrow = 'undefined';
-    public string $title = 'undefined';
+    public string $items;
+    public string $eyebrow;
+    public string $title;
     public bool $bare = false;
     public bool $arrows = true;
     public bool $dots = false;
     public bool $loop = false;
     public int $slidesToScroll = 1;
-    public string $align = start;
+    public string $align = 'start';
     public string $gap = '1rem';
     public string $ariaLabel = 'Carousel';
 
@@ -31,7 +31,7 @@ final class TuxCardCarousel
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<div class="tux-card-carousel">%s</div>',
+            '<section class="tux-card-carousel">%s</section>',
             $content
         );
     }

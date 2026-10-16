@@ -13,10 +13,10 @@ import androidx.compose.ui.unit.dp
 fun TuxInlineCitation(
     n: Int,
     title: String,
-    href: String = "undefined",
-    excerpt: String = "undefined",
-    score: String = undefined,
-    label: String = "undefined",
+    href: String,
+    excerpt: String,
+    score: String,
+    label: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

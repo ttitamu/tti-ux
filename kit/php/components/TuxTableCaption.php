@@ -9,9 +9,9 @@ final class TuxTableCaption
 {
     public string $label = 'Table';
     public string $number;
-    public string $caption = 'undefined';
-    public string $source = 'undefined';
-    public string $placement = above;
+    public string $caption;
+    public string $source;
+    public string $placement = 'above';
 
     public function __construct(array $attributes = [])
     {

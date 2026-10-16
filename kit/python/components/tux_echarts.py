@@ -10,7 +10,7 @@ class TuxECharts:
     options: str = None
     height: str = "380px"
     width: str = "100%"
-    aria_title: str = "Interactive"
+    aria_title: str = None
     aria_summary: str = None
     extensions: str = None
     maps: str = None

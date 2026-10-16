@@ -8,10 +8,10 @@ from typing import Optional
 @dataclass
 class TuxAppSwitcher:
     apps: str = None
-    aria_label: str = "Switch"
-    heading: str = "TTI"
-    footer_text: str = "undefined"
-    presentation: str = popover
+    aria_label: str = None
+    heading: str = None
+    footer_text: str = None
+    presentation: str = "popover"
 
     def render_html(self, content: str = "") -> str:
-        return f'<UPopover class="tux-app-switcher">{content}</UPopover>'
+        return f'<div class="tux-app-switcher">{content}</div>'

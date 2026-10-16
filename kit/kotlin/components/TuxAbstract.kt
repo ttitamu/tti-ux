@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxAbstract(
-    background: String = "undefined",
-    methods: String = "undefined",
-    results: String = "undefined",
-    conclusion: String = "undefined",
-    keywords: String = "undefined",
-    variant: String = structured,
-    level: String = 4,
+    background: String,
+    methods: String,
+    results: String,
+    conclusion: String,
+    keywords: String,
+    variant: String = "structured",
+    level: Int = 4,
     content: @Composable () -> Unit = {}
 ) {
     Row(

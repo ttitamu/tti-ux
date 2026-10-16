@@ -8,9 +8,9 @@ namespace Tti\Tux\Components;
 final class TuxPhotoGrid
 {
     public string $items;
-    public string $kind = photo;
-    public string $columns = 3;
-    public string $aspect = undefined;
+    public string $kind = 'photo';
+    public int $columns = 3;
+    public string $aspect;
 
     public function __construct(array $attributes = [])
     {

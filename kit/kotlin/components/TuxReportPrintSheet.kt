@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxReportPrintSheet(
-    size: String = letter,
+    size: String = "letter",
     margin: String = "0.6in",
     content: @Composable () -> Unit = {}
 ) {

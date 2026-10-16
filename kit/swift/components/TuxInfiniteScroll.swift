@@ -9,8 +9,8 @@ public struct TuxInfiniteScroll<Content: View>: View {
     public var loading: Bool = false
     public var keyboardFallback: Bool = false
     public var rootMargin: String = "200px"
-    public var noun: String = "undefined"
-    public var nounPlural: String = "undefined"
+    public var noun: String
+    public var nounPlural: String
     private let content: Content
 
     public init(

@@ -5,10 +5,10 @@
 import React from 'react';
 
 export interface TuxChartGeoUsContextProps {
-  states?: string;
-  highlight?: string;
-  legendLabel?: string;
-  legendStops?: string;
+  states: string;
+  highlight: string;
+  legendLabel: string;
+  legendStops: string;
   children?: React.ReactNode;
   className?: string;
 }

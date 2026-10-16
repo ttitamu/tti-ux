@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxAlphaNav(
-    letters: String = "()",
-    available: String = "undefined",
-    mode: String = anchor,
+    letters: String,
+    available: String,
+    mode: String = "anchor",
     sticky: Boolean = false,
     showAll: Boolean = false,
-    modelValue: String = null,
-    ariaLabel: String = "Jump",
+    modelValue: String,
+    ariaLabel: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

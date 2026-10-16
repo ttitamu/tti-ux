@@ -11,16 +11,16 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChatBubble(
-    mode: String = bubble,
-    role: String = assistant,
+    mode: String = "bubble",
+    role: String = "assistant",
     title: String = "Assistant",
-    subtitle: String = "Institutional",
-    state: String = idle,
-    teaser: String = "undefined",
-    tail: String = none,
+    subtitle: String,
+    state: String = "idle",
+    teaser: String,
+    tail: String = "none",
     dismissible: Boolean = false,
     open: Boolean = true,
-    suggestions: String = "()",
+    suggestions: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

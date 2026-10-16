@@ -7,10 +7,10 @@ public struct TuxLoadMore<Content: View>: View {
     public var loaded: Int
     public var total: Int
     public var loading: Bool = false
-    public var noun: String = "undefined"
-    public var nounPlural: String = "undefined"
-    public var label: String = "Load"
-    public var terminalLabel: String = "All"
+    public var noun: String
+    public var nounPlural: String
+    public var label: String
+    public var terminalLabel: String
     private let content: Content
 
     public init(

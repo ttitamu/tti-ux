@@ -8,8 +8,8 @@ from typing import Optional
 @dataclass
 class TuxCodeBlock:
     code: str = None
-    lang: str = text
-    filename: str = "undefined"
+    lang: str = "text"
+    filename: str = None
     line_numbers: bool = false
     no_copy: bool = false
     no_download: bool = false

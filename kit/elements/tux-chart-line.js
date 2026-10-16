@@ -4,7 +4,7 @@
  */
 export class TuxChartLineElement extends HTMLElement {
   static get observedAttributes() {
-    return ["labels", "series", "width", "height", "markers", "end-labels", "legend", "gridlines", "y-ticks"];
+    return ["labels", "series", "width", "height", "markers", "distinct-markers", "marker-radius", "palette", "stroke-width", "patterns", "end-labels", "legend", "gridlines", "y-ticks"];
   }
 
   constructor() {

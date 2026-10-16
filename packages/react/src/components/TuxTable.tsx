@@ -5,7 +5,7 @@
 import React from 'react';
 
 export interface TuxTableProps {
-  statusAccessor??: string;
+  statusAccessor?: string;
   children?: React.ReactNode;
   className?: string;
 }

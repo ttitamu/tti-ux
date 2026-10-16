@@ -4,7 +4,7 @@
  */
 export class TuxPlaygroundElement extends HTMLElement {
   static get observedAttributes() {
-    return ["tag", "component-name", "controls", "presets", "title", "eyebrow", "slot-prop", "default-slot-text", "self-closing", "code-template", "preview-padding", "enable-deep-linking"];
+    return ["tag", "component-name", "controls", "presets", "title", "eyebrow", "slot-prop", "default-slot-text", "self-closing", "code-template", "source", "powerbi", "preview-padding", "enable-deep-linking"];
   }
 
   constructor() {

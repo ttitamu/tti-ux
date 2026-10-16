@@ -11,11 +11,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxAcknowledgments(
-    funding: String = "undefined",
-    acknowledgments: String = "undefined",
-    conflicts: String = "undefined",
-    ethics: String = "undefined",
-    level: String = 4,
+    funding: String,
+    acknowledgments: String,
+    conflicts: String,
+    ethics: String,
+    level: Int = 4,
     content: @Composable () -> Unit = {}
 ) {
     Row(

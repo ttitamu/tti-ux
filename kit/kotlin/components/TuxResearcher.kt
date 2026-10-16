@@ -13,15 +13,15 @@ import androidx.compose.ui.unit.dp
 fun TuxResearcher(
     name: String,
     role: String,
-    portrait: String = "undefined",
-    center: String = "undefined",
-    orcid: String = "undefined",
-    email: String = "undefined",
-    bio: String = "undefined",
-    projects: String = "undefined",
-    metrics: String = "undefined",
-    layout: String = default,
-    to: String = "undefined",
+    portrait: String,
+    center: String,
+    orcid: String,
+    email: String,
+    bio: String,
+    projects: String,
+    metrics: String,
+    layout: String = "default",
+    to: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

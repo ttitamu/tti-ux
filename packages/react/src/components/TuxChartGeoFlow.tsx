@@ -5,8 +5,8 @@
 import React from 'react';
 
 export interface TuxChartGeoFlowProps {
-  flows?: string;
-  flowLegend?: string;
+  flows: string;
+  flowLegend: string;
   children?: React.ReactNode;
   className?: string;
 }

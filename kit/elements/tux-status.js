@@ -4,7 +4,7 @@
  */
 export class TuxStatusElement extends HTMLElement {
   static get observedAttributes() {
-    return ["state", "kind", "acked", "label"];
+    return ["state", "kind", "acked", "label", "glyph"];
   }
 
   constructor() {

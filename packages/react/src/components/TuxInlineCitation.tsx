@@ -5,23 +5,23 @@
 import React from 'react';
 
 export interface TuxInlineCitationProps {
-  n?: number;
-  title?: string;
-  href??: string;
-  excerpt??: string;
-  score??: "string" | "number";
-  label??: string;
+  n: number;
+  title: string;
+  href?: string;
+  excerpt?: string;
+  score?: string;
+  label?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxInlineCitation: React.FC<TuxInlineCitationProps> = ({
-  n, title, href = "undefined", excerpt = "undefined", score = undefined, label = "undefined", children, className = ''
+  n, title, href, excerpt, score, label, children, className = ''
 }) => {
   return (
-    <UPopover className={`tux-inline-citation ${className}`.trim()}>
+    <div className={`tux-inline-citation ${className}`.trim()}>
       {children}
-    </UPopover>
+    </div>
   );
 };
 

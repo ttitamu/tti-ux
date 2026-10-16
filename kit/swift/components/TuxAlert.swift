@@ -5,9 +5,9 @@ import SwiftUI
 
 public struct TuxAlert<Content: View>: View {
     public var variant: String = "info"
-    public var title: String = "undefined"
-    public var description: String = "undefined"
-    public var icon: String = "undefined"
+    public var title: String
+    public var description: String
+    public var icon: String
     private let content: Content
 
     public init(

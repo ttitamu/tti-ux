@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { BundledTheme } from "shiki";
-import { useTuxFramework, type TuxFrameworkId } from "../composables/useTuxFramework";
+import { useTuxFramework } from "../composables/useTuxFramework";
 
 /**
  * TuxExample — live demo + code-reveal container for the style guide.
@@ -205,9 +205,9 @@ function deriveSwift(vue: string): string {
   const attrMatches = vue.matchAll(/([:@]?)([a-zA-Z0-9_-]+)="([^"]*)"/g);
   for (const m of attrMatches) {
     const isBound = m[1] === ":";
-    const name = m[2];
-    const val = m[3];
-    if (name === "class" || name === "style") continue;
+    const name = m[2] ?? "";
+    const val = m[3] ?? "";
+    if (!name || name === "class" || name === "style") continue;
     const camel = name.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
     if (isBound) {
       if (val === "true" || val === "false") {
@@ -223,7 +223,7 @@ function deriveSwift(vue: string): string {
   }
 
   const textMatch = vue.match(/>([^<]+)<\//);
-  const innerText = textMatch ? textMatch[1].trim() : "";
+  const innerText = textMatch?.[1]?.trim() ?? "";
   const attrStr = attrs.length > 0 ? `(\n    ${attrs.join(",\n    ")}\n)` : "()";
 
   const body = innerText
@@ -250,9 +250,9 @@ function deriveKotlin(vue: string): string {
   const attrMatches = vue.matchAll(/([:@]?)([a-zA-Z0-9_-]+)="([^"]*)"/g);
   for (const m of attrMatches) {
     const isBound = m[1] === ":";
-    const name = m[2];
-    const val = m[3];
-    if (name === "class" || name === "style") continue;
+    const name = m[2] ?? "";
+    const val = m[3] ?? "";
+    if (!name || name === "class" || name === "style") continue;
     const camel = name.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
     if (isBound) {
       if (val === "true" || val === "false") {
@@ -268,7 +268,7 @@ function deriveKotlin(vue: string): string {
   }
 
   const textMatch = vue.match(/>([^<]+)<\//);
-  const innerText = textMatch ? textMatch[1].trim() : "";
+  const innerText = textMatch?.[1]?.trim() ?? "";
   const attrStr = attrs.length > 0 ? `(\n    ${attrs.join(",\n    ")}\n)` : "()";
 
   const body = innerText
@@ -296,9 +296,9 @@ function derivePython(vue: string): string {
   const attrMatches = vue.matchAll(/([:@]?)([a-zA-Z0-9_-]+)="([^"]*)"/g);
   for (const m of attrMatches) {
     const isBound = m[1] === ":";
-    const name = m[2];
-    const val = m[3];
-    if (name === "class" || name === "style") continue;
+    const name = m[2] ?? "";
+    const val = m[3] ?? "";
+    if (!name || name === "class" || name === "style") continue;
     const snake = name.replace(/-([a-z0-9])/g, (_, c) => `_${c}`).toLowerCase();
     if (isBound) {
       if (val === "true") kwargs.push(`${snake}=True`);
@@ -311,7 +311,7 @@ function derivePython(vue: string): string {
   }
 
   const textMatch = vue.match(/>([^<]+)<\//);
-  const innerText = textMatch ? textMatch[1].trim() : "";
+  const innerText = textMatch?.[1]?.trim() ?? "";
   if (innerText) {
     kwargs.unshift(`"${innerText}"`);
   }
@@ -333,9 +333,9 @@ function derivePhp(vue: string): string {
   const attrMatches = vue.matchAll(/([:@]?)([a-zA-Z0-9_-]+)="([^"]*)"/g);
   for (const m of attrMatches) {
     const isBound = m[1] === ":";
-    const name = m[2];
-    const val = m[3];
-    if (name === "class" || name === "style") continue;
+    const name = m[2] ?? "";
+    const val = m[3] ?? "";
+    if (!name || name === "class" || name === "style") continue;
     if (isBound) {
       if (val === "true") args.push(`'${name}' => true`);
       else if (val === "false") args.push(`'${name}' => false`);
@@ -347,7 +347,7 @@ function derivePhp(vue: string): string {
   }
 
   const textMatch = vue.match(/>([^<]+)<\//);
-  const innerText = textMatch ? textMatch[1].trim() : "";
+  const innerText = textMatch?.[1]?.trim() ?? "";
   if (innerText) {
     args.push(`'content' => '${innerText}'`);
   }

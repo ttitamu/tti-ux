@@ -11,7 +11,7 @@
  * - Published preview simulation
  */
 import type { JSONContent } from "@tiptap/core";
-import { moduleSpec, type ModuleKind, isModuleKind } from "../../utils/desk/modules";
+import { moduleSpec, isModuleKind } from "../../utils/desk/modules";
 import { clonePresetDoc, type TuxDeskPreset } from "../../utils/desk/presets";
 import TuxDeskEditor from "./TuxDeskEditor.client.vue";
 import TuxDeskOutline from "./TuxDeskOutline.vue";
@@ -58,7 +58,7 @@ const desktopWidthPreset = ref<DesktopWidthPreset>("fluid");
 function cycleGridMode() {
   const modes: GridMode[] = ["dots", "cells", "columns", "none"];
   const nextIdx = (modes.indexOf(gridMode.value) + 1) % modes.length;
-  gridMode.value = modes[nextIdx];
+  gridMode.value = modes[nextIdx] ?? "dots";
 }
 
 // Active 12-column track highlight shared with child module blocks
@@ -114,9 +114,12 @@ function onSelectBlock(index: number) {
 function onMoveUp(index: number) {
   if (index <= 0) return;
   mutateDocContent((content) => {
-    const temp = content[index - 1];
-    content[index - 1] = content[index];
-    content[index] = temp;
+    const prev = content[index - 1];
+    const curr = content[index];
+    if (prev && curr) {
+      content[index - 1] = curr;
+      content[index] = prev;
+    }
   });
   selectedBlockIndex.value = index - 1;
 }
@@ -125,9 +128,12 @@ function onMoveDown(index: number) {
   const max = (currentDoc.value?.content?.length || 1) - 1;
   if (index >= max) return;
   mutateDocContent((content) => {
-    const temp = content[index + 1];
-    content[index + 1] = content[index];
-    content[index] = temp;
+    const next = content[index + 1];
+    const curr = content[index];
+    if (next && curr) {
+      content[index + 1] = curr;
+      content[index] = next;
+    }
   });
   selectedBlockIndex.value = index + 1;
 }

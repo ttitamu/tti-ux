@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxSpectrumFacts<Content: View>: View {
-    public var title: String = "QUICK"
+    public var title: String
     public var subtitle: String
-    public var items: String = "()"
-    public var tone: String = dark
+    public var items: String
+    public var tone: String = "dark"
     public var showTopRibbon: Bool = true
     private let content: Content
 

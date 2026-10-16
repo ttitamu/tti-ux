@@ -12,15 +12,15 @@ final class TuxChartHeatmap
     public string $values;
     public int $width = 640;
     public int $height = 280;
-    public string $ramp = maroon;
-    public string $bins = 5;
+    public string $ramp = 'maroon';
+    public int $bins = 5;
     public bool $valueLabels = false;
     public bool $legend = true;
     public int $colLabelEvery = 0;
-    public string $format = '(n:';
+    public string $format;
     public int $decimals = 1;
-    public string $ariaSummary = 'undefined';
-    public string $units = 'undefined';
+    public string $ariaSummary;
+    public string $units;
     public bool $tooltip = true;
 
     public function __construct(array $attributes = [])

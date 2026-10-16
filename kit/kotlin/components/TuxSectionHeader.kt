@@ -11,12 +11,12 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxSectionHeader(
-    level: String = 2,
-    title: String = "undefined",
-    secondaryTitle: String = "undefined",
-    subtitle: String = "undefined",
-    kicker: String = "undefined",
-    variant: String = institutional,
+    level: Int = 2,
+    title: String,
+    secondaryTitle: String,
+    subtitle: String,
+    kicker: String,
+    variant: String = "institutional",
     content: @Composable () -> Unit = {}
 ) {
     Row(

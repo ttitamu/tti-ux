@@ -5,19 +5,19 @@
 import React from 'react';
 
 export interface TuxInfiniteScrollProps {
-  loaded?: number;
-  total?: number;
-  loading??: boolean;
-  keyboardFallback??: boolean;
-  rootMargin??: string;
-  noun??: string;
-  nounPlural??: string;
+  loaded: number;
+  total: number;
+  loading?: boolean;
+  keyboardFallback?: boolean;
+  rootMargin?: string;
+  noun?: string;
+  nounPlural?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxInfiniteScroll: React.FC<TuxInfiniteScrollProps> = ({
-  loaded, total, loading = false, keyboardFallback = false, rootMargin = "200px", noun = "undefined", nounPlural = "undefined", children, className = ''
+  loaded, total, loading = false, keyboardFallback = false, rootMargin = "200px", noun, nounPlural, children, className = ''
 }) => {
   return (
     <div className={`tux-infinite-scroll ${className}`.trim()}>

@@ -12,5 +12,6 @@
     [Parameter] public string State { get; set; };
     [Parameter] public string Kind { get; set; } = "chip";
     [Parameter] public bool Acked { get; set; } = false;
-    [Parameter] public string Label { get; set; } = "undefined";
+    [Parameter] public string Label { get; set; };
+    [Parameter] public bool Glyph { get; set; } = false;
 }

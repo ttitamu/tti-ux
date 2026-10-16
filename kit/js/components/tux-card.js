@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxCard(props = {}, children = '') {
-  const el = document.createElement('NuxtLink');
+  const el = document.createElement('div');
   el.className = 'tux-card';
   if (typeof children === 'string') {
     el.innerHTML = children;

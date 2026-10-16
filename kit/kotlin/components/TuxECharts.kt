@@ -14,7 +14,7 @@ fun TuxECharts(
     options: String,
     height: String = "380px",
     width: String = "100%",
-    ariaTitle: String = "Interactive",
+    ariaTitle: String,
     ariaSummary: String,
     extensions: String,
     maps: String,

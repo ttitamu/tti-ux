@@ -5,22 +5,22 @@
 import React from 'react';
 
 export interface TuxReactiveSidebarProps {
-  sections?: string;
-  allSections??: string;
-  collapsed??: boolean;
-  activeAreaTitle??: string;
-  activeAreaIcon??: string;
-  search??: boolean;
-  searchPlaceholder??: string;
-  showAll??: boolean;
-  defaultExpanded??: boolean;
-  exclusive??: boolean;
+  sections: string;
+  allSections?: string;
+  collapsed?: boolean;
+  activeAreaTitle?: string;
+  activeAreaIcon?: string;
+  search?: boolean;
+  searchPlaceholder?: string;
+  showAll?: boolean;
+  defaultExpanded?: boolean;
+  exclusive?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxReactiveSidebar: React.FC<TuxReactiveSidebarProps> = ({
-  sections, allSections = "undefined", collapsed = false, activeAreaTitle = "Workspace", activeAreaIcon = "lucide:layers", search = true, searchPlaceholder = "Filter", showAll = false, defaultExpanded = false, exclusive = false, children, className = ''
+  sections, allSections, collapsed = false, activeAreaTitle, activeAreaIcon = "lucide:layers", search = true, searchPlaceholder, showAll = false, defaultExpanded = false, exclusive = false, children, className = ''
 }) => {
   return (
     <nav className={`tux-reactive-sidebar ${className}`.trim()}>

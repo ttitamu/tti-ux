@@ -64,7 +64,7 @@ const snippet = computed(() => {
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Top Spectrum Ribbon</label>
             <label class="inline-flex items-center gap-2 text-xs font-medium text-text-primary cursor-pointer mt-1">
-              <input v-model="showRibbon" type="checkbox" class="accent-brand-primary" />
+              <input v-model="showRibbon" type="checkbox" class="accent-brand-primary" >
               <span>Show 5-Band Top Ribbon</span>
             </label>
           </div>

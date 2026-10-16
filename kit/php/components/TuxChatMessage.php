@@ -9,9 +9,9 @@ final class TuxChatMessage
 {
     public string $role = 'user';
     public string $author;
-    public string $timestamp = 'undefined';
-    public string $meta = 'undefined';
-    public string $initials = 'undefined';
+    public string $timestamp;
+    public string $meta;
+    public string $initials;
 
     public function __construct(array $attributes = [])
     {

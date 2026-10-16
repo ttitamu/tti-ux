@@ -30,9 +30,9 @@ export class TuxIdentityElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <component class="tux-identity">
+      <div class="tux-identity">
         <slot></slot>
-      </component>
+      </div>
     `;
   }
 }

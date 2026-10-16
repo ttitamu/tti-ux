@@ -8,7 +8,7 @@ from typing import Optional
 @dataclass
 class TuxFilterPanel:
     facets: str = None
-    model_value: str = "()"
+    model_value: str = None
     title: str = None
 
     def render_html(self, content: str = "") -> str:

@@ -8,8 +8,8 @@ namespace Tti\Tux\Components;
 final class TuxScrollTop
 {
     public int $threshold = 160;
-    public string $position = bottom-right;
-    public string $ariaLabel = 'Scroll';
+    public string $position = 'bottom-right';
+    public string $ariaLabel;
 
     public function __construct(array $attributes = [])
     {

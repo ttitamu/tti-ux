@@ -139,7 +139,7 @@ const selectionVue = `<TuxCommandBar
                     placeholder="Filter corridors..."
                     class="pl-8 pr-2.5 py-1 text-xs rounded bg-surface-raised border border-surface-border text-text-primary focus:outline-none focus:border-brand-primary"
                     aria-label="Filter corridors in playground"
-                  />
+                  >
                 </div>
               </template>
 
@@ -197,7 +197,7 @@ const selectionVue = `<TuxCommandBar
                 placeholder="Filter corridors..."
                 class="pl-8 pr-2.5 py-1 text-xs rounded bg-surface-raised border border-surface-border text-text-primary focus:outline-none focus:border-brand-primary"
                 aria-label="Filter corridors demonstration"
-              />
+              >
             </div>
           </template>
         </TuxCommandBar>

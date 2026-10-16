@@ -201,7 +201,7 @@ async function copyTag(compName: string, e: Event) {
             type="search"
             placeholder="Search 159 components (name, wraps, category)…"
             class="w-full pl-9 pr-8 py-2 text-sm rounded-lg bg-surface-sunken border border-surface-border text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary transition-colors"
-          />
+          >
           <button
             v-if="searchQuery"
             type="button"

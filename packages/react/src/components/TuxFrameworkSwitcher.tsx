@@ -5,13 +5,13 @@
 import React from 'react';
 
 export interface TuxFrameworkSwitcherProps {
-  mode??: "compact" | "segmented" | "auto";
+  mode?: "compact" | "segmented" | "auto";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxFrameworkSwitcher: React.FC<TuxFrameworkSwitcherProps> = ({
-  mode = compact, children, className = ''
+  mode = "compact", children, className = ''
 }) => {
   return (
     <div className={`tux-framework-switcher ${className}`.trim()}>

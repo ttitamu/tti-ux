@@ -4,11 +4,11 @@
 import SwiftUI
 
 public struct TuxCTA<Content: View>: View {
-    public var eyebrow: String = null
+    public var eyebrow: String
     public var title: String
-    public var dek: String = null
-    public var tone: String = maroon
-    public var variant: String = default
+    public var dek: String
+    public var tone: String = "maroon"
+    public var variant: String = "default"
     private let content: Content
 
     public init(

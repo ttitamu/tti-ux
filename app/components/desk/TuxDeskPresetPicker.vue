@@ -98,7 +98,7 @@ function handleSelect(preset: TuxDeskPreset) {
             type="search"
             placeholder="Search templates..."
             class="pl-8 pr-3 py-1 text-xs rounded-md bg-surface-raised border border-surface-border text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary w-44 sm:w-56"
-          />
+          >
         </div>
 
         <button

@@ -30,9 +30,9 @@ export class TuxProseElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <component class="tux-prose">
+      <div class="tux-prose">
         <slot></slot>
-      </component>
+      </div>
     `;
   }
 }

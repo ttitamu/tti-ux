@@ -38,8 +38,8 @@ export interface EChartsThemeDefinition {
     containLabel: boolean;
   };
   categoryAxis: {
-    axisLine: { show: boolean; lineStyle: { color: string } };
-    axisTick: { show: boolean; lineStyle: { color: string } };
+    axisLine: { show: boolean; lineStyle: { color: string; width?: number } };
+    axisTick: { show: boolean; lineStyle: { color: string; width?: number } };
     axisLabel: { color: string; fontFamily: string; fontSize: number };
     splitLine: { show: boolean };
   };
@@ -47,7 +47,7 @@ export interface EChartsThemeDefinition {
     axisLine: { show: boolean };
     axisTick: { show: boolean };
     axisLabel: { color: string; fontFamily: string; fontSize: number };
-    splitLine: { show: boolean; lineStyle: { color: string; type: string } };
+    splitLine: { show: boolean; lineStyle: { color: string; type: string; width?: number } };
   };
   tooltip: {
     backgroundColor: string;

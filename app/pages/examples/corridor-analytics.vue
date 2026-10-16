@@ -25,8 +25,8 @@ const speedTrend = [
 const sensorStations = ref([
   { id: "ST-35N-231", location: "Oltorf St Interchange", dir: "NB", milepost: "231.4", speed: 61, volume: 1840, occ: "14%", status: "ok" as const, rsu: "online" },
   { id: "ST-35N-233", location: "Riverside Dr Underpass", dir: "NB", milepost: "233.1", speed: 56, volume: 2120, occ: "18%", status: "ok" as const, rsu: "online" },
-  { id: "ST-35N-235", location: "Lady Bird Lake Bridge", dir: "NB", milepost: "234.8", speed: 42, volume: 2480, occ: "28%", status: "warn" as const, rsu: "online" },
-  { id: "ST-35N-237", location: "MLK Jr Blvd Exit 235B", dir: "NB", milepost: "236.2", speed: 45, volume: 2310, occ: "25%", status: "warn" as const, rsu: "online" },
+  { id: "ST-35N-235", location: "Lady Bird Lake Bridge", dir: "NB", milepost: "234.8", speed: 42, volume: 2480, occ: "28%", status: "warning" as const, rsu: "online" },
+  { id: "ST-35N-237", location: "MLK Jr Blvd Exit 235B", dir: "NB", milepost: "236.2", speed: 45, volume: 2310, occ: "25%", status: "warning" as const, rsu: "online" },
   { id: "ST-35N-239", location: "Airport Blvd Overpass", dir: "NB", milepost: "238.9", speed: 58, volume: 1950, occ: "16%", status: "ok" as const, rsu: "online" },
   { id: "ST-35N-242", location: "US-290 E Split / St Johns", dir: "NB", milepost: "242.0", speed: 63, volume: 1720, occ: "12%", status: "ok" as const, rsu: "online" },
   { id: "ST-35S-235", location: "Lady Bird Lake Bridge SB", dir: "SB", milepost: "234.8", speed: 59, volume: 1980, occ: "15%", status: "ok" as const, rsu: "online" },
@@ -221,7 +221,7 @@ function triggerDownload() {
             type="search"
             placeholder="Filter stations by name or MP…"
             class="w-full pl-8 pr-3 py-1.5 text-xs rounded-md bg-surface-sunken border border-surface-border text-text-primary placeholder:text-text-muted focus:border-brand-primary"
-          />
+          >
         </div>
       </div>
 

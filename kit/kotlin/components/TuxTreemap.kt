@@ -15,9 +15,9 @@ fun TuxTreemap(
     width: Int = 720,
     height: Int = 460,
     maxDepth: Int = 2,
-    colorBy: String = size,
-    unit: String = bytes,
-    ariaLabel: String = "Treemap",
+    colorBy: String = "size",
+    unit: String = "bytes",
+    ariaLabel: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

@@ -9,9 +9,9 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Title { get; set; } = "QUICK";
+    [Parameter] public string Title { get; set; };
     [Parameter] public string Subtitle { get; set; };
-    [Parameter] public string Items { get; set; } = "()";
-    [Parameter] public string Tone { get; set; } = dark;
+    [Parameter] public string Items { get; set; };
+    [Parameter] public string Tone { get; set; } = "dark";
     [Parameter] public bool ShowTopRibbon { get; set; } = true;
 }

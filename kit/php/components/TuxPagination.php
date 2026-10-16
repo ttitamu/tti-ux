@@ -14,7 +14,7 @@ final class TuxPagination
     public int $boundaryCount = 1;
     public bool $showStatus = false;
     public string $noun = 'result';
-    public string $pluralNoun = 'undefined';
+    public string $pluralNoun;
     public string $ariaLabel = 'Pagination';
 
     public function __construct(array $attributes = [])

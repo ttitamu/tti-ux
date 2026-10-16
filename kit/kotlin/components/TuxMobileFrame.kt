@@ -13,13 +13,13 @@ import androidx.compose.ui.unit.dp
 fun TuxMobileFrame(
     platform: String = "ios",
     width: Int = 280,
-    color: String = undefined,
+    color: String,
     statusBar: Boolean = true,
     time: String = "9:41",
     notch: Boolean = true,
     homeIndicator: Boolean = true,
     navStyle: String = "gesture",
-    ariaLabel: String = "undefined",
+    ariaLabel: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

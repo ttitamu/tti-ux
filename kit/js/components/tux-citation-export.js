@@ -3,7 +3,7 @@
  * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
  */
 export function createTuxCitationExport(props = {}, children = '') {
-  const el = document.createElement('UDropdownMenu');
+  const el = document.createElement('div');
   el.className = 'tux-citation-export';
   if (typeof children === 'string') {
     el.innerHTML = children;

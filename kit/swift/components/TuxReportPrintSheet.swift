@@ -4,7 +4,7 @@
 import SwiftUI
 
 public struct TuxReportPrintSheet<Content: View>: View {
-    public var size: String = letter
+    public var size: String = "letter"
     public var margin: String = "0.6in"
     private let content: Content
 

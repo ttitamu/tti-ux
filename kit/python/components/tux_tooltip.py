@@ -8,11 +8,11 @@ from typing import Optional
 @dataclass
 class TuxTooltip:
     text: str = None
-    title: str = "undefined"
-    kbds: str = "undefined"
-    side: str = top
+    title: str = None
+    kbds: str = None
+    side: str = "top"
     arrow: bool = true
     disabled: bool = false
 
     def render_html(self, content: str = "") -> str:
-        return f'<TooltipProvider class="tux-tooltip">{content}</TooltipProvider>'
+        return f'<div class="tux-tooltip">{content}</div>'

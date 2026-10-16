@@ -11,14 +11,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCaptionedMedia(
-    src: String = "undefined",
+    src: String,
     alt: String,
-    caption: String = "undefined",
-    credit: String = "undefined",
-    eyebrow: String = "undefined",
-    aspect: String = 16/9,
-    align: String = full,
-    tone: String = maroon,
+    caption: String,
+    credit: String,
+    eyebrow: String,
+    aspect: String = "16/9",
+    align: String = "full",
+    tone: String = "maroon",
     content: @Composable () -> Unit = {}
 ) {
     Row(

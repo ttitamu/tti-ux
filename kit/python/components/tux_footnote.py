@@ -12,4 +12,4 @@ class TuxFootnote:
     id_prefix: str = "fn"
 
     def render_html(self, content: str = "") -> str:
-        return f'<UPopover class="tux-footnote">{content}</UPopover>'
+        return f'<div class="tux-footnote">{content}</div>'

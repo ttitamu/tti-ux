@@ -69,6 +69,7 @@ export const COMPONENTS_WITH_UNIT_TESTS: readonly string[] = [
   "TuxChartHeatmap",
   "TuxChartHistogram",
   "TuxChartLine",
+  "TuxChartPatternsDefs",
   "TuxChartScatter",
   "TuxChartSunburst",
   "TuxChatBubble",
@@ -210,6 +211,7 @@ export const COMPONENTS_WITH_UNIT_TESTS: readonly string[] = [
   "TuxUserMenu",
   "TuxUtilityCluster",
   "TuxValidationSummary",
+  "TuxVisionPreferencesModal",
   "TuxVizEmbed",
   "TuxVizGrid",
   "TuxVizRPlot",
@@ -233,12 +235,14 @@ export const COMPONENTS_PORTED_REACT: readonly string[] = [
   "TuxButton",
   "TuxCallout",
   "TuxCard",
+  "TuxChartPatternsDefs",
   "TuxCodeBlock",
   "TuxDescriptionList",
   "TuxDropdown",
   "TuxEmptyState",
   "TuxFactoid",
   "TuxFormField",
+  "TuxHeroCanvasSol",
   "TuxKbd",
   "TuxLinkList",
   "TuxLinkSlab",
@@ -248,6 +252,7 @@ export const COMPONENTS_PORTED_REACT: readonly string[] = [
   "TuxStatus",
   "TuxTableCaption",
   "TuxTabs",
+  "TuxVisionPreferencesModal",
 ] as const;
 
 export type TuxHealthTier = "excellent" | "fair" | "needs-attention";

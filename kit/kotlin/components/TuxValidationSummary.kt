@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxValidationSummary(
     errors: String,
-    title: String = "Please",
-    variant: String = error,
+    title: String,
+    variant: String = "error",
     content: @Composable () -> Unit = {}
 ) {
     Row(

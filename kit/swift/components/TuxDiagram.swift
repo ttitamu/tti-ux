@@ -5,8 +5,8 @@ import SwiftUI
 
 public struct TuxDiagram<Content: View>: View {
     public var code: String
-    public var caption: String = "undefined"
-    public var eyebrow: String = "undefined"
+    public var caption: String
+    public var eyebrow: String
     private let content: Content
 
     public init(

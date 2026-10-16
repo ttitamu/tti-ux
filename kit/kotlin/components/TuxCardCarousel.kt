@@ -11,15 +11,15 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCardCarousel(
-    items: String = "undefined",
-    eyebrow: String = "undefined",
-    title: String = "undefined",
+    items: String,
+    eyebrow: String,
+    title: String,
     bare: Boolean = false,
     arrows: Boolean = true,
     dots: Boolean = false,
     loop: Boolean = false,
     slidesToScroll: Int = 1,
-    align: String = start,
+    align: String = "start",
     gap: String = "1rem",
     ariaLabel: String = "Carousel",
     content: @Composable () -> Unit = {}

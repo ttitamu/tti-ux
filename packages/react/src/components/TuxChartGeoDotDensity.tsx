@@ -5,8 +5,8 @@
 import React from 'react';
 
 export interface TuxChartGeoDotDensityProps {
-  dots?: number;
-  dotLegend?: string;
+  dots: number;
+  dotLegend: string;
   children?: React.ReactNode;
   className?: string;
 }

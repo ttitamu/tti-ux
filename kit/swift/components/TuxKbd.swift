@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxKbd<Content: View>: View {
-    public var value: String = "undefined"
-    public var keys: String = "undefined"
-    public var size: String = sm
+    public var value: String
+    public var keys: String
+    public var size: String = "sm"
     public var separator: String
     private let content: Content
 

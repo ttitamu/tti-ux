@@ -9,7 +9,7 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Items { get; set; } = "undefined";
-    [Parameter] public string Placeholder { get; set; } = "Search";
+    [Parameter] public string Items { get; set; };
+    [Parameter] public string Placeholder { get; set; };
     [Parameter] public int MaxResults { get; set; } = 8;
 }

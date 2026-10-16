@@ -8,9 +8,9 @@ from typing import Optional
 @dataclass
 class TuxSidebarBlock:
     title: str = None
-    eyebrow: str = "undefined"
-    icon: str = "undefined"
-    variant: str = default
+    eyebrow: str = None
+    icon: str = None
+    variant: str = "default"
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-sidebar-block">{content}</section>'

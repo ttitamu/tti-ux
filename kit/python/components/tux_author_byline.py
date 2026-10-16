@@ -8,8 +8,8 @@ from typing import Optional
 @dataclass
 class TuxAuthorByline:
     authors: str = None
-    affiliations: str = "()"
-    layout: str = compact
+    affiliations: str = None
+    layout: str = "compact"
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-author-byline">{content}</section>'

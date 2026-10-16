@@ -14,11 +14,11 @@ fun TuxResultCount(
     page: Int,
     pageSize: Int,
     total: Int,
-    noun: String = "undefined",
-    nounPlural: String = "undefined",
-    pageSizeOptions: String = "undefined",
+    noun: String,
+    nounPlural: String,
+    pageSizeOptions: String,
     hideRange: Boolean = false,
-    pageSizeLabel: String = "per",
+    pageSizeLabel: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

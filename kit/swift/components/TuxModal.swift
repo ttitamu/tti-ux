@@ -5,10 +5,10 @@ import SwiftUI
 
 public struct TuxModal<Content: View>: View {
     public var open: Bool = false
-    public var title: String = "undefined"
-    public var eyebrow: String = "undefined"
-    public var size: String = undefined
-    public var variant: String = standard
+    public var title: String
+    public var eyebrow: String
+    public var size: String
+    public var variant: String = "standard"
     private let content: Content
 
     public init(

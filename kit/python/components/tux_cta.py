@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxCTA:
-    eyebrow: str = null
+    eyebrow: str = None
     title: str = None
-    dek: str = null
-    tone: str = maroon
-    variant: str = default
+    dek: str = None
+    tone: str = "maroon"
+    variant: str = "default"
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-cta">{content}</section>'

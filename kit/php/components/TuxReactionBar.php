@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxReactionBar
 {
-    public string $modelValue = '()';
-    public string $reactions = '()';
-    public string $counts = '()';
+    public string $modelValue;
+    public string $reactions;
+    public string $counts;
     public string $size;
 
     public function __construct(array $attributes = [])

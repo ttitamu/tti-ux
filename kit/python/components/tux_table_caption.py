@@ -9,9 +9,9 @@ from typing import Optional
 class TuxTableCaption:
     label: str = "Table"
     number: str = None
-    caption: str = "undefined"
-    source: str = "undefined"
-    placement: str = above
+    caption: str = None
+    source: str = None
+    placement: str = "above"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-table-caption">{content}</div>'

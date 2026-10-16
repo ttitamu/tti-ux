@@ -47,6 +47,11 @@ function titleFor(slug: string): string {
   return titles[slug] ?? slug;
 }
 
+function shortTitleFor(slug: string): string {
+  const full = titles[slug] ?? slug;
+  return full.split(" — ")[0]?.trim() || full;
+}
+
 useHead({
   title: computed(() => `${titleFor(docName.value)} · TUX`),
 });
@@ -105,7 +110,7 @@ const otherDocs = computed(() =>
         :trail="[
           { label: 'Home',   to: '/' },
           { label: 'Design', to: '/design' },
-          { label: titleFor(docName) },
+          { label: shortTitleFor(docName) },
         ]"
       />
       <TuxDocSearch class="sm:max-w-xs" />

@@ -4,8 +4,8 @@ import tuxRecordHighlightsSource from "~/components/TuxRecordHighlights.vue?raw"
 useHead({ title: "TuxRecordHighlights · TUX" });
 
 const items = [
-  { label: "Active Sensors", value: "248", change: "+14%", changeTone: "positive" },
-  { label: "Stream Latency", value: "18ms", change: "-2ms", changeTone: "positive" },
+  { label: "Active Sensors", value: "248", change: "+14%", changeTone: "positive" as const },
+  { label: "Stream Latency", value: "18ms", change: "-2ms", changeTone: "positive" as const },
   { label: "Review Cadence", value: "90 Days" },
   { label: "Data Quality", value: "99.4%" },
   { label: "Ingest Rate", value: "52 kHz" },

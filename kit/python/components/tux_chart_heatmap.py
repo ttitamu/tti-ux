@@ -12,15 +12,15 @@ class TuxChartHeatmap:
     values: str = None
     width: int = 640
     height: int = 280
-    ramp: str = maroon
-    bins: str = 5
+    ramp: str = "maroon"
+    bins: int = 5
     value_labels: bool = false
     legend: bool = true
     col_label_every: int = 0
-    format: str = "(n:"
+    format: str = None
     decimals: int = 1
-    aria_summary: str = "undefined"
-    units: str = "undefined"
+    aria_summary: str = None
+    units: str = None
     tooltip: bool = true
 
     def render_html(self, content: str = "") -> str:

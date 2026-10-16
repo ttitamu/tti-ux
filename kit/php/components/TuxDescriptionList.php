@@ -8,9 +8,9 @@ namespace Tti\Tux\Components;
 final class TuxDescriptionList
 {
     public string $items;
-    public string $layout = inline;
-    public string $emphasis = editorial;
-    public string $title = 'undefined';
+    public string $layout = 'inline';
+    public string $emphasis = 'editorial';
+    public string $title;
 
     public function __construct(array $attributes = [])
     {

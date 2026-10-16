@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxCallout
 {
-    public string $kind = fact;
-    public string $eyebrow = null;
-    public string $variant = default;
+    public string $kind = 'fact';
+    public string $eyebrow;
+    public string $variant = 'default';
 
     public function __construct(array $attributes = [])
     {

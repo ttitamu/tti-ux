@@ -5,9 +5,9 @@
 import React from 'react';
 
 export interface TuxChartGeoTitleProps {
-  title?: string;
-  x?: number;
-  y?: number;
+  title: string;
+  x: number;
+  y: number;
   children?: React.ReactNode;
   className?: string;
 }
@@ -16,9 +16,9 @@ export const TuxChartGeoTitle: React.FC<TuxChartGeoTitleProps> = ({
   title, x, y, children, className = ''
 }) => {
   return (
-    <text className={`tux-chart-geo-title ${className}`.trim()}>
+    <div className={`tux-chart-geo-title ${className}`.trim()}>
       {children}
-    </text>
+    </div>
   );
 };
 

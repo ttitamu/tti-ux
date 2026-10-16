@@ -9,13 +9,13 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Src { get; set; } = "undefined";
+    [Parameter] public string Src { get; set; };
     [Parameter] public string Alt { get; set; };
-    [Parameter] public string Eyebrow { get; set; } = "undefined";
+    [Parameter] public string Eyebrow { get; set; };
     [Parameter] public string Title { get; set; };
-    [Parameter] public string Dek { get; set; } = "undefined";
-    [Parameter] public string Layout { get; set; } = overlay;
-    [Parameter] public string ImageSide { get; set; } = right;
-    [Parameter] public string Height { get; set; } = standard;
-    [Parameter] public string Tone { get; set; } = maroon;
+    [Parameter] public string Dek { get; set; };
+    [Parameter] public string Layout { get; set; } = "overlay";
+    [Parameter] public string ImageSide { get; set; } = "right";
+    [Parameter] public string Height { get; set; } = "standard";
+    [Parameter] public string Tone { get; set; } = "maroon";
 }

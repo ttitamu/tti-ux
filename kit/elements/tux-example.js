@@ -4,7 +4,7 @@
  */
 export class TuxExampleElement extends HTMLElement {
   static get observedAttributes() {
-    return ["vue", "react", "wc", "razor", "source", "css", "powerbi", "title", "preview-padding"];
+    return ["vue", "react", "wc", "razor", "python", "php", "swift", "kotlin", "source", "css", "powerbi", "title", "preview-padding"];
   }
 
   constructor() {

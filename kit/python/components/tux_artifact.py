@@ -8,9 +8,9 @@ from typing import Optional
 @dataclass
 class TuxArtifact:
     title: str = None
-    meta: str = "undefined"
+    meta: str = None
     icon: str = "lucide:file-code"
-    actions: str = "()"
+    actions: str = None
     busy: bool = false
 
     def render_html(self, content: str = "") -> str:

@@ -23,7 +23,7 @@ final class TuxChartGeoTitle
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<text class="tux-chart-geo-title">%s</text>',
+            '<div class="tux-chart-geo-title">%s</div>',
             $content
         );
     }

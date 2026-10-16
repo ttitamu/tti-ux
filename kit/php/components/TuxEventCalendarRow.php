@@ -15,8 +15,8 @@ final class TuxEventCalendarRow
     public string $category;
     public string $to;
     public string $href;
-    public string $actionText = 'View';
-    public string $chipTone = green;
+    public string $actionText;
+    public string $chipTone = 'green';
 
     public function __construct(array $attributes = [])
     {

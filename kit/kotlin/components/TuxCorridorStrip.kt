@@ -11,14 +11,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCorridorStrip(
-    name: String = "undefined",
+    name: String,
     fromMile: Int,
     toMile: Int,
-    segments: String = "undefined",
-    events: String = "undefined",
-    values: String = "undefined",
-    valuesLabel: String = "undefined",
-    direction: String = "undefined",
+    segments: String,
+    events: String,
+    values: String,
+    valuesLabel: String,
+    direction: String,
     width: Int = 800,
     height: Int = 140,
     tickEvery: Int = 5,

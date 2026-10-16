@@ -83,7 +83,7 @@ function getCategoryLabel(catId?: string) {
           type="search"
           placeholder="Search visualizations (name, blurb, wraps)…"
           class="w-full pl-9 pr-8 py-2 text-sm rounded-lg bg-surface-sunken border border-surface-border text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary transition-colors"
-        />
+        >
         <button
           v-if="searchQuery"
           type="button"

@@ -8,10 +8,10 @@ namespace Tti\Tux\Components;
 final class TuxCardSlab
 {
     public string $cards;
-    public string $columns = 3;
-    public string $aspect = 4/5;
-    public string $heading = 'undefined';
-    public string $eyebrow = 'undefined';
+    public int $columns = 3;
+    public string $aspect = '4/5';
+    public string $heading;
+    public string $eyebrow;
     public bool $inset = false;
 
     public function __construct(array $attributes = [])

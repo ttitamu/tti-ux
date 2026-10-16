@@ -30,9 +30,9 @@ export class TuxPageContainerElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <component class="tux-page-container">
+      <div class="tux-page-container">
         <slot></slot>
-      </component>
+      </div>
     `;
   }
 }

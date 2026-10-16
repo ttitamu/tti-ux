@@ -9,8 +9,8 @@ final class TuxMcpEmbed
 {
     public string $appName;
     public string $appIcon = 'lucide:plug';
-    public string $appIconUrl = 'undefined';
-    public string $source = 'undefined';
+    public string $appIconUrl;
+    public string $source;
     public bool $loading = false;
     public bool $collapsible = true;
     public bool $expandable = true;

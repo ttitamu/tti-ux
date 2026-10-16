@@ -7,13 +7,13 @@ namespace Tti\Tux\Components;
 
 final class TuxAlphaNav
 {
-    public string $letters = '()';
-    public string $available = 'undefined';
-    public string $mode = anchor;
+    public string $letters;
+    public string $available;
+    public string $mode = 'anchor';
     public bool $sticky = false;
     public bool $showAll = false;
-    public string $modelValue = null;
-    public string $ariaLabel = 'Jump';
+    public string $modelValue;
+    public string $ariaLabel;
 
     public function __construct(array $attributes = [])
     {

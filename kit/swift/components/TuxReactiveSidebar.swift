@@ -5,12 +5,12 @@ import SwiftUI
 
 public struct TuxReactiveSidebar<Content: View>: View {
     public var sections: String
-    public var allSections: String = "undefined"
+    public var allSections: String
     public var collapsed: Bool = false
-    public var activeAreaTitle: String = "Workspace"
+    public var activeAreaTitle: String
     public var activeAreaIcon: String = "lucide:layers"
     public var search: Bool = true
-    public var searchPlaceholder: String = "Filter"
+    public var searchPlaceholder: String
     public var showAll: Bool = false
     public var defaultExpanded: Bool = false
     public var exclusive: Bool = false

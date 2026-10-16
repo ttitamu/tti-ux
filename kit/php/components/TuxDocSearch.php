@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxDocSearch
 {
-    public string $items = 'undefined';
-    public string $placeholder = 'Search';
+    public string $items;
+    public string $placeholder;
     public int $maxResults = 8;
 
     public function __construct(array $attributes = [])

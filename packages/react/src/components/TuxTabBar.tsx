@@ -5,14 +5,14 @@
 import React from 'react';
 
 export interface TuxTabBarProps {
-  items?: string;
-  ariaLabel??: string;
+  items: string;
+  ariaLabel?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxTabBar: React.FC<TuxTabBarProps> = ({
-  items, ariaLabel = "Primary", children, className = ''
+  items, ariaLabel, children, className = ''
 }) => {
   return (
     <nav className={`tux-tab-bar ${className}`.trim()}>

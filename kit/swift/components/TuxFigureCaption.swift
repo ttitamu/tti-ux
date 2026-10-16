@@ -6,9 +6,9 @@ import SwiftUI
 public struct TuxFigureCaption<Content: View>: View {
     public var label: String = "Figure"
     public var number: String
-    public var caption: String = "undefined"
-    public var source: String = "undefined"
-    public var placement: String = below
+    public var caption: String
+    public var source: String
+    public var placement: String = "below"
     private let content: Content
 
     public init(

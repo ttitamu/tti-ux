@@ -22,7 +22,7 @@ final class TuxButton
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<UButton class="tux-button">%s</UButton>',
+            '<div class="tux-button">%s</div>',
             $content
         );
     }

@@ -4,16 +4,18 @@
 import SwiftUI
 
 public struct TuxPlayground<Content: View>: View {
-    public var tag: String = "undefined"
-    public var componentName: String = "undefined"
+    public var tag: String
+    public var componentName: String
     public var controls: String
-    public var presets: String = "()"
-    public var title: String = "Interactive"
-    public var eyebrow: String = "Live"
-    public var slotProp: String = "undefined"
-    public var defaultSlotText: String = "undefined"
+    public var presets: String
+    public var title: String
+    public var eyebrow: String
+    public var slotProp: String
+    public var defaultSlotText: String
     public var selfClosing: Bool = false
-    public var codeTemplate: String = "undefined"
+    public var codeTemplate: String
+    public var source: String
+    public var powerbi: String
     public var previewPadding: String = "p-8"
     public var enableDeepLinking: Bool = true
     private let content: Content

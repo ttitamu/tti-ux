@@ -8,12 +8,12 @@ from typing import Optional
 @dataclass
 class TuxBigStat:
     value: str = None
-    suffix: str = null
+    suffix: str = None
     label: str = None
-    source: str = null
-    variant: str = default
-    tone: str = maroon
-    size: str = md
+    source: str = None
+    variant: str = "default"
+    tone: str = "maroon"
+    size: str = "md"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-big-stat">{content}</div>'

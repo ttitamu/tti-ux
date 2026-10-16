@@ -9,7 +9,7 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Eyebrow { get; set; } = "TEXAS";
+    [Parameter] public string Eyebrow { get; set; };
     [Parameter] public string Title { get; set; };
     [Parameter] public string AccentTitle { get; set; };
     [Parameter] public string Lead { get; set; };
@@ -20,7 +20,7 @@
     [Parameter] public string SecondaryActionTo { get; set; };
     [Parameter] public string SecondaryActionHref { get; set; };
     [Parameter] public string ImageSrc { get; set; };
-    [Parameter] public string ImageAlt { get; set; } = "TTI";
+    [Parameter] public string ImageAlt { get; set; };
     [Parameter] public string ImageBadge { get; set; };
     [Parameter] public bool Chamfer { get; set; } = true;
 }

@@ -12,12 +12,12 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxFundingSource(
     funder: String,
-    abbrev: String = "undefined",
-    logo: String = "undefined",
-    grant: String = "undefined",
-    to: String = "undefined",
-    size: String = md,
-    layout: String = inline,
+    abbrev: String,
+    logo: String,
+    grant: String,
+    to: String,
+    size: String = "md",
+    layout: String = "inline",
     content: @Composable () -> Unit = {}
 ) {
     Row(

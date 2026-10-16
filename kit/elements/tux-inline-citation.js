@@ -30,9 +30,9 @@ export class TuxInlineCitationElement extends HTMLElement {
           font-family: var(--font-body, system-ui);
         }
       </style>
-      <UPopover class="tux-inline-citation">
+      <div class="tux-inline-citation">
         <slot></slot>
-      </UPopover>
+      </div>
     `;
   }
 }

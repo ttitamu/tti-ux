@@ -9,8 +9,8 @@ from typing import Optional
 class TuxMcpEmbed:
     app_name: str = None
     app_icon: str = "lucide:plug"
-    app_icon_url: str = "undefined"
-    source: str = "undefined"
+    app_icon_url: str = None
+    source: str = None
     loading: bool = false
     collapsible: bool = true
     expandable: bool = true

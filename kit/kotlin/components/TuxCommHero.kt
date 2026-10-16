@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCommHero(
-    eyebrow: String = "TEXAS",
+    eyebrow: String,
     title: String,
     accentTitle: String,
     lead: String,
@@ -22,7 +22,7 @@ fun TuxCommHero(
     secondaryActionTo: String,
     secondaryActionHref: String,
     imageSrc: String,
-    imageAlt: String = "TTI",
+    imageAlt: String,
     imageBadge: String,
     chamfer: Boolean = true,
     content: @Composable () -> Unit = {}

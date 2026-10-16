@@ -5,17 +5,17 @@
 import React from 'react';
 
 export interface TuxAppFrameProps {
-  title??: string;
-  eyebrow??: string;
-  useSystemAccent??: boolean;
-  unifiedToolbar??: boolean;
-  forceChrome??: boolean;
+  title?: string;
+  eyebrow?: string;
+  useSystemAccent?: boolean;
+  unifiedToolbar?: boolean;
+  forceChrome?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxAppFrame: React.FC<TuxAppFrameProps> = ({
-  title = "undefined", eyebrow = "undefined", useSystemAccent = false, unifiedToolbar = true, forceChrome = false, children, className = ''
+  title, eyebrow, useSystemAccent = false, unifiedToolbar = true, forceChrome = false, children, className = ''
 }) => {
   return (
     <header className={`tux-app-frame ${className}`.trim()}>

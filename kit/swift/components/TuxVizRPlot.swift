@@ -7,12 +7,12 @@ public struct TuxVizRPlot<Content: View>: View {
     public var src: String
     public var kind: String = "image"
     public var title: String
-    public var eyebrow: String = "undefined"
+    public var eyebrow: String
     public var ratio: String = "16/10"
     public var alt: String
-    public var src2x: String = "undefined"
-    public var source: String = "undefined"
-    public var level: String = 3
+    public var src2x: String
+    public var source: String
+    public var level: Int = 3
     private let content: Content
 
     public init(

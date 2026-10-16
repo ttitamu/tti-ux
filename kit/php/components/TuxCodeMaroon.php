@@ -8,11 +8,11 @@ namespace Tti\Tux\Components;
 final class TuxCodeMaroon
 {
     public bool $active = false;
-    public string $tone = error;
-    public string $title = 'Emergency';
-    public string $message = 'undefined';
+    public string $tone = 'error';
+    public string $title;
+    public string $message;
     public string $detailsUrl = 'https://tti.tamu.edu/emergency/';
-    public string $detailsLabel = 'View';
+    public string $detailsLabel;
     public bool $dismissible = false;
     public bool $modelValue = false;
     public bool $sticky = false;
@@ -29,7 +29,7 @@ final class TuxCodeMaroon
     public function render(string $content = ''): string
     {
         return sprintf(
-            '<Transition class="tux-code-maroon">%s</Transition>',
+            '<div class="tux-code-maroon">%s</div>',
             $content
         );
     }

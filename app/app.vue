@@ -158,8 +158,8 @@ watchEffect(() => {
   }
 });
 
-const currentArea = computed(() => {
-  return highLevelAreas.find((a) => a.id === activeAreaId.value) || highLevelAreas[0];
+const currentArea = computed<HighLevelArea>(() => {
+  return highLevelAreas.find((a) => a.id === activeAreaId.value) ?? highLevelAreas[0]!;
 });
 
 // Top navigation sliding active indicator state & physics
@@ -278,10 +278,10 @@ const releases = [
 ];
 
 const activeRelease = computed(() => {
-  return releases.find((r) => r.version === selectedVersion.value) || releases[0];
+  return releases.find((r) => r.version === selectedVersion.value) ?? releases[0]!;
 });
 
-function selectVersion(ver: typeof releases[0]) {
+function selectVersion(ver: (typeof releases)[number]) {
   versionMenuOpen.value = false;
   selectedVersion.value = ver.version;
   if (typeof window !== "undefined") {
@@ -318,12 +318,23 @@ const breadcrumbTrail = computed<Crumb[]>(() => {
 
   const crumbs: Crumb[] = [{ label: "Home", to: "/" }];
 
+  if (p === "/contrast-audit") {
+    crumbs.push({ label: "Foundations", to: "/tokens" });
+    crumbs.push({ label: "Contrast Audit (WCAG AAA)" });
+    return crumbs;
+  }
+
   if (p.startsWith("/components")) {
     if (p === "/components") {
       crumbs.push({ label: "Component Lab" });
       return crumbs;
     }
     crumbs.push({ label: "Component Lab", to: "/components" });
+
+    if (p === "/components/health") {
+      crumbs.push({ label: "Component Health" });
+      return crumbs;
+    }
 
     const entry = tuxCatalog.find((e) => e.to === p);
     if (entry) {
@@ -362,7 +373,10 @@ const breadcrumbTrail = computed<Crumb[]>(() => {
       if (entry.vizCategory) {
         const vizMeta = TUX_VIZ_CATEGORIES.find((v) => v.id === entry.vizCategory);
         if (vizMeta) {
-          crumbs.push({ label: vizMeta.label });
+          crumbs.push({
+            label: vizMeta.label,
+            to: `/visualizations?cat=${vizMeta.id}`,
+          });
         }
       }
       crumbs.push({ label: entry.name });
@@ -375,15 +389,24 @@ const breadcrumbTrail = computed<Crumb[]>(() => {
     return crumbs;
   }
 
-  if (p.startsWith("/tokens") || p.startsWith("/design/")) {
+  if (p.startsWith("/tokens")) {
     crumbs.push({ label: "Foundations", to: "/tokens" });
     if (p === "/tokens") {
       return crumbs;
     }
-    if (p === "/contrast-audit") {
-      crumbs.push({ label: "Contrast Audit (WCAG AAA)" });
+    const slug = p.split("/").filter(Boolean).pop() || "";
+    const formatted = slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+    crumbs.push({ label: formatted });
+    return crumbs;
+  }
+
+  if (p.startsWith("/design")) {
+    crumbs.push({ label: "Foundations", to: "/tokens" });
+    if (p === "/design") {
+      crumbs.push({ label: "Design Docs" });
       return crumbs;
     }
+    crumbs.push({ label: "Design Docs", to: "/design" });
     const slug = p.split("/").filter(Boolean).pop() || "";
     const formatted = slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
     crumbs.push({ label: formatted });
@@ -432,7 +455,7 @@ const shouldShowBreadcrumbs = computed(() => {
     "/changelog",
     "/p",
     "/examples",
-    "/design",
+    "/design/",
     "/news",
     "/components/portal-shell",
   ];
@@ -1009,6 +1032,8 @@ const footerColumns = [
 // Copyright line formatted to match the Kadence footer ("© Copyright
 // {year} … (TTI)") and linked to the institutional copyright-
 // statement page.
+const copyrightLine = `© Copyright ${new Date().getFullYear()} Texas A&M Transportation Institute (TTI)`;
+
 // Initialize institutional vision and accessibility preferences site-wide
 useTuxVisionPrefs();
 </script>
@@ -1093,7 +1118,7 @@ useTuxVisionPrefs();
             <button
               type="button"
               class="px-2.5 py-1 text-xs font-mono font-bold bg-brand-primary text-text-inverse rounded-none hover:bg-brand-primary-deep transition-colors cursor-pointer border-0 shadow-xs"
-              @click="selectVersion(releases[0])"
+              @click="releases[0] && selectVersion(releases[0])"
             >
               Restore v{{ pkgVersion }} (Latest)
             </button>

@@ -11,15 +11,15 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxStatComparison(
-    eyebrow: String = "undefined",
+    eyebrow: String,
     current: Int,
     previous: Int,
-    suffix: String = "undefined",
-    label: String = "undefined",
-    layout: String = row,
+    suffix: String,
+    label: String,
+    layout: String = "row",
     decimals: Int = 1,
-    polarity: String = direct,
-    deltaFormat: String = abs+pct,
+    polarity: String = "direct",
+    deltaFormat: String = "abs+pct",
     content: @Composable () -> Unit = {}
 ) {
     Row(

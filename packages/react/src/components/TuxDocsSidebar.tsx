@@ -5,23 +5,23 @@
 import React from 'react';
 
 export interface TuxDocsSidebarProps {
-  tree?: string;
-  title??: string;
-  search??: boolean;
-  searchPlaceholder??: string;
-  storageKey??: "string" | "null";
-  exclusiveTopLevel??: boolean;
+  tree: string;
+  title?: string;
+  search?: boolean;
+  searchPlaceholder?: string;
+  storageKey?: string;
+  exclusiveTopLevel?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxDocsSidebar: React.FC<TuxDocsSidebarProps> = ({
-  tree, title = "Docs", search = true, searchPlaceholder = "Filter", storageKey = tux-docs-sidebar, exclusiveTopLevel = false, children, className = ''
+  tree, title = "Docs", search = true, searchPlaceholder, storageKey = "tux-docs-sidebar", exclusiveTopLevel = false, children, className = ''
 }) => {
   return (
-    <div className={`tux-docs-sidebar ${className}`.trim()}>
+    <nav className={`tux-docs-sidebar ${className}`.trim()}>
       {children}
-    </div>
+    </nav>
   );
 };
 

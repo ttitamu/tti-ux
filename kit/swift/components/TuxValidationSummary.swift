@@ -5,8 +5,8 @@ import SwiftUI
 
 public struct TuxValidationSummary<Content: View>: View {
     public var errors: String
-    public var title: String = "Please"
-    public var variant: String = error
+    public var title: String
+    public var variant: String = "error"
     private let content: Content
 
     public init(

@@ -5,19 +5,19 @@
 import React from 'react';
 
 export interface TuxAlphaNavProps {
-  letters??: string;
-  available??: string;
-  mode??: "anchor" | "emit";
-  sticky??: boolean;
-  showAll??: boolean;
-  modelValue??: "string" | "null";
-  ariaLabel??: string;
+  letters?: string;
+  available?: string;
+  mode?: "anchor" | "emit";
+  sticky?: boolean;
+  showAll?: boolean;
+  modelValue?: string;
+  ariaLabel?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxAlphaNav: React.FC<TuxAlphaNavProps> = ({
-  letters = "()", available = "undefined", mode = anchor, sticky = false, showAll = false, modelValue = null, ariaLabel = "Jump", children, className = ''
+  letters, available, mode = "anchor", sticky = false, showAll = false, modelValue, ariaLabel, children, className = ''
 }) => {
   return (
     <nav className={`tux-alpha-nav ${className}`.trim()}>

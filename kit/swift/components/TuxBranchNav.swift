@@ -8,7 +8,7 @@ public struct TuxBranchNav<Content: View>: View {
     public var total: Int
     public var loop: Bool = false
     public var hideSingleton: Bool = true
-    public var ariaLabel: String = "Response"
+    public var ariaLabel: String
     private let content: Content
 
     public init(

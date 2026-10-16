@@ -7,12 +7,14 @@ namespace Tti\Tux\Components;
 
 final class TuxUtilityCluster
 {
-    public string $current = 'undefined';
+    public string $current;
     public bool $signedIn = false;
-    public string $entitled = 'undefined';
+    public string $entitled;
     public bool $hideSwitcher = false;
     public bool $hideTheme = false;
-    public string $userMenu = 'undefined';
+    public bool $hideHighContrast = false;
+    public bool $hideVisionPrefs = false;
+    public string $userMenu;
     public string $state;
     public string $identity;
     public string $signInHref;

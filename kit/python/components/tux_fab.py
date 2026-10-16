@@ -9,9 +9,9 @@ from typing import Optional
 class TuxFAB:
     icon: str = None
     extended: bool = false
-    size: str = md
-    side: str = right
-    aria_label: str = "undefined"
+    size: str = "md"
+    side: str = "right"
+    aria_label: str = None
     disabled: bool = false
 
     def render_html(self, content: str = "") -> str:

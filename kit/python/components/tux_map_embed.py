@@ -7,14 +7,14 @@ from typing import Optional
 
 @dataclass
 class TuxMapEmbed:
-    src: str = "undefined"
-    eyebrow: str = "undefined"
-    title: str = "undefined"
-    subtitle: str = "undefined"
-    source: str = "undefined"
-    aspect: str = 16/9
-    height: int = undefined
-    iframe_title: str = "undefined"
+    src: str = None
+    eyebrow: str = None
+    title: str = None
+    subtitle: str = None
+    source: str = None
+    aspect: str = "16/9"
+    height: int = None
+    iframe_title: str = None
     attribution: bool = true
     skeleton: bool = true
 

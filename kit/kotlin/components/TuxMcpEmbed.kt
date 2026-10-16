@@ -13,8 +13,8 @@ import androidx.compose.ui.unit.dp
 fun TuxMcpEmbed(
     appName: String,
     appIcon: String = "lucide:plug",
-    appIconUrl: String = "undefined",
-    source: String = "undefined",
+    appIconUrl: String,
+    source: String,
     loading: Boolean = false,
     collapsible: Boolean = true,
     expandable: Boolean = true,

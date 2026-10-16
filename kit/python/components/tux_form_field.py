@@ -8,12 +8,12 @@ from typing import Optional
 @dataclass
 class TuxFormField:
     label: str = None
-    help: str = "undefined"
-    hint: str = "undefined"
-    error: str = "undefined"
+    help: str = None
+    hint: str = None
+    error: str = None
     required: bool = false
-    input_id: str = "undefined"
-    layout: str = stacked
+    input_id: str = None
+    layout: str = "stacked"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-form-field">{content}</div>'

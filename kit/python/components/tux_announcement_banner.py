@@ -7,13 +7,13 @@ from typing import Optional
 
 @dataclass
 class TuxAnnouncementBanner:
-    id: str = "undefined"
+    id: str = None
     tone: str = "info"
-    icon: str = "undefined"
-    eyebrow: str = "undefined"
-    message: str = "undefined"
-    action: str = "undefined"
+    icon: str = None
+    eyebrow: str = None
+    message: str = None
+    action: str = None
     dismissable: bool = true
 
     def render_html(self, content: str = "") -> str:
-        return f'<Transition class="tux-announcement-banner">{content}</Transition>'
+        return f'<div class="tux-announcement-banner">{content}</div>'

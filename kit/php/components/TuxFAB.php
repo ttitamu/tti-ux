@@ -9,9 +9,9 @@ final class TuxFAB
 {
     public string $icon;
     public bool $extended = false;
-    public string $size = md;
-    public string $side = right;
-    public string $ariaLabel = 'undefined';
+    public string $size = 'md';
+    public string $side = 'right';
+    public string $ariaLabel;
     public bool $disabled = false;
 
     public function __construct(array $attributes = [])

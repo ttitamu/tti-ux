@@ -110,8 +110,24 @@ export function hashContent(content) {
 // Parsers (Ingestors from Any Language)
 // ---------------------------------------------------------------------------
 
+const VALID_HTML_TAGS = new Set([
+  "div", "span", "p", "a", "button", "section", "article", "aside", "header",
+  "footer", "nav", "main", "figure", "figcaption", "table", "caption", "ul",
+  "ol", "li", "dl", "dt", "dd", "form", "label", "input", "textarea", "select",
+  "details", "summary", "dialog", "kbd", "pre", "code", "blockquote", "hr",
+  "svg", "defs", "g", "canvas", "img", "h1", "h2", "h3", "h4", "h5", "h6",
+]);
+
+const JS_RESERVED = new Set([
+  "break", "case", "catch", "class", "const", "continue", "debugger", "default",
+  "delete", "do", "else", "enum", "export", "extends", "false", "finally", "for",
+  "function", "if", "import", "in", "instanceof", "new", "null", "return", "super",
+  "switch", "this", "throw", "true", "try", "typeof", "var", "void", "while", "with", "yield",
+]);
+
 export function parseVue(content, componentName) {
   const props = [];
+  const seenProps = new Set(["children", "className"]);
   const descriptionMatch = content.match(/\/\*\*\s*([\s\S]*?)\*\//);
   const description = descriptionMatch
     ? descriptionMatch[1].replace(/^\s*\*\s?/gm, "").trim().split("\n")[0]
@@ -125,16 +141,28 @@ export function parseVue(content, componentName) {
       const match = line.match(/^\s*([a-zA-Z0-9_]+)(\??)\s*:\s*([^;,\n]+)/);
       if (match) {
         const [, propName, optional, rawType] = match;
+        if (seenProps.has(propName)) continue;
+        seenProps.add(propName);
         const typeStr = rawType.trim();
         let type = "string";
         let enumValues = undefined;
 
         if (typeStr.includes("|")) {
-          type = "enum";
-          enumValues = typeStr
+          const parts = typeStr
             .split("|")
-            .map((v) => v.trim().replace(/^['"]|['"]$/g, ""))
-            .filter(Boolean);
+            .map((v) => v.trim())
+            .filter((v) => v && v !== "null" && v !== "undefined");
+          const allStringLiterals = parts.length > 0 && parts.every((v) => /^['"].*['"]$/.test(v));
+          if (allStringLiterals) {
+            type = "enum";
+            enumValues = parts.map((v) => v.replace(/^['"]|['"]$/g, ""));
+          } else if (parts.every((v) => v === "number" || /^\d+$/.test(v))) {
+            type = "number";
+          } else if (parts.every((v) => v === "boolean")) {
+            type = "boolean";
+          } else {
+            type = "string";
+          }
         } else if (typeStr === "boolean") {
           type = "boolean";
         } else if (typeStr === "number") {
@@ -156,16 +184,30 @@ export function parseVue(content, componentName) {
   const withDefaultsBlock = content.match(/withDefaults\s*\([\s\S]*?\{([\s\S]*?)\}\s*\)/);
   if (withDefaultsBlock) {
     for (const p of props) {
-      const defMatch = withDefaultsBlock[1].match(new RegExp(`${p.name}\\s*:\\s*['"]?([^'",\\s]+)['"]?`));
+      const defMatch = withDefaultsBlock[1].match(new RegExp(`\\b${p.name}\\s*:\\s*(['"]?)([^'",\\s}\\]\\n]+)\\1`));
       if (defMatch) {
-        p.defaultValue = p.type === "boolean" ? defMatch[1] === "true" : defMatch[1];
+        const rawDef = defMatch[2];
+        if (rawDef === "undefined" || rawDef === "null" || rawDef.startsWith("(") || rawDef.startsWith("{") || rawDef.startsWith("[")) {
+          continue;
+        }
+        if (p.type === "boolean") {
+          p.defaultValue = rawDef === "true";
+        } else if (p.type === "number") {
+          const num = Number(rawDef);
+          if (!Number.isNaN(num)) p.defaultValue = num;
+        } else if (p.type === "enum" && p.enumValues) {
+          if (p.enumValues.includes(rawDef)) p.defaultValue = rawDef;
+        } else {
+          p.defaultValue = rawDef;
+        }
       }
     }
   }
 
-  // Detect root element from template
-  const rootTagMatch = content.match(/<template>\s*<([a-zA-Z0-9-]+)/);
-  const rootElement = rootTagMatch ? rootTagMatch[1] : "div";
+  // Detect root element from template (must be a valid intrinsic HTML/SVG element)
+  const rootTagMatch = content.match(/<template>\s*(?:<!--[\s\S]*?-->\s*)*<([a-zA-Z0-9-]+)/);
+  const rawRoot = rootTagMatch ? rootTagMatch[1] : "div";
+  const rootElement = VALID_HTML_TAGS.has(rawRoot) ? rawRoot : "div";
 
   return {
     name: componentName,
@@ -313,7 +355,7 @@ export function emitVue(schema) {
   const defaults = schema.props
     .filter((p) => p.defaultValue !== undefined)
     .map((p) => {
-      const val = p.type === "string" ? `"${p.defaultValue}"` : p.defaultValue;
+      const val = p.type === "string" || p.type === "enum" ? `"${p.defaultValue}"` : p.defaultValue;
       return `  ${p.name}: ${val},`;
     })
     .join("\n");
@@ -368,15 +410,18 @@ export function emitReact(schema) {
     .join("\n");
 
   const defaultDestructuring = schema.props
+    .filter((p) => !JS_RESERVED.has(p.name))
     .map((p) => {
       if (p.defaultValue !== undefined) {
-        const val = p.type === "string" ? `"${p.defaultValue}"` : p.defaultValue;
+        const val = p.type === "string" || p.type === "enum" ? `"${p.defaultValue}"` : p.defaultValue;
         return `${p.name} = ${val}`;
       }
       return p.name;
     })
     .concat(["children", "className = ''"])
     .join(", ");
+
+  const Tag = VALID_HTML_TAGS.has(schema.rootElement) ? schema.rootElement : "div";
 
   return `/**
  * ${schema.name} — React 19 JSX component.
@@ -385,8 +430,7 @@ export function emitReact(schema) {
 import React from 'react';
 
 export interface ${schema.name}Props {
-${propTypes}
-  children?: React.ReactNode;
+${propTypes ? `${propTypes}\n` : ""}  children?: React.ReactNode;
   className?: string;
 }
 
@@ -394,9 +438,9 @@ export const ${schema.name}: React.FC<${schema.name}Props> = ({
   ${defaultDestructuring}
 }) => {
   return (
-    <${schema.rootElement} className={\`${schema.baseClass} \${className}\`.trim()}>
+    <${Tag} className={\`${schema.baseClass} \${className}\`.trim()}>
       {children}
-    </${schema.rootElement}>
+    </${Tag}>
   );
 };
 
@@ -455,7 +499,7 @@ export function emitPhp(schema) {
   const fields = schema.props
     .map((p) => {
       const type = p.type === "boolean" ? "bool" : p.type === "number" ? "int" : "string";
-      const def = p.defaultValue !== undefined ? (p.type === "string" ? ` = '${p.defaultValue}'` : ` = ${p.defaultValue}`) : "";
+      const def = p.defaultValue !== undefined ? (p.type === "string" || p.type === "enum" ? ` = '${p.defaultValue}'` : ` = ${p.defaultValue}`) : "";
       return `    public ${type} $${toCamelCase(p.name)}${def};`;
     })
     .join("\n");
@@ -495,7 +539,7 @@ export function emitRazor(schema) {
   const params = schema.props
     .map((p) => {
       const type = p.type === "boolean" ? "bool" : p.type === "number" ? "int" : "string";
-      const def = p.defaultValue !== undefined ? (p.type === "string" ? ` = "${p.defaultValue}";` : ` = ${p.defaultValue};`) : ";";
+      const def = p.defaultValue !== undefined ? (p.type === "string" || p.type === "enum" ? ` = "${p.defaultValue}";` : ` = ${p.defaultValue};`) : ";";
       return `    [Parameter] public ${type} ${toPascalCase(p.name)} { get; set; }${def}`;
     })
     .join("\n");
@@ -520,7 +564,7 @@ export function emitCSharp(schema) {
   const props = schema.props
     .map((p) => {
       const type = p.type === "boolean" ? "bool" : p.type === "number" ? "int" : "string";
-      const def = p.defaultValue !== undefined ? (p.type === "string" ? ` = "${p.defaultValue}";` : ` = ${p.defaultValue};`) : ";";
+      const def = p.defaultValue !== undefined ? (p.type === "string" || p.type === "enum" ? ` = "${p.defaultValue}";` : ` = ${p.defaultValue};`) : ";";
       return `    public ${type} ${toPascalCase(p.name)} { get; set; }${def}`;
     })
     .join("\n");
@@ -550,7 +594,7 @@ export function emitPython(schema) {
   const fields = schema.props
     .map((p) => {
       const type = p.type === "boolean" ? "bool" : p.type === "number" ? "int" : "str";
-      const def = p.defaultValue !== undefined ? (p.type === "string" ? ` = "${p.defaultValue}"` : ` = ${p.defaultValue}`) : " = None";
+      const def = p.defaultValue !== undefined ? (p.type === "string" || p.type === "enum" ? ` = "${p.defaultValue}"` : ` = ${p.defaultValue}`) : " = None";
       return `    ${toSnakeCase(p.name)}: ${type}${def}`;
     })
     .join("\n");
@@ -595,7 +639,7 @@ export function emitSwift(schema) {
   const properties = schema.props
     .map((p) => {
       const type = p.type === "boolean" ? "Bool" : p.type === "number" ? "Int" : "String";
-      const def = p.defaultValue !== undefined ? (p.type === "string" ? ` = "${p.defaultValue}"` : ` = ${p.defaultValue}`) : "";
+      const def = p.defaultValue !== undefined ? (p.type === "string" || p.type === "enum" ? ` = "${p.defaultValue}"` : ` = ${p.defaultValue}`) : "";
       return `    public var ${toCamelCase(p.name)}: ${type}${def}`;
     })
     .join("\n");
@@ -630,7 +674,7 @@ export function emitKotlin(schema) {
   const params = schema.props
     .map((p) => {
       const type = p.type === "boolean" ? "Boolean" : p.type === "number" ? "Int" : "String";
-      const def = p.defaultValue !== undefined ? (p.type === "string" ? ` = "${p.defaultValue}"` : ` = ${p.defaultValue}`) : "";
+      const def = p.defaultValue !== undefined ? (p.type === "string" || p.type === "enum" ? ` = "${p.defaultValue}"` : ` = ${p.defaultValue}`) : "";
       return `    ${toCamelCase(p.name)}: ${type}${def},`;
     })
     .concat(["    content: @Composable () -> Unit = {}"])
@@ -700,7 +744,10 @@ export function syncComponent(sourceFile, targetLangHint = null) {
     if (path.resolve(target.path) === path.resolve(sourceFile)) continue;
     fs.mkdirSync(path.dirname(target.path), { recursive: true });
     // Write only if missing or if generated target is managed (preserve handcrafted files in packages/react)
-    const isHandcraftedReact = lang === "react" && fs.existsSync(target.path) && fs.readFileSync(target.path, "utf8").includes("@tti/tti-ux-react");
+    const isHandcraftedReact =
+      lang === "react" &&
+      fs.existsSync(target.path) &&
+      !fs.readFileSync(target.path, "utf8").includes("Synchronized via Universal Component Sync Engine");
     if (!fs.existsSync(target.path) || (ext === ".vue" && !isHandcraftedReact)) {
       fs.writeFileSync(target.path, target.content, "utf8");
     }

@@ -8,11 +8,11 @@ namespace Tti\Tux\Components;
 final class TuxSiteNav
 {
     public string $identity;
-    public string $primaryNav = '()';
-    public string $utilityNav = '()';
+    public string $primaryNav;
+    public string $utilityNav;
     public bool $search = false;
     public bool $sticky = false;
-    public string $ariaLabel = 'Primary';
+    public string $ariaLabel;
 
     public function __construct(array $attributes = [])
     {

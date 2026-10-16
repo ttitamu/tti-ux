@@ -7,7 +7,7 @@ public struct TuxECharts<Content: View>: View {
     public var options: String
     public var height: String = "380px"
     public var width: String = "100%"
-    public var ariaTitle: String = "Interactive"
+    public var ariaTitle: String
     public var ariaSummary: String
     public var extensions: String
     public var maps: String

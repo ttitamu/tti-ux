@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import pkg from "../../package.json";
-
 useHead({ title: "TUX" });
-
-const version = pkg.version;
 
 // Headline catalog size for the hero meta line — computed from the
 // catalog source of truth (app/utils/tuxCatalog.ts) so it can never
@@ -172,12 +168,12 @@ const ecosystemTargets = [
           <div class="space-y-4 max-w-2xl">
             <div>
               <p class="font-mono text-xs uppercase tracking-widest text-brand-primary dark:text-brand-accent font-bold mb-2 flex items-center gap-2">
-                <span class="inline-block w-2 h-2 rounded-full bg-brand-primary dark:bg-brand-accent"></span>
+                <span class="inline-block w-2 h-2 rounded-full bg-brand-primary dark:bg-brand-accent"/>
                 <span>Texas A&amp;M Transportation Institute · State of Texas Mobility Research</span>
               </p>
               <h1 class="font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold uppercase italic tracking-tight text-text-primary leading-[0.88]">
-                TTI<br />
-                <span class="text-brand-primary dark:text-brand-accent">DESIGN</span><br />
+                TTI<br >
+                <span class="text-brand-primary dark:text-brand-accent">DESIGN</span><br >
                 SYSTEM
               </h1>
             </div>

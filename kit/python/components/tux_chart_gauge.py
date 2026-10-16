@@ -11,14 +11,14 @@ class TuxChartGauge:
     min: int = 0
     max: int = 100
     size: int = 240
-    variant: str = arc
-    bands: str = "()"
-    center_label: str = "undefined"
-    center_value: str = undefined
-    units: str = "undefined"
-    format: str = "(n:"
+    variant: str = "arc"
+    bands: str = None
+    center_label: str = None
+    center_value: str = None
+    units: str = None
+    format: str = None
     decimals: int = 1
-    aria_summary: str = "undefined"
+    aria_summary: str = None
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-chart-gauge">{content}</figure>'

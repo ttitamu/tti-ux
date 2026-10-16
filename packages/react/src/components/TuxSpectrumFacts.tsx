@@ -5,17 +5,17 @@
 import React from 'react';
 
 export interface TuxSpectrumFactsProps {
-  title??: string;
-  subtitle??: string;
-  items??: string;
-  tone??: "dark" | "light";
-  showTopRibbon??: boolean;
+  title?: string;
+  subtitle?: string;
+  items?: string;
+  tone?: "dark" | "light";
+  showTopRibbon?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxSpectrumFacts: React.FC<TuxSpectrumFactsProps> = ({
-  title = "QUICK", subtitle, items = "()", tone = dark, showTopRibbon = true, children, className = ''
+  title, subtitle, items, tone = "dark", showTopRibbon = true, children, className = ''
 }) => {
   return (
     <section className={`tux-spectrum-facts ${className}`.trim()}>

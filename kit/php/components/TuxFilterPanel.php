@@ -8,7 +8,7 @@ namespace Tti\Tux\Components;
 final class TuxFilterPanel
 {
     public string $facets;
-    public string $modelValue = '()';
+    public string $modelValue;
     public string $title;
 
     public function __construct(array $attributes = [])
