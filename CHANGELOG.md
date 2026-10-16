@@ -5,6 +5,31 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Release — publishing to the forge's npm registry works again; npm 12 (2026-10-16)
+
+- **Tags publish again.** `publish-package.yml` failed on every tag after v2.0.0: it wanted a
+  person's token (`PACKAGE_TOKEN`, never set), and the Actions job token can't write packages
+  (Forgejo v17 gives it read on an org's packages). It now publishes with
+  `PACKAGES_PUBLISH_TOKEN`, a `write:package` token of the Entra service account
+  `svc-tti-packages` (tti team `package-publishers`, Packages: write only). A dispatch that names
+  an existing tag backfills it with today's rules. The rules live in
+  `scripts/publish-registry.mjs`: the tag must equal `version`; v1 tags are published under the
+  `@tti` scope with `name` rewritten and `private` lifted; no install script is ever published;
+  an existing version is a no-op; "latest" never moves backwards (older versions go to the
+  `backfill` dist-tag, prereleases to their first identifier).
+- **`nuxt prepare` is `prepare`, not `postinstall`.** It prepares this repo's own `.nuxt` and
+  still runs on `npm install`/`npm ci` in a checkout of tux. npm never runs `prepare` for a
+  registry dependency, so a consumer no longer gets an install script it doesn't need (npm 12
+  blocks it by default, and the forge's packument never advertised it anyway).
+- **npm 12 install scripts, reviewed.** `allowScripts` approves `puppeteer@24.43.1` (the
+  contrast, a11y and capture scripts launch the browser its postinstall downloads) and denies
+  `esbuild`, `unrs-resolver` and `vue-demi` (`npm ci` and `nuxt generate` pass on npm 12.2.0
+  without them).
+- **Consumers leave their git pins.** npm 12 refuses git dependencies (`EALLOWGIT`). The
+  registry carries the exact trees consumers pinned: 1.6.0 and 1.7.0 (backfilled from their
+  tags) and the prereleases `2.3.0-work-surface.0` (#61 at 5c81978, for forgejo-stack's
+  `branding/work`) and `3.1.1-vision.0` (GitHub main at 5babb1e, for Landscape).
+
 ### Security — `@nuxtjs/mdc` ^0.21.1 → ^0.22.2 and the lockfile's HIGH/CRITICAL advisories (2026-10-08)
 
 - **`@nuxtjs/mdc` ^0.22.2, CVE-2026-63671 (HIGH, GHSA-mxm6-v9r6-r94c).** Below 0.22.1, mdc's
