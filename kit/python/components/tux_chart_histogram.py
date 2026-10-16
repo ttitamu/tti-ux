@@ -7,20 +7,20 @@ from typing import Optional
 
 @dataclass
 class TuxChartHistogram:
-    values: str = None
+    values: Optional[str] = None
     width: int = 640
     height: int = 280
     bin_count: int = 12
-    percentiles: str = None
-    normalize: bool = false
-    gridlines: bool = true
+    percentiles: Optional[str] = None
+    normalize: bool = False
+    gridlines: bool = True
     ticks: int = 5
-    x_label: str = None
-    format: str = None
+    x_label: Optional[str] = None
+    format: Optional[str] = None
     decimals: int = 1
-    aria_summary: str = None
-    units: str = None
-    tooltip: bool = true
+    aria_summary: Optional[str] = None
+    units: Optional[str] = None
+    tooltip: bool = True
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-chart-histogram">{content}</figure>'

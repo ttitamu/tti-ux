@@ -7,16 +7,16 @@ from typing import Optional
 
 @dataclass
 class TuxComposer:
-    model_value: str = None
-    placeholder: str = None
-    models: str = None
-    model_id: str = None
+    model_value: Optional[str] = None
+    placeholder: Optional[str] = None
+    models: Optional[str] = None
+    model_id: Optional[str] = None
     max_length: int = 32000
-    hint: str = None
-    hide_attach: bool = false
-    attach_label: str = None
+    hint: Optional[str] = None
+    hide_attach: bool = False
+    attach_label: Optional[str] = None
     attach_icon: str = "lucide:plus"
-    cancelable: bool = false
+    cancelable: bool = False
     cancel_label: str = "Cancel"
 
     def render_html(self, content: str = "") -> str:

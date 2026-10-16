@@ -7,14 +7,14 @@ from typing import Optional
 
 @dataclass
 class TuxFileDropzone:
-    model_value: str = None
-    accept: str = None
-    multiple: bool = false
+    model_value: Optional[str] = None
+    accept: Optional[str] = None
+    multiple: bool = False
     max_size: int = 50
     max_files: int = 10
-    disabled: bool = false
-    label: str = None
-    hint: str = None
+    disabled: bool = False
+    label: Optional[str] = None
+    hint: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-file-dropzone">{content}</div>'

@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxCommandPalette:
-    groups: str = None
-    placeholder: str = None
-    disable_hotkey: bool = false
+    groups: Optional[str] = None
+    placeholder: Optional[str] = None
+    disable_hotkey: bool = False
     hotkey: str = "k"
-    show_tabs: bool = true
+    show_tabs: bool = True
     default_tab: str = "all"
 
     def render_html(self, content: str = "") -> str:

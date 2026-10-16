@@ -7,31 +7,31 @@ from typing import Optional
 
 @dataclass
 class TuxEditorialArticle:
-    title: str = None
-    category: str = None
-    dek: str = None
-    date: str = None
-    date_label: str = None
-    read_time: str = None
-    author: str = None
-    authors: str = None
-    hero_image: str = None
-    hero_alt: str = None
-    hero_caption: str = None
+    title: Optional[str] = None
+    category: Optional[str] = None
+    dek: Optional[str] = None
+    date: Optional[str] = None
+    date_label: Optional[str] = None
+    read_time: Optional[str] = None
+    author: Optional[str] = None
+    authors: Optional[str] = None
+    hero_image: Optional[str] = None
+    hero_alt: Optional[str] = None
+    hero_caption: Optional[str] = None
     hero_layout: str = "boxed"
-    stats: str = None
-    highlights: str = None
-    citation: str = None
-    toc: bool = true
+    stats: Optional[str] = None
+    highlights: Optional[str] = None
+    citation: Optional[str] = None
+    toc: bool = True
     toc_target: str = "#article-body"
-    show_reading_progress: bool = true
-    show_scroll_top: bool = true
-    show_share: bool = true
-    tags: str = None
-    contact: str = None
-    back_to: str = None
-    label: str = None
-    to: str = None
+    show_reading_progress: bool = True
+    show_scroll_top: bool = True
+    show_share: bool = True
+    tags: Optional[str] = None
+    contact: Optional[str] = None
+    back_to: Optional[str] = None
+    label: Optional[str] = None
+    to: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-editorial-article">{content}</div>'

@@ -7,8 +7,8 @@ from typing import Optional
 
 @dataclass
 class TuxPageHeader:
-    eyebrow: str = None
-    title: str = None
+    eyebrow: Optional[str] = None
+    title: Optional[str] = None
     level: int = 1
     tone: str = "plain"
     rhythm: str = "compact"

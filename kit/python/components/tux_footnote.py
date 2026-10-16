@@ -7,8 +7,8 @@ from typing import Optional
 
 @dataclass
 class TuxFootnote:
-    n: int = None
-    text: str = None
+    n: Optional[int] = None
+    text: Optional[str] = None
     id_prefix: str = "fn"
 
     def render_html(self, content: str = "") -> str:

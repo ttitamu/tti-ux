@@ -7,12 +7,12 @@ from typing import Optional
 
 @dataclass
 class TuxTooltip:
-    text: str = None
-    title: str = None
-    kbds: str = None
+    text: Optional[str] = None
+    title: Optional[str] = None
+    kbds: Optional[str] = None
     side: str = "top"
-    arrow: bool = true
-    disabled: bool = false
+    arrow: bool = True
+    disabled: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-tooltip">{content}</div>'

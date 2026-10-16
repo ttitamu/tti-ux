@@ -7,13 +7,13 @@ from typing import Optional
 
 @dataclass
 class TuxLoadMore:
-    loaded: int = None
-    total: int = None
-    loading: bool = false
-    noun: str = None
-    noun_plural: str = None
-    label: str = None
-    terminal_label: str = None
+    loaded: Optional[int] = None
+    total: Optional[int] = None
+    loading: bool = False
+    noun: Optional[str] = None
+    noun_plural: Optional[str] = None
+    label: Optional[str] = None
+    terminal_label: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-load-more">{content}</div>'

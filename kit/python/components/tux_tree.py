@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxTree:
-    items: str = None
-    default_expanded: str = None
-    storage_key: str = None
-    show_guides: bool = true
+    items: Optional[str] = None
+    default_expanded: Optional[str] = None
+    storage_key: Optional[str] = None
+    show_guides: bool = True
     aria_label: str = "Tree"
 
     def render_html(self, content: str = "") -> str:

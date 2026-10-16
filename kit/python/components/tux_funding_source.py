@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxFundingSource:
-    funder: str = None
-    abbrev: str = None
-    logo: str = None
-    grant: str = None
-    to: str = None
+    funder: Optional[str] = None
+    abbrev: Optional[str] = None
+    logo: Optional[str] = None
+    grant: Optional[str] = None
+    to: Optional[str] = None
     size: str = "md"
     layout: str = "inline"
 

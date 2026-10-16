@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxAppSwitcher:
-    apps: str = None
-    aria_label: str = None
-    heading: str = None
-    footer_text: str = None
+    apps: Optional[str] = None
+    aria_label: Optional[str] = None
+    heading: Optional[str] = None
+    footer_text: Optional[str] = None
     presentation: str = "popover"
 
     def render_html(self, content: str = "") -> str:

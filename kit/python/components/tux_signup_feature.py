@@ -7,13 +7,13 @@ from typing import Optional
 
 @dataclass
 class TuxSignupFeature:
-    title: str = None
-    eyebrow: str = None
-    dek: str = None
+    title: Optional[str] = None
+    eyebrow: Optional[str] = None
+    dek: Optional[str] = None
     action_label: str = "Subscribe"
     placeholder: str = "your@email.edu"
-    consent: str = None
-    model_value: str = None
+    consent: Optional[str] = None
+    model_value: Optional[str] = None
     tone: str = "neutral"
     variant: str = "default"
 

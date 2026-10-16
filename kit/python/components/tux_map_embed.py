@@ -7,16 +7,16 @@ from typing import Optional
 
 @dataclass
 class TuxMapEmbed:
-    src: str = None
-    eyebrow: str = None
-    title: str = None
-    subtitle: str = None
-    source: str = None
+    src: Optional[str] = None
+    eyebrow: Optional[str] = None
+    title: Optional[str] = None
+    subtitle: Optional[str] = None
+    source: Optional[str] = None
     aspect: str = "16/9"
-    height: int = None
-    iframe_title: str = None
-    attribution: bool = true
-    skeleton: bool = true
+    height: Optional[int] = None
+    iframe_title: Optional[str] = None
+    attribution: bool = True
+    skeleton: bool = True
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-map-embed">{content}</figure>'

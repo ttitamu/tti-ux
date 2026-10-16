@@ -8,10 +8,10 @@ from typing import Optional
 @dataclass
 class TuxSectionHeader:
     level: int = 2
-    title: str = None
-    secondary_title: str = None
-    subtitle: str = None
-    kicker: str = None
+    title: Optional[str] = None
+    secondary_title: Optional[str] = None
+    subtitle: Optional[str] = None
+    kicker: Optional[str] = None
     variant: str = "institutional"
 
     def render_html(self, content: str = "") -> str:

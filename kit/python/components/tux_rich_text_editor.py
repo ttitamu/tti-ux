@@ -7,16 +7,16 @@ from typing import Optional
 
 @dataclass
 class TuxRichTextEditor:
-    model_value: str = None
-    placeholder: str = None
-    disabled: bool = false
+    model_value: Optional[str] = None
+    placeholder: Optional[str] = None
+    disabled: bool = False
     min_height: str = "12rem"
     max_height: str = "auto"
-    toolbar: str = None
-    heading_levels: str = None
-    show_count: bool = true
-    fullscreenable: bool = true
-    aria_label: str = None
+    toolbar: Optional[str] = None
+    heading_levels: Optional[str] = None
+    show_count: bool = True
+    fullscreenable: bool = True
+    aria_label: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-rich-text-editor">{content}</div>'

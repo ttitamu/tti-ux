@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxRuleBuilder:
-    model_value: str = None
-    fields: str = None
-    show_actions: bool = true
+    model_value: Optional[str] = None
+    fields: Optional[str] = None
+    show_actions: bool = True
     max_depth: int = 3
 
     def render_html(self, content: str = "") -> str:

@@ -7,12 +7,12 @@ from typing import Optional
 
 @dataclass
 class TuxInlineCitation:
-    n: int = None
-    title: str = None
-    href: str = None
-    excerpt: str = None
-    score: str = None
-    label: str = None
+    n: Optional[int] = None
+    title: Optional[str] = None
+    href: Optional[str] = None
+    excerpt: Optional[str] = None
+    score: Optional[str] = None
+    label: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-inline-citation">{content}</div>'

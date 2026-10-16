@@ -7,15 +7,15 @@ from typing import Optional
 
 @dataclass
 class TuxMapLegend:
-    title: str = None
-    eyebrow: str = None
-    entries: str = None
+    title: Optional[str] = None
+    eyebrow: Optional[str] = None
+    entries: Optional[str] = None
     layout: str = "stacked"
-    gradient: str = None
-    min_label: str = None
-    max_label: str = None
-    css: str = None
-    stops: str = None
+    gradient: Optional[str] = None
+    min_label: Optional[str] = None
+    max_label: Optional[str] = None
+    css: Optional[str] = None
+    stops: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-map-legend">{content}</div>'

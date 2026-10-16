@@ -132,6 +132,7 @@ Maintenance and UX polish release delivering numberless editorial navigation, an
 - **100% WCAG 2.2 AAA Compliance**: Re-certified zero accessibility violations across all components and templates (`scripts/audit-wcag-aaa.mjs`).
 - **Full Test Suite Integrity**: 218 Nuxt test suites (677 tests) and 26 React test suites (87 tests) passing 100%.
 
+
 ## [3.0.0] — 2026-10-01
 
 ### Added — TUX 3.0 & Comm Brand Transformation (2026-10-01)

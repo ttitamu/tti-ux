@@ -7,12 +7,12 @@ from typing import Optional
 
 @dataclass
 class TuxCodeBlock:
-    code: str = None
+    code: Optional[str] = None
     lang: str = "text"
-    filename: str = None
-    line_numbers: bool = false
-    no_copy: bool = false
-    no_download: bool = false
+    filename: Optional[str] = None
+    line_numbers: bool = False
+    no_copy: bool = False
+    no_download: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-code-block">{content}</figure>'

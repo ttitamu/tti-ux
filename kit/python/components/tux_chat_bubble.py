@@ -10,13 +10,13 @@ class TuxChatBubble:
     mode: str = "bubble"
     role: str = "assistant"
     title: str = "Assistant"
-    subtitle: str = None
+    subtitle: Optional[str] = None
     state: str = "idle"
-    teaser: str = None
+    teaser: Optional[str] = None
     tail: str = "none"
-    dismissible: bool = false
-    open: bool = true
-    suggestions: str = None
+    dismissible: bool = False
+    open: bool = True
+    suggestions: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-chat-bubble">{content}</div>'

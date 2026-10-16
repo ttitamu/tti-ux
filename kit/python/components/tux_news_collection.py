@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxNewsCollection:
-    items: str = None
+    items: Optional[str] = None
     layout: str = "stacked"
     columns: int = 3
-    read_more: str = None
+    read_more: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<ul class="tux-news-collection">{content}</ul>'

@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxStepper:
-    steps: str = None
+    steps: Optional[str] = None
     current_index: int = 0
     orientation: str = "horizontal"
-    show_descriptions: bool = true
+    show_descriptions: bool = True
     aria_label: str = "Progress"
 
     def render_html(self, content: str = "") -> str:

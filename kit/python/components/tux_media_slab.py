@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxMediaSlab:
-    src: str = None
-    alt: str = None
-    eyebrow: str = None
-    title: str = None
-    dek: str = None
+    src: Optional[str] = None
+    alt: Optional[str] = None
+    eyebrow: Optional[str] = None
+    title: Optional[str] = None
+    dek: Optional[str] = None
     layout: str = "overlay"
     image_side: str = "right"
     height: str = "standard"

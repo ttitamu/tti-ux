@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxAppFrame:
-    title: str = None
-    eyebrow: str = None
-    use_system_accent: bool = false
-    unified_toolbar: bool = true
-    force_chrome: bool = false
+    title: Optional[str] = None
+    eyebrow: Optional[str] = None
+    use_system_accent: bool = False
+    unified_toolbar: bool = True
+    force_chrome: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<header class="tux-app-frame">{content}</header>'

@@ -7,23 +7,23 @@ from typing import Optional
 
 @dataclass
 class TuxChartScatter:
-    series: str = None
+    series: Optional[str] = None
     x_label: str = "x"
     y_label: str = "y"
     width: int = 640
     height: int = 320
     palette: str = "brand"
-    distinct_markers: bool = true
-    trendline: bool = false
-    legend: bool = true
-    gridlines: bool = true
+    distinct_markers: bool = True
+    trendline: bool = False
+    legend: bool = True
+    gridlines: bool = True
     x_ticks: int = 6
     y_ticks: int = 5
-    format: str = None
+    format: Optional[str] = None
     decimals: int = 2
-    aria_summary: str = None
-    units: str = None
-    tooltip: bool = true
+    aria_summary: Optional[str] = None
+    units: Optional[str] = None
+    tooltip: bool = True
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-chart-scatter">{content}</figure>'

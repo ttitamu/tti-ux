@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxRecordHighlights:
-    title: str = None
-    eyebrow: str = None
-    icon: str = None
-    items: str = None
+    title: Optional[str] = None
+    eyebrow: Optional[str] = None
+    icon: Optional[str] = None
+    items: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-record-highlights">{content}</div>'

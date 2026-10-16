@@ -7,13 +7,13 @@ from typing import Optional
 
 @dataclass
 class TuxSplitPane:
-    model_value: str = None
+    model_value: Optional[str] = None
     initial_list_width: str = "320px"
     min_list_width: int = 220
     max_list_width: int = 560
-    id: str = None
+    id: Optional[str] = None
     initial_bottom_height: str = "160px"
-    show_bottom: bool = false
+    show_bottom: bool = False
     list_label: str = "Records"
     detail_label: str = "Detail"
 

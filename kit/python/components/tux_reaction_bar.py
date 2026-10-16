@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxReactionBar:
-    model_value: str = None
-    reactions: str = None
-    counts: str = None
-    size: str = None
+    model_value: Optional[str] = None
+    reactions: Optional[str] = None
+    counts: Optional[str] = None
+    size: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-reaction-bar">{content}</div>'

@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxBlockquote:
-    quote: str = None
-    attribution: str = None
-    role: str = None
+    quote: Optional[str] = None
+    attribution: Optional[str] = None
+    role: Optional[str] = None
     layout: str = "centered"
     variant: str = "default"
 

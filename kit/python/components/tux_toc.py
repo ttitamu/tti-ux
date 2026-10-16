@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxTOC:
-    items: str = None
+    items: Optional[str] = None
     target: str = "article"
-    levels: str = None
-    title: str = None
-    no_title: bool = false
+    levels: Optional[str] = None
+    title: Optional[str] = None
+    no_title: bool = False
     variant: str = "comm"
 
     def render_html(self, content: str = "") -> str:

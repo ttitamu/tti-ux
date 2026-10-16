@@ -7,8 +7,8 @@ from typing import Optional
 
 @dataclass
 class TuxAuthorByline:
-    authors: str = None
-    affiliations: str = None
+    authors: Optional[str] = None
+    affiliations: Optional[str] = None
     layout: str = "compact"
 
     def render_html(self, content: str = "") -> str:

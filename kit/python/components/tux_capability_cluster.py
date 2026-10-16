@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxCapabilityCluster:
-    title: str = None
-    kicker: str = None
-    subtitle: str = None
-    capabilities: str = None
+    title: Optional[str] = None
+    kicker: Optional[str] = None
+    subtitle: Optional[str] = None
+    capabilities: Optional[str] = None
     columns: int = 3
 
     def render_html(self, content: str = "") -> str:

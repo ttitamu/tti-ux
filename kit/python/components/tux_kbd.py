@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxKbd:
-    value: str = None
-    keys: str = None
+    value: Optional[str] = None
+    keys: Optional[str] = None
     size: str = "sm"
-    separator: str = None
+    separator: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<span class="tux-kbd">{content}</span>'

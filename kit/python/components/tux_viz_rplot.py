@@ -7,14 +7,14 @@ from typing import Optional
 
 @dataclass
 class TuxVizRPlot:
-    src: str = None
+    src: Optional[str] = None
     kind: str = "image"
-    title: str = None
-    eyebrow: str = None
+    title: Optional[str] = None
+    eyebrow: Optional[str] = None
     ratio: str = "16/10"
-    alt: str = None
-    src2x: str = None
-    source: str = None
+    alt: Optional[str] = None
+    src2x: Optional[str] = None
+    source: Optional[str] = None
     level: int = 3
 
     def render_html(self, content: str = "") -> str:

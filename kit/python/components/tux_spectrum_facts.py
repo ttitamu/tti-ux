@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxSpectrumFacts:
-    title: str = None
-    subtitle: str = None
-    items: str = None
+    title: Optional[str] = None
+    subtitle: Optional[str] = None
+    items: Optional[str] = None
     tone: str = "dark"
-    show_top_ribbon: bool = true
+    show_top_ribbon: bool = True
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-spectrum-facts">{content}</section>'

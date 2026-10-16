@@ -10,8 +10,8 @@ class TuxSkeleton:
     kind: str = "primitive"
     variant: str = "block"
     width: str = "100%"
-    height: str = None
-    radius: str = None
+    height: Optional[str] = None
+    radius: Optional[str] = None
     count: int = 3
     animated: str = "shimmer"
     label: str = "Loading…"

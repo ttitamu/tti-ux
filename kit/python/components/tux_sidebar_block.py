@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxSidebarBlock:
-    title: str = None
-    eyebrow: str = None
-    icon: str = None
+    title: Optional[str] = None
+    eyebrow: Optional[str] = None
+    icon: Optional[str] = None
     variant: str = "default"
 
     def render_html(self, content: str = "") -> str:

@@ -7,17 +7,17 @@ from typing import Optional
 
 @dataclass
 class TuxResearcher:
-    name: str = None
-    role: str = None
-    portrait: str = None
-    center: str = None
-    orcid: str = None
-    email: str = None
-    bio: str = None
-    projects: str = None
-    metrics: str = None
+    name: Optional[str] = None
+    role: Optional[str] = None
+    portrait: Optional[str] = None
+    center: Optional[str] = None
+    orcid: Optional[str] = None
+    email: Optional[str] = None
+    bio: Optional[str] = None
+    projects: Optional[str] = None
+    metrics: Optional[str] = None
     layout: str = "default"
-    to: str = None
+    to: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<article class="tux-researcher">{content}</article>'

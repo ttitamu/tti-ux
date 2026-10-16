@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxAbstract:
-    background: str = None
-    methods: str = None
-    results: str = None
-    conclusion: str = None
-    keywords: str = None
+    background: Optional[str] = None
+    methods: Optional[str] = None
+    results: Optional[str] = None
+    conclusion: Optional[str] = None
+    keywords: Optional[str] = None
     variant: str = "structured"
     level: int = 4
 

@@ -8,10 +8,10 @@ from typing import Optional
 @dataclass
 class TuxChatMessage:
     role: str = "user"
-    author: str = None
-    timestamp: str = None
-    meta: str = None
-    initials: str = None
+    author: Optional[str] = None
+    timestamp: Optional[str] = None
+    meta: Optional[str] = None
+    initials: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<article class="tux-chat-message">{content}</article>'

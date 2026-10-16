@@ -9,10 +9,10 @@ from typing import Optional
 class TuxSpectrumRibbon:
     size: str = "sm"
     orientation: str = "horizontal"
-    show_labels: bool = false
-    rounded: bool = false
-    aria_label: str = None
-    bands: str = None
+    show_labels: bool = False
+    rounded: bool = False
+    aria_label: Optional[str] = None
+    bands: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-spectrum-ribbon">{content}</div>'

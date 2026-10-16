@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxCTA:
-    eyebrow: str = None
-    title: str = None
-    dek: str = None
+    eyebrow: Optional[str] = None
+    title: Optional[str] = None
+    dek: Optional[str] = None
     tone: str = "maroon"
     variant: str = "default"
 

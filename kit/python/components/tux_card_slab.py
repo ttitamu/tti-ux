@@ -7,12 +7,12 @@ from typing import Optional
 
 @dataclass
 class TuxCardSlab:
-    cards: str = None
+    cards: Optional[str] = None
     columns: int = 3
     aspect: str = "4/5"
-    heading: str = None
-    eyebrow: str = None
-    inset: bool = false
+    heading: Optional[str] = None
+    eyebrow: Optional[str] = None
+    inset: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-card-slab">{content}</section>'

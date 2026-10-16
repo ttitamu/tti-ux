@@ -7,22 +7,22 @@ from typing import Optional
 
 @dataclass
 class TuxDataTable:
-    columns: str = None
-    rows: str = None
-    groups: str = None
+    columns: Optional[str] = None
+    rows: Optional[str] = None
+    groups: Optional[str] = None
     row_key: str = "id"
-    table_number: str = None
-    caption: str = None
-    description: str = None
-    sort_key: str = None
-    sort_dir: str = None
-    sticky: bool = false
+    table_number: Optional[str] = None
+    caption: Optional[str] = None
+    description: Optional[str] = None
+    sort_key: Optional[str] = None
+    sort_dir: Optional[str] = None
+    sticky: bool = False
     max_height: str = "20rem"
     density: str = "comfortable"
-    banded: bool = true
-    footnotes: str = None
-    source: str = None
-    totals: str = None
+    banded: bool = True
+    footnotes: Optional[str] = None
+    source: Optional[str] = None
+    totals: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-data-table">{content}</figure>'

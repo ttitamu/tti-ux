@@ -7,15 +7,15 @@ from typing import Optional
 
 @dataclass
 class TuxEventCalendarRow:
-    day: str = None
-    month: str = None
-    title: str = None
-    time: str = None
-    location: str = None
-    category: str = None
-    to: str = None
-    href: str = None
-    action_text: str = None
+    day: Optional[str] = None
+    month: Optional[str] = None
+    title: Optional[str] = None
+    time: Optional[str] = None
+    location: Optional[str] = None
+    category: Optional[str] = None
+    to: Optional[str] = None
+    href: Optional[str] = None
+    action_text: Optional[str] = None
     chip_tone: str = "green"
 
     def render_html(self, content: str = "") -> str:

@@ -7,12 +7,12 @@ from typing import Optional
 
 @dataclass
 class TuxFormField:
-    label: str = None
-    help: str = None
-    hint: str = None
-    error: str = None
-    required: bool = false
-    input_id: str = None
+    label: Optional[str] = None
+    help: Optional[str] = None
+    hint: Optional[str] = None
+    error: Optional[str] = None
+    required: bool = False
+    input_id: Optional[str] = None
     layout: str = "stacked"
 
     def render_html(self, content: str = "") -> str:

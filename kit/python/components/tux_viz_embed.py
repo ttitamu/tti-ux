@@ -7,16 +7,16 @@ from typing import Optional
 
 @dataclass
 class TuxVizEmbed:
-    src: str = None
+    src: Optional[str] = None
     provider: str = "generic"
-    title: str = None
-    eyebrow: str = None
+    title: Optional[str] = None
+    eyebrow: Optional[str] = None
     ratio: str = "16/9"
-    sandbox: str = None
+    sandbox: Optional[str] = None
     referrerpolicy: str = "strict-origin-when-cross-origin"
-    open_in_new: bool = true
-    poster_src: str = None
-    poster_alt: str = None
+    open_in_new: bool = True
+    poster_src: Optional[str] = None
+    poster_alt: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-viz-embed">{content}</figure>'

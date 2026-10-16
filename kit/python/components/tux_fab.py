@@ -7,12 +7,12 @@ from typing import Optional
 
 @dataclass
 class TuxFAB:
-    icon: str = None
-    extended: bool = false
+    icon: Optional[str] = None
+    extended: bool = False
     size: str = "md"
     side: str = "right"
-    aria_label: str = None
-    disabled: bool = false
+    aria_label: Optional[str] = None
+    disabled: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<button class="tux-fab">{content}</button>'

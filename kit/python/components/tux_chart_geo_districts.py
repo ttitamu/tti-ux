@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxChartGeoDistricts:
-    districts: str = None
-    legend_label: str = None
-    legend_stops: str = None
+    districts: Optional[str] = None
+    legend_label: Optional[str] = None
+    legend_stops: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<svg class="tux-chart-geo-districts">{content}</svg>'

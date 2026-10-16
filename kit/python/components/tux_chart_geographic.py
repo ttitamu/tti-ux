@@ -7,20 +7,20 @@ from typing import Optional
 
 @dataclass
 class TuxChartGeographic:
-    kind: str = None
+    kind: Optional[str] = None
     palette: str = "maroon"
-    title: str = None
+    title: Optional[str] = None
     legend_label: str = "Value"
-    legend_stops: str = None
-    show_legend: bool = true
-    counties: str = None
-    districts: str = None
-    states: str = None
+    legend_stops: Optional[str] = None
+    show_legend: bool = True
+    counties: Optional[str] = None
+    districts: Optional[str] = None
+    states: Optional[str] = None
     highlight: str = "TX"
     dots: int = 600
-    dot_legend: str = None
-    flows: str = None
-    flow_legend: str = None
+    dot_legend: Optional[str] = None
+    flows: Optional[str] = None
+    flow_legend: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-chart-geographic">{content}</div>'

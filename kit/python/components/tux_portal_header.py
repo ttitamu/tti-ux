@@ -8,16 +8,16 @@ from typing import Optional
 @dataclass
 class TuxPortalHeader:
     mode: str = "comm"
-    agency_name: str = None
+    agency_name: Optional[str] = None
     agency_url: str = "https://tti.tamu.edu"
     home_url: str = "/"
-    portal_title: str = None
-    portal_badge: str = None
+    portal_title: Optional[str] = None
+    portal_badge: Optional[str] = None
     portal_badge_variant: str = "gold"
-    utility_links: str = None
-    show_search: bool = true
-    show_spectrum_ribbon: bool = false
-    intranet_apps: str = None
+    utility_links: Optional[str] = None
+    show_search: bool = True
+    show_spectrum_ribbon: bool = False
+    intranet_apps: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<header class="tux-portal-header">{content}</header>'

@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxCaptionedMedia:
-    src: str = None
-    alt: str = None
-    caption: str = None
-    credit: str = None
-    eyebrow: str = None
+    src: Optional[str] = None
+    alt: Optional[str] = None
+    caption: Optional[str] = None
+    credit: Optional[str] = None
+    eyebrow: Optional[str] = None
     aspect: str = "16/9"
     align: str = "full"
     tone: str = "maroon"

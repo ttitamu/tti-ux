@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxFeedback:
-    page_id: str = None
-    title: str = None
+    page_id: Optional[str] = None
+    title: Optional[str] = None
     endpoint: str = "/api/feedback"
-    allow_details: bool = true
+    allow_details: bool = True
 
     def render_html(self, content: str = "") -> str:
         return f'<section class="tux-feedback">{content}</section>'

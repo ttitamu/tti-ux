@@ -7,12 +7,12 @@ from typing import Optional
 
 @dataclass
 class TuxPopover:
-    title: str = None
-    body: str = None
+    title: Optional[str] = None
+    body: Optional[str] = None
     mode: str = "click"
     side: str = "bottom"
-    arrow: bool = true
-    disabled: bool = false
+    arrow: bool = True
+    disabled: bool = False
     width: str = "md"
 
     def render_html(self, content: str = "") -> str:

@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxCommentThread:
-    model_value: str = None
-    authors: str = None
-    current_user: str = None
-    hide_resolved: bool = true
+    model_value: Optional[str] = None
+    authors: Optional[str] = None
+    current_user: Optional[str] = None
+    hide_resolved: bool = True
     size: str = "md"
 
     def render_html(self, content: str = "") -> str:

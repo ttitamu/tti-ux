@@ -9,13 +9,13 @@ from typing import Optional
 class TuxMobileFrame:
     platform: str = "ios"
     width: int = 280
-    color: str = None
-    status_bar: bool = true
+    color: Optional[str] = None
+    status_bar: bool = True
     time: str = "9:41"
-    notch: bool = true
-    home_indicator: bool = true
+    notch: bool = True
+    home_indicator: bool = True
     nav_style: str = "gesture"
-    aria_label: str = None
+    aria_label: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-mobile-frame">{content}</figure>'

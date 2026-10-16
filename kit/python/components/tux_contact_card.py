@@ -7,14 +7,14 @@ from typing import Optional
 
 @dataclass
 class TuxContactCard:
-    name: str = None
-    role: str = None
-    affiliation: str = None
-    credentials: str = None
-    image: str = None
-    initial: str = None
+    name: Optional[str] = None
+    role: Optional[str] = None
+    affiliation: Optional[str] = None
+    credentials: Optional[str] = None
+    image: Optional[str] = None
+    initial: Optional[str] = None
     tone: str = "maroon"
-    contacts: str = None
+    contacts: Optional[str] = None
     layout: str = "vertical"
 
     def render_html(self, content: str = "") -> str:

@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxStatComparison:
-    eyebrow: str = None
-    current: int = None
-    previous: int = None
-    suffix: str = None
-    label: str = None
+    eyebrow: Optional[str] = None
+    current: Optional[int] = None
+    previous: Optional[int] = None
+    suffix: Optional[str] = None
+    label: Optional[str] = None
     layout: str = "row"
     decimals: int = 1
     polarity: str = "direct"

@@ -7,30 +7,30 @@ from typing import Optional
 
 @dataclass
 class TuxRichDataGrid:
-    columns: str = None
-    rows: str = None
+    columns: Optional[str] = None
+    rows: Optional[str] = None
     row_key: str = "id"
-    title: str = None
-    meta: str = None
+    title: Optional[str] = None
+    meta: Optional[str] = None
     search_placeholder: str = "Search…"
-    show_search: bool = true
-    show_filter: bool = true
-    show_columns: bool = true
-    show_export: bool = true
-    filters: str = None
-    selected: str = None
-    selection_disabled: bool = false
-    bulk_actions: str = None
-    expanded: str = None
-    expansion_disabled: bool = false
-    sort_key: str = None
-    sort_dir: str = None
+    show_search: bool = True
+    show_filter: bool = True
+    show_columns: bool = True
+    show_export: bool = True
+    filters: Optional[str] = None
+    selected: Optional[str] = None
+    selection_disabled: bool = False
+    bulk_actions: Optional[str] = None
+    expanded: Optional[str] = None
+    expansion_disabled: bool = False
+    sort_key: Optional[str] = None
+    sort_dir: Optional[str] = None
     max_height: str = "440px"
-    virtualized: bool = false
+    virtualized: bool = False
     virtual_row_height: int = 44
     density: str = "comfortable"
-    pagination_label: str = None
-    pagination_tokens: str = None
+    pagination_label: Optional[str] = None
+    pagination_tokens: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-rich-data-grid">{content}</div>'

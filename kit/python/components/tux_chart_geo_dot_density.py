@@ -7,8 +7,8 @@ from typing import Optional
 
 @dataclass
 class TuxChartGeoDotDensity:
-    dots: int = None
-    dot_legend: str = None
+    dots: Optional[int] = None
+    dot_legend: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<svg class="tux-chart-geo-dot-density">{content}</svg>'

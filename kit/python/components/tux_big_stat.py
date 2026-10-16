@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxBigStat:
-    value: str = None
-    suffix: str = None
-    label: str = None
-    source: str = None
+    value: Optional[str] = None
+    suffix: Optional[str] = None
+    label: Optional[str] = None
+    source: Optional[str] = None
     variant: str = "default"
     tone: str = "maroon"
     size: str = "md"

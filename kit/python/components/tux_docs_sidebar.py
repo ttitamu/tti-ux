@@ -7,12 +7,12 @@ from typing import Optional
 
 @dataclass
 class TuxDocsSidebar:
-    tree: str = None
+    tree: Optional[str] = None
     title: str = "Docs"
-    search: bool = true
-    search_placeholder: str = None
+    search: bool = True
+    search_placeholder: Optional[str] = None
     storage_key: str = "tux-docs-sidebar"
-    exclusive_top_level: bool = false
+    exclusive_top_level: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<nav class="tux-docs-sidebar">{content}</nav>'

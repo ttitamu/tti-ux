@@ -7,19 +7,19 @@ from typing import Optional
 
 @dataclass
 class TuxChartLine:
-    labels: str = None
-    series: str = None
+    labels: Optional[str] = None
+    series: Optional[str] = None
     width: int = 640
     height: int = 280
-    markers: bool = false
-    distinct_markers: bool = true
+    markers: bool = False
+    distinct_markers: bool = True
     marker_radius: int = 3.5
     palette: str = "brand"
     stroke_width: int = 2
-    patterns: bool = false
-    end_labels: bool = true
-    legend: bool = false
-    gridlines: bool = true
+    patterns: bool = False
+    end_labels: bool = True
+    legend: bool = False
+    gridlines: bool = True
     y_ticks: int = 5
 
     def render_html(self, content: str = "") -> str:

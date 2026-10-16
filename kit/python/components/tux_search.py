@@ -7,22 +7,22 @@ from typing import Optional
 
 @dataclass
 class TuxSearch:
-    model_value: str = None
+    model_value: Optional[str] = None
     variant: str = "field"
     block_bar: str = "field"
     size: str = "regular"
     placeholder: str = "Search"
-    heading: str = None
-    lede: str = None
-    aria_label: str = None
+    heading: Optional[str] = None
+    lede: Optional[str] = None
+    aria_label: Optional[str] = None
     action_label: str = "Search"
-    action_icon: str = None
+    action_icon: Optional[str] = None
     leading_icon: str = "lucide:search"
-    clearable: bool = true
-    loading: bool = false
-    disabled: bool = false
-    corner_drop: bool = false
-    force_focus: bool = false
+    clearable: bool = True
+    loading: bool = False
+    disabled: bool = False
+    corner_drop: bool = False
+    force_focus: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-search">{content}</div>'

@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxMapMarker:
-    kind: str = None
-    number: str = None
-    tone_index: int = None
+    kind: Optional[str] = None
+    number: Optional[str] = None
+    tone_index: Optional[int] = None
     size: str = "md"
-    title: str = None
+    title: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<svg class="tux-map-marker">{content}</svg>'

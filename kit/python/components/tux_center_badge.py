@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxCenterBadge:
-    center: str = None
-    label: str = None
-    icon: str = None
+    center: Optional[str] = None
+    label: Optional[str] = None
+    icon: Optional[str] = None
     tone_index: int = 2
-    short: bool = false
+    short: bool = False
     size: str = "md"
     layout: str = "chip"
 

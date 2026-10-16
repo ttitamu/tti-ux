@@ -7,11 +7,11 @@ from typing import Optional
 
 @dataclass
 class TuxFocusView:
-    open: bool = false
-    title: str = None
-    eyebrow: str = None
-    dismiss_on_backdrop_click: bool = true
-    dismiss_on_escape: bool = true
+    open: bool = False
+    title: Optional[str] = None
+    eyebrow: Optional[str] = None
+    dismiss_on_backdrop_click: bool = True
+    dismiss_on_escape: bool = True
     back_label: str = "Close"
 
     def render_html(self, content: str = "") -> str:

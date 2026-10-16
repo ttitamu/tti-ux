@@ -8,7 +8,7 @@ from typing import Optional
 @dataclass
 class TuxCallout:
     kind: str = "fact"
-    eyebrow: str = None
+    eyebrow: Optional[str] = None
     variant: str = "default"
 
     def render_html(self, content: str = "") -> str:

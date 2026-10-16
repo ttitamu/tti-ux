@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxChartGeoTitle:
-    title: str = None
-    x: int = None
-    y: int = None
+    title: Optional[str] = None
+    x: Optional[int] = None
+    y: Optional[int] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-chart-geo-title">{content}</div>'

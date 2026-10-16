@@ -7,8 +7,8 @@ from typing import Optional
 
 @dataclass
 class TuxMenuBar:
-    menus: str = None
-    render_on_mac: bool = false
+    menus: Optional[str] = None
+    render_on_mac: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-menu-bar">{content}</div>'

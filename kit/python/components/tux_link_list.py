@@ -7,7 +7,7 @@ from typing import Optional
 
 @dataclass
 class TuxLinkList:
-    groups: str = None
+    groups: Optional[str] = None
     layout: str = "columns"
     columns: int = 3
 

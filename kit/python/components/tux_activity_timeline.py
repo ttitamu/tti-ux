@@ -7,8 +7,8 @@ from typing import Optional
 
 @dataclass
 class TuxActivityTimeline:
-    items: str = None
-    dense: bool = false
+    items: Optional[str] = None
+    dense: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<ol class="tux-activity-timeline">{content}</ol>'

@@ -7,12 +7,12 @@ from typing import Optional
 
 @dataclass
 class TuxIdentity:
-    name: str = None
-    superhead: str = None
+    name: Optional[str] = None
+    superhead: Optional[str] = None
     level: str = "institution"
     orientation: str = "horizontal"
     kind: str = "lockup"
-    href: str = None
+    href: Optional[str] = None
     logo_size: int = 0
 
     def render_html(self, content: str = "") -> str:

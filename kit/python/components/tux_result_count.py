@@ -7,14 +7,14 @@ from typing import Optional
 
 @dataclass
 class TuxResultCount:
-    page: int = None
-    page_size: int = None
-    total: int = None
-    noun: str = None
-    noun_plural: str = None
-    page_size_options: str = None
-    hide_range: bool = false
-    page_size_label: str = None
+    page: Optional[int] = None
+    page_size: Optional[int] = None
+    total: Optional[int] = None
+    noun: Optional[str] = None
+    noun_plural: Optional[str] = None
+    page_size_options: Optional[str] = None
+    hide_range: bool = False
+    page_size_label: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-result-count">{content}</div>'

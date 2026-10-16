@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxContextMeter:
-    used: int = None
-    max: int = None
-    breakdown: str = None
+    used: Optional[int] = None
+    max: Optional[int] = None
+    breakdown: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-context-meter">{content}</div>'

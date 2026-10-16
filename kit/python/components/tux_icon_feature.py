@@ -7,7 +7,7 @@ from typing import Optional
 
 @dataclass
 class TuxIconFeature:
-    items: str = None
+    items: Optional[str] = None
     layout: str = "grid"
     columns: int = 3
 

@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxDropdown:
-    label: str = None
-    items: str = None
-    to: str = None
+    label: Optional[str] = None
+    items: Optional[str] = None
+    to: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-dropdown">{content}</div>'

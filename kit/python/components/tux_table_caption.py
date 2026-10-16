@@ -8,9 +8,9 @@ from typing import Optional
 @dataclass
 class TuxTableCaption:
     label: str = "Table"
-    number: str = None
-    caption: str = None
-    source: str = None
+    number: Optional[str] = None
+    caption: Optional[str] = None
+    source: Optional[str] = None
     placement: str = "above"
 
     def render_html(self, content: str = "") -> str:

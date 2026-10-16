@@ -118,25 +118,25 @@ AUDIT_LEVEL=AAA npm run audit:contrast
 
 ## Consuming from another app
 
-**The canonical install source is the Forgejo npm registry** on
-code.tti.tamu.edu — every `vX.Y.Z` tag publishes `@tti/tti-ux`
-automatically. (The GitHub repo is a mirror whose only job is the
-GitHub Pages deploy of ux.tti.tamu.edu; don't install from it.)
+**The install source is the forge's npm registry** on code.tti.tamu.edu
+(scope `@tti`, owner `tti`). Every `vX.Y.Z` tag publishes `@tti/tti-ux`
+there (`.forgejo/workflows/publish-package.yml`). The GitHub repo is a
+mirror whose only job is the Pages deploy of ux.tti.tamu.edu; don't
+install from it.
 
-One-time setup in the consuming app (or your `~/.npmrc`):
+One line in the consuming app's `.npmrc`. No token: the `tti` org is
+public, so the registry reads anonymously, from laptops and from CI jobs.
 
 ```ini
 # .npmrc
 @tti:registry=https://code.tti.tamu.edu/api/packages/tti/npm/
 ```
 
-(If the repo/package isn't public to you, add
-`//code.tti.tamu.edu/api/packages/tti/npm/:_authToken=<your token>`.)
-
-Then depend on a pinned version and extend the layer:
+Then depend on an exact version (`npm view @tti/tti-ux versions`) and
+extend the layer:
 
 ```sh
-npm install @tti/tti-ux@2.0.0
+npm install --save-exact @tti/tti-ux@<version>
 ```
 
 ```ts
@@ -146,15 +146,26 @@ export default defineNuxtConfig({
 });
 ```
 
-Bumping the pinned version is how you opt in to a new tux release —
+Bumping the pinned version is how you opt in to a new tux release:
 check [`CHANGELOG.md`](CHANGELOG.md) for what each version contains.
+Versions that predate the registry (1.6.0, 1.7.0) and prereleases of the
+trees consumers pinned by commit (`2.3.0-work-surface.0`,
+`3.1.1-vision.0`) are published too, so no consumer had to upgrade to
+leave its git pin.
 
-For local dev with a sibling checkout, swap to a file URL:
-`"@tti/tti-ux": "file:../tti-ux"`. A direct git pin also works on
-the internal network:
-`"@tti/tti-ux": "git+https://code.tti.tamu.edu/tti/tti-ux.git#v2.0.0"`.
-(Legacy consumers pinned to `github:ttitamu/tti-ux#v1.x` keep
-working, but new pins should not use the mirror.)
+**No git pins.** npm 12 refuses git dependencies (`EALLOWGIT`) unless a
+project opts in, and the `github:ttitamu/tti-ux#v1.x` and
+`git+https://code.tti.tamu.edu/...` pins of the past fail `npm ci` there.
+Use the registry; for local layer work, a sibling checkout as
+`"@tti/tti-ux": "file:../tti-ux"` (npm still allows directories).
+
+**Install scripts.** The published package runs nothing at install time:
+`nuxt prepare` is this repo's `prepare` script, which npm runs for a
+checkout of tux and never for a registry dependency. Your app's own
+`nuxt prepare` covers the layer. npm 12 lists the dependency install
+scripts it blocked (`npm install-scripts ls`); record each decision in
+your `package.json` `allowScripts` with `npm install-scripts approve` or
+`deny`.
 
 **Deploying behind a reverse proxy?** Set `icon: { mode: "svg" }` in
 your `nuxt.config.ts`. `@nuxt/icon`'s default CSS-mask mode fetches

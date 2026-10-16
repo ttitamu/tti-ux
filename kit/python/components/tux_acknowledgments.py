@@ -7,10 +7,10 @@ from typing import Optional
 
 @dataclass
 class TuxAcknowledgments:
-    funding: str = None
-    acknowledgments: str = None
-    conflicts: str = None
-    ethics: str = None
+    funding: Optional[str] = None
+    acknowledgments: Optional[str] = None
+    conflicts: Optional[str] = None
+    ethics: Optional[str] = None
     level: int = 4
 
     def render_html(self, content: str = "") -> str:
