@@ -455,6 +455,56 @@ html[data-vision-comfort="anti-halation"],
 }
 
 /* =====================================================
+   RELLIS Field-Sunlight Mode (Outdoor Proving Ground & Roadside Glare)
+   Maximum daylight luminance polarity (21:1 ink, 18.5:1 deep maroon,
+   2px high-contrast structural keylines, and 48px glove touch targets).
+   ===================================================== */
+
+[data-theme-variant="field-sunlight"],
+[data-vision-comfort="field-sunlight"],
+.tux-theme--field-sunlight {
+  color-scheme: light !important;
+
+  --brand-primary: #3c0000;
+  --color-brand-primary: var(--brand-primary);
+
+  --surface-canvas: #ffffff;
+  --surface-page: #ffffff;
+  --surface-raised: #f8fafc;
+  --surface-sunken: #f1f5f9;
+  --surface-border: #111827;
+  --surface-border-subtle: #374151;
+  --surface-eggshell: #ffffff;
+  --surface-cool-gray: #f1f5f9;
+
+  --color-surface-page: var(--surface-page);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-border: var(--surface-border);
+  --color-surface-border-subtle: var(--surface-border-subtle);
+
+  --text-primary: #000000;
+  --text-secondary: #111827;
+  --text-muted: #1f2937;
+  --text-charcoal: #000000;
+  --text-dark: #000000;
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --focus-ring-outer: #000000;
+  --focus-ring-inner: #ffcf00;
+}
+
+[data-vision-comfort="field-sunlight"] button,
+[data-vision-comfort="field-sunlight"] input:not([type="checkbox"]):not([type="radio"]),
+[data-vision-comfort="field-sunlight"] select,
+[data-vision-comfort="field-sunlight"] [role="button"] {
+  min-height: 48px;
+}
+
+/* =====================================================
    Live Color Vision Deficiency (CVD) Simulation Filters
    Applies clinical SVG color matrices across the viewport
    for accessibility verification, audits, and demonstrations.
@@ -547,5 +597,23 @@ html[data-cvd-simulation="achromatopsia"] {
   border-width: 2px !important;
 }
 
+/* =====================================================
+   Institutional Typography Profiles ([data-type-profile])
+   1. editorial (default) — Oswald display + Open Sans body + Georgia pull-quotes
+   2. kadence-comm — TTI Communications / Kadence WordPress parity (Work Sans / Open Sans unified)
+   3. ops-dense — High-density TMC operations & tabular telemetry profile
+   ===================================================== */
 
+[data-type-profile="kadence-comm"] {
+  --font-display: var(--font-bold);
+  --tracking-tight: 0em;
+  --tracking-wider: 0.04em;
+}
 
+[data-type-profile="ops-dense"] {
+  --font-display: var(--font-bold);
+  --leading-normal: 1.4;
+  --leading-relaxed: 1.5;
+  --tracking-wider: 0.06em;
+  font-variant-numeric: tabular-nums;
+}

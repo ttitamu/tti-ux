@@ -208,6 +208,7 @@ export const COMPONENTS_WITH_UNIT_TESTS: readonly string[] = [
   "TuxTree",
   "TuxTreeNode",
   "TuxTreemap",
+  "TuxUnitValue",
   "TuxUserMenu",
   "TuxUtilityCluster",
   "TuxValidationSummary",

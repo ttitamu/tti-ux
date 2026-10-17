@@ -33,6 +33,9 @@
  * Usage:
  *   <tux-activity-timeline :items="feed" />
  */
+import { formatStationing } from "../composables/useTuxUnits";
+import { useTuxSyncCursor } from "../composables/useTuxSyncCursor";
+
 export interface TuxActivityTimelineItem {
   id: string;
   time?: string;
@@ -43,21 +46,83 @@ export interface TuxActivityTimelineItem {
   tone?: "neutral" | "info" | "success" | "warning" | "error";
   current?: boolean;
   heading?: boolean;
+  /** Optional civil-engineering stationing (number in feet -> "STA 12+50", or string like "RM 240.5"). */
+  station?: number | string;
+  /** Optional highway milepost for synchronized corridor scrubbing. */
+  milepost?: number;
 }
 
 interface Props {
   items: TuxActivityTimelineItem[];
   /** Compact rows for rail/sidebar placement. Default false. */
   dense?: boolean;
+  /** Optional synchronized telemetry cursor channel name (links with useTuxSyncCursor). */
+  syncChannel?: string;
+  /** Optional TTI 5-band research division accent ("maroon" | "blue" | "teal" | "green" | "gold"). */
+  division?: "maroon" | "blue" | "teal" | "green" | "gold";
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   dense: false,
+  syncChannel: undefined,
+  division: undefined,
 });
+
+const syncBus = computed(() =>
+  props.syncChannel ? useTuxSyncCursor(props.syncChannel) : null,
+);
+
+function formatItemStation(item: TuxActivityTimelineItem): string | null {
+  if (item.station != null) {
+    return typeof item.station === "number"
+      ? formatStationing(item.station, 0)
+      : item.station;
+  }
+  if (item.milepost != null) {
+    return `RM ${item.milepost}`;
+  }
+  return null;
+}
+
+function isItemSynced(item: TuxActivityTimelineItem): boolean {
+  const c = syncBus.value?.cursor.value;
+  if (!c || !c.active) return false;
+  if (c.eventId && c.eventId === item.id) return true;
+  if (c.milepost != null && item.milepost != null && Math.abs(c.milepost - item.milepost) <= 0.5) {
+    return true;
+  }
+  if (c.timestamp && item.time && c.timestamp === item.time) return true;
+  return false;
+}
+
+function activateTimelineItem(item: TuxActivityTimelineItem) {
+  if (!syncBus.value || item.heading) return;
+  if (item.milepost != null) {
+    syncBus.value.setCursor({
+      milepost: item.milepost,
+      timestamp: item.time ?? null,
+      eventId: item.id,
+      label: item.title,
+      sourceId: item.id,
+    });
+  } else if (item.time) {
+    syncBus.value.setTimestamp(item.time, {
+      eventId: item.id,
+      label: item.title,
+      sourceId: item.id,
+    });
+  }
+}
 </script>
 
 <template>
-  <ol class="tux-activity-timeline" :class="{ 'tux-activity-timeline--dense': dense }">
+  <ol
+    class="tux-activity-timeline"
+    :class="[
+      dense && 'tux-activity-timeline--dense',
+      division && `tux-activity-timeline--division tux-activity-timeline--division-${division}`,
+    ]"
+  >
     <li
       v-for="item in items"
       :key="item.id"
@@ -66,7 +131,10 @@ withDefaults(defineProps<Props>(), {
         item.tone && `tux-activity-timeline__item--${item.tone}`,
         item.current && 'tux-activity-timeline__item--current',
         item.heading && 'tux-activity-timeline__item--heading',
+        isItemSynced(item) && 'tux-activity-timeline__item--synced',
       ]"
+      @mouseenter="activateTimelineItem(item)"
+      @click="activateTimelineItem(item)"
     >
       <!-- Group heading row: eyebrow rhythm, spine passes through. -->
       <template v-if="item.heading">
@@ -79,11 +147,17 @@ withDefaults(defineProps<Props>(), {
         </span>
         <div class="tux-activity-timeline__body">
           <div class="tux-activity-timeline__head">
-            <time
-              v-if="item.time"
-              class="tux-activity-timeline__time"
-              :datetime="item.datetime ?? item.time"
-            >{{ item.time }}</time>
+            <div class="tux-activity-timeline__meta">
+              <time
+                v-if="item.time"
+                class="tux-activity-timeline__time"
+                :datetime="item.datetime ?? item.time"
+              >{{ item.time }}</time>
+              <span
+                v-if="formatItemStation(item)"
+                class="tux-activity-timeline__station"
+              >{{ formatItemStation(item) }}</span>
+            </div>
             <span v-if="$slots.trailing" class="tux-activity-timeline__trailing">
               <slot name="trailing" :item="item" />
             </span>
@@ -108,6 +182,22 @@ withDefaults(defineProps<Props>(), {
   padding: 0;
   position: relative;
   --tux-atl-marker: var(--brand-primary);
+}
+
+.tux-activity-timeline--division-maroon {
+  --tux-atl-marker: var(--spectrum-maroon, var(--brand-primary));
+}
+.tux-activity-timeline--division-blue {
+  --tux-atl-marker: var(--spectrum-blue, var(--brand-secondary));
+}
+.tux-activity-timeline--division-teal {
+  --tux-atl-marker: var(--spectrum-teal, var(--brand-primary));
+}
+.tux-activity-timeline--division-green {
+  --tux-atl-marker: var(--spectrum-green, var(--color-success));
+}
+.tux-activity-timeline--division-gold {
+  --tux-atl-marker: var(--spectrum-gold, var(--brand-accent));
 }
 
 /* The maroon spine — drawn per item so it starts/stops with content. */
@@ -188,11 +278,37 @@ withDefaults(defineProps<Props>(), {
   gap: 0.5rem;
 }
 
+.tux-activity-timeline__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .tux-activity-timeline__time {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-size: 0.6875rem;
   color: var(--text-muted);
+}
+
+.tux-activity-timeline__station {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--tux-atl-marker);
+  background: color-mix(in srgb, var(--tux-atl-marker) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tux-atl-marker) 22%, transparent);
+  padding: 0.0625rem 0.375rem;
+  border-radius: var(--radius-sm);
+}
+
+.tux-activity-timeline__item--synced .tux-activity-timeline__body {
+  background: color-mix(in srgb, var(--tux-atl-marker) 6%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 0.25rem 0.5rem;
+  margin-left: -0.5rem;
 }
 
 .tux-activity-timeline__title {

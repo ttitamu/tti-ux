@@ -22,6 +22,8 @@
  * (e.g., crash rate per mile, speed compliance, AADT).
  */
 import { computed } from "vue";
+import { formatStationing } from "../composables/useTuxUnits";
+import { useTuxSyncCursor } from "../composables/useTuxSyncCursor";
 
 export interface TuxCorridorSegment {
   /** Start mile (inclusive). */
@@ -71,6 +73,19 @@ interface Props {
   height?: number;
   /** Mile-marker tick density. Default 5 (every 5 miles). */
   tickEvery?: number;
+  /**
+   * Tick notation format:
+   * - "mile" (default): numeric milepost (e.g. "10")
+   * - "rm": TxDOT Reference Marker (e.g. "RM 10")
+   * - "station": Civil-engineering stationing (e.g. "STA 528+00")
+   */
+  tickFormat?: "mile" | "rm" | "station";
+  /** Optional synchronized telemetry cursor channel name (links with useTuxSyncCursor). */
+  syncChannel?: string;
+  /** Optional explicit active milepost crosshair position. */
+  activeMile?: number | null;
+  /** Render an interactive accessible range scrubber below the header to scrub mileposts/stationing. */
+  interactiveScrub?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -83,7 +98,47 @@ const props = withDefaults(defineProps<Props>(), {
   width: 800,
   height: 140,
   tickEvery: 5,
+  tickFormat: "mile",
+  syncChannel: undefined,
+  activeMile: undefined,
+  interactiveScrub: false,
 });
+
+const emit = defineEmits<{
+  (e: "update:activeMile", mile: number | null): void;
+}>();
+
+const syncBus = computed(() =>
+  props.syncChannel ? useTuxSyncCursor(props.syncChannel) : null,
+);
+
+const effectiveActiveMile = computed<number | null>(() => {
+  if (props.activeMile != null) return props.activeMile;
+  const busMile = syncBus.value?.cursor.value.milepost ?? null;
+  if (busMile != null && busMile >= props.fromMile && busMile <= props.toMile) {
+    return busMile;
+  }
+  return null;
+});
+
+function formatTickLabel(m: number): string {
+  if (props.tickFormat === "rm") return `RM ${m}`;
+  if (props.tickFormat === "station") return formatStationing(m * 5280, 0);
+  return String(m);
+}
+
+function handleScrubInput(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const mile = Number(target.value);
+  if (Number.isNaN(mile)) return;
+  emit("update:activeMile", mile);
+  syncBus.value?.setMilepost(mile, `${props.name ?? "Corridor"} · RM ${mile}`, props.name);
+}
+
+function selectEventMile(ev: TuxCorridorEvent) {
+  emit("update:activeMile", ev.mile);
+  syncBus.value?.setMilepost(ev.mile, ev.label, props.name);
+}
 
 const totalMiles = computed(() => props.toMile - props.fromMile);
 const valuesH = computed(() => (props.values ? 32 : 0));
@@ -138,9 +193,38 @@ const ariaSummary = computed(() => {
 
 <template>
   <figure class="tux-corridor" role="figure" :aria-label="ariaSummary">
-    <header v-if="name || direction" class="tux-corridor__header">
-      <p v-if="direction" class="eyebrow">{{ direction }}</p>
-      <h3 v-if="name" class="tux-corridor__name">{{ name }}</h3>
+    <header
+      v-if="name || direction || interactiveScrub || effectiveActiveMile != null"
+      class="tux-corridor__header"
+    >
+      <div class="tux-corridor__header-top">
+        <div>
+          <p v-if="direction" class="eyebrow">{{ direction }}</p>
+          <h3 v-if="name" class="tux-corridor__name">{{ name }}</h3>
+        </div>
+
+        <div v-if="effectiveActiveMile != null" class="tux-corridor__readout" aria-live="polite">
+          <span class="tux-corridor__readout-rm">RM {{ effectiveActiveMile }}</span>
+          <span class="tux-corridor__readout-sta">
+            {{ formatStationing(effectiveActiveMile * 5280, 0) }}
+          </span>
+        </div>
+      </div>
+
+      <div v-if="interactiveScrub" class="tux-corridor__scrubber">
+        <label class="tux-corridor__scrubber-label">
+          <span>Corridor Milepost Scrubber</span>
+          <input
+            type="range"
+            class="tux-corridor__scrubber-input"
+            :min="fromMile"
+            :max="toMile"
+            step="0.5"
+            :value="effectiveActiveMile ?? fromMile"
+            @input="handleScrubInput"
+          >
+        </label>
+      </div>
     </header>
 
     <svg
@@ -197,6 +281,8 @@ const ariaSummary = computed(() => {
           v-for="(ev, i) in events"
           :key="i"
           :transform="`translate(${mileToX(ev.mile)}, ${corridorY - 4})`"
+          class="tux-corridor__event-group"
+          @click="selectEventMile(ev)"
         >
           <circle
             r="6"
@@ -212,6 +298,24 @@ const ariaSummary = computed(() => {
         </g>
       </g>
 
+      <!-- Synchronized Telemetry Crosshair -->
+      <g
+        v-if="effectiveActiveMile != null && effectiveActiveMile >= fromMile && effectiveActiveMile <= toMile"
+        :transform="`translate(${mileToX(effectiveActiveMile)}, 0)`"
+        class="tux-corridor__crosshair"
+      >
+        <line
+          :y1="16"
+          :y2="corridorY + corridorH + 8"
+          class="tux-corridor__crosshair-line"
+        />
+        <circle
+          :cy="corridorY + corridorH / 2"
+          r="5"
+          class="tux-corridor__crosshair-knot"
+        />
+      </g>
+
       <!-- Mile markers -->
       <g class="tux-corridor__ticks">
         <g
@@ -225,7 +329,7 @@ const ariaSummary = computed(() => {
             class="tux-corridor__tick"
           />
           <text :y="labelsY" text-anchor="middle" class="tux-corridor__tick-label">
-            {{ m }}
+            {{ formatTickLabel(m) }}
           </text>
         </g>
       </g>
@@ -241,6 +345,17 @@ const ariaSummary = computed(() => {
 
 .tux-corridor__header {
   margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tux-corridor__header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .tux-corridor__name {
@@ -249,6 +364,55 @@ const ariaSummary = computed(() => {
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
+}
+
+.tux-corridor__readout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tux-corridor__readout-rm {
+  font-weight: 700;
+  color: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.tux-corridor__readout-sta {
+  color: var(--text-secondary);
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.tux-corridor__scrubber {
+  padding: 0.375rem 0.625rem;
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+}
+
+.tux-corridor__scrubber-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.tux-corridor__scrubber-input {
+  flex: 1;
+  accent-color: var(--brand-primary);
+  cursor: pointer;
 }
 
 .tux-corridor__svg {
@@ -269,6 +433,10 @@ const ariaSummary = computed(() => {
   opacity: 0.78;
 }
 
+.tux-corridor__event-group {
+  cursor: pointer;
+}
+
 .tux-corridor__event-dot {
   stroke: var(--surface-page);
   stroke-width: 1.5;
@@ -278,6 +446,18 @@ const ariaSummary = computed(() => {
   stroke: var(--text-primary);
   stroke-width: 1;
   opacity: 0.55;
+}
+
+.tux-corridor__crosshair-line {
+  stroke: var(--brand-primary);
+  stroke-width: 2;
+  stroke-dasharray: 3 2;
+}
+
+.tux-corridor__crosshair-knot {
+  fill: var(--brand-accent);
+  stroke: var(--brand-primary);
+  stroke-width: 2;
 }
 
 .tux-corridor__tick {

@@ -10,7 +10,8 @@ const { data: parsed } = await useAsyncData(
 );
 
 const majorReleases = [
-  { tag: "v3.2.1", date: "2026-10-16", id: "_321-2026-10-16", label: "Breadcrumb Hierarchy Overhaul & Header Flex Resilience", latest: true },
+  { tag: "v3.3.0", date: "2026-10-17", id: "_330-2026-10-17", label: "World-Class Vision: TTI Engineering Primitives, Sonification, VPAT 2.5 & MCP Server", latest: true },
+  { tag: "v3.2.1", date: "2026-10-16", id: "_321-2026-10-16", label: "Breadcrumb Hierarchy Overhaul & Header Flex Resilience" },
   { tag: "v3.2.0", date: "2026-10-16", id: "_320-2026-10-16", label: "Zero-Warning Quality Gates & Cross-Framework Parity" },
   { tag: "v3.1.0", date: "2026-10-08", id: "_310-2026-10-08", label: "Universal CVD & Vision Accessibility" },
   { tag: "v3.0.1", date: "2026-10-07", id: "_301-2026-10-07", label: "Editorial Polish & Navigation" },

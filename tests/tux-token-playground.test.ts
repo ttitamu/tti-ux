@@ -115,4 +115,139 @@ describe("Design Token Playground & Comm Alignment", () => {
     expect(url).toContain("title=%5BToken+Idea%5D+TTI+Kadence+Institutional%3A+0px+radius");
     expect(url).toContain("body=");
   });
+
+  it("evaluates WCAG 2.2 contrast guardrails and snaps colors to AAA (7.0:1)", async () => {
+    const {
+      computeContrastRatio,
+      evaluateContrastGuardrail,
+      snapHexToAAA,
+    } = await import("../app/utils/tuxTokenStudio");
+
+    // Aggie Maroon (#500000) on white (#FFFFFF) already passes WCAG AAA (> 12:1)
+    const maroonGuard = evaluateContrastGuardrail("#500000", "#FFFFFF", 7.0);
+    expect(maroonGuard.passesAAA).toBe(true);
+    expect(maroonGuard.level).toBe("AAA");
+    expect(maroonGuard.ratio).toBeGreaterThanOrEqual(7.0);
+
+    // Warm Gold (#CFA935) on white (#FFFFFF) is below 7.0:1 and snaps to an AAA-compliant dark gold ink
+    const goldGuard = evaluateContrastGuardrail("#CFA935", "#FFFFFF", 7.0);
+    expect(goldGuard.passesAAA).toBe(false);
+    const snappedGold = snapHexToAAA("#CFA935", "#FFFFFF", 7.0);
+    expect(computeContrastRatio(snappedGold, "#FFFFFF")).toBeGreaterThanOrEqual(7.0);
+
+    // Dark canvas (#09090B): Maroon (#500000) snaps to a lighter rose/maroon that passes >= 7.0:1
+    const snappedOnDark = snapHexToAAA("#500000", "#09090B", 7.0);
+    expect(computeContrastRatio(snappedOnDark, "#09090B")).toBeGreaterThanOrEqual(7.0);
+  });
+
+  it("exports valid W3C Design Tokens (DTCG) and Figma Variables multi-mode JSON", async () => {
+    const {
+      generateFigmaVariablesJson,
+      generateW3cDtcgTokens,
+    } = await import("../app/utils/tuxTokenStudio");
+
+    const sampleInput = {
+      presetId: "tti-kadence",
+      primaryColor: "#500000",
+      accentColor: "#CFA935",
+      radius: 0,
+      fontFamily: "'Roboto', sans-serif",
+      density: "standard" as const,
+      shape: "sharp" as const,
+      theme: "light" as const,
+    };
+
+    const dtcg = JSON.parse(generateW3cDtcgTokens(sampleInput));
+    expect(dtcg.$schema).toBe("https://tr.designtokens.org/format/");
+    expect(dtcg.color.brand.primary.$type).toBe("color");
+    expect(dtcg.color.brand.primary.$value).toBe("#500000");
+    expect(dtcg.color.division.maroon.$value).toBe("#500000");
+    expect(dtcg.dimension.radius.md.$value).toBe("0px");
+
+    const figma = JSON.parse(generateFigmaVariablesJson(sampleInput));
+    expect(figma.collection).toBe("TUX Institutional Variables");
+    expect(figma.modes).toEqual(["Light", "Dark", "Field Sunlight (RELLIS)"]);
+    const primaryVar = figma.variables.find((v: { name: string }) => v.name === "brand/primary");
+    expect(primaryVar).toBeDefined();
+    expect(primaryVar.valuesByMode.Light).toBe("#500000");
+    expect(primaryVar.valuesByMode["Field Sunlight (RELLIS)"]).toBe("#3A0000");
+  });
+
+  it("exposes TUX MCP Server tools, resources, prompts, and 4-layer guardrail auto-fixer", async () => {
+    // @ts-expect-error .mjs script import
+    const { handleMcpRequest, callTuxMcpTool } = await import("../scripts/tux-mcp.mjs");
+
+    // 1. Protocol handshake & ping
+    const initRes = handleMcpRequest({ jsonrpc: "2.0", id: 1, method: "initialize" });
+    expect(initRes.result.serverInfo.name).toBe("tti-ux-mcp");
+    expect(initRes.result.capabilities).toHaveProperty("tools");
+    expect(initRes.result.capabilities).toHaveProperty("resources");
+    expect(initRes.result.capabilities).toHaveProperty("prompts");
+
+    const pingRes = handleMcpRequest({ jsonrpc: "2.0", id: 2, method: "ping" });
+    expect(pingRes.result).toEqual({});
+
+    // 2. Tools, Resources, and Prompts discovery
+    const listRes = handleMcpRequest({ jsonrpc: "2.0", id: 3, method: "tools/list" });
+    expect(listRes.result.tools.length).toBeGreaterThanOrEqual(5);
+
+    const resList = handleMcpRequest({ jsonrpc: "2.0", id: 4, method: "resources/list" });
+    expect(resList.result.resources.some((r: { uri: string }) => r.uri === "tux://tokens/all")).toBe(true);
+
+    const resRead = handleMcpRequest({
+      jsonrpc: "2.0",
+      id: 5,
+      method: "resources/read",
+      params: { uri: "tux://catalog/components" },
+    });
+    expect(JSON.parse(resRead.result.contents[0].text).count).toBeGreaterThanOrEqual(40);
+
+    const promptGet = handleMcpRequest({
+      jsonrpc: "2.0",
+      id: 6,
+      method: "prompts/get",
+      params: { name: "tux-build-tti-view", arguments: { topic: "SH-47 Proving Ground", division: "teal" } },
+    });
+    expect(promptGet.result.messages[0].content.text).toContain("SH-47 Proving Ground");
+
+    // 3. Structured component inspection (props, defaults, slots, multi-framework examples)
+    const unitComp = callTuxMcpTool("tux_get_component", { name: "TuxUnitValue" });
+    expect(unitComp.name).toBe("TuxUnitValue");
+    expect(unitComp.category).toBe("data-display");
+    expect(unitComp.props.some((p: { name: string }) => p.name === "unit")).toBe(true);
+    expect(unitComp.examples.vue).toContain("<TuxUnitValue");
+    expect(unitComp.examples.react).toContain("@tti/tti-ux-react");
+    expect(unitComp.examples.webComponent).toContain("<tux-unit-value");
+
+    // 4. Token search & contrast validation with AAA hex recommendation
+    const tokenSearch = callTuxMcpTool("tux_search_tokens", { query: "--surface-base" });
+    expect(tokenSearch.canonicalReplacementForAlias).toBe("--surface-page");
+
+    const contrastCheck = callTuxMcpTool("tux_validate_contrast", {
+      foreground: "#CFA935",
+      background: "#FFFFFF",
+    });
+    expect(contrastCheck.passesAAA).toBe(false);
+    const snappedVerify = callTuxMcpTool("tux_validate_contrast", {
+      foreground: contrastCheck.recommendedAAAHex,
+      background: "#FFFFFF",
+    });
+    expect(snappedVerify.passesAAA).toBe(true);
+
+    // 5. 4-layer snippet audit (legacy tokens, Levenshtein typos, off-ladder wash, dead font fallback, WCAG 2.5.3 button label)
+    const snippetAudit = callTuxMcpTool("tux_audit_snippet", {
+      code: [
+        ".card { background: var(--surface-base); color: var(--text-primar); font-family: var(--font-sans, var(--font-body)); border-color: color-mix(in srgb, var(--brand-primary) 15%, transparent); }",
+        '<button aria-label="Close modal">Dismiss</button>',
+      ].join("\n"),
+    });
+    expect(snippetAudit.valid).toBe(false);
+    expect(snippetAudit.autoFixedCode).toContain("var(--surface-page)");
+    expect(snippetAudit.autoFixedCode).toContain("var(--text-primary)");
+    expect(snippetAudit.autoFixedCode).toContain("font-family: var(--font-body);");
+    expect(snippetAudit.autoFixedCode).toContain("12%, transparent");
+    expect(
+      snippetAudit.issues.some((i: { type: string }) => i.type === "wcag-2.5.3-label-content-mismatch"),
+    ).toBe(true);
+  });
 });

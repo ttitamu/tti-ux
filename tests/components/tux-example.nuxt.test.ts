@@ -57,4 +57,33 @@ describe("TuxExample Component", () => {
     const violations = await runComponentAxe(wrapper.element);
     expect(violations).toEqual([]);
   });
+
+  it("toggles Token & A11y X-Ray drawer and displays detected primitives and semantic tokens", async () => {
+    const wrapper = await mountSuspended(TuxExample, {
+      props: {
+        title: "Corridor Status Card",
+        vue: '<TuxCard division="mobility"><TuxBadge los="B" /></TuxCard>',
+      },
+      slots: {
+        default: () => "Preview content",
+      },
+    });
+
+    const xrayBtn = wrapper.find('[data-testid="tux-example-xray-toggle"]');
+    expect(xrayBtn.exists()).toBe(true);
+    expect(wrapper.find('[data-testid="tux-example-xray"]').exists()).toBe(false);
+
+    await xrayBtn.trigger("click");
+
+    const xrayDrawer = wrapper.find('[data-testid="tux-example-xray"]');
+    expect(xrayDrawer.exists()).toBe(true);
+    expect(xrayDrawer.text()).toContain("TuxCard");
+    expect(xrayDrawer.text()).toContain("TuxBadge");
+    expect(xrayDrawer.text()).toContain("--brand-primary");
+    expect(xrayDrawer.text()).toContain("--surface-raised");
+
+    const violations = await runComponentAxe(wrapper.element);
+    expect(violations).toEqual([]);
+  });
 });
+

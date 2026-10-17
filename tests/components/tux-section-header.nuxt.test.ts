@@ -90,4 +90,17 @@ describe("TuxSectionHeader Component", () => {
     const violations = await runComponentAxe(wrapper.element);
     expect(violations).toEqual([]);
   });
+
+  it("supports 5-band TTI research division spectrum accent", async () => {
+    const wrapper = await mountSuspended(TuxSectionHeader, {
+      props: {
+        title: "Connected & Automated Vehicles",
+        division: "blue",
+      },
+    });
+    expect(wrapper.classes()).toContain("tux-section-header--division-blue");
+
+    const violations = await runComponentAxe(wrapper.element);
+    expect(violations).toEqual([]);
+  });
 });

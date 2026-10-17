@@ -49,4 +49,37 @@ describe("TuxAbstract Component", () => {
     const violations = await runComponentAxe(wrapper.element);
     expect(violations).toEqual([]);
   });
+
+  it("toggles between Technical Abstract and Plain-Language Legislative Brief and renders provenance", async () => {
+    const wrapper = await mountSuspended(TuxAbstract, {
+      props: {
+        background: "Stochastic micro-simulation of connected Class 8 freight platoons along IH-10.",
+        results: "Cooperative adaptive cruise control yielded 14.8% fuel savings.",
+        plainSummary: "Connecting heavy freight trucks electronically on I-10 cuts diesel fuel use by nearly 15% while maintaining safe following distances.",
+        policyTakeaways: [
+          "Reduces corridor diesel emissions across rural Texas counties.",
+          "Requires zero additional pavement widening on existing right-of-way.",
+        ],
+        projectNumber: "TxDOT 0-7142",
+        doi: "10.1177/036119812604921",
+        division: "teal",
+      },
+    });
+
+    expect(wrapper.classes()).toContain("tux-abstract--division-teal");
+    expect(wrapper.text()).toContain("TxDOT 0-7142");
+    expect(wrapper.text()).toContain("10.1177/036119812604921");
+
+    const buttons = wrapper.findAll(".tux-abstract__mode-btn");
+    expect(buttons.length).toBe(2);
+
+    // Switch to Plain-Language Brief
+    await buttons[1]!.trigger("click");
+    expect(wrapper.find(".tux-abstract__plain").exists()).toBe(true);
+    expect(wrapper.text()).toContain("Connecting heavy freight trucks electronically");
+    expect(wrapper.text()).toContain("Reduces corridor diesel emissions");
+
+    const violations = await runComponentAxe(wrapper.element);
+    expect(violations).toEqual([]);
+  });
 });

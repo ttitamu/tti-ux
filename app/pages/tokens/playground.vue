@@ -14,12 +14,19 @@
  *   - In-app "Submit Idea to Forgejo" modal with prefilled issue templates and 1-click links
  */
 
+import {
+  evaluateContrastGuardrail,
+  generateFigmaVariablesJson,
+  generateW3cDtcgTokens,
+  snapHexToAAA,
+} from "~/utils/tuxTokenStudio";
+
 useHead({
   title: "Design Token Playground · TUX",
   meta: [
     {
       name: "description",
-      content: "Interactive design token studio for live-testing component roundness, fonts, and colors with WordPress/Kadence export.",
+      content: "Interactive design token studio for live-testing component roundness, fonts, and colors with WordPress/Kadence, W3C DTCG, and Figma Variables export.",
     },
   ],
 });
@@ -117,8 +124,27 @@ const sampleCheckbox = ref(true);
 const alertDismissed = ref(false);
 
 // Export Tab State
-const activeExportTab = ref<"css" | "kadence" | "tailwind">("kadence");
+const activeExportTab = ref<"css" | "kadence" | "tailwind" | "dtcg" | "figma">("kadence");
 const copiedKey = ref<string | null>(null);
+
+// Live WCAG 2.2 AAA Contrast Guardrails
+const canvasSurfaceHex = computed(() =>
+  canvasTheme.value === "light" ? "#FFFFFF" : "#09090B",
+);
+const primaryContrastGuard = computed(() =>
+  evaluateContrastGuardrail(primaryColor.value, canvasSurfaceHex.value, 7.0),
+);
+const accentContrastGuard = computed(() =>
+  evaluateContrastGuardrail(accentColor.value, canvasSurfaceHex.value, 7.0),
+);
+
+function snapPrimaryToAAA() {
+  primaryColor.value = snapHexToAAA(primaryColor.value, canvasSurfaceHex.value, 7.0);
+}
+
+function snapAccentToAAA() {
+  accentColor.value = snapHexToAAA(accentColor.value, canvasSurfaceHex.value, 7.0);
+}
 
 // Forgejo Modal State
 const isForgejoModalOpen = ref(false);
@@ -246,6 +272,48 @@ export default {
     },
   },
 };`;
+});
+
+const dtcgTokensCode = computed(() =>
+  generateW3cDtcgTokens({
+    presetId: activePresetId.value,
+    primaryColor: primaryColor.value,
+    accentColor: accentColor.value,
+    radius: radius.value,
+    fontFamily: fontChoice.value,
+    density: density.value,
+    shape: shape.value,
+    theme: canvasTheme.value,
+  }),
+);
+
+const figmaVariablesCode = computed(() =>
+  generateFigmaVariablesJson({
+    presetId: activePresetId.value,
+    primaryColor: primaryColor.value,
+    accentColor: accentColor.value,
+    radius: radius.value,
+    fontFamily: fontChoice.value,
+    density: density.value,
+    shape: shape.value,
+    theme: canvasTheme.value,
+  }),
+);
+
+const activeExportCode = computed(() => {
+  switch (activeExportTab.value) {
+    case "kadence":
+      return kadenceThemeJsonCode.value;
+    case "css":
+      return cssVariablesCode.value;
+    case "tailwind":
+      return tailwindConfigCode.value;
+    case "dtcg":
+      return dtcgTokensCode.value;
+    case "figma":
+    default:
+      return figmaVariablesCode.value;
+  }
 });
 
 // Copy Code
@@ -508,6 +576,34 @@ function saveLocalIdea() {
               title="Custom primary color"
             >
           </div>
+          <!-- Live WCAG 2.2 AAA Contrast Guardrail -->
+          <div class="flex items-center justify-between gap-2 pt-1 text-[11px] font-mono">
+            <span
+              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border"
+              :class="
+                primaryContrastGuard.passesAAA
+                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                  : primaryContrastGuard.passesAA
+                  ? 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/30'
+                  : 'bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/30'
+              "
+            >
+              <UIcon
+                :name="primaryContrastGuard.passesAAA ? 'lucide:shield-check' : 'lucide:alert-triangle'"
+                class="w-3 h-3"
+              />
+              <span>{{ primaryContrastGuard.ratio }}:1 ({{ primaryContrastGuard.level }})</span>
+            </span>
+            <button
+              v-if="!primaryContrastGuard.passesAAA"
+              type="button"
+              class="px-2 py-0.5 rounded bg-brand-primary text-white font-bold hover:opacity-90 transition-opacity cursor-pointer"
+              @click="snapPrimaryToAAA"
+            >
+              Snap to AAA (7.0:1)
+            </button>
+            <span v-else class="text-text-muted">WCAG 2.2 AAA Ready</span>
+          </div>
         </div>
 
         <!-- 4. Accent Gold Color -->
@@ -539,6 +635,34 @@ function saveLocalIdea() {
               class="w-8 h-8 rounded border border-surface-border cursor-pointer bg-transparent"
               title="Custom accent color"
             >
+          </div>
+          <!-- Live WCAG 2.2 AAA Contrast Guardrail -->
+          <div class="flex items-center justify-between gap-2 pt-1 text-[11px] font-mono">
+            <span
+              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border"
+              :class="
+                accentContrastGuard.passesAAA
+                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                  : accentContrastGuard.passesAA
+                  ? 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/30'
+                  : 'bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/30'
+              "
+            >
+              <UIcon
+                :name="accentContrastGuard.passesAAA ? 'lucide:shield-check' : 'lucide:alert-triangle'"
+                class="w-3 h-3"
+              />
+              <span>{{ accentContrastGuard.ratio }}:1 ({{ accentContrastGuard.level }} Ink)</span>
+            </span>
+            <button
+              v-if="!accentContrastGuard.passesAAA"
+              type="button"
+              class="px-2 py-0.5 rounded bg-brand-primary text-white font-bold hover:opacity-90 transition-opacity cursor-pointer"
+              @click="snapAccentToAAA"
+            >
+              Snap Ink to AAA ({{ accentContrastGuard.recommendedHex }})
+            </button>
+            <span v-else class="text-text-muted">WCAG 2.2 AAA Ready</span>
           </div>
         </div>
 
@@ -875,13 +999,13 @@ function saveLocalIdea() {
             <span>Design Token Synchronization Exports</span>
           </h2>
           <p class="text-xs text-text-muted mt-0.5">
-            Use these generated tokens directly in WordPress, CSS stylesheets, or Tailwind configs.
+            Use these generated tokens directly in WordPress, CSS stylesheets, Tailwind configs, W3C DTCG pipelines, or Figma Variables.
           </p>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
           <!-- Format Tabs -->
-          <div class="flex rounded-lg border border-surface-border p-0.5 bg-surface-sunken text-xs font-mono">
+          <div class="flex flex-wrap rounded-lg border border-surface-border p-0.5 bg-surface-sunken text-xs font-mono">
             <button
               class="px-3 py-1 rounded transition-colors"
               :class="activeExportTab === 'kadence' ? 'bg-surface-raised font-bold text-brand-primary shadow-xs' : 'text-text-muted'"
@@ -903,22 +1027,27 @@ function saveLocalIdea() {
             >
               Tailwind Config
             </button>
+            <button
+              class="px-3 py-1 rounded transition-colors"
+              :class="activeExportTab === 'dtcg' ? 'bg-surface-raised font-bold text-brand-primary shadow-xs' : 'text-text-muted'"
+              @click="activeExportTab = 'dtcg'"
+            >
+              W3C DTCG JSON
+            </button>
+            <button
+              class="px-3 py-1 rounded transition-colors"
+              :class="activeExportTab === 'figma' ? 'bg-surface-raised font-bold text-brand-primary shadow-xs' : 'text-text-muted'"
+              @click="activeExportTab = 'figma'"
+            >
+              Figma Variables
+            </button>
           </div>
 
           <TuxButton
             intent="secondary"
             size="xs"
             icon="lucide:copy"
-            @click="
-              copyToClipboard(
-                activeExportTab === 'kadence'
-                  ? kadenceThemeJsonCode
-                  : activeExportTab === 'css'
-                  ? cssVariablesCode
-                  : tailwindConfigCode,
-                'export-code'
-              )
-            "
+            @click="copyToClipboard(activeExportCode, 'export-code')"
           >
             {{ copiedKey === "export-code" ? "Copied!" : "Copy Snippet" }}
           </TuxButton>
@@ -927,13 +1056,7 @@ function saveLocalIdea() {
 
       <!-- Code Box -->
       <div class="relative">
-        <pre class="m-0 p-4 rounded-xl bg-surface-sunken border border-surface-border text-xs font-mono overflow-x-auto max-h-72 leading-relaxed"><code>{{
-          activeExportTab === "kadence"
-            ? kadenceThemeJsonCode
-            : activeExportTab === "css"
-            ? cssVariablesCode
-            : tailwindConfigCode
-        }}</code></pre>
+        <pre class="m-0 p-4 rounded-xl bg-surface-sunken border border-surface-border text-xs font-mono overflow-x-auto max-h-72 leading-relaxed"><code>{{ activeExportCode }}</code></pre>
       </div>
     </section>
 

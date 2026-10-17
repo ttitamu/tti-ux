@@ -34,15 +34,21 @@ interface Props {
   to?: string;
   padded?: boolean;
   linked?: boolean;
+  /** Optional TTI 5-band research division accent ("maroon" | "blue" | "teal" | "green" | "gold"). */
+  division?: "maroon" | "blue" | "teal" | "green" | "gold";
 }
 
 const props = withDefaults(defineProps<Props>(), {
   padded: true,
   to: undefined,
   linked: false,
+  division: undefined,
 });
 
 const isAnchor = computed(() => !!props.to);
+const divisionClass = computed(() =>
+  props.division ? `tux-card--division tux-card--division-${props.division}` : "",
+);
 
 // Multi-root component (the three branches below), so Vue can't auto-inherit
 // fallthrough attrs. Forward them explicitly with v-bind="$attrs" so consumers
@@ -54,7 +60,7 @@ defineOptions({ inheritAttrs: false });
   <NuxtLink
     v-if="isAnchor"
     :to="to"
-    :class="['card-linked no-underline block', padded && 'p-6']"
+    :class="['card-linked no-underline block', padded && 'p-6', divisionClass]"
     v-bind="$attrs"
   >
     <span class="card-linked__arrow" aria-hidden="true">
@@ -64,7 +70,7 @@ defineOptions({ inheritAttrs: false });
   </NuxtLink>
   <div
     v-else-if="linked"
-    :class="['card-linked', padded && 'p-6']"
+    :class="['card-linked', padded && 'p-6', divisionClass]"
     v-bind="$attrs"
   >
     <span class="card-linked__arrow" aria-hidden="true">
@@ -72,7 +78,29 @@ defineOptions({ inheritAttrs: false });
     </span>
     <slot />
   </div>
-  <div v-else :class="['card-static', padded && 'p-6']" v-bind="$attrs">
+  <div v-else :class="['card-static', padded && 'p-6', divisionClass]" v-bind="$attrs">
     <slot />
   </div>
 </template>
+
+<style scoped>
+.tux-card--division {
+  --card-division-accent: var(--brand-primary);
+  border-top: 3px solid var(--card-division-accent);
+}
+.tux-card--division-maroon {
+  --card-division-accent: var(--spectrum-maroon, var(--brand-primary));
+}
+.tux-card--division-blue {
+  --card-division-accent: var(--spectrum-blue, var(--brand-secondary));
+}
+.tux-card--division-teal {
+  --card-division-accent: var(--spectrum-teal, var(--brand-primary));
+}
+.tux-card--division-green {
+  --card-division-accent: var(--spectrum-green, var(--color-success));
+}
+.tux-card--division-gold {
+  --card-division-accent: var(--spectrum-gold, var(--brand-accent));
+}
+</style>

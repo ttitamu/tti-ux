@@ -56,4 +56,26 @@ describe("TuxBigStat Component", () => {
     const violations = await runComponentAxe(wrapper.element);
     expect(violations).toEqual([]);
   });
+
+  it("renders statistical provenance pills (sampleSize, confidenceInterval, doi) and division accent", async () => {
+    const wrapper = await mountSuspended(TuxBigStat, {
+      props: {
+        value: "18.4",
+        suffix: "%",
+        label: "Peak Delay Reduction",
+        sampleSize: 14200,
+        confidenceInterval: "± 1.2% (95% CI)",
+        doi: "TxDOT 0-7142",
+        division: "teal",
+      },
+    });
+
+    expect(wrapper.classes()).toContain("tux-big-stat--division-teal");
+    expect(wrapper.text()).toContain("n = 14,200");
+    expect(wrapper.text()).toContain("± 1.2% (95% CI)");
+    expect(wrapper.text()).toContain("TxDOT 0-7142");
+
+    const violations = await runComponentAxe(wrapper.element);
+    expect(violations).toEqual([]);
+  });
 });

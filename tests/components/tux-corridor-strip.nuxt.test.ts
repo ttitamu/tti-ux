@@ -61,4 +61,37 @@ describe("TuxCorridorStrip Component", () => {
     const violations = await runComponentAxe(wrapper.element);
     expect(violations).toEqual([]);
   });
+
+  it("renders civil-engineering stationing ticks, interactive scrubber, and synchronized telemetry crosshair", async () => {
+    const { useTuxSyncCursor, resetAllCursorChannels } = await import(
+      "../../app/composables/useTuxSyncCursor"
+    );
+    resetAllCursorChannels();
+
+    const bus = useTuxSyncCursor("i35-telemetry");
+    bus.setMilepost(18, "Automated Incident Detection Sensor");
+
+    const wrapper = await mountSuspended(TuxCorridorStrip, {
+      props: {
+        name: "I-35 Connected Corridor",
+        fromMile: 10,
+        toMile: 30,
+        tickEvery: 10,
+        tickFormat: "station",
+        syncChannel: "i35-telemetry",
+        interactiveScrub: true,
+        events: sampleEvents,
+      },
+    });
+
+    // Ticks formatted as STA (10 miles * 5280 = 52800 -> STA 528+00)
+    expect(wrapper.text()).toContain("STA 528+00");
+    // Synchronized crosshair readout from useTuxSyncCursor("i35-telemetry")
+    expect(wrapper.find(".tux-corridor__crosshair").exists()).toBe(true);
+    expect(wrapper.find(".tux-corridor__readout-rm").text()).toBe("RM 18");
+    expect(wrapper.find(".tux-corridor__scrubber-input").exists()).toBe(true);
+
+    const violations = await runComponentAxe(wrapper.element);
+    expect(violations).toEqual([]);
+  });
 });

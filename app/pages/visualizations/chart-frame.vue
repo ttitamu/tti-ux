@@ -211,6 +211,10 @@ const slotFooterVue = `<TuxChartFrame
           subtitle="Peak congestion index across top 5 urban corridors statewide. Threshold target is 1.45."
           source="Source: TTI Urban Mobility Report 2026, Table 3. TxDOT Project 0-6999."
           notes="Index reflects average peak travel time relative to free-flow conditions."
+          doi="DOI 10.13021/tti.umr.2026"
+          division="maroon"
+          :labels="corridorLabels"
+          :series="corridorSeries"
         >
           <TuxChartBar
             :labels="corridorLabels"

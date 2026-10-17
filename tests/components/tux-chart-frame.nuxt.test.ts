@@ -50,4 +50,39 @@ describe("TuxChartFrame Component", () => {
     const violations = await runComponentAxe(wrapper.element);
     expect(violations).toEqual([]);
   });
+
+  it("renders multi-sensory sonification controls, expandable accessible data table, division accent, and DOI provenance with zero axe violations", async () => {
+    const wrapper = await mountSuspended(TuxChartFrame, {
+      props: {
+        eyebrow: "Exhibit A11Y-01",
+        title: "RELLIS Skid Resistance",
+        doi: "TxDOT 0-7114",
+        division: "teal",
+        labels: ["STA 01+00", "STA 02+50"],
+        series: [{ key: "sn", label: "Skid Number", unit: "SN", data: [52.4, 44.8] }],
+      },
+      slots: {
+        default: () => "<div class=\"chart-canvas\">Bar Chart Slot</div>",
+      },
+    });
+
+    expect(wrapper.find(".tux-chart-frame--division-teal").exists()).toBe(true);
+    expect(wrapper.text()).toContain("TxDOT 0-7114");
+    expect(wrapper.text()).toContain("Sonify Audio");
+    expect(wrapper.text()).toContain("Data Table");
+
+    // Expand accessible data table drawer
+    const buttons = wrapper.findAll("button.tux-chart-frame__tool-btn");
+    const tableBtn = buttons.find((b) => b.text().includes("Data Table"));
+    expect(tableBtn).toBeDefined();
+    await tableBtn!.trigger("click");
+
+    expect(wrapper.find(".tux-chart-frame__data-drawer").exists()).toBe(true);
+    expect(wrapper.text()).toContain("STA 01+00");
+    expect(wrapper.text()).toContain("52.4");
+    expect(wrapper.text()).toContain("Skid Number (SN)");
+
+    const violations = await runComponentAxe(wrapper.element);
+    expect(violations).toEqual([]);
+  });
 });

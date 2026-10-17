@@ -44,6 +44,7 @@ export type TuxBadgeTone =
 
 export type TuxBadgeKind = "tag" | "count" | "default";
 export type TuxBadgeVariant = "solid" | "soft" | "outline" | "subtle" | "bold";
+export type TuxBadgeLOS = "A" | "B" | "C" | "D" | "E" | "F";
 
 interface Props {
   tier?: TuxBadgeTier;
@@ -65,6 +66,15 @@ interface Props {
    * alert-octagon for failed/error/danger, clock for queued, shield for verified/tier).
    */
   glyph?: boolean;
+  /**
+   * Highway Capacity Manual (HCM) Level of Service ("A" through "F").
+   * Automatically applies triple-redundant encoding (shape glyph + LOS letter code + semantic color).
+   */
+  los?: TuxBadgeLOS;
+  /**
+   * Optional TTI 5-band research division accent ("maroon" | "blue" | "teal" | "green" | "gold").
+   */
+  division?: "maroon" | "blue" | "teal" | "green" | "gold";
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -81,13 +91,41 @@ const props = withDefaults(defineProps<Props>(), {
   label: undefined,
   uppercase: false,
   shape: "default",
+  los: undefined,
+  division: undefined,
 });
 
-const mode = computed<"tier" | "status" | "tone" | "kind">(() =>
-  props.tier ? "tier" : props.status ? "status" : props.tone ? "tone" : "kind"
+const mode = computed<"los" | "tier" | "status" | "tone" | "kind">(() =>
+  props.los
+    ? "los"
+    : props.tier
+      ? "tier"
+      : props.status
+        ? "status"
+        : props.tone
+          ? "tone"
+          : "kind",
 );
 
 type UColor = "info" | "neutral" | "primary" | "success" | "warning" | "error";
+
+const losColor: Record<TuxBadgeLOS, UColor> = {
+  A: "success",
+  B: "success",
+  C: "info",
+  D: "warning",
+  E: "warning",
+  F: "error",
+};
+
+const losDefaultLabel: Record<TuxBadgeLOS, string> = {
+  A: "LOS A · Free Flow",
+  B: "LOS B · Stable",
+  C: "LOS C · Near Capacity",
+  D: "LOS D · High Density",
+  E: "LOS E · At Capacity",
+  F: "LOS F · Breakdown",
+};
 
 const tierColor: Record<TuxBadgeTier, UColor> = {
   public: "info",
@@ -128,6 +166,7 @@ const statusColor: Record<TuxBadgeStatus, UColor> = {
 };
 
 const uColor = computed<UColor>(() => {
+  if (mode.value === "los") return losColor[props.los as TuxBadgeLOS];
   if (mode.value === "tier") return tierColor[props.tier as TuxBadgeTier];
   if (mode.value === "status") return statusColor[props.status as TuxBadgeStatus];
   if (mode.value === "tone") return toneColor[props.tone as TuxBadgeTone];
@@ -243,16 +282,32 @@ const tierGlyphIcon: Record<TuxBadgeTier, string> = {
   restricted: "lucide:lock",
 };
 
+const losGlyphIcon: Record<TuxBadgeLOS, string> = {
+  A: "lucide:gauge",
+  B: "lucide:check-circle-2",
+  C: "lucide:activity",
+  D: "lucide:alert-circle",
+  E: "lucide:alert-triangle",
+  F: "lucide:alert-octagon",
+};
+
 const { prefs: visionPrefs } = useTuxVisionPrefs();
 
 const isGlyphActive = computed(() => {
-  if (props.glyph) return true;
-  return visionPrefs.value.distinctMarkers && (hasDot.value || props.status !== undefined || props.tone !== undefined || props.tier !== undefined);
+  if (props.glyph || props.los !== undefined) return true;
+  return (
+    visionPrefs.value.distinctMarkers &&
+    (hasDot.value ||
+      props.status !== undefined ||
+      props.tone !== undefined ||
+      props.tier !== undefined)
+  );
 });
 
 const activeGlyphIcon = computed(() => {
   if (props.icon) return props.icon;
   if (!isGlyphActive.value) return undefined;
+  if (props.los) return losGlyphIcon[props.los];
   if (props.status) return statusGlyphIcon[props.status];
   if (props.tone) return toneGlyphIcon[props.tone];
   if (props.tier) return tierGlyphIcon[props.tier];
@@ -273,6 +328,8 @@ const activeGlyphIcon = computed(() => {
       mode === 'tone' && tone === 'custom' && 'tux-badge--custom',
       mode === 'tier' && tier && `tux-badge--tier-${tier}`,
       mode === 'status' && status && `tux-badge--status-${status}`,
+      mode === 'los' && los && `tux-badge--los tux-badge--los-${los.toLowerCase()} font-mono`,
+      division && `tux-badge--division tux-badge--division-${division}`,
       isBold && 'font-bold shadow-xs',
     ]"
     data-testid="tux-badge"
@@ -304,7 +361,8 @@ const activeGlyphIcon = computed(() => {
     </template>
 
     <slot>
-      <template v-if="mode === 'tier'">{{ label || tier }}</template>
+      <template v-if="mode === 'los' && los">{{ label || losDefaultLabel[los] }}</template>
+      <template v-else-if="mode === 'tier'">{{ label || tier }}</template>
       <template v-else-if="mode === 'status'">{{ label || status }}</template>
       <template v-else>{{ label }}</template>
     </slot>
@@ -312,3 +370,25 @@ const activeGlyphIcon = computed(() => {
     <span v-if="count != null" class="ml-0.5 font-semibold">{{ count }}</span>
   </UBadge>
 </template>
+
+<style scoped>
+.tux-badge--division {
+  --badge-division-accent: var(--brand-primary);
+  border-left: 3px solid var(--badge-division-accent) !important;
+}
+.tux-badge--division-maroon {
+  --badge-division-accent: var(--spectrum-maroon, var(--brand-primary));
+}
+.tux-badge--division-blue {
+  --badge-division-accent: var(--spectrum-blue, var(--brand-secondary));
+}
+.tux-badge--division-teal {
+  --badge-division-accent: var(--spectrum-teal, var(--brand-primary));
+}
+.tux-badge--division-green {
+  --badge-division-accent: var(--spectrum-green, var(--color-success));
+}
+.tux-badge--division-gold {
+  --badge-division-accent: var(--spectrum-gold, var(--brand-accent));
+}
+</style>

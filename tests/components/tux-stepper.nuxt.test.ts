@@ -51,4 +51,30 @@ describe("TuxStepper Component", () => {
     const violations = await runComponentAxe(wrapper.element);
     expect(violations).toEqual([]);
   });
+
+  it("renders civil-engineering stationing (stationFormat='station') and division spectrum", async () => {
+    const wrapper = await mountSuspended(TuxStepper, {
+      props: {
+        steps: [
+          { label: "Subgrade Prep", station: 1200 },
+          { label: "Base Course", station: "STA 24+50" },
+          { label: "Surface Course" },
+        ],
+        stationFormat: "station",
+        division: "infrastructure",
+        currentIndex: 1,
+      },
+    });
+
+    expect(wrapper.attributes("data-division")).toBe("infrastructure");
+    const badges = wrapper.findAll('[data-testid="tux-stepper-station"]');
+    expect(badges.length).toBe(3);
+    expect(badges[0].text()).toBe("STA 12+00");
+    expect(badges[1].text()).toBe("STA 24+50");
+    expect(badges[2].text()).toBe("STA 03+00");
+
+    const violations = await runComponentAxe(wrapper.element);
+    expect(violations).toEqual([]);
+  });
 });
+

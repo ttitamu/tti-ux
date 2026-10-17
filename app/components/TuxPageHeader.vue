@@ -54,6 +54,8 @@ interface Props {
    *  - elegant           — Georgia serif heading with diagonal slashes.
    */
   variant?: "default" | "bold" | "elegant";
+  /** Optional TTI 5-band research division accent ("maroon" | "blue" | "teal" | "green" | "gold"). */
+  division?: "maroon" | "blue" | "teal" | "green" | "gold";
 }
 
 withDefaults(defineProps<Props>(), {
@@ -62,6 +64,7 @@ withDefaults(defineProps<Props>(), {
   rhythm: "compact",
   variant: "default",
   eyebrow: undefined,
+  division: undefined,
 });
 
 defineSlots<{
@@ -80,6 +83,7 @@ defineSlots<{
       `tux-page-header--${tone}`,
       `tux-page-header--${rhythm}`,
       `tux-page-header--${variant}`,
+      division ? `tux-page-header--division tux-page-header--division-${division}` : '',
       $slots.media ? 'tux-page-header--has-media' : '',
     ]"
   >
@@ -95,6 +99,7 @@ defineSlots<{
       >
         {{ title }}
       </component>
+      <hr v-if="division" class="tux-page-header__division-rule">
       <div v-if="$slots.default" class="tux-page-header__body">
         <slot />
       </div>
@@ -229,5 +234,32 @@ defineSlots<{
   height: auto;
   display: block;
   border-radius: var(--radius-md);
+}
+
+.tux-page-header--division {
+  --header-division-accent: var(--brand-primary);
+}
+.tux-page-header--division-maroon {
+  --header-division-accent: var(--spectrum-maroon, var(--brand-primary));
+}
+.tux-page-header--division-blue {
+  --header-division-accent: var(--spectrum-blue, var(--brand-secondary));
+}
+.tux-page-header--division-teal {
+  --header-division-accent: var(--spectrum-teal, var(--brand-primary));
+}
+.tux-page-header--division-green {
+  --header-division-accent: var(--spectrum-green, var(--color-success));
+}
+.tux-page-header--division-gold {
+  --header-division-accent: var(--spectrum-gold, var(--brand-accent));
+}
+
+.tux-page-header__division-rule {
+  height: 3px;
+  width: 4.5rem;
+  background: var(--header-division-accent);
+  border: none;
+  margin: 0.625rem 0 0;
 }
 </style>

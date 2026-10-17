@@ -1,6 +1,6 @@
 {
   "name": "@tti/tti-ux",
-  "version": "3.2.1",
+  "version": "3.3.0",
   "description": "TUX — the TTI design system: Nuxt layer, design tokens, and audit tooling. Published from code.tti.tamu.edu (Forgejo npm registry).",
   "publishConfig": {
     "registry": "https://code.tti.tamu.edu/api/packages/tti/npm/"
@@ -61,7 +61,8 @@
     "watch:sync": "node scripts/sync-engine.mjs --watch",
     "test:root": "vitest run",
     "test:all": "node scripts/test-all-suites.mjs",
-    "test:quality": "node scripts/test-all-suites.mjs"
+    "test:quality": "node scripts/test-all-suites.mjs",
+    "mcp": "node scripts/tux-mcp.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.10",
@@ -154,7 +155,8 @@
     "katex": "$katex"
   },
   "bin": {
-    "tux-audit": "scripts/tux-audit.mjs"
+    "tux-audit": "scripts/tux-audit.mjs",
+    "tux-mcp": "scripts/tux-mcp.mjs"
   },
   "allowScripts": {
     "puppeteer@24.43.1": true,

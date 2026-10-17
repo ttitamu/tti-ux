@@ -610,6 +610,41 @@ async function copyActive() {
   if (!activeCode.value) return;
   await writeClipboard(activeCode.value);
 }
+
+const xrayOpen = ref(false);
+
+const detectedPrimitives = computed<string[]>(() => {
+  return extractTuxComponents(props.vue ?? "");
+});
+
+const XRAY_TOKEN_SPECS = [
+  { token: "--brand-primary", role: "Institutional Primary (Aggie Maroon)", isColor: true },
+  { token: "--brand-accent", role: "Institutional Accent (Aggie Gold)", isColor: true },
+  { token: "--surface-page", role: "Canvas / Page Well", isColor: true },
+  { token: "--surface-raised", role: "Elevated Preview Surface", isColor: true },
+  { token: "--surface-border", role: "Structural Keyline Border", isColor: true },
+  { token: "--text-primary", role: "Primary Body & Heading Ink", isColor: true },
+  { token: "--font-display", role: "Display & Metric Stack", isColor: false },
+  { token: "--font-body", role: "Body & UI Copy Stack", isColor: false },
+] as const;
+
+const resolvedTokens = computed(() => {
+  if (!xrayOpen.value || typeof window === "undefined") {
+    return XRAY_TOKEN_SPECS.map((spec) => ({
+      ...spec,
+      value: `var(${spec.token})`,
+    }));
+  }
+  const target = previewRef.value ?? document.documentElement;
+  const styles = window.getComputedStyle(target);
+  return XRAY_TOKEN_SPECS.map((spec) => {
+    const raw = styles.getPropertyValue(spec.token).trim();
+    return {
+      ...spec,
+      value: raw || `var(${spec.token})`,
+    };
+  });
+});
 </script>
 
 <template>
@@ -647,6 +682,21 @@ async function copyActive() {
       <div class="flex-1" />
       <button
         type="button"
+        data-testid="tux-example-xray-toggle"
+        class="flex items-center gap-1 px-3 py-2 text-xs whitespace-nowrap cursor-pointer transition-colors"
+        :class="
+          xrayOpen
+            ? 'text-text-brand font-semibold bg-surface-raised'
+            : 'text-text-muted hover:text-text-brand'
+        "
+        :aria-pressed="xrayOpen"
+        @click="xrayOpen = !xrayOpen"
+      >
+        <UIcon name="lucide:scan-eye" class="w-3.5 h-3.5" />
+        <span>Token X-Ray</span>
+      </button>
+      <button
+        type="button"
         class="flex items-center gap-1 px-3 py-2 text-xs text-text-muted hover:text-text-brand whitespace-nowrap cursor-pointer"
         :aria-label="copied ? 'Copied' : 'Copy code'"
         @click="copyActive"
@@ -657,6 +707,57 @@ async function copyActive() {
         />
         <span>{{ copied ? "Copied" : "Copy" }}</span>
       </button>
+    </div>
+
+    <div
+      v-if="xrayOpen"
+      data-testid="tux-example-xray"
+      class="tux-example__xray px-4 py-3 bg-surface-raised border-t border-surface-border text-xs space-y-3"
+    >
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span class="font-bold uppercase tracking-wider text-text-secondary">Primitives:</span>
+          <template v-if="detectedPrimitives.length">
+            <code
+              v-for="comp in detectedPrimitives"
+              :key="comp"
+              class="px-1.5 py-0.5 rounded bg-surface-sunken border border-surface-border font-mono text-[11px] text-text-brand"
+            >
+              &lt;{{ comp }}&gt;
+            </code>
+          </template>
+          <span v-else class="text-text-muted italic">Slot / Custom Composition</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span class="px-2 py-0.5 rounded bg-surface-sunken border border-surface-border font-mono text-[11px] text-text-secondary">
+            Theme: {{ colorMode.value || "tti" }}
+          </span>
+          <span class="px-2 py-0.5 rounded bg-surface-sunken border border-surface-border font-semibold text-[11px] text-text-brand">
+            WCAG 2.2 AAA · TX §2054.459
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+        <div
+          v-for="item in resolvedTokens"
+          :key="item.token"
+          data-testid="tux-example-xray-token"
+          class="p-2 rounded bg-surface-sunken border border-surface-border flex flex-col gap-0.5 min-w-0"
+        >
+          <div class="flex items-center gap-1.5">
+            <span
+              v-if="item.isColor"
+              class="w-3 h-3 rounded-sm border border-surface-border shrink-0"
+              :style="{ backgroundColor: `var(${item.token})` }"
+              aria-hidden="true"
+            />
+            <code class="font-mono font-semibold text-[11px] text-text-primary truncate">{{ item.token }}</code>
+          </div>
+          <span class="text-[10px] text-text-muted truncate">{{ item.role }}</span>
+          <code class="font-mono text-[10px] text-text-secondary truncate">{{ item.value }}</code>
+        </div>
+      </div>
     </div>
 
     <div class="tux-example__code bg-surface-sunken min-w-0 max-w-full overflow-hidden">

@@ -24,6 +24,8 @@ interface Props {
   subtitle?: string;
   kicker?: string;
   variant?: "institutional" | "classic" | "rule-full" | "minimal" | "two-tone-rule";
+  /** Optional TTI 5-band research division accent ("maroon" | "blue" | "teal" | "green" | "gold"). */
+  division?: "maroon" | "blue" | "teal" | "green" | "gold";
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -33,11 +35,15 @@ const props = withDefaults(defineProps<Props>(), {
   subtitle: undefined,
   kicker: undefined,
   variant: "institutional",
+  division: undefined,
 });
 </script>
 
 <template>
-  <header class="mb-6 group">
+  <header
+    class="mb-6 group tux-section-header"
+    :class="props.division ? `tux-section-header--division tux-section-header--division-${props.division}` : ''"
+  >
     <!-- Optional Kicker / Eyebrow -->
     <div
       v-if="props.kicker"
@@ -65,7 +71,7 @@ const props = withDefaults(defineProps<Props>(), {
 
       <!-- Signature Gold Underline Accent Rule (parities tti.tamu.edu) -->
       <div
-        class="mt-2 h-[3px] bg-brand-accent transition-all duration-300"
+        class="mt-2 h-[3px] bg-brand-accent transition-all duration-300 tux-section-header__rule"
         :class="props.variant === 'rule-full' ? 'w-full' : 'w-full max-w-full'"
         role="presentation"
       />
@@ -84,7 +90,7 @@ const props = withDefaults(defineProps<Props>(), {
         }"
         :style="{
           letterSpacing: 'var(--tracking-wider)',
-          borderBottom: '2px solid var(--brand-primary)',
+          borderBottom: '2px solid var(--section-division-accent, var(--brand-primary))',
         }"
       >
         <slot>{{ props.title }}</slot>
@@ -108,7 +114,7 @@ const props = withDefaults(defineProps<Props>(), {
           <span v-if="props.secondaryTitle" class="font-light text-brand-primary/80">{{ props.secondaryTitle }}</span>
         </component>
         <!-- Trailing Warm Gold Keyline Rule -->
-        <div class="flex-1 min-w-[16px] h-[2px] sm:h-[3px] bg-brand-accent shrink-0 sm:shrink" role="presentation" />
+        <div class="flex-1 min-w-[16px] h-[2px] sm:h-[3px] bg-brand-accent shrink-0 sm:shrink tux-section-header__rule" role="presentation" />
       </div>
     </div>
 
@@ -134,3 +140,24 @@ const props = withDefaults(defineProps<Props>(), {
     </p>
   </header>
 </template>
+
+<style scoped>
+.tux-section-header--division .tux-section-header__rule {
+  background: var(--section-division-accent, var(--brand-accent));
+}
+.tux-section-header--division-maroon {
+  --section-division-accent: var(--spectrum-maroon, var(--brand-primary));
+}
+.tux-section-header--division-blue {
+  --section-division-accent: var(--spectrum-blue, var(--brand-secondary));
+}
+.tux-section-header--division-teal {
+  --section-division-accent: var(--spectrum-teal, var(--brand-primary));
+}
+.tux-section-header--division-green {
+  --section-division-accent: var(--spectrum-green, var(--color-success));
+}
+.tux-section-header--division-gold {
+  --section-division-accent: var(--spectrum-gold, var(--brand-accent));
+}
+</style>

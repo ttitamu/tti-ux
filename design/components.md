@@ -121,6 +121,7 @@ npm run dev
 | `TuxTooltip`         | `UTooltip`               | `/components/tooltip`           |
 | `TuxTree`            | tux native               | `/components/tree` (renders internal child `TuxTreeNode`) |
 | `TuxTreemap`         | tux native               | `/components/treemap`           |
+| `TuxUnitValue`       | tux native (`useTuxUnits`) | `/components/unit-value`      |
 | `TuxUserMenu`        | `UDropdownMenu`          | `/components/utility-cluster`   |
 | `TuxUtilityCluster`  | composes `TuxAppSwitcher` + `TuxUserMenu` | `/components/utility-cluster` |
 

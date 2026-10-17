@@ -72,4 +72,63 @@ describe("Anti-Halation Soft Dark Theme (Astigmatism Comfort)", () => {
     const violations = await runComponentAxe(container);
     expect(violations).toEqual([]);
   });
+
+  it("verifies RELLIS Field-Sunlight High-Glare mode contrast ratios exceed AAA (17.5:1+)", () => {
+    const fieldCanvas = "#ffffff";
+    const fieldInk = "#000000";
+    const fieldMaroon = "#3c0000";
+    const fieldBorder = "#111827";
+
+    expect(getContrastRatio(fieldInk, fieldCanvas)).toBeCloseTo(21.0, 1);
+    expect(getContrastRatio(fieldMaroon, fieldCanvas)).toBeGreaterThanOrEqual(17.5);
+    expect(getContrastRatio(fieldBorder, fieldCanvas)).toBeGreaterThanOrEqual(17.0);
+  });
+
+  it("computes deterministic chart sonification pitches, stereo pans, and statistical summaries", async () => {
+    const {
+      valueToFrequency,
+      indexToStereoPan,
+      computeSeriesStats,
+    } = await import("../app/composables/useTuxSonification");
+
+    expect(valueToFrequency(10, 10, 50, 220, 880)).toBe(220);
+    expect(valueToFrequency(50, 10, 50, 220, 880)).toBe(880);
+    expect(valueToFrequency(30, 10, 50, 220, 880)).toBe(440);
+
+    expect(indexToStereoPan(0, 5)).toBe(-0.75);
+    expect(indexToStereoPan(2, 5)).toBe(0);
+    expect(indexToStereoPan(4, 5)).toBe(0.75);
+
+    const stats = computeSeriesStats(
+      { label: "Skid Resistance", unit: "SN", data: [42, 48, 60] },
+      ["STA 01+00", "STA 02+00", "STA 03+00"],
+    );
+    expect(stats.count).toBe(3);
+    expect(stats.min).toBe(42);
+    expect(stats.max).toBe(60);
+    expect(stats.trend).toBe("rising");
+    expect(stats.summary).toContain("Skid Resistance (3 points, rising trend)");
+    expect(stats.summary).toContain("peak 60 SN at STA 03+00");
+  });
+
+  it("generates valid OpenACR 2.5 JSON and VPAT 2.5 Markdown conformance packet", async () => {
+    const {
+      generateTuxOpenAcrReport,
+      formatTuxVpatMarkdown,
+    } = await import("../app/utils/tuxVpatGenerator");
+
+    const report = generateTuxOpenAcrReport("2026-10-16");
+    expect(report.schemaVersion).toBe("OpenACR-2.5-TTI");
+    expect(report.summary.targetLevel).toBe("WCAG 2.2 Level AAA");
+    expect(report.summary.axeViolations).toBe(0);
+    expect(report.criteria.length).toBeGreaterThanOrEqual(12);
+    expect(report.clinicalCapabilities.comfortModes).toContain(
+      "RELLIS Field-Sunlight High-Glare Mode (Outdoor Proving Ground & Roadside)",
+    );
+
+    const md = formatTuxVpatMarkdown(report);
+    expect(md).toContain("# Accessibility Conformance Report (VPAT® 2.5 / OpenACR Edition)");
+    expect(md).toContain("1.4.6 Contrast (Enhanced)");
+    expect(md).toContain("2.5.8 Target Size (Minimum & Enhanced)");
+  });
 });

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "tti-ux": {
+      "command": "node",
+      "args": ["scripts/tux-mcp.mjs"],
+      "description": "TUX (Texas A&M Transportation Institute Design System) MCP Server — components, tokens, WCAG 2.2 AAA contrast engine, and snippet auto-fixer."
+    }
+  }
+}

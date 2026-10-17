@@ -22,8 +22,12 @@ export interface TuxVisionPreferences {
   directLabels: boolean;
   /** Anti-halation soft dark theme for astigmatism & photophobia */
   softDark: boolean;
+  /** RELLIS Field-Sunlight high-glare outdoor mode (21:1 ink, 2px borders, 48px glove targets) */
+  fieldSunlight?: boolean;
   /** Heavy keylines & stroke widths (+1px) for low-vision clarity */
   heavyStrokes: boolean;
+  /** Institutional typography profile (Editorial Oswald/Open Sans, Kadence WordPress parity, or TMC Ops-Dense) */
+  typeProfile?: "editorial" | "kadence-comm" | "ops-dense";
 }
 
 export const DEFAULT_VISION_PREFERENCES: TuxVisionPreferences = {
@@ -33,7 +37,9 @@ export const DEFAULT_VISION_PREFERENCES: TuxVisionPreferences = {
   distinctMarkers: true,
   directLabels: true,
   softDark: false,
+  fieldSunlight: false,
   heavyStrokes: false,
+  typeProfile: "editorial",
 };
 
 /** Categorical Color Vision Deficiency palette ramps (Light mode) */
@@ -123,7 +129,7 @@ export function applyVisionPreferences(prefs: TuxVisionPreferences) {
   root.setAttribute("data-cvd-markers", String(prefs.distinctMarkers));
   root.setAttribute("data-cvd-labels", String(prefs.directLabels));
 
-  // 4. Astigmatism Soft Dark
+  // 4. Astigmatism Soft Dark vs. RELLIS Field-Sunlight Mode
   if (prefs.softDark) {
     root.setAttribute("data-theme-variant", "soft");
     root.setAttribute("data-vision-comfort", "anti-halation");
@@ -135,11 +141,24 @@ export function applyVisionPreferences(prefs: TuxVisionPreferences) {
     } catch {
       // Ignore storage access error
     }
+  } else if (prefs.fieldSunlight) {
+    root.setAttribute("data-theme-variant", "field-sunlight");
+    root.setAttribute("data-vision-comfort", "field-sunlight");
+    root.classList.remove("dark");
+    root.classList.remove("tti-dark");
+    root.setAttribute("data-theme", "tti");
+    try {
+      window.localStorage.setItem("nuxt-color-mode", "tti");
+    } catch {
+      // Ignore storage access error
+    }
   } else {
-    if (root.getAttribute("data-theme-variant") === "soft") {
+    const variant = root.getAttribute("data-theme-variant");
+    if (variant === "soft" || variant === "field-sunlight") {
       root.removeAttribute("data-theme-variant");
     }
-    if (root.getAttribute("data-vision-comfort") === "anti-halation") {
+    const comfort = root.getAttribute("data-vision-comfort");
+    if (comfort === "anti-halation" || comfort === "field-sunlight") {
       root.removeAttribute("data-vision-comfort");
     }
     try {
@@ -154,12 +173,16 @@ export function applyVisionPreferences(prefs: TuxVisionPreferences) {
     }
   }
 
-  // 5. Heavy strokes
-  if (prefs.heavyStrokes) {
+  // 5. Heavy strokes (enabled explicitly or via field-sunlight)
+  if (prefs.heavyStrokes || prefs.fieldSunlight) {
     root.setAttribute("data-vision-stroke", "heavy");
   } else {
     root.removeAttribute("data-vision-stroke");
   }
+
+  // 6. Institutional Typography Profile
+  const typeProfile = prefs.typeProfile ?? "editorial";
+  root.setAttribute("data-type-profile", typeProfile);
 }
 
 // Module-level singleton state for instant reactivity across all component instances

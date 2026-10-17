@@ -118,5 +118,25 @@ describe("TuxBadge Component", () => {
     const violations = await runComponentAxe(completedGlyphWrapper.element);
     expect(violations).toEqual([]);
   });
+
+  it("renders Highway Capacity Manual (HCM) Level of Service (LOS A–F) and 5-band division accents", async () => {
+    const losAWrapper = await mountSuspended(TuxBadge, {
+      props: { los: "A", division: "green" },
+    });
+    expect(losAWrapper.classes()).toContain("tux-badge--los-a");
+    expect(losAWrapper.classes()).toContain("tux-badge--division-green");
+    expect(losAWrapper.text()).toContain("LOS A · Free Flow");
+    expect(losAWrapper.findComponent({ name: "UIcon" }).props("name")).toBe("lucide:gauge");
+
+    const losFWrapper = await mountSuspended(TuxBadge, {
+      props: { los: "F" },
+    });
+    expect(losFWrapper.classes()).toContain("tux-badge--los-f");
+    expect(losFWrapper.text()).toContain("LOS F · Breakdown");
+    expect(losFWrapper.findComponent({ name: "UIcon" }).props("name")).toBe("lucide:alert-octagon");
+
+    const violations = await runComponentAxe(losAWrapper.element);
+    expect(violations).toEqual([]);
+  });
 });
 

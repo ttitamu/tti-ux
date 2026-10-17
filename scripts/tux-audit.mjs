@@ -66,12 +66,17 @@ switch (cmd) {
     run("audit-a11y.mjs", rest);
     break;
 
+  case "mcp":
+    run("tux-mcp.mjs", rest);
+    break;
+
   default:
     console.error(
-      "usage: tux-audit <tokens|contrast|a11y> [args]\n" +
-        "  tokens [dirs…]  undefined-token audit (zero-dep; defaults to ./app)\n" +
-        "  contrast        WCAG AAA contrast audit (needs your puppeteer)\n" +
-        "  a11y            axe accessibility audit (needs your jsdom + axe-core)",
+      "usage: tux-audit <tokens|contrast|a11y|mcp> [args]\n" +
+        "  tokens [dirs…] [--fix]  undefined-token audit & auto-fixer (zero-dep; defaults to ./app)\n" +
+        "  contrast                WCAG AAA contrast audit (needs your puppeteer)\n" +
+        "  a11y                    axe accessibility audit (needs your jsdom + axe-core)\n" +
+        "  mcp [--list-tools]      start zero-dep TUX Model Context Protocol (stdio) server",
     );
     process.exit(cmd ? 2 : 0);
 }

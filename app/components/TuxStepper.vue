@@ -20,7 +20,33 @@
  *
  * Override per-step via `items[i].status` (e.g. mark a step `error`).
  */
+import { formatStationing } from "../composables/useTuxUnits";
+
 type StepStatus = "done" | "active" | "todo" | "error";
+type TuxStepperDivision =
+  | "maroon"
+  | "blue"
+  | "teal"
+  | "green"
+  | "gold"
+  | "safety"
+  | "mobility"
+  | "infrastructure"
+  | "environment"
+  | "policy";
+
+const DIVISION_TOKEN_MAP: Record<TuxStepperDivision, string> = {
+  maroon: "--spectrum-maroon",
+  safety: "--spectrum-maroon",
+  blue: "--spectrum-blue",
+  mobility: "--spectrum-blue",
+  teal: "--spectrum-teal",
+  infrastructure: "--spectrum-teal",
+  green: "--spectrum-green",
+  environment: "--spectrum-green",
+  gold: "--spectrum-gold",
+  policy: "--spectrum-gold",
+};
 
 interface Step {
   /** Required label shown beside the circle. */
@@ -31,6 +57,10 @@ interface Step {
   status?: StepStatus;
   /** Optional link target for past/future steps. */
   to?: string;
+  /** Optional civil-engineering stationing (feet or formatted "STA 12+50"). */
+  station?: string | number;
+  /** Optional corridor milepost / reference marker (e.g., 240.5). */
+  milepost?: number;
 }
 
 interface Props {
@@ -42,6 +72,10 @@ interface Props {
   showDescriptions?: boolean;
   /** Accessible label for the nav landmark. */
   ariaLabel?: string;
+  /** Step index notation: standard numbers ("number"), civil stationing ("station"), or Reference Marker ("rm"). */
+  stationFormat?: "number" | "station" | "rm";
+  /** Optional 5-band TTI Research Spectrum division accent. */
+  division?: TuxStepperDivision;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -49,15 +83,43 @@ const props = withDefaults(defineProps<Props>(), {
   orientation: "horizontal",
   showDescriptions: true,
   ariaLabel: "Progress",
+  stationFormat: "number",
+  division: undefined,
 });
 
+const divisionToken = computed(() =>
+  props.division ? DIVISION_TOKEN_MAP[props.division] : undefined,
+);
+
+function resolveStepBadge(s: Step, i: number): string | null {
+  if (s.station !== undefined) {
+    return typeof s.station === "number" ? formatStationing(s.station) : s.station;
+  }
+  if (props.stationFormat === "station") {
+    const feet = s.milepost !== undefined ? s.milepost * 5280 : (i + 1) * 100;
+    return formatStationing(feet);
+  }
+  if (props.stationFormat === "rm") {
+    const mp = s.milepost !== undefined ? s.milepost.toFixed(1) : `${i + 1}.0`;
+    return `RM ${mp}`;
+  }
+  if (s.milepost !== undefined) {
+    return `RM ${s.milepost.toFixed(1)}`;
+  }
+  return null;
+}
+
 const resolved = computed(() =>
-  props.steps.map((s, i): Required<Pick<Step, "label" | "status">> & Step => {
+  props.steps.map((s, i) => {
     const auto: StepStatus =
       i < props.currentIndex ? "done"
       : i === props.currentIndex ? "active"
       : "todo";
-    return { ...s, status: s.status ?? auto };
+    return {
+      ...s,
+      status: s.status ?? auto,
+      badge: resolveStepBadge(s, i),
+    };
   }),
 );
 
@@ -71,7 +133,9 @@ function statusIcon(s: StepStatus): string | null {
 <template>
   <nav
     class="tux-stepper"
-    :class="`tux-stepper--${orientation}`"
+    :class="[`tux-stepper--${orientation}`, division && 'tux-stepper--division']"
+    :data-division="division || undefined"
+    :style="divisionToken ? { '--tux-stepper-accent': `var(${divisionToken})` } : undefined"
     :aria-label="ariaLabel"
   >
     <ol class="tux-stepper__list">
@@ -96,6 +160,11 @@ function statusIcon(s: StepStatus): string | null {
             <span v-else class="tux-stepper__num">{{ i + 1 }}</span>
           </span>
           <span class="tux-stepper__text">
+            <span
+              v-if="s.badge"
+              data-testid="tux-stepper-station"
+              class="tux-stepper__station"
+            >{{ s.badge }}</span>
             <span class="tux-stepper__label">{{ s.label }}</span>
             <span
               v-if="showDescriptions && s.description"
@@ -242,6 +311,22 @@ function statusIcon(s: StepStatus): string | null {
   min-width: 0;
 }
 
+.tux-stepper__station {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-secondary);
+  background: var(--surface-sunken);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  padding: 0.0625rem 0.375rem;
+}
+
 .tux-stepper__label {
   font-size: 0.875rem;
   font-weight: 600;
@@ -271,6 +356,15 @@ function statusIcon(s: StepStatus): string | null {
 
 .tux-stepper__item--active .tux-stepper__label {
   color: var(--brand-primary);
+}
+
+.tux-stepper--division .tux-stepper__connector--done {
+  background: var(--tux-stepper-accent);
+}
+
+.tux-stepper--division .tux-stepper__item--done .tux-stepper__circle,
+.tux-stepper--division .tux-stepper__item--active .tux-stepper__circle {
+  border-color: var(--tux-stepper-accent);
 }
 
 .tux-stepper__item--error .tux-stepper__circle {

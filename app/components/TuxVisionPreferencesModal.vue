@@ -66,6 +66,33 @@ const simulations = [
   { value: "achromatopsia", label: "Simulate Achromatopsia (Complete Colorblindness)" },
 ];
 
+const typeProfiles = [
+  {
+    value: "editorial",
+    label: "TTI Editorial & Research (Default — Oswald + Open Sans + Georgia)",
+  },
+  {
+    value: "kadence-comm",
+    label: "TTI Communications / Kadence WordPress Parity (Unified Work Sans + Open Sans)",
+  },
+  {
+    value: "ops-dense",
+    label: "TMC Operations & High-Density Telemetry (Work Sans + Tabular Numerals)",
+  },
+];
+
+function onSoftDarkChange() {
+  if (prefs.value.softDark) {
+    prefs.value.fieldSunlight = false;
+  }
+}
+
+function onFieldSunlightChange() {
+  if (prefs.value.fieldSunlight) {
+    prefs.value.softDark = false;
+  }
+}
+
 function onClose() {
   emit("update:open", false);
 }
@@ -201,10 +228,10 @@ function onClose() {
         </div>
       </section>
 
-      <!-- Section 4: Astigmatism & Low-Vision Comfort -->
+      <!-- Section 4: Astigmatism, Low-Vision & Field Comfort -->
       <section class="space-y-3 pt-2 border-t border-surface-border">
         <h3 class="font-bold text-sm uppercase tracking-wider text-text-secondary">
-          4. Astigmatism & Low-Vision Comfort
+          4. Astigmatism, Low-Vision &amp; Field Comfort
         </h3>
 
         <div class="space-y-2">
@@ -213,10 +240,24 @@ function onClose() {
               v-model="prefs.softDark"
               type="checkbox"
               class="w-4 h-4 mt-0.5 rounded text-brand-primary focus:ring-brand-primary"
+              @change="onSoftDarkChange"
             >
             <div>
               <span class="text-sm font-semibold block">Anti-Halation Soft Dark Mode</span>
               <span class="text-xs text-text-muted">Replaces pitch-black wells with deep slate-charcoal (#161A22) and softens pure white text to eliminate optical haloing and diffraction in astigmatic eyes.</span>
+            </div>
+          </label>
+
+          <label class="flex items-start gap-3 p-2.5 rounded bg-surface-raised hover:bg-surface-sunken cursor-pointer border border-surface-border min-h-[44px]">
+            <input
+              v-model="prefs.fieldSunlight"
+              type="checkbox"
+              class="w-4 h-4 mt-0.5 rounded text-brand-primary focus:ring-brand-primary"
+              @change="onFieldSunlightChange"
+            >
+            <div>
+              <span class="text-sm font-semibold block">RELLIS Field-Sunlight High-Glare Mode</span>
+              <span class="text-xs text-text-muted">Engineered for outdoor tablets at the RELLIS proving grounds and roadside crash sites — enforces 21:1 ink polarity, 2px structural borders, and 48px glove-ready touch targets.</span>
             </div>
           </label>
 
@@ -232,6 +273,25 @@ function onClose() {
             </div>
           </label>
         </div>
+      </section>
+
+      <!-- Section 5: Institutional Typography Profile -->
+      <section class="space-y-2 pt-2 border-t border-surface-border">
+        <div class="flex items-center justify-between">
+          <label for="tux-type-profile-select" class="font-bold text-sm uppercase tracking-wider text-text-secondary">
+            5. Institutional Typography Profile
+          </label>
+          <span class="text-xs text-text-muted">Display, body &amp; tabular cadence</span>
+        </div>
+        <select
+          id="tux-type-profile-select"
+          v-model="prefs.typeProfile"
+          class="w-full min-h-[44px] px-3 py-2 bg-surface-raised border border-surface-border rounded text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
+        >
+          <option v-for="tp in typeProfiles" :key="tp.value" :value="tp.value">
+            {{ tp.label }}
+          </option>
+        </select>
       </section>
     </div>
 

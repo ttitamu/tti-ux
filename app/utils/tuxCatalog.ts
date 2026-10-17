@@ -382,6 +382,8 @@ export const tuxCatalog: TuxCatalogEntry[] = [
     blurb: "Hierarchical list — sitemap, corpus + filesystem browser, BI dataset explorer. Mono leaf labels, sand guide lines, persistence." },
   { name: "TuxTreemap", to: "/components/treemap", icon: "lucide:layout-dashboard", family: "components", kind: "component", wraps: "tux native", category: "data-display",
     blurb: "Squarified hierarchical-size viz — Landscape's headline chart, drill-in, no external library." },
+  { name: "TuxUnitValue", to: "/components/unit-value", icon: "lucide:gauge", family: "components", kind: "component", wraps: "tux native (useTuxUnits)", category: "data-display",
+    blurb: "Scientific transportation measurement primitive — mph ↔ km/h, VMT ↔ VKT, kip ↔ kN, ± CI, highway stationing, and global US ↔ SI toggle." },
   { name: "TuxUserMenu", to: "/components/utility-cluster", icon: "lucide:circle-user", family: "components", kind: "component", wraps: "UDropdownMenu", category: "navigation",
     blurb: "The suite's one identity affordance — cluster chip or rail-footer mount, state-complete (loading / signed-out / signed-in / local-only / error), law-fixed menu order." },
   { name: "TuxUtilityCluster", to: "/components/utility-cluster", icon: "lucide:layout-grid", family: "components", kind: "component", wraps: "tux (composes TuxAppSwitcher + TuxUserMenu)", category: "navigation",

@@ -3,6 +3,37 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.3.0] — 2026-10-17
+
+### Added & Changed — World-Class Vision: TTI Engineering Primitives, Acoustic Chart Sonification, Live VPAT 2.5 / OpenACR & TUX MCP Server (2026-10-17)
+
+Feature release executing the 6-phase **World-Class Vision Roadmap** (`design/world-class-vision.md`), elevating `@tti/tti-ux` across clinical accessibility, Texas A&M Transportation Institute (TTI) domain engineering primitives, AI/MCP developer velocity, and round-trip design token tooling.
+
+#### 1. Phase 1 — Clinical Accessibility, Acoustic Sonification & Live VPAT 2.5 Conformance
+- **RELLIS Field-Sunlight High-Glare Mode (`fieldSunlight`)**: Added clinical outdoor high-glare comfort mode across `useTuxVisionPrefs`, `TuxVisionPreferencesModal`, and `app/assets/css/globals.css` (`[data-theme-variant="field-sunlight"]`), enforcing `21:1` ink polarity (`#000000` on `#FFFFFF`), `#3C0000` deep maroon accents, `2px` structural borders, and `48px+` glove-ready touch targets for field tablets at the RELLIS proving grounds and roadside crash sites.
+- **Acoustic Chart Sonification & Accessible Data Table Drawer**: Added `useTuxSonification()` (zero-dependency Web Audio API synthesizer mapping series values to pentatonic/chromatic frequencies and stereo pan across time) and integrated `Sonify` + expandable `Data Table` controls into `TuxChartFrame.vue`.
+- **Live VPAT 2.5 / OpenACR & Texas §2054.459 Conformance Portal**: Added `app/utils/tuxVpatGenerator.ts` and upgraded `/accessibility` with live clinical vision preference controls, automated WCAG 2.2 AAA + Texas Gov't Code §2054.459 / 1 TAC §§206 & 213 / Revised Section 508 matrices, 1-click OpenACR 2.5 JSON export, and print-ready VPAT 2.5 mode.
+
+#### 2. Phase 2 — TTI Domain Soul & Transportation Engineering Primitives
+- **`<TuxUnitValue>` & `useTuxUnits()`**: Added reactive US Customary (AASHTO/TxDOT) $\leftrightarrow$ Metric (SI) unit conversion composable and component (`app/composables/useTuxUnits.ts`, `app/components/TuxUnitValue.vue`, `app/pages/components/unit-value.vue`) supporting `mph`/`km/h`, `mi`/`km`, `vmt`/`vkt`, `ft`/`m`, `in`/`mm`, `kip`/`kN`, `psi`/`kPa`, `ton`/`t`, `F`/`C`, invariant traffic units (`AADT`, `PCE`, `SN`), confidence intervals (`± delta`), and civil-engineering stationing (`formatStationing()`).
+- **RELLIS Test Track & CAD Stationing Identity Primitives**: Added `#tux-rellis-track` and `#tux-cad-station` symbols to `public/identity-primitives.svg`.
+
+#### 3. Phase 3 — Developer & Designer Superpowers + TUX MCP Server
+- **Zero-Dependency TUX Model Context Protocol (MCP) Server**: Added `scripts/tux-mcp.mjs`, `.mcp.json`, and `npx tux-audit mcp` supporting dual `stdio` framing (`Content-Length` + newline JSON-RPC 2.0), 8 MCP tools (`tux_list_components`, `tux_get_component`, `tux_search_tokens`, `tux_get_compositions`, `tux_validate_snippet`, `tux_convert_units`, `tux_generate_snippet`, `tux_vpat_summary`), 4 MCP resources (`tux://catalog/components`, `tux://tokens/all`, `tux://docs/compositions`, `tux://docs/vision`), and 3 MCP prompts.
+- **Auto-Fixing Token Audit CLI**: Upgraded `scripts/audit-tokens.mjs` (`npx tux-audit tokens --fix`) with deterministic legacy-token alias migration and Levenshtein nearest-token suggestions.
+- **WCAG 2.2 AAA Snap-Guardrails & W3C DTCG / Figma Variables Exports**: Added `app/utils/tuxTokenStudio.ts` and upgraded `/tokens/playground` with live `7.0:1` AAA contrast diagnostics, 1-click AAA lightness snapping (`snapHexToContrast`), W3C Design Tokens Format (`DTCG`) export, and multi-mode Figma Variables JSON export (`tti`, `tti-dark`, `tti-soft-dark`, `tti-hc`, `field-sunlight`).
+
+#### 4. Phase 4 — Civic Trust, Research Provenance & HCM Level-of-Service
+- **Plain-Language / Legislative Brief Mode & Citation Copy on `TuxAbstract.vue`**: Added `plainSummary`, `policyTakeaways`, `defaultMode`, `projectNumber`, `doi`, and 1-click `Copy Citation` controls.
+- **Highway Capacity Manual (HCM) Level-of-Service Badges (`los="A".."F"`)**: Extended `TuxBadge.vue` with `los="A" | "B" | "C" | "D" | "E" | "F"` triple-redundant encoding (shape glyph + `LOS A–F` code + semantic status color).
+- **Statistical Provenance Pills & 5-Band Research Spectrum (`division`)**: Added `sampleSize` ($n$), `confidenceInterval`, and `doi` pills on `TuxBigStat.vue`, and extended the 5-band TTI Research Spectrum `division` prop across `TuxCard`, `TuxPageHeader`, `TuxSectionHeader`, `TuxBadge`, `TuxAbstract`, and `TuxBigStat`.
+
+#### 5. Phase 5 & 6 — Synchronized Telemetry Cursor Bus, Stationing, Token X-Ray & Typography Profiles
+- **`useTuxSyncCursor()` Telemetry Crosshair Bus**: Linked `TuxCorridorStrip.vue` (`tickFormat="station" | "rm"`, `interactiveScrub`, `syncChannel`) and `TuxActivityTimeline.vue` (`station`, `milepost`, `syncChannel`, `division`) on a shared reactive milepost/station/timestamp crosshair bus.
+- **Live Token & A11y X-Ray on `TuxExample.vue`**: Added interactive `Token X-Ray` inspection drawer surfacing detected `Tux*` primitives, active theme/WCAG AAA posture, and resolved runtime CSS custom properties with live swatches.
+- **First-Class Institutional Typography Profiles (`[data-type-profile]`)**: Added `"editorial"`, `"kadence-comm"`, and `"ops-dense"` profiles across `useTuxVisionPrefs`, `TuxVisionPreferencesModal`, and `app/assets/css/globals.css`.
+- **`TuxStepper` Civil Stationing & `TuxRichDataGrid` Provenance Export**: Added `stationFormat` (`"number" | "station" | "rm"`) and `division` to `TuxStepper.vue`, and added provenance citation strip (`projectNumber`, `doi`, `citation`), toolbar unit-system toggle (`showUnitToggle`), and `export-csv` metadata headers to `TuxRichDataGrid.vue`.
+
 ## [3.2.1] — 2026-10-16
 
 ### Fixed — Breadcrumb Hierarchy Overhaul, Defensive CSS Truncation & Header Flex Resilience (2026-10-16)

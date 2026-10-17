@@ -64,6 +64,10 @@ const titleMap: Record<string, { title: string; blurb: string }> = {
     title: "Visual language evolution",
     blurb: "Dated batches recording how the visual language has shifted — what changed, what was rejected, and why.",
   },
+  "world-class-vision": {
+    title: "World-class vision — next-horizon roadmap",
+    blurb: "Strategic 4-pillar blueprint: external UX/scientific absorptions, multi-target parity, developer/designer/compliance wow-factors, and TTI engineering DNA.",
+  },
 };
 
 const entries = computed<DocEntry[]>(() => {

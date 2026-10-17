@@ -131,6 +131,28 @@ interface Props {
   // Pagination (host renders meta; component renders strip)
   paginationLabel?: string;
   paginationTokens?: PaginationToken[];
+
+  // Provenance & Unit Conversion
+  /** Optional TxDOT / TTI project or grant number (e.g., "TxDOT 0-7142"). */
+  projectNumber?: string;
+  /** Optional dataset Digital Object Identifier (e.g., "10.5555/tti.2026.07142"). */
+  doi?: string;
+  /** Optional full provenance citation string. */
+  citation?: string;
+  /** Render US Customary ↔ Metric (SI) unit toggle in toolbar. Default false. */
+  showUnitToggle?: boolean;
+  /** Optional 5-band TTI Research Spectrum division accent. */
+  division?:
+    | "maroon"
+    | "blue"
+    | "teal"
+    | "green"
+    | "gold"
+    | "safety"
+    | "mobility"
+    | "infrastructure"
+    | "environment"
+    | "policy";
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -160,6 +182,11 @@ const props = withDefaults(defineProps<Props>(), {
   density: "comfortable",
   paginationLabel: "",
   paginationTokens: () => [],
+  projectNumber: undefined,
+  doi: undefined,
+  citation: undefined,
+  showUnitToggle: false,
+  division: undefined,
 });
 
 // ── Virtualized body (opt-in) ────────────────────────────────────
@@ -220,7 +247,55 @@ const emit = defineEmits<{
   "bulk-action": [actionKey: string, rowKeys: (string | number)[]];
   page: [token: string | number];
   toolbar: [actionKey: "filter" | "columns" | "export"];
+  "export-csv": [csvContent: string];
 }>();
+
+const { unitSystem, toggleUnitSystem } = useTuxUnits();
+const { copied: citationCopied, copy: writeCitationClipboard } = useTuxClipboard();
+
+const hasProvenance = computed(() => Boolean(props.projectNumber || props.doi || props.citation));
+
+const resolvedCitation = computed(() => {
+  if (props.citation) return props.citation;
+  const parts: string[] = ["Texas A&M Transportation Institute (TTI)."];
+  if (props.title) parts.push(`${props.title}.`);
+  if (props.projectNumber) parts.push(`Project ${props.projectNumber}.`);
+  if (props.doi) parts.push(`https://doi.org/${props.doi.replace(/^https?:\/\/doi\.org\//, "")}`);
+  return parts.join(" ");
+});
+
+async function copyCitation() {
+  if (!resolvedCitation.value) return;
+  await writeCitationClipboard(resolvedCitation.value);
+}
+
+function escapeCsvCell(val: unknown): string {
+  const s = val === null || val === undefined ? "" : String(val);
+  if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  return s;
+}
+
+function buildCsvPayload(): string {
+  const lines: string[] = [];
+  if (hasProvenance.value) {
+    lines.push(`# Provenance: ${resolvedCitation.value}`);
+  }
+  if (props.showUnitToggle) {
+    lines.push(`# Unit System: ${unitSystem.value === "si" ? "Metric (SI)" : "US Customary"}`);
+  }
+  lines.push(props.columns.map((c) => escapeCsvCell(c.label)).join(","));
+  for (const row of props.rows) {
+    lines.push(props.columns.map((c) => escapeCsvCell(row[c.key])).join(","));
+  }
+  return lines.join("\n");
+}
+
+function onExportClick() {
+  emit("toolbar", "export");
+  emit("export-csv", buildCsvPayload());
+}
 
 const selectedSet = computed(() => new Set(props.selected));
 const expandedSet = computed(() => new Set(props.expanded));
@@ -287,6 +362,7 @@ function onSearchInput(e: Event) {
   <div
     class="tux-rich-data-grid"
     :class="[`tux-rich-data-grid--${density}`]"
+    :data-division="division || undefined"
     :aria-busy="false"
   >
     <!-- Toolbar -->
@@ -307,6 +383,16 @@ function onSearchInput(e: Event) {
         >
       </div>
       <button
+        v-if="showUnitToggle"
+        type="button"
+        data-testid="tux-rich-data-grid-unit-toggle"
+        class="tux-rich-data-grid__tool-btn"
+        @click="toggleUnitSystem"
+      >
+        <UIcon name="lucide:ruler" />
+        {{ unitSystem === "si" ? "Metric (SI)" : "US Customary" }}
+      </button>
+      <button
         v-if="showFilter"
         type="button"
         class="tux-rich-data-grid__tool-btn"
@@ -325,8 +411,9 @@ function onSearchInput(e: Event) {
       <button
         v-if="showExport"
         type="button"
+        data-testid="tux-rich-data-grid-export"
         class="tux-rich-data-grid__tool-btn"
-        @click="emit('toolbar', 'export')"
+        @click="onExportClick"
       >
         <UIcon name="lucide:download" /> Export
       </button>
@@ -601,6 +688,38 @@ function onSearchInput(e: Event) {
           {{ token.label }}
         </button>
       </div>
+    </div>
+
+    <!-- Provenance & Citation Footer -->
+    <div
+      v-if="hasProvenance"
+      data-testid="tux-rich-data-grid-provenance"
+      class="tux-rich-data-grid__provenance"
+    >
+      <div class="tux-rich-data-grid__provenance-pills">
+        <span
+          v-if="projectNumber"
+          class="tux-rich-data-grid__provenance-pill"
+        >
+          Project: {{ projectNumber }}
+        </span>
+        <span
+          v-if="doi"
+          class="tux-rich-data-grid__provenance-pill"
+        >
+          DOI: {{ doi }}
+        </span>
+        <span class="tux-rich-data-grid__provenance-text">{{ resolvedCitation }}</span>
+      </div>
+      <button
+        type="button"
+        data-testid="tux-rich-data-grid-copy-citation"
+        class="tux-rich-data-grid__tool-btn"
+        @click="copyCitation"
+      >
+        <UIcon :name="citationCopied ? 'lucide:check' : 'lucide:quote'" />
+        {{ citationCopied ? "Copied Citation" : "Copy Citation" }}
+      </button>
     </div>
   </div>
 </template>
@@ -1098,6 +1217,40 @@ function onSearchInput(e: Event) {
 .tux-rich-data-grid__page-btn:focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);
+}
+
+/* ── Provenance & Citation Footer ────────────────────────────── */
+.tux-rich-data-grid__provenance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.875rem;
+  border-top: 1px solid var(--surface-border);
+  background: var(--surface-sunken);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+.tux-rich-data-grid__provenance-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.tux-rich-data-grid__provenance-pill {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.125rem 0.4rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  color: var(--text-primary);
+}
+.tux-rich-data-grid__provenance-text {
+  color: var(--text-muted);
 }
 
 /* ── Container-query collapse for narrow widths ──────────────── */

@@ -146,6 +146,28 @@ describe("useTuxVisionPrefs — Institutional Vision & Accessibility Engine", ()
       expect(root.getAttribute("data-vision-comfort")).toBeNull();
       expect(root.getAttribute("data-theme-variant")).toBeNull();
     });
+
+    it("enables RELLIS Field-Sunlight High-Glare mode and cleans up on disable", () => {
+      applyVisionPreferences({
+        ...DEFAULT_VISION_PREFERENCES,
+        fieldSunlight: true,
+      });
+
+      const root = document.documentElement;
+      expect(root.getAttribute("data-theme")).toBe("tti");
+      expect(root.getAttribute("data-theme-variant")).toBe("field-sunlight");
+      expect(root.getAttribute("data-vision-comfort")).toBe("field-sunlight");
+      expect(root.getAttribute("data-vision-stroke")).toBe("heavy");
+
+      applyVisionPreferences({
+        ...DEFAULT_VISION_PREFERENCES,
+        fieldSunlight: false,
+      });
+
+      expect(root.getAttribute("data-vision-comfort")).toBeNull();
+      expect(root.getAttribute("data-theme-variant")).toBeNull();
+      expect(root.getAttribute("data-vision-stroke")).toBeNull();
+    });
   });
 
   describe("4. Enhanced Stroke Widths", () => {
@@ -255,4 +277,28 @@ describe("useTuxVisionPrefs — Institutional Vision & Accessibility Engine", ()
       expect(adapted.series[2].itemStyle.borderWidth).toBeGreaterThanOrEqual(1.5);
     });
   });
+
+  describe("7. Institutional Typography Profiles", () => {
+    it("sets data-type-profile for editorial, kadence-comm, and ops-dense", () => {
+      const root = document.documentElement;
+
+      applyVisionPreferences({
+        ...DEFAULT_VISION_PREFERENCES,
+      });
+      expect(root.getAttribute("data-type-profile")).toBe("editorial");
+
+      applyVisionPreferences({
+        ...DEFAULT_VISION_PREFERENCES,
+        typeProfile: "kadence-comm",
+      });
+      expect(root.getAttribute("data-type-profile")).toBe("kadence-comm");
+
+      applyVisionPreferences({
+        ...DEFAULT_VISION_PREFERENCES,
+        typeProfile: "ops-dense",
+      });
+      expect(root.getAttribute("data-type-profile")).toBe("ops-dense");
+    });
+  });
 });
+

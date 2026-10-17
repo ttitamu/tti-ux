@@ -48,4 +48,41 @@ describe("TuxRichDataGrid virtualized mode", () => {
     expect(w.findAll(".tux-rich-data-grid__row").length).toBe(200);
     expect(w.findAll(".tux-rich-data-grid__spacer").length).toBe(0);
   });
+
+  it("renders provenance citation footer, unit toggle, and emits export-csv with embedded citation metadata", async () => {
+    const w = await mountSuspended(TuxRichDataGrid, {
+      props: {
+        title: "I-35 Corridor Sensor Inventory",
+        columns,
+        rows: makeRows(3),
+        rowKey: "id",
+        projectNumber: "TxDOT 0-7142",
+        doi: "10.5555/tti.2026.07142",
+        showUnitToggle: true,
+        division: "mobility",
+      },
+    });
+
+    expect(w.attributes("data-division")).toBe("mobility");
+
+    const unitBtn = w.find('[data-testid="tux-rich-data-grid-unit-toggle"]');
+    expect(unitBtn.exists()).toBe(true);
+    expect(unitBtn.text()).toContain("US Customary");
+
+    const prov = w.find('[data-testid="tux-rich-data-grid-provenance"]');
+    expect(prov.exists()).toBe(true);
+    expect(prov.text()).toContain("TxDOT 0-7142");
+    expect(prov.text()).toContain("10.5555/tti.2026.07142");
+
+    const exportBtn = w.find('[data-testid="tux-rich-data-grid-export"]');
+    await exportBtn.trigger("click");
+
+    const emittedCsv = w.emitted("export-csv");
+    expect(emittedCsv).toBeTruthy();
+    const csvPayload = String(emittedCsv?.[0]?.[0] ?? "");
+    expect(csvPayload).toContain("# Provenance: Texas A&M Transportation Institute (TTI).");
+    expect(csvPayload).toContain("Project TxDOT 0-7142.");
+    expect(csvPayload).toContain("Name,District");
+  });
 });
+

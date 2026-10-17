@@ -98,4 +98,55 @@ describe("TuxActivityTimeline Component", () => {
 
     expect(wrapper.find(".badge-ev-1").exists()).toBe(true);
   });
+
+  it("renders civil-engineering stationing badges and synchronizes with useTuxSyncCursor", async () => {
+    const { useTuxSyncCursor, resetAllCursorChannels } = await import(
+      "../../app/composables/useTuxSyncCursor"
+    );
+    resetAllCursorChannels();
+
+    const bus = useTuxSyncCursor("corridor-bus");
+
+    const itemsWithStation = [
+      {
+        id: "st-1",
+        time: "08:15 AM",
+        title: "Workzone Queue Warning Activated",
+        station: 1250, // -> STA 12+50
+        milepost: 24.5,
+        tone: "warning" as const,
+      },
+      {
+        id: "st-2",
+        time: "08:45 AM",
+        title: "Queue Cleared",
+        station: "RM 26.0",
+        milepost: 26.0,
+        tone: "success" as const,
+      },
+    ];
+
+    const wrapper = await mountSuspended(TuxActivityTimeline, {
+      props: {
+        items: itemsWithStation,
+        syncChannel: "corridor-bus",
+        division: "teal",
+      },
+    });
+
+    expect(wrapper.classes()).toContain("tux-activity-timeline--division-teal");
+    expect(wrapper.text()).toContain("STA 12+50");
+    expect(wrapper.text()).toContain("RM 26.0");
+
+    // Clicking the first item broadcasts its milepost and timestamp to the shared bus
+    const firstItem = wrapper.findAll("li.tux-activity-timeline__item")[0]!;
+    await firstItem.trigger("click");
+    expect(bus.cursor.value.active).toBe(true);
+    expect(bus.cursor.value.milepost).toBe(24.5);
+    expect(bus.formattedStation.value).toBe("STA 1293+60");
+    expect(firstItem.classes()).toContain("tux-activity-timeline__item--synced");
+
+    const violations = await runComponentAxe(wrapper.element);
+    expect(violations).toEqual([]);
+  });
 });

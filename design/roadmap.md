@@ -12,6 +12,13 @@ a row to the doctrine table in [`components.md`](components.md).
 `tests/tux-catalog.test.ts` fails CI until both agree with the filesystem.
 Update [`CHANGELOG.md`](../CHANGELOG.md) under Unreleased.
 
+> **Next-Horizon Master Blueprint (2026-10):** See
+> [`world-class-vision.md`](world-class-vision.md) for the four-pillar
+> strategic plan covering scientific/civic UX absorptions, clinical
+> accessibility & VPAT 2.5 automation, acoustic chart sonification,
+> RELLIS field-sunlight mode, AI/MCP developer tooling, and TTI
+> physical-world transportation DNA.
+
 ---
 
 ## Priority A — High-value system-level — ✅ closed 2026-04-29

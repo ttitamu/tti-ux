@@ -45,12 +45,35 @@
  * undefined tokens one consumer shipped (--surface-base et al.).
  */
 
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
+
+const FIX_MODE = process.argv.includes("--fix");
+
+/**
+ * Canonical migration map for legacy or consumer-invented CSS custom properties.
+ * Used by `npx tux-audit tokens --fix` and the TUX MCP server.
+ */
+export const CANONICAL_TOKEN_MIGRATIONS = {
+  "--surface-base": "--surface-page",
+  "--bg-page": "--surface-page",
+  "--bg-card": "--surface-raised",
+  "--surface-card": "--surface-raised",
+  "--text-default": "--text-primary",
+  "--text-main": "--text-primary",
+  "--danger": "--color-danger",
+  "--status-info": "--color-info",
+  "--status-success": "--color-success",
+  "--status-warning": "--color-warning",
+  "--status-error": "--color-error",
+  "--border-subtle": "--surface-border-subtle",
+  "--border-default": "--surface-border",
+  "--font-sans": "--font-body",
+};
 
 // Target dirs: CLI args > TUX_AUDIT_DIRS (comma/colon-separated) > ./app.
 // Resolved against cwd so the same invocation works in tti-ux itself and
@@ -165,17 +188,52 @@ layerDefFiles.forEach(harvestDecls);
 // dynamic interpolation and skip it.
 const VAR_RE = /var\(\s*(--[a-z][a-z0-9-]*)([^)]*)\)/g;
 
-const violations = []; // { token, file, line }
+const violations = []; // { token, file, line, suggested }
 const referenced = new Set();
 let dynamicSkipped = 0;
 let fallbackSkipped = 0;
+let autoFixedCount = 0;
 
 function lineOf(text, index) {
   return text.slice(0, index).split("\n").length;
 }
 
+function levenshtein(a, b) {
+  const m = a.length;
+  const n = b.length;
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+    }
+  }
+  return dp[m][n];
+}
+
+export function suggestCanonicalToken(token, definedTokens = defined) {
+  if (CANONICAL_TOKEN_MIGRATIONS[token]) {
+    return CANONICAL_TOKEN_MIGRATIONS[token];
+  }
+  let best = null;
+  let bestDist = 3; // only suggest close typo matches (distance <= 2)
+  for (const cand of definedTokens) {
+    if (Math.abs(cand.length - token.length) > 2) continue;
+    const d = levenshtein(token, cand);
+    if (d < bestDist) {
+      bestDist = d;
+      best = cand;
+    }
+  }
+  return best;
+}
+
 for (const file of [...cssFiles, ...vueFiles]) {
-  const text = readFileSync(file, "utf8");
+  let text = readFileSync(file, "utf8");
+  let fileModified = false;
+
   for (const m of text.matchAll(VAR_RE)) {
     const token = m[1];
     const rest = m[2] || "";
@@ -192,11 +250,27 @@ for (const file of [...cssFiles, ...vueFiles]) {
     }
     referenced.add(token);
     if (defined.has(token) || isExternal(token)) continue;
+
+    const suggested = suggestCanonicalToken(token, defined);
+    if (FIX_MODE && suggested && defined.has(suggested)) {
+      const escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const re = new RegExp(`var\\(\\s*${escaped}\\s*\\)`, "g");
+      text = text.replace(re, `var(${suggested})`);
+      fileModified = true;
+      autoFixedCount++;
+      continue;
+    }
+
     violations.push({
       token,
       file: path.relative(ROOT, file),
       line: lineOf(text, m.index),
+      suggested,
     });
+  }
+
+  if (fileModified) {
+    writeFileSync(file, text, "utf8");
   }
 }
 
@@ -207,6 +281,10 @@ if (process.env.AUDIT_TOKENS_DEBUG === "1") {
       `fallback-skipped: ${fallbackSkipped}  dynamic-skipped: ${dynamicSkipped}  ` +
       `external-prefixes: ${EXTERNAL_PREFIXES.length}\n`
   );
+}
+
+if (autoFixedCount > 0) {
+  console.log(`✓ auto-fixed ${autoFixedCount} legacy/invented token reference(s) via --fix.`);
 }
 
 if (selfReferential.length > 0) {
@@ -231,9 +309,11 @@ if (violations.length === 0) {
 
 // Group by token for a compact report.
 const byToken = new Map();
+const suggestionByToken = new Map();
 for (const v of violations) {
   if (!byToken.has(v.token)) byToken.set(v.token, []);
   byToken.get(v.token).push(`${v.file}:${v.line}`);
+  if (v.suggested) suggestionByToken.set(v.token, v.suggested);
 }
 
 console.error(
@@ -241,7 +321,8 @@ console.error(
     `${byToken.size} token name(s):\n`
 );
 for (const [token, sites] of [...byToken.entries()].sort()) {
-  console.error(`  ${token}`);
+  const hint = suggestionByToken.get(token);
+  console.error(`  ${token}${hint ? `  → did you mean ${hint}? (run with --fix)` : ""}`);
   for (const site of sites) console.error(`      ${site}`);
 }
 console.error(
@@ -249,13 +330,10 @@ console.error(
     `Define it in design/tokens.json (never hand-edit tokens.css), fix the\n` +
     `name, or — if it's a Tailwind/Nuxt UI token — add its namespace to\n` +
     `EXTERNAL_PREFIXES in scripts/audit-tokens.mjs.\n\n` +
-    `If this is a consumer-invented alias, rename to the canonical token\n` +
-    `instead (migration table in kit/README.md): --surface-base →\n` +
-    `--surface-page · --text-default → --text-primary · --danger →\n` +
-    `--color-danger · --status-* → --color-{info,success,warning,error} ·\n` +
-    `--border-subtle → --surface-border-subtle. Note: a\n` +
-    `var(--invented, var(--canonical)) fallback silences this audit but is\n` +
-    `a migration smell — fallbacks are for component-local knobs, not for\n` +
-    `keeping invented names alive.`
+    `If this is a consumer-invented alias, run \`npx tux-audit tokens --fix\`\n` +
+    `or rename to the canonical token (migration table in kit/README.md):\n` +
+    `--surface-base → --surface-page · --text-default → --text-primary ·\n` +
+    `--danger → --color-danger · --status-* → --color-{info,success,warning,error} ·\n` +
+    `--border-subtle → --surface-border-subtle.`
 );
 process.exit(1);
