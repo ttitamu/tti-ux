@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 """Boards-parity automation core (Area G1).
 
-Host-side, stdlib-only (no pip deps), idempotent. Invoked by the rollup.sh /
-burndown.sh wrappers, which source ../.env first so creds arrive via the
-environment. Talks to the Forgejo API across an entire org.
+Host-side, stdlib-only (no pip deps), idempotent, Python 3.11+ (datetime.UTC;
+the forge VM and the runner image are Ubuntu 24.04, Python 3.12). Invoked by the
+rollup.sh / burndown.sh wrappers, which source ../.env first so creds arrive via
+the environment. Talks to the Forgejo API across an entire org.
+
+Vendored: install-g2.sh writes this file to .forgejo/boards/_boards.py in every
+repo with the G2 Action, over whatever is there, so fix it here and never in a
+copy. A repo whose linter reaches .forgejo/ excludes .forgejo/boards (nis/landscape:
+`extend-exclude` under [tool.ruff]). This file is kept clean under landscape's ruff
+rules (E,F,W,I,N,UP,B,A,C4,SIM,RUF, target py313) for any repo that does not.
 
 Auth (in priority order):
   FORGEJO_TOKEN                          — a PAT (preferred)
@@ -42,7 +49,7 @@ def _auth_header():
     user = os.environ.get("FORGEJO_ADMIN_USER")
     pw = os.environ.get("FORGEJO_ADMIN_PASS")
     if user and pw:
-        raw = "{}:{}".format(user, pw).encode()
+        raw = f"{user}:{pw}".encode()
         return "Basic " + base64.b64encode(raw).decode()
     sys.exit("No credentials: set FORGEJO_TOKEN or FORGEJO_ADMIN_USER/PASS (source ../.env).")
 
@@ -62,7 +69,7 @@ def _req(method, path, body=None):
             txt = r.read().decode()
             return json.loads(txt) if txt else None
     except urllib.error.HTTPError as e:
-        sys.exit("HTTP {} on {} {}\n{}".format(e.code, method, url, e.read().decode()[:500]))
+        sys.exit(f"HTTP {e.code} on {method} {url}\n{e.read().decode()[:500]}")
 
 
 def _get_opt(path):
@@ -76,7 +83,7 @@ def _get_opt(path):
     except urllib.error.HTTPError as e:
         if e.code == 404:
             return None
-        sys.exit("HTTP {} on GET {}\n{}".format(e.code, path, e.read().decode()[:500]))
+        sys.exit(f"HTTP {e.code} on GET {path}\n{e.read().decode()[:500]}")
 
 
 def _get_paged(path):
@@ -85,7 +92,7 @@ def _get_paged(path):
     page = 1
     sep = "&" if "?" in path else "?"
     while True:
-        chunk = _req("GET", "{}{}limit=50&page={}".format(path, sep, page))
+        chunk = _req("GET", f"{path}{sep}limit=50&page={page}")
         if not chunk:
             break
         out.extend(chunk)
@@ -95,8 +102,13 @@ def _get_paged(path):
     return out
 
 
+def _repo_api(org, repo):
+    """The API path one repo's calls start from, both names URL-quoted."""
+    return f"/repos/{urllib.parse.quote(org)}/{urllib.parse.quote(repo)}"
+
+
 def _repos(org, only=None):
-    repos = _get_paged("/orgs/{}/repos".format(urllib.parse.quote(org)))
+    repos = _get_paged(f"/orgs/{urllib.parse.quote(org)}/repos")
     names = [r["name"] for r in repos]
     if only:
         names = [n for n in names if n == only]
@@ -123,8 +135,7 @@ def _has_label(issue, name):
 
 def _issues(org, repo):
     # type=issues excludes PRs; state=all to compute totals.
-    p = "/repos/{}/{}/issues?type=issues&state=all".format(
-        urllib.parse.quote(org), urllib.parse.quote(repo))
+    p = f"{_repo_api(org, repo)}/issues?type=issues&state=all"
     return _get_paged(p)
 
 
@@ -132,11 +143,10 @@ def _render_rollup(children):
     closed = [c for c in children if c["state"] == "closed"]
     tot_pts = sum(_points_of(c) for c in children)
     done_pts = sum(_points_of(c) for c in closed)
-    pct = int(round(100 * len(closed) / len(children))) if children else 0
+    pct = round(100 * len(closed) / len(children)) if children else 0
     lines = [ROLLUP_START,
              "### 📊 Epic roll-up",
-             "**{}/{} issues closed ({}%)** · **{}/{} points done**".format(
-                 len(closed), len(children), pct, done_pts, tot_pts),
+             f"**{len(closed)}/{len(children)} issues closed ({pct}%)** · **{done_pts}/{tot_pts} points done**",
              ""]
     for c in sorted(children, key=lambda x: x["number"]):
         box = "x" if c["state"] == "closed" else " "
@@ -195,12 +205,11 @@ def cmd_burndown(org, repo_only, out_dir):
     os.makedirs(out_dir, exist_ok=True)
     rows_written = 0
     for repo in _repos(org, repo_only):
-        ms = _get_paged("/repos/{}/{}/milestones?state=all".format(
-            urllib.parse.quote(org), urllib.parse.quote(repo)))
+        ms = _get_paged(f"{_repo_api(org, repo)}/milestones?state=all")
         for m in ms:
             name = m["title"]
-            mi = _get_paged("/repos/{}/{}/issues?type=issues&state=all&milestones={}".format(
-                urllib.parse.quote(org), urllib.parse.quote(repo), urllib.parse.quote(name)))
+            mi = _get_paged(f"{_repo_api(org, repo)}/issues?type=issues&state=all"
+                            f"&milestones={urllib.parse.quote(name)}")
             open_i = [i for i in mi if i["state"] == "open"]
             closed_i = [i for i in mi if i["state"] == "closed"]
             open_pts = sum(_points_of(i) for i in open_i)
@@ -216,7 +225,7 @@ def cmd_burndown(org, repo_only, out_dir):
                 "total_points": open_pts + closed_pts,
                 "due_on": (m.get("due_on") or "")[:10],
             }
-            safe = re.sub(r"[^A-Za-z0-9._-]+", "-", "{}__{}".format(repo, name)).strip("-")
+            safe = re.sub(r"[^A-Za-z0-9._-]+", "-", f"{repo}__{name}").strip("-")
             path = os.path.join(out_dir, safe + ".csv")
             new = not os.path.exists(path)
             # Idempotent per day: drop any existing row for today, then append.
@@ -231,9 +240,8 @@ def cmd_burndown(org, repo_only, out_dir):
                     w.writerow(r)
                 w.writerow(row)
             rows_written += 1
-            print("✓ {}/{} · {} — {} open / {} closed pts → {}".format(
-                org, repo, name, open_pts, closed_pts, os.path.relpath(path, HERE)))
-    print("\n{} milestone snapshot(s) written for {}.".format(rows_written, today))
+            print(f"✓ {org}/{repo} · {name} — {open_pts} open / {closed_pts} closed pts → {os.path.relpath(path, HERE)}")
+    print(f"\n{rows_written} milestone snapshot(s) written for {today}.")
 
 
 DEMO_REPO = "boards-demo"
@@ -263,20 +271,20 @@ def cmd_demo(org, repo):
     Idempotent. Safe to delete the repo afterwards. Labels must already exist
     (run boards/labels.sh first)."""
     repo = repo or DEMO_REPO
-    rp = "/repos/{}/{}".format(urllib.parse.quote(org), urllib.parse.quote(repo))
+    rp = _repo_api(org, repo)
     if _get_opt(rp) is None:
-        _req("POST", "/orgs/{}/repos".format(urllib.parse.quote(org)),
+        _req("POST", f"/orgs/{urllib.parse.quote(org)}/repos",
              {"name": repo, "description": "Boards-parity demo (Area G1) — safe to delete",
               "auto_init": True, "default_branch": "main"})
-        print("✓ created sandbox repo {}/{}".format(org, repo))
+        print(f"✓ created sandbox repo {org}/{repo}")
     else:
-        print("= repo {}/{} already exists".format(org, repo))
+        print(f"= repo {org}/{repo} already exists")
 
-    labels = {l["name"]: l["id"] for l in _get_paged("/orgs/{}/labels".format(urllib.parse.quote(org)))}
+    labels = {lab["name"]: lab["id"] for lab in _get_paged(f"/orgs/{urllib.parse.quote(org)}/labels")}
     needed = sorted({n for d in _DEMO for n in d[2]})
     missing = [n for n in needed if n not in labels]
     if missing:
-        sys.exit("Missing org labels {} — run boards/labels.sh {} first.".format(missing, org))
+        sys.exit(f"Missing org labels {missing} — run boards/labels.sh {org} first.")
 
     ms = _get_paged(rp + "/milestones?state=all")
     mid = next((m["id"] for m in ms if m["title"] == "Sprint 1"), None)
@@ -287,8 +295,8 @@ def cmd_demo(org, repo):
     existing = {i["title"]: i for i in _get_paged(rp + "/issues?type=issues&state=all")}
     epic_num = None
     for title, body, lbls, in_sprint, close in _DEMO:
-        if epic_num is not None and "type/epic" not in lbls and any("type/story" == x or "type/task" == x for x in lbls):
-            body = "Epic: #{}\n\n{}".format(epic_num, body)
+        if epic_num is not None and "type/epic" not in lbls and any(x == "type/story" or x == "type/task" for x in lbls):
+            body = f"Epic: #{epic_num}\n\n{body}"
         iss = existing.get(title)
         if iss is None:
             payload = {"title": title, "body": body, "labels": [labels[x] for x in lbls]}
@@ -305,11 +313,11 @@ def cmd_demo(org, repo):
             _req("PATCH", rp + "/issues/{}".format(iss["number"]), {"state": "closed"})
             print("  closed #{} (gives the roll-up + burndown some progress)".format(iss["number"]))
 
-    print("\nSeeded {}/{}. Next:".format(org, repo))
-    print("  boards/rollup.sh {} --repo {} --apply".format(org, repo))
-    print("  boards/burndown.sh {} --repo {}".format(org, repo))
-    print("  Then make the board in the UI (API can't): {}/{}/{} → Projects → "
-          "New Project → Automated Kanban.".format(BASE, org, repo))
+    print(f"\nSeeded {org}/{repo}. Next:")
+    print(f"  boards/rollup.sh {org} --repo {repo} --apply")
+    print(f"  boards/burndown.sh {org} --repo {repo}")
+    print(f"  Then make the board in the UI (API can't): {BASE}/{org}/{repo} → Projects → "
+          "New Project → Automated Kanban.")
 
 
 # --- G2: vendor the event-driven roll-up Action into repos -----------------
@@ -326,8 +334,7 @@ _G2_FILES = {
 
 def _contents_get(org, repo, path, ref=None):
     """Return the contents-API object for a file, or None if absent."""
-    p = "/repos/{}/{}/contents/{}".format(
-        urllib.parse.quote(org), urllib.parse.quote(repo), urllib.parse.quote(path))
+    p = f"{_repo_api(org, repo)}/contents/{urllib.parse.quote(path)}"
     if ref:
         p += "?ref=" + urllib.parse.quote(ref)
     return _get_opt(p)
@@ -374,7 +381,7 @@ def _put_file(org, repo, path, content_bytes, apply, branch=None, base=None,
         action = "updated" if base_has_it else "created"
     if not apply:
         return action  # dry-run: report what would happen
-    body = {"message": "G2: {} boards-rollup Action".format(action), "content": b64}
+    body = {"message": f"G2: {action} boards-rollup Action", "content": b64}
     if branch:
         if new_branch:
             # Create the branch AND commit in one call. Creating it first with
@@ -392,8 +399,7 @@ def _put_file(org, repo, path, content_bytes, apply, branch=None, base=None,
         method = "PUT"
     else:
         method = "POST"
-    _req(method, "/repos/{}/{}/contents/{}".format(
-        urllib.parse.quote(org), urllib.parse.quote(repo), urllib.parse.quote(path)), body)
+    _req(method, f"{_repo_api(org, repo)}/contents/{urllib.parse.quote(path)}", body)
     return action
 
 
@@ -401,22 +407,18 @@ G2_PR_BRANCH = "chore/g2-rollup-injection-fix"
 
 
 def _default_branch(org, repo):
-    meta = _get_opt("/repos/{}/{}".format(
-        urllib.parse.quote(org), urllib.parse.quote(repo)))
+    meta = _get_opt(_repo_api(org, repo))
     return (meta or {}).get("default_branch") or "main"
 
 
 def _branch_exists(org, repo, branch):
-    return _get_opt("/repos/{}/{}/branches/{}".format(
-        urllib.parse.quote(org), urllib.parse.quote(repo),
-        urllib.parse.quote(branch))) is not None
+    return _get_opt(f"{_repo_api(org, repo)}/branches/{urllib.parse.quote(branch)}") is not None
 
 
 def _ensure_pr(org, repo, branch, base, title, body):
     """Open the PR. Returns a short status string; already-exists is fine."""
     try:
-        pr = _req("POST", "/repos/{}/{}/pulls".format(
-            urllib.parse.quote(org), urllib.parse.quote(repo)),
+        pr = _req("POST", f"{_repo_api(org, repo)}/pulls",
             {"title": title, "head": branch, "base": base, "body": body})
         return "opened #{}".format((pr or {}).get("number", "?"))
     except Exception:
@@ -468,21 +470,21 @@ def cmd_install(org, repo_only, apply, use_pr=False):
                             base=base, new_branch=needs_create)
             if use_pr and apply and res != "unchanged":
                 made_branch = True
-            mark = {"created": u"\u2713", "updated": u"\u2713", "unchanged": "="}[res]
+            mark = {"created": "\u2713", "updated": "\u2713", "unchanged": "="}[res]
             if res != "unchanged":
                 touched += 1
                 repo_touched += 1
             verb = res if apply or res == "unchanged" else "WOULD be " + res
-            where = " [{}]".format(branch) if use_pr else ""
-            print(u"{} {}/{} :: {}{} \u2014 {}".format(mark, org, repo, path, where, verb))
+            where = f" [{branch}]" if use_pr else ""
+            print(f"{mark} {org}/{repo} :: {path}{where} \u2014 {verb}")
         if use_pr and repo_touched:
             if apply:
                 state = _ensure_pr(org, repo, branch, base, _PR_TITLE, _PR_BODY)
-                print(u"  PR {}/{}: {}  ({} \u2192 {})".format(org, repo, state, branch, base))
+                print(f"  PR {org}/{repo}: {state}  ({branch} \u2192 {base})")
             else:
-                print(u"  PR {}/{}: WOULD open {} \u2192 {}".format(org, repo, branch, base))
+                print(f"  PR {org}/{repo}: WOULD open {branch} \u2192 {base}")
     tail = "installed/updated" if apply else "would change (dry-run; pass --apply)"
-    print(u"\n{} file(s) {}.".format(touched, tail))
+    print(f"\n{touched} file(s) {tail}.")
 
 
 # --- G3/G4: analytics + roadmap JSON -----------------------------------------
@@ -513,12 +515,12 @@ def _label_of(issue, prefix):
 
 
 def _org_analytics(org, weeks=12, cycle_days=90):
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     week_keys = [_week_key(now - datetime.timedelta(weeks=w)) for w in range(weeks - 1, -1, -1)]
     o = {"repos": [], "epics": [], "milestones": [], "types": {}, "cycle": {},
          "flow": {"weeks": week_keys, "created": [0] * weeks, "closed": [0] * weeks},
          "totals": {"open_issues": 0, "closed_issues": 0, "open_points": 0, "closed_points": 0}}
-    repo_objs = _get_paged("/orgs/{}/repos".format(urllib.parse.quote(org)))
+    repo_objs = _get_paged(f"/orgs/{urllib.parse.quote(org)}/repos")
     widx = {k: i for i, k in enumerate(week_keys)}
     cycle_samples = []
     private = set()
@@ -565,8 +567,7 @@ def _org_analytics(org, weeks=12, cycle_days=90):
                 "points_done": sum(_points_of(c2) for c2 in children if c2["state"] == "closed"),
             })
         # Milestones (G4 roadmap rows) — points from the issues we already hold.
-        for m in _get_paged("/repos/{}/{}/milestones?state=all".format(
-                urllib.parse.quote(org), urllib.parse.quote(repo))):
+        for m in _get_paged(f"{_repo_api(org, repo)}/milestones?state=all"):
             mine = [i for i in issues if (i.get("milestone") or {}).get("title") == m["title"]]
             mo = [i for i in mine if i["state"] == "open"]
             mc = [i for i in mine if i["state"] == "closed"]
@@ -608,11 +609,11 @@ def _org_analytics(org, weeks=12, cycle_days=90):
 
 
 def cmd_analytics(orgs, out_file):
-    data = {"generated_at": datetime.datetime.now(datetime.timezone.utc)
+    data = {"generated_at": datetime.datetime.now(datetime.UTC)
             .strftime("%Y-%m-%dT%H:%M:%SZ"), "orgs": {}}
     for org in orgs:
-        if _get_opt("/orgs/{}".format(urllib.parse.quote(org))) is None:
-            print("· org '{}' not found — skipped".format(org))
+        if _get_opt(f"/orgs/{urllib.parse.quote(org)}") is None:
+            print(f"· org '{org}' not found — skipped")
             continue
         data["orgs"][org] = _org_analytics(org)
         t = data["orgs"][org]["totals"]
@@ -623,7 +624,7 @@ def cmd_analytics(orgs, out_file):
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w") as f:
         json.dump(data, f, separators=(",", ":"))
-    print("→ {}".format(out))
+    print(f"→ {out}")
 
 
 def main(argv):
@@ -632,7 +633,7 @@ def main(argv):
     cmd = argv[1]
     rest = argv[2:]
     if not rest or rest[0].startswith("-"):
-        sys.exit("Usage: _boards.py {} <org> [--repo NAME] [--apply] [--pr] [--out DIR]".format(cmd))
+        sys.exit(f"Usage: _boards.py {cmd} <org> [--repo NAME] [--apply] [--pr] [--out DIR]")
     org = rest[0]
     repo_only = None
     out_dir = None
