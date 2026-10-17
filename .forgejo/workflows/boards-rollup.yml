@@ -24,24 +24,54 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  rollup:
+  rollup:  # zizmor: ignore[excessive-permissions] Forgejo reads no permissions: key (below)
     runs-on: ubuntu-latest
+    # No `permissions:` key, on purpose (2026-10-16, Forgejo 17.0.0 source): the
+    # forge reads none. The job token has Write on every unit of its own repo
+    # whatever a workflow asks for (models/perm/access GetActionRepoPermission),
+    # and a run whose job or workflow has the key shows "a permissions field,
+    # which is not supported in Forgejo and will be ignored"
+    # (services/actions/notifier.go). A key here would quiet zizmor, scope
+    # nothing, and put that warning on every roll-up. What the roll-up uses the
+    # token for: read the code (the checkout) and the issues, and PATCH an
+    # epic's body.
     steps:
-      - uses: actions/checkout@v4
+      # By commit, not by tag: @v4 named this commit on 2026-10-16 (v4.4.0, the
+      # same on data.forgejo.org, the forge's DEFAULT_ACTIONS_URL, and on
+      # GitHub; ops/macos-runner/actions.lock pins the same). Renovate does not
+      # move it, so a newer one is `git ls-remote
+      # https://data.forgejo.org/actions/checkout refs/tags/v4` and a re-seed
+      # (boards/install-g2.sh).
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # Only .forgejo/boards/_boards.py is read from the checkout, and the
+          # roll-up's API calls carry FORGEJO_TOKEN themselves: no token is
+          # left in .git/config for a later step to find.
+          persist-credentials: false
 
       - name: Roll up epics in this repo
         env:
           # Forge address reachable from the job container. Laptop default is
           # host.containers.internal:3939 (the same address publish.yml uses and
           # which is verified-reachable). Override per-env with a repo/org
-          # Actions variable FORGEJO_URL (e.g. https://code.tti.tamu.edu on the VM).
-          FORGEJO_URL: ${{ vars.FORGEJO_URL || 'http://host.containers.internal:3939' }}
+          # Actions variable TTI_FORGE_URL (https://code.tti.tamu.edu on nis and
+          # tti since 2026-10-16). Never FORGEJO_URL: Forgejo refuses variable
+          # names starting FORGEJO_, GITEA_ or GITHUB_ ("invalid secret name"),
+          # so this override could never be set and every run used the host
+          # address, which only the forge VM's runner answers.
+          FORGEJO_URL: ${{ vars.TTI_FORGE_URL || 'http://host.containers.internal:3939' }}
           # The auto-injected token carries issues:write on this repo — enough to
           # PATCH the epic body. (It lacks package-write, which is why publish.yml
           # mints a separate PAT; roll-ups don't touch packages.)
           FORGEJO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Values reach the shell through env:, never expression-interpolated
+          # into run: (Actions substitutes textually before bash parses — the
+          # ai-review.yml RCE class; latent here while Forgejo restricts
+          # owner/repo names to AlphaDashDot, fixed for the invariant).
+          OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
         run: |
           python3 .forgejo/boards/_boards.py rollup \
-            "${{ github.repository_owner }}" \
-            --repo "${{ github.event.repository.name }}" \
+            "$OWNER" \
+            --repo "$REPO_NAME" \
             --apply

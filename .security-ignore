@@ -26,17 +26,3 @@ trivy  CVE-2026-93687  braces 3.0.3 build/dev-only via nuxt to nitropack, globby
 # `npm view node-forge version` > 1.4.0, run `npm update node-forge --package-lock-only` and delete this line; otherwise
 # re-review and renew.
 trivy  CVE-2026-85393  node-forge 1.4.0 dev-server-only via listhen under @nuxt/cli, nitropack and the ipx CLI; not in the published package, the layer source or the Pages output; no upstream fix  expires=2026-11-02
-
-# simple-git 3.36.0 and @simple-git/argv-parser 1.1.1 (package-lock.json), published 2026-09-29, fixed only in simple-git
-# 4.0.1 / argv-parser 2.0.1. Two paths, both @nuxt/devtools: nuxt 4.5.1 -> @nuxt/devtools 3.4.1 (simple-git ^3.36.0),
-# and this repo's own devDependency "@nuxt/devtools": "^2.0.0" -> 2.7.0 (simple-git ^3.28.0). 4.x cannot be forced: devtools does `import Git from 'simple-git'` and 4.0 dropped the default export, so an npm override
-# breaks `nuxt prepare` (tried in nis/template-service 2026-10-08). Devtools calls it only in the dev server, with
-# constant arguments (branch, revparse --short HEAD, status) on the project's own root, and returns before that in a
-# production build (both versions gate on nuxt.options.dev). On expiry: both paths must move. Drop the direct
-# @nuxt/devtools devDependency (nuxt brings its own) or raise it to a release on simple-git 4, and `npm update nuxt` once
-# nuxt's devtools range allows simple-git 4; then delete these lines. Moving only one leaves simple-git 3 in the lockfile,
-# and trivy skips a package that becomes dev-only, so the gate would go green with it still installed.
-trivy  CVE-2026-102826  simple-git 3 dev-server-only via nuxt, @nuxt/devtools 3.x; 4.x breaks devtools; not in the published package or the Pages output  expires=2026-11-02
-trivy  CVE-2026-102827  simple-git 3 dev-server-only via nuxt, @nuxt/devtools 3.x; 4.x breaks devtools; not in the published package or the Pages output  expires=2026-11-02
-trivy  CVE-2026-102828  simple-git 3 dev-server-only via nuxt, @nuxt/devtools 3.x; 4.x breaks devtools; not in the published package or the Pages output  expires=2026-11-02
-trivy  CVE-2026-102829  @simple-git/argv-parser 1.x under simple-git 3, dev-server-only; 2.x needs simple-git 4; not in the published package or the Pages output  expires=2026-11-02
