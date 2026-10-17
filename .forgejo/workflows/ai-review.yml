@@ -20,7 +20,7 @@ on:
     branches: ["**"]
 
 jobs:
-  review:
+  review:  # zizmor: ignore[excessive-permissions] Forgejo reads no permissions: key (at steps:)
     # Not on the seeders' own PRs (security/seed-baseline.sh, ai/seed-ai-review.sh):
     # the same vendored bytes land in ~29 repos at once, so a re-seed queued ~29
     # reviews of an identical diff on the shared Linux runner. A head branch is
@@ -46,6 +46,15 @@ jobs:
     # (the label) and TTI_BFF_URL (below), set together. The forge evaluates
     # `vars` in runs-on (proved 2026-10-16).
     runs-on: ${{ vars.TTI_AI_REVIEW_RUNS_ON || 'tti-forge-host' }}
+    # No `permissions:` key, on purpose (2026-10-16, Forgejo 17.0.0 source): the
+    # forge reads none. The job token has Write on every unit of its own repo,
+    # Read on a PR from a fork, whatever a workflow asks for (models/perm/access
+    # GetActionRepoPermission), and a run whose job or workflow has the key
+    # shows "a permissions field, which is not supported in Forgejo and will be
+    # ignored" (services/actions/notifier.go). A key here would quiet zizmor,
+    # scope nothing, and put that warning on every PR's run. What this job uses
+    # the token for: read the repo's topics and code, and post its one comment
+    # only when the bot PAT is refused.
     steps:
       - name: AI-Restricted gate (skip all AI on flagged repos)
         id: gate
