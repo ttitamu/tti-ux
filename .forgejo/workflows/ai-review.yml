@@ -21,7 +21,31 @@ on:
 
 jobs:
   review:
-    runs-on: ubuntu-latest
+    # Not on the seeders' own PRs (security/seed-baseline.sh, ai/seed-ai-review.sh):
+    # the same vendored bytes land in ~29 repos at once, so a re-seed queued ~29
+    # reviews of an identical diff on the shared Linux runner. A head branch is
+    # the PR author's to name, so a human branch with these prefixes skips its
+    # own advisory review and nothing else; the baseline gate still runs.
+    # Not while the panel is paused (2026-10-16): the org Actions variable
+    # AI_REVIEW_PAUSED=true (nis, tti) turns the job off. The forge decides a
+    # job-level `if:` itself, `vars` included, so a paused review is "skipped"
+    # before any runner is asked for it: no slot, no comment. The non-AI lane
+    # (oss-review.yml) is the review meanwhile; resuming is deleting the
+    # variable (ai/README.md, "Pausing and resuming the panel").
+    # An expression in `if:`, never in `run:`: it is evaluated, not pasted into a shell.
+    if: ${{ vars.AI_REVIEW_PAUSED != 'true' && !startsWith(github.head_ref, 'chore/h2-baseline-security') && !startsWith(github.head_ref, 'chore/ai-review-') }}
+    # Only where the gateway is reachable: by default the forge VM's own runner
+    # (35), the one runner labelled tti-forge-host. The panel step calls the
+    # gateway at host.containers.internal:3950, and Caddy refuses this route on
+    # the public URL on purpose (deploy/Caddyfile, "never leave the host"). On
+    # any other runner that address is the runner's own host, where nothing
+    # listens: on tti-azure-ci-01 (2026-10-16) each review spent ~3 min of a
+    # slot on its retries and then posted "couldn't review this change".
+    # Moving it (A2 §4.4: dedicated CI runners, the Mac lane) is two org
+    # variables and a Caddy allowlist, not a re-seed: TTI_AI_REVIEW_RUNS_ON
+    # (the label) and TTI_BFF_URL (below), set together. The forge evaluates
+    # `vars` in runs-on (proved 2026-10-16).
+    runs-on: ${{ vars.TTI_AI_REVIEW_RUNS_ON || 'tti-forge-host' }}
     steps:
       - name: AI-Restricted gate (skip all AI on flagged repos)
         id: gate
@@ -97,7 +121,7 @@ jobs:
         if: steps.gate.outputs.skip != 'true'
         env:
           BFF_TOKEN: ${{ secrets.AI_REVIEW_TOKEN }}
-          BFF_URL: http://host.containers.internal:3950
+          BFF_URL: ${{ vars.TTI_BFF_URL || 'http://host.containers.internal:3950' }}
           ACTOR: ${{ github.actor }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
