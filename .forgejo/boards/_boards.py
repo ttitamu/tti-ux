@@ -36,7 +36,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 
 def _auth_header():
-    tok = os.environ.get("FORGEJO_TOKEN")
+    tok = os.environ.get("FORGEJO_TOKEN") or os.environ.get("FORGEJO_ADMIN_TOKEN")
     if tok:
         return "token " + tok
     user = os.environ.get("FORGEJO_ADMIN_USER")
@@ -324,17 +324,44 @@ _G2_FILES = {
 }
 
 
-def _contents_get(org, repo, path):
+def _contents_get(org, repo, path, ref=None):
     """Return the contents-API object for a file, or None if absent."""
     p = "/repos/{}/{}/contents/{}".format(
         urllib.parse.quote(org), urllib.parse.quote(repo), urllib.parse.quote(path))
+    if ref:
+        p += "?ref=" + urllib.parse.quote(ref)
     return _get_opt(p)
 
 
-def _put_file(org, repo, path, content_bytes, apply):
-    """Create-or-update one file. Returns 'created' | 'updated' | 'unchanged'."""
+def _put_file(org, repo, path, content_bytes, apply, branch=None, base=None,
+               new_branch=False):
+    """Create-or-update one file. Returns 'created' | 'updated' | 'unchanged'.
+
+    With `branch`, writes to that branch instead of the default one. The
+    create-vs-update decision is then made against the file AS IT EXISTS ON
+    THAT BRANCH, not on the default branch: a stale working branch can already
+    carry the file while the default does not, and a create against an
+    existing path 422s (the same bug seed-baseline.sh documents).
+    """
     b64 = base64.b64encode(content_bytes).decode()
-    existing = _contents_get(org, repo, path)
+    ref = branch or base
+    existing = _contents_get(org, repo, path, ref=ref)
+    base_has_it = False
+    if existing is None and branch and base:
+        # Nothing on the working branch. In dry-run the branch does not exist
+        # yet, so fall back to the base to classify honestly: reporting
+        # "created" for a file the base already carries would read as "this is
+        # new" when it is really an overwrite. (In apply mode the branch is cut
+        # from base first, so this path is only hit during dry-run.)
+        base_existing = _contents_get(org, repo, path, ref=base)
+        if base_existing is not None:
+            base_has_it = True
+            try:
+                cur = base64.b64decode(base_existing.get("content", "") or "")
+            except Exception:
+                cur = None
+            if cur == content_bytes:
+                return "unchanged"
     if existing is not None:
         try:
             cur = base64.b64decode(existing.get("content", "") or "")
@@ -344,10 +371,21 @@ def _put_file(org, repo, path, content_bytes, apply):
             return "unchanged"
         action = "updated"
     else:
-        action = "created"
+        action = "updated" if base_has_it else "created"
     if not apply:
         return action  # dry-run: report what would happen
     body = {"message": "G2: {} boards-rollup Action".format(action), "content": b64}
+    if branch:
+        if new_branch:
+            # Create the branch AND commit in one call. Creating it first with
+            # POST /branches would give it the BASE branch's head, firing a push
+            # event that starts a run pinned to the BASE SHA; the next write
+            # supersedes and cancels that run, and a cancelled run writes a
+            # commit_status of `failure` (there is no `cancelled` state). That
+            # painted a red X on 13 green default branches on 2026-08-18.
+            body["new_branch"] = branch
+        else:
+            body["branch"] = branch
     # Forgejo contents API: POST creates, PUT updates (PUT requires the prior sha).
     if existing is not None:
         body["sha"] = existing["sha"]
@@ -359,24 +397,233 @@ def _put_file(org, repo, path, content_bytes, apply):
     return action
 
 
-def cmd_install(org, repo_only, apply):
+G2_PR_BRANCH = "chore/g2-rollup-injection-fix"
+
+
+def _default_branch(org, repo):
+    meta = _get_opt("/repos/{}/{}".format(
+        urllib.parse.quote(org), urllib.parse.quote(repo)))
+    return (meta or {}).get("default_branch") or "main"
+
+
+def _branch_exists(org, repo, branch):
+    return _get_opt("/repos/{}/{}/branches/{}".format(
+        urllib.parse.quote(org), urllib.parse.quote(repo),
+        urllib.parse.quote(branch))) is not None
+
+
+def _ensure_pr(org, repo, branch, base, title, body):
+    """Open the PR. Returns a short status string; already-exists is fine."""
+    try:
+        pr = _req("POST", "/repos/{}/{}/pulls".format(
+            urllib.parse.quote(org), urllib.parse.quote(repo)),
+            {"title": title, "head": branch, "base": base, "body": body})
+        return "opened #{}".format((pr or {}).get("number", "?"))
+    except Exception:
+        return "exists / update pushed to branch"
+
+
+_PR_TITLE = "fix(G2): pass owner/repo through env: in boards-rollup"
+_PR_BODY = (
+    "Re-vendors the canonical `boards-rollup.yml`, which passes "
+    "`github.repository_owner` and `github.event.repository.name` through "
+    "`env:` instead of interpolating them directly into the `run:` block.\n\n"
+    "Found by the H2 baseline gate's semgrep step "
+    "(`tti.gha-interpolation-in-run`) during the K 1.4 triage on 2026-08-18: "
+    "the canonical file was fixed but the vendored copies were never "
+    "re-seeded, so six repos still ran the old form.\n\n"
+    "Exploitability is low. Forgejo constrains owner and repo names to "
+    "AlphaDashDot, so neither value can carry shell metacharacters today -- "
+    "this restores the invariant rather than closing a live hole.\n\n"
+    "`.forgejo/boards/_boards.py` is re-vendored alongside (install-g2.sh "
+    "ships both). That delta is purely additive: G3/G4 analytics helpers the "
+    "Action itself never calls."
+)
+
+
+def cmd_install(org, repo_only, apply, use_pr=False):
     """Vendor the G2 boards-rollup Action into each repo in the org (or --repo).
-    Idempotent: re-run to propagate _boards.py changes. Dry-run unless --apply."""
+    Idempotent: re-run to propagate _boards.py changes. Dry-run unless --apply.
+
+    With --pr, writes to a working branch and opens a pull request instead of
+    committing straight to the default branch. Required for branch-protected
+    repos, which reject direct contents-API commits outright, and the
+    reviewable default for repos owned by another team.
+    """
     payloads = {}
     for path, src in _G2_FILES.items():
         with open(src, "rb") as f:
             payloads[path] = f.read()
     touched = 0
     for repo in _repos(org, repo_only):
+        base = _default_branch(org, repo) if use_pr else None
+        branch = G2_PR_BRANCH if use_pr else None
+        made_branch = False
+        repo_touched = 0
         for path, content in payloads.items():
-            res = _put_file(org, repo, path, content, apply)
-            mark = {"created": "✓", "updated": "✓", "unchanged": "="}[res]
+            # First write on a not-yet-existing branch creates it inline.
+            needs_create = bool(use_pr and apply and not made_branch
+                                and not _branch_exists(org, repo, branch))
+            res = _put_file(org, repo, path, content, apply, branch=branch,
+                            base=base, new_branch=needs_create)
+            if use_pr and apply and res != "unchanged":
+                made_branch = True
+            mark = {"created": u"\u2713", "updated": u"\u2713", "unchanged": "="}[res]
             if res != "unchanged":
                 touched += 1
+                repo_touched += 1
             verb = res if apply or res == "unchanged" else "WOULD be " + res
-            print("{} {}/{} :: {} — {}".format(mark, org, repo, path, verb))
+            where = " [{}]".format(branch) if use_pr else ""
+            print(u"{} {}/{} :: {}{} \u2014 {}".format(mark, org, repo, path, where, verb))
+        if use_pr and repo_touched:
+            if apply:
+                state = _ensure_pr(org, repo, branch, base, _PR_TITLE, _PR_BODY)
+                print(u"  PR {}/{}: {}  ({} \u2192 {})".format(org, repo, state, branch, base))
+            else:
+                print(u"  PR {}/{}: WOULD open {} \u2192 {}".format(org, repo, branch, base))
     tail = "installed/updated" if apply else "would change (dry-run; pass --apply)"
-    print("\n{} file(s) {}.".format(touched, tail))
+    print(u"\n{} file(s) {}.".format(touched, tail))
+
+
+# --- G3/G4: analytics + roadmap JSON -----------------------------------------
+# One JSON blob for the static dashboard (branding/boards/index.html). Served
+# from the PUBLIC assets tree, so entities living in PRIVATE repos are redacted
+# to "(private)" — their numbers still count in the aggregates, their names and
+# titles never leave the forge. Thin-history tolerant: cycle time / throughput /
+# flow come from the live API (created_at/closed_at need no snapshots); burndown
+# series render whatever the snapshots/ CSVs have accumulated so far.
+
+def _iso_dt(s):
+    try:
+        return datetime.datetime.fromisoformat((s or "").replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def _week_key(dt):
+    monday = dt.date() - datetime.timedelta(days=dt.weekday())
+    return monday.isoformat()
+
+
+def _label_of(issue, prefix):
+    for lab in issue.get("labels") or []:
+        if lab["name"].startswith(prefix):
+            return lab["name"][len(prefix):]
+    return None
+
+
+def _org_analytics(org, weeks=12, cycle_days=90):
+    now = datetime.datetime.now(datetime.timezone.utc)
+    week_keys = [_week_key(now - datetime.timedelta(weeks=w)) for w in range(weeks - 1, -1, -1)]
+    o = {"repos": [], "epics": [], "milestones": [], "types": {}, "cycle": {},
+         "flow": {"weeks": week_keys, "created": [0] * weeks, "closed": [0] * weeks},
+         "totals": {"open_issues": 0, "closed_issues": 0, "open_points": 0, "closed_points": 0}}
+    repo_objs = _get_paged("/orgs/{}/repos".format(urllib.parse.quote(org)))
+    widx = {k: i for i, k in enumerate(week_keys)}
+    cycle_samples = []
+    private = set()
+    for r in repo_objs:
+        repo = r["name"]
+        if r.get("private"):
+            private.add(repo)
+        disp = "(private)" if r.get("private") else repo
+        issues = _issues(org, repo)
+        open_i = [i for i in issues if i["state"] == "open"]
+        closed_i = [i for i in issues if i["state"] == "closed"]
+        op, cp = sum(map(_points_of, open_i)), sum(map(_points_of, closed_i))
+        o["totals"]["open_issues"] += len(open_i)
+        o["totals"]["closed_issues"] += len(closed_i)
+        o["totals"]["open_points"] += op
+        o["totals"]["closed_points"] += cp
+        if issues:
+            o["repos"].append({"repo": disp, "open": len(open_i), "closed": len(closed_i),
+                               "open_points": op, "closed_points": cp})
+        for i in issues:
+            t = _label_of(i, "type/")
+            if t:
+                o["types"][t] = o["types"].get(t, 0) + 1
+            c = _iso_dt(i.get("created_at"))
+            if c and _week_key(c) in widx:
+                o["flow"]["created"][widx[_week_key(c)]] += 1
+            if i["state"] == "closed":
+                cl = _iso_dt(i.get("closed_at"))
+                if cl and _week_key(cl) in widx:
+                    o["flow"]["closed"][widx[_week_key(cl)]] += 1
+                if cl and c and (now - cl).days <= cycle_days:
+                    cycle_samples.append(max((cl - c).total_seconds() / 86400.0, 0.0))
+        # Epics (G1 convention: type/epic parent + `Epic: #n` child marker).
+        for epic in (i for i in issues if _has_label(i, "type/epic")):
+            child_re = re.compile(_EPIC_RE_TMPL.format(epic["number"]))
+            children = [i for i in issues
+                        if i["number"] != epic["number"] and child_re.search(i.get("body") or "")]
+            done = sum(1 for c2 in children if c2["state"] == "closed")
+            o["epics"].append({
+                "repo": disp, "number": epic["number"],
+                "title": "(private epic)" if repo in private else epic["title"],
+                "state": epic["state"], "children": len(children), "done": done,
+                "points_total": sum(map(_points_of, children)),
+                "points_done": sum(_points_of(c2) for c2 in children if c2["state"] == "closed"),
+            })
+        # Milestones (G4 roadmap rows) — points from the issues we already hold.
+        for m in _get_paged("/repos/{}/{}/milestones?state=all".format(
+                urllib.parse.quote(org), urllib.parse.quote(repo))):
+            mine = [i for i in issues if (i.get("milestone") or {}).get("title") == m["title"]]
+            mo = [i for i in mine if i["state"] == "open"]
+            mc = [i for i in mine if i["state"] == "closed"]
+            o["milestones"].append({
+                "repo": disp,
+                "title": "(private milestone)" if repo in private else m["title"],
+                "state": m.get("state", ""), "due_on": (m.get("due_on") or "")[:10],
+                "open": len(mo), "closed": len(mc),
+                "open_points": sum(map(_points_of, mo)),
+                "closed_points": sum(map(_points_of, mc)),
+            })
+    if cycle_samples:
+        cycle_samples.sort()
+        n = len(cycle_samples)
+        o["cycle"] = {"n": n,
+                      "median_days": round(cycle_samples[n // 2], 1),
+                      "p85_days": round(cycle_samples[min(int(n * 0.85), n - 1)], 1)}
+    # Burndown series from the accumulated snapshot CSVs (redact private repos).
+    o["burndown"] = {}
+    snap_dir = os.path.join(HERE, "snapshots", org)
+    if os.path.isdir(snap_dir):
+        for fn in sorted(os.listdir(snap_dir)):
+            if not fn.endswith(".csv"):
+                continue
+            repo_part = fn.split("__", 1)[0]
+            key = "(private)" if repo_part in private else fn[:-4].replace("__", " · ")
+            try:
+                with open(os.path.join(snap_dir, fn), newline="") as f:
+                    rows = list(csv.DictReader(f))[-90:]
+            except OSError:
+                continue
+            if rows:
+                o["burndown"][key] = [{"date": r["date"],
+                                       "open_points": int(r.get("open_points") or 0),
+                                       "closed_points": int(r.get("closed_points") or 0),
+                                       "total_points": int(r.get("total_points") or 0)}
+                                      for r in rows]
+    return o
+
+
+def cmd_analytics(orgs, out_file):
+    data = {"generated_at": datetime.datetime.now(datetime.timezone.utc)
+            .strftime("%Y-%m-%dT%H:%M:%SZ"), "orgs": {}}
+    for org in orgs:
+        if _get_opt("/orgs/{}".format(urllib.parse.quote(org))) is None:
+            print("· org '{}' not found — skipped".format(org))
+            continue
+        data["orgs"][org] = _org_analytics(org)
+        t = data["orgs"][org]["totals"]
+        print("✓ {}: {} repos w/ issues · {} open / {} closed issues · {} epics · {} milestones".format(
+            org, len(data["orgs"][org]["repos"]), t["open_issues"], t["closed_issues"],
+            len(data["orgs"][org]["epics"]), len(data["orgs"][org]["milestones"])))
+    out = out_file or os.path.join(HERE, "snapshots", "analytics.json")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    with open(out, "w") as f:
+        json.dump(data, f, separators=(",", ":"))
+    print("→ {}".format(out))
 
 
 def main(argv):
@@ -385,16 +632,19 @@ def main(argv):
     cmd = argv[1]
     rest = argv[2:]
     if not rest or rest[0].startswith("-"):
-        sys.exit("Usage: _boards.py {} <org> [--repo NAME] [--apply] [--out DIR]".format(cmd))
+        sys.exit("Usage: _boards.py {} <org> [--repo NAME] [--apply] [--pr] [--out DIR]".format(cmd))
     org = rest[0]
     repo_only = None
     out_dir = None
     apply = False
+    use_pr = False
     i = 1
     while i < len(rest):
         a = rest[i]
         if a == "--apply":
             apply = True
+        elif a == "--pr":
+            use_pr = True
         elif a == "--repo":
             i += 1
             repo_only = rest[i]
@@ -408,10 +658,13 @@ def main(argv):
         cmd_rollup(org, repo_only, apply)
     elif cmd == "burndown":
         cmd_burndown(org, repo_only, out_dir)
+    elif cmd == "analytics":
+        # org arg is comma-separable: `analytics tti,nis --out FILE`
+        cmd_analytics([x for x in org.split(",") if x], out_dir)
     elif cmd == "demo":
         cmd_demo(org, repo_only)
     elif cmd == "install":
-        cmd_install(org, repo_only, apply)
+        cmd_install(org, repo_only, apply, use_pr)
     else:
         sys.exit("Unknown command: " + cmd)
 
