@@ -34,14 +34,24 @@ jobs:
           # Forge address reachable from the job container. Laptop default is
           # host.containers.internal:3939 (the same address publish.yml uses and
           # which is verified-reachable). Override per-env with a repo/org
-          # Actions variable FORGEJO_URL (e.g. https://code.tti.tamu.edu on the VM).
-          FORGEJO_URL: ${{ vars.FORGEJO_URL || 'http://host.containers.internal:3939' }}
+          # Actions variable TTI_FORGE_URL (https://code.tti.tamu.edu on nis and
+          # tti since 2026-10-16). Never FORGEJO_URL: Forgejo refuses variable
+          # names starting FORGEJO_, GITEA_ or GITHUB_ ("invalid secret name"),
+          # so this override could never be set and every run used the host
+          # address, which only the forge VM's runner answers.
+          FORGEJO_URL: ${{ vars.TTI_FORGE_URL || 'http://host.containers.internal:3939' }}
           # The auto-injected token carries issues:write on this repo — enough to
           # PATCH the epic body. (It lacks package-write, which is why publish.yml
           # mints a separate PAT; roll-ups don't touch packages.)
           FORGEJO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Values reach the shell through env:, never expression-interpolated
+          # into run: (Actions substitutes textually before bash parses — the
+          # ai-review.yml RCE class; latent here while Forgejo restricts
+          # owner/repo names to AlphaDashDot, fixed for the invariant).
+          OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
         run: |
           python3 .forgejo/boards/_boards.py rollup \
-            "${{ github.repository_owner }}" \
-            --repo "${{ github.event.repository.name }}" \
+            "$OWNER" \
+            --repo "$REPO_NAME" \
             --apply
