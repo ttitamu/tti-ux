@@ -24,10 +24,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  rollup:
+  rollup:  # zizmor: ignore[excessive-permissions] Forgejo reads no permissions: key (below)
     runs-on: ubuntu-latest
+    # No `permissions:` key, on purpose (2026-10-16, Forgejo 17.0.0 source): the
+    # forge reads none. The job token has Write on every unit of its own repo
+    # whatever a workflow asks for (models/perm/access GetActionRepoPermission),
+    # and a run whose job or workflow has the key shows "a permissions field,
+    # which is not supported in Forgejo and will be ignored"
+    # (services/actions/notifier.go). A key here would quiet zizmor, scope
+    # nothing, and put that warning on every roll-up. What the roll-up uses the
+    # token for: read the code (the checkout) and the issues, and PATCH an
+    # epic's body.
     steps:
-      - uses: actions/checkout@v4
+      # By commit, not by tag: @v4 named this commit on 2026-10-16 (v4.4.0, the
+      # same on data.forgejo.org, the forge's DEFAULT_ACTIONS_URL, and on
+      # GitHub; ops/macos-runner/actions.lock pins the same). Renovate does not
+      # move it, so a newer one is `git ls-remote
+      # https://data.forgejo.org/actions/checkout refs/tags/v4` and a re-seed
+      # (boards/install-g2.sh).
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # Only .forgejo/boards/_boards.py is read from the checkout, and the
+          # roll-up's API calls carry FORGEJO_TOKEN themselves: no token is
+          # left in .git/config for a later step to find.
+          persist-credentials: false
 
       - name: Roll up epics in this repo
         env:
