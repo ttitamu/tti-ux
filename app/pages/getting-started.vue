@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import pkg from "../../package.json";
+import { version as pkgVersion } from "../../package.json";
 
 useHead({ title: "Getting started · TUX" });
 
-const version = pkg.version;
+const version = pkgVersion;
 
 // Step-by-step onboarding for new visitors. The home page is a
 // landing/marketing surface; this page is the actual "what is tux,

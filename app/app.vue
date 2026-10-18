@@ -4,7 +4,7 @@
 
 // Version surfaced in the header pill + welcome page. Sourced from
 // package.json so a `npm version` bump propagates without code edits.
-import pkg from "../package.json";
+import { version as pkgVersionRaw } from "../package.json";
 import {
   tuxCatalog,
   catalogByCategory,
@@ -16,7 +16,7 @@ import {
 import { tuxTokensCatalog } from "./utils/tuxTokensCatalog";
 import type { Command, CommandGroup } from "./components/TuxCommandPalette.vue";
 
-const pkgVersion = pkg.version;
+const pkgVersion = pkgVersionRaw;
 const colorMode = useColorMode();
 const route = useRoute();
 const router = useRouter();

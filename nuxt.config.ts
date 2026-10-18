@@ -219,7 +219,11 @@ export default defineNuxtConfig({
   },
 
   a11y: {
-    enabled: true,
+    // `enabled` intentionally omitted: the module defaults it to
+    // `nuxt.options.dev`, so every consumer gets the live axe overlay while
+    // developing. Forcing `true` here used to ship axe-core (~550 KB) inside
+    // the production entry chunk. CI coverage stays with `npm run audit:a11y`
+    // / `tux-audit`.
     defaultHighlight: false,
     logIssues: true,
   },
