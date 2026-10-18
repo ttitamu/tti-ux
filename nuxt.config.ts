@@ -28,7 +28,7 @@ export default defineNuxtConfig({
 
   future: { compatibilityVersion: 4 },
 
-  devtools: { enabled: true },
+  devtools: { enabled: isRootProject },
   telemetry: false,
 
   app: {
@@ -99,6 +99,8 @@ export default defineNuxtConfig({
     // removing it makes the font-load surface explicit and offline-clean.
     "@nuxt/image",
     "@nuxt/ui",
+    // Guardrails shipped to every consumer on purpose: a11y + lint are
+    // part of the TUX contract. Dev/build-time only — no client bundle cost.
     "@nuxt/eslint",
     "@nuxt/a11y",
     "@nuxtjs/color-mode",

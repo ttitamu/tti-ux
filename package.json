@@ -159,7 +159,7 @@
     "tux-mcp": "scripts/tux-mcp.mjs"
   },
   "allowScripts": {
-    "puppeteer@24.43.1": true,
+    "puppeteer": true,
     "esbuild": false,
     "unrs-resolver": false,
     "vue-demi": false,

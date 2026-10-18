@@ -2,5 +2,29 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "timezone": "America/Chicago",
+  "schedule": ["before 9am on monday"],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "schedule": ["at any time"]
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 9am on monday"]
+  },
+  "packageRules": [
+    { "groupName": "tiptap", "matchPackageNames": ["@tiptap/**"] },
+    { "groupName": "nuxt", "matchPackageNames": ["nuxt", "@nuxt/**", "@nuxtjs/**"] },
+    { "groupName": "echarts", "matchPackageNames": ["echarts", "echarts-*"] },
+    { "groupName": "fontsource", "matchPackageNames": ["@fontsource/**"] },
+    { "groupName": "vitest", "matchPackageNames": ["vitest", "@vitest/**"] },
+    { "groupName": "topojson", "matchPackageNames": ["topojson-*", "us-atlas", "d3-geo"] },
+    {
+      "description": "Automerge dev-only patch updates once CI is green",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true
+    }
   ]
 }
