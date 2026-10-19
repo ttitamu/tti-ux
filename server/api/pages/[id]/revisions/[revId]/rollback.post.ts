@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const { service } = await openDesk(event);
+  const { service } = await openDesk(event, { requireAuth: true });
   const id = getRouterParam(event, "id");
   const revId = getRouterParam(event, "revId");
   if (!id || !revId) {

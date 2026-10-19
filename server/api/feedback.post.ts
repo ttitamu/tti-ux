@@ -1,11 +1,18 @@
+import { feedbackSchema, parseOrThrow } from "../utils/desk-schemas";
+import { checkRateLimit } from "../utils/rate-limit";
+
 export default defineEventHandler(async (event) => {
+  // Prevent automated spam flood (max 10 feedback submissions per minute per client IP)
+  checkRateLimit(event, { keyPrefix: "feedback", maxRequests: 10, windowMs: 60_000 });
+
+  const rawBody = await readBody(event);
+  const validated = parseOrThrow(feedbackSchema, rawBody || {});
   const { service } = await openDesk(event);
-  const body = await readBody(event);
-  const pageId = body?.pageId || "general";
-  return service.addFeedback(pageId, {
-    vote: body?.vote || "up",
-    reason: body?.reason,
-    note: body?.note,
-    sessionId: body?.sessionId || "anonymous",
+
+  return service.addFeedback(validated.pageId, {
+    vote: validated.vote,
+    reason: validated.reason,
+    note: validated.note,
+    sessionId: validated.sessionId,
   });
 });

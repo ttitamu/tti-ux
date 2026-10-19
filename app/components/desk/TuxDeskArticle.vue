@@ -4,7 +4,7 @@
  * Renders prose mixed with canonical TUX module blocks, staleness alert, and feedback.
  */
 import type { JSONContent } from "@tiptap/core";
-import { splitDeskBlocks, renderDeskBody, type DeskBlock } from "../../utils/desk/render";
+import { splitDeskBlocks, renderDeskBody, sanitizeDeskHtml, type DeskBlock } from "../../utils/desk/render";
 import TuxDeskModuleBlock from "./TuxDeskModuleBlock.vue";
 import TuxStalenessBanner from "../TuxStalenessBanner.vue";
 import TuxFeedback from "../TuxFeedback.vue";
@@ -48,7 +48,7 @@ const blocks = computed<DeskBlock[]>(() => {
 
 const fallbackHtml = computed(() => {
   if (blocks.value.length > 0) return "";
-  if (props.html) return props.html;
+  if (props.html) return sanitizeDeskHtml(props.html);
   return renderDeskBody({ bodyMd: props.bodyMd });
 });
 </script>

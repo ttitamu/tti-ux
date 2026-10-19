@@ -236,6 +236,24 @@ export default defineNuxtConfig({
     },
   },
 
+  // Security headers for SSR/node-server and prerendered routes (S5)
+  routeRules: {
+    "/**": {
+      headers: {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "SAMEORIGIN",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+        "X-XSS-Protection": "0",
+      },
+    },
+    "/api/**": {
+      headers: {
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+      },
+    },
+  },
+
   vite: {
     server: {
       watch: {

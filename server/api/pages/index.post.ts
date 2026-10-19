@@ -1,8 +1,8 @@
+import { createPageSchema, parseOrThrow } from "../../utils/desk-schemas";
+
 export default defineEventHandler(async (event) => {
-  const { service } = await openDesk(event);
-  const body = await readBody(event);
-  if (!body?.title) {
-    throw createError({ statusCode: 400, message: "Title is required" });
-  }
-  return service.createPage(body);
+  const { service } = await openDesk(event, { requireAuth: true });
+  const rawBody = await readBody(event);
+  const validated = parseOrThrow(createPageSchema, rawBody);
+  return service.createPage(validated);
 });

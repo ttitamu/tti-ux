@@ -1,5 +1,5 @@
 import { desc, eq, and, or, ilike, count, sql } from "drizzle-orm";
-import type { H3Event } from "h3";
+import { type H3Event, getHeader } from "h3";
 import { getDeskDb, getDeskContext, getDeskKind, type DeskDb } from "../db/client";
 import { pages, revisions, orgUnits, users, issues, events, media } from "../db/schema";
 import type { PageStatus, Visibility, FeedbackReason, MediaKind } from "../db/types";
@@ -26,10 +26,52 @@ export interface PageListItem {
   stale: boolean;
 }
 
-export async function openDesk(event?: H3Event) {
-  const { db, defaultOrg } = await getDeskContext();
+export function extractActorFromEvent(event?: H3Event): DeskActor | null {
+  if (!event) return null;
+  const actorHeader = getHeader(event, "x-tti-actor") || getHeader(event, "x-user");
+  const userId = getHeader(event, "x-tti-user-id") || getHeader(event, "x-user-id");
+  const email = getHeader(event, "x-tti-email") || getHeader(event, "x-user-email");
 
-  const actor: DeskActor = {
+  if (actorHeader || userId) {
+    return {
+      userId: userId || actorHeader || "remote-user",
+      name: actorHeader || "TTI Researcher",
+      email: email || "research@tti.tamu.edu",
+      login: actorHeader || "tti-researcher",
+      isOrgOwner: true,
+    };
+  }
+
+  // Allow dev/test actor when not running in production mode
+  if (
+    process.env.VITEST ||
+    process.env.NODE_ENV === "test" ||
+    process.env.NODE_ENV !== "production"
+  ) {
+    return {
+      userId: "dev-owner",
+      name: "TTI Researcher (Dev)",
+      email: "research@tti.tamu.edu",
+      login: "tti-researcher",
+      isOrgOwner: true,
+    };
+  }
+
+  return null;
+}
+
+export async function openDesk(event?: H3Event, options?: { requireAuth?: boolean }) {
+  const { db, defaultOrg } = await getDeskContext();
+  let actor = extractActorFromEvent(event);
+
+  if (options?.requireAuth && !actor) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: "Unauthorized: Desk editorial actions require authentication",
+    });
+  }
+
+  actor ??= {
     userId: defaultOrg?.ownerUserId || "dev-owner",
     name: "TTI Researcher",
     email: "research@tti.tamu.edu",

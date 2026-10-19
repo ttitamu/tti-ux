@@ -1,5 +1,5 @@
 export default defineEventHandler(async (event) => {
-  const { service } = await openDesk(event);
+  const { service } = await openDesk(event, { requireAuth: true });
   const id = getRouterParam(event, "id");
   if (!id) throw createError({ statusCode: 400, message: "Page ID is required" });
   const published = await service.publishPage(id);

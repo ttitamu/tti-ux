@@ -163,6 +163,11 @@ export function sanitizeDeskHtml(html: string): string {
       video: ["http", "https"],
       iframe: ["https"],
     },
+    allowedIframeHostnames: [
+      "www.youtube-nocookie.com",
+      "www.youtube.com",
+      "player.vimeo.com",
+    ],
     transformTags: {
       a: (tagName, attribs) => {
         const href = attribs.href || "";
@@ -188,11 +193,19 @@ export function sanitizeDeskHtml(html: string): string {
       iframe: (tagName, attribs) => {
         const src = attribs.src || "";
         const ok =
-          /https:\/\/(www\.youtube-nocookie\.com|www\.youtube\.com|player\.vimeo\.com)\//.test(
+          /^https:\/\/(www\.youtube-nocookie\.com|www\.youtube\.com|player\.vimeo\.com)\//.test(
             src
           );
         if (!ok) return { tagName: "span", attribs: {} };
-        return { tagName, attribs };
+        return {
+          tagName,
+          attribs: {
+            ...attribs,
+            // Restrict iframe permissions to standard video player capabilities (S3)
+            allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
+            loading: "lazy",
+          },
+        };
       },
     },
   });
