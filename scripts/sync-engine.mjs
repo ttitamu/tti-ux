@@ -732,11 +732,27 @@ ${params}
 // Synchronization Orchestrator
 // ---------------------------------------------------------------------------
 
+function resolveSourceContent(sourceFile) {
+  const content = fs.readFileSync(sourceFile, "utf8");
+  if (sourceFile.endsWith(".vue")) {
+    const reExportMatch =
+      content.match(/export\s+\{\s*default\s*\}\s+from\s+["']([^"']+\.vue)["']/) ||
+      content.match(/import\s+\w+\s+from\s+["']([^"']+\.vue)["']/);
+    if (reExportMatch && !content.includes("defineProps")) {
+      const targetPath = path.resolve(path.dirname(sourceFile), reExportMatch[1]);
+      if (fs.existsSync(targetPath)) {
+        return fs.readFileSync(targetPath, "utf8");
+      }
+    }
+  }
+  return content;
+}
+
 export function syncComponent(sourceFile, targetLangHint = null) {
   const ext = path.extname(sourceFile);
   const base = path.basename(sourceFile, ext);
   const componentName = toPascalCase(base);
-  const content = fs.readFileSync(sourceFile, "utf8");
+  const content = resolveSourceContent(sourceFile);
 
   let schema;
   if (ext === ".vue") {

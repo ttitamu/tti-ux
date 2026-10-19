@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-19T19:11:43.096Z",
+  "timestamp": "2026-10-19T20:22:20.760Z",
   "system": "TTI-UX (TUX 3.0)",
   "standard": "W3C WCAG 2.2 Level AAA",
   "summary": {
@@ -886,15 +886,17 @@
     "TuxCodeBlock": {
       "name": "TuxCodeBlock",
       "file": "TuxCodeBlock.vue",
-      "isInteractive": false,
-      "hasMinTouchTarget": true,
-      "hasFocusRing": true,
-      "hasAria": false,
+      "isInteractive": true,
+      "hasMinTouchTarget": false,
+      "hasFocusRing": false,
+      "hasAria": true,
       "tier": "AAA",
       "contrastStandard": "7.0:1 (AAA)",
-      "focusIndicator": "n/a",
+      "focusIndicator": "3px dual-ring (AAA)",
       "notes": [
-        "Non-interactive / semantic layout component"
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
       ]
     },
     "TuxCodeMaroon": {
@@ -1139,12 +1141,13 @@
       "isInteractive": false,
       "hasMinTouchTarget": true,
       "hasFocusRing": true,
-      "hasAria": false,
+      "hasAria": true,
       "tier": "AAA",
       "contrastStandard": "7.0:1 (AAA)",
       "focusIndicator": "n/a",
       "notes": [
-        "Non-interactive / semantic layout component"
+        "Non-interactive / semantic layout component",
+        "Equipped with semantic ARIA roles / labeling"
       ]
     },
     "TuxDocSearch": {
@@ -1213,15 +1216,17 @@
     "TuxECharts": {
       "name": "TuxECharts",
       "file": "TuxECharts.vue",
-      "isInteractive": false,
-      "hasMinTouchTarget": true,
+      "isInteractive": true,
+      "hasMinTouchTarget": false,
       "hasFocusRing": true,
-      "hasAria": false,
+      "hasAria": true,
       "tier": "AAA",
       "contrastStandard": "7.0:1 (AAA)",
-      "focusIndicator": "n/a",
+      "focusIndicator": "3px dual-ring (AAA)",
       "notes": [
-        "Non-interactive / semantic layout component"
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
       ]
     },
     "TuxEditorialArticle": {
@@ -2216,15 +2221,17 @@
     "TuxRichTextEditor": {
       "name": "TuxRichTextEditor",
       "file": "TuxRichTextEditor.vue",
-      "isInteractive": false,
-      "hasMinTouchTarget": true,
+      "isInteractive": true,
+      "hasMinTouchTarget": false,
       "hasFocusRing": true,
-      "hasAria": false,
+      "hasAria": true,
       "tier": "AAA",
       "contrastStandard": "7.0:1 (AAA)",
-      "focusIndicator": "n/a",
+      "focusIndicator": "3px dual-ring (AAA)",
       "notes": [
-        "Non-interactive / semantic layout component"
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
       ]
     },
     "TuxRoadwayCrossSection": {

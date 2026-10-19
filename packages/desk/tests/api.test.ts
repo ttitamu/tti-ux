@@ -13,12 +13,14 @@ describe("Tux Desk API Service", () => {
     expect(seeded?.stale).toBe(false);
   });
 
-  it("retrieves page with revisions and modules", async () => {
+  it("retrieves page with revisions, modules, and resolved owner metadata", async () => {
     const { service } = await openDesk();
     const page = await service.getPublicPage("corridor-telemetry-runbook");
     expect(page).not.toBeNull();
     expect(page?.status).toBe("published");
     expect(page?.revision?.bodyJson).toBeDefined();
+    expect(page?.owner?.name).toBe("TTI Mobility Research Group");
+    expect(page?.owner?.id).toBeDefined();
   });
 
   it("creates a new draft and updates it", async () => {
@@ -49,7 +51,7 @@ describe("Tux Desk API Service", () => {
     expect(published?.verifiedUntil).not.toBeNull();
   });
 
-  it("records reader feedback and creates issues for actionable downs", async () => {
+  it("records reader feedback and creates issues for actionable downs with normalized pageId", async () => {
     const { service } = await openDesk();
     const res = await service.addFeedback("corridor-telemetry-runbook", {
       vote: "down",
@@ -60,6 +62,14 @@ describe("Tux Desk API Service", () => {
 
     expect(res.recorded).toBe(true);
     expect(res.issueOpened).toBe(true);
+
+    const openIssues = await service.listIssues({ status: "open" });
+    const matchingIssue = openIssues.find(
+      (i) => i.payload?.note === "Speed thresholds changed to 45mph.",
+    );
+    expect(matchingIssue).toBeDefined();
+    expect(matchingIssue?.pageSlug).toBe("corridor-telemetry-runbook");
+    expect(matchingIssue?.pageTitle).toBe("Corridor Telemetry Field Protocol");
   });
 
   it("filters pages by status and search keyword", async () => {

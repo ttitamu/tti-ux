@@ -1,4 +1,6 @@
+import { createError, defineEventHandler, getRouterParam, readBody } from "h3";
 import { updatePageSchema, parseOrThrow } from "../../utils/desk-schemas";
+import { openDesk } from "../../utils/desk-service";
 
 export default defineEventHandler(async (event) => {
   const { service } = await openDesk(event, { requireAuth: true });
@@ -10,3 +12,4 @@ export default defineEventHandler(async (event) => {
   if (!updated) throw createError({ statusCode: 404, message: "Page not found" });
   return updated;
 });
+

@@ -12,4 +12,9 @@ export default defineNuxtConfig({
     },
   ],
   serverDir: resolve(layerDir, "server"),
+  nitro: {
+    imports: {
+      dirs: [resolve(layerDir, "server/utils")],
+    },
+  },
 });

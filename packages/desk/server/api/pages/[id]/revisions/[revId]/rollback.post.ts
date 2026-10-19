@@ -1,3 +1,6 @@
+import { createError, defineEventHandler, getRouterParam } from "h3";
+import { openDesk } from "../../../../../utils/desk-service";
+
 export default defineEventHandler(async (event) => {
   const { service } = await openDesk(event, { requireAuth: true });
   const id = getRouterParam(event, "id");
@@ -11,3 +14,4 @@ export default defineEventHandler(async (event) => {
   }
   return result;
 });
+

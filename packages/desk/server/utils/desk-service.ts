@@ -1,8 +1,8 @@
-import { desc, eq, and, or, ilike, count, sql } from "drizzle-orm";
-import { type H3Event, getHeader } from "h3";
-import { getDeskDb, getDeskContext, getDeskKind, type DeskDb } from "../db/client";
-import { pages, revisions, orgUnits, users, issues, events, media } from "../db/schema";
-import type { PageStatus, Visibility, FeedbackReason, MediaKind } from "../db/types";
+import { desc, eq, and, or, ilike, count } from "drizzle-orm";
+import { type H3Event, getHeader, createError } from "h3";
+import { getDeskContext, getDeskKind, type DeskDb } from "../db/client";
+import { pages, revisions, users, issues, events, media } from "../db/schema";
+import type { PageStatus, Visibility, FeedbackReason, IssueStatus, MediaKind } from "../db/types";
 import { isVerificationStale, shouldOpenFeedbackIssue } from "../../app/utils/desk/governance";
 import pkg from "../../package.json";
 
@@ -160,8 +160,17 @@ export function createDeskService(db: DeskDb, actor: DeskActor, defaultOrgId: st
         [revision] = await db.select().from(revisions).where(eq(revisions.id, revisionId)).limit(1);
       }
 
+      const [owner] = page.ownerUserId
+        ? await db
+            .select({ id: users.id, name: users.name, email: users.email, login: users.login })
+            .from(users)
+            .where(eq(users.id, page.ownerUserId))
+            .limit(1)
+        : [undefined];
+
       return {
         ...page,
+        owner: owner ?? null,
         stale: isVerificationStale({
           verifiedUntil: page.verifiedUntil,
           reviewCadenceDays: page.reviewCadenceDays,
@@ -184,8 +193,17 @@ export function createDeskService(db: DeskDb, actor: DeskActor, defaultOrgId: st
         .where(eq(revisions.id, page.liveRevisionId))
         .limit(1);
 
+      const [owner] = page.ownerUserId
+        ? await db
+            .select({ id: users.id, name: users.name, email: users.email, login: users.login })
+            .from(users)
+            .where(eq(users.id, page.ownerUserId))
+            .limit(1)
+        : [undefined];
+
       return {
         ...page,
+        owner: owner ?? null,
         stale: isVerificationStale({
           verifiedUntil: page.verifiedUntil,
           reviewCadenceDays: page.reviewCadenceDays,
@@ -301,10 +319,18 @@ export function createDeskService(db: DeskDb, actor: DeskActor, defaultOrgId: st
         sessionId: string;
       }
     ) {
+      const normalizedRef = pageId.replace(/^\/p\//, "").trim() || "general";
+      const [matchedPage] = await db
+        .select({ id: pages.id })
+        .from(pages)
+        .where(or(eq(pages.id, normalizedRef), eq(pages.slug, normalizedRef)))
+        .limit(1);
+      const effectivePageId = matchedPage?.id || pageId;
+
       // Record feedback event
       await db.insert(events).values({
         id: crypto.randomUUID(),
-        pageId,
+        pageId: effectivePageId,
         sessionId: input.sessionId,
         type: `feedback_${input.vote}`,
         payload: {
@@ -323,7 +349,7 @@ export function createDeskService(db: DeskDb, actor: DeskActor, defaultOrgId: st
       ) {
         await db.insert(issues).values({
           id: crypto.randomUUID(),
-          pageId,
+          pageId: effectivePageId,
           kind: "feedback",
           status: "open",
           payload: {
@@ -392,17 +418,31 @@ export function createDeskService(db: DeskDb, actor: DeskActor, defaultOrgId: st
     },
 
     async listIssues(filter?: { status?: string; pageId?: string }) {
-      const rows = await db
+      const conditions = [];
+      if (filter?.status && filter.status !== "all") {
+        conditions.push(eq(issues.status, filter.status as IssueStatus));
+      }
+      if (filter?.pageId) {
+        conditions.push(or(eq(issues.pageId, filter.pageId), eq(pages.slug, filter.pageId)));
+      }
+
+      let query = db
         .select({
           issue: issues,
           pageTitle: pages.title,
           pageSlug: pages.slug,
         })
         .from(issues)
-        .leftJoin(pages, eq(issues.pageId, pages.id))
+        .leftJoin(pages, or(eq(issues.pageId, pages.id), eq(issues.pageId, pages.slug)))
         .orderBy(desc(issues.createdAt));
 
-      let result = rows.map((r) => ({
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions)) as typeof query;
+      }
+
+      const rows = await query;
+
+      return rows.map((r) => ({
         id: r.issue.id,
         pageId: r.issue.pageId,
         pageTitle: r.pageTitle || "General",
@@ -413,15 +453,6 @@ export function createDeskService(db: DeskDb, actor: DeskActor, defaultOrgId: st
         createdAt: r.issue.createdAt,
         updatedAt: r.issue.updatedAt,
       }));
-
-      if (filter?.status && filter.status !== "all") {
-        result = result.filter((i) => i.status === filter.status);
-      }
-      if (filter?.pageId) {
-        result = result.filter((i) => i.pageId === filter.pageId);
-      }
-
-      return result;
     },
 
     async resolveIssue(id: string, note?: string) {

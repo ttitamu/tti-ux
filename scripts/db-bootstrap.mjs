@@ -10,7 +10,7 @@
 import { createJiti } from "jiti";
 
 const jiti = createJiti(import.meta.url);
-const { getDeskContext } = await jiti.import("../server/db/client.ts");
+const { getDeskContext } = await jiti.import("../packages/desk/server/db/client.ts");
 
 async function main() {
   console.log("Starting TUX Desk database bootstrap...");

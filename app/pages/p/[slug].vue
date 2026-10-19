@@ -53,7 +53,7 @@ const crumbs = computed(() => {
           :verified-until="page.verifiedUntil"
           :review-cadence-days="page.reviewCadenceDays"
           :owner="page.owner?.name || 'TTI Mobility Research Group'"
-          :page-id="page.slug"
+          :page-id="page.id || page.slug"
           show-feedback
         />
       </div>

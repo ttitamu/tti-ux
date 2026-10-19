@@ -35,11 +35,26 @@ const QUEUE = path.join(ROOT, "kit/ports/QUEUE.md");
 /** Framework ports the ledger tracks. Extend as targets come online. */
 export const PORT_TARGETS = ["react"];
 
+function resolveVueBody(filePath) {
+  const body = fs.readFileSync(filePath);
+  const text = body.toString("utf8");
+  const reExportMatch =
+    text.match(/export\s+\{\s*default\s*\}\s+from\s+["']([^"']+\.vue)["']/) ||
+    text.match(/import\s+\w+\s+from\s+["']([^"']+\.vue)["']/);
+  if (reExportMatch && !text.includes("defineProps")) {
+    const targetPath = path.resolve(path.dirname(filePath), reExportMatch[1]);
+    if (fs.existsSync(targetPath)) {
+      return fs.readFileSync(targetPath);
+    }
+  }
+  return body;
+}
+
 function componentHashes() {
   const out = {};
   for (const f of fs.readdirSync(COMPONENTS).filter((f) => f.endsWith(".vue")).sort()) {
     const name = f.replace(/\.vue$/, "");
-    const body = fs.readFileSync(path.join(COMPONENTS, f));
+    const body = resolveVueBody(path.join(COMPONENTS, f));
     out[name] = crypto.createHash("sha256").update(body).digest("hex").slice(0, 16);
   }
   return out;

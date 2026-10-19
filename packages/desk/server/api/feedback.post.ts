@@ -1,4 +1,6 @@
+import { defineEventHandler, readBody } from "h3";
 import { feedbackSchema, parseOrThrow } from "../utils/desk-schemas";
+import { openDesk } from "../utils/desk-service";
 import { checkRateLimit } from "../utils/rate-limit";
 
 export default defineEventHandler(async (event) => {
@@ -16,3 +18,4 @@ export default defineEventHandler(async (event) => {
     sessionId: validated.sessionId,
   });
 });
+

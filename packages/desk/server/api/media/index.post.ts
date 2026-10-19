@@ -1,4 +1,6 @@
+import { defineEventHandler, readBody } from "h3";
 import { createMediaSchema, parseOrThrow } from "../../utils/desk-schemas";
+import { openDesk } from "../../utils/desk-service";
 
 export default defineEventHandler(async (event) => {
   const { service } = await openDesk(event, { requireAuth: true });
@@ -6,3 +8,4 @@ export default defineEventHandler(async (event) => {
   const validated = parseOrThrow(createMediaSchema, rawBody);
   return service.createMedia(validated);
 });
+

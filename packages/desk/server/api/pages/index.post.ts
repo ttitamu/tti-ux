@@ -1,4 +1,6 @@
+import { defineEventHandler, readBody } from "h3";
 import { createPageSchema, parseOrThrow } from "../../utils/desk-schemas";
+import { openDesk } from "../../utils/desk-service";
 
 export default defineEventHandler(async (event) => {
   const { service } = await openDesk(event, { requireAuth: true });
@@ -6,3 +8,4 @@ export default defineEventHandler(async (event) => {
   const validated = parseOrThrow(createPageSchema, rawBody);
   return service.createPage(validated);
 });
+

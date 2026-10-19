@@ -189,6 +189,20 @@ console.log(`  ✓ Strict rule: Warm Gold (#cfa935) on White (2.24:1) prohibited
 // 2. Component Template & Touch Target Audit (2.5.8 AAA & 2.4.13 AAA)
 // ─────────────────────────────────────────────────────────────────────────────
 
+function resolveVueContent(filePath) {
+  const content = readFileSync(filePath, "utf8");
+  const reExportMatch =
+    content.match(/export\s+\{\s*default\s*\}\s+from\s+["']([^"']+\.vue)["']/) ||
+    content.match(/import\s+\w+\s+from\s+["']([^"']+\.vue)["']/);
+  if (reExportMatch && !content.includes("defineProps")) {
+    const targetPath = path.resolve(path.dirname(filePath), reExportMatch[1]);
+    if (existsSync(targetPath)) {
+      return readFileSync(targetPath, "utf8");
+    }
+  }
+  return content;
+}
+
 const componentFiles = readdirSync(COMPONENTS_DIR).filter((f) => f.endsWith(".vue"));
 const componentA11yRecords = {};
 
@@ -197,7 +211,7 @@ let compliantInteractive = 0;
 
 for (const file of componentFiles) {
   const name = file.replace(".vue", "");
-  const content = readFileSync(path.join(COMPONENTS_DIR, file), "utf8");
+  const content = resolveVueContent(path.join(COMPONENTS_DIR, file));
 
   // Check interactive elements
   const isInteractive =

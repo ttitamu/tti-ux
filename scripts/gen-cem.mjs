@@ -22,8 +22,22 @@ function kebabCase(name) {
     .toLowerCase();
 }
 
+function resolveVueCode(filePath) {
+  let code = fs.readFileSync(filePath, "utf-8");
+  const reExportMatch =
+    code.match(/export\s+\{\s*default\s*\}\s+from\s+["']([^"']+\.vue)["']/) ||
+    code.match(/import\s+\w+\s+from\s+["']([^"']+\.vue)["']/);
+  if (reExportMatch && !code.includes("defineProps")) {
+    const targetPath = path.resolve(path.dirname(filePath), reExportMatch[1]);
+    if (fs.existsSync(targetPath)) {
+      code = fs.readFileSync(targetPath, "utf-8");
+    }
+  }
+  return code;
+}
+
 function parseComponent(filePath, fileName) {
-  const code = fs.readFileSync(filePath, "utf-8");
+  const code = resolveVueCode(filePath);
   const compName = path.basename(fileName, ".vue");
   const tagName = kebabCase(compName);
 
@@ -79,9 +93,25 @@ function parseComponent(filePath, fileName) {
 
   // Extract Events
   const events = [];
-  const emitMatches = code.matchAll(/defineEmits<\{[\s\S]*?\(e:\s*["']([^"']+)["']/g);
-  for (const m of emitMatches) {
-    events.push({ name: m[1] });
+  const seenEvents = new Set();
+  for (const m of code.matchAll(/defineEmits<\{([\s\S]*?)\}>\(\)/g)) {
+    const block = m[1];
+    for (const callMatch of block.matchAll(/\(e:\s*([^,)]+)/g)) {
+      for (const lit of callMatch[1].matchAll(/["']([^"']+)["']/g)) {
+        const ev = lit[1];
+        if (ev && !seenEvents.has(ev)) {
+          seenEvents.add(ev);
+          events.push({ name: ev });
+        }
+      }
+    }
+    for (const propMatch of block.matchAll(/(?:^|[;\n])\s*(?:["']([^"']+)["']|([a-zA-Z_$][a-zA-Z0-9_$:-]*))\s*:\s*\[/g)) {
+      const ev = propMatch[1] || propMatch[2];
+      if (ev && !seenEvents.has(ev)) {
+        seenEvents.add(ev);
+        events.push({ name: ev });
+      }
+    }
   }
 
   return {

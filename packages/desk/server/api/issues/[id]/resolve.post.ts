@@ -1,4 +1,6 @@
+import { createError, defineEventHandler, getRouterParam, readBody } from "h3";
 import { resolveIssueSchema, parseOrThrow } from "../../../utils/desk-schemas";
+import { openDesk } from "../../../utils/desk-service";
 
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, "id");
@@ -14,3 +16,4 @@ export default defineEventHandler(async (event) => {
   }
   return updated;
 });
+

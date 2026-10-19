@@ -137,20 +137,69 @@ function loadCatalogMetadata() {
   return entries;
 }
 
-function loadComponentList() {
-  const compDir = path.join(ROOT, "app", "components");
-  if (!existsSync(compDir)) return [];
-  return readdirSync(compDir)
-    .filter((f) => f.startsWith("Tux") && f.endsWith(".vue"))
-    .map((f) => f.replace(/\.vue$/, ""))
-    .sort();
+function resolveVueSource(compPath) {
+  let currentPath = compPath;
+  let code = readFileSync(currentPath, "utf8");
+  const reExportMatch =
+    code.match(/export\s+\{\s*default\s*\}\s+from\s+["']([^"']+\.vue)["']/) ||
+    code.match(/import\s+\w+\s+from\s+["']([^"']+\.vue)["']/);
+  if (reExportMatch && !code.includes("defineProps")) {
+    const targetPath = path.resolve(path.dirname(currentPath), reExportMatch[1]);
+    if (existsSync(targetPath)) {
+      currentPath = targetPath;
+      code = readFileSync(currentPath, "utf8");
+    }
+  }
+  const relSource = path.relative(ROOT, currentPath).replace(/\\/g, "/");
+  let layerPackage = "@tti/tti-ux";
+  const pkgMatch = relSource.match(/^packages\/([^/]+)\//);
+  if (pkgMatch) {
+    layerPackage = `@tti/tti-ux-${pkgMatch[1]}`;
+  }
+  return { code, sourcePath: currentPath, relSource, layerPackage };
 }
 
-function parseComponentDetails(compName) {
-  const compPath = path.join(ROOT, "app", "components", `${compName}.vue`);
-  if (!existsSync(compPath)) return null;
+let cachedComponentFiles = null;
+function loadComponentFileMap() {
+  if (cachedComponentFiles) return cachedComponentFiles;
+  const map = new Map();
+  const compDir = path.join(ROOT, "app", "components");
+  if (existsSync(compDir)) {
+    for (const f of readdirSync(compDir)) {
+      if (f.startsWith("Tux") && f.endsWith(".vue")) {
+        const name = f.replace(/\.(?:client|server)\.vue$/, "").replace(/\.vue$/, "");
+        map.set(name, path.join(compDir, f));
+      }
+    }
+    const deskDir = path.join(compDir, "desk");
+    if (existsSync(deskDir)) {
+      for (const f of readdirSync(deskDir)) {
+        if (f.startsWith("Tux") && f.endsWith(".vue")) {
+          const name = f.replace(/\.(?:client|server)\.vue$/, "").replace(/\.vue$/, "");
+          if (!map.has(name)) {
+            map.set(name, path.join(deskDir, f));
+          }
+        }
+      }
+    }
+  }
+  cachedComponentFiles = map;
+  return map;
+}
 
-  const code = readFileSync(compPath, "utf8");
+function loadComponentList() {
+  return [...loadComponentFileMap().keys()].sort();
+}
+
+const cachedComponentDetails = new Map();
+function parseComponentDetails(compName) {
+  if (cachedComponentDetails.has(compName)) {
+    return cachedComponentDetails.get(compName);
+  }
+  const compPath = loadComponentFileMap().get(compName);
+  if (!compPath || !existsSync(compPath)) return null;
+
+  const { code, relSource, layerPackage } = resolveVueSource(compPath);
   const tagName = kebabCase(compName);
   const catalogMeta = loadCatalogMetadata().get(compName) || null;
 
@@ -172,7 +221,7 @@ function parseComponentDetails(compName) {
     const body = defaultsMatch[1];
     for (const line of body.split("\n")) {
       const m = line.trim().match(/^([a-zA-Z0-9_$]+)\s*:\s*(.+?)\s*,?$/);
-      if (m) {
+      if (m && m[2] !== "undefined") {
         defaultsMap[m[1]] = m[2];
       }
     }
@@ -228,13 +277,24 @@ function parseComponentDetails(compName) {
     }
   }
 
-  // Extract Events
+  // Extract Events (supports call signatures, union event literals, and Vue 3.3+ tuple syntax)
   const events = [];
   const seenEvents = new Set();
   for (const m of code.matchAll(/defineEmits<\{([\s\S]*?)\}>\(\)/g)) {
     const block = m[1];
-    for (const em of block.matchAll(/(?:\(e:\s*["']([^"']+)["']|["']([^"']+)["']\s*:)/g)) {
-      const ev = em[1] || em[2];
+    // 1. Call signature style: (e: "foo" | "bar", ...) => void
+    for (const callMatch of block.matchAll(/\(e:\s*([^,)]+)/g)) {
+      for (const lit of callMatch[1].matchAll(/["']([^"']+)["']/g)) {
+        const ev = lit[1];
+        if (ev && !seenEvents.has(ev)) {
+          seenEvents.add(ev);
+          events.push(ev);
+        }
+      }
+    }
+    // 2. Vue 3.3+ shorthand tuple style: "update:modelValue": [...] or dismiss: []
+    for (const propMatch of block.matchAll(/(?:^|[;\n])\s*(?:["']([^"']+)["']|([a-zA-Z_$][a-zA-Z0-9_$:-]*))\s*:\s*\[/g)) {
+      const ev = propMatch[1] || propMatch[2];
       if (ev && !seenEvents.has(ev)) {
         seenEvents.add(ev);
         events.push(ev);
@@ -245,17 +305,22 @@ function parseComponentDetails(compName) {
   // Build framework usage snippets
   const sampleProps = props
     .slice(0, 2)
-    .map((p) => `${p.name}="${p.default ? String(p.default).replace(/['"]/g, "") : "..."}"`)
+    .map((p) => {
+      const cleaned = p.default ? String(p.default).replace(/['"]/g, "") : "";
+      const val = cleaned && cleaned !== "undefined" && cleaned !== "null" ? cleaned : "...";
+      return `${p.name}="${val}"`;
+    })
     .join(" ");
   const propSuffix = sampleProps ? ` ${sampleProps}` : "";
 
-  return {
+  const details = {
     name: compName,
     tagName,
-    file: `app/components/${compName}.vue`,
+    file: relSource,
+    layerPackage,
     docsRoute: catalogMeta?.to || `/components/${tagName.replace(/^tux-/, "")}`,
-    family: catalogMeta?.family || "components",
-    category: catalogMeta?.category || "general",
+    family: catalogMeta?.family || (compName.startsWith("TuxDesk") ? "publishing" : "components"),
+    category: catalogMeta?.category || (compName.startsWith("TuxDesk") ? "publishing" : "general"),
     wraps: catalogMeta?.wraps || "tux native",
     description: catalogMeta?.blurb || docComment || `${compName} TUX component`,
     props,
@@ -269,6 +334,8 @@ function parseComponentDetails(compName) {
       webComponent: `<${tagName}${propSuffix}></${tagName}>`,
     },
   };
+  cachedComponentDetails.set(compName, details);
+  return details;
 }
 
 // ── WCAG 2.2 Contrast & Hue-Preserving AAA Snapper ──────────────────────────
@@ -460,13 +527,20 @@ export const TUX_MCP_RESOURCES = [
   {
     uri: "tux://catalog/components",
     name: "TUX Component Catalog",
-    description: "Complete catalog of TUX components, categories, and routes.",
+    description: "Complete catalog of TUX components, categories, layer packages, and routes.",
     mimeType: "application/json",
   },
   {
     uri: "tux://tokens/all",
     name: "TUX Canonical CSS Custom Properties",
     description: "All defined CSS custom properties from app/assets/css/tokens.css and migration aliases.",
+    mimeType: "application/json",
+  },
+  {
+    uri: "tux://architecture/layers-and-api",
+    name: "TUX Modular Nuxt Layers & Desk API Routes",
+    description:
+      "Authoritative reference of TUX modular Nuxt layers (@tti/tti-ux, -charts, -diagrams, -code, -desk, -content, -react) and exact HTTP API route schemas.",
     mimeType: "application/json",
   },
   {
@@ -503,13 +577,18 @@ export function callTuxMcpTool(name, args = {}) {
       const filter = String(args.filter || "").toLowerCase();
       const catFilter = String(args.category || "").toLowerCase();
       const catalogMeta = loadCatalogMetadata();
+      const fileMap = loadComponentFileMap();
       const all = loadComponentList()
         .map((compName) => {
           const meta = catalogMeta.get(compName);
+          const compPath = fileMap.get(compName);
+          const { layerPackage } = compPath ? resolveVueSource(compPath) : { layerPackage: "@tti/tti-ux" };
+          const defaultCategory = compName.startsWith("TuxDesk") ? "publishing" : "internal";
           return {
             name: compName,
-            family: meta?.family || "components",
-            category: meta?.category || "internal",
+            layerPackage,
+            family: meta?.family || (compName.startsWith("TuxDesk") ? "publishing" : "components"),
+            category: meta?.category || defaultCategory,
             to: meta?.to || `/components/${kebabCase(compName).replace(/^tux-/, "")}`,
             blurb: meta?.blurb || "",
           };
@@ -520,6 +599,7 @@ export function callTuxMcpTool(name, args = {}) {
           return (
             item.name.toLowerCase().includes(filter) ||
             item.category.toLowerCase().includes(filter) ||
+            item.layerPackage.toLowerCase().includes(filter) ||
             item.blurb.toLowerCase().includes(filter)
           );
         });
@@ -714,6 +794,81 @@ export function readTuxMcpResource(uri) {
         ],
       };
     }
+    case "tux://architecture/layers-and-api": {
+      const architecture = {
+        layers: [
+          {
+            package: "@tti/tti-ux",
+            description: "Slim core Nuxt 4 design system layer (tokens, 75+ core components, composables, layouts).",
+          },
+          {
+            package: "@tti/tti-ux-charts",
+            components: ["TuxECharts"],
+            description: "Apache ECharts 6 visualization layer.",
+          },
+          {
+            package: "@tti/tti-ux-diagrams",
+            components: ["TuxDiagram"],
+            description: "Mermaid, Graphviz DOT, PlantUML, and Markmap diagramming layer.",
+          },
+          {
+            package: "@tti/tti-ux-code",
+            components: ["TuxCodeBlock"],
+            description: "Shiki syntax-highlighted code block layer.",
+          },
+          {
+            package: "@tti/tti-ux-desk",
+            components: [
+              "TuxRichTextEditor",
+              "TuxDeskArticle",
+              "TuxDeskEditor",
+              "TuxDeskInspector",
+              "TuxDeskModuleBlock",
+              "TuxDeskModulePalette",
+              "TuxDeskModuleView",
+              "TuxDeskOutline",
+              "TuxDeskPresetPicker",
+              "TuxDeskSourceEditor",
+              "TuxDeskWebBuilder",
+            ],
+            description: "Visual editorial CMS layer with TipTap editor, PGlite/Postgres storage, and 14 API routes.",
+            apiRoutes: [
+              { method: "GET", path: "/api/pages", query: ["status", "search", "stale", "limit", "offset"], auth: false },
+              { method: "POST", path: "/api/pages", body: ["title", "slug", "summary?", "status?", "bodyJson?", "bodyMd?"], auth: true },
+              { method: "GET", path: "/api/pages/:id", auth: false },
+              { method: "PUT", path: "/api/pages/:id", body: ["title?", "slug?", "summary?", "status?", "bodyJson?", "bodyMd?", "changeNote?"], auth: true },
+              { method: "POST", path: "/api/pages/:id/publish", auth: true },
+              { method: "GET", path: "/api/pages/:id/revisions", auth: false },
+              { method: "POST", path: "/api/pages/:id/revisions/:revId/rollback", auth: true },
+              { method: "GET", path: "/api/public/pages/:slug", auth: false },
+              { method: "POST", path: "/api/feedback", body: ["pageId", "vote ('up'|'down')", "reason?", "note?", "sessionId?"], auth: false },
+              { method: "GET", path: "/api/issues", query: ["status ('open'|'resolved')", "pageId"], auth: false },
+              { method: "POST", path: "/api/issues/:id/resolve", body: ["note?"], auth: true },
+              { method: "GET", path: "/api/media", auth: false },
+              { method: "POST", path: "/api/media", body: ["filename", "mimeType", "sizeBytes", "url", "altText?"], auth: true },
+              { method: "GET", path: "/api/system/stats", auth: false },
+            ],
+          },
+          {
+            package: "@tti/tti-ux-content",
+            description: "Git-backed Markdown/MDC documentation layer powered by @nuxt/content.",
+          },
+          {
+            package: "@tti/tti-ux-react",
+            description: "React 19 JSX/TSX component library.",
+          },
+        ],
+      };
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: "application/json",
+            text: JSON.stringify(architecture, null, 2),
+          },
+        ],
+      };
+    }
     case "tux://vision/roadmap": {
       const visionPath = path.join(ROOT, "design", "world-class-vision.md");
       const text = existsSync(visionPath)
@@ -734,6 +889,18 @@ export function readTuxMcpResource(uri) {
   }
 }
 
+let cachedPkgVersion = null;
+function getPkgVersion() {
+  if (cachedPkgVersion) return cachedPkgVersion;
+  try {
+    const pkg = JSON.parse(readFileSync(path.join(ROOT, "package.json"), "utf8"));
+    cachedPkgVersion = pkg.version || "3.3.0";
+  } catch {
+    cachedPkgVersion = "3.3.0";
+  }
+  return cachedPkgVersion;
+}
+
 export function handleMcpRequest(req) {
   const { id, method, params } = req || {};
 
@@ -750,7 +917,7 @@ export function handleMcpRequest(req) {
         },
         serverInfo: {
           name: "tti-ux-mcp",
-          version: "3.2.1",
+          version: getPkgVersion(),
         },
       },
     };

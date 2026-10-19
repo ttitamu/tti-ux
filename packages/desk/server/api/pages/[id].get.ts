@@ -1,3 +1,6 @@
+import { createError, defineEventHandler, getRouterParam } from "h3";
+import { openDesk } from "../../utils/desk-service";
+
 export default defineEventHandler(async (event) => {
   const { service } = await openDesk(event);
   const id = getRouterParam(event, "id");
@@ -6,3 +9,4 @@ export default defineEventHandler(async (event) => {
   if (!page) throw createError({ statusCode: 404, message: "Page not found" });
   return page;
 });
+

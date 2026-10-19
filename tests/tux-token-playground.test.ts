@@ -210,14 +210,51 @@ describe("Design Token Playground & Comm Alignment", () => {
     });
     expect(promptGet.result.messages[0].content.text).toContain("SH-47 Proving Ground");
 
-    // 3. Structured component inspection (props, defaults, slots, multi-framework examples)
+    // 3. Structured component inspection (including re-exported sub-layer components, Desk components, and Vue 3.3+ emits)
     const unitComp = callTuxMcpTool("tux_get_component", { name: "TuxUnitValue" });
     expect(unitComp.name).toBe("TuxUnitValue");
+    expect(unitComp.layerPackage).toBe("@tti/tti-ux");
     expect(unitComp.category).toBe("data-display");
     expect(unitComp.props.some((p: { name: string }) => p.name === "unit")).toBe(true);
     expect(unitComp.examples.vue).toContain("<TuxUnitValue");
     expect(unitComp.examples.react).toContain("@tti/tti-ux-react");
     expect(unitComp.examples.webComponent).toContain("<tux-unit-value");
+
+    // Verify re-exported sub-layer components resolve full props & events instead of empty re-export stubs
+    const echartsComp = callTuxMcpTool("tux_get_component", { name: "TuxECharts" });
+    expect(echartsComp.layerPackage).toBe("@tti/tti-ux-charts");
+    expect(echartsComp.props.length).toBeGreaterThanOrEqual(8);
+    expect(echartsComp.events).toEqual(["chartClick", "chartHover"]);
+
+    const diagramComp = callTuxMcpTool("tux_get_component", { name: "TuxDiagram" });
+    expect(diagramComp.layerPackage).toBe("@tti/tti-ux-diagrams");
+    expect(diagramComp.props.some((p: { name: string }) => p.name === "code")).toBe(true);
+
+    const codeBlockComp = callTuxMcpTool("tux_get_component", { name: "TuxCodeBlock" });
+    expect(codeBlockComp.layerPackage).toBe("@tti/tti-ux-code");
+    expect(codeBlockComp.props.some((p: { name: string }) => p.name === "code")).toBe(true);
+
+    const deskArticleComp = callTuxMcpTool("tux_get_component", { name: "TuxDeskArticle" });
+    expect(deskArticleComp.layerPackage).toBe("@tti/tti-ux-desk");
+    expect(deskArticleComp.props.some((p: { name: string }) => p.name === "bodyJson")).toBe(true);
+
+    // Verify Vue 3.3+ unquoted tuple emits (e.g. dismiss: []) and .client.vue resolution
+    const bannerComp = callTuxMcpTool("tux_get_component", { name: "TuxAnnouncementBanner" });
+    expect(bannerComp.events).toContain("dismiss");
+
+    const deskEditorComp = callTuxMcpTool("tux_get_component", { name: "TuxDeskEditor" });
+    expect(deskEditorComp.layerPackage).toBe("@tti/tti-ux-desk");
+    expect(deskEditorComp.events).toContain("update:modelValue");
+
+    // Verify architecture resource
+    const archRes = handleMcpRequest({
+      jsonrpc: "2.0",
+      id: 7,
+      method: "resources/read",
+      params: { uri: "tux://architecture/layers-and-api" },
+    });
+    const archData = JSON.parse(archRes.result.contents[0].text);
+    expect(archData.layers.length).toBe(7);
 
     // 4. Token search & contrast validation with AAA hex recommendation
     const tokenSearch = callTuxMcpTool("tux_search_tokens", { query: "--surface-base" });
