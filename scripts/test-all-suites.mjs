@@ -120,6 +120,7 @@ if (targetTiers.includes(3)) {
   runStep("Vitest Workspace Suite (@tti/tti-ux-diagrams)", "npm", ["run", "test", "-w", "@tti/tti-ux-diagrams"]);
   runStep("Vitest Workspace Suite (@tti/tti-ux-code)", "npm", ["run", "test", "-w", "@tti/tti-ux-code"]);
   runStep("Vitest Workspace Suite (@tti/tti-ux-desk)", "npm", ["run", "test", "-w", "@tti/tti-ux-desk"]);
+  runStep("Vitest Workspace Suite (@tti/tti-ux-content)", "npm", ["run", "test", "-w", "@tti/tti-ux-content"]);
   runStep("Vitest Workspace Suite (@tti/tti-ux-react)", "npm", ["run", "test", "-w", "@tti/tti-ux-react"]);
   console.log();
 }

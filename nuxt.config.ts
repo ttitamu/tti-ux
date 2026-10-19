@@ -37,6 +37,8 @@ export default defineNuxtConfig({
     resolve(layerDir, "packages/code"),
     // Feature sub-layer for Desk Visual Web Builder & Publishing Engine
     resolve(layerDir, "packages/desk"),
+    // Feature sub-layer for Markdown (MDC) & KaTeX Math
+    resolve(layerDir, "packages/content"),
   ],
 
   devtools: { enabled: isRootProject },
@@ -117,7 +119,6 @@ export default defineNuxtConfig({
     "@nuxt/eslint",
     "@nuxt/a11y",
     "@nuxtjs/color-mode",
-    "@nuxtjs/mdc",
     // @vueuse/nuxt removed 2026-08-12 (owner-decided): registered since
     // early scaffolding with zero call sites. House utilities live in
     // app/composables/ as tux-owned equivalents (useTuxPersistedRef,
@@ -173,37 +174,6 @@ export default defineNuxtConfig({
     },
   ],
 
-  // MDC — markdown rendering with Vue components. Lets consumers
-  // (tti-docs, blog posts, marcom WordPress migration) author content
-  // in markdown with Tux* components inline. Tux components are
-  // already auto-imported by Nuxt; MDC picks them up via the same
-  // resolver. See `app/pages/markdown.vue` for the demo + full syntax
-  // crib sheet.
-  mdc: {
-    headings: {
-      anchorLinks: false,
-    },
-    highlight: {
-      // Reuse the Shiki themes the rest of the system uses.
-      theme: {
-        default: "github-light",
-        dark: "github-dark",
-      },
-      langs: ["ts", "js", "vue", "html", "css", "json", "bash", "python", "yaml", "md"],
-    },
-    // Math in markdown: `$inline$` and `$$display$$` parse via
-    // `remark-math` and render to HTML via `rehype-katex`. Pair with
-    // the `katex/dist/katex.min.css` import in `globals.css`.
-    remarkPlugins: {
-      "remark-math": {},
-      "remark-md-links": {
-        src: resolve(layerDir, "app/utils/remark-md-links.ts"),
-      },
-    },
-    rehypePlugins: {
-      "rehype-katex": {},
-    },
-  },
 
   // CSS load order: fonts first (@font-face — declare faces before any
   // rules reference them), then tokens (CSS vars), then globals
