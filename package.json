@@ -17,6 +17,7 @@
   "main": "./nuxt.config.ts",
   "files": [
     "app",
+    "packages",
     "design",
     "docs",
     "kit",
@@ -66,7 +67,6 @@
     "mcp": "node scripts/tux-mcp.mjs"
   },
   "dependencies": {
-    "@electric-sql/pglite": "^0.5.10",
     "@iconify-json/lucide": "^1.2.146",
     "@nuxt/a11y": "^1.0.0-alpha.1",
     "@nuxt/eslint": "^1.17.0",
@@ -74,44 +74,36 @@
     "@nuxt/image": "^2.1.0",
     "@nuxt/ui": "^4.12.0",
     "@nuxtjs/color-mode": "^4.0.0",
-    "@nuxtjs/mdc": "^0.23.2",
     "@tailwindcss/vite": "^4.0.0",
     "@tanstack/vue-virtual": "^3.13.47",
-    "@tiptap/core": "^3.32.0",
-    "@tiptap/extension-code-block-lowlight": "^3.32.0",
-    "@tiptap/extension-file-handler": "^3.32.0",
-    "@tiptap/extension-image": "^3.32.0",
-    "@tiptap/extension-link": "^3.32.0",
-    "@tiptap/extension-placeholder": "^3.32.0",
-    "@tiptap/extension-table": "^3.32.0",
-    "@tiptap/extension-table-cell": "^3.32.0",
-    "@tiptap/extension-table-header": "^3.32.0",
-    "@tiptap/extension-table-row": "^3.32.0",
-    "@tiptap/extension-task-item": "^3.32.0",
-    "@tiptap/extension-task-list": "^3.32.0",
-    "@tiptap/extension-typography": "^3.32.0",
-    "@tiptap/extension-underline": "^3.32.0",
-    "@tiptap/extension-youtube": "^3.32.0",
-    "@tiptap/html": "^3.32.0",
-    "@tiptap/pm": "^3.32.0",
-    "@tiptap/starter-kit": "^3.32.0",
-    "@tiptap/vue-3": "^3.32.0",
-    "drizzle-orm": "^0.45.4",
-    "echarts": "^6.1.0",
-    "echarts-liquidfill": "^3.1.0",
-    "echarts-wordcloud": "^2.1.0",
-    "katex": "^0.19.0",
-    "lowlight": "^3.3.0",
-    "mermaid": "^11.17.2",
     "nuxt": "^4.6.2",
-    "postgres": "^3.4.9",
-    "rehype-katex": "^7.0.1",
-    "remark-math": "^6.0.0",
-    "sanitize-html": "^2.18.1",
-    "shiki": "^4.5.0",
     "tailwindcss": "^4.0.0",
     "vue": "^3.5.44",
     "vue-router": "^5.4.0"
+  },
+  "peerDependencies": {
+    "@tti/tti-ux-charts": "^3.3.0",
+    "@tti/tti-ux-code": "^3.3.0",
+    "@tti/tti-ux-content": "^3.3.0",
+    "@tti/tti-ux-desk": "^3.3.0",
+    "@tti/tti-ux-diagrams": "^3.3.0"
+  },
+  "peerDependenciesMeta": {
+    "@tti/tti-ux-charts": {
+      "optional": true
+    },
+    "@tti/tti-ux-code": {
+      "optional": true
+    },
+    "@tti/tti-ux-content": {
+      "optional": true
+    },
+    "@tti/tti-ux-desk": {
+      "optional": true
+    },
+    "@tti/tti-ux-diagrams": {
+      "optional": true
+    }
   },
   "lint-staged": {
     "*.{vue,ts,js,mjs}": "eslint --fix"

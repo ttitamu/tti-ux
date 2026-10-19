@@ -49,8 +49,8 @@
     "drizzle-orm": "^0.45.4",
     "happy-dom": "^20.14.6",
     "lowlight": "^3.3.0",
-    "postgres": "^3.4.7",
-    "sanitize-html": "^2.17.0",
+    "postgres": "^3.4.9",
+    "sanitize-html": "^2.18.1",
     "zod": "^3.25.76"
   }
 }

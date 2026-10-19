@@ -454,7 +454,7 @@ const shouldShowBreadcrumbs = computed(() => {
     "/changelog",
     "/p",
     "/examples",
-    "/design/",
+    "/design",
     "/news",
     "/components/portal-shell",
   ];
