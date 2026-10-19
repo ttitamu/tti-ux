@@ -1,0 +1,32 @@
+{
+  "name": "@tti/tti-ux-charts",
+  "version": "3.3.0",
+  "description": "Apache ECharts integration and storytelling presets for the TTI design system (TUX).",
+  "type": "module",
+  "main": "./nuxt.config.ts",
+  "files": [
+    "app",
+    "nuxt.config.ts",
+    "README.md"
+  ],
+  "publishConfig": {
+    "registry": "https://code.tti.tamu.edu/api/packages/tti/npm/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://code.tti.tamu.edu/tti/tti-ux.git",
+    "directory": "packages/charts"
+  },
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@tti/tti-ux": "^3.0.0"
+  },
+  "dependencies": {
+    "echarts": "^6.1.0",
+    "echarts-liquidfill": "^3.1.0",
+    "echarts-wordcloud": "^2.1.0"
+  }
+}

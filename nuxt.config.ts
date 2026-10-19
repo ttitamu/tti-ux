@@ -28,6 +28,11 @@ export default defineNuxtConfig({
 
   future: { compatibilityVersion: 4 },
 
+  extends: [
+    // Feature sub-layer for Apache ECharts
+    resolve(layerDir, "packages/charts"),
+  ],
+
   devtools: { enabled: isRootProject },
   telemetry: false,
 
