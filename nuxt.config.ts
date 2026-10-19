@@ -274,6 +274,52 @@ export default defineNuxtConfig({
   },
 
   hooks: {
+    // Nuxt registers `global: true` components with async dynamic wrappers for
+    // MDC runtime resolution. When components (like TuxErrorPage, TuxFooter, etc.)
+    // are also statically referenced by templates or layouts, Rollup and Rolldown
+    // warn that the dynamic import will not move the module into a separate chunk.
+    // Filter this expected warning across both client (Rollup) and server/SSR (Rolldown) builds.
+    "vite:extendConfig"(config) {
+      const suppressIneffectiveDynamicImport = (warning: unknown, warn: (w: unknown) => void) => {
+        const w = warning as { code?: string; message?: string } | string | undefined;
+        if (
+          (typeof w === "object" && w?.code === "INEFFECTIVE_DYNAMIC_IMPORT") ||
+          (typeof w === "string" && w.includes("INEFFECTIVE_DYNAMIC_IMPORT"))
+        ) {
+          return;
+        }
+        warn(warning);
+      };
+
+      config.build = config.build || {};
+      const buildAny = config.build as Record<string, any>;
+
+      // Vite client / Rollup
+      buildAny.rollupOptions = buildAny.rollupOptions || {};
+      const origRollupOnwarn = buildAny.rollupOptions.onwarn;
+      buildAny.rollupOptions.onwarn = (warning: unknown, warn: (w: unknown) => void) => {
+        suppressIneffectiveDynamicImport(warning, (w) => {
+          if (origRollupOnwarn) {
+            origRollupOnwarn(w, warn);
+          } else {
+            warn(w);
+          }
+        });
+      };
+
+      // Vite 8 / Rolldown (server/SSR)
+      buildAny.rolldownOptions = buildAny.rolldownOptions || {};
+      const origRolldownOnwarn = buildAny.rolldownOptions.onwarn;
+      buildAny.rolldownOptions.onwarn = (warning: unknown, warn: (w: unknown) => void) => {
+        suppressIneffectiveDynamicImport(warning, (w) => {
+          if (origRolldownOnwarn) {
+            origRolldownOnwarn(w, warn);
+          } else {
+            warn(w);
+          }
+        });
+      };
+    },
     // Nuxt CLI does not call process.exit(0) when the build completes, and
     // lingering worker threads or file watchers in Node 26 can prevent the
     // process from terminating naturally after "✨ Build complete!".
