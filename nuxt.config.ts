@@ -31,6 +31,10 @@ export default defineNuxtConfig({
   extends: [
     // Feature sub-layer for Apache ECharts
     resolve(layerDir, "packages/charts"),
+    // Feature sub-layer for Mermaid Diagrams
+    resolve(layerDir, "packages/diagrams"),
+    // Feature sub-layer for Shiki Code Highlighting
+    resolve(layerDir, "packages/code"),
   ],
 
   devtools: { enabled: isRootProject },

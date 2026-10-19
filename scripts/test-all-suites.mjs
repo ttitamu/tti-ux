@@ -117,6 +117,8 @@ if (targetTiers.includes(3)) {
   console.log(`    ${colors.dim}Mounted Nuxt test suites include direct in-component Axe accessibility validation.${colors.reset}`);
   runStep("Vitest Root Suites (Mounted Component Axe + Invariant Tests)", "npx", ["vitest", "run"]);
   runStep("Vitest Workspace Suite (@tti/tti-ux-charts)", "npm", ["run", "test", "-w", "@tti/tti-ux-charts"]);
+  runStep("Vitest Workspace Suite (@tti/tti-ux-diagrams)", "npm", ["run", "test", "-w", "@tti/tti-ux-diagrams"]);
+  runStep("Vitest Workspace Suite (@tti/tti-ux-code)", "npm", ["run", "test", "-w", "@tti/tti-ux-code"]);
   runStep("Vitest Workspace Suite (@tti/tti-ux-react)", "npm", ["run", "test", "-w", "@tti/tti-ux-react"]);
   console.log();
 }

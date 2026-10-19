@@ -1,0 +1,30 @@
+{
+  "name": "@tti/tti-ux-diagrams",
+  "version": "3.3.0",
+  "description": "Mermaid diagrams-as-code integration and institutional styling for the TTI design system (TUX).",
+  "type": "module",
+  "main": "./nuxt.config.ts",
+  "files": [
+    "app",
+    "nuxt.config.ts",
+    "README.md"
+  ],
+  "publishConfig": {
+    "registry": "https://code.tti.tamu.edu/api/packages/tti/npm/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://code.tti.tamu.edu/tti/tti-ux.git",
+    "directory": "packages/diagrams"
+  },
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@tti/tti-ux": "^3.0.0"
+  },
+  "dependencies": {
+    "mermaid": "^11.4.1"
+  }
+}
