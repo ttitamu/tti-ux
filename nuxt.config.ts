@@ -35,6 +35,8 @@ export default defineNuxtConfig({
     resolve(layerDir, "packages/diagrams"),
     // Feature sub-layer for Shiki Code Highlighting
     resolve(layerDir, "packages/code"),
+    // Feature sub-layer for Desk Visual Web Builder & Publishing Engine
+    resolve(layerDir, "packages/desk"),
   ],
 
   devtools: { enabled: isRootProject },

@@ -1,0 +1,56 @@
+{
+  "name": "@tti/tti-ux-desk",
+  "version": "3.3.0",
+  "description": "Visual document builder, rich text editor, and headless publishing engine for the TTI design system (TUX).",
+  "type": "module",
+  "main": "./nuxt.config.ts",
+  "files": [
+    "app",
+    "server",
+    "nuxt.config.ts",
+    "README.md"
+  ],
+  "publishConfig": {
+    "registry": "https://code.tti.tamu.edu/api/packages/tti/npm/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://code.tti.tamu.edu/tti/tti-ux.git",
+    "directory": "packages/desk"
+  },
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@tti/tti-ux": "^3.0.0"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.10",
+    "@tiptap/core": "^3.32.0",
+    "@tiptap/extension-code-block-lowlight": "^3.32.0",
+    "@tiptap/extension-file-handler": "^3.32.0",
+    "@tiptap/extension-image": "^3.32.0",
+    "@tiptap/extension-link": "^3.32.0",
+    "@tiptap/extension-placeholder": "^3.32.0",
+    "@tiptap/extension-table": "^3.32.0",
+    "@tiptap/extension-table-cell": "^3.32.0",
+    "@tiptap/extension-table-header": "^3.32.0",
+    "@tiptap/extension-table-row": "^3.32.0",
+    "@tiptap/extension-task-item": "^3.32.0",
+    "@tiptap/extension-task-list": "^3.32.0",
+    "@tiptap/extension-typography": "^3.32.0",
+    "@tiptap/extension-underline": "^3.32.0",
+    "@tiptap/extension-youtube": "^3.32.0",
+    "@tiptap/html": "^3.32.0",
+    "@tiptap/pm": "^3.32.0",
+    "@tiptap/starter-kit": "^3.32.0",
+    "@tiptap/vue-3": "^3.32.0",
+    "drizzle-orm": "^0.45.4",
+    "happy-dom": "^20.14.6",
+    "lowlight": "^3.3.0",
+    "postgres": "^3.4.7",
+    "sanitize-html": "^2.17.0",
+    "zod": "^3.25.76"
+  }
+}
