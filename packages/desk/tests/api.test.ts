@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { openDesk } from "../../server/utils/desk-service";
-import pkg from "../../package.json";
+import { openDesk } from "../server/utils/desk-service";
+import pkg from "../package.json";
 
 describe("Tux Desk API Service", () => {
   it("lists seeded pages with freshness metadata", async () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { getDeskDb, getDeskKind } from "../../server/db/client";
-import { pages, users, orgUnits } from "../../server/db/schema";
+import { getDeskDb, getDeskKind } from "../server/db/client";
+import { pages, users, orgUnits } from "../server/db/schema";
 import { eq } from "drizzle-orm";
 
 describe("Tux Desk In-Process Database (PGlite)", () => {

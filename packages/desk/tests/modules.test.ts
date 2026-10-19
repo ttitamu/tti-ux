@@ -12,7 +12,7 @@ import {
   sanitizeHref,
   moduleGridStyle,
   calcGridColumnFromCoord,
-} from "../../app/utils/desk/modules";
+} from "../app/utils/desk/modules";
 
 describe("Tux Desk Modules", () => {
   it("defines all canonical modules", () => {

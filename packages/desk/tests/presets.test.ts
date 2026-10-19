@@ -4,8 +4,8 @@ import {
   getDeskPresets,
   getDeskPreset,
   clonePresetDoc,
-} from "../../app/utils/desk/presets";
-import { asTipTapDoc, splitDeskBlocks } from "../../app/utils/desk/render";
+} from "../app/utils/desk/presets";
+import { asTipTapDoc, splitDeskBlocks } from "../app/utils/desk/render";
 
 describe("Tux Desk Presets Catalog", () => {
   it("registers all 5 canonical institutional presets", () => {

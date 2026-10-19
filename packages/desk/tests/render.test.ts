@@ -5,7 +5,7 @@ import {
   splitDeskBlocks,
   plainTextFromDoc,
   renderDeskBody,
-} from "../../app/utils/desk/render";
+} from "../app/utils/desk/render";
 
 describe("Tux Desk Render Engine", () => {
   it("normalizes and parses TipTap doc", () => {

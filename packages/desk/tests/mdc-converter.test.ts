@@ -5,7 +5,7 @@ import {
   mdcToDoc,
   docToHtml,
   htmlToDoc,
-} from "../../app/utils/desk/mdc-converter";
+} from "../app/utils/desk/mdc-converter";
 
 describe("MDC & TipTap Document Converter", () => {
   it("converts a document with modules and prose to clean MDC markdown", () => {

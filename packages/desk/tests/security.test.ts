@@ -5,9 +5,9 @@ import {
   createMediaSchema,
   feedbackSchema,
   parseOrThrow,
-} from "../../server/utils/desk-schemas";
-import { sanitizeDeskHtml } from "../../app/utils/desk/render";
-import { extractActorFromEvent } from "../../server/utils/desk-service";
+} from "../server/utils/desk-schemas";
+import { sanitizeDeskHtml } from "../app/utils/desk/render";
+import { extractActorFromEvent } from "../server/utils/desk-service";
 import type { H3Event } from "h3";
 
 describe("TUX Desk Security Controls (P0)", () => {
