@@ -13,7 +13,6 @@ import {
   TUX_COMPONENT_CATEGORIES,
   TUX_VIZ_CATEGORIES,
 } from "./utils/tuxCatalog";
-import { tuxTokensCatalog } from "./utils/tuxTokensCatalog";
 import type { Command, CommandGroup } from "./components/TuxCommandPalette.vue";
 
 const pkgVersion = pkgVersionRaw;
@@ -853,17 +852,27 @@ const actionCommands: Command[] = [
   },
 ];
 
-const tokenCommands: Command[] = tuxTokensCatalog.map((t) => ({
-  id: `token-${t.cleanName}`,
-  label: t.name,
-  description: `${t.value} · ${t.description}`,
-  category: "tokens",
-  badge: t.category,
-  badgeTone: t.category === "brand" ? "brand" : t.category === "ops" ? "ok" : "neutral",
-  tokenValue: t.value,
-  isColor: t.isColor,
-  copyText: `var(${t.name})`,
-}));
+// Palette-only data — kept out of the entry chunk and fetched on idle after
+// mount, so it's ready well before anyone opens ⌘K.
+const tokenCommands = shallowRef<Command[]>([]);
+onMounted(() => {
+  const load = () =>
+    import("./utils/tuxTokensCatalog").then(({ tuxTokensCatalog }) => {
+      tokenCommands.value = tuxTokensCatalog.map((t) => ({
+        id: `token-${t.cleanName}`,
+        label: t.name,
+        description: `${t.value} · ${t.description}`,
+        category: "tokens",
+        badge: t.category,
+        badgeTone: t.category === "brand" ? "brand" : t.category === "ops" ? "ok" : "neutral",
+        tokenValue: t.value,
+        isColor: t.isColor,
+        copyText: `var(${t.name})`,
+      }));
+    });
+  if ("requestIdleCallback" in window) window.requestIdleCallback(load, { timeout: 2000 });
+  else setTimeout(load, 200);
+});
 
 const componentCommands: Command[] = tuxCatalog
   .filter((c) => c.family === "components")
@@ -908,7 +917,7 @@ const paletteGroups = computed<CommandGroup[]>(() => [
   {
     heading: "🎨 Design Tokens & Palette",
     category: "tokens",
-    items: tokenCommands,
+    items: tokenCommands.value,
   },
   ...docCommands,
 ]);

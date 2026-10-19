@@ -1,10 +1,8 @@
 // useTuxHighlighter — singleton Shiki highlighter for the whole app.
 //
-// Shipped to fix the flash-of-unhighlighted-code that the
-// per-component dynamic-import pattern caused. One instance per
-// request (server) or per page session (client), shared across all
-// TuxCodeBlock and TuxExample call sites. Pre-loads the common langs
-// at first use; rare langs lazy-load on demand.
+// Uses `shiki/core` with oniguruma wasm and explicit language / theme imports
+// instead of importing the full 346-language bundle, keeping build output
+// and bundle size lean.
 //
 // Usage:
 //
@@ -15,48 +13,59 @@
 // during SSR so the rendered HTML ships in the initial document. No
 // flash of unhighlighted code on initial paint.
 
-import type { Highlighter, BundledLanguage, BundledTheme } from "shiki";
+import type { BundledTheme } from "shiki";
+import type { HighlighterCore } from "shiki/core";
 
-// Common langs we pre-load. Anything outside this set adds maybe
-// 10-30ms on first use to fetch + register the grammar.
-const COMMON_LANGS: BundledLanguage[] = [
-  "ts", "tsx", "js", "vue", "html", "css", "scss", "csharp", "razor",
-  "json", "yaml", "md", "bash", "shell", "python", "go", "rust", "sql",
-  "swift", "kotlin", "php",
+const THEMES = [
+  import("shiki/themes/github-light.mjs"),
+  import("shiki/themes/github-dark.mjs"),
+  import("shiki/themes/github-light-high-contrast.mjs"),
 ];
 
-const THEMES: BundledTheme[] = [
-  "github-light",
-  "github-dark",
-  "github-light-high-contrast",
+const LANGS = [
+  import("shiki/langs/typescript.mjs"),
+  import("shiki/langs/javascript.mjs"),
+  import("shiki/langs/vue.mjs"),
+  import("shiki/langs/html.mjs"),
+  import("shiki/langs/css.mjs"),
+  import("shiki/langs/scss.mjs"),
+  import("shiki/langs/csharp.mjs"),
+  import("shiki/langs/razor.mjs"),
+  import("shiki/langs/tsx.mjs"),
+  import("shiki/langs/json.mjs"),
+  import("shiki/langs/yaml.mjs"),
+  import("shiki/langs/markdown.mjs"),
+  import("shiki/langs/bash.mjs"),
+  import("shiki/langs/shellscript.mjs"),
+  import("shiki/langs/python.mjs"),
+  import("shiki/langs/go.mjs"),
+  import("shiki/langs/rust.mjs"),
+  import("shiki/langs/sql.mjs"),
+  import("shiki/langs/swift.mjs"),
+  import("shiki/langs/kotlin.mjs"),
+  import("shiki/langs/php.mjs"),
 ];
 
-// Module-scoped state. On the server, Nuxt re-evaluates the module
-// per worker; on the client, this lives for the page session.
-let highlighterPromise: Promise<Highlighter> | null = null;
-const loadedLangs = new Set<string>(COMMON_LANGS);
+let highlighterPromise: Promise<HighlighterCore> | null = null;
+let loadedLangs = new Set<string>();
 
-async function getHighlighter(): Promise<Highlighter> {
+async function getHighlighter(): Promise<HighlighterCore> {
   if (!highlighterPromise) {
     highlighterPromise = (async () => {
-      const { createHighlighter } = await import("shiki");
-      return createHighlighter({
+      const [{ createHighlighterCore }, { createOnigurumaEngine }] = await Promise.all([
+        import("shiki/core"),
+        import("shiki/engine/oniguruma"),
+      ]);
+      const highlighter = await createHighlighterCore({
         themes: THEMES,
-        langs: COMMON_LANGS,
+        langs: LANGS,
+        engine: createOnigurumaEngine(import("shiki/wasm")),
       });
+      loadedLangs = new Set(highlighter.getLoadedLanguages());
+      return highlighter;
     })();
   }
   return highlighterPromise;
-}
-
-async function ensureLang(highlighter: Highlighter, lang: string) {
-  if (loadedLangs.has(lang)) return;
-  try {
-    await highlighter.loadLanguage(lang as BundledLanguage);
-    loadedLangs.add(lang);
-  } catch {
-    // Unknown lang — fall through to plain text rendering.
-  }
 }
 
 export function useTuxHighlighter() {
@@ -75,13 +84,12 @@ export function useTuxHighlighter() {
       return `<pre><code>${escape(code)}</code></pre>`;
     }
     const highlighter = await getHighlighter();
-    await ensureLang(highlighter, opts.lang);
     if (!loadedLangs.has(opts.lang)) {
-      // Lang failed to load — fall back to plain text.
+      // Lang not in core set — fall back to plain text.
       return `<pre><code>${escape(code)}</code></pre>`;
     }
     return highlighter.codeToHtml(code, {
-      lang: opts.lang as BundledLanguage,
+      lang: opts.lang,
       theme: opts.theme,
     });
   }
