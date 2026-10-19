@@ -70,7 +70,7 @@ jobs:
           cache: npm
 
       - name: install
-        run: npm ci --legacy-peer-deps
+        run: npm ci
 
       - name: generate
         env:

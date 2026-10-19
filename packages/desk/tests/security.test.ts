@@ -68,7 +68,7 @@ describe("TUX Desk Security Controls (P0)", () => {
           vote: "down",
           reason: "unsupported-reason-token" as any,
         })
-      ).toThrow(/Invalid option/);
+      ).toThrow(/(Invalid enum value|Invalid option)/);
 
       expect(() =>
         parseOrThrow(feedbackSchema, {
