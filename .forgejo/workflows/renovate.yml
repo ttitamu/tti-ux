@@ -1,0 +1,43 @@
+# Renovate bot workflow for self-hosted Forgejo instance (code.tti.tamu.edu).
+# Runs the official Renovate container on a schedule or manual trigger,
+# checks dependencies, generates changelog-rich PRs, and verifies CI passability.
+
+name: Renovate Dependency Bot
+
+on:
+  schedule:
+    # Run every Monday at 4:00 AM Central (09:00 UTC)
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run mode (extract / plan without opening or editing PRs)'
+        type: boolean
+        default: false
+      log_level:
+        description: 'Logging verbosity'
+        type: choice
+        options:
+          - info
+          - debug
+          - trace
+        default: info
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Self-hosted Renovate on Forgejo
+        uses: docker://renovate/renovate:latest
+        env:
+          # Forgejo uses the Gitea API compatibility layer
+          RENOVATE_PLATFORM: 'gitea'
+          RENOVATE_ENDPOINT: 'https://code.tti.tamu.edu/api/v1'
+          RENOVATE_TOKEN: ${{ secrets.RENOVATE_BOT_TOKEN }}
+          RENOVATE_AUTODISCOVER: 'false'
+          RENOVATE_REPOSITORIES: '["tti/tti-ux"]'
+          RENOVATE_DRY_RUN: ${{ inputs.dry_run || 'false' }}
+          LOG_LEVEL: ${{ inputs.log_level || 'info' }}
