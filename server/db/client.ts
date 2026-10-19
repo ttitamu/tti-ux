@@ -13,9 +13,15 @@ export type DeskDb =
   | ReturnType<typeof drizzlePglite<typeof schema>>
   | ReturnType<typeof drizzlePostgres<typeof schema>>;
 
+export interface CachedOrg {
+  id: string;
+  ownerUserId: string;
+}
+
 interface Cache {
   db: DeskDb;
   kind: "postgres" | "pglite";
+  defaultOrg: CachedOrg | null;
 }
 
 let cache: Cache | null = null;
@@ -26,15 +32,20 @@ function databaseUrl(): string {
 }
 
 export async function getDeskDb(): Promise<DeskDb> {
-  if (cache) return cache.db;
-  if (!ready) ready = openDeskDb();
-  cache = await ready;
-  return cache.db;
+  const ctx = await getDeskContext();
+  return ctx.db;
 }
 
 export async function getDeskKind(): Promise<"postgres" | "pglite"> {
-  if (!cache) await getDeskDb();
-  return cache?.kind ?? "pglite";
+  const ctx = await getDeskContext();
+  return ctx.kind;
+}
+
+export async function getDeskContext(): Promise<Cache> {
+  if (cache) return cache;
+  if (!ready) ready = openDeskDb();
+  cache = await ready;
+  return cache;
 }
 
 async function openDeskDb(): Promise<Cache> {
@@ -42,9 +53,20 @@ async function openDeskDb(): Promise<Cache> {
   if (url.startsWith("postgres://") || url.startsWith("postgresql://")) {
     const sql = postgres(url, { max: 4 });
     const db = drizzlePostgres(sql, { schema });
+
+    // When DESK_AUTO_BOOTSTRAP=false (recommended for production deployments with pre-run migrations),
+    // skip request-time DDL and read the org directly.
+    if (process.env.DESK_AUTO_BOOTSTRAP === "false") {
+      const [existingOrg] = await db
+        .select({ id: orgUnits.id, ownerUserId: orgUnits.ownerUserId })
+        .from(orgUnits)
+        .limit(1);
+      return { db, kind: "postgres", defaultOrg: existingOrg ?? null };
+    }
+
     await sql.unsafe(BOOTSTRAP_SQL);
-    await seedDesk(db);
-    return { db, kind: "postgres" };
+    const defaultOrg = await seedDesk(db);
+    return { db, kind: "postgres", defaultOrg };
   }
 
   if (process.env.VITEST || process.env.NODE_ENV === "test") {
@@ -52,8 +74,8 @@ async function openDeskDb(): Promise<Cache> {
     await client.waitReady;
     const db = drizzlePglite(client, { schema });
     await client.exec(BOOTSTRAP_SQL);
-    await seedDesk(db);
-    return { db, kind: "pglite" };
+    const defaultOrg = await seedDesk(db);
+    return { db, kind: "pglite", defaultOrg };
   }
 
   const file = url.startsWith("pglite:")
@@ -64,11 +86,11 @@ async function openDeskDb(): Promise<Cache> {
   await client.waitReady;
   const db = drizzlePglite(client, { schema });
   await client.exec(BOOTSTRAP_SQL);
-  await seedDesk(db);
-  return { db, kind: "pglite" };
+  const defaultOrg = await seedDesk(db);
+  return { db, kind: "pglite", defaultOrg };
 }
 
-async function seedDesk(db: DeskDb) {
+async function seedDesk(db: DeskDb): Promise<CachedOrg | null> {
   let [org] = await db.select().from(orgUnits).where(eq(orgUnits.slug, "tti-research")).limit(1);
   if (!org) {
     const ownerId = crypto.randomUUID();
@@ -87,10 +109,11 @@ async function seedDesk(db: DeskDb) {
     });
     [org] = await db.select().from(orgUnits).where(eq(orgUnits.slug, "tti-research")).limit(1);
   }
-  if (!org) return;
+  if (!org) return null;
+  const cachedOrg: CachedOrg = { id: org.id, ownerUserId: org.ownerUserId };
 
   const [existingPage] = await db.select({ id: pages.id }).from(pages).limit(1);
-  if (existingPage) return;
+  if (existingPage) return cachedOrg;
 
   const pageId = crypto.randomUUID();
   const revisionId = crypto.randomUUID();
@@ -175,4 +198,6 @@ async function seedDesk(db: DeskDb) {
     bodyMd: "# Corridor Telemetry Field Protocol\n\nOperating standards for connected vehicle roadside sensors.",
     bodyJson: initialBodyJson,
   });
+
+  return cachedOrg;
 }

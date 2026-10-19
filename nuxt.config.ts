@@ -32,8 +32,10 @@ export default defineNuxtConfig({
   telemetry: false,
 
   app: {
-    pageTransition: { name: "page", mode: "out-in" },
-    layoutTransition: { name: "layout", mode: "out-in" },
+    // Transitions default to out-in for the living style guide; disabled
+    // by default for layer consumers so they don't inherit navigation delays.
+    pageTransition: isRootProject ? { name: "page", mode: "out-in" } : false,
+    layoutTransition: isRootProject ? { name: "layout", mode: "out-in" } : false,
     head: {
       // `lang` is required for screen readers to pick the right voice
       // and for axe's `html-has-lang` rule. Sets `<html lang="en">`.

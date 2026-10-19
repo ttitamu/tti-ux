@@ -46,6 +46,7 @@
     "audit:status": "node scripts/audit-status-palette.mjs",
     "audit:a11y": "node scripts/audit-a11y.mjs",
     "audit:aaa": "node scripts/audit-wcag-aaa.mjs --check",
+    "db:bootstrap": "node scripts/db-bootstrap.mjs",
     "build:geo": "node scripts/build-geo.mjs",
     "build:tokens": "node scripts/build-tokens.mjs",
     "test": "vitest run && npm run test -w @tti/tti-ux-react",

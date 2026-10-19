@@ -1,6 +1,6 @@
-import { desc, eq, and, sql } from "drizzle-orm";
+import { desc, eq, and, or, ilike, count, sql } from "drizzle-orm";
 import type { H3Event } from "h3";
-import { getDeskDb, type DeskDb } from "../db/client";
+import { getDeskDb, getDeskContext, getDeskKind, type DeskDb } from "../db/client";
 import { pages, revisions, orgUnits, users, issues, events, media } from "../db/schema";
 import type { PageStatus, Visibility, FeedbackReason, MediaKind } from "../db/types";
 import { isVerificationStale, shouldOpenFeedbackIssue } from "../../app/utils/desk/governance";
@@ -27,11 +27,10 @@ export interface PageListItem {
 }
 
 export async function openDesk(event?: H3Event) {
-  const db = await getDeskDb();
-  const [org] = await db.select().from(orgUnits).limit(1);
+  const { db, defaultOrg } = await getDeskContext();
 
   const actor: DeskActor = {
-    userId: org?.ownerUserId || "dev-owner",
+    userId: defaultOrg?.ownerUserId || "dev-owner",
     name: "TTI Researcher",
     email: "research@tti.tamu.edu",
     login: "tti-researcher",
@@ -41,7 +40,7 @@ export async function openDesk(event?: H3Event) {
   return {
     db,
     actor,
-    service: createDeskService(db, actor, org?.id || "default"),
+    service: createDeskService(db, actor, defaultOrg?.id || "default"),
   };
 }
 
@@ -51,38 +50,59 @@ export function createDeskService(db: DeskDb, actor: DeskActor, defaultOrgId: st
       status?: string;
       search?: string;
       stale?: boolean;
+      limit?: number;
+      offset?: number;
     }): Promise<PageListItem[]> {
-      const rows = await db
-        .select()
+      const conditions = [];
+
+      if (filter?.status && filter.status !== "all") {
+        conditions.push(eq(pages.status, filter.status as PageStatus));
+      }
+
+      if (filter?.search?.trim()) {
+        const q = `%${filter.search.trim()}%`;
+        conditions.push(or(ilike(pages.title, q), ilike(pages.slug, q)));
+      }
+
+      let query = db
+        .select({
+          id: pages.id,
+          slug: pages.slug,
+          title: pages.title,
+          status: pages.status,
+          visibility: pages.visibility,
+          updatedAt: pages.updatedAt,
+          verifiedUntil: pages.verifiedUntil,
+          reviewCadenceDays: pages.reviewCadenceDays,
+        })
         .from(pages)
         .orderBy(desc(pages.updatedAt));
 
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions)) as typeof query;
+      }
+
+      if (filter?.limit && filter.stale === undefined) {
+        query = query.limit(filter.limit) as typeof query;
+      }
+      if (filter?.offset && filter.stale === undefined) {
+        query = query.offset(filter.offset) as typeof query;
+      }
+
+      const rows = await query;
+
       let result = rows.map((p) => ({
-        id: p.id,
-        slug: p.slug,
-        title: p.title,
-        status: p.status,
-        visibility: p.visibility,
-        updatedAt: p.updatedAt,
-        verifiedUntil: p.verifiedUntil,
-        reviewCadenceDays: p.reviewCadenceDays,
+        ...p,
         stale: isVerificationStale({
           verifiedUntil: p.verifiedUntil,
           reviewCadenceDays: p.reviewCadenceDays,
         }),
       }));
 
-      if (filter?.status && filter.status !== "all") {
-        result = result.filter((p) => p.status === filter.status);
-      }
-      if (filter?.search?.trim()) {
-        const q = filter.search.toLowerCase().trim();
-        result = result.filter(
-          (p) => p.title.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q)
-        );
-      }
       if (filter?.stale !== undefined) {
         result = result.filter((p) => p.stale === filter.stale);
+        if (filter?.offset) result = result.slice(filter.offset);
+        if (filter?.limit) result = result.slice(0, filter.limit);
       }
 
       return result;
@@ -386,27 +406,60 @@ export function createDeskService(db: DeskDb, actor: DeskActor, defaultOrgId: st
     },
 
     async getSystemStats() {
-      const allPages = await this.listPages();
-      const allRevs = await db.select().from(revisions);
-      const allIssues = await db.select().from(issues);
+      const kind = await getDeskKind();
 
-      const published = allPages.filter((p) => p.status === "published").length;
-      const drafts = allPages.filter((p) => p.status === "draft").length;
-      const stale = allPages.filter((p) => p.stale).length;
-      const openIssues = allIssues.filter((i) => i.status === "open").length;
+      // Lightweight column select for pages (avoids wide rows and body content)
+      const pageRows = await db
+        .select({
+          status: pages.status,
+          verifiedUntil: pages.verifiedUntil,
+          reviewCadenceDays: pages.reviewCadenceDays,
+        })
+        .from(pages);
+
+      // Revisions total count via SQL count() — avoids loading large bodyJson/bodyMd documents
+      const [revRow] = await db
+        .select({ totalRevs: count() })
+        .from(revisions);
+
+      // Issues stats grouped by status via SQL
+      const issueRows = await db
+        .select({
+          status: issues.status,
+          count: count(),
+        })
+        .from(issues)
+        .groupBy(issues.status);
+
+      const published = pageRows.filter((p) => p.status === "published").length;
+      const drafts = pageRows.filter((p) => p.status === "draft").length;
+      const stale = pageRows.filter((p) =>
+        isVerificationStale({
+          verifiedUntil: p.verifiedUntil,
+          reviewCadenceDays: p.reviewCadenceDays,
+        })
+      ).length;
+
+      let openIssues = 0;
+      let totalIssues = 0;
+      for (const row of issueRows) {
+        const c = Number(row.count);
+        totalIssues += c;
+        if (row.status === "open") openIssues += c;
+      }
 
       return {
         status: "healthy",
         version: pkg.version,
-        engine: "PGlite (in-process Wasm Postgres)",
+        engine: kind === "postgres" ? "PostgreSQL" : "PGlite (in-process Wasm Postgres)",
         counts: {
-          totalPages: allPages.length,
+          totalPages: pageRows.length,
           publishedPages: published,
           draftPages: drafts,
           stalePages: stale,
-          totalRevisions: allRevs.length,
+          totalRevisions: Number(revRow?.totalRevs ?? 0),
           openIssues,
-          totalIssues: allIssues.length,
+          totalIssues,
         },
         uptimeSeconds: Math.round(process.uptime()),
         timestamp: new Date().toISOString(),
