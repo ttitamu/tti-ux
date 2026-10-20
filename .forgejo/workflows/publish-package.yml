@@ -106,6 +106,17 @@ jobs:
           fi
           node tooling/scripts/publish-registry.mjs --package layer --tag "$TAG" --pkg-dir pkg --registry "$REGISTRY"
 
+      # The sub-layers (charts, diagrams, code, desk, content; 3.4.0 on) ride the
+      # same tag, each only when version-locked to it. Source like the layer, so
+      # no build; their own step, after the layer. Re-running a tag publishes
+      # only what is missing, which is how v3.4.0 got its five.
+      - name: Publish the sub-layers (when version-locked)
+        env:
+          PUBLISH_TOKEN: ${{ secrets.PACKAGES_PUBLISH_TOKEN }}
+        run: |
+          set -eu
+          node tooling/scripts/publish-registry.mjs --package sublayers --tag "$TAG" --pkg-dir pkg --registry "$REGISTRY"
+
       # The React ports ride the same tag only when version-locked to it (the
       # script says "layer only" otherwise). After the layer, and a step of
       # their own: a React build failure is red here with the layer already out,

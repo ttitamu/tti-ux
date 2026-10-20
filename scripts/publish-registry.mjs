@@ -29,6 +29,15 @@
  * package.json, and packed again, so the checkout's tracked files are never
  * modified and the files are exactly what `files` selects at the tag.
  *
+ * The sub-layers (3.4.0 on): packages/charts, diagrams, code, desk and content,
+ * the opt-in Nuxt layers @tti/tti-ux-<name>, ride the same tag when each is
+ * version-locked to it. Like the layer they ship as source (no build), with the
+ * same manifest rules: their own name, not private, no install script (a
+ * dev-only `nuxt prepare` postinstall is dropped). A tag without one, or with
+ * one at another version, skips it and says so. Before 3.4.0's sub-layer tooling
+ * existed, v3.4.0 published only the layer and the React ports, and
+ * `@tti/tti-ux` 3.4.0 names all five as optional peers.
+ *
  * The React ports, @tti/tti-ux-react (packages/react), ride the same tag when
  * they are version-locked to it: same version as the root, built with tsc
  * (`npm ci --ignore-scripts` in the checkout, then the workspace's build),
@@ -52,9 +61,10 @@
  * Usage:
  *   node scripts/publish-registry.mjs --tag v3.1.0 --pkg-dir <checkout> \
  *     --registry https://code.tti.tamu.edu/api/packages/tti/npm/ \
- *     [--package layer|react|all] [--dry-run]
- * The workflow runs --package layer, then --package react as its own step, so a
- * React build failure shows as its own red step after the layer is out.
+ *     [--package layer|sublayers|react|all] [--dry-run]
+ * The workflow runs --package layer, then --package sublayers, then --package
+ * react, each its own step, so a failure shows as its own red step after what
+ * came before is out.
  *
  * The token comes from the environment, PUBLISH_TOKEN: a write:package token
  * of the Entra service account that publishes (svc-tti-packages), never a
@@ -74,6 +84,14 @@ const SCOPED_NAME = "@tti/tti-ux";
 const LEGACY_NAME = "tti-ux";
 const REACT_NAME = "@tti/tti-ux-react";
 const REACT_DIR = "packages/react";
+// The opt-in sub-layers (3.4.0 on): [directory under packages/, published name]
+const SUBLAYERS = [
+  ["charts", "@tti/tti-ux-charts"],
+  ["diagrams", "@tti/tti-ux-diagrams"],
+  ["code", "@tti/tti-ux-code"],
+  ["desk", "@tti/tti-ux-desk"],
+  ["content", "@tti/tti-ux-content"],
+];
 const INSTALL_HOOKS = ["preinstall", "install", "postinstall"];
 // The one install script tux has ever shipped, and why it may go: see header, check 3.
 const DEV_ONLY_POSTINSTALL = /^nuxt prepare( \|\| exit 0)?$/;
@@ -100,7 +118,7 @@ function parseArgs(argv) {
     } else die(`unknown argument: ${a}`);
   }
   for (const k of ["tag", "pkgDir", "registry"]) if (!out[k]) die(`missing --${k === "pkgDir" ? "pkg-dir" : k}`);
-  if (!["all", "layer", "react"].includes(out.package)) die(`--package must be layer, react or all: ${out.package}`);
+  if (!["all", "layer", "sublayers", "react"].includes(out.package)) die(`--package must be layer, sublayers, react or all: ${out.package}`);
   if (!/^https?:\/\/[^/]+\/.*\/$/.test(out.registry)) die(`--registry must be an http(s) URL ending in "/": ${out.registry}`);
   return out;
 }
@@ -151,6 +169,23 @@ function normalise(pkg, version) {
   }
   refuseInstallScripts(pkg);
   return notes;
+}
+
+// A sub-layer's manifest: the layer's rules, under its own name.
+function checkSublayer(name, dir) {
+  return (pkg, version) => {
+    const notes = [];
+    if (pkg.name !== name) die(`${dir}/package.json name is "${pkg.name}", expected "${name}"`);
+    if (pkg.version !== version) die(`${dir} version ${pkg.version} is not ${version}`);
+    if (pkg.private) die(`${dir}/package.json says private: true`);
+    const scripts = pkg.scripts || {};
+    if (DEV_ONLY_POSTINSTALL.test(scripts.postinstall ?? "")) {
+      notes.push(`dropped postinstall "${scripts.postinstall}" (dev-only; consumers run their own nuxt prepare)`);
+      delete scripts.postinstall;
+    }
+    refuseInstallScripts(pkg);
+    return notes;
+  };
 }
 
 // The React ports' manifest: published as-is, so it only has to pass.
@@ -272,8 +307,23 @@ async function main() {
   const common = { version, prerelease, tag: args.tag, registry: args.registry, dryRun: args.dryRun, work, token };
   try {
     // The layer first, packed before anything is installed in the checkout.
-    if (args.package !== "react") await publishOne({ ...common, name: SCOPED_NAME, dir: pkgDir, fix: normalise });
+    if (args.package === "all" || args.package === "layer") await publishOne({ ...common, name: SCOPED_NAME, dir: pkgDir, fix: normalise });
     if (args.package === "layer") return;
+
+    // The sub-layers: source, no build, so before anything is installed in the checkout too.
+    if (args.package === "all" || args.package === "sublayers") {
+      for (const [sub, name] of SUBLAYERS) {
+        const dir = join("packages", sub);
+        const manifest = join(pkgDir, dir, "package.json");
+        const subVersion = existsSync(manifest) ? JSON.parse(readFileSync(manifest, "utf8")).version : null;
+        if (subVersion !== version) {
+          console.log(`${name}: ${subVersion ? `${dir} is ${subVersion}, not version-locked to ${version}` : `no ${dir} at ${args.tag}`}; skipped.`);
+          continue;
+        }
+        await publishOne({ ...common, name, dir: join(pkgDir, dir), fix: checkSublayer(name, dir) });
+      }
+    }
+    if (args.package === "sublayers") return;
 
     const reactPkg = join(pkgDir, REACT_DIR, "package.json");
     const reactVersion = existsSync(reactPkg) ? JSON.parse(readFileSync(reactPkg, "utf8")).version : null;
@@ -297,4 +347,4 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   });
 }
 
-export { checkReact, DIST_TAG_RE, distTagFor, normalise, PublishError, TAG_RE };
+export { checkReact, checkSublayer, DIST_TAG_RE, distTagFor, normalise, PublishError, SUBLAYERS, TAG_RE };
