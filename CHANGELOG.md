@@ -3,6 +3,38 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.4.0] — 2026-10-19
+
+### Added & Changed — Modular Sub-Layers, Lean Core Runtime, P0 Security Hardening & MCP Introspection (2026-10-19)
+
+Major architectural feature release extracting 5 modular Nuxt sub-layer workspaces (`charts`, `diagrams`, `code`, `desk`, `content`), dropping root runtime dependencies by 72%, reducing production client JS bundles by 36%, and hardening Desk editorial endpoints with full P0 security controls and Zero-Hallucination MCP tooling.
+
+#### 1. Modular Sub-Layer Workspaces & Lean Core Runtime
+- **Modular Sub-Layer Architecture**: Extracted 5 opt-in Nuxt layer workspaces under `packages/`:
+  - **`@tti/tti-ux-charts` (`packages/charts`)**: Encapsulates Apache ECharts 6, liquidfill, wordcloud, and 32 institutional telemetry gallery presets.
+  - **`@tti/tti-ux-diagrams` (`packages/diagrams`)**: Encapsulates Mermaid 12.2.0 diagrams-as-code and layout-shift prevention.
+  - **`@tti/tti-ux-code` (`packages/code`)**: Encapsulates Shiki syntax highlighting with lean Oniguruma WASM chunks.
+  - **`@tti/tti-ux-desk` (`packages/desk`)**: Encapsulates the visual editorial CMS (TipTap, Markdown/MDC converter, 14 REST API routes, PGlite/Postgres database engine, rate limiting, and Zod security validation).
+  - **`@tti/tti-ux-content` (`packages/content`)**: Encapsulates `@nuxtjs/mdc` and KaTeX math formatting.
+- **Root Dependency Pruning**: Pruned 33 heavy runtime dependencies from root `@tti/tti-ux` (down from 46 to 13 core runtime dependencies, eliminating ~1,500 transient dependencies for basic consumers) and declared optional `peerDependencies`.
+- **Zero-Breaking-Change Re-Export Shims**: Maintained clean, uniform re-exports in root `app/components/` and `app/utils/` for backward compatibility.
+- **Bundle Slimming**: Production entry chunk dropped from 1,022 KB down to 345 KB (−66%), initial JS payload dropped from 1,532 KB down to 982 KB (−36%), and 266 unused grammar chunks eliminated.
+
+#### 2. P0 Security Hardening & Route Hygiene
+- **Actor Authentication**: Enforced role-based actor extraction from `X-TTI-Actor` / `X-TTI-User-ID` headers on all editorial endpoints.
+- **Input Validation & Anti-Abuse**: Added Zod schemas enforcing strict payload limits, field formatting, directory traversal blocks, and sliding-window rate limiting on `/api/feedback`.
+- **Iframe Sandboxing & Security Headers**: Sandboxed `<iframe>` tags to YouTube/Vimeo in `sanitizeDeskHtml` and added `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, and strict `Permissions-Policy` headers.
+- **Single Source of Truth**: Deleted 14 duplicate route handlers and 7 duplicate test suites in root `server/`, eliminating maintenance drift.
+
+#### 3. MCP Server & Tooling Introspection
+- **Zero-Hallucination Re-Export Tracking**: Enhanced `scripts/tux-mcp.mjs`, `gen-cem.mjs`, `ports-manifest.mjs`, `audit-wcag-aaa.mjs`, and `sync-engine.mjs` with `resolveVueSource` to follow re-export shims to canonical component source files, guaranteeing full props, slots, and events metadata.
+- **Vue 3.3+ Emit Discovery**: Added support for unquoted tuple emits (`dismiss: []`, `select: [...]`) and tagged every component with its `layerPackage`.
+- **Architecture Resource**: Added `tux://architecture/layers-and-api` resource with sub-millisecond in-memory caching.
+
+#### 4. Automated Maintenance & CI
+- **Forgejo Renovate Bot Workflow**: Added `.forgejo/workflows/renovate.yml` and configured `renovate.json` with the Dependency Dashboard and semantic commits.
+- **100% WCAG 2.2 AAA Certified**: All 180 components and 257 pre-rendered documentation pages verified compliant with 0 accessibility violations.
+
 ## [3.3.0] — 2026-10-17
 
 ### Added & Changed — World-Class Vision: TTI Engineering Primitives, Acoustic Chart Sonification, Live VPAT 2.5 / OpenACR & TUX MCP Server (2026-10-17)
