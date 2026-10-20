@@ -16,13 +16,18 @@
 # line; otherwise re-review and renew. The id MUST be the CVE id (the GHSA id does not suppress).
 # Re-checked 2026-10-08 against 3.0.0: the `npm pack` tarball and the Pages build (NUXT_PAGES=1 nuxt generate) contain no
 # braces or micromatch code; the only path is still nitropack's build-time globbing.
-trivy  CVE-2026-93687  braces 3.0.3 build/dev-only via nuxt to nitropack, globby, fast-glob, micromatch; only build-time glob patterns reach it; not in the published package or the shipped layer source; no upstream fix (braces PR 72 open)  expires=2026-11-02
+# Re-scanned 2026-10-18 (trivy 0.72.0, nis/forgejo-stack#459): still 3.0.3 with no fixed release; the latest
+# micromatch (4.0.8) still requires braces ^3.0.3, so no lockfile bump clears it. Renewed to 2026-12-31.
+trivy  CVE-2026-93687  braces 3.0.3 build/dev-only via nuxt to nitropack, globby, fast-glob, micromatch; only build-time glob patterns reach it; not in the published package or the shipped layer source; no upstream fix (braces PR 72 open)  expires=2026-12-31
 
 # node-forge 1.4.0 (package-lock.json), RSA PKCS#1 v1.5 signature forgery, published 2026-09-03 with no fixed release
 # (1.4.0 is the latest). It arrives only through listhen, the dev server's self-signed-certificate helper, under
-# nuxt -> @nuxt/cli, nuxt -> @nuxt/nitro-server -> nitropack (its dev server) and @nuxt/image -> ipx (ipx's CLI).
+# nuxt -> @nuxt/nitro-server -> nitropack (its dev server); @nuxt/cli 4.0.1 and ipx 4.0.0-beta.1 dropped listhen.
 # tti-ux ships as source (the Nuxt layer and the @tti/tti-ux package) plus the Pages site from `nuxt generate`; neither
 # contains node-forge (checked 2026-10-08), and a consumer's own nuxt brings its own copy. On expiry: if
 # `npm view node-forge version` > 1.4.0, run `npm update node-forge --package-lock-only` and delete this line; otherwise
 # re-review and renew.
-trivy  CVE-2026-85393  node-forge 1.4.0 dev-server-only via listhen under @nuxt/cli, nitropack and the ipx CLI; not in the published package, the layer source or the Pages output; no upstream fix  expires=2026-11-02
+# Re-scanned 2026-10-18 (trivy 0.72.0, nis/forgejo-stack#459): still 1.4.0 with no fixed release; the latest
+# nitropack (2.13.4) still requires listhen and the latest listhen (1.10.1) node-forge ^1.4.0, so no lockfile bump
+# clears it. Renewed to 2026-12-31.
+trivy  CVE-2026-85393  node-forge 1.4.0 dev-server-only via listhen under nitropack; not in the published package, the layer source or the Pages output; no upstream fix  expires=2026-12-31
