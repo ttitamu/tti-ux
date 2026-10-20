@@ -23,7 +23,7 @@
  * reader needs to read a value off a tick. This is a glance widget.
  */
 import { computed } from "vue";
-import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
+import { useTuxVisionPrefs } from "../composables/useTuxVisionPrefs";
 
 type Tone = "brand" | "success" | "error" | "warning" | "neutral";
 

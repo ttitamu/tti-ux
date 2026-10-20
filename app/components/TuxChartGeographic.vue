@@ -47,7 +47,7 @@
  * Wrap in `<TuxChartFrame>` for the eyebrow + Oswald title +
  * source-line rhythm.
  */
-import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
+import { useTuxVisionPrefs } from "../composables/useTuxVisionPrefs";
 
 type Kind = "county" | "districts" | "us-context" | "dot-density" | "flow";
 type Palette = "maroon" | "slate" | "cvd";

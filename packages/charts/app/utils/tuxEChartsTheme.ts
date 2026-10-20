@@ -10,7 +10,7 @@ import {
   CVD_PALETTES,
   CVD_PALETTES_DARK,
   type TuxVisionPreferences,
-} from "~/composables/useTuxVisionPrefs";
+} from "#tux/composables/useTuxVisionPrefs";
 
 export interface EChartsThemeDefinition {
   color: string[];

@@ -1,3 +1,3 @@
 <script lang="ts">
-export { default } from "../../packages/charts/app/components/TuxECharts.vue";
+export { default } from "@tti/tti-ux-charts/app/components/TuxECharts.vue";
 </script>

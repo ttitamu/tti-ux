@@ -14,7 +14,7 @@
  * - 1-Click Clipboard integration with visual toast feedback
  */
 import { ref, computed, watch, onMounted } from "vue";
-import { useTuxClipboard } from "~/composables/useTuxClipboard";
+import { useTuxClipboard } from "../composables/useTuxClipboard";
 
 export interface TuxPropOption {
   label: string;

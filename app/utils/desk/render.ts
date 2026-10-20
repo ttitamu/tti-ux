@@ -1,1 +1,1 @@
-export * from "../../../packages/desk/app/utils/desk/render";
+export * from "@tti/tti-ux-desk/app/utils/desk/render";

@@ -1,6 +1,6 @@
 {
   "name": "@tti/tti-ux-code",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "Shiki syntax highlighting integration and code presentation components for the TTI design system (TUX).",
   "type": "module",
   "main": "./nuxt.config.ts",

@@ -22,7 +22,7 @@
  * source-line rhythm.
  */
 
-import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
+import { useTuxVisionPrefs } from "../composables/useTuxVisionPrefs";
 
 interface SunburstChild { label: string; value: number }
 interface SunburstGroup { label: string; children: SunburstChild[] }
