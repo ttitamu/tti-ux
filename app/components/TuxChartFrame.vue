@@ -19,7 +19,7 @@ import {
   computeSeriesStats,
   useTuxSonification,
   type TuxSonificationSeries,
-} from "~/composables/useTuxSonification";
+} from "../composables/useTuxSonification";
 
 interface Props {
   /** Uppercase tracked eyebrow — e.g. `"Exhibit 11.01"` or `"Slide 9"`. */

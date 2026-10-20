@@ -95,6 +95,17 @@ jobs:
           echo "tag $TAG is $(git -C pkg rev-parse HEAD); tooling at $(git -C tooling rev-parse HEAD)"
           node --version; npm --version
 
+      # The install-and-build rules (scripts/check-layer-imports.mjs, also the
+      # layer-check workflow on every PR), on the tree being published. From
+      # 3.4.1 on: older tags predate the rules, and backfills of them still publish.
+      - name: Check the layer can be built by a consuming app
+        run: |
+          set -eu
+          case "$TAG" in
+            v0.* | v1.* | v2.* | v3.0.* | v3.1.* | v3.2.* | v3.3.* | v3.4.0 | v3.4.0-*) echo "::notice::$TAG predates check-layer-imports; not checked" ;;
+            *) node tooling/scripts/check-layer-imports.mjs pkg ;;
+          esac
+
       - name: Publish @tti/tti-ux
         env:
           PUBLISH_TOKEN: ${{ secrets.PACKAGES_PUBLISH_TOKEN }}

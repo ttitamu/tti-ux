@@ -1,1 +1,1 @@
-export * from "../../packages/code/app/composables/useTuxHighlighter";
+export * from "@tti/tti-ux-code/app/composables/useTuxHighlighter";

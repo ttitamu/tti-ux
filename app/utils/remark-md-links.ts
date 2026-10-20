@@ -1,1 +1,1 @@
-export * from "../../packages/content/app/utils/remark-md-links";
+export * from "@tti/tti-ux-content/app/utils/remark-md-links";

@@ -6,8 +6,8 @@
 import type { JSONContent } from "@tiptap/core";
 import { splitDeskBlocks, renderDeskBody, sanitizeDeskHtml, type DeskBlock } from "../../utils/desk/render";
 import TuxDeskModuleBlock from "./TuxDeskModuleBlock.vue";
-import TuxStalenessBanner from "~/components/TuxStalenessBanner.vue";
-import TuxFeedback from "~/components/TuxFeedback.vue";
+import TuxStalenessBanner from "#tux/components/TuxStalenessBanner.vue";
+import TuxFeedback from "#tux/components/TuxFeedback.vue";
 
 interface Props {
   title?: string;

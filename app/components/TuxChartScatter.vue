@@ -37,7 +37,7 @@
  *   />
  */
 import { computed } from "vue";
-import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
+import { useTuxVisionPrefs } from "../composables/useTuxVisionPrefs";
 
 interface Point {
   x: number;

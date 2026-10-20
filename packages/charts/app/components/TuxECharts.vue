@@ -15,7 +15,7 @@
  */
 import type { ECharts, EChartsCoreOption } from "echarts";
 import { createTuxEChartsTheme, adaptOptionsForVision } from "../utils/tuxEChartsTheme";
-import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
+import { useTuxVisionPrefs } from "#tux/composables/useTuxVisionPrefs";
 
 interface Props {
   /** ECharts option specification */
@@ -101,7 +101,7 @@ async function initChart() {
   // Register SVG maps if requested
   if (optStr.includes('"USA_ALBERS"') || props.maps?.includes("USA_ALBERS")) {
     try {
-      const { usStates, US_VIEWBOX } = await import("~/assets/geo/us-states");
+      const { usStates, US_VIEWBOX } = await import("#tux/assets/geo/us-states");
       const svg = `<svg viewBox="0 0 ${US_VIEWBOX[0]} ${US_VIEWBOX[1]}" xmlns="http://www.w3.org/2000/svg">
         ${usStates.map((s: any) => `<path name="${s.name}" id="${s.code}" d="${s.path}" />`).join("")}
       </svg>`;
@@ -113,8 +113,8 @@ async function initChart() {
 
   if (optStr.includes('"TEXAS_COUNTIES"') || props.maps?.includes("TEXAS_COUNTIES")) {
     try {
-      const { texasCounties } = await import("~/assets/geo/texas-counties");
-      const { TX_VIEWBOX } = await import("~/assets/geo/texas-outline");
+      const { texasCounties } = await import("#tux/assets/geo/texas-counties");
+      const { TX_VIEWBOX } = await import("#tux/assets/geo/texas-outline");
       const svg = `<svg viewBox="0 0 ${TX_VIEWBOX[0]} ${TX_VIEWBOX[1]}" xmlns="http://www.w3.org/2000/svg">
         ${texasCounties.map((c: any) => `<path name="${c.name}" id="${c.fips}" d="${c.path}" />`).join("")}
       </svg>`;
@@ -126,8 +126,8 @@ async function initChart() {
 
   if (optStr.includes('"TXDOT_DISTRICTS"') || props.maps?.includes("TXDOT_DISTRICTS")) {
     try {
-      const { txdotDistricts } = await import("~/assets/geo/txdot-districts");
-      const { TX_VIEWBOX } = await import("~/assets/geo/texas-outline");
+      const { txdotDistricts } = await import("#tux/assets/geo/txdot-districts");
+      const { TX_VIEWBOX } = await import("#tux/assets/geo/texas-outline");
       const svg = `<svg viewBox="0 0 ${TX_VIEWBOX[0]} ${TX_VIEWBOX[1]}" xmlns="http://www.w3.org/2000/svg">
         ${txdotDistricts.map((d: any) => `<path name="${d.name}" id="${d.abbr}" d="${d.path}" />`).join("")}
       </svg>`;

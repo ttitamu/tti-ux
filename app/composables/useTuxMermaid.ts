@@ -1,1 +1,1 @@
-export * from "../../packages/diagrams/app/composables/useTuxMermaid";
+export * from "@tti/tti-ux-diagrams/app/composables/useTuxMermaid";
