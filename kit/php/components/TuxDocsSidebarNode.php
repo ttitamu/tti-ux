@@ -7,14 +7,14 @@ namespace Tti\Tux\Components;
 
 final class TuxDocsSidebarNode
 {
-    public string $section;
-    public string $path;
-    public string $query;
-    public string $openMap;
-    public string $isOpen;
-    public string $isActive;
-    public string $onToggle;
-    public int $depth;
+    public ?string $section = null;
+    public ?string $path = null;
+    public ?string $query = null;
+    public ?string $openMap = null;
+    public ?string $isOpen = null;
+    public ?string $isActive = null;
+    public ?string $onToggle = null;
+    public ?int $depth = null;
 
     public function __construct(array $attributes = [])
     {

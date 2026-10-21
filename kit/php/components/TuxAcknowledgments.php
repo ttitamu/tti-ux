@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxAcknowledgments
 {
-    public string $funding;
-    public string $acknowledgments;
-    public string $conflicts;
-    public string $ethics;
+    public ?string $funding = null;
+    public ?string $acknowledgments = null;
+    public ?string $conflicts = null;
+    public ?string $ethics = null;
     public int $level = 4;
 
     public function __construct(array $attributes = [])

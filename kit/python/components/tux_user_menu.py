@@ -10,7 +10,7 @@ class TuxUserMenu:
     state: Optional[str] = None
     identity: Optional[str] = None
     sign_in_href: Optional[str] = None
-    sign_in_label: Optional[str] = None
+    sign_in_label: str = "Sign in"
     items: Optional[str] = None
     prefs: Optional[str] = None
     show_sign_out: bool = True

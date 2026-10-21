@@ -7,11 +7,11 @@ namespace Tti\Tux\Components;
 
 final class TuxStatComparison
 {
-    public string $eyebrow;
-    public int $current;
-    public int $previous;
-    public string $suffix;
-    public string $label;
+    public ?string $eyebrow = null;
+    public ?int $current = null;
+    public ?int $previous = null;
+    public ?string $suffix = null;
+    public ?string $label = null;
     public string $layout = 'row';
     public int $decimals = 1;
     public string $polarity = 'direct';

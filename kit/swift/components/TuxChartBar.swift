@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxChartBar<Content: View>: View {
-    public var labels: String
-    public var series: String
+    public var labels: String? = nil
+    public var series: String? = nil
     public var width: Int = 640
     public var height: Int = 280
     public var palette: String = "brand"
@@ -17,10 +17,10 @@ public struct TuxChartBar<Content: View>: View {
     public var gridlines: Bool = true
     public var legend: Bool = false
     public var ticks: Int = 5
-    public var format: String
+    public var format: String? = nil
     public var decimals: Int = 1
-    public var ariaSummary: String
-    public var units: String
+    public var ariaSummary: String? = nil
+    public var units: String? = nil
     public var tooltip: Bool = true
     private let content: Content
 

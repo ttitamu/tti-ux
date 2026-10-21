@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxTileGrid<Content: View>: View {
-    public var title: String
-    public var subtitle: String
-    public var tiles: String
+    public var title: String = ""
+    public var subtitle: String = ""
+    public var tiles: String? = nil
     public var columns: Int = 3
     public var surface: String = "eggshell"
     private let content: Content

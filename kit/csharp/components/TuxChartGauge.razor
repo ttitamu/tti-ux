@@ -9,16 +9,16 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public int Value { get; set; };
+    [Parameter] public int? Value { get; set; }
     [Parameter] public int Min { get; set; } = 0;
     [Parameter] public int Max { get; set; } = 100;
     [Parameter] public int Size { get; set; } = 240;
     [Parameter] public string Variant { get; set; } = "arc";
-    [Parameter] public string Bands { get; set; };
-    [Parameter] public string CenterLabel { get; set; };
-    [Parameter] public string CenterValue { get; set; };
-    [Parameter] public string Units { get; set; };
-    [Parameter] public string Format { get; set; };
+    [Parameter] public string? Bands { get; set; }
+    [Parameter] public string? CenterLabel { get; set; }
+    [Parameter] public string? CenterValue { get; set; }
+    [Parameter] public string? Units { get; set; }
+    [Parameter] public string? Format { get; set; }
     [Parameter] public int Decimals { get; set; } = 1;
-    [Parameter] public string AriaSummary { get; set; };
+    [Parameter] public string? AriaSummary { get; set; }
 }

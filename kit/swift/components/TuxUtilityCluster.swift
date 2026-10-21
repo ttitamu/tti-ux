@@ -4,21 +4,21 @@
 import SwiftUI
 
 public struct TuxUtilityCluster<Content: View>: View {
-    public var current: String
+    public var current: String? = nil
     public var signedIn: Bool = false
-    public var entitled: String
+    public var entitled: String? = nil
     public var hideSwitcher: Bool = false
     public var hideTheme: Bool = false
     public var hideHighContrast: Bool = false
     public var hideVisionPrefs: Bool = false
-    public var userMenu: String
-    public var state: String
-    public var identity: String
-    public var signInHref: String
-    public var signInLabel: String
-    public var items: String
-    public var prefs: String
-    public var statusLine: String
+    public var userMenu: String? = nil
+    public var state: String? = nil
+    public var identity: String? = nil
+    public var signInHref: String? = nil
+    public var signInLabel: String? = nil
+    public var items: String? = nil
+    public var prefs: String? = nil
+    public var statusLine: String? = nil
     private let content: Content
 
     public init(

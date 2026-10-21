@@ -7,15 +7,15 @@ namespace Tti\Tux\Components;
 
 final class TuxEventCalendarRow
 {
-    public string $day;
-    public string $month;
-    public string $title;
-    public string $time;
-    public string $location;
-    public string $category;
-    public string $to;
-    public string $href;
-    public string $actionText;
+    public ?string $day = null;
+    public ?string $month = null;
+    public ?string $title = null;
+    public string $time = '';
+    public string $location = '';
+    public string $category = '';
+    public string $to = '';
+    public string $href = '';
+    public string $actionText = 'View Event';
     public string $chipTone = 'green';
 
     public function __construct(array $attributes = [])

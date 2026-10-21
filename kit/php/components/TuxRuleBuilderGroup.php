@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxRuleBuilderGroup
 {
-    public string $modelValue;
-    public int $depth;
+    public ?string $modelValue = null;
+    public ?int $depth = null;
     public bool $isRoot = false;
 
     public function __construct(array $attributes = [])

@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxContextMeter
 {
-    public int $used;
-    public int $max;
-    public string $breakdown;
+    public ?int $used = null;
+    public ?int $max = null;
+    public ?string $breakdown = null;
 
     public function __construct(array $attributes = [])
     {

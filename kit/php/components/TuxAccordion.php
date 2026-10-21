@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxAccordion
 {
-    public string $items;
+    public ?string $items = null;
     public string $kind = 'faq';
     public bool $single = false;
 

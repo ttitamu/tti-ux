@@ -9,12 +9,12 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Data { get; set; };
+    [Parameter] public string? Data { get; set; }
     [Parameter] public int Size { get; set; } = 320;
     [Parameter] public string CenterLabel { get; set; } = "Total";
-    [Parameter] public string FormatTotal { get; set; };
-    [Parameter] public string FormatValue { get; set; };
+    [Parameter] public string? FormatTotal { get; set; }
+    [Parameter] public string? FormatValue { get; set; }
     [Parameter] public bool ShowLegend { get; set; } = true;
-    [Parameter] public string Palette { get; set; };
+    [Parameter] public string? Palette { get; set; }
     [Parameter] public bool Tooltip { get; set; } = true;
 }

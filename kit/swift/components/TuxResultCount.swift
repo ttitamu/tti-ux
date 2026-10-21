@@ -4,14 +4,14 @@
 import SwiftUI
 
 public struct TuxResultCount<Content: View>: View {
-    public var page: Int
-    public var pageSize: Int
-    public var total: Int
-    public var noun: String
-    public var nounPlural: String
-    public var pageSizeOptions: String
+    public var page: Int? = nil
+    public var pageSize: Int? = nil
+    public var total: Int? = nil
+    public var noun: String? = nil
+    public var nounPlural: String? = nil
+    public var pageSizeOptions: String? = nil
     public var hideRange: Bool = false
-    public var pageSizeLabel: String
+    public var pageSizeLabel: String = "per page"
     private let content: Content
 
     public init(

@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCommandPalette(
-    groups: String,
-    placeholder: String,
+    groups: String? = null,
+    placeholder: String = "Type a command, token (--), component (@), or search…",
     disableHotkey: Boolean = false,
     hotkey: String = "k",
     showTabs: Boolean = true,

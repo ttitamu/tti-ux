@@ -16,7 +16,7 @@ export interface TuxDocsSidebarProps {
 }
 
 export const TuxDocsSidebar: React.FC<TuxDocsSidebarProps> = ({
-  tree, title = "Docs", search = true, searchPlaceholder, storageKey = "tux-docs-sidebar", exclusiveTopLevel = false, children, className = ''
+  tree, title = "Docs", search = true, searchPlaceholder = "Filter docs…", storageKey = "tux-docs-sidebar", exclusiveTopLevel = false, children, className = ''
 }) => {
   return (
     <nav className={`tux-docs-sidebar ${className}`.trim()}>

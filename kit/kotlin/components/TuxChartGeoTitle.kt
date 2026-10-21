@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChartGeoTitle(
-    title: String,
-    x: Int,
-    y: Int,
+    title: String? = null,
+    x: Int? = null,
+    y: Int? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

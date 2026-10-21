@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxTileGrid
 {
-    public string $title;
-    public string $subtitle;
-    public string $tiles;
+    public string $title = '';
+    public string $subtitle = '';
+    public ?string $tiles = null;
     public int $columns = 3;
     public string $surface = 'eggshell';
 

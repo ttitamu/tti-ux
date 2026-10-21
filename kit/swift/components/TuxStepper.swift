@@ -4,11 +4,13 @@
 import SwiftUI
 
 public struct TuxStepper<Content: View>: View {
-    public var steps: String
+    public var steps: String? = nil
     public var currentIndex: Int = 0
     public var orientation: String = "horizontal"
     public var showDescriptions: Bool = true
     public var ariaLabel: String = "Progress"
+    public var stationFormat: String = "number"
+    public var division: String? = nil
     private let content: Content
 
     public init(

@@ -19,7 +19,7 @@ export interface TuxUserMenuProps {
 }
 
 export const TuxUserMenu: React.FC<TuxUserMenuProps> = ({
-  state, identity, signInHref, signInLabel, items, prefs, showSignOut = true, placement = "cluster", statusLine, children, className = ''
+  state, identity, signInHref, signInLabel = "Sign in", items, prefs, showSignOut = true, placement = "cluster", statusLine, children, className = ''
 }) => {
   return (
     <div className={`tux-user-menu ${className}`.trim()}>

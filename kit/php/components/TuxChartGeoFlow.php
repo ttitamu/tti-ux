@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxChartGeoFlow
 {
-    public string $flows;
-    public string $flowLegend;
+    public ?string $flows = null;
+    public ?string $flowLegend = null;
 
     public function __construct(array $attributes = [])
     {

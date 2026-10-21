@@ -7,12 +7,12 @@ namespace Tti\Tux\Components;
 
 final class TuxAnnouncementBanner
 {
-    public string $id;
+    public ?string $id = null;
     public string $tone = 'info';
-    public string $icon;
-    public string $eyebrow;
-    public string $message;
-    public string $action;
+    public ?string $icon = null;
+    public ?string $eyebrow = null;
+    public ?string $message = null;
+    public ?string $action = null;
     public bool $dismissable = true;
 
     public function __construct(array $attributes = [])

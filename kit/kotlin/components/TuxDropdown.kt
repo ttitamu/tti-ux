@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxDropdown(
-    label: String,
-    items: String,
-    to: String,
+    label: String? = null,
+    items: String? = null,
+    to: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

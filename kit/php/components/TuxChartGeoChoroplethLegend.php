@@ -7,11 +7,11 @@ namespace Tti\Tux\Components;
 
 final class TuxChartGeoChoroplethLegend
 {
-    public string $ramp;
-    public string $label;
-    public string $stops;
-    public int $x;
-    public int $y;
+    public ?string $ramp = null;
+    public ?string $label = null;
+    public ?string $stops = null;
+    public ?int $x = null;
+    public ?int $y = null;
 
     public function __construct(array $attributes = [])
     {

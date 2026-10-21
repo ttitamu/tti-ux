@@ -24,7 +24,7 @@ export interface TuxChartGeographicProps {
 }
 
 export const TuxChartGeographic: React.FC<TuxChartGeographicProps> = ({
-  kind, palette = "maroon", title, legendLabel = "Value", legendStops, showLegend = true, counties, districts, states, highlight = "TX", dots = 600, dotLegend, flows, flowLegend, children, className = ''
+  kind, palette = "maroon", title = "", legendLabel = "Value", legendStops, showLegend = true, counties, districts, states, highlight = "TX", dots = 600, dotLegend = "1 dot = 100 incidents", flows, flowLegend = "Daily trips (thousands)", children, className = ''
 }) => {
   return (
     <div className={`tux-chart-geographic ${className}`.trim()}>

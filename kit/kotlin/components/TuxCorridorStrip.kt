@@ -11,17 +11,21 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCorridorStrip(
-    name: String,
-    fromMile: Int,
-    toMile: Int,
-    segments: String,
-    events: String,
-    values: String,
-    valuesLabel: String,
-    direction: String,
+    name: String? = null,
+    fromMile: Int? = null,
+    toMile: Int? = null,
+    segments: String? = null,
+    events: String? = null,
+    values: String? = null,
+    valuesLabel: String? = null,
+    direction: String? = null,
     width: Int = 800,
     height: Int = 140,
     tickEvery: Int = 5,
+    tickFormat: String = "mile",
+    syncChannel: String? = null,
+    activeMile: Int? = null,
+    interactiveScrub: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {
     Row(

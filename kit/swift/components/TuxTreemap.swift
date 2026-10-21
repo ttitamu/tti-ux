@@ -4,13 +4,13 @@
 import SwiftUI
 
 public struct TuxTreemap<Content: View>: View {
-    public var data: String
+    public var data: String? = nil
     public var width: Int = 720
     public var height: Int = 460
     public var maxDepth: Int = 2
     public var colorBy: String = "size"
     public var unit: String = "bytes"
-    public var ariaLabel: String
+    public var ariaLabel: String = "Treemap path"
     private let content: Content
 
     public init(

@@ -11,8 +11,8 @@ class TuxPlayground:
     component_name: Optional[str] = None
     controls: Optional[str] = None
     presets: Optional[str] = None
-    title: Optional[str] = None
-    eyebrow: Optional[str] = None
+    title: str = "Interactive Props Workbench"
+    eyebrow: str = "Live Component Playground"
     slot_prop: Optional[str] = None
     default_slot_text: Optional[str] = None
     self_closing: bool = False

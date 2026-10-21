@@ -4,7 +4,7 @@
 import SwiftUI
 
 public struct TuxTestimonial<Content: View>: View {
-    public var items: String
+    public var items: String? = nil
     public var layout: String = "grid"
     public var columns: Int = 3
     public var variant: String = "default"

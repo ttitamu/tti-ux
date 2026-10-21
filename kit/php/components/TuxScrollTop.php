@@ -9,7 +9,7 @@ final class TuxScrollTop
 {
     public int $threshold = 160;
     public string $position = 'bottom-right';
-    public string $ariaLabel;
+    public string $ariaLabel = 'Scroll to top of page';
 
     public function __construct(array $attributes = [])
     {

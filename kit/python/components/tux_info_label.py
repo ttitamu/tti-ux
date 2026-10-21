@@ -10,7 +10,7 @@ class TuxInfoLabel:
     for_: Optional[str] = None
     required: bool = False
     trigger: str = "hover"
-    info_aria_label: Optional[str] = None
+    info_aria_label: str = "More information"
 
     def render_html(self, content: str = "") -> str:
         return f'<label class="tux-info-label">{content}</label>'

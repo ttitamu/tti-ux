@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxChartGeoCounty<Content: View>: View {
-    public var counties: String
-    public var legendLabel: String
-    public var legendStops: String
+    public var counties: String? = nil
+    public var legendLabel: String? = nil
+    public var legendStops: String? = nil
     private let content: Content
 
     public init(

@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxChartGeoUsContext
 {
-    public string $states;
-    public string $highlight;
-    public string $legendLabel;
-    public string $legendStops;
+    public ?string $states = null;
+    public ?string $highlight = null;
+    public ?string $legendLabel = null;
+    public ?string $legendStops = null;
 
     public function __construct(array $attributes = [])
     {

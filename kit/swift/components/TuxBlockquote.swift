@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxBlockquote<Content: View>: View {
-    public var quote: String
-    public var attribution: String
-    public var role: String
+    public var quote: String? = nil
+    public var attribution: String? = nil
+    public var role: String? = nil
     public var layout: String = "centered"
     public var variant: String = "default"
     private let content: Content

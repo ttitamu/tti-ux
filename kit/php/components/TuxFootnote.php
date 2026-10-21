@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxFootnote
 {
-    public int $n;
-    public string $text;
+    public ?int $n = null;
+    public ?string $text = null;
     public string $idPrefix = 'fn';
 
     public function __construct(array $attributes = [])

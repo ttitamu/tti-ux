@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxSidebarBlock<Content: View>: View {
-    public var title: String
-    public var eyebrow: String
-    public var icon: String
+    public var title: String? = nil
+    public var eyebrow: String? = nil
+    public var icon: String? = nil
     public var variant: String = "default"
     private let content: Content
 

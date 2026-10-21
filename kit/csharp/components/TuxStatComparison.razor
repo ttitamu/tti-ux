@@ -9,11 +9,11 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Eyebrow { get; set; };
-    [Parameter] public int Current { get; set; };
-    [Parameter] public int Previous { get; set; };
-    [Parameter] public string Suffix { get; set; };
-    [Parameter] public string Label { get; set; };
+    [Parameter] public string? Eyebrow { get; set; }
+    [Parameter] public int? Current { get; set; }
+    [Parameter] public int? Previous { get; set; }
+    [Parameter] public string? Suffix { get; set; }
+    [Parameter] public string? Label { get; set; }
     [Parameter] public string Layout { get; set; } = "row";
     [Parameter] public int Decimals { get; set; } = 1;
     [Parameter] public string Polarity { get; set; } = "direct";

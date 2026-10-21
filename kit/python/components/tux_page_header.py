@@ -13,6 +13,7 @@ class TuxPageHeader:
     tone: str = "plain"
     rhythm: str = "compact"
     variant: str = "default"
+    division: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<header class="tux-page-header">{content}</header>'

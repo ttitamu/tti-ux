@@ -4,12 +4,12 @@
 import SwiftUI
 
 public struct TuxSiteNav<Content: View>: View {
-    public var identity: String
-    public var primaryNav: String
-    public var utilityNav: String
+    public var identity: String? = nil
+    public var primaryNav: String? = nil
+    public var utilityNav: String? = nil
     public var search: Bool = false
     public var sticky: Bool = false
-    public var ariaLabel: String
+    public var ariaLabel: String = "Primary navigation"
     private let content: Content
 
     public init(

@@ -4,13 +4,13 @@
 import SwiftUI
 
 public struct TuxInfiniteScroll<Content: View>: View {
-    public var loaded: Int
-    public var total: Int
+    public var loaded: Int? = nil
+    public var total: Int? = nil
     public var loading: Bool = false
     public var keyboardFallback: Bool = false
     public var rootMargin: String = "200px"
-    public var noun: String
-    public var nounPlural: String
+    public var noun: String? = nil
+    public var nounPlural: String? = nil
     private let content: Content
 
     public init(

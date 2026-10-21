@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxQACollection
 {
-    public string $items;
+    public ?string $items = null;
     public string $variant = 'default';
 
     public function __construct(array $attributes = [])

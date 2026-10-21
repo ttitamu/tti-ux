@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxAppSwitcher
 {
-    public string $apps;
-    public string $ariaLabel;
-    public string $heading;
-    public string $footerText;
+    public ?string $apps = null;
+    public string $ariaLabel = 'Switch apps';
+    public string $heading = 'TTI Portals';
+    public ?string $footerText = null;
     public string $presentation = 'popover';
 
     public function __construct(array $attributes = [])

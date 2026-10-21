@@ -4,12 +4,12 @@
 import SwiftUI
 
 public struct TuxInlineCitation<Content: View>: View {
-    public var n: Int
-    public var title: String
-    public var href: String
-    public var excerpt: String
-    public var score: String
-    public var label: String
+    public var n: Int? = nil
+    public var title: String? = nil
+    public var href: String? = nil
+    public var excerpt: String? = nil
+    public var score: String? = nil
+    public var label: String? = nil
     private let content: Content
 
     public init(

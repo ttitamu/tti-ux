@@ -11,15 +11,15 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxEventCalendarRow(
-    day: String,
-    month: String,
-    title: String,
-    time: String,
-    location: String,
-    category: String,
-    to: String,
-    href: String,
-    actionText: String,
+    day: String? = null,
+    month: String? = null,
+    title: String? = null,
+    time: String = "",
+    location: String = "",
+    category: String = "",
+    to: String = "",
+    href: String = "",
+    actionText: String = "View Event",
     chipTone: String = "green",
     content: @Composable () -> Unit = {}
 ) {

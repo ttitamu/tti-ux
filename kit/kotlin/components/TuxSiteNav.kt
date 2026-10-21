@@ -11,12 +11,12 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxSiteNav(
-    identity: String,
-    primaryNav: String,
-    utilityNav: String,
+    identity: String? = null,
+    primaryNav: String? = null,
+    utilityNav: String? = null,
     search: Boolean = false,
     sticky: Boolean = false,
-    ariaLabel: String,
+    ariaLabel: String = "Primary navigation",
     content: @Composable () -> Unit = {}
 ) {
     Row(

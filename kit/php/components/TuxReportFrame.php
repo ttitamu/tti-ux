@@ -10,8 +10,8 @@ final class TuxReportFrame
     public string $size = 'letter';
     public string $density = 'editorial';
     public bool $breakAfter = false;
-    public string $title;
-    public string $eyebrow;
+    public ?string $title = null;
+    public ?string $eyebrow = null;
 
     public function __construct(array $attributes = [])
     {

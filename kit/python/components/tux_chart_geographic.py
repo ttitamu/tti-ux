@@ -9,7 +9,7 @@ from typing import Optional
 class TuxChartGeographic:
     kind: Optional[str] = None
     palette: str = "maroon"
-    title: Optional[str] = None
+    title: str = ""
     legend_label: str = "Value"
     legend_stops: Optional[str] = None
     show_legend: bool = True
@@ -18,9 +18,9 @@ class TuxChartGeographic:
     states: Optional[str] = None
     highlight: str = "TX"
     dots: int = 600
-    dot_legend: Optional[str] = None
+    dot_legend: str = "1 dot = 100 incidents"
     flows: Optional[str] = None
-    flow_legend: Optional[str] = None
+    flow_legend: str = "Daily trips (thousands)"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-chart-geographic">{content}</div>'

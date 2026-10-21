@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxChartGeoFlow<Content: View>: View {
-    public var flows: String
-    public var flowLegend: String
+    public var flows: String? = nil
+    public var flowLegend: String? = nil
     private let content: Content
 
     public init(

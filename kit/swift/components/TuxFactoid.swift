@@ -4,12 +4,12 @@
 import SwiftUI
 
 public struct TuxFactoid<Content: View>: View {
-    public var items: String
+    public var items: String? = nil
     public var variant: String = "default"
     public var columns: Int = 3
-    public var eyebrow: String
-    public var title: String
-    public var dek: String
+    public var eyebrow: String? = nil
+    public var title: String? = nil
+    public var dek: String? = nil
     private let content: Content
 
     public init(

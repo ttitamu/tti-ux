@@ -15,7 +15,7 @@ export interface TuxTileGridProps {
 }
 
 export const TuxTileGrid: React.FC<TuxTileGridProps> = ({
-  title, subtitle, tiles, columns = 3, surface = "eggshell", children, className = ''
+  title = "", subtitle = "", tiles, columns = 3, surface = "eggshell", children, className = ''
 }) => {
   return (
     <section className={`tux-tile-grid ${className}`.trim()}>

@@ -7,9 +7,9 @@ from typing import Optional
 
 @dataclass
 class TuxCapabilityCluster:
-    title: Optional[str] = None
-    kicker: Optional[str] = None
-    subtitle: Optional[str] = None
+    title: str = "RESEARCH CAPABILITIES"
+    kicker: str = "Research Programs"
+    subtitle: str = "Applied research and testing capabilities across nine core transportation disciplines."
     capabilities: Optional[str] = None
     columns: int = 3
 

@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxAppFrame<Content: View>: View {
-    public var title: String
-    public var eyebrow: String
+    public var title: String? = nil
+    public var eyebrow: String? = nil
     public var useSystemAccent: Bool = false
     public var unifiedToolbar: Bool = true
     public var forceChrome: Bool = false

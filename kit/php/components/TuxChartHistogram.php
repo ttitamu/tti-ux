@@ -7,19 +7,19 @@ namespace Tti\Tux\Components;
 
 final class TuxChartHistogram
 {
-    public string $values;
+    public ?string $values = null;
     public int $width = 640;
     public int $height = 280;
     public int $binCount = 12;
-    public string $percentiles;
+    public ?string $percentiles = null;
     public bool $normalize = false;
     public bool $gridlines = true;
     public int $ticks = 5;
-    public string $xLabel;
-    public string $format;
+    public ?string $xLabel = null;
+    public ?string $format = null;
     public int $decimals = 1;
-    public string $ariaSummary;
-    public string $units;
+    public ?string $ariaSummary = null;
+    public ?string $units = null;
     public bool $tooltip = true;
 
     public function __construct(array $attributes = [])

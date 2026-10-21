@@ -24,7 +24,7 @@ export interface TuxCommHeroProps {
 }
 
 export const TuxCommHero: React.FC<TuxCommHeroProps> = ({
-  eyebrow, title, accentTitle, lead, primaryActionText, primaryActionTo, primaryActionHref, secondaryActionText, secondaryActionTo, secondaryActionHref, imageSrc, imageAlt, imageBadge, chamfer = true, children, className = ''
+  eyebrow = "TEXAS A&M TRANSPORTATION INSTITUTE", title, accentTitle = "", lead = "", primaryActionText = "", primaryActionTo = "", primaryActionHref = "", secondaryActionText = "", secondaryActionTo = "", secondaryActionHref = "", imageSrc = "", imageAlt = "TTI Research Facility and Operations", imageBadge = "", chamfer = true, children, className = ''
 }) => {
   return (
     <section className={`tux-comm-hero ${className}`.trim()}>

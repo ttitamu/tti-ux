@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxConversationList<Content: View>: View {
-    public var groups: String
-    public var activeId: String
+    public var groups: String? = nil
+    public var activeId: String? = nil
     private let content: Content
 
     public init(

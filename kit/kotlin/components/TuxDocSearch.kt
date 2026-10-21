@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxDocSearch(
-    items: String,
-    placeholder: String,
+    items: String? = null,
+    placeholder: String = "Search docs (Press / to focus)…",
     maxResults: Int = 8,
     content: @Composable () -> Unit = {}
 ) {

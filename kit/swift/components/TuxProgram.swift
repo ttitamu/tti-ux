@@ -4,13 +4,13 @@
 import SwiftUI
 
 public struct TuxProgram<Content: View>: View {
-    public var name: String
-    public var eyebrow: String
-    public var summary: String
-    public var hero: String
-    public var leads: String
-    public var funders: String
-    public var metrics: String
+    public var name: String? = nil
+    public var eyebrow: String? = nil
+    public var summary: String? = nil
+    public var hero: String? = nil
+    public var leads: String? = nil
+    public var funders: String? = nil
+    public var metrics: String? = nil
     private let content: Content
 
     public init(

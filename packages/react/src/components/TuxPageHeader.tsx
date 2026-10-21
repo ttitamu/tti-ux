@@ -11,12 +11,13 @@ export interface TuxPageHeaderProps {
   tone?: "plain" | "neutral" | "maroon";
   rhythm?: "compact" | "hero";
   variant?: "default" | "bold" | "elegant";
+  division?: "maroon" | "blue" | "teal" | "green" | "gold";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxPageHeader: React.FC<TuxPageHeaderProps> = ({
-  eyebrow, title, level = 1, tone = "plain", rhythm = "compact", variant = "default", children, className = ''
+  eyebrow, title, level = 1, tone = "plain", rhythm = "compact", variant = "default", division, children, className = ''
 }) => {
   return (
     <header className={`tux-page-header ${className}`.trim()}>

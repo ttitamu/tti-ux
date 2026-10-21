@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxReactionBar<Content: View>: View {
-    public var modelValue: String
-    public var reactions: String
-    public var counts: String
-    public var size: String
+    public var modelValue: String? = nil
+    public var reactions: String? = nil
+    public var counts: String? = nil
+    public var size: String = "md"
     private let content: Content
 
     public init(

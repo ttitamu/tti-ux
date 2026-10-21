@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxChartGeoUsContext<Content: View>: View {
-    public var states: String
-    public var highlight: String
-    public var legendLabel: String
-    public var legendStops: String
+    public var states: String? = nil
+    public var highlight: String? = nil
+    public var legendLabel: String? = nil
+    public var legendStops: String? = nil
     private let content: Content
 
     public init(

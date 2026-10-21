@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxDropdown<Content: View>: View {
-    public var label: String
-    public var items: String
-    public var to: String
+    public var label: String? = nil
+    public var items: String? = nil
+    public var to: String? = nil
     private let content: Content
 
     public init(

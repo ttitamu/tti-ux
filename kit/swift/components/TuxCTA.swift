@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxCTA<Content: View>: View {
-    public var eyebrow: String
-    public var title: String
-    public var dek: String
+    public var eyebrow: String? = nil
+    public var title: String? = nil
+    public var dek: String? = nil
     public var tone: String = "maroon"
     public var variant: String = "default"
     private let content: Content

@@ -9,8 +9,8 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string ModelValue { get; set; };
-    [Parameter] public string Reactions { get; set; };
-    [Parameter] public string Counts { get; set; };
-    [Parameter] public string Size { get; set; };
+    [Parameter] public string? ModelValue { get; set; }
+    [Parameter] public string? Reactions { get; set; }
+    [Parameter] public string? Counts { get; set; }
+    [Parameter] public string Size { get; set; } = "md";
 }

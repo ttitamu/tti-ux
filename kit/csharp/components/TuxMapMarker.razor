@@ -9,9 +9,9 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Kind { get; set; };
-    [Parameter] public string Number { get; set; };
-    [Parameter] public int ToneIndex { get; set; };
+    [Parameter] public string? Kind { get; set; }
+    [Parameter] public string? Number { get; set; }
+    [Parameter] public int? ToneIndex { get; set; }
     [Parameter] public string Size { get; set; } = "md";
-    [Parameter] public string Title { get; set; };
+    [Parameter] public string? Title { get; set; }
 }

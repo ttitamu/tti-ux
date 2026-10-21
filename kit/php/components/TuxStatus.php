@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxStatus
 {
-    public string $state;
+    public ?string $state = null;
     public string $kind = 'chip';
     public bool $acked = false;
-    public string $label;
+    public ?string $label = null;
     public bool $glyph = false;
 
     public function __construct(array $attributes = [])

@@ -7,16 +7,16 @@ namespace Tti\Tux\Components;
 
 final class TuxRichTextEditor
 {
-    public string $modelValue;
-    public string $placeholder;
+    public string $modelValue = '';
+    public string $placeholder = 'Start writing…';
     public bool $disabled = false;
     public string $minHeight = '12rem';
     public string $maxHeight = 'auto';
-    public string $toolbar;
-    public string $headingLevels;
+    public ?string $toolbar = null;
+    public ?string $headingLevels = null;
     public bool $showCount = true;
     public bool $fullscreenable = true;
-    public string $ariaLabel;
+    public string $ariaLabel = 'Rich text editor';
 
     public function __construct(array $attributes = [])
     {

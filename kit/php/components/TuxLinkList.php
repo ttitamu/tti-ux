@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxLinkList
 {
-    public string $groups;
+    public ?string $groups = null;
     public string $layout = 'columns';
     public int $columns = 3;
 

@@ -11,16 +11,16 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxSearch(
-    modelValue: String,
+    modelValue: String = "",
     variant: String = "field",
     blockBar: String = "field",
     size: String = "regular",
     placeholder: String = "Search",
-    heading: String,
-    lede: String,
-    ariaLabel: String,
+    heading: String? = null,
+    lede: String? = null,
+    ariaLabel: String? = null,
     actionLabel: String = "Search",
-    actionIcon: String,
+    actionIcon: String? = null,
     leadingIcon: String = "lucide:search",
     clearable: Boolean = true,
     loading: Boolean = false,

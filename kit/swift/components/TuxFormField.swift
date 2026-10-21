@@ -4,12 +4,12 @@
 import SwiftUI
 
 public struct TuxFormField<Content: View>: View {
-    public var label: String
-    public var help: String
-    public var hint: String
-    public var error: String
+    public var label: String? = nil
+    public var help: String? = nil
+    public var hint: String? = nil
+    public var error: String? = nil
     public var required: Bool = false
-    public var inputId: String
+    public var inputId: String? = nil
     public var layout: String = "stacked"
     private let content: Content
 

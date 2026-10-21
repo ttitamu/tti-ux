@@ -4,13 +4,13 @@
 import SwiftUI
 
 public struct TuxChartSunburst<Content: View>: View {
-    public var data: String
+    public var data: String? = nil
     public var size: Int = 320
     public var centerLabel: String = "Total"
-    public var formatTotal: String
-    public var formatValue: String
+    public var formatTotal: String? = nil
+    public var formatValue: String? = nil
     public var showLegend: Bool = true
-    public var palette: String
+    public var palette: String? = nil
     public var tooltip: Bool = true
     private let content: Content
 

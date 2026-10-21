@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxConversationList
 {
-    public string $groups;
-    public string $activeId;
+    public ?string $groups = null;
+    public ?string $activeId = null;
 
     public function __construct(array $attributes = [])
     {

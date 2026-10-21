@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxChartGeoTitle<Content: View>: View {
-    public var title: String
-    public var x: Int
-    public var y: Int
+    public var title: String? = nil
+    public var x: Int? = nil
+    public var y: Int? = nil
     private let content: Content
 
     public init(

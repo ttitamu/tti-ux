@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxChartGeoDistricts
 {
-    public string $districts;
-    public string $legendLabel;
-    public string $legendStops;
+    public ?string $districts = null;
+    public ?string $legendLabel = null;
+    public ?string $legendStops = null;
 
     public function __construct(array $attributes = [])
     {

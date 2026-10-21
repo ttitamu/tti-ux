@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChartBar(
-    labels: String,
-    series: String,
+    labels: String? = null,
+    series: String? = null,
     width: Int = 640,
     height: Int = 280,
     palette: String = "brand",
@@ -24,10 +24,10 @@ fun TuxChartBar(
     gridlines: Boolean = true,
     legend: Boolean = false,
     ticks: Int = 5,
-    format: String,
+    format: String? = null,
     decimals: Int = 1,
-    ariaSummary: String,
-    units: String,
+    ariaSummary: String? = null,
+    units: String? = null,
     tooltip: Boolean = true,
     content: @Composable () -> Unit = {}
 ) {

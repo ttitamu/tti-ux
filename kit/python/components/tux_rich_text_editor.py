@@ -7,8 +7,8 @@ from typing import Optional
 
 @dataclass
 class TuxRichTextEditor:
-    model_value: Optional[str] = None
-    placeholder: Optional[str] = None
+    model_value: str = ""
+    placeholder: str = "Start writing…"
     disabled: bool = False
     min_height: str = "12rem"
     max_height: str = "auto"
@@ -16,7 +16,7 @@ class TuxRichTextEditor:
     heading_levels: Optional[str] = None
     show_count: bool = True
     fullscreenable: bool = True
-    aria_label: Optional[str] = None
+    aria_label: str = "Rich text editor"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-rich-text-editor">{content}</div>'

@@ -9,11 +9,11 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public int Loaded { get; set; };
-    [Parameter] public int Total { get; set; };
+    [Parameter] public int? Loaded { get; set; }
+    [Parameter] public int? Total { get; set; }
     [Parameter] public bool Loading { get; set; } = false;
-    [Parameter] public string Noun { get; set; };
-    [Parameter] public string NounPlural { get; set; };
-    [Parameter] public string Label { get; set; };
-    [Parameter] public string TerminalLabel { get; set; };
+    [Parameter] public string? Noun { get; set; }
+    [Parameter] public string? NounPlural { get; set; }
+    [Parameter] public string Label { get; set; } = "Load more";
+    [Parameter] public string TerminalLabel { get; set; } = "All loaded";
 }

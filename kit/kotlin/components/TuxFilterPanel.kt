@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxFilterPanel(
-    facets: String,
-    modelValue: String,
-    title: String,
+    facets: String? = null,
+    modelValue: String? = null,
+    title: String = "Filter",
     content: @Composable () -> Unit = {}
 ) {
     Row(

@@ -9,14 +9,14 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Src { get; set; };
-    [Parameter] public string Eyebrow { get; set; };
-    [Parameter] public string Title { get; set; };
-    [Parameter] public string Subtitle { get; set; };
-    [Parameter] public string Source { get; set; };
+    [Parameter] public string? Src { get; set; }
+    [Parameter] public string? Eyebrow { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public string? Source { get; set; }
     [Parameter] public string Aspect { get; set; } = "16/9";
-    [Parameter] public int Height { get; set; };
-    [Parameter] public string IframeTitle { get; set; };
+    [Parameter] public int? Height { get; set; }
+    [Parameter] public string? IframeTitle { get; set; }
     [Parameter] public bool Attribution { get; set; } = true;
     [Parameter] public bool Skeleton { get; set; } = true;
 }

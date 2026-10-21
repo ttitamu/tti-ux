@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxStatus(
-    state: String,
+    state: String? = null,
     kind: String = "chip",
     acked: Boolean = false,
-    label: String,
+    label: String? = null,
     glyph: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {

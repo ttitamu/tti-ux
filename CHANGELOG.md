@@ -17,6 +17,18 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 `npm test` runs the root suite, then the charts, diagrams, code, desk, content and React workspaces, and stops at the first failure. The first two fixes failed the root suite, so no workspace suite ran. The third failed the first workspace. It now runs all seven.
 
+### Fixed — the .NET, Swift, Kotlin and PHP kits compile; the sync engine writes each language's literals
+
+- **Every generated port compiles in its own language.** The engine wrote each prop's default by pasting JS text into the target. On main, 163 of 179 Razor components failed to build (`{ get; set; };`, C# error CS1597, for every prop without a default). 165 of 179 Swift views failed: 157 left a stored property uninitialized, and four couldn't parse a prop named `as` or `for`. Kotlin failed in 7 files and PHP in 3, on the same keywords and on a fractional default in an `int`. A shared `defaultLiteral()` now reads each default once. `phpDefault`, `csharpDefault`, `swiftDefault`, `kotlinDefault` and `jsDefault` render it, beside the existing `pythonDefault`:
+  - with no default, the property is nullable and null (`?string`, `string?`, `String? = nil`, `String? = null`), as the Python kit already was;
+  - strings are escaped for each language (Kotlin's `$`, PHP's `'`, control characters);
+  - a fractional number default takes the float type, Python's included (`stroke_width: float = 1.5`), and an integer past 32 bits takes C#'s `long` and Kotlin's `Long`;
+  - Swift and Kotlin keywords are backtick-escaped. A prop that collides with a member the template declares gets a trailing underscore: SwiftUI's `body` becomes `body_` in TuxPopover.
+- **`withDefaults` is read with a balanced scan, not a regex.** A quoted default with a space survived neither regex: before 3.2.1 it was cut at the first space (`'Emergency'`), and since then it was dropped. All 56 now come through whole, among them `title: "Emergency alert"` and TuxFooter's two-line address. Only code in `<script setup>` is scanned, so a comment, a regex literal, `as const` or a comma inside `<…>` doesn't derail it. Factories (`() => []`) and expressions (`50 * 1024 * 1024`) still leave no default.
+- **Sub-layer shims resolve by package name.** Since 3.4.1 the root shims re-export `@tti/tti-ux-code/…` and the other sub-layers by name. The engine followed only relative paths, so a regeneration would have emptied every port of TuxCodeBlock, TuxDiagram, TuxECharts and TuxRichTextEditor.
+
+Regenerated the PHP, Razor, Swift, Kotlin, Python and engine-managed React targets with the engine's own `syncAll`. Every file of those targets now reproduces byte for byte, including the 15 components that had drifted behind their Vue sources since 3.3.0, and TuxUnitValue's first ports. The web-component and vanilla-JS targets are untouched: their emitters write no defaults.
+
 ## [3.4.1] — 2026-10-20
 
 ### Fixed — 3.4.0 could not be built by a consuming app

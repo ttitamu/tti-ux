@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxDocsSidebar
 {
-    public string $tree;
+    public ?string $tree = null;
     public string $title = 'Docs';
     public bool $search = true;
-    public string $searchPlaceholder;
+    public string $searchPlaceholder = 'Filter docs…';
     public string $storageKey = 'tux-docs-sidebar';
     public bool $exclusiveTopLevel = false;
 

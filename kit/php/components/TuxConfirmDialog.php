@@ -8,9 +8,9 @@ namespace Tti\Tux\Components;
 final class TuxConfirmDialog
 {
     public bool $open = false;
-    public string $title;
-    public string $eyebrow;
-    public string $confirmLabel;
+    public ?string $title = null;
+    public ?string $eyebrow = null;
+    public ?string $confirmLabel = null;
     public string $cancelLabel = 'Cancel';
     public string $variant = 'destructive';
     public bool $confirmDisabled = false;

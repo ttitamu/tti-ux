@@ -9,13 +9,13 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string State { get; set; };
-    [Parameter] public string Identity { get; set; };
-    [Parameter] public string SignInHref { get; set; };
-    [Parameter] public string SignInLabel { get; set; };
-    [Parameter] public string Items { get; set; };
-    [Parameter] public string Prefs { get; set; };
+    [Parameter] public string? State { get; set; }
+    [Parameter] public string? Identity { get; set; }
+    [Parameter] public string? SignInHref { get; set; }
+    [Parameter] public string SignInLabel { get; set; } = "Sign in";
+    [Parameter] public string? Items { get; set; }
+    [Parameter] public string? Prefs { get; set; }
     [Parameter] public bool ShowSignOut { get; set; } = true;
     [Parameter] public string Placement { get; set; } = "cluster";
-    [Parameter] public string StatusLine { get; set; };
+    [Parameter] public string? StatusLine { get; set; }
 }

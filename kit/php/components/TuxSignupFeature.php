@@ -7,13 +7,13 @@ namespace Tti\Tux\Components;
 
 final class TuxSignupFeature
 {
-    public string $title;
-    public string $eyebrow;
-    public string $dek;
+    public ?string $title = null;
+    public ?string $eyebrow = null;
+    public ?string $dek = null;
     public string $actionLabel = 'Subscribe';
     public string $placeholder = 'your@email.edu';
-    public string $consent;
-    public string $modelValue;
+    public string $consent = 'We never share your address. Unsubscribe in one click.';
+    public string $modelValue = '';
     public string $tone = 'neutral';
     public string $variant = 'default';
 

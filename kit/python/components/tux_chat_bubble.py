@@ -10,7 +10,7 @@ class TuxChatBubble:
     mode: str = "bubble"
     role: str = "assistant"
     title: str = "Assistant"
-    subtitle: Optional[str] = None
+    subtitle: str = "Institutional Assistant"
     state: str = "idle"
     teaser: Optional[str] = None
     tail: str = "none"

@@ -7,11 +7,11 @@ namespace Tti\Tux\Components;
 
 final class TuxMapMarker
 {
-    public string $kind;
-    public string $number;
-    public int $toneIndex;
+    public ?string $kind = null;
+    public ?string $number = null;
+    public ?int $toneIndex = null;
     public string $size = 'md';
-    public string $title;
+    public ?string $title = null;
 
     public function __construct(array $attributes = [])
     {

@@ -8,10 +8,10 @@ from typing import Optional
 @dataclass
 class TuxMetroInset:
     name: Optional[str] = None
-    highway_label: Optional[str] = None
+    highway_label: str = ""
     height: int = 220
     palette: str = "maroon"
-    seed: Optional[str] = None
+    seed: str = ""
     cols: int = 8
     rows: int = 6
 
