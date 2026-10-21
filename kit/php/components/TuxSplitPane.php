@@ -7,11 +7,11 @@ namespace Tti\Tux\Components;
 
 final class TuxSplitPane
 {
-    public string $modelValue;
+    public ?string $modelValue = null;
     public string $initialListWidth = '320px';
     public int $minListWidth = 220;
     public int $maxListWidth = 560;
-    public string $id;
+    public ?string $id = null;
     public string $initialBottomHeight = '160px';
     public bool $showBottom = false;
     public string $listLabel = 'Records';

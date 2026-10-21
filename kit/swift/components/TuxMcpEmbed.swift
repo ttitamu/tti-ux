@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxMcpEmbed<Content: View>: View {
-    public var appName: String
+    public var appName: String? = nil
     public var appIcon: String = "lucide:plug"
-    public var appIconUrl: String
-    public var source: String
+    public var appIconUrl: String? = nil
+    public var source: String? = nil
     public var loading: Bool = false
     public var collapsible: Bool = true
     public var expandable: Bool = true

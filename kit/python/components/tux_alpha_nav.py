@@ -13,7 +13,7 @@ class TuxAlphaNav:
     sticky: bool = False
     show_all: bool = False
     model_value: Optional[str] = None
-    aria_label: Optional[str] = None
+    aria_label: str = "Jump to letter"
 
     def render_html(self, content: str = "") -> str:
         return f'<nav class="tux-alpha-nav">{content}</nav>'

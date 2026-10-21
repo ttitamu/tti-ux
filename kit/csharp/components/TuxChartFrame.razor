@@ -9,10 +9,16 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Eyebrow { get; set; };
-    [Parameter] public string Title { get; set; };
-    [Parameter] public string Subtitle { get; set; };
-    [Parameter] public string Source { get; set; };
-    [Parameter] public string Notes { get; set; };
+    [Parameter] public string Eyebrow { get; set; } = "";
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Subtitle { get; set; } = "";
+    [Parameter] public string Source { get; set; } = "";
+    [Parameter] public string Notes { get; set; } = "";
     [Parameter] public bool Bare { get; set; } = false;
+    [Parameter] public string? Labels { get; set; }
+    [Parameter] public string? Series { get; set; }
+    [Parameter] public bool Sonify { get; set; } = true;
+    [Parameter] public bool ShowDataTable { get; set; } = true;
+    [Parameter] public string? Division { get; set; }
+    [Parameter] public string Doi { get; set; } = "";
 }

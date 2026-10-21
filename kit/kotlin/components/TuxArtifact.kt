@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxArtifact(
-    title: String,
-    meta: String,
+    title: String? = null,
+    meta: String? = null,
     icon: String = "lucide:file-code",
-    actions: String,
+    actions: String? = null,
     busy: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {

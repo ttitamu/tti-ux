@@ -4,16 +4,16 @@
 import SwiftUI
 
 public struct TuxRichTextEditor<Content: View>: View {
-    public var modelValue: String
-    public var placeholder: String
+    public var modelValue: String = ""
+    public var placeholder: String = "Start writing…"
     public var disabled: Bool = false
     public var minHeight: String = "12rem"
     public var maxHeight: String = "auto"
-    public var toolbar: String
-    public var headingLevels: String
+    public var toolbar: String? = nil
+    public var headingLevels: String? = nil
     public var showCount: Bool = true
     public var fullscreenable: Bool = true
-    public var ariaLabel: String
+    public var ariaLabel: String = "Rich text editor"
     private let content: Content
 
     public init(

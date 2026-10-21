@@ -7,11 +7,11 @@ namespace Tti\Tux\Components;
 
 final class TuxMetroInset
 {
-    public string $name;
-    public string $highwayLabel;
+    public ?string $name = null;
+    public string $highwayLabel = '';
     public int $height = 220;
     public string $palette = 'maroon';
-    public string $seed;
+    public string $seed = '';
     public int $cols = 8;
     public int $rows = 6;
 

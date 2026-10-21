@@ -4,12 +4,12 @@
 import SwiftUI
 
 public struct TuxAnnouncementBanner<Content: View>: View {
-    public var id: String
+    public var id: String? = nil
     public var tone: String = "info"
-    public var icon: String
-    public var eyebrow: String
-    public var message: String
-    public var action: String
+    public var icon: String? = nil
+    public var eyebrow: String? = nil
+    public var message: String? = nil
+    public var action: String? = nil
     public var dismissable: Bool = true
     private let content: Content
 

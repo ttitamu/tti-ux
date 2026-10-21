@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChartLine(
-    labels: String,
-    series: String,
+    labels: String? = null,
+    series: String? = null,
     width: Int = 640,
     height: Int = 280,
     markers: Boolean = false,
     distinctMarkers: Boolean = true,
-    markerRadius: Int = 3.5,
+    markerRadius: Double = 3.5,
     palette: String = "brand",
     strokeWidth: Int = 2,
     patterns: Boolean = false,

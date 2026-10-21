@@ -7,14 +7,14 @@ namespace Tti\Tux\Components;
 
 final class TuxPaperMeta
 {
-    public string $doi;
-    public string $license;
-    public string $funders;
-    public string $published;
-    public string $version;
-    public string $type;
-    public string $pages;
-    public string $venue;
+    public ?string $doi = null;
+    public ?string $license = null;
+    public ?string $funders = null;
+    public ?string $published = null;
+    public ?string $version = null;
+    public ?string $type = null;
+    public ?string $pages = null;
+    public ?string $venue = null;
 
     public function __construct(array $attributes = [])
     {

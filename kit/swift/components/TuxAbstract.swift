@@ -4,13 +4,19 @@
 import SwiftUI
 
 public struct TuxAbstract<Content: View>: View {
-    public var background: String
-    public var methods: String
-    public var results: String
-    public var conclusion: String
-    public var keywords: String
+    public var background: String? = nil
+    public var methods: String? = nil
+    public var results: String? = nil
+    public var conclusion: String? = nil
+    public var keywords: String? = nil
     public var variant: String = "structured"
     public var level: Int = 4
+    public var plainSummary: String? = nil
+    public var policyTakeaways: String? = nil
+    public var doi: String? = nil
+    public var projectNumber: String? = nil
+    public var citation: String? = nil
+    public var division: String? = nil
     private let content: Content
 
     public init(

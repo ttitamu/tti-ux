@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxChartArea
 {
-    public string $labels;
-    public string $series;
+    public ?string $labels = null;
+    public ?string $series = null;
     public int $width = 640;
     public int $height = 280;
     public string $palette = 'brand';
@@ -19,10 +19,10 @@ final class TuxChartArea
     public bool $legend = false;
     public bool $gridlines = true;
     public int $ticks = 5;
-    public string $format;
+    public ?string $format = null;
     public int $decimals = 1;
-    public string $ariaSummary;
-    public string $units;
+    public ?string $ariaSummary = null;
+    public ?string $units = null;
     public bool $tooltip = true;
 
     public function __construct(array $attributes = [])

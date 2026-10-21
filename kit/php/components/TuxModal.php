@@ -8,9 +8,9 @@ namespace Tti\Tux\Components;
 final class TuxModal
 {
     public bool $open = false;
-    public string $title;
-    public string $eyebrow;
-    public string $size;
+    public ?string $title = null;
+    public ?string $eyebrow = null;
+    public ?string $size = null;
     public string $variant = 'standard';
 
     public function __construct(array $attributes = [])

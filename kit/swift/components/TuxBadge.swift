@@ -4,19 +4,21 @@
 import SwiftUI
 
 public struct TuxBadge<Content: View>: View {
-    public var tier: String
-    public var status: String
-    public var tone: String
+    public var tier: String? = nil
+    public var status: String? = nil
+    public var tone: String? = nil
     public var kind: String = "default"
-    public var variant: String
+    public var variant: String? = nil
     public var bold: Bool = false
     public var dot: Bool = false
-    public var icon: String
-    public var count: String
-    public var label: String
+    public var icon: String? = nil
+    public var count: String? = nil
+    public var label: String? = nil
     public var uppercase: Bool = false
     public var shape: String = "default"
     public var glyph: Bool = false
+    public var los: String? = nil
+    public var division: String? = nil
     private let content: Content
 
     public init(

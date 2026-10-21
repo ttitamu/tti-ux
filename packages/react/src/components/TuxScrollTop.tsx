@@ -13,7 +13,7 @@ export interface TuxScrollTopProps {
 }
 
 export const TuxScrollTop: React.FC<TuxScrollTopProps> = ({
-  threshold = 160, position = "bottom-right", ariaLabel, children, className = ''
+  threshold = 160, position = "bottom-right", ariaLabel = "Scroll to top of page", children, className = ''
 }) => {
   return (
     <button className={`tux-scroll-top ${className}`.trim()}>

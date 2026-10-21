@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxKbd<Content: View>: View {
-    public var value: String
-    public var keys: String
+    public var value: String? = nil
+    public var keys: String? = nil
     public var size: String = "sm"
-    public var separator: String
+    public var separator: String = ""
     private let content: Content
 
     public init(

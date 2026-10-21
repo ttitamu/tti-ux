@@ -12,7 +12,7 @@ class TuxVizRPlot:
     title: Optional[str] = None
     eyebrow: Optional[str] = None
     ratio: str = "16/10"
-    alt: Optional[str] = None
+    alt: str = ""
     src2x: Optional[str] = None
     source: Optional[str] = None
     level: int = 3

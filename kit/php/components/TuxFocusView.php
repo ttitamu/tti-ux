@@ -8,8 +8,8 @@ namespace Tti\Tux\Components;
 final class TuxFocusView
 {
     public bool $open = false;
-    public string $title;
-    public string $eyebrow;
+    public ?string $title = null;
+    public ?string $eyebrow = null;
     public bool $dismissOnBackdropClick = true;
     public bool $dismissOnEscape = true;
     public string $backLabel = 'Close';

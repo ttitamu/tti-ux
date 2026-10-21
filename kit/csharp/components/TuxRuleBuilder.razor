@@ -9,8 +9,8 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string ModelValue { get; set; };
-    [Parameter] public string Fields { get; set; };
+    [Parameter] public string? ModelValue { get; set; }
+    [Parameter] public string? Fields { get; set; }
     [Parameter] public bool ShowActions { get; set; } = true;
     [Parameter] public int MaxDepth { get; set; } = 3;
 }

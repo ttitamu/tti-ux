@@ -5,10 +5,10 @@ import SwiftUI
 
 public struct TuxChatMessage<Content: View>: View {
     public var role: String = "user"
-    public var author: String
-    public var timestamp: String
-    public var meta: String
-    public var initials: String
+    public var author: String? = nil
+    public var timestamp: String? = nil
+    public var meta: String? = nil
+    public var initials: String? = nil
     private let content: Content
 
     public init(

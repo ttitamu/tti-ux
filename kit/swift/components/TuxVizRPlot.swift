@@ -4,14 +4,14 @@
 import SwiftUI
 
 public struct TuxVizRPlot<Content: View>: View {
-    public var src: String
+    public var src: String? = nil
     public var kind: String = "image"
-    public var title: String
-    public var eyebrow: String
+    public var title: String? = nil
+    public var eyebrow: String? = nil
     public var ratio: String = "16/10"
-    public var alt: String
-    public var src2x: String
-    public var source: String
+    public var alt: String = ""
+    public var src2x: String? = nil
+    public var source: String? = nil
     public var level: Int = 3
     private let content: Content
 

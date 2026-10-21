@@ -12,9 +12,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxConfirmDialog(
     open: Boolean = false,
-    title: String,
-    eyebrow: String,
-    confirmLabel: String,
+    title: String? = null,
+    eyebrow: String? = null,
+    confirmLabel: String? = null,
     cancelLabel: String = "Cancel",
     variant: String = "destructive",
     confirmDisabled: Boolean = false,

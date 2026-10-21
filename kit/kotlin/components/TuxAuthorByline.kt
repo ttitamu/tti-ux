@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxAuthorByline(
-    authors: String,
-    affiliations: String,
+    authors: String? = null,
+    affiliations: String? = null,
     layout: String = "compact",
     content: @Composable () -> Unit = {}
 ) {

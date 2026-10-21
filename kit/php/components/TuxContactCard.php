@@ -7,14 +7,14 @@ namespace Tti\Tux\Components;
 
 final class TuxContactCard
 {
-    public string $name;
-    public string $role;
-    public string $affiliation;
-    public string $credentials;
-    public string $image;
-    public string $initial;
+    public ?string $name = null;
+    public ?string $role = null;
+    public ?string $affiliation = null;
+    public ?string $credentials = null;
+    public ?string $image = null;
+    public ?string $initial = null;
     public string $tone = 'maroon';
-    public string $contacts;
+    public ?string $contacts = null;
     public string $layout = 'vertical';
 
     public function __construct(array $attributes = [])

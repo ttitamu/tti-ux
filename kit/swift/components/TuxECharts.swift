@@ -4,13 +4,13 @@
 import SwiftUI
 
 public struct TuxECharts<Content: View>: View {
-    public var options: String
+    public var options: String? = nil
     public var height: String = "380px"
     public var width: String = "100%"
-    public var ariaTitle: String
-    public var ariaSummary: String
-    public var extensions: String
-    public var maps: String
+    public var ariaTitle: String = "Interactive data visualization"
+    public var ariaSummary: String = ""
+    public var extensions: String? = nil
+    public var maps: String? = nil
     public var loading: Bool = false
     public var notMerge: Bool = false
     private let content: Content

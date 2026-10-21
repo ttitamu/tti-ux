@@ -13,10 +13,10 @@ import androidx.compose.ui.unit.dp
 fun TuxCodeMaroon(
     active: Boolean = false,
     tone: String = "error",
-    title: String,
-    message: String,
+    title: String = "Emergency alert",
+    message: String? = null,
     detailsUrl: String = "https://tti.tamu.edu/emergency/",
-    detailsLabel: String,
+    detailsLabel: String = "View details",
     dismissible: Boolean = false,
     modelValue: Boolean = false,
     sticky: Boolean = false,

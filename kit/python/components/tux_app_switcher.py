@@ -8,8 +8,8 @@ from typing import Optional
 @dataclass
 class TuxAppSwitcher:
     apps: Optional[str] = None
-    aria_label: Optional[str] = None
-    heading: Optional[str] = None
+    aria_label: str = "Switch apps"
+    heading: str = "TTI Portals"
     footer_text: Optional[str] = None
     presentation: str = "popover"
 

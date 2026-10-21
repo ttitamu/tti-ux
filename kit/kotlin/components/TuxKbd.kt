@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxKbd(
-    value: String,
-    keys: String,
+    value: String? = null,
+    keys: String? = null,
     size: String = "sm",
-    separator: String,
+    separator: String = "",
     content: @Composable () -> Unit = {}
 ) {
     Row(

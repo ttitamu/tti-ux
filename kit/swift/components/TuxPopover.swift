@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxPopover<Content: View>: View {
-    public var title: String
-    public var body: String
+    public var title: String? = nil
+    public var body_: String? = nil
     public var mode: String = "click"
     public var side: String = "bottom"
     public var arrow: Bool = true

@@ -4,20 +4,20 @@
 import SwiftUI
 
 public struct TuxChartDonut<Content: View>: View {
-    public var slices: String
+    public var slices: String? = nil
     public var size: Int = 280
     public var palette: String = "brand"
     public var patterns: Bool = false
-    public var thickness: Int = 0.5
+    public var thickness: Double = 0.5
     public var sliceLabels: Bool = true
     public var legend: Bool = false
-    public var centerLabel: String
-    public var centerValue: String
+    public var centerLabel: String? = nil
+    public var centerValue: String? = nil
     public var minSlice: Int = 3
-    public var format: String
+    public var format: String? = nil
     public var decimals: Int = 1
-    public var ariaSummary: String
-    public var units: String
+    public var ariaSummary: String? = nil
+    public var units: String? = nil
     public var tooltip: Bool = true
     private let content: Content
 

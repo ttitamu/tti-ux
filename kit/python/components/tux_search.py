@@ -7,7 +7,7 @@ from typing import Optional
 
 @dataclass
 class TuxSearch:
-    model_value: Optional[str] = None
+    model_value: str = ""
     variant: str = "field"
     block_bar: str = "field"
     size: str = "regular"

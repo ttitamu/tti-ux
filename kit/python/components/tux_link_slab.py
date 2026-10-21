@@ -9,7 +9,7 @@ from typing import Optional
 class TuxLinkSlab:
     links: Optional[str] = None
     tone: str = "plain"
-    aria_label: Optional[str] = None
+    aria_label: str = "Section navigation"
 
     def render_html(self, content: str = "") -> str:
         return f'<nav class="tux-link-slab">{content}</nav>'

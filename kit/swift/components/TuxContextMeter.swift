@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxContextMeter<Content: View>: View {
-    public var used: Int
-    public var max: Int
-    public var breakdown: String
+    public var used: Int? = nil
+    public var max: Int? = nil
+    public var breakdown: String? = nil
     private let content: Content
 
     public init(

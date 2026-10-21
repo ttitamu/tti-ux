@@ -8,9 +8,9 @@ namespace Tti\Tux\Components;
 final class TuxVizGrid
 {
     public string $cols = '2';
-    public string $eyebrow;
-    public string $title;
-    public string $dek;
+    public ?string $eyebrow = null;
+    public ?string $title = null;
+    public ?string $dek = null;
 
     public function __construct(array $attributes = [])
     {

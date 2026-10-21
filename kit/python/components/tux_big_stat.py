@@ -14,6 +14,10 @@ class TuxBigStat:
     variant: str = "default"
     tone: str = "maroon"
     size: str = "md"
+    sample_size: Optional[str] = None
+    confidence_interval: Optional[str] = None
+    doi: Optional[str] = None
+    division: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-big-stat">{content}</div>'

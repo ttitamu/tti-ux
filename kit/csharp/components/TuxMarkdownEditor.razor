@@ -9,12 +9,12 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string ModelValue { get; set; };
+    [Parameter] public string ModelValue { get; set; } = "";
     [Parameter] public int Rows { get; set; } = 12;
-    [Parameter] public int MinLength { get; set; };
-    [Parameter] public int MaxLength { get; set; };
-    [Parameter] public string Placeholder { get; set; };
+    [Parameter] public int? MinLength { get; set; }
+    [Parameter] public int? MaxLength { get; set; }
+    [Parameter] public string Placeholder { get; set; } = "Write in markdown — ⌘B bold, ⌘I italic, ⌘K link";
     [Parameter] public bool Preview { get; set; } = true;
     [Parameter] public bool Disabled { get; set; } = false;
-    [Parameter] public string AriaLabel { get; set; };
+    [Parameter] public string AriaLabel { get; set; } = "Markdown editor";
 }

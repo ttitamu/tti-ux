@@ -11,11 +11,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxStatComparison(
-    eyebrow: String,
-    current: Int,
-    previous: Int,
-    suffix: String,
-    label: String,
+    eyebrow: String? = null,
+    current: Int? = null,
+    previous: Int? = null,
+    suffix: String? = null,
+    label: String? = null,
     layout: String = "row",
     decimals: Int = 1,
     polarity: String = "direct",

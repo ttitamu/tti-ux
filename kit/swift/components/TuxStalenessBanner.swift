@@ -5,11 +5,11 @@ import SwiftUI
 
 public struct TuxStalenessBanner<Content: View>: View {
     public var stale: Bool = false
-    public var verifiedUntil: String
-    public var lastVerified: String
+    public var verifiedUntil: String? = nil
+    public var lastVerified: String? = nil
     public var reviewCadenceDays: Int = 90
-    public var owner: String
-    public var pageId: String
+    public var owner: String? = nil
+    public var pageId: String? = nil
     public var dismissable: Bool = true
     public var showVerifiedBadge: Bool = false
     private let content: Content

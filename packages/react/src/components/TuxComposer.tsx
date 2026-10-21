@@ -21,7 +21,7 @@ export interface TuxComposerProps {
 }
 
 export const TuxComposer: React.FC<TuxComposerProps> = ({
-  modelValue, placeholder, models, modelId, maxLength = 32000, hint, hideAttach = false, attachLabel, attachIcon = "lucide:plus", cancelable = false, cancelLabel = "Cancel", children, className = ''
+  modelValue = "", placeholder = "Ask about any ingested corpus…", models, modelId, maxLength = 32000, hint = "⌘↵ send · / corpus to switch context · shift↵ newline", hideAttach = false, attachLabel = "Attach corpus", attachIcon = "lucide:plus", cancelable = false, cancelLabel = "Cancel", children, className = ''
 }) => {
   return (
     <div className={`tux-composer ${className}`.trim()}>

@@ -20,6 +20,8 @@ class TuxBadge:
     uppercase: bool = False
     shape: str = "default"
     glyph: bool = False
+    los: Optional[str] = None
+    division: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-badge">{content}</div>'

@@ -12,8 +12,8 @@ class TuxLoadMore:
     loading: bool = False
     noun: Optional[str] = None
     noun_plural: Optional[str] = None
-    label: Optional[str] = None
-    terminal_label: Optional[str] = None
+    label: str = "Load more"
+    terminal_label: str = "All loaded"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-load-more">{content}</div>'

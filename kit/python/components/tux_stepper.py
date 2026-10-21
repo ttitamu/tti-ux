@@ -12,6 +12,8 @@ class TuxStepper:
     orientation: str = "horizontal"
     show_descriptions: bool = True
     aria_label: str = "Progress"
+    station_format: str = "number"
+    division: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<nav class="tux-stepper">{content}</nav>'

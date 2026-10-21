@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxAuthorByline
 {
-    public string $authors;
-    public string $affiliations;
+    public ?string $authors = null;
+    public ?string $affiliations = null;
     public string $layout = 'compact';
 
     public function __construct(array $attributes = [])

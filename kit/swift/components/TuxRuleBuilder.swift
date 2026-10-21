@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxRuleBuilder<Content: View>: View {
-    public var modelValue: String
-    public var fields: String
+    public var modelValue: String? = nil
+    public var fields: String? = nil
     public var showActions: Bool = true
     public var maxDepth: Int = 3
     private let content: Content

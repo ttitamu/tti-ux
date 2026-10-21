@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxChartGeoDotDensity
 {
-    public int $dots;
-    public string $dotLegend;
+    public ?int $dots = null;
+    public ?string $dotLegend = null;
 
     public function __construct(array $attributes = [])
     {

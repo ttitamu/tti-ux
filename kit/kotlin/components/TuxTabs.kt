@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxTabs(
-    items: String,
-    modelValue: String,
+    items: String? = null,
+    modelValue: String? = null,
     orientation: String = "horizontal",
     size: String = "md",
     variant: String = "default",

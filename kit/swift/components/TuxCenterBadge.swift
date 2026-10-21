@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxCenterBadge<Content: View>: View {
-    public var center: String
-    public var label: String
-    public var icon: String
+    public var center: String? = nil
+    public var label: String? = nil
+    public var icon: String? = nil
     public var toneIndex: Int = 2
     public var short: Bool = false
     public var size: String = "md"

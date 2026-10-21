@@ -16,7 +16,7 @@ class TuxVizEmbed:
     referrerpolicy: str = "strict-origin-when-cross-origin"
     open_in_new: bool = True
     poster_src: Optional[str] = None
-    poster_alt: Optional[str] = None
+    poster_alt: str = ""
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-viz-embed">{content}</figure>'

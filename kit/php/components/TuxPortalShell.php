@@ -7,28 +7,28 @@ namespace Tti\Tux\Components;
 
 final class TuxPortalShell
 {
-    public string $portalTitle;
-    public string $portalBadge;
+    public string $portalTitle = '';
+    public string $portalBadge = '';
     public string $portalBadgeVariant = 'gold';
-    public string $navItems;
-    public string $actionText;
-    public string $actionTo;
-    public string $actionHref;
-    public string $utilityLinks;
-    public string $agencyName;
+    public ?string $navItems = null;
+    public string $actionText = '';
+    public string $actionTo = '';
+    public string $actionHref = '';
+    public ?string $utilityLinks = null;
+    public string $agencyName = 'Texas A&M Transportation Institute';
     public string $agencyUrl = 'https://tti.tamu.edu';
     public string $homeUrl = '/';
     public bool $showSearch = true;
     public bool $stickyHeader = true;
-    public string $breadcrumbs;
+    public ?string $breadcrumbs = null;
     public string $maxWidth = 'standard';
     public bool $showFeedback = true;
     public string $feedbackLabel = 'Feedback';
     public bool $showFooter = true;
-    public string $headerProps;
-    public string $footerProps;
-    public string $mainClass;
-    public string $as;
+    public ?string $headerProps = null;
+    public ?string $footerProps = null;
+    public string $mainClass = 'py-8';
+    public string $as = 'main';
 
     public function __construct(array $attributes = [])
     {

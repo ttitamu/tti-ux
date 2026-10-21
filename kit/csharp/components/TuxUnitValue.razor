@@ -1,0 +1,22 @@
+@*
+ * TuxUnitValue.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<span class="tux-unit-value">
+    @ChildContent
+</span>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public int? Value { get; set; }
+    [Parameter] public string? Unit { get; set; }
+    [Parameter] public int? Ci { get; set; }
+    [Parameter] public int? Decimals { get; set; }
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Station { get; set; } = "";
+    [Parameter] public string Variant { get; set; } = "inline";
+    [Parameter] public bool Interactive { get; set; } = false;
+    [Parameter] public string? System { get; set; }
+    [Parameter] public string? Division { get; set; }
+}

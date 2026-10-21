@@ -3,13 +3,12 @@ TuxCookieConsent — Python component & Streamlit / Dash renderer.
 Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
 """
 from dataclasses import dataclass
-from typing import Optional
 
 @dataclass
 class TuxCookieConsent:
     storage_key: str = "tux-cookie-consent"
     position: str = "bottom-right"
-    message: Optional[str] = None
+    message: str = "We use cookies to keep you signed in, remember your preferences, and understand how the site is used. Necessary cookies are always on."
     privacy_href: str = "/privacy"
     initially_expanded: bool = False
 

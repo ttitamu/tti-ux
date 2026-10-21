@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxInfoLabel<Content: View>: View {
-    public var for: String
+    public var `for`: String? = nil
     public var required: Bool = false
     public var trigger: String = "hover"
-    public var infoAriaLabel: String
+    public var infoAriaLabel: String = "More information"
     private let content: Content
 
     public init(

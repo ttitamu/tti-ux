@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxTooltip(
-    text: String,
-    title: String,
-    kbds: String,
+    text: String? = null,
+    title: String? = null,
+    kbds: String? = null,
     side: String = "top",
     arrow: Boolean = true,
     disabled: Boolean = false,

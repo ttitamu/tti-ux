@@ -5,9 +5,9 @@ import SwiftUI
 
 public struct TuxSlideover<Content: View>: View {
     public var side: String = "right"
-    public var size: String
-    public var title: String
-    public var eyebrow: String
+    public var size: String? = nil
+    public var title: String? = nil
+    public var eyebrow: String? = nil
     public var showClose: Bool = true
     public var closeOnBackdrop: Bool = true
     private let content: Content

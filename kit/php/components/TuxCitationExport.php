@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxCitationExport
 {
-    public string $citation;
+    public ?string $citation = null;
     public string $label = 'Cite';
     public string $variant = 'outline';
 

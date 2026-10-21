@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxKbd
 {
-    public string $value;
-    public string $keys;
+    public ?string $value = null;
+    public ?string $keys = null;
     public string $size = 'sm';
-    public string $separator;
+    public string $separator = '';
 
     public function __construct(array $attributes = [])
     {

@@ -7,14 +7,14 @@ namespace Tti\Tux\Components;
 
 final class TuxMarkdownEditor
 {
-    public string $modelValue;
+    public string $modelValue = '';
     public int $rows = 12;
-    public int $minLength;
-    public int $maxLength;
-    public string $placeholder;
+    public ?int $minLength = null;
+    public ?int $maxLength = null;
+    public string $placeholder = 'Write in markdown — ⌘B bold, ⌘I italic, ⌘K link';
     public bool $preview = true;
     public bool $disabled = false;
-    public string $ariaLabel;
+    public string $ariaLabel = 'Markdown editor';
 
     public function __construct(array $attributes = [])
     {

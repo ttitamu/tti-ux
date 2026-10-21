@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 fun TuxScrollTop(
     threshold: Int = 160,
     position: String = "bottom-right",
-    ariaLabel: String,
+    ariaLabel: String = "Scroll to top of page",
     content: @Composable () -> Unit = {}
 ) {
     Row(

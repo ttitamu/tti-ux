@@ -7,16 +7,16 @@ namespace Tti\Tux\Components;
 
 final class TuxSearch
 {
-    public string $modelValue;
+    public string $modelValue = '';
     public string $variant = 'field';
     public string $blockBar = 'field';
     public string $size = 'regular';
     public string $placeholder = 'Search';
-    public string $heading;
-    public string $lede;
-    public string $ariaLabel;
+    public ?string $heading = null;
+    public ?string $lede = null;
+    public ?string $ariaLabel = null;
     public string $actionLabel = 'Search';
-    public string $actionIcon;
+    public ?string $actionIcon = null;
     public string $leadingIcon = 'lucide:search';
     public bool $clearable = true;
     public bool $loading = false;

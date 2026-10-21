@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxChartHeatmap<Content: View>: View {
-    public var rows: String
-    public var cols: String
-    public var values: String
+    public var rows: String? = nil
+    public var cols: String? = nil
+    public var values: String? = nil
     public var width: Int = 640
     public var height: Int = 280
     public var ramp: String = "maroon"
@@ -14,10 +14,10 @@ public struct TuxChartHeatmap<Content: View>: View {
     public var valueLabels: Bool = false
     public var legend: Bool = true
     public var colLabelEvery: Int = 0
-    public var format: String
+    public var format: String? = nil
     public var decimals: Int = 1
-    public var ariaSummary: String
-    public var units: String
+    public var ariaSummary: String? = nil
+    public var units: String? = nil
     public var tooltip: Bool = true
     private let content: Content
 

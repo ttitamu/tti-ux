@@ -11,11 +11,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChartGeoChoroplethLegend(
-    ramp: String,
-    label: String,
-    stops: String,
-    x: Int,
-    y: Int,
+    ramp: String? = null,
+    label: String? = null,
+    stops: String? = null,
+    x: Int? = null,
+    y: Int? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

@@ -11,21 +11,21 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxUtilityCluster(
-    current: String,
+    current: String? = null,
     signedIn: Boolean = false,
-    entitled: String,
+    entitled: String? = null,
     hideSwitcher: Boolean = false,
     hideTheme: Boolean = false,
     hideHighContrast: Boolean = false,
     hideVisionPrefs: Boolean = false,
-    userMenu: String,
-    state: String,
-    identity: String,
-    signInHref: String,
-    signInLabel: String,
-    items: String,
-    prefs: String,
-    statusLine: String,
+    userMenu: String? = null,
+    state: String? = null,
+    identity: String? = null,
+    signInHref: String? = null,
+    signInLabel: String? = null,
+    items: String? = null,
+    prefs: String? = null,
+    statusLine: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

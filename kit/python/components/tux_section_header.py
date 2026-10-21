@@ -13,6 +13,7 @@ class TuxSectionHeader:
     subtitle: Optional[str] = None
     kicker: Optional[str] = None
     variant: str = "institutional"
+    division: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<header class="tux-section-header">{content}</header>'

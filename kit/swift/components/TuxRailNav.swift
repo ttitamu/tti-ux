@@ -4,7 +4,7 @@
 import SwiftUI
 
 public struct TuxRailNav<Content: View>: View {
-    public var items: String = "RailItem["
+    public var items: String? = nil
     public var collapsed: Bool = false
     public var ariaLabel: String = "Primary"
     private let content: Content

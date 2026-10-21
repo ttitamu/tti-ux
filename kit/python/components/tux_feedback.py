@@ -3,12 +3,11 @@ TuxFeedback — Python component & Streamlit / Dash renderer.
 Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
 """
 from dataclasses import dataclass
-from typing import Optional
 
 @dataclass
 class TuxFeedback:
-    page_id: Optional[str] = None
-    title: Optional[str] = None
+    page_id: str = ""
+    title: str = "Was this page helpful?"
     endpoint: str = "/api/feedback"
     allow_details: bool = True
 

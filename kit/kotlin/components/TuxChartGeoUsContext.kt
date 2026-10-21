@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChartGeoUsContext(
-    states: String,
-    highlight: String,
-    legendLabel: String,
-    legendStops: String,
+    states: String? = null,
+    highlight: String? = null,
+    legendLabel: String? = null,
+    legendStops: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

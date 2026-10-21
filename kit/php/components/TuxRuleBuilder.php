@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxRuleBuilder
 {
-    public string $modelValue;
-    public string $fields;
+    public ?string $modelValue = null;
+    public ?string $fields = null;
     public bool $showActions = true;
     public int $maxDepth = 3;
 

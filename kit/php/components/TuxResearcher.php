@@ -7,17 +7,17 @@ namespace Tti\Tux\Components;
 
 final class TuxResearcher
 {
-    public string $name;
-    public string $role;
-    public string $portrait;
-    public string $center;
-    public string $orcid;
-    public string $email;
-    public string $bio;
-    public string $projects;
-    public string $metrics;
+    public ?string $name = null;
+    public ?string $role = null;
+    public ?string $portrait = null;
+    public ?string $center = null;
+    public ?string $orcid = null;
+    public ?string $email = null;
+    public ?string $bio = null;
+    public ?string $projects = null;
+    public ?string $metrics = null;
     public string $layout = 'default';
-    public string $to;
+    public ?string $to = null;
 
     public function __construct(array $attributes = [])
     {

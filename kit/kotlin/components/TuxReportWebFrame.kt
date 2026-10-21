@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxReportWebFrame(
-    eyebrow: String,
-    title: String,
-    lede: String,
-    byline: String,
-    date: String,
-    readingTime: String,
-    toc: String,
+    eyebrow: String? = null,
+    title: String? = null,
+    lede: String? = null,
+    byline: String? = null,
+    date: String? = null,
+    readingTime: String? = null,
+    toc: String? = null,
     width: String = "default",
     content: @Composable () -> Unit = {}
 ) {

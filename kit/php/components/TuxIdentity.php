@@ -7,12 +7,12 @@ namespace Tti\Tux\Components;
 
 final class TuxIdentity
 {
-    public string $name;
-    public string $superhead;
+    public ?string $name = null;
+    public ?string $superhead = null;
     public string $level = 'institution';
     public string $orientation = 'horizontal';
     public string $kind = 'lockup';
-    public string $href;
+    public ?string $href = null;
     public int $logoSize = 0;
 
     public function __construct(array $attributes = [])

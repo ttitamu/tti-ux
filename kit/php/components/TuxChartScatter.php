@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxChartScatter
 {
-    public string $series;
+    public ?string $series = null;
     public string $xLabel = 'x';
     public string $yLabel = 'y';
     public int $width = 640;
@@ -19,10 +19,10 @@ final class TuxChartScatter
     public bool $gridlines = true;
     public int $xTicks = 6;
     public int $yTicks = 5;
-    public string $format;
+    public ?string $format = null;
     public int $decimals = 2;
-    public string $ariaSummary;
-    public string $units;
+    public ?string $ariaSummary = null;
+    public ?string $units = null;
     public bool $tooltip = true;
 
     public function __construct(array $attributes = [])

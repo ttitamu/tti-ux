@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxTabs<Content: View>: View {
-    public var items: String
-    public var modelValue: String
+    public var items: String? = nil
+    public var modelValue: String? = nil
     public var orientation: String = "horizontal"
     public var size: String = "md"
     public var variant: String = "default"

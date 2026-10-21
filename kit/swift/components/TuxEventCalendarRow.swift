@@ -4,15 +4,15 @@
 import SwiftUI
 
 public struct TuxEventCalendarRow<Content: View>: View {
-    public var day: String
-    public var month: String
-    public var title: String
-    public var time: String
-    public var location: String
-    public var category: String
-    public var to: String
-    public var href: String
-    public var actionText: String
+    public var day: String? = nil
+    public var month: String? = nil
+    public var title: String? = nil
+    public var time: String = ""
+    public var location: String = ""
+    public var category: String = ""
+    public var to: String = ""
+    public var href: String = ""
+    public var actionText: String = "View Event"
     public var chipTone: String = "green"
     private let content: Content
 

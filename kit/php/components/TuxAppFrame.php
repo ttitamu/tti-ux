@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxAppFrame
 {
-    public string $title;
-    public string $eyebrow;
+    public ?string $title = null;
+    public ?string $eyebrow = null;
     public bool $useSystemAccent = false;
     public bool $unifiedToolbar = true;
     public bool $forceChrome = false;

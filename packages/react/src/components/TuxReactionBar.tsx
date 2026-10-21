@@ -14,7 +14,7 @@ export interface TuxReactionBarProps {
 }
 
 export const TuxReactionBar: React.FC<TuxReactionBarProps> = ({
-  modelValue, reactions, counts, size, children, className = ''
+  modelValue, reactions, counts, size = "md", children, className = ''
 }) => {
   return (
     <div className={`tux-reaction-bar ${className}`.trim()}>

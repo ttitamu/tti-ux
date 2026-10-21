@@ -21,7 +21,7 @@ export interface TuxPortalHeaderProps {
 }
 
 export const TuxPortalHeader: React.FC<TuxPortalHeaderProps> = ({
-  mode = "comm", agencyName, agencyUrl = "https://tti.tamu.edu", homeUrl = "/", portalTitle, portalBadge, portalBadgeVariant = "gold", utilityLinks, showSearch = true, showSpectrumRibbon = false, intranetApps, children, className = ''
+  mode = "comm", agencyName = "Texas A&M Transportation Institute", agencyUrl = "https://tti.tamu.edu", homeUrl = "/", portalTitle = "", portalBadge = "", portalBadgeVariant = "gold", utilityLinks, showSearch = true, showSpectrumRibbon = false, intranetApps, children, className = ''
 }) => {
   return (
     <header className={`tux-portal-header ${className}`.trim()}>

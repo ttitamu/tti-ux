@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxProse(
-    as: String = "article",
+    `as`: String = "article",
     content: @Composable () -> Unit = {}
 ) {
     Row(

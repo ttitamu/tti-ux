@@ -10,7 +10,7 @@ class TuxTOC:
     items: Optional[str] = None
     target: str = "article"
     levels: Optional[str] = None
-    title: Optional[str] = None
+    title: str = "On this page"
     no_title: bool = False
     variant: str = "comm"
 

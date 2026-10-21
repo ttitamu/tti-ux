@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxDiagram<Content: View>: View {
-    public var code: String
-    public var caption: String
-    public var eyebrow: String
+    public var code: String? = nil
+    public var caption: String? = nil
+    public var eyebrow: String? = nil
     private let content: Content
 
     public init(

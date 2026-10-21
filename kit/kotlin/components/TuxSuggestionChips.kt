@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxSuggestionChips(
-    items: String,
-    label: String,
-    ariaLabel: String,
+    items: String? = null,
+    label: String? = null,
+    ariaLabel: String? = null,
     noArrow: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {

@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxEmptyState
 {
-    public string $kind;
-    public string $icon;
-    public string $title;
-    public string $description;
+    public ?string $kind = null;
+    public ?string $icon = null;
+    public ?string $title = null;
+    public ?string $description = null;
     public bool $noCard = false;
     public bool $compact = false;
 

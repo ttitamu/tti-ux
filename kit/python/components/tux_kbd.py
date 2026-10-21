@@ -10,7 +10,7 @@ class TuxKbd:
     value: Optional[str] = None
     keys: Optional[str] = None
     size: str = "sm"
-    separator: Optional[str] = None
+    separator: str = ""
 
     def render_html(self, content: str = "") -> str:
         return f'<span class="tux-kbd">{content}</span>'

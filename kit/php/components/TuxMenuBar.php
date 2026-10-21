@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxMenuBar
 {
-    public string $menus;
+    public ?string $menus = null;
     public bool $renderOnMac = false;
 
     public function __construct(array $attributes = [])

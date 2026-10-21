@@ -19,7 +19,7 @@ export interface TuxCodeMaroonProps {
 }
 
 export const TuxCodeMaroon: React.FC<TuxCodeMaroonProps> = ({
-  active = false, tone = "error", title, message, detailsUrl = "https://tti.tamu.edu/emergency/", detailsLabel, dismissible = false, modelValue = false, sticky = false, children, className = ''
+  active = false, tone = "error", title = "Emergency alert", message, detailsUrl = "https://tti.tamu.edu/emergency/", detailsLabel = "View details", dismissible = false, modelValue = false, sticky = false, children, className = ''
 }) => {
   return (
     <div className={`tux-code-maroon ${className}`.trim()}>

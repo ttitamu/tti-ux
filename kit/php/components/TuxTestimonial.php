@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxTestimonial
 {
-    public string $items;
+    public ?string $items = null;
     public string $layout = 'grid';
     public int $columns = 3;
     public string $variant = 'default';

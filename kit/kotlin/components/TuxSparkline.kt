@@ -11,17 +11,17 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxSparkline(
-    data: String,
+    data: String? = null,
     width: Int = 120,
     height: Int = 32,
     tone: String = "brand",
-    strokeWidth: Int = 1.5,
+    strokeWidth: Double = 1.5,
     showArea: Boolean = false,
     showLastPoint: Boolean = true,
     showDelta: Boolean = false,
     deltaFormat: String = "percent",
-    ariaSummary: String,
-    units: String,
+    ariaSummary: String? = null,
+    units: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(
