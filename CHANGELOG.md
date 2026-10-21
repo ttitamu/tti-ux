@@ -3,7 +3,7 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
-## [3.4.2] — 2026-10-21
+## [3.4.3] — 2026-10-21
 
 ### Added, Changed & Fixed — Standalone React & Elements SDKs, Multi-Framework Code Gen, Forgejo OAuth2 + PKCE Tracker & UX Polish (2026-10-21)
 
