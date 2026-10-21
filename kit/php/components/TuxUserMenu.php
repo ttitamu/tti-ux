@@ -7,15 +7,15 @@ namespace Tti\Tux\Components;
 
 final class TuxUserMenu
 {
-    public string $state;
-    public string $identity;
-    public string $signInHref;
-    public string $signInLabel;
-    public string $items;
-    public string $prefs;
+    public ?string $state = null;
+    public ?string $identity = null;
+    public ?string $signInHref = null;
+    public string $signInLabel = 'Sign in';
+    public ?string $items = null;
+    public ?string $prefs = null;
     public bool $showSignOut = true;
     public string $placement = 'cluster';
-    public string $statusLine;
+    public ?string $statusLine = null;
 
     public function __construct(array $attributes = [])
     {

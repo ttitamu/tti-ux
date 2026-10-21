@@ -13,7 +13,7 @@ class TuxTreemap:
     max_depth: int = 2
     color_by: str = "size"
     unit: str = "bytes"
-    aria_label: Optional[str] = None
+    aria_label: str = "Treemap path"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-treemap">{content}</div>'

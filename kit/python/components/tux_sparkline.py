@@ -11,7 +11,7 @@ class TuxSparkline:
     width: int = 120
     height: int = 32
     tone: str = "brand"
-    stroke_width: int = 1.5
+    stroke_width: float = 1.5
     show_area: bool = False
     show_last_point: bool = True
     show_delta: bool = False

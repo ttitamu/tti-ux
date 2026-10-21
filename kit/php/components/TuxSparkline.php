@@ -7,17 +7,17 @@ namespace Tti\Tux\Components;
 
 final class TuxSparkline
 {
-    public string $data;
+    public ?string $data = null;
     public int $width = 120;
     public int $height = 32;
     public string $tone = 'brand';
-    public int $strokeWidth = 1.5;
+    public float $strokeWidth = 1.5;
     public bool $showArea = false;
     public bool $showLastPoint = true;
     public bool $showDelta = false;
     public string $deltaFormat = 'percent';
-    public string $ariaSummary;
-    public string $units;
+    public ?string $ariaSummary = null;
+    public ?string $units = null;
 
     public function __construct(array $attributes = [])
     {

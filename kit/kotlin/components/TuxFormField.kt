@@ -11,12 +11,12 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxFormField(
-    label: String,
-    help: String,
-    hint: String,
-    error: String,
+    label: String? = null,
+    help: String? = null,
+    hint: String? = null,
+    error: String? = null,
     required: Boolean = false,
-    inputId: String,
+    inputId: String? = null,
     layout: String = "stacked",
     content: @Composable () -> Unit = {}
 ) {

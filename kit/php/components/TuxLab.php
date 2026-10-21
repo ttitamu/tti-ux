@@ -7,15 +7,15 @@ namespace Tti\Tux\Components;
 
 final class TuxLab
 {
-    public string $name;
-    public string $summary;
-    public string $logo;
-    public int $projectsCount;
-    public int $peopleCount;
-    public string $location;
-    public string $leaders;
-    public string $focus;
-    public string $to;
+    public ?string $name = null;
+    public ?string $summary = null;
+    public ?string $logo = null;
+    public ?int $projectsCount = null;
+    public ?int $peopleCount = null;
+    public ?string $location = null;
+    public ?string $leaders = null;
+    public ?string $focus = null;
+    public ?string $to = null;
 
     public function __construct(array $attributes = [])
     {

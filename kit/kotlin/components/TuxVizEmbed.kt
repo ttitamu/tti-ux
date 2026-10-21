@@ -11,16 +11,16 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxVizEmbed(
-    src: String,
+    src: String? = null,
     provider: String = "generic",
-    title: String,
-    eyebrow: String,
+    title: String? = null,
+    eyebrow: String? = null,
     ratio: String = "16/9",
-    sandbox: String,
+    sandbox: String? = null,
     referrerpolicy: String = "strict-origin-when-cross-origin",
     openInNew: Boolean = true,
-    posterSrc: String,
-    posterAlt: String,
+    posterSrc: String? = null,
+    posterAlt: String = "",
     content: @Composable () -> Unit = {}
 ) {
     Row(

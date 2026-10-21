@@ -10,13 +10,13 @@ final class TuxChatBubble
     public string $mode = 'bubble';
     public string $role = 'assistant';
     public string $title = 'Assistant';
-    public string $subtitle;
+    public string $subtitle = 'Institutional Assistant';
     public string $state = 'idle';
-    public string $teaser;
+    public ?string $teaser = null;
     public string $tail = 'none';
     public bool $dismissible = false;
     public bool $open = true;
-    public string $suggestions;
+    public ?string $suggestions = null;
 
     public function __construct(array $attributes = [])
     {

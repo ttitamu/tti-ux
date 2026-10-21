@@ -10,8 +10,8 @@ class TuxECharts:
     options: Optional[str] = None
     height: str = "380px"
     width: str = "100%"
-    aria_title: Optional[str] = None
-    aria_summary: Optional[str] = None
+    aria_title: str = "Interactive data visualization"
+    aria_summary: str = ""
     extensions: Optional[str] = None
     maps: Optional[str] = None
     loading: bool = False

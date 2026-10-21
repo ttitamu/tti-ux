@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxMegaMenu(
-    label: String,
-    columns: String,
-    featured: String,
-    to: String,
+    label: String? = null,
+    columns: String? = null,
+    featured: String? = null,
+    to: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

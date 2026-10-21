@@ -4,14 +4,14 @@
 import SwiftUI
 
 public struct TuxMapEmbed<Content: View>: View {
-    public var src: String
-    public var eyebrow: String
-    public var title: String
-    public var subtitle: String
-    public var source: String
+    public var src: String? = nil
+    public var eyebrow: String? = nil
+    public var title: String? = nil
+    public var subtitle: String? = nil
+    public var source: String? = nil
     public var aspect: String = "16/9"
-    public var height: Int
-    public var iframeTitle: String
+    public var height: Int? = nil
+    public var iframeTitle: String? = nil
     public var attribution: Bool = true
     public var skeleton: Bool = true
     private let content: Content

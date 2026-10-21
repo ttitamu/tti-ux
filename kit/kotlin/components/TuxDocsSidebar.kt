@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxDocsSidebar(
-    tree: String,
+    tree: String? = null,
     title: String = "Docs",
     search: Boolean = true,
-    searchPlaceholder: String,
+    searchPlaceholder: String = "Filter docs…",
     storageKey: String = "tux-docs-sidebar",
     exclusiveTopLevel: Boolean = false,
     content: @Composable () -> Unit = {}

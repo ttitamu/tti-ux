@@ -17,7 +17,7 @@ export interface TuxAlphaNavProps {
 }
 
 export const TuxAlphaNav: React.FC<TuxAlphaNavProps> = ({
-  letters, available, mode = "anchor", sticky = false, showAll = false, modelValue, ariaLabel, children, className = ''
+  letters, available, mode = "anchor", sticky = false, showAll = false, modelValue, ariaLabel = "Jump to letter", children, className = ''
 }) => {
   return (
     <nav className={`tux-alpha-nav ${className}`.trim()}>

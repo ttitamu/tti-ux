@@ -14,7 +14,7 @@ class TuxResultCount:
     noun_plural: Optional[str] = None
     page_size_options: Optional[str] = None
     hide_range: bool = False
-    page_size_label: Optional[str] = None
+    page_size_label: str = "per page"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-result-count">{content}</div>'

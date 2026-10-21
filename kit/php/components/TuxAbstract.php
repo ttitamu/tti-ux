@@ -7,13 +7,19 @@ namespace Tti\Tux\Components;
 
 final class TuxAbstract
 {
-    public string $background;
-    public string $methods;
-    public string $results;
-    public string $conclusion;
-    public string $keywords;
+    public ?string $background = null;
+    public ?string $methods = null;
+    public ?string $results = null;
+    public ?string $conclusion = null;
+    public ?string $keywords = null;
     public string $variant = 'structured';
     public int $level = 4;
+    public ?string $plainSummary = null;
+    public ?string $policyTakeaways = null;
+    public ?string $doi = null;
+    public ?string $projectNumber = null;
+    public ?string $citation = null;
+    public ?string $division = null;
 
     public function __construct(array $attributes = [])
     {

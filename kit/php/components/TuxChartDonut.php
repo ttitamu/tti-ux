@@ -7,20 +7,20 @@ namespace Tti\Tux\Components;
 
 final class TuxChartDonut
 {
-    public string $slices;
+    public ?string $slices = null;
     public int $size = 280;
     public string $palette = 'brand';
     public bool $patterns = false;
-    public int $thickness = 0.5;
+    public float $thickness = 0.5;
     public bool $sliceLabels = true;
     public bool $legend = false;
-    public string $centerLabel;
-    public string $centerValue;
+    public ?string $centerLabel = null;
+    public ?string $centerValue = null;
     public int $minSlice = 3;
-    public string $format;
+    public ?string $format = null;
     public int $decimals = 1;
-    public string $ariaSummary;
-    public string $units;
+    public ?string $ariaSummary = null;
+    public ?string $units = null;
     public bool $tooltip = true;
 
     public function __construct(array $attributes = [])

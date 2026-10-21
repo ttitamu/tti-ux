@@ -4,13 +4,13 @@
 import SwiftUI
 
 public struct TuxLoadMore<Content: View>: View {
-    public var loaded: Int
-    public var total: Int
+    public var loaded: Int? = nil
+    public var total: Int? = nil
     public var loading: Bool = false
-    public var noun: String
-    public var nounPlural: String
-    public var label: String
-    public var terminalLabel: String
+    public var noun: String? = nil
+    public var nounPlural: String? = nil
+    public var label: String = "Load more"
+    public var terminalLabel: String = "All loaded"
     private let content: Content
 
     public init(

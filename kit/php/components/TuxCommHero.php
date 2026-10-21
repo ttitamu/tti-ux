@@ -7,19 +7,19 @@ namespace Tti\Tux\Components;
 
 final class TuxCommHero
 {
-    public string $eyebrow;
-    public string $title;
-    public string $accentTitle;
-    public string $lead;
-    public string $primaryActionText;
-    public string $primaryActionTo;
-    public string $primaryActionHref;
-    public string $secondaryActionText;
-    public string $secondaryActionTo;
-    public string $secondaryActionHref;
-    public string $imageSrc;
-    public string $imageAlt;
-    public string $imageBadge;
+    public string $eyebrow = 'TEXAS A&M TRANSPORTATION INSTITUTE';
+    public ?string $title = null;
+    public string $accentTitle = '';
+    public string $lead = '';
+    public string $primaryActionText = '';
+    public string $primaryActionTo = '';
+    public string $primaryActionHref = '';
+    public string $secondaryActionText = '';
+    public string $secondaryActionTo = '';
+    public string $secondaryActionHref = '';
+    public string $imageSrc = '';
+    public string $imageAlt = 'TTI Research Facility and Operations';
+    public string $imageBadge = '';
     public bool $chamfer = true;
 
     public function __construct(array $attributes = [])

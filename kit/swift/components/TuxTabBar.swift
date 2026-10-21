@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxTabBar<Content: View>: View {
-    public var items: String
-    public var ariaLabel: String
+    public var items: String? = nil
+    public var ariaLabel: String = "Primary navigation"
     private let content: Content
 
     public init(

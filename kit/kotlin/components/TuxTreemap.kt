@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxTreemap(
-    data: String,
+    data: String? = null,
     width: Int = 720,
     height: Int = 460,
     maxDepth: Int = 2,
     colorBy: String = "size",
     unit: String = "bytes",
-    ariaLabel: String,
+    ariaLabel: String = "Treemap path",
     content: @Composable () -> Unit = {}
 ) {
     Row(

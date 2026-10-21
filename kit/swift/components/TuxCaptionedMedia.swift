@@ -4,11 +4,11 @@
 import SwiftUI
 
 public struct TuxCaptionedMedia<Content: View>: View {
-    public var src: String
-    public var alt: String
-    public var caption: String
-    public var credit: String
-    public var eyebrow: String
+    public var src: String? = nil
+    public var alt: String = ""
+    public var caption: String? = nil
+    public var credit: String? = nil
+    public var eyebrow: String? = nil
     public var aspect: String = "16/9"
     public var align: String = "full"
     public var tone: String = "maroon"

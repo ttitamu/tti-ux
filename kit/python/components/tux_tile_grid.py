@@ -7,8 +7,8 @@ from typing import Optional
 
 @dataclass
 class TuxTileGrid:
-    title: Optional[str] = None
-    subtitle: Optional[str] = None
+    title: str = ""
+    subtitle: str = ""
     tiles: Optional[str] = None
     columns: int = 3
     surface: str = "eggshell"

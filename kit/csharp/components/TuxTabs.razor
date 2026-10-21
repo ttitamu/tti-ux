@@ -9,8 +9,8 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Items { get; set; };
-    [Parameter] public string ModelValue { get; set; };
+    [Parameter] public string? Items { get; set; }
+    [Parameter] public string? ModelValue { get; set; }
     [Parameter] public string Orientation { get; set; } = "horizontal";
     [Parameter] public string Size { get; set; } = "md";
     [Parameter] public string Variant { get; set; } = "default";

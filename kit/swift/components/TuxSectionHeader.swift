@@ -5,11 +5,12 @@ import SwiftUI
 
 public struct TuxSectionHeader<Content: View>: View {
     public var level: Int = 2
-    public var title: String
-    public var secondaryTitle: String
-    public var subtitle: String
-    public var kicker: String
+    public var title: String? = nil
+    public var secondaryTitle: String? = nil
+    public var subtitle: String? = nil
+    public var kicker: String? = nil
     public var variant: String = "institutional"
+    public var division: String? = nil
     private let content: Content
 
     public init(

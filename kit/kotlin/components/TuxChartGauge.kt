@@ -11,18 +11,18 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChartGauge(
-    value: Int,
+    value: Int? = null,
     min: Int = 0,
     max: Int = 100,
     size: Int = 240,
     variant: String = "arc",
-    bands: String,
-    centerLabel: String,
-    centerValue: String,
-    units: String,
-    format: String,
+    bands: String? = null,
+    centerLabel: String? = null,
+    centerValue: String? = null,
+    units: String? = null,
+    format: String? = null,
     decimals: Int = 1,
-    ariaSummary: String,
+    ariaSummary: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

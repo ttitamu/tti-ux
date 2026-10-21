@@ -4,16 +4,16 @@
 import SwiftUI
 
 public struct TuxSearch<Content: View>: View {
-    public var modelValue: String
+    public var modelValue: String = ""
     public var variant: String = "field"
     public var blockBar: String = "field"
     public var size: String = "regular"
     public var placeholder: String = "Search"
-    public var heading: String
-    public var lede: String
-    public var ariaLabel: String
+    public var heading: String? = nil
+    public var lede: String? = nil
+    public var ariaLabel: String? = nil
     public var actionLabel: String = "Search"
-    public var actionIcon: String
+    public var actionIcon: String? = nil
     public var leadingIcon: String = "lucide:search"
     public var clearable: Bool = true
     public var loading: Bool = false

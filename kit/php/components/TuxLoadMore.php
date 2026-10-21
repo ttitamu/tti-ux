@@ -7,13 +7,13 @@ namespace Tti\Tux\Components;
 
 final class TuxLoadMore
 {
-    public int $loaded;
-    public int $total;
+    public ?int $loaded = null;
+    public ?int $total = null;
     public bool $loading = false;
-    public string $noun;
-    public string $nounPlural;
-    public string $label;
-    public string $terminalLabel;
+    public ?string $noun = null;
+    public ?string $nounPlural = null;
+    public string $label = 'Load more';
+    public string $terminalLabel = 'All loaded';
 
     public function __construct(array $attributes = [])
     {

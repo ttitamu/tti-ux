@@ -11,19 +11,19 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCommHero(
-    eyebrow: String,
-    title: String,
-    accentTitle: String,
-    lead: String,
-    primaryActionText: String,
-    primaryActionTo: String,
-    primaryActionHref: String,
-    secondaryActionText: String,
-    secondaryActionTo: String,
-    secondaryActionHref: String,
-    imageSrc: String,
-    imageAlt: String,
-    imageBadge: String,
+    eyebrow: String = "TEXAS A&M TRANSPORTATION INSTITUTE",
+    title: String? = null,
+    accentTitle: String = "",
+    lead: String = "",
+    primaryActionText: String = "",
+    primaryActionTo: String = "",
+    primaryActionHref: String = "",
+    secondaryActionText: String = "",
+    secondaryActionTo: String = "",
+    secondaryActionHref: String = "",
+    imageSrc: String = "",
+    imageAlt: String = "TTI Research Facility and Operations",
+    imageBadge: String = "",
     chamfer: Boolean = true,
     content: @Composable () -> Unit = {}
 ) {

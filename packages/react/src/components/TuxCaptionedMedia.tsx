@@ -18,7 +18,7 @@ export interface TuxCaptionedMediaProps {
 }
 
 export const TuxCaptionedMedia: React.FC<TuxCaptionedMediaProps> = ({
-  src, alt, caption, credit, eyebrow, aspect = "16/9", align = "full", tone = "maroon", children, className = ''
+  src, alt = "", caption, credit, eyebrow, aspect = "16/9", align = "full", tone = "maroon", children, className = ''
 }) => {
   return (
     <figure className={`tux-captioned-media ${className}`.trim()}>

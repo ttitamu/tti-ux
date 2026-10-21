@@ -7,18 +7,18 @@ namespace Tti\Tux\Components;
 
 final class TuxChartGauge
 {
-    public int $value;
+    public ?int $value = null;
     public int $min = 0;
     public int $max = 100;
     public int $size = 240;
     public string $variant = 'arc';
-    public string $bands;
-    public string $centerLabel;
-    public string $centerValue;
-    public string $units;
-    public string $format;
+    public ?string $bands = null;
+    public ?string $centerLabel = null;
+    public ?string $centerValue = null;
+    public ?string $units = null;
+    public ?string $format = null;
     public int $decimals = 1;
-    public string $ariaSummary;
+    public ?string $ariaSummary = null;
 
     public function __construct(array $attributes = [])
     {

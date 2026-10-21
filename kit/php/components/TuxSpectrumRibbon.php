@@ -11,8 +11,8 @@ final class TuxSpectrumRibbon
     public string $orientation = 'horizontal';
     public bool $showLabels = false;
     public bool $rounded = false;
-    public string $ariaLabel;
-    public string $bands;
+    public string $ariaLabel = 'TTI Institutional Brand Spectrum';
+    public ?string $bands = null;
 
     public function __construct(array $attributes = [])
     {

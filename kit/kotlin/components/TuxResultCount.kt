@@ -11,14 +11,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxResultCount(
-    page: Int,
-    pageSize: Int,
-    total: Int,
-    noun: String,
-    nounPlural: String,
-    pageSizeOptions: String,
+    page: Int? = null,
+    pageSize: Int? = null,
+    total: Int? = null,
+    noun: String? = null,
+    nounPlural: String? = null,
+    pageSizeOptions: String? = null,
     hideRange: Boolean = false,
-    pageSizeLabel: String,
+    pageSizeLabel: String = "per page",
     content: @Composable () -> Unit = {}
 ) {
     Row(

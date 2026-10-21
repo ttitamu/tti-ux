@@ -7,16 +7,16 @@ namespace Tti\Tux\Components;
 
 final class TuxVizEmbed
 {
-    public string $src;
+    public ?string $src = null;
     public string $provider = 'generic';
-    public string $title;
-    public string $eyebrow;
+    public ?string $title = null;
+    public ?string $eyebrow = null;
     public string $ratio = '16/9';
-    public string $sandbox;
+    public ?string $sandbox = null;
     public string $referrerpolicy = 'strict-origin-when-cross-origin';
     public bool $openInNew = true;
-    public string $posterSrc;
-    public string $posterAlt;
+    public ?string $posterSrc = null;
+    public string $posterAlt = '';
 
     public function __construct(array $attributes = [])
     {

@@ -7,12 +7,12 @@ namespace Tti\Tux\Components;
 
 final class TuxInlineCitation
 {
-    public int $n;
-    public string $title;
-    public string $href;
-    public string $excerpt;
-    public string $score;
-    public string $label;
+    public ?int $n = null;
+    public ?string $title = null;
+    public ?string $href = null;
+    public ?string $excerpt = null;
+    public ?string $score = null;
+    public ?string $label = null;
 
     public function __construct(array $attributes = [])
     {

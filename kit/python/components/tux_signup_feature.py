@@ -12,8 +12,8 @@ class TuxSignupFeature:
     dek: Optional[str] = None
     action_label: str = "Subscribe"
     placeholder: str = "your@email.edu"
-    consent: Optional[str] = None
-    model_value: Optional[str] = None
+    consent: str = "We never share your address. Unsubscribe in one click."
+    model_value: str = ""
     tone: str = "neutral"
     variant: str = "default"
 

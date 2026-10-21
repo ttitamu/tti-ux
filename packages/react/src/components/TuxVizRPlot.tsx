@@ -19,7 +19,7 @@ export interface TuxVizRPlotProps {
 }
 
 export const TuxVizRPlot: React.FC<TuxVizRPlotProps> = ({
-  src, kind = "image", title, eyebrow, ratio = "16/10", alt, src2x, source, level = 3, children, className = ''
+  src, kind = "image", title, eyebrow, ratio = "16/10", alt = "", src2x, source, level = 3, children, className = ''
 }) => {
   return (
     <figure className={`tux-viz-rplot ${className}`.trim()}>

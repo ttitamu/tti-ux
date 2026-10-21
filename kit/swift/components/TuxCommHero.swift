@@ -4,19 +4,19 @@
 import SwiftUI
 
 public struct TuxCommHero<Content: View>: View {
-    public var eyebrow: String
-    public var title: String
-    public var accentTitle: String
-    public var lead: String
-    public var primaryActionText: String
-    public var primaryActionTo: String
-    public var primaryActionHref: String
-    public var secondaryActionText: String
-    public var secondaryActionTo: String
-    public var secondaryActionHref: String
-    public var imageSrc: String
-    public var imageAlt: String
-    public var imageBadge: String
+    public var eyebrow: String = "TEXAS A&M TRANSPORTATION INSTITUTE"
+    public var title: String? = nil
+    public var accentTitle: String = ""
+    public var lead: String = ""
+    public var primaryActionText: String = ""
+    public var primaryActionTo: String = ""
+    public var primaryActionHref: String = ""
+    public var secondaryActionText: String = ""
+    public var secondaryActionTo: String = ""
+    public var secondaryActionHref: String = ""
+    public var imageSrc: String = ""
+    public var imageAlt: String = "TTI Research Facility and Operations"
+    public var imageBadge: String = ""
     public var chamfer: Bool = true
     private let content: Content
 

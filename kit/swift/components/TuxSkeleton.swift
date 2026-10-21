@@ -7,8 +7,8 @@ public struct TuxSkeleton<Content: View>: View {
     public var kind: String = "primitive"
     public var variant: String = "block"
     public var width: String = "100%"
-    public var height: String
-    public var radius: String
+    public var height: String? = nil
+    public var radius: String? = nil
     public var count: Int = 3
     public var animated: String = "shimmer"
     public var label: String = "Loading…"

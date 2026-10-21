@@ -8,9 +8,9 @@ namespace Tti\Tux\Components;
 final class TuxFigureCaption
 {
     public string $label = 'Figure';
-    public string $number;
-    public string $caption;
-    public string $source;
+    public ?string $number = null;
+    public ?string $caption = null;
+    public ?string $source = null;
     public string $placement = 'below';
 
     public function __construct(array $attributes = [])

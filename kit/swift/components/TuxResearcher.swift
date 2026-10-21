@@ -4,17 +4,17 @@
 import SwiftUI
 
 public struct TuxResearcher<Content: View>: View {
-    public var name: String
-    public var role: String
-    public var portrait: String
-    public var center: String
-    public var orcid: String
-    public var email: String
-    public var bio: String
-    public var projects: String
-    public var metrics: String
+    public var name: String? = nil
+    public var role: String? = nil
+    public var portrait: String? = nil
+    public var center: String? = nil
+    public var orcid: String? = nil
+    public var email: String? = nil
+    public var bio: String? = nil
+    public var projects: String? = nil
+    public var metrics: String? = nil
     public var layout: String = "default"
-    public var to: String
+    public var to: String? = nil
     private let content: Content
 
     public init(

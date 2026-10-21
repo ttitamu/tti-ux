@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxCodeBlock<Content: View>: View {
-    public var code: String
+    public var code: String? = nil
     public var lang: String = "text"
-    public var filename: String
+    public var filename: String? = nil
     public var lineNumbers: Bool = false
     public var noCopy: Bool = false
     public var noDownload: Bool = false

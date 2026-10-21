@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxChartGeoDotDensity<Content: View>: View {
-    public var dots: Int
-    public var dotLegend: String
+    public var dots: Int? = nil
+    public var dotLegend: String? = nil
     private let content: Content
 
     public init(

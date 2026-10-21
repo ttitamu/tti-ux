@@ -9,17 +9,19 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Tier { get; set; };
-    [Parameter] public string Status { get; set; };
-    [Parameter] public string Tone { get; set; };
+    [Parameter] public string? Tier { get; set; }
+    [Parameter] public string? Status { get; set; }
+    [Parameter] public string? Tone { get; set; }
     [Parameter] public string Kind { get; set; } = "default";
-    [Parameter] public string Variant { get; set; };
+    [Parameter] public string? Variant { get; set; }
     [Parameter] public bool Bold { get; set; } = false;
     [Parameter] public bool Dot { get; set; } = false;
-    [Parameter] public string Icon { get; set; };
-    [Parameter] public string Count { get; set; };
-    [Parameter] public string Label { get; set; };
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public string? Count { get; set; }
+    [Parameter] public string? Label { get; set; }
     [Parameter] public bool Uppercase { get; set; } = false;
     [Parameter] public string Shape { get; set; } = "default";
     [Parameter] public bool Glyph { get; set; } = false;
+    [Parameter] public string? Los { get; set; }
+    [Parameter] public string? Division { get; set; }
 }

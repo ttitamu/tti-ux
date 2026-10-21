@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxShortcutsHelp(
-    groups: String,
+    groups: String? = null,
     sequenceSeparator: String = "then",
     content: @Composable () -> Unit = {}
 ) {

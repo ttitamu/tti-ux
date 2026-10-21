@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChartGeoDistricts(
-    districts: String,
-    legendLabel: String,
-    legendStops: String,
+    districts: String? = null,
+    legendLabel: String? = null,
+    legendStops: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

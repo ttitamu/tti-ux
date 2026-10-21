@@ -16,7 +16,7 @@ export interface TuxSpectrumRibbonProps {
 }
 
 export const TuxSpectrumRibbon: React.FC<TuxSpectrumRibbonProps> = ({
-  size = "sm", orientation = "horizontal", showLabels = false, rounded = false, ariaLabel, bands, children, className = ''
+  size = "sm", orientation = "horizontal", showLabels = false, rounded = false, ariaLabel = "TTI Institutional Brand Spectrum", bands, children, className = ''
 }) => {
   return (
     <div className={`tux-spectrum-ribbon ${className}`.trim()}>

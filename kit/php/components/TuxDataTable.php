@@ -7,22 +7,22 @@ namespace Tti\Tux\Components;
 
 final class TuxDataTable
 {
-    public string $columns;
-    public string $rows;
-    public string $groups;
+    public ?string $columns = null;
+    public ?string $rows = null;
+    public ?string $groups = null;
     public string $rowKey = 'id';
-    public string $tableNumber;
-    public string $caption;
-    public string $description;
-    public string $sortKey;
-    public string $sortDir;
+    public string $tableNumber = '';
+    public string $caption = '';
+    public string $description = '';
+    public ?string $sortKey = null;
+    public ?string $sortDir = null;
     public bool $sticky = false;
     public string $maxHeight = '20rem';
     public string $density = 'comfortable';
     public bool $banded = true;
-    public string $footnotes;
-    public string $source;
-    public string $totals;
+    public ?string $footnotes = null;
+    public string $source = '';
+    public ?string $totals = null;
 
     public function __construct(array $attributes = [])
     {

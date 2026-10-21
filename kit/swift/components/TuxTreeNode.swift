@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxTreeNode<Content: View>: View {
-    public var node: String
-    public var depth: Int
-    public var selectedId: String
-    public var isExpanded: String
+    public var node: String? = nil
+    public var depth: Int? = nil
+    public var selectedId: String? = nil
+    public var isExpanded: String? = nil
     public var showGuides: Bool = false
     private let content: Content
 

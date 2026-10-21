@@ -20,7 +20,7 @@ export interface TuxRichTextEditorProps {
 }
 
 export const TuxRichTextEditor: React.FC<TuxRichTextEditorProps> = ({
-  modelValue, placeholder, disabled = false, minHeight = "12rem", maxHeight = "auto", toolbar, headingLevels, showCount = true, fullscreenable = true, ariaLabel, children, className = ''
+  modelValue = "", placeholder = "Start writing…", disabled = false, minHeight = "12rem", maxHeight = "auto", toolbar, headingLevels, showCount = true, fullscreenable = true, ariaLabel = "Rich text editor", children, className = ''
 }) => {
   return (
     <div className={`tux-rich-text-editor ${className}`.trim()}>

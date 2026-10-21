@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxECharts(
-    options: String,
+    options: String? = null,
     height: String = "380px",
     width: String = "100%",
-    ariaTitle: String,
-    ariaSummary: String,
-    extensions: String,
-    maps: String,
+    ariaTitle: String = "Interactive data visualization",
+    ariaSummary: String = "",
+    extensions: String? = null,
+    maps: String? = null,
     loading: Boolean = false,
     notMerge: Boolean = false,
     content: @Composable () -> Unit = {}

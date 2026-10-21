@@ -8,16 +8,16 @@ from typing import Optional
 @dataclass
 class TuxEditorialArticle:
     title: Optional[str] = None
-    category: Optional[str] = None
-    dek: Optional[str] = None
-    date: Optional[str] = None
-    date_label: Optional[str] = None
-    read_time: Optional[str] = None
-    author: Optional[str] = None
+    category: str = "Inside Lane"
+    dek: str = ""
+    date: str = ""
+    date_label: str = ""
+    read_time: str = ""
+    author: str = ""
     authors: Optional[str] = None
-    hero_image: Optional[str] = None
-    hero_alt: Optional[str] = None
-    hero_caption: Optional[str] = None
+    hero_image: str = ""
+    hero_alt: str = ""
+    hero_caption: str = ""
     hero_layout: str = "boxed"
     stats: Optional[str] = None
     highlights: Optional[str] = None

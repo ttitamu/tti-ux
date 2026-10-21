@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxFocusView(
     open: Boolean = false,
-    title: String,
-    eyebrow: String,
+    title: String? = null,
+    eyebrow: String? = null,
     dismissOnBackdropClick: Boolean = true,
     dismissOnEscape: Boolean = true,
     backLabel: String = "Close",

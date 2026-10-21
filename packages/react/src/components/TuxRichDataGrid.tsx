@@ -29,12 +29,16 @@ export interface TuxRichDataGridProps {
   density?: "comfortable" | "compact";
   paginationLabel?: string;
   paginationTokens?: string;
+  projectNumber?: string;
+  doi?: string;
+  citation?: string;
+  showUnitToggle?: boolean;
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxRichDataGrid: React.FC<TuxRichDataGridProps> = ({
-  columns, rows, rowKey = "id", title, meta, searchPlaceholder = "Search…", showSearch = true, showFilter = true, showColumns = true, showExport = true, filters, selected, selectionDisabled = false, bulkActions, expanded, expansionDisabled = false, sortKey, sortDir, maxHeight = "440px", virtualized = false, virtualRowHeight = 44, density = "comfortable", paginationLabel, paginationTokens, children, className = ''
+  columns, rows, rowKey = "id", title, meta, searchPlaceholder = "Search…", showSearch = true, showFilter = true, showColumns = true, showExport = true, filters, selected, selectionDisabled = false, bulkActions, expanded, expansionDisabled = false, sortKey, sortDir, maxHeight = "440px", virtualized = false, virtualRowHeight = 44, density = "comfortable", paginationLabel = "", paginationTokens, projectNumber, doi, citation, showUnitToggle = false, children, className = ''
 }) => {
   return (
     <div className={`tux-rich-data-grid ${className}`.trim()}>

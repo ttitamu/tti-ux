@@ -7,11 +7,11 @@ namespace Tti\Tux\Components;
 
 final class TuxCardSlab
 {
-    public string $cards;
+    public ?string $cards = null;
     public int $columns = 3;
     public string $aspect = '4/5';
-    public string $heading;
-    public string $eyebrow;
+    public ?string $heading = null;
+    public ?string $eyebrow = null;
     public bool $inset = false;
 
     public function __construct(array $attributes = [])

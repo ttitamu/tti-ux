@@ -9,9 +9,9 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Title { get; set; };
-    [Parameter] public string Kicker { get; set; };
-    [Parameter] public string Subtitle { get; set; };
-    [Parameter] public string Capabilities { get; set; };
+    [Parameter] public string Title { get; set; } = "RESEARCH CAPABILITIES";
+    [Parameter] public string Kicker { get; set; } = "Research Programs";
+    [Parameter] public string Subtitle { get; set; } = "Applied research and testing capabilities across nine core transportation disciplines.";
+    [Parameter] public string? Capabilities { get; set; }
     [Parameter] public int Columns { get; set; } = 3;
 }

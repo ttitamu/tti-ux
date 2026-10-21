@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCenterBadge(
-    center: String,
-    label: String,
-    icon: String,
+    center: String? = null,
+    label: String? = null,
+    icon: String? = null,
     toneIndex: Int = 2,
     short: Boolean = false,
     size: String = "md",

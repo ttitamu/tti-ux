@@ -9,10 +9,10 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Cards { get; set; };
+    [Parameter] public string? Cards { get; set; }
     [Parameter] public int Columns { get; set; } = 3;
     [Parameter] public string Aspect { get; set; } = "4/5";
-    [Parameter] public string Heading { get; set; };
-    [Parameter] public string Eyebrow { get; set; };
+    [Parameter] public string? Heading { get; set; }
+    [Parameter] public string? Eyebrow { get; set; }
     [Parameter] public bool Inset { get; set; } = false;
 }

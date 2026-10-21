@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxFilterPanel<Content: View>: View {
-    public var facets: String
-    public var modelValue: String
-    public var title: String
+    public var facets: String? = nil
+    public var modelValue: String? = nil
+    public var title: String = "Filter"
     private let content: Content
 
     public init(

@@ -7,13 +7,13 @@ namespace Tti\Tux\Components;
 
 final class TuxProgram
 {
-    public string $name;
-    public string $eyebrow;
-    public string $summary;
-    public string $hero;
-    public string $leads;
-    public string $funders;
-    public string $metrics;
+    public ?string $name = null;
+    public ?string $eyebrow = null;
+    public ?string $summary = null;
+    public ?string $hero = null;
+    public ?string $leads = null;
+    public ?string $funders = null;
+    public ?string $metrics = null;
 
     public function __construct(array $attributes = [])
     {

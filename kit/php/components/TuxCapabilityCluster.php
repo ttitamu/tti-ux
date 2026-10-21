@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxCapabilityCluster
 {
-    public string $title;
-    public string $kicker;
-    public string $subtitle;
-    public string $capabilities;
+    public string $title = 'RESEARCH CAPABILITIES';
+    public string $kicker = 'Research Programs';
+    public string $subtitle = 'Applied research and testing capabilities across nine core transportation disciplines.';
+    public ?string $capabilities = null;
     public int $columns = 3;
 
     public function __construct(array $attributes = [])

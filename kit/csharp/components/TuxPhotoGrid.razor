@@ -9,8 +9,8 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Items { get; set; };
+    [Parameter] public string? Items { get; set; }
     [Parameter] public string Kind { get; set; } = "photo";
     [Parameter] public int Columns { get; set; } = 3;
-    [Parameter] public string Aspect { get; set; };
+    [Parameter] public string? Aspect { get; set; }
 }

@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxMegaMenu<Content: View>: View {
-    public var label: String
-    public var columns: String
-    public var featured: String
-    public var to: String
+    public var label: String? = nil
+    public var columns: String? = nil
+    public var featured: String? = nil
+    public var to: String? = nil
     private let content: Content
 
     public init(

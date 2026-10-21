@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxMenuBar(
-    menus: String,
+    menus: String? = null,
     renderOnMac: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {

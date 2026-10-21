@@ -7,12 +7,12 @@ namespace Tti\Tux\Components;
 
 final class TuxSiteNav
 {
-    public string $identity;
-    public string $primaryNav;
-    public string $utilityNav;
+    public ?string $identity = null;
+    public ?string $primaryNav = null;
+    public ?string $utilityNav = null;
     public bool $search = false;
     public bool $sticky = false;
-    public string $ariaLabel;
+    public string $ariaLabel = 'Primary navigation';
 
     public function __construct(array $attributes = [])
     {

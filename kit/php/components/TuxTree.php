@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxTree
 {
-    public string $items;
-    public string $defaultExpanded;
-    public string $storageKey;
+    public ?string $items = null;
+    public ?string $defaultExpanded = null;
+    public ?string $storageKey = null;
     public bool $showGuides = true;
     public string $ariaLabel = 'Tree';
 

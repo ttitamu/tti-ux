@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChartHeatmap(
-    rows: String,
-    cols: String,
-    values: String,
+    rows: String? = null,
+    cols: String? = null,
+    values: String? = null,
     width: Int = 640,
     height: Int = 280,
     ramp: String = "maroon",
@@ -21,10 +21,10 @@ fun TuxChartHeatmap(
     valueLabels: Boolean = false,
     legend: Boolean = true,
     colLabelEvery: Int = 0,
-    format: String,
+    format: String? = null,
     decimals: Int = 1,
-    ariaSummary: String,
-    units: String,
+    ariaSummary: String? = null,
+    units: String? = null,
     tooltip: Boolean = true,
     content: @Composable () -> Unit = {}
 ) {

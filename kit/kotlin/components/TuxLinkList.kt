@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxLinkList(
-    groups: String,
+    groups: String? = null,
     layout: String = "columns",
     columns: Int = 3,
     content: @Composable () -> Unit = {}

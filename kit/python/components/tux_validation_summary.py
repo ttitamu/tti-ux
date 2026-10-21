@@ -8,7 +8,7 @@ from typing import Optional
 @dataclass
 class TuxValidationSummary:
     errors: Optional[str] = None
-    title: Optional[str] = None
+    title: str = "Please fix the following before submitting:"
     variant: str = "error"
 
     def render_html(self, content: str = "") -> str:

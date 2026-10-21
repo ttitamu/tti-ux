@@ -12,12 +12,12 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxErrorPage(
     code: String = "404",
-    title: String,
-    lede: String,
-    actions: String,
+    title: String? = null,
+    lede: String? = null,
+    actions: String? = null,
     inline: Boolean = false,
-    icon: String,
-    details: String,
+    icon: String? = null,
+    details: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

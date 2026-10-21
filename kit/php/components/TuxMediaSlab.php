@@ -7,11 +7,11 @@ namespace Tti\Tux\Components;
 
 final class TuxMediaSlab
 {
-    public string $src;
-    public string $alt;
-    public string $eyebrow;
-    public string $title;
-    public string $dek;
+    public ?string $src = null;
+    public string $alt = '';
+    public ?string $eyebrow = null;
+    public ?string $title = null;
+    public ?string $dek = null;
     public string $layout = 'overlay';
     public string $imageSide = 'right';
     public string $height = 'standard';

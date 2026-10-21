@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxSuggestionChips<Content: View>: View {
-    public var items: String
-    public var label: String
-    public var ariaLabel: String
+    public var items: String? = nil
+    public var label: String? = nil
+    public var ariaLabel: String? = nil
     public var noArrow: Bool = false
     private let content: Content
 

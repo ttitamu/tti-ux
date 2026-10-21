@@ -9,26 +9,26 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string PortalTitle { get; set; };
-    [Parameter] public string PortalBadge { get; set; };
+    [Parameter] public string PortalTitle { get; set; } = "";
+    [Parameter] public string PortalBadge { get; set; } = "";
     [Parameter] public string PortalBadgeVariant { get; set; } = "gold";
-    [Parameter] public string NavItems { get; set; };
-    [Parameter] public string ActionText { get; set; };
-    [Parameter] public string ActionTo { get; set; };
-    [Parameter] public string ActionHref { get; set; };
-    [Parameter] public string UtilityLinks { get; set; };
-    [Parameter] public string AgencyName { get; set; };
+    [Parameter] public string? NavItems { get; set; }
+    [Parameter] public string ActionText { get; set; } = "";
+    [Parameter] public string ActionTo { get; set; } = "";
+    [Parameter] public string ActionHref { get; set; } = "";
+    [Parameter] public string? UtilityLinks { get; set; }
+    [Parameter] public string AgencyName { get; set; } = "Texas A&M Transportation Institute";
     [Parameter] public string AgencyUrl { get; set; } = "https://tti.tamu.edu";
     [Parameter] public string HomeUrl { get; set; } = "/";
     [Parameter] public bool ShowSearch { get; set; } = true;
     [Parameter] public bool StickyHeader { get; set; } = true;
-    [Parameter] public string Breadcrumbs { get; set; };
+    [Parameter] public string? Breadcrumbs { get; set; }
     [Parameter] public string MaxWidth { get; set; } = "standard";
     [Parameter] public bool ShowFeedback { get; set; } = true;
     [Parameter] public string FeedbackLabel { get; set; } = "Feedback";
     [Parameter] public bool ShowFooter { get; set; } = true;
-    [Parameter] public string HeaderProps { get; set; };
-    [Parameter] public string FooterProps { get; set; };
-    [Parameter] public string MainClass { get; set; };
-    [Parameter] public string As { get; set; };
+    [Parameter] public string? HeaderProps { get; set; }
+    [Parameter] public string? FooterProps { get; set; }
+    [Parameter] public string MainClass { get; set; } = "py-8";
+    [Parameter] public string As { get; set; } = "main";
 }

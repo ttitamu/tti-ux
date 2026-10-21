@@ -4,11 +4,11 @@
 import SwiftUI
 
 public struct TuxFundingSource<Content: View>: View {
-    public var funder: String
-    public var abbrev: String
-    public var logo: String
-    public var grant: String
-    public var to: String
+    public var funder: String? = nil
+    public var abbrev: String? = nil
+    public var logo: String? = nil
+    public var grant: String? = nil
+    public var to: String? = nil
     public var size: String = "md"
     public var layout: String = "inline"
     private let content: Content

@@ -11,12 +11,12 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxAnnouncementBanner(
-    id: String,
+    id: String? = null,
     tone: String = "info",
-    icon: String,
-    eyebrow: String,
-    message: String,
-    action: String,
+    icon: String? = null,
+    eyebrow: String? = null,
+    message: String? = null,
+    action: String? = null,
     dismissable: Boolean = true,
     content: @Composable () -> Unit = {}
 ) {

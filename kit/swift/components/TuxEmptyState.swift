@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxEmptyState<Content: View>: View {
-    public var kind: String
-    public var icon: String
-    public var title: String
-    public var description: String
+    public var kind: String? = nil
+    public var icon: String? = nil
+    public var title: String? = nil
+    public var description: String? = nil
     public var noCard: Bool = false
     public var compact: Bool = false
     private let content: Content

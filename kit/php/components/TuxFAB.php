@@ -7,11 +7,11 @@ namespace Tti\Tux\Components;
 
 final class TuxFAB
 {
-    public string $icon;
+    public ?string $icon = null;
     public bool $extended = false;
     public string $size = 'md';
     public string $side = 'right';
-    public string $ariaLabel;
+    public ?string $ariaLabel = null;
     public bool $disabled = false;
 
     public function __construct(array $attributes = [])

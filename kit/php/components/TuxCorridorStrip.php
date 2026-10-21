@@ -7,17 +7,21 @@ namespace Tti\Tux\Components;
 
 final class TuxCorridorStrip
 {
-    public string $name;
-    public int $fromMile;
-    public int $toMile;
-    public string $segments;
-    public string $events;
-    public string $values;
-    public string $valuesLabel;
-    public string $direction;
+    public ?string $name = null;
+    public ?int $fromMile = null;
+    public ?int $toMile = null;
+    public ?string $segments = null;
+    public ?string $events = null;
+    public ?string $values = null;
+    public ?string $valuesLabel = null;
+    public ?string $direction = null;
     public int $width = 800;
     public int $height = 140;
     public int $tickEvery = 5;
+    public string $tickFormat = 'mile';
+    public ?string $syncChannel = null;
+    public ?int $activeMile = null;
+    public bool $interactiveScrub = false;
 
     public function __construct(array $attributes = [])
     {

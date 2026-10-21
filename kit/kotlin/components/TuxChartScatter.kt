@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChartScatter(
-    series: String,
+    series: String? = null,
     xLabel: String = "x",
     yLabel: String = "y",
     width: Int = 640,
@@ -23,10 +23,10 @@ fun TuxChartScatter(
     gridlines: Boolean = true,
     xTicks: Int = 6,
     yTicks: Int = 5,
-    format: String,
+    format: String? = null,
     decimals: Int = 2,
-    ariaSummary: String,
-    units: String,
+    ariaSummary: String? = null,
+    units: String? = null,
     tooltip: Boolean = true,
     content: @Composable () -> Unit = {}
 ) {

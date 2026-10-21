@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxRuleBuilder(
-    modelValue: String,
-    fields: String,
+    modelValue: String? = null,
+    fields: String? = null,
     showActions: Boolean = true,
     maxDepth: Int = 3,
     content: @Composable () -> Unit = {}

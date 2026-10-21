@@ -9,10 +9,10 @@ from typing import Optional
 class TuxCodeMaroon:
     active: bool = False
     tone: str = "error"
-    title: Optional[str] = None
+    title: str = "Emergency alert"
     message: Optional[str] = None
     details_url: str = "https://tti.tamu.edu/emergency/"
-    details_label: Optional[str] = None
+    details_label: str = "View details"
     dismissible: bool = False
     model_value: bool = False
     sticky: bool = False

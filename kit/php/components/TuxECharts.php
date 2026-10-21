@@ -7,13 +7,13 @@ namespace Tti\Tux\Components;
 
 final class TuxECharts
 {
-    public string $options;
+    public ?string $options = null;
     public string $height = '380px';
     public string $width = '100%';
-    public string $ariaTitle;
-    public string $ariaSummary;
-    public string $extensions;
-    public string $maps;
+    public string $ariaTitle = 'Interactive data visualization';
+    public string $ariaSummary = '';
+    public ?string $extensions = null;
+    public ?string $maps = null;
     public bool $loading = false;
     public bool $notMerge = false;
 

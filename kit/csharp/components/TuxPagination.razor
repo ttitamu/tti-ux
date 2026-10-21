@@ -9,13 +9,13 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public int Total { get; set; };
-    [Parameter] public int ModelValue { get; set; };
+    [Parameter] public int? Total { get; set; }
+    [Parameter] public int? ModelValue { get; set; }
     [Parameter] public int PageSize { get; set; } = 20;
     [Parameter] public int SiblingCount { get; set; } = 1;
     [Parameter] public int BoundaryCount { get; set; } = 1;
     [Parameter] public bool ShowStatus { get; set; } = false;
     [Parameter] public string Noun { get; set; } = "result";
-    [Parameter] public string PluralNoun { get; set; };
+    [Parameter] public string? PluralNoun { get; set; }
     [Parameter] public string AriaLabel { get; set; } = "Pagination";
 }

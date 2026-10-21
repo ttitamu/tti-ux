@@ -8,7 +8,7 @@ from typing import Optional
 @dataclass
 class TuxMediaSlab:
     src: Optional[str] = None
-    alt: Optional[str] = None
+    alt: str = ""
     eyebrow: Optional[str] = None
     title: Optional[str] = None
     dek: Optional[str] = None

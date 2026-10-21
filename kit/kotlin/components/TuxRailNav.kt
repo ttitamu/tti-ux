@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxRailNav(
-    items: String = "RailItem[",
+    items: String? = null,
     collapsed: Boolean = false,
     ariaLabel: String = "Primary",
     content: @Composable () -> Unit = {}

@@ -10,7 +10,7 @@ class TuxNewsCollection:
     items: Optional[str] = None
     layout: str = "stacked"
     columns: int = 3
-    read_more: Optional[str] = None
+    read_more: str = "Read more"
 
     def render_html(self, content: str = "") -> str:
         return f'<ul class="tux-news-collection">{content}</ul>'

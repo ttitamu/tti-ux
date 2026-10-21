@@ -4,11 +4,11 @@
 import SwiftUI
 
 public struct TuxSplitPane<Content: View>: View {
-    public var modelValue: String
+    public var modelValue: String? = nil
     public var initialListWidth: String = "320px"
     public var minListWidth: Int = 220
     public var maxListWidth: Int = 560
-    public var id: String
+    public var id: String? = nil
     public var initialBottomHeight: String = "160px"
     public var showBottom: Bool = false
     public var listLabel: String = "Records"
