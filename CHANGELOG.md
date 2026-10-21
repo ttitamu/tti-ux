@@ -5,12 +5,13 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Fixed — the root test suite is green again on 3.4.1
+### Fixed — `npm test` is green again on 3.4.1
 
 - **The MCP server reads sub-layer components again.** 3.4.1's root shims re-export a sub-layer's component by package name (`export { default } from "@tti/tti-ux-charts/app/components/TuxECharts.vue"`), and `scripts/tux-mcp.mjs` followed only relative paths. So `tux_get_component` and `tux_list_components` reported all 14 shimmed components (TuxECharts, TuxCodeBlock, TuxDiagram, and the 11 from Desk, TuxRichTextEditor among them) as `@tti/tti-ux` with no props and no events. A package name now maps to its `packages/<dir>` by each workspace's `package.json` name, the same lookup as the sync engine's `workspaceFile()` (PR 89). That works in this repo and in the published layer, which ships the same `packages/` copies.
 - **`tests/publish-registry.test.mjs` asserts 3.4.1's packaging.** It still expected the five sub-layers as optional peers, which 3.4.1 deliberately replaced. It now checks the contract `scripts/check-layer-imports.mjs` enforces: every `packages/<dir>` with a `nuxt.config.ts` is in the publish script's sub-layer list, each is a dependency of the layer at the layer's own version and never a peer, and each workspace carries that version.
+- **The charts sub-layer's own tests load again.** 3.4.1 moved `packages/charts` onto `#tux/`, the root layer's `app/`, an alias defined in the root's `nuxt.config.ts`. The workspace's `vitest.config.ts` didn't define it, so its one test file couldn't load `tuxEChartsTheme.ts`. It now defines `#tux` the same way. (Desk also imports through `#tux/`, but none of its tests load that file.)
 
-With these two failing, `vitest run` exited non-zero and `npm test` stopped before the workspace suites, the React ports' included.
+`npm test` runs the root suite, then the charts, diagrams, code, desk, content and React workspaces, and stops at the first failure. The first two fixes failed the root suite, so no workspace suite ran. The third failed the first workspace. It now runs all seven.
 
 ## [3.4.1] — 2026-10-20
 
