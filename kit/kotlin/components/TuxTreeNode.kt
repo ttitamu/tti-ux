@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxTreeNode(
-    node: String,
-    depth: Int,
-    selectedId: String,
-    isExpanded: String,
+    node: String? = null,
+    depth: Int? = null,
+    selectedId: String? = null,
+    isExpanded: String? = null,
     showGuides: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {

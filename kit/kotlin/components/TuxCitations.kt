@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCitations(
-    items: String,
+    items: String? = null,
     label: String = "sources",
     content: @Composable () -> Unit = {}
 ) {

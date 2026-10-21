@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxLoadMore(
-    loaded: Int,
-    total: Int,
+    loaded: Int? = null,
+    total: Int? = null,
     loading: Boolean = false,
-    noun: String,
-    nounPlural: String,
-    label: String,
-    terminalLabel: String,
+    noun: String? = null,
+    nounPlural: String? = null,
+    label: String = "Load more",
+    terminalLabel: String = "All loaded",
     content: @Composable () -> Unit = {}
 ) {
     Row(

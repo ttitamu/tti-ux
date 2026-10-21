@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxStepper(
-    steps: String,
+    steps: String? = null,
     currentIndex: Int = 0,
     orientation: String = "horizontal",
     showDescriptions: Boolean = true,
     ariaLabel: String = "Progress",
     stationFormat: String = "number",
-    division: String,
+    division: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

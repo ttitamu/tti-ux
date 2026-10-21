@@ -4,15 +4,15 @@
 import SwiftUI
 
 public struct TuxMapLegend<Content: View>: View {
-    public var title: String
-    public var eyebrow: String
-    public var entries: String
+    public var title: String? = nil
+    public var eyebrow: String? = nil
+    public var entries: String? = nil
     public var layout: String = "stacked"
-    public var gradient: String
-    public var minLabel: String
-    public var maxLabel: String
-    public var css: String
-    public var stops: String
+    public var gradient: String? = nil
+    public var minLabel: String? = nil
+    public var maxLabel: String? = nil
+    public var css: String? = nil
+    public var stops: String? = nil
     private let content: Content
 
     public init(

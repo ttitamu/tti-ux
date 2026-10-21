@@ -1,0 +1,35 @@
+# The layer's install-and-build rules (scripts/check-layer-imports.mjs), on every
+# PR: no layer file imports through `~/` or `@/` (they resolve in the consuming
+# app), and every sub-layer the root extends is a dependency at the root's
+# version. 3.4.0 broke both and no consuming app could build it. Node only: no
+# install. publish-package runs the same check before it publishes.
+# House idiom: values reach the shell through env:, never ${{ }} inside run:.
+name: layer-check
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out the commit
+        env:
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          JOB_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -eu
+          hdr="Authorization: basic $(printf 'x-access-token:%s' "$JOB_TOKEN" | base64 | tr -d '\n')"
+          git init -q .
+          git remote add origin "$SERVER_URL/$REPO"
+          git -c http.extraheader="$hdr" fetch -q --depth=1 origin "$SHA"
+          git checkout -q FETCH_HEAD
+      - name: Layer imports and sub-layer dependencies
+        run: |
+          set -eu
+          command -v node >/dev/null 2>&1 || { echo "::error::node not on the runner image"; exit 1; }
+          node scripts/check-layer-imports.mjs .

@@ -16,7 +16,7 @@ export interface TuxCapabilityClusterProps {
 }
 
 export const TuxCapabilityCluster: React.FC<TuxCapabilityClusterProps> = ({
-  title, kicker, subtitle, capabilities, columns = 3, children, className = '', style
+  title = "RESEARCH CAPABILITIES", kicker = "Research Programs", subtitle = "Applied research and testing capabilities across nine core transportation disciplines.", capabilities, columns = 3, children, className = '', style
 }) => {
   return (
     <section className={`tux-capability-cluster ${className}`.trim()} style={style}>

@@ -21,7 +21,7 @@ export interface TuxChatBubbleProps {
 }
 
 export const TuxChatBubble: React.FC<TuxChatBubbleProps> = ({
-  mode = "bubble", role = "assistant", title = "Assistant", subtitle, state = "idle", teaser, tail = "none", dismissible = false, open = true, suggestions, children, className = '', style
+  mode = "bubble", role = "assistant", title = "Assistant", subtitle = "Institutional Assistant", state = "idle", teaser, tail = "none", dismissible = false, open = true, suggestions, children, className = '', style
 }) => {
   return (
     <div className={`tux-chat-bubble ${className}`.trim()} data-mode={mode} style={style}>

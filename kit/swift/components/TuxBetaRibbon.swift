@@ -6,9 +6,9 @@ import SwiftUI
 public struct TuxBetaRibbon<Content: View>: View {
     public var variant: String = "corner"
     public var kind: String = "preview"
-    public var label: String
+    public var label: String? = nil
     public var corner: String = "top-right"
-    public var message: String
+    public var message: String? = nil
     private let content: Content
 
     public init(

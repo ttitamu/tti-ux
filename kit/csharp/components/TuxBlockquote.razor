@@ -9,9 +9,9 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Quote { get; set; };
-    [Parameter] public string Attribution { get; set; };
-    [Parameter] public string Role { get; set; };
+    [Parameter] public string? Quote { get; set; }
+    [Parameter] public string? Attribution { get; set; }
+    [Parameter] public string? Role { get; set; }
     [Parameter] public string Layout { get; set; } = "centered";
     [Parameter] public string Variant { get; set; } = "default";
 }

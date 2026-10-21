@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxArtifact<Content: View>: View {
-    public var title: String
-    public var meta: String
+    public var title: String? = nil
+    public var meta: String? = nil
     public var icon: String = "lucide:file-code"
-    public var actions: String
+    public var actions: String? = nil
     public var busy: Bool = false
     private let content: Content
 

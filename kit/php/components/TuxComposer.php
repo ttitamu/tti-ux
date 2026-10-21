@@ -7,14 +7,14 @@ namespace Tti\Tux\Components;
 
 final class TuxComposer
 {
-    public string $modelValue;
-    public string $placeholder;
-    public string $models;
-    public string $modelId;
+    public string $modelValue = '';
+    public string $placeholder = 'Ask about any ingested corpus…';
+    public ?string $models = null;
+    public ?string $modelId = null;
     public int $maxLength = 32000;
-    public string $hint;
+    public string $hint = '⌘↵ send · / corpus to switch context · shift↵ newline';
     public bool $hideAttach = false;
-    public string $attachLabel;
+    public string $attachLabel = 'Attach corpus';
     public string $attachIcon = 'lucide:plus';
     public bool $cancelable = false;
     public string $cancelLabel = 'Cancel';

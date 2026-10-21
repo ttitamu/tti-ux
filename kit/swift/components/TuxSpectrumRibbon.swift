@@ -8,8 +8,8 @@ public struct TuxSpectrumRibbon<Content: View>: View {
     public var orientation: String = "horizontal"
     public var showLabels: Bool = false
     public var rounded: Bool = false
-    public var ariaLabel: String
-    public var bands: String
+    public var ariaLabel: String = "TTI Institutional Brand Spectrum"
+    public var bands: String? = nil
     private let content: Content
 
     public init(

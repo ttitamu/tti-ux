@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxGroundedSources
 {
-    public string $sources;
-    public string $dlpLabel;
+    public ?string $sources = null;
+    public string $dlpLabel = 'Zero-PII DLP Verified';
 
     public function __construct(array $attributes = [])
     {

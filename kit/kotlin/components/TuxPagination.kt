@@ -11,14 +11,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxPagination(
-    total: Int,
-    modelValue: Int,
+    total: Int? = null,
+    modelValue: Int? = null,
     pageSize: Int = 20,
     siblingCount: Int = 1,
     boundaryCount: Int = 1,
     showStatus: Boolean = false,
     noun: String = "result",
-    pluralNoun: String,
+    pluralNoun: String? = null,
     ariaLabel: String = "Pagination",
     content: @Composable () -> Unit = {}
 ) {

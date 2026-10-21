@@ -4,16 +4,16 @@
 import SwiftUI
 
 public struct TuxUnitValue<Content: View>: View {
-    public var value: Int
-    public var unit: String
-    public var ci: Int
-    public var decimals: Int
-    public var label: String
-    public var station: String
+    public var value: Int? = nil
+    public var unit: String? = nil
+    public var ci: Int? = nil
+    public var decimals: Int? = nil
+    public var label: String = ""
+    public var station: String = ""
     public var variant: String = "inline"
     public var interactive: Bool = false
-    public var system: String
-    public var division: String
+    public var system: String? = nil
+    public var division: String? = nil
     private let content: Content
 
     public init(

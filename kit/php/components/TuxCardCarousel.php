@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxCardCarousel
 {
-    public string $items;
-    public string $eyebrow;
-    public string $title;
+    public ?string $items = null;
+    public ?string $eyebrow = null;
+    public ?string $title = null;
     public bool $bare = false;
     public bool $arrows = true;
     public bool $dots = false;

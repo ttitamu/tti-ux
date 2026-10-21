@@ -11,15 +11,15 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxUserMenu(
-    state: String,
-    identity: String,
-    signInHref: String,
-    signInLabel: String,
-    items: String,
-    prefs: String,
+    state: String? = null,
+    identity: String? = null,
+    signInHref: String? = null,
+    signInLabel: String = "Sign in",
+    items: String? = null,
+    prefs: String? = null,
     showSignOut: Boolean = true,
     placement: String = "cluster",
-    statusLine: String,
+    statusLine: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

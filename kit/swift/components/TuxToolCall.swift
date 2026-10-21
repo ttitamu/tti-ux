@@ -4,12 +4,12 @@
 import SwiftUI
 
 public struct TuxToolCall<Content: View>: View {
-    public var verb: String
-    public var arg: String
+    public var verb: String? = nil
+    public var arg: String? = nil
     public var status: String = "completed"
-    public var elapsedMs: Int
-    public var diff: String
-    public var icon: String
+    public var elapsedMs: Int? = nil
+    public var diff: String? = nil
+    public var icon: String? = nil
     public var defaultOpen: Bool = false
     private let content: Content
 

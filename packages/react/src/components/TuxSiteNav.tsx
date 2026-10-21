@@ -17,7 +17,7 @@ export interface TuxSiteNavProps {
 }
 
 export const TuxSiteNav: React.FC<TuxSiteNavProps> = ({
-  identity, primaryNav, utilityNav, search = false, sticky = false, ariaLabel, children, className = '', style
+  identity, primaryNav, utilityNav, search = false, sticky = false, ariaLabel = "Primary navigation", children, className = '', style
 }) => {
   return (
     <header className={`tux-site-nav ${className}`.trim()} style={style}>

@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxInfoLabel
 {
-    public string $for;
+    public ?string $for = null;
     public bool $required = false;
     public string $trigger = 'hover';
-    public string $infoAriaLabel;
+    public string $infoAriaLabel = 'More information';
 
     public function __construct(array $attributes = [])
     {

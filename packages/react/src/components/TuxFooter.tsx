@@ -22,7 +22,7 @@ export interface TuxFooterProps {
 }
 
 export const TuxFooter: React.FC<TuxFooterProps> = ({
-  name, address, phone, logo = "/logo.svg", logoSize = 80, brandLockup = "/TTI_white.png", brandLockupAlt, social, columns, tagline, year, children, className = '', style
+  name = "Texas A&M Transportation Institute", address = "Texas A&M Transportation Institute\nCollege Station, TX 77843", phone = "(979) 317-2000", logo = "/logo.svg", logoSize = 80, brandLockup = "/TTI_white.png", brandLockupAlt = "Texas A&M Transportation Institute", social, columns, tagline = "Coordinated Statewide Transportation Research Program", year, children, className = '', style
 }) => {
   return (
     <footer className={`tux-footer ${className}`.trim()} style={style}>

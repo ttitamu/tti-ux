@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxSuggestionChips
 {
-    public string $items;
-    public string $label;
-    public string $ariaLabel;
+    public ?string $items = null;
+    public ?string $label = null;
+    public ?string $ariaLabel = null;
     public bool $noArrow = false;
 
     public function __construct(array $attributes = [])

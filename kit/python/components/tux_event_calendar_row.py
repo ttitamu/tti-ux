@@ -10,12 +10,12 @@ class TuxEventCalendarRow:
     day: Optional[str] = None
     month: Optional[str] = None
     title: Optional[str] = None
-    time: Optional[str] = None
-    location: Optional[str] = None
-    category: Optional[str] = None
-    to: Optional[str] = None
-    href: Optional[str] = None
-    action_text: Optional[str] = None
+    time: str = ""
+    location: str = ""
+    category: str = ""
+    to: str = ""
+    href: str = ""
+    action_text: str = "View Event"
     chip_tone: str = "green"
 
     def render_html(self, content: str = "") -> str:

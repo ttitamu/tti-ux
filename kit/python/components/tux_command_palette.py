@@ -8,7 +8,7 @@ from typing import Optional
 @dataclass
 class TuxCommandPalette:
     groups: Optional[str] = None
-    placeholder: Optional[str] = None
+    placeholder: str = "Type a command, token (--), component (@), or search…"
     disable_hotkey: bool = False
     hotkey: str = "k"
     show_tabs: bool = True

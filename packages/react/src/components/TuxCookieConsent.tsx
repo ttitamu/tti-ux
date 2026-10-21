@@ -16,7 +16,7 @@ export interface TuxCookieConsentProps {
 }
 
 export const TuxCookieConsent: React.FC<TuxCookieConsentProps> = ({
-  storageKey = "tux-cookie-consent", position = "bottom-right", message, privacyHref = "/privacy", initiallyExpanded = false, children, className = '', style
+  storageKey = "tux-cookie-consent", position = "bottom-right", message = "We use cookies to keep you signed in, remember your preferences, and understand how the site is used. Necessary cookies are always on.", privacyHref = "/privacy", initiallyExpanded = false, children, className = '', style
 }) => {
   return (
     <div className={`tux-cookie-consent ${className}`.trim()} style={style}>

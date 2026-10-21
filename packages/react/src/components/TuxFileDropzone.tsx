@@ -19,7 +19,7 @@ export interface TuxFileDropzoneProps {
 }
 
 export const TuxFileDropzone: React.FC<TuxFileDropzoneProps> = ({
-  modelValue, accept, multiple = false, maxSize = 50, maxFiles = 10, disabled = false, label, hint, children, className = '', style
+  modelValue, accept, multiple = false, maxSize, maxFiles = 10, disabled = false, label, hint, children, className = '', style
 }) => {
   return (
     <div className={`tux-file-dropzone ${className}`.trim()} style={style}>

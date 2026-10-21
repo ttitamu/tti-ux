@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxReasoning(
-    duration: Int = 3.4,
-    tokensPerSec: Int,
+    duration: Double = 3.4,
+    tokensPerSec: Int? = null,
     defaultOpen: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {

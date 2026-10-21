@@ -4,13 +4,13 @@
 import SwiftUI
 
 public struct TuxPageHeader<Content: View>: View {
-    public var eyebrow: String
-    public var title: String
+    public var eyebrow: String? = nil
+    public var title: String? = nil
     public var level: Int = 1
     public var tone: String = "plain"
     public var rhythm: String = "compact"
     public var variant: String = "default"
-    public var division: String
+    public var division: String? = nil
     private let content: Content
 
     public init(

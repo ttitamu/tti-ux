@@ -11,12 +11,12 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxToolCall(
-    verb: String,
-    arg: String,
+    verb: String? = null,
+    arg: String? = null,
     status: String = "completed",
-    elapsedMs: Int,
-    diff: String,
-    icon: String,
+    elapsedMs: Int? = null,
+    diff: String? = null,
+    icon: String? = null,
     defaultOpen: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {

@@ -15,7 +15,7 @@ export interface TuxFeedbackProps {
 }
 
 export const TuxFeedback: React.FC<TuxFeedbackProps> = ({
-  pageId, title, endpoint = "/api/feedback", allowDetails = true, children, className = '', style
+  pageId = "", title = "Was this page helpful?", endpoint = "/api/feedback", allowDetails = true, children, className = '', style
 }) => {
   return (
     <section className={`tux-feedback ${className}`.trim()} style={style}>

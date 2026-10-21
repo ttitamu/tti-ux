@@ -7,16 +7,16 @@ namespace Tti\Tux\Components;
 
 final class TuxUnitValue
 {
-    public int $value;
-    public string $unit;
-    public int $ci;
-    public int $decimals;
-    public string $label;
-    public string $station;
+    public ?int $value = null;
+    public ?string $unit = null;
+    public ?int $ci = null;
+    public ?int $decimals = null;
+    public string $label = '';
+    public string $station = '';
     public string $variant = 'inline';
     public bool $interactive = false;
-    public string $system;
-    public string $division;
+    public ?string $system = null;
+    public ?string $division = null;
 
     public function __construct(array $attributes = [])
     {

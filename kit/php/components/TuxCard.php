@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxCard
 {
-    public string $to;
+    public ?string $to = null;
     public bool $padded = true;
     public bool $linked = false;
-    public string $division;
+    public ?string $division = null;
 
     public function __construct(array $attributes = [])
     {

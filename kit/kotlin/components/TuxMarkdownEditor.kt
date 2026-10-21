@@ -11,14 +11,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxMarkdownEditor(
-    modelValue: String,
+    modelValue: String = "",
     rows: Int = 12,
-    minLength: Int,
-    maxLength: Int,
-    placeholder: String,
+    minLength: Int? = null,
+    maxLength: Int? = null,
+    placeholder: String = "Write in markdown — ⌘B bold, ⌘I italic, ⌘K link",
     preview: Boolean = true,
     disabled: Boolean = false,
-    ariaLabel: String,
+    ariaLabel: String = "Markdown editor",
     content: @Composable () -> Unit = {}
 ) {
     Row(

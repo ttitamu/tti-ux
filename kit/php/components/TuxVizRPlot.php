@@ -7,14 +7,14 @@ namespace Tti\Tux\Components;
 
 final class TuxVizRPlot
 {
-    public string $src;
+    public ?string $src = null;
     public string $kind = 'image';
-    public string $title;
-    public string $eyebrow;
+    public ?string $title = null;
+    public ?string $eyebrow = null;
     public string $ratio = '16/10';
-    public string $alt;
-    public string $src2x;
-    public string $source;
+    public string $alt = '';
+    public ?string $src2x = null;
+    public ?string $source = null;
     public int $level = 3;
 
     public function __construct(array $attributes = [])

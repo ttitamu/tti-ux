@@ -14,7 +14,7 @@ export interface TuxValidationSummaryProps {
 }
 
 export const TuxValidationSummary: React.FC<TuxValidationSummaryProps> = ({
-  errors, title, variant = "error", children, className = '', style
+  errors, title = "Please fix the following before submitting:", variant = "error", children, className = '', style
 }) => {
   return (
     <div className={`tux-validation-summary ${className}`.trim()} data-variant={variant} style={style}>

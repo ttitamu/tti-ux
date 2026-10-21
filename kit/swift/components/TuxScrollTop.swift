@@ -6,7 +6,7 @@ import SwiftUI
 public struct TuxScrollTop<Content: View>: View {
     public var threshold: Int = 160
     public var position: String = "bottom-right"
-    public var ariaLabel: String
+    public var ariaLabel: String = "Scroll to top of page"
     private let content: Content
 
     public init(

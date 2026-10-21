@@ -15,7 +15,7 @@ import {
   useTuxUnits,
   type TuxTransportationUnit,
   type TuxUnitSystem,
-} from "~/composables/useTuxUnits";
+} from "../composables/useTuxUnits";
 
 interface Props {
   /** Base numeric value (authored in US Customary units by default). */

@@ -7,13 +7,13 @@ namespace Tti\Tux\Components;
 
 final class TuxStepper
 {
-    public string $steps;
+    public ?string $steps = null;
     public int $currentIndex = 0;
     public string $orientation = 'horizontal';
     public bool $showDescriptions = true;
     public string $ariaLabel = 'Progress';
     public string $stationFormat = 'number';
-    public string $division;
+    public ?string $division = null;
 
     public function __construct(array $attributes = [])
     {

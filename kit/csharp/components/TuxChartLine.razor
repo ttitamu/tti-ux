@@ -9,13 +9,13 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Labels { get; set; };
-    [Parameter] public string Series { get; set; };
+    [Parameter] public string? Labels { get; set; }
+    [Parameter] public string? Series { get; set; }
     [Parameter] public int Width { get; set; } = 640;
     [Parameter] public int Height { get; set; } = 280;
     [Parameter] public bool Markers { get; set; } = false;
     [Parameter] public bool DistinctMarkers { get; set; } = true;
-    [Parameter] public int MarkerRadius { get; set; } = 3.5;
+    [Parameter] public double MarkerRadius { get; set; } = 3.5;
     [Parameter] public string Palette { get; set; } = "brand";
     [Parameter] public int StrokeWidth { get; set; } = 2;
     [Parameter] public bool Patterns { get; set; } = false;

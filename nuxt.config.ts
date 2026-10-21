@@ -28,18 +28,38 @@ export default defineNuxtConfig({
 
   future: { compatibilityVersion: 4 },
 
+  // The sub-layers by package name, not this layer's bundled packages/ copy:
+  // they are dependencies of @tti/tti-ux, and npm may nest a sub-layer's own
+  // dependencies under it (desk's tiptap, which clashes with @nuxt/ui's), where
+  // only the installed package can see them. In this repo the workspaces link
+  // each name to packages/<name>.
   extends: [
     // Feature sub-layer for Apache ECharts
-    resolve(layerDir, "packages/charts"),
+    "@tti/tti-ux-charts",
     // Feature sub-layer for Mermaid Diagrams
-    resolve(layerDir, "packages/diagrams"),
+    "@tti/tti-ux-diagrams",
     // Feature sub-layer for Shiki Code Highlighting
-    resolve(layerDir, "packages/code"),
-    // Feature sub-layer for Desk Visual Web Builder & Publishing Engine
-    resolve(layerDir, "packages/desk"),
+    "@tti/tti-ux-code",
+    // Feature sub-layer for Desk Visual Web Builder & Publishing Engine. Its
+    // server/ (14 REST routes, a PGlite database) is mounted only in this
+    // repo's own site: extended by every consuming app, as 3.4.0 did, it put an
+    // editorial API on each app's server with nothing in front of it. The Desk
+    // components still reach apps through app/components/desk (the package is
+    // a dependency); an app that wants Desk's server adds "@tti/tti-ux-desk"
+    // to its own extends.
+    ...(isRootProject ? ["@tti/tti-ux-desk"] : []),
     // Feature sub-layer for Markdown (MDC) & KaTeX Math
-    resolve(layerDir, "packages/content"),
+    "@tti/tti-ux-content",
   ],
+
+  // `#tux` is this layer's own app/ directory, for the files of the sub-layers
+  // under packages/ that use the root's composables, components and geo data.
+  // `~` is the CONSUMING app's srcDir, so a layer file must never import
+  // through it (3.4.0 did, 20 times, and no consumer could build). An alias
+  // from an extended layer reaches the consuming app's config.
+  alias: {
+    "#tux": resolve(layerDir, "app"),
+  },
 
   devtools: { enabled: isRootProject },
   telemetry: false,

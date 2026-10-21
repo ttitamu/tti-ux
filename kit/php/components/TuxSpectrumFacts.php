@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxSpectrumFacts
 {
-    public string $title;
-    public string $subtitle;
-    public string $items;
+    public string $title = 'QUICK FACTS';
+    public string $subtitle = '';
+    public ?string $items = null;
     public string $tone = 'dark';
     public bool $showTopRibbon = true;
 

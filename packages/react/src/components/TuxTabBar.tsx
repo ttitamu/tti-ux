@@ -13,7 +13,7 @@ export interface TuxTabBarProps {
 }
 
 export const TuxTabBar: React.FC<TuxTabBarProps> = ({
-  items, ariaLabel, children, className = '', style
+  items, ariaLabel = "Primary navigation", children, className = '', style
 }) => {
   return (
     <nav className={`tux-tab-bar ${className}`.trim()} style={style}>

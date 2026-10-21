@@ -11,14 +11,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxContactCard(
-    name: String,
-    role: String,
-    affiliation: String,
-    credentials: String,
-    image: String,
-    initial: String,
+    name: String? = null,
+    role: String? = null,
+    affiliation: String? = null,
+    credentials: String? = null,
+    image: String? = null,
+    initial: String? = null,
     tone: String = "maroon",
-    contacts: String,
+    contacts: String? = null,
     layout: String = "vertical",
     content: @Composable () -> Unit = {}
 ) {

@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxCitations
 {
-    public string $items;
+    public ?string $items = null;
     public string $label = 'sources';
 
     public function __construct(array $attributes = [])

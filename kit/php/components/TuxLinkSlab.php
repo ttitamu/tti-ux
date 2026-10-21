@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxLinkSlab
 {
-    public string $links;
+    public ?string $links = null;
     public string $tone = 'plain';
-    public string $ariaLabel;
+    public string $ariaLabel = 'Section navigation';
 
     public function __construct(array $attributes = [])
     {

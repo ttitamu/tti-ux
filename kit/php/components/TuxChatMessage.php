@@ -8,10 +8,10 @@ namespace Tti\Tux\Components;
 final class TuxChatMessage
 {
     public string $role = 'user';
-    public string $author;
-    public string $timestamp;
-    public string $meta;
-    public string $initials;
+    public ?string $author = null;
+    public ?string $timestamp = null;
+    public ?string $meta = null;
+    public ?string $initials = null;
 
     public function __construct(array $attributes = [])
     {

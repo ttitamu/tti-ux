@@ -9,15 +9,15 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Name { get; set; };
-    [Parameter] public string Role { get; set; };
-    [Parameter] public string Portrait { get; set; };
-    [Parameter] public string Center { get; set; };
-    [Parameter] public string Orcid { get; set; };
-    [Parameter] public string Email { get; set; };
-    [Parameter] public string Bio { get; set; };
-    [Parameter] public string Projects { get; set; };
-    [Parameter] public string Metrics { get; set; };
+    [Parameter] public string? Name { get; set; }
+    [Parameter] public string? Role { get; set; }
+    [Parameter] public string? Portrait { get; set; }
+    [Parameter] public string? Center { get; set; }
+    [Parameter] public string? Orcid { get; set; }
+    [Parameter] public string? Email { get; set; }
+    [Parameter] public string? Bio { get; set; }
+    [Parameter] public string? Projects { get; set; }
+    [Parameter] public string? Metrics { get; set; }
     [Parameter] public string Layout { get; set; } = "default";
-    [Parameter] public string To { get; set; };
+    [Parameter] public string? To { get; set; }
 }

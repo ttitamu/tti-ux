@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxFeedback<Content: View>: View {
-    public var pageId: String
-    public var title: String
+    public var pageId: String = ""
+    public var title: String = "Was this page helpful?"
     public var endpoint: String = "/api/feedback"
     public var allowDetails: Bool = true
     private let content: Content

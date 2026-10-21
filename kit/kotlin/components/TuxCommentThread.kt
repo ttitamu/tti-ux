@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCommentThread(
-    modelValue: String,
-    authors: String,
-    currentUser: String,
+    modelValue: String? = null,
+    authors: String? = null,
+    currentUser: String? = null,
     hideResolved: Boolean = true,
     size: String = "md",
     content: @Composable () -> Unit = {}

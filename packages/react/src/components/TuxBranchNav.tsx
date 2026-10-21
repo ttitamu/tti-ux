@@ -16,7 +16,7 @@ export interface TuxBranchNavProps {
 }
 
 export const TuxBranchNav: React.FC<TuxBranchNavProps> = ({
-  modelValue, total, loop = false, hideSingleton = true, ariaLabel, children, className = '', style
+  modelValue, total, loop = false, hideSingleton = true, ariaLabel = "Response alternatives", children, className = '', style
 }) => {
   return (
     <nav className={`tux-branch-nav ${className}`.trim()} style={style}>

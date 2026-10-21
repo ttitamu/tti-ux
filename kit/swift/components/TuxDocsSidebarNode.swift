@@ -4,14 +4,14 @@
 import SwiftUI
 
 public struct TuxDocsSidebarNode<Content: View>: View {
-    public var section: String
-    public var path: String
-    public var query: String
-    public var openMap: String
-    public var isOpen: String
-    public var isActive: String
-    public var onToggle: String
-    public var depth: Int
+    public var section: String? = nil
+    public var path: String? = nil
+    public var query: String? = nil
+    public var openMap: String? = nil
+    public var isOpen: String? = nil
+    public var isActive: String? = nil
+    public var onToggle: String? = nil
+    public var depth: Int? = nil
     private let content: Content
 
     public init(

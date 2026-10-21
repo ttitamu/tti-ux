@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxRecordHighlights(
-    title: String,
-    eyebrow: String,
-    icon: String,
-    items: String,
+    title: String? = null,
+    eyebrow: String? = null,
+    icon: String? = null,
+    items: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

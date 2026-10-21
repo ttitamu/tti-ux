@@ -4,7 +4,7 @@
 import SwiftUI
 
 public struct TuxBreadcrumbs<Content: View>: View {
-    public var trail: String
+    public var trail: String? = nil
     public var homeIcon: Bool = true
     public var chevron: Bool = false
     public var ariaLabel: String = "Breadcrumb"

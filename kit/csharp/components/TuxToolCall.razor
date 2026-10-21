@@ -9,11 +9,11 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Verb { get; set; };
-    [Parameter] public string Arg { get; set; };
+    [Parameter] public string? Verb { get; set; }
+    [Parameter] public string? Arg { get; set; }
     [Parameter] public string Status { get; set; } = "completed";
-    [Parameter] public int ElapsedMs { get; set; };
-    [Parameter] public string Diff { get; set; };
-    [Parameter] public string Icon { get; set; };
+    [Parameter] public int? ElapsedMs { get; set; }
+    [Parameter] public string? Diff { get; set; }
+    [Parameter] public string? Icon { get; set; }
     [Parameter] public bool DefaultOpen { get; set; } = false;
 }

@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxArtifact
 {
-    public string $title;
-    public string $meta;
+    public ?string $title = null;
+    public ?string $meta = null;
     public string $icon = 'lucide:file-code';
-    public string $actions;
+    public ?string $actions = null;
     public bool $busy = false;
 
     public function __construct(array $attributes = [])

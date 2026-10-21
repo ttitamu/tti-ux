@@ -7,14 +7,14 @@ namespace Tti\Tux\Components;
 
 final class TuxResultCount
 {
-    public int $page;
-    public int $pageSize;
-    public int $total;
-    public string $noun;
-    public string $nounPlural;
-    public string $pageSizeOptions;
+    public ?int $page = null;
+    public ?int $pageSize = null;
+    public ?int $total = null;
+    public ?string $noun = null;
+    public ?string $nounPlural = null;
+    public ?string $pageSizeOptions = null;
     public bool $hideRange = false;
-    public string $pageSizeLabel;
+    public string $pageSizeLabel = 'per page';
 
     public function __construct(array $attributes = [])
     {

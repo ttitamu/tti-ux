@@ -4,18 +4,18 @@
 import SwiftUI
 
 public struct TuxChartFrame<Content: View>: View {
-    public var eyebrow: String
-    public var title: String
-    public var subtitle: String
-    public var source: String
-    public var notes: String
+    public var eyebrow: String = ""
+    public var title: String = ""
+    public var subtitle: String = ""
+    public var source: String = ""
+    public var notes: String = ""
     public var bare: Bool = false
-    public var labels: String
-    public var series: String
+    public var labels: String? = nil
+    public var series: String? = nil
     public var sonify: Bool = true
     public var showDataTable: Bool = true
-    public var division: String
-    public var doi: String
+    public var division: String? = nil
+    public var doi: String = ""
     private let content: Content
 
     public init(

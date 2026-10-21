@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxReactiveSidebar(
-    sections: String,
-    allSections: String,
+    sections: String? = null,
+    allSections: String? = null,
     collapsed: Boolean = false,
-    activeAreaTitle: String,
+    activeAreaTitle: String = "Workspace Navigation",
     activeAreaIcon: String = "lucide:layers",
     search: Boolean = true,
-    searchPlaceholder: String,
+    searchPlaceholder: String = "Filter pages…",
     showAll: Boolean = false,
     defaultExpanded: Boolean = false,
     exclusive: Boolean = false,

@@ -11,14 +11,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxComposer(
-    modelValue: String,
-    placeholder: String,
-    models: String,
-    modelId: String,
+    modelValue: String = "",
+    placeholder: String = "Ask about any ingested corpus…",
+    models: String? = null,
+    modelId: String? = null,
     maxLength: Int = 32000,
-    hint: String,
+    hint: String = "⌘↵ send · / corpus to switch context · shift↵ newline",
     hideAttach: Boolean = false,
-    attachLabel: String,
+    attachLabel: String = "Attach corpus",
     attachIcon: String = "lucide:plus",
     cancelable: Boolean = false,
     cancelLabel: String = "Cancel",

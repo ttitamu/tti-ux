@@ -18,7 +18,7 @@ export interface TuxTreemapProps {
 }
 
 export const TuxTreemap: React.FC<TuxTreemapProps> = ({
-  data, width = 720, height = 460, maxDepth = 2, colorBy = "size", unit = "bytes", ariaLabel, children, className = '', style
+  data, width = 720, height = 460, maxDepth = 2, colorBy = "size", unit = "bytes", ariaLabel = "Treemap path", children, className = '', style
 }) => {
   return (
     <div className={`tux-treemap ${className}`.trim()} style={style}>

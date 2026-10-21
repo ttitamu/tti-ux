@@ -11,19 +11,19 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChartHistogram(
-    values: String,
+    values: String? = null,
     width: Int = 640,
     height: Int = 280,
     binCount: Int = 12,
-    percentiles: String,
+    percentiles: String? = null,
     normalize: Boolean = false,
     gridlines: Boolean = true,
     ticks: Int = 5,
-    xLabel: String,
-    format: String,
+    xLabel: String? = null,
+    format: String? = null,
     decimals: Int = 1,
-    ariaSummary: String,
-    units: String,
+    ariaSummary: String? = null,
+    units: String? = null,
     tooltip: Boolean = true,
     content: @Composable () -> Unit = {}
 ) {

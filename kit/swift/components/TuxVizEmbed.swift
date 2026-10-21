@@ -4,16 +4,16 @@
 import SwiftUI
 
 public struct TuxVizEmbed<Content: View>: View {
-    public var src: String
+    public var src: String? = nil
     public var provider: String = "generic"
-    public var title: String
-    public var eyebrow: String
+    public var title: String? = nil
+    public var eyebrow: String? = nil
     public var ratio: String = "16/9"
-    public var sandbox: String
+    public var sandbox: String? = nil
     public var referrerpolicy: String = "strict-origin-when-cross-origin"
     public var openInNew: Bool = true
-    public var posterSrc: String
-    public var posterAlt: String
+    public var posterSrc: String? = nil
+    public var posterAlt: String = ""
     private let content: Content
 
     public init(

@@ -8,7 +8,7 @@ from typing import Optional
 @dataclass
 class TuxDocSearch:
     items: Optional[str] = None
-    placeholder: Optional[str] = None
+    placeholder: str = "Search docs (Press / to focus)…"
     max_results: int = 8
 
     def render_html(self, content: str = "") -> str:

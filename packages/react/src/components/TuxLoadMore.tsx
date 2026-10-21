@@ -18,7 +18,7 @@ export interface TuxLoadMoreProps {
 }
 
 export const TuxLoadMore: React.FC<TuxLoadMoreProps> = ({
-  loaded, total, loading = false, noun, nounPlural, label, terminalLabel, children, className = '', style
+  loaded, total, loading = false, noun, nounPlural, label = "Load more", terminalLabel = "All loaded", children, className = '', style
 }) => {
   return (
     <div className={`tux-load-more ${className}`.trim()} style={style}>

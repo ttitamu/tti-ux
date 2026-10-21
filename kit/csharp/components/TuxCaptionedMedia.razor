@@ -9,11 +9,11 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Src { get; set; };
-    [Parameter] public string Alt { get; set; };
-    [Parameter] public string Caption { get; set; };
-    [Parameter] public string Credit { get; set; };
-    [Parameter] public string Eyebrow { get; set; };
+    [Parameter] public string? Src { get; set; }
+    [Parameter] public string Alt { get; set; } = "";
+    [Parameter] public string? Caption { get; set; }
+    [Parameter] public string? Credit { get; set; }
+    [Parameter] public string? Eyebrow { get; set; }
     [Parameter] public string Aspect { get; set; } = "16/9";
     [Parameter] public string Align { get; set; } = "full";
     [Parameter] public string Tone { get; set; } = "maroon";

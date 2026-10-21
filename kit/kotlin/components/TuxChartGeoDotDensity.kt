@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChartGeoDotDensity(
-    dots: Int,
-    dotLegend: String,
+    dots: Int? = null,
+    dotLegend: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

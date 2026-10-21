@@ -9,6 +9,6 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Sources { get; set; };
-    [Parameter] public string DlpLabel { get; set; };
+    [Parameter] public string? Sources { get; set; }
+    [Parameter] public string DlpLabel { get; set; } = "Zero-PII DLP Verified";
 }

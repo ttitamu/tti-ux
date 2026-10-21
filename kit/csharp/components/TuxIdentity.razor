@@ -9,11 +9,11 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Name { get; set; };
-    [Parameter] public string Superhead { get; set; };
+    [Parameter] public string? Name { get; set; }
+    [Parameter] public string? Superhead { get; set; }
     [Parameter] public string Level { get; set; } = "institution";
     [Parameter] public string Orientation { get; set; } = "horizontal";
     [Parameter] public string Kind { get; set; } = "lockup";
-    [Parameter] public string Href { get; set; };
+    [Parameter] public string? Href { get; set; }
     [Parameter] public int LogoSize { get; set; } = 0;
 }

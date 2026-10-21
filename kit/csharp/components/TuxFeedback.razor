@@ -9,8 +9,8 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string PageId { get; set; };
-    [Parameter] public string Title { get; set; };
+    [Parameter] public string PageId { get; set; } = "";
+    [Parameter] public string Title { get; set; } = "Was this page helpful?";
     [Parameter] public string Endpoint { get; set; } = "/api/feedback";
     [Parameter] public bool AllowDetails { get; set; } = true;
 }

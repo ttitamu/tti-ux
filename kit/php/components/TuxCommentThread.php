@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxCommentThread
 {
-    public string $modelValue;
-    public string $authors;
-    public string $currentUser;
+    public ?string $modelValue = null;
+    public ?string $authors = null;
+    public ?string $currentUser = null;
     public bool $hideResolved = true;
     public string $size = 'md';
 

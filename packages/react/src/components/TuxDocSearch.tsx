@@ -14,7 +14,7 @@ export interface TuxDocSearchProps {
 }
 
 export const TuxDocSearch: React.FC<TuxDocSearchProps> = ({
-  items, placeholder, maxResults = 8, children, className = '', style
+  items, placeholder = "Search docs (Press / to focus)…", maxResults = 8, children, className = '', style
 }) => {
   return (
     <div className={`tux-doc-search ${className}`.trim()} style={style}>

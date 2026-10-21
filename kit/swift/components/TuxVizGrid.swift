@@ -5,9 +5,9 @@ import SwiftUI
 
 public struct TuxVizGrid<Content: View>: View {
     public var cols: String = "2"
-    public var eyebrow: String
-    public var title: String
-    public var dek: String
+    public var eyebrow: String? = nil
+    public var title: String? = nil
+    public var dek: String? = nil
     private let content: Content
 
     public init(

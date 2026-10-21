@@ -4,11 +4,11 @@
 import SwiftUI
 
 public struct TuxChartGeoChoroplethLegend<Content: View>: View {
-    public var ramp: String
-    public var label: String
-    public var stops: String
-    public var x: Int
-    public var y: Int
+    public var ramp: String? = nil
+    public var label: String? = nil
+    public var stops: String? = nil
+    public var x: Int? = nil
+    public var y: Int? = nil
     private let content: Content
 
     public init(

@@ -9,29 +9,29 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Title { get; set; };
-    [Parameter] public string Category { get; set; };
-    [Parameter] public string Dek { get; set; };
-    [Parameter] public string Date { get; set; };
-    [Parameter] public string DateLabel { get; set; };
-    [Parameter] public string ReadTime { get; set; };
-    [Parameter] public string Author { get; set; };
-    [Parameter] public string Authors { get; set; };
-    [Parameter] public string HeroImage { get; set; };
-    [Parameter] public string HeroAlt { get; set; };
-    [Parameter] public string HeroCaption { get; set; };
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string Category { get; set; } = "Inside Lane";
+    [Parameter] public string Dek { get; set; } = "";
+    [Parameter] public string Date { get; set; } = "";
+    [Parameter] public string DateLabel { get; set; } = "";
+    [Parameter] public string ReadTime { get; set; } = "";
+    [Parameter] public string Author { get; set; } = "";
+    [Parameter] public string? Authors { get; set; }
+    [Parameter] public string HeroImage { get; set; } = "";
+    [Parameter] public string HeroAlt { get; set; } = "";
+    [Parameter] public string HeroCaption { get; set; } = "";
     [Parameter] public string HeroLayout { get; set; } = "boxed";
-    [Parameter] public string Stats { get; set; };
-    [Parameter] public string Highlights { get; set; };
-    [Parameter] public string Citation { get; set; };
+    [Parameter] public string? Stats { get; set; }
+    [Parameter] public string? Highlights { get; set; }
+    [Parameter] public string? Citation { get; set; }
     [Parameter] public bool Toc { get; set; } = true;
     [Parameter] public string TocTarget { get; set; } = "#article-body";
     [Parameter] public bool ShowReadingProgress { get; set; } = true;
     [Parameter] public bool ShowScrollTop { get; set; } = true;
     [Parameter] public bool ShowShare { get; set; } = true;
-    [Parameter] public string Tags { get; set; };
-    [Parameter] public string Contact { get; set; };
-    [Parameter] public string BackTo { get; set; };
-    [Parameter] public string Label { get; set; };
-    [Parameter] public string To { get; set; };
+    [Parameter] public string? Tags { get; set; }
+    [Parameter] public string? Contact { get; set; }
+    [Parameter] public string? BackTo { get; set; }
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? To { get; set; }
 }

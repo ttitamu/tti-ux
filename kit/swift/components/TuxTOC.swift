@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxTOC<Content: View>: View {
-    public var items: String
+    public var items: String? = nil
     public var target: String = "article"
-    public var levels: String
-    public var title: String
+    public var levels: String? = nil
+    public var title: String = "On this page"
     public var noTitle: Bool = false
     public var variant: String = "comm"
     private let content: Content

@@ -4,11 +4,11 @@
 import SwiftUI
 
 public struct TuxMetroInset<Content: View>: View {
-    public var name: String
-    public var highwayLabel: String
+    public var name: String? = nil
+    public var highwayLabel: String = ""
     public var height: Int = 220
     public var palette: String = "maroon"
-    public var seed: String
+    public var seed: String = ""
     public var cols: Int = 8
     public var rows: Int = 6
     private let content: Content

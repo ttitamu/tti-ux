@@ -11,20 +11,20 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChartDonut(
-    slices: String,
+    slices: String? = null,
     size: Int = 280,
     palette: String = "brand",
     patterns: Boolean = false,
-    thickness: Int = 0.5,
+    thickness: Double = 0.5,
     sliceLabels: Boolean = true,
     legend: Boolean = false,
-    centerLabel: String,
-    centerValue: String,
+    centerLabel: String? = null,
+    centerValue: String? = null,
     minSlice: Int = 3,
-    format: String,
+    format: String? = null,
     decimals: Int = 1,
-    ariaSummary: String,
-    units: String,
+    ariaSummary: String? = null,
+    units: String? = null,
     tooltip: Boolean = true,
     content: @Composable () -> Unit = {}
 ) {

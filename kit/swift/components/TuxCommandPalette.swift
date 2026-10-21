@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxCommandPalette<Content: View>: View {
-    public var groups: String
-    public var placeholder: String
+    public var groups: String? = nil
+    public var placeholder: String = "Type a command, token (--), component (@), or search…"
     public var disableHotkey: Bool = false
     public var hotkey: String = "k"
     public var showTabs: Bool = true

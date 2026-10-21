@@ -16,14 +16,10 @@ with a matching source hash in manifest.json.
 | TuxAppSwitcher | react | never ported |
 | TuxArtifact | react | never ported |
 | TuxAuthorByline | react | never ported |
-| TuxBadge | react | STALE (source moved since port) |
-| TuxBigStat | react | STALE (source moved since port) |
 | TuxBlockquote | react | never ported |
 | TuxBranchNav | react | never ported |
-| TuxBreadcrumbs | react | STALE (source moved since port) |
 | TuxCTA | react | never ported |
 | TuxCaptionedMedia | react | never ported |
-| TuxCard | react | STALE (source moved since port) |
 | TuxCardCarousel | react | never ported |
 | TuxCardSlab | react | never ported |
 | TuxCenterBadge | react | never ported |
@@ -48,7 +44,6 @@ with a matching source hash in manifest.json.
 | TuxChatMessage | react | never ported |
 | TuxCitationExport | react | never ported |
 | TuxCitations | react | never ported |
-| TuxCodeBlock | react | STALE (source moved since port) |
 | TuxCodeMaroon | react | never ported |
 | TuxCommandPalette | react | never ported |
 | TuxCommentThread | react | never ported |
@@ -61,7 +56,6 @@ with a matching source hash in manifest.json.
 | TuxCookieConsent | react | never ported |
 | TuxCorridorStrip | react | never ported |
 | TuxDataTable | react | never ported |
-| TuxDescriptionList | react | STALE (source moved since port) |
 | TuxDiagram | react | never ported |
 | TuxDocsSidebarNode | react | never ported |
 | TuxErrorPage | react | never ported |
@@ -115,7 +109,6 @@ with a matching source hash in manifest.json.
 | TuxRuleBuilder | react | never ported |
 | TuxRuleBuilderGroup | react | never ported |
 | TuxSearch | react | never ported |
-| TuxSectionHeader | react | STALE (source moved since port) |
 | TuxShortcutsHelp | react | never ported |
 | TuxSignupFeature | react | never ported |
 | TuxSiteNav | react | never ported |
@@ -160,5 +153,4 @@ with a matching source hash in manifest.json.
 | TuxECharts | react | never ported |
 | TuxHeroCanvas | react | never ported |
 | TuxRoadwayCrossSection | react | never ported |
-| TuxVisionPreferencesModal | react | STALE (source moved since port) |
 | TuxUnitValue | react | never ported |

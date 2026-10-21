@@ -8,7 +8,7 @@ from typing import Optional
 @dataclass
 class TuxGroundedSources:
     sources: Optional[str] = None
-    dlp_label: Optional[str] = None
+    dlp_label: str = "Zero-PII DLP Verified"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-grounded-sources">{content}</div>'

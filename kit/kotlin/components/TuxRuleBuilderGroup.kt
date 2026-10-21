@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxRuleBuilderGroup(
-    modelValue: String,
-    depth: Int,
+    modelValue: String? = null,
+    depth: Int? = null,
     isRoot: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {

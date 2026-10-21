@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxReasoning<Content: View>: View {
-    public var duration: Int = 3.4
-    public var tokensPerSec: Int
+    public var duration: Double = 3.4
+    public var tokensPerSec: Int? = nil
     public var defaultOpen: Bool = false
     private let content: Content
 

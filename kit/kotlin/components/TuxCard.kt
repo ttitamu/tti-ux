@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCard(
-    to: String,
+    to: String? = null,
     padded: Boolean = true,
     linked: Boolean = false,
-    division: String,
+    division: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

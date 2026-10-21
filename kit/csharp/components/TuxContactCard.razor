@@ -9,13 +9,13 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Name { get; set; };
-    [Parameter] public string Role { get; set; };
-    [Parameter] public string Affiliation { get; set; };
-    [Parameter] public string Credentials { get; set; };
-    [Parameter] public string Image { get; set; };
-    [Parameter] public string Initial { get; set; };
+    [Parameter] public string? Name { get; set; }
+    [Parameter] public string? Role { get; set; }
+    [Parameter] public string? Affiliation { get; set; }
+    [Parameter] public string? Credentials { get; set; }
+    [Parameter] public string? Image { get; set; }
+    [Parameter] public string? Initial { get; set; }
     [Parameter] public string Tone { get; set; } = "maroon";
-    [Parameter] public string Contacts { get; set; };
+    [Parameter] public string? Contacts { get; set; }
     [Parameter] public string Layout { get; set; } = "vertical";
 }

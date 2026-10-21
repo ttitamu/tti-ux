@@ -20,6 +20,41 @@ conventions and [Semantic Versioning](https://semver.org/).
   - Removed internal-only tools (`Atlas`, `Landscape`) and internal division labels from the public documentation and `TuxSpectrumRibbon`.
   - Added `aria-live="polite"` geometry/LOS screen-reader announcements and a mobile 2D CAD quick-switch banner to `TuxRoadwayCrossSection.vue`, keyboard `Escape`-to-close focus return on mobile drawers, and transportation-contextual `alt` text on media examples.
 
+### Fixed — `npm test` is green again on 3.4.1
+
+- **The MCP server reads sub-layer components again.** 3.4.1's root shims re-export a sub-layer's component by package name (`export { default } from "@tti/tti-ux-charts/app/components/TuxECharts.vue"`), and `scripts/tux-mcp.mjs` followed only relative paths. So `tux_get_component` and `tux_list_components` reported all 14 shimmed components (TuxECharts, TuxCodeBlock, TuxDiagram, and the 11 from Desk, TuxRichTextEditor among them) as `@tti/tti-ux` with no props and no events. A package name now maps to its `packages/<dir>` by each workspace's `package.json` name, the same lookup as the sync engine's `workspaceFile()` (PR 89). That works in this repo and in the published layer, which ships the same `packages/` copies.
+- **`tests/publish-registry.test.mjs` asserts 3.4.1's packaging.** It still expected the five sub-layers as optional peers, which 3.4.1 deliberately replaced. It now checks the contract `scripts/check-layer-imports.mjs` enforces: every `packages/<dir>` with a `nuxt.config.ts` is in the publish script's sub-layer list, each is a dependency of the layer at the layer's own version and never a peer, and each workspace carries that version.
+- **The charts sub-layer's own tests load again.** 3.4.1 moved `packages/charts` onto `#tux/`, the root layer's `app/`, an alias defined in the root's `nuxt.config.ts`. The workspace's `vitest.config.ts` didn't define it, so its one test file couldn't load `tuxEChartsTheme.ts`. It now defines `#tux` the same way. (Desk also imports through `#tux/`, but none of its tests load that file.)
+
+`npm test` runs the root suite, then the charts, diagrams, code, desk, content and React workspaces, and stops at the first failure. The first two fixes failed the root suite, so no workspace suite ran. The third failed the first workspace. It now runs all seven.
+
+### Fixed — the .NET, Swift, Kotlin and PHP kits compile; the sync engine writes each language's literals
+
+- **Every generated port compiles in its own language.** The engine wrote each prop's default by pasting JS text into the target. On main, 163 of 179 Razor components failed to build (`{ get; set; };`, C# error CS1597, for every prop without a default). 165 of 179 Swift views failed: 157 left a stored property uninitialized, and four couldn't parse a prop named `as` or `for`. Kotlin failed in 7 files and PHP in 3, on the same keywords and on a fractional default in an `int`. A shared `defaultLiteral()` now reads each default once. `phpDefault`, `csharpDefault`, `swiftDefault`, `kotlinDefault` and `jsDefault` render it, beside the existing `pythonDefault`:
+  - with no default, the property is nullable and null (`?string`, `string?`, `String? = nil`, `String? = null`), as the Python kit already was;
+  - strings are escaped for each language (Kotlin's `$`, PHP's `'`, control characters);
+  - a fractional number default takes the float type, Python's included (`stroke_width: float = 1.5`), and an integer past 32 bits takes C#'s `long` and Kotlin's `Long`;
+  - Swift and Kotlin keywords are backtick-escaped. A prop that collides with a member the template declares gets a trailing underscore: SwiftUI's `body` becomes `body_` in TuxPopover.
+- **`withDefaults` is read with a balanced scan, not a regex.** A quoted default with a space survived neither regex: before 3.2.1 it was cut at the first space (`'Emergency'`), and since then it was dropped. All 56 now come through whole, among them `title: "Emergency alert"` and TuxFooter's two-line address. Only code in `<script setup>` is scanned, so a comment, a regex literal, `as const` or a comma inside `<…>` doesn't derail it. Factories (`() => []`) and expressions (`50 * 1024 * 1024`) still leave no default.
+- **Sub-layer shims resolve by package name.** Since 3.4.1 the root shims re-export `@tti/tti-ux-code/…` and the other sub-layers by name. The engine followed only relative paths, so a regeneration would have emptied every port of TuxCodeBlock, TuxDiagram, TuxECharts and TuxRichTextEditor.
+
+Regenerated the PHP, Razor, Swift, Kotlin, Python and engine-managed React targets with the engine's own `syncAll`. Every file of those targets now reproduces byte for byte, including the 15 components that had drifted behind their Vue sources since 3.3.0, and TuxUnitValue's first ports. The web-component and vanilla-JS targets are untouched: their emitters write no defaults.
+
+## [3.4.1] — 2026-10-20
+
+### Fixed — 3.4.0 could not be built by a consuming app
+
+- **Layer files no longer import through `~/`.** Inside a Nuxt layer, `~` is the *consuming* app's srcDir, so 20 imports pointed into the app instead of the layer, and no app could build 3.4.0 (`UNLOADABLE_DEPENDENCY app/composables/useTuxVisionPrefs`, found bumping nis/landscape):
+  - the 11 root components that import root composables now use relative paths;
+  - the sub-layer files under `packages/charts` and `packages/desk` that use the root's composables, components and geo data now import through **`#tux/`**, a new alias for this layer's own `app/` directory. An alias from an extended layer reaches the consuming app.
+  This is the first part of the never-merged PR 73, ported to 3.4.0's layout.
+- **The five sub-layers are now real dependencies of `@tti/tti-ux`**, at the same version. The root extends `packages/charts`, `diagrams`, `code`, `desk` and `content` and registers their components globally, so every app compiles them. 3.4.0 listed them only as optional peers, which install nothing, so their libraries (ECharts, Mermaid, Shiki, tiptap, PGlite, MDC, KaTeX) were missing in every app. An app needs only `@tti/tti-ux` again; it doesn't list the sub-layers itself or add them to `extends`.
+- **Sub-layers are extended by package name** (`"@tti/tti-ux-charts"` and so on), and the root's component shims import them the same way, instead of through the root's bundled `packages/` copy. npm nests a sub-layer's dependencies under it when they clash with the app's (Desk's tiptap against `@nuxt/ui`'s), and only the installed package can see them. In this repo the workspaces link each name to `packages/<name>`.
+- **Desk's server is no longer mounted in every app.** Extended by every consumer, the Desk sub-layer put its `server/` (14 REST routes and a PGlite database, behind an `X-TTI-Actor` header any client can set) on each consuming app's server. The root now extends `@tti/tti-ux-desk` only in this repo's own site. Desk's components still reach apps through the root's shims. An app that wants Desk's server adds `"@tti/tti-ux-desk"` to its own `extends`.
+- **New check, `scripts/check-layer-imports.mjs`.** It runs on every PR (`layer-check` workflow) and before `publish-package` publishes from 3.4.1 on. It fails on any `~/` or `@/` import in a layer file, on any import of a sub-layer by a path into `packages/`, and on any extended sub-layer that isn't a dependency at the root's version. Against v3.4.0 it reports all 54 problems.
+
+All seven workspace packages are 3.4.1, so `publish-package` ships them together.
+
 ## [3.4.0] — 2026-10-19
 
 ### Added & Changed — Modular Sub-Layers, Lean Core Runtime, P0 Security Hardening & MCP Introspection (2026-10-19)

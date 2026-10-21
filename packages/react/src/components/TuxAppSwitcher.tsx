@@ -16,7 +16,7 @@ export interface TuxAppSwitcherProps {
 }
 
 export const TuxAppSwitcher: React.FC<TuxAppSwitcherProps> = ({
-  apps, ariaLabel, heading, footerText, presentation = "popover", children, className = '', style
+  apps, ariaLabel = "Switch apps", heading = "TTI Portals", footerText, presentation = "popover", children, className = '', style
 }) => {
   return (
     <div className={`tux-app-switcher ${className}`.trim()} style={style}>

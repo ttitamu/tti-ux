@@ -36,7 +36,7 @@ export interface TuxEditorialArticleProps {
 }
 
 export const TuxEditorialArticle: React.FC<TuxEditorialArticleProps> = ({
-  title, category, dek, date, dateLabel, readTime, author, authors, heroImage, heroAlt, heroCaption, heroLayout = "boxed", stats, highlights, citation, toc = true, tocTarget = "#article-body", showReadingProgress = true, showScrollTop = true, showShare = true, tags, contact, backTo, label, to, children, className = '', style
+  title, category = "Inside Lane", dek = "", date = "", dateLabel = "", readTime = "", author = "", authors, heroImage = "", heroAlt = "", heroCaption = "", heroLayout = "boxed", stats, highlights, citation, toc = true, tocTarget = "#article-body", showReadingProgress = true, showScrollTop = true, showShare = true, tags, contact, backTo, label, to, children, className = '', style
 }) => {
   return (
     <div className={`tux-editorial-article ${className}`.trim()} style={style}>

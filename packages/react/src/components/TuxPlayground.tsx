@@ -25,7 +25,7 @@ export interface TuxPlaygroundProps {
 }
 
 export const TuxPlayground: React.FC<TuxPlaygroundProps> = ({
-  tag, componentName, controls, presets, title, eyebrow, slotProp, defaultSlotText, selfClosing = false, codeTemplate, source, powerbi, previewPadding = "p-8", enableDeepLinking = true, children, className = '', style
+  tag, componentName, controls, presets, title = "Interactive Props Workbench", eyebrow = "Live Component Playground", slotProp, defaultSlotText, selfClosing = false, codeTemplate, source, powerbi, previewPadding = "p-8", enableDeepLinking = true, children, className = '', style
 }) => {
   return (
     <div className={`tux-playground ${className}`.trim()} style={style}>

@@ -15,7 +15,7 @@ export interface TuxNewsCollectionProps {
 }
 
 export const TuxNewsCollection: React.FC<TuxNewsCollectionProps> = ({
-  items, layout = "stacked", columns = 3, readMore, children, className = '', style
+  items, layout = "stacked", columns = 3, readMore = "Read more", children, className = '', style
 }) => {
   return (
     <ul className={`tux-news-collection ${className}`.trim()} style={style}>

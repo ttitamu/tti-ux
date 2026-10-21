@@ -11,14 +11,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxVizRPlot(
-    src: String,
+    src: String? = null,
     kind: String = "image",
-    title: String,
-    eyebrow: String,
+    title: String? = null,
+    eyebrow: String? = null,
     ratio: String = "16/10",
-    alt: String,
-    src2x: String,
-    source: String,
+    alt: String = "",
+    src2x: String? = null,
+    source: String? = null,
     level: Int = 3,
     content: @Composable () -> Unit = {}
 ) {

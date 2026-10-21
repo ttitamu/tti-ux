@@ -11,8 +11,8 @@ class TuxUnitValue:
     unit: Optional[str] = None
     ci: Optional[int] = None
     decimals: Optional[int] = None
-    label: Optional[str] = None
-    station: Optional[str] = None
+    label: str = ""
+    station: str = ""
     variant: str = "inline"
     interactive: bool = False
     system: Optional[str] = None

@@ -4,13 +4,13 @@
 import SwiftUI
 
 public struct TuxChartLine<Content: View>: View {
-    public var labels: String
-    public var series: String
+    public var labels: String? = nil
+    public var series: String? = nil
     public var width: Int = 640
     public var height: Int = 280
     public var markers: Bool = false
     public var distinctMarkers: Bool = true
-    public var markerRadius: Int = 3.5
+    public var markerRadius: Double = 3.5
     public var palette: String = "brand"
     public var strokeWidth: Int = 2
     public var patterns: Bool = false

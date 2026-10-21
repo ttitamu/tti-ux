@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxCard<Content: View>: View {
-    public var to: String
+    public var to: String? = nil
     public var padded: Bool = true
     public var linked: Bool = false
-    public var division: String
+    public var division: String? = nil
     private let content: Content
 
     public init(

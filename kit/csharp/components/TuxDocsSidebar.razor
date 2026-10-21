@@ -9,10 +9,10 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Tree { get; set; };
+    [Parameter] public string? Tree { get; set; }
     [Parameter] public string Title { get; set; } = "Docs";
     [Parameter] public bool Search { get; set; } = true;
-    [Parameter] public string SearchPlaceholder { get; set; };
+    [Parameter] public string SearchPlaceholder { get; set; } = "Filter docs…";
     [Parameter] public string StorageKey { get; set; } = "tux-docs-sidebar";
     [Parameter] public bool ExclusiveTopLevel { get; set; } = false;
 }

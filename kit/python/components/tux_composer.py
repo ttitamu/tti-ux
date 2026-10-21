@@ -7,14 +7,14 @@ from typing import Optional
 
 @dataclass
 class TuxComposer:
-    model_value: Optional[str] = None
-    placeholder: Optional[str] = None
+    model_value: str = ""
+    placeholder: str = "Ask about any ingested corpus…"
     models: Optional[str] = None
     model_id: Optional[str] = None
     max_length: int = 32000
-    hint: Optional[str] = None
+    hint: str = "⌘↵ send · / corpus to switch context · shift↵ newline"
     hide_attach: bool = False
-    attach_label: Optional[str] = None
+    attach_label: str = "Attach corpus"
     attach_icon: str = "lucide:plus"
     cancelable: bool = False
     cancel_label: str = "Cancel"

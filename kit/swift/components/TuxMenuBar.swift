@@ -4,7 +4,7 @@
 import SwiftUI
 
 public struct TuxMenuBar<Content: View>: View {
-    public var menus: String
+    public var menus: String? = nil
     public var renderOnMac: Bool = false
     private let content: Content
 

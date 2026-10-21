@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxTooltip
 {
-    public string $text;
-    public string $title;
-    public string $kbds;
+    public ?string $text = null;
+    public ?string $title = null;
+    public ?string $kbds = null;
     public string $side = 'top';
     public bool $arrow = true;
     public bool $disabled = false;

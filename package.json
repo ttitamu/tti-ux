@@ -76,34 +76,15 @@
     "@nuxtjs/color-mode": "^4.0.0",
     "@tailwindcss/vite": "^4.0.0",
     "@tanstack/vue-virtual": "^3.13.47",
+    "@tti/tti-ux-charts": "3.4.2",
+    "@tti/tti-ux-code": "3.4.2",
+    "@tti/tti-ux-content": "3.4.2",
+    "@tti/tti-ux-desk": "3.4.2",
+    "@tti/tti-ux-diagrams": "3.4.2",
     "nuxt": "^4.6.2",
     "tailwindcss": "^4.0.0",
     "vue": "^3.5.44",
     "vue-router": "^5.4.0"
-  },
-  "peerDependencies": {
-    "@tti/tti-ux-charts": "^3.3.0",
-    "@tti/tti-ux-code": "^3.3.0",
-    "@tti/tti-ux-content": "^3.3.0",
-    "@tti/tti-ux-desk": "^3.3.0",
-    "@tti/tti-ux-diagrams": "^3.3.0"
-  },
-  "peerDependenciesMeta": {
-    "@tti/tti-ux-charts": {
-      "optional": true
-    },
-    "@tti/tti-ux-code": {
-      "optional": true
-    },
-    "@tti/tti-ux-content": {
-      "optional": true
-    },
-    "@tti/tti-ux-desk": {
-      "optional": true
-    },
-    "@tti/tti-ux-diagrams": {
-      "optional": true
-    }
   },
   "lint-staged": {
     "*.{vue,ts,js,mjs}": "eslint --fix"

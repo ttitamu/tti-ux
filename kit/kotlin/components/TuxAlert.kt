@@ -12,9 +12,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxAlert(
     variant: String = "info",
-    title: String,
-    description: String,
-    icon: String,
+    title: String? = null,
+    description: String? = null,
+    icon: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

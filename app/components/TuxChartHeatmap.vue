@@ -39,7 +39,7 @@
  *   />
  */
 import { computed, ref } from "vue";
-import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
+import { useTuxVisionPrefs } from "../composables/useTuxVisionPrefs";
 
 interface Props {
   /** Row (y) category labels, rendered top → bottom. */

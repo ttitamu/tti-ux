@@ -4,14 +4,14 @@
 import SwiftUI
 
 public struct TuxComposer<Content: View>: View {
-    public var modelValue: String
-    public var placeholder: String
-    public var models: String
-    public var modelId: String
+    public var modelValue: String = ""
+    public var placeholder: String = "Ask about any ingested corpus…"
+    public var models: String? = nil
+    public var modelId: String? = nil
     public var maxLength: Int = 32000
-    public var hint: String
+    public var hint: String = "⌘↵ send · / corpus to switch context · shift↵ newline"
     public var hideAttach: Bool = false
-    public var attachLabel: String
+    public var attachLabel: String = "Attach corpus"
     public var attachIcon: String = "lucide:plus"
     public var cancelable: Bool = false
     public var cancelLabel: String = "Cancel"

@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxCallout(
     kind: String = "fact",
-    eyebrow: String,
+    eyebrow: String? = null,
     variant: String = "default",
     content: @Composable () -> Unit = {}
 ) {

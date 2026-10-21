@@ -11,18 +11,18 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChartFrame(
-    eyebrow: String,
-    title: String,
-    subtitle: String,
-    source: String,
-    notes: String,
+    eyebrow: String = "",
+    title: String = "",
+    subtitle: String = "",
+    source: String = "",
+    notes: String = "",
     bare: Boolean = false,
-    labels: String,
-    series: String,
+    labels: String? = null,
+    series: String? = null,
     sonify: Boolean = true,
     showDataTable: Boolean = true,
-    division: String,
-    doi: String,
+    division: String? = null,
+    doi: String = "",
     content: @Composable () -> Unit = {}
 ) {
     Row(

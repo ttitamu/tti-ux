@@ -11,17 +11,17 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxFooter(
-    name: String,
-    address: String,
-    phone: String,
+    name: String = "Texas A&M Transportation Institute",
+    address: String = "Texas A&M Transportation Institute\nCollege Station, TX 77843",
+    phone: String = "(979) 317-2000",
     logo: String = "/logo.svg",
     logoSize: Int = 80,
     brandLockup: String = "/TTI_white.png",
-    brandLockupAlt: String,
-    social: String,
-    columns: String,
-    tagline: String,
-    year: Int,
+    brandLockupAlt: String = "Texas A&M Transportation Institute",
+    social: String? = null,
+    columns: String? = null,
+    tagline: String = "Coordinated Statewide Transportation Research Program",
+    year: Int? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

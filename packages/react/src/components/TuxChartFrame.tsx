@@ -23,7 +23,7 @@ export interface TuxChartFrameProps {
 }
 
 export const TuxChartFrame: React.FC<TuxChartFrameProps> = ({
-  eyebrow, title, subtitle, source, notes, bare = false, labels, series, sonify = true, showDataTable = true, division, doi, children, className = '', style
+  eyebrow = "", title = "", subtitle = "", source = "", notes = "", bare = false, labels, series, sonify = true, showDataTable = true, division, doi = "", children, className = '', style
 }) => {
   return (
     <figure className={`tux-chart-frame ${className}`.trim()} style={style}>

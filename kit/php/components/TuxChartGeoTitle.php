@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxChartGeoTitle
 {
-    public string $title;
-    public int $x;
-    public int $y;
+    public ?string $title = null;
+    public ?int $x = null;
+    public ?int $y = null;
 
     public function __construct(array $attributes = [])
     {

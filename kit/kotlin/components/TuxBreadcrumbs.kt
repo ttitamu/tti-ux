@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxBreadcrumbs(
-    trail: String,
+    trail: String? = null,
     homeIcon: Boolean = true,
     chevron: Boolean = false,
     ariaLabel: String = "Breadcrumb",

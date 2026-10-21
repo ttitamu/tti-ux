@@ -9,11 +9,11 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Steps { get; set; };
+    [Parameter] public string? Steps { get; set; }
     [Parameter] public int CurrentIndex { get; set; } = 0;
     [Parameter] public string Orientation { get; set; } = "horizontal";
     [Parameter] public bool ShowDescriptions { get; set; } = true;
     [Parameter] public string AriaLabel { get; set; } = "Progress";
     [Parameter] public string StationFormat { get; set; } = "number";
-    [Parameter] public string Division { get; set; };
+    [Parameter] public string? Division { get; set; }
 }

@@ -8,11 +8,11 @@ namespace Tti\Tux\Components;
 final class TuxStalenessBanner
 {
     public bool $stale = false;
-    public string $verifiedUntil;
-    public string $lastVerified;
+    public ?string $verifiedUntil = null;
+    public ?string $lastVerified = null;
     public int $reviewCadenceDays = 90;
-    public string $owner;
-    public string $pageId;
+    public ?string $owner = null;
+    public ?string $pageId = null;
     public bool $dismissable = true;
     public bool $showVerifiedBadge = false;
 

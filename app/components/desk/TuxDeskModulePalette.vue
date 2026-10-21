@@ -1,3 +1,3 @@
 <script lang="ts">
-export { default } from "../../../packages/desk/app/components/desk/TuxDeskModulePalette.vue";
+export { default } from "@tti/tti-ux-desk/app/components/desk/TuxDeskModulePalette.vue";
 </script>

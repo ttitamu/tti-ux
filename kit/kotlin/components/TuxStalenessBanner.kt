@@ -12,11 +12,11 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxStalenessBanner(
     stale: Boolean = false,
-    verifiedUntil: String,
-    lastVerified: String,
+    verifiedUntil: String? = null,
+    lastVerified: String? = null,
     reviewCadenceDays: Int = 90,
-    owner: String,
-    pageId: String,
+    owner: String? = null,
+    pageId: String? = null,
     dismissable: Boolean = true,
     showVerifiedBadge: Boolean = false,
     content: @Composable () -> Unit = {}

@@ -27,7 +27,7 @@ export interface TuxSearchProps {
 }
 
 export const TuxSearch: React.FC<TuxSearchProps> = ({
-  modelValue, variant = "field", blockBar = "field", size = "regular", placeholder = "Search", heading, lede, ariaLabel, actionLabel = "Search", actionIcon, leadingIcon = "lucide:search", clearable = true, loading = false, disabled = false, cornerDrop = false, forceFocus = false, children, className = '', style
+  modelValue = "", variant = "field", blockBar = "field", size = "regular", placeholder = "Search", heading, lede, ariaLabel, actionLabel = "Search", actionIcon, leadingIcon = "lucide:search", clearable = true, loading = false, disabled = false, cornerDrop = false, forceFocus = false, children, className = '', style
 }) => {
   return (
     <div className={`tux-search ${className}`.trim()} data-variant={variant} data-size={size} style={style}>

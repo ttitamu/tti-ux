@@ -7,17 +7,17 @@ namespace Tti\Tux\Components;
 
 final class TuxBigStat
 {
-    public string $value;
-    public string $suffix;
-    public string $label;
-    public string $source;
+    public ?string $value = null;
+    public ?string $suffix = null;
+    public ?string $label = null;
+    public ?string $source = null;
     public string $variant = 'default';
     public string $tone = 'maroon';
     public string $size = 'md';
-    public string $sampleSize;
-    public string $confidenceInterval;
-    public string $doi;
-    public string $division;
+    public ?string $sampleSize = null;
+    public ?string $confidenceInterval = null;
+    public ?string $doi = null;
+    public ?string $division = null;
 
     public function __construct(array $attributes = [])
     {

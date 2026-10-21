@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxReasoning
 {
-    public int $duration = 3.4;
-    public int $tokensPerSec;
+    public float $duration = 3.4;
+    public ?int $tokensPerSec = null;
     public bool $defaultOpen = false;
 
     public function __construct(array $attributes = [])

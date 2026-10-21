@@ -4,7 +4,7 @@
 import SwiftUI
 
 public struct TuxProse<Content: View>: View {
-    public var as: String = "article"
+    public var `as`: String = "article"
     private let content: Content
 
     public init(

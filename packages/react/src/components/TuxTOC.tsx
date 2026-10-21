@@ -17,7 +17,7 @@ export interface TuxTOCProps {
 }
 
 export const TuxTOC: React.FC<TuxTOCProps> = ({
-  items, target = "article", levels, title, noTitle = false, variant = "comm", children, className = '', style
+  items, target = "article", levels, title = "On this page", noTitle = false, variant = "comm", children, className = '', style
 }) => {
   return (
     <nav className={`tux-toc ${className}`.trim()} data-variant={variant} style={style}>

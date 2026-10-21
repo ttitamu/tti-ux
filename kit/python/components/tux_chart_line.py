@@ -13,7 +13,7 @@ class TuxChartLine:
     height: int = 280
     markers: bool = False
     distinct_markers: bool = True
-    marker_radius: int = 3.5
+    marker_radius: float = 3.5
     palette: str = "brand"
     stroke_width: int = 2
     patterns: bool = False

@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxDiagram
 {
-    public string $code;
-    public string $caption;
-    public string $eyebrow;
+    public ?string $code = null;
+    public ?string $caption = null;
+    public ?string $eyebrow = null;
 
     public function __construct(array $attributes = [])
     {

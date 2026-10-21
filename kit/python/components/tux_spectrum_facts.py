@@ -7,8 +7,8 @@ from typing import Optional
 
 @dataclass
 class TuxSpectrumFacts:
-    title: Optional[str] = None
-    subtitle: Optional[str] = None
+    title: str = "QUICK FACTS"
+    subtitle: str = ""
     items: Optional[str] = None
     tone: str = "dark"
     show_top_ribbon: bool = True

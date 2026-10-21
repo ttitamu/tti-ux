@@ -10,14 +10,14 @@
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public string Mode { get; set; } = "comm";
-    [Parameter] public string AgencyName { get; set; };
+    [Parameter] public string AgencyName { get; set; } = "Texas A&M Transportation Institute";
     [Parameter] public string AgencyUrl { get; set; } = "https://tti.tamu.edu";
     [Parameter] public string HomeUrl { get; set; } = "/";
-    [Parameter] public string PortalTitle { get; set; };
-    [Parameter] public string PortalBadge { get; set; };
+    [Parameter] public string PortalTitle { get; set; } = "";
+    [Parameter] public string PortalBadge { get; set; } = "";
     [Parameter] public string PortalBadgeVariant { get; set; } = "gold";
-    [Parameter] public string UtilityLinks { get; set; };
+    [Parameter] public string? UtilityLinks { get; set; }
     [Parameter] public bool ShowSearch { get; set; } = true;
     [Parameter] public bool ShowSpectrumRibbon { get; set; } = false;
-    [Parameter] public string IntranetApps { get; set; };
+    [Parameter] public string? IntranetApps { get; set; }
 }

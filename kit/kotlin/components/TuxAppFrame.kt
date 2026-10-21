@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxAppFrame(
-    title: String,
-    eyebrow: String,
+    title: String? = null,
+    eyebrow: String? = null,
     useSystemAccent: Boolean = false,
     unifiedToolbar: Boolean = true,
     forceChrome: Boolean = false,

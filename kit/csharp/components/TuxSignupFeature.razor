@@ -9,13 +9,13 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Title { get; set; };
-    [Parameter] public string Eyebrow { get; set; };
-    [Parameter] public string Dek { get; set; };
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Eyebrow { get; set; }
+    [Parameter] public string? Dek { get; set; }
     [Parameter] public string ActionLabel { get; set; } = "Subscribe";
     [Parameter] public string Placeholder { get; set; } = "your@email.edu";
-    [Parameter] public string Consent { get; set; };
-    [Parameter] public string ModelValue { get; set; };
+    [Parameter] public string Consent { get; set; } = "We never share your address. Unsubscribe in one click.";
+    [Parameter] public string ModelValue { get; set; } = "";
     [Parameter] public string Tone { get; set; } = "neutral";
     [Parameter] public string Variant { get; set; } = "default";
 }

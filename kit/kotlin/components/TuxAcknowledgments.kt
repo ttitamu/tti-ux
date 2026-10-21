@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxAcknowledgments(
-    funding: String,
-    acknowledgments: String,
-    conflicts: String,
-    ethics: String,
+    funding: String? = null,
+    acknowledgments: String? = null,
+    conflicts: String? = null,
+    ethics: String? = null,
     level: Int = 4,
     content: @Composable () -> Unit = {}
 ) {

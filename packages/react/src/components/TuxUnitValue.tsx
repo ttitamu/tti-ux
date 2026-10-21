@@ -21,7 +21,7 @@ export interface TuxUnitValueProps {
 }
 
 export const TuxUnitValue: React.FC<TuxUnitValueProps> = ({
-  value, unit, ci, decimals, label, station, variant = "inline", interactive = false, system, division, children, className = '', style
+  value, unit, ci, decimals, label = "", station = "", variant = "inline", interactive = false, system, division, children, className = '', style
 }) => {
   return (
     <span className={`tux-unit-value ${className}`.trim()} data-variant={variant} style={style}>

@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxShortcutsHelp
 {
-    public string $groups;
+    public ?string $groups = null;
     public string $sequenceSeparator = 'then';
 
     public function __construct(array $attributes = [])

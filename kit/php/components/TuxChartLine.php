@@ -7,13 +7,13 @@ namespace Tti\Tux\Components;
 
 final class TuxChartLine
 {
-    public string $labels;
-    public string $series;
+    public ?string $labels = null;
+    public ?string $series = null;
     public int $width = 640;
     public int $height = 280;
     public bool $markers = false;
     public bool $distinctMarkers = true;
-    public int $markerRadius = 3.5;
+    public float $markerRadius = 3.5;
     public string $palette = 'brand';
     public int $strokeWidth = 2;
     public bool $patterns = false;

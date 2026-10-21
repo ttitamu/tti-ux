@@ -20,7 +20,7 @@ export interface TuxSignupFeatureProps {
 }
 
 export const TuxSignupFeature: React.FC<TuxSignupFeatureProps> = ({
-  title, eyebrow, dek, actionLabel = "Subscribe", placeholder = "your@email.edu", consent, modelValue, tone = "neutral", variant = "default", children, className = '', style
+  title, eyebrow, dek, actionLabel = "Subscribe", placeholder = "your@email.edu", consent = "We never share your address. Unsubscribe in one click.", modelValue = "", tone = "neutral", variant = "default", children, className = '', style
 }) => {
   return (
     <section className={`tux-signup-feature ${className}`.trim()} data-variant={variant} data-tone={tone} style={style}>

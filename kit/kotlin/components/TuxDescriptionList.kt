@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxDescriptionList(
-    items: String,
+    items: String? = null,
     layout: String = "inline",
     emphasis: String = "editorial",
-    title: String,
+    title: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

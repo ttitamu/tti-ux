@@ -10,7 +10,7 @@ class TuxFileDropzone:
     model_value: Optional[str] = None
     accept: Optional[str] = None
     multiple: bool = False
-    max_size: int = 50
+    max_size: Optional[int] = None
     max_files: int = 10
     disabled: bool = False
     label: Optional[str] = None

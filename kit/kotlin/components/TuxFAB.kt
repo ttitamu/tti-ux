@@ -11,11 +11,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxFAB(
-    icon: String,
+    icon: String? = null,
     extended: Boolean = false,
     size: String = "md",
     side: String = "right",
-    ariaLabel: String,
+    ariaLabel: String? = null,
     disabled: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {

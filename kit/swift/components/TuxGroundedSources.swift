@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxGroundedSources<Content: View>: View {
-    public var sources: String
-    public var dlpLabel: String
+    public var sources: String? = nil
+    public var dlpLabel: String = "Zero-PII DLP Verified"
     private let content: Content
 
     public init(

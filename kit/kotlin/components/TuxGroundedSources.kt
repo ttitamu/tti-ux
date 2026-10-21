@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxGroundedSources(
-    sources: String,
-    dlpLabel: String,
+    sources: String? = null,
+    dlpLabel: String = "Zero-PII DLP Verified",
     content: @Composable () -> Unit = {}
 ) {
     Row(

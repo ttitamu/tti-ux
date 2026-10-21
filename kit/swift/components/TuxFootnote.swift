@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxFootnote<Content: View>: View {
-    public var n: Int
-    public var text: String
+    public var n: Int? = nil
+    public var text: String? = nil
     public var idPrefix: String = "fn"
     private let content: Content
 

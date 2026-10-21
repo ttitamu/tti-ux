@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxNewsCollection<Content: View>: View {
-    public var items: String
+    public var items: String? = nil
     public var layout: String = "stacked"
     public var columns: Int = 3
-    public var readMore: String
+    public var readMore: String = "Read more"
     private let content: Content
 
     public init(

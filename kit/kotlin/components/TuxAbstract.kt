@@ -11,19 +11,19 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxAbstract(
-    background: String,
-    methods: String,
-    results: String,
-    conclusion: String,
-    keywords: String,
+    background: String? = null,
+    methods: String? = null,
+    results: String? = null,
+    conclusion: String? = null,
+    keywords: String? = null,
     variant: String = "structured",
     level: Int = 4,
-    plainSummary: String,
-    policyTakeaways: String,
-    doi: String,
-    projectNumber: String,
-    citation: String,
-    division: String,
+    plainSummary: String? = null,
+    policyTakeaways: String? = null,
+    doi: String? = null,
+    projectNumber: String? = null,
+    citation: String? = null,
+    division: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

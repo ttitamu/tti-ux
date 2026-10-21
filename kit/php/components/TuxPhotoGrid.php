@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxPhotoGrid
 {
-    public string $items;
+    public ?string $items = null;
     public string $kind = 'photo';
     public int $columns = 3;
-    public string $aspect;
+    public ?string $aspect = null;
 
     public function __construct(array $attributes = [])
     {

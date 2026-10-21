@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxTabBar(
-    items: String,
-    ariaLabel: String,
+    items: String? = null,
+    ariaLabel: String = "Primary navigation",
     content: @Composable () -> Unit = {}
 ) {
     Row(

@@ -4,17 +4,17 @@
 import SwiftUI
 
 public struct TuxSparkline<Content: View>: View {
-    public var data: String
+    public var data: String? = nil
     public var width: Int = 120
     public var height: Int = 32
     public var tone: String = "brand"
-    public var strokeWidth: Int = 1.5
+    public var strokeWidth: Double = 1.5
     public var showArea: Bool = false
     public var showLastPoint: Bool = true
     public var showDelta: Bool = false
     public var deltaFormat: String = "percent"
-    public var ariaSummary: String
-    public var units: String
+    public var ariaSummary: String? = nil
+    public var units: String? = nil
     private let content: Content
 
     public init(

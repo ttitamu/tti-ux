@@ -7,20 +7,20 @@ namespace Tti\Tux\Components;
 
 final class TuxChartGeographic
 {
-    public string $kind;
+    public ?string $kind = null;
     public string $palette = 'maroon';
-    public string $title;
+    public string $title = '';
     public string $legendLabel = 'Value';
-    public string $legendStops;
+    public ?string $legendStops = null;
     public bool $showLegend = true;
-    public string $counties;
-    public string $districts;
-    public string $states;
+    public ?string $counties = null;
+    public ?string $districts = null;
+    public ?string $states = null;
     public string $highlight = 'TX';
     public int $dots = 600;
-    public string $dotLegend;
-    public string $flows;
-    public string $flowLegend;
+    public string $dotLegend = '1 dot = 100 incidents';
+    public ?string $flows = null;
+    public string $flowLegend = 'Daily trips (thousands)';
 
     public function __construct(array $attributes = [])
     {

@@ -95,6 +95,17 @@ jobs:
           echo "tag $TAG is $(git -C pkg rev-parse HEAD); tooling at $(git -C tooling rev-parse HEAD)"
           node --version; npm --version
 
+      # The install-and-build rules (scripts/check-layer-imports.mjs, also the
+      # layer-check workflow on every PR), on the tree being published. From
+      # 3.4.1 on: older tags predate the rules, and backfills of them still publish.
+      - name: Check the layer can be built by a consuming app
+        run: |
+          set -eu
+          case "$TAG" in
+            v0.* | v1.* | v2.* | v3.0.* | v3.1.* | v3.2.* | v3.3.* | v3.4.0 | v3.4.0-*) echo "::notice::$TAG predates check-layer-imports; not checked" ;;
+            *) node tooling/scripts/check-layer-imports.mjs pkg ;;
+          esac
+
       - name: Publish @tti/tti-ux
         env:
           PUBLISH_TOKEN: ${{ secrets.PACKAGES_PUBLISH_TOKEN }}
@@ -105,6 +116,17 @@ jobs:
             exit 1
           fi
           node tooling/scripts/publish-registry.mjs --package layer --tag "$TAG" --pkg-dir pkg --registry "$REGISTRY"
+
+      # The sub-layers (charts, diagrams, code, desk, content; 3.4.0 on) ride the
+      # same tag, each only when version-locked to it. Source like the layer, so
+      # no build; their own step, after the layer. Re-running a tag publishes
+      # only what is missing, which is how v3.4.0 got its five.
+      - name: Publish the sub-layers (when version-locked)
+        env:
+          PUBLISH_TOKEN: ${{ secrets.PACKAGES_PUBLISH_TOKEN }}
+        run: |
+          set -eu
+          node tooling/scripts/publish-registry.mjs --package sublayers --tag "$TAG" --pkg-dir pkg --registry "$REGISTRY"
 
       # The React ports ride the same tag only when version-locked to it (the
       # script says "layer only" otherwise). After the layer, and a step of

@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxCodeBlock
 {
-    public string $code;
+    public ?string $code = null;
     public string $lang = 'text';
-    public string $filename;
+    public ?string $filename = null;
     public bool $lineNumbers = false;
     public bool $noCopy = false;
     public bool $noDownload = false;

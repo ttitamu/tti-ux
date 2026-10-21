@@ -4,14 +4,14 @@
 import SwiftUI
 
 public struct TuxPagination<Content: View>: View {
-    public var total: Int
-    public var modelValue: Int
+    public var total: Int? = nil
+    public var modelValue: Int? = nil
     public var pageSize: Int = 20
     public var siblingCount: Int = 1
     public var boundaryCount: Int = 1
     public var showStatus: Bool = false
     public var noun: String = "result"
-    public var pluralNoun: String
+    public var pluralNoun: String? = nil
     public var ariaLabel: String = "Pagination"
     private let content: Content
 

@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxAppSwitcher<Content: View>: View {
-    public var apps: String
-    public var ariaLabel: String
-    public var heading: String
-    public var footerText: String
+    public var apps: String? = nil
+    public var ariaLabel: String = "Switch apps"
+    public var heading: String = "TTI Portals"
+    public var footerText: String? = nil
     public var presentation: String = "popover"
     private let content: Content
 

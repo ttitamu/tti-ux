@@ -7,13 +7,13 @@ namespace Tti\Tux\Components;
 
 final class TuxChartSunburst
 {
-    public string $data;
+    public ?string $data = null;
     public int $size = 320;
     public string $centerLabel = 'Total';
-    public string $formatTotal;
-    public string $formatValue;
+    public ?string $formatTotal = null;
+    public ?string $formatValue = null;
     public bool $showLegend = true;
-    public string $palette;
+    public ?string $palette = null;
     public bool $tooltip = true;
 
     public function __construct(array $attributes = [])

@@ -20,7 +20,7 @@ export interface TuxEChartsProps {
 }
 
 export const TuxECharts: React.FC<TuxEChartsProps> = ({
-  options, height = "380px", width = "100%", ariaTitle, ariaSummary, extensions, maps, loading = false, notMerge = false, children, className = '', style
+  options, height = "380px", width = "100%", ariaTitle = "Interactive data visualization", ariaSummary = "", extensions, maps, loading = false, notMerge = false, children, className = '', style
 }) => {
   return (
     <div className={`tux-echarts ${className}`.trim()} style={style}>

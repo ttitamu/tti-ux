@@ -9,7 +9,7 @@ from typing import Optional
 class TuxFilterPanel:
     facets: Optional[str] = None
     model_value: Optional[str] = None
-    title: Optional[str] = None
+    title: str = "Filter"
 
     def render_html(self, content: str = "") -> str:
         return f'<aside class="tux-filter-panel">{content}</aside>'

@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxAppSwitcher(
-    apps: String,
-    ariaLabel: String,
-    heading: String,
-    footerText: String,
+    apps: String? = null,
+    ariaLabel: String = "Switch apps",
+    heading: String = "TTI Portals",
+    footerText: String? = null,
     presentation: String = "popover",
     content: @Composable () -> Unit = {}
 ) {

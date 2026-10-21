@@ -1,7 +1,8 @@
 // The registry publish rules (scripts/publish-registry.mjs): which tags publish,
 // which dist-tag a version gets, and what the published manifest may carry.
 import { describe, expect, it } from "vitest";
-import { checkReact, DIST_TAG_RE, distTagFor, normalise, PublishError, TAG_RE } from "../scripts/publish-registry.mjs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { checkReact, checkSublayer, DIST_TAG_RE, distTagFor, normalise, PublishError, SUBLAYERS, TAG_RE } from "../scripts/publish-registry.mjs";
 
 function expectDie(fn, message) {
   expect(fn).toThrow(PublishError);
@@ -78,5 +79,36 @@ describe("the React ports' manifest", () => {
     expectDie(() => checkReact(structuredClone(ok), "3.2.1"), "is not 3.2.1");
     expectDie(() => checkReact({ ...ok, private: true }, "3.2.0"), "private: true");
     expectDie(() => checkReact({ ...ok, scripts: { postinstall: "nuxt prepare" } }, "3.2.0"), "refusing to publish an install script");
+  });
+});
+
+describe("the sub-layers' manifests", () => {
+  // 3.4.1's contract, the one scripts/check-layer-imports.mjs enforces: every
+  // sub-layer is a dependency of the layer at its own version (3.4.0's optional
+  // peers installed nothing), and every sub-layer workspace is version-locked.
+  it("names every packages/<sub> layer workspace, each a dependency of the layer at its version", () => {
+    const root = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+    const layerDirs = readdirSync(new URL("../packages/", import.meta.url))
+      .filter((d) => existsSync(new URL(`../packages/${d}/nuxt.config.ts`, import.meta.url))).sort();
+    expect(SUBLAYERS.map(([sub]) => sub).sort()).toEqual(layerDirs);
+    for (const [sub, name] of SUBLAYERS) {
+      const pkg = JSON.parse(readFileSync(new URL(`../packages/${sub}/package.json`, import.meta.url), "utf8"));
+      expect(pkg.name, sub).toBe(name);
+      expect(pkg.version, sub).toBe(root.version);
+      expect(root.dependencies?.[name], name).toBe(root.version);
+      expect(root.peerDependencies?.[name], `${name} as a peer`).toBeUndefined();
+    }
+  });
+  const fix = checkSublayer("@tti/tti-ux-charts", "packages/charts");
+  it("passes when version-locked, and drops a dev-only nuxt prepare postinstall", () => {
+    const pkg = { name: "@tti/tti-ux-charts", version: "3.4.0", scripts: { test: "vitest run", postinstall: "nuxt prepare || exit 0" } };
+    expect(fix(pkg, "3.4.0").join(" ")).toMatch(/dropped postinstall/);
+    expect(pkg.scripts).toEqual({ test: "vitest run" });
+  });
+  it("refuses another name, another version, private, or an install script", () => {
+    expectDie(() => fix({ name: "@tti/tti-ux-code", version: "3.4.0" }, "3.4.0"), 'name is "@tti/tti-ux-code"');
+    expectDie(() => fix({ name: "@tti/tti-ux-charts", version: "3.3.0" }, "3.4.0"), "version 3.3.0 is not 3.4.0");
+    expectDie(() => fix({ name: "@tti/tti-ux-charts", version: "3.4.0", private: true }, "3.4.0"), "private: true");
+    expectDie(() => fix({ name: "@tti/tti-ux-charts", version: "3.4.0", scripts: { install: "node x" } }, "3.4.0"), "install script");
   });
 });

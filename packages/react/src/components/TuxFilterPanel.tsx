@@ -14,7 +14,7 @@ export interface TuxFilterPanelProps {
 }
 
 export const TuxFilterPanel: React.FC<TuxFilterPanelProps> = ({
-  facets, modelValue, title, children, className = '', style
+  facets, modelValue, title = "Filter", children, className = '', style
 }) => {
   return (
     <aside className={`tux-filter-panel ${className}`.trim()} style={style}>

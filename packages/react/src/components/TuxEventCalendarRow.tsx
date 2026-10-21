@@ -21,7 +21,7 @@ export interface TuxEventCalendarRowProps {
 }
 
 export const TuxEventCalendarRow: React.FC<TuxEventCalendarRowProps> = ({
-  day, month, title, time, location, category, to, href, actionText, chipTone = "green", children, className = '', style
+  day, month, title, time = "", location = "", category = "", to = "", href = "", actionText = "View Event", chipTone = "green", children, className = '', style
 }) => {
   return (
     <article className={`tux-event-calendar-row ${className}`.trim()} style={style}>

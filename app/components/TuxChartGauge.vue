@@ -35,7 +35,7 @@
  *   />
  */
 import { computed } from "vue";
-import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
+import { useTuxVisionPrefs } from "../composables/useTuxVisionPrefs";
 
 interface Band {
   /** Inclusive lower bound (in same scale as value). */

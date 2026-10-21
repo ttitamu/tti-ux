@@ -8,12 +8,12 @@ namespace Tti\Tux\Components;
 final class TuxSectionHeader
 {
     public int $level = 2;
-    public string $title;
-    public string $secondaryTitle;
-    public string $subtitle;
-    public string $kicker;
+    public ?string $title = null;
+    public ?string $secondaryTitle = null;
+    public ?string $subtitle = null;
+    public ?string $kicker = null;
     public string $variant = 'institutional';
-    public string $division;
+    public ?string $division = null;
 
     public function __construct(array $attributes = [])
     {

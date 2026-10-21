@@ -7,12 +7,12 @@ namespace Tti\Tux\Components;
 
 final class TuxToolCall
 {
-    public string $verb;
-    public string $arg;
+    public ?string $verb = null;
+    public ?string $arg = null;
     public string $status = 'completed';
-    public int $elapsedMs;
-    public string $diff;
-    public string $icon;
+    public ?int $elapsedMs = null;
+    public ?string $diff = null;
+    public ?string $icon = null;
     public bool $defaultOpen = false;
 
     public function __construct(array $attributes = [])

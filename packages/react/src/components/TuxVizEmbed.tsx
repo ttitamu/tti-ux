@@ -21,7 +21,7 @@ export interface TuxVizEmbedProps {
 }
 
 export const TuxVizEmbed: React.FC<TuxVizEmbedProps> = ({
-  src, provider = "generic", title, eyebrow, ratio = "16/9", sandbox, referrerpolicy = "strict-origin-when-cross-origin", openInNew = true, posterSrc, posterAlt, children, className = '', style
+  src, provider = "generic", title, eyebrow, ratio = "16/9", sandbox, referrerpolicy = "strict-origin-when-cross-origin", openInNew = true, posterSrc, posterAlt = "", children, className = '', style
 }) => {
   return (
     <figure className={`tux-viz-embed ${className}`.trim()} style={style}>

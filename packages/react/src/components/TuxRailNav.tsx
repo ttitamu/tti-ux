@@ -14,7 +14,7 @@ export interface TuxRailNavProps {
 }
 
 export const TuxRailNav: React.FC<TuxRailNavProps> = ({
-  items = "RailItem[", collapsed = false, ariaLabel = "Primary", children, className = '', style
+  items, collapsed = false, ariaLabel = "Primary", children, className = '', style
 }) => {
   return (
     <nav className={`tux-rail-nav ${className}`.trim()} style={style}>

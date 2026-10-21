@@ -9,11 +9,11 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Data { get; set; };
+    [Parameter] public string? Data { get; set; }
     [Parameter] public int Width { get; set; } = 720;
     [Parameter] public int Height { get; set; } = 460;
     [Parameter] public int MaxDepth { get; set; } = 2;
     [Parameter] public string ColorBy { get; set; } = "size";
     [Parameter] public string Unit { get; set; } = "bytes";
-    [Parameter] public string AriaLabel { get; set; };
+    [Parameter] public string AriaLabel { get; set; } = "Treemap path";
 }

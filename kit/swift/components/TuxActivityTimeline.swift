@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxActivityTimeline<Content: View>: View {
-    public var items: String
+    public var items: String? = nil
     public var dense: Bool = false
-    public var syncChannel: String
-    public var division: String
+    public var syncChannel: String? = nil
+    public var division: String? = nil
     private let content: Content
 
     public init(

@@ -7,7 +7,7 @@ from typing import Optional
 
 @dataclass
 class TuxReasoning:
-    duration: int = 3.4
+    duration: float = 3.4
     tokens_per_sec: Optional[int] = None
     default_open: bool = False
 

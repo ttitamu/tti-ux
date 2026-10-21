@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxInfiniteScroll(
-    loaded: Int,
-    total: Int,
+    loaded: Int? = null,
+    total: Int? = null,
     loading: Boolean = false,
     keyboardFallback: Boolean = false,
     rootMargin: String = "200px",
-    noun: String,
-    nounPlural: String,
+    noun: String? = null,
+    nounPlural: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

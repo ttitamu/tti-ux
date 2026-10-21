@@ -29,7 +29,7 @@ class TuxRichDataGrid:
     virtualized: bool = False
     virtual_row_height: int = 44
     density: str = "comfortable"
-    pagination_label: Optional[str] = None
+    pagination_label: str = ""
     pagination_tokens: Optional[str] = None
     project_number: Optional[str] = None
     doi: Optional[str] = None

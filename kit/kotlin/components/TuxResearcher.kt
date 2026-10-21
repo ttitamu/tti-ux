@@ -11,17 +11,17 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxResearcher(
-    name: String,
-    role: String,
-    portrait: String,
-    center: String,
-    orcid: String,
-    email: String,
-    bio: String,
-    projects: String,
-    metrics: String,
+    name: String? = null,
+    role: String? = null,
+    portrait: String? = null,
+    center: String? = null,
+    orcid: String? = null,
+    email: String? = null,
+    bio: String? = null,
+    projects: String? = null,
+    metrics: String? = null,
     layout: String = "default",
-    to: String,
+    to: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

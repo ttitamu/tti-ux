@@ -12,10 +12,10 @@
     [Parameter] public bool ModelValue { get; set; } = false;
     [Parameter] public int Step { get; set; } = 1;
     [Parameter] public int TotalSteps { get; set; } = 1;
-    [Parameter] public string Title { get; set; };
+    [Parameter] public string? Title { get; set; }
     [Parameter] public bool OnBrand { get; set; } = false;
     [Parameter] public bool NoDismiss { get; set; } = false;
-    [Parameter] public string PrimaryLabel { get; set; };
+    [Parameter] public string? PrimaryLabel { get; set; }
     [Parameter] public string SecondaryLabel { get; set; } = "Skip";
     [Parameter] public bool NoSecondary { get; set; } = false;
 }

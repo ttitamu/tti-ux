@@ -11,17 +11,17 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxBigStat(
-    value: String,
-    suffix: String,
-    label: String,
-    source: String,
+    value: String? = null,
+    suffix: String? = null,
+    label: String? = null,
+    source: String? = null,
     variant: String = "default",
     tone: String = "maroon",
     size: String = "md",
-    sampleSize: String,
-    confidenceInterval: String,
-    doi: String,
-    division: String,
+    sampleSize: String? = null,
+    confidenceInterval: String? = null,
+    doi: String? = null,
+    division: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

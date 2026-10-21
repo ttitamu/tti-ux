@@ -33,7 +33,7 @@
  *   />
  */
 import { computed } from "vue";
-import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
+import { useTuxVisionPrefs } from "../composables/useTuxVisionPrefs";
 
 interface Props {
   /** Raw sample values — the component bins them. */

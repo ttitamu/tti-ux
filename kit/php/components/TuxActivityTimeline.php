@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxActivityTimeline
 {
-    public string $items;
+    public ?string $items = null;
     public bool $dense = false;
-    public string $syncChannel;
-    public string $division;
+    public ?string $syncChannel = null;
+    public ?string $division = null;
 
     public function __construct(array $attributes = [])
     {

@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxDocSearch
 {
-    public string $items;
-    public string $placeholder;
+    public ?string $items = null;
+    public string $placeholder = 'Search docs (Press / to focus)…';
     public int $maxResults = 8;
 
     public function __construct(array $attributes = [])

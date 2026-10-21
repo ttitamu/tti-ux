@@ -4,7 +4,7 @@
  * offering color vision deficiency (CVD) modes, real-time SVG filter simulation,
  * multi-channel chart redundancy controls, and anti-halation astigmatism comfort.
  */
-import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
+import { useTuxVisionPrefs } from "../composables/useTuxVisionPrefs";
 
 interface Props {
   open?: boolean;

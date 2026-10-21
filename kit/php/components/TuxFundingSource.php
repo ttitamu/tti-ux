@@ -7,11 +7,11 @@ namespace Tti\Tux\Components;
 
 final class TuxFundingSource
 {
-    public string $funder;
-    public string $abbrev;
-    public string $logo;
-    public string $grant;
-    public string $to;
+    public ?string $funder = null;
+    public ?string $abbrev = null;
+    public ?string $logo = null;
+    public ?string $grant = null;
+    public ?string $to = null;
     public string $size = 'md';
     public string $layout = 'inline';
 

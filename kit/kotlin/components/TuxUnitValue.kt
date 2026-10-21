@@ -11,16 +11,16 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxUnitValue(
-    value: Int,
-    unit: String,
-    ci: Int,
-    decimals: Int,
-    label: String,
-    station: String,
+    value: Int? = null,
+    unit: String? = null,
+    ci: Int? = null,
+    decimals: Int? = null,
+    label: String = "",
+    station: String = "",
     variant: String = "inline",
     interactive: Boolean = false,
-    system: String,
-    division: String,
+    system: String? = null,
+    division: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

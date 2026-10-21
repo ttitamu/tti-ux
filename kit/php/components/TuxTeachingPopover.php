@@ -10,10 +10,10 @@ final class TuxTeachingPopover
     public bool $modelValue = false;
     public int $step = 1;
     public int $totalSteps = 1;
-    public string $title;
+    public ?string $title = null;
     public bool $onBrand = false;
     public bool $noDismiss = false;
-    public string $primaryLabel;
+    public ?string $primaryLabel = null;
     public string $secondaryLabel = 'Skip';
     public bool $noSecondary = false;
 

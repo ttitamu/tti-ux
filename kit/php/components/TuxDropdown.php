@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxDropdown
 {
-    public string $label;
-    public string $items;
-    public string $to;
+    public ?string $label = null;
+    public ?string $items = null;
+    public ?string $to = null;
 
     public function __construct(array $attributes = [])
     {

@@ -20,7 +20,7 @@ export interface TuxMediaSlabProps {
 }
 
 export const TuxMediaSlab: React.FC<TuxMediaSlabProps> = ({
-  src, alt, eyebrow, title, dek, layout = "overlay", imageSide = "right", height = "standard", tone = "maroon", children, className = '', style
+  src, alt = "", eyebrow, title, dek, layout = "overlay", imageSide = "right", height = "standard", tone = "maroon", children, className = '', style
 }) => {
   return (
     <section className={`tux-media-slab ${className}`.trim()} data-tone={tone} style={style}>

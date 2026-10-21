@@ -21,7 +21,7 @@ export interface TuxReactiveSidebarProps {
 }
 
 export const TuxReactiveSidebar: React.FC<TuxReactiveSidebarProps> = ({
-  sections, allSections, collapsed = false, activeAreaTitle, activeAreaIcon = "lucide:layers", search = true, searchPlaceholder, showAll = false, defaultExpanded = false, exclusive = false, children, className = '', style
+  sections, allSections, collapsed = false, activeAreaTitle = "Workspace Navigation", activeAreaIcon = "lucide:layers", search = true, searchPlaceholder = "Filter pages…", showAll = false, defaultExpanded = false, exclusive = false, children, className = '', style
 }) => {
   return (
     <nav className={`tux-reactive-sidebar ${className}`.trim()} style={style}>

@@ -19,7 +19,7 @@ export interface TuxResultCountProps {
 }
 
 export const TuxResultCount: React.FC<TuxResultCountProps> = ({
-  page, pageSize, total, noun, nounPlural, pageSizeOptions, hideRange = false, pageSizeLabel, children, className = '', style
+  page, pageSize, total, noun, nounPlural, pageSizeOptions, hideRange = false, pageSizeLabel = "per page", children, className = '', style
 }) => {
   return (
     <div className={`tux-result-count ${className}`.trim()} style={style}>

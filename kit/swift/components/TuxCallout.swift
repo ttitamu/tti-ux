@@ -5,7 +5,7 @@ import SwiftUI
 
 public struct TuxCallout<Content: View>: View {
     public var kind: String = "fact"
-    public var eyebrow: String
+    public var eyebrow: String? = nil
     public var variant: String = "default"
     private let content: Content
 

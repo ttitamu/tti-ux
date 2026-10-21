@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxAccordion(
-    items: String,
+    items: String? = null,
     kind: String = "faq",
     single: Boolean = false,
     content: @Composable () -> Unit = {}

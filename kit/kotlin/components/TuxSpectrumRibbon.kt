@@ -15,8 +15,8 @@ fun TuxSpectrumRibbon(
     orientation: String = "horizontal",
     showLabels: Boolean = false,
     rounded: Boolean = false,
-    ariaLabel: String,
-    bands: String,
+    ariaLabel: String = "TTI Institutional Brand Spectrum",
+    bands: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(
