@@ -5,6 +5,10 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added — the forge runs `npm test` on every PR
+
+- **New `test` check (`.forgejo/workflows/test.yml`)**, on every pull request and every push to main: `npm ci`, then `npm test`, which runs all seven suites. Until now the forge's PR checks were `baseline-security` and `layer-check`, and only the GitHub mirror's `audit-contrast.yml` ran the tests. That's how 3.4.1 merged with `npm test` red three ways (the fixes below). The job uses the runner image's Node 22 and npm 12.2.0; the suites pass there as on the GitHub job's Node 24. It skips puppeteer's Chrome download, since no test opens a browser. It caches `node_modules` (the root's and the workspaces') on the lockfile, so once main has a cache, a PR that doesn't change dependencies skips the install.
+
 ### Fixed — `npm test` is green again on 3.4.1
 
 - **The MCP server reads sub-layer components again.** 3.4.1's root shims re-export a sub-layer's component by package name (`export { default } from "@tti/tti-ux-charts/app/components/TuxECharts.vue"`), and `scripts/tux-mcp.mjs` followed only relative paths. So `tux_get_component` and `tux_list_components` reported all 14 shimmed components (TuxECharts, TuxCodeBlock, TuxDiagram, and the 11 from Desk, TuxRichTextEditor among them) as `@tti/tti-ux` with no props and no events. A package name now maps to its `packages/<dir>` by each workspace's `package.json` name, the same lookup as the sync engine's `workspaceFile()` (PR 89). That works in this repo and in the published layer, which ships the same `packages/` copies.
