@@ -137,6 +137,36 @@ function loadCatalogMetadata() {
   return entries;
 }
 
+// Workspace package name -> its directory under packages/ (dotnet/, php/ and
+// wordpress/ have no package.json). Since 3.4.1 the root's shims re-export a
+// sub-layer by package name ("@tti/tti-ux-charts/app/components/TuxECharts.vue");
+// the workspaces link each name to packages/<dir>, and the published layer
+// ships the same packages/ copies. sync-engine's workspaceFile() reads it alike.
+let cachedWorkspaceDirs = null;
+function loadWorkspaceDirs() {
+  if (cachedWorkspaceDirs) return cachedWorkspaceDirs;
+  const map = new Map();
+  const packagesDir = path.join(ROOT, "packages");
+  if (existsSync(packagesDir)) {
+    for (const dir of readdirSync(packagesDir)) {
+      try {
+        const { name } = JSON.parse(readFileSync(path.join(packagesDir, dir, "package.json"), "utf8"));
+        if (name) map.set(name, dir);
+      } catch {
+        continue;
+      }
+    }
+  }
+  cachedWorkspaceDirs = map;
+  return map;
+}
+
+function workspaceFile(specifier) {
+  const m = specifier.match(/^(@[^/]+\/[^/]+)\/(.+)$/);
+  const dir = m && loadWorkspaceDirs().get(m[1]);
+  return dir ? path.join(ROOT, "packages", dir, m[2]) : null;
+}
+
 function resolveVueSource(compPath) {
   let currentPath = compPath;
   let code = readFileSync(currentPath, "utf8");
@@ -144,8 +174,10 @@ function resolveVueSource(compPath) {
     code.match(/export\s+\{\s*default\s*\}\s+from\s+["']([^"']+\.vue)["']/) ||
     code.match(/import\s+\w+\s+from\s+["']([^"']+\.vue)["']/);
   if (reExportMatch && !code.includes("defineProps")) {
-    const targetPath = path.resolve(path.dirname(currentPath), reExportMatch[1]);
-    if (existsSync(targetPath)) {
+    const targetPath = reExportMatch[1].startsWith(".")
+      ? path.resolve(path.dirname(currentPath), reExportMatch[1])
+      : workspaceFile(reExportMatch[1]);
+    if (targetPath && existsSync(targetPath)) {
       currentPath = targetPath;
       code = readFileSync(currentPath, "utf8");
     }

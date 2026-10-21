@@ -1,7 +1,7 @@
 // The registry publish rules (scripts/publish-registry.mjs): which tags publish,
 // which dist-tag a version gets, and what the published manifest may carry.
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { checkReact, checkSublayer, DIST_TAG_RE, distTagFor, normalise, PublishError, SUBLAYERS, TAG_RE } from "../scripts/publish-registry.mjs";
 
 function expectDie(fn, message) {
@@ -83,13 +83,20 @@ describe("the React ports' manifest", () => {
 });
 
 describe("the sub-layers' manifests", () => {
-  it("names every packages/<sub> workspace the layer lists as an optional peer", () => {
+  // 3.4.1's contract, the one scripts/check-layer-imports.mjs enforces: every
+  // sub-layer is a dependency of the layer at its own version (3.4.0's optional
+  // peers installed nothing), and every sub-layer workspace is version-locked.
+  it("names every packages/<sub> layer workspace, each a dependency of the layer at its version", () => {
     const root = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
-    const optional = Object.entries(root.peerDependenciesMeta ?? {}).filter(([, v]) => v.optional).map(([k]) => k).sort();
-    expect(SUBLAYERS.map(([, name]) => name).sort()).toEqual(optional);
+    const layerDirs = readdirSync(new URL("../packages/", import.meta.url))
+      .filter((d) => existsSync(new URL(`../packages/${d}/nuxt.config.ts`, import.meta.url))).sort();
+    expect(SUBLAYERS.map(([sub]) => sub).sort()).toEqual(layerDirs);
     for (const [sub, name] of SUBLAYERS) {
       const pkg = JSON.parse(readFileSync(new URL(`../packages/${sub}/package.json`, import.meta.url), "utf8"));
       expect(pkg.name, sub).toBe(name);
+      expect(pkg.version, sub).toBe(root.version);
+      expect(root.dependencies?.[name], name).toBe(root.version);
+      expect(root.peerDependencies?.[name], `${name} as a peer`).toBeUndefined();
     }
   });
   const fix = checkSublayer("@tti/tti-ux-charts", "packages/charts");
