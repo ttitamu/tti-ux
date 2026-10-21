@@ -3,6 +3,15 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed — the root test suite is green again on 3.4.1
+
+- **The MCP server reads sub-layer components again.** 3.4.1's root shims re-export a sub-layer's component by package name (`export { default } from "@tti/tti-ux-charts/app/components/TuxECharts.vue"`), and `scripts/tux-mcp.mjs` followed only relative paths. So `tux_get_component` and `tux_list_components` reported all 14 shimmed components (TuxECharts, TuxCodeBlock, TuxDiagram, and the 11 from Desk, TuxRichTextEditor among them) as `@tti/tti-ux` with no props and no events. A package name now maps to its `packages/<dir>` by each workspace's `package.json` name, the same lookup as the sync engine's `workspaceFile()` (PR 89). That works in this repo and in the published layer, which ships the same `packages/` copies.
+- **`tests/publish-registry.test.mjs` asserts 3.4.1's packaging.** It still expected the five sub-layers as optional peers, which 3.4.1 deliberately replaced. It now checks the contract `scripts/check-layer-imports.mjs` enforces: every `packages/<dir>` with a `nuxt.config.ts` is in the publish script's sub-layer list, each is a dependency of the layer at the layer's own version and never a peer, and each workspace carries that version.
+
+With these two failing, `vitest run` exited non-zero and `npm test` stopped before the workspace suites, the React ports' included.
+
 ## [3.4.1] — 2026-10-20
 
 ### Fixed — 3.4.0 could not be built by a consuming app
