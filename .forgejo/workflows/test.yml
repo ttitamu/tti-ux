@@ -1,0 +1,95 @@
+# The test suite, `npm test`, on every PR and on main: the root vitest suite,
+# then the charts, diagrams, code, desk, content and React workspaces, stopping
+# at the first failure. Until this file only the GitHub mirror's
+# audit-contrast.yml ran it, so 3.4.1 (PR 88) merged with `npm test` red three
+# ways (fixed in PR 90).
+#
+# Node and npm are the runner image's (Node 22, npm 12.2.0); the GitHub job
+# uses Node 24, and all seven suites pass on both. `npm ci` resolves the @tti
+# scope from the forge's registry through .npmrc (anonymous read). npm 12 runs
+# only the install scripts package.json's allowScripts approves: puppeteer's
+# would download Chrome, which no test uses, so PUPPETEER_SKIP_DOWNLOAD stops it.
+# node_modules (the root's and the two workspaces' that npm nests) is cached,
+# keyed on the lockfile, the CPU and the Node ABI, as nis/landscape's
+# ci-frontend and nis/tti-ai-studio's ci do: on the shared runner the time is
+# in installing, not downloading. Each runner keeps its own cache. No `paths`
+# filter: tests read docs and catalogs, not only code.
+# Either ubuntu-latest runner can take the job: a cold run took 6.5 minutes on
+# the Azure runner (75) and about 29 on the forge VM's (35), whose root suite
+# runs 4x slower (2026-10-21). The timeout leaves room for the slow one under
+# the runners' 45-minute cap.
+# House idiom: values reach the shell through env:, never ${{ }} inside run:.
+name: test
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+env:
+  CI: "true"
+  NUXT_TELEMETRY_DISABLED: "1"
+  PUPPETEER_SKIP_DOWNLOAD: "true"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Check out the commit
+        env:
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+          JOB_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -eu
+          hdr="Authorization: basic $(printf 'x-access-token:%s' "$JOB_TOKEN" | base64 | tr -d '\n')"
+          git init -q .
+          git remote add origin "$SERVER_URL/$REPO"
+          git -c http.extraheader="$hdr" fetch -q --depth=1 origin "$SHA"
+          git checkout -q FETCH_HEAD
+
+      # Native addons in node_modules are built for this Node ABI and this CPU,
+      # so both are in the cache key. The cache server lower-cases keys.
+      - name: Node from the runner image
+        id: node
+        run: |
+          set -eu
+          command -v node >/dev/null 2>&1 || { echo "::error::node not on the runner image"; exit 1; }
+          echo "node $(node --version), npm $(npm --version)"
+          echo "abi=$(node -p process.versions.modules)" >> "$GITHUB_OUTPUT"
+          echo "arch=$(uname -m)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore node_modules
+        id: nm
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+          key: nm-linux-${{ steps.node.outputs.arch }}-abi${{ steps.node.outputs.abi }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install
+        if: steps.nm.outputs.cache-hit != 'true'
+        run: npm ci --no-audit --no-fund
+
+      # Saved right after a good install, so a test failure doesn't throw the
+      # install away. The runner keeps a pull_request run's save to that PR;
+      # main's is shared.
+      - name: Save node_modules
+        if: steps.nm.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+          key: ${{ steps.nm.outputs.cache-primary-key }}
+
+      # A hit skips `npm ci` and with it the root's `prepare` (`nuxt prepare`),
+      # which writes .nuxt/. Generate it, so a hit tests the tree a miss does.
+      - name: Generate .nuxt
+        if: steps.nm.outputs.cache-hit == 'true'
+        run: npx nuxt prepare
+
+      - name: npm test
+        run: npm test
