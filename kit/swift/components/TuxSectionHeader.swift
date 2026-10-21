@@ -10,6 +10,7 @@ public struct TuxSectionHeader<Content: View>: View {
     public var subtitle: String
     public var kicker: String
     public var variant: String = "institutional"
+    public var division: String
     private let content: Content
 
     public init(

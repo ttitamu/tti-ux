@@ -49,7 +49,7 @@ const menus = [
       [
         { label: "Documentation", icon: "lucide:book-open" },
         { label: "Keyboard shortcuts", icon: "lucide:keyboard", kbds: ["meta", "/"] },
-        { label: "About Landscape", icon: "lucide:info" },
+        { label: "About Corridor Ops", icon: "lucide:info" },
       ],
     ],
   },

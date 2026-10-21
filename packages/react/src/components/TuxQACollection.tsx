@@ -9,13 +9,14 @@ export interface TuxQACollectionProps {
   variant?: "default" | "bold" | "elegant";
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxQACollection: React.FC<TuxQACollectionProps> = ({
-  items, variant = "default", children, className = ''
+  items, variant = "default", children, className = '', style
 }) => {
   return (
-    <ol className={`tux-qacollection ${className}`.trim()}>
+    <ol className={`tux-qacollection ${className}`.trim()} data-variant={variant} style={style}>
       {children}
     </ol>
   );

@@ -18,13 +18,14 @@ export interface TuxSparklineProps {
   units?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxSparkline: React.FC<TuxSparklineProps> = ({
-  data, width = 120, height = 32, tone = "brand", strokeWidth = 1.5, showArea = false, showLastPoint = true, showDelta = false, deltaFormat = "percent", ariaSummary, units, children, className = ''
+  data, width = 120, height = 32, tone = "brand", strokeWidth = 1.5, showArea = false, showLastPoint = true, showDelta = false, deltaFormat = "percent", ariaSummary, units, children, className = '', style
 }) => {
   return (
-    <span className={`tux-sparkline ${className}`.trim()}>
+    <span className={`tux-sparkline ${className}`.trim()} data-tone={tone} style={style}>
       {children}
     </span>
   );

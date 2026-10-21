@@ -104,7 +104,7 @@ const pillVue = `<h2>
           <TuxBetaRibbon variant="pill" kind="preview" />
         </h3>
         <h3 class="heading--bold text-xl font-bold flex items-center gap-2 mt-4">
-          Landscape sandbox
+          Corridor sandbox
           <TuxBetaRibbon variant="pill" kind="dev" />
         </h3>
       </TuxExample>

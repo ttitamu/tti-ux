@@ -15,13 +15,14 @@ export interface TuxDocsSidebarNodeProps {
   depth: number;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxDocsSidebarNode: React.FC<TuxDocsSidebarNodeProps> = ({
-  section, path, query, openMap, isOpen, isActive, onToggle, depth, children, className = ''
+  section, path, query, openMap, isOpen, isActive, onToggle, depth, children, className = '', style
 }) => {
   return (
-    <li className={`tux-docs-sidebar-node ${className}`.trim()}>
+    <li className={`tux-docs-sidebar-node ${className}`.trim()} style={style}>
       {children}
     </li>
   );

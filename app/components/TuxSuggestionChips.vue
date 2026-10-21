@@ -124,7 +124,7 @@ function onPick(item: ChipItem, index: number) {
   color: var(--text-primary);
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-xs, 2px);
+  border-radius: var(--radius-md, 0.375rem);
   min-height: 2.25rem;
   max-width: 100%;
   cursor: pointer;

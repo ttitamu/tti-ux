@@ -13,6 +13,12 @@ final class TuxChartFrame
     public string $source;
     public string $notes;
     public bool $bare = false;
+    public string $labels;
+    public string $series;
+    public bool $sonify = true;
+    public bool $showDataTable = true;
+    public string $division;
+    public string $doi;
 
     public function __construct(array $attributes = [])
     {

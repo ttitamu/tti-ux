@@ -12,13 +12,15 @@ export interface TuxMapMarkerProps {
   title?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxMapMarker: React.FC<TuxMapMarkerProps> = ({
-  kind, number, toneIndex, size = "md", title, children, className = ''
+  kind, number, toneIndex, size = "md", title, children, className = '', style
 }) => {
   return (
-    <svg className={`tux-map-marker ${className}`.trim()}>
+    <svg className={`tux-map-marker ${className}`.trim()} data-size={size} style={style}>
+      {title !== undefined && String(title) !== "" && <div className="tux-map-marker__title" style={{ fontWeight: 600, color: "var(--text-primary, #191919)" }}>{String(title)}</div>}
       {children}
     </svg>
   );

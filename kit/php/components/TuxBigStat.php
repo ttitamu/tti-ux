@@ -14,6 +14,10 @@ final class TuxBigStat
     public string $variant = 'default';
     public string $tone = 'maroon';
     public string $size = 'md';
+    public string $sampleSize;
+    public string $confidenceInterval;
+    public string $doi;
+    public string $division;
 
     public function __construct(array $attributes = [])
     {

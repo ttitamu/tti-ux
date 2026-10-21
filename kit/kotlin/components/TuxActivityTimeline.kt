@@ -13,6 +13,8 @@ import androidx.compose.ui.unit.dp
 fun TuxActivityTimeline(
     items: String,
     dense: Boolean = false,
+    syncChannel: String,
+    division: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

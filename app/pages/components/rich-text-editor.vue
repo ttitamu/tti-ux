@@ -77,7 +77,7 @@ const minimalVue = `<tux-rich-text-editor
       Sister to <code>TuxMarkdownEditor</code> for the rendered-only
       case. Feature set mirrors the
       <a href="#" class="underline">docs.it.tamu.edu</a> admin-center
-      editor so consumers across the TTI stack (Landscape,
+      editor so consumers across the TTI stack (Corridor Ops,
       tti-ai-studio, internal CMS surfaces) can adopt one shared
       editor with one shared chrome.
     </TuxPageHeader>
@@ -182,7 +182,7 @@ const minimalVue = `<tux-rich-text-editor
         The feature set mirrors the <code>TipTapEditor</code>
         component in
         <code>docs-tti-tamu-edu/nuxt-site/app/components/</code> so
-        the same chrome can land in Landscape's draft surfaces,
+        the same chrome can land in Corridor Ops' draft surfaces,
         tti-ai-studio's chat composition, and the docs platform's
         admin center — without each consumer maintaining its own
         Tiptap wrapper. Things the docs editor does that this one

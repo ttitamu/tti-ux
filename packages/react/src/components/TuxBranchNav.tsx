@@ -12,13 +12,14 @@ export interface TuxBranchNavProps {
   ariaLabel?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxBranchNav: React.FC<TuxBranchNavProps> = ({
-  modelValue, total, loop = false, hideSingleton = true, ariaLabel, children, className = ''
+  modelValue, total, loop = false, hideSingleton = true, ariaLabel, children, className = '', style
 }) => {
   return (
-    <nav className={`tux-branch-nav ${className}`.trim()}>
+    <nav className={`tux-branch-nav ${className}`.trim()} style={style}>
       {children}
     </nav>
   );

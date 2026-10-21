@@ -15,13 +15,14 @@ export interface TuxStalenessBannerProps {
   showVerifiedBadge?: boolean;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxStalenessBanner: React.FC<TuxStalenessBannerProps> = ({
-  stale = false, verifiedUntil, lastVerified, reviewCadenceDays = 90, owner, pageId, dismissable = true, showVerifiedBadge = false, children, className = ''
+  stale = false, verifiedUntil, lastVerified, reviewCadenceDays = 90, owner, pageId, dismissable = true, showVerifiedBadge = false, children, className = '', style
 }) => {
   return (
-    <div className={`tux-staleness-banner ${className}`.trim()}>
+    <div className={`tux-staleness-banner ${className}`.trim()} style={style}>
       {children}
     </div>
   );

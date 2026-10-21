@@ -14,13 +14,14 @@ export interface TuxAlphaNavProps {
   ariaLabel?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxAlphaNav: React.FC<TuxAlphaNavProps> = ({
-  letters, available, mode = "anchor", sticky = false, showAll = false, modelValue, ariaLabel, children, className = ''
+  letters, available, mode = "anchor", sticky = false, showAll = false, modelValue, ariaLabel, children, className = '', style
 }) => {
   return (
-    <nav className={`tux-alpha-nav ${className}`.trim()}>
+    <nav className={`tux-alpha-nav ${className}`.trim()} data-mode={mode} style={style}>
       {children}
     </nav>
   );

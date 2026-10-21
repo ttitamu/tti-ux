@@ -27,7 +27,7 @@
       }
     },
     "TuxActivityTimeline": {
-      "sourceHash": "e8faff8d6ef78593",
+      "sourceHash": "cb6804e5fc6bc3dc",
       "ports": {
         "react": {
           "hash": null
@@ -60,7 +60,7 @@
       }
     },
     "TuxAppFrame": {
-      "sourceHash": "b3310ddb91ecfd8a",
+      "sourceHash": "491a33640747980c",
       "ports": {
         "react": {
           "hash": null
@@ -68,7 +68,7 @@
       }
     },
     "TuxAppSwitcher": {
-      "sourceHash": "706df8c7eb77fa95",
+      "sourceHash": "be669ec56ea90dd5",
       "ports": {
         "react": {
           "hash": null
@@ -76,7 +76,7 @@
       }
     },
     "TuxArtifact": {
-      "sourceHash": "65d8bbb8c7c686de",
+      "sourceHash": "d15fae0cb4886e5c",
       "ports": {
         "react": {
           "hash": null
@@ -388,7 +388,7 @@
       }
     },
     "TuxCodeBlock": {
-      "sourceHash": "af6544c0e882e795",
+      "sourceHash": "1efa2ecbfe0ab62d",
       "ports": {
         "react": {
           "hash": "af6544c0e882e795",
@@ -421,7 +421,7 @@
       }
     },
     "TuxComposer": {
-      "sourceHash": "4955f206f619b51b",
+      "sourceHash": "9498b030748571c6",
       "ports": {
         "react": {
           "hash": null
@@ -493,7 +493,7 @@
       }
     },
     "TuxDescriptionList": {
-      "sourceHash": "441a6b8f18c2949a",
+      "sourceHash": "b3d3d056181502d9",
       "ports": {
         "react": {
           "hash": "441a6b8f18c2949a",
@@ -513,7 +513,8 @@
       "sourceHash": "021e5b0d1520f8a7",
       "ports": {
         "react": {
-          "hash": null
+          "hash": "021e5b0d1520f8a7",
+          "path": "packages/react/src/components/TuxDocsSidebar.tsx"
         }
       }
     },
@@ -593,7 +594,7 @@
       }
     },
     "TuxFilterPanel": {
-      "sourceHash": "928fbcd030d6f8d3",
+      "sourceHash": "5cd5cc320478b5ef",
       "ports": {
         "react": {
           "hash": null
@@ -601,7 +602,7 @@
       }
     },
     "TuxFocusView": {
-      "sourceHash": "1d12f801591ba084",
+      "sourceHash": "a78d4376cefce6ea",
       "ports": {
         "react": {
           "hash": null
@@ -748,7 +749,7 @@
       }
     },
     "TuxMarkdownEditor": {
-      "sourceHash": "3e5fb29415915604",
+      "sourceHash": "6621df0a87c194fd",
       "ports": {
         "react": {
           "hash": null
@@ -772,7 +773,7 @@
       }
     },
     "TuxMegaMenu": {
-      "sourceHash": "54c2498f144c1ad5",
+      "sourceHash": "79ee228bb0db5e50",
       "ports": {
         "react": {
           "hash": null
@@ -796,7 +797,7 @@
       }
     },
     "TuxMobileFrame": {
-      "sourceHash": "c2638cacac1b103d",
+      "sourceHash": "6da15f17e64bcbc9",
       "ports": {
         "react": {
           "hash": null
@@ -820,7 +821,7 @@
       }
     },
     "TuxPageContainer": {
-      "sourceHash": "eab7e3dcdcd83c4a",
+      "sourceHash": "a82ea80fd1249970",
       "ports": {
         "react": {
           "hash": null
@@ -836,7 +837,7 @@
       }
     },
     "TuxPagination": {
-      "sourceHash": "44dc0bb1658653f1",
+      "sourceHash": "a5293414ea0a32e1",
       "ports": {
         "react": {
           "hash": null
@@ -900,7 +901,7 @@
       }
     },
     "TuxReactionBar": {
-      "sourceHash": "df163bba9232c00c",
+      "sourceHash": "d79e43a325c18d86",
       "ports": {
         "react": {
           "hash": null
@@ -956,7 +957,7 @@
       }
     },
     "TuxRichDataGrid": {
-      "sourceHash": "578df10181d62a86",
+      "sourceHash": "9a34d0524d976096",
       "ports": {
         "react": {
           "hash": null
@@ -964,7 +965,7 @@
       }
     },
     "TuxRichTextEditor": {
-      "sourceHash": "9e2d702066203abe",
+      "sourceHash": "9a4ca7cb3f0f6142",
       "ports": {
         "react": {
           "hash": null
@@ -1016,7 +1017,8 @@
       "sourceHash": "c3112aa88c8d9758",
       "ports": {
         "react": {
-          "hash": null
+          "hash": "c3112aa88c8d9758",
+          "path": "packages/react/src/components/TuxSidebarBlock.tsx"
         }
       }
     },
@@ -1029,7 +1031,7 @@
       }
     },
     "TuxSiteNav": {
-      "sourceHash": "773720b690bcdc9a",
+      "sourceHash": "cfe8e2b4012b63c8",
       "ports": {
         "react": {
           "hash": null
@@ -1110,7 +1112,7 @@
       }
     },
     "TuxSuggestionChips": {
-      "sourceHash": "8eea6a4543b3f1d0",
+      "sourceHash": "ec42d82b81efa83e",
       "ports": {
         "react": {
           "hash": null
@@ -1159,7 +1161,7 @@
       }
     },
     "TuxTeachingPopover": {
-      "sourceHash": "240114a2dbb4789c",
+      "sourceHash": "6bd2a5f90dd0c4ad",
       "ports": {
         "react": {
           "hash": null
@@ -1199,7 +1201,7 @@
       }
     },
     "TuxTreemap": {
-      "sourceHash": "7dbecfc00d942166",
+      "sourceHash": "fd668bc00f663fb7",
       "ports": {
         "react": {
           "hash": null
@@ -1207,7 +1209,7 @@
       }
     },
     "TuxUserMenu": {
-      "sourceHash": "d416c80cc7bbdd8f",
+      "sourceHash": "327b8d243f6ca642",
       "ports": {
         "react": {
           "hash": null
@@ -1319,10 +1321,11 @@
       }
     },
     "TuxPortalHeader": {
-      "sourceHash": "7acad292b8c244f4",
+      "sourceHash": "c515912daaac5c31",
       "ports": {
         "react": {
-          "hash": null
+          "hash": "c515912daaac5c31",
+          "path": "packages/react/src/components/TuxPortalHeader.tsx"
         }
       }
     },
@@ -1330,7 +1333,8 @@
       "sourceHash": "64bc7acc1317c2ac",
       "ports": {
         "react": {
-          "hash": null
+          "hash": "64bc7acc1317c2ac",
+          "path": "packages/react/src/components/TuxPortalShell.tsx"
         }
       }
     },
@@ -1367,10 +1371,10 @@
       }
     },
     "TuxSpectrumRibbon": {
-      "sourceHash": "738f1e48566ba42d",
+      "sourceHash": "ec839f722fd428c1",
       "ports": {
         "react": {
-          "hash": null
+          "hash": "ec839f722fd428c1"
         }
       }
     },
@@ -1415,7 +1419,7 @@
       }
     },
     "TuxHeroCanvas": {
-      "sourceHash": "87321c0272f7c21f",
+      "sourceHash": "f86aeacfc8950846",
       "ports": {
         "react": {
           "hash": null
@@ -1423,7 +1427,7 @@
       }
     },
     "TuxRoadwayCrossSection": {
-      "sourceHash": "612b292ceea9be41",
+      "sourceHash": "6b49b0a79f756bbb",
       "ports": {
         "react": {
           "hash": null
@@ -1459,6 +1463,30 @@
       "ports": {
         "react": {
           "hash": null
+        }
+      }
+    },
+    "TuxGroundedSources": {
+      "sourceHash": "2fa34133f40f46ab",
+      "ports": {
+        "react": {
+          "hash": "2fa34133f40f46ab"
+        }
+      }
+    },
+    "TuxReasoning": {
+      "sourceHash": "d744aad9bae846cf",
+      "ports": {
+        "react": {
+          "hash": "d744aad9bae846cf"
+        }
+      }
+    },
+    "TuxToolCall": {
+      "sourceHash": "c1c7888f3d5fdd7c",
+      "ports": {
+        "react": {
+          "hash": "c1c7888f3d5fdd7c"
         }
       }
     }

@@ -21,13 +21,15 @@ export interface TuxChartGeographicProps {
   flowLegend?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxChartGeographic: React.FC<TuxChartGeographicProps> = ({
-  kind, palette = "maroon", title, legendLabel = "Value", legendStops, showLegend = true, counties, districts, states, highlight = "TX", dots = 600, dotLegend, flows, flowLegend, children, className = ''
+  kind, palette = "maroon", title, legendLabel = "Value", legendStops, showLegend = true, counties, districts, states, highlight = "TX", dots = 600, dotLegend, flows, flowLegend, children, className = '', style
 }) => {
   return (
-    <div className={`tux-chart-geographic ${className}`.trim()}>
+    <div className={`tux-chart-geographic ${className}`.trim()} style={style}>
+      {title !== undefined && String(title) !== "" && <div className="tux-chart-geographic__title" style={{ fontWeight: 600, color: "var(--text-primary, #191919)" }}>{String(title)}</div>}
       {children}
     </div>
   );

@@ -13,13 +13,14 @@ export interface TuxFABProps {
   disabled?: boolean;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxFAB: React.FC<TuxFABProps> = ({
-  icon, extended = false, size = "md", side = "right", ariaLabel, disabled = false, children, className = ''
+  icon, extended = false, size = "md", side = "right", ariaLabel, disabled = false, children, className = '', style
 }) => {
   return (
-    <button className={`tux-fab ${className}`.trim()}>
+    <button className={`tux-fab ${className}`.trim()} data-size={size} style={style}>
       {children}
     </button>
   );

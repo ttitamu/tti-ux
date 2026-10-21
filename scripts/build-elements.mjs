@@ -77,6 +77,13 @@ ${definitions.join("\n")}
 
   fs.mkdirSync(DIST_DIR, { recursive: true });
   fs.writeFileSync(path.join(DIST_DIR, "tux-elements.d.ts"), dtsLines.join("\n") + "\n", "utf-8");
+
+  // Bundle canonical CSS tokens directly in @tti/tti-ux-elements/dist/ so consumers do not need @tti/tti-ux installed
+  const rootTokensCss = path.join(ROOT, "kit", "css", "tux-tokens.css");
+  if (fs.existsSync(rootTokensCss)) {
+    fs.copyFileSync(rootTokensCss, path.join(DIST_DIR, "tux-tokens.css"));
+    fs.copyFileSync(rootTokensCss, path.join(DIST_DIR, "styles.css"));
+  }
   
   return files.length;
 }

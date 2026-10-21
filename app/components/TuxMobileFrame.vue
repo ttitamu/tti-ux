@@ -20,7 +20,7 @@
  *
  * Usage:
  *   <tux-mobile-frame platform="ios" :width="280" color="natural">
- *     <img src="/screenshots/landscape-mobile.png" alt="" />
+ *     <img src="/screenshots/corridor-mobile.png" alt="" />
  *   </tux-mobile-frame>
  */
 

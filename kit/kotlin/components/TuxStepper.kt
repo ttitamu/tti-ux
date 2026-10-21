@@ -16,6 +16,8 @@ fun TuxStepper(
     orientation: String = "horizontal",
     showDescriptions: Boolean = true,
     ariaLabel: String = "Progress",
+    stationFormat: String = "number",
+    division: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

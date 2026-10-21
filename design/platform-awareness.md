@@ -21,7 +21,7 @@ Every TUX surface decomposes into two layers:
    Maroon-led palette, paper-grain surfaces, editorial chrome
    (eyebrow / display-face title / signature rule / source line),
    real photography, restrained motion, Heroicons. This is TTI's
-   identity and **never changes** with the host OS. A Landscape
+   identity and **never changes** with the host OS. A Corridor Ops
    chart looks like TTI on Windows, macOS, and Linux.
 
 2. **Chrome layer — adapts to the host.**
@@ -273,7 +273,7 @@ titlebar). That works, but:
 - We can't put context (breadcrumb / search / tab strip) in the
   titlebar when the OS draws it.
 
-For Landscape-class research apps, a **custom titlebar with TUX
+For Corridor-class research apps, a **custom titlebar with TUX
 brand + platform-correct controls** is the right shape.
 `TuxAppFrame` is that wrapper.
 
@@ -285,7 +285,7 @@ because:
 
 - **3× the surface to maintain** for the same TTI brand outcome.
 - **Web parity matters more than native parity.** Web is where
-  Landscape lives day-to-day; the Tauri shell is a packaging
+  Corridor Ops lives day-to-day; the Tauri shell is a packaging
   detail.
 - **WebView fidelity in 2026 is high.** WKWebView (Apple), WebView2
   (Microsoft), and WebKitGTK (Linux) render modern CSS uniformly

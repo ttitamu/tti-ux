@@ -9,13 +9,14 @@ export interface TuxMenuBarProps {
   renderOnMac?: boolean;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxMenuBar: React.FC<TuxMenuBarProps> = ({
-  menus, renderOnMac = false, children, className = ''
+  menus, renderOnMac = false, children, className = '', style
 }) => {
   return (
-    <div className={`tux-menu-bar ${className}`.trim()}>
+    <div className={`tux-menu-bar ${className}`.trim()} style={style}>
       {children}
     </div>
   );

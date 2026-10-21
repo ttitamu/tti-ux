@@ -3,6 +3,23 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.4.2] — 2026-10-21
+
+### Added, Changed & Fixed — Standalone React & Elements SDKs, Multi-Framework Code Gen, Forgejo OAuth2 + PKCE Tracker & UX Polish (2026-10-21)
+
+- **Standalone `@tti/tti-ux-react` & `@tti/tti-ux-elements` Packages (Zero Vue/Nuxt Peer Dependencies)**:
+  - Removed `"@tti/tti-ux"` from `peerDependencies` in `@tti/tti-ux-react` and `@tti/tti-ux-elements` so installing the React or Web Components SDKs no longer pulls in Nuxt/Vue dependencies.
+  - Added `packages/react/scripts/copy-assets.mjs` (`prepack` + `build` verification) to copy `tux-tokens.css`, `styles.css`, and all 26 component `.css` files into `dist/`, eliminating bundler `[UNRESOLVED_IMPORT]` errors.
+  - Handcrafted React ports for `TuxSidebar` / `TuxDocsSidebar`, `TuxSidebarBlock`, `TuxPortalHeader`, `TuxPortalShell`, `TuxGroundedSources`, `TuxReasoning`, `TuxToolCall`, and `TuxSpectrumRibbon`, and exported all 184 `Tux*` components from `@tti/tti-ux-react`.
+  - Upgraded `emitReact()` in `scripts/sync-engine.mjs` so auto-synced React components render their declared `eyebrow`, `title`/`label`, `value`, and `description`/`message` props alongside `children`.
+- **Docs Multi-Framework Code Generator (`TuxExample.vue` & `portal-shell.vue`)**:
+  - Upgraded `deriveReact`, `deriveWebComponent`, and `deriveRazor` in `app/components/TuxExample.vue` to convert Vue `@event-name` listeners to `onEventName={fn}`, convert kebab-case props to `camelCase`, and hoist `<template #slotName>` into React JSX props (`slotName={(...)}`).
+- **Live Forgejo OAuth2 + PKCE Bug & Idea Tracker**:
+  - Added server-side Forgejo OAuth2 + PKCE endpoints (`/api/forgejo/oauth/authorize`, `/api/forgejo/oauth/callback`, `/api/forgejo/entries`) and live issue creation/listing in `packages/desk/server/utils/forgejo-client.ts`.
+- **UX, Accessibility & Public Brand Polish**:
+  - Removed internal-only tools (`Atlas`, `Landscape`) and internal division labels from the public documentation and `TuxSpectrumRibbon`.
+  - Added `aria-live="polite"` geometry/LOS screen-reader announcements and a mobile 2D CAD quick-switch banner to `TuxRoadwayCrossSection.vue`, keyboard `Escape`-to-close focus return on mobile drawers, and transportation-contextual `alt` text on media examples.
+
 ## [3.4.0] — 2026-10-19
 
 ### Added & Changed — Modular Sub-Layers, Lean Core Runtime, P0 Security Hardening & MCP Introspection (2026-10-19)
@@ -75,7 +92,7 @@ Patch release resolving breadcrumb navigation anomalies, circular/duplicate link
 #### 1. Breadcrumb Hierarchy & Routing Overhaul
 - **Architecture Decision Records (`/docs/[...slug]`)**: Eliminated duplicate `/docs/adr` intermediate hops, linked "Docs" root to `/docs`, mapped ADR index to `Home > Docs > ADRs`, and shortened leaf ADR crumbs to clean canonical tokens (e.g. `Home > Docs > ADRs > ADR-0012` instead of 100+ character H1 strings).
 - **Doc Folder Verification**: Added route resolution checks before rendering intermediate guide and audit crumb links, preventing 404 targets on non-index directories.
-- **Example Pages**: Fixed `/examples/landscape-dashboard` removing literal `/research` path string and self-referencing links in favor of `Home > Compositions > Landscape Dashboard`. Shortened long session labels in `/examples/tti-ai-studio-session`.
+- **Example Pages**: Fixed `/examples/corridor-analytics` removing literal `/research` path string and self-referencing links in favor of `Home > Compositions > Corridor Analytics`. Shortened long session labels in `/examples/tti-ai-studio-session`.
 - **Foundations & Contrast Audit**: Fixed unreachable `/contrast-audit` crumb branch in `app.vue`, mapping correctly to `Home > Foundations > Contrast Audit (WCAG AAA)`. Corrected `/components/health` leaf label from generic `Health` to `Component Health`.
 - **Visualizations & Telemetry**: Added active query parameter links (`/visualizations?cat=<id>`) to category intermediate crumbs, removing dead anchor elements.
 - **Design Docs & Desk**: Shortened design doc leaf titles (e.g. `Unification plan` instead of `Unification plan — one suite, one system`) and added 36-character defensive truncation on dynamic `/p/[slug]` titles.
@@ -159,7 +176,7 @@ Major accessibility and visualization release delivering barrier-free color visi
 - **`@nuxtjs/mdc` ^0.22.2 (CVE-2026-63671)**: Closed high-severity markdown sanitizer bypass vulnerability (GHSA-mxm6-v9r6-r94c) by upgrading `@nuxtjs/mdc` to `^0.22.2` and declaring root workspace npm override.
 
 #### 7. Privacy & Demo Sanitization
-- **Scrubbed Personal Identifiers**: Replaced real staff names and UPN email addresses across demo surfaces, sample extensions, and mock personas (`utility-cluster.vue`, `landscape-dashboard.vue`, `public/kits/*`) with neutral "Demo User" (`DU`) and bracketed placeholders.
+- **Scrubbed Personal Identifiers**: Replaced real staff names and UPN email addresses across demo surfaces, sample extensions, and mock personas (`utility-cluster.vue`, `corridor-analytics.vue`, `public/kits/*`) with neutral "Demo User" (`DU`) and bracketed placeholders.
 
 #### 8. Verification & Standards Compliance
 - **100% WCAG 2.2 Level AAA Certified**: 0 violations across 179 component templates; 11/11 core contrast pairs exceeding AAA thresholds.
@@ -200,7 +217,7 @@ Maintenance and UX polish release delivering numberless editorial navigation, an
 
 ### Added — TUX 3.0 & Comm Brand Transformation (2026-10-01)
 
-Major institutional release harmonizing TUX and its operational suites (**Atlas**, **Landscape**, **Forgejo / TTI Code**, **AI Studio**, and **TUX itself**) with the official Texas A&M Transportation Institute Communications redesign (`tti.tamu.edu` & `my.tti.tamu.edu`), achieving 100% component unit test coverage, and formalizing W3C WCAG 2.2 Level AAA architecture.
+Major institutional release harmonizing TUX and its operational suites (**Forgejo / TTI Code**, **AI Studio**, and **TUX itself**) with the official Texas A&M Transportation Institute Communications redesign (`tti.tamu.edu` & `my.tti.tamu.edu`), achieving 100% component unit test coverage, and formalizing W3C WCAG 2.2 Level AAA architecture.
 
 #### 1. 100% Component Health & Census Milestone
 - **183 Component Test Suites**: Completed 22 waves of mounted Nuxt and in-component `axe-core` accessibility test suites across `tests/components/` covering 100% of the system census (183 components).
@@ -234,11 +251,10 @@ Major institutional release harmonizing TUX and its operational suites (**Atlas*
 - **Editorial Canvas Wash**: Set application background canvas to `bg-surface-eggshell` (`#F9F9F7`).
 
 #### 5. Operational Suite Portals & Showcases
-- **Atlas Security & Policy Audit Portal** (`/examples/atlas`): M365, Azure, NIST 800-171, and CJIS compliance portal with spectrum facts banner, 6-tile governance launcher, findings table, and milestone calendar.
 - **TTI Code (Forgejo) Developer Portal** (`/examples/forgejo-code`): Self-hosted Git server browser, pull request status, CAV division badge, clone drawer, and README well.
 - **Public Comm Redesign Showcase** (`/examples/comm-portal`): Complete replication of the new `tti.tamu.edu` public portal.
 - **MyTTI Intranet Dashboard** (`/examples/intranet-dashboard`): Complete replication of `my.tti.tamu.edu` intranet with `MY APPS ☰` off-canvas drawer launcher.
-- **Landscape Dashboard Re-Skin** (`/examples/landscape-dashboard`) & **TTI AI Studio Session Re-Skin** (`/examples/tti-ai-studio-session`).
+- **Corridor Analytics Re-Skin** (`/examples/corridor-analytics`) & **TTI AI Studio Session Re-Skin** (`/examples/tti-ai-studio-session`).
 
 #### 6. Turnkey WordPress & Kadence Integration
 - **Kadence Child Theme** (`packages/wordpress/kadence-child-tti`): Zero-radius button styling, Aggie Maroon & Warm Gold palette injection, Tier 1 utility bar, and automatic WCAG AAA bridge enqueuing.
@@ -315,7 +331,7 @@ wash ladder — passed it by. It is now a tux component.
   `lucide:search` glyph, hairline border, clear (×) affordance. 44px
   regular / 36px slim. This is what belongs in a table toolbar or a
   sidebar widget — where the old attached-slab bar was being applied for
-  want of an alternative (see the `/examples/landscape-dashboard`
+  want of an alternative (see the `/examples/corridor-analytics`
   toolbar, where a 51px maroon SEARCH slab sat beside a 32px "Columns"
   button). **Breaking visually**: existing call sites render as a field
   unless they pass `variant="slab"`.
@@ -522,21 +538,11 @@ current Microsoft schemas (every version below verified live on
   emitter with no lock test — it could drift from tokens silently, which
   is precisely the failure class its own header comment claims to end.
 
-### Added — Atlas portal tile (2026-08-31)
-
-- **`atlas`** — `Atlas`, `https://atlas.tti.tamu.edu`, `audience:"entitled"`,
-  placed beside `landscape` (the two gated portals sit together). The site
-  returns **403** to non-members, so like Landscape it enforces its own access
-  and the tile is hidden rather than shown-and-refused.
-- `_meta.version` 2 → 3. Anonymous now sees **4 of 6**.
-- Entitlement is resolved per-portal server-side; TTI Code gates this tile on
-  the Entra group that governs it today. Nothing about the mapping is in this
-  file — see `design/unification-plan.md` (Registry doctrine).
 
 ### Changed — TTI Portals roster (2026-08-30)
 
 - **`design/apps.json` `_meta.version` 1 → 2.** New roster order:
-  `tti-www` → `tti-my` → `tux` → `landscape` → `tti-code`.
+  `tti-www` → `tti-my` → `tux` → `tti-code` → `tti-code`.
 - **`ai-studio` removed from the roster** (owner call). The
   `/launch/ai-studio` interstitial, the forge's repo-header "Open in
   AI Studio" button, and the ratified desktop-link law all survive —
@@ -556,7 +562,7 @@ current Microsoft schemas (every version below verified live on
   renders `<TuxUtilityCluster current="tux" />` with no `entitled`
   prop, so ux.tti.tamu.edu shows `public` tiles only. Enforcement is a
   per-portal obligation, and **TTI Code ships the first resolver**:
-  Landscape's tile is never baked and never published, and is added
+  Corridor Ops's tile is never baked and never published, and is added
   per-caller from Entra security-group membership. See
   `design/unification-plan.md` (Registry doctrine, amended 2026-08-30).
 
@@ -733,7 +739,7 @@ vocabulary) plus a light/dark browser walk. Fix highlights:
   `--surface-page` paint-order halo — ≥18:1 against the halo in
   every theme, on every ramp stop.
 - **TuxActivityTimeline** marker glyphs use `--text-inverse` (theme-
-  aware) instead of `#fff`; the Landscape-dashboard example's hand-
+  aware) instead of `#fff`; the Corridor Ops-dashboard example's hand-
   rolled activity rail now dogfoods `TuxActivityTimeline dense`.
 - **Vocabulary doctrine.** components.md § Conventions gains "Prop &
   emit vocabulary" — canonical meanings for
@@ -1005,7 +1011,7 @@ hand-vendoring hex:
   dirs via args/`TUX_AUDIT_DIRS`, token definitions harvested from the
   layer AND the consumer, extra namespaces via
   `TUX_AUDIT_EXTERNAL_PREFIXES`. Validated against the estate: the
-  Landscape frontend passes clean; the AI Studio tree fails with the
+  Corridor Ops frontend passes clean; the AI Studio tree fails with the
   migration table printed — exactly the 17-undefined-tokens bug class
   this exists to catch.
 - `tux-audit contrast` / `tux-audit a11y` delegate when the consumer
@@ -1035,7 +1041,7 @@ hand-vendoring hex:
   Broken photo URLs fall back to initials; decorative by default.
 - **`TuxPageContainer`** — content-width primitive over the new
   `--layout-content-max` (80rem) / `--layout-content-wide` (96rem) /
-  `--layout-prose-max` (72ch) tokens. Landscape alone carried three
+  `--layout-prose-max` (72ch) tokens. Corridor Ops alone carried three
   divergent max-widths before this existed.
 
 ### Added — Nuxt UI theme hardening, Batch K (2026-07-30, owner-ratified)
@@ -1061,7 +1067,7 @@ app controls and the layer brands them everywhere —
 ### Fixed — consumer-debt fixes (2026-07-30)
 
 - **TuxMegaMenu** caps its panel at the viewport below the nav and
-  scrolls internally — Landscape deletes its `app.vue` override.
+  scrolls internally — Corridor Ops deletes its `app.vue` override.
 - **TuxSiteNav + TuxAppFrame publish `--tux-nav-height`** on `<html>`
   (ResizeObserver-measured) — consumers replace hardcoded 4rem/5rem
   sticky offsets in both shell shapes.
@@ -1073,7 +1079,7 @@ app controls and the layer brands them everywhere —
   `tux: { darkBridge: false }` app.config kill-switch — docs-tti stops
   path-stripping the plugin.
 - README documents the reverse-proxy `icon: { mode: "svg" }` guidance
-  (the Landscape/Caddy ghost-icon failure).
+  (the Corridor Ops/Caddy ghost-icon failure).
 
 ### Added — semantic tokens for the estate (2026-07-30)
 
@@ -1100,7 +1106,7 @@ app controls and the layer brands them everywhere —
 
 - Nuxt UI's `warning` alias now maps to the **TTI gold ramp**
   (`--color-gold-*`, #DDAC37 anchor) instead of the amber stand-in the
-  app.config self-documented as a follow-up. Landscape's local
+  app.config self-documented as a follow-up. Corridor Ops's local
   `warning: "gold"` override becomes redundant at its next pin-bump.
 
 ### Changed — typography now matches the four-family doctrine (2026-07-30)
@@ -1127,7 +1133,7 @@ the CSS didn't follow; now it does:
 - The `$production.nitro.prerender` block (crawlLinks +
   `failOnError: false`) is now fenced behind an is-root-project check,
   so `extends` consumers stop inheriting the style guide's prerender
-  behavior. Landscape can delete its `nitro:config` reset hook at next
+  behavior. Corridor Ops can delete its `nitro:config` reset hook at next
   pin-bump.
 
 ## [1.7.1] — 2026-07-30
@@ -1181,7 +1187,7 @@ Safe for all consumers to pick up immediately.
 - README: "Current release: v1.4.2" (three releases stale) replaced
   with a CHANGELOG pointer; pin examples bumped `#v1.4.2` → `#v1.7.0`;
   component census corrected (~130+5 → 140+6, now test-enforced);
-  the "Landscape — formerly Landscape" rename artifact fixed; `kit/`
+  the "Corridor Ops — formerly Corridor Ops" rename artifact fixed; `kit/`
   and the apps registry documented; ADR count corrected (ten →
   twelve); `useTuxApps` added to the composables list.
 - Homepage: hardcoded "70+" count now computed from the catalog;
@@ -1205,7 +1211,7 @@ Suite-chrome release — the portal unification plan's v1.7.0 slice.
 ### Changed
 - **TuxAppSwitcher A2b pre-flight**: registry order everywhere (current-sorts-last removed), focusable current tile with clean `aria-current`, list semantics, same-tab default, "Desktop app" affix, reserved `presentation` prop (popover|sheet), motion tokens, forced-colors fallbacks, heading "TTI Portals".
 - Docs site dogfoods the suite chrome: header uses TuxUtilityCluster (waffle + theme; identity seat deliberately absent).
-- Live PECAN copy retired (READMEs, examples, demo poster, `PECAN_TOKEN` → `LANDSCAPE_TOKEN`). Historical records keep the old name.
+- Live PECAN copy retired (READMEs, examples, demo poster, `PECAN_TOKEN` → `CORRIDOR_TOKEN`). Historical records keep the old name.
 
 ### Fixed
 - **TuxSiteNav focus restoration (A2c)**: both `outline: none` suppressions removed — keyboard focus is distinguishable from hover again (WCAG 2.4.7) and survives forced-colors.
@@ -1320,7 +1326,7 @@ vertical mode, which renders a collapsible group's chevron as a
 roleless `<span aria-expanded>` (axe `aria-allowed-attr` — internal to
 Nuxt UI, present in 4.7.0 and still in 4.8.1, not fixable from the
 consumer side). Swapped into both example shells
-(`/examples/sidebar-shell`, `/examples/landscape-dashboard`), which
+(`/examples/sidebar-shell`, `/examples/corridor-analytics`), which
 closes the last a11y violation **at the source** — `audit:a11y` is now
 a true zero with no suppressions. (A `KNOWN_UPSTREAM` allowlist remains
 in `scripts/audit-a11y.mjs`, intentionally empty, as the documented
@@ -1408,7 +1414,7 @@ runtime chrome" decision-tree footer.
 
 Showcase at
 [`/components/mobile-frame`](app/pages/components/mobile-frame.vue) —
-flagship demo per platform with a realistic Landscape corridor-
+flagship demo per platform with a realistic Corridor Ops corridor-
 summary slot; color-variant rows; Android nav-style picker; the
 canonical side-by-side cross-platform layout; and the
 frame-vs-runtime decision tree.
@@ -1424,7 +1430,7 @@ Closes the deferred-with-criterion Priority D carry-forward — Tiptap-
 based WYSIWYG sister to `TuxMarkdownEditor`. Built to be the
 **canonical TUX rich-text surface** — feature set mirrors the
 `TipTapEditor` in `docs-tti-tamu-edu/nuxt-site/app/components/`
-so the same editor can land in Landscape draft surfaces,
+so the same editor can land in Corridor Ops draft surfaces,
 tti-ai-studio chat composition, and the docs.it.tamu.edu admin
 center without each consumer maintaining a separate Tiptap wrapper.
 
@@ -1835,7 +1841,7 @@ ai-studio example refresh, and Conventions documentation.
   **auto-flip** to the left of the cursor when the active index sits
   past 60% of the chart width. Avoids right-edge overflow in tight
   card containers (the throughput / tier / health row in
-  landscape-dashboard, for instance).
+  corridor-analytics, for instance).
 
 **Component motion** — new
 [`app/assets/css/tux-component-motion.css`](app/assets/css/tux-component-motion.css)
@@ -1849,12 +1855,12 @@ ai-studio example refresh, and Conventions documentation.
   elements that shouldn't slide.
 - All three respect `prefers-reduced-motion: reduce` (collapse to
   instant).
-- Applied opt-in to `landscape-dashboard.vue` (KPI strip + 3-card
+- Applied opt-in to `corridor-analytics.vue` (KPI strip + 3-card
   health row) and `tti-ai-studio-session.vue` (right rail).
 
 **tti-ai-studio-session.vue refresh:**
 - **TuxAppSwitcher** added to the page-header actions (AI Studio
-  ↔ Landscape ↔ TUX docs).
+  ↔ Corridor Ops ↔ TUX docs).
 - **TuxFocusView** wraps the `compare.py` artifact for an "open in
   focus mode" affordance (the natural Artifact + FocusView pairing).
 - **TuxReactionBar** replaces the inline thumb buttons in the
@@ -1913,7 +1919,7 @@ Polishes the native chart family for consistency and motion.
 ### Added — compositional sprint: chart interactions + dashboard refresh + absorption closure (2026-05-22)
 
 Layered onto the chart-family completion: real interactions on the
-most-used chart, a full Landscape-dashboard dogfood, and the
+most-used chart, a full Corridor Ops-dashboard dogfood, and the
 absorption pipeline closed.
 
 **Chart interactions** on `TuxChartLine`:
@@ -1934,9 +1940,9 @@ absorption pipeline closed.
 - `/visualizations/chart-line` gains two new sections (tooltip
   + brush) with live demos.
 
-**`app/pages/examples/landscape-dashboard.vue`:**
+**`app/pages/examples/corridor-analytics.vue`:**
 - Three new chart sections dogfood the full Priority B chart
-  family on real-shape Landscape data:
+  family on real-shape Corridor Ops data:
   - 12-month ingest trend with brush selector + previous-period
     overlay (TuxChartLine).
   - KPI strip (TuxBigStat × 4) above stacked area chart by file
@@ -2012,7 +2018,7 @@ platform-aware sprint. Tauri-bindings companion doc lands too.
   "Multiview" absorption.
 - **[`TuxAppSwitcher`](app/components/TuxAppSwitcher.vue)** — waffle-
   button trigger + popover grid of app tiles for hopping between TTI
-  consumer apps (Landscape ↔ AI Studio ↔ future). Current-app tile
+  consumer apps (Corridor Ops ↔ AI Studio ↔ future). Current-app tile
   carries `aria-current="page"` + visual disabled state. Source:
   Fabric "Suite header" absorption.
 - **[`TuxChartBar`](app/components/TuxChartBar.vue)** — second
@@ -2291,7 +2297,7 @@ multiple absorption files asking for it.
   (`asideWidth` prop, default `18rem`), sticky-scrolling next to the
   main panel, hidden under `md` viewport. Absorbed from Snow
   Dashboard's notifications + activities rail. The
-  [`landscape-dashboard`](app/pages/examples/landscape-dashboard.vue)
+  [`corridor-analytics`](app/pages/examples/corridor-analytics.vue)
   example refactored to use this slot (its Recent-activity + Active-
   agents tiles moved out of the page body into the layout aside —
   they now stay sticky while main content scrolls).
@@ -2331,17 +2337,17 @@ multiple absorption files asking for it.
   showcase at [`/components/card-carousel`](app/pages/components/card-carousel.vue)
   + nav entry + index card + components-md row + CHANGELOG.
 
-### Changed — PECAN → Landscape rebrand (2026-05-21)
+### Changed — PECAN → Corridor Ops rebrand (2026-05-21)
 
 The downstream sensitive-data classifier consumer formerly named
-**PECAN** is now **Landscape**. The rebrand touched ~50 files across
+**PECAN** is now **Corridor Ops**. The rebrand touched ~50 files across
 TUX; historical record (this CHANGELOG file and the `docs/adr/*.md`
 records) was deliberately left intact — entries reference the project
 under its name at the time the entry was written.
 
-- **Renamed** [`app/pages/examples/pecan-dashboard.vue`](app/pages/examples/landscape-dashboard.vue)
-  → `landscape-dashboard.vue`. Route is now `/examples/landscape-dashboard`.
-- **Renamed** `public/kits/pecan/` → [`public/kits/landscape/`](public/kits/landscape/);
+- **Renamed** [`app/pages/examples/pecan-dashboard.vue`](app/pages/examples/corridor-analytics.vue)
+  → `corridor-analytics.vue`. Route is now `/examples/corridor-analytics`.
+- **Renamed** `public/kits/pecan/` → [`public/kits/cgi/`](public/kits/cgi/);
   kit slug + label updated in [`app/pages/kits.vue`](app/pages/kits.vue).
 - **Prose updated** across `README.md`, `design/components.md`,
   `design/roadmap.md`, ~30 showcase pages under `app/pages/`, 10
@@ -2352,9 +2358,9 @@ under its name at the time the entry was written.
   `app/app.vue` / `app/layouts/sidebar.vue`, and the
   `public/kits/aggieux/*.jsx` reference catalog (default
   `productName` knobs on banners, footer demo strings, breadcrumbs).
-- **First-mention-per-file** uses "Landscape (formerly PECAN)" for
-  continuity; later mentions are bare "Landscape."
-- **Refreshed** [`app/pages/examples/landscape-dashboard.vue`](app/pages/examples/landscape-dashboard.vue)
+- **First-mention-per-file** uses "Corridor Ops (formerly PECAN)" for
+  continuity; later mentions are bare "Corridor Ops."
+- **Refreshed** [`app/pages/examples/corridor-analytics.vue`](app/pages/examples/corridor-analytics.vue)
   to use the full sidebar layout + KPI row with delta-vs-previous
   readings + inline ingest-rate sparkline + two-column main/right-
   rail grid with Recent-activity + Active-agents tiles. Composition

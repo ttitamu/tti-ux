@@ -9,6 +9,8 @@ final class TuxActivityTimeline
 {
     public string $items;
     public bool $dense = false;
+    public string $syncChannel;
+    public string $division;
 
     public function __construct(array $attributes = [])
     {

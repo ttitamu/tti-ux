@@ -1,13 +1,13 @@
 # UI Kit — tti-docs
 
-The living style guide itself, rebuilt as a static React artifact. This is what a consumer of tti-ux sees when they go to browse tokens, typography, and components. It's the editorial counterpoint to the Landscape and tti-ai-chat app kits — same design language, different surface.
+The living style guide itself, rebuilt as a static React artifact. This is what a consumer of tti-ux sees when they go to browse tokens, typography, and components. It's the editorial counterpoint to the TTI Code and tti-ai-chat app kits — same design language, different surface.
 
 ## Files
 
 | File | Purpose |
 |---|---|
 | `index.html` | Mount + client router (simple useState-based). |
-| `TuxComponents.jsx` | Shared tux primitives (copied from `ui_kits/landscape/`). |
+| `TuxComponents.jsx` | Shared tux primitives (copied from `ui_kits/tti-docs/`). |
 | `DocsChrome.jsx` | `DocsHeader` (sticky nav + search) and `DocsFooter` (4-column editorial footer with HC toggle). |
 | `Pages.jsx` | `HomePage`, `FoundationsPage`, `TokensPage`, `TypographyPage`, `MotionPage`, `ComponentsPage`, plus the signature `BigStat` component. |
 

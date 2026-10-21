@@ -12,13 +12,15 @@ export interface TuxCookieConsentProps {
   initiallyExpanded?: boolean;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxCookieConsent: React.FC<TuxCookieConsentProps> = ({
-  storageKey = "tux-cookie-consent", position = "bottom-right", message, privacyHref = "/privacy", initiallyExpanded = false, children, className = ''
+  storageKey = "tux-cookie-consent", position = "bottom-right", message, privacyHref = "/privacy", initiallyExpanded = false, children, className = '', style
 }) => {
   return (
-    <div className={`tux-cookie-consent ${className}`.trim()}>
+    <div className={`tux-cookie-consent ${className}`.trim()} style={style}>
+      {message !== undefined && String(message) !== "" && <div className="tux-cookie-consent__description" style={{ fontSize: "0.875rem", color: "var(--text-secondary, #44403c)" }}>{String(message)}</div>}
       {children}
     </div>
   );

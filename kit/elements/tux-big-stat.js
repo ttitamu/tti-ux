@@ -4,7 +4,7 @@
  */
 export class TuxBigStatElement extends HTMLElement {
   static get observedAttributes() {
-    return ["value", "suffix", "label", "source", "variant", "tone", "size"];
+    return ["value", "suffix", "label", "source", "variant", "tone", "size", "sample-size", "confidence-interval", "doi", "division"];
   }
 
   constructor() {

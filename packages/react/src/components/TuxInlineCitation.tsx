@@ -13,13 +13,15 @@ export interface TuxInlineCitationProps {
   label?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxInlineCitation: React.FC<TuxInlineCitationProps> = ({
-  n, title, href, excerpt, score, label, children, className = ''
+  n, title, href, excerpt, score, label, children, className = '', style
 }) => {
   return (
-    <div className={`tux-inline-citation ${className}`.trim()}>
+    <div className={`tux-inline-citation ${className}`.trim()} style={style}>
+      {title !== undefined && String(title) !== "" && <div className="tux-inline-citation__title" style={{ fontWeight: 600, color: "var(--text-primary, #191919)" }}>{String(title)}</div>}
       {children}
     </div>
   );

@@ -9,13 +9,14 @@ export interface TuxShortcutsHelpProps {
   sequenceSeparator?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxShortcutsHelp: React.FC<TuxShortcutsHelpProps> = ({
-  groups, sequenceSeparator = "then", children, className = ''
+  groups, sequenceSeparator = "then", children, className = '', style
 }) => {
   return (
-    <dialog className={`tux-shortcuts-help ${className}`.trim()}>
+    <dialog className={`tux-shortcuts-help ${className}`.trim()} style={style}>
       {children}
     </dialog>
   );

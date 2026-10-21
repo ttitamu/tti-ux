@@ -7,6 +7,7 @@ public struct TuxCard<Content: View>: View {
     public var to: String
     public var padded: Bool = true
     public var linked: Bool = false
+    public var division: String
     private let content: Content
 
     public init(

@@ -10,13 +10,14 @@ export interface TuxPageContainerProps {
   as?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxPageContainer: React.FC<TuxPageContainerProps> = ({
-  width = "default", flush = false, as = "div", children, className = ''
+  width = "default", flush = false, as = "div", children, className = '', style
 }) => {
   return (
-    <div className={`tux-page-container ${className}`.trim()}>
+    <div className={`tux-page-container ${className}`.trim()} style={style}>
       {children}
     </div>
   );

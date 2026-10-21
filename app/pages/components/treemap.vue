@@ -1,7 +1,7 @@
 <script setup lang="ts">
 useHead({ title: "TuxTreemap · TUX" });
 
-// Mock Landscape-style filesystem tree — sizes in bytes for the byte formatter.
+// Mock Corridor-style filesystem tree — sizes in bytes for the byte formatter.
 const data = {
   name: "/research",
   children: [
@@ -42,7 +42,7 @@ const data = {
     {
       name: "code",
       children: [
-        { name: "landscape",        size: 240_000_000 },
+        { name: "telemetry",        size: 240_000_000 },
         { name: "movementlab",  size: 180_000_000 },
         { name: "tti-ai-studio", size: 92_000_000 },
         { name: "tools",        size: 48_000_000 },
@@ -58,7 +58,7 @@ const exampleVue = `<TuxTreemap :data="data" :max-depth="2" color-by="size" />`;
 <template>
   <div class="space-y-12">
     <TuxPageHeader eyebrow="component" title="TuxTreemap">
-      Squarified hierarchical-size visualization. Landscape's headline viz —
+      Squarified hierarchical-size visualization. Corridor Ops' headline viz —
       replaces diskover's D3 v3 treemap. Self-contained SVG (no external
       viz library), implements the Bruls-Huijsen-van Wijk squarified
       algorithm so cells stay near-square at every level, which is what

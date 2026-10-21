@@ -13,13 +13,14 @@ export interface TuxCommandPaletteProps {
   defaultTab?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxCommandPalette: React.FC<TuxCommandPaletteProps> = ({
-  groups, placeholder, disableHotkey = false, hotkey = "k", showTabs = true, defaultTab = "all", children, className = ''
+  groups, placeholder, disableHotkey = false, hotkey = "k", showTabs = true, defaultTab = "all", children, className = '', style
 }) => {
   return (
-    <dialog className={`tux-command-palette ${className}`.trim()}>
+    <dialog className={`tux-command-palette ${className}`.trim()} style={style}>
       {children}
     </dialog>
   );

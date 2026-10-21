@@ -16,13 +16,14 @@ export interface TuxEChartsProps {
   notMerge?: boolean;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxECharts: React.FC<TuxEChartsProps> = ({
-  options, height = "380px", width = "100%", ariaTitle, ariaSummary, extensions, maps, loading = false, notMerge = false, children, className = ''
+  options, height = "380px", width = "100%", ariaTitle, ariaSummary, extensions, maps, loading = false, notMerge = false, children, className = '', style
 }) => {
   return (
-    <div className={`tux-echarts ${className}`.trim()}>
+    <div className={`tux-echarts ${className}`.trim()} style={style}>
       {children}
     </div>
   );

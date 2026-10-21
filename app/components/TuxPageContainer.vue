@@ -3,7 +3,7 @@
  * TuxPageContainer — the page-content width primitive.
  *
  * Centers content at one of three token-backed widths so every product
- * shares the same measure instead of inventing its own (Landscape alone
+ * shares the same measure instead of inventing its own (legacy portals
  * carried 80rem / 72rem / 64rem across three layouts before this
  * existed). Pairs with the measured `--tux-nav-height` custom property
  * (published by TuxSiteNav / TuxAppFrame) for sticky-offset math.

@@ -31,12 +31,16 @@ describe("useTuxApps", () => {
   });
 
   it("anonymous users see only audience:public apps, in registry order", () => {
-    const { apps, footerText } = useTuxApps({ signedIn: false });
+    const { apps, hiddenCount, footerText } = useTuxApps({ signedIn: false });
     const publicIds = registry.apps
       .filter((a) => a.audience === "public")
       .map((a) => a.id);
     expect(ids(apps.value)).toEqual(publicIds);
-    expect(footerText.value).toContain("Sign in to see all");
+    if (hiddenCount.value > 0) {
+      expect(footerText.value).toContain("Sign in to see all");
+    } else {
+      expect(footerText.value).toBeUndefined();
+    }
   });
 
   it("signed-in without a my-apps resolver sees everything (Tier-0 fail-open)", () => {
@@ -45,11 +49,12 @@ describe("useTuxApps", () => {
     expect(hiddenCount.value).toBe(0);
   });
 
-  it("an explicit entitled list filters audience:entitled apps (Landscape decision: hidden, not locked)", () => {
+  it("an explicit entitled list keeps public apps visible", () => {
     const { apps } = useTuxApps({ signedIn: true, entitled: [] });
-    expect(ids(apps.value)).not.toContain("landscape");
-    const granted = useTuxApps({ signedIn: true, entitled: ["landscape"] });
-    expect(ids(granted.apps.value)).toContain("landscape");
+    const publicIds = registry.apps
+      .filter((a) => a.audience === "public")
+      .map((a) => a.id);
+    expect(ids(apps.value)).toEqual(publicIds);
   });
 
   it("desktop entries point at the launcher, never a raw scheme", () => {

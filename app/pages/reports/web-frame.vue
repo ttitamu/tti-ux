@@ -177,7 +177,7 @@ const codeTemplate = (values: Record<string, any>) => {
 
   <section id="data">
     <h2>Data and methods</h2>
-    <p>Source datasets, classifier versions, and pointers live in Landscape...</p>
+    <p>Source datasets, classifier versions, and pointers live in Corridor Ops...</p>
   </section>
 
   <section id="next">
@@ -272,7 +272,7 @@ const codeTemplate = (values: Record<string, any>) => {
                 <h2>Data and methods</h2>
                 <p>
                   Source datasets, classifier versions, and reproducibility
-                  pointers live in the program's Landscape workspace. Sponsor
+                  pointers live in the program's Corridor workspace. Sponsor
                   access is provisioned via Entra ID; public extracts are
                   published to data.tti.tamu.edu in CSV and Parquet.
                 </p>

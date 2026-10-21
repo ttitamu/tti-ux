@@ -25,13 +25,14 @@ export interface TuxChartBarProps {
   tooltip?: boolean;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxChartBar: React.FC<TuxChartBarProps> = ({
-  labels, series, width = 640, height = 280, palette = "brand", patterns = false, orientation = "vertical", variant = "grouped", valueLabels = true, inBarLabels = false, gridlines = true, legend = false, ticks = 5, format, decimals = 1, ariaSummary, units, tooltip = true, children, className = ''
+  labels, series, width = 640, height = 280, palette = "brand", patterns = false, orientation = "vertical", variant = "grouped", valueLabels = true, inBarLabels = false, gridlines = true, legend = false, ticks = 5, format, decimals = 1, ariaSummary, units, tooltip = true, children, className = '', style
 }) => {
   return (
-    <figure className={`tux-chart-bar ${className}`.trim()}>
+    <figure className={`tux-chart-bar ${className}`.trim()} data-variant={variant} style={style}>
       {children}
     </figure>
   );

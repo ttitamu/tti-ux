@@ -12,13 +12,14 @@ export interface TuxHeroCanvasProps {
   minHeight?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxHeroCanvas: React.FC<TuxHeroCanvasProps> = ({
-  variant = "wash", blend = "seamless", interactive = true, showControls = true, minHeight = "32rem", children, className = ''
+  variant = "wash", blend = "seamless", interactive = true, showControls = true, minHeight = "32rem", children, className = '', style
 }) => {
   return (
-    <div className={`tux-hero-canvas ${className}`.trim()}>
+    <div className={`tux-hero-canvas ${className}`.trim()} data-variant={variant} style={style}>
       {children}
     </div>
   );

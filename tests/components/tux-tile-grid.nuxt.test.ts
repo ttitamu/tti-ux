@@ -35,8 +35,8 @@ describe("TuxTileGrid Component", () => {
         columns: 2,
         surface: "raised",
         tiles: [
-          { title: "Atlas Corridor", description: "Telemetry engine", to: "/examples/corridor-analytics" },
-          { title: "Landscape Studio", description: "Design kit", to: "/desk" },
+          { title: "Connected Corridor", description: "Telemetry engine", to: "/examples/corridor-analytics" },
+          { title: "TUX Desk Studio", description: "Design kit", to: "/desk" },
         ],
       },
     });

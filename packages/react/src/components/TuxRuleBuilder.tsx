@@ -11,13 +11,14 @@ export interface TuxRuleBuilderProps {
   maxDepth?: number;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxRuleBuilder: React.FC<TuxRuleBuilderProps> = ({
-  modelValue, fields, showActions = true, maxDepth = 3, children, className = ''
+  modelValue, fields, showActions = true, maxDepth = 3, children, className = '', style
 }) => {
   return (
-    <div className={`tux-rule-builder ${className}`.trim()}>
+    <div className={`tux-rule-builder ${className}`.trim()} style={style}>
       {children}
     </div>
   );

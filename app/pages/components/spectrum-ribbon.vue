@@ -25,7 +25,7 @@ const snippet = computed(() => {
       title="TuxSpectrumRibbon"
     >
       The 5-band institutional brand spectrum ribbon from my.tti.tamu.edu and TTI Communications assets.
-      Spans the five institutional division colors: TTI Maroon, Slate Blue, Slate Teal, Sage Green, and Warm Ochre Gold.
+      Spans the five institutional brand spectrum colors: TTI Maroon, Slate Blue, Slate Teal, Sage Green, and Warm Ochre Gold.
     </TuxPageHeader>
 
     <!-- Interactive Demo / Playground -->
@@ -61,10 +61,10 @@ const snippet = computed(() => {
           </div>
 
           <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Division Labels</label>
+            <label class="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Band Labels</label>
             <label class="inline-flex items-center gap-2 text-xs font-medium text-text-primary cursor-pointer">
               <input v-model="showLabels" type="checkbox" class="accent-brand-primary" >
-              <span>Show Division Names (lg/xl)</span>
+              <span>Show Band Labels (lg/xl)</span>
             </label>
           </div>
 

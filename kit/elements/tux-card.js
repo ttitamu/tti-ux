@@ -4,7 +4,7 @@
  */
 export class TuxCardElement extends HTMLElement {
   static get observedAttributes() {
-    return ["to", "padded", "linked"];
+    return ["to", "padded", "linked", "division"];
   }
 
   constructor() {

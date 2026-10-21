@@ -47,7 +47,7 @@ describe("TuxSpectrumFacts Component", () => {
   it("renders custom metric items with custom bands", async () => {
     const wrapper = await mountSuspended(TuxSpectrumFacts, {
       props: {
-        title: "ATLAS LAB METRICS",
+        title: "CORRIDOR LAB METRICS",
         items: [
           { value: "48", label: "Sensors Online", band: "green" },
           { value: "99.9%", label: "Pipeline Uptime", band: "teal" },
@@ -55,7 +55,7 @@ describe("TuxSpectrumFacts Component", () => {
       },
     });
 
-    expect(wrapper.text()).toContain("ATLAS LAB METRICS");
+    expect(wrapper.text()).toContain("CORRIDOR LAB METRICS");
     expect(wrapper.text()).toContain("Sensors Online");
     expect(wrapper.text()).toContain("48");
     expect(wrapper.text()).toContain("Pipeline Uptime");

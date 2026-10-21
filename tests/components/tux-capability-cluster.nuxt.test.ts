@@ -73,7 +73,7 @@ describe("TuxCapabilityCluster Component", () => {
       props: {
         capabilities: [
           {
-            title: "Atlas System",
+            title: "Corridor Telemetry System",
             description: "Core analytics platform",
             to: "/examples/corridor-analytics",
           },

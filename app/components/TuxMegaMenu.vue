@@ -453,7 +453,7 @@ const isTriggerActive = computed<boolean>(() => {
   /* Never taller than the viewport below the nav — content-heavy menus
      scroll inside the panel instead of running off-screen. Uses the
      measured --tux-nav-height that TuxSiteNav publishes (4rem fallback
-     pre-mount). Upstreams Landscape's app.vue consumer override. */
+     pre-mount). Upstreams Corridor Ops' app.vue consumer override. */
   max-height: calc(100dvh - var(--tux-nav-height, 4rem) - 1rem);
   overflow-y: auto;
   /* Width follows content (`max-content`) so a 2-column panel doesn't

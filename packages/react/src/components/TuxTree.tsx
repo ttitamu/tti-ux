@@ -12,13 +12,14 @@ export interface TuxTreeProps {
   ariaLabel?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxTree: React.FC<TuxTreeProps> = ({
-  items, defaultExpanded, storageKey, showGuides = true, ariaLabel = "Tree", children, className = ''
+  items, defaultExpanded, storageKey, showGuides = true, ariaLabel = "Tree", children, className = '', style
 }) => {
   return (
-    <ul className={`tux-tree ${className}`.trim()}>
+    <ul className={`tux-tree ${className}`.trim()} style={style}>
       {children}
     </ul>
   );

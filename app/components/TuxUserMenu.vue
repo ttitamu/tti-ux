@@ -14,7 +14,7 @@
  *   items, e.g. the high-contrast toggle) → sign out.
  *
  * State-complete by design — consumers have very different identity
- * sources (Landscape: async whoami/EasyAuth; AI Studio: local install
+ * sources (Corridor Ops: async whoami/EasyAuth; AI Studio: local install
  * identity + optional cloud sign-in; docs site: none) and every state
  * must render deliberately:
  *   - `loading`    → inert skeleton chip (no menu).

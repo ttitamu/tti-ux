@@ -144,7 +144,7 @@ const ackedVue = `<tux-status state="critical" />
 
 const overlayVue = `<!-- Consumer markup you do not own. Map onto TUX classes. -->
 <tr class="tux-status-row--critical">
-  <td>atlas.tti.tamu.edu</td>
+  <td>code.tti.tamu.edu</td>
   <td><span class="tux-status tux-status--critical">CRITICAL</span></td>
 </tr>`;
 </script>
@@ -283,7 +283,7 @@ const overlayVue = `<!-- Consumer markup you do not own. Map onto TUX classes. -
               <td><TuxStatus state="ok" /></td>
             </tr>
             <tr class="tux-status-row--critical">
-              <td>atlas.tti.tamu.edu</td>
+              <td>code.tti.tamu.edu</td>
               <td><TuxStatus state="critical" /></td>
             </tr>
             <tr class="tux-status-row--maintenance">

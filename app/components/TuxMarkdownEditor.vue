@@ -20,7 +20,7 @@
  * For full WYSIWYG (rich text, image upload, table editing), a
  * future `TuxRichTextEditor` could wrap Tiptap. This component
  * targets the 80% case: long-form markdown authoring inside
- * Landscape / tti-ai-studio surfaces.
+ * Corridor Ops / tti-ai-studio surfaces.
  */
 import { computed, nextTick, ref } from "vue";
 

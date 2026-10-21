@@ -23,13 +23,15 @@ export interface TuxDataTableProps {
   totals?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxDataTable: React.FC<TuxDataTableProps> = ({
-  columns, rows, groups, rowKey = "id", tableNumber, caption, description, sortKey, sortDir, sticky = false, maxHeight = "20rem", density = "comfortable", banded = true, footnotes, source, totals, children, className = ''
+  columns, rows, groups, rowKey = "id", tableNumber, caption, description, sortKey, sortDir, sticky = false, maxHeight = "20rem", density = "comfortable", banded = true, footnotes, source, totals, children, className = '', style
 }) => {
   return (
-    <figure className={`tux-data-table ${className}`.trim()}>
+    <figure className={`tux-data-table ${className}`.trim()} style={style}>
+      {description !== undefined && String(description) !== "" && <div className="tux-data-table__description" style={{ fontSize: "0.875rem", color: "var(--text-secondary, #44403c)" }}>{String(description)}</div>}
       {children}
     </figure>
   );

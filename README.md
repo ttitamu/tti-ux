@@ -4,7 +4,7 @@ Living style guide for the **tux** design system. A runnable Nuxt 4 app that
 IS the source of truth for components — if a visual changes, this site shows
 it first.
 
-Built for Texas A&amp;M Transportation Institute apps (Landscape, TTI AI
+Built for Texas A&amp;M Transportation Institute apps (TTI AI
 Studio, TTI Code, the TTI docs site, marcom WordPress kit) and now
 shipping as a **Tauri desktop layer** for Windows 11 / macOS Tahoe /
 Ubuntu, with Tauri Mobile (iOS / Android) on the near horizon. Components
@@ -30,11 +30,10 @@ verified at AAA ($\ge 7.0:1$) across all themes · aligned with the official TTI
 - **Foundations & Token Studio** — tokens, typography, motion, icons, and the interactive
   [Design Token Studio & Playground](app/pages/tokens/playground.vue) with live export to WordPress Kadence `theme.json`.
 - **Composition examples & Operational Portals** — real-shape applications showing the system in context:
-  - [Atlas Security & Policy Audit Portal](app/pages/examples/atlas.vue) (M365, Azure, NIST 800-171, CJIS compliance)
   - [TTI Code (Forgejo) Developer Portal](app/pages/examples/forgejo-code.vue) (self-hosted Git server)
   - [Comm Redesign Portal](app/pages/examples/comm-portal.vue) (exact tti.tamu.edu recreation)
   - [MyTTI Intranet Dashboard](app/pages/examples/intranet-dashboard.vue) (exact my.tti.tamu.edu employee portal)
-  - [Landscape Dashboard](app/pages/examples/landscape-dashboard.vue) (statewide operations telemetry)
+  - [Corridor Analytics](app/pages/examples/corridor-analytics.vue) (statewide operations telemetry)
   - [TTI AI Studio Session](app/pages/examples/tti-ai-studio-session.vue) (research assistant chat)
   - [Legacy Modernization Bridge](app/pages/examples/legacy-bridge.vue) (zero-JS WCAG 2.2 AAA bridge)
 - **Turnkey WordPress & Kadence Integration** — [`packages/wordpress/`](packages/wordpress/) ships the
@@ -171,7 +170,7 @@ your `package.json` `allowScripts` with `npm install-scripts approve` or
 your `nuxt.config.ts`. `@nuxt/icon`'s default CSS-mask mode fetches
 icon CSS through `/api/*` routes, which proxies commonly route
 elsewhere — the failure mode is invisible 0×0 icon spans (ghost
-buttons). Landscape hit exactly this behind Caddy; svg mode inlines
+buttons). Behind Caddy or similar reverse proxies, svg mode inlines
 the icons and sidesteps the route entirely.
 
 Either path pulls in `app/components/`, `app/composables/`,
@@ -263,13 +262,12 @@ Prefer the hyphenated form in showcase code samples; PascalCase in imports.
 
 ## Project context
 
-tti-ux is one of three concurrent products at TTI Networking & Information
-Services: Landscape (sensitive-data classifier),
-tti-ai-studio (LLM tooling for researchers), and this style guide itself.
-The system supports all three plus an emerging marcom WordPress kit and
+tti-ux is built at TTI Networking & Information
+Services alongside tti-ai-studio (LLM tooling for researchers), TTI Code, and this style guide itself.
+The system supports all of these plus an emerging marcom WordPress kit and
 the Tauri desktop shells the consumer apps now ship as. See
 [`design/tux.md`](design/tux.md) for the full manifesto.
 
 ## License
 
-Apache 2.0 — matches Landscape and the other TAMUS/TTI open-source projects.
+Apache 2.0 — matches the other TAMUS/TTI open-source projects.

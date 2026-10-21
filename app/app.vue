@@ -591,13 +591,11 @@ const navTree = [
       { label: "Kits overview", to: "/examples", icon: "lucide:library" },
       { label: "Compositions doctrine", to: "/design/compositions", icon: "lucide:blocks" },
       { label: "Operational surfaces", to: "/design/ops-surfaces", icon: "lucide:heart-pulse" },
-      { label: "  · Atlas audit portal", to: "/examples/atlas", icon: "lucide:shield-check" },
       { label: "  · TTI Code / Forgejo", to: "/examples/forgejo-code", icon: "lucide:git-branch" },
       { label: "  · Comm public portal", to: "/examples/comm-portal", icon: "lucide:globe" },
       { label: "  · MyTTI intranet", to: "/examples/intranet-dashboard", icon: "lucide:building-2" },
       { label: "  · Center landing", to: "/examples/center-landing", icon: "lucide:landmark" },
       { label: "  · Corridor analytics", to: "/examples/corridor-analytics", icon: "lucide:route" },
-      { label: "  · Landscape dashboard", to: "/examples/landscape-dashboard", icon: "lucide:map" },
       { label: "  · Ops board", to: "/examples/ops-board", icon: "lucide:heart-pulse" },
       { label: "  · Paper page", to: "/examples/paper-page", icon: "lucide:file-text" },
       { label: "  · Research landing", to: "/examples/research-landing", icon: "lucide:milestone" },
@@ -640,6 +638,7 @@ const navTree = [
 
 // Mobile sidebar toggle — below md, sidebar slides in from the left.
 const sidebarOpen = ref(false);
+const mobileMenuBtnRef = ref<{ $el?: HTMLElement } | HTMLElement | null>(null);
 // Desktop sidebar collapse — lets workspace/builder pages use full fluid width.
 const desktopSidebarCollapsed = ref(false);
 
@@ -711,6 +710,10 @@ function handleWindowResize() {
 function handleGlobalKeydown(event: KeyboardEvent) {
   if (event.key === "Escape" && sidebarOpen.value) {
     sidebarOpen.value = false;
+    nextTick(() => {
+      const btnEl = (mobileMenuBtnRef.value as any)?.$el || mobileMenuBtnRef.value;
+      btnEl?.focus?.();
+    });
   }
 }
 
@@ -753,6 +756,88 @@ const paletteRef = ref<{ open: (initialTab?: string) => void; close: () => void 
 const shortcutsHelpRef = ref<{ open: () => void; close: () => void; toggle: () => void } | null>(null);
 
 const { setFramework } = useTuxFramework();
+const {
+  trackerOpen: forgejoModalOpen,
+  trackerKind: forgejoKind,
+  initialRouteContext: forgejoInitialRoute,
+  authenticated: forgejoAuthenticated,
+  user: forgejoUser,
+  oauthConfigured: forgejoOauthConfigured,
+  repoWebUrl: forgejoRepoUrl,
+  issuesWebUrl: forgejoIssuesUrl,
+  ideasWebUrl: forgejoIdeasUrl,
+  authPending: forgejoAuthPending,
+  authError: forgejoAuthError,
+  submitPending: forgejoSubmitPending,
+  submitError: forgejoSubmitError,
+  lastSubmission: forgejoLastSubmission,
+  recentEntries: forgejoRecentEntries,
+  entriesLoading: forgejoEntriesLoading,
+  openForgejoTracker,
+  closeForgejoTracker,
+  refreshSession: refreshForgejoSession,
+  fetchRecentEntries: fetchForgejoRecentEntries,
+  startOAuthSignIn: startForgejoOAuth,
+  signInWithToken: signInForgejo,
+  signOutForgejo,
+  submitToForgejo,
+} = useTuxForgejoTracker();
+
+const forgejoPatInput = ref("");
+const forgejoTitle = ref("");
+const forgejoSummary = ref("");
+const forgejoComponentOrRoute = ref("");
+const forgejoCategory = ref("defect");
+const forgejoDetails = ref("");
+
+watch(
+  [forgejoModalOpen, forgejoKind],
+  ([open, kind]) => {
+    if (open) {
+      forgejoComponentOrRoute.value = forgejoInitialRoute.value || route.path || "/";
+      forgejoCategory.value = kind === "idea" ? "new-component" : "defect";
+      if (forgejoAuthenticated.value) {
+        fetchForgejoRecentEntries(kind);
+      }
+    }
+  }
+);
+
+onMounted(() => {
+  if (route.query?.forgejo_auth === "1") {
+    refreshForgejoSession().then(() => {
+      openForgejoTracker("bug", route.path);
+    });
+  }
+});
+
+async function handleForgejoSignIn() {
+  const ok = await signInForgejo(forgejoPatInput.value);
+  if (ok) {
+    forgejoPatInput.value = "";
+    toast.success("Authenticated with TTI Code", `Signed in as @${forgejoUser.value?.login || "tti-user"}`);
+  }
+}
+
+async function handleForgejoSubmit() {
+  const res = await submitToForgejo({
+    kind: forgejoKind.value,
+    title: forgejoTitle.value,
+    summary: forgejoSummary.value,
+    componentOrRoute: forgejoComponentOrRoute.value,
+    category: forgejoCategory.value,
+    details: forgejoDetails.value,
+  });
+  if (res) {
+    forgejoTitle.value = "";
+    forgejoSummary.value = "";
+    forgejoDetails.value = "";
+    toast.success(
+      res.kind === "idea" ? "Idea pushed to Forgejo Ideas" : "Bug report pushed to Forgejo",
+      res.title
+    );
+  }
+}
 
 const actionCommands: Command[] = [
   {
@@ -848,6 +933,30 @@ const actionCommands: Command[] = [
         await navigator.clipboard.writeText(window.location.href);
         toast.success("Copied to clipboard", window.location.href);
       }
+    },
+  },
+  {
+    id: "act-forgejo-bug",
+    label: "Report a bug (Forgejo Issues)",
+    description: "Push an authenticated bug report to code.tti.tamu.edu/tti/tti-ux",
+    icon: "lucide:bug",
+    category: "actions",
+    badge: "Forgejo",
+    badgeTone: "brand",
+    action: () => {
+      openForgejoTracker("bug", route.path);
+    },
+  },
+  {
+    id: "act-forgejo-idea",
+    label: "Submit an idea (Forgejo Ideas)",
+    description: "Push an authenticated idea proposal to code.tti.tamu.edu/tti/tti-ux",
+    icon: "lucide:lightbulb",
+    category: "actions",
+    badge: "Forgejo",
+    badgeTone: "brand",
+    action: () => {
+      openForgejoTracker("idea", route.path);
     },
   },
 ];
@@ -984,7 +1093,7 @@ defineShortcuts({
 });
 
 // Marketing-footer config — mirrors the comm-team's Kadence footer
-// for tti.tamu.edu so consumers (Landscape, ai-studio, marcom pages,
+// for tti.tamu.edu so consumers (TTI Code, ai-studio, marcom pages,
 // this style guide) inherit the production handles and link
 // inventory verbatim. Threads ships as inline SVG since Lucide
 // doesn't carry the brand mark yet — see TuxFooter's `svg` field.
@@ -1010,6 +1119,19 @@ const footerSocial = [
 // accessibility audit), but valuable surfacing it here for
 // designers/auditors landing on the system docs.
 const footerColumns = [
+  {
+    heading: "TUX System & Support",
+    links: [
+      { label: "Getting Started Guide",         to: "/getting-started" },
+      { label: "Component Lab Catalog",         to: "/components" },
+      { label: "Component Health & AAA Matrix", to: "/components/health" },
+      { label: "Design Token Playground",       to: "/tokens/playground" },
+      { label: "System Changelog",              to: "/changelog" },
+      { label: "TTI Code Repository (Forgejo)", href: "https://code.tti.tamu.edu/tti/tti-ux" },
+      { label: "Report a Bug (Forgejo Issues)", href: "https://code.tti.tamu.edu/tti/tti-ux/issues" },
+      { label: "Submit an Idea (Forgejo Ideas)", href: "https://code.tti.tamu.edu/tti/tti-ux/issues?q=&type=all&state=open&labels=idea" },
+    ],
+  },
   {
     heading: "State Resources",
     links: [
@@ -1086,6 +1208,361 @@ useTuxVisionPrefs();
       <TuxStatusToast />
       <!-- Global reading-progress return-to-top button -->
       <TuxScrollTop />
+
+      <!-- Auth-Gated Forgejo Bug Report & Idea Submission Modal -->
+      <TuxModal
+        :open="forgejoModalOpen"
+        :title="forgejoKind === 'idea' ? 'Submit an Idea to Forgejo' : 'Report a Bug to Forgejo'"
+        eyebrow="TTI Code · code.tti.tamu.edu/tti/tti-ux"
+        size="xl"
+        @update:open="forgejoModalOpen = $event"
+      >
+        <div class="space-y-5 text-text-primary">
+          <!-- Mode Switcher: Bug Report vs Idea Proposal -->
+          <div class="grid grid-cols-2 gap-2 p-1 bg-surface-sunken border border-surface-border rounded-none" role="tablist" aria-label="Submission type">
+            <button
+              type="button"
+              role="tab"
+              :aria-selected="forgejoKind === 'bug'"
+              class="min-h-[44px] px-3 py-2 text-xs font-mono font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              :class="forgejoKind === 'bug' ? 'bg-brand-primary text-text-on-brand shadow-xs' : 'bg-transparent text-text-secondary hover:text-text-primary'"
+              @click="forgejoKind = 'bug'; forgejoCategory = 'defect'"
+            >
+              <UIcon name="lucide:bug" class="w-4 h-4 shrink-0" aria-hidden="true" />
+              <span>Bug Report (Issues)</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              :aria-selected="forgejoKind === 'idea'"
+              class="min-h-[44px] px-3 py-2 text-xs font-mono font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              :class="forgejoKind === 'idea' ? 'bg-brand-primary text-text-on-brand shadow-xs' : 'bg-transparent text-text-secondary hover:text-text-primary'"
+              @click="forgejoKind = 'idea'; forgejoCategory = 'new-component'"
+            >
+              <UIcon name="lucide:lightbulb" class="w-4 h-4 shrink-0" aria-hidden="true" />
+              <span>Idea Proposal (Ideas)</span>
+            </button>
+          </div>
+
+          <!-- Destination Banner -->
+          <div class="p-3 bg-surface-sunken border border-surface-border flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-2">
+              <UIcon name="lucide:git-branch" class="w-4 h-4 text-brand-primary dark:text-brand-accent shrink-0" aria-hidden="true" />
+              <span>
+                Target repository:
+                <a :href="forgejoRepoUrl" target="_blank" rel="noopener noreferrer" class="font-mono font-bold text-brand-primary dark:text-brand-accent underline">
+                  tti/tti-ux
+                </a>
+                <span class="text-text-muted">
+                  ({{ forgejoKind === 'idea' ? 'pushes to Forgejo Ideas section' : 'pushes to Forgejo Issues tracker' }})
+                </span>
+              </span>
+            </div>
+            <span
+              class="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold px-2 py-0.5 border"
+              :class="forgejoAuthenticated ? 'bg-wash-brand-8 text-text-primary border-brand-primary/30' : 'bg-surface-raised text-text-secondary border-surface-border'"
+            >
+              <UIcon :name="forgejoAuthenticated ? 'lucide:shield-check' : 'lucide:lock'" class="w-3.5 h-3.5 text-brand-primary dark:text-brand-accent" aria-hidden="true" />
+              <span>{{ forgejoAuthenticated ? `Authenticated · @${forgejoUser?.login}` : 'Auth Gate Active' }}</span>
+            </span>
+          </div>
+
+          <!-- STEP 1: AUTHENTICATION GATE (When unauthenticated) -->
+          <div
+            v-if="!forgejoAuthenticated"
+            class="p-4 sm:p-5 bg-surface-raised border-2 border-brand-primary/40 space-y-4"
+            data-testid="forgejo-auth-gate"
+          >
+            <div class="flex items-start gap-3">
+              <div class="w-9 h-9 bg-wash-brand-8 text-brand-primary dark:text-brand-accent flex items-center justify-center shrink-0 border border-brand-primary/20">
+                <UIcon name="lucide:key-round" class="w-5 h-5" aria-hidden="true" />
+              </div>
+              <div class="space-y-1">
+                <h3 class="text-sm font-bold text-text-primary">
+                  TTI Code (Forgejo) Authentication Required
+                </h3>
+                <p class="text-xs text-text-secondary leading-relaxed">
+                  Bug reports and idea proposals push directly to the institutional Forgejo repository at
+                  <code>code.tti.tamu.edu/tti/tti-ux</code> and are gated behind authentication. Sign in with a
+                  Forgejo Personal Access Token (<code>write:issue</code> scope) to unlock submission.
+                </p>
+              </div>
+            </div>
+
+            <!-- OAuth2 + PKCE SSO Option -->
+            <div class="pt-1 pb-2 border-b border-surface-border flex flex-wrap items-center justify-between gap-3">
+              <div class="text-xs text-text-secondary">
+                <span class="font-bold text-text-primary">Option A — OAuth2 + PKCE SSO:</span>
+                <span class="ml-1">
+                  {{ forgejoOauthConfigured ? 'Redirect to code.tti.tamu.edu OAuth2 authorization' : 'Requires FORGEJO_OAUTH_CLIENT_ID on server' }}
+                </span>
+              </div>
+              <button
+                type="button"
+                class="min-h-[44px] px-3.5 py-2 text-xs font-mono font-bold uppercase tracking-wider bg-surface-page hover:bg-surface-sunken border border-surface-border text-text-primary inline-flex items-center gap-2 cursor-pointer transition-colors"
+                @click="startForgejoOAuth(route.fullPath)"
+              >
+                <UIcon name="lucide:shield" class="w-3.5 h-3.5 text-brand-primary dark:text-brand-accent" aria-hidden="true" />
+                <span>Sign in with TTI Code OAuth</span>
+              </button>
+            </div>
+
+            <div class="space-y-2">
+              <label for="tux-forgejo-pat-input" class="block text-xs font-mono font-bold uppercase tracking-wider text-text-secondary">
+                Option B — Forgejo Personal Access Token (write:issue)
+              </label>
+              <div class="flex flex-col sm:flex-row gap-2">
+                <input
+                  id="tux-forgejo-pat-input"
+                  v-model="forgejoPatInput"
+                  type="password"
+                  autocomplete="off"
+                  placeholder="Paste token from code.tti.tamu.edu..."
+                  class="flex-1 min-h-[44px] px-3 py-2 text-xs font-mono bg-surface-page border border-surface-border text-text-primary focus:outline-none focus:border-brand-primary"
+                  @keydown.enter.prevent="handleForgejoSignIn"
+                >
+                <button
+                  type="button"
+                  :disabled="forgejoAuthPending"
+                  class="min-h-[44px] px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider bg-brand-primary hover:bg-brand-primary-deep text-text-on-brand transition-colors cursor-pointer inline-flex items-center justify-center gap-2 shrink-0 disabled:opacity-60"
+                  @click="handleForgejoSignIn"
+                >
+                  <UIcon :name="forgejoAuthPending ? 'lucide:loader-2' : 'lucide:unlock'" class="w-3.5 h-3.5" :class="{ 'animate-spin': forgejoAuthPending }" aria-hidden="true" />
+                  <span>{{ forgejoAuthPending ? 'Verifying...' : 'Authenticate' }}</span>
+                </button>
+              </div>
+              <p v-if="forgejoAuthError" class="text-xs font-semibold text-status-critical" role="alert">
+                {{ forgejoAuthError }}
+              </p>
+              <p class="text-[11px] text-text-muted">
+                Generate a scoped token under
+                <a
+                  href="https://code.tti.tamu.edu/user/settings/applications"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-brand-primary dark:text-brand-accent underline font-semibold"
+                >
+                  TTI Code Settings &rarr; Applications
+                </a>.
+              </p>
+            </div>
+          </div>
+
+          <!-- STEP 2: AUTHENTICATED SUBMISSION FORM -->
+          <div v-else class="space-y-4" data-testid="forgejo-submission-form">
+            <div class="flex items-center justify-between px-3 py-2 bg-surface-raised border border-surface-border text-xs">
+              <div class="flex items-center gap-2">
+                <UIcon name="lucide:user-check" class="w-4 h-4 text-brand-primary dark:text-brand-accent" aria-hidden="true" />
+                <span>
+                  Signed in as <strong>@{{ forgejoUser?.login }}</strong>
+                  <span v-if="forgejoUser?.full_name" class="text-text-muted">({{ forgejoUser.full_name }})</span>
+                </span>
+              </div>
+              <button
+                type="button"
+                class="min-h-[36px] px-2.5 py-1 text-xs font-mono text-text-secondary hover:text-brand-primary underline cursor-pointer"
+                @click="signOutForgejo"
+              >
+                Sign out
+              </button>
+            </div>
+
+            <!-- Success Banner -->
+            <div
+              v-if="forgejoLastSubmission"
+              class="p-4 bg-surface-raised border-l-4 border-brand-primary space-y-2"
+              role="status"
+              aria-live="polite"
+            >
+              <div class="flex items-center gap-2 text-sm font-bold text-text-primary">
+                <UIcon name="lucide:check-circle-2" class="w-4 h-4 text-brand-primary dark:text-brand-accent" aria-hidden="true" />
+                <span>
+                  {{ forgejoLastSubmission.kind === 'idea' ? 'Idea pushed to Forgejo Ideas!' : 'Bug report pushed to Forgejo Issues!' }}
+                </span>
+              </div>
+              <p class="text-xs text-text-secondary">
+                Recorded as <strong>{{ forgejoLastSubmission.title }}</strong>.
+              </p>
+              <a
+                :href="forgejoLastSubmission.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-brand-primary dark:text-brand-accent underline"
+              >
+                <span>Open in TTI Code (Forgejo)</span>
+                <UIcon name="lucide:external-link" class="w-3.5 h-3.5" aria-hidden="true" />
+              </a>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label for="tux-forgejo-category" class="block text-xs font-mono font-bold uppercase tracking-wider text-text-secondary mb-1">
+                  {{ forgejoKind === 'idea' ? 'Idea Category' : 'Defect Classification' }}
+                </label>
+                <select
+                  id="tux-forgejo-category"
+                  v-model="forgejoCategory"
+                  class="w-full min-h-[44px] px-3 py-2 text-xs bg-surface-raised border border-surface-border text-text-primary focus:outline-none focus:border-brand-primary"
+                >
+                  <template v-if="forgejoKind === 'bug'">
+                    <option value="defect">Visual or Behavioral Defect</option>
+                    <option value="a11y-wcag-aaa">Accessibility / WCAG 2.2 AAA Regression</option>
+                    <option value="tokens-theming">Token or Theme Drift (Light / Dark / HC)</option>
+                    <option value="docs-broken-link">Documentation or Code Sample Error</option>
+                  </template>
+                  <template v-else>
+                    <option value="new-component">New Tux* Component Proposal</option>
+                    <option value="pattern-composition">New Application Composition / Pattern</option>
+                    <option value="token-enhancement">Design Token / Palette Enhancement</option>
+                    <option value="sdk-integration">SDK Target (React / WordPress / .NET / Python)</option>
+                  </template>
+                </select>
+              </div>
+
+              <div>
+                <label for="tux-forgejo-route" class="block text-xs font-mono font-bold uppercase tracking-wider text-text-secondary mb-1">
+                  Component or Route Context
+                </label>
+                <input
+                  id="tux-forgejo-route"
+                  v-model="forgejoComponentOrRoute"
+                  type="text"
+                  placeholder="e.g. TuxButton or /components/button"
+                  class="w-full min-h-[44px] px-3 py-2 text-xs font-mono bg-surface-raised border border-surface-border text-text-primary focus:outline-none focus:border-brand-primary"
+                >
+              </div>
+            </div>
+
+            <div>
+              <label for="tux-forgejo-title" class="block text-xs font-mono font-bold uppercase tracking-wider text-text-secondary mb-1">
+                {{ forgejoKind === 'idea' ? 'Idea Title' : 'Bug Title' }} *
+              </label>
+              <input
+                id="tux-forgejo-title"
+                v-model="forgejoTitle"
+                type="text"
+                :placeholder="forgejoKind === 'idea' ? 'e.g. Add TuxTransitRouteDiagram for bus rapid transit schematics' : 'e.g. Focus ring clipped on TuxDataTable sticky header in Safari'"
+                class="w-full min-h-[44px] px-3 py-2 text-xs bg-surface-raised border border-surface-border text-text-primary focus:outline-none focus:border-brand-primary"
+              >
+            </div>
+
+            <div>
+              <label for="tux-forgejo-summary" class="block text-xs font-mono font-bold uppercase tracking-wider text-text-secondary mb-1">
+                {{ forgejoKind === 'idea' ? 'Proposal Summary & Problem Solved' : 'Defect Summary & Observed Behavior' }} *
+              </label>
+              <textarea
+                id="tux-forgejo-summary"
+                v-model="forgejoSummary"
+                rows="3"
+                :placeholder="forgejoKind === 'idea' ? 'Describe the transportation or institutional UX problem this idea solves...' : 'Describe what happened and where it occurred...'"
+                class="w-full px-3 py-2 text-xs bg-surface-raised border border-surface-border text-text-primary focus:outline-none focus:border-brand-primary"
+              />
+            </div>
+
+            <div>
+              <label for="tux-forgejo-details" class="block text-xs font-mono font-bold uppercase tracking-wider text-text-secondary mb-1">
+                {{ forgejoKind === 'idea' ? 'API / Token Sketch or Use Cases (Optional)' : 'Steps to Reproduce & Expected Behavior (Optional)' }}
+              </label>
+              <textarea
+                id="tux-forgejo-details"
+                v-model="forgejoDetails"
+                rows="3"
+                :placeholder="forgejoKind === 'idea' ? 'Optional props, slots, or consuming TTI project context...' : '1. Navigate to...\n2. Press Tab...\n3. Expected vs actual...'"
+                class="w-full px-3 py-2 text-xs font-mono bg-surface-raised border border-surface-border text-text-primary focus:outline-none focus:border-brand-primary"
+              />
+            </div>
+
+            <p v-if="forgejoSubmitError" class="text-xs font-semibold text-status-critical" role="alert">
+              {{ forgejoSubmitError }}
+            </p>
+
+            <!-- Live Repository Activity Feed (Recent Bugs or Ideas from tti/tti-ux) -->
+            <div
+              v-if="forgejoRecentEntries.length > 0 || forgejoEntriesLoading"
+              class="pt-3 border-t border-surface-border space-y-2"
+              data-testid="forgejo-recent-entries"
+            >
+              <div class="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-text-muted">
+                <span>
+                  Recent {{ forgejoKind === 'idea' ? 'Forgejo Ideas' : 'Forgejo Bug Reports' }} in tti/tti-ux
+                </span>
+                <button
+                  type="button"
+                  class="min-h-[32px] px-2 py-0.5 text-[11px] font-mono text-brand-primary dark:text-brand-accent underline cursor-pointer"
+                  @click="fetchForgejoRecentEntries(forgejoKind)"
+                >
+                  Refresh
+                </button>
+              </div>
+              <ul class="space-y-1.5 list-none m-0 p-0">
+                <li
+                  v-for="entry in forgejoRecentEntries"
+                  :key="entry.id"
+                  class="p-2.5 bg-surface-raised border border-surface-border flex flex-wrap items-center justify-between gap-2 text-xs"
+                >
+                  <div class="min-w-0 flex-1">
+                    <a
+                      :href="entry.url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="font-semibold text-text-primary hover:text-brand-primary underline truncate block"
+                    >
+                      #{{ entry.number }} · {{ entry.title }}
+                    </a>
+                    <div class="flex flex-wrap items-center gap-1.5 mt-1 text-[11px] font-mono text-text-muted">
+                      <span>@{{ entry.author }}</span>
+                      <span
+                        v-for="lbl in entry.labels"
+                        :key="lbl"
+                        class="px-1.5 py-0.5 bg-surface-sunken border border-surface-border text-text-secondary"
+                      >
+                        {{ lbl }}
+                      </span>
+                    </div>
+                  </div>
+                  <span class="font-mono text-[10px] uppercase px-1.5 py-0.5 bg-wash-brand-8 text-text-primary border border-brand-primary/30 shrink-0">
+                    {{ entry.state }}
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <template #footer>
+          <div class="flex flex-wrap items-center justify-between gap-2 w-full">
+            <a
+              :href="forgejoKind === 'idea' ? forgejoIdeasUrl : forgejoIssuesUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="min-h-[44px] px-3 py-2 text-xs font-mono text-text-secondary hover:text-brand-primary underline inline-flex items-center gap-1.5"
+            >
+              <span>{{ forgejoKind === 'idea' ? 'Browse Forgejo Ideas' : 'Browse Forgejo Issues' }}</span>
+              <UIcon name="lucide:external-link" class="w-3.5 h-3.5" aria-hidden="true" />
+            </a>
+
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="min-h-[44px] px-3.5 py-2 text-xs font-mono font-bold uppercase tracking-wider bg-surface-raised hover:bg-surface-sunken border border-surface-border text-text-secondary hover:text-text-primary cursor-pointer"
+                @click="closeForgejoTracker"
+              >
+                Close
+              </button>
+              <button
+                v-if="forgejoAuthenticated"
+                type="button"
+                :disabled="forgejoSubmitPending"
+                class="min-h-[44px] px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider bg-brand-primary hover:bg-brand-primary-deep text-text-on-brand inline-flex items-center gap-2 cursor-pointer disabled:opacity-60"
+                @click="handleForgejoSubmit"
+              >
+                <UIcon :name="forgejoSubmitPending ? 'lucide:loader-2' : 'lucide:send'" class="w-3.5 h-3.5" :class="{ 'animate-spin': forgejoSubmitPending }" aria-hidden="true" />
+                <span>{{ forgejoSubmitPending ? 'Pushing to Forgejo...' : (forgejoKind === 'idea' ? 'Push Idea to Forgejo' : 'Push Bug to Forgejo') }}</span>
+              </button>
+            </div>
+          </div>
+        </template>
+      </TuxModal>
     </ClientOnly>
 
     <!-- Standalone full-viewport pages (layout: false) bypass the style guide shell -->
@@ -1141,11 +1618,12 @@ useTuxVisionPrefs();
       >
         <div class="px-2 sm:px-4 lg:px-3 xl:px-6 py-2 sm:py-3 flex items-center gap-1 sm:gap-2 lg:gap-1.5 xl:gap-4">
           <UButton
+            ref="mobileMenuBtnRef"
             icon="lucide:menu"
             color="neutral"
             variant="ghost"
             size="sm"
-            class="md:hidden"
+            class="md:hidden min-h-[44px] min-w-[44px] inline-flex items-center justify-center"
             :aria-expanded="sidebarOpen"
             aria-controls="tux-mobile-drawer"
             aria-label="Open navigation menu"
@@ -1463,21 +1941,41 @@ useTuxVisionPrefs();
       >
         <template #preferences>
           <ClientOnly>
-            <button
-              type="button"
-              :aria-pressed="isHighContrast"
-              :title="
-                isHighContrast
-                  ? 'High-contrast mode is on — click to exit'
-                  : 'Enable WCAG AAA high-contrast mode (accessibility)'
-              "
-              @click="toggleHighContrast"
-            >
-              <UIcon name="lucide:accessibility" class="w-3.5 h-3.5" />
-              <span>
-                {{ isHighContrast ? "Exit high-contrast" : "High-contrast mode" }}
-              </span>
-            </button>
+            <div class="inline-flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                :aria-pressed="isHighContrast"
+                :title="
+                  isHighContrast
+                    ? 'High-contrast mode is on — click to exit'
+                    : 'Enable WCAG AAA high-contrast mode (accessibility)'
+                "
+                @click="toggleHighContrast"
+              >
+                <UIcon name="lucide:accessibility" class="w-3.5 h-3.5" />
+                <span>
+                  {{ isHighContrast ? "Exit high-contrast" : "High-contrast mode" }}
+                </span>
+              </button>
+              <span class="text-text-muted select-none" aria-hidden="true">·</span>
+              <button
+                type="button"
+                title="Report a bug to the TTI Code (Forgejo) repository (authentication required)"
+                @click="openForgejoTracker('bug', route.path)"
+              >
+                <UIcon name="lucide:bug" class="w-3.5 h-3.5" />
+                <span>Report a Bug</span>
+              </button>
+              <span class="text-text-muted select-none" aria-hidden="true">·</span>
+              <button
+                type="button"
+                title="Submit an idea to the TTI Code (Forgejo) Ideas tracker (authentication required)"
+                @click="openForgejoTracker('idea', route.path)"
+              >
+                <UIcon name="lucide:lightbulb" class="w-3.5 h-3.5" />
+                <span>Submit an Idea</span>
+              </button>
+            </div>
             <template #fallback>
               <span class="inline-flex items-center gap-1">
                 <UIcon name="lucide:accessibility" class="w-3.5 h-3.5" />

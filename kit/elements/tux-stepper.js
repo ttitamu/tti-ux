@@ -4,7 +4,7 @@
  */
 export class TuxStepperElement extends HTMLElement {
   static get observedAttributes() {
-    return ["steps", "current-index", "orientation", "show-descriptions", "aria-label"];
+    return ["steps", "current-index", "orientation", "show-descriptions", "aria-label", "station-format", "division"];
   }
 
   constructor() {

@@ -2,7 +2,7 @@
 import { useVirtualizer } from "@tanstack/vue-virtual";
 /**
  * TuxRichDataGrid — interactive data grid for operational and
- * research-dashboard surfaces (Landscape-class apps where the reader
+ * research-dashboard surfaces (Corridor-class apps where the reader
  * needs to *act* on rows, not just read them).
  *
  * Anatomy adapted from Ant Design Table and Microsoft Fabric

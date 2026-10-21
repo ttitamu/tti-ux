@@ -97,7 +97,7 @@ const usageVue = [
           class="flex items-center justify-between gap-3 p-4 rounded-md border border-surface-border bg-surface-page cursor-grab select-none touch-pan-y"
         >
           <div>
-            <p class="font-semibold">Research run · landscape-2026-q2</p>
+            <p class="font-semibold">Research run · corridor-2026-q2</p>
             <p class="text-sm text-text-muted">Swipe left to dismiss, right to reveal actions</p>
           </div>
           <UButton variant="ghost" icon="lucide:dots-vertical" aria-label="Row actions" />

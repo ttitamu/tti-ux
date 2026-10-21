@@ -18,6 +18,9 @@ class TuxComposer:
     attach_icon: str = "lucide:plus"
     cancelable: bool = False
     cancel_label: str = "Cancel"
+    rows: str = "2"
+    variant: str = "default"
+    autofocus: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-composer">{content}</div>'

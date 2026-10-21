@@ -207,7 +207,7 @@ const legendVue = `<tux-chart-donut :slices="trafficSources" legend />`;
 const framedVue = `<tux-chart-frame
   eyebrow="Exhibit 12.04"
   title="File type distribution"
-  source="Source: TTI Landscape corpus, 2026-Q2"
+  source="Source: TTI Corridor corpus, 2026-Q2"
 >
   <tux-chart-donut :slices="fileTypes" center-label="Total" :center-value="totalFiles" />
 </tux-chart-frame>`;
@@ -325,7 +325,7 @@ const framedVue = `<tux-chart-frame
           eyebrow="Exhibit 12.04"
           title="File type distribution"
           subtitle="Corpus composition by extension; Q2 2026"
-          source="Source: TTI Landscape corpus, 2026-Q2"
+          source="Source: TTI Corridor corpus, 2026-Q2"
         >
           <TuxChartDonut
             :slices="fileTypes"

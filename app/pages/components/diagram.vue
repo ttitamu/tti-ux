@@ -19,7 +19,7 @@ const sequence = `sequenceDiagram
   participant S as tti-ai-studio
   participant R as Retrieval
   participant L as Opus 4.7
-  participant P as Landscape index
+  participant P as Corridor index
 
   U->>S: Ask question (scoped to corpus)
   S->>R: Retrieve top-k passages
@@ -102,7 +102,7 @@ const exampleVue = `<TuxDiagram
       <TuxExample class="mt-4">
         <TuxDiagram
           eyebrow="Figure 3"
-          caption="Landscape's index schema, simplified. Real schema has audit trails, classifier outputs, and retention metadata."
+          caption="Corridor Ops' index schema, simplified. Real schema has audit trails, classifier outputs, and retention metadata."
           :code="erd"
         />
       </TuxExample>

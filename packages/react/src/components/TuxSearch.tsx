@@ -23,13 +23,15 @@ export interface TuxSearchProps {
   forceFocus?: boolean;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxSearch: React.FC<TuxSearchProps> = ({
-  modelValue, variant = "field", blockBar = "field", size = "regular", placeholder = "Search", heading, lede, ariaLabel, actionLabel = "Search", actionIcon, leadingIcon = "lucide:search", clearable = true, loading = false, disabled = false, cornerDrop = false, forceFocus = false, children, className = ''
+  modelValue, variant = "field", blockBar = "field", size = "regular", placeholder = "Search", heading, lede, ariaLabel, actionLabel = "Search", actionIcon, leadingIcon = "lucide:search", clearable = true, loading = false, disabled = false, cornerDrop = false, forceFocus = false, children, className = '', style
 }) => {
   return (
-    <div className={`tux-search ${className}`.trim()}>
+    <div className={`tux-search ${className}`.trim()} data-variant={variant} data-size={size} style={style}>
+      {heading !== undefined && String(heading) !== "" && <div className="tux-search__title" style={{ fontWeight: 600, color: "var(--text-primary, #191919)" }}>{String(heading)}</div>}
       {children}
     </div>
   );

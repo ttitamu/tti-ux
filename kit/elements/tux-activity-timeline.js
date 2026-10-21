@@ -4,7 +4,7 @@
  */
 export class TuxActivityTimelineElement extends HTMLElement {
   static get observedAttributes() {
-    return ["items", "dense"];
+    return ["items", "dense", "sync-channel", "division"];
   }
 
   constructor() {

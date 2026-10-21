@@ -22,6 +22,9 @@ fun TuxComposer(
     attachIcon: String = "lucide:plus",
     cancelable: Boolean = false,
     cancelLabel: String = "Cancel",
+    rows: String = "2",
+    variant: String = "default",
+    autofocus: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {
     Row(

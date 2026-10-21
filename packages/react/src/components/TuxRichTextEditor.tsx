@@ -17,13 +17,14 @@ export interface TuxRichTextEditorProps {
   ariaLabel?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxRichTextEditor: React.FC<TuxRichTextEditorProps> = ({
-  modelValue, placeholder, disabled = false, minHeight = "12rem", maxHeight = "auto", toolbar, headingLevels, showCount = true, fullscreenable = true, ariaLabel, children, className = ''
+  modelValue, placeholder, disabled = false, minHeight = "12rem", maxHeight = "auto", toolbar, headingLevels, showCount = true, fullscreenable = true, ariaLabel, children, className = '', style
 }) => {
   return (
-    <div className={`tux-rich-text-editor ${className}`.trim()}>
+    <div className={`tux-rich-text-editor ${className}`.trim()} style={style}>
       {children}
     </div>
   );

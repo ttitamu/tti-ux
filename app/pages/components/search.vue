@@ -90,7 +90,7 @@ const exampleSuggest = `<TuxSearch v-model="q" placeholder="Try &quot;ru&quot;">
       <TuxExample class="mt-4" :vue="exampleField">
         <TuxSearch
           v-model="q1"
-          placeholder="Search Landscape indices"
+          placeholder="Search Corridor indices"
           @submit="(v) => (lastSubmitted = v)"
         />
       </TuxExample>

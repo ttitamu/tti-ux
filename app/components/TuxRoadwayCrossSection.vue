@@ -419,6 +419,16 @@ const totalCrossSectionWidthFt = computed(() => {
   return totalRoadwayWidthFt.value + foreslopeWidthFt.value + activeData.value.ditchWidthFt + backslopeWidthFt.value + 8; // +8 for barrier/median
 });
 
+const liveSummaryText = computed(() => {
+  const data = activeData.value;
+  const travelLanes = data.lanes.filter((l: any) => l.type !== "shoulder");
+  const losSummary = travelLanes
+    .filter((l: any) => l.los)
+    .map((l: any) => `${l.name} Level of Service ${l.los} (${l.speedMph} mph, ${l.volumeVph} vph)`)
+    .join("; ");
+  return `Active facility: ${data.name}. Classification: ${data.classification}. View mode: ${currentView.value}. Geometry: ${data.lanes.length} total cross-section elements (${travelLanes.length} travel lanes, ${totalRoadwayWidthFt.value} ft paved roadbed, ${totalCrossSectionWidthFt.value.toFixed(1)} ft total right-of-way width), cross-slope ${data.crossSlopePct}%, ${data.foreslope}. Traffic telemetry: ${losSummary}.`;
+});
+
 // 2D CAD SVG Coordinate Mapping
 const svgViewBoxWidth = 980;
 const svgViewBoxHeight = 340;
@@ -513,6 +523,11 @@ function getLosDescription(los?: string): string {
 
 <template>
   <div class="tux-roadway-cross-section">
+    <!-- Accessible Screen-Reader Live Summary for Roadway Geometry & HCM Level of Service (#26) -->
+    <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">
+      {{ liveSummaryText }}
+    </div>
+
     <!-- Header Control Strip -->
     <header class="tux-roadway__header">
       <div class="tux-roadway__title-area">
@@ -601,6 +616,21 @@ function getLosDescription(los?: string): string {
         class="tux-roadway__3d-viewport"
         :class="{ 'tux-roadway__3d-viewport--offscreen': !isSceneVisible }"
       >
+        <!-- Mobile 2D CAD Quick-Switch Callout (#24) -->
+        <div class="sm:hidden flex items-center justify-between gap-2 px-3 py-2 bg-surface-raised border-b border-surface-border text-xs">
+          <span class="font-mono text-[11px] text-text-secondary">
+            Prefer flat schematic on mobile?
+          </span>
+          <button
+            type="button"
+            class="min-h-[44px] px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-brand-primary dark:text-brand-accent bg-surface-sunken border border-surface-border rounded-none inline-flex items-center gap-1.5 cursor-pointer"
+            @click="currentView = '2d-engineering'"
+          >
+            <Icon name="lucide:drafting-compass" class="w-3.5 h-3.5" aria-hidden="true" />
+            <span>Switch to 2D CAD Profile</span>
+          </button>
+        </div>
+
         <!-- 3D Scene Controller Dock -->
         <div class="tux-roadway__3d-controls" aria-label="3D Spatial Camera Pitch and Orientation Controls">
           <!-- Preset View Angles -->
@@ -1660,12 +1690,16 @@ function getLosDescription(los?: string): string {
 
   .tux-roadway__mode-btn {
     flex: 0 0 auto;
-    min-height: 40px;
+    min-height: 44px;
     white-space: nowrap;
   }
 
   .tux-roadway-cross-section .tux-roadway__angle-btn {
-    min-height: 36px;
+    min-height: 44px;
+  }
+
+  .tux-roadway-cross-section .tux-roadway__action-btn {
+    min-height: 44px;
   }
 
   .tux-roadway__controls-row,
@@ -1675,7 +1709,7 @@ function getLosDescription(los?: string): string {
 
   .tux-roadway__select {
     flex: 1;
-    min-height: 40px;
+    min-height: 44px;
   }
 }
 

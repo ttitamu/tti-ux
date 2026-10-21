@@ -57,6 +57,6 @@ target. Ops boards are the same: the CSS tab on
 [`/examples/ops-board`](../app/pages/examples/ops-board.vue) is the
 assembly: KPI tiles with `TuxStatus`, a `TuxSparkline` on poller
 load, gold `.tux-ops-heading`, hairline `.tux-ops-table`. Same
-scan density as a monitoring pane, not Landscape's 96px numerals.
+scan density as a monitoring pane, not Corridor Ops' 96px numerals.
 `TuxBigStat` stays on IT / marcom dashboards — maroon numerals
 are chrome, not state.

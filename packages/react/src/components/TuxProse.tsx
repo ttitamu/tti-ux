@@ -8,13 +8,14 @@ export interface TuxProseProps {
   as?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxProse: React.FC<TuxProseProps> = ({
-  as = "article", children, className = ''
+  as = "article", children, className = '', style
 }) => {
   return (
-    <div className={`tux-prose ${className}`.trim()}>
+    <div className={`tux-prose ${className}`.trim()} style={style}>
       {children}
     </div>
   );

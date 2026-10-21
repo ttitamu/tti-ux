@@ -9,13 +9,14 @@ export interface TuxReportPrintSheetProps {
   margin?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxReportPrintSheet: React.FC<TuxReportPrintSheetProps> = ({
-  size = "letter", margin = "0.6in", children, className = ''
+  size = "letter", margin = "0.6in", children, className = '', style
 }) => {
   return (
-    <span className={`tux-report-print-sheet ${className}`.trim()}>
+    <span className={`tux-report-print-sheet ${className}`.trim()} data-size={size} style={style}>
       {children}
     </span>
   );

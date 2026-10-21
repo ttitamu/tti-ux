@@ -10,6 +10,7 @@ final class TuxCard
     public string $to;
     public bool $padded = true;
     public bool $linked = false;
+    public string $division;
 
     public function __construct(array $attributes = [])
     {

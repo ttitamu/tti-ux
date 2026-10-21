@@ -22,13 +22,14 @@ export interface TuxChartDonutProps {
   tooltip?: boolean;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxChartDonut: React.FC<TuxChartDonutProps> = ({
-  slices, size = 280, palette = "brand", patterns = false, thickness = 0.5, sliceLabels = true, legend = false, centerLabel, centerValue, minSlice = 3, format, decimals = 1, ariaSummary, units, tooltip = true, children, className = ''
+  slices, size = 280, palette = "brand", patterns = false, thickness = 0.5, sliceLabels = true, legend = false, centerLabel, centerValue, minSlice = 3, format, decimals = 1, ariaSummary, units, tooltip = true, children, className = '', style
 }) => {
   return (
-    <figure className={`tux-chart-donut ${className}`.trim()}>
+    <figure className={`tux-chart-donut ${className}`.trim()} data-size={size} style={style}>
       {children}
     </figure>
   );

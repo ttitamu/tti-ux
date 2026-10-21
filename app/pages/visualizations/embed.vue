@@ -74,7 +74,7 @@ const embedPresets = [
     icon: "lucide:activity",
     values: {
       provider: "grafana",
-      title: "Landscape Ingestion · Last 24h",
+      title: "Corridor Ingestion · Last 24h",
       eyebrow: "Grafana Operations",
       ratio: "16/9",
     },
@@ -103,7 +103,7 @@ const grafanaVue = `<tux-viz-embed
   provider="grafana"
   src="https://grafana.example.org/d/abc/dashboard?kiosk=tv"
   poster-src="/viz-poster-grafana.svg"
-  title="Landscape ingestion · last 24h"
+  title="Corridor ingestion · last 24h"
   eyebrow="grafana"
   ratio="16/9"
 />`;
@@ -205,13 +205,13 @@ const grafanaVue = `<tux-viz-embed
 
     <section>
       <p class="eyebrow">grafana</p>
-      <h2 class="heading--bold text-xl font-bold">Landscape ingestion dashboard</h2>
+      <h2 class="heading--bold text-xl font-bold">Corridor ingestion dashboard</h2>
       <TuxExample class="mt-4" :vue="grafanaVue" :source="tuxVizEmbedSource">
         <TuxVizEmbed
           provider="grafana"
           src="https://grafana.example.org/d/abc/dashboard?kiosk=tv"
           poster-src="/viz-poster-grafana.svg"
-          title="Landscape ingestion · last 24h"
+          title="Corridor ingestion · last 24h"
           eyebrow="grafana"
           ratio="16/9"
         >

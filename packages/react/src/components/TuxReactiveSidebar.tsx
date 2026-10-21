@@ -17,13 +17,14 @@ export interface TuxReactiveSidebarProps {
   exclusive?: boolean;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxReactiveSidebar: React.FC<TuxReactiveSidebarProps> = ({
-  sections, allSections, collapsed = false, activeAreaTitle, activeAreaIcon = "lucide:layers", search = true, searchPlaceholder, showAll = false, defaultExpanded = false, exclusive = false, children, className = ''
+  sections, allSections, collapsed = false, activeAreaTitle, activeAreaIcon = "lucide:layers", search = true, searchPlaceholder, showAll = false, defaultExpanded = false, exclusive = false, children, className = '', style
 }) => {
   return (
-    <nav className={`tux-reactive-sidebar ${className}`.trim()}>
+    <nav className={`tux-reactive-sidebar ${className}`.trim()} style={style}>
       {children}
     </nav>
   );

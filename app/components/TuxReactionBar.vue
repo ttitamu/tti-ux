@@ -113,7 +113,7 @@ function toggle(key: string) {
   padding: 0.375rem 0.625rem;
   background: transparent;
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md, 0.375rem);
   color: var(--text-muted);
   font-size: 0.75rem;
   cursor: pointer;

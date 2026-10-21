@@ -12,13 +12,14 @@ export interface TuxCommentThreadProps {
   size?: "sm" | "md";
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxCommentThread: React.FC<TuxCommentThreadProps> = ({
-  modelValue, authors, currentUser, hideResolved = true, size = "md", children, className = ''
+  modelValue, authors, currentUser, hideResolved = true, size = "md", children, className = '', style
 }) => {
   return (
-    <div className={`tux-comment-thread ${className}`.trim()}>
+    <div className={`tux-comment-thread ${className}`.trim()} data-size={size} style={style}>
       {children}
     </div>
   );

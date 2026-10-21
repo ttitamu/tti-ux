@@ -16,15 +16,19 @@ export interface TuxComposerProps {
   attachIcon?: string;
   cancelable?: boolean;
   cancelLabel?: string;
+  rows?: string;
+  variant?: "default" | "floating" | "compact";
+  autofocus?: boolean;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxComposer: React.FC<TuxComposerProps> = ({
-  modelValue, placeholder, models, modelId, maxLength = 32000, hint, hideAttach = false, attachLabel, attachIcon = "lucide:plus", cancelable = false, cancelLabel = "Cancel", children, className = ''
+  modelValue, placeholder, models, modelId, maxLength = 32000, hint, hideAttach = false, attachLabel, attachIcon = "lucide:plus", cancelable = false, cancelLabel = "Cancel", rows = "2", variant = "default", autofocus = false, children, className = '', style
 }) => {
   return (
-    <div className={`tux-composer ${className}`.trim()}>
+    <div className={`tux-composer ${className}`.trim()} data-variant={variant} style={style}>
       {children}
     </div>
   );

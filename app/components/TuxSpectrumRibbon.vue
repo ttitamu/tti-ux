@@ -42,11 +42,11 @@ const props = withDefaults(defineProps<Props>(), {
   rounded: false,
   ariaLabel: "TTI Institutional Brand Spectrum",
   bands: () => [
-    { name: "maroon", colorClass: "bg-spectrum-maroon", hex: "var(--color-spectrum-maroon, #701D35)", label: "Operations" },
-    { name: "blue", colorClass: "bg-spectrum-blue", hex: "var(--color-spectrum-blue, #566A8A)", label: "Infrastructure" },
-    { name: "teal", colorClass: "bg-spectrum-teal", hex: "var(--color-spectrum-teal, #66999B)", label: "Transit & Freight" },
-    { name: "green", colorClass: "bg-spectrum-green", hex: "var(--color-spectrum-green, #849974)", label: "Safety & Environment" },
-    { name: "gold", colorClass: "bg-spectrum-gold", hex: "var(--color-spectrum-gold, #E5B350)", label: "Policy & Economics" },
+    { name: "maroon", colorClass: "bg-spectrum-maroon", hex: "var(--color-spectrum-maroon, #701D35)", label: "Maroon" },
+    { name: "blue", colorClass: "bg-spectrum-blue", hex: "var(--color-spectrum-blue, #566A8A)", label: "Slate Blue" },
+    { name: "teal", colorClass: "bg-spectrum-teal", hex: "var(--color-spectrum-teal, #66999B)", label: "Slate Teal" },
+    { name: "green", colorClass: "bg-spectrum-green", hex: "var(--color-spectrum-green, #849974)", label: "Sage Green" },
+    { name: "gold", colorClass: "bg-spectrum-gold", hex: "var(--color-spectrum-gold, #E5B350)", label: "Ochre Gold" },
   ],
 });
 

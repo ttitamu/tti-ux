@@ -172,7 +172,7 @@ const virtualizedVue = `<TuxRichDataGrid
       title="TuxRichDataGrid"
     >
       Interactive data grid for operational and research-dashboard
-      surfaces — Landscape-class apps where the reader needs to
+      surfaces — Corridor-class apps where the reader needs to
       <em>act</em> on rows, not just read them. Anatomy adapted from
       Ant Design Table and Microsoft Fabric Rich-data-grid; identity
       stays TUX (Work Sans / JetBrains Mono, maroon focus, warm-

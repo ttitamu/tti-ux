@@ -31,6 +31,10 @@ class TuxRichDataGrid:
     density: str = "comfortable"
     pagination_label: Optional[str] = None
     pagination_tokens: Optional[str] = None
+    project_number: Optional[str] = None
+    doi: Optional[str] = None
+    citation: Optional[str] = None
+    show_unit_toggle: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-rich-data-grid">{content}</div>'

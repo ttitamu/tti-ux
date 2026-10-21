@@ -8,13 +8,14 @@ export interface TuxTableProps {
   statusAccessor?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxTable: React.FC<TuxTableProps> = ({
-  statusAccessor = "status", children, className = ''
+  statusAccessor = "status", children, className = '', style
 }) => {
   return (
-    <div className={`tux-table ${className}`.trim()}>
+    <div className={`tux-table ${className}`.trim()} style={style}>
       {children}
     </div>
   );

@@ -126,6 +126,20 @@ function extractTuxComponents(template: string): string[] {
   return Array.from(names).sort();
 }
 
+function toCamelAttr(attr: string): string {
+  if (attr.startsWith("aria-") || attr.startsWith("data-")) return attr;
+  return attr.replace(/-([a-zA-Z0-9])/g, (_, ch: string) => ch.toUpperCase());
+}
+
+function toReactEventProp(eventName: string): string {
+  const clean = eventName.split(".")[0] ?? eventName;
+  if (clean === "update:modelValue" || clean === "update:model-value") {
+    return "onChange";
+  }
+  const normalized = clean.replace(/:/g, "-");
+  return `on${pascal(normalized)}`;
+}
+
 function deriveReact(vue: string): string {
   if (!vue) return "";
   const components = extractTuxComponents(vue);
@@ -134,12 +148,64 @@ function deriveReact(vue: string): string {
       ? `import { ${components.join(", ")} } from "@tti/tti-ux-react";\n\n`
       : "";
 
-  const jsx = vue
+  let jsx = vue
     .replace(/<tux-([a-z0-9-]+)/g, (_, name) => `<${pascal(`tux-${name}`)}`)
-    .replace(/<\/tux-([a-z0-9-]+)>/g, (_, name) => `</${pascal(`tux-${name}`)}>`)
-    .replace(/:([a-zA-Z0-9_-]+)="true"/g, "$1")
-    .replace(/:([a-zA-Z0-9_-]+)="false"/g, "$1={false}")
-    .replace(/:([a-zA-Z0-9_-]+)="([^"]+)"/g, "$1={$2}")
+    .replace(/<\/tux-([a-z0-9-]+)>/g, (_, name) => `</${pascal(`tux-${name}`)}>`);
+
+  // Hoist named Vue slots (<template #slotName>...</template>) onto the enclosing Tux component as JSX props
+  const slotPropsToHoist: Array<{ propName: string; content: string }> = [];
+  jsx = jsx.replace(
+    /\n?\s*<template\s+(?:#|v-slot:)([a-zA-Z0-9_-]+)>([\s\S]*?)<\/template>\n?/g,
+    (_, rawSlotName: string, slotInner: string) => {
+      const propName = toCamelAttr(rawSlotName);
+      const trimmed = slotInner
+        .trim()
+        .replace(/\bclass="/g, 'className="')
+        .replace(/{{\s*([^}]+)\s*}}/g, "{$1}");
+      if (propName === "default") {
+        return `\n  ${trimmed}\n`;
+      }
+      slotPropsToHoist.push({ propName, content: trimmed });
+      return "\n";
+    },
+  );
+
+  if (slotPropsToHoist.length > 0) {
+    const propEntries = slotPropsToHoist
+      .map(({ propName, content }) => {
+        const indented = content
+          .split("\n")
+          .map((line) => `    ${line}`)
+          .join("\n");
+        return `  ${propName}={(\n${indented}\n  )}`;
+      })
+      .join("\n");
+    jsx = jsx.replace(/^(<Tux[A-Za-z0-9]+[\s\S]*?)(>)/, `$1\n${propEntries}\n$2`);
+  }
+
+  jsx = jsx
+    // v-model bindings
+    .replace(/\bv-model:([a-zA-Z0-9_-]+)="([^"]+)"/g, (_, name: string, expr: string) => `${toCamelAttr(name)}={${expr}}`)
+    .replace(/\bv-model="([^"]+)"/g, "value={$1} onChange={(e) => setValue(e.target.value)}")
+    // Vue @event and v-on:event listeners -> React onEvent={handler}
+    .replace(/(?:@|v-on:)([a-zA-Z0-9_:.-]+)="([^"]+)"/g, (_, evt: string, handler: string) => {
+      const reactProp = toReactEventProp(evt);
+      const trimmedHandler = handler.trim();
+      const isSimpleRefOrArrow =
+        /^[a-zA-Z_$][a-zA-Z0-9_$.]*$/.test(trimmedHandler) ||
+        trimmedHandler.startsWith("(") ||
+        trimmedHandler.includes("=>");
+      return `${reactProp}={${isSimpleRefOrArrow ? trimmedHandler : `() => { ${trimmedHandler}; }`}}`;
+    })
+    // Bound boolean and expression props (:kebab-prop="...")
+    .replace(/:([a-zA-Z0-9_-]+)="true"/g, (_, name: string) => toCamelAttr(name))
+    .replace(/:([a-zA-Z0-9_-]+)="false"/g, (_, name: string) => `${toCamelAttr(name)}={false}`)
+    .replace(/:([a-zA-Z0-9_-]+)="([^"]+)"/g, (_, name: string, expr: string) => `${toCamelAttr(name)}={${expr}}`)
+    // Static kebab-case attributes on JSX elements (preserving aria-* and data-*)
+    .replace(/\s([a-z]+(?:-[a-z0-9]+)+)=("/g, (match, name: string) => {
+      if (name.startsWith("aria-") || name.startsWith("data-")) return match;
+      return ` ${toCamelAttr(name)}="`;
+    })
     .replace(/\bclass="/g, 'className="')
     .replace(/{{\s*([^}]+)\s*}}/g, "{$1}");
 
@@ -151,6 +217,8 @@ function deriveWebComponent(vue: string): string {
   const wc = vue
     .replace(/<Tux([A-Za-z0-9]+)/g, (_, name) => `<tux-${kebab(name)}`)
     .replace(/<\/Tux([A-Za-z0-9]+)>/g, (_, name) => `</tux-${kebab(name)}>`)
+    .replace(/<template\s+(?:#|v-slot:)([a-zA-Z0-9_-]+)>([\s\S]*?)<\/template>/g, '<div slot="$1">$2</div>')
+    .replace(/(?:@|v-on:)([a-zA-Z0-9_:.-]+)="([^"]+)"/g, (_, evt: string, fn: string) => `on-${kebab(evt.replace(/:/g, "-"))}="${fn}"`)
     .replace(/:([a-zA-Z0-9_-]+)="true"/g, "$1")
     .replace(/:([a-zA-Z0-9_-]+)="false"/g, "")
     .replace(/:([a-zA-Z0-9_-]+)="'(.*?)'"/g, '$1="$2"')
@@ -167,6 +235,8 @@ function deriveRazor(vue: string): string {
   const tagHelper = vue
     .replace(/<Tux([A-Za-z0-9]+)/g, (_, name) => `<tux-${kebab(name)}`)
     .replace(/<\/Tux([A-Za-z0-9]+)>/g, (_, name) => `</tux-${kebab(name)}>`)
+    .replace(/<template\s+(?:#|v-slot:)([a-zA-Z0-9_-]+)>([\s\S]*?)<\/template>/g, '<div slot="$1">$2</div>')
+    .replace(/(?:@|v-on:)([a-zA-Z0-9_:.-]+)="([^"]+)"/g, (_, evt: string, fn: string) => `asp-on-${kebab(evt.replace(/:/g, "-"))}="@${fn}"`)
     .replace(/:([a-zA-Z0-9_-]+)="false"/g, '$1="@false"')
     .replace(/:([a-zA-Z0-9_-]+)="true"/g, '$1="@true"')
     .replace(/:([a-zA-Z0-9_-]+)="([^"]+)"/g, '$1="@($2)"')
@@ -176,11 +246,16 @@ function deriveRazor(vue: string): string {
   const blazor = vue
     .replace(/<tux-([a-z0-9-]+)/g, (_, name) => `<${pascal(`tux-${name}`)}`)
     .replace(/<\/tux-([a-z0-9-]+)>/g, (_, name) => `</${pascal(`tux-${name}`)}>`)
+    .replace(
+      /<template\s+(?:#|v-slot:)([a-zA-Z0-9_-]+)>([\s\S]*?)<\/template>/g,
+      (_, slotName: string, inner: string) => `<${pascal(slotName)}>${inner}</${pascal(slotName)}>`,
+    )
+    .replace(/(?:@|v-on:)([a-zA-Z0-9_:.-]+)="([^"]+)"/g, (_, evt: string, fn: string) => `On${pascal(evt.replace(/:/g, "-"))}="@${fn}"`)
     .replace(/:([a-zA-Z0-9_-]+)="true"/g, (_, name) => `${pascal(name)}="@true"`)
     .replace(/:([a-zA-Z0-9_-]+)="false"/g, (_, name) => `${pascal(name)}="@false"`)
     .replace(/:([a-zA-Z0-9_-]+)="([^"]+)"/g, (_, name, val) => `${pascal(name)}="@(${val})"`)
     .replace(/\b([a-z][a-zA-Z0-9_-]*)=/g, (match, name) => {
-      if (name === "class" || name === "style" || name === "id") return match;
+      if (name === "class" || name === "style" || name === "id" || name.startsWith("aria-") || name.startsWith("data-")) return match;
       return `${pascal(name)}=`;
     })
     .replace(/{{\s*([^}]+)\s*}}/g, "@($1)");

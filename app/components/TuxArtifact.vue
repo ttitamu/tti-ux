@@ -150,7 +150,7 @@ const icons: Record<ArtifactAction, string> = {
   min-width: 0;
   background: var(--surface-raised);
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   font-family: var(--font-body);
 }

@@ -15,13 +15,14 @@ export interface TuxPaperMetaProps {
   venue?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxPaperMeta: React.FC<TuxPaperMetaProps> = ({
-  doi, license, funders, published, version, type, pages, venue, children, className = ''
+  doi, license, funders, published, version, type, pages, venue, children, className = '', style
 }) => {
   return (
-    <dl className={`tux-paper-meta ${className}`.trim()}>
+    <dl className={`tux-paper-meta ${className}`.trim()} style={style}>
       {children}
     </dl>
   );

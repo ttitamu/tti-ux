@@ -37,26 +37,6 @@
       "kind": "web"
     },
     {
-      "id": "landscape",
-      "name": "Landscape",
-      "tagline": "Research data catalog & lifecycle",
-      "icon": "lucide:map",
-      "glyph": null,
-      "url": "https://landscape.tti.tamu.edu",
-      "audience": "entitled",
-      "kind": "web"
-    },
-    {
-      "id": "atlas",
-      "name": "Atlas",
-      "tagline": "M365 & Azure policy audit corpus",
-      "icon": "lucide:shield-check",
-      "glyph": null,
-      "url": "https://atlas.tti.tamu.edu",
-      "audience": "entitled",
-      "kind": "web"
-    },
-    {
       "id": "tti-code",
       "name": "TTI Code",
       "tagline": "Code, packages & boards",

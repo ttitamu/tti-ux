@@ -8,13 +8,14 @@ export interface TuxContextPanelProps {
   width?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxContextPanel: React.FC<TuxContextPanelProps> = ({
-  width = "320", children, className = ''
+  width = "320", children, className = '', style
 }) => {
   return (
-    <aside className={`tux-context-panel ${className}`.trim()}>
+    <aside className={`tux-context-panel ${className}`.trim()} style={style}>
       {children}
     </aside>
   );

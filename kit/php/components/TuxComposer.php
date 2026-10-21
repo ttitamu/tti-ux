@@ -18,6 +18,9 @@ final class TuxComposer
     public string $attachIcon = 'lucide:plus';
     public bool $cancelable = false;
     public string $cancelLabel = 'Cancel';
+    public string $rows = '2';
+    public string $variant = 'default';
+    public bool $autofocus = false;
 
     public function __construct(array $attributes = [])
     {

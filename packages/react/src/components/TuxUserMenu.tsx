@@ -16,13 +16,14 @@ export interface TuxUserMenuProps {
   statusLine?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxUserMenu: React.FC<TuxUserMenuProps> = ({
-  state, identity, signInHref, signInLabel, items, prefs, showSignOut = true, placement = "cluster", statusLine, children, className = ''
+  state, identity, signInHref, signInLabel, items, prefs, showSignOut = true, placement = "cluster", statusLine, children, className = '', style
 }) => {
   return (
-    <div className={`tux-user-menu ${className}`.trim()}>
+    <div className={`tux-user-menu ${className}`.trim()} style={style}>
       {children}
     </div>
   );

@@ -20,4 +20,8 @@
     [Parameter] public int Width { get; set; } = 800;
     [Parameter] public int Height { get; set; } = 140;
     [Parameter] public int TickEvery { get; set; } = 5;
+    [Parameter] public string TickFormat { get; set; } = "mile";
+    [Parameter] public string SyncChannel { get; set; };
+    [Parameter] public int ActiveMile { get; set; };
+    [Parameter] public bool InteractiveScrub { get; set; } = false;
 }

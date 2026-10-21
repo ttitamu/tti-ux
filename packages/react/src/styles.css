@@ -1,7 +1,7 @@
-/* @tti/tti-ux-react — consumer stylesheet entry.
- * Pulls the design tokens and component styles,
- * so data-theme switching works exactly as in the Nuxt layer. */
-@import "@tti/tti-ux/kit/css/tux-tokens.css";
+/* @tti/tti-ux-react — standalone consumer stylesheet entry.
+ * Pulls the self-contained design tokens and component styles,
+ * so data-theme switching works without installing @tti/tti-ux. */
+@import "./tux-tokens.css";
 @import "./components/tux-big-stat.css";
 @import "./components/tux-button.css";
 @import "./components/tux-badge.css";

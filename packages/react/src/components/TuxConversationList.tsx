@@ -9,13 +9,14 @@ export interface TuxConversationListProps {
   activeId?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxConversationList: React.FC<TuxConversationListProps> = ({
-  groups, activeId, children, className = ''
+  groups, activeId, children, className = '', style
 }) => {
   return (
-    <nav className={`tux-conversation-list ${className}`.trim()}>
+    <nav className={`tux-conversation-list ${className}`.trim()} style={style}>
       {children}
     </nav>
   );

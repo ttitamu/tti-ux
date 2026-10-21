@@ -5,7 +5,7 @@
  * Source: Microsoft Fabric "Suite header" pattern (see absorption notes
  * at reference/figma-cache/microsoft-fabric-ui-kit/NOTES.md §Absorb #3).
  * Lets users hop between TTI's portals without leaving their browser
- * tab — TTI ↔ my.TTI ↔ TUX docs ↔ Landscape ↔ Atlas ↔ TTI Code.
+ * tab — TTI ↔ my.TTI ↔ TUX docs ↔ TTI Code.
  *
  * Lives in `TuxAppFrame`'s `#right` slot (Tauri shells) or in
  * `TuxSiteNav`'s utility row (plain-web consumers). It's a single

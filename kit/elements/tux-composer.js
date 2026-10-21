@@ -4,7 +4,7 @@
  */
 export class TuxComposerElement extends HTMLElement {
   static get observedAttributes() {
-    return ["model-value", "placeholder", "models", "model-id", "max-length", "hint", "hide-attach", "attach-label", "attach-icon", "cancelable", "cancel-label"];
+    return ["model-value", "placeholder", "models", "model-id", "max-length", "hint", "hide-attach", "attach-label", "attach-icon", "cancelable", "cancel-label", "rows", "variant", "autofocus"];
   }
 
   constructor() {

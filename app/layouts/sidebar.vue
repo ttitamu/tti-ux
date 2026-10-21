@@ -10,7 +10,7 @@
 // TUX principle #1 is "editorial, not dashboard-y" — most pages stay
 // on the default passthrough layout + TuxSiteNav. This layout exists
 // for the exception: application surfaces where a persistent left rail
-// genuinely helps (Landscape dashboard, tti-ai-studio session, future
+// genuinely helps (Corridor analytics, tti-ai-studio session, future
 // research console).
 //
 // Opt in from any page:

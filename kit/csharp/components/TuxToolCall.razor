@@ -1,0 +1,19 @@
+@*
+ * TuxToolCall.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-tool-call">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Verb { get; set; };
+    [Parameter] public string Arg { get; set; };
+    [Parameter] public string Status { get; set; } = "completed";
+    [Parameter] public int ElapsedMs { get; set; };
+    [Parameter] public string Diff { get; set; };
+    [Parameter] public string Icon { get; set; };
+    [Parameter] public bool DefaultOpen { get; set; } = false;
+}

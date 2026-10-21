@@ -20,13 +20,15 @@ export interface TuxExampleProps {
   previewPadding?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxExample: React.FC<TuxExampleProps> = ({
-  vue, react, wc, razor, python, php, swift, kotlin, source, css, powerbi, title, previewPadding = "p-6", children, className = ''
+  vue, react, wc, razor, python, php, swift, kotlin, source, css, powerbi, title, previewPadding = "p-6", children, className = '', style
 }) => {
   return (
-    <div className={`tux-example ${className}`.trim()}>
+    <div className={`tux-example ${className}`.trim()} style={style}>
+      {title !== undefined && String(title) !== "" && <div className="tux-example__title" style={{ fontWeight: 600, color: "var(--text-primary, #191919)" }}>{String(title)}</div>}
       {children}
     </div>
   );

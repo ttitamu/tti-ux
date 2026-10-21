@@ -4,7 +4,7 @@
  * content without sidebar / navigation distraction.
  *
  * Absorbed from the Microsoft Teams UI Kit "Stage view" + "Lightbox
- * view" patterns. Use case for Landscape: "open this chart in focus
+ * view" patterns. Use case for Corridor Ops: "open this chart in focus
  * mode" — a chart-frame the researcher can pin full-screen with a
  * back button + title + optional actions, dismissing returns to the
  * original page.

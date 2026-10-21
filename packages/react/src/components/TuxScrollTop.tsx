@@ -10,13 +10,14 @@ export interface TuxScrollTopProps {
   ariaLabel?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxScrollTop: React.FC<TuxScrollTopProps> = ({
-  threshold = 160, position = "bottom-right", ariaLabel, children, className = ''
+  threshold = 160, position = "bottom-right", ariaLabel, children, className = '', style
 }) => {
   return (
-    <button className={`tux-scroll-top ${className}`.trim()}>
+    <button className={`tux-scroll-top ${className}`.trim()} style={style}>
       {children}
     </button>
   );

@@ -18,7 +18,7 @@
  * tables, task lists, code-block syntax highlighting, typography
  * substitutions, full-screen mode, word / character count, save
  * keyboard shortcut. Designed so consumers across the TTI stack
- * (Landscape, tti-ai-studio, docs.it.tamu.edu admin, internal CMS
+ * (TTI Code, tti-ai-studio, docs.it.tamu.edu admin, internal CMS
  * surfaces) can adopt one shared editor with one shared chrome.
  *
  * **v-model binds HTML** (not markdown). Host owns sanitization on

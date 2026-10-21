@@ -85,6 +85,30 @@ export const resolveIssueSchema = z.object({
   note: z.string().trim().max(2000, "Resolution note must be at most 2000 characters").optional(),
 });
 
+export const forgejoAuthSchema = z.object({
+  action: z.enum(["signin", "signout"]).default("signin"),
+  token: z.string().trim().max(256, "Token exceeds maximum length").optional(),
+});
+
+export const forgejoSubmissionSchema = z.object({
+  kind: z.enum(["bug", "idea"], {
+    required_error: "Submission kind (bug or idea) is required",
+  }),
+  title: z
+    .string({ required_error: "Title is required" })
+    .trim()
+    .min(5, "Title must be at least 5 characters")
+    .max(200, "Title must be at most 200 characters"),
+  summary: z
+    .string({ required_error: "Summary is required" })
+    .trim()
+    .min(10, "Summary must be at least 10 characters")
+    .max(4000, "Summary must be at most 4000 characters"),
+  componentOrRoute: z.string().trim().max(160).optional(),
+  category: z.string().trim().max(80).optional(),
+  details: z.string().trim().max(4000).optional(),
+});
+
 export function parseOrThrow<T>(schema: z.ZodSchema<T>, data: unknown): T {
   const result = schema.safeParse(data);
   if (!result.success) {

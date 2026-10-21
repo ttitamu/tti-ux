@@ -151,7 +151,7 @@ function remove(id: string) {
       <p class="mt-2 text-text-secondary leading-relaxed">
         The pattern above stops at the UI surface. Actual upload
         flow (chunked PUTs, retry, abort) lives in the host app.
-        For Landscape, the agent ingests files on disk; this surface
+        For Corridor Ops, the agent ingests files on disk; this surface
         applies to the admin UI's "register a corpus document" path.
         Standard browser file APIs apply — <code>File</code> +
         <code>FormData</code> + <code>fetch</code>, or your S3 SDK.

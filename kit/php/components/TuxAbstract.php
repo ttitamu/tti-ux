@@ -14,6 +14,12 @@ final class TuxAbstract
     public string $keywords;
     public string $variant = 'structured';
     public int $level = 4;
+    public string $plainSummary;
+    public string $policyTakeaways;
+    public string $doi;
+    public string $projectNumber;
+    public string $citation;
+    public string $division;
 
     public function __construct(array $attributes = [])
     {

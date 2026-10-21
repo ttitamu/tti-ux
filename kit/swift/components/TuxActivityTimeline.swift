@@ -6,6 +6,8 @@ import SwiftUI
 public struct TuxActivityTimeline<Content: View>: View {
     public var items: String
     public var dense: Bool = false
+    public var syncChannel: String
+    public var division: String
     private let content: Content
 
     public init(

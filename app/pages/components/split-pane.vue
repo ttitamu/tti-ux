@@ -16,7 +16,7 @@ const showBottom = ref(true);
 
 const basicVue = `<tux-split-pane
   v-model="selected"
-  id="landscape-records"
+  id="corridor-records"
 >
   <template #list>
     <ul>
@@ -94,7 +94,7 @@ const basicVue = `<tux-split-pane
                   </TuxBadge>
                 </p>
                 <p class="mt-3 text-sm text-text-secondary">
-                  In a real Landscape surface, this slot would render
+                  In a real Corridor Ops surface, this slot would render
                   the record's full detail — methodology, dataset,
                   findings, downloadable artifacts.
                 </p>

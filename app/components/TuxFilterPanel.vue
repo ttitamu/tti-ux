@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // TuxFilterPanel — left-rail facet panel for list pages.
 //
-// Landscape's results UI lives or dies on this. Multiple facet groups (Owner,
+// Corridor Ops' results UI lives or dies on this. Multiple facet groups (Owner,
 // Type, Extension, Access tier, Grant ID, Retention class), each collapsible,
 // each with a checkbox list + counts. Applied filters surface as chips at
 // the top so the user can scan + remove without scrolling.

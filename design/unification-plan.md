@@ -2,7 +2,7 @@
 
 > **Status:** doctrine (2026-07-28, reconstructed + extended 2026-07-30).
 > The cross-portal unification plan for the TTI product family —
-> **Landscape** (landscape.tti.tamu.edu), **TTI Code**
+> **Corridor Ops** (ux.tti.tamu.edu), **TTI Code**
 > (code.tti.tamu.edu), the **TUX docs site**, and **TTI AI Studio**
 > (Tauri desktop) — plus the satellite consumers (TTI docs platform,
 > Power BI reporting, external collaboration stacks). The original v4
@@ -76,7 +76,7 @@ exactly one blessed home in each:
 
 | Shell shape | Products | Waffle (app switcher) | Identity/account |
 |---|---|---|---|
-| **Site shape** — global top header | Landscape, TTI Code, TUX docs | Top-right, **second-from-last** | **Last** item, top-right (`TuxUserMenu placement="cluster"`) |
+| **Site shape** — global top header | Corridor Ops, TTI Code, TUX docs | Top-right, **second-from-last** | **Last** item, top-right (`TuxUserMenu placement="cluster"`) |
 | **Workbench shape** — persistent left rail | TTI AI Studio | Titlebar, second-from-last | **Rail footer** (`TuxUserMenu placement="rail-footer"`) — the Copilot/Claude/ChatGPT genre convention |
 
 There is **never a third home**. Component anatomy and menu content
@@ -116,7 +116,7 @@ same order, same behavior. Products differentiate through their
   not-entitled portal renders a visible tile with a lock and a
   request-access affordance, never a dead-disabled tile; a
   **non-discoverable** one is hidden entirely. **TTI Code ships the
-  non-discoverable branch for Landscape (2026-08-30)** — the tile is
+  non-discoverable branch for Corridor Ops (2026-08-30)** — the tile is
   never baked into the page and never published in the anonymous
   registry artifact, and is added per-caller by a server-side resolver
   keyed on Entra security-group membership. That resolver is the first
@@ -263,7 +263,7 @@ vendor the artifact verbatim and reference canonical names.
 |---|---|---|
 | 2026-07-28 | Pre-flight | v1.6.1 — `TuxAppSwitcher` A2b semantic pre-flight (registry order, focusable current tile, list semantics, same-tab default) + `TuxSiteNav` focus-restoration fix (A2c) + dependency hygiene. Consumers moved from sibling-checkout `file:` deps to pinned git tags. |
 | 2026-07-28 | v1.7.0 "suite chrome" | `design/apps.json` + `useTuxApps()` registry, `TuxUtilityCluster`, `TuxUserMenu` (cluster + rail-footer), registry-invariant unit tests, docs site dogfoods the cluster. |
-| 2026-07-28 | B1 (Landscape) | One `LandscapeUtilityCluster` wrapper wires the cluster + identity + waffle; triplicated layout chrome deleted. **Two portals wear the family chrome** (docs site + Landscape). |
+| 2026-07-28 | B1 (Corridor Ops) | One `PortalUtilityCluster` wrapper wires the cluster + identity + waffle; triplicated layout chrome deleted. **Two portals wear the family chrome** (docs site + Corridor Ops). |
 | 2026-07-28 | B3 handoff | AI Studio's unification work (allowlisted opener, titlebar waffle, rail-footer identity, single-instance) handed to its own dedicated workstream. One session per working tree. |
 | 2026-07-30 | Plan reconstruction | This document committed; estate survey folded in; owner decisions #1–4 below resolved. v1.7.1: catalog single-source (`app/utils/tuxCatalog.ts` + invariant test), doc truth pass, tests wired into CI. |
 | **done** (2026-08-28) | B2 (TTI Code) | Landed in forgejo-stack (PRs #74–#81): kit artifact vendored verbatim + full ~280-var forgejo bridge; shell fragments consolidated (`tux-shell.{css,js}` — one navbar/footer/theme-boot for every standalone page, live-mirrored from the forge navbar); waffle shipped as the ratified server-rendered partial baked from `design/apps.json`; `/launch/ai-studio` interstitial live behind Caddy; overlay integrity manifest written at apply + `audit-overlay.sh` drift check. Remaining nuance: vendoring is pin+copy with a recorded ref (VENDORED.md), not deploy-from-git-ref. `tti-hc` shipped on all portal pages (footer seat per ADR-0006). |
@@ -313,7 +313,7 @@ move to the laws above with a date.
 |---|---|---|
 | 1 | **Family name** — waffle heading ships as "TTI Portals"; the umbrella marketing name ("TTI Research Suite"? "TTI Tools"?) is unratified | open |
 | 2 | **Light-mode family signature** — editorial-white chrome + maroon wordmark + gold keyline + tracked eyebrow, incl. whether TTI Code keeps its maroon navbar or adopts the white chrome | **ratified 2026-08-27 — TTI Code retired the maroon navbar and adopted the editorial white/warm-black chrome (TuxSiteNav recipe); maroon survives as `--brand-fill` surfaces per the on-brand rule** |
-| 3 | **Landscape anonymous surface** — purpose-built anonymous endpoints vs authenticated-only (path-exclusion on the auth proxy was reviewed and **withdrawn as unsafe**) | open |
+| 3 | **Corridor Ops anonymous surface** — purpose-built anonymous endpoints vs authenticated-only (path-exclusion on the auth proxy was reviewed and **withdrawn as unsafe**) | open |
 | 4 | ~~**AI Studio in the anonymous waffle**~~ — **withdrawn 2026-08-30**: the AI Studio tile was retired from the roster (owner call); the `/launch/ai-studio` interstitial and the desktop-link law both survive | withdrawn |
 | 5 | **Follow-OS theme default for web portals** (+ maroon floor); desktop shell already ratified follow-OS | open |
 | 6 | **Classification-banner scope** — which portals carry the data-classification banner (compliance question) | open |

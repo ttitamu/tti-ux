@@ -151,3 +151,27 @@ function tti_ux_shortcode_staleness($atts) {
     );
 }
 add_shortcode('tux_staleness', 'tti_ux_shortcode_staleness');
+
+/**
+ * Shortcode: [tux_spectrum_ribbon size="sm"]
+ * Renders the 5-band institutional brand color spectrum ribbon (Maroon, Slate Blue, Slate Teal, Sage Green, Ochre Gold).
+ */
+function tti_ux_shortcode_spectrum_ribbon($atts) {
+    $a = shortcode_atts(array(
+        'size' => 'sm',
+    ), $atts, 'tux_spectrum_ribbon');
+
+    $height = $a['size'] === 'lg' ? '8px' : ($a['size'] === 'md' ? '6px' : '4px');
+
+    return sprintf(
+        '<div class="tux-spectrum-ribbon" role="presentation" aria-hidden="true" style="display: flex; width: 100%%; height: %s; overflow: hidden;">
+            <div style="flex: 1; background-color: #500000;"></div>
+            <div style="flex: 1; background-color: #1B5E87;"></div>
+            <div style="flex: 1; background-color: #28616E;"></div>
+            <div style="flex: 1; background-color: #386B43;"></div>
+            <div style="flex: 1; background-color: #85620A;"></div>
+        </div>',
+        esc_attr($height)
+    );
+}
+add_shortcode('tux_spectrum_ribbon', 'tti_ux_shortcode_spectrum_ribbon');

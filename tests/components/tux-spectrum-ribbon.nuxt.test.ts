@@ -54,7 +54,7 @@ describe("TuxSpectrumRibbon Component", () => {
     expect(violations).toEqual([]);
   });
 
-  it("renders textual division labels when showLabels is enabled on large sizes", async () => {
+  it("renders textual band labels when showLabels is enabled on large sizes", async () => {
     const wrapper = await mountSuspended(TuxSpectrumRibbon, {
       props: {
         size: "xl",
@@ -62,11 +62,11 @@ describe("TuxSpectrumRibbon Component", () => {
       },
     });
 
-    expect(wrapper.text()).toContain("Operations");
-    expect(wrapper.text()).toContain("Infrastructure");
-    expect(wrapper.text()).toContain("Transit & Freight");
-    expect(wrapper.text()).toContain("Safety & Environment");
-    expect(wrapper.text()).toContain("Policy & Economics");
+    expect(wrapper.text()).toContain("Maroon");
+    expect(wrapper.text()).toContain("Slate Blue");
+    expect(wrapper.text()).toContain("Slate Teal");
+    expect(wrapper.text()).toContain("Sage Green");
+    expect(wrapper.text()).toContain("Ochre Gold");
 
     const violations = await runComponentAxe(wrapper.element);
     expect(violations).toEqual([]);

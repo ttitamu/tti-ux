@@ -13,13 +13,14 @@ export interface TuxSiteNavProps {
   ariaLabel?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxSiteNav: React.FC<TuxSiteNavProps> = ({
-  identity, primaryNav, utilityNav, search = false, sticky = false, ariaLabel, children, className = ''
+  identity, primaryNav, utilityNav, search = false, sticky = false, ariaLabel, children, className = '', style
 }) => {
   return (
-    <header className={`tux-site-nav ${className}`.trim()}>
+    <header className={`tux-site-nav ${className}`.trim()} style={style}>
       {children}
     </header>
   );

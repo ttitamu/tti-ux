@@ -4,7 +4,7 @@
  */
 export class TuxAbstractElement extends HTMLElement {
   static get observedAttributes() {
-    return ["background", "methods", "results", "conclusion", "keywords", "variant", "level"];
+    return ["background", "methods", "results", "conclusion", "keywords", "variant", "level", "plain-summary", "policy-takeaways", "doi", "project-number", "citation", "division"];
   }
 
   constructor() {

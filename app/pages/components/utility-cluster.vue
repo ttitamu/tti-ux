@@ -25,7 +25,7 @@ const localOnly = {
 const errored = { state: "error" as const, identity: { name: "Unknown" } };
 
 const clusterVue = `<tux-utility-cluster
-  current="landscape"
+  current="tux"
   :signed-in="identity.authenticated"
   :user-menu="{ state, identity, items, prefs }"
   @sign-out="signOut()"

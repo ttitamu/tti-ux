@@ -58,6 +58,18 @@ const headerSnippet = `<TuxPortalHeader
   @action-click="onAction"
 />`;
 
+const headerReactSnippet = `import { TuxPortalHeader } from "@tti/tti-ux-react";
+
+<TuxPortalHeader
+  portalTitle="Connected Corridors Initiative"
+  portalBadge="Lab Portal"
+  portalBadgeVariant="gold"
+  navItems={navItems}
+  actionText="Launch Portal"
+  onSearchClick={onSearch}
+  onActionClick={onAction}
+/>`;
+
 const shellSnippet = `<TuxPortalShell
   portal-title="Connected Corridors Initiative"
   portal-badge="Live Telemetry"
@@ -75,6 +87,29 @@ const shellSnippet = `<TuxPortalShell
   </template>
 
   <div class="space-y-6">
+    <TuxSectionHeader variant="institutional">Corridor Status</TuxSectionHeader>
+    <p>Main content area adhering to standard or wide container rules.</p>
+  </div>
+</TuxPortalShell>`;
+
+const shellReactSnippet = `import { TuxPortalShell, TuxSectionHeader } from "@tti/tti-ux-react";
+
+<TuxPortalShell
+  portalTitle="Connected Corridors Initiative"
+  portalBadge="Live Telemetry"
+  navItems={navItems}
+  breadcrumbs={breadcrumbs}
+  actionText="Access Data"
+  onSearchClick={onSearch}
+  onActionClick={onAction}
+  onFeedbackClick={onFeedback}
+  hero={
+    <div className="bg-brand-primary text-white py-12 px-6">
+      <h1 className="text-3xl font-bold">Research Portal Hero</h1>
+    </div>
+  }
+>
+  <div className="space-y-6">
     <TuxSectionHeader variant="institutional">Corridor Status</TuxSectionHeader>
     <p>Main content area adhering to standard or wide container rules.</p>
   </div>
@@ -140,7 +175,7 @@ const shellSnippet = `<TuxPortalShell
         <div>{{ lastActionEvent || 'No CTA clicked yet' }}</div>
       </div>
 
-      <TuxExample :vue="headerSnippet" :source="tuxPortalHeaderSource" />
+      <TuxExample :vue="headerSnippet" :react="headerReactSnippet" :source="tuxPortalHeaderSource" />
     </section>
 
     <!-- Section 2: Full Turnkey Shell -->
@@ -201,7 +236,7 @@ const shellSnippet = `<TuxPortalShell
         {{ lastFeedbackEvent }}
       </div>
 
-      <TuxExample :vue="shellSnippet" :source="tuxPortalShellSource" />
+      <TuxExample :vue="shellSnippet" :react="shellReactSnippet" :source="tuxPortalShellSource" />
     </section>
 
     <!-- Section 3: Architecture & Comm Alignment -->

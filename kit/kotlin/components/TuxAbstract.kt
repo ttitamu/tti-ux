@@ -18,6 +18,12 @@ fun TuxAbstract(
     keywords: String,
     variant: String = "structured",
     level: Int = 4,
+    plainSummary: String,
+    policyTakeaways: String,
+    doi: String,
+    projectNumber: String,
+    citation: String,
+    division: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

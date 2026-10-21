@@ -4,7 +4,7 @@
  */
 export class TuxCorridorStripElement extends HTMLElement {
   static get observedAttributes() {
-    return ["name", "from-mile", "to-mile", "segments", "events", "values", "values-label", "direction", "width", "height", "tick-every"];
+    return ["name", "from-mile", "to-mile", "segments", "events", "values", "values-label", "direction", "width", "height", "tick-every", "tick-format", "sync-channel", "active-mile", "interactive-scrub"];
   }
 
   constructor() {

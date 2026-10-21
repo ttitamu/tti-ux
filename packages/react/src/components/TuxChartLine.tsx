@@ -21,13 +21,14 @@ export interface TuxChartLineProps {
   yTicks?: number;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxChartLine: React.FC<TuxChartLineProps> = ({
-  labels, series, width = 640, height = 280, markers = false, distinctMarkers = true, markerRadius = 3.5, palette = "brand", strokeWidth = 2, patterns = false, endLabels = true, legend = false, gridlines = true, yTicks = 5, children, className = ''
+  labels, series, width = 640, height = 280, markers = false, distinctMarkers = true, markerRadius = 3.5, palette = "brand", strokeWidth = 2, patterns = false, endLabels = true, legend = false, gridlines = true, yTicks = 5, children, className = '', style
 }) => {
   return (
-    <figure className={`tux-chart-line ${className}`.trim()}>
+    <figure className={`tux-chart-line ${className}`.trim()} style={style}>
       {children}
     </figure>
   );

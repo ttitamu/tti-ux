@@ -32,13 +32,15 @@ export interface TuxEditorialArticleProps {
   to: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxEditorialArticle: React.FC<TuxEditorialArticleProps> = ({
-  title, category, dek, date, dateLabel, readTime, author, authors, heroImage, heroAlt, heroCaption, heroLayout = "boxed", stats, highlights, citation, toc = true, tocTarget = "#article-body", showReadingProgress = true, showScrollTop = true, showShare = true, tags, contact, backTo, label, to, children, className = ''
+  title, category, dek, date, dateLabel, readTime, author, authors, heroImage, heroAlt, heroCaption, heroLayout = "boxed", stats, highlights, citation, toc = true, tocTarget = "#article-body", showReadingProgress = true, showScrollTop = true, showShare = true, tags, contact, backTo, label, to, children, className = '', style
 }) => {
   return (
-    <div className={`tux-editorial-article ${className}`.trim()}>
+    <div className={`tux-editorial-article ${className}`.trim()} style={style}>
+      {title !== undefined && String(title) !== "" && <div className="tux-editorial-article__title" style={{ fontWeight: 600, color: "var(--text-primary, #191919)" }}>{String(title)}</div>}
       {children}
     </div>
   );

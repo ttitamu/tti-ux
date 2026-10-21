@@ -94,11 +94,24 @@ const componentCategories: PortedCategory[] = [
   {
     category: "Navigation & Content Structure",
     components: [
+      { name: "TuxPortalShell", slug: "portal-shell", blurb: "Turnkey two-tier institutional shell with header, hero, breadcrumbs, and footer", keyProps: "portalTitle, navItems, breadcrumbs, hero" },
+      { name: "TuxPortalHeader", slug: "portal-shell", blurb: "Two-tier maroon/charcoal utility bar and brand navigation ribbon", keyProps: "mode, portalTitle, navItems, onSearchClick" },
+      { name: "TuxSidebar / TuxDocsSidebar", slug: "docs-sidebar", blurb: "Collapsible hierarchical navigation sidebar with live search filter", keyProps: "tree, activePath, search, exclusiveTopLevel" },
+      { name: "TuxSidebarBlock", slug: "sidebar-block", blurb: "Stacked sidebar module block with eyebrow, heading, and variant styling", keyProps: "title, eyebrow, variant, footer" },
       { name: "TuxBreadcrumbs", slug: "breadcrumbs", blurb: "Hierarchical page navigation with maroon origin crumb", keyProps: "trail, homeIcon, chevron" },
       { name: "TuxTabs", slug: "tabs", blurb: "Accessible WAI-ARIA tabs with maroon underline indicators", keyProps: "items, value, onChange" },
       { name: "TuxAccordion", slug: "accordion", blurb: "Accessible disclosure groups with native details/summary", keyProps: "items, kind, single" },
       { name: "TuxLinkList", slug: "link-list", blurb: "Categorized resource links with external markers", keyProps: "groups, layout, columns" },
       { name: "TuxLinkSlab", slug: "link-slab", blurb: "Full-width section navigation bands with tone treatments", keyProps: "links, tone, ariaLabel" },
+    ],
+  },
+  {
+    category: "AI & Brand Primitives",
+    components: [
+      { name: "TuxSpectrumRibbon", slug: "spectrum-ribbon", blurb: "5-band institutional color bar across the TTI research spectrum", keyProps: "height, showLabels, interactive" },
+      { name: "TuxGroundedSources", slug: "grounded-sources", blurb: "Expandable AI citation pill strip with source verification cards", keyProps: "sources, title, defaultOpen" },
+      { name: "TuxReasoning", slug: "reasoning", blurb: "Collapsible chain-of-thought reasoning trace disclosure", keyProps: "summary, steps, streaming, durationMs" },
+      { name: "TuxToolCall", slug: "tool-call", blurb: "Structured AI tool invocation card with input/output inspection", keyProps: "name, status, input, output" },
     ],
   },
   {
@@ -127,7 +140,7 @@ const componentCategories: PortedCategory[] = [
         <div class="flex items-center gap-2 pt-1">
           <TuxBadge tone="success" variant="soft" class="font-mono text-xs">
             <UIcon name="lucide:check-circle-2" class="w-3.5 h-3.5 inline mr-1 text-emerald-500" />
-            26 Native TSX Primitives
+            Standalone Zero-Vue Dependency Tree
           </TuxBadge>
           <TuxBadge tone="brand" variant="soft" class="font-mono text-xs">
             React 18 / 19

@@ -20,6 +20,8 @@ final class TuxBadge
     public bool $uppercase = false;
     public string $shape = 'default';
     public bool $glyph = false;
+    public string $los;
+    public string $division;
 
     public function __construct(array $attributes = [])
     {

@@ -13,6 +13,7 @@ final class TuxPageHeader
     public string $tone = 'plain';
     public string $rhythm = 'compact';
     public string $variant = 'default';
+    public string $division;
 
     public function __construct(array $attributes = [])
     {

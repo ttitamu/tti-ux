@@ -28,6 +28,10 @@ public struct TuxRichDataGrid<Content: View>: View {
     public var density: String = "comfortable"
     public var paginationLabel: String
     public var paginationTokens: String
+    public var projectNumber: String
+    public var doi: String
+    public var citation: String
+    public var showUnitToggle: Bool = false
     private let content: Content
 
     public init(

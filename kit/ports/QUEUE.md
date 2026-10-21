@@ -48,6 +48,7 @@ with a matching source hash in manifest.json.
 | TuxChatMessage | react | never ported |
 | TuxCitationExport | react | never ported |
 | TuxCitations | react | never ported |
+| TuxCodeBlock | react | STALE (source moved since port) |
 | TuxCodeMaroon | react | never ported |
 | TuxCommandPalette | react | never ported |
 | TuxCommentThread | react | never ported |
@@ -60,8 +61,8 @@ with a matching source hash in manifest.json.
 | TuxCookieConsent | react | never ported |
 | TuxCorridorStrip | react | never ported |
 | TuxDataTable | react | never ported |
+| TuxDescriptionList | react | STALE (source moved since port) |
 | TuxDiagram | react | never ported |
-| TuxDocsSidebar | react | never ported |
 | TuxDocsSidebarNode | react | never ported |
 | TuxErrorPage | react | never ported |
 | TuxExample | react | never ported |
@@ -116,7 +117,6 @@ with a matching source hash in manifest.json.
 | TuxSearch | react | never ported |
 | TuxSectionHeader | react | STALE (source moved since port) |
 | TuxShortcutsHelp | react | never ported |
-| TuxSidebarBlock | react | never ported |
 | TuxSignupFeature | react | never ported |
 | TuxSiteNav | react | never ported |
 | TuxSlideover | react | never ported |
@@ -149,13 +149,10 @@ with a matching source hash in manifest.json.
 | TuxRecordHighlights | react | never ported |
 | TuxFrameworkSwitcher | react | never ported |
 | TuxPlayground | react | never ported |
-| TuxPortalHeader | react | never ported |
-| TuxPortalShell | react | never ported |
 | TuxCapabilityCluster | react | never ported |
 | TuxCommHero | react | never ported |
 | TuxEventCalendarRow | react | never ported |
 | TuxSpectrumFacts | react | never ported |
-| TuxSpectrumRibbon | react | never ported |
 | TuxTileGrid | react | never ported |
 | TuxChatBubble | react | never ported |
 | TuxScrollTop | react | never ported |

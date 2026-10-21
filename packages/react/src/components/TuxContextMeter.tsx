@@ -10,13 +10,14 @@ export interface TuxContextMeterProps {
   breakdown?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxContextMeter: React.FC<TuxContextMeterProps> = ({
-  used, max, breakdown, children, className = ''
+  used, max, breakdown, children, className = '', style
 }) => {
   return (
-    <div className={`tux-context-meter ${className}`.trim()}>
+    <div className={`tux-context-meter ${className}`.trim()} style={style}>
       {children}
     </div>
   );

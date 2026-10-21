@@ -19,7 +19,7 @@ author: R. Chen
 
 # How the agent watcher works
 
-Landscape's file watcher is the long-running process on each agent host
+Corridor Ops' file watcher is the long-running process on each agent host
 that detects file events (create / modify / delete / move) and ships
 them to the central index.
 
@@ -57,7 +57,7 @@ const debounced = debounce(events, { window: 250 });
 Run it locally:
 
 \`\`\`bash
-$ landscape agent watch /research/grants --root=local
+$ corridor agent watch /research/grants --root=local
 [12:14:08] watcher: 4 paths registered
 [12:14:09] heartbeat: ok (latency 38ms)
 \`\`\`
@@ -202,7 +202,7 @@ A :badge[ITAR]{kind=\&quot;tag\&quot;} flag here.
         <li>
           <strong>Mix freely</strong> — a Vue page can render an
           <code>&lt;MDC :value="..." /&gt;</code> block for the prose
-          section and Vue components for the chrome. The Landscape docs
+          section and Vue components for the chrome. The Corridor docs
           site does this for product overviews.
         </li>
       </ul>

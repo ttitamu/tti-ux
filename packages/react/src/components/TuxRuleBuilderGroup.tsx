@@ -10,13 +10,14 @@ export interface TuxRuleBuilderGroupProps {
   isRoot?: boolean;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxRuleBuilderGroup: React.FC<TuxRuleBuilderGroupProps> = ({
-  modelValue, depth, isRoot = false, children, className = ''
+  modelValue, depth, isRoot = false, children, className = '', style
 }) => {
   return (
-    <div className={`tux-rule-builder-group ${className}`.trim()}>
+    <div className={`tux-rule-builder-group ${className}`.trim()} style={style}>
       {children}
     </div>
   );

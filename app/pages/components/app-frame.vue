@@ -4,14 +4,14 @@ useHead({ title: "TuxAppFrame · TUX" });
 const platform = useTuxPlatform();
 
 const basicVue = `<tux-app-frame
-  title="Landscape"
+  title="Corridor Ops"
   eyebrow="research dashboard"
   :force-chrome="true"
 />`;
 
-const withSlotsVue = `<tux-app-frame title="Landscape" :force-chrome="true">
+const withSlotsVue = `<tux-app-frame title="Corridor Ops" :force-chrome="true">
   <template #left>
-    <span class="font-bold text-brand-primary">TTI · Landscape</span>
+    <span class="font-bold text-brand-primary">TTI · Corridor Ops</span>
   </template>
   <template #center>
     <UInput placeholder="Search…" icon="lucide:search" size="sm" />
@@ -50,7 +50,7 @@ const withSlotsVue = `<tux-app-frame title="Landscape" :force-chrome="true">
       </p>
       <TuxExample class="mt-4" :vue="basicVue">
         <TuxAppFrame
-          title="Landscape"
+          title="Corridor Ops"
           eyebrow="research dashboard"
           :force-chrome="true"
         />
@@ -68,7 +68,7 @@ const withSlotsVue = `<tux-app-frame title="Landscape" :force-chrome="true">
       <TuxExample class="mt-4" :vue="withSlotsVue">
         <TuxAppFrame :force-chrome="true">
           <template #left>
-            <span class="font-bold text-brand-primary">TTI · Landscape</span>
+            <span class="font-bold text-brand-primary">TTI · Corridor Ops</span>
           </template>
           <template #center>
             <UInput placeholder="Search…" icon="lucide:search" size="sm" class="w-72" />

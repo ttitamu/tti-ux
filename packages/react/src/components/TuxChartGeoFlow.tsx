@@ -9,13 +9,14 @@ export interface TuxChartGeoFlowProps {
   flowLegend: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxChartGeoFlow: React.FC<TuxChartGeoFlowProps> = ({
-  flows, flowLegend, children, className = ''
+  flows, flowLegend, children, className = '', style
 }) => {
   return (
-    <svg className={`tux-chart-geo-flow ${className}`.trim()}>
+    <svg className={`tux-chart-geo-flow ${className}`.trim()} style={style}>
       {children}
     </svg>
   );

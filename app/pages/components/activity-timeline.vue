@@ -27,7 +27,7 @@ const denseVue = `<tux-activity-timeline :items="feed" dense />`;
     <TuxPageHeader eyebrow="component · content" title="TuxActivityTimeline">
       Editorial vertical timeline — a maroon spine, mono timestamps,
       a gold-ringed "current" node. The activity-rail shape that
-      program pages (milestones), Landscape dashboards (ingest and
+      program pages (milestones), Corridor analyticss (ingest and
       agent activity), and tti-ai-studio (session history) each
       sketch by hand today. Stateless: the host owns the feed, this
       renders it.
@@ -55,7 +55,7 @@ const denseVue = `<tux-activity-timeline :items="feed" dense />`;
       <h2 class="heading--bold text-xl font-bold">Activity feed, rail posture</h2>
       <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
         <code>dense</code> tightens the rhythm for a sidebar or
-        <code>#aside</code> rail — the Landscape recent-activity tile
+        <code>#aside</code> rail — the Corridor Ops recent-activity tile
         shape. Dot markers only; timestamps carry the cadence.
       </p>
       <TuxExample class="mt-4" :vue="denseVue">

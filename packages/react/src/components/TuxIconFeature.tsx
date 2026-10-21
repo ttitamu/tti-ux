@@ -10,13 +10,14 @@ export interface TuxIconFeatureProps {
   columns?: number;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxIconFeature: React.FC<TuxIconFeatureProps> = ({
-  items, layout = "grid", columns = 3, children, className = ''
+  items, layout = "grid", columns = 3, children, className = '', style
 }) => {
   return (
-    <ul className={`tux-icon-feature ${className}`.trim()}>
+    <ul className={`tux-icon-feature ${className}`.trim()} style={style}>
       {children}
     </ul>
   );

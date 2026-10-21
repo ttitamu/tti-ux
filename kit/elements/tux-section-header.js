@@ -4,7 +4,7 @@
  */
 export class TuxSectionHeaderElement extends HTMLElement {
   static get observedAttributes() {
-    return ["level", "title", "secondary-title", "subtitle", "kicker", "variant"];
+    return ["level", "title", "secondary-title", "subtitle", "kicker", "variant", "division"];
   }
 
   constructor() {

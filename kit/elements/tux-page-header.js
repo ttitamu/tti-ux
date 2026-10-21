@@ -4,7 +4,7 @@
  */
 export class TuxPageHeaderElement extends HTMLElement {
   static get observedAttributes() {
-    return ["eyebrow", "title", "level", "tone", "rhythm", "variant"];
+    return ["eyebrow", "title", "level", "tone", "rhythm", "variant", "division"];
   }
 
   constructor() {

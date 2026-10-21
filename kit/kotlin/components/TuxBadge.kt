@@ -24,6 +24,8 @@ fun TuxBadge(
     uppercase: Boolean = false,
     shape: String = "default",
     glyph: Boolean = false,
+    los: String,
+    division: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

@@ -2,11 +2,11 @@
 useHead({ title: "TuxMobileFrame · TUX" });
 
 const iosVue = `<tux-mobile-frame platform="ios" :width="280" color="natural">
-  <img src="/screenshots/landscape-mobile.png" alt="" />
+  <img src="/screenshots/corridor-mobile.png" alt="" />
 </tux-mobile-frame>`;
 
 const androidVue = `<tux-mobile-frame platform="android" :width="280" color="obsidian">
-  <img src="/screenshots/landscape-mobile.png" alt="" />
+  <img src="/screenshots/corridor-mobile.png" alt="" />
 </tux-mobile-frame>`;
 
 const sideBySideVue = `<div class="flex gap-6">
@@ -39,7 +39,7 @@ const sideBySideVue = `<div class="flex gap-6">
         <div class="flex justify-center p-4">
           <TuxMobileFrame platform="ios" :width="280" color="natural">
             <div class="mf-demo">
-              <p class="mf-demo__eyebrow">corridor · landscape</p>
+              <p class="mf-demo__eyebrow">corridor · telemetry</p>
               <h3 class="mf-demo__title">FM-60 / Wellborn</h3>
               <div class="mf-demo__stat">
                 <span class="mf-demo__stat-num">38<small>%</small></span>
@@ -87,7 +87,7 @@ const sideBySideVue = `<div class="flex gap-6">
         <div class="flex justify-center p-4">
           <TuxMobileFrame platform="android" :width="280" color="obsidian">
             <div class="mf-demo">
-              <p class="mf-demo__eyebrow">corridor · landscape</p>
+              <p class="mf-demo__eyebrow">corridor · telemetry</p>
               <h3 class="mf-demo__title">FM-60 / Wellborn</h3>
               <div class="mf-demo__stat">
                 <span class="mf-demo__stat-num">38<small>%</small></span>

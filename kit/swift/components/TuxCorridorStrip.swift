@@ -15,6 +15,10 @@ public struct TuxCorridorStrip<Content: View>: View {
     public var width: Int = 800
     public var height: Int = 140
     public var tickEvery: Int = 5
+    public var tickFormat: String = "mile"
+    public var syncChannel: String
+    public var activeMile: Int
+    public var interactiveScrub: Bool = false
     private let content: Content
 
     public init(

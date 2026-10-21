@@ -10,6 +10,7 @@ public struct TuxPageHeader<Content: View>: View {
     public var tone: String = "plain"
     public var rhythm: String = "compact"
     public var variant: String = "default"
+    public var division: String
     private let content: Content
 
     public init(

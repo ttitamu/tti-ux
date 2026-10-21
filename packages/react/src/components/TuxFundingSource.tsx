@@ -14,13 +14,14 @@ export interface TuxFundingSourceProps {
   layout?: "inline" | "stacked";
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxFundingSource: React.FC<TuxFundingSourceProps> = ({
-  funder, abbrev, logo, grant, to, size = "md", layout = "inline", children, className = ''
+  funder, abbrev, logo, grant, to, size = "md", layout = "inline", children, className = '', style
 }) => {
   return (
-    <div className={`tux-funding-source ${className}`.trim()}>
+    <div className={`tux-funding-source ${className}`.trim()} data-size={size} style={style}>
       {children}
     </div>
   );

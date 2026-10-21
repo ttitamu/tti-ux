@@ -12,13 +12,15 @@ export interface TuxAppSwitcherProps {
   presentation?: "popover" | "sheet";
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxAppSwitcher: React.FC<TuxAppSwitcherProps> = ({
-  apps, ariaLabel, heading, footerText, presentation = "popover", children, className = ''
+  apps, ariaLabel, heading, footerText, presentation = "popover", children, className = '', style
 }) => {
   return (
-    <div className={`tux-app-switcher ${className}`.trim()}>
+    <div className={`tux-app-switcher ${className}`.trim()} style={style}>
+      {heading !== undefined && String(heading) !== "" && <div className="tux-app-switcher__title" style={{ fontWeight: 600, color: "var(--text-primary, #191919)" }}>{String(heading)}</div>}
       {children}
     </div>
   );

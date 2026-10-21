@@ -4,7 +4,7 @@
  *
  * The activity rail shape three consumer surfaces sketch by hand
  * today: project milestones on a program page, ingest/agent activity
- * on a Landscape dashboard, session history in tti-ai-studio. One
+ * on a Corridor analytics, session history in tti-ai-studio. One
  * component, stateless — the host owns the feed; this renders it.
  *
  * TTI voice, not SaaS feed: a maroon spine with a gold-ringed

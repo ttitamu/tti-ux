@@ -111,6 +111,7 @@ const emit = defineEmits<{
 
 const route = useRoute();
 const mobileOpen = ref(false);
+const mobileToggleBtnRef = ref<HTMLButtonElement | null>(null);
 const activeDropdown = ref<string | null>(null);
 const myAppsOpen = ref(false);
 const expandedMobileSections = ref<Record<string, boolean>>({});
@@ -126,6 +127,42 @@ watch(() => route?.fullPath, () => {
   activeDropdown.value = null;
   myAppsOpen.value = false;
 });
+
+function closeMobileDrawer(restoreFocus = false) {
+  if (!mobileOpen.value) return;
+  mobileOpen.value = false;
+  if (restoreFocus) {
+    nextTick(() => {
+      mobileToggleBtnRef.value?.focus();
+    });
+  }
+}
+
+function handleEscapeKey() {
+  const wasMobileOpen = mobileOpen.value;
+  closeDropdowns();
+  if (wasMobileOpen) {
+    closeMobileDrawer(true);
+  }
+}
+
+onMounted(() => {
+  if (typeof window !== "undefined") {
+    window.addEventListener("keydown", onWindowKeydown);
+  }
+});
+
+onUnmounted(() => {
+  if (typeof window !== "undefined") {
+    window.removeEventListener("keydown", onWindowKeydown);
+  }
+});
+
+function onWindowKeydown(e: KeyboardEvent) {
+  if (e.key === "Escape" && (mobileOpen.value || activeDropdown.value || myAppsOpen.value)) {
+    handleEscapeKey();
+  }
+}
 
 const containerWidthClass = computed(() => {
   if (props.maxWidth === "wide") return "max-w-[96rem]";
@@ -175,7 +212,7 @@ function handleActionClick(event: MouseEvent) {
   <header
     class="tux-portal-header w-full border-b border-surface-border font-sans transition-all z-30"
     :class="{ 'sticky top-0 shadow-sm': sticky }"
-    @keydown.escape="closeDropdowns"
+    @keydown.escape="handleEscapeKey"
   >
     <!-- TIER 1: Utility Bar (Comm: Maroon / Intranet: Editorial Charcoal) -->
     <div
@@ -526,11 +563,13 @@ function handleActionClick(event: MouseEvent) {
           </slot>
         </div>
 
-        <!-- Mobile Hamburger Toggle -->
+    <!-- Mobile Hamburger Toggle -->
         <button
+          ref="mobileToggleBtnRef"
           type="button"
-          class="md:hidden inline-flex items-center justify-center p-2 rounded-sm border border-surface-border text-text-primary hover:bg-surface-sunken hover:text-brand-primary transition-colors cursor-pointer"
+          class="md:hidden inline-flex items-center justify-center min-h-[44px] min-w-[44px] p-2 rounded-sm border border-surface-border text-text-primary hover:bg-surface-sunken hover:text-brand-primary transition-colors cursor-pointer"
           :aria-expanded="mobileOpen"
+          aria-controls="tux-portal-mobile-drawer"
           aria-label="Toggle navigation menu"
           @click="mobileOpen = !mobileOpen"
         >
@@ -557,9 +596,13 @@ function handleActionClick(event: MouseEvent) {
     <div
       v-if="mobileOpen"
       class="fixed inset-0 z-50 md:hidden bg-neutral-950/60 backdrop-blur-xs transition-opacity"
-      @click="mobileOpen = false"
+      @click="closeMobileDrawer(false)"
     >
       <div
+        id="tux-portal-mobile-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Mobile Navigation"
         class="fixed inset-y-0 right-0 w-full max-w-sm bg-surface-raised shadow-2xl flex flex-col p-6 overflow-y-auto animate-slide-in-right"
         @click.stop
       >
@@ -579,9 +622,9 @@ function handleActionClick(event: MouseEvent) {
           </div>
           <button
             type="button"
-            class="p-2 rounded-sm text-text-muted hover:text-text-primary hover:bg-surface-sunken"
+            class="min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 rounded-sm text-text-muted hover:text-text-primary hover:bg-surface-sunken cursor-pointer"
             aria-label="Close menu"
-            @click="mobileOpen = false"
+            @click="closeMobileDrawer(true)"
           >
             <Icon name="lucide:x" class="w-5 h-5" aria-hidden="true" />
           </button>

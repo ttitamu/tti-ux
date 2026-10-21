@@ -97,7 +97,7 @@ in the page itself per ADR-0010's "fine" list.
 
 The opposite move — widening `Series.band` from `[number, number][]`
 to `number[][]` — would let the inferred showcase data through, but
-silently breaks the contract for non-showcase consumers (Landscape,
+silently breaks the contract for non-showcase consumers (Corridor Ops,
 tti-ai-studio) who pass real tuples and rely on the type to catch
 mistakes. The showcase pages are demos; they should bend, not the
 component contract.

@@ -92,6 +92,7 @@ describe("Turnkey WordPress — TTI-UX Core Plugin", () => {
     expect(php).toContain("add_shortcode('tux_heading'");
     expect(php).toContain("add_shortcode('tux_portal_header'");
     expect(php).toContain("add_shortcode('tux_staleness'");
+    expect(php).toContain("add_shortcode('tux_spectrum_ribbon'");
   });
 
   it("patterns.php registers Gutenberg block patterns with institutional styling", () => {

@@ -15,13 +15,15 @@ export interface TuxFileDropzoneProps {
   hint?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxFileDropzone: React.FC<TuxFileDropzoneProps> = ({
-  modelValue, accept, multiple = false, maxSize = 50, maxFiles = 10, disabled = false, label, hint, children, className = ''
+  modelValue, accept, multiple = false, maxSize = 50, maxFiles = 10, disabled = false, label, hint, children, className = '', style
 }) => {
   return (
-    <div className={`tux-file-dropzone ${className}`.trim()}>
+    <div className={`tux-file-dropzone ${className}`.trim()} style={style}>
+      {label !== undefined && String(label) !== "" && <div className="tux-file-dropzone__title" style={{ fontWeight: 600, color: "var(--text-primary, #191919)" }}>{String(label)}</div>}
       {children}
     </div>
   );

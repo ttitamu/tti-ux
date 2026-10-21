@@ -112,7 +112,7 @@ watch(() => route.fullPath, () => { mobileOpen.value = false; });
 
 // Publish the nav's measured height as `--tux-nav-height` on <html> so
 // consumers can build sticky offsets / viewport-height math against the
-// real chrome instead of hardcoding 4rem/5rem (Landscape carried both
+// real chrome instead of hardcoding 4rem/5rem (legacy portals carried both
 // magic numbers for the same bar). ResizeObserver keeps it honest when
 // the utility bar toggles or the bar wraps at narrow widths.
 const navRoot = ref<HTMLElement | null>(null);
@@ -302,7 +302,7 @@ function isPlainLinkActive(item: { to?: string; href?: string }): boolean {
 
         <!--
           Trailing utility cluster — slot for app-shape consumers
-          (Landscape, tti-ai-studio, future admin tools) to drop a
+          (TTI Code, tti-ai-studio, future admin tools) to drop a
           search trigger / theme toggle / user dropdown / notification
           bell next to the primary nav.
 

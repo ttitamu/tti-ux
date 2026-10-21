@@ -269,7 +269,7 @@ provides equivalent chrome.
 | `TuxChartScatter` | Roadmap Priority B |
 
 Build order is roughly Line → Bar → Area → Scatter, but consumer
-pressure (Landscape dashboard data shape) may re-order.
+pressure (Corridor analytics data shape) may re-order.
 
 ---
 

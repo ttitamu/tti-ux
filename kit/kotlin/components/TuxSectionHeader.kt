@@ -17,6 +17,7 @@ fun TuxSectionHeader(
     subtitle: String,
     kicker: String,
     variant: String = "institutional",
+    division: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

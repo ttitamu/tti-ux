@@ -4,7 +4,7 @@
  */
 export class TuxChartFrameElement extends HTMLElement {
   static get observedAttributes() {
-    return ["eyebrow", "title", "subtitle", "source", "notes", "bare"];
+    return ["eyebrow", "title", "subtitle", "source", "notes", "bare", "labels", "series", "sonify", "show-data-table", "division", "doi"];
   }
 
   constructor() {

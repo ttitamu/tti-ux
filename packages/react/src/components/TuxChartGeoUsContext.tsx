@@ -11,13 +11,14 @@ export interface TuxChartGeoUsContextProps {
   legendStops: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxChartGeoUsContext: React.FC<TuxChartGeoUsContextProps> = ({
-  states, highlight, legendLabel, legendStops, children, className = ''
+  states, highlight, legendLabel, legendStops, children, className = '', style
 }) => {
   return (
-    <svg className={`tux-chart-geo-us-context ${className}`.trim()}>
+    <svg className={`tux-chart-geo-us-context ${className}`.trim()} style={style}>
       {children}
     </svg>
   );

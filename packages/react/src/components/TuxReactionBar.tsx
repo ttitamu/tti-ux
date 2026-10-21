@@ -11,13 +11,14 @@ export interface TuxReactionBarProps {
   size?: "sm" | "md";
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxReactionBar: React.FC<TuxReactionBarProps> = ({
-  modelValue, reactions, counts, size, children, className = ''
+  modelValue, reactions, counts, size, children, className = '', style
 }) => {
   return (
-    <div className={`tux-reaction-bar ${className}`.trim()}>
+    <div className={`tux-reaction-bar ${className}`.trim()} data-size={size} style={style}>
       {children}
     </div>
   );

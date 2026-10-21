@@ -14,6 +14,7 @@ fun TuxCard(
     to: String,
     padded: Boolean = true,
     linked: Boolean = false,
+    division: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

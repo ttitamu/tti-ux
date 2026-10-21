@@ -18,6 +18,10 @@ final class TuxCorridorStrip
     public int $width = 800;
     public int $height = 140;
     public int $tickEvery = 5;
+    public string $tickFormat = 'mile';
+    public string $syncChannel;
+    public int $activeMile;
+    public bool $interactiveScrub = false;
 
     public function __construct(array $attributes = [])
     {

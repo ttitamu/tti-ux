@@ -14,13 +14,15 @@ export interface TuxPopoverProps {
   width?: "auto" | "sm" | "md" | "lg";
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxPopover: React.FC<TuxPopoverProps> = ({
-  title, body, mode = "click", side = "bottom", arrow = true, disabled = false, width = "md", children, className = ''
+  title, body, mode = "click", side = "bottom", arrow = true, disabled = false, width = "md", children, className = '', style
 }) => {
   return (
-    <div className={`tux-popover ${className}`.trim()}>
+    <div className={`tux-popover ${className}`.trim()} data-mode={mode} style={style}>
+      {title !== undefined && String(title) !== "" && <div className="tux-popover__title" style={{ fontWeight: 600, color: "var(--text-primary, #191919)" }}>{String(title)}</div>}
       {children}
     </div>
   );

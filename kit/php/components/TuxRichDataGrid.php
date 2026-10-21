@@ -31,6 +31,10 @@ final class TuxRichDataGrid
     public string $density = 'comfortable';
     public string $paginationLabel;
     public string $paginationTokens;
+    public string $projectNumber;
+    public string $doi;
+    public string $citation;
+    public bool $showUnitToggle = false;
 
     public function __construct(array $attributes = [])
     {

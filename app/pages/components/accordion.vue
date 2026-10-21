@@ -58,8 +58,8 @@ const accordionPresets: TuxPlaygroundPreset[] = [
 const faqItems = [
   {
     eyebrow: "architecture",
-    title: "What does Landscape do that diskover doesn't?",
-    content: "Landscape provides configurable institutional themes and a classifier-aware indexing pipeline. The treemap, search facets, and audit trail run on TanStack Virtual and OpenSearch, incorporating TTI data-governance tiers and ITAR compliance markers as first-class controls.",
+    title: "What does Corridor Ops do that diskover doesn't?",
+    content: "Corridor Ops provides configurable institutional themes and a classifier-aware indexing pipeline. The treemap, search facets, and audit trail run on TanStack Virtual and OpenSearch, incorporating TTI data-governance tiers and ITAR compliance markers as first-class controls.",
     defaultOpen: true,
   },
   {
@@ -70,11 +70,11 @@ const faqItems = [
   {
     eyebrow: "tooling",
     title: "Is there a CLI?",
-    content: "Yes. `landscape agent watch /path` indexes a directory and streams events to the central OpenSearch. `landscape agent token` manages scoped tokens. `landscape classifier list` shows the classifier catalog.",
+    content: "Yes. `corridor agent watch /path` indexes a directory and streams events to the central OpenSearch. `corridor agent token` manages scoped tokens. `corridor detector list` shows the classifier catalog.",
   },
   {
     eyebrow: "deployment",
-    title: "Can I deploy Landscape air-gapped?",
+    title: "Can I deploy Corridor Ops air-gapped?",
     content: "The primary target is TTI internal network deployments. Offline or air-gapped installations are supported: fonts self-host locally, OpenSearch runs on-premise, and icon bundles package locally with zero external network dependencies.",
   },
 ];

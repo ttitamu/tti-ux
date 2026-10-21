@@ -10,6 +10,7 @@ class TuxCard:
     to: Optional[str] = None
     padded: bool = True
     linked: bool = False
+    division: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-card">{content}</div>'

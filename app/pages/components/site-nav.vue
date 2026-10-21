@@ -71,7 +71,7 @@ const appNav = {
   identity: {
     level: "department" as const,
     superhead: "Texas A&M Transportation Institute",
-    name: "Landscape",
+    name: "Corridor Ops",
     href: "/",
   },
   primaryNav: [
@@ -140,12 +140,12 @@ const exampleVue = `<TuxSiteNav
       <h2 class="heading--bold text-xl font-bold">Internal product header</h2>
       <p class="text-sm text-text-secondary mb-3">
         Department-level identity, no utility strip, simpler primary
-        nav. Pattern for Landscape, tti-ai-studio, and other internal IT
+        nav. Pattern for TTI Code, tti-ai-studio, and other internal IT
         product surfaces.
       </p>
       <TuxExample class="mt-4">
         <div class="border border-surface-border rounded-md overflow-hidden bg-surface-page" style="min-height: 12rem; container-type: inline-size">
-          <TuxSiteNav v-bind="appNav" aria-label="Landscape application navigation" />
+          <TuxSiteNav v-bind="appNav" aria-label="Corridor Ops application navigation" />
           <div class="px-6 py-10 text-center text-sm text-text-muted">
             (Application body.)
           </div>

@@ -233,7 +233,7 @@ get lost. Pick from the top when there's a slow afternoon.
   `#toc` slot for IntersectionObserver-driven active-section
   tracking. The fallback (plain anchor list from the `toc` prop)
   still renders when the slot is empty.
-- ~~**Refresh `/examples/landscape-dashboard`**~~ — done 2026-05-21.
+- ~~**Refresh `/examples/corridor-analytics`**~~ — done 2026-05-21.
   Now uses the full sidebar layout + `#aside` slot for the activity
   rail + inline TuxSparkline next to the treemap header + KPI
   deltas in factoid `source` fields.
@@ -345,7 +345,7 @@ surfaces:
   cross-division TuxCenterBadge links).
 - ~~**`/examples/research-landing` refresh**~~ — identity-cluster
   sprinkle (TuxCenterBadge + TuxAuthorByline + TuxFundingSource strip).
-- ~~**`/examples/landscape-dashboard` refresh**~~ — corridor strip +
+- ~~**`/examples/corridor-analytics` refresh**~~ — corridor strip +
   map markers + I-35 cross-link to the new paper page.
 - ~~**`/examples/tti-ai-studio-session` refresh**~~ — TuxMarkdownEditor
   composer wired into the chat surface.
@@ -375,7 +375,7 @@ Deferred-with-criterion items surfaced in this batch:
   including tables, task lists, source-mode toggle, full-screen,
   word count, save event, and code-block syntax highlighting via
   lowlight. Feature set mirrors the `docs-tti-tamu-edu` admin-center
-  editor so one component covers Landscape · tti-ai-studio · docs.
+  editor so one component covers Corridor · tti-ai-studio · docs.
   See
   [`/components/rich-text-editor`](../app/pages/components/rich-text-editor.vue).
 - **Map runtime decision** — `TuxMapEmbed` ships as a wrapper around
@@ -609,21 +609,21 @@ in tti-ai-studio:
 
 ---
 
-## Recently shipped — PECAN → Landscape rebrand (2026-05-21)
+## Recently shipped — PECAN → Corridor Ops rebrand (2026-05-21)
 
-The downstream consumer formerly named **PECAN** is now **Landscape**.
+The downstream consumer formerly named **PECAN** is now **Corridor Ops**.
 TUX touched ~50 files across pages, components, kits, and design docs;
 historical record (CHANGELOG, ADRs) was left intact by design.
 
 **Renamed:**
-- `app/pages/examples/pecan-dashboard.vue` → `landscape-dashboard.vue`
-  (file + route `/examples/landscape-dashboard` + body text + nav entry
+- `app/pages/examples/pecan-dashboard.vue` → `corridor-analytics.vue`
+  (file + route `/examples/corridor-analytics` + body text + nav entry
   in `app/app.vue` + index card in `app/pages/examples/index.vue`)
-- `public/kits/pecan/` → `public/kits/landscape/` (folder + README +
+- `public/kits/pecan/` → `public/kits/tti-docs/` (folder + README +
   AppShell + Pages.jsx + index.html; `app/pages/kits.vue` slug + label)
 
-**Prose updated** (first mention per file uses "Landscape (formerly
-PECAN)" for continuity; later mentions are bare "Landscape"):
+**Prose updated** (first mention per file uses "Corridor Ops (formerly
+PECAN)" for continuity; later mentions are bare "Corridor Ops"):
 - `README.md`, `design/components.md`, `design/roadmap.md`
 - ~30 showcase pages under `app/pages/` (components, examples, forms,
   visualizations, reports, kits)
@@ -641,7 +641,7 @@ PECAN)" for continuity; later mentions are bare "Landscape"):
 - `docs/adr/*.md` — architectural decisions reference the name as it
   was when the decision was made.
 
-**Composition refresh shipped alongside:** `landscape-dashboard.vue`
+**Composition refresh shipped alongside:** `corridor-analytics.vue`
 was rebuilt on the sidebar layout (left-rail nav with brand lockup +
 two nav groups + user chip) and gained a KPI row with delta-vs-
 previous readings, an inline ingest-rate sparkline next to the
@@ -716,7 +716,7 @@ official source of truth (us-atlas + TxDOT MapServer) after a
 worktree got wiped pre-commit. See CHANGELOG entries.
 
 **Data density** — neither was on the original roadmap; both were
-pulled in because Landscape-class consumers needed them.
+pulled in because Corridor-class consumers needed them.
 
 - **TuxRichDataGrid** — interactive grid for operational surfaces.
   Sticky header, row selection (with indeterminate header

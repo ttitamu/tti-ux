@@ -20,7 +20,7 @@ interface Props {
    *  Falls back to `text` (no highlighting) for unknown langs. */
   lang?: BundledLanguage | "text";
   /** Optional caption — typically a filename like
-   *  `app/components/TuxButton.vue` or `landscape/agent.py:42`. */
+   *  `app/components/TuxButton.vue` or `corridor/agent.py:42`. */
   filename?: string;
   /** Show 1-indexed line numbers in the gutter. */
   lineNumbers?: boolean;

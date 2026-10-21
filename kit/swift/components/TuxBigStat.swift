@@ -11,6 +11,10 @@ public struct TuxBigStat<Content: View>: View {
     public var variant: String = "default"
     public var tone: String = "maroon"
     public var size: String = "md"
+    public var sampleSize: String
+    public var confidenceInterval: String
+    public var doi: String
+    public var division: String
     private let content: Content
 
     public init(

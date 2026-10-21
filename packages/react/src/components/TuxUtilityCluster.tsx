@@ -22,13 +22,14 @@ export interface TuxUtilityClusterProps {
   statusLine?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxUtilityCluster: React.FC<TuxUtilityClusterProps> = ({
-  current, signedIn = false, entitled, hideSwitcher = false, hideTheme = false, hideHighContrast = false, hideVisionPrefs = false, userMenu, state, identity, signInHref, signInLabel, items, prefs, statusLine, children, className = ''
+  current, signedIn = false, entitled, hideSwitcher = false, hideTheme = false, hideHighContrast = false, hideVisionPrefs = false, userMenu, state, identity, signInHref, signInLabel, items, prefs, statusLine, children, className = '', style
 }) => {
   return (
-    <div className={`tux-utility-cluster ${className}`.trim()}>
+    <div className={`tux-utility-cluster ${className}`.trim()} style={style}>
       {children}
     </div>
   );

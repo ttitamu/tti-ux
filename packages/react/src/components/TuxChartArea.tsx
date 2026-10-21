@@ -24,13 +24,14 @@ export interface TuxChartAreaProps {
   tooltip?: boolean;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxChartArea: React.FC<TuxChartAreaProps> = ({
-  labels, series, width = 640, height = 280, palette = "brand", patterns = false, variant = "overlay", markers = false, endLabels = true, legend = false, gridlines = true, ticks = 5, format, decimals = 1, ariaSummary, units, tooltip = true, children, className = ''
+  labels, series, width = 640, height = 280, palette = "brand", patterns = false, variant = "overlay", markers = false, endLabels = true, legend = false, gridlines = true, ticks = 5, format, decimals = 1, ariaSummary, units, tooltip = true, children, className = '', style
 }) => {
   return (
-    <figure className={`tux-chart-area ${className}`.trim()}>
+    <figure className={`tux-chart-area ${className}`.trim()} data-variant={variant} style={style}>
       {children}
     </figure>
   );

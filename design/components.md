@@ -66,6 +66,7 @@ npm run dev
 | `TuxFilterPanel`     | tux native               | `/components/filter-panel`      |
 | `TuxFocusView`       | tux native               | `/components/focus-view`        |
 | `TuxFooter`          | tux native               | `/components/footer`            |
+| `TuxGroundedSources` | tux native               | `/components/chat-message`      |
 | `TuxHeroCanvas`      | HTML5 2D Canvas          | `/components/hero-canvas`       |
 | `TuxIconFeature`     | tux native               | `/components/icon-feature`      |
 | `TuxIdentity`        | tux native               | `/components/identity`          |
@@ -91,6 +92,7 @@ npm run dev
 | `TuxProse`           | tux native               | `/components/prose`             |
 | `TuxQACollection`    | tux native               | `/components/qa-collection`     |
 | `TuxRailNav`         | tux native (`<details>`) | `/components/rail-nav`          |
+| `TuxReasoning`       | tux native               | `/components/chat-message`      |
 | `TuxRecordHighlights`| tux native               | `/components/record-highlights` |
 | `TuxRemovableChip`   | tux native               | `/components/removable-chip`    |
 | `TuxRichDataGrid`    | tux native               | `/components/rich-data-grid`    |
@@ -118,6 +120,7 @@ npm run dev
 | `TuxTeachingPopover` | tux native               | `/components/teaching-popover`  |
 | `TuxTestimonial`     | tux native               | `/components/testimonial`       |
 | `TuxTOC`             | tux native               | `/components/toc`               |
+| `TuxToolCall`        | tux native               | `/components/chat-message`      |
 | `TuxTooltip`         | `UTooltip`               | `/components/tooltip`           |
 | `TuxTree`            | tux native               | `/components/tree` (renders internal child `TuxTreeNode`) |
 | `TuxTreemap`         | tux native               | `/components/treemap`           |
@@ -295,9 +298,9 @@ single most common failure mode.
 | **Markdown content with Tux components inline** | `@nuxtjs/mdc` + auto-import (see `/markdown` demo) |
 | **Form input** (email / select / radio / etc.) | Nuxt UI native — `UInput`, `USelect`, etc., **layer-themed** (Batch K in `tux.css`: Work Sans controls, tux radius, maroon focus). The hybrid doctrine (unification-plan.md, owner-ratified 2026-07-30): `U*` is the blessed spelling for app controls — no Tux input wrappers ship; `TuxFormField` owns label/help/error anatomy; `TuxButton` is the *editorial* button (gold-bar/CTA contexts), not the app-control default. Lint targets raw `<input>`/`<button>` elements and hex literals, never `U*`. See `/forms`. |
 | **Data table** (sortable, virtualizable, status cells) | `<TuxTable>` |
-| **Sortable / selectable / expandable data grid** (Landscape-class operational lists with bulk actions, active-filter chips, row expansion) | `<TuxRichDataGrid>` |
+| **Sortable / selectable / expandable data grid** (Corridor-class operational lists with bulk actions, active-filter chips, row expansion) | `<TuxRichDataGrid>` |
 | **Static research table** (numbered caption, ± CI uncertainty, footnotes, source citation, optional totals row) | `<TuxDataTable>` |
-| **Search bar** (Landscape finder, conversation search, table toolbars) | `<TuxSearch>` — `variant="field"` (default) for chrome and toolbars, `"slab"` for the editorial attached-button treatment on hero strips and dedicated search pages, `"block"` for a labeled standalone unit (heading + bar + lede) |
+| **Search bar** (Corridor Ops finder, conversation search, table toolbars) | `<TuxSearch>` — `variant="field"` (default) for chrome and toolbars, `"slab"` for the editorial attached-button treatment on hero strips and dedicated search pages, `"block"` for a labeled standalone unit (heading + bar + lede) |
 | **A–Z directory jump bar** | `<TuxAlphaNav>` |
 | **Sidebar widget wrapper** (related links, contact box, in-page nav) | `<TuxSidebarBlock>` |
 | **Newsletter signup** | `<TuxSignupFeature>` |
@@ -443,7 +446,7 @@ Anti-patterns to avoid:
 Canonical references for each pattern in real composition:
 [`forms/inline-validation.vue`](../app/pages/forms/inline-validation.vue) (field-level),
 [`forms/all-in-one.vue`](../app/pages/forms/all-in-one.vue) (form summary),
-[`landscape-dashboard`](../app/pages/examples/landscape-dashboard.vue) ITAR alert (session banner).
+[`corridor-analytics`](../app/pages/examples/corridor-analytics.vue) ITAR alert (session banner).
 
 ### First-run AI surfaces — Examples / Capabilities / Limitations
 
@@ -530,7 +533,7 @@ substitutes.
 
 | Shape of question | Component | Example |
 |---|---|---|
-| **Narrow a list along known axes.** Buckets are pre-aggregated; the user multi-selects from each. | `<TuxFilterPanel>` (faceted) | "Owner ∈ {Chen, Kim} AND type ∈ {PDF, CSV} AND district ∈ {Bryan, Austin}" — a Landscape browse / results page. |
+| **Narrow a list along known axes.** Buckets are pre-aggregated; the user multi-selects from each. | `<TuxFilterPanel>` (faceted) | "Owner ∈ {Chen, Kim} AND type ∈ {PDF, CSV} AND district ∈ {Bryan, Austin}" — a Corridor Ops browse / results page. |
 | **Express a relational predicate across heterogeneous fields.** Operators matter; numeric / date comparisons appear; nesting appears. | `<TuxRuleBuilder>` (relational) | "compliance &lt; 50% AND last inspected before 2024-01-01 AND treatment IS rumble" — a research-dashboard "save as smart view" flow. |
 | **Both, on the same surface.** Facets do the dominant narrowing in the left rail; rule builder lives in a slideover for the long-tail query. | `<TuxFilterPanel>` + `<TuxRuleBuilder>` | Operational data surface where some users browse and some authors save smart views. |
 
@@ -672,7 +675,7 @@ emit contract is the canonical TUX chart-tooltip shape.
 
 The catalog originally listed several components here. As of the
 current cycle, every aspirational entry has shipped. New components land
-when a consuming app (Landscape, tti-ai-studio, marcom WordPress kit) needs
+when a consuming app (TTI Code, tti-ai-studio, marcom WordPress kit) needs
 them; open an issue or ping the maintainer to add a row.
 
 ## Guidance for adding a new component

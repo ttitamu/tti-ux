@@ -2,7 +2,7 @@
 useHead({ title: "TuxCaptionedMedia · TUX" });
 
 const exampleVue = `<TuxCaptionedMedia
-  alt="Connected vehicle test track at Rellis Campus"
+  alt="Aerial view of the connected vehicle test track at the Texas A&M RELLIS Campus with instrumented roadside units"
   eyebrow="Figure 3"
   caption="The 412-mile continuously-instrumented freight corridor under construction during the Q3 2025 deployment window."
   credit="TTI Photography · 2025"
@@ -24,7 +24,7 @@ const exampleVue = `<TuxCaptionedMedia
       <h2 class="heading--bold text-xl font-bold">16:9 · full width</h2>
       <TuxExample class="mt-4" :vue="exampleVue">
         <TuxCaptionedMedia
-          alt="Connected vehicle test track at Rellis Campus"
+          alt="Aerial view of the connected vehicle test track at the Texas A&M RELLIS Campus with instrumented roadside units"
           eyebrow="Figure 3"
           caption="The 412-mile continuously-instrumented freight corridor under construction during the Q3 2025 deployment window."
           credit="TTI Photography · 2025"
@@ -43,10 +43,10 @@ const exampleVue = `<TuxCaptionedMedia
       </p>
       <TuxExample class="mt-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <TuxCaptionedMedia aspect="16/9" alt="16:9 widescreen" caption="16:9 — video frames, landscape photography" tone="maroon" />
-          <TuxCaptionedMedia aspect="4/3"  alt="4:3 editorial"   caption="4:3 — editorial photography, the institutional default" tone="gold" />
-          <TuxCaptionedMedia aspect="1/1"  alt="1:1 square"      caption="1:1 — product shots, close-ups, social-shareable" tone="charcoal" />
-          <TuxCaptionedMedia aspect="3/4"  alt="3:4 portrait"    caption="3:4 — environmental portraits, faculty photos" tone="maroon" />
+          <TuxCaptionedMedia aspect="16/9" alt="16:9 widescreen corridor telemetry camera feed across Interstate 35" caption="16:9 — video frames, landscape photography" tone="maroon" />
+          <TuxCaptionedMedia aspect="4/3"  alt="4:3 editorial photograph of TTI pavement testing crew inspecting asphalt core samples" caption="4:3 — editorial photography, the institutional default" tone="gold" />
+          <TuxCaptionedMedia aspect="1/1"  alt="1:1 close-up view of a roadside LiDAR and DSRC connected vehicle sensor unit" caption="1:1 — product shots, close-ups, social-shareable" tone="charcoal" />
+          <TuxCaptionedMedia aspect="3/4"  alt="3:4 environmental portrait of a principal transportation human factors researcher in the simulator bay" caption="3:4 — environmental portraits, faculty photos" tone="maroon" />
         </div>
       </TuxExample>
     </section>
@@ -64,7 +64,7 @@ const exampleVue = `<TuxCaptionedMedia
           <TuxCaptionedMedia
             align="right"
             aspect="4/3"
-            alt="Field crew at site 04"
+            alt="TTI field crew installing retroreflective chevron alignment signage at Rural Site 04"
             eyebrow="On site"
             caption="Field crew during the 2024 reconstruction window."
             credit="J. Hassan · 2024"

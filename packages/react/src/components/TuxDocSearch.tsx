@@ -10,13 +10,14 @@ export interface TuxDocSearchProps {
   maxResults?: number;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxDocSearch: React.FC<TuxDocSearchProps> = ({
-  items, placeholder, maxResults = 8, children, className = ''
+  items, placeholder, maxResults = 8, children, className = '', style
 }) => {
   return (
-    <div className={`tux-doc-search ${className}`.trim()}>
+    <div className={`tux-doc-search ${className}`.trim()} style={style}>
       {children}
     </div>
   );

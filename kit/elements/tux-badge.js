@@ -4,7 +4,7 @@
  */
 export class TuxBadgeElement extends HTMLElement {
   static get observedAttributes() {
-    return ["tier", "status", "tone", "kind", "variant", "bold", "dot", "icon", "count", "label", "uppercase", "shape", "glyph"];
+    return ["tier", "status", "tone", "kind", "variant", "bold", "dot", "icon", "count", "label", "uppercase", "shape", "glyph", "los", "division"];
   }
 
   constructor() {

@@ -22,6 +22,10 @@ fun TuxCorridorStrip(
     width: Int = 800,
     height: Int = 140,
     tickEvery: Int = 5,
+    tickFormat: String = "mile",
+    syncChannel: String,
+    activeMile: Int,
+    interactiveScrub: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {
     Row(

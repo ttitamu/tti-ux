@@ -10,13 +10,15 @@ export interface TuxFilterPanelProps {
   title?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxFilterPanel: React.FC<TuxFilterPanelProps> = ({
-  facets, modelValue, title, children, className = ''
+  facets, modelValue, title, children, className = '', style
 }) => {
   return (
-    <aside className={`tux-filter-panel ${className}`.trim()}>
+    <aside className={`tux-filter-panel ${className}`.trim()} style={style}>
+      {title !== undefined && String(title) !== "" && <div className="tux-filter-panel__title" style={{ fontWeight: 600, color: "var(--text-primary, #191919)" }}>{String(title)}</div>}
       {children}
     </aside>
   );

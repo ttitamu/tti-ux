@@ -15,7 +15,7 @@ export const hosts: {
     info: "HTTP OK 200 — 0.082s",
   },
   {
-    name: "atlas.tti.tamu.edu",
+    name: "code.tti.tamu.edu",
     service: "PHP origin",
     state: "critical",
     duration: "23m",

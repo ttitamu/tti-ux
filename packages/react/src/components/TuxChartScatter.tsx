@@ -24,13 +24,14 @@ export interface TuxChartScatterProps {
   tooltip?: boolean;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxChartScatter: React.FC<TuxChartScatterProps> = ({
-  series, xLabel = "x", yLabel = "y", width = 640, height = 320, palette = "brand", distinctMarkers = true, trendline = false, legend = true, gridlines = true, xTicks = 6, yTicks = 5, format, decimals = 2, ariaSummary, units, tooltip = true, children, className = ''
+  series, xLabel = "x", yLabel = "y", width = 640, height = 320, palette = "brand", distinctMarkers = true, trendline = false, legend = true, gridlines = true, xTicks = 6, yTicks = 5, format, decimals = 2, ariaSummary, units, tooltip = true, children, className = '', style
 }) => {
   return (
-    <figure className={`tux-chart-scatter ${className}`.trim()}>
+    <figure className={`tux-chart-scatter ${className}`.trim()} style={style}>
       {children}
     </figure>
   );

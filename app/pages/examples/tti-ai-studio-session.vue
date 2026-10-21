@@ -156,7 +156,7 @@ const composerDraft = ref("");
         <TuxButton intent="ghost" icon="lucide:download" shape="sharp">
           Export transcript
         </TuxButton>
-        <!-- Cross-app switcher — hop to Landscape or the TUX docs
+        <!-- Cross-app switcher — hop to TTI Code or the TUX docs
              without leaving the tab. Lives next to the other header
              actions per the AppSwitcher absorption guidance. -->
         <TuxAppSwitcher

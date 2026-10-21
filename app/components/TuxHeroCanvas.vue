@@ -51,9 +51,11 @@ const props = withDefaults(defineProps<Props>(), {
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const stageRef = ref<HTMLElement | null>(null);
 const isAnimationPlaying = ref(true);
+const isInViewport = ref(true);
 
 let animId: number | null = null;
 let resizeObserver: ResizeObserver | null = null;
+let intersectionObserver: IntersectionObserver | null = null;
 
 // Cursor tracking
 const mousePos = ref<{ x: number; y: number; active: boolean }>({
@@ -82,7 +84,7 @@ function toggleAnimation() {
   isAnimationPlaying.value = !isAnimationPlaying.value;
   if (isAnimationPlaying.value) {
     if (animId !== null) cancelAnimationFrame(animId);
-    animId = requestAnimationFrame(runLoop);
+    animId = requestAnimationFrame(() => runLoop(false));
   } else if (animId !== null) {
     cancelAnimationFrame(animId);
     animId = null;
@@ -417,8 +419,8 @@ function initSimulation(w: number, h: number) {
   }
 }
 
-function runLoop() {
-  if (!isAnimationPlaying.value || !canvasRef.value) return;
+function runLoop(singleFrame = false) {
+  if ((!isAnimationPlaying.value && !singleFrame) || !canvasRef.value) return;
   const canvas = canvasRef.value;
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
@@ -906,7 +908,9 @@ function runLoop() {
     ctx.fill();
   }
 
-  animId = requestAnimationFrame(runLoop);
+  if (!singleFrame && isAnimationPlaying.value && isInViewport.value) {
+    animId = requestAnimationFrame(() => runLoop(false));
+  }
 }
 
 function handleResize() {
@@ -922,9 +926,11 @@ function handleResize() {
   if (ctx) ctx.scale(dpr, dpr);
 
   initSimulation(rect.width, rect.height);
-  if (isAnimationPlaying.value) {
+  if (isAnimationPlaying.value && isInViewport.value) {
     if (animId !== null) cancelAnimationFrame(animId);
-    animId = requestAnimationFrame(runLoop);
+    animId = requestAnimationFrame(() => runLoop(false));
+  } else {
+    runLoop(true);
   }
 }
 
@@ -945,6 +951,24 @@ onMounted(() => {
       resizeObserver = new ResizeObserver(() => handleResize());
       resizeObserver.observe(stageRef.value);
     }
+    if (typeof IntersectionObserver !== "undefined" && stageRef.value) {
+      intersectionObserver = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            isInViewport.value = entry.isIntersecting;
+            if (entry.isIntersecting && isAnimationPlaying.value) {
+              if (animId !== null) cancelAnimationFrame(animId);
+              animId = requestAnimationFrame(() => runLoop(false));
+            } else if (!entry.isIntersecting && animId !== null) {
+              cancelAnimationFrame(animId);
+              animId = null;
+            }
+          }
+        },
+        { threshold: 0.05 },
+      );
+      intersectionObserver.observe(stageRef.value);
+    }
   });
 });
 
@@ -956,6 +980,10 @@ onUnmounted(() => {
   if (resizeObserver) {
     resizeObserver.disconnect();
     resizeObserver = null;
+  }
+  if (intersectionObserver) {
+    intersectionObserver.disconnect();
+    intersectionObserver = null;
   }
 });
 </script>
@@ -1007,6 +1035,7 @@ onUnmounted(() => {
       <button
         type="button"
         class="tux-hero-canvas__playback-btn"
+        :aria-pressed="!isAnimationPlaying"
         :aria-label="isAnimationPlaying ? 'Pause interactive animation' : 'Play interactive animation'"
         :title="isAnimationPlaying ? 'Pause animation' : 'Play animation'"
         @click="toggleAnimation"

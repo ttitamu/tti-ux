@@ -10,13 +10,14 @@ export interface TuxFootnoteProps {
   idPrefix?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxFootnote: React.FC<TuxFootnoteProps> = ({
-  n, text, idPrefix = "fn", children, className = ''
+  n, text, idPrefix = "fn", children, className = '', style
 }) => {
   return (
-    <div className={`tux-footnote ${className}`.trim()}>
+    <div className={`tux-footnote ${className}`.trim()} style={style}>
       {children}
     </div>
   );

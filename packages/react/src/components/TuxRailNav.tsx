@@ -10,13 +10,14 @@ export interface TuxRailNavProps {
   ariaLabel?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxRailNav: React.FC<TuxRailNavProps> = ({
-  items = "RailItem[", collapsed = false, ariaLabel = "Primary", children, className = ''
+  items = "RailItem[", collapsed = false, ariaLabel = "Primary", children, className = '', style
 }) => {
   return (
-    <nav className={`tux-rail-nav ${className}`.trim()}>
+    <nav className={`tux-rail-nav ${className}`.trim()} style={style}>
       {children}
     </nav>
   );

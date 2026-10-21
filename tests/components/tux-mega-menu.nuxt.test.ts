@@ -15,7 +15,7 @@ describe("TuxMegaMenu Component", () => {
     {
       heading: "Platforms",
       items: [
-        { label: "Landscape CMS", href: "https://landscape.tti.tamu.edu", description: "Editorial publishing system" },
+        { label: "TUX Desk CMS", href: "https://ux.tti.tamu.edu/desk", description: "Editorial publishing system" },
         { label: "TTI AI Studio", to: "/studio", description: "Generative telemetry and RAG pipelines" },
       ],
     },
@@ -54,7 +54,7 @@ describe("TuxMegaMenu Component", () => {
     expect(wrapper.text()).toContain("Programs");
     expect(wrapper.text()).toContain("Connected Corridors");
     expect(wrapper.text()).toContain("Platforms");
-    expect(wrapper.text()).toContain("Landscape CMS");
+    expect(wrapper.text()).toContain("TUX Desk CMS");
 
     const violations = await runComponentAxe(wrapper.element);
     expect(violations).toEqual([]);

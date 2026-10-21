@@ -17,6 +17,7 @@ fun TuxPageHeader(
     tone: String = "plain",
     rhythm: String = "compact",
     variant: String = "default",
+    division: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

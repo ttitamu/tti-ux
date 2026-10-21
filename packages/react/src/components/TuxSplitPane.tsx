@@ -16,13 +16,14 @@ export interface TuxSplitPaneProps {
   detailLabel?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxSplitPane: React.FC<TuxSplitPaneProps> = ({
-  modelValue, initialListWidth = "320px", minListWidth = 220, maxListWidth = 560, id, initialBottomHeight = "160px", showBottom = false, listLabel = "Records", detailLabel = "Detail", children, className = ''
+  modelValue, initialListWidth = "320px", minListWidth = 220, maxListWidth = 560, id, initialBottomHeight = "160px", showBottom = false, listLabel = "Records", detailLabel = "Detail", children, className = '', style
 }) => {
   return (
-    <div className={`tux-split-pane ${className}`.trim()}>
+    <div className={`tux-split-pane ${className}`.trim()} style={style}>
       {children}
     </div>
   );

@@ -12,15 +12,22 @@ export interface TuxAbstractProps {
   keywords?: string;
   variant?: "structured" | "prose";
   level?: number;
+  plainSummary?: string;
+  policyTakeaways?: string;
+  doi?: string;
+  projectNumber?: string;
+  citation?: string;
+  division?: "maroon" | "blue" | "teal" | "green" | "gold";
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxAbstract: React.FC<TuxAbstractProps> = ({
-  background, methods, results, conclusion, keywords, variant = "structured", level = 4, children, className = ''
+  background, methods, results, conclusion, keywords, variant = "structured", level = 4, plainSummary, policyTakeaways, doi, projectNumber, citation, division, children, className = '', style
 }) => {
   return (
-    <section className={`tux-abstract ${className}`.trim()}>
+    <section className={`tux-abstract ${className}`.trim()} data-variant={variant} style={style}>
       {children}
     </section>
   );

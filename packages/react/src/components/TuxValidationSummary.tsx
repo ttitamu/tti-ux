@@ -10,13 +10,15 @@ export interface TuxValidationSummaryProps {
   variant?: "error" | "warning";
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxValidationSummary: React.FC<TuxValidationSummaryProps> = ({
-  errors, title, variant = "error", children, className = ''
+  errors, title, variant = "error", children, className = '', style
 }) => {
   return (
-    <div className={`tux-validation-summary ${className}`.trim()}>
+    <div className={`tux-validation-summary ${className}`.trim()} data-variant={variant} style={style}>
+      {title !== undefined && String(title) !== "" && <div className="tux-validation-summary__title" style={{ fontWeight: 600, color: "var(--text-primary, #191919)" }}>{String(title)}</div>}
       {children}
     </div>
   );

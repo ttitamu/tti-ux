@@ -2,21 +2,21 @@
 useHead({ title: "TuxPhotoGrid · TUX" });
 
 const photoItems = [
-  { alt: "Connected vehicle test track at Rellis", tone: "maroon" as const, caption: "Connected vehicle test track", credit: "TTI Photography · 2025" },
-  { alt: "Rural roadway intersection — site 04", tone: "charcoal" as const, caption: "Site 04 · before/after study", credit: "Hassan et al. · 2024" },
-  { alt: "MovementLab control room", tone: "gold" as const, caption: "MovementLab · Q3 2025" },
-  { alt: "Field instrumentation crew", tone: "maroon" as const, caption: "Field crew · 12-county deployment" },
-  { alt: "Annual symposium keynote", tone: "charcoal" as const, caption: "Symposium · 2025 keynote" },
-  { alt: "Connected freight corridor — Houston", tone: "gold" as const, caption: "Freight corridor · Houston segment" },
+  { alt: "Aerial view of the connected vehicle test track at the Texas A&M RELLIS Campus", tone: "maroon" as const, caption: "Connected vehicle test track", credit: "TTI Photography · 2025" },
+  { alt: "Rural highway intersection at Site 04 with high-friction surface treatment and chevron alignment signage", tone: "charcoal" as const, caption: "Site 04 · before/after study", credit: "Hassan et al. · 2024" },
+  { alt: "Researchers monitoring real-time corridor telemetry displays inside the TTI MovementLab control room", tone: "gold" as const, caption: "MovementLab · Q3 2025" },
+  { alt: "TTI field instrumentation crew calibrating roadside radar sensors across the 12-county study region", tone: "maroon" as const, caption: "Field crew · 12-county deployment" },
+  { alt: "Keynote address on roadway safety and human factors at the 2025 TTI Annual Transportation Symposium", tone: "charcoal" as const, caption: "Symposium · 2025 keynote" },
+  { alt: "Heavy commercial freight platoon traveling along the instrumented Interstate 10 Houston corridor segment", tone: "gold" as const, caption: "Freight corridor · Houston segment" },
 ];
 
 const logoItems = [
-  { alt: "TxDOT", tone: "maroon" as const },
-  { alt: "FHWA",  tone: "charcoal" as const },
-  { alt: "NSF",   tone: "gold" as const },
-  { alt: "AASHTO", tone: "maroon" as const },
-  { alt: "USDOT", tone: "charcoal" as const },
-  { alt: "TTI",   tone: "gold" as const },
+  { alt: "Texas Department of Transportation (TxDOT)", tone: "maroon" as const },
+  { alt: "Federal Highway Administration (FHWA)",  tone: "charcoal" as const },
+  { alt: "National Science Foundation (NSF)",   tone: "gold" as const },
+  { alt: "American Association of State Highway and Transportation Officials (AASHTO)", tone: "maroon" as const },
+  { alt: "United States Department of Transportation (USDOT)", tone: "charcoal" as const },
+  { alt: "Texas A&M Transportation Institute (TTI)",   tone: "gold" as const },
 ];
 
 const exampleVue = `<TuxPhotoGrid :items="photoItems" :columns="3" />`;

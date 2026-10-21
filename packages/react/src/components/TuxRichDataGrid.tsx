@@ -29,15 +29,21 @@ export interface TuxRichDataGridProps {
   density?: "comfortable" | "compact";
   paginationLabel?: string;
   paginationTokens?: string;
+  projectNumber?: string;
+  doi?: string;
+  citation?: string;
+  showUnitToggle?: boolean;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxRichDataGrid: React.FC<TuxRichDataGridProps> = ({
-  columns, rows, rowKey = "id", title, meta, searchPlaceholder = "Search…", showSearch = true, showFilter = true, showColumns = true, showExport = true, filters, selected, selectionDisabled = false, bulkActions, expanded, expansionDisabled = false, sortKey, sortDir, maxHeight = "440px", virtualized = false, virtualRowHeight = 44, density = "comfortable", paginationLabel, paginationTokens, children, className = ''
+  columns, rows, rowKey = "id", title, meta, searchPlaceholder = "Search…", showSearch = true, showFilter = true, showColumns = true, showExport = true, filters, selected, selectionDisabled = false, bulkActions, expanded, expansionDisabled = false, sortKey, sortDir, maxHeight = "440px", virtualized = false, virtualRowHeight = 44, density = "comfortable", paginationLabel, paginationTokens, projectNumber, doi, citation, showUnitToggle = false, children, className = '', style
 }) => {
   return (
-    <div className={`tux-rich-data-grid ${className}`.trim()}>
+    <div className={`tux-rich-data-grid ${className}`.trim()} style={style}>
+      {title !== undefined && String(title) !== "" && <div className="tux-rich-data-grid__title" style={{ fontWeight: 600, color: "var(--text-primary, #191919)" }}>{String(title)}</div>}
       {children}
     </div>
   );

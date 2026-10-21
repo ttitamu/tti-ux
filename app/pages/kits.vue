@@ -28,110 +28,6 @@ interface KitDefinition {
 
 const kits: KitDefinition[] = [
   {
-    id: "landscape",
-    title: "Landscape Sensitive-Data Classifier",
-    eyebrow: "product · security & IT",
-    category: "operations",
-    categoryLabel: "Operations & Telemetry",
-    exampleRoute: "/examples/landscape-dashboard",
-    legacyUrl: "/kits/landscape/index.html",
-    summary: "Sensitive-data index overview with high-density KPI tiles, inline ingest-rate sparkline, treemap taxonomy, faceted file search, right-rail activity stream, and active-agent monitor.",
-    archetype: "High-Density Operations",
-    layoutShell: "sidebar layout + #header + #rail + #rail-footer + #aside",
-    components: [
-      "TuxBreadcrumbs",
-      "TuxPageHeader",
-      "TuxBigStat",
-      "TuxFactoid",
-      "TuxSparkline",
-      "TuxAlert",
-      "TuxTreemap",
-      "TuxFilterPanel",
-      "TuxSearch",
-      "TuxBadge",
-      "TuxPagination",
-      "TuxSectionHeader",
-      "TuxDescriptionList",
-      "TuxCard",
-    ],
-    keyRules: [
-      "Status is --status-*, never --brand-primary. Maroon is chrome, not state.",
-      "High data density: hairline borders and tabular numbers throughout.",
-      "Inline trendlines (TuxSparkline) accompany all core KPI summaries.",
-    ],
-    scaffoldCode: `<template>
-  <NuxtLayout name="sidebar">
-    <template #header>
-      <UDashboardSidebarToggle />
-      <TuxBreadcrumbs :trail="trail" />
-      <div class="ml-auto flex items-center gap-3">
-        <TuxBadge tone="brand">Indexed: 47.2 TB</TuxBadge>
-        <TuxButton size="sm" icon="lucide:refresh-cw">Sync Indices</TuxButton>
-      </div>
-    </template>
-
-    <template #rail-header="{ collapsed }">
-      <div class="p-3 font-bold text-brand-primary">Landscape</div>
-    </template>
-
-    <template #rail="{ collapsed }">
-      <UNavigationMenu :items="railItems" :collapsed="collapsed" />
-    </template>
-
-    <!-- Main High-Density Monitoring Grid -->
-    <div class="p-6 space-y-6">
-      <TuxPageHeader eyebrow="RESEARCH CORPUS" title="Index Overview" />
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <TuxFactoid value="47.2 TB" label="Indexed corpora" source="↑ 1.4 TB / 7d" />
-        <TuxFactoid value="12.8M" label="Files tracked" source="↑ 124k / 7d" />
-        <TuxFactoid value="203" label="Active scans" source="↓ 14 / 24h" />
-      </div>
-
-      <div class="flex items-center justify-between border-t border-surface-border pt-4">
-        <TuxSectionHeader>Ingest Activity</TuxSectionHeader>
-        <TuxSparkline :data="ingestTrend" :width="200" :height="36" />
-      </div>
-    </div>
-
-    <template #aside>
-      <div class="p-4 space-y-4">
-        <p class="eyebrow">Realtime Agents</p>
-        <!-- Agent status feed -->
-      </div>
-    </template>
-  </NuxtLayout>
-</template>`,
-    reactScaffoldCode: `import React from 'react';
-import {
-  TuxBreadcrumbs,
-  TuxFactoid,
-  TuxBadge,
-  TuxButton,
-  TuxSectionHeader
-} from '@tti/tti-ux-react';
-
-export function LandscapeDashboard() {
-  return (
-    <div className="flex min-h-screen bg-surface-page text-text-primary">
-      {/* Sidebar Rail */}
-      <aside className="w-64 border-r border-surface-border p-4">
-        <h2 className="font-bold text-brand-primary">Landscape</h2>
-      </aside>
-
-      {/* Main High-Density Workspace */}
-      <main className="flex-1 p-6 space-y-6">
-        <div className="grid grid-cols-3 gap-4">
-          <TuxFactoid value="47.2 TB" label="Indexed Corpora" source="↑ 1.4 TB / 7d" />
-          <TuxFactoid value="12.8M" label="Files Tracked" source="↑ 124k / 7d" />
-          <TuxFactoid value="203" label="Active Scans" source="↓ 14 / 24h" />
-        </div>
-      </main>
-    </div>
-  );
-}`,
-  },
-  {
     id: "ai-studio",
     title: "TTI AI Studio & Agentic Chat Session",
     eyebrow: "product · conversational AI",
@@ -354,59 +250,6 @@ export function MyTTIIntranet() {
           <TuxFactoid value="1,400" label="Researchers & Staff" />
         </div>
       </main>
-    </div>
-  );
-}`,
-  },
-  {
-    id: "atlas",
-    title: "Atlas Policy Audit & Compliance Console",
-    eyebrow: "security · atlas.tti.tamu.edu",
-    category: "operations",
-    categoryLabel: "Security, Governance & Audit",
-    exampleRoute: "/examples/atlas",
-    legacyUrl: null,
-    summary: "Continuous compliance and tenant policy audit console reproducing atlas.tti.tamu.edu: M365 and Azure posture telemetry, 6-tile governance launcher, audit milestones, and findings ledger with remediation actions.",
-    archetype: "Security & Governance",
-    layoutShell: "Enterprise compliance console shell with telemetry header and findings ledger",
-    components: [
-      "TuxPortalHeader",
-      "TuxSpectrumFacts",
-      "TuxTileGrid",
-      "TuxEventCalendarRow",
-      "TuxStatus",
-      "TuxButton",
-      "TuxBadge",
-    ],
-    keyRules: [
-      "100% WCAG 2.2 Level AAA compliance verified across all audit ledgers.",
-      "Status chips use --status-* semantic tokens with accompanying text icons.",
-      "Evidence lockers provide instant export for CMMC and TxRAMP auditors.",
-    ],
-    scaffoldCode: `<template>
-  <div class="min-h-screen bg-surface-eggshell text-text-primary">
-    <TuxPortalHeader mode="intranet" portal-title="Atlas Audit Console" />
-    <TuxSpectrumFacts :facts="compliancePosture" />
-    <main class="max-w-7xl mx-auto py-8 px-6 space-y-8">
-      <TuxTileGrid :tiles="governanceEnclaves" />
-      <!-- Policy Findings Ledger Table with TuxStatus -->
-      <div class="border border-surface-border rounded-md bg-surface-raised p-4">
-        <TuxSectionHeader>High-Priority Compliance Findings</TuxSectionHeader>
-      </div>
-    </main>
-  </div>
-</template>`,
-    reactScaffoldCode: `import React from 'react';
-import { TuxStatus, TuxBadge, TuxButton } from '@tti/tti-ux-react';
-
-export function AtlasConsole() {
-  return (
-    <div className="min-h-screen bg-surface-page p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Atlas Policy Audit Console</h1>
-      <div className="flex items-center gap-3">
-        <TuxStatus state="warning" label="Review Pending" />
-        <TuxBadge tone="brand">TxRAMP Level 2</TuxBadge>
-      </div>
     </div>
   );
 }`,
@@ -650,7 +493,7 @@ export function SlideDeck() {
 ];
 
 // Active selection state
-const selectedKitId = ref<string>("landscape");
+const selectedKitId = ref<string>("corridor");
 const activeViewMode = ref<"stage" | "architecture" | "scaffold" | "legacy">("stage");
 const selectedViewport = ref<"desktop" | "laptop" | "tablet" | "mobile">("desktop");
 const selectedScaffoldTarget = ref<"nuxt" | "react">("nuxt");
@@ -693,14 +536,6 @@ const legacyMappings: LegacyMapping[] = [
     modernEquivalent: "TUX Component Lab & Token Explorer",
     modernRoute: "/components",
     reason: "Static Babel-in-the-browser cards replaced with 110+ reactive Tux*.vue components, interactive knobs, live documentation, and zero-drift tests.",
-  },
-  {
-    slug: "landscape",
-    legacyName: "Landscape Prototype",
-    role: "Sensitive-data classifier shell",
-    modernEquivalent: "Landscape Dashboard Suite",
-    modernRoute: "/examples/landscape-dashboard",
-    reason: "Upgraded from static layout into a responsive multi-slot sidebar shell (NuxtLayout name='sidebar') with real KPI sparklines and faceted filters.",
   },
   {
     slug: "tti-docs",
@@ -1192,13 +1027,6 @@ function copyScaffoldCode() {
               <button
                 type="button"
                 class="text-xs px-2 py-0.5 rounded bg-surface-page border border-surface-border hover:border-brand-primary"
-                @click="selectKit('landscape')"
-              >
-                Landscape
-              </button>
-              <button
-                type="button"
-                class="text-xs px-2 py-0.5 rounded bg-surface-page border border-surface-border hover:border-brand-primary"
                 @click="selectKit('ops-board')"
               >
                 Ops Board
@@ -1260,7 +1088,7 @@ function copyScaffoldCode() {
             </div>
             <h3 class="text-lg font-bold text-text-primary">Workspaces, AI & Developer Platforms</h3>
             <p class="text-sm text-text-secondary leading-relaxed">
-              Interactive employee tools, self-hosted code repositories, policy compliance consoles, and conversational
+              Interactive employee tools, self-hosted code repositories, and conversational
               LLM assistants. Grounded in command palettes, split panes, and verified citation blocks.
             </p>
             <ul class="text-xs text-text-muted space-y-1.5 list-disc pl-4">
@@ -1285,13 +1113,6 @@ function copyScaffoldCode() {
                 @click="selectKit('forgejo')"
               >
                 TTI Code (Forgejo)
-              </button>
-              <button
-                type="button"
-                class="text-xs px-2 py-0.5 rounded bg-surface-page border border-surface-border hover:border-brand-primary"
-                @click="selectKit('atlas')"
-              >
-                Atlas Audit
               </button>
             </div>
           </div>

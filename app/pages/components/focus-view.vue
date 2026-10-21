@@ -55,7 +55,7 @@ const singleSeries = [
             click the backdrop to dismiss.
           </p>
           <p class="mt-4">
-            Use case for Landscape: "open this chart in focus mode" — pin a
+            Use case for Corridor Ops: "open this chart in focus mode" — pin a
             chart full-screen for inspection, dismiss returns to the
             dashboard.
           </p>

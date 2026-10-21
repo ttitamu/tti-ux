@@ -16,13 +16,14 @@ export interface TuxMobileFrameProps {
   ariaLabel?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxMobileFrame: React.FC<TuxMobileFrameProps> = ({
-  platform = "ios", width = 280, color, statusBar = true, time = "9:41", notch = true, homeIndicator = true, navStyle = "gesture", ariaLabel, children, className = ''
+  platform = "ios", width = 280, color, statusBar = true, time = "9:41", notch = true, homeIndicator = true, navStyle = "gesture", ariaLabel, children, className = '', style
 }) => {
   return (
-    <figure className={`tux-mobile-frame ${className}`.trim()}>
+    <figure className={`tux-mobile-frame ${className}`.trim()} style={style}>
       {children}
     </figure>
   );

@@ -15,13 +15,14 @@ export interface TuxResultCountProps {
   pageSizeLabel?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxResultCount: React.FC<TuxResultCountProps> = ({
-  page, pageSize, total, noun, nounPlural, pageSizeOptions, hideRange = false, pageSizeLabel, children, className = ''
+  page, pageSize, total, noun, nounPlural, pageSizeOptions, hideRange = false, pageSizeLabel, children, className = '', style
 }) => {
   return (
-    <div className={`tux-result-count ${className}`.trim()}>
+    <div className={`tux-result-count ${className}`.trim()} style={style}>
       {children}
     </div>
   );

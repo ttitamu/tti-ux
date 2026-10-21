@@ -16,13 +16,14 @@ export interface TuxPaginationProps {
   ariaLabel?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxPagination: React.FC<TuxPaginationProps> = ({
-  total, modelValue, pageSize = 20, siblingCount = 1, boundaryCount = 1, showStatus = false, noun = "result", pluralNoun, ariaLabel = "Pagination", children, className = ''
+  total, modelValue, pageSize = 20, siblingCount = 1, boundaryCount = 1, showStatus = false, noun = "result", pluralNoun, ariaLabel = "Pagination", children, className = '', style
 }) => {
   return (
-    <nav className={`tux-pagination ${className}`.trim()}>
+    <nav className={`tux-pagination ${className}`.trim()} style={style}>
       {children}
     </nav>
   );

@@ -10,13 +10,14 @@ export interface TuxAuthorBylineProps {
   layout?: "compact" | "stacked";
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxAuthorByline: React.FC<TuxAuthorBylineProps> = ({
-  authors, affiliations, layout = "compact", children, className = ''
+  authors, affiliations, layout = "compact", children, className = '', style
 }) => {
   return (
-    <section className={`tux-author-byline ${className}`.trim()}>
+    <section className={`tux-author-byline ${className}`.trim()} style={style}>
       {children}
     </section>
   );

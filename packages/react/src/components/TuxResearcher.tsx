@@ -18,13 +18,15 @@ export interface TuxResearcherProps {
   to?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxResearcher: React.FC<TuxResearcherProps> = ({
-  name, role, portrait, center, orcid, email, bio, projects, metrics, layout = "default", to, children, className = ''
+  name, role, portrait, center, orcid, email, bio, projects, metrics, layout = "default", to, children, className = '', style
 }) => {
   return (
-    <article className={`tux-researcher ${className}`.trim()}>
+    <article className={`tux-researcher ${className}`.trim()} style={style}>
+      {name !== undefined && String(name) !== "" && <div className="tux-researcher__title" style={{ fontWeight: 600, color: "var(--text-primary, #191919)" }}>{String(name)}</div>}
       {children}
     </article>
   );

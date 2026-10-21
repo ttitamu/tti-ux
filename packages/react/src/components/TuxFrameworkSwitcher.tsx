@@ -8,13 +8,14 @@ export interface TuxFrameworkSwitcherProps {
   mode?: "compact" | "segmented" | "auto";
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxFrameworkSwitcher: React.FC<TuxFrameworkSwitcherProps> = ({
-  mode = "compact", children, className = ''
+  mode = "compact", children, className = '', style
 }) => {
   return (
-    <div className={`tux-framework-switcher ${className}`.trim()}>
+    <div className={`tux-framework-switcher ${className}`.trim()} data-mode={mode} style={style}>
       {children}
     </div>
   );

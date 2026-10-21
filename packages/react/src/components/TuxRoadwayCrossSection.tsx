@@ -13,13 +13,14 @@ export interface TuxRoadwayCrossSectionProps {
   initialYaw?: number;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxRoadwayCrossSection: React.FC<TuxRoadwayCrossSectionProps> = ({
-  preset = "urban-managed", initialView = "3d-perspective", height = "560px", interactive = true, initialPitch = 48, initialYaw = -16, children, className = ''
+  preset = "urban-managed", initialView = "3d-perspective", height = "560px", interactive = true, initialPitch = 48, initialYaw = -16, children, className = '', style
 }) => {
   return (
-    <div className={`tux-roadway-cross-section ${className}`.trim()}>
+    <div className={`tux-roadway-cross-section ${className}`.trim()} style={style}>
       {children}
     </div>
   );

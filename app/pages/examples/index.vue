@@ -2,7 +2,7 @@
 /**
  * Composition Examples & Application Suites Gallery — TUX
  *
- * Showcases 15 production page compositions, operational telemetry boards,
+ * Showcases 13 production page compositions, operational telemetry boards,
  * public marcom portals, and enterprise intranet suites built with native
  * TUX components.
  */
@@ -23,18 +23,6 @@ interface ExampleEntry {
 }
 
 const examples: ExampleEntry[] = [
-  {
-    slug: "landscape-dashboard",
-    eyebrow: "product · IT-facing",
-    title: "Landscape dashboard",
-    category: "ops",
-    categoryLabel: "Operational Telemetry",
-    archetype: "High-Density Operations",
-    blurb: "Index overview for a research-IT product (Landscape). Sidebar shell + KPI row with deltas + inline ingest-rate sparkline + treemap + faceted file search + right-rail activity + active-agents tile.",
-    componentsCount: 15,
-    featuredComponents: ["TuxBreadcrumbs", "TuxFactoid", "TuxSparkline", "TuxAlert", "TuxTreemap", "TuxFilterPanel", "TuxSearch"],
-    kitId: "landscape",
-  },
   {
     slug: "ops-board",
     eyebrow: "product · operations",
@@ -89,7 +77,7 @@ const examples: ExampleEntry[] = [
     category: "marcom",
     categoryLabel: "Public & Marcom",
     archetype: "Public Brand & Editorial",
-    blurb: "Mobility Division landing page exercising the TTI identity cluster end-to-end. TuxLab as hero, TuxResearcher × 3 featured, TuxProgram × 3 active programs, TuxFundingSource strip, TuxCenterBadge throughout (including cross-division links to the other five TTI centers).",
+    blurb: "Research Center landing page exercising the TTI identity cluster end-to-end. TuxLab as hero, TuxResearcher × 3 featured, TuxProgram × 3 active programs, TuxFundingSource strip, TuxCenterBadge throughout (including cross-center links to related TTI research programs).",
     componentsCount: 8,
     featuredComponents: ["TuxPageHeader", "TuxFactoid", "TuxCard", "TuxBadge", "TuxButton"],
   },
@@ -117,25 +105,13 @@ const examples: ExampleEntry[] = [
     kitId: "intranet",
   },
   {
-    slug: "atlas",
-    eyebrow: "internal · security & audit",
-    title: "Atlas policy audit corpus",
-    category: "intranet",
-    categoryLabel: "Internal & Intranet",
-    archetype: "Security, Governance & Audit",
-    blurb: "Continuous compliance and policy audit console reproducing atlas.tti.tamu.edu. Composes TuxPortalHeader (intranet mode) + TuxSpectrumFacts (telemetry metric banner) + TuxTileGrid (governance suites) + TuxEventCalendarRow (audit milestones) + policy findings ledger.",
-    componentsCount: 8,
-    featuredComponents: ["TuxPortalHeader", "TuxSpectrumFacts", "TuxTileGrid", "TuxStatus", "TuxButton"],
-    kitId: "atlas",
-  },
-  {
     slug: "forgejo-code",
     eyebrow: "developer · git collaboration",
     title: "TTI Code developer portal",
     category: "intranet",
     categoryLabel: "Internal & Intranet",
     archetype: "Developer Tools & Code Collaboration",
-    blurb: "Self-hosted Git repository portal reproducing code.tti.tamu.edu. Branded in Comm language with sharp buttons, 5-band spectrum division tags, Warm Gold keylines, and eggshell README wells.",
+    blurb: "Self-hosted Git repository portal reproducing code.tti.tamu.edu. Branded in Comm language with sharp buttons, 5-band brand spectrum tags, Warm Gold keylines, and eggshell README wells.",
     componentsCount: 7,
     featuredComponents: ["TuxTabs", "TuxBreadcrumbs", "TuxCodeBlock", "TuxButton", "TuxBadge"],
     kitId: "forgejo",
@@ -246,7 +222,7 @@ const filteredExamples = computed(() => {
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="p-4 rounded-md bg-surface-raised border border-surface-border">
         <p class="eyebrow">Composition Gallery</p>
-        <p class="text-2xl font-bold text-text-primary mt-1">15 Suites</p>
+        <p class="text-2xl font-bold text-text-primary mt-1">13 Suites</p>
         <p class="text-xs text-text-muted mt-0.5">End-to-end production pages</p>
       </div>
       <div class="p-4 rounded-md bg-surface-raised border border-surface-border">
@@ -272,18 +248,19 @@ const filteredExamples = computed(() => {
     <!-- Interactive Filters & Search -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-surface-border pb-4">
       <!-- Category Tabs -->
-      <div class="flex flex-wrap items-center gap-1.5">
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:flex-wrap" role="group" aria-label="Filter composition suites by category">
         <button
           v-for="cat in categories"
           :key="cat.id"
           type="button"
-          class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center gap-1.5"
+          :aria-pressed="selectedCategory === cat.id"
+          class="px-3 py-2 min-h-[44px] text-xs font-semibold rounded-none transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer"
           :class="selectedCategory === cat.id ? 'bg-brand-primary text-text-on-brand' : 'bg-surface-raised border border-surface-border text-text-secondary hover:text-text-primary hover:border-brand-primary'"
           @click="selectedCategory = cat.id"
         >
           <span>{{ cat.label }}</span>
           <span
-            class="text-[10px] px-1.5 py-0.2 rounded-full"
+            class="text-[10px] px-1.5 py-0.2 rounded-none"
             :class="selectedCategory === cat.id ? 'bg-brand-maroon-light/30 text-text-on-brand' : 'bg-surface-sunken text-text-muted'"
           >
             {{ cat.count }}
@@ -293,17 +270,19 @@ const filteredExamples = computed(() => {
 
       <!-- Search Input -->
       <div class="relative w-full md:w-64">
-        <UIcon name="lucide:search" class="w-4 h-4 absolute left-3 top-2.5 text-text-muted" />
+        <UIcon name="lucide:search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
         <input
           v-model="searchQuery"
-          type="text"
+          type="search"
+          aria-label="Filter composition examples by title or component"
           placeholder="Filter by title or component..."
-          class="w-full pl-9 pr-8 py-1.5 text-xs bg-surface-raised border border-surface-border rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary"
+          class="w-full min-h-[44px] pl-9 pr-9 py-2 text-xs bg-surface-raised border border-surface-border rounded-none text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary"
         >
         <button
           v-if="searchQuery"
           type="button"
-          class="absolute right-2.5 top-2 text-text-muted hover:text-text-primary text-xs"
+          aria-label="Clear filter"
+          class="absolute right-1 top-1/2 -translate-y-1/2 min-w-[36px] min-h-[36px] inline-flex items-center justify-center text-text-muted hover:text-text-primary text-xs cursor-pointer"
           @click="searchQuery = ''"
         >
           ✕
@@ -402,7 +381,7 @@ const filteredExamples = computed(() => {
     <section class="space-y-4 pt-6 border-t border-surface-border">
       <TuxSectionHeader>Application Archetypes Doctrine</TuxSectionHeader>
       <p class="text-sm text-text-secondary leading-relaxed max-w-3xl">
-        TUX supports three primary application formats: data-dense monitoring dashboards (Landscape, Ops Board),
+        TUX supports three primary application formats: data-dense monitoring dashboards (Corridor Analytics, Ops Board),
         public and research publications (portals, reports, and identity landings), and conversational interfaces
         (TTI AI Studio). Each archetype implements strict token contracts and WCAG 2.2 Level AAA standards.
       </p>

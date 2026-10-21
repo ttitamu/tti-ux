@@ -53,7 +53,7 @@ useHead({ title: "Skip to content · Accessibility · TUX" });
       <p class="eyebrow">consumer guidance</p>
       <h2 class="heading--bold text-xl font-bold">When you embed TUX</h2>
       <p class="mt-2 text-sm text-text-secondary leading-relaxed max-w-2xl">
-        Downstream apps (Landscape, tti-ai-studio, marcom WordPress)
+        Downstream apps (TTI Code, tti-ai-studio, marcom WordPress)
         either inherit the skip link automatically (when they consume
         the Nuxt layer with TUX's <code>app.vue</code>) or wire their
         own with the same anchor convention. The pattern is the

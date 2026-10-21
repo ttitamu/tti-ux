@@ -10,13 +10,14 @@ export interface TuxChartGeoDistrictsProps {
   legendStops: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxChartGeoDistricts: React.FC<TuxChartGeoDistrictsProps> = ({
-  districts, legendLabel, legendStops, children, className = ''
+  districts, legendLabel, legendStops, children, className = '', style
 }) => {
   return (
-    <svg className={`tux-chart-geo-districts ${className}`.trim()}>
+    <svg className={`tux-chart-geo-districts ${className}`.trim()} style={style}>
       {children}
     </svg>
   );

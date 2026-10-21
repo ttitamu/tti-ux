@@ -418,10 +418,47 @@ export function emitReact(schema) {
       }
       return p.name;
     })
-    .concat(["children", "className = ''"])
+    .concat(["children", "className = ''", "style"])
     .join(", ");
 
-  const Tag = VALID_HTML_TAGS.has(schema.rootElement) ? schema.rootElement : "div";
+  const VOID_TAGS = new Set(["input", "img", "br", "hr", "meta", "link"]);
+  const Tag = VALID_HTML_TAGS.has(schema.rootElement) && !VOID_TAGS.has(schema.rootElement)
+    ? schema.rootElement
+    : "div";
+
+  const propNames = new Set(schema.props.filter((p) => !JS_RESERVED.has(p.name)).map((p) => p.name));
+  const dataAttrs = ["variant", "status", "tone", "mode", "size"]
+    .filter((k) => propNames.has(k))
+    .map((k) => `data-${k}={${k}}`)
+    .join(" ");
+
+  const eyebrowProp = ["eyebrow", "kicker"].find((k) => propNames.has(k));
+  const headingProp = ["title", "heading", "label", "name"].find((k) => propNames.has(k));
+  const bodyProp = ["description", "subtitle", "summary", "caption", "message"].find((k) => propNames.has(k));
+  const valueProp = ["value", "count"].find((k) => propNames.has(k));
+
+  const fallbackRenderLines = [];
+  if (eyebrowProp) {
+    fallbackRenderLines.push(
+      `      {${eyebrowProp} !== undefined && String(${eyebrowProp}) !== "" && <div className="${schema.baseClass}__eyebrow" style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono, monospace)", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--brand-primary, #500000)" }}>{String(${eyebrowProp})}</div>}`
+    );
+  }
+  if (headingProp) {
+    fallbackRenderLines.push(
+      `      {${headingProp} !== undefined && String(${headingProp}) !== "" && <div className="${schema.baseClass}__title" style={{ fontWeight: 600, color: "var(--text-primary, #191919)" }}>{String(${headingProp})}</div>}`
+    );
+  }
+  if (valueProp) {
+    fallbackRenderLines.push(
+      `      {${valueProp} !== undefined && String(${valueProp}) !== "" && <div className="${schema.baseClass}__value" style={{ fontFamily: "var(--font-mono, monospace)", fontWeight: 700, color: "var(--brand-primary, #500000)" }}>{String(${valueProp})}</div>}`
+    );
+  }
+  if (bodyProp) {
+    fallbackRenderLines.push(
+      `      {${bodyProp} !== undefined && String(${bodyProp}) !== "" && <div className="${schema.baseClass}__description" style={{ fontSize: "0.875rem", color: "var(--text-secondary, #44403c)" }}>{String(${bodyProp})}</div>}`
+    );
+  }
+  fallbackRenderLines.push(`      {children}`);
 
   return `/**
  * ${schema.name} — React 19 JSX component.
@@ -432,14 +469,15 @@ import React from 'react';
 export interface ${schema.name}Props {
 ${propTypes ? `${propTypes}\n` : ""}  children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const ${schema.name}: React.FC<${schema.name}Props> = ({
   ${defaultDestructuring}
 }) => {
   return (
-    <${Tag} className={\`${schema.baseClass} \${className}\`.trim()}>
-      {children}
+    <${Tag} className={\`${schema.baseClass} \${className}\`.trim()}${dataAttrs ? ` ${dataAttrs}` : ""} style={style}>
+${fallbackRenderLines.join("\n")}
     </${Tag}>
   );
 };

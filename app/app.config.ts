@@ -8,7 +8,7 @@
  * TuxAlert's tip variant can own the violet family, distinct from success's
  * green. `warning` is backed by the TTI gold ramp (#DDAC37 anchor,
  * --color-gold-*) — owner-ratified 2026-07-30, replacing the amber
- * stand-in. Landscape's local warning→gold override becomes redundant at
+ * stand-in. Corridor Ops' local warning→gold override becomes redundant at
  * its next pin-bump.
  */
 export default defineAppConfig({

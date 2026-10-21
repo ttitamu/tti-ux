@@ -142,7 +142,7 @@ const presetVue = `<!-- Five preset kinds: no-data, no-results, not-found,
 </tux-empty-state>`;
 
 const presetOverrideVue = `<!-- Override one field; preset fills the rest. -->
-<tux-empty-state kind="first-run" title="Welcome to Landscape">
+<tux-empty-state kind="first-run" title="Welcome to Corridor Ops">
   <tux-button intent="primary" icon="lucide:plus">Create your first index</tux-button>
 </tux-empty-state>`;
 </script>
@@ -285,7 +285,7 @@ const presetOverrideVue = `<!-- Override one field; preset fills the rest. -->
         still defaults from the preset unless you replace it too.
       </p>
       <TuxExample :vue="presetOverrideVue" :source="tuxEmptyStateSource">
-        <TuxEmptyState kind="first-run" title="Welcome to Landscape">
+        <TuxEmptyState kind="first-run" title="Welcome to Corridor Ops">
           <TuxButton intent="primary" icon="lucide:plus">Create your first index</TuxButton>
         </TuxEmptyState>
       </TuxExample>

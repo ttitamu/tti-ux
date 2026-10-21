@@ -203,7 +203,7 @@ const bandVue = `<!-- series[].band renders a soft CI fill behind the line. -->
 const framedVue = `<tux-chart-frame
   eyebrow="Exhibit 11.04"
   title="Monthly ingest rate"
-  source="Source: TTI Landscape index, 2026"
+  source="Source: TTI Corridor index, 2026"
 >
   <tux-chart-line :labels="months" :series="singleSeries" />
 </tux-chart-frame>`;
@@ -446,7 +446,7 @@ const focusVue = `<UButton icon="lucide:maximize" @click="focusOpen = true">Open
           eyebrow="Exhibit 11.04"
           title="Monthly ingest rate"
           subtitle="Files added to the corpus per month — total across all agents"
-          source="Source: TTI Landscape index, 2026"
+          source="Source: TTI Corridor index, 2026"
         >
           <TuxChartLine :labels="months" :series="singleSeries" :width="700" :height="300" />
         </TuxChartFrame>

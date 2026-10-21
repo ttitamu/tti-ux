@@ -251,6 +251,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .tux-app-frame {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.5rem;

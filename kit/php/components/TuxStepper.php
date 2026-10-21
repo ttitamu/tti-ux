@@ -12,6 +12,8 @@ final class TuxStepper
     public string $orientation = 'horizontal';
     public bool $showDescriptions = true;
     public string $ariaLabel = 'Progress';
+    public string $stationFormat = 'number';
+    public string $division;
 
     public function __construct(array $attributes = [])
     {

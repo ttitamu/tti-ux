@@ -16,13 +16,14 @@ export interface TuxMcpEmbedProps {
   collapsed?: boolean;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxMcpEmbed: React.FC<TuxMcpEmbedProps> = ({
-  appName, appIcon = "lucide:plug", appIconUrl, source, loading = false, collapsible = true, expandable = true, closable = true, collapsed = false, children, className = ''
+  appName, appIcon = "lucide:plug", appIconUrl, source, loading = false, collapsible = true, expandable = true, closable = true, collapsed = false, children, className = '', style
 }) => {
   return (
-    <section className={`tux-mcp-embed ${className}`.trim()}>
+    <section className={`tux-mcp-embed ${className}`.trim()} style={style}>
       {children}
     </section>
   );

@@ -9,13 +9,14 @@ export interface TuxChartGeoDotDensityProps {
   dotLegend: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxChartGeoDotDensity: React.FC<TuxChartGeoDotDensityProps> = ({
-  dots, dotLegend, children, className = ''
+  dots, dotLegend, children, className = '', style
 }) => {
   return (
-    <svg className={`tux-chart-geo-dot-density ${className}`.trim()}>
+    <svg className={`tux-chart-geo-dot-density ${className}`.trim()} style={style}>
       {children}
     </svg>
   );

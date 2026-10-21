@@ -17,6 +17,8 @@ public struct TuxBadge<Content: View>: View {
     public var uppercase: Bool = false
     public var shape: String = "default"
     public var glyph: Bool = false
+    public var los: String
+    public var division: String
     private let content: Content
 
     public init(

@@ -21,7 +21,7 @@ const clickVue = `<tux-info-label
 >
   Retention class
   <template #info>
-    <p>Retention controls how long Landscape holds the artifact:</p>
+    <p>Retention controls how long Corridor Ops holds the artifact:</p>
     <p>
       <code>permanent</code> — keep until manual delete.<br>
       <code>30d</code> — auto-purge after 30 days.<br>
@@ -79,7 +79,7 @@ const clickVue = `<tux-info-label
           <TuxInfoLabel for="retention-class" trigger="click">
             Retention class
             <template #info>
-              <p>Retention controls how long Landscape holds the artifact:</p>
+              <p>Retention controls how long Corridor Ops holds the artifact:</p>
               <p>
                 <code>permanent</code> — keep until manual delete.<br>
                 <code>30d</code> — auto-purge after 30 days.<br>

@@ -89,6 +89,8 @@ function detectOS(): TuxOS {
 function detectTauri(): boolean {
   if (typeof window === "undefined") return false;
   const w = window as unknown as Record<string, unknown>;
+  // Respect the browser shim marker so web / browser dev is recognized as web
+  if (w.__TTI_BROWSER_SHIM__) return false;
   return Boolean(w.__TAURI_INTERNALS__ || w.__TAURI_OS_PLUGIN_INTERNALS__);
 }
 

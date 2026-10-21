@@ -12,13 +12,14 @@ export interface TuxAcknowledgmentsProps {
   level?: number;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxAcknowledgments: React.FC<TuxAcknowledgmentsProps> = ({
-  funding, acknowledgments, conflicts, ethics, level = 4, children, className = ''
+  funding, acknowledgments, conflicts, ethics, level = 4, children, className = '', style
 }) => {
   return (
-    <section className={`tux-acknowledgments ${className}`.trim()}>
+    <section className={`tux-acknowledgments ${className}`.trim()} style={style}>
       {children}
     </section>
   );

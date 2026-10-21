@@ -11,6 +11,12 @@ public struct TuxAbstract<Content: View>: View {
     public var keywords: String
     public var variant: String = "structured"
     public var level: Int = 4
+    public var plainSummary: String
+    public var policyTakeaways: String
+    public var doi: String
+    public var projectNumber: String
+    public var citation: String
+    public var division: String
     private let content: Content
 
     public init(

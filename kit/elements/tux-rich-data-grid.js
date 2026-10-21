@@ -4,7 +4,7 @@
  */
 export class TuxRichDataGridElement extends HTMLElement {
   static get observedAttributes() {
-    return ["columns", "rows", "row-key", "title", "meta", "search-placeholder", "show-search", "show-filter", "show-columns", "show-export", "filters", "selected", "selection-disabled", "bulk-actions", "expanded", "expansion-disabled", "sort-key", "sort-dir", "max-height", "virtualized", "virtual-row-height", "density", "pagination-label", "pagination-tokens"];
+    return ["columns", "rows", "row-key", "title", "meta", "search-placeholder", "show-search", "show-filter", "show-columns", "show-export", "filters", "selected", "selection-disabled", "bulk-actions", "expanded", "expansion-disabled", "sort-key", "sort-dir", "max-height", "virtualized", "virtual-row-height", "density", "pagination-label", "pagination-tokens", "project-number", "doi", "citation", "show-unit-toggle"];
   }
 
   constructor() {

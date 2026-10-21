@@ -199,14 +199,16 @@ async function copyTag(compName: string, e: Event) {
           <input
             v-model="searchQuery"
             type="search"
-            placeholder="Search 159 components (name, wraps, category)…"
-            class="w-full pl-9 pr-8 py-2 text-sm rounded-lg bg-surface-sunken border border-surface-border text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary transition-colors"
+            :placeholder="`Search ${allComponents.length} components (name, wraps, category)…`"
+            aria-label="Search components by name, underlying primitive, or category"
+            class="w-full min-h-[44px] pl-9 pr-10 py-2 text-sm rounded-none bg-surface-sunken border border-surface-border text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary transition-colors"
           >
           <button
             v-if="searchQuery"
             type="button"
-            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary p-0.5 cursor-pointer"
+            class="absolute right-1 top-1/2 -translate-y-1/2 min-w-[36px] min-h-[36px] inline-flex items-center justify-center text-text-muted hover:text-text-primary cursor-pointer"
             title="Clear search"
+            aria-label="Clear component search"
             @click="searchQuery = ''"
           >
             <UIcon name="lucide:x" class="w-3.5 h-3.5" />
@@ -216,10 +218,11 @@ async function copyTag(compName: string, e: Event) {
         <!-- Controls: View Mode, Sorting, Preferred Framework, and Health Dashboard -->
         <div class="flex items-center gap-2 flex-wrap">
           <!-- View Mode Toggle -->
-          <div class="inline-flex items-center p-0.5 rounded-lg bg-surface-sunken border border-surface-border" role="radiogroup" aria-label="Catalog view mode">
+          <div class="inline-flex items-center p-0.5 rounded-none bg-surface-sunken border border-surface-border" role="group" aria-label="Catalog view mode">
             <button
               type="button"
-              class="px-2.5 py-1 text-xs font-semibold rounded flex items-center gap-1 transition-colors cursor-pointer"
+              :aria-pressed="viewMode === 'grid'"
+              class="px-3 py-2 min-h-[40px] text-xs font-semibold rounded-none flex items-center gap-1.5 transition-colors cursor-pointer"
               :class="viewMode === 'grid' ? 'bg-surface-raised text-brand-primary shadow-xs font-bold' : 'text-text-muted hover:text-text-primary'"
               title="Card Grid View"
               @click="viewMode = 'grid'"
@@ -229,7 +232,8 @@ async function copyTag(compName: string, e: Event) {
             </button>
             <button
               type="button"
-              class="px-2.5 py-1 text-xs font-semibold rounded flex items-center gap-1 transition-colors cursor-pointer"
+              :aria-pressed="viewMode === 'table'"
+              class="px-3 py-2 min-h-[40px] text-xs font-semibold rounded-none flex items-center gap-1.5 transition-colors cursor-pointer"
               :class="viewMode === 'table' ? 'bg-surface-raised text-brand-primary shadow-xs font-bold' : 'text-text-muted hover:text-text-primary'"
               title="Dense Matrix Table View"
               @click="viewMode = 'table'"
@@ -239,7 +243,8 @@ async function copyTag(compName: string, e: Event) {
             </button>
             <button
               type="button"
-              class="px-2.5 py-1 text-xs font-semibold rounded flex items-center gap-1 transition-colors cursor-pointer"
+              :aria-pressed="viewMode === 'preview'"
+              class="px-3 py-2 min-h-[40px] text-xs font-semibold rounded-none flex items-center gap-1.5 transition-colors cursor-pointer"
               :class="viewMode === 'preview' ? 'bg-surface-raised text-brand-primary shadow-xs font-bold' : 'text-text-muted hover:text-text-primary'"
               title="Micro-Preview Mode"
               @click="viewMode = 'preview'"
@@ -253,7 +258,7 @@ async function copyTag(compName: string, e: Event) {
           <div class="relative">
             <select
               v-model="sortBy"
-              class="px-2.5 py-1.5 text-xs font-mono font-medium rounded-lg bg-surface-sunken border border-surface-border text-text-primary focus:outline-none focus:border-brand-primary cursor-pointer"
+              class="px-3 py-2 min-h-[44px] text-xs font-mono font-medium rounded-none bg-surface-sunken border border-surface-border text-text-primary focus:outline-none focus:border-brand-primary cursor-pointer"
               aria-label="Sort components by"
             >
               <option value="name">Sort: Name (A-Z)</option>
@@ -268,20 +273,21 @@ async function copyTag(compName: string, e: Event) {
           <!-- Health Dashboard Link -->
           <NuxtLink
             to="/components/health"
-            class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-mono font-medium rounded-lg border border-surface-border bg-surface-raised hover:bg-surface-sunken text-text-primary hover:border-brand-primary transition-colors shrink-0"
+            class="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] text-xs font-mono font-medium rounded-none border border-surface-border bg-surface-raised hover:bg-surface-sunken text-text-primary hover:border-brand-primary transition-colors shrink-0"
           >
             <UIcon name="lucide:heart-pulse" class="w-3.5 h-3.5 text-brand-primary" />
             <span class="hidden sm:inline">Health Matrix</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded bg-brand-primary/10 text-brand-primary font-bold">3.0</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded-none bg-brand-primary/10 text-brand-primary font-bold">3.0</span>
           </NuxtLink>
         </div>
       </div>
 
       <!-- Category Filter Pills -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-1 flex-wrap">
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:flex-wrap" role="group" aria-label="Filter by component category">
         <button
           type="button"
-          class="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer flex items-center gap-1.5 border"
+          :aria-pressed="selectedCategory === 'all'"
+          class="px-3 py-2 min-h-[44px] rounded-none text-xs font-mono font-semibold transition-all cursor-pointer flex items-center gap-1.5 border shrink-0"
           :class="[
             selectedCategory === 'all'
               ? 'bg-brand-primary text-text-inverse border-brand-primary shadow-xs'
@@ -291,7 +297,7 @@ async function copyTag(compName: string, e: Event) {
         >
           <span>All Categories</span>
           <span
-            class="text-[10px] px-1.5 py-0.2 rounded"
+            class="text-[10px] px-1.5 py-0.2 rounded-none"
             :class="selectedCategory === 'all' ? 'bg-white/20 text-white' : 'bg-surface-raised text-text-muted'"
           >
             {{ categoryCounts.all }}
@@ -302,7 +308,8 @@ async function copyTag(compName: string, e: Event) {
           v-for="cat in TUX_COMPONENT_CATEGORIES"
           :key="cat.id"
           type="button"
-          class="px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer flex items-center gap-1.5 border"
+          :aria-pressed="selectedCategory === cat.id"
+          class="px-3 py-2 min-h-[44px] rounded-none text-xs font-mono font-semibold transition-all cursor-pointer flex items-center gap-1.5 border shrink-0"
           :class="[
             selectedCategory === cat.id
               ? 'bg-brand-primary text-text-inverse border-brand-primary shadow-xs'
@@ -313,7 +320,7 @@ async function copyTag(compName: string, e: Event) {
           <UIcon :name="cat.icon" class="w-3.5 h-3.5" />
           <span>{{ cat.label }}</span>
           <span
-            class="text-[10px] px-1.5 py-0.2 rounded"
+            class="text-[10px] px-1.5 py-0.2 rounded-none"
             :class="selectedCategory === cat.id ? 'bg-white/20 text-white' : 'bg-surface-raised text-text-muted'"
           >
             {{ categoryCounts[cat.id] || 0 }}
@@ -323,11 +330,12 @@ async function copyTag(compName: string, e: Event) {
 
       <!-- Secondary Filter Row: Platform Target & Maturity Tier -->
       <div class="flex items-center justify-between gap-3 flex-wrap pt-1 text-xs">
-        <div class="flex items-center gap-2 flex-wrap">
+        <div class="flex items-center gap-2 flex-wrap" role="group" aria-label="Filter by platform ecosystem">
           <span class="text-text-muted font-mono text-[11px] uppercase tracking-wider">Ecosystem:</span>
           <button
             type="button"
-            class="px-2 py-0.5 rounded text-xs font-mono transition-colors cursor-pointer border"
+            :aria-pressed="selectedEcosystem === 'all'"
+            class="px-2.5 py-1.5 min-h-[36px] rounded-none text-xs font-mono transition-colors cursor-pointer border"
             :class="selectedEcosystem === 'all' ? 'bg-surface-raised text-brand-primary border-brand-primary font-bold' : 'text-text-muted border-surface-border hover:text-text-primary'"
             @click="selectedEcosystem = 'all'"
           >
@@ -335,7 +343,8 @@ async function copyTag(compName: string, e: Event) {
           </button>
           <button
             type="button"
-            class="px-2 py-0.5 rounded text-xs font-mono transition-colors cursor-pointer border"
+            :aria-pressed="selectedEcosystem === 'web'"
+            class="px-2.5 py-1.5 min-h-[36px] rounded-none text-xs font-mono transition-colors cursor-pointer border"
             :class="selectedEcosystem === 'web' ? 'bg-surface-raised text-brand-primary border-brand-primary font-bold' : 'text-text-muted border-surface-border hover:text-text-primary'"
             @click="selectedEcosystem = 'web'"
           >
@@ -343,7 +352,8 @@ async function copyTag(compName: string, e: Event) {
           </button>
           <button
             type="button"
-            class="px-2 py-0.5 rounded text-xs font-mono transition-colors cursor-pointer border"
+            :aria-pressed="selectedEcosystem === 'mobile'"
+            class="px-2.5 py-1.5 min-h-[36px] rounded-none text-xs font-mono transition-colors cursor-pointer border"
             :class="selectedEcosystem === 'mobile' ? 'bg-surface-raised text-brand-primary border-brand-primary font-bold' : 'text-text-muted border-surface-border hover:text-text-primary'"
             @click="selectedEcosystem = 'mobile'"
           >
@@ -351,7 +361,8 @@ async function copyTag(compName: string, e: Event) {
           </button>
           <button
             type="button"
-            class="px-2 py-0.5 rounded text-xs font-mono transition-colors cursor-pointer border"
+            :aria-pressed="selectedEcosystem === 'backend'"
+            class="px-2.5 py-1.5 min-h-[36px] rounded-none text-xs font-mono transition-colors cursor-pointer border"
             :class="selectedEcosystem === 'backend' ? 'bg-surface-raised text-brand-primary border-brand-primary font-bold' : 'text-text-muted border-surface-border hover:text-text-primary'"
             @click="selectedEcosystem = 'backend'"
           >
@@ -359,11 +370,12 @@ async function copyTag(compName: string, e: Event) {
           </button>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap" role="group" aria-label="Filter by maturity tier">
           <span class="text-text-muted font-mono text-[11px] uppercase tracking-wider">Maturity:</span>
           <button
             type="button"
-            class="px-2 py-0.5 rounded text-xs font-mono transition-colors cursor-pointer border"
+            :aria-pressed="selectedTier === 'all'"
+            class="px-2.5 py-1.5 min-h-[36px] rounded-none text-xs font-mono transition-colors cursor-pointer border"
             :class="selectedTier === 'all' ? 'bg-surface-raised text-brand-primary border-brand-primary font-bold' : 'text-text-muted border-surface-border hover:text-text-primary'"
             @click="selectedTier = 'all'"
           >
@@ -371,7 +383,8 @@ async function copyTag(compName: string, e: Event) {
           </button>
           <button
             type="button"
-            class="px-2 py-0.5 rounded text-xs font-mono transition-colors cursor-pointer border"
+            :aria-pressed="selectedTier === 'stable'"
+            class="px-2.5 py-1.5 min-h-[36px] rounded-none text-xs font-mono transition-colors cursor-pointer border"
             :class="selectedTier === 'stable' ? 'bg-surface-raised text-color-success border-color-success font-bold' : 'text-text-muted border-surface-border hover:text-text-primary'"
             @click="selectedTier = 'stable'"
           >

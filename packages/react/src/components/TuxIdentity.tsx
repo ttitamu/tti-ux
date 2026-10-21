@@ -14,13 +14,15 @@ export interface TuxIdentityProps {
   logoSize?: number;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxIdentity: React.FC<TuxIdentityProps> = ({
-  name, superhead, level = "institution", orientation = "horizontal", kind = "lockup", href, logoSize = 0, children, className = ''
+  name, superhead, level = "institution", orientation = "horizontal", kind = "lockup", href, logoSize = 0, children, className = '', style
 }) => {
   return (
-    <div className={`tux-identity ${className}`.trim()}>
+    <div className={`tux-identity ${className}`.trim()} style={style}>
+      {name !== undefined && String(name) !== "" && <div className="tux-identity__title" style={{ fontWeight: 600, color: "var(--text-primary, #191919)" }}>{String(name)}</div>}
       {children}
     </div>
   );

@@ -21,13 +21,14 @@ export interface TuxChartHistogramProps {
   tooltip?: boolean;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxChartHistogram: React.FC<TuxChartHistogramProps> = ({
-  values, width = 640, height = 280, binCount = 12, percentiles, normalize = false, gridlines = true, ticks = 5, xLabel, format, decimals = 1, ariaSummary, units, tooltip = true, children, className = ''
+  values, width = 640, height = 280, binCount = 12, percentiles, normalize = false, gridlines = true, ticks = 5, xLabel, format, decimals = 1, ariaSummary, units, tooltip = true, children, className = '', style
 }) => {
   return (
-    <figure className={`tux-chart-histogram ${className}`.trim()}>
+    <figure className={`tux-chart-histogram ${className}`.trim()} style={style}>
       {children}
     </figure>
   );

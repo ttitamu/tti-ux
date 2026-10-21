@@ -28,8 +28,8 @@ Both failures survived review because the code looked entirely reasonable: it
 referenced canonical tokens throughout and passed every contrast check. What it
 failed was legibility *as a ramp*, which nothing in the system was measuring.
 
-The gap is not Nagios-specific. Any operational surface — Atlas control state,
-Landscape host inventory, a Fabric operations report — needs the same five
+The gap is not Nagios-specific. Any operational surface — corridor control state,
+detector host inventory, a Fabric operations report — needs the same five
 states, and today each would invent its own colours.
 
 ## Decision

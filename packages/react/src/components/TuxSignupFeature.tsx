@@ -16,13 +16,16 @@ export interface TuxSignupFeatureProps {
   variant?: "default" | "bold" | "elegant";
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxSignupFeature: React.FC<TuxSignupFeatureProps> = ({
-  title, eyebrow, dek, actionLabel = "Subscribe", placeholder = "your@email.edu", consent, modelValue, tone = "neutral", variant = "default", children, className = ''
+  title, eyebrow, dek, actionLabel = "Subscribe", placeholder = "your@email.edu", consent, modelValue, tone = "neutral", variant = "default", children, className = '', style
 }) => {
   return (
-    <section className={`tux-signup-feature ${className}`.trim()}>
+    <section className={`tux-signup-feature ${className}`.trim()} data-variant={variant} data-tone={tone} style={style}>
+      {eyebrow !== undefined && String(eyebrow) !== "" && <div className="tux-signup-feature__eyebrow" style={{ fontSize: "0.75rem", fontFamily: "var(--font-mono, monospace)", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--brand-primary, #500000)" }}>{String(eyebrow)}</div>}
+      {title !== undefined && String(title) !== "" && <div className="tux-signup-feature__title" style={{ fontWeight: 600, color: "var(--text-primary, #191919)" }}>{String(title)}</div>}
       {children}
     </section>
   );

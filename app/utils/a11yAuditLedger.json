@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-10-19T20:22:20.760Z",
+  "timestamp": "2026-10-21T22:17:18.158Z",
   "system": "TTI-UX (TUX 3.0)",
   "standard": "W3C WCAG 2.2 Level AAA",
   "summary": {
-    "totalComponents": 180,
-    "aaaCompliantComponents": 180,
+    "totalComponents": 183,
+    "aaaCompliantComponents": 183,
     "aaaComplianceRate": 100,
     "contrastPairsTested": 11,
     "contrastPassRate": 100,
@@ -1494,6 +1494,21 @@
         "Non-interactive / semantic layout component"
       ]
     },
+    "TuxGroundedSources": {
+      "name": "TuxGroundedSources",
+      "file": "TuxGroundedSources.vue",
+      "isInteractive": false,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "n/a",
+      "notes": [
+        "Non-interactive / semantic layout component",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
     "TuxHeroCanvas": {
       "name": "TuxHeroCanvas",
       "file": "TuxHeroCanvas.vue",
@@ -2081,6 +2096,22 @@
     "TuxReactiveSidebar": {
       "name": "TuxReactiveSidebar",
       "file": "TuxReactiveSidebar.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxReasoning": {
+      "name": "TuxReasoning",
+      "file": "TuxReasoning.vue",
       "isInteractive": true,
       "hasMinTouchTarget": true,
       "hasFocusRing": true,
@@ -2708,6 +2739,22 @@
       "focusIndicator": "n/a",
       "notes": [
         "Non-interactive / semantic layout component",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxToolCall": {
+      "name": "TuxToolCall",
+      "file": "TuxToolCall.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
         "Equipped with semantic ARIA roles / labeling"
       ]
     },

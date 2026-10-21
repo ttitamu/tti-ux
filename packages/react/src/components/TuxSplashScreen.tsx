@@ -11,13 +11,14 @@ export interface TuxSplashScreenProps {
   fadeDelay?: number;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxSplashScreen: React.FC<TuxSplashScreenProps> = ({
-  loaded = false, status = "Loading…", hidden = false, fadeDelay = 300, children, className = ''
+  loaded = false, status = "Loading…", hidden = false, fadeDelay = 300, children, className = '', style
 }) => {
   return (
-    <div className={`tux-splash-screen ${className}`.trim()}>
+    <div className={`tux-splash-screen ${className}`.trim()} data-status={status} style={style}>
       {children}
     </div>
   );

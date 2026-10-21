@@ -11,13 +11,14 @@ export interface TuxInfoLabelProps {
   infoAriaLabel?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxInfoLabel: React.FC<TuxInfoLabelProps> = ({
-  required = false, trigger = "hover", infoAriaLabel, children, className = ''
+  required = false, trigger = "hover", infoAriaLabel, children, className = '', style
 }) => {
   return (
-    <label className={`tux-info-label ${className}`.trim()}>
+    <label className={`tux-info-label ${className}`.trim()} style={style}>
       {children}
     </label>
   );

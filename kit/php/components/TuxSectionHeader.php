@@ -13,6 +13,7 @@ final class TuxSectionHeader
     public string $subtitle;
     public string $kicker;
     public string $variant = 'institutional';
+    public string $division;
 
     public function __construct(array $attributes = [])
     {

@@ -87,8 +87,8 @@ export default defineNuxtConfig({
       "Form controls integrate with validation summaries, field wrappers, and accessible error descriptors.",
       "Status chips and badges enforce consistent semantic status semantics (nominal, warning, critical, info, subtle).",
     ],
-    to: "/examples/landscape-dashboard",
-    toLabel: "View dashboard composition",
+    to: "/examples/corridor-analytics",
+    toLabel: "View corridor analytics composition",
   },
   {
     n: 5,
@@ -127,7 +127,7 @@ const productShapes = [
     icon: "lucide:layout-dashboard",
     title: "Operational dashboards",
     body: "High-density data views, table pagination, faceted filters, and responsive metrics displays designed for administrative and analysis workflows.",
-    example: { label: "Landscape dashboard", to: "/examples/landscape-dashboard" },
+    example: { label: "Corridor analytics", to: "/examples/corridor-analytics" },
   },
   {
     icon: "lucide:newspaper",
@@ -208,7 +208,7 @@ const doctrineDocs = [
 
 // Example pages — eight composition surfaces.
 const examplePages = [
-  { to: "/examples/landscape-dashboard",   eyebrow: "product · IT-facing",       title: "Landscape dashboard",    components: 15 },
+  { to: "/examples/corridor-analytics",    eyebrow: "product · telemetry",       title: "Corridor analytics",     components: 8  },
   { to: "/examples/ops-board",             eyebrow: "product · operations",      title: "Ops board",              components: 4  },
   { to: "/examples/research-landing",      eyebrow: "marketing · public",        title: "Research-program landing", components: 10 },
   { to: "/examples/tti-ai-studio-session", eyebrow: "product · chat",            title: "tti-ai-studio session",  components: 9  },

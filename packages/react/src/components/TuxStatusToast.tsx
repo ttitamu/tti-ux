@@ -8,13 +8,14 @@ export interface TuxStatusToastProps {
   edge?: "bottom" | "top";
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxStatusToast: React.FC<TuxStatusToastProps> = ({
-  edge = "bottom", children, className = ''
+  edge = "bottom", children, className = '', style
 }) => {
   return (
-    <div className={`tux-status-toast ${className}`.trim()}>
+    <div className={`tux-status-toast ${className}`.trim()} style={style}>
       {children}
     </div>
   );

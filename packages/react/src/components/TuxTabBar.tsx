@@ -9,13 +9,14 @@ export interface TuxTabBarProps {
   ariaLabel?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxTabBar: React.FC<TuxTabBarProps> = ({
-  items, ariaLabel, children, className = ''
+  items, ariaLabel, children, className = '', style
 }) => {
   return (
-    <nav className={`tux-tab-bar ${className}`.trim()}>
+    <nav className={`tux-tab-bar ${className}`.trim()} style={style}>
       {children}
     </nav>
   );

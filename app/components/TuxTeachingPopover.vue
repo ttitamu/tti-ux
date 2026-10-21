@@ -12,7 +12,7 @@
  * Typical use:
  *   - tti-ai-studio first-run experience walking through corpus
  *     attach → composer → citations
- *   - Landscape onboarding tour explaining the facet panel
+ *   - Corridor onboarding tour explaining the facet panel
  *   - Single-tap teaching popovers anchored to a new feature
  *     (no step counter, just a "Got it" primary)
  *

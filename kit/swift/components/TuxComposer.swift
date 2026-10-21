@@ -15,6 +15,9 @@ public struct TuxComposer<Content: View>: View {
     public var attachIcon: String = "lucide:plus"
     public var cancelable: Bool = false
     public var cancelLabel: String = "Cancel"
+    public var rows: String = "2"
+    public var variant: String = "default"
+    public var autofocus: Bool = false
     private let content: Content
 
     public init(

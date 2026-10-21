@@ -9,6 +9,8 @@ public struct TuxStepper<Content: View>: View {
     public var orientation: String = "horizontal"
     public var showDescriptions: Bool = true
     public var ariaLabel: String = "Progress"
+    public var stationFormat: String = "number"
+    public var division: String
     private let content: Content
 
     public init(

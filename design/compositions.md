@@ -42,7 +42,7 @@ Compositions earn a slot in this doc when they meet three tests:
 
 ### sidebar layout + #header + #aside
 
-The full app-shell. Used by data-dense surfaces (Landscape,
+The full app-shell. Used by data-dense surfaces (Corridor Ops,
 tti-ai-studio dashboards).
 
 ```vue
@@ -74,7 +74,7 @@ tti-ai-studio dashboards).
 </NuxtLayout>
 ```
 
-**Consumers:** `app/pages/examples/landscape-dashboard.vue` (all
+**Consumers:** `app/pages/examples/corridor-analytics.vue` (all
 five slots used), `app/pages/examples/sidebar-shell.vue`
 (minimal version without `#aside`).
 
@@ -90,9 +90,9 @@ collapses the menu bar (system menu wins); Windows + Linux render
 the in-window strip.
 
 ```vue
-<TuxAppFrame title="Landscape" :force-chrome="true">
+<TuxAppFrame title="Corridor Ops" :force-chrome="true">
   <template #left>
-    <span class="font-bold text-brand-primary">Landscape</span>
+    <span class="font-bold text-brand-primary">Corridor Ops</span>
   </template>
   <template #right>
     <TuxAppSwitcher :apps="apps" />
@@ -135,7 +135,7 @@ Charts UI Kit and Snow Dashboard. A row of `TuxBigStat` tiles
 ```
 
 **Consumers:**
-`app/pages/examples/landscape-dashboard.vue` § "Corpus composition".
+`app/pages/examples/corridor-analytics.vue` § "Corpus composition".
 
 **Notes:** the totals in the KPI strip should match the right-most
 endpoint of the area chart. Drift means the chart and tiles are
@@ -181,7 +181,7 @@ Hero pattern for landing pages where one number is the anchor.
 ```
 
 **Consumers:**
-`app/pages/examples/landscape-dashboard.vue`.
+`app/pages/examples/corridor-analytics.vue`.
 
 ---
 
@@ -192,7 +192,7 @@ class API vs owned board. Tokens: ADR-0013. Kit target: ADR-0014.
 
 ### TuxStatus + ops table + gold heading keyline
 
-A monitoring pane is not a Landscape dashboard with different copy.
+A monitoring pane is not a Corridor analytics with different copy.
 Maroon numerals compete with CRITICAL. Gold heading *text* fails on
 white. The composition is: hairline chrome, `--status-*` chips, gold
 as a 3px keyline under `--text-primary`.
@@ -211,7 +211,7 @@ as a 3px keyline under `--text-primary`.
 <h2 class="tux-ops-heading">Current problems</h2>
 <table class="tux-ops-table">
   <tr class="tux-status-row--critical">
-    <td>atlas.tti.tamu.edu</td>
+    <td>code.tti.tamu.edu</td>
     <td><TuxStatus state="critical" /></td>
   </tr>
 </table>
@@ -266,7 +266,7 @@ exhibits**; skip in dashboard tiles.
   eyebrow="Exhibit 11.04"
   title="Monthly ingest rate"
   subtitle="Files added to the corpus per month — total across all agents"
-  source="Source: TTI Landscape index, 2026"
+  source="Source: TTI Corridor index, 2026"
 >
   <TuxChartLine :labels="months" :series="data" :width="700" :height="300" />
 </TuxChartFrame>
@@ -298,7 +298,7 @@ function onChartHover(payload) {
 ```
 
 **Consumers:** not yet shipped in an example; pattern is captured
-here for the next Landscape iteration.
+here for the next Corridor Ops iteration.
 
 ---
 
@@ -312,7 +312,7 @@ detail; optional bottom pane = related context (history, comments,
 linked records).
 
 ```vue
-<TuxSplitPane v-model="selectedId" id="landscape-records" :show-bottom="true">
+<TuxSplitPane v-model="selectedId" id="corridor-records" :show-bottom="true">
   <template #list>
     <TuxRichDataGrid :rows="rows" :selected="selectedId" @row-click="selectedId = $event.id" />
   </template>
@@ -328,7 +328,7 @@ linked records).
 
 **Consumers:** `/components/split-pane` showcase (uses a simpler
 button-list instead of TuxRichDataGrid); intended use case is the
-upcoming Landscape "browse records" surface.
+upcoming Corridor Ops "browse records" surface.
 
 **Notes:** URL-bind the selection via Vue Router
 (`useRoute().query.id` ↔ `selectedId`) so the deep-link case works
@@ -351,7 +351,7 @@ result count; pagination + filter changes are URL-bound.
 </div>
 ```
 
-**Consumers:** `app/pages/examples/landscape-dashboard.vue` (the
+**Consumers:** `app/pages/examples/corridor-analytics.vue` (the
 files-list section uses this stack).
 
 ---
@@ -453,7 +453,7 @@ user sees their budget while typing.
 
 Every portal's chrome is the same composition:
 
-- **Site shape** (global top header — Landscape, TTI Code, the docs
+- **Site shape** (global top header — Corridor Ops, TTI Code, the docs
   site): `TuxSiteNav` with `TuxUtilityCluster` in its trailing slot.
 - **Workbench shape** (persistent left rail — AI Studio, Tauri
   shells): `TuxAppFrame` with the cluster in its `#right` slot,
@@ -463,7 +463,7 @@ Every portal's chrome is the same composition:
 <TuxSiteNav :identity="identity" :items="primaryNav">
   <template #trailing>
     <TuxUtilityCluster
-      current="landscape"
+      current="tux"
       :signed-in="signedIn"
       :user-menu="{ identity: user, items: menuItems }"
     >
@@ -514,11 +514,11 @@ and the identity menu's prefs — never from the toggle's cycle.
   is registry-fed via `useTuxApps()` (see
   [Cross-app navigation](#cross-app-navigation)).
 - Never rebuild the cluster per-layout — wrap it once per product
-  (the Landscape pattern below) and mount the wrapper everywhere.
+  (the Corridor Ops pattern below) and mount the wrapper everywhere.
 
 **Consumers:** `app/app.vue` (the docs site dogfoods the cluster —
 waffle + theme, identity seat deliberately absent because the site is
-unauthenticated); Landscape's `LandscapeUtilityCluster.vue`
+unauthenticated); Corridor Ops' `PortalUtilityCluster.vue`
 (one wrapper wires search / bell / identity once, all layouts mount
 it — the reference consumer shape).
 
@@ -749,7 +749,7 @@ shapes used elsewhere in the dashboard.
 </div>
 ```
 
-**Consumer:** `app/pages/examples/landscape-dashboard.vue` § Active
+**Consumer:** `app/pages/examples/corridor-analytics.vue` § Active
 corridor study panel; also `app/pages/examples/paper-page.vue`
 § 2.1 sub-study.
 

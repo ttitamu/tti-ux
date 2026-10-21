@@ -35,6 +35,10 @@ fun TuxRichDataGrid(
     density: String = "comfortable",
     paginationLabel: String,
     paginationTokens: String,
+    projectNumber: String,
+    doi: String,
+    citation: String,
+    showUnitToggle: Boolean = false,
     content: @Composable () -> Unit = {}
 ) {
     Row(

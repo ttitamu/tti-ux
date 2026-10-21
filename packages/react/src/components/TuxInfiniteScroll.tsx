@@ -14,13 +14,14 @@ export interface TuxInfiniteScrollProps {
   nounPlural?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxInfiniteScroll: React.FC<TuxInfiniteScrollProps> = ({
-  loaded, total, loading = false, keyboardFallback = false, rootMargin = "200px", noun, nounPlural, children, className = ''
+  loaded, total, loading = false, keyboardFallback = false, rootMargin = "200px", noun, nounPlural, children, className = '', style
 }) => {
   return (
-    <div className={`tux-infinite-scroll ${className}`.trim()}>
+    <div className={`tux-infinite-scroll ${className}`.trim()} style={style}>
       {children}
     </div>
   );

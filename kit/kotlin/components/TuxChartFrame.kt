@@ -17,6 +17,12 @@ fun TuxChartFrame(
     source: String,
     notes: String,
     bare: Boolean = false,
+    labels: String,
+    series: String,
+    sonify: Boolean = true,
+    showDataTable: Boolean = true,
+    division: String,
+    doi: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

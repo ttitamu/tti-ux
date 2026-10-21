@@ -18,6 +18,10 @@ fun TuxBigStat(
     variant: String = "default",
     tone: String = "maroon",
     size: String = "md",
+    sampleSize: String,
+    confidenceInterval: String,
+    doi: String,
+    division: String,
     content: @Composable () -> Unit = {}
 ) {
     Row(

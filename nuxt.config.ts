@@ -4,7 +4,7 @@ import { defineNuxtConfig } from "nuxt/config";
 import tailwindcss from "@tailwindcss/vite";
 import { designRoutes, docsRoutes } from "./app/utils/content-routes";
 
-// Layer-rooted dir so consuming apps (Landscape, tti-ai-studio, etc.) resolve
+// Layer-rooted dir so consuming apps (TTI Code, tti-ai-studio, etc.) resolve
 // our css/asset paths relative to *this* file, not their own srcDir.
 // `~` in a Nuxt layer's nuxt.config maps to the *consumer's* `app/`, not
 // the layer's, so anything we want to ship from the layer needs an
@@ -16,7 +16,7 @@ const layerDir = dirname(fileURLToPath(import.meta.url));
 // tti-ux as a layer via `extends`. Layer configs merge into consumers, so
 // docs-site-only build behavior (prerender crawling, 404 demotion) must be
 // fenced behind this or it silently bleeds into every consumer's
-// production build (Landscape ships a `nitro:config` hook today solely to
+// production build (a consumer ships a `nitro:config` hook today solely to
 // undo that bleed — this makes that workaround unnecessary).
 const isRootProject = process.cwd() === layerDir;
 
@@ -53,15 +53,31 @@ export default defineNuxtConfig({
       // `lang` is required for screen readers to pick the right voice
       // and for axe's `html-has-lang` rule. Sets `<html lang="en">`.
       htmlAttrs: { lang: "en" },
-      title: "tti-ux",
+      title: "TUX · Texas A&M Transportation Institute Design System",
       meta: [
         { charset: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
         {
           name: "description",
           content:
-            "Living style guide for the TTI design system — Nuxt 4 + Nuxt UI, themed for Texas A&M Transportation Institute.",
+            "TUX (@tti/tti-ux) — The official institutional design system, WCAG 2.2 Level AAA component library, and multi-platform UI kit for the Texas A&M Transportation Institute (TTI).",
         },
+        {
+          property: "og:title",
+          content: "TUX · Texas A&M Transportation Institute Design System",
+        },
+        {
+          property: "og:description",
+          content:
+            "Unified institutional design system, 189 WCAG 2.2 Level AAA components, and multi-framework SDKs (Vue/Nuxt, React, WordPress/Kadence, .NET, Python) for Texas A&M Transportation Institute digital systems.",
+        },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: "https://ux.tti.tamu.edu" },
+      ],
+      link: [
+        { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+        { rel: "alternate icon", type: "image/svg+xml", href: "/TTI-glyph.svg" },
+        { rel: "apple-touch-icon", href: "/TTI-Color.png" },
       ],
     },
   },

@@ -10,6 +10,12 @@ public struct TuxChartFrame<Content: View>: View {
     public var source: String
     public var notes: String
     public var bare: Bool = false
+    public var labels: String
+    public var series: String
+    public var sonify: Bool = true
+    public var showDataTable: Bool = true
+    public var division: String
+    public var doi: String
     private let content: Content
 
     public init(

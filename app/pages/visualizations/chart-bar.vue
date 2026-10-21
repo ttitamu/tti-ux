@@ -226,7 +226,7 @@ const horizontalVue = `<tux-chart-bar
 const framedVue = `<tux-chart-frame
   eyebrow="Exhibit 12.01"
   title="Scan throughput by status"
-  source="Source: TTI Landscape index, 2026"
+  source="Source: TTI Corridor index, 2026"
 >
   <tux-chart-bar :labels="months" :series="trafficByStatus" legend />
 </tux-chart-frame>`;
@@ -397,7 +397,7 @@ const framedVue = `<tux-chart-frame
           eyebrow="Exhibit 12.01"
           title="Scan throughput by status"
           subtitle="Active / queued / failed counts per month"
-          source="Source: TTI Landscape index, 2026"
+          source="Source: TTI Corridor index, 2026"
         >
           <TuxChartBar :labels="months" :series="trafficByStatus" legend />
         </TuxChartFrame>

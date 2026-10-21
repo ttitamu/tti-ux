@@ -154,7 +154,7 @@ plain-web bundle small.
 ### Future: `TuxFilePicker`
 
 Spec for when a consumer needs file selection (e.g., import a
-corpus into Landscape):
+corpus into Corridor Ops):
 
 ```ts
 const dialog = await import("@tauri-apps/plugin-dialog");

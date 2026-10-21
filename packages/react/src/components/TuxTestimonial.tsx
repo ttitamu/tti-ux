@@ -11,13 +11,14 @@ export interface TuxTestimonialProps {
   variant?: "default" | "bold" | "elegant";
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxTestimonial: React.FC<TuxTestimonialProps> = ({
-  items, layout = "grid", columns = 3, variant = "default", children, className = ''
+  items, layout = "grid", columns = 3, variant = "default", children, className = '', style
 }) => {
   return (
-    <ul className={`tux-testimonial ${className}`.trim()}>
+    <ul className={`tux-testimonial ${className}`.trim()} data-variant={variant} style={style}>
       {children}
     </ul>
   );

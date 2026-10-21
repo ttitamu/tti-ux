@@ -14,13 +14,14 @@ export interface TuxTreemapProps {
   ariaLabel?: string;
   children?: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TuxTreemap: React.FC<TuxTreemapProps> = ({
-  data, width = 720, height = 460, maxDepth = 2, colorBy = "size", unit = "bytes", ariaLabel, children, className = ''
+  data, width = 720, height = 460, maxDepth = 2, colorBy = "size", unit = "bytes", ariaLabel, children, className = '', style
 }) => {
   return (
-    <div className={`tux-treemap ${className}`.trim()}>
+    <div className={`tux-treemap ${className}`.trim()} style={style}>
       {children}
     </div>
   );
