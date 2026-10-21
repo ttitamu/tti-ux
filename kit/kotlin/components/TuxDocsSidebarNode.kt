@@ -11,14 +11,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxDocsSidebarNode(
-    section: String,
-    path: String,
-    query: String,
-    openMap: String,
-    isOpen: String,
-    isActive: String,
-    onToggle: String,
-    depth: Int,
+    section: String? = null,
+    path: String? = null,
+    query: String? = null,
+    openMap: String? = null,
+    isOpen: String? = null,
+    isActive: String? = null,
+    onToggle: String? = null,
+    depth: Int? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

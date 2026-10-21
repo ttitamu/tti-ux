@@ -11,14 +11,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxFileDropzone(
-    modelValue: String,
-    accept: String,
+    modelValue: String? = null,
+    accept: String? = null,
     multiple: Boolean = false,
-    maxSize: Int = 50,
+    maxSize: Int? = null,
     maxFiles: Int = 10,
     disabled: Boolean = false,
-    label: String,
-    hint: String,
+    label: String? = null,
+    hint: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

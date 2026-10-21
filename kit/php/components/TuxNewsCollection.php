@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxNewsCollection
 {
-    public string $items;
+    public ?string $items = null;
     public string $layout = 'stacked';
     public int $columns = 3;
-    public string $readMore;
+    public string $readMore = 'Read more';
 
     public function __construct(array $attributes = [])
     {

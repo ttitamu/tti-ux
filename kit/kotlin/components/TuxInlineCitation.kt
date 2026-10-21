@@ -11,12 +11,12 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxInlineCitation(
-    n: Int,
-    title: String,
-    href: String,
-    excerpt: String,
-    score: String,
-    label: String,
+    n: Int? = null,
+    title: String? = null,
+    href: String? = null,
+    excerpt: String? = null,
+    score: String? = null,
+    label: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

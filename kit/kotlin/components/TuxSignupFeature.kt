@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxSignupFeature(
-    title: String,
-    eyebrow: String,
-    dek: String,
+    title: String? = null,
+    eyebrow: String? = null,
+    dek: String? = null,
     actionLabel: String = "Subscribe",
     placeholder: String = "your@email.edu",
-    consent: String,
-    modelValue: String,
+    consent: String = "We never share your address. Unsubscribe in one click.",
+    modelValue: String = "",
     tone: String = "neutral",
     variant: String = "default",
     content: @Composable () -> Unit = {}

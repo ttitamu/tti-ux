@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxMegaMenu
 {
-    public string $label;
-    public string $columns;
-    public string $featured;
-    public string $to;
+    public ?string $label = null;
+    public ?string $columns = null;
+    public ?string $featured = null;
+    public ?string $to = null;
 
     public function __construct(array $attributes = [])
     {

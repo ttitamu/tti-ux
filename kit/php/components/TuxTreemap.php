@@ -7,13 +7,13 @@ namespace Tti\Tux\Components;
 
 final class TuxTreemap
 {
-    public string $data;
+    public ?string $data = null;
     public int $width = 720;
     public int $height = 460;
     public int $maxDepth = 2;
     public string $colorBy = 'size';
     public string $unit = 'bytes';
-    public string $ariaLabel;
+    public string $ariaLabel = 'Treemap path';
 
     public function __construct(array $attributes = [])
     {

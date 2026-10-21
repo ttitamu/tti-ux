@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxTOC(
-    items: String,
+    items: String? = null,
     target: String = "article",
-    levels: String,
-    title: String,
+    levels: String? = null,
+    title: String = "On this page",
     noTitle: Boolean = false,
     variant: String = "comm",
     content: @Composable () -> Unit = {}

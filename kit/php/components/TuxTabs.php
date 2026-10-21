@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxTabs
 {
-    public string $items;
-    public string $modelValue;
+    public ?string $items = null;
+    public ?string $modelValue = null;
     public string $orientation = 'horizontal';
     public string $size = 'md';
     public string $variant = 'default';

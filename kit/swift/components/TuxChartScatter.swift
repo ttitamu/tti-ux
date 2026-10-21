@@ -4,7 +4,7 @@
 import SwiftUI
 
 public struct TuxChartScatter<Content: View>: View {
-    public var series: String
+    public var series: String? = nil
     public var xLabel: String = "x"
     public var yLabel: String = "y"
     public var width: Int = 640
@@ -16,10 +16,10 @@ public struct TuxChartScatter<Content: View>: View {
     public var gridlines: Bool = true
     public var xTicks: Int = 6
     public var yTicks: Int = 5
-    public var format: String
+    public var format: String? = nil
     public var decimals: Int = 2
-    public var ariaSummary: String
-    public var units: String
+    public var ariaSummary: String? = nil
+    public var units: String? = nil
     public var tooltip: Bool = true
     private let content: Content
 

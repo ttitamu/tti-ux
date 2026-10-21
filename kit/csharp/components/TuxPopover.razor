@@ -9,8 +9,8 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Title { get; set; };
-    [Parameter] public string Body { get; set; };
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Body { get; set; }
     [Parameter] public string Mode { get; set; } = "click";
     [Parameter] public string Side { get; set; } = "bottom";
     [Parameter] public bool Arrow { get; set; } = true;

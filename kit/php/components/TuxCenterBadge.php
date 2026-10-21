@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxCenterBadge
 {
-    public string $center;
-    public string $label;
-    public string $icon;
+    public ?string $center = null;
+    public ?string $label = null;
+    public ?string $icon = null;
     public int $toneIndex = 2;
     public bool $short = false;
     public string $size = 'md';

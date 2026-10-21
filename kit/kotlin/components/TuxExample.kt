@@ -11,18 +11,18 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxExample(
-    vue: String,
-    react: String,
-    wc: String,
-    razor: String,
-    python: String,
-    php: String,
-    swift: String,
-    kotlin: String,
-    source: String,
-    css: String,
-    powerbi: String,
-    title: String,
+    vue: String? = null,
+    react: String? = null,
+    wc: String? = null,
+    razor: String? = null,
+    python: String? = null,
+    php: String? = null,
+    swift: String? = null,
+    kotlin: String? = null,
+    source: String? = null,
+    css: String? = null,
+    powerbi: String? = null,
+    title: String? = null,
     previewPadding: String = "p-6",
     content: @Composable () -> Unit = {}
 ) {

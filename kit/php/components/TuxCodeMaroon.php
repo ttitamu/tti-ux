@@ -9,10 +9,10 @@ final class TuxCodeMaroon
 {
     public bool $active = false;
     public string $tone = 'error';
-    public string $title;
-    public string $message;
+    public string $title = 'Emergency alert';
+    public ?string $message = null;
     public string $detailsUrl = 'https://tti.tamu.edu/emergency/';
-    public string $detailsLabel;
+    public string $detailsLabel = 'View details';
     public bool $dismissible = false;
     public bool $modelValue = false;
     public bool $sticky = false;

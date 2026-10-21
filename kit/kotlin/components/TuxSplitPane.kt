@@ -11,11 +11,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxSplitPane(
-    modelValue: String,
+    modelValue: String? = null,
     initialListWidth: String = "320px",
     minListWidth: Int = 220,
     maxListWidth: Int = 560,
-    id: String,
+    id: String? = null,
     initialBottomHeight: String = "160px",
     showBottom: Boolean = false,
     listLabel: String = "Records",

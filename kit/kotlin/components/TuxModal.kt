@@ -12,9 +12,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxModal(
     open: Boolean = false,
-    title: String,
-    eyebrow: String,
-    size: String,
+    title: String? = null,
+    eyebrow: String? = null,
+    size: String? = null,
     variant: String = "standard",
     content: @Composable () -> Unit = {}
 ) {

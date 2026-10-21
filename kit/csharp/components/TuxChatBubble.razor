@@ -12,11 +12,11 @@
     [Parameter] public string Mode { get; set; } = "bubble";
     [Parameter] public string Role { get; set; } = "assistant";
     [Parameter] public string Title { get; set; } = "Assistant";
-    [Parameter] public string Subtitle { get; set; };
+    [Parameter] public string Subtitle { get; set; } = "Institutional Assistant";
     [Parameter] public string State { get; set; } = "idle";
-    [Parameter] public string Teaser { get; set; };
+    [Parameter] public string? Teaser { get; set; }
     [Parameter] public string Tail { get; set; } = "none";
     [Parameter] public bool Dismissible { get; set; } = false;
     [Parameter] public bool Open { get; set; } = true;
-    [Parameter] public string Suggestions { get; set; };
+    [Parameter] public string? Suggestions { get; set; }
 }

@@ -4,7 +4,7 @@
 import SwiftUI
 
 public struct TuxVisionPreferencesModal<Content: View>: View {
-    public var open: Bool = false
+    public var `open`: Bool = false
     private let content: Content
 
     public init(

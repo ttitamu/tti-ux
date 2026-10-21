@@ -7,13 +7,13 @@ namespace Tti\Tux\Components;
 
 final class TuxInfiniteScroll
 {
-    public int $loaded;
-    public int $total;
+    public ?int $loaded = null;
+    public ?int $total = null;
     public bool $loading = false;
     public bool $keyboardFallback = false;
     public string $rootMargin = '200px';
-    public string $noun;
-    public string $nounPlural;
+    public ?string $noun = null;
+    public ?string $nounPlural = null;
 
     public function __construct(array $attributes = [])
     {

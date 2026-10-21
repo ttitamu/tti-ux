@@ -5,9 +5,9 @@ import SwiftUI
 
 public struct TuxFigureCaption<Content: View>: View {
     public var label: String = "Figure"
-    public var number: String
-    public var caption: String
-    public var source: String
+    public var number: String? = nil
+    public var caption: String? = nil
+    public var source: String? = nil
     public var placement: String = "below"
     private let content: Content
 

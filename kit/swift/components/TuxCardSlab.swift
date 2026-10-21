@@ -4,11 +4,11 @@
 import SwiftUI
 
 public struct TuxCardSlab<Content: View>: View {
-    public var cards: String
+    public var cards: String? = nil
     public var columns: Int = 3
     public var aspect: String = "4/5"
-    public var heading: String
-    public var eyebrow: String
+    public var heading: String? = nil
+    public var eyebrow: String? = nil
     public var inset: Bool = false
     private let content: Content
 

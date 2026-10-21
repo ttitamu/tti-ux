@@ -4,18 +4,18 @@
 import SwiftUI
 
 public struct TuxExample<Content: View>: View {
-    public var vue: String
-    public var react: String
-    public var wc: String
-    public var razor: String
-    public var python: String
-    public var php: String
-    public var swift: String
-    public var kotlin: String
-    public var source: String
-    public var css: String
-    public var powerbi: String
-    public var title: String
+    public var vue: String? = nil
+    public var react: String? = nil
+    public var wc: String? = nil
+    public var razor: String? = nil
+    public var python: String? = nil
+    public var php: String? = nil
+    public var swift: String? = nil
+    public var kotlin: String? = nil
+    public var source: String? = nil
+    public var css: String? = nil
+    public var powerbi: String? = nil
+    public var title: String? = nil
     public var previewPadding: String = "p-6"
     private let content: Content
 

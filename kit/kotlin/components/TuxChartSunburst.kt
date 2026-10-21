@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChartSunburst(
-    data: String,
+    data: String? = null,
     size: Int = 320,
     centerLabel: String = "Total",
-    formatTotal: String,
-    formatValue: String,
+    formatTotal: String? = null,
+    formatValue: String? = null,
     showLegend: Boolean = true,
-    palette: String,
+    palette: String? = null,
     tooltip: Boolean = true,
     content: @Composable () -> Unit = {}
 ) {

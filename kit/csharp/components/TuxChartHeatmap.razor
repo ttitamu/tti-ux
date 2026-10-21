@@ -9,9 +9,9 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Rows { get; set; };
-    [Parameter] public string Cols { get; set; };
-    [Parameter] public string Values { get; set; };
+    [Parameter] public string? Rows { get; set; }
+    [Parameter] public string? Cols { get; set; }
+    [Parameter] public string? Values { get; set; }
     [Parameter] public int Width { get; set; } = 640;
     [Parameter] public int Height { get; set; } = 280;
     [Parameter] public string Ramp { get; set; } = "maroon";
@@ -19,9 +19,9 @@
     [Parameter] public bool ValueLabels { get; set; } = false;
     [Parameter] public bool Legend { get; set; } = true;
     [Parameter] public int ColLabelEvery { get; set; } = 0;
-    [Parameter] public string Format { get; set; };
+    [Parameter] public string? Format { get; set; }
     [Parameter] public int Decimals { get; set; } = 1;
-    [Parameter] public string AriaSummary { get; set; };
-    [Parameter] public string Units { get; set; };
+    [Parameter] public string? AriaSummary { get; set; }
+    [Parameter] public string? Units { get; set; }
     [Parameter] public bool Tooltip { get; set; } = true;
 }

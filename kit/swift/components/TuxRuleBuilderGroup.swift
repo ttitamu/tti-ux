@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxRuleBuilderGroup<Content: View>: View {
-    public var modelValue: String
-    public var depth: Int
+    public var modelValue: String? = nil
+    public var depth: Int? = nil
     public var isRoot: Bool = false
     private let content: Content
 

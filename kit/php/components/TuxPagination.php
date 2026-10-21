@@ -7,14 +7,14 @@ namespace Tti\Tux\Components;
 
 final class TuxPagination
 {
-    public int $total;
-    public int $modelValue;
+    public ?int $total = null;
+    public ?int $modelValue = null;
     public int $pageSize = 20;
     public int $siblingCount = 1;
     public int $boundaryCount = 1;
     public bool $showStatus = false;
     public string $noun = 'result';
-    public string $pluralNoun;
+    public ?string $pluralNoun = null;
     public string $ariaLabel = 'Pagination';
 
     public function __construct(array $attributes = [])

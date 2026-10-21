@@ -11,7 +11,7 @@ class TuxChartDonut:
     size: int = 280
     palette: str = "brand"
     patterns: bool = False
-    thickness: int = 0.5
+    thickness: float = 0.5
     slice_labels: bool = True
     legend: bool = False
     center_label: Optional[str] = None

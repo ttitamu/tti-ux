@@ -9,9 +9,9 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Apps { get; set; };
-    [Parameter] public string AriaLabel { get; set; };
-    [Parameter] public string Heading { get; set; };
-    [Parameter] public string FooterText { get; set; };
+    [Parameter] public string? Apps { get; set; }
+    [Parameter] public string AriaLabel { get; set; } = "Switch apps";
+    [Parameter] public string Heading { get; set; } = "TTI Portals";
+    [Parameter] public string? FooterText { get; set; }
     [Parameter] public string Presentation { get; set; } = "popover";
 }

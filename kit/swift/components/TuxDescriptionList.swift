@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxDescriptionList<Content: View>: View {
-    public var items: String
+    public var items: String? = nil
     public var layout: String = "inline"
     public var emphasis: String = "editorial"
-    public var title: String
+    public var title: String? = nil
     private let content: Content
 
     public init(

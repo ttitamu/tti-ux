@@ -11,20 +11,20 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChartGeographic(
-    kind: String,
+    kind: String? = null,
     palette: String = "maroon",
-    title: String,
+    title: String = "",
     legendLabel: String = "Value",
-    legendStops: String,
+    legendStops: String? = null,
     showLegend: Boolean = true,
-    counties: String,
-    districts: String,
-    states: String,
+    counties: String? = null,
+    districts: String? = null,
+    states: String? = null,
     highlight: String = "TX",
     dots: Int = 600,
-    dotLegend: String,
-    flows: String,
-    flowLegend: String,
+    dotLegend: String = "1 dot = 100 incidents",
+    flows: String? = null,
+    flowLegend: String = "Daily trips (thousands)",
     content: @Composable () -> Unit = {}
 ) {
     Row(

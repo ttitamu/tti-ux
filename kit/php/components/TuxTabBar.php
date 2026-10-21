@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxTabBar
 {
-    public string $items;
-    public string $ariaLabel;
+    public ?string $items = null;
+    public string $ariaLabel = 'Primary navigation';
 
     public function __construct(array $attributes = [])
     {

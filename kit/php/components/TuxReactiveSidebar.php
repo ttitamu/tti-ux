@@ -7,13 +7,13 @@ namespace Tti\Tux\Components;
 
 final class TuxReactiveSidebar
 {
-    public string $sections;
-    public string $allSections;
+    public ?string $sections = null;
+    public ?string $allSections = null;
     public bool $collapsed = false;
-    public string $activeAreaTitle;
+    public string $activeAreaTitle = 'Workspace Navigation';
     public string $activeAreaIcon = 'lucide:layers';
     public bool $search = true;
-    public string $searchPlaceholder;
+    public string $searchPlaceholder = 'Filter pages…';
     public bool $showAll = false;
     public bool $defaultExpanded = false;
     public bool $exclusive = false;

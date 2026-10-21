@@ -16,7 +16,7 @@ export interface TuxCommandPaletteProps {
 }
 
 export const TuxCommandPalette: React.FC<TuxCommandPaletteProps> = ({
-  groups, placeholder, disableHotkey = false, hotkey = "k", showTabs = true, defaultTab = "all", children, className = ''
+  groups, placeholder = "Type a command, token (--), component (@), or search…", disableHotkey = false, hotkey = "k", showTabs = true, defaultTab = "all", children, className = ''
 }) => {
   return (
     <dialog className={`tux-command-palette ${className}`.trim()}>

@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxValidationSummary<Content: View>: View {
-    public var errors: String
-    public var title: String
+    public var errors: String? = nil
+    public var title: String = "Please fix the following before submitting:"
     public var variant: String = "error"
     private let content: Content
 

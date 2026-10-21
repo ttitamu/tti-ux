@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxCardCarousel<Content: View>: View {
-    public var items: String
-    public var eyebrow: String
-    public var title: String
+    public var items: String? = nil
+    public var eyebrow: String? = nil
+    public var title: String? = nil
     public var bare: Bool = false
     public var arrows: Bool = true
     public var dots: Bool = false

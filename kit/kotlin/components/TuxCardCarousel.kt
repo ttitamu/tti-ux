@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCardCarousel(
-    items: String,
-    eyebrow: String,
-    title: String,
+    items: String? = null,
+    eyebrow: String? = null,
+    title: String? = null,
     bare: Boolean = false,
     arrows: Boolean = true,
     dots: Boolean = false,

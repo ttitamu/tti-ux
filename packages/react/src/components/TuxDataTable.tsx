@@ -26,7 +26,7 @@ export interface TuxDataTableProps {
 }
 
 export const TuxDataTable: React.FC<TuxDataTableProps> = ({
-  columns, rows, groups, rowKey = "id", tableNumber, caption, description, sortKey, sortDir, sticky = false, maxHeight = "20rem", density = "comfortable", banded = true, footnotes, source, totals, children, className = ''
+  columns, rows, groups, rowKey = "id", tableNumber = "", caption = "", description = "", sortKey, sortDir, sticky = false, maxHeight = "20rem", density = "comfortable", banded = true, footnotes, source = "", totals, children, className = ''
 }) => {
   return (
     <figure className={`tux-data-table ${className}`.trim()}>

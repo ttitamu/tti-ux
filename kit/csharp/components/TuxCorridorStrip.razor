@@ -9,15 +9,19 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Name { get; set; };
-    [Parameter] public int FromMile { get; set; };
-    [Parameter] public int ToMile { get; set; };
-    [Parameter] public string Segments { get; set; };
-    [Parameter] public string Events { get; set; };
-    [Parameter] public string Values { get; set; };
-    [Parameter] public string ValuesLabel { get; set; };
-    [Parameter] public string Direction { get; set; };
+    [Parameter] public string? Name { get; set; }
+    [Parameter] public int? FromMile { get; set; }
+    [Parameter] public int? ToMile { get; set; }
+    [Parameter] public string? Segments { get; set; }
+    [Parameter] public string? Events { get; set; }
+    [Parameter] public string? Values { get; set; }
+    [Parameter] public string? ValuesLabel { get; set; }
+    [Parameter] public string? Direction { get; set; }
     [Parameter] public int Width { get; set; } = 800;
     [Parameter] public int Height { get; set; } = 140;
     [Parameter] public int TickEvery { get; set; } = 5;
+    [Parameter] public string TickFormat { get; set; } = "mile";
+    [Parameter] public string? SyncChannel { get; set; }
+    [Parameter] public int? ActiveMile { get; set; }
+    [Parameter] public bool InteractiveScrub { get; set; } = false;
 }

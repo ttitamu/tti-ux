@@ -11,10 +11,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxMcpEmbed(
-    appName: String,
+    appName: String? = null,
     appIcon: String = "lucide:plug",
-    appIconUrl: String,
-    source: String,
+    appIconUrl: String? = null,
+    source: String? = null,
     loading: Boolean = false,
     collapsible: Boolean = true,
     expandable: Boolean = true,

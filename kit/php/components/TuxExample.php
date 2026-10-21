@@ -7,18 +7,18 @@ namespace Tti\Tux\Components;
 
 final class TuxExample
 {
-    public string $vue;
-    public string $react;
-    public string $wc;
-    public string $razor;
-    public string $python;
-    public string $php;
-    public string $swift;
-    public string $kotlin;
-    public string $source;
-    public string $css;
-    public string $powerbi;
-    public string $title;
+    public ?string $vue = null;
+    public ?string $react = null;
+    public ?string $wc = null;
+    public ?string $razor = null;
+    public ?string $python = null;
+    public ?string $php = null;
+    public ?string $swift = null;
+    public ?string $kotlin = null;
+    public ?string $source = null;
+    public ?string $css = null;
+    public ?string $powerbi = null;
+    public ?string $title = null;
     public string $previewPadding = 'p-6';
 
     public function __construct(array $attributes = [])

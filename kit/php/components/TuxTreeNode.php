@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxTreeNode
 {
-    public string $node;
-    public int $depth;
-    public string $selectedId;
-    public string $isExpanded;
+    public ?string $node = null;
+    public ?int $depth = null;
+    public ?string $selectedId = null;
+    public ?string $isExpanded = null;
     public bool $showGuides = false;
 
     public function __construct(array $attributes = [])

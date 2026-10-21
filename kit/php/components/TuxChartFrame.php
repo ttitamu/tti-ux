@@ -7,12 +7,18 @@ namespace Tti\Tux\Components;
 
 final class TuxChartFrame
 {
-    public string $eyebrow;
-    public string $title;
-    public string $subtitle;
-    public string $source;
-    public string $notes;
+    public string $eyebrow = '';
+    public string $title = '';
+    public string $subtitle = '';
+    public string $source = '';
+    public string $notes = '';
     public bool $bare = false;
+    public ?string $labels = null;
+    public ?string $series = null;
+    public bool $sonify = true;
+    public bool $showDataTable = true;
+    public ?string $division = null;
+    public string $doi = '';
 
     public function __construct(array $attributes = [])
     {

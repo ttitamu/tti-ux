@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxRecordHighlights<Content: View>: View {
-    public var title: String
-    public var eyebrow: String
-    public var icon: String
-    public var items: String
+    public var title: String? = nil
+    public var eyebrow: String? = nil
+    public var icon: String? = nil
+    public var items: String? = nil
     private let content: Content
 
     public init(

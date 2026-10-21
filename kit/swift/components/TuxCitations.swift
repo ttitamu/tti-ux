@@ -4,7 +4,7 @@
 import SwiftUI
 
 public struct TuxCitations<Content: View>: View {
-    public var items: String
+    public var items: String? = nil
     public var label: String = "sources"
     private let content: Content
 

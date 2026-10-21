@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxTOC
 {
-    public string $items;
+    public ?string $items = null;
     public string $target = 'article';
-    public string $levels;
-    public string $title;
+    public ?string $levels = null;
+    public string $title = 'On this page';
     public bool $noTitle = false;
     public string $variant = 'comm';
 

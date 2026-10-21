@@ -7,21 +7,21 @@ namespace Tti\Tux\Components;
 
 final class TuxUtilityCluster
 {
-    public string $current;
+    public ?string $current = null;
     public bool $signedIn = false;
-    public string $entitled;
+    public ?string $entitled = null;
     public bool $hideSwitcher = false;
     public bool $hideTheme = false;
     public bool $hideHighContrast = false;
     public bool $hideVisionPrefs = false;
-    public string $userMenu;
-    public string $state;
-    public string $identity;
-    public string $signInHref;
-    public string $signInLabel;
-    public string $items;
-    public string $prefs;
-    public string $statusLine;
+    public ?string $userMenu = null;
+    public ?string $state = null;
+    public ?string $identity = null;
+    public ?string $signInHref = null;
+    public ?string $signInLabel = null;
+    public ?string $items = null;
+    public ?string $prefs = null;
+    public ?string $statusLine = null;
 
     public function __construct(array $attributes = [])
     {

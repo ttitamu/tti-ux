@@ -7,14 +7,14 @@ from typing import Optional
 
 @dataclass
 class TuxMarkdownEditor:
-    model_value: Optional[str] = None
+    model_value: str = ""
     rows: int = 12
     min_length: Optional[int] = None
     max_length: Optional[int] = None
-    placeholder: Optional[str] = None
+    placeholder: str = "Write in markdown — ⌘B bold, ⌘I italic, ⌘K link"
     preview: bool = True
     disabled: bool = False
-    aria_label: Optional[str] = None
+    aria_label: str = "Markdown editor"
 
     def render_html(self, content: str = "") -> str:
         return f'<div class="tux-markdown-editor">{content}</div>'

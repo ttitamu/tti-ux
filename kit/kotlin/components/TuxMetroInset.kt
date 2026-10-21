@@ -11,11 +11,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxMetroInset(
-    name: String,
-    highwayLabel: String,
+    name: String? = null,
+    highwayLabel: String = "",
     height: Int = 220,
     palette: String = "maroon",
-    seed: String,
+    seed: String = "",
     cols: Int = 8,
     rows: Int = 6,
     content: @Composable () -> Unit = {}

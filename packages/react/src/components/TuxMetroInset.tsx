@@ -17,7 +17,7 @@ export interface TuxMetroInsetProps {
 }
 
 export const TuxMetroInset: React.FC<TuxMetroInsetProps> = ({
-  name, highwayLabel, height = 220, palette = "maroon", seed, cols = 8, rows = 6, children, className = ''
+  name, highwayLabel = "", height = 220, palette = "maroon", seed = "", cols = 8, rows = 6, children, className = ''
 }) => {
   return (
     <div className={`tux-metro-inset ${className}`.trim()}>

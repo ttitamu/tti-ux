@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxBlockquote(
-    quote: String,
-    attribution: String,
-    role: String,
+    quote: String? = null,
+    attribution: String? = null,
+    role: String? = null,
     layout: String = "centered",
     variant: String = "default",
     content: @Composable () -> Unit = {}

@@ -5,12 +5,12 @@ import SwiftUI
 
 public struct TuxErrorPage<Content: View>: View {
     public var code: String = "404"
-    public var title: String
-    public var lede: String
-    public var actions: String
+    public var title: String? = nil
+    public var lede: String? = nil
+    public var actions: String? = nil
     public var inline: Bool = false
-    public var icon: String
-    public var details: String
+    public var icon: String? = nil
+    public var details: String? = nil
     private let content: Content
 
     public init(

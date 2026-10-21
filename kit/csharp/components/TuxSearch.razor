@@ -9,16 +9,16 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string ModelValue { get; set; };
+    [Parameter] public string ModelValue { get; set; } = "";
     [Parameter] public string Variant { get; set; } = "field";
     [Parameter] public string BlockBar { get; set; } = "field";
     [Parameter] public string Size { get; set; } = "regular";
     [Parameter] public string Placeholder { get; set; } = "Search";
-    [Parameter] public string Heading { get; set; };
-    [Parameter] public string Lede { get; set; };
-    [Parameter] public string AriaLabel { get; set; };
+    [Parameter] public string? Heading { get; set; }
+    [Parameter] public string? Lede { get; set; }
+    [Parameter] public string? AriaLabel { get; set; }
     [Parameter] public string ActionLabel { get; set; } = "Search";
-    [Parameter] public string ActionIcon { get; set; };
+    [Parameter] public string? ActionIcon { get; set; }
     [Parameter] public string LeadingIcon { get; set; } = "lucide:search";
     [Parameter] public bool Clearable { get; set; } = true;
     [Parameter] public bool Loading { get; set; } = false;

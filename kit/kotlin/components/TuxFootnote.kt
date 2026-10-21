@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxFootnote(
-    n: Int,
-    text: String,
+    n: Int? = null,
+    text: String? = null,
     idPrefix: String = "fn",
     content: @Composable () -> Unit = {}
 ) {

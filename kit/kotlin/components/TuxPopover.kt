@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxPopover(
-    title: String,
-    body: String,
+    title: String? = null,
+    body: String? = null,
     mode: String = "click",
     side: String = "bottom",
     arrow: Boolean = true,

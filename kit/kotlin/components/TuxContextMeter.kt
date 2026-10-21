@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxContextMeter(
-    used: Int,
-    max: Int,
-    breakdown: String,
+    used: Int? = null,
+    max: Int? = null,
+    breakdown: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

@@ -12,10 +12,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxChatMessage(
     role: String = "user",
-    author: String,
-    timestamp: String,
-    meta: String,
-    initials: String,
+    author: String? = null,
+    timestamp: String? = null,
+    meta: String? = null,
+    initials: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

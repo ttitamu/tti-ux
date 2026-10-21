@@ -4,11 +4,11 @@
 import SwiftUI
 
 public struct TuxBranchNav<Content: View>: View {
-    public var modelValue: Int
-    public var total: Int
+    public var modelValue: Int? = nil
+    public var total: Int? = nil
     public var loop: Bool = false
     public var hideSingleton: Bool = true
-    public var ariaLabel: String
+    public var ariaLabel: String = "Response alternatives"
     private let content: Content
 
     public init(

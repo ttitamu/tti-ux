@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxChartGeoFlow(
-    flows: String,
-    flowLegend: String,
+    flows: String? = null,
+    flowLegend: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

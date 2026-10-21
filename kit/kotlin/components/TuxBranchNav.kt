@@ -11,11 +11,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxBranchNav(
-    modelValue: Int,
-    total: Int,
+    modelValue: Int? = null,
+    total: Int? = null,
     loop: Boolean = false,
     hideSingleton: Boolean = true,
-    ariaLabel: String,
+    ariaLabel: String = "Response alternatives",
     content: @Composable () -> Unit = {}
 ) {
     Row(

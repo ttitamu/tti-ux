@@ -12,9 +12,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxTableCaption(
     label: String = "Table",
-    number: String,
-    caption: String,
-    source: String,
+    number: String? = null,
+    caption: String? = null,
+    source: String? = null,
     placement: String = "above",
     content: @Composable () -> Unit = {}
 ) {

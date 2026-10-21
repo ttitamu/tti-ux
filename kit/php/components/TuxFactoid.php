@@ -7,12 +7,12 @@ namespace Tti\Tux\Components;
 
 final class TuxFactoid
 {
-    public string $items;
+    public ?string $items = null;
     public string $variant = 'default';
     public int $columns = 3;
-    public string $eyebrow;
-    public string $title;
-    public string $dek;
+    public ?string $eyebrow = null;
+    public ?string $title = null;
+    public ?string $dek = null;
 
     public function __construct(array $attributes = [])
     {

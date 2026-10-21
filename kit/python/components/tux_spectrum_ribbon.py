@@ -11,7 +11,7 @@ class TuxSpectrumRibbon:
     orientation: str = "horizontal"
     show_labels: bool = False
     rounded: bool = False
-    aria_label: Optional[str] = None
+    aria_label: str = "TTI Institutional Brand Spectrum"
     bands: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:

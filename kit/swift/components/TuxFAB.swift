@@ -4,11 +4,11 @@
 import SwiftUI
 
 public struct TuxFAB<Content: View>: View {
-    public var icon: String
+    public var icon: String? = nil
     public var extended: Bool = false
     public var size: String = "md"
     public var side: String = "right"
-    public var ariaLabel: String
+    public var ariaLabel: String? = nil
     public var disabled: Bool = false
     private let content: Content
 

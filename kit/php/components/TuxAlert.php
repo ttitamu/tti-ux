@@ -8,9 +8,9 @@ namespace Tti\Tux\Components;
 final class TuxAlert
 {
     public string $variant = 'info';
-    public string $title;
-    public string $description;
-    public string $icon;
+    public ?string $title = null;
+    public ?string $description = null;
+    public ?string $icon = null;
 
     public function __construct(array $attributes = [])
     {

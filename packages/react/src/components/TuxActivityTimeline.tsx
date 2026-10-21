@@ -7,12 +7,14 @@ import React from 'react';
 export interface TuxActivityTimelineProps {
   items: string;
   dense?: boolean;
+  syncChannel?: string;
+  division?: "maroon" | "blue" | "teal" | "green" | "gold";
   children?: React.ReactNode;
   className?: string;
 }
 
 export const TuxActivityTimeline: React.FC<TuxActivityTimelineProps> = ({
-  items, dense = false, children, className = ''
+  items, dense = false, syncChannel, division, children, className = ''
 }) => {
   return (
     <ol className={`tux-activity-timeline ${className}`.trim()}>

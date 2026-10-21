@@ -9,6 +9,8 @@ from typing import Optional
 class TuxActivityTimeline:
     items: Optional[str] = None
     dense: bool = False
+    sync_channel: Optional[str] = None
+    division: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:
         return f'<ol class="tux-activity-timeline">{content}</ol>'

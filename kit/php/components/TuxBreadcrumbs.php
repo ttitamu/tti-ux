@@ -7,7 +7,7 @@ namespace Tti\Tux\Components;
 
 final class TuxBreadcrumbs
 {
-    public string $trail;
+    public ?string $trail = null;
     public bool $homeIcon = true;
     public bool $chevron = false;
     public string $ariaLabel = 'Breadcrumb';

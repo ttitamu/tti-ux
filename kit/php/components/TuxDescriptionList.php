@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxDescriptionList
 {
-    public string $items;
+    public ?string $items = null;
     public string $layout = 'inline';
     public string $emphasis = 'editorial';
-    public string $title;
+    public ?string $title = null;
 
     public function __construct(array $attributes = [])
     {

@@ -7,11 +7,11 @@ namespace Tti\Tux\Components;
 
 final class TuxCaptionedMedia
 {
-    public string $src;
-    public string $alt;
-    public string $caption;
-    public string $credit;
-    public string $eyebrow;
+    public ?string $src = null;
+    public string $alt = '';
+    public ?string $caption = null;
+    public ?string $credit = null;
+    public ?string $eyebrow = null;
     public string $aspect = '16/9';
     public string $align = 'full';
     public string $tone = 'maroon';

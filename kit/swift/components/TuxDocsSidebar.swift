@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxDocsSidebar<Content: View>: View {
-    public var tree: String
+    public var tree: String? = nil
     public var title: String = "Docs"
     public var search: Bool = true
-    public var searchPlaceholder: String
+    public var searchPlaceholder: String = "Filter docs…"
     public var storageKey: String = "tux-docs-sidebar"
     public var exclusiveTopLevel: Bool = false
     private let content: Content

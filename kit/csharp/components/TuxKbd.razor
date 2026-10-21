@@ -9,8 +9,8 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Value { get; set; };
-    [Parameter] public string Keys { get; set; };
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public string? Keys { get; set; }
     [Parameter] public string Size { get; set; } = "sm";
-    [Parameter] public string Separator { get; set; };
+    [Parameter] public string Separator { get; set; } = "";
 }

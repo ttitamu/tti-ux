@@ -13,9 +13,9 @@ import androidx.compose.ui.unit.dp
 fun TuxBetaRibbon(
     variant: String = "corner",
     kind: String = "preview",
-    label: String,
+    label: String? = null,
     corner: String = "top-right",
-    message: String,
+    message: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

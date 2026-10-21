@@ -11,9 +11,9 @@ class TuxDataTable:
     rows: Optional[str] = None
     groups: Optional[str] = None
     row_key: str = "id"
-    table_number: Optional[str] = None
-    caption: Optional[str] = None
-    description: Optional[str] = None
+    table_number: str = ""
+    caption: str = ""
+    description: str = ""
     sort_key: Optional[str] = None
     sort_dir: Optional[str] = None
     sticky: bool = False
@@ -21,7 +21,7 @@ class TuxDataTable:
     density: str = "comfortable"
     banded: bool = True
     footnotes: Optional[str] = None
-    source: Optional[str] = None
+    source: str = ""
     totals: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:

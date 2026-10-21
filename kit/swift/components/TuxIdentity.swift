@@ -4,12 +4,12 @@
 import SwiftUI
 
 public struct TuxIdentity<Content: View>: View {
-    public var name: String
-    public var superhead: String
+    public var name: String? = nil
+    public var superhead: String? = nil
     public var level: String = "institution"
     public var orientation: String = "horizontal"
     public var kind: String = "lockup"
-    public var href: String
+    public var href: String? = nil
     public var logoSize: Int = 0
     private let content: Content
 

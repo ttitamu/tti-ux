@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxTooltip<Content: View>: View {
-    public var text: String
-    public var title: String
-    public var kbds: String
+    public var text: String? = nil
+    public var title: String? = nil
+    public var kbds: String? = nil
     public var side: String = "top"
     public var arrow: Bool = true
     public var disabled: Bool = false

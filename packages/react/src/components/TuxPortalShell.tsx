@@ -32,7 +32,7 @@ export interface TuxPortalShellProps {
 }
 
 export const TuxPortalShell: React.FC<TuxPortalShellProps> = ({
-  portalTitle, portalBadge, portalBadgeVariant = "gold", navItems, actionText, actionTo, actionHref, utilityLinks, agencyName, agencyUrl = "https://tti.tamu.edu", homeUrl = "/", showSearch = true, stickyHeader = true, breadcrumbs, maxWidth = "standard", showFeedback = true, feedbackLabel = "Feedback", showFooter = true, headerProps, footerProps, mainClass, as, children, className = ''
+  portalTitle = "", portalBadge = "", portalBadgeVariant = "gold", navItems, actionText = "", actionTo = "", actionHref = "", utilityLinks, agencyName = "Texas A&M Transportation Institute", agencyUrl = "https://tti.tamu.edu", homeUrl = "/", showSearch = true, stickyHeader = true, breadcrumbs, maxWidth = "standard", showFeedback = true, feedbackLabel = "Feedback", showFooter = true, headerProps, footerProps, mainClass = "py-8", as = "main", children, className = ''
 }) => {
   return (
     <div className={`tux-portal-shell ${className}`.trim()}>

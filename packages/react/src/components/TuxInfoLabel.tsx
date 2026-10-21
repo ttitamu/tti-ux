@@ -14,7 +14,7 @@ export interface TuxInfoLabelProps {
 }
 
 export const TuxInfoLabel: React.FC<TuxInfoLabelProps> = ({
-  required = false, trigger = "hover", infoAriaLabel, children, className = ''
+  required = false, trigger = "hover", infoAriaLabel = "More information", children, className = ''
 }) => {
   return (
     <label className={`tux-info-label ${className}`.trim()}>

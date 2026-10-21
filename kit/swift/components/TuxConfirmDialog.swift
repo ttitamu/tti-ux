@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxConfirmDialog<Content: View>: View {
-    public var open: Bool = false
-    public var title: String
-    public var eyebrow: String
-    public var confirmLabel: String
+    public var `open`: Bool = false
+    public var title: String? = nil
+    public var eyebrow: String? = nil
+    public var confirmLabel: String? = nil
     public var cancelLabel: String = "Cancel"
     public var variant: String = "destructive"
     public var confirmDisabled: Bool = false

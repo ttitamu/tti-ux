@@ -4,7 +4,7 @@
 import SwiftUI
 
 public struct TuxShortcutsHelp<Content: View>: View {
-    public var groups: String
+    public var groups: String? = nil
     public var sequenceSeparator: String = "then"
     private let content: Content
 

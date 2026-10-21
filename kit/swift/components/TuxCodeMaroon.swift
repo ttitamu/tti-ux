@@ -6,10 +6,10 @@ import SwiftUI
 public struct TuxCodeMaroon<Content: View>: View {
     public var active: Bool = false
     public var tone: String = "error"
-    public var title: String
-    public var message: String
+    public var title: String = "Emergency alert"
+    public var message: String? = nil
     public var detailsUrl: String = "https://tti.tamu.edu/emergency/"
-    public var detailsLabel: String
+    public var detailsLabel: String = "View details"
     public var dismissible: Bool = false
     public var modelValue: Bool = false
     public var sticky: Bool = false

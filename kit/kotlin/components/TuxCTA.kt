@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxCTA(
-    eyebrow: String,
-    title: String,
-    dek: String,
+    eyebrow: String? = null,
+    title: String? = null,
+    dek: String? = null,
     tone: String = "maroon",
     variant: String = "default",
     content: @Composable () -> Unit = {}

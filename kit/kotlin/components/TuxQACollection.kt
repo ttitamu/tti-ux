@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxQACollection(
-    items: String,
+    items: String? = null,
     variant: String = "default",
     content: @Composable () -> Unit = {}
 ) {

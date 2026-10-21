@@ -15,7 +15,7 @@ export interface TuxSpectrumFactsProps {
 }
 
 export const TuxSpectrumFacts: React.FC<TuxSpectrumFactsProps> = ({
-  title, subtitle, items, tone = "dark", showTopRibbon = true, children, className = ''
+  title = "QUICK FACTS", subtitle = "", items, tone = "dark", showTopRibbon = true, children, className = ''
 }) => {
   return (
     <section className={`tux-spectrum-facts ${className}`.trim()}>

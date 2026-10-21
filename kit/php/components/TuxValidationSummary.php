@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxValidationSummary
 {
-    public string $errors;
-    public string $title;
+    public ?string $errors = null;
+    public string $title = 'Please fix the following before submitting:';
     public string $variant = 'error';
 
     public function __construct(array $attributes = [])

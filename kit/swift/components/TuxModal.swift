@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxModal<Content: View>: View {
-    public var open: Bool = false
-    public var title: String
-    public var eyebrow: String
-    public var size: String
+    public var `open`: Bool = false
+    public var title: String? = nil
+    public var eyebrow: String? = nil
+    public var size: String? = nil
     public var variant: String = "standard"
     private let content: Content
 

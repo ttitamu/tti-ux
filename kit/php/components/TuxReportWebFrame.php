@@ -7,13 +7,13 @@ namespace Tti\Tux\Components;
 
 final class TuxReportWebFrame
 {
-    public string $eyebrow;
-    public string $title;
-    public string $lede;
-    public string $byline;
-    public string $date;
-    public string $readingTime;
-    public string $toc;
+    public ?string $eyebrow = null;
+    public ?string $title = null;
+    public ?string $lede = null;
+    public ?string $byline = null;
+    public ?string $date = null;
+    public ?string $readingTime = null;
+    public ?string $toc = null;
     public string $width = 'default';
 
     public function __construct(array $attributes = [])

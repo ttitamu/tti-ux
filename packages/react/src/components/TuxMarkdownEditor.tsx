@@ -18,7 +18,7 @@ export interface TuxMarkdownEditorProps {
 }
 
 export const TuxMarkdownEditor: React.FC<TuxMarkdownEditorProps> = ({
-  modelValue, rows = 12, minLength, maxLength, placeholder, preview = true, disabled = false, ariaLabel, children, className = ''
+  modelValue = "", rows = 12, minLength, maxLength, placeholder = "Write in markdown — ⌘B bold, ⌘I italic, ⌘K link", preview = true, disabled = false, ariaLabel = "Markdown editor", children, className = ''
 }) => {
   return (
     <div className={`tux-markdown-editor ${className}`.trim()}>

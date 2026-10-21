@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxProgram(
-    name: String,
-    eyebrow: String,
-    summary: String,
-    hero: String,
-    leads: String,
-    funders: String,
-    metrics: String,
+    name: String? = null,
+    eyebrow: String? = null,
+    summary: String? = null,
+    hero: String? = null,
+    leads: String? = null,
+    funders: String? = null,
+    metrics: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

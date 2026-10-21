@@ -9,9 +9,9 @@ final class TuxBetaRibbon
 {
     public string $variant = 'corner';
     public string $kind = 'preview';
-    public string $label;
+    public ?string $label = null;
     public string $corner = 'top-right';
-    public string $message;
+    public ?string $message = null;
 
     public function __construct(array $attributes = [])
     {

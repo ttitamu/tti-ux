@@ -9,11 +9,11 @@
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public string Name { get; set; };
-    [Parameter] public string HighwayLabel { get; set; };
+    [Parameter] public string? Name { get; set; }
+    [Parameter] public string HighwayLabel { get; set; } = "";
     [Parameter] public int Height { get; set; } = 220;
     [Parameter] public string Palette { get; set; } = "maroon";
-    [Parameter] public string Seed { get; set; };
+    [Parameter] public string Seed { get; set; } = "";
     [Parameter] public int Cols { get; set; } = 8;
     [Parameter] public int Rows { get; set; } = 6;
 }

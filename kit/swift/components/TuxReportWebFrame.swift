@@ -4,13 +4,13 @@
 import SwiftUI
 
 public struct TuxReportWebFrame<Content: View>: View {
-    public var eyebrow: String
-    public var title: String
-    public var lede: String
-    public var byline: String
-    public var date: String
-    public var readingTime: String
-    public var toc: String
+    public var eyebrow: String? = nil
+    public var title: String? = nil
+    public var lede: String? = nil
+    public var byline: String? = nil
+    public var date: String? = nil
+    public var readingTime: String? = nil
+    public var toc: String? = nil
     public var width: String = "default"
     private let content: Content
 

@@ -12,9 +12,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TuxSlideover(
     side: String = "right",
-    size: String,
-    title: String,
-    eyebrow: String,
+    size: String? = null,
+    title: String? = null,
+    eyebrow: String? = null,
     showClose: Boolean = true,
     closeOnBackdrop: Boolean = true,
     content: @Composable () -> Unit = {}

@@ -8,16 +8,16 @@ namespace Tti\Tux\Components;
 final class TuxPortalHeader
 {
     public string $mode = 'comm';
-    public string $agencyName;
+    public string $agencyName = 'Texas A&M Transportation Institute';
     public string $agencyUrl = 'https://tti.tamu.edu';
     public string $homeUrl = '/';
-    public string $portalTitle;
-    public string $portalBadge;
+    public string $portalTitle = '';
+    public string $portalBadge = '';
     public string $portalBadgeVariant = 'gold';
-    public string $utilityLinks;
+    public ?string $utilityLinks = null;
     public bool $showSearch = true;
     public bool $showSpectrumRibbon = false;
-    public string $intranetApps;
+    public ?string $intranetApps = null;
 
     public function __construct(array $attributes = [])
     {

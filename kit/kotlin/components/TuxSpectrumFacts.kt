@@ -11,9 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxSpectrumFacts(
-    title: String,
-    subtitle: String,
-    items: String,
+    title: String = "QUICK FACTS",
+    subtitle: String = "",
+    items: String? = null,
     tone: String = "dark",
     showTopRibbon: Boolean = true,
     content: @Composable () -> Unit = {}

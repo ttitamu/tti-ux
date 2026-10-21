@@ -12,7 +12,7 @@ class TuxSiteNav:
     utility_nav: Optional[str] = None
     search: bool = False
     sticky: bool = False
-    aria_label: Optional[str] = None
+    aria_label: str = "Primary navigation"
 
     def render_html(self, content: str = "") -> str:
         return f'<header class="tux-site-nav">{content}</header>'

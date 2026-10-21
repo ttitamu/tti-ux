@@ -4,10 +4,10 @@
 import SwiftUI
 
 public struct TuxStatus<Content: View>: View {
-    public var state: String
+    public var state: String? = nil
     public var kind: String = "chip"
     public var acked: Bool = false
-    public var label: String
+    public var label: String? = nil
     public var glyph: Bool = false
     private let content: Content
 

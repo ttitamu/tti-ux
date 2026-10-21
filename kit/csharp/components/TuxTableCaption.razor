@@ -10,8 +10,8 @@
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public string Label { get; set; } = "Table";
-    [Parameter] public string Number { get; set; };
-    [Parameter] public string Caption { get; set; };
-    [Parameter] public string Source { get; set; };
+    [Parameter] public string? Number { get; set; }
+    [Parameter] public string? Caption { get; set; }
+    [Parameter] public string? Source { get; set; }
     [Parameter] public string Placement { get; set; } = "above";
 }

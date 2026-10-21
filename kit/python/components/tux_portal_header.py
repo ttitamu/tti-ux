@@ -8,11 +8,11 @@ from typing import Optional
 @dataclass
 class TuxPortalHeader:
     mode: str = "comm"
-    agency_name: Optional[str] = None
+    agency_name: str = "Texas A&M Transportation Institute"
     agency_url: str = "https://tti.tamu.edu"
     home_url: str = "/"
-    portal_title: Optional[str] = None
-    portal_badge: Optional[str] = None
+    portal_title: str = ""
+    portal_badge: str = ""
     portal_badge_variant: str = "gold"
     utility_links: Optional[str] = None
     show_search: bool = True

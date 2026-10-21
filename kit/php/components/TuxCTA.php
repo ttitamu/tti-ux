@@ -7,9 +7,9 @@ namespace Tti\Tux\Components;
 
 final class TuxCTA
 {
-    public string $eyebrow;
-    public string $title;
-    public string $dek;
+    public ?string $eyebrow = null;
+    public ?string $title = null;
+    public ?string $dek = null;
     public string $tone = 'maroon';
     public string $variant = 'default';
 

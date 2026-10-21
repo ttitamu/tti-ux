@@ -18,6 +18,10 @@ class TuxCorridorStrip:
     width: int = 800
     height: int = 140
     tick_every: int = 5
+    tick_format: str = "mile"
+    sync_channel: Optional[str] = None
+    active_mile: Optional[int] = None
+    interactive_scrub: bool = False
 
     def render_html(self, content: str = "") -> str:
         return f'<figure class="tux-corridor-strip">{content}</figure>'

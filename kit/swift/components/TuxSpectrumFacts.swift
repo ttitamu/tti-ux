@@ -4,9 +4,9 @@
 import SwiftUI
 
 public struct TuxSpectrumFacts<Content: View>: View {
-    public var title: String
-    public var subtitle: String
-    public var items: String
+    public var title: String = "QUICK FACTS"
+    public var subtitle: String = ""
+    public var items: String? = nil
     public var tone: String = "dark"
     public var showTopRibbon: Bool = true
     private let content: Content

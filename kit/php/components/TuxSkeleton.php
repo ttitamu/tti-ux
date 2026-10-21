@@ -10,8 +10,8 @@ final class TuxSkeleton
     public string $kind = 'primitive';
     public string $variant = 'block';
     public string $width = '100%';
-    public string $height;
-    public string $radius;
+    public ?string $height = null;
+    public ?string $radius = null;
     public int $count = 3;
     public string $animated = 'shimmer';
     public string $label = 'Loading…';

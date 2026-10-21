@@ -4,8 +4,8 @@
 import SwiftUI
 
 public struct TuxAuthorByline<Content: View>: View {
-    public var authors: String
-    public var affiliations: String
+    public var authors: String? = nil
+    public var affiliations: String? = nil
     public var layout: String = "compact"
     private let content: Content
 

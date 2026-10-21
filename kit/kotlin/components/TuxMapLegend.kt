@@ -11,15 +11,15 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TuxMapLegend(
-    title: String,
-    eyebrow: String,
-    entries: String,
+    title: String? = null,
+    eyebrow: String? = null,
+    entries: String? = null,
     layout: String = "stacked",
-    gradient: String,
-    minLabel: String,
-    maxLabel: String,
-    css: String,
-    stops: String,
+    gradient: String? = null,
+    minLabel: String? = null,
+    maxLabel: String? = null,
+    css: String? = null,
+    stops: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

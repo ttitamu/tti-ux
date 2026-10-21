@@ -14,13 +14,13 @@ fun TuxChatBubble(
     mode: String = "bubble",
     role: String = "assistant",
     title: String = "Assistant",
-    subtitle: String,
+    subtitle: String = "Institutional Assistant",
     state: String = "idle",
-    teaser: String,
+    teaser: String? = null,
     tail: String = "none",
     dismissible: Boolean = false,
     open: Boolean = true,
-    suggestions: String,
+    suggestions: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Row(

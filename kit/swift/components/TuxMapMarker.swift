@@ -4,11 +4,11 @@
 import SwiftUI
 
 public struct TuxMapMarker<Content: View>: View {
-    public var kind: String
-    public var number: String
-    public var toneIndex: Int
+    public var kind: String? = nil
+    public var number: String? = nil
+    public var toneIndex: Int? = nil
     public var size: String = "md"
-    public var title: String
+    public var title: String? = nil
     private let content: Content
 
     public init(

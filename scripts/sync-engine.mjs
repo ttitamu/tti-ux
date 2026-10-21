@@ -123,7 +123,154 @@ const JS_RESERVED = new Set([
   "delete", "do", "else", "enum", "export", "extends", "false", "finally", "for",
   "function", "if", "import", "in", "instanceof", "new", "null", "return", "super",
   "switch", "this", "throw", "true", "try", "typeof", "var", "void", "while", "with", "yield",
+  // reserved in strict mode, which every ES module is
+  "await", "implements", "interface", "let", "package", "private", "protected", "public", "static",
+  "arguments", "eval",
 ]);
+
+// Index just past the string literal that opens at s[i] (', " or `).
+function skipString(s, i) {
+  const quote = s[i];
+  for (i++; i < s.length && s[i] !== quote; i++) if (s[i] === "\\") i++;
+  return i + 1;
+}
+
+// Index just past the comment that opens at s[i] (// or /*); the end of s when a /*
+// never closes.
+function skipComment(s, i) {
+  const line = s[i + 1] === "/";
+  const close = line ? s.indexOf("\n", i) : s.indexOf("*/", i + 2);
+  if (close < 0) return s.length;
+  return line ? close : close + 2;
+}
+
+// Index just past the regex literal that opens at s[i], flags included (a / inside a
+// [class] doesn't close it).
+function skipRegex(s, i) {
+  let inClass = false;
+  for (i++; i < s.length && s[i] !== "\n"; i++) {
+    if (s[i] === "\\") i++;
+    else if (s[i] === "[") inClass = true;
+    else if (s[i] === "]") inClass = false;
+    else if (s[i] === "/" && !inClass) break;
+  }
+  for (i++; i < s.length && /[a-z]/i.test(s[i]); i++);
+  return i;
+}
+
+// Index just past the string, comment or regex literal that opens at s[i]; i itself
+// when none does. A `/` opens a regex where an operand is expected, else it divides.
+function skipNonCode(s, i) {
+  const c = s[i];
+  if (c === "'" || c === '"' || c === "`") return skipString(s, i);
+  if (c !== "/") return i;
+  if (s[i + 1] === "/" || s[i + 1] === "*") return skipComment(s, i);
+  return /^$|[(,=:[!&|?{};>]$/.test(s.slice(0, i).trimEnd().slice(-1)) ? skipRegex(s, i) : i;
+}
+
+// Index of the first character of `stops` at bracket depth 0 from s[i], stepping
+// over strings, comments, regex literals and bracketed groups (with `angles`, <…>
+// too, as in a type argument; the > of => doesn't close one); `end` when there is
+// none before it.
+function scanTo(s, i, stops, end = s.length, angles = false) {
+  const close = { "(": ")", "[": "]", "{": "}", ...(angles ? { "<": ">" } : {}) };
+  const stack = [];
+  while (i < end && (stack.length || !stops.includes(s[i]))) {
+    const next = skipNonCode(s, i);
+    if (next !== i) { i = next; continue; }
+    const c = s[i];
+    if (close[c]) stack.push(close[c]);
+    else if (c === stack[stack.length - 1] && !(c === ">" && s[i - 1] === "=")) stack.pop();
+    i++;
+  }
+  return Math.min(i, end);
+}
+
+// Index of the first call `name(` in code (not in a string or comment), or -1.
+function findCall(s, name) {
+  const call = new RegExp(`^${name}\\s*\\(`);
+  for (let i = 0; i < s.length; ) {
+    const next = skipNonCode(s, i);
+    if (next !== i) i = next;
+    else if (call.test(s.slice(i, i + name.length + 64)) && !/[\w$]/.test(s[i - 1] ?? "")) return i;
+    else i++;
+  }
+  return -1;
+}
+
+// The text with its comments replaced by a space; strings and regex literals kept.
+function stripComments(s) {
+  let out = "";
+  for (let i = 0; i < s.length; ) {
+    const next = skipNonCode(s, i);
+    if (next === i) out += s[i++];
+    else {
+      out += s[i] === "/" && (s[i + 1] === "/" || s[i + 1] === "*") ? " " : s.slice(i, next);
+      i = next;
+    }
+  }
+  return out;
+}
+
+/**
+ * The object withDefaults(defineProps<…>(), { … }) passes, as a map of prop name to
+ * the source text of its default. A balanced scan rather than a regex: a default
+ * can hold spaces, commas and quotes ("Emergency alert"), nest braces
+ * (() => ({})) or contain another prop's key (a `title:` inside a factory), and
+ * the first argument can be an inline type literal with braces of its own. Only
+ * <script setup> is scanned: template text can hold an apostrophe or a stray /*.
+ */
+export function withDefaultsSource(content) {
+  const entries = new Map();
+  const script = content.match(/<script\b[^>]*\bsetup\b[^>]*>([\s\S]*?)<\/script>/)?.[1] ?? content;
+  const call = findCall(script, "withDefaults");
+  if (call < 0) return entries;
+  const firstArgEnd = scanTo(script, script.indexOf("(", call) + 1, ",)", script.length, true);
+  const open = firstArgEnd + 1 + script.slice(firstArgEnd + 1).search(/\S/);
+  if (script[firstArgEnd] !== "," || script[open] !== "{") return entries;
+  const close = scanTo(script, open + 1, "}");
+  for (let i = open + 1; i < close; ) {
+    const end = scanTo(script, i, ",", close);
+    const entry = stripComments(script.slice(i, end)).trim();
+    const m = entry.match(/^(?:(\w+)|(['"])(\w+)\2)\s*:\s*([\s\S]+)$/);
+    if (m) entries.set(m[1] ?? m[3], m[4].trim());
+    i = end + 1;
+  }
+  return entries;
+}
+
+const JS_ESCAPES = { b: "\b", f: "\f", n: "\n", r: "\r", t: "\t", v: "\v", 0: "\0" };
+// A JS number literal: decimal (1, .5, 1e3, 1_000) or hex, octal or binary.
+const JS_NUMBER = /^-?(?:(?:\d[\d_]*\.?[\d_]*|\.\d[\d_]*)(?:[eE][+-]?\d[\d_]*)?|0[xX][\da-fA-F_]+|0[oO][0-7_]+|0[bB][01_]+)$/;
+
+// A quoted string's decoded contents, a number's or keyword's text, or undefined.
+function literalText(text) {
+  if (/^(?:true|false|null|undefined)$/.test(text) || JS_NUMBER.test(text)) return text;
+  const quote = text[0];
+  if (!`'"\``.includes(quote) || skipString(text, 0) !== text.length) return undefined;
+  if (quote === "`" && text.includes("${")) return undefined;
+  return text.slice(1, -1).replace(/\\(?:u\{([0-9a-fA-F]+)\}|u([0-9a-fA-F]{4})|x([0-9a-fA-F]{2})|\r?\n|([\s\S]))/g,
+    (_, cp, u4, x2, ch) => cp ? String.fromCodePoint(parseInt(cp, 16))
+      : u4 || x2 ? String.fromCharCode(parseInt(u4 || x2, 16))
+        : ch === undefined ? "" : JS_ESCAPES[ch] ?? ch);
+}
+
+/**
+ * A default's source text as the schema's value: a quoted string's contents, or the
+ * text of a number or of true/false/null/undefined, also when a type assertion
+ * follows it ("md" as const, 3 satisfies Size). Anything else (a factory such as
+ * () => [], an expression such as 50 * 1024 * 1024) has no literal value, so it is
+ * undefined and the prop is left without a default.
+ */
+export function literalSource(text) {
+  const literal = literalText(text);
+  if (literal !== undefined) return literal;
+  for (const m of text.matchAll(/\s+(?:as|satisfies)\s/g)) {
+    const head = literalText(text.slice(0, m.index));
+    if (head !== undefined) return head;
+  }
+  return undefined;
+}
 
 export function parseVue(content, componentName) {
   const props = [];
@@ -181,26 +328,20 @@ export function parseVue(content, componentName) {
   }
 
   // Parse default values from withDefaults
-  const withDefaultsBlock = content.match(/withDefaults\s*\([\s\S]*?\{([\s\S]*?)\}\s*\)/);
-  if (withDefaultsBlock) {
-    for (const p of props) {
-      const defMatch = withDefaultsBlock[1].match(new RegExp(`\\b${p.name}\\s*:\\s*(['"]?)([^'",\\s}\\]\\n]+)\\1`));
-      if (defMatch) {
-        const rawDef = defMatch[2];
-        if (rawDef === "undefined" || rawDef === "null" || rawDef.startsWith("(") || rawDef.startsWith("{") || rawDef.startsWith("[")) {
-          continue;
-        }
-        if (p.type === "boolean") {
-          p.defaultValue = rawDef === "true";
-        } else if (p.type === "number") {
-          const num = Number(rawDef);
-          if (!Number.isNaN(num)) p.defaultValue = num;
-        } else if (p.type === "enum" && p.enumValues) {
-          if (p.enumValues.includes(rawDef)) p.defaultValue = rawDef;
-        } else {
-          p.defaultValue = rawDef;
-        }
-      }
+  const defaults = withDefaultsSource(content);
+  for (const p of props) {
+    const value = defaults.has(p.name) ? literalSource(defaults.get(p.name)) : undefined;
+    // undefined, null, and a factory or expression (no literal value) leave no default
+    if (value === undefined || value === "undefined" || value === "null") continue;
+    if (p.type === "boolean") {
+      p.defaultValue = value === "true";
+    } else if (p.type === "number") {
+      const num = Number(value.replace(/_/g, ""));
+      if (value !== "" && !Number.isNaN(num)) p.defaultValue = num;
+    } else if (p.type === "enum" && p.enumValues) {
+      if (p.enumValues.includes(value)) p.defaultValue = value;
+    } else {
+      p.defaultValue = value;
     }
   }
 
@@ -334,6 +475,138 @@ export function parseKotlin(content, componentName) {
 }
 
 // ---------------------------------------------------------------------------
+// Default literals: one reading of a prop's default, rendered per language
+// ---------------------------------------------------------------------------
+
+/**
+ * A prop's default as the emitters read it: { kind: "none" } when there is none
+ * to write (missing, null or undefined, or a number prop whose default is not a
+ * number), else { kind: "boolean" | "number" | "string", value }. The schema
+ * carries JS values and raw withDefaults text, so `true`/`false`, `null`/
+ * `undefined` and an unquoted enum member (`error`, `md`) written raw are
+ * undefined names or type errors in every target but JS; each emitter renders
+ * this instead.
+ */
+export function defaultLiteral(p) {
+  const v = p.defaultValue;
+  if (v === undefined || v === null || v === "undefined" || v === "null") return { kind: "none" };
+  if (p.type === "boolean") return { kind: "boolean", value: v === true || v === "true" };
+  if (p.type === "number") {
+    const n = typeof v === "number" ? v : String(v).trim() === "" ? NaN : Number(v);
+    return Number.isFinite(n) ? { kind: "number", value: String(n) } : { kind: "none" };
+  }
+  return { kind: "string", value: String(v) };
+}
+
+// A prop's type in a typed target, from that language's names. A number prop's
+// default picks it: a fractional or exponent-form one (0.5, 1e-7) takes the float
+// type, and an integer past 32 bits the long one where the language's int is 32-bit.
+function typeIn(names, p, d = defaultLiteral(p)) {
+  if (p.type === "boolean") return names.bool;
+  if (p.type !== "number") return names.string;
+  if (d.kind !== "number") return names.int;
+  if (!/^-?\d+$/.test(d.value) || !Number.isSafeInteger(Number(d.value))) return names.float;
+  return Math.abs(Number(d.value)) > 2147483647 ? names.long ?? names.int : names.int;
+}
+
+// A double-quoted string literal in a C-family target: \ and " (and the
+// language's `extra` characters) take a backslash, \n \r \t are spelled by
+// letter, and any other control or line-separator character by `unicode`.
+function cString(s, unicode, extra = "") {
+  let out = "";
+  for (const ch of s) {
+    if (ch === "\\" || ch === '"' || extra.includes(ch)) out += `\\${ch}`;
+    else if (ch === "\n") out += "\\n";
+    else if (ch === "\r") out += "\\r";
+    else if (ch === "\t") out += "\\t";
+    else if (/[\x00-\x1f\x7f-\x9f\u2028\u2029]/.test(ch)) out += unicode(ch.codePointAt(0).toString(16));
+    else out += ch;
+  }
+  return `"${out}"`;
+}
+
+// The same name with a trailing underscore when the generated code already declares
+// it (SwiftUI's `body`, the Compose `content` slot, Blazor's ChildContent).
+const avoiding = (taken, name) => (taken.includes(name) ? `${name}_` : name);
+
+/** A prop's default as a JS/TS literal, or undefined when it has none to write. */
+export function jsDefault(p) {
+  const d = defaultLiteral(p);
+  if (d.kind === "none") return undefined;
+  return d.kind === "string" ? JSON.stringify(d.value) : String(d.value);
+}
+
+// A PHP string literal: single-quoted (only \ and ' are special) unless it holds a
+// control character, which only a double-quoted string can spell; that form also
+// interpolates $, so $ is escaped there.
+function phpString(s) {
+  if (!/[\x00-\x1f\x7f]/.test(s)) return `'${s.replace(/[\\']/g, "\\$&")}'`;
+  return cString(s, (hex) => `\\u{${hex}}`, "$");
+}
+
+/** A prop's default as a PHP literal; a $-prefixed property needs no reserved-word escape. */
+export function phpDefault(p) {
+  const d = defaultLiteral(p);
+  if (d.kind === "none") return "null";
+  return d.kind === "string" ? phpString(d.value) : String(d.value);
+}
+
+/**
+ * A prop's default as a C# initializer, or null when it has none: the property is
+ * then nullable and starts out null. C#'s keywords are all lower case, so the
+ * PascalCase property names never need an @ escape.
+ */
+export function csharpDefault(p) {
+  const d = defaultLiteral(p);
+  if (d.kind === "none") return null;
+  return d.kind === "string" ? cString(d.value, (hex) => `\\u${hex.padStart(4, "0")}`) : String(d.value);
+}
+
+// A C# auto-property for a prop, with no `;` after the accessor block unless an
+// initializer follows it (a bare `{ get; set; };` is error CS1597).
+function csharpProperty(p, taken) {
+  const def = csharpDefault(p);
+  const type = typeIn({ bool: "bool", int: "int", long: "long", float: "double", string: "string" }, p);
+  return `public ${type}${def === null ? "?" : ""} ${avoiding(taken, toPascalCase(p.name))} { get; set; }${def === null ? "" : ` = ${def};`}`;
+}
+
+// Swift's keywords, which a property name can only use in backticks.
+const SWIFT_KEYWORDS = new Set(["associatedtype", "class", "deinit", "enum", "extension", "fileprivate", "func",
+  "import", "init", "inout", "internal", "let", "open", "operator", "private", "precedencegroup", "protocol", "public",
+  "rethrows", "static", "struct", "subscript", "typealias", "var", "break", "case", "catch", "continue", "default",
+  "defer", "do", "else", "fallthrough", "for", "guard", "if", "in", "repeat", "return", "throw", "switch", "where",
+  "while", "Any", "as", "await", "false", "is", "nil", "self", "Self", "super", "throws", "true", "try"]);
+
+export function swiftName(propName) {
+  const name = avoiding(["body", "content"], toCamelCase(propName));
+  return SWIFT_KEYWORDS.has(name) ? `\`${name}\`` : name;
+}
+
+/** A prop's default as a Swift literal; with none, the property is Optional and nil. */
+export function swiftDefault(p) {
+  const d = defaultLiteral(p);
+  if (d.kind === "none") return "nil";
+  return d.kind === "string" ? cString(d.value, (hex) => `\\u{${hex}}`) : String(d.value);
+}
+
+// Kotlin's hard keywords, which a parameter name can only use in backticks.
+const KOTLIN_KEYWORDS = new Set(["as", "break", "class", "continue", "do", "else", "false", "for", "fun", "if", "in",
+  "interface", "is", "null", "object", "package", "return", "super", "this", "throw", "true", "try", "typealias",
+  "typeof", "val", "var", "when", "while"]);
+
+export function kotlinName(propName) {
+  const name = avoiding(["content"], toCamelCase(propName));
+  return KOTLIN_KEYWORDS.has(name) ? `\`${name}\`` : name;
+}
+
+/** A prop's default as a Kotlin literal ($ escaped: it opens a string template). */
+export function kotlinDefault(p) {
+  const d = defaultLiteral(p);
+  if (d.kind === "none") return "null";
+  return d.kind === "string" ? cString(d.value, (hex) => `\\u${hex.padStart(4, "0")}`, "$") : String(d.value);
+}
+
+// ---------------------------------------------------------------------------
 // Emitters (Code Generation Across All 11 Languages)
 // ---------------------------------------------------------------------------
 
@@ -353,11 +626,8 @@ export function emitVue(schema) {
     .join("\n");
 
   const defaults = schema.props
-    .filter((p) => p.defaultValue !== undefined)
-    .map((p) => {
-      const val = p.type === "string" || p.type === "enum" ? `"${p.defaultValue}"` : p.defaultValue;
-      return `  ${p.name}: ${val},`;
-    })
+    .filter((p) => jsDefault(p) !== undefined)
+    .map((p) => `  ${p.name}: ${jsDefault(p)},`)
     .join("\n");
 
   return `<script setup lang="ts">
@@ -412,11 +682,8 @@ export function emitReact(schema) {
   const defaultDestructuring = schema.props
     .filter((p) => !JS_RESERVED.has(p.name))
     .map((p) => {
-      if (p.defaultValue !== undefined) {
-        const val = p.type === "string" || p.type === "enum" ? `"${p.defaultValue}"` : p.defaultValue;
-        return `${p.name} = ${val}`;
-      }
-      return p.name;
+      const val = jsDefault(p);
+      return val === undefined ? p.name : `${p.name} = ${val}`;
     })
     .concat(["children", "className = ''"])
     .join(", ");
@@ -498,9 +765,9 @@ if (!customElements.get('${schema.kebabName}')) {
 export function emitPhp(schema) {
   const fields = schema.props
     .map((p) => {
-      const type = p.type === "boolean" ? "bool" : p.type === "number" ? "int" : "string";
-      const def = p.defaultValue !== undefined ? (p.type === "string" || p.type === "enum" ? ` = '${p.defaultValue}'` : ` = ${p.defaultValue}`) : "";
-      return `    public ${type} $${toCamelCase(p.name)}${def};`;
+      const type = typeIn({ bool: "bool", int: "int", float: "float", string: "string" }, p);
+      const def = phpDefault(p);
+      return `    public ${def === "null" ? "?" : ""}${type} $${toCamelCase(p.name)} = ${def};`;
     })
     .join("\n");
 
@@ -537,11 +804,7 @@ ${fields}
 
 export function emitRazor(schema) {
   const params = schema.props
-    .map((p) => {
-      const type = p.type === "boolean" ? "bool" : p.type === "number" ? "int" : "string";
-      const def = p.defaultValue !== undefined ? (p.type === "string" || p.type === "enum" ? ` = "${p.defaultValue}";` : ` = ${p.defaultValue};`) : ";";
-      return `    [Parameter] public ${type} ${toPascalCase(p.name)} { get; set; }${def}`;
-    })
+    .map((p) => `    [Parameter] ${csharpProperty(p, ["ChildContent", schema.name])}`)
     .join("\n");
 
   return `@*
@@ -562,11 +825,7 @@ ${params}
 
 export function emitCSharp(schema) {
   const props = schema.props
-    .map((p) => {
-      const type = p.type === "boolean" ? "bool" : p.type === "number" ? "int" : "string";
-      const def = p.defaultValue !== undefined ? (p.type === "string" || p.type === "enum" ? ` = "${p.defaultValue}";` : ` = ${p.defaultValue};`) : ";";
-      return `    public ${type} ${toPascalCase(p.name)} { get; set; }${def}`;
-    })
+    .map((p) => `    ${csharpProperty(p, ["Process", `${schema.name}TagHelper`])}`)
     .join("\n");
 
   return `// ${schema.name}.cs — .NET TagHelper / Control Class.
@@ -591,17 +850,15 @@ ${props}
 }
 
 /**
- * A prop's default as a Python literal. The schema carries JS values and raw
- * withDefaults text, so `true`/`false`, `null`/`undefined` and an unquoted
- * enum member (`error`, `md`) would otherwise land in Python as undefined
- * names: a NameError the moment the module is imported.
+ * A prop's default as a Python literal (see defaultLiteral): written raw, a JS
+ * value or enum member is an undefined name, a NameError the moment the module
+ * is imported.
  */
 export function pythonDefault(p) {
-  const v = p.defaultValue;
-  if (v === undefined || v === null || v === "undefined" || v === "null") return "None";
-  if (p.type === "boolean") return v === true || v === "true" ? "True" : "False";
-  if (p.type === "number") return /^-?\d+(\.\d+)?$/.test(String(v)) ? String(v) : "None";
-  return JSON.stringify(String(v));
+  const d = defaultLiteral(p);
+  if (d.kind === "none") return "None";
+  if (d.kind === "boolean") return d.value ? "True" : "False";
+  return d.kind === "number" ? d.value : JSON.stringify(d.value);
 }
 
 // Python's hard keywords: a prop named `for` or `as` is a syntax error as a field
@@ -618,7 +875,7 @@ export function pythonName(propName) {
 export function emitPython(schema) {
   const fields = schema.props
     .map((p) => {
-      const type = p.type === "boolean" ? "bool" : p.type === "number" ? "int" : "str";
+      const type = typeIn({ bool: "bool", int: "int", float: "float", string: "str" }, p);
       const def = pythonDefault(p);
       return `    ${pythonName(p.name)}: ${def === "None" ? `Optional[${type}]` : type} = ${def}`;
     })
@@ -662,9 +919,9 @@ export default create${schema.name};
 export function emitSwift(schema) {
   const properties = schema.props
     .map((p) => {
-      const type = p.type === "boolean" ? "Bool" : p.type === "number" ? "Int" : "String";
-      const def = p.defaultValue !== undefined ? (p.type === "string" || p.type === "enum" ? ` = "${p.defaultValue}"` : ` = ${p.defaultValue}`) : "";
-      return `    public var ${toCamelCase(p.name)}: ${type}${def}`;
+      const type = typeIn({ bool: "Bool", int: "Int", float: "Double", string: "String" }, p);
+      const def = swiftDefault(p);
+      return `    public var ${swiftName(p.name)}: ${type}${def === "nil" ? "?" : ""} = ${def}`;
     })
     .join("\n");
 
@@ -697,9 +954,9 @@ ${properties}
 export function emitKotlin(schema) {
   const params = schema.props
     .map((p) => {
-      const type = p.type === "boolean" ? "Boolean" : p.type === "number" ? "Int" : "String";
-      const def = p.defaultValue !== undefined ? (p.type === "string" || p.type === "enum" ? ` = "${p.defaultValue}"` : ` = ${p.defaultValue}`) : "";
-      return `    ${toCamelCase(p.name)}: ${type}${def},`;
+      const type = typeIn({ bool: "Boolean", int: "Int", long: "Long", float: "Double", string: "String" }, p);
+      const def = kotlinDefault(p);
+      return `    ${kotlinName(p.name)}: ${type}${def === "null" ? "?" : ""} = ${def},`;
     })
     .concat(["    content: @Composable () -> Unit = {}"])
     .join("\n");
@@ -732,6 +989,21 @@ ${params}
 // Synchronization Orchestrator
 // ---------------------------------------------------------------------------
 
+// A workspace package's file from a bare specifier (@tti/tti-ux-code/app/… →
+// packages/code/app/…): sub-layer stubs re-export their component by package name.
+function workspaceFile(specifier) {
+  const m = specifier.match(/^(@[^/]+\/[^/]+)\/(.+)$/);
+  const packagesDir = path.join(ROOT, "packages");
+  if (!m || !fs.existsSync(packagesDir)) return null;
+  for (const dir of fs.readdirSync(packagesDir)) {
+    const manifest = path.join(packagesDir, dir, "package.json");
+    let name;
+    try { name = JSON.parse(fs.readFileSync(manifest, "utf8")).name; } catch { continue; }
+    if (name === m[1]) return path.join(packagesDir, dir, m[2]);
+  }
+  return null;
+}
+
 function resolveSourceContent(sourceFile) {
   const content = fs.readFileSync(sourceFile, "utf8");
   if (sourceFile.endsWith(".vue")) {
@@ -739,10 +1011,13 @@ function resolveSourceContent(sourceFile) {
       content.match(/export\s+\{\s*default\s*\}\s+from\s+["']([^"']+\.vue)["']/) ||
       content.match(/import\s+\w+\s+from\s+["']([^"']+\.vue)["']/);
     if (reExportMatch && !content.includes("defineProps")) {
-      const targetPath = path.resolve(path.dirname(sourceFile), reExportMatch[1]);
-      if (fs.existsSync(targetPath)) {
+      const targetPath = reExportMatch[1].startsWith(".")
+        ? path.resolve(path.dirname(sourceFile), reExportMatch[1])
+        : workspaceFile(reExportMatch[1]);
+      if (targetPath && fs.existsSync(targetPath)) {
         return fs.readFileSync(targetPath, "utf8");
       }
+      console.warn(`sync-engine: ${path.relative(ROOT, sourceFile)} re-exports ${reExportMatch[1]}, which doesn't resolve; its ports get no props`);
     }
   }
   return content;

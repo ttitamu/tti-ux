@@ -7,10 +7,10 @@ namespace Tti\Tux\Components;
 
 final class TuxMcpEmbed
 {
-    public string $appName;
+    public ?string $appName = null;
     public string $appIcon = 'lucide:plug';
-    public string $appIconUrl;
-    public string $source;
+    public ?string $appIconUrl = null;
+    public ?string $source = null;
     public bool $loading = false;
     public bool $collapsible = true;
     public bool $expandable = true;

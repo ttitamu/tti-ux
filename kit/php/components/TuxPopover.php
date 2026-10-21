@@ -7,8 +7,8 @@ namespace Tti\Tux\Components;
 
 final class TuxPopover
 {
-    public string $title;
-    public string $body;
+    public ?string $title = null;
+    public ?string $body = null;
     public string $mode = 'click';
     public string $side = 'bottom';
     public bool $arrow = true;

@@ -7,11 +7,11 @@ namespace Tti\Tux\Components;
 
 final class TuxBranchNav
 {
-    public int $modelValue;
-    public int $total;
+    public ?int $modelValue = null;
+    public ?int $total = null;
     public bool $loop = false;
     public bool $hideSingleton = true;
-    public string $ariaLabel;
+    public string $ariaLabel = 'Response alternatives';
 
     public function __construct(array $attributes = [])
     {
