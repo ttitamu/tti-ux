@@ -19,7 +19,7 @@ describe("Forgejo Auth-Gated Bug Report & Idea Schemas", () => {
   it("validates Forgejo authentication token payloads", () => {
     const valid = forgejoAuthSchema.safeParse({
       action: "signin",
-      token: "tti-forgejo-pat-1234567890",
+      token: "not-a-real-token",
     });
     expect(valid.success).toBe(true);
 

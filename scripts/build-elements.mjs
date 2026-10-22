@@ -99,6 +99,8 @@ export async function bundleElements() {
       alias: {
         "~": path.resolve(ROOT, "app"),
         "@": path.resolve(ROOT, "app"),
+        // the layer's own alias (nuxt.config.ts), which sub-layer files import through
+        "#tux": path.resolve(ROOT, "app"),
       },
     },
     plugins: [vue()],

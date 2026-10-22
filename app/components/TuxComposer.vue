@@ -343,9 +343,7 @@ function onKey(e: KeyboardEvent) {
   border-radius: var(--composer-outer-radius, 9px);
   padding: var(--composer-glow-padding, 1px);
   background: color-mix(in srgb, var(--surface-border) 70%, transparent);
-  box-shadow:
-    0 1px 3px 0 rgba(0, 0, 0, 0.05),
-    0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
   transition:
     background var(--motion-standard, 0.25s) ease,
     box-shadow var(--motion-standard, 0.25s) ease;
@@ -383,9 +381,7 @@ function onKey(e: KeyboardEvent) {
   );
   background-size: 250% 250%;
   animation: tti-color-band-flow 6s ease infinite;
-  box-shadow:
-    0 4px 20px -2px rgba(0, 0, 0, 0.18),
-    0 1px 4px -1px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-lg);
 }
 
 .tux-composer--floating .tux-composer__glow-wrap:focus-within::before {
