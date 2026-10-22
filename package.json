@@ -50,7 +50,7 @@
     "db:bootstrap": "node scripts/db-bootstrap.mjs",
     "build:geo": "node scripts/build-geo.mjs",
     "build:tokens": "node scripts/build-tokens.mjs",
-    "test": "vitest run && npm run test -w @tti/tti-ux-charts && npm run test -w @tti/tti-ux-diagrams && npm run test -w @tti/tti-ux-code && npm run test -w @tti/tti-ux-desk && npm run test -w @tti/tti-ux-content && npm run test -w @tti/tti-ux-react",
+    "test": "vitest run && npm run test -w @tti/tti-ux-charts && npm run test -w @tti/tti-ux-diagrams && npm run test -w @tti/tti-ux-code && npm run test -w @tti/tti-ux-desk && npm run test -w @tti/tti-ux-content && npm run build -w @tti/tti-ux-react && npm run build -w @tti/tti-ux-elements && npm run test -w @tti/tti-ux-react",
     "build:brand-env": "node scripts/extract-brand.mjs",
     "build:powerbi": "node scripts/build-powerbi-theme.mjs",
     "build:pbir": "node scripts/build-pbir-components.mjs",

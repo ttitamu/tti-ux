@@ -202,7 +202,7 @@ function deriveReact(vue: string): string {
     .replace(/:([a-zA-Z0-9_-]+)="false"/g, (_, name: string) => `${toCamelAttr(name)}={false}`)
     .replace(/:([a-zA-Z0-9_-]+)="([^"]+)"/g, (_, name: string, expr: string) => `${toCamelAttr(name)}={${expr}}`)
     // Static kebab-case attributes on JSX elements (preserving aria-* and data-*)
-    .replace(/\s([a-z]+(?:-[a-z0-9]+)+)=("/g, (match, name: string) => {
+    .replace(/\s([a-z]+(?:-[a-z0-9]+)+)="/g, (match, name: string) => {
       if (name.startsWith("aria-") || name.startsWith("data-")) return match;
       return ` ${toCamelAttr(name)}="`;
     })
