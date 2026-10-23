@@ -1321,10 +1321,10 @@
       }
     },
     "TuxPortalHeader": {
-      "sourceHash": "c515912daaac5c31",
+      "sourceHash": "76cfba32cf85d58d",
       "ports": {
         "react": {
-          "hash": "c515912daaac5c31",
+          "hash": "76cfba32cf85d58d",
           "path": "packages/react/src/components/TuxPortalHeader.tsx"
         }
       }

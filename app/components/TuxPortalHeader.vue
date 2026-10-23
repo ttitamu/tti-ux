@@ -147,15 +147,11 @@ function handleEscapeKey() {
 }
 
 onMounted(() => {
-  if (typeof window !== "undefined") {
-    window.addEventListener("keydown", onWindowKeydown);
-  }
+  window.addEventListener("keydown", onWindowKeydown);
 });
 
 onUnmounted(() => {
-  if (typeof window !== "undefined") {
-    window.removeEventListener("keydown", onWindowKeydown);
-  }
+  window.removeEventListener("keydown", onWindowKeydown);
 });
 
 function onWindowKeydown(e: KeyboardEvent) {
