@@ -102,6 +102,12 @@ const emit = defineEmits<{
   "update:open": [value: boolean];
 }>();
 
+const dialogContentProps = computed<Record<string, any>>(() => ({
+  "aria-label": props.title || "Dialog",
+  "aria-labelledby": undefined,
+  "aria-describedby": undefined,
+}));
+
 function handleUpdate(value: boolean) {
   emit("update:open", value);
 }
@@ -112,7 +118,7 @@ function handleUpdate(value: boolean) {
     :open="open"
     :title="title || 'Dialog'"
     :description="eyebrow || title || 'Dialog'"
-    :content="{ 'aria-label': title || 'Dialog', 'aria-labelledby': undefined, 'aria-describedby': undefined }"
+    :content="dialogContentProps"
     :ui="sheetUi || (sizeClass ? { content: sizeClass } : undefined)"
     @update:open="handleUpdate"
   >
