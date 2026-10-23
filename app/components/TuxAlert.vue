@@ -76,3 +76,16 @@ const mapped = computed(
     </template>
   </UAlert>
 </template>
+
+<style scoped>
+.tux-alert--tip {
+  color: var(--color-tip-ink, #4c1d95);
+}
+.tux-alert--tip :deep(*) {
+  color: inherit;
+}
+[data-theme="tti-dark"] .tux-alert--tip,
+.dark .tux-alert--tip {
+  color: var(--color-tip-ink-dark, #ede9fe);
+}
+</style>

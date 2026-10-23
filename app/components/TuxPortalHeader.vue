@@ -53,6 +53,8 @@ interface Props {
   showSearch?: boolean;
   /** Whether to show the 5-band institutional spectrum ribbon beneath the header. Defaults to true in intranet mode. */
   showSpectrumRibbon?: boolean;
+  /** Alias for showSpectrumRibbon. */
+  showSpectrum?: boolean;
   /** Intranet app links shown in the MY APPS launcher menu (intranet mode). */
   intranetApps?: Array<{ label: string; href?: string; to?: string; icon?: string; description?: string }>;
   /** Primary navigation items in Tier 2. */
@@ -87,6 +89,7 @@ const props = withDefaults(defineProps<Props>(), {
   ],
   showSearch: true,
   showSpectrumRibbon: undefined,
+  showSpectrum: undefined,
   intranetApps: () => [
     { label: "App Catalog", href: "https://my.tti.tamu.edu/app-catalog/", description: "Directory of all TTI web apps & internal services", icon: "lucide:layout-grid" },
     { label: "People Finder", href: "https://my.tti.tamu.edu/directory/", description: "Staff directory, phone numbers, and office locations", icon: "lucide:users" },
@@ -118,7 +121,24 @@ const expandedMobileSections = ref<Record<string, boolean>>({});
 
 const effectiveShowSpectrumRibbon = computed(() => {
   if (props.showSpectrumRibbon !== undefined) return props.showSpectrumRibbon;
+  if (props.showSpectrum !== undefined) return props.showSpectrum;
   return props.mode === "intranet";
+});
+
+const portalBadgeClass = computed(() => {
+  switch (props.portalBadgeVariant) {
+    case "maroon":
+      return "bg-brand-primary text-text-on-brand border border-brand-primary";
+    case "info":
+      return "bg-spectrum-blue text-white border border-spectrum-blue";
+    case "success":
+      return "bg-status-success/15 text-status-success border border-status-success/40";
+    case "neutral":
+      return "bg-surface-sunken text-text-primary border border-surface-border";
+    case "gold":
+    default:
+      return "bg-brand-accent/25 text-text-primary border border-brand-accent";
+  }
 });
 
 // Close menus when route changes
@@ -389,42 +409,43 @@ function handleActionClick(event: MouseEvent) {
     <!-- TIER 2: Crisp Brand Navigation Ribbon -->
     <div class="tux-portal-header__ribbon bg-surface-raised relative">
       <div
-        class="mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4"
+        class="mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2"
         :class="containerWidthClass"
       >
         <!-- Brand Lockup & Portal Title -->
-        <div class="flex items-center gap-3 min-w-0">
+        <div class="flex items-center gap-3 min-w-0 flex-shrink-0 max-w-full">
           <slot name="brand">
             <NuxtLink :to="homeUrl" class="inline-flex items-center flex-shrink-0 group" title="Home">
               <!-- Official TTI Color Logo (Light) -->
               <img
                 src="/resources/logos/tti-logo-color.png"
                 alt="Texas A&M Transportation Institute"
-                class="h-9 sm:h-10 w-auto object-contain dark:hidden transition-transform group-hover:scale-[1.02]"
+                class="h-8 sm:h-9 w-auto object-contain dark:hidden transition-transform group-hover:scale-[1.02]"
               >
               <!-- Official TTI White Logo (Dark Mode) -->
               <img
                 src="/resources/logos/tti-logo-white.png"
                 alt="Texas A&M Transportation Institute"
-                class="h-9 sm:h-10 w-auto object-contain hidden dark:block transition-transform group-hover:scale-[1.02]"
+                class="h-8 sm:h-9 w-auto object-contain hidden dark:block transition-transform group-hover:scale-[1.02]"
               >
             </NuxtLink>
           </slot>
 
           <!-- Sub-brand / Portal Title Lockup -->
-          <div v-if="portalTitle || $slots['portal-title']" class="hidden sm:flex items-center gap-2.5 min-w-0">
-            <div class="h-7 w-px bg-surface-border flex-shrink-0" aria-hidden="true" />
+          <div v-if="portalTitle || $slots['portal-title']" class="hidden sm:flex items-center gap-2 min-w-0">
+            <div class="h-6 w-px bg-surface-border flex-shrink-0" aria-hidden="true" />
             <slot name="portal-title">
               <NuxtLink
                 :to="homeUrl"
-                class="text-base lg:text-lg font-bold text-text-primary hover:text-brand-primary transition-colors tracking-tight truncate max-w-[200px] md:max-w-xs xl:max-w-md"
+                class="text-sm lg:text-base font-bold text-text-primary hover:text-brand-primary transition-colors tracking-tight whitespace-nowrap"
               >
                 {{ portalTitle }}
               </NuxtLink>
             </slot>
             <span
               v-if="portalBadge"
-              class="inline-flex items-center flex-shrink-0 whitespace-nowrap px-2 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider bg-brand-accent/18 text-text-primary border border-brand-accent/40"
+              class="inline-flex items-center flex-shrink-0 whitespace-nowrap px-2 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider"
+              :class="portalBadgeClass"
             >
               {{ portalBadge }}
             </span>
@@ -434,7 +455,7 @@ function handleActionClick(event: MouseEvent) {
         <!-- Desktop Primary Navigation -->
         <nav
           v-if="navItems.length > 0 || $slots.nav"
-          class="hidden md:flex items-center gap-1 lg:gap-2 flex-1 justify-end ml-4"
+          class="hidden md:flex flex-wrap items-center gap-0.5 lg:gap-1 ml-auto justify-end"
           :aria-label="navAriaLabel"
         >
           <slot name="nav">
@@ -443,7 +464,7 @@ function handleActionClick(event: MouseEvent) {
               <div v-if="item.children && item.children.length > 0" class="relative group flex-shrink-0">
                 <button
                   type="button"
-                  class="tux-portal-nav__trigger inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold tracking-wide uppercase transition-colors border-b-2 whitespace-nowrap"
+                  class="tux-portal-nav__trigger inline-flex items-center gap-1 px-2 lg:px-2.5 py-1.5 text-xs lg:text-[13px] font-bold tracking-wider uppercase transition-colors border-b-2 whitespace-nowrap cursor-pointer"
                   :class="[
                     isItemActive(item)
                       ? 'border-brand-accent text-brand-primary'
@@ -520,7 +541,7 @@ function handleActionClick(event: MouseEvent) {
               <NuxtLink
                 v-else-if="item.to"
                 :to="item.to"
-                class="inline-flex items-center px-3 py-2 text-sm font-semibold tracking-wide uppercase transition-colors border-b-2 whitespace-nowrap flex-shrink-0"
+                class="inline-flex items-center px-2 lg:px-2.5 py-1.5 text-xs lg:text-[13px] font-bold tracking-wider uppercase transition-colors border-b-2 whitespace-nowrap flex-shrink-0"
                 :class="[
                   isItemActive(item)
                     ? 'border-brand-accent text-brand-primary'
@@ -535,7 +556,7 @@ function handleActionClick(event: MouseEvent) {
                 :href="item.href"
                 target="_blank"
                 rel="noopener"
-                class="inline-flex items-center px-3 py-2 text-sm font-semibold tracking-wide uppercase transition-colors border-b-2 border-transparent text-text-secondary hover:text-brand-primary whitespace-nowrap flex-shrink-0"
+                class="inline-flex items-center px-2 lg:px-2.5 py-1.5 text-xs lg:text-[13px] font-bold tracking-wider uppercase transition-colors border-b-2 border-transparent text-text-secondary hover:text-brand-primary whitespace-nowrap flex-shrink-0"
               >
                 {{ item.label }}
               </a>
@@ -544,12 +565,13 @@ function handleActionClick(event: MouseEvent) {
         </nav>
 
         <!-- Action CTA Button (Kadence Sharp Shape) -->
-        <div class="hidden sm:flex items-center gap-3 flex-shrink-0">
+        <div v-if="actionText || $slots.action" class="hidden sm:flex items-center gap-3 flex-shrink-0">
           <slot name="action">
             <TuxButton
               v-if="actionText"
               shape="sharp"
               intent="primary"
+              size="sm"
               :to="actionTo || undefined"
               :href="actionHref || undefined"
               @click="handleActionClick"
@@ -559,7 +581,7 @@ function handleActionClick(event: MouseEvent) {
           </slot>
         </div>
 
-    <!-- Mobile Hamburger Toggle -->
+        <!-- Mobile Hamburger Toggle -->
         <button
           ref="mobileToggleBtnRef"
           type="button"
@@ -630,7 +652,10 @@ function handleActionClick(event: MouseEvent) {
         <div v-if="portalTitle" class="py-3 border-b border-surface-border">
           <div class="text-sm font-bold text-text-primary">{{ portalTitle }}</div>
           <div v-if="portalBadge" class="mt-1">
-            <span class="inline-block px-2 py-0.5 text-[10px] font-semibold uppercase bg-brand-accent/18 text-text-primary border border-brand-accent/40 rounded">
+            <span
+              class="inline-block px-2 py-0.5 text-[10px] font-semibold uppercase rounded"
+              :class="portalBadgeClass"
+            >
               {{ portalBadge }}
             </span>
           </div>

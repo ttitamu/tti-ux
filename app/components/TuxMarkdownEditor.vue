@@ -337,7 +337,7 @@ function togglePreview() {
 }
 
 .tux-md-editor__count--warn {
-  color: var(--status-warning, #c7973c);
+  color: color-mix(in srgb, var(--status-warning, #7a5c00) 60%, var(--text-primary));
 }
 
 .tux-md-editor__count-value {
@@ -361,7 +361,7 @@ function togglePreview() {
 .tux-md-editor__min-warning {
   margin: 0;
   font-family: var(--font-body);
-  color: var(--status-warning, #c7973c);
+  color: color-mix(in srgb, var(--status-warning, #7a5c00) 60%, var(--text-primary));
   font-style: italic;
 }
 

@@ -120,12 +120,11 @@ function download() {
 
 <template>
   <figure class="tux-codeblock" :class="{ 'tux-codeblock--with-lines': lineNumbers }">
-    <figcaption v-if="filename" class="tux-codeblock__caption">
-      <span class="tux-codeblock__filename">{{ filename }}</span>
-      <span v-if="lang !== 'text'" class="tux-codeblock__lang">{{ lang }}</span>
-    </figcaption>
-
-    <div class="tux-codeblock__body">
+    <figcaption v-if="filename || !noCopy || !noDownload" class="tux-codeblock__caption">
+      <div class="tux-codeblock__caption-left">
+        <span v-if="filename" class="tux-codeblock__filename">{{ filename }}</span>
+        <span v-if="lang !== 'text'" class="tux-codeblock__lang">{{ lang }}</span>
+      </div>
       <div v-if="!noCopy || !noDownload" class="tux-codeblock__actions">
         <button
           v-if="!noDownload"
@@ -151,6 +150,9 @@ function download() {
           <span>{{ copied ? "Copied" : "Copy" }}</span>
         </button>
       </div>
+    </figcaption>
+
+    <div class="tux-codeblock__body">
 
       <!-- Highlighted output once Shiki has loaded. v-html is safe
            here: the source is Shiki's own escaped output (server-side
@@ -189,11 +191,18 @@ function download() {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.5rem 0.875rem;
+  padding: 0.4375rem 0.875rem;
   background: var(--surface-sunken);
   border-bottom: 1px solid var(--surface-border);
   font-family: var(--font-mono);
   font-size: 0.75rem;
+}
+
+.tux-codeblock__caption-left {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
 }
 
 .tux-codeblock__filename {
@@ -219,27 +228,18 @@ function download() {
 }
 
 .tux-codeblock__actions {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  z-index: 2;
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-.tux-codeblock:hover .tux-codeblock__actions,
-.tux-codeblock:focus-within .tux-codeblock__actions {
-  opacity: 1;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .tux-codeblock__action {
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.625rem;
+  gap: 0.3125rem;
+  padding: 0.25rem 0.5rem;
   font-family: var(--font-bold);
   font-size: 0.6875rem;
   font-weight: 700;
@@ -248,7 +248,7 @@ function download() {
   color: var(--text-secondary);
   background: var(--surface-page);
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: color 0.15s ease, border-color 0.15s ease;
 }
@@ -278,6 +278,11 @@ function download() {
 
 .tux-codeblock__rendered :deep(code) {
   font-family: var(--font-mono);
+}
+
+.tux-codeblock__rendered :deep(span[style*="color:#E36209"]),
+.tux-codeblock__rendered :deep(span[style*="color: #E36209"]) {
+  color: #a84200 !important;
 }
 
 /* Plain-text / pre-Shiki fallback */

@@ -177,6 +177,10 @@ function onToggle(e: Event) {
   transform: rotate(45deg);
 }
 
+.tux-accordion__item:not([open]) .tux-accordion__content {
+  display: none;
+}
+
 .tux-accordion__content {
   padding: 0 0 1.5rem;
   font-size: 0.9375rem;

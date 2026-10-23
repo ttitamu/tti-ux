@@ -21,6 +21,7 @@ fun TuxPortalHeader(
     utilityLinks: String? = null,
     showSearch: Boolean = true,
     showSpectrumRibbon: Boolean = false,
+    showSpectrum: Boolean = false,
     intranetApps: String? = null,
     content: @Composable () -> Unit = {}
 ) {

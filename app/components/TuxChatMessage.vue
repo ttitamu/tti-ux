@@ -62,12 +62,16 @@ const isAssistant = computed(() => props.role === "assistant");
       <div class="tux-chat-message__avatar">
         <div v-if="isAssistant" class="tux-chat-message__avatar-assistant">
           <slot name="avatar">
-            <img
-              src="/TTI-glyph.svg"
-              alt=""
+            <svg
+              viewBox="0 0 100 100"
+              fill="currentColor"
               class="tux-chat-message__avatar-glyph"
               aria-hidden="true"
             >
+              <path d="M 6,86 L 84,18 L 92,18 L 92,28 L 16,92 Z" />
+              <path d="M 30,92 L 92,40 L 92,50 L 42,92 Z" />
+              <path d="M 56,92 L 92,62 L 92,72 L 68,92 Z" />
+            </svg>
           </slot>
         </div>
         <div v-else class="tux-chat-message__avatar-user">

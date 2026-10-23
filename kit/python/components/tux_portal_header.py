@@ -17,6 +17,7 @@ class TuxPortalHeader:
     utility_links: Optional[str] = None
     show_search: bool = True
     show_spectrum_ribbon: bool = False
+    show_spectrum: bool = False
     intranet_apps: Optional[str] = None
 
     def render_html(self, content: str = "") -> str:

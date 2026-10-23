@@ -228,11 +228,11 @@ async function copyCloneUrl() {
           <div class="bg-surface-raised border border-surface-border rounded-none overflow-hidden shadow-xs">
             <table class="w-full text-left text-xs border-collapse">
               <caption class="sr-only">Repository files and directories</caption>
-              <thead>
-                <tr class="sr-only">
-                  <th scope="col">Name</th>
-                  <th scope="col">Last Commit</th>
-                  <th scope="col">Time</th>
+              <thead class="bg-surface-sunken/70 border-b border-surface-border text-[11px] font-mono uppercase tracking-wider text-text-muted">
+                <tr>
+                  <th scope="col" class="py-2 px-4 font-semibold">Name</th>
+                  <th scope="col" class="py-2 px-3 font-semibold">Last Commit</th>
+                  <th scope="col" class="py-2 px-4 text-right font-semibold">Updated</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-surface-border">
@@ -280,9 +280,9 @@ async function copyCloneUrl() {
 
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="px-2 py-0.5 text-xs font-mono font-bold bg-brand-primary text-text-on-brand">Rust 1.82</span>
-                <span class="px-2 py-0.5 text-xs font-mono font-bold bg-spectrum-blue text-text-inverse">SAE J2735</span>
-                <span class="px-2 py-0.5 text-xs font-mono font-bold bg-spectrum-teal text-text-inverse">Apache Arrow</span>
-                <span class="px-2 py-0.5 text-xs font-mono font-bold bg-spectrum-gold text-text-primary">WCAG 2.2 AAA</span>
+                <span class="px-2 py-0.5 text-xs font-mono font-bold bg-neutral-900 text-white">SAE J2735</span>
+                <span class="px-2 py-0.5 text-xs font-mono font-bold bg-spectrum-teal/20 text-text-primary border border-spectrum-teal">Apache Arrow</span>
+                <span class="px-2 py-0.5 text-xs font-mono font-bold bg-brand-accent/25 text-text-primary border border-brand-accent">WCAG 2.2 AAA</span>
               </div>
 
               <div class="space-y-2">

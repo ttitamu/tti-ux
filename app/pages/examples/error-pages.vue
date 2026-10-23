@@ -120,15 +120,15 @@ const simulatedTrace = ref(`[InstitutionalTraceException]: Connection timeout to
     <section class="space-y-4">
       <TuxSectionHeader>Institutional Implementation</TuxSectionHeader>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <TuxCard>
+        <TuxCard class="min-w-0 overflow-hidden">
           <p class="eyebrow">Nuxt 4 Root Boundary</p>
           <h3 class="text-base font-bold">Standard <code class="text-brand-primary">app/error.vue</code></h3>
           <p class="mt-2 text-xs text-text-secondary leading-relaxed">
-            In Nuxt 4, uncaught router exceptions and SSR halts flow to the root <code class="text-xs bg-surface-sunken px-1">app/error.vue</code> boundary.
-            It wraps <code class="text-xs bg-surface-sunken px-1">&lt;TuxErrorPage&gt;</code> with institutional header navigation, brand lockup, and
-            <code class="text-xs bg-surface-sunken px-1">clearError({ redirect: '/' })</code> hooks.
+            In Nuxt 4, uncaught router exceptions and SSR halts flow to the root <code class="text-xs bg-surface-sunken px-1 py-0">app/error.vue</code> boundary.
+            It wraps <code class="text-xs bg-surface-sunken px-1 py-0">&lt;TuxErrorPage&gt;</code> with institutional header navigation, brand lockup, and
+            <code class="text-xs bg-surface-sunken px-1 py-0">clearError({ redirect: '/' })</code> hooks.
           </p>
-          <pre class="mt-3 p-3 bg-surface-sunken border border-surface-border text-[11px] font-mono text-text-secondary overflow-x-auto"><code>&lt;script setup lang="ts"&gt;
+          <pre class="mt-3 p-3 bg-surface-sunken border border-surface-border text-[11px] font-mono text-text-secondary overflow-x-auto whitespace-pre-wrap break-words max-w-full"><code>&lt;script setup lang="ts"&gt;
 import type { NuxtError } from "#app";
 defineProps&lt;{ error: NuxtError }&gt;();
 const handleError = () => clearError({ redirect: "/" });
@@ -146,11 +146,11 @@ const handleError = () => clearError({ redirect: "/" });
 &lt;/template&gt;</code></pre>
         </TuxCard>
 
-        <TuxCard>
+        <TuxCard class="min-w-0 overflow-hidden">
           <p class="eyebrow">WCAG 2.2 Level AAA Compliance</p>
           <h3 class="text-base font-bold">Accessibility Guarantees</h3>
-          <p class="mt-2 text-xs text-text-secondary leading-relaxed">
-            Every error condition implements <code class="text-xs bg-surface-sunken px-1">role="alert"</code> and <code class="text-xs bg-surface-sunken px-1">aria-live="polite"</code>
+          <p class="mt-2 text-xs text-text-secondary leading-7">
+            Every error condition implements <code class="text-xs bg-surface-sunken px-1 py-0 whitespace-nowrap">role="alert"</code> and <code class="text-xs bg-surface-sunken px-1 py-0 whitespace-nowrap">aria-live="polite"</code>
             so screen readers announce the state change immediately without interrupting critical speech synthesizers.
           </p>
           <ul class="mt-3 space-y-1.5 text-xs text-text-secondary list-disc pl-4">

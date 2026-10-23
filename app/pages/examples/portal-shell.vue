@@ -209,12 +209,12 @@ function submitFeedback() {
 
       <!-- Active Research Testbeds -->
       <section class="space-y-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center gap-4">
           <TuxSectionHeader variant="institutional">
             Active Research Corridors & Testbeds
           </TuxSectionHeader>
-          <div class="hidden sm:flex items-center gap-2 text-xs font-mono text-text-muted">
-            <Icon name="lucide:radio" class="w-3.5 h-3.5 text-brand-accent animate-pulse" />
+          <div class="hidden sm:flex items-center gap-2 text-xs font-mono text-text-muted px-2.5 py-1 bg-surface-sunken border border-surface-border">
+            <Icon name="lucide:radio" class="w-3.5 h-3.5 text-brand-primary animate-pulse" />
             <span>Telemetry streams operational</span>
           </div>
         </div>

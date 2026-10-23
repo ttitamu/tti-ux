@@ -63,6 +63,7 @@ const shapeClass = computed(() => {
     :color="mapped.color"
     :variant="mapped.variant"
     :class="[
+      `tux-btn tux-btn--${props.intent}`,
       mapped.klass,
       shapeClass,
       'active:scale-[0.98] transition-all duration-150 font-semibold tracking-tight min-h-[38px] sm:min-h-[34px] focus-visible:ring-2 focus-visible:ring-brand-primary/50 focus-visible:ring-offset-2',

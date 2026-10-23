@@ -437,3 +437,13 @@ const composerDraft = ref("");
     <TuxCommandPalette ref="cmdRef" :groups="cmdGroups" />
   </div>
 </template>
+
+<style scoped>
+.space-y-10 {
+  --ui-text-dimmed: var(--text-muted);
+  --ui-text-muted: var(--text-secondary);
+}
+:deep([data-state="closed"][hidden]) {
+  display: none !important;
+}
+</style>

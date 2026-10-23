@@ -174,8 +174,8 @@ function fmtTokens(n: number): string {
   outline: none;
 }
 
-.tux-context-meter__trigger--warning { color: var(--color-warning, var(--brand-accent)); }
-.tux-context-meter__trigger--error { color: var(--color-error, var(--brand-primary)); }
+.tux-context-meter__trigger--warning { color: color-mix(in srgb, var(--status-warning, #7a5c00) 60%, var(--text-primary)); }
+.tux-context-meter__trigger--error { color: var(--status-danger, var(--brand-primary)); }
 
 /* Tiny conic-gradient utilization ring — purely cosmetic; the panel
    bar is the accessible progress. */

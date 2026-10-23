@@ -17,6 +17,7 @@ final class TuxPortalHeader
     public ?string $utilityLinks = null;
     public bool $showSearch = true;
     public bool $showSpectrumRibbon = false;
+    public bool $showSpectrum = false;
     public ?string $intranetApps = null;
 
     public function __construct(array $attributes = [])

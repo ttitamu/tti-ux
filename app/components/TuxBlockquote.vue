@@ -124,13 +124,16 @@ const dropCapRest  = computed(() => props.quote.slice(1));
 
 .tux-blockquote--drop-cap .tux-blockquote__body {
   position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
   margin: 0;
   padding: 0;
 }
 
 .tux-blockquote__drop-cap {
-  float: left;
-  margin: 0 0.875rem -0.5rem 0;
+  flex-shrink: 0;
+  margin: 0;
   font-family: var(--font-display);
   font-weight: 500;
   font-size: 8.75rem;

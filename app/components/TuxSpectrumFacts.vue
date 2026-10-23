@@ -86,37 +86,25 @@ const defaultBands: Array<"maroon" | "blue" | "teal" | "green" | "gold"> = [
   "gold",
 ];
 
-function getBandColor(band: string | undefined, index: number): string {
+function getBandStyle(band: string | undefined, index: number): { color: string; borderColor: string } {
   const b = band || defaultBands[index % defaultBands.length];
   if (props.tone === "dark") {
     switch (b) {
-      case "maroon": return "text-red-300";
-      case "blue": return "text-blue-300";
-      case "teal": return "text-teal-300";
-      case "green": return "text-emerald-300";
-      case "gold": return "text-amber-300";
-      default: return "text-brand-accent";
+      case "maroon": return { color: "var(--spectrum-dark-maroon, #FCA5A5)", borderColor: "var(--spectrum-dark-maroon-border, #F87171)" };
+      case "blue":   return { color: "var(--spectrum-dark-blue, #93C5FD)", borderColor: "var(--spectrum-dark-blue-border, #60A5FA)" };
+      case "teal":   return { color: "var(--spectrum-dark-teal, #5EEAD4)", borderColor: "var(--spectrum-dark-teal-border, #2DD4BF)" };
+      case "green":  return { color: "var(--spectrum-dark-green, #86EFAC)", borderColor: "var(--spectrum-dark-green-border, #4ADE80)" };
+      case "gold":   return { color: "var(--spectrum-dark-gold, #FCD34D)", borderColor: "var(--spectrum-dark-gold-border, #FBBF24)" };
+      default:       return { color: "var(--brand-accent)", borderColor: "var(--brand-accent)" };
     }
   }
   switch (b) {
-    case "maroon": return "text-spectrum-maroon";
-    case "blue": return "text-spectrum-blue";
-    case "teal": return "text-spectrum-teal";
-    case "green": return "text-spectrum-green";
-    case "gold": return "text-spectrum-gold";
-    default: return "text-brand-accent";
-  }
-}
-
-function getBandBorder(band: string | undefined, index: number): string {
-  const b = band || defaultBands[index % defaultBands.length];
-  switch (b) {
-    case "maroon": return "border-spectrum-maroon";
-    case "blue": return "border-spectrum-blue";
-    case "teal": return "border-spectrum-teal";
-    case "green": return "border-spectrum-green";
-    case "gold": return "border-spectrum-gold";
-    default: return "border-brand-accent";
+    case "maroon": return { color: "var(--brand-primary, #5C0025)", borderColor: "var(--spectrum-maroon, #701D35)" };
+    case "blue":   return { color: "var(--spectrum-light-blue, #1E3A5F)", borderColor: "var(--spectrum-blue, #566A8A)" };
+    case "teal":   return { color: "var(--spectrum-light-teal, #1F4E52)", borderColor: "var(--spectrum-teal, #66999B)" };
+    case "green":  return { color: "var(--spectrum-light-green, #2D4A22)", borderColor: "var(--spectrum-green, #7B996B)" };
+    case "gold":   return { color: "var(--spectrum-light-gold, #5C4008)", borderColor: "var(--spectrum-gold, #D39A2B)" };
+    default:       return { color: "var(--brand-primary)", borderColor: "var(--brand-accent)" };
   }
 }
 </script>
@@ -143,7 +131,7 @@ function getBandBorder(band: string | undefined, index: number): string {
         <p
           v-if="subtitle"
           class="text-xs sm:text-sm mt-1 max-w-2xl mx-auto"
-          :class="tone === 'dark' ? 'text-white/70' : 'text-text-muted'"
+          :class="tone === 'dark' ? 'text-white/85' : 'text-text-secondary'"
         >
           {{ subtitle }}
         </p>
@@ -155,18 +143,18 @@ function getBandBorder(band: string | undefined, index: number): string {
           v-for="(item, idx) in items"
           :key="item.label"
           class="flex flex-col items-center text-center p-3 transition-transform hover:-translate-y-0.5 border-t-2"
-          :class="getBandBorder(item.band, idx)"
+          :style="{ borderTopColor: getBandStyle(item.band, idx).borderColor }"
         >
           <!-- Icon Header -->
           <div
             v-if="item.icon"
             class="mb-2 p-2 rounded-full"
             :class="tone === 'dark' ? 'bg-white/10' : 'bg-surface-sunken'"
+            :style="{ color: getBandStyle(item.band, idx).color }"
           >
             <Icon
               :name="item.icon"
               class="w-5 h-5 sm:w-6 sm:h-6"
-              :class="getBandColor(item.band, idx)"
               aria-hidden="true"
             />
           </div>
@@ -182,7 +170,7 @@ function getBandBorder(band: string | undefined, index: number): string {
           <!-- Metric Label -->
           <div
             class="text-xs sm:text-sm font-bold uppercase tracking-wide mt-1"
-            :class="getBandColor(item.band, idx)"
+            :style="{ color: getBandStyle(item.band, idx).color }"
           >
             {{ item.label }}
           </div>
@@ -191,7 +179,7 @@ function getBandBorder(band: string | undefined, index: number): string {
           <div
             v-if="item.detail"
             class="text-[11px] mt-1 leading-snug"
-            :class="tone === 'dark' ? 'text-white/60' : 'text-text-muted'"
+            :class="tone === 'dark' ? 'text-white/80' : 'text-text-muted'"
           >
             {{ item.detail }}
           </div>

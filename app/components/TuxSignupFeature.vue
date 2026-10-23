@@ -111,7 +111,7 @@ const headingClass = computed(() => {
   border-radius: var(--radius-md);
 }
 
-@container tux-signup (min-width: 44rem) {
+@media (min-width: 48rem) {
   .tux-signup {
     grid-template-columns: 1.2fr 1fr;
     align-items: center;

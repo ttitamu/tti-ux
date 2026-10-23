@@ -299,11 +299,12 @@ function orcidUrl(orcid: string): string {
 }
 
 .tux-researcher__contact-link--orcid {
-  color: #a6ce39;
+  color: #2d5a27;
+  font-weight: 600;
 }
 
 .tux-researcher__contact-link--orcid:hover {
-  color: #8fb330;
+  color: #1f421b;
 }
 
 /* ---- Horizontal layout ---- */

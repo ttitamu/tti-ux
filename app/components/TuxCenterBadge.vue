@@ -107,13 +107,15 @@ const toneClass = computed(() => `tux-center-badge--c${Math.max(1, Math.min(8, r
 
 <style scoped>
 .tux-center-badge {
+  --badge-accent: var(--brand-primary);
   display: inline-flex;
   align-items: center;
   gap: 0.3125rem;
   font-family: var(--font-body);
   font-weight: 600;
-  border: 1px solid currentColor;
-  background: color-mix(in srgb, currentColor 8%, var(--surface-page));
+  color: color-mix(in srgb, var(--badge-accent) 48%, var(--text-primary));
+  border: 1px solid color-mix(in srgb, var(--badge-accent) 55%, var(--surface-border));
+  background: color-mix(in srgb, var(--badge-accent) 10%, var(--surface-page));
   border-radius: var(--radius-sm);
   padding: 0.1875rem 0.5rem;
   text-transform: uppercase;
@@ -151,12 +153,12 @@ const toneClass = computed(() => `tux-center-badge--c${Math.max(1, Math.min(8, r
 }
 
 /* Palette — same eight chart tones used elsewhere in the system. */
-.tux-center-badge--c1 { color: var(--chart-1, var(--brand-primary)); }
-.tux-center-badge--c2 { color: var(--chart-2, #3f5a6f); }
-.tux-center-badge--c3 { color: var(--chart-3, #c7973c); }
-.tux-center-badge--c4 { color: var(--chart-4, #6b8e5a); }
-.tux-center-badge--c5 { color: var(--chart-5, #8c5a3c); }
-.tux-center-badge--c6 { color: var(--chart-6, #5c7080); }
-.tux-center-badge--c7 { color: var(--chart-7, #a33a3a); }
-.tux-center-badge--c8 { color: var(--chart-8, #3c5a87); }
+.tux-center-badge--c1 { --badge-accent: var(--chart-1, var(--brand-primary)); }
+.tux-center-badge--c2 { --badge-accent: var(--chart-2, #3f5a6f); }
+.tux-center-badge--c3 { --badge-accent: var(--chart-3, #c7973c); }
+.tux-center-badge--c4 { --badge-accent: var(--chart-4, #6b8e5a); }
+.tux-center-badge--c5 { --badge-accent: var(--chart-5, #8c5a3c); }
+.tux-center-badge--c6 { --badge-accent: var(--chart-6, #5c7080); }
+.tux-center-badge--c7 { --badge-accent: var(--chart-7, #a33a3a); }
+.tux-center-badge--c8 { --badge-accent: var(--chart-8, #3c5a87); }
 </style>

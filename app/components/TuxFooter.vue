@@ -568,7 +568,7 @@ function isInternal(href: string) {
 .tux-footer__preferences {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   background: #1f1c1c;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .tux-footer__preferences-inner {

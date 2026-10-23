@@ -14,6 +14,7 @@ public struct TuxPortalHeader<Content: View>: View {
     public var utilityLinks: String? = nil
     public var showSearch: Bool = true
     public var showSpectrumRibbon: Bool = false
+    public var showSpectrum: Bool = false
     public var intranetApps: String? = nil
     private let content: Content
 

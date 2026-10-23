@@ -416,7 +416,10 @@ function cancelEdit() {
 }
 
 .tux-comment__mention {
-  color: var(--brand-accent);
+  color: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 10%, var(--surface-page));
+  padding: 0.0625rem 0.25rem;
+  border-radius: var(--radius-xs, 2px);
   font-weight: 600;
 }
 

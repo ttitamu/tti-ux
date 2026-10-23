@@ -162,8 +162,8 @@ function initialFor(item: Testimonial): string {
   font-weight: 400;
   font-size: 3.5rem;
   line-height: 0.5;
-  color: var(--brand-accent);
-  opacity: 0.7;
+  color: var(--brand-primary);
+  opacity: 0.85;
   margin-bottom: 0.625rem;
 }
 

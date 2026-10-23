@@ -138,7 +138,7 @@ defineSlots<{
   grid-template-columns: 1fr;
 }
 
-@container tux-page-header (min-width: 44rem) {
+@media (min-width: 48rem) {
   .tux-page-header--has-media {
     grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
     align-items: center;
@@ -152,11 +152,6 @@ defineSlots<{
   border-radius: var(--radius-md);
 }
 
-@container tux-page-header (min-width: 36rem) {
-  .tux-page-header--neutral { padding: 2.25rem 2rem; }
-  .tux-page-header--maroon  { padding: 2.25rem 2rem; }
-}
-
 .tux-page-header--maroon {
   /* --brand-fill instead of --brand-primary so dark mode keeps a
      dark panel bg (white text on top stays WCAG-compliant). */
@@ -166,16 +161,48 @@ defineSlots<{
   border-radius: var(--radius-md);
 }
 
+@media (min-width: 36rem) {
+  .tux-page-header--neutral { padding: 2.25rem 2rem; }
+  .tux-page-header--maroon  { padding: 2.25rem 2rem; }
+}
+
 .tux-page-header--maroon :deep(.eyebrow),
 .tux-page-header--maroon .tux-page-header__eyebrow {
   /* Bumped from 0.72 to 0.85 — was 3.46:1 against the maroon panel. */
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.88);
 }
 .tux-page-header--maroon .tux-page-header__title {
   color: var(--text-on-brand);
 }
 .tux-page-header--maroon .tux-page-header__body {
   color: rgba(255, 255, 255, 0.92);
+}
+
+/* Invert child TuxButton & TuxBigStat tokens when placed on a maroon hero surface */
+.tux-page-header--maroon .tux-page-header__actions :deep(.tux-btn--primary) {
+  background-color: var(--brand-accent) !important;
+  color: var(--brand-accent-ink, #221f1f) !important;
+  border-color: var(--brand-accent) !important;
+}
+.tux-page-header--maroon .tux-page-header__actions :deep(.tux-btn--primary:hover) {
+  filter: brightness(0.95);
+}
+.tux-page-header--maroon .tux-page-header__actions :deep(.tux-btn--ghost),
+.tux-page-header--maroon .tux-page-header__actions :deep(.tux-btn--secondary) {
+  color: var(--text-on-brand) !important;
+  border: 1px solid color-mix(in srgb, var(--neutral-0) 50%, transparent) !important;
+  background-color: color-mix(in srgb, var(--neutral-0) 8%, transparent) !important;
+}
+.tux-page-header--maroon .tux-page-header__actions :deep(.tux-btn--ghost:hover),
+.tux-page-header--maroon .tux-page-header__actions :deep(.tux-btn--secondary:hover) {
+  background-color: color-mix(in srgb, var(--neutral-0) 18%, transparent) !important;
+  border-color: var(--text-on-brand) !important;
+}
+.tux-page-header--maroon .tux-page-header__media :deep(.tux-big-stat__label) {
+  color: var(--text-on-brand);
+}
+.tux-page-header--maroon .tux-page-header__media :deep(.tux-big-stat__source) {
+  color: color-mix(in srgb, var(--neutral-0) 85%, transparent);
 }
 
 .tux-page-header__title {

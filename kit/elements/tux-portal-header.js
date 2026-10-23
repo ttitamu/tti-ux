@@ -4,7 +4,7 @@
  */
 export class TuxPortalHeaderElement extends HTMLElement {
   static get observedAttributes() {
-    return ["mode", "agency-name", "agency-url", "home-url", "portal-title", "portal-badge", "portal-badge-variant", "utility-links", "show-search", "show-spectrum-ribbon", "intranet-apps"];
+    return ["mode", "agency-name", "agency-url", "home-url", "portal-title", "portal-badge", "portal-badge-variant", "utility-links", "show-search", "show-spectrum-ribbon", "show-spectrum", "intranet-apps"];
   }
 
   constructor() {

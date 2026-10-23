@@ -194,7 +194,12 @@ const tocItems = [
               <div>Email: communications@tti.tamu.edu</div>
             </div>
             <div class="mt-4">
-              <TuxButton shape="sharp" intent="secondary" size="sm" class="w-full justify-center">
+              <TuxButton
+                shape="sharp"
+                intent="ghost"
+                size="sm"
+                class="!text-white !border !border-white/40 hover:!bg-white/10 hover:!border-white w-full justify-center"
+              >
                 Media Inquiries
               </TuxButton>
             </div>

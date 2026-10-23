@@ -223,19 +223,10 @@ const popOutFactor = computed(() => {
 });
 
 // Staggered longitudinal positioning along the roadbed (0% = top, 100% = bottom)
-// Prevents cards from colliding when expanded in 3D
-function getLaneTargetStationY(idx: number, lane: any): number {
-  if (lane.type === "shoulder") {
-    return idx === 0 ? 10 : 14;
-  }
-  const travelLanes = activeData.value.lanes.filter((l: any) => l.type !== "shoulder");
-  const travelIdx = travelLanes.findIndex((l: any) => l.id === lane.id);
-  if (travelIdx === -1) return 26;
-  // Alternates between upper cluster (26% - 34%) and lower cluster (64% - 70%)
-  // Even travel index = upper, Odd travel index = lower
-  return travelIdx % 2 === 0
-    ? 26 + (travelIdx * 4)
-    : 64 + ((travelIdx - 1) * 3);
+// Prevents cards from colliding when expanded in 3D by separating adjacent lanes into distinct longitudinal bands
+function getLaneTargetStationY(idx: number, _lane: any): number {
+  const stations = [82, 12, 48, 84, 14, 86];
+  return stations[idx % stations.length] ?? 48;
 }
 
 // Current Y percentage of the lane HUD anchor along the road
@@ -715,7 +706,7 @@ function getLosDescription(los?: string): string {
             >
           </div>
 
-          <div class="flex items-center gap-2 pt-1 border-t border-surface-border mt-1">
+          <div class="flex items-center gap-2">
             <button
               type="button"
               class="tux-roadway__action-btn"
@@ -776,16 +767,6 @@ function getLosDescription(los?: string): string {
           >
             <span class="w-1.5 h-1.5 rounded-full bg-color-success animate-pulse" aria-hidden="true" />
             <span>3D Orbit Active &bull; <kbd class="font-mono text-[9px] uppercase px-1 py-0.5 rounded bg-surface-sunken border border-surface-border">Esc</kbd> or click to release scroll</span>
-          </div>
-
-          <!-- Orbit Drag & Zoom Guidance Hint Badge -->
-          <div
-            v-if="!hasUserInteracted && !isSceneActive"
-            class="tux-roadway__interactive-hint"
-            aria-hidden="true"
-          >
-            <Icon name="lucide:move" class="w-3.5 h-3.5 text-brand-primary animate-pulse" />
-            <span>Click &amp; drag to orbit &bull; Ctrl+Scroll to zoom &bull; Tilt away from top-down to pop 3D HUD</span>
           </div>
 
           <div
@@ -1027,9 +1008,7 @@ function getLosDescription(los?: string): string {
 
                     <!-- Heavy Commercial 3D Cargo Box Trailer -->
                     <div v-if="getLaneVehicleType(lane, v) === 'truck'" class="tux-roadway__v3d-trailer">
-                      <div class="tux-roadway__v3d-trailer-top">
-                        <span class="tux-roadway__v3d-trailer-brand">TXDOT FREIGHT</span>
-                      </div>
+                      <div class="tux-roadway__v3d-trailer-top" aria-hidden="true" />
                       <div class="tux-roadway__v3d-trailer-flank tux-roadway__v3d-trailer-flank--left" />
                       <div class="tux-roadway__v3d-trailer-flank tux-roadway__v3d-trailer-flank--right" />
                       <div class="tux-roadway__v3d-trailer-front" />
@@ -1106,26 +1085,32 @@ function getLosDescription(los?: string): string {
 
         <!-- 3D Perspective Legend Bar -->
         <div class="tux-roadway__3d-legend">
-          <div class="flex items-center gap-4 flex-wrap text-xs font-mono">
-            <div class="flex items-center gap-1.5">
-              <span class="w-3 h-3 rounded-sm bg-brand-primary" />
-              <span>TEXpress Managed Lane</span>
+          <div class="flex items-center justify-between gap-4 flex-wrap text-xs font-mono">
+            <div class="flex items-center gap-4 flex-wrap">
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-sm bg-brand-primary" />
+                <span>TEXpress Managed Lane</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-sm bg-neutral-700" />
+                <span>General Purpose Lanes</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-sm bg-neutral-600" />
+                <span>Paved Shoulder (10')</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-sm bg-status-success/60" />
+                <span>Vegetated Foreslope (4:1)</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-sm bg-status-info/80" />
+                <span>Drainage Ditch Swale</span>
+              </div>
             </div>
-            <div class="flex items-center gap-1.5">
-              <span class="w-3 h-3 rounded-sm bg-neutral-700" />
-              <span>General Purpose Lanes</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <span class="w-3 h-3 rounded-sm bg-neutral-600" />
-              <span>Paved Shoulder (10')</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <span class="w-3 h-3 rounded-sm bg-status-success/60" />
-              <span>Vegetated Foreslope (4:1)</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <span class="w-3 h-3 rounded-sm bg-status-info/80" />
-              <span>Drainage Ditch Swale</span>
+            <div class="flex items-center gap-1.5 text-text-secondary">
+              <Icon name="lucide:move" class="w-3.5 h-3.5 text-brand-primary" aria-hidden="true" />
+              <span>Click &amp; drag to orbit &bull; Ctrl+Scroll to zoom</span>
             </div>
           </div>
         </div>
@@ -1463,11 +1448,11 @@ function getLosDescription(los?: string): string {
           :class="{ 'tux-roadway__lane-kpi-card--active': selectedLaneIndex === idx }"
           @click="selectedLaneIndex = idx"
         >
-          <div class="flex items-center justify-between text-xs">
-            <span class="font-bold text-text-primary truncate">{{ lane.name }}</span>
+          <div class="flex items-start justify-between gap-1.5 text-xs">
+            <span class="font-bold text-text-primary leading-snug">{{ lane.name }}</span>
             <span
               v-if="lane.los"
-              class="px-1.5 py-0.2 rounded font-mono font-bold text-[10px] border"
+              class="px-1.5 py-0.2 rounded font-mono font-bold text-[10px] border shrink-0"
               :class="losClass(lane.los)"
             >
               LOS {{ lane.los }}
@@ -1649,32 +1634,26 @@ function getLosDescription(los?: string): string {
 }
 
 .tux-roadway__3d-controls {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
+  position: relative;
   z-index: 20;
-  background-color: color-mix(in srgb, var(--surface-raised) 85%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-md);
-  padding: 0.75rem;
-  width: 15.5rem;
-  box-shadow: var(--elevation-flat);
+  background-color: var(--surface-raised);
+  border-bottom: 1px solid var(--surface-border);
+  padding: 0.625rem 1.25rem;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
 }
 
 @media (max-width: 639px) {
   .tux-roadway__3d-viewport {
     min-height: 0;
-    flex-direction: column-reverse;
   }
 
   .tux-roadway__3d-controls {
-    position: relative;
-    top: auto;
-    right: auto;
-    width: auto;
-    margin: 0.5rem;
+    padding: 0.75rem;
   }
 
   .tux-roadway-cross-section .tux-roadway__perspective-wrapper {
@@ -1717,9 +1696,6 @@ function getLosDescription(los?: string): string {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  margin-bottom: 0.5rem;
-  padding-bottom: 0.35rem;
-  border-bottom: 1px solid var(--surface-border);
 }
 
 .tux-roadway__presets-label {
@@ -1733,7 +1709,7 @@ function getLosDescription(los?: string): string {
   flex: 1;
   font-size: 0.625rem;
   font-family: var(--font-mono);
-  padding: 0.2rem 0.35rem;
+  padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
   background-color: var(--surface-sunken);
   color: var(--text-secondary);
@@ -1756,7 +1732,9 @@ function getLosDescription(los?: string): string {
 }
 
 .tux-roadway__slider-item {
-  margin-bottom: 0.5rem;
+  flex: 1;
+  min-width: 8.5rem;
+  max-width: 13rem;
 }
 
 .tux-roadway__slider-label {
@@ -1883,24 +1861,23 @@ function getLosDescription(los?: string): string {
 
 .tux-roadway__interactive-hint {
   position: absolute;
-  bottom: 2.75rem;
+  top: 0.75rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 18;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.35rem 0.85rem;
+  padding: 0.3rem 0.75rem;
   border-radius: var(--radius-full);
-  background-color: color-mix(in srgb, var(--surface-raised) 90%, transparent);
+  background-color: var(--surface-raised);
   border: 1px solid var(--surface-border);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   font-size: 0.6875rem;
   font-family: var(--font-mono);
   color: var(--text-primary);
   box-shadow: 0 4px 16px -2px color-mix(in srgb, var(--neutral-1000) 22%, transparent);
   pointer-events: none;
+  white-space: nowrap;
   animation: hintFadeIn 0.4s ease;
 }
 
@@ -2257,15 +2234,15 @@ function getLosDescription(los?: string): string {
 }
 
 .tux-roadway__hud-card--popped {
-  width: 146px;
-  padding: 0.45rem 0.6rem;
+  width: 98px;
+  padding: 0.3rem 0.35rem;
   box-shadow: 0 12px 28px -4px color-mix(in srgb, var(--neutral-1000) 50%, transparent);
   border-color: color-mix(in srgb, var(--brand-accent) 35%, var(--surface-border));
 }
 
 .tux-roadway__hud-card--shoulder.tux-roadway__hud-card--popped {
-  width: 104px;
-  padding: 0.4rem 0.5rem;
+  width: 78px;
+  padding: 0.25rem 0.3rem;
 }
 
 .tux-roadway__hud-card--selected {
@@ -3110,20 +3087,21 @@ function getLosDescription(los?: string): string {
   );
   border-left: 2px solid color-mix(in srgb, var(--neutral-0) 18%, transparent);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 0.75rem;
   box-shadow: inset 0 0 12px color-mix(in srgb, var(--neutral-1000) 35%, transparent);
 }
 
 .tux-roadway__slope-label {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: 0.5625rem;
   font-weight: 700;
-  color: color-mix(in srgb, var(--brand-accent) 80%, var(--neutral-0));
-  background-color: color-mix(in srgb, var(--neutral-1000) 50%, transparent);
-  padding: 0.15rem 0.4rem;
+  color: var(--neutral-0);
+  background-color: var(--neutral-900);
+  border: 1px solid color-mix(in srgb, var(--neutral-0) 35%, transparent);
+  padding: 0.15rem 0.35rem;
   border-radius: var(--radius-sm);
-  transform: rotate(-90deg);
   white-space: nowrap;
 }
 
@@ -3137,8 +3115,9 @@ function getLosDescription(los?: string): string {
   transform: translateZ(-22px);
   background: color-mix(in srgb, var(--color-info) 35%, var(--neutral-900));
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 3.25rem;
   box-shadow: inset 0 0 8px color-mix(in srgb, var(--neutral-1000) 50%, transparent);
 }
 
@@ -3158,8 +3137,12 @@ function getLosDescription(los?: string): string {
 .tux-roadway__ditch-label {
   font-size: 0.5rem;
   font-family: var(--font-mono);
-  color: color-mix(in srgb, var(--color-info) 80%, var(--neutral-0));
-  transform: rotate(-90deg);
+  font-weight: 700;
+  color: var(--neutral-0);
+  background-color: var(--neutral-900);
+  border: 1px solid color-mix(in srgb, var(--neutral-0) 35%, transparent);
+  padding: 0.125rem 0.3rem;
+  border-radius: var(--radius-sm);
   white-space: nowrap;
   z-index: 2;
 }
@@ -3179,20 +3162,21 @@ function getLosDescription(los?: string): string {
     color-mix(in srgb, var(--color-success) 45%, var(--neutral-800))
   );
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
+  padding-bottom: 2.5rem;
   box-shadow: inset 0 0 12px color-mix(in srgb, var(--neutral-1000) 35%, transparent);
 }
 
 .tux-roadway__backslope-label {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: 0.5625rem;
   font-weight: 700;
-  color: color-mix(in srgb, var(--brand-accent) 80%, var(--neutral-0));
-  background-color: color-mix(in srgb, var(--neutral-1000) 50%, transparent);
-  padding: 0.15rem 0.4rem;
+  color: var(--neutral-0);
+  background-color: var(--neutral-900);
+  border: 1px solid color-mix(in srgb, var(--neutral-0) 35%, transparent);
+  padding: 0.15rem 0.35rem;
   border-radius: var(--radius-sm);
-  transform: rotate(-90deg);
   white-space: nowrap;
 }
 
@@ -3223,12 +3207,16 @@ function getLosDescription(los?: string): string {
 
 .tux-roadway__row-tag {
   position: absolute;
-  top: 10px;
-  left: 8px;
+  top: 48%;
+  right: 4px;
   font-size: 0.5rem;
   font-family: var(--font-mono);
-  font-weight: bold;
-  color: var(--color-danger);
+  font-weight: 700;
+  color: var(--neutral-0);
+  background-color: var(--tti-maroon);
+  border: 1px solid color-mix(in srgb, var(--neutral-0) 35%, transparent);
+  padding: 0.125rem 0.3rem;
+  border-radius: var(--radius-sm);
   white-space: nowrap;
 }
 

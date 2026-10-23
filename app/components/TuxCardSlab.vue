@@ -228,13 +228,16 @@ function cardComponent(card: SlabCard) {
 }
 
 .tux-card-slab__placeholder--maroon {
-  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-deep) 60%, var(--brand-accent-ink) 100%);
+  background-color: var(--brand-fill);
+  background-image: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-deep) 60%, var(--brand-accent-ink) 100%);
 }
 .tux-card-slab__placeholder--gold {
-  background: linear-gradient(135deg, var(--brand-accent) 0%, var(--brand-accent-shade) 100%);
+  background-color: var(--brand-accent-ink);
+  background-image: linear-gradient(135deg, var(--brand-accent-shade) 0%, var(--brand-accent-ink) 100%);
 }
 .tux-card-slab__placeholder--charcoal {
-  background: linear-gradient(135deg, #4a4747 0%, #2a2727 100%);
+  background-color: var(--neutral-900);
+  background-image: linear-gradient(135deg, #4a4747 0%, #2a2727 100%);
 }
 
 /* Darkening gradient for overlay legibility */
@@ -257,6 +260,7 @@ function cardComponent(card: SlabCard) {
   inset: auto 0 0 0;
   padding: 1.25rem 1.375rem 1.5rem;
   color: #fff;
+  background-color: color-mix(in srgb, var(--neutral-900) 68%, transparent);
 }
 
 .tux-card-slab__card-eyebrow {

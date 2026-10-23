@@ -537,15 +537,16 @@ export const TuxPortalHeader = forwardRef<HTMLElement, TuxPortalHeaderProps>(
             style={{
               maxWidth: maxContainerWidth,
               margin: "0 auto",
-              padding: "0.75rem 1rem",
+              padding: "0.625rem 1rem",
               display: "flex",
+              flexWrap: "wrap",
               alignItems: "center",
               justifyContent: "space-between",
-              gap: "1rem",
+              gap: "0.5rem 1rem",
             }}
           >
             {/* Brand Lockup & Portal Title */}
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 0, flexShrink: 0, maxWidth: "100%" }}>
               {brand ?? (
                 <a
                   href={homeUrl}
@@ -569,28 +570,27 @@ export const TuxPortalHeader = forwardRef<HTMLElement, TuxPortalHeaderProps>(
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "0.625rem",
+                    gap: "0.5rem",
                     minWidth: 0,
                   }}
                 >
                   <div
                     aria-hidden="true"
                     style={{
-                      height: "1.75rem",
+                      height: "1.5rem",
                       width: "1px",
                       background: "var(--surface-border, #d6d3d1)",
+                      flexShrink: 0,
                     }}
                   />
                   <a
                     href={homeUrl}
                     style={{
-                      fontSize: "1.0625rem",
+                      fontSize: "0.9375rem",
                       fontWeight: 700,
                       color: "var(--text-primary, #191919)",
                       textDecoration: "none",
                       whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
                     }}
                   >
                     {portalTitle}
@@ -601,15 +601,34 @@ export const TuxPortalHeader = forwardRef<HTMLElement, TuxPortalHeaderProps>(
                       style={{
                         display: "inline-flex",
                         alignItems: "center",
+                        flexShrink: 0,
+                        whiteSpace: "nowrap",
                         padding: "0.125rem 0.5rem",
                         borderRadius: "0.25rem",
                         fontSize: "0.6875rem",
                         fontWeight: 600,
                         textTransform: "uppercase",
                         letterSpacing: "0.05em",
-                        background: "rgba(214, 154, 45, 0.18)",
-                        color: "var(--text-primary, #191919)",
-                        border: "1px solid rgba(214, 154, 45, 0.4)",
+                        background:
+                          portalBadgeVariant === "maroon"
+                            ? "var(--brand-primary, #500000)"
+                            : portalBadgeVariant === "info"
+                              ? "var(--spectrum-blue, #005480)"
+                              : portalBadgeVariant === "neutral"
+                                ? "var(--surface-sunken, #f5f5f4)"
+                                : "rgba(214, 154, 45, 0.22)",
+                        color:
+                          portalBadgeVariant === "maroon" || portalBadgeVariant === "info"
+                            ? "var(--text-on-brand, #ffffff)"
+                            : "var(--text-primary, #191919)",
+                        border:
+                          portalBadgeVariant === "maroon"
+                            ? "1px solid var(--brand-primary, #500000)"
+                            : portalBadgeVariant === "info"
+                              ? "1px solid var(--spectrum-blue, #005480)"
+                              : portalBadgeVariant === "neutral"
+                                ? "1px solid var(--surface-border, #d6d3d1)"
+                                : "1px solid rgba(214, 154, 45, 0.6)",
                       }}
                     >
                       {portalBadge}
@@ -625,11 +644,11 @@ export const TuxPortalHeader = forwardRef<HTMLElement, TuxPortalHeaderProps>(
                 aria-label={navAriaLabel}
                 style={{
                   display: "flex",
+                  flexWrap: "wrap",
                   alignItems: "center",
-                  gap: "0.375rem",
-                  flex: 1,
+                  gap: "0.25rem",
                   justifyContent: "flex-end",
-                  marginLeft: "1rem",
+                  marginLeft: "auto",
                 }}
               >
                 {navItems.map((item) => {

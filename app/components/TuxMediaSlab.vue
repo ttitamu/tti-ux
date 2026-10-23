@@ -106,7 +106,7 @@ defineSlots<{
 .tux-media-slab--height-standard { min-height: 18rem; }
 .tux-media-slab--height-short    { min-height: 12rem; }
 
-@container tux-media-slab (min-width: 40rem) {
+@media (min-width: 40rem) {
   .tux-media-slab--height-tall     { min-height: 32rem; }
   .tux-media-slab--height-standard { min-height: 24rem; }
   .tux-media-slab--height-short    { min-height: 16rem; }
@@ -150,24 +150,24 @@ defineSlots<{
   max-width: 42rem;
 }
 
-@container tux-media-slab (min-width: 30rem) {
+@media (min-width: 30rem) {
   .tux-media-slab--overlay .tux-media-slab__copy { padding: 2.25rem 2.25rem 2rem; }
 }
-@container tux-media-slab (min-width: 50rem) {
+@media (min-width: 50rem) {
   .tux-media-slab--overlay .tux-media-slab__copy { padding: 3rem 3.25rem 2.5rem; }
 }
 
-.tux-media-slab--overlay .tux-media-slab__eyebrow { color: rgba(255, 255, 255, 0.8); }
+.tux-media-slab--overlay .tux-media-slab__eyebrow { color: rgba(255, 255, 255, 0.85); }
 .tux-media-slab--overlay .tux-media-slab__title   { color: #fff; }
-.tux-media-slab--overlay .tux-media-slab__dek     { color: rgba(255, 255, 255, 0.85); }
+.tux-media-slab--overlay .tux-media-slab__dek     { color: rgba(255, 255, 255, 0.9); }
 
-/* Split — image one side, copy the other. Stacks below 50rem container width. */
+/* Split — image one side, copy the other. Stacks below 50rem width. */
 .tux-media-slab--split {
   display: grid;
   grid-template-columns: 1fr;
 }
 
-@container tux-media-slab (min-width: 50rem) {
+@media (min-width: 50rem) {
   .tux-media-slab--split { grid-template-columns: 1fr 1fr; }
 }
 
@@ -183,7 +183,7 @@ defineSlots<{
   align-self: center;
 }
 
-@container tux-media-slab (min-width: 50rem) {
+@media (min-width: 50rem) {
   .tux-media-slab--split .tux-media-slab__copy { padding: 3rem 3rem; }
 
   .tux-media-slab--image-right {

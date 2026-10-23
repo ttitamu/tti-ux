@@ -304,8 +304,8 @@ const filteredExamples = computed(() => {
         class="border border-surface-border rounded-lg bg-surface-raised p-6 flex flex-col justify-between hover:border-brand-primary/50 transition-all shadow-sm hover:shadow-md"
       >
         <div class="space-y-3">
-          <div class="flex items-center justify-between gap-2">
-            <span class="eyebrow truncate">{{ ex.eyebrow }}</span>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="eyebrow">{{ ex.eyebrow }}</span>
             <TuxBadge tone="primary" class="shrink-0">{{ ex.archetype }}</TuxBadge>
           </div>
 
@@ -389,9 +389,9 @@ const filteredExamples = computed(() => {
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
         <div class="p-5 rounded-lg bg-surface-raised border border-surface-border space-y-2">
           <p class="font-bold text-text-primary">1. Operational Telemetry</p>
-          <p class="text-xs text-text-secondary leading-relaxed">
-            Status is <code>--status-*</code>, never <code>--brand-primary</code>. Maroon is reserved for institutional chrome.
-            Gold is an accent keyline. Hairline tables use <code>--surface-border</code>.
+          <p class="text-xs text-text-secondary leading-7">
+            Status is <code class="py-0 whitespace-nowrap">var(--status-ok)</code>, never <code class="py-0 whitespace-nowrap">var(--brand-primary)</code>. Maroon is reserved for institutional chrome.
+            Gold is an accent keyline. Hairline tables use <code class="py-0 whitespace-nowrap">var(--surface-border)</code>.
           </p>
           <NuxtLink to="/design/ops-surfaces" class="text-xs text-brand-primary font-semibold hover:underline block pt-1">
             Read ops-surfaces.md →

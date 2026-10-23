@@ -74,11 +74,11 @@ const headingClass = computed(() => {
   border-radius: var(--radius-md);
 }
 
-@container tux-cta (min-width: 30rem) {
+@media (min-width: 30rem) {
   .tux-cta { padding: 2.5rem 2.5rem; }
 }
 
-@container tux-cta (min-width: 44rem) {
+@media (min-width: 48rem) {
   .tux-cta {
     grid-template-columns: 1.2fr 1fr;
     align-items: center;
@@ -99,8 +99,29 @@ const headingClass = computed(() => {
   color: var(--text-on-brand);
 }
 .tux-cta--maroon .tux-cta__eyebrow,
-.tux-cta--maroon .tux-cta__dek { color: rgba(255, 255, 255, 0.85); }
+.tux-cta--maroon .tux-cta__dek { color: rgba(255, 255, 255, 0.88); }
 .tux-cta--maroon :deep(.tux-cta__title) { color: var(--text-on-brand); }
+
+/* Invert child TuxButton tokens when placed inside a maroon CTA block */
+.tux-cta--maroon .tux-cta__actions :deep(.tux-btn--primary) {
+  background-color: var(--brand-accent) !important;
+  color: var(--brand-accent-ink, #221f1f) !important;
+  border-color: var(--brand-accent) !important;
+}
+.tux-cta--maroon .tux-cta__actions :deep(.tux-btn--primary:hover) {
+  filter: brightness(0.95);
+}
+.tux-cta--maroon .tux-cta__actions :deep(.tux-btn--ghost),
+.tux-cta--maroon .tux-cta__actions :deep(.tux-btn--secondary) {
+  color: var(--text-on-brand) !important;
+  border: 1px solid color-mix(in srgb, var(--neutral-0) 50%, transparent) !important;
+  background-color: color-mix(in srgb, var(--neutral-0) 8%, transparent) !important;
+}
+.tux-cta--maroon .tux-cta__actions :deep(.tux-btn--ghost:hover),
+.tux-cta--maroon .tux-cta__actions :deep(.tux-btn--secondary:hover) {
+  background-color: color-mix(in srgb, var(--neutral-0) 18%, transparent) !important;
+  border-color: var(--text-on-brand) !important;
+}
 
 .tux-cta--gold {
   background: var(--brand-accent);

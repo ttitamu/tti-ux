@@ -1957,7 +1957,7 @@ useTuxVisionPrefs();
                   {{ isHighContrast ? "Exit high-contrast" : "High-contrast mode" }}
                 </span>
               </button>
-              <span class="text-text-muted select-none" aria-hidden="true">·</span>
+              <span class="opacity-75 select-none" aria-hidden="true">·</span>
               <button
                 type="button"
                 title="Report a bug to the TTI Code (Forgejo) repository (authentication required)"
@@ -1966,7 +1966,7 @@ useTuxVisionPrefs();
                 <UIcon name="lucide:bug" class="w-3.5 h-3.5" />
                 <span>Report a Bug</span>
               </button>
-              <span class="text-text-muted select-none" aria-hidden="true">·</span>
+              <span class="opacity-75 select-none" aria-hidden="true">·</span>
               <button
                 type="button"
                 title="Submit an idea to the TTI Code (Forgejo) Ideas tracker (authentication required)"

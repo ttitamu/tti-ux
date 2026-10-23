@@ -112,6 +112,7 @@ function handleUpdate(value: boolean) {
     :open="open"
     :title="title || 'Dialog'"
     :description="eyebrow || title || 'Dialog'"
+    :content="{ 'aria-label': title || 'Dialog', 'aria-labelledby': undefined, 'aria-describedby': undefined }"
     :ui="sheetUi || (sizeClass ? { content: sizeClass } : undefined)"
     @update:open="handleUpdate"
   >

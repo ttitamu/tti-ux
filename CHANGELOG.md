@@ -3,6 +3,15 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.4.5] — 2026-10-23
+
+### Fixed — Composition Example Pages UI, Contrast, Layout & Overlap Overhaul (2026-10-23)
+
+- **Two-Tier Portal Header (`TuxPortalHeader.vue` & `TuxPortalHeader.tsx`)**: Fixed Tier 2 layout with `flex-wrap`, `flex-shrink-0` on the brand/title/badge lockup, removed artificial `max-w-[200px]` title truncation, added the `showSpectrum` prop alias, and wired `portalBadgeVariant` (`"maroon" | "gold" | "info" | "success" | "neutral"`) with WCAG AAA contrast.
+- **Self-Targeting `@container` Rules & Maroon Surface Contrast (`TuxPageHeader.vue`, `TuxCTA.vue`, `TuxMediaSlab.vue`, `TuxSignupFeature.vue`, `TuxButton.vue`)**: Replaced self-targeting `@container` rules with responsive `@media` rules so 2-column hero, split-media, and CTA layouts render side-by-side at desktop widths. Added inverted Warm Gold primary and crisp white ghost/secondary button & `<TuxBigStat>` label styling on maroon surfaces.
+- **5-Band Spectrum Facts & Dark/Light Surface Contrast (`TuxSpectrumFacts.vue`, `TuxCardSlab.vue`, `TuxCenterBadge.vue`, `TuxAlert.vue`, `TuxTestimonial.vue`, `TuxResearcher.vue`, `TuxCommentThread.vue`, `TuxContextMeter.vue`, `TuxMarkdownEditor.vue`, `TuxFooter.vue`, `TuxCodeBlock.vue`, `globals.css`)**: Upgraded spectrum band colors, card overlays, center badges, quote marks, ORCID links, `@mention` pills, warning indicators, Shiki parameter tokens, and Nuxt UI `--ui-text-dimmed` / `--ui-text-muted` bindings to pass WCAG 2.2 AAA contrast checks.
+- **3D Roadway Cross-Section & Code Block Overlaps (`TuxRoadwayCrossSection.vue`, `TuxCodeBlock.vue`, `TuxBlockquote.vue`, `TuxAccordion.vue`)**: Docked 3D camera controls as a top toolbar, staggered 3D lane HUD stations, moved `Download` / `Copy` buttons into the code block header bar, and fixed missing assets (`proving-grounds-aerial.jpg`, `TTI-glyph.svg`).
+
 ## [3.4.4] — 2026-10-23
 
 ### Fixed — `nuxt typecheck` & GitHub Pages Deploy Clean, Vision & CVD Palette Refinements (2026-10-23)
