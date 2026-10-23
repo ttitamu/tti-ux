@@ -254,6 +254,11 @@ function onKey(e: KeyboardEvent) {
   box-sizing: border-box;
 }
 
+.tux-composer__textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
 .tux-composer__textarea:focus,
 .tux-composer__textarea:focus-visible {
   outline: none !important;

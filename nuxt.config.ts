@@ -96,7 +96,7 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-        { rel: "alternate icon", type: "image/svg+xml", href: "/TTI-glyph.svg" },
+        { rel: "icon", type: "image/svg+xml", href: "/TTI-glyph.svg" },
         { rel: "apple-touch-icon", href: "/TTI-Color.png" },
       ],
     },
@@ -308,8 +308,7 @@ export default defineNuxtConfig({
         warn(warning);
       };
 
-      config.build = config.build || {};
-      const buildAny = config.build as Record<string, any>;
+      const buildAny = (config.build ?? {}) as Record<string, any>;
 
       // Vite client / Rollup
       buildAny.rollupOptions = buildAny.rollupOptions || {};

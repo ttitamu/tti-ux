@@ -591,10 +591,202 @@ html[data-cvd-simulation="achromatopsia"] {
 [data-vision-stroke="heavy"] .tux-card,
 [data-vision-stroke="heavy"] .tux-button,
 [data-vision-stroke="heavy"] .tux-badge,
+[data-vision-stroke="heavy"] .tux-chat-message,
+[data-vision-stroke="heavy"] .tux-composer__frame,
+[data-vision-stroke="heavy"] article,
+[data-vision-stroke="heavy"] section,
+[data-vision-stroke="heavy"] aside,
+[data-vision-stroke="heavy"] header,
 [data-vision-stroke="heavy"] input,
 [data-vision-stroke="heavy"] select,
-[data-vision-stroke="heavy"] textarea {
+[data-vision-stroke="heavy"] textarea,
+[data-vision-stroke="heavy"] [class*="border"] {
   border-width: 2px !important;
+}
+
+[data-vision-stroke="heavy"] svg.iconify,
+[data-vision-stroke="heavy"] svg[class*="lucide"] {
+  stroke-width: 2.5px !important;
+}
+
+/* =====================================================
+   Site-Wide Categorical CVD Palette Rebinding ([data-cvd-mode])
+   Transforms brand, accent, semantic status, and chart tokens
+   across ALL application surfaces (not just standalone charts).
+   ===================================================== */
+
+/* 1. Universal CVD (Okabe-Ito): Deep Blue + Warm Orange + Bluish Green + Vermilion */
+[data-cvd-mode="okabe-ito"] {
+  --brand-primary: #0072B2 !important;
+  --brand-primary-deep: #005585 !important;
+  --brand-accent: #E69F00 !important;
+  --brand-accent-deep: #B87D00 !important;
+  --brand-fill: #0072B2 !important;
+  --text-brand: #0072B2 !important;
+  --color-brand-primary: #0072B2 !important;
+  --color-brand-accent: #E69F00 !important;
+  --color-success: #009E73 !important;
+  --color-warning: #E69F00 !important;
+  --color-error: #D55E00 !important;
+  --color-danger: #D55E00 !important;
+  --color-info: #56B4E9 !important;
+  --status-ok: #009E73 !important;
+  --status-warning: #E69F00 !important;
+  --status-critical: #D55E00 !important;
+  --focus-ring-outer: #0072B2 !important;
+}
+
+html.dark[data-cvd-mode="okabe-ito"],
+[data-theme="tti-dark"][data-cvd-mode="okabe-ito"],
+.dark[data-cvd-mode="okabe-ito"] {
+  --brand-primary: #56B4E9 !important;
+  --brand-primary-deep: #0072B2 !important;
+  --brand-accent: #F0B030 !important;
+  --brand-accent-deep: #E69F00 !important;
+  --brand-fill: #0072B2 !important;
+  --text-brand: #56B4E9 !important;
+  --color-brand-primary: #56B4E9 !important;
+  --color-brand-accent: #F0B030 !important;
+  --color-success: #2AC098 !important;
+  --color-warning: #F0B030 !important;
+  --color-error: #E87A28 !important;
+  --color-danger: #E87A28 !important;
+  --color-info: #7CD0F7 !important;
+  --status-ok: #2AC098 !important;
+  --status-warning: #F0B030 !important;
+  --status-critical: #E87A28 !important;
+  --focus-ring-outer: #56B4E9 !important;
+}
+
+/* 2. Deutan / Protan Optimized (Red-Green Safe): Sky Blue + High-Contrast Amber + Vermilion */
+[data-cvd-mode="deutan-protan"] {
+  --brand-primary: #0072B2 !important;
+  --brand-primary-deep: #004C78 !important;
+  --brand-accent: #E69F00 !important;
+  --brand-accent-deep: #B87D00 !important;
+  --brand-fill: #0072B2 !important;
+  --text-brand: #0072B2 !important;
+  --color-brand-primary: #0072B2 !important;
+  --color-brand-accent: #E69F00 !important;
+  --color-success: #0072B2 !important;
+  --color-warning: #E69F00 !important;
+  --color-error: #D55E00 !important;
+  --color-danger: #D55E00 !important;
+  --color-info: #56B4E9 !important;
+  --status-ok: #0072B2 !important;
+  --status-warning: #E69F00 !important;
+  --status-critical: #D55E00 !important;
+  --focus-ring-outer: #0072B2 !important;
+}
+
+html.dark[data-cvd-mode="deutan-protan"],
+[data-theme="tti-dark"][data-cvd-mode="deutan-protan"],
+.dark[data-cvd-mode="deutan-protan"] {
+  --brand-primary: #56B4E9 !important;
+  --brand-primary-deep: #0072B2 !important;
+  --brand-accent: #F5EB68 !important;
+  --brand-accent-deep: #E69F00 !important;
+  --brand-fill: #0072B2 !important;
+  --text-brand: #56B4E9 !important;
+  --color-brand-primary: #56B4E9 !important;
+  --color-brand-accent: #F5EB68 !important;
+  --color-success: #56B4E9 !important;
+  --color-warning: #F5EB68 !important;
+  --color-error: #E87A28 !important;
+  --color-danger: #E87A28 !important;
+  --color-info: #7CD0F7 !important;
+  --status-ok: #56B4E9 !important;
+  --status-warning: #F5EB68 !important;
+  --status-critical: #E87A28 !important;
+  --focus-ring-outer: #56B4E9 !important;
+}
+
+/* 3. Tritanopia Safe (Blue-Yellow Safe): High-Contrast Magenta + Deep Teal + Vermilion */
+[data-cvd-mode="tritan"] {
+  --brand-primary: #A63A75 !important;
+  --brand-primary-deep: #7A2352 !important;
+  --brand-accent: #009E73 !important;
+  --brand-accent-deep: #007353 !important;
+  --brand-fill: #A63A75 !important;
+  --text-brand: #A63A75 !important;
+  --color-brand-primary: #A63A75 !important;
+  --color-brand-accent: #009E73 !important;
+  --color-success: #009E73 !important;
+  --color-warning: #D55E00 !important;
+  --color-error: #B20014 !important;
+  --color-danger: #B20014 !important;
+  --color-info: #009E73 !important;
+  --status-ok: #009E73 !important;
+  --status-warning: #D55E00 !important;
+  --status-critical: #B20014 !important;
+  --focus-ring-outer: #A63A75 !important;
+}
+
+html.dark[data-cvd-mode="tritan"],
+[data-theme="tti-dark"][data-cvd-mode="tritan"],
+.dark[data-cvd-mode="tritan"] {
+  --brand-primary: #DE91BD !important;
+  --brand-primary-deep: #CC79A7 !important;
+  --brand-accent: #2AC098 !important;
+  --brand-accent-deep: #009E73 !important;
+  --brand-fill: #A63A75 !important;
+  --text-brand: #DE91BD !important;
+  --color-brand-primary: #DE91BD !important;
+  --color-brand-accent: #2AC098 !important;
+  --color-success: #2AC098 !important;
+  --color-warning: #E87A28 !important;
+  --color-error: #FF6B6B !important;
+  --color-danger: #FF6B6B !important;
+  --color-info: #2AC098 !important;
+  --status-ok: #2AC098 !important;
+  --status-warning: #E87A28 !important;
+  --status-critical: #FF6B6B !important;
+  --focus-ring-outer: #DE91BD !important;
+}
+
+/* 4. Achromatopsia & High-Luminance Monochrome */
+[data-cvd-mode="monochrome"] {
+  --brand-primary: #1F1F1F !important;
+  --brand-primary-deep: #000000 !important;
+  --brand-accent: #555555 !important;
+  --brand-accent-deep: #333333 !important;
+  --brand-fill: #1F1F1F !important;
+  --text-brand: #1F1F1F !important;
+  --color-brand-primary: #1F1F1F !important;
+  --color-brand-accent: #555555 !important;
+  --color-success: #333333 !important;
+  --color-warning: #666666 !important;
+  --color-error: #111111 !important;
+  --color-danger: #111111 !important;
+  --color-info: #444444 !important;
+  --status-ok: #333333 !important;
+  --status-warning: #666666 !important;
+  --status-critical: #111111 !important;
+  --focus-ring-outer: #111111 !important;
+  filter: grayscale(100%);
+}
+
+html.dark[data-cvd-mode="monochrome"],
+[data-theme="tti-dark"][data-cvd-mode="monochrome"],
+.dark[data-cvd-mode="monochrome"] {
+  --brand-primary: #E5E7EB !important;
+  --brand-primary-deep: #FFFFFF !important;
+  --brand-accent: #9CA3AF !important;
+  --brand-accent-deep: #D1D5DB !important;
+  --brand-fill: #374151 !important;
+  --text-brand: #E5E7EB !important;
+  --color-brand-primary: #E5E7EB !important;
+  --color-brand-accent: #9CA3AF !important;
+  --color-success: #D1D5DB !important;
+  --color-warning: #9CA3AF !important;
+  --color-error: #F9FAFB !important;
+  --color-danger: #F9FAFB !important;
+  --color-info: #D1D5DB !important;
+  --status-ok: #D1D5DB !important;
+  --status-warning: #9CA3AF !important;
+  --status-critical: #F9FAFB !important;
+  --focus-ring-outer: #FFFFFF !important;
+  filter: grayscale(100%);
 }
 
 /* =====================================================
@@ -604,16 +796,28 @@ html[data-cvd-simulation="achromatopsia"] {
    3. ops-dense — High-density TMC operations & tabular telemetry profile
    ===================================================== */
 
+[data-type-profile="editorial"] {
+  --font-display: "Oswald", sans-serif;
+  --font-sans: "Open Sans", sans-serif;
+  --font-body: "Open Sans", sans-serif;
+}
+
 [data-type-profile="kadence-comm"] {
   --font-display: var(--font-bold);
-  --tracking-tight: 0em;
-  --tracking-wider: 0.04em;
+  --font-sans: var(--font-bold);
+  --font-body: var(--font-bold);
+  --tracking-tight: 0.01em;
+  --tracking-wider: 0.05em;
+  letter-spacing: 0.01em;
 }
 
 [data-type-profile="ops-dense"] {
-  --font-display: var(--font-bold);
-  --leading-normal: 1.4;
-  --leading-relaxed: 1.5;
+  --font-display: var(--font-mono);
+  --font-sans: var(--font-mono);
+  --font-body: var(--font-mono);
+  --leading-normal: 1.35;
+  --leading-relaxed: 1.45;
   --tracking-wider: 0.06em;
   font-variant-numeric: tabular-nums;
+  font-size: 94%;
 }

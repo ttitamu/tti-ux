@@ -60,7 +60,7 @@
       }
     },
     "TuxAppFrame": {
-      "sourceHash": "491a33640747980c",
+      "sourceHash": "b2128f752c2662b3",
       "ports": {
         "react": {
           "hash": null
@@ -388,10 +388,10 @@
       }
     },
     "TuxCodeBlock": {
-      "sourceHash": "beaecef567c6ed04",
+      "sourceHash": "1d5466e382f9a1ab",
       "ports": {
         "react": {
-          "hash": "beaecef567c6ed04",
+          "hash": "1d5466e382f9a1ab",
           "path": "packages/react/src/components/TuxCodeBlock.tsx"
         }
       }
@@ -421,7 +421,7 @@
       }
     },
     "TuxComposer": {
-      "sourceHash": "9498b030748571c6",
+      "sourceHash": "91896c0e21f25b46",
       "ports": {
         "react": {
           "hash": null
@@ -502,7 +502,7 @@
       }
     },
     "TuxDiagram": {
-      "sourceHash": "90852c921c418902",
+      "sourceHash": "0c62b37b1a1994d0",
       "ports": {
         "react": {
           "hash": null
@@ -553,7 +553,7 @@
       }
     },
     "TuxExample": {
-      "sourceHash": "278717cd5d37c1dc",
+      "sourceHash": "fac6a16f6cffb8f2",
       "ports": {
         "react": {
           "hash": null
@@ -805,7 +805,7 @@
       }
     },
     "TuxModal": {
-      "sourceHash": "772801c5e4e86664",
+      "sourceHash": "696be1fc5d1bfc5e",
       "ports": {
         "react": {
           "hash": null
@@ -965,7 +965,7 @@
       }
     },
     "TuxRichTextEditor": {
-      "sourceHash": "639eb56b6401ffa2",
+      "sourceHash": "c814f94e9ad23500",
       "ports": {
         "react": {
           "hash": null
@@ -1209,7 +1209,7 @@
       }
     },
     "TuxUserMenu": {
-      "sourceHash": "327b8d243f6ca642",
+      "sourceHash": "1f31d744a2953421",
       "ports": {
         "react": {
           "hash": null
@@ -1411,7 +1411,7 @@
       }
     },
     "TuxECharts": {
-      "sourceHash": "a4ce3b7dc10396f8",
+      "sourceHash": "4cc3f8edfe1f938f",
       "ports": {
         "react": {
           "hash": null
@@ -1451,10 +1451,10 @@
       }
     },
     "TuxVisionPreferencesModal": {
-      "sourceHash": "350b30463e9136e5",
+      "sourceHash": "af9fd6b19f061a7a",
       "ports": {
         "react": {
-          "hash": "350b30463e9136e5"
+          "hash": "af9fd6b19f061a7a"
         }
       }
     },

@@ -3,6 +3,14 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.4.4] — 2026-10-23
+
+### Fixed — `nuxt typecheck` & GitHub Pages Deploy Clean, Vision & CVD Palette Refinements (2026-10-23)
+
+- **Vue 3 Re-Export Shims & Typecheck Clean**: Updated the 14 root sub-layer component shims (`TuxCodeBlock.vue`, `TuxDiagram.vue`, `TuxECharts.vue`, `TuxRichTextEditor.vue`, and `desk/*.vue`) to use explicit `import Comp from "..."; export default Comp;` syntax so `vue-tsc` (`npm run typecheck`) no longer emits `TS2528` duplicate default export errors.
+- **Strict TypeScript Fixes**: Resolved remaining strict type checks in `app/pages/index.vue`, `nuxt.config.ts`, `packages/desk/server/api/feedback.post.ts`, `packages/desk/server/api/media/index.post.ts`, and `packages/desk/server/utils/rate-limit.ts`.
+- **Clinical Vision & Modal Polish**: Added site-wide categorical CVD palette rebinding in `app/assets/css/globals.css`, coordinated high-contrast toggle state in `TuxVisionPreferencesModal.vue` / `useTuxVisionPrefs.ts`, and refined `TuxModal.vue`, `TuxUserMenu.vue`, `TuxAppFrame.vue`, and `TuxComposer.vue`.
+
 ## [3.4.3] — 2026-10-21
 
 ### Added, Changed & Fixed — Standalone React & Elements SDKs, Multi-Framework Code Gen, Forgejo OAuth2 + PKCE Tracker & UX Polish (2026-10-21)

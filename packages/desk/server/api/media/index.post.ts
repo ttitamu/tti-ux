@@ -6,6 +6,6 @@ export default defineEventHandler(async (event) => {
   const { service } = await openDesk(event, { requireAuth: true });
   const rawBody = await readBody(event);
   const validated = parseOrThrow(createMediaSchema, rawBody);
-  return service.createMedia(validated);
+  return service.createMedia(validated as Parameters<typeof service.createMedia>[0]);
 });
 

@@ -162,7 +162,7 @@ const menuItems = computed(() => {
   </NuxtLink>
 
   <!-- Signed in / local-only / error: chip + menu. -->
-  <UDropdownMenu v-else :items="menuItems" :ui="{ content: 'w-60' }">
+  <UDropdownMenu v-else :items="menuItems" :ui="{ content: 'w-68' }">
     <button
       type="button"
       class="tux-user-menu__trigger"
@@ -190,11 +190,12 @@ const menuItems = computed(() => {
     </button>
 
     <template #item-label="{ item }">
-      <span class="tux-user-menu__id-block">
+      <span v-if="item.type === 'label'" class="tux-user-menu__id-block">
         <span class="tux-user-menu__id-name">{{ item.label }}</span>
         <span v-if="identity?.email" class="tux-user-menu__id-sub">{{ identity.email }}</span>
         <span v-if="identity?.department" class="tux-user-menu__id-sub">{{ identity.department }}</span>
       </span>
+      <span v-else class="truncate text-[13px] font-medium">{{ item.label }}</span>
     </template>
   </UDropdownMenu>
 </template>

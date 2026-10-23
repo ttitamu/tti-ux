@@ -4,6 +4,7 @@
  * offering color vision deficiency (CVD) modes, real-time SVG filter simulation,
  * multi-channel chart redundancy controls, and anti-halation astigmatism comfort.
  */
+import { computed } from "vue";
 import { useTuxVisionPrefs } from "../composables/useTuxVisionPrefs";
 
 interface Props {
@@ -18,7 +19,21 @@ const emit = defineEmits<{
   (e: "update:open", value: boolean): void;
 }>();
 
-const { prefs, reset } = useTuxVisionPrefs();
+const { prefs, reset, apply } = useTuxVisionPrefs();
+const colorMode = useColorMode();
+const isHighContrast = computed({
+  get: () => colorMode.preference === "tti-hc",
+  set: (val: boolean) => {
+    if (val) {
+      prefs.value.softDark = false;
+      prefs.value.fieldSunlight = false;
+      colorMode.preference = "tti-hc";
+    } else {
+      colorMode.preference = "tti-dark";
+    }
+    apply();
+  },
+});
 
 const cvdModes = [
   {
@@ -84,13 +99,28 @@ const typeProfiles = [
 function onSoftDarkChange() {
   if (prefs.value.softDark) {
     prefs.value.fieldSunlight = false;
+    if (colorMode.preference === "tti-hc") {
+      colorMode.preference = "tti-dark";
+    }
   }
+  apply();
 }
 
 function onFieldSunlightChange() {
   if (prefs.value.fieldSunlight) {
     prefs.value.softDark = false;
+    if (colorMode.preference === "tti-hc") {
+      colorMode.preference = "tti";
+    }
   }
+  apply();
+}
+
+function onResetDefaults() {
+  if (colorMode.preference === "tti-hc") {
+    colorMode.preference = "tti-dark";
+  }
+  reset();
 }
 
 function onClose() {
@@ -231,10 +261,22 @@ function onClose() {
       <!-- Section 4: Astigmatism, Low-Vision & Field Comfort -->
       <section class="space-y-3 pt-2 border-t border-surface-border">
         <h3 class="font-bold text-sm uppercase tracking-wider text-text-secondary">
-          4. Astigmatism, Low-Vision &amp; Field Comfort
+          4. High Contrast, Astigmatism &amp; Field Comfort
         </h3>
 
         <div class="space-y-2">
+          <label class="flex items-start gap-3 p-2.5 rounded bg-surface-raised hover:bg-surface-sunken cursor-pointer border border-surface-border min-h-[44px]">
+            <input
+              v-model="isHighContrast"
+              type="checkbox"
+              class="w-4 h-4 mt-0.5 rounded text-brand-primary focus:ring-brand-primary"
+            >
+            <div>
+              <span class="text-sm font-semibold block">Section 508 / WCAG 2.2 Level AAA High-Contrast Mode (tti-hc)</span>
+              <span class="text-xs text-text-muted">Enforces maximum 21:1 ink contrast, 2px solid structural borders, zero translucent fades, and 100% opaque form placeholders.</span>
+            </div>
+          </label>
+
           <label class="flex items-start gap-3 p-2.5 rounded bg-surface-raised hover:bg-surface-sunken cursor-pointer border border-surface-border min-h-[44px]">
             <input
               v-model="prefs.softDark"
@@ -300,7 +342,7 @@ function onClose() {
         <button
           type="button"
           class="min-h-[44px] px-3 py-1.5 text-xs text-text-muted hover:text-text-primary inline-flex items-center gap-1.5 rounded focus:outline-none focus:ring-2 focus:ring-brand-primary"
-          @click="reset"
+          @click="onResetDefaults"
         >
           <Icon name="lucide:rotate-ccw" :size="14" />
           Reset Defaults

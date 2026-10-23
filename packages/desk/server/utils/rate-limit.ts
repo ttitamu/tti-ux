@@ -53,7 +53,7 @@ export function checkRateLimit(
   bucket.count++;
   if (bucket.count > maxRequests) {
     const retryAfter = Math.ceil((bucket.resetAt - now) / 1000);
-    setHeader(event, "Retry-After", String(retryAfter));
+    setHeader(event, "Retry-After", retryAfter);
     throw createError({
       statusCode: 429,
       statusMessage: `Rate limit exceeded. Try again in ${retryAfter} seconds.`,

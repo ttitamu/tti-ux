@@ -11,11 +11,11 @@ export default defineEventHandler(async (event) => {
   const validated = parseOrThrow(feedbackSchema, rawBody || {});
   const { service } = await openDesk(event);
 
-  return service.addFeedback(validated.pageId, {
-    vote: validated.vote,
+  return service.addFeedback(validated.pageId ?? "/", {
+    vote: validated.vote ?? "up",
     reason: validated.reason,
     note: validated.note,
-    sessionId: validated.sessionId,
+    sessionId: validated.sessionId ?? "anonymous",
   });
 });
 

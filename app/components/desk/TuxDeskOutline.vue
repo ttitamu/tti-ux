@@ -1,3 +1,4 @@
 <script lang="ts">
-export { default } from "@tti/tti-ux-desk/app/components/desk/TuxDeskOutline.vue";
+import Comp from "@tti/tti-ux-desk/app/components/desk/TuxDeskOutline.vue";
+export default Comp;
 </script>

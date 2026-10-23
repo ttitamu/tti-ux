@@ -93,9 +93,14 @@ export const CVD_PALETTES_DARK: Record<TuxVisionPreferences["cvdMode"], string[]
 export function applyVisionPreferences(prefs: TuxVisionPreferences) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
+  const targets: HTMLElement[] = [root];
+  const portalShell = document.querySelector<HTMLElement>(".portal-shell");
+  if (portalShell) targets.push(portalShell);
 
   // 1. CVD Mode & Dynamic custom properties site-wide
-  root.setAttribute("data-cvd-mode", prefs.cvdMode);
+  for (const el of targets) {
+    el.setAttribute("data-cvd-mode", prefs.cvdMode);
+  }
 
   const isDark =
     root.classList.contains("dark") ||
@@ -104,85 +109,87 @@ export function applyVisionPreferences(prefs: TuxVisionPreferences) {
 
   const palette = isDark ? CVD_PALETTES_DARK[prefs.cvdMode] : CVD_PALETTES[prefs.cvdMode];
   if (palette) {
-    palette.forEach((hex, i) => {
-      const idx = i + 1;
-      root.style.setProperty(`--chart-${idx}`, hex);
-      root.style.setProperty(`--tux-chart-tone--c${idx}`, hex);
-      if (prefs.cvdMode === "brand") {
-        const okabeHex = isDark ? CVD_PALETTES_DARK["okabe-ito"][i]! : CVD_PALETTES["okabe-ito"][i]!;
-        root.style.setProperty(`--chart-cvd-${idx}`, okabeHex);
-      } else {
-        root.style.setProperty(`--chart-cvd-${idx}`, hex);
-      }
-    });
+    for (const el of targets) {
+      palette.forEach((hex, i) => {
+        const idx = i + 1;
+        el.style.setProperty(`--chart-${idx}`, hex);
+        el.style.setProperty(`--tux-chart-tone--c${idx}`, hex);
+        if (prefs.cvdMode === "brand") {
+          const okabeHex = isDark ? CVD_PALETTES_DARK["okabe-ito"][i]! : CVD_PALETTES["okabe-ito"][i]!;
+          el.style.setProperty(`--chart-cvd-${idx}`, okabeHex);
+        } else {
+          el.style.setProperty(`--chart-cvd-${idx}`, hex);
+        }
+      });
+    }
   }
 
   // 2. CVD Simulation
-  if (prefs.cvdSimulation && prefs.cvdSimulation !== "none") {
-    root.setAttribute("data-cvd-simulation", prefs.cvdSimulation);
-  } else {
-    root.removeAttribute("data-cvd-simulation");
-  }
+  for (const el of targets) {
+    if (prefs.cvdSimulation && prefs.cvdSimulation !== "none") {
+      el.setAttribute("data-cvd-simulation", prefs.cvdSimulation);
+    } else {
+      el.removeAttribute("data-cvd-simulation");
+    }
 
-  // 3. Multi-channel options
-  root.setAttribute("data-cvd-patterns", String(prefs.patterns));
-  root.setAttribute("data-cvd-markers", String(prefs.distinctMarkers));
-  root.setAttribute("data-cvd-labels", String(prefs.directLabels));
+    // 3. Multi-channel options
+    el.setAttribute("data-cvd-patterns", String(prefs.patterns));
+    el.setAttribute("data-cvd-markers", String(prefs.distinctMarkers));
+    el.setAttribute("data-cvd-labels", String(prefs.directLabels));
+  }
 
   // 4. Astigmatism Soft Dark vs. RELLIS Field-Sunlight Mode
   if (prefs.softDark) {
-    root.setAttribute("data-theme-variant", "soft");
-    root.setAttribute("data-vision-comfort", "anti-halation");
-    root.classList.add("dark");
-    root.classList.add("tti-dark");
-    root.setAttribute("data-theme", "tti-dark");
+    for (const el of targets) {
+      el.setAttribute("data-theme-variant", "soft");
+      el.setAttribute("data-vision-comfort", "anti-halation");
+      el.classList.add("dark", "tti-dark");
+      el.classList.remove("tti", "tti-hc");
+      el.setAttribute("data-theme", "tti-dark");
+    }
     try {
       window.localStorage.setItem("nuxt-color-mode", "tti-dark");
     } catch {
       // Ignore storage access error
     }
   } else if (prefs.fieldSunlight) {
-    root.setAttribute("data-theme-variant", "field-sunlight");
-    root.setAttribute("data-vision-comfort", "field-sunlight");
-    root.classList.remove("dark");
-    root.classList.remove("tti-dark");
-    root.setAttribute("data-theme", "tti");
+    for (const el of targets) {
+      el.setAttribute("data-theme-variant", "field-sunlight");
+      el.setAttribute("data-vision-comfort", "field-sunlight");
+      el.classList.remove("dark", "tti-dark", "tti-hc");
+      el.classList.add("tti");
+      el.setAttribute("data-theme", "tti");
+    }
     try {
       window.localStorage.setItem("nuxt-color-mode", "tti");
     } catch {
       // Ignore storage access error
     }
   } else {
-    const variant = root.getAttribute("data-theme-variant");
-    if (variant === "soft" || variant === "field-sunlight") {
-      root.removeAttribute("data-theme-variant");
-    }
-    const comfort = root.getAttribute("data-vision-comfort");
-    if (comfort === "anti-halation" || comfort === "field-sunlight") {
-      root.removeAttribute("data-vision-comfort");
-    }
-    try {
-      const colorModePref = window.localStorage.getItem("nuxt-color-mode");
-      if (colorModePref === "light" || colorModePref === "tti") {
-        root.classList.remove("dark");
-        root.classList.remove("tti-dark");
-        root.setAttribute("data-theme", "tti");
+    for (const el of targets) {
+      const variant = el.getAttribute("data-theme-variant");
+      if (variant === "soft" || variant === "field-sunlight") {
+        el.removeAttribute("data-theme-variant");
       }
-    } catch {
-      // Ignore storage access error
+      const comfort = el.getAttribute("data-vision-comfort");
+      if (comfort === "anti-halation" || comfort === "field-sunlight") {
+        el.removeAttribute("data-vision-comfort");
+      }
     }
   }
 
   // 5. Heavy strokes (enabled explicitly or via field-sunlight)
-  if (prefs.heavyStrokes || prefs.fieldSunlight) {
-    root.setAttribute("data-vision-stroke", "heavy");
-  } else {
-    root.removeAttribute("data-vision-stroke");
-  }
+  for (const el of targets) {
+    if (prefs.heavyStrokes || prefs.fieldSunlight) {
+      el.setAttribute("data-vision-stroke", "heavy");
+    } else {
+      el.removeAttribute("data-vision-stroke");
+    }
 
-  // 6. Institutional Typography Profile
-  const typeProfile = prefs.typeProfile ?? "editorial";
-  root.setAttribute("data-type-profile", typeProfile);
+    // 6. Institutional Typography Profile
+    const typeProfile = prefs.typeProfile ?? "editorial";
+    el.setAttribute("data-type-profile", typeProfile);
+  }
 }
 
 // Module-level singleton state for instant reactivity across all component instances

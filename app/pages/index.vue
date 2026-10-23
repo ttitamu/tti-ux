@@ -11,7 +11,7 @@ useHead({
 });
 
 const {
-  openModal: openForgejoTracker,
+  openForgejoTracker,
   authenticated: isForgejoAuthenticated,
   user: forgejoUser,
 } = useTuxForgejoTracker();

@@ -75,6 +75,7 @@ const platform = useTuxPlatform();
 
 const shouldRenderChrome = computed(() => props.forceChrome || platform.value.tauri);
 const chromeClass = computed(() => {
+  if (!shouldRenderChrome.value) return "tux-app-frame--web";
   const os = platform.value.os;
   if (os === "mac" || os === "ios") return "tux-app-frame--mac";
   if (os === "win") return "tux-app-frame--win";
