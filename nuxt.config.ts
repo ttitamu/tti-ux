@@ -163,11 +163,16 @@ export default defineNuxtConfig({
     // dependency to every consumer.
   ],
 
-  // @nuxt/ui auto-installs @nuxt/fonts. Explicitly disable all remote providers
-  // so it never makes external fetch calls (fonts are self-hosted in public/fonts/).
+  // @nuxt/ui auto-installs @nuxt/fonts unless `ui.fonts: false` is set.
+  // Explicitly disable all providers (including `local`) as defense-in-depth
+  // so @nuxt/fonts / fontless / fontaine / fontkitten never make external
+  // fetch calls or run WOFF2 Brotli decompression (`woff2shell` / CVE-2026-111497)
+  // if a consumer re-enables @nuxt/fonts (fonts are self-hosted in public/fonts/).
   fonts: {
     providers: {
+      local: false,
       google: false,
+      googleicons: false,
       bunny: false,
       fontshare: false,
       fontsource: false,
@@ -248,6 +253,10 @@ export default defineNuxtConfig({
   },
 
   ui: {
+    // Prevent @nuxt/ui from registering @nuxt/fonts (which pulls in fontless ->
+    // fontaine -> fontkitten's bundled WOFF2 Brotli decoder). TUX declares all
+    // @font-face rules explicitly in app/assets/css/fonts.css.
+    fonts: false,
     theme: {
       colors: ["primary", "secondary", "success", "info", "warning", "error", "neutral", "tip"],
     },

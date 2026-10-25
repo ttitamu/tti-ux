@@ -3,6 +3,15 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.4.6] — 2026-10-25
+
+### Security & Hardening — Self-Hosted Web Font Supply-Chain & `woff2shell` (`CVE-2026-111497`) Guard (2026-10-25)
+
+- **Disable `@nuxt/fonts` Build-Time WOFF2 Decompression (`nuxt.config.ts`)**: Set `ui.fonts: false` so `@nuxt/ui` no longer auto-registers `@nuxt/fonts` (and its `fontless` → `fontaine` → `fontkitten` chain, which bundles a JS port of Google's `brotliDecode`). Also added `local: false` and `googleicons: false` under `fonts.providers` as defense-in-depth for consuming apps.
+- **WOFF2 Header Validation & SHA-256 Integrity Manifest (`scripts/sync-fonts.mjs`, `public/fonts/integrity.json`)**: Added `validateWoff2Header()` to verify the 48-byte W3C WOFF2 binary header (`wOF2` magic signature `0x774F4632`, SFNT flavor, declared vs. actual byte length, `reserved === 0`, table count `1..64`, and `totalSfntSize <= 4 MiB`) without invoking any Brotli decoder, and pinned SHA-256 hashes for all 48 `.woff2` files in `public/fonts/integrity.json`.
+- **Zero Third-Party Font CDNs Across Static Previews, Kits & WordPress (`public/colors_and_type.css`, `public/preview/*.html`, `public/kits/*/index.html`, `packages/wordpress/tti-ux-core/tti-ux-core.php`)**: Expanded `public/colors_and_type.css` to declare `@font-face` rules for all 48 self-hosted `.woff2` files (including `JetBrains Mono` and `Public Sans`) and stripped all remaining `fonts.googleapis.com` / `fonts.gstatic.com` `<link>` and `wp_enqueue_style` references across 32 static preview/kit HTML pages and the WordPress core plugin.
+- **Regression Unit Tests (`tests/tux-typography.test.ts`)**: Added automated guards verifying `ui.fonts: false`, WOFF2 header and SHA-256 manifest integrity for every file in `public/fonts/`, and zero external font CDN links across `app/`, `public/`, `packages/`, `kit/`, and `templates/`.
+
 ## [3.4.5] — 2026-10-23
 
 ### Fixed — Composition Example Pages UI, Contrast, Layout & Overlap Overhaul (2026-10-23)
