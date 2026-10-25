@@ -12,9 +12,12 @@
  * from app code, plus the fallback idioms that smuggle it back in.
  */
 import { describe, expect, it } from "vitest";
+import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+// @ts-expect-error -- .mjs build script without .d.ts
+import { validateWoff2Header } from "../scripts/sync-fonts.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -60,6 +63,90 @@ describe("four-family typography rule", () => {
     const offenders = appFiles
       .filter((f) => !sanctioned.has(relative(ROOT, f)))
       .filter((f) => namedFaces.test(readFileSync(f, "utf8")))
+      .map((f) => relative(ROOT, f));
+    expect(offenders).toEqual([]);
+  });
+
+  it("disables @nuxt/fonts auto-registration and WOFF2 parsing (woff2shell / CVE-2026-111497 guard)", () => {
+    const configSrc = readFileSync(join(ROOT, "nuxt.config.ts"), "utf8");
+    // Ensure @nuxt/ui is configured with `fonts: false` so @nuxt/fonts (and fontkitten's WOFF2 Brotli decoder) is not loaded
+    expect(configSrc).toMatch(/ui:\s*\{[\s\S]*?fonts:\s*false/);
+    // Ensure local and remote providers in `fonts.providers` are explicitly disabled as defense-in-depth
+    expect(configSrc).toMatch(/providers:\s*\{[\s\S]*?local:\s*false/);
+    expect(configSrc).toMatch(/providers:\s*\{[\s\S]*?google:\s*false/);
+  });
+
+  it("verifies WOFF2 header invariants and SHA-256 integrity for all self-hosted fonts", () => {
+    const fontsDir = join(ROOT, "public", "fonts");
+    const manifestPath = join(fontsDir, "integrity.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
+      schemaVersion: number;
+      files: Record<
+        string,
+        {
+          sha256: string;
+          bytes: number;
+          numTables: number;
+          totalSfntSize: number;
+          totalCompressedSize: number;
+        }
+      >;
+    };
+    expect(manifest.schemaVersion).toBe(1);
+
+    // Collect every .woff2 file on disk under public/fonts/
+    const onDiskWoff2: string[] = [];
+    for (const entry of readdirSync(fontsDir)) {
+      const sub = join(fontsDir, entry);
+      if (!statSync(sub).isDirectory()) continue;
+      for (const f of readdirSync(sub)) {
+        if (f.endsWith(".woff2")) {
+          onDiskWoff2.push(`${entry}/${f}`);
+        }
+      }
+    }
+    onDiskWoff2.sort();
+
+    // Every on-disk .woff2 must be in integrity.json and vice versa
+    expect(onDiskWoff2).toEqual(Object.keys(manifest.files).sort());
+
+    // Every @font-face url("/fonts/<rel>") in fonts.css must resolve to a verified file
+    const fontsCss = readFileSync(join(ROOT, "app", "assets", "css", "fonts.css"), "utf8");
+    const referencedUrls = [...fontsCss.matchAll(/url\("\/fonts\/([^"]+)"\)/g)].map((m) => m[1]!);
+    expect(referencedUrls.length).toBeGreaterThan(0);
+    for (const rel of referencedUrls) {
+      expect(manifest.files[rel], `fonts.css references unverified font: ${rel}`).toBeDefined();
+    }
+
+    // Validate binary WOFF2 headers and SHA-256 digests
+    for (const rel of onDiskWoff2) {
+      const buf = readFileSync(join(fontsDir, rel));
+      const meta = validateWoff2Header(buf, rel);
+      const sha256 = createHash("sha256").update(buf).digest("hex");
+      const expected = manifest.files[rel]!;
+      expect(sha256, `SHA-256 mismatch for ${rel}`).toBe(expected.sha256);
+      expect(meta.bytes, `Byte length mismatch for ${rel}`).toBe(expected.bytes);
+      expect(meta.numTables, `Table count mismatch for ${rel}`).toBe(expected.numTables);
+      expect(meta.totalSfntSize, `SFNT size mismatch for ${rel}`).toBe(expected.totalSfntSize);
+      expect(meta.totalCompressedSize, `Compressed size mismatch for ${rel}`).toBe(expected.totalCompressedSize);
+    }
+  });
+
+  it("no third-party font CDN links (fonts.googleapis.com / fonts.gstatic.com) in app, public, or packages", () => {
+    const walkAll = (dir: string, out: string[] = []): string[] => {
+      for (const name of readdirSync(dir)) {
+        if (name === "node_modules" || name === "dist" || name.startsWith(".")) continue;
+        const p = join(dir, name);
+        if (statSync(p).isDirectory()) walkAll(p, out);
+        else if (/\.(vue|ts|js|mjs|css|html|php)$/.test(name)) out.push(p);
+      }
+      return out;
+    };
+    const scanFiles = ["app", "public", "packages", "kit", "templates"]
+      .flatMap((d) => walkAll(join(ROOT, d)));
+    const cdnRe = /fonts\.googleapis\.com|fonts\.gstatic\.com|fonts\.bunny\.net|api\.fontshare\.com/;
+    const offenders = scanFiles
+      .filter((f) => cdnRe.test(readFileSync(f, "utf8")))
       .map((f) => relative(ROOT, f));
     expect(offenders).toEqual([]);
   });
