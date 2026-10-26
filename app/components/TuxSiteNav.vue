@@ -30,6 +30,9 @@ interface DropdownColumn {
   to?: string;
   href?: string;
   description?: string;
+  /** Optional leading icon (Iconify name), passed through to the
+   *  TuxDropdown / TuxMegaMenu row. */
+  icon?: string;
 }
 
 interface MegaMenuColumn {

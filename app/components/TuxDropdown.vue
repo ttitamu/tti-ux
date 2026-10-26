@@ -19,6 +19,19 @@
 //     immediately sees "I'm inside this section").
 //   - Each item lights up when the current route matches its `to`.
 //
+// Semantics: the ARIA APG's disclosure navigation pattern, not the menu
+// pattern (which is for application menus, with arrow-key focus
+// management this component doesn't do). The trigger carries
+// aria-expanded + aria-controls; the panel is a plain list of links.
+// The old role="menu" panel around a <ul> of <li role="none"><a
+// role="menuitem"> failed axe (aria-required-children,
+// aria-required-parent, list) whenever a menu was open.
+//
+// Icons: an item may name a leading icon (`icon: "lucide:search"`). Once
+// any item has one, every row gets the icon column (empty where an item
+// has none), so the titles stay aligned; a menu with no icons renders as
+// it always has.
+//
 // For a multi-column featured panel, use `<TuxMegaMenu>` instead.
 
 interface DropdownItem {
@@ -26,6 +39,8 @@ interface DropdownItem {
   to?: string;
   href?: string;
   description?: string;
+  /** Optional leading icon, an Iconify name (e.g. "lucide:search"). */
+  icon?: string;
 }
 
 interface Props {
@@ -46,6 +61,9 @@ const props = defineProps<Props>();
 
 const open = ref(false);
 const root = ref<HTMLElement | null>(null);
+// The panel's id, for the trigger's aria-controls (SSR-stable).
+const panelId = useId();
+const hasIcons = computed(() => props.items.some((item) => !!item.icon));
 let closeTimer: ReturnType<typeof setTimeout> | null = null;
 
 function show() {
@@ -147,8 +165,8 @@ const isTriggerActive = computed<boolean>(() => {
       class="tux-dropdown__trigger"
       :class="{ 'tux-dropdown__trigger--active': isTriggerActive }"
       :aria-expanded="open"
+      :aria-controls="panelId"
       :aria-current="route.fullPath === to ? 'page' : undefined"
-      aria-haspopup="true"
     >
       <span>{{ label }}</span>
       <Icon
@@ -164,7 +182,7 @@ const isTriggerActive = computed<boolean>(() => {
       class="tux-dropdown__trigger"
       :class="{ 'tux-dropdown__trigger--active': isTriggerActive }"
       :aria-expanded="open"
-      aria-haspopup="true"
+      :aria-controls="panelId"
       @click="toggle"
     >
       <span>{{ label }}</span>
@@ -179,11 +197,11 @@ const isTriggerActive = computed<boolean>(() => {
     <Transition name="tux-dropdown">
       <div
         v-show="open"
+        :id="panelId"
         class="tux-dropdown__panel"
-        role="menu"
       >
         <ul class="tux-dropdown__list">
-          <li v-for="item in items" :key="item.label" class="tux-dropdown__item" role="none">
+          <li v-for="item in items" :key="item.label" class="tux-dropdown__item">
             <!-- Same explicit-branch reasoning as the trigger. The
                  previous `<component v-bind="linkAttrs(item)" :is>`
                  pattern leaked the `component` key onto the rendered
@@ -193,10 +211,23 @@ const isTriggerActive = computed<boolean>(() => {
               v-if="item.to"
               :to="item.to"
               class="tux-dropdown__link"
-              :class="{ 'tux-dropdown__link--active': isItemActive(item) }"
+              :class="{
+                'tux-dropdown__link--active': isItemActive(item),
+                'tux-dropdown__link--with-icon': hasIcons,
+              }"
               :aria-current="isItemActive(item) ? 'page' : undefined"
-              role="menuitem"
             >
+              <Icon
+                v-if="item.icon"
+                :name="item.icon"
+                class="tux-dropdown__link-icon"
+                aria-hidden="true"
+              />
+              <span
+                v-else-if="hasIcons"
+                class="tux-dropdown__link-icon tux-dropdown__link-icon--empty"
+                aria-hidden="true"
+              />
               <span class="tux-dropdown__link-label">{{ item.label }}</span>
               <span
                 v-if="item.description"
@@ -207,10 +238,23 @@ const isTriggerActive = computed<boolean>(() => {
               v-else-if="item.href && isInternal(item.href)"
               :to="item.href"
               class="tux-dropdown__link"
-              :class="{ 'tux-dropdown__link--active': isItemActive(item) }"
+              :class="{
+                'tux-dropdown__link--active': isItemActive(item),
+                'tux-dropdown__link--with-icon': hasIcons,
+              }"
               :aria-current="isItemActive(item) ? 'page' : undefined"
-              role="menuitem"
             >
+              <Icon
+                v-if="item.icon"
+                :name="item.icon"
+                class="tux-dropdown__link-icon"
+                aria-hidden="true"
+              />
+              <span
+                v-else-if="hasIcons"
+                class="tux-dropdown__link-icon tux-dropdown__link-icon--empty"
+                aria-hidden="true"
+              />
               <span class="tux-dropdown__link-label">{{ item.label }}</span>
               <span
                 v-if="item.description"
@@ -223,15 +267,41 @@ const isTriggerActive = computed<boolean>(() => {
               target="_blank"
               rel="noopener"
               class="tux-dropdown__link"
-              role="menuitem"
+              :class="{ 'tux-dropdown__link--with-icon': hasIcons }"
             >
+              <Icon
+                v-if="item.icon"
+                :name="item.icon"
+                class="tux-dropdown__link-icon"
+                aria-hidden="true"
+              />
+              <span
+                v-else-if="hasIcons"
+                class="tux-dropdown__link-icon tux-dropdown__link-icon--empty"
+                aria-hidden="true"
+              />
               <span class="tux-dropdown__link-label">{{ item.label }}</span>
               <span
                 v-if="item.description"
                 class="tux-dropdown__link-description"
               >{{ item.description }}</span>
             </a>
-            <span v-else class="tux-dropdown__link" role="menuitem">
+            <span
+              v-else
+              class="tux-dropdown__link"
+              :class="{ 'tux-dropdown__link--with-icon': hasIcons }"
+            >
+              <Icon
+                v-if="item.icon"
+                :name="item.icon"
+                class="tux-dropdown__link-icon"
+                aria-hidden="true"
+              />
+              <span
+                v-else-if="hasIcons"
+                class="tux-dropdown__link-icon tux-dropdown__link-icon--empty"
+                aria-hidden="true"
+              />
               <span class="tux-dropdown__link-label">{{ item.label }}</span>
               <span
                 v-if="item.description"
@@ -357,6 +427,35 @@ const isTriggerActive = computed<boolean>(() => {
 .tux-dropdown__link-label {
   display: block;
   font-weight: 600;
+}
+
+/* A menu with icons: the icon in a leading column, the label and the
+   description in the second. */
+.tux-dropdown__link--with-icon {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  column-gap: 0.625rem;
+  align-items: start;
+}
+
+.tux-dropdown__link--with-icon .tux-dropdown__link-label,
+.tux-dropdown__link--with-icon .tux-dropdown__link-description {
+  grid-column: 2;
+}
+
+.tux-dropdown__link-icon {
+  grid-row: 1 / span 2;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.125rem;
+  color: var(--text-muted);
+  transition: color 0.15s ease;
+}
+
+.tux-dropdown__link:hover .tux-dropdown__link-icon,
+.tux-dropdown__link:focus-visible .tux-dropdown__link-icon,
+.tux-dropdown__link--active .tux-dropdown__link-icon {
+  color: var(--brand-primary);
 }
 
 .tux-dropdown__link-description {

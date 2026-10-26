@@ -35,6 +35,29 @@ describe("TuxSiteNav Component", () => {
     expect(violations).toEqual([]);
   });
 
+  it("passes primaryNav item icons through to its dropdown and mega menu", async () => {
+    const wrapper = await mountSuspended(TuxSiteNav, {
+      props: {
+        identity: { name: "TTI Operations Portal" },
+        primaryNav: [
+          {
+            label: "Catalog",
+            dropdown: [{ label: "Search", to: "/search", icon: "lucide:search" }],
+          },
+          {
+            label: "Operations",
+            megaMenu: {
+              columns: [{ heading: "Scans", items: [{ label: "Scan jobs", to: "/scans", icon: "lucide:scan-line" }] }],
+            },
+          },
+        ],
+      },
+    });
+
+    expect(wrapper.find(".tux-dropdown__link--with-icon .tux-dropdown__link-icon").exists()).toBe(true);
+    expect(wrapper.find(".tux-mega-menu__link--with-icon .tux-mega-menu__link-icon").exists()).toBe(true);
+  });
+
   it("renders utility bar, search trigger, and supports mobile toggle", async () => {
     const wrapper = await mountSuspended(TuxSiteNav, {
       props: {

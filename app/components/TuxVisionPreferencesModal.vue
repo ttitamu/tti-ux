@@ -4,7 +4,8 @@
  * offering color vision deficiency (CVD) modes, real-time SVG filter simulation,
  * multi-channel chart redundancy controls, and anti-halation astigmatism comfort.
  */
-import { computed } from "vue";
+import { computed, watch } from "vue";
+import { useTuxPersistedRef } from "../composables/useTuxPersistedRef";
 import { useTuxVisionPrefs } from "../composables/useTuxVisionPrefs";
 
 interface Props {
@@ -21,6 +22,28 @@ const emit = defineEmits<{
 
 const { prefs, reset, apply } = useTuxVisionPrefs();
 const colorMode = useColorMode();
+
+// The mode high contrast goes back to: the one the person had before it,
+// light or dark (it used to be tti-dark whatever they came from). Recorded
+// whenever the preference turns to tti-hc from another mode, by this dialog
+// or by another switch (a cluster's or footer's high-contrast button) while
+// the dialog is mounted, and kept in storage, because high contrast itself
+// survives a reload. Light when nothing was recorded.
+const modeBeforeHighContrast = useTuxPersistedRef<string>(() => "tux-mode-before-hc", "tti");
+watch(
+  () => colorMode.preference,
+  (now, before) => {
+    if (now === "tti-hc" && before && before !== "tti-hc") {
+      modeBeforeHighContrast.value = before;
+    }
+  },
+);
+
+function leaveHighContrast() {
+  const back = modeBeforeHighContrast.value;
+  colorMode.preference = back && back !== "tti-hc" ? back : "tti";
+}
+
 const isHighContrast = computed({
   get: () => colorMode.preference === "tti-hc",
   set: (val: boolean) => {
@@ -29,7 +52,7 @@ const isHighContrast = computed({
       prefs.value.fieldSunlight = false;
       colorMode.preference = "tti-hc";
     } else {
-      colorMode.preference = "tti-dark";
+      leaveHighContrast();
     }
     apply();
   },
@@ -99,6 +122,7 @@ const typeProfiles = [
 function onSoftDarkChange() {
   if (prefs.value.softDark) {
     prefs.value.fieldSunlight = false;
+    // Soft dark is a dark mode: from high contrast it goes to dark, not back.
     if (colorMode.preference === "tti-hc") {
       colorMode.preference = "tti-dark";
     }
@@ -118,7 +142,7 @@ function onFieldSunlightChange() {
 
 function onResetDefaults() {
   if (colorMode.preference === "tti-hc") {
-    colorMode.preference = "tti-dark";
+    leaveHighContrast();
   }
   reset();
 }
@@ -137,132 +161,15 @@ function onClose() {
     @update:open="emit('update:open', $event)"
   >
     <div class="space-y-6 text-text-primary">
-      <!-- Section 1: Color Vision Deficiency Mode -->
+      <!-- Section 1: High Contrast, Astigmatism & Field Comfort. First, as in TTI Code's
+           dialog and TTI AI Studio's: the low-vision switches before the colour-vision ones. -->
       <section class="space-y-3">
         <div class="flex items-center justify-between">
           <h3 class="font-bold text-sm uppercase tracking-wider text-text-secondary">
-            1. Categorical Color Vision Palette
+            1. High Contrast, Astigmatism &amp; Field Comfort
           </h3>
-          <span class="text-xs text-text-muted">Affects charts, heatmaps & telemetry</span>
+          <span class="text-xs text-brand-primary font-medium">Section 508 &amp; WCAG 2.2 AAA</span>
         </div>
-
-        <div class="space-y-2">
-          <label
-            v-for="mode in cvdModes"
-            :key="mode.id"
-            class="flex flex-col p-3 border rounded cursor-pointer transition-colors"
-            :class="[
-              prefs.cvdMode === mode.id
-                ? 'border-brand-primary bg-surface-sunken ring-1 ring-brand-primary'
-                : 'border-surface-border bg-surface-raised hover:bg-surface-sunken'
-            ]"
-          >
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <input
-                  v-model="prefs.cvdMode"
-                  type="radio"
-                  name="tux-cvd-mode"
-                  :value="mode.id"
-                  class="w-4 h-4 text-brand-primary focus:ring-brand-primary"
-                >
-                <span class="font-semibold text-sm">{{ mode.label }}</span>
-                <span
-                  v-if="mode.badge"
-                  class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-brand-primary/10 text-brand-primary"
-                >
-                  {{ mode.badge }}
-                </span>
-              </div>
-              <!-- Swatches preview -->
-              <div class="flex items-center gap-1" aria-hidden="true">
-                <span
-                  v-for="(swatch, idx) in mode.swatches.slice(0, 5)"
-                  :key="idx"
-                  class="w-3.5 h-3.5 rounded-full border border-black/20"
-                  :style="{ backgroundColor: swatch }"
-                />
-              </div>
-            </div>
-            <p class="mt-1 text-xs text-text-muted pl-6">
-              {{ mode.description }}
-            </p>
-          </label>
-        </div>
-      </section>
-
-      <!-- Section 2: Live Vision Simulation Filter -->
-      <section class="space-y-2 pt-2 border-t border-surface-border">
-        <div class="flex items-center justify-between">
-          <label for="tux-cvd-sim-select" class="font-bold text-sm uppercase tracking-wider text-text-secondary">
-            2. Live Colorblindness Simulation Filter
-          </label>
-          <span class="text-xs text-brand-primary font-medium">Design & Audit Tool</span>
-        </div>
-        <p class="text-xs text-text-muted">
-          Simulates retinal cone deficiency across the entire viewport using clinical SVG color matrices.
-        </p>
-        <select
-          id="tux-cvd-sim-select"
-          v-model="prefs.cvdSimulation"
-          class="w-full min-h-[44px] px-3 py-2 bg-surface-raised border border-surface-border rounded text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
-        >
-          <option v-for="sim in simulations" :key="sim.value" :value="sim.value">
-            {{ sim.label }}
-          </option>
-        </select>
-      </section>
-
-      <!-- Section 3: Multi-Channel Redundancy -->
-      <section class="space-y-3 pt-2 border-t border-surface-border">
-        <h3 class="font-bold text-sm uppercase tracking-wider text-text-secondary">
-          3. Multi-Channel Redundancy (Non-Color Encodings)
-        </h3>
-
-        <div class="space-y-2">
-          <label class="flex items-start gap-3 p-2.5 rounded bg-surface-raised hover:bg-surface-sunken cursor-pointer border border-surface-border min-h-[44px]">
-            <input
-              v-model="prefs.patterns"
-              type="checkbox"
-              class="w-4 h-4 mt-0.5 rounded text-brand-primary focus:ring-brand-primary"
-            >
-            <div>
-              <span class="text-sm font-semibold block">Distinct Line Dash Patterns</span>
-              <span class="text-xs text-text-muted">Cycles solid, dashed, and dotted stroke styles across series so lines are distinguishable in grayscale and monochrome printouts.</span>
-            </div>
-          </label>
-
-          <label class="flex items-start gap-3 p-2.5 rounded bg-surface-raised hover:bg-surface-sunken cursor-pointer border border-surface-border min-h-[44px]">
-            <input
-              v-model="prefs.distinctMarkers"
-              type="checkbox"
-              class="w-4 h-4 mt-0.5 rounded text-brand-primary focus:ring-brand-primary"
-            >
-            <div>
-              <span class="text-sm font-semibold block">Geometric Point Markers</span>
-              <span class="text-xs text-text-muted">Renders distinct geometric shapes (circles ●, squares ■, triangles ▲, diamonds ◆) on data points for triple-redundant identification.</span>
-            </div>
-          </label>
-
-          <label class="flex items-start gap-3 p-2.5 rounded bg-surface-raised hover:bg-surface-sunken cursor-pointer border border-surface-border min-h-[44px]">
-            <input
-              v-model="prefs.directLabels"
-              type="checkbox"
-              class="w-4 h-4 mt-0.5 rounded text-brand-primary focus:ring-brand-primary"
-            >
-            <div>
-              <span class="text-sm font-semibold block">Direct Value Labels</span>
-              <span class="text-xs text-text-muted">Annotates end-of-series data values directly on curves to eliminate back-and-forth legend eye tracking.</span>
-            </div>
-          </label>
-        </div>
-      </section>
-
-      <!-- Section 4: Astigmatism, Low-Vision & Field Comfort -->
-      <section class="space-y-3 pt-2 border-t border-surface-border">
-        <h3 class="font-bold text-sm uppercase tracking-wider text-text-secondary">
-          4. High Contrast, Astigmatism &amp; Field Comfort
-        </h3>
 
         <div class="space-y-2">
           <label class="flex items-start gap-3 p-2.5 rounded bg-surface-raised hover:bg-surface-sunken cursor-pointer border border-surface-border min-h-[44px]">
@@ -317,11 +224,11 @@ function onClose() {
         </div>
       </section>
 
-      <!-- Section 5: Institutional Typography Profile -->
+      <!-- Section 2: Institutional Typography Profile -->
       <section class="space-y-2 pt-2 border-t border-surface-border">
         <div class="flex items-center justify-between">
           <label for="tux-type-profile-select" class="font-bold text-sm uppercase tracking-wider text-text-secondary">
-            5. Institutional Typography Profile
+            2. Institutional Typography Profile
           </label>
           <span class="text-xs text-text-muted">Display, body &amp; tabular cadence</span>
         </div>
@@ -334,6 +241,127 @@ function onClose() {
             {{ tp.label }}
           </option>
         </select>
+      </section>
+
+      <!-- Section 3: Color Vision Deficiency Mode -->
+      <section class="space-y-3 pt-2 border-t border-surface-border">
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-sm uppercase tracking-wider text-text-secondary">
+            3. Categorical Color Vision Palette
+          </h3>
+          <span class="text-xs text-text-muted">Affects charts, heatmaps & telemetry</span>
+        </div>
+
+        <div class="space-y-2">
+          <label
+            v-for="mode in cvdModes"
+            :key="mode.id"
+            class="flex flex-col p-3 border rounded cursor-pointer transition-colors"
+            :class="[
+              prefs.cvdMode === mode.id
+                ? 'border-brand-primary bg-surface-sunken ring-1 ring-brand-primary'
+                : 'border-surface-border bg-surface-raised hover:bg-surface-sunken'
+            ]"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <input
+                  v-model="prefs.cvdMode"
+                  type="radio"
+                  name="tux-cvd-mode"
+                  :value="mode.id"
+                  class="w-4 h-4 text-brand-primary focus:ring-brand-primary"
+                >
+                <span class="font-semibold text-sm">{{ mode.label }}</span>
+                <span
+                  v-if="mode.badge"
+                  class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-brand-primary/10 text-brand-primary"
+                >
+                  {{ mode.badge }}
+                </span>
+              </div>
+              <!-- Swatches preview -->
+              <div class="flex items-center gap-1" aria-hidden="true">
+                <span
+                  v-for="(swatch, idx) in mode.swatches.slice(0, 5)"
+                  :key="idx"
+                  class="w-3.5 h-3.5 rounded-full border border-black/20"
+                  :style="{ backgroundColor: swatch }"
+                />
+              </div>
+            </div>
+            <p class="mt-1 text-xs text-text-muted pl-6">
+              {{ mode.description }}
+            </p>
+          </label>
+        </div>
+      </section>
+
+      <!-- Section 4: Live Vision Simulation Filter -->
+      <section class="space-y-2 pt-2 border-t border-surface-border">
+        <div class="flex items-center justify-between">
+          <label for="tux-cvd-sim-select" class="font-bold text-sm uppercase tracking-wider text-text-secondary">
+            4. Live Colorblindness Simulation Filter
+          </label>
+          <span class="text-xs text-brand-primary font-medium">Design & Audit Tool</span>
+        </div>
+        <p class="text-xs text-text-muted">
+          Simulates retinal cone deficiency across the entire viewport using clinical SVG color matrices.
+        </p>
+        <select
+          id="tux-cvd-sim-select"
+          v-model="prefs.cvdSimulation"
+          class="w-full min-h-[44px] px-3 py-2 bg-surface-raised border border-surface-border rounded text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary"
+        >
+          <option v-for="sim in simulations" :key="sim.value" :value="sim.value">
+            {{ sim.label }}
+          </option>
+        </select>
+      </section>
+
+      <!-- Section 5: Multi-Channel Redundancy -->
+      <section class="space-y-3 pt-2 border-t border-surface-border">
+        <h3 class="font-bold text-sm uppercase tracking-wider text-text-secondary">
+          5. Multi-Channel Redundancy (Non-Color Encodings)
+        </h3>
+
+        <div class="space-y-2">
+          <label class="flex items-start gap-3 p-2.5 rounded bg-surface-raised hover:bg-surface-sunken cursor-pointer border border-surface-border min-h-[44px]">
+            <input
+              v-model="prefs.patterns"
+              type="checkbox"
+              class="w-4 h-4 mt-0.5 rounded text-brand-primary focus:ring-brand-primary"
+            >
+            <div>
+              <span class="text-sm font-semibold block">Distinct Line Dash Patterns</span>
+              <span class="text-xs text-text-muted">Cycles solid, dashed, and dotted stroke styles across series so lines are distinguishable in grayscale and monochrome printouts.</span>
+            </div>
+          </label>
+
+          <label class="flex items-start gap-3 p-2.5 rounded bg-surface-raised hover:bg-surface-sunken cursor-pointer border border-surface-border min-h-[44px]">
+            <input
+              v-model="prefs.distinctMarkers"
+              type="checkbox"
+              class="w-4 h-4 mt-0.5 rounded text-brand-primary focus:ring-brand-primary"
+            >
+            <div>
+              <span class="text-sm font-semibold block">Geometric Point Markers</span>
+              <span class="text-xs text-text-muted">Renders distinct geometric shapes (circles ●, squares ■, triangles ▲, diamonds ◆) on data points for triple-redundant identification.</span>
+            </div>
+          </label>
+
+          <label class="flex items-start gap-3 p-2.5 rounded bg-surface-raised hover:bg-surface-sunken cursor-pointer border border-surface-border min-h-[44px]">
+            <input
+              v-model="prefs.directLabels"
+              type="checkbox"
+              class="w-4 h-4 mt-0.5 rounded text-brand-primary focus:ring-brand-primary"
+            >
+            <div>
+              <span class="text-sm font-semibold block">Direct Value Labels</span>
+              <span class="text-xs text-text-muted">Annotates end-of-series data values directly on curves to eliminate back-and-forth legend eye tracking.</span>
+            </div>
+          </label>
+        </div>
       </section>
     </div>
 
