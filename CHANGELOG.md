@@ -3,6 +3,38 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.5.0] — 2026-10-27
+
+### Added — Interactive 4-Level Master Architecture Plan (`<TuxArchitectureMap>`) & Zero-Subscription Figma Design Kit (2026-10-27)
+
+#### 1. Interactive 4-Level Master Architecture Plan (`packages/diagrams/app/components/TuxArchitectureMap.vue`, `packages/diagrams/app/utils/tuxArchitectureMap.ts`, `/components/architecture-map`)
+- **4-Level Semantic Architecture Canvas (`Level 1` → `Level 2` → `Level 3` → `Level 4`)**:
+  - **Level 1 (Ecosystem in Context)**: High-level actors, primary software system, and connected external systems.
+  - **Level 2 (Containers & Services)**: Internal runtime containers, databases, caches, worker queues, and object stores inside the primary system boundary.
+  - **Level 3 (Internal Components)**: Drills into any selected Level 2 container to display its internal modules in the center, upstream callers on the left, and downstream dependencies on the right.
+  - **Level 4 (Infrastructure & Deployment)**: Maps cloud resource groups, virtual machines, worker nodes, managed databases, key vaults, and firewall rules, with cross-level links back to hosted Level 2/3 services.
+- **Mouse-Wheel Over Object Level Zoom & Origin-Pinned Portal Animation**:
+  - Scrolling up while hovering over any diagram card zooms directly into the next semantic level (`Level 1 → 2 → 3 → 4`); scrolling down zooms back out (`Level 4 → 3 → 2 → 1`) with stationary-cursor re-highlighting and trackpad inertia guards.
+  - Paired with a 60fps compositor-thread Web Animations API transition (`stage.animate`) and an expanding/contracting `.tux-map__zoom-portal` frame + floating level HUD pill.
+- **Zero-Lag `O(degree)` Hover Highlighting & Strict 7-Layer Z-Index Stack**:
+  - Pre-indexed DOM cache (`rebuildStageDomCache`) and delegated `@pointerover` / `@pointerleave` highlight connected wires, labels, and neighbor cards in `< 0.01ms` with zero `querySelectorAll` calls, zero Vue VDOM re-renders, and `transition: none !important`.
+  - Strict 7-layer z-index stack (`0` boundaries → `1` base wires & dimmed cards → `2` resting cards → `3` resting HTML wire labels → `4` foreground active wires → `5` lit cards → `10` popped-out active wire labels) and collision-checked orthogonal gap routing (`routeGridWires` & `routeDeploymentWires`).
+- **On-Demand Collaboration & Review Annotations**: Built-in Freehand Pen (`getSmoothedFreehandSvgPath`), decaying Laser Pointer (`getLaserPointerSvgPath`), draggable Sticky Notes, live search filter, right-side inspector drawer with `keepClear` auto-pan, and accessible List View (`v-if="isListView"`).
+
+#### 2. Zero-Subscription Figma & Penpot Design Kit (`kit/figma/` & `/install/figma`)
+
+- **Deterministic Figma & W3C DTCG Kit Generator (`scripts/build-figma-kit.mjs`, `npm run build:figma`, `npm run verify:figma`)**:
+  - **`kit/figma/tokens.dtcg.json`**: Complete W3C Design Tokens Community Group (DTCG 2025.10) payload with `$type`, `$value`, and 3-mode extensions (`tti`, `tti-dark`, `tti-hc`) for Figma, Style Dictionary, and open-source Penpot.
+  - **`kit/figma/tokens-studio.json`**: Multi-mode token sets and `$themes` configuration for the free **Tokens Studio for Figma** community plugin.
+  - **`kit/figma/figma-variables.json`**: Native Figma Variables definitions (`COLOR`, `FLOAT`, `STRING`) with `0..1` RGBA floats, variable scopes (`FRAME_FILL`, `TEXT_FILL`, `CORNER_RADIUS`), and multi-platform `codeSyntax`.
+  - **`kit/figma/code-connect.json`**: Complete 166-entry Code Connect & blueprint registry mapping every entry in `app/utils/tuxCatalog.ts` to Vue 3, React, Web Components, Blazor, and WordPress snippets with WCAG 2.2 Level AAA metadata.
+  - **`kit/figma/svg-components/*.svg`**: 12 Copy-to-Figma vector component sheets (`TuxButton`, `TuxBadge`, `TuxAlert`, `TuxCard`, `TuxBigStat`, `TuxStatus`, `TuxSpectrumRibbon`, `TuxPortalHeader`, `TuxSectionHeader`, `TuxDataTable`, `TuxFormControls`, `TuxCorridorStrip`) that paste directly into Figma Web or Desktop as editable vector frames and text layers.
+  - **`kit/figma/plugin/{manifest.json,code.js,ui.html}`**: Zero-network (`allowedDomains: ["none"]`) local Figma Desktop plugin that works on the **Figma Free Starter Plan**, generating native Auto-Layout components, Paint Styles, and Local Variables (with automatic 3-collection fallback for the Free plan's 1-mode restriction) plus a built-in Code Connect Inspector.
+- **Interactive Designer Setup Hub (`app/pages/install/figma.vue` — `/install/figma`)**:
+  - Added a step-by-step **Designer Quick-Start Guide** requiring zero code, Git, or terminal usage, with 1-click **Copy SVG to Figma** buttons, `.svg`/`.json` downloads, and 1-click download of all 3 local Figma plugin files.
+  - Wired `/install/figma` into the global navigation sidebar (`app/app.vue`), `/install` target hub (`app/pages/install/index.vue`), `/docs` SDK matrix (`app/pages/docs/index.vue`), and `Cmd+K` search (`app/components/TuxDocSearch.vue`).
+- **Verification & Lock Tests (`tests/tux-kit-targets.test.ts`, `tests/tux-figma-kit.test.ts`)**: Locked all 21 `kit/figma/*` artifacts byte-for-byte against `scripts/build-figma-kit.mjs`.
+
 ## [3.4.6] — 2026-10-25
 
 ### Security & Hardening — Self-Hosted Web Font Supply-Chain & `woff2shell` (`CVE-2026-111497`) Guard (2026-10-25)

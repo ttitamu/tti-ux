@@ -76,6 +76,17 @@ const sdkTargets: SdkTarget[] = [
     summary: "Kadence child theme, 0px button geometry, utility bar, Gutenberg block patterns, and shortcodes.",
   },
   {
+    id: "figma",
+    name: "Figma & Penpot Kit",
+    platform: "Designers & UI Engineering",
+    package: "kit/figma/",
+    command: "npm run build:figma",
+    badge: "Zero-Subscription · Next Release",
+    icon: "lucide:figma",
+    to: "/install/figma",
+    summary: "Copy-to-Figma SVG component sheets, W3C DTCG 2025.10 tokens, Tokens Studio sets, and a 1-click Free Plan local Figma plugin.",
+  },
+  {
     id: "powerbi",
     name: "Power BI & Fabric",
     platform: "Analytics & Business Intelligence",

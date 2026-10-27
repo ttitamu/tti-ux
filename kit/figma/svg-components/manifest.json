@@ -1,0 +1,114 @@
+{
+  "_generated": "GENERATED FILE — do not edit. Source: design/tokens.json & app/utils/tuxCatalog.ts via scripts/build-figma-kit.mjs (npm run build:figma).",
+  "count": 12,
+  "sheets": [
+    {
+      "id": "tux-button",
+      "name": "TuxButton",
+      "category": "Actions & Commands",
+      "route": "/components/button",
+      "dimensions": "760 × 220",
+      "description": "Primary Maroon, Secondary Outline, Warm Gold Accent, Danger, and Dark Mode button variants at 44px WCAG 2.2 AAA target height.",
+      "file": "kit/figma/svg-components/tux-button.svg"
+    },
+    {
+      "id": "tux-badge",
+      "name": "TuxBadge",
+      "category": "Feedback & Status",
+      "route": "/components/badge",
+      "dimensions": "760 × 200",
+      "description": "Institutional security classification tiers, 5-Band Research Spectrum division pills, and Highway Capacity Manual (HCM) Level-of-Service (LOS A–F) badges.",
+      "file": "kit/figma/svg-components/tux-badge.svg"
+    },
+    {
+      "id": "tux-alert",
+      "name": "TuxAlert",
+      "category": "Feedback & Status",
+      "route": "/components/alert",
+      "dimensions": "760 × 230",
+      "description": "Institutional admonition banners (Compliance, Info, Warning, Critical) with 4px structural accent spine and >= 7:1 AAA contrast.",
+      "file": "kit/figma/svg-components/tux-alert.svg"
+    },
+    {
+      "id": "tux-card",
+      "name": "TuxCard",
+      "category": "Data Display & Records",
+      "route": "/components/card",
+      "dimensions": "760 × 240",
+      "description": "Elevation-aware institutional surface card with 5-Band Spectrum top bar, eyebrow kicker, Oswald display heading, and metadata footer.",
+      "file": "kit/figma/svg-components/tux-card.svg"
+    },
+    {
+      "id": "tux-big-stat",
+      "name": "TuxBigStat",
+      "category": "Data Display & Records",
+      "route": "/components/big-stat",
+      "dimensions": "760 × 190",
+      "description": "Hero KPI statistical readout with Oswald tabular numerals, YoY delta badge, sample size (n), confidence interval, and DOI provenance.",
+      "file": "kit/figma/svg-components/tux-big-stat.svg"
+    },
+    {
+      "id": "tux-status",
+      "name": "TuxStatus",
+      "category": "Feedback & Status",
+      "route": "/components/status",
+      "dimensions": "760 × 170",
+      "description": "ADR-0013 Operational Status Palette (OK, Warning, Unknown, Critical, Maintenance, Pending) perceptual OKLab ramp.",
+      "file": "kit/figma/svg-components/tux-status.svg"
+    },
+    {
+      "id": "tux-spectrum-ribbon",
+      "name": "TuxSpectrumRibbon",
+      "category": "Navigation & Layout",
+      "route": "/components/spectrum-ribbon",
+      "dimensions": "760 × 160",
+      "description": "Official 5-Band TTI Research Spectrum bar (Maroon, Navy Blue, Teal, Sage Green, Warm Gold) representing TTI's five core research divisions.",
+      "file": "kit/figma/svg-components/tux-spectrum-ribbon.svg"
+    },
+    {
+      "id": "tux-portal-header",
+      "name": "TuxPortalHeader",
+      "category": "Navigation & Layout",
+      "route": "/components/portal-shell",
+      "dimensions": "760 × 150",
+      "description": "Two-tier institutional masthead: TAMUS charcoal utility bar, invariant Maroon brand bar (--brand-fill), Warm Gold keyline, and global navigation.",
+      "file": "kit/figma/svg-components/tux-portal-header.svg"
+    },
+    {
+      "id": "tux-section-header",
+      "name": "TuxSectionHeader",
+      "category": "Navigation & Layout",
+      "route": "/components/section-header",
+      "dimensions": "760 × 150",
+      "description": "Editorial section header with monospace kicker, Oswald display typography, and signature 2px Warm Gold keyline rule.",
+      "file": "kit/figma/svg-components/tux-section-header.svg"
+    },
+    {
+      "id": "tux-data-table",
+      "name": "TuxDataTable",
+      "category": "Data Display & Records",
+      "route": "/components/data-table",
+      "dimensions": "760 × 230",
+      "description": "High-density engineering table with tabular numerals, operational status badges, unit system toggle, and provenance footer.",
+      "file": "kit/figma/svg-components/tux-data-table.svg"
+    },
+    {
+      "id": "tux-form-controls",
+      "name": "TuxFilterBar & Form Controls",
+      "category": "Forms & Controls",
+      "route": "/components/forms",
+      "dimensions": "760 × 200",
+      "description": "WCAG 2.2 AAA form inputs: 3:1 UI boundary borders (#525252), 44px touch height, double-ring focus indicator, and accessible error messaging.",
+      "file": "kit/figma/svg-components/tux-form-controls.svg"
+    },
+    {
+      "id": "tux-corridor-strip",
+      "name": "TuxCorridorStrip",
+      "category": "Geospatial & Maps",
+      "route": "/components/corridor-strip",
+      "dimensions": "760 × 190",
+      "description": "Linear Referencing System (LRS) highway corridor diagram with civil-engineering stationing ticks (STA 00+00 to STA 40+00) and sensor nodes.",
+      "file": "kit/figma/svg-components/tux-corridor-strip.svg"
+    }
+  ]
+}

@@ -1,0 +1,2953 @@
+{
+  "$schema": "https://tr.designtokens.org/format/",
+  "$metadata": {
+    "generator": "GENERATED FILE — do not edit. Source: design/tokens.json & app/utils/tuxCatalog.ts via scripts/build-figma-kit.mjs (npm run build:figma).",
+    "designSystem": "TUX (@tti/tti-ux)",
+    "institution": "Texas A&M Transportation Institute (TTI)",
+    "wcagConformance": "WCAG 2.2 Level AAA (7.0:1 text, 3.0:1 UI boundaries)",
+    "modes": [
+      "tti",
+      "tti-dark",
+      "tti-hc"
+    ]
+  },
+  "tti": {
+    "maroon": {
+      "$type": "color",
+      "$value": "#5C0025",
+      "$description": "TUX canonical token --tti-maroon",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--tti-maroon",
+          "modes": {
+            "tti": "#5C0025",
+            "tti-dark": "#5C0025",
+            "tti-hc": "#5C0025"
+          }
+        }
+      }
+    },
+    "maroon-deep": {
+      "$type": "color",
+      "$value": "#500000",
+      "$description": "TUX canonical token --tti-maroon-deep",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--tti-maroon-deep",
+          "modes": {
+            "tti": "#500000",
+            "tti-dark": "#500000",
+            "tti-hc": "#500000"
+          }
+        }
+      }
+    },
+    "gold": {
+      "$type": "color",
+      "$value": "#DDAC37",
+      "$description": "TUX canonical token --tti-gold",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--tti-gold",
+          "modes": {
+            "tti": "#DDAC37",
+            "tti-dark": "#DDAC37",
+            "tti-hc": "#DDAC37"
+          }
+        }
+      }
+    },
+    "gold-deep": {
+      "$type": "color",
+      "$value": "#DCAA37",
+      "$description": "TUX canonical token --tti-gold-deep",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--tti-gold-deep",
+          "modes": {
+            "tti": "#DCAA37",
+            "tti-dark": "#DCAA37",
+            "tti-hc": "#DCAA37"
+          }
+        }
+      }
+    },
+    "navy": {
+      "$type": "color",
+      "$value": "#15457E",
+      "$description": "TUX canonical token --tti-navy",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--tti-navy",
+          "modes": {
+            "tti": "#15457E",
+            "tti-dark": "#15457E",
+            "tti-hc": "#15457E"
+          }
+        }
+      }
+    },
+    "teal": {
+      "$type": "color",
+      "$value": "#4A8892",
+      "$description": "TUX canonical token --tti-teal",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--tti-teal",
+          "modes": {
+            "tti": "#4A8892",
+            "tti-dark": "#4A8892",
+            "tti-hc": "#4A8892"
+          }
+        }
+      }
+    },
+    "sage": {
+      "$type": "color",
+      "$value": "#66814F",
+      "$description": "TUX canonical token --tti-sage",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--tti-sage",
+          "modes": {
+            "tti": "#66814F",
+            "tti-dark": "#66814F",
+            "tti-hc": "#66814F"
+          }
+        }
+      }
+    },
+    "charcoal": {
+      "$type": "color",
+      "$value": "#221F1F",
+      "$description": "TUX canonical token --tti-charcoal",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--tti-charcoal",
+          "modes": {
+            "tti": "#221F1F",
+            "tti-dark": "#221F1F",
+            "tti-hc": "#221F1F"
+          }
+        }
+      }
+    }
+  },
+  "spectrum": {
+    "maroon": {
+      "$type": "color",
+      "$value": "#701D35",
+      "$description": "TUX canonical token --spectrum-maroon",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--spectrum-maroon",
+          "modes": {
+            "tti": "#701D35",
+            "tti-dark": "#94384F",
+            "tti-hc": "#500000"
+          }
+        }
+      }
+    },
+    "blue": {
+      "$type": "color",
+      "$value": "#566A8A",
+      "$description": "TUX canonical token --spectrum-blue",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--spectrum-blue",
+          "modes": {
+            "tti": "#566A8A",
+            "tti-dark": "#7186A8",
+            "tti-hc": "#3B4E6B"
+          }
+        }
+      }
+    },
+    "teal": {
+      "$type": "color",
+      "$value": "#66999B",
+      "$description": "TUX canonical token --spectrum-teal",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--spectrum-teal",
+          "modes": {
+            "tti": "#66999B",
+            "tti-dark": "#80B5B7",
+            "tti-hc": "#476E70"
+          }
+        }
+      }
+    },
+    "green": {
+      "$type": "color",
+      "$value": "#849974",
+      "$description": "TUX canonical token --spectrum-green",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--spectrum-green",
+          "modes": {
+            "tti": "#849974",
+            "tti-dark": "#A0B790",
+            "tti-hc": "#576E4B"
+          }
+        }
+      }
+    },
+    "gold": {
+      "$type": "color",
+      "$value": "#E5B350",
+      "$description": "TUX canonical token --spectrum-gold",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--spectrum-gold",
+          "modes": {
+            "tti": "#E5B350",
+            "tti-dark": "#F0C46B",
+            "tti-hc": "#C2912E"
+          }
+        }
+      }
+    }
+  },
+  "neutral": {
+    "0": {
+      "$type": "color",
+      "$value": "#FFFFFF",
+      "$description": "TUX canonical token --neutral-0",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-0",
+          "modes": {
+            "tti": "#FFFFFF",
+            "tti-dark": "#FFFFFF",
+            "tti-hc": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "50": {
+      "$type": "color",
+      "$value": "#FAFAFA",
+      "$description": "TUX canonical token --neutral-50",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-50",
+          "modes": {
+            "tti": "#FAFAFA",
+            "tti-dark": "#FAFAFA",
+            "tti-hc": "#FAFAFA"
+          }
+        }
+      }
+    },
+    "100": {
+      "$type": "color",
+      "$value": "#F5F5F5",
+      "$description": "TUX canonical token --neutral-100",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-100",
+          "modes": {
+            "tti": "#F5F5F5",
+            "tti-dark": "#F5F5F5",
+            "tti-hc": "#F5F5F5"
+          }
+        }
+      }
+    },
+    "150": {
+      "$type": "color",
+      "$value": "#EFEEED",
+      "$description": "TUX canonical token --neutral-150",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-150",
+          "modes": {
+            "tti": "#EFEEED",
+            "tti-dark": "#EFEEED",
+            "tti-hc": "#EFEEED"
+          }
+        }
+      }
+    },
+    "200": {
+      "$type": "color",
+      "$value": "#E7E6E6",
+      "$description": "TUX canonical token --neutral-200",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-200",
+          "modes": {
+            "tti": "#E7E6E6",
+            "tti-dark": "#E7E6E6",
+            "tti-hc": "#E7E6E6"
+          }
+        }
+      }
+    },
+    "250": {
+      "$type": "color",
+      "$value": "#DCDBD8",
+      "$description": "TUX canonical token --neutral-250",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-250",
+          "modes": {
+            "tti": "#DCDBD8",
+            "tti-dark": "#DCDBD8",
+            "tti-hc": "#DCDBD8"
+          }
+        }
+      }
+    },
+    "300": {
+      "$type": "color",
+      "$value": "#D1D2D4",
+      "$description": "TUX canonical token --neutral-300",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-300",
+          "modes": {
+            "tti": "#D1D2D4",
+            "tti-dark": "#D1D2D4",
+            "tti-hc": "#D1D2D4"
+          }
+        }
+      }
+    },
+    "400": {
+      "$type": "color",
+      "$value": "#A5A5A5",
+      "$description": "TUX canonical token --neutral-400",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-400",
+          "modes": {
+            "tti": "#A5A5A5",
+            "tti-dark": "#A5A5A5",
+            "tti-hc": "#A5A5A5"
+          }
+        }
+      }
+    },
+    "450": {
+      "$type": "color",
+      "$value": "#9B9A96",
+      "$description": "TUX canonical token --neutral-450",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-450",
+          "modes": {
+            "tti": "#9B9A96",
+            "tti-dark": "#9B9A96",
+            "tti-hc": "#9B9A96"
+          }
+        }
+      }
+    },
+    "500": {
+      "$type": "color",
+      "$value": "#939597",
+      "$description": "TUX canonical token --neutral-500",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-500",
+          "modes": {
+            "tti": "#939597",
+            "tti-dark": "#939597",
+            "tti-hc": "#939597"
+          }
+        }
+      }
+    },
+    "550": {
+      "$type": "color",
+      "$value": "#86847F",
+      "$description": "TUX canonical token --neutral-550",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-550",
+          "modes": {
+            "tti": "#86847F",
+            "tti-dark": "#86847F",
+            "tti-hc": "#86847F"
+          }
+        }
+      }
+    },
+    "600": {
+      "$type": "color",
+      "$value": "#7E7E7E",
+      "$description": "TUX canonical token --neutral-600",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-600",
+          "modes": {
+            "tti": "#7E7E7E",
+            "tti-dark": "#7E7E7E",
+            "tti-hc": "#7E7E7E"
+          }
+        }
+      }
+    },
+    "650": {
+      "$type": "color",
+      "$value": "#6B6964",
+      "$description": "TUX canonical token --neutral-650",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-650",
+          "modes": {
+            "tti": "#6B6964",
+            "tti-dark": "#6B6964",
+            "tti-hc": "#6B6964"
+          }
+        }
+      }
+    },
+    "700": {
+      "$type": "color",
+      "$value": "#5D5D5D",
+      "$description": "TUX canonical token --neutral-700",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-700",
+          "modes": {
+            "tti": "#5D5D5D",
+            "tti-dark": "#5D5D5D",
+            "tti-hc": "#5D5D5D"
+          }
+        }
+      }
+    },
+    "750": {
+      "$type": "color",
+      "$value": "#535048",
+      "$description": "TUX canonical token --neutral-750",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-750",
+          "modes": {
+            "tti": "#535048",
+            "tti-dark": "#535048",
+            "tti-hc": "#535048"
+          }
+        }
+      }
+    },
+    "800": {
+      "$type": "color",
+      "$value": "#4C4C4E",
+      "$description": "TUX canonical token --neutral-800",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-800",
+          "modes": {
+            "tti": "#4C4C4E",
+            "tti-dark": "#4C4C4E",
+            "tti-hc": "#4C4C4E"
+          }
+        }
+      }
+    },
+    "850": {
+      "$type": "color",
+      "$value": "#3A3833",
+      "$description": "TUX canonical token --neutral-850",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-850",
+          "modes": {
+            "tti": "#3A3833",
+            "tti-dark": "#3A3833",
+            "tti-hc": "#3A3833"
+          }
+        }
+      }
+    },
+    "900": {
+      "$type": "color",
+      "$value": "#221F1F",
+      "$description": "TUX canonical token --neutral-900",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-900",
+          "modes": {
+            "tti": "#221F1F",
+            "tti-dark": "#221F1F",
+            "tti-hc": "#221F1F"
+          }
+        }
+      }
+    },
+    "1000": {
+      "$type": "color",
+      "$value": "#000000",
+      "$description": "TUX canonical token --neutral-1000",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--neutral-1000",
+          "modes": {
+            "tti": "#000000",
+            "tti-dark": "#000000",
+            "tti-hc": "#000000"
+          }
+        }
+      }
+    }
+  },
+  "brand": {
+    "primary": {
+      "$type": "color",
+      "$value": "#5C0025",
+      "$description": "TUX canonical token --brand-primary",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--brand-primary",
+          "modes": {
+            "tti": "#5C0025",
+            "tti-dark": "#6BB4C0",
+            "tti-hc": "#500000"
+          }
+        }
+      }
+    },
+    "primary-deep": {
+      "$type": "color",
+      "$value": "#500000",
+      "$description": "TUX canonical token --brand-primary-deep",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--brand-primary-deep",
+          "modes": {
+            "tti": "#500000",
+            "tti-dark": "#5B9CA8",
+            "tti-hc": "#3A0000"
+          }
+        }
+      }
+    },
+    "accent": {
+      "$type": "color",
+      "$value": "#DDAC37",
+      "$description": "TUX canonical token --brand-accent",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--brand-accent",
+          "modes": {
+            "tti": "#DDAC37",
+            "tti-dark": "#DDAC37",
+            "tti-hc": "#DCAA37"
+          }
+        }
+      }
+    },
+    "accent-deep": {
+      "$type": "color",
+      "$value": "#DCAA37",
+      "$description": "TUX canonical token --brand-accent-deep",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--brand-accent-deep",
+          "modes": {
+            "tti": "#DCAA37",
+            "tti-dark": "#F0C362",
+            "tti-hc": "#B88A21"
+          }
+        }
+      }
+    },
+    "secondary": {
+      "$type": "color",
+      "$value": "#15457E",
+      "$description": "TUX canonical token --brand-secondary",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--brand-secondary",
+          "modes": {
+            "tti": "#15457E",
+            "tti-dark": "#8ab7e2",
+            "tti-hc": "#000000"
+          }
+        }
+      }
+    },
+    "fill": {
+      "$type": "color",
+      "$value": "#5C0025",
+      "$description": "TUX canonical token --brand-fill",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--brand-fill",
+          "modes": {
+            "tti": "#5C0025",
+            "tti-dark": "#5C0025",
+            "tti-hc": "#500000"
+          }
+        }
+      }
+    },
+    "accent-ink": {
+      "$type": "color",
+      "$value": "#2A0E15",
+      "$description": "TUX canonical token --brand-accent-ink",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--brand-accent-ink",
+          "modes": {
+            "tti": "#2A0E15",
+            "tti-dark": "#2A0E15",
+            "tti-hc": "#2A0E15"
+          }
+        }
+      }
+    },
+    "accent-shade": {
+      "$type": "color",
+      "$value": "#A87B1F",
+      "$description": "TUX canonical token --brand-accent-shade",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--brand-accent-shade",
+          "modes": {
+            "tti": "#A87B1F",
+            "tti-dark": "#A87B1F",
+            "tti-hc": "#A87B1F"
+          }
+        }
+      }
+    }
+  },
+  "surface": {
+    "page": {
+      "$type": "color",
+      "$value": "#FFFFFF",
+      "$description": "TUX canonical token --surface-page",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--surface-page",
+          "modes": {
+            "tti": "#FFFFFF",
+            "tti-dark": "#15100F",
+            "tti-hc": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "raised": {
+      "$type": "color",
+      "$value": "#FFFFFF",
+      "$description": "TUX canonical token --surface-raised",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--surface-raised",
+          "modes": {
+            "tti": "#FFFFFF",
+            "tti-dark": "#221F1F",
+            "tti-hc": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "sunken": {
+      "$type": "color",
+      "$value": "#F5F5F5",
+      "$description": "TUX canonical token --surface-sunken",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--surface-sunken",
+          "modes": {
+            "tti": "#F5F5F5",
+            "tti-dark": "#0B0908",
+            "tti-hc": "#F0F0F0"
+          }
+        }
+      }
+    },
+    "border": {
+      "$type": "color",
+      "$value": "#E7E6E6",
+      "$description": "TUX canonical token --surface-border",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--surface-border",
+          "modes": {
+            "tti": "#E7E6E6",
+            "tti-dark": "#3D3A3A",
+            "tti-hc": "#5D5D5D"
+          }
+        }
+      }
+    },
+    "border-subtle": {
+      "$type": "color",
+      "$value": "#EFEEED",
+      "$description": "TUX canonical token --surface-border-subtle",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--surface-border-subtle",
+          "modes": {
+            "tti": "#EFEEED",
+            "tti-dark": "#2E2B2A",
+            "tti-hc": "#5D5D5D"
+          }
+        }
+      }
+    },
+    "eggshell": {
+      "$type": "color",
+      "$value": "#F9F9F7",
+      "$description": "TUX canonical token --surface-eggshell",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--surface-eggshell",
+          "modes": {
+            "tti": "#F9F9F7",
+            "tti-dark": "#1C1817",
+            "tti-hc": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "cool-gray": {
+      "$type": "color",
+      "$value": "#E8E8E8",
+      "$description": "TUX canonical token --surface-cool-gray",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--surface-cool-gray",
+          "modes": {
+            "tti": "#E8E8E8",
+            "tti-dark": "#262322",
+            "tti-hc": "#F0F0F0"
+          }
+        }
+      }
+    }
+  },
+  "text": {
+    "primary": {
+      "$type": "color",
+      "$value": "#221F1F",
+      "$description": "TUX canonical token --text-primary",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--text-primary",
+          "modes": {
+            "tti": "#221F1F",
+            "tti-dark": "#FAFAFA",
+            "tti-hc": "#000000"
+          }
+        }
+      }
+    },
+    "secondary": {
+      "$type": "color",
+      "$value": "#424242",
+      "$description": "TUX canonical token --text-secondary",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--text-secondary",
+          "modes": {
+            "tti": "#424242",
+            "tti-dark": "#D1D2D4",
+            "tti-hc": "#221F1F"
+          }
+        }
+      }
+    },
+    "muted": {
+      "$type": "color",
+      "$value": "#525252",
+      "$description": "TUX canonical token --text-muted",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--text-muted",
+          "modes": {
+            "tti": "#525252",
+            "tti-dark": "#B5B5B5",
+            "tti-hc": "#4D4D4D"
+          }
+        }
+      }
+    },
+    "inverse": {
+      "$type": "color",
+      "$value": "#FFFFFF",
+      "$description": "TUX canonical token --text-inverse",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--text-inverse",
+          "modes": {
+            "tti": "#FFFFFF",
+            "tti-dark": "#221F1F",
+            "tti-hc": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "brand": {
+      "$type": "color",
+      "$value": "#5C0025",
+      "$description": "TUX canonical token --text-brand",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--text-brand",
+          "modes": {
+            "tti": "#5C0025",
+            "tti-dark": "#5B9CA8",
+            "tti-hc": "#500000"
+          }
+        }
+      }
+    },
+    "on-brand": {
+      "$type": "color",
+      "$value": "#FFFFFF",
+      "$description": "TUX canonical token --text-on-brand",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--text-on-brand",
+          "modes": {
+            "tti": "#FFFFFF",
+            "tti-dark": "#FFFFFF",
+            "tti-hc": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "charcoal": {
+      "$type": "color",
+      "$value": "#232323",
+      "$description": "TUX canonical token --text-charcoal",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--text-charcoal",
+          "modes": {
+            "tti": "#232323",
+            "tti-dark": "#FAFAFA",
+            "tti-hc": "#000000"
+          }
+        }
+      }
+    },
+    "dark": {
+      "$type": "color",
+      "$value": "#040404",
+      "$description": "TUX canonical token --text-dark",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--text-dark",
+          "modes": {
+            "tti": "#040404",
+            "tti-dark": "#FFFFFF",
+            "tti-hc": "#000000"
+          }
+        }
+      }
+    }
+  },
+  "color": {
+    "success": {
+      "$type": "color",
+      "$value": "#3D5328",
+      "$description": "TUX canonical token --color-success",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-success",
+          "modes": {
+            "tti": "#3D5328",
+            "tti-dark": "#ABCC8E",
+            "tti-hc": "#3D5328"
+          }
+        }
+      }
+    },
+    "warning": {
+      "$type": "color",
+      "$value": "#DDAC37",
+      "$description": "TUX canonical token --color-warning",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-warning",
+          "modes": {
+            "tti": "#DDAC37",
+            "tti-dark": "#F5D98A",
+            "tti-hc": "#DDAC37"
+          }
+        }
+      }
+    },
+    "danger": {
+      "$type": "color",
+      "$value": "#5C0025",
+      "$description": "TUX canonical token --color-danger",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-danger",
+          "modes": {
+            "tti": "#5C0025",
+            "tti-dark": "#e795a8",
+            "tti-hc": "#500000"
+          }
+        }
+      }
+    },
+    "error": {
+      "$type": "color",
+      "$value": "#A02828",
+      "$description": "TUX canonical token --color-error",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-error",
+          "modes": {
+            "tti": "#A02828",
+            "tti-dark": "#F59292",
+            "tti-hc": "#A02828"
+          }
+        }
+      }
+    },
+    "info": {
+      "$type": "color",
+      "$value": "#1F5D66",
+      "$description": "TUX canonical token --color-info",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-info",
+          "modes": {
+            "tti": "#1F5D66",
+            "tti-dark": "#9BD4E0",
+            "tti-hc": "#1F5D66"
+          }
+        }
+      }
+    },
+    "maroon-50": {
+      "$type": "color",
+      "$value": "#fbf3f6",
+      "$description": "TUX canonical token --color-maroon-50",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-maroon-50",
+          "modes": {
+            "tti": "#fbf3f6",
+            "tti-dark": "#fbf3f6",
+            "tti-hc": "#fbf3f6"
+          }
+        }
+      }
+    },
+    "maroon-100": {
+      "$type": "color",
+      "$value": "#f5e0e7",
+      "$description": "TUX canonical token --color-maroon-100",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-maroon-100",
+          "modes": {
+            "tti": "#f5e0e7",
+            "tti-dark": "#f5e0e7",
+            "tti-hc": "#f5e0e7"
+          }
+        }
+      }
+    },
+    "maroon-200": {
+      "$type": "color",
+      "$value": "#eab5c3",
+      "$description": "TUX canonical token --color-maroon-200",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-maroon-200",
+          "modes": {
+            "tti": "#eab5c3",
+            "tti-dark": "#eab5c3",
+            "tti-hc": "#eab5c3"
+          }
+        }
+      }
+    },
+    "maroon-300": {
+      "$type": "color",
+      "$value": "#db859e",
+      "$description": "TUX canonical token --color-maroon-300",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-maroon-300",
+          "modes": {
+            "tti": "#db859e",
+            "tti-dark": "#db859e",
+            "tti-hc": "#db859e"
+          }
+        }
+      }
+    },
+    "maroon-400": {
+      "$type": "color",
+      "$value": "#b14a6c",
+      "$description": "TUX canonical token --color-maroon-400",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-maroon-400",
+          "modes": {
+            "tti": "#b14a6c",
+            "tti-dark": "#6BB4C0",
+            "tti-hc": "#500000"
+          }
+        }
+      }
+    },
+    "maroon-500": {
+      "$type": "color",
+      "$value": "#5c0025",
+      "$description": "TUX canonical token --color-maroon-500",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-maroon-500",
+          "modes": {
+            "tti": "#5c0025",
+            "tti-dark": "#5c0025",
+            "tti-hc": "#500000"
+          }
+        }
+      }
+    },
+    "maroon-600": {
+      "$type": "color",
+      "$value": "#4d001f",
+      "$description": "TUX canonical token --color-maroon-600",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-maroon-600",
+          "modes": {
+            "tti": "#4d001f",
+            "tti-dark": "#4d001f",
+            "tti-hc": "#4d001f"
+          }
+        }
+      }
+    },
+    "maroon-700": {
+      "$type": "color",
+      "$value": "#3d0018",
+      "$description": "TUX canonical token --color-maroon-700",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-maroon-700",
+          "modes": {
+            "tti": "#3d0018",
+            "tti-dark": "#3d0018",
+            "tti-hc": "#3d0018"
+          }
+        }
+      }
+    },
+    "maroon-800": {
+      "$type": "color",
+      "$value": "#2e0012",
+      "$description": "TUX canonical token --color-maroon-800",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-maroon-800",
+          "modes": {
+            "tti": "#2e0012",
+            "tti-dark": "#2e0012",
+            "tti-hc": "#2e0012"
+          }
+        }
+      }
+    },
+    "maroon-900": {
+      "$type": "color",
+      "$value": "#1f000c",
+      "$description": "TUX canonical token --color-maroon-900",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-maroon-900",
+          "modes": {
+            "tti": "#1f000c",
+            "tti-dark": "#1f000c",
+            "tti-hc": "#1f000c"
+          }
+        }
+      }
+    },
+    "maroon-950": {
+      "$type": "color",
+      "$value": "#150008",
+      "$description": "TUX canonical token --color-maroon-950",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-maroon-950",
+          "modes": {
+            "tti": "#150008",
+            "tti-dark": "#150008",
+            "tti-hc": "#150008"
+          }
+        }
+      }
+    },
+    "gold-50": {
+      "$type": "color",
+      "$value": "#fdf9ee",
+      "$description": "TUX canonical token --color-gold-50",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-gold-50",
+          "modes": {
+            "tti": "#fdf9ee",
+            "tti-dark": "#fdf9ee",
+            "tti-hc": "#fdf9ee"
+          }
+        }
+      }
+    },
+    "gold-100": {
+      "$type": "color",
+      "$value": "#faf0d2",
+      "$description": "TUX canonical token --color-gold-100",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-gold-100",
+          "modes": {
+            "tti": "#faf0d2",
+            "tti-dark": "#faf0d2",
+            "tti-hc": "#faf0d2"
+          }
+        }
+      }
+    },
+    "gold-200": {
+      "$type": "color",
+      "$value": "#f4dfa1",
+      "$description": "TUX canonical token --color-gold-200",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-gold-200",
+          "modes": {
+            "tti": "#f4dfa1",
+            "tti-dark": "#f4dfa1",
+            "tti-hc": "#f4dfa1"
+          }
+        }
+      }
+    },
+    "gold-300": {
+      "$type": "color",
+      "$value": "#ecca6f",
+      "$description": "TUX canonical token --color-gold-300",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-gold-300",
+          "modes": {
+            "tti": "#ecca6f",
+            "tti-dark": "#ecca6f",
+            "tti-hc": "#ecca6f"
+          }
+        }
+      }
+    },
+    "gold-400": {
+      "$type": "color",
+      "$value": "#e3ba4f",
+      "$description": "TUX canonical token --color-gold-400",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-gold-400",
+          "modes": {
+            "tti": "#e3ba4f",
+            "tti-dark": "#e3ba4f",
+            "tti-hc": "#e3ba4f"
+          }
+        }
+      }
+    },
+    "gold-500": {
+      "$type": "color",
+      "$value": "#ddac37",
+      "$description": "TUX canonical token --color-gold-500",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-gold-500",
+          "modes": {
+            "tti": "#ddac37",
+            "tti-dark": "#ddac37",
+            "tti-hc": "#ddac37"
+          }
+        }
+      }
+    },
+    "gold-600": {
+      "$type": "color",
+      "$value": "#b58a23",
+      "$description": "TUX canonical token --color-gold-600",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-gold-600",
+          "modes": {
+            "tti": "#b58a23",
+            "tti-dark": "#b58a23",
+            "tti-hc": "#b58a23"
+          }
+        }
+      }
+    },
+    "gold-700": {
+      "$type": "color",
+      "$value": "#8a691b",
+      "$description": "TUX canonical token --color-gold-700",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-gold-700",
+          "modes": {
+            "tti": "#8a691b",
+            "tti-dark": "#8a691b",
+            "tti-hc": "#8a691b"
+          }
+        }
+      }
+    },
+    "gold-800": {
+      "$type": "color",
+      "$value": "#604812",
+      "$description": "TUX canonical token --color-gold-800",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-gold-800",
+          "modes": {
+            "tti": "#604812",
+            "tti-dark": "#604812",
+            "tti-hc": "#604812"
+          }
+        }
+      }
+    },
+    "gold-900": {
+      "$type": "color",
+      "$value": "#3f300b",
+      "$description": "TUX canonical token --color-gold-900",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-gold-900",
+          "modes": {
+            "tti": "#3f300b",
+            "tti-dark": "#3f300b",
+            "tti-hc": "#3f300b"
+          }
+        }
+      }
+    },
+    "gold-950": {
+      "$type": "color",
+      "$value": "#271e07",
+      "$description": "TUX canonical token --color-gold-950",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--color-gold-950",
+          "modes": {
+            "tti": "#271e07",
+            "tti-dark": "#271e07",
+            "tti-hc": "#271e07"
+          }
+        }
+      }
+    }
+  },
+  "status": {
+    "ok": {
+      "$type": "color",
+      "$value": "#258818",
+      "$description": "TUX canonical token --status-ok",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-ok",
+          "modes": {
+            "tti": "#258818",
+            "tti-dark": "#90F084",
+            "tti-hc": "#0E6800"
+          }
+        }
+      }
+    },
+    "ok-fill": {
+      "$type": "color",
+      "$value": "#93F387",
+      "$description": "TUX canonical token --status-ok-fill",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-ok-fill",
+          "modes": {
+            "tti": "#93F387",
+            "tti-dark": "#86E67A",
+            "tti-hc": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "ok-ink": {
+      "$type": "color",
+      "$value": "#221F1F",
+      "$description": "TUX canonical token --status-ok-ink",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-ok-ink",
+          "modes": {
+            "tti": "#221F1F",
+            "tti-dark": "#221F1F",
+            "tti-hc": "#0E6800"
+          }
+        }
+      }
+    },
+    "warning": {
+      "$type": "color",
+      "$value": "#7A7A00",
+      "$description": "TUX canonical token --status-warning",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-warning",
+          "modes": {
+            "tti": "#7A7A00",
+            "tti-dark": "#FDFF68",
+            "tti-hc": "#5C5C00"
+          }
+        }
+      }
+    },
+    "warning-fill": {
+      "$type": "color",
+      "$value": "#ECEE55",
+      "$description": "TUX canonical token --status-warning-fill",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-warning-fill",
+          "modes": {
+            "tti": "#ECEE55",
+            "tti-dark": "#E6E74C",
+            "tti-hc": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "warning-ink": {
+      "$type": "color",
+      "$value": "#221F1F",
+      "$description": "TUX canonical token --status-warning-ink",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-warning-ink",
+          "modes": {
+            "tti": "#221F1F",
+            "tti-dark": "#221F1F",
+            "tti-hc": "#5C5C00"
+          }
+        }
+      }
+    },
+    "unknown": {
+      "$type": "color",
+      "$value": "#BC5B00",
+      "$description": "TUX canonical token --status-unknown",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-unknown",
+          "modes": {
+            "tti": "#BC5B00",
+            "tti-dark": "#FC8731",
+            "tti-hc": "#8E4300"
+          }
+        }
+      }
+    },
+    "unknown-fill": {
+      "$type": "color",
+      "$value": "#FF9B5A",
+      "$description": "TUX canonical token --status-unknown-fill",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-unknown-fill",
+          "modes": {
+            "tti": "#FF9B5A",
+            "tti-dark": "#FF8A37",
+            "tti-hc": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "unknown-ink": {
+      "$type": "color",
+      "$value": "#221F1F",
+      "$description": "TUX canonical token --status-unknown-ink",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-unknown-ink",
+          "modes": {
+            "tti": "#221F1F",
+            "tti-dark": "#221F1F",
+            "tti-hc": "#8E4300"
+          }
+        }
+      }
+    },
+    "critical": {
+      "$type": "color",
+      "$value": "#A02828",
+      "$description": "TUX canonical token --status-critical",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-critical",
+          "modes": {
+            "tti": "#A02828",
+            "tti-dark": "#F14440",
+            "tti-hc": "#B20014"
+          }
+        }
+      }
+    },
+    "critical-fill": {
+      "$type": "color",
+      "$value": "#FF544D",
+      "$description": "TUX canonical token --status-critical-fill",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-critical-fill",
+          "modes": {
+            "tti": "#FF544D",
+            "tti-dark": "#FC4F49",
+            "tti-hc": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "critical-ink": {
+      "$type": "color",
+      "$value": "#221F1F",
+      "$description": "TUX canonical token --status-critical-ink",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-critical-ink",
+          "modes": {
+            "tti": "#221F1F",
+            "tti-dark": "#221F1F",
+            "tti-hc": "#B20014"
+          }
+        }
+      }
+    },
+    "maintenance": {
+      "$type": "color",
+      "$value": "#0566C7",
+      "$description": "TUX canonical token --status-maintenance",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-maintenance",
+          "modes": {
+            "tti": "#0566C7",
+            "tti-dark": "#53A0FF",
+            "tti-hc": "#0056AA"
+          }
+        }
+      }
+    },
+    "maintenance-fill": {
+      "$type": "color",
+      "$value": "#85BAFF",
+      "$description": "TUX canonical token --status-maintenance-fill",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-maintenance-fill",
+          "modes": {
+            "tti": "#85BAFF",
+            "tti-dark": "#85BAFF",
+            "tti-hc": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "maintenance-ink": {
+      "$type": "color",
+      "$value": "#221F1F",
+      "$description": "TUX canonical token --status-maintenance-ink",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-maintenance-ink",
+          "modes": {
+            "tti": "#221F1F",
+            "tti-dark": "#221F1F",
+            "tti-hc": "#0056AA"
+          }
+        }
+      }
+    },
+    "pending": {
+      "$type": "color",
+      "$value": "#747474",
+      "$description": "TUX canonical token --status-pending",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-pending",
+          "modes": {
+            "tti": "#747474",
+            "tti-dark": "#ABABAB",
+            "tti-hc": "#585858"
+          }
+        }
+      }
+    },
+    "pending-fill": {
+      "$type": "color",
+      "$value": "#DEDEDE",
+      "$description": "TUX canonical token --status-pending-fill",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-pending-fill",
+          "modes": {
+            "tti": "#DEDEDE",
+            "tti-dark": "#D1D1D1",
+            "tti-hc": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "pending-ink": {
+      "$type": "color",
+      "$value": "#221F1F",
+      "$description": "TUX canonical token --status-pending-ink",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--status-pending-ink",
+          "modes": {
+            "tti": "#221F1F",
+            "tti-dark": "#221F1F",
+            "tti-hc": "#585858"
+          }
+        }
+      }
+    }
+  },
+  "font": {
+    "body": {
+      "$type": "fontFamily",
+      "$value": "\"Open Sans\", \"Helvetica Neue\", Arial, sans-serif",
+      "$description": "TUX canonical token --font-body",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--font-body",
+          "modes": {
+            "tti": "\"Open Sans\", \"Helvetica Neue\", Arial, sans-serif",
+            "tti-dark": "\"Open Sans\", \"Helvetica Neue\", Arial, sans-serif",
+            "tti-hc": "\"Open Sans\", \"Helvetica Neue\", Arial, sans-serif"
+          }
+        }
+      }
+    },
+    "display": {
+      "$type": "fontFamily",
+      "$value": "\"Oswald\", \"Helvetica Neue Condensed\", \"Impact\", \"Arial Narrow\", sans-serif",
+      "$description": "TUX canonical token --font-display",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--font-display",
+          "modes": {
+            "tti": "\"Oswald\", \"Helvetica Neue Condensed\", \"Impact\", \"Arial Narrow\", sans-serif",
+            "tti-dark": "\"Oswald\", \"Helvetica Neue Condensed\", \"Impact\", \"Arial Narrow\", sans-serif",
+            "tti-hc": "\"Oswald\", \"Helvetica Neue Condensed\", \"Impact\", \"Arial Narrow\", sans-serif"
+          }
+        }
+      }
+    },
+    "bold": {
+      "$type": "fontFamily",
+      "$value": "\"Work Sans\", \"Helvetica Neue\", Arial, sans-serif",
+      "$description": "TUX canonical token --font-bold",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--font-bold",
+          "modes": {
+            "tti": "\"Work Sans\", \"Helvetica Neue\", Arial, sans-serif",
+            "tti-dark": "\"Work Sans\", \"Helvetica Neue\", Arial, sans-serif",
+            "tti-hc": "\"Work Sans\", \"Helvetica Neue\", Arial, sans-serif"
+          }
+        }
+      }
+    },
+    "elegant": {
+      "$type": "fontFamily",
+      "$value": "Georgia, \"Times New Roman\", Times, serif",
+      "$description": "TUX canonical token --font-elegant",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--font-elegant",
+          "modes": {
+            "tti": "Georgia, \"Times New Roman\", Times, serif",
+            "tti-dark": "Georgia, \"Times New Roman\", Times, serif",
+            "tti-hc": "Georgia, \"Times New Roman\", Times, serif"
+          }
+        }
+      }
+    },
+    "sans": {
+      "$type": "fontFamily",
+      "$value": "\"Open Sans\", \"Helvetica Neue\", Arial, sans-serif",
+      "$description": "TUX canonical token --font-sans",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--font-sans",
+          "modes": {
+            "tti": "\"Open Sans\", \"Helvetica Neue\", Arial, sans-serif",
+            "tti-dark": "\"Open Sans\", \"Helvetica Neue\", Arial, sans-serif",
+            "tti-hc": "\"Open Sans\", \"Helvetica Neue\", Arial, sans-serif"
+          }
+        }
+      }
+    },
+    "mono": {
+      "$type": "fontFamily",
+      "$value": "\"JetBrains Mono\", \"SFMono-Regular\", Consolas, \"Liberation Mono\", monospace",
+      "$description": "TUX canonical token --font-mono",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--font-mono",
+          "modes": {
+            "tti": "\"JetBrains Mono\", \"SFMono-Regular\", Consolas, \"Liberation Mono\", monospace",
+            "tti-dark": "\"JetBrains Mono\", \"SFMono-Regular\", Consolas, \"Liberation Mono\", monospace",
+            "tti-hc": "\"JetBrains Mono\", \"SFMono-Regular\", Consolas, \"Liberation Mono\", monospace"
+          }
+        }
+      }
+    }
+  },
+  "tracking": {
+    "tight": {
+      "$type": "string",
+      "$value": "-0.01em",
+      "$description": "TUX canonical token --tracking-tight",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--tracking-tight",
+          "modes": {
+            "tti": "-0.01em",
+            "tti-dark": "-0.01em",
+            "tti-hc": "-0.01em"
+          }
+        }
+      }
+    },
+    "normal": {
+      "$type": "string",
+      "$value": "0",
+      "$description": "TUX canonical token --tracking-normal",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--tracking-normal",
+          "modes": {
+            "tti": "0",
+            "tti-dark": "0",
+            "tti-hc": "0"
+          }
+        }
+      }
+    },
+    "wide": {
+      "$type": "string",
+      "$value": "0.05em",
+      "$description": "TUX canonical token --tracking-wide",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--tracking-wide",
+          "modes": {
+            "tti": "0.05em",
+            "tti-dark": "0.05em",
+            "tti-hc": "0.05em"
+          }
+        }
+      }
+    },
+    "wider": {
+      "$type": "string",
+      "$value": "0.10em",
+      "$description": "TUX canonical token --tracking-wider",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--tracking-wider",
+          "modes": {
+            "tti": "0.10em",
+            "tti-dark": "0.10em",
+            "tti-hc": "0.10em"
+          }
+        }
+      }
+    }
+  },
+  "shadow": {
+    "sm": {
+      "$type": "shadow",
+      "$value": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+      "$description": "TUX canonical token --shadow-sm",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--shadow-sm",
+          "modes": {
+            "tti": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+            "tti-dark": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+            "tti-hc": "0 1px 2px 0 rgba(0, 0, 0, 0.05)"
+          }
+        }
+      }
+    },
+    "md": {
+      "$type": "shadow",
+      "$value": "0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)",
+      "$description": "TUX canonical token --shadow-md",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--shadow-md",
+          "modes": {
+            "tti": "0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)",
+            "tti-dark": "0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)",
+            "tti-hc": "0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)"
+          }
+        }
+      }
+    },
+    "lg": {
+      "$type": "shadow",
+      "$value": "0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03)",
+      "$description": "TUX canonical token --shadow-lg",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--shadow-lg",
+          "modes": {
+            "tti": "0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03)",
+            "tti-dark": "0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03)",
+            "tti-hc": "0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03)"
+          }
+        }
+      }
+    },
+    "focus": {
+      "$type": "shadow",
+      "$value": "0 0 0 2px #F2E6C9, 0 0 0 4px #5C0025",
+      "$description": "TUX canonical token --shadow-focus",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--shadow-focus",
+          "modes": {
+            "tti": "0 0 0 2px #F2E6C9, 0 0 0 4px #5C0025",
+            "tti-dark": "0 0 0 2px #3D2E0F, 0 0 0 4px #6BB4C0",
+            "tti-hc": "0 0 0 2px #FFFFFF, 0 0 0 5px #000000"
+          }
+        }
+      }
+    }
+  },
+  "focus": {
+    "ring-outer": {
+      "$type": "color",
+      "$value": "#5C0025",
+      "$description": "TUX canonical token --focus-ring-outer",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--focus-ring-outer",
+          "modes": {
+            "tti": "#5C0025",
+            "tti-dark": "#6BB4C0",
+            "tti-hc": "#000000"
+          }
+        }
+      }
+    },
+    "ring-inner": {
+      "$type": "color",
+      "$value": "#F2E6C9",
+      "$description": "TUX canonical token --focus-ring-inner",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--focus-ring-inner",
+          "modes": {
+            "tti": "#F2E6C9",
+            "tti-dark": "#3D2E0F",
+            "tti-hc": "#FFFFFF"
+          }
+        }
+      }
+    }
+  },
+  "elevation": {
+    "flat": {
+      "$type": "shadow",
+      "$value": "none",
+      "$description": "TUX canonical token --elevation-flat",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--elevation-flat",
+          "modes": {
+            "tti": "none",
+            "tti-dark": "none",
+            "tti-hc": "none"
+          }
+        }
+      }
+    },
+    "rest": {
+      "$type": "shadow",
+      "$value": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+      "$description": "TUX canonical token --elevation-rest",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--elevation-rest",
+          "modes": {
+            "tti": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+            "tti-dark": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+            "tti-hc": "none"
+          }
+        }
+      }
+    },
+    "hover": {
+      "$type": "shadow",
+      "$value": "0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)",
+      "$description": "TUX canonical token --elevation-hover",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--elevation-hover",
+          "modes": {
+            "tti": "0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)",
+            "tti-dark": "0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)",
+            "tti-hc": "none"
+          }
+        }
+      }
+    },
+    "overlay": {
+      "$type": "shadow",
+      "$value": "0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03)",
+      "$description": "TUX canonical token --elevation-overlay",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--elevation-overlay",
+          "modes": {
+            "tti": "0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03)",
+            "tti-dark": "0 10px 15px -3px rgba(0, 0, 0, 0.20), 0 4px 6px -2px rgba(0, 0, 0, 0.12)",
+            "tti-hc": "0 0 0 2px #5D5D5D"
+          }
+        }
+      }
+    },
+    "pinned": {
+      "$type": "shadow",
+      "$value": "0 4px 6px -2px rgba(0, 0, 0, 0.06)",
+      "$description": "TUX canonical token --elevation-pinned",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--elevation-pinned",
+          "modes": {
+            "tti": "0 4px 6px -2px rgba(0, 0, 0, 0.06)",
+            "tti-dark": "0 4px 6px -2px rgba(0, 0, 0, 0.18)",
+            "tti-hc": "0 0 0 1px #5D5D5D"
+          }
+        }
+      }
+    }
+  },
+  "radius": {
+    "none": {
+      "$type": "dimension",
+      "$value": "0",
+      "$description": "TUX canonical token --radius-none",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--radius-none",
+          "modes": {
+            "tti": "0",
+            "tti-dark": "0",
+            "tti-hc": "0"
+          }
+        }
+      }
+    },
+    "sm": {
+      "$type": "dimension",
+      "$value": "0.125rem",
+      "$description": "TUX canonical token --radius-sm",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--radius-sm",
+          "modes": {
+            "tti": "0.125rem",
+            "tti-dark": "0.125rem",
+            "tti-hc": "0.125rem"
+          }
+        }
+      }
+    },
+    "md": {
+      "$type": "dimension",
+      "$value": "0.375rem",
+      "$description": "TUX canonical token --radius-md",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--radius-md",
+          "modes": {
+            "tti": "0.375rem",
+            "tti-dark": "0.375rem",
+            "tti-hc": "0.375rem"
+          }
+        }
+      }
+    },
+    "lg": {
+      "$type": "dimension",
+      "$value": "0.5rem",
+      "$description": "TUX canonical token --radius-lg",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--radius-lg",
+          "modes": {
+            "tti": "0.5rem",
+            "tti-dark": "0.5rem",
+            "tti-hc": "0.5rem"
+          }
+        }
+      }
+    },
+    "xl": {
+      "$type": "dimension",
+      "$value": "0.75rem",
+      "$description": "TUX canonical token --radius-xl",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--radius-xl",
+          "modes": {
+            "tti": "0.75rem",
+            "tti-dark": "0.75rem",
+            "tti-hc": "0.75rem"
+          }
+        }
+      }
+    },
+    "full": {
+      "$type": "dimension",
+      "$value": "9999px",
+      "$description": "TUX canonical token --radius-full",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--radius-full",
+          "modes": {
+            "tti": "9999px",
+            "tti-dark": "9999px",
+            "tti-hc": "9999px"
+          }
+        }
+      }
+    }
+  },
+  "motion": {
+    "fast": {
+      "$type": "duration",
+      "$value": "0.15s",
+      "$description": "TUX canonical token --motion-fast",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--motion-fast",
+          "modes": {
+            "tti": "0.15s",
+            "tti-dark": "0.15s",
+            "tti-hc": "0.15s"
+          }
+        }
+      }
+    },
+    "base": {
+      "$type": "duration",
+      "$value": "0.25s",
+      "$description": "TUX canonical token --motion-base",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--motion-base",
+          "modes": {
+            "tti": "0.25s",
+            "tti-dark": "0.25s",
+            "tti-hc": "0.25s"
+          }
+        }
+      }
+    },
+    "slow": {
+      "$type": "duration",
+      "$value": "0.35s",
+      "$description": "TUX canonical token --motion-slow",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--motion-slow",
+          "modes": {
+            "tti": "0.35s",
+            "tti-dark": "0.35s",
+            "tti-hc": "0.35s"
+          }
+        }
+      }
+    }
+  },
+  "ease": {
+    "standard": {
+      "$type": "cubicBezier",
+      "$value": "cubic-bezier(0.2, 0.55, 0.4, 0.9)",
+      "$description": "TUX canonical token --ease-standard",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--ease-standard",
+          "modes": {
+            "tti": "cubic-bezier(0.2, 0.55, 0.4, 0.9)",
+            "tti-dark": "cubic-bezier(0.2, 0.55, 0.4, 0.9)",
+            "tti-hc": "cubic-bezier(0.2, 0.55, 0.4, 0.9)"
+          }
+        }
+      }
+    },
+    "emphasis": {
+      "$type": "cubicBezier",
+      "$value": "cubic-bezier(0.2, 0.8, 0.2, 1.2)",
+      "$description": "TUX canonical token --ease-emphasis",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--ease-emphasis",
+          "modes": {
+            "tti": "cubic-bezier(0.2, 0.8, 0.2, 1.2)",
+            "tti-dark": "cubic-bezier(0.2, 0.8, 0.2, 1.2)",
+            "tti-hc": "cubic-bezier(0.2, 0.8, 0.2, 1.2)"
+          }
+        }
+      }
+    },
+    "exit": {
+      "$type": "cubicBezier",
+      "$value": "cubic-bezier(0.4, 0, 0.6, 1)",
+      "$description": "TUX canonical token --ease-exit",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--ease-exit",
+          "modes": {
+            "tti": "cubic-bezier(0.4, 0, 0.6, 1)",
+            "tti-dark": "cubic-bezier(0.4, 0, 0.6, 1)",
+            "tti-hc": "cubic-bezier(0.4, 0, 0.6, 1)"
+          }
+        }
+      }
+    },
+    "survey": {
+      "$type": "cubicBezier",
+      "$value": "cubic-bezier(0.4, 0.0, 0.2, 1.0)",
+      "$description": "TUX canonical token --ease-survey",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--ease-survey",
+          "modes": {
+            "tti": "cubic-bezier(0.4, 0.0, 0.2, 1.0)",
+            "tti-dark": "cubic-bezier(0.4, 0.0, 0.2, 1.0)",
+            "tti-hc": "cubic-bezier(0.4, 0.0, 0.2, 1.0)"
+          }
+        }
+      }
+    },
+    "corridor": {
+      "$type": "cubicBezier",
+      "$value": "cubic-bezier(0.2, 0.0, 0.0, 1.0)",
+      "$description": "TUX canonical token --ease-corridor",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--ease-corridor",
+          "modes": {
+            "tti": "cubic-bezier(0.2, 0.0, 0.0, 1.0)",
+            "tti-dark": "cubic-bezier(0.2, 0.0, 0.0, 1.0)",
+            "tti-hc": "cubic-bezier(0.2, 0.0, 0.0, 1.0)"
+          }
+        }
+      }
+    },
+    "arrival": {
+      "$type": "cubicBezier",
+      "$value": "cubic-bezier(0.0, 0.0, 0.2, 1.0)",
+      "$description": "TUX canonical token --ease-arrival",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--ease-arrival",
+          "modes": {
+            "tti": "cubic-bezier(0.0, 0.0, 0.2, 1.0)",
+            "tti-dark": "cubic-bezier(0.0, 0.0, 0.2, 1.0)",
+            "tti-hc": "cubic-bezier(0.0, 0.0, 0.2, 1.0)"
+          }
+        }
+      }
+    }
+  },
+  "space": {
+    "0": {
+      "$type": "dimension",
+      "$value": "0",
+      "$description": "TUX canonical token --space-0",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--space-0",
+          "modes": {
+            "tti": "0",
+            "tti-dark": "0",
+            "tti-hc": "0"
+          }
+        }
+      }
+    },
+    "2": {
+      "$type": "dimension",
+      "$value": "2px",
+      "$description": "TUX canonical token --space-2",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--space-2",
+          "modes": {
+            "tti": "2px",
+            "tti-dark": "2px",
+            "tti-hc": "2px"
+          }
+        }
+      }
+    },
+    "4": {
+      "$type": "dimension",
+      "$value": "4px",
+      "$description": "TUX canonical token --space-4",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--space-4",
+          "modes": {
+            "tti": "4px",
+            "tti-dark": "4px",
+            "tti-hc": "4px"
+          }
+        }
+      }
+    },
+    "8": {
+      "$type": "dimension",
+      "$value": "8px",
+      "$description": "TUX canonical token --space-8",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--space-8",
+          "modes": {
+            "tti": "8px",
+            "tti-dark": "8px",
+            "tti-hc": "8px"
+          }
+        }
+      }
+    },
+    "10": {
+      "$type": "dimension",
+      "$value": "10px",
+      "$description": "TUX canonical token --space-10",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--space-10",
+          "modes": {
+            "tti": "10px",
+            "tti-dark": "10px",
+            "tti-hc": "10px"
+          }
+        }
+      }
+    },
+    "12": {
+      "$type": "dimension",
+      "$value": "12px",
+      "$description": "TUX canonical token --space-12",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--space-12",
+          "modes": {
+            "tti": "12px",
+            "tti-dark": "12px",
+            "tti-hc": "12px"
+          }
+        }
+      }
+    },
+    "16": {
+      "$type": "dimension",
+      "$value": "16px",
+      "$description": "TUX canonical token --space-16",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--space-16",
+          "modes": {
+            "tti": "16px",
+            "tti-dark": "16px",
+            "tti-hc": "16px"
+          }
+        }
+      }
+    },
+    "24": {
+      "$type": "dimension",
+      "$value": "24px",
+      "$description": "TUX canonical token --space-24",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--space-24",
+          "modes": {
+            "tti": "24px",
+            "tti-dark": "24px",
+            "tti-hc": "24px"
+          }
+        }
+      }
+    },
+    "32": {
+      "$type": "dimension",
+      "$value": "32px",
+      "$description": "TUX canonical token --space-32",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--space-32",
+          "modes": {
+            "tti": "32px",
+            "tti-dark": "32px",
+            "tti-hc": "32px"
+          }
+        }
+      }
+    },
+    "40": {
+      "$type": "dimension",
+      "$value": "40px",
+      "$description": "TUX canonical token --space-40",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--space-40",
+          "modes": {
+            "tti": "40px",
+            "tti-dark": "40px",
+            "tti-hc": "40px"
+          }
+        }
+      }
+    },
+    "48": {
+      "$type": "dimension",
+      "$value": "48px",
+      "$description": "TUX canonical token --space-48",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--space-48",
+          "modes": {
+            "tti": "48px",
+            "tti-dark": "48px",
+            "tti-hc": "48px"
+          }
+        }
+      }
+    },
+    "64": {
+      "$type": "dimension",
+      "$value": "64px",
+      "$description": "TUX canonical token --space-64",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--space-64",
+          "modes": {
+            "tti": "64px",
+            "tti-dark": "64px",
+            "tti-hc": "64px"
+          }
+        }
+      }
+    }
+  },
+  "layout": {
+    "content-max": {
+      "$type": "dimension",
+      "$value": "80rem",
+      "$description": "TUX canonical token --layout-content-max",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--layout-content-max",
+          "modes": {
+            "tti": "80rem",
+            "tti-dark": "80rem",
+            "tti-hc": "80rem"
+          }
+        }
+      }
+    },
+    "content-wide": {
+      "$type": "dimension",
+      "$value": "96rem",
+      "$description": "TUX canonical token --layout-content-wide",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--layout-content-wide",
+          "modes": {
+            "tti": "96rem",
+            "tti-dark": "96rem",
+            "tti-hc": "96rem"
+          }
+        }
+      }
+    },
+    "prose-max": {
+      "$type": "dimension",
+      "$value": "72ch",
+      "$description": "TUX canonical token --layout-prose-max",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--layout-prose-max",
+          "modes": {
+            "tti": "72ch",
+            "tti-dark": "72ch",
+            "tti-hc": "72ch"
+          }
+        }
+      }
+    }
+  },
+  "rhythm": {
+    "tight": {
+      "$type": "dimension",
+      "$value": "4px",
+      "$description": "TUX canonical token --rhythm-tight",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--rhythm-tight",
+          "modes": {
+            "tti": "4px",
+            "tti-dark": "4px",
+            "tti-hc": "4px"
+          }
+        }
+      }
+    },
+    "snug": {
+      "$type": "dimension",
+      "$value": "8px",
+      "$description": "TUX canonical token --rhythm-snug",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--rhythm-snug",
+          "modes": {
+            "tti": "8px",
+            "tti-dark": "8px",
+            "tti-hc": "8px"
+          }
+        }
+      }
+    },
+    "normal": {
+      "$type": "dimension",
+      "$value": "12px",
+      "$description": "TUX canonical token --rhythm-normal",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--rhythm-normal",
+          "modes": {
+            "tti": "12px",
+            "tti-dark": "12px",
+            "tti-hc": "12px"
+          }
+        }
+      }
+    },
+    "loose": {
+      "$type": "dimension",
+      "$value": "16px",
+      "$description": "TUX canonical token --rhythm-loose",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--rhythm-loose",
+          "modes": {
+            "tti": "16px",
+            "tti-dark": "16px",
+            "tti-hc": "16px"
+          }
+        }
+      }
+    },
+    "roomy": {
+      "$type": "dimension",
+      "$value": "24px",
+      "$description": "TUX canonical token --rhythm-roomy",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--rhythm-roomy",
+          "modes": {
+            "tti": "24px",
+            "tti-dark": "24px",
+            "tti-hc": "24px"
+          }
+        }
+      }
+    }
+  },
+  "wash": {
+    "brand-4": {
+      "$type": "color",
+      "$value": "rgba(92, 0, 37, 0.04)",
+      "$description": "TUX canonical token --wash-brand-4",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--wash-brand-4",
+          "modes": {
+            "tti": "rgba(92, 0, 37, 0.04)",
+            "tti-dark": "rgba(107, 180, 192, 0.04)",
+            "tti-hc": "rgba(80, 0, 0, 0.04)"
+          }
+        }
+      }
+    },
+    "brand-6": {
+      "$type": "color",
+      "$value": "rgba(92, 0, 37, 0.06)",
+      "$description": "TUX canonical token --wash-brand-6",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--wash-brand-6",
+          "modes": {
+            "tti": "rgba(92, 0, 37, 0.06)",
+            "tti-dark": "rgba(107, 180, 192, 0.06)",
+            "tti-hc": "rgba(80, 0, 0, 0.06)"
+          }
+        }
+      }
+    },
+    "brand-8": {
+      "$type": "color",
+      "$value": "rgba(92, 0, 37, 0.08)",
+      "$description": "TUX canonical token --wash-brand-8",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--wash-brand-8",
+          "modes": {
+            "tti": "rgba(92, 0, 37, 0.08)",
+            "tti-dark": "rgba(107, 180, 192, 0.08)",
+            "tti-hc": "rgba(80, 0, 0, 0.08)"
+          }
+        }
+      }
+    },
+    "brand-12": {
+      "$type": "color",
+      "$value": "rgba(92, 0, 37, 0.12)",
+      "$description": "TUX canonical token --wash-brand-12",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--wash-brand-12",
+          "modes": {
+            "tti": "rgba(92, 0, 37, 0.12)",
+            "tti-dark": "rgba(107, 180, 192, 0.12)",
+            "tti-hc": "rgba(80, 0, 0, 0.12)"
+          }
+        }
+      }
+    },
+    "brand-18": {
+      "$type": "color",
+      "$value": "rgba(92, 0, 37, 0.18)",
+      "$description": "TUX canonical token --wash-brand-18",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--wash-brand-18",
+          "modes": {
+            "tti": "rgba(92, 0, 37, 0.18)",
+            "tti-dark": "rgba(107, 180, 192, 0.18)",
+            "tti-hc": "rgba(80, 0, 0, 0.18)"
+          }
+        }
+      }
+    },
+    "brand-22": {
+      "$type": "color",
+      "$value": "rgba(92, 0, 37, 0.22)",
+      "$description": "TUX canonical token --wash-brand-22",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--wash-brand-22",
+          "modes": {
+            "tti": "rgba(92, 0, 37, 0.22)",
+            "tti-dark": "rgba(107, 180, 192, 0.22)",
+            "tti-hc": "rgba(80, 0, 0, 0.22)"
+          }
+        }
+      }
+    },
+    "brand-35": {
+      "$type": "color",
+      "$value": "rgba(92, 0, 37, 0.35)",
+      "$description": "TUX canonical token --wash-brand-35",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--wash-brand-35",
+          "modes": {
+            "tti": "rgba(92, 0, 37, 0.35)",
+            "tti-dark": "rgba(107, 180, 192, 0.35)",
+            "tti-hc": "rgba(80, 0, 0, 0.35)"
+          }
+        }
+      }
+    }
+  },
+  "chart": {
+    "1": {
+      "$type": "color",
+      "$value": "#5C0025",
+      "$description": "TUX canonical token --chart-1",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-1",
+          "modes": {
+            "tti": "#5C0025",
+            "tti-dark": "#c47585",
+            "tti-hc": "#000000"
+          }
+        }
+      }
+    },
+    "2": {
+      "$type": "color",
+      "$value": "#3F5A6F",
+      "$description": "TUX canonical token --chart-2",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-2",
+          "modes": {
+            "tti": "#3F5A6F",
+            "tti-dark": "#6B8DA3",
+            "tti-hc": "#500000"
+          }
+        }
+      }
+    },
+    "3": {
+      "$type": "color",
+      "$value": "#C7973C",
+      "$description": "TUX canonical token --chart-3",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-3",
+          "modes": {
+            "tti": "#C7973C",
+            "tti-dark": "#E0BC60",
+            "tti-hc": "#5D5D5D"
+          }
+        }
+      }
+    },
+    "4": {
+      "$type": "color",
+      "$value": "#6B8E5A",
+      "$description": "TUX canonical token --chart-4",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-4",
+          "modes": {
+            "tti": "#6B8E5A",
+            "tti-dark": "#93B57E",
+            "tti-hc": "#8A6915"
+          }
+        }
+      }
+    },
+    "5": {
+      "$type": "color",
+      "$value": "#8C5A3C",
+      "$description": "TUX canonical token --chart-5",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-5",
+          "modes": {
+            "tti": "#8C5A3C",
+            "tti-dark": "#B58463",
+            "tti-hc": "#4A4A4A"
+          }
+        }
+      }
+    },
+    "6": {
+      "$type": "color",
+      "$value": "#5C7080",
+      "$description": "TUX canonical token --chart-6",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-6",
+          "modes": {
+            "tti": "#5C7080",
+            "tti-dark": "#8AA0B2",
+            "tti-hc": "#1F5D66"
+          }
+        }
+      }
+    },
+    "7": {
+      "$type": "color",
+      "$value": "#A33A3A",
+      "$description": "TUX canonical token --chart-7",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-7",
+          "modes": {
+            "tti": "#A33A3A",
+            "tti-dark": "#D67272",
+            "tti-hc": "#6B0000"
+          }
+        }
+      }
+    },
+    "8": {
+      "$type": "color",
+      "$value": "#3C5A87",
+      "$description": "TUX canonical token --chart-8",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-8",
+          "modes": {
+            "tti": "#3C5A87",
+            "tti-dark": "#6E8FBE",
+            "tti-hc": "#2A2A2A"
+          }
+        }
+      }
+    },
+    "9": {
+      "$type": "color",
+      "$value": "#6E5A7E",
+      "$description": "TUX canonical token --chart-9",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-9",
+          "modes": {
+            "tti": "#6E5A7E",
+            "tti-dark": "#A08CB4",
+            "tti-hc": "#6E5A7E"
+          }
+        }
+      }
+    },
+    "10": {
+      "$type": "color",
+      "$value": "#7E7350",
+      "$description": "TUX canonical token --chart-10",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-10",
+          "modes": {
+            "tti": "#7E7350",
+            "tti-dark": "#B0A578",
+            "tti-hc": "#7E7350"
+          }
+        }
+      }
+    },
+    "cvd-1": {
+      "$type": "color",
+      "$value": "#0072B2",
+      "$description": "TUX canonical token --chart-cvd-1",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-cvd-1",
+          "modes": {
+            "tti": "#0072B2",
+            "tti-dark": "#56B4E9",
+            "tti-hc": "#005080"
+          }
+        }
+      }
+    },
+    "cvd-2": {
+      "$type": "color",
+      "$value": "#E69F00",
+      "$description": "TUX canonical token --chart-cvd-2",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-cvd-2",
+          "modes": {
+            "tti": "#E69F00",
+            "tti-dark": "#F0B030",
+            "tti-hc": "#CC8000"
+          }
+        }
+      }
+    },
+    "cvd-3": {
+      "$type": "color",
+      "$value": "#009E73",
+      "$description": "TUX canonical token --chart-cvd-3",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-cvd-3",
+          "modes": {
+            "tti": "#009E73",
+            "tti-dark": "#2AC098",
+            "tti-hc": "#007A55"
+          }
+        }
+      }
+    },
+    "cvd-4": {
+      "$type": "color",
+      "$value": "#F0E442",
+      "$description": "TUX canonical token --chart-cvd-4",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-cvd-4",
+          "modes": {
+            "tti": "#F0E442",
+            "tti-dark": "#F5EB68",
+            "tti-hc": "#8A6915"
+          }
+        }
+      }
+    },
+    "cvd-5": {
+      "$type": "color",
+      "$value": "#56B4E9",
+      "$description": "TUX canonical token --chart-cvd-5",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-cvd-5",
+          "modes": {
+            "tti": "#56B4E9",
+            "tti-dark": "#7CD0F7",
+            "tti-hc": "#1F5D66"
+          }
+        }
+      }
+    },
+    "cvd-6": {
+      "$type": "color",
+      "$value": "#D55E00",
+      "$description": "TUX canonical token --chart-cvd-6",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-cvd-6",
+          "modes": {
+            "tti": "#D55E00",
+            "tti-dark": "#E87A28",
+            "tti-hc": "#B34000"
+          }
+        }
+      }
+    },
+    "cvd-7": {
+      "$type": "color",
+      "$value": "#CC79A7",
+      "$description": "TUX canonical token --chart-cvd-7",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-cvd-7",
+          "modes": {
+            "tti": "#CC79A7",
+            "tti-dark": "#DE91BD",
+            "tti-hc": "#803366"
+          }
+        }
+      }
+    },
+    "cvd-8": {
+      "$type": "color",
+      "$value": "#222222",
+      "$description": "TUX canonical token --chart-cvd-8",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--chart-cvd-8",
+          "modes": {
+            "tti": "#222222",
+            "tti-dark": "#E6E6E6",
+            "tti-hc": "#000000"
+          }
+        }
+      }
+    }
+  },
+  "map": {
+    "seq-maroon-1": {
+      "$type": "color",
+      "$value": "#F1E4E0",
+      "$description": "TUX canonical token --map-seq-maroon-1",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--map-seq-maroon-1",
+          "modes": {
+            "tti": "#F1E4E0",
+            "tti-dark": "#3D1110",
+            "tti-hc": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "seq-maroon-2": {
+      "$type": "color",
+      "$value": "#DDB7AC",
+      "$description": "TUX canonical token --map-seq-maroon-2",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--map-seq-maroon-2",
+          "modes": {
+            "tti": "#DDB7AC",
+            "tti-dark": "#702C28",
+            "tti-hc": "#C8C8C8"
+          }
+        }
+      }
+    },
+    "seq-maroon-3": {
+      "$type": "color",
+      "$value": "#C58675",
+      "$description": "TUX canonical token --map-seq-maroon-3",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--map-seq-maroon-3",
+          "modes": {
+            "tti": "#C58675",
+            "tti-dark": "#A14A3D",
+            "tti-hc": "#8A8A8A"
+          }
+        }
+      }
+    },
+    "seq-maroon-4": {
+      "$type": "color",
+      "$value": "#9E483A",
+      "$description": "TUX canonical token --map-seq-maroon-4",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--map-seq-maroon-4",
+          "modes": {
+            "tti": "#9E483A",
+            "tti-dark": "#C97058",
+            "tti-hc": "#4A4A4A"
+          }
+        }
+      }
+    },
+    "seq-maroon-5": {
+      "$type": "color",
+      "$value": "#500000",
+      "$description": "TUX canonical token --map-seq-maroon-5",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--map-seq-maroon-5",
+          "modes": {
+            "tti": "#500000",
+            "tti-dark": "#E89B7E",
+            "tti-hc": "#000000"
+          }
+        }
+      }
+    },
+    "seq-slate-1": {
+      "$type": "color",
+      "$value": "#E2E7EC",
+      "$description": "TUX canonical token --map-seq-slate-1",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--map-seq-slate-1",
+          "modes": {
+            "tti": "#E2E7EC",
+            "tti-dark": "#1A2129",
+            "tti-hc": "#FFFFFF"
+          }
+        }
+      }
+    },
+    "seq-slate-2": {
+      "$type": "color",
+      "$value": "#B7C2CC",
+      "$description": "TUX canonical token --map-seq-slate-2",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--map-seq-slate-2",
+          "modes": {
+            "tti": "#B7C2CC",
+            "tti-dark": "#3F5A6F",
+            "tti-hc": "#C8C8C8"
+          }
+        }
+      }
+    },
+    "seq-slate-3": {
+      "$type": "color",
+      "$value": "#7E94A4",
+      "$description": "TUX canonical token --map-seq-slate-3",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--map-seq-slate-3",
+          "modes": {
+            "tti": "#7E94A4",
+            "tti-dark": "#6F8294",
+            "tti-hc": "#8A8A8A"
+          }
+        }
+      }
+    },
+    "seq-slate-4": {
+      "$type": "color",
+      "$value": "#52677A",
+      "$description": "TUX canonical token --map-seq-slate-4",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--map-seq-slate-4",
+          "modes": {
+            "tti": "#52677A",
+            "tti-dark": "#9CADBD",
+            "tti-hc": "#4A4A4A"
+          }
+        }
+      }
+    },
+    "seq-slate-5": {
+      "$type": "color",
+      "$value": "#283544",
+      "$description": "TUX canonical token --map-seq-slate-5",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--map-seq-slate-5",
+          "modes": {
+            "tti": "#283544",
+            "tti-dark": "#C2D0DE",
+            "tti-hc": "#000000"
+          }
+        }
+      }
+    },
+    "outline": {
+      "$type": "color",
+      "$value": "#E7E6E6",
+      "$description": "TUX canonical token --map-outline",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--map-outline",
+          "modes": {
+            "tti": "#E7E6E6",
+            "tti-dark": "rgba(255, 255, 255, 0.22)",
+            "tti-hc": "#000000"
+          }
+        }
+      }
+    },
+    "flow": {
+      "$type": "color",
+      "$value": "#5C0025",
+      "$description": "TUX canonical token --map-flow",
+      "$extensions": {
+        "edu.tamu.tti.tux": {
+          "cssVar": "--map-flow",
+          "modes": {
+            "tti": "#5C0025",
+            "tti-dark": "#E89B7E",
+            "tti-hc": "#000000"
+          }
+        }
+      }
+    }
+  }
+}

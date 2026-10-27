@@ -15,6 +15,7 @@ import TuxAlphaNav from "../../../app/components/TuxAlphaNav.vue";
 import TuxAnnouncementBanner from "../../../app/components/TuxAnnouncementBanner.vue";
 import TuxAppFrame from "../../../app/components/TuxAppFrame.vue";
 import TuxAppSwitcher from "../../../app/components/TuxAppSwitcher.vue";
+import TuxArchitectureMap from "../../../app/components/TuxArchitectureMap.vue";
 import TuxArtifact from "../../../app/components/TuxArtifact.vue";
 import TuxAuthorByline from "../../../app/components/TuxAuthorByline.vue";
 import TuxAvatar from "../../../app/components/TuxAvatar.vue";
@@ -279,6 +280,16 @@ export const TuxAppSwitcherElement = defineCustomElement(TuxAppSwitcher, {
 });
 if (typeof customElements !== "undefined" && !customElements.get("tux-app-switcher")) {
   customElements.define("tux-app-switcher", TuxAppSwitcherElement);
+}
+
+export const TuxArchitectureMapElement = defineCustomElement(TuxArchitectureMap, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-architecture-map")) {
+  customElements.define("tux-architecture-map", TuxArchitectureMapElement);
 }
 
 export const TuxArtifactElement = defineCustomElement(TuxArtifact, {

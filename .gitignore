@@ -48,3 +48,6 @@ CLAUDE.md
 # simplifies them into the small TS modules under
 # app/assets/geo/. We ship the projected outputs, not the raw.
 data/source/
+
+# Local OSS canvas reference clones for dissection & research
+reference/canvas-oss/

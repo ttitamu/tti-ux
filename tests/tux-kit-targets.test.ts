@@ -17,6 +17,8 @@ import { check as portsCheck } from "../scripts/ports-manifest.mjs";
 import { generate as generateThemes } from "../scripts/build-powerbi-theme.mjs";
 // @ts-expect-error — plain .mjs build script, no type declarations.
 import { generate as generatePbir } from "../scripts/build-pbir-components.mjs";
+// @ts-expect-error — plain .mjs build script, no type declarations.
+import { generate as generateFigma } from "../scripts/build-figma-kit.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const files: Map<string, string> = generate();
@@ -24,6 +26,7 @@ const powerbi: Map<string, string> = new Map([
   ...generateThemes(),
   ...generatePbir(),
 ]);
+const figmaKit: Map<string, string> = generateFigma();
 
 describe("committed kit targets ↔ generator", () => {
   it("every target is committed exactly as generated", () => {
@@ -54,6 +57,15 @@ describe("port ledger ↔ component census", () => {
   it("kit/ports/manifest.json tracks exactly the shipped components", () => {
     const { missing, ghosts } = portsCheck();
     expect({ missing, ghosts }).toEqual({ missing: [], ghosts: [] });
+  });
+});
+
+describe("Figma zero-subscription kit ↔ generator", () => {
+  it("every Figma kit artifact is committed exactly as generated", () => {
+    expect(figmaKit.size).toBe(21);
+    for (const [rel, content] of figmaKit) {
+      expect(readFileSync(join(ROOT, rel), "utf8"), rel).toBe(content);
+    }
   });
 });
 

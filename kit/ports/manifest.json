@@ -10,7 +10,7 @@
       }
     },
     "TuxAccordion": {
-      "sourceHash": "9687399f72fad0b0",
+      "sourceHash": "3f7bec64fda75514",
       "ports": {
         "react": {
           "hash": "9687399f72fad0b0",
@@ -35,7 +35,7 @@
       }
     },
     "TuxAlert": {
-      "sourceHash": "f1187a57a45ad722",
+      "sourceHash": "08fe5db9545a0c72",
       "ports": {
         "react": {
           "hash": "f1187a57a45ad722",
@@ -128,7 +128,7 @@
       }
     },
     "TuxBlockquote": {
-      "sourceHash": "fbe72d619e6246d7",
+      "sourceHash": "e662d68e9a7b8e7a",
       "ports": {
         "react": {
           "hash": null
@@ -153,7 +153,7 @@
       }
     },
     "TuxButton": {
-      "sourceHash": "aefd67ed44f18d73",
+      "sourceHash": "6147fe78b1b466bc",
       "ports": {
         "react": {
           "hash": "aefd67ed44f18d73",
@@ -162,7 +162,7 @@
       }
     },
     "TuxCTA": {
-      "sourceHash": "e3bde2c79be124c0",
+      "sourceHash": "119c7ba74d43fdcc",
       "ports": {
         "react": {
           "hash": null
@@ -204,7 +204,7 @@
       }
     },
     "TuxCardSlab": {
-      "sourceHash": "283d4af5fd7276d6",
+      "sourceHash": "3890a47d2a5023e8",
       "ports": {
         "react": {
           "hash": null
@@ -212,7 +212,7 @@
       }
     },
     "TuxCenterBadge": {
-      "sourceHash": "39a9ba8f69e52b9f",
+      "sourceHash": "93f41599d817ba51",
       "ports": {
         "react": {
           "hash": null
@@ -364,7 +364,7 @@
       }
     },
     "TuxChatMessage": {
-      "sourceHash": "633a7ade61d5553b",
+      "sourceHash": "62389fb90cd109a4",
       "ports": {
         "react": {
           "hash": null
@@ -413,7 +413,7 @@
       }
     },
     "TuxCommentThread": {
-      "sourceHash": "1d47415627c3b1db",
+      "sourceHash": "826ed4e720365bba",
       "ports": {
         "react": {
           "hash": null
@@ -445,7 +445,7 @@
       }
     },
     "TuxContextMeter": {
-      "sourceHash": "193cb33255271938",
+      "sourceHash": "8f5cff7a0cdc339d",
       "ports": {
         "react": {
           "hash": null
@@ -610,7 +610,7 @@
       }
     },
     "TuxFooter": {
-      "sourceHash": "da31ceb20b75907d",
+      "sourceHash": "0c73b1e6ef2f148d",
       "ports": {
         "react": {
           "hash": null
@@ -749,7 +749,7 @@
       }
     },
     "TuxMarkdownEditor": {
-      "sourceHash": "6621df0a87c194fd",
+      "sourceHash": "6b5c4dbc6e45de78",
       "ports": {
         "react": {
           "hash": null
@@ -765,7 +765,7 @@
       }
     },
     "TuxMediaSlab": {
-      "sourceHash": "fee9ffab9a0931ef",
+      "sourceHash": "be6ad101e4809026",
       "ports": {
         "react": {
           "hash": null
@@ -805,7 +805,7 @@
       }
     },
     "TuxModal": {
-      "sourceHash": "696be1fc5d1bfc5e",
+      "sourceHash": "12dfc4438e7b41ec",
       "ports": {
         "react": {
           "hash": null
@@ -829,7 +829,7 @@
       }
     },
     "TuxPageHeader": {
-      "sourceHash": "6a2595309c73fd14",
+      "sourceHash": "c55e8b94ec833186",
       "ports": {
         "react": {
           "hash": null
@@ -941,7 +941,7 @@
       }
     },
     "TuxResearcher": {
-      "sourceHash": "4b8ab3454849e9d2",
+      "sourceHash": "0f3087525fbc09cd",
       "ports": {
         "react": {
           "hash": null
@@ -1023,7 +1023,7 @@
       }
     },
     "TuxSignupFeature": {
-      "sourceHash": "2487698a52ebc59d",
+      "sourceHash": "5013729a3c823586",
       "ports": {
         "react": {
           "hash": null
@@ -1169,7 +1169,7 @@
       }
     },
     "TuxTestimonial": {
-      "sourceHash": "9a19e07650ccdf6d",
+      "sourceHash": "18b98b9ebd2bb5b8",
       "ports": {
         "react": {
           "hash": null
@@ -1257,7 +1257,7 @@
       }
     },
     "TuxDocSearch": {
-      "sourceHash": "993a8ba0a3cc8bf4",
+      "sourceHash": "15b40db271bc5f2a",
       "ports": {
         "react": {
           "hash": null
@@ -1321,7 +1321,7 @@
       }
     },
     "TuxPortalHeader": {
-      "sourceHash": "76cfba32cf85d58d",
+      "sourceHash": "fb6deafc94ae40e0",
       "ports": {
         "react": {
           "hash": "76cfba32cf85d58d",
@@ -1363,7 +1363,7 @@
       }
     },
     "TuxSpectrumFacts": {
-      "sourceHash": "6ef6c30cc70209f7",
+      "sourceHash": "4435a0d98f15cb09",
       "ports": {
         "react": {
           "hash": null
@@ -1427,7 +1427,7 @@
       }
     },
     "TuxRoadwayCrossSection": {
-      "sourceHash": "6b49b0a79f756bbb",
+      "sourceHash": "e434816169fea4c6",
       "ports": {
         "react": {
           "hash": null
@@ -1487,6 +1487,14 @@
       "ports": {
         "react": {
           "hash": "c1c7888f3d5fdd7c"
+        }
+      }
+    },
+    "TuxArchitectureMap": {
+      "sourceHash": "5019f919ca177ff2",
+      "ports": {
+        "react": {
+          "hash": null
         }
       }
     }

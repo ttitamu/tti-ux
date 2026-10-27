@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="200" viewBox="0 0 760 200" fill="none">
+  <rect id="TUX / Form Controls Sheet" width="760" height="200" rx="8" fill="#FFFFFF" stroke="#E7E6E6"/>
+  <text x="24" y="34" fill="#5C0025" font-family="Oswald, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">TUX / FORM CONTROLS · 44PX AAA TARGETS &amp; 3:1 BOUNDARY CONTRAST</text>
+  <line x1="24" y1="44" x2="736" y2="44" stroke="#DDAC37" stroke-width="2"/>
+  <g id="Input / Focused State" transform="translate(24, 62)">
+    <text x="0" y="14" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="13" font-weight="700">Corridor Reference Marker (Focused)</text>
+    <rect x="-3" y="21" width="234" height="50" rx="6" fill="none" stroke="#5C0025" stroke-width="3"/>
+    <rect x="0" y="24" width="228" height="44" rx="4" fill="#FFFFFF" stroke="#525252" stroke-width="1.5"/>
+    <text x="12" y="51" fill="#221F1F" font-family="JetBrains Mono, monospace" font-size="13">IH-0035-E · RM 240.5</text>
+    <text x="0" y="92" fill="#525252" font-family="Open Sans, sans-serif" font-size="11">3px solid #5C0025 focus ring (WCAG 2.4.13 AAA)</text>
+  </g>
+  <g id="Select / District Selector" transform="translate(276, 62)">
+    <text x="0" y="14" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="13" font-weight="700">TxDOT District</text>
+    <rect x="0" y="24" width="216" height="44" rx="4" fill="#FFFFFF" stroke="#525252" stroke-width="1.5"/>
+    <text x="12" y="51" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="13">17 — Bryan District (BRY)</text>
+    <polygon points="194,43 204,43 199,51" fill="#221F1F"/>
+  </g>
+  <g id="Toggle &amp; Checkbox" transform="translate(516, 62)">
+    <text x="0" y="14" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="13" font-weight="700">Telemetry Options</text>
+    <rect x="0" y="28" width="24" height="24" rx="4" fill="#5C0025"/>
+    <polyline points="6,40 10,45 18,35" stroke="#FFFFFF" stroke-width="2.5" fill="none"/>
+    <text x="34" y="45" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="13">Metric (SI) Units</text>
+    <rect x="0" y="64" width="48" height="26" rx="13" fill="#5C0025"/>
+    <circle cx="35" cy="77" r="9" fill="#FFFFFF"/>
+    <text x="58" y="82" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="13">Live Cursor Sync</text>
+  </g>
+</svg>

@@ -24,6 +24,7 @@ npm run dev
 | `TuxAvatar`          | tux native               | `/components/avatar`            |
 | `TuxAppFrame`        | tux native               | `/components/app-frame`         |
 | `TuxAppSwitcher`     | `UPopover`               | `/components/app-switcher`      |
+| `TuxArchitectureMap` | tux native (M.A.P. canvas) | `/components/architecture-map` |
 | `TuxArtifact`        | tux native               | `/components/artifact`          |
 | `TuxBadge`           | `UBadge`                 | `/components/badge`             |
 | `TuxBetaRibbon`      | tux native               | `/components/beta-ribbon`       |

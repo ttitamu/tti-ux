@@ -33,6 +33,7 @@ Tier 1 targets are mathematically derived from `design/tokens.json`. Any update 
 - **`kit/kotlin/TuxTokens.kt`**: Kotlin & Jetpack Compose color constants for Android applications.
 - **`kit/js/tux-tokens.js`**: Vanilla JavaScript ESM constants and token dictionaries.
 - **`kit/wp/theme.json`**: WordPress block-theme palette, font families, and rhythm rules.
+- **`kit/figma/`**: Zero-subscription Figma & Penpot design kit (`tokens.dtcg.json`, `tokens-studio.json`, `figma-variables.json`, `code-connect.json`, 12 Copy-to-Figma vector component sheets in `svg-components/*.svg`, and the local Figma plugin in `plugin/manifest.json`).
 - **`kit/powerbi/`**: JSON theme files (`tti-theme.json`, `tti-theme-dark.json`, `tti-theme-hc.json`) for Power BI Desktop and Fabric.
 - **`kit/env/brand.env`**: POSIX shell environment variables for CI pipelines and container builds.
 

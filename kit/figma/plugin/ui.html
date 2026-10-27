@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>TUX Figma Kit Builder &amp; Code Connect</title>
+  <style>
+    :root {
+      --brand-primary: #5C0025;
+      --brand-accent: #DDAC37;
+      --surface-page: #FFFFFF;
+      --surface-eggshell: #F9F9F7;
+      --surface-border: #E7E6E6;
+      --text-primary: #221F1F;
+      --text-secondary: #424242;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Open Sans", sans-serif;
+      background: var(--surface-eggshell);
+      color: var(--text-primary);
+      font-size: 13px;
+    }
+    .masthead {
+      background: var(--brand-primary);
+      color: #FFFFFF;
+      padding: 12px 14px;
+      border-bottom: 3px solid var(--brand-accent);
+      border-radius: 4px;
+      margin-bottom: 14px;
+    }
+    .masthead h1 {
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: 0.4px;
+    }
+    .masthead p {
+      margin: 4px 0 0;
+      font-size: 11px;
+      opacity: 0.9;
+    }
+    .card {
+      background: var(--surface-page);
+      border: 1px solid var(--surface-border);
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .card h2 {
+      margin: 0 0 6px;
+      font-size: 13px;
+      color: var(--brand-primary);
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      min-height: 40px;
+      padding: 8px 12px;
+      margin-top: 8px;
+      background: var(--brand-primary);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .btn--secondary {
+      background: #FFFFFF;
+      color: var(--brand-primary);
+      border: 1.5px solid var(--brand-primary);
+    }
+    select {
+      width: 100%;
+      height: 36px;
+      border: 1px solid #525252;
+      border-radius: 4px;
+      padding: 0 8px;
+      margin-bottom: 8px;
+    }
+    pre {
+      background: #221F1F;
+      color: #F9F9F7;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 11px;
+      overflow-x: auto;
+      margin: 6px 0 0;
+    }
+    #status {
+      font-size: 11px;
+      font-family: monospace;
+      color: var(--brand-primary);
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="masthead">
+    <h1>TUX · Zero-Subscription Figma Kit</h1>
+    <p>Texas A&amp;M Transportation Institute · WCAG 2.2 Level AAA</p>
+  </div>
+
+  <div class="card">
+    <h2>1. 1-Click Figma Document Setup (Free Plan Compatible)</h2>
+    <button class="btn" id="btn-kit">⚡ Generate Auto-Layout Component Kit on Canvas</button>
+    <button class="btn btn--secondary" id="btn-styles">🎨 Sync All Paint Styles (Light, Dark, High-Contrast)</button>
+    <button class="btn btn--secondary" id="btn-vars">🔢 Sync Figma Variables (Auto Free-Tier Fallback)</button>
+    <div id="status">Ready · Zero external network calls · Free Starter Plan supported.</div>
+  </div>
+
+  <div class="card">
+    <h2>2. Free Built-In Code Connect Inspector</h2>
+    <label for="comp-select">Inspect TUX Component:</label>
+    <select id="comp-select"></select>
+    <div id="comp-blurb" style="font-size:12px;color:#424242;margin-bottom:6px;"></div>
+    <strong>Vue 3 / Nuxt 4:</strong>
+    <pre id="code-vue"></pre>
+    <strong>React (@tti/tti-ux-react):</strong>
+    <pre id="code-react"></pre>
+    <strong>Web Components (@tti/tti-ux-elements):</strong>
+    <pre id="code-wc"></pre>
+  </div>
+
+  <script>
+    const COMPONENTS = [{"name":"TuxAbstract","tagName":"tux-abstract","kind":"component","family":"components","category":"publishing","wraps":"tux native","blurb":"Structured academic abstract block.","route":"/components/abstract","docsUrl":"https://ux.tti.tamu.edu/components/abstract","figmaNodePattern":"TUX / TuxAbstract","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxAbstract />","react":"import { TuxAbstract } from \"@tti/tti-ux-react\";\n\n<TuxAbstract />","webComponents":"<tux-abstract></tux-abstract>","blazor":"<TuxAbstract />","wordpress":"[tux_abstract]"}},{"name":"TuxAccordion","tagName":"tux-accordion","kind":"component","family":"components","category":"publishing","wraps":"tux native","blurb":"FAQ + publication disclosure — native details/summary, zero-JS, single-mode + slot composition.","route":"/components/accordion","docsUrl":"https://ux.tti.tamu.edu/components/accordion","figmaNodePattern":"TUX / TuxAccordion","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxAccordion />","react":"import { TuxAccordion } from \"@tti/tti-ux-react\";\n\n<TuxAccordion />","webComponents":"<tux-accordion></tux-accordion>","blazor":"<TuxAccordion />","wordpress":"[tux_accordion]"}},{"name":"TuxAcknowledgments","tagName":"tux-acknowledgments","kind":"component","family":"components","category":"publishing","wraps":"tux native","blurb":"Funding + acknowledgments + ethics block.","route":"/components/acknowledgments","docsUrl":"https://ux.tti.tamu.edu/components/acknowledgments","figmaNodePattern":"TUX / TuxAcknowledgments","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxAcknowledgments />","react":"import { TuxAcknowledgments } from \"@tti/tti-ux-react\";\n\n<TuxAcknowledgments />","webComponents":"<tux-acknowledgments></tux-acknowledgments>","blazor":"<TuxAcknowledgments />","wordpress":"[tux_acknowledgments]"}},{"name":"TuxActivityTimeline","tagName":"tux-activity-timeline","kind":"component","family":"components","category":"data-display","wraps":"tux native","blurb":"Editorial vertical timeline — maroon spine, mono timestamps, gold-ringed current node. Milestones, ingest feeds, session history.","route":"/components/activity-timeline","docsUrl":"https://ux.tti.tamu.edu/components/activity-timeline","figmaNodePattern":"TUX / TuxActivityTimeline","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxActivityTimeline />","react":"import { TuxActivityTimeline } from \"@tti/tti-ux-react\";\n\n<TuxActivityTimeline />","webComponents":"<tux-activity-timeline></tux-activity-timeline>","blazor":"<TuxActivityTimeline />","wordpress":"[tux_activity_timeline]"}},{"name":"TuxAlert","tagName":"tux-alert","kind":"component","family":"components","category":"feedback","wraps":"UAlert","blurb":"Docusaurus-style admonitions — 8 variants including compliance and tip.","route":"/components/alert","docsUrl":"https://ux.tti.tamu.edu/components/alert","figmaNodePattern":"TUX / TuxAlert","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxAlert />","react":"import { TuxAlert } from \"@tti/tti-ux-react\";\n\n<TuxAlert />","webComponents":"<tux-alert></tux-alert>","blazor":"<TuxAlert />","wordpress":"[tux_alert]"}},{"name":"TuxAlphaNav","tagName":"tux-alpha-nav","kind":"component","family":"components","category":"navigation","wraps":"tux native","blurb":"A–Z jump bar — anchor mode for in-page jumps, emit mode for filter-in-place.","route":"/components/alpha-nav","docsUrl":"https://ux.tti.tamu.edu/components/alpha-nav","figmaNodePattern":"TUX / TuxAlphaNav","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxAlphaNav />","react":"import { TuxAlphaNav } from \"@tti/tti-ux-react\";\n\n<TuxAlphaNav />","webComponents":"<tux-alpha-nav></tux-alpha-nav>","blazor":"<TuxAlphaNav />","wordpress":"[tux_alpha_nav]"}},{"name":"TuxAnnouncementBanner","tagName":"tux-announcement-banner","kind":"component","family":"components","category":"feedback","wraps":"tux native","blurb":"Top-of-page dismissable strip for site-wide notices. localStorage-backed dismissal memory.","route":"/components/announcement-banner","docsUrl":"https://ux.tti.tamu.edu/components/announcement-banner","figmaNodePattern":"TUX / TuxAnnouncementBanner","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxAnnouncementBanner />","react":"import { TuxAnnouncementBanner } from \"@tti/tti-ux-react\";\n\n<TuxAnnouncementBanner />","webComponents":"<tux-announcement-banner></tux-announcement-banner>","blazor":"<TuxAnnouncementBanner />","wordpress":"[tux_announcement_banner]"}},{"name":"TuxAppFrame","tagName":"tux-app-frame","kind":"component","family":"components","category":"navigation","wraps":"tux native","blurb":"Custom Tauri titlebar — traffic lights (Mac) / min-max-close (Win/Linux), brand + toolbar slots, drag regions. Replaces native window decoration.","route":"/components/app-frame","docsUrl":"https://ux.tti.tamu.edu/components/app-frame","figmaNodePattern":"TUX / TuxAppFrame","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxAppFrame />","react":"import { TuxAppFrame } from \"@tti/tti-ux-react\";\n\n<TuxAppFrame />","webComponents":"<tux-app-frame></tux-app-frame>","blazor":"<TuxAppFrame />","wordpress":"[tux_app_frame]"}},{"name":"TuxAppSwitcher","tagName":"tux-app-switcher","kind":"component","family":"components","category":"actions","wraps":"UPopover","blurb":"Waffle-button popover for hopping between TTI portals — registry-fed via useTuxApps(), registry order everywhere, current tile carries aria-current.","route":"/components/app-switcher","docsUrl":"https://ux.tti.tamu.edu/components/app-switcher","figmaNodePattern":"TUX / TuxAppSwitcher","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxAppSwitcher />","react":"import { TuxAppSwitcher } from \"@tti/tti-ux-react\";\n\n<TuxAppSwitcher />","webComponents":"<tux-app-switcher></tux-app-switcher>","blazor":"<TuxAppSwitcher />","wordpress":"[tux_app_switcher]"}},{"name":"TuxArchitectureMap","tagName":"tux-architecture-map","kind":"component","family":"components","category":"data-display","wraps":"tux native (M.A.P. canvas)","blurb":"Infinite-canvas Master Architecture Plan (M.A.P.) — 3-level semantic zoom (Products → People/VMs/Containers → Package Dependencies), blast-radius traversal, smoothed freehand pen, decaying laser pointer, and multi-user cursors.","route":"/components/architecture-map","docsUrl":"https://ux.tti.tamu.edu/components/architecture-map","figmaNodePattern":"TUX / TuxArchitectureMap","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxArchitectureMap />","react":"import { TuxArchitectureMap } from \"@tti/tti-ux-react\";\n\n<TuxArchitectureMap />","webComponents":"<tux-architecture-map></tux-architecture-map>","blazor":"<TuxArchitectureMap />","wordpress":"[tux_architecture_map]"}},{"name":"TuxArtifact","tagName":"tux-artifact","kind":"component","family":"components","category":"ai","wraps":"tux native","blurb":"AI output container — header + actions + body slot. Wraps generated code, docs, exported datasets.","route":"/components/artifact","docsUrl":"https://ux.tti.tamu.edu/components/artifact","figmaNodePattern":"TUX / TuxArtifact","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxArtifact />","react":"import { TuxArtifact } from \"@tti/tti-ux-react\";\n\n<TuxArtifact />","webComponents":"<tux-artifact></tux-artifact>","blazor":"<TuxArtifact />","wordpress":"[tux_artifact]"}},{"name":"TuxAuthorByline","tagName":"tux-author-byline","kind":"component","family":"components","category":"publishing","wraps":"tux native","blurb":"Multi-author byline with affiliations + ORCID.","route":"/components/author-byline","docsUrl":"https://ux.tti.tamu.edu/components/author-byline","figmaNodePattern":"TUX / TuxAuthorByline","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxAuthorByline />","react":"import { TuxAuthorByline } from \"@tti/tti-ux-react\";\n\n<TuxAuthorByline />","webComponents":"<tux-author-byline></tux-author-byline>","blazor":"<TuxAuthorByline />","wordpress":"[tux_author_byline]"}},{"name":"TuxAvatar","tagName":"tux-avatar","kind":"component","family":"components","category":"feedback","wraps":"tux native","blurb":"Identity mark primitive — photo with initials fallback + optional status dot. Extracted from TuxUserMenu.","route":"/components/avatar","docsUrl":"https://ux.tti.tamu.edu/components/avatar","figmaNodePattern":"TUX / TuxAvatar","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxAvatar />","react":"import { TuxAvatar } from \"@tti/tti-ux-react\";\n\n<TuxAvatar />","webComponents":"<tux-avatar></tux-avatar>","blazor":"<TuxAvatar />","wordpress":"[tux_avatar]"}},{"name":"TuxBadge","tagName":"tux-badge","kind":"component","family":"components","category":"feedback","wraps":"UBadge","blurb":"Unified status & taxonomy badge — classification tiers, lifecycle states, bold modes, status dots, leading icons, and facet counts.","route":"/components/badge","docsUrl":"https://ux.tti.tamu.edu/components/badge","figmaNodePattern":"TUX / TuxBadge","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxBadge />","react":"import { TuxBadge } from \"@tti/tti-ux-react\";\n\n<TuxBadge />","webComponents":"<tux-badge></tux-badge>","blazor":"<TuxBadge />","wordpress":"[tux_badge]"}},{"name":"TuxBetaRibbon","tagName":"tux-beta-ribbon","kind":"component","family":"components","category":"feedback","wraps":"tux native","blurb":"Environment label — corner ribbon, top stripe, or inline pill. preview/beta/dev tones.","route":"/components/beta-ribbon","docsUrl":"https://ux.tti.tamu.edu/components/beta-ribbon","figmaNodePattern":"TUX / TuxBetaRibbon","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxBetaRibbon />","react":"import { TuxBetaRibbon } from \"@tti/tti-ux-react\";\n\n<TuxBetaRibbon />","webComponents":"<tux-beta-ribbon></tux-beta-ribbon>","blazor":"<TuxBetaRibbon />","wordpress":"[tux_beta_ribbon]"}},{"name":"TuxBigStat","tagName":"tux-big-stat","kind":"component","family":"components","category":"data-display","wraps":"tux native","blurb":"Single oversized metric — three sizes, three tones, three style variants.","route":"/components/big-stat","docsUrl":"https://ux.tti.tamu.edu/components/big-stat","figmaNodePattern":"TUX / TuxBigStat","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxBigStat />","react":"import { TuxBigStat } from \"@tti/tti-ux-react\";\n\n<TuxBigStat />","webComponents":"<tux-big-stat></tux-big-stat>","blazor":"<TuxBigStat />","wordpress":"[tux_big_stat]"}},{"name":"TuxBlockquote","tagName":"tux-blockquote","kind":"component","family":"components","category":"publishing","wraps":"tux native","blurb":"Standalone pull quote — centered or magazine-style drop-cap. Variant-aware rule + face.","route":"/components/blockquote","docsUrl":"https://ux.tti.tamu.edu/components/blockquote","figmaNodePattern":"TUX / TuxBlockquote","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxBlockquote />","react":"import { TuxBlockquote } from \"@tti/tti-ux-react\";\n\n<TuxBlockquote />","webComponents":"<tux-blockquote></tux-blockquote>","blazor":"<TuxBlockquote />","wordpress":"[tux_blockquote]"}},{"name":"TuxBranchNav","tagName":"tux-branch-nav","kind":"component","family":"components","category":"navigation","wraps":"tux native","blurb":"‹ N of M › navigator for response alternatives. Lives in TuxChatMessage's #header-trailing slot.","route":"/components/branch-nav","docsUrl":"https://ux.tti.tamu.edu/components/branch-nav","figmaNodePattern":"TUX / TuxBranchNav","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxBranchNav />","react":"import { TuxBranchNav } from \"@tti/tti-ux-react\";\n\n<TuxBranchNav />","webComponents":"<tux-branch-nav></tux-branch-nav>","blazor":"<TuxBranchNav />","wordpress":"[tux_branch_nav]"}},{"name":"TuxBreadcrumbs","tagName":"tux-breadcrumbs","kind":"component","family":"components","category":"navigation","wraps":"tux native","blurb":"Page-depth nav — home icon, italic intermediates, pipe rules collapsing to chevron on narrow.","route":"/components/breadcrumbs","docsUrl":"https://ux.tti.tamu.edu/components/breadcrumbs","figmaNodePattern":"TUX / TuxBreadcrumbs","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxBreadcrumbs />","react":"import { TuxBreadcrumbs } from \"@tti/tti-ux-react\";\n\n<TuxBreadcrumbs />","webComponents":"<tux-breadcrumbs></tux-breadcrumbs>","blazor":"<TuxBreadcrumbs />","wordpress":"[tux_breadcrumbs]"}},{"name":"TuxButton","tagName":"tux-button","kind":"component","family":"components","category":"actions","wraps":"UButton","blurb":"Semantic intent prop — primary, secondary, ghost, destructive (fills on hover).","route":"/components/button","docsUrl":"https://ux.tti.tamu.edu/components/button","figmaNodePattern":"TUX / TuxButton","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxButton />","react":"import { TuxButton } from \"@tti/tti-ux-react\";\n\n<TuxButton />","webComponents":"<tux-button></tux-button>","blazor":"<TuxButton />","wordpress":"[tux_button]"}},{"name":"TuxCTA","tagName":"tux-cta","kind":"component","family":"components","category":"publishing","wraps":"tux native","blurb":"Big promotional block — three tones, three style variants, action slot.","route":"/components/cta","docsUrl":"https://ux.tti.tamu.edu/components/cta","figmaNodePattern":"TUX / TuxCTA","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxCTA />","react":"import { TuxCTA } from \"@tti/tti-ux-react\";\n\n<TuxCTA />","webComponents":"<tux-cta></tux-cta>","blazor":"<TuxCTA />","wordpress":"[tux_cta]"}},{"name":"TuxCallout","tagName":"tux-callout","kind":"component","family":"components","category":"publishing","wraps":"tux native","blurb":"Pulled-aside editorial accent — fact / stat / quote with style-variant left rule.","route":"/components/callout","docsUrl":"https://ux.tti.tamu.edu/components/callout","figmaNodePattern":"TUX / TuxCallout","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxCallout />","react":"import { TuxCallout } from \"@tti/tti-ux-react\";\n\n<TuxCallout />","webComponents":"<tux-callout></tux-callout>","blazor":"<TuxCallout />","wordpress":"[tux_callout]"}},{"name":"TuxCapabilityCluster","tagName":"tux-capability-cluster","kind":"component","family":"components","category":"publishing","wraps":"tux native","blurb":"Orbital research capability medallions with concentric gold and maroon halos.","route":"/components/capability-cluster","docsUrl":"https://ux.tti.tamu.edu/components/capability-cluster","figmaNodePattern":"TUX / TuxCapabilityCluster","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxCapabilityCluster />","react":"import { TuxCapabilityCluster } from \"@tti/tti-ux-react\";\n\n<TuxCapabilityCluster />","webComponents":"<tux-capability-cluster></tux-capability-cluster>","blazor":"<TuxCapabilityCluster />","wordpress":"[tux_capability_cluster]"}},{"name":"TuxCaptionedMedia","tagName":"tux-captioned-media","kind":"component","family":"components","category":"publishing","wraps":"tux native","blurb":"Single image + caption + credit. 16:9 / 1:1 / 4:3 / 3:4 aspect, full / wide / right alignment.","route":"/components/captioned-media","docsUrl":"https://ux.tti.tamu.edu/components/captioned-media","figmaNodePattern":"TUX / TuxCaptionedMedia","a11y":{"wcagLevel":"AAA","textContrast":">= 7.0:1","uiContrast":">= 3.0:1","minTouchTarget":"44x44px"},"snippets":{"vue":"<TuxCaptionedMedia />","react":"import { TuxCaptionedMedia } from \"@tti/tti-ux-react\";\n\n<TuxCaptionedMedia />","webComponents":"<tux-captioned-media></tux-captioned-media>","blazor":"<TuxCaptionedMedia />","wordpress":"[tux_captioned_media]"}}];
+    const selectEl = document.getElementById("comp-select");
+    const blurbEl = document.getElementById("comp-blurb");
+    const vueEl = document.getElementById("code-vue");
+    const reactEl = document.getElementById("code-react");
+    const wcEl = document.getElementById("code-wc");
+
+    function renderComp(c) {
+      if (!c) return;
+      blurbEl.textContent = c.blurb + " (" + c.a11y.wcagLevel + " · " + c.a11y.textContrast + ")";
+      vueEl.textContent = c.snippets.vue;
+      reactEl.textContent = c.snippets.react;
+      wcEl.textContent = c.snippets.webComponents;
+    }
+
+    COMPONENTS.forEach((c, idx) => {
+      const opt = document.createElement("option");
+      opt.value = String(idx);
+      opt.textContent = c.name + " (" + c.category + ")";
+      selectEl.appendChild(opt);
+    });
+    selectEl.addEventListener("change", () => renderComp(COMPONENTS[Number(selectEl.value)]));
+    renderComp(COMPONENTS[0]);
+
+    document.getElementById("btn-kit").onclick = () => parent.postMessage({ pluginMessage: { type: "generate-kit" } }, "*");
+    document.getElementById("btn-styles").onclick = () => parent.postMessage({ pluginMessage: { type: "sync-styles" } }, "*");
+    document.getElementById("btn-vars").onclick = () => parent.postMessage({ pluginMessage: { type: "sync-variables" } }, "*");
+
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+      if (msg.type === "status") {
+        document.getElementById("status").textContent = msg.text;
+      } else if (msg.type === "selection-matched" && msg.component) {
+        renderComp(msg.component);
+      }
+    };
+  </script>
+</body>
+</html>

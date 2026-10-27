@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="240" viewBox="0 0 760 240" fill="none">
+  <rect id="TUX / TuxCard Sheet" width="760" height="240" rx="8" fill="#F9F9F7" stroke="#E7E6E6"/>
+  <g id="Card / Research Division (Light)" transform="translate(24, 20)">
+    <rect width="344" height="200" rx="6" fill="#FFFFFF" stroke="#E7E6E6"/>
+    <rect width="344" height="4" rx="2" fill="#5C0025"/>
+    <text x="20" y="32" fill="#5C0025" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1">CONNECTED CORRIDORS · TXDOT</text>
+    <text x="20" y="58" fill="#221F1F" font-family="Oswald, sans-serif" font-size="20" font-weight="700">Automated Freight Platooning Study</text>
+    <line x1="20" y1="68" x2="84" y2="68" stroke="#DDAC37" stroke-width="2"/>
+    <text x="20" y="94" fill="#424242" font-family="Open Sans, sans-serif" font-size="13">Field evaluation of V2X low-latency BSM telemetry along the I-10 Texas Freight Corridor.</text>
+    <line x1="20" y1="154" x2="324" y2="154" stroke="#EFEEED"/>
+    <text x="20" y="178" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11">Project 0-7142 · DOI: 10.5555/tti.2026</text>
+  </g>
+  <g id="Card / Research Division (Dark)" transform="translate(392, 20)">
+    <rect width="344" height="200" rx="6" fill="#221F1F" stroke="#3D3A3A"/>
+    <rect width="344" height="4" rx="2" fill="#6BB4C0"/>
+    <text x="20" y="32" fill="#6BB4C0" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1">RELLIS PROVING GROUNDS · DARK</text>
+    <text x="20" y="58" fill="#FAFAFA" font-family="Oswald, sans-serif" font-size="20" font-weight="700">Roadside LiDAR Occlusion Benchmark</text>
+    <line x1="20" y1="68" x2="84" y2="68" stroke="#DDAC37" stroke-width="2"/>
+    <text x="20" y="94" fill="#D1D2D4" font-family="Open Sans, sans-serif" font-size="13">Sub-centimeter pedestrian trajectory reconstruction under heavy precipitation conditions.</text>
+    <line x1="20" y1="154" x2="324" y2="154" stroke="#2E2B2A"/>
+    <text x="20" y="178" fill="#B5B5B5" font-family="JetBrains Mono, monospace" font-size="11">n = 28,400 frames · 99.4% Recall</text>
+  </g>
+</svg>

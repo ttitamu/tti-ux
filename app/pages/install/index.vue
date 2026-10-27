@@ -74,6 +74,14 @@ const targets: Target[] = [
     to: "/install/wordpress",
   },
   {
+    label: "Figma & Penpot Design Kit",
+    path: "kit/figma/",
+    consumer: "Designers & UI Engineering",
+    blurb: "Zero-subscription Figma kit: W3C DTCG 2025.10 tokens, 12 Copy-to-Figma vector component sheets, local Auto-Layout builder plugin, and 183-component Code Connect inspector.",
+    to: "/install/figma",
+    badge: "Next Release",
+  },
+  {
     label: "Power BI & Fabric",
     path: "kit/powerbi/",
     consumer: "Business Intelligence",
@@ -151,7 +159,7 @@ const cssInstallCode = `<!-- Add to <head> of any web page -->
     <section class="space-y-4">
       <div class="flex flex-wrap items-baseline justify-between gap-2">
         <TuxSectionHeader title="Available Targets" />
-        <span class="text-xs text-text-muted">10 compiled framework targets</span>
+        <span class="text-xs text-text-muted">11 compiled framework targets</span>
       </div>
       <div class="grid gap-3 sm:grid-cols-2">
         <TuxCard

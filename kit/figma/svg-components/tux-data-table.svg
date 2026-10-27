@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="230" viewBox="0 0 760 230" fill="none">
+  <rect id="TUX / TuxDataTable Sheet" width="760" height="230" rx="8" fill="#FFFFFF" stroke="#E7E6E6"/>
+  <g id="Table Header Bar" transform="translate(16, 16)">
+    <rect width="728" height="36" fill="#F5F5F5" stroke="#E7E6E6"/>
+    <text x="16" y="23" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">CORRIDOR SEGMENT</text>
+    <text x="230" y="23" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">STATIONING</text>
+    <text x="380" y="23" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">AADT (VEH/DAY)</text>
+    <text x="530" y="23" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">MEAN SPEED</text>
+    <text x="640" y="23" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">STATUS</text>
+  </g>
+  <g id="Row 1" transform="translate(16, 52)">
+    <rect width="728" height="40" fill="#FFFFFF" stroke="#EFEEED"/>
+    <text x="16" y="25" fill="#5C0025" font-family="Open Sans, sans-serif" font-size="13" font-weight="600">IH-35E Northbound · Waco</text>
+    <text x="230" y="25" fill="#424242" font-family="JetBrains Mono, monospace" font-size="12">STA 104+00</text>
+    <text x="380" y="25" fill="#221F1F" font-family="JetBrains Mono, monospace" font-size="13" font-weight="600">142,800</text>
+    <text x="530" y="25" fill="#221F1F" font-family="JetBrains Mono, monospace" font-size="13">64.2 mph</text>
+    <rect x="640" y="9" width="72" height="22" rx="3" fill="#93F387" stroke="#258818"/>
+    <text x="676" y="24" text-anchor="middle" fill="#221F1F" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">LOS B</text>
+  </g>
+  <g id="Row 2" transform="translate(16, 92)">
+    <rect width="728" height="40" fill="#F9F9F7" stroke="#EFEEED"/>
+    <text x="16" y="25" fill="#5C0025" font-family="Open Sans, sans-serif" font-size="13" font-weight="600">IH-10 Katy Managed Lanes</text>
+    <text x="230" y="25" fill="#424242" font-family="JetBrains Mono, monospace" font-size="12">RM 748.5</text>
+    <text x="380" y="25" fill="#221F1F" font-family="JetBrains Mono, monospace" font-size="13" font-weight="600">218,450</text>
+    <text x="530" y="25" fill="#221F1F" font-family="JetBrains Mono, monospace" font-size="13">48.7 mph</text>
+    <rect x="640" y="9" width="72" height="22" rx="3" fill="#ECEE55" stroke="#7A7A00"/>
+    <text x="676" y="24" text-anchor="middle" fill="#221F1F" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">LOS D</text>
+  </g>
+  <g id="Row 3" transform="translate(16, 132)">
+    <rect width="728" height="40" fill="#FFFFFF" stroke="#EFEEED"/>
+    <text x="16" y="25" fill="#5C0025" font-family="Open Sans, sans-serif" font-size="13" font-weight="600">SH-6 Bryan / College Station</text>
+    <text x="230" y="25" fill="#424242" font-family="JetBrains Mono, monospace" font-size="12">STA 042+50</text>
+    <text x="380" y="25" fill="#221F1F" font-family="JetBrains Mono, monospace" font-size="13" font-weight="600">68,120</text>
+    <text x="530" y="25" fill="#221F1F" font-family="JetBrains Mono, monospace" font-size="13">67.9 mph</text>
+    <rect x="640" y="9" width="72" height="22" rx="3" fill="#93F387" stroke="#258818"/>
+    <text x="676" y="24" text-anchor="middle" fill="#221F1F" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">LOS A</text>
+  </g>
+  <g id="Provenance Footer" transform="translate(16, 178)">
+    <rect width="728" height="34" rx="4" fill="#F5F5F5"/>
+    <text x="14" y="21" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11">Provenance: TxDOT PeMS Archive · Project 0-7142 · Units: US Customary (mph / veh)</text>
+    <text x="714" y="21" text-anchor="end" fill="#5C0025" font-family="Open Sans, sans-serif" font-size="11" font-weight="700">Copy Citation ↗</text>
+  </g>
+</svg>

@@ -52,6 +52,7 @@ const defaultItems = computed<DocSearchItem[]>(() => [
   { title: "React Integration", to: "/install/react", section: "Install", description: "Using TUX in React applications" },
   { title: "C# / .NET Integration", to: "/install/dotnet", section: "Install", description: "ASP.NET Core Tag Helpers and Blazor" },
   { title: "WordPress Integration", to: "/install/wordpress", section: "Install", description: "Official plugin for Kadence and Gutenberg" },
+  { title: "Figma & Penpot Design Kit", to: "/install/figma", section: "Install", description: "Zero-subscription Figma kit, W3C DTCG tokens, Copy-to-Figma SVG sheets, and local plugin" },
   { title: "Nuxt Studio Visual CMS", to: "/install/nuxt-studio", section: "Install", description: "Visual editing with Git backing" },
   { title: "ADR-0012: Cross-Framework Distribution", to: "/docs/adr/0012-cross-framework-distribution-via-web-components", section: "ADR", description: "Web components distribution architecture" },
   { title: "ADR-0013: Operational Status Ramp", to: "/docs/adr/0013-operational-status-ramp", section: "ADR", description: "Palette tokens for operations surfaces" },
