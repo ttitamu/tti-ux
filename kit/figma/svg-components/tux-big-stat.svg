@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="190" viewBox="0 0 760 190" fill="none">
+  <rect id="TUX / TuxBigStat Sheet" width="760" height="190" rx="8" fill="#FFFFFF" stroke="#E7E6E6"/>
+  <g id="BigStat / Sponsored Research" transform="translate(24, 20)">
+    <rect width="344" height="150" rx="6" fill="#F9F9F7" stroke="#E7E6E6"/>
+    <rect width="4" height="150" fill="#5C0025"/>
+    <text x="24" y="34" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">SPONSORED RESEARCH EXPENDITURE</text>
+    <text x="24" y="84" fill="#5C0025" font-family="Oswald, sans-serif" font-size="44" font-weight="700">$126.4M</text>
+    <rect x="204" y="56" width="96" height="24" rx="4" fill="#258818"/>
+    <text x="252" y="72" text-anchor="middle" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">+14.2% YoY</text>
+    <text x="24" y="112" fill="#424242" font-family="Open Sans, sans-serif" font-size="13">Across 720+ active federal, state, and industry studies</text>
+    <text x="24" y="136" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11">n = 724 projects · 95% CI [±1.4%] · FY 2026</text>
+  </g>
+  <g id="BigStat / Crash Reduction" transform="translate(392, 20)">
+    <rect width="344" height="150" rx="6" fill="#F9F9F7" stroke="#E7E6E6"/>
+    <rect width="4" height="150" fill="#15457E"/>
+    <text x="24" y="34" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">WORK-ZONE QUEUE WARNING EFFICACY</text>
+    <text x="24" y="84" fill="#15457E" font-family="Oswald, sans-serif" font-size="44" font-weight="700">-38.6%</text>
+    <rect x="190" y="56" width="124" height="24" rx="4" fill="#15457E"/>
+    <text x="252" y="72" text-anchor="middle" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">REAR-END CRASHES</text>
+    <text x="24" y="112" fill="#424242" font-family="Open Sans, sans-serif" font-size="13">Smart Arrow Board + portable radar queue deployment</text>
+    <text x="24" y="136" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11">n = 148 corridors · DOI: 10.5555/tti.wz.26</text>
+  </g>
+</svg>

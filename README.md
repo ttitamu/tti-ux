@@ -195,6 +195,7 @@ can't run the layer (see `design/kit-pipeline.md` for the doctrine):
 | C# | `kit/csharp/TuxTokens.cs` | WPF / MAUI / Blazor / report generators |
 | React / TS | `kit/react/tux-tokens.ts` | React apps outside Nuxt |
 | WordPress | `kit/wp/theme.json` | block-theme marcom sites |
+| Figma / Penpot | `kit/figma/*` | zero-subscription W3C DTCG tokens, Copy-to-Figma SVGs, local builder plugin |
 | Power BI | `kit/powerbi/tti-theme*.json` | report theming |
 | env | `kit/env/brand.env` | build-time brand injection |
 

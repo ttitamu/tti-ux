@@ -22,7 +22,7 @@ export default defineVitestConfig({
     // Workspace packages (packages/react, …) run their own vitest
     // with their own environment — `npm test` chains them. The root
     // runner must not sweep them up with the wrong environment.
-    exclude: ["**/node_modules/**", "packages/**", ".claude/**"],
+    exclude: ["**/node_modules/**", "packages/**", ".claude/**", "reference/**"],
     hookTimeout: 60000,
     testTimeout: 60000,
     environmentOptions: {

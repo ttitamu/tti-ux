@@ -1,0 +1,19 @@
+{
+  "name": "TUX Design System — Zero-Subscription Kit Builder & Code Connect",
+  "id": "edu.tamu.tti.tux.figma-kit",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": [
+    "figma",
+    "dev"
+  ],
+  "capabilities": [
+    "inspect"
+  ],
+  "networkAccess": {
+    "allowedDomains": [
+      "none"
+    ]
+  }
+}

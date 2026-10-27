@@ -1,0 +1,3335 @@
+{
+  "_generated": "GENERATED FILE — do not edit. Source: design/tokens.json & app/utils/tuxCatalog.ts via scripts/build-figma-kit.mjs (npm run build:figma).",
+  "tti": {
+    "tti": {
+      "maroon": {
+        "value": "#5C0025",
+        "type": "color",
+        "description": "TUX --tti-maroon (tti)"
+      },
+      "maroon-deep": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --tti-maroon-deep (tti)"
+      },
+      "gold": {
+        "value": "#DDAC37",
+        "type": "color",
+        "description": "TUX --tti-gold (tti)"
+      },
+      "gold-deep": {
+        "value": "#DCAA37",
+        "type": "color",
+        "description": "TUX --tti-gold-deep (tti)"
+      },
+      "navy": {
+        "value": "#15457E",
+        "type": "color",
+        "description": "TUX --tti-navy (tti)"
+      },
+      "teal": {
+        "value": "#4A8892",
+        "type": "color",
+        "description": "TUX --tti-teal (tti)"
+      },
+      "sage": {
+        "value": "#66814F",
+        "type": "color",
+        "description": "TUX --tti-sage (tti)"
+      },
+      "charcoal": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --tti-charcoal (tti)"
+      }
+    },
+    "spectrum": {
+      "maroon": {
+        "value": "#701D35",
+        "type": "color",
+        "description": "TUX --spectrum-maroon (tti)"
+      },
+      "blue": {
+        "value": "#566A8A",
+        "type": "color",
+        "description": "TUX --spectrum-blue (tti)"
+      },
+      "teal": {
+        "value": "#66999B",
+        "type": "color",
+        "description": "TUX --spectrum-teal (tti)"
+      },
+      "green": {
+        "value": "#849974",
+        "type": "color",
+        "description": "TUX --spectrum-green (tti)"
+      },
+      "gold": {
+        "value": "#E5B350",
+        "type": "color",
+        "description": "TUX --spectrum-gold (tti)"
+      }
+    },
+    "neutral": {
+      "0": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --neutral-0 (tti)"
+      },
+      "50": {
+        "value": "#FAFAFA",
+        "type": "color",
+        "description": "TUX --neutral-50 (tti)"
+      },
+      "100": {
+        "value": "#F5F5F5",
+        "type": "color",
+        "description": "TUX --neutral-100 (tti)"
+      },
+      "150": {
+        "value": "#EFEEED",
+        "type": "color",
+        "description": "TUX --neutral-150 (tti)"
+      },
+      "200": {
+        "value": "#E7E6E6",
+        "type": "color",
+        "description": "TUX --neutral-200 (tti)"
+      },
+      "250": {
+        "value": "#DCDBD8",
+        "type": "color",
+        "description": "TUX --neutral-250 (tti)"
+      },
+      "300": {
+        "value": "#D1D2D4",
+        "type": "color",
+        "description": "TUX --neutral-300 (tti)"
+      },
+      "400": {
+        "value": "#A5A5A5",
+        "type": "color",
+        "description": "TUX --neutral-400 (tti)"
+      },
+      "450": {
+        "value": "#9B9A96",
+        "type": "color",
+        "description": "TUX --neutral-450 (tti)"
+      },
+      "500": {
+        "value": "#939597",
+        "type": "color",
+        "description": "TUX --neutral-500 (tti)"
+      },
+      "550": {
+        "value": "#86847F",
+        "type": "color",
+        "description": "TUX --neutral-550 (tti)"
+      },
+      "600": {
+        "value": "#7E7E7E",
+        "type": "color",
+        "description": "TUX --neutral-600 (tti)"
+      },
+      "650": {
+        "value": "#6B6964",
+        "type": "color",
+        "description": "TUX --neutral-650 (tti)"
+      },
+      "700": {
+        "value": "#5D5D5D",
+        "type": "color",
+        "description": "TUX --neutral-700 (tti)"
+      },
+      "750": {
+        "value": "#535048",
+        "type": "color",
+        "description": "TUX --neutral-750 (tti)"
+      },
+      "800": {
+        "value": "#4C4C4E",
+        "type": "color",
+        "description": "TUX --neutral-800 (tti)"
+      },
+      "850": {
+        "value": "#3A3833",
+        "type": "color",
+        "description": "TUX --neutral-850 (tti)"
+      },
+      "900": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --neutral-900 (tti)"
+      },
+      "1000": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --neutral-1000 (tti)"
+      }
+    },
+    "brand": {
+      "primary": {
+        "value": "#5C0025",
+        "type": "color",
+        "description": "TUX --brand-primary (tti)"
+      },
+      "primary-deep": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --brand-primary-deep (tti)"
+      },
+      "accent": {
+        "value": "#DDAC37",
+        "type": "color",
+        "description": "TUX --brand-accent (tti)"
+      },
+      "accent-deep": {
+        "value": "#DCAA37",
+        "type": "color",
+        "description": "TUX --brand-accent-deep (tti)"
+      },
+      "secondary": {
+        "value": "#15457E",
+        "type": "color",
+        "description": "TUX --brand-secondary (tti)"
+      },
+      "fill": {
+        "value": "#5C0025",
+        "type": "color",
+        "description": "TUX --brand-fill (tti)"
+      },
+      "accent-ink": {
+        "value": "#2A0E15",
+        "type": "color",
+        "description": "TUX --brand-accent-ink (tti)"
+      },
+      "accent-shade": {
+        "value": "#A87B1F",
+        "type": "color",
+        "description": "TUX --brand-accent-shade (tti)"
+      }
+    },
+    "surface": {
+      "page": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --surface-page (tti)"
+      },
+      "raised": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --surface-raised (tti)"
+      },
+      "sunken": {
+        "value": "#F5F5F5",
+        "type": "color",
+        "description": "TUX --surface-sunken (tti)"
+      },
+      "border": {
+        "value": "#E7E6E6",
+        "type": "color",
+        "description": "TUX --surface-border (tti)"
+      },
+      "border-subtle": {
+        "value": "#EFEEED",
+        "type": "color",
+        "description": "TUX --surface-border-subtle (tti)"
+      },
+      "eggshell": {
+        "value": "#F9F9F7",
+        "type": "color",
+        "description": "TUX --surface-eggshell (tti)"
+      },
+      "cool-gray": {
+        "value": "#E8E8E8",
+        "type": "color",
+        "description": "TUX --surface-cool-gray (tti)"
+      }
+    },
+    "text": {
+      "primary": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --text-primary (tti)"
+      },
+      "secondary": {
+        "value": "#424242",
+        "type": "color",
+        "description": "TUX --text-secondary (tti)"
+      },
+      "muted": {
+        "value": "#525252",
+        "type": "color",
+        "description": "TUX --text-muted (tti)"
+      },
+      "inverse": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --text-inverse (tti)"
+      },
+      "brand": {
+        "value": "#5C0025",
+        "type": "color",
+        "description": "TUX --text-brand (tti)"
+      },
+      "on-brand": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --text-on-brand (tti)"
+      },
+      "charcoal": {
+        "value": "#232323",
+        "type": "color",
+        "description": "TUX --text-charcoal (tti)"
+      },
+      "dark": {
+        "value": "#040404",
+        "type": "color",
+        "description": "TUX --text-dark (tti)"
+      }
+    },
+    "color": {
+      "success": {
+        "value": "#3D5328",
+        "type": "color",
+        "description": "TUX --color-success (tti)"
+      },
+      "warning": {
+        "value": "#DDAC37",
+        "type": "color",
+        "description": "TUX --color-warning (tti)"
+      },
+      "danger": {
+        "value": "#5C0025",
+        "type": "color",
+        "description": "TUX --color-danger (tti)"
+      },
+      "error": {
+        "value": "#A02828",
+        "type": "color",
+        "description": "TUX --color-error (tti)"
+      },
+      "info": {
+        "value": "#1F5D66",
+        "type": "color",
+        "description": "TUX --color-info (tti)"
+      },
+      "maroon-50": {
+        "value": "#fbf3f6",
+        "type": "color",
+        "description": "TUX --color-maroon-50 (tti)"
+      },
+      "maroon-100": {
+        "value": "#f5e0e7",
+        "type": "color",
+        "description": "TUX --color-maroon-100 (tti)"
+      },
+      "maroon-200": {
+        "value": "#eab5c3",
+        "type": "color",
+        "description": "TUX --color-maroon-200 (tti)"
+      },
+      "maroon-300": {
+        "value": "#db859e",
+        "type": "color",
+        "description": "TUX --color-maroon-300 (tti)"
+      },
+      "maroon-400": {
+        "value": "#b14a6c",
+        "type": "color",
+        "description": "TUX --color-maroon-400 (tti)"
+      },
+      "maroon-500": {
+        "value": "#5c0025",
+        "type": "color",
+        "description": "TUX --color-maroon-500 (tti)"
+      },
+      "maroon-600": {
+        "value": "#4d001f",
+        "type": "color",
+        "description": "TUX --color-maroon-600 (tti)"
+      },
+      "maroon-700": {
+        "value": "#3d0018",
+        "type": "color",
+        "description": "TUX --color-maroon-700 (tti)"
+      },
+      "maroon-800": {
+        "value": "#2e0012",
+        "type": "color",
+        "description": "TUX --color-maroon-800 (tti)"
+      },
+      "maroon-900": {
+        "value": "#1f000c",
+        "type": "color",
+        "description": "TUX --color-maroon-900 (tti)"
+      },
+      "maroon-950": {
+        "value": "#150008",
+        "type": "color",
+        "description": "TUX --color-maroon-950 (tti)"
+      },
+      "gold-50": {
+        "value": "#fdf9ee",
+        "type": "color",
+        "description": "TUX --color-gold-50 (tti)"
+      },
+      "gold-100": {
+        "value": "#faf0d2",
+        "type": "color",
+        "description": "TUX --color-gold-100 (tti)"
+      },
+      "gold-200": {
+        "value": "#f4dfa1",
+        "type": "color",
+        "description": "TUX --color-gold-200 (tti)"
+      },
+      "gold-300": {
+        "value": "#ecca6f",
+        "type": "color",
+        "description": "TUX --color-gold-300 (tti)"
+      },
+      "gold-400": {
+        "value": "#e3ba4f",
+        "type": "color",
+        "description": "TUX --color-gold-400 (tti)"
+      },
+      "gold-500": {
+        "value": "#ddac37",
+        "type": "color",
+        "description": "TUX --color-gold-500 (tti)"
+      },
+      "gold-600": {
+        "value": "#b58a23",
+        "type": "color",
+        "description": "TUX --color-gold-600 (tti)"
+      },
+      "gold-700": {
+        "value": "#8a691b",
+        "type": "color",
+        "description": "TUX --color-gold-700 (tti)"
+      },
+      "gold-800": {
+        "value": "#604812",
+        "type": "color",
+        "description": "TUX --color-gold-800 (tti)"
+      },
+      "gold-900": {
+        "value": "#3f300b",
+        "type": "color",
+        "description": "TUX --color-gold-900 (tti)"
+      },
+      "gold-950": {
+        "value": "#271e07",
+        "type": "color",
+        "description": "TUX --color-gold-950 (tti)"
+      }
+    },
+    "status": {
+      "ok": {
+        "value": "#258818",
+        "type": "color",
+        "description": "TUX --status-ok (tti)"
+      },
+      "ok-fill": {
+        "value": "#93F387",
+        "type": "color",
+        "description": "TUX --status-ok-fill (tti)"
+      },
+      "ok-ink": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --status-ok-ink (tti)"
+      },
+      "warning": {
+        "value": "#7A7A00",
+        "type": "color",
+        "description": "TUX --status-warning (tti)"
+      },
+      "warning-fill": {
+        "value": "#ECEE55",
+        "type": "color",
+        "description": "TUX --status-warning-fill (tti)"
+      },
+      "warning-ink": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --status-warning-ink (tti)"
+      },
+      "unknown": {
+        "value": "#BC5B00",
+        "type": "color",
+        "description": "TUX --status-unknown (tti)"
+      },
+      "unknown-fill": {
+        "value": "#FF9B5A",
+        "type": "color",
+        "description": "TUX --status-unknown-fill (tti)"
+      },
+      "unknown-ink": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --status-unknown-ink (tti)"
+      },
+      "critical": {
+        "value": "#A02828",
+        "type": "color",
+        "description": "TUX --status-critical (tti)"
+      },
+      "critical-fill": {
+        "value": "#FF544D",
+        "type": "color",
+        "description": "TUX --status-critical-fill (tti)"
+      },
+      "critical-ink": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --status-critical-ink (tti)"
+      },
+      "maintenance": {
+        "value": "#0566C7",
+        "type": "color",
+        "description": "TUX --status-maintenance (tti)"
+      },
+      "maintenance-fill": {
+        "value": "#85BAFF",
+        "type": "color",
+        "description": "TUX --status-maintenance-fill (tti)"
+      },
+      "maintenance-ink": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --status-maintenance-ink (tti)"
+      },
+      "pending": {
+        "value": "#747474",
+        "type": "color",
+        "description": "TUX --status-pending (tti)"
+      },
+      "pending-fill": {
+        "value": "#DEDEDE",
+        "type": "color",
+        "description": "TUX --status-pending-fill (tti)"
+      },
+      "pending-ink": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --status-pending-ink (tti)"
+      }
+    },
+    "font": {
+      "body": {
+        "value": "Open Sans",
+        "type": "fontFamilies",
+        "description": "TUX --font-body (tti)"
+      },
+      "display": {
+        "value": "Oswald",
+        "type": "fontFamilies",
+        "description": "TUX --font-display (tti)"
+      },
+      "bold": {
+        "value": "Work Sans",
+        "type": "fontFamilies",
+        "description": "TUX --font-bold (tti)"
+      },
+      "elegant": {
+        "value": "Georgia",
+        "type": "fontFamilies",
+        "description": "TUX --font-elegant (tti)"
+      },
+      "sans": {
+        "value": "Open Sans",
+        "type": "fontFamilies",
+        "description": "TUX --font-sans (tti)"
+      },
+      "mono": {
+        "value": "JetBrains Mono",
+        "type": "fontFamilies",
+        "description": "TUX --font-mono (tti)"
+      }
+    },
+    "tracking": {
+      "tight": {
+        "value": "-0.01em",
+        "type": "other",
+        "description": "TUX --tracking-tight (tti)"
+      },
+      "normal": {
+        "value": "0",
+        "type": "other",
+        "description": "TUX --tracking-normal (tti)"
+      },
+      "wide": {
+        "value": "0.05em",
+        "type": "other",
+        "description": "TUX --tracking-wide (tti)"
+      },
+      "wider": {
+        "value": "0.10em",
+        "type": "other",
+        "description": "TUX --tracking-wider (tti)"
+      }
+    },
+    "shadow": {
+      "sm": {
+        "value": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        "type": "boxShadow",
+        "description": "TUX --shadow-sm (tti)"
+      },
+      "md": {
+        "value": "0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)",
+        "type": "boxShadow",
+        "description": "TUX --shadow-md (tti)"
+      },
+      "lg": {
+        "value": "0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03)",
+        "type": "boxShadow",
+        "description": "TUX --shadow-lg (tti)"
+      },
+      "focus": {
+        "value": "0 0 0 2px #F2E6C9, 0 0 0 4px #5C0025",
+        "type": "boxShadow",
+        "description": "TUX --shadow-focus (tti)"
+      }
+    },
+    "focus": {
+      "ring-outer": {
+        "value": "#5C0025",
+        "type": "color",
+        "description": "TUX --focus-ring-outer (tti)"
+      },
+      "ring-inner": {
+        "value": "#F2E6C9",
+        "type": "color",
+        "description": "TUX --focus-ring-inner (tti)"
+      }
+    },
+    "elevation": {
+      "flat": {
+        "value": "none",
+        "type": "boxShadow",
+        "description": "TUX --elevation-flat (tti)"
+      },
+      "rest": {
+        "value": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        "type": "boxShadow",
+        "description": "TUX --elevation-rest (tti)"
+      },
+      "hover": {
+        "value": "0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)",
+        "type": "boxShadow",
+        "description": "TUX --elevation-hover (tti)"
+      },
+      "overlay": {
+        "value": "0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03)",
+        "type": "boxShadow",
+        "description": "TUX --elevation-overlay (tti)"
+      },
+      "pinned": {
+        "value": "0 4px 6px -2px rgba(0, 0, 0, 0.06)",
+        "type": "boxShadow",
+        "description": "TUX --elevation-pinned (tti)"
+      }
+    },
+    "radius": {
+      "none": {
+        "value": "0",
+        "type": "dimension",
+        "description": "TUX --radius-none (tti)"
+      },
+      "sm": {
+        "value": "0.125rem",
+        "type": "dimension",
+        "description": "TUX --radius-sm (tti)"
+      },
+      "md": {
+        "value": "0.375rem",
+        "type": "dimension",
+        "description": "TUX --radius-md (tti)"
+      },
+      "lg": {
+        "value": "0.5rem",
+        "type": "dimension",
+        "description": "TUX --radius-lg (tti)"
+      },
+      "xl": {
+        "value": "0.75rem",
+        "type": "dimension",
+        "description": "TUX --radius-xl (tti)"
+      },
+      "full": {
+        "value": "9999px",
+        "type": "dimension",
+        "description": "TUX --radius-full (tti)"
+      }
+    },
+    "motion": {
+      "fast": {
+        "value": "0.15s",
+        "type": "other",
+        "description": "TUX --motion-fast (tti)"
+      },
+      "base": {
+        "value": "0.25s",
+        "type": "other",
+        "description": "TUX --motion-base (tti)"
+      },
+      "slow": {
+        "value": "0.35s",
+        "type": "other",
+        "description": "TUX --motion-slow (tti)"
+      }
+    },
+    "ease": {
+      "standard": {
+        "value": "cubic-bezier(0.2, 0.55, 0.4, 0.9)",
+        "type": "other",
+        "description": "TUX --ease-standard (tti)"
+      },
+      "emphasis": {
+        "value": "cubic-bezier(0.2, 0.8, 0.2, 1.2)",
+        "type": "other",
+        "description": "TUX --ease-emphasis (tti)"
+      },
+      "exit": {
+        "value": "cubic-bezier(0.4, 0, 0.6, 1)",
+        "type": "other",
+        "description": "TUX --ease-exit (tti)"
+      },
+      "survey": {
+        "value": "cubic-bezier(0.4, 0.0, 0.2, 1.0)",
+        "type": "other",
+        "description": "TUX --ease-survey (tti)"
+      },
+      "corridor": {
+        "value": "cubic-bezier(0.2, 0.0, 0.0, 1.0)",
+        "type": "other",
+        "description": "TUX --ease-corridor (tti)"
+      },
+      "arrival": {
+        "value": "cubic-bezier(0.0, 0.0, 0.2, 1.0)",
+        "type": "other",
+        "description": "TUX --ease-arrival (tti)"
+      }
+    },
+    "space": {
+      "0": {
+        "value": "0",
+        "type": "dimension",
+        "description": "TUX --space-0 (tti)"
+      },
+      "2": {
+        "value": "2px",
+        "type": "dimension",
+        "description": "TUX --space-2 (tti)"
+      },
+      "4": {
+        "value": "4px",
+        "type": "dimension",
+        "description": "TUX --space-4 (tti)"
+      },
+      "8": {
+        "value": "8px",
+        "type": "dimension",
+        "description": "TUX --space-8 (tti)"
+      },
+      "10": {
+        "value": "10px",
+        "type": "dimension",
+        "description": "TUX --space-10 (tti)"
+      },
+      "12": {
+        "value": "12px",
+        "type": "dimension",
+        "description": "TUX --space-12 (tti)"
+      },
+      "16": {
+        "value": "16px",
+        "type": "dimension",
+        "description": "TUX --space-16 (tti)"
+      },
+      "24": {
+        "value": "24px",
+        "type": "dimension",
+        "description": "TUX --space-24 (tti)"
+      },
+      "32": {
+        "value": "32px",
+        "type": "dimension",
+        "description": "TUX --space-32 (tti)"
+      },
+      "40": {
+        "value": "40px",
+        "type": "dimension",
+        "description": "TUX --space-40 (tti)"
+      },
+      "48": {
+        "value": "48px",
+        "type": "dimension",
+        "description": "TUX --space-48 (tti)"
+      },
+      "64": {
+        "value": "64px",
+        "type": "dimension",
+        "description": "TUX --space-64 (tti)"
+      }
+    },
+    "layout": {
+      "content-max": {
+        "value": "80rem",
+        "type": "dimension",
+        "description": "TUX --layout-content-max (tti)"
+      },
+      "content-wide": {
+        "value": "96rem",
+        "type": "dimension",
+        "description": "TUX --layout-content-wide (tti)"
+      },
+      "prose-max": {
+        "value": "72ch",
+        "type": "dimension",
+        "description": "TUX --layout-prose-max (tti)"
+      }
+    },
+    "rhythm": {
+      "tight": {
+        "value": "4px",
+        "type": "dimension",
+        "description": "TUX --rhythm-tight (tti)"
+      },
+      "snug": {
+        "value": "8px",
+        "type": "dimension",
+        "description": "TUX --rhythm-snug (tti)"
+      },
+      "normal": {
+        "value": "12px",
+        "type": "dimension",
+        "description": "TUX --rhythm-normal (tti)"
+      },
+      "loose": {
+        "value": "16px",
+        "type": "dimension",
+        "description": "TUX --rhythm-loose (tti)"
+      },
+      "roomy": {
+        "value": "24px",
+        "type": "dimension",
+        "description": "TUX --rhythm-roomy (tti)"
+      }
+    },
+    "wash": {
+      "brand-4": {
+        "value": "rgba(92, 0, 37, 0.04)",
+        "type": "color",
+        "description": "TUX --wash-brand-4 (tti)"
+      },
+      "brand-6": {
+        "value": "rgba(92, 0, 37, 0.06)",
+        "type": "color",
+        "description": "TUX --wash-brand-6 (tti)"
+      },
+      "brand-8": {
+        "value": "rgba(92, 0, 37, 0.08)",
+        "type": "color",
+        "description": "TUX --wash-brand-8 (tti)"
+      },
+      "brand-12": {
+        "value": "rgba(92, 0, 37, 0.12)",
+        "type": "color",
+        "description": "TUX --wash-brand-12 (tti)"
+      },
+      "brand-18": {
+        "value": "rgba(92, 0, 37, 0.18)",
+        "type": "color",
+        "description": "TUX --wash-brand-18 (tti)"
+      },
+      "brand-22": {
+        "value": "rgba(92, 0, 37, 0.22)",
+        "type": "color",
+        "description": "TUX --wash-brand-22 (tti)"
+      },
+      "brand-35": {
+        "value": "rgba(92, 0, 37, 0.35)",
+        "type": "color",
+        "description": "TUX --wash-brand-35 (tti)"
+      }
+    },
+    "chart": {
+      "1": {
+        "value": "#5C0025",
+        "type": "color",
+        "description": "TUX --chart-1 (tti)"
+      },
+      "2": {
+        "value": "#3F5A6F",
+        "type": "color",
+        "description": "TUX --chart-2 (tti)"
+      },
+      "3": {
+        "value": "#C7973C",
+        "type": "color",
+        "description": "TUX --chart-3 (tti)"
+      },
+      "4": {
+        "value": "#6B8E5A",
+        "type": "color",
+        "description": "TUX --chart-4 (tti)"
+      },
+      "5": {
+        "value": "#8C5A3C",
+        "type": "color",
+        "description": "TUX --chart-5 (tti)"
+      },
+      "6": {
+        "value": "#5C7080",
+        "type": "color",
+        "description": "TUX --chart-6 (tti)"
+      },
+      "7": {
+        "value": "#A33A3A",
+        "type": "color",
+        "description": "TUX --chart-7 (tti)"
+      },
+      "8": {
+        "value": "#3C5A87",
+        "type": "color",
+        "description": "TUX --chart-8 (tti)"
+      },
+      "9": {
+        "value": "#6E5A7E",
+        "type": "color",
+        "description": "TUX --chart-9 (tti)"
+      },
+      "10": {
+        "value": "#7E7350",
+        "type": "color",
+        "description": "TUX --chart-10 (tti)"
+      },
+      "cvd-1": {
+        "value": "#0072B2",
+        "type": "color",
+        "description": "TUX --chart-cvd-1 (tti)"
+      },
+      "cvd-2": {
+        "value": "#E69F00",
+        "type": "color",
+        "description": "TUX --chart-cvd-2 (tti)"
+      },
+      "cvd-3": {
+        "value": "#009E73",
+        "type": "color",
+        "description": "TUX --chart-cvd-3 (tti)"
+      },
+      "cvd-4": {
+        "value": "#F0E442",
+        "type": "color",
+        "description": "TUX --chart-cvd-4 (tti)"
+      },
+      "cvd-5": {
+        "value": "#56B4E9",
+        "type": "color",
+        "description": "TUX --chart-cvd-5 (tti)"
+      },
+      "cvd-6": {
+        "value": "#D55E00",
+        "type": "color",
+        "description": "TUX --chart-cvd-6 (tti)"
+      },
+      "cvd-7": {
+        "value": "#CC79A7",
+        "type": "color",
+        "description": "TUX --chart-cvd-7 (tti)"
+      },
+      "cvd-8": {
+        "value": "#222222",
+        "type": "color",
+        "description": "TUX --chart-cvd-8 (tti)"
+      }
+    },
+    "map": {
+      "seq-maroon-1": {
+        "value": "#F1E4E0",
+        "type": "color",
+        "description": "TUX --map-seq-maroon-1 (tti)"
+      },
+      "seq-maroon-2": {
+        "value": "#DDB7AC",
+        "type": "color",
+        "description": "TUX --map-seq-maroon-2 (tti)"
+      },
+      "seq-maroon-3": {
+        "value": "#C58675",
+        "type": "color",
+        "description": "TUX --map-seq-maroon-3 (tti)"
+      },
+      "seq-maroon-4": {
+        "value": "#9E483A",
+        "type": "color",
+        "description": "TUX --map-seq-maroon-4 (tti)"
+      },
+      "seq-maroon-5": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --map-seq-maroon-5 (tti)"
+      },
+      "seq-slate-1": {
+        "value": "#E2E7EC",
+        "type": "color",
+        "description": "TUX --map-seq-slate-1 (tti)"
+      },
+      "seq-slate-2": {
+        "value": "#B7C2CC",
+        "type": "color",
+        "description": "TUX --map-seq-slate-2 (tti)"
+      },
+      "seq-slate-3": {
+        "value": "#7E94A4",
+        "type": "color",
+        "description": "TUX --map-seq-slate-3 (tti)"
+      },
+      "seq-slate-4": {
+        "value": "#52677A",
+        "type": "color",
+        "description": "TUX --map-seq-slate-4 (tti)"
+      },
+      "seq-slate-5": {
+        "value": "#283544",
+        "type": "color",
+        "description": "TUX --map-seq-slate-5 (tti)"
+      },
+      "outline": {
+        "value": "#E7E6E6",
+        "type": "color",
+        "description": "TUX --map-outline (tti)"
+      },
+      "flow": {
+        "value": "#5C0025",
+        "type": "color",
+        "description": "TUX --map-flow (tti)"
+      }
+    }
+  },
+  "tti-dark": {
+    "tti": {
+      "maroon": {
+        "value": "#5C0025",
+        "type": "color",
+        "description": "TUX --tti-maroon (tti-dark)"
+      },
+      "maroon-deep": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --tti-maroon-deep (tti-dark)"
+      },
+      "gold": {
+        "value": "#DDAC37",
+        "type": "color",
+        "description": "TUX --tti-gold (tti-dark)"
+      },
+      "gold-deep": {
+        "value": "#DCAA37",
+        "type": "color",
+        "description": "TUX --tti-gold-deep (tti-dark)"
+      },
+      "navy": {
+        "value": "#15457E",
+        "type": "color",
+        "description": "TUX --tti-navy (tti-dark)"
+      },
+      "teal": {
+        "value": "#4A8892",
+        "type": "color",
+        "description": "TUX --tti-teal (tti-dark)"
+      },
+      "sage": {
+        "value": "#66814F",
+        "type": "color",
+        "description": "TUX --tti-sage (tti-dark)"
+      },
+      "charcoal": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --tti-charcoal (tti-dark)"
+      }
+    },
+    "spectrum": {
+      "maroon": {
+        "value": "#94384F",
+        "type": "color",
+        "description": "TUX --spectrum-maroon (tti-dark)"
+      },
+      "blue": {
+        "value": "#7186A8",
+        "type": "color",
+        "description": "TUX --spectrum-blue (tti-dark)"
+      },
+      "teal": {
+        "value": "#80B5B7",
+        "type": "color",
+        "description": "TUX --spectrum-teal (tti-dark)"
+      },
+      "green": {
+        "value": "#A0B790",
+        "type": "color",
+        "description": "TUX --spectrum-green (tti-dark)"
+      },
+      "gold": {
+        "value": "#F0C46B",
+        "type": "color",
+        "description": "TUX --spectrum-gold (tti-dark)"
+      }
+    },
+    "neutral": {
+      "0": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --neutral-0 (tti-dark)"
+      },
+      "50": {
+        "value": "#FAFAFA",
+        "type": "color",
+        "description": "TUX --neutral-50 (tti-dark)"
+      },
+      "100": {
+        "value": "#F5F5F5",
+        "type": "color",
+        "description": "TUX --neutral-100 (tti-dark)"
+      },
+      "150": {
+        "value": "#EFEEED",
+        "type": "color",
+        "description": "TUX --neutral-150 (tti-dark)"
+      },
+      "200": {
+        "value": "#E7E6E6",
+        "type": "color",
+        "description": "TUX --neutral-200 (tti-dark)"
+      },
+      "250": {
+        "value": "#DCDBD8",
+        "type": "color",
+        "description": "TUX --neutral-250 (tti-dark)"
+      },
+      "300": {
+        "value": "#D1D2D4",
+        "type": "color",
+        "description": "TUX --neutral-300 (tti-dark)"
+      },
+      "400": {
+        "value": "#A5A5A5",
+        "type": "color",
+        "description": "TUX --neutral-400 (tti-dark)"
+      },
+      "450": {
+        "value": "#9B9A96",
+        "type": "color",
+        "description": "TUX --neutral-450 (tti-dark)"
+      },
+      "500": {
+        "value": "#939597",
+        "type": "color",
+        "description": "TUX --neutral-500 (tti-dark)"
+      },
+      "550": {
+        "value": "#86847F",
+        "type": "color",
+        "description": "TUX --neutral-550 (tti-dark)"
+      },
+      "600": {
+        "value": "#7E7E7E",
+        "type": "color",
+        "description": "TUX --neutral-600 (tti-dark)"
+      },
+      "650": {
+        "value": "#6B6964",
+        "type": "color",
+        "description": "TUX --neutral-650 (tti-dark)"
+      },
+      "700": {
+        "value": "#5D5D5D",
+        "type": "color",
+        "description": "TUX --neutral-700 (tti-dark)"
+      },
+      "750": {
+        "value": "#535048",
+        "type": "color",
+        "description": "TUX --neutral-750 (tti-dark)"
+      },
+      "800": {
+        "value": "#4C4C4E",
+        "type": "color",
+        "description": "TUX --neutral-800 (tti-dark)"
+      },
+      "850": {
+        "value": "#3A3833",
+        "type": "color",
+        "description": "TUX --neutral-850 (tti-dark)"
+      },
+      "900": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --neutral-900 (tti-dark)"
+      },
+      "1000": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --neutral-1000 (tti-dark)"
+      }
+    },
+    "brand": {
+      "primary": {
+        "value": "#6BB4C0",
+        "type": "color",
+        "description": "TUX --brand-primary (tti-dark)"
+      },
+      "primary-deep": {
+        "value": "#5B9CA8",
+        "type": "color",
+        "description": "TUX --brand-primary-deep (tti-dark)"
+      },
+      "accent": {
+        "value": "#DDAC37",
+        "type": "color",
+        "description": "TUX --brand-accent (tti-dark)"
+      },
+      "accent-deep": {
+        "value": "#F0C362",
+        "type": "color",
+        "description": "TUX --brand-accent-deep (tti-dark)"
+      },
+      "secondary": {
+        "value": "#8ab7e2",
+        "type": "color",
+        "description": "TUX --brand-secondary (tti-dark)"
+      },
+      "fill": {
+        "value": "#5C0025",
+        "type": "color",
+        "description": "TUX --brand-fill (tti-dark)"
+      },
+      "accent-ink": {
+        "value": "#2A0E15",
+        "type": "color",
+        "description": "TUX --brand-accent-ink (tti-dark)"
+      },
+      "accent-shade": {
+        "value": "#A87B1F",
+        "type": "color",
+        "description": "TUX --brand-accent-shade (tti-dark)"
+      }
+    },
+    "surface": {
+      "page": {
+        "value": "#15100F",
+        "type": "color",
+        "description": "TUX --surface-page (tti-dark)"
+      },
+      "raised": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --surface-raised (tti-dark)"
+      },
+      "sunken": {
+        "value": "#0B0908",
+        "type": "color",
+        "description": "TUX --surface-sunken (tti-dark)"
+      },
+      "border": {
+        "value": "#3D3A3A",
+        "type": "color",
+        "description": "TUX --surface-border (tti-dark)"
+      },
+      "border-subtle": {
+        "value": "#2E2B2A",
+        "type": "color",
+        "description": "TUX --surface-border-subtle (tti-dark)"
+      },
+      "eggshell": {
+        "value": "#1C1817",
+        "type": "color",
+        "description": "TUX --surface-eggshell (tti-dark)"
+      },
+      "cool-gray": {
+        "value": "#262322",
+        "type": "color",
+        "description": "TUX --surface-cool-gray (tti-dark)"
+      }
+    },
+    "text": {
+      "primary": {
+        "value": "#FAFAFA",
+        "type": "color",
+        "description": "TUX --text-primary (tti-dark)"
+      },
+      "secondary": {
+        "value": "#D1D2D4",
+        "type": "color",
+        "description": "TUX --text-secondary (tti-dark)"
+      },
+      "muted": {
+        "value": "#B5B5B5",
+        "type": "color",
+        "description": "TUX --text-muted (tti-dark)"
+      },
+      "inverse": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --text-inverse (tti-dark)"
+      },
+      "brand": {
+        "value": "#5B9CA8",
+        "type": "color",
+        "description": "TUX --text-brand (tti-dark)"
+      },
+      "on-brand": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --text-on-brand (tti-dark)"
+      },
+      "charcoal": {
+        "value": "#FAFAFA",
+        "type": "color",
+        "description": "TUX --text-charcoal (tti-dark)"
+      },
+      "dark": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --text-dark (tti-dark)"
+      }
+    },
+    "color": {
+      "success": {
+        "value": "#ABCC8E",
+        "type": "color",
+        "description": "TUX --color-success (tti-dark)"
+      },
+      "warning": {
+        "value": "#F5D98A",
+        "type": "color",
+        "description": "TUX --color-warning (tti-dark)"
+      },
+      "danger": {
+        "value": "#e795a8",
+        "type": "color",
+        "description": "TUX --color-danger (tti-dark)"
+      },
+      "error": {
+        "value": "#F59292",
+        "type": "color",
+        "description": "TUX --color-error (tti-dark)"
+      },
+      "info": {
+        "value": "#9BD4E0",
+        "type": "color",
+        "description": "TUX --color-info (tti-dark)"
+      },
+      "maroon-50": {
+        "value": "#fbf3f6",
+        "type": "color",
+        "description": "TUX --color-maroon-50 (tti-dark)"
+      },
+      "maroon-100": {
+        "value": "#f5e0e7",
+        "type": "color",
+        "description": "TUX --color-maroon-100 (tti-dark)"
+      },
+      "maroon-200": {
+        "value": "#eab5c3",
+        "type": "color",
+        "description": "TUX --color-maroon-200 (tti-dark)"
+      },
+      "maroon-300": {
+        "value": "#db859e",
+        "type": "color",
+        "description": "TUX --color-maroon-300 (tti-dark)"
+      },
+      "maroon-400": {
+        "value": "#6BB4C0",
+        "type": "color",
+        "description": "TUX --color-maroon-400 (tti-dark)"
+      },
+      "maroon-500": {
+        "value": "#5c0025",
+        "type": "color",
+        "description": "TUX --color-maroon-500 (tti-dark)"
+      },
+      "maroon-600": {
+        "value": "#4d001f",
+        "type": "color",
+        "description": "TUX --color-maroon-600 (tti-dark)"
+      },
+      "maroon-700": {
+        "value": "#3d0018",
+        "type": "color",
+        "description": "TUX --color-maroon-700 (tti-dark)"
+      },
+      "maroon-800": {
+        "value": "#2e0012",
+        "type": "color",
+        "description": "TUX --color-maroon-800 (tti-dark)"
+      },
+      "maroon-900": {
+        "value": "#1f000c",
+        "type": "color",
+        "description": "TUX --color-maroon-900 (tti-dark)"
+      },
+      "maroon-950": {
+        "value": "#150008",
+        "type": "color",
+        "description": "TUX --color-maroon-950 (tti-dark)"
+      },
+      "gold-50": {
+        "value": "#fdf9ee",
+        "type": "color",
+        "description": "TUX --color-gold-50 (tti-dark)"
+      },
+      "gold-100": {
+        "value": "#faf0d2",
+        "type": "color",
+        "description": "TUX --color-gold-100 (tti-dark)"
+      },
+      "gold-200": {
+        "value": "#f4dfa1",
+        "type": "color",
+        "description": "TUX --color-gold-200 (tti-dark)"
+      },
+      "gold-300": {
+        "value": "#ecca6f",
+        "type": "color",
+        "description": "TUX --color-gold-300 (tti-dark)"
+      },
+      "gold-400": {
+        "value": "#e3ba4f",
+        "type": "color",
+        "description": "TUX --color-gold-400 (tti-dark)"
+      },
+      "gold-500": {
+        "value": "#ddac37",
+        "type": "color",
+        "description": "TUX --color-gold-500 (tti-dark)"
+      },
+      "gold-600": {
+        "value": "#b58a23",
+        "type": "color",
+        "description": "TUX --color-gold-600 (tti-dark)"
+      },
+      "gold-700": {
+        "value": "#8a691b",
+        "type": "color",
+        "description": "TUX --color-gold-700 (tti-dark)"
+      },
+      "gold-800": {
+        "value": "#604812",
+        "type": "color",
+        "description": "TUX --color-gold-800 (tti-dark)"
+      },
+      "gold-900": {
+        "value": "#3f300b",
+        "type": "color",
+        "description": "TUX --color-gold-900 (tti-dark)"
+      },
+      "gold-950": {
+        "value": "#271e07",
+        "type": "color",
+        "description": "TUX --color-gold-950 (tti-dark)"
+      },
+      "brand-primary": {
+        "value": "#6BB4C0",
+        "type": "color",
+        "description": "TUX --color-brand-primary (tti-dark)"
+      },
+      "brand-primary-deep": {
+        "value": "#5B9CA8",
+        "type": "color",
+        "description": "TUX --color-brand-primary-deep (tti-dark)"
+      },
+      "brand-accent": {
+        "value": "#DDAC37",
+        "type": "color",
+        "description": "TUX --color-brand-accent (tti-dark)"
+      },
+      "brand-accent-deep": {
+        "value": "#F0C362",
+        "type": "color",
+        "description": "TUX --color-brand-accent-deep (tti-dark)"
+      },
+      "brand-secondary": {
+        "value": "#8ab7e2",
+        "type": "color",
+        "description": "TUX --color-brand-secondary (tti-dark)"
+      },
+      "brand-fill": {
+        "value": "#5C0025",
+        "type": "color",
+        "description": "TUX --color-brand-fill (tti-dark)"
+      },
+      "surface-page": {
+        "value": "#15100F",
+        "type": "color",
+        "description": "TUX --color-surface-page (tti-dark)"
+      },
+      "surface-raised": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --color-surface-raised (tti-dark)"
+      },
+      "surface-sunken": {
+        "value": "#0B0908",
+        "type": "color",
+        "description": "TUX --color-surface-sunken (tti-dark)"
+      },
+      "surface-border": {
+        "value": "#3D3A3A",
+        "type": "color",
+        "description": "TUX --color-surface-border (tti-dark)"
+      },
+      "surface-border-subtle": {
+        "value": "#2E2B2A",
+        "type": "color",
+        "description": "TUX --color-surface-border-subtle (tti-dark)"
+      },
+      "surface-eggshell": {
+        "value": "#1C1817",
+        "type": "color",
+        "description": "TUX --color-surface-eggshell (tti-dark)"
+      },
+      "surface-cool-gray": {
+        "value": "#262322",
+        "type": "color",
+        "description": "TUX --color-surface-cool-gray (tti-dark)"
+      },
+      "text-primary": {
+        "value": "#FAFAFA",
+        "type": "color",
+        "description": "TUX --color-text-primary (tti-dark)"
+      },
+      "text-secondary": {
+        "value": "#D1D2D4",
+        "type": "color",
+        "description": "TUX --color-text-secondary (tti-dark)"
+      },
+      "text-muted": {
+        "value": "#B5B5B5",
+        "type": "color",
+        "description": "TUX --color-text-muted (tti-dark)"
+      },
+      "text-inverse": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --color-text-inverse (tti-dark)"
+      },
+      "text-brand": {
+        "value": "#5B9CA8",
+        "type": "color",
+        "description": "TUX --color-text-brand (tti-dark)"
+      },
+      "text-on-brand": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --color-text-on-brand (tti-dark)"
+      },
+      "text-charcoal": {
+        "value": "#FAFAFA",
+        "type": "color",
+        "description": "TUX --color-text-charcoal (tti-dark)"
+      },
+      "text-dark": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --color-text-dark (tti-dark)"
+      },
+      "spectrum-maroon": {
+        "value": "#94384F",
+        "type": "color",
+        "description": "TUX --color-spectrum-maroon (tti-dark)"
+      },
+      "spectrum-blue": {
+        "value": "#7186A8",
+        "type": "color",
+        "description": "TUX --color-spectrum-blue (tti-dark)"
+      },
+      "spectrum-teal": {
+        "value": "#80B5B7",
+        "type": "color",
+        "description": "TUX --color-spectrum-teal (tti-dark)"
+      },
+      "spectrum-green": {
+        "value": "#A0B790",
+        "type": "color",
+        "description": "TUX --color-spectrum-green (tti-dark)"
+      },
+      "spectrum-gold": {
+        "value": "#F0C46B",
+        "type": "color",
+        "description": "TUX --color-spectrum-gold (tti-dark)"
+      }
+    },
+    "status": {
+      "ok": {
+        "value": "#90F084",
+        "type": "color",
+        "description": "TUX --status-ok (tti-dark)"
+      },
+      "ok-fill": {
+        "value": "#86E67A",
+        "type": "color",
+        "description": "TUX --status-ok-fill (tti-dark)"
+      },
+      "ok-ink": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --status-ok-ink (tti-dark)"
+      },
+      "warning": {
+        "value": "#FDFF68",
+        "type": "color",
+        "description": "TUX --status-warning (tti-dark)"
+      },
+      "warning-fill": {
+        "value": "#E6E74C",
+        "type": "color",
+        "description": "TUX --status-warning-fill (tti-dark)"
+      },
+      "warning-ink": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --status-warning-ink (tti-dark)"
+      },
+      "unknown": {
+        "value": "#FC8731",
+        "type": "color",
+        "description": "TUX --status-unknown (tti-dark)"
+      },
+      "unknown-fill": {
+        "value": "#FF8A37",
+        "type": "color",
+        "description": "TUX --status-unknown-fill (tti-dark)"
+      },
+      "unknown-ink": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --status-unknown-ink (tti-dark)"
+      },
+      "critical": {
+        "value": "#F14440",
+        "type": "color",
+        "description": "TUX --status-critical (tti-dark)"
+      },
+      "critical-fill": {
+        "value": "#FC4F49",
+        "type": "color",
+        "description": "TUX --status-critical-fill (tti-dark)"
+      },
+      "critical-ink": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --status-critical-ink (tti-dark)"
+      },
+      "maintenance": {
+        "value": "#53A0FF",
+        "type": "color",
+        "description": "TUX --status-maintenance (tti-dark)"
+      },
+      "maintenance-fill": {
+        "value": "#85BAFF",
+        "type": "color",
+        "description": "TUX --status-maintenance-fill (tti-dark)"
+      },
+      "maintenance-ink": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --status-maintenance-ink (tti-dark)"
+      },
+      "pending": {
+        "value": "#ABABAB",
+        "type": "color",
+        "description": "TUX --status-pending (tti-dark)"
+      },
+      "pending-fill": {
+        "value": "#D1D1D1",
+        "type": "color",
+        "description": "TUX --status-pending-fill (tti-dark)"
+      },
+      "pending-ink": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --status-pending-ink (tti-dark)"
+      }
+    },
+    "font": {
+      "body": {
+        "value": "Open Sans",
+        "type": "fontFamilies",
+        "description": "TUX --font-body (tti-dark)"
+      },
+      "display": {
+        "value": "Oswald",
+        "type": "fontFamilies",
+        "description": "TUX --font-display (tti-dark)"
+      },
+      "bold": {
+        "value": "Work Sans",
+        "type": "fontFamilies",
+        "description": "TUX --font-bold (tti-dark)"
+      },
+      "elegant": {
+        "value": "Georgia",
+        "type": "fontFamilies",
+        "description": "TUX --font-elegant (tti-dark)"
+      },
+      "sans": {
+        "value": "Open Sans",
+        "type": "fontFamilies",
+        "description": "TUX --font-sans (tti-dark)"
+      },
+      "mono": {
+        "value": "JetBrains Mono",
+        "type": "fontFamilies",
+        "description": "TUX --font-mono (tti-dark)"
+      }
+    },
+    "tracking": {
+      "tight": {
+        "value": "-0.01em",
+        "type": "other",
+        "description": "TUX --tracking-tight (tti-dark)"
+      },
+      "normal": {
+        "value": "0",
+        "type": "other",
+        "description": "TUX --tracking-normal (tti-dark)"
+      },
+      "wide": {
+        "value": "0.05em",
+        "type": "other",
+        "description": "TUX --tracking-wide (tti-dark)"
+      },
+      "wider": {
+        "value": "0.10em",
+        "type": "other",
+        "description": "TUX --tracking-wider (tti-dark)"
+      }
+    },
+    "shadow": {
+      "sm": {
+        "value": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        "type": "boxShadow",
+        "description": "TUX --shadow-sm (tti-dark)"
+      },
+      "md": {
+        "value": "0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)",
+        "type": "boxShadow",
+        "description": "TUX --shadow-md (tti-dark)"
+      },
+      "lg": {
+        "value": "0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03)",
+        "type": "boxShadow",
+        "description": "TUX --shadow-lg (tti-dark)"
+      },
+      "focus": {
+        "value": "0 0 0 2px #3D2E0F, 0 0 0 4px #6BB4C0",
+        "type": "boxShadow",
+        "description": "TUX --shadow-focus (tti-dark)"
+      }
+    },
+    "focus": {
+      "ring-outer": {
+        "value": "#6BB4C0",
+        "type": "color",
+        "description": "TUX --focus-ring-outer (tti-dark)"
+      },
+      "ring-inner": {
+        "value": "#3D2E0F",
+        "type": "color",
+        "description": "TUX --focus-ring-inner (tti-dark)"
+      }
+    },
+    "elevation": {
+      "flat": {
+        "value": "none",
+        "type": "boxShadow",
+        "description": "TUX --elevation-flat (tti-dark)"
+      },
+      "rest": {
+        "value": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        "type": "boxShadow",
+        "description": "TUX --elevation-rest (tti-dark)"
+      },
+      "hover": {
+        "value": "0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)",
+        "type": "boxShadow",
+        "description": "TUX --elevation-hover (tti-dark)"
+      },
+      "overlay": {
+        "value": "0 10px 15px -3px rgba(0, 0, 0, 0.20), 0 4px 6px -2px rgba(0, 0, 0, 0.12)",
+        "type": "boxShadow",
+        "description": "TUX --elevation-overlay (tti-dark)"
+      },
+      "pinned": {
+        "value": "0 4px 6px -2px rgba(0, 0, 0, 0.18)",
+        "type": "boxShadow",
+        "description": "TUX --elevation-pinned (tti-dark)"
+      }
+    },
+    "radius": {
+      "none": {
+        "value": "0",
+        "type": "dimension",
+        "description": "TUX --radius-none (tti-dark)"
+      },
+      "sm": {
+        "value": "0.125rem",
+        "type": "dimension",
+        "description": "TUX --radius-sm (tti-dark)"
+      },
+      "md": {
+        "value": "0.375rem",
+        "type": "dimension",
+        "description": "TUX --radius-md (tti-dark)"
+      },
+      "lg": {
+        "value": "0.5rem",
+        "type": "dimension",
+        "description": "TUX --radius-lg (tti-dark)"
+      },
+      "xl": {
+        "value": "0.75rem",
+        "type": "dimension",
+        "description": "TUX --radius-xl (tti-dark)"
+      },
+      "full": {
+        "value": "9999px",
+        "type": "dimension",
+        "description": "TUX --radius-full (tti-dark)"
+      }
+    },
+    "motion": {
+      "fast": {
+        "value": "0.15s",
+        "type": "other",
+        "description": "TUX --motion-fast (tti-dark)"
+      },
+      "base": {
+        "value": "0.25s",
+        "type": "other",
+        "description": "TUX --motion-base (tti-dark)"
+      },
+      "slow": {
+        "value": "0.35s",
+        "type": "other",
+        "description": "TUX --motion-slow (tti-dark)"
+      }
+    },
+    "ease": {
+      "standard": {
+        "value": "cubic-bezier(0.2, 0.55, 0.4, 0.9)",
+        "type": "other",
+        "description": "TUX --ease-standard (tti-dark)"
+      },
+      "emphasis": {
+        "value": "cubic-bezier(0.2, 0.8, 0.2, 1.2)",
+        "type": "other",
+        "description": "TUX --ease-emphasis (tti-dark)"
+      },
+      "exit": {
+        "value": "cubic-bezier(0.4, 0, 0.6, 1)",
+        "type": "other",
+        "description": "TUX --ease-exit (tti-dark)"
+      },
+      "survey": {
+        "value": "cubic-bezier(0.4, 0.0, 0.2, 1.0)",
+        "type": "other",
+        "description": "TUX --ease-survey (tti-dark)"
+      },
+      "corridor": {
+        "value": "cubic-bezier(0.2, 0.0, 0.0, 1.0)",
+        "type": "other",
+        "description": "TUX --ease-corridor (tti-dark)"
+      },
+      "arrival": {
+        "value": "cubic-bezier(0.0, 0.0, 0.2, 1.0)",
+        "type": "other",
+        "description": "TUX --ease-arrival (tti-dark)"
+      }
+    },
+    "space": {
+      "0": {
+        "value": "0",
+        "type": "dimension",
+        "description": "TUX --space-0 (tti-dark)"
+      },
+      "2": {
+        "value": "2px",
+        "type": "dimension",
+        "description": "TUX --space-2 (tti-dark)"
+      },
+      "4": {
+        "value": "4px",
+        "type": "dimension",
+        "description": "TUX --space-4 (tti-dark)"
+      },
+      "8": {
+        "value": "8px",
+        "type": "dimension",
+        "description": "TUX --space-8 (tti-dark)"
+      },
+      "10": {
+        "value": "10px",
+        "type": "dimension",
+        "description": "TUX --space-10 (tti-dark)"
+      },
+      "12": {
+        "value": "12px",
+        "type": "dimension",
+        "description": "TUX --space-12 (tti-dark)"
+      },
+      "16": {
+        "value": "16px",
+        "type": "dimension",
+        "description": "TUX --space-16 (tti-dark)"
+      },
+      "24": {
+        "value": "24px",
+        "type": "dimension",
+        "description": "TUX --space-24 (tti-dark)"
+      },
+      "32": {
+        "value": "32px",
+        "type": "dimension",
+        "description": "TUX --space-32 (tti-dark)"
+      },
+      "40": {
+        "value": "40px",
+        "type": "dimension",
+        "description": "TUX --space-40 (tti-dark)"
+      },
+      "48": {
+        "value": "48px",
+        "type": "dimension",
+        "description": "TUX --space-48 (tti-dark)"
+      },
+      "64": {
+        "value": "64px",
+        "type": "dimension",
+        "description": "TUX --space-64 (tti-dark)"
+      }
+    },
+    "layout": {
+      "content-max": {
+        "value": "80rem",
+        "type": "dimension",
+        "description": "TUX --layout-content-max (tti-dark)"
+      },
+      "content-wide": {
+        "value": "96rem",
+        "type": "dimension",
+        "description": "TUX --layout-content-wide (tti-dark)"
+      },
+      "prose-max": {
+        "value": "72ch",
+        "type": "dimension",
+        "description": "TUX --layout-prose-max (tti-dark)"
+      }
+    },
+    "rhythm": {
+      "tight": {
+        "value": "4px",
+        "type": "dimension",
+        "description": "TUX --rhythm-tight (tti-dark)"
+      },
+      "snug": {
+        "value": "8px",
+        "type": "dimension",
+        "description": "TUX --rhythm-snug (tti-dark)"
+      },
+      "normal": {
+        "value": "12px",
+        "type": "dimension",
+        "description": "TUX --rhythm-normal (tti-dark)"
+      },
+      "loose": {
+        "value": "16px",
+        "type": "dimension",
+        "description": "TUX --rhythm-loose (tti-dark)"
+      },
+      "roomy": {
+        "value": "24px",
+        "type": "dimension",
+        "description": "TUX --rhythm-roomy (tti-dark)"
+      }
+    },
+    "wash": {
+      "brand-4": {
+        "value": "rgba(107, 180, 192, 0.04)",
+        "type": "color",
+        "description": "TUX --wash-brand-4 (tti-dark)"
+      },
+      "brand-6": {
+        "value": "rgba(107, 180, 192, 0.06)",
+        "type": "color",
+        "description": "TUX --wash-brand-6 (tti-dark)"
+      },
+      "brand-8": {
+        "value": "rgba(107, 180, 192, 0.08)",
+        "type": "color",
+        "description": "TUX --wash-brand-8 (tti-dark)"
+      },
+      "brand-12": {
+        "value": "rgba(107, 180, 192, 0.12)",
+        "type": "color",
+        "description": "TUX --wash-brand-12 (tti-dark)"
+      },
+      "brand-18": {
+        "value": "rgba(107, 180, 192, 0.18)",
+        "type": "color",
+        "description": "TUX --wash-brand-18 (tti-dark)"
+      },
+      "brand-22": {
+        "value": "rgba(107, 180, 192, 0.22)",
+        "type": "color",
+        "description": "TUX --wash-brand-22 (tti-dark)"
+      },
+      "brand-35": {
+        "value": "rgba(107, 180, 192, 0.35)",
+        "type": "color",
+        "description": "TUX --wash-brand-35 (tti-dark)"
+      }
+    },
+    "chart": {
+      "1": {
+        "value": "#c47585",
+        "type": "color",
+        "description": "TUX --chart-1 (tti-dark)"
+      },
+      "2": {
+        "value": "#6B8DA3",
+        "type": "color",
+        "description": "TUX --chart-2 (tti-dark)"
+      },
+      "3": {
+        "value": "#E0BC60",
+        "type": "color",
+        "description": "TUX --chart-3 (tti-dark)"
+      },
+      "4": {
+        "value": "#93B57E",
+        "type": "color",
+        "description": "TUX --chart-4 (tti-dark)"
+      },
+      "5": {
+        "value": "#B58463",
+        "type": "color",
+        "description": "TUX --chart-5 (tti-dark)"
+      },
+      "6": {
+        "value": "#8AA0B2",
+        "type": "color",
+        "description": "TUX --chart-6 (tti-dark)"
+      },
+      "7": {
+        "value": "#D67272",
+        "type": "color",
+        "description": "TUX --chart-7 (tti-dark)"
+      },
+      "8": {
+        "value": "#6E8FBE",
+        "type": "color",
+        "description": "TUX --chart-8 (tti-dark)"
+      },
+      "9": {
+        "value": "#A08CB4",
+        "type": "color",
+        "description": "TUX --chart-9 (tti-dark)"
+      },
+      "10": {
+        "value": "#B0A578",
+        "type": "color",
+        "description": "TUX --chart-10 (tti-dark)"
+      },
+      "cvd-1": {
+        "value": "#56B4E9",
+        "type": "color",
+        "description": "TUX --chart-cvd-1 (tti-dark)"
+      },
+      "cvd-2": {
+        "value": "#F0B030",
+        "type": "color",
+        "description": "TUX --chart-cvd-2 (tti-dark)"
+      },
+      "cvd-3": {
+        "value": "#2AC098",
+        "type": "color",
+        "description": "TUX --chart-cvd-3 (tti-dark)"
+      },
+      "cvd-4": {
+        "value": "#F5EB68",
+        "type": "color",
+        "description": "TUX --chart-cvd-4 (tti-dark)"
+      },
+      "cvd-5": {
+        "value": "#7CD0F7",
+        "type": "color",
+        "description": "TUX --chart-cvd-5 (tti-dark)"
+      },
+      "cvd-6": {
+        "value": "#E87A28",
+        "type": "color",
+        "description": "TUX --chart-cvd-6 (tti-dark)"
+      },
+      "cvd-7": {
+        "value": "#DE91BD",
+        "type": "color",
+        "description": "TUX --chart-cvd-7 (tti-dark)"
+      },
+      "cvd-8": {
+        "value": "#E6E6E6",
+        "type": "color",
+        "description": "TUX --chart-cvd-8 (tti-dark)"
+      }
+    },
+    "map": {
+      "seq-maroon-1": {
+        "value": "#3D1110",
+        "type": "color",
+        "description": "TUX --map-seq-maroon-1 (tti-dark)"
+      },
+      "seq-maroon-2": {
+        "value": "#702C28",
+        "type": "color",
+        "description": "TUX --map-seq-maroon-2 (tti-dark)"
+      },
+      "seq-maroon-3": {
+        "value": "#A14A3D",
+        "type": "color",
+        "description": "TUX --map-seq-maroon-3 (tti-dark)"
+      },
+      "seq-maroon-4": {
+        "value": "#C97058",
+        "type": "color",
+        "description": "TUX --map-seq-maroon-4 (tti-dark)"
+      },
+      "seq-maroon-5": {
+        "value": "#E89B7E",
+        "type": "color",
+        "description": "TUX --map-seq-maroon-5 (tti-dark)"
+      },
+      "seq-slate-1": {
+        "value": "#1A2129",
+        "type": "color",
+        "description": "TUX --map-seq-slate-1 (tti-dark)"
+      },
+      "seq-slate-2": {
+        "value": "#3F5A6F",
+        "type": "color",
+        "description": "TUX --map-seq-slate-2 (tti-dark)"
+      },
+      "seq-slate-3": {
+        "value": "#6F8294",
+        "type": "color",
+        "description": "TUX --map-seq-slate-3 (tti-dark)"
+      },
+      "seq-slate-4": {
+        "value": "#9CADBD",
+        "type": "color",
+        "description": "TUX --map-seq-slate-4 (tti-dark)"
+      },
+      "seq-slate-5": {
+        "value": "#C2D0DE",
+        "type": "color",
+        "description": "TUX --map-seq-slate-5 (tti-dark)"
+      },
+      "outline": {
+        "value": "rgba(255, 255, 255, 0.22)",
+        "type": "color",
+        "description": "TUX --map-outline (tti-dark)"
+      },
+      "flow": {
+        "value": "#E89B7E",
+        "type": "color",
+        "description": "TUX --map-flow (tti-dark)"
+      }
+    }
+  },
+  "tti-hc": {
+    "tti": {
+      "maroon": {
+        "value": "#5C0025",
+        "type": "color",
+        "description": "TUX --tti-maroon (tti-hc)"
+      },
+      "maroon-deep": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --tti-maroon-deep (tti-hc)"
+      },
+      "gold": {
+        "value": "#DDAC37",
+        "type": "color",
+        "description": "TUX --tti-gold (tti-hc)"
+      },
+      "gold-deep": {
+        "value": "#DCAA37",
+        "type": "color",
+        "description": "TUX --tti-gold-deep (tti-hc)"
+      },
+      "navy": {
+        "value": "#15457E",
+        "type": "color",
+        "description": "TUX --tti-navy (tti-hc)"
+      },
+      "teal": {
+        "value": "#4A8892",
+        "type": "color",
+        "description": "TUX --tti-teal (tti-hc)"
+      },
+      "sage": {
+        "value": "#66814F",
+        "type": "color",
+        "description": "TUX --tti-sage (tti-hc)"
+      },
+      "charcoal": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --tti-charcoal (tti-hc)"
+      }
+    },
+    "spectrum": {
+      "maroon": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --spectrum-maroon (tti-hc)"
+      },
+      "blue": {
+        "value": "#3B4E6B",
+        "type": "color",
+        "description": "TUX --spectrum-blue (tti-hc)"
+      },
+      "teal": {
+        "value": "#476E70",
+        "type": "color",
+        "description": "TUX --spectrum-teal (tti-hc)"
+      },
+      "green": {
+        "value": "#576E4B",
+        "type": "color",
+        "description": "TUX --spectrum-green (tti-hc)"
+      },
+      "gold": {
+        "value": "#C2912E",
+        "type": "color",
+        "description": "TUX --spectrum-gold (tti-hc)"
+      }
+    },
+    "neutral": {
+      "0": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --neutral-0 (tti-hc)"
+      },
+      "50": {
+        "value": "#FAFAFA",
+        "type": "color",
+        "description": "TUX --neutral-50 (tti-hc)"
+      },
+      "100": {
+        "value": "#F5F5F5",
+        "type": "color",
+        "description": "TUX --neutral-100 (tti-hc)"
+      },
+      "150": {
+        "value": "#EFEEED",
+        "type": "color",
+        "description": "TUX --neutral-150 (tti-hc)"
+      },
+      "200": {
+        "value": "#E7E6E6",
+        "type": "color",
+        "description": "TUX --neutral-200 (tti-hc)"
+      },
+      "250": {
+        "value": "#DCDBD8",
+        "type": "color",
+        "description": "TUX --neutral-250 (tti-hc)"
+      },
+      "300": {
+        "value": "#D1D2D4",
+        "type": "color",
+        "description": "TUX --neutral-300 (tti-hc)"
+      },
+      "400": {
+        "value": "#A5A5A5",
+        "type": "color",
+        "description": "TUX --neutral-400 (tti-hc)"
+      },
+      "450": {
+        "value": "#9B9A96",
+        "type": "color",
+        "description": "TUX --neutral-450 (tti-hc)"
+      },
+      "500": {
+        "value": "#939597",
+        "type": "color",
+        "description": "TUX --neutral-500 (tti-hc)"
+      },
+      "550": {
+        "value": "#86847F",
+        "type": "color",
+        "description": "TUX --neutral-550 (tti-hc)"
+      },
+      "600": {
+        "value": "#7E7E7E",
+        "type": "color",
+        "description": "TUX --neutral-600 (tti-hc)"
+      },
+      "650": {
+        "value": "#6B6964",
+        "type": "color",
+        "description": "TUX --neutral-650 (tti-hc)"
+      },
+      "700": {
+        "value": "#5D5D5D",
+        "type": "color",
+        "description": "TUX --neutral-700 (tti-hc)"
+      },
+      "750": {
+        "value": "#535048",
+        "type": "color",
+        "description": "TUX --neutral-750 (tti-hc)"
+      },
+      "800": {
+        "value": "#4C4C4E",
+        "type": "color",
+        "description": "TUX --neutral-800 (tti-hc)"
+      },
+      "850": {
+        "value": "#3A3833",
+        "type": "color",
+        "description": "TUX --neutral-850 (tti-hc)"
+      },
+      "900": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --neutral-900 (tti-hc)"
+      },
+      "1000": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --neutral-1000 (tti-hc)"
+      }
+    },
+    "brand": {
+      "primary": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --brand-primary (tti-hc)"
+      },
+      "primary-deep": {
+        "value": "#3A0000",
+        "type": "color",
+        "description": "TUX --brand-primary-deep (tti-hc)"
+      },
+      "accent": {
+        "value": "#DCAA37",
+        "type": "color",
+        "description": "TUX --brand-accent (tti-hc)"
+      },
+      "accent-deep": {
+        "value": "#B88A21",
+        "type": "color",
+        "description": "TUX --brand-accent-deep (tti-hc)"
+      },
+      "secondary": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --brand-secondary (tti-hc)"
+      },
+      "fill": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --brand-fill (tti-hc)"
+      },
+      "accent-ink": {
+        "value": "#2A0E15",
+        "type": "color",
+        "description": "TUX --brand-accent-ink (tti-hc)"
+      },
+      "accent-shade": {
+        "value": "#A87B1F",
+        "type": "color",
+        "description": "TUX --brand-accent-shade (tti-hc)"
+      }
+    },
+    "surface": {
+      "page": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --surface-page (tti-hc)"
+      },
+      "raised": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --surface-raised (tti-hc)"
+      },
+      "sunken": {
+        "value": "#F0F0F0",
+        "type": "color",
+        "description": "TUX --surface-sunken (tti-hc)"
+      },
+      "border": {
+        "value": "#5D5D5D",
+        "type": "color",
+        "description": "TUX --surface-border (tti-hc)"
+      },
+      "border-subtle": {
+        "value": "#5D5D5D",
+        "type": "color",
+        "description": "TUX --surface-border-subtle (tti-hc)"
+      },
+      "eggshell": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --surface-eggshell (tti-hc)"
+      },
+      "cool-gray": {
+        "value": "#F0F0F0",
+        "type": "color",
+        "description": "TUX --surface-cool-gray (tti-hc)"
+      }
+    },
+    "text": {
+      "primary": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --text-primary (tti-hc)"
+      },
+      "secondary": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --text-secondary (tti-hc)"
+      },
+      "muted": {
+        "value": "#4D4D4D",
+        "type": "color",
+        "description": "TUX --text-muted (tti-hc)"
+      },
+      "inverse": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --text-inverse (tti-hc)"
+      },
+      "brand": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --text-brand (tti-hc)"
+      },
+      "on-brand": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --text-on-brand (tti-hc)"
+      },
+      "charcoal": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --text-charcoal (tti-hc)"
+      },
+      "dark": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --text-dark (tti-hc)"
+      }
+    },
+    "color": {
+      "success": {
+        "value": "#3D5328",
+        "type": "color",
+        "description": "TUX --color-success (tti-hc)"
+      },
+      "warning": {
+        "value": "#DDAC37",
+        "type": "color",
+        "description": "TUX --color-warning (tti-hc)"
+      },
+      "danger": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --color-danger (tti-hc)"
+      },
+      "error": {
+        "value": "#A02828",
+        "type": "color",
+        "description": "TUX --color-error (tti-hc)"
+      },
+      "info": {
+        "value": "#1F5D66",
+        "type": "color",
+        "description": "TUX --color-info (tti-hc)"
+      },
+      "maroon-50": {
+        "value": "#fbf3f6",
+        "type": "color",
+        "description": "TUX --color-maroon-50 (tti-hc)"
+      },
+      "maroon-100": {
+        "value": "#f5e0e7",
+        "type": "color",
+        "description": "TUX --color-maroon-100 (tti-hc)"
+      },
+      "maroon-200": {
+        "value": "#eab5c3",
+        "type": "color",
+        "description": "TUX --color-maroon-200 (tti-hc)"
+      },
+      "maroon-300": {
+        "value": "#db859e",
+        "type": "color",
+        "description": "TUX --color-maroon-300 (tti-hc)"
+      },
+      "maroon-400": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --color-maroon-400 (tti-hc)"
+      },
+      "maroon-500": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --color-maroon-500 (tti-hc)"
+      },
+      "maroon-600": {
+        "value": "#4d001f",
+        "type": "color",
+        "description": "TUX --color-maroon-600 (tti-hc)"
+      },
+      "maroon-700": {
+        "value": "#3d0018",
+        "type": "color",
+        "description": "TUX --color-maroon-700 (tti-hc)"
+      },
+      "maroon-800": {
+        "value": "#2e0012",
+        "type": "color",
+        "description": "TUX --color-maroon-800 (tti-hc)"
+      },
+      "maroon-900": {
+        "value": "#1f000c",
+        "type": "color",
+        "description": "TUX --color-maroon-900 (tti-hc)"
+      },
+      "maroon-950": {
+        "value": "#150008",
+        "type": "color",
+        "description": "TUX --color-maroon-950 (tti-hc)"
+      },
+      "gold-50": {
+        "value": "#fdf9ee",
+        "type": "color",
+        "description": "TUX --color-gold-50 (tti-hc)"
+      },
+      "gold-100": {
+        "value": "#faf0d2",
+        "type": "color",
+        "description": "TUX --color-gold-100 (tti-hc)"
+      },
+      "gold-200": {
+        "value": "#f4dfa1",
+        "type": "color",
+        "description": "TUX --color-gold-200 (tti-hc)"
+      },
+      "gold-300": {
+        "value": "#ecca6f",
+        "type": "color",
+        "description": "TUX --color-gold-300 (tti-hc)"
+      },
+      "gold-400": {
+        "value": "#e3ba4f",
+        "type": "color",
+        "description": "TUX --color-gold-400 (tti-hc)"
+      },
+      "gold-500": {
+        "value": "#ddac37",
+        "type": "color",
+        "description": "TUX --color-gold-500 (tti-hc)"
+      },
+      "gold-600": {
+        "value": "#b58a23",
+        "type": "color",
+        "description": "TUX --color-gold-600 (tti-hc)"
+      },
+      "gold-700": {
+        "value": "#8a691b",
+        "type": "color",
+        "description": "TUX --color-gold-700 (tti-hc)"
+      },
+      "gold-800": {
+        "value": "#604812",
+        "type": "color",
+        "description": "TUX --color-gold-800 (tti-hc)"
+      },
+      "gold-900": {
+        "value": "#3f300b",
+        "type": "color",
+        "description": "TUX --color-gold-900 (tti-hc)"
+      },
+      "gold-950": {
+        "value": "#271e07",
+        "type": "color",
+        "description": "TUX --color-gold-950 (tti-hc)"
+      },
+      "brand-primary": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --color-brand-primary (tti-hc)"
+      },
+      "brand-primary-deep": {
+        "value": "#3A0000",
+        "type": "color",
+        "description": "TUX --color-brand-primary-deep (tti-hc)"
+      },
+      "brand-accent": {
+        "value": "#DCAA37",
+        "type": "color",
+        "description": "TUX --color-brand-accent (tti-hc)"
+      },
+      "brand-accent-deep": {
+        "value": "#B88A21",
+        "type": "color",
+        "description": "TUX --color-brand-accent-deep (tti-hc)"
+      },
+      "brand-secondary": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --color-brand-secondary (tti-hc)"
+      },
+      "brand-fill": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --color-brand-fill (tti-hc)"
+      },
+      "surface-page": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --color-surface-page (tti-hc)"
+      },
+      "surface-raised": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --color-surface-raised (tti-hc)"
+      },
+      "surface-sunken": {
+        "value": "#F0F0F0",
+        "type": "color",
+        "description": "TUX --color-surface-sunken (tti-hc)"
+      },
+      "surface-border": {
+        "value": "#5D5D5D",
+        "type": "color",
+        "description": "TUX --color-surface-border (tti-hc)"
+      },
+      "surface-border-subtle": {
+        "value": "#5D5D5D",
+        "type": "color",
+        "description": "TUX --color-surface-border-subtle (tti-hc)"
+      },
+      "surface-eggshell": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --color-surface-eggshell (tti-hc)"
+      },
+      "surface-cool-gray": {
+        "value": "#F0F0F0",
+        "type": "color",
+        "description": "TUX --color-surface-cool-gray (tti-hc)"
+      },
+      "text-primary": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --color-text-primary (tti-hc)"
+      },
+      "text-secondary": {
+        "value": "#221F1F",
+        "type": "color",
+        "description": "TUX --color-text-secondary (tti-hc)"
+      },
+      "text-muted": {
+        "value": "#4D4D4D",
+        "type": "color",
+        "description": "TUX --color-text-muted (tti-hc)"
+      },
+      "text-inverse": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --color-text-inverse (tti-hc)"
+      },
+      "text-brand": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --color-text-brand (tti-hc)"
+      },
+      "text-on-brand": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --color-text-on-brand (tti-hc)"
+      },
+      "text-charcoal": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --color-text-charcoal (tti-hc)"
+      },
+      "text-dark": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --color-text-dark (tti-hc)"
+      },
+      "spectrum-maroon": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --color-spectrum-maroon (tti-hc)"
+      },
+      "spectrum-blue": {
+        "value": "#3B4E6B",
+        "type": "color",
+        "description": "TUX --color-spectrum-blue (tti-hc)"
+      },
+      "spectrum-teal": {
+        "value": "#476E70",
+        "type": "color",
+        "description": "TUX --color-spectrum-teal (tti-hc)"
+      },
+      "spectrum-green": {
+        "value": "#576E4B",
+        "type": "color",
+        "description": "TUX --color-spectrum-green (tti-hc)"
+      },
+      "spectrum-gold": {
+        "value": "#C2912E",
+        "type": "color",
+        "description": "TUX --color-spectrum-gold (tti-hc)"
+      }
+    },
+    "status": {
+      "ok": {
+        "value": "#0E6800",
+        "type": "color",
+        "description": "TUX --status-ok (tti-hc)"
+      },
+      "ok-fill": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --status-ok-fill (tti-hc)"
+      },
+      "ok-ink": {
+        "value": "#0E6800",
+        "type": "color",
+        "description": "TUX --status-ok-ink (tti-hc)"
+      },
+      "warning": {
+        "value": "#5C5C00",
+        "type": "color",
+        "description": "TUX --status-warning (tti-hc)"
+      },
+      "warning-fill": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --status-warning-fill (tti-hc)"
+      },
+      "warning-ink": {
+        "value": "#5C5C00",
+        "type": "color",
+        "description": "TUX --status-warning-ink (tti-hc)"
+      },
+      "unknown": {
+        "value": "#8E4300",
+        "type": "color",
+        "description": "TUX --status-unknown (tti-hc)"
+      },
+      "unknown-fill": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --status-unknown-fill (tti-hc)"
+      },
+      "unknown-ink": {
+        "value": "#8E4300",
+        "type": "color",
+        "description": "TUX --status-unknown-ink (tti-hc)"
+      },
+      "critical": {
+        "value": "#B20014",
+        "type": "color",
+        "description": "TUX --status-critical (tti-hc)"
+      },
+      "critical-fill": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --status-critical-fill (tti-hc)"
+      },
+      "critical-ink": {
+        "value": "#B20014",
+        "type": "color",
+        "description": "TUX --status-critical-ink (tti-hc)"
+      },
+      "maintenance": {
+        "value": "#0056AA",
+        "type": "color",
+        "description": "TUX --status-maintenance (tti-hc)"
+      },
+      "maintenance-fill": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --status-maintenance-fill (tti-hc)"
+      },
+      "maintenance-ink": {
+        "value": "#0056AA",
+        "type": "color",
+        "description": "TUX --status-maintenance-ink (tti-hc)"
+      },
+      "pending": {
+        "value": "#585858",
+        "type": "color",
+        "description": "TUX --status-pending (tti-hc)"
+      },
+      "pending-fill": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --status-pending-fill (tti-hc)"
+      },
+      "pending-ink": {
+        "value": "#585858",
+        "type": "color",
+        "description": "TUX --status-pending-ink (tti-hc)"
+      }
+    },
+    "font": {
+      "body": {
+        "value": "Open Sans",
+        "type": "fontFamilies",
+        "description": "TUX --font-body (tti-hc)"
+      },
+      "display": {
+        "value": "Oswald",
+        "type": "fontFamilies",
+        "description": "TUX --font-display (tti-hc)"
+      },
+      "bold": {
+        "value": "Work Sans",
+        "type": "fontFamilies",
+        "description": "TUX --font-bold (tti-hc)"
+      },
+      "elegant": {
+        "value": "Georgia",
+        "type": "fontFamilies",
+        "description": "TUX --font-elegant (tti-hc)"
+      },
+      "sans": {
+        "value": "Open Sans",
+        "type": "fontFamilies",
+        "description": "TUX --font-sans (tti-hc)"
+      },
+      "mono": {
+        "value": "JetBrains Mono",
+        "type": "fontFamilies",
+        "description": "TUX --font-mono (tti-hc)"
+      }
+    },
+    "tracking": {
+      "tight": {
+        "value": "-0.01em",
+        "type": "other",
+        "description": "TUX --tracking-tight (tti-hc)"
+      },
+      "normal": {
+        "value": "0",
+        "type": "other",
+        "description": "TUX --tracking-normal (tti-hc)"
+      },
+      "wide": {
+        "value": "0.05em",
+        "type": "other",
+        "description": "TUX --tracking-wide (tti-hc)"
+      },
+      "wider": {
+        "value": "0.10em",
+        "type": "other",
+        "description": "TUX --tracking-wider (tti-hc)"
+      }
+    },
+    "shadow": {
+      "sm": {
+        "value": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        "type": "boxShadow",
+        "description": "TUX --shadow-sm (tti-hc)"
+      },
+      "md": {
+        "value": "0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)",
+        "type": "boxShadow",
+        "description": "TUX --shadow-md (tti-hc)"
+      },
+      "lg": {
+        "value": "0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03)",
+        "type": "boxShadow",
+        "description": "TUX --shadow-lg (tti-hc)"
+      },
+      "focus": {
+        "value": "0 0 0 2px #FFFFFF, 0 0 0 5px #000000",
+        "type": "boxShadow",
+        "description": "TUX --shadow-focus (tti-hc)"
+      }
+    },
+    "focus": {
+      "ring-outer": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --focus-ring-outer (tti-hc)"
+      },
+      "ring-inner": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --focus-ring-inner (tti-hc)"
+      }
+    },
+    "elevation": {
+      "flat": {
+        "value": "none",
+        "type": "boxShadow",
+        "description": "TUX --elevation-flat (tti-hc)"
+      },
+      "rest": {
+        "value": "none",
+        "type": "boxShadow",
+        "description": "TUX --elevation-rest (tti-hc)"
+      },
+      "hover": {
+        "value": "none",
+        "type": "boxShadow",
+        "description": "TUX --elevation-hover (tti-hc)"
+      },
+      "overlay": {
+        "value": "0 0 0 2px #5D5D5D",
+        "type": "boxShadow",
+        "description": "TUX --elevation-overlay (tti-hc)"
+      },
+      "pinned": {
+        "value": "0 0 0 1px #5D5D5D",
+        "type": "boxShadow",
+        "description": "TUX --elevation-pinned (tti-hc)"
+      }
+    },
+    "radius": {
+      "none": {
+        "value": "0",
+        "type": "dimension",
+        "description": "TUX --radius-none (tti-hc)"
+      },
+      "sm": {
+        "value": "0.125rem",
+        "type": "dimension",
+        "description": "TUX --radius-sm (tti-hc)"
+      },
+      "md": {
+        "value": "0.375rem",
+        "type": "dimension",
+        "description": "TUX --radius-md (tti-hc)"
+      },
+      "lg": {
+        "value": "0.5rem",
+        "type": "dimension",
+        "description": "TUX --radius-lg (tti-hc)"
+      },
+      "xl": {
+        "value": "0.75rem",
+        "type": "dimension",
+        "description": "TUX --radius-xl (tti-hc)"
+      },
+      "full": {
+        "value": "9999px",
+        "type": "dimension",
+        "description": "TUX --radius-full (tti-hc)"
+      }
+    },
+    "motion": {
+      "fast": {
+        "value": "0.15s",
+        "type": "other",
+        "description": "TUX --motion-fast (tti-hc)"
+      },
+      "base": {
+        "value": "0.25s",
+        "type": "other",
+        "description": "TUX --motion-base (tti-hc)"
+      },
+      "slow": {
+        "value": "0.35s",
+        "type": "other",
+        "description": "TUX --motion-slow (tti-hc)"
+      }
+    },
+    "ease": {
+      "standard": {
+        "value": "cubic-bezier(0.2, 0.55, 0.4, 0.9)",
+        "type": "other",
+        "description": "TUX --ease-standard (tti-hc)"
+      },
+      "emphasis": {
+        "value": "cubic-bezier(0.2, 0.8, 0.2, 1.2)",
+        "type": "other",
+        "description": "TUX --ease-emphasis (tti-hc)"
+      },
+      "exit": {
+        "value": "cubic-bezier(0.4, 0, 0.6, 1)",
+        "type": "other",
+        "description": "TUX --ease-exit (tti-hc)"
+      },
+      "survey": {
+        "value": "cubic-bezier(0.4, 0.0, 0.2, 1.0)",
+        "type": "other",
+        "description": "TUX --ease-survey (tti-hc)"
+      },
+      "corridor": {
+        "value": "cubic-bezier(0.2, 0.0, 0.0, 1.0)",
+        "type": "other",
+        "description": "TUX --ease-corridor (tti-hc)"
+      },
+      "arrival": {
+        "value": "cubic-bezier(0.0, 0.0, 0.2, 1.0)",
+        "type": "other",
+        "description": "TUX --ease-arrival (tti-hc)"
+      }
+    },
+    "space": {
+      "0": {
+        "value": "0",
+        "type": "dimension",
+        "description": "TUX --space-0 (tti-hc)"
+      },
+      "2": {
+        "value": "2px",
+        "type": "dimension",
+        "description": "TUX --space-2 (tti-hc)"
+      },
+      "4": {
+        "value": "4px",
+        "type": "dimension",
+        "description": "TUX --space-4 (tti-hc)"
+      },
+      "8": {
+        "value": "8px",
+        "type": "dimension",
+        "description": "TUX --space-8 (tti-hc)"
+      },
+      "10": {
+        "value": "10px",
+        "type": "dimension",
+        "description": "TUX --space-10 (tti-hc)"
+      },
+      "12": {
+        "value": "12px",
+        "type": "dimension",
+        "description": "TUX --space-12 (tti-hc)"
+      },
+      "16": {
+        "value": "16px",
+        "type": "dimension",
+        "description": "TUX --space-16 (tti-hc)"
+      },
+      "24": {
+        "value": "24px",
+        "type": "dimension",
+        "description": "TUX --space-24 (tti-hc)"
+      },
+      "32": {
+        "value": "32px",
+        "type": "dimension",
+        "description": "TUX --space-32 (tti-hc)"
+      },
+      "40": {
+        "value": "40px",
+        "type": "dimension",
+        "description": "TUX --space-40 (tti-hc)"
+      },
+      "48": {
+        "value": "48px",
+        "type": "dimension",
+        "description": "TUX --space-48 (tti-hc)"
+      },
+      "64": {
+        "value": "64px",
+        "type": "dimension",
+        "description": "TUX --space-64 (tti-hc)"
+      }
+    },
+    "layout": {
+      "content-max": {
+        "value": "80rem",
+        "type": "dimension",
+        "description": "TUX --layout-content-max (tti-hc)"
+      },
+      "content-wide": {
+        "value": "96rem",
+        "type": "dimension",
+        "description": "TUX --layout-content-wide (tti-hc)"
+      },
+      "prose-max": {
+        "value": "72ch",
+        "type": "dimension",
+        "description": "TUX --layout-prose-max (tti-hc)"
+      }
+    },
+    "rhythm": {
+      "tight": {
+        "value": "4px",
+        "type": "dimension",
+        "description": "TUX --rhythm-tight (tti-hc)"
+      },
+      "snug": {
+        "value": "8px",
+        "type": "dimension",
+        "description": "TUX --rhythm-snug (tti-hc)"
+      },
+      "normal": {
+        "value": "12px",
+        "type": "dimension",
+        "description": "TUX --rhythm-normal (tti-hc)"
+      },
+      "loose": {
+        "value": "16px",
+        "type": "dimension",
+        "description": "TUX --rhythm-loose (tti-hc)"
+      },
+      "roomy": {
+        "value": "24px",
+        "type": "dimension",
+        "description": "TUX --rhythm-roomy (tti-hc)"
+      }
+    },
+    "wash": {
+      "brand-4": {
+        "value": "rgba(80, 0, 0, 0.04)",
+        "type": "color",
+        "description": "TUX --wash-brand-4 (tti-hc)"
+      },
+      "brand-6": {
+        "value": "rgba(80, 0, 0, 0.06)",
+        "type": "color",
+        "description": "TUX --wash-brand-6 (tti-hc)"
+      },
+      "brand-8": {
+        "value": "rgba(80, 0, 0, 0.08)",
+        "type": "color",
+        "description": "TUX --wash-brand-8 (tti-hc)"
+      },
+      "brand-12": {
+        "value": "rgba(80, 0, 0, 0.12)",
+        "type": "color",
+        "description": "TUX --wash-brand-12 (tti-hc)"
+      },
+      "brand-18": {
+        "value": "rgba(80, 0, 0, 0.18)",
+        "type": "color",
+        "description": "TUX --wash-brand-18 (tti-hc)"
+      },
+      "brand-22": {
+        "value": "rgba(80, 0, 0, 0.22)",
+        "type": "color",
+        "description": "TUX --wash-brand-22 (tti-hc)"
+      },
+      "brand-35": {
+        "value": "rgba(80, 0, 0, 0.35)",
+        "type": "color",
+        "description": "TUX --wash-brand-35 (tti-hc)"
+      }
+    },
+    "chart": {
+      "1": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --chart-1 (tti-hc)"
+      },
+      "2": {
+        "value": "#500000",
+        "type": "color",
+        "description": "TUX --chart-2 (tti-hc)"
+      },
+      "3": {
+        "value": "#5D5D5D",
+        "type": "color",
+        "description": "TUX --chart-3 (tti-hc)"
+      },
+      "4": {
+        "value": "#8A6915",
+        "type": "color",
+        "description": "TUX --chart-4 (tti-hc)"
+      },
+      "5": {
+        "value": "#4A4A4A",
+        "type": "color",
+        "description": "TUX --chart-5 (tti-hc)"
+      },
+      "6": {
+        "value": "#1F5D66",
+        "type": "color",
+        "description": "TUX --chart-6 (tti-hc)"
+      },
+      "7": {
+        "value": "#6B0000",
+        "type": "color",
+        "description": "TUX --chart-7 (tti-hc)"
+      },
+      "8": {
+        "value": "#2A2A2A",
+        "type": "color",
+        "description": "TUX --chart-8 (tti-hc)"
+      },
+      "9": {
+        "value": "#6E5A7E",
+        "type": "color",
+        "description": "TUX --chart-9 (tti-hc)"
+      },
+      "10": {
+        "value": "#7E7350",
+        "type": "color",
+        "description": "TUX --chart-10 (tti-hc)"
+      },
+      "cvd-1": {
+        "value": "#005080",
+        "type": "color",
+        "description": "TUX --chart-cvd-1 (tti-hc)"
+      },
+      "cvd-2": {
+        "value": "#CC8000",
+        "type": "color",
+        "description": "TUX --chart-cvd-2 (tti-hc)"
+      },
+      "cvd-3": {
+        "value": "#007A55",
+        "type": "color",
+        "description": "TUX --chart-cvd-3 (tti-hc)"
+      },
+      "cvd-4": {
+        "value": "#8A6915",
+        "type": "color",
+        "description": "TUX --chart-cvd-4 (tti-hc)"
+      },
+      "cvd-5": {
+        "value": "#1F5D66",
+        "type": "color",
+        "description": "TUX --chart-cvd-5 (tti-hc)"
+      },
+      "cvd-6": {
+        "value": "#B34000",
+        "type": "color",
+        "description": "TUX --chart-cvd-6 (tti-hc)"
+      },
+      "cvd-7": {
+        "value": "#803366",
+        "type": "color",
+        "description": "TUX --chart-cvd-7 (tti-hc)"
+      },
+      "cvd-8": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --chart-cvd-8 (tti-hc)"
+      }
+    },
+    "map": {
+      "seq-maroon-1": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --map-seq-maroon-1 (tti-hc)"
+      },
+      "seq-maroon-2": {
+        "value": "#C8C8C8",
+        "type": "color",
+        "description": "TUX --map-seq-maroon-2 (tti-hc)"
+      },
+      "seq-maroon-3": {
+        "value": "#8A8A8A",
+        "type": "color",
+        "description": "TUX --map-seq-maroon-3 (tti-hc)"
+      },
+      "seq-maroon-4": {
+        "value": "#4A4A4A",
+        "type": "color",
+        "description": "TUX --map-seq-maroon-4 (tti-hc)"
+      },
+      "seq-maroon-5": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --map-seq-maroon-5 (tti-hc)"
+      },
+      "seq-slate-1": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "TUX --map-seq-slate-1 (tti-hc)"
+      },
+      "seq-slate-2": {
+        "value": "#C8C8C8",
+        "type": "color",
+        "description": "TUX --map-seq-slate-2 (tti-hc)"
+      },
+      "seq-slate-3": {
+        "value": "#8A8A8A",
+        "type": "color",
+        "description": "TUX --map-seq-slate-3 (tti-hc)"
+      },
+      "seq-slate-4": {
+        "value": "#4A4A4A",
+        "type": "color",
+        "description": "TUX --map-seq-slate-4 (tti-hc)"
+      },
+      "seq-slate-5": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --map-seq-slate-5 (tti-hc)"
+      },
+      "outline": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --map-outline (tti-hc)"
+      },
+      "flow": {
+        "value": "#000000",
+        "type": "color",
+        "description": "TUX --map-flow (tti-hc)"
+      }
+    }
+  },
+  "$themes": [
+    {
+      "id": "tux-light-tti",
+      "name": "Light (tti)",
+      "group": "TUX Theme",
+      "selectedTokenSets": {
+        "tti": "enabled",
+        "tti-dark": "disabled",
+        "tti-hc": "disabled"
+      }
+    },
+    {
+      "id": "tux-dark-tti",
+      "name": "Dark (tti-dark)",
+      "group": "TUX Theme",
+      "selectedTokenSets": {
+        "tti": "disabled",
+        "tti-dark": "enabled",
+        "tti-hc": "disabled"
+      }
+    },
+    {
+      "id": "tux-hc-tti",
+      "name": "High Contrast AAA (tti-hc)",
+      "group": "TUX Theme",
+      "selectedTokenSets": {
+        "tti": "disabled",
+        "tti-dark": "disabled",
+        "tti-hc": "enabled"
+      }
+    }
+  ],
+  "$metadata": {
+    "tokenSetOrder": [
+      "tti",
+      "tti-dark",
+      "tti-hc"
+    ]
+  }
+}

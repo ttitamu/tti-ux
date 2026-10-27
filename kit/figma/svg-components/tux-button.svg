@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="220" viewBox="0 0 760 220" fill="none">
+  <rect id="TUX / TuxButton Sheet" width="760" height="220" rx="8" fill="#F9F9F7" stroke="#E7E6E6"/>
+  <text x="24" y="34" fill="#5C0025" font-family="Oswald, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">TUX / TUXBUTTON · WCAG 2.2 AAA (44PX TARGETS)</text>
+  <line x1="24" y1="44" x2="736" y2="44" stroke="#DDAC37" stroke-width="2"/>
+  <g id="Button / Primary (Light)" transform="translate(24, 64)">
+    <rect width="156" height="44" rx="0" fill="#5C0025"/>
+    <text x="78" y="27" text-anchor="middle" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="14" font-weight="600">Primary Action</text>
+  </g>
+  <g id="Button / Secondary Outline (Light)" transform="translate(196, 64)">
+    <rect width="164" height="44" rx="0" fill="#FFFFFF" stroke="#5C0025" stroke-width="2"/>
+    <text x="82" y="27" text-anchor="middle" fill="#5C0025" font-family="Open Sans, sans-serif" font-size="14" font-weight="600">Secondary Outline</text>
+  </g>
+  <g id="Button / Gold Accent (Light)" transform="translate(376, 64)">
+    <rect width="160" height="44" rx="0" fill="#DDAC37" stroke="#2A0E15" stroke-width="1"/>
+    <text x="80" y="27" text-anchor="middle" fill="#2A0E15" font-family="Open Sans, sans-serif" font-size="14" font-weight="700">Warm Gold CTA</text>
+  </g>
+  <g id="Button / Critical Danger (Light)" transform="translate(552, 64)">
+    <rect width="160" height="44" rx="0" fill="#A02828"/>
+    <text x="80" y="27" text-anchor="middle" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="14" font-weight="600">Critical Stop</text>
+  </g>
+  <g id="Dark Surface Strip" transform="translate(24, 128)">
+    <rect width="712" height="68" rx="6" fill="#15100F" stroke="#3D3A3A"/>
+    <g id="Button / Primary (Dark)" transform="translate(16, 12)">
+      <rect width="164" height="44" rx="4" fill="#6BB4C0"/>
+      <text x="82" y="27" text-anchor="middle" fill="#15100F" font-family="Open Sans, sans-serif" font-size="14" font-weight="700">Dark Mode Primary</text>
+    </g>
+    <g id="Button / Outline (Dark)" transform="translate(196, 12)">
+      <rect width="164" height="44" rx="4" fill="#221F1F" stroke="#6BB4C0" stroke-width="1.5"/>
+      <text x="82" y="27" text-anchor="middle" fill="#FAFAFA" font-family="Open Sans, sans-serif" font-size="14" font-weight="600">Dark Secondary</text>
+    </g>
+    <text x="384" y="39" fill="#D1D2D4" font-family="JetBrains Mono, monospace" font-size="12">Focus Ring: 3px solid #5C0025 · Min 44×44px</text>
+  </g>
+</svg>

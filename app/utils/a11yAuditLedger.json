@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-10-23T15:03:40.153Z",
+  "timestamp": "2026-10-27T20:50:50.463Z",
   "system": "TTI-UX (TUX 3.0)",
   "standard": "W3C WCAG 2.2 Level AAA",
   "summary": {
-    "totalComponents": 183,
-    "aaaCompliantComponents": 183,
+    "totalComponents": 184,
+    "aaaCompliantComponents": 184,
     "aaaComplianceRate": 100,
     "contrastPairsTested": 11,
     "contrastPassRate": 100,
@@ -264,6 +264,20 @@
         "Meets 44x44px touch target requirement (Criterion 2.5.8)",
         "Includes accessible visible focus indicator (Criterion 2.4.13)",
         "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxArchitectureMap": {
+      "name": "TuxArchitectureMap",
+      "file": "TuxArchitectureMap.vue",
+      "isInteractive": false,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": false,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "n/a",
+      "notes": [
+        "Non-interactive / semantic layout component"
       ]
     },
     "TuxArtifact": {

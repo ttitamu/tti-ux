@@ -8,8 +8,10 @@ with a matching source hash in manifest.json.
 | Component | Target | Status |
 |---|---|---|
 | TuxAbstract | react | never ported |
+| TuxAccordion | react | STALE (source moved since port) |
 | TuxAcknowledgments | react | never ported |
 | TuxActivityTimeline | react | never ported |
+| TuxAlert | react | STALE (source moved since port) |
 | TuxAlphaNav | react | never ported |
 | TuxAnnouncementBanner | react | never ported |
 | TuxAppFrame | react | never ported |
@@ -18,6 +20,7 @@ with a matching source hash in manifest.json.
 | TuxAuthorByline | react | never ported |
 | TuxBlockquote | react | never ported |
 | TuxBranchNav | react | never ported |
+| TuxButton | react | STALE (source moved since port) |
 | TuxCTA | react | never ported |
 | TuxCaptionedMedia | react | never ported |
 | TuxCardCarousel | react | never ported |
@@ -142,6 +145,7 @@ with a matching source hash in manifest.json.
 | TuxRecordHighlights | react | never ported |
 | TuxFrameworkSwitcher | react | never ported |
 | TuxPlayground | react | never ported |
+| TuxPortalHeader | react | STALE (source moved since port) |
 | TuxCapabilityCluster | react | never ported |
 | TuxCommHero | react | never ported |
 | TuxEventCalendarRow | react | never ported |
@@ -154,3 +158,4 @@ with a matching source hash in manifest.json.
 | TuxHeroCanvas | react | never ported |
 | TuxRoadwayCrossSection | react | never ported |
 | TuxUnitValue | react | never ported |
+| TuxArchitectureMap | react | never ported |

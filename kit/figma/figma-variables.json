@@ -1,0 +1,6832 @@
+{
+  "_generated": "GENERATED FILE — do not edit. Source: design/tokens.json & app/utils/tuxCatalog.ts via scripts/build-figma-kit.mjs (npm run build:figma).",
+  "version": "3.0.0",
+  "collection": "TUX Institutional Tokens",
+  "zeroSubscriptionNote": "Works on Figma Free Starter Plan via kit/figma/plugin/manifest.json (auto-falls back to 3 single-mode collections if team limits multi-mode variables).",
+  "modes": [
+    {
+      "modeId": "tti",
+      "name": "Light (tti)"
+    },
+    {
+      "modeId": "tti-dark",
+      "name": "Dark (tti-dark)"
+    },
+    {
+      "modeId": "tti-hc",
+      "name": "High Contrast AAA (tti-hc)"
+    }
+  ],
+  "variables": [
+    {
+      "name": "tti/maroon",
+      "cssToken": "--tti-maroon",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --tti-maroon",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--tti-maroon)",
+        "ANDROID": "TuxTokens.Tti.TTI_MAROON",
+        "iOS": "TuxTokens.Tti.ttiMaroon"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "tti/maroon-deep",
+      "cssToken": "--tti-maroon-deep",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --tti-maroon-deep",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--tti-maroon-deep)",
+        "ANDROID": "TuxTokens.Tti.TTI_MAROON_DEEP",
+        "iOS": "TuxTokens.Tti.ttiMaroonDeep"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "tti/gold",
+      "cssToken": "--tti-gold",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --tti-gold",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--tti-gold)",
+        "ANDROID": "TuxTokens.Tti.TTI_GOLD",
+        "iOS": "TuxTokens.Tti.ttiGold"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#DDAC37",
+          "rgba": {
+            "r": 0.8667,
+            "g": 0.6745,
+            "b": 0.2157,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#DDAC37",
+          "rgba": {
+            "r": 0.8667,
+            "g": 0.6745,
+            "b": 0.2157,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#DDAC37",
+          "rgba": {
+            "r": 0.8667,
+            "g": 0.6745,
+            "b": 0.2157,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "tti/gold-deep",
+      "cssToken": "--tti-gold-deep",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --tti-gold-deep",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--tti-gold-deep)",
+        "ANDROID": "TuxTokens.Tti.TTI_GOLD_DEEP",
+        "iOS": "TuxTokens.Tti.ttiGoldDeep"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#DCAA37",
+          "rgba": {
+            "r": 0.8627,
+            "g": 0.6667,
+            "b": 0.2157,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#DCAA37",
+          "rgba": {
+            "r": 0.8627,
+            "g": 0.6667,
+            "b": 0.2157,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#DCAA37",
+          "rgba": {
+            "r": 0.8627,
+            "g": 0.6667,
+            "b": 0.2157,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "tti/navy",
+      "cssToken": "--tti-navy",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --tti-navy",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--tti-navy)",
+        "ANDROID": "TuxTokens.Tti.TTI_NAVY",
+        "iOS": "TuxTokens.Tti.ttiNavy"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#15457E",
+          "rgba": {
+            "r": 0.0824,
+            "g": 0.2706,
+            "b": 0.4941,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#15457E",
+          "rgba": {
+            "r": 0.0824,
+            "g": 0.2706,
+            "b": 0.4941,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#15457E",
+          "rgba": {
+            "r": 0.0824,
+            "g": 0.2706,
+            "b": 0.4941,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "tti/teal",
+      "cssToken": "--tti-teal",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --tti-teal",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--tti-teal)",
+        "ANDROID": "TuxTokens.Tti.TTI_TEAL",
+        "iOS": "TuxTokens.Tti.ttiTeal"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#4A8892",
+          "rgba": {
+            "r": 0.2902,
+            "g": 0.5333,
+            "b": 0.5725,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#4A8892",
+          "rgba": {
+            "r": 0.2902,
+            "g": 0.5333,
+            "b": 0.5725,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#4A8892",
+          "rgba": {
+            "r": 0.2902,
+            "g": 0.5333,
+            "b": 0.5725,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "tti/sage",
+      "cssToken": "--tti-sage",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --tti-sage",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--tti-sage)",
+        "ANDROID": "TuxTokens.Tti.TTI_SAGE",
+        "iOS": "TuxTokens.Tti.ttiSage"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#66814F",
+          "rgba": {
+            "r": 0.4,
+            "g": 0.5059,
+            "b": 0.3098,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#66814F",
+          "rgba": {
+            "r": 0.4,
+            "g": 0.5059,
+            "b": 0.3098,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#66814F",
+          "rgba": {
+            "r": 0.4,
+            "g": 0.5059,
+            "b": 0.3098,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "tti/charcoal",
+      "cssToken": "--tti-charcoal",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --tti-charcoal",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--tti-charcoal)",
+        "ANDROID": "TuxTokens.Tti.TTI_CHARCOAL",
+        "iOS": "TuxTokens.Tti.ttiCharcoal"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "spectrum/maroon",
+      "cssToken": "--spectrum-maroon",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --spectrum-maroon",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--spectrum-maroon)",
+        "ANDROID": "TuxTokens.Tti.SPECTRUM_MAROON",
+        "iOS": "TuxTokens.Tti.spectrumMaroon"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#701D35",
+          "rgba": {
+            "r": 0.4392,
+            "g": 0.1137,
+            "b": 0.2078,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#94384F",
+          "rgba": {
+            "r": 0.5804,
+            "g": 0.2196,
+            "b": 0.3098,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "spectrum/blue",
+      "cssToken": "--spectrum-blue",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --spectrum-blue",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--spectrum-blue)",
+        "ANDROID": "TuxTokens.Tti.SPECTRUM_BLUE",
+        "iOS": "TuxTokens.Tti.spectrumBlue"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#566A8A",
+          "rgba": {
+            "r": 0.3373,
+            "g": 0.4157,
+            "b": 0.5412,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#7186A8",
+          "rgba": {
+            "r": 0.4431,
+            "g": 0.5255,
+            "b": 0.6588,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#3B4E6B",
+          "rgba": {
+            "r": 0.2314,
+            "g": 0.3059,
+            "b": 0.4196,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "spectrum/teal",
+      "cssToken": "--spectrum-teal",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --spectrum-teal",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--spectrum-teal)",
+        "ANDROID": "TuxTokens.Tti.SPECTRUM_TEAL",
+        "iOS": "TuxTokens.Tti.spectrumTeal"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#66999B",
+          "rgba": {
+            "r": 0.4,
+            "g": 0.6,
+            "b": 0.6078,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#80B5B7",
+          "rgba": {
+            "r": 0.502,
+            "g": 0.7098,
+            "b": 0.7176,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#476E70",
+          "rgba": {
+            "r": 0.2784,
+            "g": 0.4314,
+            "b": 0.4392,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "spectrum/green",
+      "cssToken": "--spectrum-green",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --spectrum-green",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--spectrum-green)",
+        "ANDROID": "TuxTokens.Tti.SPECTRUM_GREEN",
+        "iOS": "TuxTokens.Tti.spectrumGreen"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#849974",
+          "rgba": {
+            "r": 0.5176,
+            "g": 0.6,
+            "b": 0.4549,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#A0B790",
+          "rgba": {
+            "r": 0.6275,
+            "g": 0.7176,
+            "b": 0.5647,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#576E4B",
+          "rgba": {
+            "r": 0.3412,
+            "g": 0.4314,
+            "b": 0.2941,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "spectrum/gold",
+      "cssToken": "--spectrum-gold",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --spectrum-gold",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--spectrum-gold)",
+        "ANDROID": "TuxTokens.Tti.SPECTRUM_GOLD",
+        "iOS": "TuxTokens.Tti.spectrumGold"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#E5B350",
+          "rgba": {
+            "r": 0.898,
+            "g": 0.702,
+            "b": 0.3137,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#F0C46B",
+          "rgba": {
+            "r": 0.9412,
+            "g": 0.7686,
+            "b": 0.4196,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#C2912E",
+          "rgba": {
+            "r": 0.7608,
+            "g": 0.5686,
+            "b": 0.1804,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/0",
+      "cssToken": "--neutral-0",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-0",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-0)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_0",
+        "iOS": "TuxTokens.Tti.neutral0"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/50",
+      "cssToken": "--neutral-50",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-50",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-50)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_50",
+        "iOS": "TuxTokens.Tti.neutral50"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#FAFAFA",
+          "rgba": {
+            "r": 0.9804,
+            "g": 0.9804,
+            "b": 0.9804,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#FAFAFA",
+          "rgba": {
+            "r": 0.9804,
+            "g": 0.9804,
+            "b": 0.9804,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FAFAFA",
+          "rgba": {
+            "r": 0.9804,
+            "g": 0.9804,
+            "b": 0.9804,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/100",
+      "cssToken": "--neutral-100",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-100",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-100)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_100",
+        "iOS": "TuxTokens.Tti.neutral100"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#F5F5F5",
+          "rgba": {
+            "r": 0.9608,
+            "g": 0.9608,
+            "b": 0.9608,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#F5F5F5",
+          "rgba": {
+            "r": 0.9608,
+            "g": 0.9608,
+            "b": 0.9608,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#F5F5F5",
+          "rgba": {
+            "r": 0.9608,
+            "g": 0.9608,
+            "b": 0.9608,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/150",
+      "cssToken": "--neutral-150",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-150",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-150)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_150",
+        "iOS": "TuxTokens.Tti.neutral150"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#EFEEED",
+          "rgba": {
+            "r": 0.9373,
+            "g": 0.9333,
+            "b": 0.9294,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#EFEEED",
+          "rgba": {
+            "r": 0.9373,
+            "g": 0.9333,
+            "b": 0.9294,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#EFEEED",
+          "rgba": {
+            "r": 0.9373,
+            "g": 0.9333,
+            "b": 0.9294,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/200",
+      "cssToken": "--neutral-200",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-200",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-200)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_200",
+        "iOS": "TuxTokens.Tti.neutral200"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#E7E6E6",
+          "rgba": {
+            "r": 0.9059,
+            "g": 0.902,
+            "b": 0.902,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#E7E6E6",
+          "rgba": {
+            "r": 0.9059,
+            "g": 0.902,
+            "b": 0.902,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#E7E6E6",
+          "rgba": {
+            "r": 0.9059,
+            "g": 0.902,
+            "b": 0.902,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/250",
+      "cssToken": "--neutral-250",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-250",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-250)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_250",
+        "iOS": "TuxTokens.Tti.neutral250"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#DCDBD8",
+          "rgba": {
+            "r": 0.8627,
+            "g": 0.8588,
+            "b": 0.8471,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#DCDBD8",
+          "rgba": {
+            "r": 0.8627,
+            "g": 0.8588,
+            "b": 0.8471,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#DCDBD8",
+          "rgba": {
+            "r": 0.8627,
+            "g": 0.8588,
+            "b": 0.8471,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/300",
+      "cssToken": "--neutral-300",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-300",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-300)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_300",
+        "iOS": "TuxTokens.Tti.neutral300"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#D1D2D4",
+          "rgba": {
+            "r": 0.8196,
+            "g": 0.8235,
+            "b": 0.8314,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#D1D2D4",
+          "rgba": {
+            "r": 0.8196,
+            "g": 0.8235,
+            "b": 0.8314,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#D1D2D4",
+          "rgba": {
+            "r": 0.8196,
+            "g": 0.8235,
+            "b": 0.8314,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/400",
+      "cssToken": "--neutral-400",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-400",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-400)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_400",
+        "iOS": "TuxTokens.Tti.neutral400"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#A5A5A5",
+          "rgba": {
+            "r": 0.6471,
+            "g": 0.6471,
+            "b": 0.6471,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#A5A5A5",
+          "rgba": {
+            "r": 0.6471,
+            "g": 0.6471,
+            "b": 0.6471,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#A5A5A5",
+          "rgba": {
+            "r": 0.6471,
+            "g": 0.6471,
+            "b": 0.6471,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/450",
+      "cssToken": "--neutral-450",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-450",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-450)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_450",
+        "iOS": "TuxTokens.Tti.neutral450"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#9B9A96",
+          "rgba": {
+            "r": 0.6078,
+            "g": 0.6039,
+            "b": 0.5882,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#9B9A96",
+          "rgba": {
+            "r": 0.6078,
+            "g": 0.6039,
+            "b": 0.5882,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#9B9A96",
+          "rgba": {
+            "r": 0.6078,
+            "g": 0.6039,
+            "b": 0.5882,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/500",
+      "cssToken": "--neutral-500",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-500",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-500)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_500",
+        "iOS": "TuxTokens.Tti.neutral500"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#939597",
+          "rgba": {
+            "r": 0.5765,
+            "g": 0.5843,
+            "b": 0.5922,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#939597",
+          "rgba": {
+            "r": 0.5765,
+            "g": 0.5843,
+            "b": 0.5922,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#939597",
+          "rgba": {
+            "r": 0.5765,
+            "g": 0.5843,
+            "b": 0.5922,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/550",
+      "cssToken": "--neutral-550",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-550",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-550)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_550",
+        "iOS": "TuxTokens.Tti.neutral550"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#86847F",
+          "rgba": {
+            "r": 0.5255,
+            "g": 0.5176,
+            "b": 0.498,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#86847F",
+          "rgba": {
+            "r": 0.5255,
+            "g": 0.5176,
+            "b": 0.498,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#86847F",
+          "rgba": {
+            "r": 0.5255,
+            "g": 0.5176,
+            "b": 0.498,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/600",
+      "cssToken": "--neutral-600",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-600",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-600)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_600",
+        "iOS": "TuxTokens.Tti.neutral600"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#7E7E7E",
+          "rgba": {
+            "r": 0.4941,
+            "g": 0.4941,
+            "b": 0.4941,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#7E7E7E",
+          "rgba": {
+            "r": 0.4941,
+            "g": 0.4941,
+            "b": 0.4941,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#7E7E7E",
+          "rgba": {
+            "r": 0.4941,
+            "g": 0.4941,
+            "b": 0.4941,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/650",
+      "cssToken": "--neutral-650",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-650",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-650)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_650",
+        "iOS": "TuxTokens.Tti.neutral650"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#6B6964",
+          "rgba": {
+            "r": 0.4196,
+            "g": 0.4118,
+            "b": 0.3922,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#6B6964",
+          "rgba": {
+            "r": 0.4196,
+            "g": 0.4118,
+            "b": 0.3922,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#6B6964",
+          "rgba": {
+            "r": 0.4196,
+            "g": 0.4118,
+            "b": 0.3922,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/700",
+      "cssToken": "--neutral-700",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-700",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-700)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_700",
+        "iOS": "TuxTokens.Tti.neutral700"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5D5D5D",
+          "rgba": {
+            "r": 0.3647,
+            "g": 0.3647,
+            "b": 0.3647,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#5D5D5D",
+          "rgba": {
+            "r": 0.3647,
+            "g": 0.3647,
+            "b": 0.3647,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#5D5D5D",
+          "rgba": {
+            "r": 0.3647,
+            "g": 0.3647,
+            "b": 0.3647,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/750",
+      "cssToken": "--neutral-750",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-750",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-750)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_750",
+        "iOS": "TuxTokens.Tti.neutral750"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#535048",
+          "rgba": {
+            "r": 0.3255,
+            "g": 0.3137,
+            "b": 0.2824,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#535048",
+          "rgba": {
+            "r": 0.3255,
+            "g": 0.3137,
+            "b": 0.2824,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#535048",
+          "rgba": {
+            "r": 0.3255,
+            "g": 0.3137,
+            "b": 0.2824,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/800",
+      "cssToken": "--neutral-800",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-800",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-800)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_800",
+        "iOS": "TuxTokens.Tti.neutral800"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#4C4C4E",
+          "rgba": {
+            "r": 0.298,
+            "g": 0.298,
+            "b": 0.3059,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#4C4C4E",
+          "rgba": {
+            "r": 0.298,
+            "g": 0.298,
+            "b": 0.3059,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#4C4C4E",
+          "rgba": {
+            "r": 0.298,
+            "g": 0.298,
+            "b": 0.3059,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/850",
+      "cssToken": "--neutral-850",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-850",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-850)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_850",
+        "iOS": "TuxTokens.Tti.neutral850"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#3A3833",
+          "rgba": {
+            "r": 0.2275,
+            "g": 0.2196,
+            "b": 0.2,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#3A3833",
+          "rgba": {
+            "r": 0.2275,
+            "g": 0.2196,
+            "b": 0.2,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#3A3833",
+          "rgba": {
+            "r": 0.2275,
+            "g": 0.2196,
+            "b": 0.2,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/900",
+      "cssToken": "--neutral-900",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-900",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-900)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_900",
+        "iOS": "TuxTokens.Tti.neutral900"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "neutral/1000",
+      "cssToken": "--neutral-1000",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --neutral-1000",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--neutral-1000)",
+        "ANDROID": "TuxTokens.Tti.NEUTRAL_1000",
+        "iOS": "TuxTokens.Tti.neutral1000"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#000000",
+          "rgba": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#000000",
+          "rgba": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#000000",
+          "rgba": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "brand/primary",
+      "cssToken": "--brand-primary",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --brand-primary",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--brand-primary)",
+        "ANDROID": "TuxTokens.Tti.BRAND_PRIMARY",
+        "iOS": "TuxTokens.Tti.brandPrimary"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#6BB4C0",
+          "rgba": {
+            "r": 0.4196,
+            "g": 0.7059,
+            "b": 0.7529,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "brand/primary-deep",
+      "cssToken": "--brand-primary-deep",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --brand-primary-deep",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--brand-primary-deep)",
+        "ANDROID": "TuxTokens.Tti.BRAND_PRIMARY_DEEP",
+        "iOS": "TuxTokens.Tti.brandPrimaryDeep"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#5B9CA8",
+          "rgba": {
+            "r": 0.3569,
+            "g": 0.6118,
+            "b": 0.6588,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#3A0000",
+          "rgba": {
+            "r": 0.2275,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "brand/accent",
+      "cssToken": "--brand-accent",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --brand-accent",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--brand-accent)",
+        "ANDROID": "TuxTokens.Tti.BRAND_ACCENT",
+        "iOS": "TuxTokens.Tti.brandAccent"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#DDAC37",
+          "rgba": {
+            "r": 0.8667,
+            "g": 0.6745,
+            "b": 0.2157,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#DDAC37",
+          "rgba": {
+            "r": 0.8667,
+            "g": 0.6745,
+            "b": 0.2157,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#DCAA37",
+          "rgba": {
+            "r": 0.8627,
+            "g": 0.6667,
+            "b": 0.2157,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "brand/accent-deep",
+      "cssToken": "--brand-accent-deep",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --brand-accent-deep",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--brand-accent-deep)",
+        "ANDROID": "TuxTokens.Tti.BRAND_ACCENT_DEEP",
+        "iOS": "TuxTokens.Tti.brandAccentDeep"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#DCAA37",
+          "rgba": {
+            "r": 0.8627,
+            "g": 0.6667,
+            "b": 0.2157,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#F0C362",
+          "rgba": {
+            "r": 0.9412,
+            "g": 0.7647,
+            "b": 0.3843,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#B88A21",
+          "rgba": {
+            "r": 0.7216,
+            "g": 0.5412,
+            "b": 0.1294,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "brand/secondary",
+      "cssToken": "--brand-secondary",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --brand-secondary",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--brand-secondary)",
+        "ANDROID": "TuxTokens.Tti.BRAND_SECONDARY",
+        "iOS": "TuxTokens.Tti.brandSecondary"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#15457E",
+          "rgba": {
+            "r": 0.0824,
+            "g": 0.2706,
+            "b": 0.4941,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#8AB7E2",
+          "rgba": {
+            "r": 0.5412,
+            "g": 0.7176,
+            "b": 0.8863,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#000000",
+          "rgba": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "brand/fill",
+      "cssToken": "--brand-fill",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --brand-fill",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--brand-fill)",
+        "ANDROID": "TuxTokens.Tti.BRAND_FILL",
+        "iOS": "TuxTokens.Tti.brandFill"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "brand/accent-ink",
+      "cssToken": "--brand-accent-ink",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --brand-accent-ink",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--brand-accent-ink)",
+        "ANDROID": "TuxTokens.Tti.BRAND_ACCENT_INK",
+        "iOS": "TuxTokens.Tti.brandAccentInk"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#2A0E15",
+          "rgba": {
+            "r": 0.1647,
+            "g": 0.0549,
+            "b": 0.0824,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#2A0E15",
+          "rgba": {
+            "r": 0.1647,
+            "g": 0.0549,
+            "b": 0.0824,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#2A0E15",
+          "rgba": {
+            "r": 0.1647,
+            "g": 0.0549,
+            "b": 0.0824,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "brand/accent-shade",
+      "cssToken": "--brand-accent-shade",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --brand-accent-shade",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--brand-accent-shade)",
+        "ANDROID": "TuxTokens.Tti.BRAND_ACCENT_SHADE",
+        "iOS": "TuxTokens.Tti.brandAccentShade"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#A87B1F",
+          "rgba": {
+            "r": 0.6588,
+            "g": 0.4824,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#A87B1F",
+          "rgba": {
+            "r": 0.6588,
+            "g": 0.4824,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#A87B1F",
+          "rgba": {
+            "r": 0.6588,
+            "g": 0.4824,
+            "b": 0.1216,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "surface/page",
+      "cssToken": "--surface-page",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --surface-page",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--surface-page)",
+        "ANDROID": "TuxTokens.Tti.SURFACE_PAGE",
+        "iOS": "TuxTokens.Tti.surfacePage"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#15100F",
+          "rgba": {
+            "r": 0.0824,
+            "g": 0.0627,
+            "b": 0.0588,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "surface/raised",
+      "cssToken": "--surface-raised",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --surface-raised",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--surface-raised)",
+        "ANDROID": "TuxTokens.Tti.SURFACE_RAISED",
+        "iOS": "TuxTokens.Tti.surfaceRaised"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "surface/sunken",
+      "cssToken": "--surface-sunken",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --surface-sunken",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--surface-sunken)",
+        "ANDROID": "TuxTokens.Tti.SURFACE_SUNKEN",
+        "iOS": "TuxTokens.Tti.surfaceSunken"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#F5F5F5",
+          "rgba": {
+            "r": 0.9608,
+            "g": 0.9608,
+            "b": 0.9608,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#0B0908",
+          "rgba": {
+            "r": 0.0431,
+            "g": 0.0353,
+            "b": 0.0314,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#F0F0F0",
+          "rgba": {
+            "r": 0.9412,
+            "g": 0.9412,
+            "b": 0.9412,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "surface/border",
+      "cssToken": "--surface-border",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --surface-border",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--surface-border)",
+        "ANDROID": "TuxTokens.Tti.SURFACE_BORDER",
+        "iOS": "TuxTokens.Tti.surfaceBorder"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#E7E6E6",
+          "rgba": {
+            "r": 0.9059,
+            "g": 0.902,
+            "b": 0.902,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#3D3A3A",
+          "rgba": {
+            "r": 0.2392,
+            "g": 0.2275,
+            "b": 0.2275,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#5D5D5D",
+          "rgba": {
+            "r": 0.3647,
+            "g": 0.3647,
+            "b": 0.3647,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "surface/border-subtle",
+      "cssToken": "--surface-border-subtle",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --surface-border-subtle",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--surface-border-subtle)",
+        "ANDROID": "TuxTokens.Tti.SURFACE_BORDER_SUBTLE",
+        "iOS": "TuxTokens.Tti.surfaceBorderSubtle"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#EFEEED",
+          "rgba": {
+            "r": 0.9373,
+            "g": 0.9333,
+            "b": 0.9294,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#2E2B2A",
+          "rgba": {
+            "r": 0.1804,
+            "g": 0.1686,
+            "b": 0.1647,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#5D5D5D",
+          "rgba": {
+            "r": 0.3647,
+            "g": 0.3647,
+            "b": 0.3647,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "surface/eggshell",
+      "cssToken": "--surface-eggshell",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --surface-eggshell",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--surface-eggshell)",
+        "ANDROID": "TuxTokens.Tti.SURFACE_EGGSHELL",
+        "iOS": "TuxTokens.Tti.surfaceEggshell"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#F9F9F7",
+          "rgba": {
+            "r": 0.9765,
+            "g": 0.9765,
+            "b": 0.9686,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#1C1817",
+          "rgba": {
+            "r": 0.1098,
+            "g": 0.0941,
+            "b": 0.0902,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "surface/cool-gray",
+      "cssToken": "--surface-cool-gray",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --surface-cool-gray",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--surface-cool-gray)",
+        "ANDROID": "TuxTokens.Tti.SURFACE_COOL_GRAY",
+        "iOS": "TuxTokens.Tti.surfaceCoolGray"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#E8E8E8",
+          "rgba": {
+            "r": 0.9098,
+            "g": 0.9098,
+            "b": 0.9098,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#262322",
+          "rgba": {
+            "r": 0.149,
+            "g": 0.1373,
+            "b": 0.1333,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#F0F0F0",
+          "rgba": {
+            "r": 0.9412,
+            "g": 0.9412,
+            "b": 0.9412,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "text/primary",
+      "cssToken": "--text-primary",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --text-primary",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--text-primary)",
+        "ANDROID": "TuxTokens.Tti.TEXT_PRIMARY",
+        "iOS": "TuxTokens.Tti.textPrimary"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#FAFAFA",
+          "rgba": {
+            "r": 0.9804,
+            "g": 0.9804,
+            "b": 0.9804,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#000000",
+          "rgba": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "text/secondary",
+      "cssToken": "--text-secondary",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --text-secondary",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--text-secondary)",
+        "ANDROID": "TuxTokens.Tti.TEXT_SECONDARY",
+        "iOS": "TuxTokens.Tti.textSecondary"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#424242",
+          "rgba": {
+            "r": 0.2588,
+            "g": 0.2588,
+            "b": 0.2588,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#D1D2D4",
+          "rgba": {
+            "r": 0.8196,
+            "g": 0.8235,
+            "b": 0.8314,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "text/muted",
+      "cssToken": "--text-muted",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --text-muted",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--text-muted)",
+        "ANDROID": "TuxTokens.Tti.TEXT_MUTED",
+        "iOS": "TuxTokens.Tti.textMuted"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#525252",
+          "rgba": {
+            "r": 0.3216,
+            "g": 0.3216,
+            "b": 0.3216,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#B5B5B5",
+          "rgba": {
+            "r": 0.7098,
+            "g": 0.7098,
+            "b": 0.7098,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#4D4D4D",
+          "rgba": {
+            "r": 0.302,
+            "g": 0.302,
+            "b": 0.302,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "text/inverse",
+      "cssToken": "--text-inverse",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --text-inverse",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--text-inverse)",
+        "ANDROID": "TuxTokens.Tti.TEXT_INVERSE",
+        "iOS": "TuxTokens.Tti.textInverse"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "text/brand",
+      "cssToken": "--text-brand",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --text-brand",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--text-brand)",
+        "ANDROID": "TuxTokens.Tti.TEXT_BRAND",
+        "iOS": "TuxTokens.Tti.textBrand"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#5B9CA8",
+          "rgba": {
+            "r": 0.3569,
+            "g": 0.6118,
+            "b": 0.6588,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "text/on-brand",
+      "cssToken": "--text-on-brand",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --text-on-brand",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--text-on-brand)",
+        "ANDROID": "TuxTokens.Tti.TEXT_ON_BRAND",
+        "iOS": "TuxTokens.Tti.textOnBrand"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "text/charcoal",
+      "cssToken": "--text-charcoal",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --text-charcoal",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--text-charcoal)",
+        "ANDROID": "TuxTokens.Tti.TEXT_CHARCOAL",
+        "iOS": "TuxTokens.Tti.textCharcoal"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#232323",
+          "rgba": {
+            "r": 0.1373,
+            "g": 0.1373,
+            "b": 0.1373,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#FAFAFA",
+          "rgba": {
+            "r": 0.9804,
+            "g": 0.9804,
+            "b": 0.9804,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#000000",
+          "rgba": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "text/dark",
+      "cssToken": "--text-dark",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --text-dark",
+      "scopes": [
+        "TEXT_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--text-dark)",
+        "ANDROID": "TuxTokens.Tti.TEXT_DARK",
+        "iOS": "TuxTokens.Tti.textDark"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#040404",
+          "rgba": {
+            "r": 0.0157,
+            "g": 0.0157,
+            "b": 0.0157,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#000000",
+          "rgba": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/success",
+      "cssToken": "--color-success",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-success",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-success)",
+        "ANDROID": "TuxTokens.Tti.COLOR_SUCCESS",
+        "iOS": "TuxTokens.Tti.colorSuccess"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#3D5328",
+          "rgba": {
+            "r": 0.2392,
+            "g": 0.3255,
+            "b": 0.1569,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#ABCC8E",
+          "rgba": {
+            "r": 0.6706,
+            "g": 0.8,
+            "b": 0.5569,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#3D5328",
+          "rgba": {
+            "r": 0.2392,
+            "g": 0.3255,
+            "b": 0.1569,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/warning",
+      "cssToken": "--color-warning",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-warning",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-warning)",
+        "ANDROID": "TuxTokens.Tti.COLOR_WARNING",
+        "iOS": "TuxTokens.Tti.colorWarning"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#DDAC37",
+          "rgba": {
+            "r": 0.8667,
+            "g": 0.6745,
+            "b": 0.2157,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#F5D98A",
+          "rgba": {
+            "r": 0.9608,
+            "g": 0.851,
+            "b": 0.5412,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#DDAC37",
+          "rgba": {
+            "r": 0.8667,
+            "g": 0.6745,
+            "b": 0.2157,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/danger",
+      "cssToken": "--color-danger",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-danger",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-danger)",
+        "ANDROID": "TuxTokens.Tti.COLOR_DANGER",
+        "iOS": "TuxTokens.Tti.colorDanger"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#E795A8",
+          "rgba": {
+            "r": 0.9059,
+            "g": 0.5843,
+            "b": 0.6588,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/error",
+      "cssToken": "--color-error",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-error",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-error)",
+        "ANDROID": "TuxTokens.Tti.COLOR_ERROR",
+        "iOS": "TuxTokens.Tti.colorError"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#A02828",
+          "rgba": {
+            "r": 0.6275,
+            "g": 0.1569,
+            "b": 0.1569,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#F59292",
+          "rgba": {
+            "r": 0.9608,
+            "g": 0.5725,
+            "b": 0.5725,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#A02828",
+          "rgba": {
+            "r": 0.6275,
+            "g": 0.1569,
+            "b": 0.1569,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/info",
+      "cssToken": "--color-info",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-info",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-info)",
+        "ANDROID": "TuxTokens.Tti.COLOR_INFO",
+        "iOS": "TuxTokens.Tti.colorInfo"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#1F5D66",
+          "rgba": {
+            "r": 0.1216,
+            "g": 0.3647,
+            "b": 0.4,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#9BD4E0",
+          "rgba": {
+            "r": 0.6078,
+            "g": 0.8314,
+            "b": 0.8784,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#1F5D66",
+          "rgba": {
+            "r": 0.1216,
+            "g": 0.3647,
+            "b": 0.4,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/ok",
+      "cssToken": "--status-ok",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-ok",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-ok)",
+        "ANDROID": "TuxTokens.Tti.STATUS_OK",
+        "iOS": "TuxTokens.Tti.statusOk"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#258818",
+          "rgba": {
+            "r": 0.1451,
+            "g": 0.5333,
+            "b": 0.0941,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#90F084",
+          "rgba": {
+            "r": 0.5647,
+            "g": 0.9412,
+            "b": 0.5176,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#0E6800",
+          "rgba": {
+            "r": 0.0549,
+            "g": 0.4078,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/ok-fill",
+      "cssToken": "--status-ok-fill",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-ok-fill",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-ok-fill)",
+        "ANDROID": "TuxTokens.Tti.STATUS_OK_FILL",
+        "iOS": "TuxTokens.Tti.statusOkFill"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#93F387",
+          "rgba": {
+            "r": 0.5765,
+            "g": 0.9529,
+            "b": 0.5294,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#86E67A",
+          "rgba": {
+            "r": 0.5255,
+            "g": 0.902,
+            "b": 0.4784,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/ok-ink",
+      "cssToken": "--status-ok-ink",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-ok-ink",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-ok-ink)",
+        "ANDROID": "TuxTokens.Tti.STATUS_OK_INK",
+        "iOS": "TuxTokens.Tti.statusOkInk"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#0E6800",
+          "rgba": {
+            "r": 0.0549,
+            "g": 0.4078,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/warning",
+      "cssToken": "--status-warning",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-warning",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-warning)",
+        "ANDROID": "TuxTokens.Tti.STATUS_WARNING",
+        "iOS": "TuxTokens.Tti.statusWarning"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#7A7A00",
+          "rgba": {
+            "r": 0.4784,
+            "g": 0.4784,
+            "b": 0,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#FDFF68",
+          "rgba": {
+            "r": 0.9922,
+            "g": 1,
+            "b": 0.4078,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#5C5C00",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0.3608,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/warning-fill",
+      "cssToken": "--status-warning-fill",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-warning-fill",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-warning-fill)",
+        "ANDROID": "TuxTokens.Tti.STATUS_WARNING_FILL",
+        "iOS": "TuxTokens.Tti.statusWarningFill"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#ECEE55",
+          "rgba": {
+            "r": 0.9255,
+            "g": 0.9333,
+            "b": 0.3333,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#E6E74C",
+          "rgba": {
+            "r": 0.902,
+            "g": 0.9059,
+            "b": 0.298,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/warning-ink",
+      "cssToken": "--status-warning-ink",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-warning-ink",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-warning-ink)",
+        "ANDROID": "TuxTokens.Tti.STATUS_WARNING_INK",
+        "iOS": "TuxTokens.Tti.statusWarningInk"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#5C5C00",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0.3608,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/unknown",
+      "cssToken": "--status-unknown",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-unknown",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-unknown)",
+        "ANDROID": "TuxTokens.Tti.STATUS_UNKNOWN",
+        "iOS": "TuxTokens.Tti.statusUnknown"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#BC5B00",
+          "rgba": {
+            "r": 0.7373,
+            "g": 0.3569,
+            "b": 0,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#FC8731",
+          "rgba": {
+            "r": 0.9882,
+            "g": 0.5294,
+            "b": 0.1922,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#8E4300",
+          "rgba": {
+            "r": 0.5569,
+            "g": 0.2627,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/unknown-fill",
+      "cssToken": "--status-unknown-fill",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-unknown-fill",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-unknown-fill)",
+        "ANDROID": "TuxTokens.Tti.STATUS_UNKNOWN_FILL",
+        "iOS": "TuxTokens.Tti.statusUnknownFill"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#FF9B5A",
+          "rgba": {
+            "r": 1,
+            "g": 0.6078,
+            "b": 0.3529,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#FF8A37",
+          "rgba": {
+            "r": 1,
+            "g": 0.5412,
+            "b": 0.2157,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/unknown-ink",
+      "cssToken": "--status-unknown-ink",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-unknown-ink",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-unknown-ink)",
+        "ANDROID": "TuxTokens.Tti.STATUS_UNKNOWN_INK",
+        "iOS": "TuxTokens.Tti.statusUnknownInk"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#8E4300",
+          "rgba": {
+            "r": 0.5569,
+            "g": 0.2627,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/critical",
+      "cssToken": "--status-critical",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-critical",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-critical)",
+        "ANDROID": "TuxTokens.Tti.STATUS_CRITICAL",
+        "iOS": "TuxTokens.Tti.statusCritical"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#A02828",
+          "rgba": {
+            "r": 0.6275,
+            "g": 0.1569,
+            "b": 0.1569,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#F14440",
+          "rgba": {
+            "r": 0.9451,
+            "g": 0.2667,
+            "b": 0.251,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#B20014",
+          "rgba": {
+            "r": 0.698,
+            "g": 0,
+            "b": 0.0784,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/critical-fill",
+      "cssToken": "--status-critical-fill",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-critical-fill",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-critical-fill)",
+        "ANDROID": "TuxTokens.Tti.STATUS_CRITICAL_FILL",
+        "iOS": "TuxTokens.Tti.statusCriticalFill"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#FF544D",
+          "rgba": {
+            "r": 1,
+            "g": 0.3294,
+            "b": 0.302,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#FC4F49",
+          "rgba": {
+            "r": 0.9882,
+            "g": 0.3098,
+            "b": 0.2863,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/critical-ink",
+      "cssToken": "--status-critical-ink",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-critical-ink",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-critical-ink)",
+        "ANDROID": "TuxTokens.Tti.STATUS_CRITICAL_INK",
+        "iOS": "TuxTokens.Tti.statusCriticalInk"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#B20014",
+          "rgba": {
+            "r": 0.698,
+            "g": 0,
+            "b": 0.0784,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/maintenance",
+      "cssToken": "--status-maintenance",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-maintenance",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-maintenance)",
+        "ANDROID": "TuxTokens.Tti.STATUS_MAINTENANCE",
+        "iOS": "TuxTokens.Tti.statusMaintenance"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#0566C7",
+          "rgba": {
+            "r": 0.0196,
+            "g": 0.4,
+            "b": 0.7804,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#53A0FF",
+          "rgba": {
+            "r": 0.3255,
+            "g": 0.6275,
+            "b": 1,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#0056AA",
+          "rgba": {
+            "r": 0,
+            "g": 0.3373,
+            "b": 0.6667,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/maintenance-fill",
+      "cssToken": "--status-maintenance-fill",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-maintenance-fill",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-maintenance-fill)",
+        "ANDROID": "TuxTokens.Tti.STATUS_MAINTENANCE_FILL",
+        "iOS": "TuxTokens.Tti.statusMaintenanceFill"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#85BAFF",
+          "rgba": {
+            "r": 0.5216,
+            "g": 0.7294,
+            "b": 1,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#85BAFF",
+          "rgba": {
+            "r": 0.5216,
+            "g": 0.7294,
+            "b": 1,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/maintenance-ink",
+      "cssToken": "--status-maintenance-ink",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-maintenance-ink",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-maintenance-ink)",
+        "ANDROID": "TuxTokens.Tti.STATUS_MAINTENANCE_INK",
+        "iOS": "TuxTokens.Tti.statusMaintenanceInk"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#0056AA",
+          "rgba": {
+            "r": 0,
+            "g": 0.3373,
+            "b": 0.6667,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/pending",
+      "cssToken": "--status-pending",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-pending",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-pending)",
+        "ANDROID": "TuxTokens.Tti.STATUS_PENDING",
+        "iOS": "TuxTokens.Tti.statusPending"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#747474",
+          "rgba": {
+            "r": 0.4549,
+            "g": 0.4549,
+            "b": 0.4549,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#ABABAB",
+          "rgba": {
+            "r": 0.6706,
+            "g": 0.6706,
+            "b": 0.6706,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#585858",
+          "rgba": {
+            "r": 0.3451,
+            "g": 0.3451,
+            "b": 0.3451,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/pending-fill",
+      "cssToken": "--status-pending-fill",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-pending-fill",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-pending-fill)",
+        "ANDROID": "TuxTokens.Tti.STATUS_PENDING_FILL",
+        "iOS": "TuxTokens.Tti.statusPendingFill"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#DEDEDE",
+          "rgba": {
+            "r": 0.8706,
+            "g": 0.8706,
+            "b": 0.8706,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#D1D1D1",
+          "rgba": {
+            "r": 0.8196,
+            "g": 0.8196,
+            "b": 0.8196,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "status/pending-ink",
+      "cssToken": "--status-pending-ink",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --status-pending-ink",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--status-pending-ink)",
+        "ANDROID": "TuxTokens.Tti.STATUS_PENDING_INK",
+        "iOS": "TuxTokens.Tti.statusPendingInk"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#221F1F",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1216,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#585858",
+          "rgba": {
+            "r": 0.3451,
+            "g": 0.3451,
+            "b": 0.3451,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "font/body",
+      "cssToken": "--font-body",
+      "resolvedType": "STRING",
+      "description": "TUX canonical token --font-body",
+      "scopes": [
+        "FONT_FAMILY"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--font-body)",
+        "ANDROID": "TuxTokens.Tti.FONT_BODY",
+        "iOS": "TuxTokens.Tti.fontBody"
+      },
+      "valuesByMode": {
+        "tti": "Open Sans",
+        "tti-dark": "Open Sans",
+        "tti-hc": "Open Sans"
+      }
+    },
+    {
+      "name": "font/display",
+      "cssToken": "--font-display",
+      "resolvedType": "STRING",
+      "description": "TUX canonical token --font-display",
+      "scopes": [
+        "FONT_FAMILY"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--font-display)",
+        "ANDROID": "TuxTokens.Tti.FONT_DISPLAY",
+        "iOS": "TuxTokens.Tti.fontDisplay"
+      },
+      "valuesByMode": {
+        "tti": "Oswald",
+        "tti-dark": "Oswald",
+        "tti-hc": "Oswald"
+      }
+    },
+    {
+      "name": "font/bold",
+      "cssToken": "--font-bold",
+      "resolvedType": "STRING",
+      "description": "TUX canonical token --font-bold",
+      "scopes": [
+        "FONT_FAMILY"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--font-bold)",
+        "ANDROID": "TuxTokens.Tti.FONT_BOLD",
+        "iOS": "TuxTokens.Tti.fontBold"
+      },
+      "valuesByMode": {
+        "tti": "Work Sans",
+        "tti-dark": "Work Sans",
+        "tti-hc": "Work Sans"
+      }
+    },
+    {
+      "name": "font/elegant",
+      "cssToken": "--font-elegant",
+      "resolvedType": "STRING",
+      "description": "TUX canonical token --font-elegant",
+      "scopes": [
+        "FONT_FAMILY"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--font-elegant)",
+        "ANDROID": "TuxTokens.Tti.FONT_ELEGANT",
+        "iOS": "TuxTokens.Tti.fontElegant"
+      },
+      "valuesByMode": {
+        "tti": "Georgia",
+        "tti-dark": "Georgia",
+        "tti-hc": "Georgia"
+      }
+    },
+    {
+      "name": "font/sans",
+      "cssToken": "--font-sans",
+      "resolvedType": "STRING",
+      "description": "TUX canonical token --font-sans",
+      "scopes": [
+        "FONT_FAMILY"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--font-sans)",
+        "ANDROID": "TuxTokens.Tti.FONT_SANS",
+        "iOS": "TuxTokens.Tti.fontSans"
+      },
+      "valuesByMode": {
+        "tti": "Open Sans",
+        "tti-dark": "Open Sans",
+        "tti-hc": "Open Sans"
+      }
+    },
+    {
+      "name": "font/mono",
+      "cssToken": "--font-mono",
+      "resolvedType": "STRING",
+      "description": "TUX canonical token --font-mono",
+      "scopes": [
+        "FONT_FAMILY"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--font-mono)",
+        "ANDROID": "TuxTokens.Tti.FONT_MONO",
+        "iOS": "TuxTokens.Tti.fontMono"
+      },
+      "valuesByMode": {
+        "tti": "JetBrains Mono",
+        "tti-dark": "JetBrains Mono",
+        "tti-hc": "JetBrains Mono"
+      }
+    },
+    {
+      "name": "tracking/tight",
+      "cssToken": "--tracking-tight",
+      "resolvedType": "STRING",
+      "description": "TUX canonical token --tracking-tight",
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--tracking-tight)",
+        "ANDROID": "TuxTokens.Tti.TRACKING_TIGHT",
+        "iOS": "TuxTokens.Tti.trackingTight"
+      },
+      "valuesByMode": {
+        "tti": "-0.01em",
+        "tti-dark": "-0.01em",
+        "tti-hc": "-0.01em"
+      }
+    },
+    {
+      "name": "tracking/normal",
+      "cssToken": "--tracking-normal",
+      "resolvedType": "STRING",
+      "description": "TUX canonical token --tracking-normal",
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--tracking-normal)",
+        "ANDROID": "TuxTokens.Tti.TRACKING_NORMAL",
+        "iOS": "TuxTokens.Tti.trackingNormal"
+      },
+      "valuesByMode": {
+        "tti": "0",
+        "tti-dark": "0",
+        "tti-hc": "0"
+      }
+    },
+    {
+      "name": "tracking/wide",
+      "cssToken": "--tracking-wide",
+      "resolvedType": "STRING",
+      "description": "TUX canonical token --tracking-wide",
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--tracking-wide)",
+        "ANDROID": "TuxTokens.Tti.TRACKING_WIDE",
+        "iOS": "TuxTokens.Tti.trackingWide"
+      },
+      "valuesByMode": {
+        "tti": "0.05em",
+        "tti-dark": "0.05em",
+        "tti-hc": "0.05em"
+      }
+    },
+    {
+      "name": "tracking/wider",
+      "cssToken": "--tracking-wider",
+      "resolvedType": "STRING",
+      "description": "TUX canonical token --tracking-wider",
+      "scopes": [
+        "ALL_SCOPES"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--tracking-wider)",
+        "ANDROID": "TuxTokens.Tti.TRACKING_WIDER",
+        "iOS": "TuxTokens.Tti.trackingWider"
+      },
+      "valuesByMode": {
+        "tti": "0.10em",
+        "tti-dark": "0.10em",
+        "tti-hc": "0.10em"
+      }
+    },
+    {
+      "name": "focus/ring-outer",
+      "cssToken": "--focus-ring-outer",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --focus-ring-outer",
+      "scopes": [
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--focus-ring-outer)",
+        "ANDROID": "TuxTokens.Tti.FOCUS_RING_OUTER",
+        "iOS": "TuxTokens.Tti.focusRingOuter"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#6BB4C0",
+          "rgba": {
+            "r": 0.4196,
+            "g": 0.7059,
+            "b": 0.7529,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#000000",
+          "rgba": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "focus/ring-inner",
+      "cssToken": "--focus-ring-inner",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --focus-ring-inner",
+      "scopes": [
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--focus-ring-inner)",
+        "ANDROID": "TuxTokens.Tti.FOCUS_RING_INNER",
+        "iOS": "TuxTokens.Tti.focusRingInner"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#F2E6C9",
+          "rgba": {
+            "r": 0.949,
+            "g": 0.902,
+            "b": 0.7882,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#3D2E0F",
+          "rgba": {
+            "r": 0.2392,
+            "g": 0.1804,
+            "b": 0.0588,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "radius/none",
+      "cssToken": "--radius-none",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --radius-none",
+      "scopes": [
+        "CORNER_RADIUS"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--radius-none)",
+        "ANDROID": "TuxTokens.Tti.RADIUS_NONE",
+        "iOS": "TuxTokens.Tti.radiusNone"
+      },
+      "valuesByMode": {
+        "tti": 0,
+        "tti-dark": 0,
+        "tti-hc": 0
+      }
+    },
+    {
+      "name": "radius/sm",
+      "cssToken": "--radius-sm",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --radius-sm",
+      "scopes": [
+        "CORNER_RADIUS"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--radius-sm)",
+        "ANDROID": "TuxTokens.Tti.RADIUS_SM",
+        "iOS": "TuxTokens.Tti.radiusSm"
+      },
+      "valuesByMode": {
+        "tti": 2,
+        "tti-dark": 2,
+        "tti-hc": 2
+      }
+    },
+    {
+      "name": "radius/md",
+      "cssToken": "--radius-md",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --radius-md",
+      "scopes": [
+        "CORNER_RADIUS"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--radius-md)",
+        "ANDROID": "TuxTokens.Tti.RADIUS_MD",
+        "iOS": "TuxTokens.Tti.radiusMd"
+      },
+      "valuesByMode": {
+        "tti": 6,
+        "tti-dark": 6,
+        "tti-hc": 6
+      }
+    },
+    {
+      "name": "radius/lg",
+      "cssToken": "--radius-lg",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --radius-lg",
+      "scopes": [
+        "CORNER_RADIUS"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--radius-lg)",
+        "ANDROID": "TuxTokens.Tti.RADIUS_LG",
+        "iOS": "TuxTokens.Tti.radiusLg"
+      },
+      "valuesByMode": {
+        "tti": 8,
+        "tti-dark": 8,
+        "tti-hc": 8
+      }
+    },
+    {
+      "name": "radius/xl",
+      "cssToken": "--radius-xl",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --radius-xl",
+      "scopes": [
+        "CORNER_RADIUS"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--radius-xl)",
+        "ANDROID": "TuxTokens.Tti.RADIUS_XL",
+        "iOS": "TuxTokens.Tti.radiusXl"
+      },
+      "valuesByMode": {
+        "tti": 12,
+        "tti-dark": 12,
+        "tti-hc": 12
+      }
+    },
+    {
+      "name": "radius/full",
+      "cssToken": "--radius-full",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --radius-full",
+      "scopes": [
+        "CORNER_RADIUS"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--radius-full)",
+        "ANDROID": "TuxTokens.Tti.RADIUS_FULL",
+        "iOS": "TuxTokens.Tti.radiusFull"
+      },
+      "valuesByMode": {
+        "tti": 9999,
+        "tti-dark": 9999,
+        "tti-hc": 9999
+      }
+    },
+    {
+      "name": "space/0",
+      "cssToken": "--space-0",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --space-0",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--space-0)",
+        "ANDROID": "TuxTokens.Tti.SPACE_0",
+        "iOS": "TuxTokens.Tti.space0"
+      },
+      "valuesByMode": {
+        "tti": 0,
+        "tti-dark": 0,
+        "tti-hc": 0
+      }
+    },
+    {
+      "name": "space/2",
+      "cssToken": "--space-2",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --space-2",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--space-2)",
+        "ANDROID": "TuxTokens.Tti.SPACE_2",
+        "iOS": "TuxTokens.Tti.space2"
+      },
+      "valuesByMode": {
+        "tti": 2,
+        "tti-dark": 2,
+        "tti-hc": 2
+      }
+    },
+    {
+      "name": "space/4",
+      "cssToken": "--space-4",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --space-4",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--space-4)",
+        "ANDROID": "TuxTokens.Tti.SPACE_4",
+        "iOS": "TuxTokens.Tti.space4"
+      },
+      "valuesByMode": {
+        "tti": 4,
+        "tti-dark": 4,
+        "tti-hc": 4
+      }
+    },
+    {
+      "name": "space/8",
+      "cssToken": "--space-8",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --space-8",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--space-8)",
+        "ANDROID": "TuxTokens.Tti.SPACE_8",
+        "iOS": "TuxTokens.Tti.space8"
+      },
+      "valuesByMode": {
+        "tti": 8,
+        "tti-dark": 8,
+        "tti-hc": 8
+      }
+    },
+    {
+      "name": "space/10",
+      "cssToken": "--space-10",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --space-10",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--space-10)",
+        "ANDROID": "TuxTokens.Tti.SPACE_10",
+        "iOS": "TuxTokens.Tti.space10"
+      },
+      "valuesByMode": {
+        "tti": 10,
+        "tti-dark": 10,
+        "tti-hc": 10
+      }
+    },
+    {
+      "name": "space/12",
+      "cssToken": "--space-12",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --space-12",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--space-12)",
+        "ANDROID": "TuxTokens.Tti.SPACE_12",
+        "iOS": "TuxTokens.Tti.space12"
+      },
+      "valuesByMode": {
+        "tti": 12,
+        "tti-dark": 12,
+        "tti-hc": 12
+      }
+    },
+    {
+      "name": "space/16",
+      "cssToken": "--space-16",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --space-16",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--space-16)",
+        "ANDROID": "TuxTokens.Tti.SPACE_16",
+        "iOS": "TuxTokens.Tti.space16"
+      },
+      "valuesByMode": {
+        "tti": 16,
+        "tti-dark": 16,
+        "tti-hc": 16
+      }
+    },
+    {
+      "name": "space/24",
+      "cssToken": "--space-24",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --space-24",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--space-24)",
+        "ANDROID": "TuxTokens.Tti.SPACE_24",
+        "iOS": "TuxTokens.Tti.space24"
+      },
+      "valuesByMode": {
+        "tti": 24,
+        "tti-dark": 24,
+        "tti-hc": 24
+      }
+    },
+    {
+      "name": "space/32",
+      "cssToken": "--space-32",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --space-32",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--space-32)",
+        "ANDROID": "TuxTokens.Tti.SPACE_32",
+        "iOS": "TuxTokens.Tti.space32"
+      },
+      "valuesByMode": {
+        "tti": 32,
+        "tti-dark": 32,
+        "tti-hc": 32
+      }
+    },
+    {
+      "name": "space/40",
+      "cssToken": "--space-40",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --space-40",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--space-40)",
+        "ANDROID": "TuxTokens.Tti.SPACE_40",
+        "iOS": "TuxTokens.Tti.space40"
+      },
+      "valuesByMode": {
+        "tti": 40,
+        "tti-dark": 40,
+        "tti-hc": 40
+      }
+    },
+    {
+      "name": "space/48",
+      "cssToken": "--space-48",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --space-48",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--space-48)",
+        "ANDROID": "TuxTokens.Tti.SPACE_48",
+        "iOS": "TuxTokens.Tti.space48"
+      },
+      "valuesByMode": {
+        "tti": 48,
+        "tti-dark": 48,
+        "tti-hc": 48
+      }
+    },
+    {
+      "name": "space/64",
+      "cssToken": "--space-64",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --space-64",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--space-64)",
+        "ANDROID": "TuxTokens.Tti.SPACE_64",
+        "iOS": "TuxTokens.Tti.space64"
+      },
+      "valuesByMode": {
+        "tti": 64,
+        "tti-dark": 64,
+        "tti-hc": 64
+      }
+    },
+    {
+      "name": "layout/content-max",
+      "cssToken": "--layout-content-max",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --layout-content-max",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--layout-content-max)",
+        "ANDROID": "TuxTokens.Tti.LAYOUT_CONTENT_MAX",
+        "iOS": "TuxTokens.Tti.layoutContentMax"
+      },
+      "valuesByMode": {
+        "tti": 1280,
+        "tti-dark": 1280,
+        "tti-hc": 1280
+      }
+    },
+    {
+      "name": "layout/content-wide",
+      "cssToken": "--layout-content-wide",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --layout-content-wide",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--layout-content-wide)",
+        "ANDROID": "TuxTokens.Tti.LAYOUT_CONTENT_WIDE",
+        "iOS": "TuxTokens.Tti.layoutContentWide"
+      },
+      "valuesByMode": {
+        "tti": 1536,
+        "tti-dark": 1536,
+        "tti-hc": 1536
+      }
+    },
+    {
+      "name": "layout/prose-max",
+      "cssToken": "--layout-prose-max",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --layout-prose-max",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--layout-prose-max)",
+        "ANDROID": "TuxTokens.Tti.LAYOUT_PROSE_MAX",
+        "iOS": "TuxTokens.Tti.layoutProseMax"
+      },
+      "valuesByMode": {
+        "tti": 612,
+        "tti-dark": 612,
+        "tti-hc": 612
+      }
+    },
+    {
+      "name": "rhythm/tight",
+      "cssToken": "--rhythm-tight",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --rhythm-tight",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--rhythm-tight)",
+        "ANDROID": "TuxTokens.Tti.RHYTHM_TIGHT",
+        "iOS": "TuxTokens.Tti.rhythmTight"
+      },
+      "valuesByMode": {
+        "tti": 4,
+        "tti-dark": 4,
+        "tti-hc": 4
+      }
+    },
+    {
+      "name": "rhythm/snug",
+      "cssToken": "--rhythm-snug",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --rhythm-snug",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--rhythm-snug)",
+        "ANDROID": "TuxTokens.Tti.RHYTHM_SNUG",
+        "iOS": "TuxTokens.Tti.rhythmSnug"
+      },
+      "valuesByMode": {
+        "tti": 8,
+        "tti-dark": 8,
+        "tti-hc": 8
+      }
+    },
+    {
+      "name": "rhythm/normal",
+      "cssToken": "--rhythm-normal",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --rhythm-normal",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--rhythm-normal)",
+        "ANDROID": "TuxTokens.Tti.RHYTHM_NORMAL",
+        "iOS": "TuxTokens.Tti.rhythmNormal"
+      },
+      "valuesByMode": {
+        "tti": 12,
+        "tti-dark": 12,
+        "tti-hc": 12
+      }
+    },
+    {
+      "name": "rhythm/loose",
+      "cssToken": "--rhythm-loose",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --rhythm-loose",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--rhythm-loose)",
+        "ANDROID": "TuxTokens.Tti.RHYTHM_LOOSE",
+        "iOS": "TuxTokens.Tti.rhythmLoose"
+      },
+      "valuesByMode": {
+        "tti": 16,
+        "tti-dark": 16,
+        "tti-hc": 16
+      }
+    },
+    {
+      "name": "rhythm/roomy",
+      "cssToken": "--rhythm-roomy",
+      "resolvedType": "FLOAT",
+      "description": "TUX canonical token --rhythm-roomy",
+      "scopes": [
+        "GAP",
+        "WIDTH_HEIGHT"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--rhythm-roomy)",
+        "ANDROID": "TuxTokens.Tti.RHYTHM_ROOMY",
+        "iOS": "TuxTokens.Tti.rhythmRoomy"
+      },
+      "valuesByMode": {
+        "tti": 24,
+        "tti-dark": 24,
+        "tti-hc": 24
+      }
+    },
+    {
+      "name": "wash/brand-4",
+      "cssToken": "--wash-brand-4",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --wash-brand-4",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--wash-brand-4)",
+        "ANDROID": "TuxTokens.Tti.WASH_BRAND_4",
+        "iOS": "TuxTokens.Tti.washBrand4"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 0.04
+          }
+        },
+        "tti-dark": {
+          "hex": "#6BB4C0",
+          "rgba": {
+            "r": 0.4196,
+            "g": 0.7059,
+            "b": 0.7529,
+            "a": 0.04
+          }
+        },
+        "tti-hc": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 0.04
+          }
+        }
+      }
+    },
+    {
+      "name": "wash/brand-6",
+      "cssToken": "--wash-brand-6",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --wash-brand-6",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--wash-brand-6)",
+        "ANDROID": "TuxTokens.Tti.WASH_BRAND_6",
+        "iOS": "TuxTokens.Tti.washBrand6"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 0.06
+          }
+        },
+        "tti-dark": {
+          "hex": "#6BB4C0",
+          "rgba": {
+            "r": 0.4196,
+            "g": 0.7059,
+            "b": 0.7529,
+            "a": 0.06
+          }
+        },
+        "tti-hc": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 0.06
+          }
+        }
+      }
+    },
+    {
+      "name": "wash/brand-8",
+      "cssToken": "--wash-brand-8",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --wash-brand-8",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--wash-brand-8)",
+        "ANDROID": "TuxTokens.Tti.WASH_BRAND_8",
+        "iOS": "TuxTokens.Tti.washBrand8"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 0.08
+          }
+        },
+        "tti-dark": {
+          "hex": "#6BB4C0",
+          "rgba": {
+            "r": 0.4196,
+            "g": 0.7059,
+            "b": 0.7529,
+            "a": 0.08
+          }
+        },
+        "tti-hc": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 0.08
+          }
+        }
+      }
+    },
+    {
+      "name": "wash/brand-12",
+      "cssToken": "--wash-brand-12",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --wash-brand-12",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--wash-brand-12)",
+        "ANDROID": "TuxTokens.Tti.WASH_BRAND_12",
+        "iOS": "TuxTokens.Tti.washBrand12"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 0.12
+          }
+        },
+        "tti-dark": {
+          "hex": "#6BB4C0",
+          "rgba": {
+            "r": 0.4196,
+            "g": 0.7059,
+            "b": 0.7529,
+            "a": 0.12
+          }
+        },
+        "tti-hc": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 0.12
+          }
+        }
+      }
+    },
+    {
+      "name": "wash/brand-18",
+      "cssToken": "--wash-brand-18",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --wash-brand-18",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--wash-brand-18)",
+        "ANDROID": "TuxTokens.Tti.WASH_BRAND_18",
+        "iOS": "TuxTokens.Tti.washBrand18"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 0.18
+          }
+        },
+        "tti-dark": {
+          "hex": "#6BB4C0",
+          "rgba": {
+            "r": 0.4196,
+            "g": 0.7059,
+            "b": 0.7529,
+            "a": 0.18
+          }
+        },
+        "tti-hc": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 0.18
+          }
+        }
+      }
+    },
+    {
+      "name": "wash/brand-22",
+      "cssToken": "--wash-brand-22",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --wash-brand-22",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--wash-brand-22)",
+        "ANDROID": "TuxTokens.Tti.WASH_BRAND_22",
+        "iOS": "TuxTokens.Tti.washBrand22"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 0.22
+          }
+        },
+        "tti-dark": {
+          "hex": "#6BB4C0",
+          "rgba": {
+            "r": 0.4196,
+            "g": 0.7059,
+            "b": 0.7529,
+            "a": 0.22
+          }
+        },
+        "tti-hc": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 0.22
+          }
+        }
+      }
+    },
+    {
+      "name": "wash/brand-35",
+      "cssToken": "--wash-brand-35",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --wash-brand-35",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--wash-brand-35)",
+        "ANDROID": "TuxTokens.Tti.WASH_BRAND_35",
+        "iOS": "TuxTokens.Tti.washBrand35"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 0.35
+          }
+        },
+        "tti-dark": {
+          "hex": "#6BB4C0",
+          "rgba": {
+            "r": 0.4196,
+            "g": 0.7059,
+            "b": 0.7529,
+            "a": 0.35
+          }
+        },
+        "tti-hc": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 0.35
+          }
+        }
+      }
+    },
+    {
+      "name": "color/maroon-50",
+      "cssToken": "--color-maroon-50",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-maroon-50",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-maroon-50)",
+        "ANDROID": "TuxTokens.Tti.COLOR_MAROON_50",
+        "iOS": "TuxTokens.Tti.colorMaroon50"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#FBF3F6",
+          "rgba": {
+            "r": 0.9843,
+            "g": 0.9529,
+            "b": 0.9647,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#FBF3F6",
+          "rgba": {
+            "r": 0.9843,
+            "g": 0.9529,
+            "b": 0.9647,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FBF3F6",
+          "rgba": {
+            "r": 0.9843,
+            "g": 0.9529,
+            "b": 0.9647,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/maroon-100",
+      "cssToken": "--color-maroon-100",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-maroon-100",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-maroon-100)",
+        "ANDROID": "TuxTokens.Tti.COLOR_MAROON_100",
+        "iOS": "TuxTokens.Tti.colorMaroon100"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#F5E0E7",
+          "rgba": {
+            "r": 0.9608,
+            "g": 0.8784,
+            "b": 0.9059,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#F5E0E7",
+          "rgba": {
+            "r": 0.9608,
+            "g": 0.8784,
+            "b": 0.9059,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#F5E0E7",
+          "rgba": {
+            "r": 0.9608,
+            "g": 0.8784,
+            "b": 0.9059,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/maroon-200",
+      "cssToken": "--color-maroon-200",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-maroon-200",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-maroon-200)",
+        "ANDROID": "TuxTokens.Tti.COLOR_MAROON_200",
+        "iOS": "TuxTokens.Tti.colorMaroon200"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#EAB5C3",
+          "rgba": {
+            "r": 0.9176,
+            "g": 0.7098,
+            "b": 0.7647,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#EAB5C3",
+          "rgba": {
+            "r": 0.9176,
+            "g": 0.7098,
+            "b": 0.7647,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#EAB5C3",
+          "rgba": {
+            "r": 0.9176,
+            "g": 0.7098,
+            "b": 0.7647,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/maroon-300",
+      "cssToken": "--color-maroon-300",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-maroon-300",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-maroon-300)",
+        "ANDROID": "TuxTokens.Tti.COLOR_MAROON_300",
+        "iOS": "TuxTokens.Tti.colorMaroon300"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#DB859E",
+          "rgba": {
+            "r": 0.8588,
+            "g": 0.5216,
+            "b": 0.6196,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#DB859E",
+          "rgba": {
+            "r": 0.8588,
+            "g": 0.5216,
+            "b": 0.6196,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#DB859E",
+          "rgba": {
+            "r": 0.8588,
+            "g": 0.5216,
+            "b": 0.6196,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/maroon-400",
+      "cssToken": "--color-maroon-400",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-maroon-400",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-maroon-400)",
+        "ANDROID": "TuxTokens.Tti.COLOR_MAROON_400",
+        "iOS": "TuxTokens.Tti.colorMaroon400"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#B14A6C",
+          "rgba": {
+            "r": 0.6941,
+            "g": 0.2902,
+            "b": 0.4235,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#6BB4C0",
+          "rgba": {
+            "r": 0.4196,
+            "g": 0.7059,
+            "b": 0.7529,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/maroon-500",
+      "cssToken": "--color-maroon-500",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-maroon-500",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-maroon-500)",
+        "ANDROID": "TuxTokens.Tti.COLOR_MAROON_500",
+        "iOS": "TuxTokens.Tti.colorMaroon500"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/maroon-600",
+      "cssToken": "--color-maroon-600",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-maroon-600",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-maroon-600)",
+        "ANDROID": "TuxTokens.Tti.COLOR_MAROON_600",
+        "iOS": "TuxTokens.Tti.colorMaroon600"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#4D001F",
+          "rgba": {
+            "r": 0.302,
+            "g": 0,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#4D001F",
+          "rgba": {
+            "r": 0.302,
+            "g": 0,
+            "b": 0.1216,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#4D001F",
+          "rgba": {
+            "r": 0.302,
+            "g": 0,
+            "b": 0.1216,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/maroon-700",
+      "cssToken": "--color-maroon-700",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-maroon-700",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-maroon-700)",
+        "ANDROID": "TuxTokens.Tti.COLOR_MAROON_700",
+        "iOS": "TuxTokens.Tti.colorMaroon700"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#3D0018",
+          "rgba": {
+            "r": 0.2392,
+            "g": 0,
+            "b": 0.0941,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#3D0018",
+          "rgba": {
+            "r": 0.2392,
+            "g": 0,
+            "b": 0.0941,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#3D0018",
+          "rgba": {
+            "r": 0.2392,
+            "g": 0,
+            "b": 0.0941,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/maroon-800",
+      "cssToken": "--color-maroon-800",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-maroon-800",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-maroon-800)",
+        "ANDROID": "TuxTokens.Tti.COLOR_MAROON_800",
+        "iOS": "TuxTokens.Tti.colorMaroon800"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#2E0012",
+          "rgba": {
+            "r": 0.1804,
+            "g": 0,
+            "b": 0.0706,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#2E0012",
+          "rgba": {
+            "r": 0.1804,
+            "g": 0,
+            "b": 0.0706,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#2E0012",
+          "rgba": {
+            "r": 0.1804,
+            "g": 0,
+            "b": 0.0706,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/maroon-900",
+      "cssToken": "--color-maroon-900",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-maroon-900",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-maroon-900)",
+        "ANDROID": "TuxTokens.Tti.COLOR_MAROON_900",
+        "iOS": "TuxTokens.Tti.colorMaroon900"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#1F000C",
+          "rgba": {
+            "r": 0.1216,
+            "g": 0,
+            "b": 0.0471,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#1F000C",
+          "rgba": {
+            "r": 0.1216,
+            "g": 0,
+            "b": 0.0471,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#1F000C",
+          "rgba": {
+            "r": 0.1216,
+            "g": 0,
+            "b": 0.0471,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/maroon-950",
+      "cssToken": "--color-maroon-950",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-maroon-950",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-maroon-950)",
+        "ANDROID": "TuxTokens.Tti.COLOR_MAROON_950",
+        "iOS": "TuxTokens.Tti.colorMaroon950"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#150008",
+          "rgba": {
+            "r": 0.0824,
+            "g": 0,
+            "b": 0.0314,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#150008",
+          "rgba": {
+            "r": 0.0824,
+            "g": 0,
+            "b": 0.0314,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#150008",
+          "rgba": {
+            "r": 0.0824,
+            "g": 0,
+            "b": 0.0314,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/gold-50",
+      "cssToken": "--color-gold-50",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-gold-50",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-gold-50)",
+        "ANDROID": "TuxTokens.Tti.COLOR_GOLD_50",
+        "iOS": "TuxTokens.Tti.colorGold50"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#FDF9EE",
+          "rgba": {
+            "r": 0.9922,
+            "g": 0.9765,
+            "b": 0.9333,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#FDF9EE",
+          "rgba": {
+            "r": 0.9922,
+            "g": 0.9765,
+            "b": 0.9333,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FDF9EE",
+          "rgba": {
+            "r": 0.9922,
+            "g": 0.9765,
+            "b": 0.9333,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/gold-100",
+      "cssToken": "--color-gold-100",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-gold-100",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-gold-100)",
+        "ANDROID": "TuxTokens.Tti.COLOR_GOLD_100",
+        "iOS": "TuxTokens.Tti.colorGold100"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#FAF0D2",
+          "rgba": {
+            "r": 0.9804,
+            "g": 0.9412,
+            "b": 0.8235,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#FAF0D2",
+          "rgba": {
+            "r": 0.9804,
+            "g": 0.9412,
+            "b": 0.8235,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FAF0D2",
+          "rgba": {
+            "r": 0.9804,
+            "g": 0.9412,
+            "b": 0.8235,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/gold-200",
+      "cssToken": "--color-gold-200",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-gold-200",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-gold-200)",
+        "ANDROID": "TuxTokens.Tti.COLOR_GOLD_200",
+        "iOS": "TuxTokens.Tti.colorGold200"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#F4DFA1",
+          "rgba": {
+            "r": 0.9569,
+            "g": 0.8745,
+            "b": 0.6314,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#F4DFA1",
+          "rgba": {
+            "r": 0.9569,
+            "g": 0.8745,
+            "b": 0.6314,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#F4DFA1",
+          "rgba": {
+            "r": 0.9569,
+            "g": 0.8745,
+            "b": 0.6314,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/gold-300",
+      "cssToken": "--color-gold-300",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-gold-300",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-gold-300)",
+        "ANDROID": "TuxTokens.Tti.COLOR_GOLD_300",
+        "iOS": "TuxTokens.Tti.colorGold300"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#ECCA6F",
+          "rgba": {
+            "r": 0.9255,
+            "g": 0.7922,
+            "b": 0.4353,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#ECCA6F",
+          "rgba": {
+            "r": 0.9255,
+            "g": 0.7922,
+            "b": 0.4353,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#ECCA6F",
+          "rgba": {
+            "r": 0.9255,
+            "g": 0.7922,
+            "b": 0.4353,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/gold-400",
+      "cssToken": "--color-gold-400",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-gold-400",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-gold-400)",
+        "ANDROID": "TuxTokens.Tti.COLOR_GOLD_400",
+        "iOS": "TuxTokens.Tti.colorGold400"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#E3BA4F",
+          "rgba": {
+            "r": 0.8902,
+            "g": 0.7294,
+            "b": 0.3098,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#E3BA4F",
+          "rgba": {
+            "r": 0.8902,
+            "g": 0.7294,
+            "b": 0.3098,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#E3BA4F",
+          "rgba": {
+            "r": 0.8902,
+            "g": 0.7294,
+            "b": 0.3098,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/gold-500",
+      "cssToken": "--color-gold-500",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-gold-500",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-gold-500)",
+        "ANDROID": "TuxTokens.Tti.COLOR_GOLD_500",
+        "iOS": "TuxTokens.Tti.colorGold500"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#DDAC37",
+          "rgba": {
+            "r": 0.8667,
+            "g": 0.6745,
+            "b": 0.2157,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#DDAC37",
+          "rgba": {
+            "r": 0.8667,
+            "g": 0.6745,
+            "b": 0.2157,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#DDAC37",
+          "rgba": {
+            "r": 0.8667,
+            "g": 0.6745,
+            "b": 0.2157,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/gold-600",
+      "cssToken": "--color-gold-600",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-gold-600",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-gold-600)",
+        "ANDROID": "TuxTokens.Tti.COLOR_GOLD_600",
+        "iOS": "TuxTokens.Tti.colorGold600"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#B58A23",
+          "rgba": {
+            "r": 0.7098,
+            "g": 0.5412,
+            "b": 0.1373,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#B58A23",
+          "rgba": {
+            "r": 0.7098,
+            "g": 0.5412,
+            "b": 0.1373,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#B58A23",
+          "rgba": {
+            "r": 0.7098,
+            "g": 0.5412,
+            "b": 0.1373,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/gold-700",
+      "cssToken": "--color-gold-700",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-gold-700",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-gold-700)",
+        "ANDROID": "TuxTokens.Tti.COLOR_GOLD_700",
+        "iOS": "TuxTokens.Tti.colorGold700"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#8A691B",
+          "rgba": {
+            "r": 0.5412,
+            "g": 0.4118,
+            "b": 0.1059,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#8A691B",
+          "rgba": {
+            "r": 0.5412,
+            "g": 0.4118,
+            "b": 0.1059,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#8A691B",
+          "rgba": {
+            "r": 0.5412,
+            "g": 0.4118,
+            "b": 0.1059,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/gold-800",
+      "cssToken": "--color-gold-800",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-gold-800",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-gold-800)",
+        "ANDROID": "TuxTokens.Tti.COLOR_GOLD_800",
+        "iOS": "TuxTokens.Tti.colorGold800"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#604812",
+          "rgba": {
+            "r": 0.3765,
+            "g": 0.2824,
+            "b": 0.0706,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#604812",
+          "rgba": {
+            "r": 0.3765,
+            "g": 0.2824,
+            "b": 0.0706,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#604812",
+          "rgba": {
+            "r": 0.3765,
+            "g": 0.2824,
+            "b": 0.0706,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/gold-900",
+      "cssToken": "--color-gold-900",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-gold-900",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-gold-900)",
+        "ANDROID": "TuxTokens.Tti.COLOR_GOLD_900",
+        "iOS": "TuxTokens.Tti.colorGold900"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#3F300B",
+          "rgba": {
+            "r": 0.2471,
+            "g": 0.1882,
+            "b": 0.0431,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#3F300B",
+          "rgba": {
+            "r": 0.2471,
+            "g": 0.1882,
+            "b": 0.0431,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#3F300B",
+          "rgba": {
+            "r": 0.2471,
+            "g": 0.1882,
+            "b": 0.0431,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "color/gold-950",
+      "cssToken": "--color-gold-950",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --color-gold-950",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--color-gold-950)",
+        "ANDROID": "TuxTokens.Tti.COLOR_GOLD_950",
+        "iOS": "TuxTokens.Tti.colorGold950"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#271E07",
+          "rgba": {
+            "r": 0.1529,
+            "g": 0.1176,
+            "b": 0.0275,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#271E07",
+          "rgba": {
+            "r": 0.1529,
+            "g": 0.1176,
+            "b": 0.0275,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#271E07",
+          "rgba": {
+            "r": 0.1529,
+            "g": 0.1176,
+            "b": 0.0275,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/1",
+      "cssToken": "--chart-1",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-1",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-1)",
+        "ANDROID": "TuxTokens.Tti.CHART_1",
+        "iOS": "TuxTokens.Tti.chart1"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#C47585",
+          "rgba": {
+            "r": 0.7686,
+            "g": 0.4588,
+            "b": 0.5216,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#000000",
+          "rgba": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/2",
+      "cssToken": "--chart-2",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-2",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-2)",
+        "ANDROID": "TuxTokens.Tti.CHART_2",
+        "iOS": "TuxTokens.Tti.chart2"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#3F5A6F",
+          "rgba": {
+            "r": 0.2471,
+            "g": 0.3529,
+            "b": 0.4353,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#6B8DA3",
+          "rgba": {
+            "r": 0.4196,
+            "g": 0.5529,
+            "b": 0.6392,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/3",
+      "cssToken": "--chart-3",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-3",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-3)",
+        "ANDROID": "TuxTokens.Tti.CHART_3",
+        "iOS": "TuxTokens.Tti.chart3"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#C7973C",
+          "rgba": {
+            "r": 0.7804,
+            "g": 0.5922,
+            "b": 0.2353,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#E0BC60",
+          "rgba": {
+            "r": 0.8784,
+            "g": 0.7373,
+            "b": 0.3765,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#5D5D5D",
+          "rgba": {
+            "r": 0.3647,
+            "g": 0.3647,
+            "b": 0.3647,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/4",
+      "cssToken": "--chart-4",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-4",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-4)",
+        "ANDROID": "TuxTokens.Tti.CHART_4",
+        "iOS": "TuxTokens.Tti.chart4"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#6B8E5A",
+          "rgba": {
+            "r": 0.4196,
+            "g": 0.5569,
+            "b": 0.3529,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#93B57E",
+          "rgba": {
+            "r": 0.5765,
+            "g": 0.7098,
+            "b": 0.4941,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#8A6915",
+          "rgba": {
+            "r": 0.5412,
+            "g": 0.4118,
+            "b": 0.0824,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/5",
+      "cssToken": "--chart-5",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-5",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-5)",
+        "ANDROID": "TuxTokens.Tti.CHART_5",
+        "iOS": "TuxTokens.Tti.chart5"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#8C5A3C",
+          "rgba": {
+            "r": 0.549,
+            "g": 0.3529,
+            "b": 0.2353,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#B58463",
+          "rgba": {
+            "r": 0.7098,
+            "g": 0.5176,
+            "b": 0.3882,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#4A4A4A",
+          "rgba": {
+            "r": 0.2902,
+            "g": 0.2902,
+            "b": 0.2902,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/6",
+      "cssToken": "--chart-6",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-6",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-6)",
+        "ANDROID": "TuxTokens.Tti.CHART_6",
+        "iOS": "TuxTokens.Tti.chart6"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C7080",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0.4392,
+            "b": 0.502,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#8AA0B2",
+          "rgba": {
+            "r": 0.5412,
+            "g": 0.6275,
+            "b": 0.698,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#1F5D66",
+          "rgba": {
+            "r": 0.1216,
+            "g": 0.3647,
+            "b": 0.4,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/7",
+      "cssToken": "--chart-7",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-7",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-7)",
+        "ANDROID": "TuxTokens.Tti.CHART_7",
+        "iOS": "TuxTokens.Tti.chart7"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#A33A3A",
+          "rgba": {
+            "r": 0.6392,
+            "g": 0.2275,
+            "b": 0.2275,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#D67272",
+          "rgba": {
+            "r": 0.8392,
+            "g": 0.4471,
+            "b": 0.4471,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#6B0000",
+          "rgba": {
+            "r": 0.4196,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/8",
+      "cssToken": "--chart-8",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-8",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-8)",
+        "ANDROID": "TuxTokens.Tti.CHART_8",
+        "iOS": "TuxTokens.Tti.chart8"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#3C5A87",
+          "rgba": {
+            "r": 0.2353,
+            "g": 0.3529,
+            "b": 0.5294,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#6E8FBE",
+          "rgba": {
+            "r": 0.4314,
+            "g": 0.5608,
+            "b": 0.7451,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#2A2A2A",
+          "rgba": {
+            "r": 0.1647,
+            "g": 0.1647,
+            "b": 0.1647,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/9",
+      "cssToken": "--chart-9",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-9",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-9)",
+        "ANDROID": "TuxTokens.Tti.CHART_9",
+        "iOS": "TuxTokens.Tti.chart9"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#6E5A7E",
+          "rgba": {
+            "r": 0.4314,
+            "g": 0.3529,
+            "b": 0.4941,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#A08CB4",
+          "rgba": {
+            "r": 0.6275,
+            "g": 0.549,
+            "b": 0.7059,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#6E5A7E",
+          "rgba": {
+            "r": 0.4314,
+            "g": 0.3529,
+            "b": 0.4941,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/10",
+      "cssToken": "--chart-10",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-10",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-10)",
+        "ANDROID": "TuxTokens.Tti.CHART_10",
+        "iOS": "TuxTokens.Tti.chart10"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#7E7350",
+          "rgba": {
+            "r": 0.4941,
+            "g": 0.451,
+            "b": 0.3137,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#B0A578",
+          "rgba": {
+            "r": 0.6902,
+            "g": 0.6471,
+            "b": 0.4706,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#7E7350",
+          "rgba": {
+            "r": 0.4941,
+            "g": 0.451,
+            "b": 0.3137,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/cvd-1",
+      "cssToken": "--chart-cvd-1",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-cvd-1",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-cvd-1)",
+        "ANDROID": "TuxTokens.Tti.CHART_CVD_1",
+        "iOS": "TuxTokens.Tti.chartCvd1"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#0072B2",
+          "rgba": {
+            "r": 0,
+            "g": 0.4471,
+            "b": 0.698,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#56B4E9",
+          "rgba": {
+            "r": 0.3373,
+            "g": 0.7059,
+            "b": 0.9137,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#005080",
+          "rgba": {
+            "r": 0,
+            "g": 0.3137,
+            "b": 0.502,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/cvd-2",
+      "cssToken": "--chart-cvd-2",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-cvd-2",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-cvd-2)",
+        "ANDROID": "TuxTokens.Tti.CHART_CVD_2",
+        "iOS": "TuxTokens.Tti.chartCvd2"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#E69F00",
+          "rgba": {
+            "r": 0.902,
+            "g": 0.6235,
+            "b": 0,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#F0B030",
+          "rgba": {
+            "r": 0.9412,
+            "g": 0.6902,
+            "b": 0.1882,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#CC8000",
+          "rgba": {
+            "r": 0.8,
+            "g": 0.502,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/cvd-3",
+      "cssToken": "--chart-cvd-3",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-cvd-3",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-cvd-3)",
+        "ANDROID": "TuxTokens.Tti.CHART_CVD_3",
+        "iOS": "TuxTokens.Tti.chartCvd3"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#009E73",
+          "rgba": {
+            "r": 0,
+            "g": 0.6196,
+            "b": 0.451,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#2AC098",
+          "rgba": {
+            "r": 0.1647,
+            "g": 0.7529,
+            "b": 0.5961,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#007A55",
+          "rgba": {
+            "r": 0,
+            "g": 0.4784,
+            "b": 0.3333,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/cvd-4",
+      "cssToken": "--chart-cvd-4",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-cvd-4",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-cvd-4)",
+        "ANDROID": "TuxTokens.Tti.CHART_CVD_4",
+        "iOS": "TuxTokens.Tti.chartCvd4"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#F0E442",
+          "rgba": {
+            "r": 0.9412,
+            "g": 0.8941,
+            "b": 0.2588,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#F5EB68",
+          "rgba": {
+            "r": 0.9608,
+            "g": 0.9216,
+            "b": 0.4078,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#8A6915",
+          "rgba": {
+            "r": 0.5412,
+            "g": 0.4118,
+            "b": 0.0824,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/cvd-5",
+      "cssToken": "--chart-cvd-5",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-cvd-5",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-cvd-5)",
+        "ANDROID": "TuxTokens.Tti.CHART_CVD_5",
+        "iOS": "TuxTokens.Tti.chartCvd5"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#56B4E9",
+          "rgba": {
+            "r": 0.3373,
+            "g": 0.7059,
+            "b": 0.9137,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#7CD0F7",
+          "rgba": {
+            "r": 0.4863,
+            "g": 0.8157,
+            "b": 0.9686,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#1F5D66",
+          "rgba": {
+            "r": 0.1216,
+            "g": 0.3647,
+            "b": 0.4,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/cvd-6",
+      "cssToken": "--chart-cvd-6",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-cvd-6",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-cvd-6)",
+        "ANDROID": "TuxTokens.Tti.CHART_CVD_6",
+        "iOS": "TuxTokens.Tti.chartCvd6"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#D55E00",
+          "rgba": {
+            "r": 0.8353,
+            "g": 0.3686,
+            "b": 0,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#E87A28",
+          "rgba": {
+            "r": 0.9098,
+            "g": 0.4784,
+            "b": 0.1569,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#B34000",
+          "rgba": {
+            "r": 0.702,
+            "g": 0.251,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/cvd-7",
+      "cssToken": "--chart-cvd-7",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-cvd-7",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-cvd-7)",
+        "ANDROID": "TuxTokens.Tti.CHART_CVD_7",
+        "iOS": "TuxTokens.Tti.chartCvd7"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#CC79A7",
+          "rgba": {
+            "r": 0.8,
+            "g": 0.4745,
+            "b": 0.6549,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#DE91BD",
+          "rgba": {
+            "r": 0.8706,
+            "g": 0.5686,
+            "b": 0.7412,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#803366",
+          "rgba": {
+            "r": 0.502,
+            "g": 0.2,
+            "b": 0.4,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "chart/cvd-8",
+      "cssToken": "--chart-cvd-8",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --chart-cvd-8",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--chart-cvd-8)",
+        "ANDROID": "TuxTokens.Tti.CHART_CVD_8",
+        "iOS": "TuxTokens.Tti.chartCvd8"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#222222",
+          "rgba": {
+            "r": 0.1333,
+            "g": 0.1333,
+            "b": 0.1333,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#E6E6E6",
+          "rgba": {
+            "r": 0.902,
+            "g": 0.902,
+            "b": 0.902,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#000000",
+          "rgba": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "map/seq-maroon-1",
+      "cssToken": "--map-seq-maroon-1",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --map-seq-maroon-1",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--map-seq-maroon-1)",
+        "ANDROID": "TuxTokens.Tti.MAP_SEQ_MAROON_1",
+        "iOS": "TuxTokens.Tti.mapSeqMaroon1"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#F1E4E0",
+          "rgba": {
+            "r": 0.9451,
+            "g": 0.8941,
+            "b": 0.8784,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#3D1110",
+          "rgba": {
+            "r": 0.2392,
+            "g": 0.0667,
+            "b": 0.0627,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "map/seq-maroon-2",
+      "cssToken": "--map-seq-maroon-2",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --map-seq-maroon-2",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--map-seq-maroon-2)",
+        "ANDROID": "TuxTokens.Tti.MAP_SEQ_MAROON_2",
+        "iOS": "TuxTokens.Tti.mapSeqMaroon2"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#DDB7AC",
+          "rgba": {
+            "r": 0.8667,
+            "g": 0.7176,
+            "b": 0.6745,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#702C28",
+          "rgba": {
+            "r": 0.4392,
+            "g": 0.1725,
+            "b": 0.1569,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#C8C8C8",
+          "rgba": {
+            "r": 0.7843,
+            "g": 0.7843,
+            "b": 0.7843,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "map/seq-maroon-3",
+      "cssToken": "--map-seq-maroon-3",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --map-seq-maroon-3",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--map-seq-maroon-3)",
+        "ANDROID": "TuxTokens.Tti.MAP_SEQ_MAROON_3",
+        "iOS": "TuxTokens.Tti.mapSeqMaroon3"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#C58675",
+          "rgba": {
+            "r": 0.7725,
+            "g": 0.5255,
+            "b": 0.4588,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#A14A3D",
+          "rgba": {
+            "r": 0.6314,
+            "g": 0.2902,
+            "b": 0.2392,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#8A8A8A",
+          "rgba": {
+            "r": 0.5412,
+            "g": 0.5412,
+            "b": 0.5412,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "map/seq-maroon-4",
+      "cssToken": "--map-seq-maroon-4",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --map-seq-maroon-4",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--map-seq-maroon-4)",
+        "ANDROID": "TuxTokens.Tti.MAP_SEQ_MAROON_4",
+        "iOS": "TuxTokens.Tti.mapSeqMaroon4"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#9E483A",
+          "rgba": {
+            "r": 0.6196,
+            "g": 0.2824,
+            "b": 0.2275,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#C97058",
+          "rgba": {
+            "r": 0.7882,
+            "g": 0.4392,
+            "b": 0.3451,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#4A4A4A",
+          "rgba": {
+            "r": 0.2902,
+            "g": 0.2902,
+            "b": 0.2902,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "map/seq-maroon-5",
+      "cssToken": "--map-seq-maroon-5",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --map-seq-maroon-5",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--map-seq-maroon-5)",
+        "ANDROID": "TuxTokens.Tti.MAP_SEQ_MAROON_5",
+        "iOS": "TuxTokens.Tti.mapSeqMaroon5"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#500000",
+          "rgba": {
+            "r": 0.3137,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#E89B7E",
+          "rgba": {
+            "r": 0.9098,
+            "g": 0.6078,
+            "b": 0.4941,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#000000",
+          "rgba": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "map/seq-slate-1",
+      "cssToken": "--map-seq-slate-1",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --map-seq-slate-1",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--map-seq-slate-1)",
+        "ANDROID": "TuxTokens.Tti.MAP_SEQ_SLATE_1",
+        "iOS": "TuxTokens.Tti.mapSeqSlate1"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#E2E7EC",
+          "rgba": {
+            "r": 0.8863,
+            "g": 0.9059,
+            "b": 0.9255,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#1A2129",
+          "rgba": {
+            "r": 0.102,
+            "g": 0.1294,
+            "b": 0.1608,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "map/seq-slate-2",
+      "cssToken": "--map-seq-slate-2",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --map-seq-slate-2",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--map-seq-slate-2)",
+        "ANDROID": "TuxTokens.Tti.MAP_SEQ_SLATE_2",
+        "iOS": "TuxTokens.Tti.mapSeqSlate2"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#B7C2CC",
+          "rgba": {
+            "r": 0.7176,
+            "g": 0.7608,
+            "b": 0.8,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#3F5A6F",
+          "rgba": {
+            "r": 0.2471,
+            "g": 0.3529,
+            "b": 0.4353,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#C8C8C8",
+          "rgba": {
+            "r": 0.7843,
+            "g": 0.7843,
+            "b": 0.7843,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "map/seq-slate-3",
+      "cssToken": "--map-seq-slate-3",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --map-seq-slate-3",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--map-seq-slate-3)",
+        "ANDROID": "TuxTokens.Tti.MAP_SEQ_SLATE_3",
+        "iOS": "TuxTokens.Tti.mapSeqSlate3"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#7E94A4",
+          "rgba": {
+            "r": 0.4941,
+            "g": 0.5804,
+            "b": 0.6431,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#6F8294",
+          "rgba": {
+            "r": 0.4353,
+            "g": 0.5098,
+            "b": 0.5804,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#8A8A8A",
+          "rgba": {
+            "r": 0.5412,
+            "g": 0.5412,
+            "b": 0.5412,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "map/seq-slate-4",
+      "cssToken": "--map-seq-slate-4",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --map-seq-slate-4",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--map-seq-slate-4)",
+        "ANDROID": "TuxTokens.Tti.MAP_SEQ_SLATE_4",
+        "iOS": "TuxTokens.Tti.mapSeqSlate4"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#52677A",
+          "rgba": {
+            "r": 0.3216,
+            "g": 0.4039,
+            "b": 0.4784,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#9CADBD",
+          "rgba": {
+            "r": 0.6118,
+            "g": 0.6784,
+            "b": 0.7412,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#4A4A4A",
+          "rgba": {
+            "r": 0.2902,
+            "g": 0.2902,
+            "b": 0.2902,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "map/seq-slate-5",
+      "cssToken": "--map-seq-slate-5",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --map-seq-slate-5",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--map-seq-slate-5)",
+        "ANDROID": "TuxTokens.Tti.MAP_SEQ_SLATE_5",
+        "iOS": "TuxTokens.Tti.mapSeqSlate5"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#283544",
+          "rgba": {
+            "r": 0.1569,
+            "g": 0.2078,
+            "b": 0.2667,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#C2D0DE",
+          "rgba": {
+            "r": 0.7608,
+            "g": 0.8157,
+            "b": 0.8706,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#000000",
+          "rgba": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "map/outline",
+      "cssToken": "--map-outline",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --map-outline",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--map-outline)",
+        "ANDROID": "TuxTokens.Tti.MAP_OUTLINE",
+        "iOS": "TuxTokens.Tti.mapOutline"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#E7E6E6",
+          "rgba": {
+            "r": 0.9059,
+            "g": 0.902,
+            "b": 0.902,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#FFFFFF",
+          "rgba": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 0.22
+          }
+        },
+        "tti-hc": {
+          "hex": "#000000",
+          "rgba": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "map/flow",
+      "cssToken": "--map-flow",
+      "resolvedType": "COLOR",
+      "description": "TUX canonical token --map-flow",
+      "scopes": [
+        "ALL_FILLS",
+        "STROKE_COLOR"
+      ],
+      "codeSyntax": {
+        "WEB": "var(--map-flow)",
+        "ANDROID": "TuxTokens.Tti.MAP_FLOW",
+        "iOS": "TuxTokens.Tti.mapFlow"
+      },
+      "valuesByMode": {
+        "tti": {
+          "hex": "#5C0025",
+          "rgba": {
+            "r": 0.3608,
+            "g": 0,
+            "b": 0.1451,
+            "a": 1
+          }
+        },
+        "tti-dark": {
+          "hex": "#E89B7E",
+          "rgba": {
+            "r": 0.9098,
+            "g": 0.6078,
+            "b": 0.4941,
+            "a": 1
+          }
+        },
+        "tti-hc": {
+          "hex": "#000000",
+          "rgba": {
+            "r": 0,
+            "g": 0,
+            "b": 0,
+            "a": 1
+          }
+        }
+      }
+    }
+  ]
+}

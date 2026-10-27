@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="150" viewBox="0 0 760 150" fill="none">
+  <rect id="TUX / TuxPortalHeader Sheet" width="760" height="150" rx="8" fill="#F9F9F7" stroke="#E7E6E6"/>
+  <g id="Masthead / Utility Bar" transform="translate(16, 16)">
+    <rect width="728" height="32" fill="#221F1F"/>
+    <text x="16" y="20" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="11" font-weight="600">TEXAS A&amp;M TRANSPORTATION INSTITUTE · A MEMBER OF THE TEXAS A&amp;M UNIVERSITY SYSTEM</text>
+    <text x="712" y="20" text-anchor="end" fill="#DDAC37" font-family="JetBrains Mono, monospace" font-size="11">WCAG 2.2 AAA</text>
+  </g>
+  <g id="Masthead / Brand Ribbon" transform="translate(16, 48)">
+    <rect width="728" height="64" fill="#5C0025"/>
+    <rect x="16" y="14" width="52" height="36" rx="2" fill="#500000" stroke="#DDAC37" stroke-width="1.5"/>
+    <text x="42" y="38" text-anchor="middle" fill="#FFFFFF" font-family="Oswald, sans-serif" font-size="18" font-weight="700">TTI</text>
+    <text x="82" y="34" fill="#FFFFFF" font-family="Oswald, sans-serif" font-size="18" font-weight="700" letter-spacing="0.5">CORRIDOR TELEMETRY PORTAL</text>
+    <text x="82" y="50" fill="#f4dfa1" font-family="Open Sans, sans-serif" font-size="11">Statewide Operations &amp; Safety Analytics</text>
+    <text x="450" y="38" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="13" font-weight="600">Overview</text>
+    <line x1="450" y1="46" x2="508" y2="46" stroke="#DDAC37" stroke-width="2"/>
+    <text x="530" y="38" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="13">Corridors</text>
+    <text x="610" y="38" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="13">Datasets</text>
+    <rect x="676" y="18" width="36" height="28" rx="4" fill="#500000" stroke="#DDAC37"/>
+    <text x="694" y="36" text-anchor="middle" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="11">⌘K</text>
+  </g>
+  <rect x="16" y="112" width="728" height="4" fill="#DDAC37"/>
+</svg>

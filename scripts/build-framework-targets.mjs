@@ -78,7 +78,7 @@ function computeColorMix(value) {
   );
 }
 
-function resolvedThemes() {
+export function resolvedThemes() {
   const sel = buildSelectors(readTokens());
   const maps = themeMaps(sel);
   const out = {};

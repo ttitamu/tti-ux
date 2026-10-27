@@ -12,6 +12,9 @@ export default defineNuxtConfig({
     },
   ],
   imports: {
-    dirs: [resolve(layerDir, "app/composables")],
+    dirs: [
+      resolve(layerDir, "app/composables"),
+      resolve(layerDir, "app/utils"),
+    ],
   },
 });

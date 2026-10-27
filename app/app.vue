@@ -483,6 +483,7 @@ const navTree = [
       { label: "Home",            to: "/",                icon: "lucide:home" },
       { label: "Getting started", to: "/getting-started", icon: "lucide:compass" },
       { label: "Install",         to: "/install",         icon: "lucide:package-plus" },
+      { label: "  · Figma kit",      to: "/install/figma",    icon: "lucide:figma" },
       { label: "  · Power BI setup", to: "/install/power-bi", icon: "lucide:chart-column" },
       { label: "Changelog",       to: "/changelog",       icon: "lucide:scroll-text" },
     ],

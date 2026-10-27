@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="230" viewBox="0 0 760 230" fill="none">
+  <rect id="TUX / TuxAlert Sheet" width="760" height="230" rx="8" fill="#F9F9F7" stroke="#E7E6E6"/>
+  <text x="24" y="34" fill="#5C0025" font-family="Oswald, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">TUX / TUXALERT · INSTITUTIONAL CALLOUTS &amp; ADMONITIONS</text>
+  <line x1="24" y1="44" x2="736" y2="44" stroke="#DDAC37" stroke-width="2"/>
+  <g id="Alert / Compliance" transform="translate(24, 60)">
+    <rect width="712" height="68" rx="4" fill="#FFFFFF" stroke="#E7E6E6"/>
+    <rect width="6" height="68" rx="2" fill="#5C0025"/>
+    <text x="22" y="26" fill="#5C0025" font-family="Open Sans, sans-serif" font-size="14" font-weight="700">Institutional Compliance &amp; Provenance Notice (WCAG 2.2 Level AAA)</text>
+    <text x="22" y="48" fill="#424242" font-family="Open Sans, sans-serif" font-size="13">All telemetry tables and roadway advisories maintain ≥ 7.0:1 normal text contrast across light, dark, and RELLIS sunlight modes.</text>
+  </g>
+  <g id="Alert / Critical Error" transform="translate(24, 142)">
+    <rect width="712" height="68" rx="4" fill="#FFFFFF" stroke="#A02828"/>
+    <rect width="6" height="68" rx="2" fill="#A02828"/>
+    <text x="22" y="26" fill="#A02828" font-family="Open Sans, sans-serif" font-size="14" font-weight="700">Corridor Telemetry Feed Interrupted — IH-35W Northbound Sensor Array</text>
+    <text x="22" y="48" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="13">Automatic fallback to archival 5-minute loop detector aggregates activated. Verify RSU uplink at STA 142+50.</text>
+  </g>
+</svg>
