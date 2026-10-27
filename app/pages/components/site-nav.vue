@@ -166,10 +166,10 @@ const exampleVue = `<TuxSiteNav
           <TuxDropdown
             label="Resources"
             :items="[
-              { label: 'Documentation',   to: '#', description: 'Architecture + API reference' },
-              { label: 'Changelog',       to: '#', description: 'Per-release notes' },
-              { label: 'Contributing',    to: '#', description: 'How to file issues + PRs' },
-              { label: 'Status page',     href: 'https://status.tti.tamu.edu' },
+              { label: 'Documentation',   to: '#', description: 'Architecture + API reference', icon: 'lucide:book-open' },
+              { label: 'Changelog',       to: '#', description: 'Per-release notes', icon: 'lucide:history' },
+              { label: 'Contributing',    to: '#', description: 'How to file issues + PRs', icon: 'lucide:git-pull-request' },
+              { label: 'Status page',     href: 'https://status.tti.tamu.edu', icon: 'lucide:activity' },
             ]"
           />
           <TuxDropdown
@@ -198,14 +198,24 @@ const exampleVue = `<TuxSiteNav
       <h3 class="font-bold mt-4 mb-1 text-sm">TuxDropdown</h3>
       <ul class="space-y-2 text-sm">
         <li><code>label</code> — trigger label. Required.</li>
-        <li><code>items</code> — array of <code>{ label, to?, href?, description? }</code>.</li>
+        <li><code>items</code> — array of <code>{ label, to?, href?, description?, icon? }</code>. <code>icon</code> is an Iconify name (<code>lucide:search</code>) drawn in a leading column; once any item has one, every row keeps the column so titles line up. A menu with no icons is unchanged. Items in <code>primaryNav</code>'s <code>dropdown</code> take it too.</li>
       </ul>
       <h3 class="font-bold mt-4 mb-1 text-sm">TuxMegaMenu</h3>
       <ul class="space-y-2 text-sm">
         <li><code>label</code> — trigger label. Required.</li>
-        <li><code>columns</code> — array of <code>{ heading, items }</code>.</li>
+        <li><code>columns</code> — array of <code>{ heading, items }</code>; items take the same <code>icon</code> as TuxDropdown's, and the icon column runs through every column of the panel.</li>
         <li><code>featured</code> — optional <code>{ eyebrow?, title, description?, to?, href?, image? }</code> for the right-rail tile.</li>
       </ul>
+      <h3 class="font-bold mt-4 mb-1 text-sm">Accessibility</h3>
+      <p class="text-sm">
+        Both menus follow the ARIA Authoring Practices' disclosure navigation
+        pattern, not the menu pattern (that one is for application menus):
+        the trigger carries <code>aria-expanded</code> and
+        <code>aria-controls</code> naming the panel, and the panel is a plain
+        list of links that Tab moves through. There is no
+        <code>role="menu"</code>, <code>menuitem</code> or
+        <code>aria-haspopup</code>.
+      </p>
     </section>
   </div>
 </template>

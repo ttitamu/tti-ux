@@ -3,7 +3,7 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
-## [3.5.0] — 2026-10-27
+## [3.6.0] — 2026-10-27
 
 ### Added — Interactive 4-Level Master Architecture Plan (`<TuxArchitectureMap>`) & Zero-Subscription Figma Design Kit (2026-10-27)
 
@@ -34,6 +34,24 @@ conventions and [Semantic Versioning](https://semver.org/).
   - Added a step-by-step **Designer Quick-Start Guide** requiring zero code, Git, or terminal usage, with 1-click **Copy SVG to Figma** buttons, `.svg`/`.json` downloads, and 1-click download of all 3 local Figma plugin files.
   - Wired `/install/figma` into the global navigation sidebar (`app/app.vue`), `/install` target hub (`app/pages/install/index.vue`), `/docs` SDK matrix (`app/pages/docs/index.vue`), and `Cmd+K` search (`app/components/TuxDocSearch.vue`).
 - **Verification & Lock Tests (`tests/tux-kit-targets.test.ts`, `tests/tux-figma-kit.test.ts`)**: Locked all 21 `kit/figma/*` artifacts byte-for-byte against `scripts/build-figma-kit.mjs`.
+
+## [3.5.0] — 2026-10-26
+
+Four gaps a consuming portal worked around (tti/tti-ux#101). The one addition, `icon` on menu items, is optional: a menu without icons renders as before.
+
+### Added — Menu Item Icons (`TuxDropdown`, `TuxMegaMenu`, `TuxSiteNav`)
+
+- **`icon` on menu items**: `TuxDropdown`'s items and `TuxMegaMenu`'s column links take an optional `icon` (an Iconify name, e.g. `lucide:search`), drawn in a leading 1rem column before the label and description; `TuxSiteNav`'s `primaryNav` passes it through from `dropdown` and `megaMenu` items. Once any item in a menu has an icon, every row keeps the column (empty where an item has none), so titles line up; in `TuxMegaMenu` the column runs through every column of the panel. The icon takes the muted text colour and turns brand primary on hover, focus and the current page. Consumers had drawn them as CSS masks keyed by each link's `href`.
+
+### Fixed — Menu ARIA: the Disclosure Navigation Pattern (`TuxDropdown`, `TuxMegaMenu`, `@tti/tti-ux-react` `TuxDropdown`)
+
+- **No more `role="menu"` around a list of links.** With a menu open, axe reported `aria-required-children`, `aria-required-parent` and `list`: a `role="menu"` panel wrapped a `<ul>` of `<li role="none"><a role="menuitem">`. Both menus now follow the ARIA Authoring Practices' disclosure navigation pattern, which the APG recommends for site navigation (the menu pattern is for application menus, with arrow-key focus management these components never had): the trigger carries `aria-expanded` and `aria-controls` naming the panel, `aria-haspopup` is gone, and the panel is a plain list of links that Tab moves through. The React port of `TuxDropdown` had the same structure and gets the same fix.
+- **The tests audit the menus open.** The axe runs audited the menus closed, when `v-show` hides the panel and axe skips it, which is how this went unseen; they now open the panel first.
+
+### Fixed — `TuxVisionPreferencesModal`: High Contrast Returns to Your Mode, and Comes First
+
+- **Turning high contrast off returns to the mode you had before it**, light or dark, and so does Reset Defaults from high contrast. Both used to set `tti-dark` whatever mode the person came from. The dialog records the mode whenever the preference turns to `tti-hc` from another one, by its own checkbox or by another switch (a cluster's or footer's high-contrast button) while it is mounted, and keeps it in `localStorage` (`tux-mode-before-hc`), since high contrast itself survives a reload; light when nothing was recorded. Soft dark from high contrast still goes to dark, and field sunlight to light, as before.
+- **High contrast is section 1**, as in TTI Code's dialog and TTI AI Studio's: 1. High Contrast, Astigmatism & Field Comfort (with the "Section 508 & WCAG 2.2 AAA" note), 2. Institutional Typography Profile, 3. Categorical Color Vision Palette, 4. Live Colorblindness Simulation Filter, 5. Multi-Channel Redundancy. It was fourth, after three colour-vision sections.
 
 ## [3.4.6] — 2026-10-25
 

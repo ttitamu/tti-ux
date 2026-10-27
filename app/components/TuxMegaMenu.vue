@@ -11,13 +11,19 @@
 //   - multi-column with column headings
 //   - supports a featured-content tile distinct from the link grid
 //
-// Same hover/focus/escape/click semantics as TuxDropdown.
+// Same hover/focus/escape/click semantics as TuxDropdown, and the same
+// ARIA: the APG's disclosure navigation pattern (trigger with
+// aria-expanded + aria-controls, headed lists of links), not role="menu".
+// Same icons too: once any link names one, every link gets the icon
+// column, in every column, so the titles line up across the panel.
 
 interface MegaMenuLink {
   label: string;
   to?: string;
   href?: string;
   description?: string;
+  /** Optional leading icon, an Iconify name (e.g. "lucide:server"). */
+  icon?: string;
 }
 
 interface MegaMenuColumn {
@@ -54,6 +60,9 @@ const props = defineProps<Props>();
 
 const open = ref(false);
 const root = ref<HTMLElement | null>(null);
+// The panel's id, for the trigger's aria-controls (SSR-stable).
+const panelId = useId();
+const hasIcons = computed(() => props.columns.some((col) => col.items.some((item) => !!item.icon)));
 let closeTimer: ReturnType<typeof setTimeout> | null = null;
 
 function show() {
@@ -166,8 +175,8 @@ const isTriggerActive = computed<boolean>(() => {
       class="tux-mega-menu__trigger"
       :class="{ 'tux-mega-menu__trigger--active': isTriggerActive }"
       :aria-expanded="open"
+      :aria-controls="panelId"
       :aria-current="route.fullPath === to ? 'page' : undefined"
-      aria-haspopup="true"
       @click="onTriggerClick"
     >
       <span>{{ label }}</span>
@@ -184,7 +193,7 @@ const isTriggerActive = computed<boolean>(() => {
       class="tux-mega-menu__trigger"
       :class="{ 'tux-mega-menu__trigger--active': isTriggerActive }"
       :aria-expanded="open"
-      aria-haspopup="true"
+      :aria-controls="panelId"
       @click="toggle"
     >
       <span>{{ label }}</span>
@@ -199,9 +208,9 @@ const isTriggerActive = computed<boolean>(() => {
     <Transition name="tux-mega-menu">
       <div
         v-show="open"
+        :id="panelId"
         class="tux-mega-menu__panel"
         :class="{ 'tux-mega-menu__panel--with-featured': featured }"
-        role="menu"
       >
         <div
           class="tux-mega-menu__columns"
@@ -214,17 +223,30 @@ const isTriggerActive = computed<boolean>(() => {
           >
             <h3 class="tux-mega-menu__heading">{{ col.heading }}</h3>
             <ul class="tux-mega-menu__list">
-              <li v-for="item in col.items" :key="item.label" role="none">
+              <li v-for="item in col.items" :key="item.label">
                 <!-- Same explicit-branch shape the trigger uses, for the
                      same clickability + active-state reliability. -->
                 <NuxtLink
                   v-if="item.to"
                   :to="item.to"
                   class="tux-mega-menu__link"
-                  :class="{ 'tux-mega-menu__link--active': isItemActive(item) }"
+                  :class="{
+                    'tux-mega-menu__link--active': isItemActive(item),
+                    'tux-mega-menu__link--with-icon': hasIcons,
+                  }"
                   :aria-current="isItemActive(item) ? 'page' : undefined"
-                  role="menuitem"
                 >
+                  <Icon
+                    v-if="item.icon"
+                    :name="item.icon"
+                    class="tux-mega-menu__link-icon"
+                    aria-hidden="true"
+                  />
+                  <span
+                    v-else-if="hasIcons"
+                    class="tux-mega-menu__link-icon tux-mega-menu__link-icon--empty"
+                    aria-hidden="true"
+                  />
                   <span class="tux-mega-menu__link-label">{{ item.label }}</span>
                   <span
                     v-if="item.description"
@@ -235,10 +257,23 @@ const isTriggerActive = computed<boolean>(() => {
                   v-else-if="item.href && isInternal(item.href)"
                   :to="item.href"
                   class="tux-mega-menu__link"
-                  :class="{ 'tux-mega-menu__link--active': isItemActive(item) }"
+                  :class="{
+                    'tux-mega-menu__link--active': isItemActive(item),
+                    'tux-mega-menu__link--with-icon': hasIcons,
+                  }"
                   :aria-current="isItemActive(item) ? 'page' : undefined"
-                  role="menuitem"
                 >
+                  <Icon
+                    v-if="item.icon"
+                    :name="item.icon"
+                    class="tux-mega-menu__link-icon"
+                    aria-hidden="true"
+                  />
+                  <span
+                    v-else-if="hasIcons"
+                    class="tux-mega-menu__link-icon tux-mega-menu__link-icon--empty"
+                    aria-hidden="true"
+                  />
                   <span class="tux-mega-menu__link-label">{{ item.label }}</span>
                   <span
                     v-if="item.description"
@@ -251,15 +286,41 @@ const isTriggerActive = computed<boolean>(() => {
                   target="_blank"
                   rel="noopener"
                   class="tux-mega-menu__link"
-                  role="menuitem"
+                  :class="{ 'tux-mega-menu__link--with-icon': hasIcons }"
                 >
+                  <Icon
+                    v-if="item.icon"
+                    :name="item.icon"
+                    class="tux-mega-menu__link-icon"
+                    aria-hidden="true"
+                  />
+                  <span
+                    v-else-if="hasIcons"
+                    class="tux-mega-menu__link-icon tux-mega-menu__link-icon--empty"
+                    aria-hidden="true"
+                  />
                   <span class="tux-mega-menu__link-label">{{ item.label }}</span>
                   <span
                     v-if="item.description"
                     class="tux-mega-menu__link-description"
                   >{{ item.description }}</span>
                 </a>
-                <span v-else class="tux-mega-menu__link" role="menuitem">
+                <span
+                  v-else
+                  class="tux-mega-menu__link"
+                  :class="{ 'tux-mega-menu__link--with-icon': hasIcons }"
+                >
+                  <Icon
+                    v-if="item.icon"
+                    :name="item.icon"
+                    class="tux-mega-menu__link-icon"
+                    aria-hidden="true"
+                  />
+                  <span
+                    v-else-if="hasIcons"
+                    class="tux-mega-menu__link-icon tux-mega-menu__link-icon--empty"
+                    aria-hidden="true"
+                  />
                   <span class="tux-mega-menu__link-label">{{ item.label }}</span>
                   <span
                     v-if="item.description"
@@ -590,6 +651,35 @@ const isTriggerActive = computed<boolean>(() => {
 .tux-mega-menu__link-label {
   display: block;
   font-weight: 600;
+}
+
+/* A panel with icons: the icon in a leading column, the label and the
+   description in the second. */
+.tux-mega-menu__link--with-icon {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  column-gap: 0.625rem;
+  align-items: start;
+}
+
+.tux-mega-menu__link--with-icon .tux-mega-menu__link-label,
+.tux-mega-menu__link--with-icon .tux-mega-menu__link-description {
+  grid-column: 2;
+}
+
+.tux-mega-menu__link-icon {
+  grid-row: 1 / span 2;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.125rem;
+  color: var(--text-muted);
+  transition: color 0.15s ease;
+}
+
+.tux-mega-menu__link:hover .tux-mega-menu__link-icon,
+.tux-mega-menu__link:focus-visible .tux-mega-menu__link-icon,
+.tux-mega-menu__link--active .tux-mega-menu__link-icon {
+  color: var(--brand-primary);
 }
 
 .tux-mega-menu__link-description {
