@@ -23,6 +23,19 @@ describe("TuxDropdown (React)", () => {
     expect(screen.getByText("Connected Infrastructure")).toBeDefined();
   });
 
+  it("is a disclosure: the trigger controls the panel, and there are no menu roles", () => {
+    const { container } = render(<TuxDropdown label="Programs" items={items} />);
+    const trigger = screen.getByRole("button", { name: "Programs" });
+    expect(trigger.getAttribute("aria-haspopup")).toBeNull();
+    fireEvent.click(trigger);
+
+    const panel = container.querySelector(".tux-dropdown__panel");
+    expect(panel?.id).toBeTruthy();
+    expect(trigger.getAttribute("aria-controls")).toBe(panel?.id);
+    expect(container.querySelectorAll("[role='menu'], [role='menuitem'], [role='none']")).toHaveLength(0);
+    expect(screen.getAllByRole("link")).toHaveLength(items.length);
+  });
+
   it("closes on Escape key press", () => {
     render(<TuxDropdown label="Navigation" items={items} />);
     const trigger = screen.getByRole("button", { name: "Navigation" });

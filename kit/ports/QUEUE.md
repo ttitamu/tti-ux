@@ -61,6 +61,7 @@ with a matching source hash in manifest.json.
 | TuxDataTable | react | never ported |
 | TuxDiagram | react | never ported |
 | TuxDocsSidebarNode | react | never ported |
+| TuxDropdown | react | STALE (source moved since port) |
 | TuxErrorPage | react | never ported |
 | TuxExample | react | never ported |
 | TuxFAB | react | never ported |
@@ -157,5 +158,6 @@ with a matching source hash in manifest.json.
 | TuxECharts | react | never ported |
 | TuxHeroCanvas | react | never ported |
 | TuxRoadwayCrossSection | react | never ported |
+| TuxVisionPreferencesModal | react | STALE (source moved since port) |
 | TuxUnitValue | react | never ported |
 | TuxArchitectureMap | react | never ported |

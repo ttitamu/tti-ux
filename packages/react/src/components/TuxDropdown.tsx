@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useId } from "react";
 import "./tux-dropdown.css";
 
 export interface DropdownItem {
@@ -25,6 +25,9 @@ export const TuxDropdown: React.FC<TuxDropdownProps> = ({
   className = "",
 }) => {
   const [open, setOpen] = useState(false);
+  // The ARIA APG's disclosure navigation pattern (as the Vue layer's
+  // TuxDropdown): the trigger names the panel it shows; no menu roles.
+  const panelId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -82,7 +85,7 @@ export const TuxDropdown: React.FC<TuxDropdownProps> = ({
           href={triggerTarget}
           className="tux-dropdown__trigger"
           aria-expanded={open}
-          aria-haspopup="true"
+          aria-controls={panelId}
         >
           <span>{label}</span>
           <svg
@@ -103,7 +106,7 @@ export const TuxDropdown: React.FC<TuxDropdownProps> = ({
           type="button"
           className="tux-dropdown__trigger"
           aria-expanded={open}
-          aria-haspopup="true"
+          aria-controls={panelId}
           onClick={toggle}
         >
           <span>{label}</span>
@@ -123,17 +126,16 @@ export const TuxDropdown: React.FC<TuxDropdownProps> = ({
       )}
 
       {open && (
-        <div className="tux-dropdown__panel" role="menu">
+        <div id={panelId} className="tux-dropdown__panel">
           <ul className="tux-dropdown__list">
             {items.map((item, idx) => {
               const itemTarget = item.to || item.href;
               return (
-                <li key={idx} className="tux-dropdown__item" role="none">
+                <li key={idx} className="tux-dropdown__item">
                   {itemTarget ? (
                     <a
                       href={itemTarget}
                       className="tux-dropdown__link"
-                      role="menuitem"
                       onClick={() => {
                         item.onClick?.();
                         setOpen(false);
@@ -150,7 +152,6 @@ export const TuxDropdown: React.FC<TuxDropdownProps> = ({
                     <button
                       type="button"
                       className="tux-dropdown__link"
-                      role="menuitem"
                       style={{ width: "100%", textAlign: "left", background: "none", border: 0 }}
                       onClick={() => {
                         item.onClick?.();
