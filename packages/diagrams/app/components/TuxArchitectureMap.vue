@@ -3,7 +3,13 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } fro
 import {
   DEFAULT_TTI_LEVEL_MODEL,
   GRID_METRICS,
+  TUX_MAP_LINK_KIND_LABELS,
   buildLevelModelFromLegacyNodes,
+  buildMapParentIndex,
+  computeLinkBlastRadius,
+  liftLinksToView,
+  liftToSet,
+  mapAncestorsOf,
   getLaserPointerSvgPath,
   getSmoothedFreehandSvgPath,
   gridCellToPx,
@@ -349,6 +355,32 @@ const resById = computed<Record<string, TuxMapDeploymentNode>>(() => {
   return map;
 });
 
+// child → parent below Level 2 (components, subgraph elements, inline children): what code links
+// are lifted through, and how a part far from the current view is reached (revealElement)
+const parentOf = computed(() => buildMapParentIndex(activeModel.value));
+
+/** The level that shows the children of `fid`: 3 inside a container, 5 inside a component or
+ *  deployment node, one more for each subgraph below that. */
+function levelForFocus(fid: string): number {
+  const M = activeModel.value;
+  if (M.level3[fid] && !M.subgraphs?.[fid]) return 3;
+  const p = parentOf.value.get(fid);
+  if (!p || (M.level3[p] && !M.subgraphs?.[p])) return 5;
+  return levelForFocus(p) + 1;
+}
+
+/** The drill stack a person builds zooming in step by step to the children of `fid`. */
+function drillStackFor(fid: string): { level: number; focusId: string }[] {
+  return mapAncestorsOf(fid, parentOf.value)
+    .slice(1)
+    .reverse()
+    .map((a) => ({ level: levelForFocus(a), focusId: a }))
+    .filter((e) => e.level >= 3);
+}
+
+// opened below Level 4 (a deep link): the stack zooming in would have built, so zooming out works
+if (currentLevel.value >= 5 && focusId.value) drillStack.value = drillStackFor(focusId.value);
+
 const maxAvailableLevel = computed<number>(() => {
   const M = activeModel.value;
   let max = 4;
@@ -690,6 +722,20 @@ const stageData = computed<ComputedStageData>(() => {
       }
     }
 
+    // The model's code links, lifted onto this view: wires between the cards inside and, below
+    // Level 4, the parts outside that they depend on (right) or that depend on them (left)
+    const kidIds = kids.map((k, i) => k.id || `${fId}/${i}`);
+    const lifted = M.links?.length
+      ? liftLinksToView(M.links, fId, kidIds, parentOf.value, {
+          isKnown: (id) => Boolean(lookup[id] || resById.value[id]),
+        })
+      : null;
+    const codeEdge = currentLevel.value >= 5 && !parentDn ? lifted : null;
+    if (codeEdge) {
+      for (const o of codeEdge.ins) if (!ins.includes(o.id)) ins.push(o.id);
+      for (const o of codeEdge.outs) if (!outs.includes(o.id)) outs.push(o.id);
+    }
+
     const stackH = (n: number) => (n ? n * MH + (n - 1) * 14 : 0);
     const gridH = rows * CH + (rows - 1) * GY;
     const H = Math.max(gridH, stackH(ins.length), stackH(outs.length));
@@ -719,7 +765,11 @@ const stageData = computed<ComputedStageData>(() => {
       }
     });
 
-    if (sg?.rels?.length) {
+    if (lifted) {
+      // the links stand in for the subgraph's own rels; a hand-written one they do not cover stays
+      const pairs = new Set(lifted.rels.map((r) => `${r.from}\u0000${r.to}`));
+      rawRels.push(...lifted.rels, ...(sg?.rels || []).filter((r) => !pairs.has(`${r.from}\u0000${r.to}`)));
+    } else if (sg?.rels?.length) {
       rawRels.push(...sg.rels);
     }
 
@@ -738,8 +788,21 @@ const stageData = computed<ComputedStageData>(() => {
       return null;
     };
 
-    ins.forEach((id, i) => {
+    // an outside card from the code links says where it lives ("in AI gateway › Routing, sign-in and config")
+    const edgeCard = (id: string): TuxMapLevelElement | null => {
       const base = resolvePerimeterCard(id);
+      if (!base || !codeEdge || !parentOf.value.has(id)) return base;
+      const where = mapAncestorsOf(id, parentOf.value)
+        .slice(1)
+        .reverse()
+        .map((a) => lookup[a]?.name || resById.value[a]?.title)
+        .filter(Boolean)
+        .join(" › ");
+      return where ? { ...base, tech: `in ${where}` } : base;
+    };
+
+    ins.forEach((id, i) => {
+      const base = edgeCard(id);
       if (!base) return;
       rawEls.push({
         ...base,
@@ -751,7 +814,7 @@ const stageData = computed<ComputedStageData>(() => {
     });
 
     outs.forEach((id, i) => {
-      const base = resolvePerimeterCard(id);
+      const base = edgeCard(id);
       if (!base) return;
       rawEls.push({
         ...base,
@@ -778,11 +841,18 @@ const stageData = computed<ComputedStageData>(() => {
         else if (l.from === fId) rawRels.push({ from: "@bound", to: l.to, label: l.label });
       }
     }
+    if (codeEdge) {
+      for (const o of codeEdge.ins) for (const w of o.wires) rawRels.push({ from: o.id, to: w.kid, label: w.label });
+      for (const o of codeEdge.outs) for (const w of o.wires) rawRels.push({ from: w.kid, to: o.id, label: w.label });
+    }
+    const moreOutside = codeEdge ? codeEdge.moreIns + codeEdge.moreOuts : 0;
 
     rawBounds.push({
       id: "@bound",
       label: cName,
-      type: sg?.stratum || (TYPE_LABELS[cKind] || "Container") + (cTech ? `: ${cTech}` : ""),
+      type:
+        (sg?.stratum || (TYPE_LABELS[cKind] || "Container") + (cTech ? `: ${cTech}` : "")) +
+        (moreOutside ? ` · ${moreOutside} more outside, not drawn` : ""),
       of: [],
       box: {
         x: PAD + CW + GX - 24,
@@ -889,10 +959,70 @@ interface BlastRadiusComputation {
   impactedIds: Set<string>;
   impactedWires: Set<string>;
   rollupCountById: Map<string, number>;
+  /** With a selection and code links: how many parts inside each card its change reaches */
+  reachCountById?: Map<string, number>;
 }
+
+// The blast radius of the selected element through the model's code links: everything that depends
+// on it or on anything inside it. Computed whenever something is chosen (the details panel lists
+// it); drawn on the stage when the Blast radius switch is on.
+const selectionBlast = computed(() => {
+  const M = activeModel.value;
+  const id = selectedId.value;
+  if (!M.links?.length || !id || currentLevel.value === 4 || !byId.value[id]) return null;
+  return computeLinkBlastRadius(M.links, id, parentOf.value);
+});
+
+// The same, one row per file, nearest first, for the details panel
+const selectionBlastFiles = computed(() => {
+  const sb = selectionBlast.value;
+  if (!sb) return null;
+  const byPath = new Map<string, { id: string; path: string; hop: number; how: string; href: string | null }>();
+  for (const [id, hit] of sb.hits) {
+    const e = byId.value[id];
+    const path = e?.source?.path || e?.name || id;
+    const prev = byPath.get(path);
+    if (prev && prev.hop <= hit.hop) continue;
+    const [atPath, atLine] = (hit.via.at || "").split(/:(?=\d+$)/);
+    byPath.set(path, {
+      id,
+      path,
+      hop: hit.hop,
+      how: TUX_MAP_LINK_KIND_LABELS[hit.via.kind || ""] || hit.via.kind || "depends on it",
+      href: atPath ? buildSourceHref({ path: atPath, lineRange: atLine ? [Number(atLine), Number(atLine)] : undefined }) : null,
+    });
+  }
+  const rows = [...byPath.values()].sort((a, b) => a.hop - b.hop || a.path.localeCompare(b.path));
+  const SHOWN = 60;
+  return { parts: sb.hits.size, total: rows.length, shown: rows.slice(0, SHOWN), more: Math.max(0, rows.length - SHOWN) };
+});
 
 const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
   if (!showBlastRadius.value) return null;
+
+  // A selection with code links: light what its change reaches, lifted onto the cards on stage
+  const sb = selectionBlast.value;
+  if (sb) {
+    const stageIds = new Set(stageData.value.els.map((e) => e.id));
+    const directIds = new Set<string>();
+    for (const x of sb.seeds) {
+      const on = liftToSet(x, stageIds, parentOf.value);
+      if (on) directIds.add(on);
+    }
+    const reachCountById = new Map<string, number>();
+    for (const x of sb.hits.keys()) {
+      const on = liftToSet(x, stageIds, parentOf.value);
+      if (on && !directIds.has(on)) reachCountById.set(on, (reachCountById.get(on) ?? 0) + 1);
+    }
+    const impactedIds = new Set(reachCountById.keys());
+    // a wire is in the radius when its dependent end is reached and the other end is lit
+    const impactedWires = new Set(
+      routedSvg.value.wires
+        .filter((w) => impactedIds.has(w.from) && (directIds.has(w.to) || impactedIds.has(w.to)))
+        .map((w) => w.id),
+    );
+    return { directIds, impactedIds, impactedWires, rollupCountById: new Map(), reachCountById };
+  }
 
   const M = activeModel.value;
   const directIds = new Set<string>();
@@ -1001,6 +1131,10 @@ function formatDiffBadge(
   const rollup = br.rollupCountById.get(id);
   if (rollup) {
     return ["modified", `△ ${rollup} inner changed`];
+  }
+  const reach = br.reachCountById?.get(id);
+  if (reach) {
+    return ["impact", `${reach} affected`];
   }
   if (br.impactedIds.has(id)) {
     return ["impact", "⚡ Impacted"];
@@ -2012,6 +2146,23 @@ function goToLevel(
   });
 }
 
+/** Go to where `id` lives: the level that shows it among its siblings, with it chosen. */
+function revealElement(id: string) {
+  const p = parentOf.value.get(id);
+  if (!p) return;
+  const lvl = levelForFocus(p);
+  const name = byId.value[id]?.name || id;
+  drillStack.value = lvl >= 5 ? drillStackFor(p) : [];
+  goToLevel(lvl, {
+    nextFocus: p,
+    nextSel: id,
+    targetCardId: id,
+    inward: lvl >= currentLevel.value,
+    hudLabel: `Level ${currentLevel.value} → Level ${lvl} · ${name}`,
+  });
+  liveAnnouncement.value = `Went to Level ${lvl}: ${name}.`;
+}
+
 function zoomIntoElement(id: string) {
   const e = byId.value[id];
   const dn = resById.value[id];
@@ -2140,11 +2291,13 @@ function zoomOutLevel(fromHoveredId?: string | null) {
       liveAnnouncement.value = `Zoomed out to Level ${prevEntry.level}.`;
       return;
     }
-    // Fallback if entered Level 5+ directly without drillStack
+    // Fallback if entered Level 5+ directly without drillStack: the focus's parent
     const isDeployParent = Boolean(currentF && resById.value[currentF]);
-    const targetLevel = isDeployParent ? 4 : 3;
+    const up = currentF ? parentOf.value.get(currentF) : undefined;
+    const targetLevel = isDeployParent ? 4 : up ? levelForFocus(up) : 3;
+    if (up && targetLevel >= 5) drillStack.value = drillStackFor(up);
     goToLevel(targetLevel, {
-      nextFocus: isDeployParent ? focusId.value : currentF?.split("/")[0] || focusId.value,
+      nextFocus: isDeployParent ? focusId.value : up || currentF?.split("/")[0] || focusId.value,
       nextSel: null,
       fromCardId: fromHoveredId ?? null,
       targetCardId: currentF,
@@ -3451,7 +3604,7 @@ function buildSourceHref(src?: {
               :style="c.style"
               :aria-pressed="selectedId === c.id"
               @click="selectElement(selectedId === c.id ? null : c.id)"
-              @dblclick.stop="c.zoomable && zoomIntoElement(c.id)"
+              @dblclick.stop="c.mini && currentLevel >= 5 && parentOf.has(c.id) ? revealElement(c.id) : c.zoomable && zoomIntoElement(c.id)"
             >
               <span class="tux-map__el-nm">
                 <Icon :name="c.icon" class="tux-map__el-ic" aria-hidden="true" />
@@ -3837,6 +3990,48 @@ function buildSourceHref(src?: {
               </span>
               <p v-if="selectedLevelElement.diff?.summary" class="tux-map__panel-diff-sum">
                 {{ selectedLevelElement.diff.summary }}
+              </p>
+            </div>
+          </template>
+
+          <!-- Blast radius of the selection, through the model's code links -->
+          <template v-if="selectionBlastFiles">
+            <h5 class="tux-map__panel-h">Blast radius</h5>
+            <div class="tux-map__panel-blast">
+              <p class="tux-map__panel-blast-sum">
+                {{
+                  selectionBlastFiles.total
+                    ? `Changing it reaches ${selectionBlastFiles.parts} part${selectionBlastFiles.parts === 1 ? "" : "s"} in ${selectionBlastFiles.total} file${selectionBlastFiles.total === 1 ? "" : "s"}, nearest first.`
+                    : "Nothing on the map depends on it."
+                }}
+              </p>
+              <button
+                v-if="selectionBlastFiles.total && !showBlastRadius"
+                type="button"
+                class="tux-map__panel-btn"
+                @click="showBlastRadius = true"
+              >
+                Show it on the map
+              </button>
+              <ol class="tux-map__blast-list">
+                <li v-for="f in selectionBlastFiles.shown" :key="f.path" class="tux-map__blast-row">
+                  <span class="tux-map__blast-hop" :title="`${f.hop} step${f.hop === 1 ? '' : 's'} away`">{{ f.hop }}</span>
+                  <button
+                    v-if="parentOf.has(f.id)"
+                    type="button"
+                    class="tux-map__blast-go"
+                    :title="`Go to ${f.path} on the map`"
+                    @click="revealElement(f.id)"
+                  >
+                    <code>{{ f.path }}</code>
+                  </button>
+                  <code v-else>{{ f.path }}</code>
+                  <a v-if="f.href" :href="f.href" target="_blank" rel="noopener noreferrer" class="tux-map__blast-how">{{ f.how }}</a>
+                  <span v-else class="tux-map__blast-how">{{ f.how }}</span>
+                </li>
+              </ol>
+              <p v-if="selectionBlastFiles.more" class="tux-map__panel-blast-sum">
+                And {{ selectionBlastFiles.more }} more file{{ selectionBlastFiles.more === 1 ? "" : "s" }}.
               </p>
             </div>
           </template>
@@ -5570,6 +5765,88 @@ function buildSourceHref(src?: {
   font-size: 12px;
   line-height: 1.4;
   color: var(--text-secondary);
+}
+
+.tux-map__panel-blast {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.tux-map__panel-blast-sum {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.tux-map__blast-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  width: 100%;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+
+.tux-map__blast-row {
+  display: grid;
+  grid-template-columns: 1.3rem minmax(0, 1fr);
+  column-gap: 0.4rem;
+  align-items: baseline;
+  font-size: 11px;
+}
+
+.tux-map__blast-hop {
+  grid-row: span 2;
+  justify-self: center;
+  min-width: 1.1rem;
+  padding: 0 0.2rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  text-align: center;
+}
+
+.tux-map__blast-go {
+  justify-self: start;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--brand-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-align: left;
+  word-break: break-all;
+  cursor: pointer;
+}
+
+.tux-map__blast-go:hover,
+.tux-map__blast-go:focus-visible {
+  text-decoration: underline;
+}
+
+.tux-map__blast-row > code {
+  font-family: var(--font-mono);
+  word-break: break-all;
+}
+
+.tux-map__blast-how {
+  grid-column: 2;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-decoration: none;
+}
+
+a.tux-map__blast-how:hover {
+  color: var(--brand-primary);
+  text-decoration: underline;
 }
 
 .tux-map__panel-source {

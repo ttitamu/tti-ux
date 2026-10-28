@@ -298,4 +298,61 @@ describe("TuxArchitectureMap Component", () => {
     expect(wrapper.find(".tux-map__level-text").text()).toBe("Level 3 of 6");
     expect(wrapper.find(".tux-map__bound-label b").text()).toBe("AI Search Service");
   });
+
+  it("lifts code links onto Level 5+, draws outside cards, goes to one on double-click, and lists a selection's blast radius", async () => {
+    const codeModel: TuxMapLevelModel = {
+      ...DEFAULT_TTI_LEVEL_MODEL,
+      sourceBaseUrl: "https://code.tti.tamu.edu/nis/forgejo-stack/src/commit/abc",
+      subgraphs: {
+        "c-api/0": {
+          stratum: "Files",
+          elements: [{ id: "f:routes.py", kind: "module", name: "routes.py", source: { path: "routes.py" } }],
+        },
+        "c-api/1": {
+          stratum: "Files",
+          elements: [{ id: "f:forge.py", kind: "module", name: "forge.py", source: { path: "forge.py" } }],
+        },
+        "f:routes.py": {
+          stratum: "Functions",
+          elements: [
+            { id: "s:routes.py#data", kind: "symbol", name: "data()", source: { path: "routes.py", lineRange: [3, 9] } },
+            { id: "s:routes.py#who", kind: "symbol", name: "who()", source: { path: "routes.py", lineRange: [11, 14] } },
+          ],
+        },
+      },
+      links: [
+        { from: "s:routes.py#data", to: "s:routes.py#who", kind: "calls", at: "routes.py:5" },
+        { from: "s:routes.py#who", to: "f:forge.py", kind: "imports", at: "routes.py:1" },
+        { from: "f:forge.py", to: "s:routes.py#data", kind: "calls", at: "forge.py:40" },
+      ],
+    };
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: { model: codeModel, initialLevel: 6, initialFocus: "f:routes.py" },
+    });
+
+    // the two functions, the call between them, and forge.py outside on both sides (it calls in, who() imports it)
+    expect(wrapper.find('.tux-map__el[data-id="s:routes.py#data"]').exists()).toBe(true);
+    const outside = wrapper.findAll('.tux-map__el--mini[data-id="f:forge.py"]');
+    expect(outside.length).toBeGreaterThan(0);
+    expect(outside[0]!.text()).toContain("forge.py");
+
+    // choosing who(): the panel lists what depends on it, nearest first, with the line each link was read from
+    await wrapper.find('.tux-map__el[data-id="s:routes.py#who"]').trigger("click");
+    await nextTick();
+    const rows = wrapper.findAll(".tux-map__blast-row");
+    expect(rows.map((r) => r.find(".tux-map__blast-hop").text())).toEqual(["1", "2"]);
+    expect(rows[0]!.text()).toContain("routes.py");
+    expect(rows[1]!.text()).toContain("forge.py");
+    expect(rows[1]!.find("a.tux-map__blast-how").attributes("href")).toBe(
+      "https://code.tti.tamu.edu/nis/forgejo-stack/src/commit/abc/forge.py#L40",
+    );
+    expect(await runComponentAxe(wrapper.element)).toEqual([]);
+
+    // double-clicking the outside card goes to where forge.py lives: Level 5 inside its component
+    await outside[0]!.trigger("dblclick");
+    await nextTick();
+    expect(wrapper.find(".tux-map__level-text").text()).toMatch(/^Level 5 /);
+    expect(wrapper.emitted("update:selectedId")?.at(-1)).toEqual(["f:forge.py"]);
+  });
 });
+
