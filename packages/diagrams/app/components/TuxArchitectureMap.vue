@@ -207,6 +207,8 @@ watch(
   (f) => {
     if (f !== undefined && f !== focusId.value) {
       focusId.value = f;
+      // a parent moved the focus: the stack zooming in would have built, so zooming out works
+      drillStack.value = currentLevel.value >= 5 && f ? drillStackFor(f) : [];
     }
   },
 );
@@ -733,7 +735,8 @@ const stageData = computed<ComputedStageData>(() => {
     const codeEdge = currentLevel.value >= 5 && !parentDn ? lifted : null;
     if (codeEdge) {
       for (const o of codeEdge.ins) if (!ins.includes(o.id)) ins.push(o.id);
-      for (const o of codeEdge.outs) if (!outs.includes(o.id)) outs.push(o.id);
+      // a part on both sides is drawn once, on the left; its wires keep their own directions
+      for (const o of codeEdge.outs) if (!outs.includes(o.id) && !ins.includes(o.id)) outs.push(o.id);
     }
 
     const stackH = (n: number) => (n ? n * MH + (n - 1) * 14 : 0);
@@ -753,7 +756,7 @@ const stageData = computed<ComputedStageData>(() => {
         at: [col, row],
         px: [PAD + col * (CW + GX), top + (H - gridH) / 2 + row * (CH + GY), CH],
       });
-      if (k.next != null && (!sg?.rels || sg.rels.length === 0)) {
+      if (k.next != null && (!sg?.rels || sg.rels.length === 0) && !lifted?.rels.length) {
         const nextKid = kids[k.next];
         const nextId = nextKid?.id || `${fId}/${k.next}`;
         rawRels.push({
@@ -4015,7 +4018,7 @@ function buildSourceHref(src?: {
               </button>
               <ol class="tux-map__blast-list">
                 <li v-for="f in selectionBlastFiles.shown" :key="f.path" class="tux-map__blast-row">
-                  <span class="tux-map__blast-hop" :title="`${f.hop} step${f.hop === 1 ? '' : 's'} away`">{{ f.hop }}</span>
+                  <span class="tux-map__blast-hop" :title="`${f.hop} step${f.hop === 1 ? '' : 's'} away`">{{ f.hop }}<span class="tux-map__blast-sr"> step{{ f.hop === 1 ? "" : "s" }} away</span></span>
                   <button
                     v-if="parentOf.has(f.id)"
                     type="button"
@@ -4026,7 +4029,7 @@ function buildSourceHref(src?: {
                     <code>{{ f.path }}</code>
                   </button>
                   <code v-else>{{ f.path }}</code>
-                  <a v-if="f.href" :href="f.href" target="_blank" rel="noopener noreferrer" class="tux-map__blast-how">{{ f.how }}</a>
+                  <a v-if="f.href" :href="f.href" target="_blank" rel="noopener noreferrer" class="tux-map__blast-how" :aria-label="`${f.how}: the line in ${f.path} (opens in a new tab)`">{{ f.how }}</a>
                   <span v-else class="tux-map__blast-how">{{ f.how }}</span>
                 </li>
               </ol>
@@ -5813,6 +5816,14 @@ function buildSourceHref(src?: {
   text-align: center;
 }
 
+.tux-map__blast-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .tux-map__blast-go {
   justify-self: start;
   max-width: 100%;

@@ -340,7 +340,7 @@ describe("TuxArchitectureMap Component", () => {
     await wrapper.find('.tux-map__el[data-id="s:routes.py#who"]').trigger("click");
     await nextTick();
     const rows = wrapper.findAll(".tux-map__blast-row");
-    expect(rows.map((r) => r.find(".tux-map__blast-hop").text())).toEqual(["1", "2"]);
+    expect(rows.map((r) => r.find(".tux-map__blast-hop").text())).toEqual(["1 step away", "2 steps away"]);
     expect(rows[0]!.text()).toContain("routes.py");
     expect(rows[1]!.text()).toContain("forge.py");
     expect(rows[1]!.find("a.tux-map__blast-how").attributes("href")).toBe(

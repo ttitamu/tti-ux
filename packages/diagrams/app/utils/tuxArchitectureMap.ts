@@ -2121,15 +2121,16 @@ export function liftLinksToView(
     return pick;
   };
   const sib = new Map<string, { from: string; to: string; kinds: Map<string, number> }>();
-  const spreading = new Map<string, number>();
-  const side = (m: Map<string, Map<string, Map<string, number>>>, o: string, kid: string, l: TuxMapLink) => {
+  // links that spread, per side: a part both sides hold counts each side's own
+  const spreading = { ins: new Map<string, number>(), outs: new Map<string, number>() };
+  const side = (which: "ins" | "outs", m: Map<string, Map<string, Map<string, number>>>, o: string, kid: string, l: TuxMapLink) => {
     const kind = l.kind || "uses";
     const byKid = m.get(o) ?? new Map<string, Map<string, number>>();
     const kinds = byKid.get(kid) ?? new Map<string, number>();
     kinds.set(kind, (kinds.get(kind) ?? 0) + 1);
     byKid.set(kid, kinds);
     m.set(o, byKid);
-    if (!l.stop) spreading.set(o, (spreading.get(o) ?? 0) + 1);
+    if (!l.stop) spreading[which].set(o, (spreading[which].get(o) ?? 0) + 1);
   };
   const insM = new Map<string, Map<string, Map<string, number>>>();
   const outsM = new Map<string, Map<string, Map<string, number>>>();
@@ -2146,23 +2147,23 @@ export function liftLinksToView(
       sib.set(key, r);
     } else if (a) {
       const o = outside(l.to);
-      if (o) side(outsM, o, a, l);
+      if (o) side("outs", outsM, o, a, l);
     } else if (b) {
       const o = outside(l.from);
-      if (o) side(insM, o, b, l);
+      if (o) side("ins", insM, o, b, l);
     }
   }
-  const sides = (m: Map<string, Map<string, Map<string, number>>>): TuxMapLiftedSide[] =>
+  const sides = (which: "ins" | "outs", m: Map<string, Map<string, Map<string, number>>>): TuxMapLiftedSide[] =>
     [...m.entries()]
       .map(([id, byKid]) => ({
         id,
         count: [...byKid.values()].reduce((n, k) => n + [...k.values()].reduce((x, y) => x + y, 0), 0),
-        spreading: spreading.get(id) ?? 0,
+        spreading: spreading[which].get(id) ?? 0,
         wires: [...byKid.entries()].map(([kid, k]) => ({ kid, label: topKinds(k) })),
       }))
       .sort((x, y) => Number(y.spreading > 0) - Number(x.spreading > 0) || y.count - x.count || x.id.localeCompare(y.id));
-  const ins = sides(insM);
-  const outs = sides(outsM);
+  const ins = sides("ins", insM);
+  const outs = sides("outs", outsM);
   return {
     rels: [...sib.values()].map((r) => ({ from: r.from, to: r.to, label: topKinds(r.kinds) })),
     ins: ins.slice(0, max),
@@ -2181,8 +2182,12 @@ export interface TuxMapBlastHit {
 
 /**
  * The blast radius of changing `seedId`: every element that depends on it or on anything inside
- * it, upstream through `links`. A link that spreads is preferred over one that stops; a `stop` link
- * is followed one step and no further.
+ * it, upstream through `links`. The change first travels as far as the links that spread reach;
+ * then a `stop` link (a test, a check, a doc) is followed one step out from everything it reached,
+ * and no further. So an element both kinds reach is reached through the spreading one, and what
+ * depends on it is in the radius too.
+ * A link counts against what it names: one to a container of the seed (`N imports M`, with the
+ * seed a function in M) is not followed. A link names its target as precisely as it is known.
  */
 export function computeLinkBlastRadius(
   links: TuxMapLink[],
@@ -2208,20 +2213,31 @@ export function computeLinkBlastRadius(
     }
   }
   const into = new Map<string, TuxMapLink[]>();
-  for (const l of [...links].sort((a, b) => Number(Boolean(a.stop)) - Number(Boolean(b.stop)))) {
+  for (const l of links) {
     const arr = into.get(l.to) ?? [];
     arr.push(l);
     into.set(l.to, arr);
   }
   const hits = new Map<string, TuxMapBlastHit>();
+  // breadth first through the links that spread; `q` ends in hop order
   const q: [string, number][] = [...seeds].map((x) => [x, 0]);
   for (let i = 0; i < q.length; i++) {
     const [x, hop] = q[i]!;
+    if (hop >= maxHops) continue;
     for (const l of into.get(x) ?? []) {
       const y = l.from;
-      if (seeds.has(y) || hits.has(y)) continue;
+      if (l.stop || seeds.has(y) || hits.has(y)) continue;
       hits.set(y, { hop: hop + 1, via: l });
-      if (!l.stop && hop + 1 < maxHops) q.push([y, hop + 1]);
+      q.push([y, hop + 1]);
+    }
+  }
+  // then one step out through the links that stop, nearest first
+  for (const [x, hop] of q) {
+    if (hop >= maxHops) continue;
+    for (const l of into.get(x) ?? []) {
+      const y = l.from;
+      if (!l.stop || seeds.has(y) || hits.has(y)) continue;
+      hits.set(y, { hop: hop + 1, via: l });
     }
   }
   return { seeds, hits };

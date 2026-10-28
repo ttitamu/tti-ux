@@ -370,6 +370,45 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect([...api.hits.keys()].sort()).toEqual(["f:page.js", "f:runbook.md", "f:test_routes.py"]);
   });
 
+  it("follows a part both kinds of link reach through the spreading one, so what depends on it is reached too", () => {
+    // D checks B (stops) but also calls C (spreads); E calls D. B is reached first, at the same hop as C.
+    const links = [
+      { from: "B", to: "A", kind: "calls" },
+      { from: "C", to: "A", kind: "calls" },
+      { from: "D", to: "B", kind: "checks", stop: true },
+      { from: "D", to: "C", kind: "calls" },
+      { from: "E", to: "D", kind: "calls" },
+    ];
+    const { hits } = computeLinkBlastRadius(links, "A", new Map());
+    expect(hits.get("D")).toMatchObject({ hop: 2, via: { from: "D", to: "C" } });
+    expect(hits.get("E")?.hop).toBe(3);
+  });
+
+  it("draws an outside part both sides hold with each side's own count of links that spread", () => {
+    const parentOf = new Map([
+      ["k1", "v"],
+      ["k2", "v"],
+      ["v", "c"],
+      ["o1", "w"],
+      ["o2", "w"],
+      ["w", "c"],
+    ]);
+    // k1 imports o1 (spreads, right side); o1 only tests k2 (stops, left side); o2 calls k2 once (spreads)
+    const links = [
+      { from: "k1", to: "o1", kind: "imports" },
+      { from: "o1", to: "k2", kind: "tests", stop: true },
+      { from: "o1", to: "k2", kind: "tests", stop: true },
+      { from: "o2", to: "k2", kind: "calls" },
+    ];
+    const view = liftLinksToView(links, "v", ["k1", "k2"], parentOf);
+    expect(view.outs.map((o) => [o.id, o.spreading])).toEqual([["o1", 1]]);
+    // on the left, o2's one call comes before o1's two tests
+    expect(view.ins.map((o) => [o.id, o.spreading])).toEqual([
+      ["o2", 1],
+      ["o1", 0],
+    ]);
+  });
+
   it("adds code links to the unified graph the MCP tools query", () => {
     const { edges } = buildUnifiedArchitectureGraph(codeModel);
     expect(edges.some((e) => e.from === "f:page.js" && e.to === "s:routes.py#data" && e.label === "calls")).toBe(true);
