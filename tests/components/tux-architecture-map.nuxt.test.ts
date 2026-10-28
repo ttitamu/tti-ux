@@ -227,11 +227,12 @@ describe("TuxArchitectureMap Component", () => {
     expect(wrapper.find(".tux-map__note-body").text()).toBe("Level 3 API note");
   });
 
-  it("attaches the magnetic proximity frame in empty space near a card and zooms into it on wheel scroll", async () => {
+  it("attaches the magnetic proximity frame in the 36px halo and glides to the closest zoomable card on wheel scroll instead of stale focusId", async () => {
     const wrapper = await mountSuspended(TuxArchitectureMap, {
       props: {
         model: DEFAULT_TTI_LEVEL_MODEL,
         initialLevel: 2,
+        initialFocus: "c-edge",
       },
     });
 
@@ -249,43 +250,45 @@ describe("TuxArchitectureMap Component", () => {
     const cardLeft = Number(leftMatch?.[1] ?? 500);
     const cardTop = Number(topMatch?.[1] ?? 200);
 
-    // Far away in open canvas (e.g., top-left corner), proximity does NOT activate
+    // 1. Passive pointermove outside the 36px halo (e.g., 55px above c-search) does NOT activate proximity frame
     const viewport = wrapper.find(".tux-map__viewport");
+    const openSpaceClientX = Math.round((cardLeft + 40) * scale);
+    const openSpaceClientY = Math.round((cardTop - 55) * scale);
     viewport.element.dispatchEvent(
       new MouseEvent("pointermove", {
-        clientX: 4,
-        clientY: 4,
+        clientX: openSpaceClientX,
+        clientY: openSpaceClientY,
         bubbles: true,
       }),
     );
     await nextTick();
     expect(wrapper.find(".tux-map__proximity-frame").exists()).toBe(false);
 
-    // Move pointer in the tight halo (14px above-left in stage coordinates) right around the `c-search` card
-    const haloClientX = Math.round((cardLeft - 14) * scale);
-    const haloClientY = Math.round((cardTop - 14) * scale);
+    // 2. Initiating a mouse wheel scroll in that empty space (55px away from c-search) snaps proximity
+    // to the closest zoomable card (`c-search`, NOT the stale `c-edge`) and glides the tether toward it
     viewport.element.dispatchEvent(
-      new MouseEvent("pointermove", {
-        clientX: haloClientX,
-        clientY: haloClientY,
+      new WheelEvent("wheel", {
+        clientX: openSpaceClientX,
+        clientY: openSpaceClientY,
+        deltaY: -14,
         bubbles: true,
+        cancelable: true,
       }),
     );
     await nextTick();
 
-    // Magnetic proximity frame and port handles attach to `c-search`
     const proxFrame = wrapper.find(".tux-map__proximity-frame");
     expect(proxFrame.exists()).toBe(true);
     expect(proxFrame.findAll(".tux-map__port").length).toBe(4);
     expect(proxFrame.text()).toContain("AI Search Service");
     expect(viewport.classes()).toContain("tux-map__viewport--proximity-zoom");
 
-    // Initiate mouse wheel scroll in empty space near `c-search` — locks onto `c-search` and zooms into its Level 3 view
+    // 3. Continuing the wheel scroll completes the zoom into `c-search` (AI Search Service)
     viewport.element.dispatchEvent(
       new WheelEvent("wheel", {
-        clientX: haloClientX,
-        clientY: haloClientY,
-        deltaY: -48,
+        clientX: openSpaceClientX,
+        clientY: openSpaceClientY,
+        deltaY: -24,
         bubbles: true,
         cancelable: true,
       }),

@@ -1395,6 +1395,7 @@ function findNearestCardToPoint(
   stageY: number,
   maxDist = 36,
   preferZoomable = true,
+  requireZoomable = false,
 ): {
   id: string;
   name: string;
@@ -1417,12 +1418,14 @@ function findNearestCardToPoint(
 
   for (const [id, r] of Object.entries(stageData.value.rects)) {
     if (r.bound) continue;
+    const zoomable = isCardIdZoomable(id);
+    if (requireZoomable && !zoomable) continue;
+
     const anchorX = Math.max(r.x, Math.min(r.x + r.w, stageX));
     const anchorY = Math.max(r.y, Math.min(r.y + r.h, stageY));
     const dist = Math.hypot(stageX - anchorX, stageY - anchorY);
     if (dist > maxDist) continue;
 
-    const zoomable = isCardIdZoomable(id);
     // When in empty space, give zoomable cards a slight magnetic attraction advantage
     const score = dist === 0 ? 0 : preferZoomable && zoomable ? dist * 0.78 : dist;
     if (!best || score < best.score) {
@@ -1460,29 +1463,12 @@ function setProximityClassOnDom(nextId: string | null) {
   }
 }
 
-function updateProximityAtStagePoint(stageX: number, stageY: number) {
-  if (activeTool.value !== "select" || isListView.value) {
-    if (proximityCard.value) {
-      proximityCard.value = null;
-      setProximityClassOnDom(null);
-    }
-    hideProximityTetherDom();
-    return;
-  }
-
-  const nearest = findNearestCardToPoint(stageX, stageY, 36, true);
-  if (!nearest) {
-    if (proximityCard.value) {
-      proximityCard.value = null;
-      setProximityClassOnDom(null);
-      if (!selectedId.value && !currentHoveredId) {
-        applyStageHighlight(null);
-      }
-    }
-    hideProximityTetherDom();
-    return;
-  }
-
+function renderProximityMatch(
+  nearest: NonNullable<ReturnType<typeof findNearestCardToPoint>>,
+  stageX: number,
+  stageY: number,
+  glideProgress = 0,
+) {
   if (proximityCard.value?.id !== nearest.id) {
     clearPreZoomCardTransform();
     proximityCard.value = {
@@ -1500,34 +1486,64 @@ function updateProximityAtStagePoint(stageX: number, stageY: number) {
     }
   }
 
-  // Update elastic magnetic tether SVG in O(1) direct DOM when cursor is in the tight 36px halo around the card
   const svgEl = proximityTetherSvgRef.value;
   const beamEl = proximityTetherBeamRef.value;
   const curDot = proximityCursorDotRef.value;
   const ancDot = proximityAnchorDotRef.value;
   if (svgEl && beamEl && curDot && ancDot) {
     if (nearest.dist > 3) {
-      const midX = (stageX + nearest.anchorX) / 2;
-      const midY = (stageY + nearest.anchorY) / 2;
+      // As the user scrolls the wheel, glide the magnetic cursor dot along the path toward the card!
+      const startX = stageX + (nearest.anchorX - stageX) * glideProgress * 0.75;
+      const startY = stageY + (nearest.anchorY - stageY) * glideProgress * 0.75;
+      const midX = (startX + nearest.anchorX) / 2;
+      const midY = (startY + nearest.anchorY) / 2;
       const cardCx = nearest.rect.x + nearest.rect.w / 2;
       const cardCy = nearest.rect.y + nearest.rect.h / 2;
-      // Slight magnetic curve toward card center axis
       const ctrlX = midX + (cardCx - midX) * 0.18;
       const ctrlY = midY + (cardCy - midY) * 0.18;
       beamEl.setAttribute(
         "d",
-        `M${stageX.toFixed(1)},${stageY.toFixed(1)} Q${ctrlX.toFixed(1)},${ctrlY.toFixed(1)} ${nearest.anchorX.toFixed(1)},${nearest.anchorY.toFixed(1)}`,
+        `M${startX.toFixed(1)},${startY.toFixed(1)} Q${ctrlX.toFixed(1)},${ctrlY.toFixed(1)} ${nearest.anchorX.toFixed(1)},${nearest.anchorY.toFixed(1)}`,
       );
-      curDot.setAttribute("cx", stageX.toFixed(1));
-      curDot.setAttribute("cy", stageY.toFixed(1));
+      curDot.setAttribute("cx", startX.toFixed(1));
+      curDot.setAttribute("cy", startY.toFixed(1));
       ancDot.setAttribute("cx", nearest.anchorX.toFixed(1));
       ancDot.setAttribute("cy", nearest.anchorY.toFixed(1));
-      const strength = Math.max(0.28, 1 - nearest.dist / 42);
+      const strength =
+        glideProgress > 0
+          ? Math.min(0.95, 0.45 + glideProgress * 0.5)
+          : Math.max(0.28, 1 - nearest.dist / 42);
       svgEl.style.opacity = strength.toFixed(2);
     } else {
       svgEl.style.opacity = "0";
     }
   }
+}
+
+function updateProximityAtStagePoint(stageX: number, stageY: number) {
+  if (activeTool.value !== "select" || isListView.value) {
+    if (proximityCard.value) {
+      proximityCard.value = null;
+      setProximityClassOnDom(null);
+    }
+    hideProximityTetherDom();
+    return;
+  }
+
+  const nearest = findNearestCardToPoint(stageX, stageY, 36, true, false);
+  if (!nearest) {
+    if (proximityCard.value) {
+      proximityCard.value = null;
+      setProximityClassOnDom(null);
+      if (!selectedId.value && !currentHoveredId) {
+        applyStageHighlight(null);
+      }
+    }
+    hideProximityTetherDom();
+    return;
+  }
+
+  renderProximityMatch(nearest, stageX, stageY, 0);
 }
 
 function onStagePointerOver(ev: PointerEvent) {
@@ -2060,16 +2076,23 @@ function zoomIntoElement(id: string) {
       liveAnnouncement.value = `Zoomed in to Level 4: deployment infrastructure for ${e.name}.`;
       return;
     }
-    if (focusId.value) {
-      const fName = byId.value[focusId.value]?.name ?? focusId.value;
+    const r = stageData.value.rects[id];
+    const nearestZoomable = findNearestCardToPoint(
+      r ? r.x + r.w / 2 : stageData.value.width / 2,
+      r ? r.y + r.h / 2 : stageData.value.height / 2,
+      Infinity,
+      true,
+      true,
+    );
+    if (nearestZoomable) {
       goToLevel(3, {
-        nextFocus: focusId.value,
+        nextFocus: nearestZoomable.id,
         nextSel: null,
-        fromCardId: id,
+        fromCardId: nearestZoomable.id,
         inward: true,
-        hudLabel: `Level 2 → Level 3 · ${fName}`,
+        hudLabel: `Level 2 → Level 3 · ${nearestZoomable.name}`,
       });
-      liveAnnouncement.value = `Zoomed in to Level 3: internal components of ${fName}.`;
+      liveAnnouncement.value = `Zoomed in to Level 3: internal components of ${nearestZoomable.name}.`;
     }
     return;
   }
@@ -2317,22 +2340,28 @@ function onViewportWheel(ev: WheelEvent) {
     lockedWheelCardId = null;
   }
 
-  // Lock onto the proximity-attached card when the wheel gesture begins so the scroll wheel
-  // physically attaches to the nearest card and follows its zoom path even if the cursor is in empty space
+  // When a wheel gesture begins anywhere on the canvas, always find the closest card to the cursor
+  // (requiring a zoomable card when zooming in) so we never fall back to a stale memory of `focusId`
+  const directCardId = targetEl?.dataset?.id ?? null;
   if (!lockedWheelCardId) {
-    const nearMatch = findNearestCardToPoint(pt.x, pt.y, 44, isZoomIn);
-    lockedWheelCardId =
-      targetEl?.dataset?.id ||
-      nearMatch?.id ||
-      proximityCard.value?.id ||
-      currentHoveredId ||
-      selectedId.value ||
-      null;
+    if (directCardId && (!isZoomIn || isCardIdZoomable(directCardId))) {
+      lockedWheelCardId = directCardId;
+    } else {
+      const closestMatch =
+        findNearestCardToPoint(pt.x, pt.y, Infinity, isZoomIn, isZoomIn) ||
+        findNearestCardToPoint(pt.x, pt.y, Infinity, isZoomIn, false);
+      lockedWheelCardId =
+        closestMatch?.id ||
+        proximityCard.value?.id ||
+        currentHoveredId ||
+        selectedId.value ||
+        null;
+    }
   }
 
   const candidateId =
     lockedWheelCardId ||
-    targetEl?.dataset?.id ||
+    directCardId ||
     proximityCard.value?.id ||
     currentHoveredId ||
     selectedId.value;
@@ -2356,13 +2385,36 @@ function onViewportWheel(ev: WheelEvent) {
   lastWheelEventAt = now;
   wheelDeltaAccum += ev.deltaY;
 
-  // Physical pre-zoom response: attach to the proximity/hovered card, pull it slightly along the
+  // Visually attach the magnetic frame to the closest card and glide the magnetic cursor dot
+  // along the tether toward that card as the wheel turns
+  const progress = Math.min(1, Math.abs(wheelDeltaAccum) / 26);
+  if (candidateId && stageData.value.rects[candidateId]) {
+    const r = stageData.value.rects[candidateId]!;
+    const anchorX = Math.max(r.x, Math.min(r.x + r.w, pt.x));
+    const anchorY = Math.max(r.y, Math.min(r.y + r.h, pt.y));
+    const dist = Math.hypot(pt.x - anchorX, pt.y - anchorY);
+    renderProximityMatch(
+      {
+        id: candidateId,
+        name: getCardDisplayName(candidateId),
+        zoomable: isCardIdZoomable(candidateId),
+        rect: r,
+        anchorX,
+        anchorY,
+        dist,
+      },
+      pt.x,
+      pt.y,
+      progress,
+    );
+  }
+
+  // Physical pre-zoom response: attach to the closest card, pull it slightly along the
   // cursor vector, and scale it as the wheel turns
   const activeCardEl =
-    targetEl ||
     (candidateId && stageRef.value
       ? stageRef.value.querySelector<HTMLElement>(`.tux-map__el[data-id="${candidateId}"]`)
-      : null);
+      : null) || targetEl;
 
   if (activeCardEl && Math.abs(wheelDeltaAccum) < 26) {
     if (preZoomCardEl && preZoomCardEl !== activeCardEl) {
@@ -2372,7 +2424,6 @@ function onViewportWheel(ev: WheelEvent) {
     const r = candidateId ? stageData.value.rects[candidateId] : undefined;
     const cardCx = r ? r.x + r.w / 2 : pt.x;
     const cardCy = r ? r.y + r.h / 2 : pt.y;
-    const progress = Math.min(1, Math.abs(wheelDeltaAccum) / 26);
     const pullSign = isZoomIn ? 0.14 : -0.09;
     const pullX = Math.max(-14, Math.min(14, (pt.x - cardCx) * progress * pullSign));
     const pullY = Math.max(-10, Math.min(10, (pt.y - cardCy) * progress * pullSign));
@@ -2399,17 +2450,16 @@ function onViewportWheel(ev: WheelEvent) {
 
   if (isZoomIn) {
     let id = resolvedId;
+    if (!id) {
+      id = findNearestCardToPoint(pt.x, pt.y, Infinity, true, true)?.id ?? null;
+    }
     if (!id && currentLevel.value === 1) {
       id = activeModel.value.level2.boundary;
-    } else if (!id && currentLevel.value === 2) {
-      id = focusId.value;
     } else if (!id && currentLevel.value === 3) {
       id = stageData.value.els.find((e) => !e.mini)?.id ?? stageData.value.els[0]?.id ?? null;
     }
     if (id && (byId.value[id] || resById.value[id])) {
       zoomIntoElement(id);
-    } else if (currentLevel.value === 2 && focusId.value) {
-      zoomIntoElement(focusId.value);
     } else if (currentLevel.value === 3) {
       goToLevel(4, { inward: true, hudLabel: "Level 3 → Level 4 · Deployment" });
     }
