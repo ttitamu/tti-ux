@@ -300,6 +300,19 @@ export default defineNuxtConfig({
   },
 
   hooks: {
+    // Strip global `<link rel="prefetch">` / `<link rel="modulepreload">` bloat from the
+    // build manifest for non-entry dynamic chunks (like the 180+ `global: true` MDC
+    // component chunks). Without this, SSR/prerendered HTML `<head>` tags carry 160+
+    // prefetch/modulepreload links before `<body>`, choking LLM web-fetchers, crawlers,
+    // and social preview parsers before they ever reach the page content.
+    "build:manifest"(manifest) {
+      for (const item of Object.values(manifest)) {
+        item.prefetch = false;
+        if (!item.isEntry) {
+          item.preload = false;
+        }
+      }
+    },
     // Nuxt registers `global: true` components with async dynamic wrappers for
     // MDC runtime resolution. When components (like TuxErrorPage, TuxFooter, etc.)
     // are also statically referenced by templates or layouts, Rollup and Rolldown

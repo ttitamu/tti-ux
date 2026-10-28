@@ -16,6 +16,11 @@ import {
   routeGridWires,
   routeDeploymentWires,
   buildLevelModelFromLegacyNodes,
+  buildUnifiedArchitectureGraph,
+  queryArchitectureLayer,
+  queryMultiLevelBlastRadius,
+  findShortestArchitecturePath,
+  coordinateAcpSubgraphLease,
   DEFAULT_TTI_LEVEL_MODEL,
   type TuxMapNode,
   type TuxMapEdge,
@@ -216,5 +221,55 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect(converted.level2.elements.length).toBeGreaterThanOrEqual(2);
     expect(converted.level3["sys-a"]?.length).toBeGreaterThan(0);
     expect(converted.level4.nodes.length).toBe(2);
+  });
+
+  it("queries unified 6-level architecture graph, multi-hop blast radius, shortest path, and ACP subgraph leases", () => {
+    const cpg = buildUnifiedArchitectureGraph(DEFAULT_TTI_LEVEL_MODEL);
+    expect(cpg.nodes.size).toBeGreaterThan(25);
+    expect(cpg.edges.length).toBeGreaterThan(25);
+
+    const lvl5 = queryArchitectureLayer(DEFAULT_TTI_LEVEL_MODEL, {
+      focusId: "ai-search-app",
+    });
+    expect(lvl5.nodeCount).toBeGreaterThanOrEqual(4);
+
+    const blast = queryMultiLevelBlastRadius("c-api", DEFAULT_TTI_LEVEL_MODEL, 2);
+    expect("error" in blast).toBe(false);
+    if (!("error" in blast)) {
+      expect(blast.descendantIds).toContain("c-api/1");
+      expect(blast.upstreamDependents.some((u) => u.id === "c-edge" || u.id === "c-web")).toBe(true);
+      expect(blast.downstreamDependencies.some((d) => d.id === "c-db" || d.id === "c-cache")).toBe(true);
+      expect(blast.impactedSourceFiles.some((f) => f.path.includes("services/api"))).toBe(true);
+    }
+
+    const sp = findShortestArchitecturePath("p-users", "c-db", DEFAULT_TTI_LEVEL_MODEL);
+    expect(sp.found).toBe(true);
+    expect(sp.hops).toBeGreaterThanOrEqual(2);
+
+    // ACP Subgraph Lease acquisition & conflict prevention
+    const leaseA = coordinateAcpSubgraphLease("acquire", {
+      agentId: "agent-alpha",
+      rootNodeId: "c-api",
+    });
+    expect(leaseA.acquired).toBe(true);
+
+    // Overlapping child node `c-api/1` requested by `agent-beta` must be rejected
+    const leaseConflict = coordinateAcpSubgraphLease("acquire", {
+      agentId: "agent-beta",
+      rootNodeId: "c-api/1",
+    });
+    expect(leaseConflict.acquired).toBe(false);
+    expect(leaseConflict.conflict?.heldByAgent).toBe("agent-alpha");
+
+    // Non-overlapping node `ai-search-app` requested by `agent-beta` succeeds
+    const leaseB = coordinateAcpSubgraphLease("acquire", {
+      agentId: "agent-beta",
+      rootNodeId: "ai-search-app",
+    });
+    expect(leaseB.acquired).toBe(true);
+
+    // Release both leases
+    coordinateAcpSubgraphLease("release", { agentId: "agent-alpha" });
+    coordinateAcpSubgraphLease("release", { agentId: "agent-beta" });
   });
 });
