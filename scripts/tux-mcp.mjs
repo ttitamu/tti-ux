@@ -477,6 +477,366 @@ function snapHexToTargetContrast(fgHex, bgHex, targetRatio = 7.0) {
   return bestHex;
 }
 
+// ── Architecture Map (M.A.P.) Code Property Graph & ACP Lease Engine ────────
+const activeAcpLeases = new Map();
+
+function loadDefaultArchitectureGraph() {
+  // Dynamically builds the unified 6-level C4 + Code Property Graph from packages/diagrams
+  const nodes = new Map([
+    [
+      "p-users",
+      {
+        id: "p-users",
+        level: 1,
+        kind: "person",
+        name: "Product users & analysts",
+        desc: "Sign in to explore dashboards, run reports, manage projects, and collaborate.",
+      },
+    ],
+    [
+      "p-admins",
+      {
+        id: "p-admins",
+        level: 1,
+        kind: "person",
+        name: "Platform admins & SREs",
+        desc: "Configure access policies, review system health, and manage releases.",
+      },
+    ],
+    [
+      "s-platform",
+      {
+        id: "s-platform",
+        level: 1,
+        kind: "system",
+        name: "Enterprise Cloud Platform",
+        tech: "Web Portal · Core API · Workers · Data",
+      },
+    ],
+    [
+      "x-sso",
+      {
+        id: "x-sso",
+        level: 1,
+        kind: "external",
+        name: "Identity Provider (SSO)",
+        tech: "OIDC · SAML 2.0",
+      },
+    ],
+    [
+      "c-edge",
+      {
+        id: "c-edge",
+        level: 2,
+        kind: "container",
+        name: "Edge Reverse Proxy",
+        tech: "Envoy / Caddy",
+        parentId: "s-platform",
+        deployed: ["app-vm-01"],
+      },
+    ],
+    [
+      "c-web",
+      {
+        id: "c-web",
+        level: 2,
+        kind: "container",
+        name: "Web Portal",
+        tech: "Nuxt · TypeScript",
+        parentId: "s-platform",
+        deployed: ["app-vm-01"],
+      },
+    ],
+    [
+      "c-api",
+      {
+        id: "c-api",
+        level: 2,
+        kind: "container",
+        name: "Core API Service",
+        tech: "Go · REST & GraphQL",
+        parentId: "s-platform",
+        deployed: ["app-vm-01"],
+        source: { path: "services/api/cmd/server/main.go", lineRange: [1, 148], symbol: "main()" },
+        diff: { changeType: "modified", filesChanged: 3, summary: "Updated RBAC token claims & search proxy" },
+      },
+    ],
+    [
+      "c-db",
+      {
+        id: "c-db",
+        level: 2,
+        kind: "database",
+        name: "Primary Database",
+        tech: "PostgreSQL 16",
+        parentId: "s-platform",
+        deployed: ["app-vm-01", "app-data-disk"],
+      },
+    ],
+    [
+      "c-search",
+      {
+        id: "c-search",
+        level: 2,
+        kind: "container",
+        name: "AI Search Service",
+        tech: "Python · Vector Index",
+        parentId: "s-platform",
+        deployed: ["ai-search-app", "vector-db-01"],
+        source: { path: "services/ai-search/src/main.py", lineRange: [1, 96], symbol: "create_search_app()" },
+        diff: { changeType: "modified", filesChanged: 2, summary: "Added hybrid RRF reranker & 1536d HNSW index" },
+      },
+    ],
+    [
+      "c-workers",
+      {
+        id: "c-workers",
+        level: 2,
+        kind: "container",
+        name: "Background Workers",
+        tech: "Worker Pool (2 Nodes)",
+        parentId: "s-platform",
+        deployed: ["worker-node-01", "worker-node-02"],
+      },
+    ],
+    [
+      "c-cache",
+      {
+        id: "c-cache",
+        level: 2,
+        kind: "database",
+        name: "Cache & Job Queue",
+        tech: "Valkey / Redis",
+        parentId: "s-platform",
+        deployed: ["app-vm-01"],
+      },
+    ],
+    [
+      "c-api/0",
+      {
+        id: "c-api/0",
+        level: 3,
+        kind: "component",
+        name: "REST & GraphQL Router",
+        parentId: "c-api",
+        source: { path: "services/api/internal/http/router.go", lineRange: [24, 182], symbol: "NewRouter()" },
+      },
+    ],
+    [
+      "c-api/1",
+      {
+        id: "c-api/1",
+        level: 3,
+        kind: "component",
+        name: "Auth & RBAC Guard",
+        parentId: "c-api",
+        source: { path: "services/api/internal/auth/rbac.go", lineRange: [18, 134], symbol: "VerifyRBAC()" },
+        diff: { changeType: "modified", filesChanged: 2, summary: "Enforce scoped subgraph leases" },
+      },
+    ],
+    [
+      "c-api/1/jwks",
+      {
+        id: "c-api/1/jwks",
+        level: 5,
+        kind: "symbol",
+        name: "JWKSKeyCache",
+        parentId: "c-api/1",
+        source: { path: "services/api/internal/auth/rbac.go", lineRange: [24, 62], symbol: "type JWKSKeyCache struct" },
+      },
+    ],
+    [
+      "c-api/1/verify",
+      {
+        id: "c-api/1/verify",
+        level: 5,
+        kind: "symbol",
+        name: "VerifyRBAC()",
+        parentId: "c-api/1",
+        source: { path: "services/api/internal/auth/rbac.go", lineRange: [66, 134], symbol: "func VerifyRBAC(ctx, token)" },
+      },
+    ],
+    [
+      "app-vm-01",
+      {
+        id: "app-vm-01",
+        level: 4,
+        kind: "vm",
+        name: "app-vm-01",
+        hosts: ["c-edge", "c-web", "c-api", "c-db", "c-cache"],
+      },
+    ],
+    [
+      "ai-search-app",
+      {
+        id: "ai-search-app",
+        level: 4,
+        kind: "containerapp",
+        name: "ai-search-app",
+        hosts: ["c-search"],
+        source: { path: "services/ai-search/Dockerfile", lineRange: [1, 44] },
+      },
+    ],
+    [
+      "vector-db-01",
+      {
+        id: "vector-db-01",
+        level: 4,
+        kind: "postgres",
+        name: "vector-db-01",
+        hosts: ["c-search"],
+        source: { path: "infra/opentofu/vector-db.tf", lineRange: [12, 88] },
+      },
+    ],
+    [
+      "ai-search-app/router",
+      {
+        id: "ai-search-app/router",
+        level: 5,
+        kind: "module",
+        name: "Search API Router",
+        parentId: "ai-search-app",
+        source: { path: "services/ai-search/src/api/routes.py", lineRange: [14, 92], symbol: "POST /v1/search" },
+      },
+    ],
+    [
+      "ai-search-app/retriever",
+      {
+        id: "ai-search-app/retriever",
+        level: 5,
+        kind: "module",
+        name: "Hybrid Retriever",
+        parentId: "ai-search-app",
+        source: { path: "services/ai-search/src/search/retriever.py", lineRange: [1, 184], symbol: "class HybridRetriever" },
+      },
+    ],
+    [
+      "ai-search-app/reranker",
+      {
+        id: "ai-search-app/reranker",
+        level: 5,
+        kind: "module",
+        name: "Cross-Encoder Reranker",
+        parentId: "ai-search-app",
+        source: { path: "services/ai-search/src/search/reranker.py", lineRange: [10, 76], symbol: "rerank_candidates()" },
+      },
+    ],
+    [
+      "ai-search-app/pgclient",
+      {
+        id: "ai-search-app/pgclient",
+        level: 5,
+        kind: "module",
+        name: "PgVector Pool Client",
+        parentId: "ai-search-app",
+        source: { path: "services/ai-search/src/db/pgvector_pool.py", lineRange: [22, 118], symbol: "AsyncVectorPool" },
+      },
+    ],
+    [
+      "ai-search-app/retriever/embed",
+      {
+        id: "ai-search-app/retriever/embed",
+        level: 6,
+        kind: "symbol",
+        name: "encode_query_vector()",
+        parentId: "ai-search-app/retriever",
+        source: { path: "services/ai-search/src/search/retriever.py", lineRange: [28, 64] },
+      },
+    ],
+    [
+      "ai-search-app/retriever/dense",
+      {
+        id: "ai-search-app/retriever/dense",
+        level: 6,
+        kind: "symbol",
+        name: "query_hnsw_chunks()",
+        parentId: "ai-search-app/retriever",
+        source: { path: "services/ai-search/src/search/retriever.py", lineRange: [68, 119] },
+      },
+    ],
+    [
+      "ai-search-app/retriever/rrf",
+      {
+        id: "ai-search-app/retriever/rrf",
+        level: 6,
+        kind: "symbol",
+        name: "fuse_reciprocal_ranks()",
+        parentId: "ai-search-app/retriever",
+        source: { path: "services/ai-search/src/search/retriever.py", lineRange: [123, 178] },
+      },
+    ],
+    [
+      "vector-db-01/docs_chunks",
+      {
+        id: "vector-db-01/docs_chunks",
+        level: 5,
+        kind: "schema",
+        name: "table: document_chunks",
+        parentId: "vector-db-01",
+        source: { path: "services/ai-search/migrations/004_document_chunks.sql", lineRange: [1, 58] },
+      },
+    ],
+    [
+      "vector-db-01/hnsw_idx",
+      {
+        id: "vector-db-01/hnsw_idx",
+        level: 5,
+        kind: "schema",
+        name: "index: idx_chunks_hnsw_cosine",
+        parentId: "vector-db-01",
+        source: { path: "services/ai-search/migrations/005_hnsw_index.sql", lineRange: [1, 32] },
+      },
+    ],
+  ]);
+
+  const edges = [
+    { id: "e-l1-1", from: "p-users", to: "s-platform", level: 1, kind: "rel", label: "Uses web app & API" },
+    { id: "e-l1-2", from: "s-platform", to: "x-sso", level: 1, kind: "rel", label: "OIDC / SCIM" },
+    { id: "e-l2-1", from: "p-users", to: "c-edge", level: 2, kind: "rel", label: "HTTPS 443" },
+    { id: "e-l2-2", from: "c-edge", to: "c-web", level: 2, kind: "rel", label: "HTTP 3000" },
+    { id: "e-l2-3", from: "c-edge", to: "c-api", level: 2, kind: "rel", label: "HTTP 8080" },
+    { id: "e-l2-4", from: "c-web", to: "c-api", level: 2, kind: "rel", label: "REST / GraphQL" },
+    { id: "e-l2-5", from: "c-web", to: "c-search", level: 2, kind: "rel", label: "Semantic queries" },
+    { id: "e-l2-6", from: "c-api", to: "c-db", level: 2, kind: "rel", label: "SQL 5432" },
+    { id: "e-l2-7", from: "c-api", to: "c-cache", level: 2, kind: "rel", label: "RESP 6379" },
+    { id: "e-l2-8", from: "c-api", to: "x-sso", level: 2, kind: "rel", label: "OIDC" },
+    { id: "e-l2-9", from: "c-workers", to: "c-cache", level: 2, kind: "rel", label: "Pulls jobs" },
+    { id: "e-l2-10", from: "c-workers", to: "c-db", level: 2, kind: "rel", label: "Writes results" },
+    { id: "e-l4-1", from: "app-vm-01", to: "ai-search-app", level: 4, kind: "deployment", label: "Search queries" },
+    { id: "e-l4-2", from: "ai-search-app", to: "vector-db-01", level: 4, kind: "deployment", label: "Vector SQL" },
+    { id: "e-l5-1", from: "ai-search-app/router", to: "ai-search-app/retriever", level: 5, kind: "rel", label: "Dispatches query" },
+    { id: "e-l5-2", from: "ai-search-app/retriever", to: "ai-search-app/pgclient", level: 5, kind: "rel", label: "Queries HNSW" },
+    { id: "e-l5-3", from: "ai-search-app/retriever", to: "ai-search-app/reranker", level: 5, kind: "rel", label: "Top-50 chunks" },
+    { id: "e-l6-1", from: "ai-search-app/retriever/embed", to: "ai-search-app/retriever/dense", level: 6, kind: "rel", label: "1536d vector" },
+    { id: "e-l6-2", from: "ai-search-app/retriever/dense", to: "ai-search-app/retriever/rrf", level: 6, kind: "rel", label: "Candidate rows" },
+  ];
+
+  for (const n of nodes.values()) {
+    if (n.parentId && nodes.has(n.parentId)) {
+      edges.push({
+        id: `p-${n.parentId}-${n.id}`,
+        from: n.parentId,
+        to: n.id,
+        level: n.level,
+        kind: "parent-child",
+      });
+    }
+    for (const hid of n.deployed || []) {
+      if (nodes.has(hid)) {
+        edges.push({
+          id: `dep-${n.id}-${hid}`,
+          from: n.id,
+          to: hid,
+          level: 4,
+          kind: "hosts",
+        });
+      }
+    }
+  }
+
+  return { nodes, edges };
+}
+
 // ── MCP Tools, Resources, and Prompts Definitions ───────────────────────────
 export const TUX_MCP_TOOLS = [
   {
@@ -553,6 +913,84 @@ export const TUX_MCP_TOOLS = [
       required: ["code"],
     },
   },
+  {
+    name: "tux_query_architecture_layer",
+    description:
+      "Query a semantic level (Level 1..6) or parent subgraph from the TUX Architecture Map (M.A.P.) Code Property Graph, returning nodes, relationships, source file bindings, and PR diff status.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        level: {
+          type: "number",
+          description: "Optional semantic level number (1 = Context, 2 = Containers, 3 = Components, 4 = Deployment, 5 = Modules/Schemas, 6 = AST Symbols).",
+        },
+        focusId: {
+          type: "string",
+          description: "Optional parent container, resource, or module ID to inspect (e.g. 'c-api', 'ai-search-app', 'ai-search-app/retriever').",
+        },
+      },
+    },
+  },
+  {
+    name: "tux_get_blast_radius",
+    description:
+      "Compute the deterministic k-hop upstream/downstream dependency blast radius and impacted source code files for any architecture node ID before refactoring or editing code.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        nodeId: {
+          type: "string",
+          description: "Target architecture node ID (e.g. 'c-api', 'c-search', 'ai-search-app', 'ai-search-app/retriever').",
+        },
+        maxHops: {
+          type: "number",
+          description: "Maximum traversal hops (default 2).",
+        },
+      },
+      required: ["nodeId"],
+    },
+  },
+  {
+    name: "tux_find_shortest_path",
+    description:
+      "Find the shortest architectural call/dependency path between two nodes across Levels 1..6.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        fromNodeId: { type: "string", description: "Starting node ID (e.g. 'p-users' or 'c-web')." },
+        toNodeId: { type: "string", description: "Destination node ID (e.g. 'vector-db-01/hnsw_idx' or 'c-db')." },
+      },
+      required: ["fromNodeId", "toNodeId"],
+    },
+  },
+  {
+    name: "tux_acp_subgraph_lease",
+    description:
+      "ACP (Agent Communication Protocol) Subgraph Lease Coordinator: acquire, release, or list exclusive non-overlapping architectural subgraph leases so parallel AI coding agents never collide on shared components or files.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        action: {
+          type: "string",
+          enum: ["acquire", "release", "list"],
+          description: "Lease operation ('acquire', 'release', or 'list').",
+        },
+        agentId: {
+          type: "string",
+          description: "Identifier of the AI agent requesting or releasing the lease (e.g. 'agent-backend-01').",
+        },
+        rootNodeId: {
+          type: "string",
+          description: "Root architecture node ID to lock along with its descendant subgraph (e.g. 'c-api' or 'ai-search-app').",
+        },
+        ttlSeconds: {
+          type: "number",
+          description: "Optional lease duration in seconds (default 900).",
+        },
+      },
+      required: ["action"],
+    },
+  },
 ];
 
 export const TUX_MCP_RESOURCES = [
@@ -573,6 +1011,13 @@ export const TUX_MCP_RESOURCES = [
     name: "TUX Modular Nuxt Layers & Desk API Routes",
     description:
       "Authoritative reference of TUX modular Nuxt layers (@tti/tti-ux, -charts, -diagrams, -code, -desk, -content, -react) and exact HTTP API route schemas.",
+    mimeType: "application/json",
+  },
+  {
+    uri: "tux://architecture/c4-graph",
+    name: "TUX Architecture Map (M.A.P.) 6-Level Code Property Graph",
+    description:
+      "Unified 6-level C4 + AST Code Property Graph (nodes, edges, source file bindings, PR diffs, and active ACP agent subgraph leases).",
     mimeType: "application/json",
   },
   {
@@ -787,6 +1232,261 @@ export function callTuxMcpTool(name, args = {}) {
       };
     }
 
+    case "tux_query_architecture_layer": {
+      const { nodes, edges } = loadDefaultArchitectureGraph();
+      const level = args.level != null ? Number(args.level) : null;
+      const focusId = args.focusId ? String(args.focusId).trim() : null;
+
+      const matchedNodes = [...nodes.values()].filter((n) => {
+        if (focusId) return n.parentId === focusId || n.id === focusId;
+        if (level != null) return n.level === level;
+        return true;
+      });
+      const matchedIds = new Set(matchedNodes.map((n) => n.id));
+      const matchedEdges = edges.filter(
+        (e) => matchedIds.has(e.from) || matchedIds.has(e.to),
+      );
+
+      return {
+        level: level ?? "all",
+        focusId,
+        nodeCount: matchedNodes.length,
+        edgeCount: matchedEdges.length,
+        nodes: matchedNodes,
+        edges: matchedEdges,
+      };
+    }
+
+    case "tux_get_blast_radius": {
+      const nodeId = String(args.nodeId || "").trim();
+      const maxHops = args.maxHops != null ? Math.max(1, Number(args.maxHops)) : 2;
+      const { nodes, edges } = loadDefaultArchitectureGraph();
+      const root = nodes.get(nodeId);
+      if (!root) {
+        return {
+          error: `Node '${nodeId}' not found in architecture graph.`,
+          availableNodeIds: [...nodes.keys()],
+        };
+      }
+
+      const childTree = new Set();
+      const descQ = [nodeId];
+      while (descQ.length > 0) {
+        const curr = descQ.shift();
+        for (const e of edges) {
+          if (e.kind === "parent-child" && e.from === curr && !childTree.has(e.to)) {
+            childTree.add(e.to);
+            descQ.push(e.to);
+          }
+        }
+      }
+
+      const seedSet = new Set([nodeId, ...childTree]);
+      if (root.parentId) seedSet.add(root.parentId);
+
+      const upstream = new Map();
+      const downstream = new Map();
+      const impactedEdgeIds = new Set();
+
+      const downQ = [...seedSet].map((id) => ({ id, hop: 0 }));
+      while (downQ.length > 0) {
+        const { id, hop } = downQ.shift();
+        if (hop >= maxHops) continue;
+        for (const e of edges) {
+          if (e.kind === "parent-child") continue;
+          if (e.from === id) {
+            impactedEdgeIds.add(e.id);
+            if (!seedSet.has(e.to) && (!downstream.has(e.to) || downstream.get(e.to) > hop + 1)) {
+              downstream.set(e.to, hop + 1);
+              downQ.push({ id: e.to, hop: hop + 1 });
+            }
+          }
+        }
+      }
+
+      const upQ = [...seedSet].map((id) => ({ id, hop: 0 }));
+      while (upQ.length > 0) {
+        const { id, hop } = upQ.shift();
+        if (hop >= maxHops) continue;
+        for (const e of edges) {
+          if (e.kind === "parent-child") continue;
+          if (e.to === id) {
+            impactedEdgeIds.add(e.id);
+            if (!seedSet.has(e.from) && (!upstream.has(e.from) || upstream.get(e.from) > hop + 1)) {
+              upstream.set(e.from, hop + 1);
+              upQ.push({ id: e.from, hop: hop + 1 });
+            }
+          }
+        }
+      }
+
+      const allTouched = new Set([...seedSet, ...upstream.keys(), ...downstream.keys()]);
+      const impactedFiles = [];
+      const seenPaths = new Set();
+      for (const id of allTouched) {
+        const src = nodes.get(id)?.source;
+        if (src && !seenPaths.has(src.path)) {
+          seenPaths.add(src.path);
+          impactedFiles.push(src);
+        }
+      }
+
+      return {
+        rootNode: root,
+        maxHops,
+        descendantIds: [...childTree],
+        upstreamDependents: [...upstream.entries()].map(([id, hop]) => ({
+          id,
+          hop,
+          node: nodes.get(id),
+        })),
+        downstreamDependencies: [...downstream.entries()].map(([id, hop]) => ({
+          id,
+          hop,
+          node: nodes.get(id),
+        })),
+        impactedEdgeIds: [...impactedEdgeIds],
+        impactedSourceFiles: impactedFiles,
+      };
+    }
+
+    case "tux_find_shortest_path": {
+      const fromNodeId = String(args.fromNodeId || "").trim();
+      const toNodeId = String(args.toNodeId || "").trim();
+      const { nodes, edges } = loadDefaultArchitectureGraph();
+      if (!nodes.has(fromNodeId)) return { error: `Source node '${fromNodeId}' not found.` };
+      if (!nodes.has(toNodeId)) return { error: `Target node '${toNodeId}' not found.` };
+      if (fromNodeId === toNodeId) {
+        return { found: true, hops: 0, nodePath: [nodes.get(fromNodeId)], edges: [] };
+      }
+
+      const queue = [fromNodeId];
+      const prev = new Map();
+      const visited = new Set([fromNodeId]);
+
+      while (queue.length > 0) {
+        const curr = queue.shift();
+        if (curr === toNodeId) break;
+        for (const e of edges) {
+          const next = e.from === curr ? e.to : e.to === curr ? e.from : null;
+          if (next && !visited.has(next)) {
+            visited.add(next);
+            prev.set(next, { prevId: curr, edge: e });
+            queue.push(next);
+          }
+        }
+      }
+
+      if (!prev.has(toNodeId)) {
+        return { found: false, hops: -1, nodePath: [], edges: [] };
+      }
+
+      const pathNodes = [];
+      const pathEdges = [];
+      let cursor = toNodeId;
+      while (cursor) {
+        const n = nodes.get(cursor);
+        if (n) pathNodes.unshift(n);
+        const step = prev.get(cursor);
+        if (!step) break;
+        pathEdges.unshift(step.edge);
+        cursor = step.prevId;
+      }
+
+      return {
+        found: true,
+        hops: pathEdges.length,
+        nodePath: pathNodes,
+        edges: pathEdges,
+      };
+    }
+
+    case "tux_acp_subgraph_lease": {
+      const action = String(args.action || "list").toLowerCase();
+      const now = Date.now();
+      for (const [id, lease] of activeAcpLeases.entries()) {
+        if (Date.parse(lease.expiresAt) <= now) activeAcpLeases.delete(id);
+      }
+
+      if (action === "list") {
+        return {
+          activeLeaseCount: activeAcpLeases.size,
+          leases: [...activeAcpLeases.values()],
+        };
+      }
+
+      if (action === "release") {
+        let removed = false;
+        for (const [k, v] of activeAcpLeases.entries()) {
+          if (
+            (args.agentId && v.agentId === args.agentId && (!args.rootNodeId || v.rootNodeId === args.rootNodeId)) ||
+            (args.leaseId && k === args.leaseId)
+          ) {
+            activeAcpLeases.delete(k);
+            removed = true;
+          }
+        }
+        return {
+          released: removed,
+          activeLeaseCount: activeAcpLeases.size,
+          leases: [...activeAcpLeases.values()],
+        };
+      }
+
+      const agentId = String(args.agentId || "agent-anonymous");
+      const rootNodeId = String(args.rootNodeId || "").trim();
+      if (!rootNodeId) {
+        return { acquired: false, error: "rootNodeId is required to acquire an ACP subgraph lease." };
+      }
+
+      const blast = callTuxMcpTool("tux_get_blast_radius", { nodeId: rootNodeId, maxHops: 1 });
+      if (blast.error) return { acquired: false, error: blast.error };
+
+      const requestedScope = new Set([rootNodeId, ...blast.descendantIds]);
+      const { nodes } = loadDefaultArchitectureGraph();
+      const requestedFiles = new Set();
+      for (const id of requestedScope) {
+        const p = nodes.get(id)?.source?.path;
+        if (p) requestedFiles.add(p);
+      }
+
+      for (const existing of activeAcpLeases.values()) {
+        if (existing.agentId === agentId) continue;
+        const nodeOverlap = existing.scopeNodeIds.filter((id) => requestedScope.has(id));
+        const fileOverlap = existing.lockedFiles.filter((f) => requestedFiles.has(f));
+        if (nodeOverlap.length > 0 || fileOverlap.length > 0) {
+          return {
+            acquired: false,
+            conflict: {
+              heldByAgent: existing.agentId,
+              leaseId: existing.leaseId,
+              rootNodeId: existing.rootNodeId,
+              overlappingNodes: nodeOverlap,
+              overlappingFiles: fileOverlap,
+            },
+          };
+        }
+      }
+
+      const ttlMs = (args.ttlSeconds ? Number(args.ttlSeconds) : 900) * 1000;
+      const lease = {
+        leaseId: `lease-${agentId}-${rootNodeId.replace(/[^a-zA-Z0-9_-]/g, "_")}`,
+        agentId,
+        rootNodeId,
+        scopeNodeIds: [...requestedScope],
+        lockedFiles: [...requestedFiles],
+        acquiredAt: new Date(now).toISOString(),
+        expiresAt: new Date(now + ttlMs).toISOString(),
+      };
+      activeAcpLeases.set(lease.leaseId, lease);
+
+      return {
+        acquired: true,
+        lease,
+        activeLeaseCount: activeAcpLeases.size,
+      };
+    }
+
     default:
       throw new Error(`Unknown TUX MCP tool: ${name}`);
   }
@@ -840,8 +1540,9 @@ export function readTuxMcpResource(uri) {
           },
           {
             package: "@tti/tti-ux-diagrams",
-            components: ["TuxDiagram"],
-            description: "Mermaid, Graphviz DOT, PlantUML, and Markmap diagramming layer.",
+            components: ["TuxDiagram", "TuxArchitectureMap"],
+            description:
+              "Mermaid, Graphviz DOT, PlantUML, Markmap, and 6-Level C4 / Code Property Graph Architecture Map (M.A.P.) layer.",
           },
           {
             package: "@tti/tti-ux-code",
@@ -897,6 +1598,30 @@ export function readTuxMcpResource(uri) {
             uri,
             mimeType: "application/json",
             text: JSON.stringify(architecture, null, 2),
+          },
+        ],
+      };
+    }
+    case "tux://architecture/c4-graph": {
+      const { nodes, edges } = loadDefaultArchitectureGraph();
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: "application/json",
+            text: JSON.stringify(
+              {
+                schema: "tux-c4-cpg-v1",
+                levels: [1, 2, 3, 4, 5, 6],
+                nodeCount: nodes.size,
+                edgeCount: edges.length,
+                nodes: [...nodes.values()],
+                edges,
+                activeAcpLeases: [...activeAcpLeases.values()],
+              },
+              null,
+              2,
+            ),
           },
         ],
       };

@@ -11,6 +11,8 @@ import {
   routeGridWires,
   type TuxMapCollaborator,
   type TuxMapDeploymentNode,
+  type TuxMapDeploymentZone,
+  type TuxMapDiffInfo,
   type TuxMapEdge,
   type TuxMapElementKind,
   type TuxMapGridCellRect,
@@ -22,23 +24,47 @@ import {
   type TuxMapLoDLevel,
   type TuxMapNode,
   type TuxMapPlacedBoundary,
+  type TuxMapSourceRef,
   type TuxMapStickyNote,
   type TuxMapStrokePoint,
+  type TuxMapSubgraph,
   type TuxMapTool,
   type TuxMapZone,
 } from "../utils/tuxArchitectureMap";
 
+export type TuxMapViewMode = "diagram" | "list";
+
 export interface TuxArchitectureMapProps {
-  /** Optional 4-Level C4 model (Level 1 -> Level 2 -> Level 3 -> Level 4). Defaults to TTI Code 4-level model if neither `model` nor `nodes` is provided. */
+  /** Optional 4-Level + N-Depth C4 model (Level 1 -> Level 2 -> Level 3 -> Level 4 -> Level 5+). Defaults to TTI Code model if neither `model` nor `nodes` is provided. */
   model?: TuxMapLevelModel;
-  /** Initial level (1, 2, 3, or 4) */
+  /** Controlled or initial level (1, 2, 3, 4, 5...) */
+  level?: TuxMapLevelNumber;
+  /** Initial level (1, 2, 3, 4, 5...) */
   initialLevel?: TuxMapLevelNumber;
-  /** Initial focused container ID when starting at Level 3 */
+  /** Controlled focused container/node ID when at Level 3 or Level 5+ (`v-model:focus`) */
+  focus?: string | null;
+  /** Initial focused container/node ID when starting at Level 3 or Level 5+ */
   initialFocus?: string | null;
+  /** Controlled selected element ID (`v-model:selectedId`) */
+  selectedId?: string | null;
   /** Initial selected element ID */
   initialSelectedId?: string | null;
+  /** Controlled planned visibility toggle (`v-model:showPlanned`) */
+  showPlanned?: boolean;
   /** Whether to show planned elements and links initially */
   initialShowPlanned?: boolean;
+  /** Controlled PR Blast-Radius / Diff overlay toggle (`v-model:showBlastRadius`) */
+  showBlastRadius?: boolean;
+  /** Whether to show PR Blast-Radius / Diff overlay initially */
+  initialShowBlastRadius?: boolean;
+  /** Controlled view mode (`v-model:view`) */
+  view?: TuxMapViewMode;
+  /** Initial view mode (`"diagram"`, `"list"`, or `"auto"` which opens `"list"` below `autoListBreakpoint`) */
+  initialView?: TuxMapViewMode | "auto";
+  /** Viewport width breakpoint (in px) below which `initialView="auto"` starts in `"list"` view */
+  autoListBreakpoint?: number;
+  /** Whether plain mouse wheel over the diagram zooms across levels without requiring Ctrl/Cmd (`true` by default; set `false` to require Ctrl/Cmd + wheel) */
+  wheelZoom?: boolean;
   /** Legacy nodes prop (automatically converted into a 4-level model if `model` is omitted) */
   nodes?: TuxMapNode[];
   /** Legacy edges prop */
@@ -73,10 +99,20 @@ export interface TuxArchitectureMapProps {
 
 const props = withDefaults(defineProps<TuxArchitectureMapProps>(), {
   model: undefined,
+  level: undefined,
   initialLevel: 2,
+  focus: undefined,
   initialFocus: "c-api",
+  selectedId: undefined,
   initialSelectedId: null,
+  showPlanned: undefined,
   initialShowPlanned: false,
+  showBlastRadius: undefined,
+  initialShowBlastRadius: false,
+  view: undefined,
+  initialView: "diagram",
+  autoListBreakpoint: 760,
+  wheelZoom: true,
   nodes: () => [],
   edges: () => [],
   zones: () => [],
@@ -96,8 +132,14 @@ const props = withDefaults(defineProps<TuxArchitectureMapProps>(), {
 
 const emit = defineEmits<{
   (e: "update:level", level: TuxMapLevelNumber): void;
+  (e: "update:focus", focusId: string | null): void;
+  (e: "update:selectedId", selectedId: string | null): void;
+  (e: "update:showPlanned", showPlanned: boolean): void;
+  (e: "update:showBlastRadius", showBlastRadius: boolean): void;
+  (e: "update:view", view: TuxMapViewMode): void;
   (e: "update:lodMode", mode: "auto" | TuxMapLoDLevel): void;
   (e: "node-select", item: TuxMapLevelElement | TuxMapDeploymentNode | TuxMapNode | null): void;
+  (e: "drill-down", payload: { nodeId: string; level: number; subgraphRef?: string }): void;
   (e: "update:strokes", strokes: TuxMapInkStroke[]): void;
   (e: "update:notes", notes: TuxMapStickyNote[]): void;
   (e: "cursor-move", payload: { x: number; y: number; tool: TuxMapTool }): void;
@@ -108,7 +150,7 @@ const instanceId = useId();
 const arrowMarkerId = `tux-map-arrow-${instanceId}`;
 
 // ============================================================================
-// 1. RESOLVED 4-LEVEL MODEL & LOOKUP MAPS
+// 1. RESOLVED 4-LEVEL + FRACTAL N-DEPTH MODEL & LOOKUP MAPS
 // ============================================================================
 
 const activeModel = computed<TuxMapLevelModel>(() => {
@@ -119,13 +161,98 @@ const activeModel = computed<TuxMapLevelModel>(() => {
   return DEFAULT_TTI_LEVEL_MODEL;
 });
 
-const currentLevel = ref<TuxMapLevelNumber>(props.initialLevel);
-const focusId = ref<string | null>(props.initialFocus);
-const selectedId = ref<string | null>(props.initialSelectedId);
-const showPlanned = ref<boolean>(props.initialShowPlanned);
-const isListView = ref<boolean>(false);
+function resolveInitialIsListView(): boolean {
+  const mode = props.view ?? props.initialView;
+  if (mode === "list") return true;
+  if (mode === "diagram") return false;
+  if (typeof window !== "undefined") {
+    return window.innerWidth < (props.autoListBreakpoint || 760);
+  }
+  return false;
+}
+
+const currentLevel = ref<TuxMapLevelNumber>(props.level ?? props.initialLevel);
+const focusId = ref<string | null>(props.focus !== undefined ? props.focus : props.initialFocus);
+const drillStack = ref<{ level: number; focusId: string }[]>([]);
+const selectedId = ref<string | null>(
+  props.selectedId !== undefined ? props.selectedId : props.initialSelectedId,
+);
+const showPlanned = ref<boolean>(
+  props.showPlanned !== undefined ? props.showPlanned : props.initialShowPlanned,
+);
+const showBlastRadius = ref<boolean>(
+  props.showBlastRadius !== undefined ? props.showBlastRadius : props.initialShowBlastRadius,
+);
+const isListView = ref<boolean>(resolveInitialIsListView());
 const searchQuery = ref<string>("");
 const liveAnnouncement = ref<string>("");
+
+// Sync controlled props when updated by parent
+watch(
+  () => props.level,
+  (lvl) => {
+    if (lvl !== undefined && lvl !== currentLevel.value) {
+      currentLevel.value = lvl;
+    }
+  },
+);
+watch(
+  () => props.focus,
+  (f) => {
+    if (f !== undefined && f !== focusId.value) {
+      focusId.value = f;
+    }
+  },
+);
+watch(
+  () => props.selectedId,
+  (sel) => {
+    if (sel !== undefined && sel !== selectedId.value) {
+      selectedId.value = sel;
+    }
+  },
+);
+watch(
+  () => props.showPlanned,
+  (sp) => {
+    if (sp !== undefined && sp !== showPlanned.value) {
+      showPlanned.value = sp;
+    }
+  },
+);
+watch(
+  () => props.showBlastRadius,
+  (br) => {
+    if (br !== undefined && br !== showBlastRadius.value) {
+      showBlastRadius.value = br;
+    }
+  },
+);
+watch(
+  () => props.view,
+  (v) => {
+    if (v !== undefined) {
+      const wantList = v === "list";
+      if (wantList !== isListView.value) {
+        isListView.value = wantList;
+      }
+    }
+  },
+);
+
+// Emit v-model updates when internal state changes
+watch(focusId, (f) => {
+  emit("update:focus", f);
+});
+watch(showPlanned, (sp) => {
+  emit("update:showPlanned", sp);
+});
+watch(showBlastRadius, (br) => {
+  emit("update:showBlastRadius", br);
+});
+watch(isListView, (lv) => {
+  emit("update:view", lv ? "list" : "diagram");
+});
 
 // Sync legacy `lodMode` prop if changed externally
 watch(
@@ -145,10 +272,52 @@ watch(
   },
 );
 
+function getSubgraphForNode(nodeId: string | null | undefined): TuxMapSubgraph | null {
+  if (!nodeId) return null;
+  const M = activeModel.value;
+  if (M.subgraphs?.[nodeId] && M.subgraphs[nodeId]!.elements.length > 0) {
+    return M.subgraphs[nodeId]!;
+  }
+  const el = byId.value[nodeId];
+  if (el?.subgraphRef && M.subgraphs?.[el.subgraphRef]?.elements.length) {
+    return M.subgraphs[el.subgraphRef]!;
+  }
+  if (el?.children?.length) {
+    return {
+      stratum: `Internal Modules (${el.name})`,
+      elements: el.children,
+      rels: el.childRels,
+    };
+  }
+  const dn = resById.value[nodeId];
+  if (dn?.subgraphRef && M.subgraphs?.[dn.subgraphRef]?.elements.length) {
+    return M.subgraphs[dn.subgraphRef]!;
+  }
+  if (dn?.children?.length) {
+    return {
+      stratum: `Internal Modules (${dn.title})`,
+      elements: dn.children,
+      rels: dn.childRels,
+    };
+  }
+  return null;
+}
+
 const byId = computed<Record<string, TuxMapLevelElement>>(() => {
   const map: Record<string, TuxMapLevelElement> = {};
+  const indexChildren = (parentId: string, kids: TuxMapLevelElement[]) => {
+    kids.forEach((k, i) => {
+      const id = k.id || `${parentId}/${i}`;
+      map[id] = { ...k, id, kind: k.kind ?? "component", parent: parentId };
+      if (k.children?.length) {
+        indexChildren(id, k.children);
+      }
+    });
+  };
+
   for (const e of activeModel.value.level1.elements) {
     map[e.id] = e;
+    if (e.children?.length) indexChildren(e.id, e.children);
   }
   for (const e of activeModel.value.level2.elements) {
     if (e.ref && map[e.id]) {
@@ -156,12 +325,18 @@ const byId = computed<Record<string, TuxMapLevelElement>>(() => {
     } else {
       map[e.id] = e;
     }
+    if (e.children?.length) indexChildren(e.id, e.children);
   }
   for (const [parentId, kids] of Object.entries(activeModel.value.level3)) {
-    kids.forEach((k, i) => {
-      const id = k.id || `${parentId}/${i}`;
-      map[id] = { ...k, id, kind: k.kind ?? "component", parent: parentId };
-    });
+    indexChildren(parentId, kids);
+  }
+  for (const n of activeModel.value.level4.nodes) {
+    if (n.children?.length) indexChildren(n.id, n.children);
+  }
+  if (activeModel.value.subgraphs) {
+    for (const [parentId, sg] of Object.entries(activeModel.value.subgraphs)) {
+      indexChildren(parentId, sg.elements);
+    }
   }
   return map;
 });
@@ -174,11 +349,26 @@ const resById = computed<Record<string, TuxMapDeploymentNode>>(() => {
   return map;
 });
 
+const maxAvailableLevel = computed<number>(() => {
+  const M = activeModel.value;
+  let max = 4;
+  if (M.subgraphs && Object.keys(M.subgraphs).length > 0) {
+    max = Math.max(max, 5);
+    for (const key of Object.keys(M.subgraphs)) {
+      if (key.includes("/")) max = Math.max(max, 6);
+    }
+  }
+  return Math.max(max, currentLevel.value);
+});
+
 // Ensure focusId is always valid for the active model
 watch(
   activeModel,
   (m) => {
-    if (!focusId.value || !m.level3[focusId.value]) {
+    if (
+      !focusId.value ||
+      (!m.level3[focusId.value] && !m.subgraphs?.[focusId.value])
+    ) {
       const firstContainer = m.level2.elements.find(
         (e) => !e.ref && (m.level3[e.id]?.length ?? 0) > 0,
       );
@@ -189,7 +379,7 @@ watch(
 );
 
 // ============================================================================
-// 2. LEVEL VIEW COMPUTATION (LEVEL 1, 2, 3, 4) & RIGHT-ANGLE WIRE ROUTING
+// 2. LEVEL VIEW COMPUTATION (LEVEL 1..N) & RIGHT-ANGLE WIRE ROUTING
 // ============================================================================
 
 const TYPE_LABELS: Record<string, string> = {
@@ -199,6 +389,9 @@ const TYPE_LABELS: Record<string, string> = {
   database: "Container: database",
   storage: "Container: storage",
   component: "Component",
+  module: "Module / package",
+  schema: "Data schema / index",
+  symbol: "Code symbol (AST)",
   external: "External system",
   resource: "Deployment node",
 };
@@ -218,7 +411,18 @@ function isShownStatus(status?: string): boolean {
   return showPlanned.value || status !== "planned";
 }
 
+function hasFractalSubgraph(id: string): boolean {
+  const M = activeModel.value;
+  if (M.subgraphs?.[id] && M.subgraphs[id]!.elements.length > 0) return true;
+  const el = byId.value[id];
+  if (el && (el.children?.length || el.subgraphRef)) return true;
+  const dn = resById.value[id];
+  if (dn && (dn.children?.length || dn.subgraphRef)) return true;
+  return false;
+}
+
 function canZoomElement(e: TuxMapLevelElement): boolean {
+  if (hasFractalSubgraph(e.id)) return true;
   if (currentLevel.value === 1) return e.zoom === 2 || e.kind === "system";
   if (currentLevel.value === 2) {
     return !e.ref && (activeModel.value.level3[e.id]?.length ?? 0) > 0;
@@ -226,7 +430,14 @@ function canZoomElement(e: TuxMapLevelElement): boolean {
   if (currentLevel.value === 3) {
     return !e.mini && activeModel.value.level4.nodes.length > 0;
   }
+  if (currentLevel.value >= 5) {
+    return Boolean(!e.mini && normalizeArray(e.deployed).length > 0);
+  }
   return false;
+}
+
+function canZoomDeployNode(n: TuxMapDeploymentNode): boolean {
+  return hasFractalSubgraph(n.id);
 }
 
 function formatLiveState(e: TuxMapLevelElement): [string, string] | null {
@@ -304,13 +515,54 @@ const stageData = computed<ComputedStageData>(() => {
       return y;
     }
 
-    const leftEnd = placeColumn(
-      [
-        { title: "Users & clients", zones: ["people"] },
-        { title: "Identity & SSO", zones: ["entra", "identity"] },
-      ],
-      PAD + 14,
-    );
+    const customZones: TuxMapDeploymentZone[] | undefined = M.level4.zones;
+    const defaultLeftRegions: { title: string; zones: string[]; planned?: boolean }[] = [
+      { title: "Users & clients", zones: ["people"] },
+      { title: "Identity & SSO", zones: ["entra", "identity"] },
+    ];
+    const defaultRightRegions: { title: string; zones: string[]; planned?: boolean }[] = [
+      { title: "External & monitoring", zones: ["outside"] },
+      { title: "On-Premises Cluster", zones: ["azure-local", "on-prem"], planned: true },
+      { title: "Dedicated Build Enclave", zones: ["campus", "build-enclave"], planned: true },
+      { title: "Isolated Enclaves (Planned)", zones: ["planned-only", "quarantine"], planned: true },
+    ];
+
+    const leftRegions = customZones
+      ? customZones
+          .filter(
+            (z) =>
+              z.column === "left" ||
+              (!z.column && ["people", "entra", "identity"].includes(z.id)),
+          )
+          .map((z) => ({
+            title: z.title,
+            zones: z.zones?.length ? [z.id, ...z.zones] : [z.id],
+            planned: z.planned,
+          }))
+      : defaultLeftRegions;
+
+    const rightRegions = customZones
+      ? customZones
+          .filter(
+            (z) =>
+              z.column === "right" ||
+              (!z.column &&
+                z.column !== "center" &&
+                !["people", "entra", "identity"].includes(z.id)),
+          )
+          .map((z) => ({
+            title: z.title,
+            zones: z.zones?.length ? [z.id, ...z.zones] : [z.id],
+            planned: z.planned,
+          }))
+      : defaultRightRegions;
+
+    const centerRegionTitle =
+      M.level4.centerTitle ||
+      customZones?.find((z) => z.column === "center")?.title ||
+      "Cloud Region · Resource Groups";
+
+    const leftEnd = placeColumn(leftRegions, PAD + 14);
 
     const gx0 = PAD + NW + 80;
     const GW = 2 * NW + 16 + 28;
@@ -344,7 +596,7 @@ const stageData = computed<ComputedStageData>(() => {
     const azH = Math.max(gcol[0], gcol[1]) + 50;
     const azW = 2 * GW + 16 + 28;
     bounds.push({
-      label: "Cloud Region · Resource Groups",
+      label: centerRegionTitle,
       cls: "region",
       x: gx0,
       y: top,
@@ -365,15 +617,7 @@ const stageData = computed<ComputedStageData>(() => {
     }
 
     const rx = gx0 + azW + 60;
-    const rightEnd = placeColumn(
-      [
-        { title: "External & monitoring", zones: ["outside"] },
-        { title: "On-Premises Cluster", zones: ["azure-local", "on-prem"], planned: true },
-        { title: "Dedicated Build Enclave", zones: ["campus", "build-enclave"], planned: true },
-        { title: "Isolated Enclaves (Planned)", zones: ["planned-only", "quarantine"], planned: true },
-      ],
-      rx,
-    );
+    const rightEnd = placeColumn(rightRegions, rx);
 
     const W = rx + NW + PAD;
     const H = Math.max(leftEnd, top + azH, rightEnd) + PAD;
@@ -411,22 +655,39 @@ const stageData = computed<ComputedStageData>(() => {
       type: "Software system",
       of: rawEls.filter((e) => !e.ref).map((e) => e.id),
     });
-  } else if (currentLevel.value === 3) {
+  } else if (currentLevel.value === 3 || currentLevel.value >= 5) {
+    const sg = currentLevel.value >= 5 ? getSubgraphForNode(focusId.value) : null;
     const fId =
-      focusId.value && M.level3[focusId.value]
-        ? focusId.value
-        : Object.keys(M.level3)[0] || "c-api";
-    const c = lookup[fId] || { id: fId, name: fId, kind: "container" as const };
-    const kids = M.level3[fId] || [];
+      currentLevel.value >= 5
+        ? focusId.value || Object.keys(M.subgraphs || {})[0] || "c-api"
+        : focusId.value && M.level3[focusId.value]
+          ? focusId.value
+          : Object.keys(M.level3)[0] || "c-api";
+
+    const parentEl = lookup[fId];
+    const parentDn = resById.value[fId];
+    const cName = parentEl?.name || parentDn?.title || fId;
+    const cKind = parentEl?.kind || parentDn?.kind || "container";
+    const cTech = parentEl?.tech || parentDn?.facts?.type || "";
+
+    const kids = sg ? sg.elements : M.level3[fId] || [];
     const cols = Math.min(4, Math.max(2, Math.ceil(Math.sqrt(kids.length * 1.6))));
     const rows = Math.max(1, Math.ceil(kids.length / cols));
     const ins: string[] = [];
     const outs: string[] = [];
 
-    for (const r of M.level2.rels) {
-      if (!isShownStatus(r.status)) continue;
-      if (r.to === fId && !ins.includes(r.from)) ins.push(r.from);
-      if (r.from === fId && !outs.includes(r.to)) outs.push(r.to);
+    if (currentLevel.value === 3) {
+      for (const r of M.level2.rels) {
+        if (!isShownStatus(r.status)) continue;
+        if (r.to === fId && !ins.includes(r.from)) ins.push(r.from);
+        if (r.from === fId && !outs.includes(r.to)) outs.push(r.to);
+      }
+    } else if (parentDn) {
+      for (const l of M.level4.links) {
+        if (!showPlanned.value && l.state === "planned") continue;
+        if (l.to === fId && !ins.includes(l.from)) ins.push(l.from);
+        if (l.from === fId && !outs.includes(l.to)) outs.push(l.to);
+      }
     }
 
     const stackH = (n: number) => (n ? n * MH + (n - 1) * 14 : 0);
@@ -446,7 +707,7 @@ const stageData = computed<ComputedStageData>(() => {
         at: [col, row],
         px: [PAD + col * (CW + GX), top + (H - gridH) / 2 + row * (CH + GY), CH],
       });
-      if (k.next != null) {
+      if (k.next != null && (!sg?.rels || sg.rels.length === 0)) {
         const nextKid = kids[k.next];
         const nextId = nextKid?.id || `${fId}/${k.next}`;
         rawRels.push({
@@ -458,8 +719,27 @@ const stageData = computed<ComputedStageData>(() => {
       }
     });
 
+    if (sg?.rels?.length) {
+      rawRels.push(...sg.rels);
+    }
+
+    const resolvePerimeterCard = (id: string): TuxMapLevelElement | null => {
+      if (lookup[id]) return lookup[id]!;
+      const dn = resById.value[id];
+      if (dn) {
+        return {
+          id: dn.id,
+          kind: "resource",
+          name: dn.title,
+          tech: dn.facts?.type || dn.kind,
+          desc: dn.role,
+        };
+      }
+      return null;
+    };
+
     ins.forEach((id, i) => {
-      const base = lookup[id];
+      const base = resolvePerimeterCard(id);
       if (!base) return;
       rawEls.push({
         ...base,
@@ -471,7 +751,7 @@ const stageData = computed<ComputedStageData>(() => {
     });
 
     outs.forEach((id, i) => {
-      const base = lookup[id];
+      const base = resolvePerimeterCard(id);
       if (!base) return;
       rawEls.push({
         ...base,
@@ -486,15 +766,23 @@ const stageData = computed<ComputedStageData>(() => {
       });
     });
 
-    for (const r of M.level2.rels) {
-      if (r.to === fId) rawRels.push({ ...r, to: "@bound" });
-      else if (r.from === fId) rawRels.push({ ...r, from: "@bound" });
+    if (currentLevel.value === 3) {
+      for (const r of M.level2.rels) {
+        if (r.to === fId) rawRels.push({ ...r, to: "@bound" });
+        else if (r.from === fId) rawRels.push({ ...r, from: "@bound" });
+      }
+    } else if (parentDn) {
+      for (const l of M.level4.links) {
+        if (!showPlanned.value && l.state === "planned") continue;
+        if (l.to === fId) rawRels.push({ from: l.from, to: "@bound", label: l.label });
+        else if (l.from === fId) rawRels.push({ from: "@bound", to: l.to, label: l.label });
+      }
     }
 
     rawBounds.push({
       id: "@bound",
-      label: c.name,
-      type: (TYPE_LABELS[c.kind ?? "container"] || "Container") + (c.tech ? `: ${c.tech}` : ""),
+      label: cName,
+      type: sg?.stratum || (TYPE_LABELS[cKind] || "Container") + (cTech ? `: ${cTech}` : ""),
       of: [],
       box: {
         x: PAD + CW + GX - 24,
@@ -593,8 +881,132 @@ const routedSvg = computed(() => {
 });
 
 // ============================================================================
-// 3. PRECOMPUTED CARD VIEW-MODELS, SEARCH INDEX & ZERO-QUERY DOM HOVER CACHE
+// 3. PRECOMPUTED CARD VIEW-MODELS, BLAST RADIUS, SEARCH & ZERO-QUERY HOVER
 // ============================================================================
+
+interface BlastRadiusComputation {
+  directIds: Set<string>;
+  impactedIds: Set<string>;
+  impactedWires: Set<string>;
+  rollupCountById: Map<string, number>;
+}
+
+const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
+  if (!showBlastRadius.value) return null;
+
+  const M = activeModel.value;
+  const directIds = new Set<string>();
+  const rollupCountById = new Map<string, number>();
+
+  // Count inner modified nodes per container / system / subgraph parent
+  let totalContainerDiffs = 0;
+  for (const e of M.level2.elements) {
+    let innerDiffs = 0;
+    for (const k of M.level3[e.id] || []) {
+      const kidId = k.id || "";
+      if (k.diff) innerDiffs++;
+      if (kidId && M.subgraphs?.[kidId]) {
+        innerDiffs += M.subgraphs[kidId]!.elements.filter((se) => Boolean(se.diff)).length;
+      }
+    }
+    if (M.subgraphs?.[e.id]) {
+      innerDiffs += M.subgraphs[e.id]!.elements.filter((se) => Boolean(se.diff)).length;
+    }
+    if (innerDiffs > 0) {
+      rollupCountById.set(e.id, innerDiffs);
+      totalContainerDiffs += innerDiffs;
+    }
+    if (e.diff) totalContainerDiffs++;
+  }
+
+  if (totalContainerDiffs > 0 && M.level2.boundary) {
+    rollupCountById.set(M.level2.boundary, totalContainerDiffs);
+  }
+
+  for (const [parentId, sg] of Object.entries(M.subgraphs || {})) {
+    const inner = sg.elements.filter((se) => Boolean(se.diff)).length;
+    if (inner > 0 && !rollupCountById.has(parentId)) {
+      rollupCountById.set(parentId, inner);
+    }
+  }
+
+  if (currentLevel.value === 4) {
+    for (const n of stageData.value.deployNodes) {
+      if (n.diff || rollupCountById.has(n.id)) {
+        directIds.add(n.id);
+      } else if (n.hosts?.some((cid) => Boolean(byId.value[cid]?.diff || rollupCountById.has(cid)))) {
+        directIds.add(n.id);
+      }
+    }
+  } else {
+    for (const e of stageData.value.els) {
+      if (e.diff || rollupCountById.has(e.id)) {
+        directIds.add(e.id);
+      }
+    }
+  }
+
+  const impactedIds = new Set<string>();
+  const impactedWires = new Set<string>();
+
+  // 1-hop and 2-hop dependency propagation across active stage wires
+  const hop1 = new Set<string>(directIds);
+  for (const w of routedSvg.value.wires) {
+    const fromDirect =
+      directIds.has(w.from) ||
+      (w.from === "@bound" && focusId.value && (directIds.has(focusId.value) || rollupCountById.has(focusId.value)));
+    const toDirect =
+      directIds.has(w.to) ||
+      (w.to === "@bound" && focusId.value && (directIds.has(focusId.value) || rollupCountById.has(focusId.value)));
+
+    if (fromDirect || toDirect) {
+      impactedWires.add(w.id);
+      if (w.from !== "@bound" && !directIds.has(w.from)) {
+        impactedIds.add(w.from);
+        hop1.add(w.from);
+      }
+      if (w.to !== "@bound" && !directIds.has(w.to)) {
+        impactedIds.add(w.to);
+        hop1.add(w.to);
+      }
+    }
+  }
+
+  for (const w of routedSvg.value.wires) {
+    if (impactedWires.has(w.id)) continue;
+    if (hop1.has(w.from) || hop1.has(w.to)) {
+      impactedWires.add(w.id);
+      if (w.from !== "@bound" && !directIds.has(w.from)) impactedIds.add(w.from);
+      if (w.to !== "@bound" && !directIds.has(w.to)) impactedIds.add(w.to);
+    }
+  }
+
+  return { directIds, impactedIds, impactedWires, rollupCountById };
+});
+
+function formatDiffBadge(
+  id: string,
+  diff?: { changeType: "added" | "modified" | "deleted"; filesChanged?: number },
+): [string, string] | null {
+  const br = blastRadiusState.value;
+  if (!br) return null;
+  if (diff) {
+    const prefix =
+      diff.changeType === "added" ? "+ Added" : diff.changeType === "deleted" ? "− Deleted" : "△ Modified";
+    return [
+      diff.changeType,
+      diff.filesChanged ? `${prefix} · ${diff.filesChanged}f` : prefix,
+    ];
+  }
+  const rollup = br.rollupCountById.get(id);
+  if (rollup) {
+    return ["modified", `△ ${rollup} inner changed`];
+  }
+  if (br.impactedIds.has(id)) {
+    return ["impact", "⚡ Impacted"];
+  }
+  return null;
+}
 
 const renderedCards = computed(() =>
   stageData.value.els.map((e) => {
@@ -605,6 +1017,10 @@ const renderedCards = computed(() =>
     const live = !e.mini ? formatLiveState(e) : null;
     const chip = !e.mini ? getCardChip(e) : null;
     const zoomable = canZoomElement(e);
+    const br = blastRadiusState.value;
+    const isDirect = Boolean(br?.directIds.has(e.id));
+    const isImpacted = Boolean(!isDirect && br?.impactedIds.has(e.id));
+    const diffBadge = !e.mini ? formatDiffBadge(e.id, e.diff) : null;
     return {
       el: e,
       id: e.id,
@@ -614,10 +1030,16 @@ const renderedCards = computed(() =>
       mini: Boolean(e.mini),
       statusCls: e.status ? `tux-map__el--st-${e.status}` : "",
       kindCls: `tux-map__el--k-${kind}`,
+      blastCls: isDirect
+        ? "tux-map__el--diff-direct"
+        : isImpacted
+          ? "tux-map__el--diff-impact"
+          : "",
       icon: elementIconName(kind),
       typeLabel,
       live,
       chip,
+      diffBadge,
       zoomable,
       style: {
         left: `${r?.x ?? 0}px`,
@@ -712,16 +1134,28 @@ function isElementLit(id: string, parentId?: string): boolean {
   if (matchingSearchIds.value) {
     return matchingSearchIds.value.has(id);
   }
-  if (!activeLitId.value) return true;
+  if (!activeLitId.value) {
+    const br = blastRadiusState.value;
+    if (br && (br.directIds.size > 0 || br.impactedIds.size > 0)) {
+      return br.directIds.has(id) || br.impactedIds.has(id);
+    }
+    return true;
+  }
   if (litNeighbors.value.has(id)) return true;
   if (litNeighbors.value.has("@bound") && parentId) return true;
   return false;
 }
 
-function isWireLit(from: string, to: string): boolean {
+function isWireLit(from: string, to: string, wireId?: string): boolean {
   const key = litKey.value;
-  if (!key) return false;
-  return from === key || to === key;
+  if (key) {
+    return from === key || to === key;
+  }
+  const br = blastRadiusState.value;
+  if (br && wireId) {
+    return br.impactedWires.has(wireId);
+  }
+  return false;
 }
 
 // ============================================================================
@@ -864,6 +1298,26 @@ function applyStageHighlight(rawId: string | null) {
   }
 
   if (!rawId) {
+    const br = blastRadiusState.value;
+    if (br && (br.directIds.size > 0 || br.impactedIds.size > 0)) {
+      cache.bgSvg?.classList.add("tux-map__wires--has-on");
+      stage.classList.add("tux-map__stage--dim");
+      for (let i = 0; i < cache.cards.length; i++) {
+        const c = cache.cards[i]!;
+        c.el.classList.toggle(
+          "tux-map__el--lit",
+          br.directIds.has(c.id) || br.impactedIds.has(c.id),
+        );
+      }
+      for (const w of stage.querySelectorAll<SVGElement>(".tux-map__wire-fg")) {
+        const wid = w.dataset.id || "";
+        if (br.impactedWires.has(wid)) {
+          w.classList.add("tux-map__wire-fg--on");
+          cache.litWires.push(w);
+        }
+      }
+      return;
+    }
     cache.bgSvg?.classList.remove("tux-map__wires--has-on");
     stage.classList.remove("tux-map__stage--dim");
     for (let i = 0; i < cache.cards.length; i++) {
@@ -908,6 +1362,174 @@ function applyStageHighlight(rawId: string | null) {
   }
 }
 
+const proximityFrameRef = ref<HTMLDivElement | null>(null);
+const proximityTetherSvgRef = ref<SVGSVGElement | null>(null);
+const proximityTetherBeamRef = ref<SVGPathElement | null>(null);
+const proximityCursorDotRef = ref<SVGCircleElement | null>(null);
+const proximityAnchorDotRef = ref<SVGCircleElement | null>(null);
+const proximityCard = ref<{
+  id: string;
+  name: string;
+  zoomable: boolean;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+} | null>(null);
+
+function isCardIdZoomable(id: string): boolean {
+  if (currentLevel.value === 4) {
+    const dn = resById.value[id];
+    return dn ? canZoomDeployNode(dn) : false;
+  }
+  const el = byId.value[id];
+  return el ? canZoomElement(el) : false;
+}
+
+function getCardDisplayName(id: string): string {
+  return byId.value[id]?.name || resById.value[id]?.title || id;
+}
+
+function findNearestCardToPoint(
+  stageX: number,
+  stageY: number,
+  maxDist = 260,
+  preferZoomable = true,
+): {
+  id: string;
+  name: string;
+  zoomable: boolean;
+  rect: { x: number; y: number; w: number; h: number };
+  anchorX: number;
+  anchorY: number;
+  dist: number;
+} | null {
+  let best: {
+    id: string;
+    name: string;
+    zoomable: boolean;
+    rect: { x: number; y: number; w: number; h: number };
+    anchorX: number;
+    anchorY: number;
+    dist: number;
+    score: number;
+  } | null = null;
+
+  for (const [id, r] of Object.entries(stageData.value.rects)) {
+    if (r.bound) continue;
+    const anchorX = Math.max(r.x, Math.min(r.x + r.w, stageX));
+    const anchorY = Math.max(r.y, Math.min(r.y + r.h, stageY));
+    const dist = Math.hypot(stageX - anchorX, stageY - anchorY);
+    if (dist > maxDist) continue;
+
+    const zoomable = isCardIdZoomable(id);
+    // When in empty space, give zoomable cards a slight magnetic attraction advantage
+    const score = dist === 0 ? 0 : preferZoomable && zoomable ? dist * 0.78 : dist;
+    if (!best || score < best.score) {
+      best = {
+        id,
+        name: getCardDisplayName(id),
+        zoomable,
+        rect: r,
+        anchorX,
+        anchorY,
+        dist,
+        score,
+      };
+    }
+  }
+
+  return best;
+}
+
+function hideProximityTetherDom() {
+  if (proximityTetherSvgRef.value) {
+    proximityTetherSvgRef.value.style.opacity = "0";
+  }
+}
+
+function setProximityClassOnDom(nextId: string | null) {
+  const stage = stageRef.value;
+  if (!stage) return;
+  if (!stageDomCache) rebuildStageDomCache();
+  const cache = stageDomCache;
+  if (!cache) return;
+  for (let i = 0; i < cache.cards.length; i++) {
+    const c = cache.cards[i]!;
+    c.el.classList.toggle("tux-map__el--proximity", c.id === nextId);
+  }
+}
+
+function updateProximityAtStagePoint(stageX: number, stageY: number) {
+  if (activeTool.value !== "select" || isListView.value) {
+    if (proximityCard.value) {
+      proximityCard.value = null;
+      setProximityClassOnDom(null);
+    }
+    hideProximityTetherDom();
+    return;
+  }
+
+  const nearest = findNearestCardToPoint(stageX, stageY, 260, true);
+  if (!nearest) {
+    if (proximityCard.value) {
+      proximityCard.value = null;
+      setProximityClassOnDom(null);
+      if (!selectedId.value && !currentHoveredId) {
+        applyStageHighlight(null);
+      }
+    }
+    hideProximityTetherDom();
+    return;
+  }
+
+  if (proximityCard.value?.id !== nearest.id) {
+    clearPreZoomCardTransform();
+    proximityCard.value = {
+      id: nearest.id,
+      name: nearest.name,
+      zoomable: nearest.zoomable,
+      x: nearest.rect.x,
+      y: nearest.rect.y,
+      w: nearest.rect.w,
+      h: nearest.rect.h,
+    };
+    setProximityClassOnDom(nearest.id);
+    if (!selectedId.value) {
+      applyStageHighlight(nearest.id);
+    }
+  }
+
+  // Update elastic magnetic tether SVG in O(1) direct DOM when cursor is in empty space near the card
+  const svgEl = proximityTetherSvgRef.value;
+  const beamEl = proximityTetherBeamRef.value;
+  const curDot = proximityCursorDotRef.value;
+  const ancDot = proximityAnchorDotRef.value;
+  if (svgEl && beamEl && curDot && ancDot) {
+    if (nearest.dist > 5) {
+      const midX = (stageX + nearest.anchorX) / 2;
+      const midY = (stageY + nearest.anchorY) / 2;
+      const cardCx = nearest.rect.x + nearest.rect.w / 2;
+      const cardCy = nearest.rect.y + nearest.rect.h / 2;
+      // Slight magnetic curve toward card center axis
+      const ctrlX = midX + (cardCx - midX) * 0.18;
+      const ctrlY = midY + (cardCy - midY) * 0.18;
+      beamEl.setAttribute(
+        "d",
+        `M${stageX.toFixed(1)},${stageY.toFixed(1)} Q${ctrlX.toFixed(1)},${ctrlY.toFixed(1)} ${nearest.anchorX.toFixed(1)},${nearest.anchorY.toFixed(1)}`,
+      );
+      curDot.setAttribute("cx", stageX.toFixed(1));
+      curDot.setAttribute("cy", stageY.toFixed(1));
+      ancDot.setAttribute("cx", nearest.anchorX.toFixed(1));
+      ancDot.setAttribute("cy", nearest.anchorY.toFixed(1));
+      const strength = Math.max(0.28, 1 - nearest.dist / 280);
+      svgEl.style.opacity = strength.toFixed(2);
+    } else {
+      svgEl.style.opacity = "0";
+    }
+  }
+}
+
 function onStagePointerOver(ev: PointerEvent) {
   if (activeTool.value !== "select") return;
   const card = (ev.target as HTMLElement | null)?.closest?.(".tux-map__el") as HTMLElement | null;
@@ -916,28 +1538,34 @@ function onStagePointerOver(ev: PointerEvent) {
   clearPreZoomCardTransform();
   currentHoveredId = nextId;
   if (selectedId.value) return;
-  applyStageHighlight(nextId);
+  applyStageHighlight(nextId ?? proximityCard.value?.id ?? null);
 }
 
 function onStagePointerLeave() {
   clearPreZoomCardTransform();
-  if (!currentHoveredId) return;
   currentHoveredId = null;
+  if (proximityCard.value) {
+    proximityCard.value = null;
+    setProximityClassOnDom(null);
+  }
+  hideProximityTetherDom();
   if (selectedId.value) return;
   applyStageHighlight(null);
 }
 
-watch([ currentLevel, focusId, showPlanned, activeModel], () => {
+watch([currentLevel, focusId, showPlanned, showBlastRadius, activeModel], () => {
   stageDomCache = null;
+  proximityCard.value = null;
+  hideProximityTetherDom();
   nextTick(() => {
     rebuildStageDomCache();
     applyStageHighlight(selectedId.value ?? currentHoveredId);
   });
 });
 
-watch([selectedId, matchingSearchIds], () => {
+watch([selectedId, matchingSearchIds, blastRadiusState], () => {
   nextTick(() => {
-    applyStageHighlight(selectedId.value ?? currentHoveredId);
+    applyStageHighlight(selectedId.value ?? currentHoveredId ?? proximityCard.value?.id ?? null);
   });
 });
 
@@ -1022,20 +1650,49 @@ onBeforeUnmount(() => {
   }
 });
 
+function resolveItemById(id: string | null): TuxMapLevelElement | TuxMapDeploymentNode | null {
+  if (!id) return null;
+  if (currentLevel.value === 4) {
+    return resById.value[id] ?? byId.value[id] ?? null;
+  }
+  return byId.value[id] ?? resById.value[id] ?? null;
+}
+
+function setSelectionAndEmit(id: string | null) {
+  const prev = selectedId.value;
+  selectedId.value = id;
+
+  // Issue #103 (1): Selecting a container on Level 2 (or Level 4 host) that has Level 3 children sets `focusId`
+  if (id) {
+    if (currentLevel.value === 2 && (activeModel.value.level3[id]?.length ?? 0) > 0) {
+      focusId.value = id;
+    } else if (currentLevel.value === 4 && resById.value[id]?.hosts) {
+      const hostedContainer = resById.value[id]!.hosts!.find(
+        (cid) => (activeModel.value.level3[cid]?.length ?? 0) > 0,
+      );
+      if (hostedContainer) {
+        focusId.value = hostedContainer;
+      }
+    }
+  }
+
+  if (id !== prev) {
+    emit("update:selectedId", id);
+    emit("node-select", resolveItemById(id));
+  }
+}
+
 function selectElement(id: string | null) {
   if (activeTool.value !== "select") return;
-  selectedId.value = id;
   currentHoveredId = null;
+  setSelectionAndEmit(id);
   applyStageHighlight(id);
 
   if (!id) {
-    emit("node-select", null);
     keepClear(null);
     return;
   }
 
-  const item = currentLevel.value === 4 ? resById.value[id] : byId.value[id];
-  emit("node-select", item ?? null);
   nextTick(() => {
     keepClear(id);
   });
@@ -1101,7 +1758,7 @@ function goToLevel(
   }
 
   panX.value = 0;
-  selectedId.value = opts.nextSel ?? null;
+  setSelectionAndEmit(opts.nextSel ?? null);
   currentHoveredId = null;
   emit("update:level", nextLevel);
 
@@ -1120,20 +1777,25 @@ function goToLevel(
       keepClear(opts.nextSel);
     }
 
-    // Re-evaluate hovered card under stationary cursor after level switch
+    // Re-evaluate hovered & proximity-attached card under stationary cursor after level switch
     if (
       lastPointerClient &&
       typeof document !== "undefined" &&
       !selectedId.value &&
       activeTool.value === "select"
     ) {
-      const underEl = document.elementFromPoint(
-        lastPointerClient.x,
-        lastPointerClient.y,
-      ) as HTMLElement | null;
+      const underEl =
+        typeof document.elementFromPoint === "function"
+          ? (document.elementFromPoint(
+              lastPointerClient.x,
+              lastPointerClient.y,
+            ) as HTMLElement | null)
+          : null;
       const cardUnder = underEl?.closest?.(".tux-map__el") as HTMLElement | null;
       currentHoveredId = cardUnder?.dataset?.id ?? null;
-      applyStageHighlight(currentHoveredId);
+      const ptAfter = getStageCoordsFromClient(lastPointerClient.x, lastPointerClient.y);
+      updateProximityAtStagePoint(ptAfter.x, ptAfter.y);
+      applyStageHighlight(currentHoveredId ?? proximityCard.value?.id ?? null);
     }
 
     if (
@@ -1277,6 +1939,36 @@ function goToLevel(
       };
     }
 
+    // Vue Flow–style staggered spring node reveal across incoming cards
+    if (stageDomCache?.cards) {
+      const cards = stageDomCache.cards;
+      for (let i = 0; i < cards.length; i++) {
+        const cardEl = cards[i]!.el;
+        if (typeof cardEl.animate === "function") {
+          cardEl.animate(
+            [
+              {
+                transform: inward
+                  ? "translate3d(0, 10px, 0) scale(0.92)"
+                  : "translate3d(0, -8px, 0) scale(1.06)",
+                opacity: 0.25,
+              },
+              {
+                transform: "translate3d(0, 0, 0) scale(1)",
+                opacity: 1,
+              },
+            ],
+            {
+              duration: 340,
+              delay: Math.min(140, i * 16),
+              easing: "cubic-bezier(0.22, 1.28, 0.36, 1)",
+              fill: "both",
+            },
+          );
+        }
+      }
+    }
+
     // Pulse the landed card when zooming out (or when focusing a specific host on Level 4)
     if (resolvedTargetId) {
       const landedCard = stage.querySelector<HTMLElement>(
@@ -1306,6 +1998,29 @@ function goToLevel(
 
 function zoomIntoElement(id: string) {
   const e = byId.value[id];
+  const dn = resById.value[id];
+  const itemName = e?.name || dn?.title || id;
+
+  // Fractal Subgraph Drill-Down (Level 3 component -> Level 5, Level 4 host -> Level 5, Level 5 -> Level 6+)
+  if (currentLevel.value >= 3 && hasFractalSubgraph(id)) {
+    const nextLvl = currentLevel.value >= 5 ? currentLevel.value + 1 : 5;
+    drillStack.value = [
+      ...drillStack.value,
+      { level: currentLevel.value, focusId: focusId.value || "" },
+    ];
+    const sg = getSubgraphForNode(id);
+    emit("drill-down", { level: nextLvl, focusId: id, subgraph: sg });
+    goToLevel(nextLvl, {
+      nextFocus: id,
+      nextSel: null,
+      fromCardId: id,
+      inward: true,
+      hudLabel: `Level ${currentLevel.value} → Level ${nextLvl} · ${itemName}`,
+    });
+    liveAnnouncement.value = `Zoomed in to Level ${nextLvl}: ${sg?.stratum || itemName}.`;
+    return;
+  }
+
   if (!e) return;
 
   if (currentLevel.value === 1) {
@@ -1382,6 +2097,41 @@ function zoomIntoElement(id: string) {
 }
 
 function zoomOutLevel(fromHoveredId?: string | null) {
+  if (currentLevel.value >= 5) {
+    const currentF = focusId.value;
+    const prevEntry = drillStack.value[drillStack.value.length - 1];
+    if (prevEntry) {
+      drillStack.value = drillStack.value.slice(0, -1);
+      const prevName =
+        byId.value[prevEntry.focusId]?.name ||
+        resById.value[prevEntry.focusId]?.title ||
+        (prevEntry.level === 4 ? "Infrastructure & Deployment" : `Level ${prevEntry.level}`);
+      goToLevel(prevEntry.level, {
+        nextFocus: prevEntry.focusId || focusId.value,
+        nextSel: null,
+        fromCardId: fromHoveredId ?? null,
+        targetCardId: currentF,
+        inward: false,
+        hudLabel: `Level ${currentLevel.value} → Level ${prevEntry.level} · ${prevName}`,
+      });
+      liveAnnouncement.value = `Zoomed out to Level ${prevEntry.level}.`;
+      return;
+    }
+    // Fallback if entered Level 5+ directly without drillStack
+    const isDeployParent = Boolean(currentF && resById.value[currentF]);
+    const targetLevel = isDeployParent ? 4 : 3;
+    goToLevel(targetLevel, {
+      nextFocus: isDeployParent ? focusId.value : currentF?.split("/")[0] || focusId.value,
+      nextSel: null,
+      fromCardId: fromHoveredId ?? null,
+      targetCardId: currentF,
+      inward: false,
+      hudLabel: `Level ${currentLevel.value} → Level ${targetLevel}`,
+    });
+    liveAnnouncement.value = `Zoomed out to Level ${targetLevel}.`;
+    return;
+  }
+
   if (currentLevel.value === 4) {
     const node = fromHoveredId
       ? resById.value[fromHoveredId]
@@ -1438,96 +2188,233 @@ function zoomOutLevel(fromHoveredId?: string | null) {
   }
 }
 
+function openLevel3FromToolbar() {
+  const candidate =
+    selectedId.value && (activeModel.value.level3[selectedId.value]?.length ?? 0) > 0
+      ? selectedId.value
+      : focusId.value;
+  if (!candidate) return;
+  goToLevel(3, {
+    nextFocus: candidate,
+    fromCardId: currentLevel.value === 2 ? candidate : null,
+    inward: currentLevel.value < 3,
+  });
+}
+
+const currentStratumShort = computed(() => {
+  if (currentLevel.value === 1) return "Ecosystem";
+  if (currentLevel.value === 2) return "Containers";
+  if (currentLevel.value === 3) {
+    return (focusId.value && byId.value[focusId.value]?.name) || "Components";
+  }
+  if (currentLevel.value === 4) return "Infrastructure";
+  return getSubgraphForNode(focusId.value)?.stratum || `Level ${currentLevel.value}`;
+});
+
+const stepInTargetId = computed<string | null>(() => {
+  const sel = selectedId.value;
+  if (sel) {
+    const e = byId.value[sel];
+    const dn = resById.value[sel];
+    if ((e && canZoomElement(e)) || (dn && canZoomDeployNode(dn))) {
+      return sel;
+    }
+  }
+  if (currentLevel.value === 1) {
+    return activeModel.value.level2.boundary || null;
+  }
+  if (currentLevel.value === 2) {
+    if (focusId.value && (activeModel.value.level3[focusId.value]?.length ?? 0) > 0) {
+      return focusId.value;
+    }
+    return null;
+  }
+  if (currentLevel.value === 3) {
+    const fractalChild = stageData.value.els.find((e) => !e.mini && hasFractalSubgraph(e.id));
+    if (fractalChild) return fractalChild.id;
+    return stageData.value.els.find((e) => !e.mini)?.id ?? null;
+  }
+  if (currentLevel.value === 4) {
+    const fractalDeploy = stageData.value.deployNodes.find((n) => hasFractalSubgraph(n.id));
+    return fractalDeploy?.id ?? null;
+  }
+  const deeperChild = stageData.value.els.find((e) => !e.mini && hasFractalSubgraph(e.id));
+  return deeperChild?.id ?? null;
+});
+
+const canStepIn = computed(() => Boolean(stepInTargetId.value));
+
+function stepInLevel() {
+  const target = stepInTargetId.value;
+  if (!target) return;
+  if (currentLevel.value === 2 && target === focusId.value && !selectedId.value) {
+    openLevel3FromToolbar();
+    return;
+  }
+  zoomIntoElement(target);
+}
+
+function toggleInfrastructureView() {
+  if (currentLevel.value === 4) {
+    zoomOutLevel();
+  } else {
+    drillStack.value = [];
+    goToLevel(4, {
+      inward: true,
+      hudLabel: `Level ${currentLevel.value} → Level 4 · Infrastructure`,
+    });
+  }
+}
+
 let lastWheelZoomAt = 0;
 let lastWheelEventAt = 0;
 let wheelDeltaAccum = 0;
 let preZoomCardEl: HTMLElement | null = null;
+let lockedWheelCardId: string | null = null;
 
 function clearPreZoomCardTransform() {
   if (preZoomCardEl) {
     preZoomCardEl.style.transform = "";
     preZoomCardEl = null;
   }
+  if (proximityFrameRef.value) {
+    proximityFrameRef.value.style.transform = "";
+  }
 }
 
 function onViewportWheel(ev: WheelEvent) {
   lastPointerClient = { x: ev.clientX, y: ev.clientY };
 
-  const targetEl = (ev.target as HTMLElement | null)?.closest?.(
-    ".tux-map__el",
-  ) as HTMLElement | null;
-  const boundEl = (ev.target as HTMLElement | null)?.closest?.(
-    ".tux-map__bound",
-  ) as HTMLElement | null;
-
   const isPinchOrMod = ev.ctrlKey || ev.metaKey;
-  const isZoomIn = ev.deltaY < 0;
-  const isZoomOut = ev.deltaY > 0;
-  const now = Date.now();
-  const recentlyZoomed = now - lastWheelZoomAt < 2400;
-
-  // Determine whether this wheel event should drive semantic level zoom:
-  // - Zooming IN works when hovering over any diagram object (.tux-map__el) or with Ctrl/Cmd
-  // - Zooming OUT works when hovering over any diagram object, inside a boundary box, right after zooming in, or with Ctrl/Cmd
-  const shouldIntercept =
-    isPinchOrMod ||
-    (isZoomIn && Boolean(targetEl) && currentLevel.value < 4) ||
-    (isZoomOut &&
-      currentLevel.value > 1 &&
-      (Boolean(targetEl) || Boolean(boundEl) || recentlyZoomed));
-
-  if (!shouldIntercept) {
+  if (!props.wheelZoom && !isPinchOrMod) {
     clearPreZoomCardTransform();
     return;
   }
 
+  // Always suppress native browser page scroll while the cursor is inside the diagram viewport
+  // so moving the mouse or hitting Level 1 / Level 4 bounds never jerks the surrounding page.
   ev.preventDefault();
+  ev.stopPropagation();
+
+  const pt = getStageCoordsFromClient(ev.clientX, ev.clientY);
+  updateProximityAtStagePoint(pt.x, pt.y);
+
+  const targetEl = (ev.target as HTMLElement | null)?.closest?.(
+    ".tux-map__el",
+  ) as HTMLElement | null;
+
+  const isZoomIn = ev.deltaY < 0;
+  const isZoomOut = ev.deltaY > 0;
+  const now = Date.now();
 
   // Cooldown lock after a level transition so trackpad inertia doesn't skip multiple levels
-  if (now - lastWheelZoomAt < 480) {
+  if (now - lastWheelZoomAt < 520) {
     return;
   }
 
-  if (now - lastWheelEventAt > 220) {
+  if (now - lastWheelEventAt > 240) {
     wheelDeltaAccum = 0;
+    lockedWheelCardId = null;
   }
+
+  // Lock onto the proximity-attached card when the wheel gesture begins so the scroll wheel
+  // physically attaches to the nearest card and follows its zoom path even if the cursor is in empty space
+  if (!lockedWheelCardId) {
+    const nearMatch = findNearestCardToPoint(pt.x, pt.y, 440, isZoomIn);
+    lockedWheelCardId =
+      targetEl?.dataset?.id ||
+      nearMatch?.id ||
+      proximityCard.value?.id ||
+      currentHoveredId ||
+      selectedId.value ||
+      null;
+  }
+
+  const candidateId =
+    lockedWheelCardId ||
+    targetEl?.dataset?.id ||
+    proximityCard.value?.id ||
+    currentHoveredId ||
+    selectedId.value;
+  const canZoomInCandidate =
+    currentLevel.value < 4 ||
+    Boolean(candidateId && hasFractalSubgraph(candidateId));
+
+  // Boundary check: if already at deepest available level (zooming in) or Level 1 (zooming out),
+  // absorb the wheel without scrolling the page.
+  if (isZoomIn && !canZoomInCandidate) {
+    clearPreZoomCardTransform();
+    wheelDeltaAccum = 0;
+    return;
+  }
+  if (isZoomOut && currentLevel.value <= 1) {
+    clearPreZoomCardTransform();
+    wheelDeltaAccum = 0;
+    return;
+  }
+
   lastWheelEventAt = now;
   wheelDeltaAccum += ev.deltaY;
 
-  // Subtle physical pre-zoom scale response on the hovered card as the wheel starts turning
-  if (targetEl && Math.abs(wheelDeltaAccum) < 22) {
-    if (preZoomCardEl && preZoomCardEl !== targetEl) {
+  // Physical pre-zoom response: attach to the proximity/hovered card, pull it slightly along the
+  // cursor vector, and scale it as the wheel turns
+  const activeCardEl =
+    targetEl ||
+    (candidateId && stageRef.value
+      ? stageRef.value.querySelector<HTMLElement>(`.tux-map__el[data-id="${candidateId}"]`)
+      : null);
+
+  if (activeCardEl && Math.abs(wheelDeltaAccum) < 26) {
+    if (preZoomCardEl && preZoomCardEl !== activeCardEl) {
       preZoomCardEl.style.transform = "";
     }
-    preZoomCardEl = targetEl;
+    preZoomCardEl = activeCardEl;
+    const r = candidateId ? stageData.value.rects[candidateId] : undefined;
+    const cardCx = r ? r.x + r.w / 2 : pt.x;
+    const cardCy = r ? r.y + r.h / 2 : pt.y;
+    const progress = Math.min(1, Math.abs(wheelDeltaAccum) / 26);
+    const pullSign = isZoomIn ? 0.14 : -0.09;
+    const pullX = Math.max(-14, Math.min(14, (pt.x - cardCx) * progress * pullSign));
+    const pullY = Math.max(-10, Math.min(10, (pt.y - cardCy) * progress * pullSign));
     const scaleDelta = isZoomIn
-      ? 1 + Math.min(0.055, Math.abs(wheelDeltaAccum) / 400)
-      : 1 - Math.min(0.045, Math.abs(wheelDeltaAccum) / 400);
-    targetEl.style.transform = `scale(${scaleDelta.toFixed(3)})`;
+      ? 1 + Math.min(0.068, Math.abs(wheelDeltaAccum) / 360)
+      : 1 - Math.min(0.052, Math.abs(wheelDeltaAccum) / 380);
+    const tf = `translate3d(${pullX.toFixed(1)}px, ${pullY.toFixed(1)}px, 0) scale(${scaleDelta.toFixed(3)})`;
+    activeCardEl.style.transform = tf;
+    if (proximityFrameRef.value && proximityCard.value?.id === candidateId) {
+      proximityFrameRef.value.style.transform = tf;
+    }
     return;
   }
 
-  if (Math.abs(wheelDeltaAccum) < 22) {
+  if (Math.abs(wheelDeltaAccum) < 26) {
     return;
   }
 
   clearPreZoomCardTransform();
   wheelDeltaAccum = 0;
   lastWheelZoomAt = now;
+  const resolvedId = candidateId;
+  lockedWheelCardId = null;
 
   if (isZoomIn) {
-    let id = targetEl?.dataset?.id || currentHoveredId || selectedId.value;
+    let id = resolvedId;
     if (!id && currentLevel.value === 1) {
       id = activeModel.value.level2.boundary;
+    } else if (!id && currentLevel.value === 2) {
+      id = focusId.value;
+    } else if (!id && currentLevel.value === 3) {
+      id = stageData.value.els.find((e) => !e.mini)?.id ?? stageData.value.els[0]?.id ?? null;
     }
-    if (id && byId.value[id]) {
+    if (id && (byId.value[id] || resById.value[id])) {
       zoomIntoElement(id);
     } else if (currentLevel.value === 2 && focusId.value) {
       zoomIntoElement(focusId.value);
+    } else if (currentLevel.value === 3) {
+      goToLevel(4, { inward: true, hudLabel: "Level 3 → Level 4 · Deployment" });
     }
   } else {
-    const hoveredId = targetEl?.dataset?.id || currentHoveredId;
-    zoomOutLevel(hoveredId);
+    zoomOutLevel(resolvedId);
   }
 }
 
@@ -1543,15 +2430,19 @@ function onStageKeydown(ev: KeyboardEvent) {
 
   if (ev.key === "1") {
     ev.preventDefault();
+    drillStack.value = [];
     goToLevel(1, { inward: false });
   } else if (ev.key === "2") {
     ev.preventDefault();
+    drillStack.value = [];
     goToLevel(2, { inward: currentLevel.value < 2 });
   } else if (ev.key === "3" && focusId.value) {
     ev.preventDefault();
+    drillStack.value = [];
     goToLevel(3, { nextFocus: focusId.value, inward: true });
   } else if (ev.key === "4") {
     ev.preventDefault();
+    drillStack.value = [];
     goToLevel(4, { inward: true });
   } else if (ev.key === "Escape") {
     if (selectedId.value) {
@@ -1564,14 +2455,9 @@ function onStageKeydown(ev: KeyboardEvent) {
   } else if (ev.key === "-" || ev.key === "_") {
     ev.preventDefault();
     zoomOutLevel();
-  } else if (
-    (ev.key === "+" || ev.key === "=") &&
-    selectedId.value &&
-    byId.value[selectedId.value] &&
-    canZoomElement(byId.value[selectedId.value]!)
-  ) {
+  } else if ((ev.key === "+" || ev.key === "=") && canStepIn.value) {
     ev.preventDefault();
-    zoomIntoElement(selectedId.value);
+    stepInLevel();
   } else if (ev.key === "v" || ev.key === "V") {
     activeTool.value = "select";
   } else if (ev.key === "p" || ev.key === "P") {
@@ -1587,33 +2473,78 @@ function onStageKeydown(ev: KeyboardEvent) {
 // 5. BREADCRUMBS, SUMMARY, DETAILS PANEL & LIST VIEW
 // ============================================================================
 
-const breadcrumbs = computed(() => {
+const breadcrumbs = computed<
+  { label: string; level: TuxMapLevelNumber; focusId?: string | null; current: boolean }[]
+>(() => {
   const M = activeModel.value;
   const lookup = byId.value;
   const sysName = lookup[M.level2.boundary]?.name || "System";
 
   if (currentLevel.value === 1) {
-    return [{ label: "Level 1 · Ecosystem in Context", level: 1 as TuxMapLevelNumber, current: true }];
+    return [{ label: "Level 1 · Ecosystem in Context", level: 1, current: true }];
   }
   if (currentLevel.value === 2) {
     return [
-      { label: "Level 1 · Ecosystem", level: 1 as TuxMapLevelNumber, current: false },
-      { label: `Level 2 · ${sysName}`, level: 2 as TuxMapLevelNumber, current: true },
+      { label: "Level 1 · Ecosystem", level: 1, current: false },
+      { label: `Level 2 · ${sysName}`, level: 2, current: true },
     ];
   }
   if (currentLevel.value === 3) {
     const fName = (focusId.value && lookup[focusId.value]?.name) || "Container";
     return [
-      { label: "Level 1 · Ecosystem", level: 1 as TuxMapLevelNumber, current: false },
-      { label: `Level 2 · ${sysName}`, level: 2 as TuxMapLevelNumber, current: false },
-      { label: `Level 3 · ${fName}`, level: 3 as TuxMapLevelNumber, current: true },
+      { label: "Level 1 · Ecosystem", level: 1, current: false },
+      { label: `Level 2 · ${sysName}`, level: 2, current: false },
+      { label: `Level 3 · ${fName}`, level: 3, focusId: focusId.value, current: true },
     ];
   }
-  return [
-    { label: "Level 1 · Ecosystem", level: 1 as TuxMapLevelNumber, current: false },
-    { label: `Level 2 · ${sysName}`, level: 2 as TuxMapLevelNumber, current: false },
-    { label: "Level 4 · Infrastructure & Deployment", level: 4 as TuxMapLevelNumber, current: true },
+  if (currentLevel.value === 4) {
+    return [
+      { label: "Level 1 · Ecosystem", level: 1, current: false },
+      { label: `Level 2 · ${sysName}`, level: 2, current: false },
+      { label: "Level 4 · Infrastructure & Deployment", level: 4, current: true },
+    ];
+  }
+
+  // Fractal Level 5, Level 6+
+  const crumbs: {
+    label: string;
+    level: TuxMapLevelNumber;
+    focusId?: string | null;
+    current: boolean;
+  }[] = [
+    { label: "Level 1 · Ecosystem", level: 1, current: false },
+    { label: `Level 2 · ${sysName}`, level: 2, current: false },
   ];
+
+  for (const step of drillStack.value) {
+    if (step.level === 4) {
+      crumbs.push({ label: "Level 4 · Deployment", level: 4, current: false });
+    } else if (step.level >= 3) {
+      const sName =
+        lookup[step.focusId]?.name ||
+        resById.value[step.focusId]?.title ||
+        step.focusId ||
+        `Level ${step.level}`;
+      crumbs.push({
+        label: `Level ${step.level} · ${sName}`,
+        level: step.level,
+        focusId: step.focusId,
+        current: false,
+      });
+    }
+  }
+
+  const curName =
+    (focusId.value && (lookup[focusId.value]?.name || resById.value[focusId.value]?.title)) ||
+    getSubgraphForNode(focusId.value)?.stratum ||
+    `Level ${currentLevel.value}`;
+  crumbs.push({
+    label: `Level ${currentLevel.value} · ${curName}`,
+    level: currentLevel.value,
+    focusId: focusId.value,
+    current: true,
+  });
+  return crumbs;
 });
 
 const summaryText = computed(() => {
@@ -1623,7 +2554,19 @@ const summaryText = computed(() => {
   const plannedCount = cs.filter((e) => e.status === "planned").length;
   const mappedResources = M.level4.nodes.filter((n) => n.status !== "planned").length;
 
-  const prefix: Record<TuxMapLevelNumber, string> = {
+  if (currentLevel.value >= 5) {
+    const sg = getSubgraphForNode(focusId.value);
+    const parentName =
+      (focusId.value &&
+        (byId.value[focusId.value]?.name || resById.value[focusId.value]?.title)) ||
+      "node";
+    const desc =
+      sg?.summary ||
+      `Inside ${parentName} (${sg?.stratum || `Level ${currentLevel.value}`}): ${sg?.elements.length ?? 0} inner modules/symbols mapped.`;
+    return `${desc} ${liveCount} containers active${plannedCount ? ` and ${plannedCount} planned` : ""}; ${mappedResources} infrastructure nodes mapped.`;
+  }
+
+  const prefix: Record<number, string> = {
     1: M.level1.summary || "Who uses the platform and the systems around it.",
     2: M.level2.summary || "What the platform is made of: each box runs or holds data.",
     3: `Inside ${focusId.value && byId.value[focusId.value] ? byId.value[focusId.value]!.name : "container"}: what uses it on the left, what it uses on the right.`,
@@ -1772,22 +2715,63 @@ function startLaserLoop() {
   laserRaf = window.requestAnimationFrame(tick);
 }
 
-function getStageCoords(e: PointerEvent): { x: number; y: number } {
+function getStageCoordsFromClient(clientX: number, clientY: number): { x: number; y: number } {
   const el = viewportRef.value;
   if (!el) return { x: 0, y: 0 };
   const rect = el.getBoundingClientRect();
   const s = stageScale.value || 1;
   return {
-    x: Math.round((e.clientX - rect.left - panX.value) / s),
-    y: Math.round((e.clientY - rect.top) / s),
+    x: Math.round((clientX - rect.left - panX.value) / s),
+    y: Math.round((clientY - rect.top) / s),
   };
 }
 
+function getStageCoords(e: PointerEvent): { x: number; y: number } {
+  return getStageCoordsFromClient(e.clientX, e.clientY);
+}
+
+function findCardIdAtStagePoint(x: number, y: number): string | null {
+  for (const [id, r] of Object.entries(stageData.value.rects)) {
+    if (r.bound) continue;
+    if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) {
+      return id;
+    }
+  }
+  return null;
+}
+
+function isAnnotationVisibleInCurrentView(item: {
+  level?: TuxMapLevelNumber;
+  focusId?: string | null;
+}): boolean {
+  if (item.level == null) return true;
+  if (item.level !== currentLevel.value) return false;
+  if ((currentLevel.value === 3 || currentLevel.value >= 5) && item.focusId) {
+    return item.focusId === focusId.value;
+  }
+  return true;
+}
+
+const visibleStrokes = computed(() =>
+  localStrokes.value.filter(isAnnotationVisibleInCurrentView),
+);
+
+const visibleNotes = computed(() =>
+  localNotes.value.filter(isAnnotationVisibleInCurrentView),
+);
+
 function onStagePointerDown(e: PointerEvent) {
   if (e.button !== 0) return;
+  const target = e.target as HTMLElement | null;
+  if (target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement) {
+    return;
+  }
+
   const pt = getStageCoords(e);
 
   if (activeTool.value === "pen") {
+    e.preventDefault();
+    if (typeof window !== "undefined") window.getSelection?.()?.removeAllRanges?.();
     (e.currentTarget as HTMLElement)?.setPointerCapture?.(e.pointerId);
     activePenPoints.value = [
       { x: pt.x, y: pt.y, pressure: e.pressure || 0.5, timestamp: Date.now() },
@@ -1796,6 +2780,8 @@ function onStagePointerDown(e: PointerEvent) {
   }
 
   if (activeTool.value === "laser") {
+    e.preventDefault();
+    if (typeof window !== "undefined") window.getSelection?.()?.removeAllRanges?.();
     (e.currentTarget as HTMLElement)?.setPointerCapture?.(e.pointerId);
     activeLaserPoints.value.push({ x: pt.x, y: pt.y, timestamp: Date.now() });
     startLaserLoop();
@@ -1803,6 +2789,9 @@ function onStagePointerDown(e: PointerEvent) {
   }
 
   if (activeTool.value === "note") {
+    e.preventDefault();
+    if (typeof window !== "undefined") window.getSelection?.()?.removeAllRanges?.();
+    const pinnedId = findCardIdAtStagePoint(pt.x, pt.y);
     const newNote: TuxMapStickyNote = {
       id: `note-${Date.now()}`,
       x: Math.max(12, pt.x - 90),
@@ -1810,6 +2799,10 @@ function onStagePointerDown(e: PointerEvent) {
       text: "Architecture review note — double-click to edit.",
       author: "Reviewer",
       tone: "gold",
+      level: currentLevel.value,
+      focusId:
+        currentLevel.value === 3 || currentLevel.value >= 5 ? focusId.value : null,
+      targetNodeId: pinnedId,
     };
     localNotes.value = [...localNotes.value, newNote];
     emit("update:notes", localNotes.value);
@@ -1818,7 +2811,6 @@ function onStagePointerDown(e: PointerEvent) {
   }
 
   // Clicking empty background in Select mode clears selection
-  const target = e.target as HTMLElement | null;
   if (
     selectedId.value &&
     !target?.closest?.(".tux-map__el") &&
@@ -1830,16 +2822,20 @@ function onStagePointerDown(e: PointerEvent) {
 }
 
 function onStagePointerMove(e: PointerEvent) {
+  lastPointerClient = { x: e.clientX, y: e.clientY };
+  const pt = getStageCoords(e);
+
   if (
     activeTool.value === "select" &&
     !draggingNoteId.value &&
     activePenPoints.value.length === 0
   ) {
+    updateProximityAtStagePoint(pt.x, pt.y);
     return;
   }
-  const pt = getStageCoords(e);
 
   if (activeTool.value === "pen" && activePenPoints.value.length > 0) {
+    e.preventDefault();
     activePenPoints.value.push({
       x: pt.x,
       y: pt.y,
@@ -1850,6 +2846,7 @@ function onStagePointerMove(e: PointerEvent) {
   }
 
   if (activeTool.value === "laser" && e.buttons === 1) {
+    e.preventDefault();
     activeLaserPoints.value.push({ x: pt.x, y: pt.y, timestamp: Date.now() });
     emit("laser-move", activeLaserPoints.value);
     startLaserLoop();
@@ -1857,27 +2854,38 @@ function onStagePointerMove(e: PointerEvent) {
   }
 
   if (draggingNoteId.value) {
+    e.preventDefault();
     const dx = pt.x - noteDragOrigin.value.startX;
     const dy = pt.y - noteDragOrigin.value.startY;
+    const nextX = Math.round(noteDragOrigin.value.noteX + dx);
+    const nextY = Math.round(noteDragOrigin.value.noteY + dy);
+    const pinnedId = findCardIdAtStagePoint(nextX + 90, nextY + 36);
     localNotes.value = localNotes.value.map((n) =>
       n.id === draggingNoteId.value
         ? {
             ...n,
-            x: Math.round(noteDragOrigin.value.noteX + dx),
-            y: Math.round(noteDragOrigin.value.noteY + dy),
+            x: nextX,
+            y: nextY,
+            targetNodeId: pinnedId ?? n.targetNodeId,
           }
         : n,
     );
   }
 }
 
-function onStagePointerUp() {
+function onStagePointerUp(e: PointerEvent) {
+  (e.currentTarget as HTMLElement)?.releasePointerCapture?.(e.pointerId);
   if (activeTool.value === "pen" && activePenPoints.value.length > 1) {
+    const firstPt = activePenPoints.value[0]!;
     const stroke: TuxMapInkStroke = {
       id: `stroke-${Date.now()}`,
       color: props.penColor,
       size: 6,
       points: [...activePenPoints.value],
+      level: currentLevel.value,
+      focusId:
+        currentLevel.value === 3 || currentLevel.value >= 5 ? focusId.value : null,
+      targetNodeId: findCardIdAtStagePoint(firstPt.x, firstPt.y),
     };
     localStrokes.value = [...localStrokes.value, stroke];
     emit("update:strokes", localStrokes.value);
@@ -1891,7 +2899,9 @@ function onStagePointerUp() {
 
 function onNotePointerDown(note: TuxMapStickyNote, e: PointerEvent) {
   if (activeTool.value !== "select" || editingNoteId.value === note.id) return;
+  e.preventDefault();
   e.stopPropagation();
+  if (typeof window !== "undefined") window.getSelection?.()?.removeAllRanges?.();
   const pt = getStageCoords(e);
   draggingNoteId.value = note.id;
   noteDragOrigin.value = {
@@ -1900,6 +2910,12 @@ function onNotePointerDown(note: TuxMapStickyNote, e: PointerEvent) {
     noteX: note.x,
     noteY: note.y,
   };
+}
+
+function onViewportSelectStart(e: Event) {
+  if (!(e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement)) {
+    e.preventDefault();
+  }
 }
 
 function updateNoteText(id: string, text: string) {
@@ -1920,7 +2936,7 @@ function clearAnnotations() {
 }
 
 const renderedInkPaths = computed(() =>
-  localStrokes.value.map((s) => ({
+  visibleStrokes.value.map((s) => ({
     id: s.id,
     color: s.color,
     d: getSmoothedFreehandSvgPath(s.points, { size: s.size }),
@@ -1949,6 +2965,7 @@ function elementIconName(kind?: TuxMapElementKind | string): string {
       return "lucide:box";
     case "database":
     case "postgres":
+    case "schema":
       return "lucide:database";
     case "storage":
     case "backup":
@@ -1968,6 +2985,10 @@ function elementIconName(kind?: TuxMapElementKind | string): string {
       return "lucide:laptop";
     case "external":
       return "lucide:globe";
+    case "module":
+      return "lucide:package";
+    case "symbol":
+      return "lucide:code-2";
     default:
       return "lucide:circle-dot";
   }
@@ -1976,6 +2997,30 @@ function elementIconName(kind?: TuxMapElementKind | string): string {
 function normalizeArray(v?: string | string[]): string[] {
   if (!v) return [];
   return Array.isArray(v) ? v : [v];
+}
+
+function buildIssueHref(issueNum: number): string | null {
+  const base = activeModel.value.issueBaseUrl;
+  if (!base) return null;
+  return `${base.replace(/\/+$/, "")}/${issueNum}`;
+}
+
+function buildSourceHref(src?: {
+  path: string;
+  lineRange?: [number, number];
+  url?: string;
+}): string | null {
+  if (!src) return null;
+  if (src.url) return src.url;
+  const base = activeModel.value.sourceBaseUrl;
+  if (!base) return null;
+  const cleanPath = src.path.replace(/^\/+/, "");
+  const lineHash = src.lineRange
+    ? src.lineRange[0] === src.lineRange[1]
+      ? `#L${src.lineRange[0]}`
+      : `#L${src.lineRange[0]}-L${src.lineRange[1]}`
+    : "";
+  return `${base.replace(/\/+$/, "")}/${cleanPath}${lineHash}`;
 }
 </script>
 
@@ -1989,70 +3034,49 @@ function normalizeArray(v?: string | string[]): string[] {
       </div>
       <div class="tux-map__level-pill" role="status" aria-live="polite">
         <span class="tux-map__level-dot" />
-        <span class="tux-map__level-text">Level {{ currentLevel }} of 4</span>
+        <span class="tux-map__level-text">Level {{ currentLevel }} of {{ maxAvailableLevel }}</span>
       </div>
     </div>
 
-    <!-- Primary Toolbar: Level 1, 2, 3, 4 Switcher + Zoom In/Out + Show Planned + Search + View Mode -->
+    <!-- Primary Toolbar: N+1 Progressive Zoom Stepper + Infrastructure Perspective + Show Planned + Blast Radius + Annotations + Search + View Mode -->
     <div class="tux-map__tools" role="toolbar" aria-label="Architecture map controls">
-      <div class="tux-map__seg" role="group" aria-label="Semantic zoom level">
-        <button
-          type="button"
-          :aria-pressed="currentLevel === 1"
-          @click="goToLevel(1, { inward: false })"
-        >
-          <span class="tux-map__seg-n">1</span>
-          <span>Level 1</span>
-        </button>
-        <button
-          type="button"
-          :aria-pressed="currentLevel === 2"
-          @click="goToLevel(2, { inward: currentLevel < 2 })"
-        >
-          <span class="tux-map__seg-n">2</span>
-          <span>Level 2</span>
-        </button>
-        <button
-          type="button"
-          :aria-pressed="currentLevel === 3"
-          :disabled="!focusId"
-          :title="!focusId ? 'Select a container in Level 2 first' : undefined"
-          @click="focusId && goToLevel(3, { nextFocus: focusId, inward: currentLevel < 3 })"
-        >
-          <span class="tux-map__seg-n">3</span>
-          <span>Level 3</span>
-        </button>
-        <button
-          type="button"
-          :aria-pressed="currentLevel === 4"
-          @click="goToLevel(4, { inward: true })"
-        >
-          <span class="tux-map__seg-n">4</span>
-          <span>Level 4</span>
-        </button>
-      </div>
-
-      <!-- Level Step Zoom (− / +) -->
-      <div class="tux-map__zoom-btns" role="group" aria-label="Step zoom level">
+      <div class="tux-map__stepper" role="group" aria-label="Semantic zoom level">
         <button
           type="button"
           class="tux-map__iconbtn"
           :disabled="currentLevel === 1"
           aria-label="Zoom out a level"
-          title="Zoom out a level (−)"
-          @click="zoomOutLevel"
+          title="Zoom out to parent level (N−1)"
+          @click="zoomOutLevel()"
         >
           −
         </button>
+        <div class="tux-map__stepper-stratum" aria-live="polite">
+          <span class="tux-map__stepper-lvl">L{{ currentLevel }}</span>
+          <span class="tux-map__stepper-name">{{ currentStratumShort }}</span>
+        </div>
         <button
           type="button"
           class="tux-map__iconbtn"
-          :disabled="!(selectedId && byId[selectedId] && canZoomElement(byId[selectedId]!))"
+          :disabled="!canStepIn"
           aria-label="Zoom in on the chosen element"
-          title="Zoom in on the chosen element (+)"
-          @click="selectedId && zoomIntoElement(selectedId)"
+          title="Drill into N+1 view (+)"
+          @click="stepInLevel()"
         >
           +
+        </button>
+      </div>
+
+      <!-- Orthogonal Infrastructure & Deployment Perspective Toggle -->
+      <div class="tux-map__seg" role="group" aria-label="Topology perspective">
+        <button
+          type="button"
+          :aria-pressed="currentLevel === 4"
+          title="Toggle physical deployment & infrastructure topology"
+          @click="toggleInfrastructureView()"
+        >
+          <Icon name="lucide:server" aria-hidden="true" />
+          <span>Infrastructure</span>
         </button>
       </div>
 
@@ -2061,6 +3085,13 @@ function normalizeArray(v?: string | string[]): string[] {
         <input v-model="showPlanned" type="checkbox" />
         <span class="tux-map__switch-track" />
         <span>Show planned</span>
+      </label>
+
+      <!-- Show Blast Radius Switch -->
+      <label class="tux-map__switch">
+        <input v-model="showBlastRadius" type="checkbox" />
+        <span class="tux-map__switch-track tux-map__switch-track--blast" />
+        <span>Blast radius</span>
       </label>
 
       <!-- Lightweight Annotation Tools -->
@@ -2153,7 +3184,14 @@ function normalizeArray(v?: string | string[]): string[] {
           <button
             v-else
             type="button"
-            @click="goToLevel(crumb.level, { nextSel: null, inward: false })"
+            @click="
+              drillStack = crumb.level < 5 ? [] : drillStack.slice(0, Math.max(0, idx - 2));
+              goToLevel(crumb.level, {
+                nextFocus: crumb.focusId ?? focusId,
+                nextSel: null,
+                inward: false,
+              });
+            "
           >
             {{ crumb.label }}
           </button>
@@ -2164,8 +3202,10 @@ function normalizeArray(v?: string | string[]): string[] {
     <p class="tux-map__hint">
       {{
         currentLevel === 4
-          ? "Choose a deployment resource to draw its connections and inspect its firewall rules and hosted containers. Scroll down over any resource (or press − / Escape) to zoom out a level."
-          : "Hover over any card to highlight its links, or scroll the mouse wheel over a card (or double-click / press +) to zoom in and out across Levels 1–4."
+          ? "Choose a deployment resource to draw its connections and inspect its firewall rules and hosted containers. Double-click or scroll up on nodes with '+' to drill into Level 5 internal modules/schemas."
+          : currentLevel >= 5
+            ? "Inspecting deep internal modules & code symbols. Double-click or scroll up on '+' cards to drill deeper, or scroll down / press Escape to return to the parent level."
+            : "Hover over any card to highlight its links, or scroll the mouse wheel over a card (or double-click / press +) to zoom in and out across Levels 1–6."
       }}
     </p>
     <p class="tux-map__summary">{{ summaryText }}</p>
@@ -2180,9 +3220,13 @@ function normalizeArray(v?: string | string[]): string[] {
       <template v-else>
         <li><i class="tux-map__swatch tux-map__swatch--person" /> Person</li>
         <li><i class="tux-map__swatch tux-map__swatch--system" /> Primary system</li>
-        <li><i class="tux-map__swatch tux-map__swatch--card" /> Container or component</li>
+        <li><i class="tux-map__swatch tux-map__swatch--card" /> Container / component / module</li>
         <li><i class="tux-map__swatch tux-map__swatch--external" /> External system</li>
         <li><i class="tux-map__swatch tux-map__swatch--planned" /> Planned</li>
+      </template>
+      <template v-if="showBlastRadius">
+        <li><i class="tux-map__swatch tux-map__swatch--diff-direct" /> PR Modified</li>
+        <li><i class="tux-map__swatch tux-map__swatch--diff-impact" /> Blast-Radius Impacted</li>
       </template>
       <li>
         <svg aria-hidden="true" viewBox="0 0 28 8">
@@ -2205,12 +3249,22 @@ function normalizeArray(v?: string | string[]): string[] {
         v-show="!isListView"
         ref="viewportRef"
         class="tux-map__viewport"
-        :class="`tux-map__viewport--tool-${activeTool}`"
+        :class="[
+          `tux-map__viewport--tool-${activeTool}`,
+          {
+            'tux-map__viewport--has-proximity': Boolean(proximityCard && activeTool === 'select'),
+            'tux-map__viewport--proximity-zoom': Boolean(
+              proximityCard?.zoomable && activeTool === 'select',
+            ),
+          },
+        ]"
         :style="{ height: computedViewportHeight }"
         tabindex="0"
         role="region"
         :aria-label="ariaLabel"
         @wheel="onViewportWheel"
+        @selectstart="onViewportSelectStart"
+        @dragstart.prevent
         @pointerdown="onStagePointerDown"
         @pointermove="onStagePointerMove"
         @pointerup="onStagePointerUp"
@@ -2222,7 +3276,7 @@ function normalizeArray(v?: string | string[]): string[] {
           class="tux-map__stage"
           :class="{
             'tux-map__stage--pan': isPanningStage,
-            'tux-map__stage--dim': Boolean(activeLitId || matchingSearchIds),
+            'tux-map__stage--dim': Boolean(activeLitId || matchingSearchIds || blastRadiusState),
           }"
           :style="{
             width: `${stageData.width}px`,
@@ -2255,7 +3309,7 @@ function normalizeArray(v?: string | string[]): string[] {
           <svg
             class="tux-map__wires"
             :class="{
-              'tux-map__wires--has-on': Boolean(activeLitId),
+              'tux-map__wires--has-on': Boolean(activeLitId || blastRadiusState),
               'tux-map__wires--level4': currentLevel === 4,
             }"
             :width="stageData.width"
@@ -2281,6 +3335,7 @@ function normalizeArray(v?: string | string[]): string[] {
               v-for="w in routedSvg.wires"
               :key="w.id"
               :d="w.d"
+              :data-id="w.id"
               :data-from="w.from"
               :data-to="w.to"
               class="tux-map__wire"
@@ -2296,19 +3351,32 @@ function normalizeArray(v?: string | string[]): string[] {
             :height="stageData.height"
             aria-hidden="true"
           >
-            <path
-              v-for="w in routedSvg.wires"
-              :key="`fg-${w.id}`"
-              :d="w.d"
-              :data-from="w.from"
-              :data-to="w.to"
-              class="tux-map__wire-fg"
-              :class="{
-                'tux-map__wire-fg--planned': w.planned,
-                'tux-map__wire-fg--on': isWireLit(w.from, w.to),
-              }"
-              :marker-end="`url(#${arrowMarkerId})`"
-            />
+            <template v-for="w in routedSvg.wires" :key="`fg-${w.id}`">
+              <path
+                :d="w.d"
+                :data-id="w.id"
+                :data-from="w.from"
+                :data-to="w.to"
+                class="tux-map__wire-fg"
+                :class="{
+                  'tux-map__wire-fg--planned': w.planned,
+                  'tux-map__wire-fg--blast': Boolean(blastRadiusState?.impactedWires.has(w.id)),
+                  'tux-map__wire-fg--on': isWireLit(w.from, w.to, w.id),
+                }"
+                :marker-end="`url(#${arrowMarkerId})`"
+              />
+              <path
+                :d="w.d"
+                :data-id="w.id"
+                :data-from="w.from"
+                :data-to="w.to"
+                class="tux-map__wire-fg tux-map__wire-fg--stream"
+                :class="{
+                  'tux-map__wire-fg--blast': Boolean(blastRadiusState?.impactedWires.has(w.id)),
+                  'tux-map__wire-fg--on': isWireLit(w.from, w.to, w.id),
+                }"
+              />
+            </template>
           </svg>
 
           <!-- Layer 2 / 5 (z-index: 2 at rest, 1 when dimmed, 5 when lit): Element Cards -->
@@ -2323,6 +3391,7 @@ function normalizeArray(v?: string | string[]): string[] {
               :class="[
                 c.kindCls,
                 c.statusCls,
+                c.blastCls,
                 {
                   'tux-map__el--mini': c.mini,
                   'tux-map__el--zoomable': c.zoomable,
@@ -2338,12 +3407,12 @@ function normalizeArray(v?: string | string[]): string[] {
                 <Icon :name="c.icon" class="tux-map__el-ic" aria-hidden="true" />
                 <span>{{ c.name }}</span>
               </span>
-              <span v-if="c.typeLabel" class="tux-map__el-ty">
+              <span v-if="c.typeLabel" class="tux-map__el-ty" :title="c.typeLabel">
                 {{ c.typeLabel }}
               </span>
-              <span v-if="c.desc" class="tux-map__el-ds">{{ c.desc }}</span>
+              <span v-if="c.desc" class="tux-map__el-ds" :title="c.desc">{{ c.desc }}</span>
               <span
-                v-if="c.live || c.chip"
+                v-if="c.live || c.chip || c.diffBadge"
                 class="tux-map__el-ft"
               >
                 <template v-if="c.live">
@@ -2360,6 +3429,13 @@ function normalizeArray(v?: string | string[]): string[] {
                   :class="`tux-map__chip--${c.chip[0]}`"
                 >
                   {{ c.chip[1] }}
+                </span>
+                <span
+                  v-if="c.diffBadge"
+                  class="tux-map__chip"
+                  :class="`tux-map__chip--diff-${c.diffBadge[0]}`"
+                >
+                  {{ c.diffBadge[1] }}
                 </span>
               </span>
               <span
@@ -2383,7 +3459,15 @@ function normalizeArray(v?: string | string[]): string[] {
               class="tux-map__el tux-map__el--k-resource"
               :class="[
                 n.status && n.status !== 'now' ? `tux-map__el--st-${n.status}` : '',
-                { 'tux-map__el--lit': isElementLit(n.id) },
+                blastRadiusState?.directIds.has(n.id)
+                  ? 'tux-map__el--diff-direct'
+                  : blastRadiusState?.impactedIds.has(n.id)
+                    ? 'tux-map__el--diff-impact'
+                    : '',
+                {
+                  'tux-map__el--zoomable': canZoomDeployNode(n),
+                  'tux-map__el--lit': isElementLit(n.id),
+                },
               ]"
               :style="{
                 left: `${stageData.rects[n.id]?.x ?? 0}px`,
@@ -2393,6 +3477,7 @@ function normalizeArray(v?: string | string[]): string[] {
               }"
               :aria-pressed="selectedId === n.id"
               @click="selectElement(selectedId === n.id ? null : n.id)"
+              @dblclick.stop="canZoomDeployNode(n) && zoomIntoElement(n.id)"
             >
               <span class="tux-map__el-nm">
                 <Icon :name="elementIconName(n.kind)" class="tux-map__el-ic" aria-hidden="true" />
@@ -2401,6 +3486,7 @@ function normalizeArray(v?: string | string[]): string[] {
               <span
                 v-if="n.facts?.size || n.facts?.sku || n.facts?.version || n.facts?.ingress"
                 class="tux-map__el-ty"
+                :title="n.facts?.size || n.facts?.sku || n.facts?.version || n.facts?.ingress"
               >
                 {{ n.facts?.size || n.facts?.sku || n.facts?.version || n.facts?.ingress }}
               </span>
@@ -2411,6 +3497,21 @@ function normalizeArray(v?: string | string[]): string[] {
                 <span v-if="n.status === 'planned'" class="tux-map__chip tux-map__chip--planned">
                   Planned
                 </span>
+                <span
+                  v-if="formatDiffBadge(n.id, n.diff)"
+                  class="tux-map__chip"
+                  :class="`tux-map__chip--diff-${formatDiffBadge(n.id, n.diff)![0]}`"
+                >
+                  {{ formatDiffBadge(n.id, n.diff)![1] }}
+                </span>
+              </span>
+              <span
+                v-if="canZoomDeployNode(n)"
+                class="tux-map__el-zb"
+                title="Scroll up or double-click to zoom in to Level 5 internal modules/schemas"
+                aria-hidden="true"
+              >
+                +
               </span>
             </button>
           </template>
@@ -2434,9 +3535,9 @@ function normalizeArray(v?: string | string[]): string[] {
             <span v-if="lbl.t2" class="tux-map__lab-t2">[{{ lbl.t2 }}]</span>
           </div>
 
-          <!-- Sticky Notes Overlay -->
+          <!-- Sticky Notes Overlay (Scoped to Current Level & Focus) -->
           <div
-            v-for="note in localNotes"
+            v-for="note in visibleNotes"
             :key="note.id"
             class="tux-map__note"
             :style="{
@@ -2446,7 +3547,10 @@ function normalizeArray(v?: string | string[]): string[] {
             @dblclick.stop="editingNoteId = note.id"
           >
             <div class="tux-map__note-head">
-              <span>{{ note.author ?? "M.A.P. Note" }}</span>
+              <span>
+                {{ note.author ?? "M.A.P. Note" }}
+                <template v-if="note.targetNodeId"> · #{{ note.targetNodeId }}</template>
+              </span>
               <button
                 type="button"
                 class="tux-map__note-close"
@@ -2468,6 +3572,54 @@ function normalizeArray(v?: string | string[]): string[] {
             />
             <p v-else class="tux-map__note-body">{{ note.text }}</p>
           </div>
+
+          <!-- Vue Flow–Style Magnetic Proximity Frame & Connection Handles -->
+          <div
+            v-if="proximityCard && activeTool === 'select'"
+            ref="proximityFrameRef"
+            class="tux-map__proximity-frame"
+            :class="{ 'tux-map__proximity-frame--zoomable': proximityCard.zoomable }"
+            :style="{
+              left: `${proximityCard.x - 6}px`,
+              top: `${proximityCard.y - 6}px`,
+              width: `${proximityCard.w + 12}px`,
+              height: `${proximityCard.h + 12}px`,
+            }"
+            aria-hidden="true"
+          >
+            <i class="tux-map__port tux-map__port--n" />
+            <i class="tux-map__port tux-map__port--e" />
+            <i class="tux-map__port tux-map__port--s" />
+            <i class="tux-map__port tux-map__port--w" />
+            <span
+              v-if="proximityCard.zoomable || currentLevel > 1"
+              class="tux-map__proximity-pill"
+            >
+              <span class="tux-map__proximity-pill-ic">
+                {{ proximityCard.zoomable ? "⊕" : "⊖" }}
+              </span>
+              <span>
+                {{
+                  proximityCard.zoomable
+                    ? `Scroll to zoom · ${proximityCard.name}`
+                    : `Scroll out · ${proximityCard.name}`
+                }}
+              </span>
+            </span>
+          </div>
+
+          <!-- Elastic Magnetic Proximity Tether SVG (Connects Cursor in Empty Space to Attached Card) -->
+          <svg
+            ref="proximityTetherSvgRef"
+            class="tux-map__proximity-tether"
+            :width="stageData.width"
+            :height="stageData.height"
+            aria-hidden="true"
+          >
+            <path ref="proximityTetherBeamRef" class="tux-map__proximity-beam" d="M0,0 L0,0" />
+            <circle ref="proximityAnchorDotRef" class="tux-map__proximity-anchor" cx="0" cy="0" r="4.5" />
+            <circle ref="proximityCursorDotRef" class="tux-map__proximity-cursor" cx="0" cy="0" r="6" />
+          </svg>
 
           <!-- On-Demand Freehand Ink & Laser SVG Overlay (Only Mounted When Used) -->
           <svg
@@ -2612,11 +3764,57 @@ function normalizeArray(v?: string | string[]): string[] {
             @click="zoomIntoElement(selectedLevelElement.id)"
           >
             {{
-              currentLevel === 1
-                ? "Zoom in to Level 2: containers & services"
-                : `Zoom in to Level 3: its ${(activeModel.level3[selectedLevelElement.id] || []).length} components`
+              hasFractalSubgraph(selectedLevelElement.id)
+                ? `Zoom in to Level ${currentLevel >= 5 ? currentLevel + 1 : 5}: ${getSubgraphForNode(selectedLevelElement.id)?.stratum || "internal modules"}`
+                : currentLevel === 1
+                  ? "Zoom in to Level 2: containers & services"
+                  : currentLevel === 2
+                    ? `Zoom in to Level 3: its ${(activeModel.level3[selectedLevelElement.id] || []).length} components`
+                    : "Zoom in to Level 4: deployment host"
             }}
           </button>
+
+          <!-- PR Diff / Blast Radius Summary -->
+          <template v-if="selectedLevelElement.diff || formatDiffBadge(selectedLevelElement.id, selectedLevelElement.diff)">
+            <h5 class="tux-map__panel-h">PR Change &amp; Blast Radius</h5>
+            <div class="tux-map__panel-diff">
+              <span
+                v-if="formatDiffBadge(selectedLevelElement.id, selectedLevelElement.diff)"
+                class="tux-map__chip"
+                :class="`tux-map__chip--diff-${formatDiffBadge(selectedLevelElement.id, selectedLevelElement.diff)![0]}`"
+              >
+                {{ formatDiffBadge(selectedLevelElement.id, selectedLevelElement.diff)![1] }}
+              </span>
+              <p v-if="selectedLevelElement.diff?.summary" class="tux-map__panel-diff-sum">
+                {{ selectedLevelElement.diff.summary }}
+              </p>
+            </div>
+          </template>
+
+          <!-- Source Code Reference -->
+          <template v-if="selectedLevelElement.source">
+            <h5 class="tux-map__panel-h">Source Code</h5>
+            <div class="tux-map__panel-source">
+              <a
+                v-if="buildSourceHref(selectedLevelElement.source)"
+                :href="buildSourceHref(selectedLevelElement.source)!"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="tux-map__source-lnk"
+              >
+                <code>{{ selectedLevelElement.source.path }}</code>
+                <span v-if="selectedLevelElement.source.lineRange">
+                  :L{{ selectedLevelElement.source.lineRange[0] }}–L{{ selectedLevelElement.source.lineRange[1] }}
+                </span>
+              </a>
+              <code v-else class="tux-map__source-pill">
+                {{ selectedLevelElement.source.path }}
+              </code>
+              <div v-if="selectedLevelElement.source.symbol" class="tux-map__source-sym">
+                Symbol: <code>{{ selectedLevelElement.source.symbol }}</code>
+              </div>
+            </div>
+          </template>
 
           <!-- Live Operational Telemetry -->
           <template v-if="selectedLevelElement.live">
@@ -2672,6 +3870,20 @@ function normalizeArray(v?: string | string[]): string[] {
                 </button>
                 <span>: {{ item.rel.label }}</span>
                 <span v-if="item.rel.tech" class="tux-map__panel-tech">{{ item.rel.tech }}</span>
+                <span v-if="item.rel.roadmap?.length" class="tux-map__panel-roadmap-inline">
+                  <template v-for="iss in item.rel.roadmap" :key="iss">
+                    <a
+                      v-if="buildIssueHref(iss)"
+                      :href="buildIssueHref(iss)!"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="tux-map__issue-lnk"
+                    >
+                      #{{ iss }}
+                    </a>
+                    <span v-else class="tux-map__issue-pill">#{{ iss }}</span>
+                  </template>
+                </span>
               </li>
             </ul>
           </template>
@@ -2690,8 +3902,41 @@ function normalizeArray(v?: string | string[]): string[] {
                 </button>
                 <span>: {{ item.rel.label }}</span>
                 <span v-if="item.rel.tech" class="tux-map__panel-tech">{{ item.rel.tech }}</span>
+                <span v-if="item.rel.roadmap?.length" class="tux-map__panel-roadmap-inline">
+                  <template v-for="iss in item.rel.roadmap" :key="iss">
+                    <a
+                      v-if="buildIssueHref(iss)"
+                      :href="buildIssueHref(iss)!"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="tux-map__issue-lnk"
+                    >
+                      #{{ iss }}
+                    </a>
+                    <span v-else class="tux-map__issue-pill">#{{ iss }}</span>
+                  </template>
+                </span>
               </li>
             </ul>
+          </template>
+
+          <!-- Roadmap Issues (Element) -->
+          <template v-if="selectedLevelElement.roadmap?.length">
+            <h5 class="tux-map__panel-h">Roadmap</h5>
+            <div class="tux-map__panel-roadmap">
+              <template v-for="iss in selectedLevelElement.roadmap" :key="iss">
+                <a
+                  v-if="buildIssueHref(iss)"
+                  :href="buildIssueHref(iss)!"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="tux-map__issue-lnk"
+                >
+                  #{{ iss }}
+                </a>
+                <span v-else class="tux-map__issue-pill">#{{ iss }}</span>
+              </template>
+            </div>
           </template>
         </template>
 
@@ -2722,6 +3967,57 @@ function normalizeArray(v?: string | string[]): string[] {
           <div v-if="selectedDeployNode.placement" class="tux-map__panel-place">
             {{ selectedDeployNode.placement }}
           </div>
+
+          <button
+            v-if="canZoomDeployNode(selectedDeployNode)"
+            type="button"
+            class="tux-map__panel-btn"
+            @click="zoomIntoElement(selectedDeployNode.id)"
+          >
+            Zoom in to Level 5: {{ getSubgraphForNode(selectedDeployNode.id)?.stratum || "internal modules & schemas" }}
+          </button>
+
+          <!-- PR Diff / Blast Radius Summary (Deployment Node) -->
+          <template v-if="selectedDeployNode.diff || formatDiffBadge(selectedDeployNode.id, selectedDeployNode.diff)">
+            <h5 class="tux-map__panel-h">PR Change &amp; Blast Radius</h5>
+            <div class="tux-map__panel-diff">
+              <span
+                v-if="formatDiffBadge(selectedDeployNode.id, selectedDeployNode.diff)"
+                class="tux-map__chip"
+                :class="`tux-map__chip--diff-${formatDiffBadge(selectedDeployNode.id, selectedDeployNode.diff)![0]}`"
+              >
+                {{ formatDiffBadge(selectedDeployNode.id, selectedDeployNode.diff)![1] }}
+              </span>
+              <p v-if="selectedDeployNode.diff?.summary" class="tux-map__panel-diff-sum">
+                {{ selectedDeployNode.diff.summary }}
+              </p>
+            </div>
+          </template>
+
+          <!-- Source Code Reference (Deployment Node) -->
+          <template v-if="selectedDeployNode.source">
+            <h5 class="tux-map__panel-h">Source Code</h5>
+            <div class="tux-map__panel-source">
+              <a
+                v-if="buildSourceHref(selectedDeployNode.source)"
+                :href="buildSourceHref(selectedDeployNode.source)!"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="tux-map__source-lnk"
+              >
+                <code>{{ selectedDeployNode.source.path }}</code>
+                <span v-if="selectedDeployNode.source.lineRange">
+                  :L{{ selectedDeployNode.source.lineRange[0] }}–L{{ selectedDeployNode.source.lineRange[1] }}
+                </span>
+              </a>
+              <code v-else class="tux-map__source-pill">
+                {{ selectedDeployNode.source.path }}
+              </code>
+              <div v-if="selectedDeployNode.source.symbol" class="tux-map__source-sym">
+                Symbol: <code>{{ selectedDeployNode.source.symbol }}</code>
+              </div>
+            </div>
+          </template>
 
           <template v-if="selectedDeployNode.hosts?.length">
             <h5 class="tux-map__panel-h">Hosts (Level 2)</h5>
@@ -2806,6 +4102,25 @@ function normalizeArray(v?: string | string[]): string[] {
                 <span v-if="it.link.label">: {{ it.link.label }}</span>
               </li>
             </ul>
+          </template>
+
+          <!-- Roadmap Issues (Deployment Node) -->
+          <template v-if="selectedDeployNode.roadmap?.length">
+            <h5 class="tux-map__panel-h">Roadmap</h5>
+            <div class="tux-map__panel-roadmap">
+              <template v-for="iss in selectedDeployNode.roadmap" :key="iss">
+                <a
+                  v-if="buildIssueHref(iss)"
+                  :href="buildIssueHref(iss)!"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="tux-map__issue-lnk"
+                >
+                  #{{ iss }}
+                </a>
+                <span v-else class="tux-map__issue-pill">#{{ iss }}</span>
+              </template>
+            </div>
           </template>
         </template>
       </aside>
@@ -2936,10 +4251,54 @@ function normalizeArray(v?: string | string[]): string[] {
   opacity: 0.8;
 }
 
-.tux-map__zoom-btns {
+.tux-map__stepper {
   display: inline-flex;
-  gap: 0.3rem;
   align-items: center;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+.tux-map__stepper .tux-map__iconbtn {
+  border: 0;
+  border-radius: 0;
+  height: 32px;
+  width: 32px;
+}
+
+.tux-map__stepper .tux-map__iconbtn:hover:not(:disabled) {
+  background: var(--surface-sunken);
+}
+
+.tux-map__stepper-stratum {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.7rem;
+  height: 32px;
+  border-left: 1px solid var(--surface-border);
+  border-right: 1px solid var(--surface-border);
+  font-family: var(--font-bold);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.tux-map__stepper-lvl {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--brand-primary) 14%, transparent);
+  color: var(--brand-primary);
+}
+
+.tux-map__stepper-name {
+  max-width: 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tux-map__iconbtn {
@@ -3141,17 +4500,46 @@ function normalizeArray(v?: string | string[]): string[] {
   border: 1.5px dashed var(--text-muted);
 }
 
+.tux-map__swatch--diff-direct {
+  background: var(--surface-raised);
+  border: 2px solid #D97706;
+}
+
+.tux-map__swatch--diff-impact {
+  background: var(--surface-raised);
+  border: 2px dashed #E11D48;
+}
+
 .tux-map__legend svg {
   width: 28px;
   height: 8px;
   overflow: visible;
 }
 
-/* Canvas, Viewport & Stage */
+/* Canvas, Viewport & Color-Mode-Aware Custom Cursors */
 .tux-map__canvas {
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-md);
+  /* Light mode custom SVG cursors (Aggie Maroon #500000 + crisp white halo) */
+  --tux-cursor-nav: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='9' fill='rgba(80,0,0,0.08)' stroke='%23FFFFFF' stroke-width='2.6'/%3E%3Ccircle cx='14' cy='14' r='9' fill='none' stroke='%23500000' stroke-width='1.5' stroke-dasharray='4 2.5'/%3E%3Ccircle cx='14' cy='14' r='2.6' fill='%23500000' stroke='%23FFFFFF' stroke-width='1.4'/%3E%3C/svg%3E") 14 14, grab;
+  --tux-cursor-zoom: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Ccircle cx='15' cy='15' r='10.5' fill='rgba(80,0,0,0.14)' stroke='%23FFFFFF' stroke-width='2.8'/%3E%3Ccircle cx='15' cy='15' r='10.5' fill='none' stroke='%23500000' stroke-width='1.8'/%3E%3Cpath d='M15 10.5v9M10.5 15h9' stroke='%23FFFFFF' stroke-width='3.2' stroke-linecap='round'/%3E%3Cpath d='M15 10.5v9M10.5 15h9' stroke='%23500000' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") 15 15, pointer;
+  --tux-cursor-card: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26'%3E%3Cpath d='M5 3.5L21 11.5L13.5 14L11 21.5L5 3.5Z' fill='%23500000' stroke='%23FFFFFF' stroke-width='2.2' stroke-linejoin='round'/%3E%3C/svg%3E") 5 4, pointer;
+}
+
+[data-theme="tti-dark"] .tux-map__canvas {
+  /* Dark mode custom SVG cursors (Luminous Aggie Gold #F5D580 + deep #15100F halo) */
+  --tux-cursor-nav: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='9' fill='rgba(245,213,128,0.12)' stroke='%2315100F' stroke-width='2.8'/%3E%3Ccircle cx='14' cy='14' r='9' fill='none' stroke='%23F5D580' stroke-width='1.6' stroke-dasharray='4 2.5'/%3E%3Ccircle cx='14' cy='14' r='2.6' fill='%23F5D580' stroke='%2315100F' stroke-width='1.4'/%3E%3C/svg%3E") 14 14, grab;
+  --tux-cursor-zoom: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Ccircle cx='15' cy='15' r='10.5' fill='rgba(245,213,128,0.18)' stroke='%2315100F' stroke-width='2.8'/%3E%3Ccircle cx='15' cy='15' r='10.5' fill='none' stroke='%23F5D580' stroke-width='1.8'/%3E%3Cpath d='M15 10.5v9M10.5 15h9' stroke='%2315100F' stroke-width='3.2' stroke-linecap='round'/%3E%3Cpath d='M15 10.5v9M10.5 15h9' stroke='%23F5D580' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") 15 15, pointer;
+  --tux-cursor-card: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26'%3E%3Cpath d='M5 3.5L21 11.5L13.5 14L11 21.5L5 3.5Z' fill='%23F5D580' stroke='%2315100F' stroke-width='2.2' stroke-linejoin='round'/%3E%3C/svg%3E") 5 4, pointer;
+}
+
+[data-contrast="high"] .tux-map__canvas,
+[data-vision-mode] .tux-map__canvas {
+  /* High-contrast & Colorblind-safe dual-ring SVG cursors (#00E5FF + #000000 + #FFFFFF) */
+  --tux-cursor-nav: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='9.5' fill='rgba(0,229,255,0.16)' stroke='%23000000' stroke-width='3.2'/%3E%3Ccircle cx='14' cy='14' r='9.5' fill='none' stroke='%2300E5FF' stroke-width='1.8'/%3E%3Ccircle cx='14' cy='14' r='3' fill='%23FFD600' stroke='%23000000' stroke-width='1.5'/%3E%3C/svg%3E") 14 14, grab;
+  --tux-cursor-zoom: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Ccircle cx='15' cy='15' r='11' fill='rgba(0,229,255,0.22)' stroke='%23000000' stroke-width='3.2'/%3E%3Ccircle cx='15' cy='15' r='11' fill='none' stroke='%2300E5FF' stroke-width='2'/%3E%3Cpath d='M15 10v10M10 15h10' stroke='%23000000' stroke-width='3.6' stroke-linecap='round'/%3E%3Cpath d='M15 10v10M10 15h10' stroke='%23FFD600' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") 15 15, pointer;
+  --tux-cursor-card: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26'%3E%3Cpath d='M5 3.5L21 11.5L13.5 14L11 21.5L5 3.5Z' fill='%23FFD600' stroke='%23000000' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E") 5 4, pointer;
 }
 
 .tux-map__viewport {
@@ -3165,18 +4553,41 @@ function normalizeArray(v?: string | string[]): string[] {
     transparent 1px
   );
   background-size: 22px 22px;
+  cursor: var(--tux-cursor-nav);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+
+.tux-map__viewport--has-proximity {
+  cursor: var(--tux-cursor-card);
+}
+
+.tux-map__viewport--proximity-zoom {
+  cursor: var(--tux-cursor-zoom);
 }
 
 .tux-map__viewport--tool-pen,
 .tux-map__viewport--tool-laser,
 .tux-map__viewport--tool-note {
   cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .tux-map__viewport--tool-pen .tux-map__el,
 .tux-map__viewport--tool-laser .tux-map__el,
-.tux-map__viewport--tool-note .tux-map__el {
+.tux-map__viewport--tool-note .tux-map__el,
+.tux-map__viewport--tool-pen .tux-map__bound,
+.tux-map__viewport--tool-laser .tux-map__bound,
+.tux-map__viewport--tool-note .tux-map__bound,
+.tux-map__viewport--tool-pen .tux-map__lab,
+.tux-map__viewport--tool-laser .tux-map__lab,
+.tux-map__viewport--tool-note .tux-map__lab {
   pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .tux-map__stage {
@@ -3185,6 +4596,8 @@ function normalizeArray(v?: string | string[]): string[] {
   top: 0;
   transform-origin: 0 0;
   will-change: transform, opacity;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .tux-map__stage--pan {
@@ -3333,8 +4746,8 @@ function normalizeArray(v?: string | string[]): string[] {
   display: none;
   fill: none;
   stroke: var(--brand-primary);
-  stroke-width: 2.2;
-  opacity: 1;
+  stroke-width: 2;
+  opacity: 0.42;
   transition: none !important;
 }
 
@@ -3342,8 +4755,151 @@ function normalizeArray(v?: string | string[]): string[] {
   stroke-dasharray: 6 5;
 }
 
+.tux-map__wire-fg--blast {
+  stroke: #D97706;
+  stroke-width: 2.3;
+}
+
+.tux-map__wire-fg--stream {
+  stroke: var(--brand-primary);
+  stroke-width: 2.4;
+  stroke-dasharray: 8 11;
+  stroke-linecap: round;
+  opacity: 0.95;
+  animation: tux-map-wire-flow 0.62s linear infinite;
+}
+
+.tux-map__wire-fg--stream.tux-map__wire-fg--blast {
+  stroke: #D97706;
+}
+
 .tux-map__wire-fg--on {
   display: inline;
+}
+
+@keyframes tux-map-wire-flow {
+  from {
+    stroke-dashoffset: 19;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Vue Flow–Style Magnetic Proximity Frame, Port Handles & Elastic Tether */
+.tux-map__proximity-frame {
+  position: absolute;
+  z-index: 6;
+  pointer-events: none;
+  border-radius: 13px;
+  border: 1.5px dashed color-mix(in srgb, var(--brand-primary) 72%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 4%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  transition:
+    left 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.12s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tux-map__proximity-frame--zoomable {
+  border-style: solid;
+  border-color: var(--brand-primary);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--brand-primary) 14%, transparent),
+    0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.tux-map__port {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  border: 2px solid var(--brand-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+}
+
+.tux-map__port--n {
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tux-map__port--e {
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.tux-map__port--s {
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tux-map__port--w {
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.tux-map__proximity-pill {
+  position: absolute;
+  left: 8px;
+  top: -24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  border: 1px solid var(--brand-primary);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.14);
+  font-family: var(--font-bold);
+  font-weight: 700;
+  font-size: 10.5px;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.tux-map__proximity-pill-ic {
+  color: var(--brand-primary);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.tux-map__proximity-tether {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 12;
+  opacity: 0;
+  transition: opacity 0.14s ease;
+}
+
+.tux-map__proximity-beam {
+  fill: none;
+  stroke: var(--brand-primary);
+  stroke-width: 1.75;
+  stroke-dasharray: 5 5;
+  stroke-linecap: round;
+  animation: tux-map-wire-flow 0.55s linear infinite;
+}
+
+.tux-map__proximity-anchor {
+  fill: var(--brand-primary);
+  stroke: var(--surface-raised);
+  stroke-width: 1.8;
+}
+
+.tux-map__proximity-cursor {
+  fill: color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  stroke: var(--brand-primary);
+  stroke-width: 1.8;
 }
 
 /* Layer 3 / 10: HTML Wire Label Pills (z-index: 3 at rest, 1 when dimmed, 10 when popped out) */
@@ -3398,7 +4954,7 @@ function normalizeArray(v?: string | string[]): string[] {
   display: flex;
   flex-direction: column;
   gap: 0.22rem;
-  cursor: pointer;
+  cursor: var(--tux-cursor-card);
   overflow: hidden;
   padding: 0.6rem 0.7rem 0.55rem;
   border-radius: 10px;
@@ -3407,11 +4963,46 @@ function normalizeArray(v?: string | string[]): string[] {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   text-align: left;
   font: inherit;
-  transition: none !important;
+  transition:
+    transform 0.16s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.16s ease,
+    border-color 0.14s ease;
+}
+
+.tux-map__el--zoomable {
+  cursor: var(--tux-cursor-zoom);
+}
+
+.tux-map__el--proximity {
+  border-color: color-mix(in srgb, var(--brand-primary) 78%, var(--surface-border));
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  z-index: 6;
 }
 
 .tux-map__el:hover {
   border-color: var(--brand-primary);
+  z-index: 8;
+  height: auto !important;
+  min-height: 128px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.16);
+}
+
+.tux-map__el--mini:hover,
+.tux-map__el--k-resource:hover {
+  min-height: 82px;
+}
+
+.tux-map__el:hover .tux-map__el-ty,
+.tux-map__el[aria-pressed="true"] .tux-map__el-ty {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+.tux-map__el:hover .tux-map__el-ds,
+.tux-map__el[aria-pressed="true"] .tux-map__el-ds {
+  -webkit-line-clamp: unset;
+  overflow: visible;
 }
 
 .tux-map__el:focus-visible {
@@ -3422,6 +5013,8 @@ function normalizeArray(v?: string | string[]): string[] {
 .tux-map__el[aria-pressed="true"] {
   border-color: var(--brand-primary);
   box-shadow: 0 0 0 2px var(--brand-primary);
+  z-index: 7;
+  height: auto !important;
 }
 
 .tux-map__el-nm {
@@ -3564,6 +5157,9 @@ function normalizeArray(v?: string | string[]): string[] {
 .tux-map__el--k-database,
 .tux-map__el--k-storage,
 .tux-map__el--k-component,
+.tux-map__el--k-module,
+.tux-map__el--k-schema,
+.tux-map__el--k-symbol,
 .tux-map__el--k-resource {
   box-shadow:
     inset 4px 0 0 var(--brand-primary),
@@ -3574,8 +5170,26 @@ function normalizeArray(v?: string | string[]): string[] {
 .tux-map__el--k-database .tux-map__el-ic,
 .tux-map__el--k-storage .tux-map__el-ic,
 .tux-map__el--k-component .tux-map__el-ic,
+.tux-map__el--k-module .tux-map__el-ic,
+.tux-map__el--k-schema .tux-map__el-ic,
+.tux-map__el--k-symbol .tux-map__el-ic,
 .tux-map__el--k-resource .tux-map__el-ic {
   color: var(--brand-primary);
+}
+
+.tux-map__el--diff-direct {
+  border-color: #D97706 !important;
+  box-shadow:
+    inset 4px 0 0 #D97706,
+    0 0 0 2px color-mix(in srgb, #D97706 45%, transparent);
+}
+
+.tux-map__el--diff-impact {
+  border-color: #E11D48 !important;
+  border-style: dashed;
+  box-shadow:
+    inset 4px 0 0 #E11D48,
+    0 0 0 1.5px color-mix(in srgb, #E11D48 35%, transparent);
 }
 
 .tux-map__el--k-external {
@@ -3635,6 +5249,20 @@ function normalizeArray(v?: string | string[]): string[] {
   border: 1px solid var(--surface-border);
 }
 
+.tux-map__chip--diff-modified,
+.tux-map__chip--diff-added {
+  background: #FEF3C7;
+  color: #78350F;
+  border-color: #D97706;
+}
+
+.tux-map__chip--diff-deleted,
+.tux-map__chip--diff-impact {
+  background: #FFE4E6;
+  color: #881337;
+  border-color: #E11D48;
+}
+
 /* Sticky Notes & Ink Overlay */
 .tux-map__note {
   position: absolute;
@@ -3684,6 +5312,8 @@ function normalizeArray(v?: string | string[]): string[] {
   padding: 0.2rem;
   border: 1px solid rgba(0, 0, 0, 0.25);
   border-radius: 4px;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .tux-map__ink-overlay {
@@ -3843,6 +5473,92 @@ function normalizeArray(v?: string | string[]): string[] {
   font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+.tux-map__panel-roadmap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.tux-map__panel-roadmap-inline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-left: 0.35rem;
+}
+
+.tux-map__issue-lnk,
+.tux-map__issue-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.42rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand-primary);
+  text-decoration: none;
+}
+
+.tux-map__issue-lnk:hover {
+  border-color: var(--brand-primary);
+  text-decoration: underline;
+}
+
+.tux-map__panel-diff {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.tux-map__panel-diff-sum {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.tux-map__panel-source {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 12px;
+}
+
+.tux-map__source-lnk,
+.tux-map__source-pill {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--brand-primary);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.tux-map__source-lnk:hover {
+  border-color: var(--brand-primary);
+  text-decoration: underline;
+}
+
+.tux-map__source-sym {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.tux-map__source-sym code {
+  font-family: var(--font-mono);
+  color: var(--text-primary);
 }
 
 .tux-map__panel-place {

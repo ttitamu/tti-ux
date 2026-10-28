@@ -119,6 +119,12 @@ export interface TuxMapInkStroke {
   color: string;
   size: number;
   points: TuxMapStrokePoint[];
+  /** Optional level where this stroke was drawn (`1..N`) */
+  level?: number;
+  /** Optional focused parent container/node ID where this stroke was drawn */
+  focusId?: string | null;
+  /** Optional target element ID that the stroke starts or ends on */
+  targetNodeId?: string | null;
 }
 
 export interface TuxMapStickyNote {
@@ -128,6 +134,12 @@ export interface TuxMapStickyNote {
   text: string;
   author?: string;
   tone?: "gold" | "maroon" | "teal";
+  /** Optional level where this sticky note was placed (`1..N`) */
+  level?: number;
+  /** Optional focused parent container/node ID where this sticky note was placed */
+  focusId?: string | null;
+  /** Optional target element ID that this sticky note is pinned to */
+  targetNodeId?: string | null;
 }
 
 export interface TuxMapCollaborator {
@@ -981,7 +993,7 @@ export function getLaserPointerSvgPath(
 //    (Zero-lag C4 grid router: right-angle wires strictly through column/row gaps)
 // ============================================================================
 
-export type TuxMapLevelNumber = 1 | 2 | 3 | 4;
+export type TuxMapLevelNumber = number;
 
 export type TuxMapElementKind =
   | "person"
@@ -990,10 +1002,48 @@ export type TuxMapElementKind =
   | "database"
   | "storage"
   | "component"
+  | "module"
+  | "schema"
+  | "symbol"
   | "external"
   | "resource";
 
 export type TuxMapElementStatus = "live" | "paused" | "planned" | "neighbor";
+
+export interface TuxMapSourceRef {
+  /** Repository slug or URL (e.g. "nis/forgejo-stack" or "https://code.tti.tamu.edu/tti/tti-ux") */
+  repo?: string;
+  /** Relative file path inside the repository (e.g. "src/search/retriever.py") */
+  path: string;
+  /** Optional 1-based `[startLine, endLine]` range */
+  lineRange?: [number, number];
+  /** Optional symbol/function/class signature */
+  symbol?: string;
+  /** Optional commit SHA or branch ref (defaults to "main") */
+  commitSha?: string;
+  /** Optional direct URL override */
+  url?: string;
+}
+
+export interface TuxMapDiffInfo {
+  /** Git diff change classification */
+  changeType: "added" | "modified" | "deleted";
+  /** Number of files or symbols touched inside this node */
+  filesChanged?: number;
+  /** Optional short summary of the change */
+  summary?: string;
+}
+
+export interface TuxMapSubgraph {
+  /** Optional human-readable stratum title (e.g. "Level 5 · Modules & Schemas", "Level 6 · AST Symbols") */
+  stratum?: string;
+  /** Optional summary sentence for this subgraph level */
+  summary?: string;
+  /** Child elements inside this node */
+  elements: TuxMapLevelElement[];
+  /** Internal relationships between child elements (or to/from perimeter element IDs) */
+  rels?: TuxMapLevelRel[];
+}
 
 export interface TuxMapElementLiveInfo {
   state?: "running" | "active" | "present" | "success" | "inactive" | "declared-not-installed" | "failed" | "unknown";
@@ -1024,12 +1074,12 @@ export interface TuxMapLevelElement {
   ref?: boolean;
   /** Target level when zooming into this element (e.g. 2 or 3) */
   zoom?: TuxMapLevelNumber;
-  /** Parent container ID when inside Level 3 */
+  /** Parent container/node ID when inside Level 3+ */
   parent?: string;
-  /** Compact perimeter card in Level 3 ("in" on left, "out" on right) */
+  /** Compact perimeter card in Level 3+ ("in" on left, "out" on right) */
   side?: "in" | "out";
   mini?: boolean;
-  /** Sequential step link to sibling index in Level 3 */
+  /** Sequential step link to sibling index in Level 3+ */
   next?: number;
   /** Stack component IDs running inside this container */
   runs?: string | string[];
@@ -1039,6 +1089,16 @@ export interface TuxMapLevelElement {
   roadmap?: number[];
   /** Live operational telemetry */
   live?: TuxMapElementLiveInfo;
+  /** Source code file, line range, and symbol binding */
+  source?: TuxMapSourceRef;
+  /** PR diff / modification state for Blast-Radius inspection */
+  diff?: TuxMapDiffInfo;
+  /** Inline fractal child elements for N-depth zooming (Level 5, 6, 7...) */
+  children?: TuxMapLevelElement[];
+  /** Optional relationships among inline `children` */
+  childRels?: TuxMapLevelRel[];
+  /** Optional URL or key for lazy on-demand subgraph hydration */
+  subgraphRef?: string;
 }
 
 export interface TuxMapLevelRel {
@@ -1064,6 +1124,15 @@ export interface TuxMapDeploymentGroup {
   rg?: string;
 }
 
+export interface TuxMapDeploymentZone {
+  id: string;
+  title: string;
+  column?: "left" | "right" | "center";
+  planned?: boolean;
+  /** Optional additional zone IDs that also map into this region */
+  zones?: string[];
+}
+
 export interface TuxMapDeploymentNode {
   id: string;
   zone?: string;
@@ -1077,6 +1146,16 @@ export interface TuxMapDeploymentNode {
   hosts?: string[];
   deps?: string[];
   roadmap?: number[];
+  /** Source code / infrastructure manifest binding (e.g. Terraform/Ansible/Dockerfile) */
+  source?: TuxMapSourceRef;
+  /** PR diff / modification state for Blast-Radius inspection */
+  diff?: TuxMapDiffInfo;
+  /** Inline fractal child elements for drilling into Level 5+ directly from a Level 4 resource */
+  children?: TuxMapLevelElement[];
+  /** Optional relationships among inline `children` */
+  childRels?: TuxMapLevelRel[];
+  /** Optional URL or key for lazy on-demand subgraph hydration */
+  subgraphRef?: string;
   facts?: {
     type?: string;
     size?: string;
@@ -1108,6 +1187,8 @@ export interface TuxMapNeighborResource {
 export interface TuxMapLevelModel {
   generatedAt?: string;
   issueBaseUrl?: string;
+  /** Optional repository base URL for `source.path` links (e.g. "https://code.tti.tamu.edu/tti/tti-ux/src/branch/main") */
+  sourceBaseUrl?: string;
   /** Level 1: High-level ecosystem, people, primary systems & external dependencies */
   level1: {
     title?: string;
@@ -1129,11 +1210,21 @@ export interface TuxMapLevelModel {
   level4: {
     title?: string;
     summary?: string;
+    /** Optional custom region/zone definitions for Level 4 columns; falls back to TUX defaults when omitted */
+    zones?: TuxMapDeploymentZone[];
+    /** Optional title for the center resource-groups boundary box (defaults to "Cloud Region · Resource Groups") */
+    centerTitle?: string;
     groups: TuxMapDeploymentGroup[];
     nodes: TuxMapDeploymentNode[];
     links: TuxMapDeploymentLink[];
     neighbors?: TuxMapNeighborResource[];
   };
+  /**
+   * Fractal N-Depth Subgraphs (Level 5, Level 6, Level 7...):
+   * Keyed by any parent element ID or Level 4 deployment node ID (e.g. `"ai-search-app"`, `"vector-db-01"`, `"c-api/2"`).
+   * Enables infinite semantic zooming down into modules, database schemas, and AST symbols.
+   */
+  subgraphs?: Record<string, TuxMapSubgraph>;
 }
 
 export const GRID_METRICS = {
@@ -1258,7 +1349,7 @@ export function routeGridWires(
 
   function lane(key: string): number {
     const n = (lanes[key] = (lanes[key] || 0) + 1);
-    return (n % 2 ? 1 : -1) * Math.floor(n / 2) * 8;
+    return (n % 2 ? 1 : -1) * Math.floor(n / 2) * 11;
   }
 
   for (const k of Object.keys(rects)) {
@@ -1268,6 +1359,41 @@ export function routeGridWires(
     }
   }
   const cards = placed.slice();
+
+  function segHitsAnyCard(
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    ignoreA: TuxMapGridCellRect,
+    ignoreB: TuxMapGridCellRect,
+  ): boolean {
+    const minX = Math.min(x0, x1);
+    const maxX = Math.max(x0, x1);
+    const minY = Math.min(y0, y1);
+    const maxY = Math.max(y0, y1);
+    for (const k of Object.keys(rects)) {
+      const r = rects[k]!;
+      if (r === ignoreA || r === ignoreB || r.bound) continue;
+      if (maxX > r.x + 2 && minX < r.x + r.w - 2 && maxY > r.y + 2 && minY < r.y + r.h - 2) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function polyHitsAnyCard(
+    pts: [number, number][],
+    ignoreA: TuxMapGridCellRect,
+    ignoreB: TuxMapGridCellRect,
+  ): boolean {
+    for (let i = 0; i < pts.length - 1; i++) {
+      if (segHitsAnyCard(pts[i]![0], pts[i]![1], pts[i + 1]![0], pts[i + 1]![1], ignoreA, ignoreB)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   for (const rel of rels) {
     const a = rects[rel.from];
@@ -1284,8 +1410,13 @@ export function routeGridWires(
     const ar = a.r ?? 0;
     const bc = b.c ?? 0;
     const br = b.r ?? 0;
+    // Route bottom/top when cards share a column OR when one card sits 2+ rows below/above
+    // within 1 column horizontally (e.g. Level 1 bottom row external systems below primary system)
     if (ac === bc) {
       return Math.abs(ar - br) > 1 ? ["r", "r"] : br > ar ? ["b", "t"] : ["t", "b"];
+    }
+    if (Math.abs(br - ar) >= 2 && Math.abs(bc - ac) <= 1) {
+      return br > ar ? ["b", "t"] : ["t", "b"];
     }
     return bc > ac ? ["r", "l"] : ["l", "r"];
   }
@@ -1309,8 +1440,15 @@ export function routeGridWires(
 
   for (const k of Object.keys(ports)) {
     const list = ports[k]!.sort((u, v) => u.o - v.o);
+    const total = list.length;
     list.forEach((x, j) => {
-      x.p[x.key] = (j + 1) / (list.length + 1);
+      if (total === 1) {
+        x.p[x.key] = 0.5;
+      } else {
+        // Distribute ports evenly across the middle 68% of the card edge (0.16 .. 0.84)
+        // so parallel vertical/horizontal stems never bunch together
+        x.p[x.key] = 0.16 + (j / (total - 1)) * 0.68;
+      }
     });
   }
 
@@ -1323,6 +1461,7 @@ export function routeGridWires(
 
   const wires: TuxMapRoutedWire[] = [];
   const labels: TuxMapRoutedLabel[] = [];
+  const wireSegments: [[number, number], [number, number], number][] = [];
 
   paths.forEach((p, idx) => {
     const { a, b, s } = p;
@@ -1348,8 +1487,25 @@ export function routeGridWires(
         const gx = a.x + a.w + GX / 2 + lane(`v${ac}`);
         pts = [P, [gx, P[1]], [gx, Q[1]], Q];
       } else if (s[0] === "b" || s[0] === "t") {
-        const my = (P[1] + Q[1]) / 2;
-        pts = [P, [P[0], my], [Q[0], my], Q];
+        const down = s[0] === "b";
+        const baseMy = (P[1] + Q[1]) / 2 + lane(`hb_${Math.min(ar, br)}_${Math.max(ar, br)}`);
+        let cand: [number, number][] = [P, [P[0], baseMy], [Q[0], baseMy], Q];
+        if (polyHitsAnyCard(cand, a, b)) {
+          const y1 =
+            (down ? a.y + a.h + GY / 2 : a.y - GY / 2) +
+            lane(`hb_row_${ar}_${down ? "b" : "t"}`);
+          const y2 =
+            (down ? b.y - GY / 2 : b.y + b.h + GY / 2) +
+            lane(`hb_row_${br}_${down ? "t" : "b"}`);
+          const midCol = Math.min(ac, bc);
+          const gx =
+            Math.min(a.x, b.x) +
+            GRID_METRICS.CW +
+            GX / 2 +
+            lane(`v_bt_${midCol}`);
+          cand = [P, [P[0], y1], [gx, y1], [gx, y2], [Q[0], y2], Q];
+        }
+        pts = cand;
       } else {
         const dir = s[0] === "r" ? 1 : -1;
         const x1 =
@@ -1368,14 +1524,42 @@ export function routeGridWires(
           pts = [P, [x1, P[1]], [x1, Q[1]], Q];
         } else if (ar === br && clear) {
           const mx = (P[0] + Q[0]) / 2;
-          pts = [P, [mx, P[1]], [mx, Q[1]], Q];
+          const cand: [number, number][] = [P, [mx, P[1]], [mx, Q[1]], Q];
+          if (!polyHitsAnyCard(cand, a, b)) {
+            pts = cand;
+          } else {
+            const yg = b.y - GY / 2 + lane(`h${br}t`);
+            pts = [P, [x1, P[1]], [x1, yg], [x2, yg], [x2, Q[1]], Q];
+          }
         } else {
-          const yg =
+          let yg =
             (br >= ar ? b.y - GY / 2 : b.y + b.h + GY / 2) +
             lane(`h${br}${br >= ar ? "t" : "b"}`);
-          pts = [P, [x1, P[1]], [x1, yg], [x2, yg], [x2, Q[1]], Q];
+          let cand: [number, number][] = [P, [x1, P[1]], [x1, yg], [x2, yg], [x2, Q[1]], Q];
+          if (polyHitsAnyCard(cand, a, b)) {
+            // Try the opposite horizontal corridor (below vs above target row, or near source row)
+            const altYg =
+              (br >= ar ? a.y + a.h + GY / 2 : a.y - GY / 2) +
+              lane(`h_alt_${ar}`);
+            const altCand: [number, number][] = [
+              P,
+              [x1, P[1]],
+              [x1, altYg],
+              [x2, altYg],
+              [x2, Q[1]],
+              Q,
+            ];
+            if (!polyHitsAnyCard(altCand, a, b)) {
+              cand = altCand;
+            }
+          }
+          pts = cand;
         }
       }
+    }
+
+    for (let si = 0; si < pts.length - 1; si++) {
+      wireSegments.push([pts[si]!, pts[si + 1]!, idx]);
     }
 
     wires.push({
@@ -1399,26 +1583,72 @@ export function routeGridWires(
       }
       segs.sort((u, v) => v[2] - u[2]);
 
+      const fractions =
+        idx % 2 === 0
+          ? [0.5, 0.34, 0.66, 0.24, 0.76, 0.18, 0.82]
+          : [0.36, 0.64, 0.5, 0.24, 0.76, 0.18, 0.82];
+
       let box: { x: number; y: number; w: number; h: number } | null = null;
       for (let j = 0; j < segs.length && !box; j++) {
         const sg = segs[j]!;
-        for (const f of [0.5, 0.35, 0.65, 0.25, 0.75]) {
+        for (const f of fractions) {
           const m: [number, number] = [
             sg[0][0] + (sg[1][0] - sg[0][0]) * f,
             sg[0][1] + (sg[1][1] - sg[0][1]) * f,
           ];
           const cand = { x: m[0] - w / 2, y: m[1] - h / 2, w, h };
-          if (
-            !placed.some(
-              (q) =>
-                cand.x < q.x + q.w &&
-                cand.x + cand.w > q.x &&
-                cand.y < q.y + q.h &&
-                cand.y + cand.h > q.y,
-            )
-          ) {
+          const overlapsPlaced = placed.some(
+            (q) =>
+              cand.x < q.x + q.w &&
+              cand.x + cand.w > q.x &&
+              cand.y < q.y + q.h &&
+              cand.y + cand.h > q.y,
+          );
+          if (overlapsPlaced) continue;
+
+          // Also avoid clipping across another wire's segment when a clean spot exists
+          const clipsOtherWire = wireSegments.some(([s0, s1, wIdx]) => {
+            if (wIdx === idx) return false;
+            const minX = Math.min(s0[0], s1[0]) - 2;
+            const maxX = Math.max(s0[0], s1[0]) + 2;
+            const minY = Math.min(s0[1], s1[1]) - 2;
+            const maxY = Math.max(s0[1], s1[1]) + 2;
+            return (
+              cand.x < maxX &&
+              cand.x + cand.w > minX &&
+              cand.y < maxY &&
+              cand.y + cand.h > minY
+            );
+          });
+          if (!clipsOtherWire) {
             box = cand;
             break;
+          }
+        }
+      }
+
+      // Second pass if every non-overlapping spot crossed another wire segment
+      if (!box) {
+        for (let j = 0; j < segs.length && !box; j++) {
+          const sg = segs[j]!;
+          for (const f of fractions) {
+            const m: [number, number] = [
+              sg[0][0] + (sg[1][0] - sg[0][0]) * f,
+              sg[0][1] + (sg[1][1] - sg[0][1]) * f,
+            ];
+            const cand = { x: m[0] - w / 2, y: m[1] - h / 2, w, h };
+            if (
+              !placed.some(
+                (q) =>
+                  cand.x < q.x + q.w &&
+                  cand.x + cand.w > q.x &&
+                  cand.y < q.y + q.h &&
+                  cand.y + cand.h > q.y,
+              )
+            ) {
+              box = cand;
+              break;
+            }
           }
         }
       }
@@ -1490,7 +1720,14 @@ export function routeDeploymentWires(
   const wires: TuxMapRoutedWire[] = [];
   const allRects = Object.entries(rects);
 
-  function hitsAnyCard(x0: number, y0: number, x1: number, y1: number, ignoreA: string, ignoreB: string): boolean {
+  function hitsAnyCard(
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    ignoreA: string,
+    ignoreB: string,
+  ): boolean {
     const minX = Math.min(x0, x1);
     const maxX = Math.max(x0, x1);
     const minY = Math.min(y0, y1);
@@ -1504,36 +1741,101 @@ export function routeDeploymentWires(
     return false;
   }
 
-  links.forEach((r, idx) => {
-    if (!routeAll && r.from !== selectedId && r.to !== selectedId) return;
-    const a = rects[r.from];
-    const b = rects[r.to];
-    if (!a || !b) return;
+  function polyHits(pts: [number, number][], ignoreA: string, ignoreB: string): boolean {
+    for (let i = 0; i < pts.length - 1; i++) {
+      if (hitsAnyCard(pts[i]![0], pts[i]![1], pts[i + 1]![0], pts[i + 1]![1], ignoreA, ignoreB)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Group port assignments by (nodeId, side) so multiple links on a Level 4 resource fan out cleanly
+  const activeLinks = links.filter(
+    (r) =>
+      rects[r.from] &&
+      rects[r.to] &&
+      (routeAll || r.from === selectedId || r.to === selectedId),
+  );
+
+  interface PortEntry {
+    linkIdx: number;
+    end: "from" | "to";
+    otherCoord: number;
+  }
+  const portsBySide = new Map<string, PortEntry[]>();
+  const portFraction = new Map<string, number>();
+
+  activeLinks.forEach((r, idx) => {
+    const a = rects[r.from]!;
+    const b = rects[r.to]!;
     const right = b.x >= a.x + a.w;
     const left = b.x + b.w <= a.x;
+    const down = b.y > a.y;
+    const fromSide = right ? "r" : left ? "l" : down ? "b" : "t";
+    const toSide = right ? "l" : left ? "r" : down ? "t" : "b";
+
+    const kFrom = `${r.from}:${fromSide}`;
+    const kTo = `${r.to}:${toSide}`;
+    if (!portsBySide.has(kFrom)) portsBySide.set(kFrom, []);
+    if (!portsBySide.has(kTo)) portsBySide.set(kTo, []);
+    portsBySide.get(kFrom)!.push({
+      linkIdx: idx,
+      end: "from",
+      otherCoord: fromSide === "l" || fromSide === "r" ? b.y : b.x,
+    });
+    portsBySide.get(kTo)!.push({
+      linkIdx: idx,
+      end: "to",
+      otherCoord: toSide === "l" || toSide === "r" ? a.y : a.x,
+    });
+  });
+
+  for (const [, list] of portsBySide.entries()) {
+    list.sort((u, v) => u.otherCoord - v.otherCoord);
+    const total = list.length;
+    list.forEach((item, j) => {
+      const frac = total === 1 ? 0.5 : 0.18 + (j / (total - 1)) * 0.64;
+      portFraction.set(`${item.linkIdx}:${item.end}`, frac);
+    });
+  }
+
+  activeLinks.forEach((r, idx) => {
+    const a = rects[r.from]!;
+    const b = rects[r.to]!;
+    const right = b.x >= a.x + a.w;
+    const left = b.x + b.w <= a.x;
+    const fa = portFraction.get(`${idx}:from`) ?? 0.5;
+    const fb = portFraction.get(`${idx}:to`) ?? 0.5;
+    const laneShift = ((idx % 5) - 2) * 4;
     let d: string;
-    const laneShift = ((idx % 3) - 1) * 4;
+
     if (right || left) {
-      const P: [number, number] = [right ? a.x + a.w : a.x, a.y + a.h / 2 + laneShift];
-      const Q: [number, number] = [right ? b.x : b.x + b.w, b.y + b.h / 2 + laneShift];
-      const mx = (P[0] + Q[0]) / 2 + laneShift;
-      if (
-        !hitsAnyCard(P[0], P[1], mx, P[1], r.from, r.to) &&
-        !hitsAnyCard(mx, Q[1], Q[0], Q[1], r.from, r.to)
-      ) {
-        d = roundOrthogonalCorners([P, [mx, P[1]], [mx, Q[1]], Q]);
+      const P: [number, number] = [right ? a.x + a.w : a.x, Math.round(a.y + a.h * fa)];
+      const Q: [number, number] = [right ? b.x : b.x + b.w, Math.round(b.y + b.h * fb)];
+      const mx = Math.round((P[0] + Q[0]) / 2 + laneShift);
+      const directPts: [number, number][] = [P, [mx, P[1]], [mx, Q[1]], Q];
+      if (!polyHits(directPts, r.from, r.to)) {
+        d = roundOrthogonalCorners(directPts);
       } else {
         // Route around sibling cards via the horizontal gap below/above the card
-        const Pbot: [number, number] = [a.x + a.w / 2 + laneShift, b.y >= a.y ? a.y + a.h : a.y];
-        const yg = (b.y >= a.y ? a.y + a.h + 10 : a.y - 10) + laneShift;
-        const gx = right ? Math.max(a.x + a.w + 12, b.x - 24) : Math.min(a.x - 12, b.x + b.w + 24);
-        d = roundOrthogonalCorners([Pbot, [Pbot[0], yg], [gx, yg], [gx, Q[1]], Q]);
+        const goBelow = b.y >= a.y;
+        const Pbot: [number, number] = [
+          Math.round(a.x + a.w * fa),
+          goBelow ? a.y + a.h : a.y,
+        ];
+        const yg = (goBelow ? a.y + a.h + 9 : a.y - 9) + ((idx % 3) - 1) * 3;
+        const gx = right
+          ? Math.max(a.x + a.w + 10, b.x - 18)
+          : Math.min(a.x - 10, b.x + b.w + 18);
+        const detourPts: [number, number][] = [Pbot, [Pbot[0], yg], [gx, yg], [gx, Q[1]], Q];
+        d = roundOrthogonalCorners(detourPts);
       }
     } else {
       const down = b.y > a.y;
-      const P2: [number, number] = [a.x + a.w / 2 + laneShift, down ? a.y + a.h : a.y];
-      const Q2: [number, number] = [b.x + b.w / 2 + laneShift, down ? b.y : b.y + b.h];
-      const my = (P2[1] + Q2[1]) / 2;
+      const P2: [number, number] = [Math.round(a.x + a.w * fa), down ? a.y + a.h : a.y];
+      const Q2: [number, number] = [Math.round(b.x + b.w * fb), down ? b.y : b.y + b.h];
+      const my = Math.round((P2[1] + Q2[1]) / 2 + laneShift);
       d = roundOrthogonalCorners([P2, [P2[0], my], [Q2[0], my], Q2]);
     }
     wires.push({
@@ -1692,8 +1994,586 @@ export function buildLevelModelFromLegacyNodes(
  * Default 4-Level Reference Architecture Model (Generic Enterprise Cloud Platform).
  * Uses clear, vendor-neutral terminology without exposing real internal deployments.
  */
+// ============================================================================
+// 7. MCP / ACP ARCHITECTURE GRAPH QUERY & SUBGRAPH LEASE ENGINE
+//    (Deterministic spatial query, k-hop blast-radius, shortest path, and
+//     ACP non-overlapping subgraph lease coordinator for multi-agent swarms)
+// ============================================================================
+
+export interface TuxMapGraphNodeRecord {
+  id: string;
+  level: number;
+  kind: string;
+  name: string;
+  tech?: string;
+  desc?: string;
+  status?: string;
+  parentId?: string;
+  hosts?: string[];
+  deployed?: string[];
+  source?: TuxMapSourceRef;
+  diff?: TuxMapDiffInfo;
+  roadmap?: number[];
+}
+
+export interface TuxMapGraphEdgeRecord {
+  id: string;
+  from: string;
+  to: string;
+  label?: string;
+  tech?: string;
+  level: number;
+  kind: "rel" | "deployment" | "parent-child" | "hosts";
+  planned?: boolean;
+}
+
+export interface TuxMapAcpLease {
+  leaseId: string;
+  agentId: string;
+  rootNodeId: string;
+  scopeNodeIds: string[];
+  lockedFiles: string[];
+  acquiredAt: string;
+  expiresAt: string;
+}
+
+/**
+ * Indexes a `TuxMapLevelModel` into a unified Code Property Graph (CPG) index
+ * spanning Levels 1..N (Context, Containers, Components, Deployment, Modules, Schemas, AST Symbols).
+ */
+export function buildUnifiedArchitectureGraph(model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL): {
+  nodes: Map<string, TuxMapGraphNodeRecord>;
+  edges: TuxMapGraphEdgeRecord[];
+} {
+  const nodes = new Map<string, TuxMapGraphNodeRecord>();
+  const edges: TuxMapGraphEdgeRecord[] = [];
+  const normArr = (v?: string | string[]): string[] =>
+    !v ? [] : Array.isArray(v) ? v : [v];
+
+  // Level 1
+  for (const e of model.level1.elements) {
+    nodes.set(e.id, {
+      id: e.id,
+      level: 1,
+      kind: e.kind || "system",
+      name: e.name,
+      tech: e.tech,
+      desc: e.desc,
+      status: e.status,
+      source: e.source,
+      diff: e.diff,
+      roadmap: e.roadmap,
+    });
+  }
+  model.level1.rels.forEach((r, idx) => {
+    edges.push({
+      id: `l1-${idx}-${r.from}-${r.to}`,
+      from: r.from,
+      to: r.to,
+      label: r.label,
+      tech: r.tech,
+      level: 1,
+      kind: "rel",
+      planned: r.status === "planned",
+    });
+  });
+
+  // Level 2
+  for (const e of model.level2.elements) {
+    if (e.ref && nodes.has(e.id)) continue;
+    const deployed = normArr(e.deployed);
+    nodes.set(e.id, {
+      id: e.id,
+      level: 2,
+      kind: e.kind || "container",
+      name: e.name,
+      tech: e.tech,
+      desc: e.desc,
+      status: e.status,
+      parentId: model.level2.boundary,
+      deployed,
+      source: e.source,
+      diff: e.diff,
+      roadmap: e.roadmap,
+    });
+    if (model.level2.boundary) {
+      edges.push({
+        id: `p2-${model.level2.boundary}-${e.id}`,
+        from: model.level2.boundary,
+        to: e.id,
+        level: 2,
+        kind: "parent-child",
+      });
+    }
+    for (const hid of deployed) {
+      edges.push({
+        id: `dep-${e.id}-${hid}`,
+        from: e.id,
+        to: hid,
+        level: 4,
+        kind: "hosts",
+      });
+    }
+  }
+  model.level2.rels.forEach((r, idx) => {
+    edges.push({
+      id: `l2-${idx}-${r.from}-${r.to}`,
+      from: r.from,
+      to: r.to,
+      label: r.label,
+      tech: r.tech,
+      level: 2,
+      kind: "rel",
+      planned: r.status === "planned",
+    });
+  });
+
+  // Level 3
+  for (const [parentId, kids] of Object.entries(model.level3)) {
+    kids.forEach((k, idx) => {
+      const id = k.id || `${parentId}/${idx}`;
+      const deployed = normArr(k.deployed);
+      nodes.set(id, {
+        id,
+        level: 3,
+        kind: k.kind || "component",
+        name: k.name,
+        tech: k.tech,
+        desc: k.desc,
+        status: k.status,
+        parentId,
+        deployed,
+        source: k.source,
+        diff: k.diff,
+        roadmap: k.roadmap,
+      });
+      edges.push({
+        id: `p3-${parentId}-${id}`,
+        from: parentId,
+        to: id,
+        level: 3,
+        kind: "parent-child",
+      });
+      if (k.next != null && kids[k.next]) {
+        const nextId = kids[k.next]!.id || `${parentId}/${k.next}`;
+        edges.push({
+          id: `l3-next-${id}-${nextId}`,
+          from: id,
+          to: nextId,
+          level: 3,
+          kind: "rel",
+          planned: k.status === "planned",
+        });
+      }
+    });
+  }
+
+  // Level 4
+  for (const n of model.level4.nodes) {
+    nodes.set(n.id, {
+      id: n.id,
+      level: 4,
+      kind: n.kind || "resource",
+      name: n.title,
+      tech: n.facts?.type || n.facts?.sku || n.facts?.size,
+      desc: n.role,
+      status: n.status,
+      parentId: n.group || n.zone,
+      hosts: n.hosts,
+      source: n.source,
+      diff: n.diff,
+      roadmap: n.roadmap,
+    });
+  }
+  model.level4.links.forEach((l, idx) => {
+    edges.push({
+      id: `l4-${idx}-${l.from}-${l.to}`,
+      from: l.from,
+      to: l.to,
+      label: l.label,
+      tech: l.kind,
+      level: 4,
+      kind: "deployment",
+      planned: l.state === "planned",
+    });
+  });
+
+  // Level 5, 6+ Subgraphs
+  for (const [parentId, sg] of Object.entries(model.subgraphs || {})) {
+    const parentDepth = nodes.get(parentId)?.level ?? 4;
+    const childLevel = Math.max(5, parentDepth + 1);
+    sg.elements.forEach((k, idx) => {
+      const id = k.id || `${parentId}/${idx}`;
+      nodes.set(id, {
+        id,
+        level: childLevel,
+        kind: k.kind || "module",
+        name: k.name,
+        tech: k.tech,
+        desc: k.desc,
+        status: k.status,
+        parentId,
+        deployed: normArr(k.deployed),
+        source: k.source,
+        diff: k.diff,
+        roadmap: k.roadmap,
+      });
+      edges.push({
+        id: `psg-${parentId}-${id}`,
+        from: parentId,
+        to: id,
+        level: childLevel,
+        kind: "parent-child",
+      });
+    });
+    (sg.rels || []).forEach((r, idx) => {
+      edges.push({
+        id: `lsg-${parentId}-${idx}-${r.from}-${r.to}`,
+        from: r.from,
+        to: r.to,
+        label: r.label,
+        tech: r.tech,
+        level: childLevel,
+        kind: "rel",
+        planned: r.status === "planned",
+      });
+    });
+  }
+
+  return { nodes, edges };
+}
+
+/**
+ * Queries a specific semantic level or parent subgraph from a `TuxMapLevelModel`
+ * (used by MCP `tux_query_architecture_layer`).
+ */
+export function queryArchitectureLayer(
+  model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
+  opts: { level?: number; focusId?: string; includePlanned?: boolean } = {},
+) {
+  const { nodes, edges } = buildUnifiedArchitectureGraph(model);
+  const includePlanned = opts.includePlanned ?? true;
+  const focusId = opts.focusId?.trim();
+  const level = opts.level;
+
+  const matchedNodes = [...nodes.values()].filter((n) => {
+    if (!includePlanned && n.status === "planned") return false;
+    if (focusId) return n.parentId === focusId || n.id === focusId;
+    if (level != null) return n.level === level;
+    return true;
+  });
+
+  const matchedIds = new Set(matchedNodes.map((n) => n.id));
+  const matchedEdges = edges.filter(
+    (e) =>
+      (includePlanned || !e.planned) &&
+      (matchedIds.has(e.from) || matchedIds.has(e.to)),
+  );
+
+  return {
+    level: level ?? "all",
+    focusId: focusId || null,
+    nodeCount: matchedNodes.length,
+    edgeCount: matchedEdges.length,
+    nodes: matchedNodes,
+    edges: matchedEdges,
+  };
+}
+
+/**
+ * Computes multi-level k-hop upstream/downstream blast radius and impacted source files
+ * for any node ID across Levels 1..N (used by MCP `tux_get_blast_radius`).
+ */
+export function queryMultiLevelBlastRadius(
+  nodeId: string,
+  model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
+  maxHops = 2,
+) {
+  const { nodes, edges } = buildUnifiedArchitectureGraph(model);
+  const root = nodes.get(nodeId);
+  if (!root) {
+    return {
+      error: `Node '${nodeId}' not found in architecture graph.`,
+      availableNodeIds: [...nodes.keys()],
+    };
+  }
+
+  const upstream = new Map<string, number>();
+  const downstream = new Map<string, number>();
+  const childTree = new Set<string>();
+  const impactedEdgeIds = new Set<string>();
+
+  // Collect descendant nodes (components/modules/symbols inside `nodeId`)
+  const descQueue = [nodeId];
+  while (descQueue.length > 0) {
+    const curr = descQueue.shift()!;
+    for (const e of edges) {
+      if (e.kind === "parent-child" && e.from === curr && !childTree.has(e.to)) {
+        childTree.add(e.to);
+        descQueue.push(e.to);
+      }
+    }
+  }
+
+  const seedSet = new Set<string>([nodeId, ...childTree]);
+  if (root.parentId) seedSet.add(root.parentId);
+
+  // Downstream BFS (nodes that `nodeId` calls/hosts/feeds)
+  const downQ: { id: string; hop: number }[] = [...seedSet].map((id) => ({ id, hop: 0 }));
+  while (downQ.length > 0) {
+    const { id, hop } = downQ.shift()!;
+    if (hop >= maxHops) continue;
+    for (const e of edges) {
+      if (e.kind === "parent-child") continue;
+      if (e.from === id) {
+        impactedEdgeIds.add(e.id);
+        if (!seedSet.has(e.to) && (!downstream.has(e.to) || downstream.get(e.to)! > hop + 1)) {
+          downstream.set(e.to, hop + 1);
+          downQ.push({ id: e.to, hop: hop + 1 });
+        }
+      }
+    }
+  }
+
+  // Upstream BFS (callers/consumers that depend on `nodeId`)
+  const upQ: { id: string; hop: number }[] = [...seedSet].map((id) => ({ id, hop: 0 }));
+  while (upQ.length > 0) {
+    const { id, hop } = upQ.shift()!;
+    if (hop >= maxHops) continue;
+    for (const e of edges) {
+      if (e.kind === "parent-child") continue;
+      if (e.to === id) {
+        impactedEdgeIds.add(e.id);
+        if (!seedSet.has(e.from) && (!upstream.has(e.from) || upstream.get(e.from)! > hop + 1)) {
+          upstream.set(e.from, hop + 1);
+          upQ.push({ id: e.from, hop: hop + 1 });
+        }
+      }
+    }
+  }
+
+  const allTouchedIds = new Set<string>([
+    ...seedSet,
+    ...upstream.keys(),
+    ...downstream.keys(),
+  ]);
+
+  const impactedFiles: TuxMapSourceRef[] = [];
+  const seenPaths = new Set<string>();
+  for (const id of allTouchedIds) {
+    const src = nodes.get(id)?.source;
+    if (src && !seenPaths.has(src.path)) {
+      seenPaths.add(src.path);
+      impactedFiles.push(src);
+    }
+  }
+
+  return {
+    rootNode: root,
+    maxHops,
+    descendantIds: [...childTree],
+    upstreamDependents: [...upstream.entries()].map(([id, hop]) => ({
+      id,
+      hop,
+      node: nodes.get(id),
+    })),
+    downstreamDependencies: [...downstream.entries()].map(([id, hop]) => ({
+      id,
+      hop,
+      node: nodes.get(id),
+    })),
+    impactedEdgeIds: [...impactedEdgeIds],
+    impactedSourceFiles: impactedFiles,
+  };
+}
+
+/**
+ * Finds the shortest architectural dependency path between `fromNodeId` and `toNodeId`
+ * across Levels 1..N (used by MCP `tux_find_shortest_path`).
+ */
+export function findShortestArchitecturePath(
+  fromNodeId: string,
+  toNodeId: string,
+  model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
+) {
+  const { nodes, edges } = buildUnifiedArchitectureGraph(model);
+  if (!nodes.has(fromNodeId)) {
+    return { error: `Source node '${fromNodeId}' not found.` };
+  }
+  if (!nodes.has(toNodeId)) {
+    return { error: `Target node '${toNodeId}' not found.` };
+  }
+  if (fromNodeId === toNodeId) {
+    return {
+      found: true,
+      hops: 0,
+      nodePath: [nodes.get(fromNodeId)!],
+      edges: [],
+    };
+  }
+
+  const queue: string[] = [fromNodeId];
+  const prev = new Map<string, { prevId: string; edge: TuxMapGraphEdgeRecord }>();
+  const visited = new Set<string>([fromNodeId]);
+
+  while (queue.length > 0) {
+    const curr = queue.shift()!;
+    if (curr === toNodeId) break;
+    for (const e of edges) {
+      const next = e.from === curr ? e.to : e.to === curr ? e.from : null;
+      if (next && !visited.has(next)) {
+        visited.add(next);
+        prev.set(next, { prevId: curr, edge: e });
+        queue.push(next);
+      }
+    }
+  }
+
+  if (!prev.has(toNodeId)) {
+    return {
+      found: false,
+      hops: -1,
+      nodePath: [],
+      edges: [],
+    };
+  }
+
+  const pathNodes: TuxMapGraphNodeRecord[] = [];
+  const pathEdges: TuxMapGraphEdgeRecord[] = [];
+  let cursor: string | undefined = toNodeId;
+  while (cursor) {
+    const n = nodes.get(cursor);
+    if (n) pathNodes.unshift(n);
+    const step = prev.get(cursor);
+    if (!step) break;
+    pathEdges.unshift(step.edge);
+    cursor = step.prevId;
+  }
+
+  return {
+    found: true,
+    hops: pathEdges.length,
+    nodePath: pathNodes,
+    edges: pathEdges,
+  };
+}
+
+const activeAcpLeases = new Map<string, TuxMapAcpLease>();
+
+/**
+ * ACP (Agent Communication Protocol) Subgraph Lease Coordinator:
+ * Grants an exclusive, non-overlapping subgraph lease (`rootNodeId` + its descendants)
+ * to an AI agent and rejects conflicting locks on overlapping nodes or source files.
+ */
+export function coordinateAcpSubgraphLease(
+  action: "acquire" | "release" | "list",
+  opts: {
+    agentId?: string;
+    rootNodeId?: string;
+    leaseId?: string;
+    ttlSeconds?: number;
+    model?: TuxMapLevelModel;
+  } = {},
+) {
+  const now = Date.now();
+  // Prune expired leases
+  for (const [id, lease] of activeAcpLeases.entries()) {
+    if (Date.parse(lease.expiresAt) <= now) {
+      activeAcpLeases.delete(id);
+    }
+  }
+
+  if (action === "list") {
+    return {
+      activeLeaseCount: activeAcpLeases.size,
+      leases: [...activeAcpLeases.values()],
+    };
+  }
+
+  if (action === "release") {
+    const removed =
+      (opts.leaseId && activeAcpLeases.delete(opts.leaseId)) ||
+      (opts.agentId &&
+        (() => {
+          let count = 0;
+          for (const [k, v] of activeAcpLeases.entries()) {
+            if (v.agentId === opts.agentId && (!opts.rootNodeId || v.rootNodeId === opts.rootNodeId)) {
+              activeAcpLeases.delete(k);
+              count++;
+            }
+          }
+          return count > 0;
+        })());
+    return {
+      released: Boolean(removed),
+      activeLeaseCount: activeAcpLeases.size,
+      leases: [...activeAcpLeases.values()],
+    };
+  }
+
+  // Acquire lease
+  const agentId = opts.agentId || "agent-anonymous";
+  const rootNodeId = opts.rootNodeId;
+  if (!rootNodeId) {
+    return { acquired: false, error: "rootNodeId is required to acquire an ACP subgraph lease." };
+  }
+
+  const model = opts.model || DEFAULT_TTI_LEVEL_MODEL;
+  const blast = queryMultiLevelBlastRadius(rootNodeId, model, 1);
+  if ("error" in blast) {
+    return { acquired: false, error: blast.error };
+  }
+
+  const requestedScope = new Set<string>([rootNodeId, ...blast.descendantIds]);
+  const { nodes } = buildUnifiedArchitectureGraph(model);
+  const requestedFiles = new Set<string>();
+  for (const id of requestedScope) {
+    const p = nodes.get(id)?.source?.path;
+    if (p) requestedFiles.add(p);
+  }
+
+  // Check for conflicts with other agents' active leases
+  for (const existing of activeAcpLeases.values()) {
+    if (existing.agentId === agentId) continue;
+    const nodeOverlap = existing.scopeNodeIds.filter((id) => requestedScope.has(id));
+    const fileOverlap = existing.lockedFiles.filter((f) => requestedFiles.has(f));
+    if (nodeOverlap.length > 0 || fileOverlap.length > 0) {
+      return {
+        acquired: false,
+        conflict: {
+          heldByAgent: existing.agentId,
+          leaseId: existing.leaseId,
+          rootNodeId: existing.rootNodeId,
+          overlappingNodes: nodeOverlap,
+          overlappingFiles: fileOverlap,
+        },
+      };
+    }
+  }
+
+  const ttlMs = (opts.ttlSeconds ?? 900) * 1000;
+  const lease: TuxMapAcpLease = {
+    leaseId: `lease-${agentId}-${rootNodeId.replace(/[^a-zA-Z0-9_-]/g, "_")}`,
+    agentId,
+    rootNodeId,
+    scopeNodeIds: [...requestedScope],
+    lockedFiles: [...requestedFiles],
+    acquiredAt: new Date(now).toISOString(),
+    expiresAt: new Date(now + ttlMs).toISOString(),
+  };
+  activeAcpLeases.set(lease.leaseId, lease);
+
+  return {
+    acquired: true,
+    lease,
+    activeLeaseCount: activeAcpLeases.size,
+  };
+}
+
 export const DEFAULT_TTI_LEVEL_MODEL: TuxMapLevelModel = {
-  generatedAt: "2026-10-27T15:30:00Z",
+  generatedAt: "2026-10-28T10:30:00Z",
+  issueBaseUrl: "https://github.com/ttitamu/tti-ux/issues",
+  sourceBaseUrl: "https://github.com/ttitamu/tti-ux/blob/main",
   level1: {
     title: "Level 1 · Ecosystem & People in Context",
     summary: "The platform, the people who use and operate it, and the external services it connects with.",
@@ -1853,6 +2733,8 @@ export const DEFAULT_TTI_LEVEL_MODEL: TuxMapLevelModel = {
         deployed: ["app-vm-01"],
         at: [2, 2],
         live: { state: "running", running: 2, total: 2, version: "4.2.1" },
+        source: { path: "services/api/cmd/server/main.go", lineRange: [1, 148], symbol: "main()" },
+        diff: { changeType: "modified", filesChanged: 3, summary: "Updated RBAC token claims & search proxy" },
       },
       {
         id: "c-db",
@@ -1886,6 +2768,8 @@ export const DEFAULT_TTI_LEVEL_MODEL: TuxMapLevelModel = {
         deployed: ["ai-search-app", "vector-db-01"],
         at: [3, 1],
         live: { state: "inactive", version: "1.1.0" },
+        source: { path: "services/ai-search/src/main.py", lineRange: [1, 96], symbol: "create_search_app()" },
+        diff: { changeType: "modified", filesChanged: 2, summary: "Added hybrid RRF reranker & 1536d HNSW index" },
       },
       {
         id: "c-workers",
@@ -1992,9 +2876,9 @@ export const DEFAULT_TTI_LEVEL_MODEL: TuxMapLevelModel = {
       { id: "c-web/2", name: "Admin & Policy Console", tech: "Role-Guarded UI", desc: "Configuration screens for system administrators and auditors.", live: { state: "running" } },
     ],
     "c-api": [
-      { id: "c-api/0", name: "REST & GraphQL Router", tech: "Go HTTP Server", desc: "Validates request schemas, correlation IDs, and API versioning.", live: { state: "running", version: "4.2.1" } },
-      { id: "c-api/1", name: "Auth & RBAC Guard", tech: "OIDC JWT Verifier", desc: "Verifies bearer tokens, session cookies, and role-based permissions.", live: { state: "running" } },
-      { id: "c-api/2", name: "Projects & Workflows Engine", tech: "Domain Service", desc: "Core state machine for project items, approvals, and history.", live: { state: "running" } },
+      { id: "c-api/0", name: "REST & GraphQL Router", tech: "Go HTTP Server", desc: "Validates request schemas, correlation IDs, and API versioning.", live: { state: "running", version: "4.2.1" }, source: { path: "services/api/internal/http/router.go", lineRange: [24, 182], symbol: "NewRouter()" } },
+      { id: "c-api/1", name: "Auth & RBAC Guard", tech: "OIDC JWT Verifier", desc: "Verifies bearer tokens, session cookies, and role-based permissions.", live: { state: "running" }, source: { path: "services/api/internal/auth/rbac.go", lineRange: [18, 134], symbol: "VerifyRBAC()" }, diff: { changeType: "modified", filesChanged: 2, summary: "Enforce scoped subgraph leases" } },
+      { id: "c-api/2", name: "Projects & Workflows Engine", tech: "Domain Service", desc: "Core state machine for project items, approvals, and history.", live: { state: "running" }, source: { path: "services/api/internal/workflows/engine.go", lineRange: [40, 260], symbol: "TransitionState()" } },
       { id: "c-api/3", name: "Job Queue Producer", tech: "Async Publisher", desc: "Enqueues background tasks for exports, notifications, and indexing.", live: { state: "running" } },
       { id: "c-api/4", name: "Webhook & Event Dispatcher", tech: "Signed HTTP Post", desc: "Delivers signed domain events to subscribed integrations.", live: { state: "running" } },
       { id: "c-api/5", name: "Audit Log Writer", tech: "Append-Only Stream", desc: "Records security-sensitive actions with actor and timestamp metadata.", live: { state: "running" } },
@@ -2088,9 +2972,11 @@ export const DEFAULT_TTI_LEVEL_MODEL: TuxMapLevelModel = {
         group: "rg-ai",
         kind: "containerapp",
         title: "ai-search-app",
-        role: "Managed container service for semantic search queries.",
+        role: "Managed container service for semantic search queries. Scroll or double-click (+) to drill into Level 5 modules and Level 6 AST symbols.",
         status: "now",
         hosts: ["c-search"],
+        source: { path: "services/ai-search/Dockerfile", lineRange: [1, 44] },
+        diff: { changeType: "modified", filesChanged: 2, summary: "Hybrid retriever + RRF reranker" },
         facts: { type: "Managed Container Service", ingress: "Internal HTTPS" },
       },
       {
@@ -2098,9 +2984,10 @@ export const DEFAULT_TTI_LEVEL_MODEL: TuxMapLevelModel = {
         group: "rg-ai",
         kind: "postgres",
         title: "vector-db-01",
-        role: "Managed PostgreSQL instance with pgvector extension.",
+        role: "Managed PostgreSQL instance with pgvector extension. Scroll or double-click (+) to drill into Level 5 schemas & HNSW index internals.",
         status: "now",
         hosts: ["c-search"],
+        source: { path: "infra/opentofu/vector-db.tf", lineRange: [12, 88] },
         facts: { type: "Managed PostgreSQL", version: "16" },
       },
       {
@@ -2168,6 +3055,171 @@ export const DEFAULT_TTI_LEVEL_MODEL: TuxMapLevelModel = {
     neighbors: [
       { name: "shared-bastion-01", type: "virtualMachines", resourceGroup: "rg-platform-app", reason: "Shared administration bastion host; managed separately." },
     ],
+  },
+  subgraphs: {
+    "ai-search-app": {
+      stratum: "Level 5 · Internal Subsystems & Modules (ai-search-app)",
+      summary: "Inside ai-search-app: FastAPI request pipeline, hybrid dense+BM25 retriever, cross-encoder reranker, and vector DB client.",
+      elements: [
+        {
+          id: "ai-search-app/router",
+          kind: "module",
+          name: "Search API Router",
+          tech: "src/api/routes.py",
+          desc: "Validates query payloads, rate limits, and workspace ACL tokens before retrieval.",
+          live: { state: "running", version: "FastAPI 0.115" },
+          source: { path: "services/ai-search/src/api/routes.py", lineRange: [14, 92], symbol: "POST /v1/search" },
+          next: 1,
+        },
+        {
+          id: "ai-search-app/retriever",
+          kind: "module",
+          name: "Hybrid Retriever",
+          tech: "src/search/retriever.py",
+          desc: "Executes parallel dense embedding search and sparse BM25 lexical matching. Drill in (+) for Level 6 AST symbols.",
+          live: { state: "running" },
+          source: { path: "services/ai-search/src/search/retriever.py", lineRange: [1, 184], symbol: "class HybridRetriever" },
+          diff: { changeType: "modified", filesChanged: 1, summary: "Added Reciprocal Rank Fusion (RRF)" },
+          next: 2,
+        },
+        {
+          id: "ai-search-app/reranker",
+          kind: "module",
+          name: "Cross-Encoder Reranker",
+          tech: "src/search/reranker.py",
+          desc: "Scores top-50 candidate chunks for semantic relevance and trims context window.",
+          live: { state: "running" },
+          source: { path: "services/ai-search/src/search/reranker.py", lineRange: [10, 76], symbol: "rerank_candidates()" },
+          diff: { changeType: "added", filesChanged: 1, summary: "New cross-encoder scoring pass" },
+        },
+        {
+          id: "ai-search-app/pgclient",
+          kind: "module",
+          name: "PgVector Pool Client",
+          tech: "src/db/pgvector_pool.py",
+          desc: "Async connection pool executing HNSW cosine similarity queries against vector-db-01.",
+          deployed: ["vector-db-01"],
+          live: { state: "running" },
+          source: { path: "services/ai-search/src/db/pgvector_pool.py", lineRange: [22, 118], symbol: "AsyncVectorPool" },
+        },
+      ],
+      rels: [
+        { from: "ai-search-app/router", to: "ai-search-app/retriever", label: "Dispatches query", tech: "async call" },
+        { from: "ai-search-app/retriever", to: "ai-search-app/pgclient", label: "Queries HNSW index", tech: "SQL / cosine" },
+        { from: "ai-search-app/retriever", to: "ai-search-app/reranker", label: "Passes top-50 chunks", tech: "in-memory" },
+      ],
+    },
+    "ai-search-app/retriever": {
+      stratum: "Level 6 · Code Symbols & AST Call Graph (retriever.py)",
+      summary: "AST-level functions, classes, and constants inside services/ai-search/src/search/retriever.py.",
+      elements: [
+        {
+          id: "ai-search-app/retriever/embed",
+          kind: "symbol",
+          name: "encode_query_vector()",
+          tech: "async def · L28–L64",
+          desc: "Normalizes query text and computes 1536-dimensional unit embedding vector.",
+          source: { path: "services/ai-search/src/search/retriever.py", lineRange: [28, 64], symbol: "async def encode_query_vector(text: str) -> list[float]" },
+          next: 1,
+        },
+        {
+          id: "ai-search-app/retriever/dense",
+          kind: "symbol",
+          name: "query_hnsw_chunks()",
+          tech: "async def · L68–L119",
+          desc: "Runs `<=>` cosine distance scan with `hnsw.ef_search = 120` and ACL filter.",
+          source: { path: "services/ai-search/src/search/retriever.py", lineRange: [68, 119], symbol: "async def query_hnsw_chunks(vec, acl_groups)" },
+          next: 2,
+        },
+        {
+          id: "ai-search-app/retriever/rrf",
+          kind: "symbol",
+          name: "fuse_reciprocal_ranks()",
+          tech: "def · L123–L178",
+          desc: "Merges dense vector hits and BM25 lexical hits using k=60 Reciprocal Rank Fusion.",
+          source: { path: "services/ai-search/src/search/retriever.py", lineRange: [123, 178], symbol: "def fuse_reciprocal_ranks(dense_hits, bm25_hits, k=60)" },
+          diff: { changeType: "modified", filesChanged: 1, summary: "Tuned RRF k=60 weight curve" },
+        },
+      ],
+      rels: [
+        { from: "ai-search-app/retriever/embed", to: "ai-search-app/retriever/dense", label: "1536d float32[]", tech: "in-proc" },
+        { from: "ai-search-app/retriever/dense", to: "ai-search-app/retriever/rrf", label: "Candidate rows", tech: "list[Chunk]" },
+      ],
+    },
+    "vector-db-01": {
+      stratum: "Level 5 · Database Schemas, HNSW Indexes & Storage (vector-db-01)",
+      summary: "Inside vector-db-01: relational tables, pgvector HNSW index partitions, ACL join views, and WAL replication.",
+      elements: [
+        {
+          id: "vector-db-01/docs_chunks",
+          kind: "schema",
+          name: "table: document_chunks",
+          tech: "PostgreSQL Table · 1536d vector",
+          desc: "Stores chunked document text, source URI, workspace ACL array, and `embedding vector(1536)`.",
+          live: { state: "present", version: "4.2M rows" },
+          source: { path: "services/ai-search/migrations/004_document_chunks.sql", lineRange: [1, 58], symbol: "CREATE TABLE document_chunks" },
+        },
+        {
+          id: "vector-db-01/hnsw_idx",
+          kind: "schema",
+          name: "index: idx_chunks_hnsw_cosine",
+          tech: "pgvector HNSW (m=16, ef=200)",
+          desc: "Approximate nearest-neighbor cosine index partitioned by workspace_id.",
+          live: { state: "running" },
+          source: { path: "services/ai-search/migrations/005_hnsw_index.sql", lineRange: [1, 32], symbol: "USING hnsw (embedding vector_cosine_ops)" },
+          diff: { changeType: "modified", filesChanged: 1, summary: "Raised ef_construction from 128 to 200" },
+        },
+        {
+          id: "vector-db-01/acl_view",
+          kind: "schema",
+          name: "view: v_authorized_chunks",
+          tech: "Row-Level Security View",
+          desc: "Enforces user group intersection (`acl_groups && current_setting('app.groups')`) on every vector scan.",
+          live: { state: "present" },
+          source: { path: "services/ai-search/migrations/006_rls_policies.sql", lineRange: [1, 45], symbol: "CREATE POLICY chunk_isolation" },
+        },
+        {
+          id: "vector-db-01/wal_shipper",
+          kind: "storage",
+          name: "WAL Archive & Snapshot",
+          tech: "Continuous PITR Stream",
+          desc: "Streams write-ahead log segments to `blob-backup-store` for point-in-time recovery.",
+          deployed: ["blob-backup-store"],
+          live: { state: "success" },
+        },
+      ],
+      rels: [
+        { from: "vector-db-01/hnsw_idx", to: "vector-db-01/docs_chunks", label: "Indexes vector(1536)", tech: "HNSW" },
+        { from: "vector-db-01/acl_view", to: "vector-db-01/docs_chunks", label: "Filters rows by ACL", tech: "RLS" },
+        { from: "vector-db-01/docs_chunks", to: "vector-db-01/wal_shipper", label: "Appends WAL blocks", tech: "pg_wal" },
+      ],
+    },
+    "c-api/1": {
+      stratum: "Level 4 (Code) · Auth & RBAC Guard Internals (rbac.go)",
+      summary: "Inside Auth & RBAC Guard: OIDC JWKS key cache, JWT signature verifier, and subgraph lease evaluator.",
+      elements: [
+        {
+          id: "c-api/1/jwks",
+          kind: "symbol",
+          name: "JWKSKeyCache",
+          tech: "struct · rbac.go:L24",
+          desc: "Caches rotating OIDC public keys from the Identity Provider with 15m background refresh.",
+          source: { path: "services/api/internal/auth/rbac.go", lineRange: [24, 62], symbol: "type JWKSKeyCache struct" },
+        },
+        {
+          id: "c-api/1/verify",
+          kind: "symbol",
+          name: "VerifyRBAC()",
+          tech: "func · rbac.go:L66",
+          desc: "Validates JWT claims, workspace role bindings, and ACP agent subgraph lease permissions.",
+          source: { path: "services/api/internal/auth/rbac.go", lineRange: [66, 134], symbol: "func VerifyRBAC(ctx, token)" },
+          diff: { changeType: "modified", filesChanged: 1, summary: "Added ACP subgraph lease check" },
+        },
+      ],
+      rels: [
+        { from: "c-api/1/verify", to: "c-api/1/jwks", label: "Looks up signing key", tech: "kid" },
+      ],
+    },
   },
 };
 

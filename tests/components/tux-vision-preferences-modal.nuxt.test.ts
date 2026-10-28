@@ -1,9 +1,29 @@
 import { mountSuspended } from "@nuxt/test-utils/runtime";
 import type { VueWrapper } from "@vue/test-utils";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { nextTick } from "vue";
 import TuxVisionPreferencesModal from "~/components/TuxVisionPreferencesModal.vue";
 import { useTuxVisionPrefs } from "~/composables/useTuxVisionPrefs";
+
+const store = new Map<string, string>();
+
+beforeAll(() => {
+  if (!window.localStorage || typeof window.localStorage.clear !== "function") {
+    Object.defineProperty(window, "localStorage", {
+      configurable: true,
+      value: {
+        getItem: (k: string) => store.get(k) ?? null,
+        setItem: (k: string, v: string) => void store.set(k, String(v)),
+        removeItem: (k: string) => void store.delete(k),
+        clear: () => store.clear(),
+        key: (i: number) => [...store.keys()][i] ?? null,
+        get length() {
+          return store.size;
+        },
+      },
+    });
+  }
+});
 
 // UModal portals the dialog to <body>, so the controls are found there.
 function checkbox(labelText: string): HTMLInputElement {
