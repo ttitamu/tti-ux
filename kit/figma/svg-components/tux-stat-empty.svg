@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="190" viewBox="0 0 760 190" fill="none">
+  <rect id="TUX / StatComparison &amp; EmptyState Sheet" width="760" height="190" rx="8" fill="#FFFFFF" stroke="#E7E6E6"/>
+  <text x="24" y="34" fill="#5C0025" font-family="Oswald, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">TUX / TUXSTATCOMPARISON &amp; TUXEMPTYSTATE</text>
+  <line x1="24" y1="44" x2="736" y2="44" stroke="#DDAC37" stroke-width="2"/>
+  <g id="StatComparison / Corridor Travel Time" transform="translate(24, 58)">
+    <rect width="344" height="112" rx="6" fill="#F9F9F7" stroke="#E7E6E6"/>
+    <text x="18" y="26" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">MEAN TRAVEL TIME INDEX (TTI)</text>
+    <text x="18" y="64" fill="#221F1F" font-family="Oswald, sans-serif" font-size="32" font-weight="700">1.18</text>
+    <text x="92" y="62" fill="#525252" font-family="JetBrains Mono, monospace" font-size="12">vs 1.42 baseline</text>
+    <rect x="234" y="42" width="92" height="24" rx="3" fill="#93F387" stroke="#258818"/>
+    <text x="280" y="58" text-anchor="middle" fill="#221F1F" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">-16.9% DELAY</text>
+    <text x="18" y="94" fill="#424242" font-family="Open Sans, sans-serif" font-size="12">Adaptive ramp metering active across 14 interchanges</text>
+  </g>
+  <g id="EmptyState / Zero Results" transform="translate(392, 58)">
+    <rect width="344" height="112" rx="6" fill="#FFFFFF" stroke="#E7E6E6" stroke-dasharray="4 4"/>
+    <g id="Icon / lucide:inbox" transform="translate(160, 16) scale(0.9167)"><g fill="none" stroke="#5C0025" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11"/></g></g>
+    <text x="172" y="60" text-anchor="middle" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="13" font-weight="700">No Active Work-Zone Alerts</text>
+    <text x="172" y="80" text-anchor="middle" fill="#424242" font-family="Open Sans, sans-serif" font-size="11">All 42 monitored segments are operating at LOS A–B.</text>
+  </g>
+</svg>

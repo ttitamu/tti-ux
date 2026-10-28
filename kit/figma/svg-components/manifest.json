@@ -1,14 +1,23 @@
 {
   "_generated": "GENERATED FILE — do not edit. Source: design/tokens.json & app/utils/tuxCatalog.ts via scripts/build-figma-kit.mjs (npm run build:figma).",
-  "count": 12,
+  "count": 18,
   "sheets": [
+    {
+      "id": "tux-color-palette",
+      "name": "TuxTokens · Color Swatches & Typography",
+      "category": "Foundations & Tokens",
+      "route": "/tokens",
+      "dimensions": "760 × 260",
+      "description": "Canonical TTI Light, Dark, 5-Band Spectrum, and ADR-0013 Status color swatches plus Oswald, Open Sans, and JetBrains Mono type specimens.",
+      "file": "kit/figma/svg-components/tux-color-palette.svg"
+    },
     {
       "id": "tux-button",
       "name": "TuxButton",
       "category": "Actions & Commands",
       "route": "/components/button",
       "dimensions": "760 × 220",
-      "description": "Primary Maroon, Secondary Outline, Warm Gold Accent, Danger, and Dark Mode button variants at 44px WCAG 2.2 AAA target height.",
+      "description": "Primary, Secondary, Ghost, and Destructive intents with Lucide icons and dark-mode variants.",
       "file": "kit/figma/svg-components/tux-button.svg"
     },
     {
@@ -17,7 +26,7 @@
       "category": "Feedback & Status",
       "route": "/components/badge",
       "dimensions": "760 × 200",
-      "description": "Institutional security classification tiers, 5-Band Research Spectrum division pills, and Highway Capacity Manual (HCM) Level-of-Service (LOS A–F) badges.",
+      "description": "Security classification tiers (public, internal, sensitive, restricted) and HCM Level-of-Service (LOS A–F) badges with Lucide glyphs.",
       "file": "kit/figma/svg-components/tux-badge.svg"
     },
     {
@@ -26,7 +35,7 @@
       "category": "Feedback & Status",
       "route": "/components/alert",
       "dimensions": "760 × 230",
-      "description": "Institutional admonition banners (Compliance, Info, Warning, Critical) with 4px structural accent spine and >= 7:1 AAA contrast.",
+      "description": "Callout banners with 4px left-bar accents and leading Lucide icons across 8 variants (note, tip, info, important, success, warning, danger, compliance).",
       "file": "kit/figma/svg-components/tux-alert.svg"
     },
     {
@@ -35,7 +44,7 @@
       "category": "Data Display & Records",
       "route": "/components/card",
       "dimensions": "760 × 240",
-      "description": "Elevation-aware institutional surface card with 5-Band Spectrum top bar, eyebrow kicker, Oswald display heading, and metadata footer.",
+      "description": "Elevation-aware surface card with spectrum top bar, eyebrow kicker, Oswald display heading, and metadata footer.",
       "file": "kit/figma/svg-components/tux-card.svg"
     },
     {
@@ -53,7 +62,7 @@
       "category": "Feedback & Status",
       "route": "/components/status",
       "dimensions": "760 × 170",
-      "description": "ADR-0013 Operational Status Palette (OK, Warning, Unknown, Critical, Maintenance, Pending) perceptual OKLab ramp.",
+      "description": "ADR-0013 Operational Status Palette (OK, WARNING, UNKNOWN, CRITICAL, MAINT, PENDING) with multi-channel shape glyphs.",
       "file": "kit/figma/svg-components/tux-status.svg"
     },
     {
@@ -62,7 +71,7 @@
       "category": "Navigation & Layout",
       "route": "/components/spectrum-ribbon",
       "dimensions": "760 × 160",
-      "description": "Official 5-Band TTI Research Spectrum bar (Maroon, Navy Blue, Teal, Sage Green, Warm Gold) representing TTI's five core research divisions.",
+      "description": "The 5-band institutional brand spectrum ribbon (Maroon, Slate Blue, Slate Teal, Sage Green, Ochre Gold) from my.tti.tamu.edu.",
       "file": "kit/figma/svg-components/tux-spectrum-ribbon.svg"
     },
     {
@@ -71,7 +80,7 @@
       "category": "Navigation & Layout",
       "route": "/components/portal-shell",
       "dimensions": "760 × 150",
-      "description": "Two-tier institutional masthead: TAMUS charcoal utility bar, invariant Maroon brand bar (--brand-fill), Warm Gold keyline, and global navigation.",
+      "description": "Two-tier institutional header: Maroon utility bar with agency links and search, crisp brand navigation ribbon, and 5-band spectrum bar.",
       "file": "kit/figma/svg-components/tux-portal-header.svg"
     },
     {
@@ -107,8 +116,53 @@
       "category": "Geospatial & Maps",
       "route": "/components/corridor-strip",
       "dimensions": "760 × 190",
-      "description": "Linear Referencing System (LRS) highway corridor diagram with civil-engineering stationing ticks (STA 00+00 to STA 40+00) and sensor nodes.",
+      "description": "Linear Referencing System (LRS) highway corridor diagram with civil-engineering stationing ticks (STA 00+00 to STA 45+00) and sensor nodes.",
       "file": "kit/figma/svg-components/tux-corridor-strip.svg"
+    },
+    {
+      "id": "tux-tabs-breadcrumbs",
+      "name": "TuxTabs & TuxBreadcrumbs",
+      "category": "Navigation & Layout",
+      "route": "/components/tabs",
+      "dimensions": "760 × 190",
+      "description": "Hierarchical breadcrumbs with origin icon and WAI-ARIA tab bar with 2px maroon/gold active indicators.",
+      "file": "kit/figma/svg-components/tux-tabs-breadcrumbs.svg"
+    },
+    {
+      "id": "tux-modal-toast",
+      "name": "TuxModal & TuxToast",
+      "category": "Feedback & Status",
+      "route": "/components/modal",
+      "dimensions": "760 × 220",
+      "description": "Accessible modal dialog with focus-trap chrome and non-blocking toast notifications with Lucide status icons.",
+      "file": "kit/figma/svg-components/tux-modal-toast.svg"
+    },
+    {
+      "id": "tux-sidebar-footer",
+      "name": "TuxDocsSidebar & TuxFooter",
+      "category": "Navigation & Layout",
+      "route": "/components/docs-sidebar",
+      "dimensions": "760 × 210",
+      "description": "Collapsible hierarchical sidebar navigation with live filter input and institutional footer colophon.",
+      "file": "kit/figma/svg-components/tux-sidebar-footer.svg"
+    },
+    {
+      "id": "tux-stat-empty",
+      "name": "TuxStatComparison & TuxEmptyState",
+      "category": "Data Display & Records",
+      "route": "/components/stat-comparison",
+      "dimensions": "760 × 190",
+      "description": "Before/after KPI comparison card with automatic delta calculation and structured zero-data empty state.",
+      "file": "kit/figma/svg-components/tux-stat-empty.svg"
+    },
+    {
+      "id": "tux-ai-primitives",
+      "name": "TuxGroundedSources & TuxToolCall",
+      "category": "AI & Research",
+      "route": "/components/grounded-sources",
+      "dimensions": "760 × 190",
+      "description": "AI research provenance strip with verified DOI source pills and structured tool-invocation inspection card.",
+      "file": "kit/figma/svg-components/tux-ai-primitives.svg"
     }
   ]
 }

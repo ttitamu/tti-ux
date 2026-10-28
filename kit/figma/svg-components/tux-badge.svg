@@ -1,53 +1,59 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="200" viewBox="0 0 760 200" fill="none">
   <rect id="TUX / TuxBadge Sheet" width="760" height="200" rx="8" fill="#FFFFFF" stroke="#E7E6E6"/>
-  <text x="24" y="34" fill="#5C0025" font-family="Oswald, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">TUX / TUXBADGE · SECURITY TIERS, 5-BAND SPECTRUM &amp; HCM LOS A–F</text>
+  <text x="24" y="34" fill="#5C0025" font-family="Oswald, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">TUX / TUXBADGE · SECURITY TIERS &amp; HCM LOS A–F (LUCIDE GLYPHS)</text>
   <line x1="24" y1="44" x2="736" y2="44" stroke="#DDAC37" stroke-width="2"/>
   <g id="Badge / Tier Public" transform="translate(24, 62)">
-    <rect width="108" height="28" rx="4" fill="#F5F5F5" stroke="#E7E6E6"/>
-    <circle cx="14" cy="14" r="4" fill="#3D5328"/>
-    <text x="26" y="18" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="12" font-weight="600">PUBLIC TIER</text>
+    <rect width="112" height="28" rx="2" fill="#F5F5F5" stroke="#1F5D66"/>
+    <g id="Icon / lucide:globe" transform="translate(10, 7) scale(0.5833)"><g fill="none" stroke="#1F5D66" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20a14.5 14.5 0 0 0 0-20M2 12h20"/></g></g>
+    <text x="30" y="18" fill="#1F5D66" font-family="Open Sans, sans-serif" font-size="12" font-weight="600">public</text>
   </g>
-  <g id="Badge / Tier Internal" transform="translate(144, 62)">
-    <rect width="118" height="28" rx="4" fill="#F9F9F7" stroke="#15457E"/>
-    <circle cx="14" cy="14" r="4" fill="#15457E"/>
-    <text x="26" y="18" fill="#15457E" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">INTERNAL</text>
+  <g id="Badge / Tier Internal" transform="translate(148, 62)">
+    <rect width="118" height="28" rx="2" fill="#F5F5F5" stroke="#E7E6E6"/>
+    <g id="Icon / lucide:building-2" transform="translate(10, 7) scale(0.5833)"><g fill="none" stroke="#221F1F" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M10 12h4m-4-4h4m0 13v-3a2 2 0 0 0-4 0v3"/><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/></g></g>
+    <text x="30" y="18" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="12" font-weight="600">internal</text>
   </g>
-  <g id="Badge / Tier Sensitive" transform="translate(274, 62)">
-    <rect width="124" height="28" rx="4" fill="#faf0d2" stroke="#604812"/>
-    <rect x="10" y="10" width="8" height="8" fill="#604812"/>
-    <text x="26" y="18" fill="#3f300b" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">SENSITIVE</text>
+  <g id="Badge / Tier Sensitive" transform="translate(278, 62)">
+    <rect width="124" height="28" rx="2" fill="#F9F9F7" stroke="#5C0025"/>
+    <g id="Icon / lucide:shield-alert" transform="translate(10, 7) scale(0.5833)"><path fill="none" stroke="#5C0025" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1zm-8-5v4m0 4h.01"/></g>
+    <text x="30" y="18" fill="#5C0025" font-family="Open Sans, sans-serif" font-size="12" font-weight="600">sensitive</text>
   </g>
-  <g id="Badge / Tier Restricted" transform="translate(410, 62)">
-    <rect width="132" height="28" rx="4" fill="#5C0025"/>
-    <polygon points="14,9 19,19 9,19" fill="#DDAC37"/>
-    <text x="26" y="18" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">RESTRICTED</text>
+  <g id="Badge / Tier Restricted" transform="translate(414, 62)">
+    <rect width="132" height="28" rx="2" fill="#5C0025"/>
+    <g id="Icon / lucide:lock" transform="translate(10, 7) scale(0.5833)"><g fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></g></g>
+    <text x="30" y="18" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">restricted</text>
   </g>
   <g id="HCM Level of Service Row" transform="translate(24, 112)">
     <text x="0" y="18" fill="#424242" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">HCM LOS:</text>
     <g id="LOS A" transform="translate(72, 0)">
-      <rect width="84" height="28" rx="4" fill="#258818"/>
-      <text x="42" y="18" text-anchor="middle" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">● LOS A</text>
+      <rect width="88" height="28" rx="2" fill="#258818"/>
+      <g id="Icon / lucide:gauge" transform="translate(10, 7) scale(0.5833)"><path fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m12 14l4-4M3.34 19a10 10 0 1 1 17.32 0"/></g>
+      <text x="30" y="18" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">LOS A</text>
     </g>
-    <g id="LOS B" transform="translate(166, 0)">
-      <rect width="84" height="28" rx="4" fill="#3D5328"/>
-      <text x="42" y="18" text-anchor="middle" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">▲ LOS B</text>
+    <g id="LOS B" transform="translate(170, 0)">
+      <rect width="88" height="28" rx="2" fill="#3D5328"/>
+      <g id="Icon / lucide:check-circle-2" transform="translate(10, 7) scale(0.5833)"><g fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m16 9l-5.5 5.5L8 12"/></g></g>
+      <text x="30" y="18" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">LOS B</text>
     </g>
-    <g id="LOS C" transform="translate(260, 0)">
-      <rect width="84" height="28" rx="4" fill="#1F5D66"/>
-      <text x="42" y="18" text-anchor="middle" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">■ LOS C</text>
+    <g id="LOS C" transform="translate(268, 0)">
+      <rect width="88" height="28" rx="2" fill="#1F5D66"/>
+      <g id="Icon / lucide:activity" transform="translate(10, 7) scale(0.5833)"><path fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></g>
+      <text x="30" y="18" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">LOS C</text>
     </g>
-    <g id="LOS D" transform="translate(354, 0)">
-      <rect width="84" height="28" rx="4" fill="#604812"/>
-      <text x="42" y="18" text-anchor="middle" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">◆ LOS D</text>
+    <g id="LOS D" transform="translate(366, 0)">
+      <rect width="88" height="28" rx="2" fill="#604812"/>
+      <g id="Icon / lucide:alert-circle" transform="translate(10, 7) scale(0.5833)"><g fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></g></g>
+      <text x="30" y="18" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">LOS D</text>
     </g>
-    <g id="LOS E" transform="translate(448, 0)">
-      <rect width="84" height="28" rx="4" fill="#BC5B00"/>
-      <text x="42" y="18" text-anchor="middle" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">▼ LOS E</text>
+    <g id="LOS E" transform="translate(464, 0)">
+      <rect width="88" height="28" rx="2" fill="#BC5B00"/>
+      <g id="Icon / lucide:alert-triangle" transform="translate(10, 7) scale(0.5833)"><path fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21.73 18l-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3M12 9v4m0 4h.01"/></g>
+      <text x="30" y="18" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">LOS E</text>
     </g>
-    <g id="LOS F" transform="translate(542, 0)">
-      <rect width="84" height="28" rx="4" fill="#A02828"/>
-      <text x="42" y="18" text-anchor="middle" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">✖ LOS F</text>
+    <g id="LOS F" transform="translate(562, 0)">
+      <rect width="88" height="28" rx="2" fill="#A02828"/>
+      <g id="Icon / lucide:alert-octagon" transform="translate(10, 7) scale(0.5833)"><path fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16h.01M12 8v4m3.312-10a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586l-4.688-4.688A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2z"/></g>
+      <text x="30" y="18" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">LOS F</text>
     </g>
   </g>
-  <text x="24" y="174" fill="#525252" font-family="Open Sans, sans-serif" font-size="12">Triple-redundant encoding: Color + Geometric Icon + Explicit Label (WCAG 1.4.1 &amp; 1.4.6 AAA)</text>
+  <text x="24" y="174" fill="#525252" font-family="Open Sans, sans-serif" font-size="12">Multi-channel encoding: Semantic Color + Lucide Glyph + Explicit Label</text>
 </svg>

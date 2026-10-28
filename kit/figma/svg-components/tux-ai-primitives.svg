@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="190" viewBox="0 0 760 190" fill="none">
+  <rect id="TUX / AI &amp; Research Primitives Sheet" width="760" height="190" rx="8" fill="#F9F9F7" stroke="#E7E6E6"/>
+  <text x="24" y="34" fill="#5C0025" font-family="Oswald, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">TUX / TUXGROUNDEDSOURCES &amp; TUXTOOLCALL · AI PROVENANCE</text>
+  <line x1="24" y1="44" x2="736" y2="44" stroke="#DDAC37" stroke-width="2"/>
+  <g id="GroundedSources / Citation Strip" transform="translate(24, 58)">
+    <rect width="344" height="112" rx="6" fill="#FFFFFF" stroke="#E7E6E6"/>
+    <g id="Icon / lucide:shield-check" transform="translate(16, 16) scale(0.6667)"><g fill="none" stroke="#5C0025" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12l2 2l4-4"/></g></g>
+    <text x="38" y="29" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">3 Grounded TTI Research Sources</text>
+    <rect x="16" y="44" width="312" height="26" rx="3" fill="#F5F5F5"/>
+    <text x="24" y="61" fill="#5C0025" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">[1] TxDOT Report 0-7142 · Freight Platooning</text>
+    <rect x="16" y="76" width="312" height="26" rx="3" fill="#F5F5F5"/>
+    <text x="24" y="93" fill="#5C0025" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">[2] HCM 7th Ed. · Freeway Facilities LOS</text>
+  </g>
+  <g id="ToolCall / Inspector" transform="translate(392, 58)">
+    <rect width="344" height="112" rx="6" fill="#FFFFFF" stroke="#E7E6E6"/>
+    <g id="Icon / lucide:check-circle-2" transform="translate(16, 16) scale(0.6667)"><g fill="none" stroke="#258818" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m16 9l-5.5 5.5L8 12"/></g></g>
+    <text x="38" y="29" fill="#221F1F" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">queryCorridorTelemetry()</text>
+    <text x="328" y="29" text-anchor="end" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11">42 ms</text>
+    <rect x="16" y="44" width="312" height="54" rx="4" fill="#15100F"/>
+    <text x="26" y="66" fill="#FAFAFA" font-family="JetBrains Mono, monospace" font-size="11">{ "corridor": "IH-35E", "station": "104+00" }</text>
+    <text x="26" y="86" fill="#6BB4C0" font-family="JetBrains Mono, monospace" font-size="11">→ { "speedMph": 64.2, "los": "B" }</text>
+  </g>
+</svg>

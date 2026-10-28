@@ -38,6 +38,7 @@
   <g id="Provenance Footer" transform="translate(16, 178)">
     <rect width="728" height="34" rx="4" fill="#F5F5F5"/>
     <text x="14" y="21" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11">Provenance: TxDOT PeMS Archive · Project 0-7142 · Units: US Customary (mph / veh)</text>
-    <text x="714" y="21" text-anchor="end" fill="#5C0025" font-family="Open Sans, sans-serif" font-size="11" font-weight="700">Copy Citation ↗</text>
+    <g id="Icon / lucide:copy" transform="translate(622, 11) scale(0.5)"><g fill="none" stroke="#5C0025" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></g></g>
+    <text x="714" y="21" text-anchor="end" fill="#5C0025" font-family="Open Sans, sans-serif" font-size="11" font-weight="700">Copy Citation</text>
   </g>
 </svg>

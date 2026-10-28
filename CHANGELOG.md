@@ -3,6 +3,18 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.7.1] — 2026-10-28
+
+### Fixed & Expanded — Figma Free Starter Plan Kit (`kit/figma/` & `/install/figma`)
+
+- **Real Lucide Vector Icons & Accurate Component Variants**:
+  - Replaced all emojis and placeholder Unicode characters across `app/pages/install/figma.vue`, `scripts/build-figma-kit.mjs`, and `kit/figma/plugin/ui.html` with `<UIcon name="lucide:..." />` and vector paths compiled from `@iconify-json/lucide`.
+  - Fixed component variants in `tux-button.svg`, `tux-status.svg`, `tux-spectrum-ribbon.svg`, and `tux-portal-header.svg` to match shipped props and tokens.
+- **Expanded for Free Figma Starter Plan (Web & Desktop)**:
+  - Expanded `kit/figma/svg-components/*.svg` from 12 to 18 vector sheets (adding `tux-color-palette`, `tux-tabs-breadcrumbs`, `tux-modal-toast`, `tux-sidebar-footer`, `tux-stat-empty`, and `tux-ai-primitives`).
+  - Added 1-click **Copy All 18 Sheets as Master SVG** (`masterKitSvg`), a **Free Figma Plan Compatibility Matrix**, and an interactive **Web Code Connect Inspector** on `/install/figma` so free Figma Web and Penpot users can paste the entire kit in one `Cmd+V` and inspect all 183 component snippets without a paid Dev Mode seat.
+  - Upgraded the local Figma Desktop plugin (`kit/figma/plugin/code.js`) to sync Paint Styles across all 3 themes, 8 Text Styles, 2 Elevation Effect Styles, 13 Auto-Layout `ComponentNode` primitives, and idempotent 3-collection single-mode Variable fallback on the Free Starter plan.
+
 ## [3.6.0] — 2026-10-27
 
 ### Added — Interactive 4-Level Master Architecture Plan (`<TuxArchitectureMap>`) & Zero-Subscription Figma Design Kit (2026-10-27)

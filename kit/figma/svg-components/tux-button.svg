@@ -1,33 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="220" viewBox="0 0 760 220" fill="none">
   <rect id="TUX / TuxButton Sheet" width="760" height="220" rx="8" fill="#F9F9F7" stroke="#E7E6E6"/>
-  <text x="24" y="34" fill="#5C0025" font-family="Oswald, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">TUX / TUXBUTTON · WCAG 2.2 AAA (44PX TARGETS)</text>
+  <text x="24" y="34" fill="#5C0025" font-family="Oswald, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">TUX / TUXBUTTON · INTENTS (PRIMARY, SECONDARY, GHOST, DESTRUCTIVE)</text>
   <line x1="24" y1="44" x2="736" y2="44" stroke="#DDAC37" stroke-width="2"/>
   <g id="Button / Primary (Light)" transform="translate(24, 64)">
-    <rect width="156" height="44" rx="0" fill="#5C0025"/>
-    <text x="78" y="27" text-anchor="middle" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="14" font-weight="600">Primary Action</text>
+    <rect width="164" height="44" rx="2" fill="#5C0025"/>
+    <g id="Icon / lucide:play" transform="translate(20, 14) scale(0.6667)"><path fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></g>
+    <text x="44" y="27" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="14" font-weight="600">Primary Action</text>
   </g>
-  <g id="Button / Secondary Outline (Light)" transform="translate(196, 64)">
-    <rect width="164" height="44" rx="0" fill="#FFFFFF" stroke="#5C0025" stroke-width="2"/>
-    <text x="82" y="27" text-anchor="middle" fill="#5C0025" font-family="Open Sans, sans-serif" font-size="14" font-weight="600">Secondary Outline</text>
+  <g id="Button / Secondary (Light)" transform="translate(204, 64)">
+    <rect width="164" height="44" rx="2" fill="#FFFFFF" stroke="#E7E6E6" stroke-width="1.5"/>
+    <text x="82" y="27" text-anchor="middle" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="14" font-weight="600">Secondary</text>
   </g>
-  <g id="Button / Gold Accent (Light)" transform="translate(376, 64)">
-    <rect width="160" height="44" rx="0" fill="#DDAC37" stroke="#2A0E15" stroke-width="1"/>
-    <text x="80" y="27" text-anchor="middle" fill="#2A0E15" font-family="Open Sans, sans-serif" font-size="14" font-weight="700">Warm Gold CTA</text>
+  <g id="Button / Ghost (Light)" transform="translate(384, 64)">
+    <rect width="152" height="44" rx="2" fill="#F5F5F5"/>
+    <text x="76" y="27" text-anchor="middle" fill="#424242" font-family="Open Sans, sans-serif" font-size="14" font-weight="600">Ghost Action</text>
   </g>
-  <g id="Button / Critical Danger (Light)" transform="translate(552, 64)">
-    <rect width="160" height="44" rx="0" fill="#A02828"/>
-    <text x="80" y="27" text-anchor="middle" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="14" font-weight="600">Critical Stop</text>
+  <g id="Button / Destructive (Light)" transform="translate(552, 64)">
+    <rect width="160" height="44" rx="2" fill="#FFFFFF" stroke="#A02828" stroke-width="1.5"/>
+    <g id="Icon / lucide:trash-2" transform="translate(26, 14) scale(0.6667)"><path fill="none" stroke="#A02828" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11v6m4-6v6m5-11v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></g>
+    <text x="50" y="27" fill="#A02828" font-family="Open Sans, sans-serif" font-size="14" font-weight="600">Destructive</text>
   </g>
   <g id="Dark Surface Strip" transform="translate(24, 128)">
     <rect width="712" height="68" rx="6" fill="#15100F" stroke="#3D3A3A"/>
     <g id="Button / Primary (Dark)" transform="translate(16, 12)">
-      <rect width="164" height="44" rx="4" fill="#6BB4C0"/>
-      <text x="82" y="27" text-anchor="middle" fill="#15100F" font-family="Open Sans, sans-serif" font-size="14" font-weight="700">Dark Mode Primary</text>
+      <rect width="164" height="44" rx="2" fill="#6BB4C0"/>
+      <text x="82" y="27" text-anchor="middle" fill="#15100F" font-family="Open Sans, sans-serif" font-size="14" font-weight="700">Dark Primary</text>
     </g>
-    <g id="Button / Outline (Dark)" transform="translate(196, 12)">
-      <rect width="164" height="44" rx="4" fill="#221F1F" stroke="#6BB4C0" stroke-width="1.5"/>
+    <g id="Button / Secondary (Dark)" transform="translate(196, 12)">
+      <rect width="164" height="44" rx="2" fill="#221F1F" stroke="#3D3A3A" stroke-width="1.5"/>
       <text x="82" y="27" text-anchor="middle" fill="#FAFAFA" font-family="Open Sans, sans-serif" font-size="14" font-weight="600">Dark Secondary</text>
     </g>
-    <text x="384" y="39" fill="#D1D2D4" font-family="JetBrains Mono, monospace" font-size="12">Focus Ring: 3px solid #5C0025 · Min 44×44px</text>
+    <text x="384" y="39" fill="#D1D2D4" font-family="JetBrains Mono, monospace" font-size="12">shape="default | sharp | pill" · Focus ring: #5C0025</text>
   </g>
 </svg>

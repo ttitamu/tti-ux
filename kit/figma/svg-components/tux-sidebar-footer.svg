@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="210" viewBox="0 0 760 210" fill="none">
+  <rect id="TUX / Sidebar &amp; Footer Sheet" width="760" height="210" rx="8" fill="#FFFFFF" stroke="#E7E6E6"/>
+  <text x="24" y="34" fill="#5C0025" font-family="Oswald, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">TUX / TUXDOCSSIDEBAR &amp; TUXFOOTER · SHELL NAVIGATION</text>
+  <line x1="24" y1="44" x2="736" y2="44" stroke="#DDAC37" stroke-width="2"/>
+  <g id="Sidebar / Navigation Tree" transform="translate(24, 58)">
+    <rect width="224" height="132" rx="4" fill="#F9F9F7" stroke="#E7E6E6"/>
+    <rect x="12" y="12" width="200" height="28" rx="3" fill="#FFFFFF" stroke="#E7E6E6"/>
+    <g id="Icon / lucide:search" transform="translate(20, 20) scale(0.5)"><g fill="none" stroke="#525252" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m21 21l-4.34-4.34"/><circle cx="11" cy="11" r="8"/></g></g>
+    <text x="38" y="30" fill="#525252" font-family="Open Sans, sans-serif" font-size="11">Filter navigation...</text>
+    <rect x="12" y="48" width="200" height="28" rx="3" fill="#5C0025"/>
+    <text x="24" y="66" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">Foundations &amp; Tokens</text>
+    <text x="24" y="94" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="12" font-weight="600">Components (183)</text>
+    <text x="24" y="118" fill="#424242" font-family="Open Sans, sans-serif" font-size="12">Visualizations &amp; Maps</text>
+  </g>
+  <g id="Footer / Institutional Colophon" transform="translate(264, 58)">
+    <rect width="472" height="132" rx="4" fill="#221F1F"/>
+    <rect x="0" y="0" width="472" height="4" fill="#DDAC37"/>
+    <text x="20" y="32" fill="#FFFFFF" font-family="Oswald, sans-serif" font-size="16" font-weight="700">TEXAS A&amp;M TRANSPORTATION INSTITUTE</text>
+    <text x="20" y="54" fill="#D1D2D4" font-family="Open Sans, sans-serif" font-size="11">3135 TAMU · College Station, TX 77843-3135 · A Member of The Texas A&amp;M University System</text>
+    <line x1="20" y1="74" x2="452" y2="74" stroke="#5D5D5D"/>
+    <text x="20" y="100" fill="#DDAC37" font-family="Open Sans, sans-serif" font-size="11" font-weight="600">Accessibility (WCAG 2.2 AAA) · Site Policies · Open Records · Texas.gov</text>
+  </g>
+</svg>

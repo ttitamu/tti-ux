@@ -13,12 +13,12 @@
     <text x="0" y="14" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="13" font-weight="700">TxDOT District</text>
     <rect x="0" y="24" width="216" height="44" rx="4" fill="#FFFFFF" stroke="#525252" stroke-width="1.5"/>
     <text x="12" y="51" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="13">17 — Bryan District (BRY)</text>
-    <polygon points="194,43 204,43 199,51" fill="#221F1F"/>
+    <g id="Icon / lucide:chevron-down" transform="translate(190, 38) scale(0.6667)"><path fill="none" stroke="#221F1F" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9l6 6l6-6"/></g>
   </g>
   <g id="Toggle &amp; Checkbox" transform="translate(516, 62)">
     <text x="0" y="14" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="13" font-weight="700">Telemetry Options</text>
     <rect x="0" y="28" width="24" height="24" rx="4" fill="#5C0025"/>
-    <polyline points="6,40 10,45 18,35" stroke="#FFFFFF" stroke-width="2.5" fill="none"/>
+    <g id="Icon / lucide:check" transform="translate(4, 32) scale(0.6667)"><path fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6L9 17l-5-5"/></g>
     <text x="34" y="45" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="13">Metric (SI) Units</text>
     <rect x="0" y="64" width="48" height="26" rx="13" fill="#5C0025"/>
     <circle cx="35" cy="77" r="9" fill="#FFFFFF"/>

@@ -62,7 +62,7 @@ describe("port ledger ↔ component census", () => {
 
 describe("Figma zero-subscription kit ↔ generator", () => {
   it("every Figma kit artifact is committed exactly as generated", () => {
-    expect(figmaKit.size).toBe(21);
+    expect(figmaKit.size).toBe(27);
     for (const [rel, content] of figmaKit) {
       expect(readFileSync(join(ROOT, rel), "utf8"), rel).toBe(content);
     }

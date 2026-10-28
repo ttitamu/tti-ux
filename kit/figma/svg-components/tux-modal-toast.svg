@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="220" viewBox="0 0 760 220" fill="none">
+  <rect id="TUX / Modal &amp; Toast Sheet" width="760" height="220" rx="8" fill="#F9F9F7" stroke="#E7E6E6"/>
+  <text x="24" y="34" fill="#5C0025" font-family="Oswald, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">TUX / TUXMODAL &amp; TUXTOAST · DIALOGS &amp; NOTIFICATIONS</text>
+  <line x1="24" y1="44" x2="736" y2="44" stroke="#DDAC37" stroke-width="2"/>
+  <g id="Modal / Confirmation Dialog" transform="translate(24, 58)">
+    <rect width="416" height="142" rx="6" fill="#FFFFFF" stroke="#E7E6E6" stroke-width="1.5"/>
+    <rect width="416" height="4" rx="2" fill="#5C0025"/>
+    <text x="20" y="30" fill="#221F1F" font-family="Oswald, sans-serif" font-size="17" font-weight="700">Export Corridor Dataset (CSV / Parquet)</text>
+    <g id="Icon / lucide:x" transform="translate(382, 16) scale(0.6667)"><path fill="none" stroke="#525252" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6L6 18M6 6l12 12"/></g>
+    <text x="20" y="56" fill="#424242" font-family="Open Sans, sans-serif" font-size="12">Includes 28,400 loop-detector rows with DOI citation metadata.</text>
+    <line x1="20" y1="78" x2="396" y2="78" stroke="#EFEEED"/>
+    <rect x="204" y="90" width="90" height="36" rx="2" fill="#FFFFFF" stroke="#E7E6E6"/>
+    <text x="249" y="113" text-anchor="middle" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="12" font-weight="600">Cancel</text>
+    <rect x="302" y="90" width="94" height="36" rx="2" fill="#5C0025"/>
+    <text x="349" y="113" text-anchor="middle" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="12" font-weight="600">Download</text>
+  </g>
+  <g id="Toast / Stack" transform="translate(456, 58)">
+    <g id="Toast / Success" transform="translate(0, 0)">
+      <rect width="280" height="64" rx="4" fill="#FFFFFF" stroke="#258818" stroke-width="1.5"/>
+      <rect width="4" height="64" fill="#258818"/>
+      <g id="Icon / lucide:check-circle-2" transform="translate(16, 14) scale(0.6667)"><g fill="none" stroke="#258818" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m16 9l-5.5 5.5L8 12"/></g></g>
+      <text x="40" y="26" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">Telemetry Snapshot Saved</text>
+      <text x="40" y="46" fill="#424242" font-family="Open Sans, sans-serif" font-size="11">Synced to TxDOT District 17 archive.</text>
+    </g>
+    <g id="Toast / Warning" transform="translate(0, 78)">
+      <rect width="280" height="64" rx="4" fill="#FFFFFF" stroke="#7A7A00" stroke-width="1.5"/>
+      <rect width="4" height="64" fill="#7A7A00"/>
+      <g id="Icon / lucide:triangle-alert" transform="translate(16, 14) scale(0.6667)"><path fill="none" stroke="#604812" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21.73 18l-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3M12 9v4m0 4h.01"/></g>
+      <text x="40" y="26" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">High Latency Detected</text>
+      <text x="40" y="46" fill="#424242" font-family="Open Sans, sans-serif" font-size="11">RSU STA 30+00 response &gt; 450 ms.</text>
+    </g>
+  </g>
+</svg>

@@ -1,22 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="150" viewBox="0 0 760 150" fill="none">
   <rect id="TUX / TuxPortalHeader Sheet" width="760" height="150" rx="8" fill="#F9F9F7" stroke="#E7E6E6"/>
-  <g id="Masthead / Utility Bar" transform="translate(16, 16)">
-    <rect width="728" height="32" fill="#221F1F"/>
-    <text x="16" y="20" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="11" font-weight="600">TEXAS A&amp;M TRANSPORTATION INSTITUTE · A MEMBER OF THE TEXAS A&amp;M UNIVERSITY SYSTEM</text>
-    <text x="712" y="20" text-anchor="end" fill="#DDAC37" font-family="JetBrains Mono, monospace" font-size="11">WCAG 2.2 AAA</text>
+  <g id="Masthead / Tier 1 Utility Bar" transform="translate(16, 16)">
+    <rect width="728" height="32" fill="#5C0025"/>
+    <text x="16" y="20" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="11" font-weight="600">TEXAS A&amp;M TRANSPORTATION INSTITUTE</text>
+    <g id="Icon / lucide:external-link" transform="translate(242, 10) scale(0.5)"><path fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 3h6v6m-11 5L21 3m-3 10v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></g>
+    <text x="618" y="20" text-anchor="end" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="11">JOBS · PRESSROOM · DIRECTORY</text>
+    <rect x="632" y="5" width="84" height="22" rx="3" fill="#500000" stroke="#DDAC37"/>
+    <g id="Icon / lucide:search" transform="translate(640, 10) scale(0.5)"><g fill="none" stroke="#DDAC37" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="m21 21l-4.34-4.34"/><circle cx="11" cy="11" r="8"/></g></g>
+    <text x="656" y="19" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="11">Search</text>
   </g>
-  <g id="Masthead / Brand Ribbon" transform="translate(16, 48)">
-    <rect width="728" height="64" fill="#5C0025"/>
-    <rect x="16" y="14" width="52" height="36" rx="2" fill="#500000" stroke="#DDAC37" stroke-width="1.5"/>
-    <text x="42" y="38" text-anchor="middle" fill="#FFFFFF" font-family="Oswald, sans-serif" font-size="18" font-weight="700">TTI</text>
-    <text x="82" y="34" fill="#FFFFFF" font-family="Oswald, sans-serif" font-size="18" font-weight="700" letter-spacing="0.5">CORRIDOR TELEMETRY PORTAL</text>
-    <text x="82" y="50" fill="#f4dfa1" font-family="Open Sans, sans-serif" font-size="11">Statewide Operations &amp; Safety Analytics</text>
-    <text x="450" y="38" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="13" font-weight="600">Overview</text>
-    <line x1="450" y1="46" x2="508" y2="46" stroke="#DDAC37" stroke-width="2"/>
-    <text x="530" y="38" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="13">Corridors</text>
-    <text x="610" y="38" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="13">Datasets</text>
-    <rect x="676" y="18" width="36" height="28" rx="4" fill="#500000" stroke="#DDAC37"/>
-    <text x="694" y="36" text-anchor="middle" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="11">⌘K</text>
+  <g id="Masthead / Tier 2 Brand Ribbon" transform="translate(16, 48)">
+    <rect width="728" height="62" fill="#FFFFFF" stroke="#E7E6E6"/>
+    <rect x="16" y="13" width="52" height="36" rx="2" fill="#5C0025"/>
+    <text x="42" y="36" text-anchor="middle" fill="#FFFFFF" font-family="Oswald, sans-serif" font-size="18" font-weight="700">TTI</text>
+    <line x1="80" y1="16" x2="80" y2="46" stroke="#E7E6E6"/>
+    <text x="92" y="36" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="15" font-weight="700">Corridor Telemetry Portal</text>
+    <text x="430" y="36" fill="#5C0025" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">OVERVIEW</text>
+    <line x1="430" y1="44" x2="494" y2="44" stroke="#DDAC37" stroke-width="2"/>
+    <text x="514" y="36" fill="#424242" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">CORRIDORS</text>
+    <text x="602" y="36" fill="#424242" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">DATASETS</text>
   </g>
-  <rect x="16" y="112" width="728" height="4" fill="#DDAC37"/>
+  <g id="Masthead / 5-Band Spectrum Ribbon" transform="translate(16, 110)">
+    <rect x="0" y="0" width="145.6" height="6" fill="#701D35"/>
+    <rect x="145.6" y="0" width="145.6" height="6" fill="#566A8A"/>
+    <rect x="291.2" y="0" width="145.6" height="6" fill="#66999B"/>
+    <rect x="436.8" y="0" width="145.6" height="6" fill="#849974"/>
+    <rect x="582.4" y="0" width="145.6" height="6" fill="#E5B350"/>
+  </g>
 </svg>

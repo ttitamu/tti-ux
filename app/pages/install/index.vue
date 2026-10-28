@@ -77,9 +77,8 @@ const targets: Target[] = [
     label: "Figma & Penpot Design Kit",
     path: "kit/figma/",
     consumer: "Designers & UI Engineering",
-    blurb: "Zero-subscription Figma kit: W3C DTCG 2025.10 tokens, 12 Copy-to-Figma vector component sheets, local Auto-Layout builder plugin, and 183-component Code Connect inspector.",
+    blurb: "W3C DTCG 2025.10 tokens, Copy-to-Figma vector component sheets, local Auto-Layout plugin, and Code Connect mappings.",
     to: "/install/figma",
-    badge: "Next Release",
   },
   {
     label: "Power BI & Fabric",

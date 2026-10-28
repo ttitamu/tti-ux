@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="260" viewBox="0 0 760 260" fill="none">
+  <rect id="TUX / Color &amp; Typography Sheet" width="760" height="260" rx="8" fill="#FFFFFF" stroke="#E7E6E6"/>
+  <text x="24" y="32" fill="#5C0025" font-family="Oswald, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">TUX / FOUNDATIONS · BRAND, SURFACE, SPECTRUM &amp; STATUS SWATCHES</text>
+  <line x1="24" y1="42" x2="736" y2="42" stroke="#DDAC37" stroke-width="2"/>
+  <g id="Swatches / Brand &amp; Surfaces" transform="translate(24, 54)">
+    <g id="Swatch / brand-primary" transform="translate(0, 0)">
+      <rect width="82" height="56" rx="4" fill="#5C0025"/>
+      <text x="8" y="24" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="11" font-weight="700">Maroon</text>
+      <text x="8" y="42" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="10">#5C0025</text>
+    </g>
+    <g id="Swatch / brand-primary-deep" transform="translate(90, 0)">
+      <rect width="82" height="56" rx="4" fill="#500000"/>
+      <text x="8" y="24" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="11" font-weight="700">Deep</text>
+      <text x="8" y="42" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="10">#500000</text>
+    </g>
+    <g id="Swatch / brand-accent" transform="translate(180, 0)">
+      <rect width="82" height="56" rx="4" fill="#DDAC37"/>
+      <text x="8" y="24" fill="#2A0E15" font-family="Open Sans, sans-serif" font-size="11" font-weight="700">Warm Gold</text>
+      <text x="8" y="42" fill="#2A0E15" font-family="JetBrains Mono, monospace" font-size="10">#DDAC37</text>
+    </g>
+    <g id="Swatch / tti-navy" transform="translate(270, 0)">
+      <rect width="82" height="56" rx="4" fill="#15457E"/>
+      <text x="8" y="24" fill="#FFFFFF" font-family="Open Sans, sans-serif" font-size="11" font-weight="700">TTI Navy</text>
+      <text x="8" y="42" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="10">#15457E</text>
+    </g>
+    <g id="Swatch / surface-eggshell" transform="translate(360, 0)">
+      <rect width="82" height="56" rx="4" fill="#F9F9F7" stroke="#E7E6E6"/>
+      <text x="8" y="24" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="11" font-weight="700">Eggshell</text>
+      <text x="8" y="42" fill="#525252" font-family="JetBrains Mono, monospace" font-size="10">#F9F9F7</text>
+    </g>
+    <g id="Swatch / surface-sunken" transform="translate(450, 0)">
+      <rect width="82" height="56" rx="4" fill="#F5F5F5" stroke="#E7E6E6"/>
+      <text x="8" y="24" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="11" font-weight="700">Sunken</text>
+      <text x="8" y="42" fill="#525252" font-family="JetBrains Mono, monospace" font-size="10">#F5F5F5</text>
+    </g>
+    <g id="Swatch / dark-surface" transform="translate(540, 0)">
+      <rect width="82" height="56" rx="4" fill="#15100F" stroke="#3D3A3A"/>
+      <text x="8" y="24" fill="#FAFAFA" font-family="Open Sans, sans-serif" font-size="11" font-weight="700">Dark Page</text>
+      <text x="8" y="42" fill="#D1D2D4" font-family="JetBrains Mono, monospace" font-size="10">#15100F</text>
+    </g>
+    <g id="Swatch / dark-brand" transform="translate(630, 0)">
+      <rect width="82" height="56" rx="4" fill="#6BB4C0"/>
+      <text x="8" y="24" fill="#15100F" font-family="Open Sans, sans-serif" font-size="11" font-weight="700">Dark Teal</text>
+      <text x="8" y="42" fill="#15100F" font-family="JetBrains Mono, monospace" font-size="10">#6BB4C0</text>
+    </g>
+  </g>
+  <g id="Swatches / Spectrum &amp; Status" transform="translate(24, 120)">
+    <rect x="0" y="0" width="76" height="36" rx="3" fill="#701D35"/>
+    <text x="8" y="22" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="10">#701D35</text>
+    <rect x="82" y="0" width="76" height="36" rx="3" fill="#566A8A"/>
+    <text x="90" y="22" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="10">#566A8A</text>
+    <rect x="164" y="0" width="76" height="36" rx="3" fill="#66999B"/>
+    <text x="172" y="22" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="10">#66999B</text>
+    <rect x="246" y="0" width="76" height="36" rx="3" fill="#849974"/>
+    <text x="254" y="22" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="10">#849974</text>
+    <rect x="328" y="0" width="76" height="36" rx="3" fill="#E5B350"/>
+    <text x="336" y="22" fill="#221F1F" font-family="JetBrains Mono, monospace" font-size="10">#E5B350</text>
+    <rect x="416" y="0" width="70" height="36" rx="3" fill="#258818"/>
+    <text x="424" y="22" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="10">OK</text>
+    <rect x="492" y="0" width="70" height="36" rx="3" fill="#7A7A00"/>
+    <text x="500" y="22" fill="#221F1F" font-family="JetBrains Mono, monospace" font-size="10">WARN</text>
+    <rect x="568" y="0" width="70" height="36" rx="3" fill="#BC5B00"/>
+    <text x="576" y="22" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="10">UNK</text>
+    <rect x="644" y="0" width="68" height="36" rx="3" fill="#A02828"/>
+    <text x="652" y="22" fill="#FFFFFF" font-family="JetBrains Mono, monospace" font-size="10">CRIT</text>
+  </g>
+  <g id="Typography Scale" transform="translate(24, 172)">
+    <rect width="712" height="68" rx="4" fill="#F9F9F7" stroke="#E7E6E6"/>
+    <text x="16" y="28" fill="#221F1F" font-family="Oswald, sans-serif" font-size="20" font-weight="700">Oswald Display · H1–H3 Headings</text>
+    <text x="16" y="50" fill="#424242" font-family="Open Sans, sans-serif" font-size="13">Open Sans Body (16px / 1.65) · ≥ 7.0:1 AAA Contrast</text>
+    <text x="410" y="28" fill="#5C0025" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">JetBrains Mono · Tabular Telemetry</text>
+    <text x="410" y="50" fill="#525252" font-family="JetBrains Mono, monospace" font-size="12">STA 104+00 · n = 28,400 · 99.4% ± 0.2%</text>
+  </g>
+</svg>

@@ -1,36 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="160" viewBox="0 0 760 160" fill="none">
   <rect id="TUX / TuxSpectrumRibbon Sheet" width="760" height="160" rx="8" fill="#FFFFFF" stroke="#E7E6E6"/>
-  <text x="24" y="34" fill="#5C0025" font-family="Oswald, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">TUX / TUXSPECTRUMRIBBON · 5-BAND TTI RESEARCH SPECTRUM</text>
+  <text x="24" y="34" fill="#5C0025" font-family="Oswald, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">TUX / TUXSPECTRUMRIBBON · 5-BAND TTI BRAND SPECTRUM</text>
   <g id="Spectrum 5-Band Bar" transform="translate(24, 52)">
-    <g id="Band 1 / Maroon (Policy &amp; Executive)">
-      <rect x="0" y="0" width="142.4" height="16" fill="#500000"/>
+    <g id="Band 1 / Maroon">
+      <rect x="0" y="0" width="142.4" height="16" fill="#701D35"/>
       <rect x="0" y="24" width="136" height="58" rx="4" fill="#F9F9F7" stroke="#E7E6E6"/>
-      <text x="10" y="44" fill="#500000" font-family="Oswald, sans-serif" font-size="13" font-weight="700">01 · POLICY</text>
-      <text x="10" y="64" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11">#500000</text>
+      <text x="10" y="44" fill="#701D35" font-family="Oswald, sans-serif" font-size="13" font-weight="700">MAROON</text>
+      <text x="10" y="64" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11">#701D35</text>
     </g>
-    <g id="Band 2 / Blue (Connected &amp; Automated)" transform="translate(142.4, 0)">
-      <rect x="0" y="0" width="142.4" height="16" fill="#15457E"/>
+    <g id="Band 2 / Slate Blue" transform="translate(142.4, 0)">
+      <rect x="0" y="0" width="142.4" height="16" fill="#566A8A"/>
       <rect x="2" y="24" width="136" height="58" rx="4" fill="#F9F9F7" stroke="#E7E6E6"/>
-      <text x="12" y="44" fill="#15457E" font-family="Oswald, sans-serif" font-size="13" font-weight="700">02 · MOBILITY</text>
-      <text x="12" y="64" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11">#15457E</text>
+      <text x="12" y="44" fill="#566A8A" font-family="Oswald, sans-serif" font-size="13" font-weight="700">SLATE BLUE</text>
+      <text x="12" y="64" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11">#566A8A</text>
     </g>
-    <g id="Band 3 / Teal (Freight &amp; Maritime)" transform="translate(284.8, 0)">
-      <rect x="0" y="0" width="142.4" height="16" fill="#1F5D66"/>
+    <g id="Band 3 / Slate Teal" transform="translate(284.8, 0)">
+      <rect x="0" y="0" width="142.4" height="16" fill="#66999B"/>
       <rect x="4" y="24" width="136" height="58" rx="4" fill="#F9F9F7" stroke="#E7E6E6"/>
-      <text x="14" y="44" fill="#1F5D66" font-family="Oswald, sans-serif" font-size="13" font-weight="700">03 · FREIGHT</text>
-      <text x="14" y="64" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11">#1F5D66</text>
+      <text x="14" y="44" fill="#66999B" font-family="Oswald, sans-serif" font-size="13" font-weight="700">SLATE TEAL</text>
+      <text x="14" y="64" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11">#66999B</text>
     </g>
-    <g id="Band 4 / Green (Safety &amp; Environment)" transform="translate(427.2, 0)">
-      <rect x="0" y="0" width="142.4" height="16" fill="#3D5328"/>
+    <g id="Band 4 / Sage Green" transform="translate(427.2, 0)">
+      <rect x="0" y="0" width="142.4" height="16" fill="#849974"/>
       <rect x="6" y="24" width="136" height="58" rx="4" fill="#F9F9F7" stroke="#E7E6E6"/>
-      <text x="16" y="44" fill="#3D5328" font-family="Oswald, sans-serif" font-size="13" font-weight="700">04 · SAFETY</text>
-      <text x="16" y="64" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11">#3D5328</text>
+      <text x="16" y="44" fill="#849974" font-family="Oswald, sans-serif" font-size="13" font-weight="700">SAGE GREEN</text>
+      <text x="16" y="64" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11">#849974</text>
     </g>
-    <g id="Band 5 / Gold (Infrastructure)" transform="translate(569.6, 0)">
-      <rect x="0" y="0" width="142.4" height="16" fill="#DDAC37"/>
+    <g id="Band 5 / Ochre Gold" transform="translate(569.6, 0)">
+      <rect x="0" y="0" width="142.4" height="16" fill="#E5B350"/>
       <rect x="6" y="24" width="136" height="58" rx="4" fill="#F9F9F7" stroke="#E7E6E6"/>
-      <text x="16" y="44" fill="#604812" font-family="Oswald, sans-serif" font-size="13" font-weight="700">05 · MATERIALS</text>
-      <text x="16" y="64" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11">#DDAC37</text>
+      <text x="16" y="44" fill="#604812" font-family="Oswald, sans-serif" font-size="13" font-weight="700">OCHRE GOLD</text>
+      <text x="16" y="64" fill="#525252" font-family="JetBrains Mono, monospace" font-size="11">#E5B350</text>
     </g>
   </g>
 </svg>

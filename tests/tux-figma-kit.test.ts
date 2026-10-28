@@ -95,12 +95,12 @@ describe("TUX Zero-Subscription Figma Kit (kit/figma/)", () => {
     expect(buttonEntry.snippets.webComponents).toBe("<tux-button></tux-button>");
   });
 
-  it("emits 12 Copy-to-Figma SVG component sheets with resolved hex literals and zero var()", () => {
+  it("emits 18 Copy-to-Figma SVG component sheets with resolved hex literals, Lucide vector paths, and zero var()", () => {
     const manifest = JSON.parse(
       artifacts.get("kit/figma/svg-components/manifest.json")!,
     );
-    expect(manifest.count).toBe(12);
-    expect(manifest.sheets).toHaveLength(12);
+    expect(manifest.count).toBe(18);
+    expect(manifest.sheets).toHaveLength(18);
 
     for (const sheet of manifest.sheets) {
       const svg = artifacts.get(sheet.file);
@@ -111,7 +111,7 @@ describe("TUX Zero-Subscription Figma Kit (kit/figma/)", () => {
     }
   });
 
-  it("ships a zero-network local Figma plugin with Free Starter Plan 1-mode fallback", () => {
+  it("ships a zero-network local Figma plugin with Free Starter Plan 1-mode fallback, Text Styles, and Effect Styles", () => {
     const manifest = JSON.parse(artifacts.get("kit/figma/plugin/manifest.json")!);
     expect(manifest.id).toBe("edu.tamu.tti.tux.figma-kit");
     expect(manifest.networkAccess.allowedDomains).toEqual(["none"]);
@@ -119,6 +119,8 @@ describe("TUX Zero-Subscription Figma Kit (kit/figma/)", () => {
 
     const pluginCode = artifacts.get("kit/figma/plugin/code.js")!;
     expect(pluginCode).toContain("syncPaintAndTextStyles");
+    expect(pluginCode).toContain("createTextStyle");
+    expect(pluginCode).toContain("createEffectStyle");
     expect(pluginCode).toContain("syncFigmaVariables");
     expect(pluginCode).toContain("generateAutoLayoutKitOnCanvas");
     // Ensures Free Starter plan 1-mode fallback is baked into the plugin

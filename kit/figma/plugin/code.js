@@ -8960,10 +8960,2685 @@ const TUX_COMPONENTS = [
       "blazor": "<TuxDescriptionList />",
       "wordpress": "[tux_description_list]"
     }
+  },
+  {
+    "name": "TuxDiagram",
+    "tagName": "tux-diagram",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "Mermaid",
+    "blurb": "Mermaid diagrams-as-code — flowcharts, sequences, ERDs. Lazy-loaded ~3MB; brand-themed.",
+    "route": "/components/diagram",
+    "docsUrl": "https://ux.tti.tamu.edu/components/diagram",
+    "figmaNodePattern": "TUX / TuxDiagram",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxDiagram />",
+      "react": "import { TuxDiagram } from \"@tti/tti-ux-react\";\n\n<TuxDiagram />",
+      "webComponents": "<tux-diagram></tux-diagram>",
+      "blazor": "<TuxDiagram />",
+      "wordpress": "[tux_diagram]"
+    }
+  },
+  {
+    "name": "TuxDocsSidebar",
+    "tagName": "tux-docs-sidebar",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "Hierarchical doc-site sidebar — collapsible sections, search filter, persisted collapse state.",
+    "route": "/components/docs-sidebar",
+    "docsUrl": "https://ux.tti.tamu.edu/components/docs-sidebar",
+    "figmaNodePattern": "TUX / TuxDocsSidebar",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxDocsSidebar />",
+      "react": "import { TuxDocsSidebar } from \"@tti/tti-ux-react\";\n\n<TuxDocsSidebar />",
+      "webComponents": "<tux-docs-sidebar></tux-docs-sidebar>",
+      "blazor": "<TuxDocsSidebar />",
+      "wordpress": "[tux_docs_sidebar]"
+    }
+  },
+  {
+    "name": "TuxDropdown",
+    "tagName": "tux-dropdown",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "Single-column dropdown from a top-bar nav item. Composes inside TuxSiteNav.",
+    "route": "/components/site-nav",
+    "docsUrl": "https://ux.tti.tamu.edu/components/site-nav",
+    "figmaNodePattern": "TUX / TuxDropdown",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxDropdown />",
+      "react": "import { TuxDropdown } from \"@tti/tti-ux-react\";\n\n<TuxDropdown />",
+      "webComponents": "<tux-dropdown></tux-dropdown>",
+      "blazor": "<TuxDropdown />",
+      "wordpress": "[tux_dropdown]"
+    }
+  },
+  {
+    "name": "TuxEditorialArticle",
+    "tagName": "tux-editorial-article",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Flagship publication reader parities MyTTI Inside Lane and EmDash CMS with switchable hero presentations, sticky TOC, and reading progress.",
+    "route": "/components/editorial-article",
+    "docsUrl": "https://ux.tti.tamu.edu/components/editorial-article",
+    "figmaNodePattern": "TUX / TuxEditorialArticle",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxEditorialArticle />",
+      "react": "import { TuxEditorialArticle } from \"@tti/tti-ux-react\";\n\n<TuxEditorialArticle />",
+      "webComponents": "<tux-editorial-article></tux-editorial-article>",
+      "blazor": "<TuxEditorialArticle />",
+      "wordpress": "[tux_editorial_article]"
+    }
+  },
+  {
+    "name": "TuxEmptyState",
+    "tagName": "tux-empty-state",
+    "kind": "component",
+    "family": "components",
+    "category": "feedback",
+    "wraps": "TuxCard composite",
+    "blurb": "No-data placeholder — tinted icon circle, title, description, CTA slot.",
+    "route": "/components/empty-state",
+    "docsUrl": "https://ux.tti.tamu.edu/components/empty-state",
+    "figmaNodePattern": "TUX / TuxEmptyState",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxEmptyState />",
+      "react": "import { TuxEmptyState } from \"@tti/tti-ux-react\";\n\n<TuxEmptyState />",
+      "webComponents": "<tux-empty-state></tux-empty-state>",
+      "blazor": "<TuxEmptyState />",
+      "wordpress": "[tux_empty_state]"
+    }
+  },
+  {
+    "name": "TuxErrorPage",
+    "tagName": "tux-error-page",
+    "kind": "component",
+    "family": "components",
+    "category": "feedback",
+    "wraps": "tux native",
+    "blurb": "Full-page 404/500/403/503 template — display-type code, recovery actions, support slot.",
+    "route": "/components/error-page",
+    "docsUrl": "https://ux.tti.tamu.edu/components/error-page",
+    "figmaNodePattern": "TUX / TuxErrorPage",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxErrorPage />",
+      "react": "import { TuxErrorPage } from \"@tti/tti-ux-react\";\n\n<TuxErrorPage />",
+      "webComponents": "<tux-error-page></tux-error-page>",
+      "blazor": "<TuxErrorPage />",
+      "wordpress": "[tux_error_page]"
+    }
+  },
+  {
+    "name": "TuxEventCalendarRow",
+    "tagName": "tux-event-calendar-row",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Institutional event row with emerald date chip, time, title, and RSVP/view action.",
+    "route": "/components/event-calendar-row",
+    "docsUrl": "https://ux.tti.tamu.edu/components/event-calendar-row",
+    "figmaNodePattern": "TUX / TuxEventCalendarRow",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxEventCalendarRow />",
+      "react": "import { TuxEventCalendarRow } from \"@tti/tti-ux-react\";\n\n<TuxEventCalendarRow />",
+      "webComponents": "<tux-event-calendar-row></tux-event-calendar-row>",
+      "blazor": "<TuxEventCalendarRow />",
+      "wordpress": "[tux_event_calendar_row]"
+    }
+  },
+  {
+    "name": "TuxFAB",
+    "tagName": "tux-fab",
+    "kind": "component",
+    "family": "components",
+    "category": "actions",
+    "wraps": "tux native",
+    "blurb": "Floating Action Button. Material-pattern primary action; icon-only circle or extended pill. Honors safe-area-inset.",
+    "route": "/components/fab",
+    "docsUrl": "https://ux.tti.tamu.edu/components/fab",
+    "figmaNodePattern": "TUX / TuxFAB",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxFAB />",
+      "react": "import { TuxFAB } from \"@tti/tti-ux-react\";\n\n<TuxFAB />",
+      "webComponents": "<tux-fab></tux-fab>",
+      "blazor": "<TuxFAB />",
+      "wordpress": "[tux_fab]"
+    }
+  },
+  {
+    "name": "TuxFactoid",
+    "tagName": "tux-factoid",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Institutional \\\\\"by the numbers\\\\\" — 3/4/5-up oversized stats, variant-aware numerals.",
+    "route": "/components/factoid",
+    "docsUrl": "https://ux.tti.tamu.edu/components/factoid",
+    "figmaNodePattern": "TUX / TuxFactoid",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxFactoid />",
+      "react": "import { TuxFactoid } from \"@tti/tti-ux-react\";\n\n<TuxFactoid />",
+      "webComponents": "<tux-factoid></tux-factoid>",
+      "blazor": "<TuxFactoid />",
+      "wordpress": "[tux_factoid]"
+    }
+  },
+  {
+    "name": "TuxFigureCaption",
+    "tagName": "tux-figure-caption",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Auto-numbered caption for figures, tables, exhibits, equations.",
+    "route": "/components/figure-caption",
+    "docsUrl": "https://ux.tti.tamu.edu/components/figure-caption",
+    "figmaNodePattern": "TUX / TuxFigureCaption",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxFigureCaption />",
+      "react": "import { TuxFigureCaption } from \"@tti/tti-ux-react\";\n\n<TuxFigureCaption />",
+      "webComponents": "<tux-figure-caption></tux-figure-caption>",
+      "blazor": "<TuxFigureCaption />",
+      "wordpress": "[tux_figure_caption]"
+    }
+  },
+  {
+    "name": "TuxFileDropzone",
+    "tagName": "tux-file-dropzone",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native",
+    "blurb": "Drag-and-drop file upload.",
+    "route": "/components/file-dropzone",
+    "docsUrl": "https://ux.tti.tamu.edu/components/file-dropzone",
+    "figmaNodePattern": "TUX / TuxFileDropzone",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxFileDropzone />",
+      "react": "import { TuxFileDropzone } from \"@tti/tti-ux-react\";\n\n<TuxFileDropzone />",
+      "webComponents": "<tux-file-dropzone></tux-file-dropzone>",
+      "blazor": "<TuxFileDropzone />",
+      "wordpress": "[tux_file_dropzone]"
+    }
+  },
+  {
+    "name": "TuxFilterPanel",
+    "tagName": "tux-filter-panel",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native",
+    "blurb": "Left-rail facet panel — collapsible groups, checkbox lists with counts, applied-filter chips.",
+    "route": "/components/filter-panel",
+    "docsUrl": "https://ux.tti.tamu.edu/components/filter-panel",
+    "figmaNodePattern": "TUX / TuxFilterPanel",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxFilterPanel />",
+      "react": "import { TuxFilterPanel } from \"@tti/tti-ux-react\";\n\n<TuxFilterPanel />",
+      "webComponents": "<tux-filter-panel></tux-filter-panel>",
+      "blazor": "<TuxFilterPanel />",
+      "wordpress": "[tux_filter_panel]"
+    }
+  },
+  {
+    "name": "TuxFocusView",
+    "tagName": "tux-focus-view",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "Teleport + native",
+    "blurb": "Full-viewport overlay for inspecting one piece of content — back + title + actions chrome, content slot. \\\\\"Open chart in focus mode.\\\\\"",
+    "route": "/components/focus-view",
+    "docsUrl": "https://ux.tti.tamu.edu/components/focus-view",
+    "figmaNodePattern": "TUX / TuxFocusView",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxFocusView />",
+      "react": "import { TuxFocusView } from \"@tti/tti-ux-react\";\n\n<TuxFocusView />",
+      "webComponents": "<tux-focus-view></tux-focus-view>",
+      "blazor": "<TuxFocusView />",
+      "wordpress": "[tux_focus_view]"
+    }
+  },
+  {
+    "name": "TuxFooter",
+    "tagName": "tux-footer",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "Unified institutional footer \\\\u2014 maroon contact and resources block over accessible legal baseline.",
+    "route": "/components/footer",
+    "docsUrl": "https://ux.tti.tamu.edu/components/footer",
+    "figmaNodePattern": "TUX / TuxFooter",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxFooter />",
+      "react": "import { TuxFooter } from \"@tti/tti-ux-react\";\n\n<TuxFooter />",
+      "webComponents": "<tux-footer></tux-footer>",
+      "blazor": "<TuxFooter />",
+      "wordpress": "[tux_footer]"
+    }
+  },
+  {
+    "name": "TuxFootnote",
+    "tagName": "tux-footnote",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "UPopover",
+    "blurb": "Inline footnote reference + hover preview.",
+    "route": "/components/footnote",
+    "docsUrl": "https://ux.tti.tamu.edu/components/footnote",
+    "figmaNodePattern": "TUX / TuxFootnote",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxFootnote />",
+      "react": "import { TuxFootnote } from \"@tti/tti-ux-react\";\n\n<TuxFootnote />",
+      "webComponents": "<tux-footnote></tux-footnote>",
+      "blazor": "<TuxFootnote />",
+      "wordpress": "[tux_footnote]"
+    }
+  },
+  {
+    "name": "TuxFormField",
+    "tagName": "tux-form-field",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native",
+    "blurb": "Label + help + input + error stack.",
+    "route": "/components/form-field",
+    "docsUrl": "https://ux.tti.tamu.edu/components/form-field",
+    "figmaNodePattern": "TUX / TuxFormField",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxFormField />",
+      "react": "import { TuxFormField } from \"@tti/tti-ux-react\";\n\n<TuxFormField />",
+      "webComponents": "<tux-form-field></tux-form-field>",
+      "blazor": "<TuxFormField />",
+      "wordpress": "[tux_form_field]"
+    }
+  },
+  {
+    "name": "TuxFundingSource",
+    "tagName": "tux-funding-source",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Funder identity strip / chip.",
+    "route": "/components/tti-identity",
+    "docsUrl": "https://ux.tti.tamu.edu/components/tti-identity",
+    "figmaNodePattern": "TUX / TuxFundingSource",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxFundingSource />",
+      "react": "import { TuxFundingSource } from \"@tti/tti-ux-react\";\n\n<TuxFundingSource />",
+      "webComponents": "<tux-funding-source></tux-funding-source>",
+      "blazor": "<TuxFundingSource />",
+      "wordpress": "[tux_funding_source]"
+    }
+  },
+  {
+    "name": "TuxGroundedSources",
+    "tagName": "tux-grounded-sources",
+    "kind": "component",
+    "family": "components",
+    "category": "ai",
+    "wraps": "tux native",
+    "blurb": "Verified search and retrieval citation strip with domain badges and DLP verification status.",
+    "route": "/components/chat-message",
+    "docsUrl": "https://ux.tti.tamu.edu/components/chat-message",
+    "figmaNodePattern": "TUX / TuxGroundedSources",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxGroundedSources />",
+      "react": "import { TuxGroundedSources } from \"@tti/tti-ux-react\";\n\n<TuxGroundedSources />",
+      "webComponents": "<tux-grounded-sources></tux-grounded-sources>",
+      "blazor": "<TuxGroundedSources />",
+      "wordpress": "[tux_grounded_sources]"
+    }
+  },
+  {
+    "name": "TuxHeroCanvas",
+    "tagName": "tux-hero-canvas",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "HTML5 2D Canvas",
+    "blurb": "Atmospheric celestial and telemetry hero simulation inspired by OpenAI Sol with glowing corona, stardust sparks, constellation mesh, and seamless bottom dissolve.",
+    "route": "/components/hero-canvas",
+    "docsUrl": "https://ux.tti.tamu.edu/components/hero-canvas",
+    "figmaNodePattern": "TUX / TuxHeroCanvas",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxHeroCanvas />",
+      "react": "import { TuxHeroCanvas } from \"@tti/tti-ux-react\";\n\n<TuxHeroCanvas />",
+      "webComponents": "<tux-hero-canvas></tux-hero-canvas>",
+      "blazor": "<TuxHeroCanvas />",
+      "wordpress": "[tux_hero_canvas]"
+    }
+  },
+  {
+    "name": "TuxIconFeature",
+    "tagName": "tux-icon-feature",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Icon + headline + body grid — classic \\\\\"our services\\\\\" block, three tones, grid or list.",
+    "route": "/components/icon-feature",
+    "docsUrl": "https://ux.tti.tamu.edu/components/icon-feature",
+    "figmaNodePattern": "TUX / TuxIconFeature",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxIconFeature />",
+      "react": "import { TuxIconFeature } from \"@tti/tti-ux-react\";\n\n<TuxIconFeature />",
+      "webComponents": "<tux-icon-feature></tux-icon-feature>",
+      "blazor": "<TuxIconFeature />",
+      "wordpress": "[tux_icon_feature]"
+    }
+  },
+  {
+    "name": "TuxIdentity",
+    "tagName": "tux-identity",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Header lockup — logo + wordmark. Lockup or text-only, horizontal or stacked, three levels.",
+    "route": "/components/identity",
+    "docsUrl": "https://ux.tti.tamu.edu/components/identity",
+    "figmaNodePattern": "TUX / TuxIdentity",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxIdentity />",
+      "react": "import { TuxIdentity } from \"@tti/tti-ux-react\";\n\n<TuxIdentity />",
+      "webComponents": "<tux-identity></tux-identity>",
+      "blazor": "<TuxIdentity />",
+      "wordpress": "[tux_identity]"
+    }
+  },
+  {
+    "name": "TuxInfiniteScroll",
+    "tagName": "tux-infinite-scroll",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "IntersectionObserver sentinel that auto-fetches the next page. Honors prefers-reduced-motion + keyboard fallback.",
+    "route": "/components/infinite-scroll",
+    "docsUrl": "https://ux.tti.tamu.edu/components/infinite-scroll",
+    "figmaNodePattern": "TUX / TuxInfiniteScroll",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxInfiniteScroll />",
+      "react": "import { TuxInfiniteScroll } from \"@tti/tti-ux-react\";\n\n<TuxInfiniteScroll />",
+      "webComponents": "<tux-infinite-scroll></tux-infinite-scroll>",
+      "blazor": "<TuxInfiniteScroll />",
+      "wordpress": "[tux_infinite_scroll]"
+    }
+  },
+  {
+    "name": "TuxInfoLabel",
+    "tagName": "tux-info-label",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "UPopover",
+    "blurb": "Form-field label with (i) help — hover or click popover with the explanation. For ITAR rubrics, retention classes, classifier metrics.",
+    "route": "/components/info-label",
+    "docsUrl": "https://ux.tti.tamu.edu/components/info-label",
+    "figmaNodePattern": "TUX / TuxInfoLabel",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxInfoLabel />",
+      "react": "import { TuxInfoLabel } from \"@tti/tti-ux-react\";\n\n<TuxInfoLabel />",
+      "webComponents": "<tux-info-label></tux-info-label>",
+      "blazor": "<TuxInfoLabel />",
+      "wordpress": "[tux_info_label]"
+    }
+  },
+  {
+    "name": "TuxInlineCitation",
+    "tagName": "tux-inline-citation",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "UPopover",
+    "blurb": "Academic-style inline [N] citation pill — hover reveals title + URL + excerpt + score. Composes with TuxCitations footer list.",
+    "route": "/components/inline-citation",
+    "docsUrl": "https://ux.tti.tamu.edu/components/inline-citation",
+    "figmaNodePattern": "TUX / TuxInlineCitation",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxInlineCitation />",
+      "react": "import { TuxInlineCitation } from \"@tti/tti-ux-react\";\n\n<TuxInlineCitation />",
+      "webComponents": "<tux-inline-citation></tux-inline-citation>",
+      "blazor": "<TuxInlineCitation />",
+      "wordpress": "[tux_inline_citation]"
+    }
+  },
+  {
+    "name": "TuxKbd",
+    "tagName": "tux-kbd",
+    "kind": "component",
+    "family": "components",
+    "category": "actions",
+    "wraps": "tux native",
+    "blurb": "Token-styled <kbd> for shortcut hints. Mac/PC modifier normalization, three sizes, combo + sequence forms.",
+    "route": "/components/kbd",
+    "docsUrl": "https://ux.tti.tamu.edu/components/kbd",
+    "figmaNodePattern": "TUX / TuxKbd",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxKbd />",
+      "react": "import { TuxKbd } from \"@tti/tti-ux-react\";\n\n<TuxKbd />",
+      "webComponents": "<tux-kbd></tux-kbd>",
+      "blazor": "<TuxKbd />",
+      "wordpress": "[tux_kbd]"
+    }
+  },
+  {
+    "name": "TuxLab",
+    "tagName": "tux-lab",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "TTI lab / center identity card.",
+    "route": "/components/tti-identity",
+    "docsUrl": "https://ux.tti.tamu.edu/components/tti-identity",
+    "figmaNodePattern": "TUX / TuxLab",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxLab />",
+      "react": "import { TuxLab } from \"@tti/tti-ux-react\";\n\n<TuxLab />",
+      "webComponents": "<tux-lab></tux-lab>",
+      "blazor": "<TuxLab />",
+      "wordpress": "[tux_lab]"
+    }
+  },
+  {
+    "name": "TuxLinkList",
+    "tagName": "tux-link-list",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Categorized resource list — grouped headings, optional descriptions, featured-item left bar.",
+    "route": "/components/link-list",
+    "docsUrl": "https://ux.tti.tamu.edu/components/link-list",
+    "figmaNodePattern": "TUX / TuxLinkList",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxLinkList />",
+      "react": "import { TuxLinkList } from \"@tti/tti-ux-react\";\n\n<TuxLinkList />",
+      "webComponents": "<tux-link-list></tux-link-list>",
+      "blazor": "<TuxLinkList />",
+      "wordpress": "[tux_link_list]"
+    }
+  },
+  {
+    "name": "TuxLinkSlab",
+    "tagName": "tux-link-slab",
+    "kind": "component",
+    "family": "components",
+    "category": "actions",
+    "wraps": "tux native",
+    "blurb": "Full-width band of prominent links — footer-of-section navigation, three tones.",
+    "route": "/components/link-slab",
+    "docsUrl": "https://ux.tti.tamu.edu/components/link-slab",
+    "figmaNodePattern": "TUX / TuxLinkSlab",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxLinkSlab />",
+      "react": "import { TuxLinkSlab } from \"@tti/tti-ux-react\";\n\n<TuxLinkSlab />",
+      "webComponents": "<tux-link-slab></tux-link-slab>",
+      "blazor": "<TuxLinkSlab />",
+      "wordpress": "[tux_link_slab]"
+    }
+  },
+  {
+    "name": "TuxLoadMore",
+    "tagName": "tux-load-more",
+    "kind": "component",
+    "family": "components",
+    "category": "actions",
+    "wraps": "tux native",
+    "blurb": "Explicit \\\\\"Load more\\\\\" button + remaining count + terminal divider when all loaded. SEO-friendly middle ground.",
+    "route": "/components/load-more",
+    "docsUrl": "https://ux.tti.tamu.edu/components/load-more",
+    "figmaNodePattern": "TUX / TuxLoadMore",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxLoadMore />",
+      "react": "import { TuxLoadMore } from \"@tti/tti-ux-react\";\n\n<TuxLoadMore />",
+      "webComponents": "<tux-load-more></tux-load-more>",
+      "blazor": "<TuxLoadMore />",
+      "wordpress": "[tux_load_more]"
+    }
+  },
+  {
+    "name": "TuxMapEmbed",
+    "tagName": "tux-map-embed",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "iframe / slot",
+    "blurb": "Library-agnostic map embed wrapper.",
+    "route": "/components/geospatial",
+    "docsUrl": "https://ux.tti.tamu.edu/components/geospatial",
+    "figmaNodePattern": "TUX / TuxMapEmbed",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxMapEmbed />",
+      "react": "import { TuxMapEmbed } from \"@tti/tti-ux-react\";\n\n<TuxMapEmbed />",
+      "webComponents": "<tux-map-embed></tux-map-embed>",
+      "blazor": "<TuxMapEmbed />",
+      "wordpress": "[tux_map_embed]"
+    }
+  },
+  {
+    "name": "TuxMapLegend",
+    "tagName": "tux-map-legend",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Standalone legend for embedded maps.",
+    "route": "/components/geospatial",
+    "docsUrl": "https://ux.tti.tamu.edu/components/geospatial",
+    "figmaNodePattern": "TUX / TuxMapLegend",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxMapLegend />",
+      "react": "import { TuxMapLegend } from \"@tti/tti-ux-react\";\n\n<TuxMapLegend />",
+      "webComponents": "<tux-map-legend></tux-map-legend>",
+      "blazor": "<TuxMapLegend />",
+      "wordpress": "[tux_map_legend]"
+    }
+  },
+  {
+    "name": "TuxMapMarker",
+    "tagName": "tux-map-marker",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native SVG",
+    "blurb": "Research-typed map marker.",
+    "route": "/components/geospatial",
+    "docsUrl": "https://ux.tti.tamu.edu/components/geospatial",
+    "figmaNodePattern": "TUX / TuxMapMarker",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxMapMarker />",
+      "react": "import { TuxMapMarker } from \"@tti/tti-ux-react\";\n\n<TuxMapMarker />",
+      "webComponents": "<tux-map-marker></tux-map-marker>",
+      "blazor": "<TuxMapMarker />",
+      "wordpress": "[tux_map_marker]"
+    }
+  },
+  {
+    "name": "TuxMarkdownEditor",
+    "tagName": "tux-markdown-editor",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native (no deps)",
+    "blurb": "Textarea with markdown shortcuts.",
+    "route": "/components/markdown-editor",
+    "docsUrl": "https://ux.tti.tamu.edu/components/markdown-editor",
+    "figmaNodePattern": "TUX / TuxMarkdownEditor",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxMarkdownEditor />",
+      "react": "import { TuxMarkdownEditor } from \"@tti/tti-ux-react\";\n\n<TuxMarkdownEditor />",
+      "webComponents": "<tux-markdown-editor></tux-markdown-editor>",
+      "blazor": "<TuxMarkdownEditor />",
+      "wordpress": "[tux_markdown_editor]"
+    }
+  },
+  {
+    "name": "TuxMcpEmbed",
+    "tagName": "tux-mcp-embed",
+    "kind": "component",
+    "family": "components",
+    "category": "ai",
+    "wraps": "tux native",
+    "blurb": "Frame for interactive third-party MCP app output — app icon + name + window controls + skeleton. Sister to TuxArtifact.",
+    "route": "/components/mcp-embed",
+    "docsUrl": "https://ux.tti.tamu.edu/components/mcp-embed",
+    "figmaNodePattern": "TUX / TuxMcpEmbed",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxMcpEmbed />",
+      "react": "import { TuxMcpEmbed } from \"@tti/tti-ux-react\";\n\n<TuxMcpEmbed />",
+      "webComponents": "<tux-mcp-embed></tux-mcp-embed>",
+      "blazor": "<TuxMcpEmbed />",
+      "wordpress": "[tux_mcp_embed]"
+    }
+  },
+  {
+    "name": "TuxMediaSlab",
+    "tagName": "tux-media-slab",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Full-bleed hero band — overlay (drama) or split (editorial), three heights, three tones.",
+    "route": "/components/media-slab",
+    "docsUrl": "https://ux.tti.tamu.edu/components/media-slab",
+    "figmaNodePattern": "TUX / TuxMediaSlab",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxMediaSlab />",
+      "react": "import { TuxMediaSlab } from \"@tti/tti-ux-react\";\n\n<TuxMediaSlab />",
+      "webComponents": "<tux-media-slab></tux-media-slab>",
+      "blazor": "<TuxMediaSlab />",
+      "wordpress": "[tux_media_slab]"
+    }
+  },
+  {
+    "name": "TuxMegaMenu",
+    "tagName": "tux-mega-menu",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "Full-width multi-column panel from a top-bar item, optional featured tile. Composes inside TuxSiteNav.",
+    "route": "/components/site-nav",
+    "docsUrl": "https://ux.tti.tamu.edu/components/site-nav",
+    "figmaNodePattern": "TUX / TuxMegaMenu",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxMegaMenu />",
+      "react": "import { TuxMegaMenu } from \"@tti/tti-ux-react\";\n\n<TuxMegaMenu />",
+      "webComponents": "<tux-mega-menu></tux-mega-menu>",
+      "blazor": "<TuxMegaMenu />",
+      "wordpress": "[tux_mega_menu]"
+    }
+  },
+  {
+    "name": "TuxMenuBar",
+    "tagName": "tux-menu-bar",
+    "kind": "component",
+    "family": "components",
+    "category": "actions",
+    "wraps": "UDropdownMenu",
+    "blurb": "In-window File / Edit / View / Help menu strip for Windows / Linux Tauri shells. Skipped on Mac (system menu wins).",
+    "route": "/components/menu-bar",
+    "docsUrl": "https://ux.tti.tamu.edu/components/menu-bar",
+    "figmaNodePattern": "TUX / TuxMenuBar",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxMenuBar />",
+      "react": "import { TuxMenuBar } from \"@tti/tti-ux-react\";\n\n<TuxMenuBar />",
+      "webComponents": "<tux-menu-bar></tux-menu-bar>",
+      "blazor": "<TuxMenuBar />",
+      "wordpress": "[tux_menu_bar]"
+    }
+  },
+  {
+    "name": "TuxMetroInset",
+    "tagName": "tux-metro-inset",
+    "kind": "component",
+    "family": "visualizations",
+    "category": "geospatial",
+    "wraps": "tux native (neighborhood grid)",
+    "blurb": "Neighborhood-grid inset for a single metro, intended for 4-up side-by-side layouts (Houston · DFW · Austin · San Antonio).",
+    "route": "/visualizations/metro-inset",
+    "docsUrl": "https://ux.tti.tamu.edu/visualizations/metro-inset",
+    "figmaNodePattern": "TUX / TuxMetroInset",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxMetroInset />",
+      "react": "import { TuxMetroInset } from \"@tti/tti-ux-react\";\n\n<TuxMetroInset />",
+      "webComponents": "<tux-metro-inset></tux-metro-inset>",
+      "blazor": "<TuxMetroInset />",
+      "wordpress": "[tux_metro_inset]"
+    }
+  },
+  {
+    "name": "TuxMobileFrame",
+    "tagName": "tux-mobile-frame",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native (CSS)",
+    "blurb": "Stylized device chrome for screenshots — iOS (iPhone) or Android (Pixel) via platform prop. Doc-only marketing helper.",
+    "route": "/components/mobile-frame",
+    "docsUrl": "https://ux.tti.tamu.edu/components/mobile-frame",
+    "figmaNodePattern": "TUX / TuxMobileFrame",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxMobileFrame />",
+      "react": "import { TuxMobileFrame } from \"@tti/tti-ux-react\";\n\n<TuxMobileFrame />",
+      "webComponents": "<tux-mobile-frame></tux-mobile-frame>",
+      "blazor": "<TuxMobileFrame />",
+      "wordpress": "[tux_mobile_frame]"
+    }
+  },
+  {
+    "name": "TuxModal",
+    "tagName": "tux-modal",
+    "kind": "component",
+    "family": "components",
+    "category": "feedback",
+    "wraps": "UModal",
+    "blurb": "UModal with editorial rhythm — optional eyebrow, gold-bar underlined title.",
+    "route": "/components/modal",
+    "docsUrl": "https://ux.tti.tamu.edu/components/modal",
+    "figmaNodePattern": "TUX / TuxModal",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxModal />",
+      "react": "import { TuxModal } from \"@tti/tti-ux-react\";\n\n<TuxModal />",
+      "webComponents": "<tux-modal></tux-modal>",
+      "blazor": "<TuxModal />",
+      "wordpress": "[tux_modal]"
+    }
+  },
+  {
+    "name": "TuxNewsCollection",
+    "tagName": "tux-news-collection",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "News article list — date + thumbnail + headline + dek + read-more, stacked or grid.",
+    "route": "/components/news-collection",
+    "docsUrl": "https://ux.tti.tamu.edu/components/news-collection",
+    "figmaNodePattern": "TUX / TuxNewsCollection",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxNewsCollection />",
+      "react": "import { TuxNewsCollection } from \"@tti/tti-ux-react\";\n\n<TuxNewsCollection />",
+      "webComponents": "<tux-news-collection></tux-news-collection>",
+      "blazor": "<TuxNewsCollection />",
+      "wordpress": "[tux_news_collection]"
+    }
+  },
+  {
+    "name": "TuxPageContainer",
+    "tagName": "tux-page-container",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "Content-width primitive — default/wide/prose measures backed by --layout-* tokens; pairs with --tux-nav-height.",
+    "route": "/components/page-container",
+    "docsUrl": "https://ux.tti.tamu.edu/components/page-container",
+    "figmaNodePattern": "TUX / TuxPageContainer",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxPageContainer />",
+      "react": "import { TuxPageContainer } from \"@tti/tti-ux-react\";\n\n<TuxPageContainer />",
+      "webComponents": "<tux-page-container></tux-page-container>",
+      "blazor": "<TuxPageContainer />",
+      "wordpress": "[tux_page_container]"
+    }
+  },
+  {
+    "name": "TuxPageHeader",
+    "tagName": "tux-page-header",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Eyebrow + gold-bar heading + subtitle — plain default, neutral or maroon panel, hero rhythm.",
+    "route": "/components/page-header",
+    "docsUrl": "https://ux.tti.tamu.edu/components/page-header",
+    "figmaNodePattern": "TUX / TuxPageHeader",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxPageHeader />",
+      "react": "import { TuxPageHeader } from \"@tti/tti-ux-react\";\n\n<TuxPageHeader />",
+      "webComponents": "<tux-page-header></tux-page-header>",
+      "blazor": "<TuxPageHeader />",
+      "wordpress": "[tux_page_header]"
+    }
+  },
+  {
+    "name": "TuxPagination",
+    "tagName": "tux-pagination",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "Page-number controls — squarified active page, ellipsis truncation, optional status line.",
+    "route": "/components/pagination",
+    "docsUrl": "https://ux.tti.tamu.edu/components/pagination",
+    "figmaNodePattern": "TUX / TuxPagination",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxPagination />",
+      "react": "import { TuxPagination } from \"@tti/tti-ux-react\";\n\n<TuxPagination />",
+      "webComponents": "<tux-pagination></tux-pagination>",
+      "blazor": "<TuxPagination />",
+      "wordpress": "[tux_pagination]"
+    }
+  },
+  {
+    "name": "TuxPaperMeta",
+    "tagName": "tux-paper-meta",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Academic paper metadata block.",
+    "route": "/components/paper-meta",
+    "docsUrl": "https://ux.tti.tamu.edu/components/paper-meta",
+    "figmaNodePattern": "TUX / TuxPaperMeta",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxPaperMeta />",
+      "react": "import { TuxPaperMeta } from \"@tti/tti-ux-react\";\n\n<TuxPaperMeta />",
+      "webComponents": "<tux-paper-meta></tux-paper-meta>",
+      "blazor": "<TuxPaperMeta />",
+      "wordpress": "[tux_paper_meta]"
+    }
+  },
+  {
+    "name": "TuxPhotoGrid",
+    "tagName": "tux-photo-grid",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Uniform image grid — photo (full color, captioned) or logo wall (grayscale-on-hover).",
+    "route": "/components/photo-grid",
+    "docsUrl": "https://ux.tti.tamu.edu/components/photo-grid",
+    "figmaNodePattern": "TUX / TuxPhotoGrid",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxPhotoGrid />",
+      "react": "import { TuxPhotoGrid } from \"@tti/tti-ux-react\";\n\n<TuxPhotoGrid />",
+      "webComponents": "<tux-photo-grid></tux-photo-grid>",
+      "blazor": "<TuxPhotoGrid />",
+      "wordpress": "[tux_photo_grid]"
+    }
+  },
+  {
+    "name": "TuxPopover",
+    "tagName": "tux-popover",
+    "kind": "component",
+    "family": "components",
+    "category": "feedback",
+    "wraps": "UPopover",
+    "blurb": "Richer-than-tooltip floating panel — title + body + actions. Maroon hairline rule under title. Click default; hover for read-only.",
+    "route": "/components/popover",
+    "docsUrl": "https://ux.tti.tamu.edu/components/popover",
+    "figmaNodePattern": "TUX / TuxPopover",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxPopover />",
+      "react": "import { TuxPopover } from \"@tti/tti-ux-react\";\n\n<TuxPopover />",
+      "webComponents": "<tux-popover></tux-popover>",
+      "blazor": "<TuxPopover />",
+      "wordpress": "[tux_popover]"
+    }
+  },
+  {
+    "name": "TuxPortalHeader",
+    "tagName": "tux-portal-header",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "Two-tier institutional header matching tti.tamu.edu — Maroon utility bar + crisp brand ribbon + mobile drawer.",
+    "route": "/components/portal-shell",
+    "docsUrl": "https://ux.tti.tamu.edu/components/portal-shell",
+    "figmaNodePattern": "TUX / TuxPortalHeader",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxPortalHeader />",
+      "react": "import { TuxPortalHeader } from \"@tti/tti-ux-react\";\n\n<TuxPortalHeader />",
+      "webComponents": "<tux-portal-header></tux-portal-header>",
+      "blazor": "<TuxPortalHeader />",
+      "wordpress": "[tux_portal_header]"
+    }
+  },
+  {
+    "name": "TuxPortalShell",
+    "tagName": "tux-portal-shell",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "Turnkey institutional portal layout shell — sticky header, gold-rule breadcrumbs subnav, hero slot, feedback pill, and TuxFooter.",
+    "route": "/components/portal-shell",
+    "docsUrl": "https://ux.tti.tamu.edu/components/portal-shell",
+    "figmaNodePattern": "TUX / TuxPortalShell",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxPortalShell />",
+      "react": "import { TuxPortalShell } from \"@tti/tti-ux-react\";\n\n<TuxPortalShell />",
+      "webComponents": "<tux-portal-shell></tux-portal-shell>",
+      "blazor": "<TuxPortalShell />",
+      "wordpress": "[tux_portal_shell]"
+    }
+  },
+  {
+    "name": "TuxProgram",
+    "tagName": "tux-program",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Research-program identity card.",
+    "route": "/components/tti-identity",
+    "docsUrl": "https://ux.tti.tamu.edu/components/tti-identity",
+    "figmaNodePattern": "TUX / TuxProgram",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxProgram />",
+      "react": "import { TuxProgram } from \"@tti/tti-ux-react\";\n\n<TuxProgram />",
+      "webComponents": "<tux-program></tux-program>",
+      "blazor": "<TuxProgram />",
+      "wordpress": "[tux_program]"
+    }
+  },
+  {
+    "name": "TuxProse",
+    "tagName": "tux-prose",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Typographic shell for long-form markdown — H1/H2/H3/p/list/code/table/blockquote rhythm in one wrapper.",
+    "route": "/components/prose",
+    "docsUrl": "https://ux.tti.tamu.edu/components/prose",
+    "figmaNodePattern": "TUX / TuxProse",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxProse />",
+      "react": "import { TuxProse } from \"@tti/tti-ux-react\";\n\n<TuxProse />",
+      "webComponents": "<tux-prose></tux-prose>",
+      "blazor": "<TuxProse />",
+      "wordpress": "[tux_prose]"
+    }
+  },
+  {
+    "name": "TuxQACollection",
+    "tagName": "tux-qa-collection",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Long-form Q&A — always expanded, designed to be read top-to-bottom (companion to TuxAccordion).",
+    "route": "/components/qa-collection",
+    "docsUrl": "https://ux.tti.tamu.edu/components/qa-collection",
+    "figmaNodePattern": "TUX / TuxQACollection",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxQACollection />",
+      "react": "import { TuxQACollection } from \"@tti/tti-ux-react\";\n\n<TuxQACollection />",
+      "webComponents": "<tux-qa-collection></tux-qa-collection>",
+      "blazor": "<TuxQACollection />",
+      "wordpress": "[tux_qa_collection]"
+    }
+  },
+  {
+    "name": "TuxRailNav",
+    "tagName": "tux-rail-nav",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux (no U-primitive)",
+    "blurb": "Collapsible sidebar/rail navigation — native <details> disclosure groups (accessible without roleless aria-expanded), icon-only collapsed mode. tux-owned replacement for UNavigationMenu in app shells.",
+    "route": "/components/rail-nav",
+    "docsUrl": "https://ux.tti.tamu.edu/components/rail-nav",
+    "figmaNodePattern": "TUX / TuxRailNav",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxRailNav />",
+      "react": "import { TuxRailNav } from \"@tti/tti-ux-react\";\n\n<TuxRailNav />",
+      "webComponents": "<tux-rail-nav></tux-rail-nav>",
+      "blazor": "<TuxRailNav />",
+      "wordpress": "[tux_rail_nav]"
+    }
+  },
+  {
+    "name": "TuxReactionBar",
+    "tagName": "tux-reaction-bar",
+    "kind": "component",
+    "family": "components",
+    "category": "actions",
+    "wraps": "tux native",
+    "blurb": "Light-touch helpful/question/disagree row. Lower friction than a feedback form; counts display-only.",
+    "route": "/components/reaction-bar",
+    "docsUrl": "https://ux.tti.tamu.edu/components/reaction-bar",
+    "figmaNodePattern": "TUX / TuxReactionBar",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxReactionBar />",
+      "react": "import { TuxReactionBar } from \"@tti/tti-ux-react\";\n\n<TuxReactionBar />",
+      "webComponents": "<tux-reaction-bar></tux-reaction-bar>",
+      "blazor": "<TuxReactionBar />",
+      "wordpress": "[tux_reaction_bar]"
+    }
+  },
+  {
+    "name": "TuxReasoning",
+    "tagName": "tux-reasoning",
+    "kind": "component",
+    "family": "components",
+    "category": "ai",
+    "wraps": "tux native",
+    "blurb": "Collapsible chain-of-thought reasoning drawer with duration and token velocity metrics.",
+    "route": "/components/chat-message",
+    "docsUrl": "https://ux.tti.tamu.edu/components/chat-message",
+    "figmaNodePattern": "TUX / TuxReasoning",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxReasoning />",
+      "react": "import { TuxReasoning } from \"@tti/tti-ux-react\";\n\n<TuxReasoning />",
+      "webComponents": "<tux-reasoning></tux-reasoning>",
+      "blazor": "<TuxReasoning />",
+      "wordpress": "[tux_reasoning]"
+    }
+  },
+  {
+    "name": "TuxRecordHighlights",
+    "tagName": "tux-record-highlights",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Pinned entity summary bar — title, status badge, KPI metric chips, and primary action buttons.",
+    "route": "/components/record-highlights",
+    "docsUrl": "https://ux.tti.tamu.edu/components/record-highlights",
+    "figmaNodePattern": "TUX / TuxRecordHighlights",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxRecordHighlights />",
+      "react": "import { TuxRecordHighlights } from \"@tti/tti-ux-react\";\n\n<TuxRecordHighlights />",
+      "webComponents": "<tux-record-highlights></tux-record-highlights>",
+      "blazor": "<TuxRecordHighlights />",
+      "wordpress": "[tux_record_highlights]"
+    }
+  },
+  {
+    "name": "TuxRemovableChip",
+    "tagName": "tux-removable-chip",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native",
+    "blurb": "Interactive dismissible chip — leading icon, three sizes, removable × or click-to-remove whole pill. Distinct from TuxBadge (decorative).",
+    "route": "/components/removable-chip",
+    "docsUrl": "https://ux.tti.tamu.edu/components/removable-chip",
+    "figmaNodePattern": "TUX / TuxRemovableChip",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxRemovableChip />",
+      "react": "import { TuxRemovableChip } from \"@tti/tti-ux-react\";\n\n<TuxRemovableChip />",
+      "webComponents": "<tux-removable-chip></tux-removable-chip>",
+      "blazor": "<TuxRemovableChip />",
+      "wordpress": "[tux_removable_chip]"
+    }
+  },
+  {
+    "name": "TuxReportFrame",
+    "tagName": "tux-report-frame",
+    "kind": "component",
+    "family": "reports",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Page-sized canvas (letter / a4) for PDF + print. Stats, charts, prose go inside.",
+    "route": "/reports/frame",
+    "docsUrl": "https://ux.tti.tamu.edu/reports/frame",
+    "figmaNodePattern": "TUX / TuxReportFrame",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxReportFrame />",
+      "react": "import { TuxReportFrame } from \"@tti/tti-ux-react\";\n\n<TuxReportFrame />",
+      "webComponents": "<tux-report-frame></tux-report-frame>",
+      "blazor": "<TuxReportFrame />",
+      "wordpress": "[tux_report_frame]"
+    }
+  },
+  {
+    "name": "TuxReportPrintSheet",
+    "tagName": "tux-report-print-sheet",
+    "kind": "component",
+    "family": "reports",
+    "category": "publishing",
+    "wraps": "useHead injection",
+    "blurb": "Drop-in print stylesheet; hides chrome, paginates with data-print-break attrs.",
+    "route": "/reports/print-sheet",
+    "docsUrl": "https://ux.tti.tamu.edu/reports/print-sheet",
+    "figmaNodePattern": "TUX / TuxReportPrintSheet",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxReportPrintSheet />",
+      "react": "import { TuxReportPrintSheet } from \"@tti/tti-ux-react\";\n\n<TuxReportPrintSheet />",
+      "webComponents": "<tux-report-print-sheet></tux-report-print-sheet>",
+      "blazor": "<TuxReportPrintSheet />",
+      "wordpress": "[tux_report_print_sheet]"
+    }
+  },
+  {
+    "name": "TuxReportWebFrame",
+    "tagName": "tux-report-web-frame",
+    "kind": "component",
+    "family": "reports",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Long-form web-hosted narrative — cover, byline, lede, sticky TOC, body, footer.",
+    "route": "/reports/web-frame",
+    "docsUrl": "https://ux.tti.tamu.edu/reports/web-frame",
+    "figmaNodePattern": "TUX / TuxReportWebFrame",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxReportWebFrame />",
+      "react": "import { TuxReportWebFrame } from \"@tti/tti-ux-react\";\n\n<TuxReportWebFrame />",
+      "webComponents": "<tux-report-web-frame></tux-report-web-frame>",
+      "blazor": "<TuxReportWebFrame />",
+      "wordpress": "[tux_report_web_frame]"
+    }
+  },
+  {
+    "name": "TuxResearcher",
+    "tagName": "tux-researcher",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Researcher profile card.",
+    "route": "/components/tti-identity",
+    "docsUrl": "https://ux.tti.tamu.edu/components/tti-identity",
+    "figmaNodePattern": "TUX / TuxResearcher",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxResearcher />",
+      "react": "import { TuxResearcher } from \"@tti/tti-ux-react\";\n\n<TuxResearcher />",
+      "webComponents": "<tux-researcher></tux-researcher>",
+      "blazor": "<TuxResearcher />",
+      "wordpress": "[tux_researcher]"
+    }
+  },
+  {
+    "name": "TuxResultCount",
+    "tagName": "tux-result-count",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "\\\\\"Showing 1–24 of 412 corridors · 24 per page\\\\\". Pairs with TuxPagination / TuxLoadMore / TuxInfiniteScroll.",
+    "route": "/components/result-count",
+    "docsUrl": "https://ux.tti.tamu.edu/components/result-count",
+    "figmaNodePattern": "TUX / TuxResultCount",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxResultCount />",
+      "react": "import { TuxResultCount } from \"@tti/tti-ux-react\";\n\n<TuxResultCount />",
+      "webComponents": "<tux-result-count></tux-result-count>",
+      "blazor": "<TuxResultCount />",
+      "wordpress": "[tux_result_count]"
+    }
+  },
+  {
+    "name": "TuxRichDataGrid",
+    "tagName": "tux-rich-data-grid",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Interactive data grid — sticky header, row selection, expandable detail, sort + filter chips, bulk-action bar. Corridor-class operational surfaces.",
+    "route": "/components/rich-data-grid",
+    "docsUrl": "https://ux.tti.tamu.edu/components/rich-data-grid",
+    "figmaNodePattern": "TUX / TuxRichDataGrid",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxRichDataGrid />",
+      "react": "import { TuxRichDataGrid } from \"@tti/tti-ux-react\";\n\n<TuxRichDataGrid />",
+      "webComponents": "<tux-rich-data-grid></tux-rich-data-grid>",
+      "blazor": "<TuxRichDataGrid />",
+      "wordpress": "[tux_rich_data_grid]"
+    }
+  },
+  {
+    "name": "TuxRichTextEditor",
+    "tagName": "tux-rich-text-editor",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "Tiptap + lowlight",
+    "blurb": "Canonical WYSIWYG — Tiptap-based, 7 toolbar groups, tables, task lists, source-mode toggle, full-screen, syntax highlighting.",
+    "route": "/components/rich-text-editor",
+    "docsUrl": "https://ux.tti.tamu.edu/components/rich-text-editor",
+    "figmaNodePattern": "TUX / TuxRichTextEditor",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxRichTextEditor />",
+      "react": "import { TuxRichTextEditor } from \"@tti/tti-ux-react\";\n\n<TuxRichTextEditor />",
+      "webComponents": "<tux-rich-text-editor></tux-rich-text-editor>",
+      "blazor": "<TuxRichTextEditor />",
+      "wordpress": "[tux_rich_text_editor]"
+    }
+  },
+  {
+    "name": "TuxRoadwayCrossSection",
+    "tagName": "tux-roadway-cross-section",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native 3D + SVG",
+    "blurb": "AASHTO/TxDOT geometric highway cross-section with 2D CAD blueprint profile and 3D pitched spatial perspective analysis.",
+    "route": "/components/geospatial",
+    "docsUrl": "https://ux.tti.tamu.edu/components/geospatial",
+    "figmaNodePattern": "TUX / TuxRoadwayCrossSection",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxRoadwayCrossSection />",
+      "react": "import { TuxRoadwayCrossSection } from \"@tti/tti-ux-react\";\n\n<TuxRoadwayCrossSection />",
+      "webComponents": "<tux-roadway-cross-section></tux-roadway-cross-section>",
+      "blazor": "<TuxRoadwayCrossSection />",
+      "wordpress": "[tux_roadway_cross_section]"
+    }
+  },
+  {
+    "name": "TuxRuleBuilder",
+    "tagName": "tux-rule-builder",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native",
+    "blurb": "Relational query UI — field + operator + value rows, AND/OR groupers, nestable. Sister to faceted TuxFilterPanel.",
+    "route": "/components/rule-builder",
+    "docsUrl": "https://ux.tti.tamu.edu/components/rule-builder",
+    "figmaNodePattern": "TUX / TuxRuleBuilder",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxRuleBuilder />",
+      "react": "import { TuxRuleBuilder } from \"@tti/tti-ux-react\";\n\n<TuxRuleBuilder />",
+      "webComponents": "<tux-rule-builder></tux-rule-builder>",
+      "blazor": "<TuxRuleBuilder />",
+      "wordpress": "[tux_rule_builder]"
+    }
+  },
+  {
+    "name": "TuxScrollTop",
+    "tagName": "tux-scroll-top",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "EmDash-inspired circular reading-progress button that smoothly scrolls back to the top of the page.",
+    "route": "/components/scroll-top",
+    "docsUrl": "https://ux.tti.tamu.edu/components/scroll-top",
+    "figmaNodePattern": "TUX / TuxScrollTop",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxScrollTop />",
+      "react": "import { TuxScrollTop } from \"@tti/tti-ux-react\";\n\n<TuxScrollTop />",
+      "webComponents": "<tux-scroll-top></tux-scroll-top>",
+      "blazor": "<TuxScrollTop />",
+      "wordpress": "[tux_scroll_top]"
+    }
+  },
+  {
+    "name": "TuxSearch",
+    "tagName": "tux-search",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native",
+    "blurb": "Branded search bar — bordered input + uppercase action button. Regular / slim / focus state.",
+    "route": "/components/search",
+    "docsUrl": "https://ux.tti.tamu.edu/components/search",
+    "figmaNodePattern": "TUX / TuxSearch",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxSearch />",
+      "react": "import { TuxSearch } from \"@tti/tti-ux-react\";\n\n<TuxSearch />",
+      "webComponents": "<tux-search></tux-search>",
+      "blazor": "<TuxSearch />",
+      "wordpress": "[tux_search]"
+    }
+  },
+  {
+    "name": "TuxSectionHeader",
+    "tagName": "tux-section-header",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Editorial section heading — ALL-CAPS, tracked-out, maroon underline.",
+    "route": "/components/section-header",
+    "docsUrl": "https://ux.tti.tamu.edu/components/section-header",
+    "figmaNodePattern": "TUX / TuxSectionHeader",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxSectionHeader />",
+      "react": "import { TuxSectionHeader } from \"@tti/tti-ux-react\";\n\n<TuxSectionHeader />",
+      "webComponents": "<tux-section-header></tux-section-header>",
+      "blazor": "<TuxSectionHeader />",
+      "wordpress": "[tux_section_header]"
+    }
+  },
+  {
+    "name": "TuxShortcutsHelp",
+    "tagName": "tux-shortcuts-help",
+    "kind": "component",
+    "family": "components",
+    "category": "actions",
+    "wraps": "tux native (<dialog>)",
+    "blurb": "Modal overlay listing every wired keyboard shortcut — combos vs sequences, opens on ?. Sibling to TuxCommandPalette.",
+    "route": "/components/shortcuts-help",
+    "docsUrl": "https://ux.tti.tamu.edu/components/shortcuts-help",
+    "figmaNodePattern": "TUX / TuxShortcutsHelp",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxShortcutsHelp />",
+      "react": "import { TuxShortcutsHelp } from \"@tti/tti-ux-react\";\n\n<TuxShortcutsHelp />",
+      "webComponents": "<tux-shortcuts-help></tux-shortcuts-help>",
+      "blazor": "<TuxShortcutsHelp />",
+      "wordpress": "[tux_shortcuts_help]"
+    }
+  },
+  {
+    "name": "TuxSidebarBlock",
+    "tagName": "tux-sidebar-block",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Sidebar widget wrapper — eyebrow + maroon underline + content. Default/bordered/filled.",
+    "route": "/components/sidebar-block",
+    "docsUrl": "https://ux.tti.tamu.edu/components/sidebar-block",
+    "figmaNodePattern": "TUX / TuxSidebarBlock",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxSidebarBlock />",
+      "react": "import { TuxSidebarBlock } from \"@tti/tti-ux-react\";\n\n<TuxSidebarBlock />",
+      "webComponents": "<tux-sidebar-block></tux-sidebar-block>",
+      "blazor": "<TuxSidebarBlock />",
+      "wordpress": "[tux_sidebar_block]"
+    }
+  },
+  {
+    "name": "TuxSignupFeature",
+    "tagName": "tux-signup-feature",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Newsletter signup — email input + uppercase action + consent. Three tones, three style variants.",
+    "route": "/components/signup-feature",
+    "docsUrl": "https://ux.tti.tamu.edu/components/signup-feature",
+    "figmaNodePattern": "TUX / TuxSignupFeature",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxSignupFeature />",
+      "react": "import { TuxSignupFeature } from \"@tti/tti-ux-react\";\n\n<TuxSignupFeature />",
+      "webComponents": "<tux-signup-feature></tux-signup-feature>",
+      "blazor": "<TuxSignupFeature />",
+      "wordpress": "[tux_signup_feature]"
+    }
+  },
+  {
+    "name": "TuxSiteNav",
+    "tagName": "tux-site-nav",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "Top-bar with TuxIdentity + utility nav + primary nav. Hosts TuxDropdown / TuxMegaMenu items.",
+    "route": "/components/site-nav",
+    "docsUrl": "https://ux.tti.tamu.edu/components/site-nav",
+    "figmaNodePattern": "TUX / TuxSiteNav",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxSiteNav />",
+      "react": "import { TuxSiteNav } from \"@tti/tti-ux-react\";\n\n<TuxSiteNav />",
+      "webComponents": "<tux-site-nav></tux-site-nav>",
+      "blazor": "<TuxSiteNav />",
+      "wordpress": "[tux_site_nav]"
+    }
+  },
+  {
+    "name": "TuxSkeleton",
+    "tagName": "tux-skeleton",
+    "kind": "component",
+    "family": "components",
+    "category": "feedback",
+    "wraps": "tux native",
+    "blurb": "Loading-state placeholder — primitive shapes + 6 composed presets. Honors prefers-reduced-motion.",
+    "route": "/components/skeleton",
+    "docsUrl": "https://ux.tti.tamu.edu/components/skeleton",
+    "figmaNodePattern": "TUX / TuxSkeleton",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxSkeleton />",
+      "react": "import { TuxSkeleton } from \"@tti/tti-ux-react\";\n\n<TuxSkeleton />",
+      "webComponents": "<tux-skeleton></tux-skeleton>",
+      "blazor": "<TuxSkeleton />",
+      "wordpress": "[tux_skeleton]"
+    }
+  },
+  {
+    "name": "TuxSlideover",
+    "tagName": "tux-slideover",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "Edge-anchored drawer — row detail, filter panel, mobile nav, action sheet. Right/left/bottom anchors, native <dialog>.",
+    "route": "/components/slideover",
+    "docsUrl": "https://ux.tti.tamu.edu/components/slideover",
+    "figmaNodePattern": "TUX / TuxSlideover",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxSlideover />",
+      "react": "import { TuxSlideover } from \"@tti/tti-ux-react\";\n\n<TuxSlideover />",
+      "webComponents": "<tux-slideover></tux-slideover>",
+      "blazor": "<TuxSlideover />",
+      "wordpress": "[tux_slideover]"
+    }
+  },
+  {
+    "name": "TuxSparkline",
+    "tagName": "tux-sparkline",
+    "kind": "component",
+    "family": "visualizations",
+    "category": "timeseries",
+    "wraps": "tux native (inline SVG)",
+    "blurb": "Inline mini trend line — no axes, optional area fill, last-point dot, delta arrow. Native SVG.",
+    "route": "/visualizations/sparkline",
+    "docsUrl": "https://ux.tti.tamu.edu/visualizations/sparkline",
+    "figmaNodePattern": "TUX / TuxSparkline",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxSparkline />",
+      "react": "import { TuxSparkline } from \"@tti/tti-ux-react\";\n\n<TuxSparkline />",
+      "webComponents": "<tux-sparkline></tux-sparkline>",
+      "blazor": "<TuxSparkline />",
+      "wordpress": "[tux_sparkline]"
+    }
+  },
+  {
+    "name": "TuxSpectrumFacts",
+    "tagName": "tux-spectrum-facts",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "5-column institutional metrics banner mapping the Comm spectrum palette with icon headers and colored footers.",
+    "route": "/components/spectrum-facts",
+    "docsUrl": "https://ux.tti.tamu.edu/components/spectrum-facts",
+    "figmaNodePattern": "TUX / TuxSpectrumFacts",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxSpectrumFacts />",
+      "react": "import { TuxSpectrumFacts } from \"@tti/tti-ux-react\";\n\n<TuxSpectrumFacts />",
+      "webComponents": "<tux-spectrum-facts></tux-spectrum-facts>",
+      "blazor": "<TuxSpectrumFacts />",
+      "wordpress": "[tux_spectrum_facts]"
+    }
+  },
+  {
+    "name": "TuxSpectrumRibbon",
+    "tagName": "tux-spectrum-ribbon",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "5-band responsive institutional brand color ribbon.",
+    "route": "/components/spectrum-ribbon",
+    "docsUrl": "https://ux.tti.tamu.edu/components/spectrum-ribbon",
+    "figmaNodePattern": "TUX / TuxSpectrumRibbon",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxSpectrumRibbon />",
+      "react": "import { TuxSpectrumRibbon } from \"@tti/tti-ux-react\";\n\n<TuxSpectrumRibbon />",
+      "webComponents": "<tux-spectrum-ribbon></tux-spectrum-ribbon>",
+      "blazor": "<TuxSpectrumRibbon />",
+      "wordpress": "[tux_spectrum_ribbon]"
+    }
+  },
+  {
+    "name": "TuxSplashScreen",
+    "tagName": "tux-splash-screen",
+    "kind": "component",
+    "family": "components",
+    "category": "feedback",
+    "wraps": "tux native",
+    "blurb": "Branded app-launch overlay — brand mark + maroon hairline + status. Bridges Tauri window-show → Vue hydrate gap. Fades when loaded.",
+    "route": "/components/splash-screen",
+    "docsUrl": "https://ux.tti.tamu.edu/components/splash-screen",
+    "figmaNodePattern": "TUX / TuxSplashScreen",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxSplashScreen />",
+      "react": "import { TuxSplashScreen } from \"@tti/tti-ux-react\";\n\n<TuxSplashScreen />",
+      "webComponents": "<tux-splash-screen></tux-splash-screen>",
+      "blazor": "<TuxSplashScreen />",
+      "wordpress": "[tux_splash_screen]"
+    }
+  },
+  {
+    "name": "TuxSplitPane",
+    "tagName": "tux-split-pane",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "In-page master-detail layout — resizable list + detail + optional bottom pane. Width persists via localStorage. URL-bound selection.",
+    "route": "/components/split-pane",
+    "docsUrl": "https://ux.tti.tamu.edu/components/split-pane",
+    "figmaNodePattern": "TUX / TuxSplitPane",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxSplitPane />",
+      "react": "import { TuxSplitPane } from \"@tti/tti-ux-react\";\n\n<TuxSplitPane />",
+      "webComponents": "<tux-split-pane></tux-split-pane>",
+      "blazor": "<TuxSplitPane />",
+      "wordpress": "[tux_split_pane]"
+    }
+  },
+  {
+    "name": "TuxStatComparison",
+    "tagName": "tux-stat-comparison",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Before/after stat block with delta + tone. Direct or inverted polarity (down-is-good metrics). Row / stack / inline layouts.",
+    "route": "/components/stat-comparison",
+    "docsUrl": "https://ux.tti.tamu.edu/components/stat-comparison",
+    "figmaNodePattern": "TUX / TuxStatComparison",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxStatComparison />",
+      "react": "import { TuxStatComparison } from \"@tti/tti-ux-react\";\n\n<TuxStatComparison />",
+      "webComponents": "<tux-stat-comparison></tux-stat-comparison>",
+      "blazor": "<TuxStatComparison />",
+      "wordpress": "[tux_stat_comparison]"
+    }
+  },
+  {
+    "name": "TuxStatus",
+    "tagName": "tux-status",
+    "kind": "component",
+    "family": "components",
+    "category": "feedback",
+    "wraps": "tux native (tux-ops.css)",
+    "blurb": "Operational state chip — ok / warning / unknown / critical / pending / maintenance. Class API is kit/css/tux-ops.css so CGI overlays and Vue share pixels.",
+    "route": "/components/status",
+    "docsUrl": "https://ux.tti.tamu.edu/components/status",
+    "figmaNodePattern": "TUX / TuxStatus",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxStatus />",
+      "react": "import { TuxStatus } from \"@tti/tti-ux-react\";\n\n<TuxStatus />",
+      "webComponents": "<tux-status></tux-status>",
+      "blazor": "<TuxStatus />",
+      "wordpress": "[tux_status]"
+    }
+  },
+  {
+    "name": "TuxStatusToast",
+    "tagName": "tux-status-toast",
+    "kind": "component",
+    "family": "components",
+    "category": "feedback",
+    "wraps": "tux native (useTuxToast bus)",
+    "blurb": "Transient-notification host + useTuxToast() bus — polite live region, sticky errors, reduced-motion aware, Tauri OS-notification escalation.",
+    "route": "/components/status-toast",
+    "docsUrl": "https://ux.tti.tamu.edu/components/status-toast",
+    "figmaNodePattern": "TUX / TuxStatusToast",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxStatusToast />",
+      "react": "import { TuxStatusToast } from \"@tti/tti-ux-react\";\n\n<TuxStatusToast />",
+      "webComponents": "<tux-status-toast></tux-status-toast>",
+      "blazor": "<TuxStatusToast />",
+      "wordpress": "[tux_status_toast]"
+    }
+  },
+  {
+    "name": "TuxStepper",
+    "tagName": "tux-stepper",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "Numbered-circle multi-step indicator — funding application, IRB submission, study onboarding.",
+    "route": "/components/stepper",
+    "docsUrl": "https://ux.tti.tamu.edu/components/stepper",
+    "figmaNodePattern": "TUX / TuxStepper",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxStepper />",
+      "react": "import { TuxStepper } from \"@tti/tti-ux-react\";\n\n<TuxStepper />",
+      "webComponents": "<tux-stepper></tux-stepper>",
+      "blazor": "<TuxStepper />",
+      "wordpress": "[tux_stepper]"
+    }
+  },
+  {
+    "name": "TuxSuggestionChips",
+    "tagName": "tux-suggestion-chips",
+    "kind": "component",
+    "family": "components",
+    "category": "ai",
+    "wraps": "tux native",
+    "blurb": "Horizontal row of clickable prompt-suggestion chips. Empty-state composer or post-response follow-ups.",
+    "route": "/components/suggestion-chips",
+    "docsUrl": "https://ux.tti.tamu.edu/components/suggestion-chips",
+    "figmaNodePattern": "TUX / TuxSuggestionChips",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxSuggestionChips />",
+      "react": "import { TuxSuggestionChips } from \"@tti/tti-ux-react\";\n\n<TuxSuggestionChips />",
+      "webComponents": "<tux-suggestion-chips></tux-suggestion-chips>",
+      "blazor": "<TuxSuggestionChips />",
+      "wordpress": "[tux_suggestion_chips]"
+    }
+  },
+  {
+    "name": "TuxTOC",
+    "tagName": "tux-toc",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "Article table-of-contents — sticky right rail with IntersectionObserver-driven active state.",
+    "route": "/components/toc",
+    "docsUrl": "https://ux.tti.tamu.edu/components/toc",
+    "figmaNodePattern": "TUX / TuxTOC",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxTOC />",
+      "react": "import { TuxTOC } from \"@tti/tti-ux-react\";\n\n<TuxTOC />",
+      "webComponents": "<tux-toc></tux-toc>",
+      "blazor": "<TuxTOC />",
+      "wordpress": "[tux_toc]"
+    }
+  },
+  {
+    "name": "TuxTabBar",
+    "tagName": "tux-tab-bar",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "Bottom-anchored 3-5 mobile tabs — icon + label, maroon top-edge active rule, safe-area-inset-bottom honored. Tauri Mobile target.",
+    "route": "/components/tab-bar",
+    "docsUrl": "https://ux.tti.tamu.edu/components/tab-bar",
+    "figmaNodePattern": "TUX / TuxTabBar",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxTabBar />",
+      "react": "import { TuxTabBar } from \"@tti/tti-ux-react\";\n\n<TuxTabBar />",
+      "webComponents": "<tux-tab-bar></tux-tab-bar>",
+      "blazor": "<TuxTabBar />",
+      "wordpress": "[tux_tab_bar]"
+    }
+  },
+  {
+    "name": "TuxTable",
+    "tagName": "tux-table",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "UTable",
+    "blurb": "UTable with tux chrome, automatic status-cell rendering via TuxBadge.",
+    "route": "/components/table",
+    "docsUrl": "https://ux.tti.tamu.edu/components/table",
+    "figmaNodePattern": "TUX / TuxTable",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxTable />",
+      "react": "import { TuxTable } from \"@tti/tti-ux-react\";\n\n<TuxTable />",
+      "webComponents": "<tux-table></tux-table>",
+      "blazor": "<TuxTable />",
+      "wordpress": "[tux_table]"
+    }
+  },
+  {
+    "name": "TuxTableCaption",
+    "tagName": "tux-table-caption",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "composes TuxFigureCaption",
+    "blurb": "Auto-numbered caption for tables.",
+    "route": "/components/table-caption",
+    "docsUrl": "https://ux.tti.tamu.edu/components/table-caption",
+    "figmaNodePattern": "TUX / TuxTableCaption",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxTableCaption />",
+      "react": "import { TuxTableCaption } from \"@tti/tti-ux-react\";\n\n<TuxTableCaption />",
+      "webComponents": "<tux-table-caption></tux-table-caption>",
+      "blazor": "<TuxTableCaption />",
+      "wordpress": "[tux_table_caption]"
+    }
+  },
+  {
+    "name": "TuxTabs",
+    "tagName": "tux-tabs",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "UTabs",
+    "blurb": "Editorial tabs with maroon active underline. Horizontal + vertical orientations; `bold` intent for eyebrow-rhythm labels.",
+    "route": "/components/tabs",
+    "docsUrl": "https://ux.tti.tamu.edu/components/tabs",
+    "figmaNodePattern": "TUX / TuxTabs",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxTabs />",
+      "react": "import { TuxTabs } from \"@tti/tti-ux-react\";\n\n<TuxTabs />",
+      "webComponents": "<tux-tabs></tux-tabs>",
+      "blazor": "<TuxTabs />",
+      "wordpress": "[tux_tabs]"
+    }
+  },
+  {
+    "name": "TuxTeachingPopover",
+    "tagName": "tux-teaching-popover",
+    "kind": "component",
+    "family": "components",
+    "category": "feedback",
+    "wraps": "tux native",
+    "blurb": "Onboarding/guided-tour tooltip — image, body, Next/Skip, step counter. On-brand variant for high emphasis.",
+    "route": "/components/teaching-popover",
+    "docsUrl": "https://ux.tti.tamu.edu/components/teaching-popover",
+    "figmaNodePattern": "TUX / TuxTeachingPopover",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxTeachingPopover />",
+      "react": "import { TuxTeachingPopover } from \"@tti/tti-ux-react\";\n\n<TuxTeachingPopover />",
+      "webComponents": "<tux-teaching-popover></tux-teaching-popover>",
+      "blazor": "<TuxTeachingPopover />",
+      "wordpress": "[tux_teaching_popover]"
+    }
+  },
+  {
+    "name": "TuxTestimonial",
+    "tagName": "tux-testimonial",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Attributed quotes with portrait + name + role — grid or row layout, three style variants.",
+    "route": "/components/testimonial",
+    "docsUrl": "https://ux.tti.tamu.edu/components/testimonial",
+    "figmaNodePattern": "TUX / TuxTestimonial",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxTestimonial />",
+      "react": "import { TuxTestimonial } from \"@tti/tti-ux-react\";\n\n<TuxTestimonial />",
+      "webComponents": "<tux-testimonial></tux-testimonial>",
+      "blazor": "<TuxTestimonial />",
+      "wordpress": "[tux_testimonial]"
+    }
+  },
+  {
+    "name": "TuxTileGrid",
+    "tagName": "tux-tile-grid",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux native",
+    "blurb": "Service launcher grid with eggshell background, line icons, titles, and descriptive subtitles.",
+    "route": "/components/tile-grid",
+    "docsUrl": "https://ux.tti.tamu.edu/components/tile-grid",
+    "figmaNodePattern": "TUX / TuxTileGrid",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxTileGrid />",
+      "react": "import { TuxTileGrid } from \"@tti/tti-ux-react\";\n\n<TuxTileGrid />",
+      "webComponents": "<tux-tile-grid></tux-tile-grid>",
+      "blazor": "<TuxTileGrid />",
+      "wordpress": "[tux_tile_grid]"
+    }
+  },
+  {
+    "name": "TuxToolCall",
+    "tagName": "tux-tool-call",
+    "kind": "component",
+    "family": "components",
+    "category": "ai",
+    "wraps": "tux native",
+    "blurb": "Agent tool execution and command event card with status indicators, elapsed timing, and diff stats.",
+    "route": "/components/chat-message",
+    "docsUrl": "https://ux.tti.tamu.edu/components/chat-message",
+    "figmaNodePattern": "TUX / TuxToolCall",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxToolCall />",
+      "react": "import { TuxToolCall } from \"@tti/tti-ux-react\";\n\n<TuxToolCall />",
+      "webComponents": "<tux-tool-call></tux-tool-call>",
+      "blazor": "<TuxToolCall />",
+      "wordpress": "[tux_tool_call]"
+    }
+  },
+  {
+    "name": "TuxTooltip",
+    "tagName": "tux-tooltip",
+    "kind": "component",
+    "family": "components",
+    "category": "feedback",
+    "wraps": "UTooltip",
+    "blurb": "Keyboard-accessible hover-help with optional title + hairline rule. Tuned max-width (~22ch).",
+    "route": "/components/tooltip",
+    "docsUrl": "https://ux.tti.tamu.edu/components/tooltip",
+    "figmaNodePattern": "TUX / TuxTooltip",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxTooltip />",
+      "react": "import { TuxTooltip } from \"@tti/tti-ux-react\";\n\n<TuxTooltip />",
+      "webComponents": "<tux-tooltip></tux-tooltip>",
+      "blazor": "<TuxTooltip />",
+      "wordpress": "[tux_tooltip]"
+    }
+  },
+  {
+    "name": "TuxTree",
+    "tagName": "tux-tree",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Hierarchical list — sitemap, corpus + filesystem browser, BI dataset explorer. Mono leaf labels, sand guide lines, persistence.",
+    "route": "/components/tree",
+    "docsUrl": "https://ux.tti.tamu.edu/components/tree",
+    "figmaNodePattern": "TUX / TuxTree",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxTree />",
+      "react": "import { TuxTree } from \"@tti/tti-ux-react\";\n\n<TuxTree />",
+      "webComponents": "<tux-tree></tux-tree>",
+      "blazor": "<TuxTree />",
+      "wordpress": "[tux_tree]"
+    }
+  },
+  {
+    "name": "TuxTreemap",
+    "tagName": "tux-treemap",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Squarified hierarchical-size viz — Corridor Ops' headline chart, drill-in, no external library.",
+    "route": "/components/treemap",
+    "docsUrl": "https://ux.tti.tamu.edu/components/treemap",
+    "figmaNodePattern": "TUX / TuxTreemap",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxTreemap />",
+      "react": "import { TuxTreemap } from \"@tti/tti-ux-react\";\n\n<TuxTreemap />",
+      "webComponents": "<tux-treemap></tux-treemap>",
+      "blazor": "<TuxTreemap />",
+      "wordpress": "[tux_treemap]"
+    }
+  },
+  {
+    "name": "TuxUnitValue",
+    "tagName": "tux-unit-value",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native (useTuxUnits)",
+    "blurb": "Scientific transportation measurement primitive — mph ↔ km/h, VMT ↔ VKT, kip ↔ kN, ± CI, highway stationing, and global US ↔ SI toggle.",
+    "route": "/components/unit-value",
+    "docsUrl": "https://ux.tti.tamu.edu/components/unit-value",
+    "figmaNodePattern": "TUX / TuxUnitValue",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxUnitValue />",
+      "react": "import { TuxUnitValue } from \"@tti/tti-ux-react\";\n\n<TuxUnitValue />",
+      "webComponents": "<tux-unit-value></tux-unit-value>",
+      "blazor": "<TuxUnitValue />",
+      "wordpress": "[tux_unit_value]"
+    }
+  },
+  {
+    "name": "TuxUserMenu",
+    "tagName": "tux-user-menu",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "UDropdownMenu",
+    "blurb": "The suite's one identity affordance — cluster chip or rail-footer mount, state-complete (loading / signed-out / signed-in / local-only / error), law-fixed menu order.",
+    "route": "/components/utility-cluster",
+    "docsUrl": "https://ux.tti.tamu.edu/components/utility-cluster",
+    "figmaNodePattern": "TUX / TuxUserMenu",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxUserMenu />",
+      "react": "import { TuxUserMenu } from \"@tti/tti-ux-react\";\n\n<TuxUserMenu />",
+      "webComponents": "<tux-user-menu></tux-user-menu>",
+      "blazor": "<TuxUserMenu />",
+      "wordpress": "[tux_user_menu]"
+    }
+  },
+  {
+    "name": "TuxUtilityCluster",
+    "tagName": "tux-utility-cluster",
+    "kind": "component",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "tux (composes TuxAppSwitcher + TuxUserMenu)",
+    "blurb": "The trailing app-control cluster — search · notifications · theme · waffle · identity in law-fixed DOM order. Registry-fed waffle + role=status theme announcements.",
+    "route": "/components/utility-cluster",
+    "docsUrl": "https://ux.tti.tamu.edu/components/utility-cluster",
+    "figmaNodePattern": "TUX / TuxUtilityCluster",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxUtilityCluster />",
+      "react": "import { TuxUtilityCluster } from \"@tti/tti-ux-react\";\n\n<TuxUtilityCluster />",
+      "webComponents": "<tux-utility-cluster></tux-utility-cluster>",
+      "blazor": "<TuxUtilityCluster />",
+      "wordpress": "[tux_utility_cluster]"
+    }
+  },
+  {
+    "name": "TuxValidationSummary",
+    "tagName": "tux-validation-summary",
+    "kind": "component",
+    "family": "components",
+    "category": "feedback",
+    "wraps": "tux native",
+    "blurb": "Error list at the top of a long form.",
+    "route": "/components/validation-summary",
+    "docsUrl": "https://ux.tti.tamu.edu/components/validation-summary",
+    "figmaNodePattern": "TUX / TuxValidationSummary",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxValidationSummary />",
+      "react": "import { TuxValidationSummary } from \"@tti/tti-ux-react\";\n\n<TuxValidationSummary />",
+      "webComponents": "<tux-validation-summary></tux-validation-summary>",
+      "blazor": "<TuxValidationSummary />",
+      "wordpress": "[tux_validation_summary]"
+    }
+  },
+  {
+    "name": "TuxVizEmbed",
+    "tagName": "tux-viz-embed",
+    "kind": "component",
+    "family": "visualizations",
+    "category": "embeds",
+    "wraps": "sandboxed <iframe> + poster fallback",
+    "blurb": "Tableau / Power BI / Apache Superset / Grafana iframe wrapper with poster fallback.",
+    "route": "/visualizations/embed",
+    "docsUrl": "https://ux.tti.tamu.edu/visualizations/embed",
+    "figmaNodePattern": "TUX / TuxVizEmbed",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxVizEmbed />",
+      "react": "import { TuxVizEmbed } from \"@tti/tti-ux-react\";\n\n<TuxVizEmbed />",
+      "webComponents": "<tux-viz-embed></tux-viz-embed>",
+      "blazor": "<TuxVizEmbed />",
+      "wordpress": "[tux_viz_embed]"
+    }
+  },
+  {
+    "name": "TuxVizGrid",
+    "tagName": "tux-viz-grid",
+    "kind": "component",
+    "family": "visualizations",
+    "category": "embeds",
+    "wraps": "tux native (CSS Grid layout shell)",
+    "blurb": "Small-multiples layout primitive — 2/3/4-up panes with shared editorial header. Container-queried.",
+    "route": "/visualizations/grid",
+    "docsUrl": "https://ux.tti.tamu.edu/visualizations/grid",
+    "figmaNodePattern": "TUX / TuxVizGrid",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxVizGrid />",
+      "react": "import { TuxVizGrid } from \"@tti/tti-ux-react\";\n\n<TuxVizGrid />",
+      "webComponents": "<tux-viz-grid></tux-viz-grid>",
+      "blazor": "<TuxVizGrid />",
+      "wordpress": "[tux_viz_grid]"
+    }
+  },
+  {
+    "name": "TuxVizRPlot",
+    "tagName": "tux-viz-r-plot",
+    "kind": "component",
+    "family": "visualizations",
+    "category": "embeds",
+    "wraps": "<img> / <object> / <iframe>",
+    "blurb": "R artifact wrapper — image / svg / htmlwidget — with source-line caption gutter.",
+    "route": "/visualizations/rplot",
+    "docsUrl": "https://ux.tti.tamu.edu/visualizations/rplot",
+    "figmaNodePattern": "TUX / TuxVizRPlot",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxVizRPlot />",
+      "react": "import { TuxVizRPlot } from \"@tti/tti-ux-react\";\n\n<TuxVizRPlot />",
+      "webComponents": "<tux-viz-r-plot></tux-viz-r-plot>",
+      "blazor": "<TuxVizRPlot />",
+      "wordpress": "[tux_viz_r_plot]"
+    }
+  },
+  {
+    "name": "useTuxPlatform",
+    "tagName": "useTuxPlatform",
+    "kind": "composable",
+    "family": "components",
+    "category": "navigation",
+    "wraps": "composable",
+    "blurb": "Host-OS + Tauri detection for platform-adaptive chrome.",
+    "route": "/components/app-frame",
+    "docsUrl": "https://ux.tti.tamu.edu/components/app-frame",
+    "figmaNodePattern": "TUX / useTuxPlatform",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "const state = useTuxPlatform();",
+      "react": "import { useTuxPlatform } from \"@tti/tti-ux-react\";\nconst state = useTuxPlatform();",
+      "webComponents": "// Composable utility — bind via custom element properties",
+      "blazor": "@inject ITuxPlatformService Service",
+      "wordpress": "<?php /* TUX useTuxPlatform helper */ ?>"
+    }
+  },
+  {
+    "name": "useTuxRipple",
+    "tagName": "useTuxRipple",
+    "kind": "composable",
+    "family": "components",
+    "category": "actions",
+    "wraps": "composable",
+    "blurb": "Composable: Material-style tap-feedback ripple on a target element. Opt-in only; honors prefers-reduced-motion.",
+    "route": "/components/ripple",
+    "docsUrl": "https://ux.tti.tamu.edu/components/ripple",
+    "figmaNodePattern": "TUX / useTuxRipple",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "const state = useTuxRipple();",
+      "react": "import { useTuxRipple } from \"@tti/tti-ux-react\";\nconst state = useTuxRipple();",
+      "webComponents": "// Composable utility — bind via custom element properties",
+      "blazor": "@inject ITuxRippleService Service",
+      "wordpress": "<?php /* TUX useTuxRipple helper */ ?>"
+    }
+  },
+  {
+    "name": "useTuxSwipe",
+    "tagName": "useTuxSwipe",
+    "kind": "composable",
+    "family": "components",
+    "category": "actions",
+    "wraps": "composable",
+    "blurb": "Composable: pointer/touch swipe detection with directional callbacks. Requires a11y-pair button per platform-awareness doctrine.",
+    "route": "/components/swipe",
+    "docsUrl": "https://ux.tti.tamu.edu/components/swipe",
+    "figmaNodePattern": "TUX / useTuxSwipe",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "const state = useTuxSwipe();",
+      "react": "import { useTuxSwipe } from \"@tti/tti-ux-react\";\nconst state = useTuxSwipe();",
+      "webComponents": "// Composable utility — bind via custom element properties",
+      "blazor": "@inject ITuxSwipeService Service",
+      "wordpress": "<?php /* TUX useTuxSwipe helper */ ?>"
+    }
   }
 ];
 
-figma.showUI(__html__, { width: 460, height: 620, themeColors: true });
+figma.showUI(__html__, { width: 480, height: 660, themeColors: true });
 
 function hexToRgb01(hexStr) {
   const clean = String(hexStr || "#5C0025").replace(/^#/, "");
@@ -8979,9 +11654,13 @@ function hexToRgb01(hexStr) {
 }
 
 /**
- * 1. Sync Paint Styles across all 3 themes (100% supported on Figma Free Starter Plan)
+ * 1. Sync Paint Styles, Text Styles & Effect Styles across all 3 themes
+ *    (100% supported on Figma Free Starter Plan with zero mode restrictions)
  */
 async function syncPaintAndTextStyles() {
+  await figma.loadFontAsync({ family: "Inter", style: "Regular" });
+  await figma.loadFontAsync({ family: "Inter", style: "Bold" });
+
   const existingPaints = new Map(
     (await figma.getLocalPaintStylesAsync()).map((s) => [s.name, s]),
   );
@@ -8991,12 +11670,12 @@ async function syncPaintAndTextStyles() {
     "brand-secondary", "brand-fill", "brand-accent-ink",
     "surface-page", "surface-raised", "surface-sunken", "surface-eggshell", "surface-border",
     "text-primary", "text-secondary", "text-muted", "text-on-brand",
-    "status-ok", "status-warning", "status-unknown", "status-critical", "status-maintenance",
+    "status-ok", "status-warning", "status-unknown", "status-critical", "status-maintenance", "status-pending",
     "color-success", "color-warning", "color-danger", "color-error", "color-info",
     "spectrum-maroon", "spectrum-blue", "spectrum-teal", "spectrum-green", "spectrum-gold",
   ];
 
-  let count = 0;
+  let paintCount = 0;
   for (const [themeKey, themeObj] of Object.entries(TUX_THEMES)) {
     for (const tokenName of styleTokens) {
       const raw = themeObj[tokenName];
@@ -9006,10 +11685,53 @@ async function syncPaintAndTextStyles() {
       style.name = styleName;
       style.description = "TUX canonical token var(--" + tokenName + ") in theme " + themeKey;
       style.paints = [{ type: "SOLID", color: hexToRgb01(raw) }];
-      count++;
+      paintCount++;
     }
   }
-  return count;
+
+  // Sync Text Styles (Free tier unlimited)
+  const existingTexts = new Map(
+    (await figma.getLocalTextStylesAsync()).map((s) => [s.name, s]),
+  );
+  const textSpecs = [
+    { name: "TUX / Display / Hero (36px Bold)", size: 36, style: "Bold", lineHeight: 42 },
+    { name: "TUX / Heading / H1 (28px Bold)", size: 28, style: "Bold", lineHeight: 34 },
+    { name: "TUX / Heading / H2 (22px Bold)", size: 22, style: "Bold", lineHeight: 28 },
+    { name: "TUX / Heading / H3 (18px Bold)", size: 18, style: "Bold", lineHeight: 24 },
+    { name: "TUX / Body / Regular (16px AAA)", size: 16, style: "Regular", lineHeight: 26 },
+    { name: "TUX / Body / Small (14px)", size: 14, style: "Regular", lineHeight: 22 },
+    { name: "TUX / UI / Label & Button (14px Bold)", size: 14, style: "Bold", lineHeight: 20 },
+    { name: "TUX / Mono / Telemetry & Kicker (12px Bold)", size: 12, style: "Bold", lineHeight: 18 },
+  ];
+  for (const spec of textSpecs) {
+    const ts = existingTexts.get(spec.name) || figma.createTextStyle();
+    ts.name = spec.name;
+    ts.fontName = { family: "Inter", style: spec.style };
+    ts.fontSize = spec.size;
+    ts.lineHeight = { value: spec.lineHeight, unit: "PIXELS" };
+  }
+
+  // Sync Effect Styles (Free tier unlimited)
+  const existingEffects = new Map(
+    (await figma.getLocalEffectStylesAsync()).map((s) => [s.name, s]),
+  );
+  const effectSpecs = [
+    {
+      name: "TUX / Elevation / Raised Card",
+      effects: [{ type: "DROP_SHADOW", color: { r: 0, g: 0, b: 0, a: 0.06 }, offset: { x: 0, y: 2 }, radius: 6, spread: 0, visible: true, blendMode: "NORMAL" }],
+    },
+    {
+      name: "TUX / Elevation / Floating Overlay",
+      effects: [{ type: "DROP_SHADOW", color: { r: 0, g: 0, b: 0, a: 0.14 }, offset: { x: 0, y: 8 }, radius: 24, spread: -2, visible: true, blendMode: "NORMAL" }],
+    },
+  ];
+  for (const ef of effectSpecs) {
+    const es = existingEffects.get(ef.name) || figma.createEffectStyle();
+    es.name = ef.name;
+    es.effects = ef.effects;
+  }
+
+  return paintCount + textSpecs.length + effectSpecs.length;
 }
 
 /**
@@ -9020,7 +11742,17 @@ async function syncFigmaVariables() {
     throw new Error("Figma Variables API is not available in this version of Figma.");
   }
 
-  const collection = figma.variables.createVariableCollection("TUX Institutional Tokens");
+  const existingCollections = await figma.variables.getLocalVariableCollectionsAsync();
+  const findOrCreateCollection = (name) =>
+    existingCollections.find((c) => c.name === name) ||
+    figma.variables.createVariableCollection(name);
+
+  const existingVars = await figma.variables.getLocalVariablesAsync();
+  const findOrCreateVar = (name, coll, resolvedType) =>
+    existingVars.find((v) => v.name === name && v.variableCollectionId === coll.id) ||
+    figma.variables.createVariable(name, coll, resolvedType);
+
+  const collection = findOrCreateCollection("TUX Institutional Tokens");
   const lightModeId = collection.modes[0].modeId;
   collection.renameMode(lightModeId, "Light (tti)");
 
@@ -9029,8 +11761,10 @@ async function syncFigmaVariables() {
   let multiModeSupported = true;
 
   try {
-    darkModeId = collection.addMode("Dark (tti-dark)");
-    hcModeId = collection.addMode("High Contrast AAA (tti-hc)");
+    const existingDark = collection.modes.find((m) => m.name === "Dark (tti-dark)");
+    const existingHc = collection.modes.find((m) => m.name === "High Contrast AAA (tti-hc)");
+    darkModeId = existingDark ? existingDark.modeId : collection.addMode("Dark (tti-dark)");
+    hcModeId = existingHc ? existingHc.modeId : collection.addMode("High Contrast AAA (tti-hc)");
   } catch (_err) {
     // Figma Free Starter plan limits Variable Collections to 1 mode.
     // We automatically create 2 companion single-mode collections so free users get all 3 themes!
@@ -9041,7 +11775,7 @@ async function syncFigmaVariables() {
 
   if (multiModeSupported) {
     for (const v of TUX_VARIABLES) {
-      const figVar = figma.variables.createVariable(v.name, collection, v.resolvedType);
+      const figVar = findOrCreateVar(v.name, collection, v.resolvedType);
       figVar.description = v.description;
       if (v.resolvedType === "COLOR") {
         figVar.setValueForMode(lightModeId, v.valuesByMode.tti.rgba);
@@ -9055,18 +11789,18 @@ async function syncFigmaVariables() {
       createdCount++;
     }
   } else {
-    const darkCollection = figma.variables.createVariableCollection("TUX Tokens — Dark (tti-dark)");
+    const darkCollection = findOrCreateCollection("TUX Tokens — Dark (tti-dark)");
     const darkSingleModeId = darkCollection.modes[0].modeId;
     darkCollection.renameMode(darkSingleModeId, "Dark (tti-dark)");
 
-    const hcCollection = figma.variables.createVariableCollection("TUX Tokens — High Contrast (tti-hc)");
+    const hcCollection = findOrCreateCollection("TUX Tokens — High Contrast (tti-hc)");
     const hcSingleModeId = hcCollection.modes[0].modeId;
     hcCollection.renameMode(hcSingleModeId, "High Contrast AAA (tti-hc)");
 
     for (const v of TUX_VARIABLES) {
-      const vLight = figma.variables.createVariable(v.name, collection, v.resolvedType);
-      const vDark = figma.variables.createVariable(v.name, darkCollection, v.resolvedType);
-      const vHc = figma.variables.createVariable(v.name, hcCollection, v.resolvedType);
+      const vLight = findOrCreateVar(v.name, collection, v.resolvedType);
+      const vDark = findOrCreateVar(v.name, darkCollection, v.resolvedType);
+      const vHc = findOrCreateVar(v.name, hcCollection, v.resolvedType);
 
       if (v.resolvedType === "COLOR") {
         vLight.setValueForMode(lightModeId, v.valuesByMode.tti.rgba);
@@ -9091,8 +11825,10 @@ async function generateAutoLayoutKitOnCanvas() {
   await figma.loadFontAsync({ family: "Inter", style: "Regular" });
   await figma.loadFontAsync({ family: "Inter", style: "Bold" });
 
+  let componentCount = 0;
+
   const rootFrame = figma.createFrame();
-  rootFrame.name = "TUX v3.0 — Institutional Figma UI Kit (WCAG 2.2 AAA)";
+  rootFrame.name = "TUX — Institutional Figma UI Kit (Free Starter Plan Compatible)";
   rootFrame.layoutMode = "VERTICAL";
   rootFrame.primaryAxisSizingMode = "AUTO";
   rootFrame.counterAxisSizingMode = "AUTO";
@@ -9103,9 +11839,9 @@ async function generateAutoLayoutKitOnCanvas() {
   rootFrame.itemSpacing = 24;
   rootFrame.fills = [{ type: "SOLID", color: hexToRgb01(TUX_THEMES.tti["surface-eggshell"]) }];
 
-  // Header Banner
-  const header = figma.createFrame();
-  header.name = "TUX / Masthead Banner";
+  // 1. Masthead Component
+  const header = figma.createComponent();
+  header.name = "TUX / TuxPortalHeader";
   header.layoutMode = "VERTICAL";
   header.primaryAxisSizingMode = "AUTO";
   header.counterAxisSizingMode = "AUTO";
@@ -9125,14 +11861,15 @@ async function generateAutoLayoutKitOnCanvas() {
   const sub = figma.createText();
   sub.fontName = { family: "Inter", style: "Regular" };
   sub.fontSize = 12;
-  sub.characters = "100% W3C WCAG 2.2 Level AAA (≥ 7.0:1 Contrast · ≥ 44×44px Touch Targets) · Generated Zero-Subscription Kit";
+  sub.characters = "WCAG 2.2 Level AAA (≥ 7.0:1 Contrast · ≥ 44×44px Touch Targets) · Free Starter Plan Kit";
   sub.fills = [{ type: "SOLID", color: hexToRgb01(TUX_THEMES.tti["brand-accent"]) }];
 
   header.appendChild(title);
   header.appendChild(sub);
   rootFrame.appendChild(header);
+  componentCount++;
 
-  // 5-Band Spectrum Ribbon Component
+  // 2. 5-Band Spectrum Ribbon Component
   const ribbonComp = figma.createComponent();
   ribbonComp.name = "TUX / TuxSpectrumRibbon";
   ribbonComp.layoutMode = "HORIZONTAL";
@@ -9141,22 +11878,23 @@ async function generateAutoLayoutKitOnCanvas() {
   ribbonComp.itemSpacing = 0;
 
   const spectrumColors = [
-    ["Maroon", TUX_THEMES.tti["brand-primary-deep"]],
-    ["Navy", TUX_THEMES.tti["tti-navy"]],
-    ["Teal", TUX_THEMES.tti["color-info"]],
-    ["Green", TUX_THEMES.tti["color-success"]],
-    ["Gold", TUX_THEMES.tti["brand-accent"]],
+    ["Maroon", TUX_THEMES.tti["spectrum-maroon"]],
+    ["Slate Blue", TUX_THEMES.tti["spectrum-blue"]],
+    ["Slate Teal", TUX_THEMES.tti["spectrum-teal"]],
+    ["Sage Green", TUX_THEMES.tti["spectrum-green"]],
+    ["Ochre Gold", TUX_THEMES.tti["spectrum-gold"]],
   ];
   for (const [bandName, hex] of spectrumColors) {
     const band = figma.createRectangle();
     band.name = "Spectrum / " + bandName;
-    band.resize(136, 12);
+    band.resize(140, 12);
     band.fills = [{ type: "SOLID", color: hexToRgb01(hex) }];
     ribbonComp.appendChild(band);
   }
   rootFrame.appendChild(ribbonComp);
+  componentCount++;
 
-  // Button Components Row
+  // 3. Button Components Row
   const buttonRow = figma.createFrame();
   buttonRow.name = "TUX / Buttons Row (44px AAA)";
   buttonRow.layoutMode = "HORIZONTAL";
@@ -9166,10 +11904,10 @@ async function generateAutoLayoutKitOnCanvas() {
   buttonRow.fills = [];
 
   const buttonVariants = [
-    { name: "TUX / TuxButton / Primary", bg: TUX_THEMES.tti["brand-primary"], fg: "#FFFFFF", label: "Primary Action" },
-    { name: "TUX / TuxButton / Accent Gold", bg: TUX_THEMES.tti["brand-accent"], fg: TUX_THEMES.tti["brand-accent-ink"], label: "Warm Gold CTA" },
-    { name: "TUX / TuxButton / Critical", bg: TUX_THEMES.tti["status-critical"], fg: "#FFFFFF", label: "Critical Stop" },
-    { name: "TUX / TuxButton / Dark Primary", bg: TUX_THEMES["tti-dark"]["brand-primary"], fg: TUX_THEMES["tti-dark"]["surface-page"], label: "Dark Mode Action" },
+    { name: "TUX / TuxButton / Primary", bg: TUX_THEMES.tti["brand-primary"], fg: "#FFFFFF", border: null, label: "Primary Action" },
+    { name: "TUX / TuxButton / Secondary", bg: TUX_THEMES.tti["surface-page"], fg: TUX_THEMES.tti["text-primary"], border: TUX_THEMES.tti["surface-border"], label: "Secondary" },
+    { name: "TUX / TuxButton / Ghost", bg: TUX_THEMES.tti["surface-sunken"], fg: TUX_THEMES.tti["text-secondary"], border: null, label: "Ghost Action" },
+    { name: "TUX / TuxButton / Destructive", bg: TUX_THEMES.tti["surface-page"], fg: TUX_THEMES.tti["color-error"], border: TUX_THEMES.tti["color-error"], label: "Destructive" },
   ];
 
   for (const b of buttonVariants) {
@@ -9182,7 +11920,12 @@ async function generateAutoLayoutKitOnCanvas() {
     btnComp.paddingRight = 20;
     btnComp.paddingTop = 12;
     btnComp.paddingBottom = 12;
+    btnComp.cornerRadius = 2;
     btnComp.fills = [{ type: "SOLID", color: hexToRgb01(b.bg) }];
+    if (b.border) {
+      btnComp.strokes = [{ type: "SOLID", color: hexToRgb01(b.border) }];
+      btnComp.strokeWeight = 1.5;
+    }
 
     const txt = figma.createText();
     txt.fontName = { family: "Inter", style: "Bold" };
@@ -9191,12 +11934,134 @@ async function generateAutoLayoutKitOnCanvas() {
     txt.fills = [{ type: "SOLID", color: hexToRgb01(b.fg) }];
     btnComp.appendChild(txt);
     buttonRow.appendChild(btnComp);
+    componentCount++;
   }
   rootFrame.appendChild(buttonRow);
 
+  // 4. Badges & Status Chips Row
+  const badgeRow = figma.createFrame();
+  badgeRow.name = "TUX / Badges & Status Row";
+  badgeRow.layoutMode = "HORIZONTAL";
+  badgeRow.primaryAxisSizingMode = "AUTO";
+  badgeRow.counterAxisSizingMode = "AUTO";
+  badgeRow.itemSpacing = 12;
+  badgeRow.fills = [];
+
+  const badgeVariants = [
+    { name: "TUX / TuxBadge / Restricted", bg: TUX_THEMES.tti["brand-primary"], fg: "#FFFFFF", label: "RESTRICTED" },
+    { name: "TUX / TuxBadge / LOS A", bg: TUX_THEMES.tti["status-ok"], fg: "#FFFFFF", label: "LOS A · Free Flow" },
+    { name: "TUX / TuxStatus / OK", bg: TUX_THEMES.tti["status-ok-fill"], fg: TUX_THEMES.tti["status-ok-ink"], label: "OK" },
+    { name: "TUX / TuxStatus / WARNING", bg: TUX_THEMES.tti["status-warning-fill"], fg: TUX_THEMES.tti["status-warning-ink"], label: "WARNING" },
+    { name: "TUX / TuxStatus / CRITICAL", bg: TUX_THEMES.tti["status-critical-fill"], fg: TUX_THEMES.tti["status-critical-ink"], label: "CRITICAL" },
+  ];
+
+  for (const bv of badgeVariants) {
+    const chip = figma.createComponent();
+    chip.name = bv.name;
+    chip.layoutMode = "HORIZONTAL";
+    chip.primaryAxisAlignItems = "CENTER";
+    chip.counterAxisAlignItems = "CENTER";
+    chip.paddingLeft = 12;
+    chip.paddingRight = 12;
+    chip.paddingTop = 6;
+    chip.paddingBottom = 6;
+    chip.cornerRadius = 3;
+    chip.fills = [{ type: "SOLID", color: hexToRgb01(bv.bg) }];
+
+    const txt = figma.createText();
+    txt.fontName = { family: "Inter", style: "Bold" };
+    txt.fontSize = 12;
+    txt.characters = bv.label;
+    txt.fills = [{ type: "SOLID", color: hexToRgb01(bv.fg) }];
+    chip.appendChild(txt);
+    badgeRow.appendChild(chip);
+    componentCount++;
+  }
+  rootFrame.appendChild(badgeRow);
+
+  // 5. Card & BigStat Row
+  const cardRow = figma.createFrame();
+  cardRow.name = "TUX / Cards & KPI Row";
+  cardRow.layoutMode = "HORIZONTAL";
+  cardRow.primaryAxisSizingMode = "AUTO";
+  cardRow.counterAxisSizingMode = "AUTO";
+  cardRow.itemSpacing = 20;
+  cardRow.fills = [];
+
+  const cardComp = figma.createComponent();
+  cardComp.name = "TUX / TuxCard";
+  cardComp.layoutMode = "VERTICAL";
+  cardComp.primaryAxisSizingMode = "AUTO";
+  cardComp.counterAxisSizingMode = "AUTO";
+  cardComp.paddingTop = 20;
+  cardComp.paddingBottom = 20;
+  cardComp.paddingLeft = 20;
+  cardComp.paddingRight = 20;
+  cardComp.itemSpacing = 8;
+  cardComp.cornerRadius = 6;
+  cardComp.fills = [{ type: "SOLID", color: hexToRgb01(TUX_THEMES.tti["surface-page"]) }];
+  cardComp.strokes = [{ type: "SOLID", color: hexToRgb01(TUX_THEMES.tti["surface-border"]) }];
+
+  const cardKicker = figma.createText();
+  cardKicker.fontName = { family: "Inter", style: "Bold" };
+  cardKicker.fontSize = 11;
+  cardKicker.characters = "CONNECTED CORRIDORS · TXDOT";
+  cardKicker.fills = [{ type: "SOLID", color: hexToRgb01(TUX_THEMES.tti["brand-primary"]) }];
+
+  const cardTitle = figma.createText();
+  cardTitle.fontName = { family: "Inter", style: "Bold" };
+  cardTitle.fontSize = 18;
+  cardTitle.characters = "Automated Freight Platooning Study";
+  cardTitle.fills = [{ type: "SOLID", color: hexToRgb01(TUX_THEMES.tti["text-primary"]) }];
+
+  const cardBody = figma.createText();
+  cardBody.fontName = { family: "Inter", style: "Regular" };
+  cardBody.fontSize = 13;
+  cardBody.characters = "Field evaluation of V2X low-latency BSM telemetry along I-10.";
+  cardBody.fills = [{ type: "SOLID", color: hexToRgb01(TUX_THEMES.tti["text-secondary"]) }];
+
+  cardComp.appendChild(cardKicker);
+  cardComp.appendChild(cardTitle);
+  cardComp.appendChild(cardBody);
+  cardRow.appendChild(cardComp);
+  componentCount++;
+
+  const statComp = figma.createComponent();
+  statComp.name = "TUX / TuxBigStat";
+  statComp.layoutMode = "VERTICAL";
+  statComp.primaryAxisSizingMode = "AUTO";
+  statComp.counterAxisSizingMode = "AUTO";
+  statComp.paddingTop = 20;
+  statComp.paddingBottom = 20;
+  statComp.paddingLeft = 20;
+  statComp.paddingRight = 20;
+  statComp.itemSpacing = 6;
+  statComp.cornerRadius = 6;
+  statComp.fills = [{ type: "SOLID", color: hexToRgb01(TUX_THEMES.tti["surface-page"]) }];
+  statComp.strokes = [{ type: "SOLID", color: hexToRgb01(TUX_THEMES.tti["surface-border"]) }];
+
+  const statLabel = figma.createText();
+  statLabel.fontName = { family: "Inter", style: "Bold" };
+  statLabel.fontSize = 11;
+  statLabel.characters = "SPONSORED RESEARCH EXPENDITURE";
+  statLabel.fills = [{ type: "SOLID", color: hexToRgb01(TUX_THEMES.tti["text-muted"]) }];
+
+  const statValue = figma.createText();
+  statValue.fontName = { family: "Inter", style: "Bold" };
+  statValue.fontSize = 36;
+  statValue.characters = "$126.4M (+14.2% YoY)";
+  statValue.fills = [{ type: "SOLID", color: hexToRgb01(TUX_THEMES.tti["brand-primary"]) }];
+
+  statComp.appendChild(statLabel);
+  statComp.appendChild(statValue);
+  cardRow.appendChild(statComp);
+  componentCount++;
+
+  rootFrame.appendChild(cardRow);
+
   figma.currentPage.appendChild(rootFrame);
   figma.viewport.scrollAndZoomIntoView([rootFrame]);
-  return 6;
+  return componentCount;
 }
 
 // Selection listener for Free Code Connect Inspector
@@ -9215,21 +12080,21 @@ figma.ui.onmessage = async (msg) => {
   try {
     if (msg.type === "sync-styles") {
       const count = await syncPaintAndTextStyles();
-      figma.notify("✓ TUX: Synced " + count + " Paint Styles across Light, Dark & High-Contrast!");
-      figma.ui.postMessage({ type: "status", text: "Synced " + count + " Paint Styles across all 3 themes." });
+      figma.notify("TUX: Synced " + count + " Paint, Text & Effect Styles.");
+      figma.ui.postMessage({ type: "status", text: "Synced " + count + " Paint, Text & Effect Styles across all 3 themes." });
     } else if (msg.type === "sync-variables") {
       const res = await syncFigmaVariables();
       const modeMsg = res.multiModeSupported
         ? "3-mode collection"
         : "3 single-mode collections (Free Starter Plan auto-fallback)";
-      figma.notify("✓ TUX: Created " + res.createdCount + " Figma Variables (" + modeMsg + ")!");
+      figma.notify("TUX: Synced " + res.createdCount + " Figma Variables (" + modeMsg + ").");
       figma.ui.postMessage({
         type: "status",
-        text: "Created " + res.createdCount + " Figma Variables (" + modeMsg + ").",
+        text: "Synced " + res.createdCount + " Figma Variables (" + modeMsg + ").",
       });
     } else if (msg.type === "generate-kit") {
       const count = await generateAutoLayoutKitOnCanvas();
-      figma.notify("✓ TUX: Generated Auto-Layout Component Kit on canvas!");
+      figma.notify("TUX: Generated " + count + " Auto-Layout components on canvas.");
       figma.ui.postMessage({
         type: "status",
         text: "Generated " + count + " Auto-Layout master components on canvas.",
