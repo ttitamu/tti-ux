@@ -35,6 +35,7 @@ export const COMPONENTS_WITH_UNIT_TESTS: readonly string[] = [
   "TuxAnnouncementBanner",
   "TuxAppFrame",
   "TuxAppSwitcher",
+  "TuxArchitectureMap",
   "TuxArtifact",
   "TuxAuthorByline",
   "TuxAvatar",

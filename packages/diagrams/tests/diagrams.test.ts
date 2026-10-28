@@ -21,10 +21,14 @@ import {
   queryMultiLevelBlastRadius,
   findShortestArchitecturePath,
   coordinateAcpSubgraphLease,
+  buildMapParentIndex,
+  liftLinksToView,
+  computeLinkBlastRadius,
   DEFAULT_TTI_LEVEL_MODEL,
   type TuxMapNode,
   type TuxMapEdge,
   type TuxMapGridCellRect,
+  type TuxMapLevelModel,
 } from "../app/utils/tuxArchitectureMap";
 
 describe("@tti/tti-ux-diagrams composables and utilities", () => {
@@ -272,4 +276,145 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     coordinateAcpSubgraphLease("release", { agentId: "agent-alpha" });
     coordinateAcpSubgraphLease("release", { agentId: "agent-beta" });
   });
+
+  // A model with code levels: container c-api → component c-api/routes → file f:routes.py → its
+  // functions, and component c-api/core → file f:forge.py → check(); a page outside, in c-web.
+  const codeModel: TuxMapLevelModel = {
+    level1: { elements: [{ id: "sys", kind: "system", name: "System" }], rels: [] },
+    level2: {
+      boundary: "sys",
+      elements: [
+        { id: "c-api", kind: "container", name: "API" },
+        { id: "c-web", kind: "container", name: "Web" },
+      ],
+      rels: [],
+    },
+    level3: {
+      "c-api": [
+        { id: "c-api/routes", name: "Routes" },
+        { id: "c-api/core", name: "Core" },
+      ],
+      "c-web": [{ id: "c-web/pages", name: "Pages" }],
+    },
+    level4: { groups: [], nodes: [], links: [] },
+    subgraphs: {
+      "c-api/routes": { elements: [{ id: "f:routes.py", kind: "module", name: "routes.py" }] },
+      "c-api/core": { elements: [{ id: "f:forge.py", kind: "module", name: "forge.py" }] },
+      "c-web/pages": { elements: [{ id: "f:page.js", kind: "module", name: "page.js" }] },
+      "f:routes.py": {
+        elements: [
+          { id: "s:routes.py#data", kind: "symbol", name: "data()" },
+          { id: "s:routes.py#who", kind: "symbol", name: "who()" },
+        ],
+      },
+      "f:forge.py": { elements: [{ id: "s:forge.py#check", kind: "symbol", name: "check()" }] },
+    },
+    links: [
+      { from: "s:routes.py#data", to: "s:routes.py#who", kind: "calls" },
+      { from: "s:routes.py#who", to: "s:forge.py#check", kind: "calls" },
+      { from: "f:page.js", to: "s:routes.py#data", kind: "calls", at: "page.js:12" },
+      { from: "f:test_routes.py", to: "s:routes.py#data", kind: "tests", stop: true },
+      { from: "f:runbook.md", to: "f:page.js", kind: "mentions", stop: true },
+    ],
+  };
+
+  it("indexes every element below Level 2 under its parent", () => {
+    const parentOf = buildMapParentIndex(codeModel);
+    expect(parentOf.get("c-api/routes")).toBe("c-api");
+    expect(parentOf.get("f:routes.py")).toBe("c-api/routes");
+    expect(parentOf.get("s:routes.py#who")).toBe("f:routes.py");
+  });
+
+  it("lifts code links onto a view: wires between its cards, and outside cards at their depth", () => {
+    const parentOf = buildMapParentIndex(codeModel);
+    // inside routes.py: data() calls who(); page.js calls in; who() calls out to check() in forge.py
+    const view = liftLinksToView(codeModel.links!, "f:routes.py", ["s:routes.py#data", "s:routes.py#who"], parentOf);
+    expect(view.rels).toEqual([{ from: "s:routes.py#data", to: "s:routes.py#who", label: "calls" }]);
+    expect(view.ins.map((o) => o.id)).toEqual(["f:page.js"]);
+    expect(view.ins[0]!.wires).toEqual([{ kid: "s:routes.py#data", label: "calls" }]);
+    expect(view.outs.map((o) => o.id)).toEqual(["s:forge.py#check"]);
+    // inside the API container: the routes component calls the core component
+    const l3 = liftLinksToView(codeModel.links!, "c-api", ["c-api/routes", "c-api/core"], parentOf);
+    expect(l3.rels).toEqual([{ from: "c-api/routes", to: "c-api/core", label: "calls" }]);
+  });
+
+  it("puts the outside cards a change travels through before the busier ones that only check", () => {
+    const parentOf = buildMapParentIndex(codeModel);
+    const links = [
+      ...codeModel.links!,
+      { from: "f:ci.yml", to: "s:routes.py#data", kind: "checks", stop: true },
+      { from: "f:ci.yml", to: "s:routes.py#who", kind: "checks", stop: true },
+    ];
+    const view = liftLinksToView(links, "f:routes.py", ["s:routes.py#data", "s:routes.py#who"], parentOf, {
+      maxPerSide: 1,
+      isKnown: (id) => id !== "f:test_routes.py",
+    });
+    expect(view.ins.map((o) => o.id)).toEqual(["f:page.js"]);
+    expect(view.moreIns).toBe(1);
+  });
+
+  it("computes the blast radius of a selection upstream, stopping one step after a stopping link", () => {
+    const parentOf = buildMapParentIndex(codeModel);
+    // changing check() reaches who() (calls it), data() (calls who), page.js (calls data), the test (one step)
+    const { hits } = computeLinkBlastRadius(codeModel.links!, "s:forge.py#check", parentOf);
+    expect([...hits.entries()].map(([id, h]) => [id, h.hop])).toEqual([
+      ["s:routes.py#who", 1],
+      ["s:routes.py#data", 2],
+      ["f:page.js", 3],
+      ["f:test_routes.py", 3],
+      ["f:runbook.md", 4],
+    ]);
+    // a container's radius starts from everything inside it; nothing inside counts as reached
+    const api = computeLinkBlastRadius(codeModel.links!, "c-api", parentOf);
+    expect(api.seeds.has("s:forge.py#check")).toBe(true);
+    expect([...api.hits.keys()].sort()).toEqual(["f:page.js", "f:runbook.md", "f:test_routes.py"]);
+  });
+
+  it("follows a part both kinds of link reach through the spreading one, so what depends on it is reached too", () => {
+    // D checks B (stops) but also calls C (spreads); E calls D. B is reached first, at the same hop as C.
+    const links = [
+      { from: "B", to: "A", kind: "calls" },
+      { from: "C", to: "A", kind: "calls" },
+      { from: "D", to: "B", kind: "checks", stop: true },
+      { from: "D", to: "C", kind: "calls" },
+      { from: "E", to: "D", kind: "calls" },
+    ];
+    const { hits } = computeLinkBlastRadius(links, "A", new Map());
+    expect(hits.get("D")).toMatchObject({ hop: 2, via: { from: "D", to: "C" } });
+    expect(hits.get("E")?.hop).toBe(3);
+  });
+
+  it("draws an outside part both sides hold with each side's own count of links that spread", () => {
+    const parentOf = new Map([
+      ["k1", "v"],
+      ["k2", "v"],
+      ["v", "c"],
+      ["o1", "w"],
+      ["o2", "w"],
+      ["w", "c"],
+    ]);
+    // k1 imports o1 (spreads, right side); o1 only tests k2 (stops, left side); o2 calls k2 once (spreads)
+    const links = [
+      { from: "k1", to: "o1", kind: "imports" },
+      { from: "o1", to: "k2", kind: "tests", stop: true },
+      { from: "o1", to: "k2", kind: "tests", stop: true },
+      { from: "o2", to: "k2", kind: "calls" },
+    ];
+    const view = liftLinksToView(links, "v", ["k1", "k2"], parentOf);
+    expect(view.outs.map((o) => [o.id, o.spreading])).toEqual([["o1", 1]]);
+    // on the left, o2's one call comes before o1's two tests
+    expect(view.ins.map((o) => [o.id, o.spreading])).toEqual([
+      ["o2", 1],
+      ["o1", 0],
+    ]);
+  });
+
+  it("adds code links to the unified graph the MCP tools query", () => {
+    const { edges } = buildUnifiedArchitectureGraph(codeModel);
+    expect(edges.some((e) => e.from === "f:page.js" && e.to === "s:routes.py#data" && e.label === "calls")).toBe(true);
+    expect(edges.some((e) => e.from === "s:routes.py#who" && e.to === "s:forge.py#check" && e.label === "calls")).toBe(true);
+    // a link from a part the model does not hold (the test file) is left out
+    expect(edges.some((e) => e.from === "f:test_routes.py")).toBe(false);
+  });
 });
+

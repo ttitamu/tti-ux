@@ -1225,6 +1225,26 @@ export interface TuxMapLevelModel {
    * Enables infinite semantic zooming down into modules, database schemas, and AST symbols.
    */
   subgraphs?: Record<string, TuxMapSubgraph>;
+  /**
+   * Fine-grained dependencies between any two elements at any level (an import, a call, a script
+   * run, a page loading a script…), usually read from code. The map lifts them onto whatever level
+   * is on screen: wires between the cards inside, and in/out cards for what lies outside. The
+   * blast radius of a selected element walks them upstream.
+   */
+  links?: TuxMapLink[];
+}
+
+/** One dependency read from code: `from` depends on `to`. */
+export interface TuxMapLink {
+  from: string;
+  to: string;
+  /** e.g. imports, calls, runs, sources, loads, uses, checks, tests, routes, mentions */
+  kind?: string;
+  label?: string;
+  /** The blast radius takes one step through this link and no further (a test, a doc, a deploy step). */
+  stop?: boolean;
+  /** Where it was read, as "path:line" */
+  at?: string;
 }
 
 export const GRID_METRICS = {
@@ -1995,7 +2015,236 @@ export function buildLevelModelFromLegacyNodes(
  * Uses clear, vendor-neutral terminology without exposing real internal deployments.
  */
 // ============================================================================
-// 7. MCP / ACP ARCHITECTURE GRAPH QUERY & SUBGRAPH LEASE ENGINE
+// 7. CODE LINKS: LIFTING ONTO A VIEW & THE BLAST RADIUS OF A SELECTION
+// ============================================================================
+
+/** Link kinds drawn on no stage (they still count in the blast radius): a document naming a part. */
+export const TUX_MAP_QUIET_LINK_KINDS: ReadonlySet<string> = new Set(["mentions"]);
+
+/** What a link kind means, read from the part it points at ("changing X: Y calls it"). */
+export const TUX_MAP_LINK_KIND_LABELS: Record<string, string> = {
+  imports: "imports it",
+  calls: "calls it",
+  runs: "runs it",
+  sources: "sources it",
+  loads: "loads it",
+  uses: "reads or ships it",
+  checks: "CI checks it",
+  tests: "tests it",
+  routes: "routes to it",
+  mentions: "mentions it",
+};
+
+/**
+ * child → parent for every element below Level 2: Level 3 components under their container,
+ * subgraph elements under their key, inline `children` under their element.
+ */
+export function buildMapParentIndex(model: TuxMapLevelModel): Map<string, string> {
+  const parentOf = new Map<string, string>();
+  const inline = (pid: string, kids: TuxMapLevelElement[]) => {
+    kids.forEach((k, i) => {
+      const id = k.id || `${pid}/${i}`;
+      if (!parentOf.has(id)) parentOf.set(id, pid);
+      if (k.children?.length) inline(id, k.children);
+    });
+  };
+  for (const [cid, kids] of Object.entries(model.level3)) inline(cid, kids);
+  for (const e of [...model.level1.elements, ...model.level2.elements]) {
+    if (e.children?.length) inline(e.id, e.children);
+  }
+  for (const n of model.level4.nodes) {
+    if (n.children?.length) inline(n.id, n.children);
+  }
+  for (const [key, sg] of Object.entries(model.subgraphs || {})) inline(key, sg.elements);
+  return parentOf;
+}
+
+/** `id` and its ancestors, nearest first. */
+export function mapAncestorsOf(id: string, parentOf: Map<string, string>): string[] {
+  const chain: string[] = [];
+  let x: string | undefined = id;
+  while (x && !chain.includes(x) && chain.length < 64) {
+    chain.push(x);
+    x = parentOf.get(x);
+  }
+  return chain;
+}
+
+/** The nearest of `id` and its ancestors that is in `set`, or null. */
+export function liftToSet(id: string, set: ReadonlySet<string>, parentOf: Map<string, string>): string | null {
+  for (const a of mapAncestorsOf(id, parentOf)) if (set.has(a)) return a;
+  return null;
+}
+
+export interface TuxMapLiftedSide {
+  /** The outside part, at the depth of the cards inside (never above what it shares with the focus) */
+  id: string;
+  /** How many fine-grained links it stands for */
+  count: number;
+  /** How many of them carry a change on (not `stop`): calls, imports, runs before tests and docs */
+  spreading: number;
+  wires: { kid: string; label: string }[];
+}
+
+function topKinds(kinds: Map<string, number>): string {
+  return [...kinds.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => k).join(", ");
+}
+
+/**
+ * The links lifted onto one view, the children `kidIds` of `focusId`: wires between two children,
+ * and the parts outside that children depend on (`outs`) or that depend on them (`ins`), `maxPerSide`
+ * of each: those a change travels through (calls, imports, runs) first, then the busiest. An outside
+ * part the map does not hold (`isKnown`; by default, anything in `parentOf`) is left out.
+ */
+export function liftLinksToView(
+  links: TuxMapLink[],
+  focusId: string,
+  kidIds: string[],
+  parentOf: Map<string, string>,
+  opts: { quiet?: ReadonlySet<string>; maxPerSide?: number; isKnown?: (id: string) => boolean } = {},
+): { rels: TuxMapLevelRel[]; ins: TuxMapLiftedSide[]; outs: TuxMapLiftedSide[]; moreIns: number; moreOuts: number } {
+  const quiet = opts.quiet ?? TUX_MAP_QUIET_LINK_KINDS;
+  // an outside part is drawn only if the map holds it (a link may name one it does not)
+  const isKnown = opts.isKnown ?? ((id: string) => parentOf.has(id));
+  const max = opts.maxPerSide ?? 8;
+  const kids = new Set(kidIds);
+  const focusChain = new Set(mapAncestorsOf(focusId, parentOf));
+  const kidDepth = mapAncestorsOf(focusId, parentOf).length + 1;
+  const outside = (id: string): string | null => {
+    if (!isKnown(id)) return null;
+    let pick: string | null = null;
+    for (const a of mapAncestorsOf(id, parentOf)) {
+      if (focusChain.has(a)) break;
+      pick = a;
+      if (mapAncestorsOf(a, parentOf).length <= kidDepth) break;
+    }
+    return pick;
+  };
+  const sib = new Map<string, { from: string; to: string; kinds: Map<string, number> }>();
+  // links that spread, per side: a part both sides hold counts each side's own
+  const spreading = { ins: new Map<string, number>(), outs: new Map<string, number>() };
+  const side = (which: "ins" | "outs", m: Map<string, Map<string, Map<string, number>>>, o: string, kid: string, l: TuxMapLink) => {
+    const kind = l.kind || "uses";
+    const byKid = m.get(o) ?? new Map<string, Map<string, number>>();
+    const kinds = byKid.get(kid) ?? new Map<string, number>();
+    kinds.set(kind, (kinds.get(kind) ?? 0) + 1);
+    byKid.set(kid, kinds);
+    m.set(o, byKid);
+    if (!l.stop) spreading[which].set(o, (spreading[which].get(o) ?? 0) + 1);
+  };
+  const insM = new Map<string, Map<string, Map<string, number>>>();
+  const outsM = new Map<string, Map<string, Map<string, number>>>();
+  for (const l of links) {
+    const kind = l.kind || "uses";
+    if (quiet.has(kind)) continue;
+    const a = liftToSet(l.from, kids, parentOf);
+    const b = liftToSet(l.to, kids, parentOf);
+    if (a && b) {
+      if (a === b) continue;
+      const key = `${a}\u0000${b}`;
+      const r = sib.get(key) ?? { from: a, to: b, kinds: new Map<string, number>() };
+      r.kinds.set(kind, (r.kinds.get(kind) ?? 0) + 1);
+      sib.set(key, r);
+    } else if (a) {
+      const o = outside(l.to);
+      if (o) side("outs", outsM, o, a, l);
+    } else if (b) {
+      const o = outside(l.from);
+      if (o) side("ins", insM, o, b, l);
+    }
+  }
+  const sides = (which: "ins" | "outs", m: Map<string, Map<string, Map<string, number>>>): TuxMapLiftedSide[] =>
+    [...m.entries()]
+      .map(([id, byKid]) => ({
+        id,
+        count: [...byKid.values()].reduce((n, k) => n + [...k.values()].reduce((x, y) => x + y, 0), 0),
+        spreading: spreading[which].get(id) ?? 0,
+        wires: [...byKid.entries()].map(([kid, k]) => ({ kid, label: topKinds(k) })),
+      }))
+      .sort((x, y) => Number(y.spreading > 0) - Number(x.spreading > 0) || y.count - x.count || x.id.localeCompare(y.id));
+  const ins = sides("ins", insM);
+  const outs = sides("outs", outsM);
+  return {
+    rels: [...sib.values()].map((r) => ({ from: r.from, to: r.to, label: topKinds(r.kinds) })),
+    ins: ins.slice(0, max),
+    outs: outs.slice(0, max),
+    moreIns: Math.max(0, ins.length - max),
+    moreOuts: Math.max(0, outs.length - max),
+  };
+}
+
+export interface TuxMapBlastHit {
+  /** Steps from the selection: 1 = depends on it directly */
+  hop: number;
+  /** The link it was reached through */
+  via: TuxMapLink;
+}
+
+/**
+ * The blast radius of changing `seedId`: every element that depends on it or on anything inside
+ * it, upstream through `links`. The change first travels as far as the links that spread reach;
+ * then a `stop` link (a test, a check, a doc) is followed one step out from everything it reached,
+ * and no further. So an element both kinds reach is reached through the spreading one, and what
+ * depends on it is in the radius too.
+ * A link counts against what it names: one to a container of the seed (`N imports M`, with the
+ * seed a function in M) is not followed. A link names its target as precisely as it is known.
+ */
+export function computeLinkBlastRadius(
+  links: TuxMapLink[],
+  seedId: string,
+  parentOf: Map<string, string>,
+  opts: { maxHops?: number } = {},
+): { seeds: Set<string>; hits: Map<string, TuxMapBlastHit> } {
+  const maxHops = opts.maxHops ?? 32;
+  const kidsOf = new Map<string, string[]>();
+  for (const [c, p] of parentOf) {
+    const k = kidsOf.get(p) ?? [];
+    k.push(c);
+    kidsOf.set(p, k);
+  }
+  const seeds = new Set<string>([seedId]);
+  const dq = [seedId];
+  while (dq.length) {
+    for (const c of kidsOf.get(dq.shift()!) ?? []) {
+      if (!seeds.has(c)) {
+        seeds.add(c);
+        dq.push(c);
+      }
+    }
+  }
+  const into = new Map<string, TuxMapLink[]>();
+  for (const l of links) {
+    const arr = into.get(l.to) ?? [];
+    arr.push(l);
+    into.set(l.to, arr);
+  }
+  const hits = new Map<string, TuxMapBlastHit>();
+  // breadth first through the links that spread; `q` ends in hop order
+  const q: [string, number][] = [...seeds].map((x) => [x, 0]);
+  for (let i = 0; i < q.length; i++) {
+    const [x, hop] = q[i]!;
+    if (hop >= maxHops) continue;
+    for (const l of into.get(x) ?? []) {
+      const y = l.from;
+      if (l.stop || seeds.has(y) || hits.has(y)) continue;
+      hits.set(y, { hop: hop + 1, via: l });
+      q.push([y, hop + 1]);
+    }
+  }
+  // then one step out through the links that stop, nearest first
+  for (const [x, hop] of q) {
+    if (hop >= maxHops) continue;
+    for (const l of into.get(x) ?? []) {
+      const y = l.from;
+      if (!l.stop || seeds.has(y) || hits.has(y)) continue;
+      hits.set(y, { hop: hop + 1, via: l });
+    }
+  }
+  return { seeds, hits };
+}
+
+// ============================================================================
+// 8. MCP / ACP ARCHITECTURE GRAPH QUERY & SUBGRAPH LEASE ENGINE
 //    (Deterministic spatial query, k-hop blast-radius, shortest path, and
 //     ACP non-overlapping subgraph lease coordinator for multi-agent swarms)
 // ============================================================================
@@ -2239,6 +2488,20 @@ export function buildUnifiedArchitectureGraph(model: TuxMapLevelModel = DEFAULT_
       });
     });
   }
+
+  // Code links: the fine-grained dependencies, at the level of the part that depends
+  (model.links || []).forEach((l, idx) => {
+    if (!nodes.has(l.from) || !nodes.has(l.to)) return;
+    edges.push({
+      id: `lnk-${idx}-${l.from}-${l.to}`,
+      from: l.from,
+      to: l.to,
+      label: l.kind,
+      tech: l.at,
+      level: nodes.get(l.from)!.level,
+      kind: "rel",
+    });
+  });
 
   return { nodes, edges };
 }

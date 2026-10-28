@@ -3,7 +3,15 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
-## [3.7.1] — 2026-10-28
+## [3.8.0] — 2026-10-28
+
+### Added — code links and a blast radius below Level 4 (`<TuxArchitectureMap>`, #104)
+
+- **`links` on the model**: `{ from, to, kind, stop?, at? }`, where `from` depends on `to` (kinds such as `imports`, `calls`, `runs`, `checks`, `tests`, `mentions`). `at` is `path:line`, linked through `sourceBaseUrl`. A model without `links` draws exactly as before.
+- **Wires and outside cards at Levels 5+**: links are lifted onto the cards in view. Links between two cards become wires. Links to anything outside the view become cards at the edges: what depends on the view on the left, what it depends on on the right, with links that spread change ranked first. `TUX_MAP_QUIET_LINK_KINDS` (`mentions`) are never drawn.
+- **The blast radius of a selection**: `computeLinkBlastRadius` walks upstream from the selected card, to everything that depends on it. It spreads through links that carry a change and takes one step only through `stop` links (tests, checks, docs). The details panel lists what is reached, nearest first, each with a link to the line the dependency was found on; "Show it on the map" lights it up.
+- Deep links to a Level 5+ card open with the full drill path, so the breadcrumb no longer skips Level 3. Double-clicking a card at Level 5+ takes you to where it lives on the map.
+
 
 ### Fixed & Expanded — Figma Free Starter Plan Kit (`kit/figma/` & `/install/figma`)
 
