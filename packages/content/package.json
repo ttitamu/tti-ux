@@ -1,6 +1,6 @@
 {
   "name": "@tti/tti-ux-content",
-  "version": "3.7.1",
+  "version": "3.7.2",
   "description": "Markdown (MDC), KaTeX math rendering, and technical publication formatting for the TTI design system (TUX).",
   "type": "module",
   "main": "./nuxt.config.ts",

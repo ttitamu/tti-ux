@@ -6,14 +6,14 @@
     <rect width="712" height="68" rx="4" fill="#FFFFFF" stroke="#E7E6E6"/>
     <rect width="4" height="68" fill="#5C0025"/>
     <g id="Icon / lucide:bookmark" transform="translate(18, 16) scale(0.75)"><path fill="none" stroke="#5C0025" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"/></g>
-    <text x="44" y="28" fill="#5C0025" font-family="Open Sans, sans-serif" font-size="14" font-weight="700">Institutional Provenance &amp; Accessibility Standard</text>
-    <text x="44" y="50" fill="#424242" font-family="Open Sans, sans-serif" font-size="13">All telemetry tables and roadway advisories maintain ≥ 7.0:1 normal text contrast across light, dark, and high-contrast modes.</text>
+    <text x="44" y="28" fill="#5C0025" font-family="Open Sans, sans-serif" font-size="13" font-weight="700">Institutional Provenance &amp; Accessibility Standard</text>
+    <text x="44" y="50" fill="#424242" font-family="Open Sans, sans-serif" font-size="12">Telemetry tables and roadway advisories maintain ≥ 7.0:1 contrast across Light, Dark, and High-Contrast modes.</text>
   </g>
   <g id="Alert / Danger" transform="translate(24, 142)">
     <rect width="712" height="68" rx="4" fill="#FFFFFF" stroke="#A02828"/>
     <rect width="4" height="68" fill="#A02828"/>
     <g id="Icon / lucide:circle-x" transform="translate(18, 16) scale(0.75)"><g fill="none" stroke="#A02828" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9l-6 6m0-6l6 6"/></g></g>
-    <text x="44" y="28" fill="#A02828" font-family="Open Sans, sans-serif" font-size="14" font-weight="700">Corridor Telemetry Feed Interrupted — IH-35W Northbound Sensor Array</text>
-    <text x="44" y="50" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="13">Automatic fallback to archival 5-minute loop detector aggregates activated. Verify RSU uplink at STA 142+50.</text>
+    <text x="44" y="28" fill="#A02828" font-family="Open Sans, sans-serif" font-size="13" font-weight="700">Corridor Telemetry Feed Interrupted — IH-35W Sensor Array</text>
+    <text x="44" y="50" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="12">Automatic fallback to 5-minute loop detector aggregates active. Verify RSU uplink at STA 142+50.</text>
   </g>
 </svg>

@@ -2,9 +2,9 @@
   <rect id="TUX / TuxSectionHeader Sheet" width="760" height="150" rx="8" fill="#FFFFFF" stroke="#E7E6E6"/>
   <g id="SectionHeader / Editorial" transform="translate(24, 24)">
     <text x="0" y="14" fill="#5C0025" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1.4">ROADWAY SAFETY &amp; HUMAN FACTORS</text>
-    <text x="0" y="48" fill="#221F1F" font-family="Oswald, sans-serif" font-size="26" font-weight="700">Statewide Intersection Conflict Analysis</text>
+    <text x="0" y="48" fill="#221F1F" font-family="Oswald, sans-serif" font-size="22" font-weight="700">Statewide Intersection Conflict Analysis</text>
     <rect x="0" y="60" width="96" height="3" fill="#DDAC37"/>
     <line x1="96" y1="61.5" x2="712" y2="61.5" stroke="#E7E6E6"/>
-    <text x="0" y="88" fill="#424242" font-family="Open Sans, sans-serif" font-size="14">Surrogate safety measures (PET &amp; TTC) aggregated across 420 signalized intersections in TxDOT districts.</text>
+    <text x="0" y="88" fill="#424242" font-family="Open Sans, sans-serif" font-size="13">Surrogate safety measures (PET &amp; TTC) aggregated across 420 signalized intersections.</text>
   </g>
 </svg>

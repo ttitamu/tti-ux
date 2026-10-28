@@ -455,6 +455,12 @@ export function renderCodeConnect() {
 export function buildSvgComponentSheets(themes) {
   const t = themes.tti;
   const d = themes["tti-dark"];
+  const ttiLogoColorUri =
+    "data:image/png;base64," +
+    fs.readFileSync(path.join(ROOT, "public/resources/logos/tti-logo-color.png")).toString("base64");
+  const ttiLogoWhiteUri =
+    "data:image/png;base64," +
+    fs.readFileSync(path.join(ROOT, "public/resources/logos/tti-logo-white.png")).toString("base64");
 
   const sheets = [
     {
@@ -533,10 +539,10 @@ export function buildSvgComponentSheets(themes) {
   </g>
   <g id="Typography Scale" transform="translate(24, 172)">
     <rect width="712" height="68" rx="4" fill="${t["surface-eggshell"]}" stroke="${t["surface-border"]}"/>
-    <text x="16" y="28" fill="${t["text-primary"]}" font-family="Oswald, sans-serif" font-size="20" font-weight="700">Oswald Display · H1–H3 Headings</text>
-    <text x="16" y="50" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="13">Open Sans Body (16px / 1.65) · ≥ 7.0:1 AAA Contrast</text>
-    <text x="410" y="28" fill="${t["brand-primary"]}" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">JetBrains Mono · Tabular Telemetry</text>
-    <text x="410" y="50" fill="${t["text-muted"]}" font-family="JetBrains Mono, monospace" font-size="12">STA 104+00 · n = 28,400 · 99.4% ± 0.2%</text>
+    <text x="16" y="28" fill="${t["text-primary"]}" font-family="Oswald, sans-serif" font-size="18" font-weight="700">Oswald Display · H1–H3 Headings</text>
+    <text x="16" y="50" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="12">Open Sans Body (16px / 1.65) · ≥ 7.0:1 AAA Contrast</text>
+    <text x="410" y="28" fill="${t["brand-primary"]}" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">JetBrains Mono · Tabular Telemetry</text>
+    <text x="410" y="50" fill="${t["text-muted"]}" font-family="JetBrains Mono, monospace" font-size="11">STA 104+00 · n = 28,400 · 99.4% ± 0.2%</text>
   </g>
 </svg>`,
     },
@@ -580,7 +586,7 @@ export function buildSvgComponentSheets(themes) {
       <rect width="164" height="44" rx="2" fill="${d["surface-raised"]}" stroke="${d["surface-border"]}" stroke-width="1.5"/>
       <text x="82" y="27" text-anchor="middle" fill="${d["text-primary"]}" font-family="Open Sans, sans-serif" font-size="14" font-weight="600">Dark Secondary</text>
     </g>
-    <text x="384" y="39" fill="${d["text-secondary"]}" font-family="JetBrains Mono, monospace" font-size="12">shape="default | sharp | pill" · Focus ring: ${t["focus-ring-outer"]}</text>
+    <text x="384" y="39" fill="${d["text-secondary"]}" font-family="JetBrains Mono, monospace" font-size="11">shape="default | sharp | pill" · Focus: ${t["focus-ring-outer"]}</text>
   </g>
 </svg>`,
     },
@@ -668,15 +674,15 @@ export function buildSvgComponentSheets(themes) {
     <rect width="712" height="68" rx="4" fill="${t["surface-page"]}" stroke="${t["surface-border"]}"/>
     <rect width="4" height="68" fill="${t["brand-primary"]}"/>
     ${lucideSvgGroup("bookmark", 18, 16, 18, t["brand-primary"])}
-    <text x="44" y="28" fill="${t["brand-primary"]}" font-family="Open Sans, sans-serif" font-size="14" font-weight="700">Institutional Provenance &amp; Accessibility Standard</text>
-    <text x="44" y="50" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="13">All telemetry tables and roadway advisories maintain ≥ 7.0:1 normal text contrast across light, dark, and high-contrast modes.</text>
+    <text x="44" y="28" fill="${t["brand-primary"]}" font-family="Open Sans, sans-serif" font-size="13" font-weight="700">Institutional Provenance &amp; Accessibility Standard</text>
+    <text x="44" y="50" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="12">Telemetry tables and roadway advisories maintain ≥ 7.0:1 contrast across Light, Dark, and High-Contrast modes.</text>
   </g>
   <g id="Alert / Danger" transform="translate(24, 142)">
     <rect width="712" height="68" rx="4" fill="${t["surface-page"]}" stroke="${t["status-critical"]}"/>
     <rect width="4" height="68" fill="${t["status-critical"]}"/>
     ${lucideSvgGroup("circle-x", 18, 16, 18, t["status-critical"])}
-    <text x="44" y="28" fill="${t["status-critical"]}" font-family="Open Sans, sans-serif" font-size="14" font-weight="700">Corridor Telemetry Feed Interrupted — IH-35W Northbound Sensor Array</text>
-    <text x="44" y="50" fill="${t["text-primary"]}" font-family="Open Sans, sans-serif" font-size="13">Automatic fallback to archival 5-minute loop detector aggregates activated. Verify RSU uplink at STA 142+50.</text>
+    <text x="44" y="28" fill="${t["status-critical"]}" font-family="Open Sans, sans-serif" font-size="13" font-weight="700">Corridor Telemetry Feed Interrupted — IH-35W Sensor Array</text>
+    <text x="44" y="50" fill="${t["text-primary"]}" font-family="Open Sans, sans-serif" font-size="12">Automatic fallback to 5-minute loop detector aggregates active. Verify RSU uplink at STA 142+50.</text>
   </g>
 </svg>`,
     },
@@ -694,9 +700,10 @@ export function buildSvgComponentSheets(themes) {
     <rect width="344" height="200" rx="6" fill="${t["surface-raised"]}" stroke="${t["surface-border"]}"/>
     <rect width="344" height="4" rx="2" fill="${t["brand-primary"]}"/>
     <text x="20" y="32" fill="${t["brand-primary"]}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1">CONNECTED CORRIDORS · TXDOT</text>
-    <text x="20" y="58" fill="${t["text-primary"]}" font-family="Oswald, sans-serif" font-size="20" font-weight="700">Automated Freight Platooning Study</text>
+    <text x="20" y="56" fill="${t["text-primary"]}" font-family="Oswald, sans-serif" font-size="16" font-weight="700">Automated Freight Platooning</text>
     <line x1="20" y1="68" x2="84" y2="68" stroke="${t["brand-accent"]}" stroke-width="2"/>
-    <text x="20" y="94" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="13">Field evaluation of V2X low-latency BSM telemetry along the I-10 Texas Freight Corridor.</text>
+    <text x="20" y="92" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="12">Field evaluation of V2X low-latency BSM</text>
+    <text x="20" y="110" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="12">telemetry on the I-10 Freight Corridor.</text>
     <line x1="20" y1="154" x2="324" y2="154" stroke="${t["surface-border-subtle"]}"/>
     <text x="20" y="178" fill="${t["text-muted"]}" font-family="JetBrains Mono, monospace" font-size="11">Project 0-7142 · DOI: 10.5555/tti.2026</text>
   </g>
@@ -704,9 +711,10 @@ export function buildSvgComponentSheets(themes) {
     <rect width="344" height="200" rx="6" fill="${d["surface-raised"]}" stroke="${d["surface-border"]}"/>
     <rect width="344" height="4" rx="2" fill="${d["brand-primary"]}"/>
     <text x="20" y="32" fill="${d["brand-primary"]}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1">RELLIS PROVING GROUNDS · DARK</text>
-    <text x="20" y="58" fill="${d["text-primary"]}" font-family="Oswald, sans-serif" font-size="20" font-weight="700">Roadside LiDAR Occlusion Benchmark</text>
+    <text x="20" y="56" fill="${d["text-primary"]}" font-family="Oswald, sans-serif" font-size="16" font-weight="700">Roadside LiDAR Occlusion Study</text>
     <line x1="20" y1="68" x2="84" y2="68" stroke="${d["brand-accent"]}" stroke-width="2"/>
-    <text x="20" y="94" fill="${d["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="13">Sub-centimeter pedestrian trajectory reconstruction under heavy precipitation conditions.</text>
+    <text x="20" y="92" fill="${d["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="12">Sub-centimeter pedestrian trajectory</text>
+    <text x="20" y="110" fill="${d["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="12">tracking in heavy rain conditions.</text>
     <line x1="20" y1="154" x2="324" y2="154" stroke="${d["surface-border-subtle"]}"/>
     <text x="20" y="178" fill="${d["text-muted"]}" font-family="JetBrains Mono, monospace" font-size="11">n = 28,400 frames · 99.4% Recall</text>
   </g>
@@ -726,21 +734,21 @@ export function buildSvgComponentSheets(themes) {
     <rect width="344" height="150" rx="6" fill="${t["surface-eggshell"]}" stroke="${t["surface-border"]}"/>
     <rect width="4" height="150" fill="${t["brand-primary"]}"/>
     <text x="24" y="34" fill="${t["text-muted"]}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">SPONSORED RESEARCH EXPENDITURE</text>
-    <text x="24" y="84" fill="${t["brand-primary"]}" font-family="Oswald, sans-serif" font-size="44" font-weight="700">$126.4M</text>
-    <rect x="204" y="56" width="96" height="24" rx="4" fill="${t["status-ok"]}"/>
-    <text x="252" y="72" text-anchor="middle" fill="${t["text-on-brand"]}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">+14.2% YoY</text>
-    <text x="24" y="112" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="13">Across 720+ active federal, state, and industry studies</text>
-    <text x="24" y="136" fill="${t["text-muted"]}" font-family="JetBrains Mono, monospace" font-size="11">n = 724 projects · 95% CI [±1.4%] · FY 2026</text>
+    <text x="24" y="84" fill="${t["brand-primary"]}" font-family="Oswald, sans-serif" font-size="40" font-weight="700">$126.4M</text>
+    <rect x="210" y="56" width="96" height="24" rx="4" fill="${t["status-ok"]}"/>
+    <text x="258" y="72" text-anchor="middle" fill="${t["text-on-brand"]}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">+14.2% YoY</text>
+    <text x="24" y="112" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="12">Across 720+ active federal &amp; state studies</text>
+    <text x="24" y="136" fill="${t["text-muted"]}" font-family="JetBrains Mono, monospace" font-size="11">n = 724 projects · 95% CI [±1.4%]</text>
   </g>
   <g id="BigStat / Crash Reduction" transform="translate(392, 20)">
     <rect width="344" height="150" rx="6" fill="${t["surface-eggshell"]}" stroke="${t["surface-border"]}"/>
     <rect width="4" height="150" fill="${t["tti-navy"]}"/>
     <text x="24" y="34" fill="${t["text-muted"]}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">WORK-ZONE QUEUE WARNING EFFICACY</text>
-    <text x="24" y="84" fill="${t["tti-navy"]}" font-family="Oswald, sans-serif" font-size="44" font-weight="700">-38.6%</text>
-    <rect x="190" y="56" width="124" height="24" rx="4" fill="${t["tti-navy"]}"/>
-    <text x="252" y="72" text-anchor="middle" fill="${t["text-on-brand"]}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">REAR-END CRASHES</text>
-    <text x="24" y="112" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="13">Smart Arrow Board + portable radar queue deployment</text>
-    <text x="24" y="136" fill="${t["text-muted"]}" font-family="JetBrains Mono, monospace" font-size="11">n = 148 corridors · DOI: 10.5555/tti.wz.26</text>
+    <text x="24" y="84" fill="${t["tti-navy"]}" font-family="Oswald, sans-serif" font-size="40" font-weight="700">-38.6%</text>
+    <rect x="192" y="56" width="124" height="24" rx="4" fill="${t["tti-navy"]}"/>
+    <text x="254" y="72" text-anchor="middle" fill="${t["text-on-brand"]}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">REAR-END CRASHES</text>
+    <text x="24" y="112" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="12">Smart Arrow Board &amp; radar queue deployment</text>
+    <text x="24" y="136" fill="${t["text-muted"]}" font-family="JetBrains Mono, monospace" font-size="11">n = 148 corridors · DOI: 10.5555/tti.26</text>
   </g>
 </svg>`,
     },
@@ -865,7 +873,7 @@ export function buildSvgComponentSheets(themes) {
   <g id="Masthead / Tier 1 Utility Bar" transform="translate(16, 16)">
     <rect width="728" height="32" fill="${t["brand-primary"]}"/>
     <text x="16" y="20" fill="${t["text-on-brand"]}" font-family="Open Sans, sans-serif" font-size="11" font-weight="600">TEXAS A&amp;M TRANSPORTATION INSTITUTE</text>
-    ${lucideSvgGroup("external-link", 242, 10, 12, t["text-on-brand"])}
+    ${lucideSvgGroup("external-link", 254, 10, 12, t["text-on-brand"])}
     <text x="618" y="20" text-anchor="end" fill="${t["text-on-brand"]}" font-family="Open Sans, sans-serif" font-size="11">JOBS · PRESSROOM · DIRECTORY</text>
     <rect x="632" y="5" width="84" height="22" rx="3" fill="${t["brand-primary-deep"]}" stroke="${t["brand-accent"]}"/>
     ${lucideSvgGroup("search", 640, 10, 12, t["brand-accent"])}
@@ -873,14 +881,13 @@ export function buildSvgComponentSheets(themes) {
   </g>
   <g id="Masthead / Tier 2 Brand Ribbon" transform="translate(16, 48)">
     <rect width="728" height="62" fill="${t["surface-raised"]}" stroke="${t["surface-border"]}"/>
-    <rect x="16" y="13" width="52" height="36" rx="2" fill="${t["brand-primary"]}"/>
-    <text x="42" y="36" text-anchor="middle" fill="${t["text-on-brand"]}" font-family="Oswald, sans-serif" font-size="18" font-weight="700">TTI</text>
-    <line x1="80" y1="16" x2="80" y2="46" stroke="${t["surface-border"]}"/>
-    <text x="92" y="36" fill="${t["text-primary"]}" font-family="Open Sans, sans-serif" font-size="15" font-weight="700">Corridor Telemetry Portal</text>
-    <text x="430" y="36" fill="${t["brand-primary"]}" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">OVERVIEW</text>
-    <line x1="430" y1="44" x2="494" y2="44" stroke="${t["brand-accent"]}" stroke-width="2"/>
-    <text x="514" y="36" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">CORRIDORS</text>
-    <text x="602" y="36" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">DATASETS</text>
+    <image id="TTI Official Logo" x="16" y="16" width="156" height="30" href="${ttiLogoColorUri}"/>
+    <line x1="186" y1="16" x2="186" y2="46" stroke="${t["surface-border"]}"/>
+    <text x="200" y="36" fill="${t["text-primary"]}" font-family="Open Sans, sans-serif" font-size="14" font-weight="700">Corridor Telemetry Portal</text>
+    <text x="456" y="36" fill="${t["brand-primary"]}" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">OVERVIEW</text>
+    <line x1="456" y1="44" x2="520" y2="44" stroke="${t["brand-accent"]}" stroke-width="2"/>
+    <text x="538" y="36" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">CORRIDORS</text>
+    <text x="626" y="36" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">DATASETS</text>
   </g>
   <g id="Masthead / 5-Band Spectrum Ribbon" transform="translate(16, 110)">
     <rect x="0" y="0" width="145.6" height="6" fill="${t["spectrum-maroon"]}"/>
@@ -903,10 +910,10 @@ export function buildSvgComponentSheets(themes) {
   <rect id="TUX / TuxSectionHeader Sheet" width="760" height="150" rx="8" fill="${t["surface-page"]}" stroke="${t["surface-border"]}"/>
   <g id="SectionHeader / Editorial" transform="translate(24, 24)">
     <text x="0" y="14" fill="${t["brand-primary"]}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" letter-spacing="1.4">ROADWAY SAFETY &amp; HUMAN FACTORS</text>
-    <text x="0" y="48" fill="${t["text-primary"]}" font-family="Oswald, sans-serif" font-size="26" font-weight="700">Statewide Intersection Conflict Analysis</text>
+    <text x="0" y="48" fill="${t["text-primary"]}" font-family="Oswald, sans-serif" font-size="22" font-weight="700">Statewide Intersection Conflict Analysis</text>
     <rect x="0" y="60" width="96" height="3" fill="${t["brand-accent"]}"/>
     <line x1="96" y1="61.5" x2="712" y2="61.5" stroke="${t["surface-border"]}"/>
-    <text x="0" y="88" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="14">Surrogate safety measures (PET &amp; TTC) aggregated across 420 signalized intersections in TxDOT districts.</text>
+    <text x="0" y="88" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="13">Surrogate safety measures (PET &amp; TTC) aggregated across 420 signalized intersections.</text>
   </g>
 </svg>`,
     },
@@ -1009,7 +1016,7 @@ export function buildSvgComponentSheets(themes) {
         "Linear Referencing System (LRS) highway corridor diagram with civil-engineering stationing ticks (STA 00+00 to STA 45+00) and sensor nodes.",
       svg: `<svg xmlns="http://www.w3.org/2000/svg" width="760" height="190" viewBox="0 0 760 190" fill="none">
   <rect id="TUX / TuxCorridorStrip Sheet" width="760" height="190" rx="8" fill="${t["surface-eggshell"]}" stroke="${t["surface-border"]}"/>
-  <text x="24" y="34" fill="${t["brand-primary"]}" font-family="Oswald, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">TUX / TUXCORRIDORSTRIP · LINEAR REFERENCING &amp; CIVIL STATIONING</text>
+  <text x="24" y="34" fill="${t["brand-primary"]}" font-family="Oswald, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">TUX / TUXCORRIDORSTRIP · LINEAR REFERENCING</text>
   <text x="736" y="34" text-anchor="end" fill="${t["text-muted"]}" font-family="JetBrains Mono, monospace" font-size="11">SYNC CHANNEL: ih35-main</text>
   <line x1="24" y1="44" x2="736" y2="44" stroke="${t["brand-accent"]}" stroke-width="2"/>
   <g id="Corridor Spine" transform="translate(48, 86)">
@@ -1099,9 +1106,9 @@ export function buildSvgComponentSheets(themes) {
   <g id="Modal / Confirmation Dialog" transform="translate(24, 58)">
     <rect width="416" height="142" rx="6" fill="${t["surface-page"]}" stroke="${t["surface-border"]}" stroke-width="1.5"/>
     <rect width="416" height="4" rx="2" fill="${t["brand-primary"]}"/>
-    <text x="20" y="30" fill="${t["text-primary"]}" font-family="Oswald, sans-serif" font-size="17" font-weight="700">Export Corridor Dataset (CSV / Parquet)</text>
+    <text x="20" y="30" fill="${t["text-primary"]}" font-family="Oswald, sans-serif" font-size="15" font-weight="700">Export Corridor Dataset (CSV)</text>
     ${lucideSvgGroup("x", 382, 16, 16, t["text-muted"])}
-    <text x="20" y="56" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="12">Includes 28,400 loop-detector rows with DOI citation metadata.</text>
+    <text x="20" y="56" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="12">Includes 28,400 sensor rows and DOI metadata.</text>
     <line x1="20" y1="78" x2="396" y2="78" stroke="${t["surface-border-subtle"]}"/>
     <rect x="204" y="90" width="90" height="36" rx="2" fill="${t["surface-page"]}" stroke="${t["surface-border"]}"/>
     <text x="249" y="113" text-anchor="middle" fill="${t["text-primary"]}" font-family="Open Sans, sans-serif" font-size="12" font-weight="600">Cancel</text>
@@ -1151,10 +1158,10 @@ export function buildSvgComponentSheets(themes) {
   <g id="Footer / Institutional Colophon" transform="translate(264, 58)">
     <rect width="472" height="132" rx="4" fill="${t["tti-charcoal"]}"/>
     <rect x="0" y="0" width="472" height="4" fill="${t["brand-accent"]}"/>
-    <text x="20" y="32" fill="${t["text-on-brand"]}" font-family="Oswald, sans-serif" font-size="16" font-weight="700">TEXAS A&amp;M TRANSPORTATION INSTITUTE</text>
-    <text x="20" y="54" fill="${t["neutral-300"]}" font-family="Open Sans, sans-serif" font-size="11">3135 TAMU · College Station, TX 77843-3135 · A Member of The Texas A&amp;M University System</text>
-    <line x1="20" y1="74" x2="452" y2="74" stroke="${t["neutral-700"]}"/>
-    <text x="20" y="100" fill="${t["brand-accent"]}" font-family="Open Sans, sans-serif" font-size="11" font-weight="600">Accessibility (WCAG 2.2 AAA) · Site Policies · Open Records · Texas.gov</text>
+    <image id="TTI Official White Logo" x="20" y="14" width="145" height="28" href="${ttiLogoWhiteUri}"/>
+    <text x="20" y="60" fill="${t["neutral-300"]}" font-family="Open Sans, sans-serif" font-size="11">3135 TAMU · College Station, TX 77843 · Texas A&amp;M System</text>
+    <line x1="20" y1="78" x2="452" y2="78" stroke="${t["neutral-700"]}"/>
+    <text x="20" y="102" fill="${t["brand-accent"]}" font-family="Open Sans, sans-serif" font-size="11" font-weight="600">Accessibility (AAA) · Site Policies · Open Records · Texas.gov</text>
   </g>
 </svg>`,
     },
@@ -1173,17 +1180,17 @@ export function buildSvgComponentSheets(themes) {
   <g id="StatComparison / Corridor Travel Time" transform="translate(24, 58)">
     <rect width="344" height="112" rx="6" fill="${t["surface-eggshell"]}" stroke="${t["surface-border"]}"/>
     <text x="18" y="26" fill="${t["text-muted"]}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">MEAN TRAVEL TIME INDEX (TTI)</text>
-    <text x="18" y="64" fill="${t["text-primary"]}" font-family="Oswald, sans-serif" font-size="32" font-weight="700">1.18</text>
-    <text x="92" y="62" fill="${t["text-muted"]}" font-family="JetBrains Mono, monospace" font-size="12">vs 1.42 baseline</text>
+    <text x="18" y="64" fill="${t["text-primary"]}" font-family="Oswald, sans-serif" font-size="30" font-weight="700">1.18</text>
+    <text x="88" y="62" fill="${t["text-muted"]}" font-family="JetBrains Mono, monospace" font-size="11">vs 1.42 baseline</text>
     <rect x="234" y="42" width="92" height="24" rx="3" fill="${t["status-ok-fill"]}" stroke="${t["status-ok"]}"/>
     <text x="280" y="58" text-anchor="middle" fill="${t["status-ok-ink"]}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">-16.9% DELAY</text>
-    <text x="18" y="94" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="12">Adaptive ramp metering active across 14 interchanges</text>
+    <text x="18" y="94" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="11.5">Adaptive ramp metering across 14 interchanges</text>
   </g>
   <g id="EmptyState / Zero Results" transform="translate(392, 58)">
     <rect width="344" height="112" rx="6" fill="${t["surface-page"]}" stroke="${t["surface-border"]}" stroke-dasharray="4 4"/>
     ${lucideSvgGroup("inbox", 160, 16, 22, t["brand-primary"])}
     <text x="172" y="60" text-anchor="middle" fill="${t["text-primary"]}" font-family="Open Sans, sans-serif" font-size="13" font-weight="700">No Active Work-Zone Alerts</text>
-    <text x="172" y="80" text-anchor="middle" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="11">All 42 monitored segments are operating at LOS A–B.</text>
+    <text x="172" y="80" text-anchor="middle" fill="${t["text-secondary"]}" font-family="Open Sans, sans-serif" font-size="11">All 42 monitored segments are at LOS A–B.</text>
   </g>
 </svg>`,
     },
@@ -1204,7 +1211,7 @@ export function buildSvgComponentSheets(themes) {
     ${lucideSvgGroup("shield-check", 16, 16, 16, t["brand-primary"])}
     <text x="38" y="29" fill="${t["text-primary"]}" font-family="Open Sans, sans-serif" font-size="12" font-weight="700">3 Grounded TTI Research Sources</text>
     <rect x="16" y="44" width="312" height="26" rx="3" fill="${t["surface-sunken"]}"/>
-    <text x="24" y="61" fill="${t["brand-primary"]}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">[1] TxDOT Report 0-7142 · Freight Platooning</text>
+    <text x="24" y="61" fill="${t["brand-primary"]}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">[1] TxDOT 0-7142 · Freight Platooning</text>
     <rect x="16" y="76" width="312" height="26" rx="3" fill="${t["surface-sunken"]}"/>
     <text x="24" y="93" fill="${t["brand-primary"]}" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">[2] HCM 7th Ed. · Freeway Facilities LOS</text>
   </g>
@@ -1214,7 +1221,7 @@ export function buildSvgComponentSheets(themes) {
     <text x="38" y="29" fill="${t["text-primary"]}" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">queryCorridorTelemetry()</text>
     <text x="328" y="29" text-anchor="end" fill="${t["text-muted"]}" font-family="JetBrains Mono, monospace" font-size="11">42 ms</text>
     <rect x="16" y="44" width="312" height="54" rx="4" fill="${d["surface-page"]}"/>
-    <text x="26" y="66" fill="${d["text-primary"]}" font-family="JetBrains Mono, monospace" font-size="11">{ "corridor": "IH-35E", "station": "104+00" }</text>
+    <text x="26" y="66" fill="${d["text-primary"]}" font-family="JetBrains Mono, monospace" font-size="11">{ "corridor": "IH-35E", "sta": "104+00" }</text>
     <text x="26" y="86" fill="${d["brand-primary"]}" font-family="JetBrains Mono, monospace" font-size="11">→ { "speedMph": 64.2, "los": "B" }</text>
   </g>
 </svg>`,

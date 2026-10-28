@@ -5,9 +5,9 @@
   <g id="Modal / Confirmation Dialog" transform="translate(24, 58)">
     <rect width="416" height="142" rx="6" fill="#FFFFFF" stroke="#E7E6E6" stroke-width="1.5"/>
     <rect width="416" height="4" rx="2" fill="#5C0025"/>
-    <text x="20" y="30" fill="#221F1F" font-family="Oswald, sans-serif" font-size="17" font-weight="700">Export Corridor Dataset (CSV / Parquet)</text>
+    <text x="20" y="30" fill="#221F1F" font-family="Oswald, sans-serif" font-size="15" font-weight="700">Export Corridor Dataset (CSV)</text>
     <g id="Icon / lucide:x" transform="translate(382, 16) scale(0.6667)"><path fill="none" stroke="#525252" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6L6 18M6 6l12 12"/></g>
-    <text x="20" y="56" fill="#424242" font-family="Open Sans, sans-serif" font-size="12">Includes 28,400 loop-detector rows with DOI citation metadata.</text>
+    <text x="20" y="56" fill="#424242" font-family="Open Sans, sans-serif" font-size="12">Includes 28,400 sensor rows and DOI metadata.</text>
     <line x1="20" y1="78" x2="396" y2="78" stroke="#EFEEED"/>
     <rect x="204" y="90" width="90" height="36" rx="2" fill="#FFFFFF" stroke="#E7E6E6"/>
     <text x="249" y="113" text-anchor="middle" fill="#221F1F" font-family="Open Sans, sans-serif" font-size="12" font-weight="600">Cancel</text>
