@@ -238,6 +238,10 @@ describe("TuxArchitectureMap Component", () => {
     // Vue Flow–style animated wire streams are rendered
     expect(wrapper.findAll(".tux-map__wire-fg--stream").length).toBeGreaterThan(0);
 
+    const stageStyle = wrapper.find(".tux-map__stage").attributes("style") || "";
+    const scaleMatch = stageStyle.match(/scale\(([\d.]+)\)/);
+    const scale = Number(scaleMatch?.[1] ?? 1);
+
     const searchCard = wrapper.find('.tux-map__el[data-id="c-search"]');
     const styleAttr = searchCard.attributes("style") || "";
     const leftMatch = styleAttr.match(/left:\s*(\d+)px/);
@@ -245,12 +249,25 @@ describe("TuxArchitectureMap Component", () => {
     const cardLeft = Number(leftMatch?.[1] ?? 500);
     const cardTop = Number(topMatch?.[1] ?? 200);
 
-    // Move pointer in empty space 18px above-left of the `c-search` card
+    // Far away in open canvas (e.g., top-left corner), proximity does NOT activate
     const viewport = wrapper.find(".tux-map__viewport");
     viewport.element.dispatchEvent(
       new MouseEvent("pointermove", {
-        clientX: cardLeft - 18,
-        clientY: cardTop - 18,
+        clientX: 4,
+        clientY: 4,
+        bubbles: true,
+      }),
+    );
+    await nextTick();
+    expect(wrapper.find(".tux-map__proximity-frame").exists()).toBe(false);
+
+    // Move pointer in the tight halo (14px above-left in stage coordinates) right around the `c-search` card
+    const haloClientX = Math.round((cardLeft - 14) * scale);
+    const haloClientY = Math.round((cardTop - 14) * scale);
+    viewport.element.dispatchEvent(
+      new MouseEvent("pointermove", {
+        clientX: haloClientX,
+        clientY: haloClientY,
         bubbles: true,
       }),
     );
@@ -266,8 +283,8 @@ describe("TuxArchitectureMap Component", () => {
     // Initiate mouse wheel scroll in empty space near `c-search` — locks onto `c-search` and zooms into its Level 3 view
     viewport.element.dispatchEvent(
       new WheelEvent("wheel", {
-        clientX: cardLeft - 18,
-        clientY: cardTop - 18,
+        clientX: haloClientX,
+        clientY: haloClientY,
         deltaY: -48,
         bubbles: true,
         cancelable: true,

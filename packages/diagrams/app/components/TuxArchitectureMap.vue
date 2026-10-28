@@ -1393,7 +1393,7 @@ function getCardDisplayName(id: string): string {
 function findNearestCardToPoint(
   stageX: number,
   stageY: number,
-  maxDist = 260,
+  maxDist = 36,
   preferZoomable = true,
 ): {
   id: string;
@@ -1470,7 +1470,7 @@ function updateProximityAtStagePoint(stageX: number, stageY: number) {
     return;
   }
 
-  const nearest = findNearestCardToPoint(stageX, stageY, 260, true);
+  const nearest = findNearestCardToPoint(stageX, stageY, 36, true);
   if (!nearest) {
     if (proximityCard.value) {
       proximityCard.value = null;
@@ -1500,13 +1500,13 @@ function updateProximityAtStagePoint(stageX: number, stageY: number) {
     }
   }
 
-  // Update elastic magnetic tether SVG in O(1) direct DOM when cursor is in empty space near the card
+  // Update elastic magnetic tether SVG in O(1) direct DOM when cursor is in the tight 36px halo around the card
   const svgEl = proximityTetherSvgRef.value;
   const beamEl = proximityTetherBeamRef.value;
   const curDot = proximityCursorDotRef.value;
   const ancDot = proximityAnchorDotRef.value;
   if (svgEl && beamEl && curDot && ancDot) {
-    if (nearest.dist > 5) {
+    if (nearest.dist > 3) {
       const midX = (stageX + nearest.anchorX) / 2;
       const midY = (stageY + nearest.anchorY) / 2;
       const cardCx = nearest.rect.x + nearest.rect.w / 2;
@@ -1522,7 +1522,7 @@ function updateProximityAtStagePoint(stageX: number, stageY: number) {
       curDot.setAttribute("cy", stageY.toFixed(1));
       ancDot.setAttribute("cx", nearest.anchorX.toFixed(1));
       ancDot.setAttribute("cy", nearest.anchorY.toFixed(1));
-      const strength = Math.max(0.28, 1 - nearest.dist / 280);
+      const strength = Math.max(0.28, 1 - nearest.dist / 42);
       svgEl.style.opacity = strength.toFixed(2);
     } else {
       svgEl.style.opacity = "0";
@@ -2320,7 +2320,7 @@ function onViewportWheel(ev: WheelEvent) {
   // Lock onto the proximity-attached card when the wheel gesture begins so the scroll wheel
   // physically attaches to the nearest card and follows its zoom path even if the cursor is in empty space
   if (!lockedWheelCardId) {
-    const nearMatch = findNearestCardToPoint(pt.x, pt.y, 440, isZoomIn);
+    const nearMatch = findNearestCardToPoint(pt.x, pt.y, 44, isZoomIn);
     lockedWheelCardId =
       targetEl?.dataset?.id ||
       nearMatch?.id ||
