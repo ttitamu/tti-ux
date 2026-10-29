@@ -168,13 +168,17 @@ const activeModel = computed<TuxMapLevelModel>(() => {
 });
 
 function resolveInitialIsListView(): boolean {
+  // "auto" starts as the diagram on the server and in the browser alike, and switches after mount
+  // (#106): deciding from window.innerWidth during setup rendered the diagram on the server and the
+  // list in a phone's browser, a hydration mismatch Vue leaves unrepaired in production
+  return (props.view ?? props.initialView) === "list";
+}
+
+function applyAutoListView() {
   const mode = props.view ?? props.initialView;
-  if (mode === "list") return true;
-  if (mode === "diagram") return false;
-  if (typeof window !== "undefined") {
-    return window.innerWidth < (props.autoListBreakpoint || 760);
+  if (mode !== "list" && mode !== "diagram" && typeof window !== "undefined") {
+    isListView.value = window.innerWidth < (props.autoListBreakpoint || 760);
   }
-  return false;
 }
 
 const currentLevel = ref<TuxMapLevelNumber>(props.level ?? props.initialLevel);
@@ -1742,18 +1746,68 @@ function showZoomHud(direction: "in" | "out", label: string) {
   }, 1150);
 }
 
-const stageScale = computed<number>(() => {
+const fitScale = computed<number>(() => {
   const avail = Math.max(320, viewportWidth.value - 2);
   const W = stageData.value.width;
   return Math.min(1, Number((avail / W).toFixed(4)));
 });
 
+// Magnification (#106). The stage fits the width by default, which on a phone or a tablet, or under
+// browser zoom, draws 14px text at 3-6px. "Larger" scales it past the fit and the viewport scrolls:
+// a finger, a scrollbar or the arrow keys move it, with no dragging (WCAG 1.4.4, 2.5.7).
+const MAGNIFY_SCALES = [0.5, 0.75, 1, 1.5, 2];
+const zoomScale = ref<number | null>(null);
+const stageScale = computed<number>(() =>
+  zoomScale.value !== null && zoomScale.value > fitScale.value ? zoomScale.value : fitScale.value,
+);
+const isMagnified = computed<boolean>(() => stageScale.value > fitScale.value + 0.001);
+const canMagnify = computed<boolean>(() => MAGNIFY_SCALES.some((m) => m > stageScale.value + 0.01));
+const magnifyLabel = computed<string>(() =>
+  isMagnified.value ? `${Math.round(stageScale.value * 100)}%` : "Fit",
+);
+
+function magnifyBy(dir: 1 | -1) {
+  const s = stageScale.value;
+  if (dir > 0) {
+    const next = MAGNIFY_SCALES.find((m) => m > s + 0.01);
+    if (next !== undefined) zoomScale.value = next;
+  } else {
+    const prev = [...MAGNIFY_SCALES].reverse().find((m) => m < s - 0.01 && m > fitScale.value + 0.001);
+    zoomScale.value = prev ?? null;
+  }
+  afterMagnify();
+  liveAnnouncement.value = isMagnified.value
+    ? `Diagram at ${Math.round(stageScale.value * 100)}%: scroll or swipe to move around it`
+    : "Diagram fitted to the width";
+}
+
+function magnifyFit() {
+  zoomScale.value = null;
+  afterMagnify();
+  liveAnnouncement.value = "Diagram fitted to the width";
+}
+
+// Magnified, the viewport scrolls instead of the stage sliding (panX), so the slide goes and the
+// selection is scrolled to; back at Fit, the slide that keeps it clear of the panel comes back
+function afterMagnify() {
+  nextTick(() => {
+    if (isMagnified.value) {
+      panX.value = 0;
+      scrollSelectionIntoView();
+    } else {
+      keepClear(selectedId.value);
+    }
+  });
+}
+
 const computedViewportHeight = computed<string>(() => {
   if (props.height && props.height !== "auto") {
     return props.height;
   }
-  const scaledH = Math.ceil(stageData.value.height * stageScale.value);
-  return `${Math.max(440, scaledH)}px`;
+  const fitH = Math.max(440, Math.ceil(stageData.value.height * fitScale.value));
+  if (!isMagnified.value) return `${fitH}px`;
+  // magnified: tall enough to read, never taller than most of the screen; the rest scrolls
+  return `max(${fitH}px, min(${Math.ceil(stageData.value.height * stageScale.value)}px, 75vh))`;
 });
 
 function measureViewport() {
@@ -1762,10 +1816,19 @@ function measureViewport() {
   }
 }
 
+/** The details panel follows the map instead of overlaying it: the list view, or a narrow map */
+function panelFollowsMap(): boolean {
+  if (isListView.value) return true;
+  const el = panelRef.value;
+  return Boolean(el && typeof window !== "undefined" && window.getComputedStyle(el).position === "static");
+}
+
 function keepClear(id: string | null) {
   const r = id ? stageData.value.rects[id] : undefined;
   let want = 0;
-  if (r && id && !isListView.value) {
+  if (panelFollowsMap()) id = null;
+  // magnified, the viewport scrolls; sliding the stage under it as well would fight the scroll
+  if (r && id && !isListView.value && !isMagnified.value) {
     const pWidth = panelRef.value?.offsetWidth || 380;
     const free = viewportWidth.value - pWidth - 36;
     const right = (r.x + r.w) * stageScale.value;
@@ -1785,8 +1848,20 @@ function keepClear(id: string | null) {
 }
 
 let resizeObserver: ResizeObserver | null = null;
+// a touch screen gets help that speaks of taps and swipes, not hover and the mouse wheel
+const coarsePointer = ref<boolean>(false);
+let coarseQuery: MediaQueryList | null = null;
+const onCoarseChange = () => {
+  coarsePointer.value = Boolean(coarseQuery?.matches);
+};
 onMounted(() => {
+  applyAutoListView();
   measureViewport();
+  if (typeof window !== "undefined" && window.matchMedia) {
+    coarseQuery = window.matchMedia("(pointer: coarse)");
+    onCoarseChange();
+    coarseQuery.addEventListener?.("change", onCoarseChange);
+  }
   if (typeof ResizeObserver !== "undefined" && viewportRef.value) {
     resizeObserver = new ResizeObserver(() => {
       measureViewport();
@@ -1797,6 +1872,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   resizeObserver?.disconnect();
+  coarseQuery?.removeEventListener?.("change", onCoarseChange);
   if (zoomHudTimer) clearTimeout(zoomHudTimer);
   if (laserRaf !== null && typeof window !== "undefined") {
     window.cancelAnimationFrame(laserRaf);
@@ -1837,9 +1913,26 @@ function setSelectionAndEmit(id: string | null) {
 
 function selectElement(id: string | null) {
   if (activeTool.value !== "select") return;
+  const prev = selectedId.value;
   currentHoveredId = null;
   setSelectionAndEmit(id);
   applyStageHighlight(id);
+
+  // When the details follow the map (the list, a phone's default, or a narrow map), they are out of
+  // sight below it: take focus there, and back
+  if (panelFollowsMap()) {
+    nextTick(() => {
+      const root = panelRef.value?.closest(".tux-map");
+      if (id) {
+        (panelRef.value?.querySelector(".tux-map__panel-title") as HTMLElement | null)?.focus();
+      } else if (prev) {
+        // the list item, or in the diagram the card itself (the hidden diagram's cards stay in the list's DOM)
+        const sel = isListView.value ? "[data-list-id]" : ".tux-map__el[data-id]";
+        const items = root?.querySelectorAll<HTMLElement>(sel) ?? [];
+        [...items].find((el) => (el.dataset.listId ?? el.dataset.id) === prev)?.focus();
+      }
+    });
+  }
 
   if (!id) {
     keepClear(null);
@@ -1953,6 +2046,7 @@ function goToLevel(
 
     if (
       isListView.value ||
+      isMagnified.value ||
       (typeof window !== "undefined" &&
         window.matchMedia?.("(prefers-reduced-motion: reduce)").matches)
     ) {
@@ -2465,6 +2559,8 @@ function onViewportWheel(ev: WheelEvent) {
   lastPointerClient = { x: ev.clientX, y: ev.clientY };
 
   const isPinchOrMod = ev.ctrlKey || ev.metaKey;
+  // magnified, the wheel scrolls the diagram; a trackpad pinch (ctrl) still changes level
+  if (isMagnified.value && !isPinchOrMod) return;
   if (!props.wheelZoom && !isPinchOrMod) {
     clearPreZoomCardTransform();
     return;
@@ -2832,6 +2928,78 @@ const selectedDeployOutLinks = computed(() => {
     .map((l) => ({ link: l, other: resById.value[l.to]! }));
 });
 
+// A new view, magnified, opens at its selection or its top-left. Choosing a card at Level 2 or 4 sets
+// focusId too, but keeps the view, so only a focus that is the view's parent (Level 3, 5+) counts.
+watch([currentLevel, focusId], ([lvl, f], [oldLvl, oldF]) => {
+  if (lvl === oldLvl && (f === oldF || (lvl !== 3 && lvl < 5))) return;
+  if (!isMagnified.value) return;
+  nextTick(() => scrollSelectionIntoView(true));
+});
+
+/** Magnified, bring the selected card into the viewport (or, with `orTopLeft`, start at the corner) */
+function scrollSelectionIntoView(orTopLeft = false) {
+  const vp = viewportRef.value;
+  const r = selectedId.value ? stageData.value.rects[selectedId.value] : undefined;
+  if (!vp) return;
+  if (!r) {
+    if (orTopLeft) vp.scrollTo?.(0, 0);
+    return;
+  }
+  const s = stageScale.value;
+  vp.scrollTo?.({
+    left: Math.max(0, (r.x + r.w / 2) * s - vp.clientWidth / 2),
+    top: Math.max(0, (r.y + r.h / 2) * s - vp.clientHeight / 2),
+  });
+}
+
+/** What each card in view depends on and what depends on it, from the wires the diagram draws: the
+ *  list is the map's text alternative, so it carries them too (WCAG 1.3.1) */
+
+/** The selection is an outside card (Level 5+): the panel offers what double-clicking it does (2.1.1) */
+const selectedIsOutside = computed<boolean>(() => {
+  const id = selectedId.value;
+  if (!id || currentLevel.value < 5 || !parentOf.value.has(id)) return false;
+  return Boolean(stageData.value.els.find((e) => e.id === id)?.side);
+});
+
+const listRelsById = computed(() => {
+  const S = stageData.value;
+  const names = new Map<string, string>();
+  for (const e of S.els) names.set(e.id, e.name);
+  for (const n of S.deployNodes) names.set(n.id, n.title);
+  const fid = focusId.value;
+  names.set("@bound", (fid && (byId.value[fid]?.name || resById.value[fid]?.title)) || "its parent");
+  const nameOf = (id: string) => names.get(id) ?? byId.value[id]?.name ?? resById.value[id]?.title ?? id;
+  const max = 8;
+  const out = new Map<string, { uses: string[]; usedBy: string[] }>();
+  const at = (id: string) => {
+    let r = out.get(id);
+    if (!r) out.set(id, (r = { uses: [], usedBy: [] }));
+    return r;
+  };
+  // Level 4 draws its wires from level4.links, not from the stage's rels
+  const rels: { from: string; to: string; label?: string; status?: string }[] =
+    currentLevel.value === 4
+      ? activeModel.value.level4.links.filter((l) => showPlanned.value || l.state !== "planned")
+      : S.rels;
+  for (const r of rels) {
+    if (!isShownStatus(r.status)) continue;
+    const how = r.label ? ` (${r.label})` : "";
+    const a = at(r.from).uses;
+    const b = at(r.to).usedBy;
+    const to = nameOf(r.to) + how;
+    const from = nameOf(r.from) + how;
+    if (!a.includes(to)) a.push(to);
+    if (!b.includes(from)) b.push(from);
+  }
+  const cap = (xs: string[]) => (xs.length > max ? [...xs.slice(0, max), `and ${xs.length - max} more`] : xs);
+  for (const r of out.values()) {
+    r.uses = cap(r.uses);
+    r.usedBy = cap(r.usedBy);
+  }
+  return out;
+});
+
 const listViewGroups = computed(() => {
   if (currentLevel.value === 4) {
     const groups = activeModel.value.level4.groups.map((g) => ({
@@ -2927,8 +3095,8 @@ function getStageCoordsFromClient(clientX: number, clientY: number): { x: number
   const rect = el.getBoundingClientRect();
   const s = stageScale.value || 1;
   return {
-    x: Math.round((clientX - rect.left - panX.value) / s),
-    y: Math.round((clientY - rect.top) / s),
+    x: Math.round((clientX - rect.left + el.scrollLeft - panX.value) / s),
+    y: Math.round((clientY - rect.top + el.scrollTop) / s),
   };
 }
 
@@ -3273,6 +3441,40 @@ function buildSourceHref(src?: {
         </button>
       </div>
 
+      <!-- Magnify (#106): past fitting the width, the diagram scrolls -->
+      <div v-if="!isListView" class="tux-map__stepper tux-map__magnify" role="group" aria-label="Magnify the diagram">
+        <button
+          type="button"
+          class="tux-map__iconbtn"
+          :disabled="!isMagnified"
+          aria-label="Make the diagram smaller"
+          title="Smaller"
+          @click="magnifyBy(-1)"
+        >
+          A−
+        </button>
+        <button
+          type="button"
+          class="tux-map__magnify-fit"
+          :aria-pressed="!isMagnified"
+          :aria-label="isMagnified ? `Fit the diagram to the width (now ${magnifyLabel})` : 'The diagram fits the width'"
+          title="Fit to the width"
+          @click="magnifyFit()"
+        >
+          {{ magnifyLabel }}
+        </button>
+        <button
+          type="button"
+          class="tux-map__iconbtn"
+          :disabled="!canMagnify"
+          aria-label="Make the diagram larger"
+          title="Larger: then scroll or swipe to move around it"
+          @click="magnifyBy(1)"
+        >
+          A+
+        </button>
+      </div>
+
       <!-- Orthogonal Infrastructure & Deployment Perspective Toggle -->
       <div class="tux-map__seg" role="group" aria-label="Topology perspective">
         <button
@@ -3408,10 +3610,14 @@ function buildSourceHref(src?: {
     <p class="tux-map__hint">
       {{
         currentLevel === 4
-          ? "Choose a deployment resource to draw its connections and inspect its firewall rules and hosted containers. Double-click or scroll up on nodes with '+' to drill into Level 5 internal modules/schemas."
-          : currentLevel >= 5
-            ? "Inspecting deep internal modules & code symbols. Double-click or scroll up on '+' cards to drill deeper, or scroll down / press Escape to return to the parent level."
-            : "Hover over any card to highlight its links, or scroll the mouse wheel over a card (or double-click / press +) to zoom in and out across Levels 1–6."
+          ? coarsePointer
+            ? "Tap a deployment resource to see its connections, firewall rules and hosted containers. Double-tap a '+' node, or use the level buttons, to go inside it."
+            : "Choose a deployment resource to draw its connections and inspect its firewall rules and hosted containers. Double-click or scroll up on nodes with '+' to drill into Level 5 internal modules/schemas."
+          : coarsePointer
+            ? "Tap a card to see its links and details. Double-tap a '+' card, or use the level buttons, to go inside it. Larger magnifies the diagram; then swipe to move around it."
+            : currentLevel >= 5
+              ? "Inspecting deep internal modules & code symbols. Double-click or scroll up on '+' cards to drill deeper, or scroll down / press Escape to return to the parent level."
+              : "Hover over any card to highlight its links, or scroll the mouse wheel over a card (or double-click / press +) to zoom in and out across Levels 1–6."
       }}
     </p>
     <p class="tux-map__summary">{{ summaryText }}</p>
@@ -3462,6 +3668,7 @@ function buildSourceHref(src?: {
             'tux-map__viewport--proximity-zoom': Boolean(
               proximityCard?.zoomable && activeTool === 'select',
             ),
+            'tux-map__viewport--magnified': isMagnified,
           },
         ]"
         :style="{ height: computedViewportHeight }"
@@ -3477,6 +3684,12 @@ function buildSourceHref(src?: {
         @pointercancel="onStagePointerUp"
         @keydown="onStageKeydown"
       >
+        <div
+          v-if="isMagnified"
+          class="tux-map__sizer"
+          aria-hidden="true"
+          :style="{ width: `${Math.ceil(stageData.width * stageScale)}px`, height: `${Math.ceil(stageData.height * stageScale)}px` }"
+        />
         <div
           ref="stageRef"
           class="tux-map__stage"
@@ -3806,9 +4019,13 @@ function buildSourceHref(src?: {
               </span>
               <span>
                 {{
-                  proximityCard.zoomable
-                    ? `Scroll to zoom · ${proximityCard.name}`
-                    : `Scroll out · ${proximityCard.name}`
+                  isMagnified
+                    ? proximityCard.zoomable
+                      ? `Double-click to zoom · ${proximityCard.name}`
+                      : `Esc to zoom out · ${proximityCard.name}`
+                    : proximityCard.zoomable
+                      ? `Scroll to zoom · ${proximityCard.name}`
+                      : `Scroll out · ${proximityCard.name}`
                 }}
               </span>
             </span>
@@ -3855,7 +4072,7 @@ function buildSourceHref(src?: {
             <path
               v-if="activeLaserSvgPath"
               :d="activeLaserSvgPath"
-              fill="#E11D48"
+              fill="var(--status-critical)"
             />
           </svg>
         </div>
@@ -3885,6 +4102,7 @@ function buildSourceHref(src?: {
                 type="button"
                 class="tux-map__el"
                 :class="`tux-map__el--k-${e.kind || 'container'}`"
+                :data-list-id="e.id"
                 :aria-pressed="selectedId === e.id"
                 @click="selectElement(selectedId === e.id ? null : e.id)"
               >
@@ -3895,11 +4113,22 @@ function buildSourceHref(src?: {
                 <span v-if="e.tech" class="tux-map__el-ty">[{{ e.tech }}]</span>
                 <span v-if="e.desc" class="tux-map__el-ds">{{ e.desc }}</span>
               </button>
+              <dl v-if="listRelsById.get(e.id)" class="tux-map__list-rels">
+                <template v-if="listRelsById.get(e.id)!.uses.length">
+                  <dt>Depends on</dt>
+                  <dd>{{ listRelsById.get(e.id)!.uses.join(", ") }}</dd>
+                </template>
+                <template v-if="listRelsById.get(e.id)!.usedBy.length">
+                  <dt>Used by</dt>
+                  <dd>{{ listRelsById.get(e.id)!.usedBy.join(", ") }}</dd>
+                </template>
+              </dl>
             </li>
             <li v-for="n in grp.deployNodes" :key="n.id">
               <button
                 type="button"
                 class="tux-map__el tux-map__el--k-resource"
+                :data-list-id="n.id"
                 :aria-pressed="selectedId === n.id"
                 @click="selectElement(selectedId === n.id ? null : n.id)"
               >
@@ -3909,6 +4138,16 @@ function buildSourceHref(src?: {
                 </span>
                 <span class="tux-map__el-ds">{{ n.role }}</span>
               </button>
+              <dl v-if="listRelsById.get(n.id)" class="tux-map__list-rels">
+                <template v-if="listRelsById.get(n.id)!.uses.length">
+                  <dt>Depends on</dt>
+                  <dd>{{ listRelsById.get(n.id)!.uses.join(", ") }}</dd>
+                </template>
+                <template v-if="listRelsById.get(n.id)!.usedBy.length">
+                  <dt>Used by</dt>
+                  <dd>{{ listRelsById.get(n.id)!.usedBy.join(", ") }}</dd>
+                </template>
+              </dl>
             </li>
           </ul>
         </section>
@@ -3919,8 +4158,9 @@ function buildSourceHref(src?: {
         ref="panelRef"
         class="tux-map__panel"
         :class="{ 'tux-map__panel--open': Boolean(selectedLevelElement || selectedDeployNode) }"
-        aria-live="polite"
+        :aria-live="isListView ? 'off' : 'polite'"
         aria-label="Selected element details"
+        @keydown.escape="isListView && selectElement(null)"
       >
         <template v-if="selectedLevelElement">
           <button
@@ -3932,7 +4172,7 @@ function buildSourceHref(src?: {
             ×
           </button>
 
-          <h4 class="tux-map__panel-title">
+          <h4 class="tux-map__panel-title" tabindex="-1">
             <Icon :name="elementIconName(selectedLevelElement.kind)" class="tux-map__panel-ic" aria-hidden="true" />
             <span>{{ selectedLevelElement.name }}</span>
           </h4>
@@ -3963,6 +4203,14 @@ function buildSourceHref(src?: {
             {{ selectedLevelElement.desc }}
           </p>
 
+          <button
+            v-if="selectedIsOutside"
+            type="button"
+            class="tux-map__panel-btn"
+            @click="revealElement(selectedLevelElement.id)"
+          >
+            Go to where it lives
+          </button>
           <button
             v-if="canZoomElement(selectedLevelElement)"
             type="button"
@@ -4027,10 +4275,23 @@ function buildSourceHref(src?: {
                     @click="revealElement(f.id)"
                   >
                     <code>{{ f.path }}</code>
+                    <span class="tux-map__blast-how">{{ f.how }}</span>
                   </button>
-                  <code v-else>{{ f.path }}</code>
-                  <a v-if="f.href" :href="f.href" target="_blank" rel="noopener noreferrer" class="tux-map__blast-how" :aria-label="`${f.how}: the line in ${f.path} (opens in a new tab)`">{{ f.how }}</a>
-                  <span v-else class="tux-map__blast-how">{{ f.how }}</span>
+                  <span v-else class="tux-map__blast-go tux-map__blast-go--static">
+                    <code>{{ f.path }}</code>
+                    <span class="tux-map__blast-how">{{ f.how }}</span>
+                  </span>
+                  <a
+                    v-if="f.href"
+                    :href="f.href"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="tux-map__blast-src"
+                    :title="`Open the line in ${f.path}`"
+                    :aria-label="`${f.how}: the line in ${f.path} (opens in a new tab)`"
+                  >
+                    <Icon name="lucide:file-code" aria-hidden="true" />
+                  </a>
                 </li>
               </ol>
               <p v-if="selectionBlastFiles.more" class="tux-map__panel-blast-sum">
@@ -4199,7 +4460,7 @@ function buildSourceHref(src?: {
             ×
           </button>
 
-          <h4 class="tux-map__panel-title">
+          <h4 class="tux-map__panel-title" tabindex="-1">
             <Icon :name="elementIconName(selectedDeployNode.kind)" class="tux-map__panel-ic" aria-hidden="true" />
             <span>{{ selectedDeployNode.title }}</span>
           </h4>
@@ -4384,6 +4645,21 @@ function buildSourceHref(src?: {
   margin: 1.5rem 0;
   font-family: var(--font-body);
   color: var(--text-primary);
+  /* the map's own width decides its narrow layout, not the window's: it may sit in a sidebar */
+  container: tux-map / inline-size;
+  /* WCAG 2.2 AAA (7:1) in every TUX theme and colour-vision palette, measured across all 20 (#106).
+     Text on a brand fill falls to 3.1:1 (soft dark, tritan) and brand-coloured text to 3.6:1, and
+     TUX's --text-on-brand is 2.1-2.4:1 in the dark themes. Body text on a brand tint holds 9.1:1 or
+     more everywhere, so text stays --text-primary: the brand carries borders, bars, tints, icons and
+     link underlines, never the letters */
+  --tux-map-brand-ink: var(--text-primary);
+  --tux-map-brand-tint: color-mix(in srgb, var(--brand-primary) 18%, var(--surface-raised));
+  /* 2.5.5 Target Size (Enhanced); TUX's field-sunlight mode asks 48px for gloved hands */
+  --tux-map-target: 44px;
+}
+
+[data-vision-comfort="field-sunlight"] .tux-map {
+  --tux-map-target: 48px;
 }
 
 .tux-map__header {
@@ -4402,7 +4678,7 @@ function buildSourceHref(src?: {
   font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: var(--brand-primary);
+  color: var(--tux-map-brand-ink);
 }
 
 .tux-map__title {
@@ -4444,6 +4720,8 @@ function buildSourceHref(src?: {
 
 .tux-map__seg {
   display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -4451,6 +4729,7 @@ function buildSourceHref(src?: {
 }
 
 .tux-map__seg button {
+  min-height: var(--tux-map-target);
   font: inherit;
   font-family: var(--font-bold);
   font-size: 0.75rem;
@@ -4478,13 +4757,10 @@ function buildSourceHref(src?: {
 
 .tux-map__seg button[aria-pressed="true"],
 .tux-map__seg button[aria-pressed="true"]:hover {
-  background: var(--brand-primary);
-  color: #FFFFFF;
-}
-
-[data-theme="tti-dark"] .tux-map__seg button[aria-pressed="true"],
-[data-theme="tti-dark"] .tux-map__seg button[aria-pressed="true"]:hover {
-  color: #15100F;
+  background: var(--tux-map-brand-tint);
+  color: var(--text-primary);
+  /* a bar as well as a tint: pressed reads without colour (1.4.1) */
+  box-shadow: inset 0 -3px 0 var(--brand-primary);
 }
 
 .tux-map__seg button:disabled {
@@ -4511,8 +4787,8 @@ function buildSourceHref(src?: {
 .tux-map__stepper .tux-map__iconbtn {
   border: 0;
   border-radius: 0;
-  height: 32px;
-  width: 32px;
+  height: var(--tux-map-target);
+  width: var(--tux-map-target);
 }
 
 .tux-map__stepper .tux-map__iconbtn:hover:not(:disabled) {
@@ -4539,8 +4815,8 @@ function buildSourceHref(src?: {
   font-size: 0.6875rem;
   padding: 0.1rem 0.35rem;
   border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--brand-primary) 14%, transparent);
-  color: var(--brand-primary);
+  background: var(--tux-map-brand-tint);
+  color: var(--text-primary);
 }
 
 .tux-map__stepper-name {
@@ -4553,8 +4829,8 @@ function buildSourceHref(src?: {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: var(--tux-map-target);
+  height: var(--tux-map-target);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
   background: var(--surface-raised);
@@ -4573,6 +4849,7 @@ function buildSourceHref(src?: {
 .tux-map__switch {
   display: inline-flex;
   align-items: center;
+  min-height: var(--tux-map-target);
   gap: 0.45rem;
   font-size: 0.8125rem;
   color: var(--text-secondary);
@@ -4637,6 +4914,7 @@ function buildSourceHref(src?: {
 }
 
 .tux-map__search-input {
+  min-height: var(--tux-map-target);
   padding: 0.35rem 0.6rem 0.35rem 1.7rem;
   width: 12.5rem;
   font: inherit;
@@ -4645,6 +4923,43 @@ function buildSourceHref(src?: {
   background: var(--surface-raised);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
+}
+
+.tux-map__magnify-fit {
+  min-width: 3.4rem;
+  min-height: var(--tux-map-target);
+  padding: 0 0.4rem;
+  border: 0;
+  border-inline: 1px solid var(--surface-border);
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.tux-map__magnify-fit[aria-pressed="true"] {
+  color: var(--text-secondary);
+}
+
+.tux-map__list-rels {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.15rem 0.5rem;
+  margin: 0.35rem 0 0.2rem 0.85rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.tux-map__list-rels dt {
+  font-family: var(--font-bold);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.tux-map__list-rels dd {
+  margin: 0;
 }
 
 /* Breadcrumbs, Hint, Summary, Legend */
@@ -4672,10 +4987,15 @@ function buildSourceHref(src?: {
 
 .tux-map__crumbs button {
   all: unset;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tux-map-target);
   cursor: pointer;
-  color: var(--brand-primary);
+  color: var(--tux-map-brand-ink);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration-color: var(--brand-primary);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 .tux-map__crumbs [aria-current] {
@@ -4725,7 +5045,8 @@ function buildSourceHref(src?: {
 }
 
 .tux-map__swatch--system {
-  background: var(--brand-primary);
+  background: var(--tux-map-brand-tint);
+  border: 2.5px solid var(--brand-primary);
 }
 
 .tux-map__swatch--card {
@@ -4750,12 +5071,12 @@ function buildSourceHref(src?: {
 
 .tux-map__swatch--diff-direct {
   background: var(--surface-raised);
-  border: 2px solid #D97706;
+  border: 2px solid var(--status-warning);
 }
 
 .tux-map__swatch--diff-impact {
   background: var(--surface-raised);
-  border: 2px dashed #E11D48;
+  border: 2px dashed var(--status-critical);
 }
 
 .tux-map__legend svg {
@@ -4782,8 +5103,8 @@ function buildSourceHref(src?: {
   --tux-cursor-card: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26'%3E%3Cpath d='M5 3.5L21 11.5L13.5 14L11 21.5L5 3.5Z' fill='%23F5D580' stroke='%2315100F' stroke-width='2.2' stroke-linejoin='round'/%3E%3C/svg%3E") 5 4, pointer;
 }
 
-[data-contrast="high"] .tux-map__canvas,
-[data-vision-mode] .tux-map__canvas {
+[data-theme="tti-hc"] .tux-map__canvas,
+[data-cvd-mode]:not([data-cvd-mode="brand"]) .tux-map__canvas {
   /* High-contrast & Colorblind-safe dual-ring SVG cursors (#00E5FF + #000000 + #FFFFFF) */
   --tux-cursor-nav: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='9.5' fill='rgba(0,229,255,0.16)' stroke='%23000000' stroke-width='3.2'/%3E%3Ccircle cx='14' cy='14' r='9.5' fill='none' stroke='%2300E5FF' stroke-width='1.8'/%3E%3Ccircle cx='14' cy='14' r='3' fill='%23FFD600' stroke='%23000000' stroke-width='1.5'/%3E%3C/svg%3E") 14 14, grab;
   --tux-cursor-zoom: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3E%3Ccircle cx='15' cy='15' r='11' fill='rgba(0,229,255,0.22)' stroke='%23000000' stroke-width='3.2'/%3E%3Ccircle cx='15' cy='15' r='11' fill='none' stroke='%2300E5FF' stroke-width='2'/%3E%3Cpath d='M15 10v10M10 15h10' stroke='%23000000' stroke-width='3.6' stroke-linecap='round'/%3E%3Cpath d='M15 10v10M10 15h10' stroke='%23FFD600' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") 15 15, pointer;
@@ -4804,8 +5125,17 @@ function buildSourceHref(src?: {
   cursor: var(--tux-cursor-nav);
   user-select: none;
   -webkit-user-select: none;
-  touch-action: none;
+  /* a finger scrolls the page past the map and pinches to zoom; only the drawing tools take the gesture */
+  touch-action: manipulation;
   overscroll-behavior: contain;
+}
+
+.tux-map__viewport--magnified {
+  overflow: auto;
+}
+
+.tux-map__sizer {
+  pointer-events: none;
 }
 
 .tux-map__viewport--has-proximity {
@@ -4819,6 +5149,7 @@ function buildSourceHref(src?: {
 .tux-map__viewport--tool-pen,
 .tux-map__viewport--tool-laser,
 .tux-map__viewport--tool-note {
+  touch-action: none;
   cursor: crosshair;
   user-select: none;
   -webkit-user-select: none;
@@ -4897,7 +5228,7 @@ function buildSourceHref(src?: {
 }
 
 .tux-map__zoom-hud-ic {
-  color: var(--brand-primary);
+  color: var(--tux-map-brand-ink);
   font-size: 0.9rem;
   line-height: 1;
 }
@@ -4963,7 +5294,7 @@ function buildSourceHref(src?: {
   fill: none;
   stroke: var(--text-secondary);
   stroke-width: 1.4;
-  opacity: 0.55;
+  opacity: 0.8;
   transition: none !important;
 }
 
@@ -4978,6 +5309,23 @@ function buildSourceHref(src?: {
 
 .tux-map__wires--has-on .tux-map__wire {
   opacity: 0.12;
+}
+
+[data-vision-stroke="heavy"] .tux-map__wire {
+  stroke-width: 2.4;
+  opacity: 1;
+}
+
+[data-vision-stroke="heavy"] .tux-map__wire-fg {
+  stroke-width: 3.2;
+}
+
+[data-vision-stroke="heavy"] .tux-map__el:not(.tux-map__el--k-system) {
+  border-width: 2px;
+}
+
+[data-vision-stroke="heavy"] .tux-map__el--k-system {
+  border-width: 3.5px;
 }
 
 /* Layer 4 (z-index: 4): Foreground Active Wires SVG (Above Dimmed Cards & Dimmed Labels) */
@@ -5004,7 +5352,7 @@ function buildSourceHref(src?: {
 }
 
 .tux-map__wire-fg--blast {
-  stroke: #D97706;
+  stroke: var(--status-warning);
   stroke-width: 2.3;
 }
 
@@ -5018,7 +5366,7 @@ function buildSourceHref(src?: {
 }
 
 .tux-map__wire-fg--stream.tux-map__wire-fg--blast {
-  stroke: #D97706;
+  stroke: var(--status-warning);
 }
 
 .tux-map__wire-fg--on {
@@ -5113,7 +5461,7 @@ function buildSourceHref(src?: {
 }
 
 .tux-map__proximity-pill-ic {
-  color: var(--brand-primary);
+  color: var(--tux-map-brand-ink);
   font-size: 12px;
   line-height: 1;
 }
@@ -5338,7 +5686,7 @@ function buildSourceHref(src?: {
   height: 20px;
   border-radius: 50%;
   border: 1.5px solid currentColor;
-  color: var(--brand-primary);
+  color: var(--tux-map-brand-ink);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5349,9 +5697,9 @@ function buildSourceHref(src?: {
 }
 
 .tux-map__el:hover .tux-map__el-zb {
-  background: var(--brand-primary);
+  background: var(--tux-map-brand-tint);
   border-color: var(--brand-primary);
-  color: #FFFFFF;
+  color: var(--text-primary);
 }
 
 .tux-map__el--mini {
@@ -5381,8 +5729,8 @@ function buildSourceHref(src?: {
 }
 
 .tux-map__el--k-system {
-  background: var(--brand-primary);
-  border-color: var(--brand-primary);
+  background: var(--tux-map-brand-tint);
+  border: 2.5px solid var(--brand-primary);
 }
 
 .tux-map__el--k-system .tux-map__el-nm,
@@ -5390,15 +5738,7 @@ function buildSourceHref(src?: {
 .tux-map__el--k-system .tux-map__el-ty,
 .tux-map__el--k-system .tux-map__el-ft,
 .tux-map__el--k-system .tux-map__el-zb {
-  color: #FFFFFF;
-}
-
-[data-theme="tti-dark"] .tux-map__el--k-system .tux-map__el-nm,
-[data-theme="tti-dark"] .tux-map__el--k-system .tux-map__el-ds,
-[data-theme="tti-dark"] .tux-map__el--k-system .tux-map__el-ty,
-[data-theme="tti-dark"] .tux-map__el--k-system .tux-map__el-ft,
-[data-theme="tti-dark"] .tux-map__el--k-system .tux-map__el-zb {
-  color: #15100F;
+  color: var(--text-primary);
 }
 
 .tux-map__el--k-container,
@@ -5422,22 +5762,22 @@ function buildSourceHref(src?: {
 .tux-map__el--k-schema .tux-map__el-ic,
 .tux-map__el--k-symbol .tux-map__el-ic,
 .tux-map__el--k-resource .tux-map__el-ic {
-  color: var(--brand-primary);
+  color: var(--tux-map-brand-ink);
 }
 
 .tux-map__el--diff-direct {
-  border-color: #D97706 !important;
+  border-color: var(--status-warning) !important;
   box-shadow:
-    inset 4px 0 0 #D97706,
-    0 0 0 2px color-mix(in srgb, #D97706 45%, transparent);
+    inset 4px 0 0 var(--status-warning),
+    0 0 0 2px color-mix(in srgb, var(--status-warning) 45%, transparent);
 }
 
 .tux-map__el--diff-impact {
-  border-color: #E11D48 !important;
+  border-color: var(--status-critical) !important;
   border-style: dashed;
   box-shadow:
-    inset 4px 0 0 #E11D48,
-    0 0 0 1.5px color-mix(in srgb, #E11D48 35%, transparent);
+    inset 4px 0 0 var(--status-critical),
+    0 0 0 1.5px color-mix(in srgb, var(--status-critical) 35%, transparent);
 }
 
 .tux-map__el--k-external {
@@ -5499,16 +5839,16 @@ function buildSourceHref(src?: {
 
 .tux-map__chip--diff-modified,
 .tux-map__chip--diff-added {
-  background: #FEF3C7;
-  color: #78350F;
-  border-color: #D97706;
+  background: color-mix(in srgb, var(--status-warning) 22%, var(--surface-raised));
+  color: var(--text-primary);
+  border-color: var(--status-warning);
 }
 
 .tux-map__chip--diff-deleted,
 .tux-map__chip--diff-impact {
-  background: #FFE4E6;
-  color: #881337;
-  border-color: #E11D48;
+  background: color-mix(in srgb, var(--status-critical) 18%, var(--surface-raised));
+  color: var(--text-primary);
+  border-color: var(--status-critical);
 }
 
 /* Sticky Notes & Ink Overlay */
@@ -5619,7 +5959,7 @@ function buildSourceHref(src?: {
 .tux-map__panel-ic {
   width: 20px;
   height: 20px;
-  color: var(--brand-primary);
+  color: var(--tux-map-brand-ink);
   flex: none;
 }
 
@@ -5644,6 +5984,7 @@ function buildSourceHref(src?: {
 }
 
 .tux-map__panel-btn {
+  min-height: var(--tux-map-target);
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -5652,16 +5993,13 @@ function buildSourceHref(src?: {
   border-radius: var(--radius-md);
   border: 0;
   cursor: pointer;
-  background: var(--brand-primary);
-  color: #FFFFFF;
+  background: var(--tux-map-brand-tint);
+  color: var(--text-primary);
+  box-shadow: inset 0 0 0 2px var(--brand-primary);
   font: inherit;
   font-family: var(--font-bold);
   font-weight: 700;
   font-size: 13px;
-}
-
-[data-theme="tti-dark"] .tux-map__panel-btn {
-  color: #15100F;
 }
 
 .tux-map__panel-h {
@@ -5715,8 +6053,11 @@ function buildSourceHref(src?: {
 
 .tux-map__lnk {
   all: unset;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tux-map-target);
   cursor: pointer;
-  color: var(--brand-primary);
+  color: var(--tux-map-brand-ink);
   font-family: var(--font-bold);
   font-weight: 700;
   text-decoration: underline;
@@ -5740,6 +6081,7 @@ function buildSourceHref(src?: {
 .tux-map__issue-pill {
   display: inline-flex;
   align-items: center;
+  min-height: var(--tux-map-target);
   padding: 0.1rem 0.42rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--surface-border);
@@ -5747,7 +6089,7 @@ function buildSourceHref(src?: {
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
-  color: var(--brand-primary);
+  color: var(--tux-map-brand-ink);
   text-decoration: none;
 }
 
@@ -5798,10 +6140,10 @@ function buildSourceHref(src?: {
 
 .tux-map__blast-row {
   display: grid;
-  grid-template-columns: 1.3rem minmax(0, 1fr);
-  column-gap: 0.4rem;
-  align-items: baseline;
-  font-size: 11px;
+  grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+  column-gap: 0.35rem;
+  align-items: center;
+  font-size: 12px;
 }
 
 .tux-map__blast-hop {
@@ -5816,48 +6158,58 @@ function buildSourceHref(src?: {
   text-align: center;
 }
 
-.tux-map__blast-sr {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
 .tux-map__blast-go {
-  justify-self: start;
-  max-width: 100%;
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.1rem;
+  min-width: 0;
+  min-height: var(--tux-map-target);
+  padding: 0.3rem 0.4rem;
   border: 0;
+  border-radius: var(--radius-sm);
   background: none;
-  color: var(--brand-primary);
-  font-family: var(--font-mono);
-  font-size: 11px;
+  color: var(--tux-map-brand-ink);
+  font: inherit;
   text-align: left;
-  word-break: break-all;
   cursor: pointer;
 }
 
-.tux-map__blast-go:hover,
-.tux-map__blast-go:focus-visible {
-  text-decoration: underline;
-}
-
-.tux-map__blast-row > code {
+.tux-map__blast-go code {
   font-family: var(--font-mono);
+  font-size: 12px;
   word-break: break-all;
 }
 
-.tux-map__blast-how {
-  grid-column: 2;
-  color: var(--text-muted);
-  font-size: 11px;
-  text-decoration: none;
+.tux-map__blast-go--static {
+  color: var(--text-primary);
+  cursor: default;
 }
 
-a.tux-map__blast-how:hover {
-  color: var(--brand-primary);
-  text-decoration: underline;
+.tux-map__blast-go:not(.tux-map__blast-go--static):hover,
+.tux-map__blast-go:focus-visible {
+  background: var(--surface-sunken);
+}
+
+.tux-map__blast-how {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.tux-map__blast-src {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tux-map-target);
+  height: var(--tux-map-target);
+  border-radius: var(--radius-sm);
+  color: var(--tux-map-brand-ink);
+}
+
+.tux-map__blast-src:hover,
+.tux-map__blast-src:focus-visible {
+  background: var(--surface-sunken);
 }
 
 .tux-map__panel-source {
@@ -5879,7 +6231,7 @@ a.tux-map__blast-how:hover {
   background: var(--surface-sunken);
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--brand-primary);
+  color: var(--tux-map-brand-ink);
   text-decoration: none;
   word-break: break-all;
 }
@@ -5966,6 +6318,23 @@ a.tux-map__blast-how:hover {
 
 .tux-map__canvas--list .tux-map__panel:not(.tux-map__panel--open) {
   display: none;
+}
+
+/* A narrow map (a phone, a sidebar): the details follow the diagram instead of covering it */
+@container tux-map (max-width: 640px) {
+  .tux-map__panel {
+    position: static;
+    transform: none;
+    visibility: visible;
+    width: auto;
+    max-height: none;
+    margin-top: 1rem;
+    box-shadow: none;
+  }
+
+  .tux-map__panel:not(.tux-map__panel--open) {
+    display: none;
+  }
 }
 
 .tux-map__caption {

@@ -1,6 +1,6 @@
 {
   "name": "@tti/tti-ux-react",
-  "version": "3.8.0",
+  "version": "3.9.0",
   "description": "TUX for React — standalone component ports and design tokens of the TTI design system (zero Vue/Nuxt dependencies).",
   "type": "module",
   "main": "./dist/index.js",

@@ -3,6 +3,22 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.9.0] — 2026-10-29
+
+### Changed — `<TuxArchitectureMap>` on phones, tablets and touch, to WCAG 2.2 AAA (#106)
+
+Audit on #106: the forge's /architecture with real data and the docs demo, at 375, 768 and 1754 px, with touch emulation, axe (`wcag2aaa`), and a contrast measurement of every text node in 20 theme × colour-vision combinations.
+
+- **Magnify (1.4.4, 2.5.7).** The stage fitted the width, so on a phone or tablet, and under browser zoom, 14 px card text drew at 3–6 px, and nothing could enlarge it. **A− / Fit / A+** magnifies it to 50–200%. The viewport then scrolls, by swipe, scrollbar or arrow keys. `touch-action` is `manipulation` (page scroll and pinch zoom) except under the drawing tools.
+- **The list view carries the wires (1.3.1).** It is the map's text alternative and the default on a phone. Each item now lists what it depends on and what uses it, with the link labels.
+- **Focus follows a choice in the list.** A tap selected the item, but the details were drawn below the whole list. Focus now moves to them and comes back on close.
+- **Keyboard (2.1.1).** Going to where an outside card lives was double-click only. Its panel now has **Go to where it lives**.
+- **Contrast (1.4.3, 1.4.6).** Text on brand fills fell to 2.1:1 in soft dark, and to 1.1–3.6:1 under the colour-vision palettes. TUX's `--text-on-brand` and `--text-brand` fail in the dark themes too. Text is now `--text-primary` on brand tints, with bars and borders carrying the brand: at least 7:1 in all 20 combinations measured. Wires are at least 5.3:1 (1.4.11).
+- **Targets (2.5.5, 2.5.8).** Toolbar, stepper, search, breadcrumbs, panel buttons and blast-radius rows are 44 px; they were as small as 21 px. Under field-sunlight they are 48 px. Each blast-radius row is one "go to it" button plus a 44 px source-line link.
+- **TUX's vision hooks.** The map's high-contrast and vision rules keyed on `[data-contrast]` and `[data-vision-mode]`, which TUX never sets. They now key on `tti-hc` and `data-cvd-mode`. `data-vision-stroke="heavy"` thickens wires and borders. The hard-coded amber and rose change markers are TUX's status tokens, which the palettes remap.
+- **`initialView="auto"` is hydration-safe.** It used to decide from `window.innerWidth` during setup, so a server-rendered page drew the diagram and the browser expected the list. It now switches after mount.
+- **Touch help:** on a coarse pointer, the help text speaks of taps, double-taps and swipes.
+
 ## [3.8.0] — 2026-10-28
 
 ### Added — code links and a blast radius below Level 4 (`<TuxArchitectureMap>`, #104)
