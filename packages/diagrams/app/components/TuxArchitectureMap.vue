@@ -1858,14 +1858,22 @@ const onCoarseChange = () => {
   coarsePointer.value = Boolean(coarseQuery?.matches);
 };
 
-// the help names the wheel only as it works here: with `wheelZoom` off a
-// plain wheel scrolls the page, and zooming needs Ctrl (a pinch sends it too)
+// The help names the wheel only as it works here: a plain wheel zooms unless
+// `wheelZoom` is off or the diagram is magnified, where it scrolls and zooming
+// needs Ctrl (a trackpad pinch sends it too). It counts the levels this map has.
+const wheelZooms = computed<boolean>(() => props.wheelZoom && !isMagnified.value);
 const hintText = computed<string>(() => {
-  const scroll = props.wheelZoom ? "scroll" : "Ctrl+scroll";
+  const scroll = wheelZooms.value ? "scroll" : "Ctrl+scroll";
+  if (isListView.value) {
+    return "Choose an item to see what it depends on, what uses it and its details. The level buttons go in and out.";
+  }
   if (currentLevel.value === 4) {
+    const deeper = stageData.value.deployNodes.some((n) => canZoomDeployNode(n));
     return coarsePointer.value
-      ? "Tap a deployment resource to see its connections, firewall rules and hosted containers. Double-tap a '+' node, or use the level buttons, to go inside it."
-      : `Choose a deployment resource to draw its connections and inspect its firewall rules and hosted containers. Double-click or ${scroll} up on nodes with '+' to drill into Level 5 internal modules/schemas.`;
+      ? "Tap a deployment resource to see its connections, firewall rules and hosted containers." +
+          (deeper ? " Double-tap a '+' node, or use the level buttons, to go inside it." : "")
+      : "Choose a deployment resource to draw its connections and inspect its firewall rules and hosted containers." +
+          (deeper ? ` Double-click or ${scroll} up on nodes with '+' to drill into Level 5 internal modules/schemas.` : "");
   }
   if (coarsePointer.value) {
     return "Tap a card to see its links and details. Double-tap a '+' card, or use the level buttons, to go inside it. Larger magnifies the diagram; then swipe to move around it.";
@@ -1873,9 +1881,10 @@ const hintText = computed<string>(() => {
   if (currentLevel.value >= 5) {
     return `Inspecting deep internal modules & code symbols. Double-click or ${scroll} up on '+' cards to drill deeper, or ${scroll} down / press Escape to return to the parent level.`;
   }
-  return props.wheelZoom
-    ? "Hover over any card to highlight its links, or scroll the mouse wheel over a card (or double-click / press +) to zoom in and out across Levels 1–6."
-    : "Hover over any card to highlight its links, or hold Ctrl and scroll over a card (or double-click / press +) to zoom in and out across Levels 1–6.";
+  const levels = `Levels 1–${maxAvailableLevel.value}`;
+  return wheelZooms.value
+    ? `Hover over any card to highlight its links, or scroll the mouse wheel over a card (or double-click / press +) to zoom in and out across ${levels}.`
+    : `Hover over any card to highlight its links, or hold Ctrl and scroll over a card (or double-click / press +) to zoom in and out across ${levels}.`;
 });
 
 onMounted(() => {
@@ -2541,15 +2550,17 @@ const stepInTargetId = computed<string | null>(() => {
 
 const canStepIn = computed(() => Boolean(stepInTargetId.value));
 
-// `+` acts on the card keyboard focus is on before the selection: a keyboard
+// `+` acts on the card keyboard focus is on, never on the selection: a keyboard
 // user who tabs to a card means that card, whatever was clicked before.
-function focusedZoomTarget(target: EventTarget | null): string | null {
+function cardIdOf(target: EventTarget | null): string | null {
   const card = (target as Element | null)?.closest?.(".tux-map__el") as HTMLElement | null;
-  const id = card?.dataset.id;
-  if (!id) return null;
+  return card?.dataset.id ?? null;
+}
+
+function canZoomCard(id: string): boolean {
   const e = byId.value[id];
   const dn = resById.value[id];
-  return (e && canZoomElement(e)) || (dn && canZoomDeployNode(dn)) ? id : null;
+  return Boolean((e && canZoomElement(e)) || (dn && canZoomDeployNode(dn)));
 }
 
 function stepInLevel() {
@@ -2673,8 +2684,11 @@ function onViewportWheel(ev: WheelEvent) {
   wheelDeltaAccum += ev.deltaY;
 
   // Visually attach the magnetic frame to the closest card and glide the magnetic cursor dot
-  // along the tether toward that card as the wheel turns
-  const progress = Math.min(1, Math.abs(wheelDeltaAccum) / 26);
+  // along the tether toward that card as the wheel turns. Under reduced motion nothing
+  // glides or pulls: the wheel still counts toward the level change (2.3.3).
+  const still =
+    typeof window !== "undefined" && Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+  const progress = still ? 0 : Math.min(1, Math.abs(wheelDeltaAccum) / 26);
   if (candidateId && stageData.value.rects[candidateId]) {
     const r = stageData.value.rects[candidateId]!;
     const anchorX = Math.max(r.x, Math.min(r.x + r.w, pt.x));
@@ -2704,6 +2718,10 @@ function onViewportWheel(ev: WheelEvent) {
       : null) || targetEl;
 
   if (activeCardEl && Math.abs(wheelDeltaAccum) < 26) {
+    if (still) {
+      clearPreZoomCardTransform();
+      return;
+    }
     if (preZoomCardEl && preZoomCardEl !== activeCardEl) {
       preZoomCardEl.style.transform = "";
     }
@@ -2764,7 +2782,23 @@ function onStageKeydown(ev: KeyboardEvent) {
     return;
   }
   if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+  const view = `${currentLevel.value}|${focusId.value}`;
+  onStageKey(ev);
+  if (`${currentLevel.value}|${focusId.value}` !== view) keepFocusInMap();
+}
 
+// A key that changes the view can remove the card that had focus with it. Keep focus
+// in the map, on the viewport that takes the keys, so the next key still works; focus
+// already somewhere in the map (the details, after a choice) stays where it is.
+function keepFocusInMap() {
+  nextTick(() => {
+    const vp = viewportRef.value;
+    if (!vp || typeof document === "undefined") return;
+    if (!vp.closest(".tux-map")?.contains(document.activeElement)) vp.focus({ preventScroll: true });
+  });
+}
+
+function onStageKey(ev: KeyboardEvent) {
   if (ev.key === "1") {
     ev.preventDefault();
     drillStack.value = [];
@@ -2793,10 +2827,15 @@ function onStageKeydown(ev: KeyboardEvent) {
     ev.preventDefault();
     zoomOutLevel();
   } else if (ev.key === "+" || ev.key === "=") {
-    const focused = focusedZoomTarget(ev.target);
-    if (focused) {
+    const cardId = cardIdOf(ev.target);
+    if (cardId) {
+      // from a card, '+' means that card and nothing else
       ev.preventDefault();
-      zoomIntoElement(focused);
+      if (canZoomCard(cardId)) {
+        zoomIntoElement(cardId);
+      } else {
+        liveAnnouncement.value = `${getCardDisplayName(cardId)} has no level inside it.`;
+      }
     } else if (canStepIn.value) {
       ev.preventDefault();
       stepInLevel();
@@ -3903,7 +3942,7 @@ function buildSourceHref(src?: {
               <span
                 v-if="c.zoomable"
                 class="tux-map__el-zb"
-                title="Scroll up or double-click to zoom in a level"
+                :title="`${wheelZooms ? 'Scroll up' : 'Ctrl+scroll up'} or double-click to zoom in a level`"
                 aria-hidden="true"
               >
                 +
@@ -3970,7 +4009,7 @@ function buildSourceHref(src?: {
               <span
                 v-if="canZoomDeployNode(n)"
                 class="tux-map__el-zb"
-                title="Scroll up or double-click to zoom in to Level 5 internal modules/schemas"
+                :title="`${wheelZooms ? 'Scroll up' : 'Ctrl+scroll up'} or double-click to zoom in to Level 5 internal modules/schemas`"
                 aria-hidden="true"
               >
                 +
@@ -4067,8 +4106,8 @@ function buildSourceHref(src?: {
                       ? `Double-click to zoom · ${proximityCard.name}`
                       : `Esc to zoom out · ${proximityCard.name}`
                     : proximityCard.zoomable
-                      ? `Scroll to zoom · ${proximityCard.name}`
-                      : `Scroll out · ${proximityCard.name}`
+                      ? `${wheelZooms ? "Scroll" : "Ctrl+scroll"} to zoom · ${proximityCard.name}`
+                      : `${wheelZooms ? "Scroll" : "Ctrl+scroll"} out · ${proximityCard.name}`
                 }}
               </span>
             </span>

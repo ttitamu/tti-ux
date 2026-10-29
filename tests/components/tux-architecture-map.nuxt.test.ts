@@ -487,35 +487,48 @@ describe("TuxArchitectureMap Component", () => {
   it("hides the screen-reader-only text it renders, and the scrolled blast list contains it", () => {
     const srClasses = [...new Set([...TEMPLATE.matchAll(/class="(tux-map__[\w-]*sr)"/g)].map((m) => m[1]!))];
     expect(srClasses).toEqual(expect.arrayContaining(["tux-map__blast-sr", "tux-map__sr"]));
-    const all = rules(STYLE);
+    // every rule for the class, in source order, the last value winning: an override in
+    // a later rule or a container query counts, and .tux-map__blast-src is another class
     for (const cls of srClasses) {
-      const body = all.find(([sel]) => sel.includes(`.${cls}`))?.[1] ?? "";
-      expect(body, cls).toMatch(/position:\s*absolute/);
-      expect(body, cls).toMatch(/clip-path:\s*inset\(50%\)|clip:\s*rect\(0 0 0 0\)/);
+      const bodies = rulesFor(cls);
+      expect(decl(bodies, "position"), cls).toBe("absolute");
+      const clipped = decl(bodies, "clip-path") === "inset(50%)" || decl(bodies, "clip") === "rect(0 0 0 0)";
+      expect(clipped, cls).toBe(true);
+      expect([decl(bodies, "width"), decl(bodies, "height"), decl(bodies, "overflow")], cls).toEqual(["1px", "1px", "hidden"]);
     }
-    const list = all.find(([sel]) => sel.includes(".tux-map__blast-list"))?.[1] ?? "";
-    expect(list).toMatch(/overflow-y:\s*auto/);
-    expect(list).toMatch(/position:\s*relative/);
+    const list = rulesFor("tux-map__blast-list");
+    expect(decl(list, "overflow-y")).toBe("auto");
+    expect(decl(list, "position")).toBe("relative");
   });
 
   it("stops every animation and every moving transition under prefers-reduced-motion (2.3.3)", () => {
+    // What may still change under reduced motion: colour, light and visibility, never place or
+    // size. Anything else (all, var(--…), a longhand, an unlisted property) counts as moving.
+    const STILL = new Set(["none", "opacity", "color", "background", "background-color", "border-color",
+      "outline-color", "box-shadow", "visibility", "fill", "stroke", "filter", "text-decoration-color"]);
+    const TIME_OR_EASE = /^(-?[\d.]+m?s|ease|ease-in|ease-out|ease-in-out|linear|step-start|step-end|allow-discrete|normal|(cubic-bezier|steps|linear)\(.*\))$/;
+    const effect = (body: string) => {
+      let animation: "none" | "runs" | undefined;
+      let props: string[] = [];
+      for (const m of body.matchAll(/(?:^|[;\s])(transition|transition-property|animation|animation-name)\s*:\s*([^;}]+)/g)) {
+        const [, prop, value] = m;
+        if (prop!.startsWith("animation")) animation = /^none\b/.test(value!.trim()) ? "none" : "runs";
+        else if (prop === "transition-property") props = topLevel(value!);
+        else props = topLevel(value!).map((item) => item.split(/\s+(?![^(]*\))/).find((t) => !TIME_OR_EASE.test(t)) ?? "all");
+      }
+      return { animated: animation === "runs", stilled: animation === "none", moving: props.filter((p) => !STILL.has(p)), transitions: props.length > 0 };
+    };
     const reduced = rules(REDUCED.body);
-    const covered = (sel: string, ok: (body: string) => boolean) =>
-      reduced.some(([sels, body]) => sels.includes(sel) && ok(body));
-    // the property each comma-separated item names (cubic-bezier's own commas leave numbers, which never match)
-    const MOVES = new Set(["all", "transform", "translate", "scale", "rotate", "inset", "left", "top", "right", "bottom", "width", "height"]);
-    const moving = (value: string) => value.split(",").some((item) => MOVES.has(item.trim().split(/\s+/)[0]!));
+    const stops = (sel: string, ok: (e: ReturnType<typeof effect>) => boolean) =>
+      reduced.some(([sels, body]) => sels.includes(sel) && ok(effect(body)));
     const elsewhere = rules(STYLE.slice(0, REDUCED.start) + STYLE.slice(REDUCED.end));
-    const animated: string[] = [];
-    const sliding: string[] = [];
-    for (const [sels, body] of elsewhere) {
-      if (/animation:\s*(?!none\b)[\w-]/.test(body)) animated.push(...sels);
-      const t = /transition:\s*([^;]+);/.exec(body)?.[1];
-      if (t && t.trim() !== "none" && moving(t)) sliding.push(...sels);
-    }
+    const animated = elsewhere.filter(([, b]) => effect(b).animated).flatMap(([s]) => s);
+    const sliding = elsewhere.filter(([, b]) => effect(b).moving.length > 0).flatMap(([s]) => s);
     expect(animated.length).toBeGreaterThan(0);
-    expect(animated.filter((s) => !covered(s, (b) => /animation:\s*none/.test(b)))).toEqual([]);
-    expect(sliding.filter((s) => !covered(s, (b) => !moving(/transition:\s*([^;]+);/.exec(b)?.[1] ?? "")))).toEqual([]);
+    expect(sliding.length).toBeGreaterThan(0);
+    // the reduced block itself must say animation: none, and a transition that moves nothing
+    expect(animated.filter((s) => !stops(s, (e) => e.stilled))).toEqual([]);
+    expect(sliding.filter((s) => !stops(s, (e) => e.transitions && e.moving.length === 0))).toEqual([]);
   });
 
   it("'+' opens the card keyboard focus is on, not the one chosen earlier", async () => {
@@ -565,6 +578,124 @@ describe("TuxArchitectureMap Component", () => {
     expect(off.find(".tux-map__hint").text()).not.toContain("mouse wheel");
   });
 
+  it("'+' on a card with nothing inside stays put and says so, whatever was chosen before", async () => {
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2 },
+    });
+    await wrapper.find('.tux-map__el[data-id="c-search"]').trigger("click");
+    await nextTick();
+    await wrapper.find('.tux-map__el[data-id="p-users"]').trigger("keydown", { key: "+" });
+    await nextTick();
+    expect(wrapper.find(".tux-map__level-text").text()).toMatch(/^Level 2 /);
+    expect(wrapper.find(".tux-map__sr").text()).toContain("has no level inside it");
+  });
+
+  it("keeps keyboard focus in the map when '+' opens the focused card, so '-' still works (2.1.1)", async () => {
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2 },
+      attachTo: document.body,
+    });
+    try {
+      const key = (el: Element, k: string) =>
+        el.dispatchEvent(new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true }));
+      const edge = wrapper.find('.tux-map__el[data-id="c-edge"]').element as HTMLElement;
+      edge.focus();
+      key(edge, "+");
+      await nextTick();
+      await nextTick();
+      expect(wrapper.find(".tux-map__level-text").text()).toMatch(/^Level 3 /);
+      expect(document.querySelector(".tux-map")!.contains(document.activeElement)).toBe(true);
+      key(document.activeElement!, "-");
+      await nextTick();
+      await nextTick();
+      expect(wrapper.find(".tux-map__level-text").text()).toMatch(/^Level 2 /);
+    } finally {
+      wrapper.unmount();
+    }
+  });
+
+  it("under reduced motion the wheel changes the level without pulling or growing the card (2.3.3)", async () => {
+    const run = async (reduce: boolean) => {
+      const restore = stubReducedMotion(reduce);
+      try {
+        const wrapper = await mountSuspended(TuxArchitectureMap, {
+          props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2 },
+        });
+        await nextTick();
+        const card = wrapper.find('.tux-map__el[data-id="c-search"]').element as HTMLElement;
+        const moved: string[] = [];
+        for (let i = 0; i < 8; i++) {
+          card.dispatchEvent(new WheelEvent("wheel", { deltaY: -4, clientX: 40, clientY: 40, bubbles: true, cancelable: true }));
+          await nextTick();
+          if (card.style.transform) moved.push(card.style.transform);
+        }
+        return { moved, level: wrapper.find(".tux-map__level-text").text() };
+      } finally {
+        restore();
+      }
+    };
+    const usual = await run(false);
+    expect(usual.moved.length).toBeGreaterThan(0); // the control: without the preference the card is pulled
+    const still = await run(true);
+    expect(still.moved).toEqual([]);
+    expect(still.level).toMatch(/^Level 3 /); // the wheel still changes the level
+  });
+
+  it("puts no script URL behind any link: issue links, source links and blast rows", async () => {
+    const mount = async (base: string) => {
+      const model: TuxMapLevelModel = {
+        ...DEFAULT_TTI_LEVEL_MODEL,
+        sourceBaseUrl: base,
+        issueBaseUrl: base,
+        level2: {
+          ...DEFAULT_TTI_LEVEL_MODEL.level2,
+          elements: DEFAULT_TTI_LEVEL_MODEL.level2.elements.map((e) =>
+            e.id === "c-api" ? { ...e, roadmap: [376], source: { path: "api/main.py" } } : e,
+          ),
+        },
+        subgraphs: {
+          "c-api/0": { stratum: "Files", elements: [{ id: "f:routes.py", kind: "module", name: "routes.py", source: { path: "routes.py" } }] },
+          "c-api/1": { stratum: "Files", elements: [{ id: "f:forge.py", kind: "module", name: "forge.py", source: { path: "forge.py" } }] },
+          "f:routes.py": { stratum: "Functions", elements: [{ id: "s:routes.py#who", kind: "symbol", name: "who()", source: { path: "routes.py" } }] },
+        },
+        links: [{ from: "f:forge.py", to: "s:routes.py#who", kind: "calls", at: "forge.py:40" }],
+      };
+      const level2 = await mountSuspended(TuxArchitectureMap, {
+        props: { model, initialLevel: 2, initialSelectedId: "c-api" },
+      });
+      const code = await mountSuspended(TuxArchitectureMap, {
+        props: { model, initialLevel: 6, initialFocus: "f:routes.py", initialSelectedId: "s:routes.py#who" },
+      });
+      await nextTick();
+      return {
+        issue: level2.findAll("a.tux-map__issue-lnk").length,
+        source: level2.findAll("a.tux-map__source-lnk").length,
+        blast: code.findAll("a.tux-map__blast-src").length,
+      };
+    };
+    const web = await mount("https://forge.example/o/r");
+    expect(web).toEqual({ issue: 1, source: 1, blast: 1 }); // the control: each sink draws a link
+    for (const hostile of ["javascript:alert(1)//", " JAVASCRIPT:alert(1)", "java\tscript:alert(1)", "data:text/html,x", "vbscript:x"]) {
+      expect(await mount(hostile), hostile).toEqual({ issue: 0, source: 0, blast: 0 });
+    }
+  });
+
+  it("names the wheel only where it zooms, and counts only the levels the map has", async () => {
+    const magnified = await mountSuspended(TuxArchitectureMap, { props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2 } });
+    await magnified.find('[aria-label="Make the diagram larger"]').trigger("click");
+    await nextTick();
+    expect(magnified.find(".tux-map__hint").text()).toContain("hold Ctrl and scroll");
+    const list = await mountSuspended(TuxArchitectureMap, {
+      props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2, initialView: "list" },
+    });
+    expect(list.find(".tux-map__hint").text()).toMatch(/^Choose an item/);
+    const noCode: TuxMapLevelModel = { ...DEFAULT_TTI_LEVEL_MODEL, subgraphs: undefined, links: undefined };
+    const four = await mountSuspended(TuxArchitectureMap, { props: { model: noCode, initialLevel: 2 } });
+    expect(four.find(".tux-map__hint").text()).toContain("Levels 1–4");
+    const infra = await mountSuspended(TuxArchitectureMap, { props: { model: noCode, initialLevel: 4 } });
+    expect(infra.find(".tux-map__hint").text()).not.toContain("Level 5");
+  });
+
   it("names a Level 2 reference whose Level 1 element is missing by its id", async () => {
     const model: TuxMapLevelModel = {
       ...DEFAULT_TTI_LEVEL_MODEL,
@@ -600,5 +731,55 @@ function rules(css: string): [string[], string][] {
     m[1]!.split(",").map((s) => s.trim()).filter(Boolean),
     m[2]!,
   ]);
+}
+
+/** The declarations of every rule naming the class itself (not a longer class it prefixes), in source order. */
+function rulesFor(cls: string): string[] {
+  const own = new RegExp(`\\.${cls}(?![\\w-])`);
+  return rules(STYLE).filter(([sels]) => sels.some((s) => own.test(s))).map(([, body]) => body);
+}
+
+/** The last value `prop` is given across `bodies`, as the cascade would leave it (same specificity). */
+function decl(bodies: string[], prop: string): string | undefined {
+  let value: string | undefined;
+  const re = new RegExp(`(?:^|[;\\s])${prop}\\s*:\\s*([^;}]+)`, "g");
+  for (const body of bodies) for (const m of body.matchAll(re)) value = m[1]!.trim();
+  return value;
+}
+
+/** A comma-separated CSS value split at its top level only (commas inside cubic-bezier() stay). */
+function topLevel(value: string): string[] {
+  const out: string[] = [];
+  let depth = 0;
+  let item = "";
+  for (const ch of value) {
+    if (ch === "(") depth++;
+    if (ch === ")") depth--;
+    if (ch === "," && depth === 0) {
+      out.push(item);
+      item = "";
+    } else item += ch;
+  }
+  out.push(item);
+  return out.map((s) => s.trim()).filter(Boolean);
+}
+
+/** matchMedia answering `reduce` for prefers-reduced-motion, and no to everything else. */
+function stubReducedMotion(reduce: boolean): () => void {
+  const orig = window.matchMedia;
+  window.matchMedia = ((q: string) =>
+    ({
+      matches: reduce && /prefers-reduced-motion:\s*reduce/.test(q),
+      media: q,
+      onchange: null,
+      addEventListener() {},
+      removeEventListener() {},
+      addListener() {},
+      removeListener() {},
+      dispatchEvent: () => false,
+    }) as unknown as MediaQueryList) as typeof window.matchMedia;
+  return () => {
+    window.matchMedia = orig;
+  };
 }
 
