@@ -161,3 +161,22 @@ with a matching source hash in manifest.json.
 | TuxVisionPreferencesModal | react | STALE (source moved since port) |
 | TuxUnitValue | react | never ported |
 | TuxArchitectureMap | react | never ported |
+| TuxChartSankey | react | never ported |
+| TuxChartWaterfall | react | never ported |
+| TuxColumnMapper | react | never ported |
+| TuxCopyToken | react | never ported |
+| TuxEntityPicker | react | never ported |
+| TuxFeedStatus | react | never ported |
+| TuxKeyValueInput | react | never ported |
+| TuxLeaseBadge | react | never ported |
+| TuxLedgerTable | react | never ported |
+| TuxPeriodPicker | react | never ported |
+| TuxPivotMatrix | react | never ported |
+| TuxProportionalInput | react | never ported |
+| TuxRecordDiff | react | never ported |
+| TuxRecordMatcher | react | never ported |
+| TuxScheduleMatrix | react | never ported |
+| TuxSegmentedInput | react | never ported |
+| TuxSignoffChain | react | never ported |
+| TuxStageBoard | react | never ported |
+| TuxThresholdBar | react | never ported |

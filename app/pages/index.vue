@@ -32,7 +32,7 @@ const showcaseTabs: { id: ShowcaseTabId; label: string; icon: string }[] = [
 const activeShowcaseTab = ref<ShowcaseTabId>("corridor");
 
 function onShowcaseTabKeydown(event: KeyboardEvent, index: number) {
-  let nextIndex = index;
+  let nextIndex: number;
   if (event.key === "ArrowRight") {
     nextIndex = (index + 1) % showcaseTabs.length;
   } else if (event.key === "ArrowLeft") {
@@ -768,8 +768,8 @@ const ecosystemTargets = [
 
       <!-- Tab 1: 3D Roadway & Embankment Visualizer -->
       <div
-        id="showcase-panel-corridor"
         v-show="activeShowcaseTab === 'corridor'"
+        id="showcase-panel-corridor"
         role="tabpanel"
         aria-labelledby="showcase-tab-corridor"
         class="space-y-4"
@@ -812,8 +812,8 @@ const ecosystemTargets = [
 
       <!-- Tab 2: Interactive Corridor Simulation Canvas -->
       <div
-        id="showcase-panel-canvas"
         v-show="activeShowcaseTab === 'canvas'"
+        id="showcase-panel-canvas"
         role="tabpanel"
         aria-labelledby="showcase-tab-canvas"
         class="space-y-4"
@@ -844,8 +844,8 @@ const ecosystemTargets = [
 
       <!-- Tab 3: Research & Academic Publishing (#11) -->
       <div
-        id="showcase-panel-publishing"
         v-show="activeShowcaseTab === 'publishing'"
+        id="showcase-panel-publishing"
         role="tabpanel"
         aria-labelledby="showcase-tab-publishing"
         class="p-6 rounded-xl bg-surface-raised border border-surface-border shadow-xs space-y-6"
@@ -905,8 +905,8 @@ const ecosystemTargets = [
 
       <!-- Tab 4: UI Primitives & Controls -->
       <div
-        id="showcase-panel-ui"
         v-show="activeShowcaseTab === 'ui'"
+        id="showcase-panel-ui"
         role="tabpanel"
         aria-labelledby="showcase-tab-ui"
         class="p-6 rounded-xl bg-surface-raised border border-surface-border shadow-xs space-y-6"

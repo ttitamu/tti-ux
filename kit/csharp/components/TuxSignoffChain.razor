@@ -1,0 +1,21 @@
+@*
+ * TuxSignoffChain.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-signoff-chain">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? Stages { get; set; }
+    [Parameter] public string? ActiveStageId { get; set; }
+    [Parameter] public string? AttestationText { get; set; }
+    [Parameter] public string? DecisionOptions { get; set; }
+    [Parameter] public string DecisionLabel { get; set; } = "Continuation Decision";
+    [Parameter] public string? ModelValue { get; set; }
+    [Parameter] public bool ShowActions { get; set; } = true;
+    [Parameter] public string ApproveLabel { get; set; } = "Approve & Sign Off";
+    [Parameter] public string RejectLabel { get; set; } = "Return for Revision";
+}

@@ -8412,6 +8412,31 @@ const TUX_COMPONENTS = [
     }
   },
   {
+    "name": "TuxChartSankey",
+    "tagName": "tux-chart-sankey",
+    "kind": "component",
+    "family": "visualizations",
+    "category": "statistical",
+    "wraps": "tux native SVG",
+    "blurb": "Multi-stage directed acyclic flow diagram — cubic-Bezier ribbons, automatic topological stage inference, and roving keyboard cursor.",
+    "route": "/visualizations/chart-sankey",
+    "docsUrl": "https://ux.tti.tamu.edu/visualizations/chart-sankey",
+    "figmaNodePattern": "TUX / TuxChartSankey",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxChartSankey />",
+      "react": "import { TuxChartSankey } from \"@tti/tti-ux-react\";\n\n<TuxChartSankey />",
+      "webComponents": "<tux-chart-sankey></tux-chart-sankey>",
+      "blazor": "<TuxChartSankey />",
+      "wordpress": "[tux_chart_sankey]"
+    }
+  },
+  {
     "name": "TuxChartScatter",
     "tagName": "tux-chart-scatter",
     "kind": "component",
@@ -8459,6 +8484,31 @@ const TUX_COMPONENTS = [
       "webComponents": "<tux-chart-sunburst></tux-chart-sunburst>",
       "blazor": "<TuxChartSunburst />",
       "wordpress": "[tux_chart_sunburst]"
+    }
+  },
+  {
+    "name": "TuxChartWaterfall",
+    "tagName": "tux-chart-waterfall",
+    "kind": "component",
+    "family": "visualizations",
+    "category": "timeseries",
+    "wraps": "tux native SVG",
+    "blurb": "Cumulative step-delta bridge chart — start, signed deltas, subtotals, dashed connectors, and direct or inverted polarity.",
+    "route": "/visualizations/chart-waterfall",
+    "docsUrl": "https://ux.tti.tamu.edu/visualizations/chart-waterfall",
+    "figmaNodePattern": "TUX / TuxChartWaterfall",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxChartWaterfall />",
+      "react": "import { TuxChartWaterfall } from \"@tti/tti-ux-react\";\n\n<TuxChartWaterfall />",
+      "webComponents": "<tux-chart-waterfall></tux-chart-waterfall>",
+      "blazor": "<TuxChartWaterfall />",
+      "wordpress": "[tux_chart_waterfall]"
     }
   },
   {
@@ -8609,6 +8659,31 @@ const TUX_COMPONENTS = [
       "webComponents": "<tux-code-maroon></tux-code-maroon>",
       "blazor": "<TuxCodeMaroon />",
       "wordpress": "[tux_code_maroon]"
+    }
+  },
+  {
+    "name": "TuxColumnMapper",
+    "tagName": "tux-column-mapper",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native",
+    "blurb": "Tabular import & schema alignment wizard — fuzzy column auto-match, sample value preview, and type validation.",
+    "route": "/components/column-mapper",
+    "docsUrl": "https://ux.tti.tamu.edu/components/column-mapper",
+    "figmaNodePattern": "TUX / TuxColumnMapper",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxColumnMapper />",
+      "react": "import { TuxColumnMapper } from \"@tti/tti-ux-react\";\n\n<TuxColumnMapper />",
+      "webComponents": "<tux-column-mapper></tux-column-mapper>",
+      "blazor": "<TuxColumnMapper />",
+      "wordpress": "[tux_column_mapper]"
     }
   },
   {
@@ -8887,6 +8962,31 @@ const TUX_COMPONENTS = [
     }
   },
   {
+    "name": "TuxCopyToken",
+    "tagName": "tux-copy-token",
+    "kind": "component",
+    "family": "components",
+    "category": "actions",
+    "wraps": "tux native",
+    "blurb": "Monospace identifier chip — smart middle-ellipsis truncation, verification badge, and one-click clipboard copy.",
+    "route": "/components/copy-token",
+    "docsUrl": "https://ux.tti.tamu.edu/components/copy-token",
+    "figmaNodePattern": "TUX / TuxCopyToken",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxCopyToken />",
+      "react": "import { TuxCopyToken } from \"@tti/tti-ux-react\";\n\n<TuxCopyToken />",
+      "webComponents": "<tux-copy-token></tux-copy-token>",
+      "blazor": "<TuxCopyToken />",
+      "wordpress": "[tux_copy_token]"
+    }
+  },
+  {
     "name": "TuxCorridorStrip",
     "tagName": "tux-corridor-strip",
     "kind": "component",
@@ -9087,6 +9187,31 @@ const TUX_COMPONENTS = [
     }
   },
   {
+    "name": "TuxEntityPicker",
+    "tagName": "tux-entity-picker",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native",
+    "blurb": "Accessible ARIA combobox — rich two-line entity cards with code, owner, status chip, and closed-record guardrails.",
+    "route": "/components/entity-picker",
+    "docsUrl": "https://ux.tti.tamu.edu/components/entity-picker",
+    "figmaNodePattern": "TUX / TuxEntityPicker",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxEntityPicker />",
+      "react": "import { TuxEntityPicker } from \"@tti/tti-ux-react\";\n\n<TuxEntityPicker />",
+      "webComponents": "<tux-entity-picker></tux-entity-picker>",
+      "blazor": "<TuxEntityPicker />",
+      "wordpress": "[tux_entity_picker]"
+    }
+  },
+  {
     "name": "TuxErrorPage",
     "tagName": "tux-error-page",
     "kind": "component",
@@ -9184,6 +9309,31 @@ const TUX_COMPONENTS = [
       "webComponents": "<tux-factoid></tux-factoid>",
       "blazor": "<TuxFactoid />",
       "wordpress": "[tux_factoid]"
+    }
+  },
+  {
+    "name": "TuxFeedStatus",
+    "tagName": "tux-feed-status",
+    "kind": "component",
+    "family": "components",
+    "category": "feedback",
+    "wraps": "tux native",
+    "blurb": "Upstream connector & ingestion health monitor — sync state, lag readouts, record counts, and manual sync triggers.",
+    "route": "/components/feed-status",
+    "docsUrl": "https://ux.tti.tamu.edu/components/feed-status",
+    "figmaNodePattern": "TUX / TuxFeedStatus",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxFeedStatus />",
+      "react": "import { TuxFeedStatus } from \"@tti/tti-ux-react\";\n\n<TuxFeedStatus />",
+      "webComponents": "<tux-feed-status></tux-feed-status>",
+      "blazor": "<TuxFeedStatus />",
+      "wordpress": "[tux_feed_status]"
     }
   },
   {
@@ -9587,6 +9737,31 @@ const TUX_COMPONENTS = [
     }
   },
   {
+    "name": "TuxKeyValueInput",
+    "tagName": "tux-key-value-input",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native",
+    "blurb": "Schema-aware key = value metadata & tag editor — required-key checks, autocomplete suggestions, and duplicate warnings.",
+    "route": "/components/key-value-input",
+    "docsUrl": "https://ux.tti.tamu.edu/components/key-value-input",
+    "figmaNodePattern": "TUX / TuxKeyValueInput",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxKeyValueInput />",
+      "react": "import { TuxKeyValueInput } from \"@tti/tti-ux-react\";\n\n<TuxKeyValueInput />",
+      "webComponents": "<tux-key-value-input></tux-key-value-input>",
+      "blazor": "<TuxKeyValueInput />",
+      "wordpress": "[tux_key_value_input]"
+    }
+  },
+  {
     "name": "TuxLab",
     "tagName": "tux-lab",
     "kind": "component",
@@ -9609,6 +9784,56 @@ const TUX_COMPONENTS = [
       "webComponents": "<tux-lab></tux-lab>",
       "blazor": "<TuxLab />",
       "wordpress": "[tux_lab]"
+    }
+  },
+  {
+    "name": "TuxLeaseBadge",
+    "tagName": "tux-lease-badge",
+    "kind": "component",
+    "family": "components",
+    "category": "feedback",
+    "wraps": "tux native",
+    "blurb": "Time-to-live (TTL) countdown & expiration status pill with inline extend and release actions.",
+    "route": "/components/lease-badge",
+    "docsUrl": "https://ux.tti.tamu.edu/components/lease-badge",
+    "figmaNodePattern": "TUX / TuxLeaseBadge",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxLeaseBadge />",
+      "react": "import { TuxLeaseBadge } from \"@tti/tti-ux-react\";\n\n<TuxLeaseBadge />",
+      "webComponents": "<tux-lease-badge></tux-lease-badge>",
+      "blazor": "<TuxLeaseBadge />",
+      "wordpress": "[tux_lease_badge]"
+    }
+  },
+  {
+    "name": "TuxLedgerTable",
+    "tagName": "tux-ledger-table",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Hierarchical grouped rollup table — collapsible categories, quantity × rate math, subtotals, grand total, and CSV/TSV export.",
+    "route": "/components/ledger-table",
+    "docsUrl": "https://ux.tti.tamu.edu/components/ledger-table",
+    "figmaNodePattern": "TUX / TuxLedgerTable",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxLedgerTable />",
+      "react": "import { TuxLedgerTable } from \"@tti/tti-ux-react\";\n\n<TuxLedgerTable />",
+      "webComponents": "<tux-ledger-table></tux-ledger-table>",
+      "blazor": "<TuxLedgerTable />",
+      "wordpress": "[tux_ledger_table]"
     }
   },
   {
@@ -10087,6 +10312,31 @@ const TUX_COMPONENTS = [
     }
   },
   {
+    "name": "TuxPeriodPicker",
+    "tagName": "tux-period-picker",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native",
+    "blurb": "Reporting cycle, fiscal quarter & date-range selector — preset pills, cycle steppers, and prior-period comparison toggle.",
+    "route": "/components/period-picker",
+    "docsUrl": "https://ux.tti.tamu.edu/components/period-picker",
+    "figmaNodePattern": "TUX / TuxPeriodPicker",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxPeriodPicker />",
+      "react": "import { TuxPeriodPicker } from \"@tti/tti-ux-react\";\n\n<TuxPeriodPicker />",
+      "webComponents": "<tux-period-picker></tux-period-picker>",
+      "blazor": "<TuxPeriodPicker />",
+      "wordpress": "[tux_period_picker]"
+    }
+  },
+  {
     "name": "TuxPhotoGrid",
     "tagName": "tux-photo-grid",
     "kind": "component",
@@ -10109,6 +10359,31 @@ const TUX_COMPONENTS = [
       "webComponents": "<tux-photo-grid></tux-photo-grid>",
       "blazor": "<TuxPhotoGrid />",
       "wordpress": "[tux_photo_grid]"
+    }
+  },
+  {
+    "name": "TuxPivotMatrix",
+    "tagName": "tux-pivot-matrix",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Two-axis cross-tabulation matrix — row/column marginals, grand total, and contrast-safe sequential cell shading.",
+    "route": "/components/pivot-matrix",
+    "docsUrl": "https://ux.tti.tamu.edu/components/pivot-matrix",
+    "figmaNodePattern": "TUX / TuxPivotMatrix",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxPivotMatrix />",
+      "react": "import { TuxPivotMatrix } from \"@tti/tti-ux-react\";\n\n<TuxPivotMatrix />",
+      "webComponents": "<tux-pivot-matrix></tux-pivot-matrix>",
+      "blazor": "<TuxPivotMatrix />",
+      "wordpress": "[tux_pivot_matrix]"
     }
   },
   {
@@ -10209,6 +10484,31 @@ const TUX_COMPONENTS = [
       "webComponents": "<tux-program></tux-program>",
       "blazor": "<TuxProgram />",
       "wordpress": "[tux_program]"
+    }
+  },
+  {
+    "name": "TuxProportionalInput",
+    "tagName": "tux-proportional-input",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native",
+    "blurb": "Constrained fixed-sum & ratio allocation control — stacked preview bar, row lock toggles, and auto-rebalance.",
+    "route": "/components/proportional-input",
+    "docsUrl": "https://ux.tti.tamu.edu/components/proportional-input",
+    "figmaNodePattern": "TUX / TuxProportionalInput",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxProportionalInput />",
+      "react": "import { TuxProportionalInput } from \"@tti/tti-ux-react\";\n\n<TuxProportionalInput />",
+      "webComponents": "<tux-proportional-input></tux-proportional-input>",
+      "blazor": "<TuxProportionalInput />",
+      "wordpress": "[tux_proportional_input]"
     }
   },
   {
@@ -10337,6 +10637,31 @@ const TUX_COMPONENTS = [
     }
   },
   {
+    "name": "TuxRecordDiff",
+    "tagName": "tux-record-diff",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Structured field & metric delta viewer — baseline vs current comparison, signed % change, and changes-only filter.",
+    "route": "/components/record-diff",
+    "docsUrl": "https://ux.tti.tamu.edu/components/record-diff",
+    "figmaNodePattern": "TUX / TuxRecordDiff",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxRecordDiff />",
+      "react": "import { TuxRecordDiff } from \"@tti/tti-ux-react\";\n\n<TuxRecordDiff />",
+      "webComponents": "<tux-record-diff></tux-record-diff>",
+      "blazor": "<TuxRecordDiff />",
+      "wordpress": "[tux_record_diff]"
+    }
+  },
+  {
     "name": "TuxRecordHighlights",
     "tagName": "tux-record-highlights",
     "kind": "component",
@@ -10359,6 +10684,31 @@ const TUX_COMPONENTS = [
       "webComponents": "<tux-record-highlights></tux-record-highlights>",
       "blazor": "<TuxRecordHighlights />",
       "wordpress": "[tux_record_highlights]"
+    }
+  },
+  {
+    "name": "TuxRecordMatcher",
+    "tagName": "tux-record-matcher",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native",
+    "blurb": "Side-by-side orphan record to fuzzy candidate resolution queue with confidence badges and rule creation.",
+    "route": "/components/record-matcher",
+    "docsUrl": "https://ux.tti.tamu.edu/components/record-matcher",
+    "figmaNodePattern": "TUX / TuxRecordMatcher",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxRecordMatcher />",
+      "react": "import { TuxRecordMatcher } from \"@tti/tti-ux-react\";\n\n<TuxRecordMatcher />",
+      "webComponents": "<tux-record-matcher></tux-record-matcher>",
+      "blazor": "<TuxRecordMatcher />",
+      "wordpress": "[tux_record_matcher]"
     }
   },
   {
@@ -10612,6 +10962,31 @@ const TUX_COMPONENTS = [
     }
   },
   {
+    "name": "TuxScheduleMatrix",
+    "tagName": "tux-schedule-matrix",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native",
+    "blurb": "Interactive day × time-block availability & schedule paint matrix with presets and 2-D keyboard navigation.",
+    "route": "/components/schedule-matrix",
+    "docsUrl": "https://ux.tti.tamu.edu/components/schedule-matrix",
+    "figmaNodePattern": "TUX / TuxScheduleMatrix",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxScheduleMatrix />",
+      "react": "import { TuxScheduleMatrix } from \"@tti/tti-ux-react\";\n\n<TuxScheduleMatrix />",
+      "webComponents": "<tux-schedule-matrix></tux-schedule-matrix>",
+      "blazor": "<TuxScheduleMatrix />",
+      "wordpress": "[tux_schedule_matrix]"
+    }
+  },
+  {
     "name": "TuxScrollTop",
     "tagName": "tux-scroll-top",
     "kind": "component",
@@ -10687,6 +11062,31 @@ const TUX_COMPONENTS = [
     }
   },
   {
+    "name": "TuxSegmentedInput",
+    "tagName": "tux-segmented-input",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native",
+    "blurb": "Formatted multi-segment monospace code input — auto-advance, smart paste-splitting, and charset validation.",
+    "route": "/components/segmented-input",
+    "docsUrl": "https://ux.tti.tamu.edu/components/segmented-input",
+    "figmaNodePattern": "TUX / TuxSegmentedInput",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxSegmentedInput />",
+      "react": "import { TuxSegmentedInput } from \"@tti/tti-ux-react\";\n\n<TuxSegmentedInput />",
+      "webComponents": "<tux-segmented-input></tux-segmented-input>",
+      "blazor": "<TuxSegmentedInput />",
+      "wordpress": "[tux_segmented_input]"
+    }
+  },
+  {
     "name": "TuxShortcutsHelp",
     "tagName": "tux-shortcuts-help",
     "kind": "component",
@@ -10734,6 +11134,31 @@ const TUX_COMPONENTS = [
       "webComponents": "<tux-sidebar-block></tux-sidebar-block>",
       "blazor": "<TuxSidebarBlock />",
       "wordpress": "[tux_sidebar_block]"
+    }
+  },
+  {
+    "name": "TuxSignoffChain",
+    "tagName": "tux-signoff-chain",
+    "kind": "component",
+    "family": "components",
+    "category": "actions",
+    "wraps": "tux native",
+    "blurb": "Sequential multi-party verification, attestation checkbox & continuation decision gate.",
+    "route": "/components/signoff-chain",
+    "docsUrl": "https://ux.tti.tamu.edu/components/signoff-chain",
+    "figmaNodePattern": "TUX / TuxSignoffChain",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxSignoffChain />",
+      "react": "import { TuxSignoffChain } from \"@tti/tti-ux-react\";\n\n<TuxSignoffChain />",
+      "webComponents": "<tux-signoff-chain></tux-signoff-chain>",
+      "blazor": "<TuxSignoffChain />",
+      "wordpress": "[tux_signoff_chain]"
     }
   },
   {
@@ -10959,6 +11384,31 @@ const TUX_COMPONENTS = [
       "webComponents": "<tux-split-pane></tux-split-pane>",
       "blazor": "<TuxSplitPane />",
       "wordpress": "[tux_split_pane]"
+    }
+  },
+  {
+    "name": "TuxStageBoard",
+    "tagName": "tux-stage-board",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Multi-lane workflow board — live lane count & metric rollups, priority indicators, and accessible stage controls.",
+    "route": "/components/stage-board",
+    "docsUrl": "https://ux.tti.tamu.edu/components/stage-board",
+    "figmaNodePattern": "TUX / TuxStageBoard",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxStageBoard />",
+      "react": "import { TuxStageBoard } from \"@tti/tti-ux-react\";\n\n<TuxStageBoard />",
+      "webComponents": "<tux-stage-board></tux-stage-board>",
+      "blazor": "<TuxStageBoard />",
+      "wordpress": "[tux_stage_board]"
     }
   },
   {
@@ -11259,6 +11709,31 @@ const TUX_COMPONENTS = [
       "webComponents": "<tux-testimonial></tux-testimonial>",
       "blazor": "<TuxTestimonial />",
       "wordpress": "[tux_testimonial]"
+    }
+  },
+  {
+    "name": "TuxThresholdBar",
+    "tagName": "tux-threshold-bar",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Multi-segment capacity & projection bar — solid + hatched segments, proportional threshold marker, and overage alerts.",
+    "route": "/components/threshold-bar",
+    "docsUrl": "https://ux.tti.tamu.edu/components/threshold-bar",
+    "figmaNodePattern": "TUX / TuxThresholdBar",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxThresholdBar />",
+      "react": "import { TuxThresholdBar } from \"@tti/tti-ux-react\";\n\n<TuxThresholdBar />",
+      "webComponents": "<tux-threshold-bar></tux-threshold-bar>",
+      "blazor": "<TuxThresholdBar />",
+      "wordpress": "[tux_threshold_bar]"
     }
   },
   {

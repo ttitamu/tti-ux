@@ -1,0 +1,17 @@
+@*
+ * TuxPeriodPicker.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-period-picker">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? ModelValue { get; set; }
+    [Parameter] public string? Presets { get; set; }
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public bool AllowCompare { get; set; } = true;
+    [Parameter] public int? StepDays { get; set; }
+}

@@ -1,0 +1,21 @@
+@*
+ * TuxPivotMatrix.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-pivot-matrix">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? Caption { get; set; }
+    [Parameter] public string? RowLabels { get; set; }
+    [Parameter] public string? ColLabels { get; set; }
+    [Parameter] public string? Values { get; set; }
+    [Parameter] public string RowHeaderLabel { get; set; } = "Category";
+    [Parameter] public string ValuePrefix { get; set; } = "";
+    [Parameter] public string ValueSuffix { get; set; } = "";
+    [Parameter] public int Decimals { get; set; } = 0;
+    [Parameter] public bool Shaded { get; set; } = true;
+}

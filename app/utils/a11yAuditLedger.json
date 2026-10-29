@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-10-27T20:50:50.463Z",
+  "timestamp": "2026-10-29T21:14:19.728Z",
   "system": "TTI-UX (TUX 3.0)",
   "standard": "W3C WCAG 2.2 Level AAA",
   "summary": {
-    "totalComponents": 184,
-    "aaaCompliantComponents": 184,
+    "totalComponents": 203,
+    "aaaCompliantComponents": 203,
     "aaaComplianceRate": 100,
     "contrastPairsTested": 11,
     "contrastPassRate": 100,
@@ -805,6 +805,21 @@
         "Non-interactive / semantic layout component"
       ]
     },
+    "TuxChartSankey": {
+      "name": "TuxChartSankey",
+      "file": "TuxChartSankey.vue",
+      "isInteractive": false,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "n/a",
+      "notes": [
+        "Non-interactive / semantic layout component",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
     "TuxChartScatter": {
       "name": "TuxChartScatter",
       "file": "TuxChartScatter.vue",
@@ -823,6 +838,21 @@
     "TuxChartSunburst": {
       "name": "TuxChartSunburst",
       "file": "TuxChartSunburst.vue",
+      "isInteractive": false,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "n/a",
+      "notes": [
+        "Non-interactive / semantic layout component",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxChartWaterfall": {
+      "name": "TuxChartWaterfall",
+      "file": "TuxChartWaterfall.vue",
       "isInteractive": false,
       "hasMinTouchTarget": true,
       "hasFocusRing": true,
@@ -917,6 +947,22 @@
       "isInteractive": true,
       "hasMinTouchTarget": false,
       "hasFocusRing": false,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxColumnMapper": {
+      "name": "TuxColumnMapper",
+      "file": "TuxColumnMapper.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
       "hasAria": true,
       "tier": "AAA",
       "contrastStandard": "7.0:1 (AAA)",
@@ -1101,6 +1147,22 @@
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
+    "TuxCopyToken": {
+      "name": "TuxCopyToken",
+      "file": "TuxCopyToken.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
     "TuxCorridorStrip": {
       "name": "TuxCorridorStrip",
       "file": "TuxCorridorStrip.vue",
@@ -1269,6 +1331,22 @@
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
+    "TuxEntityPicker": {
+      "name": "TuxEntityPicker",
+      "file": "TuxEntityPicker.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
     "TuxErrorPage": {
       "name": "TuxErrorPage",
       "file": "TuxErrorPage.vue",
@@ -1345,6 +1423,22 @@
       "focusIndicator": "n/a",
       "notes": [
         "Non-interactive / semantic layout component"
+      ]
+    },
+    "TuxFeedStatus": {
+      "name": "TuxFeedStatus",
+      "file": "TuxFeedStatus.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
       ]
     },
     "TuxFeedback": {
@@ -1643,6 +1737,22 @@
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
+    "TuxKeyValueInput": {
+      "name": "TuxKeyValueInput",
+      "file": "TuxKeyValueInput.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
     "TuxLab": {
       "name": "TuxLab",
       "file": "TuxLab.vue",
@@ -1655,6 +1765,38 @@
       "focusIndicator": "n/a",
       "notes": [
         "Non-interactive / semantic layout component",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxLeaseBadge": {
+      "name": "TuxLeaseBadge",
+      "file": "TuxLeaseBadge.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxLedgerTable": {
+      "name": "TuxLedgerTable",
+      "file": "TuxLedgerTable.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
@@ -1949,6 +2091,22 @@
         "Includes accessible visible focus indicator (Criterion 2.4.13)"
       ]
     },
+    "TuxPeriodPicker": {
+      "name": "TuxPeriodPicker",
+      "file": "TuxPeriodPicker.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
     "TuxPhotoGrid": {
       "name": "TuxPhotoGrid",
       "file": "TuxPhotoGrid.vue",
@@ -1961,6 +2119,22 @@
       "focusIndicator": "n/a",
       "notes": [
         "Non-interactive / semantic layout component",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxPivotMatrix": {
+      "name": "TuxPivotMatrix",
+      "file": "TuxPivotMatrix.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
@@ -2040,6 +2214,22 @@
       "focusIndicator": "n/a",
       "notes": [
         "Non-interactive / semantic layout component"
+      ]
+    },
+    "TuxProportionalInput": {
+      "name": "TuxProportionalInput",
+      "file": "TuxProportionalInput.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
       ]
     },
     "TuxProse": {
@@ -2134,6 +2324,22 @@
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
+    "TuxRecordDiff": {
+      "name": "TuxRecordDiff",
+      "file": "TuxRecordDiff.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
     "TuxRecordHighlights": {
       "name": "TuxRecordHighlights",
       "file": "TuxRecordHighlights.vue",
@@ -2146,6 +2352,22 @@
       "focusIndicator": "n/a",
       "notes": [
         "Non-interactive / semantic layout component",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxRecordMatcher": {
+      "name": "TuxRecordMatcher",
+      "file": "TuxRecordMatcher.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
@@ -2320,6 +2542,22 @@
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
+    "TuxScheduleMatrix": {
+      "name": "TuxScheduleMatrix",
+      "file": "TuxScheduleMatrix.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
     "TuxScrollTop": {
       "name": "TuxScrollTop",
       "file": "TuxScrollTop.vue",
@@ -2367,6 +2605,22 @@
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
+    "TuxSegmentedInput": {
+      "name": "TuxSegmentedInput",
+      "file": "TuxSegmentedInput.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
     "TuxShortcutsHelp": {
       "name": "TuxShortcutsHelp",
       "file": "TuxShortcutsHelp.vue",
@@ -2395,6 +2649,22 @@
       "focusIndicator": "n/a",
       "notes": [
         "Non-interactive / semantic layout component",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxSignoffChain": {
+      "name": "TuxSignoffChain",
+      "file": "TuxSignoffChain.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
@@ -2526,6 +2796,22 @@
       "file": "TuxSplitPane.vue",
       "isInteractive": true,
       "hasMinTouchTarget": false,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxStageBoard": {
+      "name": "TuxStageBoard",
+      "file": "TuxStageBoard.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
       "hasFocusRing": true,
       "hasAria": true,
       "tier": "AAA",
@@ -2722,6 +3008,21 @@
     "TuxTestimonial": {
       "name": "TuxTestimonial",
       "file": "TuxTestimonial.vue",
+      "isInteractive": false,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "n/a",
+      "notes": [
+        "Non-interactive / semantic layout component",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxThresholdBar": {
+      "name": "TuxThresholdBar",
+      "file": "TuxThresholdBar.vue",
       "isInteractive": false,
       "hasMinTouchTarget": true,
       "hasFocusRing": true,
