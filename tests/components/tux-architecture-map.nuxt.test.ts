@@ -487,18 +487,28 @@ describe("TuxArchitectureMap Component", () => {
   it("hides the screen-reader-only text it renders, and the scrolled blast list contains it", () => {
     const srClasses = [...new Set([...TEMPLATE.matchAll(/class="(tux-map__[\w-]*sr)"/g)].map((m) => m[1]!))];
     expect(srClasses).toEqual(expect.arrayContaining(["tux-map__blast-sr", "tux-map__sr"]));
-    // every rule for the class, in source order, the last value winning: an override in
-    // a later rule or a container query counts, and .tux-map__blast-src is another class
+    // Every value any rule naming the class gives these properties must hide the text: a
+    // later rule, a more specific one, a container query or an !important override all
+    // count, whatever the cascade would pick. (.tux-map__blast-src is another class.)
+    const HIDES: Record<string, (v: string) => boolean> = {
+      position: (v) => v === "absolute",
+      "clip-path": (v) => v === "inset(50%)",
+      clip: (v) => v === "rect(0 0 0 0)",
+      width: (v) => v === "1px",
+      height: (v) => v === "1px",
+      overflow: (v) => v === "hidden",
+    };
     for (const cls of srClasses) {
       const bodies = rulesFor(cls);
-      expect(decl(bodies, "position"), cls).toBe("absolute");
-      const clipped = decl(bodies, "clip-path") === "inset(50%)" || decl(bodies, "clip") === "rect(0 0 0 0)";
-      expect(clipped, cls).toBe(true);
-      expect([decl(bodies, "width"), decl(bodies, "height"), decl(bodies, "overflow")], cls).toEqual(["1px", "1px", "hidden"]);
+      for (const [prop, hides] of Object.entries(HIDES)) {
+        expect(values(bodies, prop).filter((v) => !hides(v)), `${cls} ${prop}`).toEqual([]);
+      }
+      for (const prop of ["position", "width", "height", "overflow"]) expect(values(bodies, prop), `${cls} ${prop}`).not.toEqual([]);
+      expect([...values(bodies, "clip-path"), ...values(bodies, "clip")], cls).not.toEqual([]);
     }
     const list = rulesFor("tux-map__blast-list");
-    expect(decl(list, "overflow-y")).toBe("auto");
-    expect(decl(list, "position")).toBe("relative");
+    expect(values(list, "overflow-y")).toContain("auto");
+    expect(values(list, "position")).toEqual(["relative"]);
   });
 
   it("stops every animation and every moving transition under prefers-reduced-motion (2.3.3)", () => {
@@ -510,25 +520,38 @@ describe("TuxArchitectureMap Component", () => {
     const effect = (body: string) => {
       let animation: "none" | "runs" | undefined;
       let props: string[] = [];
-      for (const m of body.matchAll(/(?:^|[;\s])(transition|transition-property|animation|animation-name)\s*:\s*([^;}]+)/g)) {
-        const [, prop, value] = m;
-        if (prop!.startsWith("animation")) animation = /^none\b/.test(value!.trim()) ? "none" : "runs";
-        else if (prop === "transition-property") props = topLevel(value!);
-        else props = topLevel(value!).map((item) => item.split(/\s+(?![^(]*\))/).find((t) => !TIME_OR_EASE.test(t)) ?? "all");
+      const important = { animation: false, transition: false };
+      // -webkit- spellings are the same properties; !important is remembered per family
+      for (const m of body.matchAll(/(?:^|[;\s])(?:-webkit-)?(transition|transition-property|animation|animation-name)\s*:\s*([^;}]+)/g)) {
+        const [, prop, raw] = m;
+        const imp = /!important\s*$/.test(raw!);
+        const value = raw!.replace(/!important\s*$/, "").trim();
+        if (prop!.startsWith("animation")) {
+          animation = /^none\b/.test(value) ? "none" : "runs";
+          important.animation = imp;
+        } else {
+          props = prop === "transition-property"
+            ? topLevel(value)
+            : topLevel(value).map((item) => item.split(/\s+(?![^(]*\))/).find((t) => !TIME_OR_EASE.test(t)) ?? "all");
+          important.transition = imp;
+        }
       }
-      return { animated: animation === "runs", stilled: animation === "none", moving: props.filter((p) => !STILL.has(p)), transitions: props.length > 0 };
+      return { animated: animation === "runs", stilled: animation === "none", moving: props.filter((p) => !STILL.has(p)), transitions: props.length > 0, important };
     };
     const reduced = rules(REDUCED.body);
     const stops = (sel: string, ok: (e: ReturnType<typeof effect>) => boolean) =>
       reduced.some(([sels, body]) => sels.includes(sel) && ok(effect(body)));
-    const elsewhere = rules(STYLE.slice(0, REDUCED.start) + STYLE.slice(REDUCED.end));
-    const animated = elsewhere.filter(([, b]) => effect(b).animated).flatMap(([s]) => s);
-    const sliding = elsewhere.filter(([, b]) => effect(b).moving.length > 0).flatMap(([s]) => s);
+    const outside = rules(STYLE.slice(0, REDUCED.start) + STYLE.slice(REDUCED.end)).map(([sels, b]) => ({ sels, e: effect(b) }));
+    const animated = outside.filter((o) => o.e.animated).flatMap((o) => o.sels.map((s) => ({ s, imp: o.e.important.animation })));
+    const sliding = outside.filter((o) => o.e.moving.length > 0).flatMap((o) => o.sels.map((s) => ({ s, imp: o.e.important.transition })));
     expect(animated.length).toBeGreaterThan(0);
     expect(sliding.length).toBeGreaterThan(0);
-    // the reduced block itself must say animation: none, and a transition that moves nothing
-    expect(animated.filter((s) => !stops(s, (e) => e.stilled))).toEqual([]);
-    expect(sliding.filter((s) => !stops(s, (e) => e.transitions && e.moving.length === 0))).toEqual([]);
+    // the reduced block itself must say animation: none, and a transition that moves nothing,
+    // as !important as what it overrides (a plain rule loses to an !important one)
+    expect(animated.filter(({ s, imp }) => !stops(s, (e) => e.stilled && (!imp || e.important.animation))).map(({ s }) => s)).toEqual([]);
+    expect(
+      sliding.filter(({ s, imp }) => !stops(s, (e) => e.transitions && e.moving.length === 0 && (!imp || e.important.transition))).map(({ s }) => s),
+    ).toEqual([]);
   });
 
   it("'+' opens the card keyboard focus is on, not the one chosen earlier", async () => {
@@ -584,10 +607,96 @@ describe("TuxArchitectureMap Component", () => {
     });
     await wrapper.find('.tux-map__el[data-id="c-search"]').trigger("click");
     await nextTick();
-    await wrapper.find('.tux-map__el[data-id="p-users"]').trigger("keydown", { key: "+" });
-    await nextTick();
+    const users = wrapper.find('.tux-map__el[data-id="p-users"]');
+    await users.trigger("keydown", { key: "+" });
+    await new Promise((r) => setTimeout(r, 150));
     expect(wrapper.find(".tux-map__level-text").text()).toMatch(/^Level 2 /);
     expect(wrapper.find(".tux-map__sr").text()).toContain("has no level inside it");
+    // pressed again, the same words are spoken again: the region clears, then refills
+    await users.trigger("keydown", { key: "+" });
+    expect(wrapper.find(".tux-map__sr").text()).toBe("");
+    await new Promise((r) => setTimeout(r, 150));
+    expect(wrapper.find(".tux-map__sr").text()).toContain("has no level inside it");
+  });
+
+  it("never takes focus back from where the host page moved it in answer to the map's own events", async () => {
+    const outside = document.createElement("button");
+    outside.textContent = "Host drawer";
+    document.body.appendChild(outside);
+    let moved = 0;
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: {
+        model: DEFAULT_TTI_LEVEL_MODEL,
+        initialLevel: 2,
+        "onUpdate:level": () => {
+          moved++;
+          outside.focus();
+        },
+      },
+      attachTo: document.body,
+    });
+    try {
+      const edge = wrapper.find('.tux-map__el[data-id="c-edge"]').element as HTMLElement;
+      edge.focus();
+      edge.dispatchEvent(new KeyboardEvent("keydown", { key: "+", bubbles: true, cancelable: true }));
+      await nextTick();
+      await nextTick();
+      expect(wrapper.find(".tux-map__level-text").text()).toMatch(/^Level 3 /);
+      expect(moved).toBeGreaterThan(0);
+      expect(document.activeElement).toBe(outside);
+    } finally {
+      wrapper.unmount();
+      outside.remove();
+    }
+  });
+
+  it("gives no '+' to a card that is only deployed somewhere, and '+' on it says so", async () => {
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 5, initialFocus: "ai-search-app" },
+    });
+    const pool = wrapper.find('.tux-map__el[data-id="ai-search-app/pgclient"]');
+    expect(pool.exists()).toBe(true);
+    expect(pool.classes()).not.toContain("tux-map__el--zoomable");
+    expect(wrapper.find('.tux-map__el[data-id="ai-search-app/retriever"]').classes()).toContain("tux-map__el--zoomable");
+    await pool.trigger("keydown", { key: "+" });
+    await new Promise((r) => setTimeout(r, 150));
+    expect(wrapper.find(".tux-map__level-text").text()).toMatch(/^Level 5 /);
+    expect(wrapper.find(".tux-map__sr").text()).toBe("PgVector Pool Client has no level inside it.");
+  });
+
+  it("counts the levels the model really has, however its subgraphs are named or nested", async () => {
+    const hint = async (model: TuxMapLevelModel) =>
+      (await mountSuspended(TuxArchitectureMap, { props: { model, initialLevel: 2 } })).find(".tux-map__hint").text();
+    const flat = { ...DEFAULT_TTI_LEVEL_MODEL, subgraphs: undefined, links: undefined };
+    // a host with inline children opens a Level 5
+    const inline: TuxMapLevelModel = {
+      ...flat,
+      level4: {
+        ...flat.level4,
+        nodes: flat.level4.nodes.map((n) => (n.id === "app-vm-01" ? { ...n, children: [{ id: "app-vm-01/svc", name: "svc" }] } : n)),
+      },
+    };
+    expect(await hint(inline)).toContain("Levels 1–5");
+    // three levels of code under one component: files, functions, methods
+    const chain: TuxMapLevelModel = {
+      ...flat,
+      subgraphs: {
+        "c-api/0": { stratum: "Files", elements: [{ id: "f:a.py", kind: "module", name: "a.py" }] },
+        "f:a.py": { stratum: "Functions and classes", elements: [{ id: "s:a.py#C", kind: "symbol", name: "C" }] },
+        "s:a.py#C": { stratum: "Methods", elements: [{ id: "s:a.py#C.m", kind: "symbol", name: "m()" }] },
+      },
+    };
+    expect(await hint(chain)).toContain("Levels 1–7");
+    expect(await hint(DEFAULT_TTI_LEVEL_MODEL)).toContain("Levels 1–6");
+  });
+
+  it("says nothing of '+' cards where none is in view", async () => {
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 6, initialFocus: "ai-search-app/retriever" },
+    });
+    expect(wrapper.findAll(".tux-map__el--zoomable").length).toBe(0);
+    expect(wrapper.find(".tux-map__hint").text()).not.toContain("'+'");
+    expect(wrapper.find(".tux-map__hint").text()).toContain("Escape");
   });
 
   it("keeps keyboard focus in the map when '+' opens the focused card, so '-' still works (2.1.1)", async () => {
@@ -639,6 +748,48 @@ describe("TuxArchitectureMap Component", () => {
     const still = await run(true);
     expect(still.moved).toEqual([]);
     expect(still.level).toMatch(/^Level 3 /); // the wheel still changes the level
+  });
+
+  it("under reduced motion the tether's dot and the proximity frame stay put while the wheel turns (2.3.3)", async () => {
+    const run = async (reduce: boolean) => {
+      const restore = stubReducedMotion(reduce);
+      try {
+        const wrapper = await mountSuspended(TuxArchitectureMap, {
+          props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2, initialFocus: "c-edge" },
+        });
+        const scale = Number(/scale\(([\d.]+)\)/.exec(wrapper.find(".tux-map__stage").attributes("style") || "")?.[1] ?? 1);
+        const style = wrapper.find('.tux-map__el[data-id="c-search"]').attributes("style") || "";
+        const left = Number(/left:\s*(\d+)px/.exec(style)?.[1] ?? 500);
+        const top = Number(/top:\s*(\d+)px/.exec(style)?.[1] ?? 200);
+        const viewport = wrapper.find(".tux-map__viewport").element;
+        const dots: string[] = [];
+        const frames: string[] = [];
+        // the pointer in the gap above the card, where the tether shows; three turns stay below the level change
+        for (let i = 0; i < 3; i++) {
+          viewport.dispatchEvent(
+            new WheelEvent("wheel", {
+              deltaY: -4,
+              clientX: Math.round((left + 40) * scale),
+              clientY: Math.round((top - 55) * scale),
+              bubbles: true,
+              cancelable: true,
+            }),
+          );
+          await nextTick();
+          dots.push(wrapper.find(".tux-map__proximity-cursor").attributes("cy") ?? "-");
+          const frame = wrapper.find(".tux-map__proximity-frame");
+          frames.push(frame.exists() ? (frame.element as HTMLElement).style.transform : "");
+        }
+        return { dots, frames };
+      } finally {
+        restore();
+      }
+    };
+    const usual = await run(false);
+    expect(new Set(usual.dots).size).toBeGreaterThan(1); // the control: the dot glides toward the card
+    const still = await run(true);
+    expect(new Set(still.dots).size).toBe(1);
+    expect(still.frames.filter(Boolean)).toEqual([]);
   });
 
   it("puts no script URL behind any link: issue links, source links and blast rows", async () => {
@@ -739,12 +890,10 @@ function rulesFor(cls: string): string[] {
   return rules(STYLE).filter(([sels]) => sels.some((s) => own.test(s))).map(([, body]) => body);
 }
 
-/** The last value `prop` is given across `bodies`, as the cascade would leave it (same specificity). */
-function decl(bodies: string[], prop: string): string | undefined {
-  let value: string | undefined;
+/** Every value `prop` is given across `bodies`, in source order, with any !important removed. */
+function values(bodies: string[], prop: string): string[] {
   const re = new RegExp(`(?:^|[;\\s])${prop}\\s*:\\s*([^;}]+)`, "g");
-  for (const body of bodies) for (const m of body.matchAll(re)) value = m[1]!.trim();
-  return value;
+  return bodies.flatMap((body) => [...body.matchAll(re)].map((m) => m[1]!.replace(/!important\s*$/, "").trim()));
 }
 
 /** A comma-separated CSS value split at its top level only (commas inside cubic-bezier() stay). */

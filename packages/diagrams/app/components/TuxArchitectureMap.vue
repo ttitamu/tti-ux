@@ -197,6 +197,18 @@ const isListView = ref<boolean>(resolveInitialIsListView());
 const searchQuery = ref<string>("");
 const liveAnnouncement = ref<string>("");
 
+// A live region reads a change, and the same message twice is no change: clear it,
+// then set it a moment later, so a key pressed again is answered again
+let announceTimer: ReturnType<typeof setTimeout> | null = null;
+function announce(msg: string) {
+  liveAnnouncement.value = "";
+  if (announceTimer) clearTimeout(announceTimer);
+  announceTimer = setTimeout(() => {
+    liveAnnouncement.value = msg;
+    announceTimer = null;
+  }, 100);
+}
+
 // Sync controlled props when updated by parent
 watch(
   () => props.level,
@@ -388,17 +400,18 @@ function drillStackFor(fid: string): { level: number; focusId: string }[] {
 // opened below Level 4 (a deep link): the stack zooming in would have built, so zooming out works
 if (currentLevel.value >= 5 && focusId.value) drillStack.value = drillStackFor(focusId.value);
 
-const maxAvailableLevel = computed<number>(() => {
-  const M = activeModel.value;
+// The deepest level this model really has: each element with something inside opens at
+// levelForFocus(id), so the count follows the nesting, not how the subgraphs are named.
+// Its own computed: it walks every element once per model, not on every level change.
+const modelDepth = computed<number>(() => {
   let max = 4;
-  if (M.subgraphs && Object.keys(M.subgraphs).length > 0) {
-    max = Math.max(max, 5);
-    for (const key of Object.keys(M.subgraphs)) {
-      if (key.includes("/")) max = Math.max(max, 6);
-    }
+  for (const id of [...Object.keys(byId.value), ...Object.keys(resById.value)]) {
+    if (hasFractalSubgraph(id)) max = Math.max(max, levelForFocus(id));
   }
-  return Math.max(max, currentLevel.value);
+  return max;
 });
+
+const maxAvailableLevel = computed<number>(() => Math.max(modelDepth.value, currentLevel.value));
 
 // Ensure focusId is always valid for the active model
 watch(
@@ -469,9 +482,8 @@ function canZoomElement(e: TuxMapLevelElement): boolean {
   if (currentLevel.value === 3) {
     return !e.mini && activeModel.value.level4.nodes.length > 0;
   }
-  if (currentLevel.value >= 5) {
-    return Boolean(!e.mini && normalizeArray(e.deployed).length > 0);
-  }
+  // Below Level 4 only something inside opens (the subgraph check above): a card that is
+  // merely deployed somewhere has no level inside it, and its '+' led nowhere
   return false;
 }
 
@@ -1875,11 +1887,19 @@ const hintText = computed<string>(() => {
       : "Choose a deployment resource to draw its connections and inspect its firewall rules and hosted containers." +
           (deeper ? ` Double-click or ${scroll} up on nodes with '+' to drill into Level 5 internal modules/schemas.` : "");
   }
+  // '+' talk only where a card in view has a '+': the bottom of the code has none
+  const deeper = renderedCards.value.some((c) => c.zoomable);
   if (coarsePointer.value) {
-    return "Tap a card to see its links and details. Double-tap a '+' card, or use the level buttons, to go inside it. Larger magnifies the diagram; then swipe to move around it.";
+    return (
+      "Tap a card to see its links and details." +
+      (deeper ? " Double-tap a '+' card, or use the level buttons, to go inside it." : " The level buttons go in and out.") +
+      " Larger magnifies the diagram; then swipe to move around it."
+    );
   }
   if (currentLevel.value >= 5) {
-    return `Inspecting deep internal modules & code symbols. Double-click or ${scroll} up on '+' cards to drill deeper, or ${scroll} down / press Escape to return to the parent level.`;
+    return deeper
+      ? `Inspecting deep internal modules & code symbols. Double-click or ${scroll} up on '+' cards to drill deeper, or ${scroll} down / press Escape to return to the parent level.`
+      : `Inspecting deep internal modules & code symbols. ${wheelZooms.value ? "Scroll" : "Ctrl+scroll"} down or press Escape to return to the parent level.`;
   }
   const levels = `Levels 1–${maxAvailableLevel.value}`;
   return wheelZooms.value
@@ -1907,6 +1927,7 @@ onBeforeUnmount(() => {
   resizeObserver?.disconnect();
   coarseQuery?.removeEventListener?.("change", onCoarseChange);
   if (zoomHudTimer) clearTimeout(zoomHudTimer);
+  if (announceTimer) clearTimeout(announceTimer);
   if (laserRaf !== null && typeof window !== "undefined") {
     window.cancelAnimationFrame(laserRaf);
   }
@@ -2788,13 +2809,15 @@ function onStageKeydown(ev: KeyboardEvent) {
 }
 
 // A key that changes the view can remove the card that had focus with it. Keep focus
-// in the map, on the viewport that takes the keys, so the next key still works; focus
-// already somewhere in the map (the details, after a choice) stays where it is.
+// in the map, on the viewport that takes the keys, so the next key still works. Only
+// focus that was really lost (on the body) comes back: focus the host page moved on
+// purpose, say to its own drawer in answer to node-select, stays where it is.
 function keepFocusInMap() {
   nextTick(() => {
     const vp = viewportRef.value;
     if (!vp || typeof document === "undefined") return;
-    if (!vp.closest(".tux-map")?.contains(document.activeElement)) vp.focus({ preventScroll: true });
+    const a = document.activeElement;
+    if (!a || a === document.body) vp.focus({ preventScroll: true });
   });
 }
 
@@ -2834,7 +2857,7 @@ function onStageKey(ev: KeyboardEvent) {
       if (canZoomCard(cardId)) {
         zoomIntoElement(cardId);
       } else {
-        liveAnnouncement.value = `${getCardDisplayName(cardId)} has no level inside it.`;
+        announce(`${getCardDisplayName(cardId)} has no level inside it.`);
       }
     } else if (canStepIn.value) {
       ev.preventDefault();
