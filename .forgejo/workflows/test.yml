@@ -94,5 +94,10 @@ jobs:
         if: steps.nm.outputs.cache-hit == 'true'
         run: npx nuxt prepare
 
+      # The typecheck the GitHub mirror runs too (audit-contrast.yml), in this
+      # job once .nuxt exists: about 15 s on a laptop, so no job of its own.
+      - name: typecheck
+        run: npm run typecheck
+
       - name: npm test
         run: npm test

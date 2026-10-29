@@ -32,7 +32,8 @@ export default defineNuxtConfig({
     - **Contrast:** text stays `--text-primary` on brand tints, never on brand fills, and holds 7:1 in every TUX theme and colour-vision palette (`tti`, `tti-dark`, `tti-soft-dark`, `tti-hc` × `okabe-ito`, `deutan-protan`, `tritan`, `monochrome`).
     - **Targets:** controls are 44 px (48 px under `data-vision-comfort="field-sunlight"`).
     - **Vision modes:** `data-vision-stroke="heavy"` thickens the wires and borders. Change markers use TUX's status tokens, which the palettes remap.
-    - **Help text:** on a touch screen it talks about taps and swipes.
+    - **Help text:** on a touch screen it talks about taps and swipes; with `wheelZoom` off it says Ctrl+scroll.
+    - **Reduced motion (3.9.1):** under `prefers-reduced-motion` nothing on the map moves by itself: wires keep their dashes without flowing, and cards and frames change without sliding.
 - **`<TuxDiagram>`**: Accessible, responsive Mermaid diagram wrapper supporting flowcharts, sequence diagrams, ERDs, state machines, and Gantt charts.
 - **`useTuxMermaid()`**: Coordinated singleton Mermaid renderer with automatic layout-shift prevention via server-side height estimation.
 - **TUX Color Synchronization**: Direct mapping of Texas A&M Maroon (`#500000`), Dark Mode accents, and typography tokens into Mermaid theme variables.
