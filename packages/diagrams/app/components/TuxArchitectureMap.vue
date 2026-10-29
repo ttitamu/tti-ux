@@ -1816,9 +1816,17 @@ function measureViewport() {
   }
 }
 
+/** The details panel follows the map instead of overlaying it: the list view, or a narrow map */
+function panelFollowsMap(): boolean {
+  if (isListView.value) return true;
+  const el = panelRef.value;
+  return Boolean(el && typeof window !== "undefined" && window.getComputedStyle(el).position === "static");
+}
+
 function keepClear(id: string | null) {
   const r = id ? stageData.value.rects[id] : undefined;
   let want = 0;
+  if (panelFollowsMap()) id = null;
   // magnified, the viewport scrolls; sliding the stage under it as well would fight the scroll
   if (r && id && !isListView.value && !isMagnified.value) {
     const pWidth = panelRef.value?.offsetWidth || 380;
@@ -1910,15 +1918,18 @@ function selectElement(id: string | null) {
   setSelectionAndEmit(id);
   applyStageHighlight(id);
 
-  // In the list (a phone's default) the details follow the whole list: take focus there, and back
-  if (isListView.value) {
+  // When the details follow the map (the list, a phone's default, or a narrow map), they are out of
+  // sight below it: take focus there, and back
+  if (panelFollowsMap()) {
     nextTick(() => {
       const root = panelRef.value?.closest(".tux-map");
       if (id) {
         (panelRef.value?.querySelector(".tux-map__panel-title") as HTMLElement | null)?.focus();
       } else if (prev) {
-        const items = root?.querySelectorAll<HTMLElement>("[data-list-id]") ?? [];
-        [...items].find((el) => el.dataset.listId === prev)?.focus();
+        // the list item, or in the diagram the card itself (the hidden diagram's cards stay in the list's DOM)
+        const sel = isListView.value ? "[data-list-id]" : ".tux-map__el[data-id]";
+        const items = root?.querySelectorAll<HTMLElement>(sel) ?? [];
+        [...items].find((el) => (el.dataset.listId ?? el.dataset.id) === prev)?.focus();
       }
     });
   }
@@ -4634,6 +4645,8 @@ function buildSourceHref(src?: {
   margin: 1.5rem 0;
   font-family: var(--font-body);
   color: var(--text-primary);
+  /* the map's own width decides its narrow layout, not the window's: it may sit in a sidebar */
+  container: tux-map / inline-size;
   /* WCAG 2.2 AAA (7:1) in every TUX theme and colour-vision palette, measured across all 20 (#106).
      Text on a brand fill falls to 3.1:1 (soft dark, tritan) and brand-coloured text to 3.6:1, and
      TUX's --text-on-brand is 2.1-2.4:1 in the dark themes. Body text on a brand tint holds 9.1:1 or
@@ -4707,6 +4720,8 @@ function buildSourceHref(src?: {
 
 .tux-map__seg {
   display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -6303,6 +6318,23 @@ function buildSourceHref(src?: {
 
 .tux-map__canvas--list .tux-map__panel:not(.tux-map__panel--open) {
   display: none;
+}
+
+/* A narrow map (a phone, a sidebar): the details follow the diagram instead of covering it */
+@container tux-map (max-width: 640px) {
+  .tux-map__panel {
+    position: static;
+    transform: none;
+    visibility: visible;
+    width: auto;
+    max-height: none;
+    margin-top: 1rem;
+    box-shadow: none;
+  }
+
+  .tux-map__panel:not(.tux-map__panel--open) {
+    display: none;
+  }
 }
 
 .tux-map__caption {
