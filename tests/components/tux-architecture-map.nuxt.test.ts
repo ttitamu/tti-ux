@@ -343,7 +343,7 @@ describe("TuxArchitectureMap Component", () => {
     expect(rows.map((r) => r.find(".tux-map__blast-hop").text())).toEqual(["1 step away", "2 steps away"]);
     expect(rows[0]!.text()).toContain("routes.py");
     expect(rows[1]!.text()).toContain("forge.py");
-    expect(rows[1]!.find("a.tux-map__blast-how").attributes("href")).toBe(
+    expect(rows[1]!.find("a.tux-map__blast-src").attributes("href")).toBe(
       "https://code.tti.tamu.edu/nis/forgejo-stack/src/commit/abc/forge.py#L40",
     );
     expect(await runComponentAxe(wrapper.element)).toEqual([]);
@@ -353,6 +353,103 @@ describe("TuxArchitectureMap Component", () => {
     await nextTick();
     expect(wrapper.find(".tux-map__level-text").text()).toMatch(/^Level 5 /);
     expect(wrapper.emitted("update:selectedId")?.at(-1)).toEqual(["f:forge.py"]);
+  });
+
+  // ── #106: phones, tablets, touch and WCAG 2.2 AAA ──────────────────────────────
+
+  const codeModel106: TuxMapLevelModel = {
+    ...DEFAULT_TTI_LEVEL_MODEL,
+    subgraphs: {
+      "c-api/0": { stratum: "Files", elements: [{ id: "f:routes.py", kind: "module", name: "routes.py" }] },
+      "c-api/1": { stratum: "Files", elements: [{ id: "f:forge.py", kind: "module", name: "forge.py" }] },
+      "f:routes.py": {
+        stratum: "Functions",
+        elements: [
+          { id: "s:routes.py#data", kind: "symbol", name: "data()" },
+          { id: "s:routes.py#who", kind: "symbol", name: "who()" },
+        ],
+      },
+    },
+    links: [
+      { from: "s:routes.py#data", to: "s:routes.py#who", kind: "calls" },
+      { from: "s:routes.py#who", to: "f:forge.py", kind: "imports" },
+    ],
+  };
+
+  it("magnifies past fitting the width, where the viewport scrolls, and Fit returns (1.4.4, 2.5.7)", async () => {
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2 },
+    });
+    const scale = () => Number(/scale\(([\d.]+)\)/.exec(wrapper.find(".tux-map__stage").attributes("style") || "")![1]);
+    const fit = scale();
+    expect(wrapper.find(".tux-map__magnify-fit").text()).toBe("Fit");
+    await wrapper.find('[aria-label="Make the diagram larger"]').trigger("click");
+    await nextTick();
+    expect(scale()).toBeGreaterThan(fit);
+    expect(wrapper.find(".tux-map__viewport").classes()).toContain("tux-map__viewport--magnified");
+    expect(wrapper.find(".tux-map__sizer").exists()).toBe(true);
+    expect(wrapper.find(".tux-map__magnify-fit").text()).toMatch(/^\d+%$/);
+    await wrapper.find(".tux-map__magnify-fit").trigger("click");
+    await nextTick();
+    expect(scale()).toBe(fit);
+    expect(wrapper.find(".tux-map__viewport").classes()).not.toContain("tux-map__viewport--magnified");
+    expect(await runComponentAxe(wrapper.element)).toEqual([]);
+  });
+
+  it("carries the wires in the list: what each card depends on and what depends on it (1.3.1)", async () => {
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2, initialView: "list" },
+    });
+    const text = wrapper.findAll(".tux-map__list-rels").map((r) => r.text()).join(" ");
+    expect(text).toContain("Depends on");
+    expect(text).toContain("Used by");
+    expect(wrapper.find(".tux-map__magnify").exists()).toBe(false);
+    expect(await runComponentAxe(wrapper.element)).toEqual([]);
+  });
+
+  it("moves focus to the details when a list item is chosen, and back to it when they close", async () => {
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2, initialView: "list" },
+      attachTo: document.body,
+    });
+    const item = wrapper.find(".tux-map__list button[data-list-id]");
+    await item.trigger("click");
+    await nextTick();
+    await nextTick();
+    expect(document.activeElement?.classList.contains("tux-map__panel-title")).toBe(true);
+    await wrapper.find(".tux-map__panel-close").trigger("click");
+    await nextTick();
+    await nextTick();
+    expect(document.activeElement?.getAttribute("data-list-id")).toBe(item.attributes("data-list-id"));
+    wrapper.unmount();
+  });
+
+  it("offers a button for what double-clicking an outside card does, so a keyboard can do it (2.1.1)", async () => {
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: { model: codeModel106, initialLevel: 6, initialFocus: "f:routes.py" },
+    });
+    await wrapper.find('.tux-map__el--mini[data-id="f:forge.py"]').trigger("click");
+    await nextTick();
+    const go = wrapper.findAll(".tux-map__panel-btn").find((b) => b.text() === "Go to where it lives");
+    expect(go).toBeTruthy();
+    await go!.trigger("click");
+    await nextTick();
+    expect(wrapper.find(".tux-map__level-text").text()).toMatch(/^Level 5 /);
+    expect(wrapper.emitted("update:selectedId")?.at(-1)).toEqual(["f:forge.py"]);
+  });
+
+  it("opens 'auto' as the diagram and switches to the list after mount on a narrow screen", async () => {
+    const was = window.innerWidth;
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 375 });
+    try {
+      const wrapper = await mountSuspended(TuxArchitectureMap, {
+        props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2, initialView: "auto" },
+      });
+      await nextTick();
+      expect(wrapper.find(".tux-map__list").exists()).toBe(true);
+    } finally {
+      Object.defineProperty(window, "innerWidth", { configurable: true, value: was });
+    }
   });
 });
 
