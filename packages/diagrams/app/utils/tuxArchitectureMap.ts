@@ -40,6 +40,8 @@ export interface TuxMapComputeResource {
   kind: Exclude<TuxMapResourceKind, "person">;
   name: string;
   spec: string; // e.g. "8 vCPU · 32GB RAM" or "Docker · Node 22"
+  /** What the resource does; the deployment card says it when `spec` is empty */
+  role?: string;
   status?: TuxMapStatus;
   host?: string; // e.g. "rellis-esxi-04"
 }
@@ -1059,6 +1061,13 @@ export interface TuxMapElementLiveInfo {
   last_run?: { result: string; at?: string };
 }
 
+/**
+ * A Level 2 perimeter reference to a Level 1 element (a person or an outside
+ * system). It is drawn with that element's name, kind and details, so it
+ * carries only its id, `ref: true` and where it sits.
+ */
+export type TuxMapLevelRef = Partial<Omit<TuxMapLevelElement, "id" | "ref">> & { id: string; ref: true };
+
 export interface TuxMapLevelElement {
   id: string;
   kind?: TuxMapElementKind;
@@ -1201,7 +1210,7 @@ export interface TuxMapLevelModel {
     title?: string;
     summary?: string;
     boundary: string;
-    elements: TuxMapLevelElement[];
+    elements: Array<TuxMapLevelElement | TuxMapLevelRef>;
     rels: TuxMapLevelRel[];
   };
   /** Level 3: Internal components/modules/packages keyed by Level 2 container ID */
@@ -1926,7 +1935,7 @@ export function buildLevelModelFromLegacyNodes(
   ];
 
   const colCounts = new Map<number, number>();
-  const level2Elements: TuxMapLevelElement[] = [
+  const level2Elements: Array<TuxMapLevelElement | TuxMapLevelRef> = [
     { id: "p-researchers", ref: true, at: [0, 0] },
     { id: "p-ops", ref: true, at: [0, 1] },
   ];
@@ -2335,7 +2344,8 @@ export function buildUnifiedArchitectureGraph(model: TuxMapLevelModel = DEFAULT_
       id: e.id,
       level: 2,
       kind: e.kind || "container",
-      name: e.name,
+      // a reference whose Level 1 element is missing is still named
+      name: e.name ?? e.id,
       tech: e.tech,
       desc: e.desc,
       status: e.status,

@@ -168,6 +168,7 @@ export default defineNuxtConfig({
   // so @nuxt/fonts / fontless / fontaine / fontkitten never make external
   // fetch calls or run WOFF2 Brotli decompression (`woff2shell` / CVE-2026-111497)
   // if a consumer re-enables @nuxt/fonts (fonts are self-hosted in public/fonts/).
+  // @ts-expect-error the module is not registered here (ui.fonts: false), so its key is unknown to the config type
   fonts: {
     providers: {
       local: false,

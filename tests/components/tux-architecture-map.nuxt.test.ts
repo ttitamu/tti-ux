@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { nextTick } from "vue";
 import { mountSuspended } from "@nuxt/test-utils/runtime";
@@ -477,5 +479,126 @@ describe("TuxArchitectureMap Component", () => {
       Object.defineProperty(window, "innerWidth", { configurable: true, value: was });
     }
   });
+
+  // ── #109 (3.9.1) ───────────────────────────────────────────────────────────────
+  // The test DOM does not load the component's scoped styles, so what the
+  // stylesheet must keep is read from the component's own source.
+
+  it("hides the screen-reader-only text it renders, and the scrolled blast list contains it", () => {
+    const srClasses = [...new Set([...TEMPLATE.matchAll(/class="(tux-map__[\w-]*sr)"/g)].map((m) => m[1]!))];
+    expect(srClasses).toEqual(expect.arrayContaining(["tux-map__blast-sr", "tux-map__sr"]));
+    const all = rules(STYLE);
+    for (const cls of srClasses) {
+      const body = all.find(([sel]) => sel.includes(`.${cls}`))?.[1] ?? "";
+      expect(body, cls).toMatch(/position:\s*absolute/);
+      expect(body, cls).toMatch(/clip-path:\s*inset\(50%\)|clip:\s*rect\(0 0 0 0\)/);
+    }
+    const list = all.find(([sel]) => sel.includes(".tux-map__blast-list"))?.[1] ?? "";
+    expect(list).toMatch(/overflow-y:\s*auto/);
+    expect(list).toMatch(/position:\s*relative/);
+  });
+
+  it("stops every animation and every moving transition under prefers-reduced-motion (2.3.3)", () => {
+    const reduced = rules(REDUCED.body);
+    const covered = (sel: string, ok: (body: string) => boolean) =>
+      reduced.some(([sels, body]) => sels.includes(sel) && ok(body));
+    // the property each comma-separated item names (cubic-bezier's own commas leave numbers, which never match)
+    const MOVES = new Set(["all", "transform", "translate", "scale", "rotate", "inset", "left", "top", "right", "bottom", "width", "height"]);
+    const moving = (value: string) => value.split(",").some((item) => MOVES.has(item.trim().split(/\s+/)[0]!));
+    const elsewhere = rules(STYLE.slice(0, REDUCED.start) + STYLE.slice(REDUCED.end));
+    const animated: string[] = [];
+    const sliding: string[] = [];
+    for (const [sels, body] of elsewhere) {
+      if (/animation:\s*(?!none\b)[\w-]/.test(body)) animated.push(...sels);
+      const t = /transition:\s*([^;]+);/.exec(body)?.[1];
+      if (t && t.trim() !== "none" && moving(t)) sliding.push(...sels);
+    }
+    expect(animated.length).toBeGreaterThan(0);
+    expect(animated.filter((s) => !covered(s, (b) => /animation:\s*none/.test(b)))).toEqual([]);
+    expect(sliding.filter((s) => !covered(s, (b) => !moving(/transition:\s*([^;]+);/.exec(b)?.[1] ?? "")))).toEqual([]);
+  });
+
+  it("'+' opens the card keyboard focus is on, not the one chosen earlier", async () => {
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2 },
+    });
+    await wrapper.find('.tux-map__el[data-id="c-search"]').trigger("click");
+    await nextTick();
+    await wrapper.find('.tux-map__el[data-id="c-edge"]').trigger("keydown", { key: "+" });
+    await nextTick();
+    expect(wrapper.find(".tux-map__level-text").text()).toMatch(/^Level 3 /);
+    expect(wrapper.emitted("update:focus")?.at(-1)).toEqual(["c-edge"]);
+  });
+
+  it("never puts a script URL in a link, and encodes a source path", async () => {
+    const withSource = (id: string, source: { path: string; lineRange?: [number, number]; url?: string }) =>
+      DEFAULT_TTI_LEVEL_MODEL.level2.elements.map((e) => (e.id === id ? { ...e, source } : e));
+    const model: TuxMapLevelModel = {
+      ...DEFAULT_TTI_LEVEL_MODEL,
+      sourceBaseUrl: "https://forge.example/o/r/src/commit/abc",
+      level2: {
+        ...DEFAULT_TTI_LEVEL_MODEL.level2,
+        elements: withSource("c-search", { path: "docs/a b#c?.md", lineRange: [3, 3] }).map((e) =>
+          e.id === "c-edge" ? { ...e, source: { path: "edge.ts", url: "java\tscript:alert(1)" } } : e,
+        ),
+      },
+    };
+    const wrapper = await mountSuspended(TuxArchitectureMap, { props: { model, initialLevel: 2 } });
+    await wrapper.find('.tux-map__el[data-id="c-search"]').trigger("click");
+    await nextTick();
+    expect(wrapper.find("a.tux-map__source-lnk").attributes("href")).toBe(
+      "https://forge.example/o/r/src/commit/abc/docs/a%20b%23c%3F.md#L3",
+    );
+    await wrapper.find('.tux-map__el[data-id="c-edge"]').trigger("click");
+    await nextTick();
+    expect(wrapper.find(".tux-map__panel-title").text()).toBeTruthy();
+    expect(wrapper.find("a.tux-map__source-lnk").exists()).toBe(false);
+  });
+
+  it("speaks of the wheel only as it works: Ctrl+scroll when the plain wheel does not zoom", async () => {
+    const on = await mountSuspended(TuxArchitectureMap, { props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2 } });
+    expect(on.find(".tux-map__hint").text()).toContain("scroll the mouse wheel");
+    const off = await mountSuspended(TuxArchitectureMap, {
+      props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2, wheelZoom: false },
+    });
+    expect(off.find(".tux-map__hint").text()).toContain("hold Ctrl and scroll");
+    expect(off.find(".tux-map__hint").text()).not.toContain("mouse wheel");
+  });
+
+  it("names a Level 2 reference whose Level 1 element is missing by its id", async () => {
+    const model: TuxMapLevelModel = {
+      ...DEFAULT_TTI_LEVEL_MODEL,
+      level2: {
+        ...DEFAULT_TTI_LEVEL_MODEL.level2,
+        elements: [...DEFAULT_TTI_LEVEL_MODEL.level2.elements, { id: "x-gone", ref: true, at: [5, 4] }],
+      },
+    };
+    const wrapper = await mountSuspended(TuxArchitectureMap, { props: { model, initialLevel: 2 } });
+    expect(wrapper.find('.tux-map__el[data-id="x-gone"]').text()).toContain("x-gone");
+  });
 });
+
+// vitest runs from the repository root (the Nuxt environment's import.meta.url is not a file: URL)
+const SFC = readFileSync(join(process.cwd(), "packages/diagrams/app/components/TuxArchitectureMap.vue"), "utf8");
+const TEMPLATE = SFC.slice(SFC.indexOf("\n<template>"), SFC.indexOf("\n</template>"));
+const STYLE = SFC.slice(SFC.indexOf("\n<style")).replace(/\/\*[\s\S]*?\*\//g, "");
+const REDUCED = blockAt(STYLE, STYLE.indexOf("@media (prefers-reduced-motion: reduce)"));
+
+/** The braces-balanced block that opens after `at`: its body, and where it starts and ends in `css`. */
+function blockAt(css: string, at: number): { body: string; start: number; end: number } {
+  const open = css.indexOf("{", at);
+  for (let i = open, depth = 0; i < css.length; i++) {
+    if (css[i] === "{") depth++;
+    else if (css[i] === "}" && --depth === 0) return { body: css.slice(open + 1, i), start: at, end: i + 1 };
+  }
+  return { body: "", start: at, end: at };
+}
+
+/** [selectors, declarations] for every innermost rule (a block's own rules come out too). */
+function rules(css: string): [string[], string][] {
+  return [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => [
+    m[1]!.split(",").map((s) => s.trim()).filter(Boolean),
+    m[2]!,
+  ]);
+}
 
