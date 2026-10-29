@@ -105,7 +105,7 @@
     "axe-core": "^4.14.0",
     "d3-geo": "^3.1.1",
     "eslint": "^10.13.0",
-    "happy-dom": "^20.14.6",
+    "happy-dom": "^21.0.4",
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
     "lint-staged": "^17.6.0",
@@ -121,14 +121,19 @@
   },
   "//": [
     "overrides[@nuxtjs/mdc] only shapes THIS repo's install; npm ignores a dependency's overrides, so consumers get the ^0.23.2 range above and nothing else.",
-    "overrides[katex] ensures transitive consumers (mermaid, micromark-extension-math, rehype-katex) resolve to katex ^0.19.0 (GHSA-238p-pmpm-9mq7)."
+    "overrides[katex] ensures transitive consumers (mermaid, micromark-extension-math, rehype-katex) resolve to katex ^0.19.0 (GHSA-238p-pmpm-9mq7).",
+    "overrides[happy-dom] ensures @tiptap/html (peer happy-dom ^20.8.9) resolves to happy-dom ^21.0.4 (CVE-2026-115895, CVE-2026-118660)."
   ],
   "overrides": {
     "sharp": "^0.35.0",
     "brace-expansion": "5.0.12",
     "esbuild": "^0.28.2",
     "@nuxtjs/mdc": "$@nuxtjs/mdc",
-    "katex": "$katex"
+    "katex": "$katex",
+    "happy-dom": "^21.0.4",
+    "@tiptap/html": {
+      "happy-dom": "^21.0.4"
+    }
   },
   "bin": {
     "tux-audit": "scripts/tux-audit.mjs",

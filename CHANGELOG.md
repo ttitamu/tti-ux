@@ -38,6 +38,7 @@ conventions and [Semantic Versioning](https://semver.org/).
 - **Active ARIA tabs hover contrast (`tux.css`)**: Excluded `[aria-selected="true"]` alongside `[data-state="active"]` on the subtle tab hover wash so standard ARIA tablists preserve solid `--brand-fill` contrast on hover across all 4 themes.
 - **Framework filter semantics (`/install/figma`)**: Updated the framework selector container from `role="tablist"` to `role="group"` with `:aria-pressed` toggles, resolving an `aria-required-children` violation.
 - **Cross-framework kits & ports**: Exported all 19 new components from `@tti/tti-ux-react`, `@tti/tti-ux-elements`, Figma Code Connect, and all 8 `kit/` language targets (`202` catalogued components, `216` unit test suites).
+- **Security (`happy-dom` v21)**: Updated `happy-dom` devDependency and lockfile to `^21.0.4` across root and `@tti/tti-ux-desk` (`CVE-2026-115895`, `CVE-2026-118660`).
 
 ## [3.9.1] — 2026-10-29
 
