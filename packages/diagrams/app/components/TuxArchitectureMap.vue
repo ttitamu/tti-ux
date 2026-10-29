@@ -1775,6 +1775,7 @@ function magnifyBy(dir: 1 | -1) {
     const prev = [...MAGNIFY_SCALES].reverse().find((m) => m < s - 0.01 && m > fitScale.value + 0.001);
     zoomScale.value = prev ?? null;
   }
+  afterMagnify();
   liveAnnouncement.value = isMagnified.value
     ? `Diagram at ${Math.round(stageScale.value * 100)}%: scroll or swipe to move around it`
     : "Diagram fitted to the width";
@@ -1782,7 +1783,21 @@ function magnifyBy(dir: 1 | -1) {
 
 function magnifyFit() {
   zoomScale.value = null;
+  afterMagnify();
   liveAnnouncement.value = "Diagram fitted to the width";
+}
+
+// Magnified, the viewport scrolls instead of the stage sliding (panX), so the slide goes and the
+// selection is scrolled to; back at Fit, the slide that keeps it clear of the panel comes back
+function afterMagnify() {
+  nextTick(() => {
+    if (isMagnified.value) {
+      panX.value = 0;
+      scrollSelectionIntoView();
+    } else {
+      keepClear(selectedId.value);
+    }
+  });
 }
 
 const computedViewportHeight = computed<string>(() => {
@@ -2020,6 +2035,7 @@ function goToLevel(
 
     if (
       isListView.value ||
+      isMagnified.value ||
       (typeof window !== "undefined" &&
         window.matchMedia?.("(prefers-reduced-motion: reduce)").matches)
     ) {
@@ -2901,11 +2917,32 @@ const selectedDeployOutLinks = computed(() => {
     .map((l) => ({ link: l, other: resById.value[l.to]! }));
 });
 
+// A new view, magnified, opens at its selection or its top-left. Choosing a card at Level 2 or 4 sets
+// focusId too, but keeps the view, so only a focus that is the view's parent (Level 3, 5+) counts.
+watch([currentLevel, focusId], ([lvl, f], [oldLvl, oldF]) => {
+  if (lvl === oldLvl && (f === oldF || (lvl !== 3 && lvl < 5))) return;
+  if (!isMagnified.value) return;
+  nextTick(() => scrollSelectionIntoView(true));
+});
+
+/** Magnified, bring the selected card into the viewport (or, with `orTopLeft`, start at the corner) */
+function scrollSelectionIntoView(orTopLeft = false) {
+  const vp = viewportRef.value;
+  const r = selectedId.value ? stageData.value.rects[selectedId.value] : undefined;
+  if (!vp) return;
+  if (!r) {
+    if (orTopLeft) vp.scrollTo?.(0, 0);
+    return;
+  }
+  const s = stageScale.value;
+  vp.scrollTo?.({
+    left: Math.max(0, (r.x + r.w / 2) * s - vp.clientWidth / 2),
+    top: Math.max(0, (r.y + r.h / 2) * s - vp.clientHeight / 2),
+  });
+}
+
 /** What each card in view depends on and what depends on it, from the wires the diagram draws: the
  *  list is the map's text alternative, so it carries them too (WCAG 1.3.1) */
-watch([currentLevel, focusId], () => {
-  viewportRef.value?.scrollTo?.(0, 0);
-});
 
 /** The selection is an outside card (Level 5+): the panel offers what double-clicking it does (2.1.1) */
 const selectedIsOutside = computed<boolean>(() => {
@@ -2921,6 +2958,7 @@ const listRelsById = computed(() => {
   for (const n of S.deployNodes) names.set(n.id, n.title);
   const fid = focusId.value;
   names.set("@bound", (fid && (byId.value[fid]?.name || resById.value[fid]?.title)) || "its parent");
+  const nameOf = (id: string) => names.get(id) ?? byId.value[id]?.name ?? resById.value[id]?.title ?? id;
   const max = 8;
   const out = new Map<string, { uses: string[]; usedBy: string[] }>();
   const at = (id: string) => {
@@ -2928,13 +2966,18 @@ const listRelsById = computed(() => {
     if (!r) out.set(id, (r = { uses: [], usedBy: [] }));
     return r;
   };
-  for (const r of S.rels) {
+  // Level 4 draws its wires from level4.links, not from the stage's rels
+  const rels: { from: string; to: string; label?: string; status?: string }[] =
+    currentLevel.value === 4
+      ? activeModel.value.level4.links.filter((l) => showPlanned.value || l.state !== "planned")
+      : S.rels;
+  for (const r of rels) {
     if (!isShownStatus(r.status)) continue;
     const how = r.label ? ` (${r.label})` : "";
     const a = at(r.from).uses;
     const b = at(r.to).usedBy;
-    const to = (names.get(r.to) ?? r.to) + how;
-    const from = (names.get(r.from) ?? r.from) + how;
+    const to = nameOf(r.to) + how;
+    const from = nameOf(r.from) + how;
     if (!a.includes(to)) a.push(to);
     if (!b.includes(from)) b.push(from);
   }
@@ -3965,9 +4008,13 @@ function buildSourceHref(src?: {
               </span>
               <span>
                 {{
-                  proximityCard.zoomable
-                    ? `Scroll to zoom · ${proximityCard.name}`
-                    : `Scroll out · ${proximityCard.name}`
+                  isMagnified
+                    ? proximityCard.zoomable
+                      ? `Double-click to zoom · ${proximityCard.name}`
+                      : `Esc to zoom out · ${proximityCard.name}`
+                    : proximityCard.zoomable
+                      ? `Scroll to zoom · ${proximityCard.name}`
+                      : `Scroll out · ${proximityCard.name}`
                 }}
               </span>
             </span>
@@ -4080,6 +4127,16 @@ function buildSourceHref(src?: {
                 </span>
                 <span class="tux-map__el-ds">{{ n.role }}</span>
               </button>
+              <dl v-if="listRelsById.get(n.id)" class="tux-map__list-rels">
+                <template v-if="listRelsById.get(n.id)!.uses.length">
+                  <dt>Depends on</dt>
+                  <dd>{{ listRelsById.get(n.id)!.uses.join(", ") }}</dd>
+                </template>
+                <template v-if="listRelsById.get(n.id)!.usedBy.length">
+                  <dt>Used by</dt>
+                  <dd>{{ listRelsById.get(n.id)!.usedBy.join(", ") }}</dd>
+                </template>
+              </dl>
             </li>
           </ul>
         </section>
@@ -4090,8 +4147,9 @@ function buildSourceHref(src?: {
         ref="panelRef"
         class="tux-map__panel"
         :class="{ 'tux-map__panel--open': Boolean(selectedLevelElement || selectedDeployNode) }"
-        aria-live="polite"
+        :aria-live="isListView ? 'off' : 'polite'"
         aria-label="Selected element details"
+        @keydown.escape="isListView && selectElement(null)"
       >
         <template v-if="selectedLevelElement">
           <button
@@ -4776,6 +4834,7 @@ function buildSourceHref(src?: {
 .tux-map__switch {
   display: inline-flex;
   align-items: center;
+  min-height: var(--tux-map-target);
   gap: 0.45rem;
   font-size: 0.8125rem;
   color: var(--text-secondary);
@@ -5246,8 +5305,12 @@ function buildSourceHref(src?: {
   stroke-width: 3.2;
 }
 
-[data-vision-stroke="heavy"] .tux-map__el {
+[data-vision-stroke="heavy"] .tux-map__el:not(.tux-map__el--k-system) {
   border-width: 2px;
+}
+
+[data-vision-stroke="heavy"] .tux-map__el--k-system {
+  border-width: 3.5px;
 }
 
 /* Layer 4 (z-index: 4): Foreground Active Wires SVG (Above Dimmed Cards & Dimmed Labels) */
@@ -5975,6 +6038,9 @@ function buildSourceHref(src?: {
 
 .tux-map__lnk {
   all: unset;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tux-map-target);
   cursor: pointer;
   color: var(--tux-map-brand-ink);
   font-family: var(--font-bold);
@@ -6000,6 +6066,7 @@ function buildSourceHref(src?: {
 .tux-map__issue-pill {
   display: inline-flex;
   align-items: center;
+  min-height: var(--tux-map-target);
   padding: 0.1rem 0.42rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--surface-border);

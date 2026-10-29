@@ -396,6 +396,32 @@ describe("TuxArchitectureMap Component", () => {
     expect(await runComponentAxe(wrapper.element)).toEqual([]);
   });
 
+  it("keeps the scroll when a card is chosen while magnified: only a new view moves it", async () => {
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2 },
+    });
+    await wrapper.find('[aria-label="Make the diagram larger"]').trigger("click");
+    await nextTick();
+    const vp = wrapper.find(".tux-map__viewport").element as HTMLElement;
+    // the test DOM's scrollTo moves nothing, so record the calls instead
+    const scrolls: unknown[][] = [];
+    vp.scrollTo = ((...args: unknown[]) => void scrolls.push(args)) as typeof vp.scrollTo;
+    // choosing a container with Level 3 children sets focusId, but the view stays Level 2
+    await wrapper.find('.tux-map__el[data-id="c-search"]').trigger("click");
+    await nextTick();
+    await nextTick();
+    expect(scrolls).toEqual([]);
+  });
+
+  it("lists Level 4's connections too, from level4.links", async () => {
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 4, initialView: "list", initialShowPlanned: true },
+    });
+    const text = wrapper.findAll(".tux-map__list-rels").map((r) => r.text()).join(" ");
+    expect(DEFAULT_TTI_LEVEL_MODEL.level4.links.length).toBeGreaterThan(0);
+    expect(text).toMatch(/Depends on|Used by/);
+  });
+
   it("carries the wires in the list: what each card depends on and what depends on it (1.3.1)", async () => {
     const wrapper = await mountSuspended(TuxArchitectureMap, {
       props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2, initialView: "list" },
