@@ -145,7 +145,7 @@ const emit = defineEmits<{
   (e: "update:view", view: TuxMapViewMode): void;
   (e: "update:lodMode", mode: "auto" | TuxMapLoDLevel): void;
   (e: "node-select", item: TuxMapLevelElement | TuxMapDeploymentNode | TuxMapNode | null): void;
-  (e: "drill-down", payload: { nodeId: string; level: number; subgraphRef?: string }): void;
+  (e: "drill-down", payload: { level: number; focusId: string; subgraph: TuxMapSubgraph | null }): void;
   (e: "update:strokes", strokes: TuxMapInkStroke[]): void;
   (e: "update:notes", notes: TuxMapStickyNote[]): void;
   (e: "cursor-move", payload: { x: number; y: number; tool: TuxMapTool }): void;
@@ -196,6 +196,18 @@ const showBlastRadius = ref<boolean>(
 const isListView = ref<boolean>(resolveInitialIsListView());
 const searchQuery = ref<string>("");
 const liveAnnouncement = ref<string>("");
+
+// A live region reads a change, and the same message twice is no change: clear it,
+// then set it a moment later, so a key pressed again is answered again
+let announceTimer: ReturnType<typeof setTimeout> | null = null;
+function announce(msg: string) {
+  liveAnnouncement.value = "";
+  if (announceTimer) clearTimeout(announceTimer);
+  announceTimer = setTimeout(() => {
+    liveAnnouncement.value = msg;
+    announceTimer = null;
+  }, 100);
+}
 
 // Sync controlled props when updated by parent
 watch(
@@ -335,7 +347,8 @@ const byId = computed<Record<string, TuxMapLevelElement>>(() => {
     if (e.ref && map[e.id]) {
       map[e.id] = { ...map[e.id]!, ...e };
     } else {
-      map[e.id] = e;
+      // a reference whose Level 1 element is missing is still named
+      map[e.id] = { ...e, name: e.name ?? e.id };
     }
     if (e.children?.length) indexChildren(e.id, e.children);
   }
@@ -387,17 +400,18 @@ function drillStackFor(fid: string): { level: number; focusId: string }[] {
 // opened below Level 4 (a deep link): the stack zooming in would have built, so zooming out works
 if (currentLevel.value >= 5 && focusId.value) drillStack.value = drillStackFor(focusId.value);
 
-const maxAvailableLevel = computed<number>(() => {
-  const M = activeModel.value;
+// The deepest level this model really has: each element with something inside opens at
+// levelForFocus(id), so the count follows the nesting, not how the subgraphs are named.
+// Its own computed: it walks every element once per model, not on every level change.
+const modelDepth = computed<number>(() => {
   let max = 4;
-  if (M.subgraphs && Object.keys(M.subgraphs).length > 0) {
-    max = Math.max(max, 5);
-    for (const key of Object.keys(M.subgraphs)) {
-      if (key.includes("/")) max = Math.max(max, 6);
-    }
+  for (const id of [...Object.keys(byId.value), ...Object.keys(resById.value)]) {
+    if (hasFractalSubgraph(id)) max = Math.max(max, levelForFocus(id));
   }
-  return Math.max(max, currentLevel.value);
+  return max;
 });
+
+const maxAvailableLevel = computed<number>(() => Math.max(modelDepth.value, currentLevel.value));
 
 // Ensure focusId is always valid for the active model
 watch(
@@ -468,9 +482,8 @@ function canZoomElement(e: TuxMapLevelElement): boolean {
   if (currentLevel.value === 3) {
     return !e.mini && activeModel.value.level4.nodes.length > 0;
   }
-  if (currentLevel.value >= 5) {
-    return Boolean(!e.mini && normalizeArray(e.deployed).length > 0);
-  }
+  // Below Level 4 only something inside opens (the subgraph check above): a card that is
+  // merely deployed somewhere has no level inside it, and its '+' led nowhere
   return false;
 }
 
@@ -685,7 +698,9 @@ const stageData = computed<ComputedStageData>(() => {
     rawEls = M.level1.elements;
     rawRels = M.level1.rels;
   } else if (currentLevel.value === 2) {
-    rawEls = M.level2.elements.map((e) => (e.ref && lookup[e.id] ? { ...lookup[e.id]!, ...e } : e));
+    rawEls = M.level2.elements.map((e) =>
+      e.ref && lookup[e.id] ? { ...lookup[e.id]!, ...e } : { ...e, name: e.name ?? e.id },
+    );
     rawRels = M.level2.rels;
     const boundTarget = lookup[M.level2.boundary];
     rawBounds.push({
@@ -1854,6 +1869,44 @@ let coarseQuery: MediaQueryList | null = null;
 const onCoarseChange = () => {
   coarsePointer.value = Boolean(coarseQuery?.matches);
 };
+
+// The help names the wheel only as it works here: a plain wheel zooms unless
+// `wheelZoom` is off or the diagram is magnified, where it scrolls and zooming
+// needs Ctrl (a trackpad pinch sends it too). It counts the levels this map has.
+const wheelZooms = computed<boolean>(() => props.wheelZoom && !isMagnified.value);
+const hintText = computed<string>(() => {
+  const scroll = wheelZooms.value ? "scroll" : "Ctrl+scroll";
+  if (isListView.value) {
+    return "Choose an item to see what it depends on, what uses it and its details. The level buttons go in and out.";
+  }
+  if (currentLevel.value === 4) {
+    const deeper = stageData.value.deployNodes.some((n) => canZoomDeployNode(n));
+    return coarsePointer.value
+      ? "Tap a deployment resource to see its connections, firewall rules and hosted containers." +
+          (deeper ? " Double-tap a '+' node, or use the level buttons, to go inside it." : "")
+      : "Choose a deployment resource to draw its connections and inspect its firewall rules and hosted containers." +
+          (deeper ? ` Double-click or ${scroll} up on nodes with '+' to drill into Level 5 internal modules/schemas.` : "");
+  }
+  // '+' talk only where a card in view has a '+': the bottom of the code has none
+  const deeper = renderedCards.value.some((c) => c.zoomable);
+  if (coarsePointer.value) {
+    return (
+      "Tap a card to see its links and details." +
+      (deeper ? " Double-tap a '+' card, or use the level buttons, to go inside it." : " The level buttons go in and out.") +
+      " Larger magnifies the diagram; then swipe to move around it."
+    );
+  }
+  if (currentLevel.value >= 5) {
+    return deeper
+      ? `Inspecting deep internal modules & code symbols. Double-click or ${scroll} up on '+' cards to drill deeper, or ${scroll} down / press Escape to return to the parent level.`
+      : `Inspecting deep internal modules & code symbols. ${wheelZooms.value ? "Scroll" : "Ctrl+scroll"} down or press Escape to return to the parent level.`;
+  }
+  const levels = `Levels 1–${maxAvailableLevel.value}`;
+  return wheelZooms.value
+    ? `Hover over any card to highlight its links, or scroll the mouse wheel over a card (or double-click / press +) to zoom in and out across ${levels}.`
+    : `Hover over any card to highlight its links, or hold Ctrl and scroll over a card (or double-click / press +) to zoom in and out across ${levels}.`;
+});
+
 onMounted(() => {
   applyAutoListView();
   measureViewport();
@@ -1874,6 +1927,7 @@ onBeforeUnmount(() => {
   resizeObserver?.disconnect();
   coarseQuery?.removeEventListener?.("change", onCoarseChange);
   if (zoomHudTimer) clearTimeout(zoomHudTimer);
+  if (announceTimer) clearTimeout(announceTimer);
   if (laserRaf !== null && typeof window !== "undefined") {
     window.cancelAnimationFrame(laserRaf);
   }
@@ -2517,6 +2571,19 @@ const stepInTargetId = computed<string | null>(() => {
 
 const canStepIn = computed(() => Boolean(stepInTargetId.value));
 
+// `+` acts on the card keyboard focus is on, never on the selection: a keyboard
+// user who tabs to a card means that card, whatever was clicked before.
+function cardIdOf(target: EventTarget | null): string | null {
+  const card = (target as Element | null)?.closest?.(".tux-map__el") as HTMLElement | null;
+  return card?.dataset.id ?? null;
+}
+
+function canZoomCard(id: string): boolean {
+  const e = byId.value[id];
+  const dn = resById.value[id];
+  return Boolean((e && canZoomElement(e)) || (dn && canZoomDeployNode(dn)));
+}
+
 function stepInLevel() {
   const target = stepInTargetId.value;
   if (!target) return;
@@ -2638,8 +2705,11 @@ function onViewportWheel(ev: WheelEvent) {
   wheelDeltaAccum += ev.deltaY;
 
   // Visually attach the magnetic frame to the closest card and glide the magnetic cursor dot
-  // along the tether toward that card as the wheel turns
-  const progress = Math.min(1, Math.abs(wheelDeltaAccum) / 26);
+  // along the tether toward that card as the wheel turns. Under reduced motion nothing
+  // glides or pulls: the wheel still counts toward the level change (2.3.3).
+  const still =
+    typeof window !== "undefined" && Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+  const progress = still ? 0 : Math.min(1, Math.abs(wheelDeltaAccum) / 26);
   if (candidateId && stageData.value.rects[candidateId]) {
     const r = stageData.value.rects[candidateId]!;
     const anchorX = Math.max(r.x, Math.min(r.x + r.w, pt.x));
@@ -2669,6 +2739,10 @@ function onViewportWheel(ev: WheelEvent) {
       : null) || targetEl;
 
   if (activeCardEl && Math.abs(wheelDeltaAccum) < 26) {
+    if (still) {
+      clearPreZoomCardTransform();
+      return;
+    }
     if (preZoomCardEl && preZoomCardEl !== activeCardEl) {
       preZoomCardEl.style.transform = "";
     }
@@ -2729,7 +2803,25 @@ function onStageKeydown(ev: KeyboardEvent) {
     return;
   }
   if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+  const view = `${currentLevel.value}|${focusId.value}`;
+  onStageKey(ev);
+  if (`${currentLevel.value}|${focusId.value}` !== view) keepFocusInMap();
+}
 
+// A key that changes the view can remove the card that had focus with it. Keep focus
+// in the map, on the viewport that takes the keys, so the next key still works. Only
+// focus that was really lost (on the body) comes back: focus the host page moved on
+// purpose, say to its own drawer in answer to node-select, stays where it is.
+function keepFocusInMap() {
+  nextTick(() => {
+    const vp = viewportRef.value;
+    if (!vp || typeof document === "undefined") return;
+    const a = document.activeElement;
+    if (!a || a === document.body) vp.focus({ preventScroll: true });
+  });
+}
+
+function onStageKey(ev: KeyboardEvent) {
   if (ev.key === "1") {
     ev.preventDefault();
     drillStack.value = [];
@@ -2757,9 +2849,20 @@ function onStageKeydown(ev: KeyboardEvent) {
   } else if (ev.key === "-" || ev.key === "_") {
     ev.preventDefault();
     zoomOutLevel();
-  } else if ((ev.key === "+" || ev.key === "=") && canStepIn.value) {
-    ev.preventDefault();
-    stepInLevel();
+  } else if (ev.key === "+" || ev.key === "=") {
+    const cardId = cardIdOf(ev.target);
+    if (cardId) {
+      // from a card, '+' means that card and nothing else
+      ev.preventDefault();
+      if (canZoomCard(cardId)) {
+        zoomIntoElement(cardId);
+      } else {
+        announce(`${getCardDisplayName(cardId)} has no level inside it.`);
+      }
+    } else if (canStepIn.value) {
+      ev.preventDefault();
+      stepInLevel();
+    }
   } else if (ev.key === "v" || ev.key === "V") {
     activeTool.value = "select";
   } else if (ev.key === "p" || ev.key === "P") {
@@ -3373,8 +3476,21 @@ function normalizeArray(v?: string | string[]): string[] {
   return Array.isArray(v) ? v : [v];
 }
 
+// A model's URLs are data: only web and relative links reach an href, so a
+// `javascript:` or `data:` value never runs on click. The URL parser decides
+// the scheme, as the browser would (it drops tabs and newlines inside it).
+function safeHref(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const { protocol } = new URL(url, "https://tux-map.invalid/");
+    return protocol === "https:" || protocol === "http:" ? url : null;
+  } catch {
+    return null;
+  }
+}
+
 function buildIssueHref(issueNum: number): string | null {
-  const base = activeModel.value.issueBaseUrl;
+  const base = safeHref(activeModel.value.issueBaseUrl);
   if (!base) return null;
   return `${base.replace(/\/+$/, "")}/${issueNum}`;
 }
@@ -3385,10 +3501,11 @@ function buildSourceHref(src?: {
   url?: string;
 }): string | null {
   if (!src) return null;
-  if (src.url) return src.url;
-  const base = activeModel.value.sourceBaseUrl;
+  if (src.url) return safeHref(src.url);
+  const base = safeHref(activeModel.value.sourceBaseUrl);
   if (!base) return null;
-  const cleanPath = src.path.replace(/^\/+/, "");
+  // a path is a file name, not a URL: '#', '?' and spaces in it are encoded
+  const cleanPath = src.path.replace(/^\/+/, "").split("/").map(encodeURIComponent).join("/");
   const lineHash = src.lineRange
     ? src.lineRange[0] === src.lineRange[1]
       ? `#L${src.lineRange[0]}`
@@ -3607,19 +3724,7 @@ function buildSourceHref(src?: {
       </ol>
     </nav>
 
-    <p class="tux-map__hint">
-      {{
-        currentLevel === 4
-          ? coarsePointer
-            ? "Tap a deployment resource to see its connections, firewall rules and hosted containers. Double-tap a '+' node, or use the level buttons, to go inside it."
-            : "Choose a deployment resource to draw its connections and inspect its firewall rules and hosted containers. Double-click or scroll up on nodes with '+' to drill into Level 5 internal modules/schemas."
-          : coarsePointer
-            ? "Tap a card to see its links and details. Double-tap a '+' card, or use the level buttons, to go inside it. Larger magnifies the diagram; then swipe to move around it."
-            : currentLevel >= 5
-              ? "Inspecting deep internal modules & code symbols. Double-click or scroll up on '+' cards to drill deeper, or scroll down / press Escape to return to the parent level."
-              : "Hover over any card to highlight its links, or scroll the mouse wheel over a card (or double-click / press +) to zoom in and out across Levels 1–6."
-      }}
-    </p>
+    <p class="tux-map__hint">{{ hintText }}</p>
     <p class="tux-map__summary">{{ summaryText }}</p>
 
     <!-- Visual Key Legend -->
@@ -3860,7 +3965,7 @@ function buildSourceHref(src?: {
               <span
                 v-if="c.zoomable"
                 class="tux-map__el-zb"
-                title="Scroll up or double-click to zoom in a level"
+                :title="`${wheelZooms ? 'Scroll up' : 'Ctrl+scroll up'} or double-click to zoom in a level`"
                 aria-hidden="true"
               >
                 +
@@ -3927,7 +4032,7 @@ function buildSourceHref(src?: {
               <span
                 v-if="canZoomDeployNode(n)"
                 class="tux-map__el-zb"
-                title="Scroll up or double-click to zoom in to Level 5 internal modules/schemas"
+                :title="`${wheelZooms ? 'Scroll up' : 'Ctrl+scroll up'} or double-click to zoom in to Level 5 internal modules/schemas`"
                 aria-hidden="true"
               >
                 +
@@ -4024,8 +4129,8 @@ function buildSourceHref(src?: {
                       ? `Double-click to zoom · ${proximityCard.name}`
                       : `Esc to zoom out · ${proximityCard.name}`
                     : proximityCard.zoomable
-                      ? `Scroll to zoom · ${proximityCard.name}`
-                      : `Scroll out · ${proximityCard.name}`
+                      ? `${wheelZooms ? "Scroll" : "Ctrl+scroll"} to zoom · ${proximityCard.name}`
+                      : `${wheelZooms ? "Scroll" : "Ctrl+scroll"} out · ${proximityCard.name}`
                 }}
               </span>
             </span>
@@ -6136,6 +6241,9 @@ function buildSourceHref(src?: {
   width: 100%;
   max-height: 22rem;
   overflow-y: auto;
+  /* the containing block of each row's hidden hop text: without it that text
+     escapes the scrolled list and lengthens the panel's own scroll */
+  position: relative;
 }
 
 .tux-map__blast-row {
@@ -6156,6 +6264,16 @@ function buildSourceHref(src?: {
   color: var(--text-muted);
   font-family: var(--font-mono);
   text-align: center;
+}
+
+/* "N steps away": read aloud with the hop number, never shown */
+.tux-map__blast-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .tux-map__blast-go {
@@ -6358,8 +6476,22 @@ function buildSourceHref(src?: {
 @media (prefers-reduced-motion: reduce) {
   .tux-map__stage--anim,
   .tux-map__stage--pan,
-  .tux-map__panel {
+  .tux-map__panel,
+  .tux-map__proximity-frame,
+  .tux-map__switch-track::after {
     transition: none;
+  }
+  .tux-map__el {
+    transition:
+      box-shadow 0.16s ease,
+      border-color 0.14s ease;
+  }
+  /* the flowing dashes and the zoom pop are motion: the wire keeps its dash
+     pattern and colour, so what it marks is still there, standing still */
+  .tux-map__wire-fg--stream,
+  .tux-map__proximity-beam,
+  .tux-map__zoom-hud {
+    animation: none;
   }
 }
 </style>

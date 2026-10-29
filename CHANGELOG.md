@@ -3,6 +3,17 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.9.1] — 2026-10-29
+
+### Fixed — `<TuxArchitectureMap>` (#109)
+
+- **Blast rows showed "N steps away" beside every hop number.** 3.9.0 deleted the rule that hides that screen-reader text. It is back, and the scrolled list is now the text's containing block, so it no longer lengthens the details panel's scroll.
+- **Reduced motion (2.3.3).** Under `prefers-reduced-motion` the flowing wires, the proximity beam and the zoom pop kept animating; the proximity frame, the cards and the switches slid; and a trackpad's wheel pulled and grew the card under the pointer before the level changed. Only transitions on the stage and panel stopped: a gap since the map's first release for the zoom pop and the switches, and since 3.7.0 for the rest, which 3.9.0's AAA audit missed. All of it now stands still. A flowing wire keeps its dashes and colour, and the wheel still changes the level.
+- **`+` acts on the card keyboard focus is on, and only that card.** It opened the selection even after tabbing to another card. A card with nothing inside now says so (again on every press) instead of opening another one. When the zoom removes the card that had focus, focus stays in the map, so the next key still works; focus the host page moved on purpose is never taken back. A card below Level 4 that is only deployed somewhere no longer shows a `+` or a dead "Zoom in to Level 4" button: it has no level inside it.
+- **Links.** `source.url`, `sourceBaseUrl` and `issueBaseUrl` reach an `href` only as http, https or relative URLs, so a model can never put `javascript:` behind a link. A source path's segments are encoded (`#`, `?` and spaces in file names).
+- **Help text names the wheel only where it zooms.** It says Ctrl+scroll when `wheelZoom` is `false` or the diagram is magnified, and so do the hover pill and the `+` badges. It counts the levels the model really has, from its nesting, instead of always six; it speaks of `+` cards only where one is in view; and the list view gets its own sentence.
+- **Types.** The `drill-down` event is typed as what it sends: `{ level, focusId, subgraph }`. Level 2 references to Level 1 elements are `TuxMapLevelRef` (no `name` needed; a reference whose Level 1 element is missing is named by its id), and a compute resource may carry a `role`. Both changes describe what already happened at run time. A TypeScript consumer that read `level2.elements[i].name` writes `e.name ?? e.id`, and a `drill-down` handler reads `payload.focusId`. `npm run typecheck` passes again and runs in the forge's test workflow.
+
 ## [3.9.0] — 2026-10-29
 
 ### Changed — `<TuxArchitectureMap>` on phones, tablets and touch, to WCAG 2.2 AAA (#106)

@@ -1,6 +1,6 @@
 {
   "name": "@tti/tti-ux",
-  "version": "3.9.0",
+  "version": "3.9.1",
   "description": "TUX — the TTI design system: Nuxt layer, design tokens, and audit tooling. Published from code.tti.tamu.edu (Forgejo npm registry).",
   "publishConfig": {
     "registry": "https://code.tti.tamu.edu/api/packages/tti/npm/"
@@ -78,11 +78,11 @@
     "@nuxtjs/color-mode": "^4.0.0",
     "@tailwindcss/vite": "^4.0.0",
     "@tanstack/vue-virtual": "^3.13.47",
-    "@tti/tti-ux-charts": "3.9.0",
-    "@tti/tti-ux-code": "3.9.0",
-    "@tti/tti-ux-content": "3.9.0",
-    "@tti/tti-ux-desk": "3.9.0",
-    "@tti/tti-ux-diagrams": "3.9.0",
+    "@tti/tti-ux-charts": "3.9.1",
+    "@tti/tti-ux-code": "3.9.1",
+    "@tti/tti-ux-content": "3.9.1",
+    "@tti/tti-ux-desk": "3.9.1",
+    "@tti/tti-ux-diagrams": "3.9.1",
     "nuxt": "^4.6.2",
     "tailwindcss": "^4.0.0",
     "vue": "^3.5.44",
