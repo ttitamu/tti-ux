@@ -3,6 +3,42 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.10.0] — 2026-10-29
+
+### Added — 19 Domain-Agnostic Resource Governance, Reconciliation, Structured Input & Flow Primitives + `/examples/resource-governance`
+
+- **Workflow, Capacity & Ingestion Health Primitives**:
+  - `TuxSignoffChain` (`/components/signoff-chain`): Sequential multi-party verification, attestation checkbox gating, and continuation decision selector.
+  - `TuxThresholdBar` (`/components/threshold-bar`): Multi-segment capacity and projection bar with solid/hatched channels, proportional threshold marker, and overage alerts.
+  - `TuxLeaseBadge` (`/components/lease-badge`): Time-to-live (TTL) countdown and expiration status pill with inline extend and release actions.
+  - `TuxStageBoard` (`/components/stage-board`): Multi-lane workflow board with live lane item counts, summed numeric rollups, and accessible keyboard stage movement.
+  - `TuxFeedStatus` (`/components/feed-status`): Upstream data connector and ingestion health monitor with sync status, lag readouts, and manual sync triggers.
+- **Temporal, Structured Code & Metadata Hygiene Controls**:
+  - `TuxPeriodPicker` (`/components/period-picker`): Reporting cycle, fiscal quarter, and date-range selector with window steppers and prior-period comparison toggle.
+  - `TuxSegmentedInput` (`/components/segmented-input`): Formatted multi-segment monospace code input with auto-advance, smart paste-splitting, and charset validation.
+  - `TuxKeyValueInput` (`/components/key-value-input`): Schema-aware `key = value` metadata and tag editor with required-key checks and autocomplete suggestions.
+  - `TuxEntityPicker` (`/components/entity-picker`): Accessible ARIA combobox with rich two-line entity cards, status badges, and closed-record guardrails.
+  - `TuxProportionalInput` (`/components/proportional-input`): Constrained fixed-sum and percentage allocation control with stacked preview bar, row lock toggles, and auto-rebalance.
+- **Reconciliation, Rollups, Mapping & Diffing Primitives**:
+  - `TuxRecordMatcher` (`/components/record-matcher`): Side-by-side unlinked record to fuzzy candidate resolution queue with confidence badges, batch resolution, and persistent rule creation.
+  - `TuxLedgerTable` (`/components/ledger-table`): Hierarchical grouped rollup table with collapsible categories, `quantity × rate` math, subtotals, grand total, and CSV/TSV export.
+  - `TuxColumnMapper` (`/components/column-mapper`): Tabular import and schema alignment wizard with fuzzy column auto-match, sample preview, and type validation.
+  - `TuxPivotMatrix` (`/components/pivot-matrix`): Two-axis cross-tabulation matrix with row/column marginals, grand total, and contrast-safe sequential cell shading.
+  - `TuxRecordDiff` (`/components/record-diff`): Structured baseline-vs-current field and metric delta viewer with signed percentage variance and changes-only filter.
+- **Identifiers, Schedules & Native SVG Flow/Bridge Visualizations**:
+  - `TuxCopyToken` (`/components/copy-token`): Monospace identifier chip with middle-ellipsis visual truncation, verification badge, and one-click clipboard copy.
+  - `TuxScheduleMatrix` (`/components/schedule-matrix`): Interactive day × time-block schedule paint matrix with presets, pointer drag-painting, and 2-D keyboard navigation.
+  - `TuxChartSankey` (`/visualizations/chart-sankey`): Multi-stage directed acyclic flow diagram with topological stage inference, cubic-Bezier ribbons, and roving keyboard cursor.
+  - `TuxChartWaterfall` (`/visualizations/chart-waterfall`): Cumulative step-delta bridge chart supporting start/delta/subtotal/total steps and direct or inverted polarity.
+- **End-to-End Composition Suite (`/examples/resource-governance`)**:
+  - Added a 5-view operational workspace composing all 19 primitives across flow attribution, unlinked workload matching, proportional allocation, multi-party attestation, and settlement export.
+
+### Fixed
+
+- **Active ARIA tabs hover contrast (`tux.css`)**: Excluded `[aria-selected="true"]` alongside `[data-state="active"]` on the subtle tab hover wash so standard ARIA tablists preserve solid `--brand-fill` contrast on hover across all 4 themes.
+- **Framework filter semantics (`/install/figma`)**: Updated the framework selector container from `role="tablist"` to `role="group"` with `:aria-pressed` toggles, resolving an `aria-required-children` violation.
+- **Cross-framework kits & ports**: Exported all 19 new components from `@tti/tti-ux-react`, `@tti/tti-ux-elements`, Figma Code Connect, and all 8 `kit/` language targets (`202` catalogued components, `216` unit test suites).
+
 ## [3.9.1] — 2026-10-29
 
 ### Fixed — `<TuxArchitectureMap>` (#109)

@@ -13,20 +13,20 @@ titles, status badges, form fields) is illustrative — intentionally spread
 across transportation-research domains so no single consuming app's identity
 leaks into the design system.
 
-**Current release:** **v3.0.0** (see [`CHANGELOG.md`](CHANGELOG.md)) — consumers pin a
+**Current release:** **v3.10.0** (see [`CHANGELOG.md`](CHANGELOG.md)) — consumers pin a
 git tag (never a branch) · **100% W3C WCAG 2.2 Level AAA certified** · color contrast
 verified at AAA ($\ge 7.0:1$) across all themes · aligned with the official TTI Communications identity
 (5-band research spectrum, warm eggshell wash `#F9F9F7`, Warm Gold keylines `#CFA935`, rectangular Kadence geometry).
 
 ## What's in here
 
-- **183 Tux\* components (100% Unit Test & Axe Coverage)** —
+- **202 Tux\* components (100% Unit Test & Axe Coverage)** —
   The canonical census lives in [`app/utils/tuxCatalog.ts`](app/utils/tuxCatalog.ts)
   and is verified by [`app/pages/components/health.vue`](app/pages/components/health.vue).
-  All 183 components are **Tier 1 · Verified** with zero untested primitives. Includes the
+  All 202 components are **Tier 1 · Verified** with zero untested primitives. Includes the
   Comm & Intranet cluster (`TuxCommHero`, `TuxSpectrumRibbon`, `TuxSpectrumFacts`, `TuxTileGrid`,
-  `TuxEventCalendarRow`, `TuxCapabilityCluster`), research-publishing cluster, geospatial cluster,
-  data visualizations, and institutional application shells.
+  `TuxEventCalendarRow`, `TuxCapabilityCluster`), resource governance & reconciliation primitives,
+  research-publishing cluster, geospatial cluster, data visualizations, and institutional application shells.
 - **Foundations & Token Studio** — tokens, typography, motion, icons, and the interactive
   [Design Token Studio & Playground](app/pages/tokens/playground.vue) with live export to WordPress Kadence `theme.json`.
 - **Composition examples & Operational Portals** — real-shape applications showing the system in context:
@@ -34,13 +34,14 @@ verified at AAA ($\ge 7.0:1$) across all themes · aligned with the official TTI
   - [Comm Redesign Portal](app/pages/examples/comm-portal.vue) (exact tti.tamu.edu recreation)
   - [MyTTI Intranet Dashboard](app/pages/examples/intranet-dashboard.vue) (exact my.tti.tamu.edu employee portal)
   - [Corridor Analytics](app/pages/examples/corridor-analytics.vue) (statewide operations telemetry)
+  - [Resource Governance Workspace](app/pages/examples/resource-governance.vue) (multi-pool metering, reconciliation, proportional split & multi-party attestation)
   - [TTI AI Studio Session](app/pages/examples/tti-ai-studio-session.vue) (research assistant chat)
   - [Legacy Modernization Bridge](app/pages/examples/legacy-bridge.vue) (zero-JS WCAG 2.2 AAA bridge)
 - **Turnkey WordPress & Kadence Integration** — [`packages/wordpress/`](packages/wordpress/) ships the
   Kadence Child Theme (`kadence-child-tti`) and `tti-ux-core` v3.0.0 plugin with Gutenberg block patterns and shortcodes.
 - **Cross-Framework Packages** —
   - React: [`@tti/tti-ux-react`](packages/react/) (21 component ports, 26 Vitest test suites)
-  - Web Components: [`@tti/tti-ux-elements`](packages/elements/) (170 custom elements)
+  - Web Components: [`@tti/tti-ux-elements`](packages/elements/) (203 custom elements)
   - .NET: `Tti.Tux.AspNetCore` & `Tti.Tux.Blazor` (.NET 8 & 9)
   - PHP: `packages/php/tux-php`
 - **Tooling & Multi-Tier Quality Pipeline** — [`scripts/test-all-suites.mjs`](scripts/test-all-suites.mjs) (`npm run test:all`)

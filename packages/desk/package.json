@@ -1,6 +1,6 @@
 {
   "name": "@tti/tti-ux-desk",
-  "version": "3.9.1",
+  "version": "3.10.0",
   "description": "Visual document builder, rich text editor, and headless publishing engine for the TTI design system (TUX).",
   "type": "module",
   "main": "./nuxt.config.ts",
