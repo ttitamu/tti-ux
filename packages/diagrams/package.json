@@ -6,6 +6,7 @@
   "main": "./nuxt.config.ts",
   "files": [
     "app",
+    "tests/fixtures/map-conformance.json",
     "nuxt.config.ts",
     "README.md"
   ],
