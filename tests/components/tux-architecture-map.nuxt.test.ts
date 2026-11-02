@@ -858,6 +858,120 @@ describe("TuxArchitectureMap Component", () => {
     const wrapper = await mountSuspended(TuxArchitectureMap, { props: { model, initialLevel: 2 } });
     expect(wrapper.find('.tux-map__el[data-id="x-gone"]').text()).toContain("x-gone");
   });
+
+  // ── #110 (3.11.0): unified blast-radius contract on Level 4 and diff rollup ────
+
+  it("computes upstream blast radius on Level 4 Infrastructure instead of bailing out (#110)", async () => {
+    const infraCodeModel: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "System", zoom: 2 }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [
+          { id: "c-api", kind: "container", name: "Orders API", deployed: ["vm-api-1"] },
+          { id: "c-web", kind: "container", name: "Storefront Web", deployed: ["vm-web-1"] },
+          { id: "c-worker", kind: "container", name: "Sync Worker", deployed: ["vm-worker-1"] },
+        ],
+        rels: [],
+      },
+      level3: {
+        "c-api": [{ id: "c-api/core", kind: "component", name: "Core" }],
+        "c-web": [{ id: "c-web/ui", kind: "component", name: "UI" }],
+        "c-worker": [{ id: "c-worker/jobs", kind: "component", name: "Jobs" }],
+      },
+      level4: {
+        groups: [{ id: "rg-prod", zone: "cloud-prod", title: "rg-prod" }],
+        nodes: [
+          { id: "vm-api-1", group: "rg-prod", kind: "vm", title: "vm-api-1", role: "API host", hosts: ["c-api"] },
+          { id: "vm-web-1", group: "rg-prod", kind: "vm", title: "vm-web-1", role: "Web host", hosts: ["c-web"] },
+          { id: "vm-worker-1", group: "rg-prod", kind: "vm", title: "vm-worker-1", role: "Worker host", hosts: ["c-worker"] },
+        ],
+        links: [{ from: "vm-web-1", to: "vm-api-1", label: "HTTPS 443", kind: "traffic", state: "now" }],
+      },
+      subgraphs: {
+        "c-api/core": { elements: [{ id: "f:api/auth.py", kind: "module", name: "auth.py", source: { path: "api/auth.py" } }] },
+        "c-web/ui": { elements: [{ id: "f:web/app.ts", kind: "module", name: "app.ts", source: { path: "web/app.ts" } }] },
+        "c-worker/jobs": { elements: [{ id: "f:worker/sync.py", kind: "module", name: "sync.py", source: { path: "worker/sync.py" } }] },
+      },
+      links: [
+        { from: "f:web/app.ts", to: "f:api/auth.py", kind: "calls", at: "web/app.ts:9" },
+        { from: "f:worker/sync.py", to: "f:web/app.ts", kind: "imports", at: "worker/sync.py:3" },
+      ],
+    };
+
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: {
+        model: infraCodeModel,
+        initialLevel: 4,
+        initialSelectedId: "vm-api-1",
+        initialShowBlastRadius: true,
+      },
+    });
+    await nextTick();
+    // Selecting vm-api-1 on Level 4 lists web/app.ts (1 hop) and worker/sync.py (2 hops) and lights vm-web-1 & vm-worker-1
+    const rows = wrapper.findAll(".tux-map__blast-row");
+    expect(rows.length).toBe(2);
+    expect(rows[0]!.text()).toContain("web/app.ts");
+    expect(rows[1]!.text()).toContain("worker/sync.py");
+    expect(wrapper.find('.tux-map__el[data-id="vm-api-1"]').classes()).toContain("tux-map__el--diff-direct");
+    expect(wrapper.find('.tux-map__el[data-id="vm-web-1"]').classes()).toContain("tux-map__el--diff-impact");
+    expect(wrapper.find('.tux-map__el[data-id="vm-worker-1"]').classes()).toContain("tux-map__el--diff-impact");
+    expect(await runComponentAxe(wrapper.element)).toEqual([]);
+  });
+
+  it("rolls deep symbol diffs up to Level 2 containers and traces multi-hop code links in Blast Radius mode (#110)", async () => {
+    const deepDiffModel: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "System", zoom: 2 }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [
+          { id: "c-core", kind: "container", name: "Core Library", at: [0, 0] },
+          { id: "c-api", kind: "container", name: "Orders API", at: [1, 0] },
+          { id: "c-web", kind: "container", name: "Storefront Web", at: [2, 0] },
+        ],
+        rels: [],
+      },
+      level3: {
+        "c-core": [{ id: "c-core/auth", kind: "component", name: "Auth" }],
+        "c-api": [{ id: "c-api/routes", kind: "component", name: "Routes" }],
+        "c-web": [{ id: "c-web/ui", kind: "component", name: "UI" }],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      subgraphs: {
+        "c-core/auth": { elements: [{ id: "d:c-core/auth:core", kind: "module", name: "core/" }] },
+        "d:c-core/auth:core": { elements: [{ id: "f:core/auth.py", kind: "module", name: "auth.py" }] },
+        "f:core/auth.py": {
+          elements: [
+            {
+              id: "s:core/auth.py#verify",
+              kind: "symbol",
+              name: "verify()",
+              diff: { changeType: "modified", summary: "Patched token check" },
+            },
+          ],
+        },
+        "c-api/routes": { elements: [{ id: "f:api/orders.py", kind: "module", name: "orders.py" }] },
+        "c-web/ui": { elements: [{ id: "f:web/app.ts", kind: "module", name: "app.ts" }] },
+      },
+      links: [
+        { from: "f:api/orders.py", to: "s:core/auth.py#verify", kind: "calls" },
+        { from: "f:web/app.ts", to: "f:api/orders.py", kind: "calls" },
+      ],
+    };
+
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: {
+        model: deepDiffModel,
+        initialLevel: 2,
+        initialShowBlastRadius: true,
+      },
+    });
+    await nextTick();
+
+    // Level 7 symbol diff rolls all the way up to Level 2 c-core, and multi-hop M.links lights both c-api (hop 1) and c-web (hop 2)
+    expect(wrapper.find('.tux-map__el[data-id="c-core"]').classes()).toContain("tux-map__el--diff-direct");
+    expect(wrapper.find('.tux-map__el[data-id="c-api"]').classes()).toContain("tux-map__el--diff-impact");
+    expect(wrapper.find('.tux-map__el[data-id="c-web"]').classes()).toContain("tux-map__el--diff-impact");
+  });
 });
 
 // vitest runs from the repository root (the Nuxt environment's import.meta.url is not a file: URL)

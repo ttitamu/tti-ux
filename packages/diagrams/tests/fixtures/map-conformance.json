@@ -1,0 +1,3592 @@
+{
+  "schemaVersion": "1.0.0",
+  "description": "Synthetic language-neutral conformance suite for TUX Architecture Map (tuxArchitectureMap.ts) and Forgejo Stack code-graph.py (#110 / #712).",
+  "models": {
+    "code_7level": {
+      "level1": {
+        "elements": [
+          {
+            "id": "actor-buyer",
+            "kind": "person",
+            "name": "Buyer"
+          },
+          {
+            "id": "sys-shop",
+            "kind": "system",
+            "name": "Commerce Platform",
+            "zoom": 2
+          }
+        ],
+        "rels": [
+          {
+            "from": "actor-buyer",
+            "to": "sys-shop",
+            "label": "Places orders"
+          }
+        ]
+      },
+      "level2": {
+        "boundary": "sys-shop",
+        "elements": [
+          {
+            "id": "actor-buyer",
+            "ref": true
+          },
+          {
+            "id": "c-api",
+            "kind": "container",
+            "name": "Orders API",
+            "deployed": [
+              "vm-api-1"
+            ]
+          },
+          {
+            "id": "c-web",
+            "kind": "container",
+            "name": "Storefront UI",
+            "deployed": [
+              "vm-web-1"
+            ]
+          },
+          {
+            "id": "c-worker",
+            "kind": "container",
+            "name": "Sync Worker",
+            "deployed": [
+              "vm-worker-1"
+            ]
+          }
+        ],
+        "rels": [
+          {
+            "from": "c-web",
+            "to": "c-api",
+            "label": "Calls REST"
+          }
+        ]
+      },
+      "level3": {
+        "c-api": [
+          {
+            "id": "c-api/routes",
+            "kind": "component",
+            "name": "Order Routes"
+          },
+          {
+            "id": "c-api/core",
+            "kind": "component",
+            "name": "Auth Core"
+          }
+        ],
+        "c-web": [
+          {
+            "id": "c-web/ui",
+            "kind": "component",
+            "name": "Client App"
+          }
+        ],
+        "c-worker": [
+          {
+            "id": "c-worker/jobs",
+            "kind": "component",
+            "name": "Worker & Verification"
+          }
+        ]
+      },
+      "level4": {
+        "groups": [
+          {
+            "id": "rg-prod",
+            "zone": "cloud-prod",
+            "title": "rg-prod"
+          }
+        ],
+        "nodes": [
+          {
+            "id": "vm-api-1",
+            "group": "rg-prod",
+            "kind": "vm",
+            "title": "vm-api-1",
+            "role": "API host",
+            "hosts": [
+              "c-api"
+            ]
+          },
+          {
+            "id": "vm-web-1",
+            "group": "rg-prod",
+            "kind": "vm",
+            "title": "vm-web-1",
+            "role": "Web host",
+            "hosts": [
+              "c-web"
+            ]
+          },
+          {
+            "id": "vm-worker-1",
+            "group": "rg-prod",
+            "kind": "vm",
+            "title": "vm-worker-1",
+            "role": "Worker host",
+            "hosts": [
+              "c-worker"
+            ]
+          }
+        ],
+        "links": [
+          {
+            "from": "vm-web-1",
+            "to": "vm-api-1",
+            "label": "HTTPS 443",
+            "kind": "traffic",
+            "state": "now"
+          }
+        ]
+      },
+      "subgraphs": {
+        "f:core/auth.py": {
+          "stratum": "Functions and classes",
+          "elements": [
+            {
+              "id": "s:core/auth.py#verify_token",
+              "kind": "symbol",
+              "name": "verify_token()",
+              "tech": "function",
+              "source": {
+                "path": "core/auth.py",
+                "lineRange": [
+                  10,
+                  26
+                ],
+                "symbol": "verify_token",
+                "signature": "def verify_token(tok: str) -> bool",
+                "hash": "aa11bb22cc33"
+              }
+            },
+            {
+              "id": "s:core/auth.py#TokenClaims",
+              "kind": "symbol",
+              "name": "TokenClaims",
+              "tech": "class",
+              "source": {
+                "path": "core/auth.py",
+                "lineRange": [
+                  30,
+                  45
+                ],
+                "symbol": "TokenClaims",
+                "signature": "class TokenClaims",
+                "hash": "dd44ee55ff66"
+              }
+            }
+          ]
+        },
+        "f:routes/orders.py": {
+          "stratum": "Functions and classes",
+          "elements": [
+            {
+              "id": "s:routes/orders.py#create_order",
+              "kind": "symbol",
+              "name": "create_order()",
+              "tech": "POST /v1/orders",
+              "source": {
+                "path": "routes/orders.py",
+                "lineRange": [
+                  12,
+                  48
+                ],
+                "symbol": "create_order",
+                "signature": "def create_order(req)",
+                "hash": "112233445566"
+              }
+            },
+            {
+              "id": "s:routes/orders.py#list_orders",
+              "kind": "symbol",
+              "name": "list_orders()",
+              "tech": "GET /v1/orders",
+              "source": {
+                "path": "routes/orders.py",
+                "lineRange": [
+                  52,
+                  74
+                ],
+                "symbol": "list_orders",
+                "signature": "def list_orders(limit: int)",
+                "hash": "778899aabbcc"
+              }
+            }
+          ]
+        },
+        "d:c-api/core:core": {
+          "stratum": "Files",
+          "elements": [
+            {
+              "id": "f:core/auth.py",
+              "kind": "module",
+              "name": "auth.py",
+              "tech": "Python",
+              "source": {
+                "path": "core/auth.py",
+                "hash": "f_auth_v1"
+              }
+            }
+          ]
+        },
+        "d:c-api/routes:routes": {
+          "stratum": "Files",
+          "elements": [
+            {
+              "id": "f:routes/orders.py",
+              "kind": "module",
+              "name": "orders.py",
+              "tech": "Python",
+              "source": {
+                "path": "routes/orders.py",
+                "hash": "f_orders_v1"
+              }
+            }
+          ]
+        },
+        "c-api/core": {
+          "stratum": "Folders",
+          "elements": [
+            {
+              "id": "d:c-api/core:core",
+              "kind": "module",
+              "name": "core/",
+              "tech": "folder \u00b7 1 file"
+            }
+          ]
+        },
+        "c-api/routes": {
+          "stratum": "Folders",
+          "elements": [
+            {
+              "id": "d:c-api/routes:routes",
+              "kind": "module",
+              "name": "routes/",
+              "tech": "folder \u00b7 1 file"
+            }
+          ]
+        },
+        "c-web/ui": {
+          "stratum": "Files",
+          "elements": [
+            {
+              "id": "f:web/app.ts",
+              "kind": "module",
+              "name": "app.ts",
+              "tech": "TypeScript",
+              "source": {
+                "path": "web/app.ts",
+                "hash": "f_app_v1"
+              }
+            },
+            {
+              "id": "f:web/types.ts",
+              "kind": "module",
+              "name": "types.ts",
+              "tech": "TypeScript",
+              "source": {
+                "path": "web/types.ts",
+                "hash": "f_types_v1"
+              }
+            },
+            {
+              "id": "f:web/dist/bundle.js",
+              "kind": "module",
+              "name": "bundle.js",
+              "tech": "JavaScript",
+              "source": {
+                "path": "web/dist/bundle.js",
+                "hash": "f_bundle_v1"
+              }
+            }
+          ]
+        },
+        "c-worker/jobs": {
+          "stratum": "Files",
+          "elements": [
+            {
+              "id": "f:worker/sync.py",
+              "kind": "module",
+              "name": "sync.py",
+              "tech": "Python",
+              "source": {
+                "path": "worker/sync.py",
+                "hash": "f_sync_v1"
+              }
+            },
+            {
+              "id": "f:tests/test_auth_only.py",
+              "kind": "module",
+              "name": "test_auth_only.py",
+              "tech": "Python",
+              "source": {
+                "path": "tests/test_auth_only.py",
+                "hash": "f_tauth_v1"
+              }
+            },
+            {
+              "id": "f:tests/test_orders.py",
+              "kind": "module",
+              "name": "test_orders.py",
+              "tech": "Python",
+              "source": {
+                "path": "tests/test_orders.py",
+                "hash": "f_tord_v1"
+              }
+            },
+            {
+              "id": "f:ci/build.sh",
+              "kind": "module",
+              "name": "build.sh",
+              "tech": "Shell",
+              "source": {
+                "path": "ci/build.sh",
+                "hash": "f_build_v1"
+              }
+            },
+            {
+              "id": "f:docs/auth.md",
+              "kind": "module",
+              "name": "auth.md",
+              "tech": "Markdown",
+              "source": {
+                "path": "docs/auth.md",
+                "hash": "f_dauth_v1"
+              }
+            },
+            {
+              "id": "f:docs/orders.md",
+              "kind": "module",
+              "name": "orders.md",
+              "tech": "Markdown",
+              "source": {
+                "path": "docs/orders.md",
+                "hash": "f_dord_v1"
+              }
+            }
+          ]
+        }
+      },
+      "links": [
+        {
+          "from": "s:routes/orders.py#create_order",
+          "to": "s:core/auth.py#verify_token",
+          "kind": "calls",
+          "coupling": "runtime",
+          "phase": "prod-runtime",
+          "at": "routes/orders.py:18",
+          "sites": [
+            18,
+            42
+          ]
+        },
+        {
+          "from": "f:web/app.ts",
+          "to": "s:routes/orders.py#create_order",
+          "kind": "calls",
+          "coupling": "runtime",
+          "phase": "client-bundle",
+          "at": "web/app.ts:9",
+          "sites": [
+            9
+          ]
+        },
+        {
+          "from": "f:web/types.ts",
+          "to": "s:core/auth.py#verify_token",
+          "kind": "imports",
+          "coupling": "type-only",
+          "phase": "client-bundle",
+          "at": "web/types.ts:2",
+          "sites": [
+            2
+          ]
+        },
+        {
+          "from": "f:worker/sync.py",
+          "to": "f:web/types.ts",
+          "kind": "imports",
+          "coupling": "type-only",
+          "phase": "prod-runtime",
+          "at": "worker/sync.py:4",
+          "sites": [
+            4
+          ]
+        },
+        {
+          "from": "f:web/dist/bundle.js",
+          "to": "f:web/app.ts",
+          "kind": "stamps",
+          "stop": true,
+          "coupling": "artifact-stamp",
+          "phase": "client-bundle",
+          "at": "web/check-fresh.py:12",
+          "sites": [
+            12
+          ]
+        },
+        {
+          "from": "f:ci/build.sh",
+          "to": "s:core/auth.py#verify_token",
+          "kind": "runs",
+          "stop": true,
+          "coupling": "build-exec",
+          "phase": "build-exec",
+          "at": "ci/build.sh:7",
+          "sites": [
+            7
+          ]
+        },
+        {
+          "from": "f:tests/test_auth_only.py",
+          "to": "s:core/auth.py#verify_token",
+          "kind": "tests",
+          "stop": true,
+          "coupling": "verification",
+          "phase": "ci-test",
+          "at": "tests/test_auth_only.py:11",
+          "sites": [
+            11
+          ]
+        },
+        {
+          "from": "f:tests/test_orders.py",
+          "to": "s:routes/orders.py#create_order",
+          "kind": "tests",
+          "stop": true,
+          "coupling": "verification",
+          "phase": "ci-test",
+          "at": "tests/test_orders.py:15",
+          "sites": [
+            15
+          ]
+        },
+        {
+          "from": "f:tests/test_orders.py",
+          "to": "s:routes/orders.py#list_orders",
+          "kind": "tests",
+          "stop": true,
+          "coupling": "verification",
+          "phase": "ci-test",
+          "at": "tests/test_orders.py:29",
+          "sites": [
+            29
+          ]
+        },
+        {
+          "from": "f:docs/auth.md",
+          "to": "s:core/auth.py#verify_token",
+          "kind": "mentions",
+          "stop": true,
+          "coupling": "prose",
+          "phase": "doc-only",
+          "at": "docs/auth.md:3",
+          "sites": [
+            3
+          ]
+        },
+        {
+          "from": "f:docs/orders.md",
+          "to": "s:routes/orders.py#create_order",
+          "kind": "mentions",
+          "stop": true,
+          "coupling": "prose",
+          "phase": "doc-only",
+          "at": "docs/orders.md:8",
+          "sites": [
+            8
+          ]
+        }
+      ]
+    },
+    "c4_rels_only": {
+      "level1": {
+        "elements": [
+          {
+            "id": "p-analyst",
+            "kind": "person",
+            "name": "Analyst"
+          },
+          {
+            "id": "sys-core",
+            "kind": "system",
+            "name": "Core System",
+            "zoom": 2
+          }
+        ],
+        "rels": [
+          {
+            "from": "p-analyst",
+            "to": "sys-core",
+            "label": "Queries"
+          }
+        ]
+      },
+      "level2": {
+        "boundary": "sys-core",
+        "elements": [
+          {
+            "id": "p-analyst",
+            "ref": true
+          },
+          {
+            "id": "c-gateway",
+            "kind": "container",
+            "name": "Gateway"
+          },
+          {
+            "id": "c-service",
+            "kind": "container",
+            "name": "Service"
+          },
+          {
+            "id": "c-store",
+            "kind": "database",
+            "name": "Store"
+          },
+          {
+            "id": "c-future",
+            "kind": "container",
+            "name": "Future Exporter",
+            "status": "planned"
+          }
+        ],
+        "rels": [
+          {
+            "from": "p-analyst",
+            "to": "c-gateway",
+            "label": "HTTPS"
+          },
+          {
+            "from": "c-gateway",
+            "to": "c-service",
+            "label": "RPC"
+          },
+          {
+            "from": "c-service",
+            "to": "c-store",
+            "label": "SQL"
+          },
+          {
+            "from": "c-future",
+            "to": "c-store",
+            "label": "Planned read",
+            "status": "planned"
+          }
+        ]
+      },
+      "level3": {
+        "c-service": [
+          {
+            "id": "c-service/ingest",
+            "kind": "component",
+            "name": "Ingest",
+            "next": 1
+          },
+          {
+            "id": "c-service/validate",
+            "kind": "component",
+            "name": "Validate"
+          }
+        ]
+      },
+      "level4": {
+        "groups": [],
+        "nodes": [],
+        "links": []
+      }
+    },
+    "duplicate_ids": {
+      "level1": {
+        "elements": [
+          {
+            "id": "sys-dup",
+            "kind": "system",
+            "name": "Dup System"
+          }
+        ],
+        "rels": []
+      },
+      "level2": {
+        "boundary": "sys-dup",
+        "elements": [
+          {
+            "id": "c-a",
+            "kind": "container",
+            "name": "Container A"
+          },
+          {
+            "id": "c-b",
+            "kind": "container",
+            "name": "Container B"
+          }
+        ],
+        "rels": []
+      },
+      "level3": {
+        "c-a": [
+          {
+            "id": "c-a/comp",
+            "kind": "component",
+            "name": "Comp A"
+          }
+        ],
+        "c-b": [
+          {
+            "id": "c-b/comp",
+            "kind": "component",
+            "name": "Comp B"
+          }
+        ]
+      },
+      "level4": {
+        "groups": [],
+        "nodes": [],
+        "links": []
+      },
+      "subgraphs": {
+        "c-a/comp": {
+          "elements": [
+            {
+              "id": "f:shared.py",
+              "kind": "module",
+              "name": "shared.py (first)"
+            }
+          ]
+        },
+        "c-b/comp": {
+          "elements": [
+            {
+              "id": "f:shared.py",
+              "kind": "module",
+              "name": "shared.py (duplicate)"
+            },
+            {
+              "id": "f:caller.py",
+              "kind": "module",
+              "name": "caller.py"
+            }
+          ]
+        }
+      },
+      "links": [
+        {
+          "from": "f:caller.py",
+          "to": "f:shared.py",
+          "kind": "mentions",
+          "stop": true,
+          "at": "caller.py:1"
+        },
+        {
+          "from": "f:caller.py",
+          "to": "f:shared.py",
+          "kind": "uses",
+          "stop": true,
+          "at": "caller.py:8"
+        },
+        {
+          "from": "f:caller.py",
+          "to": "f:shared.py",
+          "kind": "tests",
+          "stop": true,
+          "at": "caller.py:12"
+        }
+      ]
+    },
+    "long_chain": {
+      "level1": {
+        "elements": [
+          {
+            "id": "sys-chain",
+            "kind": "system",
+            "name": "Chain"
+          }
+        ],
+        "rels": []
+      },
+      "level2": {
+        "boundary": "sys-chain",
+        "elements": [
+          {
+            "id": "c-chain",
+            "kind": "container",
+            "name": "Chain"
+          }
+        ],
+        "rels": []
+      },
+      "level3": {
+        "c-chain": [
+          {
+            "id": "c-chain/0",
+            "kind": "component",
+            "name": "Chain Comp"
+          }
+        ]
+      },
+      "level4": {
+        "groups": [],
+        "nodes": [],
+        "links": []
+      },
+      "subgraphs": {
+        "c-chain/0": {
+          "elements": [
+            {
+              "id": "f:n0.py",
+              "kind": "module",
+              "name": "n0.py"
+            },
+            {
+              "id": "f:n1.py",
+              "kind": "module",
+              "name": "n1.py"
+            },
+            {
+              "id": "f:n2.py",
+              "kind": "module",
+              "name": "n2.py"
+            },
+            {
+              "id": "f:n3.py",
+              "kind": "module",
+              "name": "n3.py"
+            },
+            {
+              "id": "f:n4.py",
+              "kind": "module",
+              "name": "n4.py"
+            },
+            {
+              "id": "f:n5.py",
+              "kind": "module",
+              "name": "n5.py"
+            },
+            {
+              "id": "f:n6.py",
+              "kind": "module",
+              "name": "n6.py"
+            },
+            {
+              "id": "f:n7.py",
+              "kind": "module",
+              "name": "n7.py"
+            },
+            {
+              "id": "f:n8.py",
+              "kind": "module",
+              "name": "n8.py"
+            },
+            {
+              "id": "f:n9.py",
+              "kind": "module",
+              "name": "n9.py"
+            },
+            {
+              "id": "f:n10.py",
+              "kind": "module",
+              "name": "n10.py"
+            },
+            {
+              "id": "f:n11.py",
+              "kind": "module",
+              "name": "n11.py"
+            },
+            {
+              "id": "f:n12.py",
+              "kind": "module",
+              "name": "n12.py"
+            },
+            {
+              "id": "f:n13.py",
+              "kind": "module",
+              "name": "n13.py"
+            },
+            {
+              "id": "f:n14.py",
+              "kind": "module",
+              "name": "n14.py"
+            },
+            {
+              "id": "f:n15.py",
+              "kind": "module",
+              "name": "n15.py"
+            },
+            {
+              "id": "f:n16.py",
+              "kind": "module",
+              "name": "n16.py"
+            },
+            {
+              "id": "f:n17.py",
+              "kind": "module",
+              "name": "n17.py"
+            },
+            {
+              "id": "f:n18.py",
+              "kind": "module",
+              "name": "n18.py"
+            },
+            {
+              "id": "f:n19.py",
+              "kind": "module",
+              "name": "n19.py"
+            },
+            {
+              "id": "f:n20.py",
+              "kind": "module",
+              "name": "n20.py"
+            },
+            {
+              "id": "f:n21.py",
+              "kind": "module",
+              "name": "n21.py"
+            },
+            {
+              "id": "f:n22.py",
+              "kind": "module",
+              "name": "n22.py"
+            },
+            {
+              "id": "f:n23.py",
+              "kind": "module",
+              "name": "n23.py"
+            },
+            {
+              "id": "f:n24.py",
+              "kind": "module",
+              "name": "n24.py"
+            },
+            {
+              "id": "f:n25.py",
+              "kind": "module",
+              "name": "n25.py"
+            },
+            {
+              "id": "f:n26.py",
+              "kind": "module",
+              "name": "n26.py"
+            },
+            {
+              "id": "f:n27.py",
+              "kind": "module",
+              "name": "n27.py"
+            },
+            {
+              "id": "f:n28.py",
+              "kind": "module",
+              "name": "n28.py"
+            },
+            {
+              "id": "f:n29.py",
+              "kind": "module",
+              "name": "n29.py"
+            },
+            {
+              "id": "f:n30.py",
+              "kind": "module",
+              "name": "n30.py"
+            },
+            {
+              "id": "f:n31.py",
+              "kind": "module",
+              "name": "n31.py"
+            },
+            {
+              "id": "f:n32.py",
+              "kind": "module",
+              "name": "n32.py"
+            },
+            {
+              "id": "f:n33.py",
+              "kind": "module",
+              "name": "n33.py"
+            },
+            {
+              "id": "f:n34.py",
+              "kind": "module",
+              "name": "n34.py"
+            },
+            {
+              "id": "f:n35.py",
+              "kind": "module",
+              "name": "n35.py"
+            },
+            {
+              "id": "f:n36.py",
+              "kind": "module",
+              "name": "n36.py"
+            },
+            {
+              "id": "f:n37.py",
+              "kind": "module",
+              "name": "n37.py"
+            },
+            {
+              "id": "f:n38.py",
+              "kind": "module",
+              "name": "n38.py"
+            },
+            {
+              "id": "f:n39.py",
+              "kind": "module",
+              "name": "n39.py"
+            },
+            {
+              "id": "f:n40.py",
+              "kind": "module",
+              "name": "n40.py"
+            },
+            {
+              "id": "f:n41.py",
+              "kind": "module",
+              "name": "n41.py"
+            },
+            {
+              "id": "f:n42.py",
+              "kind": "module",
+              "name": "n42.py"
+            },
+            {
+              "id": "f:n43.py",
+              "kind": "module",
+              "name": "n43.py"
+            },
+            {
+              "id": "f:n44.py",
+              "kind": "module",
+              "name": "n44.py"
+            },
+            {
+              "id": "f:n45.py",
+              "kind": "module",
+              "name": "n45.py"
+            },
+            {
+              "id": "f:n46.py",
+              "kind": "module",
+              "name": "n46.py"
+            },
+            {
+              "id": "f:n47.py",
+              "kind": "module",
+              "name": "n47.py"
+            },
+            {
+              "id": "f:n48.py",
+              "kind": "module",
+              "name": "n48.py"
+            },
+            {
+              "id": "f:n49.py",
+              "kind": "module",
+              "name": "n49.py"
+            },
+            {
+              "id": "f:n50.py",
+              "kind": "module",
+              "name": "n50.py"
+            },
+            {
+              "id": "f:n51.py",
+              "kind": "module",
+              "name": "n51.py"
+            },
+            {
+              "id": "f:n52.py",
+              "kind": "module",
+              "name": "n52.py"
+            },
+            {
+              "id": "f:n53.py",
+              "kind": "module",
+              "name": "n53.py"
+            },
+            {
+              "id": "f:n54.py",
+              "kind": "module",
+              "name": "n54.py"
+            },
+            {
+              "id": "f:n55.py",
+              "kind": "module",
+              "name": "n55.py"
+            },
+            {
+              "id": "f:n56.py",
+              "kind": "module",
+              "name": "n56.py"
+            },
+            {
+              "id": "f:n57.py",
+              "kind": "module",
+              "name": "n57.py"
+            },
+            {
+              "id": "f:n58.py",
+              "kind": "module",
+              "name": "n58.py"
+            },
+            {
+              "id": "f:n59.py",
+              "kind": "module",
+              "name": "n59.py"
+            },
+            {
+              "id": "f:n60.py",
+              "kind": "module",
+              "name": "n60.py"
+            },
+            {
+              "id": "f:n61.py",
+              "kind": "module",
+              "name": "n61.py"
+            },
+            {
+              "id": "f:n62.py",
+              "kind": "module",
+              "name": "n62.py"
+            },
+            {
+              "id": "f:n63.py",
+              "kind": "module",
+              "name": "n63.py"
+            },
+            {
+              "id": "f:n64.py",
+              "kind": "module",
+              "name": "n64.py"
+            },
+            {
+              "id": "f:n65.py",
+              "kind": "module",
+              "name": "n65.py"
+            },
+            {
+              "id": "f:n66.py",
+              "kind": "module",
+              "name": "n66.py"
+            },
+            {
+              "id": "f:n67.py",
+              "kind": "module",
+              "name": "n67.py"
+            },
+            {
+              "id": "f:n68.py",
+              "kind": "module",
+              "name": "n68.py"
+            },
+            {
+              "id": "f:n69.py",
+              "kind": "module",
+              "name": "n69.py"
+            },
+            {
+              "id": "f:n70.py",
+              "kind": "module",
+              "name": "n70.py"
+            },
+            {
+              "id": "f:n71.py",
+              "kind": "module",
+              "name": "n71.py"
+            },
+            {
+              "id": "f:n72.py",
+              "kind": "module",
+              "name": "n72.py"
+            },
+            {
+              "id": "f:n73.py",
+              "kind": "module",
+              "name": "n73.py"
+            },
+            {
+              "id": "f:n74.py",
+              "kind": "module",
+              "name": "n74.py"
+            },
+            {
+              "id": "f:n75.py",
+              "kind": "module",
+              "name": "n75.py"
+            },
+            {
+              "id": "f:n76.py",
+              "kind": "module",
+              "name": "n76.py"
+            },
+            {
+              "id": "f:n77.py",
+              "kind": "module",
+              "name": "n77.py"
+            },
+            {
+              "id": "f:n78.py",
+              "kind": "module",
+              "name": "n78.py"
+            },
+            {
+              "id": "f:n79.py",
+              "kind": "module",
+              "name": "n79.py"
+            },
+            {
+              "id": "f:n80.py",
+              "kind": "module",
+              "name": "n80.py"
+            },
+            {
+              "id": "f:n81.py",
+              "kind": "module",
+              "name": "n81.py"
+            },
+            {
+              "id": "f:n82.py",
+              "kind": "module",
+              "name": "n82.py"
+            },
+            {
+              "id": "f:n83.py",
+              "kind": "module",
+              "name": "n83.py"
+            },
+            {
+              "id": "f:n84.py",
+              "kind": "module",
+              "name": "n84.py"
+            },
+            {
+              "id": "f:n85.py",
+              "kind": "module",
+              "name": "n85.py"
+            },
+            {
+              "id": "f:n86.py",
+              "kind": "module",
+              "name": "n86.py"
+            },
+            {
+              "id": "f:n87.py",
+              "kind": "module",
+              "name": "n87.py"
+            },
+            {
+              "id": "f:n88.py",
+              "kind": "module",
+              "name": "n88.py"
+            },
+            {
+              "id": "f:n89.py",
+              "kind": "module",
+              "name": "n89.py"
+            },
+            {
+              "id": "f:n90.py",
+              "kind": "module",
+              "name": "n90.py"
+            },
+            {
+              "id": "f:n91.py",
+              "kind": "module",
+              "name": "n91.py"
+            },
+            {
+              "id": "f:n92.py",
+              "kind": "module",
+              "name": "n92.py"
+            },
+            {
+              "id": "f:n93.py",
+              "kind": "module",
+              "name": "n93.py"
+            },
+            {
+              "id": "f:n94.py",
+              "kind": "module",
+              "name": "n94.py"
+            },
+            {
+              "id": "f:n95.py",
+              "kind": "module",
+              "name": "n95.py"
+            },
+            {
+              "id": "f:n96.py",
+              "kind": "module",
+              "name": "n96.py"
+            },
+            {
+              "id": "f:n97.py",
+              "kind": "module",
+              "name": "n97.py"
+            },
+            {
+              "id": "f:n98.py",
+              "kind": "module",
+              "name": "n98.py"
+            },
+            {
+              "id": "f:n99.py",
+              "kind": "module",
+              "name": "n99.py"
+            },
+            {
+              "id": "f:n100.py",
+              "kind": "module",
+              "name": "n100.py"
+            }
+          ]
+        }
+      },
+      "links": [
+        {
+          "from": "f:n1.py",
+          "to": "f:n0.py",
+          "kind": "calls",
+          "at": "n1.py:1"
+        },
+        {
+          "from": "f:n2.py",
+          "to": "f:n1.py",
+          "kind": "calls",
+          "at": "n2.py:1"
+        },
+        {
+          "from": "f:n3.py",
+          "to": "f:n2.py",
+          "kind": "calls",
+          "at": "n3.py:1"
+        },
+        {
+          "from": "f:n4.py",
+          "to": "f:n3.py",
+          "kind": "calls",
+          "at": "n4.py:1"
+        },
+        {
+          "from": "f:n5.py",
+          "to": "f:n4.py",
+          "kind": "calls",
+          "at": "n5.py:1"
+        },
+        {
+          "from": "f:n6.py",
+          "to": "f:n5.py",
+          "kind": "calls",
+          "at": "n6.py:1"
+        },
+        {
+          "from": "f:n7.py",
+          "to": "f:n6.py",
+          "kind": "calls",
+          "at": "n7.py:1"
+        },
+        {
+          "from": "f:n8.py",
+          "to": "f:n7.py",
+          "kind": "calls",
+          "at": "n8.py:1"
+        },
+        {
+          "from": "f:n9.py",
+          "to": "f:n8.py",
+          "kind": "calls",
+          "at": "n9.py:1"
+        },
+        {
+          "from": "f:n10.py",
+          "to": "f:n9.py",
+          "kind": "calls",
+          "at": "n10.py:1"
+        },
+        {
+          "from": "f:n11.py",
+          "to": "f:n10.py",
+          "kind": "calls",
+          "at": "n11.py:1"
+        },
+        {
+          "from": "f:n12.py",
+          "to": "f:n11.py",
+          "kind": "calls",
+          "at": "n12.py:1"
+        },
+        {
+          "from": "f:n13.py",
+          "to": "f:n12.py",
+          "kind": "calls",
+          "at": "n13.py:1"
+        },
+        {
+          "from": "f:n14.py",
+          "to": "f:n13.py",
+          "kind": "calls",
+          "at": "n14.py:1"
+        },
+        {
+          "from": "f:n15.py",
+          "to": "f:n14.py",
+          "kind": "calls",
+          "at": "n15.py:1"
+        },
+        {
+          "from": "f:n16.py",
+          "to": "f:n15.py",
+          "kind": "calls",
+          "at": "n16.py:1"
+        },
+        {
+          "from": "f:n17.py",
+          "to": "f:n16.py",
+          "kind": "calls",
+          "at": "n17.py:1"
+        },
+        {
+          "from": "f:n18.py",
+          "to": "f:n17.py",
+          "kind": "calls",
+          "at": "n18.py:1"
+        },
+        {
+          "from": "f:n19.py",
+          "to": "f:n18.py",
+          "kind": "calls",
+          "at": "n19.py:1"
+        },
+        {
+          "from": "f:n20.py",
+          "to": "f:n19.py",
+          "kind": "calls",
+          "at": "n20.py:1"
+        },
+        {
+          "from": "f:n21.py",
+          "to": "f:n20.py",
+          "kind": "calls",
+          "at": "n21.py:1"
+        },
+        {
+          "from": "f:n22.py",
+          "to": "f:n21.py",
+          "kind": "calls",
+          "at": "n22.py:1"
+        },
+        {
+          "from": "f:n23.py",
+          "to": "f:n22.py",
+          "kind": "calls",
+          "at": "n23.py:1"
+        },
+        {
+          "from": "f:n24.py",
+          "to": "f:n23.py",
+          "kind": "calls",
+          "at": "n24.py:1"
+        },
+        {
+          "from": "f:n25.py",
+          "to": "f:n24.py",
+          "kind": "calls",
+          "at": "n25.py:1"
+        },
+        {
+          "from": "f:n26.py",
+          "to": "f:n25.py",
+          "kind": "calls",
+          "at": "n26.py:1"
+        },
+        {
+          "from": "f:n27.py",
+          "to": "f:n26.py",
+          "kind": "calls",
+          "at": "n27.py:1"
+        },
+        {
+          "from": "f:n28.py",
+          "to": "f:n27.py",
+          "kind": "calls",
+          "at": "n28.py:1"
+        },
+        {
+          "from": "f:n29.py",
+          "to": "f:n28.py",
+          "kind": "calls",
+          "at": "n29.py:1"
+        },
+        {
+          "from": "f:n30.py",
+          "to": "f:n29.py",
+          "kind": "calls",
+          "at": "n30.py:1"
+        },
+        {
+          "from": "f:n31.py",
+          "to": "f:n30.py",
+          "kind": "calls",
+          "at": "n31.py:1"
+        },
+        {
+          "from": "f:n32.py",
+          "to": "f:n31.py",
+          "kind": "calls",
+          "at": "n32.py:1"
+        },
+        {
+          "from": "f:n33.py",
+          "to": "f:n32.py",
+          "kind": "calls",
+          "at": "n33.py:1"
+        },
+        {
+          "from": "f:n34.py",
+          "to": "f:n33.py",
+          "kind": "calls",
+          "at": "n34.py:1"
+        },
+        {
+          "from": "f:n35.py",
+          "to": "f:n34.py",
+          "kind": "calls",
+          "at": "n35.py:1"
+        },
+        {
+          "from": "f:n36.py",
+          "to": "f:n35.py",
+          "kind": "calls",
+          "at": "n36.py:1"
+        },
+        {
+          "from": "f:n37.py",
+          "to": "f:n36.py",
+          "kind": "calls",
+          "at": "n37.py:1"
+        },
+        {
+          "from": "f:n38.py",
+          "to": "f:n37.py",
+          "kind": "calls",
+          "at": "n38.py:1"
+        },
+        {
+          "from": "f:n39.py",
+          "to": "f:n38.py",
+          "kind": "calls",
+          "at": "n39.py:1"
+        },
+        {
+          "from": "f:n40.py",
+          "to": "f:n39.py",
+          "kind": "calls",
+          "at": "n40.py:1"
+        },
+        {
+          "from": "f:n41.py",
+          "to": "f:n40.py",
+          "kind": "calls",
+          "at": "n41.py:1"
+        },
+        {
+          "from": "f:n42.py",
+          "to": "f:n41.py",
+          "kind": "calls",
+          "at": "n42.py:1"
+        },
+        {
+          "from": "f:n43.py",
+          "to": "f:n42.py",
+          "kind": "calls",
+          "at": "n43.py:1"
+        },
+        {
+          "from": "f:n44.py",
+          "to": "f:n43.py",
+          "kind": "calls",
+          "at": "n44.py:1"
+        },
+        {
+          "from": "f:n45.py",
+          "to": "f:n44.py",
+          "kind": "calls",
+          "at": "n45.py:1"
+        },
+        {
+          "from": "f:n46.py",
+          "to": "f:n45.py",
+          "kind": "calls",
+          "at": "n46.py:1"
+        },
+        {
+          "from": "f:n47.py",
+          "to": "f:n46.py",
+          "kind": "calls",
+          "at": "n47.py:1"
+        },
+        {
+          "from": "f:n48.py",
+          "to": "f:n47.py",
+          "kind": "calls",
+          "at": "n48.py:1"
+        },
+        {
+          "from": "f:n49.py",
+          "to": "f:n48.py",
+          "kind": "calls",
+          "at": "n49.py:1"
+        },
+        {
+          "from": "f:n50.py",
+          "to": "f:n49.py",
+          "kind": "calls",
+          "at": "n50.py:1"
+        },
+        {
+          "from": "f:n51.py",
+          "to": "f:n50.py",
+          "kind": "calls",
+          "at": "n51.py:1"
+        },
+        {
+          "from": "f:n52.py",
+          "to": "f:n51.py",
+          "kind": "calls",
+          "at": "n52.py:1"
+        },
+        {
+          "from": "f:n53.py",
+          "to": "f:n52.py",
+          "kind": "calls",
+          "at": "n53.py:1"
+        },
+        {
+          "from": "f:n54.py",
+          "to": "f:n53.py",
+          "kind": "calls",
+          "at": "n54.py:1"
+        },
+        {
+          "from": "f:n55.py",
+          "to": "f:n54.py",
+          "kind": "calls",
+          "at": "n55.py:1"
+        },
+        {
+          "from": "f:n56.py",
+          "to": "f:n55.py",
+          "kind": "calls",
+          "at": "n56.py:1"
+        },
+        {
+          "from": "f:n57.py",
+          "to": "f:n56.py",
+          "kind": "calls",
+          "at": "n57.py:1"
+        },
+        {
+          "from": "f:n58.py",
+          "to": "f:n57.py",
+          "kind": "calls",
+          "at": "n58.py:1"
+        },
+        {
+          "from": "f:n59.py",
+          "to": "f:n58.py",
+          "kind": "calls",
+          "at": "n59.py:1"
+        },
+        {
+          "from": "f:n60.py",
+          "to": "f:n59.py",
+          "kind": "calls",
+          "at": "n60.py:1"
+        },
+        {
+          "from": "f:n61.py",
+          "to": "f:n60.py",
+          "kind": "calls",
+          "at": "n61.py:1"
+        },
+        {
+          "from": "f:n62.py",
+          "to": "f:n61.py",
+          "kind": "calls",
+          "at": "n62.py:1"
+        },
+        {
+          "from": "f:n63.py",
+          "to": "f:n62.py",
+          "kind": "calls",
+          "at": "n63.py:1"
+        },
+        {
+          "from": "f:n64.py",
+          "to": "f:n63.py",
+          "kind": "calls",
+          "at": "n64.py:1"
+        },
+        {
+          "from": "f:n65.py",
+          "to": "f:n64.py",
+          "kind": "calls",
+          "at": "n65.py:1"
+        },
+        {
+          "from": "f:n66.py",
+          "to": "f:n65.py",
+          "kind": "calls",
+          "at": "n66.py:1"
+        },
+        {
+          "from": "f:n67.py",
+          "to": "f:n66.py",
+          "kind": "calls",
+          "at": "n67.py:1"
+        },
+        {
+          "from": "f:n68.py",
+          "to": "f:n67.py",
+          "kind": "calls",
+          "at": "n68.py:1"
+        },
+        {
+          "from": "f:n69.py",
+          "to": "f:n68.py",
+          "kind": "calls",
+          "at": "n69.py:1"
+        },
+        {
+          "from": "f:n70.py",
+          "to": "f:n69.py",
+          "kind": "calls",
+          "at": "n70.py:1"
+        },
+        {
+          "from": "f:n71.py",
+          "to": "f:n70.py",
+          "kind": "calls",
+          "at": "n71.py:1"
+        },
+        {
+          "from": "f:n72.py",
+          "to": "f:n71.py",
+          "kind": "calls",
+          "at": "n72.py:1"
+        },
+        {
+          "from": "f:n73.py",
+          "to": "f:n72.py",
+          "kind": "calls",
+          "at": "n73.py:1"
+        },
+        {
+          "from": "f:n74.py",
+          "to": "f:n73.py",
+          "kind": "calls",
+          "at": "n74.py:1"
+        },
+        {
+          "from": "f:n75.py",
+          "to": "f:n74.py",
+          "kind": "calls",
+          "at": "n75.py:1"
+        },
+        {
+          "from": "f:n76.py",
+          "to": "f:n75.py",
+          "kind": "calls",
+          "at": "n76.py:1"
+        },
+        {
+          "from": "f:n77.py",
+          "to": "f:n76.py",
+          "kind": "calls",
+          "at": "n77.py:1"
+        },
+        {
+          "from": "f:n78.py",
+          "to": "f:n77.py",
+          "kind": "calls",
+          "at": "n78.py:1"
+        },
+        {
+          "from": "f:n79.py",
+          "to": "f:n78.py",
+          "kind": "calls",
+          "at": "n79.py:1"
+        },
+        {
+          "from": "f:n80.py",
+          "to": "f:n79.py",
+          "kind": "calls",
+          "at": "n80.py:1"
+        },
+        {
+          "from": "f:n81.py",
+          "to": "f:n80.py",
+          "kind": "calls",
+          "at": "n81.py:1"
+        },
+        {
+          "from": "f:n82.py",
+          "to": "f:n81.py",
+          "kind": "calls",
+          "at": "n82.py:1"
+        },
+        {
+          "from": "f:n83.py",
+          "to": "f:n82.py",
+          "kind": "calls",
+          "at": "n83.py:1"
+        },
+        {
+          "from": "f:n84.py",
+          "to": "f:n83.py",
+          "kind": "calls",
+          "at": "n84.py:1"
+        },
+        {
+          "from": "f:n85.py",
+          "to": "f:n84.py",
+          "kind": "calls",
+          "at": "n85.py:1"
+        },
+        {
+          "from": "f:n86.py",
+          "to": "f:n85.py",
+          "kind": "calls",
+          "at": "n86.py:1"
+        },
+        {
+          "from": "f:n87.py",
+          "to": "f:n86.py",
+          "kind": "calls",
+          "at": "n87.py:1"
+        },
+        {
+          "from": "f:n88.py",
+          "to": "f:n87.py",
+          "kind": "calls",
+          "at": "n88.py:1"
+        },
+        {
+          "from": "f:n89.py",
+          "to": "f:n88.py",
+          "kind": "calls",
+          "at": "n89.py:1"
+        },
+        {
+          "from": "f:n90.py",
+          "to": "f:n89.py",
+          "kind": "calls",
+          "at": "n90.py:1"
+        },
+        {
+          "from": "f:n91.py",
+          "to": "f:n90.py",
+          "kind": "calls",
+          "at": "n91.py:1"
+        },
+        {
+          "from": "f:n92.py",
+          "to": "f:n91.py",
+          "kind": "calls",
+          "at": "n92.py:1"
+        },
+        {
+          "from": "f:n93.py",
+          "to": "f:n92.py",
+          "kind": "calls",
+          "at": "n93.py:1"
+        },
+        {
+          "from": "f:n94.py",
+          "to": "f:n93.py",
+          "kind": "calls",
+          "at": "n94.py:1"
+        },
+        {
+          "from": "f:n95.py",
+          "to": "f:n94.py",
+          "kind": "calls",
+          "at": "n95.py:1"
+        },
+        {
+          "from": "f:n96.py",
+          "to": "f:n95.py",
+          "kind": "calls",
+          "at": "n96.py:1"
+        },
+        {
+          "from": "f:n97.py",
+          "to": "f:n96.py",
+          "kind": "calls",
+          "at": "n97.py:1"
+        },
+        {
+          "from": "f:n98.py",
+          "to": "f:n97.py",
+          "kind": "calls",
+          "at": "n98.py:1"
+        },
+        {
+          "from": "f:n99.py",
+          "to": "f:n98.py",
+          "kind": "calls",
+          "at": "n99.py:1"
+        },
+        {
+          "from": "f:n100.py",
+          "to": "f:n99.py",
+          "kind": "calls",
+          "at": "n100.py:1"
+        }
+      ]
+    }
+  },
+  "levelChecks": [
+    {
+      "id": "child_before_parent_levels",
+      "model": "code_7level",
+      "expectedLevels": {
+        "sys-shop": 1,
+        "c-api": 2,
+        "c-api/core": 3,
+        "vm-api-1": 4,
+        "d:c-api/core:core": 5,
+        "f:core/auth.py": 6,
+        "s:core/auth.py#verify_token": 7,
+        "s:routes/orders.py#create_order": 7
+      },
+      "expectedLevel7Ids": [
+        "s:core/auth.py#TokenClaims",
+        "s:core/auth.py#verify_token",
+        "s:routes/orders.py#create_order",
+        "s:routes/orders.py#list_orders"
+      ],
+      "expectedFocusLevels": {
+        "c-api": 3,
+        "c-api/core": 5,
+        "d:c-api/core:core": 6,
+        "f:core/auth.py": 7
+      }
+    },
+    {
+      "id": "duplicate_id_first_parent_wins",
+      "model": "duplicate_ids",
+      "expectedParent": {
+        "f:shared.py": "c-a/comp"
+      },
+      "expectedLevels": {
+        "f:shared.py": 5
+      }
+    }
+  ],
+  "blastCases": [
+    {
+      "id": "symbol_default_quiet_seed_only",
+      "model": "code_7level",
+      "seeds": [
+        "s:core/auth.py#verify_token"
+      ],
+      "opts": {},
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:ci/build.sh",
+            "hop": 1,
+            "kind": "runs",
+            "at": "ci/build.sh:7",
+            "sites": [
+              7
+            ]
+          },
+          {
+            "id": "f:docs/auth.md",
+            "hop": 1,
+            "kind": "mentions",
+            "at": "docs/auth.md:3",
+            "sites": [
+              3
+            ]
+          },
+          {
+            "id": "f:tests/test_auth_only.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_auth_only.py:11",
+            "sites": [
+              11
+            ]
+          },
+          {
+            "id": "f:web/types.ts",
+            "hop": 1,
+            "kind": "imports",
+            "at": "web/types.ts:2",
+            "sites": [
+              2
+            ]
+          },
+          {
+            "id": "s:routes/orders.py#create_order",
+            "hop": 1,
+            "kind": "calls",
+            "at": "routes/orders.py:18",
+            "sites": [
+              18,
+              42
+            ]
+          },
+          {
+            "id": "f:tests/test_orders.py",
+            "hop": 2,
+            "kind": "tests",
+            "at": "tests/test_orders.py:15",
+            "sites": [
+              15
+            ]
+          },
+          {
+            "id": "f:web/app.ts",
+            "hop": 2,
+            "kind": "calls",
+            "at": "web/app.ts:9",
+            "sites": [
+              9
+            ]
+          },
+          {
+            "id": "f:worker/sync.py",
+            "hop": 2,
+            "kind": "imports",
+            "at": "worker/sync.py:4",
+            "sites": [
+              4
+            ]
+          },
+          {
+            "id": "f:web/dist/bundle.js",
+            "hop": 3,
+            "kind": "stamps",
+            "at": "web/check-fresh.py:12",
+            "sites": [
+              12
+            ]
+          }
+        ],
+        "hostsImpacted": [
+          "vm-api-1",
+          "vm-web-1",
+          "vm-worker-1"
+        ]
+      }
+    },
+    {
+      "id": "symbol_quiet_seed_only_false_includes_downstream_mentions",
+      "model": "code_7level",
+      "seeds": [
+        "s:core/auth.py#verify_token"
+      ],
+      "opts": {
+        "quietSeedOnly": false
+      },
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:ci/build.sh",
+            "hop": 1,
+            "kind": "runs",
+            "at": "ci/build.sh:7",
+            "sites": [
+              7
+            ]
+          },
+          {
+            "id": "f:docs/auth.md",
+            "hop": 1,
+            "kind": "mentions",
+            "at": "docs/auth.md:3",
+            "sites": [
+              3
+            ]
+          },
+          {
+            "id": "f:tests/test_auth_only.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_auth_only.py:11",
+            "sites": [
+              11
+            ]
+          },
+          {
+            "id": "f:web/types.ts",
+            "hop": 1,
+            "kind": "imports",
+            "at": "web/types.ts:2",
+            "sites": [
+              2
+            ]
+          },
+          {
+            "id": "s:routes/orders.py#create_order",
+            "hop": 1,
+            "kind": "calls",
+            "at": "routes/orders.py:18",
+            "sites": [
+              18,
+              42
+            ]
+          },
+          {
+            "id": "f:docs/orders.md",
+            "hop": 2,
+            "kind": "mentions",
+            "at": "docs/orders.md:8",
+            "sites": [
+              8
+            ]
+          },
+          {
+            "id": "f:tests/test_orders.py",
+            "hop": 2,
+            "kind": "tests",
+            "at": "tests/test_orders.py:15",
+            "sites": [
+              15
+            ]
+          },
+          {
+            "id": "f:web/app.ts",
+            "hop": 2,
+            "kind": "calls",
+            "at": "web/app.ts:9",
+            "sites": [
+              9
+            ]
+          },
+          {
+            "id": "f:worker/sync.py",
+            "hop": 2,
+            "kind": "imports",
+            "at": "worker/sync.py:4",
+            "sites": [
+              4
+            ]
+          },
+          {
+            "id": "f:web/dist/bundle.js",
+            "hop": 3,
+            "kind": "stamps",
+            "at": "web/check-fresh.py:12",
+            "sites": [
+              12
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "intent_patch_skips_type_only_and_build_exec",
+      "model": "code_7level",
+      "seeds": [
+        "s:core/auth.py#verify_token"
+      ],
+      "opts": {
+        "intent": "patch"
+      },
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:docs/auth.md",
+            "hop": 1,
+            "kind": "mentions",
+            "at": "docs/auth.md:3",
+            "sites": [
+              3
+            ]
+          },
+          {
+            "id": "f:tests/test_auth_only.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_auth_only.py:11",
+            "sites": [
+              11
+            ]
+          },
+          {
+            "id": "s:routes/orders.py#create_order",
+            "hop": 1,
+            "kind": "calls",
+            "at": "routes/orders.py:18",
+            "sites": [
+              18,
+              42
+            ]
+          },
+          {
+            "id": "f:tests/test_orders.py",
+            "hop": 2,
+            "kind": "tests",
+            "at": "tests/test_orders.py:15",
+            "sites": [
+              15
+            ]
+          },
+          {
+            "id": "f:web/app.ts",
+            "hop": 2,
+            "kind": "calls",
+            "at": "web/app.ts:9",
+            "sites": [
+              9
+            ]
+          },
+          {
+            "id": "f:web/dist/bundle.js",
+            "hop": 3,
+            "kind": "stamps",
+            "at": "web/check-fresh.py:12",
+            "sites": [
+              12
+            ]
+          }
+        ],
+        "hostsImpacted": [
+          "vm-api-1",
+          "vm-web-1",
+          "vm-worker-1"
+        ],
+        "stampsToRebuild": [
+          "f:web/dist/bundle.js"
+        ],
+        "testsToRun": [
+          "f:tests/test_auth_only.py",
+          "f:tests/test_orders.py"
+        ]
+      }
+    },
+    {
+      "id": "intent_cut_identifies_blockers_and_exclusive_co_cut_candidates",
+      "model": "code_7level",
+      "seeds": [
+        "f:core/auth.py"
+      ],
+      "opts": {
+        "intent": "cut"
+      },
+      "expected": {
+        "truncated": false,
+        "blockers": [
+          "f:web/types.ts",
+          "s:routes/orders.py#create_order"
+        ],
+        "coCutCandidates": [
+          "f:docs/auth.md",
+          "f:tests/test_auth_only.py"
+        ],
+        "testsToRun": [
+          "f:tests/test_auth_only.py",
+          "f:tests/test_orders.py"
+        ]
+      }
+    },
+    {
+      "id": "intent_supply_chain_separates_runtime_stamps_and_build_exec",
+      "model": "code_7level",
+      "seeds": [
+        "s:core/auth.py#verify_token"
+      ],
+      "opts": {
+        "intent": "supply-chain"
+      },
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:ci/build.sh",
+            "hop": 1,
+            "kind": "runs",
+            "at": "ci/build.sh:7",
+            "sites": [
+              7
+            ]
+          },
+          {
+            "id": "f:tests/test_auth_only.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_auth_only.py:11",
+            "sites": [
+              11
+            ]
+          },
+          {
+            "id": "s:routes/orders.py#create_order",
+            "hop": 1,
+            "kind": "calls",
+            "at": "routes/orders.py:18",
+            "sites": [
+              18,
+              42
+            ]
+          },
+          {
+            "id": "f:tests/test_orders.py",
+            "hop": 2,
+            "kind": "tests",
+            "at": "tests/test_orders.py:15",
+            "sites": [
+              15
+            ]
+          },
+          {
+            "id": "f:web/app.ts",
+            "hop": 2,
+            "kind": "calls",
+            "at": "web/app.ts:9",
+            "sites": [
+              9
+            ]
+          },
+          {
+            "id": "f:web/dist/bundle.js",
+            "hop": 3,
+            "kind": "stamps",
+            "at": "web/check-fresh.py:12",
+            "sites": [
+              12
+            ]
+          }
+        ],
+        "buildExecImpacted": [
+          "f:ci/build.sh"
+        ],
+        "stampsToRebuild": [
+          "f:web/dist/bundle.js"
+        ]
+      }
+    },
+    {
+      "id": "container_seed_expands_descendants_only_never_internal_hits",
+      "model": "code_7level",
+      "seeds": [
+        "c-api"
+      ],
+      "opts": {},
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:ci/build.sh",
+            "hop": 1,
+            "kind": "runs",
+            "at": "ci/build.sh:7",
+            "sites": [
+              7
+            ]
+          },
+          {
+            "id": "f:docs/auth.md",
+            "hop": 1,
+            "kind": "mentions",
+            "at": "docs/auth.md:3",
+            "sites": [
+              3
+            ]
+          },
+          {
+            "id": "f:docs/orders.md",
+            "hop": 1,
+            "kind": "mentions",
+            "at": "docs/orders.md:8",
+            "sites": [
+              8
+            ]
+          },
+          {
+            "id": "f:tests/test_auth_only.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_auth_only.py:11",
+            "sites": [
+              11
+            ]
+          },
+          {
+            "id": "f:tests/test_orders.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_orders.py:15",
+            "sites": [
+              15
+            ]
+          },
+          {
+            "id": "f:web/app.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "web/app.ts:9",
+            "sites": [
+              9
+            ]
+          },
+          {
+            "id": "f:web/types.ts",
+            "hop": 1,
+            "kind": "imports",
+            "at": "web/types.ts:2",
+            "sites": [
+              2
+            ]
+          },
+          {
+            "id": "f:web/dist/bundle.js",
+            "hop": 2,
+            "kind": "stamps",
+            "at": "web/check-fresh.py:12",
+            "sites": [
+              12
+            ]
+          },
+          {
+            "id": "f:worker/sync.py",
+            "hop": 2,
+            "kind": "imports",
+            "at": "worker/sync.py:4",
+            "sites": [
+              4
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "multi_seed_union",
+      "model": "code_7level",
+      "seeds": [
+        "s:routes/orders.py#create_order",
+        "f:web/types.ts"
+      ],
+      "opts": {},
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:docs/orders.md",
+            "hop": 1,
+            "kind": "mentions",
+            "at": "docs/orders.md:8",
+            "sites": [
+              8
+            ]
+          },
+          {
+            "id": "f:tests/test_orders.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_orders.py:15",
+            "sites": [
+              15
+            ]
+          },
+          {
+            "id": "f:web/app.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "web/app.ts:9",
+            "sites": [
+              9
+            ]
+          },
+          {
+            "id": "f:worker/sync.py",
+            "hop": 1,
+            "kind": "imports",
+            "at": "worker/sync.py:4",
+            "sites": [
+              4
+            ]
+          },
+          {
+            "id": "f:web/dist/bundle.js",
+            "hop": 2,
+            "kind": "stamps",
+            "at": "web/check-fresh.py:12",
+            "sites": [
+              12
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "c4_rels_excludes_planned_by_default",
+      "model": "c4_rels_only",
+      "useExtractedModelLinks": true,
+      "seeds": [
+        "c-store"
+      ],
+      "opts": {},
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "c-service",
+            "hop": 1,
+            "kind": "uses"
+          },
+          {
+            "id": "c-gateway",
+            "hop": 2,
+            "kind": "uses"
+          },
+          {
+            "id": "p-analyst",
+            "hop": 3,
+            "kind": "uses"
+          }
+        ]
+      }
+    },
+    {
+      "id": "duplicate_links_strongest_kind_wins_at_equal_hop",
+      "model": "duplicate_ids",
+      "seeds": [
+        "f:shared.py"
+      ],
+      "opts": {},
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:caller.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "caller.py:12"
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain_100_hops_truncates_at_default_32",
+      "model": "long_chain",
+      "seeds": [
+        "f:n0.py"
+      ],
+      "opts": {},
+      "expected": {
+        "truncated": true,
+        "hitCount": 32,
+        "firstHit": {
+          "id": "f:n1.py",
+          "hop": 1
+        },
+        "lastHit": {
+          "id": "f:n32.py",
+          "hop": 32
+        }
+      }
+    },
+    {
+      "id": "chain_100_hops_completes_when_max_hops_120",
+      "model": "long_chain",
+      "seeds": [
+        "f:n0.py"
+      ],
+      "opts": {
+        "maxHops": 120
+      },
+      "expected": {
+        "truncated": false,
+        "hitCount": 100,
+        "firstHit": {
+          "id": "f:n1.py",
+          "hop": 1
+        },
+        "lastHit": {
+          "id": "f:n100.py",
+          "hop": 100
+        }
+      }
+    }
+  ],
+  "deltaCases": [
+    {
+      "id": "branch_delta_patch_sig_move_add_cut_and_dangling_wire",
+      "baseModel": {
+        "level1": {
+          "elements": [
+            {
+              "id": "actor-buyer",
+              "kind": "person",
+              "name": "Buyer"
+            },
+            {
+              "id": "sys-shop",
+              "kind": "system",
+              "name": "Commerce Platform",
+              "zoom": 2
+            }
+          ],
+          "rels": [
+            {
+              "from": "actor-buyer",
+              "to": "sys-shop",
+              "label": "Places orders"
+            }
+          ]
+        },
+        "level2": {
+          "boundary": "sys-shop",
+          "elements": [
+            {
+              "id": "actor-buyer",
+              "ref": true
+            },
+            {
+              "id": "c-api",
+              "kind": "container",
+              "name": "Orders API",
+              "deployed": [
+                "vm-api-1"
+              ]
+            },
+            {
+              "id": "c-web",
+              "kind": "container",
+              "name": "Storefront UI",
+              "deployed": [
+                "vm-web-1"
+              ]
+            },
+            {
+              "id": "c-worker",
+              "kind": "container",
+              "name": "Sync Worker",
+              "deployed": [
+                "vm-worker-1"
+              ]
+            }
+          ],
+          "rels": [
+            {
+              "from": "c-web",
+              "to": "c-api",
+              "label": "Calls REST"
+            }
+          ]
+        },
+        "level3": {
+          "c-api": [
+            {
+              "id": "c-api/routes",
+              "kind": "component",
+              "name": "Order Routes"
+            },
+            {
+              "id": "c-api/core",
+              "kind": "component",
+              "name": "Auth Core"
+            }
+          ],
+          "c-web": [
+            {
+              "id": "c-web/ui",
+              "kind": "component",
+              "name": "Client App"
+            }
+          ],
+          "c-worker": [
+            {
+              "id": "c-worker/jobs",
+              "kind": "component",
+              "name": "Worker & Verification"
+            }
+          ]
+        },
+        "level4": {
+          "groups": [
+            {
+              "id": "rg-prod",
+              "zone": "cloud-prod",
+              "title": "rg-prod"
+            }
+          ],
+          "nodes": [
+            {
+              "id": "vm-api-1",
+              "group": "rg-prod",
+              "kind": "vm",
+              "title": "vm-api-1",
+              "role": "API host",
+              "hosts": [
+                "c-api"
+              ]
+            },
+            {
+              "id": "vm-web-1",
+              "group": "rg-prod",
+              "kind": "vm",
+              "title": "vm-web-1",
+              "role": "Web host",
+              "hosts": [
+                "c-web"
+              ]
+            },
+            {
+              "id": "vm-worker-1",
+              "group": "rg-prod",
+              "kind": "vm",
+              "title": "vm-worker-1",
+              "role": "Worker host",
+              "hosts": [
+                "c-worker"
+              ]
+            }
+          ],
+          "links": [
+            {
+              "from": "vm-web-1",
+              "to": "vm-api-1",
+              "label": "HTTPS 443",
+              "kind": "traffic",
+              "state": "now"
+            }
+          ]
+        },
+        "subgraphs": {
+          "f:core/auth.py": {
+            "stratum": "Functions and classes",
+            "elements": [
+              {
+                "id": "s:core/auth.py#verify_token",
+                "kind": "symbol",
+                "name": "verify_token()",
+                "tech": "function",
+                "source": {
+                  "path": "core/auth.py",
+                  "lineRange": [
+                    10,
+                    26
+                  ],
+                  "symbol": "verify_token",
+                  "signature": "def verify_token(tok: str) -> bool",
+                  "hash": "aa11bb22cc33"
+                }
+              },
+              {
+                "id": "s:core/auth.py#TokenClaims",
+                "kind": "symbol",
+                "name": "TokenClaims",
+                "tech": "class",
+                "source": {
+                  "path": "core/auth.py",
+                  "lineRange": [
+                    30,
+                    45
+                  ],
+                  "symbol": "TokenClaims",
+                  "signature": "class TokenClaims",
+                  "hash": "dd44ee55ff66"
+                }
+              }
+            ]
+          },
+          "f:routes/orders.py": {
+            "stratum": "Functions and classes",
+            "elements": [
+              {
+                "id": "s:routes/orders.py#create_order",
+                "kind": "symbol",
+                "name": "create_order()",
+                "tech": "POST /v1/orders",
+                "source": {
+                  "path": "routes/orders.py",
+                  "lineRange": [
+                    12,
+                    48
+                  ],
+                  "symbol": "create_order",
+                  "signature": "def create_order(req)",
+                  "hash": "112233445566"
+                }
+              },
+              {
+                "id": "s:routes/orders.py#list_orders",
+                "kind": "symbol",
+                "name": "list_orders()",
+                "tech": "GET /v1/orders",
+                "source": {
+                  "path": "routes/orders.py",
+                  "lineRange": [
+                    52,
+                    74
+                  ],
+                  "symbol": "list_orders",
+                  "signature": "def list_orders(limit: int)",
+                  "hash": "778899aabbcc"
+                }
+              }
+            ]
+          },
+          "d:c-api/core:core": {
+            "stratum": "Files",
+            "elements": [
+              {
+                "id": "f:core/auth.py",
+                "kind": "module",
+                "name": "auth.py",
+                "tech": "Python",
+                "source": {
+                  "path": "core/auth.py",
+                  "hash": "f_auth_v1"
+                }
+              }
+            ]
+          },
+          "d:c-api/routes:routes": {
+            "stratum": "Files",
+            "elements": [
+              {
+                "id": "f:routes/orders.py",
+                "kind": "module",
+                "name": "orders.py",
+                "tech": "Python",
+                "source": {
+                  "path": "routes/orders.py",
+                  "hash": "f_orders_v1"
+                }
+              }
+            ]
+          },
+          "c-api/core": {
+            "stratum": "Folders",
+            "elements": [
+              {
+                "id": "d:c-api/core:core",
+                "kind": "module",
+                "name": "core/",
+                "tech": "folder \u00b7 1 file"
+              }
+            ]
+          },
+          "c-api/routes": {
+            "stratum": "Folders",
+            "elements": [
+              {
+                "id": "d:c-api/routes:routes",
+                "kind": "module",
+                "name": "routes/",
+                "tech": "folder \u00b7 1 file"
+              }
+            ]
+          },
+          "c-web/ui": {
+            "stratum": "Files",
+            "elements": [
+              {
+                "id": "f:web/app.ts",
+                "kind": "module",
+                "name": "app.ts",
+                "tech": "TypeScript",
+                "source": {
+                  "path": "web/app.ts",
+                  "hash": "f_app_v1"
+                }
+              },
+              {
+                "id": "f:web/types.ts",
+                "kind": "module",
+                "name": "types.ts",
+                "tech": "TypeScript",
+                "source": {
+                  "path": "web/types.ts",
+                  "hash": "f_types_v1"
+                }
+              },
+              {
+                "id": "f:web/dist/bundle.js",
+                "kind": "module",
+                "name": "bundle.js",
+                "tech": "JavaScript",
+                "source": {
+                  "path": "web/dist/bundle.js",
+                  "hash": "f_bundle_v1"
+                }
+              }
+            ]
+          },
+          "c-worker/jobs": {
+            "stratum": "Files",
+            "elements": [
+              {
+                "id": "f:worker/sync.py",
+                "kind": "module",
+                "name": "sync.py",
+                "tech": "Python",
+                "source": {
+                  "path": "worker/sync.py",
+                  "hash": "f_sync_v1"
+                }
+              },
+              {
+                "id": "f:tests/test_auth_only.py",
+                "kind": "module",
+                "name": "test_auth_only.py",
+                "tech": "Python",
+                "source": {
+                  "path": "tests/test_auth_only.py",
+                  "hash": "f_tauth_v1"
+                }
+              },
+              {
+                "id": "f:tests/test_orders.py",
+                "kind": "module",
+                "name": "test_orders.py",
+                "tech": "Python",
+                "source": {
+                  "path": "tests/test_orders.py",
+                  "hash": "f_tord_v1"
+                }
+              },
+              {
+                "id": "f:ci/build.sh",
+                "kind": "module",
+                "name": "build.sh",
+                "tech": "Shell",
+                "source": {
+                  "path": "ci/build.sh",
+                  "hash": "f_build_v1"
+                }
+              },
+              {
+                "id": "f:docs/auth.md",
+                "kind": "module",
+                "name": "auth.md",
+                "tech": "Markdown",
+                "source": {
+                  "path": "docs/auth.md",
+                  "hash": "f_dauth_v1"
+                }
+              },
+              {
+                "id": "f:docs/orders.md",
+                "kind": "module",
+                "name": "orders.md",
+                "tech": "Markdown",
+                "source": {
+                  "path": "docs/orders.md",
+                  "hash": "f_dord_v1"
+                }
+              }
+            ]
+          }
+        },
+        "links": [
+          {
+            "from": "s:routes/orders.py#create_order",
+            "to": "s:core/auth.py#verify_token",
+            "kind": "calls",
+            "coupling": "runtime",
+            "phase": "prod-runtime",
+            "at": "routes/orders.py:18",
+            "sites": [
+              18,
+              42
+            ]
+          },
+          {
+            "from": "f:web/app.ts",
+            "to": "s:routes/orders.py#create_order",
+            "kind": "calls",
+            "coupling": "runtime",
+            "phase": "client-bundle",
+            "at": "web/app.ts:9",
+            "sites": [
+              9
+            ]
+          },
+          {
+            "from": "f:web/types.ts",
+            "to": "s:core/auth.py#verify_token",
+            "kind": "imports",
+            "coupling": "type-only",
+            "phase": "client-bundle",
+            "at": "web/types.ts:2",
+            "sites": [
+              2
+            ]
+          },
+          {
+            "from": "f:worker/sync.py",
+            "to": "f:web/types.ts",
+            "kind": "imports",
+            "coupling": "type-only",
+            "phase": "prod-runtime",
+            "at": "worker/sync.py:4",
+            "sites": [
+              4
+            ]
+          },
+          {
+            "from": "f:web/dist/bundle.js",
+            "to": "f:web/app.ts",
+            "kind": "stamps",
+            "stop": true,
+            "coupling": "artifact-stamp",
+            "phase": "client-bundle",
+            "at": "web/check-fresh.py:12",
+            "sites": [
+              12
+            ]
+          },
+          {
+            "from": "f:ci/build.sh",
+            "to": "s:core/auth.py#verify_token",
+            "kind": "runs",
+            "stop": true,
+            "coupling": "build-exec",
+            "phase": "build-exec",
+            "at": "ci/build.sh:7",
+            "sites": [
+              7
+            ]
+          },
+          {
+            "from": "f:tests/test_auth_only.py",
+            "to": "s:core/auth.py#verify_token",
+            "kind": "tests",
+            "stop": true,
+            "coupling": "verification",
+            "phase": "ci-test",
+            "at": "tests/test_auth_only.py:11",
+            "sites": [
+              11
+            ]
+          },
+          {
+            "from": "f:tests/test_orders.py",
+            "to": "s:routes/orders.py#create_order",
+            "kind": "tests",
+            "stop": true,
+            "coupling": "verification",
+            "phase": "ci-test",
+            "at": "tests/test_orders.py:15",
+            "sites": [
+              15
+            ]
+          },
+          {
+            "from": "f:tests/test_orders.py",
+            "to": "s:routes/orders.py#list_orders",
+            "kind": "tests",
+            "stop": true,
+            "coupling": "verification",
+            "phase": "ci-test",
+            "at": "tests/test_orders.py:29",
+            "sites": [
+              29
+            ]
+          },
+          {
+            "from": "f:docs/auth.md",
+            "to": "s:core/auth.py#verify_token",
+            "kind": "mentions",
+            "stop": true,
+            "coupling": "prose",
+            "phase": "doc-only",
+            "at": "docs/auth.md:3",
+            "sites": [
+              3
+            ]
+          },
+          {
+            "from": "f:docs/orders.md",
+            "to": "s:routes/orders.py#create_order",
+            "kind": "mentions",
+            "stop": true,
+            "coupling": "prose",
+            "phase": "doc-only",
+            "at": "docs/orders.md:8",
+            "sites": [
+              8
+            ]
+          }
+        ]
+      },
+      "headModel": {
+        "level1": {
+          "elements": [
+            {
+              "id": "actor-buyer",
+              "kind": "person",
+              "name": "Buyer"
+            },
+            {
+              "id": "sys-shop",
+              "kind": "system",
+              "name": "Commerce Platform",
+              "zoom": 2
+            }
+          ],
+          "rels": [
+            {
+              "from": "actor-buyer",
+              "to": "sys-shop",
+              "label": "Places orders"
+            }
+          ]
+        },
+        "level2": {
+          "boundary": "sys-shop",
+          "elements": [
+            {
+              "id": "actor-buyer",
+              "ref": true
+            },
+            {
+              "id": "c-api",
+              "kind": "container",
+              "name": "Orders API",
+              "deployed": [
+                "vm-api-1"
+              ]
+            },
+            {
+              "id": "c-web",
+              "kind": "container",
+              "name": "Storefront UI",
+              "deployed": [
+                "vm-web-1"
+              ]
+            },
+            {
+              "id": "c-worker",
+              "kind": "container",
+              "name": "Sync Worker",
+              "deployed": [
+                "vm-worker-1"
+              ]
+            }
+          ],
+          "rels": [
+            {
+              "from": "c-web",
+              "to": "c-api",
+              "label": "Calls REST"
+            }
+          ]
+        },
+        "level3": {
+          "c-api": [
+            {
+              "id": "c-api/routes",
+              "kind": "component",
+              "name": "Order Routes"
+            },
+            {
+              "id": "c-api/core",
+              "kind": "component",
+              "name": "Auth Core"
+            }
+          ],
+          "c-web": [
+            {
+              "id": "c-web/ui",
+              "kind": "component",
+              "name": "Client App"
+            }
+          ],
+          "c-worker": [
+            {
+              "id": "c-worker/jobs",
+              "kind": "component",
+              "name": "Worker & Verification"
+            }
+          ]
+        },
+        "level4": {
+          "groups": [
+            {
+              "id": "rg-prod",
+              "zone": "cloud-prod",
+              "title": "rg-prod"
+            }
+          ],
+          "nodes": [
+            {
+              "id": "vm-api-1",
+              "group": "rg-prod",
+              "kind": "vm",
+              "title": "vm-api-1",
+              "role": "API host",
+              "hosts": [
+                "c-api"
+              ]
+            },
+            {
+              "id": "vm-web-1",
+              "group": "rg-prod",
+              "kind": "vm",
+              "title": "vm-web-1",
+              "role": "Web host",
+              "hosts": [
+                "c-web"
+              ]
+            },
+            {
+              "id": "vm-worker-1",
+              "group": "rg-prod",
+              "kind": "vm",
+              "title": "vm-worker-1",
+              "role": "Worker host",
+              "hosts": [
+                "c-worker"
+              ]
+            }
+          ],
+          "links": [
+            {
+              "from": "vm-web-1",
+              "to": "vm-api-1",
+              "label": "HTTPS 443",
+              "kind": "traffic",
+              "state": "now"
+            }
+          ]
+        },
+        "subgraphs": {
+          "f:core/auth.py": {
+            "stratum": "Functions and classes",
+            "elements": [
+              {
+                "id": "s:core/auth.py#verify_token",
+                "kind": "symbol",
+                "name": "verify_token()",
+                "tech": "function",
+                "source": {
+                  "path": "core/auth.py",
+                  "lineRange": [
+                    10,
+                    31
+                  ],
+                  "symbol": "verify_token",
+                  "signature": "def verify_token(tok: str) -> bool",
+                  "hash": "aa11bb22_patched"
+                }
+              },
+              {
+                "id": "s:core/auth.py#TokenClaims",
+                "kind": "symbol",
+                "name": "TokenClaims",
+                "tech": "class",
+                "source": {
+                  "path": "core/auth.py",
+                  "lineRange": [
+                    35,
+                    50
+                  ],
+                  "symbol": "TokenClaims",
+                  "signature": "class TokenClaims",
+                  "hash": "dd44ee55ff66"
+                }
+              }
+            ]
+          },
+          "f:routes/orders.py": {
+            "stratum": "Functions and classes",
+            "elements": [
+              {
+                "id": "s:routes/orders.py#create_order",
+                "kind": "symbol",
+                "name": "create_order()",
+                "tech": "POST /v1/orders",
+                "source": {
+                  "path": "routes/orders.py",
+                  "lineRange": [
+                    12,
+                    48
+                  ],
+                  "symbol": "create_order",
+                  "signature": "def create_order(req)",
+                  "hash": "112233445566"
+                }
+              },
+              {
+                "id": "s:routes/orders.py#list_orders",
+                "kind": "symbol",
+                "name": "list_orders()",
+                "tech": "GET /v1/orders",
+                "source": {
+                  "path": "routes/orders.py",
+                  "lineRange": [
+                    52,
+                    74
+                  ],
+                  "symbol": "list_orders",
+                  "signature": "def list_orders(limit: int, cursor: str = '')",
+                  "hash": "778899_sigchanged"
+                }
+              }
+            ]
+          },
+          "d:c-api/core:core": {
+            "stratum": "Files",
+            "elements": [
+              {
+                "id": "f:core/auth.py",
+                "kind": "module",
+                "name": "auth.py",
+                "tech": "Python",
+                "source": {
+                  "path": "core/auth.py",
+                  "hash": "f_auth_v2"
+                }
+              },
+              {
+                "id": "f:web/types.ts",
+                "kind": "module",
+                "name": "types.ts",
+                "tech": "TypeScript",
+                "source": {
+                  "path": "web/types.ts",
+                  "hash": "f_types_v1"
+                }
+              }
+            ]
+          },
+          "d:c-api/routes:routes": {
+            "stratum": "Files",
+            "elements": [
+              {
+                "id": "f:routes/orders.py",
+                "kind": "module",
+                "name": "orders.py",
+                "tech": "Python",
+                "source": {
+                  "path": "routes/orders.py",
+                  "hash": "f_orders_v2"
+                }
+              },
+              {
+                "id": "f:routes/refunds.py",
+                "kind": "module",
+                "name": "refunds.py",
+                "tech": "Python",
+                "source": {
+                  "path": "routes/refunds.py",
+                  "hash": "f_refunds_v1"
+                }
+              }
+            ]
+          },
+          "c-api/core": {
+            "stratum": "Folders",
+            "elements": [
+              {
+                "id": "d:c-api/core:core",
+                "kind": "module",
+                "name": "core/",
+                "tech": "folder \u00b7 1 file"
+              }
+            ]
+          },
+          "c-api/routes": {
+            "stratum": "Folders",
+            "elements": [
+              {
+                "id": "d:c-api/routes:routes",
+                "kind": "module",
+                "name": "routes/",
+                "tech": "folder \u00b7 1 file"
+              }
+            ]
+          },
+          "c-web/ui": {
+            "stratum": "Files",
+            "elements": [
+              {
+                "id": "f:web/app.ts",
+                "kind": "module",
+                "name": "app.ts",
+                "tech": "TypeScript",
+                "source": {
+                  "path": "web/app.ts",
+                  "hash": "f_app_v1"
+                }
+              },
+              {
+                "id": "f:web/dist/bundle.js",
+                "kind": "module",
+                "name": "bundle.js",
+                "tech": "JavaScript",
+                "source": {
+                  "path": "web/dist/bundle.js",
+                  "hash": "f_bundle_v1"
+                }
+              }
+            ]
+          },
+          "c-worker/jobs": {
+            "stratum": "Files",
+            "elements": [
+              {
+                "id": "f:worker/sync.py",
+                "kind": "module",
+                "name": "sync.py",
+                "tech": "Python",
+                "source": {
+                  "path": "worker/sync.py",
+                  "hash": "f_sync_v1"
+                }
+              },
+              {
+                "id": "f:tests/test_auth_only.py",
+                "kind": "module",
+                "name": "test_auth_only.py",
+                "tech": "Python",
+                "source": {
+                  "path": "tests/test_auth_only.py",
+                  "hash": "f_tauth_v1"
+                }
+              },
+              {
+                "id": "f:tests/test_orders.py",
+                "kind": "module",
+                "name": "test_orders.py",
+                "tech": "Python",
+                "source": {
+                  "path": "tests/test_orders.py",
+                  "hash": "f_tord_v1"
+                }
+              },
+              {
+                "id": "f:ci/build.sh",
+                "kind": "module",
+                "name": "build.sh",
+                "tech": "Shell",
+                "source": {
+                  "path": "ci/build.sh",
+                  "hash": "f_build_v1"
+                }
+              },
+              {
+                "id": "f:docs/orders.md",
+                "kind": "module",
+                "name": "orders.md",
+                "tech": "Markdown",
+                "source": {
+                  "path": "docs/orders.md",
+                  "hash": "f_dord_v1"
+                }
+              }
+            ]
+          }
+        },
+        "links": [
+          {
+            "from": "s:routes/orders.py#create_order",
+            "to": "s:core/auth.py#verify_token",
+            "kind": "calls",
+            "coupling": "runtime",
+            "phase": "prod-runtime",
+            "at": "routes/orders.py:18",
+            "sites": [
+              18,
+              42
+            ]
+          },
+          {
+            "from": "f:web/app.ts",
+            "to": "s:routes/orders.py#create_order",
+            "kind": "calls",
+            "coupling": "runtime",
+            "phase": "client-bundle",
+            "at": "web/app.ts:9",
+            "sites": [
+              9
+            ]
+          },
+          {
+            "from": "f:web/types.ts",
+            "to": "s:core/auth.py#verify_token",
+            "kind": "imports",
+            "coupling": "type-only",
+            "phase": "client-bundle",
+            "at": "web/types.ts:2",
+            "sites": [
+              2
+            ]
+          },
+          {
+            "from": "f:worker/sync.py",
+            "to": "f:web/types.ts",
+            "kind": "imports",
+            "coupling": "type-only",
+            "phase": "prod-runtime",
+            "at": "worker/sync.py:4",
+            "sites": [
+              4
+            ]
+          },
+          {
+            "from": "f:web/dist/bundle.js",
+            "to": "f:web/app.ts",
+            "kind": "stamps",
+            "stop": true,
+            "coupling": "artifact-stamp",
+            "phase": "client-bundle",
+            "at": "web/check-fresh.py:12",
+            "sites": [
+              12
+            ]
+          },
+          {
+            "from": "f:ci/build.sh",
+            "to": "s:core/auth.py#verify_token",
+            "kind": "runs",
+            "stop": true,
+            "coupling": "build-exec",
+            "phase": "build-exec",
+            "at": "ci/build.sh:7",
+            "sites": [
+              7
+            ]
+          },
+          {
+            "from": "f:tests/test_auth_only.py",
+            "to": "s:core/auth.py#verify_token",
+            "kind": "tests",
+            "stop": true,
+            "coupling": "verification",
+            "phase": "ci-test",
+            "at": "tests/test_auth_only.py:11",
+            "sites": [
+              11
+            ]
+          },
+          {
+            "from": "f:tests/test_orders.py",
+            "to": "s:routes/orders.py#create_order",
+            "kind": "tests",
+            "stop": true,
+            "coupling": "verification",
+            "phase": "ci-test",
+            "at": "tests/test_orders.py:15",
+            "sites": [
+              15
+            ]
+          },
+          {
+            "from": "f:tests/test_orders.py",
+            "to": "s:routes/orders.py#list_orders",
+            "kind": "tests",
+            "stop": true,
+            "coupling": "verification",
+            "phase": "ci-test",
+            "at": "tests/test_orders.py:29",
+            "sites": [
+              29
+            ]
+          },
+          {
+            "from": "f:docs/orders.md",
+            "to": "s:routes/orders.py#create_order",
+            "kind": "mentions",
+            "stop": true,
+            "coupling": "prose",
+            "phase": "doc-only",
+            "at": "docs/orders.md:8",
+            "sites": [
+              8
+            ]
+          },
+          {
+            "from": "f:routes/refunds.py",
+            "to": "s:core/auth.py#verify_token",
+            "kind": "calls",
+            "coupling": "runtime",
+            "phase": "prod-runtime",
+            "at": "routes/refunds.py:6",
+            "sites": [
+              6
+            ]
+          },
+          {
+            "from": "f:ci/build.sh",
+            "to": "f:docs/auth.md",
+            "kind": "uses",
+            "stop": true,
+            "at": "ci/build.sh:19",
+            "sites": [
+              19
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "addedIds": [
+          "f:routes/refunds.py"
+        ],
+        "deletedIds": [
+          "f:docs/auth.md"
+        ],
+        "movedIds": [
+          "f:web/types.ts"
+        ],
+        "sigChangedIds": [
+          "s:routes/orders.py#list_orders"
+        ],
+        "bodyPatchedIds": [
+          "f:core/auth.py",
+          "f:routes/orders.py",
+          "s:core/auth.py#verify_token"
+        ],
+        "blastSeedIds": [
+          "f:docs/auth.md",
+          "f:routes/refunds.py",
+          "f:web/types.ts",
+          "s:core/auth.py#verify_token",
+          "s:routes/orders.py#list_orders"
+        ],
+        "recommendedIntent": "cut",
+        "addedWires": [
+          {
+            "from": "f:routes/refunds.py",
+            "to": "s:core/auth.py#verify_token",
+            "kind": "calls"
+          },
+          {
+            "from": "f:ci/build.sh",
+            "to": "f:docs/auth.md",
+            "kind": "uses"
+          }
+        ],
+        "removedWires": [
+          {
+            "from": "f:docs/auth.md",
+            "to": "s:core/auth.py#verify_token",
+            "kind": "mentions"
+          }
+        ],
+        "danglingWires": [
+          {
+            "from": "f:ci/build.sh",
+            "to": "f:docs/auth.md",
+            "kind": "uses"
+          }
+        ]
+      }
+    }
+  ]
+}

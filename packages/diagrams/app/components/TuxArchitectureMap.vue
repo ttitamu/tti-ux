@@ -7,6 +7,7 @@ import {
   buildLevelModelFromLegacyNodes,
   buildMapParentIndex,
   computeLinkBlastRadius,
+  levelForFocus as computeLevelForFocus,
   liftLinksToView,
   liftToSet,
   mapAncestorsOf,
@@ -381,11 +382,7 @@ const parentOf = computed(() => buildMapParentIndex(activeModel.value));
 /** The level that shows the children of `fid`: 3 inside a container, 5 inside a component or
  *  deployment node, one more for each subgraph below that. */
 function levelForFocus(fid: string): number {
-  const M = activeModel.value;
-  if (M.level3[fid] && !M.subgraphs?.[fid]) return 3;
-  const p = parentOf.value.get(fid);
-  if (!p || (M.level3[p] && !M.subgraphs?.[p])) return 5;
-  return levelForFocus(p) + 1;
+  return computeLevelForFocus(fid, activeModel.value, parentOf.value);
 }
 
 /** The drill stack a person builds zooming in step by step to the children of `fid`. */
@@ -985,14 +982,54 @@ interface BlastRadiusComputation {
   reachCountById?: Map<string, number>;
 }
 
+// Maps each element ID to the Level 4 deployment node IDs that host or deploy it
+const hostIdsByElement = computed<Map<string, string[]>>(() => {
+  const M = activeModel.value;
+  const out = new Map<string, Set<string>>();
+  const add = (elId: string, hostId: string) => {
+    if (!elId || !hostId) return;
+    let s = out.get(elId);
+    if (!s) {
+      s = new Set();
+      out.set(elId, s);
+    }
+    s.add(hostId);
+  };
+  for (const [id, el] of Object.entries(byId.value)) {
+    const dep = !el.deployed ? [] : Array.isArray(el.deployed) ? el.deployed : [el.deployed];
+    for (const h of dep) add(id, h);
+  }
+  for (const n of M.level4.nodes) {
+    add(n.id, n.id);
+    for (const cid of n.hosts || []) add(cid, n.id);
+  }
+  const final = new Map<string, string[]>();
+  for (const [k, s] of out) final.set(k, [...s]);
+  return final;
+});
+
+function liftToDeployHosts(
+  id: string,
+  stageHostIds: ReadonlySet<string>,
+): string[] {
+  const found = new Set<string>();
+  for (const anc of mapAncestorsOf(id, parentOf.value)) {
+    for (const hid of hostIdsByElement.value.get(anc) ?? []) {
+      if (stageHostIds.has(hid)) found.add(hid);
+    }
+  }
+  return [...found];
+}
+
 // The blast radius of the selected element through the model's code links: everything that depends
-// on it or on anything inside it. Computed whenever something is chosen (the details panel lists
-// it); drawn on the stage when the Blast radius switch is on.
+// on it or on anything inside it (including Level 4 hosts via their hosted containers/components).
+// Computed whenever something is chosen (the details panel lists it); drawn on the stage when the
+// Blast radius switch is on.
 const selectionBlast = computed(() => {
   const M = activeModel.value;
   const id = selectedId.value;
-  if (!M.links?.length || !id || currentLevel.value === 4 || !byId.value[id]) return null;
-  return computeLinkBlastRadius(M.links, id, parentOf.value);
+  if (!M.links?.length || !id || (!byId.value[id] && !resById.value[id])) return null;
+  return computeLinkBlastRadius(M.links, id, parentOf.value, { model: M });
 });
 
 // The same, one row per file, nearest first, for the details panel
@@ -1019,67 +1056,99 @@ const selectionBlastFiles = computed(() => {
   return { parts: sb.hits.size, total: rows.length, shown: rows.slice(0, SHOWN), more: Math.max(0, rows.length - SHOWN) };
 });
 
+function projectBlastOntoStage(
+  seeds: ReadonlySet<string>,
+  hits: ReadonlyMap<string, unknown>,
+  rollupCountById: Map<string, number>,
+  presetDirectIds?: ReadonlySet<string>,
+): BlastRadiusComputation {
+  if (currentLevel.value === 4) {
+    const stageHostIds = new Set(stageData.value.deployNodes.map((n) => n.id));
+    const directIds = new Set<string>(presetDirectIds ?? []);
+    for (const x of seeds) {
+      for (const hid of liftToDeployHosts(x, stageHostIds)) directIds.add(hid);
+    }
+    const reachCountById = new Map<string, number>();
+    for (const x of hits.keys()) {
+      for (const hid of liftToDeployHosts(x, stageHostIds)) {
+        if (!directIds.has(hid)) reachCountById.set(hid, (reachCountById.get(hid) ?? 0) + 1);
+      }
+    }
+    const impactedIds = new Set(reachCountById.keys());
+    const impactedWires = new Set(
+      routedSvg.value.wires
+        .filter(
+          (w) =>
+            (directIds.has(w.from) || impactedIds.has(w.from)) &&
+            (directIds.has(w.to) || impactedIds.has(w.to)) &&
+            (impactedIds.has(w.from) || impactedIds.has(w.to)),
+        )
+        .map((w) => w.id),
+    );
+    return { directIds, impactedIds, impactedWires, rollupCountById, reachCountById };
+  }
+
+  const stageIds = new Set(stageData.value.els.map((e) => e.id));
+  const directIds = new Set<string>(presetDirectIds ?? []);
+  for (const x of seeds) {
+    const on = liftToSet(x, stageIds, parentOf.value);
+    if (on) directIds.add(on);
+  }
+  const reachCountById = new Map<string, number>();
+  for (const x of hits.keys()) {
+    const on = liftToSet(x, stageIds, parentOf.value);
+    if (on && !directIds.has(on)) reachCountById.set(on, (reachCountById.get(on) ?? 0) + 1);
+  }
+  const impactedIds = new Set(reachCountById.keys());
+  // a wire is in the radius when its dependent end is reached and the other end is lit
+  const impactedWires = new Set(
+    routedSvg.value.wires
+      .filter((w) => impactedIds.has(w.from) && (directIds.has(w.to) || impactedIds.has(w.to)))
+      .map((w) => w.id),
+  );
+  return { directIds, impactedIds, impactedWires, rollupCountById, reachCountById };
+}
+
 const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
   if (!showBlastRadius.value) return null;
 
   // A selection with code links: light what its change reaches, lifted onto the cards on stage
   const sb = selectionBlast.value;
   if (sb) {
-    const stageIds = new Set(stageData.value.els.map((e) => e.id));
-    const directIds = new Set<string>();
-    for (const x of sb.seeds) {
-      const on = liftToSet(x, stageIds, parentOf.value);
-      if (on) directIds.add(on);
-    }
-    const reachCountById = new Map<string, number>();
-    for (const x of sb.hits.keys()) {
-      const on = liftToSet(x, stageIds, parentOf.value);
-      if (on && !directIds.has(on)) reachCountById.set(on, (reachCountById.get(on) ?? 0) + 1);
-    }
-    const impactedIds = new Set(reachCountById.keys());
-    // a wire is in the radius when its dependent end is reached and the other end is lit
-    const impactedWires = new Set(
-      routedSvg.value.wires
-        .filter((w) => impactedIds.has(w.from) && (directIds.has(w.to) || impactedIds.has(w.to)))
-        .map((w) => w.id),
-    );
-    return { directIds, impactedIds, impactedWires, rollupCountById: new Map(), reachCountById };
+    return projectBlastOntoStage(sb.seeds, sb.hits, new Map());
   }
 
   const M = activeModel.value;
   const directIds = new Set<string>();
   const rollupCountById = new Map<string, number>();
 
-  // Count inner modified nodes per container / system / subgraph parent
+  // Walk full ancestor chains across Levels 1..7+ so deep symbol/file diffs roll up to every ancestor
+  const allDiffIds = new Set<string>();
+  const diffAncestorsWithDiffChild = new Set<string>();
+  for (const [id, el] of Object.entries(byId.value)) {
+    if (!el.ref && el.diff) allDiffIds.add(id);
+  }
+  for (const n of M.level4.nodes) {
+    if (n.diff) allDiffIds.add(n.id);
+  }
+
+  const l2ContainerIds = new Set(M.level2.elements.filter((e) => !e.ref).map((e) => e.id));
   let totalContainerDiffs = 0;
-  for (const e of M.level2.elements) {
-    let innerDiffs = 0;
-    for (const k of M.level3[e.id] || []) {
-      const kidId = k.id || "";
-      if (k.diff) innerDiffs++;
-      if (kidId && M.subgraphs?.[kidId]) {
-        innerDiffs += M.subgraphs[kidId]!.elements.filter((se) => Boolean(se.diff)).length;
-      }
+
+  for (const id of allDiffIds) {
+    const chain = mapAncestorsOf(id, parentOf.value);
+    for (const anc of chain.slice(1)) {
+      rollupCountById.set(anc, (rollupCountById.get(anc) ?? 0) + 1);
+      if (allDiffIds.has(anc)) diffAncestorsWithDiffChild.add(anc);
     }
-    if (M.subgraphs?.[e.id]) {
-      innerDiffs += M.subgraphs[e.id]!.elements.filter((se) => Boolean(se.diff)).length;
+    const topAnc = chain[chain.length - 1]!;
+    if (l2ContainerIds.has(topAnc)) {
+      totalContainerDiffs++;
     }
-    if (innerDiffs > 0) {
-      rollupCountById.set(e.id, innerDiffs);
-      totalContainerDiffs += innerDiffs;
-    }
-    if (e.diff) totalContainerDiffs++;
   }
 
   if (totalContainerDiffs > 0 && M.level2.boundary) {
     rollupCountById.set(M.level2.boundary, totalContainerDiffs);
-  }
-
-  for (const [parentId, sg] of Object.entries(M.subgraphs || {})) {
-    const inner = sg.elements.filter((se) => Boolean(se.diff)).length;
-    if (inner > 0 && !rollupCountById.has(parentId)) {
-      rollupCountById.set(parentId, inner);
-    }
   }
 
   if (currentLevel.value === 4) {
@@ -1098,10 +1167,18 @@ const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
     }
   }
 
+  // When code links exist and elements carry diff badges, propagate via multi-seed computeLinkBlastRadius
+  // seeded from the deepest diff elements (avoiding over-seeding whole files when one child symbol changed)
+  if (M.links?.length && allDiffIds.size > 0) {
+    const leafDiffIds = [...allDiffIds].filter((id) => !diffAncestorsWithDiffChild.has(id));
+    const diffBlast = computeLinkBlastRadius(M.links, leafDiffIds, parentOf.value, { model: M });
+    return projectBlastOntoStage(diffBlast.seeds, diffBlast.hits, rollupCountById, directIds);
+  }
+
   const impactedIds = new Set<string>();
   const impactedWires = new Set<string>();
 
-  // 1-hop and 2-hop dependency propagation across active stage wires
+  // Fallback for hand-authored C4 models without `links`: 1-hop and 2-hop propagation across stage wires
   const hop1 = new Set<string>(directIds);
   for (const w of routedSvg.value.wires) {
     const fromDirect =
@@ -1290,13 +1367,14 @@ function isElementLit(id: string, parentId?: string): boolean {
   if (matchingSearchIds.value) {
     return matchingSearchIds.value.has(id);
   }
+  const br = blastRadiusState.value;
   if (!activeLitId.value) {
-    const br = blastRadiusState.value;
     if (br && (br.directIds.size > 0 || br.impactedIds.size > 0)) {
       return br.directIds.has(id) || br.impactedIds.has(id);
     }
     return true;
   }
+  if (br && (br.directIds.has(id) || br.impactedIds.has(id))) return true;
   if (litNeighbors.value.has(id)) return true;
   if (litNeighbors.value.has("@bound") && parentId) return true;
   return false;
@@ -1507,13 +1585,24 @@ function applyStageHighlight(rawId: string | null) {
 
   const neighborSet = cache.neighborsByNode.get(key);
   const boundLit = Boolean(neighborSet?.has("@bound") || key === "@bound");
+  const br = rawId === selectedId.value ? blastRadiusState.value : null;
+  if (br) {
+    for (const w of stage.querySelectorAll<SVGElement>(".tux-map__wire-fg")) {
+      const wid = w.dataset.id || "";
+      if (br.impactedWires.has(wid)) {
+        w.classList.add("tux-map__wire-fg--on");
+        cache.litWires.push(w);
+      }
+    }
+  }
   for (let i = 0; i < cache.cards.length; i++) {
     const c = cache.cards[i]!;
     const isLit =
       c.id === rawId ||
       c.id === key ||
       Boolean(neighborSet?.has(c.id)) ||
-      Boolean(boundLit && c.parent);
+      Boolean(boundLit && c.parent) ||
+      Boolean(br && (br.directIds.has(c.id) || br.impactedIds.has(c.id)));
     c.el.classList.toggle("tux-map__el--lit", isLit);
   }
 }
@@ -4604,6 +4693,61 @@ function buildSourceHref(src?: {
               </span>
               <p v-if="selectedDeployNode.diff?.summary" class="tux-map__panel-diff-sum">
                 {{ selectedDeployNode.diff.summary }}
+              </p>
+            </div>
+          </template>
+
+          <!-- Blast radius of the selected Level 4 deployment node through the model's code links -->
+          <template v-if="selectionBlastFiles">
+            <h5 class="tux-map__panel-h">Blast radius</h5>
+            <div class="tux-map__panel-blast">
+              <p class="tux-map__panel-blast-sum">
+                {{
+                  selectionBlastFiles.total
+                    ? `Changing it reaches ${selectionBlastFiles.parts} part${selectionBlastFiles.parts === 1 ? "" : "s"} in ${selectionBlastFiles.total} file${selectionBlastFiles.total === 1 ? "" : "s"}, nearest first.`
+                    : "Nothing on the map depends on it."
+                }}
+              </p>
+              <button
+                v-if="selectionBlastFiles.total && !showBlastRadius"
+                type="button"
+                class="tux-map__panel-btn"
+                @click="showBlastRadius = true"
+              >
+                Show it on the map
+              </button>
+              <ol class="tux-map__blast-list">
+                <li v-for="f in selectionBlastFiles.shown" :key="f.path" class="tux-map__blast-row">
+                  <span class="tux-map__blast-hop" :title="`${f.hop} step${f.hop === 1 ? '' : 's'} away`">{{ f.hop }}<span class="tux-map__blast-sr"> step{{ f.hop === 1 ? "" : "s" }} away</span></span>
+                  <button
+                    v-if="parentOf.has(f.id)"
+                    type="button"
+                    class="tux-map__blast-go"
+                    :title="`Go to ${f.path} on the map`"
+                    @click="revealElement(f.id)"
+                  >
+                    <code>{{ f.path }}</code>
+                    <span class="tux-map__blast-how">{{ f.how }}</span>
+                  </button>
+                  <span v-else class="tux-map__blast-go tux-map__blast-go--static">
+                    <code>{{ f.path }}</code>
+                    <span class="tux-map__blast-how">{{ f.how }}</span>
+                  </span>
+                  <a
+                    v-if="f.href"
+                    :href="f.href"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="tux-map__blast-src"
+                    :title="`Open the line in ${f.path}`"
+                    :aria-label="`${f.how}: the line in ${f.path} (opens in a new tab)`"
+                  >
+                    <Icon name="lucide:file-code" aria-hidden="true" />
+                  </a>
+                </li>
+              </ol>
+              <p v-if="selectionBlastFiles.more" class="tux-map__panel-blast-sum">
+                And {{ selectionBlastFiles.more }} more file{{ selectionBlastFiles.more === 1 ? "" : "s" }}.
               </p>
             </div>
           </template>
