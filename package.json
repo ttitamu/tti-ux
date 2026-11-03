@@ -63,7 +63,7 @@
     "build:cem": "node scripts/gen-cem.mjs",
     "sync:engine": "node scripts/sync-engine.mjs --sync",
     "watch:sync": "node scripts/sync-engine.mjs --watch",
-    "test:root": "vitest run",
+    "test:root": "node packages/diagrams/scripts/build-map-runtime.mjs --check && vitest run",
     "test:all": "node scripts/test-all-suites.mjs",
     "test:quality": "node scripts/test-all-suites.mjs",
     "mcp": "node scripts/tux-mcp.mjs"

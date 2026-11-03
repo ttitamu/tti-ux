@@ -18,7 +18,8 @@
  *
  * Usage: node scripts/check-layer-imports.mjs [repo-root]   (exit 1 on a finding)
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
 const root = process.argv[2] || process.cwd();
@@ -79,6 +80,18 @@ for (const name of new Set(extended)) {
       + `(found ${got === undefined ? "none" : JSON.stringify(got)}${pkg.peerDependencies?.[sub.name] ? "; a peer installs nothing" : ""})`);
   }
   if (sub.version !== want) findings.push(`packages/${m[1]}/package.json: version ${sub.version}, not the root's ${want}`);
+}
+
+const mapRuntimeScript = join(root, "packages", "diagrams", "scripts", "build-map-runtime.mjs");
+if (existsSync(mapRuntimeScript)) {
+  const rt = spawnSync(process.execPath, [mapRuntimeScript, "--check"], {
+    cwd: root,
+    encoding: "utf8",
+  });
+  if (rt.error || rt.status !== 0) {
+    const detail = (rt.stderr || rt.stdout || rt.error?.message || "runtime check failed").trim();
+    findings.push(`packages/diagrams/runtime/tuxArchitectureMap.{mjs,d.mts}: ${detail}`);
+  }
 }
 
 if (findings.length) {
