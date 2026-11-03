@@ -18,7 +18,7 @@ import {
   extractModelLinks,
   hasOwn,
   levelForFocus,
-  queryArchitectureLayer,
+  queryArchitectureNodes,
   type TuxMapBlastIntent,
   type TuxMapLevelModel,
 } from "../app/utils/tuxArchitectureMap.ts";
@@ -596,7 +596,7 @@ function buildLevelCheck(spec: {
     expectedLevels,
   };
   if (spec.includeLevel7Ids) {
-    out.expectedLevel7Ids = queryArchitectureLayer(m, { level: 7 })
+    out.expectedLevel7Ids = queryArchitectureNodes(m, { level: 7 })
       .nodes.map((n) => n.id)
       .sort();
   }

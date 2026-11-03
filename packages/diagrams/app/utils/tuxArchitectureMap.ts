@@ -727,11 +727,24 @@ export function computeMapAutoLayout(
   return result;
 }
 
+const emittedArchitectureDeprecations = new Set<string>();
+
+function warnArchitectureDeprecatedOnce(fnName: string, replacementHint: string): void {
+  if (emittedArchitectureDeprecations.has(fnName)) return;
+  emittedArchitectureDeprecations.add(fnName);
+  console.warn(`[@tti/tti-ux-diagrams] ${fnName}() is deprecated. ${replacementHint}`);
+}
+
+/** Resets one-shot Section 4/8 deprecation warning state (intended for test suites). */
+export function resetArchitectureDeprecationWarnings(): void {
+  emittedArchitectureDeprecations.clear();
+}
+
 /**
  * Computes the upstream (dependencies that feed `rootNodeId`) and downstream
  * (dependents impacted by `rootNodeId`) blast-radius subgraph using directed BFS.
  *
- * @deprecated Use `computeLinkBlastRadius` (or `queryMultiLevelBlastRadius` on a `TuxMapLevelModel`) instead.
+ * @deprecated Use `computeLinkBlastRadius` or `queryArchitectureImpact` instead.
  */
 export function computeDependencyBlastRadius(
   rootNodeId: string,
@@ -742,6 +755,10 @@ export function computeDependencyBlastRadius(
   downstreamNodeIds: Set<string>;
   activeEdgeIds: Set<string>;
 } {
+  warnArchitectureDeprecatedOnce(
+    "computeDependencyBlastRadius",
+    "Use computeLinkBlastRadius() or queryArchitectureImpact() instead.",
+  );
   const upstreamNodeIds = new Set<string>();
   const downstreamNodeIds = new Set<string>();
   const activeEdgeIds = new Set<string>();
@@ -2079,6 +2096,7 @@ export const TUX_MAP_LINK_STRENGTH_ORDER = [
   "uses",
   "loads",
   "routes",
+  "links",
   "mentions",
 ] as const;
 
@@ -2098,6 +2116,7 @@ export const TUX_MAP_LINK_KIND_LABELS: Record<string, string> = {
   checks: "CI checks it",
   tests: "tests it",
   routes: "routes to it",
+  links: "links to it",
   mentions: "mentions it",
 };
 
@@ -2114,6 +2133,7 @@ const NON_PROSE_LINK_KINDS: ReadonlySet<string> = new Set([
   "loads",
   "routes",
   "uses",
+  "links",
 ]);
 
 const NON_TYPE_ONLY_LINK_KINDS: ReadonlySet<string> = new Set([
@@ -2125,6 +2145,7 @@ const NON_TYPE_ONLY_LINK_KINDS: ReadonlySet<string> = new Set([
   "checks",
   "loads",
   "routes",
+  "links",
 ]);
 
 const NON_AUX_CO_CUT_KINDS: ReadonlySet<string> = new Set([
@@ -2204,7 +2225,7 @@ export function inferLinkCoupling(link: TuxMapLink): TuxMapLinkCoupling {
   if (k === "mentions") return "prose";
   if (k === "tests" || k === "checks") return "verification";
   if (k === "stamps") return "artifact-stamp";
-  if (k === "routes") return "contract";
+  if (k === "routes" || k === "links") return "contract";
   if (k === "loads" || k === "uses") return "runtime";
   if (k === "imports" || k === "sources") return link.stop ? "verification" : "contract";
   if (k === "calls" || k === "runs") return link.stop ? "verification" : "runtime";
@@ -2223,7 +2244,7 @@ export function inferLinkPhase(link: TuxMapLink): TuxMapLinkPhase {
   if (c === "prose" || k === "mentions") return "doc-only";
   if (c === "verification" || k === "tests" || k === "checks") return "ci-test";
   if (c === "build-exec") return "build-exec";
-  if (c === "artifact-stamp" || k === "stamps" || k === "loads") return "client-bundle";
+  if (c === "artifact-stamp" || k === "stamps" || k === "loads" || k === "links") return "client-bundle";
   return "prod-runtime";
 }
 
@@ -4094,59 +4115,700 @@ export function buildUnifiedArchitectureGraph(model: TuxMapLevelModel = DEFAULT_
   return { nodes, edges };
 }
 
+export interface TuxMapUnknownNodeError {
+  error: string;
+  unknownIds: string[];
+  suggestions: string[];
+}
+
+export interface TuxMapCompactNodeRecord {
+  id: string;
+  level: number;
+  kind: string;
+  name: string;
+  tech?: string;
+  status?: string;
+  parentId?: string;
+  source?: Pick<TuxMapSourceRef, "path" | "lineRange" | "symbol">;
+}
+
+export interface TuxMapNodeQueryOptions {
+  level?: number;
+  focusId?: string;
+  kind?: string | readonly string[];
+  query?: string;
+  includePlanned?: boolean;
+  includeEdges?: boolean;
+  compact?: boolean;
+  limit?: number;
+  offset?: number;
+}
+
+export interface TuxMapCoarseParentStep {
+  seedId: string;
+  parentId: string;
+  reason: string;
+}
+
+export interface TuxMapImpactHit {
+  id: string;
+  hop: number;
+  kind?: string;
+  at?: string;
+  sites?: number[];
+  stop?: boolean;
+  coupling: TuxMapLinkCoupling;
+  phase: TuxMapLinkPhase;
+  name?: string;
+  level?: number;
+  coarseParentVia?: string;
+  node?: TuxMapGraphNodeRecord;
+}
+
+export interface TuxMapImpactQueryOptions extends TuxMapBlastOptions {
+  /** Include directed downstream dependencies (default: `false`). */
+  includeDownstream?: boolean;
+  /** Bridge C4/Level-4 relationships for endpoints without code-link coverage (default: `true`). */
+  bridgeUncovered?: boolean;
+  /** Allow an explicit coarse-parent step when a C4-only Level 3 component has no direct links (default: `true`). */
+  allowCoarseParentStep?: boolean;
+  /** Omit full `TuxMapGraphNodeRecord` objects on each hit to bound response size (default: `true`). */
+  compact?: boolean;
+  /** Explicitly attach full `node` records onto hits (overrides `compact`). */
+  includeNodes?: boolean;
+  /** Maximum number of hits to return in `hits` (omit for all hits). */
+  limit?: number;
+  /** Zero-based pagination offset into `hits` (default: `0`). */
+  offset?: number;
+}
+
+export interface TuxMapImpactQueryResult {
+  requestedSeeds: string[];
+  seeds: string[];
+  descendantIds: string[];
+  maxHops: number;
+  truncated: boolean;
+  totalHitCount: number;
+  hitCount: number;
+  offset: number;
+  hasMore: boolean;
+  hits: TuxMapImpactHit[];
+  blockers: string[];
+  coCutCandidates: string[];
+  testsToRun: string[];
+  stampsToRebuild: string[];
+  buildExecImpacted: string[];
+  hostsImpacted: string[];
+  coarseParentSteps: TuxMapCoarseParentStep[];
+  downstreamIncluded: boolean;
+  downstreamDependencies: Array<{ id: string; hop: number; name?: string; level?: number; node?: TuxMapGraphNodeRecord }>;
+  impactedSourceFiles: Array<Pick<TuxMapSourceRef, "path" | "repo" | "lineRange" | "symbol">>;
+}
+
+export interface TuxMapPathQueryOptions {
+  /** `"downstream"` (default) follows `from -> to` dependencies; `"upstream"` reverses dependency direction (`to -> from`). */
+  direction?: "downstream" | "upstream";
+  includePlanned?: boolean;
+  compact?: boolean;
+}
+
+export interface TuxMapPathQueryResult {
+  found: boolean;
+  direction: "downstream" | "upstream";
+  hops: number;
+  nodeIds: string[];
+  nodePath?: TuxMapGraphNodeRecord[];
+  edges: TuxMapGraphEdgeRecord[];
+}
+
+function clipDisplayId(rawId: string, maxLen = 120): string {
+  const s = String(rawId ?? "");
+  return s.length <= maxLen ? s : `${s.slice(0, maxLen - 3)}...`;
+}
+
 /**
- * Queries a specific semantic level or parent subgraph from a `TuxMapLevelModel`
- * (used by MCP `tux_query_architecture_layer`).
+ * Ranks up to `maxSuggestions` (capped at 10) close node IDs by prefix, substring, or token overlap.
  */
-export function queryArchitectureLayer(
+export function suggestCloseNodeIds(
+  unknownId: string,
+  nodes: ReadonlyMap<string, TuxMapGraphNodeRecord>,
+  maxSuggestions = 10,
+): string[] {
+  const cap = Math.min(10, Math.max(0, Math.floor(maxSuggestions)));
+  if (cap === 0) return [];
+  const q = String(unknownId ?? "").trim().toLowerCase();
+  const qStripped = q.replace(/^[fsd]:/, "");
+  const tokens = qStripped.split(/[/:.#_-]+/).filter((t) => t.length >= 2);
+  if (!q) return [];
+
+  const scored: Array<{ id: string; score: number }> = [];
+  for (const n of nodes.values()) {
+    const idLower = n.id.toLowerCase();
+    const idStripped = idLower.replace(/^[fsd]:/, "");
+    const nameLower = (n.name || "").toLowerCase();
+    let score = 0;
+
+    if (idLower === q || (qStripped && idStripped === qStripped)) {
+      score = 100;
+    } else if (idLower.startsWith(q) || (qStripped.length >= 2 && idStripped.startsWith(qStripped))) {
+      score = 80;
+    } else if (q.length >= 2 && (idLower.endsWith(`/${qStripped}`) || idLower.endsWith(`#${qStripped}`) || nameLower === q)) {
+      score = 70;
+    } else if (q.length >= 2 && (idLower.includes(q) || (qStripped.length >= 2 && idStripped.includes(qStripped)))) {
+      score = 60;
+    } else if (q.length >= 2 && nameLower.includes(q)) {
+      score = 45;
+    } else if (tokens.length > 0) {
+      let matchedTokens = 0;
+      for (const tok of tokens) {
+        if (idLower.includes(tok) || nameLower.includes(tok)) matchedTokens++;
+      }
+      if (matchedTokens > 0) {
+        score = 15 + Math.min(25, matchedTokens * 10);
+      }
+    }
+
+    if (score > 0) {
+      scored.push({ id: clipDisplayId(n.id, 120), score });
+    }
+  }
+
+  scored.sort((a, b) => b.score - a.score || a.id.length - b.id.length || cmpCodepoint(a.id, b.id));
+  return scored.slice(0, cap).map((s) => s.id);
+}
+
+function buildUnknownNodeError(
+  missingIds: string[],
+  nodes: ReadonlyMap<string, TuxMapGraphNodeRecord>,
+  label = "Node",
+): TuxMapUnknownNodeError {
+  const clippedMissing = missingIds.slice(0, 10).map((id) => clipDisplayId(id, 120));
+  const suggestions: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of missingIds.slice(0, 5)) {
+    for (const cand of suggestCloseNodeIds(raw, nodes, 10)) {
+      if (!seen.has(cand)) {
+        seen.add(cand);
+        suggestions.push(cand);
+        if (suggestions.length >= 10) break;
+      }
+    }
+    if (suggestions.length >= 10) break;
+  }
+  const head = clippedMissing[0] ?? "";
+  const msg =
+    missingIds.length === 1
+      ? `${label} '${head}' not found in architecture graph.`
+      : `${missingIds.length} nodes not found in architecture graph (first: '${head}').`;
+  return {
+    error: msg,
+    unknownIds: clippedMissing,
+    suggestions,
+  };
+}
+
+function toCompactNodeRecord(n: TuxMapGraphNodeRecord): TuxMapCompactNodeRecord {
+  const out: TuxMapCompactNodeRecord = {
+    id: n.id,
+    level: n.level,
+    kind: n.kind,
+    name: n.name,
+  };
+  if (n.tech !== undefined) out.tech = n.tech;
+  if (n.status !== undefined) out.status = n.status;
+  if (n.parentId !== undefined) out.parentId = n.parentId;
+  if (n.source) {
+    out.source = {
+      path: n.source.path,
+      ...(n.source.lineRange ? { lineRange: n.source.lineRange } : {}),
+      ...(n.source.symbol ? { symbol: n.source.symbol } : {}),
+    };
+  }
+  return out;
+}
+
+function collectSubtreeDescendants(rootId: string, kidsOf: ReadonlyMap<string, string[]>): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>([rootId]);
+  const q: Array<[string, number]> = [[rootId, 0]];
+  for (let qi = 0; qi < q.length; qi++) {
+    const [cur, depth] = q[qi]!;
+    if (depth >= MAX_TREE_DEPTH) continue;
+    for (const ch of kidsOf.get(cur) ?? []) {
+      if (!seen.has(ch)) {
+        seen.add(ch);
+        out.push(ch);
+        q.push([ch, depth + 1]);
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * Queries nodes (and optional matching edges) at a semantic level, parent subgraph, kind, or text filter,
+ * supporting compact summaries and `limit`/`offset` pagination (`tti/tti-ux#111`).
+ */
+export function queryArchitectureNodes(
   model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
-  opts: { level?: number; focusId?: string; includePlanned?: boolean } = {},
-) {
+  opts: TuxMapNodeQueryOptions = {},
+): {
+  level: number | "all";
+  focusId: string | null;
+  totalNodeCount: number;
+  nodeCount: number;
+  edgeCount: number;
+  offset: number;
+  hasMore: boolean;
+  nodes: Array<TuxMapGraphNodeRecord | TuxMapCompactNodeRecord>;
+  edges: TuxMapGraphEdgeRecord[];
+} {
   const { nodes, edges } = getMapQueryIndex(model);
   const includePlanned = opts.includePlanned ?? true;
   const focusId = opts.focusId?.trim();
   const level = opts.level;
+  const kindSet = opts.kind
+    ? new Set(typeof opts.kind === "string" ? [opts.kind] : opts.kind)
+    : null;
+  const qLower = opts.query?.trim().toLowerCase() || "";
 
   const matchedNodes = [...nodes.values()].filter((n) => {
     if (!includePlanned && n.status === "planned") return false;
-    if (focusId) return n.parentId === focusId || n.id === focusId;
-    if (level != null) return n.level === level;
+    if (focusId && !(n.parentId === focusId || n.id === focusId)) return false;
+    if (level != null && (!focusId || n.id !== focusId) && n.level !== level) return false;
+    if (kindSet && !kindSet.has(n.kind)) return false;
+    if (qLower) {
+      const hay = `${n.id}\n${n.name}\n${n.tech ?? ""}\n${n.desc ?? ""}\n${n.source?.path ?? ""}`.toLowerCase();
+      if (!hay.includes(qLower)) return false;
+    }
     return true;
   });
 
-  const matchedIds = new Set(matchedNodes.map((n) => n.id));
-  const matchedEdges = edges.filter(
-    (e) =>
-      (includePlanned || !e.planned) &&
-      (matchedIds.has(e.from) || matchedIds.has(e.to)),
-  );
+  const offset = Number.isFinite(opts.offset) ? Math.max(0, Math.floor(opts.offset!)) : 0;
+  const pageNodes =
+    opts.limit != null && Number.isFinite(opts.limit)
+      ? matchedNodes.slice(offset, offset + Math.max(0, Math.floor(opts.limit)))
+      : matchedNodes.slice(offset);
+  const compact = opts.compact ?? false;
+  const includeEdges = opts.includeEdges ?? !compact;
+
+  const pageIds = new Set(pageNodes.map((n) => n.id));
+  const matchedEdges = includeEdges
+    ? edges.filter(
+        (e) =>
+          (includePlanned || !e.planned) &&
+          (pageIds.has(e.from) || pageIds.has(e.to)),
+      )
+    : [];
 
   return {
     level: level ?? "all",
     focusId: focusId || null,
-    nodeCount: matchedNodes.length,
+    totalNodeCount: matchedNodes.length,
+    nodeCount: pageNodes.length,
     edgeCount: matchedEdges.length,
-    nodes: matchedNodes,
+    offset,
+    hasMore: offset + pageNodes.length < matchedNodes.length,
+    nodes: compact ? pageNodes.map(toCompactNodeRecord) : pageNodes,
     edges: matchedEdges,
   };
 }
 
 /**
+ * Computes upstream blast radius and triage buckets across Levels 1..N by delegating directly to
+ * `computeLinkBlastRadius` + C4/Level-4 bridge links (`tti/tti-ux#111`).
+ *
+ * - Supports one or multiple seed IDs.
+ * - Never adds `parentId` to seeds; on a C4-only model where a Level 3 component has no direct links,
+ *   stepping via the enclosing container's C4 relationships is explicitly surfaced in `coarseParentSteps`.
+ * - Downstream dependencies are off by default (`includeDownstream: true` to opt in).
+ * - Compact by default (`compact: false` or `includeNodes: true` to attach full node records).
+ * - Unknown node IDs return a `< 2 KB` error with at most 10 ranked suggestions.
+ */
+export function queryArchitectureImpact(
+  seedIds: string | Iterable<string>,
+  model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
+  opts: TuxMapImpactQueryOptions = {},
+): TuxMapImpactQueryResult | TuxMapUnknownNodeError {
+  const idx = getMapQueryIndex(model);
+  const rawSeeds: string[] = [];
+  const seenReq = new Set<string>();
+  const iter = typeof seedIds === "string" ? [seedIds] : seedIds;
+  for (const s of iter) {
+    if (s && !seenReq.has(s)) {
+      seenReq.add(s);
+      rawSeeds.push(s);
+    }
+  }
+  if (rawSeeds.length === 0) {
+    return {
+      error: "At least one seed node ID is required.",
+      unknownIds: [],
+      suggestions: [],
+    };
+  }
+  const missing = rawSeeds.filter((id) => !idx.nodes.has(id));
+  if (missing.length > 0) {
+    return buildUnknownNodeError(missing, idx.nodes);
+  }
+
+  const rawMaxHops = opts.maxHops === undefined ? 32 : opts.maxHops;
+  const maxHops = Number.isFinite(rawMaxHops) ? Math.max(0, Math.floor(rawMaxHops)) : 32;
+  const includePlanned = opts.includePlanned ?? false;
+  const bridgeUncovered = opts.bridgeUncovered ?? true;
+  const links =
+    !includePlanned && bridgeUncovered
+      ? idx.effectiveLinks
+      : extractModelLinks(model, { includePlanned, bridgeUncovered });
+
+  let blast = computeLinkBlastRadius(links, rawSeeds, idx.parentOf, { ...opts, maxHops, model });
+  const coarseParentSteps: TuxMapCoarseParentStep[] = [];
+  const coarseViaByHitId = new Map<string, string>();
+
+  // Explicit coarse-parent fallback ONLY on a C4-only model when a Level 3 component has zero direct links
+  const hasCodeLinks = (model?.links?.length ?? 0) > 0;
+  if (
+    !hasCodeLinks &&
+    opts.allowCoarseParentStep !== false &&
+    blast.hits.size === 0 &&
+    maxHops >= 1
+  ) {
+    const incomingTargets = new Set(links.map((l) => l.to));
+    const coarseParents = new Map<string, string>(); // parentId -> first seedId
+    for (const s of rawSeeds) {
+      const n = idx.nodes.get(s);
+      const pid = idx.parentOf.get(s);
+      if (
+        n?.level === 3 &&
+        (idx.kidsOf.get(s)?.length ?? 0) === 0 &&
+        !incomingTargets.has(s) &&
+        pid &&
+        idx.nodes.has(pid) &&
+        incomingTargets.has(pid)
+      ) {
+        coarseParentSteps.push({
+          seedId: s,
+          parentId: pid,
+          reason: "Component has no direct links; stepped via enclosing container C4 relationships.",
+        });
+        if (!coarseParents.has(pid)) coarseParents.set(pid, s);
+      }
+    }
+
+    if (coarseParents.size > 0) {
+      const parentBlast = computeLinkBlastRadius(links, coarseParents.keys(), idx.parentOf, {
+        ...opts,
+        maxHops,
+        model,
+      });
+      const firstParent = [...coarseParents.keys()][0]!;
+      const shiftedHits = new Map<string, TuxMapBlastHit>();
+      for (const [hid, h] of parentBlast.hits.entries()) {
+        if (blast.seeds.has(hid)) continue;
+        shiftedHits.set(hid, h);
+        coarseViaByHitId.set(hid, firstParent);
+      }
+      blast = {
+        ...parentBlast,
+        seeds: blast.seeds,
+        hits: shiftedHits,
+      };
+    }
+  }
+
+  const reqSet = new Set(rawSeeds);
+  const descendantIds: string[] = [];
+  for (const s of blast.seeds) {
+    if (!reqSet.has(s)) descendantIds.push(s);
+  }
+
+  const includeNodes = opts.includeNodes ?? (opts.compact === false);
+  const allHits: TuxMapImpactHit[] = [...blast.hits.entries()].map(([id, h]) => {
+    const node = idx.nodes.get(id);
+    const coarseVia = coarseViaByHitId.get(id);
+    const hit: TuxMapImpactHit = {
+      id,
+      hop: h.hop,
+      ...(h.via.kind !== undefined ? { kind: h.via.kind } : {}),
+      ...(h.at !== undefined ? { at: h.at } : {}),
+      ...(h.sites !== undefined ? { sites: h.sites } : {}),
+      ...(h.via.stop ? { stop: true } : {}),
+      coupling: inferLinkCoupling(h.via),
+      phase: inferLinkPhase(h.via),
+      ...(node?.name !== undefined ? { name: node.name } : {}),
+      ...(node?.level !== undefined ? { level: node.level } : {}),
+      ...(coarseVia ? { coarseParentVia: coarseVia } : {}),
+      ...(includeNodes && node ? { node } : {}),
+    };
+    return hit;
+  });
+
+  const offset = Number.isFinite(opts.offset) ? Math.max(0, Math.floor(opts.offset!)) : 0;
+  const pagedHits =
+    opts.limit != null && Number.isFinite(opts.limit)
+      ? allHits.slice(offset, offset + Math.max(0, Math.floor(opts.limit)))
+      : allHits.slice(offset);
+
+  const includeDownstream = opts.includeDownstream ?? false;
+  const downstreamDependencies: Array<{
+    id: string;
+    hop: number;
+    name?: string;
+    level?: number;
+    node?: TuxMapGraphNodeRecord;
+  }> = [];
+  const downIds: string[] = [];
+
+  if (includeDownstream) {
+    const downstream = new Map<string, number>();
+    const downQ: Array<[string, number]> = [...blast.seeds].map((id) => [id, 0]);
+    for (let qi = 0; qi < downQ.length; qi++) {
+      const [id, hop] = downQ[qi]!;
+      if (hop >= maxHops) continue;
+      for (const e of idx.edgesByFrom.get(id) ?? []) {
+        if (e.kind === "parent-child") continue;
+        if (!includePlanned && e.planned) continue;
+        if (!blast.seeds.has(e.to) && !downstream.has(e.to)) {
+          downstream.set(e.to, hop + 1);
+          downIds.push(e.to);
+          downQ.push([e.to, hop + 1]);
+        }
+      }
+    }
+    for (const [id, hop] of downstream.entries()) {
+      const node = idx.nodes.get(id);
+      downstreamDependencies.push({
+        id,
+        hop,
+        ...(node?.name !== undefined ? { name: node.name } : {}),
+        ...(node?.level !== undefined ? { level: node.level } : {}),
+        ...(includeNodes && node ? { node } : {}),
+      });
+    }
+  }
+
+  const impactedSourceFiles: Array<Pick<TuxMapSourceRef, "path" | "repo" | "lineRange" | "symbol">> = [];
+  const seenPaths = new Set<string>();
+  for (const id of [...blast.seeds, ...blast.hits.keys(), ...downIds]) {
+    const src = idx.nodes.get(id)?.source;
+    if (src && !seenPaths.has(src.path)) {
+      seenPaths.add(src.path);
+      impactedSourceFiles.push({
+        path: src.path,
+        ...(src.repo ? { repo: src.repo } : {}),
+        ...(src.lineRange ? { lineRange: src.lineRange } : {}),
+        ...(src.symbol ? { symbol: src.symbol } : {}),
+      });
+    }
+  }
+
+  return {
+    requestedSeeds: rawSeeds,
+    seeds: [...blast.seeds],
+    descendantIds,
+    maxHops,
+    truncated: blast.truncated,
+    totalHitCount: allHits.length,
+    hitCount: pagedHits.length,
+    offset,
+    hasMore: offset + pagedHits.length < allHits.length,
+    hits: pagedHits,
+    blockers: blast.blockers,
+    coCutCandidates: blast.coCutCandidates,
+    testsToRun: blast.testsToRun,
+    stampsToRebuild: blast.stampsToRebuild,
+    buildExecImpacted: blast.buildExecImpacted,
+    hostsImpacted: blast.hostsImpacted,
+    coarseParentSteps,
+    downstreamIncluded: includeDownstream,
+    downstreamDependencies,
+    impactedSourceFiles,
+  };
+}
+
+/**
+ * Finds the shortest directed architectural dependency path between `fromNodeId` and `toNodeId`,
+ * descending into code/components below an element when needed (`tti/tti-ux#111`).
+ *
+ * Pass `{ direction: "upstream" }` to follow reverse dependency edges (`to -> from`).
+ */
+export function findArchitecturePath(
+  fromNodeId: string,
+  toNodeId: string,
+  model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
+  opts: TuxMapPathQueryOptions = {},
+): TuxMapPathQueryResult | TuxMapUnknownNodeError {
+  const idx = getMapQueryIndex(model);
+  const missing: string[] = [];
+  if (!idx.nodes.has(fromNodeId)) missing.push(fromNodeId);
+  if (!idx.nodes.has(toNodeId) && toNodeId !== fromNodeId) missing.push(toNodeId);
+  if (missing.length > 0) {
+    return buildUnknownNodeError(missing, idx.nodes);
+  }
+
+  const direction = opts.direction ?? "downstream";
+  const includePlanned = opts.includePlanned ?? false;
+  const compact = opts.compact ?? false;
+
+  if (fromNodeId === toNodeId) {
+    return {
+      found: true,
+      direction,
+      hops: 0,
+      nodeIds: [fromNodeId],
+      ...(compact ? {} : { nodePath: [idx.nodes.get(fromNodeId)!] }),
+      edges: [],
+    };
+  }
+
+  const fromSubtree = new Set<string>([fromNodeId, ...collectSubtreeDescendants(fromNodeId, idx.kidsOf)]);
+  const toAncestorsAndSelf = new Set<string>(mapAncestorsOf(toNodeId, idx.parentOf));
+  const targetDescendantSet = new Set(collectSubtreeDescendants(toNodeId, idx.kidsOf));
+  const queue: string[] = [fromNodeId];
+  const prev = new Map<string, { prevId: string; edge: TuxMapGraphEdgeRecord }>();
+  const visited = new Set<string>([fromNodeId]);
+
+  for (let qi = 0; qi < queue.length; qi++) {
+    const curr = queue[qi]!;
+    if (curr === toNodeId) break;
+
+    const depEdges =
+      direction === "downstream"
+        ? (idx.edgesByFrom.get(curr) ?? []).filter((e) => e.kind !== "parent-child")
+        : (idx.edgesByTo.get(curr) ?? []).filter((e) => e.kind !== "parent-child");
+
+    // 1. Follow directed dependency edges first so direct wires win over descending into subgraphs at equal depth
+    for (const e of depEdges) {
+      if (!includePlanned && e.planned) continue;
+      const next = direction === "downstream" ? e.to : e.from;
+      if (!visited.has(next)) {
+        visited.add(next);
+        prev.set(next, { prevId: curr, edge: e });
+        if (next === toNodeId) break;
+        // If a directed dependency edge enters a descendant of `toNodeId` from outside `toNodeId`, it reaches `toNodeId`
+        if (targetDescendantSet.has(next) && !visited.has(toNodeId)) {
+          visited.add(toNodeId);
+          prev.set(toNodeId, {
+            prevId: next,
+            edge: {
+              id: `inside-${next}-${toNodeId}`,
+              from: next,
+              to: toNodeId,
+              label: "inside",
+              level: idx.nodes.get(toNodeId)!.level,
+              kind: "parent-child",
+            },
+          });
+          break;
+        }
+        queue.push(next);
+      }
+    }
+    if (visited.has(toNodeId)) break;
+
+    // 2. Descend `parent -> child`, labelled `"contains"`, from `fromNodeId` into its own code
+    //    or from an already-reached ancestor of `toNodeId` down to `toNodeId` (never climbing `child -> parent`
+    //    or escaping through unrelated sibling children of an intermediate container).
+    for (const e of idx.edgesByFrom.get(curr) ?? []) {
+      if (e.kind !== "parent-child") continue;
+      const child = e.to;
+      if (!fromSubtree.has(curr) && !toAncestorsAndSelf.has(child)) continue;
+      if (!visited.has(child)) {
+        visited.add(child);
+        const labelledEdge: TuxMapGraphEdgeRecord = e.label ? e : { ...e, label: "contains" };
+        prev.set(child, { prevId: curr, edge: labelledEdge });
+        if (child === toNodeId) break;
+        queue.push(child);
+      }
+    }
+    if (visited.has(toNodeId)) break;
+  }
+
+  if (!prev.has(toNodeId)) {
+    return {
+      found: false,
+      direction,
+      hops: -1,
+      nodeIds: [],
+      ...(compact ? {} : { nodePath: [] }),
+      edges: [],
+    };
+  }
+
+  const nodeIds: string[] = [];
+  const pathNodes: TuxMapGraphNodeRecord[] = [];
+  const pathEdges: TuxMapGraphEdgeRecord[] = [];
+  let cursor: string | undefined = toNodeId;
+  while (cursor) {
+    nodeIds.unshift(cursor);
+    if (!compact) {
+      const n = idx.nodes.get(cursor);
+      if (n) pathNodes.unshift(n);
+    }
+    const step = prev.get(cursor);
+    if (!step) break;
+    pathEdges.unshift(step.edge);
+    cursor = step.prevId;
+  }
+
+  return {
+    found: true,
+    direction,
+    hops: pathEdges.length,
+    nodeIds,
+    ...(compact ? {} : { nodePath: pathNodes }),
+    edges: pathEdges,
+  };
+}
+
+/**
+ * Queries a specific semantic level or parent subgraph from a `TuxMapLevelModel`.
+ *
+ * @deprecated Use `queryArchitectureNodes` instead.
+ */
+export function queryArchitectureLayer(
+  model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
+  opts: { level?: number; focusId?: string; includePlanned?: boolean } = {},
+) {
+  warnArchitectureDeprecatedOnce("queryArchitectureLayer", "Use queryArchitectureNodes() instead.");
+  const res = queryArchitectureNodes(model, {
+    level: opts.level,
+    focusId: opts.focusId,
+    includePlanned: opts.includePlanned,
+    compact: false,
+    includeEdges: true,
+  });
+  return {
+    level: res.level,
+    focusId: res.focusId,
+    nodeCount: res.nodeCount,
+    edgeCount: res.edgeCount,
+    nodes: res.nodes as TuxMapGraphNodeRecord[],
+    edges: res.edges,
+  };
+}
+
+/**
  * Computes multi-level k-hop upstream/downstream blast radius and impacted source files
- * for any node ID across Levels 1..N (used by MCP `tux_get_blast_radius`).
- * Delegates upstream propagation to `computeLinkBlastRadius` so panel, query layer, and agents agree.
+ * for any node ID across Levels 1..N.
+ *
+ * @deprecated Use `queryArchitectureImpact` instead.
  */
 export function queryMultiLevelBlastRadius(
   nodeId: string,
   model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
   maxHopsOrOpts: number | TuxMapBlastOptions = 32,
 ) {
+  warnArchitectureDeprecatedOnce("queryMultiLevelBlastRadius", "Use queryArchitectureImpact() instead.");
   const idx = getMapQueryIndex(model);
   const root = idx.nodes.get(nodeId);
   if (!root) {
+    const err = buildUnknownNodeError([nodeId], idx.nodes);
     return {
-      error: `Node '${nodeId}' not found in architecture graph.`,
-      availableNodeIds: [...idx.nodes.keys()],
+      error: err.error,
+      unknownIds: err.unknownIds,
+      suggestions: err.suggestions,
+      availableNodeIds: err.suggestions,
     };
   }
 
@@ -4164,7 +4826,6 @@ export function queryMultiLevelBlastRadius(
     if (s !== nodeId) childTree.add(s);
   }
 
-  // Downstream BFS (nodes that `nodeId` or its descendants call/host/feed) in O(V + E)
   const downstream = new Map<string, number>();
   const impactedEdgeIds = new Set<string>();
   const downQ: Array<[string, number]> = [...blast.seeds].map((id) => [id, 0]);
@@ -4238,81 +4899,35 @@ export function queryMultiLevelBlastRadius(
 }
 
 /**
- * Finds the shortest architectural dependency path between `fromNodeId` and `toNodeId`
- * across Levels 1..N (used by MCP `tux_find_shortest_path`).
+ * Finds a path between `fromNodeId` and `toNodeId` across Levels 1..N.
+ *
+ * @deprecated Use `findArchitecturePath` instead.
  */
 export function findShortestArchitecturePath(
   fromNodeId: string,
   toNodeId: string,
   model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
 ) {
-  const idx = getMapQueryIndex(model);
-  if (!idx.nodes.has(fromNodeId)) {
-    return { error: `Source node '${fromNodeId}' not found.` };
+  warnArchitectureDeprecatedOnce("findShortestArchitecturePath", "Use findArchitecturePath() instead.");
+  const res = findArchitecturePath(fromNodeId, toNodeId, model, { compact: false });
+  if ("error" in res) {
+    return { error: res.error, unknownIds: res.unknownIds, suggestions: res.suggestions };
   }
-  if (!idx.nodes.has(toNodeId)) {
-    return { error: `Target node '${toNodeId}' not found.` };
-  }
-  if (fromNodeId === toNodeId) {
-    return {
-      found: true,
-      hops: 0,
-      nodePath: [idx.nodes.get(fromNodeId)!],
-      edges: [],
-    };
-  }
-
-  const queue: string[] = [fromNodeId];
-  const prev = new Map<string, { prevId: string; edge: TuxMapGraphEdgeRecord }>();
-  const visited = new Set<string>([fromNodeId]);
-
-  for (let qi = 0; qi < queue.length; qi++) {
-    const curr = queue[qi]!;
-    if (curr === toNodeId) break;
-    for (const { next, edge } of idx.neighborsByNode.get(curr) ?? []) {
-      if (!visited.has(next)) {
-        visited.add(next);
-        prev.set(next, { prevId: curr, edge });
-        queue.push(next);
-      }
-    }
-  }
-
-  if (!prev.has(toNodeId)) {
-    return {
-      found: false,
-      hops: -1,
-      nodePath: [],
-      edges: [],
-    };
-  }
-
-  const pathNodes: TuxMapGraphNodeRecord[] = [];
-  const pathEdges: TuxMapGraphEdgeRecord[] = [];
-  let cursor: string | undefined = toNodeId;
-  while (cursor) {
-    const n = idx.nodes.get(cursor);
-    if (n) pathNodes.unshift(n);
-    const step = prev.get(cursor);
-    if (!step) break;
-    pathEdges.unshift(step.edge);
-    cursor = step.prevId;
-  }
-
   return {
-    found: true,
-    hops: pathEdges.length,
-    nodePath: pathNodes,
-    edges: pathEdges,
+    found: res.found,
+    hops: res.hops,
+    nodePath: res.nodePath ?? [],
+    edges: res.edges,
   };
 }
 
 const activeAcpLeases = new Map<string, TuxMapAcpLease>();
 
 /**
- * ACP (Agent Communication Protocol) Subgraph Lease Coordinator:
- * Grants an exclusive, non-overlapping subgraph lease (`rootNodeId` + its descendants)
- * to an AI agent and rejects conflicting locks on overlapping nodes or source files.
+ * ACP (Agent Communication Protocol) Subgraph Lease Coordinator.
+ *
+ * @deprecated In-process ACP subgraph leases do not coordinate across processes; scope changes with
+ * `computeGraphDelta` and `queryArchitectureImpact` instead.
  */
 export function coordinateAcpSubgraphLease(
   action: "acquire" | "release" | "list",
@@ -4324,6 +4939,10 @@ export function coordinateAcpSubgraphLease(
     model?: TuxMapLevelModel;
   } = {},
 ) {
+  warnArchitectureDeprecatedOnce(
+    "coordinateAcpSubgraphLease",
+    "In-process ACP leases do not coordinate across processes; use computeGraphDelta() and queryArchitectureImpact() instead.",
+  );
   const now = Date.now();
   // Prune expired leases
   for (const [id, lease] of activeAcpLeases.entries()) {
@@ -4360,7 +4979,7 @@ export function coordinateAcpSubgraphLease(
     };
   }
 
-  // Acquire lease
+  // Acquire lease without invoking deprecated queryMultiLevelBlastRadius
   const agentId = opts.agentId || "agent-anonymous";
   const rootNodeId = opts.rootNodeId;
   if (!rootNodeId) {
@@ -4368,16 +4987,17 @@ export function coordinateAcpSubgraphLease(
   }
 
   const model = opts.model || DEFAULT_TTI_LEVEL_MODEL;
-  const blast = queryMultiLevelBlastRadius(rootNodeId, model, 1);
-  if ("error" in blast) {
-    return { acquired: false, error: blast.error };
+  const idx = getMapQueryIndex(model);
+  if (!idx.nodes.has(rootNodeId)) {
+    const err = buildUnknownNodeError([rootNodeId], idx.nodes);
+    return { acquired: false, error: err.error, suggestions: err.suggestions };
   }
 
-  const requestedScope = new Set<string>([rootNodeId, ...blast.descendantIds]);
-  const { nodes } = buildUnifiedArchitectureGraph(model);
+  const descendants = collectSubtreeDescendants(rootNodeId, idx.kidsOf);
+  const requestedScope = new Set<string>([rootNodeId, ...descendants]);
   const requestedFiles = new Set<string>();
   for (const id of requestedScope) {
-    const p = nodes.get(id)?.source?.path;
+    const p = idx.nodes.get(id)?.source?.path;
     if (p) requestedFiles.add(p);
   }
 
