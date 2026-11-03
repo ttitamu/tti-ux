@@ -430,6 +430,7 @@ const all11KindsAndAdversarial: TuxMapLevelModel = {
       elements: [
         { id: "f:deploy/Caddyfile", kind: "module", name: "Caddyfile", source: { path: "deploy/Caddyfile" } },
         { id: "f:branding/index.html", kind: "module", name: "index.html", source: { path: "branding/index.html" } },
+        { id: "f:branding/nav.html", kind: "module", name: "nav.html", source: { path: "branding/nav.html" } },
       ],
     },
     "c-app/lib": {
@@ -438,6 +439,8 @@ const all11KindsAndAdversarial: TuxMapLevelModel = {
         { id: "f:lib/other.py", kind: "module", name: "other.py", source: { path: "lib/other.py" } },
         { id: "f:lib/shell_helper.sh", kind: "module", name: "shell_helper.sh", source: { path: "lib/shell_helper.sh" } },
         { id: "f:lib/spoof_caller.py", kind: "module", name: "spoof_caller.py", source: { path: "lib/spoof_caller.py" } },
+        { id: "f:lib/spoof_build_caller.py", kind: "module", name: "spoof_build_caller.py", source: { path: "lib/spoof_build_caller.py" } },
+        { id: "f:lib/spoof_verif_caller.py", kind: "module", name: "spoof_verif_caller.py", source: { path: "lib/spoof_verif_caller.py" } },
         { id: "f:lib/spoof_runner.sh", kind: "module", name: "spoof_runner.sh", source: { path: "lib/spoof_runner.sh" } },
         { id: "f:lib/config_user.py", kind: "module", name: "config_user.py", source: { path: "lib/config_user.py" } },
         { id: "f:ops/ci-queue.sh", kind: "module", name: "ci-queue.sh", tech: "Shell", source: { path: "ops/ci-queue.sh" } },
@@ -462,9 +465,10 @@ const all11KindsAndAdversarial: TuxMapLevelModel = {
     },
   },
   links: [
-    // Implicit coupling/phase across routes, loads, sources, checks, stamps, uses, tests, mentions
+    // Implicit coupling/phase across routes, loads, links, sources, checks, stamps, uses, tests, mentions
     { from: "f:deploy/Caddyfile", to: "f:lib/target.py", kind: "routes", stop: true, at: "deploy/Caddyfile:14" },
     { from: "f:branding/index.html", to: "f:lib/target.py", kind: "loads", stop: true, at: "branding/index.html:8" },
+    { from: "f:branding/nav.html", to: "f:lib/target.py", kind: "links", stop: true, at: "branding/nav.html:5" },
     { from: "f:lib/shell_helper.sh", to: "f:lib/target.py", kind: "sources", at: "lib/shell_helper.sh:3" },
     { from: "f:lib/config_user.py", to: "f:lib/target.py", kind: "uses", stop: true, at: "lib/config_user.py:5" },
     { from: "f:.forgejo/workflows/ci.yml", to: "f:lib/target.py", kind: "checks", stop: true, at: ".forgejo/workflows/ci.yml:22" },
@@ -481,13 +485,29 @@ const all11KindsAndAdversarial: TuxMapLevelModel = {
     // Live production script mentioning a design doc while sourced by runner.sh -> NEVER co-cut when cutting design.md!
     { from: "f:ops/ci-queue.sh", to: "f:docs/design.md", kind: "mentions", stop: true, at: "ops/ci-queue.sh:4" },
     { from: "f:ops/runner.sh", to: "f:ops/ci-queue.sh", kind: "sources", at: "ops/runner.sh:9" },
-    // Spoofed coupling/phase on runtime link kinds -> rejected by inferLinkCoupling / inferLinkPhase (S-03c)
+    // Spoofed coupling/phase on runtime link kinds -> rejected by inferLinkCoupling / inferLinkPhase (S-03c, S-05)
     {
       from: "f:lib/spoof_caller.py",
       to: "f:lib/target.py",
       kind: "calls",
       coupling: "type-only",
       at: "lib/spoof_caller.py:11",
+    },
+    {
+      from: "f:lib/spoof_build_caller.py",
+      to: "f:lib/target.py",
+      kind: "calls",
+      coupling: "build-exec",
+      phase: "ci-test",
+      at: "lib/spoof_build_caller.py:3",
+    },
+    {
+      from: "f:lib/spoof_verif_caller.py",
+      to: "f:lib/target.py",
+      kind: "calls",
+      coupling: "verification",
+      phase: "ci-test",
+      at: "lib/spoof_verif_caller.py:4",
     },
     {
       from: "f:lib/spoof_runner.sh",
@@ -500,11 +520,14 @@ const all11KindsAndAdversarial: TuxMapLevelModel = {
   ],
 };
 
-// Hybrid C4+links model + Object.prototype "constructor" key + subgraphRef + 2-node d: cycle + astral Unicode + empty kind.
+// Hybrid C4+links model + Object.prototype "constructor" key + child-before-parent subgraphRef + 2-node d: cycle + astral Unicode + empty kind.
 const hybridC4AndEdgeCases: TuxMapLevelModel = {
   level1: {
-    elements: [{ id: "sys-hyb", kind: "system", name: "Hybrid System", zoom: 2 }],
-    rels: [],
+    elements: [
+      { id: "p-ext", kind: "person", name: "External Caller" },
+      { id: "sys-hyb", kind: "system", name: "Hybrid System", zoom: 2 },
+    ],
+    rels: [{ from: "p-ext", to: "sys-hyb", label: "Uses hybrid system" }],
   },
   level2: {
     boundary: "sys-hyb",
@@ -512,7 +535,7 @@ const hybridC4AndEdgeCases: TuxMapLevelModel = {
       { id: "constructor", kind: "container", name: "Constructor Service", deployed: ["vm-app"] },
       { id: "c-empty-l3", kind: "container", name: "Direct Fractal Container" },
     ],
-    rels: [],
+    rels: [{ from: "c-empty-l3", to: "constructor", label: "Coarse container call" }],
   },
   level3: {
     constructor: [
@@ -538,6 +561,10 @@ const hybridC4AndEdgeCases: TuxMapLevelModel = {
     ],
   },
   subgraphs: {
+    // Child anonymous `subgraphRef` intentionally precedes its parent `"sg-aliased-api"` (`S-08`)
+    "sg-child-syms": {
+      elements: [{ id: "s:api/handler.py#serve", kind: "symbol", name: "serve()" }],
+    },
     constructor: {
       elements: [{ id: "f:shadow_ignored.py", kind: "module", name: "shadow_ignored.py" }],
     },
@@ -546,7 +573,13 @@ const hybridC4AndEdgeCases: TuxMapLevelModel = {
     },
     "sg-aliased-api": {
       elements: [
-        { id: "f:api/handler.py", kind: "module", name: "handler.py", source: { path: "api/handler.py", lineRange: [] as unknown as [number, number] } },
+        {
+          id: "f:api/handler.py",
+          kind: "module",
+          name: "handler.py",
+          subgraphRef: "sg-child-syms",
+          source: { path: "api/handler.py", lineRange: [] as unknown as [number, number] },
+        },
         { id: "f:api/\ufffd.py", kind: "module", name: "bmp_high.py" },
         { id: "f:api/\u{1F680}.py", kind: "module", name: "astral_rocket.py" },
       ],
@@ -1161,9 +1194,9 @@ const levelChecks = [
   buildLevelCheck({
     id: "level3_and_subgraph_coexistence_and_constructor_key",
     model: "hybrid_c4_and_edge_cases",
-    nodeIds: ["constructor", "constructor/api", "f:api/handler.py", "f:direct_l5.py"],
-    focusIds: ["constructor", "c-empty-l3", "constructor/api"],
-    parentCheckIds: ["f:api/handler.py", "f:direct_l5.py"],
+    nodeIds: ["constructor", "constructor/api", "f:api/handler.py", "s:api/handler.py#serve", "f:direct_l5.py"],
+    focusIds: ["constructor", "c-empty-l3", "constructor/api", "f:api/handler.py"],
+    parentCheckIds: ["f:api/handler.py", "s:api/handler.py#serve", "f:direct_l5.py"],
   }),
 ];
 
@@ -1291,6 +1324,13 @@ const blastCases = [
     opts: {},
   }),
   buildBlastCase({
+    id: "hybrid_model_suppresses_covered_c4_ancestor_and_boundary_rels",
+    model: "hybrid_c4_and_edge_cases",
+    useExtractedModelLinks: true,
+    seeds: ["constructor"],
+    opts: {},
+  }),
+  buildBlastCase({
     id: "astral_unicode_codepoint_order_and_empty_kind_fallback",
     model: "hybrid_c4_and_edge_cases",
     seeds: ["f:api/handler.py"],
@@ -1345,13 +1385,15 @@ assert(
 );
 assert(
   (cutCase.expected.blockers as string[]).includes("f:deploy/Caddyfile") &&
-    (cutCase.expected.blockers as string[]).includes("f:branding/index.html"),
-  "routes and loads must appear in blockers, never testsToRun/stampsToRebuild",
+    (cutCase.expected.blockers as string[]).includes("f:branding/index.html") &&
+    (cutCase.expected.blockers as string[]).includes("f:branding/nav.html"),
+  "routes, loads, and links must appear in blockers on cut, never testsToRun/stampsToRebuild",
 );
 assert(
   !(cutCase.expected.testsToRun as string[]).includes("f:deploy/Caddyfile") &&
-    !(cutCase.expected.stampsToRebuild as string[]).includes("f:branding/index.html"),
-  "Caddyfile/index.html misclassified into testsToRun/stampsToRebuild",
+    !(cutCase.expected.stampsToRebuild as string[]).includes("f:branding/index.html") &&
+    !(cutCase.expected.stampsToRebuild as string[]).includes("f:branding/nav.html"),
+  "Caddyfile/index.html/nav.html misclassified into testsToRun/stampsToRebuild",
 );
 assert(
   JSON.stringify(cutCase.expected.hostsImpacted) === JSON.stringify(["vm-app", "vm-edge"]),
@@ -1367,12 +1409,29 @@ assert(
 const spoofCase = blastCases.find((c) => c.id === "anti_spoofing_rejects_type_only_and_prose_on_runtime_calls_and_runs")!;
 assert(
   (spoofCase.expected.blockers as string[]).includes("f:lib/spoof_caller.py") &&
-    (spoofCase.expected.blockers as string[]).includes("f:lib/spoof_runner.sh"),
-  "spoofed type-only/prose on calls/runs must not bypass supply-chain blockers",
+    (spoofCase.expected.blockers as string[]).includes("f:lib/spoof_build_caller.py") &&
+    (spoofCase.expected.blockers as string[]).includes("f:lib/spoof_verif_caller.py") &&
+    (spoofCase.expected.blockers as string[]).includes("f:lib/spoof_runner.sh") &&
+    !(spoofCase.expected.blockers as string[]).includes("f:branding/nav.html"),
+  "spoofed couplings/phases on calls/runs must stay in blockers and 'links' must be skipped under supply-chain",
 );
 
 const diamondStopCase = blastCases.find((c) => c.id === "stop_diamond_at_max_hops_1_is_not_falsely_truncated")!;
 assert(diamondStopCase.expected.truncated === false, "stop diamond at maxHops=1 must have truncated=false");
+assert(
+  !(diamondStopCase.expected.hits as Array<{ id: string }>).some((h) => h.id === "f:branding/nav.html") &&
+    (diamondStopCase.expected.hits as Array<{ id: string }>).some((h) => h.id === "f:lib/spoof_build_caller.py") &&
+    (diamondStopCase.expected.hits as Array<{ id: string }>).some((h) => h.id === "f:lib/spoof_verif_caller.py"),
+  "intent='patch' must skip kind='links' while keeping spoofed build-exec/verification calls",
+);
+
+const hybridSuppressedCase = blastCases.find(
+  (c) => c.id === "hybrid_model_suppresses_covered_c4_ancestor_and_boundary_rels",
+)!;
+assert(
+  (hybridSuppressedCase.expected.hits as Array<{ id: string }>).length === 0,
+  "extractModelLinks must suppress coarse C4 rels targeting covered containers/boundaries",
+);
 
 const auxSeedCase = blastCases.find((c) => c.id === "aux_test_seeding" || c.id === "aux_test_seed_reports_zero_prod_hosts_impacted")!;
 assert(JSON.stringify(auxSeedCase.expected.hostsImpacted) === JSON.stringify([]), "aux test seed must report 0 prod hosts");

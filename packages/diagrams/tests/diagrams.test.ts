@@ -34,8 +34,11 @@ import {
   liftLinksToView,
   computeLinkBlastRadius,
   computeGraphDelta,
+  classifyBlastLink,
   inferLinkCoupling,
   inferLinkPhase,
+  normalizeArchitectureModelInput,
+  suggestCloseNodeIds,
   TUX_MAP_LINK_STRENGTH_ORDER,
   DEFAULT_TTI_LEVEL_MODEL,
   type TuxMapBlastIntent,
@@ -899,6 +902,254 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
       expect(rLease1.acquired).toBe(true);
       expect(rLeaseConflict.acquired).toBe(false);
       expect(warnSpy).toHaveBeenCalledTimes(5);
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  it("enforces Gate B hardening invariants across normalization, path isolation, intents, spoofing, multi-seed coarse steps, and cache stamps (#111)", () => {
+    // F-04: Reject invalid intents instead of silently falling into supply-chain
+    expect(() =>
+      classifyBlastLink({ from: "a", to: "b", kind: "imports", coupling: "type-only" }, 0, "add" as TuxMapBlastIntent),
+    ).toThrow(RangeError);
+    const badIntentRes = queryArchitectureImpact("c-api", DEFAULT_TTI_LEVEL_MODEL, {
+      intent: "add" as TuxMapBlastIntent,
+    });
+    expect("error" in badIntentRes).toBe(true);
+    if ("error" in badIntentRes) {
+      expect(Buffer.byteLength(JSON.stringify(badIntentRes), "utf8")).toBeLessThan(2048);
+      expect(badIntentRes.suggestions).toContain("supply-chain");
+    }
+
+    // F-14 & S-05: kind='links' skipped under patch/supply-chain; spoofed build-exec/verification/ci-test rejected on calls
+    const linkAndSpoofModel: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [
+          { id: "c-web", kind: "container", name: "Web", deployed: ["vm-web"] },
+          { id: "c-api", kind: "container", name: "API", deployed: ["vm-api"] },
+        ],
+        rels: [],
+      },
+      level3: {},
+      level4: {
+        groups: [{ id: "rg", zone: "cloud-prod", title: "rg" }],
+        nodes: [
+          { id: "vm-web", group: "rg", kind: "vm", title: "vm-web", role: "Web", hosts: ["c-web"] },
+          { id: "vm-api", group: "rg", kind: "vm", title: "vm-api", role: "API", hosts: ["c-api"] },
+        ],
+        links: [],
+      },
+      subgraphs: {
+        "c-web": {
+          elements: [
+            { id: "f:web/nav.html", kind: "module", name: "nav.html", source: { path: "web/nav.html" } },
+            { id: "f:web/caller.ts", kind: "module", name: "caller.ts", source: { path: "web/caller.ts" } },
+          ],
+        },
+        "c-api": {
+          elements: [{ id: "f:api/page.py", kind: "module", name: "page.py", source: { path: "api/page.py" } }],
+        },
+      },
+      links: [
+        { from: "f:web/nav.html", to: "f:api/page.py", kind: "links", stop: true },
+        {
+          from: "f:web/caller.ts",
+          to: "f:api/page.py",
+          kind: "calls",
+          coupling: "build-exec",
+          phase: "ci-test",
+        },
+      ],
+    };
+    const patchRes = queryArchitectureImpact("f:api/page.py", linkAndSpoofModel, { intent: "patch" });
+    expect("error" in patchRes).toBe(false);
+    if (!("error" in patchRes)) {
+      expect(patchRes.blockers).toEqual(["f:web/caller.ts"]);
+      expect(patchRes.hostsImpacted).toEqual(["vm-api", "vm-web"]);
+    }
+    const cutRes = queryArchitectureImpact("f:api/page.py", linkAndSpoofModel, { intent: "cut" });
+    if (!("error" in cutRes)) {
+      expect(cutRes.blockers).toEqual(["f:web/caller.ts", "f:web/nav.html"]);
+    }
+
+    // F-05a..d, N-03, S-11: findArchitecturePath & includeDownstream boundary/prose/hosts invariants
+    const pClimb = findArchitecturePath("ai-search-app/retriever/embed", "ai-search-app", DEFAULT_TTI_LEVEL_MODEL);
+    expect("found" in pClimb && pClimb.found).toBe(false);
+    const pUsersDb = findArchitecturePath("p-users", "c-db", DEFAULT_TTI_LEVEL_MODEL);
+    expect("found" in pUsersDb && pUsersDb.found).toBe(true);
+    if (!("error" in pUsersDb)) {
+      expect(pUsersDb.nodeIds).toContain("c-edge");
+      expect(pUsersDb.nodeIds).not.toContain("s-platform");
+    }
+
+    const pathIsolationModel: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [
+          { id: "c-web", kind: "container", name: "Web" },
+          { id: "c-api", kind: "container", name: "API" },
+          { id: "c-vault", kind: "container", name: "Vault" },
+        ],
+        rels: [{ from: "c-web", to: "c-api", label: "Calls public router" }],
+      },
+      level3: {
+        "c-api": [
+          { id: "c-api/router", kind: "component", name: "Router" },
+          { id: "c-api/audit", kind: "component", name: "Audit" },
+        ],
+      },
+      level4: {
+        groups: [{ id: "rg", zone: "cloud-prod", title: "rg" }],
+        nodes: [{ id: "vm-api", group: "rg", kind: "vm", title: "API VM", role: "Host", hosts: ["c-api"] }],
+        links: [],
+      },
+      links: [
+        { from: "c-web", to: "c-api/audit", kind: "mentions", stop: true },
+        { from: "c-api/audit", to: "c-vault", kind: "calls" },
+      ],
+    };
+    const sibDescent = findArchitecturePath("c-web", "c-api/audit", pathIsolationModel);
+    expect("found" in sibDescent && sibDescent.found).toBe(false);
+    const proseLeak = findArchitecturePath("c-web", "c-vault", pathIsolationModel);
+    expect("found" in proseLeak && proseLeak.found).toBe(false);
+    const hostPath = findArchitecturePath("c-web", "vm-api", pathIsolationModel);
+    expect("found" in hostPath && hostPath.found).toBe(true);
+    const downImpact = queryArchitectureImpact("c-web", pathIsolationModel, { includeDownstream: true });
+    if (!("error" in downImpact)) {
+      expect(downImpact.downstreamDependencies.some((d) => d.id === "c-api/audit" || d.id === "c-vault")).toBe(false);
+      expect(downImpact.downstreamDependencies.some((d) => d.id === "vm-api")).toBe(true);
+    }
+
+    // F-09 + Check 5a: Multi-seed coarseParentVia attribution, mixed seeds, and sibling host isolation
+    const multiCoarseModel: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [
+          { id: "c-web", kind: "container", name: "Web" },
+          { id: "c-cli", kind: "container", name: "CLI" },
+          { id: "c-api", kind: "container", name: "API" },
+          { id: "c-search", kind: "container", name: "Search" },
+        ],
+        rels: [
+          { from: "c-web", to: "c-api", label: "HTTP" },
+          { from: "c-cli", to: "c-search", label: "gRPC" },
+        ],
+      },
+      level3: {
+        "c-api": [
+          { id: "c-api/0", kind: "component", name: "Router", deployed: ["vm-router"] },
+          { id: "c-api/1", kind: "component", name: "Sibling Worker", deployed: ["vm-sibling"] },
+        ],
+        "c-search": [{ id: "c-search/0", kind: "component", name: "Indexer" }],
+      },
+      level4: {
+        groups: [{ id: "rg", zone: "cloud-prod", title: "rg" }],
+        nodes: [
+          { id: "vm-router", group: "rg", kind: "vm", title: "vm-router", role: "Router" },
+          { id: "vm-sibling", group: "rg", kind: "vm", title: "vm-sibling", role: "Sibling" },
+        ],
+        links: [],
+      },
+    };
+    const multiCoarse = queryArchitectureImpact(["c-api/0", "c-search/0"], multiCoarseModel);
+    expect("error" in multiCoarse).toBe(false);
+    if (!("error" in multiCoarse)) {
+      expect(multiCoarse.hits.find((h) => h.id === "c-web")?.coarseParentVia).toBe("c-api");
+      expect(multiCoarse.hits.find((h) => h.id === "c-cli")?.coarseParentVia).toBe("c-search");
+      expect(multiCoarse.hostsImpacted).toEqual(["vm-router"]);
+    }
+    const mixedCoarse = queryArchitectureImpact(["c-search/0", "c-api"], multiCoarseModel);
+    if (!("error" in mixedCoarse)) {
+      expect(mixedCoarse.hits.some((h) => h.id === "c-cli")).toBe(true);
+      expect(mixedCoarse.hits.some((h) => h.id === "c-web")).toBe(true);
+    }
+
+    // F-13: focusId + level intersection & NaN limit clamp
+    const focusLvl = queryArchitectureNodes(DEFAULT_TTI_LEVEL_MODEL, { focusId: "c-api", level: 3 });
+    expect(focusLvl.nodes.length).toBeGreaterThan(0);
+    expect(focusLvl.nodes.every((n) => n.level === 3)).toBe(true);
+    expect(queryArchitectureNodes(DEFAULT_TTI_LEVEL_MODEL, { limit: Number.NaN }).nodeCount).toBe(0);
+
+    // N-01: normalizeArchitectureModelInput on schema-2 architecture.json, CPG --json, code-map.json, and empty {}
+    const schema2Norm = normalizeArchitectureModelInput(
+      {
+        schema: 2,
+        generated_at: "2026-11-03T00:00:00Z",
+        c4: {
+          context: { elements: [{ id: "s-code", kind: "system", name: "Code", zoom: "containers" }], rels: [] },
+          containers: {
+            boundary: "s-code",
+            elements: [{ id: "c-gw", kind: "container", name: "Gateway", zoom: "components" }],
+            rels: [],
+          },
+          components: { "c-gw": [{ id: "c-gw/0", kind: "component", name: "BFF" }] },
+        },
+        groups: [{ id: "rg-1", zone: "cloud-prod", title: "rg-1" }],
+        nodes: [{ id: "code-vm", group: "rg-1", kind: "vm", title: "VM", role: "Host", hosts: ["c-gw"] }],
+        links: [],
+        neighbors: [{ name: "other-vm", type: "VM", "resource group": "rg-1", reason: "Shared" }],
+        code: {
+          sourceBaseUrl: "https://example.org/src/main",
+          subgraphs: { "c-gw/0": { elements: [{ id: "f:bff/main.py", kind: "module", name: "main.py" }] } },
+          links: [],
+        },
+      },
+      { allowEmpty: false },
+    );
+    expect(schema2Norm.level1.elements[0]?.zoom).toBe(2);
+    expect(schema2Norm.level4.neighbors?.[0]?.resourceGroup).toBe("rg-1");
+    expect(getMapQueryIndex(schema2Norm).nodes.has("f:bff/main.py")).toBe(true);
+
+    const cpgNorm = normalizeArchitectureModelInput(
+      {
+        subgraphs: { "c-gw/0": { elements: [{ id: "f:bff/main.py", kind: "module", name: "main.py" }] } },
+        links: [],
+      },
+      { allowEmpty: false },
+    );
+    expect(getMapQueryIndex(cpgNorm).nodes.has("c-gw/0")).toBe(true);
+    expect(() => normalizeArchitectureModelInput({ rules: [{ match: "ops/**", inside: "code-vm" }] })).toThrow(
+      /code-map\.json/,
+    );
+    expect(() => normalizeArchitectureModelInput({}, { allowEmpty: false })).toThrow(/0 indexed nodes/);
+
+    // S-08, S-10, S-13, S-14: in-place mutation stamp, delta subgraphOwners + dn.title, NaN clamp
+    const mutableModel: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [
+          { id: "c-a", kind: "container", name: "A" },
+          { id: "c-b", kind: "container", name: "B" },
+          { id: "c-c", kind: "container", name: "C" },
+        ],
+        rels: [{ from: "c-a", to: "c-b", label: "Calls" }],
+      },
+      level3: {},
+      level4: { groups: [], nodes: [], links: [] },
+    };
+    expect("found" in findArchitecturePath("c-a", "c-b", mutableModel) && (findArchitecturePath("c-a", "c-b", mutableModel) as { found: boolean }).found).toBe(true);
+    mutableModel.level2.rels[0]!.to = "c-c";
+    expect("found" in findArchitecturePath("c-a", "c-b", mutableModel) && (findArchitecturePath("c-a", "c-b", mutableModel) as { found: boolean }).found).toBe(false);
+    expect("found" in findArchitecturePath("c-a", "c-c", mutableModel) && (findArchitecturePath("c-a", "c-c", mutableModel) as { found: boolean }).found).toBe(true);
+
+    const idxNodes = getMapQueryIndex(DEFAULT_TTI_LEVEL_MODEL).nodes;
+    expect(suggestCloseNodeIds("c-api", idxNodes, Number.NaN).length).toBeGreaterThan(0);
+
+    resetArchitectureDeprecationWarnings();
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const nanLease = coordinateAcpSubgraphLease("acquire", {
+        agentId: "nan-agent",
+        rootNodeId: "c-db",
+        ttlSeconds: Number.NaN,
+      });
+      expect(nanLease.acquired).toBe(true);
+      coordinateAcpSubgraphLease("release", { agentId: "nan-agent" });
     } finally {
       warnSpy.mockRestore();
     }
