@@ -772,6 +772,10 @@ export const TUX_MCP_ARCHITECTURE_TOOLS = [
           oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
           description: "One or more seed architecture node IDs (e.g. 'f:src/auth.ts' or ['c-api']).",
         },
+        seed: {
+          oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+          description: "Alias for `seedIds`.",
+        },
         nodeId: {
           type: "string",
           description: "Single seed node ID alias when `seedIds` is omitted.",
@@ -842,6 +846,8 @@ export const TUX_MCP_ARCHITECTURE_TOOLS = [
       properties: {
         fromNodeId: { type: "string", description: "Starting node ID." },
         toNodeId: { type: "string", description: "Destination node ID." },
+        from: { type: "string", description: "Alias for `fromNodeId`." },
+        to: { type: "string", description: "Alias for `toNodeId`." },
         direction: {
           type: "string",
           enum: ["downstream", "upstream"],
@@ -1089,6 +1095,11 @@ const ARCHITECTURE_TOOL_NAMES = new Set([
   "tux_compute_graph_delta",
 ]);
 
+function fitsMcpWireBudget(payload, maxWireBytes = 15_800) {
+  const serialized = JSON.stringify(payload);
+  return Buffer.byteLength(JSON.stringify(serialized), "utf8") + 96 <= maxWireBytes;
+}
+
 export function callTuxMcpTool(name, args = {}, opts = {}) {
   switch (name) {
     case "tux_list_components": {
@@ -1261,7 +1272,7 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
       const { queryArchitectureNodes } = requireMapRuntime();
       const compact = parseOptBool(args.compact, "compact") ?? (name === "tux_query_architecture_nodes");
       const explicitLimit = parseOptInt(args.limit, "limit");
-      return queryArchitectureNodes(model, {
+      const res = queryArchitectureNodes(model, {
         level: parseOptInt(args.level, "level"),
         focusId: args.focusId != null && String(args.focusId).trim() !== "" ? String(args.focusId).trim() : undefined,
         kind: args.kind,
@@ -1269,9 +1280,22 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
         includePlanned: parseOptBool(args.includePlanned, "includePlanned"),
         includeEdges: parseOptBool(args.includeEdges, "includeEdges"),
         compact,
-        limit: explicitLimit ?? (compact ? 60 : undefined),
+        limit: explicitLimit ?? (compact ? 30 : undefined),
         offset: parseOptInt(args.offset, "offset"),
       });
+      if (compact && explicitLimit === undefined) {
+        while (res.nodes.length > 1 && !fitsMcpWireBudget(res)) {
+          res.nodes = res.nodes.slice(0, Math.max(1, Math.floor(res.nodes.length * 0.75)));
+          if (res.edges.length > 0) {
+            const keepIds = new Set(res.nodes.map((n) => n.id));
+            res.edges = res.edges.filter((e) => keepIds.has(e.from) || keepIds.has(e.to));
+            res.edgeCount = res.edges.length;
+          }
+          res.nodeCount = res.nodes.length;
+          res.hasMore = res.offset + res.nodeCount < res.totalNodeCount;
+        }
+      }
+      return res;
     }
 
     case "tux_query_architecture_impact":
@@ -1283,7 +1307,7 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
         );
       }
       const { queryArchitectureImpact } = requireMapRuntime();
-      const rawSeeds = args.seedIds ?? args.nodeId ?? [];
+      const rawSeeds = args.seedIds ?? args.seed ?? args.nodeId ?? [];
       const seeds = Array.isArray(rawSeeds)
         ? rawSeeds.map((s) => String(s).trim()).filter(Boolean)
         : String(rawSeeds).trim()
@@ -1293,7 +1317,7 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
       const includeNodes = parseOptBool(args.includeNodes, "includeNodes");
       const explicitLimit = parseOptInt(args.limit, "limit");
       const explicitSummaryCap = parseOptInt(args.maxSummaryItems, "maxSummaryItems");
-      return queryArchitectureImpact(seeds, model, {
+      const res = queryArchitectureImpact(seeds, model, {
         maxHops: parseOptInt(args.maxHops, "maxHops"),
         intent: args.intent != null && String(args.intent).trim() !== "" ? String(args.intent).trim() : undefined,
         kinds: Array.isArray(args.kinds) ? args.kinds.map(String) : undefined,
@@ -1309,6 +1333,23 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
         limit: explicitLimit ?? (compact && !includeNodes ? 100 : undefined),
         offset: parseOptInt(args.offset, "offset"),
       });
+      if (compact && !includeNodes && explicitLimit === undefined && res && !res.error && Array.isArray(res.hits)) {
+        while (
+          (res.hits.length > 1 || (Array.isArray(res.impactedSourceFiles) && res.impactedSourceFiles.length > 5)) &&
+          !fitsMcpWireBudget(res)
+        ) {
+          if (res.hits.length > 1) {
+            res.hits = res.hits.slice(0, Math.max(1, Math.floor(res.hits.length * 0.75)));
+            res.hitCount = res.hits.length;
+            res.hasMore = res.offset + res.hitCount < res.totalHitCount;
+          } else if (Array.isArray(res.impactedSourceFiles) && res.impactedSourceFiles.length > 5) {
+            res.impactedSourceFiles = res.impactedSourceFiles.slice(0, Math.max(5, Math.floor(res.impactedSourceFiles.length * 0.6)));
+          } else {
+            break;
+          }
+        }
+      }
+      return res;
     }
 
     case "tux_find_architecture_path":
@@ -1320,8 +1361,8 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
         );
       }
       const { findArchitecturePath } = requireMapRuntime();
-      const fromNodeId = String(args.fromNodeId ?? "").trim();
-      const toNodeId = String(args.toNodeId ?? "").trim();
+      const fromNodeId = String(args.fromNodeId ?? args.from ?? "").trim();
+      const toNodeId = String(args.toNodeId ?? args.to ?? "").trim();
       if (args.direction != null && args.direction !== "downstream" && args.direction !== "upstream") {
         throw new Error(`Invalid parameter 'direction': expected 'downstream' or 'upstream'.`);
       }
@@ -1352,14 +1393,15 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
         };
       }
       const includeMergedModel = parseOptBool(args.includeMergedModel, "includeMergedModel") ?? false;
-      const maxItems = parseOptInt(args.maxItems, "maxItems") ?? (includeMergedModel ? undefined : 30);
+      const explicitMaxItems = parseOptInt(args.maxItems, "maxItems");
+      const maxItems = explicitMaxItems ?? (includeMergedModel ? undefined : 30);
       const delta = computeGraphDelta(baseModel, model, {
         includeMergedModel,
       });
       if (!includeMergedModel) {
         const { mergedModel: _omitted, ...compactDelta } = delta;
         if (maxItems !== undefined && maxItems >= 0) {
-          const cap = Math.max(1, maxItems);
+          let cap = Math.max(1, maxItems);
           const totalAddedCount = compactDelta.addedIds.length;
           const totalDeletedCount = compactDelta.deletedIds.length;
           const totalMovedCount = compactDelta.movedIds.length;
@@ -1370,29 +1412,18 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
           const totalRemovedWires = compactDelta.removedWires.length;
           const totalDanglingWires = compactDelta.danglingWires.length;
           const totalNodeChanges = compactDelta.nodeChanges.length;
-          const deltaTruncated =
-            totalAddedCount > cap ||
-            totalDeletedCount > cap ||
-            totalMovedCount > cap ||
-            totalSigChangedCount > cap ||
-            totalBodyPatchedCount > cap ||
-            totalBlastSeedCount > cap ||
-            totalAddedWires > cap ||
-            totalRemovedWires > cap ||
-            totalDanglingWires > cap ||
-            totalNodeChanges > cap;
-          return {
+          const buildBoundedDelta = (c) => ({
             ...compactDelta,
-            addedIds: compactDelta.addedIds.slice(0, cap),
-            deletedIds: compactDelta.deletedIds.slice(0, cap),
-            movedIds: compactDelta.movedIds.slice(0, cap),
-            sigChangedIds: compactDelta.sigChangedIds.slice(0, cap),
-            bodyPatchedIds: compactDelta.bodyPatchedIds.slice(0, cap),
-            blastSeedIds: compactDelta.blastSeedIds.slice(0, cap),
-            nodeChanges: compactDelta.nodeChanges.slice(0, cap),
-            addedWires: compactDelta.addedWires.slice(0, cap),
-            removedWires: compactDelta.removedWires.slice(0, cap),
-            danglingWires: compactDelta.danglingWires.slice(0, cap),
+            addedIds: compactDelta.addedIds.slice(0, c),
+            deletedIds: compactDelta.deletedIds.slice(0, c),
+            movedIds: compactDelta.movedIds.slice(0, c),
+            sigChangedIds: compactDelta.sigChangedIds.slice(0, c),
+            bodyPatchedIds: compactDelta.bodyPatchedIds.slice(0, c),
+            blastSeedIds: compactDelta.blastSeedIds.slice(0, c),
+            nodeChanges: compactDelta.nodeChanges.slice(0, c),
+            addedWires: compactDelta.addedWires.slice(0, c),
+            removedWires: compactDelta.removedWires.slice(0, c),
+            danglingWires: compactDelta.danglingWires.slice(0, c),
             totalAddedCount,
             totalDeletedCount,
             totalMovedCount,
@@ -1403,8 +1434,26 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
             totalAddedWires,
             totalRemovedWires,
             totalDanglingWires,
-            deltaTruncated,
-          };
+            deltaTruncated:
+              totalAddedCount > c ||
+              totalDeletedCount > c ||
+              totalMovedCount > c ||
+              totalSigChangedCount > c ||
+              totalBodyPatchedCount > c ||
+              totalBlastSeedCount > c ||
+              totalAddedWires > c ||
+              totalRemovedWires > c ||
+              totalDanglingWires > c ||
+              totalNodeChanges > c,
+          });
+          let out = buildBoundedDelta(cap);
+          if (explicitMaxItems === undefined) {
+            while (cap > 1 && !fitsMcpWireBudget(out)) {
+              cap = Math.max(1, Math.floor(cap * 0.7));
+              out = buildBoundedDelta(cap);
+            }
+          }
+          return out;
         }
         return compactDelta;
       }

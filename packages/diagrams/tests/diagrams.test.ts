@@ -1299,9 +1299,20 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
         ...(bc.opts ?? {}),
         bridgeUncovered: Boolean(bc.useExtractedModelLinks),
       });
+      const collectedHits = [...impact.hits];
+      let page = impact;
+      while (page.hasMore) {
+        page = srv.callTool("tux_query_architecture_impact", {
+          seedIds: bc.seeds,
+          ...(bc.opts ?? {}),
+          bridgeUncovered: Boolean(bc.useExtractedModelLinks),
+          offset: collectedHits.length,
+        });
+        collectedHits.push(...page.hits);
+      }
       expect(impact.truncated, `${bc.id}: truncated`).toBe(contract.truncated);
       expect(
-        impact.hits.map((h: { id: string; hop: number }) => ({ id: h.id, hop: h.hop })),
+        collectedHits.map((h: { id: string; hop: number }) => ({ id: h.id, hop: h.hop })),
         `${bc.id}: exact hit set`,
       ).toEqual([...contract.hits.entries()].map(([id, h]) => ({ id, hop: h.hop })));
       expect(impact.blockers, `${bc.id}: blockers`).toEqual(contract.blockers);
@@ -1446,7 +1457,12 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
           id: fid,
           name: `mod_${i}.ts`,
           kind: i % 5 === 0 ? "test" : "file",
-          source: { path: `pkg/mod_${i}.ts`, hash: `h_${i}` },
+          source: {
+            path: `pkg/mod_${i}.ts`,
+            hash: `h_${i}_0123456789abcdef`,
+            moduleHash: `mh_${i}_0123456789abcdef`,
+            signature: `export function mod_${i}(${"arg: string, ".repeat(35)}): Promise<void>`,
+          },
         });
         if (i > 0) {
           links.push({
@@ -1502,10 +1518,26 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
         method: "tools/call",
         params: { name: "tux_query_architecture_nodes", arguments: {} },
       });
-      expect(Buffer.byteLength(nodesRes.result.content[0].text, "utf8")).toBeLessThan(16 * 1024);
+      expect(Buffer.byteLength(JSON.stringify(nodesRes), "utf8")).toBeLessThan(16 * 1024);
       const nodesParsed = JSON.parse(nodesRes.result.content[0].text);
       expect(nodesParsed.hasMore).toBe(true);
       expect(nodesParsed.totalNodeCount).toBeGreaterThan(2650);
+
+      // Even when every matched symbol has a maximal 512-char signature + hashes, wire frame stays < 16 KB
+      const impactAliasRes = largeSrv.handleRequest({
+        jsonrpc: "2.0",
+        id: 115,
+        method: "tools/call",
+        params: { name: "tux_query_architecture_impact", arguments: { seed: "c-gateway" } },
+      });
+      expect(Buffer.byteLength(JSON.stringify(impactAliasRes), "utf8")).toBeLessThan(16 * 1024);
+      const pathAliasRes = largeSrv.handleRequest({
+        jsonrpc: "2.0",
+        id: 116,
+        method: "tools/call",
+        params: { name: "tux_find_architecture_path", arguments: { from: "f:pkg/mod_1.ts", to: "f:pkg/mod_0.ts" } },
+      });
+      expect(JSON.parse(pathAliasRes.result.content[0].text).found).toBe(true);
 
       const impactRes = largeSrv.handleRequest({
         jsonrpc: "2.0",
