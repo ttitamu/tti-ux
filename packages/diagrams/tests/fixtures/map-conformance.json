@@ -160,7 +160,7 @@
                 ],
                 "symbol": "verify_token",
                 "signature": "def verify_token(tok: str) -> bool",
-                "hash": "aa11bb22cc33"
+                "hash": "aa11bb22cc33dd44ee55ff6600112233"
               }
             },
             {
@@ -176,7 +176,7 @@
                 ],
                 "symbol": "TokenClaims",
                 "signature": "class TokenClaims",
-                "hash": "dd44ee55ff66"
+                "hash": "dd44ee55ff6600112233445566778899"
               }
             }
           ]
@@ -197,7 +197,7 @@
                 ],
                 "symbol": "create_order",
                 "signature": "def create_order(req)",
-                "hash": "112233445566"
+                "hash": "11223344556677889900aabbccddeeff"
               }
             },
             {
@@ -213,7 +213,7 @@
                 ],
                 "symbol": "list_orders",
                 "signature": "def list_orders(limit: int)",
-                "hash": "778899aabbcc"
+                "hash": "778899aabbccddeeff00112233445566"
               }
             }
           ]
@@ -228,7 +228,8 @@
               "tech": "Python",
               "source": {
                 "path": "core/auth.py",
-                "hash": "f_auth_v1"
+                "hash": "f_auth_v1_0000000000000000000000",
+                "moduleHash": "m_auth_v1_0000000000000000000000"
               }
             }
           ]
@@ -243,7 +244,8 @@
               "tech": "Python",
               "source": {
                 "path": "routes/orders.py",
-                "hash": "f_orders_v1"
+                "hash": "f_orders_v1_00000000000000000000",
+                "moduleHash": "m_orders_v1_00000000000000000000"
               }
             }
           ]
@@ -255,7 +257,7 @@
               "id": "d:c-api/core:core",
               "kind": "module",
               "name": "core/",
-              "tech": "folder \u00b7 1 file"
+              "tech": "folder · 1 file"
             }
           ]
         },
@@ -266,7 +268,7 @@
               "id": "d:c-api/routes:routes",
               "kind": "module",
               "name": "routes/",
-              "tech": "folder \u00b7 1 file"
+              "tech": "folder · 1 file"
             }
           ]
         },
@@ -1248,602 +1250,1158 @@
         {
           "from": "f:n1.py",
           "to": "f:n0.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n1.py:1"
         },
         {
           "from": "f:n2.py",
           "to": "f:n1.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n2.py:1"
         },
         {
           "from": "f:n3.py",
           "to": "f:n2.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n3.py:1"
         },
         {
           "from": "f:n4.py",
           "to": "f:n3.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n4.py:1"
         },
         {
           "from": "f:n5.py",
           "to": "f:n4.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n5.py:1"
         },
         {
           "from": "f:n6.py",
           "to": "f:n5.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n6.py:1"
         },
         {
           "from": "f:n7.py",
           "to": "f:n6.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n7.py:1"
         },
         {
           "from": "f:n8.py",
           "to": "f:n7.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n8.py:1"
         },
         {
           "from": "f:n9.py",
           "to": "f:n8.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n9.py:1"
         },
         {
           "from": "f:n10.py",
           "to": "f:n9.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n10.py:1"
         },
         {
           "from": "f:n11.py",
           "to": "f:n10.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n11.py:1"
         },
         {
           "from": "f:n12.py",
           "to": "f:n11.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n12.py:1"
         },
         {
           "from": "f:n13.py",
           "to": "f:n12.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n13.py:1"
         },
         {
           "from": "f:n14.py",
           "to": "f:n13.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n14.py:1"
         },
         {
           "from": "f:n15.py",
           "to": "f:n14.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n15.py:1"
         },
         {
           "from": "f:n16.py",
           "to": "f:n15.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n16.py:1"
         },
         {
           "from": "f:n17.py",
           "to": "f:n16.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n17.py:1"
         },
         {
           "from": "f:n18.py",
           "to": "f:n17.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n18.py:1"
         },
         {
           "from": "f:n19.py",
           "to": "f:n18.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n19.py:1"
         },
         {
           "from": "f:n20.py",
           "to": "f:n19.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n20.py:1"
         },
         {
           "from": "f:n21.py",
           "to": "f:n20.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n21.py:1"
         },
         {
           "from": "f:n22.py",
           "to": "f:n21.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n22.py:1"
         },
         {
           "from": "f:n23.py",
           "to": "f:n22.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n23.py:1"
         },
         {
           "from": "f:n24.py",
           "to": "f:n23.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n24.py:1"
         },
         {
           "from": "f:n25.py",
           "to": "f:n24.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n25.py:1"
         },
         {
           "from": "f:n26.py",
           "to": "f:n25.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n26.py:1"
         },
         {
           "from": "f:n27.py",
           "to": "f:n26.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n27.py:1"
         },
         {
           "from": "f:n28.py",
           "to": "f:n27.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n28.py:1"
         },
         {
           "from": "f:n29.py",
           "to": "f:n28.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n29.py:1"
         },
         {
           "from": "f:n30.py",
           "to": "f:n29.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n30.py:1"
         },
         {
           "from": "f:n31.py",
           "to": "f:n30.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n31.py:1"
         },
         {
           "from": "f:n32.py",
           "to": "f:n31.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n32.py:1"
         },
         {
           "from": "f:n33.py",
           "to": "f:n32.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n33.py:1"
         },
         {
           "from": "f:n34.py",
           "to": "f:n33.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n34.py:1"
         },
         {
           "from": "f:n35.py",
           "to": "f:n34.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n35.py:1"
         },
         {
           "from": "f:n36.py",
           "to": "f:n35.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n36.py:1"
         },
         {
           "from": "f:n37.py",
           "to": "f:n36.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n37.py:1"
         },
         {
           "from": "f:n38.py",
           "to": "f:n37.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n38.py:1"
         },
         {
           "from": "f:n39.py",
           "to": "f:n38.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n39.py:1"
         },
         {
           "from": "f:n40.py",
           "to": "f:n39.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n40.py:1"
         },
         {
           "from": "f:n41.py",
           "to": "f:n40.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n41.py:1"
         },
         {
           "from": "f:n42.py",
           "to": "f:n41.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n42.py:1"
         },
         {
           "from": "f:n43.py",
           "to": "f:n42.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n43.py:1"
         },
         {
           "from": "f:n44.py",
           "to": "f:n43.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n44.py:1"
         },
         {
           "from": "f:n45.py",
           "to": "f:n44.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n45.py:1"
         },
         {
           "from": "f:n46.py",
           "to": "f:n45.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n46.py:1"
         },
         {
           "from": "f:n47.py",
           "to": "f:n46.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n47.py:1"
         },
         {
           "from": "f:n48.py",
           "to": "f:n47.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n48.py:1"
         },
         {
           "from": "f:n49.py",
           "to": "f:n48.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n49.py:1"
         },
         {
           "from": "f:n50.py",
           "to": "f:n49.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n50.py:1"
         },
         {
           "from": "f:n51.py",
           "to": "f:n50.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n51.py:1"
         },
         {
           "from": "f:n52.py",
           "to": "f:n51.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n52.py:1"
         },
         {
           "from": "f:n53.py",
           "to": "f:n52.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n53.py:1"
         },
         {
           "from": "f:n54.py",
           "to": "f:n53.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n54.py:1"
         },
         {
           "from": "f:n55.py",
           "to": "f:n54.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n55.py:1"
         },
         {
           "from": "f:n56.py",
           "to": "f:n55.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n56.py:1"
         },
         {
           "from": "f:n57.py",
           "to": "f:n56.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n57.py:1"
         },
         {
           "from": "f:n58.py",
           "to": "f:n57.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n58.py:1"
         },
         {
           "from": "f:n59.py",
           "to": "f:n58.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n59.py:1"
         },
         {
           "from": "f:n60.py",
           "to": "f:n59.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n60.py:1"
         },
         {
           "from": "f:n61.py",
           "to": "f:n60.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n61.py:1"
         },
         {
           "from": "f:n62.py",
           "to": "f:n61.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n62.py:1"
         },
         {
           "from": "f:n63.py",
           "to": "f:n62.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n63.py:1"
         },
         {
           "from": "f:n64.py",
           "to": "f:n63.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n64.py:1"
         },
         {
           "from": "f:n65.py",
           "to": "f:n64.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n65.py:1"
         },
         {
           "from": "f:n66.py",
           "to": "f:n65.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n66.py:1"
         },
         {
           "from": "f:n67.py",
           "to": "f:n66.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n67.py:1"
         },
         {
           "from": "f:n68.py",
           "to": "f:n67.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n68.py:1"
         },
         {
           "from": "f:n69.py",
           "to": "f:n68.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n69.py:1"
         },
         {
           "from": "f:n70.py",
           "to": "f:n69.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n70.py:1"
         },
         {
           "from": "f:n71.py",
           "to": "f:n70.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n71.py:1"
         },
         {
           "from": "f:n72.py",
           "to": "f:n71.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n72.py:1"
         },
         {
           "from": "f:n73.py",
           "to": "f:n72.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n73.py:1"
         },
         {
           "from": "f:n74.py",
           "to": "f:n73.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n74.py:1"
         },
         {
           "from": "f:n75.py",
           "to": "f:n74.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n75.py:1"
         },
         {
           "from": "f:n76.py",
           "to": "f:n75.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n76.py:1"
         },
         {
           "from": "f:n77.py",
           "to": "f:n76.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n77.py:1"
         },
         {
           "from": "f:n78.py",
           "to": "f:n77.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n78.py:1"
         },
         {
           "from": "f:n79.py",
           "to": "f:n78.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n79.py:1"
         },
         {
           "from": "f:n80.py",
           "to": "f:n79.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n80.py:1"
         },
         {
           "from": "f:n81.py",
           "to": "f:n80.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n81.py:1"
         },
         {
           "from": "f:n82.py",
           "to": "f:n81.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n82.py:1"
         },
         {
           "from": "f:n83.py",
           "to": "f:n82.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n83.py:1"
         },
         {
           "from": "f:n84.py",
           "to": "f:n83.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n84.py:1"
         },
         {
           "from": "f:n85.py",
           "to": "f:n84.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n85.py:1"
         },
         {
           "from": "f:n86.py",
           "to": "f:n85.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n86.py:1"
         },
         {
           "from": "f:n87.py",
           "to": "f:n86.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n87.py:1"
         },
         {
           "from": "f:n88.py",
           "to": "f:n87.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n88.py:1"
         },
         {
           "from": "f:n89.py",
           "to": "f:n88.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n89.py:1"
         },
         {
           "from": "f:n90.py",
           "to": "f:n89.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n90.py:1"
         },
         {
           "from": "f:n91.py",
           "to": "f:n90.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n91.py:1"
         },
         {
           "from": "f:n92.py",
           "to": "f:n91.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n92.py:1"
         },
         {
           "from": "f:n93.py",
           "to": "f:n92.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n93.py:1"
         },
         {
           "from": "f:n94.py",
           "to": "f:n93.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n94.py:1"
         },
         {
           "from": "f:n95.py",
           "to": "f:n94.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n95.py:1"
         },
         {
           "from": "f:n96.py",
           "to": "f:n95.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n96.py:1"
         },
         {
           "from": "f:n97.py",
           "to": "f:n96.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n97.py:1"
         },
         {
           "from": "f:n98.py",
           "to": "f:n97.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n98.py:1"
         },
         {
           "from": "f:n99.py",
           "to": "f:n98.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n99.py:1"
         },
         {
           "from": "f:n100.py",
           "to": "f:n99.py",
-          "kind": "calls",
+          "kind": "imports",
           "at": "n100.py:1"
+        }
+      ]
+    },
+    "all_11_kinds_and_adversarial": {
+      "level1": {
+        "elements": [
+          {
+            "id": "sys-sec",
+            "kind": "system",
+            "name": "Quarantine Stack",
+            "zoom": 2
+          }
+        ],
+        "rels": []
+      },
+      "level2": {
+        "boundary": "sys-sec",
+        "elements": [
+          {
+            "id": "c-edge",
+            "kind": "container",
+            "name": "Edge Proxy",
+            "deployed": [
+              "vm-edge"
+            ]
+          },
+          {
+            "id": "c-app",
+            "kind": "container",
+            "name": "Backend App",
+            "deployed": [
+              "vm-app"
+            ]
+          },
+          {
+            "id": "c-ci",
+            "kind": "container",
+            "name": "CI & Tooling",
+            "deployed": [
+              "vm-ci"
+            ]
+          }
+        ],
+        "rels": []
+      },
+      "level3": {
+        "c-edge": [
+          {
+            "id": "c-edge/proxy",
+            "kind": "component",
+            "name": "Proxy Config"
+          }
+        ],
+        "c-app": [
+          {
+            "id": "c-app/lib",
+            "kind": "component",
+            "name": "Core Lib"
+          }
+        ],
+        "c-ci": [
+          {
+            "id": "c-ci/verify",
+            "kind": "component",
+            "name": "Verification & Docs"
+          }
+        ]
+      },
+      "level4": {
+        "groups": [
+          {
+            "id": "rg-sec",
+            "zone": "cloud-prod",
+            "title": "rg-sec"
+          }
+        ],
+        "nodes": [
+          {
+            "id": "vm-edge",
+            "group": "rg-sec",
+            "kind": "vm",
+            "title": "vm-edge",
+            "role": "Edge VM",
+            "hosts": [
+              "c-edge"
+            ]
+          },
+          {
+            "id": "vm-app",
+            "group": "rg-sec",
+            "kind": "vm",
+            "title": "vm-app",
+            "role": "App VM",
+            "hosts": [
+              "c-app"
+            ]
+          },
+          {
+            "id": "vm-ci",
+            "group": "rg-sec",
+            "kind": "vm",
+            "title": "vm-ci",
+            "role": "CI VM",
+            "hosts": [
+              "c-ci"
+            ]
+          }
+        ],
+        "links": []
+      },
+      "subgraphs": {
+        "c-edge/proxy": {
+          "elements": [
+            {
+              "id": "f:deploy/Caddyfile",
+              "kind": "module",
+              "name": "Caddyfile",
+              "source": {
+                "path": "deploy/Caddyfile"
+              }
+            },
+            {
+              "id": "f:branding/index.html",
+              "kind": "module",
+              "name": "index.html",
+              "source": {
+                "path": "branding/index.html"
+              }
+            }
+          ]
+        },
+        "c-app/lib": {
+          "elements": [
+            {
+              "id": "f:lib/target.py",
+              "kind": "module",
+              "name": "target.py",
+              "source": {
+                "path": "lib/target.py"
+              }
+            },
+            {
+              "id": "f:lib/other.py",
+              "kind": "module",
+              "name": "other.py",
+              "source": {
+                "path": "lib/other.py"
+              }
+            },
+            {
+              "id": "f:lib/shell_helper.sh",
+              "kind": "module",
+              "name": "shell_helper.sh",
+              "source": {
+                "path": "lib/shell_helper.sh"
+              }
+            },
+            {
+              "id": "f:lib/spoof_caller.py",
+              "kind": "module",
+              "name": "spoof_caller.py",
+              "source": {
+                "path": "lib/spoof_caller.py"
+              }
+            },
+            {
+              "id": "f:lib/spoof_runner.sh",
+              "kind": "module",
+              "name": "spoof_runner.sh",
+              "source": {
+                "path": "lib/spoof_runner.sh"
+              }
+            },
+            {
+              "id": "f:lib/config_user.py",
+              "kind": "module",
+              "name": "config_user.py",
+              "source": {
+                "path": "lib/config_user.py"
+              }
+            },
+            {
+              "id": "f:ops/ci-queue.sh",
+              "kind": "module",
+              "name": "ci-queue.sh",
+              "tech": "Shell",
+              "source": {
+                "path": "ops/ci-queue.sh"
+              }
+            },
+            {
+              "id": "f:ops/runner.sh",
+              "kind": "module",
+              "name": "runner.sh",
+              "tech": "Shell",
+              "source": {
+                "path": "ops/runner.sh"
+              }
+            }
+          ]
+        },
+        "c-ci/verify": {
+          "elements": [
+            {
+              "id": "f:tests/test_target_only.py",
+              "kind": "module",
+              "name": "test_target_only.py",
+              "source": {
+                "path": "tests/test_target_only.py"
+              }
+            },
+            {
+              "id": "f:tests/test_diamond.py",
+              "kind": "module",
+              "name": "test_diamond.py",
+              "source": {
+                "path": "tests/test_diamond.py"
+              }
+            },
+            {
+              "id": "f:tests/test_shared.py",
+              "kind": "module",
+              "name": "test_shared.py",
+              "source": {
+                "path": "tests/test_shared.py"
+              }
+            },
+            {
+              "id": "f:.forgejo/workflows/ci.yml",
+              "kind": "module",
+              "name": "ci.yml",
+              "source": {
+                "path": ".forgejo/workflows/ci.yml"
+              }
+            },
+            {
+              "id": "f:branding/dist/app.js",
+              "kind": "module",
+              "name": "app.js",
+              "source": {
+                "path": "branding/dist/app.js"
+              }
+            },
+            {
+              "id": "f:docs/target_guide.md",
+              "kind": "module",
+              "name": "target_guide.md",
+              "tech": "Markdown",
+              "source": {
+                "path": "docs/target_guide.md"
+              }
+            },
+            {
+              "id": "f:docs/design.md",
+              "kind": "module",
+              "name": "design.md",
+              "tech": "Markdown",
+              "source": {
+                "path": "docs/design.md"
+              }
+            }
+          ]
+        },
+        "f:tests/test_shared.py": {
+          "elements": [
+            {
+              "id": "s:tests/test_shared.py#test_other",
+              "kind": "symbol",
+              "name": "test_other()",
+              "source": {
+                "path": "tests/test_shared.py"
+              }
+            }
+          ]
+        }
+      },
+      "links": [
+        {
+          "from": "f:deploy/Caddyfile",
+          "to": "f:lib/target.py",
+          "kind": "routes",
+          "stop": true,
+          "at": "deploy/Caddyfile:14"
+        },
+        {
+          "from": "f:branding/index.html",
+          "to": "f:lib/target.py",
+          "kind": "loads",
+          "stop": true,
+          "at": "branding/index.html:8"
+        },
+        {
+          "from": "f:lib/shell_helper.sh",
+          "to": "f:lib/target.py",
+          "kind": "sources",
+          "at": "lib/shell_helper.sh:3"
+        },
+        {
+          "from": "f:lib/config_user.py",
+          "to": "f:lib/target.py",
+          "kind": "uses",
+          "stop": true,
+          "at": "lib/config_user.py:5"
+        },
+        {
+          "from": "f:.forgejo/workflows/ci.yml",
+          "to": "f:lib/target.py",
+          "kind": "checks",
+          "stop": true,
+          "at": ".forgejo/workflows/ci.yml:22"
+        },
+        {
+          "from": "f:branding/dist/app.js",
+          "to": "f:lib/target.py",
+          "kind": "stamps",
+          "stop": true,
+          "at": "ops/check-fresh.py:19"
+        },
+        {
+          "from": "f:tests/test_target_only.py",
+          "to": "f:lib/target.py",
+          "kind": "tests",
+          "stop": true,
+          "at": "tests/test_target_only.py:6"
+        },
+        {
+          "from": "f:tests/test_diamond.py",
+          "to": "f:lib/target.py",
+          "kind": "tests",
+          "stop": true,
+          "at": "tests/test_diamond.py:6"
+        },
+        {
+          "from": "f:tests/test_diamond.py",
+          "to": "f:lib/shell_helper.sh",
+          "kind": "tests",
+          "stop": true,
+          "at": "tests/test_diamond.py:12"
+        },
+        {
+          "from": "f:tests/test_shared.py",
+          "to": "f:lib/target.py",
+          "kind": "tests",
+          "stop": true,
+          "at": "tests/test_shared.py:4"
+        },
+        {
+          "from": "s:tests/test_shared.py#test_other",
+          "to": "f:lib/other.py",
+          "kind": "calls",
+          "at": "tests/test_shared.py:18"
+        },
+        {
+          "from": "f:docs/target_guide.md",
+          "to": "f:lib/target.py",
+          "kind": "mentions",
+          "stop": true,
+          "at": "docs/target_guide.md:2"
+        },
+        {
+          "from": "f:ops/ci-queue.sh",
+          "to": "f:docs/design.md",
+          "kind": "mentions",
+          "stop": true,
+          "at": "ops/ci-queue.sh:4"
+        },
+        {
+          "from": "f:ops/runner.sh",
+          "to": "f:ops/ci-queue.sh",
+          "kind": "sources",
+          "at": "ops/runner.sh:9"
+        },
+        {
+          "from": "f:lib/spoof_caller.py",
+          "to": "f:lib/target.py",
+          "kind": "calls",
+          "coupling": "type-only",
+          "at": "lib/spoof_caller.py:11"
+        },
+        {
+          "from": "f:lib/spoof_runner.sh",
+          "to": "f:lib/target.py",
+          "kind": "runs",
+          "coupling": "prose",
+          "phase": "doc-only",
+          "at": "lib/spoof_runner.sh:7"
+        }
+      ]
+    },
+    "hybrid_c4_and_edge_cases": {
+      "level1": {
+        "elements": [
+          {
+            "id": "sys-hyb",
+            "kind": "system",
+            "name": "Hybrid System",
+            "zoom": 2
+          }
+        ],
+        "rels": []
+      },
+      "level2": {
+        "boundary": "sys-hyb",
+        "elements": [
+          {
+            "id": "constructor",
+            "kind": "container",
+            "name": "Constructor Service",
+            "deployed": [
+              "vm-app"
+            ]
+          },
+          {
+            "id": "c-empty-l3",
+            "kind": "container",
+            "name": "Direct Fractal Container"
+          }
+        ],
+        "rels": []
+      },
+      "level3": {
+        "constructor": [
+          {
+            "id": "constructor/api",
+            "kind": "component",
+            "name": "API Component",
+            "subgraphRef": "sg-aliased-api"
+          }
+        ],
+        "c-empty-l3": []
+      },
+      "level4": {
+        "groups": [
+          {
+            "id": "rg-hyb",
+            "zone": "cloud-prod",
+            "title": "rg-hyb"
+          }
+        ],
+        "nodes": [
+          {
+            "id": "vm-app",
+            "group": "rg-hyb",
+            "kind": "vm",
+            "title": "vm-app",
+            "role": "App host",
+            "hosts": [
+              "constructor"
+            ]
+          },
+          {
+            "id": "kv-secrets",
+            "group": "rg-hyb",
+            "kind": "keyvault",
+            "title": "kv-secrets",
+            "role": "Vault"
+          },
+          {
+            "id": "kv-future",
+            "group": "rg-hyb",
+            "kind": "keyvault",
+            "title": "kv-future",
+            "role": "Planned Vault",
+            "status": "planned"
+          }
+        ],
+        "links": [
+          {
+            "from": "vm-app",
+            "to": "kv-secrets",
+            "label": "Reads secrets",
+            "kind": "secret",
+            "state": "now"
+          },
+          {
+            "from": "vm-app",
+            "to": "kv-future",
+            "label": "Planned vault",
+            "kind": "secret",
+            "state": "planned"
+          }
+        ]
+      },
+      "subgraphs": {
+        "constructor": {
+          "elements": [
+            {
+              "id": "f:shadow_ignored.py",
+              "kind": "module",
+              "name": "shadow_ignored.py"
+            }
+          ]
+        },
+        "c-empty-l3": {
+          "elements": [
+            {
+              "id": "f:direct_l5.py",
+              "kind": "module",
+              "name": "direct_l5.py"
+            }
+          ]
+        },
+        "sg-aliased-api": {
+          "elements": [
+            {
+              "id": "f:api/handler.py",
+              "kind": "module",
+              "name": "handler.py",
+              "source": {
+                "path": "api/handler.py",
+                "lineRange": []
+              }
+            },
+            {
+              "id": "f:api/�.py",
+              "kind": "module",
+              "name": "bmp_high.py"
+            },
+            {
+              "id": "f:api/🚀.py",
+              "kind": "module",
+              "name": "astral_rocket.py"
+            }
+          ]
+        },
+        "d:cyc/a": {
+          "elements": [
+            {
+              "id": "d:cyc/b",
+              "kind": "module",
+              "name": "b/"
+            }
+          ]
+        },
+        "d:cyc/b": {
+          "elements": [
+            {
+              "id": "d:cyc/a",
+              "kind": "module",
+              "name": "a/"
+            }
+          ]
+        }
+      },
+      "links": [
+        {
+          "from": "f:api/�.py",
+          "to": "f:api/handler.py",
+          "kind": "",
+          "at": "api/�.py:1"
+        },
+        {
+          "from": "f:api/🚀.py",
+          "to": "f:api/handler.py",
+          "kind": "uses",
+          "at": "api/🚀.py:1"
         }
       ]
     }
@@ -1853,6 +2411,7 @@
       "id": "child_before_parent_levels",
       "model": "code_7level",
       "expectedLevels": {
+        "actor-buyer": 1,
         "sys-shop": 1,
         "c-api": 2,
         "c-api/core": 3,
@@ -1860,7 +2419,8 @@
         "d:c-api/core:core": 5,
         "f:core/auth.py": 6,
         "s:core/auth.py#verify_token": 7,
-        "s:routes/orders.py#create_order": 7
+        "s:routes/orders.py#create_order": 7,
+        "f:web/app.ts": 5
       },
       "expectedLevel7Ids": [
         "s:core/auth.py#TokenClaims",
@@ -1878,11 +2438,31 @@
     {
       "id": "duplicate_id_first_parent_wins",
       "model": "duplicate_ids",
+      "expectedLevels": {
+        "f:shared.py": 5,
+        "f:caller.py": 5
+      },
       "expectedParent": {
         "f:shared.py": "c-a/comp"
-      },
+      }
+    },
+    {
+      "id": "level3_and_subgraph_coexistence_and_constructor_key",
+      "model": "hybrid_c4_and_edge_cases",
       "expectedLevels": {
-        "f:shared.py": 5
+        "constructor": 2,
+        "constructor/api": 3,
+        "f:api/handler.py": 5,
+        "f:direct_l5.py": 5
+      },
+      "expectedFocusLevels": {
+        "constructor": 3,
+        "c-empty-l3": 5,
+        "constructor/api": 5
+      },
+      "expectedParent": {
+        "f:api/handler.py": "constructor/api",
+        "f:direct_l5.py": "c-empty-l3"
       }
     }
   ],
@@ -1981,9 +2561,7 @@
           }
         ],
         "hostsImpacted": [
-          "vm-api-1",
-          "vm-web-1",
-          "vm-worker-1"
+          "vm-api-1"
         ]
       }
     },
@@ -2162,9 +2740,7 @@
           }
         ],
         "hostsImpacted": [
-          "vm-api-1",
-          "vm-web-1",
-          "vm-worker-1"
+          "vm-api-1"
         ],
         "stampsToRebuild": [
           "f:web/dist/bundle.js"
@@ -2173,6 +2749,118 @@
           "f:tests/test_auth_only.py",
           "f:tests/test_orders.py"
         ]
+      }
+    },
+    {
+      "id": "intent_refactor_propagates_through_type_only_imports",
+      "model": "code_7level",
+      "seeds": [
+        "s:core/auth.py#verify_token"
+      ],
+      "opts": {
+        "intent": "refactor"
+      },
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:ci/build.sh",
+            "hop": 1,
+            "kind": "runs",
+            "at": "ci/build.sh:7",
+            "sites": [
+              7
+            ]
+          },
+          {
+            "id": "f:docs/auth.md",
+            "hop": 1,
+            "kind": "mentions",
+            "at": "docs/auth.md:3",
+            "sites": [
+              3
+            ]
+          },
+          {
+            "id": "f:tests/test_auth_only.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_auth_only.py:11",
+            "sites": [
+              11
+            ]
+          },
+          {
+            "id": "f:web/types.ts",
+            "hop": 1,
+            "kind": "imports",
+            "at": "web/types.ts:2",
+            "sites": [
+              2
+            ]
+          },
+          {
+            "id": "s:routes/orders.py#create_order",
+            "hop": 1,
+            "kind": "calls",
+            "at": "routes/orders.py:18",
+            "sites": [
+              18,
+              42
+            ]
+          },
+          {
+            "id": "f:tests/test_orders.py",
+            "hop": 2,
+            "kind": "tests",
+            "at": "tests/test_orders.py:15",
+            "sites": [
+              15
+            ]
+          },
+          {
+            "id": "f:web/app.ts",
+            "hop": 2,
+            "kind": "calls",
+            "at": "web/app.ts:9",
+            "sites": [
+              9
+            ]
+          },
+          {
+            "id": "f:worker/sync.py",
+            "hop": 2,
+            "kind": "imports",
+            "at": "worker/sync.py:4",
+            "sites": [
+              4
+            ]
+          },
+          {
+            "id": "f:web/dist/bundle.js",
+            "hop": 3,
+            "kind": "stamps",
+            "at": "web/check-fresh.py:12",
+            "sites": [
+              12
+            ]
+          }
+        ],
+        "blockers": [
+          "f:web/types.ts",
+          "s:routes/orders.py#create_order"
+        ],
+        "hostsImpacted": [
+          "vm-api-1"
+        ],
+        "stampsToRebuild": [
+          "f:web/dist/bundle.js"
+        ],
+        "testsToRun": [
+          "f:tests/test_auth_only.py",
+          "f:tests/test_orders.py"
+        ],
+        "coCutCandidates": []
       }
     },
     {
@@ -2186,6 +2874,90 @@
       },
       "expected": {
         "truncated": false,
+        "hits": [
+          {
+            "id": "f:ci/build.sh",
+            "hop": 1,
+            "kind": "runs",
+            "at": "ci/build.sh:7",
+            "sites": [
+              7
+            ]
+          },
+          {
+            "id": "f:docs/auth.md",
+            "hop": 1,
+            "kind": "mentions",
+            "at": "docs/auth.md:3",
+            "sites": [
+              3
+            ]
+          },
+          {
+            "id": "f:tests/test_auth_only.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_auth_only.py:11",
+            "sites": [
+              11
+            ]
+          },
+          {
+            "id": "f:web/types.ts",
+            "hop": 1,
+            "kind": "imports",
+            "at": "web/types.ts:2",
+            "sites": [
+              2
+            ]
+          },
+          {
+            "id": "s:routes/orders.py#create_order",
+            "hop": 1,
+            "kind": "calls",
+            "at": "routes/orders.py:18",
+            "sites": [
+              18,
+              42
+            ]
+          },
+          {
+            "id": "f:tests/test_orders.py",
+            "hop": 2,
+            "kind": "tests",
+            "at": "tests/test_orders.py:15",
+            "sites": [
+              15
+            ]
+          },
+          {
+            "id": "f:web/app.ts",
+            "hop": 2,
+            "kind": "calls",
+            "at": "web/app.ts:9",
+            "sites": [
+              9
+            ]
+          },
+          {
+            "id": "f:worker/sync.py",
+            "hop": 2,
+            "kind": "imports",
+            "at": "worker/sync.py:4",
+            "sites": [
+              4
+            ]
+          },
+          {
+            "id": "f:web/dist/bundle.js",
+            "hop": 3,
+            "kind": "stamps",
+            "at": "web/check-fresh.py:12",
+            "sites": [
+              12
+            ]
+          }
+        ],
         "blockers": [
           "f:web/types.ts",
           "s:routes/orders.py#create_order"
@@ -2273,6 +3045,9 @@
         ],
         "stampsToRebuild": [
           "f:web/dist/bundle.js"
+        ],
+        "hostsImpacted": [
+          "vm-api-1"
         ]
       }
     },
@@ -2518,6 +3293,400 @@
           "hop": 100
         }
       }
+    },
+    {
+      "id": "all_11_kinds_cut_excludes_shared_tests_workflows_and_routes_from_cocut",
+      "model": "all_11_kinds_and_adversarial",
+      "seeds": [
+        "f:lib/target.py"
+      ],
+      "opts": {
+        "intent": "cut"
+      },
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:.forgejo/workflows/ci.yml",
+            "hop": 1,
+            "kind": "checks",
+            "at": ".forgejo/workflows/ci.yml:22"
+          },
+          {
+            "id": "f:branding/dist/app.js",
+            "hop": 1,
+            "kind": "stamps",
+            "at": "ops/check-fresh.py:19"
+          },
+          {
+            "id": "f:branding/index.html",
+            "hop": 1,
+            "kind": "loads",
+            "at": "branding/index.html:8"
+          },
+          {
+            "id": "f:deploy/Caddyfile",
+            "hop": 1,
+            "kind": "routes",
+            "at": "deploy/Caddyfile:14"
+          },
+          {
+            "id": "f:docs/target_guide.md",
+            "hop": 1,
+            "kind": "mentions",
+            "at": "docs/target_guide.md:2"
+          },
+          {
+            "id": "f:lib/config_user.py",
+            "hop": 1,
+            "kind": "uses",
+            "at": "lib/config_user.py:5"
+          },
+          {
+            "id": "f:lib/shell_helper.sh",
+            "hop": 1,
+            "kind": "sources",
+            "at": "lib/shell_helper.sh:3"
+          },
+          {
+            "id": "f:lib/spoof_caller.py",
+            "hop": 1,
+            "kind": "calls",
+            "at": "lib/spoof_caller.py:11"
+          },
+          {
+            "id": "f:lib/spoof_runner.sh",
+            "hop": 1,
+            "kind": "runs",
+            "at": "lib/spoof_runner.sh:7"
+          },
+          {
+            "id": "f:tests/test_diamond.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_diamond.py:6"
+          },
+          {
+            "id": "f:tests/test_shared.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_shared.py:4"
+          },
+          {
+            "id": "f:tests/test_target_only.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_target_only.py:6"
+          }
+        ],
+        "blockers": [
+          "f:branding/index.html",
+          "f:deploy/Caddyfile",
+          "f:lib/config_user.py",
+          "f:lib/shell_helper.sh",
+          "f:lib/spoof_caller.py",
+          "f:lib/spoof_runner.sh"
+        ],
+        "coCutCandidates": [
+          "f:docs/target_guide.md",
+          "f:tests/test_target_only.py"
+        ],
+        "testsToRun": [
+          "f:.forgejo/workflows/ci.yml",
+          "f:tests/test_diamond.py",
+          "f:tests/test_shared.py",
+          "f:tests/test_target_only.py"
+        ],
+        "stampsToRebuild": [
+          "f:branding/dist/app.js"
+        ],
+        "hostsImpacted": [
+          "vm-app",
+          "vm-edge"
+        ]
+      }
+    },
+    {
+      "id": "cutting_doc_never_marks_live_prod_script_mentioning_it_as_cocut",
+      "model": "all_11_kinds_and_adversarial",
+      "seeds": [
+        "f:docs/design.md"
+      ],
+      "opts": {
+        "intent": "cut"
+      },
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:ops/ci-queue.sh",
+            "hop": 1,
+            "kind": "mentions",
+            "at": "ops/ci-queue.sh:4"
+          }
+        ],
+        "blockers": [],
+        "coCutCandidates": [],
+        "hostsImpacted": []
+      }
+    },
+    {
+      "id": "anti_spoofing_rejects_type_only_and_prose_on_runtime_calls_and_runs",
+      "model": "all_11_kinds_and_adversarial",
+      "seeds": [
+        "f:lib/target.py"
+      ],
+      "opts": {
+        "intent": "supply-chain"
+      },
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:.forgejo/workflows/ci.yml",
+            "hop": 1,
+            "kind": "checks",
+            "at": ".forgejo/workflows/ci.yml:22"
+          },
+          {
+            "id": "f:branding/dist/app.js",
+            "hop": 1,
+            "kind": "stamps",
+            "at": "ops/check-fresh.py:19"
+          },
+          {
+            "id": "f:branding/index.html",
+            "hop": 1,
+            "kind": "loads",
+            "at": "branding/index.html:8"
+          },
+          {
+            "id": "f:deploy/Caddyfile",
+            "hop": 1,
+            "kind": "routes",
+            "at": "deploy/Caddyfile:14"
+          },
+          {
+            "id": "f:lib/config_user.py",
+            "hop": 1,
+            "kind": "uses",
+            "at": "lib/config_user.py:5"
+          },
+          {
+            "id": "f:lib/shell_helper.sh",
+            "hop": 1,
+            "kind": "sources",
+            "at": "lib/shell_helper.sh:3"
+          },
+          {
+            "id": "f:lib/spoof_caller.py",
+            "hop": 1,
+            "kind": "calls",
+            "at": "lib/spoof_caller.py:11"
+          },
+          {
+            "id": "f:lib/spoof_runner.sh",
+            "hop": 1,
+            "kind": "runs",
+            "at": "lib/spoof_runner.sh:7"
+          },
+          {
+            "id": "f:tests/test_diamond.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_diamond.py:6"
+          },
+          {
+            "id": "f:tests/test_shared.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_shared.py:4"
+          },
+          {
+            "id": "f:tests/test_target_only.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_target_only.py:6"
+          }
+        ],
+        "blockers": [
+          "f:branding/index.html",
+          "f:deploy/Caddyfile",
+          "f:lib/config_user.py",
+          "f:lib/shell_helper.sh",
+          "f:lib/spoof_caller.py",
+          "f:lib/spoof_runner.sh"
+        ],
+        "testsToRun": [
+          "f:.forgejo/workflows/ci.yml",
+          "f:tests/test_diamond.py",
+          "f:tests/test_shared.py",
+          "f:tests/test_target_only.py"
+        ],
+        "stampsToRebuild": [
+          "f:branding/dist/app.js"
+        ],
+        "hostsImpacted": [
+          "vm-app",
+          "vm-edge"
+        ]
+      }
+    },
+    {
+      "id": "stop_diamond_at_max_hops_1_is_not_falsely_truncated",
+      "model": "all_11_kinds_and_adversarial",
+      "seeds": [
+        "f:lib/target.py"
+      ],
+      "opts": {
+        "maxHops": 1,
+        "intent": "patch"
+      },
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:.forgejo/workflows/ci.yml",
+            "hop": 1,
+            "kind": "checks",
+            "at": ".forgejo/workflows/ci.yml:22"
+          },
+          {
+            "id": "f:branding/dist/app.js",
+            "hop": 1,
+            "kind": "stamps",
+            "at": "ops/check-fresh.py:19"
+          },
+          {
+            "id": "f:branding/index.html",
+            "hop": 1,
+            "kind": "loads",
+            "at": "branding/index.html:8"
+          },
+          {
+            "id": "f:deploy/Caddyfile",
+            "hop": 1,
+            "kind": "routes",
+            "at": "deploy/Caddyfile:14"
+          },
+          {
+            "id": "f:docs/target_guide.md",
+            "hop": 1,
+            "kind": "mentions",
+            "at": "docs/target_guide.md:2"
+          },
+          {
+            "id": "f:lib/config_user.py",
+            "hop": 1,
+            "kind": "uses",
+            "at": "lib/config_user.py:5"
+          },
+          {
+            "id": "f:lib/shell_helper.sh",
+            "hop": 1,
+            "kind": "sources",
+            "at": "lib/shell_helper.sh:3"
+          },
+          {
+            "id": "f:lib/spoof_caller.py",
+            "hop": 1,
+            "kind": "calls",
+            "at": "lib/spoof_caller.py:11"
+          },
+          {
+            "id": "f:lib/spoof_runner.sh",
+            "hop": 1,
+            "kind": "runs",
+            "at": "lib/spoof_runner.sh:7"
+          },
+          {
+            "id": "f:tests/test_diamond.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_diamond.py:6"
+          },
+          {
+            "id": "f:tests/test_shared.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_shared.py:4"
+          },
+          {
+            "id": "f:tests/test_target_only.py",
+            "hop": 1,
+            "kind": "tests",
+            "at": "tests/test_target_only.py:6"
+          }
+        ],
+        "testsToRun": [
+          "f:.forgejo/workflows/ci.yml",
+          "f:tests/test_diamond.py",
+          "f:tests/test_shared.py",
+          "f:tests/test_target_only.py"
+        ],
+        "stampsToRebuild": [
+          "f:branding/dist/app.js"
+        ]
+      }
+    },
+    {
+      "id": "aux_test_seed_reports_zero_prod_hosts_impacted",
+      "model": "all_11_kinds_and_adversarial",
+      "seeds": [
+        "f:tests/test_target_only.py"
+      ],
+      "opts": {
+        "intent": "patch"
+      },
+      "expected": {
+        "truncated": false,
+        "hits": [],
+        "hostsImpacted": []
+      }
+    },
+    {
+      "id": "hybrid_model_bridges_uncovered_level4_vault_and_skips_planned",
+      "model": "hybrid_c4_and_edge_cases",
+      "useExtractedModelLinks": true,
+      "seeds": [
+        "kv-secrets"
+      ],
+      "opts": {},
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "vm-app",
+            "hop": 1,
+            "kind": "secret"
+          }
+        ]
+      }
+    },
+    {
+      "id": "astral_unicode_codepoint_order_and_empty_kind_fallback",
+      "model": "hybrid_c4_and_edge_cases",
+      "seeds": [
+        "f:api/handler.py"
+      ],
+      "opts": {},
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:api/�.py",
+            "hop": 1,
+            "kind": "",
+            "at": "api/�.py:1"
+          },
+          {
+            "id": "f:api/🚀.py",
+            "hop": 1,
+            "kind": "uses",
+            "at": "api/🚀.py:1"
+          }
+        ]
+      }
     }
   ],
   "deltaCases": [
@@ -2681,7 +3850,7 @@
                   ],
                   "symbol": "verify_token",
                   "signature": "def verify_token(tok: str) -> bool",
-                  "hash": "aa11bb22cc33"
+                  "hash": "aa11bb22cc33dd44ee55ff6600112233"
                 }
               },
               {
@@ -2697,7 +3866,7 @@
                   ],
                   "symbol": "TokenClaims",
                   "signature": "class TokenClaims",
-                  "hash": "dd44ee55ff66"
+                  "hash": "dd44ee55ff6600112233445566778899"
                 }
               }
             ]
@@ -2718,7 +3887,7 @@
                   ],
                   "symbol": "create_order",
                   "signature": "def create_order(req)",
-                  "hash": "112233445566"
+                  "hash": "11223344556677889900aabbccddeeff"
                 }
               },
               {
@@ -2734,7 +3903,7 @@
                   ],
                   "symbol": "list_orders",
                   "signature": "def list_orders(limit: int)",
-                  "hash": "778899aabbcc"
+                  "hash": "778899aabbccddeeff00112233445566"
                 }
               }
             ]
@@ -2749,7 +3918,8 @@
                 "tech": "Python",
                 "source": {
                   "path": "core/auth.py",
-                  "hash": "f_auth_v1"
+                  "hash": "f_auth_v1_0000000000000000000000",
+                  "moduleHash": "m_auth_v1_0000000000000000000000"
                 }
               }
             ]
@@ -2764,7 +3934,8 @@
                 "tech": "Python",
                 "source": {
                   "path": "routes/orders.py",
-                  "hash": "f_orders_v1"
+                  "hash": "f_orders_v1_00000000000000000000",
+                  "moduleHash": "m_orders_v1_00000000000000000000"
                 }
               }
             ]
@@ -2776,7 +3947,7 @@
                 "id": "d:c-api/core:core",
                 "kind": "module",
                 "name": "core/",
-                "tech": "folder \u00b7 1 file"
+                "tech": "folder · 1 file"
               }
             ]
           },
@@ -2787,7 +3958,7 @@
                 "id": "d:c-api/routes:routes",
                 "kind": "module",
                 "name": "routes/",
-                "tech": "folder \u00b7 1 file"
+                "tech": "folder · 1 file"
               }
             ]
           },
@@ -3182,7 +4353,7 @@
                   ],
                   "symbol": "verify_token",
                   "signature": "def verify_token(tok: str) -> bool",
-                  "hash": "aa11bb22_patched"
+                  "hash": "aa11bb22cc33_patched_00000000000"
                 }
               },
               {
@@ -3198,7 +4369,7 @@
                   ],
                   "symbol": "TokenClaims",
                   "signature": "class TokenClaims",
-                  "hash": "dd44ee55ff66"
+                  "hash": "dd44ee55ff6600112233445566778899"
                 }
               }
             ]
@@ -3219,7 +4390,7 @@
                   ],
                   "symbol": "create_order",
                   "signature": "def create_order(req)",
-                  "hash": "112233445566"
+                  "hash": "11223344556677889900aabbccddeeff"
                 }
               },
               {
@@ -3235,7 +4406,7 @@
                   ],
                   "symbol": "list_orders",
                   "signature": "def list_orders(limit: int, cursor: str = '')",
-                  "hash": "778899_sigchanged"
+                  "hash": "778899aabbcc_sigchanged_00000000"
                 }
               }
             ]
@@ -3250,7 +4421,8 @@
                 "tech": "Python",
                 "source": {
                   "path": "core/auth.py",
-                  "hash": "f_auth_v2"
+                  "hash": "f_auth_v2_0000000000000000000000",
+                  "moduleHash": "m_auth_v1_0000000000000000000000"
                 }
               },
               {
@@ -3275,7 +4447,8 @@
                 "tech": "Python",
                 "source": {
                   "path": "routes/orders.py",
-                  "hash": "f_orders_v2"
+                  "hash": "f_orders_v2_00000000000000000000",
+                  "moduleHash": "m_orders_v1_00000000000000000000"
                 }
               },
               {
@@ -3297,7 +4470,7 @@
                 "id": "d:c-api/core:core",
                 "kind": "module",
                 "name": "core/",
-                "tech": "folder \u00b7 1 file"
+                "tech": "folder · 1 file"
               }
             ]
           },
@@ -3308,7 +4481,7 @@
                 "id": "d:c-api/routes:routes",
                 "kind": "module",
                 "name": "routes/",
-                "tech": "folder \u00b7 1 file"
+                "tech": "folder · 1 file"
               }
             ]
           },
@@ -3548,11 +4721,13 @@
           "s:routes/orders.py#list_orders"
         ],
         "bodyPatchedIds": [
+          "f:ci/build.sh",
           "f:core/auth.py",
           "f:routes/orders.py",
           "s:core/auth.py#verify_token"
         ],
         "blastSeedIds": [
+          "f:ci/build.sh",
           "f:docs/auth.md",
           "f:routes/refunds.py",
           "f:web/types.ts",
@@ -3585,6 +4760,751 @@
             "to": "f:docs/auth.md",
             "kind": "uses"
           }
+        ],
+        "ghostChecks": [
+          {
+            "location": "subgraph",
+            "parentId": "c-worker/jobs",
+            "id": "f:docs/auth.md",
+            "changeType": "deleted"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rename_pairing_moved_previous_id_and_refactor_intent",
+      "baseModel": {
+        "level1": {
+          "elements": [
+            {
+              "id": "sys-mv",
+              "kind": "system",
+              "name": "Move System"
+            }
+          ],
+          "rels": []
+        },
+        "level2": {
+          "boundary": "sys-mv",
+          "elements": [
+            {
+              "id": "c-svc",
+              "kind": "container",
+              "name": "Service"
+            }
+          ],
+          "rels": []
+        },
+        "level3": {
+          "c-svc": [
+            {
+              "id": "c-svc/auth",
+              "kind": "component",
+              "name": "Auth"
+            }
+          ]
+        },
+        "level4": {
+          "groups": [],
+          "nodes": [],
+          "links": []
+        },
+        "subgraphs": {
+          "c-svc/auth": {
+            "elements": [
+              {
+                "id": "f:auth/old_token.py",
+                "kind": "module",
+                "name": "old_token.py",
+                "source": {
+                  "path": "auth/old_token.py",
+                  "hash": "deadbeefcafebabe0011223344556677"
+                }
+              }
+            ]
+          },
+          "f:auth/old_token.py": {
+            "elements": [
+              {
+                "id": "s:auth/old_token.py#check_jwt",
+                "kind": "symbol",
+                "name": "check_jwt()",
+                "source": {
+                  "path": "auth/old_token.py",
+                  "symbol": "check_jwt",
+                  "signature": "def check_jwt(raw: str) -> dict",
+                  "hash": "sym_body_edited_during_move_v1_00"
+                }
+              }
+            ]
+          }
+        },
+        "links": []
+      },
+      "headModel": {
+        "level1": {
+          "elements": [
+            {
+              "id": "sys-mv",
+              "kind": "system",
+              "name": "Move System"
+            }
+          ],
+          "rels": []
+        },
+        "level2": {
+          "boundary": "sys-mv",
+          "elements": [
+            {
+              "id": "c-svc",
+              "kind": "container",
+              "name": "Service"
+            }
+          ],
+          "rels": []
+        },
+        "level3": {
+          "c-svc": [
+            {
+              "id": "c-svc/auth",
+              "kind": "component",
+              "name": "Auth"
+            }
+          ]
+        },
+        "level4": {
+          "groups": [],
+          "nodes": [],
+          "links": []
+        },
+        "subgraphs": {
+          "c-svc/auth": {
+            "elements": [
+              {
+                "id": "f:auth/new_token.py",
+                "kind": "module",
+                "name": "new_token.py",
+                "source": {
+                  "path": "auth/new_token.py",
+                  "hash": "deadbeefcafebabe0011223344556677"
+                }
+              }
+            ]
+          },
+          "f:auth/new_token.py": {
+            "elements": [
+              {
+                "id": "s:auth/new_token.py#check_jwt",
+                "kind": "symbol",
+                "name": "check_jwt()",
+                "source": {
+                  "path": "auth/new_token.py",
+                  "symbol": "check_jwt",
+                  "signature": "def check_jwt(raw: str) -> dict",
+                  "hash": "sym_body_edited_during_move_v2_99"
+                }
+              }
+            ]
+          }
+        },
+        "links": []
+      },
+      "expected": {
+        "addedIds": [],
+        "deletedIds": [],
+        "movedIds": [
+          "f:auth/new_token.py",
+          "s:auth/new_token.py#check_jwt"
+        ],
+        "movedPairs": [
+          {
+            "id": "f:auth/new_token.py",
+            "previousId": "f:auth/old_token.py"
+          },
+          {
+            "id": "s:auth/new_token.py#check_jwt",
+            "previousId": "s:auth/old_token.py#check_jwt"
+          }
+        ],
+        "sigChangedIds": [],
+        "bodyPatchedIds": [],
+        "blastSeedIds": [
+          "f:auth/new_token.py",
+          "f:auth/old_token.py",
+          "s:auth/new_token.py#check_jwt",
+          "s:auth/old_token.py#check_jwt"
+        ],
+        "recommendedIntent": "refactor",
+        "addedWires": [],
+        "removedWires": [],
+        "danglingWires": [],
+        "ghostChecks": [
+          {
+            "location": "subgraph",
+            "parentId": "c-svc/auth",
+            "id": "f:auth/new_token.py",
+            "changeType": "modified"
+          }
+        ]
+      }
+    },
+    {
+      "id": "concurrent_module_hash_and_symbol_patch_plus_wire_change",
+      "baseModel": {
+        "level1": {
+          "elements": [
+            {
+              "id": "sys-mh",
+              "kind": "system",
+              "name": "ModuleHash System"
+            }
+          ],
+          "rels": []
+        },
+        "level2": {
+          "boundary": "sys-mh",
+          "elements": [
+            {
+              "id": "c-app",
+              "kind": "container",
+              "name": "App"
+            }
+          ],
+          "rels": []
+        },
+        "level3": {
+          "c-app": [
+            {
+              "id": "c-app/core",
+              "kind": "component",
+              "name": "Core"
+            }
+          ]
+        },
+        "level4": {
+          "groups": [],
+          "nodes": [],
+          "links": []
+        },
+        "subgraphs": {
+          "c-app/core": {
+            "elements": [
+              {
+                "id": "f:core/both_changed.py",
+                "kind": "module",
+                "name": "both_changed.py",
+                "source": {
+                  "path": "core/both_changed.py",
+                  "hash": "h_both_v1_0000000000000000000000",
+                  "moduleHash": "mh_both_v1_000000000000000000000"
+                }
+              },
+              {
+                "id": "f:core/wire_only.py",
+                "kind": "module",
+                "name": "wire_only.py",
+                "source": {
+                  "path": "core/wire_only.py",
+                  "hash": "h_same_0000000000000000000000000",
+                  "moduleHash": "mh_same_000000000000000000000000"
+                }
+              }
+            ]
+          },
+          "f:core/both_changed.py": {
+            "elements": [
+              {
+                "id": "s:core/both_changed.py#helper",
+                "kind": "symbol",
+                "name": "helper()",
+                "source": {
+                  "path": "core/both_changed.py",
+                  "symbol": "helper",
+                  "signature": "def helper()",
+                  "hash": "s_helper_v1_00000000000000000000"
+                }
+              }
+            ]
+          }
+        },
+        "links": []
+      },
+      "headModel": {
+        "level1": {
+          "elements": [
+            {
+              "id": "sys-mh",
+              "kind": "system",
+              "name": "ModuleHash System"
+            }
+          ],
+          "rels": []
+        },
+        "level2": {
+          "boundary": "sys-mh",
+          "elements": [
+            {
+              "id": "c-app",
+              "kind": "container",
+              "name": "App"
+            }
+          ],
+          "rels": []
+        },
+        "level3": {
+          "c-app": [
+            {
+              "id": "c-app/core",
+              "kind": "component",
+              "name": "Core"
+            }
+          ]
+        },
+        "level4": {
+          "groups": [],
+          "nodes": [],
+          "links": []
+        },
+        "subgraphs": {
+          "c-app/core": {
+            "elements": [
+              {
+                "id": "f:core/both_changed.py",
+                "kind": "module",
+                "name": "both_changed.py",
+                "source": {
+                  "path": "core/both_changed.py",
+                  "hash": "h_both_v2_0000000000000000000000",
+                  "moduleHash": "mh_both_v2_top_const_edited_0000"
+                }
+              },
+              {
+                "id": "f:core/wire_only.py",
+                "kind": "module",
+                "name": "wire_only.py",
+                "source": {
+                  "path": "core/wire_only.py",
+                  "hash": "h_same_0000000000000000000000000",
+                  "moduleHash": "mh_same_000000000000000000000000"
+                }
+              }
+            ]
+          },
+          "f:core/both_changed.py": {
+            "elements": [
+              {
+                "id": "s:core/both_changed.py#helper",
+                "kind": "symbol",
+                "name": "helper()",
+                "source": {
+                  "path": "core/both_changed.py",
+                  "symbol": "helper",
+                  "signature": "def helper()",
+                  "hash": "s_helper_v2_00000000000000000000"
+                }
+              }
+            ]
+          }
+        },
+        "links": [
+          {
+            "from": "f:core/wire_only.py",
+            "to": "s:core/both_changed.py#helper",
+            "kind": "calls",
+            "at": "core/wire_only.py:4:9é"
+          }
+        ]
+      },
+      "expected": {
+        "addedIds": [],
+        "deletedIds": [],
+        "movedIds": [],
+        "sigChangedIds": [],
+        "bodyPatchedIds": [
+          "f:core/both_changed.py",
+          "f:core/wire_only.py",
+          "s:core/both_changed.py#helper"
+        ],
+        "blastSeedIds": [
+          "f:core/both_changed.py",
+          "f:core/wire_only.py",
+          "s:core/both_changed.py#helper"
+        ],
+        "recommendedIntent": "patch",
+        "addedWires": [
+          {
+            "from": "f:core/wire_only.py",
+            "to": "s:core/both_changed.py#helper",
+            "kind": "calls"
+          }
+        ],
+        "removedWires": [],
+        "danglingWires": []
+      }
+    },
+    {
+      "id": "merged_model_all_five_ghost_origins_and_collapsed_folder",
+      "baseModel": {
+        "level1": {
+          "elements": [
+            {
+              "id": "p-ops",
+              "kind": "person",
+              "name": "Ops"
+            },
+            {
+              "id": "x-legacy-idp",
+              "kind": "external",
+              "name": "Legacy IdP"
+            },
+            {
+              "id": "sys-core",
+              "kind": "system",
+              "name": "Core",
+              "zoom": 2
+            }
+          ],
+          "rels": []
+        },
+        "level2": {
+          "boundary": "sys-core",
+          "elements": [
+            {
+              "id": "p-ops",
+              "ref": true
+            },
+            {
+              "id": "c-keep",
+              "kind": "container",
+              "name": "Keep Container"
+            },
+            {
+              "id": "c-legacy-worker",
+              "kind": "container",
+              "name": "Legacy Worker"
+            }
+          ],
+          "rels": []
+        },
+        "level3": {
+          "c-keep": [
+            {
+              "id": "c-keep/inline-parent",
+              "kind": "component",
+              "name": "Inline Parent",
+              "children": [
+                {
+                  "id": "in-surviving",
+                  "kind": "module",
+                  "name": "in-surviving",
+                  "source": {
+                    "path": "in/surviving.ts",
+                    "hash": "in_v1"
+                  }
+                },
+                {
+                  "id": "in-deleted",
+                  "kind": "module",
+                  "name": "in-deleted",
+                  "source": {
+                    "path": "in/deleted.ts",
+                    "hash": "in_del"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "c-keep/collapsed",
+              "kind": "component",
+              "name": "Collapsed Folder Comp"
+            },
+            {
+              "id": "c-keep/old-comp",
+              "kind": "component",
+              "name": "Old Component"
+            }
+          ]
+        },
+        "level4": {
+          "groups": [
+            {
+              "id": "rg-1",
+              "zone": "cloud-prod",
+              "title": "rg-1"
+            }
+          ],
+          "nodes": [
+            {
+              "id": "vm-keep",
+              "group": "rg-1",
+              "kind": "vm",
+              "title": "vm-keep",
+              "role": "Main VM",
+              "children": [
+                {
+                  "id": "vm-keep/unit-a",
+                  "kind": "module",
+                  "name": "unit-a.service",
+                  "source": {
+                    "path": "ops/unit-a.service",
+                    "hash": "u_v1"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "vm-decommissioned",
+              "group": "rg-1",
+              "kind": "vm",
+              "title": "vm-decommissioned",
+              "role": "Old VM"
+            }
+          ],
+          "links": []
+        },
+        "subgraphs": {
+          "c-keep/collapsed": {
+            "stratum": "Folders",
+            "elements": [
+              {
+                "id": "d:c-keep/collapsed:a",
+                "kind": "module",
+                "name": "a/"
+              },
+              {
+                "id": "d:c-keep/collapsed:b",
+                "kind": "module",
+                "name": "b/"
+              }
+            ]
+          },
+          "d:c-keep/collapsed:a": {
+            "elements": [
+              {
+                "id": "f:a/keep.py",
+                "kind": "module",
+                "name": "keep.py",
+                "source": {
+                  "path": "a/keep.py",
+                  "hash": "ak_1"
+                }
+              }
+            ]
+          },
+          "d:c-keep/collapsed:b": {
+            "elements": [
+              {
+                "id": "f:b/removed.py",
+                "kind": "module",
+                "name": "removed.py",
+                "source": {
+                  "path": "b/removed.py",
+                  "hash": "br_1"
+                }
+              }
+            ]
+          }
+        },
+        "links": []
+      },
+      "headModel": {
+        "level1": {
+          "elements": [
+            {
+              "id": "p-ops",
+              "kind": "person",
+              "name": "Ops"
+            },
+            {
+              "id": "sys-core",
+              "kind": "system",
+              "name": "Core",
+              "zoom": 2
+            }
+          ],
+          "rels": []
+        },
+        "level2": {
+          "boundary": "sys-core",
+          "elements": [
+            {
+              "id": "p-ops",
+              "ref": true
+            },
+            {
+              "id": "c-keep",
+              "kind": "container",
+              "name": "Keep Container"
+            }
+          ],
+          "rels": [
+            {
+              "from": "p-ops",
+              "to": "c-keep",
+              "label": "Operates"
+            }
+          ]
+        },
+        "level3": {
+          "c-keep": [
+            {
+              "id": "c-keep/inline-parent",
+              "kind": "component",
+              "name": "Inline Parent",
+              "children": [
+                {
+                  "id": "in-surviving",
+                  "kind": "module",
+                  "name": "in-surviving",
+                  "source": {
+                    "path": "in/surviving.ts",
+                    "hash": "in_v1"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "c-keep/collapsed",
+              "kind": "component",
+              "name": "Collapsed Folder Comp"
+            }
+          ]
+        },
+        "level4": {
+          "groups": [
+            {
+              "id": "rg-1",
+              "zone": "cloud-prod",
+              "title": "rg-1"
+            }
+          ],
+          "nodes": [
+            {
+              "id": "vm-keep",
+              "group": "rg-1",
+              "kind": "vm",
+              "title": "vm-keep",
+              "role": "Main VM",
+              "children": [
+                {
+                  "id": "vm-keep/unit-a",
+                  "kind": "module",
+                  "name": "unit-a.service",
+                  "source": {
+                    "path": "ops/unit-a.service",
+                    "hash": "u_v2"
+                  }
+                }
+              ]
+            }
+          ],
+          "links": []
+        },
+        "subgraphs": {
+          "c-keep/collapsed": {
+            "stratum": "Files",
+            "elements": [
+              {
+                "id": "f:a/keep.py",
+                "kind": "module",
+                "name": "keep.py",
+                "source": {
+                  "path": "a/keep.py",
+                  "hash": "ak_1"
+                }
+              }
+            ]
+          }
+        },
+        "links": [
+          {
+            "from": "f:a/keep.py",
+            "to": "p-ops",
+            "kind": "uses",
+            "at": "a/keep.py:3"
+          }
+        ]
+      },
+      "expected": {
+        "addedIds": [],
+        "deletedIds": [
+          "c-keep/old-comp",
+          "c-legacy-worker",
+          "f:b/removed.py",
+          "in-deleted",
+          "vm-decommissioned",
+          "x-legacy-idp"
+        ],
+        "movedIds": [],
+        "sigChangedIds": [],
+        "bodyPatchedIds": [
+          "f:a/keep.py",
+          "vm-keep/unit-a"
+        ],
+        "blastSeedIds": [
+          "c-keep/old-comp",
+          "c-legacy-worker",
+          "f:a/keep.py",
+          "f:b/removed.py",
+          "in-deleted",
+          "vm-decommissioned",
+          "vm-keep/unit-a",
+          "x-legacy-idp"
+        ],
+        "recommendedIntent": "cut",
+        "addedWires": [
+          {
+            "from": "f:a/keep.py",
+            "to": "p-ops",
+            "kind": "uses"
+          }
+        ],
+        "removedWires": [],
+        "danglingWires": [],
+        "ghostChecks": [
+          {
+            "location": "level1",
+            "id": "x-legacy-idp",
+            "changeType": "deleted"
+          },
+          {
+            "location": "level2",
+            "id": "c-legacy-worker",
+            "changeType": "deleted"
+          },
+          {
+            "location": "level3",
+            "parentId": "c-keep",
+            "id": "c-keep/old-comp",
+            "changeType": "deleted"
+          },
+          {
+            "location": "level4",
+            "id": "vm-decommissioned",
+            "changeType": "deleted"
+          },
+          {
+            "location": "inline",
+            "parentId": "c-keep/inline-parent",
+            "id": "in-deleted",
+            "changeType": "deleted"
+          },
+          {
+            "location": "l4-inline",
+            "parentId": "vm-keep",
+            "id": "vm-keep/unit-a",
+            "changeType": "modified"
+          },
+          {
+            "location": "subgraph",
+            "parentId": "c-keep/collapsed",
+            "id": "f:b/removed.py",
+            "changeType": "deleted"
+          }
+        ],
+        "absentSubgraphKeys": [
+          "c-keep/inline-parent",
+          "sys-core"
         ]
       }
     }

@@ -488,6 +488,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
           addedIds: string[];
           deletedIds: string[];
           movedIds: string[];
+          movedPairs?: Array<{ id: string; previousId: string }>;
           sigChangedIds: string[];
           bodyPatchedIds: string[];
           blastSeedIds: string[];
@@ -495,6 +496,13 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
           addedWires: Array<{ from: string; to: string; kind: string }>;
           removedWires: Array<{ from: string; to: string; kind: string }>;
           danglingWires: Array<{ from: string; to: string; kind: string }>;
+          ghostChecks?: Array<{
+            location: "level1" | "level2" | "level3" | "level4" | "subgraph" | "inline" | "l4-inline";
+            parentId?: string;
+            id: string;
+            changeType: string;
+          }>;
+          absentSubgraphKeys?: string[];
         };
       }>;
     };
@@ -599,6 +607,12 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
       expect(delta.addedIds, `${dc.id}: addedIds`).toEqual(dc.expected.addedIds);
       expect(delta.deletedIds, `${dc.id}: deletedIds`).toEqual(dc.expected.deletedIds);
       expect(delta.movedIds, `${dc.id}: movedIds`).toEqual(dc.expected.movedIds);
+      if (dc.expected.movedPairs) {
+        const gotPairs = delta.nodeChanges
+          .filter((c) => c.change === "moved" && c.previousId)
+          .map((c) => ({ id: c.id, previousId: c.previousId! }));
+        expect(gotPairs, `${dc.id}: movedPairs`).toEqual(dc.expected.movedPairs);
+      }
       expect(delta.sigChangedIds, `${dc.id}: sigChangedIds`).toEqual(dc.expected.sigChangedIds);
       expect(delta.bodyPatchedIds, `${dc.id}: bodyPatchedIds`).toEqual(dc.expected.bodyPatchedIds);
       expect(delta.blastSeedIds, `${dc.id}: blastSeedIds`).toEqual(dc.expected.blastSeedIds);
@@ -618,10 +632,58 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
         `${dc.id}: danglingWires`,
       ).toEqual(dc.expected.danglingWires);
 
-      // Deleted element f:docs/auth.md is re-inserted into mergedModel under its base parent as ghosted deleted
-      const workerEls = delta.mergedModel.subgraphs?.["c-worker/jobs"]?.elements ?? [];
-      expect(workerEls.find((e) => e.id === "f:docs/auth.md")?.diff?.changeType).toBe("deleted");
+      for (const gc of dc.expected.ghostChecks ?? []) {
+        let foundDiff: string | undefined;
+        if (gc.location === "level1") {
+          foundDiff = delta.mergedModel.level1.elements.find((e) => e.id === gc.id)?.diff?.changeType;
+        } else if (gc.location === "level2") {
+          foundDiff = delta.mergedModel.level2.elements.find((e) => !e.ref && e.id === gc.id)?.diff?.changeType;
+        } else if (gc.location === "level3") {
+          foundDiff = delta.mergedModel.level3[gc.parentId!]?.find((e) => e.id === gc.id)?.diff?.changeType;
+        } else if (gc.location === "level4") {
+          foundDiff = delta.mergedModel.level4.nodes.find((n) => n.id === gc.id)?.diff?.changeType;
+        } else if (gc.location === "subgraph") {
+          foundDiff = delta.mergedModel.subgraphs?.[gc.parentId!]?.elements.find((e) => e.id === gc.id)?.diff?.changeType;
+        } else if (gc.location === "inline") {
+          const allL3 = Object.values(delta.mergedModel.level3).flat();
+          foundDiff = allL3.find((e) => e.id === gc.parentId)?.children?.find((c) => c.id === gc.id)?.diff?.changeType;
+        } else if (gc.location === "l4-inline") {
+          foundDiff = delta.mergedModel.level4.nodes.find((n) => n.id === gc.parentId)?.children?.find((c) => c.id === gc.id)?.diff?.changeType;
+        }
+        expect(foundDiff, `${dc.id}: ghostCheck ${gc.location}/${gc.id}`).toBe(gc.changeType);
+      }
+
+      for (const k of dc.expected.absentSubgraphKeys ?? []) {
+        expect(Object.prototype.hasOwnProperty.call(delta.mergedModel.subgraphs ?? {}, k), `${dc.id}: absent subgraph ${k}`).toBe(false);
+      }
+
+      // Lightweight mode (`includeMergedModel: false`) returns identical delta metadata without cloning
+      const slim = computeGraphDelta(dc.baseModel, dc.headModel, { includeMergedModel: false });
+      expect(slim.blastSeedIds, `${dc.id}: slim blastSeedIds`).toEqual(delta.blastSeedIds);
+      expect(slim.mergedModel, `${dc.id}: slim mergedModel reference`).toBe(dc.headModel);
     }
+  });
+
+  it("handles malformed maxHops, empty link endpoints, partial models, and cyclic d: subgraphs safely", () => {
+    const cycModel: TuxMapLevelModel = {
+      level1: { elements: [], rels: [] },
+      level2: { boundary: "sys", elements: [], rels: [] },
+      level3: {},
+      level4: { groups: [], nodes: [], links: [] },
+      subgraphs: {
+        "d:cyc/a": { elements: [{ id: "d:cyc/b", kind: "module", name: "b" }] },
+        "d:cyc/b": { elements: [{ id: "d:cyc/a", kind: "module", name: "a" }] },
+      },
+      links: [
+        { from: "", to: "f:a.py", kind: "calls" },
+        { from: "f:b.py", to: "", kind: "calls" },
+        { from: "f:c.py", to: "f:a.py", kind: "calls" },
+      ],
+    };
+    const parentOf = buildMapParentIndex(cycModel);
+    expect(computeLinkBlastRadius(cycModel.links!, "f:a.py", parentOf, { maxHops: -5 }).hits.size).toBe(0);
+    expect(computeLinkBlastRadius(cycModel.links!, "f:a.py", parentOf, { maxHops: Number.NaN }).hits.has("f:c.py")).toBe(true);
+    expect(() => computeGraphDelta({} as TuxMapLevelModel, cycModel)).not.toThrow();
   });
 });
 

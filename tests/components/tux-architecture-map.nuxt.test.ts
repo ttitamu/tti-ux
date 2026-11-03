@@ -972,6 +972,117 @@ describe("TuxArchitectureMap Component", () => {
     expect(wrapper.find('.tux-map__el[data-id="c-api"]').classes()).toContain("tux-map__el--diff-impact");
     expect(wrapper.find('.tux-map__el[data-id="c-web"]').classes()).toContain("tux-map__el--diff-impact");
   });
+
+  it("keeps 2-hop blast wires lit on selection, prefers strongest symbol link per file, switches blast intent, and hardens href/selector inputs (#110)", async () => {
+    const gateModel: TuxMapLevelModel = {
+      sourceBaseUrl: "https://code.tti.tamu.edu/nis/forgejo-stack/src/branch/main",
+      level1: { elements: [{ id: "sys", kind: "system", name: "System", zoom: 2 }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [
+          {
+            id: "c-core",
+            kind: "container",
+            name: "Core Auth",
+            at: [0, 0],
+            source: { path: "../../etc/passwd", lineRange: [1, 5] },
+          },
+          {
+            id: "c-api",
+            kind: "container",
+            name: "Orders API",
+            at: [1, 0],
+            source: { path: "bff/orders.py", url: "https://evil.example/phish" },
+          },
+          {
+            id: 'c-web["quote"]',
+            kind: "container",
+            name: "Web Portal",
+            at: [2, 0],
+            source: { path: "web/app.ts", url: "//evil.example/proto" },
+          },
+        ],
+        rels: [
+          { from: "c-api", to: "c-core", label: "Verifies token" },
+          { from: 'c-web["quote"]', to: "c-api", label: "Calls /v1/orders" },
+        ],
+      },
+      level3: {
+        "c-core": [{ id: "c-core/auth", kind: "component", name: "Auth" }],
+        "c-api": [{ id: "c-api/routes", kind: "component", name: "Routes" }],
+        'c-web["quote"]': [{ id: "c-web/ui", kind: "component", name: "UI" }],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      subgraphs: {
+        "c-core/auth": {
+          elements: [{ id: "f:core/auth.py", kind: "module", name: "auth.py", source: { path: "core/auth.py" } }],
+        },
+        "f:core/auth.py": {
+          elements: [{ id: "s:core/auth.py#verify", kind: "symbol", name: "verify()", source: { path: "core/auth.py" } }],
+        },
+        "c-api/routes": {
+          elements: [{ id: "f:bff/orders.py", kind: "module", name: "orders.py", source: { path: "bff/orders.py" } }],
+        },
+        "f:bff/orders.py": {
+          elements: [{ id: "s:bff/orders.py#create", kind: "symbol", name: "create()", source: { path: "bff/orders.py" } }],
+        },
+        "c-web/ui": {
+          elements: [{ id: "f:web/app.ts", kind: "module", name: "app.ts", source: { path: "web/app.ts" } }],
+        },
+      },
+      links: [
+        // Both file-level type-only import and symbol-level runtime call from bff/orders.py at hop 1: symbol `calls` must win!
+        { from: "f:bff/orders.py", to: "s:core/auth.py#verify", kind: "imports", coupling: "type-only", at: "bff/orders.py:2" },
+        { from: "s:bff/orders.py#create", to: "s:core/auth.py#verify", kind: "calls", at: "bff/orders.py:24" },
+        { from: "f:web/app.ts", to: "s:bff/orders.py#create", kind: "imports", coupling: "type-only", at: "web/app.ts:4" },
+      ],
+    };
+
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: {
+        model: gateModel,
+        initialLevel: 2,
+        initialSelectedId: "c-core",
+        initialShowBlastRadius: true,
+      },
+    });
+    await nextTick();
+
+    // 1. 2-hop wire (`c-web["quote"] -> c-api`) stays `.tux-map__wire-fg--on` even when `c-core` is selected (F-03)
+    const twoHopWire = wrapper
+      .findAll(".tux-map__wire-fg")
+      .find((w) => w.attributes("data-from") === 'c-web["quote"]' && w.attributes("data-to") === "c-api");
+    expect(twoHopWire).toBeDefined();
+    expect(twoHopWire!.classes()).toContain("tux-map__wire-fg--on");
+
+    // 2. Strongest symbol link (`calls it`) beats file-level `imports` on `bff/orders.py` (F-07)
+    const rows = wrapper.findAll(".tux-map__blast-row");
+    expect(rows[0]!.text()).toContain("bff/orders.py");
+    expect(rows[0]!.text()).toContain("calls it");
+
+    // 3. `..` path traversal on `c-core` renders inert `<code>` pill instead of `<a class="tux-map__source-lnk">` (S-05)
+    expect(wrapper.find(".tux-map__source-lnk").exists()).toBe(false);
+    expect(wrapper.find(".tux-map__source-pill").text()).toContain("../../etc/passwd");
+
+    // 4. Toolbar intent `<select>` switches to `patch`, skipping hop-2 `type-only` (`web/app.ts`) and emitting `update:blastIntent` (N-09)
+    const intentSelect = wrapper.find("select.tux-map__intent-select");
+    expect(intentSelect.exists()).toBe(true);
+    await intentSelect.setValue("patch");
+    await nextTick();
+    expect(wrapper.emitted("update:blastIntent")?.at(-1)).toEqual(["patch"]);
+    expect(wrapper.findAll(".tux-map__blast-row").length).toBe(1);
+
+    // 5. Cross-origin `src.url` on `c-api` and protocol-relative `//evil.example` on `c-web["quote"]` are rejected, and quote/bracket IDs do not throw (S-05)
+    await wrapper.find('.tux-map__el[data-id="c-api"]').trigger("click");
+    await nextTick();
+    expect(wrapper.find(".tux-map__source-lnk").exists()).toBe(false);
+
+    const webCard = wrapper.findAll(".tux-map__el").find((el) => el.attributes("data-id") === 'c-web["quote"]')!;
+    await webCard.trigger("click");
+    await nextTick();
+    expect(wrapper.find(".tux-map__source-lnk").exists()).toBe(false);
+    expect(await runComponentAxe(wrapper.element)).toEqual([]);
+  });
 });
 
 // vitest runs from the repository root (the Nuxt environment's import.meta.url is not a file: URL)
