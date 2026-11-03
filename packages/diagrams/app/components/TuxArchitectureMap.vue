@@ -6,7 +6,10 @@ import {
   TUX_MAP_LINK_KIND_LABELS,
   buildLevelModelFromLegacyNodes,
   buildMapParentIndex,
+  compareBlastLinks,
   computeLinkBlastRadius,
+  extractModelLinks,
+  hasOwn,
   levelForFocus as computeLevelForFocus,
   liftLinksToView,
   liftToSet,
@@ -16,6 +19,7 @@ import {
   gridCellToPx,
   routeDeploymentWires,
   routeGridWires,
+  type TuxMapBlastIntent,
   type TuxMapCollaborator,
   type TuxMapDeploymentNode,
   type TuxMapDeploymentZone,
@@ -28,6 +32,7 @@ import {
   type TuxMapLevelModel,
   type TuxMapLevelNumber,
   type TuxMapLevelRel,
+  type TuxMapLink,
   type TuxMapLoDLevel,
   type TuxMapNode,
   type TuxMapPlacedBoundary,
@@ -64,6 +69,12 @@ export interface TuxArchitectureMapProps {
   showBlastRadius?: boolean;
   /** Whether to show PR Blast-Radius / Diff overlay initially */
   initialShowBlastRadius?: boolean;
+  /** Controlled semantic intent for Blast-Radius traversal (`v-model:blastIntent`) */
+  blastIntent?: TuxMapBlastIntent;
+  /** Initial semantic intent for Blast-Radius traversal (`"default"` by default) */
+  initialBlastIntent?: TuxMapBlastIntent;
+  /** Optional explicit seed node IDs for PR/branch Blast-Radius mode (e.g. `delta.blastSeedIds`) */
+  blastSeeds?: string[];
   /** Controlled view mode (`v-model:view`) */
   view?: TuxMapViewMode;
   /** Initial view mode (`"diagram"`, `"list"`, or `"auto"` which opens `"list"` below `autoListBreakpoint`) */
@@ -116,6 +127,9 @@ const props = withDefaults(defineProps<TuxArchitectureMapProps>(), {
   initialShowPlanned: false,
   showBlastRadius: undefined,
   initialShowBlastRadius: false,
+  blastIntent: undefined,
+  initialBlastIntent: "default",
+  blastSeeds: undefined,
   view: undefined,
   initialView: "diagram",
   autoListBreakpoint: 760,
@@ -143,6 +157,7 @@ const emit = defineEmits<{
   (e: "update:selectedId", selectedId: string | null): void;
   (e: "update:showPlanned", showPlanned: boolean): void;
   (e: "update:showBlastRadius", showBlastRadius: boolean): void;
+  (e: "update:blastIntent", blastIntent: TuxMapBlastIntent): void;
   (e: "update:view", view: TuxMapViewMode): void;
   (e: "update:lodMode", mode: "auto" | TuxMapLoDLevel): void;
   (e: "node-select", item: TuxMapLevelElement | TuxMapDeploymentNode | TuxMapNode | null): void;
@@ -193,6 +208,9 @@ const showPlanned = ref<boolean>(
 );
 const showBlastRadius = ref<boolean>(
   props.showBlastRadius !== undefined ? props.showBlastRadius : props.initialShowBlastRadius,
+);
+const blastIntent = ref<TuxMapBlastIntent>(
+  props.blastIntent !== undefined ? props.blastIntent : props.initialBlastIntent,
 );
 const isListView = ref<boolean>(resolveInitialIsListView());
 const searchQuery = ref<string>("");
@@ -254,6 +272,14 @@ watch(
   },
 );
 watch(
+  () => props.blastIntent,
+  (bi) => {
+    if (bi !== undefined && bi !== blastIntent.value) {
+      blastIntent.value = bi;
+    }
+  },
+);
+watch(
   () => props.view,
   (v) => {
     if (v !== undefined) {
@@ -274,6 +300,9 @@ watch(showPlanned, (sp) => {
 });
 watch(showBlastRadius, (br) => {
   emit("update:showBlastRadius", br);
+});
+watch(blastIntent, (bi) => {
+  emit("update:blastIntent", bi);
 });
 watch(isListView, (lv) => {
   emit("update:view", lv ? "list" : "diagram");
@@ -300,12 +329,16 @@ watch(
 function getSubgraphForNode(nodeId: string | null | undefined): TuxMapSubgraph | null {
   if (!nodeId) return null;
   const M = activeModel.value;
-  if (M.subgraphs?.[nodeId] && M.subgraphs[nodeId]!.elements.length > 0) {
-    return M.subgraphs[nodeId]!;
+  if (hasOwn(M.subgraphs, nodeId) && M.subgraphs![nodeId]!.elements.length > 0) {
+    return M.subgraphs![nodeId]!;
   }
-  const el = byId.value[nodeId];
-  if (el?.subgraphRef && M.subgraphs?.[el.subgraphRef]?.elements.length) {
-    return M.subgraphs[el.subgraphRef]!;
+  const el = hasOwn(byId.value, nodeId) ? byId.value[nodeId] : undefined;
+  if (
+    el?.subgraphRef &&
+    hasOwn(M.subgraphs, el.subgraphRef) &&
+    M.subgraphs![el.subgraphRef]!.elements.length
+  ) {
+    return M.subgraphs![el.subgraphRef]!;
   }
   if (el?.children?.length) {
     return {
@@ -314,9 +347,13 @@ function getSubgraphForNode(nodeId: string | null | undefined): TuxMapSubgraph |
       rels: el.childRels,
     };
   }
-  const dn = resById.value[nodeId];
-  if (dn?.subgraphRef && M.subgraphs?.[dn.subgraphRef]?.elements.length) {
-    return M.subgraphs[dn.subgraphRef]!;
+  const dn = hasOwn(resById.value, nodeId) ? resById.value[nodeId] : undefined;
+  if (
+    dn?.subgraphRef &&
+    hasOwn(M.subgraphs, dn.subgraphRef) &&
+    M.subgraphs![dn.subgraphRef]!.elements.length
+  ) {
+    return M.subgraphs![dn.subgraphRef]!;
   }
   if (dn?.children?.length) {
     return {
@@ -329,13 +366,14 @@ function getSubgraphForNode(nodeId: string | null | undefined): TuxMapSubgraph |
 }
 
 const byId = computed<Record<string, TuxMapLevelElement>>(() => {
-  const map: Record<string, TuxMapLevelElement> = {};
-  const indexChildren = (parentId: string, kids: TuxMapLevelElement[]) => {
+  const map: Record<string, TuxMapLevelElement> = Object.create(null);
+  const indexChildren = (parentId: string, kids: TuxMapLevelElement[], depth = 0) => {
+    if (depth >= 64) return;
     kids.forEach((k, i) => {
       const id = k.id || `${parentId}/${i}`;
       map[id] = { ...k, id, kind: k.kind ?? "component", parent: parentId };
       if (k.children?.length) {
-        indexChildren(id, k.children);
+        indexChildren(id, k.children, depth + 1);
       }
     });
   };
@@ -368,7 +406,7 @@ const byId = computed<Record<string, TuxMapLevelElement>>(() => {
 });
 
 const resById = computed<Record<string, TuxMapDeploymentNode>>(() => {
-  const map: Record<string, TuxMapDeploymentNode> = {};
+  const map: Record<string, TuxMapDeploymentNode> = Object.create(null);
   for (const n of activeModel.value.level4.nodes) {
     map[n.id] = n;
   }
@@ -403,7 +441,7 @@ if (currentLevel.value >= 5 && focusId.value) drillStack.value = drillStackFor(f
 const modelDepth = computed<number>(() => {
   let max = 4;
   for (const id of [...Object.keys(byId.value), ...Object.keys(resById.value)]) {
-    if (hasFractalSubgraph(id)) max = Math.max(max, levelForFocus(id));
+    if (hasFractalSubgraph(id)) max = Math.max(max, Math.max(5, levelForFocus(id)));
   }
   return max;
 });
@@ -416,10 +454,10 @@ watch(
   (m) => {
     if (
       !focusId.value ||
-      (!m.level3[focusId.value] && !m.subgraphs?.[focusId.value])
+      (!hasOwn(m.level3, focusId.value) && !hasOwn(m.subgraphs, focusId.value))
     ) {
       const firstContainer = m.level2.elements.find(
-        (e) => !e.ref && (m.level3[e.id]?.length ?? 0) > 0,
+        (e) => !e.ref && (hasOwn(m.level3, e.id) ? (m.level3[e.id]?.length ?? 0) : 0) > 0,
       );
       focusId.value = firstContainer?.id ?? null;
     }
@@ -462,7 +500,7 @@ function isShownStatus(status?: string): boolean {
 
 function hasFractalSubgraph(id: string): boolean {
   const M = activeModel.value;
-  if (M.subgraphs?.[id] && M.subgraphs[id]!.elements.length > 0) return true;
+  if (hasOwn(M.subgraphs, id) && M.subgraphs![id]!.elements.length > 0) return true;
   const el = byId.value[id];
   if (el && (el.children?.length || el.subgraphRef)) return true;
   const dn = resById.value[id];
@@ -1021,39 +1059,89 @@ function liftToDeployHosts(
   return [...found];
 }
 
-// The blast radius of the selected element through the model's code links: everything that depends
+const effectiveModelLinks = computed<TuxMapLink[]>(() =>
+  extractModelLinks(activeModel.value, { includePlanned: showPlanned.value }),
+);
+
+const hasModelDiffs = computed<boolean>(() => {
+  if (props.blastSeeds?.length) return true;
+  for (const el of Object.values(byId.value)) {
+    if (!el.ref && el.diff) return true;
+  }
+  for (const n of activeModel.value.level4.nodes) {
+    if (n.diff) return true;
+  }
+  return false;
+});
+
+// The blast radius of the selected element through the model's links: everything that depends
 // on it or on anything inside it (including Level 4 hosts via their hosted containers/components).
 // Computed whenever something is chosen (the details panel lists it); drawn on the stage when the
 // Blast radius switch is on.
 const selectionBlast = computed(() => {
   const M = activeModel.value;
   const id = selectedId.value;
-  if (!M.links?.length || !id || (!byId.value[id] && !resById.value[id])) return null;
-  return computeLinkBlastRadius(M.links, id, parentOf.value, { model: M });
+  const links = effectiveModelLinks.value;
+  if (!links.length || !id || (!byId.value[id] && !resById.value[id])) return null;
+  return computeLinkBlastRadius(links, id, parentOf.value, {
+    model: M,
+    intent: blastIntent.value,
+  });
 });
 
 // The same, one row per file, nearest first, for the details panel
 const selectionBlastFiles = computed(() => {
+  const M = activeModel.value;
+  if (!M.links?.length && !showBlastRadius.value) return null;
   const sb = selectionBlast.value;
   if (!sb) return null;
-  const byPath = new Map<string, { id: string; path: string; hop: number; how: string; href: string | null }>();
+  const byPath = new Map<
+    string,
+    { id: string; path: string; hop: number; via: TuxMapLink; how: string; href: string | null }
+  >();
   for (const [id, hit] of sb.hits) {
     const e = byId.value[id];
-    const path = e?.source?.path || e?.name || id;
+    const dn = resById.value[id];
+    const path = e?.source?.path || dn?.source?.path || e?.name || dn?.title || id;
     const prev = byPath.get(path);
-    if (prev && prev.hop <= hit.hop) continue;
+    if (prev) {
+      if (prev.hop < hit.hop) continue;
+      if (prev.hop === hit.hop) {
+        const prevStop = Number(Boolean(prev.via.stop));
+        const curStop = Number(Boolean(hit.via.stop));
+        if (prevStop < curStop) continue;
+        if (prevStop === curStop && compareBlastLinks(hit.via, prev.via) >= 0) continue;
+      }
+    }
     const [atPath, atLine] = (hit.via.at || "").split(/:(?=\d+$)/);
+    const kindKey = hit.via.kind || "";
+    const how =
+      (hasOwn(TUX_MAP_LINK_KIND_LABELS, kindKey) ? TUX_MAP_LINK_KIND_LABELS[kindKey] : undefined) ||
+      kindKey ||
+      "depends on it";
     byPath.set(path, {
       id,
       path,
       hop: hit.hop,
-      how: TUX_MAP_LINK_KIND_LABELS[hit.via.kind || ""] || hit.via.kind || "depends on it",
-      href: atPath ? buildSourceHref({ path: atPath, lineRange: atLine ? [Number(atLine), Number(atLine)] : undefined }) : null,
+      via: hit.via,
+      how,
+      href: atPath
+        ? buildSourceHref({
+            path: atPath,
+            lineRange: atLine ? [Number(atLine), Number(atLine)] : undefined,
+          })
+        : null,
     });
   }
   const rows = [...byPath.values()].sort((a, b) => a.hop - b.hop || a.path.localeCompare(b.path));
   const SHOWN = 60;
-  return { parts: sb.hits.size, total: rows.length, shown: rows.slice(0, SHOWN), more: Math.max(0, rows.length - SHOWN) };
+  return {
+    parts: sb.hits.size,
+    total: rows.length,
+    shown: rows.slice(0, SHOWN),
+    more: Math.max(0, rows.length - SHOWN),
+    truncated: sb.truncated,
+  };
 });
 
 function projectBlastOntoStage(
@@ -1112,7 +1200,7 @@ function projectBlastOntoStage(
 const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
   if (!showBlastRadius.value) return null;
 
-  // A selection with code links: light what its change reaches, lifted onto the cards on stage
+  // A selection with links: light what its change reaches, lifted onto the cards on stage
   const sb = selectionBlast.value;
   if (sb) {
     return projectBlastOntoStage(sb.seeds, sb.hits, new Map());
@@ -1124,12 +1212,19 @@ const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
 
   // Walk full ancestor chains across Levels 1..7+ so deep symbol/file diffs roll up to every ancestor
   const allDiffIds = new Set<string>();
+  const diffById = new Map<string, TuxMapDiffInfo>();
   const diffAncestorsWithDiffChild = new Set<string>();
   for (const [id, el] of Object.entries(byId.value)) {
-    if (!el.ref && el.diff) allDiffIds.add(id);
+    if (!el.ref && el.diff) {
+      allDiffIds.add(id);
+      diffById.set(id, el.diff);
+    }
   }
   for (const n of M.level4.nodes) {
-    if (n.diff) allDiffIds.add(n.id);
+    if (n.diff) {
+      allDiffIds.add(n.id);
+      diffById.set(n.id, n.diff);
+    }
   }
 
   const l2ContainerIds = new Set(M.level2.elements.filter((e) => !e.ref).map((e) => e.id));
@@ -1167,46 +1262,48 @@ const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
     }
   }
 
-  // When code links exist and elements carry diff badges, propagate via multi-seed computeLinkBlastRadius
-  // seeded from the deepest diff elements (avoiding over-seeding whole files when one child symbol changed)
-  if (M.links?.length && allDiffIds.size > 0) {
-    const leafDiffIds = [...allDiffIds].filter((id) => !diffAncestorsWithDiffChild.has(id));
-    const diffBlast = computeLinkBlastRadius(M.links, leafDiffIds, parentOf.value, { model: M });
+  // Propagate via multi-seed computeLinkBlastRadius across effective links
+  const links = effectiveModelLinks.value;
+  if (links.length && (allDiffIds.size > 0 || props.blastSeeds?.length)) {
+    const seedIds = props.blastSeeds?.length
+      ? props.blastSeeds
+      : [...allDiffIds].filter((id) => {
+          if (!diffAncestorsWithDiffChild.has(id)) return true;
+          const d = diffById.get(id);
+          // Keep non-body-patched ancestors (added, deleted, moved, sig-changed)
+          return d?.changeType !== "modified" || Boolean(d.summary && d.summary !== "Body patched");
+        });
+    const diffBlast = computeLinkBlastRadius(links, seedIds, parentOf.value, {
+      model: M,
+      intent: blastIntent.value,
+    });
     return projectBlastOntoStage(diffBlast.seeds, diffBlast.hits, rollupCountById, directIds);
   }
 
   const impactedIds = new Set<string>();
   const impactedWires = new Set<string>();
 
-  // Fallback for hand-authored C4 models without `links`: 1-hop and 2-hop propagation across stage wires
+  // Upstream-only stage-wire fallback when model has zero links
   const hop1 = new Set<string>(directIds);
   for (const w of routedSvg.value.wires) {
-    const fromDirect =
-      directIds.has(w.from) ||
-      (w.from === "@bound" && focusId.value && (directIds.has(focusId.value) || rollupCountById.has(focusId.value)));
     const toDirect =
       directIds.has(w.to) ||
       (w.to === "@bound" && focusId.value && (directIds.has(focusId.value) || rollupCountById.has(focusId.value)));
 
-    if (fromDirect || toDirect) {
+    if (toDirect) {
       impactedWires.add(w.id);
       if (w.from !== "@bound" && !directIds.has(w.from)) {
         impactedIds.add(w.from);
         hop1.add(w.from);
-      }
-      if (w.to !== "@bound" && !directIds.has(w.to)) {
-        impactedIds.add(w.to);
-        hop1.add(w.to);
       }
     }
   }
 
   for (const w of routedSvg.value.wires) {
     if (impactedWires.has(w.id)) continue;
-    if (hop1.has(w.from) || hop1.has(w.to)) {
+    if (hop1.has(w.to)) {
       impactedWires.add(w.id);
       if (w.from !== "@bound" && !directIds.has(w.from)) impactedIds.add(w.from);
-      if (w.to !== "@bound" && !directIds.has(w.to)) impactedIds.add(w.to);
     }
   }
 
@@ -1215,13 +1312,21 @@ const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
 
 function formatDiffBadge(
   id: string,
-  diff?: { changeType: "added" | "modified" | "deleted"; filesChanged?: number },
+  diff?: TuxMapDiffInfo,
 ): [string, string] | null {
   const br = blastRadiusState.value;
   if (!br) return null;
   if (diff) {
     const prefix =
-      diff.changeType === "added" ? "+ Added" : diff.changeType === "deleted" ? "− Deleted" : "△ Modified";
+      diff.changeType === "added"
+        ? "+ Added"
+        : diff.changeType === "deleted"
+          ? "− Deleted"
+          : diff.summary?.startsWith("Moved")
+            ? "⇄ Moved"
+            : diff.summary?.startsWith("Signature")
+              ? "△ Signature"
+              : "△ Modified";
     return [
       diff.changeType,
       diff.filesChanged ? `${prefix} · ${diff.filesChanged}f` : prefix,
@@ -1381,13 +1486,13 @@ function isElementLit(id: string, parentId?: string): boolean {
 }
 
 function isWireLit(from: string, to: string, wireId?: string): boolean {
+  const br = blastRadiusState.value;
+  if (br && wireId && br.impactedWires.has(wireId)) {
+    return true;
+  }
   const key = litKey.value;
   if (key) {
     return from === key || to === key;
-  }
-  const br = blastRadiusState.value;
-  if (br && wireId) {
-    return br.impactedWires.has(wireId);
   }
   return false;
 }
@@ -1407,6 +1512,7 @@ interface StageDomCache {
   bgSvg: SVGSVGElement | null;
   cards: { el: HTMLElement; id: string; parent: string }[];
   fgWiresByNode: Map<string, SVGElement[]>;
+  fgWiresById: Map<string, SVGElement[]>;
   labelsByNode: Map<string, { el: HTMLElement; forced: boolean }[]>;
   neighborsByNode: Map<string, Set<string>>;
   litWires: SVGElement[];
@@ -1414,6 +1520,18 @@ interface StageDomCache {
 }
 
 let stageDomCache: StageDomCache | null = null;
+
+function queryCardById(root: ParentNode | null | undefined, id: string): HTMLElement | null {
+  if (!root || !id) return null;
+  if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
+    return root.querySelector<HTMLElement>(`.tux-map__el[data-id="${CSS.escape(id)}"]`);
+  }
+  const cards = root.querySelectorAll<HTMLElement>(".tux-map__el");
+  for (let i = 0; i < cards.length; i++) {
+    if (cards[i]!.dataset.id === id) return cards[i]!;
+  }
+  return null;
+}
 
 function rebuildStageDomCache() {
   const stage = stageRef.value;
@@ -1435,6 +1553,7 @@ function rebuildStageDomCache() {
   }
 
   const fgWiresByNode = new Map<string, SVGElement[]>();
+  const fgWiresById = new Map<string, SVGElement[]>();
   const neighborsByNode = new Map<string, Set<string>>();
   const litWires: SVGElement[] = [];
 
@@ -1456,8 +1575,10 @@ function rebuildStageDomCache() {
   const fgWireEls = stage.querySelectorAll<SVGElement>(".tux-map__wire-fg");
   for (let i = 0; i < fgWireEls.length; i++) {
     const w = fgWireEls[i]!;
+    const wid = w.dataset.id || "";
     const from = w.dataset.from || "";
     const to = w.dataset.to || "";
+    if (wid) pushMapItem(fgWiresById, wid, w);
     pushMapItem(fgWiresByNode, from, w);
     if (to !== from) pushMapItem(fgWiresByNode, to, w);
     addNeighbor(from, to);
@@ -1486,6 +1607,7 @@ function rebuildStageDomCache() {
     bgSvg,
     cards,
     fgWiresByNode,
+    fgWiresById,
     labelsByNode,
     neighborsByNode,
     litWires,
@@ -1543,11 +1665,15 @@ function applyStageHighlight(rawId: string | null) {
           br.directIds.has(c.id) || br.impactedIds.has(c.id),
         );
       }
-      for (const w of stage.querySelectorAll<SVGElement>(".tux-map__wire-fg")) {
-        const wid = w.dataset.id || "";
-        if (br.impactedWires.has(wid)) {
-          w.classList.add("tux-map__wire-fg--on");
-          cache.litWires.push(w);
+      for (const wid of br.impactedWires) {
+        const ws = cache.fgWiresById.get(wid);
+        if (!ws) continue;
+        for (let i = 0; i < ws.length; i++) {
+          const w = ws[i]!;
+          if (!w.classList.contains("tux-map__wire-fg--on")) {
+            w.classList.add("tux-map__wire-fg--on");
+            cache.litWires.push(w);
+          }
         }
       }
       return;
@@ -1587,11 +1713,15 @@ function applyStageHighlight(rawId: string | null) {
   const boundLit = Boolean(neighborSet?.has("@bound") || key === "@bound");
   const br = rawId === selectedId.value ? blastRadiusState.value : null;
   if (br) {
-    for (const w of stage.querySelectorAll<SVGElement>(".tux-map__wire-fg")) {
-      const wid = w.dataset.id || "";
-      if (br.impactedWires.has(wid)) {
-        w.classList.add("tux-map__wire-fg--on");
-        cache.litWires.push(w);
+    for (const wid of br.impactedWires) {
+      const ws = cache.fgWiresById.get(wid);
+      if (!ws) continue;
+      for (let i = 0; i < ws.length; i++) {
+        const w = ws[i]!;
+        if (!w.classList.contains("tux-map__wire-fg--on")) {
+          w.classList.add("tux-map__wire-fg--on");
+          cache.litWires.push(w);
+        }
       }
     }
   }
@@ -2361,9 +2491,7 @@ function goToLevel(
 
     // Pulse the landed card when zooming out (or when focusing a specific host on Level 4)
     if (resolvedTargetId) {
-      const landedCard = stage.querySelector<HTMLElement>(
-        `.tux-map__el[data-id="${resolvedTargetId}"]`,
-      );
+      const landedCard = queryCardById(stage, resolvedTargetId);
       if (landedCard && typeof landedCard.animate === "function") {
         landedCard.animate(
           [
@@ -2823,9 +2951,7 @@ function onViewportWheel(ev: WheelEvent) {
   // Physical pre-zoom response: attach to the closest card, pull it slightly along the
   // cursor vector, and scale it as the wheel turns
   const activeCardEl =
-    (candidateId && stageRef.value
-      ? stageRef.value.querySelector<HTMLElement>(`.tux-map__el[data-id="${candidateId}"]`)
-      : null) || targetEl;
+    (candidateId ? queryCardById(stageRef.value, candidateId) : null) || targetEl;
 
   if (activeCardEl && Math.abs(wheelDeltaAccum) < 26) {
     if (still) {
@@ -3566,13 +3692,19 @@ function normalizeArray(v?: string | string[]): string[] {
 }
 
 // A model's URLs are data: only web and relative links reach an href, so a
-// `javascript:` or `data:` value never runs on click. The URL parser decides
-// the scheme, as the browser would (it drops tabs and newlines inside it).
+// `javascript:`, `data:`, or scheme-relative `//` value never runs or redirects cross-origin.
+const DUMMY_HREF_BASE = "https://tux-map.invalid/";
 function safeHref(url: string | null | undefined): string | null {
   if (!url) return null;
+  const trimmed = url.trim();
+  if (!trimmed || /^[/\\]{2}/.test(trimmed)) return null;
   try {
-    const { protocol } = new URL(url, "https://tux-map.invalid/");
-    return protocol === "https:" || protocol === "http:" ? url : null;
+    const parsed = new URL(trimmed, DUMMY_HREF_BASE);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
+    if (!/^https?:\/\//i.test(trimmed) && parsed.origin !== "https://tux-map.invalid") {
+      return null;
+    }
+    return trimmed;
   } catch {
     return null;
   }
@@ -3590,15 +3722,40 @@ function buildSourceHref(src?: {
   url?: string;
 }): string | null {
   if (!src) return null;
-  if (src.url) return safeHref(src.url);
+  if (src.url) {
+    const direct = safeHref(src.url);
+    if (!direct) return null;
+    const base = safeHref(activeModel.value.sourceBaseUrl);
+    if (base) {
+      try {
+        const baseUrl = new URL(base, DUMMY_HREF_BASE);
+        const targetUrl = new URL(direct, baseUrl);
+        if (baseUrl.origin !== "https://tux-map.invalid" && targetUrl.origin !== baseUrl.origin) {
+          return null;
+        }
+      } catch {
+        return null;
+      }
+    }
+    return direct;
+  }
   const base = safeHref(activeModel.value.sourceBaseUrl);
   if (!base) return null;
-  // a path is a file name, not a URL: '#', '?' and spaces in it are encoded
-  const cleanPath = src.path.replace(/^\/+/, "").split("/").map(encodeURIComponent).join("/");
-  const lineHash = src.lineRange
-    ? src.lineRange[0] === src.lineRange[1]
-      ? `#L${src.lineRange[0]}`
-      : `#L${src.lineRange[0]}-L${src.lineRange[1]}`
+  // Normalize slashes and reject empty, '.', or '..' path traversal segments
+  const norm = src.path.replace(/\\/g, "/").replace(/^\/+/, "");
+  if (!norm) return null;
+  const segs = norm.split("/");
+  if (segs.some((seg) => !seg || seg === "." || seg === "..")) return null;
+  const cleanPath = segs.map(encodeURIComponent).join("/");
+  const validRange =
+    Array.isArray(src.lineRange) &&
+    src.lineRange.length >= 2 &&
+    Number.isFinite(src.lineRange[0]) &&
+    Number.isFinite(src.lineRange[1]);
+  const lineHash = validRange
+    ? src.lineRange![0] === src.lineRange![1]
+      ? `#L${src.lineRange![0]}`
+      : `#L${src.lineRange![0]}-L${src.lineRange![1]}`
     : "";
   return `${base.replace(/\/+$/, "")}/${cleanPath}${lineHash}`;
 }
@@ -3707,6 +3864,20 @@ function buildSourceHref(src?: {
         <span class="tux-map__switch-track tux-map__switch-track--blast" />
         <span>Blast radius</span>
       </label>
+
+      <select
+        v-if="showBlastRadius"
+        v-model="blastIntent"
+        class="tux-map__intent-select"
+        aria-label="Blast radius intent"
+        title="Filter blast radius propagation by change intent"
+      >
+        <option value="default">Intent: General</option>
+        <option value="patch">Intent: Body patch</option>
+        <option value="refactor">Intent: Refactor</option>
+        <option value="cut">Intent: Cut / remove</option>
+        <option value="supply-chain">Intent: Supply chain</option>
+      </select>
 
       <!-- Lightweight Annotation Tools -->
       <div class="tux-map__seg" role="group" aria-label="Annotation tools">
@@ -3831,7 +4002,7 @@ function buildSourceHref(src?: {
         <li><i class="tux-map__swatch tux-map__swatch--planned" /> Planned</li>
       </template>
       <template v-if="showBlastRadius">
-        <li><i class="tux-map__swatch tux-map__swatch--diff-direct" /> PR Modified</li>
+        <li><i class="tux-map__swatch tux-map__swatch--diff-direct" /> {{ hasModelDiffs ? "PR Modified" : "Selected" }}</li>
         <li><i class="tux-map__swatch tux-map__swatch--diff-impact" /> Blast-Radius Impacted</li>
       </template>
       <li>
@@ -4424,7 +4595,7 @@ function buildSourceHref(src?: {
 
           <!-- PR Diff / Blast Radius Summary -->
           <template v-if="selectedLevelElement.diff || formatDiffBadge(selectedLevelElement.id, selectedLevelElement.diff)">
-            <h5 class="tux-map__panel-h">PR Change &amp; Blast Radius</h5>
+            <h5 class="tux-map__panel-h">{{ selectedLevelElement.diff || hasModelDiffs ? "PR Change & Blast Radius" : "Selection & Blast Radius" }}</h5>
             <div class="tux-map__panel-diff">
               <span
                 v-if="formatDiffBadge(selectedLevelElement.id, selectedLevelElement.diff)"
@@ -4447,7 +4618,9 @@ function buildSourceHref(src?: {
                 {{
                   selectionBlastFiles.total
                     ? `Changing it reaches ${selectionBlastFiles.parts} part${selectionBlastFiles.parts === 1 ? "" : "s"} in ${selectionBlastFiles.total} file${selectionBlastFiles.total === 1 ? "" : "s"}, nearest first.`
-                    : "Nothing on the map depends on it."
+                    : selectedUsedByRels.length
+                      ? "No upstream impact under the current blast intent."
+                      : "Nothing on the map depends on it."
                 }}
               </p>
               <button
@@ -4491,6 +4664,9 @@ function buildSourceHref(src?: {
               <p v-if="selectionBlastFiles.more" class="tux-map__panel-blast-sum">
                 And {{ selectionBlastFiles.more }} more file{{ selectionBlastFiles.more === 1 ? "" : "s" }}.
               </p>
+              <p v-if="selectionBlastFiles.truncated" class="tux-map__panel-blast-sum">
+                Stopped at hop limit; deeper dependents exist.
+              </p>
             </div>
           </template>
 
@@ -4506,7 +4682,7 @@ function buildSourceHref(src?: {
                 class="tux-map__source-lnk"
               >
                 <code>{{ selectedLevelElement.source.path }}</code>
-                <span v-if="selectedLevelElement.source.lineRange">
+                <span v-if="selectedLevelElement.source.lineRange && selectedLevelElement.source.lineRange.length >= 2">
                   :L{{ selectedLevelElement.source.lineRange[0] }}–L{{ selectedLevelElement.source.lineRange[1] }}
                 </span>
               </a>
@@ -4682,7 +4858,7 @@ function buildSourceHref(src?: {
 
           <!-- PR Diff / Blast Radius Summary (Deployment Node) -->
           <template v-if="selectedDeployNode.diff || formatDiffBadge(selectedDeployNode.id, selectedDeployNode.diff)">
-            <h5 class="tux-map__panel-h">PR Change &amp; Blast Radius</h5>
+            <h5 class="tux-map__panel-h">{{ selectedDeployNode.diff || hasModelDiffs ? "PR Change & Blast Radius" : "Selection & Blast Radius" }}</h5>
             <div class="tux-map__panel-diff">
               <span
                 v-if="formatDiffBadge(selectedDeployNode.id, selectedDeployNode.diff)"
@@ -4705,7 +4881,9 @@ function buildSourceHref(src?: {
                 {{
                   selectionBlastFiles.total
                     ? `Changing it reaches ${selectionBlastFiles.parts} part${selectionBlastFiles.parts === 1 ? "" : "s"} in ${selectionBlastFiles.total} file${selectionBlastFiles.total === 1 ? "" : "s"}, nearest first.`
-                    : "Nothing on the map depends on it."
+                    : selectedDeployInLinks.length
+                      ? "No upstream impact under the current blast intent."
+                      : "Nothing on the map depends on it."
                 }}
               </p>
               <button
@@ -4749,6 +4927,9 @@ function buildSourceHref(src?: {
               <p v-if="selectionBlastFiles.more" class="tux-map__panel-blast-sum">
                 And {{ selectionBlastFiles.more }} more file{{ selectionBlastFiles.more === 1 ? "" : "s" }}.
               </p>
+              <p v-if="selectionBlastFiles.truncated" class="tux-map__panel-blast-sum">
+                Stopped at hop limit; deeper dependents exist.
+              </p>
             </div>
           </template>
 
@@ -4764,7 +4945,7 @@ function buildSourceHref(src?: {
                 class="tux-map__source-lnk"
               >
                 <code>{{ selectedDeployNode.source.path }}</code>
-                <span v-if="selectedDeployNode.source.lineRange">
+                <span v-if="selectedDeployNode.source.lineRange && selectedDeployNode.source.lineRange.length >= 2">
                   :L{{ selectedDeployNode.source.lineRange[0] }}–L{{ selectedDeployNode.source.lineRange[1] }}
                 </span>
               </a>
@@ -5141,6 +5322,18 @@ function buildSourceHref(src?: {
 
 .tux-map__switch input:checked + .tux-map__switch-track::after {
   transform: translateX(14px);
+}
+
+.tux-map__intent-select {
+  min-height: var(--tux-map-target);
+  padding: 0.3rem 0.55rem;
+  font: inherit;
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
 }
 
 .tux-map__spacer {
