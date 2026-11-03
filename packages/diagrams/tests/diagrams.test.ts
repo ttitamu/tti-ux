@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { useTuxMermaid } from "../app/composables/useTuxMermaid";
 import {
   resolveSemanticLoD,
@@ -12,6 +12,7 @@ import {
   getStraightEdgePath,
   computeMapAutoLayout,
   computeDependencyBlastRadius,
+  resetArchitectureDeprecationWarnings,
   getSmoothedFreehandSvgPath,
   getLaserPointerSvgPath,
   gridCellToPx,
@@ -20,6 +21,9 @@ import {
   buildLevelModelFromLegacyNodes,
   buildUnifiedArchitectureGraph,
   getMapQueryIndex,
+  queryArchitectureNodes,
+  queryArchitectureImpact,
+  findArchitecturePath,
   queryArchitectureLayer,
   queryMultiLevelBlastRadius,
   findShortestArchitecturePath,
@@ -30,6 +34,9 @@ import {
   liftLinksToView,
   computeLinkBlastRadius,
   computeGraphDelta,
+  inferLinkCoupling,
+  inferLinkPhase,
+  TUX_MAP_LINK_STRENGTH_ORDER,
   DEFAULT_TTI_LEVEL_MODEL,
   type TuxMapBlastIntent,
   type TuxMapNode,
@@ -141,10 +148,15 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect(layout.get("a")!.x).toBeLessThan(layout.get("b")!.x);
     expect(layout.get("b")!.x).toBeLessThan(layout.get("c")!.x);
 
-    const blast = computeDependencyBlastRadius("b", edges);
-    expect([...blast.upstreamNodeIds]).toEqual(["a"]);
-    expect([...blast.downstreamNodeIds]).toEqual(["c"]);
-    expect(blast.activeEdgeIds.size).toBe(2);
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const blast = computeDependencyBlastRadius("b", edges);
+      expect([...blast.upstreamNodeIds]).toEqual(["a"]);
+      expect([...blast.downstreamNodeIds]).toEqual(["c"]);
+      expect(blast.activeEdgeIds.size).toBe(2);
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 
   it("generates smoothed freehand ink and decaying laser pointer SVG paths", () => {
@@ -234,54 +246,63 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect(converted.level4.nodes.length).toBe(2);
   });
 
-  it("queries unified 6-level architecture graph, multi-hop blast radius, shortest path, and ACP subgraph leases", () => {
+  it("queries unified architecture nodes, impact blast radius, and directed paths (#111)", () => {
     const cpg = buildUnifiedArchitectureGraph(DEFAULT_TTI_LEVEL_MODEL);
     expect(cpg.nodes.size).toBeGreaterThan(25);
     expect(cpg.edges.length).toBeGreaterThan(25);
 
-    const lvl5 = queryArchitectureLayer(DEFAULT_TTI_LEVEL_MODEL, {
+    const lvl5 = queryArchitectureNodes(DEFAULT_TTI_LEVEL_MODEL, {
       focusId: "ai-search-app",
     });
     expect(lvl5.nodeCount).toBeGreaterThanOrEqual(4);
 
-    const blast = queryMultiLevelBlastRadius("c-api", DEFAULT_TTI_LEVEL_MODEL, 2);
-    expect("error" in blast).toBe(false);
-    if (!("error" in blast)) {
-      expect(blast.descendantIds).toContain("c-api/1");
-      expect(blast.upstreamDependents.some((u) => u.id === "c-edge" || u.id === "c-web")).toBe(true);
-      expect(blast.downstreamDependencies.some((d) => d.id === "c-db" || d.id === "c-cache")).toBe(true);
-      expect(blast.impactedSourceFiles.some((f) => f.path.includes("services/api"))).toBe(true);
+    // Downstream is off by default and opt-in through `includeDownstream: true`
+    const defaultImpact = queryArchitectureImpact("c-api", DEFAULT_TTI_LEVEL_MODEL, { maxHops: 2 });
+    expect("error" in defaultImpact).toBe(false);
+    if (!("error" in defaultImpact)) {
+      expect(defaultImpact.descendantIds).toContain("c-api/1");
+      expect(defaultImpact.hits.some((u) => u.id === "c-edge" || u.id === "c-web")).toBe(true);
+      expect(defaultImpact.hits[0]?.node).toBeUndefined(); // compact by default
+      expect(defaultImpact.downstreamIncluded).toBe(false);
+      expect(defaultImpact.downstreamDependencies).toEqual([]);
+      expect(defaultImpact.impactedSourceFiles.some((f) => f.path.includes("services/api"))).toBe(true);
     }
 
-    const sp = findShortestArchitecturePath("p-users", "c-db", DEFAULT_TTI_LEVEL_MODEL);
-    expect(sp.found).toBe(true);
-    expect(sp.hops).toBeGreaterThanOrEqual(2);
-
-    // ACP Subgraph Lease acquisition & conflict prevention
-    const leaseA = coordinateAcpSubgraphLease("acquire", {
-      agentId: "agent-alpha",
-      rootNodeId: "c-api",
+    const withDownstream = queryArchitectureImpact("c-api", DEFAULT_TTI_LEVEL_MODEL, {
+      maxHops: 2,
+      includeDownstream: true,
+      compact: false,
     });
-    expect(leaseA.acquired).toBe(true);
+    expect("error" in withDownstream).toBe(false);
+    if (!("error" in withDownstream)) {
+      expect(withDownstream.downstreamIncluded).toBe(true);
+      expect(withDownstream.downstreamDependencies.some((d) => d.id === "c-db" || d.id === "c-cache")).toBe(true);
+      expect(withDownstream.hits[0]?.node).toBeDefined();
+    }
 
-    // Overlapping child node `c-api/1` requested by `agent-beta` must be rejected
-    const leaseConflict = coordinateAcpSubgraphLease("acquire", {
-      agentId: "agent-beta",
-      rootNodeId: "c-api/1",
+    const forwardPath = findArchitecturePath("p-users", "c-db", DEFAULT_TTI_LEVEL_MODEL);
+    expect("error" in forwardPath).toBe(false);
+    if (!("error" in forwardPath)) {
+      expect(forwardPath.found).toBe(true);
+      expect(forwardPath.hops).toBeGreaterThanOrEqual(2);
+    }
+
+    // Reverse path `c-db -> p-users` is false unless `{ direction: "upstream" }` is requested
+    const reverseBlocked = findArchitecturePath("c-db", "p-users", DEFAULT_TTI_LEVEL_MODEL);
+    expect("error" in reverseBlocked).toBe(false);
+    if (!("error" in reverseBlocked)) {
+      expect(reverseBlocked.found).toBe(false);
+    }
+
+    const reverseAllowed = findArchitecturePath("c-db", "p-users", DEFAULT_TTI_LEVEL_MODEL, {
+      direction: "upstream",
     });
-    expect(leaseConflict.acquired).toBe(false);
-    expect(leaseConflict.conflict?.heldByAgent).toBe("agent-alpha");
-
-    // Non-overlapping node `ai-search-app` requested by `agent-beta` succeeds
-    const leaseB = coordinateAcpSubgraphLease("acquire", {
-      agentId: "agent-beta",
-      rootNodeId: "ai-search-app",
-    });
-    expect(leaseB.acquired).toBe(true);
-
-    // Release both leases
-    coordinateAcpSubgraphLease("release", { agentId: "agent-alpha" });
-    coordinateAcpSubgraphLease("release", { agentId: "agent-beta" });
+    expect("error" in reverseAllowed).toBe(false);
+    if (!("error" in reverseAllowed)) {
+      expect(reverseAllowed.found).toBe(true);
+      expect(reverseAllowed.nodeIds[0]).toBe("c-db");
+      expect(reverseAllowed.nodeIds.at(-1)).toBe("p-users");
+    }
   });
 
   // A model with code levels: container c-api → component c-api/routes → file f:routes.py → its
@@ -517,7 +538,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
         expect(cpg.nodes.get(nodeId)?.level, `${lc.id}: level(${nodeId})`).toBe(expLvl);
       }
       if (lc.expectedLevel7Ids) {
-        const l7 = queryArchitectureLayer(m, { level: 7 });
+        const l7 = queryArchitectureNodes(m, { level: 7 });
         expect(l7.nodes.map((n) => n.id).sort(), `${lc.id}: level 7 query`).toEqual(
           lc.expectedLevel7Ids,
         );
@@ -587,18 +608,43 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
         expect(res.hostsImpacted, `${bc.id}: hostsImpacted`).toEqual(bc.expected.hostsImpacted);
       }
 
-      // Query layer parity: single-seed default blast cases also match queryMultiLevelBlastRadius
-      if (bc.seeds.length === 1 && !bc.opts.intent && bc.opts.quietSeedOnly === undefined) {
-        const qRes = queryMultiLevelBlastRadius(bc.seeds[0]!, m, bc.opts.maxHops ?? 32);
-        if (!("error" in qRes)) {
-          expect(qRes.truncated, `${bc.id}: queryMultiLevelBlastRadius.truncated`).toBe(
-            bc.expected.truncated,
-          );
-          expect(
-            qRes.upstreamDependents.map((u) => ({ id: u.id, hop: u.hop })),
-            `${bc.id}: queryMultiLevelBlastRadius.upstreamDependents`,
-          ).toEqual(actualHits.map((h) => ({ id: h.id, hop: h.hop })));
-        }
+      // Section 8 contract parity (#111): on EVERY case in #110's conformance fixture,
+      // `queryArchitectureImpact` and `computeLinkBlastRadius` return the exact same node set and triage buckets.
+      const qImpact = queryArchitectureImpact(bc.seeds, m, {
+        ...bc.opts,
+        bridgeUncovered: Boolean(bc.useExtractedModelLinks),
+      });
+      expect("error" in qImpact, `${bc.id}: queryArchitectureImpact succeeded`).toBe(false);
+      if (!("error" in qImpact)) {
+        expect(qImpact.truncated, `${bc.id}: queryArchitectureImpact.truncated`).toBe(res.truncated);
+        expect(
+          qImpact.hits.map((h) => ({ id: h.id, hop: h.hop })),
+          `${bc.id}: queryArchitectureImpact exact node set & hops`,
+        ).toEqual(actualHits.map((h) => ({ id: h.id, hop: h.hop })));
+        expect(qImpact.blockers, `${bc.id}: queryArchitectureImpact.blockers`).toEqual(res.blockers);
+        expect(qImpact.coCutCandidates, `${bc.id}: queryArchitectureImpact.coCutCandidates`).toEqual(
+          res.coCutCandidates,
+        );
+        expect(qImpact.testsToRun, `${bc.id}: queryArchitectureImpact.testsToRun`).toEqual(res.testsToRun);
+        expect(qImpact.stampsToRebuild, `${bc.id}: queryArchitectureImpact.stampsToRebuild`).toEqual(
+          res.stampsToRebuild,
+        );
+        expect(qImpact.buildExecImpacted, `${bc.id}: queryArchitectureImpact.buildExecImpacted`).toEqual(
+          res.buildExecImpacted,
+        );
+        expect(qImpact.hostsImpacted, `${bc.id}: queryArchitectureImpact.hostsImpacted`).toEqual(
+          res.hostsImpacted,
+        );
+      }
+
+      // Also verify default `bridgeUncovered: true` matches on all 19 conformance blastCases
+      const qImpactDefault = queryArchitectureImpact(bc.seeds, m, bc.opts);
+      expect("error" in qImpactDefault, `${bc.id}: queryArchitectureImpact default bridge`).toBe(false);
+      if (!("error" in qImpactDefault)) {
+        expect(
+          qImpactDefault.hits.map((h) => h.id),
+          `${bc.id}: queryArchitectureImpact default node set`,
+        ).toEqual(actualHits.map((h) => h.id));
       }
     }
 
@@ -684,6 +730,178 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect(computeLinkBlastRadius(cycModel.links!, "f:a.py", parentOf, { maxHops: -5 }).hits.size).toBe(0);
     expect(computeLinkBlastRadius(cycModel.links!, "f:a.py", parentOf, { maxHops: Number.NaN }).hits.has("f:c.py")).toBe(true);
     expect(() => computeGraphDelta({} as TuxMapLevelModel, cycModel)).not.toThrow();
+  });
+
+  it("caps unknown-ID errors under 2 KB with <= 10 suggestions on a 2,500-node model, labels coarse-parent steps, supports paging, and warns once per deprecated API (#111)", () => {
+    // 1. 2,500-node model: unknown ID returns < 2 KB and at most 10 ranked suggestions
+    const largeElements = Array.from({ length: 2496 }, (_, i) => ({
+      id: `f:packages/mod_${String(i).padStart(4, "0")}/service_${i}.ts`,
+      kind: "module",
+      name: `service_${i}.ts`,
+      desc: "A".repeat(160),
+    }));
+    const largeModel: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys-big", kind: "system", name: "Big System" }], rels: [] },
+      level2: {
+        boundary: "sys-big",
+        elements: [{ id: "c-core", kind: "container", name: "Core Container" }],
+        rels: [],
+      },
+      level3: {
+        "c-core": [{ id: "c-core/app", kind: "component", name: "App Component" }],
+      },
+      level4: {
+        groups: [{ id: "rg-1", zone: "cloud-prod", title: "rg-1" }],
+        nodes: [{ id: "vm-1", group: "rg-1", kind: "vm", title: "vm-1", role: "Host", hosts: ["c-core"] }],
+        links: [],
+      },
+      subgraphs: {
+        "c-core/app": { elements: largeElements },
+      },
+      links: [],
+    };
+    expect(buildUnifiedArchitectureGraph(largeModel).nodes.size).toBeGreaterThanOrEqual(2500);
+
+    const errImpact = queryArchitectureImpact("service_12", largeModel);
+    expect("error" in errImpact).toBe(true);
+    if ("error" in errImpact) {
+      const bytes = Buffer.byteLength(JSON.stringify(errImpact), "utf8");
+      expect(bytes).toBeLessThan(2048);
+      expect(errImpact.suggestions.length).toBeGreaterThan(0);
+      expect(errImpact.suggestions.length).toBeLessThanOrEqual(10);
+      expect(errImpact.suggestions.some((s) => s.includes("service_12"))).toBe(true);
+    }
+
+    // Adversarial 5,000-byte unknown ID still stays under 2 KB
+    const errHuge = findArchitecturePath("x".repeat(5000), "c-core", largeModel);
+    expect("error" in errHuge).toBe(true);
+    if ("error" in errHuge) {
+      expect(Buffer.byteLength(JSON.stringify(errHuge), "utf8")).toBeLessThan(2048);
+      expect(errHuge.suggestions.length).toBeLessThanOrEqual(10);
+    }
+
+    // 2. Paging & compact node/impact queries
+    const pagedNodes = queryArchitectureNodes(largeModel, {
+      focusId: "c-core/app",
+      compact: true,
+      limit: 25,
+      offset: 10,
+    });
+    expect(pagedNodes.totalNodeCount).toBe(2497);
+    expect(pagedNodes.nodeCount).toBe(25);
+    expect(pagedNodes.offset).toBe(10);
+    expect(pagedNodes.hasMore).toBe(true);
+    expect("desc" in pagedNodes.nodes[0]!).toBe(false);
+
+    // 3. C4-only coarse-parent step is never added to `seeds` and is explicitly labelled
+    const coarseRes = queryArchitectureImpact("c-api/0", DEFAULT_TTI_LEVEL_MODEL);
+    expect("error" in coarseRes).toBe(false);
+    if (!("error" in coarseRes)) {
+      expect(coarseRes.seeds).toEqual(["c-api/0"]);
+      expect(coarseRes.coarseParentSteps).toEqual([
+        {
+          seedId: "c-api/0",
+          parentId: "c-api",
+          reason: "Component has no direct links; stepped via enclosing container C4 relationships.",
+        },
+      ]);
+      expect(coarseRes.hits.length).toBeGreaterThan(0);
+      expect(coarseRes.hits.every((h) => h.coarseParentVia === "c-api")).toBe(true);
+    }
+    const noCoarse = queryArchitectureImpact("c-api/0", DEFAULT_TTI_LEVEL_MODEL, {
+      allowCoarseParentStep: false,
+    });
+    if (!("error" in noCoarse)) {
+      expect(noCoarse.hits).toEqual([]);
+      expect(noCoarse.coarseParentSteps).toEqual([]);
+    }
+
+    // 4. Directed path descends, labelled, into code below an element without climbing child -> parent
+    //    or fabricating transitive hops through unrelated sibling children of an intermediate container
+    const descendPath = findArchitecturePath("ai-search-app", "ai-search-app/retriever/rrf", DEFAULT_TTI_LEVEL_MODEL);
+    expect("error" in descendPath).toBe(false);
+    if (!("error" in descendPath)) {
+      expect(descendPath.found).toBe(true);
+      expect(descendPath.edges.every((e) => e.kind === "parent-child" && e.label === "contains")).toBe(true);
+    }
+    const noClimbPath = findArchitecturePath("ai-search-app/retriever/rrf", "ai-search-app", DEFAULT_TTI_LEVEL_MODEL);
+    expect("error" in noClimbPath).toBe(false);
+    if (!("error" in noClimbPath)) {
+      expect(noClimbPath.found).toBe(false);
+    }
+    const siblingLeakModel: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [
+          { id: "c-web", kind: "container", name: "Web" },
+          { id: "c-api", kind: "container", name: "API" },
+          { id: "c-vault", kind: "container", name: "Vault" },
+        ],
+        rels: [{ from: "c-web", to: "c-api", label: "Calls public router" }],
+      },
+      level3: {
+        "c-api": [
+          { id: "c-api/router", kind: "component", name: "Router" },
+          { id: "c-api/audit", kind: "component", name: "Audit" },
+        ],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      links: [{ from: "c-api/audit", to: "c-vault", kind: "calls" }],
+    };
+    const siblingLeak = findArchitecturePath("c-web", "c-vault", siblingLeakModel);
+    expect("error" in siblingLeak).toBe(false);
+    if (!("error" in siblingLeak)) {
+      expect(siblingLeak.found).toBe(false);
+    }
+    const ownCodeOut = findArchitecturePath("c-api", "c-vault", siblingLeakModel);
+    expect("error" in ownCodeOut).toBe(false);
+    if (!("error" in ownCodeOut)) {
+      expect(ownCodeOut.found).toBe(true);
+      expect(ownCodeOut.edges[0]?.label).toBe("contains");
+      expect(ownCodeOut.edges[1]?.label).toBe("calls");
+    }
+
+    // 5. `links` kind parity with code-graph.py (#706)
+    expect(TUX_MAP_LINK_STRENGTH_ORDER.at(-2)).toBe("links");
+    expect(TUX_MAP_LINK_STRENGTH_ORDER.at(-1)).toBe("mentions");
+    expect(inferLinkCoupling({ from: "a", to: "b", kind: "links", stop: true })).toBe("contract");
+    expect(inferLinkPhase({ from: "a", to: "b", kind: "links", stop: true })).toBe("client-bundle");
+
+    // 6. All 5 deprecated functions emit a single console.warn once and still return backwards-compatible results
+    resetArchitectureDeprecationWarnings();
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const rLayer1 = queryArchitectureLayer(DEFAULT_TTI_LEVEL_MODEL, { level: 2 });
+      const rLayer2 = queryArchitectureLayer(DEFAULT_TTI_LEVEL_MODEL, { level: 2 });
+      expect(rLayer1.nodeCount).toBeGreaterThan(0);
+      expect(rLayer2.nodeCount).toBe(rLayer1.nodeCount);
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+
+      const rBlast1 = queryMultiLevelBlastRadius("c-api", DEFAULT_TTI_LEVEL_MODEL, 1);
+      queryMultiLevelBlastRadius("c-api", DEFAULT_TTI_LEVEL_MODEL, 1);
+      expect("error" in rBlast1).toBe(false);
+      expect(warnSpy).toHaveBeenCalledTimes(2);
+
+      const rPath1 = findShortestArchitecturePath("p-users", "c-db", DEFAULT_TTI_LEVEL_MODEL);
+      findShortestArchitecturePath("p-users", "c-db", DEFAULT_TTI_LEVEL_MODEL);
+      expect("found" in rPath1 && rPath1.found).toBe(true);
+      expect(warnSpy).toHaveBeenCalledTimes(3);
+
+      const rDep1 = computeDependencyBlastRadius("b", [{ id: "e1", source: "a", target: "b" }]);
+      computeDependencyBlastRadius("b", [{ id: "e1", source: "a", target: "b" }]);
+      expect([...rDep1.upstreamNodeIds]).toEqual(["a"]);
+      expect(warnSpy).toHaveBeenCalledTimes(4);
+
+      const rLease1 = coordinateAcpSubgraphLease("acquire", { agentId: "a1", rootNodeId: "c-api" });
+      const rLeaseConflict = coordinateAcpSubgraphLease("acquire", { agentId: "a2", rootNodeId: "c-api/1" });
+      coordinateAcpSubgraphLease("release", { agentId: "a1" });
+      expect(rLease1.acquired).toBe(true);
+      expect(rLeaseConflict.acquired).toBe(false);
+      expect(warnSpy).toHaveBeenCalledTimes(5);
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 });
 
