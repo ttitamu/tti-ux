@@ -1400,5 +1400,260 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
       rmSync(tmpDir, { recursive: true, force: true });
     }
   });
+
+  it("enforces Gate B MCP hardening: NodeNext .d.mts, < 16 KB budgets, multi-header framing, linear snippet audit, and schema normalization (#112)", async () => {
+    const packageRoot = join(import.meta.dirname, "..");
+    const repoRoot = join(packageRoot, "..", "..");
+    const mcpScriptPath = join(repoRoot, "scripts", "tux-mcp.mjs");
+    const runtimeJsPath = join(packageRoot, "runtime", "tuxArchitectureMap.mjs");
+    // @ts-expect-error .mjs script import
+    const mcpMod = await import("../../../scripts/tux-mcp.mjs");
+    const tsMod = await import("typescript");
+    const ts = tsMod.default ?? tsMod;
+
+    const tmpDir = mkdtempSync(join(tmpdir(), "tux-mcp-gateb-112-"));
+    try {
+      // 1. F-10: External TypeScript consumer using NodeNext resolves runtime/tuxArchitectureMap.d.mts with 0 errors
+      const consumerTs = join(tmpDir, "consumer.mts");
+      writeFileSync(
+        consumerTs,
+        `import { computeLinkBlastRadius, normalizeArchitectureModelInput, type TuxMapLevelModel } from ${JSON.stringify(runtimeJsPath)};\n` +
+          `const m: TuxMapLevelModel = normalizeArchitectureModelInput({ level1: { elements: [{ id: "s-1", name: "Sys", kind: "system" }], rels: [] } });\n` +
+          `export const r = computeLinkBlastRadius([], ["s-1"], new Map(), { model: m, intent: "patch" });\n`,
+        "utf8",
+      );
+      const prog = ts.createProgram([consumerTs], {
+        noEmit: true,
+        strict: true,
+        target: ts.ScriptTarget.ES2022,
+        module: ts.ModuleKind.NodeNext,
+        moduleResolution: ts.ModuleResolutionKind.NodeNext,
+        skipLibCheck: true,
+      });
+      const diags = ts.getPreEmitDiagnostics(prog);
+      expect(
+        diags.map((d) => ts.flattenDiagnosticMessageText(d.messageText, "\n")),
+      ).toEqual([]);
+
+      // 2. N-02: < 16 KB (16,384 bytes) payload ceiling on a 2,650-node / 10,000-edge repo-scale model
+      const codeSubgraphs: Record<string, { elements: Array<Record<string, unknown>>; rels: Array<Record<string, unknown>> }> = {
+        "c-gateway": { elements: [], rels: [] },
+      };
+      const links: Array<{ from: string; to: string; kind: string }> = [];
+      for (let i = 0; i < 2650; i += 1) {
+        const fid = `f:pkg/mod_${i}.ts`;
+        codeSubgraphs["c-gateway"]!.elements.push({
+          id: fid,
+          name: `mod_${i}.ts`,
+          kind: i % 5 === 0 ? "test" : "file",
+          source: { path: `pkg/mod_${i}.ts`, hash: `h_${i}` },
+        });
+        if (i > 0) {
+          links.push({
+            from: fid,
+            to: `f:pkg/mod_${Math.floor(i / 4)}.ts`,
+            kind: i % 5 === 0 ? "tests" : "imports",
+          });
+        }
+      }
+      const largeModel: TuxMapLevelModel = {
+        level1: { elements: [{ id: "s-forge", name: "Platform", kind: "system" }], rels: [] },
+        level2: {
+          boundary: "s-forge",
+          elements: [{ id: "c-gateway", name: "Gateway", kind: "container", deployed: ["vm-prod"] }],
+          rels: [],
+        },
+        level4: {
+          groups: [],
+          nodes: [{ id: "vm-prod", title: "Prod VM", kind: "vm", hosts: ["c-gateway"] }],
+          links: [],
+        },
+        subgraphs: codeSubgraphs as unknown as TuxMapLevelModel["subgraphs"],
+        links: links as unknown as TuxMapLevelModel["links"],
+      };
+      const baseLargeModel: TuxMapLevelModel = {
+        ...largeModel,
+        subgraphs: {
+          "c-gateway": {
+            elements: codeSubgraphs["c-gateway"]!.elements.slice(0, 1800) as unknown as NonNullable<TuxMapLevelModel["subgraphs"]>[string]["elements"],
+            rels: [],
+          },
+        },
+        links: links.slice(0, 1500) as unknown as TuxMapLevelModel["links"],
+      };
+
+      const largeSrv = mcpMod.createTuxMcpServer({ model: largeModel, baseModel: baseLargeModel });
+      const c4Res = largeSrv.handleRequest({
+        jsonrpc: "2.0",
+        id: 10,
+        method: "resources/read",
+        params: { uri: "tux://architecture/c4-graph" },
+      });
+      const c4Bytes = Buffer.byteLength(c4Res.result.contents[0].text, "utf8");
+      expect(c4Bytes).toBeLessThan(16 * 1024);
+      const c4Parsed = JSON.parse(c4Res.result.contents[0].text);
+      expect(c4Parsed.nodeCount).toBeGreaterThan(2650);
+      expect(c4Parsed.truncated).toBe(true);
+      expect(c4Parsed.drillDownTools).toContain("tux_query_architecture_impact");
+
+      const nodesRes = largeSrv.handleRequest({
+        jsonrpc: "2.0",
+        id: 11,
+        method: "tools/call",
+        params: { name: "tux_query_architecture_nodes", arguments: {} },
+      });
+      expect(Buffer.byteLength(nodesRes.result.content[0].text, "utf8")).toBeLessThan(16 * 1024);
+      const nodesParsed = JSON.parse(nodesRes.result.content[0].text);
+      expect(nodesParsed.hasMore).toBe(true);
+      expect(nodesParsed.totalNodeCount).toBeGreaterThan(2650);
+
+      const impactRes = largeSrv.handleRequest({
+        jsonrpc: "2.0",
+        id: 12,
+        method: "tools/call",
+        params: { name: "tux_query_architecture_impact", arguments: { seedIds: ["c-gateway"] } },
+      });
+      expect(Buffer.byteLength(impactRes.result.content[0].text, "utf8")).toBeLessThan(16 * 1024);
+      const impactParsed = JSON.parse(impactRes.result.content[0].text);
+      expect(impactParsed.seedCount).toBeGreaterThan(2650);
+
+      const deltaRes = largeSrv.handleRequest({
+        jsonrpc: "2.0",
+        id: 13,
+        method: "tools/call",
+        params: { name: "tux_compute_graph_delta", arguments: {} },
+      });
+      expect(Buffer.byteLength(deltaRes.result.content[0].text, "utf8")).toBeLessThan(16 * 1024);
+      const deltaParsed = JSON.parse(deltaRes.result.content[0].text);
+      expect(deltaParsed.totalAddedCount).toBe(850);
+      expect(deltaParsed.deltaTruncated).toBe(true);
+
+      // 3. F-04, F-13, N-01, S-02: Schema enum, strict coercion, schema:2 + TUX_MCP_MODEL, fail-closed 0-node & --call exit 1
+      const impactSchema = largeSrv
+        .getTools()
+        .find((t: { name: string }) => t.name === "tux_query_architecture_impact")!.inputSchema;
+      expect(impactSchema.properties.intent.enum).toEqual([
+        "default",
+        "patch",
+        "refactor",
+        "cut",
+        "supply-chain",
+      ]);
+      expect(impactSchema.properties.bridgeUncovered.type).toBe("boolean");
+
+      // Empty string level is ignored (not coerced to level 0); non-numeric limit returns -32602; "false" boolean works
+      const emptyLevel = largeSrv.callTool("tux_query_architecture_nodes", { level: "", limit: 5 });
+      expect(emptyLevel.nodes.length).toBe(5);
+      const badLimit = largeSrv.handleRequest({
+        jsonrpc: "2.0",
+        id: 14,
+        method: "tools/call",
+        params: { name: "tux_query_architecture_nodes", arguments: { limit: "abc" } },
+      });
+      expect(badLimit.error?.code).toBe(-32602);
+      const strFalseDelta = largeSrv.callTool("tux_compute_graph_delta", {
+        includeMergedModel: "false",
+      });
+      expect(strFalseDelta.mergedModel).toBeUndefined();
+
+      // Reject directory path & 0-node / code-map.json config
+      expect(() => mcpMod.loadArchitectureModelFile(tmpDir)).toThrow(/not a regular file/);
+      const badConfigPath = join(tmpDir, "code-map.json");
+      writeFileSync(badConfigPath, JSON.stringify({ rules: [], prefixes: {} }), "utf8");
+      expect(() => mcpMod.loadArchitectureModelFile(badConfigPath)).toThrow(/code-map\.json/);
+
+      // Normalize schema: 2 architecture.json & load via TUX_MCP_MODEL env var; --call exits 1 on { error }
+      const schema2Path = join(tmpDir, "architecture.json");
+      writeFileSync(
+        schema2Path,
+        JSON.stringify({
+          schema: 2,
+          c4: {
+            context: { elements: [{ id: "p-dev", name: "Dev", kind: "person" }], rels: [] },
+            containers: {
+              boundary: "s-app",
+              elements: [{ id: "c-web", name: "Web", kind: "container" }],
+              rels: [{ from: "p-dev", to: "c-web", label: "Uses" }],
+            },
+          },
+        }),
+        "utf8",
+      );
+      const envList = spawnSync(process.execPath, [mcpScriptPath, "--list-tools"], {
+        encoding: "utf8",
+        env: { ...process.env, TUX_MCP_MODEL: schema2Path },
+      });
+      expect(envList.status).toBe(0);
+      expect(
+        (JSON.parse(envList.stdout) as Array<{ name: string }>).some(
+          (t) => t.name === "tux_query_architecture_impact",
+        ),
+      ).toBe(true);
+
+      const badCallExit = spawnSync(
+        process.execPath,
+        [
+          mcpScriptPath,
+          "--call",
+          "tux_query_architecture_impact",
+          JSON.stringify({ seedIds: ["c-web"], intent: "add" }),
+        ],
+        { encoding: "utf8", env: { ...process.env, TUX_MCP_MODEL: schema2Path } },
+      );
+      expect(badCallExit.status).toBe(1);
+      expect(JSON.parse(badCallExit.stdout).error).toContain("Invalid blast intent");
+
+      // 4. F-06 & S-02: Multi-header Content-Type + lowercase content-length framing & bounds
+      const received: Array<{ body: string; framing: string }> = [];
+      const errors: Array<{ msg: string; framing: string }> = [];
+      const frameParser = mcpMod.createStdioFrameParser({
+        maxBufferBytes: 1024,
+        onMessage: (body: string, framing: string) => received.push({ body, framing }),
+        onError: (msg: string, framing: string) => errors.push({ msg, framing }),
+      });
+      const rpcBody = JSON.stringify({ jsonrpc: "2.0", id: 99, method: "ping" });
+      const multiHdrFrame =
+        `Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n` +
+        `content-length: ${Buffer.byteLength(rpcBody, "utf8")}\r\n\r\n` +
+        rpcBody;
+      // Push split across two arbitrary chunks
+      frameParser.push(Buffer.from(multiHdrFrame.slice(0, 27), "utf8"));
+      frameParser.push(Buffer.from(multiHdrFrame.slice(27), "utf8"));
+      expect(received).toEqual([{ body: rpcBody, framing: "content-length" }]);
+      expect(errors).toEqual([]);
+
+      // Oversized Content-Length rejected cleanly in content-length mode
+      frameParser.push(Buffer.from("Content-Length: 999999\r\n\r\n{}", "utf8"));
+      expect(errors.length).toBe(1);
+      expect(errors[0]!.framing).toBe("content-length");
+
+      // 5. S-01 & S-09: Linear-time tux_audit_snippet + spaced var() dedup + prototype-safe token lookup
+      const t0 = performance.now();
+      const washEvil = `color-mix(in srgb, ${" ".repeat(40000)}!`;
+      const btnEvil = `${'<button aria-label="Close">Save'.repeat(3000)}</button>`;
+      const washAudit = mcpMod.callTuxMcpTool("tux_audit_snippet", { code: washEvil });
+      const btnAudit = mcpMod.callTuxMcpTool("tux_audit_snippet", { code: btnEvil });
+      const elapsedMs = performance.now() - t0;
+      expect(washAudit.valid).toBe(true);
+      expect(btnAudit.issueCount).toBe(1);
+      expect(elapsedMs).toBeLessThan(150);
+
+      const spacedAlias = mcpMod.callTuxMcpTool("tux_audit_snippet", {
+        code: ".a { background: var( --bg-page ); border-color: var(--bg-page); }",
+      });
+      expect(spacedAlias.issueCount).toBe(1);
+      expect(spacedAlias.autoFixedCode).toBe(
+        ".a { background: var(--surface-page); border-color: var(--surface-page); }",
+      );
+
+      for (const protoKey of ["constructor", "__proto__", "toString", "valueOf"]) {
+        const tokRes = mcpMod.callTuxMcpTool("tux_search_tokens", { query: protoKey });
+        expect(tokRes.canonicalReplacementForAlias).toBeNull();
+      }
+    } finally {
+      rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
 });
+
 

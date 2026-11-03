@@ -1,24 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
-/**
- * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
- *
- * Synthesizes best-in-class open-source algorithms (MIT / Apache-2.0):
- * 1. SmoothStep & Bezier orthogonal/curved SVG edge routing + viewport bounds math
- *    (adapted from @xyflow/system, MIT License).
- * 2. Variable-width pressure-sensitive freehand stroke smoothing & quadratic SVG polygon pathing
- *    (adapted from perfect-freehand by Steve Ruiz & @excalidraw/common, MIT License).
- * 3. Time- & length-decaying ephemeral laser pointer trail geometry
- *    (adapted from @excalidraw/laser-pointer, MIT License).
- * 4. Directed BFS / DFS upstream & downstream dependency blast-radius traversal
- *    and hierarchical DAG auto-layout (adapted from Cytoscape.js & LikeC4, MIT License).
- * 5. Semantic Zoom Level-of-Detail (LoD) C4+M.A.P. model:
- *    - LoD 1 (`executive`, zoom < 0.65): Products / Systems, Center ownership, operational status, aggregate metrics.
- *    - LoD 2 (`resources`, 0.65 <= zoom < 1.3): People/Teams, VMs, Containers, Databases, APIs.
- *    - LoD 3 (`packages`, zoom >= 1.3): Package dependencies (`@tti/*`, npm, containers), versions, ports, & protocols.
- */
-// ============================================================================
-// 1. SEMANTIC ZOOM LEVEL-OF-DETAIL (LoD) RESOLUTION
-// ============================================================================
+// SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
+// SOURCE-SHA256: 5f3c2f904994b69cfba6f8a5229d183709b0ed51ca2d3a28b43fdf01a8152ef7
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -32,10 +14,6 @@ export function resolveSemanticLoD(zoom, override = "auto") {
         return "resources";
     return "packages";
 }
-/**
- * Returns the intrinsic world-space dimensions of a node card for a given LoD
- * so edge handles, zone bounding boxes, and minimap stay exact across zoom tiers.
- */
 export function getNodeDimensionsForLoD(node, lod) {
     if (lod === "executive") {
         return { width: 340, height: 198 };
@@ -47,7 +25,6 @@ export function getNodeDimensionsForLoD(node, lod) {
             height: 196 + resourceRows * 48,
         };
     }
-    // LoD 3: Full package & dependency manifest + resources
     const resourceRows = Math.ceil(Math.max(1, node.resources.length) / 2);
     const pkgRows = Math.max(1, node.packages.length);
     return {
@@ -55,9 +32,6 @@ export function getNodeDimensionsForLoD(node, lod) {
         height: 226 + resourceRows * 48 + pkgRows * 30,
     };
 }
-// ============================================================================
-// 2. VIEWPORT CAMERA & COORDINATE MATRIX (Adapted from @xyflow/system & tldraw)
-// ============================================================================
 export function screenToWorld(screenX, screenY, viewport) {
     const safeZoom = Math.max(0.05, viewport.zoom);
     return {
@@ -71,10 +45,6 @@ export function worldToScreen(worldX, worldY, viewport) {
         y: worldY * viewport.zoom + viewport.y,
     };
 }
-/**
- * Zooms the viewport around a specific screen focal point (e.g. cursor position)
- * so the world point under the cursor stays stationary during wheel/pinch zoom.
- */
 export function zoomAroundScreenPoint(viewport, nextZoom, focalScreenX, focalScreenY, minZoom = 0.25, maxZoom = 2.5) {
     const clampedZoom = Math.max(minZoom, Math.min(maxZoom, nextZoom));
     const worldBefore = screenToWorld(focalScreenX, focalScreenY, viewport);
@@ -84,9 +54,6 @@ export function zoomAroundScreenPoint(viewport, nextZoom, focalScreenX, focalScr
         zoom: Number(clampedZoom.toFixed(4)),
     };
 }
-/**
- * Computes the bounding rectangle enclosing all given rectangles.
- */
 export function getBoundsOfRects(rects) {
     if (rects.length === 0) {
         return { x: 0, y: 0, width: 800, height: 600 };
@@ -112,10 +79,6 @@ export function getBoundsOfRects(rects) {
         height: Math.max(1, maxY - minY),
     };
 }
-/**
- * Computes the ideal viewport `(x, y, zoom)` to fit a world bounding box
- * inside a container of `(containerWidth, containerHeight)` with padding.
- */
 export function getViewportForBounds(bounds, containerWidth, containerHeight, minZoom = 0.25, maxZoom = 2.0, padding = 0.14) {
     const safeW = Math.max(1, containerWidth * (1 - padding * 2));
     const safeH = Math.max(1, containerHeight * (1 - padding * 2));
@@ -158,11 +121,6 @@ function getRoundedBend(a, b, c, size) {
     const yDir = a.y < c.y ? -1 : 1;
     return `L ${x.toFixed(1)},${(y + bendSize * yDir).toFixed(1)} Q ${x.toFixed(1)},${y.toFixed(1)} ${(x + bendSize * xDir).toFixed(1)},${y.toFixed(1)}`;
 }
-/**
- * Generates an orthogonal rounded-corner SVG path between two node handles,
- * returning both the SVG `d` string and the optimal midpoint `(labelX, labelY)`
- * for edge protocol badges.
- */
 export function getSmoothStepEdgePath(params) {
     const { sourceX, sourceY, sourcePosition = "right", targetX, targetY, targetPosition = "left", borderRadius = 10, offset = 24, } = params;
     const source = { x: sourceX, y: sourceY };
@@ -238,9 +196,6 @@ export function getSmoothStepEdgePath(params) {
     path += `L${last.x.toFixed(1)} ${last.y.toFixed(1)}`;
     return { path, labelX, labelY };
 }
-/**
- * Generates a cubic Bezier SVG path between two handles.
- */
 export function getBezierEdgePath(params) {
     const { sourceX, sourceY, sourcePosition = "right", targetX, targetY, targetPosition = "left", curvature = 0.28, } = params;
     const ctrlOffset = (dist) => dist >= 0 ? 0.5 * dist : curvature * 25 * Math.sqrt(-dist);
@@ -266,9 +221,6 @@ export function getBezierEdgePath(params) {
         labelY,
     };
 }
-/**
- * Generates a direct straight SVG path between two handles.
- */
 export function getStraightEdgePath(params) {
     const { sourceX, sourceY, targetX, targetY } = params;
     return {
@@ -277,10 +229,6 @@ export function getStraightEdgePath(params) {
         labelY: (sourceY + targetY) / 2,
     };
 }
-/**
- * Automatically selects the best handle pair (`right` -> `left` or `bottom` -> `top`)
- * between two node rectangles and returns the anchor coordinates.
- */
 export function resolveOptimalEdgeAnchors(sourceRect, targetRect) {
     const scx = sourceRect.x + sourceRect.width / 2;
     const scy = sourceRect.y + sourceRect.height / 2;
@@ -288,7 +236,6 @@ export function resolveOptimalEdgeAnchors(sourceRect, targetRect) {
     const tcy = targetRect.y + targetRect.height / 2;
     const dx = tcx - scx;
     const dy = tcy - scy;
-    // Prefer horizontal connection when horizontal separation dominates
     if (Math.abs(dx) >= Math.abs(dy) * 0.75) {
         if (dx >= 0) {
             return {
@@ -328,19 +275,10 @@ export function resolveOptimalEdgeAnchors(sourceRect, targetRect) {
         targetPosition: "bottom",
     };
 }
-// ============================================================================
-// 4. DETERMINISTIC LAYERED DAG AUTO-LAYOUT & BLAST-RADIUS TRAVERSAL
-//    (Adapted from Cytoscape.js BFS & LikeC4 topological sort)
-// ============================================================================
-/**
- * Computes deterministic `(x, y)` coordinates for nodes using topological
- * tier layering when explicit positions are omitted.
- */
 export function computeMapAutoLayout(nodes, edges, lod = "resources") {
     const result = new Map();
     if (nodes.length === 0)
         return result;
-    // Determine tier for each node (either explicit `node.tier` or BFS depth from roots)
     const inDegree = new Map();
     const adj = new Map();
     for (const n of nodes) {
@@ -388,7 +326,6 @@ export function computeMapAutoLayout(nodes, edges, lod = "resources") {
             }
         }
     }
-    // Group nodes by tier
     const columns = new Map();
     for (const n of nodes) {
         const t = computedTiers.get(n.id) ?? 0;
@@ -425,22 +362,14 @@ function warnArchitectureDeprecatedOnce(fnName, replacementHint) {
     emittedArchitectureDeprecations.add(fnName);
     console.warn(`[@tti/tti-ux-diagrams] ${fnName}() is deprecated. ${replacementHint}`);
 }
-/** Resets one-shot Section 4/8 deprecation warning state (intended for test suites). */
 export function resetArchitectureDeprecationWarnings() {
     emittedArchitectureDeprecations.clear();
 }
-/**
- * Computes the upstream (dependencies that feed `rootNodeId`) and downstream
- * (dependents impacted by `rootNodeId`) blast-radius subgraph using directed BFS.
- *
- * @deprecated Use `computeLinkBlastRadius` or `queryArchitectureImpact` instead.
- */
 export function computeDependencyBlastRadius(rootNodeId, edges) {
     warnArchitectureDeprecatedOnce("computeDependencyBlastRadius", "Use computeLinkBlastRadius() or queryArchitectureImpact() instead.");
     const upstreamNodeIds = new Set();
     const downstreamNodeIds = new Set();
     const activeEdgeIds = new Set();
-    // Forward BFS (downstream)
     const downQueue = [rootNodeId];
     const visitedDown = new Set([rootNodeId]);
     while (downQueue.length > 0) {
@@ -456,7 +385,6 @@ export function computeDependencyBlastRadius(rootNodeId, edges) {
             }
         }
     }
-    // Reverse BFS (upstream)
     const upQueue = [rootNodeId];
     const visitedUp = new Set([rootNodeId]);
     while (upQueue.length > 0) {
@@ -506,11 +434,6 @@ function vecUni(a) {
 function vecLerp(a, b, t) {
     return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 }
-/**
- * Converts a closed polygon outline (array of `[x, y]` points) into a smooth
- * quadratic Bezier SVG path string (`M ... Q ... T ... Z`).
- * Adapted from `@excalidraw/common` `getSvgPathFromStroke` (MIT).
- */
 export function getSvgPathFromStrokeOutline(points, closed = true) {
     const len = points.length;
     if (len < 4)
@@ -530,16 +453,10 @@ export function getSvgPathFromStrokeOutline(points, closed = true) {
     }
     return result.trim();
 }
-/**
- * Generates a smoothed, variable-width polygon SVG path from raw pointer coordinates.
- * Combines streamline low-pass filtering, velocity-simulated pressure thinning,
- * and rounded start/end caps (adapted from `perfect-freehand`, MIT).
- */
 export function getSmoothedFreehandSvgPath(rawPoints, options = {}) {
     const { size = 8, thinning = 0.45, streamline = 0.5, simulatePressure = true, radiusMapper, } = options;
     if (rawPoints.length === 0 || size <= 0)
         return "";
-    // Single-point dot fallback
     if (rawPoints.length === 1) {
         const p = rawPoints[0];
         const r = size / 2;
@@ -550,7 +467,6 @@ export function getSmoothedFreehandSvgPath(rawPoints, options = {}) {
         }
         return getSvgPathFromStrokeOutline(circlePts, true);
     }
-    // Step 1: Streamline interpolation (low-pass filter)
     const t = 0.15 + (1 - streamline) * 0.85;
     const streamlined = [
         { pt: [rawPoints[0].x, rawPoints[0].y], dist: 0, raw: rawPoints[0] },
@@ -575,7 +491,6 @@ export function getSmoothedFreehandSvgPath(rawPoints, options = {}) {
             raw: first.raw,
         });
     }
-    // Step 2: Build left and right outline contours with simulated pressure
     const leftPts = [];
     const rightPts = [];
     let prevPressure = 0.35;
@@ -603,14 +518,9 @@ export function getSmoothedFreehandSvgPath(rawPoints, options = {}) {
         leftPts.push(vecSub(curr.pt, vecMul(normal, radius)));
         rightPts.push(vecAdd(curr.pt, vecMul(normal, radius)));
     }
-    // Step 3: Add rounded end cap and combine contours in winding order
     const outline = [...leftPts, ...rightPts.reverse()];
     return getSvgPathFromStrokeOutline(outline, true);
 }
-/**
- * Generates an ephemeral laser pointer SVG path with time-based and tail-length decay
- * (adapted from Excalidraw `LaserTrails`, MIT License).
- */
 export function getLaserPointerSvgPath(points, nowMs, baseSize = 7, decayMs = 950, maxTailPoints = 48) {
     const active = points.filter((p) => nowMs - (p.timestamp ?? nowMs) < decayMs);
     if (active.length < 2)
@@ -623,7 +533,6 @@ export function getLaserPointerSvgPath(points, nowMs, baseSize = 7, decayMs = 95
             const timeFactor = Math.max(0, 1 - age / decayMs);
             const tailDist = total - 1 - idx;
             const lengthFactor = Math.max(0, 1 - tailDist / maxTailPoints);
-            // Ease-out curve so head is bright and tail tapers smoothly to a point
             const easeOut = (x) => 1 - Math.pow(1 - x, 2);
             return baseSize * Math.min(easeOut(timeFactor), easeOut(lengthFactor));
         },
@@ -646,9 +555,6 @@ export function gridCellToPx(at) {
         y: PAD + 30 + at[1] * (CH + GY),
     };
 }
-/**
- * Converts a sequence of orthogonal `[x, y]` points into an SVG path with 9px rounded bends.
- */
 export function roundOrthogonalCorners(pts) {
     if (pts.length === 0)
         return "";
@@ -671,10 +577,6 @@ export function roundOrthogonalCorners(pts) {
     const e = pts[pts.length - 1];
     return `${d} L${e[0]},${e[1]}`;
 }
-/**
- * Routes wires at right angles strictly through the gaps between columns and rows,
- * never crossing a card, with lane offsets and collision-checked labels.
- */
 export function routeGridWires(rels, rects, els) {
     const { GX, GY } = GRID_METRICS;
     const occupied = {};
@@ -736,8 +638,6 @@ export function routeGridWires(rels, rects, els) {
         const ar = a.r ?? 0;
         const bc = b.c ?? 0;
         const br = b.r ?? 0;
-        // Route bottom/top when cards share a column OR when one card sits 2+ rows below/above
-        // within 1 column horizontally (e.g. Level 1 bottom row external systems below primary system)
         if (ac === bc) {
             return Math.abs(ar - br) > 1 ? ["r", "r"] : br > ar ? ["b", "t"] : ["t", "b"];
         }
@@ -771,8 +671,6 @@ export function routeGridWires(rels, rects, els) {
                 x.p[x.key] = 0.5;
             }
             else {
-                // Distribute ports evenly across the middle 68% of the card edge (0.16 .. 0.84)
-                // so parallel vertical/horizontal stems never bunch together
                 x.p[x.key] = 0.16 + (j / (total - 1)) * 0.68;
             }
         });
@@ -862,7 +760,6 @@ export function routeGridWires(rels, rects, els) {
                         lane(`h${br}${br >= ar ? "t" : "b"}`);
                     let cand = [P, [x1, P[1]], [x1, yg], [x2, yg], [x2, Q[1]], Q];
                     if (polyHitsAnyCard(cand, a, b)) {
-                        // Try the opposite horizontal corridor (below vs above target row, or near source row)
                         const altYg = (br >= ar ? a.y + a.h + GY / 2 : a.y - GY / 2) +
                             lane(`h_alt_${ar}`);
                         const altCand = [
@@ -921,7 +818,6 @@ export function routeGridWires(rels, rects, els) {
                         cand.y + cand.h > q.y);
                     if (overlapsPlaced)
                         continue;
-                    // Also avoid clipping across another wire's segment when a clean spot exists
                     const clipsOtherWire = wireSegments.some(([s0, s1, wIdx]) => {
                         if (wIdx === idx)
                             return false;
@@ -940,7 +836,6 @@ export function routeGridWires(rels, rects, els) {
                     }
                 }
             }
-            // Second pass if every non-overlapping spot crossed another wire segment
             if (!box) {
                 for (let j = 0; j < segs.length && !box; j++) {
                     const sg = segs[j];
@@ -1010,10 +905,6 @@ export function routeGridWires(rels, rects, els) {
     });
     return { wires, labels };
 }
-/**
- * Routes right-angle wires for Level 4 deployment resource nodes.
- * Pass `selectedId = "*"` to pre-route all links so hover highlighting works with zero recomputation.
- */
 export function routeDeploymentWires(links, rects, selectedId = "*") {
     if (!selectedId)
         return [];
@@ -1042,7 +933,6 @@ export function routeDeploymentWires(links, rects, selectedId = "*") {
         }
         return false;
     }
-    // Group port assignments by (nodeId, side) so multiple links on a Level 4 resource fan out cleanly
     const activeLinks = links.filter((r) => rects[r.from] &&
         rects[r.to] &&
         (routeAll || r.from === selectedId || r.to === selectedId));
@@ -1099,7 +989,6 @@ export function routeDeploymentWires(links, rects, selectedId = "*") {
                 d = roundOrthogonalCorners(directPts);
             }
             else {
-                // Route around sibling cards via the horizontal gap below/above the card
                 const goBelow = b.y >= a.y;
                 const Pbot = [
                     Math.round(a.x + a.w * fa),
@@ -1130,10 +1019,6 @@ export function routeDeploymentWires(links, rects, selectedId = "*") {
     });
     return wires;
 }
-/**
- * Converts legacy `TuxMapNode[]` + `TuxMapEdge[]` + `TuxMapZone[]` props into a
- * 4-Level `TuxMapLevelModel` so existing consumers automatically gain 4-level C4 navigation.
- */
 export function buildLevelModelFromLegacyNodes(nodes, edges, zones = []) {
     const level1Elements = [
         {
@@ -1256,16 +1141,7 @@ export function buildLevelModelFromLegacyNodes(nodes, edges, zones = []) {
         level4: { groups: deployGroups, nodes: deployNodes, links: deployLinks, neighbors: [] },
     };
 }
-/**
- * Default 4-Level Reference Architecture Model (Generic Enterprise Cloud Platform).
- * Uses clear, vendor-neutral terminology without exposing real internal deployments.
- */
-// ============================================================================
-// 7. CODE LINKS: LIFTING ONTO A VIEW & THE BLAST RADIUS OF A SELECTION
-// ============================================================================
-/** Link kinds drawn on no stage (they still count in the blast radius): a document naming a part. */
 export const TUX_MAP_QUIET_LINK_KINDS = new Set(["mentions"]);
-/** Canonical link strength order from strongest runtime/contract edge to weakest prose reference. */
 export const TUX_MAP_LINK_STRENGTH_ORDER = [
     "calls",
     "imports",
@@ -1281,7 +1157,6 @@ export const TUX_MAP_LINK_STRENGTH_ORDER = [
     "mentions",
 ];
 const LINK_STRENGTH_RANK = new Map(TUX_MAP_LINK_STRENGTH_ORDER.map((k, i) => [k, i]));
-/** What a link kind means, read from the part it points at ("changing X: Y calls it"). */
 export const TUX_MAP_LINK_KIND_LABELS = {
     imports: "imports it",
     calls: "calls it",
@@ -1297,7 +1172,6 @@ export const TUX_MAP_LINK_KIND_LABELS = {
     mentions: "mentions it",
 };
 const MAX_TREE_DEPTH = 64;
-/** Canonical set of valid semantic blast-radius intents (`tti/tti-ux#110` / `#111`). */
 export const TUX_MAP_VALID_BLAST_INTENTS = new Set([
     "default",
     "patch",
@@ -1370,7 +1244,6 @@ const NON_PROD_HOST_COUPLINGS = new Set([
     "prose",
     "type-only",
 ]);
-/** Prototype-safe own-property check (`Object.prototype` keys like `"constructor"` return `false`). */
 export function hasOwn(obj, key) {
     return obj != null && Object.prototype.hasOwnProperty.call(obj, key);
 }
@@ -1387,7 +1260,6 @@ function setOwnProp(obj, key, value) {
         obj[key] = value;
     }
 }
-/** True Unicode code-point comparison (matches Python `str < str` even on supplementary U+10000+ planes). */
 export function cmpCodepoint(a, b) {
     if (a === b)
         return 0;
@@ -1412,7 +1284,6 @@ export function compareBlastLinks(a, b) {
         cmpCodepoint(a.to, b.to) ||
         cmpCodepoint(a.at ?? "", b.at ?? ""));
 }
-/** Infers deterministic semantic coupling for links that omit explicit `coupling` (rejecting spoofed downgrades on runtime kinds). */
 export function inferLinkCoupling(link) {
     const k = link.kind || "";
     if (link.coupling && VALID_LINK_COUPLINGS.has(link.coupling)) {
@@ -1450,7 +1321,6 @@ export function inferLinkCoupling(link) {
         return link.stop ? "verification" : "runtime";
     return link.stop ? "verification" : "runtime";
 }
-/** Infers deterministic execution/shipping phase for links that omit explicit `phase`. */
 export function inferLinkPhase(link) {
     const c = inferLinkCoupling(link);
     const k = link.kind || "";
@@ -1472,10 +1342,6 @@ export function inferLinkPhase(link) {
         return "client-bundle";
     return "prod-runtime";
 }
-/**
- * Classifies how `link` participates in an upstream blast-radius walk at distance `hop`
- * (`hop === 0` means `link.to` is in `seeds`).
- */
 export function classifyBlastLink(link, hop, intent = "default", quietSeedOnly = true, kinds) {
     if (!TUX_MAP_VALID_BLAST_INTENTS.has(intent)) {
         throw new RangeError(`Invalid blast intent '${String(intent)}'; expected one of: default, patch, refactor, cut, supply-chain.`);
@@ -1511,7 +1377,6 @@ export function classifyBlastLink(link, hop, intent = "default", quietSeedOnly =
             return "stop";
         return "spread";
     }
-    // intent === "supply-chain"
     if (k === "links" || c === "prose" || c === "type-only" || p === "doc-only")
         return "skip";
     if (p === "build-exec" || c === "build-exec")
@@ -1528,10 +1393,6 @@ function isLevel3Focus(id, model) {
     }
     return model.level3[id].length > 0 || !isPlainRecord(model.subgraphs) || !hasOwn(model.subgraphs, id);
 }
-/**
- * Order-independent two-pass `subgraphRef -> ownerId` resolver across Levels 1..N
- * so child-before-parent key order in `model.subgraphs` matches Python `code-graph.py` 1:1.
- */
 function collectSubgraphOwners(model) {
     const subgraphOwners = new Map();
     if (!model || typeof model !== "object")
@@ -1575,7 +1436,6 @@ function collectSubgraphOwners(model) {
         }
     }
     if (isPlainRecord(model.subgraphs)) {
-        // Up to 4 passes resolves even chained anonymous `subgraphRef` owners regardless of key order
         for (let pass = 0; pass < 4; pass++) {
             const before = subgraphOwners.size;
             for (const [key, sg] of Object.entries(model.subgraphs)) {
@@ -1590,10 +1450,6 @@ function collectSubgraphOwners(model) {
     }
     return subgraphOwners;
 }
-/**
- * child → parent for every element below Level 2: Level 3 components under their container,
- * subgraph elements under their key (or `subgraphRef` owner), inline `children` under their element.
- */
 export function buildMapParentIndex(model) {
     const parentOf = new Map();
     const subgraphOwners = collectSubgraphOwners(model);
@@ -1636,11 +1492,6 @@ export function buildMapParentIndex(model) {
     }
     return parentOf;
 }
-/**
- * Semantic level that displays the children of `fid`:
- * 3 inside a Level 2 container, 5 inside a Level 3 component or Level 4 deployment node,
- * and +1 for each nested subgraph below that (independent of `model.subgraphs` key order).
- */
 export function levelForFocus(fid, model, parentOf = buildMapParentIndex(model)) {
     const walk = (id, seen) => {
         if (isLevel3Focus(id, model))
@@ -1653,7 +1504,6 @@ export function levelForFocus(fid, model, parentOf = buildMapParentIndex(model))
     };
     return walk(fid, new Set([fid]));
 }
-/** `id` and its ancestors, nearest first. */
 export function mapAncestorsOf(id, parentOf) {
     const chain = [];
     const seen = new Set();
@@ -1665,19 +1515,12 @@ export function mapAncestorsOf(id, parentOf) {
     }
     return chain;
 }
-/** The nearest of `id` and its ancestors that is in `set`, or null. */
 export function liftToSet(id, set, parentOf) {
     for (const a of mapAncestorsOf(id, parentOf))
         if (set.has(a))
             return a;
     return null;
 }
-/**
- * Extracts fine-grained `TuxMapLink[]` from `model`: returns `model.links` when present (bridging
- * non-planned C4/Level-4 relationships for endpoints without fine-grained code-link coverage unless
- * `bridgeUncovered === false`), or synthesizes links from C4 `rels` and `level4.links` when `model.links`
- * is empty/absent.
- */
 export function extractModelLinks(model, opts = {}) {
     const includePlanned = opts.includePlanned ?? false;
     const rawLinks = asObjArray(model?.links).filter((l) => typeof l.from === "string" && Boolean(l.from) && typeof l.to === "string" && Boolean(l.to));
@@ -1771,15 +1614,8 @@ export function extractModelLinks(model, opts = {}) {
 function topKinds(kinds) {
     return [...kinds.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => k).join(", ");
 }
-/**
- * The links lifted onto one view, the children `kidIds` of `focusId`: wires between two children,
- * and the parts outside that children depend on (`outs`) or that depend on them (`ins`), `maxPerSide`
- * of each: those a change travels through (calls, imports, runs) first, then the busiest. An outside
- * part the map does not hold (`isKnown`; by default, anything in `parentOf`) is left out.
- */
 export function liftLinksToView(links, focusId, kidIds, parentOf, opts = {}) {
     const quiet = opts.quiet ?? TUX_MAP_QUIET_LINK_KINDS;
-    // an outside part is drawn only if the map holds it (a link may name one it does not)
     const isKnown = opts.isKnown ?? ((id) => parentOf.has(id));
     const max = opts.maxPerSide ?? 8;
     const kids = new Set(kidIds);
@@ -1799,7 +1635,6 @@ export function liftLinksToView(links, focusId, kidIds, parentOf, opts = {}) {
         return pick;
     };
     const sib = new Map();
-    // links that spread, per side: a part both sides hold counts each side's own
     const spreading = { ins: new Map(), outs: new Map() };
     const side = (which, m, o, kid, l) => {
         const kind = l.kind || "uses";
@@ -1993,18 +1828,6 @@ function isWorkflowPathNode(id, meta) {
     const p = repoPathForNodeId(id, meta);
     return /^(?:runner-smoke\/)?\.(?:forgejo|github)\/workflows\//i.test(p);
 }
-/**
- * The blast radius of changing `seedOrSeeds`: every element that depends on them or on anything
- * inside them, upstream through `links`.
- *
- * - Spreading links propagate breadth-first up to `maxHops` (default 32).
- * - Stopping links (`tests`, `checks`, `stamps`, whole-file non-root imports) go one step from
- *   everything reached and no further; when `quietSeedOnly` is true (default), `mentions` are
- *   followed only directly from `seeds` (`hop === 0`).
- * - Ties at the same minimum hop break deterministically by `TUX_MAP_LINK_STRENGTH_ORDER`, then
- *   codepoint order on `(from, to, at)`.
- * - Never walks up into a seed's parent container or parent file.
- */
 export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) {
     const rawMaxHops = opts.maxHops === undefined ? 32 : opts.maxHops;
     const maxHops = Number.isFinite(rawMaxHops) ? Math.max(0, Math.floor(rawMaxHops)) : 32;
@@ -2039,14 +1862,12 @@ export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) 
     const hostBridge = opts.model ? buildHostBridge(opts.model, subgraphOwners) : null;
     const metaById = buildBlastNodeMeta(opts.model, subgraphOwners);
     if (opts.model && typeof opts.model === "object") {
-        // Expand Level 1 primary boundary seed into its Level 2 containers
         if (typeof opts.model.level2?.boundary === "string" && opts.model.level2.boundary && seeds.has(opts.model.level2.boundary)) {
             for (const e of asObjArray(opts.model.level2.elements)) {
                 if (!e.ref)
                     addSeed(e.id);
             }
         }
-        // Expand Level 4 host/resource seeds into the containers/components hosted on or deployed to them
         const l4NodeIds = new Set(asObjArray(opts.model.level4?.nodes)
             .filter((n) => typeof n.id === "string" && Boolean(n.id))
             .map((n) => n.id));
@@ -2089,7 +1910,6 @@ export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) 
     let frontier = [...seeds].sort(cmpCodepoint);
     const q = frontier.map((id) => [id, 0]);
     let hop = 0;
-    // Pass 1: level-synchronous breadth-first traversal across links that spread
     while (frontier.length > 0) {
         if (hop >= maxHops) {
             for (const x of frontier) {
@@ -2131,7 +1951,6 @@ export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) 
         frontier = nextIds;
         hop += 1;
     }
-    // Pass 2: one step out through stopping links from everything reached, nearest then strongest first
     const stopBest = new Map();
     for (const [x, h] of q) {
         if (h >= maxHops) {
@@ -2209,12 +2028,10 @@ export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) 
                 return false;
             if (isWorkflowPathNode(u, uMeta))
                 return false;
-            // Zero external dependents outside seeds ∪ subtree(y)
             for (const il of into.get(u) ?? []) {
                 if (!seeds.has(il.from) && !subtree.has(il.from))
                     return false;
             }
-            // Closed outgoing targets inside seeds ∪ subtree(y), auxiliary roles only on seed links
             for (const ol of outByFrom.get(u) ?? []) {
                 if (subtree.has(ol.to))
                     continue;
@@ -2436,11 +2253,6 @@ function sameSet(a, b) {
             return false;
     return true;
 }
-/**
- * Computes a deterministic structural delta between two `TuxMapLevelModel` trees (`baseModel` vs `headModel`),
- * classifying node changes (`added`, `deleted`, `moved`, `sig-changed`, `body-patched`), wire changes
- * (`added`, `removed`, `dangling`), leaf-first `blastSeedIds`, `recommendedIntent`, and a visual `mergedModel`.
- */
 export function computeGraphDelta(baseModel, headModel, opts = {}) {
     const includeMergedModel = opts.includeMergedModel ?? true;
     const bothCodeOrNeither = Boolean(baseModel?.links?.length || headModel?.links?.length);
@@ -2518,7 +2330,6 @@ export function computeGraphDelta(baseModel, headModel, opts = {}) {
             }
         }
     }
-    // 1-pass deterministic rename pairing (`git mv` & cross-file symbol moves)
     const pairedDeleted = new Set();
     const pairedAdded = new Set();
     const pairRename = (delId, addId) => {
@@ -2538,7 +2349,6 @@ export function computeGraphDelta(baseModel, headModel, opts = {}) {
             source: h.source,
         });
     };
-    // Pass A: unique 1:1 `(kind, source.hash)` exact content match
     const delByHash = new Map();
     const addByHash = new Map();
     for (const delId of rawDeletedIds) {
@@ -2565,7 +2375,6 @@ export function computeGraphDelta(baseModel, headModel, opts = {}) {
             pairRename(dList[0], aList[0]);
         }
     }
-    // Pass B: unique 1:1 `(kind, name, sigOf)` match among remaining unmatched
     const delBySig = new Map();
     const addBySig = new Map();
     for (const delId of rawDeletedIds) {
@@ -2674,8 +2483,6 @@ export function computeGraphDelta(baseModel, headModel, opts = {}) {
             });
         }
     }
-    // Leaf-minimal blast seeds: if a file is only "body-patched" because a child symbol changed,
-    // and neither its own `moduleHash` nor its file-level outgoing links changed, seed only the changed child symbol(s).
     const changeById = new Map(nodeChanges.map((c) => [c.id, c]));
     const changedAncestorsWithChangedChild = new Set();
     for (const c of nodeChanges) {
@@ -2724,7 +2531,6 @@ export function computeGraphDelta(baseModel, headModel, opts = {}) {
             mergedModel: headModel,
         };
     }
-    // Build visual mergedModel with diff badges + origin-preserving ghosted deleted elements
     const diffForId = (id) => {
         const chObj = changeById.get(id);
         if (!chObj)
@@ -2920,13 +2726,6 @@ export function computeGraphDelta(baseModel, headModel, opts = {}) {
     };
 }
 const MODEL_QUERY_INDEX_CACHE = new WeakMap();
-/**
- * Normalizes supported architecture model JSON inputs (`TuxMapLevelModel`, gateway `architecture.json`
- * `schema: 2`, or raw `code-graph.py --json` subgraphs+links) into a canonical `TuxMapLevelModel`.
- *
- * Rejects non-object payloads, `code-map.json` placement rule files, and (when `allowEmpty === false`)
- * zero-node models with a concise `< 2 KB` diagnostic error (`N-01`, `S-13`).
- */
 export function normalizeArchitectureModelInput(raw, opts = {}) {
     if (!isPlainRecord(raw)) {
         throw new TypeError("Invalid architecture model: expected a JSON object.");
@@ -2940,7 +2739,6 @@ export function normalizeArchitectureModelInput(raw, opts = {}) {
     }
     let normalized;
     if (isPlainRecord(raw.c4)) {
-        // Gateway `architecture.json` (`schema: 2`) produced by `build-data.py`
         const c4 = raw.c4;
         const ctx = isPlainRecord(c4.context) ? c4.context : {};
         const cnt = isPlainRecord(c4.containers) ? c4.containers : {};
@@ -3025,7 +2823,6 @@ export function normalizeArchitectureModelInput(raw, opts = {}) {
         !hasOwn(raw, "level2") &&
         !hasOwn(raw, "level3") &&
         !hasOwn(raw, "level4")) {
-        // Raw `code-graph.py --json` CPG output (`{ subgraphs, links, sourceBaseUrl }`)
         const subgraphs = raw.subgraphs;
         const childIds = new Set();
         const refTargets = new Set();
@@ -3073,7 +2870,6 @@ export function normalizeArchitectureModelInput(raw, opts = {}) {
     return normalized;
 }
 function modelCacheStamp(model) {
-    // Fast two-lane 32-bit FNV-1a structural digest over nodes, hosts, subgraphRefs, and edges (`S-10`)
     let h1 = 0x811c9dc5;
     let h2 = 0x01000193;
     const feedStr = (s) => {
@@ -3189,10 +2985,6 @@ function modelCacheStamp(model) {
     }
     return `${h1.toString(16).padStart(8, "0")}:${h2.toString(16).padStart(8, "0")}`;
 }
-/**
- * Memoized `O(V + E)` query index per `TuxMapLevelModel` instance so repeated
- * layer, blast-radius, shortest-path, and lease queries do not rebuild graph tables.
- */
 export function getMapQueryIndex(model = DEFAULT_TTI_LEVEL_MODEL) {
     const isObjModel = model != null && typeof model === "object";
     const stamp = isObjModel ? modelCacheStamp(model) : "empty";
@@ -3279,7 +3071,6 @@ export function getMapQueryIndex(model = DEFAULT_TTI_LEVEL_MODEL) {
             }
         });
     };
-    // Level 1
     for (const e of asObjArray(model?.level1?.elements)) {
         if (typeof e.id !== "string" || !e.id)
             continue;
@@ -3321,7 +3112,6 @@ export function getMapQueryIndex(model = DEFAULT_TTI_LEVEL_MODEL) {
         edges.push(rec);
         l1RelRecords.push(rec);
     });
-    // Level 2
     const boundary = typeof model?.level2?.boundary === "string" ? model.level2.boundary : "";
     for (const e of asObjArray(model?.level2?.elements)) {
         if (typeof e.id !== "string" || !e.id)
@@ -3334,7 +3124,6 @@ export function getMapQueryIndex(model = DEFAULT_TTI_LEVEL_MODEL) {
                 id: e.id,
                 level: 2,
                 kind: e.kind || "container",
-                // a reference whose Level 1 element is missing is still named
                 name: e.name ?? e.id,
                 tech: e.tech,
                 desc: e.desc,
@@ -3377,7 +3166,6 @@ export function getMapQueryIndex(model = DEFAULT_TTI_LEVEL_MODEL) {
         edges.push(rec);
         l2RelRecords.push(rec);
     });
-    // Level 3
     if (isPlainRecord(model?.level3)) {
         for (const [parentId, rawKids] of Object.entries(model.level3)) {
             const kids = asObjArray(rawKids);
@@ -3428,7 +3216,6 @@ export function getMapQueryIndex(model = DEFAULT_TTI_LEVEL_MODEL) {
             });
         }
     }
-    // Level 4 (`dn.hosts` also emits deduplicated `hosts` edges: `F-05d`)
     for (const n of asObjArray(model?.level4?.nodes)) {
         if (typeof n.id !== "string" || !n.id)
             continue;
@@ -3470,7 +3257,6 @@ export function getMapQueryIndex(model = DEFAULT_TTI_LEVEL_MODEL) {
         edges.push(depEdge);
         depEdges.push(depEdge);
     });
-    // Level 5, 6, 7+ Subgraphs (level & owner computed via pre-pass + parent walk so child-before-parent order gets exact depth: `S-08`)
     if (isPlainRecord(model?.subgraphs)) {
         for (const [rawParentId, sg] of Object.entries(model.subgraphs)) {
             if (!isPlainRecord(sg))
@@ -3527,7 +3313,6 @@ export function getMapQueryIndex(model = DEFAULT_TTI_LEVEL_MODEL) {
             });
         }
     }
-    // Code links: fine-grained dependencies (`mentions` stay in `edges` for view metadata, excluded from `depEdges`: `F-05c`)
     const validCodeLinks = asObjArray(model?.links).filter((l) => typeof l.from === "string" && Boolean(l.from) && typeof l.to === "string" && Boolean(l.to));
     const nonProseCodeLinks = [];
     validCodeLinks.forEach((l, idx) => {
@@ -3548,7 +3333,6 @@ export function getMapQueryIndex(model = DEFAULT_TTI_LEVEL_MODEL) {
             nonProseCodeLinks.push(l);
         }
     });
-    // Suppress coarse C4 summary rels when refined by Level 2 container rels or fine-grained code links (`N-03`)
     const hasNonProseCodeLinks = nonProseCodeLinks.length > 0;
     const codeCovered = new Set();
     if (hasNonProseCodeLinks) {
@@ -3632,10 +3416,6 @@ export function getMapQueryIndex(model = DEFAULT_TTI_LEVEL_MODEL) {
     }
     return idx;
 }
-/**
- * Indexes a `TuxMapLevelModel` into a unified Code Property Graph (CPG) index
- * spanning Levels 1..N (Context, Containers, Components, Deployment, Modules, Schemas, AST Symbols).
- */
 export function buildUnifiedArchitectureGraph(model = DEFAULT_TTI_LEVEL_MODEL) {
     const { nodes, edges } = getMapQueryIndex(model);
     return { nodes, edges };
@@ -3645,9 +3425,6 @@ function clipDisplayId(rawId, maxLen = 120) {
     return s.length <= maxLen ? s : `${s.slice(0, maxLen - 3)}...`;
 }
 const NODE_ID_PREFIX_RE = /^(?:p:pkg:|[fsdrp]:)/;
-/**
- * Ranks up to `maxSuggestions` (capped at 10) close node IDs by prefix, substring, or token overlap.
- */
 export function suggestCloseNodeIds(unknownId, nodes, maxSuggestions = 10) {
     const rawMax = Number.isFinite(maxSuggestions) ? maxSuggestions : 10;
     const cap = Math.min(10, Math.max(0, Math.floor(rawMax)));
@@ -3762,10 +3539,6 @@ function collectSubtreeDescendants(rootId, kidsOf) {
     }
     return out;
 }
-/**
- * Queries nodes (and optional matching edges) at a semantic level, parent subgraph, kind, or text filter,
- * supporting compact summaries and `limit`/`offset` pagination (`tti/tti-ux#111`).
- */
 export function queryArchitectureNodes(model = DEFAULT_TTI_LEVEL_MODEL, opts = {}) {
     const { nodes, edges } = getMapQueryIndex(model);
     const includePlanned = opts.includePlanned ?? true;
@@ -3821,17 +3594,6 @@ export function queryArchitectureNodes(model = DEFAULT_TTI_LEVEL_MODEL, opts = {
         edges: matchedEdges,
     };
 }
-/**
- * Computes upstream blast radius and triage buckets across Levels 1..N by delegating directly to
- * `computeLinkBlastRadius` + C4/Level-4 bridge links (`tti/tti-ux#111`).
- *
- * - Supports one or multiple seed IDs.
- * - Never adds `parentId` to seeds; on a C4-only model where a Level 3 component has no direct links,
- *   stepping via the enclosing container's C4 relationships is explicitly surfaced in `coarseParentSteps`.
- * - Downstream dependencies are off by default (`includeDownstream: true` to opt in).
- * - Compact by default (`compact: false` or `includeNodes: true` to attach full node records).
- * - Unknown node IDs (or invalid `intent`) return a `< 2 KB` error.
- */
 export function queryArchitectureImpact(seedIds, model = DEFAULT_TTI_LEVEL_MODEL, opts = {}) {
     if (opts.intent !== undefined && !TUX_MAP_VALID_BLAST_INTENTS.has(opts.intent)) {
         const clippedIntent = clipDisplayId(String(opts.intent), 64);
@@ -3872,7 +3634,6 @@ export function queryArchitectureImpact(seedIds, model = DEFAULT_TTI_LEVEL_MODEL
     const coarseParentSteps = [];
     const redirectParentByLink = new WeakMap();
     let blastLinks = links;
-    // Per-seed C4 coarse-parent redirect links ONLY on a C4-only model when a Level 3 leaf component has zero direct incoming links (`F-09`)
     const hasCodeLinks = asObjArray(model?.links).length > 0;
     if (!hasCodeLinks && opts.allowCoarseParentStep !== false && maxHops >= 1) {
         const incomingTargets = new Set(links.map((l) => l.to));
@@ -3917,7 +3678,6 @@ export function queryArchitectureImpact(seedIds, model = DEFAULT_TTI_LEVEL_MODEL
     const blast = computeLinkBlastRadius(blastLinks, rawSeeds, idx.parentOf, { ...opts, maxHops, model });
     const coarseViaByHitId = new Map();
     if (coarseParentSteps.length > 0) {
-        // `blast.hits` is ordered by ascending `hop`, so hop-1 redirect provenance propagates cleanly to hop 2..N
         for (const [id, h] of blast.hits.entries()) {
             const directParent = redirectParentByLink.get(h.via);
             if (directParent) {
@@ -4045,13 +3805,6 @@ export function queryArchitectureImpact(seedIds, model = DEFAULT_TTI_LEVEL_MODEL
         impactedSourceFiles: capList(impactedSourceFiles),
     };
 }
-/**
- * Finds the shortest directed architectural dependency path between `fromNodeId` and `toNodeId`,
- * descending into code/components below `fromNodeId` when needed without climbing `child -> parent`
- * or shortcutting through unsuppressed coarse C4 summary edges (`tti/tti-ux#111`, `F-05`, `N-03`, `S-11`).
- *
- * Pass `{ direction: "upstream" }` to follow reverse dependency edges (`to -> from`).
- */
 export function findArchitecturePath(fromNodeId, toNodeId, model = DEFAULT_TTI_LEVEL_MODEL, opts = {}) {
     const idx = getMapQueryIndex(model);
     const missing = [];
@@ -4087,7 +3840,6 @@ export function findArchitecturePath(fromNodeId, toNodeId, model = DEFAULT_TTI_L
         const depEdges = direction === "downstream"
             ? (idx.depEdgesByFrom.get(curr) ?? [])
             : (idx.depEdgesByTo.get(curr) ?? []);
-        // 1. Follow directed dependency edges first so direct wires win over descending into subgraphs at equal depth
         for (const e of depEdges) {
             if (!includePlanned && e.planned)
                 continue;
@@ -4097,7 +3849,6 @@ export function findArchitecturePath(fromNodeId, toNodeId, model = DEFAULT_TTI_L
                 prev.set(next, { prevId: curr, edge: e });
                 if (next === toNodeId)
                     break;
-                // Only treat entering a descendant of `toNodeId` as reaching `toNodeId` when `curr` is strictly outside `toNodeId` (`F-05a`, `S-11`)
                 if (targetDescendantSet.has(next) &&
                     !targetDescendantSet.has(curr) &&
                     curr !== toNodeId &&
@@ -4121,8 +3872,6 @@ export function findArchitecturePath(fromNodeId, toNodeId, model = DEFAULT_TTI_L
         }
         if (visited.has(toNodeId))
             break;
-        // 2. Descend `parent -> child` (`"contains"`) ONLY within `fromNodeId`'s own subtree (never climbing `child -> parent`
-        //    or fabricating paths from a coarse container rel into arbitrary internal components: `F-05b`, `N-03`).
         if (fromSubtree.has(curr)) {
             for (const e of idx.edgesByFrom.get(curr) ?? []) {
                 if (e.kind !== "parent-child")
@@ -4177,11 +3926,6 @@ export function findArchitecturePath(fromNodeId, toNodeId, model = DEFAULT_TTI_L
         edges: pathEdges,
     };
 }
-/**
- * Queries a specific semantic level or parent subgraph from a `TuxMapLevelModel`.
- *
- * @deprecated Use `queryArchitectureNodes` instead.
- */
 export function queryArchitectureLayer(model = DEFAULT_TTI_LEVEL_MODEL, opts = {}) {
     warnArchitectureDeprecatedOnce("queryArchitectureLayer", "Use queryArchitectureNodes() instead.");
     const res = queryArchitectureNodes(model, {
@@ -4200,12 +3944,6 @@ export function queryArchitectureLayer(model = DEFAULT_TTI_LEVEL_MODEL, opts = {
         edges: res.edges,
     };
 }
-/**
- * Computes multi-level k-hop upstream/downstream blast radius and impacted source files
- * for any node ID across Levels 1..N.
- *
- * @deprecated Use `queryArchitectureImpact` instead.
- */
 export function queryMultiLevelBlastRadius(nodeId, model = DEFAULT_TTI_LEVEL_MODEL, maxHopsOrOpts = 32) {
     warnArchitectureDeprecatedOnce("queryMultiLevelBlastRadius", "Use queryArchitectureImpact() instead.");
     const idx = getMapQueryIndex(model);
@@ -4307,11 +4045,6 @@ export function queryMultiLevelBlastRadius(nodeId, model = DEFAULT_TTI_LEVEL_MOD
         impactedSourceFiles: impactedFiles,
     };
 }
-/**
- * Finds a path between `fromNodeId` and `toNodeId` across Levels 1..N.
- *
- * @deprecated Use `findArchitecturePath` instead.
- */
 export function findShortestArchitecturePath(fromNodeId, toNodeId, model = DEFAULT_TTI_LEVEL_MODEL) {
     warnArchitectureDeprecatedOnce("findShortestArchitecturePath", "Use findArchitecturePath() instead.");
     const res = findArchitecturePath(fromNodeId, toNodeId, model, { compact: false });
@@ -4326,16 +4059,9 @@ export function findShortestArchitecturePath(fromNodeId, toNodeId, model = DEFAU
     };
 }
 const activeAcpLeases = new Map();
-/**
- * ACP (Agent Communication Protocol) Subgraph Lease Coordinator.
- *
- * @deprecated In-process ACP subgraph leases do not coordinate across processes; scope changes with
- * `computeGraphDelta` and `queryArchitectureImpact` instead.
- */
 export function coordinateAcpSubgraphLease(action, opts = {}) {
     warnArchitectureDeprecatedOnce("coordinateAcpSubgraphLease", "In-process ACP leases do not coordinate across processes; use computeGraphDelta() and queryArchitectureImpact() instead.");
     const now = Date.now();
-    // Prune expired leases
     for (const [id, lease] of activeAcpLeases.entries()) {
         const exp = Date.parse(lease.expiresAt);
         if (!Number.isFinite(exp) || exp <= now) {
@@ -4367,7 +4093,6 @@ export function coordinateAcpSubgraphLease(action, opts = {}) {
             leases: [...activeAcpLeases.values()],
         };
     }
-    // Acquire lease without invoking deprecated queryMultiLevelBlastRadius
     const agentId = opts.agentId || "agent-anonymous";
     const rootNodeId = opts.rootNodeId;
     if (!rootNodeId) {
@@ -4387,7 +4112,6 @@ export function coordinateAcpSubgraphLease(action, opts = {}) {
         if (p)
             requestedFiles.add(p);
     }
-    // Check for conflicts with other agents' active leases
     for (const existing of activeAcpLeases.values()) {
         if (existing.agentId === agentId)
             continue;

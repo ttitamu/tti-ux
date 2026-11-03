@@ -14,16 +14,32 @@
  *   npx tux-audit mcp [--model <path>] --call <tool> [jsonArgs]
  */
 
-import { readFileSync, readdirSync, existsSync, realpathSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync, realpathSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  buildUnifiedArchitectureGraph,
-  computeGraphDelta,
-  findArchitecturePath,
-  queryArchitectureImpact,
-  queryArchitectureNodes,
-} from "../packages/diagrams/runtime/tuxArchitectureMap.mjs";
+
+let mapRuntime = null;
+let mapRuntimeLoadError = null;
+try {
+  mapRuntime = await import("../packages/diagrams/runtime/tuxArchitectureMap.mjs");
+} catch {
+  try {
+    mapRuntime = await import("@tti/tti-ux-diagrams/runtime/tuxArchitectureMap.mjs");
+  } catch (err) {
+    mapRuntimeLoadError = err;
+  }
+}
+
+function requireMapRuntime() {
+  if (!mapRuntime) {
+    throw new Error(
+      `TUX M.A.P. runtime could not be loaded (install @tti/tti-ux-diagrams or run build:runtime): ${
+        mapRuntimeLoadError instanceof Error ? mapRuntimeLoadError.message : String(mapRuntimeLoadError)
+      }`,
+    );
+  }
+  return mapRuntime;
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -39,22 +55,24 @@ const IS_MAIN = (() => {
   }
 })();
 
-export const CANONICAL_TOKEN_ALIASES = {
-  "--surface-base": "--surface-page",
-  "--bg-page": "--surface-page",
-  "--bg-card": "--surface-raised",
-  "--surface-card": "--surface-raised",
-  "--text-default": "--text-primary",
-  "--text-main": "--text-primary",
-  "--danger": "--color-danger",
-  "--status-info": "--color-info",
-  "--status-success": "--color-success",
-  "--status-warning": "--color-warning",
-  "--status-error": "--color-error",
-  "--border-subtle": "--surface-border-subtle",
-  "--border-default": "--surface-border",
-  "--font-sans": "--font-body",
-};
+export const CANONICAL_TOKEN_ALIASES = Object.freeze(
+  Object.assign(Object.create(null), {
+    "--surface-base": "--surface-page",
+    "--bg-page": "--surface-page",
+    "--bg-card": "--surface-raised",
+    "--surface-card": "--surface-raised",
+    "--text-default": "--text-primary",
+    "--text-main": "--text-primary",
+    "--danger": "--color-danger",
+    "--status-info": "--color-info",
+    "--status-success": "--color-success",
+    "--status-warning": "--color-warning",
+    "--status-error": "--color-error",
+    "--border-subtle": "--surface-border-subtle",
+    "--border-default": "--surface-border",
+    "--font-sans": "--font-body",
+  }),
+);
 
 const WASH_LADDER = [4, 6, 8, 12, 18, 22, 35, 50];
 
@@ -94,7 +112,7 @@ function levenshtein(a, b) {
 }
 
 function suggestClosestToken(token, defsMap) {
-  if (CANONICAL_TOKEN_ALIASES[token]) return CANONICAL_TOKEN_ALIASES[token];
+  if (Object.hasOwn(CANONICAL_TOKEN_ALIASES, token)) return CANONICAL_TOKEN_ALIASES[token];
   let best = null;
   let bestDist = 3; // distance <= 2
   for (const cand of defsMap.keys()) {
@@ -265,14 +283,14 @@ function parseComponentDetails(compName) {
   }
 
   // Extract defaults from withDefaults(defineProps<...>(), { ... })
-  const defaultsMap = {};
+  const defaultsMap = new Map();
   const defaultsMatch = code.match(/withDefaults\s*\(\s*defineProps<[\s\S]*?>\(\)\s*,\s*\{([\s\S]*?)\}\s*\)/);
   if (defaultsMatch) {
     const body = defaultsMatch[1];
     for (const line of body.split("\n")) {
       const m = line.trim().match(/^([a-zA-Z0-9_$]+)\s*:\s*(.+?)\s*,?$/);
       if (m && m[2] !== "undefined") {
-        defaultsMap[m[1]] = m[2];
+        defaultsMap.set(m[1], m[2]);
       }
     }
   }
@@ -309,7 +327,7 @@ function parseComponentDetails(compName) {
           name: trimmedName,
           type: pType.trim().replace(/\s+/g, " "),
           required: optional !== "?",
-          default: defaultsMap[trimmedName] ?? undefined,
+          default: defaultsMap.get(trimmedName) ?? undefined,
           description: propDescription,
         });
       }
@@ -517,10 +535,37 @@ function parseCliOption(argv, flag) {
   return null;
 }
 
-export function loadArchitectureModelFile(modelPath) {
+const MAX_MODEL_BYTES = 64 * 1024 * 1024;
+export const MAX_STDIO_BUFFER_BYTES = 16 * 1024 * 1024;
+const MAX_STDIO_HEADER_BYTES = 8 * 1024;
+const normalizedModelCache = new WeakMap();
+const normalizedBaseModelCache = new WeakMap();
+
+function normalizeModelObject(raw, { allowEmpty = false } = {}) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new Error("Architecture model must be a JSON object.");
+  }
+  const cache = allowEmpty ? normalizedBaseModelCache : normalizedModelCache;
+  if (cache.has(raw)) return cache.get(raw);
+  const { normalizeArchitectureModelInput } = requireMapRuntime();
+  const normalized = normalizeArchitectureModelInput(raw, { allowEmpty });
+  cache.set(raw, normalized);
+  return normalized;
+}
+
+export function loadArchitectureModelFile(modelPath, { allowEmpty = false } = {}) {
   const resolved = path.resolve(modelPath);
   if (!existsSync(resolved)) {
     throw new Error(`Architecture model file not found: ${resolved}`);
+  }
+  const st = statSync(resolved);
+  if (!st.isFile()) {
+    throw new Error(`Architecture model path is not a regular file: ${resolved}`);
+  }
+  if (st.size > MAX_MODEL_BYTES) {
+    throw new Error(
+      `Architecture model '${resolved}' exceeds 64 MiB limit (${st.size} bytes).`,
+    );
   }
   let parsed;
   try {
@@ -533,7 +578,7 @@ export function loadArchitectureModelFile(modelPath) {
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
     throw new Error(`Architecture model '${resolved}' must be a JSON object.`);
   }
-  return parsed;
+  return normalizeModelObject(parsed, { allowEmpty });
 }
 
 const cliContext = {
@@ -543,10 +588,12 @@ const cliContext = {
 
 if (IS_MAIN) {
   try {
-    const cliModelPath = parseCliOption(process.argv, "--model");
-    if (cliModelPath) cliContext.model = loadArchitectureModelFile(cliModelPath);
-    const cliBasePath = parseCliOption(process.argv, "--base-model");
-    if (cliBasePath) cliContext.baseModel = loadArchitectureModelFile(cliBasePath);
+    const cliModelPath =
+      parseCliOption(process.argv, "--model") || (process.env.TUX_MCP_MODEL || "").trim() || null;
+    if (cliModelPath) cliContext.model = loadArchitectureModelFile(cliModelPath, { allowEmpty: false });
+    const cliBasePath =
+      parseCliOption(process.argv, "--base-model") || (process.env.TUX_MCP_BASE_MODEL || "").trim() || null;
+    if (cliBasePath) cliContext.baseModel = loadArchitectureModelFile(cliBasePath, { allowEmpty: true });
   } catch (err) {
     console.error(`tux-mcp: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);
@@ -554,11 +601,39 @@ if (IS_MAIN) {
 }
 
 function resolveModel(opts) {
-  return opts?.model ?? cliContext.model ?? null;
+  const raw = opts?.model ?? cliContext.model ?? null;
+  return raw ? normalizeModelObject(raw, { allowEmpty: false }) : null;
 }
 
 function resolveBaseModel(opts) {
-  return opts?.baseModel ?? cliContext.baseModel ?? null;
+  const raw = opts?.baseModel ?? cliContext.baseModel ?? null;
+  return raw ? normalizeModelObject(raw, { allowEmpty: true }) : null;
+}
+
+function parseOptInt(val, paramName) {
+  if (val === undefined || val === null || val === "") return undefined;
+  if (typeof val === "boolean") {
+    throw new Error(`Invalid numeric parameter '${paramName}': expected a finite number.`);
+  }
+  const str = typeof val === "string" ? val.trim() : null;
+  if (str === "") return undefined;
+  const num = typeof val === "number" ? val : Number(str);
+  if (!Number.isFinite(num)) {
+    throw new Error(`Invalid numeric parameter '${paramName}': expected a finite number.`);
+  }
+  return Math.trunc(num);
+}
+
+function parseOptBool(val, paramName) {
+  if (val === undefined || val === null || val === "") return undefined;
+  if (typeof val === "boolean") return val;
+  if (typeof val === "string") {
+    const norm = val.trim().toLowerCase();
+    if (norm === "") return undefined;
+    if (norm === "true") return true;
+    if (norm === "false") return false;
+  }
+  throw new Error(`Invalid boolean parameter '${paramName}': expected true or false.`);
 }
 
 // ── MCP Tools, Resources, and Prompts Definitions ───────────────────────────
@@ -707,7 +782,7 @@ export const TUX_MCP_ARCHITECTURE_TOOLS = [
         },
         intent: {
           type: "string",
-          enum: ["default", "patch", "refactor", "cut", "add"],
+          enum: ["default", "patch", "refactor", "cut", "supply-chain"],
           description: "Change intent controlling propagation and triage buckets (default 'default').",
         },
         kinds: {
@@ -727,9 +802,25 @@ export const TUX_MCP_ARCHITECTURE_TOOLS = [
           type: "boolean",
           description: "Opt in to directed downstream dependencies (default false).",
         },
+        bridgeUncovered: {
+          type: "boolean",
+          description: "Bridge uncovered coarse C4 relationships via extractModelLinks (default false).",
+        },
+        allowCoarseParentStep: {
+          type: "boolean",
+          description: "Allow hop-1 parent containment fallback when leaf code links are absent (default false).",
+        },
         compact: {
           type: "boolean",
           description: "Omit full node objects on each hit to bound response size (default true).",
+        },
+        includeNodes: {
+          type: "boolean",
+          description: "Attach full node metadata onto hits and seeds (default false when compact is true).",
+        },
+        maxSummaryItems: {
+          type: "number",
+          description: "Maximum items per summary array (seeds, blockers, testsToRun, impactedSourceFiles) in compact mode.",
         },
         limit: {
           type: "number",
@@ -776,6 +867,10 @@ export const TUX_MCP_ARCHITECTURE_TOOLS = [
         includeMergedModel: {
           type: "boolean",
           description: "Include annotated mergedModel in response (default false).",
+        },
+        maxItems: {
+          type: "number",
+          description: "Maximum items per delta array before summarizing counts (default 40).",
         },
       },
     },
@@ -852,6 +947,147 @@ export const TUX_MCP_PROMPTS = [
     ],
   },
 ];
+
+function auditColorMixWashes(src, issues) {
+  let out = "";
+  let cursor = 0;
+  const needle = "color-mix(";
+  while (cursor < src.length) {
+    const idx = src.indexOf(needle, cursor);
+    if (idx === -1) {
+      out += src.slice(cursor);
+      break;
+    }
+    out += src.slice(cursor, idx);
+    const maxEnd = Math.min(src.length, idx + 320);
+    let depth = 1;
+    let j = idx + needle.length;
+    const commas = [];
+    while (j < maxEnd && depth > 0) {
+      const ch = src[j];
+      if (ch === "(") depth += 1;
+      else if (ch === ")") {
+        depth -= 1;
+        if (depth === 0) break;
+      } else if (ch === "," && depth === 1) {
+        commas.push(j);
+      }
+      j += 1;
+    }
+    if (depth !== 0) {
+      out += needle;
+      cursor = idx + needle.length;
+      continue;
+    }
+    const full = src.slice(idx, j + 1);
+    if (commas.length === 2) {
+      const p0 = src
+        .slice(idx + needle.length, commas[0])
+        .trim()
+        .replace(/\s+/g, " ");
+      const p1 = src.slice(commas[0] + 1, commas[1]).trim();
+      const p2 = src.slice(commas[1] + 1, j).trim();
+      if (p0 === "in srgb" && p2 === "transparent" && p1.endsWith("%")) {
+        const pctMatch = /(\d+(?:\.\d+)?)%$/.exec(p1);
+        if (pctMatch && pctMatch.index > 0) {
+          const colorExpr = p1.slice(0, pctMatch.index).trim();
+          const pct = Number(pctMatch[1]);
+          if (colorExpr && pct < 60 && !WASH_LADDER.includes(pct)) {
+            const snapped = snapWashStep(pct);
+            issues.push({
+              type: "off-ladder-wash",
+              originalPercent: pct,
+              snappedPercent: snapped,
+              message: `Snapped color-mix wash ${pct}% to canonical ladder step ${snapped}%`,
+            });
+            out += `color-mix(in srgb, ${colorExpr} ${snapped}%, transparent)`;
+            cursor = j + 1;
+            continue;
+          }
+        }
+      }
+    }
+    out += full;
+    cursor = j + 1;
+  }
+  return out;
+}
+
+function findTagCloseQuoteAware(src, startIdx) {
+  let quote = "";
+  for (let i = startIdx; i < src.length; i += 1) {
+    const ch = src[i];
+    if (quote) {
+      if (ch === quote) quote = "";
+    } else if (ch === '"' || ch === "'") {
+      quote = ch;
+    } else if (ch === ">") {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function auditButtonLabels(src, issues) {
+  const lower = src.toLowerCase();
+  let cursor = 0;
+  let lastClose = -1;
+  while (cursor < src.length) {
+    const openIdx = lower.indexOf("<button", cursor);
+    if (openIdx === -1) break;
+    const afterName = src[openIdx + 7];
+    if (afterName && !/[\s>/]/.test(afterName)) {
+      cursor = openIdx + 7;
+      continue;
+    }
+    const tagEnd = findTagCloseQuoteAware(src, openIdx + 7);
+    if (tagEnd === -1) break;
+    if (src[tagEnd - 1] === "/") {
+      cursor = tagEnd + 1;
+      continue;
+    }
+    if (lastClose <= tagEnd) {
+      lastClose = lower.indexOf("</button>", tagEnd + 1);
+      if (lastClose === -1) break;
+    }
+    const nextOpen = lower.indexOf("<button", tagEnd + 1);
+    if (nextOpen !== -1 && nextOpen < lastClose) {
+      cursor = nextOpen;
+      continue;
+    }
+    const attrs = src.slice(openIdx + 7, tagEnd);
+    const labelMatch = /(?:^|\s)aria-label\s*=\s*(?:"([^"]+)"|'([^']+)')/i.exec(attrs);
+    if (labelMatch) {
+      const ariaLabel = (labelMatch[1] ?? labelMatch[2] ?? "").trim();
+      const rawInner = src.slice(tagEnd + 1, lastClose);
+      const innerText = rawInner.replace(/<[^>]+>/g, "").replace(/\{\{[\s\S]*?\}\}/g, "").trim();
+      if (
+        ariaLabel &&
+        innerText &&
+        innerText.length > 1 &&
+        !ariaLabel.toLowerCase().includes(innerText.toLowerCase())
+      ) {
+        issues.push({
+          type: "wcag-2.5.3-label-content-mismatch",
+          ariaLabel,
+          visibleText: innerText,
+          message: `WCAG 2.5.3 violation: button aria-label "${ariaLabel}" must contain its visible text "${innerText}".`,
+        });
+      }
+    }
+    cursor = lastClose + 9;
+  }
+}
+
+const ARCHITECTURE_TOOL_NAMES = new Set([
+  "tux_query_architecture_nodes",
+  "tux_query_architecture_layer",
+  "tux_query_architecture_impact",
+  "tux_get_blast_radius",
+  "tux_find_architecture_path",
+  "tux_find_shortest_path",
+  "tux_compute_graph_delta",
+]);
 
 export function callTuxMcpTool(name, args = {}, opts = {}) {
   switch (name) {
@@ -963,71 +1199,48 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
         return `var(${canonicalFont})`;
       });
 
-      // 2. Check var(--token) references (legacy aliases + Levenshtein typos)
+      // 2. Check var(--token) references (legacy aliases + Levenshtein typos, single linear pass)
       const varRe = /var\(\s*(--[a-z][a-z0-9-]*)\s*\)/g;
-      for (const m of [...fixed.matchAll(varRe)]) {
-        const token = m[1];
-        if (CANONICAL_TOKEN_ALIASES[token]) {
+      const seenVarIssues = new Set();
+      fixed = fixed.replace(varRe, (full, token) => {
+        if (Object.hasOwn(CANONICAL_TOKEN_ALIASES, token)) {
           const replacement = CANONICAL_TOKEN_ALIASES[token];
-          issues.push({
-            type: "legacy-token-alias",
-            token,
-            replacement,
-            message: `Replaced ${token} with canonical ${replacement}`,
-          });
-          fixed = fixed.replaceAll(`var(${token})`, `var(${replacement})`);
-        } else if (!defs.has(token) && !token.startsWith("--ui-")) {
-          const suggested = suggestClosestToken(token, defs);
-          issues.push({
-            type: "undefined-token",
-            token,
-            suggested,
-            message: suggested
-              ? `Token ${token} is undefined; auto-replaced with closest match ${suggested}`
-              : `Token ${token} is not defined in TUX tokens.css`,
-          });
-          if (suggested && defs.has(suggested)) {
-            fixed = fixed.replaceAll(`var(${token})`, `var(${suggested})`);
+          if (!seenVarIssues.has(token)) {
+            seenVarIssues.add(token);
+            issues.push({
+              type: "legacy-token-alias",
+              token,
+              replacement,
+              message: `Replaced ${token} with canonical ${replacement}`,
+            });
           }
+          return `var(${replacement})`;
         }
-      }
-
-      // 3. Check color-mix wash ladder steps (< 60% against transparent)
-      const washRe =
-        /color-mix\(\s*in\s+srgb\s*,\s*([^,]+?)\s+(\d+(?:\.\d+)?)%\s*,\s*transparent\s*\)/g;
-      fixed = fixed.replace(washRe, (full, colorExpr, pctStr) => {
-        const pct = Number(pctStr);
-        if (pct < 60 && !WASH_LADDER.includes(pct)) {
-          const snapped = snapWashStep(pct);
-          issues.push({
-            type: "off-ladder-wash",
-            originalPercent: pct,
-            snappedPercent: snapped,
-            message: `Snapped color-mix wash ${pct}% to canonical ladder step ${snapped}%`,
-          });
-          return `color-mix(in srgb, ${colorExpr} ${snapped}%, transparent)`;
+        if (!defs.has(token) && !token.startsWith("--ui-")) {
+          const suggested = suggestClosestToken(token, defs);
+          if (!seenVarIssues.has(token)) {
+            seenVarIssues.add(token);
+            issues.push({
+              type: "undefined-token",
+              token,
+              suggested,
+              message: suggested
+                ? `Token ${token} is undefined; auto-replaced with closest match ${suggested}`
+                : `Token ${token} is not defined in TUX tokens.css`,
+            });
+          }
+          if (suggested && defs.has(suggested)) {
+            return `var(${suggested})`;
+          }
         }
         return full;
       });
 
-      // 4. Check WCAG 2.5.3 label-content-name-mismatch on <button aria-label="...">Visible Text</button>
-      const btnRe = /<button([^>]*?)\saria-label=["']([^"']+)["']([^>]*)>([\s\S]*?)<\/button>/g;
-      for (const m of fixed.matchAll(btnRe)) {
-        const ariaLabel = m[2].trim();
-        const innerText = m[4].replace(/<[^>]+>/g, "").replace(/\{\{[\s\S]*?\}\}/g, "").trim();
-        if (
-          innerText &&
-          innerText.length > 1 &&
-          !ariaLabel.toLowerCase().includes(innerText.toLowerCase())
-        ) {
-          issues.push({
-            type: "wcag-2.5.3-label-content-mismatch",
-            ariaLabel,
-            visibleText: innerText,
-            message: `WCAG 2.5.3 violation: button aria-label "${ariaLabel}" must contain its visible text "${innerText}".`,
-          });
-        }
-      }
+      // 3. Check color-mix wash ladder steps (< 60% against transparent) in strictly O(N) time
+      fixed = auditColorMixWashes(fixed, issues);
+
+      // 4. Check WCAG 2.5.3 label-content-name-mismatch on <button aria-label="..."> in strictly O(N) time
+      auditButtonLabels(fixed, issues);
 
       return {
         valid: issues.length === 0,
@@ -1042,19 +1255,22 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
       const model = resolveModel(opts);
       if (!model) {
         throw new Error(
-          `Architecture tool '${name}' requires an explicit architecture model; start tux-mcp with --model <path>.`,
+          `Architecture tool '${name}' requires an explicit architecture model; start tux-mcp with --model <path> (or set TUX_MCP_MODEL).`,
         );
       }
+      const { queryArchitectureNodes } = requireMapRuntime();
+      const compact = parseOptBool(args.compact, "compact") ?? (name === "tux_query_architecture_nodes");
+      const explicitLimit = parseOptInt(args.limit, "limit");
       return queryArchitectureNodes(model, {
-        level: args.level != null ? Number(args.level) : undefined,
-        focusId: args.focusId != null ? String(args.focusId).trim() : undefined,
+        level: parseOptInt(args.level, "level"),
+        focusId: args.focusId != null && String(args.focusId).trim() !== "" ? String(args.focusId).trim() : undefined,
         kind: args.kind,
         query: args.query != null ? String(args.query) : undefined,
-        includePlanned: args.includePlanned,
-        includeEdges: args.includeEdges,
-        compact: args.compact ?? (name === "tux_query_architecture_nodes"),
-        limit: args.limit != null ? Number(args.limit) : undefined,
-        offset: args.offset != null ? Number(args.offset) : undefined,
+        includePlanned: parseOptBool(args.includePlanned, "includePlanned"),
+        includeEdges: parseOptBool(args.includeEdges, "includeEdges"),
+        compact,
+        limit: explicitLimit ?? (compact ? 60 : undefined),
+        offset: parseOptInt(args.offset, "offset"),
       });
     }
 
@@ -1063,28 +1279,35 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
       const model = resolveModel(opts);
       if (!model) {
         throw new Error(
-          `Architecture tool '${name}' requires an explicit architecture model; start tux-mcp with --model <path>.`,
+          `Architecture tool '${name}' requires an explicit architecture model; start tux-mcp with --model <path> (or set TUX_MCP_MODEL).`,
         );
       }
+      const { queryArchitectureImpact } = requireMapRuntime();
       const rawSeeds = args.seedIds ?? args.nodeId ?? [];
       const seeds = Array.isArray(rawSeeds)
         ? rawSeeds.map((s) => String(s).trim()).filter(Boolean)
         : String(rawSeeds).trim()
           ? [String(rawSeeds).trim()]
           : [];
+      const compact = parseOptBool(args.compact, "compact") ?? true;
+      const includeNodes = parseOptBool(args.includeNodes, "includeNodes");
+      const explicitLimit = parseOptInt(args.limit, "limit");
+      const explicitSummaryCap = parseOptInt(args.maxSummaryItems, "maxSummaryItems");
       return queryArchitectureImpact(seeds, model, {
-        maxHops: args.maxHops != null ? Number(args.maxHops) : undefined,
-        intent: args.intent,
+        maxHops: parseOptInt(args.maxHops, "maxHops"),
+        intent: args.intent != null && String(args.intent).trim() !== "" ? String(args.intent).trim() : undefined,
         kinds: Array.isArray(args.kinds) ? args.kinds.map(String) : undefined,
-        quietSeedOnly: args.quietSeedOnly,
-        includePlanned: args.includePlanned,
-        includeDownstream: args.includeDownstream,
-        bridgeUncovered: args.bridgeUncovered,
-        allowCoarseParentStep: args.allowCoarseParentStep,
-        compact: args.compact,
-        includeNodes: args.includeNodes,
-        limit: args.limit != null ? Number(args.limit) : undefined,
-        offset: args.offset != null ? Number(args.offset) : undefined,
+        quietSeedOnly: parseOptBool(args.quietSeedOnly, "quietSeedOnly"),
+        includePlanned: parseOptBool(args.includePlanned, "includePlanned"),
+        includeDownstream: parseOptBool(args.includeDownstream, "includeDownstream"),
+        bridgeUncovered: parseOptBool(args.bridgeUncovered, "bridgeUncovered"),
+        allowCoarseParentStep: parseOptBool(args.allowCoarseParentStep, "allowCoarseParentStep"),
+        compact,
+        includeNodes,
+        omitRedundantDescendants: compact && !includeNodes,
+        maxSummaryItems: explicitSummaryCap ?? (compact && !includeNodes ? 25 : undefined),
+        limit: explicitLimit ?? (compact && !includeNodes ? 100 : undefined),
+        offset: parseOptInt(args.offset, "offset"),
       });
     }
 
@@ -1093,15 +1316,19 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
       const model = resolveModel(opts);
       if (!model) {
         throw new Error(
-          `Architecture tool '${name}' requires an explicit architecture model; start tux-mcp with --model <path>.`,
+          `Architecture tool '${name}' requires an explicit architecture model; start tux-mcp with --model <path> (or set TUX_MCP_MODEL).`,
         );
       }
+      const { findArchitecturePath } = requireMapRuntime();
       const fromNodeId = String(args.fromNodeId ?? "").trim();
       const toNodeId = String(args.toNodeId ?? "").trim();
+      if (args.direction != null && args.direction !== "downstream" && args.direction !== "upstream") {
+        throw new Error(`Invalid parameter 'direction': expected 'downstream' or 'upstream'.`);
+      }
       return findArchitecturePath(fromNodeId, toNodeId, model, {
         direction: args.direction === "upstream" ? "upstream" : "downstream",
-        includePlanned: args.includePlanned,
-        compact: args.compact,
+        includePlanned: parseOptBool(args.includePlanned, "includePlanned"),
+        compact: parseOptBool(args.compact, "compact") ?? true,
       });
     }
 
@@ -1109,25 +1336,76 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
       const model = resolveModel(opts);
       if (!model) {
         throw new Error(
-          "Architecture tool 'tux_compute_graph_delta' requires an explicit architecture model; start tux-mcp with --model <path>.",
+          "Architecture tool 'tux_compute_graph_delta' requires an explicit architecture model; start tux-mcp with --model <path> (or set TUX_MCP_MODEL).",
         );
       }
+      const { computeGraphDelta } = requireMapRuntime();
       const argBase =
         args.baseModel && typeof args.baseModel === "object" && !Array.isArray(args.baseModel)
-          ? args.baseModel
+          ? normalizeModelObject(args.baseModel, { allowEmpty: true })
           : null;
       const baseModel = argBase ?? resolveBaseModel(opts);
       if (!baseModel) {
         return {
           error:
-            "Base architecture model required: start tux-mcp with --base-model <path> or pass a baseModel JSON object.",
+            "Base architecture model required: start tux-mcp with --base-model <path> (or TUX_MCP_BASE_MODEL) or pass a baseModel JSON object.",
         };
       }
+      const includeMergedModel = parseOptBool(args.includeMergedModel, "includeMergedModel") ?? false;
+      const maxItems = parseOptInt(args.maxItems, "maxItems") ?? (includeMergedModel ? undefined : 30);
       const delta = computeGraphDelta(baseModel, model, {
-        includeMergedModel: Boolean(args.includeMergedModel),
+        includeMergedModel,
       });
-      if (!args.includeMergedModel) {
+      if (!includeMergedModel) {
         const { mergedModel: _omitted, ...compactDelta } = delta;
+        if (maxItems !== undefined && maxItems >= 0) {
+          const cap = Math.max(1, maxItems);
+          const totalAddedCount = compactDelta.addedIds.length;
+          const totalDeletedCount = compactDelta.deletedIds.length;
+          const totalMovedCount = compactDelta.movedIds.length;
+          const totalSigChangedCount = compactDelta.sigChangedIds.length;
+          const totalBodyPatchedCount = compactDelta.bodyPatchedIds.length;
+          const totalBlastSeedCount = compactDelta.blastSeedIds.length;
+          const totalAddedWires = compactDelta.addedWires.length;
+          const totalRemovedWires = compactDelta.removedWires.length;
+          const totalDanglingWires = compactDelta.danglingWires.length;
+          const totalNodeChanges = compactDelta.nodeChanges.length;
+          const deltaTruncated =
+            totalAddedCount > cap ||
+            totalDeletedCount > cap ||
+            totalMovedCount > cap ||
+            totalSigChangedCount > cap ||
+            totalBodyPatchedCount > cap ||
+            totalBlastSeedCount > cap ||
+            totalAddedWires > cap ||
+            totalRemovedWires > cap ||
+            totalDanglingWires > cap ||
+            totalNodeChanges > cap;
+          return {
+            ...compactDelta,
+            addedIds: compactDelta.addedIds.slice(0, cap),
+            deletedIds: compactDelta.deletedIds.slice(0, cap),
+            movedIds: compactDelta.movedIds.slice(0, cap),
+            sigChangedIds: compactDelta.sigChangedIds.slice(0, cap),
+            bodyPatchedIds: compactDelta.bodyPatchedIds.slice(0, cap),
+            blastSeedIds: compactDelta.blastSeedIds.slice(0, cap),
+            nodeChanges: compactDelta.nodeChanges.slice(0, cap),
+            addedWires: compactDelta.addedWires.slice(0, cap),
+            removedWires: compactDelta.removedWires.slice(0, cap),
+            danglingWires: compactDelta.danglingWires.slice(0, cap),
+            totalAddedCount,
+            totalDeletedCount,
+            totalMovedCount,
+            totalSigChangedCount,
+            totalBodyPatchedCount,
+            totalBlastSeedCount,
+            totalNodeChanges,
+            totalAddedWires,
+            totalRemovedWires,
+            totalDanglingWires,
+            deltaTruncated,
+          };
+        }
         return compactDelta;
       }
       return delta;
@@ -1252,28 +1530,80 @@ export function readTuxMcpResource(uri, opts = {}) {
       const model = resolveModel(opts);
       if (!model) {
         throw new Error(
-          "Resource 'tux://architecture/c4-graph' requires an explicit architecture model; start tux-mcp with --model <path>.",
+          "Resource 'tux://architecture/c4-graph' requires an explicit architecture model; start tux-mcp with --model <path> (or set TUX_MCP_MODEL).",
         );
       }
+      const { buildUnifiedArchitectureGraph, extractModelLinks } = requireMapRuntime();
       const { nodes, edges } = buildUnifiedArchitectureGraph(model);
-      const levels = [...new Set([...nodes.values()].map((n) => n.level))].sort((a, b) => a - b);
+      const levelCounts = {};
+      const allNodes = [...nodes.values()];
+      for (const n of allNodes) {
+        levelCounts[String(n.level)] = (levelCounts[String(n.level)] || 0) + 1;
+      }
+      const levels = Object.keys(levelCounts)
+        .map(Number)
+        .sort((a, b) => a - b);
+      // Bound resource payload (< 16 KB): emit C4/deployment overview (Levels 1-4, capped at 60 nodes & 60 edges)
+      // plus per-level counts and drill-down tool names when code-level subgraphs are present.
+      const c4Candidates = allNodes.filter((n) => n.level <= 4);
+      const overviewSource = c4Candidates.length > 0 ? c4Candidates : allNodes;
+      const overviewNodes = overviewSource.slice(0, 60).map((n) => ({
+        id: n.id,
+        name: n.name,
+        kind: n.kind,
+        level: n.level,
+        ...(n.parentId ? { parentId: n.parentId } : {}),
+        ...(n.tech ? { tech: n.tech } : {}),
+        ...(Array.isArray(n.hosts) && n.hosts.length > 0 ? { hosts: n.hosts } : {}),
+      }));
+      const overviewIds = new Set(overviewNodes.map((n) => n.id));
+      const rawRels = [
+        ...(Array.isArray(model.level1?.rels) ? model.level1.rels : []),
+        ...(Array.isArray(model.level2?.rels) ? model.level2.rels : []),
+        ...extractModelLinks(model),
+      ];
+      const seenRel = new Set();
+      const overviewEdges = [];
+      for (const e of rawRels) {
+        if (!e || !overviewIds.has(e.from) || !overviewIds.has(e.to)) continue;
+        const kind = e.kind || "rel";
+        const key = `${e.from}|${e.to}|${kind}`;
+        if (seenRel.has(key)) continue;
+        seenRel.add(key);
+        overviewEdges.push({
+          from: e.from,
+          to: e.to,
+          kind,
+          ...(e.label ? { label: String(e.label).slice(0, 80) } : {}),
+        });
+        if (overviewEdges.length >= 60) break;
+      }
+      const truncated = overviewNodes.length < nodes.size || overviewEdges.length < edges.length;
       return {
         contents: [
           {
             uri,
             mimeType: "application/json",
-            text: JSON.stringify(
-              {
-                schema: "tux-c4-cpg-v2",
-                levels,
-                nodeCount: nodes.size,
-                edgeCount: edges.length,
-                nodes: [...nodes.values()],
-                edges,
-              },
-              null,
-              2,
-            ),
+            text: JSON.stringify({
+              schema: "tux-c4-cpg-v2",
+              levels,
+              levelCounts,
+              nodeCount: nodes.size,
+              edgeCount: edges.length,
+              truncated,
+              ...(truncated
+                ? {
+                    drillDownTools: [
+                      "tux_query_architecture_nodes",
+                      "tux_query_architecture_impact",
+                      "tux_find_architecture_path",
+                      "tux_compute_graph_delta",
+                    ],
+                  }
+                : {}),
+              nodes: overviewNodes,
+              edges: overviewEdges,
+            }),
           },
         ],
       };
@@ -1359,6 +1689,9 @@ export function handleMcpRequest(req, opts = {}) {
       const toolName = params?.name;
       const toolArgs = params?.arguments || {};
       const payload = callTuxMcpTool(toolName, toolArgs, opts);
+      const serialized = ARCHITECTURE_TOOL_NAMES.has(toolName)
+        ? JSON.stringify(payload)
+        : JSON.stringify(payload, null, 2);
       return {
         jsonrpc: "2.0",
         id,
@@ -1366,7 +1699,7 @@ export function handleMcpRequest(req, opts = {}) {
           content: [
             {
               type: "text",
-              text: JSON.stringify(payload, null, 2),
+              text: serialized,
             },
           ],
           isError: Boolean(payload?.error),
@@ -1474,6 +1807,114 @@ export function createTuxMcpServer(opts = {}) {
 }
 
 // ── Dual-Mode Stdio Framing (Newline JSON-RPC + Content-Length Header) ──────
+export function createStdioFrameParser({
+  onMessage,
+  onError,
+  maxBufferBytes = MAX_STDIO_BUFFER_BYTES,
+  maxHeaderBytes = MAX_STDIO_HEADER_BYTES,
+}) {
+  let buffer = Buffer.alloc(0);
+  let lastFraming = "newline";
+
+  return {
+    push(chunk) {
+      const bufChunk = Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk), "utf8");
+      if (buffer.length + bufChunk.length > maxBufferBytes) {
+        buffer = Buffer.alloc(0);
+        onError?.("Message exceeds maximum stdio buffer size (16 MiB)", lastFraming);
+        return;
+      }
+      buffer = buffer.length === 0 ? bufChunk : Buffer.concat([buffer, bufChunk]);
+
+      while (buffer.length > 0) {
+        // Trim leading ASCII whitespace/CRLF between frames
+        let wsEnd = 0;
+        while (
+          wsEnd < buffer.length &&
+          (buffer[wsEnd] === 0x20 ||
+            buffer[wsEnd] === 0x09 ||
+            buffer[wsEnd] === 0x0d ||
+            buffer[wsEnd] === 0x0a)
+        ) {
+          wsEnd += 1;
+        }
+        if (wsEnd > 0) {
+          buffer = buffer.subarray(wsEnd);
+          if (buffer.length === 0) break;
+        }
+
+        const firstByte = buffer[0];
+        const isJsonStart = firstByte === 0x7b || firstByte === 0x5b; // '{' or '['
+        const probe = buffer.subarray(0, Math.min(buffer.length, 96)).toString("utf8");
+
+        if (!isJsonStart && /^[A-Za-z0-9-]+$/.test(probe) && buffer.length < 96) {
+          // Partial HTTP-style header field name arriving across chunks
+          break;
+        }
+
+        if (!isJsonStart && /^[A-Za-z0-9-]+:/.test(probe)) {
+          lastFraming = "content-length";
+          const crlfIdx = buffer.indexOf("\r\n\r\n");
+          const lfIdx = buffer.indexOf("\n\n");
+          let sepIdx = -1;
+          let sepLen = 4;
+          if (crlfIdx !== -1 && (lfIdx === -1 || crlfIdx < lfIdx)) {
+            sepIdx = crlfIdx;
+            sepLen = 4;
+          } else if (lfIdx !== -1) {
+            sepIdx = lfIdx;
+            sepLen = 2;
+          }
+          if (sepIdx === -1) {
+            if (buffer.length > maxHeaderBytes) {
+              buffer = Buffer.alloc(0);
+              onError?.("Header block exceeds maximum size (8 KiB)", "content-length");
+            }
+            break;
+          }
+          if (sepIdx > maxHeaderBytes) {
+            buffer = Buffer.alloc(0);
+            onError?.("Header block exceeds maximum size (8 KiB)", "content-length");
+            break;
+          }
+          const headerStr = buffer.subarray(0, sepIdx).toString("utf8");
+          const lenMatch = headerStr.match(/(?:^|\r?\n)content-length\s*:\s*([^\r\n]+)/i);
+          if (!lenMatch) {
+            buffer = buffer.subarray(sepIdx + sepLen);
+            onError?.("Missing Content-Length header", "content-length");
+            continue;
+          }
+          const rawLen = lenMatch[1].trim();
+          const contentLen = /^\d+$/.test(rawLen) ? Number(rawLen) : Number.NaN;
+          if (
+            !Number.isSafeInteger(contentLen) ||
+            contentLen < 0 ||
+            contentLen > maxBufferBytes ||
+            sepIdx + sepLen + contentLen > maxBufferBytes
+          ) {
+            buffer = Buffer.alloc(0);
+            onError?.("Invalid or oversized Content-Length header", "content-length");
+            break;
+          }
+          const totalNeeded = sepIdx + sepLen + contentLen;
+          if (buffer.length < totalNeeded) break;
+          const bodyStr = buffer.subarray(sepIdx + sepLen, totalNeeded).toString("utf8");
+          buffer = buffer.subarray(totalNeeded);
+          onMessage(bodyStr, "content-length");
+        } else {
+          lastFraming = "newline";
+          const nlIdx = buffer.indexOf("\n");
+          if (nlIdx === -1) break;
+          const lineStr = buffer.subarray(0, nlIdx).toString("utf8").trim();
+          buffer = buffer.subarray(nlIdx + 1);
+          if (!lineStr) continue;
+          onMessage(lineStr, "newline");
+        }
+      }
+    },
+  };
+}
+
 if (IS_MAIN) {
   if (process.argv.includes("--list-tools")) {
     console.log(JSON.stringify(getTuxMcpTools(), null, 2));
@@ -1484,24 +1925,28 @@ if (IS_MAIN) {
   if (callIdx !== -1) {
     try {
       const toolName = process.argv[callIdx + 1];
+      if (!toolName || toolName.startsWith("--")) {
+        throw new Error("Missing tool name after --call.");
+      }
       const nextArg = process.argv[callIdx + 2];
       const rawArgs = nextArg && !nextArg.startsWith("--") ? nextArg : "{}";
-      const result = callTuxMcpTool(toolName, JSON.parse(rawArgs));
+      const parsedArgs = JSON.parse(rawArgs);
+      if (!parsedArgs || typeof parsedArgs !== "object" || Array.isArray(parsedArgs)) {
+        throw new Error("Tool arguments JSON after --call must be an object.");
+      }
+      const result = callTuxMcpTool(toolName, parsedArgs);
       console.log(JSON.stringify(result, null, 2));
-      process.exit(0);
+      process.exit(result && typeof result === "object" && result.error ? 1 : 0);
     } catch (err) {
       console.error(`tux-mcp: ${err instanceof Error ? err.message : String(err)}`);
       process.exit(1);
     }
   }
 
-  let buffer = Buffer.alloc(0);
-  let useContentLengthFraming = false;
-
-  function sendResponse(resObj) {
+  function sendResponse(resObj, framing) {
     if (!resObj) return;
     const json = JSON.stringify(resObj);
-    if (useContentLengthFraming) {
+    if (framing === "content-length") {
       const byteLen = Buffer.byteLength(json, "utf8");
       process.stdout.write(`Content-Length: ${byteLen}\r\n\r\n${json}`);
     } else {
@@ -1509,47 +1954,34 @@ if (IS_MAIN) {
     }
   }
 
-  process.stdin.on("data", (chunk) => {
-    buffer = Buffer.concat([buffer, chunk]);
-
-    while (buffer.length > 0) {
-      const headerProbe = buffer.subarray(0, Math.min(buffer.length, 64)).toString("utf8");
-      if (headerProbe.startsWith("Content-Length:")) {
-        useContentLengthFraming = true;
-        const sepIdx = buffer.indexOf("\r\n\r\n");
-        if (sepIdx === -1) break;
-        const headerStr = buffer.subarray(0, sepIdx).toString("utf8");
-        const lenMatch = headerStr.match(/Content-Length:\s*(\d+)/i);
-        const contentLen = lenMatch ? Number.parseInt(lenMatch[1], 10) : 0;
-        const totalNeeded = sepIdx + 4 + contentLen;
-        if (buffer.length < totalNeeded) break;
-        const bodyStr = buffer.subarray(sepIdx + 4, totalNeeded).toString("utf8");
-        buffer = buffer.subarray(totalNeeded);
-        try {
-          sendResponse(handleMcpRequest(JSON.parse(bodyStr)));
-        } catch {
-          sendResponse({
+  const parser = createStdioFrameParser({
+    onMessage(bodyStr, framing) {
+      try {
+        sendResponse(handleMcpRequest(JSON.parse(bodyStr)), framing);
+      } catch {
+        sendResponse(
+          {
             jsonrpc: "2.0",
             id: null,
             error: { code: -32700, message: "Parse error" },
-          });
-        }
-      } else {
-        const nlIdx = buffer.indexOf("\n");
-        if (nlIdx === -1) break;
-        const lineStr = buffer.subarray(0, nlIdx).toString("utf8").trim();
-        buffer = buffer.subarray(nlIdx + 1);
-        if (!lineStr) continue;
-        try {
-          sendResponse(handleMcpRequest(JSON.parse(lineStr)));
-        } catch {
-          sendResponse({
-            jsonrpc: "2.0",
-            id: null,
-            error: { code: -32700, message: "Parse error" },
-          });
-        }
+          },
+          framing,
+        );
       }
-    }
+    },
+    onError(message, framing) {
+      sendResponse(
+        {
+          jsonrpc: "2.0",
+          id: null,
+          error: { code: -32700, message },
+        },
+        framing,
+      );
+    },
+  });
+
+  process.stdin.on("data", (chunk) => {
+    parser.push(chunk);
   });
 }

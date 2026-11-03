@@ -303,6 +303,16 @@ async function main() {
   const pkg = JSON.parse(readFileSync(join(pkgDir, "package.json"), "utf8"));
   if (pkg.version !== version) die(`tag ${args.tag} != package.json version ${pkg.version}: tag the release commit that sets ${version}`);
 
+  const mapRuntimeScript = join(pkgDir, "packages", "diagrams", "scripts", "build-map-runtime.mjs");
+  if ((args.package === "all" || args.package === "layer" || args.package === "sublayers") && existsSync(mapRuntimeScript)) {
+    try {
+      execFileSync(process.execPath, [mapRuntimeScript, "--check"], { cwd: pkgDir, stdio: ["ignore", "pipe", "pipe"] });
+    } catch (err) {
+      const stderr = err?.stderr ? String(err.stderr).trim() : String(err?.message || err);
+      die(`diagrams M.A.P. runtime drift check failed: ${stderr}`);
+    }
+  }
+
   const work = mkdtempSync(join(tmpdir(), "tux-publish-"));
   const common = { version, prerelease, tag: args.tag, registry: args.registry, dryRun: args.dryRun, work, token };
   try {

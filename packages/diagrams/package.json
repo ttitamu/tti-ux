@@ -4,6 +4,24 @@
   "description": "Mermaid diagrams-as-code integration and institutional styling for the TTI design system (TUX).",
   "type": "module",
   "main": "./nuxt.config.ts",
+  "exports": {
+    ".": "./nuxt.config.ts",
+    "./nuxt.config.ts": "./nuxt.config.ts",
+    "./runtime/tuxArchitectureMap": {
+      "types": "./runtime/tuxArchitectureMap.d.mts",
+      "import": "./runtime/tuxArchitectureMap.mjs",
+      "default": "./runtime/tuxArchitectureMap.mjs"
+    },
+    "./runtime/tuxArchitectureMap.mjs": {
+      "types": "./runtime/tuxArchitectureMap.d.mts",
+      "default": "./runtime/tuxArchitectureMap.mjs"
+    },
+    "./app/composables/*.ts": "./app/composables/*.ts",
+    "./app/composables/*": "./app/composables/*.ts",
+    "./app/utils/*.ts": "./app/utils/*.ts",
+    "./app/utils/*": "./app/utils/*.ts",
+    "./*": "./*"
+  },
   "files": [
     "app",
     "runtime",
