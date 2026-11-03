@@ -76,7 +76,7 @@ switch (cmd) {
         "  tokens [dirs…] [--fix]  undefined-token audit & auto-fixer (zero-dep; defaults to ./app)\n" +
         "  contrast                WCAG AAA contrast audit (needs your puppeteer)\n" +
         "  a11y                    axe accessibility audit (needs your jsdom + axe-core)\n" +
-        "  mcp [--list-tools]      start zero-dep TUX Model Context Protocol (stdio) server",
+        "  mcp [--model <path>]    start zero-dep TUX Model Context Protocol (stdio) server",
     );
     process.exit(cmd ? 2 : 0);
 }

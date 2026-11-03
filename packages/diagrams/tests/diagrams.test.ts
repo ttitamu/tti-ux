@@ -1,6 +1,9 @@
-import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
+import * as publishedMapRuntime from "../runtime/tuxArchitectureMap.mjs";
 import { useTuxMermaid } from "../app/composables/useTuxMermaid";
 import {
   resolveSemanticLoD,
@@ -1152,6 +1155,249 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
       coordinateAcpSubgraphLease("release", { agentId: "nan-agent" });
     } finally {
       warnSpy.mockRestore();
+    }
+  });
+
+  it("requires --model in tux-mcp, omits architecture tools without a model, and matches map-conformance.json with a model (#112)", async () => {
+    const repoRoot = join(import.meta.dirname, "..", "..", "..");
+    const mcpScriptPath = join(repoRoot, "scripts", "tux-mcp.mjs");
+    const fixturePath = join(import.meta.dirname, "fixtures", "map-conformance.json");
+    const fixture = JSON.parse(readFileSync(fixturePath, "utf8")) as {
+      models: Record<string, TuxMapLevelModel>;
+      levelChecks: Array<{
+        id: string;
+        model: string;
+        expectedLevels: Record<string, number>;
+        expectedLevel7Ids?: string[];
+      }>;
+      blastCases: Array<{
+        id: string;
+        model: string;
+        seeds: string[];
+        useExtractedModelLinks?: boolean;
+        opts?: {
+          maxHops?: number;
+          intent?: TuxMapBlastIntent;
+          kinds?: string[];
+          quietSeedOnly?: boolean;
+          includePlanned?: boolean;
+        };
+      }>;
+      deltaCases: Array<{
+        id: string;
+        baseModel: TuxMapLevelModel;
+        headModel: TuxMapLevelModel;
+        expected: {
+          addedIds: string[];
+          deletedIds: string[];
+          movedIds: string[];
+          sigChangedIds: string[];
+          bodyPatchedIds: string[];
+          blastSeedIds: string[];
+          recommendedIntent: TuxMapBlastIntent;
+          danglingWires: Array<{ from: string; to: string; kind: string }>;
+        };
+      }>;
+    };
+
+    // Published zero-dep ESM runtime exports the exact engine functions used by tux-mcp
+    expect(typeof publishedMapRuntime.computeLinkBlastRadius).toBe("function");
+    expect(typeof publishedMapRuntime.queryArchitectureImpact).toBe("function");
+
+    // @ts-expect-error .mjs script import
+    const mcpMod = await import("../../../scripts/tux-mcp.mjs");
+
+    // 1. Without `--model`: architecture tools and `tux://architecture/c4-graph` are omitted
+    const noModelServer = mcpMod.createTuxMcpServer();
+    const noModelToolNames = noModelServer.getTools().map((t: { name: string }) => t.name);
+    expect(noModelToolNames).toEqual([
+      "tux_list_components",
+      "tux_get_component",
+      "tux_search_tokens",
+      "tux_validate_contrast",
+      "tux_audit_snippet",
+    ]);
+    const noModelResources = noModelServer.getResources().map((r: { uri: string }) => r.uri);
+    expect(noModelResources).not.toContain("tux://architecture/c4-graph");
+    expect(noModelResources).toContain("tux://architecture/layers-and-api");
+
+    const blockedCall = noModelServer.handleRequest({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "tools/call",
+      params: { name: "tux_query_architecture_impact", arguments: { seedIds: "c-api" } },
+    });
+    expect(blockedCall.error?.code).toBe(-32602);
+    expect(blockedCall.error?.message).toContain("--model");
+
+    const blockedRes = noModelServer.handleRequest({
+      jsonrpc: "2.0",
+      id: 2,
+      method: "resources/read",
+      params: { uri: "tux://architecture/c4-graph" },
+    });
+    expect(blockedRes.error?.code).toBe(-32602);
+    expect(blockedRes.error?.message).toContain("--model");
+
+    // Verify CLI subprocess without `--model` omits architecture tools on plain Node
+    const cliNoModel = spawnSync(process.execPath, [mcpScriptPath, "--list-tools"], {
+      encoding: "utf8",
+    });
+    expect(cliNoModel.status).toBe(0);
+    const cliNoModelTools = (JSON.parse(cliNoModel.stdout) as Array<{ name: string }>).map(
+      (t) => t.name,
+    );
+    expect(cliNoModelTools).toEqual(noModelToolNames);
+
+    // Missing `--model` file fails fast with exit status 1
+    const cliMissingModel = spawnSync(
+      process.execPath,
+      [mcpScriptPath, "--model", "/nonexistent/map-model-112.json", "--list-tools"],
+      { encoding: "utf8" },
+    );
+    expect(cliMissingModel.status).toBe(1);
+    expect(cliMissingModel.stderr).toContain("Architecture model file not found");
+
+    // 2. With a model: every answer equals the contract across all conformance cases
+    const primaryModel = fixture.models[fixture.blastCases[0]!.model]!;
+    const modelServer = mcpMod.createTuxMcpServer({ model: primaryModel });
+    const withModelToolNames = modelServer.getTools().map((t: { name: string }) => t.name);
+    expect(withModelToolNames).toContain("tux_query_architecture_nodes");
+    expect(withModelToolNames).toContain("tux_query_architecture_impact");
+    expect(withModelToolNames).toContain("tux_find_architecture_path");
+    expect(withModelToolNames).toContain("tux_compute_graph_delta");
+    expect(withModelToolNames).not.toContain("tux_acp_subgraph_lease");
+
+    for (const lc of fixture.levelChecks) {
+      const m = fixture.models[lc.model]!;
+      const srv = mcpMod.createTuxMcpServer({ model: m });
+      for (const [nodeId, expLvl] of Object.entries(lc.expectedLevels)) {
+        const nodeRes = srv.callTool("tux_query_architecture_nodes", { focusId: nodeId });
+        const selfNode = nodeRes.nodes.find((n: { id: string }) => n.id === nodeId);
+        expect(selfNode?.level, `${lc.id}: level(${nodeId})`).toBe(expLvl);
+      }
+      if (lc.expectedLevel7Ids) {
+        const l7 = srv.callTool("tux_query_architecture_nodes", { level: 7 });
+        expect(
+          l7.nodes.map((n: { id: string }) => n.id).sort(),
+          `${lc.id}: level 7`,
+        ).toEqual(lc.expectedLevel7Ids);
+      }
+    }
+
+    for (const bc of fixture.blastCases) {
+      const m = fixture.models[bc.model]!;
+      const parentOf = buildMapParentIndex(m);
+      const links = bc.useExtractedModelLinks ? extractModelLinks(m) : m.links ?? [];
+      const contract = computeLinkBlastRadius(links, bc.seeds, parentOf, {
+        ...bc.opts,
+        model: m,
+      });
+      const srv = mcpMod.createTuxMcpServer({ model: m });
+      const impact = srv.callTool("tux_query_architecture_impact", {
+        seedIds: bc.seeds,
+        ...(bc.opts ?? {}),
+        bridgeUncovered: Boolean(bc.useExtractedModelLinks),
+      });
+      expect(impact.truncated, `${bc.id}: truncated`).toBe(contract.truncated);
+      expect(
+        impact.hits.map((h: { id: string; hop: number }) => ({ id: h.id, hop: h.hop })),
+        `${bc.id}: exact hit set`,
+      ).toEqual([...contract.hits.entries()].map(([id, h]) => ({ id, hop: h.hop })));
+      expect(impact.blockers, `${bc.id}: blockers`).toEqual(contract.blockers);
+      expect(impact.coCutCandidates, `${bc.id}: coCutCandidates`).toEqual(contract.coCutCandidates);
+      expect(impact.testsToRun, `${bc.id}: testsToRun`).toEqual(contract.testsToRun);
+      expect(impact.stampsToRebuild, `${bc.id}: stampsToRebuild`).toEqual(contract.stampsToRebuild);
+      expect(impact.buildExecImpacted, `${bc.id}: buildExecImpacted`).toEqual(contract.buildExecImpacted);
+      expect(impact.hostsImpacted, `${bc.id}: hostsImpacted`).toEqual(contract.hostsImpacted);
+    }
+
+    for (const dc of fixture.deltaCases) {
+      const deltaServer = mcpMod.createTuxMcpServer({ model: dc.headModel, baseModel: dc.baseModel });
+      const got = deltaServer.callTool("tux_compute_graph_delta", {});
+      expect(got.addedIds, dc.id).toEqual(dc.expected.addedIds);
+      expect(got.deletedIds, dc.id).toEqual(dc.expected.deletedIds);
+      expect(got.movedIds, dc.id).toEqual(dc.expected.movedIds);
+      expect(got.sigChangedIds, dc.id).toEqual(dc.expected.sigChangedIds);
+      expect(got.bodyPatchedIds, dc.id).toEqual(dc.expected.bodyPatchedIds);
+      expect(
+        got.danglingWires.map((w: { from: string; to: string; kind: string }) => ({
+          from: w.from,
+          to: w.to,
+          kind: w.kind,
+        })),
+        dc.id,
+      ).toEqual(dc.expected.danglingWires);
+      expect(got.blastSeedIds, dc.id).toEqual(dc.expected.blastSeedIds);
+      expect(got.recommendedIntent, dc.id).toBe(dc.expected.recommendedIntent);
+    }
+
+    // 3. End-to-end CLI `--model <file>` subprocess execution matches contract
+    const tmpDir = mkdtempSync(join(tmpdir(), "tux-mcp-112-"));
+    try {
+      const firstCase = fixture.blastCases[0]!;
+      const firstModel = fixture.models[firstCase.model]!;
+      const firstContract = computeLinkBlastRadius(
+        firstCase.useExtractedModelLinks ? extractModelLinks(firstModel) : firstModel.links ?? [],
+        firstCase.seeds,
+        buildMapParentIndex(firstModel),
+        { ...firstCase.opts, model: firstModel },
+      );
+      const tmpModelFile = join(tmpDir, "model.json");
+      writeFileSync(tmpModelFile, JSON.stringify(firstModel), "utf8");
+
+      const cliList = spawnSync(
+        process.execPath,
+        [mcpScriptPath, "--model", tmpModelFile, "--list-tools"],
+        { encoding: "utf8" },
+      );
+      expect(cliList.status).toBe(0);
+      const cliTools = (JSON.parse(cliList.stdout) as Array<{ name: string }>).map((t) => t.name);
+      expect(cliTools).toEqual(withModelToolNames);
+
+      const cliCall = spawnSync(
+        process.execPath,
+        [
+          mcpScriptPath,
+          `--model=${tmpModelFile}`,
+          "--call",
+          "tux_query_architecture_impact",
+          JSON.stringify({
+            seedIds: firstCase.seeds,
+            ...(firstCase.opts ?? {}),
+            bridgeUncovered: Boolean(firstCase.useExtractedModelLinks),
+          }),
+        ],
+        { encoding: "utf8" },
+      );
+      expect(cliCall.status).toBe(0);
+      const cliImpact = JSON.parse(cliCall.stdout);
+      expect(cliImpact.blockers).toEqual(firstContract.blockers);
+      expect(cliImpact.hits.map((h: { id: string }) => h.id)).toEqual([...firstContract.hits.keys()]);
+
+      // Symlinked bin invocation (`node_modules/.bin/tux-mcp` pattern) also resolves IS_MAIN
+      const symlinkBin = join(tmpDir, "tux-mcp-bin");
+      symlinkSync(mcpScriptPath, symlinkBin);
+      const symlinkList = spawnSync(
+        process.execPath,
+        [symlinkBin, "--model", tmpModelFile, "--list-tools"],
+        { encoding: "utf8" },
+      );
+      expect(symlinkList.status).toBe(0);
+      expect((JSON.parse(symlinkList.stdout) as Array<{ name: string }>).map((t) => t.name)).toEqual(
+        withModelToolNames,
+      );
+
+      // CLI `--call` of an architecture tool without `--model` exits non-zero with a clean message
+      const cliNoModelErr = spawnSync(
+        process.execPath,
+        [symlinkBin, "--call", "tux_query_architecture_impact", JSON.stringify({ seedIds: firstCase.seeds })],
+        { encoding: "utf8" },
+      );
+      expect(cliNoModelErr.status).toBe(1);
+      expect(cliNoModelErr.stderr).toContain("--model");
+    } finally {
+      rmSync(tmpDir, { recursive: true, force: true });
     }
   });
 });

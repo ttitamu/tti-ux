@@ -9,17 +9,35 @@
  * JSON-RPC 2.0 (stdio — both newline-delimited and Content-Length framed).
  *
  * Usage:
- *   npx tux-audit mcp                  # Start JSON-RPC 2.0 stdio MCP server
- *   npx tux-audit mcp --list-tools     # Print registered MCP tools as JSON
- *   npx tux-audit mcp --call <tool> [jsonArgs]  # Invoke a tool from CLI
+ *   npx tux-audit mcp [--model <path>] [--base-model <path>]
+ *   npx tux-audit mcp [--model <path>] --list-tools
+ *   npx tux-audit mcp [--model <path>] --call <tool> [jsonArgs]
  */
 
-import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync, realpathSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  buildUnifiedArchitectureGraph,
+  computeGraphDelta,
+  findArchitecturePath,
+  queryArchitectureImpact,
+  queryArchitectureNodes,
+} from "../packages/diagrams/runtime/tuxArchitectureMap.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
+const IS_MAIN = (() => {
+  if (!process.argv[1]) return false;
+  try {
+    return (
+      realpathSync(path.resolve(process.argv[1])) ===
+      realpathSync(fileURLToPath(import.meta.url))
+    );
+  } catch {
+    return path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
+  }
+})();
 
 export const CANONICAL_TOKEN_ALIASES = {
   "--surface-base": "--surface-page",
@@ -477,368 +495,74 @@ function snapHexToTargetContrast(fgHex, bgHex, targetRatio = 7.0) {
   return bestHex;
 }
 
-// ── Architecture Map (M.A.P.) Code Property Graph & ACP Lease Engine ────────
-const activeAcpLeases = new Map();
-
-function loadDefaultArchitectureGraph() {
-  // Dynamically builds the unified 6-level C4 + Code Property Graph from packages/diagrams
-  const nodes = new Map([
-    [
-      "p-users",
-      {
-        id: "p-users",
-        level: 1,
-        kind: "person",
-        name: "Product users & analysts",
-        desc: "Sign in to explore dashboards, run reports, manage projects, and collaborate.",
-      },
-    ],
-    [
-      "p-admins",
-      {
-        id: "p-admins",
-        level: 1,
-        kind: "person",
-        name: "Platform admins & SREs",
-        desc: "Configure access policies, review system health, and manage releases.",
-      },
-    ],
-    [
-      "s-platform",
-      {
-        id: "s-platform",
-        level: 1,
-        kind: "system",
-        name: "Enterprise Cloud Platform",
-        tech: "Web Portal · Core API · Workers · Data",
-      },
-    ],
-    [
-      "x-sso",
-      {
-        id: "x-sso",
-        level: 1,
-        kind: "external",
-        name: "Identity Provider (SSO)",
-        tech: "OIDC · SAML 2.0",
-      },
-    ],
-    [
-      "c-edge",
-      {
-        id: "c-edge",
-        level: 2,
-        kind: "container",
-        name: "Edge Reverse Proxy",
-        tech: "Envoy / Caddy",
-        parentId: "s-platform",
-        deployed: ["app-vm-01"],
-      },
-    ],
-    [
-      "c-web",
-      {
-        id: "c-web",
-        level: 2,
-        kind: "container",
-        name: "Web Portal",
-        tech: "Nuxt · TypeScript",
-        parentId: "s-platform",
-        deployed: ["app-vm-01"],
-      },
-    ],
-    [
-      "c-api",
-      {
-        id: "c-api",
-        level: 2,
-        kind: "container",
-        name: "Core API Service",
-        tech: "Go · REST & GraphQL",
-        parentId: "s-platform",
-        deployed: ["app-vm-01"],
-        source: { path: "services/api/cmd/server/main.go", lineRange: [1, 148], symbol: "main()" },
-        diff: { changeType: "modified", filesChanged: 3, summary: "Updated RBAC token claims & search proxy" },
-      },
-    ],
-    [
-      "c-db",
-      {
-        id: "c-db",
-        level: 2,
-        kind: "database",
-        name: "Primary Database",
-        tech: "PostgreSQL 16",
-        parentId: "s-platform",
-        deployed: ["app-vm-01", "app-data-disk"],
-      },
-    ],
-    [
-      "c-search",
-      {
-        id: "c-search",
-        level: 2,
-        kind: "container",
-        name: "AI Search Service",
-        tech: "Python · Vector Index",
-        parentId: "s-platform",
-        deployed: ["ai-search-app", "vector-db-01"],
-        source: { path: "services/ai-search/src/main.py", lineRange: [1, 96], symbol: "create_search_app()" },
-        diff: { changeType: "modified", filesChanged: 2, summary: "Added hybrid RRF reranker & 1536d HNSW index" },
-      },
-    ],
-    [
-      "c-workers",
-      {
-        id: "c-workers",
-        level: 2,
-        kind: "container",
-        name: "Background Workers",
-        tech: "Worker Pool (2 Nodes)",
-        parentId: "s-platform",
-        deployed: ["worker-node-01", "worker-node-02"],
-      },
-    ],
-    [
-      "c-cache",
-      {
-        id: "c-cache",
-        level: 2,
-        kind: "database",
-        name: "Cache & Job Queue",
-        tech: "Valkey / Redis",
-        parentId: "s-platform",
-        deployed: ["app-vm-01"],
-      },
-    ],
-    [
-      "c-api/0",
-      {
-        id: "c-api/0",
-        level: 3,
-        kind: "component",
-        name: "REST & GraphQL Router",
-        parentId: "c-api",
-        source: { path: "services/api/internal/http/router.go", lineRange: [24, 182], symbol: "NewRouter()" },
-      },
-    ],
-    [
-      "c-api/1",
-      {
-        id: "c-api/1",
-        level: 3,
-        kind: "component",
-        name: "Auth & RBAC Guard",
-        parentId: "c-api",
-        source: { path: "services/api/internal/auth/rbac.go", lineRange: [18, 134], symbol: "VerifyRBAC()" },
-        diff: { changeType: "modified", filesChanged: 2, summary: "Enforce scoped subgraph leases" },
-      },
-    ],
-    [
-      "c-api/1/jwks",
-      {
-        id: "c-api/1/jwks",
-        level: 5,
-        kind: "symbol",
-        name: "JWKSKeyCache",
-        parentId: "c-api/1",
-        source: { path: "services/api/internal/auth/rbac.go", lineRange: [24, 62], symbol: "type JWKSKeyCache struct" },
-      },
-    ],
-    [
-      "c-api/1/verify",
-      {
-        id: "c-api/1/verify",
-        level: 5,
-        kind: "symbol",
-        name: "VerifyRBAC()",
-        parentId: "c-api/1",
-        source: { path: "services/api/internal/auth/rbac.go", lineRange: [66, 134], symbol: "func VerifyRBAC(ctx, token)" },
-      },
-    ],
-    [
-      "app-vm-01",
-      {
-        id: "app-vm-01",
-        level: 4,
-        kind: "vm",
-        name: "app-vm-01",
-        hosts: ["c-edge", "c-web", "c-api", "c-db", "c-cache"],
-      },
-    ],
-    [
-      "ai-search-app",
-      {
-        id: "ai-search-app",
-        level: 4,
-        kind: "containerapp",
-        name: "ai-search-app",
-        hosts: ["c-search"],
-        source: { path: "services/ai-search/Dockerfile", lineRange: [1, 44] },
-      },
-    ],
-    [
-      "vector-db-01",
-      {
-        id: "vector-db-01",
-        level: 4,
-        kind: "postgres",
-        name: "vector-db-01",
-        hosts: ["c-search"],
-        source: { path: "infra/opentofu/vector-db.tf", lineRange: [12, 88] },
-      },
-    ],
-    [
-      "ai-search-app/router",
-      {
-        id: "ai-search-app/router",
-        level: 5,
-        kind: "module",
-        name: "Search API Router",
-        parentId: "ai-search-app",
-        source: { path: "services/ai-search/src/api/routes.py", lineRange: [14, 92], symbol: "POST /v1/search" },
-      },
-    ],
-    [
-      "ai-search-app/retriever",
-      {
-        id: "ai-search-app/retriever",
-        level: 5,
-        kind: "module",
-        name: "Hybrid Retriever",
-        parentId: "ai-search-app",
-        source: { path: "services/ai-search/src/search/retriever.py", lineRange: [1, 184], symbol: "class HybridRetriever" },
-      },
-    ],
-    [
-      "ai-search-app/reranker",
-      {
-        id: "ai-search-app/reranker",
-        level: 5,
-        kind: "module",
-        name: "Cross-Encoder Reranker",
-        parentId: "ai-search-app",
-        source: { path: "services/ai-search/src/search/reranker.py", lineRange: [10, 76], symbol: "rerank_candidates()" },
-      },
-    ],
-    [
-      "ai-search-app/pgclient",
-      {
-        id: "ai-search-app/pgclient",
-        level: 5,
-        kind: "module",
-        name: "PgVector Pool Client",
-        parentId: "ai-search-app",
-        source: { path: "services/ai-search/src/db/pgvector_pool.py", lineRange: [22, 118], symbol: "AsyncVectorPool" },
-      },
-    ],
-    [
-      "ai-search-app/retriever/embed",
-      {
-        id: "ai-search-app/retriever/embed",
-        level: 6,
-        kind: "symbol",
-        name: "encode_query_vector()",
-        parentId: "ai-search-app/retriever",
-        source: { path: "services/ai-search/src/search/retriever.py", lineRange: [28, 64] },
-      },
-    ],
-    [
-      "ai-search-app/retriever/dense",
-      {
-        id: "ai-search-app/retriever/dense",
-        level: 6,
-        kind: "symbol",
-        name: "query_hnsw_chunks()",
-        parentId: "ai-search-app/retriever",
-        source: { path: "services/ai-search/src/search/retriever.py", lineRange: [68, 119] },
-      },
-    ],
-    [
-      "ai-search-app/retriever/rrf",
-      {
-        id: "ai-search-app/retriever/rrf",
-        level: 6,
-        kind: "symbol",
-        name: "fuse_reciprocal_ranks()",
-        parentId: "ai-search-app/retriever",
-        source: { path: "services/ai-search/src/search/retriever.py", lineRange: [123, 178] },
-      },
-    ],
-    [
-      "vector-db-01/docs_chunks",
-      {
-        id: "vector-db-01/docs_chunks",
-        level: 5,
-        kind: "schema",
-        name: "table: document_chunks",
-        parentId: "vector-db-01",
-        source: { path: "services/ai-search/migrations/004_document_chunks.sql", lineRange: [1, 58] },
-      },
-    ],
-    [
-      "vector-db-01/hnsw_idx",
-      {
-        id: "vector-db-01/hnsw_idx",
-        level: 5,
-        kind: "schema",
-        name: "index: idx_chunks_hnsw_cosine",
-        parentId: "vector-db-01",
-        source: { path: "services/ai-search/migrations/005_hnsw_index.sql", lineRange: [1, 32] },
-      },
-    ],
-  ]);
-
-  const edges = [
-    { id: "e-l1-1", from: "p-users", to: "s-platform", level: 1, kind: "rel", label: "Uses web app & API" },
-    { id: "e-l1-2", from: "s-platform", to: "x-sso", level: 1, kind: "rel", label: "OIDC / SCIM" },
-    { id: "e-l2-1", from: "p-users", to: "c-edge", level: 2, kind: "rel", label: "HTTPS 443" },
-    { id: "e-l2-2", from: "c-edge", to: "c-web", level: 2, kind: "rel", label: "HTTP 3000" },
-    { id: "e-l2-3", from: "c-edge", to: "c-api", level: 2, kind: "rel", label: "HTTP 8080" },
-    { id: "e-l2-4", from: "c-web", to: "c-api", level: 2, kind: "rel", label: "REST / GraphQL" },
-    { id: "e-l2-5", from: "c-web", to: "c-search", level: 2, kind: "rel", label: "Semantic queries" },
-    { id: "e-l2-6", from: "c-api", to: "c-db", level: 2, kind: "rel", label: "SQL 5432" },
-    { id: "e-l2-7", from: "c-api", to: "c-cache", level: 2, kind: "rel", label: "RESP 6379" },
-    { id: "e-l2-8", from: "c-api", to: "x-sso", level: 2, kind: "rel", label: "OIDC" },
-    { id: "e-l2-9", from: "c-workers", to: "c-cache", level: 2, kind: "rel", label: "Pulls jobs" },
-    { id: "e-l2-10", from: "c-workers", to: "c-db", level: 2, kind: "rel", label: "Writes results" },
-    { id: "e-l4-1", from: "app-vm-01", to: "ai-search-app", level: 4, kind: "deployment", label: "Search queries" },
-    { id: "e-l4-2", from: "ai-search-app", to: "vector-db-01", level: 4, kind: "deployment", label: "Vector SQL" },
-    { id: "e-l5-1", from: "ai-search-app/router", to: "ai-search-app/retriever", level: 5, kind: "rel", label: "Dispatches query" },
-    { id: "e-l5-2", from: "ai-search-app/retriever", to: "ai-search-app/pgclient", level: 5, kind: "rel", label: "Queries HNSW" },
-    { id: "e-l5-3", from: "ai-search-app/retriever", to: "ai-search-app/reranker", level: 5, kind: "rel", label: "Top-50 chunks" },
-    { id: "e-l6-1", from: "ai-search-app/retriever/embed", to: "ai-search-app/retriever/dense", level: 6, kind: "rel", label: "1536d vector" },
-    { id: "e-l6-2", from: "ai-search-app/retriever/dense", to: "ai-search-app/retriever/rrf", level: 6, kind: "rel", label: "Candidate rows" },
-  ];
-
-  for (const n of nodes.values()) {
-    if (n.parentId && nodes.has(n.parentId)) {
-      edges.push({
-        id: `p-${n.parentId}-${n.id}`,
-        from: n.parentId,
-        to: n.id,
-        level: n.level,
-        kind: "parent-child",
-      });
-    }
-    for (const hid of n.deployed || []) {
-      if (nodes.has(hid)) {
-        edges.push({
-          id: `dep-${n.id}-${hid}`,
-          from: n.id,
-          to: hid,
-          level: 4,
-          kind: "hosts",
-        });
+// ── Architecture Map (M.A.P.) Explicit Model Loader (#112) ──────────────────
+function parseCliOption(argv, flag) {
+  for (let i = 2; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === flag) {
+      const val = argv[i + 1];
+      if (!val || val.startsWith("--")) {
+        throw new Error(`Missing file path after ${flag}.`);
       }
+      return val;
+    }
+    if (arg.startsWith(`${flag}=`)) {
+      const val = arg.slice(flag.length + 1).trim();
+      if (!val) {
+        throw new Error(`Empty file path in ${flag}=...`);
+      }
+      return val;
     }
   }
+  return null;
+}
 
-  return { nodes, edges };
+export function loadArchitectureModelFile(modelPath) {
+  const resolved = path.resolve(modelPath);
+  if (!existsSync(resolved)) {
+    throw new Error(`Architecture model file not found: ${resolved}`);
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(readFileSync(resolved, "utf8"));
+  } catch (err) {
+    throw new Error(
+      `Invalid JSON in architecture model '${resolved}': ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error(`Architecture model '${resolved}' must be a JSON object.`);
+  }
+  return parsed;
+}
+
+const cliContext = {
+  model: null,
+  baseModel: null,
+};
+
+if (IS_MAIN) {
+  try {
+    const cliModelPath = parseCliOption(process.argv, "--model");
+    if (cliModelPath) cliContext.model = loadArchitectureModelFile(cliModelPath);
+    const cliBasePath = parseCliOption(process.argv, "--base-model");
+    if (cliBasePath) cliContext.baseModel = loadArchitectureModelFile(cliBasePath);
+  } catch (err) {
+    console.error(`tux-mcp: ${err instanceof Error ? err.message : String(err)}`);
+    process.exit(1);
+  }
+}
+
+function resolveModel(opts) {
+  return opts?.model ?? cliContext.model ?? null;
+}
+
+function resolveBaseModel(opts) {
+  return opts?.baseModel ?? cliContext.baseModel ?? null;
 }
 
 // ── MCP Tools, Resources, and Prompts Definitions ───────────────────────────
-export const TUX_MCP_TOOLS = [
+export const TUX_MCP_DESIGN_TOOLS = [
   {
     name: "tux_list_components",
     description:
@@ -913,87 +637,152 @@ export const TUX_MCP_TOOLS = [
       required: ["code"],
     },
   },
+];
+
+export const TUX_MCP_ARCHITECTURE_TOOLS = [
   {
-    name: "tux_query_architecture_layer",
+    name: "tux_query_architecture_nodes",
     description:
-      "Query a semantic level (Level 1..6) or parent subgraph from the TUX Architecture Map (M.A.P.) Code Property Graph, returning nodes, relationships, source file bindings, and PR diff status.",
+      "Query nodes (and optional matching edges) at a semantic level, parent subgraph, kind, or text filter from the loaded TUX Architecture Map (M.A.P.) model, with compact output and paging.",
     inputSchema: {
       type: "object",
       properties: {
         level: {
           type: "number",
-          description: "Optional semantic level number (1 = Context, 2 = Containers, 3 = Components, 4 = Deployment, 5 = Modules/Schemas, 6 = AST Symbols).",
+          description: "Optional semantic level number (1 = Context, 2 = Containers, 3 = Components, 4 = Deployment, 5+ = Code/Subgraphs).",
         },
         focusId: {
           type: "string",
-          description: "Optional parent container, resource, or module ID to inspect (e.g. 'c-api', 'ai-search-app', 'ai-search-app/retriever').",
+          description: "Optional parent container, resource, folder, or file ID to inspect.",
+        },
+        kind: {
+          oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+          description: "Optional node kind or list of kinds to filter on.",
+        },
+        query: {
+          type: "string",
+          description: "Optional case-insensitive substring filter on id, name, tech, desc, or source path.",
+        },
+        includePlanned: {
+          type: "boolean",
+          description: "Whether to include planned nodes and edges (default true).",
+        },
+        includeEdges: {
+          type: "boolean",
+          description: "Whether to include matching edges (defaults to false in compact mode).",
+        },
+        compact: {
+          type: "boolean",
+          description: "Return compact node summaries (default true).",
+        },
+        limit: {
+          type: "number",
+          description: "Maximum number of nodes to return.",
+        },
+        offset: {
+          type: "number",
+          description: "Zero-based pagination offset (default 0).",
         },
       },
     },
   },
   {
-    name: "tux_get_blast_radius",
+    name: "tux_query_architecture_impact",
     description:
-      "Compute the deterministic k-hop upstream/downstream dependency blast radius and impacted source code files for any architecture node ID before refactoring or editing code.",
+      "Compute the deterministic upstream dependency blast radius and triage buckets (blockers, testsToRun, coCutCandidates, stampsToRebuild, buildExecImpacted, hostsImpacted) for one or more seed IDs using the canonical M.A.P. contract.",
     inputSchema: {
       type: "object",
       properties: {
+        seedIds: {
+          oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+          description: "One or more seed architecture node IDs (e.g. 'f:src/auth.ts' or ['c-api']).",
+        },
         nodeId: {
           type: "string",
-          description: "Target architecture node ID (e.g. 'c-api', 'c-search', 'ai-search-app', 'ai-search-app/retriever').",
+          description: "Single seed node ID alias when `seedIds` is omitted.",
         },
         maxHops: {
           type: "number",
-          description: "Maximum traversal hops (default 2).",
+          description: "Maximum upstream spreading hops (default 32).",
+        },
+        intent: {
+          type: "string",
+          enum: ["default", "patch", "refactor", "cut", "add"],
+          description: "Change intent controlling propagation and triage buckets (default 'default').",
+        },
+        kinds: {
+          type: "array",
+          items: { type: "string" },
+          description: "Optional allowlist of link kinds to traverse.",
+        },
+        quietSeedOnly: {
+          type: "boolean",
+          description: "Follow prose `mentions` only at hop 1 directly from seeds (default true).",
+        },
+        includePlanned: {
+          type: "boolean",
+          description: "Include planned relationships (default false).",
+        },
+        includeDownstream: {
+          type: "boolean",
+          description: "Opt in to directed downstream dependencies (default false).",
+        },
+        compact: {
+          type: "boolean",
+          description: "Omit full node objects on each hit to bound response size (default true).",
+        },
+        limit: {
+          type: "number",
+          description: "Maximum number of hits to return.",
+        },
+        offset: {
+          type: "number",
+          description: "Zero-based pagination offset into hits (default 0).",
         },
       },
-      required: ["nodeId"],
     },
   },
   {
-    name: "tux_find_shortest_path",
+    name: "tux_find_architecture_path",
     description:
-      "Find the shortest architectural call/dependency path between two nodes across Levels 1..6.",
+      "Find the shortest directed architectural dependency path between two node IDs across Levels 1..N (descending, labelled, into own code when needed).",
     inputSchema: {
       type: "object",
       properties: {
-        fromNodeId: { type: "string", description: "Starting node ID (e.g. 'p-users' or 'c-web')." },
-        toNodeId: { type: "string", description: "Destination node ID (e.g. 'vector-db-01/hnsw_idx' or 'c-db')." },
+        fromNodeId: { type: "string", description: "Starting node ID." },
+        toNodeId: { type: "string", description: "Destination node ID." },
+        direction: {
+          type: "string",
+          enum: ["downstream", "upstream"],
+          description: "'downstream' (default, from -> to) or 'upstream' (reverse dependencies).",
+        },
+        includePlanned: { type: "boolean", description: "Include planned edges (default false)." },
+        compact: { type: "boolean", description: "Omit full node objects from path output (default false)." },
       },
       required: ["fromNodeId", "toNodeId"],
     },
   },
   {
-    name: "tux_acp_subgraph_lease",
+    name: "tux_compute_graph_delta",
     description:
-      "ACP (Agent Communication Protocol) Subgraph Lease Coordinator: acquire, release, or list exclusive non-overlapping architectural subgraph leases so parallel AI coding agents never collide on shared components or files.",
+      "Compute structural graph delta (added, deleted, moved, sig-changed, body-patched, danglingWires, blastSeedIds, recommendedIntent) between a base model and the loaded head model.",
     inputSchema: {
       type: "object",
       properties: {
-        action: {
-          type: "string",
-          enum: ["acquire", "release", "list"],
-          description: "Lease operation ('acquire', 'release', or 'list').",
+        baseModel: {
+          type: "object",
+          description: "Base TuxMapLevelModel JSON object (optional when --base-model <path> was supplied at startup).",
         },
-        agentId: {
-          type: "string",
-          description: "Identifier of the AI agent requesting or releasing the lease (e.g. 'agent-backend-01').",
-        },
-        rootNodeId: {
-          type: "string",
-          description: "Root architecture node ID to lock along with its descendant subgraph (e.g. 'c-api' or 'ai-search-app').",
-        },
-        ttlSeconds: {
-          type: "number",
-          description: "Optional lease duration in seconds (default 900).",
+        includeMergedModel: {
+          type: "boolean",
+          description: "Include annotated mergedModel in response (default false).",
         },
       },
-      required: ["action"],
     },
   },
 ];
 
-export const TUX_MCP_RESOURCES = [
+const TUX_MCP_BASE_RESOURCES = [
   {
     uri: "tux://catalog/components",
     name: "TUX Component Catalog",
@@ -1014,19 +803,35 @@ export const TUX_MCP_RESOURCES = [
     mimeType: "application/json",
   },
   {
-    uri: "tux://architecture/c4-graph",
-    name: "TUX Architecture Map (M.A.P.) 6-Level Code Property Graph",
-    description:
-      "Unified 6-level C4 + AST Code Property Graph (nodes, edges, source file bindings, PR diffs, and active ACP agent subgraph leases).",
-    mimeType: "application/json",
-  },
-  {
     uri: "tux://vision/roadmap",
     name: "TUX World-Class Vision & Engineering Roadmap",
     description: "Strategic 4-pillar roadmap for the Texas A&M Transportation Institute Design System.",
     mimeType: "text/markdown",
   },
 ];
+
+const TUX_MCP_C4_GRAPH_RESOURCE = {
+  uri: "tux://architecture/c4-graph",
+  name: "TUX Architecture Map (M.A.P.) Unified Code Property Graph",
+  description:
+    "Unified multi-level C4 + Code Property Graph built from the explicitly loaded --model.",
+  mimeType: "application/json",
+};
+
+export function getTuxMcpTools(opts = {}) {
+  return resolveModel(opts)
+    ? [...TUX_MCP_DESIGN_TOOLS, ...TUX_MCP_ARCHITECTURE_TOOLS]
+    : [...TUX_MCP_DESIGN_TOOLS];
+}
+
+export function getTuxMcpResources(opts = {}) {
+  return resolveModel(opts)
+    ? [...TUX_MCP_BASE_RESOURCES, TUX_MCP_C4_GRAPH_RESOURCE]
+    : [...TUX_MCP_BASE_RESOURCES];
+}
+
+export const TUX_MCP_TOOLS = getTuxMcpTools();
+export const TUX_MCP_RESOURCES = getTuxMcpResources();
 
 export const TUX_MCP_PROMPTS = [
   {
@@ -1048,7 +853,7 @@ export const TUX_MCP_PROMPTS = [
   },
 ];
 
-export function callTuxMcpTool(name, args = {}) {
+export function callTuxMcpTool(name, args = {}, opts = {}) {
   switch (name) {
     case "tux_list_components": {
       const filter = String(args.filter || "").toLowerCase();
@@ -1232,259 +1037,100 @@ export function callTuxMcpTool(name, args = {}) {
       };
     }
 
+    case "tux_query_architecture_nodes":
     case "tux_query_architecture_layer": {
-      const { nodes, edges } = loadDefaultArchitectureGraph();
-      const level = args.level != null ? Number(args.level) : null;
-      const focusId = args.focusId ? String(args.focusId).trim() : null;
-
-      const matchedNodes = [...nodes.values()].filter((n) => {
-        if (focusId) return n.parentId === focusId || n.id === focusId;
-        if (level != null) return n.level === level;
-        return true;
+      const model = resolveModel(opts);
+      if (!model) {
+        throw new Error(
+          `Architecture tool '${name}' requires an explicit architecture model; start tux-mcp with --model <path>.`,
+        );
+      }
+      return queryArchitectureNodes(model, {
+        level: args.level != null ? Number(args.level) : undefined,
+        focusId: args.focusId != null ? String(args.focusId).trim() : undefined,
+        kind: args.kind,
+        query: args.query != null ? String(args.query) : undefined,
+        includePlanned: args.includePlanned,
+        includeEdges: args.includeEdges,
+        compact: args.compact ?? (name === "tux_query_architecture_nodes"),
+        limit: args.limit != null ? Number(args.limit) : undefined,
+        offset: args.offset != null ? Number(args.offset) : undefined,
       });
-      const matchedIds = new Set(matchedNodes.map((n) => n.id));
-      const matchedEdges = edges.filter(
-        (e) => matchedIds.has(e.from) || matchedIds.has(e.to),
-      );
-
-      return {
-        level: level ?? "all",
-        focusId,
-        nodeCount: matchedNodes.length,
-        edgeCount: matchedEdges.length,
-        nodes: matchedNodes,
-        edges: matchedEdges,
-      };
     }
 
+    case "tux_query_architecture_impact":
     case "tux_get_blast_radius": {
-      const nodeId = String(args.nodeId || "").trim();
-      const maxHops = args.maxHops != null ? Math.max(1, Number(args.maxHops)) : 2;
-      const { nodes, edges } = loadDefaultArchitectureGraph();
-      const root = nodes.get(nodeId);
-      if (!root) {
-        return {
-          error: `Node '${nodeId}' not found in architecture graph.`,
-          availableNodeIds: [...nodes.keys()],
-        };
+      const model = resolveModel(opts);
+      if (!model) {
+        throw new Error(
+          `Architecture tool '${name}' requires an explicit architecture model; start tux-mcp with --model <path>.`,
+        );
       }
-
-      const childTree = new Set();
-      const descQ = [nodeId];
-      while (descQ.length > 0) {
-        const curr = descQ.shift();
-        for (const e of edges) {
-          if (e.kind === "parent-child" && e.from === curr && !childTree.has(e.to)) {
-            childTree.add(e.to);
-            descQ.push(e.to);
-          }
-        }
-      }
-
-      const seedSet = new Set([nodeId, ...childTree]);
-      if (root.parentId) seedSet.add(root.parentId);
-
-      const upstream = new Map();
-      const downstream = new Map();
-      const impactedEdgeIds = new Set();
-
-      const downQ = [...seedSet].map((id) => ({ id, hop: 0 }));
-      while (downQ.length > 0) {
-        const { id, hop } = downQ.shift();
-        if (hop >= maxHops) continue;
-        for (const e of edges) {
-          if (e.kind === "parent-child") continue;
-          if (e.from === id) {
-            impactedEdgeIds.add(e.id);
-            if (!seedSet.has(e.to) && (!downstream.has(e.to) || downstream.get(e.to) > hop + 1)) {
-              downstream.set(e.to, hop + 1);
-              downQ.push({ id: e.to, hop: hop + 1 });
-            }
-          }
-        }
-      }
-
-      const upQ = [...seedSet].map((id) => ({ id, hop: 0 }));
-      while (upQ.length > 0) {
-        const { id, hop } = upQ.shift();
-        if (hop >= maxHops) continue;
-        for (const e of edges) {
-          if (e.kind === "parent-child") continue;
-          if (e.to === id) {
-            impactedEdgeIds.add(e.id);
-            if (!seedSet.has(e.from) && (!upstream.has(e.from) || upstream.get(e.from) > hop + 1)) {
-              upstream.set(e.from, hop + 1);
-              upQ.push({ id: e.from, hop: hop + 1 });
-            }
-          }
-        }
-      }
-
-      const allTouched = new Set([...seedSet, ...upstream.keys(), ...downstream.keys()]);
-      const impactedFiles = [];
-      const seenPaths = new Set();
-      for (const id of allTouched) {
-        const src = nodes.get(id)?.source;
-        if (src && !seenPaths.has(src.path)) {
-          seenPaths.add(src.path);
-          impactedFiles.push(src);
-        }
-      }
-
-      return {
-        rootNode: root,
-        maxHops,
-        descendantIds: [...childTree],
-        upstreamDependents: [...upstream.entries()].map(([id, hop]) => ({
-          id,
-          hop,
-          node: nodes.get(id),
-        })),
-        downstreamDependencies: [...downstream.entries()].map(([id, hop]) => ({
-          id,
-          hop,
-          node: nodes.get(id),
-        })),
-        impactedEdgeIds: [...impactedEdgeIds],
-        impactedSourceFiles: impactedFiles,
-      };
+      const rawSeeds = args.seedIds ?? args.nodeId ?? [];
+      const seeds = Array.isArray(rawSeeds)
+        ? rawSeeds.map((s) => String(s).trim()).filter(Boolean)
+        : String(rawSeeds).trim()
+          ? [String(rawSeeds).trim()]
+          : [];
+      return queryArchitectureImpact(seeds, model, {
+        maxHops: args.maxHops != null ? Number(args.maxHops) : undefined,
+        intent: args.intent,
+        kinds: Array.isArray(args.kinds) ? args.kinds.map(String) : undefined,
+        quietSeedOnly: args.quietSeedOnly,
+        includePlanned: args.includePlanned,
+        includeDownstream: args.includeDownstream,
+        bridgeUncovered: args.bridgeUncovered,
+        allowCoarseParentStep: args.allowCoarseParentStep,
+        compact: args.compact,
+        includeNodes: args.includeNodes,
+        limit: args.limit != null ? Number(args.limit) : undefined,
+        offset: args.offset != null ? Number(args.offset) : undefined,
+      });
     }
 
+    case "tux_find_architecture_path":
     case "tux_find_shortest_path": {
-      const fromNodeId = String(args.fromNodeId || "").trim();
-      const toNodeId = String(args.toNodeId || "").trim();
-      const { nodes, edges } = loadDefaultArchitectureGraph();
-      if (!nodes.has(fromNodeId)) return { error: `Source node '${fromNodeId}' not found.` };
-      if (!nodes.has(toNodeId)) return { error: `Target node '${toNodeId}' not found.` };
-      if (fromNodeId === toNodeId) {
-        return { found: true, hops: 0, nodePath: [nodes.get(fromNodeId)], edges: [] };
+      const model = resolveModel(opts);
+      if (!model) {
+        throw new Error(
+          `Architecture tool '${name}' requires an explicit architecture model; start tux-mcp with --model <path>.`,
+        );
       }
-
-      const queue = [fromNodeId];
-      const prev = new Map();
-      const visited = new Set([fromNodeId]);
-
-      while (queue.length > 0) {
-        const curr = queue.shift();
-        if (curr === toNodeId) break;
-        for (const e of edges) {
-          const next = e.from === curr ? e.to : e.to === curr ? e.from : null;
-          if (next && !visited.has(next)) {
-            visited.add(next);
-            prev.set(next, { prevId: curr, edge: e });
-            queue.push(next);
-          }
-        }
-      }
-
-      if (!prev.has(toNodeId)) {
-        return { found: false, hops: -1, nodePath: [], edges: [] };
-      }
-
-      const pathNodes = [];
-      const pathEdges = [];
-      let cursor = toNodeId;
-      while (cursor) {
-        const n = nodes.get(cursor);
-        if (n) pathNodes.unshift(n);
-        const step = prev.get(cursor);
-        if (!step) break;
-        pathEdges.unshift(step.edge);
-        cursor = step.prevId;
-      }
-
-      return {
-        found: true,
-        hops: pathEdges.length,
-        nodePath: pathNodes,
-        edges: pathEdges,
-      };
+      const fromNodeId = String(args.fromNodeId ?? "").trim();
+      const toNodeId = String(args.toNodeId ?? "").trim();
+      return findArchitecturePath(fromNodeId, toNodeId, model, {
+        direction: args.direction === "upstream" ? "upstream" : "downstream",
+        includePlanned: args.includePlanned,
+        compact: args.compact,
+      });
     }
 
-    case "tux_acp_subgraph_lease": {
-      const action = String(args.action || "list").toLowerCase();
-      const now = Date.now();
-      for (const [id, lease] of activeAcpLeases.entries()) {
-        if (Date.parse(lease.expiresAt) <= now) activeAcpLeases.delete(id);
+    case "tux_compute_graph_delta": {
+      const model = resolveModel(opts);
+      if (!model) {
+        throw new Error(
+          "Architecture tool 'tux_compute_graph_delta' requires an explicit architecture model; start tux-mcp with --model <path>.",
+        );
       }
-
-      if (action === "list") {
+      const argBase =
+        args.baseModel && typeof args.baseModel === "object" && !Array.isArray(args.baseModel)
+          ? args.baseModel
+          : null;
+      const baseModel = argBase ?? resolveBaseModel(opts);
+      if (!baseModel) {
         return {
-          activeLeaseCount: activeAcpLeases.size,
-          leases: [...activeAcpLeases.values()],
+          error:
+            "Base architecture model required: start tux-mcp with --base-model <path> or pass a baseModel JSON object.",
         };
       }
-
-      if (action === "release") {
-        let removed = false;
-        for (const [k, v] of activeAcpLeases.entries()) {
-          if (
-            (args.agentId && v.agentId === args.agentId && (!args.rootNodeId || v.rootNodeId === args.rootNodeId)) ||
-            (args.leaseId && k === args.leaseId)
-          ) {
-            activeAcpLeases.delete(k);
-            removed = true;
-          }
-        }
-        return {
-          released: removed,
-          activeLeaseCount: activeAcpLeases.size,
-          leases: [...activeAcpLeases.values()],
-        };
+      const delta = computeGraphDelta(baseModel, model, {
+        includeMergedModel: Boolean(args.includeMergedModel),
+      });
+      if (!args.includeMergedModel) {
+        const { mergedModel: _omitted, ...compactDelta } = delta;
+        return compactDelta;
       }
-
-      const agentId = String(args.agentId || "agent-anonymous");
-      const rootNodeId = String(args.rootNodeId || "").trim();
-      if (!rootNodeId) {
-        return { acquired: false, error: "rootNodeId is required to acquire an ACP subgraph lease." };
-      }
-
-      const blast = callTuxMcpTool("tux_get_blast_radius", { nodeId: rootNodeId, maxHops: 1 });
-      if (blast.error) return { acquired: false, error: blast.error };
-
-      const requestedScope = new Set([rootNodeId, ...blast.descendantIds]);
-      const { nodes } = loadDefaultArchitectureGraph();
-      const requestedFiles = new Set();
-      for (const id of requestedScope) {
-        const p = nodes.get(id)?.source?.path;
-        if (p) requestedFiles.add(p);
-      }
-
-      for (const existing of activeAcpLeases.values()) {
-        if (existing.agentId === agentId) continue;
-        const nodeOverlap = existing.scopeNodeIds.filter((id) => requestedScope.has(id));
-        const fileOverlap = existing.lockedFiles.filter((f) => requestedFiles.has(f));
-        if (nodeOverlap.length > 0 || fileOverlap.length > 0) {
-          return {
-            acquired: false,
-            conflict: {
-              heldByAgent: existing.agentId,
-              leaseId: existing.leaseId,
-              rootNodeId: existing.rootNodeId,
-              overlappingNodes: nodeOverlap,
-              overlappingFiles: fileOverlap,
-            },
-          };
-        }
-      }
-
-      const ttlMs = (args.ttlSeconds ? Number(args.ttlSeconds) : 900) * 1000;
-      const lease = {
-        leaseId: `lease-${agentId}-${rootNodeId.replace(/[^a-zA-Z0-9_-]/g, "_")}`,
-        agentId,
-        rootNodeId,
-        scopeNodeIds: [...requestedScope],
-        lockedFiles: [...requestedFiles],
-        acquiredAt: new Date(now).toISOString(),
-        expiresAt: new Date(now + ttlMs).toISOString(),
-      };
-      activeAcpLeases.set(lease.leaseId, lease);
-
-      return {
-        acquired: true,
-        lease,
-        activeLeaseCount: activeAcpLeases.size,
-      };
+      return delta;
     }
 
     default:
@@ -1492,10 +1138,10 @@ export function callTuxMcpTool(name, args = {}) {
   }
 }
 
-export function readTuxMcpResource(uri) {
+export function readTuxMcpResource(uri, opts = {}) {
   switch (uri) {
     case "tux://catalog/components": {
-      const payload = callTuxMcpTool("tux_list_components", {});
+      const payload = callTuxMcpTool("tux_list_components", {}, opts);
       return {
         contents: [
           {
@@ -1603,7 +1249,14 @@ export function readTuxMcpResource(uri) {
       };
     }
     case "tux://architecture/c4-graph": {
-      const { nodes, edges } = loadDefaultArchitectureGraph();
+      const model = resolveModel(opts);
+      if (!model) {
+        throw new Error(
+          "Resource 'tux://architecture/c4-graph' requires an explicit architecture model; start tux-mcp with --model <path>.",
+        );
+      }
+      const { nodes, edges } = buildUnifiedArchitectureGraph(model);
+      const levels = [...new Set([...nodes.values()].map((n) => n.level))].sort((a, b) => a - b);
       return {
         contents: [
           {
@@ -1611,13 +1264,12 @@ export function readTuxMcpResource(uri) {
             mimeType: "application/json",
             text: JSON.stringify(
               {
-                schema: "tux-c4-cpg-v1",
-                levels: [1, 2, 3, 4, 5, 6],
+                schema: "tux-c4-cpg-v2",
+                levels,
                 nodeCount: nodes.size,
                 edgeCount: edges.length,
                 nodes: [...nodes.values()],
                 edges,
-                activeAcpLeases: [...activeAcpLeases.values()],
               },
               null,
               2,
@@ -1658,7 +1310,7 @@ function getPkgVersion() {
   return cachedPkgVersion;
 }
 
-export function handleMcpRequest(req) {
+export function handleMcpRequest(req, opts = {}) {
   const { id, method, params } = req || {};
 
   if (method === "initialize") {
@@ -1697,7 +1349,7 @@ export function handleMcpRequest(req) {
       jsonrpc: "2.0",
       id,
       result: {
-        tools: TUX_MCP_TOOLS,
+        tools: getTuxMcpTools(opts),
       },
     };
   }
@@ -1706,7 +1358,7 @@ export function handleMcpRequest(req) {
     try {
       const toolName = params?.name;
       const toolArgs = params?.arguments || {};
-      const payload = callTuxMcpTool(toolName, toolArgs);
+      const payload = callTuxMcpTool(toolName, toolArgs, opts);
       return {
         jsonrpc: "2.0",
         id,
@@ -1737,14 +1389,14 @@ export function handleMcpRequest(req) {
       jsonrpc: "2.0",
       id,
       result: {
-        resources: TUX_MCP_RESOURCES,
+        resources: getTuxMcpResources(opts),
       },
     };
   }
 
   if (method === "resources/read") {
     try {
-      const result = readTuxMcpResource(params?.uri);
+      const result = readTuxMcpResource(params?.uri, opts);
       return {
         jsonrpc: "2.0",
         id,
@@ -1811,24 +1463,36 @@ export function handleMcpRequest(req) {
   };
 }
 
-// ── Dual-Mode Stdio Framing (Newline JSON-RPC + Content-Length Header) ──────
-const isMain =
-  process.argv[1] &&
-  path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
+export function createTuxMcpServer(opts = {}) {
+  return {
+    getTools: () => getTuxMcpTools(opts),
+    getResources: () => getTuxMcpResources(opts),
+    callTool: (name, args = {}) => callTuxMcpTool(name, args, opts),
+    readResource: (uri) => readTuxMcpResource(uri, opts),
+    handleRequest: (req) => handleMcpRequest(req, opts),
+  };
+}
 
-if (isMain) {
+// ── Dual-Mode Stdio Framing (Newline JSON-RPC + Content-Length Header) ──────
+if (IS_MAIN) {
   if (process.argv.includes("--list-tools")) {
-    console.log(JSON.stringify(TUX_MCP_TOOLS, null, 2));
+    console.log(JSON.stringify(getTuxMcpTools(), null, 2));
     process.exit(0);
   }
 
   const callIdx = process.argv.indexOf("--call");
   if (callIdx !== -1) {
-    const toolName = process.argv[callIdx + 1];
-    const rawArgs = process.argv[callIdx + 2] || "{}";
-    const result = callTuxMcpTool(toolName, JSON.parse(rawArgs));
-    console.log(JSON.stringify(result, null, 2));
-    process.exit(0);
+    try {
+      const toolName = process.argv[callIdx + 1];
+      const nextArg = process.argv[callIdx + 2];
+      const rawArgs = nextArg && !nextArg.startsWith("--") ? nextArg : "{}";
+      const result = callTuxMcpTool(toolName, JSON.parse(rawArgs));
+      console.log(JSON.stringify(result, null, 2));
+      process.exit(0);
+    } catch (err) {
+      console.error(`tux-mcp: ${err instanceof Error ? err.message : String(err)}`);
+      process.exit(1);
+    }
   }
 
   let buffer = Buffer.alloc(0);
