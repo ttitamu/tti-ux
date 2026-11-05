@@ -13,7 +13,7 @@
  * - Developer Handoff & Preset Exporter (JSON schema, CLI flags, Share URL, HTML)
  * - 1-Click Clipboard integration with visual toast feedback
  */
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { useTuxClipboard } from "../composables/useTuxClipboard";
 
 export interface TuxPropOption {
@@ -203,7 +203,7 @@ onMounted(() => {
 let syncTimer: ReturnType<typeof setTimeout> | undefined;
 
 function syncUrl(clearAll = false) {
-  if (!props.enableDeepLinking || !router || !route || typeof window === "undefined") return;
+  if (!props.enableDeepLinking || !router || !route || !globalThis.window || !globalThis.history) return;
 
   const currentQuery = { ...route.query };
   const newQuery: Record<string, any> = {};
@@ -234,7 +234,7 @@ function syncUrl(clearAll = false) {
   // Replace router query silently without reload
   const changed = JSON.stringify(currentQuery) !== JSON.stringify(newQuery);
   if (changed) {
-    router.replace({ query: Object.keys(newQuery).length > 0 ? newQuery : undefined });
+    Promise.resolve(router.replace({ query: Object.keys(newQuery).length > 0 ? newQuery : undefined })).catch(() => {});
   }
 }
 
@@ -246,6 +246,10 @@ watch(
   },
   { deep: true },
 );
+
+onBeforeUnmount(() => {
+  clearTimeout(syncTimer);
+});
 
 // Share Link Generation
 const shareUrl = computed(() => {
