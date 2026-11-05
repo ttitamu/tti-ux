@@ -560,3 +560,21 @@ export { TuxStageBoard } from "./components/TuxStageBoard";
 export type { TuxStageBoardProps } from "./components/TuxStageBoard";
 export { TuxThresholdBar } from "./components/TuxThresholdBar";
 export type { TuxThresholdBarProps } from "./components/TuxThresholdBar";
+
+// v3.11.0 — Telemetry, Rate Schedules, Audit Logs & Statement Settlement
+export { TuxAnomalyCard } from "./components/TuxAnomalyCard";
+export type { TuxAnomalyCardProps } from "./components/TuxAnomalyCard";
+export { TuxAuditLog } from "./components/TuxAuditLog";
+export type { TuxAuditLogProps } from "./components/TuxAuditLog";
+export { TuxLogViewer } from "./components/TuxLogViewer";
+export type { TuxLogViewerProps } from "./components/TuxLogViewer";
+export { TuxRateSchedule } from "./components/TuxRateSchedule";
+export type { TuxRateScheduleProps } from "./components/TuxRateSchedule";
+export { TuxResourceMeter } from "./components/TuxResourceMeter";
+export type { TuxResourceMeterProps } from "./components/TuxResourceMeter";
+export { TuxSimulator } from "./components/TuxSimulator";
+export type { TuxSimulatorProps } from "./components/TuxSimulator";
+export { TuxStatementSheet } from "./components/TuxStatementSheet";
+export type { TuxStatementSheetProps } from "./components/TuxStatementSheet";
+export { TuxUptimeStrip } from "./components/TuxUptimeStrip";
+export type { TuxUptimeStripProps } from "./components/TuxUptimeStrip";

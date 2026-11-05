@@ -13,10 +13,12 @@ import TuxActivityTimeline from "../../../app/components/TuxActivityTimeline.vue
 import TuxAlert from "../../../app/components/TuxAlert.vue";
 import TuxAlphaNav from "../../../app/components/TuxAlphaNav.vue";
 import TuxAnnouncementBanner from "../../../app/components/TuxAnnouncementBanner.vue";
+import TuxAnomalyCard from "../../../app/components/TuxAnomalyCard.vue";
 import TuxAppFrame from "../../../app/components/TuxAppFrame.vue";
 import TuxAppSwitcher from "../../../app/components/TuxAppSwitcher.vue";
 import TuxArchitectureMap from "../../../app/components/TuxArchitectureMap.vue";
 import TuxArtifact from "../../../app/components/TuxArtifact.vue";
+import TuxAuditLog from "../../../app/components/TuxAuditLog.vue";
 import TuxAuthorByline from "../../../app/components/TuxAuthorByline.vue";
 import TuxAvatar from "../../../app/components/TuxAvatar.vue";
 import TuxBadge from "../../../app/components/TuxBadge.vue";
@@ -118,6 +120,7 @@ import TuxLedgerTable from "../../../app/components/TuxLedgerTable.vue";
 import TuxLinkList from "../../../app/components/TuxLinkList.vue";
 import TuxLinkSlab from "../../../app/components/TuxLinkSlab.vue";
 import TuxLoadMore from "../../../app/components/TuxLoadMore.vue";
+import TuxLogViewer from "../../../app/components/TuxLogViewer.vue";
 import TuxMapEmbed from "../../../app/components/TuxMapEmbed.vue";
 import TuxMapLegend from "../../../app/components/TuxMapLegend.vue";
 import TuxMapMarker from "../../../app/components/TuxMapMarker.vue";
@@ -146,6 +149,7 @@ import TuxProportionalInput from "../../../app/components/TuxProportionalInput.v
 import TuxProse from "../../../app/components/TuxProse.vue";
 import TuxQACollection from "../../../app/components/TuxQACollection.vue";
 import TuxRailNav from "../../../app/components/TuxRailNav.vue";
+import TuxRateSchedule from "../../../app/components/TuxRateSchedule.vue";
 import TuxReactionBar from "../../../app/components/TuxReactionBar.vue";
 import TuxReactiveSidebar from "../../../app/components/TuxReactiveSidebar.vue";
 import TuxReasoning from "../../../app/components/TuxReasoning.vue";
@@ -157,6 +161,7 @@ import TuxReportFrame from "../../../app/components/TuxReportFrame.vue";
 import TuxReportPrintSheet from "../../../app/components/TuxReportPrintSheet.vue";
 import TuxReportWebFrame from "../../../app/components/TuxReportWebFrame.vue";
 import TuxResearcher from "../../../app/components/TuxResearcher.vue";
+import TuxResourceMeter from "../../../app/components/TuxResourceMeter.vue";
 import TuxResultCount from "../../../app/components/TuxResultCount.vue";
 import TuxRichDataGrid from "../../../app/components/TuxRichDataGrid.vue";
 import TuxRichTextEditor from "../../../app/components/TuxRichTextEditor.vue";
@@ -172,6 +177,7 @@ import TuxShortcutsHelp from "../../../app/components/TuxShortcutsHelp.vue";
 import TuxSidebarBlock from "../../../app/components/TuxSidebarBlock.vue";
 import TuxSignoffChain from "../../../app/components/TuxSignoffChain.vue";
 import TuxSignupFeature from "../../../app/components/TuxSignupFeature.vue";
+import TuxSimulator from "../../../app/components/TuxSimulator.vue";
 import TuxSiteNav from "../../../app/components/TuxSiteNav.vue";
 import TuxSkeleton from "../../../app/components/TuxSkeleton.vue";
 import TuxSlideover from "../../../app/components/TuxSlideover.vue";
@@ -183,6 +189,7 @@ import TuxSplitPane from "../../../app/components/TuxSplitPane.vue";
 import TuxStageBoard from "../../../app/components/TuxStageBoard.vue";
 import TuxStalenessBanner from "../../../app/components/TuxStalenessBanner.vue";
 import TuxStatComparison from "../../../app/components/TuxStatComparison.vue";
+import TuxStatementSheet from "../../../app/components/TuxStatementSheet.vue";
 import TuxStatus from "../../../app/components/TuxStatus.vue";
 import TuxStatusToast from "../../../app/components/TuxStatusToast.vue";
 import TuxStepper from "../../../app/components/TuxStepper.vue";
@@ -202,6 +209,7 @@ import TuxTree from "../../../app/components/TuxTree.vue";
 import TuxTreeNode from "../../../app/components/TuxTreeNode.vue";
 import TuxTreemap from "../../../app/components/TuxTreemap.vue";
 import TuxUnitValue from "../../../app/components/TuxUnitValue.vue";
+import TuxUptimeStrip from "../../../app/components/TuxUptimeStrip.vue";
 import TuxUserMenu from "../../../app/components/TuxUserMenu.vue";
 import TuxUtilityCluster from "../../../app/components/TuxUtilityCluster.vue";
 import TuxValidationSummary from "../../../app/components/TuxValidationSummary.vue";
@@ -281,6 +289,16 @@ if (typeof customElements !== "undefined" && !customElements.get("tux-announceme
   customElements.define("tux-announcement-banner", TuxAnnouncementBannerElement);
 }
 
+export const TuxAnomalyCardElement = defineCustomElement(TuxAnomalyCard, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-anomaly-card")) {
+  customElements.define("tux-anomaly-card", TuxAnomalyCardElement);
+}
+
 export const TuxAppFrameElement = defineCustomElement(TuxAppFrame, {
   shadowRoot: false,
   configureApp(app) {
@@ -319,6 +337,16 @@ export const TuxArtifactElement = defineCustomElement(TuxArtifact, {
 });
 if (typeof customElements !== "undefined" && !customElements.get("tux-artifact")) {
   customElements.define("tux-artifact", TuxArtifactElement);
+}
+
+export const TuxAuditLogElement = defineCustomElement(TuxAuditLog, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-audit-log")) {
+  customElements.define("tux-audit-log", TuxAuditLogElement);
 }
 
 export const TuxAuthorBylineElement = defineCustomElement(TuxAuthorByline, {
@@ -1331,6 +1359,16 @@ if (typeof customElements !== "undefined" && !customElements.get("tux-load-more"
   customElements.define("tux-load-more", TuxLoadMoreElement);
 }
 
+export const TuxLogViewerElement = defineCustomElement(TuxLogViewer, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-log-viewer")) {
+  customElements.define("tux-log-viewer", TuxLogViewerElement);
+}
+
 export const TuxMapEmbedElement = defineCustomElement(TuxMapEmbed, {
   shadowRoot: false,
   configureApp(app) {
@@ -1611,6 +1649,16 @@ if (typeof customElements !== "undefined" && !customElements.get("tux-rail-nav")
   customElements.define("tux-rail-nav", TuxRailNavElement);
 }
 
+export const TuxRateScheduleElement = defineCustomElement(TuxRateSchedule, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-rate-schedule")) {
+  customElements.define("tux-rate-schedule", TuxRateScheduleElement);
+}
+
 export const TuxReactionBarElement = defineCustomElement(TuxReactionBar, {
   shadowRoot: false,
   configureApp(app) {
@@ -1719,6 +1767,16 @@ export const TuxResearcherElement = defineCustomElement(TuxResearcher, {
 });
 if (typeof customElements !== "undefined" && !customElements.get("tux-researcher")) {
   customElements.define("tux-researcher", TuxResearcherElement);
+}
+
+export const TuxResourceMeterElement = defineCustomElement(TuxResourceMeter, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-resource-meter")) {
+  customElements.define("tux-resource-meter", TuxResourceMeterElement);
 }
 
 export const TuxResultCountElement = defineCustomElement(TuxResultCount, {
@@ -1871,6 +1929,16 @@ if (typeof customElements !== "undefined" && !customElements.get("tux-signup-fea
   customElements.define("tux-signup-feature", TuxSignupFeatureElement);
 }
 
+export const TuxSimulatorElement = defineCustomElement(TuxSimulator, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-simulator")) {
+  customElements.define("tux-simulator", TuxSimulatorElement);
+}
+
 export const TuxSiteNavElement = defineCustomElement(TuxSiteNav, {
   shadowRoot: false,
   configureApp(app) {
@@ -1979,6 +2047,16 @@ export const TuxStatComparisonElement = defineCustomElement(TuxStatComparison, {
 });
 if (typeof customElements !== "undefined" && !customElements.get("tux-stat-comparison")) {
   customElements.define("tux-stat-comparison", TuxStatComparisonElement);
+}
+
+export const TuxStatementSheetElement = defineCustomElement(TuxStatementSheet, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-statement-sheet")) {
+  customElements.define("tux-statement-sheet", TuxStatementSheetElement);
 }
 
 export const TuxStatusElement = defineCustomElement(TuxStatus, {
@@ -2169,6 +2247,16 @@ export const TuxUnitValueElement = defineCustomElement(TuxUnitValue, {
 });
 if (typeof customElements !== "undefined" && !customElements.get("tux-unit-value")) {
   customElements.define("tux-unit-value", TuxUnitValueElement);
+}
+
+export const TuxUptimeStripElement = defineCustomElement(TuxUptimeStrip, {
+  shadowRoot: false,
+  configureApp(app) {
+    app.use(uiPlugin);
+  }
+});
+if (typeof customElements !== "undefined" && !customElements.get("tux-uptime-strip")) {
+  customElements.define("tux-uptime-strip", TuxUptimeStripElement);
 }
 
 export const TuxUserMenuElement = defineCustomElement(TuxUserMenu, {

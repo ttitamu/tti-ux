@@ -214,6 +214,19 @@ npm run dev
 | `TuxStageBoard`      | tux native               | `/components/stage-board`           |
 | `TuxThresholdBar`    | tux native               | `/components/threshold-bar`         |
 
+**Telemetry, rate schedules & chargeback family** (added 2026-11-04):
+
+| Component            | Wraps                    | Showcase                            |
+|----------------------|--------------------------|-------------------------------------|
+| `TuxAnomalyCard`     | tux native               | `/components/anomaly-card`          |
+| `TuxAuditLog`        | tux native               | `/components/audit-log`             |
+| `TuxLogViewer`       | tux native               | `/components/log-viewer`            |
+| `TuxRateSchedule`    | tux native               | `/components/rate-schedule`         |
+| `TuxResourceMeter`   | tux native               | `/components/resource-meter`        |
+| `TuxSimulator`       | tux native               | `/components/simulator`             |
+| `TuxStatementSheet`  | tux native               | `/components/statement-sheet`       |
+| `TuxUptimeStrip`     | tux native               | `/components/uptime-strip`          |
+
 **Native chart family** (Priority B — closed 2026-05-22; extended 2026-10-29):
 
 | Component            | Stack                    | Showcase                        |

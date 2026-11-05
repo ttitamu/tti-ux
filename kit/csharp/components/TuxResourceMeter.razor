@@ -1,0 +1,20 @@
+@*
+ * TuxResourceMeter.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-resource-meter">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public string PoolStatus { get; set; } = "ok";
+    [Parameter] public string? Channels { get; set; }
+    [Parameter] public double WasteThresholdRatio { get; set; } = 0.35;
+    [Parameter] public double SaturationThresholdRatio { get; set; } = 0.85;
+    [Parameter] public string ReclaimLabel { get; set; } = "Reclaim Idle";
+    [Parameter] public bool ShowReclaimAction { get; set; } = true;
+}

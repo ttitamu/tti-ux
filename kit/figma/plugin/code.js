@@ -7637,6 +7637,31 @@ const TUX_COMPONENTS = [
     }
   },
   {
+    "name": "TuxAnomalyCard",
+    "tagName": "tux-anomaly-card",
+    "kind": "component",
+    "family": "components",
+    "category": "feedback",
+    "wraps": "tux native",
+    "blurb": "Threshold breach, metric spike & anomaly triage card with baseline vs observed delta, sparkline, and acknowledge/snooze sink states.",
+    "route": "/components/anomaly-card",
+    "docsUrl": "https://ux.tti.tamu.edu/components/anomaly-card",
+    "figmaNodePattern": "TUX / TuxAnomalyCard",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxAnomalyCard />",
+      "react": "import { TuxAnomalyCard } from \"@tti/tti-ux-react\";\n\n<TuxAnomalyCard />",
+      "webComponents": "<tux-anomaly-card></tux-anomaly-card>",
+      "blazor": "<TuxAnomalyCard />",
+      "wordpress": "[tux_anomaly_card]"
+    }
+  },
+  {
     "name": "TuxAppFrame",
     "tagName": "tux-app-frame",
     "kind": "component",
@@ -7734,6 +7759,31 @@ const TUX_COMPONENTS = [
       "webComponents": "<tux-artifact></tux-artifact>",
       "blazor": "<TuxArtifact />",
       "wordpress": "[tux_artifact]"
+    }
+  },
+  {
+    "name": "TuxAuditLog",
+    "tagName": "tux-audit-log",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Immutable append-only operational & governance audit ledger with severity filtering, hash-chain verification, and structured before → after payload inspection.",
+    "route": "/components/audit-log",
+    "docsUrl": "https://ux.tti.tamu.edu/components/audit-log",
+    "figmaNodePattern": "TUX / TuxAuditLog",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxAuditLog />",
+      "react": "import { TuxAuditLog } from \"@tti/tti-ux-react\";\n\n<TuxAuditLog />",
+      "webComponents": "<tux-audit-log></tux-audit-log>",
+      "blazor": "<TuxAuditLog />",
+      "wordpress": "[tux_audit_log]"
     }
   },
   {
@@ -9912,6 +9962,31 @@ const TUX_COMPONENTS = [
     }
   },
   {
+    "name": "TuxLogViewer",
+    "tagName": "tux-log-viewer",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Virtualized structured operational log & event stream viewer with level filters, search highlighting, follow-tail lock, and JSON context drawers.",
+    "route": "/components/log-viewer",
+    "docsUrl": "https://ux.tti.tamu.edu/components/log-viewer",
+    "figmaNodePattern": "TUX / TuxLogViewer",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxLogViewer />",
+      "react": "import { TuxLogViewer } from \"@tti/tti-ux-react\";\n\n<TuxLogViewer />",
+      "webComponents": "<tux-log-viewer></tux-log-viewer>",
+      "blazor": "<TuxLogViewer />",
+      "wordpress": "[tux_log_viewer]"
+    }
+  },
+  {
     "name": "TuxMapEmbed",
     "tagName": "tux-map-embed",
     "kind": "component",
@@ -10587,6 +10662,31 @@ const TUX_COMPONENTS = [
     }
   },
   {
+    "name": "TuxRateSchedule",
+    "tagName": "tux-rate-schedule",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native",
+    "blurb": "Effective-dated tiered rate card & tariff schedule editor with flat, graduated, and volume pricing models plus inline sample quantity calculator.",
+    "route": "/components/rate-schedule",
+    "docsUrl": "https://ux.tti.tamu.edu/components/rate-schedule",
+    "figmaNodePattern": "TUX / TuxRateSchedule",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxRateSchedule />",
+      "react": "import { TuxRateSchedule } from \"@tti/tti-ux-react\";\n\n<TuxRateSchedule />",
+      "webComponents": "<tux-rate-schedule></tux-rate-schedule>",
+      "blazor": "<TuxRateSchedule />",
+      "wordpress": "[tux_rate_schedule]"
+    }
+  },
+  {
     "name": "TuxReactionBar",
     "tagName": "tux-reaction-bar",
     "kind": "component",
@@ -10834,6 +10934,31 @@ const TUX_COMPONENTS = [
       "webComponents": "<tux-researcher></tux-researcher>",
       "blazor": "<TuxResearcher />",
       "wordpress": "[tux_researcher]"
+    }
+  },
+  {
+    "name": "TuxResourceMeter",
+    "tagName": "tux-resource-meter",
+    "kind": "component",
+    "family": "components",
+    "category": "data-display",
+    "wraps": "tux native",
+    "blurb": "Multi-channel live infrastructure saturation card (CPU, memory, GPU, storage, I/O) with status heartbeat, threshold coloring, and inline sparklines.",
+    "route": "/components/resource-meter",
+    "docsUrl": "https://ux.tti.tamu.edu/components/resource-meter",
+    "figmaNodePattern": "TUX / TuxResourceMeter",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxResourceMeter />",
+      "react": "import { TuxResourceMeter } from \"@tti/tti-ux-react\";\n\n<TuxResourceMeter />",
+      "webComponents": "<tux-resource-meter></tux-resource-meter>",
+      "blazor": "<TuxResourceMeter />",
+      "wordpress": "[tux_resource_meter]"
     }
   },
   {
@@ -11187,6 +11312,31 @@ const TUX_COMPONENTS = [
     }
   },
   {
+    "name": "TuxSimulator",
+    "tagName": "tux-simulator",
+    "kind": "component",
+    "family": "components",
+    "category": "forms",
+    "wraps": "tux native",
+    "blurb": "Interactive scenario & what-if parameter simulator with sliders, presets, and live baseline vs projected metric deltas.",
+    "route": "/components/simulator",
+    "docsUrl": "https://ux.tti.tamu.edu/components/simulator",
+    "figmaNodePattern": "TUX / TuxSimulator",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxSimulator />",
+      "react": "import { TuxSimulator } from \"@tti/tti-ux-react\";\n\n<TuxSimulator />",
+      "webComponents": "<tux-simulator></tux-simulator>",
+      "blazor": "<TuxSimulator />",
+      "wordpress": "[tux_simulator]"
+    }
+  },
+  {
     "name": "TuxSiteNav",
     "tagName": "tux-site-nav",
     "kind": "component",
@@ -11434,6 +11584,31 @@ const TUX_COMPONENTS = [
       "webComponents": "<tux-stat-comparison></tux-stat-comparison>",
       "blazor": "<TuxStatComparison />",
       "wordpress": "[tux_stat_comparison]"
+    }
+  },
+  {
+    "name": "TuxStatementSheet",
+    "tagName": "tux-statement-sheet",
+    "kind": "component",
+    "family": "components",
+    "category": "publishing",
+    "wraps": "tux native",
+    "blurb": "Print-first & web-interactive cycle statement / settlement sheet with issuer/recipient metadata, line items, adjustments, and attestation block.",
+    "route": "/components/statement-sheet",
+    "docsUrl": "https://ux.tti.tamu.edu/components/statement-sheet",
+    "figmaNodePattern": "TUX / TuxStatementSheet",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxStatementSheet />",
+      "react": "import { TuxStatementSheet } from \"@tti/tti-ux-react\";\n\n<TuxStatementSheet />",
+      "webComponents": "<tux-statement-sheet></tux-statement-sheet>",
+      "blazor": "<TuxStatementSheet />",
+      "wordpress": "[tux_statement_sheet]"
     }
   },
   {
@@ -11884,6 +12059,31 @@ const TUX_COMPONENTS = [
       "webComponents": "<tux-unit-value></tux-unit-value>",
       "blazor": "<TuxUnitValue />",
       "wordpress": "[tux_unit_value]"
+    }
+  },
+  {
+    "name": "TuxUptimeStrip",
+    "tagName": "tux-uptime-strip",
+    "kind": "component",
+    "family": "components",
+    "category": "feedback",
+    "wraps": "tux native",
+    "blurb": "Temporal availability & SLI window strip (30/60/90 buckets) with aggregate uptime %, keyboard roving inspection, and incident notes.",
+    "route": "/components/uptime-strip",
+    "docsUrl": "https://ux.tti.tamu.edu/components/uptime-strip",
+    "figmaNodePattern": "TUX / TuxUptimeStrip",
+    "a11y": {
+      "wcagLevel": "AAA",
+      "textContrast": ">= 7.0:1",
+      "uiContrast": ">= 3.0:1",
+      "minTouchTarget": "44x44px"
+    },
+    "snippets": {
+      "vue": "<TuxUptimeStrip />",
+      "react": "import { TuxUptimeStrip } from \"@tti/tti-ux-react\";\n\n<TuxUptimeStrip />",
+      "webComponents": "<tux-uptime-strip></tux-uptime-strip>",
+      "blazor": "<TuxUptimeStrip />",
+      "wordpress": "[tux_uptime_strip]"
     }
   },
   {

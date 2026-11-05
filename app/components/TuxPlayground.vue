@@ -376,7 +376,7 @@ const generatedCliCommand = computed(() => {
           type="button"
           class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded bg-surface-raised border border-surface-border text-text-muted hover:text-text-primary hover:border-brand-primary transition-all cursor-pointer focus-visible:outline-3 focus-visible:outline-brand-primary/40"
           title="Copy shareable direct URL with current configuration"
-          aria-label="Share configured preset link"
+          :aria-label="copiedKey === 'share-link' ? 'Link Copied! — Share configured preset link' : 'Share Link — Share configured preset link'"
           @click="copyShareLink"
         >
           <UIcon
@@ -427,7 +427,7 @@ const generatedCliCommand = computed(() => {
           type="button"
           class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border transition-colors cursor-pointer focus-visible:outline-3 focus-visible:outline-brand-primary/40"
           :class="isPresetActive(p)
-            ? 'bg-brand-primary text-white border-brand-primary font-semibold shadow-xs'
+            ? 'bg-brand-fill text-text-on-brand border-brand-fill font-semibold shadow-xs'
             : 'bg-surface-raised text-text-secondary border-surface-border hover:border-brand-primary hover:text-text-primary'"
           :title="p.description"
           @click="applyPreset(p)"

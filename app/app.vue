@@ -141,7 +141,8 @@ watchEffect(() => {
     p.startsWith("/kits") ||
     p.startsWith("/design/components") ||
     p.startsWith("/design/compositions") ||
-    p.startsWith("/design/ops-surfaces")
+    p.startsWith("/design/ops-surfaces") ||
+    p.startsWith("/design/telemetry-and-chargeback")
   ) {
     activeAreaId.value = "components";
   } else if (
@@ -227,12 +228,20 @@ const versionDropdownRef = ref<HTMLElement | null>(null);
 
 const releases = [
   {
-    version: "v3.10.0",
-    title: "Resource Governance & Reconciliation",
-    era: "Operational Attribution · 19 Agnostic Primitives & Multi-Party Signoff",
+    version: "v3.11.0",
+    title: "Telemetry, Rate Cards & Chargeback",
+    era: "Unified Ops & Settlement · 8 Metering, SLI, Audit & Statement Primitives",
     badge: "Current",
     badgeClass: "bg-wash-brand-12 text-brand-primary border border-brand-primary/20",
     route: "/",
+  },
+  {
+    version: "v3.10.0",
+    title: "Resource Governance & Reconciliation",
+    era: "Operational Attribution · 19 Agnostic Primitives & Multi-Party Signoff",
+    badge: "Stable",
+    badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
+    route: "/changelog#_3100-2026-10-29",
   },
   {
     version: "v3.9.1",
@@ -608,12 +617,14 @@ const navTree = [
       { label: "Kits overview", to: "/examples", icon: "lucide:library" },
       { label: "Compositions doctrine", to: "/design/compositions", icon: "lucide:blocks" },
       { label: "Operational surfaces", to: "/design/ops-surfaces", icon: "lucide:heart-pulse" },
+      { label: "Telemetry & chargeback", to: "/design/telemetry-and-chargeback", icon: "lucide:receipt" },
       { label: "  · TTI Code / Forgejo", to: "/examples/forgejo-code", icon: "lucide:git-branch" },
       { label: "  · Comm public portal", to: "/examples/comm-portal", icon: "lucide:globe" },
       { label: "  · MyTTI intranet", to: "/examples/intranet-dashboard", icon: "lucide:building-2" },
       { label: "  · Center landing", to: "/examples/center-landing", icon: "lucide:landmark" },
       { label: "  · Corridor analytics", to: "/examples/corridor-analytics", icon: "lucide:route" },
       { label: "  · Resource governance", to: "/examples/resource-governance", icon: "lucide:scale" },
+      { label: "  · Telemetry & chargeback", to: "/examples/telemetry-chargeback", icon: "lucide:activity" },
       { label: "  · Ops board", to: "/examples/ops-board", icon: "lucide:heart-pulse" },
       { label: "  · Paper page", to: "/examples/paper-page", icon: "lucide:file-text" },
       { label: "  · Research landing", to: "/examples/research-landing", icon: "lucide:milestone" },

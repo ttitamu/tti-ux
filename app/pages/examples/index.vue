@@ -59,6 +59,17 @@ const examples: ExampleEntry[] = [
     featuredComponents: ["TuxSignoffChain", "TuxThresholdBar", "TuxRecordMatcher", "TuxLedgerTable", "TuxChartSankey", "TuxChartWaterfall"],
   },
   {
+    slug: "telemetry-chargeback",
+    eyebrow: "product · telemetry, rate cards & chargeback",
+    title: "Telemetry & chargeback engine",
+    category: "ops",
+    categoryLabel: "Operational Telemetry",
+    archetype: "Live Infrastructure, Rate Schedules & Statements",
+    blurb: "Unified live infrastructure saturation meters, 90-day SLI uptime strips, anomaly triage, virtualized log streaming, effective-dated rate schedules, interactive scenario simulation, cryptographic audit logs, and cycle statement settlement.",
+    componentsCount: 14,
+    featuredComponents: ["TuxResourceMeter", "TuxUptimeStrip", "TuxAnomalyCard", "TuxLogViewer", "TuxRateSchedule", "TuxSimulator", "TuxAuditLog", "TuxStatementSheet"],
+  },
+  {
     slug: "comm-portal",
     eyebrow: "marcom · public redesign parity",
     title: "TTI communications portal",
@@ -233,12 +244,12 @@ const filteredExamples = computed(() => {
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div class="p-4 rounded-md bg-surface-raised border border-surface-border">
         <p class="eyebrow">Composition Gallery</p>
-        <p class="text-2xl font-bold text-text-primary mt-1">13 Suites</p>
+        <p class="text-2xl font-bold text-text-primary mt-1">{{ examples.length }} Suites</p>
         <p class="text-xs text-text-muted mt-0.5">End-to-end production pages</p>
       </div>
       <div class="p-4 rounded-md bg-surface-raised border border-surface-border">
         <p class="eyebrow">TUX Component Count</p>
-        <p class="text-2xl font-bold text-text-primary mt-1">112 Instances</p>
+        <p class="text-2xl font-bold text-text-primary mt-1">135 Instances</p>
         <p class="text-xs text-text-muted mt-0.5">Composed across all suites</p>
       </div>
       <div class="p-4 rounded-md bg-surface-raised border border-surface-border">
