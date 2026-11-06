@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest";
 import { nextTick } from "vue";
 import { mountSuspended } from "@nuxt/test-utils/runtime";
 import TuxArchitectureMap from "../../packages/diagrams/app/components/TuxArchitectureMap.vue";
-import { DEFAULT_TTI_LEVEL_MODEL, type TuxMapLevelModel } from "../../packages/diagrams/app/utils/tuxArchitectureMap";
+import { EMPTY_TTI_LEVEL_MODEL, type TuxMapLevelModel } from "../../packages/diagrams/app/utils/tuxArchitectureMap";
+import { DEFAULT_TTI_LEVEL_MODEL } from "../../packages/diagrams/app/utils/tuxArchitectureMapSample";
 import { runComponentAxe } from "../axe-helper";
 
 describe("TuxArchitectureMap Component", () => {
@@ -1081,6 +1082,464 @@ describe("TuxArchitectureMap Component", () => {
     await webCard.trigger("click");
     await nextTick();
     expect(wrapper.find(".tux-map__source-lnk").exists()).toBe(false);
+    expect(await runComponentAxe(wrapper.element)).toEqual([]);
+  });
+
+  // ==========================================================================
+  // SLICE 5A COMPONENT & ACCESSIBILITY TESTS (#114, #122, #130, #120, #119)
+  // ==========================================================================
+
+  it("mounts EMPTY_TTI_LEVEL_MODEL by default without shipping sample prose, while docs sample remains mountable (#114)", async () => {
+    const emptyWrapper = await mountSuspended(TuxArchitectureMap);
+    expect(emptyWrapper.findAll(".tux-map__el").length).toBe(0);
+    expect(emptyWrapper.text()).not.toContain("TTI Cloud Platform");
+    expect(await runComponentAxe(emptyWrapper.element)).toEqual([]);
+
+    const sampleWrapper = await mountSuspended(TuxArchitectureMap, {
+      props: { model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 1 },
+    });
+    expect(sampleWrapper.findAll(".tux-map__el").length).toBeGreaterThan(2);
+    expect(await runComponentAxe(sampleWrapper.element)).toEqual([]);
+  });
+
+  it("selects, focuses, and reveals IDs with backslashes, quotes, and brackets without CSS.escape, and renders route & link-kind legend entries (#122)", async () => {
+    const trickyRouteId = `r:GET /v1/re\\\\pos\\["id"\\]/'items'[0]`;
+    const trickyHandlerId = `s:bff\\win["q"]'x'[0]#handle`;
+    const newKinds = [
+      "copies",
+      "copies-logic-of",
+      "forks",
+      "reads-format",
+      "suppresses",
+      "provenance",
+      "links",
+      "reads",
+      "generates",
+      "denies",
+      "handled-by",
+      "sends",
+      "routes",
+    ] as const;
+
+    const model: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "System" }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [{ id: "c-api", kind: "container", name: "API" }],
+        rels: [],
+      },
+      level3: {
+        "c-api": [{ id: "c-api/routes", kind: "component", name: "Routes" }],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      subgraphs: {
+        "c-api/routes": {
+          elements: [
+            { id: trickyRouteId, kind: "route", name: "GET /v1/repos/[id]/items" },
+            { id: trickyHandlerId, kind: "function", name: "handle_items", source: { path: "bff/items.py", lineRange: [10, 20] } },
+          ],
+        },
+      },
+      links: newKinds.map((kind) => ({
+        from: trickyRouteId,
+        to: trickyHandlerId,
+        kind,
+        at: "bff/items.py:12",
+      })),
+    };
+
+    const origCss = (globalThis as Record<string, unknown>).CSS;
+    try {
+      // Simulate happy-dom / minimal DOM with zero `CSS.escape`
+      (globalThis as Record<string, unknown>).CSS = undefined;
+
+      const wrapper = await mountSuspended(TuxArchitectureMap, {
+        props: { model, initialLevel: 2 },
+        attachTo: document.body,
+      });
+
+      // Legend displays `HTTP route` and every new link kind in the model
+      const legendText = wrapper.find(".tux-map__legend").text();
+      expect(legendText).toContain("HTTP route");
+      for (const k of newKinds) {
+        expect(wrapper.find(`.tux-map__legend li[data-link-kind="${k}"]`).exists(), `legend entry for ${k}`).toBe(true);
+      }
+
+      // Open Go-To palette (`/`), search `handle_items`, and hit Enter to reveal & focus the tricky ID
+      await wrapper.find(".tux-map__viewport").trigger("keydown", { key: "/" });
+      await nextTick();
+      const goToInput = wrapper.find("input.tux-map__goto-input");
+      expect(goToInput.exists()).toBe(true);
+      await goToInput.setValue("handle_items");
+      await nextTick();
+      await goToInput.trigger("keydown", { key: "Enter" });
+      await nextTick();
+      await nextTick();
+
+      expect(wrapper.emitted("update:selectedId")?.at(-1)).toEqual([trickyHandlerId]);
+      expect(wrapper.find(".tux-map__panel-title").text()).toContain("handle_items");
+      expect((document.activeElement as HTMLElement | null)?.dataset?.id).toBe(trickyHandlerId);
+
+      // Select the backslash/quote/bracket `route` card directly and verify `"HTTP route"` type label
+      const routeCard = wrapper.findAll(".tux-map__el").find((el) => el.attributes("data-id") === trickyRouteId);
+      expect(routeCard).toBeDefined();
+      await routeCard!.trigger("click");
+      await nextTick();
+      expect(wrapper.find(".tux-map__panel-ty").text()).toContain("HTTP route");
+
+      expect(await runComponentAxe(wrapper.element)).toEqual([]);
+      wrapper.unmount();
+    } finally {
+      (globalThis as Record<string, unknown>).CSS = origCss;
+    }
+  });
+
+  it("zooms into an outside collaborator card (forge.py from routes.py functions) at its true level with matching badge title and parent back-step (#130)", async () => {
+    const codeLinksModel: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "TTI Code" }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [{ id: "c-api", kind: "container", name: "BFF Gateway" }],
+        rels: [],
+      },
+      level3: {
+        "c-api": [{ id: "c-api/1", kind: "component", name: "Gateway Core" }],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      subgraphs: {
+        "c-api/1": {
+          stratum: "Python modules",
+          elements: [
+            { id: "f:routes.py", kind: "module", name: "routes.py", source: { path: "bff/routes.py" } },
+            { id: "f:forge.py", kind: "module", name: "forge.py", source: { path: "bff/forge.py" } },
+          ],
+        },
+        "f:routes.py": {
+          stratum: "route functions",
+          elements: [
+            { id: "s:routes.py#list_repos", kind: "function", name: "list_repos" },
+          ],
+        },
+        "f:forge.py": {
+          stratum: "forge functions",
+          elements: [
+            { id: "s:forge.py#fetch_repo", kind: "function", name: "fetch_repo" },
+          ],
+        },
+      },
+      links: [
+        { from: "s:routes.py#list_repos", to: "f:forge.py", kind: "imports", at: "bff/routes.py:18" },
+      ],
+    };
+
+    const navigateToRoutesLevel6 = async () => {
+      const w = await mountSuspended(TuxArchitectureMap, {
+        props: { model: codeLinksModel, initialLevel: 2 },
+        attachTo: document.body,
+      });
+      // Drill: c-api (L2->L3) -> c-api/1 (L3->L5) -> f:routes.py (L5->L6)
+      await w.find('.tux-map__el[data-id="c-api"]').trigger("dblclick");
+      await nextTick();
+      await w.find('.tux-map__el[data-id="c-api/1"]').trigger("dblclick");
+      await nextTick();
+      await w.find('.tux-map__el[data-id="f:routes.py"]').trigger("dblclick");
+      await nextTick();
+      expect(w.find(".tux-map__level-text").text()).toContain("Level 6");
+      return w;
+    };
+
+    // 1. Panel button zoom + badge title verification + `-` zoom out to `c-api/1` (Level 5)
+    const w1 = await navigateToRoutesLevel6();
+    const forgeCard1 = w1.find('.tux-map__el[data-id="f:forge.py"]');
+    expect(forgeCard1.exists()).toBe(true);
+    const badgeTitle = forgeCard1.find(".tux-map__el-zb").attributes("title") || "";
+    expect(badgeTitle).toContain("Level 6");
+    expect(badgeTitle).not.toContain("Level 7");
+
+    await forgeCard1.trigger("click");
+    await nextTick();
+    const panelZoomBtn = w1
+      .findAll("button.tux-map__panel-btn")
+      .find((b) => b.text().includes("Zoom in to Level"));
+    expect(panelZoomBtn).toBeDefined();
+    expect(panelZoomBtn!.text()).toContain("Zoom in to Level 6");
+    await panelZoomBtn!.trigger("click");
+    await nextTick();
+
+    expect(w1.find(".tux-map__level-text").text()).toContain("Level 6");
+    expect(w1.find('.tux-map__el[data-id="s:forge.py#fetch_repo"]').exists()).toBe(true);
+    // `-` steps back to `f:forge.py`'s parent (`c-api/1` at Level 5), NOT `f:routes.py`!
+    await w1.find(".tux-map__viewport").trigger("keydown", { key: "-" });
+    await nextTick();
+    expect(w1.find(".tux-map__level-text").text()).toContain("Level 5");
+    expect(w1.emitted("update:focus")?.at(-1)).toEqual(["c-api/1"]);
+    w1.unmount();
+
+    // 2. `+` key on focused outside card `f:forge.py` -> Level 6 `f:forge.py` -> `-` -> Level 5 `c-api/1`
+    const w2 = await navigateToRoutesLevel6();
+    const forgeCard2 = w2.find('.tux-map__el[data-id="f:forge.py"]');
+    (forgeCard2.element as HTMLElement).focus();
+    await forgeCard2.trigger("keydown", { key: "+" });
+    await nextTick();
+    expect(w2.find(".tux-map__level-text").text()).toContain("Level 6");
+    expect(w2.find('.tux-map__el[data-id="s:forge.py#fetch_repo"]').exists()).toBe(true);
+    await w2.find(".tux-map__viewport").trigger("keydown", { key: "-" });
+    await nextTick();
+    expect(w2.find(".tux-map__level-text").text()).toContain("Level 5");
+    expect(w2.emitted("update:focus")?.at(-1)).toEqual(["c-api/1"]);
+    w2.unmount();
+
+    // 3. Wheel zoom-in (`deltaY < 0`) over outside card `f:forge.py` -> Level 6 `f:forge.py` -> `-` -> Level 5 `c-api/1`
+    const w3 = await navigateToRoutesLevel6();
+    const forgeCard3 = w3.find('.tux-map__el[data-id="f:forge.py"]');
+    await forgeCard3.trigger("wheel", { deltaY: -120 });
+    await nextTick();
+    expect(w3.find(".tux-map__level-text").text()).toContain("Level 6");
+    expect(w3.find('.tux-map__el[data-id="s:forge.py#fetch_repo"]').exists()).toBe(true);
+    await w3.find(".tux-map__viewport").trigger("keydown", { key: "-" });
+    await nextTick();
+    expect(w3.find(".tux-map__level-text").text()).toContain("Level 5");
+    expect(w3.emitted("update:focus")?.at(-1)).toEqual(["c-api/1"]);
+    w3.unmount();
+  });
+
+  it("reaches a file from Level 1 in 3 keys + Enter via Go-To palette, resolves route handlers, filters List view, announces 'N of M here', and passes axe (#120)", async () => {
+    const model: TuxMapLevelModel = {
+      level1: {
+        elements: [
+          { id: "p-dev", kind: "person", name: "Engineer" },
+          { id: "sys-code", kind: "system", name: "TTI Code" },
+        ],
+        rels: [{ from: "p-dev", to: "sys-code", label: "Pushes code" }],
+      },
+      level2: {
+        boundary: "sys-code",
+        elements: [
+          { id: "c-api", kind: "container", name: "BFF Gateway" },
+          { id: "c-db", kind: "database", name: "State DB" },
+        ],
+        rels: [{ from: "c-api", to: "c-db", label: "Reads & writes" }],
+      },
+      level3: {
+        "c-api": [{ id: "c-api/core", kind: "component", name: "Gateway Core" }],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      subgraphs: {
+        "c-api/core": {
+          elements: [
+            { id: "f:bff/ttibff/forge.py", kind: "module", name: "forge.py", source: { path: "bff/ttibff/forge.py" } },
+            { id: "f:bff/ttibff/map.py", kind: "module", name: "map.py", source: { path: "bff/ttibff/map.py" } },
+          ],
+        },
+        "f:bff/ttibff/map.py": {
+          elements: [
+            { id: "s:bff/ttibff/map.py#org_arch", kind: "function", name: "org_arch", source: { path: "bff/ttibff/map.py", lineRange: [50, 88] } },
+          ],
+        },
+      },
+      routes: [
+        {
+          method: "GET",
+          pattern: "/v1/orgs/{org}/architecture",
+          handler: "s:bff/ttibff/map.py#org_arch",
+          framework: "FastAPI",
+        },
+      ],
+    };
+
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: { model, initialLevel: 1 },
+      attachTo: document.body,
+    });
+
+    // 1. From Level 1: `/` + 3 keys (`"for"`) + `Enter` lands focus directly on `f:bff/ttibff/forge.py`!
+    await wrapper.find(".tux-map__viewport").trigger("keydown", { key: "/" });
+    await nextTick();
+    const goToInput = wrapper.find("input.tux-map__goto-input");
+    await goToInput.setValue("for");
+    await nextTick();
+    expect(wrapper.find(".tux-map__goto-opt--active").text()).toContain("forge.py");
+    await goToInput.trigger("keydown", { key: "Enter" });
+    await nextTick();
+    await nextTick();
+
+    expect(wrapper.find(".tux-map__level-text").text()).toContain("Level 5");
+    expect((document.activeElement as HTMLElement | null)?.dataset?.id).toBe("f:bff/ttibff/forge.py");
+
+    // 2. `Meta+k` opens palette; route pattern resolves to its handler `s:bff/ttibff/map.py#org_arch`
+    await wrapper.find(".tux-map__viewport").trigger("keydown", { key: "k", metaKey: true });
+    await nextTick();
+    const goToInput2 = wrapper.find("input.tux-map__goto-input");
+    await goToInput2.setValue("/v1/orgs/{org}/architecture");
+    await nextTick();
+    expect(wrapper.find(".tux-map__goto-hdr").text()).toContain("Routes");
+    await goToInput2.trigger("keydown", { key: "Enter" });
+    await nextTick();
+    await nextTick();
+
+    expect(wrapper.find(".tux-map__level-text").text()).toContain("Level 6");
+    expect((document.activeElement as HTMLElement | null)?.dataset?.id).toBe("s:bff/ttibff/map.py#org_arch");
+
+    // 3. Per-level filter announces `"1 of 2 here"` via `.tux-map__sr` and hides non-matching List view items
+    await wrapper.setProps({ level: 1 });
+    await nextTick();
+    const filterInput = wrapper.find("input.tux-map__search-input");
+    await filterInput.setValue("Engineer");
+    await nextTick();
+    expect(wrapper.find(".tux-map__sr").text()).toContain("1 of 2 here");
+
+    await wrapper.setProps({ view: "list" });
+    await nextTick();
+    const listCards = wrapper.findAll("[data-list-id]");
+    expect(listCards.length).toBe(1);
+    expect(listCards[0]!.attributes("data-list-id")).toBe("p-dev");
+
+    // 4. Open Go-To palette in both hit and zero-hit states and verify 0 axe violations
+    //    (runComponentAxe detaches wrapper.element on cleanup, so run after activeElement checks)
+    await wrapper.setProps({ view: "diagram" });
+    await nextTick();
+    await wrapper.find(".tux-map__viewport").trigger("keydown", { key: "k", ctrlKey: true });
+    await nextTick();
+    await wrapper.find("input.tux-map__goto-input").setValue("forge");
+    await nextTick();
+    expect(await runComponentAxe(wrapper.element)).toEqual([]);
+
+    await wrapper.find("input.tux-map__goto-input").setValue("zzzz-no-match-999");
+    await nextTick();
+    expect(wrapper.find(".tux-map__goto-empty").exists()).toBe(true);
+    expect(await runComponentAxe(wrapper.element)).toEqual([]);
+
+    wrapper.unmount();
+  });
+
+  it("renders Find Usages with distinct direct dependents vs links, Show all (>60 rows), C4 database rels, mentions toggle, outside card badges, and non-PR legend (#119)", async () => {
+    const manyCallers = Array.from({ length: 63 }, (_, i) => ({
+      id: `f:bff/routes/ep_${String(i).padStart(2, "0")}.py`,
+      kind: "module" as const,
+      name: `ep_${String(i).padStart(2, "0")}.py`,
+      source: { path: `bff/routes/ep_${String(i).padStart(2, "0")}.py` },
+    }));
+
+    const model: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "TTI Code" }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [
+          { id: "c-api", kind: "container", name: "BFF Gateway" },
+          { id: "c-worker", kind: "container", name: "Sync Worker" },
+          { id: "c-db", kind: "database", name: "PostgreSQL State DB" },
+        ],
+        rels: [
+          { from: "c-api", to: "c-db", label: "Reads & writes state" },
+          { from: "c-worker", to: "c-db", label: "Writes audit rows" },
+        ],
+      },
+      level3: {
+        "c-api": [
+          { id: "c-api/lib", kind: "component", name: "Shared Auth" },
+          { id: "c-api/routes", kind: "component", name: "HTTP Routes" },
+        ],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      subgraphs: {
+        "c-api/lib": {
+          elements: [
+            { id: "f:bff/lib/auth.py", kind: "module", name: "auth.py", source: { path: "bff/lib/auth.py" } },
+          ],
+        },
+        "c-api/routes": {
+          elements: [
+            ...manyCallers,
+            { id: "f:docs/AUTH.md", kind: "module", name: "AUTH.md", source: { path: "docs/AUTH.md" } },
+          ],
+        },
+      },
+      links: [
+        // `ep_00.py` has TWO direct links (`calls` + `imports`) to `auth.py` so directLinkCount = 63 while directCount = 62!
+        { from: "f:bff/routes/ep_00.py", to: "f:bff/lib/auth.py", kind: "calls", at: "bff/routes/ep_00.py:14" },
+        { from: "f:bff/routes/ep_00.py", to: "f:bff/lib/auth.py", kind: "imports", at: "bff/routes/ep_00.py:3" },
+        ...manyCallers.slice(1, 62).map((c, idx) => ({
+          from: c.id,
+          to: "f:bff/lib/auth.py",
+          kind: "calls",
+          at: `${c.source.path}:${10 + idx}`,
+        })),
+        // 2-step caller (`ep_62.py` -> `ep_00.py` -> `auth.py`)
+        { from: "f:bff/routes/ep_62.py", to: "f:bff/routes/ep_00.py", kind: "calls", at: "bff/routes/ep_62.py:21" },
+        // Doc `mentions` link (hidden by default)
+        { from: "f:docs/AUTH.md", to: "f:bff/lib/auth.py", kind: "mentions", stop: true, at: "docs/AUTH.md:8" },
+      ],
+    };
+
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: { model, initialLevel: 2, showBlastRadius: true },
+    });
+
+    // 1. Non-PR legend wording when `!hasModelDiffs`
+    const legendText = wrapper.find(".tux-map__legend").text();
+    expect(legendText).toContain("Selected");
+    expect(legendText).toContain("Depends on selection");
+    expect(legendText).not.toContain("PR Modified");
+
+    // 2. Selecting C4 database container `c-db` lists `c-api` and `c-worker` from Level 2 `rels`
+    await wrapper.find('.tux-map__el[data-id="c-db"]').trigger("click");
+    await nextTick();
+    const dbBlastText = wrapper.find(".tux-map__panel-blast").text();
+    expect(dbBlastText).not.toContain("Nothing on the map depends on it");
+    expect(dbBlastText).toContain("2 direct dependents");
+    expect(dbBlastText).toContain("BFF Gateway");
+    expect(dbBlastText).toContain("Sync Worker");
+
+    // 3. Drill to `c-api/lib` (Level 5) and select `f:bff/lib/auth.py`
+    await wrapper.find('.tux-map__el[data-id="c-api"]').trigger("dblclick");
+    await nextTick();
+    await wrapper.find('.tux-map__el[data-id="c-api/lib"]').trigger("dblclick");
+    await nextTick();
+    await wrapper.find('.tux-map__el[data-id="f:bff/lib/auth.py"]').trigger("click");
+    await nextTick();
+
+    // Summary distinguishes `62 direct dependents` from `63 direct links`, and `63 within 2 steps`
+    const sumText = wrapper.find(".tux-map__panel-blast-sum").text();
+    expect(sumText).toContain("62 direct dependents (63 direct links); 63 within 2 steps");
+    expect(wrapper.text()).not.toContain("And ");
+
+    // Outside collaborator cards show link count (`2 links` on ep_00.py), diff/impact badge, and `+N on other levels` strip
+    expect(
+      wrapper.find('.tux-map__el--mini[data-id="f:bff/routes/ep_00.py"] .tux-map__chip--links').text(),
+    ).toBe("2 links");
+    expect(wrapper.find(".tux-map__el--mini .tux-map__chip--diff-impact").exists()).toBe(true);
+    expect(wrapper.find(".tux-map__other-levels").text()).toMatch(/\+\d+\s+on other levels/);
+
+    // Default tab is `Within 2 steps` (capped at 60 initially with `Show all (63)`)
+    const tabs = wrapper.findAll(".tux-map__blast-tabs button");
+    expect(tabs[0]!.attributes("aria-pressed")).toBe("false");
+    expect(tabs[1]!.attributes("aria-pressed")).toBe("true");
+    expect(wrapper.findAll(".tux-map__blast-row").length).toBe(60);
+
+    const showAllBtn = wrapper.find("button.tux-map__blast-more");
+    expect(showAllBtn.exists()).toBe(true);
+    expect(showAllBtn.text()).toBe("Show all (63)");
+    await showAllBtn.trigger("click");
+    await nextTick();
+    expect(wrapper.findAll(".tux-map__blast-row").length).toBe(63);
+    expect(wrapper.find(".tux-map__blast-row").text()).toContain("Why?");
+
+    // Switch to `Direct` tab -> 62 rows
+    await tabs[0]!.trigger("click");
+    await nextTick();
+    expect(wrapper.findAll(".tux-map__blast-row").length).toBe(62);
+
+    // `mentions it` chip is off by default (`AUTH.md` hidden); toggling it on includes `AUTH.md` (63 direct!)
+    const mentionsChip = wrapper
+      .findAll("button.tux-map__blast-kind")
+      .find((b) => b.text().includes("mentions it"));
+    expect(mentionsChip).toBeDefined();
+    expect(mentionsChip!.attributes("aria-pressed")).toBe("false");
+    expect(wrapper.find(".tux-map__panel-blast").text()).not.toContain("AUTH.md");
+
+    await mentionsChip!.trigger("click");
+    await nextTick();
+    expect(wrapper.find(".tux-map__panel-blast").text()).toContain("AUTH.md");
     expect(await runComponentAxe(wrapper.element)).toEqual([]);
   });
 });

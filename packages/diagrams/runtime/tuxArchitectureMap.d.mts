@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 5f3c2f904994b69cfba6f8a5229d183709b0ed51ca2d3a28b43fdf01a8152ef7
+// SOURCE-SHA256: ae970779c51a7c2491f79517ad96c4a67aedbee130efd380bab7e01a86de4a72
 /**
  * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
  *
@@ -297,7 +297,9 @@ export declare function getSmoothedFreehandSvgPath(rawPoints: TuxMapStrokePoint[
  */
 export declare function getLaserPointerSvgPath(points: TuxMapStrokePoint[], nowMs: number, baseSize?: number, decayMs?: number, maxTailPoints?: number): string;
 export type TuxMapLevelNumber = number;
-export type TuxMapElementKind = "person" | "system" | "container" | "database" | "storage" | "component" | "module" | "schema" | "symbol" | "external" | "resource";
+export type TuxMapElementKind = "person" | "system" | "container" | "database" | "storage" | "component" | "module" | "schema" | "symbol" | "route" | "external" | "resource";
+/** Canonical human-readable labels for `TuxMapElementKind` (`#122`). */
+export declare const TUX_MAP_ELEMENT_KIND_LABELS: Record<TuxMapElementKind, string>;
 export type TuxMapElementStatus = "live" | "paused" | "planned" | "neighbor";
 export interface TuxMapSourceRef {
     /** Repository slug or URL (e.g. "nis/forgejo-stack" or "https://code.tti.tamu.edu/tti/tti-ux") */
@@ -479,6 +481,12 @@ export interface TuxMapNeighborResource {
     resourceGroup: string;
     reason: string;
 }
+export interface TuxMapRouteEntry {
+    method?: string;
+    pattern: string;
+    handler: string;
+    framework?: string;
+}
 export interface TuxMapLevelModel {
     generatedAt?: string;
     issueBaseUrl?: string;
@@ -527,6 +535,8 @@ export interface TuxMapLevelModel {
      * blast radius of a selected element walks them upstream.
      */
     links?: TuxMapLink[];
+    /** Optional HTTP route table linking URL patterns to handler symbols or files (`#120`, `#122`). */
+    routes?: TuxMapRouteEntry[];
 }
 export type TuxMapLinkCoupling = "contract" | "runtime" | "type-only" | "artifact-stamp" | "build-exec" | "verification" | "prose";
 export type TuxMapLinkPhase = "prod-runtime" | "client-bundle" | "build-exec" | "ci-test" | "doc-only";
@@ -567,6 +577,8 @@ export interface TuxMapGridCellRect {
     c?: number;
     r?: number;
     bound?: boolean;
+    mini?: boolean;
+    side?: "in" | "out";
 }
 export interface TuxMapPlacedBoundary {
     id?: string;
@@ -607,14 +619,15 @@ export declare function gridCellToPx(at: [number, number]): {
 export declare function roundOrthogonalCorners(pts: [number, number][]): string;
 /**
  * Routes wires at right angles strictly through the gaps between columns and rows,
- * never crossing a card, with lane offsets and collision-checked labels.
+ * never crossing a card, with per-gap interval-coloured lanes and collision-checked labels (`#113`).
  */
 export declare function routeGridWires(rels: TuxMapLevelRel[], rects: Record<string, TuxMapGridCellRect>, els: TuxMapLevelElement[]): {
     wires: TuxMapRoutedWire[];
     labels: TuxMapRoutedLabel[];
 };
 /**
- * Routes right-angle wires for Level 4 deployment resource nodes.
+ * Routes right-angle wires for Level 4 deployment resource nodes, trying discovered
+ * group-gap corridors with `polyHits` before falling back (`#113`).
  * Pass `selectedId = "*"` to pre-route all links so hover highlighting works with zero recomputation.
  */
 export declare function routeDeploymentWires(links: TuxMapDeploymentLink[], rects: Record<string, TuxMapGridCellRect>, selectedId?: string | null): TuxMapRoutedWire[];
@@ -630,7 +643,7 @@ export declare function buildLevelModelFromLegacyNodes(nodes: TuxMapNode[], edge
 /** Link kinds drawn on no stage (they still count in the blast radius): a document naming a part. */
 export declare const TUX_MAP_QUIET_LINK_KINDS: ReadonlySet<string>;
 /** Canonical link strength order from strongest runtime/contract edge to weakest prose reference. */
-export declare const TUX_MAP_LINK_STRENGTH_ORDER: readonly ["calls", "imports", "runs", "sources", "stamps", "tests", "checks", "uses", "loads", "routes", "links", "mentions"];
+export declare const TUX_MAP_LINK_STRENGTH_ORDER: readonly ["calls", "handled-by", "sends", "reads", "denies", "imports", "runs", "sources", "copies", "copies-logic-of", "forks", "reads-format", "generates", "stamps", "provenance", "tests", "checks", "suppresses", "uses", "loads", "routes", "links", "mentions"];
 /** What a link kind means, read from the part it points at ("changing X: Y calls it"). */
 export declare const TUX_MAP_LINK_KIND_LABELS: Record<string, string>;
 /** Canonical set of valid semantic blast-radius intents (`tti/tti-ux#110` / `#111`). */
@@ -674,6 +687,7 @@ export declare function extractModelLinks(model: TuxMapLevelModel, opts?: {
     includePlanned?: boolean;
     includeC4Rels?: boolean;
     bridgeUncovered?: boolean;
+    bridgeUncoveredPairs?: boolean;
 }): TuxMapLink[];
 export interface TuxMapLiftedSide {
     /** The outside part, at the depth of the cards inside (never above what it shares with the focus) */
@@ -864,6 +878,8 @@ export interface TuxMapQueryIndex {
 export declare function normalizeArchitectureModelInput(raw: unknown, opts?: {
     allowEmpty?: boolean;
 }): TuxMapLevelModel;
+/** Minimal zero-sample fallback model (`tti/tti-ux#114`). */
+export declare const EMPTY_TTI_LEVEL_MODEL: TuxMapLevelModel;
 /**
  * Memoized `O(V + E)` query index per `TuxMapLevelModel` instance so repeated
  * layer, blast-radius, shortest-path, and lease queries do not rebuild graph tables.
@@ -1201,5 +1217,61 @@ export declare function coordinateAcpSubgraphLease(action: "acquire" | "release"
     suggestions?: undefined;
     conflict?: undefined;
 };
-export declare const DEFAULT_TTI_LEVEL_MODEL: TuxMapLevelModel;
+export declare const TUX_MAP_SEARCH_GROUPS: readonly ["Components", "Folders", "Files", "Functions", "Routes"];
+export type TuxMapSearchGroup = (typeof TUX_MAP_SEARCH_GROUPS)[number];
+export interface TuxMapSearchEntry {
+    id: string;
+    /** Target node ID to reveal on Enter (for HTTP routes, points to the handler when present). */
+    revealId: string;
+    group: TuxMapSearchGroup;
+    level: number;
+    kind: string;
+    name: string;
+    path: string;
+    ancestors: string[];
+    ancestorsText: string;
+    tech: string;
+    routePattern?: string;
+    handlerName?: string;
+    planned?: boolean;
+    /** Internal precomputed fields for sub-millisecond scoring over 2,400+ entries. */
+    nameLower: string;
+    baseLower: string;
+    stemLower: string;
+    pathLower: string;
+    segmentsLower: string[];
+    ancestorsLower: string;
+    techLower: string;
+    kindLower: string;
+    routeLower: string;
+    charMask: number;
+    routeRegex?: RegExp;
+}
+export interface TuxMapSearchHit {
+    entry: TuxMapSearchEntry;
+    score: number;
+}
+export interface TuxMapSearchGroupResult {
+    group: TuxMapSearchGroup;
+    hits: TuxMapSearchHit[];
+    topScore: number;
+}
+/**
+ * Builds (and WeakMap-caches) the unified Go-To search index across Levels 1–4,
+ * all fractal subgraphs, `route` elements, `handled-by` links, and `model.routes` (`tti/tti-ux#120`).
+ */
+export declare function buildMapSearchIndex(model?: TuxMapLevelModel): TuxMapSearchEntry[];
+/**
+ * Searches across Components, Folders, Files, Functions, and Routes in `< 1 ms` over 2,400+ entries.
+ * Groups are ordered by top hit score when `query` is non-empty so `Enter` jumps directly to the #1 match.
+ */
+export declare function searchArchitectureMap(modelOrEntries: TuxMapLevelModel | readonly TuxMapSearchEntry[], query: string, opts?: {
+    includePlanned?: boolean;
+    limitPerGroup?: number;
+}): {
+    query: string;
+    totalHits: number;
+    groups: TuxMapSearchGroupResult[];
+    flatHits: TuxMapSearchHit[];
+};
 export {};

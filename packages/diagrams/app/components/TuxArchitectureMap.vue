@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from "vue";
 import {
-  DEFAULT_TTI_LEVEL_MODEL,
+  EMPTY_TTI_LEVEL_MODEL,
   GRID_METRICS,
+  TUX_MAP_ELEMENT_KIND_LABELS,
   TUX_MAP_LINK_KIND_LABELS,
+  TUX_MAP_QUIET_LINK_KINDS,
   buildLevelModelFromLegacyNodes,
   buildMapParentIndex,
+  buildMapSearchIndex,
+  cmpCodepoint,
   compareBlastLinks,
   computeLinkBlastRadius,
   extractModelLinks,
@@ -19,6 +23,7 @@ import {
   gridCellToPx,
   routeDeploymentWires,
   routeGridWires,
+  searchArchitectureMap,
   type TuxMapBlastIntent,
   type TuxMapCollaborator,
   type TuxMapDeploymentNode,
@@ -36,6 +41,9 @@ import {
   type TuxMapLoDLevel,
   type TuxMapNode,
   type TuxMapPlacedBoundary,
+  type TuxMapSearchEntry,
+  type TuxMapSearchGroupResult,
+  type TuxMapSearchHit,
   type TuxMapSourceRef,
   type TuxMapStickyNote,
   type TuxMapStrokePoint,
@@ -47,7 +55,7 @@ import {
 export type TuxMapViewMode = "diagram" | "list";
 
 export interface TuxArchitectureMapProps {
-  /** Optional 4-Level + N-Depth C4 model (Level 1 -> Level 2 -> Level 3 -> Level 4 -> Level 5+). Defaults to TTI Code model if neither `model` nor `nodes` is provided. */
+  /** Optional 4-Level + N-Depth C4 model (Level 1 -> Level 2 -> Level 3 -> Level 4 -> Level 5+). Defaults to EMPTY_TTI_LEVEL_MODEL if neither `model` nor `nodes` is provided. */
   model?: TuxMapLevelModel;
   /** Controlled or initial level (1, 2, 3, 4, 5...) */
   level?: TuxMapLevelNumber;
@@ -170,6 +178,7 @@ const emit = defineEmits<{
 
 const instanceId = useId();
 const arrowMarkerId = `tux-map-arrow-${instanceId}`;
+const goToListboxId = `tux-map-goto-listbox-${instanceId}`;
 
 // ============================================================================
 // 1. RESOLVED 4-LEVEL + FRACTAL N-DEPTH MODEL & LOOKUP MAPS
@@ -180,7 +189,7 @@ const activeModel = computed<TuxMapLevelModel>(() => {
   if (props.nodes && props.nodes.length > 0) {
     return buildLevelModelFromLegacyNodes(props.nodes, props.edges, props.zones);
   }
-  return DEFAULT_TTI_LEVEL_MODEL;
+  return EMPTY_TTI_LEVEL_MODEL;
 });
 
 function resolveInitialIsListView(): boolean {
@@ -470,17 +479,7 @@ watch(
 // ============================================================================
 
 const TYPE_LABELS: Record<string, string> = {
-  person: "Person",
-  system: "Software system",
-  container: "Container",
-  database: "Container: database",
-  storage: "Container: storage",
-  component: "Component",
-  module: "Module / package",
-  schema: "Data schema / index",
-  symbol: "Code symbol (AST)",
-  external: "External system",
-  resource: "Deployment node",
+  ...TUX_MAP_ELEMENT_KIND_LABELS,
 };
 
 const STATE_LABELS: Record<string, [string, string]> = {
@@ -555,6 +554,8 @@ interface ComputedStageData {
   rels: TuxMapLevelRel[];
   bounds: TuxMapPlacedBoundary[];
   rects: Record<string, TuxMapGridCellRect>;
+  outsideLinkCounts: Record<string, number>;
+  moreOutside: number;
   width: number;
   height: number;
 }
@@ -713,6 +714,8 @@ const stageData = computed<ComputedStageData>(() => {
       rels: [],
       bounds,
       rects,
+      outsideLinkCounts: {},
+      moreOutside: 0,
       width: W,
       height: H,
     };
@@ -721,6 +724,8 @@ const stageData = computed<ComputedStageData>(() => {
   // Levels 1, 2, or 3
   let rawEls: TuxMapLevelElement[] = [];
   let rawRels: TuxMapLevelRel[] = [];
+  let stageMoreOutside = 0;
+  const codeEdgeCounts: Record<string, number> = Object.create(null);
   const rawBounds: {
     id?: string;
     label: string;
@@ -788,9 +793,15 @@ const stageData = computed<ComputedStageData>(() => {
       : null;
     const codeEdge = currentLevel.value >= 5 && !parentDn ? lifted : null;
     if (codeEdge) {
-      for (const o of codeEdge.ins) if (!ins.includes(o.id)) ins.push(o.id);
+      for (const o of codeEdge.ins) {
+        if (!ins.includes(o.id)) ins.push(o.id);
+        codeEdgeCounts[o.id] = (codeEdgeCounts[o.id] ?? 0) + o.count;
+      }
       // a part on both sides is drawn once, on the left; its wires keep their own directions
-      for (const o of codeEdge.outs) if (!outs.includes(o.id) && !ins.includes(o.id)) outs.push(o.id);
+      for (const o of codeEdge.outs) {
+        if (!outs.includes(o.id) && !ins.includes(o.id)) outs.push(o.id);
+        codeEdgeCounts[o.id] = (codeEdgeCounts[o.id] ?? 0) + o.count;
+      }
     }
 
     const stackH = (n: number) => (n ? n * MH + (n - 1) * 14 : 0);
@@ -903,6 +914,7 @@ const stageData = computed<ComputedStageData>(() => {
       for (const o of codeEdge.outs) for (const w of o.wires) rawRels.push({ from: w.kid, to: o.id, label: w.label });
     }
     const moreOutside = codeEdge ? codeEdge.moreIns + codeEdge.moreOuts : 0;
+    stageMoreOutside = moreOutside;
 
     rawBounds.push({
       id: "@bound",
@@ -922,6 +934,22 @@ const stageData = computed<ComputedStageData>(() => {
 
   const els = rawEls.filter((e) => isShownStatus(e.status));
   const rels = rawRels.filter((r) => isShownStatus(r.status));
+  const outsideLinkCounts: Record<string, number> = Object.create(null);
+  const miniIds = new Set(els.filter((e) => e.mini).map((e) => e.id));
+  if (miniIds.size > 0) {
+    for (const id of miniIds) {
+      if (codeEdgeCounts[id]) outsideLinkCounts[id] = codeEdgeCounts[id]!;
+    }
+    for (const r of rels) {
+      const mult = Number(/^(\d+)×/.exec(r.label || "")?.[1] || 1);
+      if (miniIds.has(r.from) && !codeEdgeCounts[r.from]) {
+        outsideLinkCounts[r.from] = (outsideLinkCounts[r.from] ?? 0) + mult;
+      }
+      if (r.to !== r.from && miniIds.has(r.to) && !codeEdgeCounts[r.to]) {
+        outsideLinkCounts[r.to] = (outsideLinkCounts[r.to] ?? 0) + mult;
+      }
+    }
+  }
   const rects: Record<string, TuxMapGridCellRect> = {};
   const bounds: TuxMapPlacedBoundary[] = [];
   let W = 0;
@@ -972,6 +1000,8 @@ const stageData = computed<ComputedStageData>(() => {
       h,
       c: fallbackAt[0],
       r: fallbackAt[1],
+      ...(e.mini ? { mini: true } : {}),
+      ...(e.side ? { side: e.side } : {}),
     };
     W = Math.max(W, p.x + CW);
     H = Math.max(H, p.y + h);
@@ -986,6 +1016,8 @@ const stageData = computed<ComputedStageData>(() => {
     rels,
     bounds,
     rects,
+    outsideLinkCounts,
+    moreOutside: stageMoreOutside,
     width: Math.max(680, W),
     height: Math.max(420, H),
   };
@@ -1018,6 +1050,8 @@ interface BlastRadiusComputation {
   rollupCountById: Map<string, number>;
   /** With a selection and code links: how many parts inside each card its change reaches */
   reachCountById?: Map<string, number>;
+  /** Dependents in the radius that live on other levels not represented on the current stage */
+  offStageCount?: number;
 }
 
 // Maps each element ID to the Level 4 deployment node IDs that host or deploy it
@@ -1060,8 +1094,30 @@ function liftToDeployHosts(
 }
 
 const effectiveModelLinks = computed<TuxMapLink[]>(() =>
-  extractModelLinks(activeModel.value, { includePlanned: showPlanned.value }),
+  extractModelLinks(activeModel.value, {
+    includePlanned: showPlanned.value,
+    bridgeUncoveredPairs: true,
+  }),
 );
+
+const legendLinkKinds = computed<{ kind: string; label: string; quiet: boolean }[]>(() => {
+  const rawLinks = activeModel.value.links;
+  if (!rawLinks?.length) return [];
+  const present = new Set<string>();
+  for (const l of rawLinks) {
+    if (l.kind) present.add(l.kind);
+  }
+  const knownOrder = Object.keys(TUX_MAP_LINK_KIND_LABELS);
+  const ordered = [
+    ...knownOrder.filter((k) => present.has(k)),
+    ...[...present].filter((k) => !hasOwn(TUX_MAP_LINK_KIND_LABELS, k)).sort(cmpCodepoint),
+  ];
+  return ordered.map((kind) => ({
+    kind,
+    label: (hasOwn(TUX_MAP_LINK_KIND_LABELS, kind) ? TUX_MAP_LINK_KIND_LABELS[kind] : undefined) || kind,
+    quiet: TUX_MAP_QUIET_LINK_KINDS.has(kind),
+  }));
+});
 
 const hasModelDiffs = computed<boolean>(() => {
   if (props.blastSeeds?.length) return true;
@@ -1074,11 +1130,50 @@ const hasModelDiffs = computed<boolean>(() => {
   return false;
 });
 
-// The blast radius of the selected element through the model's links: everything that depends
-// on it or on anything inside it (including Level 4 hosts via their hosted containers/components).
-// Computed whenever something is chosen (the details panel lists it); drawn on the stage when the
-// Blast radius switch is on.
-const selectionBlast = computed(() => {
+// Find Usages controls (#119): distance tab, Show all expansion, and per-kind chips
+// (docs `mentions` hidden by default; all other link kinds enabled by default).
+const usagesTab = ref<"direct" | "two-steps">("two-steps");
+const usagesShowAll = ref<boolean>(false);
+const usageKindOverrides = ref<Record<string, boolean>>({});
+
+watch(selectedId, () => {
+  usagesShowAll.value = false;
+});
+
+function isUsageKindEnabled(kind: string): boolean {
+  const key = kind || "uses";
+  if (hasOwn(usageKindOverrides.value, key)) {
+    return Boolean(usageKindOverrides.value[key]);
+  }
+  return key !== "mentions";
+}
+
+function toggleUsageKind(kind: string) {
+  const key = kind || "uses";
+  usageKindOverrides.value = {
+    ...usageKindOverrides.value,
+    [key]: !isUsageKindEnabled(key),
+  };
+}
+
+const allPresentLinkKinds = computed<string[]>(() => {
+  const s = new Set<string>();
+  for (const l of effectiveModelLinks.value) {
+    s.add(l.kind || "uses");
+  }
+  return [...s].sort(cmpCodepoint);
+});
+
+const activeUsageKindsSet = computed<Set<string>>(() => {
+  const out = new Set<string>();
+  for (const k of allPresentLinkKinds.value) {
+    if (isUsageKindEnabled(k)) out.add(k);
+  }
+  return out;
+});
+
+// Unfiltered blast radius of the selection (includes `mentions` at hop 1 so kind chips can count & toggle it)
+const selectionBlastBase = computed(() => {
   const M = activeModel.value;
   const id = selectedId.value;
   const links = effectiveModelLinks.value;
@@ -1089,60 +1184,237 @@ const selectionBlast = computed(() => {
   });
 });
 
-// The same, one row per file, nearest first, for the details panel
-const selectionBlastFiles = computed(() => {
+const usageKindChips = computed<{ kind: string; label: string; count: number; active: boolean }[]>(() => {
+  const base = selectionBlastBase.value;
+  if (!base) return [];
+  const counts = new Map<string, number>();
+  for (const [, hit] of base.hits) {
+    const k = hit.via.kind || "uses";
+    counts.set(k, (counts.get(k) ?? 0) + 1);
+  }
+  for (const l of effectiveModelLinks.value) {
+    if (!base.seeds.has(l.from) && base.seeds.has(l.to)) {
+      const k = l.kind || "uses";
+      if (!counts.has(k)) counts.set(k, 1);
+    }
+  }
+  const knownOrder = Object.keys(TUX_MAP_LINK_KIND_LABELS);
+  const keys = [
+    ...knownOrder.filter((k) => counts.has(k)),
+    ...[...counts.keys()].filter((k) => !hasOwn(TUX_MAP_LINK_KIND_LABELS, k)).sort(cmpCodepoint),
+  ];
+  return keys.map((kind) => ({
+    kind,
+    label: (hasOwn(TUX_MAP_LINK_KIND_LABELS, kind) ? TUX_MAP_LINK_KIND_LABELS[kind] : undefined) || kind,
+    count: counts.get(kind) ?? 0,
+    active: isUsageKindEnabled(kind),
+  }));
+});
+
+// The blast radius of the selected element through the model's links, filtered by active kind chips:
+// everything that depends on it or on anything inside it (including Level 4 hosts and C4 rels).
+const selectionBlast = computed(() => {
   const M = activeModel.value;
-  if (!M.links?.length && !showBlastRadius.value) return null;
+  const id = selectedId.value;
+  const links = effectiveModelLinks.value;
+  if (!links.length || !id || (!byId.value[id] && !resById.value[id])) return null;
+  return computeLinkBlastRadius(links, id, parentOf.value, {
+    model: M,
+    intent: blastIntent.value,
+    kinds: activeUsageKindsSet.value,
+  });
+});
+
+interface UsageRowItem {
+  id: string;
+  locLabel: string;
+  symbolLabel: string;
+  hop: number;
+  via: TuxMapLink;
+  how: string;
+  whyDetail: string;
+  href: string | null;
+  groupKey: string;
+  groupLabel: string;
+}
+
+function describeUsageGroup(id: string, basePath: string): { key: string; label: string } {
+  const M = activeModel.value;
+  const lookup = byId.value;
+  const dn = resById.value[id];
+  if (dn) {
+    const gTitle = M.level4.groups.find((g) => g.id === dn.group)?.title || dn.zone || "Infrastructure";
+    return { key: `l4:${gTitle}`, label: gTitle };
+  }
+  const ancs = mapAncestorsOf(id, parentOf.value);
+  const compId = ancs.find((a) => {
+    const p = parentOf.value.get(a);
+    return Boolean(p && hasOwn(M.level3, p));
+  });
+  const topId = ancs[ancs.length - 1] || id;
+  const topName = lookup[topId]?.name || topId;
+  const compName =
+    compId && compId !== topId && lookup[compId]?.name
+      ? `${topName} › ${lookup[compId]!.name}`
+      : topName;
+  const dirAncId = ancs.find((a) => a.startsWith("d:"));
+  let folder = dirAncId ? lookup[dirAncId]?.name || "" : "";
+  if (!folder && basePath.includes("/")) {
+    folder = `${basePath.slice(0, basePath.lastIndexOf("/"))}/`;
+  }
+  const label = folder ? `${compName} · ${folder}` : compName;
+  return { key: `${compId || topId}::${folder}`, label };
+}
+
+const selectionUsages = computed(() => {
   const sb = selectionBlast.value;
   if (!sb) return null;
-  const byPath = new Map<
-    string,
-    { id: string; path: string; hop: number; via: TuxMapLink; how: string; href: string | null }
-  >();
+
+  const activeKinds = activeUsageKindsSet.value;
+  let directLinkCount = 0;
+  for (const l of effectiveModelLinks.value) {
+    if (sb.seeds.has(l.from) || !sb.seeds.has(l.to)) continue;
+    const k = l.kind || "uses";
+    if (!activeKinds.has(k)) continue;
+    const siteMult = l.sites?.length ? l.sites.length : 1;
+    directLinkCount += siteMult;
+  }
+
+  let hiddenMentionsCount = 0;
+  if (!isUsageKindEnabled("mentions") && selectionBlastBase.value) {
+    for (const [, hit] of selectionBlastBase.value.hits) {
+      if ((hit.via.kind || "") === "mentions") hiddenMentionsCount++;
+    }
+  }
+
+  const allRows: UsageRowItem[] = [];
   for (const [id, hit] of sb.hits) {
     const e = byId.value[id];
     const dn = resById.value[id];
-    const path = e?.source?.path || dn?.source?.path || e?.name || dn?.title || id;
-    const prev = byPath.get(path);
-    if (prev) {
-      if (prev.hop < hit.hop) continue;
-      if (prev.hop === hit.hop) {
-        const prevStop = Number(Boolean(prev.via.stop));
-        const curStop = Number(Boolean(hit.via.stop));
-        if (prevStop < curStop) continue;
-        if (prevStop === curStop && compareBlastLinks(hit.via, prev.via) >= 0) continue;
-      }
-    }
     const [atPath, atLine] = (hit.via.at || "").split(/:(?=\d+$)/);
+    const fallbackFile = id.startsWith("f:")
+      ? id.slice(2)
+      : id.startsWith("s:")
+        ? id.slice(2).split("#")[0] || ""
+        : "";
+    const basePath =
+      atPath ||
+      e?.source?.path ||
+      dn?.source?.path ||
+      fallbackFile ||
+      e?.name ||
+      dn?.title ||
+      id;
+    const lineNum = atLine
+      ? Number(atLine)
+      : e?.source?.lineRange?.length
+        ? e.source.lineRange[0]
+        : undefined;
+    const locLabel = lineNum ? `${basePath}:${lineNum}` : basePath;
+    const itemTitle = e?.name || dn?.title || "";
+    const symbolLabel =
+      itemTitle && itemTitle !== basePath && !basePath.endsWith(`/${itemTitle}`) ? itemTitle : "";
     const kindKey = hit.via.kind || "";
     const how =
       (hasOwn(TUX_MAP_LINK_KIND_LABELS, kindKey) ? TUX_MAP_LINK_KIND_LABELS[kindKey] : undefined) ||
       kindKey ||
-      "depends on it";
-    byPath.set(path, {
+      "uses";
+    const viaFromName =
+      byId.value[hit.via.from]?.name || resById.value[hit.via.from]?.title || hit.via.from;
+    const viaToName =
+      byId.value[hit.via.to]?.name || resById.value[hit.via.to]?.title || hit.via.to;
+    const whyDetail = `${viaFromName} ${how} → ${viaToName}${hit.via.at ? ` (${hit.via.at})` : ""}`;
+    const grp = describeUsageGroup(id, basePath);
+    allRows.push({
       id,
-      path,
+      locLabel,
+      symbolLabel,
       hop: hit.hop,
       via: hit.via,
       how,
-      href: atPath
-        ? buildSourceHref({
-            path: atPath,
-            lineRange: atLine ? [Number(atLine), Number(atLine)] : undefined,
-          })
-        : null,
+      whyDetail,
+      href:
+        atPath || e?.source?.path
+          ? buildSourceHref({
+              path: atPath || e!.source!.path,
+              lineRange: lineNum ? [lineNum, lineNum] : undefined,
+            })
+          : null,
+      groupKey: grp.key,
+      groupLabel: grp.label,
     });
   }
-  const rows = [...byPath.values()].sort((a, b) => a.hop - b.hop || a.path.localeCompare(b.path));
+
+  allRows.sort(
+    (a, b) =>
+      a.hop - b.hop ||
+      Number(Boolean(a.via.stop)) - Number(Boolean(b.via.stop)) ||
+      compareBlastLinks(a.via, b.via) ||
+      cmpCodepoint(a.id, b.id),
+  );
+
+  const directRows = allRows.filter((r) => r.hop === 1);
+  const twoStepRows = allRows.filter((r) => r.hop <= 2);
+  const directCount = directRows.length;
+  const twoStepCount = twoStepRows.length;
+  const totalCount = allRows.length;
+  const deeperCount = Math.max(0, totalCount - twoStepCount);
+
+  if (directCount > 0 && directLinkCount < directCount) {
+    directLinkCount = directCount;
+  }
+
   const SHOWN = 60;
+  const candidateRows =
+    usagesTab.value === "direct"
+      ? directRows
+      : usagesShowAll.value
+        ? allRows
+        : twoStepRows;
+  const shownRows = usagesShowAll.value ? candidateRows : candidateRows.slice(0, SHOWN);
+  const targetFullCount = usagesTab.value === "direct" ? directRows.length : allRows.length;
+  const hasMore = !usagesShowAll.value && targetFullCount > shownRows.length;
+
+  const groupsMap = new Map<string, { key: string; label: string; rows: UsageRowItem[] }>();
+  for (const r of shownRows) {
+    let g = groupsMap.get(r.groupKey);
+    if (!g) {
+      g = { key: r.groupKey, label: r.groupLabel, rows: [] };
+      groupsMap.set(r.groupKey, g);
+    }
+    g.rows.push(r);
+  }
+
   return {
-    parts: sb.hits.size,
-    total: rows.length,
-    shown: rows.slice(0, SHOWN),
-    more: Math.max(0, rows.length - SHOWN),
+    directCount,
+    directLinkCount,
+    twoStepCount,
+    totalCount,
+    deeperCount,
+    hiddenMentionsCount,
+    groups: [...groupsMap.values()],
+    shownCount: shownRows.length,
+    showAllTotal: targetFullCount,
+    hasMore,
     truncated: sb.truncated,
   };
 });
+
+function countOffStageHits(hits: ReadonlyMap<string, unknown>): number {
+  let off = 0;
+  if (currentLevel.value === 4) {
+    const stageHostIds = new Set(stageData.value.deployNodes.map((n) => n.id));
+    for (const x of hits.keys()) {
+      if (liftToDeployHosts(x, stageHostIds).length === 0) off++;
+    }
+    return off;
+  }
+  const stageIds = new Set(stageData.value.els.map((e) => e.id));
+  for (const x of hits.keys()) {
+    if (!liftToSet(x, stageIds, parentOf.value)) off++;
+  }
+  return off;
+}
 
 function projectBlastOntoStage(
   seeds: ReadonlySet<string>,
@@ -1150,6 +1422,7 @@ function projectBlastOntoStage(
   rollupCountById: Map<string, number>,
   presetDirectIds?: ReadonlySet<string>,
 ): BlastRadiusComputation {
+  const offStageCount = countOffStageHits(hits);
   if (currentLevel.value === 4) {
     const stageHostIds = new Set(stageData.value.deployNodes.map((n) => n.id));
     const directIds = new Set<string>(presetDirectIds ?? []);
@@ -1173,7 +1446,7 @@ function projectBlastOntoStage(
         )
         .map((w) => w.id),
     );
-    return { directIds, impactedIds, impactedWires, rollupCountById, reachCountById };
+    return { directIds, impactedIds, impactedWires, rollupCountById, reachCountById, offStageCount };
   }
 
   const stageIds = new Set(stageData.value.els.map((e) => e.id));
@@ -1194,7 +1467,7 @@ function projectBlastOntoStage(
       .filter((w) => impactedIds.has(w.from) && (directIds.has(w.to) || impactedIds.has(w.to)))
       .map((w) => w.id),
   );
-  return { directIds, impactedIds, impactedWires, rollupCountById, reachCountById };
+  return { directIds, impactedIds, impactedWires, rollupCountById, reachCountById, offStageCount };
 }
 
 const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
@@ -1346,6 +1619,12 @@ function formatDiffBadge(
   return null;
 }
 
+const offStageImpactCount = computed<number>(() => {
+  if (blastRadiusState.value?.offStageCount) return blastRadiusState.value.offStageCount;
+  if (selectionBlast.value) return countOffStageHits(selectionBlast.value.hits);
+  return stageData.value.moreOutside || 0;
+});
+
 const renderedCards = computed(() =>
   stageData.value.els.map((e) => {
     const r = stageData.value.rects[e.id];
@@ -1353,12 +1632,17 @@ const renderedCards = computed(() =>
     const baseType = TYPE_LABELS[kind] || "";
     const typeLabel = baseType || e.tech ? `[${baseType}${e.tech ? `: ${e.tech}` : ""}]` : "";
     const live = !e.mini ? formatLiveState(e) : null;
-    const chip = !e.mini ? getCardChip(e) : null;
+    const outsideLinks = e.mini ? stageData.value.outsideLinkCounts[e.id] || 0 : 0;
+    const chip: [string, string] | null = !e.mini
+      ? getCardChip(e)
+      : outsideLinks > 0
+        ? ["links", `${outsideLinks} link${outsideLinks === 1 ? "" : "s"}`]
+        : null;
     const zoomable = canZoomElement(e);
     const br = blastRadiusState.value;
     const isDirect = Boolean(br?.directIds.has(e.id));
     const isImpacted = Boolean(!isDirect && br?.impactedIds.has(e.id));
-    const diffBadge = !e.mini ? formatDiffBadge(e.id, e.diff) : null;
+    const diffBadge = formatDiffBadge(e.id, e.diff);
     return {
       el: e,
       id: e.id,
@@ -1458,6 +1742,10 @@ const litNeighbors = computed<Set<string>>(() => {
   return set;
 });
 
+const stageTotalCount = computed<number>(() =>
+  currentLevel.value === 4 ? stageData.value.deployNodes.length : stageData.value.els.length,
+);
+
 const matchingSearchIds = computed<Set<string> | null>(() => {
   const q = searchQuery.value.trim().toLowerCase();
   if (!q) return null;
@@ -1467,6 +1755,152 @@ const matchingSearchIds = computed<Set<string> | null>(() => {
   }
   return set;
 });
+
+watch([searchQuery, currentLevel, focusId], () => {
+  const m = matchingSearchIds.value;
+  if (!m) return;
+  const msg = `${m.size} of ${stageTotalCount.value} here`;
+  if (liveAnnouncement.value === msg) {
+    announce(msg);
+  } else {
+    if (announceTimer) {
+      clearTimeout(announceTimer);
+      announceTimer = null;
+    }
+    liveAnnouncement.value = msg;
+  }
+});
+
+// ============================================================================
+// 3B. CROSS-LEVEL GO-TO SEARCH PALETTE (#120)
+// ============================================================================
+
+const GOTO_ROW_H = 44;
+const GOTO_VIEWPORT_ROWS = 8;
+const GOTO_OVERSCAN = 6;
+
+const mapRootRef = ref<HTMLElement | null>(null);
+const goToOpen = ref<boolean>(false);
+const goToQuery = ref<string>("");
+const goToActiveIdx = ref<number>(0);
+const goToScrollTop = ref<number>(0);
+const goToInputRef = ref<HTMLInputElement | null>(null);
+const goToListRef = ref<HTMLDivElement | null>(null);
+let goToReturnFocusEl: HTMLElement | null = null;
+
+const mapSearchIndex = computed<TuxMapSearchEntry[]>(() =>
+  buildMapSearchIndex(activeModel.value),
+);
+
+const goToGroupResults = computed<TuxMapSearchGroupResult[]>(() =>
+  searchArchitectureMap(mapSearchIndex.value, goToQuery.value, {
+    includePlanned: showPlanned.value,
+  }).groups,
+);
+
+type GoToFlatItem =
+  | { type: "header"; key: string; group: string; count: number }
+  | { type: "hit"; key: string; hit: TuxMapSearchHit; hitOrdinal: number; rowIndex: number };
+
+const goToFlatModel = computed(() => {
+  const items: GoToFlatItem[] = [];
+  const hits: TuxMapSearchHit[] = [];
+  const rowIndexByOrdinal: number[] = [];
+  for (const grp of goToGroupResults.value) {
+    items.push({
+      type: "header",
+      key: `hdr-${grp.group}`,
+      group: grp.group,
+      count: grp.hits.length,
+    });
+    for (const h of grp.hits) {
+      const hitOrdinal = hits.length;
+      const rowIndex = items.length;
+      hits.push(h);
+      rowIndexByOrdinal.push(rowIndex);
+      items.push({
+        type: "hit",
+        key: `hit-${h.entry.id}-${hitOrdinal}`,
+        hit: h,
+        hitOrdinal,
+        rowIndex,
+      });
+    }
+  }
+  return { items, hits, rowIndexByOrdinal };
+});
+
+watch([goToQuery, showPlanned], () => {
+  goToActiveIdx.value = 0;
+  goToScrollTop.value = 0;
+  if (goToListRef.value) goToListRef.value.scrollTop = 0;
+});
+
+const goToVirtualSlice = computed(() => {
+  const all = goToFlatModel.value.items;
+  const total = all.length;
+  const start = Math.max(0, Math.floor(goToScrollTop.value / GOTO_ROW_H) - GOTO_OVERSCAN);
+  const end = Math.min(total, start + GOTO_VIEWPORT_ROWS + GOTO_OVERSCAN * 2);
+  const visible = all.slice(start, end);
+  const activeInSlice = visible.some(
+    (it) => it.type === "hit" && it.hitOrdinal === goToActiveIdx.value,
+  );
+  return {
+    visible,
+    topPx: start * GOTO_ROW_H,
+    bottomPx: Math.max(0, (total - end) * GOTO_ROW_H),
+    activeOptionId: activeInSlice ? `${goToListboxId}-opt-${goToActiveIdx.value}` : undefined,
+  };
+});
+
+function scrollActiveGoToIntoView() {
+  const rowIdx = goToFlatModel.value.rowIndexByOrdinal[goToActiveIdx.value];
+  if (rowIdx === undefined) return;
+  const rowTop = rowIdx * GOTO_ROW_H;
+  const rowBottom = rowTop + GOTO_ROW_H;
+  const viewH = GOTO_VIEWPORT_ROWS * GOTO_ROW_H;
+  let nextScroll = goToScrollTop.value;
+  if (rowTop < nextScroll) {
+    nextScroll = Math.max(0, rowTop - GOTO_ROW_H);
+  } else if (rowBottom > nextScroll + viewH) {
+    nextScroll = rowBottom - viewH;
+  }
+  goToScrollTop.value = nextScroll;
+  if (goToListRef.value) goToListRef.value.scrollTop = nextScroll;
+}
+
+function onGoToScroll(ev: Event) {
+  const el = ev.target as HTMLElement | null;
+  if (el) goToScrollTop.value = el.scrollTop;
+}
+
+function openGoToPalette() {
+  if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+    goToReturnFocusEl = document.activeElement;
+  }
+  goToQuery.value = "";
+  goToActiveIdx.value = 0;
+  goToScrollTop.value = 0;
+  goToOpen.value = true;
+  nextTick(() => {
+    goToInputRef.value?.focus({ preventScroll: true });
+  });
+}
+
+function closeGoToPalette(restoreFocus = false) {
+  goToOpen.value = false;
+  if (restoreFocus) {
+    const ret = goToReturnFocusEl;
+    goToReturnFocusEl = null;
+    nextTick(() => {
+      if (ret && ret.isConnected) {
+        ret.focus({ preventScroll: true });
+      } else {
+        viewportRef.value?.focus({ preventScroll: true });
+      }
+    });
+  }
+}
 
 function isElementLit(id: string, parentId?: string): boolean {
   if (matchingSearchIds.value) {
@@ -1523,12 +1957,18 @@ let stageDomCache: StageDomCache | null = null;
 
 function queryCardById(root: ParentNode | null | undefined, id: string): HTMLElement | null {
   if (!root || !id) return null;
-  if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
-    return root.querySelector<HTMLElement>(`.tux-map__el[data-id="${CSS.escape(id)}"]`);
-  }
   const cards = root.querySelectorAll<HTMLElement>(".tux-map__el");
   for (let i = 0; i < cards.length; i++) {
     if (cards[i]!.dataset.id === id) return cards[i]!;
+  }
+  return null;
+}
+
+function queryListCardById(root: ParentNode | null | undefined, id: string): HTMLElement | null {
+  if (!root || !id) return null;
+  const cards = root.querySelectorAll<HTMLElement>("[data-list-id]");
+  for (let i = 0; i < cards.length; i++) {
+    if (cards[i]!.dataset.listId === id) return cards[i]!;
   }
   return null;
 }
@@ -2126,13 +2566,36 @@ const hintText = computed<string>(() => {
     : `Hover over any card to highlight its links, or hold Ctrl and scroll over a card (or double-click / press +) to zoom in and out across ${levels}.`;
 });
 
+function onWindowKeydown(ev: KeyboardEvent) {
+  if (ev.defaultPrevented || typeof document === "undefined") return;
+  const root = mapRootRef.value;
+  if (!root || !root.isConnected) return;
+  const t = ev.target;
+  if (t instanceof Node && root.contains(t)) return;
+  if (t !== document.body && t !== document.documentElement && t !== window) return;
+  if (document.querySelector(".tux-map") !== root) return;
+  if ((ev.metaKey || ev.ctrlKey) && !ev.altKey && (ev.key === "k" || ev.key === "K")) {
+    ev.preventDefault();
+    if (goToOpen.value) closeGoToPalette(true);
+    else openGoToPalette();
+    return;
+  }
+  if (ev.key === "/" && !goToOpen.value && !ev.metaKey && !ev.ctrlKey && !ev.altKey) {
+    ev.preventDefault();
+    openGoToPalette();
+  }
+}
+
 onMounted(() => {
   applyAutoListView();
   measureViewport();
-  if (typeof window !== "undefined" && window.matchMedia) {
-    coarseQuery = window.matchMedia("(pointer: coarse)");
-    onCoarseChange();
-    coarseQuery.addEventListener?.("change", onCoarseChange);
+  if (typeof window !== "undefined") {
+    window.addEventListener("keydown", onWindowKeydown);
+    if (window.matchMedia) {
+      coarseQuery = window.matchMedia("(pointer: coarse)");
+      onCoarseChange();
+      coarseQuery.addEventListener?.("change", onCoarseChange);
+    }
   }
   if (typeof ResizeObserver !== "undefined" && viewportRef.value) {
     resizeObserver = new ResizeObserver(() => {
@@ -2144,6 +2607,9 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   resizeObserver?.disconnect();
+  if (typeof window !== "undefined") {
+    window.removeEventListener("keydown", onWindowKeydown);
+  }
   coarseQuery?.removeEventListener?.("change", onCoarseChange);
   if (zoomHudTimer) clearTimeout(zoomHudTimer);
   if (announceTimer) clearTimeout(announceTimer);
@@ -2529,6 +2995,48 @@ function revealElement(id: string) {
     hudLabel: `Level ${currentLevel.value} → Level ${lvl} · ${name}`,
   });
   liveAnnouncement.value = `Went to Level ${lvl}: ${name}.`;
+  nextTick(() => {
+    if (typeof document === "undefined") return;
+    const active = document.activeElement;
+    if (!active || active === document.body || mapRootRef.value?.contains(active)) {
+      if (isListView.value) {
+        queryListCardById(mapRootRef.value, id)?.focus({ preventScroll: true });
+      } else {
+        queryCardById(stageRef.value, id)?.focus({ preventScroll: true });
+      }
+    }
+  });
+}
+
+function isCurrentViewChild(id: string): boolean {
+  if (currentLevel.value === 4) {
+    return stageData.value.deployNodes.some((n) => n.id === id);
+  }
+  const stageEl = stageData.value.els.find((x) => x.id === id);
+  if (stageEl) return !stageEl.side;
+  if (currentLevel.value === 3 || currentLevel.value >= 5) {
+    return Boolean(focusId.value && parentOf.value.get(id) === focusId.value);
+  }
+  return true;
+}
+
+function fractalZoomLevelFor(id: string): number {
+  if (isCurrentViewChild(id)) {
+    return currentLevel.value >= 5 ? currentLevel.value + 1 : 5;
+  }
+  return Math.max(5, levelForFocus(id));
+}
+
+function zoomBucketTitleFor(id: string, mini: boolean): string {
+  const scroll = wheelZooms.value ? "Scroll up" : "Ctrl+scroll up";
+  if (mini && currentLevel.value >= 5 && parentOf.value.has(id)) {
+    const insideLvl = fractalZoomLevelFor(id);
+    const stratum = getSubgraphForNode(id)?.stratum || "inside";
+    const homeParent = parentOf.value.get(id)!;
+    const homeLvl = levelForFocus(homeParent);
+    return `${scroll} or press + to open Level ${insideLvl} (${stratum}); double-click to go to Level ${homeLvl} where it lives`;
+  }
+  return `${scroll} or double-click to zoom in a level`;
 }
 
 function zoomIntoElement(id: string) {
@@ -2538,11 +3046,18 @@ function zoomIntoElement(id: string) {
 
   // Fractal Subgraph Drill-Down (Level 3 component -> Level 5, Level 4 host -> Level 5, Level 5 -> Level 6+)
   if (currentLevel.value >= 3 && hasFractalSubgraph(id)) {
-    const nextLvl = currentLevel.value >= 5 ? currentLevel.value + 1 : 5;
-    drillStack.value = [
-      ...drillStack.value,
-      { level: currentLevel.value, focusId: focusId.value || "" },
-    ];
+    const inCurrentView = isCurrentViewChild(id);
+    const nextLvl = inCurrentView
+      ? currentLevel.value >= 5
+        ? currentLevel.value + 1
+        : 5
+      : Math.max(5, levelForFocus(id));
+    drillStack.value = inCurrentView
+      ? [
+          ...drillStack.value,
+          { level: currentLevel.value, focusId: focusId.value || "" },
+        ]
+      : drillStackFor(id);
     const sg = getSubgraphForNode(id);
     emit("drill-down", { level: nextLvl, focusId: id, subgraph: sg });
     goToLevel(nextLvl, {
@@ -3009,6 +3524,118 @@ function onViewportWheel(ev: WheelEvent) {
   }
 }
 
+function jumpToSearchEntry(entry: TuxMapSearchEntry) {
+  const targetId = entry.revealId || entry.id;
+  goToOpen.value = false;
+  goToReturnFocusEl = null;
+
+  const M = activeModel.value;
+  if (parentOf.value.has(targetId)) {
+    revealElement(targetId);
+  } else if (M.level2.elements.some((e) => !e.ref && e.id === targetId)) {
+    drillStack.value = [];
+    goToLevel(2, {
+      nextSel: targetId,
+      targetCardId: targetId,
+      inward: currentLevel.value < 2,
+      hudLabel: `Level ${currentLevel.value} → Level 2 · ${entry.name}`,
+    });
+    liveAnnouncement.value = `Went to Level 2: ${entry.name}.`;
+  } else if (M.level1.elements.some((e) => e.id === targetId)) {
+    drillStack.value = [];
+    goToLevel(1, {
+      nextSel: targetId,
+      targetCardId: targetId,
+      inward: false,
+      hudLabel: `Level ${currentLevel.value} → Level 1 · ${entry.name}`,
+    });
+    liveAnnouncement.value = `Went to Level 1: ${entry.name}.`;
+  } else if (resById.value[targetId]) {
+    drillStack.value = [];
+    goToLevel(4, {
+      nextSel: targetId,
+      targetCardId: targetId,
+      inward: true,
+      hudLabel: `Level ${currentLevel.value} → Level 4 · ${entry.name}`,
+    });
+    liveAnnouncement.value = `Went to Level 4: ${entry.name}.`;
+  } else if (byId.value[targetId]) {
+    selectElement(targetId);
+  }
+
+  nextTick(() => {
+    nextTick(() => {
+      if (isListView.value) {
+        queryListCardById(mapRootRef.value, targetId)?.focus({ preventScroll: true });
+      } else {
+        (queryCardById(stageRef.value, targetId) ?? viewportRef.value)?.focus({
+          preventScroll: true,
+        });
+      }
+    });
+  });
+}
+
+function onGoToKeydown(ev: KeyboardEvent) {
+  const totalHits = goToFlatModel.value.hits.length;
+  if (ev.key === "Escape") {
+    ev.preventDefault();
+    ev.stopPropagation();
+    closeGoToPalette(true);
+    return;
+  }
+  if (ev.key === "ArrowDown") {
+    ev.preventDefault();
+    if (totalHits > 0) {
+      goToActiveIdx.value = (goToActiveIdx.value + 1) % totalHits;
+      scrollActiveGoToIntoView();
+    }
+    return;
+  }
+  if (ev.key === "ArrowUp") {
+    ev.preventDefault();
+    if (totalHits > 0) {
+      goToActiveIdx.value = (goToActiveIdx.value - 1 + totalHits) % totalHits;
+      scrollActiveGoToIntoView();
+    }
+    return;
+  }
+  if (ev.key === "Enter") {
+    ev.preventDefault();
+    const chosen = goToFlatModel.value.hits[goToActiveIdx.value];
+    if (chosen) {
+      jumpToSearchEntry(chosen.entry);
+    }
+  }
+}
+
+function onMapRootKeydown(ev: KeyboardEvent) {
+  if ((ev.metaKey || ev.ctrlKey) && !ev.altKey && (ev.key === "k" || ev.key === "K")) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (goToOpen.value) closeGoToPalette(true);
+    else openGoToPalette();
+    return;
+  }
+  if (
+    ev.key === "/" &&
+    !goToOpen.value &&
+    !ev.metaKey &&
+    !ev.ctrlKey &&
+    !ev.altKey &&
+    !(
+      ev.target instanceof HTMLInputElement ||
+      ev.target instanceof HTMLTextAreaElement ||
+      ev.target instanceof HTMLSelectElement ||
+      (ev.target instanceof HTMLElement && ev.target.isContentEditable)
+    )
+  ) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    openGoToPalette();
+  }
+}
+
 function onStageKeydown(ev: KeyboardEvent) {
   if (
     ev.target instanceof HTMLInputElement ||
@@ -3078,6 +3705,9 @@ function onStageKey(ev: KeyboardEvent) {
       ev.preventDefault();
       stepInLevel();
     }
+  } else if (ev.key === "/") {
+    ev.preventDefault();
+    openGoToPalette();
   } else if (ev.key === "v" || ev.key === "V") {
     activeTool.value = "select";
   } else if (ev.key === "p" || ev.key === "P") {
@@ -3206,6 +3836,10 @@ const selectedDeployNode = computed<TuxMapDeploymentNode | null>(() => {
   return resById.value[selectedId.value] ?? null;
 });
 
+const selectedPanelEntity = computed<TuxMapLevelElement | TuxMapDeploymentNode | null>(
+  () => selectedLevelElement.value ?? selectedDeployNode.value,
+);
+
 const selectedUsedByRels = computed(() => {
   if (!selectedId.value || currentLevel.value === 4) return [];
   const key = currentLevel.value === 3 && selectedId.value === focusId.value ? "@bound" : selectedId.value;
@@ -3245,6 +3879,17 @@ const selectedDeployOutLinks = computed(() => {
     )
     .map((l) => ({ link: l, other: resById.value[l.to]! }));
 });
+
+const selectedPanelDiffBadge = computed(() => {
+  const ent = selectedPanelEntity.value;
+  return ent ? formatDiffBadge(ent.id, ent.diff) : null;
+});
+
+const selectedHasInRels = computed(() =>
+  selectedLevelElement.value
+    ? selectedUsedByRels.value.length > 0
+    : selectedDeployInLinks.value.length > 0,
+);
 
 // A new view, magnified, opens at its selection or its top-left. Choosing a card at Level 2 or 4 sets
 // focusId too, but keeps the view, so only a focus that is the view's parent (Level 3, 5+) counts.
@@ -3319,13 +3964,17 @@ const listRelsById = computed(() => {
 });
 
 const listViewGroups = computed(() => {
+  const match = matchingSearchIds.value;
   if (currentLevel.value === 4) {
+    const baseNodes = match
+      ? stageData.value.deployNodes.filter((n) => match.has(n.id))
+      : stageData.value.deployNodes;
     const groups = activeModel.value.level4.groups.map((g) => ({
       title: g.title,
-      deployNodes: stageData.value.deployNodes.filter((n) => n.group === g.id),
+      deployNodes: baseNodes.filter((n) => n.group === g.id),
       els: [] as TuxMapLevelElement[],
     }));
-    const otherNodes = stageData.value.deployNodes.filter((n) => !n.group);
+    const otherNodes = baseNodes.filter((n) => !n.group);
     if (otherNodes.length) {
       groups.push({
         title: "Identity, External & Planned Enclaves",
@@ -3336,7 +3985,9 @@ const listViewGroups = computed(() => {
     return groups.filter((g) => g.deployNodes.length > 0);
   }
 
-  const els = stageData.value.els;
+  const els = match
+    ? stageData.value.els.filter((e) => match.has(e.id))
+    : stageData.value.els;
   return [
     {
       title: "People & Actors",
@@ -3679,6 +4330,8 @@ function elementIconName(kind?: TuxMapElementKind | string): string {
       return "lucide:globe";
     case "module":
       return "lucide:package";
+    case "route":
+      return "lucide:arrow-left-right";
     case "symbol":
       return "lucide:code-2";
     default:
@@ -3762,7 +4415,7 @@ function buildSourceHref(src?: {
 </script>
 
 <template>
-  <figure class="tux-map">
+  <figure ref="mapRootRef" class="tux-map" @keydown="onMapRootKeydown">
     <!-- Header Bar -->
     <div v-if="eyebrow || title" class="tux-map__header">
       <div>
@@ -3930,16 +4583,33 @@ function buildSourceHref(src?: {
 
       <span class="tux-map__spacer" />
 
-      <!-- Search Filter -->
+      <!-- Cross-Level Go-To Palette Trigger (#120) -->
+      <button
+        type="button"
+        class="tux-map__goto-btn"
+        aria-haspopup="dialog"
+        :aria-expanded="goToOpen"
+        title="Go to any component, folder, file, function, or route (/ or Ctrl+K)"
+        @click="openGoToPalette()"
+      >
+        <Icon name="lucide:scan-search" aria-hidden="true" />
+        <span>Go to…</span>
+        <kbd class="tux-map__goto-kbd" aria-hidden="true">/</kbd>
+      </button>
+
+      <!-- Per-Level Search Filter (#120) -->
       <div class="tux-map__search-wrap">
         <Icon name="lucide:search" class="tux-map__search-icon" aria-hidden="true" />
         <input
           v-model="searchQuery"
           type="search"
           class="tux-map__search-input"
-          placeholder="Filter elements, tech, hosts…"
+          placeholder="Filter this level…"
           aria-label="Filter architecture elements"
         />
+        <span v-if="matchingSearchIds" class="tux-map__search-count" aria-hidden="true">
+          {{ matchingSearchIds.size }} of {{ stageTotalCount }} here
+        </span>
       </div>
 
       <!-- Diagram / List View Switch -->
@@ -3998,18 +4668,30 @@ function buildSourceHref(src?: {
         <li><i class="tux-map__swatch tux-map__swatch--person" /> Person</li>
         <li><i class="tux-map__swatch tux-map__swatch--system" /> Primary system</li>
         <li><i class="tux-map__swatch tux-map__swatch--card" /> Container / component / module</li>
+        <li><i class="tux-map__swatch tux-map__swatch--route" /> HTTP route</li>
         <li><i class="tux-map__swatch tux-map__swatch--external" /> External system</li>
         <li><i class="tux-map__swatch tux-map__swatch--planned" /> Planned</li>
       </template>
       <template v-if="showBlastRadius">
         <li><i class="tux-map__swatch tux-map__swatch--diff-direct" /> {{ hasModelDiffs ? "PR Modified" : "Selected" }}</li>
-        <li><i class="tux-map__swatch tux-map__swatch--diff-impact" /> Blast-Radius Impacted</li>
+        <li><i class="tux-map__swatch tux-map__swatch--diff-impact" /> {{ hasModelDiffs ? "Blast-Radius Impacted" : "Depends on selection" }}</li>
       </template>
       <li>
         <svg aria-hidden="true" viewBox="0 0 28 8">
           <path d="M0,4 L28,4" stroke="var(--text-secondary)" stroke-width="1.6" />
         </svg>
         Uses
+      </li>
+      <li v-for="lk in legendLinkKinds" :key="lk.kind" :data-link-kind="lk.kind">
+        <svg aria-hidden="true" viewBox="0 0 28 8">
+          <path
+            d="M0,4 L28,4"
+            stroke="var(--text-secondary)"
+            stroke-width="1.6"
+            :stroke-dasharray="lk.quiet ? '3 3' : undefined"
+          />
+        </svg>
+        {{ lk.label }}
       </li>
       <li>
         <svg aria-hidden="true" viewBox="0 0 28 8">
@@ -4018,6 +4700,9 @@ function buildSourceHref(src?: {
         Planned link
       </li>
     </ul>
+    <div v-if="!isListView && offStageImpactCount > 0" class="tux-map__other-levels">
+      +{{ offStageImpactCount }} on other levels
+    </div>
 
     <!-- Main Canvas Container (Diagram + Accessible List View + Sliding Right Drawer) -->
     <div class="tux-map__canvas" :class="{ 'tux-map__canvas--list': isListView }">
@@ -4225,7 +4910,7 @@ function buildSourceHref(src?: {
               <span
                 v-if="c.zoomable"
                 class="tux-map__el-zb"
-                :title="`${wheelZooms ? 'Scroll up' : 'Ctrl+scroll up'} or double-click to zoom in a level`"
+                :title="zoomBucketTitleFor(c.id, c.mini)"
                 aria-hidden="true"
               >
                 +
@@ -4522,12 +5207,12 @@ function buildSourceHref(src?: {
       <aside
         ref="panelRef"
         class="tux-map__panel"
-        :class="{ 'tux-map__panel--open': Boolean(selectedLevelElement || selectedDeployNode) }"
+        :class="{ 'tux-map__panel--open': Boolean(selectedPanelEntity) }"
         :aria-live="isListView ? 'off' : 'polite'"
         aria-label="Selected element details"
         @keydown.escape="isListView && selectElement(null)"
       >
-        <template v-if="selectedLevelElement">
+        <template v-if="selectedPanelEntity">
           <button
             type="button"
             class="tux-map__iconbtn tux-map__panel-close"
@@ -4537,517 +5222,413 @@ function buildSourceHref(src?: {
             ×
           </button>
 
-          <h4 class="tux-map__panel-title" tabindex="-1">
-            <Icon :name="elementIconName(selectedLevelElement.kind)" class="tux-map__panel-ic" aria-hidden="true" />
-            <span>{{ selectedLevelElement.name }}</span>
-          </h4>
-          <p class="tux-map__panel-ty">
-            {{ TYPE_LABELS[selectedLevelElement.kind || "container"] }}
-            <template v-if="selectedLevelElement.tech"> · {{ selectedLevelElement.tech }}</template>
-          </p>
+          <template v-if="selectedLevelElement">
+            <h4 class="tux-map__panel-title" tabindex="-1">
+              <Icon :name="elementIconName(selectedLevelElement.kind)" class="tux-map__panel-ic" aria-hidden="true" />
+              <span>{{ selectedLevelElement.name }}</span>
+            </h4>
+            <p class="tux-map__panel-ty">
+              {{ TYPE_LABELS[selectedLevelElement.kind || "container"] }}
+              <template v-if="selectedLevelElement.tech"> · {{ selectedLevelElement.tech }}</template>
+            </p>
 
-          <div
-            v-if="selectedLevelElement.status === 'planned' || selectedLevelElement.status === 'paused'"
-            class="tux-map__panel-chips"
-          >
-            <span
-              v-if="selectedLevelElement.status === 'planned'"
-              class="tux-map__chip tux-map__chip--planned"
+            <div
+              v-if="selectedLevelElement.status === 'planned' || selectedLevelElement.status === 'paused'"
+              class="tux-map__panel-chips"
             >
-              Planned
-            </span>
-            <span
-              v-if="selectedLevelElement.status === 'paused'"
-              class="tux-map__chip tux-map__chip--paused"
+              <span
+                v-if="selectedLevelElement.status === 'planned'"
+                class="tux-map__chip tux-map__chip--planned"
+              >
+                Planned
+              </span>
+              <span
+                v-if="selectedLevelElement.status === 'paused'"
+                class="tux-map__chip tux-map__chip--paused"
+              >
+                Paused
+              </span>
+            </div>
+
+            <p v-if="selectedLevelElement.desc" class="tux-map__panel-role">
+              {{ selectedLevelElement.desc }}
+            </p>
+
+            <button
+              v-if="selectedIsOutside"
+              type="button"
+              class="tux-map__panel-btn"
+              @click="revealElement(selectedLevelElement.id)"
             >
-              Paused
-            </span>
-          </div>
+              Go to where it lives
+            </button>
+            <button
+              v-if="canZoomElement(selectedLevelElement)"
+              type="button"
+              class="tux-map__panel-btn"
+              @click="zoomIntoElement(selectedLevelElement.id)"
+            >
+              {{
+                hasFractalSubgraph(selectedLevelElement.id)
+                  ? `Zoom in to Level ${fractalZoomLevelFor(selectedLevelElement.id)}: ${getSubgraphForNode(selectedLevelElement.id)?.stratum || "internal modules"}`
+                  : currentLevel === 1
+                    ? "Zoom in to Level 2: containers & services"
+                    : currentLevel === 2
+                      ? `Zoom in to Level 3: its ${(activeModel.level3[selectedLevelElement.id] || []).length} components`
+                      : "Zoom in to Level 4: deployment host"
+              }}
+            </button>
+          </template>
+          <template v-else-if="selectedDeployNode">
+            <h4 class="tux-map__panel-title" tabindex="-1">
+              <Icon :name="elementIconName(selectedDeployNode.kind)" class="tux-map__panel-ic" aria-hidden="true" />
+              <span>{{ selectedDeployNode.title }}</span>
+            </h4>
+            <p class="tux-map__panel-ty">
+              Deployment node
+              <template v-if="selectedDeployNode.facts?.type">
+                · {{ selectedDeployNode.facts.type }}
+              </template>
+            </p>
 
-          <p v-if="selectedLevelElement.desc" class="tux-map__panel-role">
-            {{ selectedLevelElement.desc }}
-          </p>
+            <p class="tux-map__panel-role">{{ selectedDeployNode.role }}</p>
 
-          <button
-            v-if="selectedIsOutside"
-            type="button"
-            class="tux-map__panel-btn"
-            @click="revealElement(selectedLevelElement.id)"
-          >
-            Go to where it lives
-          </button>
-          <button
-            v-if="canZoomElement(selectedLevelElement)"
-            type="button"
-            class="tux-map__panel-btn"
-            @click="zoomIntoElement(selectedLevelElement.id)"
-          >
-            {{
-              hasFractalSubgraph(selectedLevelElement.id)
-                ? `Zoom in to Level ${currentLevel >= 5 ? currentLevel + 1 : 5}: ${getSubgraphForNode(selectedLevelElement.id)?.stratum || "internal modules"}`
-                : currentLevel === 1
-                  ? "Zoom in to Level 2: containers & services"
-                  : currentLevel === 2
-                    ? `Zoom in to Level 3: its ${(activeModel.level3[selectedLevelElement.id] || []).length} components`
-                    : "Zoom in to Level 4: deployment host"
-            }}
-          </button>
+            <div v-if="selectedDeployNode.placement" class="tux-map__panel-place">
+              {{ selectedDeployNode.placement }}
+            </div>
+
+            <button
+              v-if="canZoomDeployNode(selectedDeployNode)"
+              type="button"
+              class="tux-map__panel-btn"
+              @click="zoomIntoElement(selectedDeployNode.id)"
+            >
+              Zoom in to Level 5: {{ getSubgraphForNode(selectedDeployNode.id)?.stratum || "internal modules & schemas" }}
+            </button>
+          </template>
 
           <!-- PR Diff / Blast Radius Summary -->
-          <template v-if="selectedLevelElement.diff || formatDiffBadge(selectedLevelElement.id, selectedLevelElement.diff)">
-            <h5 class="tux-map__panel-h">{{ selectedLevelElement.diff || hasModelDiffs ? "PR Change & Blast Radius" : "Selection & Blast Radius" }}</h5>
+          <template v-if="selectedPanelEntity.diff || selectedPanelDiffBadge">
+            <h5 class="tux-map__panel-h">{{ selectedPanelEntity.diff || hasModelDiffs ? "PR Change & Blast Radius" : "Selection & Blast Radius" }}</h5>
             <div class="tux-map__panel-diff">
               <span
-                v-if="formatDiffBadge(selectedLevelElement.id, selectedLevelElement.diff)"
+                v-if="selectedPanelDiffBadge"
                 class="tux-map__chip"
-                :class="`tux-map__chip--diff-${formatDiffBadge(selectedLevelElement.id, selectedLevelElement.diff)![0]}`"
+                :class="`tux-map__chip--diff-${selectedPanelDiffBadge[0]}`"
               >
-                {{ formatDiffBadge(selectedLevelElement.id, selectedLevelElement.diff)![1] }}
+                {{ selectedPanelDiffBadge[1] }}
               </span>
-              <p v-if="selectedLevelElement.diff?.summary" class="tux-map__panel-diff-sum">
-                {{ selectedLevelElement.diff.summary }}
+              <p v-if="selectedPanelEntity.diff?.summary" class="tux-map__panel-diff-sum">
+                {{ selectedPanelEntity.diff.summary }}
               </p>
             </div>
           </template>
 
-          <!-- Blast radius of the selection, through the model's code links -->
-          <template v-if="selectionBlastFiles">
-            <h5 class="tux-map__panel-h">Blast radius</h5>
+          <!-- Find usages of the selection, through the model's code & C4 links (#119) -->
+          <template v-if="selectionUsages">
+            <h5 class="tux-map__panel-h">Find usages</h5>
             <div class="tux-map__panel-blast">
               <p class="tux-map__panel-blast-sum">
                 {{
-                  selectionBlastFiles.total
-                    ? `Changing it reaches ${selectionBlastFiles.parts} part${selectionBlastFiles.parts === 1 ? "" : "s"} in ${selectionBlastFiles.total} file${selectionBlastFiles.total === 1 ? "" : "s"}, nearest first.`
-                    : selectedUsedByRels.length
-                      ? "No upstream impact under the current blast intent."
-                      : "Nothing on the map depends on it."
+                  selectionUsages.totalCount
+                    ? `${selectionUsages.directCount} direct dependent${selectionUsages.directCount === 1 ? "" : "s"} (${selectionUsages.directLinkCount} direct link${selectionUsages.directLinkCount === 1 ? "" : "s"}); ${selectionUsages.twoStepCount} within 2 steps${selectionUsages.deeperCount ? `, ${selectionUsages.totalCount} total` : ""}.`
+                    : selectionUsages.hiddenMentionsCount
+                      ? `No code or runtime dependents (${selectionUsages.hiddenMentionsCount} doc mention${selectionUsages.hiddenMentionsCount === 1 ? "" : "s"} hidden).`
+                      : selectedHasInRels && blastIntent !== "default"
+                        ? "No upstream impact under the current blast intent."
+                        : "Nothing on the map depends on it."
                 }}
               </p>
+              <div
+                v-if="selectionUsages.totalCount > 0"
+                class="tux-map__seg tux-map__blast-tabs"
+                role="group"
+                aria-label="Usage distance"
+              >
+                <button
+                  type="button"
+                  :aria-pressed="usagesTab === 'direct'"
+                  @click="usagesTab = 'direct'"
+                >
+                  Direct <span class="tux-map__seg-n">({{ selectionUsages.directCount }})</span>
+                </button>
+                <button
+                  type="button"
+                  :aria-pressed="usagesTab === 'two-steps'"
+                  @click="usagesTab = 'two-steps'"
+                >
+                  Within 2 steps <span class="tux-map__seg-n">({{ selectionUsages.twoStepCount }})</span>
+                </button>
+              </div>
+              <div
+                v-if="usageKindChips.length > 0"
+                class="tux-map__blast-kinds"
+                role="group"
+                aria-label="Filter by link kind"
+              >
+                <button
+                  v-for="kc in usageKindChips"
+                  :key="kc.kind"
+                  type="button"
+                  class="tux-map__blast-kind"
+                  :aria-pressed="kc.active"
+                  @click="toggleUsageKind(kc.kind)"
+                >
+                  {{ kc.label }} <span class="tux-map__seg-n">({{ kc.count }})</span>
+                </button>
+              </div>
               <button
-                v-if="selectionBlastFiles.total && !showBlastRadius"
+                v-if="selectionUsages.totalCount && !showBlastRadius"
                 type="button"
                 class="tux-map__panel-btn"
                 @click="showBlastRadius = true"
               >
                 Show it on the map
               </button>
-              <ol class="tux-map__blast-list">
-                <li v-for="f in selectionBlastFiles.shown" :key="f.path" class="tux-map__blast-row">
-                  <span class="tux-map__blast-hop" :title="`${f.hop} step${f.hop === 1 ? '' : 's'} away`">{{ f.hop }}<span class="tux-map__blast-sr"> step{{ f.hop === 1 ? "" : "s" }} away</span></span>
-                  <button
-                    v-if="parentOf.has(f.id)"
-                    type="button"
-                    class="tux-map__blast-go"
-                    :title="`Go to ${f.path} on the map`"
-                    @click="revealElement(f.id)"
-                  >
-                    <code>{{ f.path }}</code>
-                    <span class="tux-map__blast-how">{{ f.how }}</span>
-                  </button>
-                  <span v-else class="tux-map__blast-go tux-map__blast-go--static">
-                    <code>{{ f.path }}</code>
-                    <span class="tux-map__blast-how">{{ f.how }}</span>
-                  </span>
-                  <a
-                    v-if="f.href"
-                    :href="f.href"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="tux-map__blast-src"
-                    :title="`Open the line in ${f.path}`"
-                    :aria-label="`${f.how}: the line in ${f.path} (opens in a new tab)`"
-                  >
-                    <Icon name="lucide:file-code" aria-hidden="true" />
-                  </a>
+              <ol v-if="selectionUsages.groups.length > 0" class="tux-map__blast-list">
+                <li v-for="grp in selectionUsages.groups" :key="grp.key" class="tux-map__blast-group">
+                  <div class="tux-map__blast-group-hdr">{{ grp.label }}</div>
+                  <ol class="tux-map__blast-sublist">
+                    <li v-for="f in grp.rows" :key="f.id" class="tux-map__blast-row">
+                      <span class="tux-map__blast-hop" :title="`${f.hop} step${f.hop === 1 ? '' : 's'} away`">{{ f.hop }}<span class="tux-map__blast-sr"> step{{ f.hop === 1 ? "" : "s" }} away</span></span>
+                      <button
+                        v-if="parentOf.has(f.id)"
+                        type="button"
+                        class="tux-map__blast-go"
+                        :title="`Go to ${f.locLabel} on the map`"
+                        @click="revealElement(f.id)"
+                      >
+                        <code>{{ f.locLabel }}</code>
+                        <span v-if="f.symbolLabel" class="tux-map__blast-sym">{{ f.symbolLabel }}</span>
+                        <span class="tux-map__blast-how">{{ f.how }}</span>
+                        <span class="tux-map__blast-why">Why? {{ f.whyDetail }}</span>
+                      </button>
+                      <span v-else class="tux-map__blast-go tux-map__blast-go--static">
+                        <code>{{ f.locLabel }}</code>
+                        <span v-if="f.symbolLabel" class="tux-map__blast-sym">{{ f.symbolLabel }}</span>
+                        <span class="tux-map__blast-how">{{ f.how }}</span>
+                        <span class="tux-map__blast-why">Why? {{ f.whyDetail }}</span>
+                      </span>
+                      <a
+                        v-if="f.href"
+                        :href="f.href"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="tux-map__blast-src"
+                        :title="`Open the line in ${f.locLabel}`"
+                        :aria-label="`${f.how}: ${f.locLabel} (opens in a new tab)`"
+                      >
+                        <Icon name="lucide:file-code" aria-hidden="true" />
+                      </a>
+                    </li>
+                  </ol>
                 </li>
               </ol>
-              <p v-if="selectionBlastFiles.more" class="tux-map__panel-blast-sum">
-                And {{ selectionBlastFiles.more }} more file{{ selectionBlastFiles.more === 1 ? "" : "s" }}.
-              </p>
-              <p v-if="selectionBlastFiles.truncated" class="tux-map__panel-blast-sum">
+              <button
+                v-if="selectionUsages.hasMore"
+                type="button"
+                class="tux-map__panel-btn tux-map__blast-more"
+                @click="usagesShowAll = true"
+              >
+                Show all ({{ selectionUsages.showAllTotal }})
+              </button>
+              <p v-if="selectionUsages.truncated" class="tux-map__panel-blast-sum">
                 Stopped at hop limit; deeper dependents exist.
               </p>
             </div>
           </template>
 
           <!-- Source Code Reference -->
-          <template v-if="selectedLevelElement.source">
+          <template v-if="selectedPanelEntity.source">
             <h5 class="tux-map__panel-h">Source Code</h5>
             <div class="tux-map__panel-source">
               <a
-                v-if="buildSourceHref(selectedLevelElement.source)"
-                :href="buildSourceHref(selectedLevelElement.source)!"
+                v-if="buildSourceHref(selectedPanelEntity.source)"
+                :href="buildSourceHref(selectedPanelEntity.source)!"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="tux-map__source-lnk"
               >
-                <code>{{ selectedLevelElement.source.path }}</code>
-                <span v-if="selectedLevelElement.source.lineRange && selectedLevelElement.source.lineRange.length >= 2">
-                  :L{{ selectedLevelElement.source.lineRange[0] }}–L{{ selectedLevelElement.source.lineRange[1] }}
+                <code>{{ selectedPanelEntity.source.path }}</code>
+                <span v-if="selectedPanelEntity.source.lineRange && selectedPanelEntity.source.lineRange.length >= 2">
+                  :L{{ selectedPanelEntity.source.lineRange[0] }}–L{{ selectedPanelEntity.source.lineRange[1] }}
                 </span>
               </a>
               <code v-else class="tux-map__source-pill">
-                {{ selectedLevelElement.source.path }}
+                {{ selectedPanelEntity.source.path }}
               </code>
-              <div v-if="selectedLevelElement.source.symbol" class="tux-map__source-sym">
-                Symbol: <code>{{ selectedLevelElement.source.symbol }}</code>
+              <div v-if="selectedPanelEntity.source.symbol" class="tux-map__source-sym">
+                Symbol: <code>{{ selectedPanelEntity.source.symbol }}</code>
               </div>
             </div>
           </template>
 
-          <!-- Live Operational Telemetry -->
-          <template v-if="selectedLevelElement.live">
-            <h5 class="tux-map__panel-h">Live State</h5>
-            <dl class="tux-map__panel-dl">
-              <template v-if="formatLiveState(selectedLevelElement)">
-                <dt>State</dt>
-                <dd>{{ formatLiveState(selectedLevelElement)![1] }}</dd>
-              </template>
-              <template v-if="selectedLevelElement.live.version">
-                <dt>Version</dt>
-                <dd>{{ selectedLevelElement.live.version }}</dd>
-              </template>
-              <template v-if="selectedLevelElement.live.updates">
-                <dt>Updates</dt>
-                <dd>{{ selectedLevelElement.live.updates }}</dd>
-              </template>
-            </dl>
-          </template>
-
-          <!-- Cross-Jump to Level 4 Infrastructure Hosts -->
-          <template v-if="normalizeArray(selectedLevelElement.deployed).length > 0">
-            <h5 class="tux-map__panel-h">Runs on (Level 4)</h5>
-            <ul class="tux-map__panel-rels">
-              <li
-                v-for="rid in normalizeArray(selectedLevelElement.deployed)"
-                :key="rid"
-              >
-                <button
-                  v-if="resById[rid]"
-                  type="button"
-                  class="tux-map__lnk"
-                  @click="goToLevel(4, { nextSel: rid, inward: true })"
-                >
-                  {{ resById[rid]!.title }}
-                </button>
-                <span v-else>{{ rid }}</span>
-              </li>
-            </ul>
-          </template>
-
-          <!-- Used By (Upstream) -->
-          <template v-if="selectedUsedByRels.length > 0">
-            <h5 class="tux-map__panel-h">Used by ({{ selectedUsedByRels.length }})</h5>
-            <ul class="tux-map__panel-rels">
-              <li v-for="(item, idx) in selectedUsedByRels" :key="`ub-${idx}`">
-                <button
-                  type="button"
-                  class="tux-map__lnk"
-                  @click="selectElement(item.other.id)"
-                >
-                  {{ item.other.name }}
-                </button>
-                <span>: {{ item.rel.label }}</span>
-                <span v-if="item.rel.tech" class="tux-map__panel-tech">{{ item.rel.tech }}</span>
-                <span v-if="item.rel.roadmap?.length" class="tux-map__panel-roadmap-inline">
-                  <template v-for="iss in item.rel.roadmap" :key="iss">
-                    <a
-                      v-if="buildIssueHref(iss)"
-                      :href="buildIssueHref(iss)!"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="tux-map__issue-lnk"
-                    >
-                      #{{ iss }}
-                    </a>
-                    <span v-else class="tux-map__issue-pill">#{{ iss }}</span>
-                  </template>
-                </span>
-              </li>
-            </ul>
-          </template>
-
-          <!-- Uses (Downstream) -->
-          <template v-if="selectedUsesRels.length > 0">
-            <h5 class="tux-map__panel-h">Uses ({{ selectedUsesRels.length }})</h5>
-            <ul class="tux-map__panel-rels">
-              <li v-for="(item, idx) in selectedUsesRels" :key="`us-${idx}`">
-                <button
-                  type="button"
-                  class="tux-map__lnk"
-                  @click="selectElement(item.other.id)"
-                >
-                  {{ item.other.name }}
-                </button>
-                <span>: {{ item.rel.label }}</span>
-                <span v-if="item.rel.tech" class="tux-map__panel-tech">{{ item.rel.tech }}</span>
-                <span v-if="item.rel.roadmap?.length" class="tux-map__panel-roadmap-inline">
-                  <template v-for="iss in item.rel.roadmap" :key="iss">
-                    <a
-                      v-if="buildIssueHref(iss)"
-                      :href="buildIssueHref(iss)!"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="tux-map__issue-lnk"
-                    >
-                      #{{ iss }}
-                    </a>
-                    <span v-else class="tux-map__issue-pill">#{{ iss }}</span>
-                  </template>
-                </span>
-              </li>
-            </ul>
-          </template>
-
-          <!-- Roadmap Issues (Element) -->
-          <template v-if="selectedLevelElement.roadmap?.length">
-            <h5 class="tux-map__panel-h">Roadmap</h5>
-            <div class="tux-map__panel-roadmap">
-              <template v-for="iss in selectedLevelElement.roadmap" :key="iss">
-                <a
-                  v-if="buildIssueHref(iss)"
-                  :href="buildIssueHref(iss)!"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="tux-map__issue-lnk"
-                >
-                  #{{ iss }}
-                </a>
-                <span v-else class="tux-map__issue-pill">#{{ iss }}</span>
-              </template>
-            </div>
-          </template>
-        </template>
-
-        <!-- Level 4 Deployment Node Details -->
-        <template v-else-if="selectedDeployNode">
-          <button
-            type="button"
-            class="tux-map__iconbtn tux-map__panel-close"
-            aria-label="Close details panel"
-            @click="selectElement(null)"
-          >
-            ×
-          </button>
-
-          <h4 class="tux-map__panel-title" tabindex="-1">
-            <Icon :name="elementIconName(selectedDeployNode.kind)" class="tux-map__panel-ic" aria-hidden="true" />
-            <span>{{ selectedDeployNode.title }}</span>
-          </h4>
-          <p class="tux-map__panel-ty">
-            Deployment node
-            <template v-if="selectedDeployNode.facts?.type">
-              · {{ selectedDeployNode.facts.type }}
+          <template v-if="selectedLevelElement">
+            <!-- Live Operational Telemetry -->
+            <template v-if="selectedLevelElement.live">
+              <h5 class="tux-map__panel-h">Live State</h5>
+              <dl class="tux-map__panel-dl">
+                <template v-if="formatLiveState(selectedLevelElement)">
+                  <dt>State</dt>
+                  <dd>{{ formatLiveState(selectedLevelElement)![1] }}</dd>
+                </template>
+                <template v-if="selectedLevelElement.live.version">
+                  <dt>Version</dt>
+                  <dd>{{ selectedLevelElement.live.version }}</dd>
+                </template>
+                <template v-if="selectedLevelElement.live.updates">
+                  <dt>Updates</dt>
+                  <dd>{{ selectedLevelElement.live.updates }}</dd>
+                </template>
+              </dl>
             </template>
-          </p>
 
-          <p class="tux-map__panel-role">{{ selectedDeployNode.role }}</p>
-
-          <div v-if="selectedDeployNode.placement" class="tux-map__panel-place">
-            {{ selectedDeployNode.placement }}
-          </div>
-
-          <button
-            v-if="canZoomDeployNode(selectedDeployNode)"
-            type="button"
-            class="tux-map__panel-btn"
-            @click="zoomIntoElement(selectedDeployNode.id)"
-          >
-            Zoom in to Level 5: {{ getSubgraphForNode(selectedDeployNode.id)?.stratum || "internal modules & schemas" }}
-          </button>
-
-          <!-- PR Diff / Blast Radius Summary (Deployment Node) -->
-          <template v-if="selectedDeployNode.diff || formatDiffBadge(selectedDeployNode.id, selectedDeployNode.diff)">
-            <h5 class="tux-map__panel-h">{{ selectedDeployNode.diff || hasModelDiffs ? "PR Change & Blast Radius" : "Selection & Blast Radius" }}</h5>
-            <div class="tux-map__panel-diff">
-              <span
-                v-if="formatDiffBadge(selectedDeployNode.id, selectedDeployNode.diff)"
-                class="tux-map__chip"
-                :class="`tux-map__chip--diff-${formatDiffBadge(selectedDeployNode.id, selectedDeployNode.diff)![0]}`"
-              >
-                {{ formatDiffBadge(selectedDeployNode.id, selectedDeployNode.diff)![1] }}
-              </span>
-              <p v-if="selectedDeployNode.diff?.summary" class="tux-map__panel-diff-sum">
-                {{ selectedDeployNode.diff.summary }}
-              </p>
-            </div>
-          </template>
-
-          <!-- Blast radius of the selected Level 4 deployment node through the model's code links -->
-          <template v-if="selectionBlastFiles">
-            <h5 class="tux-map__panel-h">Blast radius</h5>
-            <div class="tux-map__panel-blast">
-              <p class="tux-map__panel-blast-sum">
-                {{
-                  selectionBlastFiles.total
-                    ? `Changing it reaches ${selectionBlastFiles.parts} part${selectionBlastFiles.parts === 1 ? "" : "s"} in ${selectionBlastFiles.total} file${selectionBlastFiles.total === 1 ? "" : "s"}, nearest first.`
-                    : selectedDeployInLinks.length
-                      ? "No upstream impact under the current blast intent."
-                      : "Nothing on the map depends on it."
-                }}
-              </p>
-              <button
-                v-if="selectionBlastFiles.total && !showBlastRadius"
-                type="button"
-                class="tux-map__panel-btn"
-                @click="showBlastRadius = true"
-              >
-                Show it on the map
-              </button>
-              <ol class="tux-map__blast-list">
-                <li v-for="f in selectionBlastFiles.shown" :key="f.path" class="tux-map__blast-row">
-                  <span class="tux-map__blast-hop" :title="`${f.hop} step${f.hop === 1 ? '' : 's'} away`">{{ f.hop }}<span class="tux-map__blast-sr"> step{{ f.hop === 1 ? "" : "s" }} away</span></span>
+            <!-- Cross-Jump to Level 4 Infrastructure Hosts -->
+            <template v-if="normalizeArray(selectedLevelElement.deployed).length > 0">
+              <h5 class="tux-map__panel-h">Runs on (Level 4)</h5>
+              <ul class="tux-map__panel-rels">
+                <li
+                  v-for="rid in normalizeArray(selectedLevelElement.deployed)"
+                  :key="rid"
+                >
                   <button
-                    v-if="parentOf.has(f.id)"
+                    v-if="resById[rid]"
                     type="button"
-                    class="tux-map__blast-go"
-                    :title="`Go to ${f.path} on the map`"
-                    @click="revealElement(f.id)"
+                    class="tux-map__lnk"
+                    @click="goToLevel(4, { nextSel: rid, inward: true })"
                   >
-                    <code>{{ f.path }}</code>
-                    <span class="tux-map__blast-how">{{ f.how }}</span>
+                    {{ resById[rid]!.title }}
                   </button>
-                  <span v-else class="tux-map__blast-go tux-map__blast-go--static">
-                    <code>{{ f.path }}</code>
-                    <span class="tux-map__blast-how">{{ f.how }}</span>
-                  </span>
-                  <a
-                    v-if="f.href"
-                    :href="f.href"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="tux-map__blast-src"
-                    :title="`Open the line in ${f.path}`"
-                    :aria-label="`${f.how}: the line in ${f.path} (opens in a new tab)`"
-                  >
-                    <Icon name="lucide:file-code" aria-hidden="true" />
-                  </a>
+                  <span v-else>{{ rid }}</span>
                 </li>
-              </ol>
-              <p v-if="selectionBlastFiles.more" class="tux-map__panel-blast-sum">
-                And {{ selectionBlastFiles.more }} more file{{ selectionBlastFiles.more === 1 ? "" : "s" }}.
-              </p>
-              <p v-if="selectionBlastFiles.truncated" class="tux-map__panel-blast-sum">
-                Stopped at hop limit; deeper dependents exist.
-              </p>
-            </div>
-          </template>
+              </ul>
+            </template>
 
-          <!-- Source Code Reference (Deployment Node) -->
-          <template v-if="selectedDeployNode.source">
-            <h5 class="tux-map__panel-h">Source Code</h5>
-            <div class="tux-map__panel-source">
-              <a
-                v-if="buildSourceHref(selectedDeployNode.source)"
-                :href="buildSourceHref(selectedDeployNode.source)!"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="tux-map__source-lnk"
-              >
-                <code>{{ selectedDeployNode.source.path }}</code>
-                <span v-if="selectedDeployNode.source.lineRange && selectedDeployNode.source.lineRange.length >= 2">
-                  :L{{ selectedDeployNode.source.lineRange[0] }}–L{{ selectedDeployNode.source.lineRange[1] }}
-                </span>
-              </a>
-              <code v-else class="tux-map__source-pill">
-                {{ selectedDeployNode.source.path }}
-              </code>
-              <div v-if="selectedDeployNode.source.symbol" class="tux-map__source-sym">
-                Symbol: <code>{{ selectedDeployNode.source.symbol }}</code>
-              </div>
-            </div>
-          </template>
-
-          <template v-if="selectedDeployNode.hosts?.length">
-            <h5 class="tux-map__panel-h">Hosts (Level 2)</h5>
-            <ul class="tux-map__panel-rels">
-              <li v-for="cid in selectedDeployNode.hosts" :key="cid">
-                <button
-                  v-if="byId[cid]"
-                  type="button"
-                  class="tux-map__lnk"
-                  @click="goToLevel(2, { nextSel: cid, inward: false })"
-                >
-                  {{ byId[cid]!.name }}
-                </button>
-                <span v-if="byId[cid]?.tech" class="tux-map__panel-tech">
-                  {{ byId[cid]!.tech }}
-                </span>
-              </li>
-            </ul>
-          </template>
-
-          <template v-if="selectedDeployNode.facts?.size || selectedDeployNode.facts?.sku">
-            <h5 class="tux-map__panel-h">Specifications</h5>
-            <dl class="tux-map__panel-dl">
-              <template v-if="selectedDeployNode.facts?.size">
-                <dt>Size</dt>
-                <dd>{{ selectedDeployNode.facts.size }}</dd>
+            <!-- Used By / Uses -->
+            <template
+              v-for="sec in [
+                { key: 'ub', title: 'Used by', list: selectedUsedByRels },
+                { key: 'us', title: 'Uses', list: selectedUsesRels },
+              ]"
+              :key="sec.key"
+            >
+              <template v-if="sec.list.length > 0">
+                <h5 class="tux-map__panel-h">{{ sec.title }} ({{ sec.list.length }})</h5>
+                <ul class="tux-map__panel-rels">
+                  <li v-for="(item, idx) in sec.list" :key="`${sec.key}-${idx}`">
+                    <button
+                      type="button"
+                      class="tux-map__lnk"
+                      @click="selectElement(item.other.id)"
+                    >
+                      {{ item.other.name }}
+                    </button>
+                    <span>: {{ item.rel.label }}</span>
+                    <span v-if="item.rel.tech" class="tux-map__panel-tech">{{ item.rel.tech }}</span>
+                    <span v-if="item.rel.roadmap?.length" class="tux-map__panel-roadmap-inline">
+                      <template v-for="iss in item.rel.roadmap" :key="iss">
+                        <a
+                          v-if="buildIssueHref(iss)"
+                          :href="buildIssueHref(iss)!"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="tux-map__issue-lnk"
+                        >
+                          #{{ iss }}
+                        </a>
+                        <span v-else class="tux-map__issue-pill">#{{ iss }}</span>
+                      </template>
+                    </span>
+                  </li>
+                </ul>
               </template>
-              <template v-if="selectedDeployNode.facts?.sku">
-                <dt>SKU</dt>
-                <dd>{{ selectedDeployNode.facts.sku }}</dd>
+            </template>
+          </template>
+
+          <template v-else-if="selectedDeployNode">
+            <template v-if="selectedDeployNode.hosts?.length">
+              <h5 class="tux-map__panel-h">Hosts (Level 2)</h5>
+              <ul class="tux-map__panel-rels">
+                <li v-for="cid in selectedDeployNode.hosts" :key="cid">
+                  <button
+                    v-if="byId[cid]"
+                    type="button"
+                    class="tux-map__lnk"
+                    @click="goToLevel(2, { nextSel: cid, inward: false })"
+                  >
+                    {{ byId[cid]!.name }}
+                  </button>
+                  <span v-if="byId[cid]?.tech" class="tux-map__panel-tech">
+                    {{ byId[cid]!.tech }}
+                  </span>
+                </li>
+              </ul>
+            </template>
+
+            <template v-if="selectedDeployNode.facts?.size || selectedDeployNode.facts?.sku">
+              <h5 class="tux-map__panel-h">Specifications</h5>
+              <dl class="tux-map__panel-dl">
+                <template v-if="selectedDeployNode.facts?.size">
+                  <dt>Size</dt>
+                  <dd>{{ selectedDeployNode.facts.size }}</dd>
+                </template>
+                <template v-if="selectedDeployNode.facts?.sku">
+                  <dt>SKU</dt>
+                  <dd>{{ selectedDeployNode.facts.sku }}</dd>
+                </template>
+              </dl>
+            </template>
+
+            <template v-if="selectedDeployNode.facts?.rules?.length">
+              <h5 class="tux-map__panel-h">Firewall rules</h5>
+              <table class="tux-map__panel-table">
+                <thead>
+                  <tr>
+                    <th>Dir</th>
+                    <th>Ports</th>
+                    <th>From</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(r, rIdx) in selectedDeployNode.facts.rules" :key="rIdx">
+                    <td>{{ r.direction === "in" ? "In" : "Out" }}, {{ r.access }}</td>
+                    <td>{{ r.ports.join(", ") }}</td>
+                    <td>{{ r.from.join(", ") }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </template>
+
+            <template
+              v-for="sec in [
+                { key: 'din', title: 'Connections in', list: selectedDeployInLinks },
+                { key: 'dout', title: 'Connections out', list: selectedDeployOutLinks },
+              ]"
+              :key="sec.key"
+            >
+              <template v-if="sec.list.length > 0">
+                <h5 class="tux-map__panel-h">{{ sec.title }}</h5>
+                <ul class="tux-map__panel-rels">
+                  <li v-for="(it, idx) in sec.list" :key="`${sec.key}-${idx}`">
+                    <button
+                      type="button"
+                      class="tux-map__lnk"
+                      @click="selectElement(it.other.id)"
+                    >
+                      {{ it.other.title }}
+                    </button>
+                    <span v-if="it.link.label">: {{ it.link.label }}</span>
+                  </li>
+                </ul>
               </template>
-            </dl>
+            </template>
           </template>
 
-          <template v-if="selectedDeployNode.facts?.rules?.length">
-            <h5 class="tux-map__panel-h">Firewall rules</h5>
-            <table class="tux-map__panel-table">
-              <thead>
-                <tr>
-                  <th>Dir</th>
-                  <th>Ports</th>
-                  <th>From</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(r, rIdx) in selectedDeployNode.facts.rules" :key="rIdx">
-                  <td>{{ r.direction === "in" ? "In" : "Out" }}, {{ r.access }}</td>
-                  <td>{{ r.ports.join(", ") }}</td>
-                  <td>{{ r.from.join(", ") }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </template>
-
-          <template v-if="selectedDeployInLinks.length > 0">
-            <h5 class="tux-map__panel-h">Connections in</h5>
-            <ul class="tux-map__panel-rels">
-              <li v-for="(it, idx) in selectedDeployInLinks" :key="`din-${idx}`">
-                <button
-                  type="button"
-                  class="tux-map__lnk"
-                  @click="selectElement(it.other.id)"
-                >
-                  {{ it.other.title }}
-                </button>
-                <span v-if="it.link.label">: {{ it.link.label }}</span>
-              </li>
-            </ul>
-          </template>
-
-          <template v-if="selectedDeployOutLinks.length > 0">
-            <h5 class="tux-map__panel-h">Connections out</h5>
-            <ul class="tux-map__panel-rels">
-              <li v-for="(it, idx) in selectedDeployOutLinks" :key="`dout-${idx}`">
-                <button
-                  type="button"
-                  class="tux-map__lnk"
-                  @click="selectElement(it.other.id)"
-                >
-                  {{ it.other.title }}
-                </button>
-                <span v-if="it.link.label">: {{ it.link.label }}</span>
-              </li>
-            </ul>
-          </template>
-
-          <!-- Roadmap Issues (Deployment Node) -->
-          <template v-if="selectedDeployNode.roadmap?.length">
+          <!-- Roadmap Issues -->
+          <template v-if="selectedPanelEntity.roadmap?.length">
             <h5 class="tux-map__panel-h">Roadmap</h5>
             <div class="tux-map__panel-roadmap">
-              <template v-for="iss in selectedDeployNode.roadmap" :key="iss">
+              <template v-for="iss in selectedPanelEntity.roadmap" :key="iss">
                 <a
                   v-if="buildIssueHref(iss)"
                   :href="buildIssueHref(iss)!"
@@ -5063,6 +5644,110 @@ function buildSourceHref(src?: {
           </template>
         </template>
       </aside>
+    </div>
+
+    <!-- Local Cross-Level Go-To Search Palette (#120) -->
+    <div
+      v-if="goToOpen"
+      class="tux-map__goto-backdrop"
+      @mousedown.self="closeGoToPalette(true)"
+    >
+      <div
+        class="tux-map__goto-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Go to architecture element"
+      >
+        <div class="tux-map__goto-bar">
+          <Icon name="lucide:scan-search" class="tux-map__goto-ic" aria-hidden="true" />
+          <input
+            ref="goToInputRef"
+            v-model="goToQuery"
+            type="text"
+            role="combobox"
+            aria-label="Search components, folders, files, functions, and routes"
+            aria-autocomplete="list"
+            aria-expanded="true"
+            :aria-controls="goToListboxId"
+            :aria-activedescendant="goToVirtualSlice.activeOptionId"
+            class="tux-map__goto-input"
+            placeholder="Type a file, symbol, folder, component, or /v1/… route"
+            @keydown="onGoToKeydown"
+          />
+          <button
+            type="button"
+            class="tux-map__iconbtn tux-map__goto-close"
+            aria-label="Close Go to palette"
+            @click="closeGoToPalette(true)"
+          >
+            ×
+          </button>
+        </div>
+
+        <div
+          :id="goToListboxId"
+          ref="goToListRef"
+          role="listbox"
+          aria-label="Matching architecture elements"
+          class="tux-map__goto-list"
+          @scroll="onGoToScroll"
+        >
+          <template v-if="goToFlatModel.hits.length > 0">
+            <div
+              v-if="goToVirtualSlice.topPx > 0"
+              aria-hidden="true"
+              :style="{ height: `${goToVirtualSlice.topPx}px` }"
+            />
+            <template v-for="item in goToVirtualSlice.visible" :key="item.key">
+              <div
+                v-if="item.type === 'header'"
+                class="tux-map__goto-hdr"
+                aria-hidden="true"
+              >
+                <span>{{ item.group }}</span>
+                <span class="tux-map__goto-hdr-cnt">{{ item.count }}</span>
+              </div>
+              <div
+                v-else
+                :id="`${goToListboxId}-opt-${item.hitOrdinal}`"
+                role="option"
+                class="tux-map__goto-opt"
+                :class="{ 'tux-map__goto-opt--active': item.hitOrdinal === goToActiveIdx }"
+                :aria-selected="item.hitOrdinal === goToActiveIdx"
+                @mouseenter="goToActiveIdx = item.hitOrdinal"
+                @mousedown.prevent
+                @click="jumpToSearchEntry(item.hit.entry)"
+              >
+                <span class="tux-map__goto-opt-grp">{{ item.hit.entry.group }}</span>
+                <span class="tux-map__goto-opt-main">
+                  <span class="tux-map__goto-opt-nm">{{ item.hit.entry.name }}</span>
+                  <span
+                    v-if="item.hit.entry.path || item.hit.entry.ancestorsText"
+                    class="tux-map__goto-opt-meta"
+                  >
+                    {{ item.hit.entry.path || item.hit.entry.ancestorsText }}
+                  </span>
+                </span>
+                <span class="tux-map__goto-opt-lvl">L{{ item.hit.entry.level }}</span>
+              </div>
+            </template>
+            <div
+              v-if="goToVirtualSlice.bottomPx > 0"
+              aria-hidden="true"
+              :style="{ height: `${goToVirtualSlice.bottomPx}px` }"
+            />
+          </template>
+          <div
+            v-else
+            role="option"
+            aria-disabled="true"
+            aria-selected="false"
+            class="tux-map__goto-empty"
+          >
+            No matching elements{{ goToQuery ? ` for “${goToQuery}”` : "" }}.
+          </div>
+        </div>
+      </div>
     </div>
 
     <figcaption v-if="caption" class="tux-map__caption">{{ caption }}</figcaption>
@@ -5344,6 +6029,7 @@ function buildSourceHref(src?: {
   position: relative;
   display: inline-flex;
   align-items: center;
+  gap: 0.35rem;
 }
 
 .tux-map__search-icon {
@@ -5358,13 +6044,52 @@ function buildSourceHref(src?: {
 .tux-map__search-input {
   min-height: var(--tux-map-target);
   padding: 0.35rem 0.6rem 0.35rem 1.7rem;
-  width: 12.5rem;
+  width: 11.5rem;
   font: inherit;
   font-size: 0.75rem;
   color: var(--text-primary);
   background: var(--surface-raised);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
+}
+
+.tux-map__search-count {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.tux-map__goto-btn {
+  min-height: var(--tux-map-target);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  padding: 0.35rem 0.68rem;
+  font: inherit;
+  font-family: var(--font-bold);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--surface-raised);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.tux-map__goto-btn:hover {
+  border-color: var(--brand-primary);
+  background: var(--tux-map-brand-tint);
+}
+
+.tux-map__goto-kbd {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-sunken);
+  color: var(--text-primary);
 }
 
 .tux-map__magnify-fit {
@@ -5494,6 +6219,25 @@ function buildSourceHref(src?: {
 .tux-map__swatch--card {
   background: var(--surface-raised);
   border: 1px solid var(--surface-border);
+}
+
+.tux-map__swatch--route {
+  background: var(--tux-map-brand-tint);
+  border: 1.5px solid var(--brand-primary);
+  border-radius: 999px;
+}
+
+.tux-map__other-levels {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 0.55rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-raised);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-primary);
 }
 
 .tux-map__swatch--region {
@@ -6190,10 +6934,15 @@ function buildSourceHref(src?: {
 .tux-map__el--k-module,
 .tux-map__el--k-schema,
 .tux-map__el--k-symbol,
+.tux-map__el--k-route,
 .tux-map__el--k-resource {
   box-shadow:
     inset 4px 0 0 var(--brand-primary),
     0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.tux-map__el--k-route {
+  background: color-mix(in srgb, var(--brand-primary) 7%, var(--surface-raised));
 }
 
 .tux-map__el--k-container .tux-map__el-ic,
@@ -6203,6 +6952,7 @@ function buildSourceHref(src?: {
 .tux-map__el--k-module .tux-map__el-ic,
 .tux-map__el--k-schema .tux-map__el-ic,
 .tux-map__el--k-symbol .tux-map__el-ic,
+.tux-map__el--k-route .tux-map__el-ic,
 .tux-map__el--k-resource .tux-map__el-ic {
   color: var(--tux-map-brand-ink);
 }
@@ -6648,8 +7398,239 @@ function buildSourceHref(src?: {
 }
 
 .tux-map__blast-how {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 12px;
+}
+
+.tux-map__blast-sym {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-primary);
+}
+
+.tux-map__blast-why {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+.tux-map__blast-tabs {
+  width: 100%;
+}
+
+.tux-map__blast-tabs button {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.tux-map__blast-kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  width: 100%;
+}
+
+.tux-map__blast-kind {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.tux-map__blast-kind[aria-pressed="true"] {
+  background: var(--tux-map-brand-tint);
+  border-color: var(--brand-primary);
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.tux-map__blast-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.tux-map__blast-group + .tux-map__blast-group {
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--surface-border);
+}
+
+.tux-map__blast-group-hdr {
+  font-family: var(--font-bold);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  padding: 0.1rem 0.2rem;
+}
+
+.tux-map__blast-sublist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.tux-map__blast-more {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Cross-Level Go-To Search Palette (#120) */
+.tux-map__goto-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 8vh 1rem 1rem;
+  background: rgba(15, 12, 12, 0.52);
+}
+
+.tux-map__goto-dialog {
+  width: min(640px, 100%);
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--brand-primary);
+  background: var(--surface-raised);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.34);
+  overflow: hidden;
+}
+
+.tux-map__goto-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.tux-map__goto-ic {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: var(--tux-map-brand-ink);
+}
+
+.tux-map__goto-input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tux-map-target);
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.9375rem;
+  outline: none;
+}
+
+.tux-map__goto-close {
+  flex: none;
+}
+
+.tux-map__goto-list {
+  max-height: 352px;
+  overflow-y: auto;
+}
+
+.tux-map__goto-hdr {
+  box-sizing: border-box;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.85rem;
+  background: var(--surface-sunken);
+  border-top: 1px solid var(--surface-border);
+  font-family: var(--font-bold);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.tux-map__goto-hdr-cnt {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.tux-map__goto-opt {
+  box-sizing: border-box;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0 0.85rem;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.tux-map__goto-opt--active,
+.tux-map__goto-opt:hover {
+  background: var(--tux-map-brand-tint);
+  box-shadow: inset 3px 0 0 var(--brand-primary);
+}
+
+.tux-map__goto-opt-grp {
+  flex: none;
+  padding: 0.08rem 0.42rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-primary);
+}
+
+.tux-map__goto-opt-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  overflow: hidden;
+}
+
+.tux-map__goto-opt-nm {
+  font-family: var(--font-bold);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.tux-map__goto-opt-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tux-map__goto-opt-lvl {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.tux-map__goto-empty {
+  padding: 1rem 0.85rem;
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .tux-map__blast-src {

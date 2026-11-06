@@ -42,14 +42,22 @@ import {
   inferLinkPhase,
   normalizeArchitectureModelInput,
   suggestCloseNodeIds,
+  TUX_MAP_ELEMENT_KIND_LABELS,
+  TUX_MAP_LINK_KIND_LABELS,
   TUX_MAP_LINK_STRENGTH_ORDER,
-  DEFAULT_TTI_LEVEL_MODEL,
+  EMPTY_TTI_LEVEL_MODEL,
+  GRID_METRICS,
+  buildMapSearchIndex,
+  searchArchitectureMap,
   type TuxMapBlastIntent,
   type TuxMapNode,
   type TuxMapEdge,
   type TuxMapGridCellRect,
+  type TuxMapLevelElement,
   type TuxMapLevelModel,
+  type TuxMapLevelRel,
 } from "../app/utils/tuxArchitectureMap";
+import { DEFAULT_TTI_LEVEL_MODEL } from "../app/utils/tuxArchitectureMapSample";
 
 describe("@tti/tti-ux-diagrams composables and utilities", () => {
   it("provides useTuxMermaid with render and estimateHeight methods", () => {
@@ -899,8 +907,16 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
       expect([...rDep1.upstreamNodeIds]).toEqual(["a"]);
       expect(warnSpy).toHaveBeenCalledTimes(4);
 
-      const rLease1 = coordinateAcpSubgraphLease("acquire", { agentId: "a1", rootNodeId: "c-api" });
-      const rLeaseConflict = coordinateAcpSubgraphLease("acquire", { agentId: "a2", rootNodeId: "c-api/1" });
+      const rLease1 = coordinateAcpSubgraphLease("acquire", {
+        agentId: "a1",
+        rootNodeId: "c-api",
+        model: DEFAULT_TTI_LEVEL_MODEL,
+      });
+      const rLeaseConflict = coordinateAcpSubgraphLease("acquire", {
+        agentId: "a2",
+        rootNodeId: "c-api/1",
+        model: DEFAULT_TTI_LEVEL_MODEL,
+      });
       coordinateAcpSubgraphLease("release", { agentId: "a1" });
       expect(rLease1.acquired).toBe(true);
       expect(rLeaseConflict.acquired).toBe(false);
@@ -1150,6 +1166,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
         agentId: "nan-agent",
         rootNodeId: "c-db",
         ttlSeconds: Number.NaN,
+        model: DEFAULT_TTI_LEVEL_MODEL,
       });
       expect(nanLease.acquired).toBe(true);
       coordinateAcpSubgraphLease("release", { agentId: "nan-agent" });
@@ -1685,6 +1702,464 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     } finally {
       rmSync(tmpDir, { recursive: true, force: true });
     }
+  });
+
+  // ==========================================================================
+  // SLICE 5A UNIT TESTS (#114, #122, #113, #120)
+  // ==========================================================================
+
+  it("extracts DEFAULT_TTI_LEVEL_MODEL into tuxArchitectureMapSample and defaults queries to EMPTY_TTI_LEVEL_MODEL (#114)", () => {
+    expect(EMPTY_TTI_LEVEL_MODEL.level1.elements).toEqual([]);
+    expect(EMPTY_TTI_LEVEL_MODEL.level2.elements).toEqual([]);
+    expect(Object.keys(EMPTY_TTI_LEVEL_MODEL.level3)).toEqual([]);
+    expect(EMPTY_TTI_LEVEL_MODEL.level4.nodes).toEqual([]);
+
+    // Omitting `model` falls back to EMPTY_TTI_LEVEL_MODEL (0 nodes/edges), never shipping the 35.7 KB sample
+    expect(buildUnifiedArchitectureGraph().nodes.size).toBe(0);
+    expect(buildUnifiedArchitectureGraph().edges.length).toBe(0);
+    expect(queryArchitectureNodes().totalNodeCount).toBe(0);
+    expect(buildMapSearchIndex().length).toBe(0);
+    expect("error" in queryArchitectureImpact("c-api")).toBe(true);
+    expect("error" in findArchitecturePath("c-web", "c-api")).toBe(true);
+
+    // Sample module still exports the full multi-level TTI Cloud Platform model for docs & tests
+    expect(DEFAULT_TTI_LEVEL_MODEL.level2.elements.length).toBeGreaterThan(5);
+    const mainRuntimeSrc = readFileSync(
+      join(__dirname, "../runtime/tuxArchitectureMap.mjs"),
+      "utf8",
+    );
+    const sampleRuntimeSrc = readFileSync(
+      join(__dirname, "../runtime/tuxArchitectureMapSample.mjs"),
+      "utf8",
+    );
+    expect(mainRuntimeSrc).not.toContain("DEFAULT_TTI_LEVEL_MODEL");
+    expect(sampleRuntimeSrc).toContain("DEFAULT_TTI_LEVEL_MODEL");
+    expect("DEFAULT_TTI_LEVEL_MODEL" in publishedMapRuntime).toBe(false);
+  });
+
+  it("provides human-readable labels for the route element kind and all 13 new code-graph link kinds (#122)", () => {
+    expect(TUX_MAP_ELEMENT_KIND_LABELS.route).toBe("HTTP route");
+    const requiredLinkKinds = [
+      "copies",
+      "copies-logic-of",
+      "forks",
+      "reads-format",
+      "suppresses",
+      "provenance",
+      "links",
+      "reads",
+      "generates",
+      "denies",
+      "handled-by",
+      "sends",
+      "routes",
+    ] as const;
+    for (const k of requiredLinkKinds) {
+      expect(typeof TUX_MAP_LINK_KIND_LABELS[k], `label for ${k}`).toBe("string");
+      expect(TUX_MAP_LINK_KIND_LABELS[k]!.length, `non-empty label for ${k}`).toBeGreaterThan(3);
+    }
+  });
+
+  it("routes synthetic dense view (30 inner cards, 16 outside cards, 100 rels) with 0 card hits, 0 endpoint pass-throughs, 100% lanes inside gaps, and fewer crossings (#113)", () => {
+    const { CW, CH, GX, GY } = GRID_METRICS;
+    const rects: Record<string, TuxMapGridCellRect> = {};
+    const els: TuxMapLevelElement[] = [];
+
+    // Left outside column: 8 mini collaborator cards (`side: "in"`)
+    const outW = 176;
+    const outH = 60;
+    const leftX = 24;
+    const innerOriginX = leftX + outW + GX;
+    const innerOriginY = 96;
+
+    // 30 inner cards: 6 columns x 5 rows inside `@bound`
+    for (let row = 0; row < 5; row++) {
+      for (let col = 0; col < 6; col++) {
+        const id = `in_${row}_${col}`;
+        const x = innerOriginX + col * (CW + GX);
+        const y = innerOriginY + row * (CH + GY);
+        rects[id] = { x, y, w: CW, h: CH };
+        els.push({ id, name: `Module ${row}:${col}`, kind: "module" });
+      }
+    }
+
+    const innerSpanW = 6 * CW + 5 * GX;
+    const innerSpanH = 5 * CH + 4 * GY;
+    rects["@bound"] = {
+      x: innerOriginX - 28,
+      y: innerOriginY - 52,
+      w: innerSpanW + 56,
+      h: innerSpanH + 80,
+      bound: true,
+    };
+
+    const rightX = innerOriginX + innerSpanW + GX;
+    for (let i = 0; i < 8; i++) {
+      const y = innerOriginY + i * (outH + 26);
+      const inId = `out_in_${i}`;
+      rects[inId] = { x: leftX, y, w: outW, h: outH, mini: true, side: "in" };
+      els.push({ id: inId, name: `Caller ${i}`, kind: "module", mini: true, side: "in" });
+
+      const outId = `out_out_${i}`;
+      rects[outId] = { x: rightX, y, w: outW, h: outH, mini: true, side: "out" };
+      els.push({ id: outId, name: `Dep ${i}`, kind: "module", mini: true, side: "out" });
+    }
+
+    expect(els.filter((e) => !e.mini).length).toBe(30);
+    expect(els.filter((e) => e.mini).length).toBe(16);
+
+    // Deterministic 100 relationships mixing outside->inner, inner->inner across columns/rows, and inner->outside
+    const rels: TuxMapLevelRel[] = [];
+    // 24 outside-in -> inner rels (3 per outside-in card across different rows/cols)
+    for (let i = 0; i < 8; i++) {
+      rels.push({ from: `out_in_${i}`, to: `in_${i % 5}_0`, label: "calls" });
+      rels.push({ from: `out_in_${i}`, to: `in_${(i + 2) % 5}_1`, label: "imports" });
+      rels.push({ from: `out_in_${i}`, to: `in_${(i + 4) % 5}_2`, label: "reads" });
+    }
+    // 24 inner -> outside-out rels
+    for (let i = 0; i < 8; i++) {
+      rels.push({ from: `in_${i % 5}_5`, to: `out_out_${i}`, label: "calls" });
+      rels.push({ from: `in_${(i + 1) % 5}_4`, to: `out_out_${i}`, label: "writes" });
+      rels.push({ from: `in_${(i + 3) % 5}_3`, to: `out_out_${i}`, label: "sends" });
+    }
+    // 52 dense inner->inner rels (long horizontal jumps, vertical column jumps, diagonals, and shared-corridor bundles)
+    for (let k = 0; k < 52; k++) {
+      const r1 = (k * 3) % 5;
+      const c1 = k % 6;
+      let r2 = (k * 2 + 1) % 5;
+      let c2 = (k * 5 + 2) % 6;
+      if (r1 === r2 && c1 === c2) c2 = (c2 + 1) % 6;
+      rels.push({
+        from: `in_${r1}_${c1}`,
+        to: `in_${r2}_${c2}`,
+        label: k % 4 === 0 ? `hop-${k}` : "",
+      });
+    }
+    expect(rels.length).toBe(100);
+
+    const routed = routeGridWires(rels, rects, els);
+    expect(routed.wires.length).toBe(100);
+
+    // Reconstruct exact sharp orthogonal vertices `[p0, ...Q control points, pEnd]` from `roundPath`
+    const extractOrthoPts = (d: string): [number, number][] => {
+      const mStart = /^M\s*([-\d.]+),([-\d.]+)/.exec(d);
+      expect(mStart).not.toBeNull();
+      const pts: [number, number][] = [[Number(mStart![1]), Number(mStart![2])]];
+      for (const q of d.matchAll(/Q\s*([-\d.]+),([-\d.]+)\s+[-\d.]+,[-\d.]+/g)) {
+        pts.push([Number(q[1]), Number(q[2])]);
+      }
+      const allL = [...d.matchAll(/L\s*([-\d.]+),([-\d.]+)/g)];
+      expect(allL.length).toBeGreaterThan(0);
+      const lastL = allL[allL.length - 1]!;
+      pts.push([Number(lastL[1]), Number(lastL[2])]);
+      return pts;
+    };
+
+    const segHitsInterior = (
+      a: [number, number],
+      b: [number, number],
+      r: TuxMapGridCellRect,
+    ): boolean => {
+      const minX = Math.min(a[0], b[0]);
+      const maxX = Math.max(a[0], b[0]);
+      const minY = Math.min(a[1], b[1]);
+      const maxY = Math.max(a[1], b[1]);
+      return maxX > r.x + 0.5 && minX < r.x + r.w - 0.5 && maxY > r.y + 0.5 && minY < r.y + r.h - 0.5;
+    };
+
+    // Valid vertical and horizontal corridor intervals `[lo, hi]`
+    const vCorridors: [number, number][] = [
+      [Math.max(2, leftX - GX), leftX],
+      [leftX + outW, innerOriginX],
+      ...Array.from({ length: 5 }, (_, c) => [
+        innerOriginX + c * (CW + GX) + CW,
+        innerOriginX + (c + 1) * (CW + GX),
+      ] as [number, number]),
+      [innerOriginX + innerSpanW, rightX],
+      [rightX + outW, rightX + outW + GX],
+    ];
+    const hCorridors: [number, number][] = [
+      [Math.max(2, innerOriginY - GY), innerOriginY],
+      ...Array.from({ length: 4 }, (_, r) => [
+        innerOriginY + r * (CH + GY) + CH,
+        innerOriginY + (r + 1) * (CH + GY),
+      ] as [number, number]),
+      [innerOriginY + innerSpanH, innerOriginY + innerSpanH + GY],
+    ];
+
+    let nonEndpointCardHits = 0;
+    let endpointPassThroughs = 0;
+    let totalCorridorRuns = 0;
+    let lanesInsideGaps = 0;
+
+    const allPolylines: [number, number][][] = [];
+    for (const w of routed.wires) {
+      const pts = extractOrthoPts(w.d);
+      allPolylines.push(pts);
+      const rFrom = rects[w.from]!;
+      const rTo = rects[w.to]!;
+
+      // Outside-card rule: whenever either end is an outside card, ports exit/enter horizontally (`l`/`r`)
+      if (rFrom.mini) {
+        const onLeftOrRight =
+          Math.abs(pts[0]![0] - rFrom.x) < 0.5 || Math.abs(pts[0]![0] - (rFrom.x + rFrom.w)) < 0.5;
+        expect(onLeftOrRight, `outside card ${w.from} uses left/right port`).toBe(true);
+      }
+      if (rTo.mini) {
+        const pLast = pts[pts.length - 1]!;
+        const onLeftOrRight =
+          Math.abs(pLast[0] - rTo.x) < 0.5 || Math.abs(pLast[0] - (rTo.x + rTo.w)) < 0.5;
+        expect(onLeftOrRight, `outside card ${w.to} uses left/right port`).toBe(true);
+      }
+
+      for (let s = 0; s < pts.length - 1; s++) {
+        const p0 = pts[s]!;
+        const p1 = pts[s + 1]!;
+        // Orthogonality check
+        expect(Math.abs(p0[0] - p1[0]) < 0.05 || Math.abs(p0[1] - p1[1]) < 0.05).toBe(true);
+
+        // 1. Non-endpoint cards: 0 interior hits
+        for (const [cid, cr] of Object.entries(rects)) {
+          if (cr.bound || cid === w.from || cid === w.to) continue;
+          if (segHitsInterior(p0, p1, cr)) nonEndpointCardHits++;
+        }
+
+        // 2. Endpoint pass-throughs: no segment may cross the interior of `rFrom` or `rTo`
+        if (segHitsInterior(p0, p1, rFrom) || segHitsInterior(p0, p1, rTo)) {
+          endpointPassThroughs++;
+        }
+
+        // 3. Every interior corridor segment (`0 < s < pts.length - 2`) lies strictly within `[gap.lo + 6, gap.hi - 6]`
+        if (s > 0 && s < pts.length - 2) {
+          totalCorridorRuns++;
+          const isVert = Math.abs(p0[0] - p1[0]) < 0.05;
+          if (isVert) {
+            const x = p0[0];
+            if (vCorridors.some(([lo, hi]) => x >= lo + 6 - 0.05 && x <= hi - 6 + 0.05)) {
+              lanesInsideGaps++;
+            }
+          } else {
+            const y = p0[1];
+            if (hCorridors.some(([lo, hi]) => y >= lo + 6 - 0.05 && y <= hi - 6 + 0.05)) {
+              lanesInsideGaps++;
+            }
+          }
+        }
+      }
+    }
+
+    expect(nonEndpointCardHits).toBe(0);
+    expect(endpointPassThroughs).toBe(0);
+    expect(totalCorridorRuns).toBeGreaterThan(80);
+    expect(lanesInsideGaps).toBe(totalCorridorRuns); // 100% inside `[gapLo + 6, gapHi - 6]`
+
+    // 4. Compare wire-wire crossings against the pre-#113 "side ports alone" baseline
+    //    (HEAD's sequential `lane(key)` offset `(n % 2 ? 1 : -1) * Math.floor(n / 2) * 11` around gap midpoint)
+    const legacyLaneCounters: Record<string, number> = {};
+    const legacyLaneOffset = (key: string): number => {
+      const n = (legacyLaneCounters[key] = (legacyLaneCounters[key] || 0) + 1);
+      return (n % 2 ? 1 : -1) * Math.floor(n / 2) * 11;
+    };
+    const toSidePortsAloneBaseline = (pts: [number, number][]): [number, number][] => {
+      const copy = pts.map(([x, y]) => [x, y] as [number, number]);
+      for (let s = 1; s < copy.length - 2; s++) {
+        const a = copy[s]!;
+        const b = copy[s + 1]!;
+        if (Math.abs(a[0] - b[0]) < 0.05) {
+          const gi = vCorridors.findIndex(([lo, hi]) => a[0] >= lo && a[0] <= hi);
+          if (gi >= 0) {
+            const g = vCorridors[gi]!;
+            const x = (g[0] + g[1]) / 2 + legacyLaneOffset(`v_${gi}`);
+            a[0] = x;
+            b[0] = x;
+          }
+        } else {
+          const gi = hCorridors.findIndex(([lo, hi]) => a[1] >= lo && a[1] <= hi);
+          if (gi >= 0) {
+            const g = hCorridors[gi]!;
+            const y = (g[0] + g[1]) / 2 + legacyLaneOffset(`h_${gi}`);
+            a[1] = y;
+            b[1] = y;
+          }
+        }
+      }
+      return copy;
+    };
+
+    const countCrossingsAndOverlaps = (polys: [number, number][][]) => {
+      let properCrossings = 0;
+      let collinearOverlaps = 0;
+      for (let i = 0; i < polys.length; i++) {
+        const pi = polys[i]!;
+        const wi = routed.wires[i]!;
+        for (let j = i + 1; j < polys.length; j++) {
+          const pj = polys[j]!;
+          const wj = routed.wires[j]!;
+          const shareEndpoint =
+            wi.from === wj.from || wi.from === wj.to || wi.to === wj.from || wi.to === wj.to;
+          for (let si = 0; si < pi.length - 1; si++) {
+            const a0 = pi[si]!;
+            const a1 = pi[si + 1]!;
+            const aVert = Math.abs(a0[0] - a1[0]) < 0.05;
+            for (let sj = 0; sj < pj.length - 1; sj++) {
+              const b0 = pj[sj]!;
+              const b1 = pj[sj + 1]!;
+              const bVert = Math.abs(b0[0] - b1[0]) < 0.05;
+              if (aVert !== bVert) {
+                const v = aVert ? [a0, a1] : [b0, b1];
+                const h = aVert ? [b0, b1] : [a0, a1];
+                const vx = v[0]![0];
+                const vy0 = Math.min(v[0]![1], v[1]![1]);
+                const vy1 = Math.max(v[0]![1], v[1]![1]);
+                const hy = h[0]![1];
+                const hx0 = Math.min(h[0]![0], h[1]![0]);
+                const hx1 = Math.max(h[0]![0], h[1]![0]);
+                if (vx > hx0 + 0.5 && vx < hx1 - 0.5 && hy > vy0 + 0.5 && hy < vy1 - 0.5) {
+                  properCrossings++;
+                }
+              } else if (!shareEndpoint && si > 0 && si < pi.length - 2 && sj > 0 && sj < pj.length - 2) {
+                if (aVert && Math.abs(a0[0] - b0[0]) < 0.5) {
+                  const lo = Math.max(Math.min(a0[1], a1[1]), Math.min(b0[1], b1[1]));
+                  const hi = Math.min(Math.max(a0[1], a1[1]), Math.max(b0[1], b1[1]));
+                  if (hi - lo > 2) collinearOverlaps++;
+                } else if (!aVert && Math.abs(a0[1] - b0[1]) < 0.5) {
+                  const lo = Math.max(Math.min(a0[0], a1[0]), Math.min(b0[0], b1[0]));
+                  const hi = Math.min(Math.max(a0[0], a1[0]), Math.max(b0[0], b1[0]));
+                  if (hi - lo > 2) collinearOverlaps++;
+                }
+              }
+            }
+          }
+        }
+      }
+      return { properCrossings, collinearOverlaps };
+    };
+
+    const baselinePolys = allPolylines.map(toSidePortsAloneBaseline);
+    const laneStats = countCrossingsAndOverlaps(allPolylines);
+    const baselineStats = countCrossingsAndOverlaps(baselinePolys);
+    expect(laneStats.properCrossings).toBeLessThanOrEqual(baselineStats.properCrossings);
+    expect(laneStats.collinearOverlaps).toBe(0);
+
+    // 5. `routeDeploymentWires` avoids intermediate cards via inter-group corridors (#113)
+    const depRects: Record<string, TuxMapGridCellRect> = {
+      g1: { x: 20, y: 40, w: 240, h: 200, bound: true },
+      g2: { x: 280, y: 40, w: 240, h: 200, bound: true },
+      g3: { x: 540, y: 40, w: 240, h: 200, bound: true },
+      vmA: { x: 40, y: 80, w: 200, h: 110 },
+      vmBlocker: { x: 300, y: 60, w: 200, h: 160 },
+      vmB: { x: 560, y: 80, w: 200, h: 110 },
+    };
+    const depRouted = routeDeploymentWires(
+      [{ from: "vmA", to: "vmB", label: "HTTPS :443" }],
+      depRects,
+      "*",
+    );
+    expect(depRouted.length).toBe(1);
+    const depPts = extractOrthoPts(depRouted[0]!.d);
+    for (let s = 0; s < depPts.length - 1; s++) {
+      expect(segHitsInterior(depPts[s]!, depPts[s + 1]!, depRects.vmBlocker!)).toBe(false);
+    }
+  });
+
+  it("indexes and scores 2,400 cross-level Go-To entries (Components, Folders, Files, Functions, Routes) in < 5 ms (#120)", () => {
+    const folders = Array.from({ length: 120 }, (_, i) => ({
+      id: `d:bff/pkg_${String(i).padStart(3, "0")}`,
+      kind: "module" as const,
+      name: `pkg_${String(i).padStart(3, "0")}`,
+      source: { path: `bff/pkg_${String(i).padStart(3, "0")}` },
+    }));
+    const files = Array.from({ length: 900 }, (_, i) => ({
+      id: `f:bff/pkg_${String(i % 120).padStart(3, "0")}/mod_${i}.py`,
+      kind: "module" as const,
+      name: `mod_${i}.py`,
+      tech: "Python",
+      source: { path: `bff/pkg_${String(i % 120).padStart(3, "0")}/mod_${i}.py` },
+    }));
+    files.push({
+      id: "f:bff/ttibff/forge.py",
+      kind: "module",
+      name: "forge.py",
+      tech: "Python",
+      source: { path: "bff/ttibff/forge.py" },
+    });
+    const funcs = Array.from({ length: 1250 }, (_, i) => ({
+      id: `s:bff/pkg_${String(i % 120).padStart(3, "0")}/mod_${i % 900}.py#fn_${i}`,
+      kind: "function" as const,
+      name: `fn_handler_${i}`,
+      source: {
+        path: `bff/pkg_${String(i % 120).padStart(3, "0")}/mod_${i % 900}.py`,
+        symbol: `fn_handler_${i}`,
+        lineRange: [10, 25] as [number, number],
+      },
+    }));
+    const routes = Array.from({ length: 130 }, (_, i) => ({
+      method: i % 2 === 0 ? "GET" : "POST",
+      pattern: `/v1/orgs/{org}/items/${i}`,
+      handler: funcs[i]!.id,
+      framework: "FastAPI",
+    }));
+    routes.push({
+      method: "GET",
+      pattern: "/v1/orgs/{org}/architecture",
+      handler: "f:bff/ttibff/forge.py",
+      framework: "FastAPI",
+    });
+
+    const subgraphs: TuxMapLevelModel["subgraphs"] = {
+      "c-api/1": { elements: folders },
+    };
+    for (let i = 0; i < 120; i++) {
+      const fId = folders[i]!.id;
+      subgraphs[fId] = {
+        elements: files.filter((fl) => fl.id.startsWith(`f:bff/pkg_${String(i).padStart(3, "0")}/`)),
+      };
+    }
+    subgraphs["c-api/1"]!.elements.push(files[files.length - 1]!);
+    subgraphs["f:bff/pkg_000/mod_0.py"] = { elements: funcs };
+
+    const model2400: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys-code", kind: "system", name: "TTI Code" }], rels: [] },
+      level2: {
+        boundary: "sys-code",
+        elements: [{ id: "c-api", kind: "container", name: "BFF Gateway", tech: "FastAPI" }],
+        rels: [],
+      },
+      level3: {
+        "c-api": [{ id: "c-api/1", kind: "component", name: "BFF Routes", tech: "Python" }],
+      },
+      level4: {
+        groups: [{ id: "rg-prod", zone: "cloud-prod", title: "rg-prod" }],
+        nodes: [{ id: "vm-code", group: "rg-prod", kind: "vm", title: "vm-code", role: "App VM", hosts: ["c-api"] }],
+        links: [],
+      },
+      subgraphs,
+      routes,
+    };
+
+    const index = buildMapSearchIndex(model2400);
+    expect(index.length).toBeGreaterThanOrEqual(2400);
+
+    // Warm JIT once, then measure median / single-query latency across 4 representative queries
+    searchArchitectureMap(index, "for");
+    const queries = ["forge", "bff/ttibff/forge", "orgs/{org}/architecture", "fn_handler_42"];
+    for (const q of queries) {
+      const t0 = performance.now();
+      const res = searchArchitectureMap(index, q);
+      const elapsed = performance.now() - t0;
+      expect(elapsed, `query "${q}" < 5 ms over ${index.length} entries`).toBeLessThan(5);
+      expect(res.totalHits).toBeGreaterThan(0);
+    }
+
+    // Verify exact grouping & handler resolution
+    const fileSearch = searchArchitectureMap(index, "ttibff/forge.py");
+    expect(fileSearch.groups[0]?.group).toBe("Files");
+    expect(fileSearch.groups[0]?.hits[0]?.entry.id).toBe("f:bff/ttibff/forge.py");
+
+    const routeSearch = searchArchitectureMap(index, "GET /v1/orgs/{org}/architecture");
+    const routeGroup = routeSearch.groups.find((g) => g.group === "Routes");
+    expect(routeGroup).toBeDefined();
+    expect(routeGroup!.hits[0]?.entry.revealId).toBe("f:bff/ttibff/forge.py");
   });
 });
 

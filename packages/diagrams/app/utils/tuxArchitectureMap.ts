@@ -1026,8 +1026,25 @@ export type TuxMapElementKind =
   | "module"
   | "schema"
   | "symbol"
+  | "route"
   | "external"
   | "resource";
+
+/** Canonical human-readable labels for `TuxMapElementKind` (`#122`). */
+export const TUX_MAP_ELEMENT_KIND_LABELS: Record<TuxMapElementKind, string> = {
+  person: "Person",
+  system: "Software system",
+  container: "Container",
+  database: "Container: database",
+  storage: "Container: storage",
+  component: "Component",
+  module: "Module / package",
+  schema: "Data schema / index",
+  symbol: "Code symbol (AST)",
+  route: "HTTP route",
+  external: "External system",
+  resource: "Deployment node",
+};
 
 export type TuxMapElementStatus = "live" | "paused" | "planned" | "neighbor";
 
@@ -1218,6 +1235,13 @@ export interface TuxMapNeighborResource {
   reason: string;
 }
 
+export interface TuxMapRouteEntry {
+  method?: string;
+  pattern: string;
+  handler: string;
+  framework?: string;
+}
+
 export interface TuxMapLevelModel {
   generatedAt?: string;
   issueBaseUrl?: string;
@@ -1266,6 +1290,8 @@ export interface TuxMapLevelModel {
    * blast radius of a selected element walks them upstream.
    */
   links?: TuxMapLink[];
+  /** Optional HTTP route table linking URL patterns to handler symbols or files (`#120`, `#122`). */
+  routes?: TuxMapRouteEntry[];
 }
 
 export type TuxMapLinkCoupling =
@@ -1329,6 +1355,8 @@ export interface TuxMapGridCellRect {
   c?: number;
   r?: number;
   bound?: boolean;
+  mini?: boolean;
+  side?: "in" | "out";
 }
 
 export interface TuxMapPlacedBoundary {
@@ -1400,9 +1428,215 @@ export function roundOrthogonalCorners(pts: [number, number][]): string {
   return `${d} L${e[0]},${e[1]}`;
 }
 
+function simplifyOrthogonalPoints(raw: [number, number][]): [number, number][] {
+  if (raw.length <= 2) return raw;
+  const dedup: [number, number][] = [raw[0]!];
+  for (let i = 1; i < raw.length; i++) {
+    const prev = dedup[dedup.length - 1]!;
+    const cur = raw[i]!;
+    if (Math.abs(cur[0] - prev[0]) < 0.01 && Math.abs(cur[1] - prev[1]) < 0.01) continue;
+    dedup.push(cur);
+  }
+  if (dedup.length <= 2) return dedup;
+  const out: [number, number][] = [dedup[0]!];
+  for (let i = 1; i < dedup.length - 1; i++) {
+    const a = out[out.length - 1]!;
+    const b = dedup[i]!;
+    const c = dedup[i + 1]!;
+    const sameX = Math.abs(a[0] - b[0]) < 0.01 && Math.abs(b[0] - c[0]) < 0.01;
+    const sameY = Math.abs(a[1] - b[1]) < 0.01 && Math.abs(b[1] - c[1]) < 0.01;
+    if (sameX || sameY) continue;
+    out.push(b);
+  }
+  out.push(dedup[dedup.length - 1]!);
+  return out;
+}
+
+interface GapBand {
+  key: string;
+  lo: number;
+  hi: number;
+}
+
+interface CorridorLaneRequest {
+  spanLo: number;
+  spanHi: number;
+  startPos: number;
+  endPos: number;
+  startDir: -1 | 0 | 1;
+  endDir: -1 | 0 | 1;
+  apply: (coord: number) => void;
+}
+
+function mergeNumericBands(spans: [number, number][]): [number, number][] {
+  if (spans.length === 0) return [];
+  const sorted = spans.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const merged: [number, number][] = [[sorted[0]![0], sorted[0]![1]]];
+  for (let i = 1; i < sorted.length; i++) {
+    const cur = sorted[i]!;
+    const last = merged[merged.length - 1]!;
+    if (cur[0] <= last[1] + 1) {
+      if (cur[1] > last[1]) last[1] = cur[1];
+    } else {
+      merged.push([cur[0], cur[1]]);
+    }
+  }
+  return merged;
+}
+
+function stubPairCrossings(
+  u: CorridorLaneRequest,
+  cu: number,
+  v: CorridorLaneRequest,
+  cv: number,
+): number {
+  if (cu === cv) return 2;
+  let c = 0;
+  if (u.startDir !== 0 && v.spanLo + 0.5 < u.startPos && u.startPos < v.spanHi - 0.5) {
+    if ((u.startDir === -1 && cv < cu) || (u.startDir === 1 && cv > cu)) c++;
+  }
+  if (u.endDir !== 0 && v.spanLo + 0.5 < u.endPos && u.endPos < v.spanHi - 0.5) {
+    if ((u.endDir === -1 && cv < cu) || (u.endDir === 1 && cv > cu)) c++;
+  }
+  if (v.startDir !== 0 && u.spanLo + 0.5 < v.startPos && v.startPos < u.spanHi - 0.5) {
+    if ((v.startDir === -1 && cu < cv) || (v.startDir === 1 && cu > cv)) c++;
+  }
+  if (v.endDir !== 0 && u.spanLo + 0.5 < v.endPos && v.endPos < u.spanHi - 0.5) {
+    if ((v.endDir === -1 && cu < cv) || (v.endDir === 1 && cu > cv)) c++;
+  }
+  return c;
+}
+
+function assignCorridorLanes(gapLo: number, gapHi: number, reqs: CorridorLaneRequest[]): void {
+  if (reqs.length === 0) return;
+  const gap = gapHi - gapLo;
+  const sorted = reqs
+    .slice()
+    .sort(
+      (a, b) =>
+        a.spanLo - b.spanLo ||
+        a.startDir + a.endDir - (b.startDir + b.endDir) ||
+        b.spanHi - a.spanHi,
+    );
+
+  // Split into connected overlap components so independent clusters get wide spacing
+  const components: CorridorLaneRequest[][] = [];
+  let curComp: CorridorLaneRequest[] = [sorted[0]!];
+  let compMaxHi = sorted[0]!.spanHi;
+  for (let i = 1; i < sorted.length; i++) {
+    const r = sorted[i]!;
+    if (r.spanLo > compMaxHi + 0.5) {
+      components.push(curComp);
+      curComp = [r];
+      compMaxHi = r.spanHi;
+    } else {
+      curComp.push(r);
+      if (r.spanHi > compMaxHi) compMaxHi = r.spanHi;
+    }
+  }
+  components.push(curComp);
+
+  for (const comp of components) {
+    const m = comp.length;
+    if (m === 1) {
+      comp[0]!.apply(Number(((gapLo + gapHi) / 2).toFixed(2)));
+      continue;
+    }
+
+    // Optimal interval-graph greedy colouring in increasing `spanLo` order
+    const colours = new Array<number>(m).fill(-1);
+    const overlaps: number[][] = Array.from({ length: m }, () => []);
+    for (let i = 0; i < m; i++) {
+      for (let j = i + 1; j < m; j++) {
+        if (Math.max(comp[i]!.spanLo, comp[j]!.spanLo) <= Math.min(comp[i]!.spanHi, comp[j]!.spanHi) + 0.5) {
+          overlaps[i]!.push(j);
+          overlaps[j]!.push(i);
+        }
+      }
+    }
+
+    let numColours = 0;
+    for (let i = 0; i < m; i++) {
+      const used = new Set<number>();
+      for (const nb of overlaps[i]!) {
+        if (colours[nb]! >= 0) used.add(colours[nb]!);
+      }
+      let c = 0;
+      while (used.has(c)) c++;
+      colours[i] = c;
+      if (c + 1 > numColours) numColours = c + 1;
+    }
+
+    // Crossing-minimizing refinement: reassign free tracks and permute colour classes
+    if (numColours > 1 && numColours <= 48) {
+      for (let pass = 0; pass < 2; pass++) {
+        for (let i = 0; i < m; i++) {
+          const used = new Set<number>();
+          for (const nb of overlaps[i]!) used.add(colours[nb]!);
+          let bestC = colours[i]!;
+          let bestCost = 0;
+          for (const nb of overlaps[i]!) {
+            bestCost += stubPairCrossings(comp[i]!, bestC, comp[nb]!, colours[nb]!);
+          }
+          if (bestCost === 0) continue;
+          for (let c = 0; c < numColours; c++) {
+            if (c === bestC || used.has(c)) continue;
+            let cost = 0;
+            for (const nb of overlaps[i]!) {
+              cost += stubPairCrossings(comp[i]!, c, comp[nb]!, colours[nb]!);
+            }
+            if (cost < bestCost) {
+              bestCost = cost;
+              bestC = c;
+            }
+          }
+          colours[i] = bestC;
+        }
+      }
+
+      // Pairwise colour-class swap pass (preserves exact chromatic number `numColours`)
+      for (let c1 = 0; c1 < numColours; c1++) {
+        for (let c2 = c1 + 1; c2 < numColours; c2++) {
+          let before = 0;
+          let after = 0;
+          for (let i = 0; i < m; i++) {
+            const ci = colours[i]!;
+            const nci = ci === c1 ? c2 : ci === c2 ? c1 : ci;
+            for (const j of overlaps[i]!) {
+              if (j <= i) continue;
+              const cj = colours[j]!;
+              const ncj = cj === c1 ? c2 : cj === c2 ? c1 : cj;
+              if (ci !== c1 && ci !== c2 && cj !== c1 && cj !== c2) continue;
+              before += stubPairCrossings(comp[i]!, ci, comp[j]!, cj);
+              after += stubPairCrossings(comp[i]!, nci, comp[j]!, ncj);
+            }
+          }
+          if (after < before) {
+            for (let i = 0; i < m; i++) {
+              if (colours[i] === c1) colours[i] = c2;
+              else if (colours[i] === c2) colours[i] = c1;
+            }
+          }
+        }
+      }
+    }
+
+    const usable = Math.max(0, gap - 12);
+    const step = numColours <= 1 ? 0 : Math.min(11, usable / (numColours - 1));
+    const start = (gapLo + gapHi) / 2 - (step * (numColours - 1)) / 2;
+    const minAllowed = gap >= 12 ? gapLo + 6 : gapLo;
+    const maxAllowed = gap >= 12 ? gapHi - 6 : gapHi;
+    for (let i = 0; i < m; i++) {
+      const rawCoord = start + colours[i]! * step;
+      const clamped = Math.max(minAllowed, Math.min(maxAllowed, rawCoord));
+      comp[i]!.apply(Number(clamped.toFixed(2)));
+    }
+  }
+}
+
 /**
  * Routes wires at right angles strictly through the gaps between columns and rows,
- * never crossing a card, with lane offsets and collision-checked labels.
+ * never crossing a card, with per-gap interval-coloured lanes and collision-checked labels (`#113`).
  */
 export function routeGridWires(
   rels: TuxMapLevelRel[],
@@ -1410,93 +1644,200 @@ export function routeGridWires(
   els: TuxMapLevelElement[],
 ): { wires: TuxMapRoutedWire[]; labels: TuxMapRoutedLabel[] } {
   const { GX, GY } = GRID_METRICS;
-  const occupied: Record<string, number> = {};
-  const lanes: Record<string, number> = {};
-  const ports: Record<
-    string,
-    { p: { rel: TuxMapLevelRel; a: TuxMapGridCellRect; b: TuxMapGridCellRect; s: [string, string]; fa?: number; fb?: number }; key: "fa" | "fb"; o: number }[]
-  > = {};
+  const elById = new Map<string, TuxMapLevelElement>();
+  for (const e of els) elById.set(e.id, e);
+
+  const isOutsideCard = (id: string, r: TuxMapGridCellRect): boolean => {
+    const el = elById.get(id);
+    return Boolean(r.mini || r.side || el?.mini || el?.side);
+  };
+
+  const outsideSideOf = (id: string, r: TuxMapGridCellRect): "in" | "out" | undefined =>
+    r.side || elById.get(id)?.side;
+
   const placed: { x: number; y: number; w: number; h: number }[] = [];
-  const paths: {
+  const cardEntries: Array<[string, TuxMapGridCellRect]> = [];
+  for (const k of Object.keys(rects)) {
+    const r = rects[k]!;
+    if (!r.bound) {
+      cardEntries.push([k, r]);
+      placed.push({ x: r.x - 4, y: r.y - 4, w: r.w + 8, h: r.h + 8 });
+    }
+  }
+  const cards = placed.slice();
+
+  // Discover exact vertical column gaps and horizontal inner-row gaps from card geometry
+  const colBands = mergeNumericBands(cardEntries.map(([, r]) => [r.x, r.x + r.w]));
+  const vGaps: GapBand[] = [];
+  if (colBands.length > 0) {
+    const leftOuterLo = Math.max(2, colBands[0]![0] - GX);
+    if (colBands[0]![0] - leftOuterLo >= 14) {
+      vGaps.push({ key: "v_outer_l", lo: leftOuterLo, hi: colBands[0]![0] });
+    }
+    for (let i = 0; i < colBands.length - 1; i++) {
+      if (colBands[i + 1]![0] - colBands[i]![1] >= 12) {
+        vGaps.push({ key: `v_${i}`, lo: colBands[i]![1], hi: colBands[i + 1]![0] });
+      }
+    }
+    const lastCol = colBands[colBands.length - 1]!;
+    vGaps.push({ key: "v_outer_r", lo: lastCol[1], hi: lastCol[1] + GX });
+  }
+
+  const innerCardEntries = cardEntries.filter(([id, r]) => !isOutsideCard(id, r));
+  const rowSource = innerCardEntries.length > 0 ? innerCardEntries : cardEntries;
+  const rowBands = mergeNumericBands(rowSource.map(([, r]) => [r.y, r.y + r.h]));
+  const hGaps: GapBand[] = [];
+  if (rowBands.length > 0) {
+    const topLo = Math.max(2, rowBands[0]![0] - GY);
+    if (rowBands[0]![0] - topLo >= 14) {
+      hGaps.push({ key: "h_top", lo: topLo, hi: rowBands[0]![0] });
+    }
+    for (let i = 0; i < rowBands.length - 1; i++) {
+      if (rowBands[i + 1]![0] - rowBands[i]![1] >= 12) {
+        hGaps.push({ key: `h_${i}`, lo: rowBands[i]![1], hi: rowBands[i + 1]![0] });
+      }
+    }
+    const lastRow = rowBands[rowBands.length - 1]!;
+    hGaps.push({ key: "h_bot", lo: lastRow[1], hi: lastRow[1] + GY });
+  }
+
+  const vGapRightOf = (r: TuxMapGridCellRect): GapBand => {
+    const edge = r.x + r.w;
+    let best: GapBand | null = null;
+    for (const g of vGaps) {
+      if (g.lo >= edge - 1 && (!best || g.lo < best.lo)) best = g;
+    }
+    return best ?? { key: `vr_${Math.round(edge)}`, lo: edge, hi: edge + GX };
+  };
+
+  const vGapLeftOf = (r: TuxMapGridCellRect): GapBand => {
+    const edge = r.x;
+    let best: GapBand | null = null;
+    for (const g of vGaps) {
+      if (g.hi <= edge + 1 && (!best || g.hi > best.hi)) best = g;
+    }
+    return best ?? { key: `vl_${Math.round(edge)}`, lo: Math.max(2, edge - GX), hi: edge };
+  };
+
+  const hGapBelow = (r: TuxMapGridCellRect): GapBand => {
+    const edge = r.y + r.h;
+    let best: GapBand | null = null;
+    for (const g of hGaps) {
+      if (g.lo >= edge - 1 && (!best || g.lo < best.lo)) best = g;
+    }
+    return best ?? { key: `hb_${Math.round(edge)}`, lo: edge, hi: edge + GY };
+  };
+
+  const hGapAbove = (r: TuxMapGridCellRect): GapBand => {
+    const edge = r.y;
+    let best: GapBand | null = null;
+    for (const g of hGaps) {
+      if (g.hi <= edge + 1 && (!best || g.hi > best.hi)) best = g;
+    }
+    return best ?? { key: `ht_${Math.round(edge)}`, lo: Math.max(2, edge - GY), hi: edge };
+  };
+
+  // Strict collision check: non-endpoint cards cannot be hit by any segment; endpoint cards `a` and `b`
+  // can ONLY touch segment `0` (at port `P`, moving strictly outward) and the final segment (at port `Q`,
+  // approaching strictly from outside) — never passed through by middle runs or backwards stubs!
+  function segHitsRect(
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    r: TuxMapGridCellRect,
+  ): boolean {
+    const minX = Math.min(x0, x1);
+    const maxX = Math.max(x0, x1);
+    const minY = Math.min(y0, y1);
+    const maxY = Math.max(y0, y1);
+    return maxX > r.x + 0.5 && minX < r.x + r.w - 0.5 && maxY > r.y + 0.5 && minY < r.y + r.h - 0.5;
+  }
+
+  function stubMovesOutward(port: [number, number], next: [number, number], sideChar: string): boolean {
+    if (sideChar === "r") return next[0] >= port[0] - 0.01 && Math.abs(next[1] - port[1]) < 0.01;
+    if (sideChar === "l") return next[0] <= port[0] + 0.01 && Math.abs(next[1] - port[1]) < 0.01;
+    if (sideChar === "b") return next[1] >= port[1] - 0.01 && Math.abs(next[0] - port[0]) < 0.01;
+    return next[1] <= port[1] + 0.01 && Math.abs(next[0] - port[0]) < 0.01;
+  }
+
+  function polyIsClean(
+    pts: [number, number][],
+    a: TuxMapGridCellRect,
+    s0: string,
+    b: TuxMapGridCellRect,
+    s1: string,
+  ): boolean {
+    if (pts.length < 2) return false;
+    if (!a.bound && !stubMovesOutward(pts[0]!, pts[1]!, s0)) return false;
+    if (!b.bound && !stubMovesOutward(pts[pts.length - 1]!, pts[pts.length - 2]!, s1)) return false;
+    const lastSeg = pts.length - 2;
+    for (let i = 0; i <= lastSeg; i++) {
+      const p0 = pts[i]!;
+      const p1 = pts[i + 1]!;
+      for (let ci = 0; ci < cardEntries.length; ci++) {
+        const r = cardEntries[ci]![1];
+        if (i === 0 && r === a) continue;
+        if (i === lastSeg && r === b) continue;
+        if (segHitsRect(p0[0], p0[1], p1[0], p1[1], r)) return false;
+      }
+    }
+    return true;
+  }
+
+  interface RoutedPathState {
     rel: TuxMapLevelRel;
     a: TuxMapGridCellRect;
     b: TuxMapGridCellRect;
     s: [string, string];
     fa?: number;
     fb?: number;
-  }[] = [];
-
-  for (const e of els) {
-    if (e.at) occupied[`${e.at[0]},${e.at[1]}`] = 1;
+    pts: [number, number][];
   }
 
-  function lane(key: string): number {
-    const n = (lanes[key] = (lanes[key] || 0) + 1);
-    return (n % 2 ? 1 : -1) * Math.floor(n / 2) * 11;
-  }
-
-  for (const k of Object.keys(rects)) {
-    const r = rects[k]!;
-    if (!r.bound) {
-      placed.push({ x: r.x - 4, y: r.y - 4, w: r.w + 8, h: r.h + 8 });
-    }
-  }
-  const cards = placed.slice();
-
-  function segHitsAnyCard(
-    x0: number,
-    y0: number,
-    x1: number,
-    y1: number,
-    ignoreA: TuxMapGridCellRect,
-    ignoreB: TuxMapGridCellRect,
-  ): boolean {
-    const minX = Math.min(x0, x1);
-    const maxX = Math.max(x0, x1);
-    const minY = Math.min(y0, y1);
-    const maxY = Math.max(y0, y1);
-    for (const k of Object.keys(rects)) {
-      const r = rects[k]!;
-      if (r === ignoreA || r === ignoreB || r.bound) continue;
-      if (maxX > r.x + 2 && minX < r.x + r.w - 2 && maxY > r.y + 2 && minY < r.y + r.h - 2) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  function polyHitsAnyCard(
-    pts: [number, number][],
-    ignoreA: TuxMapGridCellRect,
-    ignoreB: TuxMapGridCellRect,
-  ): boolean {
-    for (let i = 0; i < pts.length - 1; i++) {
-      if (segHitsAnyCard(pts[i]![0], pts[i]![1], pts[i + 1]![0], pts[i + 1]![1], ignoreA, ignoreB)) {
-        return true;
-      }
-    }
-    return false;
-  }
+  const paths: RoutedPathState[] = [];
+  const ports: Record<string, { p: RoutedPathState; key: "fa" | "fb"; o: number; tie: number }[]> = {};
 
   for (const rel of rels) {
     const a = rects[rel.from];
     const b = rects[rel.to];
     if (a && b) {
-      paths.push({ rel, a, b, s: ["r", "l"] });
+      paths.push({ rel, a, b, s: ["r", "l"], pts: [] });
     }
   }
 
-  function side(a: TuxMapGridCellRect, b: TuxMapGridCellRect): [string, string] {
+  const maxCardRight = colBands.length > 0 ? colBands[colBands.length - 1]![1] : 680;
+  function side(
+    fromId: string,
+    a: TuxMapGridCellRect,
+    toId: string,
+    b: TuxMapGridCellRect,
+  ): [string, string] {
     if (a.bound) return b.x > a.x + a.w / 2 ? ["r", "l"] : ["l", "r"];
     if (b.bound) return a.x < b.x ? ["r", "l"] : ["l", "r"];
+    // Outside cards ALWAYS attach on left/right ports (#113), never top/bottom across intermediate cards
+    if (isOutsideCard(fromId, a) || isOutsideCard(toId, b)) {
+      const acx = a.x + a.w / 2;
+      const bcx = b.x + b.w / 2;
+      if (Math.abs(bcx - acx) > 1) {
+        return bcx > acx ? ["r", "l"] : ["l", "r"];
+      }
+      // Same outside stack: route inward into the adjacent inter-column gap
+      const aSide = outsideSideOf(fromId, a) ?? outsideSideOf(toId, b);
+      if (aSide === "out" || acx > maxCardRight / 2) return ["l", "l"];
+      return ["r", "r"];
+    }
     const ac = a.c ?? 0;
     const ar = a.r ?? 0;
     const bc = b.c ?? 0;
     const br = b.r ?? 0;
-    // Route bottom/top when cards share a column OR when one card sits 2+ rows below/above
-    // within 1 column horizontally (e.g. Level 1 bottom row external systems below primary system)
     if (ac === bc) {
-      return Math.abs(ar - br) > 1 ? ["r", "r"] : br > ar ? ["b", "t"] : ["t", "b"];
+      if (Math.abs(ar - br) > 1) {
+        // Prefer an inner inter-column gap over an outer margin when at rightmost column
+        const hasRightCol = colBands.length > 1 && a.x + a.w < colBands[colBands.length - 1]![0] - 1;
+        return hasRightCol || colBands.length <= 1 ? ["r", "r"] : ["l", "l"];
+      }
+      return br > ar ? ["b", "t"] : ["t", "b"];
     }
     if (Math.abs(br - ar) >= 2 && Math.abs(bc - ac) <= 1) {
       return br > ar ? ["b", "t"] : ["t", "b"];
@@ -1504,42 +1845,317 @@ export function routeGridWires(
     return bc > ac ? ["r", "l"] : ["l", "r"];
   }
 
-  for (const p of paths) {
-    p.s = side(p.a, p.b);
+  paths.forEach((p, idx) => {
+    p.s = side(p.rel.from, p.a, p.rel.to, p.b);
     const entries: [string, string, TuxMapGridCellRect, "fa" | "fb"][] = [
       [p.rel.from, p.s[0], p.b, "fa"],
       [p.rel.to, p.s[1], p.a, "fb"],
     ];
     for (const x of entries) {
-      const k = `${x[0]}:${x[1]}`;
+      const k = `${x[0]}\u0000${x[1]}`;
       if (!ports[k]) ports[k] = [];
       ports[k]!.push({
         p,
         key: x[3],
-        o: x[1] === "l" || x[1] === "r" ? x[2].y : x[2].x,
+        o: x[1] === "l" || x[1] === "r" ? x[2].y + x[2].h / 2 : x[2].x + x[2].w / 2,
+        tie: x[1] === "l" || x[1] === "r" ? x[2].x + idx * 0.001 : x[2].y + idx * 0.001,
       });
     }
-  }
+  });
 
   for (const k of Object.keys(ports)) {
-    const list = ports[k]!.sort((u, v) => u.o - v.o);
+    const list = ports[k]!.sort((u, v) => u.o - v.o || u.tie - v.tie);
     const total = list.length;
     list.forEach((x, j) => {
-      if (total === 1) {
-        x.p[x.key] = 0.5;
-      } else {
-        // Distribute ports evenly across the middle 68% of the card edge (0.16 .. 0.84)
-        // so parallel vertical/horizontal stems never bunch together
-        x.p[x.key] = 0.16 + (j / (total - 1)) * 0.68;
-      }
+      x.p[x.key] = total === 1 ? 0.5 : 0.16 + (j / (total - 1)) * 0.68;
     });
   }
 
   function at(r: TuxMapGridCellRect, s: string, f = 0.5): [number, number] {
-    if (s === "l") return [r.x, r.y + r.h * f];
-    if (s === "r") return [r.x + r.w, r.y + r.h * f];
-    if (s === "t") return [r.x + r.w * f, r.y];
-    return [r.x + r.w * f, r.y + r.h];
+    if (s === "l") return [r.x, Number((r.y + r.h * f).toFixed(2))];
+    if (s === "r") return [r.x + r.w, Number((r.y + r.h * f).toFixed(2))];
+    if (s === "t") return [Number((r.x + r.w * f).toFixed(2)), r.y];
+    return [Number((r.x + r.w * f).toFixed(2)), r.y + r.h];
+  }
+
+  const gapRegistry = new Map<string, { band: GapBand; reqs: CorridorLaneRequest[] }>();
+  const registerLane = (band: GapBand, req: CorridorLaneRequest) => {
+    let entry = gapRegistry.get(band.key);
+    if (!entry) {
+      entry = { band, reqs: [] };
+      gapRegistry.set(band.key, entry);
+    }
+    entry.reqs.push(req);
+  };
+
+  // Pass 1: Choose obstacle-free corridor topology for each wire and register interval-colouring spans
+  for (const p of paths) {
+    const { a, b, s } = p;
+    if (a.bound || b.bound) {
+      const n = a.bound ? b : a;
+      const y = Number((n.y + n.h * ((a.bound ? p.fb : p.fa) ?? 0.5)).toFixed(2));
+      const P: [number, number] = a.bound ? [s[0] === "r" ? a.x + a.w : a.x, y] : at(a, s[0], p.fa);
+      const Q: [number, number] = b.bound ? [s[1] === "l" ? b.x : b.x + b.w, y] : at(b, s[1], p.fb);
+      p.pts = [P, Q];
+      continue;
+    }
+
+    const P = at(a, s[0], p.fa);
+    const Q = at(b, s[1], p.fb);
+
+    if ((s[0] === "r" && s[1] === "r") || (s[0] === "l" && s[1] === "l")) {
+      const vg = s[0] === "r" ? vGapRightOf(a.x + a.w >= b.x + b.w ? a : b) : vGapLeftOf(a.x <= b.x ? a : b);
+      const midX = (vg.lo + vg.hi) / 2;
+      const pts: [number, number][] = [P, [midX, P[1]], [midX, Q[1]], Q];
+      p.pts = pts;
+      const stubDir: -1 | 1 = s[0] === "r" ? -1 : 1;
+      registerLane(vg, {
+        spanLo: Math.min(P[1], Q[1]),
+        spanHi: Math.max(P[1], Q[1]),
+        startPos: P[1],
+        endPos: Q[1],
+        startDir: stubDir,
+        endDir: stubDir,
+        apply: (cx) => {
+          pts[1]![0] = cx;
+          pts[2]![0] = cx;
+        },
+      });
+      continue;
+    }
+
+    if (s[0] === "b" || s[0] === "t") {
+      const down = s[0] === "b";
+      const hgPrimary = down ? hGapBelow(a) : hGapAbove(a);
+      const midY = (hgPrimary.lo + hgPrimary.hi) / 2;
+      const simplePts: [number, number][] = [P, [P[0], midY], [Q[0], midY], Q];
+      if (polyIsClean(simplePts, a, s[0], b, s[1])) {
+        p.pts = simplePts;
+        registerLane(hgPrimary, {
+          spanLo: Math.min(P[0], Q[0]),
+          spanHi: Math.max(P[0], Q[0]),
+          startPos: P[0],
+          endPos: Q[0],
+          startDir: down ? -1 : 1,
+          endDir: down ? 1 : -1,
+          apply: (cy) => {
+            simplePts[1]![1] = cy;
+            simplePts[2]![1] = cy;
+          },
+        });
+      } else {
+        const hgA = down ? hGapBelow(a) : hGapAbove(a);
+        const hgB = down ? hGapAbove(b) : hGapBelow(b);
+        const vgCandidates = [
+          b.x < a.x ? vGapLeftOf(a) : vGapRightOf(a),
+          b.x < a.x ? vGapRightOf(b) : vGapLeftOf(b),
+          ...vGaps,
+        ];
+        let chosenVg = vgCandidates[0]!;
+        const y1Init = (hgA.lo + hgA.hi) / 2;
+        const y2Init = (hgB.lo + hgB.hi) / 2;
+        for (const vg of vgCandidates) {
+          const xInit = (vg.lo + vg.hi) / 2;
+          const testPts: [number, number][] = [
+            P,
+            [P[0], y1Init],
+            [xInit, y1Init],
+            [xInit, y2Init],
+            [Q[0], y2Init],
+            Q,
+          ];
+          if (polyIsClean(testPts, a, s[0], b, s[1])) {
+            chosenVg = vg;
+            break;
+          }
+        }
+        const xInit = (chosenVg.lo + chosenVg.hi) / 2;
+        const detourPts: [number, number][] = [
+          P,
+          [P[0], y1Init],
+          [xInit, y1Init],
+          [xInit, y2Init],
+          [Q[0], y2Init],
+          Q,
+        ];
+        p.pts = detourPts;
+        registerLane(hgA, {
+          spanLo: Math.min(P[0], xInit),
+          spanHi: Math.max(P[0], xInit),
+          startPos: P[0],
+          endPos: xInit,
+          startDir: down ? -1 : 1,
+          endDir: y2Init >= y1Init ? 1 : -1,
+          apply: (cy) => {
+            detourPts[1]![1] = cy;
+            detourPts[2]![1] = cy;
+          },
+        });
+        registerLane(chosenVg, {
+          spanLo: Math.min(y1Init, y2Init),
+          spanHi: Math.max(y1Init, y2Init),
+          startPos: y1Init,
+          endPos: y2Init,
+          startDir: P[0] <= xInit ? -1 : 1,
+          endDir: Q[0] <= xInit ? -1 : 1,
+          apply: (cx) => {
+            detourPts[2]![0] = cx;
+            detourPts[3]![0] = cx;
+          },
+        });
+        registerLane(hgB, {
+          spanLo: Math.min(xInit, Q[0]),
+          spanHi: Math.max(xInit, Q[0]),
+          startPos: xInit,
+          endPos: Q[0],
+          startDir: y2Init >= y1Init ? -1 : 1,
+          endDir: down ? 1 : -1,
+          apply: (cy) => {
+            detourPts[3]![1] = cy;
+            detourPts[4]![1] = cy;
+          },
+        });
+      }
+      continue;
+    }
+
+    // Horizontal port exit/entry: ["r", "l"] or ["l", "r"]
+    const dir = s[0] === "r" ? 1 : -1;
+    const vgStart = dir > 0 ? vGapRightOf(a) : vGapLeftOf(a);
+    const vgEnd = dir > 0 ? vGapLeftOf(b) : vGapRightOf(b);
+
+    // 1. Check if a single vertical gap between `a` and `b` gives a clean 3-segment Z-wire
+    const betweenVGaps = vGaps.filter((g) =>
+      dir > 0 ? g.lo >= a.x + a.w - 1 && g.hi <= b.x + 1 : g.hi <= a.x + 1 && g.lo >= b.x + b.w - 1,
+    );
+    let singleVGap: GapBand | null = null;
+    if (vgStart.key === vgEnd.key) {
+      const gx = (vgStart.lo + vgStart.hi) / 2;
+      if (polyIsClean([P, [gx, P[1]], [gx, Q[1]], Q], a, s[0], b, s[1])) {
+        singleVGap = vgStart;
+      }
+    }
+    if (!singleVGap && betweenVGaps.length > 0) {
+      const targetMidX = (P[0] + Q[0]) / 2;
+      const orderedVGaps = betweenVGaps
+        .slice()
+        .sort((u, v) => Math.abs((u.lo + u.hi) / 2 - targetMidX) - Math.abs((v.lo + v.hi) / 2 - targetMidX));
+      for (const vg of orderedVGaps) {
+        // Test worst-case edges of `[vg.lo + 6, vg.hi - 6]` so lane shifts cannot clip a card
+        const loX = vg.hi - vg.lo >= 12 ? vg.lo + 6 : (vg.lo + vg.hi) / 2;
+        const hiX = vg.hi - vg.lo >= 12 ? vg.hi - 6 : (vg.lo + vg.hi) / 2;
+        if (
+          polyIsClean([P, [loX, P[1]], [loX, Q[1]], Q], a, s[0], b, s[1]) &&
+          polyIsClean([P, [hiX, P[1]], [hiX, Q[1]], Q], a, s[0], b, s[1])
+        ) {
+          singleVGap = vg;
+          break;
+        }
+      }
+    }
+
+    if (singleVGap) {
+      const gx = (singleVGap.lo + singleVGap.hi) / 2;
+      const zPts: [number, number][] = [P, [gx, P[1]], [gx, Q[1]], Q];
+      p.pts = zPts;
+      registerLane(singleVGap, {
+        spanLo: Math.min(P[1], Q[1]),
+        spanHi: Math.max(P[1], Q[1]),
+        startPos: P[1],
+        endPos: Q[1],
+        startDir: dir > 0 ? -1 : 1,
+        endDir: dir > 0 ? 1 : -1,
+        apply: (cx) => {
+          zPts[1]![0] = cx;
+          zPts[2]![0] = cx;
+        },
+      });
+      continue;
+    }
+
+    // 2. Multi-column dogleg `[P, [x1, P[1]], [x1, yg], [x2, yg], [x2, Q[1]], Q]`:
+    //    `x1` stays in `vgStart`, `yg` runs in the nearest clean inner-row gap `hg`, and `x2` stays in `vgEnd`.
+    const targetMidY = (P[1] + Q[1]) / 2;
+    const orderedHGaps = hGaps
+      .slice()
+      .sort((u, v) => {
+        const uMid = (u.lo + u.hi) / 2;
+        const vMid = (v.lo + v.hi) / 2;
+        // Prefer gaps lying between P[1] and Q[1], then closest to midpoint
+        const minPQ = Math.min(P[1], Q[1]);
+        const maxPQ = Math.max(P[1], Q[1]);
+        const uBetween = uMid >= minPQ - 8 && uMid <= maxPQ + 8 ? 0 : 1;
+        const vBetween = vMid >= minPQ - 8 && vMid <= maxPQ + 8 ? 0 : 1;
+        return uBetween - vBetween || Math.abs(uMid - targetMidY) - Math.abs(vMid - targetMidY);
+      });
+
+    const x1Init = (vgStart.lo + vgStart.hi) / 2;
+    const x2Init = (vgEnd.lo + vgEnd.hi) / 2;
+    let chosenHGap: GapBand = orderedHGaps[0] ?? hGapBelow(a);
+    for (const hg of orderedHGaps) {
+      const loY = hg.hi - hg.lo >= 12 ? hg.lo + 6 : (hg.lo + hg.hi) / 2;
+      const hiY = hg.hi - hg.lo >= 12 ? hg.hi - 6 : (hg.lo + hg.hi) / 2;
+      if (
+        polyIsClean([P, [x1Init, P[1]], [x1Init, loY], [x2Init, loY], [x2Init, Q[1]], Q], a, s[0], b, s[1]) &&
+        polyIsClean([P, [x1Init, P[1]], [x1Init, hiY], [x2Init, hiY], [x2Init, Q[1]], Q], a, s[0], b, s[1])
+      ) {
+        chosenHGap = hg;
+        break;
+      }
+    }
+
+    const ygInit = (chosenHGap.lo + chosenHGap.hi) / 2;
+    const doglegPts: [number, number][] = [
+      P,
+      [x1Init, P[1]],
+      [x1Init, ygInit],
+      [x2Init, ygInit],
+      [x2Init, Q[1]],
+      Q,
+    ];
+    p.pts = doglegPts;
+
+    registerLane(vgStart, {
+      spanLo: Math.min(P[1], ygInit),
+      spanHi: Math.max(P[1], ygInit),
+      startPos: P[1],
+      endPos: ygInit,
+      startDir: dir > 0 ? -1 : 1,
+      endDir: x2Init >= x1Init ? 1 : -1,
+      apply: (cx) => {
+        doglegPts[1]![0] = cx;
+        doglegPts[2]![0] = cx;
+      },
+    });
+    registerLane(chosenHGap, {
+      spanLo: Math.min(x1Init, x2Init),
+      spanHi: Math.max(x1Init, x2Init),
+      startPos: x1Init,
+      endPos: x2Init,
+      startDir: P[1] <= ygInit ? -1 : 1,
+      endDir: Q[1] <= ygInit ? -1 : 1,
+      apply: (cy) => {
+        doglegPts[2]![1] = cy;
+        doglegPts[3]![1] = cy;
+      },
+    });
+    registerLane(vgEnd, {
+      spanLo: Math.min(ygInit, Q[1]),
+      spanHi: Math.max(ygInit, Q[1]),
+      startPos: ygInit,
+      endPos: Q[1],
+      startDir: x2Init >= x1Init ? -1 : 1,
+      endDir: dir > 0 ? 1 : -1,
+      apply: (cx) => {
+        doglegPts[3]![0] = cx;
+        doglegPts[4]![0] = cx;
+      },
+    });
+  }
+
+  // Pass 2: Interval-colour every gap and write lane coordinates into `p.pts`
+  for (const { band, reqs } of gapRegistry.values()) {
+    assignCorridorLanes(band.lo, band.hi, reqs);
   }
 
   const wires: TuxMapRoutedWire[] = [];
@@ -1547,100 +2163,7 @@ export function routeGridWires(
   const wireSegments: [[number, number], [number, number], number][] = [];
 
   paths.forEach((p, idx) => {
-    const { a, b, s } = p;
-    let P: [number, number];
-    let Q: [number, number];
-    let pts: [number, number][];
-
-    if (a.bound || b.bound) {
-      const n = a.bound ? b : a;
-      const y = n.y + n.h * ((a.bound ? p.fb : p.fa) ?? 0.5);
-      P = a.bound ? [s[0] === "r" ? a.x + a.w : a.x, y] : at(a, s[0], p.fa);
-      Q = b.bound ? [s[1] === "l" ? b.x : b.x + b.w, y] : at(b, s[1], p.fb);
-      pts = [P, Q];
-    } else {
-      P = at(a, s[0], p.fa);
-      Q = at(b, s[1], p.fb);
-      const ac = a.c ?? 0;
-      const ar = a.r ?? 0;
-      const bc = b.c ?? 0;
-      const br = b.r ?? 0;
-
-      if (s[0] === "r" && s[1] === "r") {
-        const gx = a.x + a.w + GX / 2 + lane(`v${ac}`);
-        pts = [P, [gx, P[1]], [gx, Q[1]], Q];
-      } else if (s[0] === "b" || s[0] === "t") {
-        const down = s[0] === "b";
-        const baseMy = (P[1] + Q[1]) / 2 + lane(`hb_${Math.min(ar, br)}_${Math.max(ar, br)}`);
-        let cand: [number, number][] = [P, [P[0], baseMy], [Q[0], baseMy], Q];
-        if (polyHitsAnyCard(cand, a, b)) {
-          const y1 =
-            (down ? a.y + a.h + GY / 2 : a.y - GY / 2) +
-            lane(`hb_row_${ar}_${down ? "b" : "t"}`);
-          const y2 =
-            (down ? b.y - GY / 2 : b.y + b.h + GY / 2) +
-            lane(`hb_row_${br}_${down ? "t" : "b"}`);
-          const midCol = Math.min(ac, bc);
-          const gx =
-            Math.min(a.x, b.x) +
-            GRID_METRICS.CW +
-            GX / 2 +
-            lane(`v_bt_${midCol}`);
-          cand = [P, [P[0], y1], [gx, y1], [gx, y2], [Q[0], y2], Q];
-        }
-        pts = cand;
-      } else {
-        const dir = s[0] === "r" ? 1 : -1;
-        const x1 =
-          (dir > 0 ? a.x + a.w : a.x) +
-          (dir * GX) / 2 +
-          lane(`v${dir > 0 ? ac : ac - 1}`);
-        const x2 =
-          (dir > 0 ? b.x : b.x + b.w) -
-          (dir * GX) / 2 +
-          lane(`v${dir > 0 ? bc - 1 : bc}`);
-        let clear = true;
-        for (let c = Math.min(ac, bc) + 1; c < Math.max(ac, bc); c++) {
-          if (occupied[`${c},${br}`]) clear = false;
-        }
-        if (Math.abs(ac - bc) === 1) {
-          pts = [P, [x1, P[1]], [x1, Q[1]], Q];
-        } else if (ar === br && clear) {
-          const mx = (P[0] + Q[0]) / 2;
-          const cand: [number, number][] = [P, [mx, P[1]], [mx, Q[1]], Q];
-          if (!polyHitsAnyCard(cand, a, b)) {
-            pts = cand;
-          } else {
-            const yg = b.y - GY / 2 + lane(`h${br}t`);
-            pts = [P, [x1, P[1]], [x1, yg], [x2, yg], [x2, Q[1]], Q];
-          }
-        } else {
-          let yg =
-            (br >= ar ? b.y - GY / 2 : b.y + b.h + GY / 2) +
-            lane(`h${br}${br >= ar ? "t" : "b"}`);
-          let cand: [number, number][] = [P, [x1, P[1]], [x1, yg], [x2, yg], [x2, Q[1]], Q];
-          if (polyHitsAnyCard(cand, a, b)) {
-            // Try the opposite horizontal corridor (below vs above target row, or near source row)
-            const altYg =
-              (br >= ar ? a.y + a.h + GY / 2 : a.y - GY / 2) +
-              lane(`h_alt_${ar}`);
-            const altCand: [number, number][] = [
-              P,
-              [x1, P[1]],
-              [x1, altYg],
-              [x2, altYg],
-              [x2, Q[1]],
-              Q,
-            ];
-            if (!polyHitsAnyCard(altCand, a, b)) {
-              cand = altCand;
-            }
-          }
-          pts = cand;
-        }
-      }
-    }
-
+    const pts = simplifyOrthogonalPoints(p.pts);
     for (let si = 0; si < pts.length - 1; si++) {
       wireSegments.push([pts[si]!, pts[si + 1]!, idx]);
     }
@@ -1790,7 +2313,8 @@ export function routeGridWires(
 }
 
 /**
- * Routes right-angle wires for Level 4 deployment resource nodes.
+ * Routes right-angle wires for Level 4 deployment resource nodes, trying discovered
+ * group-gap corridors with `polyHits` before falling back (`#113`).
  * Pass `selectedId = "*"` to pre-route all links so hover highlighting works with zero recomputation.
  */
 export function routeDeploymentWires(
@@ -1801,36 +2325,68 @@ export function routeDeploymentWires(
   if (!selectedId) return [];
   const routeAll = selectedId === "*";
   const wires: TuxMapRoutedWire[] = [];
-  const allRects = Object.entries(rects);
+  const cardRects = Object.entries(rects).filter(([, r]) => !r.bound);
 
   function hitsAnyCard(
     x0: number,
     y0: number,
     x1: number,
     y1: number,
-    ignoreA: string,
-    ignoreB: string,
+    ignoreIdA: string | null,
+    ignoreIdB: string | null,
   ): boolean {
     const minX = Math.min(x0, x1);
     const maxX = Math.max(x0, x1);
     const minY = Math.min(y0, y1);
     const maxY = Math.max(y0, y1);
-    for (const [id, r] of allRects) {
-      if (id === ignoreA || id === ignoreB || r.bound) continue;
-      if (maxX > r.x + 2 && minX < r.x + r.w - 2 && maxY > r.y + 2 && minY < r.y + r.h - 2) {
+    for (const [id, r] of cardRects) {
+      if (id === ignoreIdA || id === ignoreIdB) continue;
+      if (maxX > r.x + 1 && minX < r.x + r.w - 1 && maxY > r.y + 1 && minY < r.y + r.h - 1) {
         return true;
       }
     }
     return false;
   }
 
-  function polyHits(pts: [number, number][], ignoreA: string, ignoreB: string): boolean {
-    for (let i = 0; i < pts.length - 1; i++) {
-      if (hitsAnyCard(pts[i]![0], pts[i]![1], pts[i + 1]![0], pts[i + 1]![1], ignoreA, ignoreB)) {
+  function polyHits(pts: [number, number][], fromId: string, toId: string): boolean {
+    const lastSeg = pts.length - 2;
+    for (let i = 0; i <= lastSeg; i++) {
+      const igA = i === 0 ? fromId : null;
+      const igB = i === lastSeg ? toId : null;
+      if (hitsAnyCard(pts[i]![0], pts[i]![1], pts[i + 1]![0], pts[i + 1]![1], igA, igB)) {
         return true;
       }
     }
     return false;
+  }
+
+  // Discover vertical and horizontal group-gap corridors across Level 4 placement columns and resource groups
+  const xBands = mergeNumericBands(cardRects.map(([, r]) => [r.x, r.x + r.w]));
+  const yBands = mergeNumericBands(cardRects.map(([, r]) => [r.y, r.y + r.h]));
+  const xCorridors: number[] = [];
+  if (xBands.length > 0) {
+    xCorridors.push(Math.max(6, xBands[0]![0] - 20));
+    for (let i = 0; i < xBands.length - 1; i++) {
+      if (xBands[i + 1]![0] - xBands[i]![1] >= 10) {
+        xCorridors.push(Math.round((xBands[i]![1] + xBands[i + 1]![0]) / 2));
+      }
+    }
+    xCorridors.push(xBands[xBands.length - 1]![1] + 20);
+  }
+  const yCorridors: number[] = [];
+  if (yBands.length > 0) {
+    yCorridors.push(Math.max(6, yBands[0]![0] - 18));
+    for (let i = 0; i < yBands.length - 1; i++) {
+      if (yBands[i + 1]![0] - yBands[i]![1] >= 10) {
+        yCorridors.push(Math.round((yBands[i]![1] + yBands[i + 1]![0]) / 2));
+      }
+    }
+    yCorridors.push(yBands[yBands.length - 1]![1] + 18);
+  }
+  // Also include per-card local group gaps (16px horizontal / 14-66px vertical gaps inside dual-column groups)
+  for (const [, r] of cardRects) {
+    xCorridors.push(r.x - 8, r.x + r.w + 8);
+    yCorridors.push(r.y - 7, r.y + r.h + 7);
   }
 
   // Group port assignments by (nodeId, side) so multiple links on a Level 4 resource fan out cleanly
@@ -1865,12 +2421,12 @@ export function routeDeploymentWires(
     portsBySide.get(kFrom)!.push({
       linkIdx: idx,
       end: "from",
-      otherCoord: fromSide === "l" || fromSide === "r" ? b.y : b.x,
+      otherCoord: fromSide === "l" || fromSide === "r" ? b.y + b.h / 2 : b.x + b.w / 2,
     });
     portsBySide.get(kTo)!.push({
       linkIdx: idx,
       end: "to",
-      otherCoord: toSide === "l" || toSide === "r" ? a.y : a.x,
+      otherCoord: toSide === "l" || toSide === "r" ? a.y + a.h / 2 : a.x + a.w / 2,
     });
   });
 
@@ -1890,42 +2446,97 @@ export function routeDeploymentWires(
     const left = b.x + b.w <= a.x;
     const fa = portFraction.get(`${idx}:from`) ?? 0.5;
     const fb = portFraction.get(`${idx}:to`) ?? 0.5;
-    const laneShift = ((idx % 5) - 2) * 4;
-    let d: string;
+    const laneShift = ((idx % 5) - 2) * 3;
+    let chosenPts: [number, number][] | null = null;
 
     if (right || left) {
       const P: [number, number] = [right ? a.x + a.w : a.x, Math.round(a.y + a.h * fa)];
       const Q: [number, number] = [right ? b.x : b.x + b.w, Math.round(b.y + b.h * fb)];
-      const mx = Math.round((P[0] + Q[0]) / 2 + laneShift);
-      const directPts: [number, number][] = [P, [mx, P[1]], [mx, Q[1]], Q];
-      if (!polyHits(directPts, r.from, r.to)) {
-        d = roundOrthogonalCorners(directPts);
-      } else {
-        // Route around sibling cards via the horizontal gap below/above the card
-        const goBelow = b.y >= a.y;
-        const Pbot: [number, number] = [
-          Math.round(a.x + a.w * fa),
-          goBelow ? a.y + a.h : a.y,
-        ];
-        const yg = (goBelow ? a.y + a.h + 9 : a.y - 9) + ((idx % 3) - 1) * 3;
-        const gx = right
-          ? Math.max(a.x + a.w + 10, b.x - 18)
-          : Math.min(a.x - 10, b.x + b.w + 18);
-        const detourPts: [number, number][] = [Pbot, [Pbot[0], yg], [gx, yg], [gx, Q[1]], Q];
-        d = roundOrthogonalCorners(detourPts);
+      const midX = Math.round((P[0] + Q[0]) / 2 + laneShift);
+      const xCands = [
+        midX,
+        ...xCorridors
+          .filter((vx) => (right ? vx > P[0] + 4 && vx < Q[0] - 4 : vx < P[0] - 4 && vx > Q[0] + 4))
+          .map((vx) => vx + laneShift)
+          .sort((u, v) => Math.abs(u - midX) - Math.abs(v - midX)),
+      ];
+      for (const vx of xCands) {
+        const cand: [number, number][] = [P, [vx, P[1]], [vx, Q[1]], Q];
+        if (!polyHits(cand, r.from, r.to)) {
+          chosenPts = cand;
+          break;
+        }
+      }
+
+      if (!chosenPts) {
+        // Try 5-segment group-gap corridors `[P, [vx1, P[1]], [vx1, hy], [vx2, hy], [vx2, Q[1]], Q]`
+        const vx1 = right ? a.x + a.w + 8 + ((idx % 3) - 1) * 2 : a.x - 8 + ((idx % 3) - 1) * 2;
+        const vx2 = right ? b.x - 8 + ((idx % 3) - 1) * 2 : b.x + b.w + 8 + ((idx % 3) - 1) * 2;
+        const midY = (P[1] + Q[1]) / 2;
+        const sortedY = yCorridors
+          .slice()
+          .sort((u, v) => Math.abs(u - midY) - Math.abs(v - midY));
+        for (const baseY of sortedY) {
+          const hy = baseY + ((idx % 3) - 1) * 2;
+          const cand: [number, number][] = [P, [vx1, P[1]], [vx1, hy], [vx2, hy], [vx2, Q[1]], Q];
+          if (!polyHits(cand, r.from, r.to)) {
+            chosenPts = cand;
+            break;
+          }
+        }
+
+        if (!chosenPts) {
+          // Try top/bottom port exit into horizontal group-gap corridor before final fallback
+          const goBelow = b.y >= a.y;
+          const Pbot: [number, number] = [Math.round(a.x + a.w * fa), goBelow ? a.y + a.h : a.y];
+          for (const baseY of sortedY) {
+            const hy = baseY + ((idx % 3) - 1) * 2;
+            if (goBelow ? hy <= Pbot[1] + 2 : hy >= Pbot[1] - 2) continue;
+            const cand: [number, number][] = [Pbot, [Pbot[0], hy], [vx2, hy], [vx2, Q[1]], Q];
+            if (!polyHits(cand, r.from, r.to)) {
+              chosenPts = cand;
+              break;
+            }
+          }
+          if (!chosenPts) {
+            const yg = (goBelow ? a.y + a.h + 9 : a.y - 9) + ((idx % 3) - 1) * 3;
+            const gx = right ? Math.max(a.x + a.w + 10, b.x - 18) : Math.min(a.x - 10, b.x + b.w + 18);
+            chosenPts = [Pbot, [Pbot[0], yg], [gx, yg], [gx, Q[1]], Q];
+          }
+        }
       }
     } else {
       const down = b.y > a.y;
       const P2: [number, number] = [Math.round(a.x + a.w * fa), down ? a.y + a.h : a.y];
       const Q2: [number, number] = [Math.round(b.x + b.w * fb), down ? b.y : b.y + b.h];
-      const my = Math.round((P2[1] + Q2[1]) / 2 + laneShift);
-      d = roundOrthogonalCorners([P2, [P2[0], my], [Q2[0], my], Q2]);
+      const midY = Math.round((P2[1] + Q2[1]) / 2 + laneShift);
+      const directV: [number, number][] = [P2, [P2[0], midY], [Q2[0], midY], Q2];
+      if (!polyHits(directV, r.from, r.to)) {
+        chosenPts = directV;
+      } else {
+        const targetX = a.x + a.w / 2;
+        const sortedX = xCorridors
+          .slice()
+          .sort((u, v) => Math.abs(u - targetX) - Math.abs(v - targetX));
+        const hy1 = down ? a.y + a.h + 7 : a.y - 7;
+        const hy2 = down ? b.y - 7 : b.y + b.h + 7;
+        for (const baseX of sortedX) {
+          const vx = baseX + ((idx % 3) - 1) * 2;
+          const cand: [number, number][] = [P2, [P2[0], hy1], [vx, hy1], [vx, hy2], [Q2[0], hy2], Q2];
+          if (!polyHits(cand, r.from, r.to)) {
+            chosenPts = cand;
+            break;
+          }
+        }
+        if (!chosenPts) chosenPts = directV;
+      }
     }
+
     wires.push({
       id: `dw-${idx}-${r.from}-${r.to}`,
       from: r.from,
       to: r.to,
-      d,
+      d: roundOrthogonalCorners(simplifyOrthogonalPoints(chosenPts)),
       planned: r.state === "planned",
     });
   });
@@ -2087,12 +2698,23 @@ export const TUX_MAP_QUIET_LINK_KINDS: ReadonlySet<string> = new Set(["mentions"
 /** Canonical link strength order from strongest runtime/contract edge to weakest prose reference. */
 export const TUX_MAP_LINK_STRENGTH_ORDER = [
   "calls",
+  "handled-by",
+  "sends",
+  "reads",
+  "denies",
   "imports",
   "runs",
   "sources",
+  "copies",
+  "copies-logic-of",
+  "forks",
+  "reads-format",
+  "generates",
   "stamps",
+  "provenance",
   "tests",
   "checks",
+  "suppresses",
   "uses",
   "loads",
   "routes",
@@ -2108,13 +2730,24 @@ const LINK_STRENGTH_RANK: ReadonlyMap<string, number> = new Map(
 export const TUX_MAP_LINK_KIND_LABELS: Record<string, string> = {
   imports: "imports it",
   calls: "calls it",
+  "handled-by": "is handled by it",
+  sends: "sends to it",
+  reads: "reads it",
+  denies: "denies it",
   runs: "runs it",
   sources: "sources it",
+  copies: "copies it",
+  "copies-logic-of": "copies logic from it",
+  forks: "forks it",
+  "reads-format": "reads its format",
+  generates: "generates from it",
   stamps: "stamps or builds it",
+  provenance: "records provenance for it",
   loads: "loads it",
   uses: "reads or ships it",
   checks: "CI checks it",
   tests: "tests it",
+  suppresses: "suppresses findings in it",
   routes: "routes to it",
   links: "links to it",
   mentions: "mentions it",
@@ -2160,12 +2793,23 @@ function asObjArray<T extends object>(val: unknown): T[] {
 
 const NON_PROSE_LINK_KINDS: ReadonlySet<string> = new Set([
   "calls",
+  "handled-by",
+  "sends",
+  "reads",
+  "denies",
   "imports",
   "runs",
   "sources",
+  "copies",
+  "copies-logic-of",
+  "forks",
+  "reads-format",
+  "generates",
   "stamps",
+  "provenance",
   "tests",
   "checks",
+  "suppresses",
   "loads",
   "routes",
   "uses",
@@ -2174,11 +2818,22 @@ const NON_PROSE_LINK_KINDS: ReadonlySet<string> = new Set([
 
 const NON_TYPE_ONLY_LINK_KINDS: ReadonlySet<string> = new Set([
   "calls",
+  "handled-by",
+  "sends",
+  "reads",
+  "denies",
   "runs",
   "sources",
+  "copies",
+  "copies-logic-of",
+  "forks",
+  "reads-format",
+  "generates",
   "stamps",
+  "provenance",
   "tests",
   "checks",
+  "suppresses",
   "loads",
   "routes",
   "links",
@@ -2193,6 +2848,7 @@ const NON_AUX_CO_CUT_KINDS: ReadonlySet<string> = new Set([
   "resource",
   "person",
   "external",
+  "route",
 ]);
 
 const NON_PROD_HOST_COUPLINGS: ReadonlySet<TuxMapLinkCoupling> = new Set([
@@ -2277,12 +2933,24 @@ export function inferLinkCoupling(link: TuxMapLink): TuxMapLinkCoupling {
     }
   }
   if (k === "mentions") return "prose";
-  if (k === "tests" || k === "checks") return "verification";
-  if (k === "stamps") return "artifact-stamp";
-  if (k === "routes" || k === "links") return "contract";
+  if (k === "tests" || k === "checks" || k === "suppresses") return "verification";
+  if (k === "stamps" || k === "generates" || k === "provenance") return "artifact-stamp";
+  if (
+    k === "routes" ||
+    k === "links" ||
+    k === "handled-by" ||
+    k === "reads-format" ||
+    k === "copies" ||
+    k === "copies-logic-of" ||
+    k === "forks"
+  ) {
+    return "contract";
+  }
   if (k === "loads" || k === "uses") return "runtime";
   if (k === "imports" || k === "sources") return link.stop ? "verification" : "contract";
-  if (k === "calls" || k === "runs") return link.stop ? "verification" : "runtime";
+  if (k === "calls" || k === "runs" || k === "reads" || k === "sends" || k === "denies") {
+    return link.stop ? "verification" : "runtime";
+  }
   return link.stop ? "verification" : "runtime";
 }
 
@@ -2509,7 +3177,12 @@ export function liftToSet(id: string, set: ReadonlySet<string>, parentOf: Map<st
  */
 export function extractModelLinks(
   model: TuxMapLevelModel,
-  opts: { includePlanned?: boolean; includeC4Rels?: boolean; bridgeUncovered?: boolean } = {},
+  opts: {
+    includePlanned?: boolean;
+    includeC4Rels?: boolean;
+    bridgeUncovered?: boolean;
+    bridgeUncoveredPairs?: boolean;
+  } = {},
 ): TuxMapLink[] {
   const includePlanned = opts.includePlanned ?? false;
   const rawLinks = asObjArray<TuxMapLink>(model?.links).filter(
@@ -2521,9 +3194,9 @@ export function extractModelLinks(
   }
 
   let covered: Set<string> | null = null;
+  let coveredPairs: Set<string> | null = null;
   const subgraphOwners = collectSubgraphOwners(model);
   if (hasCodeLinks && !opts.includeC4Rels) {
-    covered = new Set<string>();
     const parentOf = buildMapParentIndex(model);
     const hostBridge = buildHostBridge(model, subgraphOwners);
     const l2ContainerIds = new Set(
@@ -2532,19 +3205,46 @@ export function extractModelLinks(
         .map((e) => e.id),
     );
     const boundary = typeof model?.level2?.boundary === "string" ? model.level2.boundary : "";
-    const markCovered = (id: string) => {
-      for (const anc of mapAncestorsOf(id, parentOf)) {
-        covered!.add(anc);
-        if (boundary && l2ContainerIds.has(anc)) covered!.add(boundary);
-        const hs = hostBridge.hostsByElement.get(anc);
-        if (hs) {
-          for (const hid of hs) covered!.add(hid);
+    if (opts.bridgeUncoveredPairs) {
+      coveredPairs = new Set<string>();
+      const collectAncs = (id: string): string[] => {
+        const set = new Set<string>();
+        for (const anc of mapAncestorsOf(id, parentOf)) {
+          set.add(anc);
+          if (boundary && l2ContainerIds.has(anc)) set.add(boundary);
+          const hs = hostBridge.hostsByElement.get(anc);
+          if (hs) {
+            for (const hid of hs) set.add(hid);
+          }
+        }
+        return [...set];
+      };
+      for (const l of rawLinks) {
+        if (TUX_MAP_QUIET_LINK_KINDS.has(l.kind || "")) continue;
+        const fromAncs = collectAncs(l.from);
+        const toAncs = collectAncs(l.to);
+        for (const fa of fromAncs) {
+          for (const ta of toAncs) {
+            coveredPairs.add(`${fa}\u0000${ta}`);
+          }
         }
       }
-    };
-    for (const l of rawLinks) {
-      markCovered(l.from);
-      markCovered(l.to);
+    } else {
+      covered = new Set<string>();
+      const markCovered = (id: string) => {
+        for (const anc of mapAncestorsOf(id, parentOf)) {
+          covered!.add(anc);
+          if (boundary && l2ContainerIds.has(anc)) covered!.add(boundary);
+          const hs = hostBridge.hostsByElement.get(anc);
+          if (hs) {
+            for (const hid of hs) covered!.add(hid);
+          }
+        }
+      };
+      for (const l of rawLinks) {
+        markCovered(l.from);
+        markCovered(l.to);
+      }
     }
   }
 
@@ -2553,6 +3253,7 @@ export function extractModelLinks(
   const push = (from: string, to: string, kind: string, label?: string) => {
     if (typeof from !== "string" || typeof to !== "string" || !from || !to) return;
     if (covered && covered.has(to)) return;
+    if (coveredPairs && coveredPairs.has(`${from}\u0000${to}`)) return;
     const normKind = kind || "uses";
     const key = `${from}\u0000${to}\u0000${normKind}`;
     if (seen.has(key)) return;
@@ -4049,6 +4750,11 @@ export function normalizeArchitectureModelInput(
       : isPlainRecord(code) && Array.isArray(code.links)
         ? code.links
         : undefined;
+    const routesRaw = Array.isArray(raw.routes)
+      ? raw.routes
+      : isPlainRecord(code) && Array.isArray(code.routes)
+        ? code.routes
+        : undefined;
 
     normalized = {
       generatedAt:
@@ -4087,6 +4793,7 @@ export function normalizeArchitectureModelInput(
       },
       ...(subgraphsRaw ? { subgraphs: subgraphsRaw as Record<string, TuxMapSubgraph> } : {}),
       ...(linksRaw ? { links: asObjArray<TuxMapLink>(linksRaw) } : {}),
+      ...(routesRaw ? { routes: asObjArray<TuxMapRouteEntry>(routesRaw) } : {}),
     };
   } else if (
     isPlainRecord(raw.subgraphs) &&
@@ -4128,6 +4835,7 @@ export function normalizeArchitectureModelInput(
       level4: { groups: [], nodes: [], links: [] },
       subgraphs,
       links: asObjArray<TuxMapLink>(raw.links),
+      ...(Array.isArray(raw.routes) ? { routes: asObjArray<TuxMapRouteEntry>(raw.routes) } : {}),
     };
   } else {
     normalized = raw as unknown as TuxMapLevelModel;
@@ -4257,14 +4965,30 @@ function modelCacheStamp(model: TuxMapLevelModel): string {
     feedStr(typeof l.coupling === "string" ? l.coupling : "");
     feedStr(typeof l.phase === "string" ? l.phase : "");
   }
+  const routes = asObjArray<TuxMapRouteEntry>(model?.routes);
+  feedStr(`#RT:${routes.length}`);
+  for (const rt of routes) {
+    feedStr(typeof rt.method === "string" ? rt.method : "");
+    feedStr(typeof rt.pattern === "string" ? rt.pattern : "");
+    feedStr(typeof rt.handler === "string" ? rt.handler : "");
+    feedStr(typeof rt.framework === "string" ? rt.framework : "");
+  }
   return `${h1.toString(16).padStart(8, "0")}:${h2.toString(16).padStart(8, "0")}`;
 }
+
+/** Minimal zero-sample fallback model (`tti/tti-ux#114`). */
+export const EMPTY_TTI_LEVEL_MODEL: TuxMapLevelModel = {
+  level1: { title: "System Context", elements: [], rels: [] },
+  level2: { title: "Containers", boundary: "", elements: [], rels: [] },
+  level3: {},
+  level4: { title: "Deployment", groups: [], nodes: [], links: [] },
+};
 
 /**
  * Memoized `O(V + E)` query index per `TuxMapLevelModel` instance so repeated
  * layer, blast-radius, shortest-path, and lease queries do not rebuild graph tables.
  */
-export function getMapQueryIndex(model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL): TuxMapQueryIndex {
+export function getMapQueryIndex(model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL): TuxMapQueryIndex {
   const isObjModel = model != null && typeof model === "object";
   const stamp = isObjModel ? modelCacheStamp(model) : "empty";
   const cached = isObjModel ? MODEL_QUERY_INDEX_CACHE.get(model) : undefined;
@@ -4701,7 +5425,7 @@ export function getMapQueryIndex(model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MOD
  * Indexes a `TuxMapLevelModel` into a unified Code Property Graph (CPG) index
  * spanning Levels 1..N (Context, Containers, Components, Deployment, Modules, Schemas, AST Symbols).
  */
-export function buildUnifiedArchitectureGraph(model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL): {
+export function buildUnifiedArchitectureGraph(model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL): {
   nodes: Map<string, TuxMapGraphNodeRecord>;
   edges: TuxMapGraphEdgeRecord[];
 } {
@@ -4961,7 +5685,7 @@ function collectSubtreeDescendants(rootId: string, kidsOf: ReadonlyMap<string, s
  * supporting compact summaries and `limit`/`offset` pagination (`tti/tti-ux#111`).
  */
 export function queryArchitectureNodes(
-  model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
+  model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL,
   opts: TuxMapNodeQueryOptions = {},
 ): {
   level: number | "all";
@@ -5044,7 +5768,7 @@ export function queryArchitectureNodes(
  */
 export function queryArchitectureImpact(
   seedIds: string | Iterable<string>,
-  model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
+  model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL,
   opts: TuxMapImpactQueryOptions = {},
 ): TuxMapImpactQueryResult | TuxMapUnknownNodeError {
   if (opts.intent !== undefined && !TUX_MAP_VALID_BLAST_INTENTS.has(opts.intent)) {
@@ -5291,7 +6015,7 @@ export function queryArchitectureImpact(
 export function findArchitecturePath(
   fromNodeId: string,
   toNodeId: string,
-  model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
+  model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL,
   opts: TuxMapPathQueryOptions = {},
 ): TuxMapPathQueryResult | TuxMapUnknownNodeError {
   const idx = getMapQueryIndex(model);
@@ -5427,7 +6151,7 @@ export function findArchitecturePath(
  * @deprecated Use `queryArchitectureNodes` instead.
  */
 export function queryArchitectureLayer(
-  model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
+  model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL,
   opts: { level?: number; focusId?: string; includePlanned?: boolean } = {},
 ) {
   warnArchitectureDeprecatedOnce("queryArchitectureLayer", "Use queryArchitectureNodes() instead.");
@@ -5456,7 +6180,7 @@ export function queryArchitectureLayer(
  */
 export function queryMultiLevelBlastRadius(
   nodeId: string,
-  model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
+  model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL,
   maxHopsOrOpts: number | TuxMapBlastOptions = 32,
 ) {
   warnArchitectureDeprecatedOnce("queryMultiLevelBlastRadius", "Use queryArchitectureImpact() instead.");
@@ -5573,7 +6297,7 @@ export function queryMultiLevelBlastRadius(
 export function findShortestArchitecturePath(
   fromNodeId: string,
   toNodeId: string,
-  model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
+  model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL,
 ) {
   warnArchitectureDeprecatedOnce("findShortestArchitecturePath", "Use findArchitecturePath() instead.");
   const res = findArchitecturePath(fromNodeId, toNodeId, model, { compact: false });
@@ -5654,7 +6378,7 @@ export function coordinateAcpSubgraphLease(
     return { acquired: false, error: "rootNodeId is required to acquire an ACP subgraph lease." };
   }
 
-  const model = opts.model || DEFAULT_TTI_LEVEL_MODEL;
+  const model = opts.model || EMPTY_TTI_LEVEL_MODEL;
   const idx = getMapQueryIndex(model);
   if (!idx.nodes.has(rootNodeId)) {
     const err = buildUnknownNodeError([rootNodeId], idx.nodes);
@@ -5709,656 +6433,696 @@ export function coordinateAcpSubgraphLease(
   };
 }
 
-export const DEFAULT_TTI_LEVEL_MODEL: TuxMapLevelModel = {
-  generatedAt: "2026-10-28T10:30:00Z",
-  issueBaseUrl: "https://github.com/ttitamu/tti-ux/issues",
-  sourceBaseUrl: "https://github.com/ttitamu/tti-ux/blob/main",
-  level1: {
-    title: "Level 1 · Ecosystem & People in Context",
-    summary: "The platform, the people who use and operate it, and the external services it connects with.",
-    elements: [
-      {
-        id: "p-users",
-        kind: "person",
-        name: "Product users & analysts",
-        desc: "Sign in to explore dashboards, run reports, manage projects, and collaborate.",
-        at: [0, 0],
-      },
-      {
-        id: "p-admins",
-        kind: "person",
-        name: "Platform admins & SREs",
-        desc: "Configure access policies, review system health, and manage releases.",
-        at: [0, 1],
-      },
-      {
-        id: "p-guests",
-        kind: "person",
-        name: "Public visitors",
-        desc: "Browse public pages, documentation, and published datasets without signing in.",
-        at: [0, 2],
-      },
-      {
-        id: "s-platform",
-        kind: "system",
-        name: "Enterprise Cloud Platform",
-        tech: "Web Portal · Core API · Workers · Data",
-        desc: "Primary application platform providing web dashboards, REST APIs, background job processing, and governed data storage.",
-        at: [2, 1],
-        zoom: 2,
-        live: { state: "running", running: 10, total: 10 },
-      },
-      {
-        id: "x-sso",
-        kind: "external",
-        name: "Identity Provider (SSO)",
-        tech: "OIDC · SAML 2.0",
-        desc: "Single sign-on, multi-factor authentication, and role group synchronization.",
-        at: [4, 0],
-      },
-      {
-        id: "x-registry",
-        kind: "external",
-        name: "Package & Image Registry",
-        tech: "npm · OCI Containers",
-        desc: "Upstream software packages and signed container images used during builds.",
-        at: [4, 1],
-      },
-      {
-        id: "x-email",
-        kind: "external",
-        name: "Notification Gateway",
-        tech: "SMTP · Webhooks",
-        desc: "Delivers transactional email alerts, digest summaries, and outbound webhooks.",
-        at: [4, 2],
-      },
-      {
-        id: "x-monitor",
-        kind: "external",
-        name: "Uptime & Metrics Monitor",
-        tech: "HTTPS · OpenTelemetry",
-        desc: "External uptime checks, synthetic probes, and on-call alert routing.",
-        at: [1, 3],
-      },
-      {
-        id: "x-backup",
-        kind: "external",
-        name: "Offsite Backup Vault",
-        tech: "Encrypted Snapshots",
-        desc: "Daily immutable offsite snapshots for disaster recovery.",
-        at: [2, 3],
-      },
-      {
-        id: "x-cdn",
-        kind: "external",
-        name: "Global CDN & WAF",
-        tech: "TLS 1.3 · Edge Cache",
-        desc: "Caches static assets at the edge and filters malicious traffic.",
-        at: [3, 3],
-      },
-      {
-        id: "x-ai",
-        kind: "external",
-        status: "planned",
-        name: "Managed AI Endpoint",
-        tech: "LLM Inference API",
-        desc: "Planned model inference service for natural-language search and summaries.",
-        roadmap: [101, 104],
-        at: [4, 3],
-      },
-      {
-        id: "x-warehouse",
-        kind: "external",
-        status: "planned",
-        name: "Analytics Data Warehouse",
-        tech: "Columnar Lakehouse",
-        desc: "Downstream reporting warehouse receiving nightly anonymized data exports.",
-        roadmap: [112],
-        at: [2, 0],
-      },
-    ],
-    rels: [
-      { from: "p-users", to: "s-platform", label: "Uses web app & API", tech: "HTTPS 443" },
-      { from: "p-admins", to: "s-platform", label: "Operates & configures", tech: "HTTPS 443" },
-      { from: "p-guests", to: "s-platform", label: "Browses public pages", tech: "HTTPS 443" },
-      { from: "s-platform", to: "x-sso", label: "Signs users in; syncs roles", tech: "OIDC / SCIM" },
-      { from: "s-platform", to: "x-registry", label: "Pulls base images", tech: "HTTPS" },
-      { from: "s-platform", to: "x-email", label: "Sends alerts & digests", tech: "HTTPS / TLS" },
-      { from: "x-monitor", to: "s-platform", label: "Checks health", tech: "HTTPS /healthz" },
-      { from: "x-backup", to: "s-platform", label: "Snapshots volumes daily", tech: "Incremental snapshot" },
-      { from: "x-cdn", to: "s-platform", label: "Forwards origin traffic", tech: "HTTPS 443" },
-      { from: "s-platform", to: "x-ai", label: "Sends search queries", tech: "HTTPS", status: "planned", roadmap: [104] },
-      { from: "s-platform", to: "x-warehouse", label: "Exports nightly datasets", tech: "Parquet over TLS", status: "planned", roadmap: [112] },
-    ],
-  },
-  level2: {
-    title: "Level 2 · Containers & Services",
-    summary: "What the platform is made of: each box is an application service, worker pool, or data store inside the platform boundary.",
-    boundary: "s-platform",
-    elements: [
-      { id: "p-users", ref: true, at: [0, 1] },
-      { id: "p-admins", ref: true, at: [0, 2] },
-      { id: "p-guests", ref: true, at: [0, 3] },
-      { id: "x-monitor", ref: true, at: [0, 4] },
-      {
-        id: "c-edge",
-        kind: "container",
-        name: "Edge Reverse Proxy",
-        tech: "Envoy / Caddy",
-        desc: "TLS termination, rate limiting, security headers, and request routing.",
-        runs: ["edge-proxy", "rate-limiter"],
-        deployed: ["app-vm-01"],
-        at: [1, 2],
-        live: { state: "running", running: 2, total: 2, version: "2.9.0" },
-      },
-      {
-        id: "c-web",
-        kind: "container",
-        name: "Web Portal",
-        tech: "Nuxt · TypeScript",
-        desc: "Interactive user interface, dashboards, project workspaces, and admin views.",
-        runs: ["web-ssr", "asset-server"],
-        deployed: ["app-vm-01"],
-        at: [2, 1],
-        live: { state: "running", running: 2, total: 2, version: "3.4.0" },
-      },
-      {
-        id: "c-api",
-        kind: "container",
-        name: "Core API Service",
-        tech: "Go · REST & GraphQL",
-        desc: "Domain business logic, permissions, project workflows, and event publishing.",
-        runs: ["api-server", "webhook-dispatcher"],
-        deployed: ["app-vm-01"],
-        at: [2, 2],
-        live: { state: "running", running: 2, total: 2, version: "4.2.1" },
-        source: { path: "services/api/cmd/server/main.go", lineRange: [1, 148], symbol: "main()" },
-        diff: { changeType: "modified", filesChanged: 3, summary: "Updated RBAC token claims & search proxy" },
-      },
-      {
-        id: "c-db",
-        kind: "database",
-        name: "Primary Database",
-        tech: "PostgreSQL 16",
-        desc: "Stores user accounts, project records, permissions, and audit history.",
-        runs: ["postgres-primary"],
-        deployed: ["app-vm-01", "app-data-disk"],
-        at: [2, 3],
-        live: { state: "running", version: "16.6" },
-      },
-      {
-        id: "c-scheduler",
-        kind: "container",
-        name: "Scheduled Jobs",
-        tech: "System Timers",
-        desc: "Runs directory role sync, nightly backup orchestration, and usage summaries.",
-        runs: ["role-sync", "backup-runner", "usage-rollup", "session-cleanup"],
-        deployed: ["app-vm-01"],
-        at: [1, 4],
-        live: { state: "running", running: 4, total: 4 },
-      },
-      {
-        id: "c-search",
-        kind: "container",
-        status: "paused",
-        name: "AI Search Service",
-        tech: "Python · Vector Index",
-        desc: "Semantic search and document Q&A; paused until the AI model endpoint is enabled.",
-        deployed: ["ai-search-app", "vector-db-01"],
-        at: [3, 1],
-        live: { state: "inactive", version: "1.1.0" },
-        source: { path: "services/ai-search/src/main.py", lineRange: [1, 96], symbol: "create_search_app()" },
-        diff: { changeType: "modified", filesChanged: 2, summary: "Added hybrid RRF reranker & 1536d HNSW index" },
-      },
-      {
-        id: "c-workers",
-        kind: "container",
-        name: "Background Workers",
-        tech: "Worker Pool (2 Nodes)",
-        desc: "Executes report exports, document indexing, and outbound notifications.",
-        deployed: ["worker-node-01", "worker-node-02"],
-        at: [3, 2],
-        live: { state: "running", running: 2, total: 2, version: "4.2.1" },
-      },
-      {
-        id: "c-cache",
-        kind: "database",
-        name: "Cache & Job Queue",
-        tech: "Valkey / Redis",
-        desc: "Low-latency session cache, rate-limit counters, and background job queues.",
-        runs: ["valkey-server"],
-        deployed: ["app-vm-01"],
-        at: [3, 3],
-        live: { state: "running", version: "8.0" },
-      },
-      {
-        id: "c-storage",
-        kind: "storage",
-        name: "Backup & Object Store",
-        tech: "Encrypted Blob Storage",
-        desc: "Nightly encrypted database backups, key escrow, and monthly restore verification.",
-        deployed: ["blob-backup-store", "secrets-key-vault"],
-        at: [2, 4],
-        live: { state: "success", last_run: { result: "success", at: "2026-10-27T02:00:00Z" } },
-      },
-      {
-        id: "c-observability",
-        kind: "container",
-        name: "Observability & Security",
-        tech: "OpenTelemetry · Scanner",
-        desc: "Aggregates structured logs, traces, dependency vulnerability scans, and audit trails.",
-        runs: ["otel-collector", "vuln-scanner", "audit-exporter"],
-        deployed: ["app-vm-01"],
-        at: [3, 4],
-        live: { state: "running", running: 3, total: 3 },
-      },
-      {
-        id: "c-exporter",
-        kind: "container",
-        status: "planned",
-        name: "Warehouse Exporter",
-        tech: "Batch ETL Worker",
-        desc: "Transforms and streams nightly analytics tables to the data warehouse.",
-        roadmap: [112],
-        at: [4, 2],
-      },
-      {
-        id: "c-sandbox",
-        kind: "container",
-        status: "planned",
-        name: "Isolated Plugin Runner",
-        tech: "Micro-VM Sandbox",
-        desc: "Executes custom user scripts inside ephemeral, network-restricted sandboxes.",
-        roadmap: [118],
-        at: [4, 3],
-      },
-      { id: "x-ai", ref: true, at: [3, 0] },
-      { id: "x-warehouse", ref: true, at: [4, 0] },
-      { id: "x-email", ref: true, at: [5, 2] },
-      { id: "x-sso", ref: true, at: [1, 5] },
-      { id: "x-registry", ref: true, at: [3, 5] },
-    ],
-    rels: [
-      { from: "p-users", to: "c-edge", label: "Uses portal & API", tech: "HTTPS 443" },
-      { from: "p-admins", to: "c-edge", label: "Administers", tech: "HTTPS 443" },
-      { from: "p-guests", to: "c-edge", label: "Browses", tech: "HTTPS 443" },
-      { from: "x-monitor", to: "c-edge", label: "Probes health", tech: "HTTPS /healthz" },
-      { from: "c-edge", to: "c-web", label: "Routes UI requests", tech: "HTTP 3000" },
-      { from: "c-edge", to: "c-api", label: "Routes /api/*", tech: "HTTP 8080" },
-      { from: "c-web", to: "c-api", label: "Fetches data", tech: "REST / GraphQL" },
-      { from: "c-web", to: "c-search", label: "Semantic queries", tech: "HTTP" },
-      { from: "c-api", to: "c-db", label: "Reads & writes", tech: "SQL 5432" },
-      { from: "c-api", to: "c-cache", label: "Caches & enqueues", tech: "RESP 6379" },
-      { from: "c-api", to: "x-sso", label: "Verifies tokens", tech: "OIDC" },
-      { from: "c-scheduler", to: "x-sso", label: "Syncs user groups", tech: "SCIM / REST" },
-      { from: "c-scheduler", to: "c-api", label: "Triggers maintenance", tech: "Internal API" },
-      { from: "c-scheduler", to: "c-storage", label: "Runs nightly backup", tech: "Encrypted stream" },
-      { from: "c-workers", to: "c-cache", label: "Pulls queued jobs", tech: "RESP 6379" },
-      { from: "c-workers", to: "c-db", label: "Writes job results", tech: "SQL 5432" },
-      { from: "c-workers", to: "x-email", label: "Sends notifications", tech: "SMTP / TLS" },
-      { from: "c-observability", to: "c-api", label: "Collects audit metrics", tech: "OpenTelemetry" },
-      { from: "c-observability", to: "x-registry", label: "Checks advisories", tech: "HTTPS" },
-      { from: "c-search", to: "x-ai", label: "Requests embeddings", tech: "HTTPS", status: "planned", roadmap: [104] },
-      { from: "c-exporter", to: "c-db", label: "Reads replica tables", tech: "SQL 5432", status: "planned", roadmap: [112] },
-      { from: "c-exporter", to: "x-warehouse", label: "Uploads Parquet", tech: "HTTPS", status: "planned", roadmap: [112] },
-      { from: "c-workers", to: "c-sandbox", label: "Dispatches plugins", tech: "gRPC", status: "planned", roadmap: [118] },
-    ],
-  },
-  level3: {
-    "c-edge": [
-      { id: "c-edge/0", name: "TLS & HTTP/3 Terminator", tech: "Envoy / Caddy", desc: "Handles automatic certificate renewal, TLS 1.3, and security headers.", live: { state: "running", version: "2.9.0" } },
-      { id: "c-edge/1", name: "Rate Limiter & Bot Filter", tech: "Edge Middleware", desc: "Protects public endpoints from burst traffic and automated scrapers.", live: { state: "running", version: "1.4.0" } },
-    ],
-    "c-web": [
-      { id: "c-web/0", name: "SSR Page Renderer", tech: "Nuxt 4 Server", desc: "Renders initial HTML views, navigation shells, and SEO metadata.", live: { state: "running", version: "3.4.0" } },
-      { id: "c-web/1", name: "Interactive Dashboard Views", tech: "Vue 3 · ECharts", desc: "Client-side charts, data tables, and real-time status widgets.", live: { state: "running" } },
-      { id: "c-web/2", name: "Admin & Policy Console", tech: "Role-Guarded UI", desc: "Configuration screens for system administrators and auditors.", live: { state: "running" } },
-    ],
-    "c-api": [
-      { id: "c-api/0", name: "REST & GraphQL Router", tech: "Go HTTP Server", desc: "Validates request schemas, correlation IDs, and API versioning.", live: { state: "running", version: "4.2.1" }, source: { path: "services/api/internal/http/router.go", lineRange: [24, 182], symbol: "NewRouter()" } },
-      { id: "c-api/1", name: "Auth & RBAC Guard", tech: "OIDC JWT Verifier", desc: "Verifies bearer tokens, session cookies, and role-based permissions.", live: { state: "running" }, source: { path: "services/api/internal/auth/rbac.go", lineRange: [18, 134], symbol: "VerifyRBAC()" }, diff: { changeType: "modified", filesChanged: 2, summary: "Enforce scoped subgraph leases" } },
-      { id: "c-api/2", name: "Projects & Workflows Engine", tech: "Domain Service", desc: "Core state machine for project items, approvals, and history.", live: { state: "running" }, source: { path: "services/api/internal/workflows/engine.go", lineRange: [40, 260], symbol: "TransitionState()" } },
-      { id: "c-api/3", name: "Job Queue Producer", tech: "Async Publisher", desc: "Enqueues background tasks for exports, notifications, and indexing.", live: { state: "running" } },
-      { id: "c-api/4", name: "Webhook & Event Dispatcher", tech: "Signed HTTP Post", desc: "Delivers signed domain events to subscribed integrations.", live: { state: "running" } },
-      { id: "c-api/5", name: "Audit Log Writer", tech: "Append-Only Stream", desc: "Records security-sensitive actions with actor and timestamp metadata.", live: { state: "running" } },
-    ],
-    "c-db": [
-      { id: "c-db/0", name: "Primary Relational Store", tech: "PostgreSQL 16.6", desc: "Transactional tables, indexes, and write-ahead log on managed SSD.", live: { state: "running", version: "16.6" } },
-      { id: "c-db/1", name: "Connection Pooler", tech: "PgBouncer", desc: "Multiplexes database connections across API and worker containers.", live: { state: "running" } },
-    ],
-    "c-cache": [
-      { id: "c-cache/0", name: "Session & Token Store", tech: "Valkey 8.0", desc: "Stores active user sessions and short-lived verification state.", live: { state: "running", version: "8.0" } },
-      { id: "c-cache/1", name: "Priority Job Streams", tech: "Redis Streams", desc: "Backs high, default, and bulk queues for worker nodes.", live: { state: "running" } },
-    ],
-    "c-workers": [
-      { id: "c-workers/0", name: "worker-node-01", tech: "Linux Worker VM", desc: "Processes high-priority interactive jobs and webhooks.", deployed: "worker-node-01", live: { state: "running" } },
-      { id: "c-workers/1", name: "worker-node-02", tech: "Linux Worker VM", desc: "Processes batch report generation and data exports.", deployed: "worker-node-02", live: { state: "running" } },
-    ],
-    "c-scheduler": [
-      { id: "c-scheduler/0", name: "Directory Group Sync", tech: "Every 30m", desc: "Reconciles external SSO groups with application roles.", live: { state: "success" } },
-      { id: "c-scheduler/1", name: "Nightly Backup Trigger", tech: "Daily 02:00 UTC", desc: "Coordinates consistent database dump and encrypted upload.", live: { state: "success" } },
-      { id: "c-scheduler/2", name: "Usage & Quota Rollup", tech: "Hourly", desc: "Computes storage and API usage metrics per workspace.", live: { state: "success" } },
-    ],
-    "c-storage": [
-      { id: "c-storage/0", name: "Encrypted Backup Packager", tech: "AES-256 Deduplicated", desc: "Compresses and encrypts nightly snapshots before upload.", live: { state: "success" } },
-      { id: "c-storage/1", name: "Geo-Redundant Blob Vault", tech: "Object Storage (GRS)", desc: "Immutable object storage bucket with retention policies.", deployed: "blob-backup-store", live: { state: "present" } },
-      { id: "c-storage/2", name: "Encryption Key Escrow", tech: "Managed Key Vault", desc: "Hardware-backed vault holding backup encryption keys.", deployed: "secrets-key-vault", live: { state: "present" } },
-    ],
-    "c-observability": [
-      { id: "c-observability/0", name: "OpenTelemetry Collector", tech: "OTLP Receiver", desc: "Receives traces, metrics, and logs from all containers.", live: { state: "running" } },
-      { id: "c-observability/1", name: "Dependency & Image Scanner", tech: "Daily CVE Check", desc: "Scans container images and lockfiles for known vulnerabilities.", live: { state: "success" } },
-    ],
-    "c-search": [
-      { id: "c-search/0", name: "Search Query API", tech: "FastAPI Service", status: "paused", desc: "Retrieves relevant documents and synthesizes answers.", deployed: "ai-search-app" },
-      { id: "c-search/1", name: "Vector Embeddings Store", tech: "PostgreSQL + pgvector", desc: "Stores chunked document embeddings and access ACLs.", deployed: "vector-db-01" },
-    ],
-    "c-exporter": [
-      { id: "c-exporter/0", name: "Snapshot Extractor", tech: "Incremental Reader", status: "planned", desc: "Reads changed rows since the last watermark.", roadmap: [112], next: 1 },
-      { id: "c-exporter/1", name: "PII Redaction & Schema Check", tech: "Policy Filter", status: "planned", desc: "Strips sensitive fields and validates column types.", roadmap: [112], next: 2 },
-      { id: "c-exporter/2", name: "Parquet Writer", tech: "TLS Upload", status: "planned", desc: "Writes partitioned Parquet files to the warehouse bucket.", roadmap: [112] },
-    ],
-    "c-sandbox": [
-      { id: "c-sandbox/0", name: "Sandbox Controller", tech: "gRPC Dispatcher", status: "planned", desc: "Allocates a fresh micro-VM for each plugin execution.", roadmap: [118], next: 1 },
-      { id: "c-sandbox/1", name: "Ephemeral Micro-VM", tech: "No-Egress Enclave", status: "planned", desc: "Runs untrusted code with strict CPU, memory, and network limits.", roadmap: [118] },
-    ],
-  },
-  level4: {
-    title: "Level 4 · Infrastructure & Deployment",
-    summary: "Where everything runs: cloud resource groups, virtual machines, managed storage, and network rules.",
-    groups: [
-      { id: "rg-app", zone: "cloud-prod", title: "rg-platform-app", rg: "rg-platform-app" },
-      { id: "rg-ai", zone: "cloud-prod", title: "rg-platform-search", rg: "rg-platform-search" },
-      { id: "rg-workers", zone: "cloud-prod", title: "rg-platform-workers", rg: "rg-platform-workers" },
-      { id: "rg-backups", zone: "cloud-prod", title: "rg-platform-backups", rg: "rg-platform-backups" },
-    ],
-    nodes: [
-      { id: "users", zone: "people", kind: "people", title: "Users in a browser", role: "Access web dashboards and interactive workspaces over HTTPS.", status: "now" },
-      { id: "api-clients", zone: "people", kind: "people", title: "API & CLI clients", role: "Automate workflows and integrations over HTTPS 443.", status: "now" },
-      { id: "anon", zone: "people", kind: "people", title: "Public visitors", role: "Read public portals and documentation behind rate limiting.", status: "now" },
-      { id: "sso-app", zone: "entra", kind: "entra-app", title: "Platform SSO App (OIDC)", role: "Federated OpenID Connect sign-in and token issuance.", status: "now" },
-      { id: "sso-sync", zone: "entra", kind: "entra-app", title: "Directory Group Sync", role: "Read-only group membership synchronization.", status: "now" },
-      {
-        id: "app-vm-01",
-        group: "rg-app",
-        kind: "vm",
-        title: "app-vm-01",
-        role: "Primary application host running the reverse proxy, web portal, API, cache, and database containers.",
-        status: "now",
-        hosts: ["c-edge", "c-web", "c-api", "c-db", "c-cache", "c-scheduler", "c-observability"],
-        facts: {
-          type: "Compute / Virtual Machine",
-          size: "8 vCPU, 32 GB RAM",
-          os: "Linux LTS",
-          rules: [
-            { direction: "in", access: "allow", ports: ["443"], from: ["Internet / CDN"] },
-            { direction: "in", access: "allow", ports: ["22"], from: ["Bastion subnet"] },
-            { direction: "in", access: "allow", ports: ["9100"], from: ["Uptime monitor"] },
-          ],
-        },
-      },
-      {
-        id: "app-data-disk",
-        group: "rg-app",
-        kind: "disk",
-        title: "app-data-disk",
-        role: "Managed SSD volume storing relational database tables and local caches.",
-        status: "now",
-        hosts: ["c-db"],
-        facts: { type: "Managed Block Storage", sku: "Premium SSD", size: "512 GB" },
-      },
-      {
-        id: "ai-search-app",
-        group: "rg-ai",
-        kind: "containerapp",
-        title: "ai-search-app",
-        role: "Managed container service for semantic search queries. Scroll or double-click (+) to drill into Level 5 modules and Level 6 AST symbols.",
-        status: "now",
-        hosts: ["c-search"],
-        source: { path: "services/ai-search/Dockerfile", lineRange: [1, 44] },
-        diff: { changeType: "modified", filesChanged: 2, summary: "Hybrid retriever + RRF reranker" },
-        facts: { type: "Managed Container Service", ingress: "Internal HTTPS" },
-      },
-      {
-        id: "vector-db-01",
-        group: "rg-ai",
-        kind: "postgres",
-        title: "vector-db-01",
-        role: "Managed PostgreSQL instance with pgvector extension. Scroll or double-click (+) to drill into Level 5 schemas & HNSW index internals.",
-        status: "now",
-        hosts: ["c-search"],
-        source: { path: "infra/opentofu/vector-db.tf", lineRange: [12, 88] },
-        facts: { type: "Managed PostgreSQL", version: "16" },
-      },
-      {
-        id: "worker-node-01",
-        group: "rg-workers",
-        kind: "vm",
-        title: "worker-node-01",
-        role: "Stateless background worker node for interactive and webhook jobs.",
-        status: "now",
-        hosts: ["c-workers"],
-        facts: { type: "Compute / Virtual Machine", size: "4 vCPU, 16 GB RAM" },
-      },
-      {
-        id: "worker-node-02",
-        group: "rg-workers",
-        kind: "vm",
-        title: "worker-node-02",
-        role: "Stateless background worker node for batch exports and reports.",
-        status: "now",
-        hosts: ["c-workers"],
-        facts: { type: "Compute / Virtual Machine", size: "4 vCPU, 16 GB RAM" },
-      },
-      {
-        id: "blob-backup-store",
-        group: "rg-backups",
-        kind: "storage",
-        title: "blob-backup-store",
-        role: "Geo-redundant object storage bucket holding encrypted nightly backups.",
-        status: "now",
-        hosts: ["c-storage"],
-        facts: { type: "Object Storage Account", sku: "Geo-Redundant (GRS)" },
-      },
-      {
-        id: "secrets-key-vault",
-        group: "rg-backups",
-        kind: "keyvault",
-        title: "secrets-key-vault",
-        role: "Managed key vault escrowing backup encryption keys and service certificates.",
-        status: "now",
-        hosts: ["c-storage"],
-        facts: { type: "Hardware Key Vault", sku: "Standard" },
-      },
-      { id: "uptime-monitor", zone: "outside", kind: "external", title: "Uptime Monitor", role: "External synthetic health probes and alert notifications.", status: "now" },
-      { id: "offsite-vault", zone: "outside", kind: "backup", title: "Offsite Snapshot Vault", role: "Daily crash-consistent volume snapshot replica.", status: "now" },
-      { id: "onprem-cluster", zone: "azure-local", kind: "cluster", status: "planned", title: "On-Premises Failover Cluster", role: "Planned 3-node local cluster for hybrid workload failover.", roadmap: [115] },
-      { id: "sandbox-pool", zone: "planned-only", kind: "quarantine", status: "planned", title: "Isolated Sandbox Enclave", role: "Dedicated network-isolated pool for untrusted plugin execution.", placement: "Planned for Phase 2 (#118).", roadmap: [118] },
-    ],
-    links: [
-      { from: "users", to: "app-vm-01", label: "HTTPS 443 → Edge Proxy", kind: "traffic", state: "now" },
-      { from: "api-clients", to: "app-vm-01", label: "HTTPS 443", kind: "traffic", state: "now" },
-      { from: "anon", to: "app-vm-01", label: "HTTPS 443 → Rate Limiter", kind: "traffic", state: "now" },
-      { from: "users", to: "sso-app", label: "Sign in (OIDC)", kind: "auth", state: "now" },
-      { from: "app-vm-01", to: "sso-app", label: "OIDC token verify", kind: "auth", state: "now" },
-      { from: "app-vm-01", to: "sso-sync", label: "Group sync (30m)", kind: "auth", state: "now" },
-      { from: "app-vm-01", to: "app-data-disk", label: "Mounted SSD", kind: "control", state: "now" },
-      { from: "app-vm-01", to: "ai-search-app", label: "Search queries", kind: "data", state: "now" },
-      { from: "ai-search-app", to: "vector-db-01", label: "Vector SQL", kind: "data", state: "now" },
-      { from: "app-vm-01", to: "blob-backup-store", label: "Nightly backup 02:00 UTC", kind: "backup", state: "now" },
-      { from: "secrets-key-vault", to: "blob-backup-store", label: "Escrows key", kind: "backup", state: "now" },
-      { from: "worker-node-01", to: "app-vm-01", label: "Pulls jobs & writes results", kind: "traffic", state: "now" },
-      { from: "worker-node-02", to: "app-vm-01", label: "Pulls jobs & writes results", kind: "traffic", state: "now" },
-      { from: "uptime-monitor", to: "app-vm-01", label: "HTTPS /healthz", kind: "traffic", state: "now" },
-      { from: "app-data-disk", to: "offsite-vault", label: "Daily snapshot", kind: "backup", state: "now" },
-    ],
-    neighbors: [
-      { name: "shared-bastion-01", type: "virtualMachines", resourceGroup: "rg-platform-app", reason: "Shared administration bastion host; managed separately." },
-    ],
-  },
-  subgraphs: {
-    "ai-search-app": {
-      stratum: "Level 5 · Internal Subsystems & Modules (ai-search-app)",
-      summary: "Inside ai-search-app: FastAPI request pipeline, hybrid dense+BM25 retriever, cross-encoder reranker, and vector DB client.",
-      elements: [
-        {
-          id: "ai-search-app/router",
-          kind: "module",
-          name: "Search API Router",
-          tech: "src/api/routes.py",
-          desc: "Validates query payloads, rate limits, and workspace ACL tokens before retrieval.",
-          live: { state: "running", version: "FastAPI 0.115" },
-          source: { path: "services/ai-search/src/api/routes.py", lineRange: [14, 92], symbol: "POST /v1/search" },
-          next: 1,
-        },
-        {
-          id: "ai-search-app/retriever",
-          kind: "module",
-          name: "Hybrid Retriever",
-          tech: "src/search/retriever.py",
-          desc: "Executes parallel dense embedding search and sparse BM25 lexical matching. Drill in (+) for Level 6 AST symbols.",
-          live: { state: "running" },
-          source: { path: "services/ai-search/src/search/retriever.py", lineRange: [1, 184], symbol: "class HybridRetriever" },
-          diff: { changeType: "modified", filesChanged: 1, summary: "Added Reciprocal Rank Fusion (RRF)" },
-          next: 2,
-        },
-        {
-          id: "ai-search-app/reranker",
-          kind: "module",
-          name: "Cross-Encoder Reranker",
-          tech: "src/search/reranker.py",
-          desc: "Scores top-50 candidate chunks for semantic relevance and trims context window.",
-          live: { state: "running" },
-          source: { path: "services/ai-search/src/search/reranker.py", lineRange: [10, 76], symbol: "rerank_candidates()" },
-          diff: { changeType: "added", filesChanged: 1, summary: "New cross-encoder scoring pass" },
-        },
-        {
-          id: "ai-search-app/pgclient",
-          kind: "module",
-          name: "PgVector Pool Client",
-          tech: "src/db/pgvector_pool.py",
-          desc: "Async connection pool executing HNSW cosine similarity queries against vector-db-01.",
-          deployed: ["vector-db-01"],
-          live: { state: "running" },
-          source: { path: "services/ai-search/src/db/pgvector_pool.py", lineRange: [22, 118], symbol: "AsyncVectorPool" },
-        },
-      ],
-      rels: [
-        { from: "ai-search-app/router", to: "ai-search-app/retriever", label: "Dispatches query", tech: "async call" },
-        { from: "ai-search-app/retriever", to: "ai-search-app/pgclient", label: "Queries HNSW index", tech: "SQL / cosine" },
-        { from: "ai-search-app/retriever", to: "ai-search-app/reranker", label: "Passes top-50 chunks", tech: "in-memory" },
-      ],
-    },
-    "ai-search-app/retriever": {
-      stratum: "Level 6 · Code Symbols & AST Call Graph (retriever.py)",
-      summary: "AST-level functions, classes, and constants inside services/ai-search/src/search/retriever.py.",
-      elements: [
-        {
-          id: "ai-search-app/retriever/embed",
-          kind: "symbol",
-          name: "encode_query_vector()",
-          tech: "async def · L28–L64",
-          desc: "Normalizes query text and computes 1536-dimensional unit embedding vector.",
-          source: { path: "services/ai-search/src/search/retriever.py", lineRange: [28, 64], symbol: "async def encode_query_vector(text: str) -> list[float]" },
-          next: 1,
-        },
-        {
-          id: "ai-search-app/retriever/dense",
-          kind: "symbol",
-          name: "query_hnsw_chunks()",
-          tech: "async def · L68–L119",
-          desc: "Runs `<=>` cosine distance scan with `hnsw.ef_search = 120` and ACL filter.",
-          source: { path: "services/ai-search/src/search/retriever.py", lineRange: [68, 119], symbol: "async def query_hnsw_chunks(vec, acl_groups)" },
-          next: 2,
-        },
-        {
-          id: "ai-search-app/retriever/rrf",
-          kind: "symbol",
-          name: "fuse_reciprocal_ranks()",
-          tech: "def · L123–L178",
-          desc: "Merges dense vector hits and BM25 lexical hits using k=60 Reciprocal Rank Fusion.",
-          source: { path: "services/ai-search/src/search/retriever.py", lineRange: [123, 178], symbol: "def fuse_reciprocal_ranks(dense_hits, bm25_hits, k=60)" },
-          diff: { changeType: "modified", filesChanged: 1, summary: "Tuned RRF k=60 weight curve" },
-        },
-      ],
-      rels: [
-        { from: "ai-search-app/retriever/embed", to: "ai-search-app/retriever/dense", label: "1536d float32[]", tech: "in-proc" },
-        { from: "ai-search-app/retriever/dense", to: "ai-search-app/retriever/rrf", label: "Candidate rows", tech: "list[Chunk]" },
-      ],
-    },
-    "vector-db-01": {
-      stratum: "Level 5 · Database Schemas, HNSW Indexes & Storage (vector-db-01)",
-      summary: "Inside vector-db-01: relational tables, pgvector HNSW index partitions, ACL join views, and WAL replication.",
-      elements: [
-        {
-          id: "vector-db-01/docs_chunks",
-          kind: "schema",
-          name: "table: document_chunks",
-          tech: "PostgreSQL Table · 1536d vector",
-          desc: "Stores chunked document text, source URI, workspace ACL array, and `embedding vector(1536)`.",
-          live: { state: "present", version: "4.2M rows" },
-          source: { path: "services/ai-search/migrations/004_document_chunks.sql", lineRange: [1, 58], symbol: "CREATE TABLE document_chunks" },
-        },
-        {
-          id: "vector-db-01/hnsw_idx",
-          kind: "schema",
-          name: "index: idx_chunks_hnsw_cosine",
-          tech: "pgvector HNSW (m=16, ef=200)",
-          desc: "Approximate nearest-neighbor cosine index partitioned by workspace_id.",
-          live: { state: "running" },
-          source: { path: "services/ai-search/migrations/005_hnsw_index.sql", lineRange: [1, 32], symbol: "USING hnsw (embedding vector_cosine_ops)" },
-          diff: { changeType: "modified", filesChanged: 1, summary: "Raised ef_construction from 128 to 200" },
-        },
-        {
-          id: "vector-db-01/acl_view",
-          kind: "schema",
-          name: "view: v_authorized_chunks",
-          tech: "Row-Level Security View",
-          desc: "Enforces user group intersection (`acl_groups && current_setting('app.groups')`) on every vector scan.",
-          live: { state: "present" },
-          source: { path: "services/ai-search/migrations/006_rls_policies.sql", lineRange: [1, 45], symbol: "CREATE POLICY chunk_isolation" },
-        },
-        {
-          id: "vector-db-01/wal_shipper",
-          kind: "storage",
-          name: "WAL Archive & Snapshot",
-          tech: "Continuous PITR Stream",
-          desc: "Streams write-ahead log segments to `blob-backup-store` for point-in-time recovery.",
-          deployed: ["blob-backup-store"],
-          live: { state: "success" },
-        },
-      ],
-      rels: [
-        { from: "vector-db-01/hnsw_idx", to: "vector-db-01/docs_chunks", label: "Indexes vector(1536)", tech: "HNSW" },
-        { from: "vector-db-01/acl_view", to: "vector-db-01/docs_chunks", label: "Filters rows by ACL", tech: "RLS" },
-        { from: "vector-db-01/docs_chunks", to: "vector-db-01/wal_shipper", label: "Appends WAL blocks", tech: "pg_wal" },
-      ],
-    },
-    "c-api/1": {
-      stratum: "Level 4 (Code) · Auth & RBAC Guard Internals (rbac.go)",
-      summary: "Inside Auth & RBAC Guard: OIDC JWKS key cache, JWT signature verifier, and subgraph lease evaluator.",
-      elements: [
-        {
-          id: "c-api/1/jwks",
-          kind: "symbol",
-          name: "JWKSKeyCache",
-          tech: "struct · rbac.go:L24",
-          desc: "Caches rotating OIDC public keys from the Identity Provider with 15m background refresh.",
-          source: { path: "services/api/internal/auth/rbac.go", lineRange: [24, 62], symbol: "type JWKSKeyCache struct" },
-        },
-        {
-          id: "c-api/1/verify",
-          kind: "symbol",
-          name: "VerifyRBAC()",
-          tech: "func · rbac.go:L66",
-          desc: "Validates JWT claims, workspace role bindings, and ACP agent subgraph lease permissions.",
-          source: { path: "services/api/internal/auth/rbac.go", lineRange: [66, 134], symbol: "func VerifyRBAC(ctx, token)" },
-          diff: { changeType: "modified", filesChanged: 1, summary: "Added ACP subgraph lease check" },
-        },
-      ],
-      rels: [
-        { from: "c-api/1/verify", to: "c-api/1/jwks", label: "Looks up signing key", tech: "kid" },
-      ],
-    },
-  },
-};
+// ============================================================================
+// 9. CROSS-LEVEL GO-TO SEARCH INDEX & SUBSEQUENCE / PATH-SEGMENT SCORER (#120)
+// ============================================================================
+
+export const TUX_MAP_SEARCH_GROUPS = [
+  "Components",
+  "Folders",
+  "Files",
+  "Functions",
+  "Routes",
+] as const;
+
+export type TuxMapSearchGroup = (typeof TUX_MAP_SEARCH_GROUPS)[number];
+
+export interface TuxMapSearchEntry {
+  id: string;
+  /** Target node ID to reveal on Enter (for HTTP routes, points to the handler when present). */
+  revealId: string;
+  group: TuxMapSearchGroup;
+  level: number;
+  kind: string;
+  name: string;
+  path: string;
+  ancestors: string[];
+  ancestorsText: string;
+  tech: string;
+  routePattern?: string;
+  handlerName?: string;
+  planned?: boolean;
+  /** Internal precomputed fields for sub-millisecond scoring over 2,400+ entries. */
+  nameLower: string;
+  baseLower: string;
+  stemLower: string;
+  pathLower: string;
+  segmentsLower: string[];
+  ancestorsLower: string;
+  techLower: string;
+  kindLower: string;
+  routeLower: string;
+  charMask: number;
+  routeRegex?: RegExp;
+}
+
+export interface TuxMapSearchHit {
+  entry: TuxMapSearchEntry;
+  score: number;
+}
+
+export interface TuxMapSearchGroupResult {
+  group: TuxMapSearchGroup;
+  hits: TuxMapSearchHit[];
+  topScore: number;
+}
+
+const SEARCH_GROUP_RANK: ReadonlyMap<TuxMapSearchGroup, number> = /* @__PURE__ */ new Map(
+  TUX_MAP_SEARCH_GROUPS.map((g, i) => [g, i]),
+);
+
+const MODEL_SEARCH_INDEX_CACHE = /* @__PURE__ */ new WeakMap<
+  TuxMapLevelModel,
+  { stamp: string; entries: TuxMapSearchEntry[] }
+>();
+
+const HTTP_ROUTE_TEXT_RE = /^(?:(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+)?(\/[^\s,;]*)$/i;
+
+function computeAsciiMask(s: string): number {
+  let mask = 0;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c >= 97 && c <= 122) {
+      mask |= 1 << (c - 97);
+    } else if (c >= 65 && c <= 90) {
+      mask |= 1 << (c - 65);
+    } else if (c >= 48 && c <= 57) {
+      mask |= 1 << (26 + ((c - 48) & 3));
+    } else if (c === 47) {
+      mask |= 1 << 30;
+    } else if (c === 45 || c === 95 || c === 46) {
+      mask |= 1 << 31;
+    }
+  }
+  return mask;
+}
+
+/** Compiles OpenAPI/Express/simple-capture route patterns without allowing backtracking ReDoS. */
+function compileSafeRouteRegex(pattern: string): RegExp | undefined {
+  const trimmed = pattern.trim();
+  if (!trimmed || trimmed.length > 256 || !trimmed.includes("/")) return undefined;
+  if (!trimmed.includes("{") && !trimmed.includes(":") && !trimmed.includes("([^/]+)")) {
+    return undefined;
+  }
+  const escaped = trimmed
+    .replace(/^\^+|\$+$/g, "")
+    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    .replace(/\\\{[a-zA-Z0-9_.-]+\\\}/g, "[^/]+")
+    .replace(/:([a-zA-Z_][a-zA-Z0-9_]*)/g, "[^/]+")
+    .replace(/\\\(\\\[\\\^\/\\\]\\\+\\\)/g, "[^/]+");
+  try {
+    return new RegExp(`^${escaped}\\/?$`, "i");
+  } catch {
+    return undefined;
+  }
+}
+
+function classifySearchGroup(
+  id: string,
+  kind: string,
+  name: string,
+  tech?: string,
+  hasSourcePath?: boolean,
+): TuxMapSearchGroup {
+  if (kind === "route" || id.startsWith("r:")) return "Routes";
+  if (kind === "symbol" || id.startsWith("s:")) return "Functions";
+  if (
+    id.startsWith("d:") ||
+    (kind === "module" && !hasSourcePath && (name.endsWith("/") || /\bfolder\b/i.test(tech || "")))
+  ) {
+    return "Folders";
+  }
+  if (id.startsWith("f:") || kind === "module" || kind === "schema") return "Files";
+  return "Components";
+}
+
+function makeSearchEntry(raw: {
+  id: string;
+  revealId: string;
+  group: TuxMapSearchGroup;
+  level: number;
+  kind: string;
+  name: string;
+  path: string;
+  ancestors: string[];
+  tech: string;
+  routePattern?: string;
+  handlerName?: string;
+  planned?: boolean;
+}): TuxMapSearchEntry {
+  const nameLower = raw.name.toLowerCase();
+  const normPath = raw.path.replace(/\\/g, "/");
+  const pathLower = normPath.toLowerCase();
+  const segmentsLower = pathLower ? pathLower.split("/").filter(Boolean) : [];
+  const lastSeg = segmentsLower.length > 0 ? segmentsLower[segmentsLower.length - 1]! : nameLower;
+  const baseLower = raw.group === "Files" || raw.group === "Folders" ? lastSeg || nameLower : nameLower;
+  const stemLower = baseLower
+    .replace(/\(\)$/, "")
+    .replace(/\/$/, "")
+    .replace(/\.[a-z0-9]{1,6}$/i, "");
+  const ancestorsText = raw.ancestors.join(" › ");
+  const ancestorsLower = ancestorsText.toLowerCase();
+  const techLower = raw.tech.toLowerCase();
+  const kindLower = raw.kind.toLowerCase();
+  const routeLower = (raw.routePattern || "").toLowerCase();
+  const combined = `${nameLower}\n${pathLower}\n${ancestorsLower}\n${techLower}\n${kindLower}\n${routeLower}`;
+  return {
+    ...raw,
+    path: normPath,
+    ancestorsText,
+    nameLower,
+    baseLower,
+    stemLower,
+    pathLower,
+    segmentsLower,
+    ancestorsLower,
+    techLower,
+    kindLower,
+    routeLower,
+    charMask: computeAsciiMask(combined),
+    routeRegex: raw.routePattern ? compileSafeRouteRegex(raw.routePattern) : undefined,
+  };
+}
+
+interface SearchRawNode {
+  id: string;
+  name: string;
+  kind: string;
+  level: number;
+  parentId?: string;
+  tech?: string;
+  status?: string;
+  source?: TuxMapSourceRef;
+}
+
+function searchModelStamp(model: TuxMapLevelModel): string {
+  const l1 = model.level1?.elements?.length ?? 0;
+  const l2 = model.level2?.elements?.length ?? 0;
+  const l3 = isPlainRecord(model.level3) ? Object.keys(model.level3).length : 0;
+  const l4 = model.level4?.nodes?.length ?? 0;
+  const sg = isPlainRecord(model.subgraphs) ? Object.keys(model.subgraphs).length : 0;
+  const lk = model.links?.length ?? 0;
+  const rt = model.routes?.length ?? 0;
+  return `${l1}:${l2}:${l3}:${l4}:${sg}:${lk}:${rt}`;
+}
+
+/**
+ * Builds (and WeakMap-caches) the unified Go-To search index across Levels 1–4,
+ * all fractal subgraphs, `route` elements, `handled-by` links, and `model.routes` (`tti/tti-ux#120`).
+ */
+export function buildMapSearchIndex(model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL): TuxMapSearchEntry[] {
+  const isObjModel = model != null && typeof model === "object";
+  const stamp = isObjModel ? searchModelStamp(model) : "empty";
+  const cached = isObjModel ? MODEL_SEARCH_INDEX_CACHE.get(model) : undefined;
+  if (cached && cached.stamp === stamp) return cached.entries;
+
+  const parentOf = buildMapParentIndex(model);
+  const nodes = new Map<string, SearchRawNode>();
+  const addNode = (n: SearchRawNode) => {
+    if (n.id && !nodes.has(n.id)) nodes.set(n.id, n);
+  };
+  const walkChildren = (ownerId: string, ownerLvl: number, kids?: TuxMapLevelElement[], seen = new Set<string>()) => {
+    if (!kids?.length || seen.has(ownerId) || seen.size > MAX_TREE_DEPTH) return;
+    seen.add(ownerId);
+    for (const c of asObjArray<TuxMapLevelElement>(kids)) {
+      if (!c.id) continue;
+      addNode({
+        id: c.id,
+        name: c.name || c.id,
+        kind: c.kind || "module",
+        level: ownerLvl + 1,
+        parentId: ownerId,
+        tech: c.tech,
+        status: c.status,
+        source: c.source,
+      });
+      walkChildren(c.id, ownerLvl + 1, c.children, seen);
+    }
+    seen.delete(ownerId);
+  };
+
+  for (const e of asObjArray<TuxMapLevelElement>(model?.level1?.elements)) {
+    addNode({ id: e.id, name: e.name || e.id, kind: e.kind || "system", level: 1, tech: e.tech, status: e.status, source: e.source });
+  }
+  const sysBoundary = model?.level2?.boundary || undefined;
+  for (const e of asObjArray<TuxMapLevelElement | TuxMapLevelRef>(model?.level2?.elements)) {
+    if (e.ref) continue;
+    addNode({
+      id: e.id,
+      name: e.name || e.id,
+      kind: e.kind || "container",
+      level: 2,
+      parentId: sysBoundary,
+      tech: e.tech,
+      status: e.status,
+      source: e.source,
+    });
+    walkChildren(e.id, 4, e.children);
+  }
+  if (isPlainRecord(model?.level3)) {
+    for (const [cid, comps] of Object.entries(model.level3)) {
+      if (!hasOwn(model.level3, cid)) continue;
+      for (const e of asObjArray<TuxMapLevelElement>(comps)) {
+        addNode({
+          id: e.id,
+          name: e.name || e.id,
+          kind: e.kind || "component",
+          level: 3,
+          parentId: cid,
+          tech: e.tech,
+          status: e.status,
+          source: e.source,
+        });
+        walkChildren(e.id, 4, e.children);
+      }
+    }
+  }
+  for (const dn of asObjArray<TuxMapDeploymentNode>(model?.level4?.nodes)) {
+    addNode({
+      id: dn.id,
+      name: dn.title || dn.id,
+      kind: dn.kind || "resource",
+      level: 4,
+      parentId: dn.group,
+      tech: dn.facts?.type || dn.facts?.sku || dn.facts?.size,
+      status: dn.status,
+      source: dn.source,
+    });
+    walkChildren(dn.id, 4, dn.children);
+  }
+  if (isPlainRecord(model?.subgraphs)) {
+    for (const [ownerId, sg] of Object.entries(model.subgraphs)) {
+      if (!hasOwn(model.subgraphs, ownerId) || !isPlainRecord(sg)) continue;
+      const lvl = levelForFocus(ownerId, model, parentOf);
+      for (const e of asObjArray<TuxMapLevelElement>(sg.elements)) {
+        addNode({
+          id: e.id,
+          name: e.name || e.id,
+          kind: e.kind || "module",
+          level: lvl,
+          parentId: ownerId,
+          tech: e.tech,
+          status: e.status,
+          source: e.source,
+        });
+        walkChildren(e.id, lvl, e.children);
+      }
+    }
+  }
+
+  // Map route element ID -> handler node ID from `handled-by` or `routes` code links
+  const handlerByRouteId = new Map<string, string>();
+  for (const l of asObjArray<TuxMapLink>(model?.links)) {
+    if (l.kind === "handled-by" && l.from && l.to && nodes.has(l.to)) {
+      if (!handlerByRouteId.has(l.from)) handlerByRouteId.set(l.from, l.to);
+    } else if (
+      l.kind === "routes" &&
+      l.from &&
+      l.to &&
+      (l.from.startsWith("r:") || nodes.get(l.from)?.kind === "route") &&
+      nodes.has(l.to)
+    ) {
+      if (!handlerByRouteId.has(l.from)) handlerByRouteId.set(l.from, l.to);
+    }
+  }
+
+  const entries: TuxMapSearchEntry[] = [];
+  const seenRouteKeys = new Set<string>();
+
+  const buildAncestors = (id: string): string[] => {
+    const chain = mapAncestorsOf(id, parentOf);
+    const names: string[] = [];
+    for (let i = chain.length - 1; i >= 1; i--) {
+      const ancId = chain[i]!;
+      const n = nodes.get(ancId);
+      names.push(n?.name || ancId);
+    }
+    if (names.length === 0) {
+      const n = nodes.get(id);
+      if (n?.parentId) {
+        const pNode = nodes.get(n.parentId);
+        names.push(pNode?.name || n.parentId);
+      }
+    }
+    return names;
+  };
+
+  for (const n of nodes.values()) {
+    const srcPath =
+      n.source?.path ||
+      (n.id.startsWith("f:") ? n.id.slice(2) : "") ||
+      (n.id.startsWith("d:") ? n.id.slice(2).split(":").pop() || "" : "");
+    const group = classifySearchGroup(n.id, n.kind, n.name, n.tech, Boolean(n.source?.path));
+    const ancestors = buildAncestors(n.id);
+    const linkedHandlerId = group === "Routes" ? handlerByRouteId.get(n.id) : undefined;
+    const handlerNode = linkedHandlerId ? nodes.get(linkedHandlerId) : undefined;
+    const routePattern =
+      group === "Routes" ? (n.id.startsWith("r:") ? n.id.slice(2) : n.name) : undefined;
+    if (routePattern) {
+      seenRouteKeys.add(`${routePattern.toLowerCase()}\u0000${linkedHandlerId || n.id}`);
+    }
+    entries.push(
+      makeSearchEntry({
+        id: n.id,
+        revealId: linkedHandlerId || n.id,
+        group,
+        level: n.level,
+        kind: n.kind,
+        name: n.name,
+        path: handlerNode?.source?.path || srcPath,
+        ancestors,
+        tech: n.tech || "",
+        routePattern,
+        handlerName: handlerNode?.name,
+        planned: n.status === "planned",
+      }),
+    );
+
+    // Also surface HTTP route signatures attached on symbol `tech` / `source.symbol` (e.g. `"POST /v1/orders"`)
+    if (group !== "Routes") {
+      for (const candidate of [n.tech, n.source?.symbol]) {
+        if (!candidate) continue;
+        const m = candidate.trim().match(HTTP_ROUTE_TEXT_RE);
+        if (!m) continue;
+        const method = m[1] ? m[1].toUpperCase() : "";
+        const pat = m[2]!;
+        const disp = method ? `${method} ${pat}` : pat;
+        const rKey = `${disp.toLowerCase()}\u0000${n.id}`;
+        if (seenRouteKeys.has(rKey)) continue;
+        seenRouteKeys.add(rKey);
+        entries.push(
+          makeSearchEntry({
+            id: `route:${disp}->${n.id}`,
+            revealId: n.id,
+            group: "Routes",
+            level: n.level,
+            kind: "route",
+            name: disp,
+            path: srcPath,
+            ancestors: [...ancestors, n.name],
+            tech: n.name,
+            routePattern: pat,
+            handlerName: n.name,
+            planned: n.status === "planned",
+          }),
+        );
+      }
+    }
+  }
+
+  for (const rt of asObjArray<TuxMapRouteEntry>(model?.routes)) {
+    if (typeof rt.pattern !== "string" || !rt.pattern.trim()) continue;
+    const method = typeof rt.method === "string" && rt.method.trim() ? rt.method.trim().toUpperCase() : "";
+    const pat = rt.pattern.trim();
+    const disp = method ? `${method} ${pat}` : pat;
+    const handlerId = typeof rt.handler === "string" && rt.handler ? rt.handler : "";
+    const handlerNode = handlerId ? nodes.get(handlerId) : undefined;
+    const revealId = handlerNode ? handlerNode.id : handlerId || `r:${disp}`;
+    const rKey = `${disp.toLowerCase()}\u0000${revealId}`;
+    if (seenRouteKeys.has(rKey)) continue;
+    seenRouteKeys.add(rKey);
+    const ancestors = handlerNode ? [...buildAncestors(handlerNode.id), handlerNode.name] : [];
+    entries.push(
+      makeSearchEntry({
+        id: `route:${disp}->${revealId}`,
+        revealId,
+        group: "Routes",
+        level: handlerNode?.level ?? 5,
+        kind: "route",
+        name: disp,
+        path: handlerNode?.source?.path || "",
+        ancestors,
+        tech: [rt.framework, handlerNode?.name || handlerId].filter(Boolean).join(" · "),
+        routePattern: pat,
+        handlerName: handlerNode?.name || handlerId || undefined,
+        planned: handlerNode?.status === "planned",
+      }),
+    );
+  }
+
+  if (isObjModel) {
+    MODEL_SEARCH_INDEX_CACHE.set(model, { stamp, entries });
+  }
+  return entries;
+}
+
+function isWordBoundary(str: string, idx: number): boolean {
+  if (idx <= 0) return true;
+  const prev = str.charCodeAt(idx - 1);
+  // '/', '-', '_', '.', ':', '#', ' '
+  return (
+    prev === 47 ||
+    prev === 45 ||
+    prev === 95 ||
+    prev === 46 ||
+    prev === 58 ||
+    prev === 35 ||
+    prev === 32
+  );
+}
+
+/** Zero-allocation ordered character subsequence scorer with consecutive & word-boundary bonuses. */
+function subsequenceScore(q: string, target: string): number {
+  const qLen = q.length;
+  const tLen = target.length;
+  if (qLen === 0 || qLen > tLen) return 0;
+  let qi = 0;
+  let bonus = 0;
+  let firstIdx = -1;
+  let prevMatchIdx = -2;
+  for (let ti = 0; ti < tLen && qi < qLen; ti++) {
+    if (target.charCodeAt(ti) === q.charCodeAt(qi)) {
+      if (firstIdx < 0) firstIdx = ti;
+      if (ti === prevMatchIdx + 1) {
+        bonus += 18;
+      } else if (isWordBoundary(target, ti)) {
+        bonus += 14;
+      }
+      prevMatchIdx = ti;
+      qi++;
+    }
+  }
+  if (qi < qLen) return 0;
+  const spanPenalty = Math.min(80, prevMatchIdx - firstIdx + 1 - qLen);
+  const startBonus = firstIdx === 0 ? 35 : isWordBoundary(target, firstIdx) ? 20 : 0;
+  return Math.max(40, 220 + bonus + startBonus - spanPenalty);
+}
+
+/** Scores path-segment matches such as `api/ord` or `src/ret` across `/` segments. */
+function pathSegmentScore(qParts: readonly string[], segs: readonly string[]): number {
+  if (qParts.length === 0 || segs.length === 0 || qParts.length > segs.length) return 0;
+  let si = 0;
+  let bonus = 0;
+  for (let pi = 0; pi < qParts.length; pi++) {
+    const qp = qParts[pi]!;
+    let matched = false;
+    while (si < segs.length) {
+      const seg = segs[si]!;
+      si++;
+      if (seg === qp) {
+        bonus += pi === qParts.length - 1 ? 140 : 70;
+        matched = true;
+        break;
+      }
+      if (seg.startsWith(qp)) {
+        bonus += pi === qParts.length - 1 ? 110 : 55;
+        matched = true;
+        break;
+      }
+      const subIdx = seg.indexOf(qp);
+      if (subIdx > 0) {
+        bonus += 35;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) return 0;
+  }
+  return 680 + bonus - segs.length * 3;
+}
+
+function scoreSearchEntry(
+  e: TuxMapSearchEntry,
+  q: string,
+  qMask: number,
+  qSlashParts: readonly string[] | null,
+  qUrlPath: string | null,
+): number {
+  const maskHit = (e.charMask & qMask) === qMask;
+  if (!maskHit && !(qUrlPath && e.routeRegex)) return 0;
+
+  let best = 0;
+
+  // 1. Route pattern & concrete URL path matching
+  if (e.group === "Routes") {
+    if (e.nameLower === q || e.routeLower === q) best = 1480;
+    else if (e.routeLower && e.routeLower.startsWith(q)) best = Math.max(best, 1080 - e.routeLower.length);
+    else if (e.nameLower.startsWith(q)) best = Math.max(best, 1060 - e.nameLower.length);
+    else if (qUrlPath && e.routeRegex && e.routeRegex.test(qUrlPath)) best = Math.max(best, 1020);
+    else if (e.nameLower.includes(q)) best = Math.max(best, 760 - e.nameLower.indexOf(q) * 3);
+  }
+
+  if (!maskHit) return best;
+
+  // 2. Exact / prefix / word-boundary / substring on basename & display name
+  if (e.stemLower === q || e.baseLower === q || e.nameLower === q) {
+    best = Math.max(best, 1450 - Math.min(40, e.nameLower.length));
+  } else if (e.stemLower.startsWith(q) || e.baseLower.startsWith(q)) {
+    best = Math.max(best, 1050 - Math.min(60, e.baseLower.length * 2));
+  } else if (e.nameLower.startsWith(q)) {
+    best = Math.max(best, 980 - Math.min(60, e.nameLower.length));
+  } else {
+    const baseIdx = e.baseLower.indexOf(q);
+    if (baseIdx > 0) {
+      best = Math.max(best, (isWordBoundary(e.baseLower, baseIdx) ? 840 : 660) - baseIdx * 4);
+    }
+    const nameIdx = e.nameLower.indexOf(q);
+    if (nameIdx > 0) {
+      best = Math.max(best, (isWordBoundary(e.nameLower, nameIdx) ? 810 : 630) - nameIdx * 3);
+    }
+  }
+
+  // 3. Multi-segment path scoring (`src/ret`, `api/orders`) and full path substring
+  const pathOwnerDiscount = e.group === "Routes" || e.group === "Functions" ? 40 : 0;
+  if (qSlashParts && e.segmentsLower.length > 0) {
+    const ps = pathSegmentScore(qSlashParts, e.segmentsLower) - pathOwnerDiscount;
+    if (ps > best) best = ps;
+  }
+  if (e.pathLower) {
+    if (e.pathLower === q) best = Math.max(best, 1420 - pathOwnerDiscount);
+    else {
+      const pIdx = e.pathLower.indexOf(q);
+      if (pIdx >= 0) {
+        best = Math.max(
+          best,
+          (isWordBoundary(e.pathLower, pIdx) ? 740 : 540) - Math.min(80, pIdx * 2) - pathOwnerDiscount,
+        );
+      }
+    }
+  }
+
+  // 4. Ordered character subsequence across basename, name, or path
+  if (best < 500 && q.length >= 2) {
+    const subBase = subsequenceScore(q, e.baseLower);
+    if (subBase > 0) best = Math.max(best, subBase + 160);
+    const subName = e.nameLower !== e.baseLower ? subsequenceScore(q, e.nameLower) : 0;
+    if (subName > 0) best = Math.max(best, subName + 120);
+    const subPath = e.pathLower ? subsequenceScore(q, e.pathLower) : 0;
+    if (subPath > 0) best = Math.max(best, subPath + 60);
+    if (e.routeLower) {
+      const subRoute = subsequenceScore(q, e.routeLower);
+      if (subRoute > 0) best = Math.max(best, subRoute + 140);
+    }
+  }
+
+  // 5. Secondary metadata (`tech`, `ancestors`, `kind`, `id`)
+  if (best === 0) {
+    if (e.id.toLowerCase().includes(q)) best = 420;
+    else if (e.techLower && e.techLower.includes(q)) best = 320;
+    else if (e.ancestorsLower && e.ancestorsLower.includes(q)) best = 260;
+    else if (e.kindLower && e.kindLower.includes(q)) best = 220;
+  }
+
+  if (best > 0) {
+    if (e.group === "Files") best += 12;
+    else if (e.group === "Components") best += 8;
+    else if (e.group === "Routes" && qUrlPath) best += 14;
+    if (e.planned) best -= 15;
+  }
+  return best;
+}
+
+/**
+ * Searches across Components, Folders, Files, Functions, and Routes in `< 1 ms` over 2,400+ entries.
+ * Groups are ordered by top hit score when `query` is non-empty so `Enter` jumps directly to the #1 match.
+ */
+export function searchArchitectureMap(
+  modelOrEntries: TuxMapLevelModel | readonly TuxMapSearchEntry[],
+  query: string,
+  opts: { includePlanned?: boolean; limitPerGroup?: number } = {},
+): {
+  query: string;
+  totalHits: number;
+  groups: TuxMapSearchGroupResult[];
+  flatHits: TuxMapSearchHit[];
+} {
+  const entries = Array.isArray(modelOrEntries)
+    ? modelOrEntries
+    : buildMapSearchIndex(modelOrEntries as TuxMapLevelModel);
+  const includePlanned = opts.includePlanned ?? true;
+  const limitPerGroup =
+    opts.limitPerGroup !== undefined && Number.isFinite(opts.limitPerGroup)
+      ? Math.max(1, Math.floor(opts.limitPerGroup))
+      : 200;
+
+  const trimmed = String(query ?? "").trim();
+  const q = trimmed.toLowerCase();
+  const byGroup = new Map<TuxMapSearchGroup, TuxMapSearchHit[]>();
+  for (const g of TUX_MAP_SEARCH_GROUPS) byGroup.set(g, []);
+
+  if (!q) {
+    let totalHits = 0;
+    for (const e of entries) {
+      if (!includePlanned && e.planned) continue;
+      const bucket = byGroup.get(e.group)!;
+      totalHits++;
+      if (bucket.length < limitPerGroup) {
+        bucket.push({ entry: e, score: 1 });
+      }
+    }
+    const groups: TuxMapSearchGroupResult[] = [];
+    const flatHits: TuxMapSearchHit[] = [];
+    for (const g of TUX_MAP_SEARCH_GROUPS) {
+      const hits = byGroup.get(g)!;
+      if (hits.length === 0) continue;
+      groups.push({ group: g, hits, topScore: 1 });
+      for (const h of hits) flatHits.push(h);
+    }
+    return { query: trimmed, totalHits, groups, flatHits };
+  }
+
+  const qMask = computeAsciiMask(q);
+  const qSlashParts = q.includes("/") ? q.split("/").filter(Boolean) : null;
+  const urlMatch = trimmed.match(HTTP_ROUTE_TEXT_RE);
+  const qUrlPath = urlMatch ? urlMatch[2]! : trimmed.startsWith("/") ? trimmed : null;
+
+  let totalHits = 0;
+  for (let i = 0; i < entries.length; i++) {
+    const e = entries[i]!;
+    if (!includePlanned && e.planned) continue;
+    const score = scoreSearchEntry(e, q, qMask, qSlashParts, qUrlPath);
+    if (score <= 0) continue;
+    totalHits++;
+    byGroup.get(e.group)!.push({ entry: e, score });
+  }
+
+  const groups: TuxMapSearchGroupResult[] = [];
+  for (const g of TUX_MAP_SEARCH_GROUPS) {
+    const hits = byGroup.get(g)!;
+    if (hits.length === 0) continue;
+    hits.sort(
+      (a, b) =>
+        b.score - a.score ||
+        a.entry.name.length - b.entry.name.length ||
+        cmpCodepoint(a.entry.id, b.entry.id),
+    );
+    const topScore = hits[0]!.score;
+    const capped = hits.length > limitPerGroup ? hits.slice(0, limitPerGroup) : hits;
+    groups.push({ group: g, hits: capped, topScore });
+  }
+
+  groups.sort(
+    (a, b) =>
+      b.topScore - a.topScore ||
+      (SEARCH_GROUP_RANK.get(a.group) ?? 0) - (SEARCH_GROUP_RANK.get(b.group) ?? 0),
+  );
+
+  const flatHits: TuxMapSearchHit[] = [];
+  for (const grp of groups) {
+    for (const h of grp.hits) flatHits.push(h);
+  }
+
+  return { query: trimmed, totalHits, groups, flatHits };
+}
+
 
