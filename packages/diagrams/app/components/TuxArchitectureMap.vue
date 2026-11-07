@@ -1202,7 +1202,7 @@ const usageKindChips = computed<{ kind: string; label: string; count: number; ac
   }
   for (const l of effectiveModelLinks.value) {
     if (!base.seeds.has(l.from) && base.seeds.has(l.to)) {
-      if (classifyBlastLink(l.kind, blastIntent.value) !== "none") {
+      if (classifyBlastLink(l, 0, blastIntent.value) !== "skip") {
         record(l.kind || "uses", l.from);
       }
     }
