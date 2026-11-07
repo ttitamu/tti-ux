@@ -1481,7 +1481,7 @@ describe("TuxArchitectureMap Component", () => {
     expect(legendText).toContain("Depends on selection");
     expect(legendText).not.toContain("PR Modified");
 
-    // 2. Selecting C4 database container `c-db` lists `c-api` and `c-worker` from Level 2 `rels`
+    // 2. Selecting C4 database container `c-db` lists `c-api` and `c-worker` from Level 2 `rels`, and every row is a clickable button
     await wrapper.find('.tux-map__el[data-id="c-db"]').trigger("click");
     await nextTick();
     const dbBlastText = wrapper.find(".tux-map__panel-blast").text();
@@ -1489,6 +1489,12 @@ describe("TuxArchitectureMap Component", () => {
     expect(dbBlastText).toContain("2 direct dependents");
     expect(dbBlastText).toContain("BFF Gateway");
     expect(dbBlastText).toContain("Sync Worker");
+    const dbGoBtns = wrapper.findAll("button.tux-map__blast-go");
+    expect(dbGoBtns.length).toBe(2);
+    expect(wrapper.findAll(".tux-map__blast-go--static").length).toBe(0);
+    await dbGoBtns.find((b) => b.text().includes("Sync Worker"))!.trigger("click");
+    await nextTick();
+    expect(wrapper.find(".tux-map__panel-title").text()).toContain("Sync Worker");
 
     // 3. Drill to `c-api/lib` (Level 5) and select `f:bff/lib/auth.py`
     await wrapper.find('.tux-map__el[data-id="c-api"]').trigger("dblclick");

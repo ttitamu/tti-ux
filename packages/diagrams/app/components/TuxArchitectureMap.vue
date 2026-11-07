@@ -1187,26 +1187,35 @@ const selectionBlastBase = computed(() => {
 const usageKindChips = computed<{ kind: string; label: string; count: number; active: boolean }[]>(() => {
   const base = selectionBlastBase.value;
   if (!base) return [];
-  const counts = new Map<string, number>();
-  for (const [, hit] of base.hits) {
-    const k = hit.via.kind || "uses";
-    counts.set(k, (counts.get(k) ?? 0) + 1);
+  const seenByKind = new Map<string, Set<string>>();
+  const record = (kind: string, fromId: string) => {
+    const k = kind || "uses";
+    let set = seenByKind.get(k);
+    if (!set) {
+      set = new Set<string>();
+      seenByKind.set(k, set);
+    }
+    set.add(fromId);
+  };
+  for (const [depId, hit] of base.hits) {
+    record(hit.via.kind || "uses", depId);
   }
   for (const l of effectiveModelLinks.value) {
     if (!base.seeds.has(l.from) && base.seeds.has(l.to)) {
-      const k = l.kind || "uses";
-      if (!counts.has(k)) counts.set(k, 1);
+      if (classifyBlastLink(l.kind, blastIntent.value) !== "none") {
+        record(l.kind || "uses", l.from);
+      }
     }
   }
   const knownOrder = Object.keys(TUX_MAP_LINK_KIND_LABELS);
   const keys = [
-    ...knownOrder.filter((k) => counts.has(k)),
-    ...[...counts.keys()].filter((k) => !hasOwn(TUX_MAP_LINK_KIND_LABELS, k)).sort(cmpCodepoint),
+    ...knownOrder.filter((k) => seenByKind.has(k)),
+    ...[...seenByKind.keys()].filter((k) => !hasOwn(TUX_MAP_LINK_KIND_LABELS, k)).sort(cmpCodepoint),
   ];
   return keys.map((kind) => ({
     kind,
     label: (hasOwn(TUX_MAP_LINK_KIND_LABELS, kind) ? TUX_MAP_LINK_KIND_LABELS[kind] : undefined) || kind,
-    count: counts.get(kind) ?? 0,
+    count: seenByKind.get(kind)?.size ?? 0,
     active: isUsageKindEnabled(kind),
   }));
 });
@@ -1756,9 +1765,14 @@ const matchingSearchIds = computed<Set<string> | null>(() => {
   return set;
 });
 
-watch([searchQuery, currentLevel, focusId], () => {
+watch([searchQuery, currentLevel, focusId], ([, , ], [prevQ]) => {
   const m = matchingSearchIds.value;
-  if (!m) return;
+  if (!m) {
+    if (prevQ && prevQ.trim() && !searchQuery.value.trim()) {
+      liveAnnouncement.value = `All ${stageTotalCount.value} shown here`;
+    }
+    return;
+  }
   const msg = `${m.size} of ${stageTotalCount.value} here`;
   if (liveAnnouncement.value === msg) {
     announce(msg);
@@ -2735,11 +2749,13 @@ function goToLevel(
   currentLevel.value = nextLevel;
   if (opts.nextFocus !== undefined) {
     focusId.value = opts.nextFocus;
+    emit("update:focus", focusId.value);
   } else if (nextLevel === 3 && !focusId.value) {
     const firstZoomable = activeModel.value.level2.elements.find(
       (e) => !e.ref && (activeModel.value.level3[e.id]?.length ?? 0) > 0,
     );
     focusId.value = firstZoomable?.id ?? null;
+    emit("update:focus", focusId.value);
   }
 
   panX.value = 0;
@@ -2980,21 +2996,61 @@ function goToLevel(
   });
 }
 
+function canRevealElement(id: string): boolean {
+  if (parentOf.value.has(id)) return true;
+  const M = activeModel.value;
+  if (M.level2.elements.some((e) => !e.ref && e.id === id)) return true;
+  if (M.level1.elements.some((e) => e.id === id)) return true;
+  if (resById.value[id]) return true;
+  return false;
+}
+
 /** Go to where `id` lives: the level that shows it among its siblings, with it chosen. */
 function revealElement(id: string) {
   const p = parentOf.value.get(id);
-  if (!p) return;
-  const lvl = levelForFocus(p);
-  const name = byId.value[id]?.name || id;
-  drillStack.value = lvl >= 5 ? drillStackFor(p) : [];
-  goToLevel(lvl, {
-    nextFocus: p,
-    nextSel: id,
-    targetCardId: id,
-    inward: lvl >= currentLevel.value,
-    hudLabel: `Level ${currentLevel.value} → Level ${lvl} · ${name}`,
-  });
-  liveAnnouncement.value = `Went to Level ${lvl}: ${name}.`;
+  const M = activeModel.value;
+  const name = byId.value[id]?.name || resById.value[id]?.title || id;
+  if (p) {
+    const lvl = levelForFocus(p);
+    drillStack.value = lvl >= 5 ? drillStackFor(p) : [];
+    goToLevel(lvl, {
+      nextFocus: p,
+      nextSel: id,
+      targetCardId: id,
+      inward: lvl >= currentLevel.value,
+      hudLabel: `Level ${currentLevel.value} → Level ${lvl} · ${name}`,
+    });
+    liveAnnouncement.value = `Went to Level ${lvl}: ${name}.`;
+  } else if (M.level2.elements.some((e) => !e.ref && e.id === id)) {
+    drillStack.value = [];
+    goToLevel(2, {
+      nextSel: id,
+      targetCardId: id,
+      inward: currentLevel.value < 2,
+      hudLabel: `Level ${currentLevel.value} → Level 2 · ${name}`,
+    });
+    liveAnnouncement.value = `Went to Level 2: ${name}.`;
+  } else if (M.level1.elements.some((e) => e.id === id)) {
+    drillStack.value = [];
+    goToLevel(1, {
+      nextSel: id,
+      targetCardId: id,
+      inward: false,
+      hudLabel: `Level ${currentLevel.value} → Level 1 · ${name}`,
+    });
+    liveAnnouncement.value = `Went to Level 1: ${name}.`;
+  } else if (resById.value[id]) {
+    drillStack.value = [];
+    goToLevel(4, {
+      nextSel: id,
+      targetCardId: id,
+      inward: true,
+      hudLabel: `Level ${currentLevel.value} → Level 4 · ${name}`,
+    });
+    liveAnnouncement.value = `Went to Level 4: ${name}.`;
+  } else {
+    return;
+  }
   nextTick(() => {
     if (typeof document === "undefined") return;
     const active = document.activeElement;
@@ -3087,7 +3143,7 @@ function zoomIntoElement(id: string) {
   }
 
   if (currentLevel.value === 2) {
-    if (canZoomElement(e)) {
+    if (!e.ref && (activeModel.value.level3[id]?.length ?? 0) > 0) {
       goToLevel(3, {
         nextFocus: id,
         nextSel: null,
@@ -3096,6 +3152,21 @@ function zoomIntoElement(id: string) {
         hudLabel: `Level 2 → Level 3 · ${e.name}`,
       });
       liveAnnouncement.value = `Zoomed in to Level 3: internal components of ${e.name}.`;
+      return;
+    }
+    if (hasFractalSubgraph(id)) {
+      const nextLvl = Math.max(5, levelForFocus(id));
+      drillStack.value = drillStackFor(id);
+      const sg = getSubgraphForNode(id);
+      emit("drill-down", { level: nextLvl, focusId: id, subgraph: sg });
+      goToLevel(nextLvl, {
+        nextFocus: id,
+        nextSel: null,
+        fromCardId: id,
+        inward: true,
+        hudLabel: `Level 2 → Level ${nextLvl} · ${e.name}`,
+      });
+      liveAnnouncement.value = `Zoomed in to Level ${nextLvl}: ${sg?.stratum || e.name}.`;
       return;
     }
     const deployedHosts = normalizeArray(e.deployed);
@@ -3582,6 +3653,19 @@ function onGoToKeydown(ev: KeyboardEvent) {
     ev.preventDefault();
     ev.stopPropagation();
     closeGoToPalette(true);
+    return;
+  }
+  if (ev.key === "Tab") {
+    const closeBtn = mapRootRef.value?.querySelector<HTMLElement>(".tux-map__goto-close") ?? null;
+    const inputEl = goToInputRef.value;
+    if (inputEl && closeBtn) {
+      ev.preventDefault();
+      if (document.activeElement === inputEl) {
+        closeBtn.focus();
+      } else {
+        inputEl.focus();
+      }
+    }
     return;
   }
   if (ev.key === "ArrowDown") {
@@ -5269,12 +5353,12 @@ function buildSourceHref(src?: {
               @click="zoomIntoElement(selectedLevelElement.id)"
             >
               {{
-                hasFractalSubgraph(selectedLevelElement.id)
-                  ? `Zoom in to Level ${fractalZoomLevelFor(selectedLevelElement.id)}: ${getSubgraphForNode(selectedLevelElement.id)?.stratum || "internal modules"}`
-                  : currentLevel === 1
-                    ? "Zoom in to Level 2: containers & services"
-                    : currentLevel === 2
-                      ? `Zoom in to Level 3: its ${(activeModel.level3[selectedLevelElement.id] || []).length} components`
+                currentLevel === 1
+                  ? "Zoom in to Level 2: containers & services"
+                  : currentLevel === 2 && (activeModel.level3[selectedLevelElement.id]?.length ?? 0) > 0
+                    ? `Zoom in to Level 3: its ${(activeModel.level3[selectedLevelElement.id] || []).length} components`
+                    : hasFractalSubgraph(selectedLevelElement.id)
+                      ? `Zoom in to Level ${fractalZoomLevelFor(selectedLevelElement.id)}: ${getSubgraphForNode(selectedLevelElement.id)?.stratum || "internal modules"}`
                       : "Zoom in to Level 4: deployment host"
               }}
             </button>
@@ -5392,7 +5476,7 @@ function buildSourceHref(src?: {
                     <li v-for="f in grp.rows" :key="f.id" class="tux-map__blast-row">
                       <span class="tux-map__blast-hop" :title="`${f.hop} step${f.hop === 1 ? '' : 's'} away`">{{ f.hop }}<span class="tux-map__blast-sr"> step{{ f.hop === 1 ? "" : "s" }} away</span></span>
                       <button
-                        v-if="parentOf.has(f.id)"
+                        v-if="canRevealElement(f.id)"
                         type="button"
                         class="tux-map__blast-go"
                         :title="`Go to ${f.locLabel} on the map`"
@@ -5657,6 +5741,7 @@ function buildSourceHref(src?: {
         role="dialog"
         aria-modal="true"
         aria-label="Go to architecture element"
+        @keydown="onGoToKeydown"
       >
         <div class="tux-map__goto-bar">
           <Icon name="lucide:scan-search" class="tux-map__goto-ic" aria-hidden="true" />
@@ -5672,7 +5757,6 @@ function buildSourceHref(src?: {
             :aria-activedescendant="goToVirtualSlice.activeOptionId"
             class="tux-map__goto-input"
             placeholder="Type a file, symbol, folder, component, or /v1/… route"
-            @keydown="onGoToKeydown"
           />
           <button
             type="button"

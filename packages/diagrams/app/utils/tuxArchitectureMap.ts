@@ -4881,6 +4881,7 @@ function modelCacheStamp(model: TuxMapLevelModel): string {
     if (depth >= MAX_TREE_DEPTH) return;
     for (const e of els) {
       feedStr(typeof e.id === "string" ? e.id : "");
+      feedStr(typeof e.name === "string" ? e.name : "");
       feedStr(typeof e.kind === "string" ? e.kind : "");
       feedStr(typeof e.status === "string" ? e.status : "");
       feedStr(e.ref ? "1" : "0");
@@ -4922,6 +4923,7 @@ function modelCacheStamp(model: TuxMapLevelModel): string {
   feedStr(`#L4N:${l4Nodes.length}`);
   for (const n of l4Nodes) {
     feedStr(typeof n.id === "string" ? n.id : "");
+    feedStr(typeof n.title === "string" ? n.title : "");
     feedStr(typeof n.kind === "string" ? n.kind : "");
     feedStr(typeof n.status === "string" ? n.status : "");
     feedStr(typeof n.group === "string" ? n.group : "");
@@ -6615,28 +6617,18 @@ interface SearchRawNode {
   source?: TuxMapSourceRef;
 }
 
-function searchModelStamp(model: TuxMapLevelModel): string {
-  const l1 = model.level1?.elements?.length ?? 0;
-  const l2 = model.level2?.elements?.length ?? 0;
-  const l3 = isPlainRecord(model.level3) ? Object.keys(model.level3).length : 0;
-  const l4 = model.level4?.nodes?.length ?? 0;
-  const sg = isPlainRecord(model.subgraphs) ? Object.keys(model.subgraphs).length : 0;
-  const lk = model.links?.length ?? 0;
-  const rt = model.routes?.length ?? 0;
-  return `${l1}:${l2}:${l3}:${l4}:${sg}:${lk}:${rt}`;
-}
-
 /**
  * Builds (and WeakMap-caches) the unified Go-To search index across Levels 1–4,
  * all fractal subgraphs, `route` elements, `handled-by` links, and `model.routes` (`tti/tti-ux#120`).
  */
 export function buildMapSearchIndex(model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL): TuxMapSearchEntry[] {
   const isObjModel = model != null && typeof model === "object";
-  const stamp = isObjModel ? searchModelStamp(model) : "empty";
+  const stamp = isObjModel ? modelCacheStamp(model) : "empty";
   const cached = isObjModel ? MODEL_SEARCH_INDEX_CACHE.get(model) : undefined;
   if (cached && cached.stamp === stamp) return cached.entries;
 
   const parentOf = buildMapParentIndex(model);
+  const subgraphOwners = collectSubgraphOwners(model);
   const nodes = new Map<string, SearchRawNode>();
   const addNode = (n: SearchRawNode) => {
     if (n.id && !nodes.has(n.id)) nodes.set(n.id, n);
@@ -6713,14 +6705,17 @@ export function buildMapSearchIndex(model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MO
   if (isPlainRecord(model?.subgraphs)) {
     for (const [ownerId, sg] of Object.entries(model.subgraphs)) {
       if (!hasOwn(model.subgraphs, ownerId) || !isPlainRecord(sg)) continue;
-      const lvl = levelForFocus(ownerId, model, parentOf);
+      const resolvedOwner = subgraphOwners.get(ownerId) ?? ownerId;
+      const lvl = isLevel3Focus(resolvedOwner, model)
+        ? 3
+        : levelForFocus(resolvedOwner, model, parentOf);
       for (const e of asObjArray<TuxMapLevelElement>(sg.elements)) {
         addNode({
           id: e.id,
           name: e.name || e.id,
           kind: e.kind || "module",
           level: lvl,
-          parentId: ownerId,
+          parentId: resolvedOwner,
           tech: e.tech,
           status: e.status,
           source: e.source,
