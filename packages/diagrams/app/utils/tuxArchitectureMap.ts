@@ -1160,10 +1160,12 @@ export interface TuxMapLevelElement {
   childRels?: TuxMapLevelRel[];
   /** Optional URL or key for lazy on-demand subgraph hydration */
   subgraphRef?: string;
-  /** Optional IDs of vendored copy elements folded into this canonical source card (`#121`) */
+  /** Optional IDs of vendored copy elements folded into this representative card (`#121`) */
   vendoredCopies?: string[];
   /** True when this card itself is a vendored copy whose canonical source lies outside the view (`#121`) */
   isVendoredCopy?: boolean;
+  /** Canonical source element ID when `isVendoredCopy` is true (`#121`) */
+  vendoredFrom?: string;
 }
 
 /** Consumer-supplied architectural dependency-rule violation (`#123`). */
@@ -1913,8 +1915,8 @@ export function routeGridWires(
   const ports: Record<string, { p: RoutedPathState; key: "fa" | "fb"; o: number; tie: number }[]> = {};
 
   for (const rel of rels) {
-    const a = rects[rel.from];
-    const b = rects[rel.to];
+    const a = hasOwn(rects, rel.from) ? rects[rel.from] : undefined;
+    const b = hasOwn(rects, rel.to) ? rects[rel.to] : undefined;
     if (a && b) {
       paths.push({ rel, a, b, s: ["r", "l"], pts: [] });
     }
@@ -2509,6 +2511,8 @@ export function routeDeploymentWires(
   // Group port assignments by (nodeId, side) so multiple links on a Level 4 resource fan out cleanly
   const activeLinks = links.filter(
     (r) =>
+      hasOwn(rects, r.from) &&
+      hasOwn(rects, r.to) &&
       rects[r.from] &&
       rects[r.to] &&
       (routeAll || r.from === selectedId || r.to === selectedId),
@@ -3095,7 +3099,7 @@ export function hasOwn(obj: unknown, key: PropertyKey): boolean {
   return obj != null && Object.prototype.hasOwnProperty.call(obj, key);
 }
 
-function setOwnProp<T>(obj: Record<string, T>, key: string, value: T): void {
+export function setOwnProp<T>(obj: Record<string, T>, key: string, value: T): void {
   if (key === "__proto__") {
     Object.defineProperty(obj, key, {
       value,
@@ -3330,6 +3334,7 @@ export function resolveModelRawLinks(model?: TuxMapLevelModel): TuxMapLink[] {
 export type TuxMapValidationIssueCode =
   | "missing-level"
   | "duplicate-id"
+  | "reserved-id"
   | "parent-cycle"
   | "max-depth-exceeded"
   | "unknown-link-end"
@@ -3388,8 +3393,18 @@ export function validateMapModel(model: unknown): TuxMapValidationResult {
   const seenPrimaryIds = new Set<string>();
   const rawEdges: Array<[string, string]> = [];
 
+  const reservedSeen = new Set<string>();
+  const isReservedStageId = (id: string): boolean => id === "@bound" || id.startsWith("@more-");
   const noteDef = (id: string, parentId?: string) => {
     if (!id) return;
+    if (isReservedStageId(id) && !reservedSeen.has(id)) {
+      reservedSeen.add(id);
+      issues.push({
+        code: "reserved-id",
+        message: `Element id '${id}' collides with reserved internal stage identifier.`,
+        nodeId: id,
+      });
+    }
     knownIds.add(id);
     if (seenPrimaryIds.has(id)) {
       if (!duplicateSet.has(id)) {
@@ -3633,47 +3648,187 @@ export function sanitizeMapModel(raw: unknown): {
     return { model: EMPTY_TTI_LEVEL_MODEL, validation };
   }
   const m = raw as unknown as TuxMapLevelModel;
-  let safeSubgraphs = isPlainRecord(m.subgraphs) ? m.subgraphs : undefined;
-  if (safeSubgraphs && validation.cycleIds.length > 0) {
-    const cycleSet = new Set(validation.cycleIds);
-    const seenChild = new Set<string>();
-    const cleaned: Record<string, TuxMapSubgraph> = {};
-    for (const [k, sg] of Object.entries(safeSubgraphs)) {
-      if (!isPlainRecord(sg)) continue;
-      const els = asObjArray<TuxMapLevelElement>(sg.elements).filter((el) => {
-        const id = typeof el.id === "string" ? el.id : "";
-        if (!id) return true;
-        if (id === k) return false;
-        if (cycleSet.has(id) && seenChild.has(id)) return false;
-        seenChild.add(id);
-        return true;
+  const cycleSet = new Set(validation.cycleIds);
+  const sanitizeId = (id: unknown): string => {
+    if (typeof id !== "string" || !id) return "";
+    if (id === "@bound" || id.startsWith("@more-")) return `id:${id}`;
+    return id;
+  };
+  const sanitizeRelEndpoints = <T extends { from?: unknown; to?: unknown }>(rawList: unknown): T[] =>
+    asObjArray<T>(rawList)
+      .filter((r) => typeof r.from === "string" && Boolean(r.from) && typeof r.to === "string" && Boolean(r.to))
+      .map((r) => {
+        const nf = sanitizeId(r.from);
+        const nt = sanitizeId(r.to);
+        return nf === r.from && nt === r.to ? r : ({ ...r, from: nf, to: nt } as T);
       });
-      setOwnProp(cleaned, k, { ...(sg as unknown as TuxMapSubgraph), elements: els });
+
+  const subgraphOwners = collectSubgraphOwners(m);
+  const parentOfAccepted = new Map<string, string>();
+  const wouldCreateCycle = (childId: string, ownerId: string): boolean => {
+    if (!childId || !ownerId) return false;
+    if (childId === ownerId) return true;
+    let cur: string | undefined = ownerId;
+    for (let depth = 0; cur && depth <= MAX_TREE_DEPTH; depth++) {
+      if (cur === childId) return true;
+      cur = parentOfAccepted.get(cur);
+    }
+    return false;
+  };
+
+  const sanitizeChildElements = (
+    rawEls: unknown,
+    ownerId: string,
+    depth: number,
+  ): TuxMapLevelElement[] => {
+    if (depth > MAX_TREE_DEPTH) return [];
+    const out: TuxMapLevelElement[] = [];
+    for (const el of asObjArray<TuxMapLevelElement>(rawEls)) {
+      const rawId = typeof el.id === "string" ? el.id : "";
+      const id = sanitizeId(rawId);
+      if (id && ownerId) {
+        if (wouldCreateCycle(id, ownerId)) continue;
+        if (cycleSet.has(id) && parentOfAccepted.has(id)) continue;
+        if (!parentOfAccepted.has(id)) parentOfAccepted.set(id, ownerId);
+      }
+      const hasKids = Array.isArray(el.children);
+      const hasChildRels = Array.isArray(el.childRels);
+      const nextKids = hasKids ? sanitizeChildElements(el.children, id || ownerId, depth + 1) : undefined;
+      const nextChildRels = hasChildRels ? sanitizeRelEndpoints<TuxMapLevelRel>(el.childRels) : undefined;
+      if (id !== rawId || hasKids || hasChildRels) {
+        out.push({
+          ...el,
+          ...(id !== rawId ? { id } : {}),
+          ...(hasKids ? { children: nextKids } : {}),
+          ...(hasChildRels ? { childRels: nextChildRels } : {}),
+        });
+      } else {
+        out.push(el);
+      }
+    }
+    return out;
+  };
+
+  const l1Els = sanitizeChildElements(m.level1?.elements, "", 0);
+  for (const e of l1Els) {
+    if (e.id && !parentOfAccepted.has(e.id)) parentOfAccepted.set(e.id, "");
+  }
+
+  const l2Els: Array<TuxMapLevelElement | TuxMapLevelRef> = [];
+  for (const e of asObjArray<TuxMapLevelElement | TuxMapLevelRef>(m.level2?.elements)) {
+    const rawId = typeof e.id === "string" ? e.id : "";
+    const id = sanitizeId(rawId);
+    if (!e.ref && id && !parentOfAccepted.has(id)) {
+      parentOfAccepted.set(id, sanitizeId(m.level2?.boundary) || "");
+    }
+    const hasKids = !e.ref && Array.isArray((e as TuxMapLevelElement).children);
+    const nextKids = hasKids
+      ? sanitizeChildElements((e as TuxMapLevelElement).children, id, 1)
+      : undefined;
+    if (id !== rawId || hasKids) {
+      l2Els.push({
+        ...e,
+        ...(id !== rawId ? { id } : {}),
+        ...(hasKids ? { children: nextKids } : {}),
+      } as TuxMapLevelElement);
+    } else {
+      l2Els.push(e);
+    }
+  }
+
+  const safeLevel3: Record<string, TuxMapLevelElement[]> = Object.create(null);
+  if (isPlainRecord(m.level3)) {
+    for (const [rawCid, kids] of Object.entries(m.level3)) {
+      const cid = sanitizeId(rawCid);
+      if (!cid) continue;
+      setOwnProp(safeLevel3, cid, sanitizeChildElements(kids, cid, 1));
+    }
+  }
+
+  const l4Nodes: TuxMapDeploymentNode[] = [];
+  for (const n of asObjArray<TuxMapDeploymentNode>(m.level4?.nodes)) {
+    const rawId = typeof n.id === "string" ? n.id : "";
+    const id = sanitizeId(rawId);
+    if (id && !parentOfAccepted.has(id)) parentOfAccepted.set(id, sanitizeId(n.group) || "");
+    const hasKids = Array.isArray(n.children);
+    const nextKids = hasKids ? sanitizeChildElements(n.children, id, 1) : undefined;
+    l4Nodes.push(
+      id !== rawId || hasKids
+        ? { ...n, ...(id !== rawId ? { id } : {}), ...(hasKids ? { children: nextKids } : {}) }
+        : n,
+    );
+  }
+
+  let safeSubgraphs: Record<string, TuxMapSubgraph> | undefined;
+  if (isPlainRecord(m.subgraphs)) {
+    const cleaned: Record<string, TuxMapSubgraph> = Object.create(null);
+    for (const [rawKey, sg] of Object.entries(m.subgraphs)) {
+      if (!isPlainRecord(sg)) continue;
+      const key = sanitizeId(rawKey);
+      if (!key) continue;
+      const owner = sanitizeId(subgraphOwners.get(rawKey) ?? rawKey) || key;
+      const els = sanitizeChildElements(sg.elements, owner, 1);
+      const rels = sg.rels !== undefined ? sanitizeRelEndpoints<TuxMapLevelRel>(sg.rels) : undefined;
+      setOwnProp(cleaned, key, {
+        ...(sg as unknown as TuxMapSubgraph),
+        elements: els,
+        ...(rels !== undefined ? { rels } : {}),
+      });
     }
     safeSubgraphs = cleaned;
   }
+
+  let safeAliases: Record<string, string> | undefined;
+  if (isPlainRecord(m.aliases)) {
+    const cleanedAliases: Record<string, string> = Object.create(null);
+    for (const [ak, av] of Object.entries(m.aliases)) {
+      if (typeof av === "string" && ak && av && ak !== av) {
+        setOwnProp(cleanedAliases, sanitizeId(ak), sanitizeId(av));
+      }
+    }
+    // Break any alias cycles deterministically
+    for (const ak of Object.keys(cleanedAliases)) {
+      const seen = new Set<string>([ak]);
+      let cur = cleanedAliases[ak];
+      while (cur && hasOwn(cleanedAliases, cur)) {
+        if (seen.has(cur)) {
+          delete cleanedAliases[ak];
+          break;
+        }
+        seen.add(cur);
+        cur = cleanedAliases[cur];
+      }
+    }
+    safeAliases = cleanedAliases;
+  }
+
+  const safeLinks = Array.isArray(m.links)
+    ? sanitizeRelEndpoints<TuxMapLink>(m.links)
+    : undefined;
 
   const safeModel: TuxMapLevelModel = {
     ...m,
     level1: {
       ...(isPlainRecord(m.level1) ? m.level1 : {}),
-      elements: asObjArray<TuxMapLevelElement>(m.level1?.elements),
-      rels: asObjArray<TuxMapLevelRel>(m.level1?.rels),
+      elements: l1Els,
+      rels: sanitizeRelEndpoints<TuxMapLevelRel>(m.level1?.rels),
     },
     level2: {
       ...(isPlainRecord(m.level2) ? m.level2 : {}),
-      boundary: typeof m.level2?.boundary === "string" ? m.level2.boundary : "",
-      elements: asObjArray<TuxMapLevelElement | TuxMapLevelRef>(m.level2?.elements),
-      rels: asObjArray<TuxMapLevelRel>(m.level2?.rels),
+      boundary: sanitizeId(m.level2?.boundary),
+      elements: l2Els,
+      rels: sanitizeRelEndpoints<TuxMapLevelRel>(m.level2?.rels),
     },
-    level3: isPlainRecord(m.level3) ? m.level3 : {},
+    level3: safeLevel3,
     level4: {
       ...(isPlainRecord(m.level4) ? m.level4 : {}),
       groups: asObjArray<TuxMapDeploymentGroup>(m.level4?.groups),
-      nodes: asObjArray<TuxMapDeploymentNode>(m.level4?.nodes),
-      links: asObjArray<TuxMapDeploymentLink>(m.level4?.links),
+      nodes: l4Nodes,
+      links: sanitizeRelEndpoints<TuxMapDeploymentLink>(m.level4?.links),
     },
     ...(safeSubgraphs ? { subgraphs: safeSubgraphs } : {}),
+    ...(safeAliases ? { aliases: safeAliases } : {}),
+    ...(safeLinks !== undefined ? { links: safeLinks } : {}),
   };
   return { model: safeModel, validation };
 }
@@ -3700,15 +3855,20 @@ export function collapseModelSubgraphs(
   model: TuxMapLevelModel,
   opts: { maxSmallComponentFiles?: number } = {},
 ): { model: TuxMapLevelModel; aliases: Record<string, string> } {
-  const aliases: Record<string, string> = {
-    ...(isPlainRecord(model?.aliases) ? (model.aliases as Record<string, string>) : {}),
-  };
+  const aliases: Record<string, string> = Object.create(null);
+  if (isPlainRecord(model?.aliases)) {
+    for (const [ak, av] of Object.entries(model.aliases)) {
+      if (typeof av === "string" && ak && av && ak !== av) {
+        setOwnProp(aliases, ak, av);
+      }
+    }
+  }
   if (!isPlainRecord(model?.subgraphs)) {
     return { model, aliases };
   }
   const maxSmallFiles = opts.maxSmallComponentFiles ?? 8;
   const origSubgraphs = model.subgraphs;
-  const nextSubgraphs: Record<string, TuxMapSubgraph> = {};
+  const nextSubgraphs: Record<string, TuxMapSubgraph> = Object.create(null);
   for (const [k, sg] of Object.entries(origSubgraphs)) {
     if (isPlainRecord(sg)) {
       setOwnProp(nextSubgraphs, k, {
@@ -3720,12 +3880,12 @@ export function collapseModelSubgraphs(
 
   // 1. Collapse single-child folder chains (`d1 -> d2 -> ... -> dk`)
   const collapsedSkipKeys = new Set<string>();
-  const resolveFolderChain = (el: TuxMapLevelElement): TuxMapLevelElement => {
-    if (!isFolderLikeElement(el)) return el;
+  const resolveFolderChain = (el: TuxMapLevelElement, ownerKey: string): TuxMapLevelElement => {
+    if (!isFolderLikeElement(el) || !el.id || el.id === ownerKey) return el;
     const names: string[] = [(el.name || el.id).replace(/\/+$/, "")];
     const skippedIds: string[] = [];
     let curr = el;
-    const seen = new Set<string>([el.id]);
+    const seen = new Set<string>([ownerKey, el.id]);
 
     for (let depth = 0; depth < MAX_TREE_DEPTH; depth++) {
       const sgKey = curr.subgraphRef || curr.id;
@@ -3734,8 +3894,9 @@ export function collapseModelSubgraphs(
       const onlyChild = sg.elements[0]!;
       if (!onlyChild?.id || seen.has(onlyChild.id) || !isFolderLikeElement(onlyChild)) break;
       const childSgKey = onlyChild.subgraphRef || onlyChild.id;
-      if (!hasOwn(nextSubgraphs, childSgKey)) break;
+      if (seen.has(childSgKey) || !hasOwn(nextSubgraphs, childSgKey)) break;
       seen.add(onlyChild.id);
+      seen.add(childSgKey);
       skippedIds.push(curr.id);
       if (curr.subgraphRef) skippedIds.push(curr.subgraphRef);
       names.push((onlyChild.name || onlyChild.id).replace(/\/+$/, ""));
@@ -3744,8 +3905,10 @@ export function collapseModelSubgraphs(
 
     if (skippedIds.length === 0) return el;
     for (const sid of skippedIds) {
-      setOwnProp(aliases, sid, curr.id);
-      collapsedSkipKeys.add(sid);
+      if (sid !== curr.id) {
+        setOwnProp(aliases, sid, curr.id);
+        collapsedSkipKeys.add(sid);
+      }
     }
     return {
       ...curr,
@@ -3754,7 +3917,7 @@ export function collapseModelSubgraphs(
   };
 
   for (const [k, sg] of Object.entries(nextSubgraphs)) {
-    sg.elements = sg.elements.map(resolveFolderChain);
+    sg.elements = sg.elements.map((el) => resolveFolderChain(el, k));
     setOwnProp(nextSubgraphs, k, sg);
   }
   for (const sid of collapsedSkipKeys) {
@@ -3784,6 +3947,7 @@ export function collapseModelSubgraphs(
 
     // Gather immediate elements inside each folder; only flatten when none of the folders contain nested subfolders
     const flattened: TuxMapLevelElement[] = [];
+    const childFolderRels: TuxMapLevelRel[] = [];
     const skippedFolderKeys: string[] = [];
     let canFlatten = true;
     const multiFolders = compSg.elements.length > 1;
@@ -3801,6 +3965,9 @@ export function collapseModelSubgraphs(
       }
       skippedFolderKeys.push(item.id);
       if (item.subgraphRef) skippedFolderKeys.push(item.subgraphRef);
+      if (Array.isArray(fSg.rels)) {
+        childFolderRels.push(...asObjArray<TuxMapLevelRel>(fSg.rels));
+      }
       const prefix = (item.name || "").replace(/\/+$/, "");
       for (const fileEl of fSg.elements) {
         const needsPrefix =
@@ -3815,13 +3982,19 @@ export function collapseModelSubgraphs(
     }
 
     if (canFlatten && flattened.length > 0 && flattened.length <= maxSmallFiles) {
+      const skippedSet = new Set(skippedFolderKeys);
+      const keptCompRels = asObjArray<TuxMapLevelRel>(compSg.rels).filter(
+        (r) => !skippedSet.has(r.from) && !skippedSet.has(r.to),
+      );
+      const mergedRels = [...keptCompRels, ...childFolderRels];
       setOwnProp(nextSubgraphs, compKey, {
         ...compSg,
         stratum: compSg.stratum && /\bfolders?\b/i.test(compSg.stratum) ? "Files" : compSg.stratum,
         elements: flattened,
+        ...(compSg.rels !== undefined || childFolderRels.length > 0 ? { rels: mergedRels } : {}),
       });
       for (const fk of skippedFolderKeys) {
-        setOwnProp(aliases, fk, compKey);
+        if (fk !== compKey) setOwnProp(aliases, fk, compKey);
         if (hasOwn(nextSubgraphs, fk)) delete nextSubgraphs[fk];
       }
     }
@@ -3829,6 +4002,34 @@ export function collapseModelSubgraphs(
 
   const changed = Object.keys(aliases).length > 0;
   if (!changed) return { model, aliases };
+
+  const resolveAliasTarget = (id: string): string => {
+    let cur = id;
+    const seen = new Set<string>([cur]);
+    while (hasOwn(aliases, cur) && seen.size < MAX_TREE_DEPTH) {
+      const nxt = aliases[cur]!;
+      if (!nxt || seen.has(nxt)) break;
+      seen.add(nxt);
+      cur = nxt;
+    }
+    return cur;
+  };
+
+  for (const [k, sg] of Object.entries(nextSubgraphs)) {
+    if (!Array.isArray(sg.rels) || sg.rels.length === 0) continue;
+    const seenPair = new Set<string>();
+    const remappedRels: TuxMapLevelRel[] = [];
+    for (const r of asObjArray<TuxMapLevelRel>(sg.rels)) {
+      const from = resolveAliasTarget(r.from);
+      const to = resolveAliasTarget(r.to);
+      if (!from || !to || from === to) continue;
+      const pk = `${from}\u0000${to}`;
+      if (seenPair.has(pk)) continue;
+      seenPair.add(pk);
+      remappedRels.push(from === r.from && to === r.to ? r : { ...r, from, to });
+    }
+    setOwnProp(nextSubgraphs, k, { ...sg, rels: remappedRels });
+  }
 
   return {
     model: {
@@ -3967,7 +4168,16 @@ export function levelForFocus(
   return 5 + extraDepth;
 }
 
+function fnvFeedStr(h: number, s: string): number {
+  let out = h;
+  for (let i = 0; i < s.length; i++) {
+    out = Math.imul(out ^ s.charCodeAt(i), 0x01000193) >>> 0;
+  }
+  return Math.imul(out ^ 0xff, 0x01000193) >>> 0;
+}
+
 interface CachedParentTables {
+  stamp: number;
   size: number;
   kidsOf: Map<string, string[]>;
   ancestorsByNode: Map<string, string[]>;
@@ -3976,8 +4186,12 @@ interface CachedParentTables {
 const PARENT_TABLES_CACHE = /* @__PURE__ */ new WeakMap<ReadonlyMap<string, string>, CachedParentTables>();
 
 function getParentTables(parentOf: ReadonlyMap<string, string>): CachedParentTables {
+  let stamp = 0x811c9dc5;
+  for (const [c, p] of parentOf) {
+    stamp = fnvFeedStr(fnvFeedStr(stamp, c), p);
+  }
   const cached = PARENT_TABLES_CACHE.get(parentOf);
-  if (cached && cached.size === parentOf.size) return cached;
+  if (cached && cached.size === parentOf.size && cached.stamp === stamp) return cached;
   const kidsOf = new Map<string, string[]>();
   for (const [c, p] of parentOf) {
     let arr = kidsOf.get(p);
@@ -3988,6 +4202,7 @@ function getParentTables(parentOf: ReadonlyMap<string, string>): CachedParentTab
     arr.push(c);
   }
   const tables: CachedParentTables = {
+    stamp,
     size: parentOf.size,
     kidsOf,
     ancestorsByNode: new Map<string, string[]>(),
@@ -3998,10 +4213,7 @@ function getParentTables(parentOf: ReadonlyMap<string, string>): CachedParentTab
 
 interface CachedLinkAdjacency {
   len: number;
-  headFrom: string;
-  headTo: string;
-  tailFrom: string;
-  tailTo: string;
+  stamp: number;
   validLinks: TuxMapLink[];
   into: Map<string, TuxMapLink[]>;
   outByFrom: Map<string, TuxMapLink[]>;
@@ -4013,32 +4225,25 @@ function getLinkAdjacency(links: readonly TuxMapLink[]): CachedLinkAdjacency {
   if (!Array.isArray(links)) {
     return {
       len: 0,
-      headFrom: "",
-      headTo: "",
-      tailFrom: "",
-      tailTo: "",
+      stamp: 0,
       validLinks: [],
       into: new Map(),
       outByFrom: new Map(),
     };
   }
   const len = links.length;
-  const first = len > 0 ? links[0] : undefined;
-  const last = len > 0 ? links[len - 1] : undefined;
-  const headFrom = typeof first?.from === "string" ? first.from : "";
-  const headTo = typeof first?.to === "string" ? first.to : "";
-  const tailFrom = typeof last?.from === "string" ? last.from : "";
-  const tailTo = typeof last?.to === "string" ? last.to : "";
+  let stamp = 0x811c9dc5;
+  for (let i = 0; i < len; i++) {
+    const l = links[i];
+    if (!l || typeof l !== "object") continue;
+    stamp = fnvFeedStr(stamp, typeof l.from === "string" ? l.from : "");
+    stamp = fnvFeedStr(stamp, typeof l.to === "string" ? l.to : "");
+    stamp = fnvFeedStr(stamp, typeof l.kind === "string" ? l.kind : "");
+    stamp = Math.imul(stamp ^ (l.stop ? 0x31 : 0x30), 0x01000193) >>> 0;
+  }
 
   const cached = LINK_ADJACENCY_CACHE.get(links);
-  if (
-    cached &&
-    cached.len === len &&
-    cached.headFrom === headFrom &&
-    cached.headTo === headTo &&
-    cached.tailFrom === tailFrom &&
-    cached.tailTo === tailTo
-  ) {
+  if (cached && cached.len === len && cached.stamp === stamp) {
     return cached;
   }
 
@@ -4068,10 +4273,7 @@ function getLinkAdjacency(links: readonly TuxMapLink[]): CachedLinkAdjacency {
 
   const built: CachedLinkAdjacency = {
     len,
-    headFrom,
-    headTo,
-    tailFrom,
-    tailTo,
+    stamp,
     validLinks,
     into,
     outByFrom,
@@ -4414,14 +4616,16 @@ export function liftLinksToView(
   rels: TuxMapLevelRel[];
   ins: TuxMapLiftedSide[];
   outs: TuxMapLiftedSide[];
-  moreIns: number;
-  moreOuts: number;
-  moreInsParts: number;
-  moreOutsParts: number;
-  moreInsLinks: number;
-  moreOutsLinks: number;
-  wireDetails: Record<string, TuxMapWireInspectorDetail>;
-} {
+    moreIns: number;
+    moreOuts: number;
+    moreInsParts: number;
+    moreOutsParts: number;
+    moreInsLinks: number;
+    moreOutsLinks: number;
+    overflowInIds: string[];
+    overflowOutIds: string[];
+    wireDetails: Record<string, TuxMapWireInspectorDetail>;
+  } {
   const quiet = opts.quiet ?? TUX_MAP_QUIET_LINK_KINDS;
   const isKnown = opts.isKnown ?? ((id: string) => parentOf.has(id));
   const liftMode = opts.lift ?? "depth";
@@ -4605,7 +4809,7 @@ export function liftLinksToView(
   flushSideHits(pendingIns, insM);
   flushSideHits(pendingOuts, outsM);
 
-  const wireDetails: Record<string, TuxMapWireInspectorDetail> = {};
+  const wireDetails: Record<string, TuxMapWireInspectorDetail> = Object.create(null);
   const rels: TuxMapLevelRel[] = [...sib.values()].map((r) => {
     const detail = buildWireInspectorDetail(r.from, r.to, r.kinds, r.links);
     setOwnProp(wireDetails, `${r.from}\u0000${r.to}`, detail);
@@ -4671,30 +4875,23 @@ export function liftLinksToView(
     moreOutsParts: outsOverflow.reduce((acc, s) => acc + (s.parts ?? 1), 0),
     moreInsLinks: insOverflow.reduce((acc, s) => acc + s.count, 0),
     moreOutsLinks: outsOverflow.reduce((acc, s) => acc + s.count, 0),
+    overflowInIds: insOverflow.map((s) => s.id),
+    overflowOutIds: outsOverflow.map((s) => s.id),
     wireDetails,
   };
 }
 
 /**
- * Folds vendored copy cards (`from` of a `kind === "copies"` link) into their canonical source card (`to`)
- * when in view — or folds sibling copies of the same external source into a single card — attaching
- * `vendoredCopies` / `isVendoredCopy` metadata and deduplicating `rels` & `links` (`tti/tti-ux#121`).
+ * Memoized `O(|E_copies|)` cycle-safe canonical resolver for `copies` links (`tti/tti-ux#121`).
  */
-export function foldVendoredCopies(
-  elements: readonly TuxMapLevelElement[],
-  rels: readonly TuxMapLevelRel[],
+export function buildVendoredCopyIndex(
   links: readonly TuxMapLink[],
+  elKindById?: ReadonlyMap<string, string>,
 ): {
-  elements: TuxMapLevelElement[];
-  rels: TuxMapLevelRel[];
-  links: TuxMapLink[];
-  foldedToRepresentative: Map<string, string>;
+  copyToCanonical: Map<string, string>;
+  copiesByCanonical: Map<string, string[]>;
 } {
   const NON_FOLDABLE_KINDS = new Set(["route", "person", "system", "database", "external"]);
-  const elKindById = new Map<string, string>();
-  for (const e of asObjArray<TuxMapLevelElement>(elements)) {
-    if (e.id && e.kind) elKindById.set(e.id, e.kind);
-  }
   const safeLinks = asObjArray<TuxMapLink>(links);
   const nonCopyPairs = new Set<string>();
   for (const l of safeLinks) {
@@ -4706,7 +4903,7 @@ export function foldVendoredCopies(
   }
   const isNonFoldableEndpoint = (id: string): boolean => {
     if (isKindNodeId(id, "r")) return true;
-    const ek = elKindById.get(id);
+    const ek = elKindById?.get(id);
     return Boolean(ek && NON_FOLDABLE_KINDS.has(ek));
   };
   const copyToSource = new Map<string, string>();
@@ -4717,7 +4914,85 @@ export function foldVendoredCopies(
       if (!copyToSource.has(l.from)) copyToSource.set(l.from, l.to);
     }
   }
-  if (copyToSource.size === 0 || elements.length === 0) {
+  const copyToCanonical = new Map<string, string>();
+  const copiesByCanonical = new Map<string, string[]>();
+  if (copyToSource.size === 0) {
+    return { copyToCanonical, copiesByCanonical };
+  }
+
+  const memo = new Map<string, string>();
+  const resolveCanonical = (startId: string): string => {
+    const hit = memo.get(startId);
+    if (hit !== undefined) return hit;
+    const trail: string[] = [startId];
+    const pos = new Map<string, number>([[startId, 0]]);
+    let cur = startId;
+    while (copyToSource.has(cur) && trail.length <= MAX_TREE_DEPTH) {
+      const nxt = copyToSource.get(cur)!;
+      if (memo.has(nxt)) {
+        cur = memo.get(nxt)!;
+        break;
+      }
+      const cycIdx = pos.get(nxt);
+      if (cycIdx !== undefined) {
+        // Cycle in `copies`: pick the lexicographically smallest ID on the cycle so all members fold to one deterministic representative
+        const cycleMembers = trail.slice(cycIdx);
+        cycleMembers.sort(cmpCodepoint);
+        cur = cycleMembers[0]!;
+        break;
+      }
+      pos.set(nxt, trail.length);
+      trail.push(nxt);
+      cur = nxt;
+    }
+    for (const tid of trail) memo.set(tid, cur);
+    return cur;
+  };
+
+  for (const cid of copyToSource.keys()) {
+    const canon = resolveCanonical(cid);
+    if (canon === cid) continue;
+    copyToCanonical.set(cid, canon);
+    let bucket = copiesByCanonical.get(canon);
+    if (!bucket) {
+      bucket = [];
+      copiesByCanonical.set(canon, bucket);
+    }
+    bucket.push(cid);
+  }
+  for (const arr of copiesByCanonical.values()) arr.sort(cmpCodepoint);
+  return { copyToCanonical, copiesByCanonical };
+}
+
+/**
+ * Folds vendored copy cards (`from` of a `kind === "copies"` link) into their canonical source card (`to`)
+ * when in view — or folds sibling copies of the same external source into a single card — attaching
+ * `vendoredCopies` / `isVendoredCopy` / `vendoredFrom` metadata and deduplicating `rels` & `links` (`tti/tti-ux#121`).
+ */
+export function foldVendoredCopies(
+  elements: readonly TuxMapLevelElement[],
+  rels: readonly TuxMapLevelRel[],
+  links: readonly TuxMapLink[],
+): {
+  elements: TuxMapLevelElement[];
+  rels: TuxMapLevelRel[];
+  links: TuxMapLink[];
+  foldedToRepresentative: Map<string, string>;
+} {
+  if (elements.length === 0) {
+    return {
+      elements: [],
+      rels: [...rels],
+      links: [...links],
+      foldedToRepresentative: new Map(),
+    };
+  }
+  const elKindById = new Map<string, string>();
+  for (const e of asObjArray<TuxMapLevelElement>(elements)) {
+    if (e.id && e.kind) elKindById.set(e.id, e.kind);
+  }
+  const { copyToCanonical } = buildVendoredCopyIndex(links, elKindById);
+  if (copyToCanonical.size === 0) {
     return {
       elements: [...elements],
       rels: [...rels],
@@ -4726,60 +5001,67 @@ export function foldVendoredCopies(
     };
   }
 
-  const resolveCanonical = (id: string): string => {
-    let cur = id;
-    const seen = new Set<string>([cur]);
-    while (copyToSource.has(cur) && seen.size < MAX_TREE_DEPTH) {
-      const nxt = copyToSource.get(cur)!;
-      if (seen.has(nxt)) break;
-      seen.add(nxt);
-      cur = nxt;
-    }
-    return cur;
-  };
-
-  const viewIds = new Set(elements.map((e) => e.id));
-  const repByCanon = new Map<string, string>();
-  const foldedCopiesByRep = new Map<string, string[]>();
-  const foldedToRepresentative = new Map<string, string>();
-
-  // First pass: if the canonical source itself is in view, it is always the representative
+  const viewIds = new Set<string>();
+  const inViewCopiesByCanon = new Map<string, string[]>();
   for (const e of elements) {
-    const canon = resolveCanonical(e.id);
-    if (canon === e.id && [...copyToSource.keys()].some((cid) => resolveCanonical(cid) === canon && viewIds.has(cid))) {
-      repByCanon.set(canon, e.id);
-      foldedCopiesByRep.set(e.id, []);
-    }
-  }
-  // Second pass: map every copy in view to its in-view canonical source (or first copy in view when source is external)
-  for (const e of elements) {
-    const canon = resolveCanonical(e.id);
-    if (canon === e.id) continue;
-    let rep = repByCanon.get(canon);
-    if (!rep) {
-      rep = e.id;
-      repByCanon.set(canon, rep);
-      foldedCopiesByRep.set(rep, [e.id]);
-    } else {
-      foldedCopiesByRep.get(rep)!.push(e.id);
-      foldedToRepresentative.set(e.id, rep);
+    viewIds.add(e.id);
+    const canon = copyToCanonical.get(e.id);
+    if (canon && canon !== e.id) {
+      let arr = inViewCopiesByCanon.get(canon);
+      if (!arr) {
+        arr = [];
+        inViewCopiesByCanon.set(canon, arr);
+      }
+      arr.push(e.id);
     }
   }
 
-  if (foldedCopiesByRep.size === 0) {
+  if (inViewCopiesByCanon.size === 0) {
     return {
       elements: [...elements],
       rels: [...rels],
       links: [...links],
-      foldedToRepresentative,
+      foldedToRepresentative: new Map(),
     };
+  }
+
+  const repByCanon = new Map<string, string>();
+  const foldedCopiesByRep = new Map<string, string[]>();
+  const externalCanonByRep = new Map<string, string>();
+  const foldedToRepresentative = new Map<string, string>();
+
+  for (const [canon, inViewCopies] of inViewCopiesByCanon.entries()) {
+    if (viewIds.has(canon)) {
+      repByCanon.set(canon, canon);
+      foldedCopiesByRep.set(canon, inViewCopies);
+      for (const cid of inViewCopies) {
+        foldedToRepresentative.set(cid, canon);
+      }
+    } else {
+      const rep = inViewCopies[0]!;
+      repByCanon.set(canon, rep);
+      externalCanonByRep.set(rep, canon);
+      const siblingFolded = inViewCopies.slice(1);
+      foldedCopiesByRep.set(rep, siblingFolded);
+      for (const cid of siblingFolded) {
+        foldedToRepresentative.set(cid, rep);
+      }
+    }
   }
 
   const outElements: TuxMapLevelElement[] = [];
   for (const e of elements) {
     if (foldedToRepresentative.has(e.id)) continue;
+    const extCanon = externalCanonByRep.get(e.id);
     const copies = foldedCopiesByRep.get(e.id);
-    if (copies && copies.length > 0) {
+    if (extCanon) {
+      outElements.push({
+        ...e,
+        isVendoredCopy: true,
+        vendoredFrom: extCanon,
+        ...(copies && copies.length > 0 ? { vendoredCopies: copies } : {}),
+      });
+    } else if (copies && copies.length > 0) {
       outElements.push({
         ...e,
         isVendoredCopy: true,
@@ -4877,63 +5159,70 @@ export function traceSpreadingPath(
 
   const startSet = expandSubtree(fromId);
   const targetSet = expandSubtree(toId);
-  const allowStopFirst = opts.allowStoppingLastHop ?? true;
+  const allowStopFirst = opts.allowStoppingLastHop ?? false;
 
-  const visited = new Set<string>(startSet);
-  const prev = new Map<string, { prevId: string; link: TuxMapLink }>();
-  const queue: Array<{ id: string; depth: number }> = [...startSet].sort(cmpCodepoint).map((id) => ({ id, depth: 0 }));
+  const runSearch = (permitInitialStop: boolean): TuxMapTraceResult | null => {
+    const visited = new Set<string>(startSet);
+    const prev = new Map<string, { prevId: string; link: TuxMapLink }>();
+    const queue: Array<{ id: string; depth: number }> = [...startSet].sort(cmpCodepoint).map((id) => ({ id, depth: 0 }));
 
-  let hitTarget: string | null = null;
-  for (let qi = 0; qi < queue.length; qi++) {
-    const { id: cur, depth } = queue[qi]!;
-    const outLinks = [...(outByFrom.get(cur) ?? [])].sort(compareBlastLinks);
-    for (const l of outLinks) {
-      const k = l.kind || "uses";
-      if (TUX_MAP_QUIET_LINK_KINDS.has(k)) continue;
-      // In "Why does A depend on B?", step 0 from A may be a stopping test/check/stamp link if A is a test/bundle,
-      // while all transitively propagated steps (`depth > 0`) must be spreading (`!l.stop`).
-      if (l.stop && !(allowStopFirst && depth === 0)) continue;
-      const nxt = l.to;
-      if (visited.has(nxt)) continue;
-      visited.add(nxt);
-      prev.set(nxt, { prevId: cur, link: l });
-      if (targetSet.has(nxt)) {
-        hitTarget = nxt;
-        break;
+    let hitTarget: string | null = null;
+    for (let qi = 0; qi < queue.length; qi++) {
+      const { id: cur, depth } = queue[qi]!;
+      const outLinks = [...(outByFrom.get(cur) ?? [])].sort((a, b) => {
+        const as = a.stop ? 1 : 0;
+        const bs = b.stop ? 1 : 0;
+        if (as !== bs) return as - bs;
+        return compareBlastLinks(a, b);
+      });
+      for (const l of outLinks) {
+        const k = l.kind || "uses";
+        if (TUX_MAP_QUIET_LINK_KINDS.has(k)) continue;
+        // Pure spreading search (`permitInitialStop === false`) requires `!l.stop` on every hop.
+        // Fallback search (`permitInitialStop === true`, for "Why does Test/Bundle A depend on B?")
+        // permits a stopping link only on step 0 (`depth === 0`) while requiring `!l.stop` thereafter.
+        if (l.stop && !(permitInitialStop && depth === 0)) continue;
+        const nxt = l.to;
+        if (visited.has(nxt)) continue;
+        visited.add(nxt);
+        prev.set(nxt, { prevId: cur, link: l });
+        if (targetSet.has(nxt)) {
+          hitTarget = nxt;
+          break;
+        }
+        queue.push({ id: nxt, depth: depth + 1 });
       }
-      queue.push({ id: nxt, depth: depth + 1 });
+      if (hitTarget) break;
     }
-    if (hitTarget) break;
-  }
 
-  if (!hitTarget) {
-    return { found: false, nodeIds: [], hops: [] };
-  }
+    if (!hitTarget) return null;
 
-  const nodeIds: string[] = [hitTarget];
-  const hops: TuxMapTraceHop[] = [];
-  let cursor = hitTarget;
-  while (prev.has(cursor)) {
-    const step = prev.get(cursor)!;
-    const kind = step.link.kind || "uses";
-    hops.unshift({
-      from: step.prevId,
-      to: cursor,
-      kind,
-      label: TUX_MAP_LINK_KIND_LABELS[kind] || step.link.label || kind,
-      ...(step.link.at ? { at: step.link.at } : {}),
-    });
-    nodeIds.unshift(step.prevId);
-    cursor = step.prevId;
-  }
-  if (nodeIds[0] !== fromId && startSet.has(nodeIds[0]!)) {
-    nodeIds.unshift(fromId);
-  }
-  if (nodeIds[nodeIds.length - 1] !== toId && targetSet.has(nodeIds[nodeIds.length - 1]!)) {
-    nodeIds.push(toId);
-  }
+    const nodeIds: string[] = [hitTarget];
+    const hops: TuxMapTraceHop[] = [];
+    let cursor = hitTarget;
+    while (prev.has(cursor)) {
+      const step = prev.get(cursor)!;
+      const kind = step.link.kind || "uses";
+      hops.unshift({
+        from: step.prevId,
+        to: cursor,
+        kind,
+        label: TUX_MAP_LINK_KIND_LABELS[kind] || step.link.label || kind,
+        ...(step.link.at ? { at: step.link.at } : {}),
+      });
+      nodeIds.unshift(step.prevId);
+      cursor = step.prevId;
+    }
+    if (nodeIds[0] !== fromId && startSet.has(nodeIds[0]!)) {
+      nodeIds.unshift(fromId);
+    }
+    if (nodeIds[nodeIds.length - 1] !== toId && targetSet.has(nodeIds[nodeIds.length - 1]!)) {
+      nodeIds.push(toId);
+    }
+    return { found: true, nodeIds, hops };
+  };
 
-  return { found: true, nodeIds, hops };
+  return runSearch(false) ?? (allowStopFirst ? runSearch(true) : null) ?? { found: false, nodeIds: [], hops: [] };
 }
 
 export interface TuxMapBlastHit {
@@ -6467,6 +6756,7 @@ export function normalizeArchitectureModelInput(
   } else {
     normalized = raw as unknown as TuxMapLevelModel;
   }
+  normalized = sanitizeMapModel(normalized).model;
 
   if (opts.allowEmpty === false) {
     const idx = getMapQueryIndex(normalized);
@@ -6593,7 +6883,28 @@ function modelCacheStamp(model: TuxMapLevelModel): string {
     feedStr(l.stop ? "1" : "0");
     feedStr(typeof l.coupling === "string" ? l.coupling : "");
     feedStr(typeof l.phase === "string" ? l.phase : "");
-    feedStr(Array.isArray(l.violations) ? String(l.violations.length) : "0");
+    if (Array.isArray(l.violations)) {
+      feedStr(String(l.violations.length));
+      for (const v of l.violations) {
+        feedStr(typeof v?.rule === "string" ? v.rule : "");
+      }
+    } else {
+      feedStr("0");
+    }
+  }
+  if (Array.isArray(model?.stopKinds)) {
+    feedStr(`#SK:${model.stopKinds.length}`);
+    for (const sk of model.stopKinds) {
+      if (typeof sk === "string") feedStr(sk);
+    }
+  }
+  if (isPlainRecord(model?.aliases)) {
+    const ak = Object.keys(model.aliases);
+    feedStr(`#AL:${ak.length}`);
+    for (const k of ak) {
+      feedStr(k);
+      feedStr(typeof model.aliases[k] === "string" ? model.aliases[k] : "");
+    }
   }
   const routes = asObjArray<TuxMapRouteEntry>(model?.routes);
   feedStr(`#RT:${routes.length}`);

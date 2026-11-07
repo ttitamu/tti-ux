@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: b5312e992c32e06ce69b4e92ded354460a96e8022195df2d64354f3f80ba63e2
+// SOURCE-SHA256: 7bb260c8ae110c3a3a81586030242f9012f5b30f3da3a0fa3974cc5cbfcc9536
 /**
  * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
  *
@@ -404,10 +404,12 @@ export interface TuxMapLevelElement {
     childRels?: TuxMapLevelRel[];
     /** Optional URL or key for lazy on-demand subgraph hydration */
     subgraphRef?: string;
-    /** Optional IDs of vendored copy elements folded into this canonical source card (`#121`) */
+    /** Optional IDs of vendored copy elements folded into this representative card (`#121`) */
     vendoredCopies?: string[];
     /** True when this card itself is a vendored copy whose canonical source lies outside the view (`#121`) */
     isVendoredCopy?: boolean;
+    /** Canonical source element ID when `isVendoredCopy` is true (`#121`) */
+    vendoredFrom?: string;
 }
 /** Consumer-supplied architectural dependency-rule violation (`#123`). */
 export interface TuxMapLinkViolation {
@@ -705,6 +707,7 @@ export declare function plainElementKindLabel(elOrKind: Pick<TuxMapLevelElement,
 export declare const TUX_MAP_VALID_BLAST_INTENTS: ReadonlySet<TuxMapBlastIntent>;
 /** Prototype-safe own-property check (`Object.prototype` keys like `"constructor"` return `false`). */
 export declare function hasOwn(obj: unknown, key: PropertyKey): boolean;
+export declare function setOwnProp<T>(obj: Record<string, T>, key: string, value: T): void;
 /** True Unicode code-point comparison (matches Python `str < str` even on supplementary U+10000+ planes). */
 export declare function cmpCodepoint(a: string, b: string): number;
 export declare function compareBlastLinks(a: TuxMapLink, b: TuxMapLink): number;
@@ -722,7 +725,7 @@ export declare function classifyBlastLink(link: TuxMapLink, hop: number, intent?
  * applying model-declared `model.stopKinds` when `l.stop` is omitted (`tti/tti-ux#126`).
  */
 export declare function resolveModelRawLinks(model?: TuxMapLevelModel): TuxMapLink[];
-export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "parent-cycle" | "max-depth-exceeded" | "unknown-link-end" | "unknown-rel-end";
+export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "reserved-id" | "parent-cycle" | "max-depth-exceeded" | "unknown-link-end" | "unknown-rel-end";
 export interface TuxMapValidationIssue {
     code: TuxMapValidationIssueCode;
     message: string;
@@ -872,12 +875,21 @@ export declare function liftLinksToView(links: TuxMapLink[], focusId: string, ki
     moreOutsParts: number;
     moreInsLinks: number;
     moreOutsLinks: number;
+    overflowInIds: string[];
+    overflowOutIds: string[];
     wireDetails: Record<string, TuxMapWireInspectorDetail>;
+};
+/**
+ * Memoized `O(|E_copies|)` cycle-safe canonical resolver for `copies` links (`tti/tti-ux#121`).
+ */
+export declare function buildVendoredCopyIndex(links: readonly TuxMapLink[], elKindById?: ReadonlyMap<string, string>): {
+    copyToCanonical: Map<string, string>;
+    copiesByCanonical: Map<string, string[]>;
 };
 /**
  * Folds vendored copy cards (`from` of a `kind === "copies"` link) into their canonical source card (`to`)
  * when in view — or folds sibling copies of the same external source into a single card — attaching
- * `vendoredCopies` / `isVendoredCopy` metadata and deduplicating `rels` & `links` (`tti/tti-ux#121`).
+ * `vendoredCopies` / `isVendoredCopy` / `vendoredFrom` metadata and deduplicating `rels` & `links` (`tti/tti-ux#121`).
  */
 export declare function foldVendoredCopies(elements: readonly TuxMapLevelElement[], rels: readonly TuxMapLevelRel[], links: readonly TuxMapLink[]): {
     elements: TuxMapLevelElement[];

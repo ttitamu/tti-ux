@@ -1577,14 +1577,22 @@ describe("TuxArchitectureMap Component", () => {
         ],
       },
       level4: { groups: [], nodes: [], links: [] },
+      sourceBaseUrl: "https://code.tti.tamu.edu/tti/demo/src/branch/main",
       links: [
         { from: "comp-ui", to: "comp-db", kind: "imports", at: "ui/repo.ts:14" },
-        { from: "comp-ui", to: "comp-db", kind: "imports", at: "ui/repo.ts:19" },
+        {
+          from: "comp-ui",
+          to: "comp-db",
+          kind: "imports",
+          at: "ui/view.ts:14",
+          sites: [14, 28],
+        },
         {
           from: "comp-ui",
           to: "comp-db",
           kind: "calls",
           at: "ui/repo.ts:42",
+          lineRange: [42, 42],
           violations: [
             {
               rule: "no-ui-to-db",
@@ -1603,7 +1611,6 @@ describe("TuxArchitectureMap Component", () => {
         model,
         initialLevel: 3,
         initialFocus: "c-app",
-        sourceUrlBase: "https://code.tti.tamu.edu/tti/demo/src/branch/main/",
       },
     });
 
@@ -1630,12 +1637,16 @@ describe("TuxArchitectureMap Component", () => {
     expect(pop.find(".tux-map__wire-pop-cut").text()).toContain("reads");
     expect(pop.find(".tux-map__wire-pop-violations").text()).toContain("no-ui-to-db");
     expect(pop.find(".tux-map__wire-pop-fix").text()).toContain("Call DomainService instead.");
-    const siteLink = pop.find("a.tux-map__wire-pop-at");
-    if (siteLink.exists()) {
-      expect(siteLink.attributes("href")).toContain("ui/repo.ts#L");
-    } else {
-      expect(pop.text()).toContain("ui/repo.ts:");
-    }
+    const siteHrefs = pop
+      .findAll("a.tux-map__source-lnk")
+      .map((a) => a.attributes("href"));
+    expect(siteHrefs).toEqual(
+      expect.arrayContaining([
+        "https://code.tti.tamu.edu/tti/demo/src/branch/main/ui/view.ts#L14",
+        "https://code.tti.tamu.edu/tti/demo/src/branch/main/ui/view.ts#L28",
+        "https://code.tti.tamu.edu/tti/demo/src/branch/main/ui/repo.ts#L42",
+      ]),
+    );
     expect(await runComponentAxe(wrapper.element)).toEqual([]);
 
     // Escape closes the wire inspector
@@ -2084,6 +2095,308 @@ describe("TuxArchitectureMap Component", () => {
     await nextTick();
     expect(resolveSubgraph).toHaveBeenCalledTimes(1);
     expect(wrapper.find('.tux-map__el[data-id="f:lazy/worker.ts"]').exists()).toBe(true);
+  });
+
+  // ── Slice 7 Three-Pass Audit Regressions (P0-1..P0-3, P1-1..P1-5, S7-04, S7-08, S7-10) ──
+  it("covers resting @bound/@more-in wire inspection, Level 5+ rel filtering, lazy Outline expand + Escape cancel, narrow crumbs, alias level sync, vendored copy folding, and origin/issue URL guards", async () => {
+    // 1. Resting `@bound` + `@more-in` Wire Inspector & sibling outside card disambiguation (`P0-1`, `P1-2`, `S7-04`)
+    const overComps = Array.from({ length: 12 }, (_, i) => ({
+      id: `comp-over-${i}`,
+      kind: "component" as const,
+      name: `Over ${i}`,
+    }));
+    const overSubgraphs = Object.fromEntries(
+      overComps.map((c, i) => [
+        c.id,
+        {
+          stratum: "Files",
+          elements: [{ id: `f:over/o${i}.ts`, kind: "file" as const, name: `o${i}.ts` }],
+          rels: [],
+        },
+      ]),
+    );
+    const outsideModel: TuxMapLevelModel = {
+      sourceBaseUrl: "https://code.tti.tamu.edu/tti/demo/src/branch/main",
+      issueBaseUrl: "https://code.tti.tamu.edu/tti/demo/issues",
+      level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [
+          { id: "c-core", kind: "container", name: "Core Container" },
+          { id: "c-ext-b", kind: "container", name: "Ext B" },
+        ],
+        rels: [],
+      },
+      level3: {
+        "c-core": [
+          { id: "comp-core", kind: "component", name: "Core Comp" },
+          { id: "comp-a", kind: "component", name: "Comp A" },
+          ...overComps,
+        ],
+        "c-ext-b": [{ id: "comp-b", kind: "component", name: "Comp B" }],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      subgraphs: {
+        "comp-core": {
+          stratum: "Files",
+          elements: [
+            {
+              id: "f:core/lib.mjs",
+              kind: "file",
+              name: "lib.mjs",
+              source: { path: "core/lib.mjs", url: "https://evil.example/phish" },
+              roadmap: [12.5, 42],
+            },
+            { id: "f:vendor/lib.mjs", kind: "file", name: "vendor/lib.mjs" },
+            { id: "f:core/only-copy.mjs", kind: "file", name: "only-copy.mjs" },
+          ],
+          rels: [
+            { from: "f:core/lib.mjs", to: "f:core/only-copy.mjs", label: "imports" },
+          ],
+        },
+        "comp-a": {
+          stratum: "Files",
+          elements: [
+            { id: "f:pkg-a/src/index.ts", kind: "file", name: "index.ts", source: { path: "pkg-a/src/index.ts" } },
+            { id: "f:pkg-b/src/index.ts", kind: "file", name: "index.ts", source: { path: "pkg-b/src/index.ts" } },
+          ],
+          rels: [],
+        },
+        "comp-b": {
+          stratum: "Files",
+          elements: [{ id: "f:ext-b/caller.ts", kind: "file", name: "caller.ts", source: { path: "ext-b/caller.ts" } }],
+          rels: [],
+        },
+        ...overSubgraphs,
+      },
+      links: [
+        { from: "f:vendor/lib.mjs", to: "f:core/lib.mjs", kind: "copies", stop: true },
+        { from: "f:core/only-copy.mjs", to: "f:ext-b/caller.ts", kind: "copies", stop: true },
+        { from: "f:pkg-a/src/index.ts", to: "f:core/lib.mjs", kind: "calls", at: "pkg-a/src/index.ts:9" },
+        { from: "f:pkg-a/src/index.ts", to: "f:core/lib.mjs", kind: "imports", at: "pkg-a/src/index.ts:2" },
+        { from: "f:pkg-b/src/index.ts", to: "f:core/lib.mjs", kind: "imports", at: "pkg-b/src/index.ts:4" },
+        { from: "f:pkg-b/src/index.ts", to: "f:core/lib.mjs", kind: "calls", at: "pkg-b/src/index.ts:12" },
+        ...overComps.map((_, i) => ({
+          from: `f:over/o${i}.ts`,
+          to: "f:core/lib.mjs",
+          kind: "calls",
+          at: `over/o${i}.ts:2`,
+        })),
+        { from: "f:ext-b/caller.ts", to: "f:vendor/lib.mjs", kind: "tests", stop: true, at: "ext-b/caller.ts:15" },
+        { from: "f:core/lib.mjs", to: "f:core/only-copy.mjs", kind: "tests", stop: true, at: "core/lib.spec.ts:5" },
+      ],
+    };
+
+    // Mount with `initialSelectedId: "f:vendor/lib.mjs"` (folded copy) and >12 incoming outside buckets so `@more-in` renders!
+    const w1 = await mountSuspended(TuxArchitectureMap, {
+      attachTo: document.body,
+      props: {
+        model: outsideModel,
+        initialLevel: 5,
+        initialFocus: "comp-core",
+        initialSelectedId: "f:vendor/lib.mjs",
+      },
+    });
+
+    // Folded vendored copy (`P1-5`): `f:vendor/lib.mjs` folded into `f:core/lib.mjs`, selection remapped to `f:core/lib.mjs`
+    expect(w1.find('.tux-map__el[data-id="f:vendor/lib.mjs"]').exists()).toBe(false);
+    const canonCard = w1.find('.tux-map__el[data-id="f:core/lib.mjs"]');
+    expect(canonCard.exists()).toBe(true);
+    expect(canonCard.attributes("aria-pressed")).toBe("true");
+    expect(canonCard.find(".tux-map__chip--vendored").text()).toBe("1 vendored copy");
+
+    // Standalone vendored copy (`f:core/only-copy.mjs` whose canonical `f:ext-b/caller.ts` is off-stage) shows `"vendored copy"`, NEVER `"0 vendored copies"`
+    const standaloneCopyCard = w1.find('.tux-map__el[data-id="f:core/only-copy.mjs"]');
+    expect(standaloneCopyCard.find(".tux-map__chip--vendored").text()).toBe("vendored copy");
+
+    // Inspector panel shows `.tux-map__panel-vendored` list, rejects cross-origin `source.url`, and rejects non-integer issue `12.5` (`S7-08`, `S7-10`)
+    expect(w1.find(".tux-map__panel-vendored").text()).toContain("vendor/lib.mjs");
+    const panelSourceHrefs = w1.findAll(".tux-map__panel a.tux-map__source-lnk").map((a) => a.attributes("href"));
+    expect(panelSourceHrefs.some((h) => h?.includes("evil.example"))).toBe(false);
+    const panelIssueHrefs = w1.findAll(".tux-map__panel a.tux-map__issue-lnk").map((a) => a.attributes("href"));
+    expect(panelIssueHrefs.some((h) => h?.endsWith("/issues/12.5"))).toBe(false);
+    expect(panelIssueHrefs).toContain("https://code.tti.tamu.edu/tti/demo/issues/42");
+
+    // Clear selection so outside wires route to `@bound` at rest, then click both the resting `@bound` wire and `@more-in` wire (`P0-1`, `S7-04`)
+    await canonCard.trigger("click");
+    await nextTick();
+    const restingOutWire = w1.find('button.tux-map__lab[data-from="comp-a"][data-to="@bound"]');
+    expect(restingOutWire.exists()).toBe(true);
+    await restingOutWire.trigger("click");
+    await nextTick();
+    const restingPop = w1.find('.tux-map__wire-pop[role="dialog"]');
+    expect(restingPop.exists()).toBe(true);
+    expect(restingPop.find(".tux-map__wire-pop-sum").text()).not.toContain("0 underlying");
+    expect(restingPop.text()).toContain("pkg-a/src/index.ts:9");
+
+    const moreInWire = w1.find('button.tux-map__lab[data-from^="@more-in:"][data-to="@bound"]');
+    expect(moreInWire.exists()).toBe(true);
+    await moreInWire.trigger("click");
+    await nextTick();
+    expect(w1.find('.tux-map__wire-pop[role="dialog"]').text()).toContain("over/o");
+
+    // Click `comp-a` to split it and verify sibling outside disambiguation (`pkg-a/src` vs `pkg-b/src`, `P1-2`), `Fold split (1)`, and `"Fold back into Comp A"`
+    await w1.find('.tux-map__el[data-id="comp-a"]').trigger("click");
+    await nextTick();
+    const outCardTexts = w1.findAll(".tux-map__el--mini").map((el) => el.text());
+    expect(outCardTexts.some((t) => t.includes("pkg-a/src"))).toBe(true);
+    expect(outCardTexts.some((t) => t.includes("pkg-b/src"))).toBe(true);
+    expect(w1.find("button.tux-map__fold-split-btn").text()).toContain("Fold split (1)");
+    await w1.find('.tux-map__el--mini[data-id="f:pkg-a/src/index.ts"]').trigger("click");
+    await nextTick();
+    expect(w1.find(".tux-map__panel").text()).toContain("Fold back into Comp A");
+
+    // Level 5+ Wire Category Filter (`P0-2`): toggling `Prod` off hides `sg.rels` `imports` wire while keeping `tests` wire when `Tests` is toggled on
+    await w1.find('button.tux-map__wire-filter-btn[data-wire-filter="prod"]').trigger("click");
+    await nextTick();
+    expect(
+      w1.find('button.tux-map__lab[data-from="f:core/lib.mjs"][data-to="f:core/only-copy.mjs"]').exists(),
+    ).toBe(false);
+    await w1.find('button.tux-map__wire-filter-btn[data-wire-filter="tests"]').trigger("click");
+    await nextTick();
+    expect(
+      w1.find('button.tux-map__lab[data-from="f:core/lib.mjs"][data-to="f:core/only-copy.mjs"]').exists(),
+    ).toBe(true);
+    w1.unmount();
+
+    // 2. Lazy Outline expand + `Escape` cancels pending lazy zoom (`P0-3`, `P1-1`, `S7-10`)
+    let resolveOutline!: (sg: { stratum: string; elements: { id: string; kind: "file"; name: string }[]; rels: [] }) => void;
+    let resolveZoom!: (sg: { stratum: string; elements: { id: string; kind: "file"; name: string }[]; rels: [] }) => void;
+    let callNum = 0;
+    const lazyResolver = vi.fn(
+      () =>
+        new Promise<{ stratum: string; elements: { id: string; kind: "file"; name: string }[]; rels: [] }>((res) => {
+          callNum += 1;
+          if (callNum === 1) resolveOutline = res;
+          else resolveZoom = res;
+        }),
+    );
+    const lazyModel: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+      level2: { boundary: "sys", elements: [{ id: "c1", kind: "container", name: "C1" }], rels: [] },
+      level3: {
+        c1: [
+          { id: "comp-outline", kind: "component", name: "Outline Lazy", subgraphRef: "sg-outline" },
+          { id: "comp-cancel", kind: "component", name: "Cancel Lazy", subgraphRef: "sg-cancel" },
+        ],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+    };
+    const w2 = await mountSuspended(TuxArchitectureMap, {
+      props: { model: lazyModel, initialLevel: 3, initialFocus: "c1", resolveSubgraph: lazyResolver },
+    });
+    await w2.find("button.tux-map__outline-toggle").trigger("click");
+    await nextTick();
+    const expBtn = w2.find('button.tux-map__outline-exp[aria-label="Expand Outline Lazy"]');
+    expect(expBtn.exists()).toBe(true);
+    await expBtn.trigger("click");
+    await nextTick();
+    expect(lazyResolver).toHaveBeenCalledWith("sg-outline", undefined);
+    resolveOutline({
+      stratum: "Files",
+      elements: [{ id: "f:outline/item.ts", kind: "file", name: "item.ts" }],
+      rels: [],
+    });
+    await Promise.resolve();
+    await nextTick();
+    await nextTick();
+    expect(w2.find('[data-outline-id="f:outline/item.ts"]').exists()).toBe(true);
+
+    // Start zoom on `comp-cancel`, press Escape while in-flight, then resolve -> must STAY at Level 3 (`c1`)!
+    await w2.find('button.tux-map__el-zb[data-zb-for="comp-cancel"]').trigger("click");
+    await nextTick();
+    expect(lazyResolver).toHaveBeenCalledWith("sg-cancel", undefined);
+    await w2.find(".tux-map").trigger("keydown", { key: "Escape" });
+    await nextTick();
+    resolveZoom({
+      stratum: "Files",
+      elements: [{ id: "f:cancel/hijack.ts", kind: "file", name: "hijack.ts" }],
+      rels: [],
+    });
+    await Promise.resolve();
+    await nextTick();
+    await nextTick();
+    expect(w2.find('.tux-map__el[data-id="f:cancel/hijack.ts"]').exists()).toBe(false);
+    expect(w2.find('.tux-map__el[data-id="comp-cancel"]').exists()).toBe(true);
+    w2.unmount();
+
+    // 3. Narrow (`375px`) deep Level 7 breadcrumb `…` overflow collapse (`P1-3`) + aliased bookmark `currentLevel` sync (`P1-4`)
+    const prevInnerW = window.innerWidth;
+    Object.defineProperty(window, "innerWidth", { value: 375, configurable: true });
+    try {
+      const deepFiles = Array.from({ length: 10 }, (_, i) => ({
+        id: `f:deep/f${i}.ts`,
+        kind: "file" as const,
+        name: `f${i}.ts`,
+      }));
+      const deepAndAliasModel: TuxMapLevelModel = {
+        level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+        level2: { boundary: "sys", elements: [{ id: "c1", kind: "container", name: "C1" }], rels: [] },
+        level3: {
+          c1: [
+            { id: "comp-deep", kind: "component", name: "Deep Comp" },
+            { id: "comp-small", kind: "component", name: "Small Comp" },
+          ],
+        },
+        level4: { groups: [], nodes: [], links: [] },
+        subgraphs: {
+          "comp-deep": {
+            stratum: "Folders",
+            elements: [
+              { id: "d:sub1", kind: "folder", name: "sub1/" },
+              { id: "d:peer1", kind: "folder", name: "peer1/" },
+            ],
+            rels: [],
+          },
+          "d:peer1": { stratum: "Files", elements: deepFiles.map((f, i) => ({ ...f, id: `f:p1/${i}.ts` })), rels: [] },
+          "d:sub1": { stratum: "Files", elements: deepFiles, rels: [] },
+          "f:deep/f0.ts": {
+            stratum: "Symbols",
+            elements: [{ id: "fn:deep/f0.ts#run", kind: "function", name: "run()" }],
+            rels: [],
+          },
+          "comp-small": {
+            stratum: "Folders",
+            elements: [{ id: "d:sm/api", kind: "folder", name: "api/" }],
+            rels: [],
+          },
+          "d:sm/api": {
+            stratum: "Files",
+            elements: [{ id: "f:sm/api/routes.ts", kind: "file", name: "routes.ts" }],
+            rels: [],
+          },
+        },
+      };
+
+      const wNarrow = await mountSuspended(TuxArchitectureMap, {
+        props: {
+          model: deepAndAliasModel,
+          initialLevel: 7,
+          initialFocus: "f:deep/f0.ts",
+          eyebrow: "Test",
+          title: "Deep Narrow Map",
+        },
+      });
+      window.dispatchEvent(new Event("resize"));
+      await nextTick();
+      expect(wNarrow.find("button.tux-map__crumb-overflow-btn").exists()).toBe(true);
+      wNarrow.unmount();
+
+      // Bookmark to `d:sm/api` at `initialLevel: 6` -> `d:sm/api` collapsed into `comp-small` (Level 5), so `currentLevel` syncs to `5`!
+      const wAlias = await mountSuspended(TuxArchitectureMap, {
+        props: {
+          model: deepAndAliasModel,
+          initialLevel: 6,
+          initialFocus: "d:sm/api",
+          title: "Alias Map",
+        },
+      });
+      await nextTick();
+      expect(wAlias.find(".tux-map__level-text").text()).toContain("Level 5");
+      wAlias.unmount();
+    } finally {
+      Object.defineProperty(window, "innerWidth", { value: prevInnerW, configurable: true });
+    }
   });
 });
 

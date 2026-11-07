@@ -538,6 +538,9 @@ function parseCliOption(argv, flag) {
 const MAX_MODEL_BYTES = 64 * 1024 * 1024;
 export const MAX_STDIO_BUFFER_BYTES = 16 * 1024 * 1024;
 const MAX_STDIO_HEADER_BYTES = 8 * 1024;
+export const MAX_MCP_TOOL_RESPONSE_BYTES = 256 * 1024;
+const ALLOWED_PROMPT_DIVISIONS = new Set(["maroon", "blue", "teal", "green", "gold"]);
+const SAFE_PROMPT_TOPIC_RE = /^[a-z0-9][a-z0-9 _./,:()&-]{0,120}$/i;
 const normalizedModelCache = new WeakMap();
 const normalizedBaseModelCache = new WeakMap();
 
@@ -622,6 +625,12 @@ function parseOptInt(val, paramName) {
     throw new Error(`Invalid numeric parameter '${paramName}': expected a finite number.`);
   }
   return Math.trunc(num);
+}
+
+function clampOptInt(val, paramName, min, max) {
+  const parsed = parseOptInt(val, paramName);
+  if (parsed === undefined) return undefined;
+  return Math.max(min, Math.min(max, parsed));
 }
 
 function parseOptBool(val, paramName) {
@@ -1271,7 +1280,7 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
       }
       const { queryArchitectureNodes } = requireMapRuntime();
       const compact = parseOptBool(args.compact, "compact") ?? (name === "tux_query_architecture_nodes");
-      const explicitLimit = parseOptInt(args.limit, "limit");
+      const explicitLimit = clampOptInt(args.limit, "limit", 1, 500);
       const res = queryArchitectureNodes(model, {
         level: parseOptInt(args.level, "level"),
         focusId: args.focusId != null && String(args.focusId).trim() !== "" ? String(args.focusId).trim() : undefined,
@@ -1280,8 +1289,8 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
         includePlanned: parseOptBool(args.includePlanned, "includePlanned"),
         includeEdges: parseOptBool(args.includeEdges, "includeEdges"),
         compact,
-        limit: explicitLimit ?? (compact ? 30 : undefined),
-        offset: parseOptInt(args.offset, "offset"),
+        limit: explicitLimit ?? (compact ? 30 : 500),
+        offset: clampOptInt(args.offset, "offset", 0, 1_000_000),
       });
       if (compact && explicitLimit === undefined) {
         while (res.nodes.length > 1 && !fitsMcpWireBudget(res)) {
@@ -1315,10 +1324,10 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
           : [];
       const compact = parseOptBool(args.compact, "compact") ?? true;
       const includeNodes = parseOptBool(args.includeNodes, "includeNodes");
-      const explicitLimit = parseOptInt(args.limit, "limit");
-      const explicitSummaryCap = parseOptInt(args.maxSummaryItems, "maxSummaryItems");
+      const explicitLimit = clampOptInt(args.limit, "limit", 1, 500);
+      const explicitSummaryCap = clampOptInt(args.maxSummaryItems, "maxSummaryItems", 1, 200);
       const res = queryArchitectureImpact(seeds, model, {
-        maxHops: parseOptInt(args.maxHops, "maxHops"),
+        maxHops: clampOptInt(args.maxHops, "maxHops", 0, 256),
         intent: args.intent != null && String(args.intent).trim() !== "" ? String(args.intent).trim() : undefined,
         kinds: Array.isArray(args.kinds) ? args.kinds.map(String) : undefined,
         quietSeedOnly: parseOptBool(args.quietSeedOnly, "quietSeedOnly"),
@@ -1329,9 +1338,9 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
         compact,
         includeNodes,
         omitRedundantDescendants: compact && !includeNodes,
-        maxSummaryItems: explicitSummaryCap ?? (compact && !includeNodes ? 25 : undefined),
-        limit: explicitLimit ?? (compact && !includeNodes ? 100 : undefined),
-        offset: parseOptInt(args.offset, "offset"),
+        maxSummaryItems: explicitSummaryCap ?? (compact && !includeNodes ? 25 : 200),
+        limit: explicitLimit ?? (compact && !includeNodes ? 100 : 500),
+        offset: clampOptInt(args.offset, "offset", 0, 1_000_000),
       });
       if (compact && !includeNodes && explicitLimit === undefined && res && !res.error && Array.isArray(res.hits)) {
         while (
@@ -1393,7 +1402,7 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
         };
       }
       const includeMergedModel = parseOptBool(args.includeMergedModel, "includeMergedModel") ?? false;
-      const explicitMaxItems = parseOptInt(args.maxItems, "maxItems");
+      const explicitMaxItems = clampOptInt(args.maxItems, "maxItems", 1, 200);
       const maxItems = explicitMaxItems ?? (includeMergedModel ? undefined : 30);
       const delta = computeGraphDelta(baseModel, model, {
         includeMergedModel,
@@ -1738,9 +1747,29 @@ export function handleMcpRequest(req, opts = {}) {
       const toolName = params?.name;
       const toolArgs = params?.arguments || {};
       const payload = callTuxMcpTool(toolName, toolArgs, opts);
-      const serialized = ARCHITECTURE_TOOL_NAMES.has(toolName)
+      let serialized = ARCHITECTURE_TOOL_NAMES.has(toolName)
         ? JSON.stringify(payload)
         : JSON.stringify(payload, null, 2);
+      if (Buffer.byteLength(serialized, "utf8") > MAX_MCP_TOOL_RESPONSE_BYTES) {
+        serialized = JSON.stringify({
+          truncated: true,
+          maxBytes: MAX_MCP_TOOL_RESPONSE_BYTES,
+          message: `Response from '${toolName}' exceeded ${MAX_MCP_TOOL_RESPONSE_BYTES} bytes; pass compact: true or a smaller limit/maxItems.`,
+          ...(payload && typeof payload === "object" && !Array.isArray(payload)
+            ? {
+                ...(typeof payload.totalNodeCount === "number"
+                  ? { totalNodeCount: payload.totalNodeCount }
+                  : {}),
+                ...(typeof payload.totalHitCount === "number"
+                  ? { totalHitCount: payload.totalHitCount }
+                  : {}),
+                ...(typeof payload.summary === "string"
+                  ? { summary: payload.summary.slice(0, 1024) }
+                  : {}),
+              }
+            : {}),
+        });
+      }
       return {
         jsonrpc: "2.0",
         id,
@@ -1808,8 +1837,34 @@ export function handleMcpRequest(req, opts = {}) {
 
   if (method === "prompts/get") {
     const promptName = params?.name;
-    const topic = params?.arguments?.topic || "TTI Corridor Telemetry";
-    const division = params?.arguments?.division || "maroon";
+    const rawTopic = params?.arguments?.topic;
+    const rawDivision = params?.arguments?.division;
+    const topic = rawTopic != null && String(rawTopic).trim() !== ""
+      ? String(rawTopic).trim()
+      : "TTI Corridor Telemetry";
+    const division = rawDivision != null && String(rawDivision).trim() !== ""
+      ? String(rawDivision).trim().toLowerCase()
+      : "maroon";
+    if (!ALLOWED_PROMPT_DIVISIONS.has(division)) {
+      return {
+        jsonrpc: "2.0",
+        id,
+        error: {
+          code: -32602,
+          message: "Invalid division: expected one of maroon, blue, teal, green, gold.",
+        },
+      };
+    }
+    if (!SAFE_PROMPT_TOPIC_RE.test(topic)) {
+      return {
+        jsonrpc: "2.0",
+        id,
+        error: {
+          code: -32602,
+          message: "Invalid topic: expected 1..121 safe alphanumeric/punctuation characters.",
+        },
+      };
+    }
     if (promptName === "tux-build-tti-view") {
       return {
         jsonrpc: "2.0",

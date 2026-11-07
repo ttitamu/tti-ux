@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: b5312e992c32e06ce69b4e92ded354460a96e8022195df2d64354f3f80ba63e2
+// SOURCE-SHA256: 7bb260c8ae110c3a3a81586030242f9012f5b30f3da3a0fa3974cc5cbfcc9536
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -980,8 +980,8 @@ export function routeGridWires(rels, rects, els) {
     const paths = [];
     const ports = {};
     for (const rel of rels) {
-        const a = rects[rel.from];
-        const b = rects[rel.to];
+        const a = hasOwn(rects, rel.from) ? rects[rel.from] : undefined;
+        const b = hasOwn(rects, rel.to) ? rects[rel.to] : undefined;
         if (a && b) {
             paths.push({ rel, a, b, s: ["r", "l"], pts: [] });
         }
@@ -1508,7 +1508,9 @@ export function routeDeploymentWires(links, rects, selectedId = "*") {
         xCorridors.push(r.x - 8, r.x + r.w + 8);
         yCorridors.push(r.y - 7, r.y + r.h + 7);
     }
-    const activeLinks = links.filter((r) => rects[r.from] &&
+    const activeLinks = links.filter((r) => hasOwn(rects, r.from) &&
+        hasOwn(rects, r.to) &&
+        rects[r.from] &&
         rects[r.to] &&
         (routeAll || r.from === selectedId || r.to === selectedId));
     const portsBySide = new Map();
@@ -2008,7 +2010,7 @@ const NON_PROD_HOST_COUPLINGS = new Set([
 export function hasOwn(obj, key) {
     return obj != null && Object.prototype.hasOwnProperty.call(obj, key);
 }
-function setOwnProp(obj, key, value) {
+export function setOwnProp(obj, key, value) {
     if (key === "__proto__") {
         Object.defineProperty(obj, key, {
             value,
@@ -2249,9 +2251,19 @@ export function validateMapModel(model) {
     const knownIds = new Set();
     const seenPrimaryIds = new Set();
     const rawEdges = [];
+    const reservedSeen = new Set();
+    const isReservedStageId = (id) => id === "@bound" || id.startsWith("@more-");
     const noteDef = (id, parentId) => {
         if (!id)
             return;
+        if (isReservedStageId(id) && !reservedSeen.has(id)) {
+            reservedSeen.add(id);
+            issues.push({
+                code: "reserved-id",
+                message: `Element id '${id}' collides with reserved internal stage identifier.`,
+                nodeId: id,
+            });
+        }
         knownIds.add(id);
         if (seenPrimaryIds.has(id)) {
             if (!duplicateSet.has(id)) {
@@ -2499,50 +2511,185 @@ export function sanitizeMapModel(raw) {
         return { model: EMPTY_TTI_LEVEL_MODEL, validation };
     }
     const m = raw;
-    let safeSubgraphs = isPlainRecord(m.subgraphs) ? m.subgraphs : undefined;
-    if (safeSubgraphs && validation.cycleIds.length > 0) {
-        const cycleSet = new Set(validation.cycleIds);
-        const seenChild = new Set();
-        const cleaned = {};
-        for (const [k, sg] of Object.entries(safeSubgraphs)) {
+    const cycleSet = new Set(validation.cycleIds);
+    const sanitizeId = (id) => {
+        if (typeof id !== "string" || !id)
+            return "";
+        if (id === "@bound" || id.startsWith("@more-"))
+            return `id:${id}`;
+        return id;
+    };
+    const sanitizeRelEndpoints = (rawList) => asObjArray(rawList)
+        .filter((r) => typeof r.from === "string" && Boolean(r.from) && typeof r.to === "string" && Boolean(r.to))
+        .map((r) => {
+        const nf = sanitizeId(r.from);
+        const nt = sanitizeId(r.to);
+        return nf === r.from && nt === r.to ? r : { ...r, from: nf, to: nt };
+    });
+    const subgraphOwners = collectSubgraphOwners(m);
+    const parentOfAccepted = new Map();
+    const wouldCreateCycle = (childId, ownerId) => {
+        if (!childId || !ownerId)
+            return false;
+        if (childId === ownerId)
+            return true;
+        let cur = ownerId;
+        for (let depth = 0; cur && depth <= MAX_TREE_DEPTH; depth++) {
+            if (cur === childId)
+                return true;
+            cur = parentOfAccepted.get(cur);
+        }
+        return false;
+    };
+    const sanitizeChildElements = (rawEls, ownerId, depth) => {
+        if (depth > MAX_TREE_DEPTH)
+            return [];
+        const out = [];
+        for (const el of asObjArray(rawEls)) {
+            const rawId = typeof el.id === "string" ? el.id : "";
+            const id = sanitizeId(rawId);
+            if (id && ownerId) {
+                if (wouldCreateCycle(id, ownerId))
+                    continue;
+                if (cycleSet.has(id) && parentOfAccepted.has(id))
+                    continue;
+                if (!parentOfAccepted.has(id))
+                    parentOfAccepted.set(id, ownerId);
+            }
+            const hasKids = Array.isArray(el.children);
+            const hasChildRels = Array.isArray(el.childRels);
+            const nextKids = hasKids ? sanitizeChildElements(el.children, id || ownerId, depth + 1) : undefined;
+            const nextChildRels = hasChildRels ? sanitizeRelEndpoints(el.childRels) : undefined;
+            if (id !== rawId || hasKids || hasChildRels) {
+                out.push({
+                    ...el,
+                    ...(id !== rawId ? { id } : {}),
+                    ...(hasKids ? { children: nextKids } : {}),
+                    ...(hasChildRels ? { childRels: nextChildRels } : {}),
+                });
+            }
+            else {
+                out.push(el);
+            }
+        }
+        return out;
+    };
+    const l1Els = sanitizeChildElements(m.level1?.elements, "", 0);
+    for (const e of l1Els) {
+        if (e.id && !parentOfAccepted.has(e.id))
+            parentOfAccepted.set(e.id, "");
+    }
+    const l2Els = [];
+    for (const e of asObjArray(m.level2?.elements)) {
+        const rawId = typeof e.id === "string" ? e.id : "";
+        const id = sanitizeId(rawId);
+        if (!e.ref && id && !parentOfAccepted.has(id)) {
+            parentOfAccepted.set(id, sanitizeId(m.level2?.boundary) || "");
+        }
+        const hasKids = !e.ref && Array.isArray(e.children);
+        const nextKids = hasKids
+            ? sanitizeChildElements(e.children, id, 1)
+            : undefined;
+        if (id !== rawId || hasKids) {
+            l2Els.push({
+                ...e,
+                ...(id !== rawId ? { id } : {}),
+                ...(hasKids ? { children: nextKids } : {}),
+            });
+        }
+        else {
+            l2Els.push(e);
+        }
+    }
+    const safeLevel3 = Object.create(null);
+    if (isPlainRecord(m.level3)) {
+        for (const [rawCid, kids] of Object.entries(m.level3)) {
+            const cid = sanitizeId(rawCid);
+            if (!cid)
+                continue;
+            setOwnProp(safeLevel3, cid, sanitizeChildElements(kids, cid, 1));
+        }
+    }
+    const l4Nodes = [];
+    for (const n of asObjArray(m.level4?.nodes)) {
+        const rawId = typeof n.id === "string" ? n.id : "";
+        const id = sanitizeId(rawId);
+        if (id && !parentOfAccepted.has(id))
+            parentOfAccepted.set(id, sanitizeId(n.group) || "");
+        const hasKids = Array.isArray(n.children);
+        const nextKids = hasKids ? sanitizeChildElements(n.children, id, 1) : undefined;
+        l4Nodes.push(id !== rawId || hasKids
+            ? { ...n, ...(id !== rawId ? { id } : {}), ...(hasKids ? { children: nextKids } : {}) }
+            : n);
+    }
+    let safeSubgraphs;
+    if (isPlainRecord(m.subgraphs)) {
+        const cleaned = Object.create(null);
+        for (const [rawKey, sg] of Object.entries(m.subgraphs)) {
             if (!isPlainRecord(sg))
                 continue;
-            const els = asObjArray(sg.elements).filter((el) => {
-                const id = typeof el.id === "string" ? el.id : "";
-                if (!id)
-                    return true;
-                if (id === k)
-                    return false;
-                if (cycleSet.has(id) && seenChild.has(id))
-                    return false;
-                seenChild.add(id);
-                return true;
+            const key = sanitizeId(rawKey);
+            if (!key)
+                continue;
+            const owner = sanitizeId(subgraphOwners.get(rawKey) ?? rawKey) || key;
+            const els = sanitizeChildElements(sg.elements, owner, 1);
+            const rels = sg.rels !== undefined ? sanitizeRelEndpoints(sg.rels) : undefined;
+            setOwnProp(cleaned, key, {
+                ...sg,
+                elements: els,
+                ...(rels !== undefined ? { rels } : {}),
             });
-            setOwnProp(cleaned, k, { ...sg, elements: els });
         }
         safeSubgraphs = cleaned;
     }
+    let safeAliases;
+    if (isPlainRecord(m.aliases)) {
+        const cleanedAliases = Object.create(null);
+        for (const [ak, av] of Object.entries(m.aliases)) {
+            if (typeof av === "string" && ak && av && ak !== av) {
+                setOwnProp(cleanedAliases, sanitizeId(ak), sanitizeId(av));
+            }
+        }
+        for (const ak of Object.keys(cleanedAliases)) {
+            const seen = new Set([ak]);
+            let cur = cleanedAliases[ak];
+            while (cur && hasOwn(cleanedAliases, cur)) {
+                if (seen.has(cur)) {
+                    delete cleanedAliases[ak];
+                    break;
+                }
+                seen.add(cur);
+                cur = cleanedAliases[cur];
+            }
+        }
+        safeAliases = cleanedAliases;
+    }
+    const safeLinks = Array.isArray(m.links)
+        ? sanitizeRelEndpoints(m.links)
+        : undefined;
     const safeModel = {
         ...m,
         level1: {
             ...(isPlainRecord(m.level1) ? m.level1 : {}),
-            elements: asObjArray(m.level1?.elements),
-            rels: asObjArray(m.level1?.rels),
+            elements: l1Els,
+            rels: sanitizeRelEndpoints(m.level1?.rels),
         },
         level2: {
             ...(isPlainRecord(m.level2) ? m.level2 : {}),
-            boundary: typeof m.level2?.boundary === "string" ? m.level2.boundary : "",
-            elements: asObjArray(m.level2?.elements),
-            rels: asObjArray(m.level2?.rels),
+            boundary: sanitizeId(m.level2?.boundary),
+            elements: l2Els,
+            rels: sanitizeRelEndpoints(m.level2?.rels),
         },
-        level3: isPlainRecord(m.level3) ? m.level3 : {},
+        level3: safeLevel3,
         level4: {
             ...(isPlainRecord(m.level4) ? m.level4 : {}),
             groups: asObjArray(m.level4?.groups),
-            nodes: asObjArray(m.level4?.nodes),
-            links: asObjArray(m.level4?.links),
+            nodes: l4Nodes,
+            links: sanitizeRelEndpoints(m.level4?.links),
         },
         ...(safeSubgraphs ? { subgraphs: safeSubgraphs } : {}),
+        ...(safeAliases ? { aliases: safeAliases } : {}),
+        ...(safeLinks !== undefined ? { links: safeLinks } : {}),
     };
     return { model: safeModel, validation };
 }
@@ -2558,15 +2705,20 @@ function isFolderLikeElement(e) {
     return false;
 }
 export function collapseModelSubgraphs(model, opts = {}) {
-    const aliases = {
-        ...(isPlainRecord(model?.aliases) ? model.aliases : {}),
-    };
+    const aliases = Object.create(null);
+    if (isPlainRecord(model?.aliases)) {
+        for (const [ak, av] of Object.entries(model.aliases)) {
+            if (typeof av === "string" && ak && av && ak !== av) {
+                setOwnProp(aliases, ak, av);
+            }
+        }
+    }
     if (!isPlainRecord(model?.subgraphs)) {
         return { model, aliases };
     }
     const maxSmallFiles = opts.maxSmallComponentFiles ?? 8;
     const origSubgraphs = model.subgraphs;
-    const nextSubgraphs = {};
+    const nextSubgraphs = Object.create(null);
     for (const [k, sg] of Object.entries(origSubgraphs)) {
         if (isPlainRecord(sg)) {
             setOwnProp(nextSubgraphs, k, {
@@ -2576,13 +2728,13 @@ export function collapseModelSubgraphs(model, opts = {}) {
         }
     }
     const collapsedSkipKeys = new Set();
-    const resolveFolderChain = (el) => {
-        if (!isFolderLikeElement(el))
+    const resolveFolderChain = (el, ownerKey) => {
+        if (!isFolderLikeElement(el) || !el.id || el.id === ownerKey)
             return el;
         const names = [(el.name || el.id).replace(/\/+$/, "")];
         const skippedIds = [];
         let curr = el;
-        const seen = new Set([el.id]);
+        const seen = new Set([ownerKey, el.id]);
         for (let depth = 0; depth < MAX_TREE_DEPTH; depth++) {
             const sgKey = curr.subgraphRef || curr.id;
             const sg = hasOwn(nextSubgraphs, sgKey) ? nextSubgraphs[sgKey] : undefined;
@@ -2592,9 +2744,10 @@ export function collapseModelSubgraphs(model, opts = {}) {
             if (!onlyChild?.id || seen.has(onlyChild.id) || !isFolderLikeElement(onlyChild))
                 break;
             const childSgKey = onlyChild.subgraphRef || onlyChild.id;
-            if (!hasOwn(nextSubgraphs, childSgKey))
+            if (seen.has(childSgKey) || !hasOwn(nextSubgraphs, childSgKey))
                 break;
             seen.add(onlyChild.id);
+            seen.add(childSgKey);
             skippedIds.push(curr.id);
             if (curr.subgraphRef)
                 skippedIds.push(curr.subgraphRef);
@@ -2604,8 +2757,10 @@ export function collapseModelSubgraphs(model, opts = {}) {
         if (skippedIds.length === 0)
             return el;
         for (const sid of skippedIds) {
-            setOwnProp(aliases, sid, curr.id);
-            collapsedSkipKeys.add(sid);
+            if (sid !== curr.id) {
+                setOwnProp(aliases, sid, curr.id);
+                collapsedSkipKeys.add(sid);
+            }
         }
         return {
             ...curr,
@@ -2613,7 +2768,7 @@ export function collapseModelSubgraphs(model, opts = {}) {
         };
     };
     for (const [k, sg] of Object.entries(nextSubgraphs)) {
-        sg.elements = sg.elements.map(resolveFolderChain);
+        sg.elements = sg.elements.map((el) => resolveFolderChain(el, k));
         setOwnProp(nextSubgraphs, k, sg);
     }
     for (const sid of collapsedSkipKeys) {
@@ -2641,6 +2796,7 @@ export function collapseModelSubgraphs(model, opts = {}) {
         if (folderKids.length === 0)
             continue;
         const flattened = [];
+        const childFolderRels = [];
         const skippedFolderKeys = [];
         let canFlatten = true;
         const multiFolders = compSg.elements.length > 1;
@@ -2658,6 +2814,9 @@ export function collapseModelSubgraphs(model, opts = {}) {
             skippedFolderKeys.push(item.id);
             if (item.subgraphRef)
                 skippedFolderKeys.push(item.subgraphRef);
+            if (Array.isArray(fSg.rels)) {
+                childFolderRels.push(...asObjArray(fSg.rels));
+            }
             const prefix = (item.name || "").replace(/\/+$/, "");
             for (const fileEl of fSg.elements) {
                 const needsPrefix = multiFolders &&
@@ -2668,13 +2827,18 @@ export function collapseModelSubgraphs(model, opts = {}) {
             }
         }
         if (canFlatten && flattened.length > 0 && flattened.length <= maxSmallFiles) {
+            const skippedSet = new Set(skippedFolderKeys);
+            const keptCompRels = asObjArray(compSg.rels).filter((r) => !skippedSet.has(r.from) && !skippedSet.has(r.to));
+            const mergedRels = [...keptCompRels, ...childFolderRels];
             setOwnProp(nextSubgraphs, compKey, {
                 ...compSg,
                 stratum: compSg.stratum && /\bfolders?\b/i.test(compSg.stratum) ? "Files" : compSg.stratum,
                 elements: flattened,
+                ...(compSg.rels !== undefined || childFolderRels.length > 0 ? { rels: mergedRels } : {}),
             });
             for (const fk of skippedFolderKeys) {
-                setOwnProp(aliases, fk, compKey);
+                if (fk !== compKey)
+                    setOwnProp(aliases, fk, compKey);
                 if (hasOwn(nextSubgraphs, fk))
                     delete nextSubgraphs[fk];
             }
@@ -2683,6 +2847,36 @@ export function collapseModelSubgraphs(model, opts = {}) {
     const changed = Object.keys(aliases).length > 0;
     if (!changed)
         return { model, aliases };
+    const resolveAliasTarget = (id) => {
+        let cur = id;
+        const seen = new Set([cur]);
+        while (hasOwn(aliases, cur) && seen.size < MAX_TREE_DEPTH) {
+            const nxt = aliases[cur];
+            if (!nxt || seen.has(nxt))
+                break;
+            seen.add(nxt);
+            cur = nxt;
+        }
+        return cur;
+    };
+    for (const [k, sg] of Object.entries(nextSubgraphs)) {
+        if (!Array.isArray(sg.rels) || sg.rels.length === 0)
+            continue;
+        const seenPair = new Set();
+        const remappedRels = [];
+        for (const r of asObjArray(sg.rels)) {
+            const from = resolveAliasTarget(r.from);
+            const to = resolveAliasTarget(r.to);
+            if (!from || !to || from === to)
+                continue;
+            const pk = `${from}\u0000${to}`;
+            if (seenPair.has(pk))
+                continue;
+            seenPair.add(pk);
+            remappedRels.push(from === r.from && to === r.to ? r : { ...r, from, to });
+        }
+        setOwnProp(nextSubgraphs, k, { ...sg, rels: remappedRels });
+    }
     return {
         model: {
             ...model,
@@ -2811,10 +3005,21 @@ export function levelForFocus(fid, model, parentOf = buildMapParentIndex(model))
     }
     return 5 + extraDepth;
 }
+function fnvFeedStr(h, s) {
+    let out = h;
+    for (let i = 0; i < s.length; i++) {
+        out = Math.imul(out ^ s.charCodeAt(i), 0x01000193) >>> 0;
+    }
+    return Math.imul(out ^ 0xff, 0x01000193) >>> 0;
+}
 const PARENT_TABLES_CACHE = new WeakMap();
 function getParentTables(parentOf) {
+    let stamp = 0x811c9dc5;
+    for (const [c, p] of parentOf) {
+        stamp = fnvFeedStr(fnvFeedStr(stamp, c), p);
+    }
     const cached = PARENT_TABLES_CACHE.get(parentOf);
-    if (cached && cached.size === parentOf.size)
+    if (cached && cached.size === parentOf.size && cached.stamp === stamp)
         return cached;
     const kidsOf = new Map();
     for (const [c, p] of parentOf) {
@@ -2826,6 +3031,7 @@ function getParentTables(parentOf) {
         arr.push(c);
     }
     const tables = {
+        stamp,
         size: parentOf.size,
         kidsOf,
         ancestorsByNode: new Map(),
@@ -2838,29 +3044,25 @@ function getLinkAdjacency(links) {
     if (!Array.isArray(links)) {
         return {
             len: 0,
-            headFrom: "",
-            headTo: "",
-            tailFrom: "",
-            tailTo: "",
+            stamp: 0,
             validLinks: [],
             into: new Map(),
             outByFrom: new Map(),
         };
     }
     const len = links.length;
-    const first = len > 0 ? links[0] : undefined;
-    const last = len > 0 ? links[len - 1] : undefined;
-    const headFrom = typeof first?.from === "string" ? first.from : "";
-    const headTo = typeof first?.to === "string" ? first.to : "";
-    const tailFrom = typeof last?.from === "string" ? last.from : "";
-    const tailTo = typeof last?.to === "string" ? last.to : "";
+    let stamp = 0x811c9dc5;
+    for (let i = 0; i < len; i++) {
+        const l = links[i];
+        if (!l || typeof l !== "object")
+            continue;
+        stamp = fnvFeedStr(stamp, typeof l.from === "string" ? l.from : "");
+        stamp = fnvFeedStr(stamp, typeof l.to === "string" ? l.to : "");
+        stamp = fnvFeedStr(stamp, typeof l.kind === "string" ? l.kind : "");
+        stamp = Math.imul(stamp ^ (l.stop ? 0x31 : 0x30), 0x01000193) >>> 0;
+    }
     const cached = LINK_ADJACENCY_CACHE.get(links);
-    if (cached &&
-        cached.len === len &&
-        cached.headFrom === headFrom &&
-        cached.headTo === headTo &&
-        cached.tailFrom === tailFrom &&
-        cached.tailTo === tailTo) {
+    if (cached && cached.len === len && cached.stamp === stamp) {
         return cached;
     }
     const validLinks = [];
@@ -2887,10 +3089,7 @@ function getLinkAdjacency(links) {
     }
     const built = {
         len,
-        headFrom,
-        headTo,
-        tailFrom,
-        tailTo,
+        stamp,
         validLinks,
         into,
         outByFrom,
@@ -3308,7 +3507,7 @@ export function liftLinksToView(links, focusId, kidIds, parentOf, opts = {}) {
     };
     flushSideHits(pendingIns, insM);
     flushSideHits(pendingOuts, outsM);
-    const wireDetails = {};
+    const wireDetails = Object.create(null);
     const rels = [...sib.values()].map((r) => {
         const detail = buildWireInspectorDetail(r.from, r.to, r.kinds, r.links);
         setOwnProp(wireDetails, `${r.from}\u0000${r.to}`, detail);
@@ -3365,16 +3564,13 @@ export function liftLinksToView(links, focusId, kidIds, parentOf, opts = {}) {
         moreOutsParts: outsOverflow.reduce((acc, s) => acc + (s.parts ?? 1), 0),
         moreInsLinks: insOverflow.reduce((acc, s) => acc + s.count, 0),
         moreOutsLinks: outsOverflow.reduce((acc, s) => acc + s.count, 0),
+        overflowInIds: insOverflow.map((s) => s.id),
+        overflowOutIds: outsOverflow.map((s) => s.id),
         wireDetails,
     };
 }
-export function foldVendoredCopies(elements, rels, links) {
+export function buildVendoredCopyIndex(links, elKindById) {
     const NON_FOLDABLE_KINDS = new Set(["route", "person", "system", "database", "external"]);
-    const elKindById = new Map();
-    for (const e of asObjArray(elements)) {
-        if (e.id && e.kind)
-            elKindById.set(e.id, e.kind);
-    }
     const safeLinks = asObjArray(links);
     const nonCopyPairs = new Set();
     for (const l of safeLinks) {
@@ -3388,7 +3584,7 @@ export function foldVendoredCopies(elements, rels, links) {
     const isNonFoldableEndpoint = (id) => {
         if (isKindNodeId(id, "r"))
             return true;
-        const ek = elKindById.get(id);
+        const ek = elKindById?.get(id);
         return Boolean(ek && NON_FOLDABLE_KINDS.has(ek));
     };
     const copyToSource = new Map();
@@ -3402,7 +3598,72 @@ export function foldVendoredCopies(elements, rels, links) {
                 copyToSource.set(l.from, l.to);
         }
     }
-    if (copyToSource.size === 0 || elements.length === 0) {
+    const copyToCanonical = new Map();
+    const copiesByCanonical = new Map();
+    if (copyToSource.size === 0) {
+        return { copyToCanonical, copiesByCanonical };
+    }
+    const memo = new Map();
+    const resolveCanonical = (startId) => {
+        const hit = memo.get(startId);
+        if (hit !== undefined)
+            return hit;
+        const trail = [startId];
+        const pos = new Map([[startId, 0]]);
+        let cur = startId;
+        while (copyToSource.has(cur) && trail.length <= MAX_TREE_DEPTH) {
+            const nxt = copyToSource.get(cur);
+            if (memo.has(nxt)) {
+                cur = memo.get(nxt);
+                break;
+            }
+            const cycIdx = pos.get(nxt);
+            if (cycIdx !== undefined) {
+                const cycleMembers = trail.slice(cycIdx);
+                cycleMembers.sort(cmpCodepoint);
+                cur = cycleMembers[0];
+                break;
+            }
+            pos.set(nxt, trail.length);
+            trail.push(nxt);
+            cur = nxt;
+        }
+        for (const tid of trail)
+            memo.set(tid, cur);
+        return cur;
+    };
+    for (const cid of copyToSource.keys()) {
+        const canon = resolveCanonical(cid);
+        if (canon === cid)
+            continue;
+        copyToCanonical.set(cid, canon);
+        let bucket = copiesByCanonical.get(canon);
+        if (!bucket) {
+            bucket = [];
+            copiesByCanonical.set(canon, bucket);
+        }
+        bucket.push(cid);
+    }
+    for (const arr of copiesByCanonical.values())
+        arr.sort(cmpCodepoint);
+    return { copyToCanonical, copiesByCanonical };
+}
+export function foldVendoredCopies(elements, rels, links) {
+    if (elements.length === 0) {
+        return {
+            elements: [],
+            rels: [...rels],
+            links: [...links],
+            foldedToRepresentative: new Map(),
+        };
+    }
+    const elKindById = new Map();
+    for (const e of asObjArray(elements)) {
+        if (e.id && e.kind)
+            elKindById.set(e.id, e.kind);
+    }
+    const { copyToCanonical } = buildVendoredCopyIndex(links, elKindById);
+    if (copyToCanonical.size === 0) {
         return {
             elements: [...elements],
             rels: [...rels],
@@ -3410,58 +3671,66 @@ export function foldVendoredCopies(elements, rels, links) {
             foldedToRepresentative: new Map(),
         };
     }
-    const resolveCanonical = (id) => {
-        let cur = id;
-        const seen = new Set([cur]);
-        while (copyToSource.has(cur) && seen.size < MAX_TREE_DEPTH) {
-            const nxt = copyToSource.get(cur);
-            if (seen.has(nxt))
-                break;
-            seen.add(nxt);
-            cur = nxt;
-        }
-        return cur;
-    };
-    const viewIds = new Set(elements.map((e) => e.id));
-    const repByCanon = new Map();
-    const foldedCopiesByRep = new Map();
-    const foldedToRepresentative = new Map();
+    const viewIds = new Set();
+    const inViewCopiesByCanon = new Map();
     for (const e of elements) {
-        const canon = resolveCanonical(e.id);
-        if (canon === e.id && [...copyToSource.keys()].some((cid) => resolveCanonical(cid) === canon && viewIds.has(cid))) {
-            repByCanon.set(canon, e.id);
-            foldedCopiesByRep.set(e.id, []);
+        viewIds.add(e.id);
+        const canon = copyToCanonical.get(e.id);
+        if (canon && canon !== e.id) {
+            let arr = inViewCopiesByCanon.get(canon);
+            if (!arr) {
+                arr = [];
+                inViewCopiesByCanon.set(canon, arr);
+            }
+            arr.push(e.id);
         }
     }
-    for (const e of elements) {
-        const canon = resolveCanonical(e.id);
-        if (canon === e.id)
-            continue;
-        let rep = repByCanon.get(canon);
-        if (!rep) {
-            rep = e.id;
-            repByCanon.set(canon, rep);
-            foldedCopiesByRep.set(rep, [e.id]);
-        }
-        else {
-            foldedCopiesByRep.get(rep).push(e.id);
-            foldedToRepresentative.set(e.id, rep);
-        }
-    }
-    if (foldedCopiesByRep.size === 0) {
+    if (inViewCopiesByCanon.size === 0) {
         return {
             elements: [...elements],
             rels: [...rels],
             links: [...links],
-            foldedToRepresentative,
+            foldedToRepresentative: new Map(),
         };
+    }
+    const repByCanon = new Map();
+    const foldedCopiesByRep = new Map();
+    const externalCanonByRep = new Map();
+    const foldedToRepresentative = new Map();
+    for (const [canon, inViewCopies] of inViewCopiesByCanon.entries()) {
+        if (viewIds.has(canon)) {
+            repByCanon.set(canon, canon);
+            foldedCopiesByRep.set(canon, inViewCopies);
+            for (const cid of inViewCopies) {
+                foldedToRepresentative.set(cid, canon);
+            }
+        }
+        else {
+            const rep = inViewCopies[0];
+            repByCanon.set(canon, rep);
+            externalCanonByRep.set(rep, canon);
+            const siblingFolded = inViewCopies.slice(1);
+            foldedCopiesByRep.set(rep, siblingFolded);
+            for (const cid of siblingFolded) {
+                foldedToRepresentative.set(cid, rep);
+            }
+        }
     }
     const outElements = [];
     for (const e of elements) {
         if (foldedToRepresentative.has(e.id))
             continue;
+        const extCanon = externalCanonByRep.get(e.id);
         const copies = foldedCopiesByRep.get(e.id);
-        if (copies && copies.length > 0) {
+        if (extCanon) {
+            outElements.push({
+                ...e,
+                isVendoredCopy: true,
+                vendoredFrom: extCanon,
+                ...(copies && copies.length > 0 ? { vendoredCopies: copies } : {}),
+            });
+        }
+        else if (copies && copies.length > 0) {
             outElements.push({
                 ...e,
                 isVendoredCopy: true,
@@ -3536,60 +3805,68 @@ export function traceSpreadingPath(fromId, toId, model, opts = {}) {
     };
     const startSet = expandSubtree(fromId);
     const targetSet = expandSubtree(toId);
-    const allowStopFirst = opts.allowStoppingLastHop ?? true;
-    const visited = new Set(startSet);
-    const prev = new Map();
-    const queue = [...startSet].sort(cmpCodepoint).map((id) => ({ id, depth: 0 }));
-    let hitTarget = null;
-    for (let qi = 0; qi < queue.length; qi++) {
-        const { id: cur, depth } = queue[qi];
-        const outLinks = [...(outByFrom.get(cur) ?? [])].sort(compareBlastLinks);
-        for (const l of outLinks) {
-            const k = l.kind || "uses";
-            if (TUX_MAP_QUIET_LINK_KINDS.has(k))
-                continue;
-            if (l.stop && !(allowStopFirst && depth === 0))
-                continue;
-            const nxt = l.to;
-            if (visited.has(nxt))
-                continue;
-            visited.add(nxt);
-            prev.set(nxt, { prevId: cur, link: l });
-            if (targetSet.has(nxt)) {
-                hitTarget = nxt;
-                break;
+    const allowStopFirst = opts.allowStoppingLastHop ?? false;
+    const runSearch = (permitInitialStop) => {
+        const visited = new Set(startSet);
+        const prev = new Map();
+        const queue = [...startSet].sort(cmpCodepoint).map((id) => ({ id, depth: 0 }));
+        let hitTarget = null;
+        for (let qi = 0; qi < queue.length; qi++) {
+            const { id: cur, depth } = queue[qi];
+            const outLinks = [...(outByFrom.get(cur) ?? [])].sort((a, b) => {
+                const as = a.stop ? 1 : 0;
+                const bs = b.stop ? 1 : 0;
+                if (as !== bs)
+                    return as - bs;
+                return compareBlastLinks(a, b);
+            });
+            for (const l of outLinks) {
+                const k = l.kind || "uses";
+                if (TUX_MAP_QUIET_LINK_KINDS.has(k))
+                    continue;
+                if (l.stop && !(permitInitialStop && depth === 0))
+                    continue;
+                const nxt = l.to;
+                if (visited.has(nxt))
+                    continue;
+                visited.add(nxt);
+                prev.set(nxt, { prevId: cur, link: l });
+                if (targetSet.has(nxt)) {
+                    hitTarget = nxt;
+                    break;
+                }
+                queue.push({ id: nxt, depth: depth + 1 });
             }
-            queue.push({ id: nxt, depth: depth + 1 });
+            if (hitTarget)
+                break;
         }
-        if (hitTarget)
-            break;
-    }
-    if (!hitTarget) {
-        return { found: false, nodeIds: [], hops: [] };
-    }
-    const nodeIds = [hitTarget];
-    const hops = [];
-    let cursor = hitTarget;
-    while (prev.has(cursor)) {
-        const step = prev.get(cursor);
-        const kind = step.link.kind || "uses";
-        hops.unshift({
-            from: step.prevId,
-            to: cursor,
-            kind,
-            label: TUX_MAP_LINK_KIND_LABELS[kind] || step.link.label || kind,
-            ...(step.link.at ? { at: step.link.at } : {}),
-        });
-        nodeIds.unshift(step.prevId);
-        cursor = step.prevId;
-    }
-    if (nodeIds[0] !== fromId && startSet.has(nodeIds[0])) {
-        nodeIds.unshift(fromId);
-    }
-    if (nodeIds[nodeIds.length - 1] !== toId && targetSet.has(nodeIds[nodeIds.length - 1])) {
-        nodeIds.push(toId);
-    }
-    return { found: true, nodeIds, hops };
+        if (!hitTarget)
+            return null;
+        const nodeIds = [hitTarget];
+        const hops = [];
+        let cursor = hitTarget;
+        while (prev.has(cursor)) {
+            const step = prev.get(cursor);
+            const kind = step.link.kind || "uses";
+            hops.unshift({
+                from: step.prevId,
+                to: cursor,
+                kind,
+                label: TUX_MAP_LINK_KIND_LABELS[kind] || step.link.label || kind,
+                ...(step.link.at ? { at: step.link.at } : {}),
+            });
+            nodeIds.unshift(step.prevId);
+            cursor = step.prevId;
+        }
+        if (nodeIds[0] !== fromId && startSet.has(nodeIds[0])) {
+            nodeIds.unshift(fromId);
+        }
+        if (nodeIds[nodeIds.length - 1] !== toId && targetSet.has(nodeIds[nodeIds.length - 1])) {
+            nodeIds.push(toId);
+        }
+        return { found: true, nodeIds, hops };
+    };
+    return runSearch(false) ?? (allowStopFirst ? runSearch(true) : null) ?? { found: false, nodeIds: [], hops: [] };
 }
 function buildHostBridge(model, subgraphOwners = collectSubgraphOwners(model)) {
     const hostsByElement = new Map();
@@ -4839,6 +5116,7 @@ export function normalizeArchitectureModelInput(raw, opts = {}) {
     else {
         normalized = raw;
     }
+    normalized = sanitizeMapModel(normalized).model;
     if (opts.allowEmpty === false) {
         const idx = getMapQueryIndex(normalized);
         if (idx.nodes.size === 0) {
@@ -4962,7 +5240,30 @@ function modelCacheStamp(model) {
         feedStr(l.stop ? "1" : "0");
         feedStr(typeof l.coupling === "string" ? l.coupling : "");
         feedStr(typeof l.phase === "string" ? l.phase : "");
-        feedStr(Array.isArray(l.violations) ? String(l.violations.length) : "0");
+        if (Array.isArray(l.violations)) {
+            feedStr(String(l.violations.length));
+            for (const v of l.violations) {
+                feedStr(typeof v?.rule === "string" ? v.rule : "");
+            }
+        }
+        else {
+            feedStr("0");
+        }
+    }
+    if (Array.isArray(model?.stopKinds)) {
+        feedStr(`#SK:${model.stopKinds.length}`);
+        for (const sk of model.stopKinds) {
+            if (typeof sk === "string")
+                feedStr(sk);
+        }
+    }
+    if (isPlainRecord(model?.aliases)) {
+        const ak = Object.keys(model.aliases);
+        feedStr(`#AL:${ak.length}`);
+        for (const k of ak) {
+            feedStr(k);
+            feedStr(typeof model.aliases[k] === "string" ? model.aliases[k] : "");
+        }
     }
     const routes = asObjArray(model?.routes);
     feedStr(`#RT:${routes.length}`);
