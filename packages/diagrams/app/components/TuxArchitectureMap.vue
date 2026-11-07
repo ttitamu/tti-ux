@@ -9,6 +9,7 @@ import {
   buildLevelModelFromLegacyNodes,
   buildMapParentIndex,
   buildMapSearchIndex,
+  classifyBlastLink,
   cmpCodepoint,
   compareBlastLinks,
   computeLinkBlastRadius,
