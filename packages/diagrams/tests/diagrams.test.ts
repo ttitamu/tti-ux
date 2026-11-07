@@ -2,6 +2,9 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { gzipSync } from "node:zlib";
+import * as esbuild from "esbuild";
+import { compileScript, parse as parseSfc } from "@vue/compiler-sfc";
 import { describe, expect, it, vi } from "vitest";
 import * as publishedMapRuntime from "../runtime/tuxArchitectureMap.mjs";
 import { useTuxMermaid } from "../app/composables/useTuxMermaid";
@@ -49,6 +52,15 @@ import {
   GRID_METRICS,
   buildMapSearchIndex,
   searchArchitectureMap,
+  classifyLinkDependencyCategory,
+  filterLinksByCategories,
+  plainElementKindLabel,
+  resolveModelRawLinks,
+  validateMapModel,
+  sanitizeMapModel,
+  collapseModelSubgraphs,
+  foldVendoredCopies,
+  traceSpreadingPath,
   type TuxMapBlastIntent,
   type TuxMapNode,
   type TuxMapEdge,
@@ -2161,6 +2173,420 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect(routeGroup).toBeDefined();
     expect(routeGroup!.hits[0]?.entry.revealId).toBe("f:bff/ttibff/forge.py");
   });
+
+  it("populates wireDetails with per-kind counts, cutKinds when 3+ kinds exist, and deduplicated violations (#115, #123)", () => {
+    const model: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "System" }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [{ id: "c-app", kind: "container", name: "App" }],
+        rels: [],
+      },
+      level3: {
+        "c-app": [
+          { id: "comp-a", kind: "component", name: "Component A" },
+          { id: "comp-b", kind: "component", name: "Component B" },
+        ],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      links: [
+        { from: "comp-a", to: "comp-b", kind: "imports", at: "src/a.ts:10" },
+        { from: "comp-a", to: "comp-b", kind: "imports", at: "src/a.ts:12" },
+        {
+          from: "comp-a",
+          to: "comp-b",
+          kind: "calls",
+          at: "src/a.ts:44",
+          violations: [
+            {
+              rule: "no-direct-b",
+              message: "Component A must not call Component B directly.",
+              fix: "Route through BAdapter.",
+            },
+          ],
+        },
+        {
+          from: "comp-a",
+          to: "comp-b",
+          kind: "reads",
+          at: "src/a.ts:58",
+          violations: [
+            {
+              rule: "no-direct-b",
+              message: "Component A must not call Component B directly.",
+              fix: "Route through BAdapter.",
+            },
+          ],
+        },
+        { from: "comp-a", to: "comp-b", kind: "tests", stop: true, at: "src/a.spec.ts:9" },
+      ],
+    };
+
+    const parentOf = buildMapParentIndex(model);
+    const extracted = extractModelLinks(model);
+    expect(extracted.find((l) => l.kind === "calls")?.violations?.[0]?.rule).toBe("no-direct-b");
+
+    const lifted = liftLinksToView(extracted, "c-app", ["comp-a", "comp-b"], parentOf);
+    expect(lifted.rels).toHaveLength(1);
+    expect(lifted.rels[0]!.label).toBe("imports, calls");
+    expect(lifted.rels[0]!.violations).toHaveLength(1);
+    expect(lifted.rels[0]!.violations![0]!.rule).toBe("no-direct-b");
+
+    const detail = lifted.wireDetails["comp-a\u0000comp-b"];
+    expect(detail).toBeDefined();
+    expect(detail!.totalCount).toBe(5);
+    expect(detail!.perKindCounts.map((k) => `${k.kind}:${k.count}`)).toEqual([
+      "imports:2",
+      "calls:1",
+      "reads:1",
+      "tests:1",
+    ]);
+    expect(detail!.cutKinds.map((k) => k.kind)).toEqual(["reads", "tests"]);
+    expect(detail!.violations).toHaveLength(1);
+    expect(detail!.links).toHaveLength(5);
+  });
+
+  it("classifies plain element kind labels for folders, files, classes, functions, and routes (#116)", () => {
+    expect(plainElementKindLabel({ id: "d:bff/routes", kind: "folder", name: "routes/" })).toBe("folder");
+    expect(plainElementKindLabel({ id: "m-dir", kind: "module", name: "handlers/" })).toBe("folder");
+    expect(
+      plainElementKindLabel({
+        id: "f:bff/auth.py",
+        kind: "file",
+        name: "auth.py",
+        source: { path: "bff/auth.py" },
+      }),
+    ).toBe("file");
+    expect(plainElementKindLabel({ id: "s:bff/auth.py#AuthService", kind: "symbol", name: "AuthService" })).toBe(
+      "class",
+    );
+    expect(plainElementKindLabel({ id: "s:bff/auth.py#verify_token", kind: "symbol", name: "verify_token()" })).toBe(
+      "function",
+    );
+    expect(plainElementKindLabel({ id: "r:GET /v1/health", kind: "route", name: "GET /v1/health" })).toBe(
+      "HTTP route",
+    );
+  });
+
+  it("lifts outside dependencies by LCA, splits one level on demand, caps at 12 per side preserving 100% link counts, and filters categories (#118)", () => {
+    const extLeaves = Array.from({ length: 15 }, (_, idx) => ({
+      id: `ext-${String(idx).padStart(2, "0")}`,
+      kind: "component" as const,
+      name: `External ${idx}`,
+    }));
+    const model: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "System" }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [
+          { id: "c-core", kind: "container", name: "Core" },
+          { id: "c-worker", kind: "container", name: "Worker" },
+          ...extLeaves.map((e) => ({ id: `ctr-${e.id}`, kind: "container" as const, name: e.name })),
+        ],
+        rels: [],
+      },
+      level3: {
+        "c-core": [{ id: "core-api", kind: "component", name: "Core API" }],
+        "c-worker": [
+          { id: "w-jobs", kind: "component", name: "Jobs" },
+          { id: "w-cron", kind: "component", name: "Cron" },
+        ],
+        ...Object.fromEntries(extLeaves.map((e) => [`ctr-${e.id}`, [e]])),
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      subgraphs: {
+        "core-api": {
+          elements: [
+            { id: "f:core/handler.py", kind: "file", name: "handler.py", source: { path: "core/handler.py" } },
+          ],
+          rels: [],
+        },
+        "w-jobs": {
+          elements: [
+            { id: "f:worker/jobs/a.py", kind: "file", name: "a.py", source: { path: "worker/jobs/a.py" } },
+            { id: "f:worker/jobs/b.py", kind: "file", name: "b.py", source: { path: "worker/jobs/b.py" } },
+          ],
+          rels: [],
+        },
+        "w-cron": {
+          elements: [
+            { id: "f:worker/cron/c.py", kind: "file", name: "c.py", source: { path: "worker/cron/c.py" } },
+          ],
+          rels: [],
+        },
+      },
+      links: [
+        // Multiple leaves inside c-worker depend on f:core/handler.py -> LCA rolls up to `c-worker`!
+        { from: "f:worker/jobs/a.py", to: "f:core/handler.py", kind: "calls" },
+        { from: "f:worker/jobs/b.py", to: "f:core/handler.py", kind: "imports" },
+        { from: "f:worker/cron/c.py", to: "f:core/handler.py", kind: "calls" },
+        // Test, CI, and Docs links
+        { from: "f:tests/test_core.py", to: "f:core/handler.py", kind: "tests", stop: true },
+        { from: "f:.forgejo/workflows/ci.yml", to: "f:core/handler.py", kind: "checks", stop: true },
+        { from: "f:docs/ARCH.md", to: "f:core/handler.py", kind: "mentions", stop: true },
+        // 15 distinct external outgoing dependencies to overflow `maxPerSide: 12`
+        ...extLeaves.map((e) => ({
+          from: "f:core/handler.py",
+          to: e.id,
+          kind: "calls",
+        })),
+      ],
+    };
+
+    // Classify categories
+    const rawLinks = extractModelLinks(model);
+    expect(classifyLinkDependencyCategory(rawLinks[0]!)).toBe("prod");
+    expect(
+      classifyLinkDependencyCategory({
+        from: "f:tests/test_core.py",
+        to: "f:core/handler.py",
+        kind: "tests",
+        stop: true,
+      }),
+    ).toBe("tests");
+    expect(
+      classifyLinkDependencyCategory({
+        from: "f:.forgejo/workflows/ci.yml",
+        to: "f:core/handler.py",
+        kind: "checks",
+        stop: true,
+      }),
+    ).toBe("ci");
+    expect(
+      classifyLinkDependencyCategory({
+        from: "f:docs/ARCH.md",
+        to: "f:core/handler.py",
+        kind: "mentions",
+        stop: true,
+      }),
+    ).toBe("docs");
+    expect(filterLinksByCategories(rawLinks, ["prod"]).every((l) => classifyLinkDependencyCategory(l) === "prod")).toBe(
+      true,
+    );
+
+    const parentOf = buildMapParentIndex(model);
+    const liftedUnSplit = liftLinksToView(rawLinks, "core-api", ["f:core/handler.py"], parentOf, {
+      lift: "lca",
+      categories: ["prod"],
+      maxPerSide: 12,
+    });
+
+    // Incoming 3 leaf files in `c-worker` roll up into 1 splittable `c-worker` card with `parts === 3` and `count === 3`
+    expect(liftedUnSplit.ins).toHaveLength(1);
+    expect(liftedUnSplit.ins[0]!.id).toBe("c-worker");
+    expect(liftedUnSplit.ins[0]!.parts).toBe(3);
+    expect(liftedUnSplit.ins[0]!.count).toBe(3);
+    expect(liftedUnSplit.ins[0]!.splittable).toBe(true);
+
+    // Splitting `c-worker` one level expands to `w-jobs` (2 parts, splittable) and `w-cron` (single leaf -> leaf card `f:worker/cron/c.py`!)
+    const liftedSplit1 = liftLinksToView(rawLinks, "core-api", ["f:core/handler.py"], parentOf, {
+      lift: "lca",
+      splitIds: ["c-worker"],
+      categories: ["prod"],
+      maxPerSide: 12,
+    });
+    expect(liftedSplit1.ins.map((s) => s.id).sort()).toEqual(["f:worker/cron/c.py", "w-jobs"]);
+    const jobsSide = liftedSplit1.ins.find((s) => s.id === "w-jobs")!;
+    expect(jobsSide.parts).toBe(2);
+    expect(jobsSide.splittable).toBe(true);
+
+    // Outgoing 15 targets cap at 12 visible + `moreOuts = 3` (`moreOutsLinks = 3`), preserving 100% of the 15 links
+    expect(liftedUnSplit.outs).toHaveLength(12);
+    expect(liftedUnSplit.moreOuts).toBe(3);
+    expect(liftedUnSplit.moreOutsLinks).toBe(3);
+    const totalOutCount =
+      liftedUnSplit.outs.reduce((acc, s) => acc + s.count, 0) + liftedUnSplit.moreOutsLinks;
+    expect(totalOutCount).toBe(15);
+  });
+
+  it("folds vendored copy cards into their canonical source and deduplicates wires (#121)", () => {
+    const elements: TuxMapLevelElement[] = [
+      { id: "f:pkg/lib.mjs", kind: "file", name: "lib.mjs" },
+      { id: "f:vendor/lib.mjs", kind: "file", name: "vendor/lib.mjs" },
+      { id: "f:app/main.ts", kind: "file", name: "main.ts" },
+    ];
+    const rels: TuxMapLevelRel[] = [
+      { from: "f:app/main.ts", to: "f:pkg/lib.mjs", label: "imports" },
+      { from: "f:app/main.ts", to: "f:vendor/lib.mjs", label: "imports" },
+      { from: "f:vendor/lib.mjs", to: "f:pkg/lib.mjs", label: "copies" },
+    ];
+    const links = [
+      { from: "f:vendor/lib.mjs", to: "f:pkg/lib.mjs", kind: "copies", stop: true },
+      { from: "f:app/main.ts", to: "f:pkg/lib.mjs", kind: "imports" },
+      { from: "f:app/main.ts", to: "f:vendor/lib.mjs", kind: "imports" },
+    ];
+
+    const folded = foldVendoredCopies(elements, rels, links);
+    expect(folded.elements.map((e) => e.id)).toEqual(["f:pkg/lib.mjs", "f:app/main.ts"]);
+    const rep = folded.elements.find((e) => e.id === "f:pkg/lib.mjs")!;
+    expect(rep.isVendoredCopy).toBe(true);
+    expect(rep.vendoredCopies).toEqual(["f:vendor/lib.mjs"]);
+    expect(folded.rels).toHaveLength(1);
+    expect(folded.rels[0]).toMatchObject({ from: "f:app/main.ts", to: "f:pkg/lib.mjs" });
+    expect(folded.foldedToRepresentative.get("f:vendor/lib.mjs")).toBe("f:pkg/lib.mjs");
+  });
+
+  it("validates, sanitizes, and collapses single-child folders & small-component folders without throwing (#124, #126)", () => {
+    expect(validateMapModel(null).valid).toBe(false);
+    expect(sanitizeMapModel("not-an-object").model).toBe(EMPTY_TTI_LEVEL_MODEL);
+
+    // Cyclic + duplicate + missing-level + unknown-endpoint model never throws
+    const cyclicRaw = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [{ from: "sys", to: "ghost" }] },
+      level2: { boundary: "sys", elements: [{ id: "c1", kind: "container", name: "C1" }], rels: [] },
+      level3: { c1: [{ id: "comp1", kind: "component", name: "Comp 1" }] },
+      // level4 intentionally omitted
+      subgraphs: {
+        comp1: { elements: [{ id: "d:a", kind: "folder", name: "a/" }], rels: [] },
+        "d:a": { elements: [{ id: "d:b", kind: "folder", name: "b/" }], rels: [] },
+        "d:b": { elements: [{ id: "d:a", kind: "folder", name: "a/" }], rels: [] },
+      },
+      linkTiers: {
+        spread: [{ from: "d:a", to: "d:b", kind: "imports" }],
+        stop: [{ from: "d:b", to: "d:a", kind: "tests" }],
+      },
+      stopKinds: ["custom-stop"],
+      links: [{ from: "d:a", to: "d:b", kind: "custom-stop" }],
+    };
+
+    const sanitized = sanitizeMapModel(cyclicRaw);
+    expect(sanitized.validation.valid).toBe(false);
+    expect(sanitized.validation.issues.map((i) => i.code)).toEqual(
+      expect.arrayContaining(["missing-level", "parent-cycle", "unknown-rel-end"]),
+    );
+    expect(sanitized.validation.cycleIds).toEqual(expect.arrayContaining(["d:a", "d:b"]));
+    expect(Array.isArray(sanitized.model.level4.nodes)).toBe(true);
+
+    // Verify `resolveModelRawLinks` merges `linkTiers` + `stopKinds`
+    const tiered = resolveModelRawLinks(sanitized.model);
+    expect(tiered.find((l) => l.kind === "imports")?.stop).toBe(false);
+    expect(tiered.find((l) => l.kind === "tests")?.stop).toBe(true);
+    expect(tiered.find((l) => l.kind === "custom-stop")?.stop).toBe(true);
+
+    // Verify `collapseModelSubgraphs`:
+    // 1) `comp-big` has single-child folder chain `d:src -> d:deep -> d:leaf` (with 10 files > 8) -> collapses to `src/deep/leaf/`
+    // 2) `comp-small` has 2 folders with 3 files total (<= 8) -> skips folder stratum and records aliases!
+    const tenFiles = Array.from({ length: 10 }, (_, i) => ({
+      id: `f:big/f${i}.ts`,
+      kind: "file" as const,
+      name: `f${i}.ts`,
+    }));
+    const collapseInput: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+      level2: { boundary: "sys", elements: [{ id: "c1", kind: "container", name: "C1" }], rels: [] },
+      level3: {
+        c1: [
+          { id: "comp-big", kind: "component", name: "Big" },
+          { id: "comp-small", kind: "component", name: "Small" },
+        ],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      subgraphs: {
+        "comp-big": { stratum: "Folders", elements: [{ id: "d:src", kind: "folder", name: "src/" }], rels: [] },
+        "d:src": { stratum: "Folders", elements: [{ id: "d:deep", kind: "folder", name: "deep/" }], rels: [] },
+        "d:deep": { stratum: "Folders", elements: [{ id: "d:leaf", kind: "folder", name: "leaf/" }], rels: [] },
+        "d:leaf": { stratum: "Files", elements: tenFiles, rels: [] },
+        "comp-small": {
+          stratum: "Folders",
+          elements: [
+            { id: "d:sm/api", kind: "folder", name: "api/" },
+            { id: "d:sm/util", kind: "folder", name: "util/" },
+          ],
+          rels: [],
+        },
+        "d:sm/api": {
+          stratum: "Files",
+          elements: [
+            { id: "f:sm/api/routes.ts", kind: "file", name: "routes.ts" },
+            { id: "f:sm/api/auth.ts", kind: "file", name: "auth.ts" },
+          ],
+          rels: [],
+        },
+        "d:sm/util": {
+          stratum: "Files",
+          elements: [{ id: "f:sm/util/hash.ts", kind: "file", name: "hash.ts" }],
+          rels: [],
+        },
+      },
+    };
+
+    const collapsed = collapseModelSubgraphs(collapseInput);
+    const bigKids = collapsed.model.subgraphs!["comp-big"]!.elements;
+    expect(bigKids).toHaveLength(1);
+    expect(bigKids[0]!.id).toBe("d:leaf");
+    expect(bigKids[0]!.name).toBe("src/deep/leaf/");
+    expect(collapsed.aliases["d:src"]).toBe("d:leaf");
+    expect(collapsed.aliases["d:deep"]).toBe("d:leaf");
+
+    const smallSg = collapsed.model.subgraphs!["comp-small"]!;
+    expect(smallSg.stratum).toBe("Files");
+    expect(smallSg.elements.map((e) => e.name)).toEqual(["api/routes.ts", "api/auth.ts", "util/hash.ts"]);
+    expect(collapsed.aliases["d:sm/api"]).toBe("comp-small");
+    expect(collapsed.aliases["d:sm/util"]).toBe("comp-small");
+  });
+
+  it("traces directed shortest spreading paths without leaking across stop-only intermediate hops (#125)", () => {
+    const model: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+      level2: { boundary: "sys", elements: [{ id: "c1", kind: "container", name: "C1" }], rels: [] },
+      level3: {
+        c1: [
+          { id: "n-entry", kind: "component", name: "Entry" },
+          { id: "n-mid", kind: "component", name: "Mid" },
+          { id: "n-test", kind: "component", name: "TestOnly" },
+          { id: "n-db", kind: "component", name: "DB" },
+        ],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      links: [
+        // Stop-only shortcut `n-entry -(tests)-> n-test -(calls)-> n-db` MUST NOT be used as intermediate!
+        { from: "n-entry", to: "n-test", kind: "tests", stop: true },
+        { from: "n-test", to: "n-db", kind: "calls" },
+        // Real spreading path `n-entry -(calls)-> n-mid -(imports)-> n-db`
+        { from: "n-entry", to: "n-mid", kind: "calls", at: "entry.ts:12" },
+        { from: "n-mid", to: "n-db", kind: "imports", at: "mid.ts:4" },
+      ],
+    };
+
+    const trace = traceSpreadingPath("n-entry", "n-db", model);
+    expect(trace.found).toBe(true);
+    expect(trace.nodeIds).toEqual(["n-entry", "n-mid", "n-db"]);
+    expect(trace.hops.map((h) => h.kind)).toEqual(["calls", "imports"]);
+
+    // Reverse direction does not match because `traceSpreadingPath` is strictly directed
+    const reverse = traceSpreadingPath("n-db", "n-entry", model);
+    expect(reverse.found).toBe(false);
+  });
+
+  it("keeps the bundled <TuxArchitectureMap> consumer payload (JS + CSS, gzip-9) under the 96,000 B budget", () => {
+    const pkgRoot = join(__dirname, "..");
+    const vuePath = join(pkgRoot, "app/components/TuxArchitectureMap.vue");
+    const vueSrc = readFileSync(vuePath, "utf8");
+    const { descriptor } = parseSfc(vueSrc, { filename: "TuxArchitectureMap.vue" });
+    const compiled = compileScript(descriptor, { id: "tux-map-budget", inlineTemplate: true });
+
+    const bundled = esbuild.buildSync({
+      stdin: {
+        contents: compiled.content,
+        resolveDir: join(pkgRoot, "app/components"),
+        loader: "ts",
+      },
+      bundle: true,
+      minify: true,
+      format: "esm",
+      external: ["vue"],
+      write: false,
+    });
+    const jsMin = bundled.outputFiles[0]!.text;
+    const cssMin = descriptor.styles
+      .map((s) => esbuild.transformSync(s.content, { loader: "css", minify: true }).code)
+      .join("\n");
+    const gzipBytes = gzipSync(Buffer.from(`${jsMin}\n${cssMin}`), { level: 9 }).byteLength;
+
+    expect(gzipBytes).toBeGreaterThan(30_000);
+    expect(gzipBytes).toBeLessThan(96_000);
+  });
 });
+
 
 

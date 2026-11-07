@@ -3,6 +3,33 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.12.0] — 2026-11-07
+
+### Added & Changed — `<TuxArchitectureMap>` Wayfinding, Wire Inspector, LCA Lifting, Rule Violations, Dense Views & Lazy Subgraphs (#115, #116, #117, #118, #121, #123, #124, #125, #126)
+
+- **On-Screen Wire Key & Interactive Wire Link Inspector (`#115`)**:
+  - Scoped `.tux-map__legend` to link kinds actually present on the current stage using `TUX_MAP_LINK_KIND_LABELS` wording (`li[data-link-kind]`).
+  - Converted `.tux-map__lab` wire labels into keyboard-reachable `<button type="button">` triggers opening an `Escape`-closable Wire Link Inspector (`role="dialog"`) with per-kind counts (`"imports 3 · calls 1"`), `cutKinds` when 3+ kinds exist, clickable `file:line` source sites (`buildSourceHref`), and rule violations.
+- **Plain Wayfinding, Sibling Zoom Badges & Infrastructure State Restore (`#116`)**:
+  - Dropped `"Level N · "` breadcrumb prefixes, global off-screen counts in local summaries, and raw internal kind tokens (`plainElementKindLabel`).
+  - Rendered `.tux-map__el-zb` `+` zoom triggers strictly as sibling `<button>` elements on `.tux-map__stage` (never nested inside `button.tux-map__el`) and only when an element genuinely has an inner view (never falling back to Level 4).
+  - Inherited `"Runs on …"` chips and inspector host links from ancestor containers/components (`selectedInheritedHosts`), restored pre-Level-4 `{ level, focusId, drillStack, selectedId }` on a second `Infrastructure` press, added `.tux-map__el-own` owning-component lines + `"Also in N parts"` chips + disambiguated sibling basenames, and removed the unused `showMinimap` and `collaborators` props.
+- **Keyboard Roving Tabindex, Shortcuts Modal & High-Contrast Wire Cues (`#117`)**:
+  - Added roving `tabindex` + arrow-key navigation across `.tux-map__el` cards, a focus-trapped `?` Keyboard Shortcuts modal, single-announcement `aria-live="off"` inspector updates, guarded single-letter annotation keys, `keepClear` on `initialSelectedId`, and distinct non-colour `stroke-dasharray` / `stroke-width` cues under `@media (forced-colors: active)`.
+- **LCA Outside Lifting, Split-on-Demand & Wire Category Filters (`#118`)**:
+  - Upgraded `liftLinksToView(..., { lift: "lca", splitIds, categories, maxPerSide: 12 })` so views hold at most 24 outside cards (11 + 1 `@more-in` / `@more-out` rollup per side) while counting 100% of links, splitting rolled-up outside cards one level on click (`v-model:splitIds`), aggregating outside wires to `@bound` at rest, and filtering wires across `Prod` (default), `Tests`, `CI`, and `Docs` (`v-model:wireFilters`, `classifyLinkDependencyCategory`, `filterLinksByCategories`).
+- **Folded Vendored Copies (`#121`)**:
+  - Added `foldVendoredCopies` so `copies` edges collapse duplicate vendored copy cards and wires onto their representative card with a `"vendored copy"` chip.
+- **Dependency-Rule Violations (`#123`)**:
+  - Preserved `violations: [{ rule, message, fix }]` across `extractModelLinks` and `liftLinksToView`, styling `.tux-map__wire--violation` (`stroke-dasharray: 2 4` + `⚠`) and surfacing `selectedViolations` with remediation guidance and source links in the inspector panel.
+- **Model Sanitization, Single-Child Folder Collapse & Dense-View Scaling (`#124`)**:
+  - Added non-throwing `validateMapModel`, `sanitizeMapModel`, and `collapseModelSubgraphs` (collapsing single-child folder chains and skipping intermediate folder levels for `<= 8`-file components while recording `aliases` for `#focus=` bookmarks and rendering `.tux-map__diag-note` on cyclic/malformed models).
+  - Grouped `> 24` inner cards into horizontal bands, auto-opened a bounded scrollable list (`max-height: min(72vh, 680px)`) above `denseListThreshold` (`40`), and hid `> 30` wire labels at rest via `opacity: 0; pointer-events: none` (never `display: none`).
+- **Outline Tree Rail, Crumb Switchers, Opt-In Annotations & Directed Path Trace (`#125`)**:
+  - Added sticky desktop `.tux-map__chrome`, breadcrumb sibling dropdown switchers, a collapsible `.tux-map__outline` tree rail, a narrow-width `"More"` toolbar overflow menu, opt-in `annotations?: boolean` (`false` by default; `:annotations="true"` on `/components/architecture-map`), and `"Trace to…"` / `"Path"` directed dependency highlighting (`traceSpreadingPath`, `v-model:traceTarget`).
+- **Lazy Subgraph Loading on Zoom (`#126`)**:
+  - Added `resolveSubgraph?: (id: string, ref?: string) => Promise<TuxMapSubgraph | null>` and `modelRef?: string` (plus `resolveModelRawLinks` `linkTiers` / `stopKinds` support), rendering `aria-busy="true"` and a reduced-motion-safe `.tux-map__el-busy` `"Loading…"` badge while in flight and caching resolved subgraphs across repeat zooms.
+
 ## [3.11.0] — 2026-11-05
 
 ### Added — 8 Domain-Agnostic Telemetry, Rate Schedule, Audit Log & Statement Primitives + `/examples/telemetry-chargeback` (#136)

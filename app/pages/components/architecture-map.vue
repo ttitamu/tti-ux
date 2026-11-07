@@ -15,6 +15,7 @@ const notes = ref<TuxMapStickyNote[]>([]);
 const exampleCode = `<TuxArchitectureMap
   v-model:strokes="strokes"
   v-model:notes="notes"
+  :annotations="true"
   eyebrow="EXHIBIT 1.0 · MASTER ARCHITECTURE PLAN (M.A.P.)"
   title="Enterprise Cloud Platform Topology (Levels 1–6)"
   caption="Scroll the mouse wheel inside the canvas, double-click any card with '+', or use the N+1 stepper (− / +), breadcrumbs, and Infrastructure toggle to zoom across Levels 1–6 (including Level 5 internal modules/schemas and Level 6 AST code symbols). Toggle 'Blast radius' to visualize PR change propagation."
@@ -57,6 +58,7 @@ const exampleCode = `<TuxArchitectureMap
         <TuxArchitectureMap
           v-model:strokes="strokes"
           v-model:notes="notes"
+          :annotations="true"
           eyebrow="EXHIBIT 1.0 · MASTER ARCHITECTURE PLAN (M.A.P.)"
           title="Enterprise Cloud Platform Topology (Levels 1–6)"
           caption="Scroll the mouse wheel inside the canvas, double-click any card with '+', or use the N+1 stepper (− / +), breadcrumbs, and Infrastructure toggle to zoom across Levels 1–6. Toggle 'Blast radius' to inspect PR change impact."

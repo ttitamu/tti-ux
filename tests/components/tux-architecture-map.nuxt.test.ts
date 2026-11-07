@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import { mountSuspended } from "@nuxt/test-utils/runtime";
 import TuxArchitectureMap from "../../packages/diagrams/app/components/TuxArchitectureMap.vue";
@@ -1158,12 +1158,8 @@ describe("TuxArchitectureMap Component", () => {
         attachTo: document.body,
       });
 
-      // Legend displays `HTTP route` and every new link kind in the model
-      const legendText = wrapper.find(".tux-map__legend").text();
-      expect(legendText).toContain("HTTP route");
-      for (const k of newKinds) {
-        expect(wrapper.find(`.tux-map__legend li[data-link-kind="${k}"]`).exists(), `legend entry for ${k}`).toBe(true);
-      }
+      // At Level 2, off-screen `HTTP route` and Level 5 link kinds are NOT in the legend (#115)
+      expect(wrapper.find(".tux-map__legend").text()).not.toContain("HTTP route");
 
       // Open Go-To palette (`/`), search `handle_items`, and hit Enter to reveal & focus the tricky ID
       await wrapper.find(".tux-map__viewport").trigger("keydown", { key: "/" });
@@ -1179,6 +1175,15 @@ describe("TuxArchitectureMap Component", () => {
       expect(wrapper.emitted("update:selectedId")?.at(-1)).toEqual([trickyHandlerId]);
       expect(wrapper.find(".tux-map__panel-title").text()).toContain("handle_items");
       expect((document.activeElement as HTMLElement | null)?.dataset?.id).toBe(trickyHandlerId);
+
+      // Enable all wire categories so prod + tests + ci + docs link kinds are on screen, then check legend (#115, #118, #122)
+      await wrapper.setProps({ wireFilters: ["prod", "tests", "ci", "docs"] });
+      await nextTick();
+      const legendText = wrapper.find(".tux-map__legend").text();
+      expect(legendText).toContain("HTTP route");
+      for (const k of newKinds) {
+        expect(wrapper.find(`.tux-map__legend li[data-link-kind="${k}"]`).exists(), `legend entry for ${k}`).toBe(true);
+      }
 
       // Select the backslash/quote/bracket `route` card directly and verify `"HTTP route"` type label
       const routeCard = wrapper.findAll(".tux-map__el").find((el) => el.attributes("data-id") === trickyRouteId);
@@ -1252,7 +1257,7 @@ describe("TuxArchitectureMap Component", () => {
     const w1 = await navigateToRoutesLevel6();
     const forgeCard1 = w1.find('.tux-map__el[data-id="f:forge.py"]');
     expect(forgeCard1.exists()).toBe(true);
-    const badgeTitle = forgeCard1.find(".tux-map__el-zb").attributes("title") || "";
+    const badgeTitle = w1.find('.tux-map__el-zb[data-zb-for="f:forge.py"]').attributes("title") || "";
     expect(badgeTitle).toContain("Level 6");
     expect(badgeTitle).not.toContain("Level 7");
 
@@ -1509,6 +1514,13 @@ describe("TuxArchitectureMap Component", () => {
     expect(sumText).toContain("62 direct dependents (63 direct links); 63 within 2 steps");
     expect(wrapper.text()).not.toContain("And ");
 
+    // Under LCA lifting (#118), `c-api/routes` rolls up all 62 route files (`63 links`); clicking splits it one level
+    const rolledRoutesCard = wrapper.find('.tux-map__el--mini[data-id="c-api/routes"]');
+    expect(rolledRoutesCard.exists()).toBe(true);
+    expect(rolledRoutesCard.find(".tux-map__chip--links").text()).toBe("63 links");
+    await rolledRoutesCard.trigger("click");
+    await nextTick();
+
     // Outside collaborator cards show link count (`2 links` on ep_00.py), diff/impact badge, and `+N on other levels` strip
     expect(
       wrapper.find('.tux-map__el--mini[data-id="f:bff/routes/ep_00.py"] .tux-map__chip--links').text(),
@@ -1547,6 +1559,531 @@ describe("TuxArchitectureMap Component", () => {
     await nextTick();
     expect(wrapper.find(".tux-map__panel-blast").text()).toContain("AUTH.md");
     expect(await runComponentAxe(wrapper.element)).toEqual([]);
+  });
+
+  // ── #115 & #123: on-screen wire key, interactive wire link inspector & rule violations ──
+  it("scopes the wire legend to on-screen link kinds and opens an accessible Wire Link Inspector with violations (#115, #123)", async () => {
+    const model: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "System" }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [{ id: "c-app", kind: "container", name: "App" }],
+        rels: [],
+      },
+      level3: {
+        "c-app": [
+          { id: "comp-ui", kind: "component", name: "UI Layer" },
+          { id: "comp-db", kind: "component", name: "DB Layer" },
+        ],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      links: [
+        { from: "comp-ui", to: "comp-db", kind: "imports", at: "ui/repo.ts:14" },
+        { from: "comp-ui", to: "comp-db", kind: "imports", at: "ui/repo.ts:19" },
+        {
+          from: "comp-ui",
+          to: "comp-db",
+          kind: "calls",
+          at: "ui/repo.ts:42",
+          violations: [
+            {
+              rule: "no-ui-to-db",
+              message: "UI Layer cannot query DB Layer directly.",
+              fix: "Call DomainService instead.",
+            },
+          ],
+        },
+        { from: "comp-ui", to: "comp-db", kind: "reads", at: "ui/repo.ts:60" },
+      ],
+    };
+
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      attachTo: document.body,
+      props: {
+        model,
+        initialLevel: 3,
+        initialFocus: "c-app",
+        sourceUrlBase: "https://code.tti.tamu.edu/tti/demo/src/branch/main/",
+      },
+    });
+
+    // On-screen-only wire key: includes `imports`, `calls`, `reads`, NOT off-screen kinds like `forks`
+    const legendKinds = wrapper
+      .findAll(".tux-map__legend li[data-link-kind]")
+      .map((li) => li.attributes("data-link-kind"));
+    expect(legendKinds).toEqual(expect.arrayContaining(["imports", "calls", "reads"]));
+    expect(legendKinds).not.toContain("forks");
+
+    // Violation wire class & warning glyph on wire label button
+    expect(wrapper.find(".tux-map__wire--violation").exists()).toBe(true);
+    const wireBtn = wrapper.find('button.tux-map__lab[data-from="comp-ui"][data-to="comp-db"]');
+    expect(wireBtn.exists()).toBe(true);
+    expect(wireBtn.classes()).toContain("tux-map__lab--violation");
+    expect(wireBtn.text()).toContain("⚠");
+
+    // Clicking the wire label opens the Wire Link Inspector dialog
+    await wireBtn.trigger("click");
+    await nextTick();
+    const pop = wrapper.find('.tux-map__wire-pop[role="dialog"]');
+    expect(pop.exists()).toBe(true);
+    expect(pop.find(".tux-map__wire-pop-sum").text()).toContain("2");
+    expect(pop.find(".tux-map__wire-pop-cut").text()).toContain("reads");
+    expect(pop.find(".tux-map__wire-pop-violations").text()).toContain("no-ui-to-db");
+    expect(pop.find(".tux-map__wire-pop-fix").text()).toContain("Call DomainService instead.");
+    const siteLink = pop.find("a.tux-map__wire-pop-at");
+    if (siteLink.exists()) {
+      expect(siteLink.attributes("href")).toContain("ui/repo.ts#L");
+    } else {
+      expect(pop.text()).toContain("ui/repo.ts:");
+    }
+    expect(await runComponentAxe(wrapper.element)).toEqual([]);
+
+    // Escape closes the wire inspector
+    await pop.trigger("keydown", { key: "Escape" });
+    await nextTick();
+    expect(wrapper.find(".tux-map__wire-pop").exists()).toBe(false);
+
+    // Selecting `comp-ui` renders `.tux-map__panel-violations` in the inspector panel
+    await wrapper.find('.tux-map__el[data-id="comp-ui"]').trigger("click");
+    await nextTick();
+    const panelViols = wrapper.find(".tux-map__panel-violations");
+    expect(panelViols.exists()).toBe(true);
+    expect(panelViols.text()).toContain("no-ui-to-db");
+    expect(panelViols.text()).toContain("UI Layer cannot query DB Layer directly.");
+    expect(panelViols.text()).toContain("Fix: Call DomainService instead.");
+    wrapper.unmount();
+  });
+
+  // ── #116: plain crumbs, sibling zoom badges, inherited Runs-on, Infra toggle restore, outside owner & disambiguation ──
+  it("renders plain breadcrumbs, sibling zoom buttons only on zoomable cards, inherited Runs-on, and Infra state restore (#116)", async () => {
+    const model: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "TTI Platform" }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [
+          { id: "c-bff", kind: "container", name: "BFF Gateway", deployed: ["vm-bff"] },
+          { id: "c-wrk", kind: "container", name: "Worker Service" },
+        ],
+        rels: [],
+      },
+      level3: {
+        "c-bff": [
+          { id: "bff-auth", kind: "component", name: "Auth Module" },
+          { id: "bff-leaf", kind: "component", name: "Leaf Component" },
+        ],
+        "c-wrk": [{ id: "wrk-sync", kind: "component", name: "Sync Runner" }],
+      },
+      level4: {
+        groups: [{ id: "rg-prod", zone: "cloud-prod", title: "Prod RG" }],
+        nodes: [{ id: "vm-bff", group: "rg-prod", kind: "vm", title: "vm-bff-01", role: "Gateway VM", hosts: ["c-bff"] }],
+        links: [],
+      },
+      subgraphs: {
+        "bff-auth": {
+          stratum: "Files",
+          elements: [
+            { id: "f:bff/sub1/auth.py", kind: "file", name: "auth.py", source: { path: "bff/sub1/auth.py" } },
+            { id: "f:bff/sub2/auth.py", kind: "file", name: "auth.py", source: { path: "bff/sub2/auth.py" } },
+          ],
+          rels: [],
+        },
+        "wrk-sync": {
+          stratum: "Files",
+          elements: [
+            { id: "f:wrk/runner.py", kind: "file", name: "runner.py", source: { path: "wrk/runner.py" } },
+          ],
+          rels: [],
+        },
+      },
+      links: [
+        { from: "f:wrk/runner.py", to: "f:bff/sub1/auth.py", kind: "calls" },
+      ],
+    };
+
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      attachTo: document.body,
+      props: {
+        model,
+        initialLevel: 3,
+        initialFocus: "c-bff",
+        initialSelectedId: "bff-auth",
+      },
+    });
+
+    // Breadcrumbs omit `"Level N · "` prefixes
+    const crumbsText = wrapper.find(".tux-map__crumbs").text();
+    expect(crumbsText).not.toMatch(/Level\s+\d/);
+
+    // `.tux-map__el-zb` is a sibling on `.tux-map__stage` (NEVER nested inside `button.tux-map__el`)
+    // and ONLY rendered for `bff-auth` (which has a subgraph), NOT `bff-leaf`!
+    expect(wrapper.find("button.tux-map__el button.tux-map__el-zb").exists()).toBe(false);
+    expect(wrapper.find('button.tux-map__el-zb[data-zb-for="bff-auth"]').exists()).toBe(true);
+    expect(wrapper.find('button.tux-map__el-zb[data-zb-for="bff-leaf"]').exists()).toBe(false);
+
+    // Inherited `Runs on` (`c-bff` deployed on `vm-bff-01` -> inherited by child `bff-auth`!)
+    expect(wrapper.find('.tux-map__el[data-id="bff-auth"]').text()).toContain("vm-bff-01");
+    expect(wrapper.find(".tux-map__panel").text()).toContain("Runs on (Level 4)");
+    expect(wrapper.find(".tux-map__panel").text()).toContain("vm-bff-01");
+
+    // Pressing `Infrastructure` jumps to Level 4; pressing `Infrastructure` a second time restores Level 3 + `c-bff` + `bff-auth`!
+    const infraBtn = wrapper
+      .findAll(".tux-map__seg button")
+      .find((b) => b.text().includes("Infrastructure"))!;
+    await infraBtn.trigger("click");
+    await nextTick();
+    expect(infraBtn.attributes("aria-pressed")).toBe("true");
+    await infraBtn.trigger("click");
+    await nextTick();
+    expect(infraBtn.attributes("aria-pressed")).toBe("false");
+    expect(wrapper.find('.tux-map__el[data-id="bff-auth"]').attributes("aria-pressed")).toBe("true");
+
+    // Zoom into `bff-auth` (Level 5): sibling `auth.py` files disambiguate (`sub1/auth.py`, `sub2/auth.py`)
+    // and outside collaborator `runner.py` displays its owning component/container line `.tux-map__el-own`!
+    await wrapper.find('button.tux-map__el-zb[data-zb-for="bff-auth"]').trigger("click");
+    await nextTick();
+    const cardNames = wrapper.findAll(".tux-map__el:not(.tux-map__el--mini) .tux-map__el-nm").map((n) => n.text());
+    expect(cardNames).toEqual(expect.arrayContaining(["sub1/auth.py", "sub2/auth.py"]));
+    const outsideCard = wrapper.find('.tux-map__el--mini[data-id="f:wrk/runner.py"]');
+    expect(outsideCard.exists()).toBe(true);
+    expect(outsideCard.find(".tux-map__el-own").exists()).toBe(true);
+    wrapper.unmount();
+  });
+
+  // ── #117: roving tabindex, ? shortcuts modal, guarded tool keys, aria-live="off" panel, forced-colors ──
+  it("supports arrow-key roving tabindex, ? keyboard shortcuts modal, guarded tool keys, and forced-colors wire cues (#117)", async () => {
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      attachTo: document.body,
+      props: {
+        model: DEFAULT_TTI_LEVEL_MODEL,
+        initialLevel: 2,
+      },
+    });
+
+    // Inspector panel has `aria-live="off"` so only `.tux-map__sr` announces selection changes once
+    expect(wrapper.find(".tux-map__panel").attributes("aria-live")).toBe("off");
+    expect(wrapper.find(".tux-map__level-pill").attributes("aria-live")).toBeUndefined();
+
+    // Roving tabindex across `.tux-map__el`: exactly 1 card has `tabindex="0"`, others `-1`; ArrowRight moves focus
+    const cards = wrapper.findAll("button.tux-map__el");
+    expect(cards.length).toBeGreaterThan(1);
+    expect(cards.filter((c) => c.attributes("tabindex") === "0")).toHaveLength(1);
+    (cards[0]!.element as HTMLButtonElement).focus();
+    await cards[0]!.trigger("keydown", { key: "ArrowRight" });
+    await nextTick();
+    expect(document.activeElement).not.toBe(cards[0]!.element);
+    expect((document.activeElement as HTMLElement)?.classList.contains("tux-map__el")).toBe(true);
+
+    // Single-letter tool keys (`p`, `n`) do NOT activate annotation tools when `annotations` is false or card has focus
+    await cards[0]!.trigger("keydown", { key: "p" });
+    await nextTick();
+    expect(wrapper.find('[aria-label="Annotation tools"]').exists()).toBe(false);
+
+    // `?` button opens Keyboard Shortcuts modal (`axe` clean) and Escape closes & restores focus
+    const helpBtn = wrapper.find("button.tux-map__shortcuts-btn");
+    expect(helpBtn.exists()).toBe(true);
+    (helpBtn.element as HTMLButtonElement).focus();
+    await helpBtn.trigger("click");
+    await nextTick();
+    const dlg = wrapper.find('.tux-map__shortcuts-dialog[role="dialog"]');
+    expect(dlg.exists()).toBe(true);
+    expect(dlg.attributes("aria-modal")).toBe("true");
+
+    await dlg.trigger("keydown", { key: "Escape" });
+    await nextTick();
+    await nextTick();
+    expect(wrapper.find(".tux-map__shortcuts-dialog").exists()).toBe(false);
+    expect(document.activeElement).toBe(helpBtn.element);
+
+    // Re-open to verify 0 axe violations on the open dialog (runComponentAxe detaches wrapper.element on cleanup)
+    await helpBtn.trigger("click");
+    await nextTick();
+    expect(await runComponentAxe(wrapper.element)).toEqual([]);
+
+    // Verify `@media (forced-colors: active)` block defines distinct non-colour stroke cues
+    const forcedIdx = STYLE.indexOf("@media (forced-colors: active)");
+    expect(forcedIdx).toBeGreaterThan(-1);
+    const forcedBlock = blockAt(STYLE, forcedIdx).body;
+    expect(forcedBlock).toContain(".tux-map__wire-fg--blast");
+    expect(forcedBlock).toContain("stroke-dasharray: 10 4");
+    expect(forcedBlock).toContain(".tux-map__wire--violation");
+    expect(forcedBlock).toContain("stroke-dasharray: 2 4");
+    expect(forcedBlock).toContain(".tux-map__wire-fg--trace");
+    wrapper.unmount();
+  });
+
+  // ── #118 & #121: LCA outside splitting, wire category filters & vendored-copy folding ──
+  it("splits LCA-rolled outside cards on click, filters wire categories, and folds vendored copies (#118, #121)", async () => {
+    const model: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [
+          { id: "c-core", kind: "container", name: "Core" },
+          { id: "c-clients", kind: "container", name: "Clients" },
+          { id: "c-qa", kind: "container", name: "QA Suite" },
+        ],
+        rels: [],
+      },
+      level3: {
+        "c-core": [{ id: "core-mod", kind: "component", name: "Core Module" }],
+        "c-clients": [
+          { id: "cli-web", kind: "component", name: "Web Client" },
+          { id: "cli-mob", kind: "component", name: "Mobile Client" },
+        ],
+        "c-qa": [{ id: "qa-e2e", kind: "component", name: "E2E Tests" }],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      subgraphs: {
+        "core-mod": {
+          stratum: "Files",
+          elements: [
+            { id: "f:core/lib.ts", kind: "file", name: "lib.ts", source: { path: "core/lib.ts" } },
+            { id: "f:core/vendor_lib.ts", kind: "file", name: "vendor_lib.ts", source: { path: "core/vendor_lib.ts" } },
+          ],
+          rels: [],
+        },
+        "cli-web": {
+          elements: [{ id: "f:web/app.ts", kind: "file", name: "app.ts", source: { path: "web/app.ts" } }],
+          rels: [],
+        },
+        "cli-mob": {
+          elements: [{ id: "f:mob/app.ts", kind: "file", name: "app.ts", source: { path: "mob/app.ts" } }],
+          rels: [],
+        },
+        "qa-e2e": {
+          elements: [{ id: "f:tests/test_lib.ts", kind: "file", name: "test_lib.ts", source: { path: "tests/test_lib.ts" } }],
+          rels: [],
+        },
+      },
+      links: [
+        { from: "f:core/vendor_lib.ts", to: "f:core/lib.ts", kind: "copies", stop: true },
+        { from: "f:web/app.ts", to: "f:core/lib.ts", kind: "imports" },
+        { from: "f:mob/app.ts", to: "f:core/lib.ts", kind: "calls" },
+        { from: "f:tests/test_lib.ts", to: "f:core/lib.ts", kind: "tests", stop: true },
+      ],
+    };
+
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: {
+        model,
+        initialLevel: 5,
+        initialFocus: "core-mod",
+      },
+    });
+
+    // `#121`: `f:core/vendor_lib.ts` is folded into `f:core/lib.ts` with `"vendored copy"` chip
+    expect(wrapper.find('.tux-map__el[data-id="f:core/vendor_lib.ts"]').exists()).toBe(false);
+    const libCard = wrapper.find('.tux-map__el[data-id="f:core/lib.ts"]');
+    expect(libCard.exists()).toBe(true);
+    expect(libCard.text()).toContain("vendored copy");
+
+    // `#118`: Default wire filter is `Prod` only -> `qa-e2e` / `c-qa` test caller is hidden; `c-clients` LCA card is shown!
+    expect(wrapper.find('.tux-map__el--mini[data-id="c-clients"]').exists()).toBe(true);
+    expect(wrapper.find('.tux-map__el--mini[data-id="f:tests/test_lib.ts"]').exists()).toBe(false);
+
+    // Clicking `c-clients` splits it one level into `f:web/app.ts` and `f:mob/app.ts` and emits `update:splitIds`
+    await wrapper.find('.tux-map__el--mini[data-id="c-clients"]').trigger("click");
+    await nextTick();
+    expect(wrapper.emitted("update:splitIds")?.[0]?.[0]).toEqual(["c-clients"]);
+    expect(wrapper.find('.tux-map__el--mini[data-id="f:web/app.ts"]').exists()).toBe(true);
+    expect(wrapper.find('.tux-map__el--mini[data-id="f:mob/app.ts"]').exists()).toBe(true);
+
+    // Enabling `Tests` wire filter brings in `f:tests/test_lib.ts` and emits `update:wireFilters`
+    const testsFilterBtn = wrapper
+      .findAll("button.tux-map__wire-filter-btn")
+      .find((b) => b.text().includes("Tests"))!;
+    await testsFilterBtn.trigger("click");
+    await nextTick();
+    expect(wrapper.emitted("update:wireFilters")).toBeTruthy();
+    expect(wrapper.find('.tux-map__el--mini[data-id="f:tests/test_lib.ts"]').exists()).toBe(true);
+  });
+
+  // ── #124: non-throwing diagnostics, collapsed folder aliases, >24 bands, >40 auto-list, >30 hidden labels ──
+  it("handles cyclic models without throwing, resolves collapsed aliases, bands >24 cards, auto-lists >40 cards, and hides >30 wire labels via opacity (#124)", async () => {
+    // 1. Cyclic model shows `.tux-map__diag-note` and never throws
+    const cyclicModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+      level2: { boundary: "sys", elements: [{ id: "c1", kind: "container", name: "C1" }], rels: [] },
+      level3: { c1: [{ id: "comp1", kind: "component", name: "Comp 1" }] },
+      level4: { groups: [], nodes: [], links: [] },
+      subgraphs: {
+        comp1: { elements: [{ id: "d:x", kind: "folder", name: "x/" }], rels: [] },
+        "d:x": { elements: [{ id: "d:y", kind: "folder", name: "y/" }], rels: [] },
+        "d:y": { elements: [{ id: "d:x", kind: "folder", name: "x/" }], rels: [] },
+      },
+    } as unknown as TuxMapLevelModel;
+
+    const diagWrap = await mountSuspended(TuxArchitectureMap, {
+      props: { model: cyclicModel, initialLevel: 3, initialFocus: "c1" },
+    });
+    expect(diagWrap.find(".tux-map__diag-note").exists()).toBe(true);
+
+    // 2. 28 cards + 34 wires -> horizontal bands (`.tux-map__bound--band` / multiple `.tux-map__bound`) + `.tux-map__lab--forced` (`opacity: 0`, never `display: none`)
+    const cards28 = Array.from({ length: 28 }, (_, i) => ({
+      id: `f:mod/m${i}.ts`,
+      kind: "file" as const,
+      name: `m${i}.ts`,
+      tech: i < 14 ? "API" : "Worker",
+    }));
+    const rels34 = Array.from({ length: 34 }, (_, i) => ({
+      from: `f:mod/m${i % 28}.ts`,
+      to: `f:mod/m${(i * 3 + 1) % 28}.ts`,
+      label: "imports",
+    })).filter((r) => r.from !== r.to);
+    while (rels34.length < 32) {
+      rels34.push({
+        from: `f:mod/m${rels34.length % 14}.ts`,
+        to: `f:mod/m${14 + (rels34.length % 14)}.ts`,
+        label: "calls",
+      });
+    }
+    const dense28Model: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+      level2: { boundary: "sys", elements: [{ id: "c1", kind: "container", name: "C1" }], rels: [] },
+      level3: { c1: [{ id: "comp-28", kind: "component", name: "Comp 28" }] },
+      level4: { groups: [], nodes: [], links: [] },
+      subgraphs: {
+        "comp-28": { stratum: "Files", elements: cards28, rels: rels34 },
+      },
+    };
+    const dense28Wrap = await mountSuspended(TuxArchitectureMap, {
+      props: { model: dense28Model, initialLevel: 5, initialFocus: "comp-28" },
+    });
+    expect(dense28Wrap.findAll(".tux-map__bound").length).toBeGreaterThan(1);
+    expect(dense28Wrap.findAll("button.tux-map__lab--forced").length).toBeGreaterThan(30);
+    // Forced labels hide via opacity: 0, NEVER display: none
+    expect(values(rulesFor("tux-map__lab--forced"), "display")).not.toContain("none");
+    expect(values(rulesFor("tux-map__lab--forced"), "opacity")).toContain("0");
+
+    // 3. 44 cards (> default `denseListThreshold` of 40) -> auto-opens bounded `.tux-map__list`
+    const cards44 = Array.from({ length: 44 }, (_, i) => ({
+      id: `f:big/item_${i}.ts`,
+      kind: "file" as const,
+      name: `item_${i}.ts`,
+    }));
+    const dense44Model: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+      level2: { boundary: "sys", elements: [{ id: "c1", kind: "container", name: "C1" }], rels: [] },
+      level3: { c1: [{ id: "comp-44", kind: "component", name: "Comp 44" }] },
+      level4: { groups: [], nodes: [], links: [] },
+      subgraphs: {
+        "comp-44": { stratum: "Files", elements: cards44, rels: [] },
+      },
+    };
+    const dense44Wrap = await mountSuspended(TuxArchitectureMap, {
+      props: { model: dense44Model, initialLevel: 5, initialFocus: "comp-44" },
+    });
+    expect(dense44Wrap.find(".tux-map__list").exists()).toBe(true);
+    expect(values(rulesFor("tux-map__list"), "max-height").length).toBeGreaterThan(0);
+  });
+
+  // ── #125 & #126: opt-in annotations, outline rail & crumb switcher, directed path trace & lazy resolveSubgraph ──
+  it("supports opt-in annotations, outline tree rail, crumb sibling switcher, directed Trace to…, and lazy resolveSubgraph (#125, #126)", async () => {
+    let resolvePending!: (sg: { stratum: string; elements: { id: string; kind: "file"; name: string }[]; rels: [] }) => void;
+    const resolveSubgraph = vi.fn(
+      () =>
+        new Promise<{ stratum: string; elements: { id: string; kind: "file"; name: string }[]; rels: [] }>((res) => {
+          resolvePending = res;
+        }),
+    );
+
+    const model: TuxMapLevelModel = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+      level2: {
+        boundary: "sys",
+        elements: [{ id: "c1", kind: "container", name: "Service Container" }],
+        rels: [],
+      },
+      level3: {
+        c1: [
+          { id: "comp-lazy", kind: "component", name: "Lazy Component", subgraphRef: "sg-lazy" },
+          { id: "comp-peer", kind: "component", name: "Peer Component", subgraphRef: "sg-peer" },
+          { id: "comp-sink", kind: "component", name: "Sink Component" },
+        ],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      links: [
+        { from: "comp-lazy", to: "comp-peer", kind: "calls", at: "lazy.ts:8" },
+        { from: "comp-peer", to: "comp-sink", kind: "imports", at: "peer.ts:3" },
+      ],
+    };
+
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: {
+        model,
+        initialLevel: 3,
+        initialFocus: "c1",
+        initialSelectedId: "comp-lazy",
+        annotations: true,
+        modelRef: "abc1234",
+        resolveSubgraph,
+      },
+    });
+
+    // `annotations: true` renders annotation tool buttons
+    expect(wrapper.find('[aria-label="Annotation tools"]').exists()).toBe(true);
+
+    // Collapsible `.tux-map__outline` tree rail opens on toggle
+    await wrapper.find("button.tux-map__outline-toggle").trigger("click");
+    await nextTick();
+    expect(wrapper.find(".tux-map__outline").exists()).toBe(true);
+    expect(wrapper.findAll(".tux-map__outline-item").length).toBeGreaterThan(0);
+
+    // Directed `"Trace to…"` highlights `.tux-map__el--trace` and `.tux-map__wire-fg--trace`
+    const tracePickerBtn = wrapper
+      .findAll(".tux-map__trace-picker button.tux-map__panel-btn")
+      .find((b) => b.text().includes("Trace to"))!;
+    await tracePickerBtn.trigger("click");
+    await nextTick();
+    const sinkOpt = wrapper
+      .findAll("button.tux-map__trace-opt")
+      .find((b) => b.text().includes("Sink Component"))!;
+    await sinkOpt.trigger("click");
+    await nextTick();
+    expect(wrapper.emitted("update:traceTarget")?.[0]?.[0]).toBe("comp-sink");
+    expect(wrapper.find('.tux-map__el--trace[data-id="comp-peer"]').exists()).toBe(true);
+    expect(wrapper.find(".tux-map__wire-fg--trace").exists()).toBe(true);
+
+    // Lazy `resolveSubgraph` (`#126`): `comp-lazy` has `subgraphRef` + `resolveSubgraph` -> zoom badge exists!
+    const lazyZb = wrapper.find('button.tux-map__el-zb[data-zb-for="comp-lazy"]');
+    expect(lazyZb.exists()).toBe(true);
+    await lazyZb.trigger("click");
+    await nextTick();
+
+    // While in flight: `resolveSubgraph("sg-lazy", "abc1234")` called, card has `aria-busy="true"` + `.tux-map__el-busy` `"Loading…"`
+    expect(resolveSubgraph).toHaveBeenCalledTimes(1);
+    expect(resolveSubgraph).toHaveBeenCalledWith("sg-lazy", "abc1234");
+    const lazyCardBusy = wrapper.find('.tux-map__el[data-id="comp-lazy"]');
+    expect(lazyCardBusy.attributes("aria-busy")).toBe("true");
+    expect(lazyCardBusy.find(".tux-map__el-busy").text()).toBe("Loading…");
+
+    // Resolve promise -> map zooms into Level 5 showing `f:lazy/worker.ts`!
+    resolvePending({
+      stratum: "Files",
+      elements: [{ id: "f:lazy/worker.ts", kind: "file", name: "worker.ts" }],
+      rels: [],
+    });
+    await Promise.resolve();
+    await nextTick();
+    await nextTick();
+    expect(wrapper.find('.tux-map__el[data-id="f:lazy/worker.ts"]').exists()).toBe(true);
+
+    // Crumb sibling switcher (`#125`): `Lazy Component` crumb has siblings (`Peer Component`, `Sink Component`)
+    expect(wrapper.find("button.tux-map__crumb-sib-btn").exists()).toBe(true);
+    await wrapper.find("button.tux-map__crumb-sib-btn").trigger("click");
+    await nextTick();
+    expect(wrapper.find(".tux-map__crumb-menu").text()).toContain("Peer Component");
+
+    // Zoom out to `Service Container` (Level 3) and zoom back into `comp-lazy` -> cached, so `resolveSubgraph` is NOT called a second time!
+    await wrapper
+      .findAll("button.tux-map__crumb-btn")
+      .find((b) => b.text() === "Service Container")!
+      .trigger("click");
+    await nextTick();
+    await wrapper.find('button.tux-map__el-zb[data-zb-for="comp-lazy"]').trigger("click");
+    await nextTick();
+    expect(resolveSubgraph).toHaveBeenCalledTimes(1);
+    expect(wrapper.find('.tux-map__el[data-id="f:lazy/worker.ts"]').exists()).toBe(true);
   });
 });
 

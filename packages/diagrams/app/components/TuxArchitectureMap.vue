@@ -6,19 +6,29 @@ import {
   TUX_MAP_ELEMENT_KIND_LABELS,
   TUX_MAP_LINK_KIND_LABELS,
   TUX_MAP_QUIET_LINK_KINDS,
+  TUX_MAP_WIRE_CATEGORIES,
   buildLevelModelFromLegacyNodes,
   buildMapParentIndex,
   buildMapSearchIndex,
   classifyBlastLink,
   cmpCodepoint,
+  collapseModelSubgraphs,
   compareBlastLinks,
   computeLinkBlastRadius,
   extractModelLinks,
+  foldVendoredCopies,
   hasOwn,
+  isKindNodeId,
   levelForFocus as computeLevelForFocus,
   liftLinksToView,
   liftToSet,
   mapAncestorsOf,
+  plainElementKindLabel,
+  resolveModelRawLinks,
+  sanitizeMapModel,
+  splitNodeId,
+  stripNodeKindPrefix,
+  traceSpreadingPath,
   getLaserPointerSvgPath,
   getSmoothedFreehandSvgPath,
   gridCellToPx,
@@ -26,7 +36,6 @@ import {
   routeGridWires,
   searchArchitectureMap,
   type TuxMapBlastIntent,
-  type TuxMapCollaborator,
   type TuxMapDeploymentNode,
   type TuxMapDeploymentZone,
   type TuxMapDiffInfo,
@@ -38,7 +47,9 @@ import {
   type TuxMapLevelModel,
   type TuxMapLevelNumber,
   type TuxMapLevelRel,
+  type TuxMapLiftedSide,
   type TuxMapLink,
+  type TuxMapLinkViolation,
   type TuxMapLoDLevel,
   type TuxMapNode,
   type TuxMapPlacedBoundary,
@@ -50,6 +61,9 @@ import {
   type TuxMapStrokePoint,
   type TuxMapSubgraph,
   type TuxMapTool,
+  type TuxMapTraceResult,
+  type TuxMapWireCategory,
+  type TuxMapWireInspectorDetail,
   type TuxMapZone,
 } from "../utils/tuxArchitectureMap";
 
@@ -90,6 +104,26 @@ export interface TuxArchitectureMapProps {
   initialView?: TuxMapViewMode | "auto";
   /** Viewport width breakpoint (in px) below which `initialView="auto"` starts in `"list"` view */
   autoListBreakpoint?: number;
+  /** Inner card count threshold above which dense views automatically open compact list view (`40` by default; `#124`) */
+  denseListThreshold?: number;
+  /** Controlled expanded LCA outside-card IDs (`v-model:splitIds`; `#118`) */
+  splitIds?: string[];
+  /** Initial expanded LCA outside-card IDs (`#118`) */
+  initialSplitIds?: string[];
+  /** Controlled active wire dependency categories (`v-model:wireFilters`; `#118`) */
+  wireFilters?: TuxMapWireCategory[];
+  /** Initial active wire dependency categories (`["prod"]` by default; `#118`) */
+  initialWireFilters?: TuxMapWireCategory[];
+  /** Controlled directed trace target node ID (`v-model:traceTarget`; `#125`) */
+  traceTarget?: string | null;
+  /** Initial directed trace target node ID (`#125`) */
+  initialTraceTarget?: string | null;
+  /** Whether to show interactive Pen, Laser, and Sticky Note authoring tools in the toolbar (`false` by default; `#125`) */
+  annotations?: boolean;
+  /** Optional lazy subgraph loader invoked on demand when zooming into a card with `subgraphRef` (`#126`) */
+  resolveSubgraph?: (id: string, ref?: string) => Promise<TuxMapSubgraph | null>;
+  /** Optional commit SHA or ref passed as the second argument to `resolveSubgraph(id, modelRef)` (`#126`) */
+  modelRef?: string;
   /** Whether plain mouse wheel over the diagram zooms across levels without requiring Ctrl/Cmd (`true` by default; set `false` to require Ctrl/Cmd + wheel) */
   wheelZoom?: boolean;
   /** Legacy nodes prop (automatically converted into a 4-level model if `model` is omitted) */
@@ -112,16 +146,12 @@ export interface TuxArchitectureMapProps {
   lodMode?: "auto" | TuxMapLoDLevel;
   /** Initial zoom scale compatibility prop */
   initialZoom?: number;
-  /** Multi-user remote collaborator cursors */
-  collaborators?: TuxMapCollaborator[];
   /** Freehand ink strokes */
   strokes?: TuxMapInkStroke[];
   /** Sticky callout notes */
   notes?: TuxMapStickyNote[];
   /** Default ink color */
   penColor?: string;
-  /** Show radar minimap */
-  showMinimap?: boolean;
 }
 
 const props = withDefaults(defineProps<TuxArchitectureMapProps>(), {
@@ -142,6 +172,16 @@ const props = withDefaults(defineProps<TuxArchitectureMapProps>(), {
   view: undefined,
   initialView: "diagram",
   autoListBreakpoint: 760,
+  denseListThreshold: 40,
+  splitIds: undefined,
+  initialSplitIds: () => [],
+  wireFilters: undefined,
+  initialWireFilters: () => ["prod"],
+  traceTarget: undefined,
+  initialTraceTarget: null,
+  annotations: false,
+  resolveSubgraph: undefined,
+  modelRef: undefined,
   wheelZoom: true,
   nodes: () => [],
   edges: () => [],
@@ -153,11 +193,9 @@ const props = withDefaults(defineProps<TuxArchitectureMapProps>(), {
   height: "auto",
   lodMode: "auto",
   initialZoom: 1,
-  collaborators: () => [],
   strokes: () => [],
   notes: () => [],
   penColor: "#5C0025",
-  showMinimap: false,
 });
 
 const emit = defineEmits<{
@@ -168,6 +206,9 @@ const emit = defineEmits<{
   (e: "update:showBlastRadius", showBlastRadius: boolean): void;
   (e: "update:blastIntent", blastIntent: TuxMapBlastIntent): void;
   (e: "update:view", view: TuxMapViewMode): void;
+  (e: "update:splitIds", splitIds: string[]): void;
+  (e: "update:wireFilters", wireFilters: TuxMapWireCategory[]): void;
+  (e: "update:traceTarget", traceTarget: string | null): void;
   (e: "update:lodMode", mode: "auto" | TuxMapLoDLevel): void;
   (e: "node-select", item: TuxMapLevelElement | TuxMapDeploymentNode | TuxMapNode | null): void;
   (e: "drill-down", payload: { level: number; focusId: string; subgraph: TuxMapSubgraph | null }): void;
@@ -180,18 +221,86 @@ const emit = defineEmits<{
 const instanceId = useId();
 const arrowMarkerId = `tux-map-arrow-${instanceId}`;
 const goToListboxId = `tux-map-goto-listbox-${instanceId}`;
+const wireInspectorId = `tux-map-wire-pop-${instanceId}`;
 
 // ============================================================================
 // 1. RESOLVED 4-LEVEL + FRACTAL N-DEPTH MODEL & LOOKUP MAPS
 // ============================================================================
 
-const activeModel = computed<TuxMapLevelModel>(() => {
-  if (props.model) return props.model;
-  if (props.nodes && props.nodes.length > 0) {
-    return buildLevelModelFromLegacyNodes(props.nodes, props.edges, props.zones);
-  }
-  return EMPTY_TTI_LEVEL_MODEL;
+const resolvedSubgraphs = ref<Record<string, TuxMapSubgraph>>({});
+const loadingSubgraphId = ref<string | null>(null);
+let resolveReqSeq = 0;
+
+watch([() => props.model, () => props.modelRef], () => {
+  resolvedSubgraphs.value = {};
+  loadingSubgraphId.value = null;
+  resolveReqSeq++;
 });
+
+const modelBundle = computed(() => {
+  const rawInput =
+    props.model !== undefined
+      ? props.model
+      : props.nodes && props.nodes.length > 0
+        ? buildLevelModelFromLegacyNodes(props.nodes, props.edges, props.zones)
+        : EMPTY_TTI_LEVEL_MODEL;
+  const sanitized = sanitizeMapModel(rawInput);
+  const lazyKeys = Object.keys(resolvedSubgraphs.value);
+  const withLazy: TuxMapLevelModel =
+    lazyKeys.length > 0
+      ? {
+          ...sanitized.model,
+          subgraphs: {
+            ...(sanitized.model.subgraphs || {}),
+            ...resolvedSubgraphs.value,
+          },
+        }
+      : sanitized.model;
+  const collapsed = collapseModelSubgraphs(withLazy);
+  return {
+    model: collapsed.model,
+    aliases: collapsed.aliases,
+    validation: sanitized.validation,
+  };
+});
+
+const activeModel = computed<TuxMapLevelModel>(() => modelBundle.value.model);
+const modelAliases = computed<Record<string, string>>(() => modelBundle.value.aliases);
+const modelValidationSummary = computed<string>(() => {
+  if (props.model === undefined) return "";
+  const v = modelBundle.value.validation;
+  const critical = v.issues.filter(
+    (i) =>
+      i.code === "parent-cycle" ||
+      i.code === "duplicate-id" ||
+      i.code === "missing-level" ||
+      i.code === "max-depth-exceeded",
+  );
+  if (critical.length === 0) return "";
+  return `Model diagnostics: ${critical.length} structural issue${critical.length === 1 ? "" : "s"} sanitized (${critical[0]!.message})`;
+});
+
+const emptyResolvedSubgraphs = ref<Record<string, boolean>>({});
+watch([() => props.model, () => props.modelRef], () => {
+  emptyResolvedSubgraphs.value = {};
+});
+
+function resolveAliasId(id: string | null | undefined): string | null {
+  if (!id) return null;
+  const collapsedMap = modelAliases.value;
+  const explicitMap = activeModel.value.aliases;
+  let cur = id;
+  const seen = new Set<string>([cur]);
+  while (seen.size < 32) {
+    const next =
+      (hasOwn(collapsedMap, cur) ? collapsedMap[cur] : undefined) ||
+      (explicitMap && hasOwn(explicitMap, cur) ? explicitMap[cur] : undefined);
+    if (!next || next === cur || seen.has(next)) break;
+    seen.add(next);
+    cur = next;
+  }
+  return cur;
+}
 
 function resolveInitialIsListView(): boolean {
   // "auto" starts as the diagram on the server and in the browser alike, and switches after mount
@@ -208,11 +317,25 @@ function applyAutoListView() {
 }
 
 const currentLevel = ref<TuxMapLevelNumber>(props.level ?? props.initialLevel);
-const focusId = ref<string | null>(props.focus !== undefined ? props.focus : props.initialFocus);
-const drillStack = ref<{ level: number; focusId: string }[]>([]);
-const selectedId = ref<string | null>(
-  props.selectedId !== undefined ? props.selectedId : props.initialSelectedId,
+const rawInitFocus = props.focus !== undefined ? props.focus : props.initialFocus;
+const focusId = ref<string | null>(
+  rawInitFocus ? resolveAliasId(rawInitFocus) ?? rawInitFocus : rawInitFocus,
 );
+const drillStack = ref<{ level: number; focusId: string }[]>([]);
+const rawInitSelected = props.selectedId !== undefined ? props.selectedId : props.initialSelectedId;
+const selectedId = ref<string | null>(
+  rawInitSelected ? resolveAliasId(rawInitSelected) ?? rawInitSelected : rawInitSelected,
+);
+watch(modelAliases, () => {
+  if (focusId.value) {
+    const rf = resolveAliasId(focusId.value);
+    if (rf && rf !== focusId.value) focusId.value = rf;
+  }
+  if (selectedId.value) {
+    const rs = resolveAliasId(selectedId.value);
+    if (rs && rs !== selectedId.value) selectedId.value = rs;
+  }
+});
 const showPlanned = ref<boolean>(
   props.showPlanned !== undefined ? props.showPlanned : props.initialShowPlanned,
 );
@@ -223,8 +346,65 @@ const blastIntent = ref<TuxMapBlastIntent>(
   props.blastIntent !== undefined ? props.blastIntent : props.initialBlastIntent,
 );
 const isListView = ref<boolean>(resolveInitialIsListView());
+const userForcedView = ref<boolean>(props.view !== undefined || props.initialView === "list");
+const localSplitIds = ref<string[]>(
+  props.splitIds !== undefined ? [...props.splitIds] : [...props.initialSplitIds],
+);
+const localWireFilters = ref<TuxMapWireCategory[]>(
+  props.wireFilters !== undefined ? [...props.wireFilters] : [...props.initialWireFilters],
+);
+const localTraceTarget = ref<string | null>(
+  props.traceTarget !== undefined ? props.traceTarget : props.initialTraceTarget,
+);
+const outlineOpen = ref<boolean>(false);
+const expandedOutlineIds = ref<Record<string, boolean>>({});
+const moreMenuOpen = ref<boolean>(false);
+const shortcutsOpen = ref<boolean>(false);
+const openCrumbMenuIdx = ref<number | null>(null);
+const inspectedWireKey = ref<string | null>(null);
+const rovingCardId = ref<string | null>(null);
+const hoveredStageCardId = ref<string | null>(null);
+const tracePickerOpen = ref<boolean>(false);
+const traceQuery = ref<string>("");
+const preInfraState = ref<{
+  level: TuxMapLevelNumber;
+  focusId: string | null;
+  drillStack: { level: number; focusId: string }[];
+  selectedId: string | null;
+} | null>(null);
 const searchQuery = ref<string>("");
 const liveAnnouncement = ref<string>("");
+
+const effectiveSplitSet = computed<Set<string>>(() => new Set(localSplitIds.value));
+const activeWireCategoriesSet = computed<Set<TuxMapWireCategory>>(
+  () => new Set(localWireFilters.value),
+);
+
+function toggleSplitCard(id: string) {
+  const next = new Set(localSplitIds.value);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  const arr = [...next];
+  localSplitIds.value = arr;
+  emit("update:splitIds", arr);
+}
+
+function toggleWireCategory(cat: TuxMapWireCategory) {
+  const next = new Set(localWireFilters.value);
+  if (next.has(cat)) {
+    next.delete(cat);
+  } else {
+    next.add(cat);
+  }
+  const ordered = TUX_MAP_WIRE_CATEGORIES.filter((c) => next.has(c));
+  localWireFilters.value = ordered;
+  emit("update:wireFilters", ordered);
+}
+
+function setTraceTarget(targetId: string | null) {
+  localTraceTarget.value = targetId;
+  emit("update:traceTarget", targetId);
+}
 
 // A live region reads a change, and the same message twice is no change: clear it,
 // then set it a moment later, so a key pressed again is answered again
@@ -250,18 +430,24 @@ watch(
 watch(
   () => props.focus,
   (f) => {
-    if (f !== undefined && f !== focusId.value) {
-      focusId.value = f;
-      // a parent moved the focus: the stack zooming in would have built, so zooming out works
-      drillStack.value = currentLevel.value >= 5 && f ? drillStackFor(f) : [];
+    if (f !== undefined) {
+      const resolved = resolveAliasId(f) ?? f;
+      if (resolved !== focusId.value) {
+        focusId.value = resolved;
+        // a parent moved the focus: the stack zooming in would have built, so zooming out works
+        drillStack.value = currentLevel.value >= 5 && resolved ? drillStackFor(resolved) : [];
+      }
     }
   },
 );
 watch(
   () => props.selectedId,
   (sel) => {
-    if (sel !== undefined && sel !== selectedId.value) {
-      selectedId.value = sel;
+    if (sel !== undefined) {
+      const resolved = sel ? resolveAliasId(sel) ?? sel : null;
+      if (resolved !== selectedId.value) {
+        selectedId.value = resolved;
+      }
     }
   },
 );
@@ -293,6 +479,7 @@ watch(
   () => props.view,
   (v) => {
     if (v !== undefined) {
+      userForcedView.value = true;
       const wantList = v === "list";
       if (wantList !== isListView.value) {
         isListView.value = wantList;
@@ -300,6 +487,39 @@ watch(
     }
   },
 );
+watch(
+  () => props.splitIds,
+  (ids) => {
+    if (ids !== undefined) {
+      localSplitIds.value = [...ids];
+    }
+  },
+);
+watch(
+  () => props.wireFilters,
+  (wf) => {
+    if (wf !== undefined) {
+      localWireFilters.value = [...wf];
+    }
+  },
+);
+watch(
+  () => props.traceTarget,
+  (tt) => {
+    if (tt !== undefined && tt !== localTraceTarget.value) {
+      localTraceTarget.value = tt;
+    }
+  },
+);
+
+watch([currentLevel, focusId], () => {
+  inspectedWireKey.value = null;
+  openCrumbMenuIdx.value = null;
+  hoveredStageCardId.value = null;
+  if (props.view === undefined && props.initialView !== "list") {
+    userForcedView.value = false;
+  }
+});
 
 // Emit v-model updates when internal state changes
 watch(focusId, (f) => {
@@ -338,11 +558,12 @@ watch(
 
 function getSubgraphForNode(nodeId: string | null | undefined): TuxMapSubgraph | null {
   if (!nodeId) return null;
+  const canonical = resolveAliasId(nodeId) ?? nodeId;
   const M = activeModel.value;
-  if (hasOwn(M.subgraphs, nodeId) && M.subgraphs![nodeId]!.elements.length > 0) {
-    return M.subgraphs![nodeId]!;
+  if (hasOwn(M.subgraphs, canonical) && M.subgraphs![canonical]!.elements.length > 0) {
+    return M.subgraphs![canonical]!;
   }
-  const el = hasOwn(byId.value, nodeId) ? byId.value[nodeId] : undefined;
+  const el = hasOwn(byId.value, canonical) ? byId.value[canonical] : undefined;
   if (
     el?.subgraphRef &&
     hasOwn(M.subgraphs, el.subgraphRef) &&
@@ -357,7 +578,7 @@ function getSubgraphForNode(nodeId: string | null | undefined): TuxMapSubgraph |
       rels: el.childRels,
     };
   }
-  const dn = hasOwn(resById.value, nodeId) ? resById.value[nodeId] : undefined;
+  const dn = hasOwn(resById.value, canonical) ? resById.value[canonical] : undefined;
   if (
     dn?.subgraphRef &&
     hasOwn(M.subgraphs, dn.subgraphRef) &&
@@ -442,8 +663,93 @@ function drillStackFor(fid: string): { level: number; focusId: string }[] {
     .filter((e) => e.level >= 3);
 }
 
-// opened below Level 4 (a deep link): the stack zooming in would have built, so zooming out works
-if (currentLevel.value >= 5 && focusId.value) drillStack.value = drillStackFor(focusId.value);
+function hasLazySubgraphRef(id: string): boolean {
+  if (typeof props.resolveSubgraph !== "function") return false;
+  if (emptyResolvedSubgraphs.value[id]) return false;
+  const M = activeModel.value;
+  if (hasOwn(M.subgraphs, id) && M.subgraphs![id]!.elements.length > 0) return false;
+  const el = byId.value[id];
+  if (el?.subgraphRef) {
+    if (hasOwn(M.subgraphs, el.subgraphRef) && M.subgraphs![el.subgraphRef]!.elements.length > 0) {
+      return false;
+    }
+    return true;
+  }
+  const dn = resById.value[id];
+  if (dn?.subgraphRef) {
+    if (hasOwn(M.subgraphs, dn.subgraphRef) && M.subgraphs![dn.subgraphRef]!.elements.length > 0) {
+      return false;
+    }
+    return true;
+  }
+  return false;
+}
+
+function hasFractalSubgraph(id: string): boolean {
+  const M = activeModel.value;
+  if (hasOwn(M.subgraphs, id) && M.subgraphs![id]!.elements.length > 0) return true;
+  const el = byId.value[id];
+  if (el) {
+    if (el.children?.length) return true;
+    if (
+      el.subgraphRef &&
+      hasOwn(M.subgraphs, el.subgraphRef) &&
+      M.subgraphs![el.subgraphRef]!.elements.length > 0
+    ) {
+      return true;
+    }
+  }
+  const dn = resById.value[id];
+  if (dn) {
+    if (dn.children?.length) return true;
+    if (
+      dn.subgraphRef &&
+      hasOwn(M.subgraphs, dn.subgraphRef) &&
+      M.subgraphs![dn.subgraphRef]!.elements.length > 0
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Ensure focusId & selectedId resolve collapsed folder aliases and stay valid for activeModel
+watch(
+  [activeModel, modelAliases],
+  ([m]) => {
+    if (focusId.value) {
+      const aliasedFocus = resolveAliasId(focusId.value);
+      if (aliasedFocus && aliasedFocus !== focusId.value) {
+        focusId.value = aliasedFocus;
+        if (currentLevel.value >= 5) {
+          currentLevel.value = levelForFocus(aliasedFocus) as TuxMapLevelNumber;
+        }
+      }
+    }
+    if (selectedId.value) {
+      const aliasedSel = resolveAliasId(selectedId.value);
+      if (aliasedSel && aliasedSel !== selectedId.value) {
+        selectedId.value = aliasedSel;
+      }
+    }
+    const f = focusId.value;
+    const validFocus =
+      Boolean(f) &&
+      (hasOwn(m.level3, f!) ||
+        hasFractalSubgraph(f!) ||
+        hasLazySubgraphRef(f!));
+    if (!validFocus) {
+      const firstContainer = m.level2.elements.find(
+        (e) => !e.ref && (hasOwn(m.level3, e.id) ? (m.level3[e.id]?.length ?? 0) : 0) > 0,
+      );
+      focusId.value = firstContainer?.id ?? null;
+    }
+    if (currentLevel.value >= 5 && focusId.value) {
+      drillStack.value = drillStackFor(focusId.value);
+    }
+  },
+  { immediate: true },
+);
 
 // The deepest level this model really has: each element with something inside opens at
 // levelForFocus(id), so the count follows the nesting, not how the subgraphs are named.
@@ -451,29 +757,14 @@ if (currentLevel.value >= 5 && focusId.value) drillStack.value = drillStackFor(f
 const modelDepth = computed<number>(() => {
   let max = 4;
   for (const id of [...Object.keys(byId.value), ...Object.keys(resById.value)]) {
-    if (hasFractalSubgraph(id)) max = Math.max(max, Math.max(5, levelForFocus(id)));
+    if (hasFractalSubgraph(id) || hasLazySubgraphRef(id)) {
+      max = Math.max(max, Math.max(5, levelForFocus(id)));
+    }
   }
   return max;
 });
 
 const maxAvailableLevel = computed<number>(() => Math.max(modelDepth.value, currentLevel.value));
-
-// Ensure focusId is always valid for the active model
-watch(
-  activeModel,
-  (m) => {
-    if (
-      !focusId.value ||
-      (!hasOwn(m.level3, focusId.value) && !hasOwn(m.subgraphs, focusId.value))
-    ) {
-      const firstContainer = m.level2.elements.find(
-        (e) => !e.ref && (hasOwn(m.level3, e.id) ? (m.level3[e.id]?.length ?? 0) : 0) > 0,
-      );
-      focusId.value = firstContainer?.id ?? null;
-    }
-  },
-  { immediate: true },
-);
 
 // ============================================================================
 // 2. LEVEL VIEW COMPUTATION (LEVEL 1..N) & RIGHT-ANGLE WIRE ROUTING
@@ -498,32 +789,101 @@ function isShownStatus(status?: string): boolean {
   return showPlanned.value || status !== "planned";
 }
 
-function hasFractalSubgraph(id: string): boolean {
-  const M = activeModel.value;
-  if (hasOwn(M.subgraphs, id) && M.subgraphs![id]!.elements.length > 0) return true;
-  const el = byId.value[id];
-  if (el && (el.children?.length || el.subgraphRef)) return true;
-  const dn = resById.value[id];
-  if (dn && (dn.children?.length || dn.subgraphRef)) return true;
-  return false;
+function hasPrimaryLevel2Interior(): boolean {
+  return activeModel.value.level2.elements.some((x) => !x.ref);
 }
 
 function canZoomElement(e: TuxMapLevelElement): boolean {
-  if (hasFractalSubgraph(e.id)) return true;
-  if (currentLevel.value === 1) return e.zoom === 2 || e.kind === "system";
+  if (e.id.startsWith("@more-")) return false;
+  if (hasFractalSubgraph(e.id) || hasLazySubgraphRef(e.id)) return true;
+  if (currentLevel.value === 1) {
+    return (
+      e.zoom === 2 ||
+      (e.id === activeModel.value.level2.boundary && hasPrimaryLevel2Interior())
+    );
+  }
   if (currentLevel.value === 2) {
     return !e.ref && (activeModel.value.level3[e.id]?.length ?? 0) > 0;
   }
-  if (currentLevel.value === 3) {
-    return !e.mini && activeModel.value.level4.nodes.length > 0;
-  }
-  // Below Level 4 only something inside opens (the subgraph check above): a card that is
-  // merely deployed somewhere has no level inside it, and its '+' led nowhere
+  // At Level 3 and below, ONLY cards with real inner subgraph/lazy children show `+` (#116):
+  // never fall back to Level 4 just because deployment nodes exist in the model.
   return false;
 }
 
 function canZoomDeployNode(n: TuxMapDeploymentNode): boolean {
-  return hasFractalSubgraph(n.id);
+  return hasFractalSubgraph(n.id) || hasLazySubgraphRef(n.id);
+}
+
+function middleEllipsizeFolderName(name: string, kind?: string, id?: string, maxLen = 28): string {
+  const isFolderLike =
+    kind === "folder" ||
+    (id ? isKindNodeId(id, "d") : false) ||
+    (name.includes("/") && !name.includes(" "));
+  if (!isFolderLike || name.length <= maxLen) return name;
+  const parts = name.split("/").filter(Boolean);
+  if (parts.length >= 2) {
+    const head = parts[0]!;
+    const tail = parts[parts.length - 1]!;
+    if (head.length + tail.length + 3 <= maxLen) {
+      return `${head}/…/${tail}`;
+    }
+  }
+  const keep = Math.max(4, Math.floor((maxLen - 1) / 2));
+  return `${name.slice(0, keep)}…${name.slice(name.length - keep)}`;
+}
+
+// Tracks how many distinct Level 3 components share files from a given directory prefix (#116: "Also in N parts")
+const sharedDirectoryPartsMap = computed<Map<string, Set<string>>>(() => {
+  const M = activeModel.value;
+  const l3Set = new Set<string>();
+  for (const kids of Object.values(M.level3)) {
+    for (const k of kids) {
+      if (k.id) l3Set.add(k.id);
+    }
+  }
+  const dirToComps = new Map<string, Set<string>>();
+  if (l3Set.size === 0) return dirToComps;
+  for (const [id, el] of Object.entries(byId.value)) {
+    const comp = mapAncestorsOf(id, parentOf.value).find((a) => l3Set.has(a));
+    if (!comp) continue;
+    const rawPath =
+      el.source?.path ||
+      (isKindNodeId(id, "f") || isKindNodeId(id, "d")
+        ? splitNodeId(id).rest
+        : "");
+    if (!rawPath) continue;
+    const norm = rawPath.replace(/^\/+|\/+$/g, "");
+    const segs = norm.split("/");
+    const maxSeg = isKindNodeId(id, "d") || el.kind === "folder" ? segs.length : segs.length - 1;
+    let prefix = "";
+    for (let i = 0; i < maxSeg; i++) {
+      prefix = prefix ? `${prefix}/${segs[i]!}` : segs[i]!;
+      let s = dirToComps.get(prefix);
+      if (!s) {
+        s = new Set();
+        dirToComps.set(prefix, s);
+      }
+      s.add(comp);
+    }
+  }
+  return dirToComps;
+});
+
+function countOtherSharedParts(id: string, el?: TuxMapLevelElement): number {
+  const rawPath =
+    el?.source?.path ||
+    (isKindNodeId(id, "d") ? splitNodeId(id).rest : "");
+  if (!rawPath) return 0;
+  const dirKey =
+    el?.kind === "folder" || isKindNodeId(id, "d")
+      ? rawPath.replace(/^\/+|\/+$/g, "")
+      : rawPath.includes("/")
+        ? rawPath.slice(0, rawPath.lastIndexOf("/"))
+        : "";
+  if (!dirKey) return 0;
+  const comps = sharedDirectoryPartsMap.value.get(dirKey);
+  if (!comps || comps.size < 2) return 0;
+  return comps.size - 1;
 }
 
 function formatLiveState(e: TuxMapLevelElement): [string, string] | null {
@@ -549,22 +909,76 @@ function getCardChip(e: TuxMapLevelElement): [string, string] | null {
   return null;
 }
 
+interface OutsideCardMeta {
+  ownerLabel?: string;
+  parts?: number;
+  splittable?: boolean;
+  alsoInParts?: number;
+  isOverflowRollup?: boolean;
+}
+
 interface ComputedStageData {
   els: TuxMapLevelElement[];
   deployNodes: TuxMapDeploymentNode[];
   rels: TuxMapLevelRel[];
+  listRels: TuxMapLevelRel[];
   bounds: TuxMapPlacedBoundary[];
   rects: Record<string, TuxMapGridCellRect>;
   outsideLinkCounts: Record<string, number>;
+  outsideMetaById: Record<string, OutsideCardMeta>;
+  displayNameById: Record<string, string>;
+  wireDetails: Record<string, TuxMapWireInspectorDetail>;
+  codeEdgeHoverIds: Set<string>;
+  innerCardCount: number;
   moreOutside: number;
   width: number;
   height: number;
+}
+
+function mergeWireDetails(
+  a: TuxMapWireInspectorDetail | undefined,
+  b: TuxMapWireInspectorDetail,
+  from: string,
+  to: string,
+): TuxMapWireInspectorDetail {
+  if (!a) {
+    return { ...b, from, to };
+  }
+  const kindCounts = new Map<string, number>();
+  for (const pk of a.perKindCounts) kindCounts.set(pk.kind, (kindCounts.get(pk.kind) ?? 0) + pk.count);
+  for (const pk of b.perKindCounts) kindCounts.set(pk.kind, (kindCounts.get(pk.kind) ?? 0) + pk.count);
+  const perKindCounts = [...kindCounts.entries()]
+    .sort((x, y) => y[1] - x[1] || cmpCodepoint(x[0], y[0]))
+    .map(([kind, count]) => ({
+      kind,
+      count,
+      label: (hasOwn(TUX_MAP_LINK_KIND_LABELS, kind) ? TUX_MAP_LINK_KIND_LABELS[kind] : undefined) || kind,
+    }));
+  const seenViol = new Set<string>();
+  const violations: TuxMapLinkViolation[] = [];
+  for (const v of [...a.violations, ...b.violations]) {
+    const vk = `${v.rule}\u0000${v.message ?? ""}\u0000${v.fix ?? ""}`;
+    if (!seenViol.has(vk)) {
+      seenViol.add(vk);
+      violations.push(v);
+    }
+  }
+  return {
+    from,
+    to,
+    totalCount: perKindCounts.reduce((acc, item) => acc + item.count, 0),
+    perKindCounts,
+    cutKinds: perKindCounts.slice(2),
+    links: [...a.links, ...b.links],
+    violations,
+  };
 }
 
 const stageData = computed<ComputedStageData>(() => {
   const { CW, CH, GX, GY, PAD, MH, NW, NH } = GRID_METRICS;
   const M = activeModel.value;
   const lookup = byId.value;
+  const rawModelLinks = resolveModelRawLinks(M);
 
   if (currentLevel.value === 4) {
     const nodes = M.level4.nodes.filter((n) => showPlanned.value || n.status !== "planned");
@@ -713,36 +1127,56 @@ const stageData = computed<ComputedStageData>(() => {
       els: [],
       deployNodes: nodes,
       rels: [],
+      listRels: [],
       bounds,
       rects,
       outsideLinkCounts: {},
+      outsideMetaById: {},
+      displayNameById: {},
+      wireDetails: {},
+      codeEdgeHoverIds: new Set(),
+      innerCardCount: nodes.length,
       moreOutside: 0,
       width: W,
       height: H,
     };
   }
 
-  // Levels 1, 2, or 3
+  // Levels 1, 2, 3, or 5+
   let rawEls: TuxMapLevelElement[] = [];
   let rawRels: TuxMapLevelRel[] = [];
+  let rawListRels: TuxMapLevelRel[] = [];
   let stageMoreOutside = 0;
+  let innerCardCount = 0;
+  let activeFocusContainerId = "";
   const codeEdgeCounts: Record<string, number> = Object.create(null);
+  const outsideMetaById: Record<string, OutsideCardMeta> = Object.create(null);
+  const wireDetails: Record<string, TuxMapWireInspectorDetail> = Object.create(null);
+  const codeEdgeHoverIds = new Set<string>();
   const rawBounds: {
     id?: string;
     label: string;
     type: string;
+    cls?: string;
     of: string[];
     box?: { x: number; y: number; w: number; h: number };
   }[] = [];
 
   if (currentLevel.value === 1) {
-    rawEls = M.level1.elements;
-    rawRels = M.level1.rels;
+    const folded = foldVendoredCopies(M.level1.elements, M.level1.rels, rawModelLinks);
+    rawEls = folded.elements;
+    rawRels = folded.rels;
+    rawListRels = folded.rels;
+    innerCardCount = rawEls.filter((e) => isShownStatus(e.status)).length;
   } else if (currentLevel.value === 2) {
-    rawEls = M.level2.elements.map((e) =>
+    const baseL2 = M.level2.elements.map((e) =>
       e.ref && lookup[e.id] ? { ...lookup[e.id]!, ...e } : { ...e, name: e.name ?? e.id },
     );
-    rawRels = M.level2.rels;
+    const folded = foldVendoredCopies(baseL2, M.level2.rels, rawModelLinks);
+    rawEls = folded.elements;
+    rawRels = folded.rels;
+    rawListRels = folded.rels;
+    innerCardCount = rawEls.filter((e) => !e.ref && isShownStatus(e.status)).length;
     const boundTarget = lookup[M.level2.boundary];
     rawBounds.push({
       label: boundTarget ? boundTarget.name : "Primary System",
@@ -757,6 +1191,7 @@ const stageData = computed<ComputedStageData>(() => {
         : focusId.value && M.level3[focusId.value]
           ? focusId.value
           : Object.keys(M.level3)[0] || "c-api";
+    activeFocusContainerId = fId;
 
     const parentEl = lookup[fId];
     const parentDn = resById.value[fId];
@@ -764,8 +1199,20 @@ const stageData = computed<ComputedStageData>(() => {
     const cKind = parentEl?.kind || parentDn?.kind || "container";
     const cTech = parentEl?.tech || parentDn?.facts?.type || "";
 
-    const kids = sg ? sg.elements : M.level3[fId] || [];
-    const cols = Math.min(4, Math.max(2, Math.ceil(Math.sqrt(kids.length * 1.6))));
+    const baseKids = (sg ? sg.elements : M.level3[fId] || []).map((k, i) => ({
+      ...k,
+      id: k.id || `${fId}/${i}`,
+      kind: k.kind ?? "component",
+      parent: fId,
+    }));
+    const folded = foldVendoredCopies(baseKids, sg?.rels || [], rawModelLinks);
+    const kids = folded.elements;
+    innerCardCount = kids.filter((e) => isShownStatus(e.status)).length;
+
+    const useBands = kids.length > 24;
+    const cols = useBands
+      ? 4
+      : Math.min(4, Math.max(2, Math.ceil(Math.sqrt(Math.max(1, kids.length) * 1.6))));
     const rows = Math.max(1, Math.ceil(kids.length / cols));
     const ins: string[] = [];
     const outs: string[] = [];
@@ -784,65 +1231,244 @@ const stageData = computed<ComputedStageData>(() => {
       }
     }
 
-    // The model's code links, lifted onto this view: wires between the cards inside and, below
-    // Level 4, the parts outside that they depend on (right) or that depend on them (left)
-    const kidIds = kids.map((k, i) => k.id || `${fId}/${i}`);
-    const lifted = M.links?.length
-      ? liftLinksToView(M.links, fId, kidIds, parentOf.value, {
+    // The model's code links, lifted onto this view via LCA rollup (#118): wires between the cards
+    // inside and, below Level 4, at most 12 outside cards per side (11 + 1 overflow rollup when > 12).
+    const kidIds = kids.map((k) => k.id);
+    const lifted = folded.links.length
+      ? liftLinksToView(folded.links, fId, kidIds, parentOf.value, {
           isKnown: (id) => Boolean(lookup[id] || resById.value[id]),
+          lift: "lca",
+          splitIds: effectiveSplitSet.value,
+          categories: activeWireCategoriesSet.value,
+          maxPerSide: 12,
         })
       : null;
-    const codeEdge = currentLevel.value >= 5 && !parentDn ? lifted : null;
-    if (codeEdge) {
-      for (const o of codeEdge.ins) {
-        if (!ins.includes(o.id)) ins.push(o.id);
-        codeEdgeCounts[o.id] = (codeEdgeCounts[o.id] ?? 0) + o.count;
-      }
-      // a part on both sides is drawn once, on the left; its wires keep their own directions
-      for (const o of codeEdge.outs) {
-        if (!outs.includes(o.id) && !ins.includes(o.id)) outs.push(o.id);
-        codeEdgeCounts[o.id] = (codeEdgeCounts[o.id] ?? 0) + o.count;
+
+    if (lifted) {
+      for (const [wk, wd] of Object.entries(lifted.wireDetails)) {
+        wireDetails[wk] = wd;
       }
     }
 
+    const codeEdge = currentLevel.value >= 5 && !parentDn ? lifted : null;
+    const shownInsSides: TuxMapLiftedSide[] = [];
+    const shownOutsSides: TuxMapLiftedSide[] = [];
+    const outsAlsoOnIns = new Map<string, TuxMapLiftedSide>();
+    let overflowInCard: TuxMapLevelElement | null = null;
+    let overflowOutCard: TuxMapLevelElement | null = null;
+
+    if (codeEdge) {
+      const hasInOverflow = codeEdge.moreIns > 0 && codeEdge.ins.length >= 12;
+      const inSlice = hasInOverflow ? codeEdge.ins.slice(0, 11) : codeEdge.ins;
+      for (const o of inSlice) {
+        shownInsSides.push(o);
+        if (!ins.includes(o.id)) ins.push(o.id);
+        codeEdgeCounts[o.id] = (codeEdgeCounts[o.id] ?? 0) + o.count;
+        outsideMetaById[o.id] = {
+          ...outsideMetaById[o.id],
+          parts: o.parts,
+          splittable: o.splittable,
+        };
+      }
+      if (hasInOverflow) {
+        const dropped = codeEdge.ins.slice(11);
+        const remBuckets = codeEdge.moreIns + dropped.length;
+        const remParts =
+          codeEdge.moreInsParts + dropped.reduce((acc, s) => acc + (s.parts ?? 1), 0);
+        const remLinks =
+          codeEdge.moreInsLinks + dropped.reduce((acc, s) => acc + s.count, 0);
+        const moreInId = `@more-in:${fId}`;
+        ins.push(moreInId);
+        codeEdgeCounts[moreInId] = remLinks;
+        outsideMetaById[moreInId] = {
+          parts: remParts,
+          splittable: false,
+          isOverflowRollup: true,
+        };
+        overflowInCard = {
+          id: moreInId,
+          kind: "component",
+          name: `+${remBuckets} more dependent${remBuckets === 1 ? "" : "s"}`,
+          desc: `${remParts} outside part${remParts === 1 ? "" : "s"} (${remLinks} link${remLinks === 1 ? "" : "s"})`,
+        };
+      }
+
+      // Separate outs that already share a card on `ins` from distinct right-hand cards
+      const distinctOuts: TuxMapLiftedSide[] = [];
+      for (const o of codeEdge.outs) {
+        if (ins.includes(o.id)) {
+          outsAlsoOnIns.set(o.id, o);
+          codeEdgeCounts[o.id] = (codeEdgeCounts[o.id] ?? 0) + o.count;
+        } else {
+          distinctOuts.push(o);
+        }
+      }
+
+      const hasOutOverflow = codeEdge.moreOuts > 0 && distinctOuts.length >= 12;
+      const outSlice = hasOutOverflow ? distinctOuts.slice(0, 11) : distinctOuts.slice(0, 12);
+      for (const o of outSlice) {
+        shownOutsSides.push(o);
+        if (!outs.includes(o.id)) outs.push(o.id);
+        codeEdgeCounts[o.id] = (codeEdgeCounts[o.id] ?? 0) + o.count;
+        outsideMetaById[o.id] = {
+          ...outsideMetaById[o.id],
+          parts: o.parts,
+          splittable: o.splittable,
+        };
+      }
+      if (codeEdge.moreOuts > 0 || distinctOuts.length > outSlice.length) {
+        const dropped = distinctOuts.slice(outSlice.length);
+        const remBuckets = codeEdge.moreOuts + dropped.length;
+        const remParts =
+          codeEdge.moreOutsParts + dropped.reduce((acc, s) => acc + (s.parts ?? 1), 0);
+        const remLinks =
+          codeEdge.moreOutsLinks + dropped.reduce((acc, s) => acc + s.count, 0);
+        const moreOutId = `@more-out:${fId}`;
+        outs.push(moreOutId);
+        codeEdgeCounts[moreOutId] = remLinks;
+        outsideMetaById[moreOutId] = {
+          parts: remParts,
+          splittable: false,
+          isOverflowRollup: true,
+        };
+        overflowOutCard = {
+          id: moreOutId,
+          kind: "component",
+          name: `+${remBuckets} more dependenc${remBuckets === 1 ? "y" : "ies"}`,
+          desc: `${remParts} outside part${remParts === 1 ? "" : "s"} (${remLinks} link${remLinks === 1 ? "" : "s"})`,
+        };
+      }
+
+      for (const s of [...shownInsSides, ...shownOutsSides, ...outsAlsoOnIns.values()]) {
+        codeEdgeHoverIds.add(s.id);
+        for (const w of s.wires) codeEdgeHoverIds.add(w.kid);
+      }
+    }
+
+    // Compute inner grid or horizontal band placement (#124: > 24 inner cards group into horizontal bands)
     const stackH = (n: number) => (n ? n * MH + (n - 1) * 14 : 0);
-    const gridH = rows * CH + (rows - 1) * GY;
+    const bandDefs: { title: string; items: TuxMapLevelElement[]; rows: number; yOffset: number; height: number }[] = [];
+    let gridH = rows * CH + (rows - 1) * GY;
+
+    if (useBands) {
+      const folderCounts = new Map<string, number>();
+      for (const k of kids) {
+        const sp = k.source?.path || "";
+        const slash = sp.indexOf("/");
+        if (slash > 0) {
+          const topDir = sp.slice(0, slash);
+          folderCounts.set(topDir, (folderCounts.get(topDir) ?? 0) + 1);
+        }
+      }
+      const bandMap = new Map<string, TuxMapLevelElement[]>();
+      for (const k of kids) {
+        const sp = k.source?.path || "";
+        const slash = sp.indexOf("/");
+        const topDir = slash > 0 ? sp.slice(0, slash) : "";
+        const key =
+          topDir && (folderCounts.get(topDir) ?? 0) >= 2
+            ? `${topDir}/`
+            : plainElementKindLabel(k);
+        let arr = bandMap.get(key);
+        if (!arr) {
+          arr = [];
+          bandMap.set(key, arr);
+        }
+        arr.push(k);
+      }
+      let cursor = 0;
+      for (const [title, items] of bandMap) {
+        const bRows = Math.max(1, Math.ceil(items.length / cols));
+        const bContentH = bRows * CH + (bRows - 1) * GY;
+        bandDefs.push({
+          title,
+          items,
+          rows: bRows,
+          yOffset: cursor,
+          height: bContentH,
+        });
+        cursor += bContentH + 62;
+      }
+      gridH = Math.max(CH, cursor - 62 + 34);
+    }
+
     const H = Math.max(gridH, stackH(ins.length), stackH(outs.length));
     const top = PAD + 40;
+    const innerStartY = top + (H - gridH) / 2;
 
-    kids.forEach((k, i) => {
-      const id = k.id || `${fId}/${i}`;
-      const col = 1 + (i % cols);
-      const row = Math.floor(i / cols);
-      rawEls.push({
-        ...k,
-        id,
-        kind: k.kind ?? "component",
-        parent: fId,
-        at: [col, row],
-        px: [PAD + col * (CW + GX), top + (H - gridH) / 2 + row * (CH + GY), CH],
+    if (useBands) {
+      let globalRow = 0;
+      for (const band of bandDefs) {
+        const bandTopY = innerStartY + band.yOffset + 28;
+        band.items.forEach((k, idx) => {
+          const col = 1 + (idx % cols);
+          const rInBand = Math.floor(idx / cols);
+          const absRow = globalRow + rInBand;
+          rawEls.push({
+            ...k,
+            at: [col, absRow],
+            px: [PAD + col * (CW + GX), bandTopY + rInBand * (CH + GY), CH],
+          });
+        });
+        rawBounds.push({
+          label: band.title,
+          type: `${band.items.length}`,
+          cls: "band",
+          of: [],
+          box: {
+            x: PAD + CW + GX - 12,
+            y: bandTopY - 26,
+            w: cols * CW + (cols - 1) * GX + 24,
+            h: band.height + 38,
+          },
+        });
+        globalRow += band.rows;
+      }
+    } else {
+      kids.forEach((k, i) => {
+        const id = k.id;
+        const col = 1 + (i % cols);
+        const row = Math.floor(i / cols);
+        rawEls.push({
+          ...k,
+          at: [col, row],
+          px: [PAD + col * (CW + GX), innerStartY + row * (CH + GY), CH],
+        });
       });
-      if (k.next != null && (!sg?.rels || sg.rels.length === 0) && !lifted?.rels.length) {
-        const nextKid = kids[k.next];
+    }
+
+    kids.forEach((k) => {
+      if (k.next != null && (!folded.rels || folded.rels.length === 0) && !lifted?.rels.length) {
+        const nextKid = baseKids[k.next];
         const nextId = nextKid?.id || `${fId}/${k.next}`;
-        rawRels.push({
-          from: id,
+        const stepRel: TuxMapLevelRel = {
+          from: k.id,
           to: nextId,
           label: "",
           status: k.status,
-        });
+        };
+        rawRels.push(stepRel);
+        rawListRels.push(stepRel);
       }
     });
 
     if (lifted) {
       // the links stand in for the subgraph's own rels; a hand-written one they do not cover stays
       const pairs = new Set(lifted.rels.map((r) => `${r.from}\u0000${r.to}`));
-      rawRels.push(...lifted.rels, ...(sg?.rels || []).filter((r) => !pairs.has(`${r.from}\u0000${r.to}`)));
-    } else if (sg?.rels?.length) {
-      rawRels.push(...sg.rels);
+      const combinedInner = [
+        ...lifted.rels,
+        ...folded.rels.filter((r) => !pairs.has(`${r.from}\u0000${r.to}`)),
+      ];
+      rawRels.push(...combinedInner);
+      rawListRels.push(...combinedInner);
+    } else if (folded.rels.length) {
+      rawRels.push(...folded.rels);
+      rawListRels.push(...folded.rels);
     }
 
     const resolvePerimeterCard = (id: string): TuxMapLevelElement | null => {
+      if (overflowInCard && id === overflowInCard.id) return overflowInCard;
+      if (overflowOutCard && id === overflowOutCard.id) return overflowOutCard;
       if (lookup[id]) return lookup[id]!;
       const dn = resById.value[id];
       if (dn) {
@@ -857,17 +1483,26 @@ const stageData = computed<ComputedStageData>(() => {
       return null;
     };
 
-    // an outside card from the code links says where it lives ("in AI gateway › Routing, sign-in and config")
+    // Outside cards show their owning container/component on its own `.tux-map__el-own` line (#116)
     const edgeCard = (id: string): TuxMapLevelElement | null => {
       const base = resolvePerimeterCard(id);
-      if (!base || !codeEdge || !parentOf.value.has(id)) return base;
-      const where = mapAncestorsOf(id, parentOf.value)
-        .slice(1)
-        .reverse()
-        .map((a) => lookup[a]?.name || resById.value[a]?.title)
-        .filter(Boolean)
-        .join(" › ");
-      return where ? { ...base, tech: `in ${where}` } : base;
+      if (!base) return null;
+      if (codeEdge && parentOf.value.has(id)) {
+        const where = mapAncestorsOf(id, parentOf.value)
+          .slice(1)
+          .reverse()
+          .map((a) => lookup[a]?.name || resById.value[a]?.title)
+          .filter(Boolean)
+          .join(" › ");
+        if (where) {
+          outsideMetaById[id] = {
+            ...outsideMetaById[id],
+            ownerLabel: `in ${where}`,
+            alsoInParts: countOtherSharedParts(id, base),
+          };
+        }
+      }
+      return base;
     };
 
     ins.forEach((id, i) => {
@@ -900,29 +1535,117 @@ const stageData = computed<ComputedStageData>(() => {
 
     if (currentLevel.value === 3) {
       for (const r of M.level2.rels) {
-        if (r.to === fId) rawRels.push({ ...r, to: "@bound" });
-        else if (r.from === fId) rawRels.push({ ...r, from: "@bound" });
+        if (r.to === fId) {
+          rawRels.push({ ...r, to: "@bound" });
+          rawListRels.push(r);
+        } else if (r.from === fId) {
+          rawRels.push({ ...r, from: "@bound" });
+          rawListRels.push(r);
+        }
       }
     } else if (parentDn) {
       for (const l of M.level4.links) {
         if (!showPlanned.value && l.state === "planned") continue;
-        if (l.to === fId) rawRels.push({ from: l.from, to: "@bound", label: l.label });
-        else if (l.from === fId) rawRels.push({ from: "@bound", to: l.to, label: l.label });
+        if (l.to === fId) {
+          rawRels.push({ from: l.from, to: "@bound", label: l.label });
+          rawListRels.push({ from: l.from, to: fId, label: l.label });
+        } else if (l.from === fId) {
+          rawRels.push({ from: "@bound", to: l.to, label: l.label });
+          rawListRels.push({ from: fId, to: l.to, label: l.label });
+        }
       }
     }
+
     if (codeEdge) {
-      for (const o of codeEdge.ins) for (const w of o.wires) rawRels.push({ from: o.id, to: w.kid, label: w.label });
-      for (const o of codeEdge.outs) for (const w of o.wires) rawRels.push({ from: w.kid, to: o.id, label: w.label });
+      const activeNode = hoveredStageCardId.value || selectedId.value;
+      const shouldExpandSide = (o: TuxMapLiftedSide): boolean =>
+        Boolean(activeNode && (activeNode === o.id || o.wires.some((w) => w.kid === activeNode)));
+
+      const collectSideViolations = (o: TuxMapLiftedSide): TuxMapLinkViolation[] | undefined => {
+        const outV: TuxMapLinkViolation[] = [];
+        const seen = new Set<string>();
+        for (const w of o.wires) {
+          for (const v of w.violations ?? []) {
+            const vk = `${v.rule}\u0000${v.message ?? ""}\u0000${v.fix ?? ""}`;
+            if (!seen.has(vk)) {
+              seen.add(vk);
+              outV.push(v);
+            }
+          }
+        }
+        return outV.length ? outV : undefined;
+      };
+
+      for (const o of shownInsSides) {
+        for (const w of o.wires) {
+          rawListRels.push({ from: o.id, to: w.kid, label: w.label, violations: w.violations });
+        }
+        if (shouldExpandSide(o)) {
+          for (const w of o.wires) {
+            rawRels.push({ from: o.id, to: w.kid, label: w.label, violations: w.violations });
+          }
+        } else {
+          const aggKey = `${o.id}->@bound`;
+          for (const w of o.wires) {
+            const det = wireDetails[`${o.id}->${w.kid}`];
+            if (det) wireDetails[aggKey] = mergeWireDetails(wireDetails[aggKey], det, o.id, "@bound");
+          }
+          const aggViol = collectSideViolations(o);
+          rawRels.push({
+            from: o.id,
+            to: "@bound",
+            label: `${o.count} ${o.count === 1 ? "link" : "links"}`,
+            ...(aggViol ? { violations: aggViol } : {}),
+          });
+        }
+      }
+
+      for (const o of [...shownOutsSides, ...outsAlsoOnIns.values()]) {
+        for (const w of o.wires) {
+          rawListRels.push({ from: w.kid, to: o.id, label: w.label, violations: w.violations });
+        }
+        if (shouldExpandSide(o)) {
+          for (const w of o.wires) {
+            rawRels.push({ from: w.kid, to: o.id, label: w.label, violations: w.violations });
+          }
+        } else {
+          const aggKey = `@bound->${o.id}`;
+          for (const w of o.wires) {
+            const det = wireDetails[`${w.kid}->${o.id}`];
+            if (det) wireDetails[aggKey] = mergeWireDetails(wireDetails[aggKey], det, "@bound", o.id);
+          }
+          const aggViol = collectSideViolations(o);
+          rawRels.push({
+            from: "@bound",
+            to: o.id,
+            label: `${o.count} ${o.count === 1 ? "link" : "links"}`,
+            ...(aggViol ? { violations: aggViol } : {}),
+          });
+        }
+      }
+
+      if (overflowInCard) {
+        rawRels.push({
+          from: overflowInCard.id,
+          to: "@bound",
+          label: `${codeEdgeCounts[overflowInCard.id] ?? 0} links`,
+        });
+      }
+      if (overflowOutCard) {
+        rawRels.push({
+          from: "@bound",
+          to: overflowOutCard.id,
+          label: `${codeEdgeCounts[overflowOutCard.id] ?? 0} links`,
+        });
+      }
     }
-    const moreOutside = codeEdge ? codeEdge.moreIns + codeEdge.moreOuts : 0;
-    stageMoreOutside = moreOutside;
+
+    stageMoreOutside = codeEdge ? codeEdge.moreIns + codeEdge.moreOuts : 0;
 
     rawBounds.push({
       id: "@bound",
       label: cName,
-      type:
-        (sg?.stratum || (TYPE_LABELS[cKind] || "Container") + (cTech ? `: ${cTech}` : "")) +
-        (moreOutside ? ` · ${moreOutside} more outside, not drawn` : ""),
+      type: sg?.stratum || plainElementKindLabel(cKind) + (cTech ? `: ${cTech}` : ""),
       of: [],
       box: {
         x: PAD + CW + GX - 24,
@@ -935,6 +1658,130 @@ const stageData = computed<ComputedStageData>(() => {
 
   const els = rawEls.filter((e) => isShownStatus(e.status));
   const rels = rawRels.filter((r) => isShownStatus(r.status));
+  const listRels = rawListRels.filter((r) => isShownStatus(r.status));
+
+  // Populate `wireDetails` for C4 / Level 1..3 wires not already populated by `liftLinksToView` (#115)
+  if (rels.length > 0) {
+    const stageEndpointIds = new Set(els.map((e) => e.id));
+    if (activeFocusContainerId) stageEndpointIds.add(activeFocusContainerId);
+    const l2ContainerSet = new Set(
+      M.level2.elements.filter((e) => !e.ref).map((e) => e.id),
+    );
+    const liftForStagePair = (id: string): string | null => {
+      for (const anc of mapAncestorsOf(id, parentOf.value)) {
+        if (stageEndpointIds.has(anc)) {
+          return anc === activeFocusContainerId ? "@bound" : anc;
+        }
+        if (currentLevel.value === 1 && l2ContainerSet.has(anc) && stageEndpointIds.has(M.level2.boundary)) {
+          return M.level2.boundary;
+        }
+      }
+      return null;
+    };
+    const filteredCodeLinks = rawModelLinks.filter((l) =>
+      activeWireCategoriesSet.value.has(
+        l.kind === "mentions"
+          ? "docs"
+          : l.kind === "checks" || l.kind === "suppresses"
+            ? "ci"
+            : l.kind === "tests"
+              ? "tests"
+              : "prod",
+      ),
+    );
+    const groupedByPair = new Map<string, TuxMapLink[]>();
+    for (const l of filteredCodeLinks) {
+      const sf = liftForStagePair(l.from);
+      const st = liftForStagePair(l.to);
+      if (!sf || !st || sf === st) continue;
+      const pk = `${sf}->${st}`;
+      let arr = groupedByPair.get(pk);
+      if (!arr) {
+        arr = [];
+        groupedByPair.set(pk, arr);
+      }
+      arr.push(l);
+    }
+    for (const r of rels) {
+      const wk = `${r.from}->${r.to}`;
+      if (wireDetails[wk]) continue;
+      const matched = groupedByPair.get(wk) ?? [];
+      const kindMap = new Map<string, number>();
+      for (const ml of matched) {
+        const k = ml.kind || "uses";
+        kindMap.set(k, (kindMap.get(k) ?? 0) + 1);
+      }
+      const perKindCounts = [...kindMap.entries()]
+        .sort((a, b) => b[1] - a[1] || cmpCodepoint(a[0], b[0]))
+        .map(([kind, count]) => ({
+          kind,
+          count,
+          label: (hasOwn(TUX_MAP_LINK_KIND_LABELS, kind) ? TUX_MAP_LINK_KIND_LABELS[kind] : undefined) || kind,
+        }));
+      const seenV = new Set<string>();
+      const violations: TuxMapLinkViolation[] = [];
+      for (const v of r.violations ?? []) {
+        const vk = `${v.rule}\u0000${v.message ?? ""}\u0000${v.fix ?? ""}`;
+        if (!seenV.has(vk)) {
+          seenV.add(vk);
+          violations.push(v);
+        }
+      }
+      for (const ml of matched) {
+        for (const v of ml.violations ?? []) {
+          const vk = `${v.rule}\u0000${v.message ?? ""}\u0000${v.fix ?? ""}`;
+          if (!seenV.has(vk)) {
+            seenV.add(vk);
+            violations.push(v);
+          }
+        }
+      }
+      wireDetails[wk] = {
+        from: r.from,
+        to: r.to,
+        totalCount: matched.length || 1,
+        perKindCounts,
+        cutKinds: perKindCounts.slice(2),
+        links: matched.map((ml) => ({
+          from: ml.from,
+          to: ml.to,
+          kind: ml.kind || "uses",
+          ...(ml.at ? { at: ml.at } : {}),
+          ...(ml.sites?.length ? { sites: [...ml.sites] } : {}),
+          ...(ml.stop ? { stop: true } : {}),
+          ...(ml.violations?.length ? { violations: ml.violations } : {}),
+        })),
+        violations,
+      };
+    }
+  }
+
+  // Disambiguate sibling cards that share identical visible names on the same view (#116),
+  // and middle-ellipsize long folder names without losing full names in the inspector/a11y.
+  const displayNameById: Record<string, string> = Object.create(null);
+  const nameCounts = new Map<string, number>();
+  for (const e of els) {
+    const key = `${e.mini ? "m" : "i"}\u0000${e.name}`;
+    nameCounts.set(key, (nameCounts.get(key) ?? 0) + 1);
+  }
+  for (const e of els) {
+    const key = `${e.mini ? "m" : "i"}\u0000${e.name}`;
+    let baseName = middleEllipsizeFolderName(e.name, e.kind, e.id, e.mini ? 24 : 28);
+    if ((nameCounts.get(key) ?? 0) > 1) {
+      const sp = e.source?.path || "";
+      const parentDir = sp.includes("/")
+        ? sp.slice(0, sp.lastIndexOf("/")).split("/").pop()
+        : "";
+      const ancId = parentOf.value.get(e.id);
+      const ancName = ancId ? lookup[ancId]?.name : "";
+      const qualifier = parentDir || (ancName && ancName !== e.name ? ancName : e.id);
+      if (qualifier && !baseName.includes(qualifier)) {
+        baseName = `${qualifier}/${baseName}`;
+      }
+    }
+    displayNameById[e.id] = baseName;
+  }
+
   const outsideLinkCounts: Record<string, number> = Object.create(null);
   const miniIds = new Set(els.filter((e) => e.mini).map((e) => e.id));
   if (miniIds.size > 0) {
@@ -980,6 +1827,7 @@ const stageData = computed<ComputedStageData>(() => {
       id: b.id,
       label: b.label,
       type: b.type,
+      cls: b.cls,
       x: box.x,
       y: box.y,
       w: box.w,
@@ -1015,9 +1863,15 @@ const stageData = computed<ComputedStageData>(() => {
     els,
     deployNodes: [],
     rels,
+    listRels,
     bounds,
     rects,
     outsideLinkCounts,
+    outsideMetaById,
+    displayNameById,
+    wireDetails,
+    codeEdgeHoverIds,
+    innerCardCount,
     moreOutside: stageMoreOutside,
     width: Math.max(680, W),
     height: Math.max(420, H),
@@ -1037,7 +1891,15 @@ const routedSvg = computed(() => {
       labels: [],
     };
   }
-  return routeGridWires(stageData.value.rels, stageData.value.rects, stageData.value.els);
+  const base = routeGridWires(stageData.value.rels, stageData.value.rects, stageData.value.els);
+  // Above 30 routed wires (#124), hide labels at rest (`forced: true` -> opacity: 0, never display: none)
+  if (base.wires.length > 30 && base.labels.length > 0) {
+    return {
+      wires: base.wires,
+      labels: base.labels.map((lbl) => (lbl.forced ? lbl : { ...lbl, forced: true })),
+    };
+  }
+  return base;
 });
 
 // ============================================================================
@@ -1081,15 +1943,24 @@ const hostIdsByElement = computed<Map<string, string[]>>(() => {
   return final;
 });
 
+function effectiveDeployedHostIds(id: string | null | undefined): string[] {
+  if (!id) return [];
+  const found = new Set<string>();
+  for (const anc of mapAncestorsOf(id, parentOf.value)) {
+    for (const hid of hostIdsByElement.value.get(anc) ?? []) {
+      found.add(hid);
+    }
+  }
+  return [...found];
+}
+
 function liftToDeployHosts(
   id: string,
   stageHostIds: ReadonlySet<string>,
 ): string[] {
   const found = new Set<string>();
-  for (const anc of mapAncestorsOf(id, parentOf.value)) {
-    for (const hid of hostIdsByElement.value.get(anc) ?? []) {
-      if (stageHostIds.has(hid)) found.add(hid);
-    }
+  for (const hid of effectiveDeployedHostIds(id)) {
+    if (stageHostIds.has(hid)) found.add(hid);
   }
   return [...found];
 }
@@ -1101,13 +1972,27 @@ const effectiveModelLinks = computed<TuxMapLink[]>(() =>
   }),
 );
 
+// On-screen-only link kinds in `TUX_MAP_LINK_KIND_LABELS` wording (`tti/tti-ux#115`)
 const legendLinkKinds = computed<{ kind: string; label: string; quiet: boolean }[]>(() => {
-  const rawLinks = activeModel.value.links;
-  if (!rawLinks?.length) return [];
   const present = new Set<string>();
-  for (const l of rawLinks) {
-    if (l.kind) present.add(l.kind);
+  if (currentLevel.value === 4) {
+    const visiblePairs = new Set(routedSvg.value.wires.map((w) => `${w.from}->${w.to}`));
+    for (const l of activeModel.value.level4.links) {
+      if (l.kind && visiblePairs.has(`${l.from}->${l.to}`)) {
+        present.add(l.kind);
+      }
+    }
+  } else {
+    const details = stageData.value.wireDetails;
+    for (const w of routedSvg.value.wires) {
+      const det = details[`${w.from}->${w.to}`];
+      if (!det) continue;
+      for (const pk of det.perKindCounts) {
+        if (pk.kind) present.add(pk.kind);
+      }
+    }
   }
+  if (present.size === 0) return [];
   const knownOrder = Object.keys(TUX_MAP_LINK_KIND_LABELS);
   const ordered = [
     ...knownOrder.filter((k) => present.has(k)),
@@ -1118,6 +2003,49 @@ const legendLinkKinds = computed<{ kind: string; label: string; quiet: boolean }
     label: (hasOwn(TUX_MAP_LINK_KIND_LABELS, kind) ? TUX_MAP_LINK_KIND_LABELS[kind] : undefined) || kind,
     quiet: TUX_MAP_QUIET_LINK_KINDS.has(kind),
   }));
+});
+
+// On-screen-only element & wire swatches (`tti/tti-ux#115`, `#123`)
+const legendFlags = computed(() => {
+  const S = stageData.value;
+  const R = routedSvg.value;
+  if (currentLevel.value === 4) {
+    return {
+      hasResource: S.deployNodes.length > 0,
+      hasRegion: S.bounds.length > 0,
+      hasPerson: false,
+      hasSystem: false,
+      hasCard: false,
+      hasRoute: false,
+      hasExternal: false,
+      hasPlanned:
+        S.deployNodes.some((n) => n.status === "planned") ||
+        S.bounds.some((b) => Boolean(b.cls?.includes("planned"))) ||
+        R.wires.some((w) => w.planned),
+      hasGenericWires: R.wires.length > 0 && legendLinkKinds.value.length === 0,
+      hasViolation: R.wires.some((w) => Boolean(w.violating)),
+    };
+  }
+  return {
+    hasResource: false,
+    hasRegion: false,
+    hasPerson: S.els.some((e) => e.kind === "person"),
+    hasSystem: S.els.some((e) => e.kind === "system"),
+    hasCard: S.els.some(
+      (e) =>
+        e.kind !== "person" &&
+        e.kind !== "system" &&
+        e.kind !== "route" &&
+        e.kind !== "external" &&
+        !isKindNodeId(e.id, "r"),
+    ),
+    hasRoute: S.els.some((e) => e.kind === "route" || isKindNodeId(e.id, "r")),
+    hasExternal: S.els.some((e) => e.kind === "external"),
+    hasPlanned:
+      S.els.some((e) => e.status === "planned") || R.wires.some((w) => w.planned),
+    hasGenericWires: R.wires.length > 0 && legendLinkKinds.value.length === 0,
+    hasViolation: R.wires.some((w) => Boolean(w.violating)),
+  };
 });
 
 const hasModelDiffs = computed<boolean>(() => {
@@ -1137,8 +2065,13 @@ const usagesTab = ref<"direct" | "two-steps">("two-steps");
 const usagesShowAll = ref<boolean>(false);
 const usageKindOverrides = ref<Record<string, boolean>>({});
 
-watch(selectedId, () => {
+watch(selectedId, (sel) => {
   usagesShowAll.value = false;
+  tracePickerOpen.value = false;
+  traceQuery.value = "";
+  if (!sel && props.traceTarget === undefined) {
+    setTraceTarget(null);
+  }
 });
 
 function isUsageKindEnabled(kind: string): boolean {
@@ -1235,6 +2168,166 @@ const selectionBlast = computed(() => {
   });
 });
 
+// Selected element's incoming & outgoing dependency-rule violations (`tti/tti-ux#123`)
+interface SelectedViolationEntry {
+  key: string;
+  direction: "in" | "out";
+  peerId: string;
+  peerName: string;
+  kindLabel: string;
+  at?: string;
+  href: string | null;
+  rule: string;
+  message?: string;
+  fix?: string;
+  severity: "error" | "warning";
+}
+
+const selectedViolations = computed<SelectedViolationEntry[]>(() => {
+  const sel = selectedId.value;
+  if (!sel) return [];
+  const inSubtree = (id: string): boolean =>
+    id === sel || mapAncestorsOf(id, parentOf.value).includes(sel);
+  const out: SelectedViolationEntry[] = [];
+  const seen = new Set<string>();
+  for (const l of effectiveModelLinks.value) {
+    if (!l.violations?.length) continue;
+    const fromIn = inSubtree(l.from);
+    const toIn = inSubtree(l.to);
+    if (!fromIn && !toIn) continue;
+    const direction: "in" | "out" = fromIn && !toIn ? "out" : "in";
+    const peerId = direction === "out" ? l.to : l.from;
+    const peerName = byId.value[peerId]?.name || resById.value[peerId]?.title || stripNodeKindPrefix(peerId);
+    const k = l.kind || "uses";
+    const kindLabel =
+      (hasOwn(TUX_MAP_LINK_KIND_LABELS, k) ? TUX_MAP_LINK_KIND_LABELS[k] : undefined) || k;
+    const [atPath, atLine] = (l.at || "").split(/:(?=\d+$)/);
+    const href = atPath
+      ? buildSourceHref({
+          path: atPath,
+          lineRange: atLine ? [Number(atLine), Number(atLine)] : undefined,
+        })
+      : null;
+    for (const v of l.violations) {
+      if (!v || typeof v.rule !== "string") continue;
+      const dedupKey = `${direction}\u0000${peerId}\u0000${v.rule}\u0000${v.message ?? ""}\u0000${l.at ?? ""}`;
+      if (seen.has(dedupKey)) continue;
+      seen.add(dedupKey);
+      out.push({
+        key: dedupKey,
+        direction,
+        peerId,
+        peerName,
+        kindLabel,
+        ...(l.at ? { at: l.at } : {}),
+        href,
+        rule: v.rule,
+        ...(v.message ? { message: v.message } : {}),
+        ...(v.fix ? { fix: v.fix } : {}),
+        severity: v.severity === "warning" ? "warning" : "error",
+      });
+    }
+  }
+  return out;
+});
+
+// Directed spreading path view between `selectedId` and `localTraceTarget` (`tti/tti-ux#125`)
+const activeTraceResult = computed<(TuxMapTraceResult & { from: string; to: string; peerId: string }) | null>(() => {
+  const sel = selectedId.value;
+  const tgt = localTraceTarget.value;
+  if (!sel || !tgt || sel === tgt || !effectiveModelLinks.value.length) return null;
+  const fromDependent = traceSpreadingPath(tgt, sel, activeModel.value, {
+    allowStoppingLastHop: true,
+  });
+  if (fromDependent.found) {
+    return { ...fromDependent, from: tgt, to: sel, peerId: tgt };
+  }
+  const forward = traceSpreadingPath(sel, tgt, activeModel.value, {
+    allowStoppingLastHop: true,
+  });
+  return { ...forward, from: sel, to: tgt, peerId: tgt };
+});
+
+const stageTraceState = computed<{ nodeIds: Set<string>; wireIds: Set<string> } | null>(() => {
+  const tr = activeTraceResult.value;
+  if (!tr || !tr.found || tr.nodeIds.length === 0) return null;
+  const nodeIds = new Set<string>();
+  const wireIds = new Set<string>();
+  if (currentLevel.value === 4) {
+    const stageHostIds = new Set(stageData.value.deployNodes.map((n) => n.id));
+    for (const nid of tr.nodeIds) {
+      for (const hid of liftToDeployHosts(nid, stageHostIds)) nodeIds.add(hid);
+    }
+    for (const w of routedSvg.value.wires) {
+      if (nodeIds.has(w.from) && nodeIds.has(w.to)) wireIds.add(w.id);
+    }
+    return { nodeIds, wireIds };
+  }
+  const stageIds = new Set(stageData.value.els.map((e) => e.id));
+  const fId = focusId.value;
+  const liftStageNode = (nid: string): string | null => {
+    const direct = liftToSet(nid, stageIds, parentOf.value);
+    if (direct) return direct;
+    if (fId && mapAncestorsOf(nid, parentOf.value).includes(fId)) return "@bound";
+    return null;
+  };
+  for (const nid of tr.nodeIds) {
+    const on = liftStageNode(nid);
+    if (on && on !== "@bound") nodeIds.add(on);
+  }
+  const hopPairs = new Set<string>();
+  for (const h of tr.hops) {
+    const sf = liftStageNode(h.from);
+    const st = liftStageNode(h.to);
+    if (sf && st && sf !== st) {
+      hopPairs.add(`${sf}->${st}`);
+      if (sf !== "@bound") hopPairs.add(`${sf}->@bound`);
+      if (st !== "@bound") hopPairs.add(`@bound->${st}`);
+    }
+  }
+  for (const w of routedSvg.value.wires) {
+    if (hopPairs.has(`${w.from}->${w.to}`)) {
+      wireIds.add(w.id);
+    }
+  }
+  return { nodeIds, wireIds };
+});
+
+const traceCandidateItems = computed<{ id: string; name: string; sub: string }[]>(() => {
+  const sel = selectedId.value;
+  if (!sel) return [];
+  const q = traceQuery.value.trim().toLowerCase();
+  const out: { id: string; name: string; sub: string }[] = [];
+  const seen = new Set<string>([sel]);
+  const pushItem = (id: string, subHint?: string) => {
+    if (!id || seen.has(id) || id.startsWith("@more-")) return;
+    const el = byId.value[id];
+    const dn = resById.value[id];
+    const name = el?.name || dn?.title || stripNodeKindPrefix(id);
+    const sub = subHint || el?.source?.path || plainElementKindLabel(el || dn?.kind || "resource");
+    if (q && !name.toLowerCase().includes(q) && !sub.toLowerCase().includes(q) && !id.toLowerCase().includes(q)) {
+      return;
+    }
+    seen.add(id);
+    out.push({ id, name, sub });
+  };
+  if (selectionBlast.value) {
+    for (const [depId, hit] of selectionBlast.value.hits) {
+      pushItem(depId, `${hit.hop} ${hit.hop === 1 ? "step" : "steps"} away`);
+      if (out.length >= 24) return out;
+    }
+  }
+  for (const e of stageData.value.els) {
+    if (!e.ref) pushItem(e.id);
+    if (out.length >= 24) return out;
+  }
+  for (const entry of mapSearchIndex.value) {
+    pushItem(entry.id, entry.ancestorsText || entry.path || entry.group);
+    if (out.length >= 24) break;
+  }
+  return out;
+});
+
 interface UsageRowItem {
   id: string;
   locLabel: string;
@@ -1267,7 +2360,7 @@ function describeUsageGroup(id: string, basePath: string): { key: string; label:
     compId && compId !== topId && lookup[compId]?.name
       ? `${topName} › ${lookup[compId]!.name}`
       : topName;
-  const dirAncId = ancs.find((a) => a.startsWith("d:"));
+  const dirAncId = ancs.find((a) => isKindNodeId(a, "d"));
   let folder = dirAncId ? lookup[dirAncId]?.name || "" : "";
   if (!folder && basePath.includes("/")) {
     folder = `${basePath.slice(0, basePath.lastIndexOf("/"))}/`;
@@ -1302,10 +2395,10 @@ const selectionUsages = computed(() => {
     const e = byId.value[id];
     const dn = resById.value[id];
     const [atPath, atLine] = (hit.via.at || "").split(/:(?=\d+$)/);
-    const fallbackFile = id.startsWith("f:")
-      ? id.slice(2)
-      : id.startsWith("s:")
-        ? id.slice(2).split("#")[0] || ""
+    const fallbackFile = isKindNodeId(id, "f")
+      ? splitNodeId(id).rest
+      : isKindNodeId(id, "s")
+        ? splitNodeId(id).rest.split("#")[0] || ""
         : "";
     const basePath =
       atPath ||
@@ -1471,10 +2564,16 @@ function projectBlastOntoStage(
     if (on && !directIds.has(on)) reachCountById.set(on, (reachCountById.get(on) ?? 0) + 1);
   }
   const impactedIds = new Set(reachCountById.keys());
-  // a wire is in the radius when its dependent end is reached and the other end is lit
+  const fId = focusId.value;
+  const directOnFocus = Boolean(fId && [...seeds].some((s) => mapAncestorsOf(s, parentOf.value).includes(fId)));
+  // a wire is in the radius when its dependent end is reached and the other end is lit (including resting `@bound` wires)
   const impactedWires = new Set(
     routedSvg.value.wires
-      .filter((w) => impactedIds.has(w.from) && (directIds.has(w.to) || impactedIds.has(w.to)))
+      .filter(
+        (w) =>
+          impactedIds.has(w.from) &&
+          (directIds.has(w.to) || impactedIds.has(w.to) || (w.to === "@bound" && directOnFocus)),
+      )
       .map((w) => w.id),
   );
   return { directIds, impactedIds, impactedWires, rollupCountById, reachCountById, offStageCount };
@@ -1635,33 +2734,100 @@ const offStageImpactCount = computed<number>(() => {
   return stageData.value.moreOutside || 0;
 });
 
+function countInnerItemsForCard(e: TuxMapLevelElement): number {
+  const M = activeModel.value;
+  if (currentLevel.value === 1 && e.id === M.level2.boundary) {
+    return M.level2.elements.filter((x) => !x.ref && isShownStatus(x.status)).length;
+  }
+  if (currentLevel.value === 2 && !e.ref && M.level3[e.id]?.length) {
+    return M.level3[e.id]!.filter((x) => isShownStatus(x.status)).length;
+  }
+  const sg = getSubgraphForNode(e.id);
+  if (sg?.elements?.length) {
+    return sg.elements.filter((x) => isShownStatus(x.status)).length;
+  }
+  return 0;
+}
+
 const renderedCards = computed(() =>
   stageData.value.els.map((e) => {
     const r = stageData.value.rects[e.id];
     const kind = e.kind || "container";
-    const baseType = TYPE_LABELS[kind] || "";
-    const typeLabel = baseType || e.tech ? `[${baseType}${e.tech ? `: ${e.tech}` : ""}]` : "";
+    const plainKind = plainElementKindLabel(e);
+    const typeLabel = plainKind || e.tech ? `${plainKind}${e.tech ? ` · ${e.tech}` : ""}` : "";
     const live = !e.mini ? formatLiveState(e) : null;
     const outsideLinks = e.mini ? stageData.value.outsideLinkCounts[e.id] || 0 : 0;
+    const outMeta = stageData.value.outsideMetaById[e.id];
     const chip: [string, string] | null = !e.mini
       ? getCardChip(e)
       : outsideLinks > 0
         ? ["links", `${outsideLinks} link${outsideLinks === 1 ? "" : "s"}`]
         : null;
+    const extraChips: { cls: string; text: string }[] = [];
+    if (e.isVendoredCopy || e.vendoredCopies?.length) {
+      const vcCount = e.vendoredCopies?.length ?? 1;
+      extraChips.push({
+        cls: "vendored",
+        text: vcCount > 1 ? `${vcCount} vendored copies` : "vendored copy",
+      });
+    }
+    if (e.mini && (outMeta?.parts ?? 0) > 1 && !outMeta?.isOverflowRollup) {
+      extraChips.push({
+        cls: "parts",
+        text: `${outMeta!.parts} parts`,
+      });
+    }
+    const sharedOther = outMeta?.alsoInParts ?? countOtherSharedParts(e.id, e);
+    if (sharedOther > 0) {
+      extraChips.push({
+        cls: "shared",
+        text: `Also in ${sharedOther} ${sharedOther === 1 ? "part" : "parts"}`,
+      });
+    }
+    const hostIds = !e.mini && !e.ref && currentLevel.value >= 2 ? effectiveDeployedHostIds(e.id) : [];
+    const runsOnLabel =
+      hostIds.length > 0
+        ? (() => {
+            const firstTitle = resById.value[hostIds[0]!]?.title || hostIds[0]!;
+            return hostIds.length > 1
+              ? `Runs on ${firstTitle} +${hostIds.length - 1}`
+              : `Runs on ${firstTitle}`;
+          })()
+        : "";
     const zoomable = canZoomElement(e);
+    const innerCount = countInnerItemsForCard(e);
+    const ariaParts = [e.name];
+    if (plainKind) ariaParts.push(plainKind);
+    if (innerCount > 0) {
+      ariaParts.push(`${innerCount} inner ${innerCount === 1 ? "item" : "items"}`);
+    }
+    const ariaLabel = ariaParts.join(", ");
     const br = blastRadiusState.value;
     const isDirect = Boolean(br?.directIds.has(e.id));
     const isImpacted = Boolean(!isDirect && br?.impactedIds.has(e.id));
+    const isTraced = Boolean(stageTraceState.value?.nodeIds.has(e.id));
     const diffBadge = formatDiffBadge(e.id, e.diff);
+    const displayName = stageData.value.displayNameById[e.id] || e.name;
+    const isSplittable = Boolean(e.mini && outMeta?.splittable && (outMeta.parts ?? 0) > 1);
+    const isLoadingSubgraph = loadingSubgraphId.value === e.id;
     return {
       el: e,
       id: e.id,
       parent: e.parent || "",
-      name: e.name,
+      name: displayName,
+      fullName: e.name,
+      ariaLabel,
+      ownerLabel: outMeta?.ownerLabel || "",
+      runsOnLabel,
       desc: !e.mini ? e.desc : undefined,
       mini: Boolean(e.mini),
+      splittable: isSplittable,
+      isOverflowRollup: Boolean(outMeta?.isOverflowRollup),
+      parts: outMeta?.parts ?? 1,
+      isLoadingSubgraph,
       statusCls: e.status ? `tux-map__el--st-${e.status}` : "",
       kindCls: `tux-map__el--k-${kind}`,
+      traceCls: isTraced ? "tux-map__el--trace" : "",
       blastCls: isDirect
         ? "tux-map__el--diff-direct"
         : isImpacted
@@ -1671,6 +2837,7 @@ const renderedCards = computed(() =>
       typeLabel,
       live,
       chip,
+      extraChips,
       diffBadge,
       zoomable,
       style: {
@@ -1679,9 +2846,51 @@ const renderedCards = computed(() =>
         width: `${r?.w ?? 212}px`,
         height: `${r?.h ?? 128}px`,
       },
+      zbStyle: {
+        left: `${(r?.x ?? 0) + (r?.w ?? 212) - 28}px`,
+        top: `${(r?.y ?? 0) + 6}px`,
+      },
     };
   }),
 );
+
+const activeRovingCardId = computed<string | null>(() => {
+  if (currentLevel.value === 4) {
+    const nodes = stageData.value.deployNodes;
+    if (!nodes.length) return null;
+    if (rovingCardId.value && nodes.some((n) => n.id === rovingCardId.value)) {
+      return rovingCardId.value;
+    }
+    if (selectedId.value && nodes.some((n) => n.id === selectedId.value)) {
+      return selectedId.value;
+    }
+    return nodes[0]!.id;
+  }
+  const cards = renderedCards.value;
+  if (!cards.length) return null;
+  if (rovingCardId.value && cards.some((c) => c.id === rovingCardId.value)) {
+    return rovingCardId.value;
+  }
+  if (selectedId.value && cards.some((c) => c.id === selectedId.value)) {
+    return selectedId.value;
+  }
+  return cards[0]!.id;
+});
+
+const isAutoDenseList = computed<boolean>(
+  () =>
+    !userForcedView.value &&
+    props.view === undefined &&
+    currentLevel.value !== 4 &&
+    stageData.value.innerCardCount > (props.denseListThreshold || 40),
+);
+
+const effectiveIsListView = computed<boolean>(() => isListView.value || isAutoDenseList.value);
+
+function setExplicitViewMode(mode: TuxMapViewMode) {
+  userForcedView.value = true;
+  isListView.value = mode === "list";
+}
 
 const searchIndexById = computed<Map<string, string>>(() => {
   const map = new Map<string, string>();
@@ -1921,6 +3130,7 @@ function isElementLit(id: string, parentId?: string): boolean {
   if (matchingSearchIds.value) {
     return matchingSearchIds.value.has(id);
   }
+  if (stageTraceState.value?.nodeIds.has(id)) return true;
   const br = blastRadiusState.value;
   if (!activeLitId.value) {
     if (br && (br.directIds.size > 0 || br.impactedIds.size > 0)) {
@@ -1935,6 +3145,7 @@ function isElementLit(id: string, parentId?: string): boolean {
 }
 
 function isWireLit(from: string, to: string, wireId?: string): boolean {
+  if (wireId && stageTraceState.value?.wireIds.has(wireId)) return true;
   const br = blastRadiusState.value;
   if (br && wireId && br.impactedWires.has(wireId)) {
     return true;
@@ -2093,9 +3304,23 @@ function applyStageHighlight(rawId: string | null) {
   for (let i = 0; i < cache.litLabels.length; i++) {
     const item = cache.litLabels[i]!;
     item.el.classList.remove("tux-map__lab--on");
-    if (item.forced) item.el.style.display = "none";
   }
   cache.litLabels.length = 0;
+
+  const tr = stageTraceState.value;
+  if (tr) {
+    for (const wid of tr.wireIds) {
+      const ws = cache.fgWiresById.get(wid);
+      if (!ws) continue;
+      for (let i = 0; i < ws.length; i++) {
+        const w = ws[i]!;
+        if (!w.classList.contains("tux-map__wire-fg--on")) {
+          w.classList.add("tux-map__wire-fg--on");
+          cache.litWires.push(w);
+        }
+      }
+    }
+  }
 
   const searchSet = matchingSearchIds.value;
   if (searchSet) {
@@ -2117,7 +3342,7 @@ function applyStageHighlight(rawId: string | null) {
         const c = cache.cards[i]!;
         c.el.classList.toggle(
           "tux-map__el--lit",
-          br.directIds.has(c.id) || br.impactedIds.has(c.id),
+          br.directIds.has(c.id) || br.impactedIds.has(c.id) || Boolean(tr?.nodeIds.has(c.id)),
         );
       }
       for (const wid of br.impactedWires) {
@@ -2159,7 +3384,6 @@ function applyStageHighlight(rawId: string | null) {
     for (let i = 0; i < activeLabels.length; i++) {
       const item = activeLabels[i]!;
       item.el.classList.add("tux-map__lab--on");
-      if (item.forced) item.el.style.display = "";
       cache.litLabels.push(item);
     }
   }
@@ -2187,7 +3411,8 @@ function applyStageHighlight(rawId: string | null) {
       c.id === key ||
       Boolean(neighborSet?.has(c.id)) ||
       Boolean(boundLit && c.parent) ||
-      Boolean(br && (br.directIds.has(c.id) || br.impactedIds.has(c.id)));
+      Boolean(br && (br.directIds.has(c.id) || br.impactedIds.has(c.id))) ||
+      Boolean(tr?.nodeIds.has(c.id));
     c.el.classList.toggle("tux-map__el--lit", isLit);
   }
 }
@@ -2351,7 +3576,7 @@ function renderProximityMatch(
 }
 
 function updateProximityAtStagePoint(stageX: number, stageY: number) {
-  if (activeTool.value !== "select" || isListView.value) {
+  if (activeTool.value !== "select" || effectiveIsListView.value) {
     if (proximityCard.value) {
       proximityCard.value = null;
       setProximityClassOnDom(null);
@@ -2383,6 +3608,10 @@ function onStagePointerOver(ev: PointerEvent) {
   if (nextId === currentHoveredId) return;
   clearPreZoomCardTransform();
   currentHoveredId = nextId;
+  if (currentLevel.value >= 5 && stageData.value.codeEdgeHoverIds.size > 0) {
+    hoveredStageCardId.value =
+      nextId && stageData.value.codeEdgeHoverIds.has(nextId) ? nextId : null;
+  }
   if (selectedId.value) return;
   applyStageHighlight(nextId ?? proximityCard.value?.id ?? null);
 }
@@ -2390,6 +3619,9 @@ function onStagePointerOver(ev: PointerEvent) {
 function onStagePointerLeave() {
   clearPreZoomCardTransform();
   currentHoveredId = null;
+  if (hoveredStageCardId.value !== null) {
+    hoveredStageCardId.value = null;
+  }
   if (proximityCard.value) {
     proximityCard.value = null;
     setProximityClassOnDom(null);
@@ -2399,7 +3631,7 @@ function onStagePointerLeave() {
   applyStageHighlight(null);
 }
 
-watch([currentLevel, focusId, showPlanned, showBlastRadius, activeModel], () => {
+watch([currentLevel, focusId, showPlanned, showBlastRadius, activeModel, routedSvg], () => {
   stageDomCache = null;
   proximityCard.value = null;
   hideProximityTetherDom();
@@ -2409,7 +3641,7 @@ watch([currentLevel, focusId, showPlanned, showBlastRadius, activeModel], () => 
   });
 });
 
-watch([selectedId, matchingSearchIds, blastRadiusState], () => {
+watch([selectedId, matchingSearchIds, blastRadiusState, stageTraceState], () => {
   nextTick(() => {
     applyStageHighlight(selectedId.value ?? currentHoveredId ?? proximityCard.value?.id ?? null);
   });
@@ -2507,7 +3739,7 @@ function measureViewport() {
 
 /** The details panel follows the map instead of overlaying it: the list view, or a narrow map */
 function panelFollowsMap(): boolean {
-  if (isListView.value) return true;
+  if (effectiveIsListView.value) return true;
   const el = panelRef.value;
   return Boolean(el && typeof window !== "undefined" && window.getComputedStyle(el).position === "static");
 }
@@ -2517,15 +3749,29 @@ function keepClear(id: string | null) {
   let want = 0;
   if (panelFollowsMap()) id = null;
   // magnified, the viewport scrolls; sliding the stage under it as well would fight the scroll
-  if (r && id && !isListView.value && !isMagnified.value) {
+  if (r && id && !effectiveIsListView.value && !isMagnified.value) {
     const pWidth = panelRef.value?.offsetWidth || 380;
     const free = viewportWidth.value - pWidth - 36;
-    const right = (r.x + r.w) * stageScale.value;
-    if (right > free) {
-      want = Math.max(
-        -(stageData.value.width * stageScale.value - free),
-        Math.round(free - right - 24),
-      );
+    const scale = stageScale.value;
+    const primaryLeft = r.x * scale;
+    const primaryRight = (r.x + r.w) * scale;
+    let clusterRight = primaryRight;
+    for (const nid of litNeighbors.value) {
+      if (nid === "@bound" || nid === id) continue;
+      const nr = stageData.value.rects[nid];
+      if (!nr || nr.bound) continue;
+      const nRight = (nr.x + nr.w) * scale;
+      if (nRight > clusterRight) clusterRight = nRight;
+    }
+    const minPan = Math.min(0, -(stageData.value.width * scale - free));
+    const reqForPrimary = primaryRight > free ? Math.max(minPan, Math.round(free - primaryRight - 24)) : 0;
+    if (clusterRight > free) {
+      const wantForCluster = Math.max(minPan, Math.round(free - clusterRight - 24));
+      // Clear lit neighbors as well where space permits without pushing the selected card off the left edge (#117)
+      const maxLeftShiftKeepingPrimaryVisible = Math.min(0, Math.floor(12 - primaryLeft));
+      want = Math.min(reqForPrimary, Math.max(wantForCluster, maxLeftShiftKeepingPrimaryVisible));
+    } else {
+      want = reqForPrimary;
     }
   }
   if (want === panX.value) return;
@@ -2550,7 +3796,7 @@ const onCoarseChange = () => {
 const wheelZooms = computed<boolean>(() => props.wheelZoom && !isMagnified.value);
 const hintText = computed<string>(() => {
   const scroll = wheelZooms.value ? "scroll" : "Ctrl+scroll";
-  if (isListView.value) {
+  if (effectiveIsListView.value) {
     return "Choose an item to see what it depends on, what uses it and its details. The level buttons go in and out.";
   }
   if (currentLevel.value === 4) {
@@ -2601,11 +3847,30 @@ function onWindowKeydown(ev: KeyboardEvent) {
   }
 }
 
+function onDocumentPointerDown(ev: PointerEvent) {
+  const t = ev.target as HTMLElement | null;
+  if (!t) return;
+  if (openCrumbMenuIdx.value !== null && !t.closest(".tux-map__crumb-menu-wrap")) {
+    openCrumbMenuIdx.value = null;
+  }
+  if (moreMenuOpen.value && !t.closest(".tux-map__more-wrap")) {
+    moreMenuOpen.value = false;
+  }
+  if (
+    inspectedWireKey.value !== null &&
+    !t.closest(".tux-map__wire-pop") &&
+    !t.closest(".tux-map__lab")
+  ) {
+    inspectedWireKey.value = null;
+  }
+}
+
 onMounted(() => {
   applyAutoListView();
   measureViewport();
   if (typeof window !== "undefined") {
     window.addEventListener("keydown", onWindowKeydown);
+    document.addEventListener("pointerdown", onDocumentPointerDown);
     if (window.matchMedia) {
       coarseQuery = window.matchMedia("(pointer: coarse)");
       onCoarseChange();
@@ -2618,12 +3883,19 @@ onMounted(() => {
     });
     resizeObserver.observe(viewportRef.value);
   }
+  // Run `keepClear` on mount for `initialSelectedId` (#117)
+  if (selectedId.value) {
+    nextTick(() => {
+      keepClear(selectedId.value);
+    });
+  }
 });
 
 onBeforeUnmount(() => {
   resizeObserver?.disconnect();
   if (typeof window !== "undefined") {
     window.removeEventListener("keydown", onWindowKeydown);
+    document.removeEventListener("pointerdown", onDocumentPointerDown);
   }
   coarseQuery?.removeEventListener?.("change", onCoarseChange);
   if (zoomHudTimer) clearTimeout(zoomHudTimer);
@@ -2641,9 +3913,10 @@ function resolveItemById(id: string | null): TuxMapLevelElement | TuxMapDeployme
   return byId.value[id] ?? resById.value[id] ?? null;
 }
 
-function setSelectionAndEmit(id: string | null) {
+function setSelectionAndEmit(id: string | null, silentAnnounce = false) {
   const prev = selectedId.value;
   selectedId.value = id;
+  if (id) rovingCardId.value = id;
 
   // Issue #103 (1): Selecting a container on Level 2 (or Level 4 host) that has Level 3 children sets `focusId`
   if (id) {
@@ -2661,12 +3934,36 @@ function setSelectionAndEmit(id: string | null) {
 
   if (id !== prev) {
     emit("update:selectedId", id);
-    emit("node-select", resolveItemById(id));
+    const resolved = resolveItemById(id);
+    emit("node-select", resolved);
+    if (!silentAnnounce && id && resolved) {
+      const label = "title" in resolved ? resolved.title : resolved.name;
+      announce(`${label} selected`);
+    }
   }
+}
+
+function onStageCardClick(c: {
+  id: string;
+  mini: boolean;
+  splittable: boolean;
+  parts: number;
+  isOverflowRollup: boolean;
+}) {
+  if (activeTool.value !== "select") return;
+  if (c.isOverflowRollup) return;
+  if (c.mini && c.splittable && c.parts > 1) {
+    rovingCardId.value = c.id;
+    toggleSplitCard(c.id);
+    announce(`Expanded ${byId.value[c.id]?.name || c.id} into ${c.parts} parts`);
+    return;
+  }
+  selectElement(selectedId.value === c.id ? null : c.id);
 }
 
 function selectElement(id: string | null) {
   if (activeTool.value !== "select") return;
+  if (id && id.startsWith("@more-")) return;
   const prev = selectedId.value;
   currentHoveredId = null;
   setSelectionAndEmit(id);
@@ -2681,7 +3978,7 @@ function selectElement(id: string | null) {
         (panelRef.value?.querySelector(".tux-map__panel-title") as HTMLElement | null)?.focus();
       } else if (prev) {
         // the list item, or in the diagram the card itself (the hidden diagram's cards stay in the list's DOM)
-        const sel = isListView.value ? "[data-list-id]" : ".tux-map__el[data-id]";
+        const sel = effectiveIsListView.value ? "[data-list-id]" : ".tux-map__el[data-id]";
         const items = root?.querySelectorAll<HTMLElement>(sel) ?? [];
         [...items].find((el) => (el.dataset.listId ?? el.dataset.id) === prev)?.focus();
       }
@@ -2707,6 +4004,8 @@ function goToLevel(
     targetCardId?: string | null;
     inward?: boolean;
     hudLabel?: string;
+    announcement?: string;
+    keepPreInfra?: boolean;
   } = {},
 ) {
   const prevLevel = currentLevel.value;
@@ -2714,6 +4013,16 @@ function goToLevel(
   const prevPanX = panX.value;
   const prevFocus = focusId.value;
   const inward = opts.inward ?? nextLevel > prevLevel;
+  if (!opts.keepPreInfra && nextLevel !== 4) {
+    preInfraState.value = null;
+  }
+
+  const hadFocusInsideMap =
+    typeof document !== "undefined" &&
+    Boolean(document.activeElement && mapRootRef.value?.contains(document.activeElement));
+  const hadFocusInsideViewport =
+    typeof document !== "undefined" &&
+    Boolean(document.activeElement && viewportRef.value?.contains(document.activeElement));
 
   // Capture outgoing card / boundary viewport rectangle BEFORE switching levels
   let fromViewportRect: {
@@ -2749,7 +4058,8 @@ function goToLevel(
 
   currentLevel.value = nextLevel;
   if (opts.nextFocus !== undefined) {
-    focusId.value = opts.nextFocus;
+    const resolvedFocus = opts.nextFocus ? resolveAliasId(opts.nextFocus) ?? opts.nextFocus : opts.nextFocus;
+    focusId.value = resolvedFocus;
     emit("update:focus", focusId.value);
   } else if (nextLevel === 3 && !focusId.value) {
     const firstZoomable = activeModel.value.level2.elements.find(
@@ -2759,10 +4069,16 @@ function goToLevel(
     emit("update:focus", focusId.value);
   }
 
+  const resolvedNextSel = opts.nextSel ? resolveAliasId(opts.nextSel) ?? opts.nextSel : null;
   panX.value = 0;
-  setSelectionAndEmit(opts.nextSel ?? null);
+  setSelectionAndEmit(resolvedNextSel, true);
   currentHoveredId = null;
   emit("update:level", nextLevel);
+
+  // Single screen-reader announcement per level change (#117)
+  liveAnnouncement.value =
+    opts.announcement ||
+    `Level ${nextLevel}: ${currentStratumShort.value}.`;
 
   const resolvedHud =
     opts.hudLabel ||
@@ -2773,10 +4089,50 @@ function goToLevel(
     }`;
   showZoomHud(inward ? "in" : "out", resolvedHud);
 
+  // Resolve target card or boundary on the incoming level
+  const resolvedTargetId =
+    (opts.targetCardId ? resolveAliasId(opts.targetCardId) ?? opts.targetCardId : null) ||
+    (!inward && prevLevel === 3 ? prevFocus : null) ||
+    (!inward && prevLevel === 2 ? activeModel.value.level2.boundary : null) ||
+    resolvedNextSel ||
+    null;
+
   nextTick(() => {
     rebuildStageDomCache();
-    if (opts.nextSel) {
-      keepClear(opts.nextSel);
+    if (resolvedNextSel) {
+      keepClear(resolvedNextSel);
+    }
+
+    // Focus preservation after zoom (#117), respecting #109 host-focus invariant
+    if (typeof document !== "undefined") {
+      const activeAfter = document.activeElement;
+      const focusLostToBody = !activeAfter || activeAfter === document.body;
+      const stillInViewport = Boolean(activeAfter && viewportRef.value?.contains(activeAfter));
+      if ((hadFocusInsideViewport && (focusLostToBody || stillInViewport)) || (hadFocusInsideMap && focusLostToBody)) {
+        const fallbackCardId =
+          nextLevel === 4
+            ? stageData.value.deployNodes[0]?.id ?? null
+            : stageData.value.els.find((e) => !e.mini)?.id ?? stageData.value.els[0]?.id ?? null;
+        const focusCardId =
+          (resolvedTargetId &&
+          (nextLevel === 4
+            ? stageData.value.deployNodes.some((n) => n.id === resolvedTargetId)
+            : stageData.value.els.some((e) => e.id === resolvedTargetId))
+            ? resolvedTargetId
+            : fallbackCardId) ?? null;
+        if (focusCardId) {
+          rovingCardId.value = focusCardId;
+          if (effectiveIsListView.value) {
+            queryListCardById(mapRootRef.value, focusCardId)?.focus({ preventScroll: true });
+          } else {
+            (queryCardById(stageRef.value, focusCardId) ?? viewportRef.value)?.focus({
+              preventScroll: true,
+            });
+          }
+        } else if (!effectiveIsListView.value) {
+          viewportRef.value?.focus({ preventScroll: true });
+        }
+      }
     }
 
     // Re-evaluate hovered & proximity-attached card under stationary cursor after level switch
@@ -2801,7 +4157,7 @@ function goToLevel(
     }
 
     if (
-      isListView.value ||
+      effectiveIsListView.value ||
       isMagnified.value ||
       (typeof window !== "undefined" &&
         window.matchMedia?.("(prefers-reduced-motion: reduce)").matches)
@@ -2814,14 +4170,6 @@ function goToLevel(
 
     const nextScale = stageScale.value;
     const nextPanX = panX.value;
-
-    // Resolve target card or boundary on the incoming level
-    const resolvedTargetId =
-      opts.targetCardId ||
-      (!inward && prevLevel === 3 ? prevFocus : null) ||
-      (!inward && prevLevel === 2 ? activeModel.value.level2.boundary : null) ||
-      opts.nextSel ||
-      null;
 
     const rTarget = resolvedTargetId ? stageData.value.rects[resolvedTargetId] : undefined;
     const bNext = stageData.value.bounds[0];
@@ -2997,7 +4345,8 @@ function goToLevel(
   });
 }
 
-function canRevealElement(id: string): boolean {
+function canRevealElement(rawId: string): boolean {
+  const id = resolveAliasId(rawId) ?? rawId;
   if (parentOf.value.has(id)) return true;
   const M = activeModel.value;
   if (M.level2.elements.some((e) => !e.ref && e.id === id)) return true;
@@ -3007,7 +4356,8 @@ function canRevealElement(id: string): boolean {
 }
 
 /** Go to where `id` lives: the level that shows it among its siblings, with it chosen. */
-function revealElement(id: string) {
+function revealElement(rawId: string) {
+  const id = resolveAliasId(rawId) ?? rawId;
   const p = parentOf.value.get(id);
   const M = activeModel.value;
   const name = byId.value[id]?.name || resById.value[id]?.title || id;
@@ -3020,8 +4370,8 @@ function revealElement(id: string) {
       targetCardId: id,
       inward: lvl >= currentLevel.value,
       hudLabel: `Level ${currentLevel.value} → Level ${lvl} · ${name}`,
+      announcement: `Went to Level ${lvl}: ${name}.`,
     });
-    liveAnnouncement.value = `Went to Level ${lvl}: ${name}.`;
   } else if (M.level2.elements.some((e) => !e.ref && e.id === id)) {
     drillStack.value = [];
     goToLevel(2, {
@@ -3029,8 +4379,8 @@ function revealElement(id: string) {
       targetCardId: id,
       inward: currentLevel.value < 2,
       hudLabel: `Level ${currentLevel.value} → Level 2 · ${name}`,
+      announcement: `Went to Level 2: ${name}.`,
     });
-    liveAnnouncement.value = `Went to Level 2: ${name}.`;
   } else if (M.level1.elements.some((e) => e.id === id)) {
     drillStack.value = [];
     goToLevel(1, {
@@ -3038,8 +4388,8 @@ function revealElement(id: string) {
       targetCardId: id,
       inward: false,
       hudLabel: `Level ${currentLevel.value} → Level 1 · ${name}`,
+      announcement: `Went to Level 1: ${name}.`,
     });
-    liveAnnouncement.value = `Went to Level 1: ${name}.`;
   } else if (resById.value[id]) {
     drillStack.value = [];
     goToLevel(4, {
@@ -3047,8 +4397,8 @@ function revealElement(id: string) {
       targetCardId: id,
       inward: true,
       hudLabel: `Level ${currentLevel.value} → Level 4 · ${name}`,
+      announcement: `Went to Level 4: ${name}.`,
     });
-    liveAnnouncement.value = `Went to Level 4: ${name}.`;
   } else {
     return;
   }
@@ -3056,7 +4406,7 @@ function revealElement(id: string) {
     if (typeof document === "undefined") return;
     const active = document.activeElement;
     if (!active || active === document.body || mapRootRef.value?.contains(active)) {
-      if (isListView.value) {
+      if (effectiveIsListView.value) {
         queryListCardById(mapRootRef.value, id)?.focus({ preventScroll: true });
       } else {
         queryCardById(stageRef.value, id)?.focus({ preventScroll: true });
@@ -3096,7 +4446,48 @@ function zoomBucketTitleFor(id: string, mini: boolean): string {
   return `${scroll} or double-click to zoom in a level`;
 }
 
-function zoomIntoElement(id: string) {
+async function resolveAndZoomIntoLazySubgraph(id: string) {
+  if (!props.resolveSubgraph) return;
+  const seq = ++resolveReqSeq;
+  loadingSubgraphId.value = id;
+  const el = byId.value[id];
+  const dn = resById.value[id];
+  const refKey = el?.subgraphRef || dn?.subgraphRef;
+  try {
+    const sg = await props.resolveSubgraph(refKey || id, props.modelRef);
+    if (seq !== resolveReqSeq) return;
+    loadingSubgraphId.value = null;
+    if (sg && Array.isArray(sg.elements) && sg.elements.length > 0) {
+      const nextMap: Record<string, TuxMapSubgraph> = {
+        ...resolvedSubgraphs.value,
+        [id]: sg,
+      };
+      if (refKey && refKey !== id) {
+        nextMap[refKey] = sg;
+      }
+      resolvedSubgraphs.value = nextMap;
+      await nextTick();
+      if (seq !== resolveReqSeq) return;
+      zoomIntoElement(id);
+    } else {
+      emptyResolvedSubgraphs.value = { ...emptyResolvedSubgraphs.value, [id]: true };
+      announce(`${getCardDisplayName(id)} has no level inside it.`);
+    }
+  } catch {
+    if (seq === resolveReqSeq) {
+      loadingSubgraphId.value = null;
+      announce(`Could not load details for ${getCardDisplayName(id)}.`);
+    }
+  }
+}
+
+function zoomIntoElement(rawId: string) {
+  const id = resolveAliasId(rawId) ?? rawId;
+  if (hasLazySubgraphRef(id)) {
+    void resolveAndZoomIntoLazySubgraph(id);
+    return;
+  }
+
   const e = byId.value[id];
   const dn = resById.value[id];
   const itemName = e?.name || dn?.title || id;
@@ -3123,23 +4514,39 @@ function zoomIntoElement(id: string) {
       fromCardId: id,
       inward: true,
       hudLabel: `Level ${currentLevel.value} → Level ${nextLvl} · ${itemName}`,
+      announcement: `Zoomed in to Level ${nextLvl}: ${sg?.stratum || itemName}.`,
     });
-    liveAnnouncement.value = `Zoomed in to Level ${nextLvl}: ${sg?.stratum || itemName}.`;
     return;
   }
 
   if (!e) return;
 
   if (currentLevel.value === 1) {
-    const isBoundarySystem = id === activeModel.value.level2.boundary || canZoomElement(e);
+    if (!canZoomElement(e)) return;
+    if (hasFractalSubgraph(id) && !(e.zoom === 2 || id === activeModel.value.level2.boundary)) {
+      const nextLvl = Math.max(5, levelForFocus(id));
+      drillStack.value = drillStackFor(id);
+      const sg = getSubgraphForNode(id);
+      emit("drill-down", { level: nextLvl, focusId: id, subgraph: sg });
+      goToLevel(nextLvl, {
+        nextFocus: id,
+        nextSel: null,
+        fromCardId: id,
+        inward: true,
+        hudLabel: `Level 1 → Level ${nextLvl} · ${e.name}`,
+        announcement: `Zoomed in to Level ${nextLvl}: ${sg?.stratum || e.name}.`,
+      });
+      return;
+    }
+    const isBoundarySystem = id === activeModel.value.level2.boundary || e.zoom === 2;
     goToLevel(2, {
       nextFocus: focusId.value,
       nextSel: isBoundarySystem ? null : id,
       fromCardId: id,
       inward: true,
       hudLabel: `Level 1 → Level 2 · ${e.name}`,
+      announcement: "Zoomed in to Level 2: containers and services.",
     });
-    liveAnnouncement.value = "Zoomed in to Level 2: containers and services.";
     return;
   }
 
@@ -3151,8 +4558,8 @@ function zoomIntoElement(id: string) {
         fromCardId: id,
         inward: true,
         hudLabel: `Level 2 → Level 3 · ${e.name}`,
+        announcement: `Zoomed in to Level 3: internal components of ${e.name}.`,
       });
-      liveAnnouncement.value = `Zoomed in to Level 3: internal components of ${e.name}.`;
       return;
     }
     if (hasFractalSubgraph(id)) {
@@ -3166,62 +4573,11 @@ function zoomIntoElement(id: string) {
         fromCardId: id,
         inward: true,
         hudLabel: `Level 2 → Level ${nextLvl} · ${e.name}`,
+        announcement: `Zoomed in to Level ${nextLvl}: ${sg?.stratum || e.name}.`,
       });
-      liveAnnouncement.value = `Zoomed in to Level ${nextLvl}: ${sg?.stratum || e.name}.`;
-      return;
     }
-    const deployedHosts = normalizeArray(e.deployed);
-    if (deployedHosts.length > 0) {
-      goToLevel(4, {
-        nextSel: deployedHosts[0] ?? null,
-        fromCardId: id,
-        targetCardId: deployedHosts[0] ?? null,
-        inward: true,
-        hudLabel: `Level 2 → Level 4 · ${e.name}`,
-      });
-      liveAnnouncement.value = `Zoomed in to Level 4: deployment infrastructure for ${e.name}.`;
-      return;
-    }
-    const r = stageData.value.rects[id];
-    const nearestZoomable = findNearestCardToPoint(
-      r ? r.x + r.w / 2 : stageData.value.width / 2,
-      r ? r.y + r.h / 2 : stageData.value.height / 2,
-      Infinity,
-      true,
-      true,
-    );
-    if (nearestZoomable) {
-      goToLevel(3, {
-        nextFocus: nearestZoomable.id,
-        nextSel: null,
-        fromCardId: nearestZoomable.id,
-        inward: true,
-        hudLabel: `Level 2 → Level 3 · ${nearestZoomable.name}`,
-      });
-      liveAnnouncement.value = `Zoomed in to Level 3: internal components of ${nearestZoomable.name}.`;
-    }
+    // Never fall back to Level 4 or jump to another sibling card when zooming a leaf (#116)
     return;
-  }
-
-  if (currentLevel.value === 3) {
-    const parentContainer = focusId.value ? byId.value[focusId.value] : undefined;
-    const hostIds = [
-      ...normalizeArray(e.deployed),
-      ...normalizeArray(parentContainer?.deployed),
-    ];
-    const targetHostId = hostIds.find((hid) => Boolean(resById.value[hid])) ?? null;
-    goToLevel(4, {
-      nextSel: targetHostId,
-      fromCardId: id,
-      targetCardId: targetHostId,
-      inward: true,
-      hudLabel: `Level 3 → Level 4 · ${
-        targetHostId && resById.value[targetHostId]
-          ? resById.value[targetHostId]!.title
-          : e.name
-      }`,
-    });
-    liveAnnouncement.value = "Zoomed in to Level 4: deployment and infrastructure.";
   }
 }
 
@@ -3242,8 +4598,8 @@ function zoomOutLevel(fromHoveredId?: string | null) {
         targetCardId: currentF,
         inward: false,
         hudLabel: `Level ${currentLevel.value} → Level ${prevEntry.level} · ${prevName}`,
+        announcement: `Zoomed out to Level ${prevEntry.level}.`,
       });
-      liveAnnouncement.value = `Zoomed out to Level ${prevEntry.level}.`;
       return;
     }
     // Fallback if entered Level 5+ directly without drillStack: the focus's parent
@@ -3258,12 +4614,26 @@ function zoomOutLevel(fromHoveredId?: string | null) {
       targetCardId: currentF,
       inward: false,
       hudLabel: `Level ${currentLevel.value} → Level ${targetLevel}`,
+      announcement: `Zoomed out to Level ${targetLevel}.`,
     });
-    liveAnnouncement.value = `Zoomed out to Level ${targetLevel}.`;
     return;
   }
 
   if (currentLevel.value === 4) {
+    if (preInfraState.value) {
+      const saved = preInfraState.value;
+      preInfraState.value = null;
+      drillStack.value = [...saved.drillStack];
+      goToLevel(saved.level, {
+        nextFocus: saved.focusId,
+        nextSel: saved.selectedId,
+        targetCardId: saved.selectedId ?? saved.focusId,
+        inward: false,
+        hudLabel: `Level 4 → Level ${saved.level}`,
+        announcement: `Returned to Level ${saved.level}.`,
+      });
+      return;
+    }
     const node = fromHoveredId
       ? resById.value[fromHoveredId]
       : selectedId.value
@@ -3281,8 +4651,8 @@ function zoomOutLevel(fromHoveredId?: string | null) {
         fromCardId: node?.id ?? null,
         inward: false,
         hudLabel: `Level 4 → Level 3 · ${cName}`,
+        announcement: `Zoomed out to Level 3: ${cName}.`,
       });
-      liveAnnouncement.value = `Zoomed out to Level 3: ${cName}.`;
     } else {
       goToLevel(2, {
         nextSel: null,
@@ -3290,8 +4660,8 @@ function zoomOutLevel(fromHoveredId?: string | null) {
         targetCardId: node?.hosts?.[0] ?? null,
         inward: false,
         hudLabel: "Level 4 → Level 2 · Containers & services",
+        announcement: "Zoomed out to Level 2.",
       });
-      liveAnnouncement.value = "Zoomed out to Level 2.";
     }
   } else if (currentLevel.value === 3) {
     const f = focusId.value;
@@ -3303,8 +4673,8 @@ function zoomOutLevel(fromHoveredId?: string | null) {
       targetCardId: f,
       inward: false,
       hudLabel: `Level 3 → Level 2 · ${cName}`,
+      announcement: "Zoomed out to Level 2.",
     });
-    liveAnnouncement.value = "Zoomed out to Level 2.";
   } else if (currentLevel.value === 2) {
     const sysId = activeModel.value.level2.boundary;
     const sysName = byId.value[sysId]?.name ?? "System context";
@@ -3314,8 +4684,8 @@ function zoomOutLevel(fromHoveredId?: string | null) {
       targetCardId: sysId,
       inward: false,
       hudLabel: `Level 2 → Level 1 · ${sysName}`,
+      announcement: "Zoomed out to Level 1.",
     });
-    liveAnnouncement.value = "Zoomed out to Level 1.";
   }
 }
 
@@ -3329,6 +4699,7 @@ function openLevel3FromToolbar() {
     nextFocus: candidate,
     fromCardId: currentLevel.value === 2 ? candidate : null,
     inward: currentLevel.value < 3,
+    announcement: `Zoomed in to Level 3: internal components of ${byId.value[candidate]?.name || candidate}.`,
   });
 }
 
@@ -3352,24 +4723,35 @@ const stepInTargetId = computed<string | null>(() => {
     }
   }
   if (currentLevel.value === 1) {
-    return activeModel.value.level2.boundary || null;
+    const bId = activeModel.value.level2.boundary;
+    if (bId && byId.value[bId] && canZoomElement(byId.value[bId]!)) {
+      return bId;
+    }
+    const firstZoomableL1 = stageData.value.els.find((e) => canZoomElement(e));
+    return firstZoomableL1?.id ?? null;
   }
   if (currentLevel.value === 2) {
     if (focusId.value && (activeModel.value.level3[focusId.value]?.length ?? 0) > 0) {
       return focusId.value;
     }
-    return null;
+    const firstZoomableL2 = stageData.value.els.find((e) => !e.mini && canZoomElement(e));
+    return firstZoomableL2?.id ?? null;
   }
   if (currentLevel.value === 3) {
-    const fractalChild = stageData.value.els.find((e) => !e.mini && hasFractalSubgraph(e.id));
-    if (fractalChild) return fractalChild.id;
-    return stageData.value.els.find((e) => !e.mini)?.id ?? null;
+    const fractalChild = stageData.value.els.find(
+      (e) => !e.mini && (hasFractalSubgraph(e.id) || hasLazySubgraphRef(e.id)),
+    );
+    return fractalChild?.id ?? null;
   }
   if (currentLevel.value === 4) {
-    const fractalDeploy = stageData.value.deployNodes.find((n) => hasFractalSubgraph(n.id));
+    const fractalDeploy = stageData.value.deployNodes.find(
+      (n) => hasFractalSubgraph(n.id) || hasLazySubgraphRef(n.id),
+    );
     return fractalDeploy?.id ?? null;
   }
-  const deeperChild = stageData.value.els.find((e) => !e.mini && hasFractalSubgraph(e.id));
+  const deeperChild = stageData.value.els.find(
+    (e) => !e.mini && (hasFractalSubgraph(e.id) || hasLazySubgraphRef(e.id)),
+  );
   return deeperChild?.id ?? null;
 });
 
@@ -3400,12 +4782,34 @@ function stepInLevel() {
 
 function toggleInfrastructureView() {
   if (currentLevel.value === 4) {
-    zoomOutLevel();
+    if (preInfraState.value) {
+      const saved = preInfraState.value;
+      preInfraState.value = null;
+      drillStack.value = [...saved.drillStack];
+      goToLevel(saved.level, {
+        nextFocus: saved.focusId,
+        nextSel: saved.selectedId,
+        targetCardId: saved.selectedId ?? saved.focusId,
+        inward: false,
+        hudLabel: `Level 4 → Level ${saved.level}`,
+        announcement: `Returned to Level ${saved.level}.`,
+      });
+    } else {
+      zoomOutLevel();
+    }
   } else {
+    preInfraState.value = {
+      level: currentLevel.value,
+      focusId: focusId.value,
+      drillStack: [...drillStack.value],
+      selectedId: selectedId.value,
+    };
     drillStack.value = [];
     goToLevel(4, {
       inward: true,
+      keepPreInfra: true,
       hudLabel: `Level ${currentLevel.value} → Level 4 · Infrastructure`,
+      announcement: "Level 4: Infrastructure.",
     });
   }
 }
@@ -3472,25 +4876,28 @@ function onViewportWheel(ev: WheelEvent) {
     } else {
       const closestMatch =
         findNearestCardToPoint(pt.x, pt.y, Infinity, isZoomIn, isZoomIn) ||
-        findNearestCardToPoint(pt.x, pt.y, Infinity, isZoomIn, false);
+        (!isZoomIn ? findNearestCardToPoint(pt.x, pt.y, Infinity, false, false) : null);
       lockedWheelCardId =
         closestMatch?.id ||
-        proximityCard.value?.id ||
-        currentHoveredId ||
-        selectedId.value ||
+        (!isZoomIn
+          ? proximityCard.value?.id || currentHoveredId || selectedId.value
+          : null) ||
         null;
     }
   }
 
   const candidateId =
     lockedWheelCardId ||
-    directCardId ||
-    proximityCard.value?.id ||
-    currentHoveredId ||
-    selectedId.value;
+    (!isZoomIn
+      ? directCardId || proximityCard.value?.id || currentHoveredId || selectedId.value
+      : null);
   const canZoomInCandidate =
-    currentLevel.value < 4 ||
-    Boolean(candidateId && hasFractalSubgraph(candidateId));
+    Boolean(candidateId && isCardIdZoomable(candidateId)) ||
+    (currentLevel.value === 1 &&
+      Boolean(
+        activeModel.value.level2.boundary &&
+          isCardIdZoomable(activeModel.value.level2.boundary),
+      ));
 
   // Boundary check: if already at deepest available level (zooming in) or Level 1 (zooming out),
   // absorb the wheel without scrolling the page.
@@ -3583,13 +4990,9 @@ function onViewportWheel(ev: WheelEvent) {
     }
     if (!id && currentLevel.value === 1) {
       id = activeModel.value.level2.boundary;
-    } else if (!id && currentLevel.value === 3) {
-      id = stageData.value.els.find((e) => !e.mini)?.id ?? stageData.value.els[0]?.id ?? null;
     }
-    if (id && (byId.value[id] || resById.value[id])) {
+    if (id && isCardIdZoomable(id)) {
       zoomIntoElement(id);
-    } else if (currentLevel.value === 3) {
-      goToLevel(4, { inward: true, hudLabel: "Level 3 → Level 4 · Deployment" });
     }
   } else {
     zoomOutLevel(resolvedId);
@@ -3597,7 +5000,8 @@ function onViewportWheel(ev: WheelEvent) {
 }
 
 function jumpToSearchEntry(entry: TuxMapSearchEntry) {
-  const targetId = entry.revealId || entry.id;
+  const rawTargetId = entry.revealId || entry.id;
+  const targetId = resolveAliasId(rawTargetId) ?? rawTargetId;
   goToOpen.value = false;
   goToReturnFocusEl = null;
 
@@ -3611,8 +5015,8 @@ function jumpToSearchEntry(entry: TuxMapSearchEntry) {
       targetCardId: targetId,
       inward: currentLevel.value < 2,
       hudLabel: `Level ${currentLevel.value} → Level 2 · ${entry.name}`,
+      announcement: `Went to Level 2: ${entry.name}.`,
     });
-    liveAnnouncement.value = `Went to Level 2: ${entry.name}.`;
   } else if (M.level1.elements.some((e) => e.id === targetId)) {
     drillStack.value = [];
     goToLevel(1, {
@@ -3620,8 +5024,8 @@ function jumpToSearchEntry(entry: TuxMapSearchEntry) {
       targetCardId: targetId,
       inward: false,
       hudLabel: `Level ${currentLevel.value} → Level 1 · ${entry.name}`,
+      announcement: `Went to Level 1: ${entry.name}.`,
     });
-    liveAnnouncement.value = `Went to Level 1: ${entry.name}.`;
   } else if (resById.value[targetId]) {
     drillStack.value = [];
     goToLevel(4, {
@@ -3629,15 +5033,15 @@ function jumpToSearchEntry(entry: TuxMapSearchEntry) {
       targetCardId: targetId,
       inward: true,
       hudLabel: `Level ${currentLevel.value} → Level 4 · ${entry.name}`,
+      announcement: `Went to Level 4: ${entry.name}.`,
     });
-    liveAnnouncement.value = `Went to Level 4: ${entry.name}.`;
   } else if (byId.value[targetId]) {
     selectElement(targetId);
   }
 
   nextTick(() => {
     nextTick(() => {
-      if (isListView.value) {
+      if (effectiveIsListView.value) {
         queryListCardById(mapRootRef.value, targetId)?.focus({ preventScroll: true });
       } else {
         (queryCardById(stageRef.value, targetId) ?? viewportRef.value)?.focus({
@@ -3694,6 +5098,78 @@ function onGoToKeydown(ev: KeyboardEvent) {
   }
 }
 
+let shortcutsReturnFocusEl: HTMLElement | null = null;
+const shortcutsCloseBtnRef = ref<HTMLButtonElement | null>(null);
+let wireReturnFocusEl: HTMLElement | null = null;
+const wirePopCloseBtnRef = ref<HTMLButtonElement | null>(null);
+
+function openShortcutsModal(triggerEl?: EventTarget | null) {
+  if (triggerEl instanceof HTMLElement) {
+    shortcutsReturnFocusEl = triggerEl;
+  } else if (typeof document !== "undefined") {
+    shortcutsReturnFocusEl = document.activeElement as HTMLElement | null;
+  }
+  shortcutsOpen.value = true;
+  nextTick(() => {
+    shortcutsCloseBtnRef.value?.focus({ preventScroll: true });
+  });
+}
+
+function closeShortcutsModal(restoreFocus = true) {
+  const prev = shortcutsReturnFocusEl;
+  shortcutsReturnFocusEl = null;
+  shortcutsOpen.value = false;
+  if (restoreFocus && prev && typeof prev.focus === "function") {
+    nextTick(() => prev.focus({ preventScroll: true }));
+  }
+}
+
+function onShortcutsKeydown(ev: KeyboardEvent) {
+  if (ev.key === "Escape") {
+    ev.preventDefault();
+    ev.stopPropagation();
+    closeShortcutsModal(true);
+    return;
+  }
+  if (ev.key === "Tab") {
+    ev.preventDefault();
+    shortcutsCloseBtnRef.value?.focus({ preventScroll: true });
+  }
+}
+
+function toggleWireInspector(
+  lbl: { from: string; to: string },
+  triggerEl?: EventTarget | null,
+) {
+  const key = `${lbl.from}->${lbl.to}`;
+  if (inspectedWireKey.value === key) {
+    closeWireInspector(true);
+    return;
+  }
+  wireReturnFocusEl = (triggerEl as HTMLElement | null) ?? null;
+  inspectedWireKey.value = key;
+  nextTick(() => {
+    wirePopCloseBtnRef.value?.focus({ preventScroll: true });
+  });
+}
+
+function closeWireInspector(restoreFocus = false) {
+  const prev = wireReturnFocusEl;
+  wireReturnFocusEl = null;
+  inspectedWireKey.value = null;
+  if (restoreFocus && prev && typeof prev.focus === "function") {
+    nextTick(() => prev.focus({ preventScroll: true }));
+  }
+}
+
+function onWireInspectorKeydown(ev: KeyboardEvent) {
+  if (ev.key === "Escape") {
+    ev.preventDefault();
+    ev.stopPropagation();
+    closeWireInspector(true);
+  }
+}
+
 function onMapRootKeydown(ev: KeyboardEvent) {
   if ((ev.metaKey || ev.ctrlKey) && !ev.altKey && (ev.key === "k" || ev.key === "K")) {
     ev.preventDefault();
@@ -3702,22 +5178,37 @@ function onMapRootKeydown(ev: KeyboardEvent) {
     else openGoToPalette();
     return;
   }
+  const inEditable =
+    ev.target instanceof HTMLInputElement ||
+    ev.target instanceof HTMLTextAreaElement ||
+    ev.target instanceof HTMLSelectElement ||
+    (ev.target instanceof HTMLElement && ev.target.isContentEditable);
   if (
     ev.key === "/" &&
     !goToOpen.value &&
+    !shortcutsOpen.value &&
     !ev.metaKey &&
     !ev.ctrlKey &&
     !ev.altKey &&
-    !(
-      ev.target instanceof HTMLInputElement ||
-      ev.target instanceof HTMLTextAreaElement ||
-      ev.target instanceof HTMLSelectElement ||
-      (ev.target instanceof HTMLElement && ev.target.isContentEditable)
-    )
+    !inEditable
   ) {
     ev.preventDefault();
     ev.stopPropagation();
     openGoToPalette();
+    return;
+  }
+  if (
+    ev.key === "?" &&
+    !goToOpen.value &&
+    !ev.metaKey &&
+    !ev.ctrlKey &&
+    !ev.altKey &&
+    !inEditable
+  ) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (shortcutsOpen.value) closeShortcutsModal(true);
+    else openShortcutsModal();
   }
 }
 
@@ -3748,7 +5239,90 @@ function keepFocusInMap() {
   });
 }
 
+function moveRovingCardFocus(
+  dir: "ArrowRight" | "ArrowLeft" | "ArrowDown" | "ArrowUp",
+  target: EventTarget | null,
+) {
+  const items: { id: string; cx: number; cy: number }[] =
+    currentLevel.value === 4
+      ? stageData.value.deployNodes.map((n) => {
+          const r = stageData.value.rects[n.id];
+          return {
+            id: n.id,
+            cx: (r?.x ?? 0) + (r?.w ?? 210) / 2,
+            cy: (r?.y ?? 0) + (r?.h ?? 92) / 2,
+          };
+        })
+      : renderedCards.value.map((c) => {
+          const r = stageData.value.rects[c.id];
+          return {
+            id: c.id,
+            cx: (r?.x ?? 0) + (r?.w ?? 212) / 2,
+            cy: (r?.y ?? 0) + (r?.h ?? 128) / 2,
+          };
+        });
+  if (items.length === 0) return;
+
+  const curId = cardIdOf(target) || activeRovingCardId.value || items[0]!.id;
+  const curIdx = items.findIndex((it) => it.id === curId);
+  if (curIdx < 0) {
+    rovingCardId.value = items[0]!.id;
+    nextTick(() => queryCardById(stageRef.value, items[0]!.id)?.focus());
+    return;
+  }
+  const cur = items[curIdx]!;
+  let bestId: string | null = null;
+  let bestScore = Infinity;
+
+  for (const cand of items) {
+    if (cand.id === cur.id) continue;
+    const dx = cand.cx - cur.cx;
+    const dy = cand.cy - cur.cy;
+    let score = Infinity;
+    if (dir === "ArrowRight" && dx > 6) {
+      score = dx + Math.abs(dy) * 1.6;
+    } else if (dir === "ArrowLeft" && dx < -6) {
+      score = -dx + Math.abs(dy) * 1.6;
+    } else if (dir === "ArrowDown" && dy > 6) {
+      score = dy + Math.abs(dx) * 1.6;
+    } else if (dir === "ArrowUp" && dy < -6) {
+      score = -dy + Math.abs(dx) * 1.6;
+    }
+    if (score < bestScore) {
+      bestScore = score;
+      bestId = cand.id;
+    }
+  }
+
+  if (!bestId) {
+    const step = dir === "ArrowRight" || dir === "ArrowDown" ? 1 : -1;
+    bestId = items[(curIdx + step + items.length) % items.length]!.id;
+  }
+
+  rovingCardId.value = bestId;
+  nextTick(() => {
+    queryCardById(stageRef.value, bestId!)?.focus();
+  });
+}
+
 function onStageKey(ev: KeyboardEvent) {
+  if (
+    ev.key === "ArrowRight" ||
+    ev.key === "ArrowLeft" ||
+    ev.key === "ArrowDown" ||
+    ev.key === "ArrowUp"
+  ) {
+    const targetEl = ev.target as HTMLElement | null;
+    if (targetEl?.closest?.(".tux-map__wire-pop")) return;
+    ev.preventDefault();
+    moveRovingCardFocus(ev.key, ev.target);
+    return;
+  }
+
+  const onInteractiveChild = Boolean(
+    (ev.target as Element | null)?.closest?.(".tux-map__el, .tux-map__el-zb, .tux-map__lab"),
+  );
+
   if (ev.key === "1") {
     ev.preventDefault();
     drillStack.value = [];
@@ -3766,7 +5340,13 @@ function onStageKey(ev: KeyboardEvent) {
     drillStack.value = [];
     goToLevel(4, { inward: true });
   } else if (ev.key === "Escape") {
-    if (selectedId.value) {
+    if (inspectedWireKey.value !== null) {
+      ev.preventDefault();
+      closeWireInspector(true);
+    } else if (localTraceTarget.value) {
+      ev.preventDefault();
+      setTraceTarget(null);
+    } else if (selectedId.value) {
       selectElement(null);
     } else if (activeTool.value !== "select") {
       activeTool.value = "select";
@@ -3793,67 +5373,122 @@ function onStageKey(ev: KeyboardEvent) {
   } else if (ev.key === "/") {
     ev.preventDefault();
     openGoToPalette();
-  } else if (ev.key === "v" || ev.key === "V") {
+  } else if (!onInteractiveChild && (ev.key === "v" || ev.key === "V")) {
     activeTool.value = "select";
-  } else if (ev.key === "p" || ev.key === "P") {
+  } else if (!onInteractiveChild && props.annotations && (ev.key === "p" || ev.key === "P")) {
     activeTool.value = "pen";
-  } else if (ev.key === "l" || ev.key === "L") {
+  } else if (!onInteractiveChild && props.annotations && (ev.key === "l" || ev.key === "L")) {
     activeTool.value = "laser";
-  } else if (ev.key === "n" || ev.key === "N") {
+  } else if (!onInteractiveChild && props.annotations && (ev.key === "n" || ev.key === "N")) {
     activeTool.value = "note";
   }
 }
 
 // ============================================================================
-// 5. BREADCRUMBS, SUMMARY, DETAILS PANEL & LIST VIEW
+// 5. BREADCRUMBS, OUTLINE RAIL, WIRE INSPECTOR, SUMMARY, PANEL & LIST VIEW
 // ============================================================================
 
-const breadcrumbs = computed<
-  { label: string; level: TuxMapLevelNumber; focusId?: string | null; current: boolean }[]
->(() => {
+interface CrumbSiblingItem {
+  id: string;
+  label: string;
+  level: TuxMapLevelNumber;
+  active: boolean;
+}
+
+interface CrumbEntry {
+  label: string;
+  level: TuxMapLevelNumber;
+  focusId?: string | null;
+  current: boolean;
+  siblings?: CrumbSiblingItem[];
+}
+
+function buildLevel3Siblings(activeFocusId: string | null | undefined): CrumbSiblingItem[] {
+  const M = activeModel.value;
+  const containers = M.level2.elements.filter(
+    (e) =>
+      !e.ref &&
+      isShownStatus(e.status) &&
+      ((M.level3[e.id]?.length ?? 0) > 0 || hasFractalSubgraph(e.id) || hasLazySubgraphRef(e.id)),
+  );
+  if (containers.length < 2) return [];
+  return containers.map((e) => ({
+    id: e.id,
+    label: e.name || e.id,
+    level: 3,
+    active: e.id === activeFocusId,
+  }));
+}
+
+function buildSubgraphSiblings(
+  nodeId: string | null | undefined,
+  lvl: TuxMapLevelNumber,
+): CrumbSiblingItem[] {
+  if (!nodeId) return [];
+  const p = parentOf.value.get(nodeId);
+  if (!p) return [];
+  const M = activeModel.value;
+  const rawSibs: TuxMapLevelElement[] =
+    M.level3[p] || getSubgraphForNode(p)?.elements || [];
+  const zoomableSibs = rawSibs.filter(
+    (s) =>
+      isShownStatus(s.status) &&
+      (s.id === nodeId || hasFractalSubgraph(s.id) || hasLazySubgraphRef(s.id)),
+  );
+  if (zoomableSibs.length < 2) return [];
+  return zoomableSibs.map((s) => ({
+    id: s.id,
+    label: s.name || s.id,
+    level: lvl,
+    active: s.id === nodeId,
+  }));
+}
+
+const breadcrumbs = computed<CrumbEntry[]>(() => {
   const M = activeModel.value;
   const lookup = byId.value;
   const sysName = lookup[M.level2.boundary]?.name || "System";
 
   if (currentLevel.value === 1) {
-    return [{ label: "Level 1 · Ecosystem in Context", level: 1, current: true }];
+    return [{ label: "Ecosystem", level: 1, current: true }];
   }
   if (currentLevel.value === 2) {
     return [
-      { label: "Level 1 · Ecosystem", level: 1, current: false },
-      { label: `Level 2 · ${sysName}`, level: 2, current: true },
+      { label: "Ecosystem", level: 1, current: false },
+      { label: sysName, level: 2, current: true },
     ];
   }
   if (currentLevel.value === 3) {
     const fName = (focusId.value && lookup[focusId.value]?.name) || "Container";
     return [
-      { label: "Level 1 · Ecosystem", level: 1, current: false },
-      { label: `Level 2 · ${sysName}`, level: 2, current: false },
-      { label: `Level 3 · ${fName}`, level: 3, focusId: focusId.value, current: true },
+      { label: "Ecosystem", level: 1, current: false },
+      { label: sysName, level: 2, current: false },
+      {
+        label: fName,
+        level: 3,
+        focusId: focusId.value,
+        current: true,
+        siblings: buildLevel3Siblings(focusId.value),
+      },
     ];
   }
   if (currentLevel.value === 4) {
     return [
-      { label: "Level 1 · Ecosystem", level: 1, current: false },
-      { label: `Level 2 · ${sysName}`, level: 2, current: false },
-      { label: "Level 4 · Infrastructure & Deployment", level: 4, current: true },
+      { label: "Ecosystem", level: 1, current: false },
+      { label: sysName, level: 2, current: false },
+      { label: "Infrastructure", level: 4, current: true },
     ];
   }
 
   // Fractal Level 5, Level 6+
-  const crumbs: {
-    label: string;
-    level: TuxMapLevelNumber;
-    focusId?: string | null;
-    current: boolean;
-  }[] = [
-    { label: "Level 1 · Ecosystem", level: 1, current: false },
-    { label: `Level 2 · ${sysName}`, level: 2, current: false },
+  const crumbs: CrumbEntry[] = [
+    { label: "Ecosystem", level: 1, current: false },
+    { label: sysName, level: 2, current: false },
   ];
 
   for (const step of drillStack.value) {
     if (step.level === 4) {
-      crumbs.push({ label: "Level 4 · Deployment", level: 4, current: false });
+      crumbs.push({ label: "Infrastructure", level: 4, current: false });
     } else if (step.level >= 3) {
       const sName =
         lookup[step.focusId]?.name ||
@@ -3861,54 +5496,218 @@ const breadcrumbs = computed<
         step.focusId ||
         `Level ${step.level}`;
       crumbs.push({
-        label: `Level ${step.level} · ${sName}`,
+        label: middleEllipsizeFolderName(sName, lookup[step.focusId]?.kind, step.focusId, 26),
         level: step.level,
         focusId: step.focusId,
         current: false,
+        siblings:
+          step.level === 3
+            ? buildLevel3Siblings(step.focusId)
+            : buildSubgraphSiblings(step.focusId, step.level),
       });
     }
   }
 
-  const curName =
+  const curRawName =
     (focusId.value && (lookup[focusId.value]?.name || resById.value[focusId.value]?.title)) ||
     getSubgraphForNode(focusId.value)?.stratum ||
     `Level ${currentLevel.value}`;
   crumbs.push({
-    label: `Level ${currentLevel.value} · ${curName}`,
+    label: middleEllipsizeFolderName(
+      curRawName,
+      focusId.value ? lookup[focusId.value]?.kind : undefined,
+      focusId.value ?? undefined,
+      26,
+    ),
     level: currentLevel.value,
     focusId: focusId.value,
     current: true,
+    siblings: buildSubgraphSiblings(focusId.value, currentLevel.value),
   });
   return crumbs;
 });
 
+function switchCrumbSibling(crumbIdx: number, sib: CrumbSiblingItem) {
+  openCrumbMenuIdx.value = null;
+  if (sib.level === 3) {
+    drillStack.value = [];
+    goToLevel(3, {
+      nextFocus: sib.id,
+      nextSel: null,
+      inward: currentLevel.value < 3,
+    });
+    return;
+  }
+  drillStack.value = drillStackFor(sib.id);
+  const targetLvl = Math.max(5, levelForFocus(sib.id));
+  goToLevel(targetLvl, {
+    nextFocus: sib.id,
+    nextSel: null,
+    inward: targetLvl >= currentLevel.value,
+  });
+}
+
+interface OutlineTreeRow {
+  id: string;
+  label: string;
+  kindLabel: string;
+  depth: number;
+  hasChildren: boolean;
+  expanded: boolean;
+  active: boolean;
+}
+
+const outlineRows = computed<OutlineTreeRow[]>(() => {
+  if (!outlineOpen.value) return [];
+  const M = activeModel.value;
+  const activeChain = new Set<string>();
+  if (focusId.value) {
+    for (const a of mapAncestorsOf(focusId.value, parentOf.value)) activeChain.add(a);
+  }
+  if (selectedId.value) {
+    for (const a of mapAncestorsOf(selectedId.value, parentOf.value)) activeChain.add(a);
+  }
+  const rows: OutlineTreeRow[] = [];
+  const getDirectChildren = (id: string): TuxMapLevelElement[] => {
+    const l3 = M.level3[id];
+    if (l3?.length) return l3.filter((x) => isShownStatus(x.status));
+    const sg = getSubgraphForNode(id);
+    if (sg?.elements?.length) return sg.elements.filter((x) => isShownStatus(x.status));
+    return [];
+  };
+  const visit = (el: TuxMapLevelElement, depth: number) => {
+    if (depth > 16 || rows.length >= 400) return;
+    const kids = getDirectChildren(el.id);
+    const hasKids = kids.length > 0 || hasLazySubgraphRef(el.id);
+    const isExpanded = Boolean(
+      expandedOutlineIds.value[el.id] ?? (activeChain.has(el.id) && kids.length > 0),
+    );
+    rows.push({
+      id: el.id,
+      label: middleEllipsizeFolderName(el.name || el.id, el.kind, el.id, 28),
+      kindLabel: plainElementKindLabel(el),
+      depth,
+      hasChildren: hasKids,
+      expanded: isExpanded,
+      active: el.id === focusId.value || el.id === selectedId.value,
+    });
+    if (isExpanded && kids.length > 0) {
+      for (const k of kids) visit(k, depth + 1);
+    }
+  };
+  for (const c of M.level2.elements) {
+    if (c.ref || !isShownStatus(c.status)) continue;
+    visit(c, 0);
+  }
+  return rows;
+});
+
+function toggleOutlineExpand(id: string) {
+  const cur = outlineRows.value.find((r) => r.id === id)?.expanded ?? false;
+  expandedOutlineIds.value = {
+    ...expandedOutlineIds.value,
+    [id]: !cur,
+  };
+}
+
+function selectOutlineNode(row: OutlineTreeRow) {
+  const M = activeModel.value;
+  if (row.depth === 0 && (M.level3[row.id]?.length ?? 0) > 0) {
+    drillStack.value = [];
+    goToLevel(3, { nextFocus: row.id, nextSel: null, inward: true });
+    return;
+  }
+  if (hasFractalSubgraph(row.id) || hasLazySubgraphRef(row.id)) {
+    drillStack.value = drillStackFor(row.id);
+    if (hasLazySubgraphRef(row.id)) {
+      zoomIntoElement(row.id);
+    } else {
+      const lvl = Math.max(5, levelForFocus(row.id));
+      goToLevel(lvl, { nextFocus: row.id, nextSel: null, inward: true });
+    }
+    return;
+  }
+  revealElement(row.id);
+}
+
+const inspectedWireDetail = computed(() => {
+  const key = inspectedWireKey.value;
+  if (!key) return null;
+  const det = stageData.value.wireDetails[key];
+  if (!det) return null;
+  const boundName =
+    (focusId.value && (byId.value[focusId.value]?.name || resById.value[focusId.value]?.title)) ||
+    "Current boundary";
+  const nameOf = (id: string) =>
+    id === "@bound"
+      ? boundName
+      : byId.value[id]?.name || resById.value[id]?.title || id;
+  const lbl = routedSvg.value.labels.find((l) => `${l.from}->${l.to}` === key);
+  const popLeft = lbl
+    ? Math.max(12, Math.min(stageData.value.width - 332, Math.round(lbl.x + lbl.w / 2 - 160)))
+    : 24;
+  const popTop = lbl
+    ? Math.max(12, Math.min(stageData.value.height - 220, Math.round(lbl.y + lbl.h + 8)))
+    : 24;
+  const sites = det.links.slice(0, 24).map((l, idx) => {
+    const [atPath, atLineStr] = (l.at || "").split(/:(?=\d+$)/);
+    const atLine = atLineStr ? Number(atLineStr) : undefined;
+    const href = atPath
+      ? buildSourceHref({
+          path: atPath,
+          ...(atLine ? { lineRange: [atLine, atLine] as [number, number] } : {}),
+        })
+      : null;
+    const kind = l.kind || "uses";
+    const kindLabel =
+      (hasOwn(TUX_MAP_LINK_KIND_LABELS, kind) ? TUX_MAP_LINK_KIND_LABELS[kind] : undefined) || kind;
+    return {
+      key: `${idx}-${l.from}-${l.to}-${l.at || ""}`,
+      kindLabel,
+      at: l.at || `${nameOf(l.from)} → ${nameOf(l.to)}`,
+      href,
+    };
+  });
+  return {
+    ...det,
+    fromName: nameOf(det.from),
+    toName: nameOf(det.to),
+    summaryLine: det.perKindCounts.map((pk) => `${pk.label} ${pk.count}`).join(" · "),
+    cutLine: det.cutKinds.map((ck) => `${ck.label} ${ck.count}`).join(", "),
+    sites,
+    moreSitesCount: Math.max(0, det.links.length - sites.length),
+    style: {
+      left: `${popLeft}px`,
+      top: `${popTop}px`,
+    },
+  };
+});
+
 const summaryText = computed(() => {
   const M = activeModel.value;
-  const cs = M.level2.elements.filter((e) => !e.ref);
-  const liveCount = cs.filter((e) => e.status !== "planned").length;
-  const plannedCount = cs.filter((e) => e.status === "planned").length;
-  const mappedResources = M.level4.nodes.filter((n) => n.status !== "planned").length;
-
   if (currentLevel.value >= 5) {
     const sg = getSubgraphForNode(focusId.value);
     const parentName =
       (focusId.value &&
         (byId.value[focusId.value]?.name || resById.value[focusId.value]?.title)) ||
       "node";
-    const desc =
+    return (
       sg?.summary ||
-      `Inside ${parentName} (${sg?.stratum || `Level ${currentLevel.value}`}): ${sg?.elements.length ?? 0} inner modules/symbols mapped.`;
-    return `${desc} ${liveCount} containers active${plannedCount ? ` and ${plannedCount} planned` : ""}; ${mappedResources} infrastructure nodes mapped.`;
+      `Inside ${parentName} (${sg?.stratum || `Level ${currentLevel.value}`}): ${stageData.value.innerCardCount} ${stageData.value.innerCardCount === 1 ? "item" : "items"} in view.`
+    );
   }
-
-  const prefix: Record<number, string> = {
-    1: M.level1.summary || "Who uses the platform and the systems around it.",
-    2: M.level2.summary || "What the platform is made of: each box runs or holds data.",
-    3: `Inside ${focusId.value && byId.value[focusId.value] ? byId.value[focusId.value]!.name : "container"}: what uses it on the left, what it uses on the right.`,
-    4: M.level4.summary || "Where it all runs: resource groups, VMs, storage, and firewall rules.",
-  };
-
-  return `${prefix[currentLevel.value]} ${liveCount} containers active${plannedCount ? ` and ${plannedCount} planned` : ""}; ${mappedResources} infrastructure nodes mapped.`;
+  if (currentLevel.value === 1) {
+    return M.level1.summary || "Who uses the platform and the systems around it.";
+  }
+  if (currentLevel.value === 2) {
+    return M.level2.summary || "What the platform is made of: each box runs or holds data.";
+  }
+  if (currentLevel.value === 3) {
+    const cName =
+      focusId.value && byId.value[focusId.value] ? byId.value[focusId.value]!.name : "container";
+    return `Inside ${cName}: ${stageData.value.innerCardCount} internal ${stageData.value.innerCardCount === 1 ? "component" : "components"}, with callers on the left and dependencies on the right.`;
+  }
+  return M.level4.summary || "Where it all runs: resource groups, VMs, storage, and firewall rules.";
 });
 
 const selectedLevelElement = computed<TuxMapLevelElement | null>(() => {
@@ -3925,10 +5724,41 @@ const selectedPanelEntity = computed<TuxMapLevelElement | TuxMapDeploymentNode |
   () => selectedLevelElement.value ?? selectedDeployNode.value,
 );
 
+const selectedInheritedHosts = computed<string[]>(() => {
+  if (!selectedLevelElement.value) return [];
+  return effectiveDeployedHostIds(selectedLevelElement.value.id);
+});
+
+const selectedSplittableParts = computed<number>(() => {
+  const id = selectedId.value;
+  if (!id) return 0;
+  const meta = stageData.value.outsideMetaById[id];
+  const parts = meta?.parts ?? 0;
+  if (!meta?.splittable || parts <= 1) return 0;
+  return parts;
+});
+
+const zoomableCards = computed(() => renderedCards.value.filter((c) => c.zoomable));
+
+const zoomableDeployNodes = computed(() =>
+  stageData.value.deployNodes
+    .filter((n) => canZoomDeployNode(n))
+    .map((n) => {
+      const r = stageData.value.rects[n.id];
+      return {
+        id: n.id,
+        style: {
+          left: `${(r?.x ?? 0) + (r?.w ?? 210) - 28}px`,
+          top: `${(r?.y ?? 0) + 6}px`,
+        },
+      };
+    }),
+);
+
 const selectedUsedByRels = computed(() => {
   if (!selectedId.value || currentLevel.value === 4) return [];
   const key = currentLevel.value === 3 && selectedId.value === focusId.value ? "@bound" : selectedId.value;
-  return stageData.value.rels
+  return stageData.value.listRels
     .filter((r) => r.to === key && r.label && byId.value[r.from])
     .map((r) => ({ rel: r, other: byId.value[r.from]! }));
 });
@@ -3936,7 +5766,7 @@ const selectedUsedByRels = computed(() => {
 const selectedUsesRels = computed(() => {
   if (!selectedId.value || currentLevel.value === 4) return [];
   const key = currentLevel.value === 3 && selectedId.value === focusId.value ? "@bound" : selectedId.value;
-  return stageData.value.rels
+  return stageData.value.listRels
     .filter((r) => r.from === key && r.label && byId.value[r.to])
     .map((r) => ({ rel: r, other: byId.value[r.to]! }));
 });
@@ -4025,11 +5855,11 @@ const listRelsById = computed(() => {
     if (!r) out.set(id, (r = { uses: [], usedBy: [] }));
     return r;
   };
-  // Level 4 draws its wires from level4.links, not from the stage's rels
+  // Level 4 draws its wires from level4.links; other levels use listRels (preserving full per-card links)
   const rels: { from: string; to: string; label?: string; status?: string }[] =
     currentLevel.value === 4
       ? activeModel.value.level4.links.filter((l) => showPlanned.value || l.state !== "planned")
-      : S.rels;
+      : S.listRels;
   for (const r of rels) {
     if (!isShownStatus(r.status)) continue;
     const how = r.label ? ` (${r.label})` : "";
@@ -4073,6 +5903,17 @@ const listViewGroups = computed(() => {
   const els = match
     ? stageData.value.els.filter((e) => match.has(e.id))
     : stageData.value.els;
+  const innerGroupTitle =
+    currentLevel.value >= 5
+      ? getSubgraphForNode(focusId.value)?.stratum ||
+        (focusId.value && byId.value[focusId.value]
+          ? `Inside ${byId.value[focusId.value]!.name}`
+          : `Level ${currentLevel.value} Items`)
+      : currentLevel.value === 3 && focusId.value && byId.value[focusId.value]
+        ? `Components of ${byId.value[focusId.value]!.name}`
+        : currentLevel.value === 2
+          ? "Containers & Services"
+          : "Primary Systems";
   return [
     {
       title: "People & Actors",
@@ -4080,17 +5921,15 @@ const listViewGroups = computed(() => {
       deployNodes: [] as TuxMapDeploymentNode[],
     },
     {
-      title:
-        currentLevel.value === 3 && focusId.value && byId.value[focusId.value]
-          ? `Components of ${byId.value[focusId.value]!.name}`
-          : currentLevel.value === 2
-            ? "Containers & Services"
-            : "Primary Systems",
+      title: innerGroupTitle,
       els: els.filter((e) => e.kind !== "person" && e.kind !== "external" && !e.side),
       deployNodes: [] as TuxMapDeploymentNode[],
     },
     {
-      title: "Connected & External Systems",
+      title:
+        currentLevel.value >= 5
+          ? "Callers & Dependencies Outside This View"
+          : "Connected & External Systems",
       els: els.filter((e) => e.kind === "external" || (e.side && e.kind !== "person")),
       deployNodes: [] as TuxMapDeploymentNode[],
     },
@@ -4102,6 +5941,14 @@ const listViewGroups = computed(() => {
 // ============================================================================
 
 const activeTool = ref<TuxMapTool>("select");
+watch(
+  () => props.annotations,
+  (enabled) => {
+    if (!enabled && activeTool.value !== "select") {
+      activeTool.value = "select";
+    }
+  },
+);
 const localStrokes = ref<TuxMapInkStroke[]>([...props.strokes]);
 watch(
   () => props.strokes,
@@ -4507,261 +6354,416 @@ function buildSourceHref(src?: {
         <p v-if="eyebrow" class="tux-map__eyebrow">{{ eyebrow }}</p>
         <h3 v-if="title" class="tux-map__title">{{ title }}</h3>
       </div>
-      <div class="tux-map__level-pill" role="status" aria-live="polite">
+      <div class="tux-map__level-pill">
         <span class="tux-map__level-dot" />
         <span class="tux-map__level-text">Level {{ currentLevel }} of {{ maxAvailableLevel }}</span>
       </div>
     </div>
 
-    <!-- Primary Toolbar: N+1 Progressive Zoom Stepper + Infrastructure Perspective + Show Planned + Blast Radius + Annotations + Search + View Mode -->
-    <div class="tux-map__tools" role="toolbar" aria-label="Architecture map controls">
-      <div class="tux-map__stepper" role="group" aria-label="Semantic zoom level">
-        <button
-          type="button"
-          class="tux-map__iconbtn"
-          :disabled="currentLevel === 1"
-          aria-label="Zoom out a level"
-          title="Zoom out to parent level (N−1)"
-          @click="zoomOutLevel()"
-        >
-          −
-        </button>
-        <div class="tux-map__stepper-stratum" aria-live="polite">
-          <span class="tux-map__stepper-lvl">L{{ currentLevel }}</span>
-          <span class="tux-map__stepper-name">{{ currentStratumShort }}</span>
-        </div>
-        <button
-          type="button"
-          class="tux-map__iconbtn"
-          :disabled="!canStepIn"
-          aria-label="Zoom in on the chosen element"
-          title="Drill into N+1 view (+)"
-          @click="stepInLevel()"
-        >
-          +
-        </button>
-      </div>
-
-      <!-- Magnify (#106): past fitting the width, the diagram scrolls -->
-      <div v-if="!isListView" class="tux-map__stepper tux-map__magnify" role="group" aria-label="Magnify the diagram">
-        <button
-          type="button"
-          class="tux-map__iconbtn"
-          :disabled="!isMagnified"
-          aria-label="Make the diagram smaller"
-          title="Smaller"
-          @click="magnifyBy(-1)"
-        >
-          A−
-        </button>
-        <button
-          type="button"
-          class="tux-map__magnify-fit"
-          :aria-pressed="!isMagnified"
-          :aria-label="isMagnified ? `Fit the diagram to the width (now ${magnifyLabel})` : 'The diagram fits the width'"
-          title="Fit to the width"
-          @click="magnifyFit()"
-        >
-          {{ magnifyLabel }}
-        </button>
-        <button
-          type="button"
-          class="tux-map__iconbtn"
-          :disabled="!canMagnify"
-          aria-label="Make the diagram larger"
-          title="Larger: then scroll or swipe to move around it"
-          @click="magnifyBy(1)"
-        >
-          A+
-        </button>
-      </div>
-
-      <!-- Orthogonal Infrastructure & Deployment Perspective Toggle -->
-      <div class="tux-map__seg" role="group" aria-label="Topology perspective">
-        <button
-          type="button"
-          :aria-pressed="currentLevel === 4"
-          title="Toggle physical deployment & infrastructure topology"
-          @click="toggleInfrastructureView()"
-        >
-          <Icon name="lucide:server" aria-hidden="true" />
-          <span>Infrastructure</span>
-        </button>
-      </div>
-
-      <!-- Show Planned Switch -->
-      <label class="tux-map__switch">
-        <input v-model="showPlanned" type="checkbox" />
-        <span class="tux-map__switch-track" />
-        <span>Show planned</span>
-      </label>
-
-      <!-- Show Blast Radius Switch -->
-      <label class="tux-map__switch">
-        <input v-model="showBlastRadius" type="checkbox" />
-        <span class="tux-map__switch-track tux-map__switch-track--blast" />
-        <span>Blast radius</span>
-      </label>
-
-      <select
-        v-if="showBlastRadius"
-        v-model="blastIntent"
-        class="tux-map__intent-select"
-        aria-label="Blast radius intent"
-        title="Filter blast radius propagation by change intent"
-      >
-        <option value="default">Intent: General</option>
-        <option value="patch">Intent: Body patch</option>
-        <option value="refactor">Intent: Refactor</option>
-        <option value="cut">Intent: Cut / remove</option>
-        <option value="supply-chain">Intent: Supply chain</option>
-      </select>
-
-      <!-- Lightweight Annotation Tools -->
-      <div class="tux-map__seg" role="group" aria-label="Annotation tools">
-        <button
-          type="button"
-          :aria-pressed="activeTool === 'select'"
-          title="Select & Inspect (V)"
-          @click="activeTool = 'select'"
-        >
-          <Icon name="lucide:mouse-pointer" aria-hidden="true" />
-          <span>Select</span>
-        </button>
-        <button
-          type="button"
-          :aria-pressed="activeTool === 'pen'"
-          title="Freehand Pen (P)"
-          @click="activeTool = 'pen'"
-        >
-          <Icon name="lucide:pen-tool" aria-hidden="true" />
-          <span>Pen</span>
-        </button>
-        <button
-          type="button"
-          :aria-pressed="activeTool === 'laser'"
-          title="Laser Pointer (L)"
-          @click="activeTool = 'laser'"
-        >
-          <Icon name="lucide:wand-sparkles" aria-hidden="true" />
-          <span>Laser</span>
-        </button>
-        <button
-          type="button"
-          :aria-pressed="activeTool === 'note'"
-          title="Sticky Note (N)"
-          @click="activeTool = 'note'"
-        >
-          <Icon name="lucide:sticky-note" aria-hidden="true" />
-          <span>Note</span>
-        </button>
-        <button
-          v-if="localStrokes.length > 0 || localNotes.length > 0"
-          type="button"
-          title="Clear annotations"
-          @click="clearAnnotations"
-        >
-          <Icon name="lucide:trash-2" aria-hidden="true" />
-          <span>Clear</span>
-        </button>
-      </div>
-
-      <span class="tux-map__spacer" />
-
-      <!-- Cross-Level Go-To Palette Trigger (#120) -->
-      <button
-        type="button"
-        class="tux-map__goto-btn"
-        aria-haspopup="dialog"
-        :aria-expanded="goToOpen"
-        title="Go to any component, folder, file, function, or route (/ or Ctrl+K)"
-        @click="openGoToPalette()"
-      >
-        <Icon name="lucide:scan-search" aria-hidden="true" />
-        <span>Go to…</span>
-        <kbd class="tux-map__goto-kbd" aria-hidden="true">/</kbd>
-      </button>
-
-      <!-- Per-Level Search Filter (#120) -->
-      <div class="tux-map__search-wrap">
-        <Icon name="lucide:search" class="tux-map__search-icon" aria-hidden="true" />
-        <input
-          v-model="searchQuery"
-          type="search"
-          class="tux-map__search-input"
-          placeholder="Filter this level…"
-          aria-label="Filter architecture elements"
-        />
-        <span v-if="matchingSearchIds" class="tux-map__search-count" aria-hidden="true">
-          {{ matchingSearchIds.size }} of {{ stageTotalCount }} here
-        </span>
-      </div>
-
-      <!-- Diagram / List View Switch -->
-      <div class="tux-map__seg" role="group" aria-label="Display mode">
-        <button
-          type="button"
-          :aria-pressed="!isListView"
-          @click="isListView = false"
-        >
-          Diagram
-        </button>
-        <button
-          type="button"
-          :aria-pressed="isListView"
-          @click="isListView = true"
-        >
-          List
-        </button>
-      </div>
+    <div
+      v-if="modelValidationSummary"
+      class="tux-map__diag-note"
+      role="note"
+      data-map-diagnostic="true"
+    >
+      {{ modelValidationSummary }}
     </div>
 
-    <!-- Breadcrumb Trail -->
-    <nav aria-label="Architecture level breadcrumb">
-      <ol class="tux-map__crumbs">
-        <li v-for="(crumb, idx) in breadcrumbs" :key="idx">
-          <span v-if="crumb.current" aria-current="page">{{ crumb.label }}</span>
+    <!-- Sticky Desktop Chrome: Regrouped Toolbar + Breadcrumbs + Wire Filter Bar (#125, #118) -->
+    <div class="tux-map__chrome">
+      <div class="tux-map__tools" role="toolbar" aria-label="Architecture map controls">
+        <div class="tux-map__stepper" role="group" aria-label="Semantic zoom level">
           <button
-            v-else
             type="button"
-            @click="
-              drillStack = crumb.level < 5 ? [] : drillStack.slice(0, Math.max(0, idx - 2));
-              goToLevel(crumb.level, {
-                nextFocus: crumb.focusId ?? focusId,
-                nextSel: null,
-                inward: false,
-              });
-            "
+            class="tux-map__iconbtn"
+            :disabled="currentLevel === 1"
+            aria-label="Zoom out a level"
+            title="Zoom out to parent level (N−1)"
+            @click="zoomOutLevel()"
           >
-            {{ crumb.label }}
+            −
           </button>
-        </li>
-      </ol>
-    </nav>
+          <div class="tux-map__stepper-stratum">
+            <span class="tux-map__stepper-lvl">L{{ currentLevel }}</span>
+            <span class="tux-map__stepper-name">{{ currentStratumShort }}</span>
+          </div>
+          <button
+            type="button"
+            class="tux-map__iconbtn"
+            :disabled="!canStepIn"
+            aria-label="Zoom in on the chosen element"
+            title="Drill into N+1 view (+)"
+            @click="stepInLevel()"
+          >
+            +
+          </button>
+        </div>
+
+        <!-- Magnify (#106): past fitting the width, the diagram scrolls -->
+        <div
+          v-if="!effectiveIsListView"
+          class="tux-map__stepper tux-map__magnify"
+          role="group"
+          aria-label="Magnify the diagram"
+        >
+          <button
+            type="button"
+            class="tux-map__iconbtn"
+            :disabled="!isMagnified"
+            aria-label="Make the diagram smaller"
+            title="Smaller"
+            @click="magnifyBy(-1)"
+          >
+            A−
+          </button>
+          <button
+            type="button"
+            class="tux-map__magnify-fit"
+            :aria-pressed="!isMagnified"
+            :aria-label="
+              isMagnified
+                ? `Fit the diagram to the width (now ${magnifyLabel})`
+                : 'The diagram fits the width'
+            "
+            title="Fit to the width"
+            @click="magnifyFit()"
+          >
+            {{ magnifyLabel }}
+          </button>
+          <button
+            type="button"
+            class="tux-map__iconbtn"
+            :disabled="!canMagnify"
+            aria-label="Make the diagram larger"
+            title="Larger: then scroll or swipe to move around it"
+            @click="magnifyBy(1)"
+          >
+            A+
+          </button>
+        </div>
+
+        <!-- Collapsible Outline Tree Rail Toggle (#125) -->
+        <div class="tux-map__seg" role="group" aria-label="Wayfinding outline">
+          <button
+            type="button"
+            class="tux-map__outline-toggle"
+            :aria-pressed="outlineOpen"
+            title="Toggle collapsible architecture outline rail"
+            @click="outlineOpen = !outlineOpen"
+          >
+            <Icon name="lucide:list-tree" aria-hidden="true" />
+            <span>Outline</span>
+          </button>
+        </div>
+
+        <!-- Orthogonal Infrastructure & Deployment Perspective Toggle -->
+        <div class="tux-map__seg" role="group" aria-label="Topology perspective">
+          <button
+            type="button"
+            :aria-pressed="currentLevel === 4"
+            title="Toggle physical deployment & infrastructure topology"
+            @click="toggleInfrastructureView()"
+          >
+            <Icon name="lucide:server" aria-hidden="true" />
+            <span>Infrastructure</span>
+          </button>
+        </div>
+
+        <!-- Narrow-Screen Overflow Menu Trigger + Secondary View Controls (#125) -->
+        <div class="tux-map__more-wrap">
+          <button
+            type="button"
+            class="tux-map__more-btn"
+            :aria-expanded="moreMenuOpen"
+            aria-label="More view options"
+            @click="moreMenuOpen = !moreMenuOpen"
+          >
+            <span>More</span>
+          </button>
+          <div
+            class="tux-map__more-inline"
+            :class="{ 'tux-map__more-inline--open': moreMenuOpen }"
+          >
+            <!-- Show Planned Switch -->
+            <label class="tux-map__switch">
+              <input v-model="showPlanned" type="checkbox" />
+              <span class="tux-map__switch-track" />
+              <span>Show planned</span>
+            </label>
+
+            <!-- Show Blast Radius Switch -->
+            <label class="tux-map__switch">
+              <input v-model="showBlastRadius" type="checkbox" />
+              <span class="tux-map__switch-track tux-map__switch-track--blast" />
+              <span>Blast radius</span>
+            </label>
+
+            <select
+              v-if="showBlastRadius"
+              v-model="blastIntent"
+              class="tux-map__intent-select"
+              aria-label="Blast radius intent"
+              title="Filter blast radius propagation by change intent"
+            >
+              <option value="default">Intent: General</option>
+              <option value="patch">Intent: Body patch</option>
+              <option value="refactor">Intent: Refactor</option>
+              <option value="cut">Intent: Cut / remove</option>
+              <option value="supply-chain">Intent: Supply chain</option>
+            </select>
+
+            <!-- Lightweight Annotation Tools (opt-in via `annotations` prop, #125) -->
+            <div
+              v-if="props.annotations"
+              class="tux-map__seg"
+              role="group"
+              aria-label="Annotation tools"
+            >
+              <button
+                type="button"
+                :aria-pressed="activeTool === 'select'"
+                title="Select & Inspect (V)"
+                @click="activeTool = 'select'"
+              >
+                <Icon name="lucide:mouse-pointer" aria-hidden="true" />
+                <span>Select</span>
+              </button>
+              <button
+                type="button"
+                :aria-pressed="activeTool === 'pen'"
+                title="Freehand Pen (P)"
+                @click="activeTool = 'pen'"
+              >
+                <Icon name="lucide:pen-tool" aria-hidden="true" />
+                <span>Pen</span>
+              </button>
+              <button
+                type="button"
+                :aria-pressed="activeTool === 'laser'"
+                title="Laser Pointer (L)"
+                @click="activeTool = 'laser'"
+              >
+                <Icon name="lucide:wand-sparkles" aria-hidden="true" />
+                <span>Laser</span>
+              </button>
+              <button
+                type="button"
+                :aria-pressed="activeTool === 'note'"
+                title="Sticky Note (N)"
+                @click="activeTool = 'note'"
+              >
+                <Icon name="lucide:sticky-note" aria-hidden="true" />
+                <span>Note</span>
+              </button>
+              <button
+                v-if="localStrokes.length > 0 || localNotes.length > 0"
+                type="button"
+                title="Clear annotations"
+                @click="clearAnnotations"
+              >
+                <Icon name="lucide:trash-2" aria-hidden="true" />
+                <span>Clear</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <span class="tux-map__spacer" />
+
+        <!-- Cross-Level Go-To Palette Trigger (#120) -->
+        <button
+          type="button"
+          class="tux-map__goto-btn"
+          aria-haspopup="dialog"
+          :aria-expanded="goToOpen"
+          title="Go to any component, folder, file, function, or route (/ or Ctrl+K)"
+          @click="openGoToPalette()"
+        >
+          <Icon name="lucide:scan-search" aria-hidden="true" />
+          <span>Go to…</span>
+          <kbd class="tux-map__goto-kbd" aria-hidden="true">/</kbd>
+        </button>
+
+        <!-- Per-Level Search Filter (#120) -->
+        <div class="tux-map__search-wrap">
+          <Icon name="lucide:search" class="tux-map__search-icon" aria-hidden="true" />
+          <input
+            v-model="searchQuery"
+            type="search"
+            class="tux-map__search-input"
+            placeholder="Filter this level…"
+            aria-label="Filter architecture elements"
+          />
+          <span v-if="matchingSearchIds" class="tux-map__search-count" aria-hidden="true">
+            {{ matchingSearchIds.size }} of {{ stageTotalCount }} here
+          </span>
+        </div>
+
+        <!-- Diagram / List View Switch -->
+        <div class="tux-map__seg" role="group" aria-label="Display mode">
+          <button
+            type="button"
+            :aria-pressed="!effectiveIsListView"
+            @click="setExplicitViewMode('diagram')"
+          >
+            Diagram
+          </button>
+          <button
+            type="button"
+            :aria-pressed="effectiveIsListView"
+            @click="setExplicitViewMode('list')"
+          >
+            List
+          </button>
+        </div>
+
+        <!-- Keyboard Shortcuts Help Trigger (#117) -->
+        <button
+          type="button"
+          class="tux-map__iconbtn tux-map__shortcuts-btn"
+          aria-haspopup="dialog"
+          :aria-expanded="shortcutsOpen"
+          aria-label="Keyboard shortcuts (?)"
+          title="Keyboard shortcuts (?)"
+          @click="shortcutsOpen ? closeShortcutsModal(true) : openShortcutsModal($event.currentTarget)"
+        >
+          ?
+        </button>
+      </div>
+
+      <!-- Breadcrumb Trail with Sibling Switcher Dropdowns (#116, #125) -->
+      <div class="tux-map__subbar">
+        <nav aria-label="Architecture level breadcrumb">
+          <ol class="tux-map__crumbs">
+            <li v-for="(crumb, idx) in breadcrumbs" :key="idx">
+              <span v-if="crumb.current" aria-current="page">{{ crumb.label }}</span>
+              <button
+                v-else
+                type="button"
+                class="tux-map__crumb-btn"
+                @click="
+                  drillStack = crumb.level < 5 ? [] : drillStack.slice(0, Math.max(0, idx - 2));
+                  goToLevel(crumb.level, {
+                    nextFocus: crumb.focusId ?? focusId,
+                    nextSel: null,
+                    inward: false,
+                  });
+                "
+              >
+                {{ crumb.label }}
+              </button>
+              <div
+                v-if="crumb.siblings && crumb.siblings.length > 1"
+                class="tux-map__crumb-menu-wrap"
+              >
+                <button
+                  type="button"
+                  class="tux-map__crumb-sib-btn"
+                  :aria-expanded="openCrumbMenuIdx === idx"
+                  :aria-label="`Switch sibling for ${crumb.label}`"
+                  title="Switch to a sibling at this level"
+                  @click.stop="openCrumbMenuIdx = openCrumbMenuIdx === idx ? null : idx"
+                  @keydown.escape.stop="openCrumbMenuIdx = null"
+                >
+                  ▾
+                </button>
+                <ul
+                  v-if="openCrumbMenuIdx === idx"
+                  class="tux-map__crumb-menu"
+                  :aria-label="`Siblings of ${crumb.label}`"
+                  @keydown.escape.stop="openCrumbMenuIdx = null"
+                >
+                  <li v-for="sib in crumb.siblings" :key="sib.id">
+                    <button
+                      type="button"
+                      class="tux-map__crumb-menu-item"
+                      :aria-current="sib.active ? 'true' : undefined"
+                      @click="switchCrumbSibling(idx, sib)"
+                    >
+                      {{ sib.label }}
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </li>
+          </ol>
+        </nav>
+
+        <!-- Wire Dependency Category Filter Bar at Levels 2, 3, and 5+ (#118) -->
+        <div
+          v-if="currentLevel === 2 || currentLevel === 3 || currentLevel >= 5"
+          class="tux-map__wire-filters"
+          role="group"
+          aria-label="Wire dependency categories"
+        >
+          <span class="tux-map__wire-filters-lbl">Wires:</span>
+          <button
+            v-for="cat in [
+              { id: 'prod' as const, label: 'Prod' },
+              { id: 'tests' as const, label: 'Tests' },
+              { id: 'ci' as const, label: 'CI' },
+              { id: 'docs' as const, label: 'Docs' },
+            ]"
+            :key="cat.id"
+            type="button"
+            class="tux-map__wire-filter-btn"
+            :data-wire-filter="cat.id"
+            :aria-pressed="activeWireCategoriesSet.has(cat.id)"
+            @click="toggleWireCategory(cat.id)"
+          >
+            {{ cat.label }}
+          </button>
+        </div>
+      </div>
+    </div>
 
     <p class="tux-map__hint">{{ hintText }}</p>
     <p class="tux-map__summary">{{ summaryText }}</p>
 
-    <!-- Visual Key Legend -->
-    <ul v-if="!isListView" class="tux-map__legend" aria-label="Diagram key">
+    <!-- Visual Key Legend: On-Screen Element & Link Kinds Only (#115, #123) -->
+    <ul v-if="!effectiveIsListView" class="tux-map__legend" aria-label="Diagram key">
       <template v-if="currentLevel === 4">
-        <li><i class="tux-map__swatch tux-map__swatch--card" /> Resource</li>
-        <li><i class="tux-map__swatch tux-map__swatch--region" /> Region or resource group</li>
-        <li><i class="tux-map__swatch tux-map__swatch--planned" /> Planned</li>
+        <li v-if="legendFlags.hasResource">
+          <i class="tux-map__swatch tux-map__swatch--card" /> Resource
+        </li>
+        <li v-if="legendFlags.hasRegion">
+          <i class="tux-map__swatch tux-map__swatch--region" /> Region or resource group
+        </li>
+        <li v-if="legendFlags.hasPlanned">
+          <i class="tux-map__swatch tux-map__swatch--planned" /> Planned
+        </li>
       </template>
       <template v-else>
-        <li><i class="tux-map__swatch tux-map__swatch--person" /> Person</li>
-        <li><i class="tux-map__swatch tux-map__swatch--system" /> Primary system</li>
-        <li><i class="tux-map__swatch tux-map__swatch--card" /> Container / component / module</li>
-        <li><i class="tux-map__swatch tux-map__swatch--route" /> HTTP route</li>
-        <li><i class="tux-map__swatch tux-map__swatch--external" /> External system</li>
-        <li><i class="tux-map__swatch tux-map__swatch--planned" /> Planned</li>
+        <li v-if="legendFlags.hasPerson">
+          <i class="tux-map__swatch tux-map__swatch--person" /> Person
+        </li>
+        <li v-if="legendFlags.hasSystem">
+          <i class="tux-map__swatch tux-map__swatch--system" /> Primary system
+        </li>
+        <li v-if="legendFlags.hasCard">
+          <i class="tux-map__swatch tux-map__swatch--card" /> Container / component / module
+        </li>
+        <li v-if="legendFlags.hasRoute">
+          <i class="tux-map__swatch tux-map__swatch--route" /> HTTP route
+        </li>
+        <li v-if="legendFlags.hasExternal">
+          <i class="tux-map__swatch tux-map__swatch--external" /> External system
+        </li>
+        <li v-if="legendFlags.hasPlanned">
+          <i class="tux-map__swatch tux-map__swatch--planned" /> Planned
+        </li>
       </template>
       <template v-if="showBlastRadius">
-        <li><i class="tux-map__swatch tux-map__swatch--diff-direct" /> {{ hasModelDiffs ? "PR Modified" : "Selected" }}</li>
-        <li><i class="tux-map__swatch tux-map__swatch--diff-impact" /> {{ hasModelDiffs ? "Blast-Radius Impacted" : "Depends on selection" }}</li>
+        <li>
+          <i class="tux-map__swatch tux-map__swatch--diff-direct" />
+          {{ hasModelDiffs ? "PR Modified" : "Selected" }}
+        </li>
+        <li>
+          <i class="tux-map__swatch tux-map__swatch--diff-impact" />
+          {{ hasModelDiffs ? "Blast-Radius Impacted" : "Depends on selection" }}
+        </li>
       </template>
-      <li>
+      <li v-if="legendFlags.hasGenericWires">
         <svg aria-hidden="true" viewBox="0 0 28 8">
           <path d="M0,4 L28,4" stroke="var(--text-secondary)" stroke-width="1.6" />
         </svg>
@@ -4778,22 +6780,126 @@ function buildSourceHref(src?: {
         </svg>
         {{ lk.label }}
       </li>
-      <li>
+      <li v-if="legendFlags.hasViolation" data-link-violation="true">
+        <svg aria-hidden="true" viewBox="0 0 28 8">
+          <path
+            d="M0,4 L28,4"
+            stroke="var(--status-critical)"
+            stroke-width="2.8"
+            stroke-dasharray="2 4"
+          />
+        </svg>
+        ⚠ Rule violation
+      </li>
+      <li v-if="legendFlags.hasPlanned">
         <svg aria-hidden="true" viewBox="0 0 28 8">
           <path d="M0,4 L28,4" stroke="var(--text-muted)" stroke-width="1.6" stroke-dasharray="6 5" />
         </svg>
         Planned link
       </li>
     </ul>
-    <div v-if="!isListView && offStageImpactCount > 0" class="tux-map__other-levels">
+    <div v-if="!effectiveIsListView && offStageImpactCount > 0" class="tux-map__other-levels">
       +{{ offStageImpactCount }} on other levels
     </div>
 
-    <!-- Main Canvas Container (Diagram + Accessible List View + Sliding Right Drawer) -->
-    <div class="tux-map__canvas" :class="{ 'tux-map__canvas--list': isListView }">
+    <!-- Active Directed Trace Banner (#125) -->
+    <div v-if="activeTraceResult && selectedPanelEntity" class="tux-map__trace-banner">
+      <span>
+        Tracing path:
+        <b>{{ byId[activeTraceResult.from]?.name || resById[activeTraceResult.from]?.title || activeTraceResult.from }}</b>
+        →
+        <b>{{ byId[activeTraceResult.to]?.name || resById[activeTraceResult.to]?.title || activeTraceResult.to }}</b>
+        <template v-if="activeTraceResult.found">
+          ({{ activeTraceResult.hops.length }} {{ activeTraceResult.hops.length === 1 ? "hop" : "hops" }})
+        </template>
+        <template v-else>
+          (no spreading path found)
+        </template>
+      </span>
+      <button
+        type="button"
+        class="tux-map__trace-clear"
+        @click="setTraceTarget(null)"
+      >
+        Clear path
+      </button>
+    </div>
+
+    <!-- Dense View Auto-List Note (#124) -->
+    <div v-if="isAutoDenseList" class="tux-map__dense-note">
+      <span>
+        Showing compact list for {{ stageData.innerCardCount }} items in this view.
+      </span>
+      <button
+        type="button"
+        class="tux-map__trace-clear"
+        @click="setExplicitViewMode('diagram')"
+      >
+        Show diagram anyway
+      </button>
+    </div>
+
+    <!-- Main Canvas Container (Outline Rail + Diagram + Accessible List View + Sliding Right Drawer) -->
+    <div
+      class="tux-map__canvas"
+      :class="{
+        'tux-map__canvas--list': effectiveIsListView,
+        'tux-map__canvas--with-outline': outlineOpen,
+      }"
+    >
+      <!-- Collapsible Wayfinding Outline Rail (#125) -->
+      <nav
+        v-if="outlineOpen"
+        class="tux-map__outline"
+        aria-label="Architecture outline"
+      >
+        <div class="tux-map__outline-hdr">
+          <span>Outline</span>
+          <button
+            type="button"
+            class="tux-map__iconbtn tux-map__outline-close"
+            aria-label="Close outline"
+            @click="outlineOpen = false"
+          >
+            ×
+          </button>
+        </div>
+        <ul class="tux-map__outline-list">
+          <li
+            v-for="row in outlineRows"
+            :key="row.id"
+            class="tux-map__outline-row"
+            :style="{ paddingLeft: `${row.depth * 14 + 6}px` }"
+          >
+            <button
+              v-if="row.hasChildren"
+              type="button"
+              class="tux-map__outline-exp"
+              :aria-expanded="row.expanded"
+              :aria-label="`${row.expanded ? 'Collapse' : 'Expand'} ${row.label}`"
+              @click="toggleOutlineExpand(row.id)"
+            >
+              {{ row.expanded ? "▾" : "▸" }}
+            </button>
+            <span v-else class="tux-map__outline-exp-pad" aria-hidden="true" />
+            <button
+              type="button"
+              class="tux-map__outline-item"
+              :class="{ 'tux-map__outline-item--active': row.active }"
+              :data-outline-id="row.id"
+              :aria-current="row.active ? 'true' : undefined"
+              @click="selectOutlineNode(row)"
+            >
+              <span class="tux-map__outline-nm">{{ row.label }}</span>
+              <span v-if="row.kindLabel" class="tux-map__outline-kd">{{ row.kindLabel }}</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+
       <!-- Diagram Viewport -->
       <div
-        v-show="!isListView"
+        v-show="!effectiveIsListView"
         ref="viewportRef"
         class="tux-map__viewport"
         :class="[
@@ -4823,14 +6929,19 @@ function buildSourceHref(src?: {
           v-if="isMagnified"
           class="tux-map__sizer"
           aria-hidden="true"
-          :style="{ width: `${Math.ceil(stageData.width * stageScale)}px`, height: `${Math.ceil(stageData.height * stageScale)}px` }"
+          :style="{
+            width: `${Math.ceil(stageData.width * stageScale)}px`,
+            height: `${Math.ceil(stageData.height * stageScale)}px`,
+          }"
         />
         <div
           ref="stageRef"
           class="tux-map__stage"
           :class="{
             'tux-map__stage--pan': isPanningStage,
-            'tux-map__stage--dim': Boolean(activeLitId || matchingSearchIds || blastRadiusState),
+            'tux-map__stage--dim': Boolean(
+              activeLitId || matchingSearchIds || blastRadiusState || stageTraceState,
+            ),
           }"
           :style="{
             width: `${stageData.width}px`,
@@ -4840,7 +6951,7 @@ function buildSourceHref(src?: {
           @pointerover="onStagePointerOver"
           @pointerleave="onStagePointerLeave"
         >
-          <!-- Layer 0 (z-index: 0): Dashed C4 Boundaries & Region Enclaves -->
+          <!-- Layer 0 (z-index: 0): Dashed C4 Boundaries, Horizontal Bands & Region Enclaves -->
           <div
             v-for="(b, bIdx) in stageData.bounds"
             :key="`bound-${bIdx}-${b.label}`"
@@ -4863,7 +6974,7 @@ function buildSourceHref(src?: {
           <svg
             class="tux-map__wires"
             :class="{
-              'tux-map__wires--has-on': Boolean(activeLitId || blastRadiusState),
+              'tux-map__wires--has-on': Boolean(activeLitId || blastRadiusState || stageTraceState),
               'tux-map__wires--level4': currentLevel === 4,
             }"
             :width="stageData.width"
@@ -4893,12 +7004,15 @@ function buildSourceHref(src?: {
               :data-from="w.from"
               :data-to="w.to"
               class="tux-map__wire"
-              :class="{ 'tux-map__wire--planned': w.planned }"
+              :class="{
+                'tux-map__wire--planned': w.planned,
+                'tux-map__wire--violation': Boolean(w.violating),
+              }"
               :marker-end="`url(#${arrowMarkerId})`"
             />
           </svg>
 
-          <!-- Layer 4 (z-index: 4): Foreground Active Wires SVG (Always Above Dimmed Cards & Dimmed Labels) -->
+          <!-- Layer 4 (z-index: 4): Foreground Active Wires SVG -->
           <svg
             class="tux-map__wires-fg"
             :width="stageData.width"
@@ -4914,7 +7028,11 @@ function buildSourceHref(src?: {
                 class="tux-map__wire-fg"
                 :class="{
                   'tux-map__wire-fg--planned': w.planned,
+                  'tux-map__wire-fg--violation': Boolean(w.violating),
                   'tux-map__wire-fg--blast': Boolean(blastRadiusState?.impactedWires.has(w.id)),
+                  'tux-map__wire-fg--trace': Boolean(
+                    stageTraceState?.wireIds.has(w.id),
+                  ),
                   'tux-map__wire-fg--on': isWireLit(w.from, w.to, w.id),
                 }"
                 :marker-end="`url(#${arrowMarkerId})`"
@@ -4926,14 +7044,18 @@ function buildSourceHref(src?: {
                 :data-to="w.to"
                 class="tux-map__wire-fg tux-map__wire-fg--stream"
                 :class="{
+                  'tux-map__wire-fg--violation': Boolean(w.violating),
                   'tux-map__wire-fg--blast': Boolean(blastRadiusState?.impactedWires.has(w.id)),
+                  'tux-map__wire-fg--trace': Boolean(
+                    stageTraceState?.wireIds.has(w.id),
+                  ),
                   'tux-map__wire-fg--on': isWireLit(w.from, w.to, w.id),
                 }"
               />
             </template>
           </svg>
 
-          <!-- Layer 2 / 5 (z-index: 2 at rest, 1 when dimmed, 5 when lit): Element Cards -->
+          <!-- Layer 2 / 5: Element Cards + Sibling Zoom Badges (#116, #117, #118, #121, #126) -->
           <template v-if="currentLevel !== 4">
             <button
               v-for="c in renderedCards"
@@ -4941,32 +7063,48 @@ function buildSourceHref(src?: {
               type="button"
               :data-id="c.id"
               :data-parent="c.parent"
+              :tabindex="c.id === activeRovingCardId ? 0 : -1"
+              :aria-label="c.ariaLabel"
+              :aria-busy="c.isLoadingSubgraph ? 'true' : undefined"
               class="tux-map__el"
               :class="[
                 c.kindCls,
                 c.statusCls,
                 c.blastCls,
+                c.traceCls,
                 {
                   'tux-map__el--mini': c.mini,
                   'tux-map__el--zoomable': c.zoomable,
+                  'tux-map__el--splittable': c.splittable,
                   'tux-map__el--lit': isElementLit(c.id, c.parent),
                 },
               ]"
               :style="c.style"
               :aria-pressed="selectedId === c.id"
-              @click="selectElement(selectedId === c.id ? null : c.id)"
-              @dblclick.stop="c.mini && currentLevel >= 5 && parentOf.has(c.id) ? revealElement(c.id) : c.zoomable && zoomIntoElement(c.id)"
+              @focus="rovingCardId = c.id"
+              @click="onStageCardClick(c)"
+              @dblclick.stop="
+                c.mini && currentLevel >= 5 && parentOf.has(c.id)
+                  ? revealElement(c.id)
+                  : c.zoomable && zoomIntoElement(c.id)
+              "
             >
               <span class="tux-map__el-nm">
                 <Icon :name="c.icon" class="tux-map__el-ic" aria-hidden="true" />
                 <span>{{ c.name }}</span>
               </span>
+              <span v-if="c.ownerLabel" class="tux-map__el-own" :title="c.ownerLabel">
+                {{ c.ownerLabel }}
+              </span>
               <span v-if="c.typeLabel" class="tux-map__el-ty" :title="c.typeLabel">
                 {{ c.typeLabel }}
               </span>
+              <span v-if="c.runsOnLabel" class="tux-map__el-runs" :title="c.runsOnLabel">
+                {{ c.runsOnLabel }}
+              </span>
               <span v-if="c.desc" class="tux-map__el-ds" :title="c.desc">{{ c.desc }}</span>
               <span
-                v-if="c.live || c.chip || c.diffBadge"
+                v-if="c.live || c.chip || c.extraChips.length > 0 || c.diffBadge"
                 class="tux-map__el-ft"
               >
                 <template v-if="c.live">
@@ -4985,6 +7123,14 @@ function buildSourceHref(src?: {
                   {{ c.chip[1] }}
                 </span>
                 <span
+                  v-for="(ec, ecIdx) in c.extraChips"
+                  :key="ecIdx"
+                  class="tux-map__chip"
+                  :class="`tux-map__chip--${ec.cls}`"
+                >
+                  {{ ec.text }}
+                </span>
+                <span
                   v-if="c.diffBadge"
                   class="tux-map__chip"
                   :class="`tux-map__chip--diff-${c.diffBadge[0]}`"
@@ -4993,23 +7139,39 @@ function buildSourceHref(src?: {
                 </span>
               </span>
               <span
-                v-if="c.zoomable"
-                class="tux-map__el-zb"
-                :title="zoomBucketTitleFor(c.id, c.mini)"
+                v-if="c.isLoadingSubgraph"
+                class="tux-map__el-busy"
                 aria-hidden="true"
               >
-                +
+                Loading…
               </span>
+            </button>
+
+            <!-- Sibling `+` Zoom Buttons (never nested inside `<button class="tux-map__el">`) -->
+            <button
+              v-for="c in zoomableCards"
+              :key="`zb-${c.id}`"
+              type="button"
+              class="tux-map__el-zb"
+              :data-zb-for="c.id"
+              :style="c.zbStyle"
+              :aria-label="`Zoom into ${c.fullName}`"
+              :title="zoomBucketTitleFor(c.id, c.mini)"
+              @click.stop="zoomIntoElement(c.id)"
+            >
+              +
             </button>
           </template>
 
-          <!-- Level 4 Deployment Resource Cards -->
+          <!-- Level 4 Deployment Resource Cards + Sibling Zoom Badges -->
           <template v-else>
             <button
               v-for="n in stageData.deployNodes"
               :key="n.id"
               type="button"
               :data-id="n.id"
+              :tabindex="n.id === activeRovingCardId ? 0 : -1"
+              :aria-busy="loadingSubgraphId === n.id ? 'true' : undefined"
               class="tux-map__el tux-map__el--k-resource"
               :class="[
                 n.status && n.status !== 'now' ? `tux-map__el--st-${n.status}` : '',
@@ -5018,6 +7180,7 @@ function buildSourceHref(src?: {
                   : blastRadiusState?.impactedIds.has(n.id)
                     ? 'tux-map__el--diff-impact'
                     : '',
+                stageTraceState?.nodeIds.has(n.id) ? 'tux-map__el--trace' : '',
                 {
                   'tux-map__el--zoomable': canZoomDeployNode(n),
                   'tux-map__el--lit': isElementLit(n.id),
@@ -5030,6 +7193,7 @@ function buildSourceHref(src?: {
                 height: `${stageData.rects[n.id]?.h ?? 92}px`,
               }"
               :aria-pressed="selectedId === n.id"
+              @focus="rovingCardId = n.id"
               @click="selectElement(selectedId === n.id ? null : n.id)"
               @dblclick.stop="canZoomDeployNode(n) && zoomIntoElement(n.id)"
             >
@@ -5060,33 +7224,125 @@ function buildSourceHref(src?: {
                 </span>
               </span>
               <span
-                v-if="canZoomDeployNode(n)"
-                class="tux-map__el-zb"
-                :title="`${wheelZooms ? 'Scroll up' : 'Ctrl+scroll up'} or double-click to zoom in to Level 5 internal modules/schemas`"
+                v-if="loadingSubgraphId === n.id"
+                class="tux-map__el-busy"
                 aria-hidden="true"
               >
-                +
+                Loading…
               </span>
+            </button>
+
+            <button
+              v-for="zn in zoomableDeployNodes"
+              :key="`zb-dep-${zn.id}`"
+              type="button"
+              class="tux-map__el-zb"
+              :data-zb-for="zn.id"
+              :style="zn.style"
+              :aria-label="`Zoom into ${resById[zn.id]?.title || zn.id}`"
+              :title="`${wheelZooms ? 'Scroll up' : 'Ctrl+scroll up'} or double-click to zoom in to Level 5 internal modules/schemas`"
+              @click.stop="zoomIntoElement(zn.id)"
+            >
+              +
             </button>
           </template>
 
-          <!-- Layer 3 / 10 (z-index: 3 at rest, 1 when dimmed, 10 when popped out / lit): HTML Wire Label Pills -->
-          <div
+          <!-- Layer 3 / 10: Interactive Wire Label Buttons + Wire Link Inspector (#115, #123, #124) -->
+          <button
             v-for="lbl in routedSvg.labels"
             :key="lbl.id"
+            type="button"
             :data-from="lbl.from"
             :data-to="lbl.to"
             :data-forced="lbl.forced ? '1' : ''"
             class="tux-map__lab"
-            :class="{ 'tux-map__lab--on': isWireLit(lbl.from, lbl.to) }"
+            :class="{
+              'tux-map__lab--on':
+                isWireLit(lbl.from, lbl.to) ||
+                inspectedWireKey === `${lbl.from}->${lbl.to}`,
+              'tux-map__lab--forced': Boolean(lbl.forced),
+              'tux-map__lab--violation': Boolean(lbl.violating),
+            }"
+            :aria-expanded="inspectedWireKey === `${lbl.from}->${lbl.to}` ? 'true' : 'false'"
+            :aria-controls="wireInspectorId"
+            :aria-label="`Inspect wire ${lbl.t1}${lbl.violating ? ' (rule violation)' : ''}`"
             :style="{
               left: `${lbl.x + lbl.w / 2}px`,
               top: `${lbl.y + lbl.h / 2}px`,
-              display: lbl.forced && !isWireLit(lbl.from, lbl.to) ? 'none' : undefined,
             }"
+            @click.stop="toggleWireInspector(lbl, $event.currentTarget)"
           >
-            <span class="tux-map__lab-t1">{{ lbl.t1 }}</span>
+            <span class="tux-map__lab-t1">
+              <span v-if="lbl.violating" class="tux-map__lab-warn" aria-hidden="true">⚠ </span>{{ lbl.t1 }}
+            </span>
             <span v-if="lbl.t2" class="tux-map__lab-t2">[{{ lbl.t2 }}]</span>
+          </button>
+
+          <!-- Wire Link Inspector Popover (#115, #123) -->
+          <div
+            v-if="inspectedWireDetail"
+            :id="wireInspectorId"
+            class="tux-map__wire-pop"
+            role="dialog"
+            :aria-label="`Links from ${inspectedWireDetail.fromName} to ${inspectedWireDetail.toName}`"
+            :style="inspectedWireDetail.style"
+            @keydown="onWireInspectorKeydown"
+            @pointerdown.stop
+          >
+            <div class="tux-map__wire-pop-hdr">
+              <span class="tux-map__wire-pop-title">
+                {{ inspectedWireDetail.fromName }} → {{ inspectedWireDetail.toName }}
+              </span>
+              <button
+                ref="wirePopCloseBtnRef"
+                type="button"
+                class="tux-map__iconbtn tux-map__wire-pop-close"
+                aria-label="Close wire inspector"
+                @click.stop="closeWireInspector(true)"
+              >
+                ×
+              </button>
+            </div>
+            <p v-if="inspectedWireDetail.summaryLine" class="tux-map__wire-pop-sum">
+              {{ inspectedWireDetail.summaryLine }}
+            </p>
+            <p v-if="inspectedWireDetail.cutLine" class="tux-map__wire-pop-cut">
+              Also on this wire: {{ inspectedWireDetail.cutLine }}
+            </p>
+            <div
+              v-if="inspectedWireDetail.violations.length > 0"
+              class="tux-map__wire-pop-violations"
+            >
+              <div
+                v-for="(v, vIdx) in inspectedWireDetail.violations"
+                :key="vIdx"
+                class="tux-map__wire-pop-viol"
+              >
+                <b>⚠ {{ v.rule }}</b>
+                <span v-if="v.message"> — {{ v.message }}</span>
+                <span v-if="v.fix" class="tux-map__wire-pop-fix">Fix: {{ v.fix }}</span>
+              </div>
+            </div>
+            <ul v-if="inspectedWireDetail.sites.length > 0" class="tux-map__wire-pop-list">
+              <li v-for="s in inspectedWireDetail.sites" :key="s.key">
+                <span class="tux-map__wire-pop-kind">{{ s.kindLabel }}</span>
+                <a
+                  v-if="s.href"
+                  :href="s.href"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="tux-map__source-lnk"
+                >
+                  <code>{{ s.at }}</code>
+                </a>
+                <code v-else class="tux-map__source-pill">{{ s.at }}</code>
+              </li>
+            </ul>
+            <p v-if="inspectedWireDetail.moreSitesCount > 0" class="tux-map__wire-pop-cut">
+              +{{ inspectedWireDetail.moreSitesCount }} more link{{
+                inspectedWireDetail.moreSitesCount === 1 ? "" : "s"
+              }}
+            </p>
           </div>
 
           <!-- Sticky Notes Overlay (Scoped to Current Level & Focus) -->
@@ -5097,8 +7353,8 @@ function buildSourceHref(src?: {
             :style="{
               transform: `translate3d(${note.x}px, ${note.y}px, 0)`,
             }"
-            @pointerdown="onNotePointerDown(note, $event)"
-            @dblclick.stop="editingNoteId = note.id"
+            @pointerdown="props.annotations && onNotePointerDown(note, $event)"
+            @dblclick.stop="props.annotations && (editingNoteId = note.id)"
           >
             <div class="tux-map__note-head">
               <span>
@@ -5106,6 +7362,7 @@ function buildSourceHref(src?: {
                 <template v-if="note.targetNodeId"> · #{{ note.targetNodeId }}</template>
               </span>
               <button
+                v-if="props.annotations"
                 type="button"
                 class="tux-map__note-close"
                 :aria-label="`Remove note by ${note.author ?? 'reviewer'}`"
@@ -5115,7 +7372,7 @@ function buildSourceHref(src?: {
               </button>
             </div>
             <textarea
-              v-if="editingNoteId === note.id"
+              v-if="props.annotations && editingNoteId === note.id"
               :value="note.text"
               class="tux-map__note-input"
               rows="3"
@@ -5228,7 +7485,7 @@ function buildSourceHref(src?: {
       </div>
 
       <!-- Accessible List View (Only Mounted When Active) -->
-      <div v-if="isListView" class="tux-map__list">
+      <div v-if="effectiveIsListView" class="tux-map__list">
         <section v-for="grp in listViewGroups" :key="grp.title">
           <h4>{{ grp.title }}</h4>
           <ul>
@@ -5245,7 +7502,9 @@ function buildSourceHref(src?: {
                   <Icon :name="elementIconName(e.kind)" class="tux-map__el-ic" aria-hidden="true" />
                   <span>{{ e.name }}</span>
                 </span>
-                <span v-if="e.tech" class="tux-map__el-ty">[{{ e.tech }}]</span>
+                <span v-if="plainElementKindLabel(e) || e.tech" class="tux-map__el-ty">
+                  [{{ plainElementKindLabel(e) }}{{ plainElementKindLabel(e) && e.tech ? " · " : "" }}{{ e.tech }}]
+                </span>
                 <span v-if="e.desc" class="tux-map__el-ds">{{ e.desc }}</span>
               </button>
               <dl v-if="listRelsById.get(e.id)" class="tux-map__list-rels">
@@ -5293,9 +7552,9 @@ function buildSourceHref(src?: {
         ref="panelRef"
         class="tux-map__panel"
         :class="{ 'tux-map__panel--open': Boolean(selectedPanelEntity) }"
-        :aria-live="isListView ? 'off' : 'polite'"
+        aria-live="off"
         aria-label="Selected element details"
-        @keydown.escape="isListView && selectElement(null)"
+        @keydown.escape="effectiveIsListView && selectElement(null)"
       >
         <template v-if="selectedPanelEntity">
           <button
@@ -5313,7 +7572,7 @@ function buildSourceHref(src?: {
               <span>{{ selectedLevelElement.name }}</span>
             </h4>
             <p class="tux-map__panel-ty">
-              {{ TYPE_LABELS[selectedLevelElement.kind || "container"] }}
+              {{ plainElementKindLabel(selectedLevelElement) || TYPE_LABELS[selectedLevelElement.kind || "container"] }}
               <template v-if="selectedLevelElement.tech"> · {{ selectedLevelElement.tech }}</template>
             </p>
 
@@ -5340,6 +7599,18 @@ function buildSourceHref(src?: {
             </p>
 
             <button
+              v-if="selectedSplittableParts > 1"
+              type="button"
+              class="tux-map__panel-btn"
+              @click="toggleSplitCard(selectedLevelElement.id)"
+            >
+              {{
+                effectiveSplitSet.has(selectedLevelElement.id)
+                  ? "Fold parts"
+                  : `Split into ${selectedSplittableParts} parts`
+              }}
+            </button>
+            <button
               v-if="selectedIsOutside"
               type="button"
               class="tux-map__panel-btn"
@@ -5358,9 +7629,7 @@ function buildSourceHref(src?: {
                   ? "Zoom in to Level 2: containers & services"
                   : currentLevel === 2 && (activeModel.level3[selectedLevelElement.id]?.length ?? 0) > 0
                     ? `Zoom in to Level 3: its ${(activeModel.level3[selectedLevelElement.id] || []).length} components`
-                    : hasFractalSubgraph(selectedLevelElement.id)
-                      ? `Zoom in to Level ${fractalZoomLevelFor(selectedLevelElement.id)}: ${getSubgraphForNode(selectedLevelElement.id)?.stratum || "internal modules"}`
-                      : "Zoom in to Level 4: deployment host"
+                    : `Zoom in to Level ${fractalZoomLevelFor(selectedLevelElement.id)}: ${getSubgraphForNode(selectedLevelElement.id)?.stratum || "internal modules"}`
               }}
             </button>
           </template>
@@ -5390,6 +7659,88 @@ function buildSourceHref(src?: {
             >
               Zoom in to Level 5: {{ getSubgraphForNode(selectedDeployNode.id)?.stratum || "internal modules & schemas" }}
             </button>
+          </template>
+
+          <!-- Directed Spreading Path Picker (#125) -->
+          <div class="tux-map__trace-picker">
+            <button
+              type="button"
+              class="tux-map__panel-btn"
+              :aria-expanded="tracePickerOpen"
+              @click="tracePickerOpen = !tracePickerOpen"
+            >
+              {{ localTraceTarget ? "Change traced target…" : "Trace to…" }}
+            </button>
+            <button
+              v-if="localTraceTarget"
+              type="button"
+              class="tux-map__panel-btn"
+              @click="
+                setTraceTarget(null);
+                tracePickerOpen = false;
+              "
+            >
+              Clear path
+            </button>
+            <div v-if="tracePickerOpen" class="tux-map__trace-menu">
+              <input
+                v-model="traceQuery"
+                type="search"
+                class="tux-map__trace-input"
+                aria-label="Search target to trace dependency path"
+                placeholder="Filter elements to trace…"
+              />
+              <ul class="tux-map__trace-list" aria-label="Trace targets">
+                <li v-for="cand in traceCandidateItems" :key="cand.id">
+                  <button
+                    type="button"
+                    class="tux-map__trace-opt"
+                    @click="
+                      setTraceTarget(cand.id);
+                      tracePickerOpen = false;
+                    "
+                  >
+                    <span class="tux-map__trace-opt-nm">{{ cand.name }}</span>
+                    <span v-if="cand.sub" class="tux-map__trace-opt-sub">{{ cand.sub }}</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+            <ol v-if="activeTraceResult && activeTraceResult.hops.length > 0" class="tux-map__trace-hops">
+              <li v-for="(hop, hIdx) in activeTraceResult.hops" :key="`${hIdx}-${hop.from}-${hop.to}`">
+                <code>{{ byId[hop.from]?.name || resById[hop.from]?.title || hop.from }}</code>
+                <span> {{ hop.label }} → </span>
+                <code>{{ byId[hop.to]?.name || resById[hop.to]?.title || hop.to }}</code>
+                <span v-if="hop.at" class="tux-map__trace-at"> ({{ hop.at }})</span>
+              </li>
+            </ol>
+          </div>
+
+          <!-- Dependency-Rule Violations (#123) -->
+          <template v-if="selectedViolations.length > 0">
+            <h5 class="tux-map__panel-h">Rule violations ({{ selectedViolations.length }})</h5>
+            <ul class="tux-map__panel-violations">
+              <li v-for="v in selectedViolations" :key="v.key" class="tux-map__panel-viol">
+                <div class="tux-map__panel-viol-hdr">
+                  <span class="tux-map__chip tux-map__chip--violation">⚠ {{ v.rule }}</span>
+                  <span class="tux-map__panel-viol-dir">
+                    {{ v.direction === "out" ? `→ ${v.peerName}` : `← ${v.peerName}` }} · {{ v.kindLabel }}
+                  </span>
+                </div>
+                <p v-if="v.message" class="tux-map__panel-viol-msg">{{ v.message }}</p>
+                <p v-if="v.fix" class="tux-map__panel-viol-fix">Fix: {{ v.fix }}</p>
+                <a
+                  v-if="v.at && v.href"
+                  :href="v.href"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="tux-map__source-lnk"
+                >
+                  <code>{{ v.at }}</code>
+                </a>
+                <code v-else-if="v.at" class="tux-map__source-pill">{{ v.at }}</code>
+              </li>
+            </ul>
           </template>
 
           <!-- PR Diff / Blast Radius Summary -->
@@ -5494,6 +7845,14 @@ function buildSourceHref(src?: {
                         <span class="tux-map__blast-how">{{ f.how }}</span>
                         <span class="tux-map__blast-why">Why? {{ f.whyDetail }}</span>
                       </span>
+                      <button
+                        type="button"
+                        class="tux-map__blast-trace"
+                        :aria-label="`Trace dependency path to ${f.locLabel}`"
+                        @click="setTraceTarget(f.id)"
+                      >
+                        Path
+                      </button>
                       <a
                         v-if="f.href"
                         :href="f.href"
@@ -5568,12 +7927,12 @@ function buildSourceHref(src?: {
               </dl>
             </template>
 
-            <!-- Cross-Jump to Level 4 Infrastructure Hosts -->
-            <template v-if="normalizeArray(selectedLevelElement.deployed).length > 0">
+            <!-- Cross-Jump to Level 4 Infrastructure Hosts (Direct or Inherited #116) -->
+            <template v-if="selectedInheritedHosts.length > 0">
               <h5 class="tux-map__panel-h">Runs on (Level 4)</h5>
               <ul class="tux-map__panel-rels">
                 <li
-                  v-for="rid in normalizeArray(selectedLevelElement.deployed)"
+                  v-for="rid in selectedInheritedHosts"
                   :key="rid"
                 >
                   <button
@@ -5835,6 +8194,54 @@ function buildSourceHref(src?: {
       </div>
     </div>
 
+    <!-- Keyboard Shortcuts Modal (#117) -->
+    <div
+      v-if="shortcutsOpen"
+      class="tux-map__shortcuts-backdrop"
+      @mousedown.self="closeShortcutsModal(true)"
+    >
+      <div
+        class="tux-map__shortcuts-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Keyboard shortcuts"
+        @keydown="onShortcutsKeydown"
+      >
+        <div class="tux-map__shortcuts-hdr">
+          <h4 class="tux-map__shortcuts-title">Keyboard shortcuts</h4>
+          <button
+            ref="shortcutsCloseBtnRef"
+            type="button"
+            class="tux-map__iconbtn tux-map__shortcuts-close"
+            aria-label="Close keyboard shortcuts"
+            @click="closeShortcutsModal(true)"
+          >
+            ×
+          </button>
+        </div>
+        <dl class="tux-map__shortcuts-dl">
+          <dt><kbd>Arrow keys</kbd></dt>
+          <dd>Move focus across diagram cards</dd>
+          <dt><kbd>Enter</kbd> / <kbd>Space</kbd></dt>
+          <dd>Select focused card (or split folded outside card)</dd>
+          <dt><kbd>+</kbd> / <kbd>−</kbd></dt>
+          <dd>Zoom in to inner view or zoom out a level</dd>
+          <dt><kbd>1</kbd> – <kbd>4</kbd></dt>
+          <dd>Jump to System, Containers, Components, or Infrastructure</dd>
+          <dt><kbd>/</kbd> or <kbd>Ctrl+K</kbd></dt>
+          <dd>Open cross-level Go to search palette</dd>
+          <dt><kbd>?</kbd></dt>
+          <dd>Show or hide keyboard shortcuts</dd>
+          <dt><kbd>Esc</kbd></dt>
+          <dd>Close open popover/dialog, clear selection, or zoom out</dd>
+          <template v-if="props.annotations">
+            <dt><kbd>V</kbd> / <kbd>P</kbd> / <kbd>L</kbd> / <kbd>N</kbd></dt>
+            <dd>Switch between Select, Pen, Laser, and Sticky Note tools</dd>
+          </template>
+        </dl>
+      </div>
+    </div>
+
     <figcaption v-if="caption" class="tux-map__caption">{{ caption }}</figcaption>
     <div class="tux-map__sr" aria-live="polite">{{ liveAnnouncement }}</div>
   </figure>
@@ -5909,13 +8316,222 @@ function buildSourceHref(src?: {
   background: var(--brand-primary);
 }
 
+.tux-map__diag-note {
+  margin: 0 0 0.55rem;
+  padding: 0.38rem 0.7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-raised);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Sticky Wayfinding Chrome & Regrouped Toolbar (#125) */
+@media (min-width: 761px) {
+  .tux-map__chrome {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: var(--surface-page);
+    padding: 0.15rem 0 0.25rem;
+  }
+}
+
 /* Toolbar & Segmented Level Controls */
 .tux-map__tools {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.55rem 0.85rem;
-  margin: 0.5rem 0 0.55rem;
+  margin: 0.5rem 0 0.45rem;
+}
+
+.tux-map__more-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tux-map__more-btn {
+  display: none;
+  min-height: var(--tux-map-target);
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  font: inherit;
+  font-family: var(--font-bold);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tux-map__more-inline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.85rem;
+}
+
+@container tux-map (max-width: 760px) {
+  .tux-map__more-btn {
+    display: inline-flex;
+  }
+
+  .tux-map__more-inline {
+    display: none;
+  }
+
+  .tux-map__more-inline--open {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 40;
+    min-width: 220px;
+    padding: 0.65rem 0.75rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--surface-border);
+    background: var(--surface-raised);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.tux-map__subbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem 1rem;
+  margin: 0.1rem 0 0.25rem;
+}
+
+.tux-map__crumb-menu-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tux-map__crumbs button.tux-map__crumb-sib-btn {
+  text-decoration: none;
+  padding: 0 0.3rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.tux-map__crumbs button.tux-map__crumb-sib-btn:hover,
+.tux-map__crumbs button.tux-map__crumb-sib-btn[aria-expanded="true"] {
+  background: var(--surface-raised);
+  color: var(--text-primary);
+}
+
+.tux-map__crumb-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 45;
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  min-width: 190px;
+  max-height: 240px;
+  overflow-y: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-raised);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.2);
+}
+
+.tux-map__crumb-menu li {
+  display: block;
+}
+
+.tux-map__crumb-menu li + li::before {
+  content: none;
+}
+
+.tux-map__crumbs .tux-map__crumb-menu button {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 36px;
+  padding: 0.3rem 0.55rem;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  font-size: 0.8125rem;
+}
+
+.tux-map__crumbs .tux-map__crumb-menu button:hover,
+.tux-map__crumbs .tux-map__crumb-menu button[aria-current="true"] {
+  background: var(--tux-map-brand-tint);
+}
+
+.tux-map__wire-filters {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.tux-map__wire-filter-lbl {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-right: 0.15rem;
+}
+
+.tux-map__wire-filter-btn {
+  min-height: 34px;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.tux-map__wire-filter-btn[aria-pressed="true"] {
+  background: var(--tux-map-brand-tint);
+  border-color: var(--brand-primary);
+  color: var(--text-primary);
+  font-family: var(--font-bold);
+  font-weight: 700;
+}
+
+.tux-map__trace-banner,
+.tux-map__dense-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.55rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--brand-primary);
+  background: var(--tux-map-brand-tint);
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+}
+
+.tux-map__trace-clear {
+  min-height: 34px;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  font: inherit;
+  font-family: var(--font-bold);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .tux-map__seg {
@@ -6367,6 +8983,124 @@ function buildSourceHref(src?: {
   --tux-cursor-card: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26'%3E%3Cpath d='M5 3.5L21 11.5L13.5 14L11 21.5L5 3.5Z' fill='%23500000' stroke='%23FFFFFF' stroke-width='2.2' stroke-linejoin='round'/%3E%3C/svg%3E") 5 4, pointer;
 }
 
+.tux-map__canvas--with-outline {
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: start;
+}
+
+@container tux-map (max-width: 760px) {
+  .tux-map__canvas--with-outline {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.tux-map__outline {
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  max-height: min(72vh, 620px);
+  overflow-y: auto;
+  padding: 0.45rem;
+}
+
+.tux-map__outline-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.15rem 0.35rem 0.35rem;
+  border-bottom: 1px solid var(--surface-border);
+  font-family: var(--font-bold);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.tux-map__outline-close {
+  width: 32px;
+  height: 32px;
+  font-size: 15px;
+}
+
+.tux-map__outline-list {
+  margin: 0.3rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.tux-map__outline-row {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.tux-map__outline-exp {
+  width: 24px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  flex: none;
+}
+
+.tux-map__outline-exp-pad {
+  width: 24px;
+  flex: none;
+}
+
+.tux-map__outline-item {
+  flex: 1;
+  min-width: 0;
+  min-height: 32px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem;
+  padding: 0.2rem 0.4rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.78rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tux-map__outline-item:hover,
+.tux-map__outline-item--active {
+  background: var(--tux-map-brand-tint);
+}
+
+.tux-map__outline-item--active {
+  font-family: var(--font-bold);
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--brand-primary);
+}
+
+.tux-map__outline-nm {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tux-map__outline-kd {
+  flex: none;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
 [data-theme="tti-dark"] .tux-map__canvas {
   /* Dark mode custom SVG cursors (Luminous Aggie Gold #F5D580 + deep #15100F halo) */
   --tux-cursor-nav: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='14' cy='14' r='9' fill='rgba(245,213,128,0.12)' stroke='%2315100F' stroke-width='2.8'/%3E%3Ccircle cx='14' cy='14' r='9' fill='none' stroke='%23F5D580' stroke-width='1.6' stroke-dasharray='4 2.5'/%3E%3Ccircle cx='14' cy='14' r='2.6' fill='%23F5D580' stroke='%2315100F' stroke-width='1.4'/%3E%3C/svg%3E") 14 14, grab;
@@ -6429,6 +9163,9 @@ function buildSourceHref(src?: {
 .tux-map__viewport--tool-pen .tux-map__el,
 .tux-map__viewport--tool-laser .tux-map__el,
 .tux-map__viewport--tool-note .tux-map__el,
+.tux-map__viewport--tool-pen .tux-map__el-zb,
+.tux-map__viewport--tool-laser .tux-map__el-zb,
+.tux-map__viewport--tool-note .tux-map__el-zb,
 .tux-map__viewport--tool-pen .tux-map__bound,
 .tux-map__viewport--tool-laser .tux-map__bound,
 .tux-map__viewport--tool-note .tux-map__bound,
@@ -6551,6 +9288,13 @@ function buildSourceHref(src?: {
   background: transparent;
 }
 
+.tux-map__bound.band {
+  border-style: solid;
+  border-width: 1px;
+  border-color: var(--surface-border);
+  background: color-mix(in srgb, var(--surface-raised) 55%, transparent);
+}
+
 /* Layer 1 (z-index: 1): Base Orthogonal Wires SVG */
 .tux-map__wires {
   position: absolute;
@@ -6576,6 +9320,14 @@ function buildSourceHref(src?: {
 .tux-map__wire--planned {
   stroke: var(--text-muted);
   stroke-dasharray: 6 5;
+}
+
+/* Non-colour violating wire cue (#123): dotted heavy stroke + warning glyph */
+.tux-map__wire--violation {
+  stroke: var(--status-critical);
+  stroke-width: 2.6;
+  stroke-dasharray: 2 4;
+  opacity: 0.96;
 }
 
 .tux-map__wires--has-on .tux-map__wire {
@@ -6622,9 +9374,26 @@ function buildSourceHref(src?: {
   stroke-dasharray: 6 5;
 }
 
+/* Non-colour blast wire cue (#117): long-short dash + thicker stroke */
 .tux-map__wire-fg--blast {
   stroke: var(--status-warning);
-  stroke-width: 2.3;
+  stroke-width: 3;
+  stroke-dasharray: 10 4;
+  opacity: 0.95;
+}
+
+.tux-map__wire-fg--violation {
+  stroke: var(--status-critical);
+  stroke-width: 2.8;
+  stroke-dasharray: 2 4;
+  opacity: 0.96;
+}
+
+.tux-map__wire-fg--trace {
+  stroke: var(--brand-primary);
+  stroke-width: 3.2;
+  stroke-dasharray: none;
+  opacity: 1;
 }
 
 .tux-map__wire-fg--stream {
@@ -6638,6 +9407,10 @@ function buildSourceHref(src?: {
 
 .tux-map__wire-fg--stream.tux-map__wire-fg--blast {
   stroke: var(--status-warning);
+}
+
+.tux-map__wire-fg--stream.tux-map__wire-fg--violation {
+  stroke: var(--status-critical);
 }
 
 .tux-map__wire-fg--on {
@@ -6769,12 +9542,13 @@ function buildSourceHref(src?: {
   stroke-width: 1.8;
 }
 
-/* Layer 3 / 10: HTML Wire Label Pills (z-index: 3 at rest, 1 when dimmed, 10 when popped out) */
+/* Layer 3 / 10: Interactive Wire Label Buttons (#115, #123, #124) */
 .tux-map__lab {
   position: absolute;
   z-index: 3;
   transform: translate(-50%, -50%);
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -6785,7 +9559,36 @@ function buildSourceHref(src?: {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   white-space: nowrap;
   line-height: 1.25;
+  font: inherit;
+  text-align: left;
+  color: var(--text-primary);
   transition: none !important;
+}
+
+.tux-map__lab:hover,
+.tux-map__lab:focus-visible,
+.tux-map__lab[aria-expanded="true"] {
+  z-index: 11;
+  opacity: 1 !important;
+  pointer-events: auto;
+  border-color: var(--brand-primary);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.16);
+}
+
+.tux-map__lab:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* Dense/crowded wire labels (#124): hidden via opacity at rest so Tab still focuses them! */
+.tux-map__lab--forced:not(.tux-map__lab--on):not(:hover):not(:focus-visible):not([aria-expanded="true"]) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tux-map__lab--violation {
+  border-color: var(--status-critical);
+  border-style: dashed;
 }
 
 .tux-map__lab-t1 {
@@ -6800,17 +9603,98 @@ function buildSourceHref(src?: {
   color: var(--text-muted);
 }
 
-.tux-map__stage--dim .tux-map__lab:not(.tux-map__lab--on) {
+.tux-map__stage--dim .tux-map__lab:not(.tux-map__lab--on):not(:hover):not(:focus-visible):not([aria-expanded="true"]) {
   z-index: 1;
   opacity: 0.15;
+}
+
+.tux-map__stage--dim .tux-map__lab--forced:not(.tux-map__lab--on):not(:hover):not(:focus-visible):not([aria-expanded="true"]) {
+  opacity: 0;
 }
 
 .tux-map__stage--dim .tux-map__lab--on,
 .tux-map__lab--on {
   z-index: 10;
   opacity: 1;
+  pointer-events: auto;
   border-color: var(--brand-primary);
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.16);
+}
+
+/* Wire Link Inspector Popover (#115) */
+.tux-map__wire-pop {
+  position: absolute;
+  z-index: 18;
+  width: 312px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--brand-primary);
+  background: var(--surface-raised);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+  color: var(--text-primary);
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.tux-map__wire-pop-hdr {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.45rem;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.tux-map__wire-pop-close {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  font-size: 15px;
+}
+
+.tux-map__wire-pop-sum {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.tux-map__wire-pop-cut {
+  margin: 0.2rem 0 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.tux-map__wire-pop-viol,
+.tux-map__wire-pop-list {
+  margin: 0.45rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+  font-size: 11px;
+}
+
+.tux-map__wire-pop-viol li {
+  padding: 0.22rem 0.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--status-critical);
+  background: color-mix(in srgb, var(--status-critical) 12%, var(--surface-raised));
+}
+
+.tux-map__wire-pop-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.tux-map__wire-pop-kind {
+  font-size: 10px;
+  color: var(--text-muted);
 }
 
 /* Layer 2 / 5: C4 Element Cards (z-index: 2 at rest, 1 when dimmed, 5 when lit) */
@@ -6838,6 +9722,17 @@ function buildSourceHref(src?: {
 
 .tux-map__el--zoomable {
   cursor: var(--tux-cursor-zoom);
+}
+
+.tux-map__el--splittable {
+  border-style: solid;
+}
+
+.tux-map__el--trace {
+  border-color: var(--brand-primary) !important;
+  box-shadow:
+    inset 4px 0 0 var(--brand-primary),
+    0 0 0 2px var(--brand-primary);
 }
 
 .tux-map__el--proximity {
@@ -6914,6 +9809,16 @@ function buildSourceHref(src?: {
   padding-right: 24px;
 }
 
+.tux-map__el-own {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: none;
+}
+
 .tux-map__el-ty {
   font-size: 11px;
   color: var(--text-muted);
@@ -6922,6 +9827,26 @@ function buildSourceHref(src?: {
   overflow: hidden;
   text-overflow: ellipsis;
   flex: none;
+}
+
+.tux-map__el-runs {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tux-map__el-busy {
+  display: inline-block;
+  padding: 0.05em 0.45em;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  border: 1px dashed var(--brand-primary);
+  background: var(--tux-map-brand-tint);
+  color: var(--text-primary);
 }
 
 .tux-map__el-ds {
@@ -6939,24 +9864,26 @@ function buildSourceHref(src?: {
 .tux-map__el-ft {
   margin-top: auto;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.3rem;
   font-size: 11px;
   color: var(--text-secondary);
   min-height: 18px;
-  white-space: nowrap;
   overflow: hidden;
   flex: none;
 }
 
+/* Sibling Zoom-In `+` Badge Button on Stage (#116: never nested inside card button) */
 .tux-map__el-zb {
   position: absolute;
-  top: 7px;
-  right: 7px;
-  width: 20px;
-  height: 20px;
+  z-index: 9;
+  width: 22px;
+  height: 22px;
+  padding: 0;
   border-radius: 50%;
-  border: 1.5px solid currentColor;
+  border: 1.5px solid var(--brand-primary);
+  background: var(--surface-raised);
   color: var(--tux-map-brand-ink);
   display: flex;
   align-items: center;
@@ -6965,12 +9892,19 @@ function buildSourceHref(src?: {
   line-height: 1;
   font-family: var(--font-bold);
   font-weight: 700;
+  cursor: pointer;
 }
 
-.tux-map__el:hover .tux-map__el-zb {
+.tux-map__el-zb:hover,
+.tux-map__el-zb:focus-visible {
   background: var(--tux-map-brand-tint);
   border-color: var(--brand-primary);
   color: var(--text-primary);
+}
+
+.tux-map__el-zb:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
 }
 
 .tux-map__el--mini {
@@ -7007,8 +9941,7 @@ function buildSourceHref(src?: {
 .tux-map__el--k-system .tux-map__el-nm,
 .tux-map__el--k-system .tux-map__el-ds,
 .tux-map__el--k-system .tux-map__el-ty,
-.tux-map__el--k-system .tux-map__el-ft,
-.tux-map__el--k-system .tux-map__el-zb {
+.tux-map__el--k-system .tux-map__el-ft {
   color: var(--text-primary);
 }
 
@@ -7017,6 +9950,10 @@ function buildSourceHref(src?: {
 .tux-map__el--k-storage,
 .tux-map__el--k-component,
 .tux-map__el--k-module,
+.tux-map__el--k-folder,
+.tux-map__el--k-file,
+.tux-map__el--k-function,
+.tux-map__el--k-class,
 .tux-map__el--k-schema,
 .tux-map__el--k-symbol,
 .tux-map__el--k-route,
@@ -7035,6 +9972,10 @@ function buildSourceHref(src?: {
 .tux-map__el--k-storage .tux-map__el-ic,
 .tux-map__el--k-component .tux-map__el-ic,
 .tux-map__el--k-module .tux-map__el-ic,
+.tux-map__el--k-folder .tux-map__el-ic,
+.tux-map__el--k-file .tux-map__el-ic,
+.tux-map__el--k-function .tux-map__el-ic,
+.tux-map__el--k-class .tux-map__el-ic,
 .tux-map__el--k-schema .tux-map__el-ic,
 .tux-map__el--k-symbol .tux-map__el-ic,
 .tux-map__el--k-route .tux-map__el-ic,
@@ -7122,10 +10063,19 @@ function buildSourceHref(src?: {
 }
 
 .tux-map__chip--diff-deleted,
-.tux-map__chip--diff-impact {
+.tux-map__chip--diff-impact,
+.tux-map__chip--violation {
   background: color-mix(in srgb, var(--status-critical) 18%, var(--surface-raised));
   color: var(--text-primary);
   border-color: var(--status-critical);
+}
+
+.tux-map__chip--vendored,
+.tux-map__chip--shared,
+.tux-map__chip--parts {
+  background: var(--tux-map-brand-tint);
+  color: var(--text-primary);
+  border-color: var(--brand-primary);
 }
 
 /* Sticky Notes & Ink Overlay */
@@ -7375,6 +10325,147 @@ function buildSourceHref(src?: {
   text-decoration: underline;
 }
 
+.tux-map__panel-violations {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.tux-map__panel-viol {
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--status-critical);
+  background: color-mix(in srgb, var(--status-critical) 9%, var(--surface-raised));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  font-size: 12px;
+}
+
+.tux-map__panel-viol-hdr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.tux-map__panel-viol-dir {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.tux-map__panel-viol-msg {
+  margin: 0;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.tux-map__panel-viol-fix {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+.tux-map__trace-picker {
+  margin-top: 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.tux-map__trace-menu {
+  padding: 0.45rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-sunken);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.tux-map__trace-input {
+  min-height: 36px;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 12px;
+}
+
+.tux-map__trace-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.tux-map__trace-opt {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 34px;
+  padding: 0.25rem 0.45rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+}
+
+.tux-map__trace-opt:hover,
+.tux-map__trace-opt:focus-visible {
+  background: var(--tux-map-brand-tint);
+}
+
+.tux-map__trace-opt-nm {
+  font-family: var(--font-bold);
+  font-weight: 700;
+}
+
+.tux-map__trace-opt-sub {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.tux-map__trace-hops {
+  margin: 0.15rem 0 0;
+  padding-left: 1.2rem;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.tux-map__trace-hops code {
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+.tux-map__trace-at {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
 .tux-map__panel-diff {
   display: flex;
   flex-direction: column;
@@ -7420,10 +10511,30 @@ function buildSourceHref(src?: {
 
 .tux-map__blast-row {
   display: grid;
-  grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+  grid-template-columns: 1.6rem minmax(0, 1fr) auto auto;
   column-gap: 0.35rem;
   align-items: center;
   font-size: 12px;
+}
+
+.tux-map__blast-trace {
+  min-height: 30px;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  font: inherit;
+  font-family: var(--font-bold);
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tux-map__blast-trace:hover,
+.tux-map__blast-trace:focus-visible {
+  background: var(--tux-map-brand-tint);
+  border-color: var(--brand-primary);
 }
 
 .tux-map__blast-hop {
@@ -7800,7 +10911,13 @@ function buildSourceHref(src?: {
   vertical-align: top;
 }
 
-/* Accessible List View */
+/* Accessible List View (#124: bounded height so a 400-file folder stays < 2 viewports) */
+.tux-map__list {
+  max-height: min(72vh, 680px);
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
 .tux-map__list section {
   margin-bottom: 1.2rem;
 }
@@ -7839,6 +10956,119 @@ function buildSourceHref(src?: {
 
 .tux-map__canvas--list .tux-map__panel:not(.tux-map__panel--open) {
   display: none;
+}
+
+/* Keyboard Shortcuts Modal (#117) */
+.tux-map__shortcuts-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 92;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 12, 12, 0.54);
+}
+
+.tux-map__shortcuts-dialog {
+  width: min(460px, 100%);
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 1rem 1.15rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--brand-primary);
+  background: var(--surface-raised);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.34);
+  color: var(--text-primary);
+}
+
+.tux-map__shortcuts-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tux-map__shortcuts-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.tux-map__shortcuts-dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.45rem 0.9rem;
+  align-items: baseline;
+  font-size: 0.8125rem;
+}
+
+.tux-map__shortcuts-dl dt {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-primary);
+}
+
+.tux-map__shortcuts-dl dd {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.tux-map__shortcuts-dl kbd {
+  display: inline-block;
+  padding: 0.08rem 0.38rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface-border);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+/* Windows High Contrast / Forced Colors (#117 & #123): distinct dash patterns & system strokes */
+@media (forced-colors: active) {
+  .tux-map__wire {
+    stroke: CanvasText;
+    stroke-width: 1.5;
+  }
+
+  .tux-map__wire-fg {
+    stroke: Highlight;
+    stroke-width: 2.4;
+  }
+
+  .tux-map__wire-fg--blast {
+    stroke: Highlight;
+    stroke-width: 3.4;
+    stroke-dasharray: 10 4;
+  }
+
+  .tux-map__wire--violation,
+  .tux-map__wire-fg--violation {
+    stroke: LinkText;
+    stroke-width: 3.2;
+    stroke-dasharray: 2 4;
+  }
+
+  .tux-map__wire-fg--trace {
+    stroke: Highlight;
+    stroke-width: 3.8;
+    stroke-dasharray: none;
+  }
+
+  .tux-map__el[aria-pressed="true"],
+  .tux-map__el--diff-direct,
+  .tux-map__el--trace {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .tux-map__el--diff-impact {
+    outline: 2px dashed Highlight;
+    outline-offset: 2px;
+  }
 }
 
 /* A narrow map (a phone, a sidebar): the details follow the diagram instead of covering it */
