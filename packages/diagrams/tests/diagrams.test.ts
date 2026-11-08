@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { useTuxMermaid } from "../app/composables/useTuxMermaid";
 import {
@@ -17,14 +19,19 @@ import {
   routeDeploymentWires,
   buildLevelModelFromLegacyNodes,
   buildUnifiedArchitectureGraph,
+  getMapQueryIndex,
   queryArchitectureLayer,
   queryMultiLevelBlastRadius,
   findShortestArchitecturePath,
   coordinateAcpSubgraphLease,
   buildMapParentIndex,
+  levelForFocus,
+  extractModelLinks,
   liftLinksToView,
   computeLinkBlastRadius,
+  computeGraphDelta,
   DEFAULT_TTI_LEVEL_MODEL,
+  type TuxMapBlastIntent,
   type TuxMapNode,
   type TuxMapEdge,
   type TuxMapGridCellRect,
@@ -355,9 +362,19 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
 
   it("computes the blast radius of a selection upstream, stopping one step after a stopping link", () => {
     const parentOf = buildMapParentIndex(codeModel);
-    // changing check() reaches who() (calls it), data() (calls who), page.js (calls data), the test (one step)
+    // by default (quietSeedOnly = true), mentions are followed only from the seed, so runbook.md (which mentions page.js) is excluded
     const { hits } = computeLinkBlastRadius(codeModel.links!, "s:forge.py#check", parentOf);
     expect([...hits.entries()].map(([id, h]) => [id, h.hop])).toEqual([
+      ["s:routes.py#who", 1],
+      ["s:routes.py#data", 2],
+      ["f:page.js", 3],
+      ["f:test_routes.py", 3],
+    ]);
+    // opting into quietSeedOnly: false also includes downstream prose mentions one step off reached files
+    const verbose = computeLinkBlastRadius(codeModel.links!, "s:forge.py#check", parentOf, {
+      quietSeedOnly: false,
+    });
+    expect([...verbose.hits.entries()].map(([id, h]) => [id, h.hop])).toEqual([
       ["s:routes.py#who", 1],
       ["s:routes.py#data", 2],
       ["f:page.js", 3],
@@ -367,7 +384,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     // a container's radius starts from everything inside it; nothing inside counts as reached
     const api = computeLinkBlastRadius(codeModel.links!, "c-api", parentOf);
     expect(api.seeds.has("s:forge.py#check")).toBe(true);
-    expect([...api.hits.keys()].sort()).toEqual(["f:page.js", "f:runbook.md", "f:test_routes.py"]);
+    expect([...api.hits.keys()].sort()).toEqual(["f:page.js", "f:test_routes.py"]);
   });
 
   it("follows a part both kinds of link reach through the spreading one, so what depends on it is reached too", () => {
@@ -415,6 +432,258 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect(edges.some((e) => e.from === "s:routes.py#who" && e.to === "s:forge.py#check" && e.label === "calls")).toBe(true);
     // a link from a part the model does not hold (the test file) is left out
     expect(edges.some((e) => e.from === "f:test_routes.py")).toBe(false);
+    // WeakMap query index memoizes repeated queries on the same model object
+    expect(getMapQueryIndex(codeModel)).toBe(getMapQueryIndex(codeModel));
+  });
+
+  it("passes every level, blast-radius, and branch-delta case in the published map-conformance.json fixture (#110)", () => {
+    const pkgJson = JSON.parse(
+      readFileSync(join(import.meta.dirname, "../package.json"), "utf8"),
+    ) as { files?: string[] };
+    expect(pkgJson.files).toContain("tests/fixtures/map-conformance.json");
+
+    const fixture = JSON.parse(
+      readFileSync(join(import.meta.dirname, "fixtures/map-conformance.json"), "utf8"),
+    ) as {
+      schemaVersion: string;
+      models: Record<string, TuxMapLevelModel>;
+      levelChecks: Array<{
+        id: string;
+        model: string;
+        expectedLevels: Record<string, number>;
+        expectedLevel7Ids?: string[];
+        expectedFocusLevels?: Record<string, number>;
+        expectedParent?: Record<string, string>;
+      }>;
+      blastCases: Array<{
+        id: string;
+        model: string;
+        useExtractedModelLinks?: boolean;
+        seeds: string[];
+        opts: {
+          maxHops?: number;
+          quietSeedOnly?: boolean;
+          kinds?: string[];
+          intent?: TuxMapBlastIntent;
+        };
+        expected: {
+          truncated: boolean;
+          hits?: Array<{ id: string; hop: number; kind?: string; at?: string; sites?: number[] }>;
+          hitCount?: number;
+          firstHit?: { id: string; hop: number };
+          lastHit?: { id: string; hop: number };
+          blockers?: string[];
+          coCutCandidates?: string[];
+          testsToRun?: string[];
+          stampsToRebuild?: string[];
+          buildExecImpacted?: string[];
+          hostsImpacted?: string[];
+        };
+      }>;
+      deltaCases: Array<{
+        id: string;
+        baseModel: TuxMapLevelModel;
+        headModel: TuxMapLevelModel;
+        expected: {
+          addedIds: string[];
+          deletedIds: string[];
+          movedIds: string[];
+          movedPairs?: Array<{ id: string; previousId: string }>;
+          sigChangedIds: string[];
+          bodyPatchedIds: string[];
+          blastSeedIds: string[];
+          recommendedIntent: TuxMapBlastIntent;
+          addedWires: Array<{ from: string; to: string; kind: string }>;
+          removedWires: Array<{ from: string; to: string; kind: string }>;
+          danglingWires: Array<{ from: string; to: string; kind: string }>;
+          ghostChecks?: Array<{
+            location: "level1" | "level2" | "level3" | "level4" | "subgraph" | "inline" | "l4-inline";
+            parentId?: string;
+            id: string;
+            changeType: string;
+          }>;
+          absentSubgraphKeys?: string[];
+        };
+      }>;
+    };
+
+    expect(fixture.schemaVersion).toBe("1.0.0");
+
+    for (const lc of fixture.levelChecks) {
+      const m = fixture.models[lc.model]!;
+      const cpg = buildUnifiedArchitectureGraph(m);
+      const parentOf = buildMapParentIndex(m);
+      for (const [nodeId, expLvl] of Object.entries(lc.expectedLevels)) {
+        expect(cpg.nodes.get(nodeId)?.level, `${lc.id}: level(${nodeId})`).toBe(expLvl);
+      }
+      if (lc.expectedLevel7Ids) {
+        const l7 = queryArchitectureLayer(m, { level: 7 });
+        expect(l7.nodes.map((n) => n.id).sort(), `${lc.id}: level 7 query`).toEqual(
+          lc.expectedLevel7Ids,
+        );
+      }
+      if (lc.expectedFocusLevels) {
+        for (const [fid, expFocusLvl] of Object.entries(lc.expectedFocusLevels)) {
+          expect(levelForFocus(fid, m, parentOf), `${lc.id}: levelForFocus(${fid})`).toBe(
+            expFocusLvl,
+          );
+        }
+      }
+      if (lc.expectedParent) {
+        for (const [cid, expPid] of Object.entries(lc.expectedParent)) {
+          expect(parentOf.get(cid), `${lc.id}: parentOf(${cid})`).toBe(expPid);
+        }
+      }
+    }
+
+    for (const bc of fixture.blastCases) {
+      const m = fixture.models[bc.model]!;
+      const parentOf = buildMapParentIndex(m);
+      const links = bc.useExtractedModelLinks ? extractModelLinks(m) : m.links ?? [];
+      const res = computeLinkBlastRadius(links, bc.seeds, parentOf, {
+        ...bc.opts,
+        model: m,
+      });
+      expect(res.truncated, `${bc.id}: truncated`).toBe(bc.expected.truncated);
+      const actualHits = [...res.hits.entries()].map(([id, h]) => ({
+        id,
+        hop: h.hop,
+        ...(h.via.kind !== undefined ? { kind: h.via.kind } : {}),
+        ...(h.at !== undefined ? { at: h.at } : {}),
+        ...(h.sites !== undefined ? { sites: h.sites } : {}),
+      }));
+      if (bc.expected.hits) {
+        expect(actualHits, `${bc.id}: hits`).toEqual(bc.expected.hits);
+      }
+      if (bc.expected.hitCount !== undefined) {
+        expect(actualHits.length, `${bc.id}: hitCount`).toBe(bc.expected.hitCount);
+      }
+      if (bc.expected.firstHit) {
+        expect(
+          { id: actualHits[0]?.id, hop: actualHits[0]?.hop },
+          `${bc.id}: firstHit`,
+        ).toEqual(bc.expected.firstHit);
+      }
+      if (bc.expected.lastHit) {
+        const last = actualHits.at(-1);
+        expect({ id: last?.id, hop: last?.hop }, `${bc.id}: lastHit`).toEqual(
+          bc.expected.lastHit,
+        );
+      }
+      if (bc.expected.blockers) expect(res.blockers, `${bc.id}: blockers`).toEqual(bc.expected.blockers);
+      if (bc.expected.coCutCandidates) {
+        expect(res.coCutCandidates, `${bc.id}: coCutCandidates`).toEqual(bc.expected.coCutCandidates);
+      }
+      if (bc.expected.testsToRun) {
+        expect(res.testsToRun, `${bc.id}: testsToRun`).toEqual(bc.expected.testsToRun);
+      }
+      if (bc.expected.stampsToRebuild) {
+        expect(res.stampsToRebuild, `${bc.id}: stampsToRebuild`).toEqual(bc.expected.stampsToRebuild);
+      }
+      if (bc.expected.buildExecImpacted) {
+        expect(res.buildExecImpacted, `${bc.id}: buildExecImpacted`).toEqual(bc.expected.buildExecImpacted);
+      }
+      if (bc.expected.hostsImpacted) {
+        expect(res.hostsImpacted, `${bc.id}: hostsImpacted`).toEqual(bc.expected.hostsImpacted);
+      }
+
+      // Query layer parity: single-seed default blast cases also match queryMultiLevelBlastRadius
+      if (bc.seeds.length === 1 && !bc.opts.intent && bc.opts.quietSeedOnly === undefined) {
+        const qRes = queryMultiLevelBlastRadius(bc.seeds[0]!, m, bc.opts.maxHops ?? 32);
+        if (!("error" in qRes)) {
+          expect(qRes.truncated, `${bc.id}: queryMultiLevelBlastRadius.truncated`).toBe(
+            bc.expected.truncated,
+          );
+          expect(
+            qRes.upstreamDependents.map((u) => ({ id: u.id, hop: u.hop })),
+            `${bc.id}: queryMultiLevelBlastRadius.upstreamDependents`,
+          ).toEqual(actualHits.map((h) => ({ id: h.id, hop: h.hop })));
+        }
+      }
+    }
+
+    for (const dc of fixture.deltaCases) {
+      const delta = computeGraphDelta(dc.baseModel, dc.headModel);
+      expect(delta.addedIds, `${dc.id}: addedIds`).toEqual(dc.expected.addedIds);
+      expect(delta.deletedIds, `${dc.id}: deletedIds`).toEqual(dc.expected.deletedIds);
+      expect(delta.movedIds, `${dc.id}: movedIds`).toEqual(dc.expected.movedIds);
+      if (dc.expected.movedPairs) {
+        const gotPairs = delta.nodeChanges
+          .filter((c) => c.change === "moved" && c.previousId)
+          .map((c) => ({ id: c.id, previousId: c.previousId! }));
+        expect(gotPairs, `${dc.id}: movedPairs`).toEqual(dc.expected.movedPairs);
+      }
+      expect(delta.sigChangedIds, `${dc.id}: sigChangedIds`).toEqual(dc.expected.sigChangedIds);
+      expect(delta.bodyPatchedIds, `${dc.id}: bodyPatchedIds`).toEqual(dc.expected.bodyPatchedIds);
+      expect(delta.blastSeedIds, `${dc.id}: blastSeedIds`).toEqual(dc.expected.blastSeedIds);
+      expect(delta.recommendedIntent, `${dc.id}: recommendedIntent`).toBe(
+        dc.expected.recommendedIntent,
+      );
+      expect(
+        delta.addedWires.map((w) => ({ from: w.from, to: w.to, kind: w.kind })),
+        `${dc.id}: addedWires`,
+      ).toEqual(dc.expected.addedWires);
+      expect(
+        delta.removedWires.map((w) => ({ from: w.from, to: w.to, kind: w.kind })),
+        `${dc.id}: removedWires`,
+      ).toEqual(dc.expected.removedWires);
+      expect(
+        delta.danglingWires.map((w) => ({ from: w.from, to: w.to, kind: w.kind })),
+        `${dc.id}: danglingWires`,
+      ).toEqual(dc.expected.danglingWires);
+
+      for (const gc of dc.expected.ghostChecks ?? []) {
+        let foundDiff: string | undefined;
+        if (gc.location === "level1") {
+          foundDiff = delta.mergedModel.level1.elements.find((e) => e.id === gc.id)?.diff?.changeType;
+        } else if (gc.location === "level2") {
+          foundDiff = delta.mergedModel.level2.elements.find((e) => !e.ref && e.id === gc.id)?.diff?.changeType;
+        } else if (gc.location === "level3") {
+          foundDiff = delta.mergedModel.level3[gc.parentId!]?.find((e) => e.id === gc.id)?.diff?.changeType;
+        } else if (gc.location === "level4") {
+          foundDiff = delta.mergedModel.level4.nodes.find((n) => n.id === gc.id)?.diff?.changeType;
+        } else if (gc.location === "subgraph") {
+          foundDiff = delta.mergedModel.subgraphs?.[gc.parentId!]?.elements.find((e) => e.id === gc.id)?.diff?.changeType;
+        } else if (gc.location === "inline") {
+          const allL3 = Object.values(delta.mergedModel.level3).flat();
+          foundDiff = allL3.find((e) => e.id === gc.parentId)?.children?.find((c) => c.id === gc.id)?.diff?.changeType;
+        } else if (gc.location === "l4-inline") {
+          foundDiff = delta.mergedModel.level4.nodes.find((n) => n.id === gc.parentId)?.children?.find((c) => c.id === gc.id)?.diff?.changeType;
+        }
+        expect(foundDiff, `${dc.id}: ghostCheck ${gc.location}/${gc.id}`).toBe(gc.changeType);
+      }
+
+      for (const k of dc.expected.absentSubgraphKeys ?? []) {
+        expect(Object.prototype.hasOwnProperty.call(delta.mergedModel.subgraphs ?? {}, k), `${dc.id}: absent subgraph ${k}`).toBe(false);
+      }
+
+      // Lightweight mode (`includeMergedModel: false`) returns identical delta metadata without cloning
+      const slim = computeGraphDelta(dc.baseModel, dc.headModel, { includeMergedModel: false });
+      expect(slim.blastSeedIds, `${dc.id}: slim blastSeedIds`).toEqual(delta.blastSeedIds);
+      expect(slim.mergedModel, `${dc.id}: slim mergedModel reference`).toBe(dc.headModel);
+    }
+  });
+
+  it("handles malformed maxHops, empty link endpoints, partial models, and cyclic d: subgraphs safely", () => {
+    const cycModel: TuxMapLevelModel = {
+      level1: { elements: [], rels: [] },
+      level2: { boundary: "sys", elements: [], rels: [] },
+      level3: {},
+      level4: { groups: [], nodes: [], links: [] },
+      subgraphs: {
+        "d:cyc/a": { elements: [{ id: "d:cyc/b", kind: "module", name: "b" }] },
+        "d:cyc/b": { elements: [{ id: "d:cyc/a", kind: "module", name: "a" }] },
+      },
+      links: [
+        { from: "", to: "f:a.py", kind: "calls" },
+        { from: "f:b.py", to: "", kind: "calls" },
+        { from: "f:c.py", to: "f:a.py", kind: "calls" },
+      ],
+    };
+    const parentOf = buildMapParentIndex(cycModel);
+    expect(computeLinkBlastRadius(cycModel.links!, "f:a.py", parentOf, { maxHops: -5 }).hits.size).toBe(0);
+    expect(computeLinkBlastRadius(cycModel.links!, "f:a.py", parentOf, { maxHops: Number.NaN }).hits.has("f:c.py")).toBe(true);
+    expect(() => computeGraphDelta({} as TuxMapLevelModel, cycModel)).not.toThrow();
   });
 });
 

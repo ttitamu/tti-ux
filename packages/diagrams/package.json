@@ -6,6 +6,7 @@
   "main": "./nuxt.config.ts",
   "files": [
     "app",
+    "tests/fixtures/map-conformance.json",
     "nuxt.config.ts",
     "README.md"
   ],
@@ -19,7 +20,9 @@
   },
   "license": "Apache-2.0",
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "gen:conformance": "node scripts/generate-map-conformance.ts",
+    "check:conformance": "node scripts/generate-map-conformance.ts --check"
   },
   "peerDependencies": {
     "@tti/tti-ux": "^3.0.0"

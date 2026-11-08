@@ -730,6 +730,8 @@ export function computeMapAutoLayout(
 /**
  * Computes the upstream (dependencies that feed `rootNodeId`) and downstream
  * (dependents impacted by `rootNodeId`) blast-radius subgraph using directed BFS.
+ *
+ * @deprecated Use `computeLinkBlastRadius` (or `queryMultiLevelBlastRadius` on a `TuxMapLevelModel`) instead.
  */
 export function computeDependencyBlastRadius(
   rootNodeId: string,
@@ -1021,6 +1023,12 @@ export interface TuxMapSourceRef {
   lineRange?: [number, number];
   /** Optional symbol/function/class signature */
   symbol?: string;
+  /** Optional normalized callable/type signature for `sig-changed` detection across branches */
+  signature?: string;
+  /** Optional line-number-independent AST/content digest for `body-patched` detection across branches */
+  hash?: string;
+  /** Optional digest of module-scope statements outside child symbols (distinguishes module-level edits from symbol-only edits) */
+  moduleHash?: string;
   /** Optional commit SHA or branch ref (defaults to "main") */
   commitSha?: string;
   /** Optional direct URL override */
@@ -1243,17 +1251,46 @@ export interface TuxMapLevelModel {
   links?: TuxMapLink[];
 }
 
+export type TuxMapLinkCoupling =
+  | "contract"
+  | "runtime"
+  | "type-only"
+  | "artifact-stamp"
+  | "build-exec"
+  | "verification"
+  | "prose";
+
+export type TuxMapLinkPhase =
+  | "prod-runtime"
+  | "client-bundle"
+  | "build-exec"
+  | "ci-test"
+  | "doc-only";
+
+export type TuxMapBlastIntent =
+  | "default"
+  | "patch"
+  | "refactor"
+  | "cut"
+  | "supply-chain";
+
 /** One dependency read from code: `from` depends on `to`. */
 export interface TuxMapLink {
   from: string;
   to: string;
-  /** e.g. imports, calls, runs, sources, loads, uses, checks, tests, routes, mentions */
+  /** e.g. imports, calls, runs, sources, stamps, loads, uses, checks, tests, routes, mentions */
   kind?: string;
   label?: string;
   /** The blast radius takes one step through this link and no further (a test, a doc, a deploy step). */
   stop?: boolean;
   /** Where it was read, as "path:line" */
   at?: string;
+  /** All 1-based line numbers in `from` where this link was read, sorted ascending */
+  sites?: number[];
+  /** Semantic coupling strength for intent-aware blast radius (`patch | refactor | cut | supply-chain`) */
+  coupling?: TuxMapLinkCoupling;
+  /** Execution or shipping phase of the dependency */
+  phase?: TuxMapLinkPhase;
 }
 
 export const GRID_METRICS = {
@@ -2030,12 +2067,32 @@ export function buildLevelModelFromLegacyNodes(
 /** Link kinds drawn on no stage (they still count in the blast radius): a document naming a part. */
 export const TUX_MAP_QUIET_LINK_KINDS: ReadonlySet<string> = new Set(["mentions"]);
 
+/** Canonical link strength order from strongest runtime/contract edge to weakest prose reference. */
+export const TUX_MAP_LINK_STRENGTH_ORDER = [
+  "calls",
+  "imports",
+  "runs",
+  "sources",
+  "stamps",
+  "tests",
+  "checks",
+  "uses",
+  "loads",
+  "routes",
+  "mentions",
+] as const;
+
+const LINK_STRENGTH_RANK: ReadonlyMap<string, number> = new Map(
+  TUX_MAP_LINK_STRENGTH_ORDER.map((k, i) => [k, i]),
+);
+
 /** What a link kind means, read from the part it points at ("changing X: Y calls it"). */
 export const TUX_MAP_LINK_KIND_LABELS: Record<string, string> = {
   imports: "imports it",
   calls: "calls it",
   runs: "runs it",
   sources: "sources it",
+  stamps: "stamps or builds it",
   loads: "loads it",
   uses: "reads or ships it",
   checks: "CI checks it",
@@ -2044,35 +2101,247 @@ export const TUX_MAP_LINK_KIND_LABELS: Record<string, string> = {
   mentions: "mentions it",
 };
 
+const MAX_TREE_DEPTH = 64;
+
+const NON_PROSE_LINK_KINDS: ReadonlySet<string> = new Set([
+  "calls",
+  "imports",
+  "runs",
+  "sources",
+  "stamps",
+  "tests",
+  "checks",
+  "loads",
+  "routes",
+  "uses",
+]);
+
+const NON_TYPE_ONLY_LINK_KINDS: ReadonlySet<string> = new Set([
+  "calls",
+  "runs",
+  "sources",
+  "stamps",
+  "tests",
+  "checks",
+  "loads",
+  "routes",
+]);
+
+const NON_AUX_CO_CUT_KINDS: ReadonlySet<string> = new Set([
+  "system",
+  "container",
+  "database",
+  "storage",
+  "component",
+  "resource",
+  "person",
+  "external",
+]);
+
+const NON_PROD_HOST_COUPLINGS: ReadonlySet<TuxMapLinkCoupling> = new Set([
+  "verification",
+  "artifact-stamp",
+  "build-exec",
+  "prose",
+  "type-only",
+]);
+
+/** Prototype-safe own-property check (`Object.prototype` keys like `"constructor"` return `false`). */
+export function hasOwn(obj: unknown, key: PropertyKey): boolean {
+  return obj != null && Object.prototype.hasOwnProperty.call(obj, key);
+}
+
+function setOwnProp<T>(obj: Record<string, T>, key: string, value: T): void {
+  if (key === "__proto__") {
+    Object.defineProperty(obj, key, {
+      value,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
+  } else {
+    obj[key] = value;
+  }
+}
+
+/** True Unicode code-point comparison (matches Python `str < str` even on supplementary U+10000+ planes). */
+export function cmpCodepoint(a: string, b: string): number {
+  if (a === b) return 0;
+  let ia = 0;
+  let ib = 0;
+  while (ia < a.length && ib < b.length) {
+    const ca = a.codePointAt(ia)!;
+    const cb = b.codePointAt(ib)!;
+    if (ca !== cb) return ca - cb;
+    ia += ca > 0xffff ? 2 : 1;
+    ib += cb > 0xffff ? 2 : 1;
+  }
+  return a.length - b.length;
+}
+
+function linkStrengthRank(kind?: string): number {
+  return LINK_STRENGTH_RANK.get(kind || "") ?? TUX_MAP_LINK_STRENGTH_ORDER.length;
+}
+
+export function compareBlastLinks(a: TuxMapLink, b: TuxMapLink): number {
+  return (
+    linkStrengthRank(a.kind) - linkStrengthRank(b.kind) ||
+    cmpCodepoint(a.from, b.from) ||
+    cmpCodepoint(a.to, b.to) ||
+    cmpCodepoint(a.at ?? "", b.at ?? "")
+  );
+}
+
+/** Infers deterministic semantic coupling for links that omit explicit `coupling` (rejecting spoofed downgrades on runtime kinds). */
+export function inferLinkCoupling(link: TuxMapLink): TuxMapLinkCoupling {
+  const k = link.kind || "";
+  if (link.coupling) {
+    const c = link.coupling;
+    const spoofedProse = c === "prose" && NON_PROSE_LINK_KINDS.has(k);
+    const spoofedTypeOnly = c === "type-only" && NON_TYPE_ONLY_LINK_KINDS.has(k);
+    if (!spoofedProse && !spoofedTypeOnly) return c;
+  }
+  if (k === "mentions") return "prose";
+  if (k === "tests" || k === "checks") return "verification";
+  if (k === "stamps") return "artifact-stamp";
+  if (k === "routes") return "contract";
+  if (k === "loads" || k === "uses") return "runtime";
+  if (k === "imports" || k === "sources") return link.stop ? "verification" : "contract";
+  if (k === "calls" || k === "runs") return link.stop ? "verification" : "runtime";
+  return link.stop ? "verification" : "runtime";
+}
+
+/** Infers deterministic execution/shipping phase for links that omit explicit `phase`. */
+export function inferLinkPhase(link: TuxMapLink): TuxMapLinkPhase {
+  const c = inferLinkCoupling(link);
+  const k = link.kind || "";
+  if (link.phase) {
+    if (!(link.phase === "doc-only" && c !== "prose" && k !== "mentions")) {
+      return link.phase;
+    }
+  }
+  if (c === "prose" || k === "mentions") return "doc-only";
+  if (c === "verification" || k === "tests" || k === "checks") return "ci-test";
+  if (c === "build-exec") return "build-exec";
+  if (c === "artifact-stamp" || k === "stamps" || k === "loads") return "client-bundle";
+  return "prod-runtime";
+}
+
+/**
+ * Classifies how `link` participates in an upstream blast-radius walk at distance `hop`
+ * (`hop === 0` means `link.to` is in `seeds`).
+ */
+export function classifyBlastLink(
+  link: TuxMapLink,
+  hop: number,
+  intent: TuxMapBlastIntent = "default",
+  quietSeedOnly = true,
+  kinds?: ReadonlySet<string> | null,
+): "spread" | "stop" | "skip" {
+  const k = link.kind || "uses";
+  if (kinds && !kinds.has(k)) return "skip";
+  const isQuiet = TUX_MAP_QUIET_LINK_KINDS.has(link.kind || "");
+  if (quietSeedOnly && isQuiet && hop > 0) return "skip";
+
+  if (intent === "default") {
+    if (isQuiet) return link.stop === false && !quietSeedOnly ? "spread" : "stop";
+    return link.stop ? "stop" : "spread";
+  }
+
+  const c = inferLinkCoupling(link);
+  const p = inferLinkPhase(link);
+
+  if (intent === "patch") {
+    if (c === "type-only" || c === "build-exec") return "skip";
+    if (c === "prose") return hop === 0 || !quietSeedOnly ? "stop" : "skip";
+    if (c === "artifact-stamp" || c === "verification" || link.stop) return "stop";
+    return "spread";
+  }
+
+  if (intent === "refactor" || intent === "cut") {
+    if (c === "prose") return hop === 0 || !quietSeedOnly ? "stop" : "skip";
+    if (c === "type-only") return "spread";
+    if (c === "build-exec" || c === "artifact-stamp" || c === "verification" || link.stop) return "stop";
+    return "spread";
+  }
+
+  // intent === "supply-chain"
+  if (c === "prose" || c === "type-only" || p === "doc-only") return "skip";
+  if (p === "build-exec" || c === "build-exec") return "stop";
+  if (c === "artifact-stamp" || k === "stamps") return "stop";
+  if (p === "ci-test" || c === "verification") return "stop";
+  return link.stop ? "stop" : "spread";
+}
+
+function isLevel3Focus(id: string, model: TuxMapLevelModel): boolean {
+  if (!hasOwn(model?.level3, id) || !Array.isArray(model.level3[id])) return false;
+  return model.level3[id]!.length > 0 || !hasOwn(model.subgraphs, id);
+}
+
 /**
  * child → parent for every element below Level 2: Level 3 components under their container,
- * subgraph elements under their key, inline `children` under their element.
+ * subgraph elements under their key (or `subgraphRef` owner), inline `children` under their element.
  */
 export function buildMapParentIndex(model: TuxMapLevelModel): Map<string, string> {
   const parentOf = new Map<string, string>();
-  const inline = (pid: string, kids: TuxMapLevelElement[]) => {
+  const subgraphOwners = new Map<string, string>();
+  const noteSubgraphRef = (ownerId: string, ref?: string) => {
+    if (ownerId && ref && ref !== ownerId && !subgraphOwners.has(ref)) {
+      subgraphOwners.set(ref, ownerId);
+    }
+  };
+  const inline = (pid: string, kids: TuxMapLevelElement[] | undefined, depth = 0) => {
+    if (!kids || depth >= MAX_TREE_DEPTH) return;
     kids.forEach((k, i) => {
       const id = k.id || `${pid}/${i}`;
       if (!parentOf.has(id)) parentOf.set(id, pid);
-      if (k.children?.length) inline(id, k.children);
+      noteSubgraphRef(id, k.subgraphRef);
+      if (k.children?.length) inline(id, k.children, depth + 1);
     });
   };
-  for (const [cid, kids] of Object.entries(model.level3)) inline(cid, kids);
-  for (const e of [...model.level1.elements, ...model.level2.elements]) {
-    if (e.children?.length) inline(e.id, e.children);
+  for (const [cid, kids] of Object.entries(model?.level3 || {})) inline(cid, kids, 0);
+  for (const e of [...(model?.level1?.elements || []), ...(model?.level2?.elements || [])]) {
+    noteSubgraphRef(e.id, e.subgraphRef);
+    if (e.children?.length) inline(e.id, e.children, 0);
   }
-  for (const n of model.level4.nodes) {
-    if (n.children?.length) inline(n.id, n.children);
+  for (const n of model?.level4?.nodes || []) {
+    noteSubgraphRef(n.id, n.subgraphRef);
+    if (n.children?.length) inline(n.id, n.children, 0);
   }
-  for (const [key, sg] of Object.entries(model.subgraphs || {})) inline(key, sg.elements);
+  for (const [key, sg] of Object.entries(model?.subgraphs || {})) {
+    const owner = subgraphOwners.get(key) ?? key;
+    inline(owner, sg?.elements, 0);
+  }
   return parentOf;
+}
+
+/**
+ * Semantic level that displays the children of `fid`:
+ * 3 inside a Level 2 container, 5 inside a Level 3 component or Level 4 deployment node,
+ * and +1 for each nested subgraph below that (independent of `model.subgraphs` key order).
+ */
+export function levelForFocus(
+  fid: string,
+  model: TuxMapLevelModel,
+  parentOf: Map<string, string> = buildMapParentIndex(model),
+): number {
+  const walk = (id: string, seen: Set<string>): number => {
+    if (isLevel3Focus(id, model)) return 3;
+    const p = parentOf.get(id);
+    if (!p || seen.has(p) || seen.size >= MAX_TREE_DEPTH || isLevel3Focus(p, model)) return 5;
+    seen.add(p);
+    return walk(p, seen) + 1;
+  };
+  return walk(fid, new Set([fid]));
 }
 
 /** `id` and its ancestors, nearest first. */
 export function mapAncestorsOf(id: string, parentOf: Map<string, string>): string[] {
   const chain: string[] = [];
+  const seen = new Set<string>();
   let x: string | undefined = id;
-  while (x && !chain.includes(x) && chain.length < 64) {
+  while (x && !seen.has(x) && chain.length < MAX_TREE_DEPTH) {
+    seen.add(x);
     chain.push(x);
     x = parentOf.get(x);
   }
@@ -2083,6 +2352,90 @@ export function mapAncestorsOf(id: string, parentOf: Map<string, string>): strin
 export function liftToSet(id: string, set: ReadonlySet<string>, parentOf: Map<string, string>): string | null {
   for (const a of mapAncestorsOf(id, parentOf)) if (set.has(a)) return a;
   return null;
+}
+
+/**
+ * Extracts fine-grained `TuxMapLink[]` from `model`: returns `model.links` when present (bridging
+ * non-planned C4/Level-4 relationships for endpoints without fine-grained code-link coverage unless
+ * `bridgeUncovered === false`), or synthesizes links from C4 `rels` and `level4.links` when `model.links`
+ * is empty/absent.
+ */
+export function extractModelLinks(
+  model: TuxMapLevelModel,
+  opts: { includePlanned?: boolean; includeC4Rels?: boolean; bridgeUncovered?: boolean } = {},
+): TuxMapLink[] {
+  const includePlanned = opts.includePlanned ?? false;
+  const rawLinks = (model?.links ?? []).filter((l) => Boolean(l?.from && l?.to));
+  const hasCodeLinks = rawLinks.length > 0;
+  if (hasCodeLinks && !opts.includeC4Rels && opts.bridgeUncovered === false) {
+    return rawLinks;
+  }
+
+  let covered: Set<string> | null = null;
+  if (hasCodeLinks && !opts.includeC4Rels) {
+    covered = new Set<string>();
+    const parentOf = buildMapParentIndex(model);
+    const hostBridge = buildHostBridge(model);
+    const l2ContainerIds = new Set(
+      (model?.level2?.elements ?? []).filter((e) => !e.ref).map((e) => e.id),
+    );
+    const boundary = model?.level2?.boundary;
+    const markCovered = (id: string) => {
+      for (const anc of mapAncestorsOf(id, parentOf)) {
+        covered!.add(anc);
+        if (boundary && l2ContainerIds.has(anc)) covered!.add(boundary);
+        const hs = hostBridge.hostsByElement.get(anc);
+        if (hs) {
+          for (const hid of hs) covered!.add(hid);
+        }
+      }
+    };
+    for (const l of rawLinks) {
+      markCovered(l.from);
+      markCovered(l.to);
+    }
+  }
+
+  const out: TuxMapLink[] = [...rawLinks];
+  const seen = new Set(out.map((l) => `${l.from}\u0000${l.to}\u0000${l.kind || "uses"}`));
+  const push = (from: string, to: string, kind: string, label?: string) => {
+    if (!from || !to) return;
+    if (covered && covered.has(to)) return;
+    const normKind = kind || "uses";
+    const key = `${from}\u0000${to}\u0000${normKind}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({ from, to, kind: normKind, label, coupling: "runtime", phase: "prod-runtime" });
+  };
+  for (const r of model?.level1?.rels ?? []) {
+    if (!includePlanned && r.status === "planned") continue;
+    push(r.from, r.to, "uses", r.label);
+  }
+  for (const r of model?.level2?.rels ?? []) {
+    if (!includePlanned && r.status === "planned") continue;
+    push(r.from, r.to, "uses", r.label);
+  }
+  for (const [pid, kids] of Object.entries(model?.level3 ?? {})) {
+    (kids ?? []).forEach((k, idx) => {
+      if (!includePlanned && k.status === "planned") return;
+      if (k.next != null && kids[k.next]) {
+        const fromId = k.id || `${pid}/${idx}`;
+        const toId = kids[k.next]!.id || `${pid}/${k.next}`;
+        push(fromId, toId, "uses");
+      }
+    });
+  }
+  for (const sg of Object.values(model?.subgraphs || {})) {
+    for (const r of sg?.rels || []) {
+      if (!includePlanned && r.status === "planned") continue;
+      push(r.from, r.to, "uses", r.label);
+    }
+  }
+  for (const l of model?.level4?.links ?? []) {
+    if (!includePlanned && l.state === "planned") continue;
+    push(l.from, l.to, l.kind || "uses", l.label);
+  }
+  return out;
 }
 
 export interface TuxMapLiftedSide {
@@ -2187,69 +2540,1144 @@ export interface TuxMapBlastHit {
   hop: number;
   /** The link it was reached through */
   via: TuxMapLink;
+  /** Primary source location ("path:line") from `via.at`, when present */
+  at?: string;
+  /** All 1-based line numbers in `from` where `via` occurs, when present */
+  sites?: number[];
+}
+
+export interface TuxMapBlastOptions {
+  /** Maximum hop depth before stopping and reporting `truncated: true` (default: 32) */
+  maxHops?: number;
+  /** Follow quiet links (`mentions`) only directly from `seeds` (`hop === 0`) (default: true) */
+  quietSeedOnly?: boolean;
+  /** Optional allowlist of link `kind`s to traverse */
+  kinds?: Iterable<string> | ReadonlySet<string>;
+  /** Semantic change intent controlling coupling/phase propagation (default: "default") */
+  intent?: TuxMapBlastIntent;
+  /** Whether to traverse `planned` C4/deployment edges in multi-level queries (default: false) */
+  includePlanned?: boolean;
+  /** Optional full model used to expand system/host seeds and resolve Level 4 `hostsImpacted` */
+  model?: TuxMapLevelModel;
+}
+
+export interface TuxMapBlastResult {
+  seeds: Set<string>;
+  hits: Map<string, TuxMapBlastHit>;
+  truncated: boolean;
+  /** Direct 1-hop contract/runtime/type-only dependents */
+  blockers: string[];
+  /** Exclusive test/check/doc/stamp dependents whose non-self repo targets all lie inside `seeds` */
+  coCutCandidates: string[];
+  /** Reached verification (`tests` / `checks`) targets */
+  testsToRun: string[];
+  /** Reached artifact-stamp (`stamps` / bundle) targets */
+  stampsToRebuild: string[];
+  /** Reached `build-exec` targets (install hooks / CI / Studio build tools) */
+  buildExecImpacted: string[];
+  /** Level 4 deployment node IDs hosting any seed or reached container/component */
+  hostsImpacted: string[];
+}
+
+function buildHostBridge(model: TuxMapLevelModel): {
+  hostsByElement: Map<string, Set<string>>;
+  elementsByHost: Map<string, Set<string>>;
+} {
+  const hostsByElement = new Map<string, Set<string>>();
+  const elementsByHost = new Map<string, Set<string>>();
+  const linkHost = (elId: string, hostId: string) => {
+    if (!elId || !hostId) return;
+    let hs = hostsByElement.get(elId);
+    if (!hs) {
+      hs = new Set();
+      hostsByElement.set(elId, hs);
+    }
+    hs.add(hostId);
+    let es = elementsByHost.get(hostId);
+    if (!es) {
+      es = new Set();
+      elementsByHost.set(hostId, es);
+    }
+    es.add(elId);
+  };
+  const normArr = (v?: string | string[]): string[] => (!v ? [] : Array.isArray(v) ? v : [v]);
+  const visitEls = (els: Array<TuxMapLevelElement | TuxMapLevelRef> | undefined, pid?: string, depth = 0) => {
+    if (!els || depth >= MAX_TREE_DEPTH) return;
+    els.forEach((e, idx) => {
+      const id = e.id || (pid ? `${pid}/${idx}` : "");
+      for (const h of normArr(e.deployed)) linkHost(id, h);
+      if (e.children?.length) visitEls(e.children, id, depth + 1);
+    });
+  };
+  visitEls(model?.level1?.elements);
+  visitEls(model?.level2?.elements);
+  for (const [pid, kids] of Object.entries(model?.level3 ?? {})) visitEls(kids, pid);
+  for (const [pid, sg] of Object.entries(model?.subgraphs || {})) visitEls(sg?.elements, pid);
+  for (const dn of model?.level4?.nodes ?? []) {
+    linkHost(dn.id, dn.id);
+    for (const h of dn.hosts || []) linkHost(h, dn.id);
+    if (dn.children?.length) visitEls(dn.children, dn.id);
+  }
+  return { hostsByElement, elementsByHost };
+}
+
+interface BlastNodeMeta {
+  kind?: string;
+  path?: string;
+  tech?: string;
+}
+
+function buildBlastNodeMeta(model?: TuxMapLevelModel): Map<string, BlastNodeMeta> {
+  const meta = new Map<string, BlastNodeMeta>();
+  if (!model) return meta;
+  const visit = (els: Array<TuxMapLevelElement | TuxMapLevelRef> | undefined, pid?: string, fallbackKind?: string, depth = 0) => {
+    if (!els || depth >= MAX_TREE_DEPTH) return;
+    els.forEach((e, idx) => {
+      if (e.ref && meta.has(e.id)) return;
+      const id = e.id || (pid ? `${pid}/${idx}` : "");
+      if (id && !meta.has(id)) {
+        meta.set(id, { kind: e.kind || fallbackKind, path: e.source?.path, tech: e.tech });
+      }
+      if (e.children?.length) visit(e.children, id, "module", depth + 1);
+    });
+  };
+  visit(model.level1?.elements, undefined, "system");
+  visit(model.level2?.elements, model.level2?.boundary, "container");
+  for (const [pid, kids] of Object.entries(model.level3 ?? {})) visit(kids, pid, "component");
+  for (const dn of model.level4?.nodes ?? []) {
+    if (dn.id && !meta.has(dn.id)) {
+      meta.set(dn.id, { kind: dn.kind || "resource", path: dn.source?.path, tech: dn.facts?.type });
+    }
+    if (dn.children?.length) visit(dn.children, dn.id, "module");
+  }
+  for (const [pid, sg] of Object.entries(model.subgraphs || {})) visit(sg?.elements, pid, "module");
+  return meta;
+}
+
+function repoPathForNodeId(id: string, meta?: BlastNodeMeta): string {
+  if (meta?.path) return meta.path;
+  if (id.startsWith("f:")) return id.slice(2);
+  if (id.startsWith("s:")) return id.slice(2).split("#")[0] ?? "";
+  return "";
+}
+
+function isPureDocNode(id: string, meta?: BlastNodeMeta): boolean {
+  if (id.startsWith("s:") || meta?.kind === "symbol") return false;
+  if (meta?.tech === "Markdown") return true;
+  const p = repoPathForNodeId(id, meta).toLowerCase();
+  return p.endsWith(".md") || p.endsWith(".mdx") || p.endsWith(".txt") || p.endsWith(".rst");
+}
+
+const AUX_NON_PROD_PATH_RE =
+  /(?:^|\/)(?:tests?|__tests__|ci)\/|(?:^|\/)test_[^/]*$|\.(?:test|spec)\.[^/]+$|^(?:runner-smoke\/)?\.(?:forgejo|github)\/workflows\//i;
+
+function isAuxNonProdSeed(id: string, meta?: BlastNodeMeta): boolean {
+  const p = repoPathForNodeId(id, meta);
+  if (!p && !id.startsWith("f:") && !id.startsWith("s:")) return false;
+  if (isPureDocNode(id, meta)) return true;
+  return AUX_NON_PROD_PATH_RE.test(p);
+}
+
+function isWorkflowPathNode(id: string, meta?: BlastNodeMeta): boolean {
+  const p = repoPathForNodeId(id, meta);
+  return /^(?:runner-smoke\/)?\.(?:forgejo|github)\/workflows\//i.test(p);
 }
 
 /**
- * The blast radius of changing `seedId`: every element that depends on it or on anything inside
- * it, upstream through `links`. The change first travels as far as the links that spread reach;
- * then a `stop` link (a test, a check, a doc) is followed one step out from everything it reached,
- * and no further. So an element both kinds reach is reached through the spreading one, and what
- * depends on it is in the radius too.
- * A link counts against what it names: one to a container of the seed (`N imports M`, with the
- * seed a function in M) is not followed. A link names its target as precisely as it is known.
+ * The blast radius of changing `seedOrSeeds`: every element that depends on them or on anything
+ * inside them, upstream through `links`.
+ *
+ * - Spreading links propagate breadth-first up to `maxHops` (default 32).
+ * - Stopping links (`tests`, `checks`, `stamps`, whole-file non-root imports) go one step from
+ *   everything reached and no further; when `quietSeedOnly` is true (default), `mentions` are
+ *   followed only directly from `seeds` (`hop === 0`).
+ * - Ties at the same minimum hop break deterministically by `TUX_MAP_LINK_STRENGTH_ORDER`, then
+ *   codepoint order on `(from, to, at)`.
+ * - Never walks up into a seed's parent container or parent file.
  */
 export function computeLinkBlastRadius(
   links: TuxMapLink[],
-  seedId: string,
+  seedOrSeeds: string | Iterable<string>,
   parentOf: Map<string, string>,
-  opts: { maxHops?: number } = {},
-): { seeds: Set<string>; hits: Map<string, TuxMapBlastHit> } {
-  const maxHops = opts.maxHops ?? 32;
+  opts: TuxMapBlastOptions = {},
+): TuxMapBlastResult {
+  const rawMaxHops = opts.maxHops === undefined ? 32 : opts.maxHops;
+  const maxHops = Number.isFinite(rawMaxHops) ? Math.max(0, Math.floor(rawMaxHops)) : 32;
+  const quietSeedOnly = opts.quietSeedOnly ?? true;
+  const intent: TuxMapBlastIntent = opts.intent ?? "default";
+  const kindsSet: ReadonlySet<string> | null = opts.kinds
+    ? opts.kinds instanceof Set
+      ? opts.kinds
+      : new Set(opts.kinds)
+    : null;
+
   const kidsOf = new Map<string, string[]>();
   for (const [c, p] of parentOf) {
     const k = kidsOf.get(p) ?? [];
     k.push(c);
     kidsOf.set(p, k);
   }
-  const seeds = new Set<string>([seedId]);
-  const dq = [seedId];
-  while (dq.length) {
-    for (const c of kidsOf.get(dq.shift()!) ?? []) {
-      if (!seeds.has(c)) {
-        seeds.add(c);
-        dq.push(c);
+
+  const rawSeeds = typeof seedOrSeeds === "string" ? [seedOrSeeds] : [...seedOrSeeds];
+  const seeds = new Set<string>();
+  const dq: string[] = [];
+  const addSeed = (id: string) => {
+    if (id && !seeds.has(id)) {
+      seeds.add(id);
+      dq.push(id);
+    }
+  };
+  for (const s of rawSeeds) addSeed(s);
+
+  const hostBridge = opts.model ? buildHostBridge(opts.model) : null;
+  const metaById = buildBlastNodeMeta(opts.model);
+  if (opts.model) {
+    // Expand Level 1 primary boundary seed into its Level 2 containers
+    if (opts.model.level2?.boundary && seeds.has(opts.model.level2.boundary)) {
+      for (const e of opts.model.level2.elements ?? []) {
+        if (!e.ref) addSeed(e.id);
+      }
+    }
+    // Expand Level 4 host/resource seeds into the containers/components hosted on or deployed to them
+    const l4NodeIds = new Set((opts.model.level4?.nodes ?? []).map((n) => n.id));
+    for (const s of [...seeds]) {
+      const hosted = hostBridge?.elementsByHost.get(s);
+      if (hosted && l4NodeIds.has(s)) {
+        for (const elId of hosted) addSeed(elId);
       }
     }
   }
-  const into = new Map<string, TuxMapLink[]>();
-  for (const l of links) {
-    const arr = into.get(l.to) ?? [];
-    arr.push(l);
-    into.set(l.to, arr);
+
+  while (dq.length) {
+    for (const c of kidsOf.get(dq.shift()!) ?? []) {
+      addSeed(c);
+    }
   }
-  const hits = new Map<string, TuxMapBlastHit>();
-  // breadth first through the links that spread; `q` ends in hop order
-  const q: [string, number][] = [...seeds].map((x) => [x, 0]);
-  for (let i = 0; i < q.length; i++) {
-    const [x, hop] = q[i]!;
-    if (hop >= maxHops) continue;
-    for (const l of into.get(x) ?? []) {
-      const y = l.from;
-      if (l.stop || seeds.has(y) || hits.has(y)) continue;
-      hits.set(y, { hop: hop + 1, via: l });
+
+  const into = new Map<string, TuxMapLink[]>();
+  const outByFrom = new Map<string, TuxMapLink[]>();
+  for (const l of links) {
+    if (!l?.from || !l?.to) continue;
+    let arr = into.get(l.to);
+    if (!arr) {
+      arr = [];
+      into.set(l.to, arr);
+    }
+    arr.push(l);
+
+    if (l.from !== l.to) {
+      let outArr = outByFrom.get(l.from);
+      if (!outArr) {
+        outArr = [];
+        outByFrom.set(l.from, outArr);
+      }
+      outArr.push(l);
+    }
+  }
+
+  let truncated = false;
+  const spreadDist = new Map<string, number>();
+  const spreadVia = new Map<string, TuxMapLink>();
+  let frontier = [...seeds].sort(cmpCodepoint);
+  const q: [string, number][] = frontier.map((id) => [id, 0]);
+  let hop = 0;
+
+  // Pass 1: level-synchronous breadth-first traversal across links that spread
+  while (frontier.length > 0) {
+    if (hop >= maxHops) {
+      for (const x of frontier) {
+        for (const l of into.get(x) ?? []) {
+          const y = l.from;
+          if (seeds.has(y) || spreadDist.has(y)) continue;
+          if (classifyBlastLink(l, hop, intent, quietSeedOnly, kindsSet) === "spread") {
+            truncated = true;
+            break;
+          }
+        }
+        if (truncated) break;
+      }
+      break;
+    }
+
+    const nextBest = new Map<string, TuxMapLink>();
+    for (const x of frontier) {
+      for (const l of into.get(x) ?? []) {
+        const y = l.from;
+        if (seeds.has(y) || spreadDist.has(y)) continue;
+        if (classifyBlastLink(l, hop, intent, quietSeedOnly, kindsSet) !== "spread") continue;
+        const prev = nextBest.get(y);
+        if (!prev || compareBlastLinks(l, prev) < 0) {
+          nextBest.set(y, l);
+        }
+      }
+    }
+
+    const nextIds = [...nextBest.keys()].sort(cmpCodepoint);
+    for (const y of nextIds) {
+      const chosen = nextBest.get(y)!;
+      spreadDist.set(y, hop + 1);
+      spreadVia.set(y, chosen);
       q.push([y, hop + 1]);
     }
+    frontier = nextIds;
+    hop += 1;
   }
-  // then one step out through the links that stop, nearest first
-  for (const [x, hop] of q) {
-    if (hop >= maxHops) continue;
+
+  // Pass 2: one step out through stopping links from everything reached, nearest then strongest first
+  const stopBest = new Map<string, { hop: number; via: TuxMapLink }>();
+  for (const [x, h] of q) {
+    if (h >= maxHops) {
+      for (const l of into.get(x) ?? []) {
+        const y = l.from;
+        if (seeds.has(y) || spreadDist.has(y) || stopBest.has(y)) continue;
+        if (classifyBlastLink(l, h, intent, quietSeedOnly, kindsSet) === "stop") {
+          truncated = true;
+          break;
+        }
+      }
+      continue;
+    }
     for (const l of into.get(x) ?? []) {
       const y = l.from;
-      if (!l.stop || seeds.has(y) || hits.has(y)) continue;
-      hits.set(y, { hop: hop + 1, via: l });
+      if (seeds.has(y) || spreadDist.has(y)) continue;
+      if (classifyBlastLink(l, h, intent, quietSeedOnly, kindsSet) !== "stop") continue;
+      const candHop = h + 1;
+      const prev = stopBest.get(y);
+      if (
+        !prev ||
+        candHop < prev.hop ||
+        (candHop === prev.hop && compareBlastLinks(l, prev.via) < 0)
+      ) {
+        stopBest.set(y, { hop: candHop, via: l });
+      }
     }
   }
-  return { seeds, hits };
+
+  const combined: Array<[string, TuxMapBlastHit]> = [];
+  const mkHit = (h: number, via: TuxMapLink): TuxMapBlastHit => ({
+    hop: h,
+    via,
+    ...(via.at !== undefined ? { at: via.at } : {}),
+    ...(via.sites?.length ? { sites: [...via.sites] } : {}),
+  });
+
+  for (const [y, h] of spreadDist) {
+    combined.push([y, mkHit(h, spreadVia.get(y)!)]);
+  }
+  for (const [y, s] of stopBest) {
+    combined.push([y, mkHit(s.hop, s.via)]);
+  }
+  combined.sort((a, b) => a[1].hop - b[1].hop || cmpCodepoint(a[0], b[0]));
+
+  const hits = new Map<string, TuxMapBlastHit>(combined);
+
+  const collectSubtree = (rootId: string): Set<string> => {
+    const sub = new Set<string>([rootId]);
+    const queue: Array<[string, number]> = [[rootId, 0]];
+    for (let qi = 0; qi < queue.length; qi++) {
+      const [cur, d] = queue[qi]!;
+      if (d >= MAX_TREE_DEPTH) continue;
+      for (const ch of kidsOf.get(cur) ?? []) {
+        if (!sub.has(ch)) {
+          sub.add(ch);
+          queue.push([ch, d + 1]);
+        }
+      }
+    }
+    return sub;
+  };
+
+  const canCoCut = (y: string): boolean => {
+    if (seeds.has(y) || y.startsWith("d:")) return false;
+    const yMeta = metaById.get(y);
+    if (yMeta?.kind && NON_AUX_CO_CUT_KINDS.has(yMeta.kind)) return false;
+    if (isWorkflowPathNode(y, yMeta)) return false;
+
+    const subtree = collectSubtree(y);
+    let hasSeedTarget = false;
+    let hasNonProseAuxLink = false;
+
+    for (const u of subtree) {
+      const uMeta = metaById.get(u);
+      if (uMeta?.kind && NON_AUX_CO_CUT_KINDS.has(uMeta.kind)) return false;
+      if (isWorkflowPathNode(u, uMeta)) return false;
+
+      // Zero external dependents outside seeds ∪ subtree(y)
+      for (const il of into.get(u) ?? []) {
+        if (!seeds.has(il.from) && !subtree.has(il.from)) return false;
+      }
+
+      // Closed outgoing targets inside seeds ∪ subtree(y), auxiliary roles only on seed links
+      for (const ol of outByFrom.get(u) ?? []) {
+        if (subtree.has(ol.to)) continue;
+        if (!seeds.has(ol.to)) return false;
+        hasSeedTarget = true;
+        const ok = ol.kind || "";
+        if (ok === "checks") return false;
+        const oc = inferLinkCoupling(ol);
+        if (oc !== "verification" && oc !== "prose") return false;
+        if (oc !== "prose") hasNonProseAuxLink = true;
+      }
+    }
+
+    if (!hasSeedTarget) return false;
+    if (!hasNonProseAuxLink && !isPureDocNode(y, yMeta)) return false;
+    return true;
+  };
+
+  const blockers: string[] = [];
+  const coCutCandidates: string[] = [];
+  const testsToRun: string[] = [];
+  const stampsToRebuild: string[] = [];
+  const buildExecImpacted: string[] = [];
+
+  for (const [y, hit] of hits) {
+    const c = inferLinkCoupling(hit.via);
+    const p = inferLinkPhase(hit.via);
+    const k = hit.via.kind || "";
+
+    if (hit.hop === 1 && (c === "contract" || c === "runtime" || c === "type-only")) {
+      blockers.push(y);
+    }
+    if (c === "verification" || k === "tests" || k === "checks") {
+      testsToRun.push(y);
+    }
+    if (c === "artifact-stamp" || k === "stamps") {
+      stampsToRebuild.push(y);
+    }
+    if (c === "build-exec" || p === "build-exec") {
+      buildExecImpacted.push(y);
+    }
+    if (intent === "cut" && canCoCut(y)) {
+      coCutCandidates.push(y);
+    }
+  }
+
+  blockers.sort(cmpCodepoint);
+  coCutCandidates.sort(cmpCodepoint);
+  testsToRun.sort(cmpCodepoint);
+  stampsToRebuild.sort(cmpCodepoint);
+  buildExecImpacted.sort(cmpCodepoint);
+
+  const hostsSet = new Set<string>();
+  if (hostBridge) {
+    const liftHost = (id: string) => {
+      for (const anc of mapAncestorsOf(id, parentOf)) {
+        const hs = hostBridge.hostsByElement.get(anc);
+        if (hs) {
+          for (const h of hs) hostsSet.add(h);
+        }
+      }
+    };
+    for (const s of seeds) {
+      if (!isAuxNonProdSeed(s, metaById.get(s))) liftHost(s);
+    }
+    for (const [y, hit] of hits) {
+      const p = inferLinkPhase(hit.via);
+      const c = inferLinkCoupling(hit.via);
+      if (p === "prod-runtime" && !NON_PROD_HOST_COUPLINGS.has(c)) {
+        liftHost(y);
+      }
+    }
+  }
+  const hostsImpacted = [...hostsSet].sort(cmpCodepoint);
+
+  return {
+    seeds,
+    hits,
+    truncated,
+    blockers,
+    coCutCandidates,
+    testsToRun,
+    stampsToRebuild,
+    buildExecImpacted,
+    hostsImpacted,
+  };
+}
+
+export type TuxMapElementChangeKind =
+  | "added"
+  | "deleted"
+  | "moved"
+  | "sig-changed"
+  | "body-patched";
+
+export interface TuxMapNodeDelta {
+  id: string;
+  /** Previous node ID when `change === "moved"` resulted from a file or symbol rename across IDs */
+  previousId?: string;
+  change: TuxMapElementChangeKind;
+  kind: string;
+  name: string;
+  baseParentId?: string;
+  headParentId?: string;
+  source?: TuxMapSourceRef;
+}
+
+export interface TuxMapWireDelta {
+  from: string;
+  to: string;
+  kind: string;
+  change: "added" | "removed" | "dangling";
+  at?: string;
+}
+
+export interface TuxMapGraphDeltaOptions {
+  /** Whether to allocate and annotate `mergedModel` (default `true`; pass `false` for lean CLI/MCP payloads). */
+  includeMergedModel?: boolean;
+}
+
+export interface TuxMapGraphDelta {
+  nodeChanges: TuxMapNodeDelta[];
+  addedIds: string[];
+  deletedIds: string[];
+  movedIds: string[];
+  sigChangedIds: string[];
+  bodyPatchedIds: string[];
+  addedWires: TuxMapWireDelta[];
+  removedWires: TuxMapWireDelta[];
+  /** Wires in `headModel` whose `to` target is missing from `headModel` (e.g. deleted from `baseModel`). */
+  danglingWires: TuxMapWireDelta[];
+  /** Leaf-minimal changed IDs for blast-radius seeding (avoids over-seeding a file when only child symbols changed). */
+  blastSeedIds: string[];
+  /** Recommended blast intent inferred from the structural delta. */
+  recommendedIntent: TuxMapBlastIntent;
+  /** `headModel` annotated with `diff` badges and ghosted `deleted` elements re-inserted under their `base` parents. */
+  mergedModel: TuxMapLevelModel;
+}
+
+type DeltaElementOrigin = "level1" | "level2" | "level3" | "level4" | "subgraph" | "inline";
+
+interface IndexedDeltaElement {
+  id: string;
+  origin: DeltaElementOrigin;
+  kind: string;
+  name: string;
+  tech?: string;
+  desc?: string;
+  parentId?: string;
+  logicalParentId?: string;
+  source?: TuxMapSourceRef;
+  diff?: TuxMapDiffInfo;
+  rawElement?: TuxMapLevelElement;
+  rawNode?: TuxMapDeploymentNode;
+}
+
+function stripLineSuffix(tech?: string): string {
+  if (!tech) return "";
+  return tech.replace(/\s*·\s*L\d+(?:[–-]\d+)?(?![0-9A-Za-z_])/g, "").trim();
+}
+
+function logicalParentOf(id: string, parentOf: Map<string, string>): string | undefined {
+  let p = parentOf.get(id);
+  const seen = new Set<string>([id]);
+  while (p && p.startsWith("d:")) {
+    if (seen.has(p) || seen.size >= MAX_TREE_DEPTH) return undefined;
+    seen.add(p);
+    p = parentOf.get(p);
+  }
+  return p;
+}
+
+function indexModelForDelta(
+  model: TuxMapLevelModel,
+  bridgeUncovered = true,
+): {
+  elements: Map<string, IndexedDeltaElement>;
+  parentOf: Map<string, string>;
+  outWireKeys: Map<string, Set<string>>;
+  validTargetIds: Set<string>;
+  inlineParentIds: Set<string>;
+  links: TuxMapLink[];
+} {
+  const parentOf = buildMapParentIndex(model);
+  const elements = new Map<string, IndexedDeltaElement>();
+  const validTargetIds = new Set<string>(parentOf.keys());
+  for (const p of parentOf.values()) if (p) validTargetIds.add(p);
+  const inlineParentIds = new Set<string>();
+
+  const addEl = (
+    e: TuxMapLevelElement,
+    origin: DeltaElementOrigin,
+    fallbackKind: string,
+    pid?: string,
+    depth = 0,
+  ) => {
+    if (depth >= MAX_TREE_DEPTH) return;
+    const id = e.id;
+    if (id) validTargetIds.add(id);
+    if (!id || id.startsWith("d:") || elements.has(id)) return;
+    elements.set(id, {
+      id,
+      origin,
+      kind: e.kind || fallbackKind,
+      name: e.name ?? id,
+      tech: e.tech,
+      desc: e.desc,
+      parentId: parentOf.get(id) ?? pid,
+      logicalParentId: logicalParentOf(id, parentOf) ?? pid,
+      source: e.source,
+      diff: e.diff,
+      rawElement: e,
+    });
+    if (e.children?.length) {
+      inlineParentIds.add(id);
+      e.children.forEach((k, idx) =>
+        addEl({ ...k, id: k.id || `${id}/${idx}` }, "inline", "component", id, depth + 1),
+      );
+    }
+  };
+
+  for (const e of model?.level1?.elements ?? []) addEl(e, "level1", "system");
+  if (model?.level2?.boundary) validTargetIds.add(model.level2.boundary);
+  for (const e of model?.level2?.elements ?? []) {
+    if (e.id) validTargetIds.add(e.id);
+    if (e.ref) continue;
+    addEl({ ...e, name: e.name ?? e.id }, "level2", "container", model?.level2?.boundary);
+  }
+  for (const [cid, kids] of Object.entries(model?.level3 ?? {})) {
+    if (cid) validTargetIds.add(cid);
+    (kids ?? []).forEach((k, idx) =>
+      addEl({ ...k, id: k.id || `${cid}/${idx}` }, "level3", "component", cid),
+    );
+  }
+  for (const dn of model?.level4?.nodes ?? []) {
+    if (dn.id) validTargetIds.add(dn.id);
+    if (dn.id && !elements.has(dn.id)) {
+      elements.set(dn.id, {
+        id: dn.id,
+        origin: "level4",
+        kind: dn.kind || "resource",
+        name: dn.title,
+        tech: dn.facts?.type || dn.facts?.sku || dn.facts?.size,
+        desc: dn.role,
+        parentId: dn.group || dn.zone,
+        logicalParentId: dn.group || dn.zone,
+        source: dn.source,
+        diff: dn.diff,
+        rawNode: dn,
+      });
+    }
+    if (dn.children?.length) {
+      inlineParentIds.add(dn.id);
+      dn.children.forEach((k, idx) =>
+        addEl({ ...k, id: k.id || `${dn.id}/${idx}` }, "inline", "module", dn.id, 1),
+      );
+    }
+  }
+  for (const [pid, sg] of Object.entries(model?.subgraphs || {})) {
+    if (pid) validTargetIds.add(pid);
+    (sg?.elements ?? []).forEach((k, idx) =>
+      addEl({ ...k, id: k.id || `${pid}/${idx}` }, "subgraph", "module", pid),
+    );
+  }
+
+  const links = extractModelLinks(model, { bridgeUncovered });
+  const outWireKeys = new Map<string, Set<string>>();
+  for (const l of links) {
+    const key = `${l.kind || "uses"}\u0000${l.to}`;
+    let set = outWireKeys.get(l.from);
+    if (!set) {
+      set = new Set();
+      outWireKeys.set(l.from, set);
+    }
+    set.add(key);
+  }
+  return { elements, parentOf, outWireKeys, validTargetIds, inlineParentIds, links };
+}
+
+function sameSet(a?: Set<string>, b?: Set<string>): boolean {
+  const sa = a?.size ?? 0;
+  const sb = b?.size ?? 0;
+  if (sa !== sb) return false;
+  if (!a || !b) return true;
+  for (const x of a) if (!b.has(x)) return false;
+  return true;
+}
+
+/**
+ * Computes a deterministic structural delta between two `TuxMapLevelModel` trees (`baseModel` vs `headModel`),
+ * classifying node changes (`added`, `deleted`, `moved`, `sig-changed`, `body-patched`), wire changes
+ * (`added`, `removed`, `dangling`), leaf-first `blastSeedIds`, `recommendedIntent`, and a visual `mergedModel`.
+ */
+export function computeGraphDelta(
+  baseModel: TuxMapLevelModel,
+  headModel: TuxMapLevelModel,
+  opts: TuxMapGraphDeltaOptions = {},
+): TuxMapGraphDelta {
+  const includeMergedModel = opts.includeMergedModel ?? true;
+  const bothCodeOrNeither = Boolean(baseModel?.links?.length || headModel?.links?.length);
+  const baseIdx = indexModelForDelta(baseModel, !bothCodeOrNeither);
+  const headIdx = indexModelForDelta(headModel, !bothCodeOrNeither);
+
+  const allIds = [...new Set([...baseIdx.elements.keys(), ...headIdx.elements.keys()])].sort(cmpCodepoint);
+  const nodeChanges: TuxMapNodeDelta[] = [];
+  const rawAddedIds: string[] = [];
+  const rawDeletedIds: string[] = [];
+  const movedIds: string[] = [];
+  const sigChangedIds: string[] = [];
+  const bodyPatchedIds: string[] = [];
+
+  const sigOf = (el: IndexedDeltaElement): string =>
+    el.source?.signature ?? el.source?.symbol ?? (stripLineSuffix(el.tech) || el.name);
+  const spanOf = (el: IndexedDeltaElement): number | null =>
+    el.source?.lineRange && el.source.lineRange.length >= 2
+      ? el.source.lineRange[1]! - el.source.lineRange[0]!
+      : null;
+
+  for (const id of allIds) {
+    const b = baseIdx.elements.get(id);
+    const h = headIdx.elements.get(id);
+    if (!b && h) {
+      rawAddedIds.push(id);
+    } else if (b && !h) {
+      rawDeletedIds.push(id);
+    } else if (b && h) {
+      if ((b.logicalParentId ?? "") !== (h.logicalParentId ?? "")) {
+        movedIds.push(id);
+        nodeChanges.push({
+          id,
+          change: "moved",
+          kind: h.kind,
+          name: h.name,
+          baseParentId: b.logicalParentId,
+          headParentId: h.logicalParentId,
+          source: h.source,
+        });
+        continue;
+      }
+      if (b.kind !== h.kind || sigOf(b) !== sigOf(h)) {
+        sigChangedIds.push(id);
+        nodeChanges.push({
+          id,
+          change: "sig-changed",
+          kind: h.kind,
+          name: h.name,
+          baseParentId: b.logicalParentId,
+          headParentId: h.logicalParentId,
+          source: h.source,
+        });
+        continue;
+      }
+      const wiresChanged = !sameSet(baseIdx.outWireKeys.get(id), headIdx.outWireKeys.get(id));
+      const hasBothHashes = Boolean(b.source?.hash && h.source?.hash);
+      const hasBothModHashes = Boolean(b.source?.moduleHash && h.source?.moduleHash);
+      const bodyChanged = hasBothHashes
+        ? b.source!.hash !== h.source!.hash ||
+          (hasBothModHashes && b.source!.moduleHash !== h.source!.moduleHash) ||
+          wiresChanged
+        : Boolean(h.diff) ||
+          spanOf(b) !== spanOf(h) ||
+          (b.desc ?? "") !== (h.desc ?? "") ||
+          wiresChanged;
+      if (bodyChanged) {
+        bodyPatchedIds.push(id);
+        nodeChanges.push({
+          id,
+          change: "body-patched",
+          kind: h.kind,
+          name: h.name,
+          baseParentId: b.logicalParentId,
+          headParentId: h.logicalParentId,
+          source: h.source,
+        });
+      }
+    }
+  }
+
+  // 1-pass deterministic rename pairing (`git mv` & cross-file symbol moves)
+  const pairedDeleted = new Set<string>();
+  const pairedAdded = new Set<string>();
+  const pairRename = (delId: string, addId: string) => {
+    const b = baseIdx.elements.get(delId)!;
+    const h = headIdx.elements.get(addId)!;
+    pairedDeleted.add(delId);
+    pairedAdded.add(addId);
+    movedIds.push(addId);
+    nodeChanges.push({
+      id: addId,
+      previousId: delId,
+      change: "moved",
+      kind: h.kind,
+      name: h.name,
+      baseParentId: b.logicalParentId,
+      headParentId: h.logicalParentId,
+      source: h.source,
+    });
+  };
+
+  // Pass A: unique 1:1 `(kind, source.hash)` exact content match
+  const delByHash = new Map<string, string[]>();
+  const addByHash = new Map<string, string[]>();
+  for (const delId of rawDeletedIds) {
+    const b = baseIdx.elements.get(delId)!;
+    if (b.source?.hash) {
+      const k = `${b.kind}\u0000${b.source.hash}`;
+      const arr = delByHash.get(k) ?? [];
+      arr.push(delId);
+      delByHash.set(k, arr);
+    }
+  }
+  for (const addId of rawAddedIds) {
+    const h = headIdx.elements.get(addId)!;
+    if (h.source?.hash) {
+      const k = `${h.kind}\u0000${h.source.hash}`;
+      const arr = addByHash.get(k) ?? [];
+      arr.push(addId);
+      addByHash.set(k, arr);
+    }
+  }
+  for (const [k, dList] of delByHash) {
+    const aList = addByHash.get(k);
+    if (dList.length === 1 && aList?.length === 1) {
+      pairRename(dList[0]!, aList[0]!);
+    }
+  }
+
+  // Pass B: unique 1:1 `(kind, name, sigOf)` match among remaining unmatched
+  const delBySig = new Map<string, string[]>();
+  const addBySig = new Map<string, string[]>();
+  for (const delId of rawDeletedIds) {
+    if (pairedDeleted.has(delId)) continue;
+    const b = baseIdx.elements.get(delId)!;
+    if (b.name) {
+      const k = `${b.kind}\u0000${b.name}\u0000${sigOf(b)}`;
+      const arr = delBySig.get(k) ?? [];
+      arr.push(delId);
+      delBySig.set(k, arr);
+    }
+  }
+  for (const addId of rawAddedIds) {
+    if (pairedAdded.has(addId)) continue;
+    const h = headIdx.elements.get(addId)!;
+    if (h.name) {
+      const k = `${h.kind}\u0000${h.name}\u0000${sigOf(h)}`;
+      const arr = addBySig.get(k) ?? [];
+      arr.push(addId);
+      addBySig.set(k, arr);
+    }
+  }
+  for (const [k, dList] of delBySig) {
+    const aList = addBySig.get(k);
+    if (dList.length === 1 && aList?.length === 1) {
+      pairRename(dList[0]!, aList[0]!);
+    }
+  }
+
+  const addedIds: string[] = [];
+  for (const addId of rawAddedIds) {
+    if (pairedAdded.has(addId)) continue;
+    const h = headIdx.elements.get(addId)!;
+    addedIds.push(addId);
+    nodeChanges.push({
+      id: addId,
+      change: "added",
+      kind: h.kind,
+      name: h.name,
+      headParentId: h.logicalParentId,
+      source: h.source,
+    });
+  }
+  const deletedIds: string[] = [];
+  for (const delId of rawDeletedIds) {
+    if (pairedDeleted.has(delId)) continue;
+    const b = baseIdx.elements.get(delId)!;
+    deletedIds.push(delId);
+    nodeChanges.push({
+      id: delId,
+      change: "deleted",
+      kind: b.kind,
+      name: b.name,
+      baseParentId: b.logicalParentId,
+      source: b.source,
+    });
+  }
+
+  movedIds.sort(cmpCodepoint);
+  nodeChanges.sort((a, b) => cmpCodepoint(a.id, b.id));
+
+  const baseLinks = baseIdx.links;
+  const headLinks = headIdx.links;
+  const wireKey = (l: TuxMapLink) => `${l.kind || "uses"}\u0000${l.from}\u0000${l.to}`;
+  const baseWireMap = new Map<string, TuxMapLink>();
+  for (const l of baseLinks) if (!baseWireMap.has(wireKey(l))) baseWireMap.set(wireKey(l), l);
+  const headWireMap = new Map<string, TuxMapLink>();
+  for (const l of headLinks) if (!headWireMap.has(wireKey(l))) headWireMap.set(wireKey(l), l);
+
+  const addedWires: TuxMapWireDelta[] = [];
+  const removedWires: TuxMapWireDelta[] = [];
+  const danglingWires: TuxMapWireDelta[] = [];
+
+  for (const [k, l] of [...headWireMap.entries()].sort((a, b) => cmpCodepoint(a[0], b[0]))) {
+    const kind = l.kind || "uses";
+    if (!baseWireMap.has(k)) {
+      addedWires.push({
+        from: l.from,
+        to: l.to,
+        kind,
+        change: "added",
+        ...(l.at ? { at: l.at } : {}),
+      });
+    }
+    if (!headIdx.validTargetIds.has(l.to)) {
+      danglingWires.push({
+        from: l.from,
+        to: l.to,
+        kind,
+        change: "dangling",
+        ...(l.at ? { at: l.at } : {}),
+      });
+    }
+  }
+  for (const [k, l] of [...baseWireMap.entries()].sort((a, b) => cmpCodepoint(a[0], b[0]))) {
+    if (!headWireMap.has(k)) {
+      removedWires.push({
+        from: l.from,
+        to: l.to,
+        kind: l.kind || "uses",
+        change: "removed",
+        ...(l.at ? { at: l.at } : {}),
+      });
+    }
+  }
+
+  // Leaf-minimal blast seeds: if a file is only "body-patched" because a child symbol changed,
+  // and neither its own `moduleHash` nor its file-level outgoing links changed, seed only the changed child symbol(s).
+  const changeById = new Map(nodeChanges.map((c) => [c.id, c]));
+  const changedAncestorsWithChangedChild = new Set<string>();
+  for (const c of nodeChanges) {
+    const pMap = c.change === "deleted" ? baseIdx.parentOf : headIdx.parentOf;
+    for (const anc of mapAncestorsOf(c.id, pMap).slice(1)) {
+      if (changeById.has(anc)) changedAncestorsWithChangedChild.add(anc);
+    }
+  }
+  const seedIdSet = new Set<string>();
+  for (const c of nodeChanges) {
+    let keep = true;
+    if (changedAncestorsWithChangedChild.has(c.id) && c.change === "body-patched") {
+      const b = baseIdx.elements.get(c.id);
+      const h = headIdx.elements.get(c.id);
+      const wiresChanged = !sameSet(baseIdx.outWireKeys.get(c.id), headIdx.outWireKeys.get(c.id));
+      const modHashChanged =
+        Boolean(b?.source?.moduleHash !== undefined && h?.source?.moduleHash !== undefined) &&
+        b!.source!.moduleHash !== h!.source!.moduleHash;
+      keep = wiresChanged || modHashChanged;
+    }
+    if (keep) {
+      seedIdSet.add(c.id);
+      if (c.previousId) seedIdSet.add(c.previousId);
+    }
+  }
+  const blastSeedIds = [...seedIdSet].sort(cmpCodepoint);
+
+  const recommendedIntent: TuxMapBlastIntent =
+    deletedIds.length > 0
+      ? "cut"
+      : movedIds.length > 0 || sigChangedIds.length > 0 || addedIds.length > 0
+        ? "refactor"
+        : "patch";
+
+  if (!includeMergedModel) {
+    return {
+      nodeChanges,
+      addedIds,
+      deletedIds,
+      movedIds,
+      sigChangedIds,
+      bodyPatchedIds,
+      addedWires,
+      removedWires,
+      danglingWires,
+      blastSeedIds,
+      recommendedIntent,
+      mergedModel: headModel,
+    };
+  }
+
+  // Build visual mergedModel with diff badges + origin-preserving ghosted deleted elements
+  const diffForId = (id: string): TuxMapDiffInfo | undefined => {
+    const chObj = changeById.get(id);
+    if (!chObj) return undefined;
+    const ch = chObj.change;
+    if (ch === "added") return { changeType: "added", summary: "Added on branch" };
+    if (ch === "deleted") return { changeType: "deleted", summary: "Deleted on branch" };
+    return {
+      changeType: "modified",
+      summary:
+        ch === "moved"
+          ? chObj.previousId
+            ? `Moved from ${chObj.previousId}`
+            : "Moved component/parent"
+          : ch === "sig-changed"
+            ? "Signature changed"
+            : "Body patched",
+    };
+  };
+
+  const deletedDiff: TuxMapDiffInfo = { changeType: "deleted", summary: "Deleted on branch" };
+  const deletedInlineByParent = new Map<string, TuxMapLevelElement[]>();
+  const deletedL1Ghosts: TuxMapLevelElement[] = [];
+  const deletedL2Ghosts: TuxMapLevelElement[] = [];
+  const deletedL4Ghosts: TuxMapDeploymentNode[] = [];
+  const deletedSubgraphOrL3: IndexedDeltaElement[] = [];
+
+  for (const delId of deletedIds) {
+    const bEl = baseIdx.elements.get(delId);
+    if (!bEl) continue;
+    if (bEl.origin === "level4") {
+      if (bEl.rawNode) deletedL4Ghosts.push({ ...bEl.rawNode, diff: deletedDiff });
+    } else if (bEl.origin === "level1") {
+      if (bEl.rawElement) deletedL1Ghosts.push({ ...bEl.rawElement, diff: deletedDiff });
+    } else if (bEl.origin === "level2") {
+      if (bEl.rawElement) deletedL2Ghosts.push({ ...bEl.rawElement, diff: deletedDiff });
+    } else if (bEl.origin === "inline") {
+      if (bEl.rawElement && bEl.parentId) {
+        const arr = deletedInlineByParent.get(bEl.parentId) ?? [];
+        arr.push({ ...bEl.rawElement, diff: deletedDiff });
+        deletedInlineByParent.set(bEl.parentId, arr);
+      }
+    } else {
+      deletedSubgraphOrL3.push(bEl);
+    }
+  }
+
+  const annotateEl = <T extends TuxMapLevelElement | TuxMapLevelRef>(
+    e: T,
+    pid?: string,
+    idx?: number,
+    depth = 0,
+  ): T => {
+    if (depth >= MAX_TREE_DEPTH) return e;
+    const id = e.id || (pid && idx !== undefined ? `${pid}/${idx}` : "");
+    const d = id ? diffForId(id) : undefined;
+    const baseKids = e.children?.map((k, ki) => annotateEl(k, id, ki, depth + 1));
+    const inlineGhosts = id ? deletedInlineByParent.get(id) : undefined;
+    const kids = baseKids || inlineGhosts ? [...(baseKids ?? []), ...(inlineGhosts ?? [])] : undefined;
+    if (!d && !kids) return e;
+    return {
+      ...e,
+      ...(d ? { diff: e.diff ?? d } : {}),
+      ...(kids ? { children: kids } : {}),
+    };
+  };
+
+  const mergedLevel3: Record<string, TuxMapLevelElement[]> = {};
+  for (const [cid, kids] of Object.entries(headModel?.level3 ?? {})) {
+    setOwnProp(
+      mergedLevel3,
+      cid,
+      (kids ?? []).map((k, idx) => annotateEl(k, cid, idx)),
+    );
+  }
+  const mergedSubgraphs: Record<string, TuxMapSubgraph> = {};
+  for (const [pid, sg] of Object.entries(headModel?.subgraphs || {})) {
+    setOwnProp(mergedSubgraphs, pid, {
+      ...sg,
+      elements: (sg?.elements ?? []).map((k, idx) => annotateEl(k, pid, idx)),
+    });
+  }
+
+  const headL2ContainerIds = new Set(
+    (headModel?.level2?.elements ?? []).filter((e) => !e.ref).map((e) => e.id),
+  );
+
+  for (const bEl of deletedSubgraphOrL3) {
+    if (!bEl.rawElement || !bEl.parentId) continue;
+    const ghost: TuxMapLevelElement = {
+      ...bEl.rawElement,
+      diff: deletedDiff,
+    };
+    const pid = bEl.parentId;
+    const logPid = bEl.logicalParentId;
+    if (bEl.origin === "level3") {
+      if (hasOwn(mergedLevel3, pid)) {
+        mergedLevel3[pid]!.push(ghost);
+      } else if (headL2ContainerIds.has(pid)) {
+        setOwnProp(mergedLevel3, pid, [ghost]);
+      }
+      continue;
+    }
+    if (hasOwn(mergedSubgraphs, pid)) {
+      mergedSubgraphs[pid]!.elements.push(ghost);
+    } else if (pid.startsWith("d:") && logPid && hasOwn(mergedSubgraphs, logPid)) {
+      mergedSubgraphs[logPid]!.elements.push(ghost);
+    } else if (
+      pid.startsWith("d:") &&
+      logPid &&
+      headIdx.validTargetIds.has(logPid) &&
+      !headIdx.inlineParentIds.has(logPid) &&
+      logPid !== headModel?.level2?.boundary
+    ) {
+      setOwnProp(mergedSubgraphs, logPid, { elements: [ghost] });
+    } else if (
+      !pid.startsWith("d:") &&
+      headIdx.validTargetIds.has(pid) &&
+      !headIdx.inlineParentIds.has(pid) &&
+      pid !== headModel?.level2?.boundary
+    ) {
+      setOwnProp(mergedSubgraphs, pid, { elements: [ghost] });
+    }
+  }
+
+  const mergedLevel4Nodes: TuxMapDeploymentNode[] = [
+    ...(headModel?.level4?.nodes ?? []).map((n) => {
+      const d = diffForId(n.id);
+      const baseKids = n.children?.map((k, ki) => annotateEl(k, n.id, ki));
+      const inlineGhosts = deletedInlineByParent.get(n.id);
+      const kids = baseKids || inlineGhosts ? [...(baseKids ?? []), ...(inlineGhosts ?? [])] : undefined;
+      if (!d && !kids) return n;
+      return {
+        ...n,
+        ...(d ? { diff: n.diff ?? d } : {}),
+        ...(kids ? { children: kids } : {}),
+      };
+    }),
+    ...deletedL4Ghosts,
+  ];
+
+  const mergedModel: TuxMapLevelModel = {
+    ...headModel,
+    level1: {
+      ...headModel?.level1,
+      rels: headModel?.level1?.rels ?? [],
+      elements: [
+        ...(headModel?.level1?.elements ?? []).map((e) => annotateEl(e)),
+        ...deletedL1Ghosts,
+      ],
+    },
+    level2: {
+      ...headModel?.level2,
+      boundary: headModel?.level2?.boundary ?? "",
+      rels: headModel?.level2?.rels ?? [],
+      elements: [
+        ...(headModel?.level2?.elements ?? []).map((e) => (e.ref ? e : annotateEl(e))),
+        ...deletedL2Ghosts,
+      ],
+    },
+    level3: mergedLevel3,
+    level4: {
+      ...headModel?.level4,
+      groups: headModel?.level4?.groups ?? [],
+      links: headModel?.level4?.links ?? [],
+      nodes: mergedLevel4Nodes,
+    },
+    ...(Object.keys(mergedSubgraphs).length > 0 || headModel?.subgraphs ? { subgraphs: mergedSubgraphs } : {}),
+  };
+
+  return {
+    nodeChanges,
+    addedIds,
+    deletedIds,
+    movedIds,
+    sigChangedIds,
+    bodyPatchedIds,
+    addedWires,
+    removedWires,
+    danglingWires,
+    blastSeedIds,
+    recommendedIntent,
+    mergedModel,
+  };
 }
 
 // ============================================================================
@@ -2295,35 +3723,122 @@ export interface TuxMapAcpLease {
   expiresAt: string;
 }
 
-/**
- * Indexes a `TuxMapLevelModel` into a unified Code Property Graph (CPG) index
- * spanning Levels 1..N (Context, Containers, Components, Deployment, Modules, Schemas, AST Symbols).
- */
-export function buildUnifiedArchitectureGraph(model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL): {
+export interface TuxMapQueryIndex {
+  parentOf: Map<string, string>;
+  kidsOf: Map<string, string[]>;
   nodes: Map<string, TuxMapGraphNodeRecord>;
   edges: TuxMapGraphEdgeRecord[];
-} {
+  edgesByFrom: Map<string, TuxMapGraphEdgeRecord[]>;
+  edgesByTo: Map<string, TuxMapGraphEdgeRecord[]>;
+  neighborsByNode: Map<string, Array<{ next: string; edge: TuxMapGraphEdgeRecord }>>;
+  effectiveLinks: TuxMapLink[];
+}
+
+interface CachedQueryIndex {
+  stamp: string;
+  index: TuxMapQueryIndex;
+}
+
+const MODEL_QUERY_INDEX_CACHE = new WeakMap<TuxMapLevelModel, CachedQueryIndex>();
+
+function modelCacheStamp(model: TuxMapLevelModel): string {
+  return [
+    model?.level1?.elements?.length ?? 0,
+    model?.level1?.rels?.length ?? 0,
+    model?.level2?.elements?.length ?? 0,
+    model?.level2?.rels?.length ?? 0,
+    Object.keys(model?.level3 ?? {}).length,
+    model?.level4?.nodes?.length ?? 0,
+    model?.level4?.links?.length ?? 0,
+    Object.keys(model?.subgraphs ?? {}).length,
+    model?.links?.length ?? 0,
+  ].join(":");
+}
+
+/**
+ * Memoized `O(V + E)` query index per `TuxMapLevelModel` instance so repeated
+ * layer, blast-radius, shortest-path, and lease queries do not rebuild graph tables.
+ */
+export function getMapQueryIndex(model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL): TuxMapQueryIndex {
+  const stamp = modelCacheStamp(model);
+  const cached = MODEL_QUERY_INDEX_CACHE.get(model);
+  if (cached && cached.stamp === stamp) return cached.index;
+
+  const parentOf = buildMapParentIndex(model);
+  const kidsOf = new Map<string, string[]>();
+  for (const [c, p] of parentOf) {
+    let arr = kidsOf.get(p);
+    if (!arr) {
+      arr = [];
+      kidsOf.set(p, arr);
+    }
+    arr.push(c);
+  }
+
   const nodes = new Map<string, TuxMapGraphNodeRecord>();
   const edges: TuxMapGraphEdgeRecord[] = [];
-  const normArr = (v?: string | string[]): string[] =>
-    !v ? [] : Array.isArray(v) ? v : [v];
+  const normArr = (v?: string | string[]): string[] => (!v ? [] : Array.isArray(v) ? v : [v]);
+  const subgraphOwners = new Map<string, string>();
+  const noteSubgraphRef = (ownerId: string, ref?: string) => {
+    if (ownerId && ref && ref !== ownerId && !subgraphOwners.has(ref)) {
+      subgraphOwners.set(ref, ownerId);
+    }
+  };
+
+  const addInlineChildren = (parentId: string, kids: TuxMapLevelElement[] | undefined, depth = 0) => {
+    if (!kids || depth >= MAX_TREE_DEPTH) return;
+    const rawLvl = levelForFocus(parentId, model, parentOf);
+    const childLevel = isLevel3Focus(parentId, model) ? 5 : rawLvl;
+    kids.forEach((k, idx) => {
+      const id = k.id || `${parentId}/${idx}`;
+      noteSubgraphRef(id, k.subgraphRef);
+      if (!nodes.has(id)) {
+        nodes.set(id, {
+          id,
+          level: childLevel,
+          kind: k.kind || "module",
+          name: k.name,
+          tech: k.tech,
+          desc: k.desc,
+          status: k.status,
+          parentId,
+          deployed: normArr(k.deployed),
+          source: k.source,
+          diff: k.diff,
+          roadmap: k.roadmap,
+        });
+        edges.push({
+          id: `pinl-${parentId}-${id}`,
+          from: parentId,
+          to: id,
+          level: childLevel,
+          kind: "parent-child",
+        });
+      }
+      if (k.children?.length) addInlineChildren(id, k.children, depth + 1);
+    });
+  };
 
   // Level 1
-  for (const e of model.level1.elements) {
-    nodes.set(e.id, {
-      id: e.id,
-      level: 1,
-      kind: e.kind || "system",
-      name: e.name,
-      tech: e.tech,
-      desc: e.desc,
-      status: e.status,
-      source: e.source,
-      diff: e.diff,
-      roadmap: e.roadmap,
-    });
+  for (const e of model?.level1?.elements ?? []) {
+    noteSubgraphRef(e.id, e.subgraphRef);
+    if (!nodes.has(e.id)) {
+      nodes.set(e.id, {
+        id: e.id,
+        level: 1,
+        kind: e.kind || "system",
+        name: e.name,
+        tech: e.tech,
+        desc: e.desc,
+        status: e.status,
+        source: e.source,
+        diff: e.diff,
+        roadmap: e.roadmap,
+      });
+    }
+    if (e.children?.length) addInlineChildren(e.id, e.children);
   }
-  model.level1.rels.forEach((r, idx) => {
+  (model?.level1?.rels ?? []).forEach((r, idx) => {
     edges.push({
       id: `l1-${idx}-${r.from}-${r.to}`,
       from: r.from,
@@ -2337,44 +3852,48 @@ export function buildUnifiedArchitectureGraph(model: TuxMapLevelModel = DEFAULT_
   });
 
   // Level 2
-  for (const e of model.level2.elements) {
+  for (const e of model?.level2?.elements ?? []) {
+    noteSubgraphRef(e.id, e.subgraphRef);
     if (e.ref && nodes.has(e.id)) continue;
     const deployed = normArr(e.deployed);
-    nodes.set(e.id, {
-      id: e.id,
-      level: 2,
-      kind: e.kind || "container",
-      // a reference whose Level 1 element is missing is still named
-      name: e.name ?? e.id,
-      tech: e.tech,
-      desc: e.desc,
-      status: e.status,
-      parentId: model.level2.boundary,
-      deployed,
-      source: e.source,
-      diff: e.diff,
-      roadmap: e.roadmap,
-    });
-    if (model.level2.boundary) {
-      edges.push({
-        id: `p2-${model.level2.boundary}-${e.id}`,
-        from: model.level2.boundary,
-        to: e.id,
+    if (!nodes.has(e.id)) {
+      nodes.set(e.id, {
+        id: e.id,
         level: 2,
-        kind: "parent-child",
+        kind: e.kind || "container",
+        // a reference whose Level 1 element is missing is still named
+        name: e.name ?? e.id,
+        tech: e.tech,
+        desc: e.desc,
+        status: e.status,
+        parentId: model?.level2?.boundary,
+        deployed,
+        source: e.source,
+        diff: e.diff,
+        roadmap: e.roadmap,
       });
+      if (model?.level2?.boundary) {
+        edges.push({
+          id: `p2-${model.level2.boundary}-${e.id}`,
+          from: model.level2.boundary,
+          to: e.id,
+          level: 2,
+          kind: "parent-child",
+        });
+      }
+      for (const hid of deployed) {
+        edges.push({
+          id: `dep-${e.id}-${hid}`,
+          from: e.id,
+          to: hid,
+          level: 4,
+          kind: "hosts",
+        });
+      }
     }
-    for (const hid of deployed) {
-      edges.push({
-        id: `dep-${e.id}-${hid}`,
-        from: e.id,
-        to: hid,
-        level: 4,
-        kind: "hosts",
-      });
-    }
+    if (e.children?.length) addInlineChildren(e.id, e.children);
   }
-  model.level2.rels.forEach((r, idx) => {
+  (model?.level2?.rels ?? []).forEach((r, idx) => {
     edges.push({
       id: `l2-${idx}-${r.from}-${r.to}`,
       from: r.from,
@@ -2388,63 +3907,72 @@ export function buildUnifiedArchitectureGraph(model: TuxMapLevelModel = DEFAULT_
   });
 
   // Level 3
-  for (const [parentId, kids] of Object.entries(model.level3)) {
-    kids.forEach((k, idx) => {
+  for (const [parentId, kids] of Object.entries(model?.level3 ?? {})) {
+    const lvl = levelForFocus(parentId, model, parentOf);
+    (kids ?? []).forEach((k, idx) => {
       const id = k.id || `${parentId}/${idx}`;
+      noteSubgraphRef(id, k.subgraphRef);
       const deployed = normArr(k.deployed);
-      nodes.set(id, {
-        id,
-        level: 3,
-        kind: k.kind || "component",
-        name: k.name,
-        tech: k.tech,
-        desc: k.desc,
-        status: k.status,
-        parentId,
-        deployed,
-        source: k.source,
-        diff: k.diff,
-        roadmap: k.roadmap,
-      });
-      edges.push({
-        id: `p3-${parentId}-${id}`,
-        from: parentId,
-        to: id,
-        level: 3,
-        kind: "parent-child",
-      });
+      if (!nodes.has(id)) {
+        nodes.set(id, {
+          id,
+          level: lvl,
+          kind: k.kind || "component",
+          name: k.name,
+          tech: k.tech,
+          desc: k.desc,
+          status: k.status,
+          parentId,
+          deployed,
+          source: k.source,
+          diff: k.diff,
+          roadmap: k.roadmap,
+        });
+        edges.push({
+          id: `p3-${parentId}-${id}`,
+          from: parentId,
+          to: id,
+          level: lvl,
+          kind: "parent-child",
+        });
+      }
       if (k.next != null && kids[k.next]) {
         const nextId = kids[k.next]!.id || `${parentId}/${k.next}`;
         edges.push({
           id: `l3-next-${id}-${nextId}`,
           from: id,
           to: nextId,
-          level: 3,
+          level: lvl,
           kind: "rel",
           planned: k.status === "planned",
         });
       }
+      if (k.children?.length) addInlineChildren(id, k.children);
     });
   }
 
   // Level 4
-  for (const n of model.level4.nodes) {
-    nodes.set(n.id, {
-      id: n.id,
-      level: 4,
-      kind: n.kind || "resource",
-      name: n.title,
-      tech: n.facts?.type || n.facts?.sku || n.facts?.size,
-      desc: n.role,
-      status: n.status,
-      parentId: n.group || n.zone,
-      hosts: n.hosts,
-      source: n.source,
-      diff: n.diff,
-      roadmap: n.roadmap,
-    });
+  for (const n of model?.level4?.nodes ?? []) {
+    noteSubgraphRef(n.id, n.subgraphRef);
+    if (!nodes.has(n.id)) {
+      nodes.set(n.id, {
+        id: n.id,
+        level: 4,
+        kind: n.kind || "resource",
+        name: n.title,
+        tech: n.facts?.type || n.facts?.sku || n.facts?.size,
+        desc: n.role,
+        status: n.status,
+        parentId: n.group || n.zone,
+        hosts: n.hosts,
+        source: n.source,
+        diff: n.diff,
+        roadmap: n.roadmap,
+      });
+    }
+    if (n.children?.length) addInlineChildren(n.id, n.children);
   }
-  model.level4.links.forEach((l, idx) => {
+  (model?.level4?.links ?? []).forEach((l, idx) => {
     edges.push({
       id: `l4-${idx}-${l.from}-${l.to}`,
       from: l.from,
@@ -2457,35 +3985,40 @@ export function buildUnifiedArchitectureGraph(model: TuxMapLevelModel = DEFAULT_
     });
   });
 
-  // Level 5, 6+ Subgraphs
-  for (const [parentId, sg] of Object.entries(model.subgraphs || {})) {
-    const parentDepth = nodes.get(parentId)?.level ?? 4;
-    const childLevel = Math.max(5, parentDepth + 1);
-    sg.elements.forEach((k, idx) => {
+  // Level 5, 6, 7+ Subgraphs (level computed via parent walk so child-before-parent order gets exact depth)
+  for (const [rawParentId, sg] of Object.entries(model?.subgraphs || {})) {
+    const parentId = subgraphOwners.get(rawParentId) ?? rawParentId;
+    const rawLvl = levelForFocus(parentId, model, parentOf);
+    const childLevel = isLevel3Focus(parentId, model) ? 5 : rawLvl;
+    (sg?.elements ?? []).forEach((k, idx) => {
       const id = k.id || `${parentId}/${idx}`;
-      nodes.set(id, {
-        id,
-        level: childLevel,
-        kind: k.kind || "module",
-        name: k.name,
-        tech: k.tech,
-        desc: k.desc,
-        status: k.status,
-        parentId,
-        deployed: normArr(k.deployed),
-        source: k.source,
-        diff: k.diff,
-        roadmap: k.roadmap,
-      });
-      edges.push({
-        id: `psg-${parentId}-${id}`,
-        from: parentId,
-        to: id,
-        level: childLevel,
-        kind: "parent-child",
-      });
+      noteSubgraphRef(id, k.subgraphRef);
+      if (!nodes.has(id)) {
+        nodes.set(id, {
+          id,
+          level: childLevel,
+          kind: k.kind || "module",
+          name: k.name,
+          tech: k.tech,
+          desc: k.desc,
+          status: k.status,
+          parentId,
+          deployed: normArr(k.deployed),
+          source: k.source,
+          diff: k.diff,
+          roadmap: k.roadmap,
+        });
+        edges.push({
+          id: `psg-${parentId}-${id}`,
+          from: parentId,
+          to: id,
+          level: childLevel,
+          kind: "parent-child",
+        });
+      }
+      if (k.children?.length) addInlineChildren(id, k.children);
     });
-    (sg.rels || []).forEach((r, idx) => {
+    (sg?.rels || []).forEach((r, idx) => {
       edges.push({
         id: `lsg-${parentId}-${idx}-${r.from}-${r.to}`,
         from: r.from,
@@ -2500,7 +4033,7 @@ export function buildUnifiedArchitectureGraph(model: TuxMapLevelModel = DEFAULT_
   }
 
   // Code links: the fine-grained dependencies, at the level of the part that depends
-  (model.links || []).forEach((l, idx) => {
+  (model?.links || []).forEach((l, idx) => {
     if (!nodes.has(l.from) || !nodes.has(l.to)) return;
     edges.push({
       id: `lnk-${idx}-${l.from}-${l.to}`,
@@ -2513,6 +4046,51 @@ export function buildUnifiedArchitectureGraph(model: TuxMapLevelModel = DEFAULT_
     });
   });
 
+  const edgesByFrom = new Map<string, TuxMapGraphEdgeRecord[]>();
+  const edgesByTo = new Map<string, TuxMapGraphEdgeRecord[]>();
+  const neighborsByNode = new Map<string, Array<{ next: string; edge: TuxMapGraphEdgeRecord }>>();
+
+  const pushMap = <T>(m: Map<string, T[]>, k: string, v: T) => {
+    let arr = m.get(k);
+    if (!arr) {
+      arr = [];
+      m.set(k, arr);
+    }
+    arr.push(v);
+  };
+
+  for (const e of edges) {
+    pushMap(edgesByFrom, e.from, e);
+    pushMap(edgesByTo, e.to, e);
+    pushMap(neighborsByNode, e.from, { next: e.to, edge: e });
+    pushMap(neighborsByNode, e.to, { next: e.from, edge: e });
+  }
+
+  const effectiveLinks = extractModelLinks(model);
+
+  const idx: TuxMapQueryIndex = {
+    parentOf,
+    kidsOf,
+    nodes,
+    edges,
+    edgesByFrom,
+    edgesByTo,
+    neighborsByNode,
+    effectiveLinks,
+  };
+  MODEL_QUERY_INDEX_CACHE.set(model, { stamp, index: idx });
+  return idx;
+}
+
+/**
+ * Indexes a `TuxMapLevelModel` into a unified Code Property Graph (CPG) index
+ * spanning Levels 1..N (Context, Containers, Components, Deployment, Modules, Schemas, AST Symbols).
+ */
+export function buildUnifiedArchitectureGraph(model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL): {
+  nodes: Map<string, TuxMapGraphNodeRecord>;
+  edges: TuxMapGraphEdgeRecord[];
+} {
+  const { nodes, edges } = getMapQueryIndex(model);
   return { nodes, edges };
 }
 
@@ -2524,7 +4102,7 @@ export function queryArchitectureLayer(
   model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
   opts: { level?: number; focusId?: string; includePlanned?: boolean } = {},
 ) {
-  const { nodes, edges } = buildUnifiedArchitectureGraph(model);
+  const { nodes, edges } = getMapQueryIndex(model);
   const includePlanned = opts.includePlanned ?? true;
   const focusId = opts.focusId?.trim();
   const level = opts.level;
@@ -2556,85 +4134,74 @@ export function queryArchitectureLayer(
 /**
  * Computes multi-level k-hop upstream/downstream blast radius and impacted source files
  * for any node ID across Levels 1..N (used by MCP `tux_get_blast_radius`).
+ * Delegates upstream propagation to `computeLinkBlastRadius` so panel, query layer, and agents agree.
  */
 export function queryMultiLevelBlastRadius(
   nodeId: string,
   model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
-  maxHops = 2,
+  maxHopsOrOpts: number | TuxMapBlastOptions = 32,
 ) {
-  const { nodes, edges } = buildUnifiedArchitectureGraph(model);
-  const root = nodes.get(nodeId);
+  const idx = getMapQueryIndex(model);
+  const root = idx.nodes.get(nodeId);
   if (!root) {
     return {
       error: `Node '${nodeId}' not found in architecture graph.`,
-      availableNodeIds: [...nodes.keys()],
+      availableNodeIds: [...idx.nodes.keys()],
     };
   }
 
-  const upstream = new Map<string, number>();
-  const downstream = new Map<string, number>();
+  const blastOpts: TuxMapBlastOptions =
+    typeof maxHopsOrOpts === "number" ? { maxHops: maxHopsOrOpts, model } : { ...maxHopsOrOpts, model };
+  const rawMaxHops = blastOpts.maxHops === undefined ? 32 : blastOpts.maxHops;
+  const maxHops = Number.isFinite(rawMaxHops) ? Math.max(0, Math.floor(rawMaxHops)) : 32;
+  const includePlanned = blastOpts.includePlanned ?? false;
+  const links = includePlanned ? extractModelLinks(model, { includePlanned: true }) : idx.effectiveLinks;
+
+  const blast = computeLinkBlastRadius(links, nodeId, idx.parentOf, { ...blastOpts, maxHops });
+
   const childTree = new Set<string>();
+  for (const s of blast.seeds) {
+    if (s !== nodeId) childTree.add(s);
+  }
+
+  // Downstream BFS (nodes that `nodeId` or its descendants call/host/feed) in O(V + E)
+  const downstream = new Map<string, number>();
   const impactedEdgeIds = new Set<string>();
-
-  // Collect descendant nodes (components/modules/symbols inside `nodeId`)
-  const descQueue = [nodeId];
-  while (descQueue.length > 0) {
-    const curr = descQueue.shift()!;
-    for (const e of edges) {
-      if (e.kind === "parent-child" && e.from === curr && !childTree.has(e.to)) {
-        childTree.add(e.to);
-        descQueue.push(e.to);
+  const downQ: Array<[string, number]> = [...blast.seeds].map((id) => [id, 0]);
+  for (let qi = 0; qi < downQ.length; qi++) {
+    const [id, hop] = downQ[qi]!;
+    if (hop >= maxHops) continue;
+    for (const e of idx.edgesByFrom.get(id) ?? []) {
+      if (e.kind === "parent-child") continue;
+      if (!includePlanned && e.planned) continue;
+      impactedEdgeIds.add(e.id);
+      if (!blast.seeds.has(e.to) && !downstream.has(e.to)) {
+        downstream.set(e.to, hop + 1);
+        downQ.push([e.to, hop + 1]);
       }
     }
   }
 
-  const seedSet = new Set<string>([nodeId, ...childTree]);
-  if (root.parentId) seedSet.add(root.parentId);
-
-  // Downstream BFS (nodes that `nodeId` calls/hosts/feeds)
-  const downQ: { id: string; hop: number }[] = [...seedSet].map((id) => ({ id, hop: 0 }));
-  while (downQ.length > 0) {
-    const { id, hop } = downQ.shift()!;
-    if (hop >= maxHops) continue;
-    for (const e of edges) {
+  for (const id of [...blast.seeds, ...blast.hits.keys()]) {
+    for (const e of idx.edgesByTo.get(id) ?? []) {
       if (e.kind === "parent-child") continue;
-      if (e.from === id) {
+      if (!includePlanned && e.planned) continue;
+      if (blast.seeds.has(e.from) || blast.hits.has(e.from)) {
         impactedEdgeIds.add(e.id);
-        if (!seedSet.has(e.to) && (!downstream.has(e.to) || downstream.get(e.to)! > hop + 1)) {
-          downstream.set(e.to, hop + 1);
-          downQ.push({ id: e.to, hop: hop + 1 });
-        }
-      }
-    }
-  }
-
-  // Upstream BFS (callers/consumers that depend on `nodeId`)
-  const upQ: { id: string; hop: number }[] = [...seedSet].map((id) => ({ id, hop: 0 }));
-  while (upQ.length > 0) {
-    const { id, hop } = upQ.shift()!;
-    if (hop >= maxHops) continue;
-    for (const e of edges) {
-      if (e.kind === "parent-child") continue;
-      if (e.to === id) {
-        impactedEdgeIds.add(e.id);
-        if (!seedSet.has(e.from) && (!upstream.has(e.from) || upstream.get(e.from)! > hop + 1)) {
-          upstream.set(e.from, hop + 1);
-          upQ.push({ id: e.from, hop: hop + 1 });
-        }
       }
     }
   }
 
   const allTouchedIds = new Set<string>([
-    ...seedSet,
-    ...upstream.keys(),
+    ...blast.seeds,
+    ...blast.hits.keys(),
     ...downstream.keys(),
   ]);
 
   const impactedFiles: TuxMapSourceRef[] = [];
   const seenPaths = new Set<string>();
   for (const id of allTouchedIds) {
-    const src = nodes.get(id)?.source;
+    const src = idx.nodes.get(id)?.source;
     if (src && !seenPaths.has(src.path)) {
       seenPaths.add(src.path);
       impactedFiles.push(src);
@@ -2644,17 +4211,27 @@ export function queryMultiLevelBlastRadius(
   return {
     rootNode: root,
     maxHops,
+    truncated: blast.truncated,
     descendantIds: [...childTree],
-    upstreamDependents: [...upstream.entries()].map(([id, hop]) => ({
+    upstreamDependents: [...blast.hits.entries()].map(([id, h]) => ({
       id,
-      hop,
-      node: nodes.get(id),
+      hop: h.hop,
+      via: h.via,
+      at: h.at,
+      sites: h.sites,
+      node: idx.nodes.get(id),
     })),
     downstreamDependencies: [...downstream.entries()].map(([id, hop]) => ({
       id,
       hop,
-      node: nodes.get(id),
+      node: idx.nodes.get(id),
     })),
+    blockers: blast.blockers,
+    coCutCandidates: blast.coCutCandidates,
+    testsToRun: blast.testsToRun,
+    stampsToRebuild: blast.stampsToRebuild,
+    buildExecImpacted: blast.buildExecImpacted,
+    hostsImpacted: blast.hostsImpacted,
     impactedEdgeIds: [...impactedEdgeIds],
     impactedSourceFiles: impactedFiles,
   };
@@ -2669,18 +4246,18 @@ export function findShortestArchitecturePath(
   toNodeId: string,
   model: TuxMapLevelModel = DEFAULT_TTI_LEVEL_MODEL,
 ) {
-  const { nodes, edges } = buildUnifiedArchitectureGraph(model);
-  if (!nodes.has(fromNodeId)) {
+  const idx = getMapQueryIndex(model);
+  if (!idx.nodes.has(fromNodeId)) {
     return { error: `Source node '${fromNodeId}' not found.` };
   }
-  if (!nodes.has(toNodeId)) {
+  if (!idx.nodes.has(toNodeId)) {
     return { error: `Target node '${toNodeId}' not found.` };
   }
   if (fromNodeId === toNodeId) {
     return {
       found: true,
       hops: 0,
-      nodePath: [nodes.get(fromNodeId)!],
+      nodePath: [idx.nodes.get(fromNodeId)!],
       edges: [],
     };
   }
@@ -2689,14 +4266,13 @@ export function findShortestArchitecturePath(
   const prev = new Map<string, { prevId: string; edge: TuxMapGraphEdgeRecord }>();
   const visited = new Set<string>([fromNodeId]);
 
-  while (queue.length > 0) {
-    const curr = queue.shift()!;
+  for (let qi = 0; qi < queue.length; qi++) {
+    const curr = queue[qi]!;
     if (curr === toNodeId) break;
-    for (const e of edges) {
-      const next = e.from === curr ? e.to : e.to === curr ? e.from : null;
-      if (next && !visited.has(next)) {
+    for (const { next, edge } of idx.neighborsByNode.get(curr) ?? []) {
+      if (!visited.has(next)) {
         visited.add(next);
-        prev.set(next, { prevId: curr, edge: e });
+        prev.set(next, { prevId: curr, edge });
         queue.push(next);
       }
     }
@@ -2715,7 +4291,7 @@ export function findShortestArchitecturePath(
   const pathEdges: TuxMapGraphEdgeRecord[] = [];
   let cursor: string | undefined = toNodeId;
   while (cursor) {
-    const n = nodes.get(cursor);
+    const n = idx.nodes.get(cursor);
     if (n) pathNodes.unshift(n);
     const step = prev.get(cursor);
     if (!step) break;
