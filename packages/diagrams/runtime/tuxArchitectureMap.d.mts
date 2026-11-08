@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 7bb260c8ae110c3a3a81586030242f9012f5b30f3da3a0fa3974cc5cbfcc9536
+// SOURCE-SHA256: db6584d21473e2a9518d9a4a860e86a9fea47b9ad786654e2669e37a7ab86dd5
 /**
  * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
  *
@@ -778,7 +778,10 @@ export declare function buildMapParentIndex(model: TuxMapLevelModel): Map<string
  * and +1 for each nested subgraph below that (cycle-safe, iterative, bounded at `MAX_TREE_DEPTH`: `#124`).
  */
 export declare function levelForFocus(fid: string, model: TuxMapLevelModel, parentOf?: Map<string, string>): number;
-/** `id` and its ancestors, nearest first (memoized per `parentOf` map). */
+/**
+ * `id` and its ancestors, nearest first, in a new array the caller may change.
+ * O(depth): this runs several times per link, so it must not touch the whole map.
+ */
 export declare function mapAncestorsOf(id: string, parentOf: Map<string, string>): string[];
 /** The nearest of `id` and its ancestors that is in `set`, or null. */
 export declare function liftToSet(id: string, set: ReadonlySet<string>, parentOf: Map<string, string>): string | null;

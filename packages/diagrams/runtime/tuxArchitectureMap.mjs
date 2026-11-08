@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 7bb260c8ae110c3a3a81586030242f9012f5b30f3da3a0fa3974cc5cbfcc9536
+// SOURCE-SHA256: db6584d21473e2a9518d9a4a860e86a9fea47b9ad786654e2669e37a7ab86dd5
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -3034,7 +3034,6 @@ function getParentTables(parentOf) {
         stamp,
         size: parentOf.size,
         kidsOf,
-        ancestorsByNode: new Map(),
     };
     PARENT_TABLES_CACHE.set(parentOf, tables);
     return tables;
@@ -3098,10 +3097,6 @@ function getLinkAdjacency(links) {
     return built;
 }
 export function mapAncestorsOf(id, parentOf) {
-    const tables = getParentTables(parentOf);
-    const hit = tables.ancestorsByNode.get(id);
-    if (hit)
-        return hit;
     const chain = [];
     const seen = new Set();
     let x = id;
@@ -3110,7 +3105,6 @@ export function mapAncestorsOf(id, parentOf) {
         chain.push(x);
         x = parentOf.get(x);
     }
-    tables.ancestorsByNode.set(id, chain);
     return chain;
 }
 export function liftToSet(id, set, parentOf) {
