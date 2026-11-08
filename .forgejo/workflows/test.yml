@@ -73,6 +73,7 @@ jobs:
           key: nm-linux-${{ steps.node.outputs.arch }}-abi${{ steps.node.outputs.abi }}-${{ hashFiles('package-lock.json') }}
 
       - name: Install
+        id: install
         if: steps.nm.outputs.cache-hit != 'true'
         run: npm ci --no-audit --no-fund
 
@@ -101,3 +102,10 @@ jobs:
 
       - name: npm test
         run: npm test
+
+      # A failed install skips typecheck and npm test, and the job still reads
+      # "failure", the same as a failing test. In November 2026 an ETARGET here
+      # hid two real test failures across several merges (#143).
+      - name: Install failed, so no test ran
+        if: failure() && steps.install.outcome == 'failure'
+        run: echo "::error::npm ci failed, so typecheck and npm test did not run. This failure says nothing about the tests."
