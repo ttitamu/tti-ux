@@ -1096,8 +1096,11 @@ function auditButtonLabels(src, issues) {
 
 const ARCHITECTURE_TOOL_NAMES = new Set([
   "tux_query_architecture_nodes",
+  "tux_query_architecture_layer",
   "tux_query_architecture_impact",
+  "tux_get_blast_radius",
   "tux_find_architecture_path",
+  "tux_find_shortest_path",
   "tux_compute_graph_delta",
 ]);
 
@@ -1267,7 +1270,8 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
       };
     }
 
-    case "tux_query_architecture_nodes": {
+    case "tux_query_architecture_nodes":
+    case "tux_query_architecture_layer": {
       const model = resolveModel(opts);
       if (!model) {
         throw new Error(
@@ -1275,7 +1279,7 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
         );
       }
       const { queryArchitectureNodes } = requireMapRuntime();
-      const compact = parseOptBool(args.compact, "compact") ?? true;
+      const compact = parseOptBool(args.compact, "compact") ?? (name === "tux_query_architecture_nodes");
       const explicitLimit = clampOptInt(args.limit, "limit", 1, 500);
       const res = queryArchitectureNodes(model, {
         level: parseOptInt(args.level, "level"),
@@ -1303,7 +1307,8 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
       return res;
     }
 
-    case "tux_query_architecture_impact": {
+    case "tux_query_architecture_impact":
+    case "tux_get_blast_radius": {
       const model = resolveModel(opts);
       if (!model) {
         throw new Error(
@@ -1356,7 +1361,8 @@ export function callTuxMcpTool(name, args = {}, opts = {}) {
       return res;
     }
 
-    case "tux_find_architecture_path": {
+    case "tux_find_architecture_path":
+    case "tux_find_shortest_path": {
       const model = resolveModel(opts);
       if (!model) {
         throw new Error(
