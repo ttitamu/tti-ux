@@ -180,3 +180,11 @@ with a matching source hash in manifest.json.
 | TuxSignoffChain | react | never ported |
 | TuxStageBoard | react | never ported |
 | TuxThresholdBar | react | never ported |
+| TuxAnomalyCard | react | never ported |
+| TuxAuditLog | react | never ported |
+| TuxLogViewer | react | never ported |
+| TuxRateSchedule | react | never ported |
+| TuxResourceMeter | react | never ported |
+| TuxSimulator | react | never ported |
+| TuxStatementSheet | react | never ported |
+| TuxUptimeStrip | react | never ported |

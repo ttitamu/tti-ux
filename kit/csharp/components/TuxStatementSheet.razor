@@ -1,0 +1,26 @@
+@*
+ * TuxStatementSheet.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<article class="tux-statement-sheet">
+    @ChildContent
+</article>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? StatementId { get; set; }
+    [Parameter] public string Title { get; set; } = "Resource Chargeback Statement";
+    [Parameter] public string? PeriodLabel { get; set; }
+    [Parameter] public string? IssueDate { get; set; }
+    [Parameter] public string Status { get; set; } = "settled";
+    [Parameter] public string? Issuer { get; set; }
+    [Parameter] public string? Recipient { get; set; }
+    [Parameter] public string? Lines { get; set; }
+    [Parameter] public string? Adjustments { get; set; }
+    [Parameter] public string? Approvals { get; set; }
+    [Parameter] public string? RemittanceRef { get; set; }
+    [Parameter] public string? Digest { get; set; }
+    [Parameter] public string CurrencySymbol { get; set; } = "$";
+    [Parameter] public bool ShowPrintAction { get; set; } = true;
+}

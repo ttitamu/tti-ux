@@ -3,6 +3,39 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
+## [3.11.0] — 2026-11-05
+
+### Added — 8 Domain-Agnostic Telemetry, Rate Schedule, Audit Log & Statement Primitives + `/examples/telemetry-chargeback` (#136)
+
+- **Chargeback, Scenario Simulation, Audit & Statement Primitives**:
+  - `TuxRateSchedule` (`/components/rate-schedule`): Effective-dated tiered rate card and tariff schedule editor supporting flat, graduated marginal, and volume pricing models plus an inline sample quantity calculator.
+  - `TuxSimulator` (`/components/simulator`): Interactive what-if scenario parameter simulator with range sliders, direct numeric inputs, scenario presets, and live baseline-vs-projected metric deltas.
+  - `TuxAuditLog` (`/components/audit-log`): Immutable append-only operational and governance audit ledger with severity filtering, SHA-256 hash-chain verification pills, and structured `before → after` field diffs.
+  - `TuxStatementSheet` (`/components/statement-sheet`): Print-first and web-interactive cycle settlement statement sheet with issuer/recipient metadata, line items, adjustments/credits, grand total, and attestation block.
+- **Live Infrastructure Saturation, SLI Uptime, Anomaly Triage & Log Streaming Primitives**:
+  - `TuxResourceMeter` (`/components/resource-meter`): Multi-channel live infrastructure saturation card (CPU, memory, GPU, storage, network I/O) with status heartbeat, threshold coloring, and inline sparklines.
+  - `TuxUptimeStrip` (`/components/uptime-strip`): Temporal availability and SLI window strip (30/60/90 buckets) with aggregate uptime percentage, roving keyboard cursor, and incident inspection panel.
+  - `TuxAnomalyCard` (`/components/anomaly-card`): Threshold breach, metric spike, and anomaly triage card with baseline-vs-observed delta, sparkline context, and acknowledge/snooze sink states (`ACK ≠ MAINT`).
+  - `TuxLogViewer` (`/components/log-viewer`): Virtualized structured operational log and event stream viewer with level toggles, search highlighting, follow-tail lock, line-wrap toggle, and expandable JSON context drawers.
+- **Flagship Composition Workspace & Architecture Doctrine**:
+  - `/examples/telemetry-chargeback` (`app/pages/examples/telemetry-chargeback.vue`): 4-view operational telemetry and chargeback workspace composing all 8 new primitives with `TuxPeriodPicker`, `TuxFeedStatus`, `TuxSignoffChain`, `TuxChartWaterfall`, `TuxChartSankey`, and `TuxLedgerTable`.
+  - `/design/telemetry-and-chargeback` (`design/telemetry-and-chargeback.md`): Canonical vendor-neutral data-contract doctrine covering normalized usage ledger entries, effective-dated rate schedules with immutable statement snapshots, and deterministic attribution rule precedence.
+
+### Added & Changed — `<TuxArchitectureMap>` Blast-Radius, Branch-Delta & Real-Model MCP Contract (#110, #111, #112)
+
+- **Unified Multi-Intent Blast-Radius & Two-Tree Delta Engine (`#110`)**:
+  - Replaced divergent panel/diff/query walks with one deterministic contract supporting `coupling` (`contract`, `runtime`, `type-only`, `artifact-stamp`, `build-exec`, `verification`, `prose`), `phase` (`prod-runtime`, `client-bundle`, `stamp-only`, `build-exec`, `ci-test`), multi-site `sites: number[]`, `computeGraphDelta(base, head)` (`added`, `deleted`, `moved`, `sig-changed`, `body-patched`, `+wire`/`-wire`/`dangling-wire`), and canonical `packages/diagrams/tests/fixtures/map-conformance.json`.
+- **Section 8 Query Delegates & Legacy Lease Deprecation (`#111`)**:
+  - Delegated Section 8 programmatic graph queries (`queryArchitectureBlastRadius`, `findArchitecturePath`, `queryArchitectureNodes`) to the unified contract with strict dependency-edge path isolation (`depEdgesByFrom` / `depEdgesByTo`) and deprecated legacy single-process in-memory lease helpers cleanly for `4.0`.
+- **Compiled Map Runtime & `< 16 KB` Real-Model `tux-mcp` (`#112`)**:
+  - Shipped `@tti/tti-ux-diagrams/runtime/tuxArchitectureMap` (`mjs` + `d.mts`), removed `tux-mcp.mjs`'s hardcoded fictional sample graph, required explicit `--model` / `TUX_MCP_MODEL` on architecture tools, and enforced `< 16 KB` paged JSON-RPC wire bounds.
+
+### Fixed
+
+- **Playground teardown guard (`TuxPlayground.vue`, `#129`)**: Cleared the URL sync timer in `onBeforeUnmount` and guarded `globalThis.history` / `router.replace()` rejections during component teardown in unit tests.
+- **Cross-framework kits & ports**: Exported all 8 new components across `@tti/tti-ux-react`, `@tti/tti-ux-elements` (`211` custom elements), Figma Code Connect, and all `kit/` language targets (`210` catalogued components, `224` component unit test suites).
+- **Security (`node-forge` `1.4.3`, `#97`)**: Updated `node-forge` in `package-lock.json` to `1.4.3` and retired the obsolete `.security-ignore` rule.
+
 ## [3.10.0] — 2026-10-29
 
 ### Added — 19 Domain-Agnostic Resource Governance, Reconciliation, Structured Input & Flow Primitives + `/examples/resource-governance`

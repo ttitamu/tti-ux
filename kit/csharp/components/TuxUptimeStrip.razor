@@ -1,0 +1,18 @@
+@*
+ * TuxUptimeStrip.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-uptime-strip">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? ServiceName { get; set; }
+    [Parameter] public string? ServiceGroup { get; set; }
+    [Parameter] public string? Buckets { get; set; }
+    [Parameter] public string WindowLabel { get; set; } = "Last 30 days";
+    [Parameter] public double SlaTargetPct { get; set; } = 99.9;
+    [Parameter] public int? CurrentLatencyMs { get; set; }
+}

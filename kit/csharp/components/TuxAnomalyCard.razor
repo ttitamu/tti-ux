@@ -1,0 +1,24 @@
+@*
+ * TuxAnomalyCard.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<article class="tux-anomaly-card">
+    @ChildContent
+</article>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Id { get; set; } = "anomaly-card";
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? MetricLabel { get; set; }
+    [Parameter] public string? CurrentValue { get; set; }
+    [Parameter] public string? BaselineLabel { get; set; }
+    [Parameter] public string? DeltaLabel { get; set; }
+    [Parameter] public string? ProjectionLabel { get; set; }
+    [Parameter] public string Severity { get; set; } = "critical";
+    [Parameter] public string State { get; set; } = "open";
+    [Parameter] public string? RuleSummary { get; set; }
+    [Parameter] public string? Series { get; set; }
+    [Parameter] public string? TargetEntity { get; set; }
+}

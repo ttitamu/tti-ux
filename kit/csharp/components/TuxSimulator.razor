@@ -1,0 +1,21 @@
+@*
+ * TuxSimulator.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<section class="tux-simulator">
+    @ChildContent
+</section>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Title { get; set; } = "Workload & Cost Simulator";
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public string? Parameters { get; set; }
+    [Parameter] public string? Presets { get; set; }
+    [Parameter] public string PrimaryLabel { get; set; } = "Proposed Pool";
+    [Parameter] public string ComparisonLabel { get; set; } = "Baseline Pool";
+    [Parameter] public int BudgetLimit { get; set; } = 0;
+    [Parameter] public string CurrencySymbol { get; set; } = "$";
+    [Parameter] public bool ShowComparison { get; set; } = true;
+}

@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-10-29T21:14:19.728Z",
+  "timestamp": "2026-11-04T22:22:25.382Z",
   "system": "TTI-UX (TUX 3.0)",
   "standard": "W3C WCAG 2.2 Level AAA",
   "summary": {
-    "totalComponents": 203,
-    "aaaCompliantComponents": 203,
+    "totalComponents": 211,
+    "aaaCompliantComponents": 211,
     "aaaComplianceRate": 100,
     "contrastPairsTested": 11,
     "contrastPassRate": 100,
@@ -234,6 +234,22 @@
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
+    "TuxAnomalyCard": {
+      "name": "TuxAnomalyCard",
+      "file": "TuxAnomalyCard.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
     "TuxAppFrame": {
       "name": "TuxAppFrame",
       "file": "TuxAppFrame.vue",
@@ -285,6 +301,22 @@
       "file": "TuxArtifact.vue",
       "isInteractive": true,
       "hasMinTouchTarget": false,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxAuditLog": {
+      "name": "TuxAuditLog",
+      "file": "TuxAuditLog.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
       "hasFocusRing": true,
       "hasAria": true,
       "tier": "AAA",
@@ -1847,6 +1879,22 @@
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
+    "TuxLogViewer": {
+      "name": "TuxLogViewer",
+      "file": "TuxLogViewer.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
     "TuxMapEmbed": {
       "name": "TuxMapEmbed",
       "file": "TuxMapEmbed.vue",
@@ -2276,6 +2324,22 @@
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
+    "TuxRateSchedule": {
+      "name": "TuxRateSchedule",
+      "file": "TuxRateSchedule.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
     "TuxReactionBar": {
       "name": "TuxReactionBar",
       "file": "TuxReactionBar.vue",
@@ -2438,6 +2502,22 @@
       "isInteractive": true,
       "hasMinTouchTarget": false,
       "hasFocusRing": false,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxResourceMeter": {
+      "name": "TuxResourceMeter",
+      "file": "TuxResourceMeter.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
       "hasAria": true,
       "tier": "AAA",
       "contrastStandard": "7.0:1 (AAA)",
@@ -2684,6 +2764,22 @@
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
+    "TuxSimulator": {
+      "name": "TuxSimulator",
+      "file": "TuxSimulator.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
     "TuxSiteNav": {
       "name": "TuxSiteNav",
       "file": "TuxSiteNav.vue",
@@ -2851,6 +2947,22 @@
       "focusIndicator": "n/a",
       "notes": [
         "Non-interactive / semantic layout component",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxStatementSheet": {
+      "name": "TuxStatementSheet",
+      "file": "TuxStatementSheet.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
         "Equipped with semantic ARIA roles / labeling"
       ]
     },
@@ -3135,6 +3247,22 @@
       "isInteractive": true,
       "hasMinTouchTarget": false,
       "hasFocusRing": false,
+      "hasAria": true,
+      "tier": "AAA",
+      "contrastStandard": "7.0:1 (AAA)",
+      "focusIndicator": "3px dual-ring (AAA)",
+      "notes": [
+        "Meets 44x44px touch target requirement (Criterion 2.5.8)",
+        "Includes accessible visible focus indicator (Criterion 2.4.13)",
+        "Equipped with semantic ARIA roles / labeling"
+      ]
+    },
+    "TuxUptimeStrip": {
+      "name": "TuxUptimeStrip",
+      "file": "TuxUptimeStrip.vue",
+      "isInteractive": true,
+      "hasMinTouchTarget": true,
+      "hasFocusRing": true,
       "hasAria": true,
       "tier": "AAA",
       "contrastStandard": "7.0:1 (AAA)",

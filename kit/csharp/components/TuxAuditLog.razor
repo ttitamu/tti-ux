@@ -1,0 +1,17 @@
+@*
+ * TuxAuditLog.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<section class="tux-audit-log">
+    @ChildContent
+</section>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Title { get; set; } = "Immutable Governance Audit Log";
+    [Parameter] public string? Entries { get; set; }
+    [Parameter] public bool Searchable { get; set; } = true;
+    [Parameter] public string InitialCategory { get; set; } = "all";
+    [Parameter] public bool Exportable { get; set; } = true;
+}
