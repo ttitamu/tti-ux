@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 /**
- * build-map-runtime.mjs — Compiles `app/utils/tuxArchitectureMap.ts` into a
- * zero-dependency ESM module (`runtime/tuxArchitectureMap.mjs`) plus a
- * self-contained NodeNext declaration file (`runtime/tuxArchitectureMap.d.mts`)
- * so Node 22+ CLI consumers (`scripts/tux-mcp.mjs`), external TypeScript
+ * build-map-runtime.mjs — Compiles `app/utils/tuxArchitectureMap.ts` and
+ * `app/utils/tuxArchitectureMapSample.ts` into zero-dependency ESM modules
+ * (`runtime/tuxArchitectureMap.mjs`, `runtime/tuxArchitectureMapSample.mjs`)
+ * plus self-contained NodeNext declaration files (`runtime/*.d.mts`) so
+ * Node 22+ CLI consumers (`scripts/tux-mcp.mjs`), external TypeScript
  * consumers (`moduleResolution: "nodenext"`), and test suites run the exact
- * same M.A.P. engine (`tti/tti-ux#112`).
+ * same M.A.P. engine without bundling the sample model (`tti/tti-ux#112`, `#114`).
  *
  * Usage:
  *   node packages/diagrams/scripts/build-map-runtime.mjs          # write runtime files
@@ -19,21 +20,47 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pkgRoot = path.resolve(__dirname, "..");
-const srcPath = path.join(pkgRoot, "app", "utils", "tuxArchitectureMap.ts");
 const runtimeDir = path.join(pkgRoot, "runtime");
-const outJsPath = path.join(runtimeDir, "tuxArchitectureMap.mjs");
-const outDmtsPath = path.join(runtimeDir, "tuxArchitectureMap.d.mts");
-const legacyDtsPath = path.join(runtimeDir, "tuxArchitectureMap.d.ts");
+
+const TARGETS = [
+  {
+    name: "tuxArchitectureMap",
+    srcPath: path.join(pkgRoot, "app", "utils", "tuxArchitectureMap.ts"),
+    outJsPath: path.join(runtimeDir, "tuxArchitectureMap.mjs"),
+    outDmtsPath: path.join(runtimeDir, "tuxArchitectureMap.d.mts"),
+    legacyDtsPath: path.join(runtimeDir, "tuxArchitectureMap.d.ts"),
+    rewriteRelativeSpecifiers: false,
+  },
+  {
+    name: "tuxArchitectureMapSample",
+    srcPath: path.join(pkgRoot, "app", "utils", "tuxArchitectureMapSample.ts"),
+    outJsPath: path.join(runtimeDir, "tuxArchitectureMapSample.mjs"),
+    outDmtsPath: path.join(runtimeDir, "tuxArchitectureMapSample.d.mts"),
+    legacyDtsPath: path.join(runtimeDir, "tuxArchitectureMapSample.d.ts"),
+    rewriteRelativeSpecifiers: true,
+  },
+];
+
+function makeHeader(relSrc, sha256) {
+  return (
+    `// AUTO-GENERATED from ${relSrc} by scripts/build-map-runtime.mjs — DO NOT EDIT.\n` +
+    "// SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)\n" +
+    `// SOURCE-SHA256: ${sha256}\n`
+  );
+}
 
 const isCheck = process.argv.includes("--check");
-const srcRaw = readFileSync(srcPath, "utf8");
-const srcNormalized = srcRaw.replace(/\r\n/g, "\n");
-const srcSha256 = createHash("sha256").update(srcNormalized).digest("hex");
-
-const HEADER =
-  "// AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.\n" +
-  "// SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)\n" +
-  `// SOURCE-SHA256: ${srcSha256}\n`;
+const preparedTargets = TARGETS.map((t) => {
+  const relSrc = path.relative(pkgRoot, t.srcPath).replace(/\\/g, "/");
+  const srcNormalized = readFileSync(t.srcPath, "utf8").replace(/\r\n/g, "\n");
+  const sha256 = createHash("sha256").update(srcNormalized).digest("hex");
+  return {
+    ...t,
+    relSrc,
+    srcNormalized,
+    header: makeHeader(relSrc, sha256),
+  };
+});
 
 let ts = null;
 try {
@@ -47,48 +74,34 @@ try {
 }
 
 if (isCheck && !ts) {
-  // Zero-dependency CI path (`layer-check.yml`, `publish-package.yml` before `npm ci`):
-  // verify artifacts exist, legacy `.d.ts` is gone, and embedded SHA-256 matches source.
-  if (!existsSync(outJsPath) || !existsSync(outDmtsPath) || existsSync(legacyDtsPath)) {
-    console.error(
-      "runtime/tuxArchitectureMap.{mjs,d.mts} is missing or stale; run `npm --prefix packages/diagrams run build:runtime`.",
-    );
-    process.exit(1);
+  for (const t of preparedTargets) {
+    if (!existsSync(t.outJsPath) || !existsSync(t.outDmtsPath) || existsSync(t.legacyDtsPath)) {
+      console.error(
+        `runtime/${t.name}.{mjs,d.mts} is missing or stale; run \`npm --prefix packages/diagrams run build:runtime\`.`,
+      );
+      process.exit(1);
+    }
+    const curJs = readFileSync(t.outJsPath, "utf8");
+    const curDmts = readFileSync(t.outDmtsPath, "utf8");
+    if (!curJs.startsWith(t.header) || !curDmts.startsWith(t.header)) {
+      console.error(
+        `runtime/${t.name}.{mjs,d.mts} SOURCE-SHA256 is out of date with ${t.relSrc}; run \`npm --prefix packages/diagrams run build:runtime\`.`,
+      );
+      process.exit(1);
+    }
   }
-  const curJs = readFileSync(outJsPath, "utf8");
-  const curDmts = readFileSync(outDmtsPath, "utf8");
-  if (!curJs.startsWith(HEADER) || !curDmts.startsWith(HEADER)) {
-    console.error(
-      "runtime/tuxArchitectureMap.{mjs,d.mts} SOURCE-SHA256 is out of date with app/utils/tuxArchitectureMap.ts; run `npm --prefix packages/diagrams run build:runtime`.",
-    );
-    process.exit(1);
-  }
-  console.log("runtime/tuxArchitectureMap.{mjs,d.mts} source SHA-256 verified.");
+  console.log("runtime/tuxArchitectureMap*.{mjs,d.mts} source SHA-256 verified.");
   process.exit(0);
 }
 
-function compileArtifacts(tsApi) {
-  const transpiled = tsApi.transpileModule(srcNormalized, {
-    fileName: "tuxArchitectureMap.ts",
-    reportDiagnostics: true,
-    compilerOptions: {
-      target: tsApi.ScriptTarget.ES2022,
-      module: tsApi.ModuleKind.ES2022,
-      removeComments: true,
-      newLine: tsApi.NewLineKind.LineFeed,
-    },
-  });
+function rewriteNodeNextImports(text) {
+  return text.replace(
+    /(from\s+["'])(\.\/tuxArchitectureMap)(["'])/g,
+    "$1./tuxArchitectureMap.mjs$3",
+  );
+}
 
-  if (transpiled.diagnostics && transpiled.diagnostics.length > 0) {
-    const formatted = tsApi.formatDiagnostics(transpiled.diagnostics, {
-      getCanonicalFileName: (f) => f,
-      getCurrentDirectory: () => pkgRoot,
-      getNewLine: () => "\n",
-    });
-    console.error(formatted);
-    process.exit(1);
-  }
-
+function compileAllArtifacts(tsApi) {
   const dtsOptions = {
     declaration: true,
     emitDeclarationOnly: true,
@@ -99,14 +112,19 @@ function compileArtifacts(tsApi) {
     removeComments: false,
     newLine: tsApi.NewLineKind.LineFeed,
   };
+  const emittedByStem = new Map();
   const host = tsApi.createCompilerHost(dtsOptions);
-  let emittedDts = "";
   host.writeFile = (fileName, text) => {
     if (fileName.endsWith(".d.ts") || fileName.endsWith(".d.mts")) {
-      emittedDts = text;
+      const stem = path.basename(fileName).replace(/\.d\.m?ts$/, "");
+      emittedByStem.set(stem, text);
     }
   };
-  const program = tsApi.createProgram([srcPath], dtsOptions, host);
+  const program = tsApi.createProgram(
+    preparedTargets.map((t) => t.srcPath),
+    dtsOptions,
+    host,
+  );
   const emitRes = program.emit();
   if (emitRes.diagnostics && emitRes.diagnostics.length > 0) {
     const formatted = tsApi.formatDiagnostics(emitRes.diagnostics, {
@@ -117,42 +135,75 @@ function compileArtifacts(tsApi) {
     console.error(formatted);
     process.exit(1);
   }
-  if (!emittedDts) {
-    console.error("build-map-runtime: TypeScript failed to emit declaration output.");
-    process.exit(1);
-  }
 
-  return {
-    jsContent: `${HEADER}${transpiled.outputText.replace(/\r\n/g, "\n")}`,
-    dmtsContent: `${HEADER}${emittedDts.replace(/\r\n/g, "\n")}`,
-  };
+  return preparedTargets.map((t) => {
+    const transpiled = tsApi.transpileModule(t.srcNormalized, {
+      fileName: `${t.name}.ts`,
+      reportDiagnostics: true,
+      compilerOptions: {
+        target: tsApi.ScriptTarget.ES2022,
+        module: tsApi.ModuleKind.ES2022,
+        removeComments: true,
+        newLine: tsApi.NewLineKind.LineFeed,
+      },
+    });
+    if (transpiled.diagnostics && transpiled.diagnostics.length > 0) {
+      const formatted = tsApi.formatDiagnostics(transpiled.diagnostics, {
+        getCanonicalFileName: (f) => f,
+        getCurrentDirectory: () => pkgRoot,
+        getNewLine: () => "\n",
+      });
+      console.error(formatted);
+      process.exit(1);
+    }
+    const emittedDts = emittedByStem.get(t.name);
+    if (!emittedDts) {
+      console.error(`build-map-runtime: TypeScript failed to emit declaration output for ${t.name}.`);
+      process.exit(1);
+    }
+    let jsBody = transpiled.outputText.replace(/\r\n/g, "\n");
+    let dmtsBody = emittedDts.replace(/\r\n/g, "\n");
+    if (t.rewriteRelativeSpecifiers) {
+      jsBody = rewriteNodeNextImports(jsBody);
+      dmtsBody = rewriteNodeNextImports(dmtsBody);
+    }
+    return {
+      ...t,
+      jsContent: `${t.header}${jsBody}`,
+      dmtsContent: `${t.header}${dmtsBody}`,
+    };
+  });
 }
 
-const { jsContent, dmtsContent } = compileArtifacts(ts);
+const compiledTargets = compileAllArtifacts(ts);
 
 if (isCheck) {
-  if (!existsSync(outJsPath) || !existsSync(outDmtsPath) || existsSync(legacyDtsPath)) {
-    console.error(
-      "runtime/tuxArchitectureMap.{mjs,d.mts} is missing or stale; run `npm --prefix packages/diagrams run build:runtime`.",
-    );
-    process.exit(1);
+  for (const t of compiledTargets) {
+    if (!existsSync(t.outJsPath) || !existsSync(t.outDmtsPath) || existsSync(t.legacyDtsPath)) {
+      console.error(
+        `runtime/${t.name}.{mjs,d.mts} is missing or stale; run \`npm --prefix packages/diagrams run build:runtime\`.`,
+      );
+      process.exit(1);
+    }
+    const curJs = readFileSync(t.outJsPath, "utf8");
+    const curDmts = readFileSync(t.outDmtsPath, "utf8");
+    if (curJs !== t.jsContent || curDmts !== t.dmtsContent) {
+      console.error(
+        `runtime/${t.name}.{mjs,d.mts} is out of date with ${t.relSrc}; run \`npm --prefix packages/diagrams run build:runtime\`.`,
+      );
+      process.exit(1);
+    }
   }
-  const curJs = readFileSync(outJsPath, "utf8");
-  const curDmts = readFileSync(outDmtsPath, "utf8");
-  if (curJs !== jsContent || curDmts !== dmtsContent) {
-    console.error(
-      "runtime/tuxArchitectureMap.{mjs,d.mts} is out of date with app/utils/tuxArchitectureMap.ts; run `npm --prefix packages/diagrams run build:runtime`.",
-    );
-    process.exit(1);
-  }
-  console.log("runtime/tuxArchitectureMap.{mjs,d.mts} is up to date.");
+  console.log("runtime/tuxArchitectureMap*.{mjs,d.mts} are up to date.");
   process.exit(0);
 }
 
 mkdirSync(runtimeDir, { recursive: true });
-rmSync(legacyDtsPath, { force: true });
-writeFileSync(outJsPath, jsContent, "utf8");
-writeFileSync(outDmtsPath, dmtsContent, "utf8");
-console.log(
-  `Wrote ${path.relative(pkgRoot, outJsPath)} (${jsContent.length} bytes) and ${path.relative(pkgRoot, outDmtsPath)} (${dmtsContent.length} bytes).`,
-);
+for (const t of compiledTargets) {
+  rmSync(t.legacyDtsPath, { force: true });
+  writeFileSync(t.outJsPath, t.jsContent, "utf8");
+  writeFileSync(t.outDmtsPath, t.dmtsContent, "utf8");
+  console.log(
+    `Wrote ${path.relative(pkgRoot, t.outJsPath)} (${t.jsContent.length} bytes) and ${path.relative(pkgRoot, t.outDmtsPath)} (${t.dmtsContent.length} bytes).`,
+  );
+}

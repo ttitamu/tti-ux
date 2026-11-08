@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { DEFAULT_TTI_LEVEL_MODEL } from "~/utils/tuxArchitectureMapSample";
 import {
-  DEFAULT_TTI_LEVEL_MODEL,
   type TuxMapInkStroke,
   type TuxMapLevelModel,
   type TuxMapStickyNote,

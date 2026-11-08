@@ -16,6 +16,15 @@
       "types": "./runtime/tuxArchitectureMap.d.mts",
       "default": "./runtime/tuxArchitectureMap.mjs"
     },
+    "./runtime/tuxArchitectureMapSample": {
+      "types": "./runtime/tuxArchitectureMapSample.d.mts",
+      "import": "./runtime/tuxArchitectureMapSample.mjs",
+      "default": "./runtime/tuxArchitectureMapSample.mjs"
+    },
+    "./runtime/tuxArchitectureMapSample.mjs": {
+      "types": "./runtime/tuxArchitectureMapSample.d.mts",
+      "default": "./runtime/tuxArchitectureMapSample.mjs"
+    },
     "./app/composables/*.ts": "./app/composables/*.ts",
     "./app/composables/*": "./app/composables/*.ts",
     "./app/utils/*.ts": "./app/utils/*.ts",
