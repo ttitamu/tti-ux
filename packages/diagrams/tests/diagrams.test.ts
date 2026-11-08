@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { gzipSync } from "node:zlib";
 import * as esbuild from "esbuild";
 import { compileScript, parse as parseSfc } from "@vue/compiler-sfc";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import * as publishedMapRuntime from "../runtime/tuxArchitectureMap.mjs";
 import { useTuxMermaid } from "../app/composables/useTuxMermaid";
 import {
@@ -17,8 +17,6 @@ import {
   getBezierEdgePath,
   getStraightEdgePath,
   computeMapAutoLayout,
-  computeDependencyBlastRadius,
-  resetArchitectureDeprecationWarnings,
   getSmoothedFreehandSvgPath,
   getLaserPointerSvgPath,
   gridCellToPx,
@@ -30,10 +28,6 @@ import {
   queryArchitectureNodes,
   queryArchitectureImpact,
   findArchitecturePath,
-  queryArchitectureLayer,
-  queryMultiLevelBlastRadius,
-  findShortestArchitecturePath,
-  coordinateAcpSubgraphLease,
   buildMapParentIndex,
   levelForFocus,
   extractModelLinks,
@@ -174,15 +168,15 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect(layout.get("a")!.x).toBeLessThan(layout.get("b")!.x);
     expect(layout.get("b")!.x).toBeLessThan(layout.get("c")!.x);
 
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    try {
-      const blast = computeDependencyBlastRadius("b", edges);
-      expect([...blast.upstreamNodeIds]).toEqual(["a"]);
-      expect([...blast.downstreamNodeIds]).toEqual(["c"]);
-      expect(blast.activeEdgeIds.size).toBe(2);
-    } finally {
-      warnSpy.mockRestore();
-    }
+    const blast = computeLinkBlastRadius(
+      [
+        { from: "a", to: "b", kind: "calls" },
+        { from: "b", to: "c", kind: "calls" },
+      ],
+      "b",
+      new Map(),
+    );
+    expect([...blast.hits.keys()]).toEqual(["a"]);
   });
 
   it("generates smoothed freehand ink and decaying laser pointer SVG paths", () => {
@@ -758,7 +752,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect(() => computeGraphDelta({} as TuxMapLevelModel, cycModel)).not.toThrow();
   });
 
-  it("caps unknown-ID errors under 2 KB with <= 10 suggestions on a 2,500-node model, labels coarse-parent steps, supports paging, and warns once per deprecated API (#111)", () => {
+  it("caps unknown-ID errors under 2 KB with <= 10 suggestions on a 2,500-node model, labels coarse-parent steps, and supports paging (#111)", () => {
     // 1. 2,500-node model: unknown ID returns < 2 KB and at most 10 ranked suggestions
     const largeElements = Array.from({ length: 2496 }, (_, i) => ({
       id: `f:packages/mod_${String(i).padStart(4, "0")}/service_${i}.ts`,
@@ -893,49 +887,6 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect(TUX_MAP_LINK_STRENGTH_ORDER.at(-1)).toBe("mentions");
     expect(inferLinkCoupling({ from: "a", to: "b", kind: "links", stop: true })).toBe("contract");
     expect(inferLinkPhase({ from: "a", to: "b", kind: "links", stop: true })).toBe("client-bundle");
-
-    // 6. All 5 deprecated functions emit a single console.warn once and still return backwards-compatible results
-    resetArchitectureDeprecationWarnings();
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    try {
-      const rLayer1 = queryArchitectureLayer(DEFAULT_TTI_LEVEL_MODEL, { level: 2 });
-      const rLayer2 = queryArchitectureLayer(DEFAULT_TTI_LEVEL_MODEL, { level: 2 });
-      expect(rLayer1.nodeCount).toBeGreaterThan(0);
-      expect(rLayer2.nodeCount).toBe(rLayer1.nodeCount);
-      expect(warnSpy).toHaveBeenCalledTimes(1);
-
-      const rBlast1 = queryMultiLevelBlastRadius("c-api", DEFAULT_TTI_LEVEL_MODEL, 1);
-      queryMultiLevelBlastRadius("c-api", DEFAULT_TTI_LEVEL_MODEL, 1);
-      expect("error" in rBlast1).toBe(false);
-      expect(warnSpy).toHaveBeenCalledTimes(2);
-
-      const rPath1 = findShortestArchitecturePath("p-users", "c-db", DEFAULT_TTI_LEVEL_MODEL);
-      findShortestArchitecturePath("p-users", "c-db", DEFAULT_TTI_LEVEL_MODEL);
-      expect("found" in rPath1 && rPath1.found).toBe(true);
-      expect(warnSpy).toHaveBeenCalledTimes(3);
-
-      const rDep1 = computeDependencyBlastRadius("b", [{ id: "e1", source: "a", target: "b" }]);
-      computeDependencyBlastRadius("b", [{ id: "e1", source: "a", target: "b" }]);
-      expect([...rDep1.upstreamNodeIds]).toEqual(["a"]);
-      expect(warnSpy).toHaveBeenCalledTimes(4);
-
-      const rLease1 = coordinateAcpSubgraphLease("acquire", {
-        agentId: "a1",
-        rootNodeId: "c-api",
-        model: DEFAULT_TTI_LEVEL_MODEL,
-      });
-      const rLeaseConflict = coordinateAcpSubgraphLease("acquire", {
-        agentId: "a2",
-        rootNodeId: "c-api/1",
-        model: DEFAULT_TTI_LEVEL_MODEL,
-      });
-      coordinateAcpSubgraphLease("release", { agentId: "a1" });
-      expect(rLease1.acquired).toBe(true);
-      expect(rLeaseConflict.acquired).toBe(false);
-      expect(warnSpy).toHaveBeenCalledTimes(5);
-    } finally {
-      warnSpy.mockRestore();
-    }
   });
 
   it("enforces Gate B hardening invariants across normalization, path isolation, intents, spoofing, multi-seed coarse steps, and cache stamps (#111)", () => {
@@ -1170,21 +1121,6 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
 
     const idxNodes = getMapQueryIndex(DEFAULT_TTI_LEVEL_MODEL).nodes;
     expect(suggestCloseNodeIds("c-api", idxNodes, Number.NaN).length).toBeGreaterThan(0);
-
-    resetArchitectureDeprecationWarnings();
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    try {
-      const nanLease = coordinateAcpSubgraphLease("acquire", {
-        agentId: "nan-agent",
-        rootNodeId: "c-db",
-        ttlSeconds: Number.NaN,
-        model: DEFAULT_TTI_LEVEL_MODEL,
-      });
-      expect(nanLease.acquired).toBe(true);
-      coordinateAcpSubgraphLease("release", { agentId: "nan-agent" });
-    } finally {
-      warnSpy.mockRestore();
-    }
   });
 
   it("requires --model in tux-mcp, omits architecture tools without a model, and matches map-conformance.json with a model (#112)", async () => {
@@ -2870,6 +2806,62 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
 
     expect(gzipBytes).toBeGreaterThan(30_000);
     expect(gzipBytes).toBeLessThan(96_000);
+  });
+
+  it("removes deprecated 3.10 query names, computeDependencyBlastRadius, ACP lease API, and MCP aliases in 4.0 (#127)", async () => {
+    const pkgRoot = join(__dirname, "..");
+    const repoRoot = join(pkgRoot, "..", "..");
+    const removedRuntimeExports = [
+      "queryArchitectureLayer",
+      "queryMultiLevelBlastRadius",
+      "findShortestArchitecturePath",
+      "computeDependencyBlastRadius",
+      "coordinateAcpSubgraphLease",
+      "resetArchitectureDeprecationWarnings",
+    ];
+    for (const removed of removedRuntimeExports) {
+      expect((publishedMapRuntime as Record<string, unknown>)[removed]).toBeUndefined();
+    }
+
+    const dts = readFileSync(join(pkgRoot, "runtime/tuxArchitectureMap.d.mts"), "utf8");
+    for (const removedSymbol of [
+      ...removedRuntimeExports,
+      "TuxMapAcpLease",
+      "TuxMapCollaborator",
+    ]) {
+      expect(dts).not.toContain(removedSymbol);
+    }
+
+    const pkgReadme = readFileSync(join(pkgRoot, "README.md"), "utf8");
+    expect(pkgReadme).not.toContain("multi-user cursors");
+    for (const removed of removedRuntimeExports) {
+      expect(pkgReadme).not.toContain(removed);
+    }
+
+    const changelog = readFileSync(join(repoRoot, "CHANGELOG.md"), "utf8");
+    expect(changelog).toContain("## [4.0.0]");
+    expect(changelog).toContain("queryArchitectureLayer");
+    expect(changelog).toContain("queryArchitectureNodes");
+    expect(changelog).toContain("queryMultiLevelBlastRadius");
+    expect(changelog).toContain("queryArchitectureImpact");
+    expect(changelog).toContain("findShortestArchitecturePath");
+    expect(changelog).toContain("findArchitecturePath");
+    expect(changelog).toContain("computeDependencyBlastRadius");
+    expect(changelog).toContain("computeLinkBlastRadius");
+    expect(changelog).toContain("coordinateAcpSubgraphLease");
+    expect(changelog).toContain("computeGraphDelta");
+
+    // @ts-expect-error .mjs script import
+    const mcpMod = await import("../../../scripts/tux-mcp.mjs");
+    const srv = mcpMod.createTuxMcpServer({ model: DEFAULT_TTI_LEVEL_MODEL });
+    for (const legacyTool of [
+      "tux_query_architecture_layer",
+      "tux_get_blast_radius",
+      "tux_find_shortest_path",
+      "tux_acp_subgraph_lease",
+    ]) {
+      expect(() => srv.callTool(legacyTool, {})).toThrow(/Unknown TUX MCP tool/);
+    }
   });
 });
 

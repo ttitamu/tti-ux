@@ -1,7 +1,7 @@
 {
   "name": "@tti/tti-ux-elements",
-  "version": "3.12.0",
-  "description": "TUX Web Components — framework-neutral Custom Elements with bundled design tokens.",
+  "version": "4.0.0",
+  "description": "TUX Web Components \u2014 framework-neutral Custom Elements with bundled design tokens.",
   "type": "module",
   "main": "./dist/tux-elements.js",
   "module": "./dist/tux-elements.js",

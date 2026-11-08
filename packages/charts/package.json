@@ -1,6 +1,6 @@
 {
   "name": "@tti/tti-ux-charts",
-  "version": "3.12.0",
+  "version": "4.0.0",
   "description": "Apache ECharts integration and storytelling presets for the TTI design system (TUX).",
   "type": "module",
   "main": "./nuxt.config.ts",
@@ -22,7 +22,7 @@
     "test": "vitest run"
   },
   "peerDependencies": {
-    "@tti/tti-ux": "^3.0.0"
+    "@tti/tti-ux": "^4.0.0"
   },
   "dependencies": {
     "echarts": "^6.1.0",

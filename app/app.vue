@@ -228,12 +228,20 @@ const versionDropdownRef = ref<HTMLElement | null>(null);
 
 const releases = [
   {
-    version: "v3.12.0",
-    title: "Architecture Map Wayfinding, LCA Lifting & Lazy Subgraphs",
-    era: "M.A.P. v3.12 · Wire Inspector, LCA Outside Lifting, Rule Violations & Lazy Zoom",
+    version: "v4.0.0",
+    title: "M.A.P. 4.0 Canonical Graph Contract",
+    era: "Clean Break · Unified Query, Impact, Path & Delta Surface (#127)",
     badge: "Current",
     badgeClass: "bg-wash-brand-12 text-brand-primary border border-brand-primary/20",
     route: "/",
+  },
+  {
+    version: "v3.12.0",
+    title: "Architecture Map Wayfinding, LCA Lifting & Lazy Subgraphs",
+    era: "M.A.P. v3.12 · Wire Inspector, LCA Outside Lifting, Rule Violations & Lazy Zoom",
+    badge: "Stable",
+    badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
+    route: "/changelog#_3120-2026-11-07",
   },
   {
     version: "v3.11.0",

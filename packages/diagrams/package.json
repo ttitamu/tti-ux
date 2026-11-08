@@ -1,6 +1,6 @@
 {
   "name": "@tti/tti-ux-diagrams",
-  "version": "3.12.0",
+  "version": "4.0.0",
   "description": "Mermaid diagrams-as-code integration and institutional styling for the TTI design system (TUX).",
   "type": "module",
   "main": "./nuxt.config.ts",
@@ -55,7 +55,7 @@
     "check:conformance": "node scripts/generate-map-conformance.ts --check"
   },
   "peerDependencies": {
-    "@tti/tti-ux": "^3.0.0"
+    "@tti/tti-ux": "^4.0.0"
   },
   "dependencies": {
     "mermaid": "^12.2.0"

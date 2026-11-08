@@ -144,20 +144,6 @@ export interface TuxMapStickyNote {
   targetNodeId?: string | null;
 }
 
-export interface TuxMapCollaborator {
-  id: string;
-  name: string;
-  role?: string;
-  color: string;
-  /** World X coordinate */
-  x: number;
-  /** World Y coordinate */
-  y: number;
-  tool?: TuxMapTool;
-  /** Optional active laser trail points in world coordinates */
-  laserPoints?: TuxMapStrokePoint[];
-}
-
 export interface TuxMapViewport {
   x: number;
   y: number;
@@ -725,90 +711,6 @@ export function computeMapAutoLayout(
   }
 
   return result;
-}
-
-const emittedArchitectureDeprecations = new Set<string>();
-
-function warnArchitectureDeprecatedOnce(fnName: string, replacementHint: string): void {
-  if (emittedArchitectureDeprecations.has(fnName)) return;
-  emittedArchitectureDeprecations.add(fnName);
-  console.warn(`[@tti/tti-ux-diagrams] ${fnName}() is deprecated. ${replacementHint}`);
-}
-
-/** Resets one-shot Section 4/8 deprecation warning state (intended for test suites). */
-export function resetArchitectureDeprecationWarnings(): void {
-  emittedArchitectureDeprecations.clear();
-}
-
-/**
- * Computes the upstream (dependencies that feed `rootNodeId`) and downstream
- * (dependents impacted by `rootNodeId`) blast-radius subgraph using directed BFS.
- *
- * @deprecated Use `computeLinkBlastRadius` or `queryArchitectureImpact` instead.
- */
-export function computeDependencyBlastRadius(
-  rootNodeId: string,
-  edges: TuxMapEdge[],
-): {
-  activeNodeIds: Set<string>;
-  upstreamNodeIds: Set<string>;
-  downstreamNodeIds: Set<string>;
-  activeEdgeIds: Set<string>;
-} {
-  warnArchitectureDeprecatedOnce(
-    "computeDependencyBlastRadius",
-    "Use computeLinkBlastRadius() or queryArchitectureImpact() instead.",
-  );
-  const upstreamNodeIds = new Set<string>();
-  const downstreamNodeIds = new Set<string>();
-  const activeEdgeIds = new Set<string>();
-
-  // Forward BFS (downstream)
-  const downQueue = [rootNodeId];
-  const visitedDown = new Set<string>([rootNodeId]);
-  while (downQueue.length > 0) {
-    const curr = downQueue.shift()!;
-    for (const e of edges) {
-      if (e.source === curr) {
-        activeEdgeIds.add(e.id);
-        if (!visitedDown.has(e.target)) {
-          visitedDown.add(e.target);
-          downstreamNodeIds.add(e.target);
-          downQueue.push(e.target);
-        }
-      }
-    }
-  }
-
-  // Reverse BFS (upstream)
-  const upQueue = [rootNodeId];
-  const visitedUp = new Set<string>([rootNodeId]);
-  while (upQueue.length > 0) {
-    const curr = upQueue.shift()!;
-    for (const e of edges) {
-      if (e.target === curr) {
-        activeEdgeIds.add(e.id);
-        if (!visitedUp.has(e.source)) {
-          visitedUp.add(e.source);
-          upstreamNodeIds.add(e.source);
-          upQueue.push(e.source);
-        }
-      }
-    }
-  }
-
-  const activeNodeIds = new Set<string>([
-    rootNodeId,
-    ...upstreamNodeIds,
-    ...downstreamNodeIds,
-  ]);
-
-  return {
-    activeNodeIds,
-    upstreamNodeIds,
-    downstreamNodeIds,
-    activeEdgeIds,
-  };
 }
 
 // ============================================================================
@@ -6488,9 +6390,9 @@ export function computeGraphDelta(
 }
 
 // ============================================================================
-// 8. MCP / ACP ARCHITECTURE GRAPH QUERY & SUBGRAPH LEASE ENGINE
-//    (Deterministic spatial query, k-hop blast-radius, shortest path, and
-//     ACP non-overlapping subgraph lease coordinator for multi-agent swarms)
+// 8. MCP ARCHITECTURE GRAPH QUERY ENGINE
+//    (Deterministic spatial query, multi-intent blast-radius impact, and
+//     directed architectural path search across C4 + Code Property Graphs)
 // ============================================================================
 
 export interface TuxMapGraphNodeRecord {
@@ -6518,16 +6420,6 @@ export interface TuxMapGraphEdgeRecord {
   level: number;
   kind: "rel" | "deployment" | "parent-child" | "hosts";
   planned?: boolean;
-}
-
-export interface TuxMapAcpLease {
-  leaseId: string;
-  agentId: string;
-  rootNodeId: string;
-  scopeNodeIds: string[];
-  lockedFiles: string[];
-  acquiredAt: string;
-  expiresAt: string;
 }
 
 export interface TuxMapQueryIndex {
@@ -6927,7 +6819,7 @@ export const EMPTY_TTI_LEVEL_MODEL: TuxMapLevelModel = {
 
 /**
  * Memoized `O(V + E)` query index per `TuxMapLevelModel` instance so repeated
- * layer, blast-radius, shortest-path, and lease queries do not rebuild graph tables.
+ * layer, blast-radius, and shortest-path queries do not rebuild graph tables.
  */
 export function getMapQueryIndex(model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL): TuxMapQueryIndex {
   const isObjModel = model != null && typeof model === "object";
@@ -8142,294 +8034,6 @@ export function findArchitecturePath(
     nodeIds,
     ...(compact ? {} : { nodePath: pathNodes }),
     edges: pathEdges,
-  };
-}
-
-/**
- * Queries a specific semantic level or parent subgraph from a `TuxMapLevelModel`.
- *
- * @deprecated Use `queryArchitectureNodes` instead.
- */
-export function queryArchitectureLayer(
-  model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL,
-  opts: { level?: number; focusId?: string; includePlanned?: boolean } = {},
-) {
-  warnArchitectureDeprecatedOnce("queryArchitectureLayer", "Use queryArchitectureNodes() instead.");
-  const res = queryArchitectureNodes(model, {
-    level: opts.level,
-    focusId: opts.focusId,
-    includePlanned: opts.includePlanned,
-    compact: false,
-    includeEdges: true,
-  });
-  return {
-    level: res.level,
-    focusId: res.focusId,
-    nodeCount: res.nodeCount,
-    edgeCount: res.edgeCount,
-    nodes: res.nodes as TuxMapGraphNodeRecord[],
-    edges: res.edges,
-  };
-}
-
-/**
- * Computes multi-level k-hop upstream/downstream blast radius and impacted source files
- * for any node ID across Levels 1..N.
- *
- * @deprecated Use `queryArchitectureImpact` instead.
- */
-export function queryMultiLevelBlastRadius(
-  nodeId: string,
-  model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL,
-  maxHopsOrOpts: number | TuxMapBlastOptions = 32,
-) {
-  warnArchitectureDeprecatedOnce("queryMultiLevelBlastRadius", "Use queryArchitectureImpact() instead.");
-  const idx = getMapQueryIndex(model);
-  const root = idx.nodes.get(nodeId);
-  if (!root) {
-    const err = buildUnknownNodeError([nodeId], idx.nodes);
-    return {
-      error: err.error,
-      unknownIds: err.unknownIds,
-      suggestions: err.suggestions,
-      availableNodeIds: err.suggestions,
-    };
-  }
-
-  const blastOpts: TuxMapBlastOptions =
-    typeof maxHopsOrOpts === "number" ? { maxHops: maxHopsOrOpts, model } : { ...maxHopsOrOpts, model };
-  if (blastOpts.intent !== undefined && !TUX_MAP_VALID_BLAST_INTENTS.has(blastOpts.intent)) {
-    const clippedIntent = clipDisplayId(String(blastOpts.intent), 64);
-    return {
-      error: `Invalid blast intent '${clippedIntent}'; expected one of: default, patch, refactor, cut, supply-chain.`,
-      unknownIds: [],
-      suggestions: [...TUX_MAP_VALID_BLAST_INTENTS],
-      availableNodeIds: [],
-    };
-  }
-  const rawMaxHops = blastOpts.maxHops === undefined ? 32 : blastOpts.maxHops;
-  const maxHops = Number.isFinite(rawMaxHops) ? Math.max(0, Math.floor(rawMaxHops)) : 32;
-  const includePlanned = blastOpts.includePlanned ?? false;
-  const links = includePlanned ? extractModelLinks(model, { includePlanned: true }) : idx.effectiveLinks;
-
-  const blast = computeLinkBlastRadius(links, nodeId, idx.parentOf, { ...blastOpts, maxHops });
-
-  const childTree = new Set<string>();
-  for (const s of blast.seeds) {
-    if (s !== nodeId) childTree.add(s);
-  }
-
-  const downstream = new Map<string, number>();
-  const impactedEdgeIds = new Set<string>();
-  const downQ: Array<[string, number]> = [...blast.seeds].map((id) => [id, 0]);
-  for (let qi = 0; qi < downQ.length; qi++) {
-    const [id, hop] = downQ[qi]!;
-    if (hop >= maxHops) continue;
-    for (const e of idx.depEdgesByFrom.get(id) ?? []) {
-      if (!includePlanned && e.planned) continue;
-      impactedEdgeIds.add(e.id);
-      if (!blast.seeds.has(e.to) && !downstream.has(e.to)) {
-        downstream.set(e.to, hop + 1);
-        downQ.push([e.to, hop + 1]);
-      }
-    }
-  }
-
-  for (const id of [...blast.seeds, ...blast.hits.keys()]) {
-    for (const e of idx.depEdgesByTo.get(id) ?? []) {
-      if (!includePlanned && e.planned) continue;
-      if (blast.seeds.has(e.from) || blast.hits.has(e.from)) {
-        impactedEdgeIds.add(e.id);
-      }
-    }
-  }
-
-  const allTouchedIds = new Set<string>([
-    ...blast.seeds,
-    ...blast.hits.keys(),
-    ...downstream.keys(),
-  ]);
-
-  const impactedFiles: TuxMapSourceRef[] = [];
-  const seenPaths = new Set<string>();
-  for (const id of allTouchedIds) {
-    const src = idx.nodes.get(id)?.source;
-    if (src && !seenPaths.has(src.path)) {
-      seenPaths.add(src.path);
-      impactedFiles.push(src);
-    }
-  }
-
-  return {
-    rootNode: root,
-    maxHops,
-    truncated: blast.truncated,
-    descendantIds: [...childTree],
-    upstreamDependents: [...blast.hits.entries()].map(([id, h]) => ({
-      id,
-      hop: h.hop,
-      via: h.via,
-      at: h.at,
-      sites: h.sites,
-      node: idx.nodes.get(id),
-    })),
-    downstreamDependencies: [...downstream.entries()].map(([id, hop]) => ({
-      id,
-      hop,
-      node: idx.nodes.get(id),
-    })),
-    blockers: blast.blockers,
-    coCutCandidates: blast.coCutCandidates,
-    testsToRun: blast.testsToRun,
-    stampsToRebuild: blast.stampsToRebuild,
-    buildExecImpacted: blast.buildExecImpacted,
-    hostsImpacted: blast.hostsImpacted,
-    impactedEdgeIds: [...impactedEdgeIds],
-    impactedSourceFiles: impactedFiles,
-  };
-}
-
-/**
- * Finds a path between `fromNodeId` and `toNodeId` across Levels 1..N.
- *
- * @deprecated Use `findArchitecturePath` instead.
- */
-export function findShortestArchitecturePath(
-  fromNodeId: string,
-  toNodeId: string,
-  model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL,
-) {
-  warnArchitectureDeprecatedOnce("findShortestArchitecturePath", "Use findArchitecturePath() instead.");
-  const res = findArchitecturePath(fromNodeId, toNodeId, model, { compact: false });
-  if ("error" in res) {
-    return { error: res.error, unknownIds: res.unknownIds, suggestions: res.suggestions };
-  }
-  return {
-    found: res.found,
-    hops: res.hops,
-    nodePath: res.nodePath ?? [],
-    edges: res.edges,
-  };
-}
-
-const activeAcpLeases = new Map<string, TuxMapAcpLease>();
-
-/**
- * ACP (Agent Communication Protocol) Subgraph Lease Coordinator.
- *
- * @deprecated In-process ACP subgraph leases do not coordinate across processes; scope changes with
- * `computeGraphDelta` and `queryArchitectureImpact` instead.
- */
-export function coordinateAcpSubgraphLease(
-  action: "acquire" | "release" | "list",
-  opts: {
-    agentId?: string;
-    rootNodeId?: string;
-    leaseId?: string;
-    ttlSeconds?: number;
-    model?: TuxMapLevelModel;
-  } = {},
-) {
-  warnArchitectureDeprecatedOnce(
-    "coordinateAcpSubgraphLease",
-    "In-process ACP leases do not coordinate across processes; use computeGraphDelta() and queryArchitectureImpact() instead.",
-  );
-  const now = Date.now();
-  // Prune expired leases
-  for (const [id, lease] of activeAcpLeases.entries()) {
-    const exp = Date.parse(lease.expiresAt);
-    if (!Number.isFinite(exp) || exp <= now) {
-      activeAcpLeases.delete(id);
-    }
-  }
-
-  if (action === "list") {
-    return {
-      activeLeaseCount: activeAcpLeases.size,
-      leases: [...activeAcpLeases.values()],
-    };
-  }
-
-  if (action === "release") {
-    const removed =
-      (opts.leaseId && activeAcpLeases.delete(opts.leaseId)) ||
-      (opts.agentId &&
-        (() => {
-          let count = 0;
-          for (const [k, v] of activeAcpLeases.entries()) {
-            if (v.agentId === opts.agentId && (!opts.rootNodeId || v.rootNodeId === opts.rootNodeId)) {
-              activeAcpLeases.delete(k);
-              count++;
-            }
-          }
-          return count > 0;
-        })());
-    return {
-      released: Boolean(removed),
-      activeLeaseCount: activeAcpLeases.size,
-      leases: [...activeAcpLeases.values()],
-    };
-  }
-
-  // Acquire lease without invoking deprecated queryMultiLevelBlastRadius
-  const agentId = opts.agentId || "agent-anonymous";
-  const rootNodeId = opts.rootNodeId;
-  if (!rootNodeId) {
-    return { acquired: false, error: "rootNodeId is required to acquire an ACP subgraph lease." };
-  }
-
-  const model = opts.model || EMPTY_TTI_LEVEL_MODEL;
-  const idx = getMapQueryIndex(model);
-  if (!idx.nodes.has(rootNodeId)) {
-    const err = buildUnknownNodeError([rootNodeId], idx.nodes);
-    return { acquired: false, error: err.error, suggestions: err.suggestions };
-  }
-
-  const descendants = collectSubtreeDescendants(rootNodeId, idx.kidsOf);
-  const requestedScope = new Set<string>([rootNodeId, ...descendants]);
-  const requestedFiles = new Set<string>();
-  for (const id of requestedScope) {
-    const p = idx.nodes.get(id)?.source?.path;
-    if (p) requestedFiles.add(p);
-  }
-
-  // Check for conflicts with other agents' active leases
-  for (const existing of activeAcpLeases.values()) {
-    if (existing.agentId === agentId) continue;
-    const nodeOverlap = existing.scopeNodeIds.filter((id) => requestedScope.has(id));
-    const fileOverlap = existing.lockedFiles.filter((f) => requestedFiles.has(f));
-    if (nodeOverlap.length > 0 || fileOverlap.length > 0) {
-      return {
-        acquired: false,
-        conflict: {
-          heldByAgent: existing.agentId,
-          leaseId: existing.leaseId,
-          rootNodeId: existing.rootNodeId,
-          overlappingNodes: nodeOverlap,
-          overlappingFiles: fileOverlap,
-        },
-      };
-    }
-  }
-
-  const rawTtl = opts.ttlSeconds !== undefined && Number.isFinite(opts.ttlSeconds) ? opts.ttlSeconds : 900;
-  const clampedTtlSeconds = Math.min(86400, Math.max(1, Math.floor(rawTtl)));
-  const ttlMs = clampedTtlSeconds * 1000;
-  const lease: TuxMapAcpLease = {
-    leaseId: `lease-${agentId}-${rootNodeId.replace(/[^a-zA-Z0-9_-]/g, "_")}`,
-    agentId,
-    rootNodeId,
-    scopeNodeIds: [...requestedScope],
-    lockedFiles: [...requestedFiles],
-    acquiredAt: new Date(now).toISOString(),
-    expiresAt: new Date(now + ttlMs).toISOString(),
-  };
-  activeAcpLeases.set(lease.leaseId, lease);
-
-  return {
-    acquired: true,
-    lease,
-    activeLeaseCount: activeAcpLeases.size,
   };
 }
 
