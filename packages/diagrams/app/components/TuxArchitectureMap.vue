@@ -1040,11 +1040,19 @@ interface OutsideCardMeta {
   isOverflowRollup?: boolean;
 }
 
+/** An outside card's one resting wire, and the card-by-card wires it opens into. */
+interface StageExpandableSide {
+  id: string;
+  aggregate: TuxMapLevelRel;
+  wires: TuxMapLevelRel[];
+}
+
 interface ComputedStageData {
   els: TuxMapLevelElement[];
   deployNodes: TuxMapDeploymentNode[];
   rels: TuxMapLevelRel[];
   listRels: TuxMapLevelRel[];
+  expandableSides: StageExpandableSide[];
   bounds: TuxMapPlacedBoundary[];
   rects: Record<string, TuxMapGridCellRect>;
   outsideLinkCounts: Record<string, number>;
@@ -1260,6 +1268,7 @@ const stageData = computed<ComputedStageData>(() => {
       wireDetails: Object.create(null),
       foldedToRepresentative: new Map(),
       codeEdgeHoverIds: new Set(),
+      expandableSides: [],
       innerCardCount: nodes.length,
       moreOutside: 0,
       width: W,
@@ -1293,6 +1302,7 @@ const stageData = computed<ComputedStageData>(() => {
   const outsideMetaById: Record<string, OutsideCardMeta> = Object.create(null);
   const wireDetails: Record<string, TuxMapWireInspectorDetail> = Object.create(null);
   const codeEdgeHoverIds = new Set<string>();
+  const expandableSides: StageExpandableSide[] = [];
   const rawBounds: {
     id?: string;
     label: string;
@@ -1765,10 +1775,6 @@ const stageData = computed<ComputedStageData>(() => {
     }
 
     if (codeEdge) {
-      const activeNode = hoveredStageCardId.value || selectedId.value;
-      const shouldExpandSide = (o: TuxMapLiftedSide): boolean =>
-        Boolean(activeNode && (activeNode === o.id || o.wires.some((w) => w.kid === activeNode)));
-
       const collectSideViolations = (o: TuxMapLiftedSide): TuxMapLinkViolation[] | undefined => {
         const outV: TuxMapLinkViolation[] = [];
         const seen = new Set<string>();
@@ -1788,52 +1794,52 @@ const stageData = computed<ComputedStageData>(() => {
         for (const w of o.wires) {
           rawListRels.push({ from: o.id, to: w.kid, label: w.label, violations: w.violations });
         }
-        if (shouldExpandSide(o)) {
+        const aggKey = wirePairKey(o.id, "@bound");
+        if (!hasOwn(wireDetails, aggKey)) {
           for (const w of o.wires) {
-            rawRels.push({ from: o.id, to: w.kid, label: w.label, violations: w.violations });
+            const det = wireDetails[wirePairKey(o.id, w.kid)];
+            if (det) wireDetails[aggKey] = mergeWireDetails(wireDetails[aggKey], det, o.id, "@bound");
           }
-        } else {
-          const aggKey = wirePairKey(o.id, "@bound");
-          if (!hasOwn(wireDetails, aggKey)) {
-            for (const w of o.wires) {
-              const det = wireDetails[wirePairKey(o.id, w.kid)];
-              if (det) wireDetails[aggKey] = mergeWireDetails(wireDetails[aggKey], det, o.id, "@bound");
-            }
-          }
-          const aggViol = collectSideViolations(o);
-          rawRels.push({
-            from: o.id,
-            to: "@bound",
-            label: `${o.count} ${o.count === 1 ? "link" : "links"}`,
-            ...(aggViol ? { violations: aggViol } : {}),
-          });
         }
+        const aggViol = collectSideViolations(o);
+        const aggregate: TuxMapLevelRel = {
+          from: o.id,
+          to: "@bound",
+          label: `${o.count} ${o.count === 1 ? "link" : "links"}`,
+          ...(aggViol ? { violations: aggViol } : {}),
+        };
+        rawRels.push(aggregate);
+        expandableSides.push({
+          id: o.id,
+          aggregate,
+          wires: o.wires.map((w) => ({ from: o.id, to: w.kid, label: w.label, violations: w.violations })),
+        });
       }
 
       for (const o of [...shownOutsSides, ...outsAlsoOnIns.values()]) {
         for (const w of o.wires) {
           rawListRels.push({ from: w.kid, to: o.id, label: w.label, violations: w.violations });
         }
-        if (shouldExpandSide(o)) {
+        const aggKey = wirePairKey("@bound", o.id);
+        if (!hasOwn(wireDetails, aggKey)) {
           for (const w of o.wires) {
-            rawRels.push({ from: w.kid, to: o.id, label: w.label, violations: w.violations });
+            const det = wireDetails[wirePairKey(w.kid, o.id)];
+            if (det) wireDetails[aggKey] = mergeWireDetails(wireDetails[aggKey], det, "@bound", o.id);
           }
-        } else {
-          const aggKey = wirePairKey("@bound", o.id);
-          if (!hasOwn(wireDetails, aggKey)) {
-            for (const w of o.wires) {
-              const det = wireDetails[wirePairKey(w.kid, o.id)];
-              if (det) wireDetails[aggKey] = mergeWireDetails(wireDetails[aggKey], det, "@bound", o.id);
-            }
-          }
-          const aggViol = collectSideViolations(o);
-          rawRels.push({
-            from: "@bound",
-            to: o.id,
-            label: `${o.count} ${o.count === 1 ? "link" : "links"}`,
-            ...(aggViol ? { violations: aggViol } : {}),
-          });
         }
+        const aggViol = collectSideViolations(o);
+        const aggregate: TuxMapLevelRel = {
+          from: "@bound",
+          to: o.id,
+          label: `${o.count} ${o.count === 1 ? "link" : "links"}`,
+          ...(aggViol ? { violations: aggViol } : {}),
+        };
+        rawRels.push(aggregate);
+        expandableSides.push({
+          id: o.id,
+          aggregate,
+          wires: o.wires.map((w) => ({ from: w.kid, to: o.id, label: w.label, violations: w.violations })),
+        });
       }
 
       if (overflowInCard) {
@@ -1916,7 +1922,7 @@ const stageData = computed<ComputedStageData>(() => {
         pushPairLink(wirePairKey("@bound", st), l);
       }
     }
-    for (const r of rels) {
+    for (const r of [...rels, ...expandableSides.flatMap((side) => side.wires)]) {
       const wk = wirePairKey(r.from, r.to);
       if (hasOwn(wireDetails, wk)) continue;
       const matched = groupedByPair.get(wk) ?? [];
@@ -2140,6 +2146,7 @@ const stageData = computed<ComputedStageData>(() => {
     deployNodes: [],
     rels,
     listRels,
+    expandableSides,
     bounds,
     rects,
     outsideLinkCounts,
@@ -2170,6 +2177,23 @@ watch(
   { immediate: true },
 );
 
+/**
+ * The stage's wires, with the hovered (else selected) card's outside sides opened
+ * up card by card. This stays out of `stageData` so a hover re-routes the wires
+ * and rebuilds nothing else (#141).
+ */
+const stageRels = computed<TuxMapLevelRel[]>(() => {
+  const { rels, expandableSides } = stageData.value;
+  const active = hoveredStageCardId.value || selectedId.value;
+  if (!active || expandableSides.length === 0) return rels;
+  const opened = new Map(
+    expandableSides
+      .filter((side) => side.id === active || side.wires.some((w) => w.from === active || w.to === active))
+      .map((side) => [side.aggregate, side.wires]),
+  );
+  return opened.size > 0 ? rels.flatMap((r) => opened.get(r) ?? [r]) : rels;
+});
+
 const routedSvg = computed(() => {
   if (currentLevel.value === 4) {
     const links = activeModel.value.level4.links.filter(
@@ -2183,7 +2207,7 @@ const routedSvg = computed(() => {
       labels: [],
     };
   }
-  const base = routeGridWires(stageData.value.rels, stageData.value.rects, stageData.value.els);
+  const base = routeGridWires(stageRels.value, stageData.value.rects, stageData.value.els);
   // Above 30 routed wires (#124), hide labels at rest (`forced: true` -> opacity: 0, never display: none)
   if (base.wires.length > 30 && base.labels.length > 0) {
     return {
