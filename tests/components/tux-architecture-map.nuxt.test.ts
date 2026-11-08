@@ -9,6 +9,59 @@ import { DEFAULT_TTI_LEVEL_MODEL } from "../../packages/diagrams/app/utils/tuxAr
 import { runComponentAxe } from "../axe-helper";
 
 describe("TuxArchitectureMap Component", () => {
+  it("opens an outside card's wires on hover without rebuilding the stage (#141)", async () => {
+    const model: TuxMapLevelModel = {
+      level1: { title: "x", elements: [{ id: "sys", kind: "system", name: "S", at: [1, 1] }], rels: [] },
+      level2: {
+        title: "c",
+        boundary: "sys",
+        elements: [{ id: "c-gw", kind: "container", name: "GW", at: [1, 1] }],
+        rels: [],
+      },
+      level3: {
+        "c-gw": [
+          { id: "comp-a", kind: "component", name: "A", at: [1, 1] },
+          { id: "comp-b", kind: "component", name: "B", at: [3, 1] },
+        ],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      subgraphs: {
+        "comp-a": { stratum: "Files", elements: [{ id: "f:a.py", kind: "module", name: "a.py", at: [1, 1] }] },
+        "comp-b": {
+          stratum: "Files",
+          elements: [
+            { id: "f:b1.py", kind: "module", name: "b1.py", at: [1, 1] },
+            { id: "f:b2.py", kind: "module", name: "b2.py", at: [2, 1] },
+          ],
+        },
+      },
+      links: [
+        { from: "f:a.py", to: "f:b1.py", kind: "calls" },
+        { from: "f:a.py", to: "f:b2.py", kind: "calls" },
+      ],
+    } as unknown as TuxMapLevelModel;
+    const wrapper = await mountSuspended(TuxArchitectureMap, {
+      props: { model, initialLevel: 5, initialFocus: "comp-b" },
+    });
+    await nextTick();
+    const state = (wrapper.vm as unknown as { $: { setupState: Record<string, any> } }).$.setupState;
+    const stageBefore = state.stageData;
+    const targets = () => state.routedSvg.wires.map((w: { to: string }) => w.to).sort();
+
+    // At rest the outside card has one wire, to the boundary.
+    expect(targets()).toEqual(["@bound"]);
+
+    const card = wrapper.find('.tux-map__el[data-id="f:b1.py"]').element as HTMLElement;
+    card.dispatchEvent(new window.MouseEvent("pointerover", { bubbles: true }));
+    await nextTick();
+
+    // Hovering an inner card it reaches opens that wire card by card, and the
+    // stage (folding, lifting, layout) is not computed again.
+    expect(state.hoveredStageCardId).toBe("f:b1.py");
+    expect(targets()).toEqual(["f:b1.py", "f:b2.py"]);
+    expect(state.stageData).toBe(stageBefore);
+  });
+
   it("renders Level 2 by default and passes axe accessibility checks", async () => {
     const wrapper = await mountSuspended(TuxArchitectureMap, {
       props: {
