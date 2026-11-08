@@ -35,6 +35,7 @@ import {
   findShortestArchitecturePath,
   coordinateAcpSubgraphLease,
   buildMapParentIndex,
+  mapAncestorsOf,
   levelForFocus,
   extractModelLinks,
   liftLinksToView,
@@ -2072,6 +2073,29 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     for (let s = 0; s < depPts.length - 1; s++) {
       expect(segHitsInterior(depPts[s]!, depPts[s + 1]!, depRects.vmBlocker!)).toBe(false);
     }
+  });
+
+  it("mapAncestorsOf walks only the chain and hands back a fresh array (#144)", () => {
+    // Only `get` exists, so a walk of the whole map throws however it is written.
+    // Hashing the whole map on each call made a large model's first render take
+    // tens of seconds, and this keeps the check off the wall clock.
+    const table = new Map([
+      ["c", "b"],
+      ["b", "a"],
+    ]);
+    const parentOf = { get: (id: string) => table.get(id) } as unknown as Map<string, string>;
+    expect(mapAncestorsOf("c", parentOf)).toEqual(["c", "b", "a"]);
+
+    // A caller may reverse the result for root-first breadcrumbs.
+    mapAncestorsOf("c", parentOf).reverse();
+    expect(mapAncestorsOf("c", parentOf)).toEqual(["c", "b", "a"]);
+
+    // Still safe on a cycle.
+    const cyclic = new Map([
+      ["x", "y"],
+      ["y", "x"],
+    ]);
+    expect(mapAncestorsOf("x", cyclic)).toEqual(["x", "y"]);
   });
 
   it("indexes and scores 2,400 cross-level Go-To entries (Components, Folders, Files, Functions, Routes) with a median query under 25 ms (#120)", () => {

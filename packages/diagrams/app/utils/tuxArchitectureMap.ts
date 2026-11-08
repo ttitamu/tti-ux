@@ -4180,7 +4180,6 @@ interface CachedParentTables {
   stamp: number;
   size: number;
   kidsOf: Map<string, string[]>;
-  ancestorsByNode: Map<string, string[]>;
 }
 
 const PARENT_TABLES_CACHE = /* @__PURE__ */ new WeakMap<ReadonlyMap<string, string>, CachedParentTables>();
@@ -4205,7 +4204,6 @@ function getParentTables(parentOf: ReadonlyMap<string, string>): CachedParentTab
     stamp,
     size: parentOf.size,
     kidsOf,
-    ancestorsByNode: new Map<string, string[]>(),
   };
   PARENT_TABLES_CACHE.set(parentOf, tables);
   return tables;
@@ -4282,11 +4280,11 @@ function getLinkAdjacency(links: readonly TuxMapLink[]): CachedLinkAdjacency {
   return built;
 }
 
-/** `id` and its ancestors, nearest first (memoized per `parentOf` map). */
+/**
+ * `id` and its ancestors, nearest first, in a new array the caller may change.
+ * O(depth): this runs several times per link, so it must not touch the whole map.
+ */
 export function mapAncestorsOf(id: string, parentOf: Map<string, string>): string[] {
-  const tables = getParentTables(parentOf);
-  const hit = tables.ancestorsByNode.get(id);
-  if (hit) return hit;
   const chain: string[] = [];
   const seen = new Set<string>();
   let x: string | undefined = id;
@@ -4295,7 +4293,6 @@ export function mapAncestorsOf(id: string, parentOf: Map<string, string>): strin
     chain.push(x);
     x = parentOf.get(x);
   }
-  tables.ancestorsByNode.set(id, chain);
   return chain;
 }
 
