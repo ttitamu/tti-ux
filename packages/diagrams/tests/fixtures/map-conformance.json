@@ -1974,6 +1974,14 @@
               "source": {
                 "path": "branding/index.html"
               }
+            },
+            {
+              "id": "f:branding/nav.html",
+              "kind": "module",
+              "name": "nav.html",
+              "source": {
+                "path": "branding/nav.html"
+              }
             }
           ]
         },
@@ -2009,6 +2017,22 @@
               "name": "spoof_caller.py",
               "source": {
                 "path": "lib/spoof_caller.py"
+              }
+            },
+            {
+              "id": "f:lib/spoof_build_caller.py",
+              "kind": "module",
+              "name": "spoof_build_caller.py",
+              "source": {
+                "path": "lib/spoof_build_caller.py"
+              }
+            },
+            {
+              "id": "f:lib/spoof_verif_caller.py",
+              "kind": "module",
+              "name": "spoof_verif_caller.py",
+              "source": {
+                "path": "lib/spoof_verif_caller.py"
               }
             },
             {
@@ -2138,6 +2162,13 @@
           "at": "branding/index.html:8"
         },
         {
+          "from": "f:branding/nav.html",
+          "to": "f:lib/target.py",
+          "kind": "links",
+          "stop": true,
+          "at": "branding/nav.html:5"
+        },
+        {
           "from": "f:lib/shell_helper.sh",
           "to": "f:lib/target.py",
           "kind": "sources",
@@ -2226,6 +2257,22 @@
           "at": "lib/spoof_caller.py:11"
         },
         {
+          "from": "f:lib/spoof_build_caller.py",
+          "to": "f:lib/target.py",
+          "kind": "calls",
+          "coupling": "build-exec",
+          "phase": "ci-test",
+          "at": "lib/spoof_build_caller.py:3"
+        },
+        {
+          "from": "f:lib/spoof_verif_caller.py",
+          "to": "f:lib/target.py",
+          "kind": "calls",
+          "coupling": "verification",
+          "phase": "ci-test",
+          "at": "lib/spoof_verif_caller.py:4"
+        },
+        {
           "from": "f:lib/spoof_runner.sh",
           "to": "f:lib/target.py",
           "kind": "runs",
@@ -2239,13 +2286,24 @@
       "level1": {
         "elements": [
           {
+            "id": "p-ext",
+            "kind": "person",
+            "name": "External Caller"
+          },
+          {
             "id": "sys-hyb",
             "kind": "system",
             "name": "Hybrid System",
             "zoom": 2
           }
         ],
-        "rels": []
+        "rels": [
+          {
+            "from": "p-ext",
+            "to": "sys-hyb",
+            "label": "Uses hybrid system"
+          }
+        ]
       },
       "level2": {
         "boundary": "sys-hyb",
@@ -2264,7 +2322,13 @@
             "name": "Direct Fractal Container"
           }
         ],
-        "rels": []
+        "rels": [
+          {
+            "from": "c-empty-l3",
+            "to": "constructor",
+            "label": "Coarse container call"
+          }
+        ]
       },
       "level3": {
         "constructor": [
@@ -2330,6 +2394,15 @@
         ]
       },
       "subgraphs": {
+        "sg-child-syms": {
+          "elements": [
+            {
+              "id": "s:api/handler.py#serve",
+              "kind": "symbol",
+              "name": "serve()"
+            }
+          ]
+        },
         "constructor": {
           "elements": [
             {
@@ -2354,6 +2427,7 @@
               "id": "f:api/handler.py",
               "kind": "module",
               "name": "handler.py",
+              "subgraphRef": "sg-child-syms",
               "source": {
                 "path": "api/handler.py",
                 "lineRange": []
@@ -2453,15 +2527,18 @@
         "constructor": 2,
         "constructor/api": 3,
         "f:api/handler.py": 5,
+        "s:api/handler.py#serve": 6,
         "f:direct_l5.py": 5
       },
       "expectedFocusLevels": {
         "constructor": 3,
         "c-empty-l3": 5,
-        "constructor/api": 5
+        "constructor/api": 5,
+        "f:api/handler.py": 6
       },
       "expectedParent": {
         "f:api/handler.py": "constructor/api",
+        "s:api/handler.py#serve": "f:api/handler.py",
         "f:direct_l5.py": "c-empty-l3"
       }
     }
@@ -3325,6 +3402,12 @@
             "at": "branding/index.html:8"
           },
           {
+            "id": "f:branding/nav.html",
+            "hop": 1,
+            "kind": "links",
+            "at": "branding/nav.html:5"
+          },
+          {
             "id": "f:deploy/Caddyfile",
             "hop": 1,
             "kind": "routes",
@@ -3349,6 +3432,12 @@
             "at": "lib/shell_helper.sh:3"
           },
           {
+            "id": "f:lib/spoof_build_caller.py",
+            "hop": 1,
+            "kind": "calls",
+            "at": "lib/spoof_build_caller.py:3"
+          },
+          {
             "id": "f:lib/spoof_caller.py",
             "hop": 1,
             "kind": "calls",
@@ -3359,6 +3448,12 @@
             "hop": 1,
             "kind": "runs",
             "at": "lib/spoof_runner.sh:7"
+          },
+          {
+            "id": "f:lib/spoof_verif_caller.py",
+            "hop": 1,
+            "kind": "calls",
+            "at": "lib/spoof_verif_caller.py:4"
           },
           {
             "id": "f:tests/test_diamond.py",
@@ -3381,11 +3476,14 @@
         ],
         "blockers": [
           "f:branding/index.html",
+          "f:branding/nav.html",
           "f:deploy/Caddyfile",
           "f:lib/config_user.py",
           "f:lib/shell_helper.sh",
+          "f:lib/spoof_build_caller.py",
           "f:lib/spoof_caller.py",
-          "f:lib/spoof_runner.sh"
+          "f:lib/spoof_runner.sh",
+          "f:lib/spoof_verif_caller.py"
         ],
         "coCutCandidates": [
           "f:docs/target_guide.md",
@@ -3479,6 +3577,12 @@
             "at": "lib/shell_helper.sh:3"
           },
           {
+            "id": "f:lib/spoof_build_caller.py",
+            "hop": 1,
+            "kind": "calls",
+            "at": "lib/spoof_build_caller.py:3"
+          },
+          {
             "id": "f:lib/spoof_caller.py",
             "hop": 1,
             "kind": "calls",
@@ -3489,6 +3593,12 @@
             "hop": 1,
             "kind": "runs",
             "at": "lib/spoof_runner.sh:7"
+          },
+          {
+            "id": "f:lib/spoof_verif_caller.py",
+            "hop": 1,
+            "kind": "calls",
+            "at": "lib/spoof_verif_caller.py:4"
           },
           {
             "id": "f:tests/test_diamond.py",
@@ -3514,8 +3624,10 @@
           "f:deploy/Caddyfile",
           "f:lib/config_user.py",
           "f:lib/shell_helper.sh",
+          "f:lib/spoof_build_caller.py",
           "f:lib/spoof_caller.py",
-          "f:lib/spoof_runner.sh"
+          "f:lib/spoof_runner.sh",
+          "f:lib/spoof_verif_caller.py"
         ],
         "testsToRun": [
           "f:.forgejo/workflows/ci.yml",
@@ -3588,6 +3700,12 @@
             "at": "lib/shell_helper.sh:3"
           },
           {
+            "id": "f:lib/spoof_build_caller.py",
+            "hop": 1,
+            "kind": "calls",
+            "at": "lib/spoof_build_caller.py:3"
+          },
+          {
             "id": "f:lib/spoof_caller.py",
             "hop": 1,
             "kind": "calls",
@@ -3598,6 +3716,12 @@
             "hop": 1,
             "kind": "runs",
             "at": "lib/spoof_runner.sh:7"
+          },
+          {
+            "id": "f:lib/spoof_verif_caller.py",
+            "hop": 1,
+            "kind": "calls",
+            "at": "lib/spoof_verif_caller.py:4"
           },
           {
             "id": "f:tests/test_diamond.py",
@@ -3661,6 +3785,19 @@
             "kind": "secret"
           }
         ]
+      }
+    },
+    {
+      "id": "hybrid_model_suppresses_covered_c4_ancestor_and_boundary_rels",
+      "model": "hybrid_c4_and_edge_cases",
+      "useExtractedModelLinks": true,
+      "seeds": [
+        "constructor"
+      ],
+      "opts": {},
+      "expected": {
+        "truncated": false,
+        "hits": []
       }
     },
     {
