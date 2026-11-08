@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 20d87cdd99ac67b34f13ee8a85417d6f3a1516d69544046f0d658df7c8492cdf
+// SOURCE-SHA256: 7bb260c8ae110c3a3a81586030242f9012f5b30f3da3a0fa3974cc5cbfcc9536
 /**
  * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
  *
@@ -297,8 +297,8 @@ export declare function getSmoothedFreehandSvgPath(rawPoints: TuxMapStrokePoint[
  */
 export declare function getLaserPointerSvgPath(points: TuxMapStrokePoint[], nowMs: number, baseSize?: number, decayMs?: number, maxTailPoints?: number): string;
 export type TuxMapLevelNumber = number;
-export type TuxMapElementKind = "person" | "system" | "container" | "database" | "storage" | "component" | "module" | "schema" | "symbol" | "route" | "external" | "resource";
-/** Canonical human-readable labels for `TuxMapElementKind` (`#122`). */
+export type TuxMapElementKind = "person" | "system" | "container" | "database" | "storage" | "component" | "folder" | "file" | "function" | "class" | "constant" | "module" | "schema" | "symbol" | "route" | "external" | "resource";
+/** Canonical human-readable labels for `TuxMapElementKind` (`#116`, `#122`). */
 export declare const TUX_MAP_ELEMENT_KIND_LABELS: Record<TuxMapElementKind, string>;
 export type TuxMapElementStatus = "live" | "paused" | "planned" | "neighbor";
 export interface TuxMapSourceRef {
@@ -404,6 +404,23 @@ export interface TuxMapLevelElement {
     childRels?: TuxMapLevelRel[];
     /** Optional URL or key for lazy on-demand subgraph hydration */
     subgraphRef?: string;
+    /** Optional IDs of vendored copy elements folded into this representative card (`#121`) */
+    vendoredCopies?: string[];
+    /** True when this card itself is a vendored copy whose canonical source lies outside the view (`#121`) */
+    isVendoredCopy?: boolean;
+    /** Canonical source element ID when `isVendoredCopy` is true (`#121`) */
+    vendoredFrom?: string;
+}
+/** Consumer-supplied architectural dependency-rule violation (`#123`). */
+export interface TuxMapLinkViolation {
+    /** Short rule identifier or title (e.g. `"no-component-cycle"`, `"leaf-lib"`) */
+    rule: string;
+    /** Optional human-readable explanation of what broke */
+    message?: string;
+    /** Optional actionable fix guidance supplied by the consumer */
+    fix?: string;
+    /** Optional severity tier (defaults to `"error"`) */
+    severity?: "error" | "warning";
 }
 export interface TuxMapLevelRel {
     from: string;
@@ -412,6 +429,8 @@ export interface TuxMapLevelRel {
     tech?: string;
     status?: TuxMapElementStatus;
     roadmap?: number[];
+    /** Optional architectural dependency-rule violations carried by this wire (`#123`) */
+    violations?: TuxMapLinkViolation[];
 }
 export interface TuxMapFirewallRule {
     direction: "in" | "out";
@@ -535,6 +554,15 @@ export interface TuxMapLevelModel {
      * blast radius of a selected element walks them upstream.
      */
     links?: TuxMapLink[];
+    /** Optional pre-partitioned spreading & stopping link tiers (`#126`, `#731`). */
+    linkTiers?: {
+        spread?: TuxMapLink[];
+        stop?: TuxMapLink[];
+    };
+    /** Optional list of link `kind`s treated as `stop: true` when `link.stop` is omitted (`#126`, `#731`). */
+    stopKinds?: string[];
+    /** Optional legacy-to-canonical bookmark alias map (`#716`, `#124`). */
+    aliases?: Record<string, string>;
     /** Optional HTTP route table linking URL patterns to handler symbols or files (`#120`, `#122`). */
     routes?: TuxMapRouteEntry[];
 }
@@ -558,6 +586,8 @@ export interface TuxMapLink {
     coupling?: TuxMapLinkCoupling;
     /** Execution or shipping phase of the dependency */
     phase?: TuxMapLinkPhase;
+    /** Optional architectural dependency-rule violations on this link (`#123`) */
+    violations?: TuxMapLinkViolation[];
 }
 export declare const GRID_METRICS: {
     readonly CW: 212;
@@ -596,6 +626,8 @@ export interface TuxMapRoutedWire {
     to: string;
     d: string;
     planned: boolean;
+    /** True when the underlying relationship carries one or more dependency-rule `violations` (`#123`) */
+    violating?: boolean;
 }
 export interface TuxMapRoutedLabel {
     id: string;
@@ -608,6 +640,7 @@ export interface TuxMapRoutedLabel {
     t1: string;
     t2: string;
     forced: boolean;
+    violating?: boolean;
 }
 export declare function gridCellToPx(at: [number, number]): {
     x: number;
@@ -643,13 +676,38 @@ export declare function buildLevelModelFromLegacyNodes(nodes: TuxMapNode[], edge
 /** Link kinds drawn on no stage (they still count in the blast radius): a document naming a part. */
 export declare const TUX_MAP_QUIET_LINK_KINDS: ReadonlySet<string>;
 /** Canonical link strength order from strongest runtime/contract edge to weakest prose reference. */
-export declare const TUX_MAP_LINK_STRENGTH_ORDER: readonly ["calls", "handled-by", "sends", "reads", "denies", "imports", "runs", "sources", "copies", "copies-logic-of", "forks", "reads-format", "generates", "stamps", "provenance", "tests", "checks", "suppresses", "uses", "loads", "routes", "links", "mentions"];
+export declare const TUX_MAP_LINK_STRENGTH_ORDER: readonly ["calls", "handled-by", "sends", "reads", "denies", "forks", "copies-logic-of", "reads-format", "imports", "runs", "sources", "generates", "copies", "stamps", "suppresses", "provenance", "tests", "checks", "uses", "loads", "routes", "links", "mentions"];
 /** What a link kind means, read from the part it points at ("changing X: Y calls it"). */
 export declare const TUX_MAP_LINK_KIND_LABELS: Record<string, string>;
+/**
+ * Splits repo-qualified (`owner/repo:k:rest` or `repo:k:rest`) and legacy (`k:rest`)
+ * node IDs into `{ repo, kind, rest }` (matching Python `_split_node_id` 1:1).
+ */
+export declare function splitNodeId(nid: string): {
+    repo: string | null;
+    kind: string | null;
+    rest: string;
+};
+/** True when `nid` has node-ID kind `kind` (`'f'`, `'s'`, `'d'`, `'c'`, `'p'`, `'r'`), whether repo-qualified or legacy. */
+export declare function isKindNodeId(nid: string, kind: string | readonly string[] | ReadonlySet<string>): boolean;
+/** Strips legacy or repo-qualified kind prefixes (`owner/repo:f:`, `f:`, `p:pkg:`, etc.) for display/matching. */
+export declare function stripNodeKindPrefix(nid: string): string;
+/**
+ * Client-side deterministic link ID (`${kind}:${from}->${to}`, disambiguating duplicates with `#2`, `#3`, ...)
+ * so models do not need to serialize explicit `id` fields on every link (`#716` `RO24`).
+ */
+export declare function deriveLinkId(link: Pick<TuxMapLink, "kind" | "from" | "to">, seenCounts?: Map<string, number>): string;
+/**
+ * Plain human-readable element type label (`folder`, `file`, `function`, `class`, `HTTP route`, etc.: `#116`).
+ */
+export declare function plainElementKindLabel(elOrKind: Pick<TuxMapLevelElement, "id" | "kind" | "name" | "tech" | "source"> | string | undefined, opts?: {
+    hasSourcePath?: boolean;
+}): string;
 /** Canonical set of valid semantic blast-radius intents (`tti/tti-ux#110` / `#111`). */
 export declare const TUX_MAP_VALID_BLAST_INTENTS: ReadonlySet<TuxMapBlastIntent>;
 /** Prototype-safe own-property check (`Object.prototype` keys like `"constructor"` return `false`). */
 export declare function hasOwn(obj: unknown, key: PropertyKey): boolean;
+export declare function setOwnProp<T>(obj: Record<string, T>, key: string, value: T): void;
 /** True Unicode code-point comparison (matches Python `str < str` even on supplementary U+10000+ planes). */
 export declare function cmpCodepoint(a: string, b: string): number;
 export declare function compareBlastLinks(a: TuxMapLink, b: TuxMapLink): number;
@@ -663,6 +721,53 @@ export declare function inferLinkPhase(link: TuxMapLink): TuxMapLinkPhase;
  */
 export declare function classifyBlastLink(link: TuxMapLink, hop: number, intent?: TuxMapBlastIntent, quietSeedOnly?: boolean, kinds?: ReadonlySet<string> | null): "spread" | "stop" | "skip";
 /**
+ * Resolves raw code links from `model.links` and/or `model.linkTiers` (`spread` / `stop`),
+ * applying model-declared `model.stopKinds` when `l.stop` is omitted (`tti/tti-ux#126`).
+ */
+export declare function resolveModelRawLinks(model?: TuxMapLevelModel): TuxMapLink[];
+export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "reserved-id" | "parent-cycle" | "max-depth-exceeded" | "unknown-link-end" | "unknown-rel-end";
+export interface TuxMapValidationIssue {
+    code: TuxMapValidationIssueCode;
+    message: string;
+    nodeId?: string;
+    targetId?: string;
+}
+export interface TuxMapValidationResult {
+    valid: boolean;
+    issues: TuxMapValidationIssue[];
+    duplicateIds: string[];
+    cycleIds: string[];
+    unknownEnds: string[];
+}
+/**
+ * Validates a `TuxMapLevelModel` without ever throwing (`tti/tti-ux#124`), reporting:
+ * - missing `level1`..`level4` sections,
+ * - duplicate node IDs,
+ * - parent/subgraph cycles,
+ * - hierarchy depth exceeding 64,
+ * - unknown relationship or code-link endpoints.
+ */
+export declare function validateMapModel(model: unknown): TuxMapValidationResult;
+/**
+ * Produces a safe, non-throwing `TuxMapLevelModel` alongside its `validateMapModel` diagnostics (`tti/tti-ux#124`),
+ * filling missing levels and breaking cyclic subgraph references.
+ */
+export declare function sanitizeMapModel(raw: unknown): {
+    model: TuxMapLevelModel;
+    validation: TuxMapValidationResult;
+};
+/**
+ * Collapses single-child folder chains (`a/ -> b/ -> c/` becomes `a/b/c/`) and skips the intermediate
+ * `Folders` subgraph level for small components (`<= maxSmallComponentFiles`, default `8`), recording
+ * `aliases[skippedFolderId] = resolvedFocusId` so existing `#focus=` bookmarks still resolve (`tti/tti-ux#124`).
+ */
+export declare function collapseModelSubgraphs(model: TuxMapLevelModel, opts?: {
+    maxSmallComponentFiles?: number;
+}): {
+    model: TuxMapLevelModel;
+    aliases: Record<string, string>;
+};
+/**
  * child → parent for every element below Level 2: Level 3 components under their container,
  * subgraph elements under their key (or `subgraphRef` owner), inline `children` under their element.
  */
@@ -670,16 +775,16 @@ export declare function buildMapParentIndex(model: TuxMapLevelModel): Map<string
 /**
  * Semantic level that displays the children of `fid`:
  * 3 inside a Level 2 container, 5 inside a Level 3 component or Level 4 deployment node,
- * and +1 for each nested subgraph below that (independent of `model.subgraphs` key order).
+ * and +1 for each nested subgraph below that (cycle-safe, iterative, bounded at `MAX_TREE_DEPTH`: `#124`).
  */
 export declare function levelForFocus(fid: string, model: TuxMapLevelModel, parentOf?: Map<string, string>): number;
-/** `id` and its ancestors, nearest first. */
+/** `id` and its ancestors, nearest first (memoized per `parentOf` map). */
 export declare function mapAncestorsOf(id: string, parentOf: Map<string, string>): string[];
 /** The nearest of `id` and its ancestors that is in `set`, or null. */
 export declare function liftToSet(id: string, set: ReadonlySet<string>, parentOf: Map<string, string>): string | null;
 /**
- * Extracts fine-grained `TuxMapLink[]` from `model`: returns `model.links` when present (bridging
- * non-planned C4/Level-4 relationships for endpoints without fine-grained code-link coverage unless
+ * Extracts fine-grained `TuxMapLink[]` from `model`: returns `model.links` / `model.linkTiers` when present
+ * (bridging non-planned C4/Level-4 relationships for endpoints without fine-grained code-link coverage unless
  * `bridgeUncovered === false`), or synthesizes links from C4 `rels` and `level4.links` when `model.links`
  * is empty/absent.
  */
@@ -689,16 +794,58 @@ export declare function extractModelLinks(model: TuxMapLevelModel, opts?: {
     bridgeUncovered?: boolean;
     bridgeUncoveredPairs?: boolean;
 }): TuxMapLink[];
+/** Dependency wire filter categories (`tti/tti-ux#118`). */
+export type TuxMapWireCategory = "prod" | "tests" | "ci" | "docs";
+export declare const TUX_MAP_WIRE_CATEGORIES: readonly TuxMapWireCategory[];
+/** Classifies a fine-grained `TuxMapLink` into `"prod" | "tests" | "ci" | "docs"` (`tti/tti-ux#118`). */
+export declare function classifyLinkDependencyCategory(link: TuxMapLink): TuxMapWireCategory;
+/** Filters `links` to those matching `categories` (`tti/tti-ux#118`). */
+export declare function filterLinksByCategories(links: readonly TuxMapLink[], categories: ReadonlySet<TuxMapWireCategory> | Iterable<TuxMapWireCategory>): TuxMapLink[];
+export interface TuxMapWireInspectorLinkItem {
+    from: string;
+    to: string;
+    kind: string;
+    at?: string;
+    sites?: number[];
+    stop?: boolean;
+    violations?: TuxMapLinkViolation[];
+}
+export interface TuxMapWireInspectorDetail {
+    from: string;
+    to: string;
+    totalCount: number;
+    perKindCounts: Array<{
+        kind: string;
+        count: number;
+        label: string;
+    }>;
+    cutKinds: Array<{
+        kind: string;
+        count: number;
+        label: string;
+    }>;
+    links: TuxMapWireInspectorLinkItem[];
+    violations: TuxMapLinkViolation[];
+}
 export interface TuxMapLiftedSide {
-    /** The outside part, at the depth of the cards inside (never above what it shares with the focus) */
+    /**
+     * The outside part: under `lift: "depth"` (default), lifted to the depth of the cards inside
+     * (never above what it shares with the focus); under `lift: "lca"`, lifted to the child of its
+     * lowest common ancestor with `focusId` (rolling down one level per entry in `splitIds`: `#118`).
+     */
     id: string;
     /** How many fine-grained links it stands for */
     count: number;
     /** How many of them carry a change on (not `stop`): calls, imports, runs before tests and docs */
     spreading: number;
+    /** Distinct leaf outside parts rolled up into this card (`lift: "lca"`) */
+    parts?: number;
+    /** True when clicking this outside card splits it into finer child parts (`lift: "lca"`) */
+    splittable?: boolean;
     wires: {
         kid: string;
         label: string;
+        violations?: TuxMapLinkViolation[];
     }[];
 }
 /**
@@ -706,18 +853,69 @@ export interface TuxMapLiftedSide {
  * and the parts outside that children depend on (`outs`) or that depend on them (`ins`), `maxPerSide`
  * of each: those a change travels through (calls, imports, runs) first, then the busiest. An outside
  * part the map does not hold (`isKnown`; by default, anything in `parentOf`) is left out.
+ *
+ * Pass `lift: "lca"` (`tti/tti-ux#118`) to roll outside parts up to the child of their lowest common
+ * ancestor with `focusId` (expanding rolled-up cards listed in `splitIds`), keeping at most 24 outside
+ * cards per view while counting every dependent.
  */
 export declare function liftLinksToView(links: TuxMapLink[], focusId: string, kidIds: string[], parentOf: Map<string, string>, opts?: {
     quiet?: ReadonlySet<string>;
     maxPerSide?: number;
     isKnown?: (id: string) => boolean;
+    lift?: "depth" | "lca";
+    splitIds?: ReadonlySet<string> | Iterable<string>;
+    categories?: ReadonlySet<TuxMapWireCategory> | Iterable<TuxMapWireCategory>;
 }): {
     rels: TuxMapLevelRel[];
     ins: TuxMapLiftedSide[];
     outs: TuxMapLiftedSide[];
     moreIns: number;
     moreOuts: number;
+    moreInsParts: number;
+    moreOutsParts: number;
+    moreInsLinks: number;
+    moreOutsLinks: number;
+    overflowInIds: string[];
+    overflowOutIds: string[];
+    wireDetails: Record<string, TuxMapWireInspectorDetail>;
 };
+/**
+ * Memoized `O(|E_copies|)` cycle-safe canonical resolver for `copies` links (`tti/tti-ux#121`).
+ */
+export declare function buildVendoredCopyIndex(links: readonly TuxMapLink[], elKindById?: ReadonlyMap<string, string>): {
+    copyToCanonical: Map<string, string>;
+    copiesByCanonical: Map<string, string[]>;
+};
+/**
+ * Folds vendored copy cards (`from` of a `kind === "copies"` link) into their canonical source card (`to`)
+ * when in view — or folds sibling copies of the same external source into a single card — attaching
+ * `vendoredCopies` / `isVendoredCopy` / `vendoredFrom` metadata and deduplicating `rels` & `links` (`tti/tti-ux#121`).
+ */
+export declare function foldVendoredCopies(elements: readonly TuxMapLevelElement[], rels: readonly TuxMapLevelRel[], links: readonly TuxMapLink[]): {
+    elements: TuxMapLevelElement[];
+    rels: TuxMapLevelRel[];
+    links: TuxMapLink[];
+    foldedToRepresentative: Map<string, string>;
+};
+export interface TuxMapTraceHop {
+    from: string;
+    to: string;
+    kind: string;
+    label: string;
+    at?: string;
+}
+export interface TuxMapTraceResult {
+    found: boolean;
+    nodeIds: string[];
+    hops: TuxMapTraceHop[];
+}
+/**
+ * Directed shortest walk over spreading dependency kinds (`!l.stop`, non-quiet) from `fromId` to `toId`
+ * (or any descendant of `fromId` to any descendant of `toId`), powering `"Trace to…"` and `"Why?"` (`tti/tti-ux#125`).
+ */
+export declare function traceSpreadingPath(fromId: string, toId: string, model: TuxMapLevelModel, opts?: {
+    allowStoppingLastHop?: boolean;
+}): TuxMapTraceResult;
 export interface TuxMapBlastHit {
     /** Steps from the selection: 1 = depends on it directly */
     hop: number;

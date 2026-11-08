@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 20d87cdd99ac67b34f13ee8a85417d6f3a1516d69544046f0d658df7c8492cdf
+// SOURCE-SHA256: 7bb260c8ae110c3a3a81586030242f9012f5b30f3da3a0fa3974cc5cbfcc9536
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -545,9 +545,14 @@ export const TUX_MAP_ELEMENT_KIND_LABELS = {
     database: "Container: database",
     storage: "Container: storage",
     component: "Component",
-    module: "Module / package",
+    folder: "folder",
+    file: "file",
+    function: "function",
+    class: "class",
+    constant: "constant",
+    module: "file",
     schema: "Data schema / index",
-    symbol: "Code symbol (AST)",
+    symbol: "function",
     route: "HTTP route",
     external: "External system",
     resource: "Deployment node",
@@ -793,13 +798,64 @@ export function routeGridWires(rels, rects, els) {
         return Boolean(r.mini || r.side || el?.mini || el?.side);
     };
     const outsideSideOf = (id, r) => r.side || elById.get(id)?.side;
+    const CELL_W = 256;
+    const CELL_H = 192;
+    const cardBucket = new Map();
+    const placedBucket = new Map();
+    const addBoxToBucket = (bucket, idx, x, y, w, h) => {
+        const gx0 = Math.floor(x / CELL_W);
+        const gx1 = Math.floor((x + w) / CELL_W);
+        const gy0 = Math.floor(y / CELL_H);
+        const gy1 = Math.floor((y + h) / CELL_H);
+        for (let gx = gx0; gx <= gx1; gx++) {
+            for (let gy = gy0; gy <= gy1; gy++) {
+                const key = `${gx},${gy}`;
+                let arr = bucket.get(key);
+                if (!arr) {
+                    arr = [];
+                    bucket.set(key, arr);
+                }
+                arr.push(idx);
+            }
+        }
+    };
     const placed = [];
+    const pushPlacedBox = (b) => {
+        const idx = placed.length;
+        placed.push(b);
+        addBoxToBucket(placedBucket, idx, b.x, b.y, b.w, b.h);
+    };
+    const overlapsPlacedBucket = (cand) => {
+        const gx0 = Math.floor(cand.x / CELL_W);
+        const gx1 = Math.floor((cand.x + cand.w) / CELL_W);
+        const gy0 = Math.floor(cand.y / CELL_H);
+        const gy1 = Math.floor((cand.y + cand.h) / CELL_H);
+        for (let gx = gx0; gx <= gx1; gx++) {
+            for (let gy = gy0; gy <= gy1; gy++) {
+                const hits = placedBucket.get(`${gx},${gy}`);
+                if (!hits)
+                    continue;
+                for (let hi = 0; hi < hits.length; hi++) {
+                    const q = placed[hits[hi]];
+                    if (cand.x < q.x + q.w &&
+                        cand.x + cand.w > q.x &&
+                        cand.y < q.y + q.h &&
+                        cand.y + cand.h > q.y) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    };
     const cardEntries = [];
     for (const k of Object.keys(rects)) {
         const r = rects[k];
         if (!r.bound) {
+            const ci = cardEntries.length;
             cardEntries.push([k, r]);
-            placed.push({ x: r.x - 4, y: r.y - 4, w: r.w + 8, h: r.h + 8 });
+            addBoxToBucket(cardBucket, ci, r.x, r.y, r.w, r.h);
+            pushPlacedBox({ x: r.x - 4, y: r.y - 4, w: r.w + 8, h: r.h + 8 });
         }
     }
     const cards = placed.slice();
@@ -898,14 +954,25 @@ export function routeGridWires(rels, rects, els) {
         for (let i = 0; i <= lastSeg; i++) {
             const p0 = pts[i];
             const p1 = pts[i + 1];
-            for (let ci = 0; ci < cardEntries.length; ci++) {
-                const r = cardEntries[ci][1];
-                if (i === 0 && r === a)
-                    continue;
-                if (i === lastSeg && r === b)
-                    continue;
-                if (segHitsRect(p0[0], p0[1], p1[0], p1[1], r))
-                    return false;
+            const gx0 = Math.floor(Math.min(p0[0], p1[0]) / CELL_W);
+            const gx1 = Math.floor(Math.max(p0[0], p1[0]) / CELL_W);
+            const gy0 = Math.floor(Math.min(p0[1], p1[1]) / CELL_H);
+            const gy1 = Math.floor(Math.max(p0[1], p1[1]) / CELL_H);
+            for (let gx = gx0; gx <= gx1; gx++) {
+                for (let gy = gy0; gy <= gy1; gy++) {
+                    const indices = cardBucket.get(`${gx},${gy}`);
+                    if (!indices)
+                        continue;
+                    for (let ii = 0; ii < indices.length; ii++) {
+                        const r = cardEntries[indices[ii]][1];
+                        if (i === 0 && r === a)
+                            continue;
+                        if (i === lastSeg && r === b)
+                            continue;
+                        if (segHitsRect(p0[0], p0[1], p1[0], p1[1], r))
+                            return false;
+                    }
+                }
             }
         }
         return true;
@@ -913,8 +980,8 @@ export function routeGridWires(rels, rects, els) {
     const paths = [];
     const ports = {};
     for (const rel of rels) {
-        const a = rects[rel.from];
-        const b = rects[rel.to];
+        const a = hasOwn(rects, rel.from) ? rects[rel.from] : undefined;
+        const b = hasOwn(rects, rel.to) ? rects[rel.to] : undefined;
         if (a && b) {
             paths.push({ rel, a, b, s: ["r", "l"], pts: [] });
         }
@@ -1243,17 +1310,20 @@ export function routeGridWires(rels, rects, els) {
     const wires = [];
     const labels = [];
     const wireSegments = [];
+    const hoverOnlyLabels = paths.length > 30;
     paths.forEach((p, idx) => {
         const pts = simplifyOrthogonalPoints(p.pts);
         for (let si = 0; si < pts.length - 1; si++) {
             wireSegments.push([pts[si], pts[si + 1], idx]);
         }
+        const isViolating = Boolean(p.rel.violations?.length);
         wires.push({
             id: `w-${idx}-${p.rel.from}-${p.rel.to}`,
             from: p.rel.from,
             to: p.rel.to,
             d: roundOrthogonalCorners(pts),
             planned: p.rel.status === "planned",
+            ...(isViolating ? { violating: true } : {}),
         });
         if (p.rel.label) {
             const t1 = p.rel.label;
@@ -1271,39 +1341,7 @@ export function routeGridWires(rels, rects, els) {
                 ? [0.5, 0.34, 0.66, 0.24, 0.76, 0.18, 0.82]
                 : [0.36, 0.64, 0.5, 0.24, 0.76, 0.18, 0.82];
             let box = null;
-            for (let j = 0; j < segs.length && !box; j++) {
-                const sg = segs[j];
-                for (const f of fractions) {
-                    const m = [
-                        sg[0][0] + (sg[1][0] - sg[0][0]) * f,
-                        sg[0][1] + (sg[1][1] - sg[0][1]) * f,
-                    ];
-                    const cand = { x: m[0] - w / 2, y: m[1] - h / 2, w, h };
-                    const overlapsPlaced = placed.some((q) => cand.x < q.x + q.w &&
-                        cand.x + cand.w > q.x &&
-                        cand.y < q.y + q.h &&
-                        cand.y + cand.h > q.y);
-                    if (overlapsPlaced)
-                        continue;
-                    const clipsOtherWire = wireSegments.some(([s0, s1, wIdx]) => {
-                        if (wIdx === idx)
-                            return false;
-                        const minX = Math.min(s0[0], s1[0]) - 2;
-                        const maxX = Math.max(s0[0], s1[0]) + 2;
-                        const minY = Math.min(s0[1], s1[1]) - 2;
-                        const maxY = Math.max(s0[1], s1[1]) + 2;
-                        return (cand.x < maxX &&
-                            cand.x + cand.w > minX &&
-                            cand.y < maxY &&
-                            cand.y + cand.h > minY);
-                    });
-                    if (!clipsOtherWire) {
-                        box = cand;
-                        break;
-                    }
-                }
-            }
-            if (!box) {
+            if (!hoverOnlyLabels) {
                 for (let j = 0; j < segs.length && !box; j++) {
                     const sg = segs[j];
                     for (const f of fractions) {
@@ -1312,49 +1350,89 @@ export function routeGridWires(rels, rects, els) {
                             sg[0][1] + (sg[1][1] - sg[0][1]) * f,
                         ];
                         const cand = { x: m[0] - w / 2, y: m[1] - h / 2, w, h };
-                        if (!placed.some((q) => cand.x < q.x + q.w &&
-                            cand.x + cand.w > q.x &&
-                            cand.y < q.y + q.h &&
-                            cand.y + cand.h > q.y)) {
+                        if (overlapsPlacedBucket(cand))
+                            continue;
+                        const clipsOtherWire = wireSegments.some(([s0, s1, wIdx]) => {
+                            if (wIdx === idx)
+                                return false;
+                            const minX = Math.min(s0[0], s1[0]) - 2;
+                            const maxX = Math.max(s0[0], s1[0]) + 2;
+                            const minY = Math.min(s0[1], s1[1]) - 2;
+                            const maxY = Math.max(s0[1], s1[1]) + 2;
+                            return (cand.x < maxX &&
+                                cand.x + cand.w > minX &&
+                                cand.y < maxY &&
+                                cand.y + cand.h > minY);
+                        });
+                        if (!clipsOtherWire) {
                             box = cand;
                             break;
                         }
                     }
                 }
+                if (!box) {
+                    for (let j = 0; j < segs.length && !box; j++) {
+                        const sg = segs[j];
+                        for (const f of fractions) {
+                            const m = [
+                                sg[0][0] + (sg[1][0] - sg[0][0]) * f,
+                                sg[0][1] + (sg[1][1] - sg[0][1]) * f,
+                            ];
+                            const cand = { x: m[0] - w / 2, y: m[1] - h / 2, w, h };
+                            if (!overlapsPlacedBucket(cand)) {
+                                box = cand;
+                                break;
+                            }
+                        }
+                    }
+                }
             }
-            const forced = !box;
-            if (forced) {
-                let best = Infinity;
-                for (const sg of segs) {
-                    for (const f of [0.5, 0.35, 0.65, 0.22, 0.78, 0.15, 0.85]) {
-                        const c = {
-                            x: sg[0][0] + (sg[1][0] - sg[0][0]) * f - w / 2,
-                            y: sg[0][1] + (sg[1][1] - sg[0][1]) * f - h / 2,
-                            w,
-                            h,
-                        };
-                        let cover = 0;
-                        for (const q of cards) {
-                            cover +=
-                                Math.max(0, Math.min(c.x + w, q.x + q.w) - Math.max(c.x, q.x)) *
-                                    Math.max(0, Math.min(c.y + h, q.y + q.h) - Math.max(c.y, q.y));
-                        }
-                        for (let pi = cards.length; pi < placed.length; pi++) {
-                            const q = placed[pi];
-                            cover +=
-                                25 *
+            const forced = hoverOnlyLabels || !box;
+            if (!box) {
+                if (hoverOnlyLabels && segs.length > 0) {
+                    const sg = segs[0];
+                    box = {
+                        x: sg[0][0] + (sg[1][0] - sg[0][0]) * 0.5 - w / 2,
+                        y: sg[0][1] + (sg[1][1] - sg[0][1]) * 0.5 - h / 2,
+                        w,
+                        h,
+                    };
+                }
+                else {
+                    let best = Infinity;
+                    for (const sg of segs) {
+                        for (const f of [0.5, 0.35, 0.65, 0.22, 0.78, 0.15, 0.85]) {
+                            const c = {
+                                x: sg[0][0] + (sg[1][0] - sg[0][0]) * f - w / 2,
+                                y: sg[0][1] + (sg[1][1] - sg[0][1]) * f - h / 2,
+                                w,
+                                h,
+                            };
+                            let cover = 0;
+                            for (const q of cards) {
+                                cover +=
                                     Math.max(0, Math.min(c.x + w, q.x + q.w) - Math.max(c.x, q.x)) *
-                                    Math.max(0, Math.min(c.y + h, q.y + q.h) - Math.max(c.y, q.y));
-                        }
-                        if (cover < best) {
-                            best = cover;
-                            box = c;
+                                        Math.max(0, Math.min(c.y + h, q.y + q.h) - Math.max(c.y, q.y));
+                            }
+                            for (let pi = cards.length; pi < placed.length; pi++) {
+                                const q = placed[pi];
+                                cover +=
+                                    25 *
+                                        Math.max(0, Math.min(c.x + w, q.x + q.w) - Math.max(c.x, q.x)) *
+                                        Math.max(0, Math.min(c.y + h, q.y + q.h) - Math.max(c.y, q.y));
+                            }
+                            if (cover < best) {
+                                best = cover;
+                                box = c;
+                            }
                         }
                     }
                 }
             }
             if (box) {
-                placed.push({ x: box.x - 2, y: box.y - 2, w: box.w + 4, h: box.h + 4 });
+                if (!hoverOnlyLabels) {
+                    pushPlacedBox({ x: box.x - 2, y: box.y - 2, w: box.w + 4, h: box.h + 4 });
+                }
                 labels.push({
                     id: `lbl-${idx}-${p.rel.from}-${p.rel.to}`,
                     from: p.rel.from,
@@ -1366,6 +1444,7 @@ export function routeGridWires(rels, rects, els) {
                     t1,
                     t2,
                     forced,
+                    ...(isViolating ? { violating: true } : {}),
                 });
             }
         }
@@ -1429,7 +1508,9 @@ export function routeDeploymentWires(links, rects, selectedId = "*") {
         xCorridors.push(r.x - 8, r.x + r.w + 8);
         yCorridors.push(r.y - 7, r.y + r.h + 7);
     }
-    const activeLinks = links.filter((r) => rects[r.from] &&
+    const activeLinks = links.filter((r) => hasOwn(rects, r.from) &&
+        hasOwn(rects, r.to) &&
+        rects[r.from] &&
         rects[r.to] &&
         (routeAll || r.from === selectedId || r.to === selectedId));
     const portsBySide = new Map();
@@ -1697,19 +1778,19 @@ export const TUX_MAP_LINK_STRENGTH_ORDER = [
     "sends",
     "reads",
     "denies",
+    "forks",
+    "copies-logic-of",
+    "reads-format",
     "imports",
     "runs",
     "sources",
-    "copies",
-    "copies-logic-of",
-    "forks",
-    "reads-format",
     "generates",
+    "copies",
     "stamps",
+    "suppresses",
     "provenance",
     "tests",
     "checks",
-    "suppresses",
     "uses",
     "loads",
     "routes",
@@ -1743,6 +1824,93 @@ export const TUX_MAP_LINK_KIND_LABELS = {
     mentions: "mentions it",
 };
 const MAX_TREE_DEPTH = 64;
+const QUAL_OWNER_REPO_NODE_ID_RE = /^([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+):([cfsdpr]):(.*)$/;
+const LEGACY_NODE_ID_RE = /^([cfsdpr]):(.*)$/;
+const BARE_REPO_NODE_ID_RE = /^([A-Za-z0-9_.-]{2,}):([cfsdpr]):(.*)$/;
+export function splitNodeId(nid) {
+    if (typeof nid !== "string" || !nid) {
+        return { repo: null, kind: null, rest: "" };
+    }
+    if (nid.startsWith("p:pkg:") || nid.startsWith("s:pkg:") || nid.startsWith("r:")) {
+        return { repo: "", kind: nid[0], rest: nid.slice(2) };
+    }
+    const mQual = QUAL_OWNER_REPO_NODE_ID_RE.exec(nid);
+    if (mQual) {
+        return { repo: mQual[1], kind: mQual[2], rest: mQual[3] };
+    }
+    const mLeg = LEGACY_NODE_ID_RE.exec(nid);
+    if (mLeg) {
+        return { repo: "", kind: mLeg[1], rest: mLeg[2] };
+    }
+    const mBare = BARE_REPO_NODE_ID_RE.exec(nid);
+    if (mBare) {
+        return { repo: mBare[1], kind: mBare[2], rest: mBare[3] };
+    }
+    return { repo: null, kind: null, rest: nid };
+}
+export function isKindNodeId(nid, kind) {
+    const { kind: k } = splitNodeId(nid);
+    if (!k)
+        return false;
+    if (typeof kind === "string")
+        return k === kind;
+    if (kind instanceof Set)
+        return kind.has(k);
+    return kind.includes(k);
+}
+export function stripNodeKindPrefix(nid) {
+    if (typeof nid !== "string" || !nid)
+        return "";
+    const { kind, rest } = splitNodeId(nid);
+    if (!kind)
+        return nid;
+    if ((kind === "p" || kind === "s") && rest.startsWith("pkg:"))
+        return rest.slice(4);
+    return rest;
+}
+export function deriveLinkId(link, seenCounts) {
+    const base = `${link.kind || "uses"}:${link.from}->${link.to}`;
+    if (!seenCounts)
+        return base;
+    const n = (seenCounts.get(base) ?? 0) + 1;
+    seenCounts.set(base, n);
+    return n === 1 ? base : `${base}#${n}`;
+}
+export function plainElementKindLabel(elOrKind, opts = {}) {
+    if (!elOrKind)
+        return "element";
+    if (typeof elOrKind === "string") {
+        return TUX_MAP_ELEMENT_KIND_LABELS[elOrKind] || elOrKind;
+    }
+    const id = typeof elOrKind.id === "string" ? elOrKind.id : "";
+    const kind = elOrKind.kind || "";
+    const name = typeof elOrKind.name === "string" ? elOrKind.name : "";
+    const tech = typeof elOrKind.tech === "string" ? elOrKind.tech : "";
+    const hasPath = opts.hasSourcePath ?? Boolean(elOrKind.source?.path);
+    if (kind === "folder" ||
+        isKindNodeId(id, "d") ||
+        (kind === "module" && !hasPath && (name.endsWith("/") || /\bfolder\b/i.test(tech)))) {
+        return "folder";
+    }
+    if (kind === "file" || isKindNodeId(id, "f") || (kind === "module" && hasPath)) {
+        return "file";
+    }
+    if (kind === "class")
+        return "class";
+    if (kind === "constant")
+        return "constant";
+    if (kind === "function")
+        return "function";
+    if (kind === "symbol" || isKindNodeId(id, "s")) {
+        if (/\bclass\b/i.test(tech))
+            return "class";
+        if (!name.endsWith("()") && /^[A-Z]/.test(name) && !/^[A-Z0-9_]+$/.test(name)) {
+            return "class";
+        }
+        return "function";
+    }
+    return TUX_MAP_ELEMENT_KIND_LABELS[kind] || kind || "element";
+}
 export const TUX_MAP_VALID_BLAST_INTENTS = new Set([
     "default",
     "patch",
@@ -1830,6 +1998,7 @@ const NON_AUX_CO_CUT_KINDS = new Set([
     "person",
     "external",
     "route",
+    "folder",
 ]);
 const NON_PROD_HOST_COUPLINGS = new Set([
     "verification",
@@ -1841,7 +2010,7 @@ const NON_PROD_HOST_COUPLINGS = new Set([
 export function hasOwn(obj, key) {
     return obj != null && Object.prototype.hasOwnProperty.call(obj, key);
 }
-function setOwnProp(obj, key, value) {
+export function setOwnProp(obj, key, value) {
     if (key === "__proto__") {
         Object.defineProperty(obj, key, {
             value,
@@ -1884,13 +2053,30 @@ export function inferLinkCoupling(link) {
         const c = link.coupling;
         const spoofedProse = c === "prose" && NON_PROSE_LINK_KINDS.has(k);
         const spoofedTypeOnly = c === "type-only" && NON_TYPE_ONLY_LINK_KINDS.has(k);
-        const spoofedRouteLoadContract = (k === "routes" || k === "links" || k === "loads") &&
+        const spoofedRouteLoadContract = (k === "routes" || k === "denies" || k === "handled-by" || k === "links" || k === "loads") &&
             c !== "contract" &&
             c !== "runtime";
         const spoofedNonStopAux = !link.stop &&
-            (k === "calls" || k === "runs" || k === "uses" || k === "imports" || k === "sources") &&
+            (k === "calls" ||
+                k === "handled-by" ||
+                k === "sends" ||
+                k === "reads" ||
+                k === "forks" ||
+                k === "copies-logic-of" ||
+                k === "reads-format" ||
+                k === "runs" ||
+                k === "uses" ||
+                k === "imports" ||
+                k === "sources") &&
             (c === "build-exec" || c === "verification" || c === "artifact-stamp");
-        const spoofedCallsBuildStamp = k === "calls" && (c === "build-exec" || c === "artifact-stamp");
+        const spoofedCallsBuildStamp = (k === "calls" ||
+            k === "handled-by" ||
+            k === "sends" ||
+            k === "reads" ||
+            k === "forks" ||
+            k === "copies-logic-of" ||
+            k === "reads-format") &&
+            (c === "build-exec" || c === "artifact-stamp");
         if (!spoofedProse &&
             !spoofedTypeOnly &&
             !spoofedRouteLoadContract &&
@@ -1901,26 +2087,25 @@ export function inferLinkCoupling(link) {
     }
     if (k === "mentions")
         return "prose";
-    if (k === "tests" || k === "checks" || k === "suppresses")
+    if (k === "tests" || k === "checks" || k === "suppresses" || k === "provenance")
         return "verification";
-    if (k === "stamps" || k === "generates" || k === "provenance")
+    if (k === "stamps" || k === "generates" || k === "copies")
         return "artifact-stamp";
     if (k === "routes" ||
-        k === "links" ||
+        k === "denies" ||
         k === "handled-by" ||
-        k === "reads-format" ||
-        k === "copies" ||
+        k === "links" ||
+        k === "forks" ||
         k === "copies-logic-of" ||
-        k === "forks") {
+        k === "reads-format") {
         return "contract";
     }
-    if (k === "loads" || k === "uses")
+    if (k === "loads" || k === "uses" || k === "sends")
         return "runtime";
-    if (k === "imports" || k === "sources")
+    if (k === "imports" || k === "sources" || k === "reads")
         return link.stop ? "verification" : "contract";
-    if (k === "calls" || k === "runs" || k === "reads" || k === "sends" || k === "denies") {
+    if (k === "calls" || k === "runs")
         return link.stop ? "verification" : "runtime";
-    }
     return link.stop ? "verification" : "runtime";
 }
 export function inferLinkPhase(link) {
@@ -1994,6 +2179,712 @@ function isLevel3Focus(id, model) {
         return false;
     }
     return model.level3[id].length > 0 || !isPlainRecord(model.subgraphs) || !hasOwn(model.subgraphs, id);
+}
+export function resolveModelRawLinks(model) {
+    if (!model || typeof model !== "object")
+        return [];
+    const stopKinds = Array.isArray(model.stopKinds)
+        ? new Set(model.stopKinds.filter((k) => typeof k === "string" && Boolean(k)))
+        : null;
+    const direct = asObjArray(model.links);
+    const tiers = isPlainRecord(model.linkTiers) ? model.linkTiers : null;
+    const tierSpread = tiers ? asObjArray(tiers.spread) : [];
+    const tierStop = tiers ? asObjArray(tiers.stop) : [];
+    if (tierSpread.length === 0 && tierStop.length === 0 && !stopKinds) {
+        return direct.filter((l) => typeof l.from === "string" && Boolean(l.from) && typeof l.to === "string" && Boolean(l.to));
+    }
+    const out = [];
+    const seen = new Set();
+    const pushLink = (l, defaultStop) => {
+        if (typeof l.from !== "string" || !l.from || typeof l.to !== "string" || !l.to)
+            return;
+        const kind = l.kind || "uses";
+        const resolvedStop = l.stop !== undefined
+            ? l.stop
+            : defaultStop !== undefined
+                ? defaultStop
+                : stopKinds?.has(kind)
+                    ? true
+                    : undefined;
+        const key = `${l.from}\u0000${l.to}\u0000${kind}\u0000${l.at ?? ""}\u0000${resolvedStop ? "1" : "0"}`;
+        if (seen.has(key))
+            return;
+        seen.add(key);
+        if (resolvedStop !== undefined && l.stop !== resolvedStop) {
+            out.push({ ...l, stop: resolvedStop });
+        }
+        else {
+            out.push(l);
+        }
+    };
+    for (const l of direct)
+        pushLink(l);
+    for (const l of tierSpread)
+        pushLink(l, false);
+    for (const l of tierStop)
+        pushLink(l, true);
+    return out;
+}
+export function validateMapModel(model) {
+    const issues = [];
+    const duplicateSet = new Set();
+    const cycleSet = new Set();
+    const unknownSet = new Set();
+    if (!isPlainRecord(model)) {
+        return {
+            valid: false,
+            issues: [{ code: "missing-level", message: "Model must be a non-null object." }],
+            duplicateIds: [],
+            cycleIds: [],
+            unknownEnds: [],
+        };
+    }
+    for (const reqKey of ["level1", "level2", "level3", "level4"]) {
+        if (!isPlainRecord(model[reqKey])) {
+            issues.push({
+                code: "missing-level",
+                message: `Missing required '${reqKey}' section on architecture model.`,
+            });
+        }
+    }
+    const m = model;
+    const knownIds = new Set();
+    const seenPrimaryIds = new Set();
+    const rawEdges = [];
+    const reservedSeen = new Set();
+    const isReservedStageId = (id) => id === "@bound" || id.startsWith("@more-");
+    const noteDef = (id, parentId) => {
+        if (!id)
+            return;
+        if (isReservedStageId(id) && !reservedSeen.has(id)) {
+            reservedSeen.add(id);
+            issues.push({
+                code: "reserved-id",
+                message: `Element id '${id}' collides with reserved internal stage identifier.`,
+                nodeId: id,
+            });
+        }
+        knownIds.add(id);
+        if (seenPrimaryIds.has(id)) {
+            if (!duplicateSet.has(id)) {
+                duplicateSet.add(id);
+                issues.push({
+                    code: "duplicate-id",
+                    message: `Duplicate element id '${id}'.`,
+                    nodeId: id,
+                });
+            }
+        }
+        else {
+            seenPrimaryIds.add(id);
+        }
+        if (parentId)
+            rawEdges.push([id, parentId]);
+    };
+    const walkKids = (pid, rawKids, depth) => {
+        const kids = asObjArray(rawKids);
+        if (kids.length === 0)
+            return;
+        if (depth > MAX_TREE_DEPTH) {
+            issues.push({
+                code: "max-depth-exceeded",
+                message: `Element '${pid}' exceeds maximum tree depth (${MAX_TREE_DEPTH}).`,
+                nodeId: pid,
+            });
+            return;
+        }
+        kids.forEach((k, idx) => {
+            const id = (typeof k.id === "string" && k.id) || `${pid}/${idx}`;
+            noteDef(id, pid);
+            if (Array.isArray(k.children) && k.children.length > 0) {
+                walkKids(id, k.children, depth + 1);
+            }
+        });
+    };
+    const l1 = isPlainRecord(m.level1) ? m.level1 : undefined;
+    const l2 = isPlainRecord(m.level2) ? m.level2 : undefined;
+    const l3 = isPlainRecord(m.level3) ? m.level3 : undefined;
+    const l4 = isPlainRecord(m.level4) ? m.level4 : undefined;
+    if (l1) {
+        for (const e of asObjArray(l1.elements)) {
+            if (typeof e.id !== "string" || !e.id)
+                continue;
+            noteDef(e.id);
+            if (Array.isArray(e.children) && e.children.length > 0)
+                walkKids(e.id, e.children, 1);
+        }
+    }
+    if (l2) {
+        if (typeof l2.boundary === "string" && l2.boundary)
+            knownIds.add(l2.boundary);
+        for (const e of asObjArray(l2.elements)) {
+            if (typeof e.id !== "string" || !e.id)
+                continue;
+            knownIds.add(e.id);
+            if (e.ref)
+                continue;
+            if (!seenPrimaryIds.has(e.id)) {
+                seenPrimaryIds.add(e.id);
+            }
+            else if (!asObjArray(l1?.elements).some((x) => x.id === e.id)) {
+                if (!duplicateSet.has(e.id)) {
+                    duplicateSet.add(e.id);
+                    issues.push({
+                        code: "duplicate-id",
+                        message: `Duplicate element id '${e.id}'.`,
+                        nodeId: e.id,
+                    });
+                }
+            }
+            if (Array.isArray(e.children) && e.children.length > 0)
+                walkKids(e.id, e.children, 1);
+        }
+    }
+    if (l3) {
+        for (const [cid, kids] of Object.entries(l3)) {
+            if (cid)
+                knownIds.add(cid);
+            walkKids(cid, kids, 1);
+        }
+    }
+    if (l4) {
+        for (const g of asObjArray(l4.groups)) {
+            if (typeof g.id === "string" && g.id)
+                knownIds.add(g.id);
+        }
+        for (const n of asObjArray(l4.nodes)) {
+            if (typeof n.id !== "string" || !n.id)
+                continue;
+            noteDef(n.id);
+            if (Array.isArray(n.children) && n.children.length > 0)
+                walkKids(n.id, n.children, 1);
+        }
+    }
+    const subgraphOwners = collectSubgraphOwners(m);
+    if (isPlainRecord(m.subgraphs)) {
+        for (const [key, sg] of Object.entries(m.subgraphs)) {
+            if (!isPlainRecord(sg))
+                continue;
+            const owner = subgraphOwners.get(key) ?? key;
+            if (key)
+                knownIds.add(key);
+            if (owner)
+                knownIds.add(owner);
+            const kids = asObjArray(sg.elements);
+            kids.forEach((k, idx) => {
+                const id = (typeof k.id === "string" && k.id) || `${owner}/${idx}`;
+                if (knownIds.has(id)) {
+                    rawEdges.push([id, owner]);
+                    if (!duplicateSet.has(id) && id !== owner) {
+                        duplicateSet.add(id);
+                        issues.push({
+                            code: "duplicate-id",
+                            message: `Duplicate element id '${id}'.`,
+                            nodeId: id,
+                        });
+                    }
+                }
+                else {
+                    noteDef(id, owner);
+                }
+                if (Array.isArray(k.children) && k.children.length > 0)
+                    walkKids(id, k.children, 1);
+            });
+        }
+    }
+    const parentsByChild = new Map();
+    for (const [c, p] of rawEdges) {
+        if (!c || !p)
+            continue;
+        let arr = parentsByChild.get(c);
+        if (!arr) {
+            arr = [];
+            parentsByChild.set(c, arr);
+        }
+        if (!arr.includes(p))
+            arr.push(p);
+    }
+    const state = new Map();
+    for (const startId of parentsByChild.keys()) {
+        if ((state.get(startId) ?? 0) !== 0)
+            continue;
+        const stack = [{ id: startId, nextIdx: 0 }];
+        const onStack = new Set([startId]);
+        state.set(startId, 1);
+        while (stack.length > 0) {
+            if (stack.length > MAX_TREE_DEPTH + 1) {
+                const deepId = stack[0].id;
+                issues.push({
+                    code: "max-depth-exceeded",
+                    message: `Parent chain from '${deepId}' exceeds maximum depth (${MAX_TREE_DEPTH}).`,
+                    nodeId: deepId,
+                });
+                stack.pop();
+                continue;
+            }
+            const top = stack[stack.length - 1];
+            const ps = parentsByChild.get(top.id) ?? [];
+            if (top.nextIdx >= ps.length) {
+                state.set(top.id, 2);
+                onStack.delete(top.id);
+                stack.pop();
+                continue;
+            }
+            const nextParent = ps[top.nextIdx++];
+            if (onStack.has(nextParent)) {
+                if (!cycleSet.has(nextParent)) {
+                    cycleSet.add(nextParent);
+                    issues.push({
+                        code: "parent-cycle",
+                        message: `Parent cycle detected involving '${top.id}' -> '${nextParent}'.`,
+                        nodeId: top.id,
+                        targetId: nextParent,
+                    });
+                }
+                cycleSet.add(top.id);
+            }
+            else if ((state.get(nextParent) ?? 0) === 0 && parentsByChild.has(nextParent)) {
+                state.set(nextParent, 1);
+                onStack.add(nextParent);
+                stack.push({ id: nextParent, nextIdx: 0 });
+            }
+        }
+    }
+    const checkEnd = (endId, ownerId, code) => {
+        if (typeof endId !== "string" || !endId) {
+            issues.push({
+                code,
+                message: `Empty endpoint on ${code === "unknown-link-end" ? "link" : "relationship"} from '${ownerId}'.`,
+                nodeId: ownerId,
+            });
+            return;
+        }
+        if (!knownIds.has(endId)) {
+            if (!unknownSet.has(endId)) {
+                unknownSet.add(endId);
+                issues.push({
+                    code,
+                    message: `Unknown ${code === "unknown-link-end" ? "link" : "relationship"} endpoint '${endId}'.`,
+                    nodeId: ownerId,
+                    targetId: endId,
+                });
+            }
+        }
+    };
+    for (const r of asObjArray(l1?.rels)) {
+        checkEnd(r.from, String(r.from ?? ""), "unknown-rel-end");
+        checkEnd(r.to, String(r.from ?? ""), "unknown-rel-end");
+    }
+    for (const r of asObjArray(l2?.rels)) {
+        checkEnd(r.from, String(r.from ?? ""), "unknown-rel-end");
+        checkEnd(r.to, String(r.from ?? ""), "unknown-rel-end");
+    }
+    for (const dl of asObjArray(l4?.links)) {
+        checkEnd(dl.from, String(dl.from ?? ""), "unknown-rel-end");
+        checkEnd(dl.to, String(dl.from ?? ""), "unknown-rel-end");
+    }
+    if (isPlainRecord(m.subgraphs)) {
+        for (const sg of Object.values(m.subgraphs)) {
+            if (!isPlainRecord(sg))
+                continue;
+            for (const r of asObjArray(sg.rels)) {
+                checkEnd(r.from, String(r.from ?? ""), "unknown-rel-end");
+                checkEnd(r.to, String(r.from ?? ""), "unknown-rel-end");
+            }
+        }
+    }
+    for (const l of resolveModelRawLinks(m)) {
+        checkEnd(l.from, l.from, "unknown-link-end");
+        checkEnd(l.to, l.from, "unknown-link-end");
+    }
+    return {
+        valid: issues.length === 0,
+        issues,
+        duplicateIds: [...duplicateSet].sort(cmpCodepoint),
+        cycleIds: [...cycleSet].sort(cmpCodepoint),
+        unknownEnds: [...unknownSet].sort(cmpCodepoint),
+    };
+}
+export function sanitizeMapModel(raw) {
+    const validation = validateMapModel(raw);
+    if (!isPlainRecord(raw)) {
+        return { model: EMPTY_TTI_LEVEL_MODEL, validation };
+    }
+    const m = raw;
+    const cycleSet = new Set(validation.cycleIds);
+    const sanitizeId = (id) => {
+        if (typeof id !== "string" || !id)
+            return "";
+        if (id === "@bound" || id.startsWith("@more-"))
+            return `id:${id}`;
+        return id;
+    };
+    const sanitizeRelEndpoints = (rawList) => asObjArray(rawList)
+        .filter((r) => typeof r.from === "string" && Boolean(r.from) && typeof r.to === "string" && Boolean(r.to))
+        .map((r) => {
+        const nf = sanitizeId(r.from);
+        const nt = sanitizeId(r.to);
+        return nf === r.from && nt === r.to ? r : { ...r, from: nf, to: nt };
+    });
+    const subgraphOwners = collectSubgraphOwners(m);
+    const parentOfAccepted = new Map();
+    const wouldCreateCycle = (childId, ownerId) => {
+        if (!childId || !ownerId)
+            return false;
+        if (childId === ownerId)
+            return true;
+        let cur = ownerId;
+        for (let depth = 0; cur && depth <= MAX_TREE_DEPTH; depth++) {
+            if (cur === childId)
+                return true;
+            cur = parentOfAccepted.get(cur);
+        }
+        return false;
+    };
+    const sanitizeChildElements = (rawEls, ownerId, depth) => {
+        if (depth > MAX_TREE_DEPTH)
+            return [];
+        const out = [];
+        for (const el of asObjArray(rawEls)) {
+            const rawId = typeof el.id === "string" ? el.id : "";
+            const id = sanitizeId(rawId);
+            if (id && ownerId) {
+                if (wouldCreateCycle(id, ownerId))
+                    continue;
+                if (cycleSet.has(id) && parentOfAccepted.has(id))
+                    continue;
+                if (!parentOfAccepted.has(id))
+                    parentOfAccepted.set(id, ownerId);
+            }
+            const hasKids = Array.isArray(el.children);
+            const hasChildRels = Array.isArray(el.childRels);
+            const nextKids = hasKids ? sanitizeChildElements(el.children, id || ownerId, depth + 1) : undefined;
+            const nextChildRels = hasChildRels ? sanitizeRelEndpoints(el.childRels) : undefined;
+            if (id !== rawId || hasKids || hasChildRels) {
+                out.push({
+                    ...el,
+                    ...(id !== rawId ? { id } : {}),
+                    ...(hasKids ? { children: nextKids } : {}),
+                    ...(hasChildRels ? { childRels: nextChildRels } : {}),
+                });
+            }
+            else {
+                out.push(el);
+            }
+        }
+        return out;
+    };
+    const l1Els = sanitizeChildElements(m.level1?.elements, "", 0);
+    for (const e of l1Els) {
+        if (e.id && !parentOfAccepted.has(e.id))
+            parentOfAccepted.set(e.id, "");
+    }
+    const l2Els = [];
+    for (const e of asObjArray(m.level2?.elements)) {
+        const rawId = typeof e.id === "string" ? e.id : "";
+        const id = sanitizeId(rawId);
+        if (!e.ref && id && !parentOfAccepted.has(id)) {
+            parentOfAccepted.set(id, sanitizeId(m.level2?.boundary) || "");
+        }
+        const hasKids = !e.ref && Array.isArray(e.children);
+        const nextKids = hasKids
+            ? sanitizeChildElements(e.children, id, 1)
+            : undefined;
+        if (id !== rawId || hasKids) {
+            l2Els.push({
+                ...e,
+                ...(id !== rawId ? { id } : {}),
+                ...(hasKids ? { children: nextKids } : {}),
+            });
+        }
+        else {
+            l2Els.push(e);
+        }
+    }
+    const safeLevel3 = Object.create(null);
+    if (isPlainRecord(m.level3)) {
+        for (const [rawCid, kids] of Object.entries(m.level3)) {
+            const cid = sanitizeId(rawCid);
+            if (!cid)
+                continue;
+            setOwnProp(safeLevel3, cid, sanitizeChildElements(kids, cid, 1));
+        }
+    }
+    const l4Nodes = [];
+    for (const n of asObjArray(m.level4?.nodes)) {
+        const rawId = typeof n.id === "string" ? n.id : "";
+        const id = sanitizeId(rawId);
+        if (id && !parentOfAccepted.has(id))
+            parentOfAccepted.set(id, sanitizeId(n.group) || "");
+        const hasKids = Array.isArray(n.children);
+        const nextKids = hasKids ? sanitizeChildElements(n.children, id, 1) : undefined;
+        l4Nodes.push(id !== rawId || hasKids
+            ? { ...n, ...(id !== rawId ? { id } : {}), ...(hasKids ? { children: nextKids } : {}) }
+            : n);
+    }
+    let safeSubgraphs;
+    if (isPlainRecord(m.subgraphs)) {
+        const cleaned = Object.create(null);
+        for (const [rawKey, sg] of Object.entries(m.subgraphs)) {
+            if (!isPlainRecord(sg))
+                continue;
+            const key = sanitizeId(rawKey);
+            if (!key)
+                continue;
+            const owner = sanitizeId(subgraphOwners.get(rawKey) ?? rawKey) || key;
+            const els = sanitizeChildElements(sg.elements, owner, 1);
+            const rels = sg.rels !== undefined ? sanitizeRelEndpoints(sg.rels) : undefined;
+            setOwnProp(cleaned, key, {
+                ...sg,
+                elements: els,
+                ...(rels !== undefined ? { rels } : {}),
+            });
+        }
+        safeSubgraphs = cleaned;
+    }
+    let safeAliases;
+    if (isPlainRecord(m.aliases)) {
+        const cleanedAliases = Object.create(null);
+        for (const [ak, av] of Object.entries(m.aliases)) {
+            if (typeof av === "string" && ak && av && ak !== av) {
+                setOwnProp(cleanedAliases, sanitizeId(ak), sanitizeId(av));
+            }
+        }
+        for (const ak of Object.keys(cleanedAliases)) {
+            const seen = new Set([ak]);
+            let cur = cleanedAliases[ak];
+            while (cur && hasOwn(cleanedAliases, cur)) {
+                if (seen.has(cur)) {
+                    delete cleanedAliases[ak];
+                    break;
+                }
+                seen.add(cur);
+                cur = cleanedAliases[cur];
+            }
+        }
+        safeAliases = cleanedAliases;
+    }
+    const safeLinks = Array.isArray(m.links)
+        ? sanitizeRelEndpoints(m.links)
+        : undefined;
+    const safeModel = {
+        ...m,
+        level1: {
+            ...(isPlainRecord(m.level1) ? m.level1 : {}),
+            elements: l1Els,
+            rels: sanitizeRelEndpoints(m.level1?.rels),
+        },
+        level2: {
+            ...(isPlainRecord(m.level2) ? m.level2 : {}),
+            boundary: sanitizeId(m.level2?.boundary),
+            elements: l2Els,
+            rels: sanitizeRelEndpoints(m.level2?.rels),
+        },
+        level3: safeLevel3,
+        level4: {
+            ...(isPlainRecord(m.level4) ? m.level4 : {}),
+            groups: asObjArray(m.level4?.groups),
+            nodes: l4Nodes,
+            links: sanitizeRelEndpoints(m.level4?.links),
+        },
+        ...(safeSubgraphs ? { subgraphs: safeSubgraphs } : {}),
+        ...(safeAliases ? { aliases: safeAliases } : {}),
+        ...(safeLinks !== undefined ? { links: safeLinks } : {}),
+    };
+    return { model: safeModel, validation };
+}
+function isFolderLikeElement(e) {
+    const id = typeof e.id === "string" ? e.id : "";
+    if (e.kind === "folder" || isKindNodeId(id, "d"))
+        return true;
+    if (e.kind === "module" &&
+        !e.source?.path &&
+        ((typeof e.name === "string" && e.name.endsWith("/")) || /\bfolder\b/i.test(e.tech || ""))) {
+        return true;
+    }
+    return false;
+}
+export function collapseModelSubgraphs(model, opts = {}) {
+    const aliases = Object.create(null);
+    if (isPlainRecord(model?.aliases)) {
+        for (const [ak, av] of Object.entries(model.aliases)) {
+            if (typeof av === "string" && ak && av && ak !== av) {
+                setOwnProp(aliases, ak, av);
+            }
+        }
+    }
+    if (!isPlainRecord(model?.subgraphs)) {
+        return { model, aliases };
+    }
+    const maxSmallFiles = opts.maxSmallComponentFiles ?? 8;
+    const origSubgraphs = model.subgraphs;
+    const nextSubgraphs = Object.create(null);
+    for (const [k, sg] of Object.entries(origSubgraphs)) {
+        if (isPlainRecord(sg)) {
+            setOwnProp(nextSubgraphs, k, {
+                ...sg,
+                elements: [...asObjArray(sg.elements)],
+            });
+        }
+    }
+    const collapsedSkipKeys = new Set();
+    const resolveFolderChain = (el, ownerKey) => {
+        if (!isFolderLikeElement(el) || !el.id || el.id === ownerKey)
+            return el;
+        const names = [(el.name || el.id).replace(/\/+$/, "")];
+        const skippedIds = [];
+        let curr = el;
+        const seen = new Set([ownerKey, el.id]);
+        for (let depth = 0; depth < MAX_TREE_DEPTH; depth++) {
+            const sgKey = curr.subgraphRef || curr.id;
+            const sg = hasOwn(nextSubgraphs, sgKey) ? nextSubgraphs[sgKey] : undefined;
+            if (!sg || sg.elements.length !== 1)
+                break;
+            const onlyChild = sg.elements[0];
+            if (!onlyChild?.id || seen.has(onlyChild.id) || !isFolderLikeElement(onlyChild))
+                break;
+            const childSgKey = onlyChild.subgraphRef || onlyChild.id;
+            if (seen.has(childSgKey) || !hasOwn(nextSubgraphs, childSgKey))
+                break;
+            seen.add(onlyChild.id);
+            seen.add(childSgKey);
+            skippedIds.push(curr.id);
+            if (curr.subgraphRef)
+                skippedIds.push(curr.subgraphRef);
+            names.push((onlyChild.name || onlyChild.id).replace(/\/+$/, ""));
+            curr = onlyChild;
+        }
+        if (skippedIds.length === 0)
+            return el;
+        for (const sid of skippedIds) {
+            if (sid !== curr.id) {
+                setOwnProp(aliases, sid, curr.id);
+                collapsedSkipKeys.add(sid);
+            }
+        }
+        return {
+            ...curr,
+            name: `${names.join("/")}/`,
+        };
+    };
+    for (const [k, sg] of Object.entries(nextSubgraphs)) {
+        sg.elements = sg.elements.map((el) => resolveFolderChain(el, k));
+        setOwnProp(nextSubgraphs, k, sg);
+    }
+    for (const sid of collapsedSkipKeys) {
+        if (hasOwn(nextSubgraphs, sid)) {
+            delete nextSubgraphs[sid];
+        }
+    }
+    const componentIds = new Set();
+    if (isPlainRecord(model.level3)) {
+        for (const kids of Object.values(model.level3)) {
+            for (const comp of asObjArray(kids)) {
+                if (typeof comp.id === "string" && comp.id) {
+                    componentIds.add(comp.subgraphRef || comp.id);
+                }
+            }
+        }
+    }
+    for (const compKey of componentIds) {
+        if (!hasOwn(nextSubgraphs, compKey))
+            continue;
+        const compSg = nextSubgraphs[compKey];
+        if (compSg.elements.length === 0)
+            continue;
+        const folderKids = compSg.elements.filter(isFolderLikeElement);
+        if (folderKids.length === 0)
+            continue;
+        const flattened = [];
+        const childFolderRels = [];
+        const skippedFolderKeys = [];
+        let canFlatten = true;
+        const multiFolders = compSg.elements.length > 1;
+        for (const item of compSg.elements) {
+            if (!isFolderLikeElement(item)) {
+                flattened.push(item);
+                continue;
+            }
+            const fKey = item.subgraphRef || item.id;
+            const fSg = hasOwn(nextSubgraphs, fKey) ? nextSubgraphs[fKey] : undefined;
+            if (!fSg || fSg.elements.length === 0 || fSg.elements.some(isFolderLikeElement)) {
+                canFlatten = false;
+                break;
+            }
+            skippedFolderKeys.push(item.id);
+            if (item.subgraphRef)
+                skippedFolderKeys.push(item.subgraphRef);
+            if (Array.isArray(fSg.rels)) {
+                childFolderRels.push(...asObjArray(fSg.rels));
+            }
+            const prefix = (item.name || "").replace(/\/+$/, "");
+            for (const fileEl of fSg.elements) {
+                const needsPrefix = multiFolders &&
+                    prefix &&
+                    prefix !== "(root)" &&
+                    !(fileEl.name || "").startsWith(`${prefix}/`);
+                flattened.push(needsPrefix ? { ...fileEl, name: `${prefix}/${fileEl.name || fileEl.id}` } : fileEl);
+            }
+        }
+        if (canFlatten && flattened.length > 0 && flattened.length <= maxSmallFiles) {
+            const skippedSet = new Set(skippedFolderKeys);
+            const keptCompRels = asObjArray(compSg.rels).filter((r) => !skippedSet.has(r.from) && !skippedSet.has(r.to));
+            const mergedRels = [...keptCompRels, ...childFolderRels];
+            setOwnProp(nextSubgraphs, compKey, {
+                ...compSg,
+                stratum: compSg.stratum && /\bfolders?\b/i.test(compSg.stratum) ? "Files" : compSg.stratum,
+                elements: flattened,
+                ...(compSg.rels !== undefined || childFolderRels.length > 0 ? { rels: mergedRels } : {}),
+            });
+            for (const fk of skippedFolderKeys) {
+                if (fk !== compKey)
+                    setOwnProp(aliases, fk, compKey);
+                if (hasOwn(nextSubgraphs, fk))
+                    delete nextSubgraphs[fk];
+            }
+        }
+    }
+    const changed = Object.keys(aliases).length > 0;
+    if (!changed)
+        return { model, aliases };
+    const resolveAliasTarget = (id) => {
+        let cur = id;
+        const seen = new Set([cur]);
+        while (hasOwn(aliases, cur) && seen.size < MAX_TREE_DEPTH) {
+            const nxt = aliases[cur];
+            if (!nxt || seen.has(nxt))
+                break;
+            seen.add(nxt);
+            cur = nxt;
+        }
+        return cur;
+    };
+    for (const [k, sg] of Object.entries(nextSubgraphs)) {
+        if (!Array.isArray(sg.rels) || sg.rels.length === 0)
+            continue;
+        const seenPair = new Set();
+        const remappedRels = [];
+        for (const r of asObjArray(sg.rels)) {
+            const from = resolveAliasTarget(r.from);
+            const to = resolveAliasTarget(r.to);
+            if (!from || !to || from === to)
+                continue;
+            const pk = `${from}\u0000${to}`;
+            if (seenPair.has(pk))
+                continue;
+            seenPair.add(pk);
+            remappedRels.push(from === r.from && to === r.to ? r : { ...r, from, to });
+        }
+        setOwnProp(nextSubgraphs, k, { ...sg, rels: remappedRels });
+    }
+    return {
+        model: {
+            ...model,
+            subgraphs: nextSubgraphs,
+            aliases,
+        },
+        aliases,
+    };
 }
 function collectSubgraphOwners(model) {
     const subgraphOwners = new Map();
@@ -2095,18 +2986,122 @@ export function buildMapParentIndex(model) {
     return parentOf;
 }
 export function levelForFocus(fid, model, parentOf = buildMapParentIndex(model)) {
-    const walk = (id, seen) => {
-        if (isLevel3Focus(id, model))
-            return 3;
-        const p = parentOf.get(id);
-        if (!p || seen.has(p) || seen.size >= MAX_TREE_DEPTH || isLevel3Focus(p, model))
-            return 5;
+    if (isLevel3Focus(fid, model))
+        return 3;
+    const seen = new Set([fid]);
+    let cur = fid;
+    let extraDepth = 0;
+    while (seen.size < MAX_TREE_DEPTH) {
+        const p = parentOf.get(cur);
+        if (!p || seen.has(p) || isLevel3Focus(p, model)) {
+            return 5 + extraDepth;
+        }
         seen.add(p);
-        return walk(p, seen) + 1;
+        if (isLevel3Focus(cur, model)) {
+            return 3 + extraDepth;
+        }
+        extraDepth += 1;
+        cur = p;
+    }
+    return 5 + extraDepth;
+}
+function fnvFeedStr(h, s) {
+    let out = h;
+    for (let i = 0; i < s.length; i++) {
+        out = Math.imul(out ^ s.charCodeAt(i), 0x01000193) >>> 0;
+    }
+    return Math.imul(out ^ 0xff, 0x01000193) >>> 0;
+}
+const PARENT_TABLES_CACHE = new WeakMap();
+function getParentTables(parentOf) {
+    let stamp = 0x811c9dc5;
+    for (const [c, p] of parentOf) {
+        stamp = fnvFeedStr(fnvFeedStr(stamp, c), p);
+    }
+    const cached = PARENT_TABLES_CACHE.get(parentOf);
+    if (cached && cached.size === parentOf.size && cached.stamp === stamp)
+        return cached;
+    const kidsOf = new Map();
+    for (const [c, p] of parentOf) {
+        let arr = kidsOf.get(p);
+        if (!arr) {
+            arr = [];
+            kidsOf.set(p, arr);
+        }
+        arr.push(c);
+    }
+    const tables = {
+        stamp,
+        size: parentOf.size,
+        kidsOf,
+        ancestorsByNode: new Map(),
     };
-    return walk(fid, new Set([fid]));
+    PARENT_TABLES_CACHE.set(parentOf, tables);
+    return tables;
+}
+const LINK_ADJACENCY_CACHE = new WeakMap();
+function getLinkAdjacency(links) {
+    if (!Array.isArray(links)) {
+        return {
+            len: 0,
+            stamp: 0,
+            validLinks: [],
+            into: new Map(),
+            outByFrom: new Map(),
+        };
+    }
+    const len = links.length;
+    let stamp = 0x811c9dc5;
+    for (let i = 0; i < len; i++) {
+        const l = links[i];
+        if (!l || typeof l !== "object")
+            continue;
+        stamp = fnvFeedStr(stamp, typeof l.from === "string" ? l.from : "");
+        stamp = fnvFeedStr(stamp, typeof l.to === "string" ? l.to : "");
+        stamp = fnvFeedStr(stamp, typeof l.kind === "string" ? l.kind : "");
+        stamp = Math.imul(stamp ^ (l.stop ? 0x31 : 0x30), 0x01000193) >>> 0;
+    }
+    const cached = LINK_ADJACENCY_CACHE.get(links);
+    if (cached && cached.len === len && cached.stamp === stamp) {
+        return cached;
+    }
+    const validLinks = [];
+    const into = new Map();
+    const outByFrom = new Map();
+    for (const l of asObjArray(links)) {
+        if (typeof l.from !== "string" || typeof l.to !== "string" || !l.from || !l.to)
+            continue;
+        validLinks.push(l);
+        let arr = into.get(l.to);
+        if (!arr) {
+            arr = [];
+            into.set(l.to, arr);
+        }
+        arr.push(l);
+        if (l.from !== l.to) {
+            let outArr = outByFrom.get(l.from);
+            if (!outArr) {
+                outArr = [];
+                outByFrom.set(l.from, outArr);
+            }
+            outArr.push(l);
+        }
+    }
+    const built = {
+        len,
+        stamp,
+        validLinks,
+        into,
+        outByFrom,
+    };
+    LINK_ADJACENCY_CACHE.set(links, built);
+    return built;
 }
 export function mapAncestorsOf(id, parentOf) {
+    const tables = getParentTables(parentOf);
+    const hit = tables.ancestorsByNode.get(id);
+    if (hit)
+        return hit;
     const chain = [];
     const seen = new Set();
     let x = id;
@@ -2115,6 +3110,7 @@ export function mapAncestorsOf(id, parentOf) {
         chain.push(x);
         x = parentOf.get(x);
     }
+    tables.ancestorsByNode.set(id, chain);
     return chain;
 }
 export function liftToSet(id, set, parentOf) {
@@ -2125,7 +3121,7 @@ export function liftToSet(id, set, parentOf) {
 }
 export function extractModelLinks(model, opts = {}) {
     const includePlanned = opts.includePlanned ?? false;
-    const rawLinks = asObjArray(model?.links).filter((l) => typeof l.from === "string" && Boolean(l.from) && typeof l.to === "string" && Boolean(l.to));
+    const rawLinks = resolveModelRawLinks(model);
     const hasCodeLinks = rawLinks.length > 0;
     if (hasCodeLinks && !opts.includeC4Rels && opts.bridgeUncovered === false) {
         return rawLinks;
@@ -2190,7 +3186,7 @@ export function extractModelLinks(model, opts = {}) {
     }
     const out = [...rawLinks];
     const seen = new Set(out.map((l) => `${l.from}\u0000${l.to}\u0000${l.kind || "uses"}`));
-    const push = (from, to, kind, label) => {
+    const push = (from, to, kind, label, violations) => {
         if (typeof from !== "string" || typeof to !== "string" || !from || !to)
             return;
         if (covered && covered.has(to))
@@ -2202,17 +3198,25 @@ export function extractModelLinks(model, opts = {}) {
         if (seen.has(key))
             return;
         seen.add(key);
-        out.push({ from, to, kind: normKind, label, coupling: "runtime", phase: "prod-runtime" });
+        out.push({
+            from,
+            to,
+            kind: normKind,
+            label,
+            coupling: "runtime",
+            phase: "prod-runtime",
+            ...(violations?.length ? { violations } : {}),
+        });
     };
     for (const r of asObjArray(model?.level1?.rels)) {
         if (!includePlanned && r.status === "planned")
             continue;
-        push(r.from, r.to, "uses", r.label);
+        push(r.from, r.to, "uses", r.label, r.violations);
     }
     for (const r of asObjArray(model?.level2?.rels)) {
         if (!includePlanned && r.status === "planned")
             continue;
-        push(r.from, r.to, "uses", r.label);
+        push(r.from, r.to, "uses", r.label, r.violations);
     }
     if (isPlainRecord(model?.level3)) {
         for (const [pid, rawKids] of Object.entries(model.level3)) {
@@ -2235,7 +3239,7 @@ export function extractModelLinks(model, opts = {}) {
             for (const r of asObjArray(sg.rels)) {
                 if (!includePlanned && r.status === "planned")
                     continue;
-                push(r.from, r.to, "uses", r.label);
+                push(r.from, r.to, "uses", r.label, r.violations);
             }
         }
     }
@@ -2246,46 +3250,212 @@ export function extractModelLinks(model, opts = {}) {
     }
     return out;
 }
+export const TUX_MAP_WIRE_CATEGORIES = [
+    "prod",
+    "tests",
+    "ci",
+    "docs",
+];
+export function classifyLinkDependencyCategory(link) {
+    const k = link.kind || "uses";
+    if (k === "mentions")
+        return "docs";
+    const c = inferLinkCoupling(link);
+    const p = inferLinkPhase(link);
+    if (c === "prose" || p === "doc-only")
+        return "docs";
+    if (isPureDocNode(link.from) || isPureDocNode(link.to))
+        return "docs";
+    if (k === "checks" ||
+        k === "suppresses" ||
+        c === "build-exec" ||
+        p === "build-exec" ||
+        isWorkflowPathNode(link.from) ||
+        isWorkflowPathNode(link.to)) {
+        return "ci";
+    }
+    if (k === "tests" || c === "verification" || p === "ci-test" || TEST_ONLY_PATH_RE.test(repoPathForNodeId(link.from))) {
+        return "tests";
+    }
+    return "prod";
+}
+export function filterLinksByCategories(links, categories) {
+    const catSet = categories instanceof Set ? categories : new Set(categories);
+    if (catSet.size === 0)
+        return [];
+    if (catSet.has("prod") &&
+        catSet.has("tests") &&
+        catSet.has("ci") &&
+        catSet.has("docs")) {
+        return [...links];
+    }
+    return links.filter((l) => catSet.has(classifyLinkDependencyCategory(l)));
+}
+function sortKindEntries(kinds) {
+    return [...kinds.entries()].sort((a, b) => b[1] - a[1] || linkStrengthRank(a[0]) - linkStrengthRank(b[0]) || cmpCodepoint(a[0], b[0]));
+}
 function topKinds(kinds) {
-    return [...kinds.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => k).join(", ");
+    return sortKindEntries(kinds)
+        .slice(0, 2)
+        .map(([k]) => k)
+        .join(", ");
+}
+function buildWireInspectorDetail(from, to, kinds, linksList) {
+    const sorted = sortKindEntries(kinds);
+    const perKindCounts = sorted.map(([kind, count]) => ({
+        kind,
+        count,
+        label: TUX_MAP_LINK_KIND_LABELS[kind] || kind,
+    }));
+    const cutKinds = perKindCounts.slice(2);
+    const violations = [];
+    const seenViol = new Set();
+    const items = linksList.map((l) => {
+        const vList = Array.isArray(l.violations) ? l.violations : undefined;
+        if (vList) {
+            for (const v of vList) {
+                if (!v || typeof v.rule !== "string")
+                    continue;
+                const vk = `${v.rule}\u0000${v.message ?? ""}\u0000${v.fix ?? ""}`;
+                if (!seenViol.has(vk)) {
+                    seenViol.add(vk);
+                    violations.push(v);
+                }
+            }
+        }
+        return {
+            from: l.from,
+            to: l.to,
+            kind: l.kind || "uses",
+            ...(l.at ? { at: l.at } : {}),
+            ...(l.sites?.length ? { sites: [...l.sites] } : {}),
+            ...(l.stop ? { stop: true } : {}),
+            ...(vList?.length ? { violations: vList } : {}),
+        };
+    });
+    const totalCount = perKindCounts.reduce((acc, item) => acc + item.count, 0);
+    return {
+        from,
+        to,
+        totalCount,
+        perKindCounts,
+        cutKinds,
+        links: items,
+        violations,
+    };
 }
 export function liftLinksToView(links, focusId, kidIds, parentOf, opts = {}) {
     const quiet = opts.quiet ?? TUX_MAP_QUIET_LINK_KINDS;
     const isKnown = opts.isKnown ?? ((id) => parentOf.has(id));
-    const max = opts.maxPerSide ?? 8;
+    const liftMode = opts.lift ?? "depth";
+    const max = opts.maxPerSide ?? (liftMode === "lca" ? 12 : 8);
+    const splitSet = opts.splitIds
+        ? opts.splitIds instanceof Set
+            ? opts.splitIds
+            : new Set(opts.splitIds)
+        : null;
+    const catSet = opts.categories
+        ? opts.categories instanceof Set
+            ? opts.categories
+            : new Set(opts.categories)
+        : null;
     const kids = new Set(kidIds);
-    const focusChain = new Set(mapAncestorsOf(focusId, parentOf));
-    const kidDepth = mapAncestorsOf(focusId, parentOf).length + 1;
-    const outside = (id) => {
+    const focusAncs = mapAncestorsOf(focusId, parentOf);
+    const focusChain = new Set(focusAncs);
+    const kidDepth = focusAncs.length + 1;
+    const resolveDepth = (id) => {
         if (!isKnown(id))
             return null;
+        const chain = mapAncestorsOf(id, parentOf);
         let pick = null;
-        for (const a of mapAncestorsOf(id, parentOf)) {
+        for (const a of chain) {
             if (focusChain.has(a))
                 break;
             pick = a;
             if (mapAncestorsOf(a, parentOf).length <= kidDepth)
                 break;
         }
-        return pick;
+        if (!pick)
+            return null;
+        if (liftMode === "lca" && splitSet && splitSet.size > 0 && pick !== id) {
+            const subChain = [];
+            for (const a of chain) {
+                subChain.push(a);
+                if (a === pick)
+                    break;
+            }
+            subChain.reverse();
+            let idx = 0;
+            while (idx + 1 < subChain.length && splitSet.has(subChain[idx])) {
+                idx += 1;
+            }
+            const chosen = subChain[idx];
+            return { id: chosen, splittable: idx + 1 < subChain.length };
+        }
+        return { id: pick, splittable: liftMode === "lca" && pick !== id };
+    };
+    const resolveLcaRaw = (id) => {
+        if (!isKnown(id))
+            return null;
+        const chain = mapAncestorsOf(id, parentOf);
+        const outsideChainTopDown = [];
+        for (const a of chain) {
+            if (focusChain.has(a))
+                break;
+            outsideChainTopDown.push(a);
+        }
+        outsideChainTopDown.reverse();
+        if (outsideChainTopDown.length === 0)
+            return null;
+        let idx = 0;
+        if (splitSet && splitSet.size > 0) {
+            while (idx + 1 < outsideChainTopDown.length && splitSet.has(outsideChainTopDown[idx])) {
+                idx += 1;
+            }
+        }
+        const picked = outsideChainTopDown[idx];
+        return { id: picked, splittable: idx + 1 < outsideChainTopDown.length };
     };
     const sib = new Map();
-    const spreading = { ins: new Map(), outs: new Map() };
-    const side = (which, m, o, kid, l) => {
-        const kind = l.kind || "uses";
-        const byKid = m.get(o) ?? new Map();
-        const kinds = byKid.get(kid) ?? new Map();
-        kinds.set(kind, (kinds.get(kind) ?? 0) + 1);
-        byKid.set(kid, kinds);
-        m.set(o, byKid);
-        if (!l.stop)
-            spreading[which].set(o, (spreading[which].get(o) ?? 0) + 1);
-    };
     const insM = new Map();
     const outsM = new Map();
-    for (const l of links) {
+    const recordSide = (m, o, leafId, kid, l) => {
         const kind = l.kind || "uses";
-        if (quiet.has(kind))
+        let bucket = m.get(o.id);
+        if (!bucket) {
+            bucket = {
+                byKid: new Map(),
+                leafParts: new Set(),
+                allKinds: new Map(),
+                allLinks: [],
+                splittable: false,
+                spreading: 0,
+            };
+            m.set(o.id, bucket);
+        }
+        bucket.leafParts.add(leafId);
+        if (o.splittable)
+            bucket.splittable = true;
+        bucket.allKinds.set(kind, (bucket.allKinds.get(kind) ?? 0) + 1);
+        bucket.allLinks.push(l);
+        if (!l.stop)
+            bucket.spreading += 1;
+        let kidEntry = bucket.byKid.get(kid);
+        if (!kidEntry) {
+            kidEntry = { kinds: new Map(), links: [] };
+            bucket.byKid.set(kid, kidEntry);
+        }
+        kidEntry.kinds.set(kind, (kidEntry.kinds.get(kind) ?? 0) + 1);
+        kidEntry.links.push(l);
+    };
+    const pendingIns = [];
+    const pendingOuts = [];
+    const adj = getLinkAdjacency(links);
+    for (const l of adj.validLinks) {
+        const kind = l.kind || "uses";
+        if (quiet.has(kind) && !(catSet && catSet.has("docs")))
+            continue;
+        if (catSet && !catSet.has(classifyLinkDependencyCategory(l)))
             continue;
         const a = liftToSet(l.from, kids, parentOf);
         const b = liftToSet(l.to, kids, parentOf);
@@ -2293,38 +3463,410 @@ export function liftLinksToView(links, focusId, kidIds, parentOf, opts = {}) {
             if (a === b)
                 continue;
             const key = `${a}\u0000${b}`;
-            const r = sib.get(key) ?? { from: a, to: b, kinds: new Map() };
+            let r = sib.get(key);
+            if (!r) {
+                r = { from: a, to: b, kinds: new Map(), links: [] };
+                sib.set(key, r);
+            }
             r.kinds.set(kind, (r.kinds.get(kind) ?? 0) + 1);
-            sib.set(key, r);
+            r.links.push(l);
         }
         else if (a) {
-            const o = outside(l.to);
+            const o = liftMode === "lca" ? resolveLcaRaw(l.to) : resolveDepth(l.to);
             if (o)
-                side("outs", outsM, o, a, l);
+                pendingOuts.push({ raw: o, leafId: l.to, kid: a, link: l });
         }
         else if (b) {
-            const o = outside(l.from);
+            const o = liftMode === "lca" ? resolveLcaRaw(l.from) : resolveDepth(l.from);
             if (o)
-                side("ins", insM, o, b, l);
+                pendingIns.push({ raw: o, leafId: l.from, kid: b, link: l });
         }
     }
-    const sides = (which, m) => [...m.entries()]
-        .map(([id, byKid]) => ({
-        id,
-        count: [...byKid.values()].reduce((n, k) => n + [...k.values()].reduce((x, y) => x + y, 0), 0),
-        spreading: spreading[which].get(id) ?? 0,
-        wires: [...byKid.entries()].map(([kid, k]) => ({ kid, label: topKinds(k) })),
-    }))
-        .sort((x, y) => Number(y.spreading > 0) - Number(x.spreading > 0) || y.count - x.count || x.id.localeCompare(y.id));
-    const ins = sides("ins", insM);
-    const outs = sides("outs", outsM);
-    return {
-        rels: [...sib.values()].map((r) => ({ from: r.from, to: r.to, label: topKinds(r.kinds) })),
-        ins: ins.slice(0, max),
-        outs: outs.slice(0, max),
-        moreIns: Math.max(0, ins.length - max),
-        moreOuts: Math.max(0, outs.length - max),
+    const flushSideHits = (pending, targetMap) => {
+        if (pending.length === 0)
+            return;
+        if (liftMode !== "lca") {
+            for (const h of pending)
+                recordSide(targetMap, h.raw, h.leafId, h.kid, h.link);
+            return;
+        }
+        const leavesByRaw = new Map();
+        for (const h of pending) {
+            let s = leavesByRaw.get(h.raw.id);
+            if (!s) {
+                s = new Set();
+                leavesByRaw.set(h.raw.id, s);
+            }
+            s.add(h.leafId);
+        }
+        for (const h of pending) {
+            const leafCount = leavesByRaw.get(h.raw.id)?.size ?? 0;
+            const resolved = leafCount === 1 ? resolveDepth(h.leafId) ?? h.raw : h.raw;
+            recordSide(targetMap, resolved, h.leafId, h.kid, h.link);
+        }
     };
+    flushSideHits(pendingIns, insM);
+    flushSideHits(pendingOuts, outsM);
+    const wireDetails = Object.create(null);
+    const rels = [...sib.values()].map((r) => {
+        const detail = buildWireInspectorDetail(r.from, r.to, r.kinds, r.links);
+        setOwnProp(wireDetails, `${r.from}\u0000${r.to}`, detail);
+        return {
+            from: r.from,
+            to: r.to,
+            label: topKinds(r.kinds),
+            ...(detail.violations.length > 0 ? { violations: detail.violations } : {}),
+        };
+    });
+    const buildSides = (which, m) => [...m.entries()]
+        .map(([id, bucket]) => {
+        const frameFrom = which === "ins" ? id : "@bound";
+        const frameTo = which === "ins" ? "@bound" : id;
+        const frameDetail = buildWireInspectorDetail(frameFrom, frameTo, bucket.allKinds, bucket.allLinks);
+        setOwnProp(wireDetails, `${frameFrom}\u0000${frameTo}`, frameDetail);
+        const wires = [...bucket.byKid.entries()].map(([kid, ke]) => {
+            const wFrom = which === "ins" ? id : kid;
+            const wTo = which === "ins" ? kid : id;
+            const wDetail = buildWireInspectorDetail(wFrom, wTo, ke.kinds, ke.links);
+            setOwnProp(wireDetails, `${wFrom}\u0000${wTo}`, wDetail);
+            return {
+                kid,
+                label: topKinds(ke.kinds),
+                ...(wDetail.violations.length > 0 ? { violations: wDetail.violations } : {}),
+            };
+        });
+        const base = {
+            id,
+            count: frameDetail.totalCount,
+            spreading: bucket.spreading,
+            wires,
+        };
+        if (liftMode === "lca") {
+            base.parts = bucket.leafParts.size;
+            base.splittable = bucket.splittable;
+        }
+        return base;
+    })
+        .sort((x, y) => Number(y.spreading > 0) - Number(x.spreading > 0) ||
+        y.count - x.count ||
+        x.id.localeCompare(y.id));
+    const insAll = buildSides("ins", insM);
+    const outsAll = buildSides("outs", outsM);
+    const insOverflow = insAll.slice(max);
+    const outsOverflow = outsAll.slice(max);
+    return {
+        rels,
+        ins: insAll.slice(0, max),
+        outs: outsAll.slice(0, max),
+        moreIns: insOverflow.length,
+        moreOuts: outsOverflow.length,
+        moreInsParts: insOverflow.reduce((acc, s) => acc + (s.parts ?? 1), 0),
+        moreOutsParts: outsOverflow.reduce((acc, s) => acc + (s.parts ?? 1), 0),
+        moreInsLinks: insOverflow.reduce((acc, s) => acc + s.count, 0),
+        moreOutsLinks: outsOverflow.reduce((acc, s) => acc + s.count, 0),
+        overflowInIds: insOverflow.map((s) => s.id),
+        overflowOutIds: outsOverflow.map((s) => s.id),
+        wireDetails,
+    };
+}
+export function buildVendoredCopyIndex(links, elKindById) {
+    const NON_FOLDABLE_KINDS = new Set(["route", "person", "system", "database", "external"]);
+    const safeLinks = asObjArray(links);
+    const nonCopyPairs = new Set();
+    for (const l of safeLinks) {
+        if (!l.from || !l.to || l.from === l.to)
+            continue;
+        const k = l.kind || "uses";
+        if (k !== "copies" && k !== "provenance" && k !== "stamps") {
+            nonCopyPairs.add(`${l.from}\u0000${l.to}`);
+        }
+    }
+    const isNonFoldableEndpoint = (id) => {
+        if (isKindNodeId(id, "r"))
+            return true;
+        const ek = elKindById?.get(id);
+        return Boolean(ek && NON_FOLDABLE_KINDS.has(ek));
+    };
+    const copyToSource = new Map();
+    for (const l of safeLinks) {
+        if (l.kind === "copies" && l.from && l.to && l.from !== l.to) {
+            if (isNonFoldableEndpoint(l.from) || isNonFoldableEndpoint(l.to))
+                continue;
+            if (nonCopyPairs.has(`${l.from}\u0000${l.to}`))
+                continue;
+            if (!copyToSource.has(l.from))
+                copyToSource.set(l.from, l.to);
+        }
+    }
+    const copyToCanonical = new Map();
+    const copiesByCanonical = new Map();
+    if (copyToSource.size === 0) {
+        return { copyToCanonical, copiesByCanonical };
+    }
+    const memo = new Map();
+    const resolveCanonical = (startId) => {
+        const hit = memo.get(startId);
+        if (hit !== undefined)
+            return hit;
+        const trail = [startId];
+        const pos = new Map([[startId, 0]]);
+        let cur = startId;
+        while (copyToSource.has(cur) && trail.length <= MAX_TREE_DEPTH) {
+            const nxt = copyToSource.get(cur);
+            if (memo.has(nxt)) {
+                cur = memo.get(nxt);
+                break;
+            }
+            const cycIdx = pos.get(nxt);
+            if (cycIdx !== undefined) {
+                const cycleMembers = trail.slice(cycIdx);
+                cycleMembers.sort(cmpCodepoint);
+                cur = cycleMembers[0];
+                break;
+            }
+            pos.set(nxt, trail.length);
+            trail.push(nxt);
+            cur = nxt;
+        }
+        for (const tid of trail)
+            memo.set(tid, cur);
+        return cur;
+    };
+    for (const cid of copyToSource.keys()) {
+        const canon = resolveCanonical(cid);
+        if (canon === cid)
+            continue;
+        copyToCanonical.set(cid, canon);
+        let bucket = copiesByCanonical.get(canon);
+        if (!bucket) {
+            bucket = [];
+            copiesByCanonical.set(canon, bucket);
+        }
+        bucket.push(cid);
+    }
+    for (const arr of copiesByCanonical.values())
+        arr.sort(cmpCodepoint);
+    return { copyToCanonical, copiesByCanonical };
+}
+export function foldVendoredCopies(elements, rels, links) {
+    if (elements.length === 0) {
+        return {
+            elements: [],
+            rels: [...rels],
+            links: [...links],
+            foldedToRepresentative: new Map(),
+        };
+    }
+    const elKindById = new Map();
+    for (const e of asObjArray(elements)) {
+        if (e.id && e.kind)
+            elKindById.set(e.id, e.kind);
+    }
+    const { copyToCanonical } = buildVendoredCopyIndex(links, elKindById);
+    if (copyToCanonical.size === 0) {
+        return {
+            elements: [...elements],
+            rels: [...rels],
+            links: [...links],
+            foldedToRepresentative: new Map(),
+        };
+    }
+    const viewIds = new Set();
+    const inViewCopiesByCanon = new Map();
+    for (const e of elements) {
+        viewIds.add(e.id);
+        const canon = copyToCanonical.get(e.id);
+        if (canon && canon !== e.id) {
+            let arr = inViewCopiesByCanon.get(canon);
+            if (!arr) {
+                arr = [];
+                inViewCopiesByCanon.set(canon, arr);
+            }
+            arr.push(e.id);
+        }
+    }
+    if (inViewCopiesByCanon.size === 0) {
+        return {
+            elements: [...elements],
+            rels: [...rels],
+            links: [...links],
+            foldedToRepresentative: new Map(),
+        };
+    }
+    const repByCanon = new Map();
+    const foldedCopiesByRep = new Map();
+    const externalCanonByRep = new Map();
+    const foldedToRepresentative = new Map();
+    for (const [canon, inViewCopies] of inViewCopiesByCanon.entries()) {
+        if (viewIds.has(canon)) {
+            repByCanon.set(canon, canon);
+            foldedCopiesByRep.set(canon, inViewCopies);
+            for (const cid of inViewCopies) {
+                foldedToRepresentative.set(cid, canon);
+            }
+        }
+        else {
+            const rep = inViewCopies[0];
+            repByCanon.set(canon, rep);
+            externalCanonByRep.set(rep, canon);
+            const siblingFolded = inViewCopies.slice(1);
+            foldedCopiesByRep.set(rep, siblingFolded);
+            for (const cid of siblingFolded) {
+                foldedToRepresentative.set(cid, rep);
+            }
+        }
+    }
+    const outElements = [];
+    for (const e of elements) {
+        if (foldedToRepresentative.has(e.id))
+            continue;
+        const extCanon = externalCanonByRep.get(e.id);
+        const copies = foldedCopiesByRep.get(e.id);
+        if (extCanon) {
+            outElements.push({
+                ...e,
+                isVendoredCopy: true,
+                vendoredFrom: extCanon,
+                ...(copies && copies.length > 0 ? { vendoredCopies: copies } : {}),
+            });
+        }
+        else if (copies && copies.length > 0) {
+            outElements.push({
+                ...e,
+                isVendoredCopy: true,
+                vendoredCopies: copies,
+            });
+        }
+        else {
+            outElements.push(e);
+        }
+    }
+    const remapId = (id) => foldedToRepresentative.get(id) ?? id;
+    const seenRelPairs = new Set();
+    const outRels = [];
+    for (const r of rels) {
+        const from = remapId(r.from);
+        const to = remapId(r.to);
+        if (from === to)
+            continue;
+        const key = `${from}\u0000${to}`;
+        if (seenRelPairs.has(key))
+            continue;
+        seenRelPairs.add(key);
+        outRels.push(from === r.from && to === r.to ? r : { ...r, from, to });
+    }
+    const seenLinks = new Set();
+    const outLinks = [];
+    for (const l of links) {
+        if (l.kind === "copies" && (foldedToRepresentative.has(l.from) || foldedCopiesByRep.has(l.to))) {
+            const rf = remapId(l.from);
+            const rt = remapId(l.to);
+            if (rf === rt)
+                continue;
+        }
+        const from = remapId(l.from);
+        const to = remapId(l.to);
+        if (from === to)
+            continue;
+        const key = `${from}\u0000${to}\u0000${l.kind || "uses"}`;
+        if (seenLinks.has(key))
+            continue;
+        seenLinks.add(key);
+        outLinks.push(from === l.from && to === l.to ? l : { ...l, from, to });
+    }
+    return {
+        elements: outElements,
+        rels: outRels,
+        links: outLinks,
+        foldedToRepresentative,
+    };
+}
+export function traceSpreadingPath(fromId, toId, model, opts = {}) {
+    if (!fromId || !toId)
+        return { found: false, nodeIds: [], hops: [] };
+    if (fromId === toId)
+        return { found: true, nodeIds: [fromId], hops: [] };
+    const parentOf = buildMapParentIndex(model);
+    const { kidsOf } = getParentTables(parentOf);
+    const links = extractModelLinks(model);
+    const { outByFrom } = getLinkAdjacency(links);
+    const expandSubtree = (root) => {
+        const set = new Set([root]);
+        const q = [root];
+        for (let i = 0; i < q.length && set.size < 4096; i++) {
+            for (const ch of kidsOf.get(q[i]) ?? []) {
+                if (!set.has(ch)) {
+                    set.add(ch);
+                    q.push(ch);
+                }
+            }
+        }
+        return set;
+    };
+    const startSet = expandSubtree(fromId);
+    const targetSet = expandSubtree(toId);
+    const allowStopFirst = opts.allowStoppingLastHop ?? false;
+    const runSearch = (permitInitialStop) => {
+        const visited = new Set(startSet);
+        const prev = new Map();
+        const queue = [...startSet].sort(cmpCodepoint).map((id) => ({ id, depth: 0 }));
+        let hitTarget = null;
+        for (let qi = 0; qi < queue.length; qi++) {
+            const { id: cur, depth } = queue[qi];
+            const outLinks = [...(outByFrom.get(cur) ?? [])].sort((a, b) => {
+                const as = a.stop ? 1 : 0;
+                const bs = b.stop ? 1 : 0;
+                if (as !== bs)
+                    return as - bs;
+                return compareBlastLinks(a, b);
+            });
+            for (const l of outLinks) {
+                const k = l.kind || "uses";
+                if (TUX_MAP_QUIET_LINK_KINDS.has(k))
+                    continue;
+                if (l.stop && !(permitInitialStop && depth === 0))
+                    continue;
+                const nxt = l.to;
+                if (visited.has(nxt))
+                    continue;
+                visited.add(nxt);
+                prev.set(nxt, { prevId: cur, link: l });
+                if (targetSet.has(nxt)) {
+                    hitTarget = nxt;
+                    break;
+                }
+                queue.push({ id: nxt, depth: depth + 1 });
+            }
+            if (hitTarget)
+                break;
+        }
+        if (!hitTarget)
+            return null;
+        const nodeIds = [hitTarget];
+        const hops = [];
+        let cursor = hitTarget;
+        while (prev.has(cursor)) {
+            const step = prev.get(cursor);
+            const kind = step.link.kind || "uses";
+            hops.unshift({
+                from: step.prevId,
+                to: cursor,
+                kind,
+                label: TUX_MAP_LINK_KIND_LABELS[kind] || step.link.label || kind,
+                ...(step.link.at ? { at: step.link.at } : {}),
+            });
+            nodeIds.unshift(step.prevId);
+            cursor = step.prevId;
+        }
+        if (nodeIds[0] !== fromId && startSet.has(nodeIds[0])) {
+            nodeIds.unshift(fromId);
+        }
+        if (nodeIds[nodeIds.length - 1] !== toId && targetSet.has(nodeIds[nodeIds.length - 1])) {
+            nodeIds.push(toId);
+        }
+        return { found: true, nodeIds, hops };
+    };
+    return runSearch(false) ?? (allowStopFirst ? runSearch(true) : null) ?? { found: false, nodeIds: [], hops: [] };
 }
 function buildHostBridge(model, subgraphOwners = collectSubgraphOwners(model)) {
     const hostsByElement = new Map();
@@ -2436,24 +3978,52 @@ function buildBlastNodeMeta(model, subgraphOwners = collectSubgraphOwners(model)
 function repoPathForNodeId(id, meta) {
     if (meta?.path)
         return meta.path;
-    if (id.startsWith("f:"))
-        return id.slice(2);
-    if (id.startsWith("s:"))
-        return id.slice(2).split("#")[0] ?? "";
+    const { repo, kind, rest } = splitNodeId(id);
+    if (!kind)
+        return "";
+    if (kind === "f" || kind === "p") {
+        if (kind === "p" && rest.startsWith("pkg:"))
+            return "";
+        return rest;
+    }
+    if (kind === "s") {
+        if (rest.startsWith("pkg:"))
+            return "";
+        const hashIdx = rest.lastIndexOf("#");
+        return hashIdx >= 0 ? rest.slice(0, hashIdx) : rest;
+    }
+    if (kind === "d") {
+        if (repo) {
+            const p = rest.split("@", 1)[0] ?? "";
+            if (p === "(root)" || p === "(routes)" || p === "x-registries" || p.startsWith("x-registries/")) {
+                return "";
+            }
+            return p;
+        }
+        const colonIdx = rest.indexOf(":");
+        const p = colonIdx >= 0 ? rest.slice(colonIdx + 1) : rest;
+        if (p === "(root)" || p === "(routes)" || rest.startsWith("x-registries:")) {
+            return "";
+        }
+        return p;
+    }
     return "";
 }
 function isPureDocNode(id, meta) {
-    if (id.startsWith("s:") || meta?.kind === "symbol")
+    if (isKindNodeId(id, "s") || meta?.kind === "symbol" || meta?.kind === "function" || meta?.kind === "class") {
         return false;
+    }
     if (meta?.tech === "Markdown")
         return true;
     const p = repoPathForNodeId(id, meta).toLowerCase();
     return p.endsWith(".md") || p.endsWith(".mdx") || p.endsWith(".txt") || p.endsWith(".rst");
 }
+const TEST_ONLY_PATH_RE = /(?:^|\/)(?:tests?|__tests__)\/|(?:^|\/)test_[^/]*$|\.(?:test|spec)\.[^/]+$/i;
 const AUX_NON_PROD_PATH_RE = /(?:^|\/)(?:tests?|__tests__|ci)\/|(?:^|\/)test_[^/]*$|\.(?:test|spec)\.[^/]+$|^(?:runner-smoke\/)?\.(?:forgejo|github)\/workflows\//i;
+const LOCKFILE_DELTA_RE = /(?:^|\/)(?:package-lock\.json|pnpm-lock\.yaml|yarn\.lock|uv\.lock|Cargo\.lock|renv\.lock|packages\.lock\.json|actions\.lock)$|\.(?:lock|sum)$/;
 function isAuxNonProdSeed(id, meta) {
     const p = repoPathForNodeId(id, meta);
-    if (!p && !id.startsWith("f:") && !id.startsWith("s:"))
+    if (!p && !isKindNodeId(id, ["f", "s"]))
         return false;
     if (isPureDocNode(id, meta))
         return true;
@@ -2476,12 +4046,7 @@ export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) 
             ? opts.kinds
             : new Set(opts.kinds)
         : null;
-    const kidsOf = new Map();
-    for (const [c, p] of parentOf) {
-        const k = kidsOf.get(p) ?? [];
-        k.push(c);
-        kidsOf.set(p, k);
-    }
+    const { kidsOf } = getParentTables(parentOf);
     const rawSeeds = typeof seedOrSeeds === "string" ? [seedOrSeeds] : [...seedOrSeeds];
     const seeds = new Set();
     const dq = [];
@@ -2519,26 +4084,7 @@ export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) 
             addSeed(c);
         }
     }
-    const into = new Map();
-    const outByFrom = new Map();
-    for (const l of asObjArray(links)) {
-        if (typeof l.from !== "string" || typeof l.to !== "string" || !l.from || !l.to)
-            continue;
-        let arr = into.get(l.to);
-        if (!arr) {
-            arr = [];
-            into.set(l.to, arr);
-        }
-        arr.push(l);
-        if (l.from !== l.to) {
-            let outArr = outByFrom.get(l.from);
-            if (!outArr) {
-                outArr = [];
-                outByFrom.set(l.from, outArr);
-            }
-            outArr.push(l);
-        }
-    }
+    const { into, outByFrom } = getLinkAdjacency(links);
     let truncated = false;
     const spreadDist = new Map();
     const spreadVia = new Map();
@@ -2647,7 +4193,7 @@ export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) 
         return sub;
     };
     const canCoCut = (y) => {
-        if (seeds.has(y) || y.startsWith("d:"))
+        if (seeds.has(y) || isKindNodeId(y, "d"))
             return false;
         const yMeta = metaById.get(y);
         if (yMeta?.kind && NON_AUX_CO_CUT_KINDS.has(yMeta.kind))
@@ -2763,7 +4309,7 @@ function stripLineSuffix(tech) {
 function logicalParentOf(id, parentOf) {
     let p = parentOf.get(id);
     const seen = new Set([id]);
-    while (p && p.startsWith("d:")) {
+    while (p && isKindNodeId(p, "d")) {
         if (seen.has(p) || seen.size >= MAX_TREE_DEPTH)
             return undefined;
         seen.add(p);
@@ -2786,7 +4332,7 @@ function indexModelForDelta(model, bridgeUncovered = true) {
         const id = typeof e.id === "string" ? e.id : "";
         if (id)
             validTargetIds.add(id);
-        if (!id || id.startsWith("d:") || elements.has(id))
+        if (!id || isKindNodeId(id, "d") || elements.has(id))
             return;
         elements.set(id, {
             id,
@@ -2890,7 +4436,7 @@ function sameSet(a, b) {
 }
 export function computeGraphDelta(baseModel, headModel, opts = {}) {
     const includeMergedModel = opts.includeMergedModel ?? true;
-    const bothCodeOrNeither = Boolean(baseModel?.links?.length || headModel?.links?.length);
+    const bothCodeOrNeither = resolveModelRawLinks(baseModel).length > 0 || resolveModelRawLinks(headModel).length > 0;
     const baseIdx = indexModelForDelta(baseModel, !bothCodeOrNeither);
     const headIdx = indexModelForDelta(headModel, !bothCodeOrNeither);
     const allIds = [...new Set([...baseIdx.elements.keys(), ...headIdx.elements.keys()])].sort(cmpCodepoint);
@@ -3145,11 +4691,37 @@ export function computeGraphDelta(baseModel, headModel, opts = {}) {
         }
     }
     const blastSeedIds = [...seedIdSet].sort(cmpCodepoint);
-    const recommendedIntent = deletedIds.length > 0
+    const isSupplyChainDeltaId = (nid) => {
+        if (!nid)
+            return false;
+        if (nid.startsWith("p:pkg:") || nid.startsWith("s:pkg:") || nid.includes(":s:pkg:") || nid.includes(":p:pkg:")) {
+            return true;
+        }
+        if (nid === "x-registries" ||
+            nid === "e-registries" ||
+            nid.endsWith(":x-registries") ||
+            nid.endsWith(":d:x-registries") ||
+            nid.includes(":d:x-registries/")) {
+            return true;
+        }
+        const bMeta = baseIdx.elements.get(nid);
+        const hMeta = headIdx.elements.get(nid);
+        const rp = hMeta?.source?.path ||
+            bMeta?.source?.path ||
+            repoPathForNodeId(nid);
+        return Boolean(rp && LOCKFILE_DELTA_RE.test(rp));
+    };
+    const codeDeleted = deletedIds.filter((id) => !isSupplyChainDeltaId(id));
+    const codeStructural = [...movedIds, ...sigChangedIds, ...addedIds].filter((id) => !isSupplyChainDeltaId(id));
+    const hasSupplyChainChange = nodeChanges.some((c) => isSupplyChainDeltaId(c.id)) ||
+        [...addedWires, ...removedWires].some((w) => isSupplyChainDeltaId(w.to) || isSupplyChainDeltaId(w.from));
+    const recommendedIntent = codeDeleted.length > 0
         ? "cut"
-        : movedIds.length > 0 || sigChangedIds.length > 0 || addedIds.length > 0
+        : codeStructural.length > 0
             ? "refactor"
-            : "patch";
+            : hasSupplyChainChange
+                ? "supply-chain"
+                : "patch";
     if (!includeMergedModel) {
         return {
             nodeChanges,
@@ -3268,6 +4840,7 @@ export function computeGraphDelta(baseModel, headModel, opts = {}) {
         };
         const pid = bEl.parentId;
         const logPid = bEl.logicalParentId;
+        const isPidFolder = isKindNodeId(pid, "d");
         if (bEl.origin === "level3") {
             if (hasOwn(mergedLevel3, pid)) {
                 mergedLevel3[pid].push(ghost);
@@ -3280,17 +4853,17 @@ export function computeGraphDelta(baseModel, headModel, opts = {}) {
         if (hasOwn(mergedSubgraphs, pid)) {
             mergedSubgraphs[pid].elements.push(ghost);
         }
-        else if (pid.startsWith("d:") && logPid && hasOwn(mergedSubgraphs, logPid)) {
+        else if (isPidFolder && logPid && hasOwn(mergedSubgraphs, logPid)) {
             mergedSubgraphs[logPid].elements.push(ghost);
         }
-        else if (pid.startsWith("d:") &&
+        else if (isPidFolder &&
             logPid &&
             headIdx.validTargetIds.has(logPid) &&
             !headIdx.inlineParentIds.has(logPid) &&
             logPid !== headModel?.level2?.boundary) {
             setOwnProp(mergedSubgraphs, logPid, { elements: [ghost] });
         }
-        else if (!pid.startsWith("d:") &&
+        else if (!isPidFolder &&
             headIdx.validTargetIds.has(pid) &&
             !headIdx.inlineParentIds.has(pid) &&
             pid !== headModel?.level2?.boundary) {
@@ -3416,6 +4989,16 @@ export function normalizeArchitectureModelInput(raw, opts = {}) {
             : isPlainRecord(code) && Array.isArray(code.links)
                 ? code.links
                 : undefined;
+        const linkTiersRaw = isPlainRecord(raw.linkTiers)
+            ? raw.linkTiers
+            : isPlainRecord(code?.linkTiers)
+                ? code.linkTiers
+                : undefined;
+        const stopKindsRaw = Array.isArray(raw.stopKinds)
+            ? raw.stopKinds
+            : isPlainRecord(code) && Array.isArray(code.stopKinds)
+                ? code.stopKinds
+                : undefined;
         const routesRaw = Array.isArray(raw.routes)
             ? raw.routes
             : isPlainRecord(code) && Array.isArray(code.routes)
@@ -3456,6 +5039,21 @@ export function normalizeArchitectureModelInput(raw, opts = {}) {
             },
             ...(subgraphsRaw ? { subgraphs: subgraphsRaw } : {}),
             ...(linksRaw ? { links: asObjArray(linksRaw) } : {}),
+            ...(linkTiersRaw
+                ? {
+                    linkTiers: {
+                        ...(Array.isArray(linkTiersRaw.spread)
+                            ? { spread: asObjArray(linkTiersRaw.spread) }
+                            : {}),
+                        ...(Array.isArray(linkTiersRaw.stop)
+                            ? { stop: asObjArray(linkTiersRaw.stop) }
+                            : {}),
+                    },
+                }
+                : {}),
+            ...(stopKindsRaw
+                ? { stopKinds: stopKindsRaw.filter((k) => typeof k === "string" && Boolean(k)) }
+                : {}),
             ...(routesRaw ? { routes: asObjArray(routesRaw) } : {}),
         };
     }
@@ -3497,12 +5095,28 @@ export function normalizeArchitectureModelInput(raw, opts = {}) {
             level4: { groups: [], nodes: [], links: [] },
             subgraphs,
             links: asObjArray(raw.links),
+            ...(isPlainRecord(raw.linkTiers)
+                ? {
+                    linkTiers: {
+                        ...(Array.isArray(raw.linkTiers.spread)
+                            ? { spread: asObjArray(raw.linkTiers.spread) }
+                            : {}),
+                        ...(Array.isArray(raw.linkTiers.stop)
+                            ? { stop: asObjArray(raw.linkTiers.stop) }
+                            : {}),
+                    },
+                }
+                : {}),
+            ...(Array.isArray(raw.stopKinds)
+                ? { stopKinds: raw.stopKinds.filter((k) => typeof k === "string" && Boolean(k)) }
+                : {}),
             ...(Array.isArray(raw.routes) ? { routes: asObjArray(raw.routes) } : {}),
         };
     }
     else {
         normalized = raw;
     }
+    normalized = sanitizeMapModel(normalized).model;
     if (opts.allowEmpty === false) {
         const idx = getMapQueryIndex(normalized);
         if (idx.nodes.size === 0) {
@@ -3616,7 +5230,7 @@ function modelCacheStamp(model) {
             }
         }
     }
-    const codeLinks = asObjArray(model?.links);
+    const codeLinks = resolveModelRawLinks(model);
     feedStr(`#CL:${codeLinks.length}`);
     for (const l of codeLinks) {
         feedStr(typeof l.from === "string" ? l.from : "");
@@ -3626,6 +5240,30 @@ function modelCacheStamp(model) {
         feedStr(l.stop ? "1" : "0");
         feedStr(typeof l.coupling === "string" ? l.coupling : "");
         feedStr(typeof l.phase === "string" ? l.phase : "");
+        if (Array.isArray(l.violations)) {
+            feedStr(String(l.violations.length));
+            for (const v of l.violations) {
+                feedStr(typeof v?.rule === "string" ? v.rule : "");
+            }
+        }
+        else {
+            feedStr("0");
+        }
+    }
+    if (Array.isArray(model?.stopKinds)) {
+        feedStr(`#SK:${model.stopKinds.length}`);
+        for (const sk of model.stopKinds) {
+            if (typeof sk === "string")
+                feedStr(sk);
+        }
+    }
+    if (isPlainRecord(model?.aliases)) {
+        const ak = Object.keys(model.aliases);
+        feedStr(`#AL:${ak.length}`);
+        for (const k of ak) {
+            feedStr(k);
+            feedStr(typeof model.aliases[k] === "string" ? model.aliases[k] : "");
+        }
     }
     const routes = asObjArray(model?.routes);
     feedStr(`#RT:${routes.length}`);
@@ -3915,6 +5553,8 @@ export function getMapQueryIndex(model = EMPTY_TTI_LEVEL_MODEL) {
         edges.push(depEdge);
         depEdges.push(depEdge);
     });
+    const subgraphChildLevelByOwner = new Map();
+    const seenSgRelPairs = new Set();
     if (isPlainRecord(model?.subgraphs)) {
         for (const [rawParentId, sg] of Object.entries(model.subgraphs)) {
             if (!isPlainRecord(sg))
@@ -3922,6 +5562,7 @@ export function getMapQueryIndex(model = EMPTY_TTI_LEVEL_MODEL) {
             const parentId = subgraphOwners.get(rawParentId) ?? rawParentId;
             const rawLvl = levelForFocus(parentId, model, parentOf);
             const childLevel = isLevel3Focus(parentId, model) ? 5 : rawLvl;
+            subgraphChildLevelByOwner.set(parentId, childLevel);
             asObjArray(sg.elements).forEach((k, idx) => {
                 const id = (typeof k.id === "string" && k.id) || `${parentId}/${idx}`;
                 const deployed = normArr(k.deployed);
@@ -3956,6 +5597,7 @@ export function getMapQueryIndex(model = EMPTY_TTI_LEVEL_MODEL) {
             asObjArray(sg.rels).forEach((r, idx) => {
                 if (typeof r.from !== "string" || typeof r.to !== "string" || !r.from || !r.to)
                     return;
+                seenSgRelPairs.add(`${parentId}\u0000${r.from}\u0000${r.to}`);
                 const sgEdge = {
                     id: `lsg-${parentId}-${idx}-${r.from}-${r.to}`,
                     from: r.from,
@@ -3971,13 +5613,14 @@ export function getMapQueryIndex(model = EMPTY_TTI_LEVEL_MODEL) {
             });
         }
     }
-    const validCodeLinks = asObjArray(model?.links).filter((l) => typeof l.from === "string" && Boolean(l.from) && typeof l.to === "string" && Boolean(l.to));
+    const validCodeLinks = resolveModelRawLinks(model).filter((l) => typeof l.from === "string" && Boolean(l.from) && typeof l.to === "string" && Boolean(l.to));
     const nonProseCodeLinks = [];
-    validCodeLinks.forEach((l, idx) => {
+    const seenLinkIds = new Map();
+    validCodeLinks.forEach((l) => {
         if (!nodes.has(l.from) || !nodes.has(l.to))
             return;
         const lnkEdge = {
-            id: `lnk-${idx}-${l.from}-${l.to}`,
+            id: deriveLinkId(l, seenLinkIds),
             from: l.from,
             to: l.to,
             label: l.kind,
@@ -3991,6 +5634,58 @@ export function getMapQueryIndex(model = EMPTY_TTI_LEVEL_MODEL) {
             nonProseCodeLinks.push(l);
         }
     });
+    if (subgraphChildLevelByOwner.size > 0 && nonProseCodeLinks.length > 0) {
+        const liftedByOwner = new Map();
+        for (const l of nonProseCodeLinks) {
+            const up = mapAncestorsOf(l.from, parentOf);
+            const upSet = new Set(up);
+            let b;
+            let x = l.to;
+            const seenTo = new Set();
+            while (x && !upSet.has(x) && !seenTo.has(x)) {
+                seenTo.add(x);
+                b = x;
+                x = parentOf.get(x);
+            }
+            if (b && x && x !== l.from && subgraphChildLevelByOwner.has(x)) {
+                const xIdx = up.indexOf(x);
+                if (xIdx > 0) {
+                    const a = up[xIdx - 1];
+                    if (a !== b && !seenSgRelPairs.has(`${x}\u0000${a}\u0000${b}`)) {
+                        let ownerPairs = liftedByOwner.get(x);
+                        if (!ownerPairs) {
+                            ownerPairs = new Map();
+                            liftedByOwner.set(x, ownerPairs);
+                        }
+                        const pairKey = `${a}\u0000${b}`;
+                        let rec = ownerPairs.get(pairKey);
+                        if (!rec) {
+                            rec = { from: a, to: b, kinds: new Map() };
+                            ownerPairs.set(pairKey, rec);
+                        }
+                        const k = l.kind || "uses";
+                        rec.kinds.set(k, (rec.kinds.get(k) ?? 0) + 1);
+                    }
+                }
+            }
+        }
+        for (const [ownerId, ownerPairs] of liftedByOwner) {
+            const childLevel = subgraphChildLevelByOwner.get(ownerId);
+            let relIdx = 0;
+            for (const rec of ownerPairs.values()) {
+                const sgEdge = {
+                    id: `lsg-${ownerId}-lca-${relIdx++}-${rec.from}-${rec.to}`,
+                    from: rec.from,
+                    to: rec.to,
+                    label: topKinds(rec.kinds),
+                    level: childLevel,
+                    kind: "rel",
+                };
+                edges.push(sgEdge);
+                depEdges.push(sgEdge);
+            }
+        }
+    }
     const hasNonProseCodeLinks = nonProseCodeLinks.length > 0;
     const codeCovered = new Set();
     if (hasNonProseCodeLinks) {
@@ -4082,21 +5777,21 @@ function clipDisplayId(rawId, maxLen = 120) {
     const s = String(rawId ?? "");
     return s.length <= maxLen ? s : `${s.slice(0, maxLen - 3)}...`;
 }
-const NODE_ID_PREFIX_RE = /^(?:p:pkg:|[fsdrp]:)/;
 export function suggestCloseNodeIds(unknownId, nodes, maxSuggestions = 10) {
     const rawMax = Number.isFinite(maxSuggestions) ? maxSuggestions : 10;
     const cap = Math.min(10, Math.max(0, Math.floor(rawMax)));
     if (cap === 0)
         return [];
-    const q = String(unknownId ?? "").trim().toLowerCase();
-    const qStripped = q.replace(NODE_ID_PREFIX_RE, "");
+    const rawTrimmed = String(unknownId ?? "").trim();
+    const q = rawTrimmed.toLowerCase();
+    const qStripped = stripNodeKindPrefix(rawTrimmed).toLowerCase();
     const tokens = qStripped.split(/[/:.#_-]+/).filter((t) => t.length >= 2);
     if (!q)
         return [];
     const scored = [];
     for (const n of nodes.values()) {
         const idLower = n.id.toLowerCase();
-        const idStripped = idLower.replace(NODE_ID_PREFIX_RE, "");
+        const idStripped = stripNodeKindPrefix(n.id).toLowerCase();
         const nameLower = (n.name || "").toLowerCase();
         let score = 0;
         if (idLower === q || (qStripped && idStripped === qStripped)) {
@@ -4292,7 +5987,7 @@ export function queryArchitectureImpact(seedIds, model = EMPTY_TTI_LEVEL_MODEL, 
     const coarseParentSteps = [];
     const redirectParentByLink = new WeakMap();
     let blastLinks = links;
-    const hasCodeLinks = asObjArray(model?.links).length > 0;
+    const hasCodeLinks = resolveModelRawLinks(model).length > 0;
     if (!hasCodeLinks && opts.allowCoarseParentStep !== false && maxHops >= 1) {
         const incomingTargets = new Set(links.map((l) => l.to));
         const coarseRepresentativeByParent = new Map();
@@ -4860,15 +6555,17 @@ function compileSafeRouteRegex(pattern) {
     }
 }
 function classifySearchGroup(id, kind, name, tech, hasSourcePath) {
-    if (kind === "route" || id.startsWith("r:"))
+    if (kind === "route" || isKindNodeId(id, "r"))
         return "Routes";
-    if (kind === "symbol" || id.startsWith("s:"))
+    if (kind === "symbol" || kind === "function" || kind === "class" || kind === "constant" || isKindNodeId(id, "s")) {
         return "Functions";
-    if (id.startsWith("d:") ||
+    }
+    if (kind === "folder" ||
+        isKindNodeId(id, "d") ||
         (kind === "module" && !hasSourcePath && (name.endsWith("/") || /\bfolder\b/i.test(tech || "")))) {
         return "Folders";
     }
-    if (id.startsWith("f:") || kind === "module" || kind === "schema")
+    if (kind === "file" || isKindNodeId(id, "f") || kind === "module" || kind === "schema")
         return "Files";
     return "Components";
 }
@@ -5015,7 +6712,7 @@ export function buildMapSearchIndex(model = EMPTY_TTI_LEVEL_MODEL) {
         }
     }
     const handlerByRouteId = new Map();
-    for (const l of asObjArray(model?.links)) {
+    for (const l of resolveModelRawLinks(model)) {
         if (l.kind === "handled-by" && l.from && l.to && nodes.has(l.to)) {
             if (!handlerByRouteId.has(l.from))
                 handlerByRouteId.set(l.from, l.to);
@@ -5023,7 +6720,7 @@ export function buildMapSearchIndex(model = EMPTY_TTI_LEVEL_MODEL) {
         else if (l.kind === "routes" &&
             l.from &&
             l.to &&
-            (l.from.startsWith("r:") || nodes.get(l.from)?.kind === "route") &&
+            (isKindNodeId(l.from, "r") || nodes.get(l.from)?.kind === "route") &&
             nodes.has(l.to)) {
             if (!handlerByRouteId.has(l.from))
                 handlerByRouteId.set(l.from, l.to);
@@ -5049,14 +6746,12 @@ export function buildMapSearchIndex(model = EMPTY_TTI_LEVEL_MODEL) {
         return names;
     };
     for (const n of nodes.values()) {
-        const srcPath = n.source?.path ||
-            (n.id.startsWith("f:") ? n.id.slice(2) : "") ||
-            (n.id.startsWith("d:") ? n.id.slice(2).split(":").pop() || "" : "");
+        const srcPath = n.source?.path || repoPathForNodeId(n.id);
         const group = classifySearchGroup(n.id, n.kind, n.name, n.tech, Boolean(n.source?.path));
         const ancestors = buildAncestors(n.id);
         const linkedHandlerId = group === "Routes" ? handlerByRouteId.get(n.id) : undefined;
         const handlerNode = linkedHandlerId ? nodes.get(linkedHandlerId) : undefined;
-        const routePattern = group === "Routes" ? (n.id.startsWith("r:") ? n.id.slice(2) : n.name) : undefined;
+        const routePattern = group === "Routes" ? (isKindNodeId(n.id, "r") ? splitNodeId(n.id).rest : n.name) : undefined;
         if (routePattern) {
             seenRouteKeys.add(`${routePattern.toLowerCase()}\u0000${linkedHandlerId || n.id}`);
         }

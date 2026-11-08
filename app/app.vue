@@ -228,12 +228,20 @@ const versionDropdownRef = ref<HTMLElement | null>(null);
 
 const releases = [
   {
-    version: "v3.11.0",
-    title: "Telemetry, Rate Cards & Chargeback",
-    era: "Unified Ops & Settlement · 8 Metering, SLI, Audit & Statement Primitives",
+    version: "v3.12.0",
+    title: "Architecture Map Wayfinding, LCA Lifting & Lazy Subgraphs",
+    era: "M.A.P. v3.12 · Wire Inspector, LCA Outside Lifting, Rule Violations & Lazy Zoom",
     badge: "Current",
     badgeClass: "bg-wash-brand-12 text-brand-primary border border-brand-primary/20",
     route: "/",
+  },
+  {
+    version: "v3.11.0",
+    title: "Telemetry, Rate Cards & Chargeback",
+    era: "Unified Ops & Settlement · 8 Metering, SLI, Audit & Statement Primitives",
+    badge: "Stable",
+    badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
+    route: "/changelog#_3110-2026-11-05",
   },
   {
     version: "v3.10.0",
