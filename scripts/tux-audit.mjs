@@ -18,6 +18,7 @@
  */
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
+import { constants as osConstants } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -28,6 +29,14 @@ function run(script, args = []) {
   const r = spawnSync(process.execPath, [path.join(__dirname, script), ...args], {
     stdio: "inherit",
   });
+  if (r.error) {
+    console.error(`tux-audit: failed to launch ${script}: ${r.error.message}`);
+    process.exit(1);
+  }
+  if (r.signal) {
+    const sigNum = osConstants.signals[r.signal];
+    process.exit(typeof sigNum === "number" ? 128 + sigNum : 1);
+  }
   process.exit(r.status ?? 1);
 }
 
@@ -76,7 +85,7 @@ switch (cmd) {
         "  tokens [dirs…] [--fix]  undefined-token audit & auto-fixer (zero-dep; defaults to ./app)\n" +
         "  contrast                WCAG AAA contrast audit (needs your puppeteer)\n" +
         "  a11y                    axe accessibility audit (needs your jsdom + axe-core)\n" +
-        "  mcp [--list-tools]      start zero-dep TUX Model Context Protocol (stdio) server",
+        "  mcp [--model <path>]    start zero-dep TUX Model Context Protocol (stdio) server",
     );
     process.exit(cmd ? 2 : 0);
 }

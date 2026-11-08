@@ -9,34 +9,70 @@
  * JSON-RPC 2.0 (stdio — both newline-delimited and Content-Length framed).
  *
  * Usage:
- *   npx tux-audit mcp                  # Start JSON-RPC 2.0 stdio MCP server
- *   npx tux-audit mcp --list-tools     # Print registered MCP tools as JSON
- *   npx tux-audit mcp --call <tool> [jsonArgs]  # Invoke a tool from CLI
+ *   npx tux-audit mcp [--model <path>] [--base-model <path>]
+ *   npx tux-audit mcp [--model <path>] --list-tools
+ *   npx tux-audit mcp [--model <path>] --call <tool> [jsonArgs]
  */
 
-import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync, realpathSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+let mapRuntime = null;
+let mapRuntimeLoadError = null;
+try {
+  mapRuntime = await import("../packages/diagrams/runtime/tuxArchitectureMap.mjs");
+} catch {
+  try {
+    mapRuntime = await import("@tti/tti-ux-diagrams/runtime/tuxArchitectureMap.mjs");
+  } catch (err) {
+    mapRuntimeLoadError = err;
+  }
+}
+
+function requireMapRuntime() {
+  if (!mapRuntime) {
+    throw new Error(
+      `TUX M.A.P. runtime could not be loaded (install @tti/tti-ux-diagrams or run build:runtime): ${
+        mapRuntimeLoadError instanceof Error ? mapRuntimeLoadError.message : String(mapRuntimeLoadError)
+      }`,
+    );
+  }
+  return mapRuntime;
+}
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
+const IS_MAIN = (() => {
+  if (!process.argv[1]) return false;
+  try {
+    return (
+      realpathSync(path.resolve(process.argv[1])) ===
+      realpathSync(fileURLToPath(import.meta.url))
+    );
+  } catch {
+    return path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
+  }
+})();
 
-export const CANONICAL_TOKEN_ALIASES = {
-  "--surface-base": "--surface-page",
-  "--bg-page": "--surface-page",
-  "--bg-card": "--surface-raised",
-  "--surface-card": "--surface-raised",
-  "--text-default": "--text-primary",
-  "--text-main": "--text-primary",
-  "--danger": "--color-danger",
-  "--status-info": "--color-info",
-  "--status-success": "--color-success",
-  "--status-warning": "--color-warning",
-  "--status-error": "--color-error",
-  "--border-subtle": "--surface-border-subtle",
-  "--border-default": "--surface-border",
-  "--font-sans": "--font-body",
-};
+export const CANONICAL_TOKEN_ALIASES = Object.freeze(
+  Object.assign(Object.create(null), {
+    "--surface-base": "--surface-page",
+    "--bg-page": "--surface-page",
+    "--bg-card": "--surface-raised",
+    "--surface-card": "--surface-raised",
+    "--text-default": "--text-primary",
+    "--text-main": "--text-primary",
+    "--danger": "--color-danger",
+    "--status-info": "--color-info",
+    "--status-success": "--color-success",
+    "--status-warning": "--color-warning",
+    "--status-error": "--color-error",
+    "--border-subtle": "--surface-border-subtle",
+    "--border-default": "--surface-border",
+    "--font-sans": "--font-body",
+  }),
+);
 
 const WASH_LADDER = [4, 6, 8, 12, 18, 22, 35, 50];
 
@@ -76,7 +112,7 @@ function levenshtein(a, b) {
 }
 
 function suggestClosestToken(token, defsMap) {
-  if (CANONICAL_TOKEN_ALIASES[token]) return CANONICAL_TOKEN_ALIASES[token];
+  if (Object.hasOwn(CANONICAL_TOKEN_ALIASES, token)) return CANONICAL_TOKEN_ALIASES[token];
   let best = null;
   let bestDist = 3; // distance <= 2
   for (const cand of defsMap.keys()) {
@@ -247,14 +283,14 @@ function parseComponentDetails(compName) {
   }
 
   // Extract defaults from withDefaults(defineProps<...>(), { ... })
-  const defaultsMap = {};
+  const defaultsMap = new Map();
   const defaultsMatch = code.match(/withDefaults\s*\(\s*defineProps<[\s\S]*?>\(\)\s*,\s*\{([\s\S]*?)\}\s*\)/);
   if (defaultsMatch) {
     const body = defaultsMatch[1];
     for (const line of body.split("\n")) {
       const m = line.trim().match(/^([a-zA-Z0-9_$]+)\s*:\s*(.+?)\s*,?$/);
       if (m && m[2] !== "undefined") {
-        defaultsMap[m[1]] = m[2];
+        defaultsMap.set(m[1], m[2]);
       }
     }
   }
@@ -291,7 +327,7 @@ function parseComponentDetails(compName) {
           name: trimmedName,
           type: pType.trim().replace(/\s+/g, " "),
           required: optional !== "?",
-          default: defaultsMap[trimmedName] ?? undefined,
+          default: defaultsMap.get(trimmedName) ?? undefined,
           description: propDescription,
         });
       }
@@ -477,368 +513,131 @@ function snapHexToTargetContrast(fgHex, bgHex, targetRatio = 7.0) {
   return bestHex;
 }
 
-// ── Architecture Map (M.A.P.) Code Property Graph & ACP Lease Engine ────────
-const activeAcpLeases = new Map();
-
-function loadDefaultArchitectureGraph() {
-  // Dynamically builds the unified 6-level C4 + Code Property Graph from packages/diagrams
-  const nodes = new Map([
-    [
-      "p-users",
-      {
-        id: "p-users",
-        level: 1,
-        kind: "person",
-        name: "Product users & analysts",
-        desc: "Sign in to explore dashboards, run reports, manage projects, and collaborate.",
-      },
-    ],
-    [
-      "p-admins",
-      {
-        id: "p-admins",
-        level: 1,
-        kind: "person",
-        name: "Platform admins & SREs",
-        desc: "Configure access policies, review system health, and manage releases.",
-      },
-    ],
-    [
-      "s-platform",
-      {
-        id: "s-platform",
-        level: 1,
-        kind: "system",
-        name: "Enterprise Cloud Platform",
-        tech: "Web Portal · Core API · Workers · Data",
-      },
-    ],
-    [
-      "x-sso",
-      {
-        id: "x-sso",
-        level: 1,
-        kind: "external",
-        name: "Identity Provider (SSO)",
-        tech: "OIDC · SAML 2.0",
-      },
-    ],
-    [
-      "c-edge",
-      {
-        id: "c-edge",
-        level: 2,
-        kind: "container",
-        name: "Edge Reverse Proxy",
-        tech: "Envoy / Caddy",
-        parentId: "s-platform",
-        deployed: ["app-vm-01"],
-      },
-    ],
-    [
-      "c-web",
-      {
-        id: "c-web",
-        level: 2,
-        kind: "container",
-        name: "Web Portal",
-        tech: "Nuxt · TypeScript",
-        parentId: "s-platform",
-        deployed: ["app-vm-01"],
-      },
-    ],
-    [
-      "c-api",
-      {
-        id: "c-api",
-        level: 2,
-        kind: "container",
-        name: "Core API Service",
-        tech: "Go · REST & GraphQL",
-        parentId: "s-platform",
-        deployed: ["app-vm-01"],
-        source: { path: "services/api/cmd/server/main.go", lineRange: [1, 148], symbol: "main()" },
-        diff: { changeType: "modified", filesChanged: 3, summary: "Updated RBAC token claims & search proxy" },
-      },
-    ],
-    [
-      "c-db",
-      {
-        id: "c-db",
-        level: 2,
-        kind: "database",
-        name: "Primary Database",
-        tech: "PostgreSQL 16",
-        parentId: "s-platform",
-        deployed: ["app-vm-01", "app-data-disk"],
-      },
-    ],
-    [
-      "c-search",
-      {
-        id: "c-search",
-        level: 2,
-        kind: "container",
-        name: "AI Search Service",
-        tech: "Python · Vector Index",
-        parentId: "s-platform",
-        deployed: ["ai-search-app", "vector-db-01"],
-        source: { path: "services/ai-search/src/main.py", lineRange: [1, 96], symbol: "create_search_app()" },
-        diff: { changeType: "modified", filesChanged: 2, summary: "Added hybrid RRF reranker & 1536d HNSW index" },
-      },
-    ],
-    [
-      "c-workers",
-      {
-        id: "c-workers",
-        level: 2,
-        kind: "container",
-        name: "Background Workers",
-        tech: "Worker Pool (2 Nodes)",
-        parentId: "s-platform",
-        deployed: ["worker-node-01", "worker-node-02"],
-      },
-    ],
-    [
-      "c-cache",
-      {
-        id: "c-cache",
-        level: 2,
-        kind: "database",
-        name: "Cache & Job Queue",
-        tech: "Valkey / Redis",
-        parentId: "s-platform",
-        deployed: ["app-vm-01"],
-      },
-    ],
-    [
-      "c-api/0",
-      {
-        id: "c-api/0",
-        level: 3,
-        kind: "component",
-        name: "REST & GraphQL Router",
-        parentId: "c-api",
-        source: { path: "services/api/internal/http/router.go", lineRange: [24, 182], symbol: "NewRouter()" },
-      },
-    ],
-    [
-      "c-api/1",
-      {
-        id: "c-api/1",
-        level: 3,
-        kind: "component",
-        name: "Auth & RBAC Guard",
-        parentId: "c-api",
-        source: { path: "services/api/internal/auth/rbac.go", lineRange: [18, 134], symbol: "VerifyRBAC()" },
-        diff: { changeType: "modified", filesChanged: 2, summary: "Enforce scoped subgraph leases" },
-      },
-    ],
-    [
-      "c-api/1/jwks",
-      {
-        id: "c-api/1/jwks",
-        level: 5,
-        kind: "symbol",
-        name: "JWKSKeyCache",
-        parentId: "c-api/1",
-        source: { path: "services/api/internal/auth/rbac.go", lineRange: [24, 62], symbol: "type JWKSKeyCache struct" },
-      },
-    ],
-    [
-      "c-api/1/verify",
-      {
-        id: "c-api/1/verify",
-        level: 5,
-        kind: "symbol",
-        name: "VerifyRBAC()",
-        parentId: "c-api/1",
-        source: { path: "services/api/internal/auth/rbac.go", lineRange: [66, 134], symbol: "func VerifyRBAC(ctx, token)" },
-      },
-    ],
-    [
-      "app-vm-01",
-      {
-        id: "app-vm-01",
-        level: 4,
-        kind: "vm",
-        name: "app-vm-01",
-        hosts: ["c-edge", "c-web", "c-api", "c-db", "c-cache"],
-      },
-    ],
-    [
-      "ai-search-app",
-      {
-        id: "ai-search-app",
-        level: 4,
-        kind: "containerapp",
-        name: "ai-search-app",
-        hosts: ["c-search"],
-        source: { path: "services/ai-search/Dockerfile", lineRange: [1, 44] },
-      },
-    ],
-    [
-      "vector-db-01",
-      {
-        id: "vector-db-01",
-        level: 4,
-        kind: "postgres",
-        name: "vector-db-01",
-        hosts: ["c-search"],
-        source: { path: "infra/opentofu/vector-db.tf", lineRange: [12, 88] },
-      },
-    ],
-    [
-      "ai-search-app/router",
-      {
-        id: "ai-search-app/router",
-        level: 5,
-        kind: "module",
-        name: "Search API Router",
-        parentId: "ai-search-app",
-        source: { path: "services/ai-search/src/api/routes.py", lineRange: [14, 92], symbol: "POST /v1/search" },
-      },
-    ],
-    [
-      "ai-search-app/retriever",
-      {
-        id: "ai-search-app/retriever",
-        level: 5,
-        kind: "module",
-        name: "Hybrid Retriever",
-        parentId: "ai-search-app",
-        source: { path: "services/ai-search/src/search/retriever.py", lineRange: [1, 184], symbol: "class HybridRetriever" },
-      },
-    ],
-    [
-      "ai-search-app/reranker",
-      {
-        id: "ai-search-app/reranker",
-        level: 5,
-        kind: "module",
-        name: "Cross-Encoder Reranker",
-        parentId: "ai-search-app",
-        source: { path: "services/ai-search/src/search/reranker.py", lineRange: [10, 76], symbol: "rerank_candidates()" },
-      },
-    ],
-    [
-      "ai-search-app/pgclient",
-      {
-        id: "ai-search-app/pgclient",
-        level: 5,
-        kind: "module",
-        name: "PgVector Pool Client",
-        parentId: "ai-search-app",
-        source: { path: "services/ai-search/src/db/pgvector_pool.py", lineRange: [22, 118], symbol: "AsyncVectorPool" },
-      },
-    ],
-    [
-      "ai-search-app/retriever/embed",
-      {
-        id: "ai-search-app/retriever/embed",
-        level: 6,
-        kind: "symbol",
-        name: "encode_query_vector()",
-        parentId: "ai-search-app/retriever",
-        source: { path: "services/ai-search/src/search/retriever.py", lineRange: [28, 64] },
-      },
-    ],
-    [
-      "ai-search-app/retriever/dense",
-      {
-        id: "ai-search-app/retriever/dense",
-        level: 6,
-        kind: "symbol",
-        name: "query_hnsw_chunks()",
-        parentId: "ai-search-app/retriever",
-        source: { path: "services/ai-search/src/search/retriever.py", lineRange: [68, 119] },
-      },
-    ],
-    [
-      "ai-search-app/retriever/rrf",
-      {
-        id: "ai-search-app/retriever/rrf",
-        level: 6,
-        kind: "symbol",
-        name: "fuse_reciprocal_ranks()",
-        parentId: "ai-search-app/retriever",
-        source: { path: "services/ai-search/src/search/retriever.py", lineRange: [123, 178] },
-      },
-    ],
-    [
-      "vector-db-01/docs_chunks",
-      {
-        id: "vector-db-01/docs_chunks",
-        level: 5,
-        kind: "schema",
-        name: "table: document_chunks",
-        parentId: "vector-db-01",
-        source: { path: "services/ai-search/migrations/004_document_chunks.sql", lineRange: [1, 58] },
-      },
-    ],
-    [
-      "vector-db-01/hnsw_idx",
-      {
-        id: "vector-db-01/hnsw_idx",
-        level: 5,
-        kind: "schema",
-        name: "index: idx_chunks_hnsw_cosine",
-        parentId: "vector-db-01",
-        source: { path: "services/ai-search/migrations/005_hnsw_index.sql", lineRange: [1, 32] },
-      },
-    ],
-  ]);
-
-  const edges = [
-    { id: "e-l1-1", from: "p-users", to: "s-platform", level: 1, kind: "rel", label: "Uses web app & API" },
-    { id: "e-l1-2", from: "s-platform", to: "x-sso", level: 1, kind: "rel", label: "OIDC / SCIM" },
-    { id: "e-l2-1", from: "p-users", to: "c-edge", level: 2, kind: "rel", label: "HTTPS 443" },
-    { id: "e-l2-2", from: "c-edge", to: "c-web", level: 2, kind: "rel", label: "HTTP 3000" },
-    { id: "e-l2-3", from: "c-edge", to: "c-api", level: 2, kind: "rel", label: "HTTP 8080" },
-    { id: "e-l2-4", from: "c-web", to: "c-api", level: 2, kind: "rel", label: "REST / GraphQL" },
-    { id: "e-l2-5", from: "c-web", to: "c-search", level: 2, kind: "rel", label: "Semantic queries" },
-    { id: "e-l2-6", from: "c-api", to: "c-db", level: 2, kind: "rel", label: "SQL 5432" },
-    { id: "e-l2-7", from: "c-api", to: "c-cache", level: 2, kind: "rel", label: "RESP 6379" },
-    { id: "e-l2-8", from: "c-api", to: "x-sso", level: 2, kind: "rel", label: "OIDC" },
-    { id: "e-l2-9", from: "c-workers", to: "c-cache", level: 2, kind: "rel", label: "Pulls jobs" },
-    { id: "e-l2-10", from: "c-workers", to: "c-db", level: 2, kind: "rel", label: "Writes results" },
-    { id: "e-l4-1", from: "app-vm-01", to: "ai-search-app", level: 4, kind: "deployment", label: "Search queries" },
-    { id: "e-l4-2", from: "ai-search-app", to: "vector-db-01", level: 4, kind: "deployment", label: "Vector SQL" },
-    { id: "e-l5-1", from: "ai-search-app/router", to: "ai-search-app/retriever", level: 5, kind: "rel", label: "Dispatches query" },
-    { id: "e-l5-2", from: "ai-search-app/retriever", to: "ai-search-app/pgclient", level: 5, kind: "rel", label: "Queries HNSW" },
-    { id: "e-l5-3", from: "ai-search-app/retriever", to: "ai-search-app/reranker", level: 5, kind: "rel", label: "Top-50 chunks" },
-    { id: "e-l6-1", from: "ai-search-app/retriever/embed", to: "ai-search-app/retriever/dense", level: 6, kind: "rel", label: "1536d vector" },
-    { id: "e-l6-2", from: "ai-search-app/retriever/dense", to: "ai-search-app/retriever/rrf", level: 6, kind: "rel", label: "Candidate rows" },
-  ];
-
-  for (const n of nodes.values()) {
-    if (n.parentId && nodes.has(n.parentId)) {
-      edges.push({
-        id: `p-${n.parentId}-${n.id}`,
-        from: n.parentId,
-        to: n.id,
-        level: n.level,
-        kind: "parent-child",
-      });
-    }
-    for (const hid of n.deployed || []) {
-      if (nodes.has(hid)) {
-        edges.push({
-          id: `dep-${n.id}-${hid}`,
-          from: n.id,
-          to: hid,
-          level: 4,
-          kind: "hosts",
-        });
+// ── Architecture Map (M.A.P.) Explicit Model Loader (#112) ──────────────────
+function parseCliOption(argv, flag) {
+  for (let i = 2; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === flag) {
+      const val = argv[i + 1];
+      if (!val || val.startsWith("--")) {
+        throw new Error(`Missing file path after ${flag}.`);
       }
+      return val;
+    }
+    if (arg.startsWith(`${flag}=`)) {
+      const val = arg.slice(flag.length + 1).trim();
+      if (!val) {
+        throw new Error(`Empty file path in ${flag}=...`);
+      }
+      return val;
     }
   }
+  return null;
+}
 
-  return { nodes, edges };
+const MAX_MODEL_BYTES = 64 * 1024 * 1024;
+export const MAX_STDIO_BUFFER_BYTES = 16 * 1024 * 1024;
+const MAX_STDIO_HEADER_BYTES = 8 * 1024;
+const normalizedModelCache = new WeakMap();
+const normalizedBaseModelCache = new WeakMap();
+
+function normalizeModelObject(raw, { allowEmpty = false } = {}) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new Error("Architecture model must be a JSON object.");
+  }
+  const cache = allowEmpty ? normalizedBaseModelCache : normalizedModelCache;
+  if (cache.has(raw)) return cache.get(raw);
+  const { normalizeArchitectureModelInput } = requireMapRuntime();
+  const normalized = normalizeArchitectureModelInput(raw, { allowEmpty });
+  cache.set(raw, normalized);
+  return normalized;
+}
+
+export function loadArchitectureModelFile(modelPath, { allowEmpty = false } = {}) {
+  const resolved = path.resolve(modelPath);
+  if (!existsSync(resolved)) {
+    throw new Error(`Architecture model file not found: ${resolved}`);
+  }
+  const st = statSync(resolved);
+  if (!st.isFile()) {
+    throw new Error(`Architecture model path is not a regular file: ${resolved}`);
+  }
+  if (st.size > MAX_MODEL_BYTES) {
+    throw new Error(
+      `Architecture model '${resolved}' exceeds 64 MiB limit (${st.size} bytes).`,
+    );
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(readFileSync(resolved, "utf8"));
+  } catch (err) {
+    throw new Error(
+      `Invalid JSON in architecture model '${resolved}': ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error(`Architecture model '${resolved}' must be a JSON object.`);
+  }
+  return normalizeModelObject(parsed, { allowEmpty });
+}
+
+const cliContext = {
+  model: null,
+  baseModel: null,
+};
+
+if (IS_MAIN) {
+  try {
+    const cliModelPath =
+      parseCliOption(process.argv, "--model") || (process.env.TUX_MCP_MODEL || "").trim() || null;
+    if (cliModelPath) cliContext.model = loadArchitectureModelFile(cliModelPath, { allowEmpty: false });
+    const cliBasePath =
+      parseCliOption(process.argv, "--base-model") || (process.env.TUX_MCP_BASE_MODEL || "").trim() || null;
+    if (cliBasePath) cliContext.baseModel = loadArchitectureModelFile(cliBasePath, { allowEmpty: true });
+  } catch (err) {
+    console.error(`tux-mcp: ${err instanceof Error ? err.message : String(err)}`);
+    process.exit(1);
+  }
+}
+
+function resolveModel(opts) {
+  const raw = opts?.model ?? cliContext.model ?? null;
+  return raw ? normalizeModelObject(raw, { allowEmpty: false }) : null;
+}
+
+function resolveBaseModel(opts) {
+  const raw = opts?.baseModel ?? cliContext.baseModel ?? null;
+  return raw ? normalizeModelObject(raw, { allowEmpty: true }) : null;
+}
+
+function parseOptInt(val, paramName) {
+  if (val === undefined || val === null || val === "") return undefined;
+  if (typeof val === "boolean") {
+    throw new Error(`Invalid numeric parameter '${paramName}': expected a finite number.`);
+  }
+  const str = typeof val === "string" ? val.trim() : null;
+  if (str === "") return undefined;
+  const num = typeof val === "number" ? val : Number(str);
+  if (!Number.isFinite(num)) {
+    throw new Error(`Invalid numeric parameter '${paramName}': expected a finite number.`);
+  }
+  return Math.trunc(num);
+}
+
+function parseOptBool(val, paramName) {
+  if (val === undefined || val === null || val === "") return undefined;
+  if (typeof val === "boolean") return val;
+  if (typeof val === "string") {
+    const norm = val.trim().toLowerCase();
+    if (norm === "") return undefined;
+    if (norm === "true") return true;
+    if (norm === "false") return false;
+  }
+  throw new Error(`Invalid boolean parameter '${paramName}': expected true or false.`);
 }
 
 // ── MCP Tools, Resources, and Prompts Definitions ───────────────────────────
-export const TUX_MCP_TOOLS = [
+export const TUX_MCP_DESIGN_TOOLS = [
   {
     name: "tux_list_components",
     description:
@@ -913,87 +712,178 @@ export const TUX_MCP_TOOLS = [
       required: ["code"],
     },
   },
+];
+
+export const TUX_MCP_ARCHITECTURE_TOOLS = [
   {
-    name: "tux_query_architecture_layer",
+    name: "tux_query_architecture_nodes",
     description:
-      "Query a semantic level (Level 1..6) or parent subgraph from the TUX Architecture Map (M.A.P.) Code Property Graph, returning nodes, relationships, source file bindings, and PR diff status.",
+      "Query nodes (and optional matching edges) at a semantic level, parent subgraph, kind, or text filter from the loaded TUX Architecture Map (M.A.P.) model, with compact output and paging.",
     inputSchema: {
       type: "object",
       properties: {
         level: {
           type: "number",
-          description: "Optional semantic level number (1 = Context, 2 = Containers, 3 = Components, 4 = Deployment, 5 = Modules/Schemas, 6 = AST Symbols).",
+          description: "Optional semantic level number (1 = Context, 2 = Containers, 3 = Components, 4 = Deployment, 5+ = Code/Subgraphs).",
         },
         focusId: {
           type: "string",
-          description: "Optional parent container, resource, or module ID to inspect (e.g. 'c-api', 'ai-search-app', 'ai-search-app/retriever').",
+          description: "Optional parent container, resource, folder, or file ID to inspect.",
+        },
+        kind: {
+          oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+          description: "Optional node kind or list of kinds to filter on.",
+        },
+        query: {
+          type: "string",
+          description: "Optional case-insensitive substring filter on id, name, tech, desc, or source path.",
+        },
+        includePlanned: {
+          type: "boolean",
+          description: "Whether to include planned nodes and edges (default true).",
+        },
+        includeEdges: {
+          type: "boolean",
+          description: "Whether to include matching edges (defaults to false in compact mode).",
+        },
+        compact: {
+          type: "boolean",
+          description: "Return compact node summaries (default true).",
+        },
+        limit: {
+          type: "number",
+          description: "Maximum number of nodes to return.",
+        },
+        offset: {
+          type: "number",
+          description: "Zero-based pagination offset (default 0).",
         },
       },
     },
   },
   {
-    name: "tux_get_blast_radius",
+    name: "tux_query_architecture_impact",
     description:
-      "Compute the deterministic k-hop upstream/downstream dependency blast radius and impacted source code files for any architecture node ID before refactoring or editing code.",
+      "Compute the deterministic upstream dependency blast radius and triage buckets (blockers, testsToRun, coCutCandidates, stampsToRebuild, buildExecImpacted, hostsImpacted) for one or more seed IDs using the canonical M.A.P. contract.",
     inputSchema: {
       type: "object",
       properties: {
+        seedIds: {
+          oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+          description: "One or more seed architecture node IDs (e.g. 'f:src/auth.ts' or ['c-api']).",
+        },
+        seed: {
+          oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }],
+          description: "Alias for `seedIds`.",
+        },
         nodeId: {
           type: "string",
-          description: "Target architecture node ID (e.g. 'c-api', 'c-search', 'ai-search-app', 'ai-search-app/retriever').",
+          description: "Single seed node ID alias when `seedIds` is omitted.",
         },
         maxHops: {
           type: "number",
-          description: "Maximum traversal hops (default 2).",
+          description: "Maximum upstream spreading hops (default 32).",
+        },
+        intent: {
+          type: "string",
+          enum: ["default", "patch", "refactor", "cut", "supply-chain"],
+          description: "Change intent controlling propagation and triage buckets (default 'default').",
+        },
+        kinds: {
+          type: "array",
+          items: { type: "string" },
+          description: "Optional allowlist of link kinds to traverse.",
+        },
+        quietSeedOnly: {
+          type: "boolean",
+          description: "Follow prose `mentions` only at hop 1 directly from seeds (default true).",
+        },
+        includePlanned: {
+          type: "boolean",
+          description: "Include planned relationships (default false).",
+        },
+        includeDownstream: {
+          type: "boolean",
+          description: "Opt in to directed downstream dependencies (default false).",
+        },
+        bridgeUncovered: {
+          type: "boolean",
+          description: "Bridge uncovered coarse C4 relationships via extractModelLinks (default false).",
+        },
+        allowCoarseParentStep: {
+          type: "boolean",
+          description: "Allow hop-1 parent containment fallback when leaf code links are absent (default false).",
+        },
+        compact: {
+          type: "boolean",
+          description: "Omit full node objects on each hit to bound response size (default true).",
+        },
+        includeNodes: {
+          type: "boolean",
+          description: "Attach full node metadata onto hits and seeds (default false when compact is true).",
+        },
+        maxSummaryItems: {
+          type: "number",
+          description: "Maximum items per summary array (seeds, blockers, testsToRun, impactedSourceFiles) in compact mode.",
+        },
+        limit: {
+          type: "number",
+          description: "Maximum number of hits to return.",
+        },
+        offset: {
+          type: "number",
+          description: "Zero-based pagination offset into hits (default 0).",
         },
       },
-      required: ["nodeId"],
     },
   },
   {
-    name: "tux_find_shortest_path",
+    name: "tux_find_architecture_path",
     description:
-      "Find the shortest architectural call/dependency path between two nodes across Levels 1..6.",
+      "Find the shortest directed architectural dependency path between two node IDs across Levels 1..N (descending, labelled, into own code when needed).",
     inputSchema: {
       type: "object",
       properties: {
-        fromNodeId: { type: "string", description: "Starting node ID (e.g. 'p-users' or 'c-web')." },
-        toNodeId: { type: "string", description: "Destination node ID (e.g. 'vector-db-01/hnsw_idx' or 'c-db')." },
+        fromNodeId: { type: "string", description: "Starting node ID." },
+        toNodeId: { type: "string", description: "Destination node ID." },
+        from: { type: "string", description: "Alias for `fromNodeId`." },
+        to: { type: "string", description: "Alias for `toNodeId`." },
+        direction: {
+          type: "string",
+          enum: ["downstream", "upstream"],
+          description: "'downstream' (default, from -> to) or 'upstream' (reverse dependencies).",
+        },
+        includePlanned: { type: "boolean", description: "Include planned edges (default false)." },
+        compact: { type: "boolean", description: "Omit full node objects from path output (default false)." },
       },
       required: ["fromNodeId", "toNodeId"],
     },
   },
   {
-    name: "tux_acp_subgraph_lease",
+    name: "tux_compute_graph_delta",
     description:
-      "ACP (Agent Communication Protocol) Subgraph Lease Coordinator: acquire, release, or list exclusive non-overlapping architectural subgraph leases so parallel AI coding agents never collide on shared components or files.",
+      "Compute structural graph delta (added, deleted, moved, sig-changed, body-patched, danglingWires, blastSeedIds, recommendedIntent) between a base model and the loaded head model.",
     inputSchema: {
       type: "object",
       properties: {
-        action: {
-          type: "string",
-          enum: ["acquire", "release", "list"],
-          description: "Lease operation ('acquire', 'release', or 'list').",
+        baseModel: {
+          type: "object",
+          description: "Base TuxMapLevelModel JSON object (optional when --base-model <path> was supplied at startup).",
         },
-        agentId: {
-          type: "string",
-          description: "Identifier of the AI agent requesting or releasing the lease (e.g. 'agent-backend-01').",
+        includeMergedModel: {
+          type: "boolean",
+          description: "Include annotated mergedModel in response (default false).",
         },
-        rootNodeId: {
-          type: "string",
-          description: "Root architecture node ID to lock along with its descendant subgraph (e.g. 'c-api' or 'ai-search-app').",
-        },
-        ttlSeconds: {
+        maxItems: {
           type: "number",
-          description: "Optional lease duration in seconds (default 900).",
+          description: "Maximum items per delta array before summarizing counts (default 40).",
         },
       },
-      required: ["action"],
     },
   },
 ];
 
-export const TUX_MCP_RESOURCES = [
+const TUX_MCP_BASE_RESOURCES = [
   {
     uri: "tux://catalog/components",
     name: "TUX Component Catalog",
@@ -1014,19 +904,35 @@ export const TUX_MCP_RESOURCES = [
     mimeType: "application/json",
   },
   {
-    uri: "tux://architecture/c4-graph",
-    name: "TUX Architecture Map (M.A.P.) 6-Level Code Property Graph",
-    description:
-      "Unified 6-level C4 + AST Code Property Graph (nodes, edges, source file bindings, PR diffs, and active ACP agent subgraph leases).",
-    mimeType: "application/json",
-  },
-  {
     uri: "tux://vision/roadmap",
     name: "TUX World-Class Vision & Engineering Roadmap",
     description: "Strategic 4-pillar roadmap for the Texas A&M Transportation Institute Design System.",
     mimeType: "text/markdown",
   },
 ];
+
+const TUX_MCP_C4_GRAPH_RESOURCE = {
+  uri: "tux://architecture/c4-graph",
+  name: "TUX Architecture Map (M.A.P.) Unified Code Property Graph",
+  description:
+    "Unified multi-level C4 + Code Property Graph built from the explicitly loaded --model.",
+  mimeType: "application/json",
+};
+
+export function getTuxMcpTools(opts = {}) {
+  return resolveModel(opts)
+    ? [...TUX_MCP_DESIGN_TOOLS, ...TUX_MCP_ARCHITECTURE_TOOLS]
+    : [...TUX_MCP_DESIGN_TOOLS];
+}
+
+export function getTuxMcpResources(opts = {}) {
+  return resolveModel(opts)
+    ? [...TUX_MCP_BASE_RESOURCES, TUX_MCP_C4_GRAPH_RESOURCE]
+    : [...TUX_MCP_BASE_RESOURCES];
+}
+
+export const TUX_MCP_TOOLS = getTuxMcpTools();
+export const TUX_MCP_RESOURCES = getTuxMcpResources();
 
 export const TUX_MCP_PROMPTS = [
   {
@@ -1048,7 +954,153 @@ export const TUX_MCP_PROMPTS = [
   },
 ];
 
-export function callTuxMcpTool(name, args = {}) {
+function auditColorMixWashes(src, issues) {
+  let out = "";
+  let cursor = 0;
+  const needle = "color-mix(";
+  while (cursor < src.length) {
+    const idx = src.indexOf(needle, cursor);
+    if (idx === -1) {
+      out += src.slice(cursor);
+      break;
+    }
+    out += src.slice(cursor, idx);
+    const maxEnd = Math.min(src.length, idx + 320);
+    let depth = 1;
+    let j = idx + needle.length;
+    const commas = [];
+    while (j < maxEnd && depth > 0) {
+      const ch = src[j];
+      if (ch === "(") depth += 1;
+      else if (ch === ")") {
+        depth -= 1;
+        if (depth === 0) break;
+      } else if (ch === "," && depth === 1) {
+        commas.push(j);
+      }
+      j += 1;
+    }
+    if (depth !== 0) {
+      out += needle;
+      cursor = idx + needle.length;
+      continue;
+    }
+    const full = src.slice(idx, j + 1);
+    if (commas.length === 2) {
+      const p0 = src
+        .slice(idx + needle.length, commas[0])
+        .trim()
+        .replace(/\s+/g, " ");
+      const p1 = src.slice(commas[0] + 1, commas[1]).trim();
+      const p2 = src.slice(commas[1] + 1, j).trim();
+      if (p0 === "in srgb" && p2 === "transparent" && p1.endsWith("%")) {
+        const pctMatch = /(\d+(?:\.\d+)?)%$/.exec(p1);
+        if (pctMatch && pctMatch.index > 0) {
+          const colorExpr = p1.slice(0, pctMatch.index).trim();
+          const pct = Number(pctMatch[1]);
+          if (colorExpr && pct < 60 && !WASH_LADDER.includes(pct)) {
+            const snapped = snapWashStep(pct);
+            issues.push({
+              type: "off-ladder-wash",
+              originalPercent: pct,
+              snappedPercent: snapped,
+              message: `Snapped color-mix wash ${pct}% to canonical ladder step ${snapped}%`,
+            });
+            out += `color-mix(in srgb, ${colorExpr} ${snapped}%, transparent)`;
+            cursor = j + 1;
+            continue;
+          }
+        }
+      }
+    }
+    out += full;
+    cursor = j + 1;
+  }
+  return out;
+}
+
+function findTagCloseQuoteAware(src, startIdx) {
+  let quote = "";
+  for (let i = startIdx; i < src.length; i += 1) {
+    const ch = src[i];
+    if (quote) {
+      if (ch === quote) quote = "";
+    } else if (ch === '"' || ch === "'") {
+      quote = ch;
+    } else if (ch === ">") {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function auditButtonLabels(src, issues) {
+  const lower = src.toLowerCase();
+  let cursor = 0;
+  let lastClose = -1;
+  while (cursor < src.length) {
+    const openIdx = lower.indexOf("<button", cursor);
+    if (openIdx === -1) break;
+    const afterName = src[openIdx + 7];
+    if (afterName && !/[\s>/]/.test(afterName)) {
+      cursor = openIdx + 7;
+      continue;
+    }
+    const tagEnd = findTagCloseQuoteAware(src, openIdx + 7);
+    if (tagEnd === -1) break;
+    if (src[tagEnd - 1] === "/") {
+      cursor = tagEnd + 1;
+      continue;
+    }
+    if (lastClose <= tagEnd) {
+      lastClose = lower.indexOf("</button>", tagEnd + 1);
+      if (lastClose === -1) break;
+    }
+    const nextOpen = lower.indexOf("<button", tagEnd + 1);
+    if (nextOpen !== -1 && nextOpen < lastClose) {
+      cursor = nextOpen;
+      continue;
+    }
+    const attrs = src.slice(openIdx + 7, tagEnd);
+    const labelMatch = /(?:^|\s)aria-label\s*=\s*(?:"([^"]+)"|'([^']+)')/i.exec(attrs);
+    if (labelMatch) {
+      const ariaLabel = (labelMatch[1] ?? labelMatch[2] ?? "").trim();
+      const rawInner = src.slice(tagEnd + 1, lastClose);
+      const innerText = rawInner.replace(/<[^>]+>/g, "").replace(/\{\{[\s\S]*?\}\}/g, "").trim();
+      if (
+        ariaLabel &&
+        innerText &&
+        innerText.length > 1 &&
+        !ariaLabel.toLowerCase().includes(innerText.toLowerCase())
+      ) {
+        issues.push({
+          type: "wcag-2.5.3-label-content-mismatch",
+          ariaLabel,
+          visibleText: innerText,
+          message: `WCAG 2.5.3 violation: button aria-label "${ariaLabel}" must contain its visible text "${innerText}".`,
+        });
+      }
+    }
+    cursor = lastClose + 9;
+  }
+}
+
+const ARCHITECTURE_TOOL_NAMES = new Set([
+  "tux_query_architecture_nodes",
+  "tux_query_architecture_layer",
+  "tux_query_architecture_impact",
+  "tux_get_blast_radius",
+  "tux_find_architecture_path",
+  "tux_find_shortest_path",
+  "tux_compute_graph_delta",
+]);
+
+function fitsMcpWireBudget(payload, maxWireBytes = 15_800) {
+  const serialized = JSON.stringify(payload);
+  return Buffer.byteLength(JSON.stringify(serialized), "utf8") + 96 <= maxWireBytes;
+}
+
+export function callTuxMcpTool(name, args = {}, opts = {}) {
   switch (name) {
     case "tux_list_components": {
       const filter = String(args.filter || "").toLowerCase();
@@ -1158,71 +1210,48 @@ export function callTuxMcpTool(name, args = {}) {
         return `var(${canonicalFont})`;
       });
 
-      // 2. Check var(--token) references (legacy aliases + Levenshtein typos)
+      // 2. Check var(--token) references (legacy aliases + Levenshtein typos, single linear pass)
       const varRe = /var\(\s*(--[a-z][a-z0-9-]*)\s*\)/g;
-      for (const m of [...fixed.matchAll(varRe)]) {
-        const token = m[1];
-        if (CANONICAL_TOKEN_ALIASES[token]) {
+      const seenVarIssues = new Set();
+      fixed = fixed.replace(varRe, (full, token) => {
+        if (Object.hasOwn(CANONICAL_TOKEN_ALIASES, token)) {
           const replacement = CANONICAL_TOKEN_ALIASES[token];
-          issues.push({
-            type: "legacy-token-alias",
-            token,
-            replacement,
-            message: `Replaced ${token} with canonical ${replacement}`,
-          });
-          fixed = fixed.replaceAll(`var(${token})`, `var(${replacement})`);
-        } else if (!defs.has(token) && !token.startsWith("--ui-")) {
-          const suggested = suggestClosestToken(token, defs);
-          issues.push({
-            type: "undefined-token",
-            token,
-            suggested,
-            message: suggested
-              ? `Token ${token} is undefined; auto-replaced with closest match ${suggested}`
-              : `Token ${token} is not defined in TUX tokens.css`,
-          });
-          if (suggested && defs.has(suggested)) {
-            fixed = fixed.replaceAll(`var(${token})`, `var(${suggested})`);
+          if (!seenVarIssues.has(token)) {
+            seenVarIssues.add(token);
+            issues.push({
+              type: "legacy-token-alias",
+              token,
+              replacement,
+              message: `Replaced ${token} with canonical ${replacement}`,
+            });
           }
+          return `var(${replacement})`;
         }
-      }
-
-      // 3. Check color-mix wash ladder steps (< 60% against transparent)
-      const washRe =
-        /color-mix\(\s*in\s+srgb\s*,\s*([^,]+?)\s+(\d+(?:\.\d+)?)%\s*,\s*transparent\s*\)/g;
-      fixed = fixed.replace(washRe, (full, colorExpr, pctStr) => {
-        const pct = Number(pctStr);
-        if (pct < 60 && !WASH_LADDER.includes(pct)) {
-          const snapped = snapWashStep(pct);
-          issues.push({
-            type: "off-ladder-wash",
-            originalPercent: pct,
-            snappedPercent: snapped,
-            message: `Snapped color-mix wash ${pct}% to canonical ladder step ${snapped}%`,
-          });
-          return `color-mix(in srgb, ${colorExpr} ${snapped}%, transparent)`;
+        if (!defs.has(token) && !token.startsWith("--ui-")) {
+          const suggested = suggestClosestToken(token, defs);
+          if (!seenVarIssues.has(token)) {
+            seenVarIssues.add(token);
+            issues.push({
+              type: "undefined-token",
+              token,
+              suggested,
+              message: suggested
+                ? `Token ${token} is undefined; auto-replaced with closest match ${suggested}`
+                : `Token ${token} is not defined in TUX tokens.css`,
+            });
+          }
+          if (suggested && defs.has(suggested)) {
+            return `var(${suggested})`;
+          }
         }
         return full;
       });
 
-      // 4. Check WCAG 2.5.3 label-content-name-mismatch on <button aria-label="...">Visible Text</button>
-      const btnRe = /<button([^>]*?)\saria-label=["']([^"']+)["']([^>]*)>([\s\S]*?)<\/button>/g;
-      for (const m of fixed.matchAll(btnRe)) {
-        const ariaLabel = m[2].trim();
-        const innerText = m[4].replace(/<[^>]+>/g, "").replace(/\{\{[\s\S]*?\}\}/g, "").trim();
-        if (
-          innerText &&
-          innerText.length > 1 &&
-          !ariaLabel.toLowerCase().includes(innerText.toLowerCase())
-        ) {
-          issues.push({
-            type: "wcag-2.5.3-label-content-mismatch",
-            ariaLabel,
-            visibleText: innerText,
-            message: `WCAG 2.5.3 violation: button aria-label "${ariaLabel}" must contain its visible text "${innerText}".`,
-          });
-        }
-      }
+      // 3. Check color-mix wash ladder steps (< 60% against transparent) in strictly O(N) time
+      fixed = auditColorMixWashes(fixed, issues);
+
+      // 4. Check WCAG 2.5.3 label-content-name-mismatch on <button aria-label="..."> in strictly O(N) time
+      auditButtonLabels(fixed, issues);
 
       return {
         valid: issues.length === 0,
@@ -1232,259 +1261,203 @@ export function callTuxMcpTool(name, args = {}) {
       };
     }
 
+    case "tux_query_architecture_nodes":
     case "tux_query_architecture_layer": {
-      const { nodes, edges } = loadDefaultArchitectureGraph();
-      const level = args.level != null ? Number(args.level) : null;
-      const focusId = args.focusId ? String(args.focusId).trim() : null;
-
-      const matchedNodes = [...nodes.values()].filter((n) => {
-        if (focusId) return n.parentId === focusId || n.id === focusId;
-        if (level != null) return n.level === level;
-        return true;
+      const model = resolveModel(opts);
+      if (!model) {
+        throw new Error(
+          `Architecture tool '${name}' requires an explicit architecture model; start tux-mcp with --model <path> (or set TUX_MCP_MODEL).`,
+        );
+      }
+      const { queryArchitectureNodes } = requireMapRuntime();
+      const compact = parseOptBool(args.compact, "compact") ?? (name === "tux_query_architecture_nodes");
+      const explicitLimit = parseOptInt(args.limit, "limit");
+      const res = queryArchitectureNodes(model, {
+        level: parseOptInt(args.level, "level"),
+        focusId: args.focusId != null && String(args.focusId).trim() !== "" ? String(args.focusId).trim() : undefined,
+        kind: args.kind,
+        query: args.query != null ? String(args.query) : undefined,
+        includePlanned: parseOptBool(args.includePlanned, "includePlanned"),
+        includeEdges: parseOptBool(args.includeEdges, "includeEdges"),
+        compact,
+        limit: explicitLimit ?? (compact ? 30 : undefined),
+        offset: parseOptInt(args.offset, "offset"),
       });
-      const matchedIds = new Set(matchedNodes.map((n) => n.id));
-      const matchedEdges = edges.filter(
-        (e) => matchedIds.has(e.from) || matchedIds.has(e.to),
-      );
-
-      return {
-        level: level ?? "all",
-        focusId,
-        nodeCount: matchedNodes.length,
-        edgeCount: matchedEdges.length,
-        nodes: matchedNodes,
-        edges: matchedEdges,
-      };
+      if (compact && explicitLimit === undefined) {
+        while (res.nodes.length > 1 && !fitsMcpWireBudget(res)) {
+          res.nodes = res.nodes.slice(0, Math.max(1, Math.floor(res.nodes.length * 0.75)));
+          if (res.edges.length > 0) {
+            const keepIds = new Set(res.nodes.map((n) => n.id));
+            res.edges = res.edges.filter((e) => keepIds.has(e.from) || keepIds.has(e.to));
+            res.edgeCount = res.edges.length;
+          }
+          res.nodeCount = res.nodes.length;
+          res.hasMore = res.offset + res.nodeCount < res.totalNodeCount;
+        }
+      }
+      return res;
     }
 
+    case "tux_query_architecture_impact":
     case "tux_get_blast_radius": {
-      const nodeId = String(args.nodeId || "").trim();
-      const maxHops = args.maxHops != null ? Math.max(1, Number(args.maxHops)) : 2;
-      const { nodes, edges } = loadDefaultArchitectureGraph();
-      const root = nodes.get(nodeId);
-      if (!root) {
-        return {
-          error: `Node '${nodeId}' not found in architecture graph.`,
-          availableNodeIds: [...nodes.keys()],
-        };
+      const model = resolveModel(opts);
+      if (!model) {
+        throw new Error(
+          `Architecture tool '${name}' requires an explicit architecture model; start tux-mcp with --model <path> (or set TUX_MCP_MODEL).`,
+        );
       }
-
-      const childTree = new Set();
-      const descQ = [nodeId];
-      while (descQ.length > 0) {
-        const curr = descQ.shift();
-        for (const e of edges) {
-          if (e.kind === "parent-child" && e.from === curr && !childTree.has(e.to)) {
-            childTree.add(e.to);
-            descQ.push(e.to);
+      const { queryArchitectureImpact } = requireMapRuntime();
+      const rawSeeds = args.seedIds ?? args.seed ?? args.nodeId ?? [];
+      const seeds = Array.isArray(rawSeeds)
+        ? rawSeeds.map((s) => String(s).trim()).filter(Boolean)
+        : String(rawSeeds).trim()
+          ? [String(rawSeeds).trim()]
+          : [];
+      const compact = parseOptBool(args.compact, "compact") ?? true;
+      const includeNodes = parseOptBool(args.includeNodes, "includeNodes");
+      const explicitLimit = parseOptInt(args.limit, "limit");
+      const explicitSummaryCap = parseOptInt(args.maxSummaryItems, "maxSummaryItems");
+      const res = queryArchitectureImpact(seeds, model, {
+        maxHops: parseOptInt(args.maxHops, "maxHops"),
+        intent: args.intent != null && String(args.intent).trim() !== "" ? String(args.intent).trim() : undefined,
+        kinds: Array.isArray(args.kinds) ? args.kinds.map(String) : undefined,
+        quietSeedOnly: parseOptBool(args.quietSeedOnly, "quietSeedOnly"),
+        includePlanned: parseOptBool(args.includePlanned, "includePlanned"),
+        includeDownstream: parseOptBool(args.includeDownstream, "includeDownstream"),
+        bridgeUncovered: parseOptBool(args.bridgeUncovered, "bridgeUncovered"),
+        allowCoarseParentStep: parseOptBool(args.allowCoarseParentStep, "allowCoarseParentStep"),
+        compact,
+        includeNodes,
+        omitRedundantDescendants: compact && !includeNodes,
+        maxSummaryItems: explicitSummaryCap ?? (compact && !includeNodes ? 25 : undefined),
+        limit: explicitLimit ?? (compact && !includeNodes ? 100 : undefined),
+        offset: parseOptInt(args.offset, "offset"),
+      });
+      if (compact && !includeNodes && explicitLimit === undefined && res && !res.error && Array.isArray(res.hits)) {
+        while (
+          (res.hits.length > 1 || (Array.isArray(res.impactedSourceFiles) && res.impactedSourceFiles.length > 5)) &&
+          !fitsMcpWireBudget(res)
+        ) {
+          if (res.hits.length > 1) {
+            res.hits = res.hits.slice(0, Math.max(1, Math.floor(res.hits.length * 0.75)));
+            res.hitCount = res.hits.length;
+            res.hasMore = res.offset + res.hitCount < res.totalHitCount;
+          } else if (Array.isArray(res.impactedSourceFiles) && res.impactedSourceFiles.length > 5) {
+            res.impactedSourceFiles = res.impactedSourceFiles.slice(0, Math.max(5, Math.floor(res.impactedSourceFiles.length * 0.6)));
+          } else {
+            break;
           }
         }
       }
-
-      const seedSet = new Set([nodeId, ...childTree]);
-      if (root.parentId) seedSet.add(root.parentId);
-
-      const upstream = new Map();
-      const downstream = new Map();
-      const impactedEdgeIds = new Set();
-
-      const downQ = [...seedSet].map((id) => ({ id, hop: 0 }));
-      while (downQ.length > 0) {
-        const { id, hop } = downQ.shift();
-        if (hop >= maxHops) continue;
-        for (const e of edges) {
-          if (e.kind === "parent-child") continue;
-          if (e.from === id) {
-            impactedEdgeIds.add(e.id);
-            if (!seedSet.has(e.to) && (!downstream.has(e.to) || downstream.get(e.to) > hop + 1)) {
-              downstream.set(e.to, hop + 1);
-              downQ.push({ id: e.to, hop: hop + 1 });
-            }
-          }
-        }
-      }
-
-      const upQ = [...seedSet].map((id) => ({ id, hop: 0 }));
-      while (upQ.length > 0) {
-        const { id, hop } = upQ.shift();
-        if (hop >= maxHops) continue;
-        for (const e of edges) {
-          if (e.kind === "parent-child") continue;
-          if (e.to === id) {
-            impactedEdgeIds.add(e.id);
-            if (!seedSet.has(e.from) && (!upstream.has(e.from) || upstream.get(e.from) > hop + 1)) {
-              upstream.set(e.from, hop + 1);
-              upQ.push({ id: e.from, hop: hop + 1 });
-            }
-          }
-        }
-      }
-
-      const allTouched = new Set([...seedSet, ...upstream.keys(), ...downstream.keys()]);
-      const impactedFiles = [];
-      const seenPaths = new Set();
-      for (const id of allTouched) {
-        const src = nodes.get(id)?.source;
-        if (src && !seenPaths.has(src.path)) {
-          seenPaths.add(src.path);
-          impactedFiles.push(src);
-        }
-      }
-
-      return {
-        rootNode: root,
-        maxHops,
-        descendantIds: [...childTree],
-        upstreamDependents: [...upstream.entries()].map(([id, hop]) => ({
-          id,
-          hop,
-          node: nodes.get(id),
-        })),
-        downstreamDependencies: [...downstream.entries()].map(([id, hop]) => ({
-          id,
-          hop,
-          node: nodes.get(id),
-        })),
-        impactedEdgeIds: [...impactedEdgeIds],
-        impactedSourceFiles: impactedFiles,
-      };
+      return res;
     }
 
+    case "tux_find_architecture_path":
     case "tux_find_shortest_path": {
-      const fromNodeId = String(args.fromNodeId || "").trim();
-      const toNodeId = String(args.toNodeId || "").trim();
-      const { nodes, edges } = loadDefaultArchitectureGraph();
-      if (!nodes.has(fromNodeId)) return { error: `Source node '${fromNodeId}' not found.` };
-      if (!nodes.has(toNodeId)) return { error: `Target node '${toNodeId}' not found.` };
-      if (fromNodeId === toNodeId) {
-        return { found: true, hops: 0, nodePath: [nodes.get(fromNodeId)], edges: [] };
+      const model = resolveModel(opts);
+      if (!model) {
+        throw new Error(
+          `Architecture tool '${name}' requires an explicit architecture model; start tux-mcp with --model <path> (or set TUX_MCP_MODEL).`,
+        );
       }
-
-      const queue = [fromNodeId];
-      const prev = new Map();
-      const visited = new Set([fromNodeId]);
-
-      while (queue.length > 0) {
-        const curr = queue.shift();
-        if (curr === toNodeId) break;
-        for (const e of edges) {
-          const next = e.from === curr ? e.to : e.to === curr ? e.from : null;
-          if (next && !visited.has(next)) {
-            visited.add(next);
-            prev.set(next, { prevId: curr, edge: e });
-            queue.push(next);
-          }
-        }
+      const { findArchitecturePath } = requireMapRuntime();
+      const fromNodeId = String(args.fromNodeId ?? args.from ?? "").trim();
+      const toNodeId = String(args.toNodeId ?? args.to ?? "").trim();
+      if (args.direction != null && args.direction !== "downstream" && args.direction !== "upstream") {
+        throw new Error(`Invalid parameter 'direction': expected 'downstream' or 'upstream'.`);
       }
-
-      if (!prev.has(toNodeId)) {
-        return { found: false, hops: -1, nodePath: [], edges: [] };
-      }
-
-      const pathNodes = [];
-      const pathEdges = [];
-      let cursor = toNodeId;
-      while (cursor) {
-        const n = nodes.get(cursor);
-        if (n) pathNodes.unshift(n);
-        const step = prev.get(cursor);
-        if (!step) break;
-        pathEdges.unshift(step.edge);
-        cursor = step.prevId;
-      }
-
-      return {
-        found: true,
-        hops: pathEdges.length,
-        nodePath: pathNodes,
-        edges: pathEdges,
-      };
+      return findArchitecturePath(fromNodeId, toNodeId, model, {
+        direction: args.direction === "upstream" ? "upstream" : "downstream",
+        includePlanned: parseOptBool(args.includePlanned, "includePlanned"),
+        compact: parseOptBool(args.compact, "compact") ?? true,
+      });
     }
 
-    case "tux_acp_subgraph_lease": {
-      const action = String(args.action || "list").toLowerCase();
-      const now = Date.now();
-      for (const [id, lease] of activeAcpLeases.entries()) {
-        if (Date.parse(lease.expiresAt) <= now) activeAcpLeases.delete(id);
+    case "tux_compute_graph_delta": {
+      const model = resolveModel(opts);
+      if (!model) {
+        throw new Error(
+          "Architecture tool 'tux_compute_graph_delta' requires an explicit architecture model; start tux-mcp with --model <path> (or set TUX_MCP_MODEL).",
+        );
       }
-
-      if (action === "list") {
+      const { computeGraphDelta } = requireMapRuntime();
+      const argBase =
+        args.baseModel && typeof args.baseModel === "object" && !Array.isArray(args.baseModel)
+          ? normalizeModelObject(args.baseModel, { allowEmpty: true })
+          : null;
+      const baseModel = argBase ?? resolveBaseModel(opts);
+      if (!baseModel) {
         return {
-          activeLeaseCount: activeAcpLeases.size,
-          leases: [...activeAcpLeases.values()],
+          error:
+            "Base architecture model required: start tux-mcp with --base-model <path> (or TUX_MCP_BASE_MODEL) or pass a baseModel JSON object.",
         };
       }
-
-      if (action === "release") {
-        let removed = false;
-        for (const [k, v] of activeAcpLeases.entries()) {
-          if (
-            (args.agentId && v.agentId === args.agentId && (!args.rootNodeId || v.rootNodeId === args.rootNodeId)) ||
-            (args.leaseId && k === args.leaseId)
-          ) {
-            activeAcpLeases.delete(k);
-            removed = true;
+      const includeMergedModel = parseOptBool(args.includeMergedModel, "includeMergedModel") ?? false;
+      const explicitMaxItems = parseOptInt(args.maxItems, "maxItems");
+      const maxItems = explicitMaxItems ?? (includeMergedModel ? undefined : 30);
+      const delta = computeGraphDelta(baseModel, model, {
+        includeMergedModel,
+      });
+      if (!includeMergedModel) {
+        const { mergedModel: _omitted, ...compactDelta } = delta;
+        if (maxItems !== undefined && maxItems >= 0) {
+          let cap = Math.max(1, maxItems);
+          const totalAddedCount = compactDelta.addedIds.length;
+          const totalDeletedCount = compactDelta.deletedIds.length;
+          const totalMovedCount = compactDelta.movedIds.length;
+          const totalSigChangedCount = compactDelta.sigChangedIds.length;
+          const totalBodyPatchedCount = compactDelta.bodyPatchedIds.length;
+          const totalBlastSeedCount = compactDelta.blastSeedIds.length;
+          const totalAddedWires = compactDelta.addedWires.length;
+          const totalRemovedWires = compactDelta.removedWires.length;
+          const totalDanglingWires = compactDelta.danglingWires.length;
+          const totalNodeChanges = compactDelta.nodeChanges.length;
+          const buildBoundedDelta = (c) => ({
+            ...compactDelta,
+            addedIds: compactDelta.addedIds.slice(0, c),
+            deletedIds: compactDelta.deletedIds.slice(0, c),
+            movedIds: compactDelta.movedIds.slice(0, c),
+            sigChangedIds: compactDelta.sigChangedIds.slice(0, c),
+            bodyPatchedIds: compactDelta.bodyPatchedIds.slice(0, c),
+            blastSeedIds: compactDelta.blastSeedIds.slice(0, c),
+            nodeChanges: compactDelta.nodeChanges.slice(0, c),
+            addedWires: compactDelta.addedWires.slice(0, c),
+            removedWires: compactDelta.removedWires.slice(0, c),
+            danglingWires: compactDelta.danglingWires.slice(0, c),
+            totalAddedCount,
+            totalDeletedCount,
+            totalMovedCount,
+            totalSigChangedCount,
+            totalBodyPatchedCount,
+            totalBlastSeedCount,
+            totalNodeChanges,
+            totalAddedWires,
+            totalRemovedWires,
+            totalDanglingWires,
+            deltaTruncated:
+              totalAddedCount > c ||
+              totalDeletedCount > c ||
+              totalMovedCount > c ||
+              totalSigChangedCount > c ||
+              totalBodyPatchedCount > c ||
+              totalBlastSeedCount > c ||
+              totalAddedWires > c ||
+              totalRemovedWires > c ||
+              totalDanglingWires > c ||
+              totalNodeChanges > c,
+          });
+          let out = buildBoundedDelta(cap);
+          if (explicitMaxItems === undefined) {
+            while (cap > 1 && !fitsMcpWireBudget(out)) {
+              cap = Math.max(1, Math.floor(cap * 0.7));
+              out = buildBoundedDelta(cap);
+            }
           }
+          return out;
         }
-        return {
-          released: removed,
-          activeLeaseCount: activeAcpLeases.size,
-          leases: [...activeAcpLeases.values()],
-        };
+        return compactDelta;
       }
-
-      const agentId = String(args.agentId || "agent-anonymous");
-      const rootNodeId = String(args.rootNodeId || "").trim();
-      if (!rootNodeId) {
-        return { acquired: false, error: "rootNodeId is required to acquire an ACP subgraph lease." };
-      }
-
-      const blast = callTuxMcpTool("tux_get_blast_radius", { nodeId: rootNodeId, maxHops: 1 });
-      if (blast.error) return { acquired: false, error: blast.error };
-
-      const requestedScope = new Set([rootNodeId, ...blast.descendantIds]);
-      const { nodes } = loadDefaultArchitectureGraph();
-      const requestedFiles = new Set();
-      for (const id of requestedScope) {
-        const p = nodes.get(id)?.source?.path;
-        if (p) requestedFiles.add(p);
-      }
-
-      for (const existing of activeAcpLeases.values()) {
-        if (existing.agentId === agentId) continue;
-        const nodeOverlap = existing.scopeNodeIds.filter((id) => requestedScope.has(id));
-        const fileOverlap = existing.lockedFiles.filter((f) => requestedFiles.has(f));
-        if (nodeOverlap.length > 0 || fileOverlap.length > 0) {
-          return {
-            acquired: false,
-            conflict: {
-              heldByAgent: existing.agentId,
-              leaseId: existing.leaseId,
-              rootNodeId: existing.rootNodeId,
-              overlappingNodes: nodeOverlap,
-              overlappingFiles: fileOverlap,
-            },
-          };
-        }
-      }
-
-      const ttlMs = (args.ttlSeconds ? Number(args.ttlSeconds) : 900) * 1000;
-      const lease = {
-        leaseId: `lease-${agentId}-${rootNodeId.replace(/[^a-zA-Z0-9_-]/g, "_")}`,
-        agentId,
-        rootNodeId,
-        scopeNodeIds: [...requestedScope],
-        lockedFiles: [...requestedFiles],
-        acquiredAt: new Date(now).toISOString(),
-        expiresAt: new Date(now + ttlMs).toISOString(),
-      };
-      activeAcpLeases.set(lease.leaseId, lease);
-
-      return {
-        acquired: true,
-        lease,
-        activeLeaseCount: activeAcpLeases.size,
-      };
+      return delta;
     }
 
     default:
@@ -1492,10 +1465,10 @@ export function callTuxMcpTool(name, args = {}) {
   }
 }
 
-export function readTuxMcpResource(uri) {
+export function readTuxMcpResource(uri, opts = {}) {
   switch (uri) {
     case "tux://catalog/components": {
-      const payload = callTuxMcpTool("tux_list_components", {});
+      const payload = callTuxMcpTool("tux_list_components", {}, opts);
       return {
         contents: [
           {
@@ -1603,25 +1576,83 @@ export function readTuxMcpResource(uri) {
       };
     }
     case "tux://architecture/c4-graph": {
-      const { nodes, edges } = loadDefaultArchitectureGraph();
+      const model = resolveModel(opts);
+      if (!model) {
+        throw new Error(
+          "Resource 'tux://architecture/c4-graph' requires an explicit architecture model; start tux-mcp with --model <path> (or set TUX_MCP_MODEL).",
+        );
+      }
+      const { buildUnifiedArchitectureGraph, extractModelLinks } = requireMapRuntime();
+      const { nodes, edges } = buildUnifiedArchitectureGraph(model);
+      const levelCounts = {};
+      const allNodes = [...nodes.values()];
+      for (const n of allNodes) {
+        levelCounts[String(n.level)] = (levelCounts[String(n.level)] || 0) + 1;
+      }
+      const levels = Object.keys(levelCounts)
+        .map(Number)
+        .sort((a, b) => a - b);
+      // Bound resource payload (< 16 KB): emit C4/deployment overview (Levels 1-4, capped at 60 nodes & 60 edges)
+      // plus per-level counts and drill-down tool names when code-level subgraphs are present.
+      const c4Candidates = allNodes.filter((n) => n.level <= 4);
+      const overviewSource = c4Candidates.length > 0 ? c4Candidates : allNodes;
+      const overviewNodes = overviewSource.slice(0, 60).map((n) => ({
+        id: n.id,
+        name: n.name,
+        kind: n.kind,
+        level: n.level,
+        ...(n.parentId ? { parentId: n.parentId } : {}),
+        ...(n.tech ? { tech: n.tech } : {}),
+        ...(Array.isArray(n.hosts) && n.hosts.length > 0 ? { hosts: n.hosts } : {}),
+      }));
+      const overviewIds = new Set(overviewNodes.map((n) => n.id));
+      const rawRels = [
+        ...(Array.isArray(model.level1?.rels) ? model.level1.rels : []),
+        ...(Array.isArray(model.level2?.rels) ? model.level2.rels : []),
+        ...extractModelLinks(model),
+      ];
+      const seenRel = new Set();
+      const overviewEdges = [];
+      for (const e of rawRels) {
+        if (!e || !overviewIds.has(e.from) || !overviewIds.has(e.to)) continue;
+        const kind = e.kind || "rel";
+        const key = `${e.from}|${e.to}|${kind}`;
+        if (seenRel.has(key)) continue;
+        seenRel.add(key);
+        overviewEdges.push({
+          from: e.from,
+          to: e.to,
+          kind,
+          ...(e.label ? { label: String(e.label).slice(0, 80) } : {}),
+        });
+        if (overviewEdges.length >= 60) break;
+      }
+      const truncated = overviewNodes.length < nodes.size || overviewEdges.length < edges.length;
       return {
         contents: [
           {
             uri,
             mimeType: "application/json",
-            text: JSON.stringify(
-              {
-                schema: "tux-c4-cpg-v1",
-                levels: [1, 2, 3, 4, 5, 6],
-                nodeCount: nodes.size,
-                edgeCount: edges.length,
-                nodes: [...nodes.values()],
-                edges,
-                activeAcpLeases: [...activeAcpLeases.values()],
-              },
-              null,
-              2,
-            ),
+            text: JSON.stringify({
+              schema: "tux-c4-cpg-v2",
+              levels,
+              levelCounts,
+              nodeCount: nodes.size,
+              edgeCount: edges.length,
+              truncated,
+              ...(truncated
+                ? {
+                    drillDownTools: [
+                      "tux_query_architecture_nodes",
+                      "tux_query_architecture_impact",
+                      "tux_find_architecture_path",
+                      "tux_compute_graph_delta",
+                    ],
+                  }
+                : {}),
+              nodes: overviewNodes,
+              edges: overviewEdges,
+            }),
           },
         ],
       };
@@ -1658,7 +1689,7 @@ function getPkgVersion() {
   return cachedPkgVersion;
 }
 
-export function handleMcpRequest(req) {
+export function handleMcpRequest(req, opts = {}) {
   const { id, method, params } = req || {};
 
   if (method === "initialize") {
@@ -1697,7 +1728,7 @@ export function handleMcpRequest(req) {
       jsonrpc: "2.0",
       id,
       result: {
-        tools: TUX_MCP_TOOLS,
+        tools: getTuxMcpTools(opts),
       },
     };
   }
@@ -1706,7 +1737,10 @@ export function handleMcpRequest(req) {
     try {
       const toolName = params?.name;
       const toolArgs = params?.arguments || {};
-      const payload = callTuxMcpTool(toolName, toolArgs);
+      const payload = callTuxMcpTool(toolName, toolArgs, opts);
+      const serialized = ARCHITECTURE_TOOL_NAMES.has(toolName)
+        ? JSON.stringify(payload)
+        : JSON.stringify(payload, null, 2);
       return {
         jsonrpc: "2.0",
         id,
@@ -1714,7 +1748,7 @@ export function handleMcpRequest(req) {
           content: [
             {
               type: "text",
-              text: JSON.stringify(payload, null, 2),
+              text: serialized,
             },
           ],
           isError: Boolean(payload?.error),
@@ -1737,14 +1771,14 @@ export function handleMcpRequest(req) {
       jsonrpc: "2.0",
       id,
       result: {
-        resources: TUX_MCP_RESOURCES,
+        resources: getTuxMcpResources(opts),
       },
     };
   }
 
   if (method === "resources/read") {
     try {
-      const result = readTuxMcpResource(params?.uri);
+      const result = readTuxMcpResource(params?.uri, opts);
       return {
         jsonrpc: "2.0",
         id,
@@ -1811,33 +1845,157 @@ export function handleMcpRequest(req) {
   };
 }
 
-// ── Dual-Mode Stdio Framing (Newline JSON-RPC + Content-Length Header) ──────
-const isMain =
-  process.argv[1] &&
-  path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
+export function createTuxMcpServer(opts = {}) {
+  return {
+    getTools: () => getTuxMcpTools(opts),
+    getResources: () => getTuxMcpResources(opts),
+    callTool: (name, args = {}) => callTuxMcpTool(name, args, opts),
+    readResource: (uri) => readTuxMcpResource(uri, opts),
+    handleRequest: (req) => handleMcpRequest(req, opts),
+  };
+}
 
-if (isMain) {
+// ── Dual-Mode Stdio Framing (Newline JSON-RPC + Content-Length Header) ──────
+export function createStdioFrameParser({
+  onMessage,
+  onError,
+  maxBufferBytes = MAX_STDIO_BUFFER_BYTES,
+  maxHeaderBytes = MAX_STDIO_HEADER_BYTES,
+}) {
+  let buffer = Buffer.alloc(0);
+  let lastFraming = "newline";
+
+  return {
+    push(chunk) {
+      const bufChunk = Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk), "utf8");
+      if (buffer.length + bufChunk.length > maxBufferBytes) {
+        buffer = Buffer.alloc(0);
+        onError?.("Message exceeds maximum stdio buffer size (16 MiB)", lastFraming);
+        return;
+      }
+      buffer = buffer.length === 0 ? bufChunk : Buffer.concat([buffer, bufChunk]);
+
+      while (buffer.length > 0) {
+        // Trim leading ASCII whitespace/CRLF between frames
+        let wsEnd = 0;
+        while (
+          wsEnd < buffer.length &&
+          (buffer[wsEnd] === 0x20 ||
+            buffer[wsEnd] === 0x09 ||
+            buffer[wsEnd] === 0x0d ||
+            buffer[wsEnd] === 0x0a)
+        ) {
+          wsEnd += 1;
+        }
+        if (wsEnd > 0) {
+          buffer = buffer.subarray(wsEnd);
+          if (buffer.length === 0) break;
+        }
+
+        const firstByte = buffer[0];
+        const isJsonStart = firstByte === 0x7b || firstByte === 0x5b; // '{' or '['
+        const probe = buffer.subarray(0, Math.min(buffer.length, 96)).toString("utf8");
+
+        if (!isJsonStart && /^[A-Za-z0-9-]+$/.test(probe) && buffer.length < 96) {
+          // Partial HTTP-style header field name arriving across chunks
+          break;
+        }
+
+        if (!isJsonStart && /^[A-Za-z0-9-]+:/.test(probe)) {
+          lastFraming = "content-length";
+          const crlfIdx = buffer.indexOf("\r\n\r\n");
+          const lfIdx = buffer.indexOf("\n\n");
+          let sepIdx = -1;
+          let sepLen = 4;
+          if (crlfIdx !== -1 && (lfIdx === -1 || crlfIdx < lfIdx)) {
+            sepIdx = crlfIdx;
+            sepLen = 4;
+          } else if (lfIdx !== -1) {
+            sepIdx = lfIdx;
+            sepLen = 2;
+          }
+          if (sepIdx === -1) {
+            if (buffer.length > maxHeaderBytes) {
+              buffer = Buffer.alloc(0);
+              onError?.("Header block exceeds maximum size (8 KiB)", "content-length");
+            }
+            break;
+          }
+          if (sepIdx > maxHeaderBytes) {
+            buffer = Buffer.alloc(0);
+            onError?.("Header block exceeds maximum size (8 KiB)", "content-length");
+            break;
+          }
+          const headerStr = buffer.subarray(0, sepIdx).toString("utf8");
+          const lenMatch = headerStr.match(/(?:^|\r?\n)content-length\s*:\s*([^\r\n]+)/i);
+          if (!lenMatch) {
+            buffer = buffer.subarray(sepIdx + sepLen);
+            onError?.("Missing Content-Length header", "content-length");
+            continue;
+          }
+          const rawLen = lenMatch[1].trim();
+          const contentLen = /^\d+$/.test(rawLen) ? Number(rawLen) : Number.NaN;
+          if (
+            !Number.isSafeInteger(contentLen) ||
+            contentLen < 0 ||
+            contentLen > maxBufferBytes ||
+            sepIdx + sepLen + contentLen > maxBufferBytes
+          ) {
+            buffer = Buffer.alloc(0);
+            onError?.("Invalid or oversized Content-Length header", "content-length");
+            break;
+          }
+          const totalNeeded = sepIdx + sepLen + contentLen;
+          if (buffer.length < totalNeeded) break;
+          const bodyStr = buffer.subarray(sepIdx + sepLen, totalNeeded).toString("utf8");
+          buffer = buffer.subarray(totalNeeded);
+          onMessage(bodyStr, "content-length");
+        } else {
+          lastFraming = "newline";
+          const nlIdx = buffer.indexOf("\n");
+          if (nlIdx === -1) break;
+          const lineStr = buffer.subarray(0, nlIdx).toString("utf8").trim();
+          buffer = buffer.subarray(nlIdx + 1);
+          if (!lineStr) continue;
+          onMessage(lineStr, "newline");
+        }
+      }
+    },
+  };
+}
+
+if (IS_MAIN) {
   if (process.argv.includes("--list-tools")) {
-    console.log(JSON.stringify(TUX_MCP_TOOLS, null, 2));
+    console.log(JSON.stringify(getTuxMcpTools(), null, 2));
     process.exit(0);
   }
 
   const callIdx = process.argv.indexOf("--call");
   if (callIdx !== -1) {
-    const toolName = process.argv[callIdx + 1];
-    const rawArgs = process.argv[callIdx + 2] || "{}";
-    const result = callTuxMcpTool(toolName, JSON.parse(rawArgs));
-    console.log(JSON.stringify(result, null, 2));
-    process.exit(0);
+    try {
+      const toolName = process.argv[callIdx + 1];
+      if (!toolName || toolName.startsWith("--")) {
+        throw new Error("Missing tool name after --call.");
+      }
+      const nextArg = process.argv[callIdx + 2];
+      const rawArgs = nextArg && !nextArg.startsWith("--") ? nextArg : "{}";
+      const parsedArgs = JSON.parse(rawArgs);
+      if (!parsedArgs || typeof parsedArgs !== "object" || Array.isArray(parsedArgs)) {
+        throw new Error("Tool arguments JSON after --call must be an object.");
+      }
+      const result = callTuxMcpTool(toolName, parsedArgs);
+      console.log(JSON.stringify(result, null, 2));
+      process.exit(result && typeof result === "object" && result.error ? 1 : 0);
+    } catch (err) {
+      console.error(`tux-mcp: ${err instanceof Error ? err.message : String(err)}`);
+      process.exit(1);
+    }
   }
 
-  let buffer = Buffer.alloc(0);
-  let useContentLengthFraming = false;
-
-  function sendResponse(resObj) {
+  function sendResponse(resObj, framing) {
     if (!resObj) return;
     const json = JSON.stringify(resObj);
-    if (useContentLengthFraming) {
+    if (framing === "content-length") {
       const byteLen = Buffer.byteLength(json, "utf8");
       process.stdout.write(`Content-Length: ${byteLen}\r\n\r\n${json}`);
     } else {
@@ -1845,47 +2003,34 @@ if (isMain) {
     }
   }
 
-  process.stdin.on("data", (chunk) => {
-    buffer = Buffer.concat([buffer, chunk]);
-
-    while (buffer.length > 0) {
-      const headerProbe = buffer.subarray(0, Math.min(buffer.length, 64)).toString("utf8");
-      if (headerProbe.startsWith("Content-Length:")) {
-        useContentLengthFraming = true;
-        const sepIdx = buffer.indexOf("\r\n\r\n");
-        if (sepIdx === -1) break;
-        const headerStr = buffer.subarray(0, sepIdx).toString("utf8");
-        const lenMatch = headerStr.match(/Content-Length:\s*(\d+)/i);
-        const contentLen = lenMatch ? Number.parseInt(lenMatch[1], 10) : 0;
-        const totalNeeded = sepIdx + 4 + contentLen;
-        if (buffer.length < totalNeeded) break;
-        const bodyStr = buffer.subarray(sepIdx + 4, totalNeeded).toString("utf8");
-        buffer = buffer.subarray(totalNeeded);
-        try {
-          sendResponse(handleMcpRequest(JSON.parse(bodyStr)));
-        } catch {
-          sendResponse({
+  const parser = createStdioFrameParser({
+    onMessage(bodyStr, framing) {
+      try {
+        sendResponse(handleMcpRequest(JSON.parse(bodyStr)), framing);
+      } catch {
+        sendResponse(
+          {
             jsonrpc: "2.0",
             id: null,
             error: { code: -32700, message: "Parse error" },
-          });
-        }
-      } else {
-        const nlIdx = buffer.indexOf("\n");
-        if (nlIdx === -1) break;
-        const lineStr = buffer.subarray(0, nlIdx).toString("utf8").trim();
-        buffer = buffer.subarray(nlIdx + 1);
-        if (!lineStr) continue;
-        try {
-          sendResponse(handleMcpRequest(JSON.parse(lineStr)));
-        } catch {
-          sendResponse({
-            jsonrpc: "2.0",
-            id: null,
-            error: { code: -32700, message: "Parse error" },
-          });
-        }
+          },
+          framing,
+        );
       }
-    }
+    },
+    onError(message, framing) {
+      sendResponse(
+        {
+          jsonrpc: "2.0",
+          id: null,
+          error: { code: -32700, message },
+        },
+        framing,
+      );
+    },
+  });
+
+  process.stdin.on("data", (chunk) => {
+    parser.push(chunk);
   });
 }
