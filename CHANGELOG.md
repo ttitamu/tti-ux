@@ -3,23 +3,6 @@
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
 conventions and [Semantic Versioning](https://semver.org/).
 
-## [4.0.0] — 2026-11-07
-
-### Removed — Deprecated `<TuxArchitectureMap>` Query Names, Legacy Blast Helper & In-Process Lease API (#127)
-
-Removes the programmatic exports, types, and `tux-mcp` tool aliases deprecated in `3.10`/`3.11`, completing the M.A.P. 4.0 contract cleanup.
-
-| Removed in `4.0.0` | Replacement |
-| :--- | :--- |
-| `queryArchitectureLayer(model, opts)` | `queryArchitectureNodes(model, opts)` |
-| `queryMultiLevelBlastRadius(nodeId, model, opts)` | `queryArchitectureImpact(seedIds, model, opts)` |
-| `findShortestArchitecturePath(fromNodeId, toNodeId, model)` | `findArchitecturePath(fromNodeId, toNodeId, model, opts)` |
-| `computeDependencyBlastRadius(rootNodeId, edges)` | `computeLinkBlastRadius(links, rootId, parentOf, opts)` or `queryArchitectureImpact(seedIds, model, opts)` |
-| `coordinateAcpSubgraphLease(action, opts)` & `TuxMapAcpLease` | Scope multi-agent changes with `computeGraphDelta(baseModel, headModel)` and `queryArchitectureImpact(seedIds, model, opts)` |
-| `resetArchitectureDeprecationWarnings()` | No longer needed (all deprecated wrappers removed) |
-| `TuxMapCollaborator` (`collaborators` / `showMinimap` props removed in `3.12.0`) | Removed; `<TuxArchitectureMap>` focuses strictly on single-stage C4 + Code Property Graph exploration and opt-in `annotations` |
-| `tux-mcp` aliases `tux_query_architecture_layer`, `tux_get_blast_radius`, `tux_find_shortest_path`, `tux_acp_subgraph_lease` | `tux_query_architecture_nodes`, `tux_query_architecture_impact`, `tux_find_architecture_path`, `tux_compute_graph_delta` |
-
 ## [3.12.0] — 2026-11-07
 
 ### Added & Changed — `<TuxArchitectureMap>` Wayfinding, Wire Inspector, LCA Lifting, Rule Violations, Dense Views & Lazy Subgraphs (#115, #116, #117, #118, #121, #123, #124, #125, #126)

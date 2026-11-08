@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: a74687af6b2d804279ac14448cb4832402d8522b134566e7151c132ffd0e008d
+// SOURCE-SHA256: 7bb260c8ae110c3a3a81586030242f9012f5b30f3da3a0fa3974cc5cbfcc9536
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -354,6 +354,63 @@ export function computeMapAutoLayout(nodes, edges, lod = "resources") {
         }
     }
     return result;
+}
+const emittedArchitectureDeprecations = new Set();
+function warnArchitectureDeprecatedOnce(fnName, replacementHint) {
+    if (emittedArchitectureDeprecations.has(fnName))
+        return;
+    emittedArchitectureDeprecations.add(fnName);
+    console.warn(`[@tti/tti-ux-diagrams] ${fnName}() is deprecated. ${replacementHint}`);
+}
+export function resetArchitectureDeprecationWarnings() {
+    emittedArchitectureDeprecations.clear();
+}
+export function computeDependencyBlastRadius(rootNodeId, edges) {
+    warnArchitectureDeprecatedOnce("computeDependencyBlastRadius", "Use computeLinkBlastRadius() or queryArchitectureImpact() instead.");
+    const upstreamNodeIds = new Set();
+    const downstreamNodeIds = new Set();
+    const activeEdgeIds = new Set();
+    const downQueue = [rootNodeId];
+    const visitedDown = new Set([rootNodeId]);
+    while (downQueue.length > 0) {
+        const curr = downQueue.shift();
+        for (const e of edges) {
+            if (e.source === curr) {
+                activeEdgeIds.add(e.id);
+                if (!visitedDown.has(e.target)) {
+                    visitedDown.add(e.target);
+                    downstreamNodeIds.add(e.target);
+                    downQueue.push(e.target);
+                }
+            }
+        }
+    }
+    const upQueue = [rootNodeId];
+    const visitedUp = new Set([rootNodeId]);
+    while (upQueue.length > 0) {
+        const curr = upQueue.shift();
+        for (const e of edges) {
+            if (e.target === curr) {
+                activeEdgeIds.add(e.id);
+                if (!visitedUp.has(e.source)) {
+                    visitedUp.add(e.source);
+                    upstreamNodeIds.add(e.source);
+                    upQueue.push(e.source);
+                }
+            }
+        }
+    }
+    const activeNodeIds = new Set([
+        rootNodeId,
+        ...upstreamNodeIds,
+        ...downstreamNodeIds,
+    ]);
+    return {
+        activeNodeIds,
+        upstreamNodeIds,
+        downstreamNodeIds,
+        activeEdgeIds,
+    };
 }
 function vecAdd(a, b) {
     return [a[0] + b[0], a[1] + b[1]];
@@ -6220,6 +6277,229 @@ export function findArchitecturePath(fromNodeId, toNodeId, model = EMPTY_TTI_LEV
         nodeIds,
         ...(compact ? {} : { nodePath: pathNodes }),
         edges: pathEdges,
+    };
+}
+export function queryArchitectureLayer(model = EMPTY_TTI_LEVEL_MODEL, opts = {}) {
+    warnArchitectureDeprecatedOnce("queryArchitectureLayer", "Use queryArchitectureNodes() instead.");
+    const res = queryArchitectureNodes(model, {
+        level: opts.level,
+        focusId: opts.focusId,
+        includePlanned: opts.includePlanned,
+        compact: false,
+        includeEdges: true,
+    });
+    return {
+        level: res.level,
+        focusId: res.focusId,
+        nodeCount: res.nodeCount,
+        edgeCount: res.edgeCount,
+        nodes: res.nodes,
+        edges: res.edges,
+    };
+}
+export function queryMultiLevelBlastRadius(nodeId, model = EMPTY_TTI_LEVEL_MODEL, maxHopsOrOpts = 32) {
+    warnArchitectureDeprecatedOnce("queryMultiLevelBlastRadius", "Use queryArchitectureImpact() instead.");
+    const idx = getMapQueryIndex(model);
+    const root = idx.nodes.get(nodeId);
+    if (!root) {
+        const err = buildUnknownNodeError([nodeId], idx.nodes);
+        return {
+            error: err.error,
+            unknownIds: err.unknownIds,
+            suggestions: err.suggestions,
+            availableNodeIds: err.suggestions,
+        };
+    }
+    const blastOpts = typeof maxHopsOrOpts === "number" ? { maxHops: maxHopsOrOpts, model } : { ...maxHopsOrOpts, model };
+    if (blastOpts.intent !== undefined && !TUX_MAP_VALID_BLAST_INTENTS.has(blastOpts.intent)) {
+        const clippedIntent = clipDisplayId(String(blastOpts.intent), 64);
+        return {
+            error: `Invalid blast intent '${clippedIntent}'; expected one of: default, patch, refactor, cut, supply-chain.`,
+            unknownIds: [],
+            suggestions: [...TUX_MAP_VALID_BLAST_INTENTS],
+            availableNodeIds: [],
+        };
+    }
+    const rawMaxHops = blastOpts.maxHops === undefined ? 32 : blastOpts.maxHops;
+    const maxHops = Number.isFinite(rawMaxHops) ? Math.max(0, Math.floor(rawMaxHops)) : 32;
+    const includePlanned = blastOpts.includePlanned ?? false;
+    const links = includePlanned ? extractModelLinks(model, { includePlanned: true }) : idx.effectiveLinks;
+    const blast = computeLinkBlastRadius(links, nodeId, idx.parentOf, { ...blastOpts, maxHops });
+    const childTree = new Set();
+    for (const s of blast.seeds) {
+        if (s !== nodeId)
+            childTree.add(s);
+    }
+    const downstream = new Map();
+    const impactedEdgeIds = new Set();
+    const downQ = [...blast.seeds].map((id) => [id, 0]);
+    for (let qi = 0; qi < downQ.length; qi++) {
+        const [id, hop] = downQ[qi];
+        if (hop >= maxHops)
+            continue;
+        for (const e of idx.depEdgesByFrom.get(id) ?? []) {
+            if (!includePlanned && e.planned)
+                continue;
+            impactedEdgeIds.add(e.id);
+            if (!blast.seeds.has(e.to) && !downstream.has(e.to)) {
+                downstream.set(e.to, hop + 1);
+                downQ.push([e.to, hop + 1]);
+            }
+        }
+    }
+    for (const id of [...blast.seeds, ...blast.hits.keys()]) {
+        for (const e of idx.depEdgesByTo.get(id) ?? []) {
+            if (!includePlanned && e.planned)
+                continue;
+            if (blast.seeds.has(e.from) || blast.hits.has(e.from)) {
+                impactedEdgeIds.add(e.id);
+            }
+        }
+    }
+    const allTouchedIds = new Set([
+        ...blast.seeds,
+        ...blast.hits.keys(),
+        ...downstream.keys(),
+    ]);
+    const impactedFiles = [];
+    const seenPaths = new Set();
+    for (const id of allTouchedIds) {
+        const src = idx.nodes.get(id)?.source;
+        if (src && !seenPaths.has(src.path)) {
+            seenPaths.add(src.path);
+            impactedFiles.push(src);
+        }
+    }
+    return {
+        rootNode: root,
+        maxHops,
+        truncated: blast.truncated,
+        descendantIds: [...childTree],
+        upstreamDependents: [...blast.hits.entries()].map(([id, h]) => ({
+            id,
+            hop: h.hop,
+            via: h.via,
+            at: h.at,
+            sites: h.sites,
+            node: idx.nodes.get(id),
+        })),
+        downstreamDependencies: [...downstream.entries()].map(([id, hop]) => ({
+            id,
+            hop,
+            node: idx.nodes.get(id),
+        })),
+        blockers: blast.blockers,
+        coCutCandidates: blast.coCutCandidates,
+        testsToRun: blast.testsToRun,
+        stampsToRebuild: blast.stampsToRebuild,
+        buildExecImpacted: blast.buildExecImpacted,
+        hostsImpacted: blast.hostsImpacted,
+        impactedEdgeIds: [...impactedEdgeIds],
+        impactedSourceFiles: impactedFiles,
+    };
+}
+export function findShortestArchitecturePath(fromNodeId, toNodeId, model = EMPTY_TTI_LEVEL_MODEL) {
+    warnArchitectureDeprecatedOnce("findShortestArchitecturePath", "Use findArchitecturePath() instead.");
+    const res = findArchitecturePath(fromNodeId, toNodeId, model, { compact: false });
+    if ("error" in res) {
+        return { error: res.error, unknownIds: res.unknownIds, suggestions: res.suggestions };
+    }
+    return {
+        found: res.found,
+        hops: res.hops,
+        nodePath: res.nodePath ?? [],
+        edges: res.edges,
+    };
+}
+const activeAcpLeases = new Map();
+export function coordinateAcpSubgraphLease(action, opts = {}) {
+    warnArchitectureDeprecatedOnce("coordinateAcpSubgraphLease", "In-process ACP leases do not coordinate across processes; use computeGraphDelta() and queryArchitectureImpact() instead.");
+    const now = Date.now();
+    for (const [id, lease] of activeAcpLeases.entries()) {
+        const exp = Date.parse(lease.expiresAt);
+        if (!Number.isFinite(exp) || exp <= now) {
+            activeAcpLeases.delete(id);
+        }
+    }
+    if (action === "list") {
+        return {
+            activeLeaseCount: activeAcpLeases.size,
+            leases: [...activeAcpLeases.values()],
+        };
+    }
+    if (action === "release") {
+        const removed = (opts.leaseId && activeAcpLeases.delete(opts.leaseId)) ||
+            (opts.agentId &&
+                (() => {
+                    let count = 0;
+                    for (const [k, v] of activeAcpLeases.entries()) {
+                        if (v.agentId === opts.agentId && (!opts.rootNodeId || v.rootNodeId === opts.rootNodeId)) {
+                            activeAcpLeases.delete(k);
+                            count++;
+                        }
+                    }
+                    return count > 0;
+                })());
+        return {
+            released: Boolean(removed),
+            activeLeaseCount: activeAcpLeases.size,
+            leases: [...activeAcpLeases.values()],
+        };
+    }
+    const agentId = opts.agentId || "agent-anonymous";
+    const rootNodeId = opts.rootNodeId;
+    if (!rootNodeId) {
+        return { acquired: false, error: "rootNodeId is required to acquire an ACP subgraph lease." };
+    }
+    const model = opts.model || EMPTY_TTI_LEVEL_MODEL;
+    const idx = getMapQueryIndex(model);
+    if (!idx.nodes.has(rootNodeId)) {
+        const err = buildUnknownNodeError([rootNodeId], idx.nodes);
+        return { acquired: false, error: err.error, suggestions: err.suggestions };
+    }
+    const descendants = collectSubtreeDescendants(rootNodeId, idx.kidsOf);
+    const requestedScope = new Set([rootNodeId, ...descendants]);
+    const requestedFiles = new Set();
+    for (const id of requestedScope) {
+        const p = idx.nodes.get(id)?.source?.path;
+        if (p)
+            requestedFiles.add(p);
+    }
+    for (const existing of activeAcpLeases.values()) {
+        if (existing.agentId === agentId)
+            continue;
+        const nodeOverlap = existing.scopeNodeIds.filter((id) => requestedScope.has(id));
+        const fileOverlap = existing.lockedFiles.filter((f) => requestedFiles.has(f));
+        if (nodeOverlap.length > 0 || fileOverlap.length > 0) {
+            return {
+                acquired: false,
+                conflict: {
+                    heldByAgent: existing.agentId,
+                    leaseId: existing.leaseId,
+                    rootNodeId: existing.rootNodeId,
+                    overlappingNodes: nodeOverlap,
+                    overlappingFiles: fileOverlap,
+                },
+            };
+        }
+    }
+    const rawTtl = opts.ttlSeconds !== undefined && Number.isFinite(opts.ttlSeconds) ? opts.ttlSeconds : 900;
+    const clampedTtlSeconds = Math.min(86400, Math.max(1, Math.floor(rawTtl)));
+    const ttlMs = clampedTtlSeconds * 1000;
+    const lease = {
+        leaseId: `lease-${agentId}-${rootNodeId.replace(/[^a-zA-Z0-9_-]/g, "_")}`,
+        agentId,
+        rootNodeId,
+        scopeNodeIds: [...requestedScope],
+        lockedFiles: [...requestedFiles],
+        acquiredAt: new Date(now).toISOString(),
+        expiresAt: new Date(now + ttlMs).toISOString(),
+    };
+    activeAcpLeases.set(lease.leaseId, lease);
+    return {
+        acquired: true,
+        lease,
+        activeLeaseCount: activeAcpLeases.size,
     };
 }
 export const TUX_MAP_SEARCH_GROUPS = [

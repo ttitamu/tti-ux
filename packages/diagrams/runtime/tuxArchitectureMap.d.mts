@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: a74687af6b2d804279ac14448cb4832402d8522b134566e7151c132ffd0e008d
+// SOURCE-SHA256: 7bb260c8ae110c3a3a81586030242f9012f5b30f3da3a0fa3974cc5cbfcc9536
 /**
  * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
  *
@@ -139,6 +139,19 @@ export interface TuxMapStickyNote {
     /** Optional target element ID that this sticky note is pinned to */
     targetNodeId?: string | null;
 }
+export interface TuxMapCollaborator {
+    id: string;
+    name: string;
+    role?: string;
+    color: string;
+    /** World X coordinate */
+    x: number;
+    /** World Y coordinate */
+    y: number;
+    tool?: TuxMapTool;
+    /** Optional active laser trail points in world coordinates */
+    laserPoints?: TuxMapStrokePoint[];
+}
 export interface TuxMapViewport {
     x: number;
     y: number;
@@ -243,6 +256,20 @@ export declare function resolveOptimalEdgeAnchors(sourceRect: TuxMapRect, target
  * tier layering when explicit positions are omitted.
  */
 export declare function computeMapAutoLayout(nodes: TuxMapNode[], edges: TuxMapEdge[], lod?: TuxMapLoDLevel): Map<string, TuxMapRect>;
+/** Resets one-shot Section 4/8 deprecation warning state (intended for test suites). */
+export declare function resetArchitectureDeprecationWarnings(): void;
+/**
+ * Computes the upstream (dependencies that feed `rootNodeId`) and downstream
+ * (dependents impacted by `rootNodeId`) blast-radius subgraph using directed BFS.
+ *
+ * @deprecated Use `computeLinkBlastRadius` or `queryArchitectureImpact` instead.
+ */
+export declare function computeDependencyBlastRadius(rootNodeId: string, edges: TuxMapEdge[]): {
+    activeNodeIds: Set<string>;
+    upstreamNodeIds: Set<string>;
+    downstreamNodeIds: Set<string>;
+    activeEdgeIds: Set<string>;
+};
 type Vec2 = [number, number];
 /**
  * Converts a closed polygon outline (array of `[x, y]` points) into a smooth
@@ -1015,6 +1042,15 @@ export interface TuxMapGraphEdgeRecord {
     kind: "rel" | "deployment" | "parent-child" | "hosts";
     planned?: boolean;
 }
+export interface TuxMapAcpLease {
+    leaseId: string;
+    agentId: string;
+    rootNodeId: string;
+    scopeNodeIds: string[];
+    lockedFiles: string[];
+    acquiredAt: string;
+    expiresAt: string;
+}
 export interface TuxMapQueryIndex {
     parentOf: Map<string, string>;
     kidsOf: Map<string, string[]>;
@@ -1044,7 +1080,7 @@ export declare function normalizeArchitectureModelInput(raw: unknown, opts?: {
 export declare const EMPTY_TTI_LEVEL_MODEL: TuxMapLevelModel;
 /**
  * Memoized `O(V + E)` query index per `TuxMapLevelModel` instance so repeated
- * layer, blast-radius, and shortest-path queries do not rebuild graph tables.
+ * layer, blast-radius, shortest-path, and lease queries do not rebuild graph tables.
  */
 export declare function getMapQueryIndex(model?: TuxMapLevelModel): TuxMapQueryIndex;
 /**
@@ -1211,6 +1247,174 @@ export declare function queryArchitectureImpact(seedIds: string | Iterable<strin
  * Pass `{ direction: "upstream" }` to follow reverse dependency edges (`to -> from`).
  */
 export declare function findArchitecturePath(fromNodeId: string, toNodeId: string, model?: TuxMapLevelModel, opts?: TuxMapPathQueryOptions): TuxMapPathQueryResult | TuxMapUnknownNodeError;
+/**
+ * Queries a specific semantic level or parent subgraph from a `TuxMapLevelModel`.
+ *
+ * @deprecated Use `queryArchitectureNodes` instead.
+ */
+export declare function queryArchitectureLayer(model?: TuxMapLevelModel, opts?: {
+    level?: number;
+    focusId?: string;
+    includePlanned?: boolean;
+}): {
+    level: number | "all";
+    focusId: string;
+    nodeCount: number;
+    edgeCount: number;
+    nodes: TuxMapGraphNodeRecord[];
+    edges: TuxMapGraphEdgeRecord[];
+};
+/**
+ * Computes multi-level k-hop upstream/downstream blast radius and impacted source files
+ * for any node ID across Levels 1..N.
+ *
+ * @deprecated Use `queryArchitectureImpact` instead.
+ */
+export declare function queryMultiLevelBlastRadius(nodeId: string, model?: TuxMapLevelModel, maxHopsOrOpts?: number | TuxMapBlastOptions): {
+    error: string;
+    unknownIds: string[];
+    suggestions: string[];
+    availableNodeIds: string[];
+    rootNode?: undefined;
+    maxHops?: undefined;
+    truncated?: undefined;
+    descendantIds?: undefined;
+    upstreamDependents?: undefined;
+    downstreamDependencies?: undefined;
+    blockers?: undefined;
+    coCutCandidates?: undefined;
+    testsToRun?: undefined;
+    stampsToRebuild?: undefined;
+    buildExecImpacted?: undefined;
+    hostsImpacted?: undefined;
+    impactedEdgeIds?: undefined;
+    impactedSourceFiles?: undefined;
+} | {
+    rootNode: TuxMapGraphNodeRecord;
+    maxHops: number;
+    truncated: boolean;
+    descendantIds: string[];
+    upstreamDependents: {
+        id: string;
+        hop: number;
+        via: TuxMapLink;
+        at: string;
+        sites: number[];
+        node: TuxMapGraphNodeRecord;
+    }[];
+    downstreamDependencies: {
+        id: string;
+        hop: number;
+        node: TuxMapGraphNodeRecord;
+    }[];
+    blockers: string[];
+    coCutCandidates: string[];
+    testsToRun: string[];
+    stampsToRebuild: string[];
+    buildExecImpacted: string[];
+    hostsImpacted: string[];
+    impactedEdgeIds: string[];
+    impactedSourceFiles: TuxMapSourceRef[];
+    error?: undefined;
+    unknownIds?: undefined;
+    suggestions?: undefined;
+    availableNodeIds?: undefined;
+};
+/**
+ * Finds a path between `fromNodeId` and `toNodeId` across Levels 1..N.
+ *
+ * @deprecated Use `findArchitecturePath` instead.
+ */
+export declare function findShortestArchitecturePath(fromNodeId: string, toNodeId: string, model?: TuxMapLevelModel): {
+    error: string;
+    unknownIds: string[];
+    suggestions: string[];
+    found?: undefined;
+    hops?: undefined;
+    nodePath?: undefined;
+    edges?: undefined;
+} | {
+    found: boolean;
+    hops: number;
+    nodePath: TuxMapGraphNodeRecord[];
+    edges: TuxMapGraphEdgeRecord[];
+    error?: undefined;
+    unknownIds?: undefined;
+    suggestions?: undefined;
+};
+/**
+ * ACP (Agent Communication Protocol) Subgraph Lease Coordinator.
+ *
+ * @deprecated In-process ACP subgraph leases do not coordinate across processes; scope changes with
+ * `computeGraphDelta` and `queryArchitectureImpact` instead.
+ */
+export declare function coordinateAcpSubgraphLease(action: "acquire" | "release" | "list", opts?: {
+    agentId?: string;
+    rootNodeId?: string;
+    leaseId?: string;
+    ttlSeconds?: number;
+    model?: TuxMapLevelModel;
+}): {
+    activeLeaseCount: number;
+    leases: TuxMapAcpLease[];
+    released?: undefined;
+    acquired?: undefined;
+    error?: undefined;
+    suggestions?: undefined;
+    conflict?: undefined;
+    lease?: undefined;
+} | {
+    released: boolean;
+    activeLeaseCount: number;
+    leases: TuxMapAcpLease[];
+    acquired?: undefined;
+    error?: undefined;
+    suggestions?: undefined;
+    conflict?: undefined;
+    lease?: undefined;
+} | {
+    acquired: boolean;
+    error: string;
+    activeLeaseCount?: undefined;
+    leases?: undefined;
+    released?: undefined;
+    suggestions?: undefined;
+    conflict?: undefined;
+    lease?: undefined;
+} | {
+    acquired: boolean;
+    error: string;
+    suggestions: string[];
+    activeLeaseCount?: undefined;
+    leases?: undefined;
+    released?: undefined;
+    conflict?: undefined;
+    lease?: undefined;
+} | {
+    acquired: boolean;
+    conflict: {
+        heldByAgent: string;
+        leaseId: string;
+        rootNodeId: string;
+        overlappingNodes: string[];
+        overlappingFiles: string[];
+    };
+    activeLeaseCount?: undefined;
+    leases?: undefined;
+    released?: undefined;
+    error?: undefined;
+    suggestions?: undefined;
+    lease?: undefined;
+} | {
+    acquired: boolean;
+    lease: TuxMapAcpLease;
+    activeLeaseCount: number;
+    leases?: undefined;
+    released?: undefined;
+    error?: undefined;
+    suggestions?: undefined;
+    conflict?: undefined;
+};
 export declare const TUX_MAP_SEARCH_GROUPS: readonly ["Components", "Folders", "Files", "Functions", "Routes"];
 export type TuxMapSearchGroup = (typeof TUX_MAP_SEARCH_GROUPS)[number];
 export interface TuxMapSearchEntry {
