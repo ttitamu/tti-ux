@@ -1,0 +1,17 @@
+@*
+ * TuxColumnMapper.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-column-mapper">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? SourceColumns { get; set; }
+    [Parameter] public string? SampleRows { get; set; }
+    [Parameter] public string? TargetFields { get; set; }
+    [Parameter] public string? ModelValue { get; set; }
+    [Parameter] public string ConfirmLabel { get; set; } = "Apply Mapping";
+}

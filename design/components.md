@@ -192,7 +192,29 @@ npm run dev
 | `TuxSpectrumRibbon`  | tux native               | `/components/spectrum-ribbon`       |
 | `TuxTileGrid`        | tux native               | `/components/tile-grid`             |
 
-**Native chart family** (Priority B — closed 2026-05-22):
+**Resource governance, reconciliation & structured input family** (added 2026-10-29):
+
+| Component            | Wraps                    | Showcase                            |
+|----------------------|--------------------------|-------------------------------------|
+| `TuxColumnMapper`    | tux native               | `/components/column-mapper`         |
+| `TuxCopyToken`       | tux native               | `/components/copy-token`            |
+| `TuxEntityPicker`    | tux native               | `/components/entity-picker`         |
+| `TuxFeedStatus`      | tux native               | `/components/feed-status`           |
+| `TuxKeyValueInput`   | tux native               | `/components/key-value-input`       |
+| `TuxLeaseBadge`      | tux native               | `/components/lease-badge`           |
+| `TuxLedgerTable`     | tux native               | `/components/ledger-table`          |
+| `TuxPeriodPicker`    | tux native               | `/components/period-picker`         |
+| `TuxPivotMatrix`     | tux native               | `/components/pivot-matrix`          |
+| `TuxProportionalInput` | tux native             | `/components/proportional-input`    |
+| `TuxRecordDiff`      | tux native               | `/components/record-diff`           |
+| `TuxRecordMatcher`   | tux native               | `/components/record-matcher`        |
+| `TuxScheduleMatrix`  | tux native               | `/components/schedule-matrix`       |
+| `TuxSegmentedInput`  | tux native               | `/components/segmented-input`       |
+| `TuxSignoffChain`    | tux native               | `/components/signoff-chain`         |
+| `TuxStageBoard`      | tux native               | `/components/stage-board`           |
+| `TuxThresholdBar`    | tux native               | `/components/threshold-bar`         |
+
+**Native chart family** (Priority B — closed 2026-05-22; extended 2026-10-29):
 
 | Component            | Stack                    | Showcase                        |
 |----------------------|--------------------------|---------------------------------|
@@ -204,6 +226,8 @@ npm run dev
 | `TuxChartGauge`      | tux native SVG           | `/visualizations/chart-gauge`   |
 | `TuxChartHeatmap`    | tux native SVG           | `/visualizations/chart-heatmap` |
 | `TuxChartHistogram`  | tux native SVG           | `/visualizations/chart-histogram` |
+| `TuxChartSankey`     | tux native SVG           | `/visualizations/chart-sankey`  |
+| `TuxChartWaterfall`  | tux native SVG           | `/visualizations/chart-waterfall` |
 
 ### Reports section
 

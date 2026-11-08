@@ -1,0 +1,17 @@
+@*
+ * TuxRecordDiff.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-record-diff">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? Fields { get; set; }
+    [Parameter] public string BeforeLabel { get; set; } = "Baseline";
+    [Parameter] public string AfterLabel { get; set; } = "Current";
+    [Parameter] public bool ChangesOnlyDefault { get; set; } = false;
+    [Parameter] public string? Title { get; set; }
+}

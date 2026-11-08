@@ -1,0 +1,20 @@
+@*
+ * TuxLeaseBadge.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-lease-badge">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public int? RemainingHours { get; set; }
+    [Parameter] public string? ExpiresLabel { get; set; }
+    [Parameter] public int WarningHours { get; set; } = 72;
+    [Parameter] public bool Extendable { get; set; } = false;
+    [Parameter] public bool Releasable { get; set; } = false;
+    [Parameter] public string ExtendLabel { get; set; } = "Extend";
+    [Parameter] public string ReleaseLabel { get; set; } = "Release";
+}

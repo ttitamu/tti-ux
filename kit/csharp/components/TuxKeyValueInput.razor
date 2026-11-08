@@ -1,0 +1,18 @@
+@*
+ * TuxKeyValueInput.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-key-value-input">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? ModelValue { get; set; }
+    [Parameter] public string? Schema { get; set; }
+    [Parameter] public bool StrictKeys { get; set; } = false;
+    [Parameter] public string KeyPlaceholder { get; set; } = "key";
+    [Parameter] public string ValuePlaceholder { get; set; } = "value";
+    [Parameter] public string AddLabel { get; set; } = "Add attribute";
+}

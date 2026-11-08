@@ -1,0 +1,17 @@
+@*
+ * TuxRecordMatcher.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-record-matcher">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? Items { get; set; }
+    [Parameter] public bool AllowRuleCreation { get; set; } = true;
+    [Parameter] public string RuleCheckboxLabel { get; set; } = "Remember this mapping rule for future records";
+    [Parameter] public string AcceptLabel { get; set; } = "Confirm Match";
+    [Parameter] public string DismissLabel { get; set; } = "Defer";
+}

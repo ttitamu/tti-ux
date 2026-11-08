@@ -1,0 +1,19 @@
+@*
+ * TuxSegmentedInput.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-segmented-input">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? ModelValue { get; set; }
+    [Parameter] public string? Segments { get; set; }
+    [Parameter] public string Separator { get; set; } = "-";
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? HelpText { get; set; }
+    [Parameter] public bool Uppercase { get; set; } = true;
+    [Parameter] public bool Disabled { get; set; } = false;
+}

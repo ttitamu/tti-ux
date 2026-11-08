@@ -227,12 +227,28 @@ const versionDropdownRef = ref<HTMLElement | null>(null);
 
 const releases = [
   {
-    version: "v3.0.1",
-    title: "Editorial Polish & Navigation",
-    era: "Modern Marcom Rebrand · Numberless Nav & Smooth Accordions",
+    version: "v3.10.0",
+    title: "Resource Governance & Reconciliation",
+    era: "Operational Attribution · 19 Agnostic Primitives & Multi-Party Signoff",
     badge: "Current",
     badgeClass: "bg-wash-brand-12 text-brand-primary border border-brand-primary/20",
     route: "/",
+  },
+  {
+    version: "v3.9.1",
+    title: "Architecture Map AAA & Blast Radius",
+    era: "Diagrams & Code Links · Mobile Magnify, Reduced Motion & Safe Links",
+    badge: "Stable",
+    badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
+    route: "/changelog#_391-2026-10-29",
+  },
+  {
+    version: "v3.0.1",
+    title: "Editorial Polish & Navigation",
+    era: "Modern Marcom Rebrand · Numberless Nav & Smooth Accordions",
+    badge: "Stable",
+    badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
+    route: "/changelog#_301",
   },
   {
     version: "v3.0.0",
@@ -597,6 +613,7 @@ const navTree = [
       { label: "  · MyTTI intranet", to: "/examples/intranet-dashboard", icon: "lucide:building-2" },
       { label: "  · Center landing", to: "/examples/center-landing", icon: "lucide:landmark" },
       { label: "  · Corridor analytics", to: "/examples/corridor-analytics", icon: "lucide:route" },
+      { label: "  · Resource governance", to: "/examples/resource-governance", icon: "lucide:scale" },
       { label: "  · Ops board", to: "/examples/ops-board", icon: "lucide:heart-pulse" },
       { label: "  · Paper page", to: "/examples/paper-page", icon: "lucide:file-text" },
       { label: "  · Research landing", to: "/examples/research-landing", icon: "lucide:milestone" },

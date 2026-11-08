@@ -1,0 +1,20 @@
+@*
+ * TuxThresholdBar.razor — ASP.NET Blazor Component.
+ * Synchronized via Universal Component Sync Engine (scripts/sync-engine.mjs).
+ *@
+
+<div class="tux-threshold-bar">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Segments { get; set; }
+    [Parameter] public int? Limit { get; set; }
+    [Parameter] public string Unit { get; set; } = "";
+    [Parameter] public string UnitPosition { get; set; } = "suffix";
+    [Parameter] public int Decimals { get; set; } = 1;
+    [Parameter] public double WarningRatio { get; set; } = 0.85;
+    [Parameter] public bool ShowLegend { get; set; } = true;
+}

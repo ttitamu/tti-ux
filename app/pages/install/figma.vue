@@ -548,7 +548,7 @@ npm run verify:figma`;
             </div>
 
             <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
-              <div class="flex flex-wrap gap-1.5" role="tablist" aria-label="Target framework">
+              <div class="flex flex-wrap gap-1.5" role="group" aria-label="Target framework">
                 <TuxButton
                   v-for="fw in [
                     { id: 'vue', label: 'Vue 3' },
@@ -560,6 +560,7 @@ npm run verify:figma`;
                   :key="fw.id"
                   size="xs"
                   :intent="selectedCcFramework === fw.id ? 'primary' : 'secondary'"
+                  :aria-pressed="selectedCcFramework === fw.id"
                   @click="selectedCcFramework = fw.id"
                 >
                   {{ fw.label }}

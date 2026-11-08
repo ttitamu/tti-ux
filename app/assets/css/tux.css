@@ -234,7 +234,7 @@
    UTabs hover — Nuxt UI's default is focus-ring only, no hover highlight
    on inactive tabs. Adds a subtle brand wash so tabs read as hoverable.
    ------------------------------------------------------------ */
-[role="tab"]:not([data-state="active"]):hover {
+[role="tab"]:not([data-state="active"]):not([aria-selected="true"]):hover {
   background-color: var(--wash-brand-6);
   transition: background-color 0.15s ease;
 }

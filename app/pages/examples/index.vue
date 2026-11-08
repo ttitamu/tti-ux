@@ -48,6 +48,17 @@ const examples: ExampleEntry[] = [
     kitId: "corridor",
   },
   {
+    slug: "resource-governance",
+    eyebrow: "product · governance & attribution",
+    title: "Resource governance workspace",
+    category: "ops",
+    categoryLabel: "Operational Telemetry",
+    archetype: "Multi-Pool Metering & Attestation",
+    blurb: "End-to-end resource attribution, unlinked workload matching, proportional split allocation, variance bridges, multi-party sign-off, and settlement export composed from 19 universal TUX primitives.",
+    componentsCount: 19,
+    featuredComponents: ["TuxSignoffChain", "TuxThresholdBar", "TuxRecordMatcher", "TuxLedgerTable", "TuxChartSankey", "TuxChartWaterfall"],
+  },
+  {
     slug: "comm-portal",
     eyebrow: "marcom · public redesign parity",
     title: "TTI communications portal",
