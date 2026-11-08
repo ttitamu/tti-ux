@@ -20,9 +20,11 @@
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { join, relative, resolve } from "node:path";
 
-const root = process.argv[2] || process.cwd();
+// Absolute: the map-runtime check below runs with `cwd: root`, and
+// publish-package.yml passes a relative `pkg`.
+const root = resolve(process.argv[2] || process.cwd());
 const LAYER_DIRS = ["app/components", "app/composables", "app/utils", "app/assets", "app/plugins", "app/middleware", "app/layouts"];
 const EXEMPT = /(^|\/)(pages|demo|demos|__tests__|stories)(\/|$)|\.(test|spec|stories)\.[cm]?[jt]sx?$/;
 const SOURCE = /\.(vue|[cm]?[jt]sx?)$/;
