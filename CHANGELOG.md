@@ -5,6 +5,59 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 ## [3.12.0] — 2026-11-07
 
+3.10.0 and 3.11.0 were never published to the registry. 3.12.0 is the first release to carry them, so read the 3.10.0 and 3.11.0 sections too when you upgrade from 3.9.x.
+
+### Changed — behavior to check when upgrading from 3.9.1
+
+Everything in this list is `<TuxArchitectureMap>`, its utilities or `tux-mcp`. The rest of TUX gained components and small fixes. Strict semver would call these breaking, but nothing on TTI Code depends on the 3.9.1 behavior, so they ship in a minor.
+
+**`<TuxArchitectureMap>`:**
+
+- With neither `model` nor `nodes` it renders an empty map, where 3.9.1 drew the sample. Pass `DEFAULT_TTI_LEVEL_MODEL` for the sample.
+- `:model="null"`, for example while data loads, shows an empty map with a "Model diagnostics" note and ignores `nodes`. 3.9.1 drew `nodes` or the sample.
+- The pen, laser and note tools need `:annotations="true"`. Without it, saved ink and notes still draw but can't be edited or cleared.
+- At Levels 2, 3 and 5 and deeper, test, CI and doc wires are hidden until `initialWireFilters`, `wireFilters` or the toolbar's Wires buttons turn them on. That includes `stop: true` links of kind `imports`, `sources`, `reads`, `calls` or `runs`, links to or from `.md` files, and `rels` labelled `tests`, `checks` or `mentions`.
+- A view with more than 40 inner cards opens as a list, even with `initial-view="diagram"`, unless it is at Level 4 or `view` is set. `denseListThreshold` sets the limit.
+- Single-child folder chains collapse, then a component with 8 or fewer files and no subfolders left skips the folder level, so `level` and `focus` values can differ from 3.9.1.
+- `/` and `Ctrl/Cmd-K` open the go-to palette when focus is inside the map and, for the first map on the page, when nothing has focus. Inside the map, `Ctrl/Cmd-K` no longer reaches an app's own shortcut, such as `TuxCommandPalette`.
+- A `source.url` on another origin than `sourceBaseUrl` (or than the page, with no `sourceBaseUrl`) no longer gets a link, and a `//host` `sourceBaseUrl` gives no links.
+- The `collaborators` and `showMinimap` props and the `cursor-move` event are gone. 3.9.1 never read or emitted them.
+
+**Utilities:**
+
+- `DEFAULT_TTI_LEVEL_MODEL` moved to `tuxArchitectureMapSample`. Explicit imports from `tuxArchitectureMap` must change.
+- `computeLinkBlastRadius` follows `mentions` links only from the seeds, and a non-finite `maxHops` stops at 32.
+- `buildUnifiedArchitectureGraph()` with no argument returns an empty graph. For any model, its `nodes` and `edges` are shared with the query cache, so callers must not change them.
+- `TuxMapElementKind` gained `folder`, `file`, `function`, `class`, `constant` and `route`.
+
+**`tux-mcp`:**
+
+- The architecture tools and the `tux://architecture/c4-graph` resource need `--model` or `TUX_MCP_MODEL`, and are not listed without it. In 3.9.1 they answered from a built-in sample graph.
+- `tux_acp_subgraph_lease` is gone.
+- `tux://architecture/c4-graph` is now `tux-c4-cpg-v2`, with at most 60 nodes and 60 edges and without `source`, `diff`, `desc` or `activeAcpLeases`.
+- A `tools/call` result over 256 KiB is replaced by a notice, including from the design tools. `--call` output and resources have no limit.
+- Prompt `topic` and `division` values are validated. A topic can use only ASCII letters, digits, spaces and `_ . / , : ( ) & -`, so apostrophes, en and em dashes and accented letters are rejected.
+- `tux_audit_snippet` reports each legacy or undefined token once, so `issueCount` can be lower than in 3.9.1.
+- `--call` exits 1 when the tool returns an `error`. 3.9.1 exited 0.
+- The `tux-mcp` bin now runs when installed. In 3.9.1 it did nothing through npm's symlink.
+- Known issue: `--call` output into a pipe can be cut off, usually at 64 KiB. Redirect it to a file instead.
+
+### Deprecated — removal planned for 4.0
+
+- `queryArchitectureLayer`: use `queryArchitectureNodes`.
+- `queryMultiLevelBlastRadius`: use `queryArchitectureImpact`.
+- `findShortestArchitecturePath`: use `findArchitecturePath`.
+- `computeDependencyBlastRadius`: use `computeLinkBlastRadius` or `queryArchitectureImpact`.
+- `coordinateAcpSubgraphLease`, `TuxMapAcpLease`: no direct replacement. Scope changes with `computeGraphDelta` and `queryArchitectureImpact`.
+- `TuxMapCollaborator`: no replacement. It has been unused since the `collaborators` prop went.
+- `tux_query_architecture_layer`: use `tux_query_architecture_nodes`.
+- `tux_get_blast_radius`: use `tux_query_architecture_impact`.
+- `tux_find_shortest_path`: use `tux_find_architecture_path`.
+
+These keep their names but not always their 3.9.1 results. `queryArchitectureLayer`, `queryMultiLevelBlastRadius`, `findShortestArchitecturePath` and `coordinateAcpSubgraphLease` default to an empty model. `findShortestArchitecturePath` is now directed, skips planned edges and steps into children only under the start node. `queryMultiLevelBlastRadius` defaults to 32 hops and to skipping planned relationships, finds dependents with `computeLinkBlastRadius`, and no longer starts from the node's parent. `queryArchitectureLayer` applies `level` and `focusId` together. Each deprecated function warns once in the console.
+
+The three `tux_` names are no longer in `tools/list`. They still answer when called by name with a model, but they return the new tools' results: `tux_get_blast_radius` has `hits` where it had `upstreamDependents`, and `tux_find_shortest_path` is directed and has `nodeIds` where it had `nodePath`.
+
 ### Added & Changed — `<TuxArchitectureMap>` Wayfinding, Wire Inspector, LCA Lifting, Rule Violations, Dense Views & Lazy Subgraphs (#115, #116, #117, #118, #121, #123, #124, #125, #126)
 
 - **On-Screen Wire Key & Interactive Wire Link Inspector (`#115`)**:
@@ -37,13 +90,13 @@ conventions and [Semantic Versioning](https://semver.org/).
 - **Chargeback, Scenario Simulation, Audit & Statement Primitives**:
   - `TuxRateSchedule` (`/components/rate-schedule`): Effective-dated tiered rate card and tariff schedule editor supporting flat, graduated marginal, and volume pricing models plus an inline sample quantity calculator.
   - `TuxSimulator` (`/components/simulator`): Interactive what-if scenario parameter simulator with range sliders, direct numeric inputs, scenario presets, and live baseline-vs-projected metric deltas.
-  - `TuxAuditLog` (`/components/audit-log`): Immutable append-only operational and governance audit ledger with severity filtering, SHA-256 hash-chain verification pills, and structured `before → after` field diffs.
+  - `TuxAuditLog` (`/components/audit-log`): Read-only audit ledger with category filtering, text search, severity markers, a badge for a caller-supplied `digest` (nothing is hashed or verified), structured `before → after` field diffs and CSV/JSON export.
   - `TuxStatementSheet` (`/components/statement-sheet`): Print-first and web-interactive cycle settlement statement sheet with issuer/recipient metadata, line items, adjustments/credits, grand total, and attestation block.
 - **Live Infrastructure Saturation, SLI Uptime, Anomaly Triage & Log Streaming Primitives**:
-  - `TuxResourceMeter` (`/components/resource-meter`): Multi-channel live infrastructure saturation card (CPU, memory, GPU, storage, network I/O) with status heartbeat, threshold coloring, and inline sparklines.
+  - `TuxResourceMeter` (`/components/resource-meter`): Capacity meter for any set of channels (`capacity`, `allocated`, `utilized`, `unit`) with a pool status, per-channel efficiency, idle-waste and saturation flags from configurable thresholds, and a reclaim action.
   - `TuxUptimeStrip` (`/components/uptime-strip`): Temporal availability and SLI window strip (30/60/90 buckets) with aggregate uptime percentage, roving keyboard cursor, and incident inspection panel.
   - `TuxAnomalyCard` (`/components/anomaly-card`): Threshold breach, metric spike, and anomaly triage card with baseline-vs-observed delta, sparkline context, and acknowledge/snooze sink states (`ACK ≠ MAINT`).
-  - `TuxLogViewer` (`/components/log-viewer`): Virtualized structured operational log and event stream viewer with level toggles, search highlighting, follow-tail lock, line-wrap toggle, and expandable JSON context drawers.
+  - `TuxLogViewer` (`/components/log-viewer`): Structured log viewer with level filters and counts, text search, a line-wrap toggle, line selection, copy and download. It renders every line it is given.
 - **Flagship Composition Workspace & Architecture Doctrine**:
   - `/examples/telemetry-chargeback` (`app/pages/examples/telemetry-chargeback.vue`): 4-view operational telemetry and chargeback workspace composing all 8 new primitives with `TuxPeriodPicker`, `TuxFeedStatus`, `TuxSignoffChain`, `TuxChartWaterfall`, `TuxChartSankey`, and `TuxLedgerTable`.
   - `/design/telemetry-and-chargeback` (`design/telemetry-and-chargeback.md`): Canonical vendor-neutral data-contract doctrine covering normalized usage ledger entries, effective-dated rate schedules with immutable statement snapshots, and deterministic attribution rule precedence.
@@ -61,16 +114,16 @@ conventions and [Semantic Versioning](https://semver.org/).
   - Added `route` (`"HTTP route"`) and labels + legend entries for all 13 new code-graph link kinds (`copies`, `copies-logic-of`, `forks`, `reads-format`, `suppresses`, `provenance`, `links`, `reads`, `generates`, `denies`, `handled-by`, `sends`, `routes`), with attribute-comparison DOM card lookups surviving `\`, `"`, `'`, `[`, and `]` without `CSS.escape` (`#122`).
   - Fixed `zoomIntoElement` on outside collaborator cards to open at the target's true semantic level (`levelForFocus`) and `drillStackFor(id)` with matching `.tux-map__el-zb` badge titles (`#130`).
 - **Unified Multi-Intent Blast-Radius & Two-Tree Delta Engine (`#110`)**:
-  - Replaced divergent panel/diff/query walks with one deterministic contract supporting `coupling` (`contract`, `runtime`, `type-only`, `artifact-stamp`, `build-exec`, `verification`, `prose`), `phase` (`prod-runtime`, `client-bundle`, `stamp-only`, `build-exec`, `ci-test`), multi-site `sites: number[]`, `computeGraphDelta(base, head)` (`added`, `deleted`, `moved`, `sig-changed`, `body-patched`, `+wire`/`-wire`/`dangling-wire`), and canonical `packages/diagrams/tests/fixtures/map-conformance.json`.
+  - Replaced divergent panel/diff/query walks with one deterministic contract supporting `coupling` (`contract`, `runtime`, `type-only`, `artifact-stamp`, `build-exec`, `verification`, `prose`), `phase` (`prod-runtime`, `client-bundle`, `build-exec`, `ci-test`, `doc-only`), multi-site `sites: number[]`, `computeGraphDelta(base, head)` (`added`, `deleted`, `moved`, `sig-changed`, `body-patched`, plus `addedWires`, `removedWires` and `danglingWires`), and canonical `packages/diagrams/tests/fixtures/map-conformance.json`.
 - **Section 8 Query Delegates & Legacy Lease Deprecation (`#111`)**:
-  - Delegated Section 8 programmatic graph queries (`queryArchitectureBlastRadius`, `findArchitecturePath`, `queryArchitectureNodes`) to the unified contract with strict dependency-edge path isolation (`depEdgesByFrom` / `depEdgesByTo`) and deprecated legacy single-process in-memory lease helpers cleanly for `4.0`.
+  - Delegated Section 8 programmatic graph queries (`queryArchitectureImpact`, `findArchitecturePath`, `queryArchitectureNodes`) to the unified contract with strict dependency-edge path isolation (`depEdgesByFrom` / `depEdgesByTo`) and deprecated legacy single-process in-memory lease helpers cleanly for `4.0`.
 - **Compiled Map Runtime & `< 16 KB` Real-Model `tux-mcp` (`#112`)**:
-  - Shipped `@tti/tti-ux-diagrams/runtime/tuxArchitectureMap` (`mjs` + `d.mts`), removed `tux-mcp.mjs`'s hardcoded fictional sample graph, required explicit `--model` / `TUX_MCP_MODEL` on architecture tools, and enforced `< 16 KB` paged JSON-RPC wire bounds.
+  - Shipped `@tti/tti-ux-diagrams/runtime/tuxArchitectureMap` (`mjs` + `d.mts`), removed `tux-mcp.mjs`'s hardcoded fictional sample graph, required explicit `--model` / `TUX_MCP_MODEL` on architecture tools, and added paging that keeps default compact tool responses under 16 KB. `compact: false`, an explicit `limit` and the `tux://architecture/c4-graph` resource can be larger; tool responses stop at 256 KiB.
 
 ### Fixed
 
 - **Playground teardown guard (`TuxPlayground.vue`, `#129`)**: Cleared the URL sync timer in `onBeforeUnmount` and guarded `globalThis.history` / `router.replace()` rejections during component teardown in unit tests.
-- **Cross-framework kits & ports**: Exported all 8 new components across `@tti/tti-ux-react`, `@tti/tti-ux-elements` (`211` custom elements), Figma Code Connect, and all `kit/` language targets (`210` catalogued components, `224` component unit test suites).
+- **Cross-framework kits & ports**: Added all 8 new components to `@tti/tti-ux-elements` (`211` custom elements, built from the Vue components, not on the registry). The `@tti/tti-ux-react` and `kit/` versions are generated shells: they render at most a title and their `children`, with none of the component's data, filtering or events. Figma Code Connect covers all 8 (`210` catalogued components, `224` component unit test suites).
 - **Security (`node-forge` `1.4.3`, `#97`)**: Updated `node-forge` in `package-lock.json` to `1.4.3` and retired the obsolete `.security-ignore` rule.
 
 ## [3.10.0] — 2026-10-29
@@ -107,8 +160,8 @@ conventions and [Semantic Versioning](https://semver.org/).
 
 - **Active ARIA tabs hover contrast (`tux.css`)**: Excluded `[aria-selected="true"]` alongside `[data-state="active"]` on the subtle tab hover wash so standard ARIA tablists preserve solid `--brand-fill` contrast on hover across all 4 themes.
 - **Framework filter semantics (`/install/figma`)**: Updated the framework selector container from `role="tablist"` to `role="group"` with `:aria-pressed` toggles, resolving an `aria-required-children` violation.
-- **Cross-framework kits & ports**: Exported all 19 new components from `@tti/tti-ux-react`, `@tti/tti-ux-elements`, Figma Code Connect, and all 8 `kit/` language targets (`202` catalogued components, `216` unit test suites).
-- **Security (`happy-dom` v21)**: Updated `happy-dom` devDependency and lockfile to `^21.0.4` across root and `@tti/tti-ux-desk` (`CVE-2026-115895`, `CVE-2026-118660`).
+- **Cross-framework kits & ports**: Added all 19 new components to `@tti/tti-ux-elements` (built from the Vue components, not on the registry). The `@tti/tti-ux-react` and `kit/` versions are generated shells: they render at most a title and their `children`, with none of the component's data, filtering or events. Figma Code Connect covers all 19 (`202` catalogued components, `216` unit test suites).
+- **Security (`happy-dom`)**: Moved the root devDependency and lockfile to `^21.0.4` (`CVE-2026-115895`, `CVE-2026-118660`). `@tti/tti-ux-desk` now allows `^20.14.6 || ^21.0.4`, so an app that installs it can still resolve 20.x.
 
 ## [3.9.1] — 2026-10-29
 
