@@ -2903,5 +2903,53 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
   });
 });
 
+describe("architecture map API surface (tti/tti-ux#161)", () => {
+  const pkgRoot = join(__dirname, "..");
+  const apiScript = join(pkgRoot, "scripts/build-map-api.mjs");
+  const runApi = (...args: string[]) => spawnSync(process.execPath, [apiScript, ...args], { cwd: pkgRoot, encoding: "utf8" });
 
+  it("matches the committed snapshots of the runtime exports and the component contract", () => {
+    const res = runApi("--check");
+    // The script names what was added, removed or changed and how to regenerate.
+    expect(res.status, `The architecture map's public API changed without its snapshot:\n${res.stderr}${res.stdout}`).toBe(0);
+  });
 
+  it("tags every runtime export @public or @internal, and keeps internals out of public declarations", () => {
+    const res = runApi("--json");
+    expect(res.status, res.stderr).toBe(0);
+    const surface = JSON.parse(res.stdout) as {
+      runtime: { entry: string; items: { name: string; kind: string; release: string }[] }[];
+      component: { props: { name: string }[]; events: { name: string }[]; slots: unknown[]; exposed: string[] };
+    };
+    const map = surface.runtime.find((e) => e.entry.endsWith("/tuxArchitectureMap"))!;
+    expect(map.items.every((i) => i.release === "public" || i.release === "internal")).toBe(true);
+
+    // Every value the published module exports is accounted for in the snapshot.
+    const values = map.items.filter((i) => i.kind !== "interface" && i.kind !== "type").map((i) => i.name).sort();
+    expect(values).toEqual(Object.keys(publishedMapRuntime).sort());
+
+    // The names the README promises stay public.
+    const publicNames = new Set(map.items.filter((i) => i.release === "public").map((i) => i.name));
+    for (const name of [
+      "queryArchitectureNodes", "queryArchitectureImpact", "findArchitecturePath", "computeGraphDelta",
+      "liftLinksToView", "computeLinkBlastRadius", "searchArchitectureMap", "buildMapSearchIndex",
+      "normalizeArchitectureModelInput", "validateMapModel", "sanitizeMapModel", "collapseModelSubgraphs",
+      "TuxMapLevelModel",
+    ]) {
+      expect(publicNames.has(name), `${name} must stay @public`).toBe(true);
+    }
+    // Drawing helpers stay marked internal.
+    for (const name of ["hasOwn", "setOwnProp", "cmpCodepoint", "GRID_METRICS", "routeGridWires"]) {
+      expect(publicNames.has(name), `${name} is @internal`).toBe(false);
+    }
+
+    expect(surface.component.props.length).toBeGreaterThan(0);
+    expect(surface.component.events.map((e) => e.name)).toContain("node-select");
+  });
+
+  it("publishes the snapshots with the package", () => {
+    const pkgJson = JSON.parse(readFileSync(join(pkgRoot, "package.json"), "utf8"));
+    expect(pkgJson.files).toContain("api");
+    expect(pkgJson.scripts.test).toContain("build-map-api.mjs --check");
+  });
+});

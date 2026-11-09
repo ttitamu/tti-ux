@@ -40,3 +40,31 @@ export default defineNuxtConfig({
 - **`useTuxMermaid()`**: Coordinated singleton Mermaid renderer with automatic layout-shift prevention via server-side height estimation.
 - **TUX Color Synchronization**: Direct mapping of Texas A&M Maroon (`#500000`), Dark Mode accents, and typography tokens into Mermaid theme variables.
 - **WCAG 2.2 AAA Accessibility**: Automatic markup remediation converting untyped ARIA labels into accessible image roles.
+
+## API surface
+
+The architecture map has two contracts, and each has a committed snapshot that the tests keep in step with the code:
+
+- **The component**, `<TuxArchitectureMap>`: its props and defaults, events, `v-model` bindings, slots and exposed members. Snapshot: [`api/map-component.api.md`](./api/map-component.api.md).
+- **The runtime**, `@tti/tti-ux-diagrams/runtime/tuxArchitectureMap` (the same exports as `app/utils/tuxArchitectureMap.ts`, which a Nuxt app that extends this layer gets as auto-imports) and `@tti/tti-ux-diagrams/runtime/tuxArchitectureMapSample`. Snapshot: [`api/map-runtime.api.md`](./api/map-runtime.api.md).
+
+Every runtime export carries `@public` or `@internal` in its TSDoc comment, and the comment travels into the published `.d.mts`, so an editor shows it on hover. The public exports, by group:
+
+| Group | Exports |
+|---|---|
+| Model | The `TuxMap*` model types (`TuxMapLevelModel` and what it is made of); `EMPTY_TTI_LEVEL_MODEL`, `DEFAULT_TTI_LEVEL_MODEL` (sample entry); `normalizeArchitectureModelInput()`, `validateMapModel()`, `sanitizeMapModel()`, `collapseModelSubgraphs()`, `buildLevelModelFromLegacyNodes()`, `extractModelLinks()`, `resolveModelRawLinks()` |
+| Vocabulary | `TUX_MAP_ELEMENT_KIND_LABELS`, `TUX_MAP_LINK_KIND_LABELS`, `TUX_MAP_LINK_STRENGTH_ORDER`, `TUX_MAP_QUIET_LINK_KINDS`, `TUX_MAP_VALID_BLAST_INTENTS`, `TUX_MAP_WIRE_CATEGORIES`, `plainElementKindLabel()` |
+| Levels | `buildMapParentIndex()`, `levelForFocus()`, `mapAncestorsOf()` |
+| Links and blast radius | `liftLinksToView()`, `computeLinkBlastRadius()`, `classifyBlastLink()`, `inferLinkCoupling()`, `inferLinkPhase()`, `classifyLinkDependencyCategory()`, `filterLinksByCategories()`, `foldVendoredCopies()`, `traceSpreadingPath()` |
+| Branch delta | `computeGraphDelta()` |
+| Queries | `buildUnifiedArchitectureGraph()`, `queryArchitectureNodes()`, `queryArchitectureImpact()`, `findArchitecturePath()` |
+| Search | `TUX_MAP_SEARCH_GROUPS`, `buildMapSearchIndex()`, `searchArchitectureMap()` |
+| Ink | `getSmoothedFreehandSvgPath()`, `getLaserPointerSvgPath()` |
+| Deprecated, still public | `computeDependencyBlastRadius()`, `queryArchitectureLayer()`, `queryMultiLevelBlastRadius()`, `findShortestArchitecturePath()`, `coordinateAcpSubgraphLease()` |
+
+The result and option types of those functions are public with them; the snapshot lists every declaration.
+
+**`@internal` exports may change or be removed in any release, without notice and without a changelog entry.** They are how the component draws (pixel geometry, path builders, the wire router, caches, comparators, object helpers). They remain exported and typed for now, so marking them broke no import; do not build on them. [`api/map-exports-inventory.md`](./api/map-exports-inventory.md) records how each export was sorted.
+
+Changing the surface on purpose: tag a new export `@public` or `@internal`, then run `npm run build:runtime -w @tti/tti-ux-diagrams` and `npm run build:api -w @tti/tti-ux-diagrams` and commit the regenerated snapshots with the change. `npm test` fails with the list of added, removed and changed names until they match.
+
