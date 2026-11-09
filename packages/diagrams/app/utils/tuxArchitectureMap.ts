@@ -16,16 +16,40 @@
  *    - LoD 3 (`packages`, zoom >= 1.3): Package dependencies (`@tti/*`, npm, containers), versions, ports, & protocols.
  */
 
+/**
+ * Side of a legacy canvas node an edge attaches to.
+ * @internal
+ */
 export type TuxMapHandlePosition = "top" | "right" | "bottom" | "left";
 
+/**
+ * Legacy level-of-detail tier of the `nodes` / `edges` canvas (the `lodMode` prop).
+ * @public
+ */
 export type TuxMapLoDLevel = "executive" | "resources" | "packages";
 
+/**
+ * Pointer tool of the annotation toolbar.
+ * @public
+ */
 export type TuxMapTool = "select" | "pan" | "pen" | "laser" | "note";
 
+/**
+ * Operational status of a legacy `TuxMapNode` or one of its resources.
+ * @public
+ */
 export type TuxMapStatus = "ok" | "warning" | "critical" | "maintenance" | "pending";
 
+/**
+ * Kind of a resource row on a legacy `TuxMapNode`.
+ * @public
+ */
 export type TuxMapResourceKind = "person" | "vm" | "container" | "database" | "storage" | "gateway";
 
+/**
+ * A person or team on a legacy `TuxMapNode`.
+ * @public
+ */
 export interface TuxMapPersonResource {
   id: string;
   kind: "person";
@@ -35,6 +59,10 @@ export interface TuxMapPersonResource {
   handle?: string;
 }
 
+/**
+ * A VM, container, database, storage or gateway on a legacy `TuxMapNode`.
+ * @public
+ */
 export interface TuxMapComputeResource {
   id: string;
   kind: Exclude<TuxMapResourceKind, "person">;
@@ -46,8 +74,16 @@ export interface TuxMapComputeResource {
   host?: string; // e.g. "rellis-esxi-04"
 }
 
+/**
+ * A resource row on a legacy `TuxMapNode`.
+ * @public
+ */
 export type TuxMapResource = TuxMapPersonResource | TuxMapComputeResource;
 
+/**
+ * A package dependency row on a legacy `TuxMapNode`.
+ * @public
+ */
 export interface TuxMapPackageDep {
   name: string;
   version: string;
@@ -56,6 +92,10 @@ export interface TuxMapPackageDep {
   protocol?: string;
 }
 
+/**
+ * Legacy flat-canvas node (the `nodes` prop); `buildLevelModelFromLegacyNodes` converts a set of them into a level model.
+ * @public
+ */
 export interface TuxMapNode {
   id: string;
   /** Product or System Name */
@@ -84,6 +124,10 @@ export interface TuxMapNode {
   sla?: string;
 }
 
+/**
+ * Legacy flat-canvas edge (the `edges` prop).
+ * @public
+ */
 export interface TuxMapEdge {
   id: string;
   source: string;
@@ -98,6 +142,10 @@ export interface TuxMapEdge {
   minLod?: TuxMapLoDLevel;
 }
 
+/**
+ * Legacy environment zone (the `zones` prop).
+ * @public
+ */
 export interface TuxMapZone {
   id: string;
   label: string;
@@ -107,6 +155,10 @@ export interface TuxMapZone {
   bounds?: { x: number; y: number; width: number; height: number };
 }
 
+/**
+ * One sampled pointer position of an ink stroke or a laser trail.
+ * @public
+ */
 export interface TuxMapStrokePoint {
   x: number;
   y: number;
@@ -114,6 +166,10 @@ export interface TuxMapStrokePoint {
   timestamp?: number;
 }
 
+/**
+ * A freehand ink stroke (the `strokes` prop and the `update:strokes` event).
+ * @public
+ */
 export interface TuxMapInkStroke {
   id: string;
   authorId?: string;
@@ -129,6 +185,10 @@ export interface TuxMapInkStroke {
   targetNodeId?: string | null;
 }
 
+/**
+ * A sticky note (the `notes` prop and the `update:notes` event).
+ * @public
+ */
 export interface TuxMapStickyNote {
   id: string;
   x: number;
@@ -144,6 +204,10 @@ export interface TuxMapStickyNote {
   targetNodeId?: string | null;
 }
 
+/**
+ * A remote collaborator's cursor, tool and laser trail.
+ * @public
+ */
 export interface TuxMapCollaborator {
   id: string;
   name: string;
@@ -158,12 +222,20 @@ export interface TuxMapCollaborator {
   laserPoints?: TuxMapStrokePoint[];
 }
 
+/**
+ * Pan and zoom of the legacy canvas.
+ * @internal
+ */
 export interface TuxMapViewport {
   x: number;
   y: number;
   zoom: number;
 }
 
+/**
+ * Axis-aligned rectangle in world coordinates.
+ * @internal
+ */
 export interface TuxMapRect {
   x: number;
   y: number;
@@ -175,11 +247,19 @@ export interface TuxMapRect {
 // 1. SEMANTIC ZOOM LEVEL-OF-DETAIL (LoD) RESOLUTION
 // ============================================================================
 
+/**
+ * Zoom thresholds between the legacy level-of-detail tiers.
+ * @internal
+ */
 export const LOD_THRESHOLDS = {
   resources: 0.65,
   packages: 1.25,
 } as const;
 
+/**
+ * Legacy level-of-detail tier for a zoom factor.
+ * @internal
+ */
 export function resolveSemanticLoD(
   zoom: number,
   override: "auto" | TuxMapLoDLevel = "auto",
@@ -193,6 +273,7 @@ export function resolveSemanticLoD(
 /**
  * Returns the intrinsic world-space dimensions of a node card for a given LoD
  * so edge handles, zone bounding boxes, and minimap stay exact across zoom tiers.
+ * @internal
  */
 export function getNodeDimensionsForLoD(
   node: TuxMapNode,
@@ -221,6 +302,10 @@ export function getNodeDimensionsForLoD(
 // 2. VIEWPORT CAMERA & COORDINATE MATRIX (Adapted from @xyflow/system & tldraw)
 // ============================================================================
 
+/**
+ * Screen point to legacy canvas world coordinates.
+ * @internal
+ */
 export function screenToWorld(
   screenX: number,
   screenY: number,
@@ -233,6 +318,10 @@ export function screenToWorld(
   };
 }
 
+/**
+ * Legacy canvas world point to screen coordinates.
+ * @internal
+ */
 export function worldToScreen(
   worldX: number,
   worldY: number,
@@ -247,6 +336,7 @@ export function worldToScreen(
 /**
  * Zooms the viewport around a specific screen focal point (e.g. cursor position)
  * so the world point under the cursor stays stationary during wheel/pinch zoom.
+ * @internal
  */
 export function zoomAroundScreenPoint(
   viewport: TuxMapViewport,
@@ -267,6 +357,7 @@ export function zoomAroundScreenPoint(
 
 /**
  * Computes the bounding rectangle enclosing all given rectangles.
+ * @internal
  */
 export function getBoundsOfRects(rects: TuxMapRect[]): TuxMapRect {
   if (rects.length === 0) {
@@ -295,6 +386,7 @@ export function getBoundsOfRects(rects: TuxMapRect[]): TuxMapRect {
 /**
  * Computes the ideal viewport `(x, y, zoom)` to fit a world bounding box
  * inside a container of `(containerWidth, containerHeight)` with padding.
+ * @internal
  */
 export function getViewportForBounds(
   bounds: TuxMapRect,
@@ -366,6 +458,10 @@ function getRoundedBend(a: XYPoint, b: XYPoint, c: XYPoint, size: number): strin
   return `L ${x.toFixed(1)},${(y + bendSize * yDir).toFixed(1)} Q ${x.toFixed(1)},${y.toFixed(1)} ${(x + bendSize * xDir).toFixed(1)},${y.toFixed(1)}`;
 }
 
+/**
+ * Path and label position returned by the legacy edge path helpers.
+ * @internal
+ */
 export interface SmoothStepEdgeResult {
   path: string;
   labelX: number;
@@ -376,6 +472,7 @@ export interface SmoothStepEdgeResult {
  * Generates an orthogonal rounded-corner SVG path between two node handles,
  * returning both the SVG `d` string and the optimal midpoint `(labelX, labelY)`
  * for edge protocol badges.
+ * @internal
  */
 export function getSmoothStepEdgePath(params: {
   sourceX: number;
@@ -487,6 +584,7 @@ export function getSmoothStepEdgePath(params: {
 
 /**
  * Generates a cubic Bezier SVG path between two handles.
+ * @internal
  */
 export function getBezierEdgePath(params: {
   sourceX: number;
@@ -544,6 +642,7 @@ export function getBezierEdgePath(params: {
 
 /**
  * Generates a direct straight SVG path between two handles.
+ * @internal
  */
 export function getStraightEdgePath(params: {
   sourceX: number;
@@ -562,6 +661,7 @@ export function getStraightEdgePath(params: {
 /**
  * Automatically selects the best handle pair (`right` -> `left` or `bottom` -> `top`)
  * between two node rectangles and returns the anchor coordinates.
+ * @internal
  */
 export function resolveOptimalEdgeAnchors(
   sourceRect: TuxMapRect,
@@ -633,6 +733,7 @@ export function resolveOptimalEdgeAnchors(
 /**
  * Computes deterministic `(x, y)` coordinates for nodes using topological
  * tier layering when explicit positions are omitted.
+ * @internal
  */
 export function computeMapAutoLayout(
   nodes: TuxMapNode[],
@@ -735,7 +836,10 @@ function warnArchitectureDeprecatedOnce(fnName: string, replacementHint: string)
   console.warn(`[@tti/tti-ux-diagrams] ${fnName}() is deprecated. ${replacementHint}`);
 }
 
-/** Resets one-shot Section 4/8 deprecation warning state (intended for test suites). */
+/**
+ * Resets one-shot Section 4/8 deprecation warning state (intended for test suites).
+ * @internal
+ */
 export function resetArchitectureDeprecationWarnings(): void {
   emittedArchitectureDeprecations.clear();
 }
@@ -745,6 +849,7 @@ export function resetArchitectureDeprecationWarnings(): void {
  * (dependents impacted by `rootNodeId`) blast-radius subgraph using directed BFS.
  *
  * @deprecated Use `computeLinkBlastRadius` or `queryArchitectureImpact` instead.
+ * @public
  */
 export function computeDependencyBlastRadius(
   rootNodeId: string,
@@ -851,6 +956,7 @@ function vecLerp(a: Vec2, b: Vec2, t: number): Vec2 {
  * Converts a closed polygon outline (array of `[x, y]` points) into a smooth
  * quadratic Bezier SVG path string (`M ... Q ... T ... Z`).
  * Adapted from `@excalidraw/common` `getSvgPathFromStroke` (MIT).
+ * @internal
  */
 export function getSvgPathFromStrokeOutline(points: Vec2[], closed = true): string {
   const len = points.length;
@@ -876,6 +982,10 @@ export function getSvgPathFromStrokeOutline(points: Vec2[], closed = true): stri
   return result.trim();
 }
 
+/**
+ * Options of `getSmoothedFreehandSvgPath`.
+ * @public
+ */
 export interface FreehandStrokeOptions {
   size?: number;
   thinning?: number;
@@ -889,6 +999,7 @@ export interface FreehandStrokeOptions {
  * Generates a smoothed, variable-width polygon SVG path from raw pointer coordinates.
  * Combines streamline low-pass filtering, velocity-simulated pressure thinning,
  * and rounded start/end caps (adapted from `perfect-freehand`, MIT).
+ * @public
  */
 export function getSmoothedFreehandSvgPath(
   rawPoints: TuxMapStrokePoint[],
@@ -983,6 +1094,7 @@ export function getSmoothedFreehandSvgPath(
 /**
  * Generates an ephemeral laser pointer SVG path with time-based and tail-length decay
  * (adapted from Excalidraw `LaserTrails`, MIT License).
+ * @public
  */
 export function getLaserPointerSvgPath(
   points: TuxMapStrokePoint[],
@@ -1014,8 +1126,16 @@ export function getLaserPointerSvgPath(
 //    (Zero-lag C4 grid router: right-angle wires strictly through column/row gaps)
 // ============================================================================
 
+/**
+ * A level of the map: 1 Context, 2 Containers, 3 Components, 4 Infrastructure, 5 and deeper for code subgraphs.
+ * @public
+ */
 export type TuxMapLevelNumber = number;
 
+/**
+ * What an element is; `TUX_MAP_ELEMENT_KIND_LABELS` holds the label of each kind.
+ * @public
+ */
 export type TuxMapElementKind =
   | "person"
   | "system"
@@ -1035,7 +1155,10 @@ export type TuxMapElementKind =
   | "external"
   | "resource";
 
-/** Canonical human-readable labels for `TuxMapElementKind` (`#116`, `#122`). */
+/**
+ * Canonical human-readable labels for `TuxMapElementKind` (`#116`, `#122`).
+ * @public
+ */
 export const TUX_MAP_ELEMENT_KIND_LABELS: Record<TuxMapElementKind, string> = {
   person: "Person",
   system: "Software system",
@@ -1056,8 +1179,16 @@ export const TUX_MAP_ELEMENT_KIND_LABELS: Record<TuxMapElementKind, string> = {
   resource: "Deployment node",
 };
 
+/**
+ * Lifecycle status of an element or a relationship.
+ * @public
+ */
 export type TuxMapElementStatus = "live" | "paused" | "planned" | "neighbor";
 
+/**
+ * Where an element lives in source: repository, path, lines, symbol, and the digests `computeGraphDelta` compares.
+ * @public
+ */
 export interface TuxMapSourceRef {
   /** Repository slug or URL (e.g. "nis/forgejo-stack" or "https://code.tti.tamu.edu/tti/tti-ux") */
   repo?: string;
@@ -1079,6 +1210,10 @@ export interface TuxMapSourceRef {
   url?: string;
 }
 
+/**
+ * Change badge of an element in a branch or pull-request overlay.
+ * @public
+ */
 export interface TuxMapDiffInfo {
   /** Git diff change classification */
   changeType: "added" | "modified" | "deleted";
@@ -1088,6 +1223,10 @@ export interface TuxMapDiffInfo {
   summary?: string;
 }
 
+/**
+ * The children of one element at Level 5 or deeper, and the relationships among them.
+ * @public
+ */
 export interface TuxMapSubgraph {
   /** Optional human-readable stratum title (e.g. "Level 5 · Modules & Schemas", "Level 6 · AST Symbols") */
   stratum?: string;
@@ -1099,6 +1238,10 @@ export interface TuxMapSubgraph {
   rels?: TuxMapLevelRel[];
 }
 
+/**
+ * Live operational facts shown on an element's card.
+ * @public
+ */
 export interface TuxMapElementLiveInfo {
   state?: "running" | "active" | "present" | "success" | "inactive" | "declared-not-installed" | "failed" | "unknown";
   total?: number;
@@ -1117,9 +1260,14 @@ export interface TuxMapElementLiveInfo {
  * A Level 2 perimeter reference to a Level 1 element (a person or an outside
  * system). It is drawn with that element's name, kind and details, so it
  * carries only its id, `ref: true` and where it sits.
+ * @public
  */
 export type TuxMapLevelRef = Partial<Omit<TuxMapLevelElement, "id" | "ref">> & { id: string; ref: true };
 
+/**
+ * One element of the model at any level: a person, system, container, component, folder, file or symbol.
+ * @public
+ */
 export interface TuxMapLevelElement {
   id: string;
   kind?: TuxMapElementKind;
@@ -1168,7 +1316,10 @@ export interface TuxMapLevelElement {
   vendoredFrom?: string;
 }
 
-/** Consumer-supplied architectural dependency-rule violation (`#123`). */
+/**
+ * Consumer-supplied architectural dependency-rule violation (`#123`).
+ * @public
+ */
 export interface TuxMapLinkViolation {
   /** Short rule identifier or title (e.g. `"no-component-cycle"`, `"leaf-lib"`) */
   rule: string;
@@ -1180,6 +1331,10 @@ export interface TuxMapLinkViolation {
   severity?: "error" | "warning";
 }
 
+/**
+ * A relationship drawn between two elements of one level.
+ * @public
+ */
 export interface TuxMapLevelRel {
   from: string;
   to: string;
@@ -1191,6 +1346,10 @@ export interface TuxMapLevelRel {
   violations?: TuxMapLinkViolation[];
 }
 
+/**
+ * A firewall rule listed in a deployment node's facts.
+ * @public
+ */
 export interface TuxMapFirewallRule {
   direction: "in" | "out";
   access: "allow" | "deny";
@@ -1198,6 +1357,10 @@ export interface TuxMapFirewallRule {
   from: string[];
 }
 
+/**
+ * A resource group inside a Level 4 zone.
+ * @public
+ */
 export interface TuxMapDeploymentGroup {
   id: string;
   zone: string;
@@ -1205,6 +1368,10 @@ export interface TuxMapDeploymentGroup {
   rg?: string;
 }
 
+/**
+ * A region or zone column of Level 4.
+ * @public
+ */
 export interface TuxMapDeploymentZone {
   id: string;
   title: string;
@@ -1214,6 +1381,10 @@ export interface TuxMapDeploymentZone {
   zones?: string[];
 }
 
+/**
+ * A Level 4 deployment resource and the containers it hosts.
+ * @public
+ */
 export interface TuxMapDeploymentNode {
   id: string;
   zone?: string;
@@ -1250,6 +1421,10 @@ export interface TuxMapDeploymentNode {
   };
 }
 
+/**
+ * A link between two Level 4 deployment nodes.
+ * @public
+ */
 export interface TuxMapDeploymentLink {
   from: string;
   to: string;
@@ -1258,6 +1433,10 @@ export interface TuxMapDeploymentLink {
   state?: "now" | "planned";
 }
 
+/**
+ * A resource beside the deployment that the model lists but does not own.
+ * @public
+ */
 export interface TuxMapNeighborResource {
   name: string;
   type: string;
@@ -1265,6 +1444,10 @@ export interface TuxMapNeighborResource {
   reason: string;
 }
 
+/**
+ * An HTTP route and the handler it resolves to.
+ * @public
+ */
 export interface TuxMapRouteEntry {
   method?: string;
   pattern: string;
@@ -1272,6 +1455,10 @@ export interface TuxMapRouteEntry {
   framework?: string;
 }
 
+/**
+ * The architecture model the map renders and the query functions read: Levels 1 to 4, code subgraphs and code links.
+ * @public
+ */
 export interface TuxMapLevelModel {
   generatedAt?: string;
   issueBaseUrl?: string;
@@ -1333,6 +1520,10 @@ export interface TuxMapLevelModel {
   routes?: TuxMapRouteEntry[];
 }
 
+/**
+ * How strongly a link couples its two ends; decides which links each blast intent follows.
+ * @public
+ */
 export type TuxMapLinkCoupling =
   | "contract"
   | "runtime"
@@ -1342,6 +1533,10 @@ export type TuxMapLinkCoupling =
   | "verification"
   | "prose";
 
+/**
+ * Where a link's dependency takes effect: production runtime, client bundle, build, CI or docs.
+ * @public
+ */
 export type TuxMapLinkPhase =
   | "prod-runtime"
   | "client-bundle"
@@ -1349,6 +1544,10 @@ export type TuxMapLinkPhase =
   | "ci-test"
   | "doc-only";
 
+/**
+ * The kind of change a blast radius is computed for.
+ * @public
+ */
 export type TuxMapBlastIntent =
   | "default"
   | "patch"
@@ -1356,7 +1555,10 @@ export type TuxMapBlastIntent =
   | "cut"
   | "supply-chain";
 
-/** One dependency read from code: `from` depends on `to`. */
+/**
+ * One dependency read from code: `from` depends on `to`.
+ * @public
+ */
 export interface TuxMapLink {
   from: string;
   to: string;
@@ -1377,6 +1579,10 @@ export interface TuxMapLink {
   violations?: TuxMapLinkViolation[];
 }
 
+/**
+ * Pixel metrics of the card grid.
+ * @internal
+ */
 export const GRID_METRICS = {
   CW: 212,
   CH: 128,
@@ -1388,6 +1594,10 @@ export const GRID_METRICS = {
   NH: 92,
 } as const;
 
+/**
+ * A placed card rectangle on the grid.
+ * @internal
+ */
 export interface TuxMapGridCellRect {
   x: number;
   y: number;
@@ -1400,6 +1610,10 @@ export interface TuxMapGridCellRect {
   side?: "in" | "out";
 }
 
+/**
+ * A placed boundary frame on the grid.
+ * @internal
+ */
 export interface TuxMapPlacedBoundary {
   id?: string;
   label: string;
@@ -1411,6 +1625,10 @@ export interface TuxMapPlacedBoundary {
   h: number;
 }
 
+/**
+ * A routed wire: its two ends and SVG path.
+ * @internal
+ */
 export interface TuxMapRoutedWire {
   id: string;
   from: string;
@@ -1421,6 +1639,10 @@ export interface TuxMapRoutedWire {
   violating?: boolean;
 }
 
+/**
+ * A placed wire label.
+ * @internal
+ */
 export interface TuxMapRoutedLabel {
   id: string;
   from: string;
@@ -1435,6 +1657,10 @@ export interface TuxMapRoutedLabel {
   violating?: boolean;
 }
 
+/**
+ * Grid cell `[column, row]` to its pixel origin.
+ * @internal
+ */
 export function gridCellToPx(at: [number, number]): { x: number; y: number } {
   const { CW, CH, GX, GY, PAD } = GRID_METRICS;
   return {
@@ -1445,6 +1671,7 @@ export function gridCellToPx(at: [number, number]): { x: number; y: number } {
 
 /**
  * Converts a sequence of orthogonal `[x, y]` points into an SVG path with 9px rounded bends.
+ * @internal
  */
 export function roundOrthogonalCorners(pts: [number, number][]): string {
   if (pts.length === 0) return "";
@@ -1681,6 +1908,7 @@ function assignCorridorLanes(gapLo: number, gapHi: number, reqs: CorridorLaneReq
 /**
  * Routes wires at right angles strictly through the gaps between columns and rows,
  * never crossing a card, with per-gap interval-coloured lanes and collision-checked labels (`#113`).
+ * @internal
  */
 export function routeGridWires(
   rels: TuxMapLevelRel[],
@@ -2435,6 +2663,7 @@ export function routeGridWires(
  * Routes right-angle wires for Level 4 deployment resource nodes, trying discovered
  * group-gap corridors with `polyHits` before falling back (`#113`).
  * Pass `selectedId = "*"` to pre-route all links so hover highlighting works with zero recomputation.
+ * @internal
  */
 export function routeDeploymentWires(
   links: TuxMapDeploymentLink[],
@@ -2667,6 +2896,7 @@ export function routeDeploymentWires(
 /**
  * Converts legacy `TuxMapNode[]` + `TuxMapEdge[]` + `TuxMapZone[]` props into a
  * 4-Level `TuxMapLevelModel` so existing consumers automatically gain 4-level C4 navigation.
+ * @public
  */
 export function buildLevelModelFromLegacyNodes(
   nodes: TuxMapNode[],
@@ -2813,10 +3043,16 @@ export function buildLevelModelFromLegacyNodes(
 // 7. CODE LINKS: LIFTING ONTO A VIEW & THE BLAST RADIUS OF A SELECTION
 // ============================================================================
 
-/** Link kinds drawn on no stage (they still count in the blast radius): a document naming a part. */
+/**
+ * Link kinds drawn on no stage (they still count in the blast radius): a document naming a part.
+ * @public
+ */
 export const TUX_MAP_QUIET_LINK_KINDS: ReadonlySet<string> = new Set(["mentions"]);
 
-/** Canonical link strength order from strongest runtime/contract edge to weakest prose reference. */
+/**
+ * Canonical link strength order from strongest runtime/contract edge to weakest prose reference.
+ * @public
+ */
 export const TUX_MAP_LINK_STRENGTH_ORDER = [
   "calls",
   "handled-by",
@@ -2847,7 +3083,10 @@ const LINK_STRENGTH_RANK: ReadonlyMap<string, number> = new Map(
   TUX_MAP_LINK_STRENGTH_ORDER.map((k, i) => [k, i]),
 );
 
-/** What a link kind means, read from the part it points at ("changing X: Y calls it"). */
+/**
+ * What a link kind means, read from the part it points at ("changing X: Y calls it").
+ * @public
+ */
 export const TUX_MAP_LINK_KIND_LABELS: Record<string, string> = {
   imports: "imports it",
   calls: "calls it",
@@ -2883,6 +3122,7 @@ const BARE_REPO_NODE_ID_RE = /^([A-Za-z0-9_.-]{2,}):([cfsdpr]):(.*)$/;
 /**
  * Splits repo-qualified (`owner/repo:k:rest` or `repo:k:rest`) and legacy (`k:rest`)
  * node IDs into `{ repo, kind, rest }` (matching Python `_split_node_id` 1:1).
+ * @internal
  */
 export function splitNodeId(nid: string): {
   repo: string | null;
@@ -2910,7 +3150,10 @@ export function splitNodeId(nid: string): {
   return { repo: null, kind: null, rest: nid };
 }
 
-/** True when `nid` has node-ID kind `kind` (`'f'`, `'s'`, `'d'`, `'c'`, `'p'`, `'r'`), whether repo-qualified or legacy. */
+/**
+ * True when `nid` has node-ID kind `kind` (`'f'`, `'s'`, `'d'`, `'c'`, `'p'`, `'r'`), whether repo-qualified or legacy.
+ * @internal
+ */
 export function isKindNodeId(
   nid: string,
   kind: string | readonly string[] | ReadonlySet<string>,
@@ -2922,7 +3165,10 @@ export function isKindNodeId(
   return (kind as readonly string[]).includes(k);
 }
 
-/** Strips legacy or repo-qualified kind prefixes (`owner/repo:f:`, `f:`, `p:pkg:`, etc.) for display/matching. */
+/**
+ * Strips legacy or repo-qualified kind prefixes (`owner/repo:f:`, `f:`, `p:pkg:`, etc.) for display/matching.
+ * @internal
+ */
 export function stripNodeKindPrefix(nid: string): string {
   if (typeof nid !== "string" || !nid) return "";
   const { kind, rest } = splitNodeId(nid);
@@ -2934,6 +3180,7 @@ export function stripNodeKindPrefix(nid: string): string {
 /**
  * Client-side deterministic link ID (`${kind}:${from}->${to}`, disambiguating duplicates with `#2`, `#3`, ...)
  * so models do not need to serialize explicit `id` fields on every link (`#716` `RO24`).
+ * @internal
  */
 export function deriveLinkId(
   link: Pick<TuxMapLink, "kind" | "from" | "to">,
@@ -2948,6 +3195,7 @@ export function deriveLinkId(
 
 /**
  * Plain human-readable element type label (`folder`, `file`, `function`, `class`, `HTTP route`, etc.: `#116`).
+ * @public
  */
 export function plainElementKindLabel(
   elOrKind:
@@ -2989,7 +3237,10 @@ export function plainElementKindLabel(
   return (TUX_MAP_ELEMENT_KIND_LABELS as Record<string, string>)[kind] || kind || "element";
 }
 
-/** Canonical set of valid semantic blast-radius intents (`tti/tti-ux#110` / `#111`). */
+/**
+ * Canonical set of valid semantic blast-radius intents (`tti/tti-ux#110` / `#111`).
+ * @public
+ */
 export const TUX_MAP_VALID_BLAST_INTENTS: ReadonlySet<TuxMapBlastIntent> = new Set([
   "default",
   "patch",
@@ -3094,11 +3345,18 @@ const NON_PROD_HOST_COUPLINGS: ReadonlySet<TuxMapLinkCoupling> = new Set([
   "type-only",
 ]);
 
-/** Prototype-safe own-property check (`Object.prototype` keys like `"constructor"` return `false`). */
+/**
+ * Prototype-safe own-property check (`Object.prototype` keys like `"constructor"` return `false`).
+ * @internal
+ */
 export function hasOwn(obj: unknown, key: PropertyKey): boolean {
   return obj != null && Object.prototype.hasOwnProperty.call(obj, key);
 }
 
+/**
+ * Sets an own data property; safe for keys such as `__proto__`.
+ * @internal
+ */
 export function setOwnProp<T>(obj: Record<string, T>, key: string, value: T): void {
   if (key === "__proto__") {
     Object.defineProperty(obj, key, {
@@ -3112,7 +3370,10 @@ export function setOwnProp<T>(obj: Record<string, T>, key: string, value: T): vo
   }
 }
 
-/** True Unicode code-point comparison (matches Python `str < str` even on supplementary U+10000+ planes). */
+/**
+ * True Unicode code-point comparison (matches Python `str < str` even on supplementary U+10000+ planes).
+ * @internal
+ */
 export function cmpCodepoint(a: string, b: string): number {
   if (a === b) return 0;
   let ia = 0;
@@ -3131,6 +3392,10 @@ function linkStrengthRank(kind?: string): number {
   return LINK_STRENGTH_RANK.get(kind || "") ?? TUX_MAP_LINK_STRENGTH_ORDER.length;
 }
 
+/**
+ * Deterministic order of the links the blast radius walks.
+ * @internal
+ */
 export function compareBlastLinks(a: TuxMapLink, b: TuxMapLink): number {
   return (
     linkStrengthRank(a.kind) - linkStrengthRank(b.kind) ||
@@ -3140,7 +3405,10 @@ export function compareBlastLinks(a: TuxMapLink, b: TuxMapLink): number {
   );
 }
 
-/** Infers deterministic semantic coupling for links that omit explicit `coupling` (rejecting spoofed downgrades on runtime kinds). */
+/**
+ * Infers deterministic semantic coupling for links that omit explicit `coupling` (rejecting spoofed downgrades on runtime kinds).
+ * @public
+ */
 export function inferLinkCoupling(link: TuxMapLink): TuxMapLinkCoupling {
   const k = link.kind || "";
   if (link.coupling && VALID_LINK_COUPLINGS.has(link.coupling)) {
@@ -3204,7 +3472,10 @@ export function inferLinkCoupling(link: TuxMapLink): TuxMapLinkCoupling {
   return link.stop ? "verification" : "runtime";
 }
 
-/** Infers deterministic execution/shipping phase for links that omit explicit `phase`. */
+/**
+ * Infers deterministic execution/shipping phase for links that omit explicit `phase`.
+ * @public
+ */
 export function inferLinkPhase(link: TuxMapLink): TuxMapLinkPhase {
   const c = inferLinkCoupling(link);
   const k = link.kind || "";
@@ -3227,6 +3498,7 @@ export function inferLinkPhase(link: TuxMapLink): TuxMapLinkPhase {
 /**
  * Classifies how `link` participates in an upstream blast-radius walk at distance `hop`
  * (`hop === 0` means `link.to` is in `seeds`).
+ * @public
  */
 export function classifyBlastLink(
   link: TuxMapLink,
@@ -3285,6 +3557,7 @@ function isLevel3Focus(id: string, model: TuxMapLevelModel): boolean {
 /**
  * Resolves raw code links from `model.links` and/or `model.linkTiers` (`spread` / `stop`),
  * applying model-declared `model.stopKinds` when `l.stop` is omitted (`tti/tti-ux#126`).
+ * @public
  */
 export function resolveModelRawLinks(model?: TuxMapLevelModel): TuxMapLink[] {
   if (!model || typeof model !== "object") return [];
@@ -3331,6 +3604,10 @@ export function resolveModelRawLinks(model?: TuxMapLevelModel): TuxMapLink[] {
   return out;
 }
 
+/**
+ * Kind of problem `validateMapModel` reports.
+ * @public
+ */
 export type TuxMapValidationIssueCode =
   | "missing-level"
   | "duplicate-id"
@@ -3340,6 +3617,10 @@ export type TuxMapValidationIssueCode =
   | "unknown-link-end"
   | "unknown-rel-end";
 
+/**
+ * One problem found by `validateMapModel`.
+ * @public
+ */
 export interface TuxMapValidationIssue {
   code: TuxMapValidationIssueCode;
   message: string;
@@ -3347,6 +3628,10 @@ export interface TuxMapValidationIssue {
   targetId?: string;
 }
 
+/**
+ * Result of `validateMapModel`.
+ * @public
+ */
 export interface TuxMapValidationResult {
   valid: boolean;
   issues: TuxMapValidationIssue[];
@@ -3362,6 +3647,7 @@ export interface TuxMapValidationResult {
  * - parent/subgraph cycles,
  * - hierarchy depth exceeding 64,
  * - unknown relationship or code-link endpoints.
+ * @public
  */
 export function validateMapModel(model: unknown): TuxMapValidationResult {
   const issues: TuxMapValidationIssue[] = [];
@@ -3638,6 +3924,7 @@ export function validateMapModel(model: unknown): TuxMapValidationResult {
 /**
  * Produces a safe, non-throwing `TuxMapLevelModel` alongside its `validateMapModel` diagnostics (`tti/tti-ux#124`),
  * filling missing levels and breaking cyclic subgraph references.
+ * @public
  */
 export function sanitizeMapModel(raw: unknown): {
   model: TuxMapLevelModel;
@@ -3850,6 +4137,7 @@ function isFolderLikeElement(e: TuxMapLevelElement): boolean {
  * Collapses single-child folder chains (`a/ -> b/ -> c/` becomes `a/b/c/`) and skips the intermediate
  * `Folders` subgraph level for small components (`<= maxSmallComponentFiles`, default `8`), recording
  * `aliases[skippedFolderId] = resolvedFocusId` so existing `#focus=` bookmarks still resolve (`tti/tti-ux#124`).
+ * @public
  */
 export function collapseModelSubgraphs(
   model: TuxMapLevelModel,
@@ -4100,6 +4388,7 @@ function collectSubgraphOwners(model?: TuxMapLevelModel): Map<string, string> {
 /**
  * child → parent for every element below Level 2: Level 3 components under their container,
  * subgraph elements under their key (or `subgraphRef` owner), inline `children` under their element.
+ * @public
  */
 export function buildMapParentIndex(model: TuxMapLevelModel): Map<string, string> {
   const parentOf = new Map<string, string>();
@@ -4143,6 +4432,7 @@ export function buildMapParentIndex(model: TuxMapLevelModel): Map<string, string
  * Semantic level that displays the children of `fid`:
  * 3 inside a Level 2 container, 5 inside a Level 3 component or Level 4 deployment node,
  * and +1 for each nested subgraph below that (cycle-safe, iterative, bounded at `MAX_TREE_DEPTH`: `#124`).
+ * @public
  */
 export function levelForFocus(
   fid: string,
@@ -4283,6 +4573,7 @@ function getLinkAdjacency(links: readonly TuxMapLink[]): CachedLinkAdjacency {
 /**
  * `id` and its ancestors, nearest first, in a new array the caller may change.
  * O(depth): this runs several times per link, so it must not touch the whole map.
+ * @public
  */
 export function mapAncestorsOf(id: string, parentOf: Map<string, string>): string[] {
   const chain: string[] = [];
@@ -4296,7 +4587,10 @@ export function mapAncestorsOf(id: string, parentOf: Map<string, string>): strin
   return chain;
 }
 
-/** The nearest of `id` and its ancestors that is in `set`, or null. */
+/**
+ * The nearest of `id` and its ancestors that is in `set`, or null.
+ * @internal
+ */
 export function liftToSet(id: string, set: ReadonlySet<string>, parentOf: Map<string, string>): string | null {
   for (const a of mapAncestorsOf(id, parentOf)) if (set.has(a)) return a;
   return null;
@@ -4307,6 +4601,7 @@ export function liftToSet(id: string, set: ReadonlySet<string>, parentOf: Map<st
  * (bridging non-planned C4/Level-4 relationships for endpoints without fine-grained code-link coverage unless
  * `bridgeUncovered === false`), or synthesizes links from C4 `rels` and `level4.links` when `model.links`
  * is empty/absent.
+ * @public
  */
 export function extractModelLinks(
   model: TuxMapLevelModel,
@@ -4436,9 +4731,16 @@ export function extractModelLinks(
   return out;
 }
 
-/** Dependency wire filter categories (`tti/tti-ux#118`). */
+/**
+ * Dependency wire filter categories (`tti/tti-ux#118`).
+ * @public
+ */
 export type TuxMapWireCategory = "prod" | "tests" | "ci" | "docs";
 
+/**
+ * Every `TuxMapWireCategory`, in display order.
+ * @public
+ */
 export const TUX_MAP_WIRE_CATEGORIES: readonly TuxMapWireCategory[] = [
   "prod",
   "tests",
@@ -4446,7 +4748,10 @@ export const TUX_MAP_WIRE_CATEGORIES: readonly TuxMapWireCategory[] = [
   "docs",
 ] as const;
 
-/** Classifies a fine-grained `TuxMapLink` into `"prod" | "tests" | "ci" | "docs"` (`tti/tti-ux#118`). */
+/**
+ * Classifies a fine-grained `TuxMapLink` into `"prod" | "tests" | "ci" | "docs"` (`tti/tti-ux#118`).
+ * @public
+ */
 export function classifyLinkDependencyCategory(link: TuxMapLink): TuxMapWireCategory {
   const k = link.kind || "uses";
   if (k === "mentions") return "docs";
@@ -4470,7 +4775,10 @@ export function classifyLinkDependencyCategory(link: TuxMapLink): TuxMapWireCate
   return "prod";
 }
 
-/** Filters `links` to those matching `categories` (`tti/tti-ux#118`). */
+/**
+ * Filters `links` to those matching `categories` (`tti/tti-ux#118`).
+ * @public
+ */
 export function filterLinksByCategories(
   links: readonly TuxMapLink[],
   categories: ReadonlySet<TuxMapWireCategory> | Iterable<TuxMapWireCategory>,
@@ -4488,6 +4796,10 @@ export function filterLinksByCategories(
   return links.filter((l) => catSet.has(classifyLinkDependencyCategory(l)));
 }
 
+/**
+ * One code link behind a lifted wire, as the wire inspector lists it.
+ * @public
+ */
 export interface TuxMapWireInspectorLinkItem {
   from: string;
   to: string;
@@ -4498,6 +4810,10 @@ export interface TuxMapWireInspectorLinkItem {
   violations?: TuxMapLinkViolation[];
 }
 
+/**
+ * Everything behind one lifted wire: counts per kind, the links and their violations.
+ * @public
+ */
 export interface TuxMapWireInspectorDetail {
   from: string;
   to: string;
@@ -4508,6 +4824,10 @@ export interface TuxMapWireInspectorDetail {
   violations: TuxMapLinkViolation[];
 }
 
+/**
+ * An outside part that `liftLinksToView` rolled up into one in/out card.
+ * @public
+ */
 export interface TuxMapLiftedSide {
   /**
    * The outside part: under `lift: "depth"` (default), lifted to the depth of the cards inside
@@ -4595,6 +4915,7 @@ function buildWireInspectorDetail(
  * Pass `lift: "lca"` (`tti/tti-ux#118`) to roll outside parts up to the child of their lowest common
  * ancestor with `focusId` (expanding rolled-up cards listed in `splitIds`), keeping at most 24 outside
  * cards per view while counting every dependent.
+ * @public
  */
 export function liftLinksToView(
   links: TuxMapLink[],
@@ -4880,6 +5201,7 @@ export function liftLinksToView(
 
 /**
  * Memoized `O(|E_copies|)` cycle-safe canonical resolver for `copies` links (`tti/tti-ux#121`).
+ * @internal
  */
 export function buildVendoredCopyIndex(
   links: readonly TuxMapLink[],
@@ -4965,6 +5287,7 @@ export function buildVendoredCopyIndex(
  * Folds vendored copy cards (`from` of a `kind === "copies"` link) into their canonical source card (`to`)
  * when in view — or folds sibling copies of the same external source into a single card — attaching
  * `vendoredCopies` / `isVendoredCopy` / `vendoredFrom` metadata and deduplicating `rels` & `links` (`tti/tti-ux#121`).
+ * @public
  */
 export function foldVendoredCopies(
   elements: readonly TuxMapLevelElement[],
@@ -5108,6 +5431,10 @@ export function foldVendoredCopies(
   };
 }
 
+/**
+ * One step of a `TuxMapTraceResult`.
+ * @public
+ */
 export interface TuxMapTraceHop {
   from: string;
   to: string;
@@ -5116,6 +5443,10 @@ export interface TuxMapTraceHop {
   at?: string;
 }
 
+/**
+ * Result of `traceSpreadingPath`.
+ * @public
+ */
 export interface TuxMapTraceResult {
   found: boolean;
   nodeIds: string[];
@@ -5125,6 +5456,7 @@ export interface TuxMapTraceResult {
 /**
  * Directed shortest walk over spreading dependency kinds (`!l.stop`, non-quiet) from `fromId` to `toId`
  * (or any descendant of `fromId` to any descendant of `toId`), powering `"Trace to…"` and `"Why?"` (`tti/tti-ux#125`).
+ * @public
  */
 export function traceSpreadingPath(
   fromId: string,
@@ -5222,6 +5554,10 @@ export function traceSpreadingPath(
   return runSearch(false) ?? (allowStopFirst ? runSearch(true) : null) ?? { found: false, nodeIds: [], hops: [] };
 }
 
+/**
+ * How `computeLinkBlastRadius` reached one element.
+ * @public
+ */
 export interface TuxMapBlastHit {
   /** Steps from the selection: 1 = depends on it directly */
   hop: number;
@@ -5233,6 +5569,10 @@ export interface TuxMapBlastHit {
   sites?: number[];
 }
 
+/**
+ * Options of `computeLinkBlastRadius`.
+ * @public
+ */
 export interface TuxMapBlastOptions {
   /** Maximum hop depth before stopping and reporting `truncated: true` (default: 32) */
   maxHops?: number;
@@ -5248,6 +5588,10 @@ export interface TuxMapBlastOptions {
   model?: TuxMapLevelModel;
 }
 
+/**
+ * Result of `computeLinkBlastRadius`.
+ * @public
+ */
 export interface TuxMapBlastResult {
   seeds: Set<string>;
   hits: Map<string, TuxMapBlastHit>;
@@ -5445,6 +5789,7 @@ function isWorkflowPathNode(id: string, meta?: BlastNodeMeta): boolean {
  * - Ties at the same minimum hop break deterministically by `TUX_MAP_LINK_STRENGTH_ORDER`, then
  *   codepoint order on `(from, to, at)`.
  * - Never walks up into a seed's parent container or parent file.
+ * @public
  */
 export function computeLinkBlastRadius(
   links: TuxMapLink[],
@@ -5732,6 +6077,10 @@ export function computeLinkBlastRadius(
   };
 }
 
+/**
+ * How an element changed between two models.
+ * @public
+ */
 export type TuxMapElementChangeKind =
   | "added"
   | "deleted"
@@ -5739,6 +6088,10 @@ export type TuxMapElementChangeKind =
   | "sig-changed"
   | "body-patched";
 
+/**
+ * One changed element in a `TuxMapGraphDelta`.
+ * @public
+ */
 export interface TuxMapNodeDelta {
   id: string;
   /** Previous node ID when `change === "moved"` resulted from a file or symbol rename across IDs */
@@ -5751,6 +6104,10 @@ export interface TuxMapNodeDelta {
   source?: TuxMapSourceRef;
 }
 
+/**
+ * One added, removed or dangling link in a `TuxMapGraphDelta`.
+ * @public
+ */
 export interface TuxMapWireDelta {
   from: string;
   to: string;
@@ -5759,11 +6116,19 @@ export interface TuxMapWireDelta {
   at?: string;
 }
 
+/**
+ * Options of `computeGraphDelta`.
+ * @public
+ */
 export interface TuxMapGraphDeltaOptions {
   /** Whether to allocate and annotate `mergedModel` (default `true`; pass `false` for lean CLI/MCP payloads). */
   includeMergedModel?: boolean;
 }
 
+/**
+ * Result of `computeGraphDelta`: what changed between a base model and a head model.
+ * @public
+ */
 export interface TuxMapGraphDelta {
   nodeChanges: TuxMapNodeDelta[];
   addedIds: string[];
@@ -5949,6 +6314,7 @@ function sameSet(a?: Set<string>, b?: Set<string>): boolean {
  * Computes a deterministic structural delta between two `TuxMapLevelModel` trees (`baseModel` vs `headModel`),
  * classifying node changes (`added`, `deleted`, `moved`, `sig-changed`, `body-patched`), wire changes
  * (`added`, `removed`, `dangling`), leaf-first `blastSeedIds`, `recommendedIntent`, and a visual `mergedModel`.
+ * @public
  */
 export function computeGraphDelta(
   baseModel: TuxMapLevelModel,
@@ -6490,6 +6856,10 @@ export function computeGraphDelta(
 //     ACP non-overlapping subgraph lease coordinator for multi-agent swarms)
 // ============================================================================
 
+/**
+ * A node of the unified graph: one element of any level, flattened.
+ * @public
+ */
 export interface TuxMapGraphNodeRecord {
   id: string;
   level: number;
@@ -6506,6 +6876,10 @@ export interface TuxMapGraphNodeRecord {
   roadmap?: number[];
 }
 
+/**
+ * An edge of the unified graph.
+ * @public
+ */
 export interface TuxMapGraphEdgeRecord {
   id: string;
   from: string;
@@ -6517,6 +6891,10 @@ export interface TuxMapGraphEdgeRecord {
   planned?: boolean;
 }
 
+/**
+ * A subgraph lease returned by the deprecated `coordinateAcpSubgraphLease`.
+ * @public
+ */
 export interface TuxMapAcpLease {
   leaseId: string;
   agentId: string;
@@ -6527,6 +6905,10 @@ export interface TuxMapAcpLease {
   expiresAt: string;
 }
 
+/**
+ * Memoized per-model lookup tables behind the query functions.
+ * @internal
+ */
 export interface TuxMapQueryIndex {
   parentOf: Map<string, string>;
   kidsOf: Map<string, string[]>;
@@ -6553,6 +6935,7 @@ const MODEL_QUERY_INDEX_CACHE = new WeakMap<TuxMapLevelModel, CachedQueryIndex>(
  *
  * Rejects non-object payloads, `code-map.json` placement rule files, and (when `allowEmpty === false`)
  * zero-node models with a concise `< 2 KB` diagnostic error (`N-01`, `S-13`).
+ * @public
  */
 export function normalizeArchitectureModelInput(
   raw: unknown,
@@ -6914,7 +7297,10 @@ function modelCacheStamp(model: TuxMapLevelModel): string {
   return `${h1.toString(16).padStart(8, "0")}:${h2.toString(16).padStart(8, "0")}`;
 }
 
-/** Minimal zero-sample fallback model (`tti/tti-ux#114`). */
+/**
+ * Minimal zero-sample fallback model (`tti/tti-ux#114`).
+ * @public
+ */
 export const EMPTY_TTI_LEVEL_MODEL: TuxMapLevelModel = {
   level1: { title: "System Context", elements: [], rels: [] },
   level2: { title: "Containers", boundary: "", elements: [], rels: [] },
@@ -6925,6 +7311,7 @@ export const EMPTY_TTI_LEVEL_MODEL: TuxMapLevelModel = {
 /**
  * Memoized `O(V + E)` query index per `TuxMapLevelModel` instance so repeated
  * layer, blast-radius, shortest-path, and lease queries do not rebuild graph tables.
+ * @internal
  */
 export function getMapQueryIndex(model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL): TuxMapQueryIndex {
   const isObjModel = model != null && typeof model === "object";
@@ -7422,6 +7809,7 @@ export function getMapQueryIndex(model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL
 /**
  * Indexes a `TuxMapLevelModel` into a unified Code Property Graph (CPG) index
  * spanning Levels 1..N (Context, Containers, Components, Deployment, Modules, Schemas, AST Symbols).
+ * @public
  */
 export function buildUnifiedArchitectureGraph(model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL): {
   nodes: Map<string, TuxMapGraphNodeRecord>;
@@ -7431,12 +7819,20 @@ export function buildUnifiedArchitectureGraph(model: TuxMapLevelModel = EMPTY_TT
   return { nodes, edges };
 }
 
+/**
+ * Returned by a query when an id is not in the model, with close matches.
+ * @public
+ */
 export interface TuxMapUnknownNodeError {
   error: string;
   unknownIds: string[];
   suggestions: string[];
 }
 
+/**
+ * A `TuxMapGraphNodeRecord` trimmed for small payloads.
+ * @public
+ */
 export interface TuxMapCompactNodeRecord {
   id: string;
   level: number;
@@ -7448,6 +7844,10 @@ export interface TuxMapCompactNodeRecord {
   source?: Pick<TuxMapSourceRef, "path" | "lineRange" | "symbol">;
 }
 
+/**
+ * Options of `queryArchitectureNodes`.
+ * @public
+ */
 export interface TuxMapNodeQueryOptions {
   level?: number;
   focusId?: string;
@@ -7460,12 +7860,20 @@ export interface TuxMapNodeQueryOptions {
   offset?: number;
 }
 
+/**
+ * A step `queryArchitectureImpact` took through a parent because the seed had no code links of its own.
+ * @public
+ */
 export interface TuxMapCoarseParentStep {
   seedId: string;
   parentId: string;
   reason: string;
 }
 
+/**
+ * One element in a `TuxMapImpactQueryResult`.
+ * @public
+ */
 export interface TuxMapImpactHit {
   id: string;
   hop: number;
@@ -7481,6 +7889,10 @@ export interface TuxMapImpactHit {
   node?: TuxMapGraphNodeRecord;
 }
 
+/**
+ * Options of `queryArchitectureImpact`.
+ * @public
+ */
 export interface TuxMapImpactQueryOptions extends TuxMapBlastOptions {
   /** Include directed downstream dependencies (default: `false`). */
   includeDownstream?: boolean;
@@ -7502,6 +7914,10 @@ export interface TuxMapImpactQueryOptions extends TuxMapBlastOptions {
   omitRedundantDescendants?: boolean;
 }
 
+/**
+ * Result of `queryArchitectureImpact`.
+ * @public
+ */
 export interface TuxMapImpactQueryResult {
   requestedSeeds: string[];
   seedCount: number;
@@ -7535,6 +7951,10 @@ export interface TuxMapImpactQueryResult {
   impactedSourceFiles: Array<Pick<TuxMapSourceRef, "path" | "repo" | "lineRange" | "symbol">>;
 }
 
+/**
+ * Options of `findArchitecturePath`.
+ * @public
+ */
 export interface TuxMapPathQueryOptions {
   /** `"downstream"` (default) follows `from -> to` dependencies; `"upstream"` reverses dependency direction (`to -> from`). */
   direction?: "downstream" | "upstream";
@@ -7542,6 +7962,10 @@ export interface TuxMapPathQueryOptions {
   compact?: boolean;
 }
 
+/**
+ * Result of `findArchitecturePath`.
+ * @public
+ */
 export interface TuxMapPathQueryResult {
   found: boolean;
   direction: "downstream" | "upstream";
@@ -7558,6 +7982,7 @@ function clipDisplayId(rawId: string, maxLen = 120): string {
 
 /**
  * Ranks up to `maxSuggestions` (capped at 10) close node IDs by prefix, substring, or token overlap.
+ * @internal
  */
 export function suggestCloseNodeIds(
   unknownId: string,
@@ -7680,6 +8105,7 @@ function collectSubtreeDescendants(rootId: string, kidsOf: ReadonlyMap<string, s
 /**
  * Queries nodes (and optional matching edges) at a semantic level, parent subgraph, kind, or text filter,
  * supporting compact summaries and `limit`/`offset` pagination (`tti/tti-ux#111`).
+ * @public
  */
 export function queryArchitectureNodes(
   model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL,
@@ -7762,6 +8188,7 @@ export function queryArchitectureNodes(
  * - Downstream dependencies are off by default (`includeDownstream: true` to opt in).
  * - Compact by default (`compact: false` or `includeNodes: true` to attach full node records).
  * - Unknown node IDs (or invalid `intent`) return a `< 2 KB` error.
+ * @public
  */
 export function queryArchitectureImpact(
   seedIds: string | Iterable<string>,
@@ -8008,6 +8435,7 @@ export function queryArchitectureImpact(
  * or shortcutting through unsuppressed coarse C4 summary edges (`tti/tti-ux#111`, `F-05`, `N-03`, `S-11`).
  *
  * Pass `{ direction: "upstream" }` to follow reverse dependency edges (`to -> from`).
+ * @public
  */
 export function findArchitecturePath(
   fromNodeId: string,
@@ -8146,6 +8574,7 @@ export function findArchitecturePath(
  * Queries a specific semantic level or parent subgraph from a `TuxMapLevelModel`.
  *
  * @deprecated Use `queryArchitectureNodes` instead.
+ * @public
  */
 export function queryArchitectureLayer(
   model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL,
@@ -8174,6 +8603,7 @@ export function queryArchitectureLayer(
  * for any node ID across Levels 1..N.
  *
  * @deprecated Use `queryArchitectureImpact` instead.
+ * @public
  */
 export function queryMultiLevelBlastRadius(
   nodeId: string,
@@ -8290,6 +8720,7 @@ export function queryMultiLevelBlastRadius(
  * Finds a path between `fromNodeId` and `toNodeId` across Levels 1..N.
  *
  * @deprecated Use `findArchitecturePath` instead.
+ * @public
  */
 export function findShortestArchitecturePath(
   fromNodeId: string,
@@ -8316,6 +8747,7 @@ const activeAcpLeases = new Map<string, TuxMapAcpLease>();
  *
  * @deprecated In-process ACP subgraph leases do not coordinate across processes; scope changes with
  * `computeGraphDelta` and `queryArchitectureImpact` instead.
+ * @public
  */
 export function coordinateAcpSubgraphLease(
   action: "acquire" | "release" | "list",
@@ -8434,6 +8866,10 @@ export function coordinateAcpSubgraphLease(
 // 9. CROSS-LEVEL GO-TO SEARCH INDEX & SUBSEQUENCE / PATH-SEGMENT SCORER (#120)
 // ============================================================================
 
+/**
+ * Result groups of the Go-To search, in display order.
+ * @public
+ */
 export const TUX_MAP_SEARCH_GROUPS = [
   "Components",
   "Folders",
@@ -8442,8 +8878,16 @@ export const TUX_MAP_SEARCH_GROUPS = [
   "Routes",
 ] as const;
 
+/**
+ * A result group of the Go-To search.
+ * @public
+ */
 export type TuxMapSearchGroup = (typeof TUX_MAP_SEARCH_GROUPS)[number];
 
+/**
+ * One searchable element in the index `buildMapSearchIndex` builds.
+ * @public
+ */
 export interface TuxMapSearchEntry {
   id: string;
   /** Target node ID to reveal on Enter (for HTTP routes, points to the handler when present). */
@@ -8473,11 +8917,19 @@ export interface TuxMapSearchEntry {
   routeRegex?: RegExp;
 }
 
+/**
+ * A search entry and its score.
+ * @public
+ */
 export interface TuxMapSearchHit {
   entry: TuxMapSearchEntry;
   score: number;
 }
 
+/**
+ * The hits of one search group.
+ * @public
+ */
 export interface TuxMapSearchGroupResult {
   group: TuxMapSearchGroup;
   hits: TuxMapSearchHit[];
@@ -8618,6 +9070,7 @@ interface SearchRawNode {
 /**
  * Builds (and WeakMap-caches) the unified Go-To search index across Levels 1–4,
  * all fractal subgraphs, `route` elements, `handled-by` links, and `model.routes` (`tti/tti-ux#120`).
+ * @public
  */
 export function buildMapSearchIndex(model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL): TuxMapSearchEntry[] {
   const isObjModel = model != null && typeof model === "object";
@@ -9025,6 +9478,7 @@ function scoreSearchEntry(
 /**
  * Searches across Components, Folders, Files, Functions, and Routes in `< 1 ms` over 2,400+ entries.
  * Groups are ordered by top hit score when `query` is non-empty so `Enter` jumps directly to the #1 match.
+ * @public
  */
 export function searchArchitectureMap(
   modelOrEntries: TuxMapLevelModel | readonly TuxMapSearchEntry[],
