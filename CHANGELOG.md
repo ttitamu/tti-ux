@@ -18,6 +18,24 @@ conventions.
 
 ## [Unreleased]
 
+### Added — the architecture model names its schema (#162)
+
+- **`schema: "tux-map/1"` on `TuxMapLevelModel`**, optional, and the name exported as `TUX_MAP_SCHEMA` (type `TuxMapSchemaName`) from `@tti/tti-ux-diagrams/runtime/tuxArchitectureMap`. A producer writes exactly that string at the top level of the level model.
+- `normalizeArchitectureModelInput()` stamps the name on the level model it returns, whichever of its three input shapes it was given. A level model that already names a different schema keeps that name.
+- `validateMapModel()` (and so `sanitizeMapModel().validation`) returns a new `warnings` array beside `issues`: `missing-schema` when a level model has no `schema`, `unknown-schema` when it has another value. Warnings do not change `valid`, and the model renders as before. `TuxMapValidationIssueCode` gains those two codes; they appear only in `warnings`.
+- `<TuxArchitectureMap>` writes each schema warning to the console once per `model` object. Nothing is drawn for it.
+- `EMPTY_TTI_LEVEL_MODEL`, `DEFAULT_TTI_LEVEL_MODEL` and the result of `buildLevelModelFromLegacyNodes()` carry the name.
+- The diagrams README documents the three accepted document shapes and which one is canonical.
+
+**To check when upgrading:** a host that passes a level model with no `schema` gets one `console.warn` per model object; add `"schema": "tux-map/1"` where the document is produced, or pass it through `normalizeArchitectureModelInput()`. Code that builds a `TuxMapValidationResult` by hand must add `warnings: []`.
+
+### Fixed — the architecture map asks once for a lazy subgraph that resolves empty (#156)
+
+- `<TuxArchitectureMap>`: when `resolveSubgraph` returned elements that sanitizing all removed (every element a cycle back to its own card, or not an object), the map recorded the subgraph by what was returned, still found the card empty, and called `resolveSubgraph` again from the zoom that followed, without end. The card is now recorded as resolved empty and asked once, like a card that resolves to `null` or to no elements, and the rejected subgraph is not merged into the model.
+- That card is reported once in the map's model diagnostics note, as a new validation issue code, `resolved-empty-subgraph` (added to `TuxMapValidationIssueCode`; `validateMapModel()` never returns it). **To check:** a `switch` over `TuxMapValidationIssueCode` with no default branch needs the new member.
+- A new `resolveSubgraph` function, like a new `model` or `modelRef`, clears the record, so a new source is asked again. Pass the same function between renders. Subgraphs already loaded are kept across a new `resolveSubgraph`, as before.
+- Unchanged: a `resolveSubgraph` that rejects or throws is not remembered, and the next interaction with the card asks again.
+
 ### Changed — the map's link and parent tables are cached by identity (#155)
 
 - `computeLinkBlastRadius()` and `liftLinksToView()` no longer hash every link and every parent entry on each call before they look up their cached tables. The tables are keyed on the `links` array and the `parentOf` map themselves and rebuilt when the length or the size changes, so a selection costs what its walk costs. `traceSpreadingPath()` drops the same hash.

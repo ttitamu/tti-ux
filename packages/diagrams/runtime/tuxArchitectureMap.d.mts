@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: b12776c66403fab8df96f4e6ef7dd9c6a13a2c488262785fdf425515970b7e47
+// SOURCE-SHA256: d3e7a747eed845e773e4dc34b67e83392befcbcc14378ba201509bd0ed89a404
 /**
  * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
  *
@@ -690,10 +690,27 @@ export interface TuxMapRouteEntry {
     framework?: string;
 }
 /**
+ * The schema name of the canonical architecture model, `TuxMapLevelModel`. A producer writes exactly this string
+ * in the model's top-level `schema` field; `normalizeArchitectureModelInput` stamps it on what it returns, and
+ * `validateMapModel` warns when a level model lacks it or names another one (`tti/tti-ux#162`).
+ * @public
+ */
+export declare const TUX_MAP_SCHEMA: "tux-map/1";
+/**
+ * The type of `TUX_MAP_SCHEMA`: the one schema name this release reads.
+ * @public
+ */
+export type TuxMapSchemaName = typeof TUX_MAP_SCHEMA;
+/**
  * The architecture model the map renders and the query functions read: Levels 1 to 4, code subgraphs and code links.
  * @public
  */
 export interface TuxMapLevelModel {
+    /**
+     * Schema name of this document: `TUX_MAP_SCHEMA` (`"tux-map/1"`). Optional so documents written before the name
+     * existed keep rendering; `validateMapModel` reports its absence, or any other value, as a warning.
+     */
+    schema?: TuxMapSchemaName;
     generatedAt?: string;
     issueBaseUrl?: string;
     /** Optional repository base URL for `source.path` links (e.g. "https://code.tti.tamu.edu/tti/tti-ux/src/branch/main") */
@@ -999,10 +1016,12 @@ export declare function classifyBlastLink(link: TuxMapLink, hop: number, intent?
  */
 export declare function resolveModelRawLinks(model?: TuxMapLevelModel): TuxMapLink[];
 /**
- * Kind of problem `validateMapModel` reports.
+ * Kind of problem `validateMapModel` reports. `resolved-empty-subgraph` is the one it never
+ * reports itself: `<TuxArchitectureMap>` adds it to its own diagnostics, once per card, when
+ * `resolveSubgraph` returned elements and sanitizing removed them all (`tti/tti-ux#156`).
  * @public
  */
-export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "reserved-id" | "parent-cycle" | "max-depth-exceeded" | "unknown-link-end" | "unknown-rel-end";
+export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "reserved-id" | "parent-cycle" | "max-depth-exceeded" | "unknown-link-end" | "unknown-rel-end" | "resolved-empty-subgraph" | "missing-schema" | "unknown-schema";
 /**
  * One problem found by `validateMapModel`.
  * @public
@@ -1018,8 +1037,15 @@ export interface TuxMapValidationIssue {
  * @public
  */
 export interface TuxMapValidationResult {
+    /** `true` when `issues` is empty. `warnings` never change it. */
     valid: boolean;
     issues: TuxMapValidationIssue[];
+    /**
+     * Notices that do not make the model invalid and change nothing in how it renders: `missing-schema` and
+     * `unknown-schema` (`tti/tti-ux#162`). Kept apart from `issues` so a caller that gates on `valid` or counts
+     * `issues` behaves as before.
+     */
+    warnings: TuxMapValidationIssue[];
     duplicateIds: string[];
     cycleIds: string[];
     unknownEnds: string[];
@@ -1031,6 +1057,12 @@ export interface TuxMapValidationResult {
  * - parent/subgraph cycles,
  * - hierarchy depth exceeding 64,
  * - unknown relationship or code-link endpoints.
+ *
+ * It also fills `warnings`, which never affect `valid` (`tti/tti-ux#162`): `missing-schema` when a level model has
+ * no top-level `schema`, and `unknown-schema` when it has one other than `TUX_MAP_SCHEMA`. Both are checked only on
+ * a document that has at least one of `level1`..`level4`, so the compatibility inputs of
+ * `normalizeArchitectureModelInput` (which are not level models) are not told to carry a name that is not theirs.
+ * Pass the document as the producer wrote it: the normalizer's output is already stamped.
  * @public
  */
 export declare function validateMapModel(model: unknown): TuxMapValidationResult;
@@ -1475,6 +1507,11 @@ export interface TuxMapQueryIndex {
 /**
  * Normalizes supported architecture model JSON inputs (`TuxMapLevelModel`, gateway `architecture.json`
  * `schema: 2`, or raw `code-graph.py --json` subgraphs+links) into a canonical `TuxMapLevelModel`.
+ *
+ * The result carries `schema: TUX_MAP_SCHEMA` (`"tux-map/1"`) whichever of the three it was given
+ * (`tti/tti-ux#162`). The site document's numeric `schema: 2` is that document's own field and is not copied.
+ * One exception: a level model that already names a different schema keeps that name (at run time the field is
+ * then outside its declared type), so `validateMapModel` on the result still reports `unknown-schema`.
  *
  * Rejects non-object payloads, `code-map.json` placement rule files, and (when `allowEmpty === false`)
  * zero-node models with a concise `< 2 KB` diagnostic error (`N-01`, `S-13`).

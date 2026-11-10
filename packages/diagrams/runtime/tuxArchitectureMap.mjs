@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: b12776c66403fab8df96f4e6ef7dd9c6a13a2c488262785fdf425515970b7e47
+// SOURCE-SHA256: d3e7a747eed845e773e4dc34b67e83392befcbcc14378ba201509bd0ed89a404
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -557,6 +557,7 @@ export const TUX_MAP_ELEMENT_KIND_LABELS = {
     external: "External system",
     resource: "Deployment node",
 };
+export const TUX_MAP_SCHEMA = "tux-map/1";
 export const GRID_METRICS = {
     CW: 212,
     CH: 128,
@@ -1764,6 +1765,7 @@ export function buildLevelModelFromLegacyNodes(nodes, edges, zones = []) {
         })),
     ].filter((r) => r.to);
     return {
+        schema: TUX_MAP_SCHEMA,
         generatedAt: new Date().toISOString(),
         level1: { elements: level1Elements, rels: level1Rels },
         level2: { boundary: "s-ecosystem", elements: level2Elements, rels: level2Rels },
@@ -2234,6 +2236,7 @@ export function validateMapModel(model) {
         return {
             valid: false,
             issues: [{ code: "missing-level", message: "Model must be a non-null object." }],
+            warnings: [],
             duplicateIds: [],
             cycleIds: [],
             unknownEnds: [],
@@ -2244,6 +2247,23 @@ export function validateMapModel(model) {
             issues.push({
                 code: "missing-level",
                 message: `Missing required '${reqKey}' section on architecture model.`,
+            });
+        }
+    }
+    const warnings = [];
+    if (["level1", "level2", "level3", "level4"].some((k) => hasOwn(model, k))) {
+        const found = model.schema;
+        if (found === undefined || found === null) {
+            warnings.push({
+                code: "missing-schema",
+                message: `Architecture model has no 'schema' field; expected "${TUX_MAP_SCHEMA}". It is read as "${TUX_MAP_SCHEMA}".`,
+            });
+        }
+        else if (found !== TUX_MAP_SCHEMA) {
+            const shown = typeof found === "string" ? `"${found.slice(0, 64)}"` : `a ${typeof found}`;
+            warnings.push({
+                code: "unknown-schema",
+                message: `Architecture model declares schema ${shown}; this release supports "${TUX_MAP_SCHEMA}". It is read as "${TUX_MAP_SCHEMA}", best effort.`,
             });
         }
     }
@@ -2500,6 +2520,7 @@ export function validateMapModel(model) {
     return {
         valid: issues.length === 0,
         issues,
+        warnings,
         duplicateIds: [...duplicateSet].sort(cmpCodepoint),
         cycleIds: [...cycleSet].sort(cmpCodepoint),
         unknownEnds: [...unknownSet].sort(cmpCodepoint),
@@ -5012,6 +5033,7 @@ export function normalizeArchitectureModelInput(raw, opts = {}) {
                 ? code.routes
                 : undefined;
         normalized = {
+            schema: TUX_MAP_SCHEMA,
             generatedAt: typeof raw.generatedAt === "string"
                 ? raw.generatedAt
                 : typeof raw.generated_at === "string"
@@ -5094,6 +5116,7 @@ export function normalizeArchitectureModelInput(raw, opts = {}) {
             }
         }
         normalized = {
+            schema: TUX_MAP_SCHEMA,
             generatedAt: typeof raw.generatedAt === "string" ? raw.generatedAt : undefined,
             sourceBaseUrl: typeof raw.sourceBaseUrl === "string" ? raw.sourceBaseUrl : undefined,
             level1: { elements: [], rels: [] },
@@ -5121,7 +5144,10 @@ export function normalizeArchitectureModelInput(raw, opts = {}) {
         };
     }
     else {
-        normalized = raw;
+        normalized =
+            raw.schema === undefined || raw.schema === null
+                ? { ...raw, schema: TUX_MAP_SCHEMA }
+                : raw;
     }
     normalized = sanitizeMapModel(normalized).model;
     if (opts.allowEmpty === false) {
@@ -5283,6 +5309,7 @@ function modelCacheStamp(model) {
     return `${h1.toString(16).padStart(8, "0")}:${h2.toString(16).padStart(8, "0")}`;
 }
 export const EMPTY_TTI_LEVEL_MODEL = {
+    schema: TUX_MAP_SCHEMA,
     level1: { title: "System Context", elements: [], rels: [] },
     level2: { title: "Containers", boundary: "", elements: [], rels: [] },
     level3: {},
