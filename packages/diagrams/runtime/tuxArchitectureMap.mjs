@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 41e6559f55ec654fde19d16d8b8d93fa6252cd16605e3dbaa26cc015042e7ace
+// SOURCE-SHA256: d3e7a747eed845e773e4dc34b67e83392befcbcc14378ba201509bd0ed89a404
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -557,6 +557,7 @@ export const TUX_MAP_ELEMENT_KIND_LABELS = {
     external: "External system",
     resource: "Deployment node",
 };
+export const TUX_MAP_SCHEMA = "tux-map/1";
 export const GRID_METRICS = {
     CW: 212,
     CH: 128,
@@ -1764,6 +1765,7 @@ export function buildLevelModelFromLegacyNodes(nodes, edges, zones = []) {
         })),
     ].filter((r) => r.to);
     return {
+        schema: TUX_MAP_SCHEMA,
         generatedAt: new Date().toISOString(),
         level1: { elements: level1Elements, rels: level1Rels },
         level2: { boundary: "s-ecosystem", elements: level2Elements, rels: level2Rels },
@@ -2234,6 +2236,7 @@ export function validateMapModel(model) {
         return {
             valid: false,
             issues: [{ code: "missing-level", message: "Model must be a non-null object." }],
+            warnings: [],
             duplicateIds: [],
             cycleIds: [],
             unknownEnds: [],
@@ -2244,6 +2247,23 @@ export function validateMapModel(model) {
             issues.push({
                 code: "missing-level",
                 message: `Missing required '${reqKey}' section on architecture model.`,
+            });
+        }
+    }
+    const warnings = [];
+    if (["level1", "level2", "level3", "level4"].some((k) => hasOwn(model, k))) {
+        const found = model.schema;
+        if (found === undefined || found === null) {
+            warnings.push({
+                code: "missing-schema",
+                message: `Architecture model has no 'schema' field; expected "${TUX_MAP_SCHEMA}". It is read as "${TUX_MAP_SCHEMA}".`,
+            });
+        }
+        else if (found !== TUX_MAP_SCHEMA) {
+            const shown = typeof found === "string" ? `"${found.slice(0, 64)}"` : `a ${typeof found}`;
+            warnings.push({
+                code: "unknown-schema",
+                message: `Architecture model declares schema ${shown}; this release supports "${TUX_MAP_SCHEMA}". It is read as "${TUX_MAP_SCHEMA}", best effort.`,
             });
         }
     }
@@ -2500,6 +2520,7 @@ export function validateMapModel(model) {
     return {
         valid: issues.length === 0,
         issues,
+        warnings,
         duplicateIds: [...duplicateSet].sort(cmpCodepoint),
         cycleIds: [...cycleSet].sort(cmpCodepoint),
         unknownEnds: [...unknownSet].sort(cmpCodepoint),
@@ -3013,12 +3034,18 @@ function fnvFeedStr(h, s) {
     return Math.imul(out ^ 0xff, 0x01000193) >>> 0;
 }
 const PARENT_TABLES_CACHE = new WeakMap();
-function getParentTables(parentOf) {
+function parentTablesStamp(parentOf) {
     let stamp = 0x811c9dc5;
     for (const [c, p] of parentOf) {
         stamp = fnvFeedStr(fnvFeedStr(stamp, c), p);
     }
+    return stamp;
+}
+function getParentTables(parentOf, verify = false) {
     const cached = PARENT_TABLES_CACHE.get(parentOf);
+    if (cached && cached.size === parentOf.size && !verify)
+        return cached;
+    const stamp = verify ? parentTablesStamp(parentOf) : null;
     if (cached && cached.size === parentOf.size && cached.stamp === stamp)
         return cached;
     const kidsOf = new Map();
@@ -3039,16 +3066,7 @@ function getParentTables(parentOf) {
     return tables;
 }
 const LINK_ADJACENCY_CACHE = new WeakMap();
-function getLinkAdjacency(links) {
-    if (!Array.isArray(links)) {
-        return {
-            len: 0,
-            stamp: 0,
-            validLinks: [],
-            into: new Map(),
-            outByFrom: new Map(),
-        };
-    }
+function linkAdjacencyStamp(links) {
     const len = links.length;
     let stamp = 0x811c9dc5;
     for (let i = 0; i < len; i++) {
@@ -3060,10 +3078,25 @@ function getLinkAdjacency(links) {
         stamp = fnvFeedStr(stamp, typeof l.kind === "string" ? l.kind : "");
         stamp = Math.imul(stamp ^ (l.stop ? 0x31 : 0x30), 0x01000193) >>> 0;
     }
-    const cached = LINK_ADJACENCY_CACHE.get(links);
-    if (cached && cached.len === len && cached.stamp === stamp) {
-        return cached;
+    return stamp;
+}
+function getLinkAdjacency(links, verify = false) {
+    if (!Array.isArray(links)) {
+        return {
+            len: 0,
+            stamp: 0,
+            validLinks: [],
+            into: new Map(),
+            outByFrom: new Map(),
+        };
     }
+    const len = links.length;
+    const cached = LINK_ADJACENCY_CACHE.get(links);
+    if (cached && cached.len === len && !verify)
+        return cached;
+    const stamp = verify ? linkAdjacencyStamp(links) : null;
+    if (cached && cached.len === len && cached.stamp === stamp)
+        return cached;
     const validLinks = [];
     const into = new Map();
     const outByFrom = new Map();
@@ -3444,7 +3477,7 @@ export function liftLinksToView(links, focusId, kidIds, parentOf, opts = {}) {
     };
     const pendingIns = [];
     const pendingOuts = [];
-    const adj = getLinkAdjacency(links);
+    const adj = getLinkAdjacency(links, opts.verifyInputs === true);
     for (const l of adj.validLinks) {
         const kind = l.kind || "uses";
         if (quiet.has(kind) && !(catSet && catSet.has("docs")))
@@ -4040,7 +4073,8 @@ export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) 
             ? opts.kinds
             : new Set(opts.kinds)
         : null;
-    const { kidsOf } = getParentTables(parentOf);
+    const verify = opts.verifyInputs === true;
+    const { kidsOf } = getParentTables(parentOf, verify);
     const rawSeeds = typeof seedOrSeeds === "string" ? [seedOrSeeds] : [...seedOrSeeds];
     const seeds = new Set();
     const dq = [];
@@ -4078,7 +4112,7 @@ export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) 
             addSeed(c);
         }
     }
-    const { into, outByFrom } = getLinkAdjacency(links);
+    const { into, outByFrom } = getLinkAdjacency(links, verify);
     let truncated = false;
     const spreadDist = new Map();
     const spreadVia = new Map();
@@ -4999,6 +5033,7 @@ export function normalizeArchitectureModelInput(raw, opts = {}) {
                 ? code.routes
                 : undefined;
         normalized = {
+            schema: TUX_MAP_SCHEMA,
             generatedAt: typeof raw.generatedAt === "string"
                 ? raw.generatedAt
                 : typeof raw.generated_at === "string"
@@ -5081,6 +5116,7 @@ export function normalizeArchitectureModelInput(raw, opts = {}) {
             }
         }
         normalized = {
+            schema: TUX_MAP_SCHEMA,
             generatedAt: typeof raw.generatedAt === "string" ? raw.generatedAt : undefined,
             sourceBaseUrl: typeof raw.sourceBaseUrl === "string" ? raw.sourceBaseUrl : undefined,
             level1: { elements: [], rels: [] },
@@ -5108,7 +5144,10 @@ export function normalizeArchitectureModelInput(raw, opts = {}) {
         };
     }
     else {
-        normalized = raw;
+        normalized =
+            raw.schema === undefined || raw.schema === null
+                ? { ...raw, schema: TUX_MAP_SCHEMA }
+                : raw;
     }
     normalized = sanitizeMapModel(normalized).model;
     if (opts.allowEmpty === false) {
@@ -5270,6 +5309,7 @@ function modelCacheStamp(model) {
     return `${h1.toString(16).padStart(8, "0")}:${h2.toString(16).padStart(8, "0")}`;
 }
 export const EMPTY_TTI_LEVEL_MODEL = {
+    schema: TUX_MAP_SCHEMA,
     level1: { title: "System Context", elements: [], rels: [] },
     level2: { title: "Containers", boundary: "", elements: [], rels: [] },
     level3: {},

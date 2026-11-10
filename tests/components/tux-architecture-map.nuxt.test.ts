@@ -62,6 +62,60 @@ describe("TuxArchitectureMap Component", () => {
     expect(state.stageData).toBe(stageBefore);
   });
 
+  it("warns once in the console when the model a host passes has no schema name, or an unknown one (#162)", async () => {
+    const bare = (): TuxMapLevelModel => ({
+      level1: { elements: [{ id: "sys", kind: "system", name: "S" }], rels: [] },
+      level2: { boundary: "sys", elements: [{ id: "c-a", kind: "container", name: "A" }], rels: [] },
+      level3: {},
+      level4: { groups: [], nodes: [], links: [] },
+    });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const schemaWarnings = () => warn.mock.calls.map((c) => String(c[0])).filter((m) => m.includes("schema"));
+
+      // Unstamped: one warning, and the map still draws the model.
+      const unstamped = await mountSuspended(TuxArchitectureMap, { props: { model: bare() } });
+      await nextTick();
+      expect(schemaWarnings()).toHaveLength(1);
+      expect(schemaWarnings()[0]).toContain("[TuxArchitectureMap]");
+      expect(schemaWarnings()[0]).toContain("no 'schema' field");
+      expect(schemaWarnings()[0]).toContain('"tux-map/1"');
+      expect(unstamped.find('.tux-map__el[data-id="c-a"]').exists()).toBe(true);
+      expect(unstamped.text()).not.toContain("Model diagnostics");
+      // A recompute of the same model (a lazily resolved subgraph) does not repeat it.
+      const state = (unstamped.vm as unknown as { $: { setupState: Record<string, any> } }).$.setupState;
+      state.resolvedSubgraphs = { "c-a": { stratum: "Files", elements: [{ id: "f:x.py", kind: "module", name: "x.py" }] } };
+      await nextTick();
+      expect(schemaWarnings()).toHaveLength(1);
+      // A different model object is a different document: it is checked again.
+      await unstamped.setProps({ model: bare() });
+      await nextTick();
+      expect(schemaWarnings()).toHaveLength(2);
+      unstamped.unmount();
+
+      // Stamped, and the no-model default: silent.
+      warn.mockClear();
+      (await mountSuspended(TuxArchitectureMap, { props: { model: { ...bare(), schema: "tux-map/1" } } })).unmount();
+      (await mountSuspended(TuxArchitectureMap, { props: { model: DEFAULT_TTI_LEVEL_MODEL } })).unmount();
+      (await mountSuspended(TuxArchitectureMap, { props: {} })).unmount();
+      await nextTick();
+      expect(schemaWarnings()).toHaveLength(0);
+
+      // A schema name this release does not know: one warning naming both, and the map still draws.
+      const future = await mountSuspended(TuxArchitectureMap, {
+        props: { model: { ...bare(), schema: "tux-map/2" } as unknown as TuxMapLevelModel },
+      });
+      await nextTick();
+      expect(schemaWarnings()).toHaveLength(1);
+      expect(schemaWarnings()[0]).toContain('"tux-map/2"');
+      expect(schemaWarnings()[0]).toContain('"tux-map/1"');
+      expect(future.find('.tux-map__el[data-id="c-a"]').exists()).toBe(true);
+      future.unmount();
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
   it("renders Level 2 by default and passes axe accessibility checks", async () => {
     const wrapper = await mountSuspended(TuxArchitectureMap, {
       props: {

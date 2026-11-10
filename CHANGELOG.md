@@ -18,6 +18,29 @@ conventions.
 
 ## [Unreleased]
 
+### Added — the architecture model names its schema (#162)
+
+- **`schema: "tux-map/1"` on `TuxMapLevelModel`**, optional, and the name exported as `TUX_MAP_SCHEMA` (type `TuxMapSchemaName`) from `@tti/tti-ux-diagrams/runtime/tuxArchitectureMap`. A producer writes exactly that string at the top level of the level model.
+- `normalizeArchitectureModelInput()` stamps the name on the level model it returns, whichever of its three input shapes it was given. A level model that already names a different schema keeps that name.
+- `validateMapModel()` (and so `sanitizeMapModel().validation`) returns a new `warnings` array beside `issues`: `missing-schema` when a level model has no `schema`, `unknown-schema` when it has another value. Warnings do not change `valid`, and the model renders as before. `TuxMapValidationIssueCode` gains those two codes; they appear only in `warnings`.
+- `<TuxArchitectureMap>` writes each schema warning to the console once per `model` object. Nothing is drawn for it.
+- `EMPTY_TTI_LEVEL_MODEL`, `DEFAULT_TTI_LEVEL_MODEL` and the result of `buildLevelModelFromLegacyNodes()` carry the name.
+- The diagrams README documents the three accepted document shapes and which one is canonical.
+
+**To check when upgrading:** a host that passes a level model with no `schema` gets one `console.warn` per model object; add `"schema": "tux-map/1"` where the document is produced, or pass it through `normalizeArchitectureModelInput()`. Code that builds a `TuxMapValidationResult` by hand must add `warnings: []`.
+
+### Fixed — the architecture map asks once for a lazy subgraph that resolves empty (#156)
+
+- `<TuxArchitectureMap>`: when `resolveSubgraph` returned elements that sanitizing all removed (every element a cycle back to its own card, or not an object), the map recorded the subgraph by what was returned, still found the card empty, and called `resolveSubgraph` again from the zoom that followed, without end. The card is now recorded as resolved empty and asked once, like a card that resolves to `null` or to no elements, and the rejected subgraph is not merged into the model.
+- That card is reported once in the map's model diagnostics note, as a new validation issue code, `resolved-empty-subgraph` (added to `TuxMapValidationIssueCode`; `validateMapModel()` never returns it). **To check:** a `switch` over `TuxMapValidationIssueCode` with no default branch needs the new member.
+- A new `resolveSubgraph` function, like a new `model` or `modelRef`, clears the record, so a new source is asked again. Pass the same function between renders. Subgraphs already loaded are kept across a new `resolveSubgraph`, as before.
+- Unchanged: a `resolveSubgraph` that rejects or throws is not remembered, and the next interaction with the card asks again.
+
+### Changed — the map's link and parent tables are cached by identity (#155)
+
+- `computeLinkBlastRadius()` and `liftLinksToView()` no longer hash every link and every parent entry on each call before they look up their cached tables. The tables are keyed on the `links` array and the `parentOf` map themselves and rebuilt when the length or the size changes, so a selection costs what its walk costs. `traceSpreadingPath()` drops the same hash.
+- **To check when you upgrade:** code that changes `links` or `parentOf` in place between calls and keeps the count the same (a link replaced in its slot, a link's `from` or `to` rewritten, a child given another parent) now gets the earlier answer. Pass a new array or map, or the new option `verifyInputs: true` (on `TuxMapBlastOptions` and on the options of `liftLinksToView()`), which hashes the inputs on that call as every call did before. The functions that take a model (`queryArchitectureImpact()`, `findArchitecturePath()`, `traceSpreadingPath()`) still notice a model changed in place by themselves, and `<TuxArchitectureMap>` is unaffected: it builds a new array and a new map whenever the model changes.
+
 ### Changed — Architecture map: a hover on a code level routes only the wires it opens (#154)
 
 - **`<TuxArchitectureMap>`: the stage's wires are routed once per stage.** At Level 5 and 6, hovering or selecting a card that opens an outside card used to route every wire of the stage again and index the stage's DOM again, on each pointer-over and pointer-out. Now only the opened wires are routed, once per set of open cards for as long as the stage lasts, and they are drawn in a group of their own (`g.tux-map__wires-open`) over the resting wires. The stage's DOM index is rebuilt when the cards or the resting wires change, and no longer on hover.
