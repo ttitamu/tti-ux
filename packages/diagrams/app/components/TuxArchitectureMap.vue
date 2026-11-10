@@ -64,6 +64,7 @@ import {
   type TuxMapStickyNote,
   type TuxMapStrokePoint,
   type TuxMapSubgraph,
+  type TuxMapValidationIssue,
   type TuxMapTool,
   type TuxMapTraceResult,
   type TuxMapWireCategory,
@@ -124,7 +125,7 @@ export interface TuxArchitectureMapProps {
   initialTraceTarget?: string | null;
   /** Whether to show interactive Pen, Laser, and Sticky Note authoring tools in the toolbar (`false` by default; `#125`) */
   annotations?: boolean;
-  /** Optional lazy subgraph loader invoked on demand when zooming into a card with `subgraphRef` (`#126`) */
+  /** Optional lazy subgraph loader invoked on demand when zooming into a card with `subgraphRef` (`#126`). A card that resolves to null, to no elements or to elements sanitizing removes is asked once; a rejection is not remembered. Pass the same function between renders: a new one is a new source and is asked again (`#156`) */
   resolveSubgraph?: (id: string, ref?: string) => Promise<TuxMapSubgraph | null>;
   /** Optional commit SHA or ref passed as the second argument to `resolveSubgraph(id, modelRef)` (`#126`) */
   modelRef?: string;
@@ -243,6 +244,14 @@ function getLevel3Kids(
 
 const resolvedSubgraphs = ref<Record<string, TuxMapSubgraph>>(Object.create(null));
 const loadingSubgraphId = ref<string | null>(null);
+/**
+ * Cards whose lazy subgraph resolved to nothing the map can show, by card id, so
+ * each is asked once (#156): `resolveSubgraph` returned null or no elements, or
+ * elements that sanitizing all removed. The second kind is also a model problem,
+ * and `sanitizedEmptySubgraphs` holds its one validation issue per card.
+ */
+const emptyResolvedSubgraphs = ref<Record<string, boolean>>(Object.create(null));
+const sanitizedEmptySubgraphs = ref<Record<string, TuxMapValidationIssue>>(Object.create(null));
 let resolveReqSeq = 0;
 
 function cancelPendingSubgraphResolve() {
@@ -285,10 +294,19 @@ const modelBundle = computed(() => {
   }
   const sanitized = sanitizeMapModel(mergedRaw);
   const collapsed = collapseModelSubgraphs(sanitized.model);
+  // One issue per card whose lazily resolved subgraph had nothing usable in it (#156).
+  const resolvedEmpty = Object.values(sanitizedEmptySubgraphs.value);
   return {
     model: collapsed.model,
     aliases: collapsed.aliases,
-    validation: sanitized.validation,
+    validation:
+      resolvedEmpty.length > 0
+        ? {
+            ...sanitized.validation,
+            valid: false,
+            issues: [...sanitized.validation.issues, ...resolvedEmpty],
+          }
+        : sanitized.validation,
   };
 });
 
@@ -305,13 +323,26 @@ const modelValidationSummary = computed<string>(() => {
       i.code === "missing-level" ||
       i.code === "max-depth-exceeded",
   );
-  if (critical.length === 0) return "";
-  return `Model diagnostics: ${critical.length} structural issue${critical.length === 1 ? "" : "s"} sanitized (${critical[0]!.message})`;
+  const resolvedEmpty = v.issues.filter((i) => i.code === "resolved-empty-subgraph");
+  const parts: string[] = [];
+  if (critical.length > 0) {
+    parts.push(
+      `${critical.length} structural issue${critical.length === 1 ? "" : "s"} sanitized (${critical[0]!.message})`,
+    );
+  }
+  if (resolvedEmpty.length > 0) {
+    parts.push(
+      `${resolvedEmpty.length} lazy subgraph${resolvedEmpty.length === 1 ? "" : "s"} resolved empty (${resolvedEmpty[0]!.message})`,
+    );
+  }
+  return parts.length > 0 ? `Model diagnostics: ${parts.join("; ")}` : "";
 });
 
-const emptyResolvedSubgraphs = ref<Record<string, boolean>>(Object.create(null));
-watch([() => props.model, () => props.modelRef], () => {
+// A new model, ref or resolver is a new source: every card may be asked again.
+// The subgraphs already loaded outlive a new resolver; only a new model or ref drops them.
+watch([() => props.model, () => props.modelRef, () => props.resolveSubgraph], () => {
   emptyResolvedSubgraphs.value = Object.create(null);
+  sanitizedEmptySubgraphs.value = Object.create(null);
 });
 
 function resolveAliasId(id: string | null | undefined): string | null {
@@ -789,6 +820,11 @@ function drillStackFor(fid: string): { level: number; focusId: string }[] {
 function hasLazySubgraphRef(id: string): boolean {
   if (typeof props.resolveSubgraph !== "function") return false;
   if (hasOwn(emptyResolvedSubgraphs.value, id) && emptyResolvedSubgraphs.value[id]) return false;
+  return lacksLazySubgraph(id);
+}
+
+/** True while the model has no elements for the subgraph `id` owns or points at with `subgraphRef`. */
+function lacksLazySubgraph(id: string): boolean {
   const M = activeModel.value;
   if (hasOwn(M.subgraphs, id) && M.subgraphs![id]!.elements.length > 0) return false;
   const el = hasOwn(byId.value, id) ? byId.value[id] : undefined;
@@ -4869,31 +4905,57 @@ function zoomBucketTitleFor(id: string, mini: boolean): string {
 async function hydrateLazySubgraph(
   id: string,
 ): Promise<{ sg: TuxMapSubgraph | null; cancelled: boolean }> {
-  if (!props.resolveSubgraph) return { sg: null, cancelled: true };
+  const resolver = props.resolveSubgraph;
+  if (!resolver) return { sg: null, cancelled: true };
   const seq = ++resolveReqSeq;
   loadingSubgraphId.value = id;
   const el = hasOwn(byId.value, id) ? byId.value[id] : undefined;
   const dn = hasOwn(resById.value, id) ? resById.value[id] : undefined;
   const refKey = el?.subgraphRef || dn?.subgraphRef;
+  const key = refKey || id;
   try {
-    const sg = await props.resolveSubgraph(refKey || id, props.modelRef);
+    const sg = await resolver(key, props.modelRef);
     if (seq !== resolveReqSeq) return { sg: null, cancelled: true };
     loadingSubgraphId.value = null;
+    // An answer from a resolver the map no longer has says nothing about the new one.
+    const stale = props.resolveSubgraph !== resolver;
+    let emptied: TuxMapValidationIssue | null = null;
     if (sg && Array.isArray(sg.elements) && sg.elements.length > 0) {
-      const nextMap: Record<string, TuxMapSubgraph> = Object.assign(
-        Object.create(null),
-        resolvedSubgraphs.value,
-      );
-      setOwnProp(nextMap, refKey || id, sg);
+      const prevMap = resolvedSubgraphs.value;
+      const knownIssues = new Set(modelBundle.value.validation.issues.map((i) => i.message));
+      const nextMap: Record<string, TuxMapSubgraph> = Object.assign(Object.create(null), prevMap);
+      setOwnProp(nextMap, key, sg);
       resolvedSubgraphs.value = nextMap;
-      return { sg, cancelled: false };
+      if (!lacksLazySubgraph(id)) return { sg, cancelled: false };
+      // Non-empty as returned, empty in the sanitized model (#156). Recorded by what was
+      // returned, the card would be asked again by the zoom that follows, without end.
+      const cause = modelBundle.value.validation.issues.find((i) => !knownIssues.has(i.message));
+      resolvedSubgraphs.value = prevMap;
+      const n = sg.elements.length;
+      emptied = {
+        code: "resolved-empty-subgraph",
+        message:
+          `Lazy subgraph "${key}" of "${id}" resolved with ${n} element${n === 1 ? "" : "s"}, none usable after sanitizing` +
+          (cause ? `: ${cause.message}` : "."),
+        nodeId: id,
+        targetId: key,
+      };
     }
+    if (stale) return { sg: null, cancelled: false };
     const nextEmpty: Record<string, boolean> = Object.assign(
       Object.create(null),
       emptyResolvedSubgraphs.value,
     );
     setOwnProp(nextEmpty, id, true);
     emptyResolvedSubgraphs.value = nextEmpty;
+    if (emptied) {
+      const nextIssues: Record<string, TuxMapValidationIssue> = Object.assign(
+        Object.create(null),
+        sanitizedEmptySubgraphs.value,
+      );
+      setOwnProp(nextIssues, id, emptied);
+      sanitizedEmptySubgraphs.value = nextIssues;
+    }
     announce(`${getCardDisplayName(id)} has no level inside it.`);
     return { sg: null, cancelled: false };
   } catch {

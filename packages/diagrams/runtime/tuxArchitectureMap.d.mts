@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 41e6559f55ec654fde19d16d8b8d93fa6252cd16605e3dbaa26cc015042e7ace
+// SOURCE-SHA256: 12ba7ec955d7674cced387432bb60bf9a68a54654d908baa3d36878cc56a034c
 /**
  * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
  *
@@ -999,10 +999,12 @@ export declare function classifyBlastLink(link: TuxMapLink, hop: number, intent?
  */
 export declare function resolveModelRawLinks(model?: TuxMapLevelModel): TuxMapLink[];
 /**
- * Kind of problem `validateMapModel` reports.
+ * Kind of problem `validateMapModel` reports. `resolved-empty-subgraph` is the one it never
+ * reports itself: `<TuxArchitectureMap>` adds it to its own diagnostics, once per card, when
+ * `resolveSubgraph` returned elements and sanitizing removed them all (`tti/tti-ux#156`).
  * @public
  */
-export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "reserved-id" | "parent-cycle" | "max-depth-exceeded" | "unknown-link-end" | "unknown-rel-end";
+export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "reserved-id" | "parent-cycle" | "max-depth-exceeded" | "unknown-link-end" | "unknown-rel-end" | "resolved-empty-subgraph";
 /**
  * One problem found by `validateMapModel`.
  * @public

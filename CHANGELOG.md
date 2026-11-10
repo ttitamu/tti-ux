@@ -18,6 +18,13 @@ conventions.
 
 ## [Unreleased]
 
+### Fixed — the architecture map asks once for a lazy subgraph that resolves empty (#156)
+
+- `<TuxArchitectureMap>`: when `resolveSubgraph` returned elements that sanitizing all removed (every element a cycle back to its own card, or not an object), the map recorded the subgraph by what was returned, still found the card empty, and called `resolveSubgraph` again from the zoom that followed, without end. The card is now recorded as resolved empty and asked once, like a card that resolves to `null` or to no elements, and the rejected subgraph is not merged into the model.
+- That card is reported once in the map's model diagnostics note, as a new validation issue code, `resolved-empty-subgraph` (added to `TuxMapValidationIssueCode`; `validateMapModel()` never returns it). **To check:** a `switch` over `TuxMapValidationIssueCode` with no default branch needs the new member.
+- A new `resolveSubgraph` function, like a new `model` or `modelRef`, clears the record, so a new source is asked again. Pass the same function between renders. Subgraphs already loaded are kept across a new `resolveSubgraph`, as before.
+- Unchanged: a `resolveSubgraph` that rejects or throws is not remembered, and the next interaction with the card asks again.
+
 ### Changed — TUX says it is beta (#152)
 
 - The READMEs, every package description, the docs site (a Beta badge in the header, the home, install, getting-started and changelog pages) and this file now say that TUX is beta, what that means for an upgrade, and that Live is a declaration and not a version number.
