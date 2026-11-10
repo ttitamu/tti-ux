@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 71d088761709c54cabf1c7ea4fb500b0d9ae5ae5c969271098298bdd3a404d38
+// SOURCE-SHA256: d3e7a747eed845e773e4dc34b67e83392befcbcc14378ba201509bd0ed89a404
 /**
  * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
  *
@@ -1212,6 +1212,10 @@ export interface TuxMapLiftedSide {
  * Pass `lift: "lca"` (`tti/tti-ux#118`) to roll outside parts up to the child of their lowest common
  * ancestor with `focusId` (expanding rolled-up cards listed in `splitIds`), keeping at most 24 outside
  * cards per view while counting every dependent.
+ *
+ * The list of usable links is cached against the `links` array itself and reused while its length
+ * is unchanged. After a change in place that keeps the length (a link replaced, or its `from` or
+ * `to` rewritten), pass a new array, or `verifyInputs: true` on the next call.
  * @public
  */
 export declare function liftLinksToView(links: TuxMapLink[], focusId: string, kidIds: string[], parentOf: Map<string, string>, opts?: {
@@ -1221,6 +1225,8 @@ export declare function liftLinksToView(links: TuxMapLink[], focusId: string, ki
     lift?: "depth" | "lca";
     splitIds?: ReadonlySet<string> | Iterable<string>;
     categories?: ReadonlySet<TuxMapWireCategory> | Iterable<TuxMapWireCategory>;
+    /** Hash `links` on this call and rebuild its cached table if it was changed in place (default: false). */
+    verifyInputs?: boolean;
 }): {
     rels: TuxMapLevelRel[];
     ins: TuxMapLiftedSide[];
@@ -1314,6 +1320,14 @@ export interface TuxMapBlastOptions {
     includePlanned?: boolean;
     /** Optional full model used to expand system/host seeds and resolve Level 4 `hostsImpacted` */
     model?: TuxMapLevelModel;
+    /**
+     * Hash `links` and `parentOf` on this call and rebuild their cached lookup tables if either was
+     * changed in place (default: false). Without it the tables are reused for as long as the same
+     * array and the same map come back with the same length and size, so only a change in place that
+     * keeps the count needs this: a link replaced or re-pointed, a child moved to another parent.
+     * It costs a pass over both inputs on every call that sets it.
+     */
+    verifyInputs?: boolean;
 }
 /**
  * Result of `computeLinkBlastRadius`.
@@ -1347,6 +1361,13 @@ export interface TuxMapBlastResult {
  * - Ties at the same minimum hop break deterministically by `TUX_MAP_LINK_STRENGTH_ORDER`, then
  *   codepoint order on `(from, to, at)`.
  * - Never walks up into a seed's parent container or parent file.
+ *
+ * The lookup tables behind the walk are cached against the `links` array and the `parentOf` map
+ * themselves, and reused while their length and size are unchanged, so a repeat call does not read
+ * either of them whole. Treat both as read-only once passed. Growing or shrinking one in place is
+ * seen; after a change in place that keeps the count (a link replaced or its `from` or `to`
+ * rewritten, a child given another parent) pass a new array or map, or `verifyInputs: true` on the
+ * next call.
  * @public
  */
 export declare function computeLinkBlastRadius(links: TuxMapLink[], seedOrSeeds: string | Iterable<string>, parentOf: Map<string, string>, opts?: TuxMapBlastOptions): TuxMapBlastResult;

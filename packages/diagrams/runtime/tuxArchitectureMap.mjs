@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 71d088761709c54cabf1c7ea4fb500b0d9ae5ae5c969271098298bdd3a404d38
+// SOURCE-SHA256: d3e7a747eed845e773e4dc34b67e83392befcbcc14378ba201509bd0ed89a404
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -3034,12 +3034,18 @@ function fnvFeedStr(h, s) {
     return Math.imul(out ^ 0xff, 0x01000193) >>> 0;
 }
 const PARENT_TABLES_CACHE = new WeakMap();
-function getParentTables(parentOf) {
+function parentTablesStamp(parentOf) {
     let stamp = 0x811c9dc5;
     for (const [c, p] of parentOf) {
         stamp = fnvFeedStr(fnvFeedStr(stamp, c), p);
     }
+    return stamp;
+}
+function getParentTables(parentOf, verify = false) {
     const cached = PARENT_TABLES_CACHE.get(parentOf);
+    if (cached && cached.size === parentOf.size && !verify)
+        return cached;
+    const stamp = verify ? parentTablesStamp(parentOf) : null;
     if (cached && cached.size === parentOf.size && cached.stamp === stamp)
         return cached;
     const kidsOf = new Map();
@@ -3060,16 +3066,7 @@ function getParentTables(parentOf) {
     return tables;
 }
 const LINK_ADJACENCY_CACHE = new WeakMap();
-function getLinkAdjacency(links) {
-    if (!Array.isArray(links)) {
-        return {
-            len: 0,
-            stamp: 0,
-            validLinks: [],
-            into: new Map(),
-            outByFrom: new Map(),
-        };
-    }
+function linkAdjacencyStamp(links) {
     const len = links.length;
     let stamp = 0x811c9dc5;
     for (let i = 0; i < len; i++) {
@@ -3081,10 +3078,25 @@ function getLinkAdjacency(links) {
         stamp = fnvFeedStr(stamp, typeof l.kind === "string" ? l.kind : "");
         stamp = Math.imul(stamp ^ (l.stop ? 0x31 : 0x30), 0x01000193) >>> 0;
     }
-    const cached = LINK_ADJACENCY_CACHE.get(links);
-    if (cached && cached.len === len && cached.stamp === stamp) {
-        return cached;
+    return stamp;
+}
+function getLinkAdjacency(links, verify = false) {
+    if (!Array.isArray(links)) {
+        return {
+            len: 0,
+            stamp: 0,
+            validLinks: [],
+            into: new Map(),
+            outByFrom: new Map(),
+        };
     }
+    const len = links.length;
+    const cached = LINK_ADJACENCY_CACHE.get(links);
+    if (cached && cached.len === len && !verify)
+        return cached;
+    const stamp = verify ? linkAdjacencyStamp(links) : null;
+    if (cached && cached.len === len && cached.stamp === stamp)
+        return cached;
     const validLinks = [];
     const into = new Map();
     const outByFrom = new Map();
@@ -3465,7 +3477,7 @@ export function liftLinksToView(links, focusId, kidIds, parentOf, opts = {}) {
     };
     const pendingIns = [];
     const pendingOuts = [];
-    const adj = getLinkAdjacency(links);
+    const adj = getLinkAdjacency(links, opts.verifyInputs === true);
     for (const l of adj.validLinks) {
         const kind = l.kind || "uses";
         if (quiet.has(kind) && !(catSet && catSet.has("docs")))
@@ -4061,7 +4073,8 @@ export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) 
             ? opts.kinds
             : new Set(opts.kinds)
         : null;
-    const { kidsOf } = getParentTables(parentOf);
+    const verify = opts.verifyInputs === true;
+    const { kidsOf } = getParentTables(parentOf, verify);
     const rawSeeds = typeof seedOrSeeds === "string" ? [seedOrSeeds] : [...seedOrSeeds];
     const seeds = new Set();
     const dq = [];
@@ -4099,7 +4112,7 @@ export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) 
             addSeed(c);
         }
     }
-    const { into, outByFrom } = getLinkAdjacency(links);
+    const { into, outByFrom } = getLinkAdjacency(links, verify);
     let truncated = false;
     const spreadDist = new Map();
     const spreadVia = new Map();
