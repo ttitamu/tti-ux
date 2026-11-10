@@ -18,6 +18,12 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — Architecture map: a hover on a code level routes only the wires it opens (#154)
+
+- **`<TuxArchitectureMap>`: the stage's wires are routed once per stage.** At Level 5 and 6, hovering or selecting a card that opens an outside card used to route every wire of the stage again and index the stage's DOM again, on each pointer-over and pointer-out. Now only the opened wires are routed, once per set of open cards for as long as the stage lasts, and they are drawn in a group of their own (`g.tux-map__wires-open`) over the resting wires. The stage's DOM index is rebuilt when the cards or the resting wires change, and no longer on hover.
+- **What to check.** The resting wires and their labels no longer move while a card is hovered or selected: before, the whole stage was laid out again around the opened wires. The opened wires are laid out among themselves only, so in a dense view one can run along a resting wire or sit under a resting label where the full layout would have kept them apart. An outside card's resting wire and label stay in the DOM while it is open, hidden with `tux-map__wire--closed`, `tux-map__wire-fg--closed` and `tux-map__lab--closed`; the opened wires and labels carry `data-open="1"` and come after the resting ones in DOM order. The same wires are drawn and the same cards, wires and labels are lit as before.
+- The map benchmark's `hover` row now times routing the opened wires alone.
+
 ### Changed — TUX says it is beta (#152)
 
 - The READMEs, every package description, the docs site (a Beta badge in the header, the home, install, getting-started and changelog pages) and this file now say that TUX is beta, what that means for an upgrade, and that Live is a declaration and not a version number.

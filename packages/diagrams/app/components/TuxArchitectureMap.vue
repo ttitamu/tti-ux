@@ -57,6 +57,8 @@ import {
   type TuxMapLoDLevel,
   type TuxMapNode,
   type TuxMapPlacedBoundary,
+  type TuxMapRoutedLabel,
+  type TuxMapRoutedWire,
   type TuxMapSearchEntry,
   type TuxMapSearchGroupResult,
   type TuxMapSearchHit,
@@ -2178,23 +2180,11 @@ watch(
 );
 
 /**
- * The stage's wires, with the hovered (else selected) card's outside sides opened
- * up card by card. This stays out of `stageData` so a hover re-routes the wires
- * and rebuilds nothing else (#141).
+ * The stage's wires at rest: every outside card has its one wire, to the boundary.
+ * They are routed once per stage. A hover or a selection opens outside cards by
+ * drawing `openStageWires` over them, and never routes these again (#154).
  */
-const stageRels = computed<TuxMapLevelRel[]>(() => {
-  const { rels, expandableSides } = stageData.value;
-  const active = hoveredStageCardId.value || selectedId.value;
-  if (!active || expandableSides.length === 0) return rels;
-  const opened = new Map(
-    expandableSides
-      .filter((side) => side.id === active || side.wires.some((w) => w.from === active || w.to === active))
-      .map((side) => [side.aggregate, side.wires]),
-  );
-  return opened.size > 0 ? rels.flatMap((r) => opened.get(r) ?? [r]) : rels;
-});
-
-const routedSvg = computed(() => {
+const baseRoutedSvg = computed<{ wires: TuxMapRoutedWire[]; labels: TuxMapRoutedLabel[] }>(() => {
   if (currentLevel.value === 4) {
     const links = activeModel.value.level4.links.filter(
       (l) =>
@@ -2207,15 +2197,145 @@ const routedSvg = computed(() => {
       labels: [],
     };
   }
-  const base = routeGridWires(stageRels.value, stageData.value.rects, stageData.value.els);
-  // Above 30 routed wires (#124), hide labels at rest (`forced: true` -> opacity: 0, never display: none)
-  if (base.wires.length > 30 && base.labels.length > 0) {
-    return {
-      wires: base.wires,
-      labels: base.labels.map((lbl) => (lbl.forced ? lbl : { ...lbl, forced: true })),
-    };
+  return routeGridWires(stageData.value.rels, stageData.value.rects, stageData.value.els);
+});
+
+/** Per stage: the routed wire and label each outside card's resting wire became, and the sides each card opens. */
+const stageSideIndex = computed(() => {
+  const { expandableSides } = stageData.value;
+  const slots = new Map<TuxMapLevelRel, { wireId: string; labelId: string | null }>();
+  const sidesByCard = new Map<string, number[]>();
+  if (currentLevel.value === 4 || expandableSides.length === 0) return { slots, sidesByCard };
+
+  const addSide = (cardId: string, i: number) => {
+    const list = sidesByCard.get(cardId);
+    if (!list) sidesByCard.set(cardId, [i]);
+    else if (list[list.length - 1] !== i) list.push(i);
+  };
+  const aggregates = new Set<TuxMapLevelRel>();
+  expandableSides.forEach((side, i) => {
+    aggregates.add(side.aggregate);
+    addSide(side.id, i);
+    for (const w of side.wires) {
+      addSide(w.from, i);
+      addSide(w.to, i);
+    }
+  });
+
+  // An outside card has one resting wire a direction, to or from the boundary:
+  // its two ends name it among the routed wires and labels.
+  const { wires, labels } = baseRoutedSvg.value;
+  const ends = (r: { from: string; to: string }) => `${r.from}\u0000${r.to}`;
+  const wanted = new Map<string, TuxMapLevelRel>();
+  for (const r of aggregates) wanted.set(ends(r), r);
+  for (const w of wires) {
+    const r = wanted.get(ends(w));
+    if (r && !slots.has(r)) slots.set(r, { wireId: w.id, labelId: null });
   }
-  return base;
+  for (const l of labels) {
+    const r = wanted.get(ends(l));
+    const slot = r && slots.get(r);
+    if (slot && slot.labelId === null) slot.labelId = l.id;
+  }
+  return { slots, sidesByCard };
+});
+
+/** The wires drawn over the stage while outside cards are open, and the resting wires they stand in for. */
+interface OpenStageWires {
+  wires: TuxMapRoutedWire[];
+  labels: TuxMapRoutedLabel[];
+  closedWireIds: ReadonlySet<string>;
+  closedLabelIds: ReadonlySet<string>;
+}
+
+/** Per stage, per set of open outside cards: routed the first time that set opens, kept until the stage changes. */
+const openStageWiresMemo = new WeakMap<ComputedStageData, Map<string, OpenStageWires>>();
+
+/**
+ * The hovered (else selected) card's outside sides, opened card by card: only
+ * those wires are routed, over the cards and apart from the wires at rest, which
+ * stay where they are. `null` while nothing is open. This stays out of
+ * `stageData` and `baseRoutedSvg`, so a hover rebuilds neither (#141, #154).
+ */
+const openStageWires = computed<OpenStageWires | null>(() => {
+  const data = stageData.value;
+  const active = hoveredStageCardId.value || selectedId.value;
+  if (!active || data.expandableSides.length === 0) return null;
+  const { slots, sidesByCard } = stageSideIndex.value;
+  const sideIdxs = sidesByCard.get(active);
+  if (!sideIdxs) return null;
+
+  let memo = openStageWiresMemo.get(data);
+  if (!memo) {
+    memo = new Map();
+    openStageWiresMemo.set(data, memo);
+  }
+  const memoKey = sideIdxs.join(",");
+  const known = memo.get(memoKey);
+  if (known) return known;
+
+  const closedWireIds = new Set<string>();
+  const closedLabelIds = new Set<string>();
+  const rels: TuxMapLevelRel[] = [];
+  for (const i of sideIdxs) {
+    const side = data.expandableSides[i]!;
+    const slot = slots.get(side.aggregate);
+    if (slot) {
+      closedWireIds.add(slot.wireId);
+      if (slot.labelId) closedLabelIds.add(slot.labelId);
+    }
+    for (const w of side.wires) rels.push(w);
+  }
+  const routed = routeGridWires(rels, data.rects, data.els);
+  const opened: OpenStageWires = {
+    // Ids of their own: the router numbers each call's wires from zero
+    wires: routed.wires.map((w) => ({ ...w, id: `w-open-${w.id.slice(2)}` })),
+    labels: routed.labels.map((l) => ({ ...l, id: `lbl-open-${l.id.slice(4)}` })),
+    closedWireIds,
+    closedLabelIds,
+  };
+  memo.set(memoKey, opened);
+  return opened;
+});
+
+/** Above 30 routed wires (#124), hide labels at rest (`forced: true` -> opacity: 0, never display: none) */
+const forceLabels = (labels: TuxMapRoutedLabel[]): TuxMapRoutedLabel[] =>
+  labels.some((lbl) => !lbl.forced) ? labels.map((lbl) => (lbl.forced ? lbl : { ...lbl, forced: true })) : labels;
+
+const stageLabelsHoverOnly = computed<boolean>(() => {
+  const open = openStageWires.value;
+  const drawn = baseRoutedSvg.value.wires.length + (open ? open.wires.length - open.closedWireIds.size : 0);
+  return drawn > 30;
+});
+const forcedBaseLabels = computed(() => forceLabels(baseRoutedSvg.value.labels));
+
+/** The resting wires' labels as drawn; the ones in `openStageWires.closedLabelIds` are hidden. */
+const baseStageLabels = computed<TuxMapRoutedLabel[]>(() =>
+  stageLabelsHoverOnly.value ? forcedBaseLabels.value : baseRoutedSvg.value.labels,
+);
+/** The open wires' labels as drawn. */
+const openStageLabels = computed<TuxMapRoutedLabel[]>(() => {
+  const open = openStageWires.value;
+  if (!open) return [];
+  return stageLabelsHoverOnly.value ? forceLabels(open.labels) : open.labels;
+});
+
+/**
+ * Every wire and label on the stage as it is drawn now: the wires at rest, less
+ * the ones an open outside card hides, plus the open ones. What the legend, the
+ * blast radius, a trace and the wire inspector read.
+ */
+const routedSvg = computed<{ wires: TuxMapRoutedWire[]; labels: TuxMapRoutedLabel[] }>(() => {
+  const base = baseRoutedSvg.value;
+  const open = openStageWires.value;
+  if (!open) {
+    const labels = baseStageLabels.value;
+    return labels === base.labels ? base : { wires: base.wires, labels };
+  }
+  return {
+    wires: [...base.wires.filter((w) => !open.closedWireIds.has(w.id)), ...open.wires],
+    labels: [...baseStageLabels.value.filter((l) => !open.closedLabelIds.has(l.id)), ...openStageLabels.value],
+  };
 });
 
 // ============================================================================
@@ -3539,6 +3659,48 @@ interface StageDomCache {
 
 let stageDomCache: StageDomCache | null = null;
 
+/**
+ * The open outside cards' wires and labels (#154): a handful of elements, read
+ * from their own template refs, so opening a card never indexes the stage again.
+ */
+interface StageOpenDom {
+  fgWires: { el: SVGElement; id: string; from: string; to: string }[];
+  labels: { el: HTMLElement; forced: boolean; from: string; to: string }[];
+}
+
+const openFgGroupRef = ref<SVGGElement | null>(null);
+const openLabelEls = ref<HTMLElement[]>([]);
+let stageOpenDom: StageOpenDom | null = null;
+
+function indexStageOpenDom() {
+  const group = openStageWires.value ? openFgGroupRef.value : null;
+  if (!group) {
+    stageOpenDom = null;
+    return;
+  }
+  const fgWires: StageOpenDom["fgWires"] = [];
+  const paths = group.children;
+  for (let i = 0; i < paths.length; i++) {
+    const el = paths[i] as SVGElement;
+    fgWires.push({
+      el,
+      id: el.dataset.id || "",
+      from: el.dataset.from || "",
+      to: el.dataset.to || "",
+    });
+  }
+  const labels: StageOpenDom["labels"] = [];
+  for (const el of openLabelEls.value) {
+    labels.push({
+      el,
+      forced: el.dataset.forced === "1",
+      from: el.dataset.from || "",
+      to: el.dataset.to || "",
+    });
+  }
+  stageOpenDom = { fgWires, labels };
+}
+
 function queryCardById(root: ParentNode | null | undefined, id: string): HTMLElement | null {
   if (!root || !id) return null;
   const cards = root.querySelectorAll<HTMLElement>(".tux-map__el");
@@ -3599,6 +3761,7 @@ function rebuildStageDomCache() {
   const fgWireEls = stage.querySelectorAll<SVGElement>(".tux-map__wire-fg");
   for (let i = 0; i < fgWireEls.length; i++) {
     const w = fgWireEls[i]!;
+    if (w.dataset.open) continue; // indexed apart, by indexStageOpenDom
     const wid = w.dataset.id || "";
     const from = w.dataset.from || "";
     const to = w.dataset.to || "";
@@ -3617,6 +3780,7 @@ function rebuildStageDomCache() {
   const labEls = stage.querySelectorAll<HTMLElement>(".tux-map__lab");
   for (let i = 0; i < labEls.length; i++) {
     const el = labEls[i]!;
+    if (el.dataset.open) continue;
     const from = el.dataset.from || "";
     const to = el.dataset.to || "";
     const entry = { el, forced: el.dataset.forced === "1" };
@@ -3637,6 +3801,7 @@ function rebuildStageDomCache() {
     litWires,
     litLabels,
   };
+  indexStageOpenDom();
 }
 
 /**
@@ -3652,6 +3817,17 @@ function applyStageHighlight(rawId: string | null) {
   }
   const cache = stageDomCache;
   if (!cache) return;
+  const openDom = stageOpenDom;
+  /** A wire's foreground paths by id, among the resting wires and the open ones. */
+  const fgWiresFor = (wid: string): SVGElement[] | undefined => {
+    const ws = cache.fgWiresById.get(wid);
+    if (ws || !openDom) return ws;
+    const found: SVGElement[] = [];
+    for (let i = 0; i < openDom.fgWires.length; i++) {
+      if (openDom.fgWires[i]!.id === wid) found.push(openDom.fgWires[i]!.el);
+    }
+    return found.length ? found : undefined;
+  };
 
   // Turn off previously lit wires and labels in O(k)
   for (let i = 0; i < cache.litWires.length; i++) {
@@ -3668,7 +3844,7 @@ function applyStageHighlight(rawId: string | null) {
   const tr = stageTraceState.value;
   if (tr) {
     for (const wid of tr.wireIds) {
-      const ws = cache.fgWiresById.get(wid);
+      const ws = fgWiresFor(wid);
       if (!ws) continue;
       for (let i = 0; i < ws.length; i++) {
         const w = ws[i]!;
@@ -3704,7 +3880,7 @@ function applyStageHighlight(rawId: string | null) {
         );
       }
       for (const wid of br.impactedWires) {
-        const ws = cache.fgWiresById.get(wid);
+        const ws = fgWiresFor(wid);
         if (!ws) continue;
         for (let i = 0; i < ws.length; i++) {
           const w = ws[i]!;
@@ -3728,10 +3904,19 @@ function applyStageHighlight(rawId: string | null) {
   cache.bgSvg?.classList.add("tux-map__wires--has-on");
   stage.classList.add("tux-map__stage--dim");
 
+  // While outside cards are open, their resting wires are hidden: they light
+  // nothing and make no neighbour; the open wires do, in their place.
+  const openNeighbors: Set<string> | null = openDom ? new Set<string>([key]) : null;
+
   const activeWires = cache.fgWiresByNode.get(key);
   if (activeWires) {
     for (let i = 0; i < activeWires.length; i++) {
       const w = activeWires[i]!;
+      if (openNeighbors) {
+        if (w.classList.contains("tux-map__wire-fg--closed")) continue;
+        openNeighbors.add(w.dataset.from || "");
+        openNeighbors.add(w.dataset.to || "");
+      }
       w.classList.add("tux-map__wire-fg--on");
       cache.litWires.push(w);
     }
@@ -3741,17 +3926,35 @@ function applyStageHighlight(rawId: string | null) {
   if (activeLabels) {
     for (let i = 0; i < activeLabels.length; i++) {
       const item = activeLabels[i]!;
+      if (openDom && item.el.classList.contains("tux-map__lab--closed")) continue;
       item.el.classList.add("tux-map__lab--on");
       cache.litLabels.push(item);
     }
   }
 
-  const neighborSet = cache.neighborsByNode.get(key);
+  if (openDom && openNeighbors) {
+    for (let i = 0; i < openDom.fgWires.length; i++) {
+      const w = openDom.fgWires[i]!;
+      if (w.from !== key && w.to !== key) continue;
+      openNeighbors.add(w.from);
+      openNeighbors.add(w.to);
+      w.el.classList.add("tux-map__wire-fg--on");
+      cache.litWires.push(w.el);
+    }
+    for (let i = 0; i < openDom.labels.length; i++) {
+      const item = openDom.labels[i]!;
+      if (item.from !== key && item.to !== key) continue;
+      item.el.classList.add("tux-map__lab--on");
+      cache.litLabels.push(item);
+    }
+  }
+
+  const neighborSet = openNeighbors ?? cache.neighborsByNode.get(key);
   const boundLit = Boolean(neighborSet?.has("@bound") || key === "@bound");
   const br = rawId === selectedId.value ? blastRadiusState.value : null;
   if (br) {
     for (const wid of br.impactedWires) {
-      const ws = cache.fgWiresById.get(wid);
+      const ws = fgWiresFor(wid);
       if (!ws) continue;
       for (let i = 0; i < ws.length; i++) {
         const w = ws[i]!;
@@ -3989,13 +4192,24 @@ function onStagePointerLeave() {
   applyStageHighlight(null);
 }
 
-watch([currentLevel, focusId, showPlanned, showBlastRadius, activeModel, routedSvg], () => {
+// The stage's own index lasts as long as its cards and resting wires do; a hover
+// or a selection that opens an outside card leaves both in place (#154).
+watch([currentLevel, focusId, showPlanned, showBlastRadius, activeModel, baseRoutedSvg], () => {
   stageDomCache = null;
   proximityCard.value = null;
   hideProximityTetherDom();
   nextTick(() => {
     rebuildStageDomCache();
     applyStageHighlight(selectedId.value ?? currentHoveredId);
+  });
+});
+
+// Opening or closing an outside card swaps a few wires: index those, and light
+// the stage again, once they are drawn.
+watch([openStageWires, stageLabelsHoverOnly], () => {
+  nextTick(() => {
+    indexStageOpenDom();
+    applyStageHighlight(selectedId.value ?? currentHoveredId ?? proximityCard.value?.id ?? null);
   });
 });
 
@@ -7720,7 +7934,7 @@ function buildSourceHref(src?: {
             </defs>
 
             <path
-              v-for="w in routedSvg.wires"
+              v-for="w in baseRoutedSvg.wires"
               :key="w.id"
               :d="w.d"
               :data-id="w.id"
@@ -7730,9 +7944,27 @@ function buildSourceHref(src?: {
               :class="{
                 'tux-map__wire--planned': w.planned,
                 'tux-map__wire--violation': Boolean(w.violating),
+                'tux-map__wire--closed': Boolean(openStageWires?.closedWireIds.has(w.id)),
               }"
               :marker-end="`url(#${arrowMarkerId})`"
             />
+            <!-- An open outside card's own wires, over the resting ones (#154) -->
+            <g v-if="openStageWires" class="tux-map__wires-open">
+              <path
+                v-for="w in openStageWires.wires"
+                :key="w.id"
+                :d="w.d"
+                :data-id="w.id"
+                :data-from="w.from"
+                :data-to="w.to"
+                class="tux-map__wire"
+                :class="{
+                  'tux-map__wire--planned': w.planned,
+                  'tux-map__wire--violation': Boolean(w.violating),
+                }"
+                :marker-end="`url(#${arrowMarkerId})`"
+              />
+            </g>
           </svg>
 
           <!-- Layer 4 (z-index: 4): Foreground Active Wires SVG -->
@@ -7742,7 +7974,7 @@ function buildSourceHref(src?: {
             :height="stageData.height"
             aria-hidden="true"
           >
-            <template v-for="w in routedSvg.wires" :key="`fg-${w.id}`">
+            <template v-for="w in baseRoutedSvg.wires" :key="`fg-${w.id}`">
               <path
                 :d="w.d"
                 :data-id="w.id"
@@ -7757,6 +7989,7 @@ function buildSourceHref(src?: {
                     stageTraceState?.wireIds.has(w.id),
                   ),
                   'tux-map__wire-fg--on': isWireLit(w.from, w.to, w.id),
+                  'tux-map__wire-fg--closed': Boolean(openStageWires?.closedWireIds.has(w.id)),
                 }"
                 :marker-end="`url(#${arrowMarkerId})`"
               />
@@ -7773,9 +8006,48 @@ function buildSourceHref(src?: {
                     stageTraceState?.wireIds.has(w.id),
                   ),
                   'tux-map__wire-fg--on': isWireLit(w.from, w.to, w.id),
+                  'tux-map__wire-fg--closed': Boolean(openStageWires?.closedWireIds.has(w.id)),
                 }"
               />
             </template>
+            <g v-if="openStageWires" ref="openFgGroupRef" class="tux-map__wires-open">
+              <template v-for="w in openStageWires.wires" :key="`fg-${w.id}`">
+                <path
+                  :d="w.d"
+                  :data-id="w.id"
+                  :data-from="w.from"
+                  :data-to="w.to"
+                  data-open="1"
+                  class="tux-map__wire-fg"
+                  :class="{
+                    'tux-map__wire-fg--planned': w.planned,
+                    'tux-map__wire-fg--violation': Boolean(w.violating),
+                    'tux-map__wire-fg--blast': Boolean(blastRadiusState?.impactedWires.has(w.id)),
+                    'tux-map__wire-fg--trace': Boolean(
+                      stageTraceState?.wireIds.has(w.id),
+                    ),
+                    'tux-map__wire-fg--on': isWireLit(w.from, w.to, w.id),
+                  }"
+                  :marker-end="`url(#${arrowMarkerId})`"
+                />
+                <path
+                  :d="w.d"
+                  :data-id="w.id"
+                  :data-from="w.from"
+                  :data-to="w.to"
+                  data-open="1"
+                  class="tux-map__wire-fg tux-map__wire-fg--stream"
+                  :class="{
+                    'tux-map__wire-fg--violation': Boolean(w.violating),
+                    'tux-map__wire-fg--blast': Boolean(blastRadiusState?.impactedWires.has(w.id)),
+                    'tux-map__wire-fg--trace': Boolean(
+                      stageTraceState?.wireIds.has(w.id),
+                    ),
+                    'tux-map__wire-fg--on': isWireLit(w.from, w.to, w.id),
+                  }"
+                />
+              </template>
+            </g>
           </svg>
 
           <!-- Layer 2 / 5: Element Cards + Sibling Zoom Badges (#116, #117, #118, #121, #126) -->
@@ -7972,12 +8244,44 @@ function buildSourceHref(src?: {
 
           <!-- Layer 3 / 10: Interactive Wire Label Buttons (#115, #123, #124) -->
           <button
-            v-for="lbl in routedSvg.labels"
+            v-for="lbl in baseStageLabels"
             :key="lbl.id"
             type="button"
             :data-from="lbl.from"
             :data-to="lbl.to"
             :data-forced="lbl.forced ? '1' : ''"
+            class="tux-map__lab"
+            :class="{
+              'tux-map__lab--on':
+                isWireLit(lbl.from, lbl.to) ||
+                inspectedWireKey === wirePairKey(lbl.from, lbl.to),
+              'tux-map__lab--forced': Boolean(lbl.forced),
+              'tux-map__lab--violation': Boolean(lbl.violating),
+              'tux-map__lab--closed': Boolean(openStageWires?.closedLabelIds.has(lbl.id)),
+            }"
+            :aria-expanded="inspectedWireKey === wirePairKey(lbl.from, lbl.to) ? 'true' : 'false'"
+            :aria-controls="wireInspectorId"
+            :aria-label="`Inspect wire ${lbl.t1}${lbl.t2 ? ` [${lbl.t2}]` : ''}${lbl.violating ? ' (rule violation)' : ''}`"
+            :style="{
+              left: `${lbl.x + lbl.w / 2}px`,
+              top: `${lbl.y + lbl.h / 2}px`,
+            }"
+            @click.stop="toggleWireInspector(lbl, $event.currentTarget)"
+          >
+            <span class="tux-map__lab-t1">
+              <span v-if="lbl.violating" class="tux-map__lab-warn" aria-hidden="true">⚠ </span>{{ lbl.t1 }}
+            </span>
+            <span v-if="lbl.t2" class="tux-map__lab-t2">[{{ lbl.t2 }}]</span>
+          </button>
+          <button
+            v-for="lbl in openStageLabels"
+            :key="lbl.id"
+            ref="openLabelEls"
+            type="button"
+            :data-from="lbl.from"
+            :data-to="lbl.to"
+            :data-forced="lbl.forced ? '1' : ''"
+            data-open="1"
             class="tux-map__lab"
             :class="{
               'tux-map__lab--on':
@@ -10149,6 +10453,13 @@ function buildSourceHref(src?: {
   stroke-width: 2.6;
   stroke-dasharray: 2 4;
   opacity: 0.96;
+}
+
+/* The resting wire of an outside card whose own wires are open */
+.tux-map__wire.tux-map__wire--closed,
+.tux-map__wire-fg.tux-map__wire-fg--closed,
+.tux-map__lab.tux-map__lab--closed {
+  display: none;
 }
 
 .tux-map__wires--has-on .tux-map__wire {
