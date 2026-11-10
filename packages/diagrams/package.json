@@ -52,7 +52,8 @@
     "build:runtime": "node scripts/build-map-runtime.mjs",
     "check:runtime": "node scripts/build-map-runtime.mjs --check",
     "gen:conformance": "node scripts/generate-map-conformance.ts",
-    "check:conformance": "node scripts/generate-map-conformance.ts --check"
+    "check:conformance": "node scripts/generate-map-conformance.ts --check",
+    "bench:map": "node scripts/bench-map.mjs"
   },
   "peerDependencies": {
     "@tti/tti-ux": "^3.0.0"

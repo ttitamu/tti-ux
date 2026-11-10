@@ -201,6 +201,34 @@ describe("architecture map benchmark: utils (#153)", () => {
     expect(reference.median).toBeGreaterThan(0);
   });
 
+  it(
+    "the gate itself: passes a linear scan and fails the same scan with a quadratic term",
+    async () => {
+      const work = (quadratic: boolean) =>
+        perSize((p) => {
+          const ids = [...p.parentOf.keys()];
+          return {
+            run: () => {
+              let n = 0;
+              for (const id of ids) n += id.length;
+              // Every fourth element against every fourth: one sixteenth of a full pairwise scan
+              if (quadratic) {
+                for (let i = 0; i < ids.length; i += 4) for (let j = 0; j < ids.length; j += 4) n += ids[j]!.length & 1;
+              }
+              sink += n;
+            },
+          };
+        }, prepared);
+      const spec = { title: "self-test", via: "utils", scalesWith: "whole model", bounds: [12, 12], record: false } as const;
+      const linear = await runScenario({ ...spec, id: "self-linear", cases: work(false) });
+      expect(linear.pass, describeScenario(linear)).toBe(true);
+      const quadratic = await runScenario({ ...spec, id: "self-quadratic", cases: work(true) });
+      expect(quadratic.pass, describeScenario(quadratic)).toBe(false);
+      expect(quadratic.attempts).toBe(3);
+    },
+    GATE_TIMEOUT_MS,
+  );
+
   // ── The pipeline, whole and by stage ───────────────────────────────────────
 
   gate({

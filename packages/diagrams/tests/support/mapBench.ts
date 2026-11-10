@@ -144,6 +144,8 @@ export interface ScenarioSpec {
   bounds: readonly [number, number];
   cases: Record<MapBenchSizeKey, BenchCase>;
   options?: BenchOptions;
+  /** `false` keeps the result out of the published numbers (the gate's own self-test). */
+  record?: boolean;
 }
 
 export interface ScenarioResult {
@@ -204,7 +206,7 @@ export async function runScenario(spec: ScenarioSpec): Promise<ScenarioResult> {
     if (score <= 1) break;
   }
   const result = { ...best!, attempts };
-  recorded.push(result);
+  if (spec.record !== false) recorded.push(result);
   return result;
 }
 

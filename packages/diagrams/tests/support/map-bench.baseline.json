@@ -1,0 +1,575 @@
+{
+  "schema": 1,
+  "recorded": "2026-11-10T00:06:49.134Z",
+  "machine": {
+    "node": "v26.0.0",
+    "platform": "darwin arm64",
+    "cpu": "Apple M5 Max",
+    "cores": 18
+  },
+  "commit": "bedbae4",
+  "note": "Milliseconds per call: median and 90th percentile of 9 samples after a warm-up. The component half runs in jsdom. Nothing compares these numbers; the gate reads the ratios.",
+  "models": {
+    "s500": {
+      "key": "s500",
+      "label": "500",
+      "symbols": 500,
+      "cardsPerView": 30,
+      "counts": {
+        "containers": 2,
+        "components": 2,
+        "folders": 9,
+        "files": 50,
+        "symbols": 477,
+        "links": 1773,
+        "lazyFiles": 6,
+        "lazySymbols": 80,
+        "routes": 10
+      }
+    },
+    "s2500": {
+      "key": "s2500",
+      "label": "2,500",
+      "symbols": 2500,
+      "cardsPerView": 60,
+      "counts": {
+        "containers": 3,
+        "components": 8,
+        "folders": 31,
+        "files": 259,
+        "symbols": 2488,
+        "links": 9117,
+        "lazyFiles": 10,
+        "lazySymbols": 156,
+        "routes": 50
+      }
+    },
+    "s10000": {
+      "key": "s10000",
+      "label": "10,000",
+      "symbols": 10000,
+      "cardsPerView": 120,
+      "counts": {
+        "containers": 13,
+        "components": 38,
+        "folders": 136,
+        "files": 1038,
+        "symbols": 10155,
+        "links": 37199,
+        "lazyFiles": 31,
+        "lazySymbols": 407,
+        "routes": 203
+      }
+    }
+  },
+  "reference": {
+    "median": 7.1717,
+    "p90": 8.9434
+  },
+  "scenarios": [
+    {
+      "id": "pipeline",
+      "title": "sanitize, collapse, parent index, links, lift the deepest view, route it",
+      "via": "utils",
+      "scalesWith": "whole model, then one view",
+      "sizes": {
+        "s500": {
+          "median": 7.5701,
+          "p90": 8.5776
+        },
+        "s2500": {
+          "median": 28.9406,
+          "p90": 33.4238
+        },
+        "s10000": {
+          "median": 104.531,
+          "p90": 126.6857
+        }
+      },
+      "ratios": {
+        "midOverSmall": 3.823,
+        "largeOverMid": 3.612
+      },
+      "bounds": {
+        "midOverSmall": 10,
+        "largeOverMid": 9
+      }
+    },
+    {
+      "id": "sanitize",
+      "title": "sanitizeMapModel",
+      "via": "utils",
+      "scalesWith": "whole model",
+      "sizes": {
+        "s500": {
+          "median": 0.3799,
+          "p90": 0.521
+        },
+        "s2500": {
+          "median": 2.036,
+          "p90": 2.3605
+        },
+        "s10000": {
+          "median": 10.4713,
+          "p90": 11.4594
+        }
+      },
+      "ratios": {
+        "midOverSmall": 5.359,
+        "largeOverMid": 5.143
+      },
+      "bounds": {
+        "midOverSmall": 12,
+        "largeOverMid": 12
+      }
+    },
+    {
+      "id": "collapse",
+      "title": "collapseModelSubgraphs",
+      "via": "utils",
+      "scalesWith": "whole model",
+      "sizes": {
+        "s500": {
+          "median": 0.0656,
+          "p90": 0.0898
+        },
+        "s2500": {
+          "median": 0.3554,
+          "p90": 0.4481
+        },
+        "s10000": {
+          "median": 1.8124,
+          "p90": 2.1338
+        }
+      },
+      "ratios": {
+        "midOverSmall": 5.417,
+        "largeOverMid": 5.099
+      },
+      "bounds": {
+        "midOverSmall": 12,
+        "largeOverMid": 12
+      }
+    },
+    {
+      "id": "parent-index",
+      "title": "buildMapParentIndex",
+      "via": "utils",
+      "scalesWith": "whole model",
+      "sizes": {
+        "s500": {
+          "median": 0.0569,
+          "p90": 0.064
+        },
+        "s2500": {
+          "median": 0.3337,
+          "p90": 0.4696
+        },
+        "s10000": {
+          "median": 1.775,
+          "p90": 2.044
+        }
+      },
+      "ratios": {
+        "midOverSmall": 5.861,
+        "largeOverMid": 5.319
+      },
+      "bounds": {
+        "midOverSmall": 12,
+        "largeOverMid": 12
+      }
+    },
+    {
+      "id": "links",
+      "title": "extractModelLinks (the links the blast radius walks)",
+      "via": "utils",
+      "scalesWith": "whole model",
+      "sizes": {
+        "s500": {
+          "median": 9.6312,
+          "p90": 10.0526
+        },
+        "s2500": {
+          "median": 54.2047,
+          "p90": 58.856
+        },
+        "s10000": {
+          "median": 260.9252,
+          "p90": 293.7557
+        }
+      },
+      "ratios": {
+        "midOverSmall": 5.628,
+        "largeOverMid": 4.814
+      },
+      "bounds": {
+        "midOverSmall": 13,
+        "largeOverMid": 12
+      }
+    },
+    {
+      "id": "lift-view",
+      "title": "fold copies and liftLinksToView for the deepest view",
+      "via": "utils",
+      "scalesWith": "all links, onto one view",
+      "sizes": {
+        "s500": {
+          "median": 3.1067,
+          "p90": 3.5169
+        },
+        "s2500": {
+          "median": 15.3774,
+          "p90": 16.4789
+        },
+        "s10000": {
+          "median": 63.961,
+          "p90": 70.0764
+        }
+      },
+      "ratios": {
+        "midOverSmall": 4.95,
+        "largeOverMid": 4.159
+      },
+      "bounds": {
+        "midOverSmall": 12,
+        "largeOverMid": 10
+      }
+    },
+    {
+      "id": "route",
+      "title": "routeGridWires for the deepest view at rest",
+      "via": "utils",
+      "scalesWith": "cards and wires in one view",
+      "sizes": {
+        "s500": {
+          "median": 3.129,
+          "p90": 3.4132
+        },
+        "s2500": {
+          "median": 11.0093,
+          "p90": 11.7697
+        },
+        "s10000": {
+          "median": 25.1723,
+          "p90": 26.5808
+        }
+      },
+      "ratios": {
+        "midOverSmall": 3.518,
+        "largeOverMid": 2.286
+      },
+      "bounds": {
+        "midOverSmall": 8,
+        "largeOverMid": 6
+      }
+    },
+    {
+      "id": "hover",
+      "title": "re-route the deepest view for one hovered card",
+      "via": "utils",
+      "scalesWith": "cards in one view",
+      "sizes": {
+        "s500": {
+          "median": 14.1784,
+          "p90": 15.2318
+        },
+        "s2500": {
+          "median": 17.0284,
+          "p90": 18.8055
+        },
+        "s10000": {
+          "median": 28.2485,
+          "p90": 29.0477
+        }
+      },
+      "ratios": {
+        "midOverSmall": 1.201,
+        "largeOverMid": 1.659
+      },
+      "bounds": {
+        "midOverSmall": 4,
+        "largeOverMid": 4.5
+      }
+    },
+    {
+      "id": "selection",
+      "title": "computeLinkBlastRadius for one selected symbol (unfiltered, then by kind)",
+      "via": "utils",
+      "scalesWith": "whole model",
+      "sizes": {
+        "s500": {
+          "median": 2.1831,
+          "p90": 3.3365
+        },
+        "s2500": {
+          "median": 11.2294,
+          "p90": 18.6242
+        },
+        "s10000": {
+          "median": 59.4207,
+          "p90": 86.0685
+        }
+      },
+      "ratios": {
+        "midOverSmall": 5.144,
+        "largeOverMid": 5.292
+      },
+      "bounds": {
+        "midOverSmall": 13,
+        "largeOverMid": 12
+      }
+    },
+    {
+      "id": "lazy-merge",
+      "title": "merge one resolved subgraph: sanitize, collapse and index the model again",
+      "via": "utils",
+      "scalesWith": "whole model",
+      "sizes": {
+        "s500": {
+          "median": 0.6045,
+          "p90": 0.8017
+        },
+        "s2500": {
+          "median": 3.3534,
+          "p90": 3.8702
+        },
+        "s10000": {
+          "median": 16.547,
+          "p90": 18.2943
+        }
+      },
+      "ratios": {
+        "midOverSmall": 5.548,
+        "largeOverMid": 4.934
+      },
+      "bounds": {
+        "midOverSmall": 12,
+        "largeOverMid": 12
+      }
+    },
+    {
+      "id": "search-index",
+      "title": "buildMapSearchIndex",
+      "via": "utils",
+      "scalesWith": "whole model",
+      "sizes": {
+        "s500": {
+          "median": 3.4349,
+          "p90": 3.6292
+        },
+        "s2500": {
+          "median": 17.4026,
+          "p90": 19.0982
+        },
+        "s10000": {
+          "median": 81.6146,
+          "p90": 87.8368
+        }
+      },
+      "ratios": {
+        "midOverSmall": 5.066,
+        "largeOverMid": 4.69
+      },
+      "bounds": {
+        "midOverSmall": 12,
+        "largeOverMid": 11
+      }
+    },
+    {
+      "id": "go-to",
+      "title": "searchArchitectureMap, four queries over the built index",
+      "via": "utils",
+      "scalesWith": "whole model",
+      "sizes": {
+        "s500": {
+          "median": 0.3481,
+          "p90": 0.4394
+        },
+        "s2500": {
+          "median": 1.7618,
+          "p90": 2.0722
+        },
+        "s10000": {
+          "median": 8.5304,
+          "p90": 9.1609
+        }
+      },
+      "ratios": {
+        "midOverSmall": 5.062,
+        "largeOverMid": 4.842
+      },
+      "bounds": {
+        "midOverSmall": 14,
+        "largeOverMid": 10
+      }
+    },
+    {
+      "id": "c-mount",
+      "title": "mount on the deepest view: the whole pipeline, stageData, routedSvg and the first render",
+      "via": "component",
+      "scalesWith": "whole model, then one view",
+      "sizes": {
+        "s500": {
+          "median": 61.1292,
+          "p90": 67.7051
+        },
+        "s2500": {
+          "median": 146.6621,
+          "p90": 149.6402
+        },
+        "s10000": {
+          "median": 387.5499,
+          "p90": 410.7307
+        }
+      },
+      "ratios": {
+        "midOverSmall": 2.399,
+        "largeOverMid": 2.642
+      },
+      "bounds": {
+        "midOverSmall": 6,
+        "largeOverMid": 7
+      }
+    },
+    {
+      "id": "c-stage",
+      "title": "navigate to the deepest view: stageData, routedSvg and the render",
+      "via": "component",
+      "scalesWith": "all links, onto one view",
+      "sizes": {
+        "s500": {
+          "median": 40.816,
+          "p90": 52.2517
+        },
+        "s2500": {
+          "median": 120.0939,
+          "p90": 149.4342
+        },
+        "s10000": {
+          "median": 290.5004,
+          "p90": 329.0478
+        }
+      },
+      "ratios": {
+        "midOverSmall": 2.942,
+        "largeOverMid": 2.419
+      },
+      "bounds": {
+        "midOverSmall": 7,
+        "largeOverMid": 6
+      }
+    },
+    {
+      "id": "c-hover",
+      "title": "hover one card in the deepest view: stageRels, routedSvg and the render",
+      "via": "component",
+      "scalesWith": "cards and wires in one view",
+      "sizes": {
+        "s500": {
+          "median": 40.5125,
+          "p90": 47.0187
+        },
+        "s2500": {
+          "median": 63.9889,
+          "p90": 68.4521
+        },
+        "s10000": {
+          "median": 97.0631,
+          "p90": 112.0359
+        }
+      },
+      "ratios": {
+        "midOverSmall": 1.579,
+        "largeOverMid": 1.517
+      },
+      "bounds": {
+        "midOverSmall": 4.5,
+        "largeOverMid": 4.5
+      }
+    },
+    {
+      "id": "c-select",
+      "title": "select one symbol with the blast radius on: both radius walks, their projection and the render",
+      "via": "component",
+      "scalesWith": "whole model",
+      "sizes": {
+        "s500": {
+          "median": 63.6148,
+          "p90": 73.6658
+        },
+        "s2500": {
+          "median": 120.5846,
+          "p90": 139.064
+        },
+        "s10000": {
+          "median": 265.1054,
+          "p90": 361.0893
+        }
+      },
+      "ratios": {
+        "midOverSmall": 1.896,
+        "largeOverMid": 2.199
+      },
+      "bounds": {
+        "midOverSmall": 5,
+        "largeOverMid": 6.5
+      }
+    },
+    {
+      "id": "c-lazy-merge",
+      "title": "resolve one lazy file in the folder view: the model is merged, sanitized, collapsed and staged again",
+      "via": "component",
+      "scalesWith": "whole model",
+      "sizes": {
+        "s500": {
+          "median": 60.6943,
+          "p90": 68.1903
+        },
+        "s2500": {
+          "median": 176.2184,
+          "p90": 188.7535
+        },
+        "s10000": {
+          "median": 499.8711,
+          "p90": 576.0461
+        }
+      },
+      "ratios": {
+        "midOverSmall": 2.903,
+        "largeOverMid": 2.837
+      },
+      "bounds": {
+        "midOverSmall": 7,
+        "largeOverMid": 8
+      }
+    },
+    {
+      "id": "c-go-to",
+      "title": "one Go-To query in the open palette: the search over the built index and the result list render",
+      "via": "component",
+      "scalesWith": "whole model",
+      "sizes": {
+        "s500": {
+          "median": 6.9277,
+          "p90": 13.0234
+        },
+        "s2500": {
+          "median": 17.9115,
+          "p90": 29.3226
+        },
+        "s10000": {
+          "median": 30.6706,
+          "p90": 37.5269
+        }
+      },
+      "ratios": {
+        "midOverSmall": 2.586,
+        "largeOverMid": 1.712
+      },
+      "bounds": {
+        "midOverSmall": 7,
+        "largeOverMid": 5.5
+      }
+    }
+  ]
+}
