@@ -7,6 +7,7 @@ import type { TuxMapLevelModel } from "./tuxArchitectureMap";
  * @public
  */
 export const DEFAULT_TTI_LEVEL_MODEL: TuxMapLevelModel = {
+  schema: "tux-map/1",
   generatedAt: "2026-10-28T10:30:00Z",
   issueBaseUrl: "https://github.com/ttitamu/tti-ux/issues",
   sourceBaseUrl: "https://github.com/ttitamu/tti-ux/blob/main",

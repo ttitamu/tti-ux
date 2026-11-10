@@ -18,6 +18,17 @@ conventions.
 
 ## [Unreleased]
 
+### Added — the architecture model names its schema (#162)
+
+- **`schema: "tux-map/1"` on `TuxMapLevelModel`**, optional, and the name exported as `TUX_MAP_SCHEMA` (type `TuxMapSchemaName`) from `@tti/tti-ux-diagrams/runtime/tuxArchitectureMap`. A producer writes exactly that string at the top level of the level model.
+- `normalizeArchitectureModelInput()` stamps the name on the level model it returns, whichever of its three input shapes it was given. A level model that already names a different schema keeps that name.
+- `validateMapModel()` (and so `sanitizeMapModel().validation`) returns a new `warnings` array beside `issues`: `missing-schema` when a level model has no `schema`, `unknown-schema` when it has another value. Warnings do not change `valid`, and the model renders as before. `TuxMapValidationIssueCode` gains those two codes; they appear only in `warnings`.
+- `<TuxArchitectureMap>` writes each schema warning to the console once per `model` object. Nothing is drawn for it.
+- `EMPTY_TTI_LEVEL_MODEL`, `DEFAULT_TTI_LEVEL_MODEL` and the result of `buildLevelModelFromLegacyNodes()` carry the name.
+- The diagrams README documents the three accepted document shapes and which one is canonical.
+
+**To check when upgrading:** a host that passes a level model with no `schema` gets one `console.warn` per model object; add `"schema": "tux-map/1"` where the document is produced, or pass it through `normalizeArchitectureModelInput()`. Code that builds a `TuxMapValidationResult` by hand must add `warnings: []`.
+
 ### Changed — TUX says it is beta (#152)
 
 - The READMEs, every package description, the docs site (a Beta badge in the header, the home, install, getting-started and changelog pages) and this file now say that TUX is beta, what that means for an upgrade, and that Live is a declaration and not a version number.
