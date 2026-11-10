@@ -1,0 +1,362 @@
+/**
+ * Architecture-map benchmark, utils half (`tti/tti-ux#153`): the exported
+ * functions of `tuxArchitectureMap.ts` timed on synthetic repositories of
+ * about 500, 2,500 and 10,000 symbols. The component half, which times the
+ * same steps through the mounted component (its `stageData` and `routedSvg`
+ * computeds are not reachable from here), is
+ * `tests/components/tux-architecture-map-bench.nuxt.test.ts` at the repo root.
+ *
+ * Every assertion is a ratio between two sizes; see `support/mapBench.ts`.
+ * `npm run bench:map` runs both halves and prints the milliseconds.
+ */
+import { afterAll, describe, expect, it } from "vitest";
+import {
+  buildMapParentIndex,
+  buildMapSearchIndex,
+  collapseModelSubgraphs,
+  computeLinkBlastRadius,
+  extractModelLinks,
+  foldVendoredCopies,
+  levelForFocus,
+  liftLinksToView,
+  liftToSet,
+  resolveModelRawLinks,
+  routeGridWires,
+  sanitizeMapModel,
+  searchArchitectureMap,
+  validateMapModel,
+  type TuxMapLevelModel,
+  type TuxMapLevelRel,
+  type TuxMapLink,
+} from "../app/utils/tuxArchitectureMap";
+import {
+  MAP_BENCH_SIZES,
+  describeScenario,
+  flushScenarioResults,
+  mapBenchModels,
+  measureReference,
+  runScenario,
+  type BenchCase,
+  type BenchStat,
+  type MapBenchSizeKey,
+  type ScenarioSpec,
+} from "./support/mapBench";
+import { buildSyntheticMapModel, layoutDenseView, type SyntheticMap } from "./support/mapSyntheticModels";
+
+const PROD_WIRES = new Set(["prod"] as const);
+/** Three measurement rounds of the slowest scenario on a runner several times slower than a laptop. */
+const GATE_TIMEOUT_MS = 180_000;
+
+/** What the component holds once a model is loaded: the same calls, in the same order. */
+function prepare(g: SyntheticMap) {
+  const sanitized = sanitizeMapModel(g.model);
+  const collapsed = collapseModelSubgraphs(sanitized.model);
+  const model = collapsed.model;
+  const parentOf = buildMapParentIndex(model);
+  const alias = (id: string) => collapsed.aliases[id] ?? id;
+  return {
+    g,
+    model,
+    parentOf,
+    rawLinks: resolveModelRawLinks(model),
+    effectiveLinks: extractModelLinks(model, { includePlanned: false, bridgeUncoveredPairs: true }),
+    fileId: alias(g.focus.fileId),
+    folderId: alias(g.focus.folderId),
+    symbolId: alias(g.focus.symbolId),
+    searchIndex: buildMapSearchIndex(model),
+  };
+}
+type Prepared = ReturnType<typeof prepare>;
+
+/**
+ * The link half of the component's `stageData` for one code view: fold vendored
+ * copies, find which inner pairs the code links cover, lift every link onto
+ * the view (lowest-common-ancestor roll-up, 12 outside cards a side).
+ */
+function liftView(model: TuxMapLevelModel, rawLinks: TuxMapLink[], parentOf: Map<string, string>, focusId: string) {
+  const sg = model.subgraphs?.[focusId];
+  const baseKids = (sg?.elements ?? []).map((k) => ({ ...k, parent: focusId }));
+  const folded = foldVendoredCopies(baseKids, sg?.rels ?? [], rawLinks);
+  const kidIds = folded.elements.map((k) => k.id);
+  const kidIdSet = new Set(kidIds);
+  const covered = new Set<string>();
+  for (const l of folded.links) {
+    const lf = liftToSet(l.from, kidIdSet, parentOf);
+    const lt = liftToSet(l.to, kidIdSet, parentOf);
+    if (lf && lt && lf !== lt) covered.add(`${lf}\u0000${lt}`);
+  }
+  const lifted = liftLinksToView(folded.links, focusId, kidIds, parentOf, {
+    lift: "lca",
+    categories: PROD_WIRES,
+    maxPerSide: 12,
+  });
+  return { kids: folded.elements, lifted, covered };
+}
+type LiftedView = ReturnType<typeof liftView>;
+
+/** Card rectangles for the lifted view, four columns as the component's banded layout uses. */
+function layoutView(view: LiftedView) {
+  return layoutDenseView({
+    inner: view.kids.map((k) => ({ id: k.id, name: k.name ?? k.id })),
+    ins: view.lifted.ins.map((s) => ({ id: s.id, name: s.id })),
+    outs: view.lifted.outs.map((s) => ({ id: s.id, name: s.id })),
+    cols: 4,
+  });
+}
+
+/**
+ * The wires of the view, as the component's `stageRels` hands them to the
+ * router. At rest an outside card has one wire, to the view's boundary. With a
+ * card hovered or selected, every outside card that touches it opens into one
+ * wire per inner card it reaches.
+ */
+function viewRels(view: LiftedView, activeId?: string): TuxMapLevelRel[] {
+  const rels: TuxMapLevelRel[] = [...view.lifted.rels];
+  const side = (s: LiftedView["lifted"]["ins"][number], inbound: boolean) => {
+    if (activeId && (s.id === activeId || s.wires.some((w) => w.kid === activeId))) {
+      for (const w of s.wires) {
+        rels.push(inbound ? { from: s.id, to: w.kid, label: w.label } : { from: w.kid, to: s.id, label: w.label });
+      }
+    } else {
+      const label = `${s.count} ${s.count === 1 ? "link" : "links"}`;
+      rels.push(inbound ? { from: s.id, to: "@bound", label } : { from: "@bound", to: s.id, label });
+    }
+  };
+  for (const s of view.lifted.ins) side(s, true);
+  for (const s of view.lifted.outs) side(s, false);
+  return rels;
+}
+
+function perSize(make: (p: Prepared, key: MapBenchSizeKey) => BenchCase, prepared: Record<MapBenchSizeKey, Prepared>) {
+  const out = {} as Record<MapBenchSizeKey, BenchCase>;
+  for (const s of MAP_BENCH_SIZES) out[s.key] = make(prepared[s.key], s.key);
+  return out;
+}
+
+describe("architecture map benchmark: utils (#153)", () => {
+  const models = mapBenchModels();
+  const prepared = {} as Record<MapBenchSizeKey, Prepared>;
+  for (const s of MAP_BENCH_SIZES) prepared[s.key] = prepare(models[s.key]);
+  let reference: BenchStat | null = null;
+  let sink = 0;
+
+  afterAll(() => {
+    flushScenarioResults("utils", { reference });
+    expect(sink).toBeGreaterThan(0);
+  });
+
+  const gate = (spec: Omit<ScenarioSpec, "via" | "cases"> & { make: (p: Prepared, key: MapBenchSizeKey) => BenchCase }) =>
+    it(
+      `${spec.id}: ${spec.title}`,
+      async () => {
+        const { make, ...rest } = spec;
+        const r = await runScenario({ ...rest, via: "utils", cases: perSize(make, prepared) });
+        expect(r.ratios.midOverSmall, describeScenario(r)).toBeLessThanOrEqual(r.bounds.midOverSmall);
+        expect(r.ratios.largeOverMid, describeScenario(r)).toBeLessThanOrEqual(r.bounds.largeOverMid);
+      },
+      GATE_TIMEOUT_MS,
+    );
+
+  it("generates the same valid model for the same seed, at about the size asked for", () => {
+    for (const s of MAP_BENCH_SIZES) {
+      const g = models[s.key];
+      const again = buildSyntheticMapModel({ symbols: s.symbols, cardsPerView: s.cardsPerView });
+      expect(JSON.stringify(again), `${s.label} symbols: deterministic`).toBe(JSON.stringify(g));
+      const v = validateMapModel(g.model);
+      expect(v.issues, `${s.label} symbols: valid`).toEqual([]);
+      expect(v.valid).toBe(true);
+      expect(Math.abs(g.counts.symbols - s.symbols) / s.symbols, `${s.label} symbols: within 10%`).toBeLessThan(0.1);
+      // 2 to 5 links per symbol, plus file imports
+      const perSymbol = g.counts.links / g.counts.symbols;
+      expect(perSymbol).toBeGreaterThan(2);
+      expect(perSymbol).toBeLessThan(5);
+
+      // The views the scenarios open hold `cardsPerView` cards, and survive sanitizing and collapsing
+      const p = prepared[s.key];
+      expect(p.model.subgraphs?.[p.fileId]?.elements.length, `${s.label}: symbols in the hot file`).toBe(s.cardsPerView);
+      expect(p.model.subgraphs?.[p.folderId]?.elements.length, `${s.label}: files in the hot folder`).toBe(s.cardsPerView);
+      expect(levelForFocus(p.fileId, p.model, p.parentOf)).toBeGreaterThanOrEqual(6);
+      expect(Object.keys(collapseModelSubgraphs(sanitizeMapModel(g.model).model).aliases).length).toBeGreaterThan(0);
+      // Lazy files hold nothing until resolved
+      expect(g.model.subgraphs?.[g.focus.lazyFileId]).toBeUndefined();
+      expect(g.lazySubgraphs[g.focus.lazyRef]?.elements.length).toBe(s.cardsPerView);
+      // The selection has dependents, and every Go-To query has a hit
+      const blast = computeLinkBlastRadius(p.effectiveLinks, p.symbolId, p.parentOf, { model: p.model });
+      expect(blast.hits.size, `${s.label}: blast radius of the selection`).toBeGreaterThan(0);
+      for (const q of g.queries) {
+        expect(searchArchitectureMap(p.searchIndex, q).totalHits, `${s.label}: hits for "${q}"`).toBeGreaterThan(0);
+      }
+      // The deepest view: about two wires a card inside, and outside cards that open on the selection
+      const view = liftView(p.model, p.rawLinks, p.parentOf, p.fileId);
+      expect(view.lifted.rels.length, `${s.label}: inner wires`).toBeGreaterThanOrEqual(s.cardsPerView);
+      expect(view.lifted.ins.length, `${s.label}: outside cards`).toBeGreaterThan(0);
+      expect(viewRels(view, p.symbolId).length, `${s.label}: wires opened by the hover`).toBeGreaterThan(
+        viewRels(view).length,
+      );
+    }
+  });
+
+  it("times the reference workload", async () => {
+    reference = await measureReference();
+    expect(reference.median).toBeGreaterThan(0);
+  });
+
+  // ── The pipeline, whole and by stage ───────────────────────────────────────
+
+  gate({
+    id: "pipeline",
+    title: "sanitize, collapse, parent index, links, lift the deepest view, route it",
+    scalesWith: "whole model, then one view",
+    bounds: [10, 9],
+    make: (p) => ({
+      run: () => {
+        const sanitized = sanitizeMapModel(p.g.model);
+        const collapsed = collapseModelSubgraphs(sanitized.model);
+        const parentOf = buildMapParentIndex(collapsed.model);
+        const rawLinks = resolveModelRawLinks(collapsed.model);
+        const view = liftView(collapsed.model, rawLinks, parentOf, p.fileId);
+        const { rects, els } = layoutView(view);
+        sink += routeGridWires(viewRels(view), rects, els).wires.length + 1;
+      },
+    }),
+  });
+
+  gate({
+    id: "sanitize",
+    title: "sanitizeMapModel",
+    scalesWith: "whole model",
+    bounds: [12, 12],
+    make: (p) => ({ run: () => void (sink += Object.keys(sanitizeMapModel(p.g.model).model.level3).length) }),
+  });
+
+  gate({
+    id: "collapse",
+    title: "collapseModelSubgraphs",
+    scalesWith: "whole model",
+    bounds: [12, 12],
+    make: (p) => {
+      const sanitized = sanitizeMapModel(p.g.model).model;
+      return { run: () => void (sink += Object.keys(collapseModelSubgraphs(sanitized).aliases).length) };
+    },
+  });
+
+  gate({
+    id: "parent-index",
+    title: "buildMapParentIndex",
+    scalesWith: "whole model",
+    bounds: [12, 12],
+    make: (p) => ({ run: () => void (sink += buildMapParentIndex(p.model).size) }),
+  });
+
+  gate({
+    id: "links",
+    title: "extractModelLinks (the links the blast radius walks)",
+    scalesWith: "whole model",
+    bounds: [13, 12],
+    make: (p) => ({
+      run: () =>
+        void (sink += extractModelLinks(p.model, { includePlanned: false, bridgeUncoveredPairs: true }).length),
+    }),
+  });
+
+  gate({
+    id: "lift-view",
+    title: "fold copies and liftLinksToView for the deepest view",
+    scalesWith: "all links, onto one view",
+    bounds: [12, 10],
+    make: (p) => ({
+      run: () => void (sink += liftView(p.model, p.rawLinks, p.parentOf, p.fileId).lifted.rels.length + 1),
+    }),
+  });
+
+  gate({
+    id: "route",
+    title: "routeGridWires for the deepest view at rest",
+    scalesWith: "cards and wires in one view",
+    bounds: [8, 6],
+    make: (p) => {
+      const view = liftView(p.model, p.rawLinks, p.parentOf, p.fileId);
+      const { rects, els } = layoutView(view);
+      const rels = viewRels(view);
+      return { run: () => void (sink += routeGridWires(rels, rects, els).wires.length + 1) };
+    },
+  });
+
+  // ── One interaction each ───────────────────────────────────────────────────
+
+  gate({
+    id: "hover",
+    title: "re-route the deepest view for one hovered card",
+    scalesWith: "cards in one view",
+    bounds: [4, 4.5],
+    make: (p) => {
+      const view = liftView(p.model, p.rawLinks, p.parentOf, p.fileId);
+      const { rects, els } = layoutView(view);
+      const rels = viewRels(view, p.symbolId);
+      return { run: () => void (sink += routeGridWires(rels, rects, els).wires.length + 1) };
+    },
+  });
+
+  gate({
+    id: "selection",
+    title: "computeLinkBlastRadius for one selected symbol (unfiltered, then by kind)",
+    scalesWith: "whole model",
+    bounds: [13, 12],
+    make: (p) => {
+      const kinds = new Set(p.effectiveLinks.map((l) => l.kind || "uses"));
+      return {
+        run: () => {
+          const base = computeLinkBlastRadius(p.effectiveLinks, p.symbolId, p.parentOf, {
+            model: p.model,
+            intent: "default",
+          });
+          const filtered = computeLinkBlastRadius(p.effectiveLinks, p.symbolId, p.parentOf, {
+            model: p.model,
+            intent: "default",
+            kinds,
+          });
+          sink += base.hits.size + filtered.hits.size + 1;
+        },
+      };
+    },
+  });
+
+  gate({
+    id: "lazy-merge",
+    title: "merge one resolved subgraph: sanitize, collapse and index the model again",
+    scalesWith: "whole model",
+    bounds: [12, 12],
+    make: (p) => {
+      const merged = {
+        ...p.g.model,
+        subgraphs: { ...p.g.model.subgraphs, [p.g.focus.lazyRef]: p.g.lazySubgraphs[p.g.focus.lazyRef]! },
+      };
+      return {
+        run: () => {
+          const collapsed = collapseModelSubgraphs(sanitizeMapModel(merged).model);
+          sink += buildMapParentIndex(collapsed.model).size;
+        },
+      };
+    },
+  });
+
+  gate({
+    id: "search-index",
+    title: "buildMapSearchIndex",
+    scalesWith: "whole model",
+    bounds: [12, 11],
+    make: (p) => ({ run: () => void (sink += buildMapSearchIndex(p.model).length) }),
+  });
+
+  gate({
+    id: "go-to",
+    title: "searchArchitectureMap, four queries over the built index",
+    scalesWith: "whole model",
+    bounds: [14, 10],
+    make: (p) => ({
+      run: () => {
+        for (const q of p.g.queries) sink += searchArchitectureMap(p.searchIndex, q).totalHits;
+      },
+    }),
+  });
+});
