@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMapSample.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 509085b37733502f87d32ec0c3bed39c63c0ddb50b0c93bdd13fff60f608a15e
+// SOURCE-SHA256: 44ad697a2c5dd6faaace7f28e5f650a49a3ace7fdbf924e7a89614a452e5e497
 export const DEFAULT_TTI_LEVEL_MODEL = {
     generatedAt: "2026-10-28T10:30:00Z",
     issueBaseUrl: "https://github.com/ttitamu/tti-ux/issues",
