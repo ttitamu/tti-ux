@@ -230,7 +230,7 @@ const releases = [
   {
     version: "v3.12.0",
     title: "Architecture Map Wayfinding, LCA Lifting & Lazy Subgraphs",
-    era: "M.A.P. v3.12 · Wire Inspector, LCA Outside Lifting, Rule Violations & Lazy Zoom",
+    era: "Architecture map · Wire Inspector, LCA Outside Lifting, Rule Violations & Lazy Zoom",
     badge: "Current",
     badgeClass: "bg-wash-brand-12 text-brand-primary border border-brand-primary/20",
     route: "/",
@@ -239,7 +239,7 @@ const releases = [
     version: "v3.11.0",
     title: "Telemetry, Rate Cards & Chargeback",
     era: "Unified Ops & Settlement · 8 Metering, SLI, Audit & Statement Primitives",
-    badge: "Stable",
+    badge: "Earlier",
     badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
     route: "/changelog#_3110-2026-11-05",
   },
@@ -247,7 +247,7 @@ const releases = [
     version: "v3.10.0",
     title: "Resource Governance & Reconciliation",
     era: "Operational Attribution · 19 Agnostic Primitives & Multi-Party Signoff",
-    badge: "Stable",
+    badge: "Earlier",
     badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
     route: "/changelog#_3100-2026-10-29",
   },
@@ -255,7 +255,7 @@ const releases = [
     version: "v3.9.1",
     title: "Architecture Map AAA & Blast Radius",
     era: "Diagrams & Code Links · Mobile Magnify, Reduced Motion & Safe Links",
-    badge: "Stable",
+    badge: "Earlier",
     badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
     route: "/changelog#_391-2026-10-29",
   },
@@ -263,7 +263,7 @@ const releases = [
     version: "v3.0.1",
     title: "Editorial Polish & Navigation",
     era: "Modern Marcom Rebrand · Numberless Nav & Smooth Accordions",
-    badge: "Stable",
+    badge: "Earlier",
     badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
     route: "/changelog#_301",
   },
@@ -271,7 +271,7 @@ const releases = [
     version: "v3.0.0",
     title: "Comm Rebrand & Tokens",
     era: "Modern Marcom Rebrand · 5-Band Spectrum & Sharp Geometry",
-    badge: "Stable",
+    badge: "Earlier",
     badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
     route: "/changelog#_300-2026-10-01",
   },
@@ -279,7 +279,7 @@ const releases = [
     version: "v2.2.0",
     title: "Batch M Visualizations",
     era: "Batch M Era · Maroon & Gold Keylines with Rounded Geometry",
-    badge: "LTS",
+    badge: "Archive",
     badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
     route: "/changelog#220",
   },
@@ -287,7 +287,7 @@ const releases = [
     version: "v2.1.0",
     title: "Ops Board & Telemetry",
     era: "Operational Telemetry Era · High-Density CRT & Emerald Accents",
-    badge: "Stable",
+    badge: "Earlier",
     badgeClass: "bg-surface-sunken text-text-muted border border-surface-border",
     route: "/changelog#210",
   },
@@ -1680,6 +1680,17 @@ useTuxVisionPrefs();
               href="/"
               :logo-size="32"
             />
+            <!-- TUX is beta, all of it. The badge is the system's own
+                 TuxBadge and stays visible at every width; it links to
+                 what beta means for an installer. -->
+            <NuxtLink
+              to="/install#beta"
+              class="tux-beta-badge shrink-0 no-underline focus-visible:outline-2 focus-visible:outline-brand-primary"
+              aria-label="TUX is beta: what that means"
+              title="TUX is beta: a minor release may change behavior or remove a deprecated name"
+            >
+              <TuxBadge tone="warning" label="Beta" uppercase />
+            </NuxtLink>
             <!-- Version Switcher Dropdown -->
             <div ref="versionDropdownRef" class="relative hidden sm:inline-block shrink-0">
               <button
@@ -1721,7 +1732,7 @@ useTuxVisionPrefs();
                 >
                   <div class="px-3 py-1.5 border-b border-surface-border text-[10px] font-mono uppercase tracking-widest text-text-muted flex items-center justify-between">
                     <span>TUX Release History</span>
-                    <span class="text-brand-primary font-bold">SemVer 2.0</span>
+                    <span class="text-brand-primary font-bold">Beta · 3.x</span>
                   </div>
 
                   <div class="py-1">

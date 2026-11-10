@@ -5,8 +5,8 @@
 > **Corridor Ops** (ux.tti.tamu.edu), **TTI Code**
 > (code.tti.tamu.edu), the **TUX docs site**, and **TTI AI Studio**
 > (Tauri desktop) — plus the satellite consumers (TTI docs platform,
-> Power BI reporting, external collaboration stacks). The original v4
-> plan document was authored in-session on 2026-07-28 and reviewed
+> Power BI reporting, external collaboration stacks). The fourth draft
+> of the plan was authored in-session on 2026-07-28 and reviewed
 > through seven lenses; this file is its permanent, public-safe home.
 > Ratified decisions below are **law** unless a dated amendment
 > supersedes them.
