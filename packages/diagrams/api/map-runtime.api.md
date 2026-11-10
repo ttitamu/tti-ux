@@ -10,11 +10,11 @@ they stay importable, and they may change or go away in any release without noti
 
 ## `@tti/tti-ux-diagrams/runtime/tuxArchitectureMap`
 
-114 public, 41 internal.
+116 public, 41 internal.
 
-### Public (114)
+### Public (116)
 
-#### Constants (8)
+#### Constants (9)
 
 ##### `EMPTY_TTI_LEVEL_MODEL`
 
@@ -68,6 +68,12 @@ export declare const TUX_MAP_LINK_STRENGTH_ORDER: readonly [
 
 ```ts
 export declare const TUX_MAP_QUIET_LINK_KINDS: ReadonlySet<string>;
+```
+
+##### `TUX_MAP_SCHEMA`
+
+```ts
+export declare const TUX_MAP_SCHEMA: "tux-map/1";
 ```
 
 ##### `TUX_MAP_SEARCH_GROUPS`
@@ -960,6 +966,7 @@ export interface TuxMapLevelElement {
 
 ```ts
 export interface TuxMapLevelModel {
+    schema?: TuxMapSchemaName;
     generatedAt?: string;
     issueBaseUrl?: string;
     sourceBaseUrl?: string;
@@ -1338,6 +1345,7 @@ export interface TuxMapValidationIssue {
 export interface TuxMapValidationResult {
     valid: boolean;
     issues: TuxMapValidationIssue[];
+    warnings: TuxMapValidationIssue[];
     duplicateIds: string[];
     cycleIds: string[];
     unknownEnds: string[];
@@ -1409,7 +1417,7 @@ export interface TuxMapZone {
 }
 ```
 
-#### Type aliases (16)
+#### Type aliases (17)
 
 ##### `TuxMapBlastIntent`
 
@@ -1480,6 +1488,12 @@ export type TuxMapResource = TuxMapPersonResource | TuxMapComputeResource;
 export type TuxMapResourceKind = "person" | "vm" | "container" | "database" | "storage" | "gateway";
 ```
 
+##### `TuxMapSchemaName`
+
+```ts
+export type TuxMapSchemaName = typeof TUX_MAP_SCHEMA;
+```
+
 ##### `TuxMapSearchGroup`
 
 ```ts
@@ -1501,7 +1515,7 @@ export type TuxMapTool = "select" | "pan" | "pen" | "laser" | "note";
 ##### `TuxMapValidationIssueCode`
 
 ```ts
-export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "reserved-id" | "parent-cycle" | "max-depth-exceeded" | "unknown-link-end" | "unknown-rel-end" | "resolved-empty-subgraph";
+export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "reserved-id" | "parent-cycle" | "max-depth-exceeded" | "unknown-link-end" | "unknown-rel-end" | "resolved-empty-subgraph" | "missing-schema" | "unknown-schema";
 ```
 
 ##### `TuxMapWireCategory`
