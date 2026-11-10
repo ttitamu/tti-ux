@@ -16,14 +16,14 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { nextTick } from "vue";
 import { mountSuspended } from "@nuxt/test-utils/runtime";
-import TuxArchitectureMap from "../../packages/diagrams/app/components/TuxArchitectureMap.vue";
+import TuxArchitectureMap from "../packages/diagrams/app/components/TuxArchitectureMap.vue";
 import {
   buildMapParentIndex,
   collapseModelSubgraphs,
   levelForFocus,
   sanitizeMapModel,
   type TuxMapSubgraph,
-} from "../../packages/diagrams/app/utils/tuxArchitectureMap";
+} from "../packages/diagrams/app/utils/tuxArchitectureMap";
 import {
   MAP_BENCH_SIZES,
   describeScenario,
@@ -33,8 +33,8 @@ import {
   type BenchCase,
   type MapBenchSizeKey,
   type ScenarioSpec,
-} from "../../packages/diagrams/tests/support/mapBench";
-import type { SyntheticMap } from "../../packages/diagrams/tests/support/mapSyntheticModels";
+} from "../packages/diagrams/tests/support/mapBench";
+import type { SyntheticMap } from "../packages/diagrams/tests/support/mapSyntheticModels";
 
 /** Three measurement rounds of the slowest scenario on a runner several times slower than a laptop. */
 const GATE_TIMEOUT_MS = 600_000;

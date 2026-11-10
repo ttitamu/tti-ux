@@ -16,6 +16,7 @@
  * people to read and are compared by nothing.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
+import { Session } from "node:inspector";
 import { join } from "node:path";
 import { buildSyntheticMapModel, createSeededRandom, type SyntheticMap } from "./mapSyntheticModels";
 
@@ -207,7 +208,39 @@ export async function runScenario(spec: ScenarioSpec): Promise<ScenarioResult> {
   }
   const result = { ...best!, attempts };
   if (spec.record !== false) recorded.push(result);
+  if (process.env.TUX_MAP_BENCH_PROFILE === spec.id) await profileCase(spec.id, spec.cases.s10000);
   return result;
+}
+
+/**
+ * `bench-map.mjs --profile=<scenario>`: a V8 CPU profile of five calls of the
+ * scenario at 10,000 symbols, written beside the results as
+ * `<scenario>.cpuprofile` (open it in a browser's DevTools, Performance tab).
+ * The untimed `reset` between calls is in the profile too.
+ */
+async function profileCase(id: string, c: BenchCase): Promise<void> {
+  const dir = process.env.TUX_MAP_BENCH_OUT;
+  if (!dir) return;
+  const session = new Session();
+  session.connect();
+  const post = <T = unknown>(method: string, params?: object) =>
+    new Promise<T>((resolve, reject) =>
+      session.post(method as never, params as never, (err: Error | null, res: unknown) =>
+        err ? reject(err) : resolve(res as T),
+      ),
+    );
+  await post("Profiler.enable");
+  await post("Profiler.setSamplingInterval", { interval: 100 });
+  await post("Profiler.start");
+  for (let i = 0; i < 5; i++) {
+    const r = c.run();
+    if (r) await r;
+    if (c.reset) await c.reset();
+  }
+  const { profile } = await post<{ profile: unknown }>("Profiler.stop");
+  session.disconnect();
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, `${id}.cpuprofile`), JSON.stringify(profile));
 }
 
 /** One line a failing gate prints: the ratios, their ceilings and the medians behind them. */

@@ -11,7 +11,7 @@
  * and an after.
  *
  *   tests/map-bench.test.ts                                   the exported utils alone
- *   ../../tests/components/tux-architecture-map-bench.nuxt.test.ts   through the mounted component (jsdom)
+ *   ../../tests/tux-architecture-map-bench.nuxt.test.ts   through the mounted component (jsdom)
  *
  * Usage (from the repository root):
  *   npm run bench:map -w @tti/tti-ux-diagrams               both halves, table + JSON
@@ -23,6 +23,8 @@
  *   --utils | --component   one half only
  *   --report                do not run vitest; read <out>/utils.json and <out>/component.json
  *   --record                write tests/support/map-bench.baseline.json from this run (both halves)
+ *   --profile=<scenario>    run that scenario alone and write <out>/<scenario>.cpuprofile: five calls
+ *                           at 10,000 symbols, for DevTools' Performance tab (where the time goes)
  *   --out=<dir>             where the JSON goes (default: <repo>/.cache/map-bench, or $TUX_MAP_BENCH_OUT)
  *
  * Output: <out>/result.json (everything) and <out>/result.md (the table).
@@ -39,7 +41,7 @@ import { fileURLToPath } from "node:url";
 const PKG = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ROOT = path.resolve(PKG, "..", "..");
 const BASELINE = path.join(PKG, "tests", "support", "map-bench.baseline.json");
-const COMPONENT_TEST = "tests/components/tux-architecture-map-bench.nuxt.test.ts";
+const COMPONENT_TEST = "tests/tux-architecture-map-bench.nuxt.test.ts";
 const SIZES = ["s500", "s2500", "s10000"];
 
 const args = process.argv.slice(2);
@@ -50,9 +52,29 @@ const only = flag("utils") ? "utils" : flag("component") ? "component" : null;
 const reportOnly = flag("report");
 const record = flag("record");
 
-if (record && (only || reportOnly)) {
-  console.error("--record needs a full run of both halves: drop --utils, --component and --report.");
+const profile = args.find((a) => a.startsWith("--profile="))?.slice("--profile=".length);
+
+if (record && (only || reportOnly || profile)) {
+  console.error("--record needs a full run of both halves: drop --utils, --component, --report and --profile.");
   process.exit(2);
+}
+
+if (profile) {
+  // Component scenarios are the `c-` ones. `-t` matches the test's name, which starts with the id.
+  const component = profile.startsWith("c-");
+  mkdirSync(OUT, { recursive: true });
+  const res = spawnSync(
+    "npx",
+    ["vitest", "run", component ? COMPONENT_TEST : "tests/map-bench.test.ts", "-t", `${profile}: `],
+    {
+      cwd: component ? ROOT : PKG,
+      stdio: "inherit",
+      env: { ...process.env, TUX_MAP_BENCH_OUT: path.join(OUT, "profile"), TUX_MAP_BENCH_PROFILE: profile },
+    },
+  );
+  const file = path.join(OUT, "profile", `${profile}.cpuprofile`);
+  console.log(existsSync(file) ? `\nProfile written: ${file}` : `\nNo scenario named "${profile}" ran.`);
+  process.exit(res.status ?? 1);
 }
 
 function runVitest(suite, cwd, file) {

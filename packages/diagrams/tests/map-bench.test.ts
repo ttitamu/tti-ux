@@ -4,7 +4,7 @@
  * about 500, 2,500 and 10,000 symbols. The component half, which times the
  * same steps through the mounted component (its `stageData` and `routedSvg`
  * computeds are not reachable from here), is
- * `tests/components/tux-architecture-map-bench.nuxt.test.ts` at the repo root.
+ * `tests/tux-architecture-map-bench.nuxt.test.ts` at the repo root.
  *
  * Every assertion is a ratio between two sizes; see `support/mapBench.ts`.
  * `npm run bench:map` runs both halves and prints the milliseconds.
