@@ -54,7 +54,7 @@ Every runtime export carries `@public` or `@internal` in its TSDoc comment, and 
 
 | Group | Exports |
 |---|---|
-| Model | The `TuxMap*` model types (`TuxMapLevelModel` and what it is made of); `EMPTY_TTI_LEVEL_MODEL`, `DEFAULT_TTI_LEVEL_MODEL` (sample entry); `normalizeArchitectureModelInput()`, `validateMapModel()`, `sanitizeMapModel()`, `collapseModelSubgraphs()`, `buildLevelModelFromLegacyNodes()`, `extractModelLinks()`, `resolveModelRawLinks()` |
+| Model | The `TuxMap*` model types (`TuxMapLevelModel` and what it is made of); `TUX_MAP_SCHEMA`; `EMPTY_TTI_LEVEL_MODEL`, `DEFAULT_TTI_LEVEL_MODEL` (sample entry); `normalizeArchitectureModelInput()`, `validateMapModel()`, `sanitizeMapModel()`, `collapseModelSubgraphs()`, `buildLevelModelFromLegacyNodes()`, `extractModelLinks()`, `resolveModelRawLinks()` |
 | Vocabulary | `TUX_MAP_ELEMENT_KIND_LABELS`, `TUX_MAP_LINK_KIND_LABELS`, `TUX_MAP_LINK_STRENGTH_ORDER`, `TUX_MAP_QUIET_LINK_KINDS`, `TUX_MAP_VALID_BLAST_INTENTS`, `TUX_MAP_WIRE_CATEGORIES`, `plainElementKindLabel()` |
 | Levels | `buildMapParentIndex()`, `levelForFocus()`, `mapAncestorsOf()` |
 | Links and blast radius | `liftLinksToView()`, `computeLinkBlastRadius()`, `classifyBlastLink()`, `inferLinkCoupling()`, `inferLinkPhase()`, `classifyLinkDependencyCategory()`, `filterLinksByCategories()`, `foldVendoredCopies()`, `traceSpreadingPath()` |
@@ -70,6 +70,42 @@ The result and option types of those functions are public with them; the snapsho
 
 Changing the surface on purpose: tag a new export `@public` or `@internal`, then run `npm run build:runtime -w @tti/tti-ux-diagrams` and `npm run build:api -w @tti/tti-ux-diagrams` and commit the regenerated snapshots with the change. `npm test` fails with the list of added, removed and changed names until they match.
 
+## The model document: one canonical form, two accepted for compatibility
+
+`normalizeArchitectureModelInput()` reads three shapes of JSON. One of them is the model; the other two are older documents it converts.
+
+| | Shape | Recognized by | Status |
+|---|---|---|---|
+| (a) | **The level model**, `TuxMapLevelModel`: `level1` to `level4`, optional `subgraphs`, `links`, `linkTiers`, `routes` | not being (b) or (c) | **Canonical.** Carries `"schema": "tux-map/1"` at the top level. |
+| (b) | A site document: `c4` (`context`, `containers`, `components`), deployment `groups` / `nodes` / `links` at the top level, code under `code` | a `c4` object | Accepted for compatibility. |
+| (c) | A bare code graph: `subgraphs` and `links`, no levels | `subgraphs` and none of `level1` to `level4` | Accepted for compatibility. |
+
+A fourth kind of file, a placement config (`rules` and no model), is refused with an error that says what it is.
+
+**The schema name.** A canonical document names its schema in a top-level `schema` field, and the name is exported as `TUX_MAP_SCHEMA`:
+
+```json
+{ "schema": "tux-map/1", "generatedAt": "2026-11-09T00:00:00Z", "level1": { "elements": [], "rels": [] }, "level2": { "boundary": "", "elements": [], "rels": [] }, "level3": {}, "level4": { "groups": [], "nodes": [], "links": [] } }
+```
+
+The field is optional in the type, and nothing about it stops a map from rendering:
+
+- **The normalizer stamps it.** Whatever it is given, (a), (b) or (c), the level model it returns carries `schema: "tux-map/1"`. A site document's own numeric `schema` (for example `2`) is a different field on a different document and is not copied. The caller's object is not written to.
+- **`validateMapModel()` warns when a level model lacks it.** The result has a `warnings` array beside `issues`: `missing-schema` when the field is absent, `unknown-schema` when it holds anything other than `"tux-map/1"` (the message names the value found and the value supported). Warnings never change `valid`, and the document is read as `tux-map/1`, best effort.
+- **An unknown name survives the normalizer.** A level model that says, for example, `"schema": "tux-map/2"` keeps that value through `normalizeArchitectureModelInput()`, so the warning is still there for whoever validates the result. Stamping over it would hide the mismatch at the one place that sees it.
+- **`<TuxArchitectureMap>` reports the warning once.** The component validates the `model` prop as the host passed it, before it changes anything, and writes each schema warning to the console once per model object (`[TuxArchitectureMap] …`). It draws no notice for it.
+
+What a host sees, by what it passes to `model`:
+
+| The host passes | Outcome |
+|---|---|
+| A level model with `"schema": "tux-map/1"`, or the output of `normalizeArchitectureModelInput()` | No warning. |
+| A level model with no `schema` | One console warning (`missing-schema`). It renders as before. |
+| A level model with another `schema` | One console warning (`unknown-schema`). It renders, best effort. |
+| (b) or (c), unconverted | No schema warning: these are not level models, and the name is not theirs to carry. The component does not read them; it shows its "Model diagnostics" note for the missing levels, as it did before. Convert them with `normalizeArchitectureModelInput()` first. |
+| (b) or (c) through `normalizeArchitectureModelInput()` | No warning: the result is a stamped level model. |
+
+To check a file where it is produced, call `validateMapModel()` on the document as written, not on the normalizer's output, which is already stamped.
 
 ## Benchmarking the architecture map
 

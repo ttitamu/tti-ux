@@ -45,6 +45,7 @@ import {
   inferLinkCoupling,
   inferLinkPhase,
   normalizeArchitectureModelInput,
+  TUX_MAP_SCHEMA,
   suggestCloseNodeIds,
   TUX_MAP_ELEMENT_KIND_LABELS,
   TUX_MAP_LINK_KIND_LABELS,
@@ -2271,6 +2272,77 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect(folded.rels).toHaveLength(1);
     expect(folded.rels[0]).toMatchObject({ from: "f:app/main.ts", to: "f:pkg/lib.mjs" });
     expect(folded.foldedToRepresentative.get("f:vendor/lib.mjs")).toBe("f:pkg/lib.mjs");
+  });
+
+  it("names the model's schema: the normalizer stamps each dialect, the validator warns without it (#162)", () => {
+    expect(TUX_MAP_SCHEMA).toBe("tux-map/1");
+    const levels = () => ({
+      level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+      level2: { boundary: "sys", elements: [{ id: "c-a", kind: "container", name: "A" }], rels: [] },
+      level3: {},
+      level4: { groups: [], nodes: [], links: [] },
+    });
+    const codes = (doc: unknown) => validateMapModel(doc).warnings.map((w) => w.code);
+
+    // (a) The canonical level model, unstamped: the validator warns, once, and it is still valid.
+    const bare = validateMapModel(levels());
+    expect(bare.warnings).toHaveLength(1);
+    expect(bare.warnings[0]!.code).toBe("missing-schema");
+    expect(bare.warnings[0]!.message).toContain('"tux-map/1"');
+    expect(bare.valid).toBe(true);
+    expect(bare.issues).toEqual([]);
+    expect(codes({ ...levels(), schema: null })).toEqual(["missing-schema"]);
+    // Stamped: no warning.
+    expect(validateMapModel({ ...levels(), schema: TUX_MAP_SCHEMA }).warnings).toEqual([]);
+    // An unknown name: a warning naming what was found and what is supported; still valid, still sanitized.
+    const future = validateMapModel({ ...levels(), schema: "tux-map/2" });
+    expect(future.warnings.map((w) => w.code)).toEqual(["unknown-schema"]);
+    expect(future.warnings[0]!.message).toContain('"tux-map/2"');
+    expect(future.warnings[0]!.message).toContain('"tux-map/1"');
+    expect(future.valid).toBe(true);
+    expect(sanitizeMapModel({ ...levels(), schema: "tux-map/2" }).model.level2.elements).toHaveLength(1);
+    expect(codes({ ...levels(), schema: 2 })).toEqual(["unknown-schema"]);
+    // sanitizeMapModel hands the same warnings on (it is what the component calls).
+    expect(sanitizeMapModel(levels()).validation.warnings.map((w) => w.code)).toEqual(["missing-schema"]);
+    // Not a level model: no schema warning (the errors say what is wrong).
+    expect(validateMapModel(null).warnings).toEqual([]);
+    expect(codes({})).toEqual([]);
+    expect(codes({ schema: 2, c4: { context: { elements: [], rels: [] } } })).toEqual([]);
+    expect(codes({ subgraphs: {}, links: [] })).toEqual([]);
+
+    // The normalizer stamps all three dialects, and its output validates without a warning.
+    const fromLevels = normalizeArchitectureModelInput(levels());
+    const fromSite = normalizeArchitectureModelInput({
+      schema: 2,
+      c4: {
+        context: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
+        containers: { boundary: "sys", elements: [{ id: "c-a", kind: "container", name: "A" }], rels: [] },
+        components: {},
+      },
+    });
+    const fromCode = normalizeArchitectureModelInput({
+      subgraphs: { "c-a": { stratum: "Files", elements: [{ id: "f:a.py", kind: "file", name: "a.py" }] } },
+      links: [],
+    });
+    for (const out of [fromLevels, fromSite, fromCode]) {
+      expect(out.schema).toBe("tux-map/1");
+      expect(validateMapModel(out).warnings).toEqual([]);
+    }
+    expect(Object.keys(fromLevels)).toContain("schema");
+    // The caller's document is not written to.
+    const mine = levels();
+    normalizeArchitectureModelInput(mine);
+    expect("schema" in mine).toBe(false);
+    // A level model naming another schema keeps the name, so the warning survives the normalizer.
+    const kept = normalizeArchitectureModelInput({ ...levels(), schema: "tux-map/2" });
+    expect((kept as { schema?: string }).schema).toBe("tux-map/2");
+    expect(codes(kept)).toEqual(["unknown-schema"]);
+
+    // What the package itself builds or ships is stamped.
+    expect(EMPTY_TTI_LEVEL_MODEL.schema).toBe(TUX_MAP_SCHEMA);
+    expect(DEFAULT_TTI_LEVEL_MODEL.schema).toBe(TUX_MAP_SCHEMA);
+    expect(buildLevelModelFromLegacyNodes([], []).schema).toBe(TUX_MAP_SCHEMA);
+    expect(validateMapModel(DEFAULT_TTI_LEVEL_MODEL).warnings).toEqual([]);
   });
 
   it("validates, sanitizes, and collapses single-child folders & small-component folders without throwing (#124, #126)", () => {

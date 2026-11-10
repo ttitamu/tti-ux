@@ -309,6 +309,20 @@ const modelValidationSummary = computed<string>(() => {
   return `Model diagnostics: ${critical.length} structural issue${critical.length === 1 ? "" : "s"} sanitized (${critical[0]!.message})`;
 });
 
+// Schema-name warnings (`missing-schema`, `unknown-schema`, #162) go to the console, once per `model` object the
+// host hands in: the validation ran on that object as given, before anything here touched it. They draw nothing
+// and change nothing in the map; a lazily resolved subgraph recomputes `modelBundle` but is the same `model`.
+let schemaWarnedModel: unknown;
+watch(
+  () => modelBundle.value.validation.warnings,
+  (warnings) => {
+    if (props.model === undefined || props.model === schemaWarnedModel) return;
+    schemaWarnedModel = props.model;
+    for (const w of warnings) console.warn(`[TuxArchitectureMap] ${w.message}`);
+  },
+  { immediate: true },
+);
+
 const emptyResolvedSubgraphs = ref<Record<string, boolean>>(Object.create(null));
 watch([() => props.model, () => props.modelRef], () => {
   emptyResolvedSubgraphs.value = Object.create(null);
