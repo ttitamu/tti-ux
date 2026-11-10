@@ -1,11 +1,13 @@
 # @tti/tti-ux-charts
 
+> **Status: Beta.** TUX is beta, and so is this package: a minor release may change behavior or remove a deprecated name, and versions stay on 3.x while the beta lasts. Pin an exact version and read the [changelog](https://code.tti.tamu.edu/tti/tti-ux/src/branch/main/CHANGELOG.md) before you bump it.
+
 Apache ECharts integration, theme generation, and storytelling presets for the Texas A&M Transportation Institute design system (TUX).
 
 ## Installation
 
 ```bash
-npm install @tti/tti-ux @tti/tti-ux-charts
+npm install --save-exact @tti/tti-ux @tti/tti-ux-charts
 ```
 
 ## Nuxt Layer Setup

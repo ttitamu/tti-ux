@@ -32,6 +32,12 @@ const majorReleases = [
       and architecture upgrades across all versions of TUX.
     </TuxPageHeader>
 
+    <TuxAlert variant="warning" title="TUX is beta">
+      Every release on this page is a beta release. A minor release may remove a deprecated name
+      once one release has given notice of it, so read "Changed" and "Deprecated" before you bump.
+      <NuxtLink to="/install#beta" class="link-tti">What beta means for an installer</NuxtLink>.
+    </TuxAlert>
+
     <!-- Quick Milestone Navigation -->
     <div class="p-4 bg-surface-raised border border-surface-border rounded-md space-y-2">
       <p class="text-xs font-semibold text-text-muted uppercase tracking-wider">Major Release Milestones</p>

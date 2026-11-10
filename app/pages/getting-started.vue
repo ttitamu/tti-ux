@@ -243,6 +243,12 @@ const consumeSnippet = [
       </template>
     </TuxPageHeader>
 
+    <TuxAlert variant="warning" title="TUX is beta">
+      A minor release may change behavior or remove a deprecated name, and versions stay on 3.x
+      while the beta lasts. Pin an exact version.
+      <NuxtLink to="/install#beta" class="link-tti">What beta means for an installer</NuxtLink>.
+    </TuxAlert>
+
     <!-- Quick-fact strip — system metrics -->
     <section>
       <TuxFactoid

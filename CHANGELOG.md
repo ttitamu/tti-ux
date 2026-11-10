@@ -1,7 +1,30 @@
 # Changelog
 
 All notable changes to tti-ux. Follows [Keep a Changelog](https://keepachangelog.com/)
-conventions and [Semantic Versioning](https://semver.org/).
+conventions.
+
+> **TUX is beta.** That covers the whole design system: the layer, the
+> sub-layers, the React and Web Component ports, the kits and the
+> architecture map. Versions stay on 3.x for as long as the beta lasts.
+> Version numbers have the shape of [Semantic Versioning](https://semver.org/),
+> but during the beta a minor release may change behavior, and may remove
+> a deprecated name once one release has given notice of it. Each release
+> lists what to check under "Changed" and "Deprecated". Pin an exact
+> version and read this file before you bump it.
+>
+> **Live** is the declaration that ends the beta. It is not a version
+> number. A name marked deprecated is removed no later than the day TUX
+> goes Live.
+
+## [Unreleased]
+
+### Changed — TUX says it is beta (#152)
+
+- The READMEs, every package description, the docs site (a Beta badge in the header, the home, install, getting-started and changelog pages) and this file now say that TUX is beta, what that means for an upgrade, and that Live is a declaration and not a version number.
+- **Registry: a `beta` dist-tag beside `latest`.** From the next publish, each package's newest release holds both tags, so `npm view @tti/tti-ux dist-tags` shows the beta and `npm install @tti/tti-ux@beta` resolves to the newest release. A prerelease can no longer take the `beta` tag (`3.x.y-beta.1` goes to `next`).
+- Deprecated names are "removed when TUX goes Live". No later major is planned, and the notes that named one are reworded, below and in `design/`.
+- New audit, `scripts/audit-release-language.mjs` (`npm run audit:release-language`, and in the root test suite): it fails on text that promises a TUX release beyond the beta or gives the architecture map a version of its own. Third-party versions are untouched.
+- The version menu on the docs site no longer labels earlier releases "Stable" or "LTS". No release of a beta is either.
 
 ## [3.12.0] — 2026-11-07
 
@@ -42,7 +65,7 @@ Everything in this list is `<TuxArchitectureMap>`, its utilities or `tux-mcp`. T
 - The `tux-mcp` bin now runs when installed. In 3.9.1 it did nothing through npm's symlink.
 - Known issue: `--call` output into a pipe can be cut off, usually at 64 KiB. Redirect it to a file instead.
 
-### Deprecated — removal planned for 4.0
+### Deprecated — removed when TUX goes Live
 
 - `queryArchitectureLayer`: use `queryArchitectureNodes`.
 - `queryMultiLevelBlastRadius`: use `queryArchitectureImpact`.
@@ -116,7 +139,7 @@ The three `tux_` names are no longer in `tools/list`. They still answer when cal
 - **Unified Multi-Intent Blast-Radius & Two-Tree Delta Engine (`#110`)**:
   - Replaced divergent panel/diff/query walks with one deterministic contract supporting `coupling` (`contract`, `runtime`, `type-only`, `artifact-stamp`, `build-exec`, `verification`, `prose`), `phase` (`prod-runtime`, `client-bundle`, `build-exec`, `ci-test`, `doc-only`), multi-site `sites: number[]`, `computeGraphDelta(base, head)` (`added`, `deleted`, `moved`, `sig-changed`, `body-patched`, plus `addedWires`, `removedWires` and `danglingWires`), and canonical `packages/diagrams/tests/fixtures/map-conformance.json`.
 - **Section 8 Query Delegates & Legacy Lease Deprecation (`#111`)**:
-  - Delegated Section 8 programmatic graph queries (`queryArchitectureImpact`, `findArchitecturePath`, `queryArchitectureNodes`) to the unified contract with strict dependency-edge path isolation (`depEdgesByFrom` / `depEdgesByTo`) and deprecated legacy single-process in-memory lease helpers cleanly for `4.0`.
+  - Delegated Section 8 programmatic graph queries (`queryArchitectureImpact`, `findArchitecturePath`, `queryArchitectureNodes`) to the unified contract with strict dependency-edge path isolation (`depEdgesByFrom` / `depEdgesByTo`) and deprecated legacy single-process in-memory lease helpers, for removal when TUX goes Live.
 - **Compiled Map Runtime & `< 16 KB` Real-Model `tux-mcp` (`#112`)**:
   - Shipped `@tti/tti-ux-diagrams/runtime/tuxArchitectureMap` (`mjs` + `d.mts`), removed `tux-mcp.mjs`'s hardcoded fictional sample graph, required explicit `--model` / `TUX_MCP_MODEL` on architecture tools, and added paging that keeps default compact tool responses under 16 KB. `compact: false`, an explicit `limit` and the `tux://architecture/c4-graph` resource can be larger; tool responses stop at 256 KiB.
 
@@ -1466,7 +1489,7 @@ Safe for all consumers to pick up immediately.
 ### Added — unification doctrine committed (2026-07-30)
 
 - **`design/unification-plan.md`** — the portal-unification plan's
-  permanent home. The v4 plan document (authored + seven-lens-reviewed
+  permanent home. The fourth draft of the plan (authored + seven-lens-reviewed
   in-session on 2026-07-28) previously lived only in session state; it
   is now reconstructed as public-safe doctrine: the two-shape identity
   rule, one-chrome-many-voices, registry law, distribution artifacts,

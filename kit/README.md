@@ -1,5 +1,10 @@
 # tux CSS kit
 
+> **Status: Beta.** TUX is beta, and so is this kit: a minor release may
+> change behavior or remove a deprecated name, and versions stay on 3.x while
+> the beta lasts. Pin an exact version and read the
+> [changelog](../CHANGELOG.md) before you bump it.
+
 Framework-neutral, drop-in TTI brand styling for apps that **aren't** (yet) on
 Nuxt/Vue. This is the "dogfood the visuals" layer from
 [ADR-0012](../docs/adr/0012-cross-framework-distribution-via-web-components.md):

@@ -377,7 +377,8 @@ only highlights the ones with the easiest-to-miss names.
 Ratified 2026-08-19 after a full-catalog vocabulary audit. `TuxBadge`
 and `TuxSkeleton` are the reference implementations. New components
 MUST use these words with these meanings; deviations listed below are
-grandfathered until the next major.
+grandfathered while TUX is beta and are renamed or removed no later
+than the day TUX goes Live.
 
 | Word | Means | Value shape | Reference |
 |---|---|---|---|

@@ -351,6 +351,13 @@ const ecosystemTargets = [
               engineering toolkit for the Texas A&amp;M Transportation Institute — powering research publications, traffic
               telemetry dashboards, and public web portals across 13 runtimes.
             </p>
+            <p class="text-sm text-text-secondary max-w-xl flex flex-wrap items-center gap-2">
+              <TuxBadge tone="warning" label="Beta" uppercase />
+              <span>
+                TUX is beta: a minor release may change behavior or remove a deprecated name.
+                <NuxtLink to="/install#beta" class="link-tti">What that means</NuxtLink>.
+              </span>
+            </p>
 
             <!-- Developer DX Quick Install Box -->
             <div class="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-xl">
@@ -671,7 +678,7 @@ const ecosystemTargets = [
             The Complete TTI-UX Component Arsenal
           </h2>
           <p class="mt-2 text-sm sm:text-base text-text-secondary max-w-3xl leading-relaxed">
-            189 production-ready components organized across 8 engineering families. Every component adheres to
+            189 components, in beta, organized across 8 engineering families. Every component adheres to
             tokenized styling, responsive geometry, keyboard accessibility, and 100% WCAG 2.2 Level AAA compliance.
           </p>
         </div>

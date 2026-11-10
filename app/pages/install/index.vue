@@ -102,7 +102,7 @@ const targets: Target[] = [
   },
 ];
 
-const nuxtInstallCode = `npm install @tti/tti-ux`;
+const nuxtInstallCode = `npm install --save-exact @tti/tti-ux`;
 const nuxtConfigCode = `// nuxt.config.ts
 export default defineNuxtConfig({
   extends: ["@tti/tti-ux"],
@@ -122,6 +122,29 @@ const cssInstallCode = `<!-- Add to <head> of any web page -->
       Applications can extend the full Nuxt 4 layer or consume standalone stylesheets,
       React packages, .NET libraries, WordPress plugins, or Power BI themes.
     </TuxPageHeader>
+
+    <!-- TUX is beta: say so before the first install command. -->
+    <section id="beta" class="space-y-3 scroll-mt-24">
+      <TuxAlert variant="warning" title="TUX is beta">
+        All of TUX is beta: the layer, the sub-layers, the React and Web Component ports, the
+        kits and the architecture map. Versions stay on 3.x while the beta lasts, and a minor
+        release may change behavior or remove a deprecated name once one release has given
+        notice of it. Pin an exact version and read the
+        <NuxtLink to="/changelog" class="link-tti">changelog</NuxtLink> before you bump it.
+      </TuxAlert>
+      <ul class="text-sm text-text-secondary list-disc pl-5 space-y-1">
+        <li>
+          The registry carries a <code>beta</code> dist-tag beside <code>latest</code>. Both name the
+          newest release, so <code>npm view @tti/tti-ux dist-tags</code> shows the status.
+        </li>
+        <li>
+          Live is a declaration, not a version number. When TUX meets its Live criteria the
+          maintainers say so, the beta notices go away, and the names still marked deprecated
+          are removed.
+        </li>
+        <li>The architecture map ships inside TUX and has no version of its own.</li>
+      </ul>
+    </section>
 
     <!-- Quick Start: Primary Nuxt 4 Installation -->
     <section class="space-y-4">
