@@ -1,13 +1,13 @@
 {
   "schema": 1,
-  "recorded": "2026-11-10T00:06:49.134Z",
+  "recorded": "2026-11-10T00:33:12.414Z",
   "machine": {
     "node": "v26.0.0",
     "platform": "darwin arm64",
     "cpu": "Apple M5 Max",
     "cores": 18
   },
-  "commit": "bedbae4",
+  "commit": "ef49452",
   "note": "Milliseconds per call: median and 90th percentile of 9 samples after a warm-up. The component half runs in jsdom. Nothing compares these numbers; the gate reads the ratios.",
   "models": {
     "s500": {
@@ -63,8 +63,8 @@
     }
   },
   "reference": {
-    "median": 7.1717,
-    "p90": 8.9434
+    "median": 5.8596,
+    "p90": 7.9648
   },
   "scenarios": [
     {
@@ -74,21 +74,21 @@
       "scalesWith": "whole model, then one view",
       "sizes": {
         "s500": {
-          "median": 7.5701,
-          "p90": 8.5776
+          "median": 6.1332,
+          "p90": 6.854
         },
         "s2500": {
-          "median": 28.9406,
-          "p90": 33.4238
+          "median": 26.503,
+          "p90": 27.5832
         },
         "s10000": {
-          "median": 104.531,
-          "p90": 126.6857
+          "median": 93.9134,
+          "p90": 99.3505
         }
       },
       "ratios": {
-        "midOverSmall": 3.823,
-        "largeOverMid": 3.612
+        "midOverSmall": 4.321,
+        "largeOverMid": 3.544
       },
       "bounds": {
         "midOverSmall": 10,
@@ -102,21 +102,21 @@
       "scalesWith": "whole model",
       "sizes": {
         "s500": {
-          "median": 0.3799,
-          "p90": 0.521
+          "median": 0.3541,
+          "p90": 0.4934
         },
         "s2500": {
-          "median": 2.036,
-          "p90": 2.3605
+          "median": 1.9373,
+          "p90": 2.3684
         },
         "s10000": {
-          "median": 10.4713,
-          "p90": 11.4594
+          "median": 9.4909,
+          "p90": 17.8108
         }
       },
       "ratios": {
-        "midOverSmall": 5.359,
-        "largeOverMid": 5.143
+        "midOverSmall": 5.471,
+        "largeOverMid": 4.899
       },
       "bounds": {
         "midOverSmall": 12,
@@ -130,21 +130,21 @@
       "scalesWith": "whole model",
       "sizes": {
         "s500": {
-          "median": 0.0656,
-          "p90": 0.0898
+          "median": 0.0669,
+          "p90": 0.1213
         },
         "s2500": {
-          "median": 0.3554,
-          "p90": 0.4481
+          "median": 0.3422,
+          "p90": 0.5182
         },
         "s10000": {
-          "median": 1.8124,
-          "p90": 2.1338
+          "median": 1.7693,
+          "p90": 2.447
         }
       },
       "ratios": {
-        "midOverSmall": 5.417,
-        "largeOverMid": 5.099
+        "midOverSmall": 5.115,
+        "largeOverMid": 5.171
       },
       "bounds": {
         "midOverSmall": 12,
@@ -158,21 +158,21 @@
       "scalesWith": "whole model",
       "sizes": {
         "s500": {
-          "median": 0.0569,
-          "p90": 0.064
+          "median": 0.0533,
+          "p90": 0.0593
         },
         "s2500": {
-          "median": 0.3337,
-          "p90": 0.4696
+          "median": 0.3018,
+          "p90": 0.3771
         },
         "s10000": {
-          "median": 1.775,
-          "p90": 2.044
+          "median": 1.5473,
+          "p90": 1.7943
         }
       },
       "ratios": {
-        "midOverSmall": 5.861,
-        "largeOverMid": 5.319
+        "midOverSmall": 5.661,
+        "largeOverMid": 5.126
       },
       "bounds": {
         "midOverSmall": 12,
@@ -186,21 +186,21 @@
       "scalesWith": "whole model",
       "sizes": {
         "s500": {
-          "median": 9.6312,
-          "p90": 10.0526
+          "median": 8.3763,
+          "p90": 9.199
         },
         "s2500": {
-          "median": 54.2047,
-          "p90": 58.856
+          "median": 47.677,
+          "p90": 52.8196
         },
         "s10000": {
-          "median": 260.9252,
-          "p90": 293.7557
+          "median": 238.3349,
+          "p90": 259.8561
         }
       },
       "ratios": {
-        "midOverSmall": 5.628,
-        "largeOverMid": 4.814
+        "midOverSmall": 5.692,
+        "largeOverMid": 4.999
       },
       "bounds": {
         "midOverSmall": 13,
@@ -214,21 +214,21 @@
       "scalesWith": "all links, onto one view",
       "sizes": {
         "s500": {
-          "median": 3.1067,
-          "p90": 3.5169
+          "median": 3.0203,
+          "p90": 3.5596
         },
         "s2500": {
-          "median": 15.3774,
-          "p90": 16.4789
+          "median": 14.0325,
+          "p90": 15.9564
         },
         "s10000": {
-          "median": 63.961,
-          "p90": 70.0764
+          "median": 58.6483,
+          "p90": 61.8431
         }
       },
       "ratios": {
-        "midOverSmall": 4.95,
-        "largeOverMid": 4.159
+        "midOverSmall": 4.646,
+        "largeOverMid": 4.179
       },
       "bounds": {
         "midOverSmall": 12,
@@ -242,21 +242,21 @@
       "scalesWith": "cards and wires in one view",
       "sizes": {
         "s500": {
-          "median": 3.129,
-          "p90": 3.4132
+          "median": 2.7549,
+          "p90": 4.8806
         },
         "s2500": {
-          "median": 11.0093,
-          "p90": 11.7697
+          "median": 9.556,
+          "p90": 10.7969
         },
         "s10000": {
-          "median": 25.1723,
-          "p90": 26.5808
+          "median": 21.3505,
+          "p90": 29.9241
         }
       },
       "ratios": {
-        "midOverSmall": 3.518,
-        "largeOverMid": 2.286
+        "midOverSmall": 3.469,
+        "largeOverMid": 2.234
       },
       "bounds": {
         "midOverSmall": 8,
@@ -270,21 +270,21 @@
       "scalesWith": "cards in one view",
       "sizes": {
         "s500": {
-          "median": 14.1784,
-          "p90": 15.2318
+          "median": 11.9959,
+          "p90": 12.8866
         },
         "s2500": {
-          "median": 17.0284,
-          "p90": 18.8055
+          "median": 14.6852,
+          "p90": 15.0895
         },
         "s10000": {
-          "median": 28.2485,
-          "p90": 29.0477
+          "median": 23.5737,
+          "p90": 25.8201
         }
       },
       "ratios": {
-        "midOverSmall": 1.201,
-        "largeOverMid": 1.659
+        "midOverSmall": 1.224,
+        "largeOverMid": 1.605
       },
       "bounds": {
         "midOverSmall": 4,
@@ -298,21 +298,21 @@
       "scalesWith": "whole model",
       "sizes": {
         "s500": {
-          "median": 2.1831,
-          "p90": 3.3365
+          "median": 1.6666,
+          "p90": 2.2583
         },
         "s2500": {
-          "median": 11.2294,
-          "p90": 18.6242
+          "median": 9.4077,
+          "p90": 11.9847
         },
         "s10000": {
-          "median": 59.4207,
-          "p90": 86.0685
+          "median": 49.556,
+          "p90": 60.4316
         }
       },
       "ratios": {
-        "midOverSmall": 5.144,
-        "largeOverMid": 5.292
+        "midOverSmall": 5.645,
+        "largeOverMid": 5.268
       },
       "bounds": {
         "midOverSmall": 13,
@@ -326,21 +326,21 @@
       "scalesWith": "whole model",
       "sizes": {
         "s500": {
-          "median": 0.6045,
-          "p90": 0.8017
+          "median": 0.4773,
+          "p90": 0.5532
         },
         "s2500": {
-          "median": 3.3534,
-          "p90": 3.8702
+          "median": 2.4927,
+          "p90": 3.1357
         },
         "s10000": {
-          "median": 16.547,
-          "p90": 18.2943
+          "median": 12.5791,
+          "p90": 13.9172
         }
       },
       "ratios": {
-        "midOverSmall": 5.548,
-        "largeOverMid": 4.934
+        "midOverSmall": 5.222,
+        "largeOverMid": 5.046
       },
       "bounds": {
         "midOverSmall": 12,
@@ -354,21 +354,21 @@
       "scalesWith": "whole model",
       "sizes": {
         "s500": {
-          "median": 3.4349,
-          "p90": 3.6292
+          "median": 2.9671,
+          "p90": 3.0837
         },
         "s2500": {
-          "median": 17.4026,
-          "p90": 19.0982
+          "median": 15.5582,
+          "p90": 16.2685
         },
         "s10000": {
-          "median": 81.6146,
-          "p90": 87.8368
+          "median": 73.5995,
+          "p90": 75.8986
         }
       },
       "ratios": {
-        "midOverSmall": 5.066,
-        "largeOverMid": 4.69
+        "midOverSmall": 5.244,
+        "largeOverMid": 4.731
       },
       "bounds": {
         "midOverSmall": 12,
@@ -382,21 +382,21 @@
       "scalesWith": "whole model",
       "sizes": {
         "s500": {
-          "median": 0.3481,
-          "p90": 0.4394
+          "median": 0.3127,
+          "p90": 0.3294
         },
         "s2500": {
-          "median": 1.7618,
-          "p90": 2.0722
+          "median": 1.6613,
+          "p90": 1.7942
         },
         "s10000": {
-          "median": 8.5304,
-          "p90": 9.1609
+          "median": 7.5647,
+          "p90": 9.5101
         }
       },
       "ratios": {
-        "midOverSmall": 5.062,
-        "largeOverMid": 4.842
+        "midOverSmall": 5.312,
+        "largeOverMid": 4.553
       },
       "bounds": {
         "midOverSmall": 14,
@@ -410,21 +410,21 @@
       "scalesWith": "whole model, then one view",
       "sizes": {
         "s500": {
-          "median": 61.1292,
-          "p90": 67.7051
+          "median": 51.7531,
+          "p90": 57.0862
         },
         "s2500": {
-          "median": 146.6621,
-          "p90": 149.6402
+          "median": 126.9801,
+          "p90": 150.0939
         },
         "s10000": {
-          "median": 387.5499,
-          "p90": 410.7307
+          "median": 332.3851,
+          "p90": 350.6956
         }
       },
       "ratios": {
-        "midOverSmall": 2.399,
-        "largeOverMid": 2.642
+        "midOverSmall": 2.454,
+        "largeOverMid": 2.618
       },
       "bounds": {
         "midOverSmall": 6,
@@ -438,21 +438,21 @@
       "scalesWith": "all links, onto one view",
       "sizes": {
         "s500": {
-          "median": 40.816,
-          "p90": 52.2517
+          "median": 33.4441,
+          "p90": 36.6562
         },
         "s2500": {
-          "median": 120.0939,
-          "p90": 149.4342
+          "median": 99.9559,
+          "p90": 125.7222
         },
         "s10000": {
-          "median": 290.5004,
-          "p90": 329.0478
+          "median": 239.7783,
+          "p90": 300.8857
         }
       },
       "ratios": {
-        "midOverSmall": 2.942,
-        "largeOverMid": 2.419
+        "midOverSmall": 2.989,
+        "largeOverMid": 2.399
       },
       "bounds": {
         "midOverSmall": 7,
@@ -466,21 +466,21 @@
       "scalesWith": "cards and wires in one view",
       "sizes": {
         "s500": {
-          "median": 40.5125,
-          "p90": 47.0187
+          "median": 25.8044,
+          "p90": 28.5422
         },
         "s2500": {
-          "median": 63.9889,
-          "p90": 68.4521
+          "median": 40.8229,
+          "p90": 44.1696
         },
         "s10000": {
-          "median": 97.0631,
-          "p90": 112.0359
+          "median": 65.2201,
+          "p90": 68.3267
         }
       },
       "ratios": {
-        "midOverSmall": 1.579,
-        "largeOverMid": 1.517
+        "midOverSmall": 1.582,
+        "largeOverMid": 1.598
       },
       "bounds": {
         "midOverSmall": 4.5,
@@ -494,21 +494,21 @@
       "scalesWith": "whole model",
       "sizes": {
         "s500": {
-          "median": 63.6148,
-          "p90": 73.6658
+          "median": 39.0365,
+          "p90": 40.2331
         },
         "s2500": {
-          "median": 120.5846,
-          "p90": 139.064
+          "median": 69.9621,
+          "p90": 77.6395
         },
         "s10000": {
-          "median": 265.1054,
-          "p90": 361.0893
+          "median": 166.3338,
+          "p90": 210.3505
         }
       },
       "ratios": {
-        "midOverSmall": 1.896,
-        "largeOverMid": 2.199
+        "midOverSmall": 1.792,
+        "largeOverMid": 2.377
       },
       "bounds": {
         "midOverSmall": 5,
@@ -522,21 +522,21 @@
       "scalesWith": "whole model",
       "sizes": {
         "s500": {
-          "median": 60.6943,
-          "p90": 68.1903
+          "median": 41.0965,
+          "p90": 41.5673
         },
         "s2500": {
-          "median": 176.2184,
-          "p90": 188.7535
+          "median": 121.0446,
+          "p90": 124.5595
         },
         "s10000": {
-          "median": 499.8711,
-          "p90": 576.0461
+          "median": 353.6416,
+          "p90": 362.879
         }
       },
       "ratios": {
-        "midOverSmall": 2.903,
-        "largeOverMid": 2.837
+        "midOverSmall": 2.945,
+        "largeOverMid": 2.922
       },
       "bounds": {
         "midOverSmall": 7,
@@ -550,21 +550,21 @@
       "scalesWith": "whole model",
       "sizes": {
         "s500": {
-          "median": 6.9277,
-          "p90": 13.0234
+          "median": 4.8908,
+          "p90": 7.6858
         },
         "s2500": {
-          "median": 17.9115,
-          "p90": 29.3226
+          "median": 14.0188,
+          "p90": 14.4295
         },
         "s10000": {
-          "median": 30.6706,
-          "p90": 37.5269
+          "median": 23.9567,
+          "p90": 25.2391
         }
       },
       "ratios": {
-        "midOverSmall": 2.586,
-        "largeOverMid": 1.712
+        "midOverSmall": 2.866,
+        "largeOverMid": 1.709
       },
       "bounds": {
         "midOverSmall": 7,
