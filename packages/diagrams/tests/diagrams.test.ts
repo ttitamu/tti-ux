@@ -1646,8 +1646,11 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
         ["wash", washEvil, 40000],
         ["button", btnEvil, 3000],
       ] as const) {
-        const small = evil(n);
-        const large = evil(n * 4);
+        // Both sizes sit well past the processor's caches (#153): at n against
+        // 4n the small input fit in cache on the shared runner and the large
+        // one did not, which read as a steady 10 on a linear scan.
+        const small = evil(n * 4);
+        const large = evil(n * 16);
         let ratio = Infinity;
         for (let round = 0; round < 3 && ratio > 10; round++) {
           const t = await measureCases({
