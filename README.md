@@ -1,5 +1,11 @@
 # tti-ux
 
+> **Status: Beta.** TUX, the whole design system, is beta: the layer, the
+> sub-layers, the React and Web Component ports, the kits and the
+> architecture map. Versions stay on 3.x while the beta lasts, and a minor
+> release may change behavior or remove a deprecated name. Pin an exact
+> version. See [Versioning: TUX is beta](#versioning-tux-is-beta).
+
 Living style guide for the **tux** design system. A runnable Nuxt 4 app that
 IS the source of truth for components — if a visual changes, this site shows
 it first.
@@ -13,8 +19,8 @@ titles, status badges, form fields) is illustrative — intentionally spread
 across transportation-research domains so no single consuming app's identity
 leaks into the design system.
 
-**Current release:** **v3.12.0** (see [`CHANGELOG.md`](CHANGELOG.md)) — consumers pin a
-git tag (never a branch) · **100% W3C WCAG 2.2 Level AAA certified** · color contrast
+**Current release:** **v3.12.0, beta** (see [`CHANGELOG.md`](CHANGELOG.md)) — consumers pin an
+exact version · **100% W3C WCAG 2.2 Level AAA certified** · color contrast
 verified at AAA ($\ge 7.0:1$) across all themes · aligned with the official TTI Communications identity
 (5-band research spectrum, warm eggshell wash `#F9F9F7`, Warm Gold keylines `#CFA935`, rectangular Kadence geometry).
 
@@ -117,6 +123,29 @@ runtime weight.
 npm run generate
 AUDIT_LEVEL=AAA npm run audit:contrast
 ```
+
+## Versioning: TUX is beta
+
+TUX is beta, all of it. Nothing in it is declared finished: components,
+tokens, the sub-layers, the ports, the kits and the architecture map can
+still change shape.
+
+- **Versions stay on 3.x** for as long as the beta lasts. The numbers
+  have the shape of semantic versioning, but a minor release may change
+  behavior, and may remove a deprecated name once one release has given
+  notice of it. [`CHANGELOG.md`](CHANGELOG.md) lists what to check under
+  "Changed" and "Deprecated" for each release.
+- **Pin an exact version** (`--save-exact`) and read the changelog before
+  you bump it. A caret range will pick up a minor that removes something.
+- **The registry carries a `beta` dist-tag beside `latest`.** Both name
+  the newest release of each package, so `npm view @tti/tti-ux dist-tags`
+  shows the status and `npm install @tti/tti-ux@beta` is the same install
+  as `@latest`. (The tag moves with each publish; a release cut before the
+  rule gets it when its tag is published again, which uploads nothing.)
+- **Live is a declaration, not a version number.** When TUX meets its
+  Live criteria the maintainers say so, the beta notices and the `beta`
+  dist-tag go away, and the names still marked deprecated are removed.
+  The architecture map ships inside TUX and has no version of its own.
 
 ## Consuming from another app
 
@@ -247,9 +276,9 @@ custom-property namespaces via `TUX_AUDIT_EXTERNAL_PREFIXES`.
 devDeps plus a generated site — puppeteer for contrast, jsdom + axe-core
 for a11y — and they tell you exactly that if you run them unprepared.
 
-Tags are immutable; consumers pin to a version and upgrade deliberately
-by bumping the `#vX.Y.Z` ref. See [`CHANGELOG.md`](CHANGELOG.md) for what
-each version contains.
+Published versions are immutable; consumers pin an exact version and
+upgrade deliberately. TUX is beta, so read [`CHANGELOG.md`](CHANGELOG.md)
+for what each version changes or removes before you bump.
 
 ## Naming
 

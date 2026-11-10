@@ -1,8 +1,13 @@
 // The registry publish rules (scripts/publish-registry.mjs): which tags publish,
 // which dist-tag a version gets, and what the published manifest may carry.
 import { describe, expect, it } from "vitest";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { checkReact, checkSublayer, DIST_TAG_RE, distTagFor, normalise, PublishError, SUBLAYERS, TAG_RE } from "../scripts/publish-registry.mjs";
+import { execFile } from "node:child_process";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createServer } from "node:http";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { BETA_TAG, checkReact, checkSublayer, DIST_TAG_RE, distTagFor, normalise, PublishError, SUBLAYERS, TAG_RE, tagPlan } from "../scripts/publish-registry.mjs";
 
 function expectDie(fn, message) {
   expect(fn).toThrow(PublishError);
@@ -11,7 +16,7 @@ function expectDie(fn, message) {
 
 describe("release tags", () => {
   it("accepts v<semver> with an optional prerelease", () => {
-    for (const t of ["v1.6.0", "v3.1.0", "v2.3.0-work-surface.0", "v3.1.1-vision.0", "v4.0.0-rc.1"]) {
+    for (const t of ["v1.6.0", "v3.1.0", "v2.3.0-work-surface.0", "v3.1.1-vision.0", "v3.13.0-rc.1"]) {
       expect(TAG_RE.test(t), t).toBe(true);
     }
   });
@@ -32,16 +37,87 @@ describe("dist-tags", () => {
   it("sends a prerelease to its first word, else to next", () => {
     expect(distTagFor("2.3.0-work-surface.0", "work-surface.0", "2.0.0")).toBe("work-surface");
     expect(distTagFor("3.1.1-vision.0", "vision.0", "2.0.0")).toBe("vision");
-    expect(distTagFor("4.0.0-0", "0", "3.1.0")).toBe("next");
-    expect(distTagFor("4.0.0-rc1.2", "rc1.2", "3.1.0")).toBe("next");
+    expect(distTagFor("3.2.0-0", "0", "3.1.0")).toBe("next");
+    expect(distTagFor("3.2.0-rc1.2", "rc1.2", "3.1.0")).toBe("next");
   });
   it("never lets a prerelease take latest or backfill (latest could then move backwards)", () => {
-    expect(distTagFor("4.0.0-latest.1", "latest.1", "3.1.0")).toBe("next");
-    expect(distTagFor("4.0.0-backfill.1", "backfill.1", "3.1.0")).toBe("next");
+    expect(distTagFor("3.2.0-latest.1", "latest.1", "3.1.0")).toBe("next");
+    expect(distTagFor("3.2.0-backfill.1", "backfill.1", "3.1.0")).toBe("next");
+  });
+  it("never lets a prerelease take beta: beta names the newest release", () => {
+    expect(distTagFor("3.2.0-beta.1", "beta.1", "3.1.0")).toBe("next");
   });
   it("never yields a tag the forge refuses (no digits: go-version would read it as a version)", () => {
-    for (const t of ["latest", "backfill", "next", "work-surface", "vision"]) expect(DIST_TAG_RE.test(t), t).toBe(true);
+    for (const t of ["latest", "backfill", "next", "work-surface", "vision", BETA_TAG]) expect(DIST_TAG_RE.test(t), t).toBe(true);
     for (const t of ["release-1.x", "v1-line", "1.7", "Rc"]) expect(DIST_TAG_RE.test(t), t).toBe(false);
+  });
+});
+
+// TUX is beta: the version that holds "latest" holds "beta" too.
+describe("the beta dist-tag", () => {
+  const packument = (tags, versions) => ({ "dist-tags": tags, versions: Object.fromEntries(versions.map((v) => [v, {}])) });
+  it("follows a publish that takes latest, on a first publish too", () => {
+    expect(tagPlan("3.13.0", undefined, packument({ latest: "3.12.0" }, ["3.12.0"]))).toMatchObject({ publishTag: "latest", exists: false, moveBeta: true });
+    expect(tagPlan("3.13.0", undefined, packument({ latest: "3.12.0", beta: "3.12.0" }, ["3.12.0"]))).toMatchObject({ publishTag: "latest", moveBeta: true, beta: "3.12.0" });
+    expect(tagPlan("3.12.0", undefined, null)).toMatchObject({ publishTag: "latest", exists: false, moveBeta: true });
+  });
+  it("is not moved by a backfill or a prerelease", () => {
+    expect(tagPlan("3.9.2", undefined, packument({ latest: "3.12.0", beta: "3.12.0" }, ["3.12.0"]))).toMatchObject({ publishTag: "backfill", moveBeta: false });
+    expect(tagPlan("3.13.0-rc.1", "rc.1", packument({ latest: "3.12.0" }, ["3.12.0"]))).toMatchObject({ publishTag: "rc", moveBeta: false });
+    expect(tagPlan("3.13.0-beta.1", "beta.1", packument({ latest: "3.12.0" }, ["3.12.0"]))).toMatchObject({ publishTag: "next", moveBeta: false });
+  });
+  it("is given to a release that already is latest, once, with nothing uploaded", () => {
+    expect(tagPlan("3.12.0", undefined, packument({ latest: "3.12.0" }, ["3.11.0", "3.12.0"]))).toMatchObject({ exists: true, moveBeta: true });
+    expect(tagPlan("3.12.0", undefined, packument({ latest: "3.12.0", beta: "3.11.0" }, ["3.11.0", "3.12.0"]))).toMatchObject({ exists: true, moveBeta: true });
+    expect(tagPlan("3.12.0", undefined, packument({ latest: "3.12.0", beta: "3.12.0" }, ["3.11.0", "3.12.0"]))).toMatchObject({ exists: true, moveBeta: false });
+  });
+  it("is never moved back to an older published version", () => {
+    expect(tagPlan("3.11.0", undefined, packument({ latest: "3.12.0" }, ["3.11.0", "3.12.0"]))).toMatchObject({ exists: true, moveBeta: false });
+  });
+});
+
+// The script itself, --dry-run, against a registry that records every request: the beta step is
+// announced and nothing but anonymous reads of the packument is sent.
+describe("--dry-run", () => {
+  const script = fileURLToPath(new URL("../scripts/publish-registry.mjs", import.meta.url));
+  async function dryRun(packumentFor) {
+    const seen = [];
+    const server = createServer((req, res) => {
+      seen.push(`${req.method} ${req.url}`);
+      const body = req.method === "GET" ? packumentFor(decodeURIComponent(req.url)) : null;
+      res.writeHead(body ? 200 : 404, { "content-type": "application/json" });
+      res.end(JSON.stringify(body ?? {}));
+    });
+    await new Promise((done) => server.listen(0, "127.0.0.1", done));
+    const dir = mkdtempSync(join(tmpdir(), "tux-publish-test-"));
+    try {
+      writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "@tti/tti-ux", version: "3.0.0", files: ["index.js"] }));
+      writeFileSync(join(dir, "index.js"), "export {};\n");
+      const env = { ...process.env, PUBLISH_TOKEN: "" };
+      delete env.GITHUB_STEP_SUMMARY;
+      const out = await new Promise((done, fail) => execFile(process.execPath,
+        [script, "--dry-run", "--package", "layer", "--tag", "v3.0.0", "--pkg-dir", dir, "--registry", `http://127.0.0.1:${server.address().port}/npm/`],
+        { env, encoding: "utf8" }, (err, stdout, stderr) => (err ? fail(new Error(`${err.message}\n${stdout}\n${stderr}`)) : done(stdout))));
+      return { out, seen };
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+      await new Promise((done) => server.close(done));
+    }
+  }
+  it("says a new release would take latest and then beta, and sends nothing", async () => {
+    const { out, seen } = await dryRun(() => null);
+    expect(out).toMatch(/dry run: @tti\/tti-ux@3\.0\.0 stops before the upload; would publish with dist-tag "latest", then move dist-tag "beta" to it\. Nothing sent\./);
+    expect(seen).toEqual(["GET /npm/%40tti%2Ftti-ux"]);
+  });
+  it("says a release that already is latest would be given beta, and sends nothing", async () => {
+    const { out, seen } = await dryRun(() => ({ "dist-tags": { latest: "3.0.0" }, versions: { "3.0.0": { dist: { integrity: "sha512-other" } } } }));
+    expect(out).toMatch(/dry run: @tti\/tti-ux@3\.0\.0 is "latest"; would move dist-tag "beta" to it \(now \(none\)\)\. Nothing sent\./);
+    expect(seen).toEqual(["GET /npm/%40tti%2Ftti-ux"]);
+  });
+  it("leaves beta alone for a backfill", async () => {
+    const { out, seen } = await dryRun(() => ({ "dist-tags": { latest: "3.1.0", beta: "3.1.0" }, versions: { "3.1.0": {} } }));
+    expect(out).toMatch(/would publish with dist-tag "backfill", and leave dist-tag "beta" where it is\. Nothing sent\./);
+    expect(seen).toEqual(["GET /npm/%40tti%2Ftti-ux"]);
   });
 });
 

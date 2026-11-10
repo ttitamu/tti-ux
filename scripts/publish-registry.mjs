@@ -53,10 +53,19 @@
  * older stable version (a backfill) goes to "backfill", so "latest" never moves
  * backwards; a prerelease goes to its first identifier when that is a word
  * ("work-surface" for 2.3.0-work-surface.0), else to "next", and never to
- * "latest" or "backfill". Forgejo refuses a dist-tag that hashicorp/go-version
- * can read as a version, which is any name with a digit in it ("release-1.x",
- * "v1-line"), and it refuses it only AFTER storing the version, so the tag is
- * checked here first: letters and hyphens.
+ * "latest", "backfill" or "beta". Forgejo refuses a dist-tag that
+ * hashicorp/go-version can read as a version, which is any name with a digit in
+ * it ("release-1.x", "v1-line"), and it refuses it only AFTER storing the
+ * version, so the tag is checked here first: letters and hyphens.
+ *
+ * "beta": TUX is beta, and the registry says so. The version that holds
+ * "latest" also holds "beta", so `npm view <name> dist-tags` shows both and
+ * `npm install <name>@beta` resolves to the newest release. It is moved with
+ * `npm dist-tag add` right after a publish that took "latest", and on a re-run
+ * of the tag that already is "latest" when "beta" is missing or behind (which is
+ * how a release cut before this rule gets it, with no new version). A backfill
+ * and a prerelease never move it. The tag goes away when TUX is declared Live;
+ * Live is a declaration, not a version number.
  *
  * Usage:
  *   node scripts/publish-registry.mjs --tag v3.1.0 --pkg-dir <checkout> \
@@ -69,7 +78,8 @@
  * The token comes from the environment, PUBLISH_TOKEN: a write:package token
  * of the Entra service account that publishes (svc-tti-packages), never a
  * person's. --dry-run needs none, reads the registry anonymously, still builds
- * and packs everything, and stops before the upload.
+ * and packs everything, and stops before the upload and before any dist-tag
+ * moves: it prints what it would have published and which tags it would move.
  */
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -96,8 +106,11 @@ const INSTALL_HOOKS = ["preinstall", "install", "postinstall"];
 // The one install script tux has ever shipped, and why it may go: see header, check 3.
 const DEV_ONLY_POSTINSTALL = /^nuxt prepare( \|\| exit 0)?$/;
 const DIST_TAG_RE = /^[a-z][a-z-]*$/;
-// dist-tags a prerelease must never take: either would let "latest" move backwards.
-const RESERVED_TAGS = new Set(["latest", "backfill"]);
+// While TUX is beta, the version that holds "latest" holds this tag too (see the header).
+const BETA_TAG = "beta";
+// dist-tags a prerelease must never take: "latest" and "backfill" would let "latest" move
+// backwards, and "beta" names the newest release, never a prerelease that calls itself one.
+const RESERVED_TAGS = new Set(["latest", "backfill", BETA_TAG]);
 const TAG_RE = /^v((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?)$/;
 
 // Thrown, not exited: the cleanup in main()'s finally must run, since the temp dir holds the
@@ -137,6 +150,19 @@ function distTagFor(version, prerelease, latest) {
   }
   if (!latest || latest.includes("-") || cmpStable(version, latest) > 0) return "latest";
   return "backfill";
+}
+
+// Which dist-tags this run moves for one package, from the registry's packument (null when the
+// package has never been published). `publishTag` is the tag the upload carries; `moveBeta` says
+// whether "beta" must then be pointed at the version: after an upload that takes "latest", or
+// with no upload when the version already is "latest" and "beta" is missing or behind.
+function tagPlan(version, prerelease, packument) {
+  const tags = packument?.["dist-tags"] ?? {};
+  const latest = tags.latest;
+  const exists = Boolean(packument?.versions?.[version]);
+  const publishTag = distTagFor(version, prerelease, latest);
+  const holdsLatest = exists ? latest === version : publishTag === "latest";
+  return { latest, exists, publishTag, beta: tags[BETA_TAG], moveBeta: !prerelease && holdsLatest && tags[BETA_TAG] !== version };
 }
 
 function refuseInstallScripts(pkg) {
@@ -247,44 +273,76 @@ async function publishOne({ name, dir, version, prerelease, tag, registry, dryRu
   const files = execFileSync("tar", ["-tzf", tgz], { encoding: "utf8" }).trim().split("\n").length;
 
   const packument = await getPackument(registry, name);
-  const latest = packument?.["dist-tags"]?.latest;
-  const distTag = distTagFor(version, prerelease, latest);
-  if (!DIST_TAG_RE.test(distTag)) die(`dist-tag "${distTag}" would be refused by the registry (letters and hyphens only)`);
+  const plan = tagPlan(version, prerelease, packument);
+  const { latest, publishTag: distTag } = plan;
+  for (const t of [distTag, BETA_TAG]) {
+    if (!DIST_TAG_RE.test(t)) die(`dist-tag "${t}" would be refused by the registry (letters and hyphens only)`);
+  }
+  const betaNote = plan.moveBeta ? `, then "${BETA_TAG}" (now ${plan.beta ?? "(none)"})` : "";
   console.log(`${name}@${version} from ${tag}: ${files} files, ${bytes.length} bytes, ${integrity}`);
   for (const n of notes) console.log(`  manifest: ${n}`);
-  console.log(`  registry ${registry} latest=${latest ?? "(none)"} -> dist-tag "${distTag}"`);
+
+  // Auth goes in a throwaway userconfig (0600), keyed to the registry's host+path, and npm
+  // runs from the temp dir, so no project .npmrc or publishConfig can redirect it.
+  const withAuth = (npmArgs) => {
+    if (!token) die("PUBLISH_TOKEN is not set (the publishing service account's write:package token)");
+    const userconfig = join(slot, "npmrc");
+    writeFileSync(userconfig, `//${registry.replace(/^https?:\/\//, "")}:_authToken=${token}\n`, { mode: 0o600 });
+    try {
+      npm([...npmArgs, "--registry", registry, `--@tti:registry=${registry}`, "--userconfig", userconfig],
+        { cwd: slot, stdio: ["ignore", "inherit", "inherit"] });
+    } finally {
+      rmSync(userconfig, { force: true });
+    }
+  };
+  // Point "beta" at the version and read it back.
+  const moveBeta = async () => {
+    withAuth(["dist-tag", "add", `${name}@${version}`, BETA_TAG]);
+    const tagged = await getPackument(registry, name);
+    if (tagged?.["dist-tags"]?.[BETA_TAG] !== version) die(`${name} dist-tag ${BETA_TAG} is ${tagged?.["dist-tags"]?.[BETA_TAG]}, expected ${version}`);
+    return tagged;
+  };
 
   const existing = packument?.versions?.[version];
   if (existing) {
+    console.log(`  registry ${registry} latest=${latest ?? "(none)"}; nothing to upload`
+      + (plan.moveBeta ? `; dist-tag "${BETA_TAG}" (now ${plan.beta ?? "(none)"}) -> ${version}` : ""));
     const same = existing.dist?.integrity === integrity;
     console.log(`::notice::${name}@${version} is already on the registry (${existing.dist?.integrity}); `
-      + (same ? "identical tarball, nothing to do." : "this pack differs, and a published version is never overwritten."));
-    summary([`### ${name}@${version}`, "", `Already published; ${same ? "identical" : "this pack differs"}. Nothing uploaded.`]);
+      + (same ? "identical tarball, nothing to upload." : "this pack differs, and a published version is never overwritten."));
+    if (!plan.moveBeta) {
+      summary([`### ${name}@${version}`, "", `Already published; ${same ? "identical" : "this pack differs"}. Nothing uploaded.`]);
+      return;
+    }
+    if (dryRun) {
+      console.log(`dry run: ${name}@${version} is "latest"; would move dist-tag "${BETA_TAG}" to it (now ${plan.beta ?? "(none)"}). Nothing sent.`);
+      return;
+    }
+    const tagged = await moveBeta();
+    console.log(`moved dist-tag ${BETA_TAG} to ${name}@${version}; dist-tags now ${JSON.stringify(tagged["dist-tags"])}`);
+    summary([`### ${name}@${version}`, "", `Already published; ${same ? "identical" : "this pack differs"}. Nothing uploaded.`,
+      `Moved dist-tag \`${BETA_TAG}\` to it (was ${plan.beta ?? "unset"}).`]);
     return;
   }
+  console.log(`  registry ${registry} latest=${latest ?? "(none)"} -> dist-tag "${distTag}"${betaNote}`);
   if (dryRun) {
-    console.log(`dry run: ${name}@${version} stops before the upload`);
+    console.log(`dry run: ${name}@${version} stops before the upload; would publish with dist-tag "${distTag}"`
+      + (plan.moveBeta ? `, then move dist-tag "${BETA_TAG}" to it` : `, and leave dist-tag "${BETA_TAG}" where it is`) + ". Nothing sent.");
     return;
   }
 
-  if (!token) die("PUBLISH_TOKEN is not set (the publishing service account's write:package token)");
-  // Auth goes in a throwaway userconfig (0600), keyed to the registry's host+path, and the
-  // publish runs from the temp dir, so no project .npmrc or publishConfig can redirect it.
-  const userconfig = join(slot, "npmrc");
-  writeFileSync(userconfig, `//${registry.replace(/^https?:\/\//, "")}:_authToken=${token}\n`, { mode: 0o600 });
-  try {
-    npm(["publish", tgz, "--tag", distTag, "--registry", registry, `--@tti:registry=${registry}`,
-      "--userconfig", userconfig, "--ignore-scripts"], { cwd: slot, stdio: ["ignore", "inherit", "inherit"] });
-  } finally {
-    rmSync(userconfig, { force: true });
-  }
+  withAuth(["publish", tgz, "--tag", distTag, "--ignore-scripts"]);
 
-  const after = await getPackument(registry, name);
+  let after = await getPackument(registry, name);
   const got = after?.versions?.[version]?.dist?.integrity;
   if (got !== integrity) die(`registry reports ${got} for ${name}@${version}, expected ${integrity}`);
   if (after["dist-tags"]?.[distTag] !== version) die(`${name} dist-tag ${distTag} is ${after["dist-tags"]?.[distTag]}, expected ${version}`);
-  console.log(`published ${name}@${version} (dist-tag ${distTag}); dist-tags now ${JSON.stringify(after["dist-tags"])}`);
-  summary([`### Published ${name}@${version}`, "", `- from \`${tag}\`, dist-tag \`${distTag}\``,
+  // After the upload is confirmed: if this fails, the step is red with the version out, and a
+  // re-run of the tag finds it "latest" and moves "beta" then.
+  if (plan.moveBeta) after = await moveBeta();
+  const tagsMoved = plan.moveBeta ? `dist-tags ${distTag} and ${BETA_TAG}` : `dist-tag ${distTag}`;
+  console.log(`published ${name}@${version} (${tagsMoved}); dist-tags now ${JSON.stringify(after["dist-tags"])}`);
+  summary([`### Published ${name}@${version}`, "", `- from \`${tag}\`, ${plan.moveBeta ? `dist-tags \`${distTag}\` and \`${BETA_TAG}\`` : `dist-tag \`${distTag}\``}`,
     `- ${files} files, ${bytes.length} bytes, \`${integrity}\``, ...notes.map((n) => `- manifest: ${n}`)]);
 }
 
@@ -357,4 +415,4 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   });
 }
 
-export { checkReact, checkSublayer, DIST_TAG_RE, distTagFor, normalise, PublishError, SUBLAYERS, TAG_RE };
+export { BETA_TAG, checkReact, checkSublayer, DIST_TAG_RE, distTagFor, normalise, PublishError, SUBLAYERS, TAG_RE, tagPlan };

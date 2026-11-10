@@ -13,7 +13,15 @@
 #   - workflow_dispatch with an EXISTING tag publishes it from here, with this
 #     workflow's tooling. That is how tags cut before this workflow existed are
 #     backfilled (v1.6.0, v1.7.0, the prereleases of untagged trees that
-#     consumers pin). Publishing a version that is already there is a no-op.
+#     consumers pin). Publishing a version that is already there uploads
+#     nothing.
+#
+# dist-tags: TUX is beta, and the registry says so. Each package's newest
+# release holds "latest" and "beta" together: the script moves "beta" with
+# `npm dist-tag add` right after an upload that took "latest", and a dispatch
+# of the tag that already is "latest" gives it "beta" with no upload (that is
+# how a release cut before this rule gets the tag). Backfills and prereleases
+# never move it.
 #
 # What gets published, and the checks, are in scripts/publish-registry.mjs:
 # the layer, then (a step of its own) the React ports @tti/tti-ux-react when
