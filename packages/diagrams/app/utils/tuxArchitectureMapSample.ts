@@ -4,6 +4,7 @@ import type { TuxMapLevelModel } from "./tuxArchitectureMap";
  * Default 4-Level + N-Depth Reference Architecture Sample Model (Generic Enterprise Cloud Platform).
  * Kept in its own module (`tti/tti-ux#114`) so consumers of `TuxArchitectureMap.vue` and
  * `tuxArchitectureMap.ts` do not carry the ~36 KB sample payload in production bundles.
+ * @public
  */
 export const DEFAULT_TTI_LEVEL_MODEL: TuxMapLevelModel = {
   generatedAt: "2026-10-28T10:30:00Z",
