@@ -1654,7 +1654,10 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
             small: { run: () => void mcpMod.callTuxMcpTool("tux_audit_snippet", { code: small }) },
             large: { run: () => void mcpMod.callTuxMcpTool("tux_audit_snippet", { code: large }) },
           });
-          ratio = Math.min(ratio, t.large.median / t.small.median);
+          // The fastest sample, not the median: the small input takes tens of
+          // microseconds, and on a shared runner the median of that carries
+          // the machine's noise. A quadratic pattern still gives 16 here.
+          ratio = Math.min(ratio, t.large.min / t.small.min);
         }
         expect(ratio, `tux_audit_snippet on the ${name} input, 4x the size`).toBeLessThanOrEqual(10);
       }
