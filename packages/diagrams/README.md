@@ -70,3 +70,40 @@ The result and option types of those functions are public with them; the snapsho
 
 Changing the surface on purpose: tag a new export `@public` or `@internal`, then run `npm run build:runtime -w @tti/tti-ux-diagrams` and `npm run build:api -w @tti/tti-ux-diagrams` and commit the regenerated snapshots with the change. `npm test` fails with the list of added, removed and changed names until they match.
 
+
+## Benchmarking the architecture map
+
+A change to the map's performance should land with a number. The benchmark gives one, and keeps a regression in how the map scales from merging.
+
+```bash
+npm run bench:map -w @tti/tti-ux-diagrams               # both halves: about 2 minutes
+npm run bench:map -w @tti/tti-ux-diagrams -- --utils    # the utils half: about 20 seconds
+npm run bench:map -w @tti/tti-ux-diagrams -- --record   # also rewrite the committed baseline
+npm run bench:map -w @tti/tti-ux-diagrams -- --report   # print what the last run wrote
+npm run bench:map -w @tti/tti-ux-diagrams -- --profile=links   # a CPU profile of one scenario at 10,000 symbols
+```
+
+It builds three synthetic repositories from a seeded generator (`tests/support/mapSyntheticModels.ts`, no `Math.random`): about 500, 2,500 and 10,000 symbols, 2 to 5 links a symbol, and 30, 60 and 120 cards in the deepest view. Each has containers, components, folders, files and symbols, cross-component links, tests, routes, single-child folder chains and lazy files. Every scenario is timed at all three sizes in one process: a warm-up, then nine samples a size, interleaved, reported as the median and the 90th percentile.
+
+| Scenario | Measured | What it times |
+|---|---|---|
+| `pipeline` | utils | `sanitizeMapModel` → `collapseModelSubgraphs` → `buildMapParentIndex` → `resolveModelRawLinks` → `liftLinksToView` → `routeGridWires` for the deepest view |
+| `sanitize`, `collapse`, `parent-index`, `links`, `lift-view`, `route`, `search-index` | utils | one stage each (`links` is `extractModelLinks`) |
+| `hover` | utils | `routeGridWires` again with the hovered card's outside wires opened |
+| `selection` | utils | `computeLinkBlastRadius` for one symbol, unfiltered and by kind |
+| `lazy-merge` | utils | one resolved subgraph merged: sanitize, collapse and index again |
+| `go-to` | utils | `searchArchitectureMap`, four queries over the built index |
+| `c-mount` | component | mounting `<TuxArchitectureMap>` on the deepest view |
+| `c-stage` | component | navigating to the deepest view: the `stageData` and `routedSvg` computeds and the render |
+| `c-hover` | component | a `pointerover` on one card |
+| `c-select` | component | `selectElement()` with the blast radius on |
+| `c-lazy-merge` | component | `resolveSubgraph` for one lazy file, through to the re-staged view |
+| `c-go-to` | component | one query typed into the open Go-To palette |
+
+The **utils** rows call the exported functions directly (`tests/map-bench.test.ts`, Node). The **component** rows go through the mounted component (`tests/tux-architecture-map-bench.nuxt.test.ts` at the repository root, jsdom), because `stageData`, `routedSvg`, hover and selection live inside the `.vue` file. jsdom is not a browser: rendering costs more there than on screen and layout costs nothing, so read the component rows against each other and against their own baseline, not as frame times.
+
+**How to read it.** The milliseconds are for people. Nothing asserts on them, because a shared CI runner is several times slower than a laptop and not even as fast as itself a minute ago. What `npm test` asserts is the two ratios printed beside them: `time(2,500) / time(500)` and `time(10,000) / time(2,500)`, measured seconds apart in the same process, each with a ceiling. A step that walks the whole model once lands near 5 and 4, the size of the steps. A step that only touches one view grows with the view, not the model, and lands between 1 and 4. Add a scan inside a scan and the ratio heads for 25 and 16, through the ceiling. A round over its ceiling is measured again, twice at most, and the best round counts: noise adds time to one size at a time; a real regression fails all three rounds. The suite proves the gate on itself with a linear scan that must pass and the same scan with a quadratic term that must fail.
+
+`--profile=<scenario>` answers where the time goes: it runs that one scenario and writes `<out>/profile/<scenario>.cpuprofile`, a V8 CPU profile of five calls at 10,000 symbols, which a browser's DevTools opens in the Performance tab.
+
+The committed baseline (`tests/support/map-bench.baseline.json`) records the machine, the Node version and the commit it was taken at. When it exists, the table's last column compares the 10,000-symbol median with it, divided by a fixed reference workload timed in the same run, so two machines can be read side by side. That column is information, not a gate. For a before and after, run `bench:map` on `main` and on the branch on the same machine and quote both rows; re-record the baseline when a change moves a number on purpose, and raise or lower that scenario's `bounds` in the test to about twice its new ratio.

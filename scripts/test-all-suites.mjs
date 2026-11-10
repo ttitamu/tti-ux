@@ -115,13 +115,35 @@ if (targetTiers.includes(2)) {
 if (targetTiers.includes(3)) {
   console.log(`${colors.bold}► Tier 3: Vitest Invariant & Mounted Component Test Suites${colors.reset}`);
   console.log(`    ${colors.dim}Mounted Nuxt test suites include direct in-component Axe accessibility validation.${colors.reset}`);
-  runStep("Vitest Root Suites (Mounted Component Axe + Invariant Tests)", "npx", ["vitest", "run"]);
+  // The architecture-map benchmark (#153) runs inside the root and diagrams suites as a gate on
+  // ratios between model sizes. With TUX_MAP_BENCH_OUT set, the two suites also write what they
+  // measured, and the report step below prints it beside the committed baseline
+  // (packages/diagrams/tests/support/map-bench.baseline.json; `npm run bench:map -w
+  // @tti/tti-ux-diagrams -- --record` rewrites it). Milliseconds are reported, never asserted.
+  const mapBenchOut = path.join(ROOT, ".cache", "map-bench");
+  const mapBenchEnv = { TUX_MAP_BENCH_OUT: mapBenchOut };
+  runStep("Vitest Root Suites (Mounted Component Axe + Invariant Tests)", "npx", ["vitest", "run"], mapBenchEnv);
   runStep("Vitest Workspace Suite (@tti/tti-ux-charts)", "npm", ["run", "test", "-w", "@tti/tti-ux-charts"]);
-  runStep("Vitest Workspace Suite (@tti/tti-ux-diagrams)", "npm", ["run", "test", "-w", "@tti/tti-ux-diagrams"]);
+  runStep(
+    "Vitest Workspace Suite (@tti/tti-ux-diagrams)",
+    "npm",
+    ["run", "test", "-w", "@tti/tti-ux-diagrams"],
+    mapBenchEnv,
+  );
   runStep("Vitest Workspace Suite (@tti/tti-ux-code)", "npm", ["run", "test", "-w", "@tti/tti-ux-code"]);
   runStep("Vitest Workspace Suite (@tti/tti-ux-desk)", "npm", ["run", "test", "-w", "@tti/tti-ux-desk"]);
   runStep("Vitest Workspace Suite (@tti/tti-ux-content)", "npm", ["run", "test", "-w", "@tti/tti-ux-content"]);
   runStep("Vitest Workspace Suite (@tti/tti-ux-react)", "npm", ["run", "test", "-w", "@tti/tti-ux-react"]);
+  const mapBenchReported = runStep(
+    "Architecture Map Benchmark Report (medians vs. the committed baseline)",
+    "node",
+    ["packages/diagrams/scripts/bench-map.mjs", "--report"],
+    mapBenchEnv,
+  );
+  const mapBenchTable = path.join(mapBenchOut, "result.md");
+  if (mapBenchReported && !verbose && existsSync(mapBenchTable)) {
+    console.log(`\n${colors.dim}${readFileSync(mapBenchTable, "utf-8").trimEnd()}${colors.reset}`);
+  }
   console.log();
 }
 

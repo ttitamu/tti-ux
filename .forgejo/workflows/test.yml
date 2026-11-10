@@ -100,8 +100,21 @@ jobs:
       - name: typecheck
         run: npm run typecheck
 
+      # The architecture-map benchmark runs inside `npm test` and asserts only on
+      # ratios between model sizes. With TUX_MAP_BENCH_OUT set it also writes the
+      # milliseconds it measured; the next step prints them into this log, which
+      # is where a performance PR reads its before and after. Nothing compares
+      # them: this runner's speed changes from one minute to the next.
       - name: npm test
+        env:
+          TUX_MAP_BENCH_OUT: ${{ github.workspace }}/.cache/map-bench
         run: npm test
+
+      - name: Architecture map benchmark, the numbers
+        if: always() && steps.install.outcome != 'failure'
+        env:
+          TUX_MAP_BENCH_OUT: ${{ github.workspace }}/.cache/map-bench
+        run: node packages/diagrams/scripts/bench-map.mjs --report || true
 
       # A failed install skips typecheck and npm test, and the job still reads
       # "failure", the same as a failing test. In November 2026 an ETARGET here

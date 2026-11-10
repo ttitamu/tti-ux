@@ -71,6 +71,13 @@ import {
   type TuxMapLevelRel,
 } from "../app/utils/tuxArchitectureMap";
 import { DEFAULT_TTI_LEVEL_MODEL } from "../app/utils/tuxArchitectureMapSample";
+import {
+  buildDenseViewFixture,
+  buildFileTreeLinkModel,
+  buildFlatModuleModel,
+  buildGoToModel,
+} from "./support/mapSyntheticModels";
+import { measureCases } from "./support/mapBench";
 
 describe("@tti/tti-ux-diagrams composables and utilities", () => {
   it("provides useTuxMermaid with render and estimateHeight methods", () => {
@@ -761,32 +768,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
 
   it("caps unknown-ID errors under 2 KB with <= 10 suggestions on a 2,500-node model, labels coarse-parent steps, supports paging, and warns once per deprecated API (#111)", () => {
     // 1. 2,500-node model: unknown ID returns < 2 KB and at most 10 ranked suggestions
-    const largeElements = Array.from({ length: 2496 }, (_, i) => ({
-      id: `f:packages/mod_${String(i).padStart(4, "0")}/service_${i}.ts`,
-      kind: "module",
-      name: `service_${i}.ts`,
-      desc: "A".repeat(160),
-    }));
-    const largeModel: TuxMapLevelModel = {
-      level1: { elements: [{ id: "sys-big", kind: "system", name: "Big System" }], rels: [] },
-      level2: {
-        boundary: "sys-big",
-        elements: [{ id: "c-core", kind: "container", name: "Core Container" }],
-        rels: [],
-      },
-      level3: {
-        "c-core": [{ id: "c-core/app", kind: "component", name: "App Component" }],
-      },
-      level4: {
-        groups: [{ id: "rg-1", zone: "cloud-prod", title: "rg-1" }],
-        nodes: [{ id: "vm-1", group: "rg-1", kind: "vm", title: "vm-1", role: "Host", hosts: ["c-core"] }],
-        links: [],
-      },
-      subgraphs: {
-        "c-core/app": { elements: largeElements },
-      },
-      links: [],
-    };
+    const largeModel = buildFlatModuleModel(2496);
     expect(buildUnifiedArchitectureGraph(largeModel).nodes.size).toBeGreaterThanOrEqual(2500);
 
     const errImpact = queryArchitectureImpact("service_12", largeModel);
@@ -1477,51 +1459,12 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
       ).toEqual([]);
 
       // 2. N-02: < 16 KB (16,384 bytes) payload ceiling on a 2,650-node / 10,000-edge repo-scale model
-      const codeSubgraphs: Record<string, { elements: Array<Record<string, unknown>>; rels: Array<Record<string, unknown>> }> = {
-        "c-gateway": { elements: [], rels: [] },
-      };
-      const links: Array<{ from: string; to: string; kind: string }> = [];
-      for (let i = 0; i < 2650; i += 1) {
-        const fid = `f:pkg/mod_${i}.ts`;
-        codeSubgraphs["c-gateway"]!.elements.push({
-          id: fid,
-          name: `mod_${i}.ts`,
-          kind: i % 5 === 0 ? "test" : "file",
-          source: {
-            path: `pkg/mod_${i}.ts`,
-            hash: `h_${i}_0123456789abcdef`,
-            moduleHash: `mh_${i}_0123456789abcdef`,
-            signature: `export function mod_${i}(${"arg: string, ".repeat(35)}): Promise<void>`,
-          },
-        });
-        if (i > 0) {
-          links.push({
-            from: fid,
-            to: `f:pkg/mod_${Math.floor(i / 4)}.ts`,
-            kind: i % 5 === 0 ? "tests" : "imports",
-          });
-        }
-      }
-      const largeModel: TuxMapLevelModel = {
-        level1: { elements: [{ id: "s-forge", name: "Platform", kind: "system" }], rels: [] },
-        level2: {
-          boundary: "s-forge",
-          elements: [{ id: "c-gateway", name: "Gateway", kind: "container", deployed: ["vm-prod"] }],
-          rels: [],
-        },
-        level4: {
-          groups: [],
-          nodes: [{ id: "vm-prod", title: "Prod VM", kind: "vm", hosts: ["c-gateway"] }],
-          links: [],
-        },
-        subgraphs: codeSubgraphs as unknown as TuxMapLevelModel["subgraphs"],
-        links: links as unknown as TuxMapLevelModel["links"],
-      };
+      const { model: largeModel, elements: fileTreeElements, links } = buildFileTreeLinkModel(2650);
       const baseLargeModel: TuxMapLevelModel = {
         ...largeModel,
         subgraphs: {
           "c-gateway": {
-            elements: codeSubgraphs["c-gateway"]!.elements.slice(0, 1800) as unknown as NonNullable<TuxMapLevelModel["subgraphs"]>[string]["elements"],
+            elements: fileTreeElements.slice(0, 1800) as unknown as NonNullable<TuxMapLevelModel["subgraphs"]>[string]["elements"],
             rels: [],
           },
         },
@@ -1690,15 +1633,37 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
       expect(errors[0]!.framing).toBe("content-length");
 
       // 5. S-01 & S-09: Linear-time tux_audit_snippet + spaced var() dedup + prototype-safe token lookup
-      const t0 = performance.now();
-      const washEvil = `color-mix(in srgb, ${" ".repeat(40000)}!`;
-      const btnEvil = `${'<button aria-label="Close">Save'.repeat(3000)}</button>`;
-      const washAudit = mcpMod.callTuxMcpTool("tux_audit_snippet", { code: washEvil });
-      const btnAudit = mcpMod.callTuxMcpTool("tux_audit_snippet", { code: btnEvil });
-      const elapsedMs = performance.now() - t0;
+      const washEvil = (n: number) => `color-mix(in srgb, ${" ".repeat(n)}!`;
+      const btnEvil = (n: number) => `${'<button aria-label="Close">Save'.repeat(n)}</button>`;
+      const washAudit = mcpMod.callTuxMcpTool("tux_audit_snippet", { code: washEvil(40000) });
+      const btnAudit = mcpMod.callTuxMcpTool("tux_audit_snippet", { code: btnEvil(3000) });
       expect(washAudit.valid).toBe(true);
       expect(btnAudit.issueCount).toBe(1);
-      expect(elapsedMs).toBeLessThan(150);
+      // Linear, as a ratio: four times the input may cost up to ten times the
+      // time (linear is 4, a backtracking pattern is 16 or worse). A budget in
+      // milliseconds says nothing on a shared runner (#153).
+      for (const [name, evil, n] of [
+        ["wash", washEvil, 40000],
+        ["button", btnEvil, 3000],
+      ] as const) {
+        // Both sizes sit well past the processor's caches (#153): at n against
+        // 4n the small input fit in cache on the shared runner and the large
+        // one did not, which read as a steady 10 on a linear scan.
+        const small = evil(n * 4);
+        const large = evil(n * 16);
+        let ratio = Infinity;
+        for (let round = 0; round < 3 && ratio > 10; round++) {
+          const t = await measureCases({
+            small: { run: () => void mcpMod.callTuxMcpTool("tux_audit_snippet", { code: small }) },
+            large: { run: () => void mcpMod.callTuxMcpTool("tux_audit_snippet", { code: large }) },
+          });
+          // The fastest sample, not the median: the small input takes tens of
+          // microseconds, and on a shared runner the median of that carries
+          // the machine's noise. A quadratic pattern still gives 16 here.
+          ratio = Math.min(ratio, t.large.min / t.small.min);
+        }
+        expect(ratio, `tux_audit_snippet on the ${name} input, 4x the size`).toBeLessThanOrEqual(10);
+      }
 
       const spacedAlias = mcpMod.callTuxMcpTool("tux_audit_snippet", {
         code: ".a { background: var( --bg-page ); border-color: var(--bg-page); }",
@@ -1774,80 +1739,15 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
   });
 
   it("routes synthetic dense view (30 inner cards, 16 outside cards, 100 rels) with 0 card hits, 0 endpoint pass-throughs, 100% lanes inside gaps, and fewer crossings (#113)", () => {
+    // 30 inner cards (6 columns x 5 rows inside `@bound`), 8 mini collaborator cards per side, and a
+    // deterministic 100 relationships: outside->inner, inner->inner across columns/rows, inner->outside.
+    const { rects, els, rels, frame } = buildDenseViewFixture();
     const { CW, CH, GX, GY } = GRID_METRICS;
-    const rects: Record<string, TuxMapGridCellRect> = {};
-    const els: TuxMapLevelElement[] = [];
-
-    // Left outside column: 8 mini collaborator cards (`side: "in"`)
-    const outW = 176;
-    const outH = 60;
-    const leftX = 24;
-    const innerOriginX = leftX + outW + GX;
-    const innerOriginY = 96;
-
-    // 30 inner cards: 6 columns x 5 rows inside `@bound`
-    for (let row = 0; row < 5; row++) {
-      for (let col = 0; col < 6; col++) {
-        const id = `in_${row}_${col}`;
-        const x = innerOriginX + col * (CW + GX);
-        const y = innerOriginY + row * (CH + GY);
-        rects[id] = { x, y, w: CW, h: CH };
-        els.push({ id, name: `Module ${row}:${col}`, kind: "module" });
-      }
-    }
-
-    const innerSpanW = 6 * CW + 5 * GX;
-    const innerSpanH = 5 * CH + 4 * GY;
-    rects["@bound"] = {
-      x: innerOriginX - 28,
-      y: innerOriginY - 52,
-      w: innerSpanW + 56,
-      h: innerSpanH + 80,
-      bound: true,
-    };
-
-    const rightX = innerOriginX + innerSpanW + GX;
-    for (let i = 0; i < 8; i++) {
-      const y = innerOriginY + i * (outH + 26);
-      const inId = `out_in_${i}`;
-      rects[inId] = { x: leftX, y, w: outW, h: outH, mini: true, side: "in" };
-      els.push({ id: inId, name: `Caller ${i}`, kind: "module", mini: true, side: "in" });
-
-      const outId = `out_out_${i}`;
-      rects[outId] = { x: rightX, y, w: outW, h: outH, mini: true, side: "out" };
-      els.push({ id: outId, name: `Dep ${i}`, kind: "module", mini: true, side: "out" });
-    }
+    const { leftX, rightX, outW, innerOriginX, innerOriginY, innerSpanW, innerSpanH } = frame;
 
     expect(els.filter((e) => !e.mini).length).toBe(30);
     expect(els.filter((e) => e.mini).length).toBe(16);
 
-    // Deterministic 100 relationships mixing outside->inner, inner->inner across columns/rows, and inner->outside
-    const rels: TuxMapLevelRel[] = [];
-    // 24 outside-in -> inner rels (3 per outside-in card across different rows/cols)
-    for (let i = 0; i < 8; i++) {
-      rels.push({ from: `out_in_${i}`, to: `in_${i % 5}_0`, label: "calls" });
-      rels.push({ from: `out_in_${i}`, to: `in_${(i + 2) % 5}_1`, label: "imports" });
-      rels.push({ from: `out_in_${i}`, to: `in_${(i + 4) % 5}_2`, label: "reads" });
-    }
-    // 24 inner -> outside-out rels
-    for (let i = 0; i < 8; i++) {
-      rels.push({ from: `in_${i % 5}_5`, to: `out_out_${i}`, label: "calls" });
-      rels.push({ from: `in_${(i + 1) % 5}_4`, to: `out_out_${i}`, label: "writes" });
-      rels.push({ from: `in_${(i + 3) % 5}_3`, to: `out_out_${i}`, label: "sends" });
-    }
-    // 52 dense inner->inner rels (long horizontal jumps, vertical column jumps, diagonals, and shared-corridor bundles)
-    for (let k = 0; k < 52; k++) {
-      const r1 = (k * 3) % 5;
-      const c1 = k % 6;
-      let r2 = (k * 2 + 1) % 5;
-      let c2 = (k * 5 + 2) % 6;
-      if (r1 === r2 && c1 === c2) c2 = (c2 + 1) % 6;
-      rels.push({
-        from: `in_${r1}_${c1}`,
-        to: `in_${r2}_${c2}`,
-        label: k % 4 === 0 ? `hop-${k}` : "",
-      });
-    }
     expect(rels.length).toBe(100);
 
     const routed = routeGridWires(rels, rects, els);
@@ -2098,99 +1998,16 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect(mapAncestorsOf("x", cyclic)).toEqual(["x", "y"]);
   });
 
-  it("indexes and scores 2,400 cross-level Go-To entries (Components, Folders, Files, Functions, Routes) with a median query under 25 ms (#120)", () => {
-    const folders = Array.from({ length: 120 }, (_, i) => ({
-      id: `d:bff/pkg_${String(i).padStart(3, "0")}`,
-      kind: "module" as const,
-      name: `pkg_${String(i).padStart(3, "0")}`,
-      source: { path: `bff/pkg_${String(i).padStart(3, "0")}` },
-    }));
-    const files = Array.from({ length: 900 }, (_, i) => ({
-      id: `f:bff/pkg_${String(i % 120).padStart(3, "0")}/mod_${i}.py`,
-      kind: "module" as const,
-      name: `mod_${i}.py`,
-      tech: "Python",
-      source: { path: `bff/pkg_${String(i % 120).padStart(3, "0")}/mod_${i}.py` },
-    }));
-    files.push({
-      id: "f:bff/ttibff/forge.py",
-      kind: "module",
-      name: "forge.py",
-      tech: "Python",
-      source: { path: "bff/ttibff/forge.py" },
-    });
-    const funcs = Array.from({ length: 1250 }, (_, i) => ({
-      id: `s:bff/pkg_${String(i % 120).padStart(3, "0")}/mod_${i % 900}.py#fn_${i}`,
-      kind: "function" as const,
-      name: `fn_handler_${i}`,
-      source: {
-        path: `bff/pkg_${String(i % 120).padStart(3, "0")}/mod_${i % 900}.py`,
-        symbol: `fn_handler_${i}`,
-        lineRange: [10, 25] as [number, number],
-      },
-    }));
-    const routes = Array.from({ length: 130 }, (_, i) => ({
-      method: i % 2 === 0 ? "GET" : "POST",
-      pattern: `/v1/orgs/{org}/items/${i}`,
-      handler: funcs[i]!.id,
-      framework: "FastAPI",
-    }));
-    routes.push({
-      method: "GET",
-      pattern: "/v1/orgs/{org}/architecture",
-      handler: "f:bff/ttibff/forge.py",
-      framework: "FastAPI",
-    });
-
-    const subgraphs: TuxMapLevelModel["subgraphs"] = {
-      "c-api/1": { elements: folders },
-    };
-    for (let i = 0; i < 120; i++) {
-      const fId = folders[i]!.id;
-      subgraphs[fId] = {
-        elements: files.filter((fl) => fl.id.startsWith(`f:bff/pkg_${String(i).padStart(3, "0")}/`)),
-      };
-    }
-    subgraphs["c-api/1"]!.elements.push(files[files.length - 1]!);
-    subgraphs["f:bff/pkg_000/mod_0.py"] = { elements: funcs };
-
-    const model2400: TuxMapLevelModel = {
-      level1: { elements: [{ id: "sys-code", kind: "system", name: "TTI Code" }], rels: [] },
-      level2: {
-        boundary: "sys-code",
-        elements: [{ id: "c-api", kind: "container", name: "BFF Gateway", tech: "FastAPI" }],
-        rels: [],
-      },
-      level3: {
-        "c-api": [{ id: "c-api/1", kind: "component", name: "BFF Routes", tech: "Python" }],
-      },
-      level4: {
-        groups: [{ id: "rg-prod", zone: "cloud-prod", title: "rg-prod" }],
-        nodes: [{ id: "vm-code", group: "rg-prod", kind: "vm", title: "vm-code", role: "App VM", hosts: ["c-api"] }],
-        links: [],
-      },
-      subgraphs,
-      routes,
-    };
+  it("indexes and scores 2,400 cross-level Go-To entries (Components, Folders, Files, Functions, Routes) (#120)", () => {
+    const model2400 = buildGoToModel();
 
     const index = buildMapSearchIndex(model2400);
     expect(index.length).toBeGreaterThanOrEqual(2400);
 
-    // Warm JIT once, then take each query's median over 9 runs. A single sample
-    // against a tight budget fails at random on a shared runner (#143); the
-    // ceiling only has to catch a real regression, such as a quadratic scan.
-    searchArchitectureMap(index, "for");
-    const queries = ["forge", "bff/ttibff/forge", "orgs/{org}/architecture", "fn_handler_42"];
-    for (const q of queries) {
-      const samples: number[] = [];
-      for (let i = 0; i < 9; i++) {
-        const t0 = performance.now();
-        const res = searchArchitectureMap(index, q);
-        samples.push(performance.now() - t0);
-        expect(res.totalHits).toBeGreaterThan(0);
-      }
-      samples.sort((x, y) => x - y);
-      expect(samples[4], `median of "${q}" over ${index.length} entries`).toBeLessThan(25);
+    // Every query hits. How long a query takes is the `go-to` scenario of the
+    // map benchmark (`map-bench.test.ts`), gated as a ratio between model sizes.
+    for (const q of ["forge", "bff/ttibff/forge", "orgs/{org}/architecture", "fn_handler_42"]) {
+      expect(searchArchitectureMap(index, q).totalHits, `hits for "${q}"`).toBeGreaterThan(0);
     }
 
     // Verify exact grouping & handler resolution
