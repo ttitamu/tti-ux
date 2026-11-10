@@ -184,7 +184,7 @@ describe("architecture map benchmark: component (#153)", () => {
 
   gate({
     id: "c-hover",
-    title: "hover one card in the deepest view: stageRels, routedSvg and the render",
+    title: "hover one card in the deepest view: the wires it opens and the render",
     scalesWith: "cards and wires in one view",
     bounds: [4.5, 4.5],
     make: async (t) => {

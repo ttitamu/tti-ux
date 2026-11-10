@@ -105,21 +105,30 @@ function layoutView(view: LiftedView) {
 }
 
 /**
- * The wires of the view, as the component's `stageRels` hands them to the
- * router. At rest an outside card has one wire, to the view's boundary. With a
- * card hovered or selected, every outside card that touches it opens into one
- * wire per inner card it reaches.
+ * The wires of the view at rest, as the component hands them to the router once
+ * a stage: an outside card has one wire, to the view's boundary.
  */
-function viewRels(view: LiftedView, activeId?: string): TuxMapLevelRel[] {
+function viewRels(view: LiftedView): TuxMapLevelRel[] {
   const rels: TuxMapLevelRel[] = [...view.lifted.rels];
   const side = (s: LiftedView["lifted"]["ins"][number], inbound: boolean) => {
-    if (activeId && (s.id === activeId || s.wires.some((w) => w.kid === activeId))) {
-      for (const w of s.wires) {
-        rels.push(inbound ? { from: s.id, to: w.kid, label: w.label } : { from: w.kid, to: s.id, label: w.label });
-      }
-    } else {
-      const label = `${s.count} ${s.count === 1 ? "link" : "links"}`;
-      rels.push(inbound ? { from: s.id, to: "@bound", label } : { from: "@bound", to: s.id, label });
+    const label = `${s.count} ${s.count === 1 ? "link" : "links"}`;
+    rels.push(inbound ? { from: s.id, to: "@bound", label } : { from: "@bound", to: s.id, label });
+  };
+  for (const s of view.lifted.ins) side(s, true);
+  for (const s of view.lifted.outs) side(s, false);
+  return rels;
+}
+
+/**
+ * The wires a hovered or selected card opens, the only ones the component routes
+ * then: every outside card that touches it, as one wire per inner card it reaches.
+ */
+function openedRels(view: LiftedView, activeId: string): TuxMapLevelRel[] {
+  const rels: TuxMapLevelRel[] = [];
+  const side = (s: LiftedView["lifted"]["ins"][number], inbound: boolean) => {
+    if (s.id !== activeId && !s.wires.some((w) => w.kid === activeId)) return;
+    for (const w of s.wires) {
+      rels.push(inbound ? { from: s.id, to: w.kid, label: w.label } : { from: w.kid, to: s.id, label: w.label });
     }
   };
   for (const s of view.lifted.ins) side(s, true);
@@ -190,9 +199,7 @@ describe("architecture map benchmark: utils (#153)", () => {
       const view = liftView(p.model, p.rawLinks, p.parentOf, p.fileId);
       expect(view.lifted.rels.length, `${s.label}: inner wires`).toBeGreaterThanOrEqual(s.cardsPerView);
       expect(view.lifted.ins.length, `${s.label}: outside cards`).toBeGreaterThan(0);
-      expect(viewRels(view, p.symbolId).length, `${s.label}: wires opened by the hover`).toBeGreaterThan(
-        viewRels(view).length,
-      );
+      expect(openedRels(view, p.symbolId).length, `${s.label}: wires opened by the hover`).toBeGreaterThan(0);
     }
   });
 
@@ -314,13 +321,13 @@ describe("architecture map benchmark: utils (#153)", () => {
 
   gate({
     id: "hover",
-    title: "re-route the deepest view for one hovered card",
-    scalesWith: "cards in one view",
+    title: "route the wires one hovered card opens in the deepest view",
+    scalesWith: "wires the hovered card opens",
     bounds: [4, 4.5],
     make: (p) => {
       const view = liftView(p.model, p.rawLinks, p.parentOf, p.fileId);
       const { rects, els } = layoutView(view);
-      const rels = viewRels(view, p.symbolId);
+      const rels = openedRels(view, p.symbolId);
       return { run: () => void (sink += routeGridWires(rels, rects, els).wires.length + 1) };
     },
   });

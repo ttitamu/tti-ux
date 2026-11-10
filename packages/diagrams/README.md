@@ -127,7 +127,7 @@ It builds three synthetic repositories from a seeded generator (`tests/support/m
 |---|---|---|
 | `pipeline` | utils | `sanitizeMapModel` → `collapseModelSubgraphs` → `buildMapParentIndex` → `resolveModelRawLinks` → `liftLinksToView` → `routeGridWires` for the deepest view |
 | `sanitize`, `collapse`, `parent-index`, `links`, `lift-view`, `route`, `search-index` | utils | one stage each (`links` is `extractModelLinks`) |
-| `hover` | utils | `routeGridWires` again with the hovered card's outside wires opened |
+| `hover` | utils | `routeGridWires` for the wires the hovered card opens, and no others |
 | `selection` | utils | `computeLinkBlastRadius` for one symbol, unfiltered and by kind |
 | `lazy-merge` | utils | one resolved subgraph merged: sanitize, collapse and index again |
 | `go-to` | utils | `searchArchitectureMap`, four queries over the built index |
