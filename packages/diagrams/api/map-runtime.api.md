@@ -1515,7 +1515,7 @@ export type TuxMapTool = "select" | "pan" | "pen" | "laser" | "note";
 ##### `TuxMapValidationIssueCode`
 
 ```ts
-export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "reserved-id" | "parent-cycle" | "max-depth-exceeded" | "unknown-link-end" | "unknown-rel-end" | "missing-schema" | "unknown-schema";
+export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "reserved-id" | "parent-cycle" | "max-depth-exceeded" | "unknown-link-end" | "unknown-rel-end" | "resolved-empty-subgraph" | "missing-schema" | "unknown-schema";
 ```
 
 ##### `TuxMapWireCategory`

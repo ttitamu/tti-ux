@@ -3625,7 +3625,9 @@ export function resolveModelRawLinks(model?: TuxMapLevelModel): TuxMapLink[] {
 }
 
 /**
- * Kind of problem `validateMapModel` reports.
+ * Kind of problem `validateMapModel` reports. `resolved-empty-subgraph` is the one it never
+ * reports itself: `<TuxArchitectureMap>` adds it to its own diagnostics, once per card, when
+ * `resolveSubgraph` returned elements and sanitizing removed them all (`tti/tti-ux#156`).
  * @public
  */
 export type TuxMapValidationIssueCode =
@@ -3636,6 +3638,7 @@ export type TuxMapValidationIssueCode =
   | "max-depth-exceeded"
   | "unknown-link-end"
   | "unknown-rel-end"
+  | "resolved-empty-subgraph"
   | "missing-schema"
   | "unknown-schema";
 
