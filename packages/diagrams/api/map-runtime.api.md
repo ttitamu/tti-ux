@@ -337,6 +337,7 @@ export declare function liftLinksToView(links: TuxMapLink[], focusId: string, ki
     lift?: "depth" | "lca";
     splitIds?: ReadonlySet<string> | Iterable<string>;
     categories?: ReadonlySet<TuxMapWireCategory> | Iterable<TuxMapWireCategory>;
+    verifyInputs?: boolean;
 }): {
     rels: TuxMapLevelRel[];
     ins: TuxMapLiftedSide[];
@@ -561,6 +562,7 @@ export interface TuxMapBlastOptions {
     intent?: TuxMapBlastIntent;
     includePlanned?: boolean;
     model?: TuxMapLevelModel;
+    verifyInputs?: boolean;
 }
 ```
 

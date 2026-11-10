@@ -66,6 +66,8 @@ Every runtime export carries `@public` or `@internal` in its TSDoc comment, and 
 
 The result and option types of those functions are public with them; the snapshot lists every declaration.
 
+**`links` and `parentOf` are read-only once passed.** `computeLinkBlastRadius()` and `liftLinksToView()` build lookup tables from the `links` array and the `parentOf` map and cache them against those two objects, so a repeat call with the same array and map does not read either of them whole. The tables are rebuilt when the array's length or the map's size changes. A change in place that keeps the count (a link replaced, a link's `from` or `to` rewritten, a child given another parent) is not seen: pass a new array or map, which is what `extractModelLinks()` and `buildMapParentIndex()` return on every call, or pass `verifyInputs: true`, which hashes both inputs on that call and rebuilds on a difference.
+
 **`@internal` exports may change or be removed in any release, without notice and without a changelog entry.** They are how the component draws (pixel geometry, path builders, the wire router, caches, comparators, object helpers). They remain exported and typed for now, so marking them broke no import; do not build on them. [`api/map-exports-inventory.md`](./api/map-exports-inventory.md) records how each export was sorted.
 
 Changing the surface on purpose: tag a new export `@public` or `@internal`, then run `npm run build:runtime -w @tti/tti-ux-diagrams` and `npm run build:api -w @tti/tti-ux-diagrams` and commit the regenerated snapshots with the change. `npm test` fails with the list of added, removed and changed names until they match.

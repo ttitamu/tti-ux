@@ -18,6 +18,11 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — the map's link and parent tables are cached by identity (#155)
+
+- `computeLinkBlastRadius()` and `liftLinksToView()` no longer hash every link and every parent entry on each call before they look up their cached tables. The tables are keyed on the `links` array and the `parentOf` map themselves and rebuilt when the length or the size changes, so a selection costs what its walk costs. `traceSpreadingPath()` drops the same hash.
+- **To check when you upgrade:** code that changes `links` or `parentOf` in place between calls and keeps the count the same (a link replaced in its slot, a link's `from` or `to` rewritten, a child given another parent) now gets the earlier answer. Pass a new array or map, or the new option `verifyInputs: true` (on `TuxMapBlastOptions` and on the options of `liftLinksToView()`), which hashes the inputs on that call as every call did before. The functions that take a model (`queryArchitectureImpact()`, `findArchitecturePath()`, `traceSpreadingPath()`) still notice a model changed in place by themselves, and `<TuxArchitectureMap>` is unaffected: it builds a new array and a new map whenever the model changes.
+
 ### Changed — TUX says it is beta (#152)
 
 - The READMEs, every package description, the docs site (a Beta badge in the header, the home, install, getting-started and changelog pages) and this file now say that TUX is beta, what that means for an upgrade, and that Live is a declaration and not a version number.

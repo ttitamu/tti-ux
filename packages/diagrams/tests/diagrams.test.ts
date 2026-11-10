@@ -69,6 +69,7 @@ import {
   type TuxMapLevelElement,
   type TuxMapLevelModel,
   type TuxMapLevelRel,
+  type TuxMapLink,
 } from "../app/utils/tuxArchitectureMap";
 import { DEFAULT_TTI_LEVEL_MODEL } from "../app/utils/tuxArchitectureMapSample";
 import {
@@ -1998,6 +1999,131 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect(mapAncestorsOf("x", cyclic)).toEqual(["x", "y"]);
   });
 
+  describe("lookup tables are cached by the identity of `links` and `parentOf` (#155)", () => {
+    /** A parent map that counts every walk over the whole of it. */
+    class CountingMap extends Map<string, string> {
+      walks = 0;
+      override [Symbol.iterator]() {
+        this.walks += 1;
+        return super[Symbol.iterator]();
+      }
+      override entries() {
+        this.walks += 1;
+        return super.entries();
+      }
+      override keys() {
+        this.walks += 1;
+        return super.keys();
+      }
+      override values() {
+        this.walks += 1;
+        return super.values();
+      }
+      override forEach(fn: (value: string, key: string, map: Map<string, string>) => void, thisArg?: unknown) {
+        this.walks += 1;
+        super.forEach(fn, thisArg);
+      }
+    }
+
+    it("a repeat call with the same array and map reads neither of them whole", () => {
+      // Forty links nowhere near the seed. Their `from` is a counting getter, so
+      // a hash of the whole array shows up as forty reads, off the wall clock.
+      let farReads = 0;
+      const far = Array.from({ length: 40 }, (_, i) => {
+        const l = { to: `far-b${i}`, kind: "calls" } as TuxMapLink;
+        Object.defineProperty(l, "from", {
+          enumerable: true,
+          get() {
+            farReads += 1;
+            return `far-a${i}`;
+          },
+        });
+        return l;
+      });
+      const links: TuxMapLink[] = [{ from: "dep", to: "kid", kind: "calls" }, ...far];
+      const parentOf = new CountingMap([["kid", "seed"]]);
+
+      const first = computeLinkBlastRadius(links, "seed", parentOf);
+      expect([...first.hits.keys()]).toEqual(["dep"]);
+      expect(farReads).toBeGreaterThan(0); // the tables were built from every link
+      expect(parentOf.walks).toBeGreaterThan(0);
+
+      farReads = 0;
+      parentOf.walks = 0;
+      const again = computeLinkBlastRadius(links, "seed", parentOf);
+      expect([...again.hits.keys()]).toEqual(["dep"]);
+      expect(farReads, "reads of links the walk never reaches").toBe(0);
+      expect(parentOf.walks, "walks over the whole parent map").toBe(0);
+
+      // `verifyInputs` is the opt-in full check: it reads everything again.
+      computeLinkBlastRadius(links, "seed", parentOf, { verifyInputs: true });
+      expect(farReads).toBeGreaterThanOrEqual(40);
+      expect(parentOf.walks).toBeGreaterThan(0);
+    });
+
+    it("a change in place that alters the length or size is seen; one that keeps it needs verifyInputs", () => {
+      const links: TuxMapLink[] = [
+        { from: "a", to: "seed", kind: "calls" },
+        { from: "b", to: "elsewhere", kind: "calls" },
+      ];
+      const parentOf = new Map<string, string>([["kid", "elsewhere"]]);
+      const hitIds = (opts?: { verifyInputs?: boolean }) =>
+        [...computeLinkBlastRadius(links, "seed", parentOf, opts).hits.keys()].sort();
+      expect(hitIds()).toEqual(["a"]);
+
+      // Grown in place: the length guard rebuilds the table.
+      links.push({ from: "c", to: "seed", kind: "calls" });
+      expect(hitIds()).toEqual(["a", "c"]);
+      parentOf.set("kid2", "seed");
+      links.push({ from: "d", to: "kid2", kind: "calls" });
+      expect(hitIds()).toEqual(["a", "c", "d"]);
+
+      // Same length, another link in the slot: the cached table answers. This
+      // is the documented contract, so the default call still says a, c, d.
+      links[1] = { from: "b", to: "seed", kind: "calls" };
+      expect(hitIds()).toEqual(["a", "c", "d"]);
+      // The opt-in check sees it, and the rebuilt table serves later calls.
+      expect(hitIds({ verifyInputs: true })).toEqual(["a", "b", "c", "d"]);
+      expect(hitIds()).toEqual(["a", "b", "c", "d"]);
+
+      // Same size, one child moved to another parent: likewise.
+      links.push({ from: "e", to: "kid", kind: "calls" });
+      expect(hitIds()).toEqual(["a", "b", "c", "d"]);
+      parentOf.set("kid", "seed");
+      expect(hitIds()).toEqual(["a", "b", "c", "d"]);
+      expect(hitIds({ verifyInputs: true })).toEqual(["a", "b", "c", "d", "e"]);
+      expect(hitIds()).toEqual(["a", "b", "c", "d", "e"]);
+
+      // A new array or map is always read afresh.
+      expect(
+        [...computeLinkBlastRadius([...links.slice(0, 1)], "seed", new Map(parentOf)).hits.keys()],
+      ).toEqual(["a"]);
+    });
+
+    it("liftLinksToView follows the same rule", () => {
+      const links: TuxMapLink[] = [
+        { from: "k1", to: "k2", kind: "calls" },
+        { from: "k2", to: "k2", kind: "calls" },
+      ];
+      const parentOf = new Map<string, string>([
+        ["k1", "f"],
+        ["k2", "f"],
+        ["k3", "f"],
+      ]);
+      const pairs = (opts?: { verifyInputs?: boolean }) =>
+        liftLinksToView(links, "f", ["k1", "k2", "k3"], parentOf, opts)
+          .rels.map((r) => `${r.from}>${r.to}`)
+          .sort();
+      expect(pairs()).toEqual(["k1>k2"]);
+      links[1] = { from: "k3", to: "k1", kind: "calls" };
+      expect(pairs()).toEqual(["k1>k2"]);
+      expect(pairs({ verifyInputs: true })).toEqual(["k1>k2", "k3>k1"]);
+      expect(pairs()).toEqual(["k1>k2", "k3>k1"]);
+      links.push({ from: "k2", to: "k3", kind: "calls" });
+      expect(pairs()).toEqual(["k1>k2", "k2>k3", "k3>k1"]);
+    });
+  });
+
   it("indexes and scores 2,400 cross-level Go-To entries (Components, Folders, Files, Functions, Routes) (#120)", () => {
     const model2400 = buildGoToModel();
 
@@ -2599,7 +2725,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     });
     expect(() => buildMapParentIndex(mcpNorm)).not.toThrow();
 
-    // 5. Rolling FNV-1a cache stamp invalidates when a middle link is mutated in place
+    // 5. Rolling FNV-1a cache stamp invalidates when a middle link is mutated in place (opt-in for direct calls, #155)
     const midLinks = Array.from({ length: 12 }, (_, i) => ({
       from: `n-${i}`,
       to: `n-${i + 1}`,
@@ -2625,7 +2751,15 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     const idxBefore = getMapQueryIndex(mutModel);
     // Break middle edge `n-5 -> n-6` without changing array length, first link, or last link
     midLinks[5] = { from: "n-5", to: "n-5", kind: "calls" };
+    // Since #155 the direct call takes the hash only when asked (`verifyInputs`); the model-level
+    // index below still notices by itself, and hands the walk a new array.
+    expect(computeLinkBlastRadius(midLinks, "n-12", mutParentOf, { verifyInputs: true }).hits.has("n-0")).toBe(false);
     expect(computeLinkBlastRadius(midLinks, "n-12", mutParentOf).hits.has("n-0")).toBe(false);
+    const viaModel = queryArchitectureImpact(["n-12"], mutModel);
+    if (!("hits" in viaModel)) throw new Error("expected an impact result");
+    const viaModelIds = viaModel.hits.map((h) => h.id);
+    expect(viaModelIds).toContain("n-6");
+    expect(viaModelIds).not.toContain("n-0");
     expect(getMapQueryIndex(mutModel)).not.toBe(idxBefore);
 
     // 6. Two-pass `traceSpreadingPath`: prefers 3-hop pure-spreading over 2-hop `stop: true` & defaults `allowStoppingLastHop` to `false`

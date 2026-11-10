@@ -4466,20 +4466,40 @@ function fnvFeedStr(h: number, s: string): number {
   return Math.imul(out ^ 0xff, 0x01000193) >>> 0;
 }
 
+/*
+ * The two lookup tables below are cached by the identity of their input (a
+ * WeakMap key) and guarded by its size or length (`tti/tti-ux#155`). They used
+ * to hash every entry before each lookup, so a call cost O(input) however
+ * little of the graph it walked, several times per click.
+ *
+ * What that means for a caller: growing or shrinking the map or array in place
+ * is seen. A change in place that keeps the size (another link in a slot, a
+ * link's `from` or `to` rewritten, a child moved to another parent) is not,
+ * unless the call asks for `verify`, which hashes the input as before and
+ * rebuilds on a difference. The hash is taken only when asked for.
+ */
 interface CachedParentTables {
-  stamp: number;
+  /** FNV hash of the entries; null until a `verify` call takes it. */
+  stamp: number | null;
   size: number;
   kidsOf: Map<string, string[]>;
 }
 
 const PARENT_TABLES_CACHE = /* @__PURE__ */ new WeakMap<ReadonlyMap<string, string>, CachedParentTables>();
 
-function getParentTables(parentOf: ReadonlyMap<string, string>): CachedParentTables {
+function parentTablesStamp(parentOf: ReadonlyMap<string, string>): number {
   let stamp = 0x811c9dc5;
   for (const [c, p] of parentOf) {
     stamp = fnvFeedStr(fnvFeedStr(stamp, c), p);
   }
+  return stamp;
+}
+
+function getParentTables(parentOf: ReadonlyMap<string, string>, verify = false): CachedParentTables {
   const cached = PARENT_TABLES_CACHE.get(parentOf);
+  // A table built without a stamp cannot vouch for itself, so `verify` rebuilds it.
+  if (cached && cached.size === parentOf.size && !verify) return cached;
+  const stamp = verify ? parentTablesStamp(parentOf) : null;
   if (cached && cached.size === parentOf.size && cached.stamp === stamp) return cached;
   const kidsOf = new Map<string, string[]>();
   for (const [c, p] of parentOf) {
@@ -4501,7 +4521,8 @@ function getParentTables(parentOf: ReadonlyMap<string, string>): CachedParentTab
 
 interface CachedLinkAdjacency {
   len: number;
-  stamp: number;
+  /** FNV hash of every link's `from`, `to`, `kind` and `stop`; null until a `verify` call takes it. */
+  stamp: number | null;
   validLinks: TuxMapLink[];
   into: Map<string, TuxMapLink[]>;
   outByFrom: Map<string, TuxMapLink[]>;
@@ -4509,16 +4530,7 @@ interface CachedLinkAdjacency {
 
 const LINK_ADJACENCY_CACHE = /* @__PURE__ */ new WeakMap<readonly TuxMapLink[], CachedLinkAdjacency>();
 
-function getLinkAdjacency(links: readonly TuxMapLink[]): CachedLinkAdjacency {
-  if (!Array.isArray(links)) {
-    return {
-      len: 0,
-      stamp: 0,
-      validLinks: [],
-      into: new Map(),
-      outByFrom: new Map(),
-    };
-  }
+function linkAdjacencyStamp(links: readonly TuxMapLink[]): number {
   const len = links.length;
   let stamp = 0x811c9dc5;
   for (let i = 0; i < len; i++) {
@@ -4529,11 +4541,25 @@ function getLinkAdjacency(links: readonly TuxMapLink[]): CachedLinkAdjacency {
     stamp = fnvFeedStr(stamp, typeof l.kind === "string" ? l.kind : "");
     stamp = Math.imul(stamp ^ (l.stop ? 0x31 : 0x30), 0x01000193) >>> 0;
   }
+  return stamp;
+}
 
-  const cached = LINK_ADJACENCY_CACHE.get(links);
-  if (cached && cached.len === len && cached.stamp === stamp) {
-    return cached;
+function getLinkAdjacency(links: readonly TuxMapLink[], verify = false): CachedLinkAdjacency {
+  if (!Array.isArray(links)) {
+    return {
+      len: 0,
+      stamp: 0,
+      validLinks: [],
+      into: new Map(),
+      outByFrom: new Map(),
+    };
   }
+  const len = links.length;
+  const cached = LINK_ADJACENCY_CACHE.get(links);
+  // A table built without a stamp cannot vouch for itself, so `verify` rebuilds it.
+  if (cached && cached.len === len && !verify) return cached;
+  const stamp = verify ? linkAdjacencyStamp(links) : null;
+  if (cached && cached.len === len && cached.stamp === stamp) return cached;
 
   const validLinks: TuxMapLink[] = [];
   const into = new Map<string, TuxMapLink[]>();
@@ -4915,6 +4941,10 @@ function buildWireInspectorDetail(
  * Pass `lift: "lca"` (`tti/tti-ux#118`) to roll outside parts up to the child of their lowest common
  * ancestor with `focusId` (expanding rolled-up cards listed in `splitIds`), keeping at most 24 outside
  * cards per view while counting every dependent.
+ *
+ * The list of usable links is cached against the `links` array itself and reused while its length
+ * is unchanged. After a change in place that keeps the length (a link replaced, or its `from` or
+ * `to` rewritten), pass a new array, or `verifyInputs: true` on the next call.
  * @public
  */
 export function liftLinksToView(
@@ -4929,6 +4959,8 @@ export function liftLinksToView(
     lift?: "depth" | "lca";
     splitIds?: ReadonlySet<string> | Iterable<string>;
     categories?: ReadonlySet<TuxMapWireCategory> | Iterable<TuxMapWireCategory>;
+    /** Hash `links` on this call and rebuild its cached table if it was changed in place (default: false). */
+    verifyInputs?: boolean;
   } = {},
 ): {
   rels: TuxMapLevelRel[];
@@ -5076,7 +5108,7 @@ export function liftLinksToView(
   const pendingIns: PendingSideHit[] = [];
   const pendingOuts: PendingSideHit[] = [];
 
-  const adj = getLinkAdjacency(links);
+  const adj = getLinkAdjacency(links, opts.verifyInputs === true);
   for (const l of adj.validLinks) {
     const kind = l.kind || "uses";
     if (quiet.has(kind) && !(catSet && catSet.has("docs"))) continue;
@@ -5586,6 +5618,14 @@ export interface TuxMapBlastOptions {
   includePlanned?: boolean;
   /** Optional full model used to expand system/host seeds and resolve Level 4 `hostsImpacted` */
   model?: TuxMapLevelModel;
+  /**
+   * Hash `links` and `parentOf` on this call and rebuild their cached lookup tables if either was
+   * changed in place (default: false). Without it the tables are reused for as long as the same
+   * array and the same map come back with the same length and size, so only a change in place that
+   * keeps the count needs this: a link replaced or re-pointed, a child moved to another parent.
+   * It costs a pass over both inputs on every call that sets it.
+   */
+  verifyInputs?: boolean;
 }
 
 /**
@@ -5789,6 +5829,13 @@ function isWorkflowPathNode(id: string, meta?: BlastNodeMeta): boolean {
  * - Ties at the same minimum hop break deterministically by `TUX_MAP_LINK_STRENGTH_ORDER`, then
  *   codepoint order on `(from, to, at)`.
  * - Never walks up into a seed's parent container or parent file.
+ *
+ * The lookup tables behind the walk are cached against the `links` array and the `parentOf` map
+ * themselves, and reused while their length and size are unchanged, so a repeat call does not read
+ * either of them whole. Treat both as read-only once passed. Growing or shrinking one in place is
+ * seen; after a change in place that keeps the count (a link replaced or its `from` or `to`
+ * rewritten, a child given another parent) pass a new array or map, or `verifyInputs: true` on the
+ * next call.
  * @public
  */
 export function computeLinkBlastRadius(
@@ -5811,8 +5858,9 @@ export function computeLinkBlastRadius(
       ? opts.kinds
       : new Set(opts.kinds)
     : null;
+  const verify = opts.verifyInputs === true;
 
-  const { kidsOf } = getParentTables(parentOf);
+  const { kidsOf } = getParentTables(parentOf, verify);
 
   const rawSeeds = typeof seedOrSeeds === "string" ? [seedOrSeeds] : [...seedOrSeeds];
   const seeds = new Set<string>();
@@ -5855,7 +5903,7 @@ export function computeLinkBlastRadius(
     }
   }
 
-  const { into, outByFrom } = getLinkAdjacency(links);
+  const { into, outByFrom } = getLinkAdjacency(links, verify);
 
   let truncated = false;
   const spreadDist = new Map<string, number>();
