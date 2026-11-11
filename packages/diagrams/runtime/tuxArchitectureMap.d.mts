@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: fc88f51b8952fcff8a91e1a3820a77d1160e9267a35ddbf77024be38ae38b5f5
+// SOURCE-SHA256: 39e023e0b6f9a67ce2553b52c46f327bcff3ecb6cbb792ddb554ed2dc1ccc78a
 /**
  * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
  *
@@ -897,6 +897,14 @@ export declare function roundOrthogonalCorners(pts: [number, number][]): string;
 /**
  * Routes wires at right angles strictly through the gaps between columns and rows,
  * never crossing a card, with per-gap interval-coloured lanes and collision-checked labels (`#113`).
+ *
+ * A label is tested against the cards and the labels already placed through the layout's grid
+ * buckets, not the whole view (`#159`): both the overlap test and, in a view with more than 64
+ * boxes, the cover sum that picks the least bad spot when no candidate is free. The labels land
+ * where a scan of every box puts them. With more than 30 wires the labels are shown on hover only
+ * (`forced` on each one): no spot is searched for and no wire segment is recorded or sorted, and
+ * each label keeps the midpoint of its wire's longest segment, which is where the hover label and
+ * the wire inspector are anchored.
  * @internal
  */
 export declare function routeGridWires(rels: TuxMapLevelRel[], rects: Record<string, TuxMapGridCellRect>, els: TuxMapLevelElement[]): {
@@ -1097,6 +1105,9 @@ export declare function buildMapParentIndex(model: TuxMapLevelModel): Map<string
  * Semantic level that displays the children of `fid`:
  * 3 inside a Level 2 container, 5 inside a Level 3 component or Level 4 deployment node,
  * and +1 for each nested subgraph below that (cycle-safe, iterative, bounded at `MAX_TREE_DEPTH`: `#124`).
+ *
+ * Pass `parentOf` (`buildMapParentIndex(model)`) when the caller already holds it: left out, the index
+ * is built on every call (`#160`).
  * @public
  */
 export declare function levelForFocus(fid: string, model: TuxMapLevelModel, parentOf?: Map<string, string>): number;
@@ -1116,6 +1127,10 @@ export declare function liftToSet(id: string, set: ReadonlySet<string>, parentOf
  * (bridging non-planned C4/Level-4 relationships for endpoints without fine-grained code-link coverage unless
  * `bridgeUncovered === false`), or synthesizes links from C4 `rels` and `level4.links` when `model.links`
  * is empty/absent.
+ *
+ * `opts.parentOf` is the model's parent index (`buildMapParentIndex(model)`) when the caller already
+ * holds it; it is read, never changed, and the result is the same as without it. Left out, the index
+ * is built here when the bridging needs it (`#160`).
  * @public
  */
 export declare function extractModelLinks(model: TuxMapLevelModel, opts?: {
@@ -1123,6 +1138,7 @@ export declare function extractModelLinks(model: TuxMapLevelModel, opts?: {
     includeC4Rels?: boolean;
     bridgeUncovered?: boolean;
     bridgeUncoveredPairs?: boolean;
+    parentOf?: Map<string, string>;
 }): TuxMapLink[];
 /**
  * Dependency wire filter categories (`tti/tti-ux#118`).

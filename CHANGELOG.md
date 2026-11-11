@@ -18,6 +18,36 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — wire labels are placed through the layout grid (#159)
+
+- `routeGridWires()` tests a wire label against the cards and the labels already placed through the layout's grid buckets, not the whole view. The overlap test already read the buckets. The cover sum that picks the least bad spot when no candidate is free read every card and every placed label for each candidate; in a view with more than 64 boxes it now reads the boxes in the candidate's cells. A crowded label's cost no longer grows with the number of cards in the view.
+- With more than 30 wires the labels are shown on hover only. In that case no wire segment is recorded and the segments are not sorted; each label keeps the midpoint of its wire's longest segment, as before, because the hover label and the wire inspector are anchored there. The search for a free spot was already skipped in that case.
+- Every label lands where it did. `tests/map-label-placement.test.ts` compares 80 layouts (the default model, dense views with up to 30 and with more than 30 wires, crowded views of 4 to 240 cards where no spot is free, a card with no usable position) against positions recorded from the previous code. No option was added.
+- The package bench has a new row, `route-labels`: 30 crowded two-line labels in the deepest view at each model size. The recorded baseline has no value for it yet, so the last column reads "new" until the baseline is next recorded.
+
+**To check when upgrading:** nothing.
+
+### Changed — `extractModelLinks` and `levelForFocus` take the caller's parent index (#160)
+
+- `extractModelLinks()` has a new option, `parentOf`: the model's parent index (`buildMapParentIndex(model)`) when the caller already holds it. The function reads it and does not build its own. Left out, the index is built as before, and the links returned are the same either way. `levelForFocus()` already took the index as its third argument.
+- `<TuxArchitectureMap>` passes the index it holds when it extracts the model's links and when it works out the level after an id is renamed by a collapsed subgraph, so a change of model or of the planned-links switch builds the index once, not once per caller. Inside the package, `traceSpreadingPath()`, `computeGraphDelta()`, `getMapQueryIndex()`, `queryArchitectureImpact()` and `queryMultiLevelBlastRadius()` pass theirs the same way.
+
+**To check when upgrading:** nothing. The index passed must be the one built from the same model; an index from another model gives that model's coverage.
+
+### Fixed — `tux-mcp --call` and `--list-tools` write their whole output to a pipe (#167)
+
+- `tux-mcp --call` and `tux-mcp --list-tools` printed their JSON and called `process.exit()` at once. Where a pipe write is asynchronous (macOS, for one), the process ended before the pipe had taken everything, and a reader got the first 65,536 bytes and no more. Both paths now exit from the write's callback, so `tux-mcp --call … | jq` receives the whole result. Exit codes are unchanged.
+- The error paths do the same on stderr: a model file that cannot be loaded, a missing tool name, arguments that are not a JSON object, an unknown tool.
+- `tests/tux-mcp-cli.test.mjs` runs the script as a child with stdout as a pipe and parses a 447,894-byte `tux_query_architecture_nodes` result and the 67,768-byte component list.
+
+### Fixed — `tux-mcp` prompt topics accept letters of any script, apostrophes, dashes and quotes (#168)
+
+- The `topic` argument of the `tux-build-tti-view` prompt took ASCII letters and digits only, so "Reveille's day-to-day", "café" and "end — start" were refused. A topic now holds 1 to 121 characters, counted as Unicode code points, the first a letter or digit, from this set: letters and digits of any script, combining marks (an accent written as letter + mark passes), spaces and `_ . / , : ( ) & - ' ’ ‘ – — "`. The topic reaches the prompt as sent, without normalization.
+- Still refused: control characters, line breaks, tabs, backticks, angle brackets, braces, backslashes, curly double quotes and every other character outside the set. The error message now lists the set.
+- The prompt text quotes the topic with guillemets (`«…»`) where it used straight double quotes. A topic can contain a straight double quote and can never contain a guillemet, so no topic can end its own quotation.
+
+**To check when upgrading:** a `topic` sent as an empty or blank string is refused; it used to take the default topic. A request with no `topic` still takes the default. A client that reads the prompt text finds the topic between `«` and `»`.
+
 ### Fixed — the supply-chain blast radius no longer loses a build-time file when a seed is added (#188)
 
 - `computeLinkBlastRadius` under `intent: "supply-chain"` built `buildExecImpacted` from the one link that first reached each hit. A file with a build-time link into one seed and any other link into a second seed was then listed for the first seed alone and missing when both were given. After the walk, every link into each seed is now read (honouring `kinds`), and a linking node whose coupling or phase is `build-exec` is listed. Adding a seed never removes an item.
@@ -110,11 +140,11 @@ Everything in this list is `<TuxArchitectureMap>`, its utilities or `tux-mcp`. T
 - `tux_acp_subgraph_lease` is gone.
 - `tux://architecture/c4-graph` is now `tux-c4-cpg-v2`, with at most 60 nodes and 60 edges and without `source`, `diff`, `desc` or `activeAcpLeases`.
 - A `tools/call` result over 256 KiB is replaced by a notice, including from the design tools. `--call` output and resources have no limit.
-- Prompt `topic` and `division` values are validated. A topic can use only ASCII letters, digits, spaces and `_ . / , : ( ) & -`, so apostrophes, en and em dashes and accented letters are rejected.
+- Prompt `topic` and `division` values are validated. A topic can use only ASCII letters, digits, spaces and `_ . / , : ( ) & -`, so apostrophes, en and em dashes and accented letters are rejected. Widened since (#168).
 - `tux_audit_snippet` reports each legacy or undefined token once, so `issueCount` can be lower than in 3.9.1.
 - `--call` exits 1 when the tool returns an `error`. 3.9.1 exited 0.
 - The `tux-mcp` bin now runs when installed. In 3.9.1 it did nothing through npm's symlink.
-- Known issue: `--call` output into a pipe can be cut off, usually at 64 KiB. Redirect it to a file instead.
+- Known issue in this release: `--call` output into a pipe can be cut off, usually at 64 KiB. Redirect it to a file instead. Fixed since (#167).
 
 ### Deprecated — removed when TUX goes Live
 
