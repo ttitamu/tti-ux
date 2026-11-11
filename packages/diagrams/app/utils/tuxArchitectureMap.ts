@@ -6140,6 +6140,25 @@ export function computeLinkBlastRadius(
     }
   }
 
+  if (intent === "supply-chain") {
+    // A hit is classified above by the one link that first reached it. A file with a build-time link
+    // into one seed and another link into a second seed would then be listed or not depending on
+    // which seeds are in the call (#188). Every link into a seed is read here, so adding a seed
+    // never removes an item.
+    const listed = new Set(buildExecImpacted);
+    for (const s of seeds) {
+      for (const l of into.get(s) ?? []) {
+        const y = l.from;
+        if (y === s || listed.has(y)) continue;
+        if (kindsSet && !kindsSet.has(l.kind || "uses")) continue;
+        if (inferLinkCoupling(l) === "build-exec" || inferLinkPhase(l) === "build-exec") {
+          listed.add(y);
+          buildExecImpacted.push(y);
+        }
+      }
+    }
+  }
+
   blockers.sort(cmpCodepoint);
   coCutCandidates.sort(cmpCodepoint);
   testsToRun.sort(cmpCodepoint);

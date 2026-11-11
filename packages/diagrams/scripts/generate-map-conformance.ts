@@ -598,6 +598,39 @@ const hybridC4AndEdgeCases: TuxMapLevelModel = {
   ],
 };
 
+// One lockfile with a build-time link into package a and a client-bundle link into package b (#188).
+const supplyChainTwoLinks: TuxMapLevelModel = {
+  level1: { elements: [{ id: "sys-lock", kind: "system", name: "Lock" }], rels: [] },
+  level2: {
+    boundary: "sys-lock",
+    elements: [{ id: "c-lock", kind: "container", name: "Lock" }],
+    rels: [],
+  },
+  level3: { "c-lock": [{ id: "c-lock/0", kind: "component", name: "Lock files" }] },
+  level4: { groups: [], nodes: [], links: [] },
+  subgraphs: {
+    "c-lock/0": {
+      elements: [
+        { id: "f:lock.json", kind: "module", name: "lock.json" },
+        { id: "p:pkg:npm/a", kind: "module", name: "a" },
+        { id: "p:pkg:npm/b", kind: "module", name: "b" },
+      ],
+    },
+  },
+  links: [
+    {
+      from: "f:lock.json",
+      to: "p:pkg:npm/a",
+      kind: "imports",
+      at: "lock.json:1",
+      stop: true,
+      coupling: "build-exec",
+      phase: "build-exec",
+    },
+    { from: "f:lock.json", to: "p:pkg:npm/b", kind: "imports", at: "lock.json:2", phase: "client-bundle" },
+  ],
+};
+
 const models: Record<string, TuxMapLevelModel> = {
   code_7level: code7Level,
   c4_rels_only: c4RelsOnly,
@@ -605,6 +638,7 @@ const models: Record<string, TuxMapLevelModel> = {
   long_chain: longChain,
   all_11_kinds_and_adversarial: all11KindsAndAdversarial,
   hybrid_c4_and_edge_cases: hybridC4AndEdgeCases,
+  supply_chain_two_links: supplyChainTwoLinks,
 };
 
 // --- A real producer output (#165) ---
@@ -1279,6 +1313,41 @@ const blastCases = [
     seeds: ["s:core/auth.py#verify_token"],
     opts: { intent: "supply-chain" },
     includeFields: ["buildExecImpacted", "stampsToRebuild", "hostsImpacted"],
+  }),
+  buildBlastCase({
+    id: "supply_chain_build_exec_seed_alone",
+    model: "supply_chain_two_links",
+    seeds: ["p:pkg:npm/a"],
+    opts: { intent: "supply-chain" },
+    includeFields: ["buildExecImpacted"],
+  }),
+  buildBlastCase({
+    id: "supply_chain_client_bundle_seed_alone_lists_no_build_exec",
+    model: "supply_chain_two_links",
+    seeds: ["p:pkg:npm/b"],
+    opts: { intent: "supply-chain" },
+    includeFields: ["buildExecImpacted"],
+  }),
+  buildBlastCase({
+    id: "supply_chain_build_exec_survives_a_second_seed",
+    model: "supply_chain_two_links",
+    seeds: ["p:pkg:npm/a", "p:pkg:npm/b"],
+    opts: { intent: "supply-chain" },
+    includeFields: ["buildExecImpacted"],
+  }),
+  buildBlastCase({
+    id: "supply_chain_build_exec_survives_a_second_seed_in_either_order",
+    model: "supply_chain_two_links",
+    seeds: ["p:pkg:npm/b", "p:pkg:npm/a"],
+    opts: { intent: "supply-chain" },
+    includeFields: ["buildExecImpacted"],
+  }),
+  buildBlastCase({
+    id: "supply_chain_build_exec_pass_honours_kinds",
+    model: "supply_chain_two_links",
+    seeds: ["p:pkg:npm/a", "p:pkg:npm/b"],
+    opts: { intent: "supply-chain", kinds: ["uses"] },
+    includeFields: ["buildExecImpacted"],
   }),
   buildBlastCase({
     id: "container_seed_expands_descendants_only_never_internal_hits",
