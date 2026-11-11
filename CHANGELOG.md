@@ -18,6 +18,13 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — `extractModelLinks` and `levelForFocus` take the caller's parent index (#160)
+
+- `extractModelLinks()` has a new option, `parentOf`: the model's parent index (`buildMapParentIndex(model)`) when the caller already holds it. The function reads it and does not build its own. Left out, the index is built as before, and the links returned are the same either way. `levelForFocus()` already took the index as its third argument.
+- `<TuxArchitectureMap>` passes the index it holds when it extracts the model's links and when it works out the level after an id is renamed by a collapsed subgraph, so a change of model or of the planned-links switch builds the index once, not once per caller. Inside the package, `traceSpreadingPath()`, `computeGraphDelta()`, `getMapQueryIndex()`, `queryArchitectureImpact()` and `queryMultiLevelBlastRadius()` pass theirs the same way.
+
+**To check when upgrading:** nothing. The index passed must be the one built from the same model; an index from another model gives that model's coverage.
+
 ### Fixed — the supply-chain blast radius no longer loses a build-time file when a seed is added (#188)
 
 - `computeLinkBlastRadius` under `intent: "supply-chain"` built `buildExecImpacted` from the one link that first reached each hit. A file with a build-time link into one seed and any other link into a second seed was then listed for the first seed alone and missing when both were given. After the walk, every link into each seed is now read (honouring `kinds`), and a linking node whose coupling or phase is `build-exec` is listed. Adding a seed never removes an item.

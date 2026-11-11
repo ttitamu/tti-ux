@@ -4489,6 +4489,9 @@ export function buildMapParentIndex(model: TuxMapLevelModel): Map<string, string
  * Semantic level that displays the children of `fid`:
  * 3 inside a Level 2 container, 5 inside a Level 3 component or Level 4 deployment node,
  * and +1 for each nested subgraph below that (cycle-safe, iterative, bounded at `MAX_TREE_DEPTH`: `#124`).
+ *
+ * Pass `parentOf` (`buildMapParentIndex(model)`) when the caller already holds it: left out, the index
+ * is built on every call (`#160`).
  * @public
  */
 export function levelForFocus(
@@ -4684,6 +4687,10 @@ export function liftToSet(id: string, set: ReadonlySet<string>, parentOf: Map<st
  * (bridging non-planned C4/Level-4 relationships for endpoints without fine-grained code-link coverage unless
  * `bridgeUncovered === false`), or synthesizes links from C4 `rels` and `level4.links` when `model.links`
  * is empty/absent.
+ *
+ * `opts.parentOf` is the model's parent index (`buildMapParentIndex(model)`) when the caller already
+ * holds it; it is read, never changed, and the result is the same as without it. Left out, the index
+ * is built here when the bridging needs it (`#160`).
  * @public
  */
 export function extractModelLinks(
@@ -4693,6 +4700,7 @@ export function extractModelLinks(
     includeC4Rels?: boolean;
     bridgeUncovered?: boolean;
     bridgeUncoveredPairs?: boolean;
+    parentOf?: Map<string, string>;
   } = {},
 ): TuxMapLink[] {
   const includePlanned = opts.includePlanned ?? false;
@@ -4706,7 +4714,7 @@ export function extractModelLinks(
   let coveredPairs: Set<string> | null = null;
   const subgraphOwners = collectSubgraphOwners(model);
   if (hasCodeLinks && !opts.includeC4Rels) {
-    const parentOf = buildMapParentIndex(model);
+    const parentOf = opts.parentOf ?? buildMapParentIndex(model);
     const hostBridge = buildHostBridge(model, subgraphOwners);
     const l2ContainerIds = new Set(
       asObjArray<TuxMapLevelElement>(model?.level2?.elements)
@@ -5558,7 +5566,7 @@ export function traceSpreadingPath(
 
   const parentOf = buildMapParentIndex(model);
   const { kidsOf } = getParentTables(parentOf);
-  const links = extractModelLinks(model);
+  const links = extractModelLinks(model, { parentOf });
   const { outByFrom } = getLinkAdjacency(links);
 
   const expandSubtree = (root: string): Set<string> => {
@@ -6411,7 +6419,7 @@ function indexModelForDelta(
     }
   }
 
-  const links = extractModelLinks(model, { bridgeUncovered });
+  const links = extractModelLinks(model, { bridgeUncovered, parentOf });
   const outWireKeys = new Map<string, Set<string>>();
   for (const l of links) {
     const key = `${l.kind || "uses"}\u0000${l.to}`;
@@ -7924,7 +7932,7 @@ export function getMapQueryIndex(model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL
     pushMap(depEdgesByTo, e.to, e);
   }
 
-  const effectiveLinks = extractModelLinks(model);
+  const effectiveLinks = extractModelLinks(model, { parentOf });
 
   const idx: TuxMapQueryIndex = {
     parentOf,
@@ -8371,7 +8379,7 @@ export function queryArchitectureImpact(
   const links =
     !includePlanned && bridgeUncovered
       ? idx.effectiveLinks
-      : extractModelLinks(model, { includePlanned, bridgeUncovered });
+      : extractModelLinks(model, { includePlanned, bridgeUncovered, parentOf: idx.parentOf });
 
   const coarseParentSteps: TuxMapCoarseParentStep[] = [];
   const redirectParentByLink = new WeakMap<TuxMapLink, string>();
@@ -8775,7 +8783,7 @@ export function queryMultiLevelBlastRadius(
   const rawMaxHops = blastOpts.maxHops === undefined ? 32 : blastOpts.maxHops;
   const maxHops = Number.isFinite(rawMaxHops) ? Math.max(0, Math.floor(rawMaxHops)) : 32;
   const includePlanned = blastOpts.includePlanned ?? false;
-  const links = includePlanned ? extractModelLinks(model, { includePlanned: true }) : idx.effectiveLinks;
+  const links = includePlanned ? extractModelLinks(model, { includePlanned: true, parentOf: idx.parentOf }) : idx.effectiveLinks;
 
   const blast = computeLinkBlastRadius(links, nodeId, idx.parentOf, { ...blastOpts, maxHops });
 

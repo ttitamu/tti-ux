@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: fc88f51b8952fcff8a91e1a3820a77d1160e9267a35ddbf77024be38ae38b5f5
+// SOURCE-SHA256: beafe7e642f81c4ba221ac503e66b1095fb3be1b3d285bcd632979c46094df68
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -3157,7 +3157,7 @@ export function extractModelLinks(model, opts = {}) {
     let coveredPairs = null;
     const subgraphOwners = collectSubgraphOwners(model);
     if (hasCodeLinks && !opts.includeC4Rels) {
-        const parentOf = buildMapParentIndex(model);
+        const parentOf = opts.parentOf ?? buildMapParentIndex(model);
         const hostBridge = buildHostBridge(model, subgraphOwners);
         const l2ContainerIds = new Set(asObjArray(model?.level2?.elements)
             .filter((e) => !e.ref && typeof e.id === "string" && Boolean(e.id))
@@ -3815,7 +3815,7 @@ export function traceSpreadingPath(fromId, toId, model, opts = {}) {
         return { found: true, nodeIds: [fromId], hops: [] };
     const parentOf = buildMapParentIndex(model);
     const { kidsOf } = getParentTables(parentOf);
-    const links = extractModelLinks(model);
+    const links = extractModelLinks(model, { parentOf });
     const { outByFrom } = getLinkAdjacency(links);
     const expandSubtree = (root) => {
         const set = new Set([root]);
@@ -4453,7 +4453,7 @@ function indexModelForDelta(model, bridgeUncovered = true) {
             asObjArray(sg.elements).forEach((k, idx) => addEl({ ...k, id: (typeof k.id === "string" && k.id) || `${owner}/${idx}` }, "subgraph", "module", owner));
         }
     }
-    const links = extractModelLinks(model, { bridgeUncovered });
+    const links = extractModelLinks(model, { bridgeUncovered, parentOf });
     const outWireKeys = new Map();
     for (const l of links) {
         const key = `${l.kind || "uses"}\u0000${l.to}`;
@@ -5801,7 +5801,7 @@ export function getMapQueryIndex(model = EMPTY_TTI_LEVEL_MODEL) {
         pushMap(depEdgesByFrom, e.from, e);
         pushMap(depEdgesByTo, e.to, e);
     }
-    const effectiveLinks = extractModelLinks(model);
+    const effectiveLinks = extractModelLinks(model, { parentOf });
     const idx = {
         parentOf,
         kidsOf,
@@ -6033,7 +6033,7 @@ export function queryArchitectureImpact(seedIds, model = EMPTY_TTI_LEVEL_MODEL, 
     const bridgeUncovered = opts.bridgeUncovered ?? true;
     const links = !includePlanned && bridgeUncovered
         ? idx.effectiveLinks
-        : extractModelLinks(model, { includePlanned, bridgeUncovered });
+        : extractModelLinks(model, { includePlanned, bridgeUncovered, parentOf: idx.parentOf });
     const coarseParentSteps = [];
     const redirectParentByLink = new WeakMap();
     let blastLinks = links;
@@ -6373,7 +6373,7 @@ export function queryMultiLevelBlastRadius(nodeId, model = EMPTY_TTI_LEVEL_MODEL
     const rawMaxHops = blastOpts.maxHops === undefined ? 32 : blastOpts.maxHops;
     const maxHops = Number.isFinite(rawMaxHops) ? Math.max(0, Math.floor(rawMaxHops)) : 32;
     const includePlanned = blastOpts.includePlanned ?? false;
-    const links = includePlanned ? extractModelLinks(model, { includePlanned: true }) : idx.effectiveLinks;
+    const links = includePlanned ? extractModelLinks(model, { includePlanned: true, parentOf: idx.parentOf }) : idx.effectiveLinks;
     const blast = computeLinkBlastRadius(links, nodeId, idx.parentOf, { ...blastOpts, maxHops });
     const childTree = new Set();
     for (const s of blast.seeds) {
