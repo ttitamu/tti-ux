@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: d3e7a747eed845e773e4dc34b67e83392befcbcc14378ba201509bd0ed89a404
+// SOURCE-SHA256: fc88f51b8952fcff8a91e1a3820a77d1160e9267a35ddbf77024be38ae38b5f5
 /**
  * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
  *

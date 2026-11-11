@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: d3e7a747eed845e773e4dc34b67e83392befcbcc14378ba201509bd0ed89a404
+// SOURCE-SHA256: fc88f51b8952fcff8a91e1a3820a77d1160e9267a35ddbf77024be38ae38b5f5
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -4286,6 +4286,22 @@ export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) 
         }
         if (intent === "cut" && canCoCut(y)) {
             coCutCandidates.push(y);
+        }
+    }
+    if (intent === "supply-chain") {
+        const listed = new Set(buildExecImpacted);
+        for (const s of seeds) {
+            for (const l of into.get(s) ?? []) {
+                const y = l.from;
+                if (y === s || listed.has(y))
+                    continue;
+                if (kindsSet && !kindsSet.has(l.kind || "uses"))
+                    continue;
+                if (inferLinkCoupling(l) === "build-exec" || inferLinkPhase(l) === "build-exec") {
+                    listed.add(y);
+                    buildExecImpacted.push(y);
+                }
+            }
         }
     }
     blockers.sort(cmpCodepoint);

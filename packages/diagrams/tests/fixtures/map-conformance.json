@@ -2479,6 +2479,82 @@
         }
       ]
     },
+    "supply_chain_two_links": {
+      "level1": {
+        "elements": [
+          {
+            "id": "sys-lock",
+            "kind": "system",
+            "name": "Lock"
+          }
+        ],
+        "rels": []
+      },
+      "level2": {
+        "boundary": "sys-lock",
+        "elements": [
+          {
+            "id": "c-lock",
+            "kind": "container",
+            "name": "Lock"
+          }
+        ],
+        "rels": []
+      },
+      "level3": {
+        "c-lock": [
+          {
+            "id": "c-lock/0",
+            "kind": "component",
+            "name": "Lock files"
+          }
+        ]
+      },
+      "level4": {
+        "groups": [],
+        "nodes": [],
+        "links": []
+      },
+      "subgraphs": {
+        "c-lock/0": {
+          "elements": [
+            {
+              "id": "f:lock.json",
+              "kind": "module",
+              "name": "lock.json"
+            },
+            {
+              "id": "p:pkg:npm/a",
+              "kind": "module",
+              "name": "a"
+            },
+            {
+              "id": "p:pkg:npm/b",
+              "kind": "module",
+              "name": "b"
+            }
+          ]
+        }
+      },
+      "links": [
+        {
+          "from": "f:lock.json",
+          "to": "p:pkg:npm/a",
+          "kind": "imports",
+          "at": "lock.json:1",
+          "stop": true,
+          "coupling": "build-exec",
+          "phase": "build-exec"
+        },
+        {
+          "from": "f:lock.json",
+          "to": "p:pkg:npm/b",
+          "kind": "imports",
+          "at": "lock.json:2",
+          "phase": "client-bundle"
+        }
+      ]
+    },
     "real_producer_packages": {
       "$file": "map-real-producer.json",
       "sha256": "878f1dddde0a738bbabff67be121857884e9bbf7b885795ba541f974cfff7ad7",
@@ -3160,6 +3236,121 @@
         "hostsImpacted": [
           "vm-api-1"
         ]
+      }
+    },
+    {
+      "id": "supply_chain_build_exec_seed_alone",
+      "model": "supply_chain_two_links",
+      "seeds": [
+        "p:pkg:npm/a"
+      ],
+      "opts": {
+        "intent": "supply-chain"
+      },
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:lock.json",
+            "hop": 1,
+            "kind": "imports",
+            "at": "lock.json:1"
+          }
+        ],
+        "buildExecImpacted": [
+          "f:lock.json"
+        ]
+      }
+    },
+    {
+      "id": "supply_chain_client_bundle_seed_alone_lists_no_build_exec",
+      "model": "supply_chain_two_links",
+      "seeds": [
+        "p:pkg:npm/b"
+      ],
+      "opts": {
+        "intent": "supply-chain"
+      },
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:lock.json",
+            "hop": 1,
+            "kind": "imports",
+            "at": "lock.json:2"
+          }
+        ],
+        "buildExecImpacted": []
+      }
+    },
+    {
+      "id": "supply_chain_build_exec_survives_a_second_seed",
+      "model": "supply_chain_two_links",
+      "seeds": [
+        "p:pkg:npm/a",
+        "p:pkg:npm/b"
+      ],
+      "opts": {
+        "intent": "supply-chain"
+      },
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:lock.json",
+            "hop": 1,
+            "kind": "imports",
+            "at": "lock.json:2"
+          }
+        ],
+        "buildExecImpacted": [
+          "f:lock.json"
+        ]
+      }
+    },
+    {
+      "id": "supply_chain_build_exec_survives_a_second_seed_in_either_order",
+      "model": "supply_chain_two_links",
+      "seeds": [
+        "p:pkg:npm/b",
+        "p:pkg:npm/a"
+      ],
+      "opts": {
+        "intent": "supply-chain"
+      },
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "f:lock.json",
+            "hop": 1,
+            "kind": "imports",
+            "at": "lock.json:2"
+          }
+        ],
+        "buildExecImpacted": [
+          "f:lock.json"
+        ]
+      }
+    },
+    {
+      "id": "supply_chain_build_exec_pass_honours_kinds",
+      "model": "supply_chain_two_links",
+      "seeds": [
+        "p:pkg:npm/a",
+        "p:pkg:npm/b"
+      ],
+      "opts": {
+        "intent": "supply-chain",
+        "kinds": [
+          "uses"
+        ]
+      },
+      "expected": {
+        "truncated": false,
+        "hits": [],
+        "buildExecImpacted": []
       }
     },
     {

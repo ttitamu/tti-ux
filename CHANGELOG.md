@@ -18,6 +18,13 @@ conventions.
 
 ## [Unreleased]
 
+### Fixed — the supply-chain blast radius no longer loses a build-time file when a seed is added (#188)
+
+- `computeLinkBlastRadius` under `intent: "supply-chain"` built `buildExecImpacted` from the one link that first reached each hit. A file with a build-time link into one seed and any other link into a second seed was then listed for the first seed alone and missing when both were given. After the walk, every link into each seed is now read (honouring `kinds`), and a linking node whose coupling or phase is `build-exec` is listed. Adding a seed never removes an item.
+- `map-conformance.json` gains the two-link model `supply_chain_two_links` and five blast cases on it: each seed alone, both seeds in either order, and a `kinds` filter that excludes the links.
+
+**To check when upgrading:** `buildExecImpacted` (and `totalBuildExecCount` in the impact query) can be longer for a multi-seed supply-chain call. Other intents and every other list are unchanged.
+
 ### Changed — the conformance fixture holds a real producer output (#165)
 
 - `tests/fixtures/map-conformance.json` gains a model that no hand wrote: `real_producer_packages`, what an independent code-graph producer emitted for this repository's `packages/` directory at `a6affe1` (2,048 symbols, 2,967 links). Until now every model was one of six hand-written ones of about 20 nodes, recorded from this package's own output, so a second implementation could drift only from this one and a misreading both shared passed. The new level check and five blast-radius cases (default, refactor intent, two seeds, a hop limit, `quietSeedOnly: false`) were checked against the raw links: the hop-1 hits of the first case are exactly the files that link to its seed.
