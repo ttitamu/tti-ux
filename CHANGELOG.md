@@ -18,6 +18,15 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — the conformance fixture holds a real producer output (#165)
+
+- `tests/fixtures/map-conformance.json` gains a model that no hand wrote: `real_producer_packages`, what an independent code-graph producer emitted for this repository's `packages/` directory at `a6affe1` (2,048 symbols, 2,967 links). Until now every model was one of six hand-written ones of about 20 nodes, recorded from this package's own output, so a second implementation could drift only from this one and a misreading both shared passed. The new level check and five blast-radius cases (default, refactor intent, two seeds, a hop limit, `quietSeedOnly: false`) were checked against the raw links: the hop-1 hits of the first case are exactly the files that link to its seed.
+- The model sits in its own compact file, `tests/fixtures/map-real-producer.json`, and the fixture names it as `{ "$file", "sha256", "bytes", "producer" }`. A consumer resolves the reference and checks the hash (`tests/helpers/mapFixture.ts` does it here). The file is not in the npm package, as the fixture grows about fifteen-fold if the model is inlined; a consumer outside this repository that wants those cases takes both files from the tag.
+- `npm test` for the package now runs `generate-map-conformance.ts --check`, so a fixture that has drifted from its generator fails the suite. It did not before.
+- The MCP-contract test asked the impact tool for its default 25-item summary lists and compared them with the uncapped contract, which a real model exceeds (27 blockers, 211 tests). It now asks for the largest cap (200) and compares the contract's first 200.
+
+**To check when upgrading:** nothing in the runtime changed. A consumer that reads `map-conformance.json` must handle a model entry of the form `{ "$file": … }`.
+
 ### Added — the architecture model names its schema (#162)
 
 - **`schema: "tux-map/1"` on `TuxMapLevelModel`**, optional, and the name exported as `TUX_MAP_SCHEMA` (type `TuxMapSchemaName`) from `@tti/tti-ux-diagrams/runtime/tuxArchitectureMap`. A producer writes exactly that string at the top level of the level model.
