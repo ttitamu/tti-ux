@@ -255,6 +255,7 @@ export declare function extractModelLinks(model: TuxMapLevelModel, opts?: {
     includeC4Rels?: boolean;
     bridgeUncovered?: boolean;
     bridgeUncoveredPairs?: boolean;
+    parentOf?: Map<string, string>;
 }): TuxMapLink[];
 ```
 

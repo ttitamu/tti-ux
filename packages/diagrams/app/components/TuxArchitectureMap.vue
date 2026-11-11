@@ -412,11 +412,7 @@ watch(modelAliases, () => {
       focusId.value = rf;
       emit("update:focus", rf);
       if (currentLevel.value >= 5) {
-        const nextLvl = computeLevelForFocus(
-          rf,
-          activeModel.value,
-          buildMapParentIndex(activeModel.value),
-        ) as TuxMapLevelNumber;
+        const nextLvl = computeLevelForFocus(rf, activeModel.value, parentOf.value) as TuxMapLevelNumber;
         if (nextLvl !== currentLevel.value) {
           currentLevel.value = nextLvl;
           emit("update:level", nextLvl);
@@ -1339,6 +1335,7 @@ const effectiveModelLinks = computed<TuxMapLink[]>(() =>
   extractModelLinks(activeModel.value, {
     includePlanned: showPlanned.value,
     bridgeUncoveredPairs: true,
+    parentOf: parentOf.value,
   }),
 );
 
