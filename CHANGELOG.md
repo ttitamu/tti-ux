@@ -18,6 +18,15 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — the map's stage is built per level, with set lookups (#158)
+
+- `<TuxArchitectureMap>` built the stage (cards, wires, outside cards, bounds) in one computed of about a thousand lines that ran again in full on every toggle, and tested membership of the in/out card lists with array scans. It is now two steps. The first follows from the model, the level and the focus: vendored copies folded, the cards inside, their grid or bands, the pairs the code links cover. The second applies the reader's toggles (planned, wire categories, split cards) to it. A toggle runs the second step alone, and a level is rebuilt only by the toggles its second step reads.
+- Each level (1, 2, 3, 4, and 5 and deeper) has its own pair of plain functions in `app/utils/internal/tuxArchitectureMapStage.ts`. The module is internal: it is not auto-imported, not part of the runtime bundle and not in the documented API, and it may change without notice.
+- Membership tests in the stage read a `Set` or a `Map` built once.
+- A mounted test holds that a toggle leaves the first step untouched.
+
+**To check when upgrading:** nothing to change. The stage is the same for every level and toggle, in the same order. An application that copies `TuxArchitectureMap.vue` as a single file needs the new module beside it.
+
 ### Changed — wire labels are placed through the layout grid (#159)
 
 - `routeGridWires()` tests a wire label against the cards and the labels already placed through the layout's grid buckets, not the whole view. The overlap test already read the buckets. The cover sum that picks the least bad spot when no candidate is free read every card and every placed label for each candidate; in a view with more than 64 boxes it now reads the boxes in the candidate's cells. A crowded label's cost no longer grows with the number of cards in the view.
