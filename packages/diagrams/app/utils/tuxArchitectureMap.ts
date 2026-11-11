@@ -4068,9 +4068,31 @@ export function sanitizeMapModel(raw: unknown): {
   model: TuxMapLevelModel;
   validation: TuxMapValidationResult;
 } {
-  const validation = validateMapModel(raw);
+  const { model, validation } = sanitizeMapModelKeepingPass(raw);
+  return { model, validation };
+}
+
+/**
+ * What one `sanitizeMapModel` pass leaves behind for a subgraph that arrives later (`tti/tti-ux#157`):
+ * the parent each id was first accepted under, and the element sanitizer bound to it and to the
+ * pass's cycle ids. `sanitizeSubgraph` gives the entry `sanitizeMapModel` would store for a subgraph
+ * that is last in key order, as long as the model's cycle ids are the ones of this pass.
+ */
+interface MapSanitizePass {
+  sanitizeId: (id: unknown) => string;
+  sanitizeSubgraph: (sg: Record<string, unknown>, ownerId: string) => TuxMapSubgraph;
+}
+
+function sanitizeMapModelKeepingPass(
+  raw: unknown,
+  validation: TuxMapValidationResult = validateMapModel(raw),
+): {
+  model: TuxMapLevelModel;
+  validation: TuxMapValidationResult;
+  pass: MapSanitizePass | null;
+} {
   if (!isPlainRecord(raw)) {
-    return { model: EMPTY_TTI_LEVEL_MODEL, validation };
+    return { model: EMPTY_TTI_LEVEL_MODEL, validation, pass: null };
   }
   const m = raw as unknown as TuxMapLevelModel;
   const cycleSet = new Set(validation.cycleIds);
@@ -4184,6 +4206,16 @@ export function sanitizeMapModel(raw: unknown): {
     );
   }
 
+  const sanitizeSubgraph = (sg: Record<string, unknown>, ownerId: string): TuxMapSubgraph => {
+    const els = sanitizeChildElements(sg.elements, ownerId, 1);
+    const rels = sg.rels !== undefined ? sanitizeRelEndpoints<TuxMapLevelRel>(sg.rels) : undefined;
+    return {
+      ...(sg as unknown as TuxMapSubgraph),
+      elements: els,
+      ...(rels !== undefined ? { rels } : {}),
+    };
+  };
+
   let safeSubgraphs: Record<string, TuxMapSubgraph> | undefined;
   if (isPlainRecord(m.subgraphs)) {
     const cleaned: Record<string, TuxMapSubgraph> = Object.create(null);
@@ -4192,13 +4224,7 @@ export function sanitizeMapModel(raw: unknown): {
       const key = sanitizeId(rawKey);
       if (!key) continue;
       const owner = sanitizeId(subgraphOwners.get(rawKey) ?? rawKey) || key;
-      const els = sanitizeChildElements(sg.elements, owner, 1);
-      const rels = sg.rels !== undefined ? sanitizeRelEndpoints<TuxMapLevelRel>(sg.rels) : undefined;
-      setOwnProp(cleaned, key, {
-        ...(sg as unknown as TuxMapSubgraph),
-        elements: els,
-        ...(rels !== undefined ? { rels } : {}),
-      });
+      setOwnProp(cleaned, key, sanitizeSubgraph(sg, owner));
     }
     safeSubgraphs = cleaned;
   }
@@ -4255,8 +4281,11 @@ export function sanitizeMapModel(raw: unknown): {
     ...(safeAliases ? { aliases: safeAliases } : {}),
     ...(safeLinks !== undefined ? { links: safeLinks } : {}),
   };
-  return { model: safeModel, validation };
+  return { model: safeModel, validation, pass: { sanitizeId, sanitizeSubgraph } };
 }
+
+/** `collapseModelSubgraphs`: a component with at most this many files shows them without the folder level. */
+const MAX_SMALL_COMPONENT_FILES = 8;
 
 function isFolderLikeElement(e: TuxMapLevelElement): boolean {
   const id = typeof e.id === "string" ? e.id : "";
@@ -4292,7 +4321,7 @@ export function collapseModelSubgraphs(
   if (!isPlainRecord(model?.subgraphs)) {
     return { model, aliases };
   }
-  const maxSmallFiles = opts.maxSmallComponentFiles ?? 8;
+  const maxSmallFiles = opts.maxSmallComponentFiles ?? MAX_SMALL_COMPONENT_FILES;
   const origSubgraphs = model.subgraphs;
   const nextSubgraphs: Record<string, TuxMapSubgraph> = Object.create(null);
   for (const [k, sg] of Object.entries(origSubgraphs)) {
@@ -4429,32 +4458,9 @@ export function collapseModelSubgraphs(
   const changed = Object.keys(aliases).length > 0;
   if (!changed) return { model, aliases };
 
-  const resolveAliasTarget = (id: string): string => {
-    let cur = id;
-    const seen = new Set<string>([cur]);
-    while (hasOwn(aliases, cur) && seen.size < MAX_TREE_DEPTH) {
-      const nxt = aliases[cur]!;
-      if (!nxt || seen.has(nxt)) break;
-      seen.add(nxt);
-      cur = nxt;
-    }
-    return cur;
-  };
-
   for (const [k, sg] of Object.entries(nextSubgraphs)) {
-    if (!Array.isArray(sg.rels) || sg.rels.length === 0) continue;
-    const seenPair = new Set<string>();
-    const remappedRels: TuxMapLevelRel[] = [];
-    for (const r of asObjArray<TuxMapLevelRel>(sg.rels)) {
-      const from = resolveAliasTarget(r.from);
-      const to = resolveAliasTarget(r.to);
-      if (!from || !to || from === to) continue;
-      const pk = `${from}\u0000${to}`;
-      if (seenPair.has(pk)) continue;
-      seenPair.add(pk);
-      remappedRels.push(from === r.from && to === r.to ? r : { ...r, from, to });
-    }
-    setOwnProp(nextSubgraphs, k, { ...sg, rels: remappedRels });
+    const remapped = remapSubgraphRelsThroughAliases(sg, aliases);
+    if (remapped !== sg) setOwnProp(nextSubgraphs, k, remapped);
   }
 
   return {
@@ -4468,28 +4474,46 @@ export function collapseModelSubgraphs(
 }
 
 /**
+ * The last step of `collapseModelSubgraphs` for one subgraph: its rels with both ends resolved through
+ * `aliases`, self-loops and repeated pairs dropped. Returns `sg` itself when it has no rels.
+ */
+function remapSubgraphRelsThroughAliases(sg: TuxMapSubgraph, aliases: Record<string, string>): TuxMapSubgraph {
+  if (!Array.isArray(sg.rels) || sg.rels.length === 0) return sg;
+  const resolveAliasTarget = (id: string): string => {
+    let cur = id;
+    const seen = new Set<string>([cur]);
+    while (hasOwn(aliases, cur) && seen.size < MAX_TREE_DEPTH) {
+      const nxt = aliases[cur]!;
+      if (!nxt || seen.has(nxt)) break;
+      seen.add(nxt);
+      cur = nxt;
+    }
+    return cur;
+  };
+  const seenPair = new Set<string>();
+  const remappedRels: TuxMapLevelRel[] = [];
+  for (const r of asObjArray<TuxMapLevelRel>(sg.rels)) {
+    const from = resolveAliasTarget(r.from);
+    const to = resolveAliasTarget(r.to);
+    if (!from || !to || from === to) continue;
+    const pk = `${from}\u0000${to}`;
+    if (seenPair.has(pk)) continue;
+    seenPair.add(pk);
+    remappedRels.push(from === r.from && to === r.to ? r : { ...r, from, to });
+  }
+  return { ...sg, rels: remappedRels };
+}
+
+/**
  * Order-independent two-pass `subgraphRef -> ownerId` resolver across Levels 1..N
  * so child-before-parent key order in `model.subgraphs` matches Python `code-graph.py` 1:1.
  */
-function collectSubgraphOwners(model?: TuxMapLevelModel): Map<string, string> {
+function collectSubgraphOwners(model?: TuxMapLevelModel, report?: { late: boolean }): Map<string, string> {
   const subgraphOwners = new Map<string, string>();
   if (!model || typeof model !== "object") return subgraphOwners;
-  const noteSubgraphRef = (ownerId: string, ref?: string) => {
-    if (ownerId && ref && typeof ref === "string" && ref !== ownerId && !subgraphOwners.has(ref)) {
-      subgraphOwners.set(ref, ownerId);
-    }
-  };
-  const scanInline = (pid: string, rawKids: unknown, depth = 0) => {
-    if (depth >= MAX_TREE_DEPTH) return;
-    const kids = asObjArray<TuxMapLevelElement>(rawKids);
-    kids.forEach((k, i) => {
-      const id = (typeof k.id === "string" && k.id) || `${pid}/${i}`;
-      noteSubgraphRef(id, k.subgraphRef);
-      if (Array.isArray(k.children) && k.children.length > 0) {
-        scanInline(id, k.children, depth + 1);
-      }
-    });
-  };
+  const noteSubgraphRef = (ownerId: string, ref?: string) => noteSubgraphOwner(subgraphOwners, ownerId, ref);
+  const scanInline = (pid: string, rawKids: unknown, depth = 0) =>
+    scanSubgraphOwners(subgraphOwners, pid, rawKids, depth);
   if (isPlainRecord(model.level3)) {
     for (const [cid, kids] of Object.entries(model.level3)) scanInline(cid, kids, 0);
   }
@@ -4518,9 +4542,32 @@ function collectSubgraphOwners(model?: TuxMapLevelModel): Map<string, string> {
         scanInline(owner, sg.elements, 0);
       }
       if (subgraphOwners.size === before && pass >= 1) break;
+      // An owner first seen on a repeat pass: the result then depends on more than key order (`tti/tti-ux#157`)
+      if (pass >= 1 && report) report.late = true;
     }
   }
   return subgraphOwners;
+}
+
+type SubgraphOwnerNotes = Pick<Map<string, string>, "has" | "set">;
+
+function noteSubgraphOwner(owners: SubgraphOwnerNotes, ownerId: string, ref?: string): void {
+  if (ownerId && ref && typeof ref === "string" && ref !== ownerId && !owners.has(ref)) {
+    owners.set(ref, ownerId);
+  }
+}
+
+/** Notes, first owner wins, the `subgraphRef` of every element under `pid`, inline `children` included. */
+function scanSubgraphOwners(owners: SubgraphOwnerNotes, pid: string, rawKids: unknown, depth = 0): void {
+  if (depth >= MAX_TREE_DEPTH) return;
+  const kids = asObjArray<TuxMapLevelElement>(rawKids);
+  kids.forEach((k, i) => {
+    const id = (typeof k.id === "string" && k.id) || `${pid}/${i}`;
+    noteSubgraphOwner(owners, id, k.subgraphRef);
+    if (Array.isArray(k.children) && k.children.length > 0) {
+      scanSubgraphOwners(owners, id, k.children, depth + 1);
+    }
+  });
 }
 
 /**
@@ -4531,15 +4578,7 @@ function collectSubgraphOwners(model?: TuxMapLevelModel): Map<string, string> {
 export function buildMapParentIndex(model: TuxMapLevelModel): Map<string, string> {
   const parentOf = new Map<string, string>();
   const subgraphOwners = collectSubgraphOwners(model);
-  const inline = (pid: string, rawKids: unknown, depth = 0) => {
-    if (!pid || depth >= MAX_TREE_DEPTH) return;
-    const kids = asObjArray<TuxMapLevelElement>(rawKids);
-    kids.forEach((k, i) => {
-      const id = (typeof k.id === "string" && k.id) || `${pid}/${i}`;
-      if (!parentOf.has(id)) parentOf.set(id, pid);
-      if (Array.isArray(k.children) && k.children.length > 0) inline(id, k.children, depth + 1);
-    });
-  };
+  const inline = (pid: string, rawKids: unknown, depth = 0) => indexInlineParents(parentOf, pid, rawKids, depth);
   if (isPlainRecord(model?.level3)) {
     for (const [cid, kids] of Object.entries(model.level3)) inline(cid, kids, 0);
   }
@@ -4563,6 +4602,339 @@ export function buildMapParentIndex(model: TuxMapLevelModel): Map<string, string
       inline(owner, sg.elements, 0);
     }
   }
+  return parentOf;
+}
+
+/** child → parent for the elements under `pid`, inline `children` included. A parent already indexed is kept. */
+function indexInlineParents(parentOf: Map<string, string>, pid: string, rawKids: unknown, depth = 0): void {
+  if (!pid || depth >= MAX_TREE_DEPTH) return;
+  const kids = asObjArray<TuxMapLevelElement>(rawKids);
+  kids.forEach((k, i) => {
+    const id = (typeof k.id === "string" && k.id) || `${pid}/${i}`;
+    if (!parentOf.has(id)) parentOf.set(id, pid);
+    if (Array.isArray(k.children) && k.children.length > 0) indexInlineParents(parentOf, id, k.children, depth + 1);
+  });
+}
+
+/**
+ * A model with its lazily resolved subgraphs merged in, sanitized and collapsed, as
+ * `mergeLazyMapSubgraphs` returns it (`tti/tti-ux#157`).
+ * @internal
+ */
+export interface TuxMapLazyMergeState {
+  /** The model the subgraphs were merged into, as it was passed. */
+  raw: unknown;
+  model: TuxMapLevelModel;
+  aliases: Record<string, string>;
+  validation: TuxMapValidationResult;
+  /**
+   * Set when `model` is `from` plus one subgraph and nothing else: every other subgraph, level and
+   * alias is the same object as in `from`. `owner` is the parent of `elements` in the parent index.
+   */
+  added?: { from: TuxMapLevelModel; key: string; owner: string; elements: TuxMapLevelElement[] };
+}
+
+/** What a merge keeps so the next subgraph can be added without reading the rest of the model again. */
+interface LazyMergeKeep {
+  lazyKeys: string[];
+  lazyValues: unknown[];
+  pass: MapSanitizePass;
+  cycleIds: string[];
+  /** The sanitized model before collapsing; its `subgraphs` are read once, by `prepareLazyMerge`. */
+  sanitizedModel: TuxMapLevelModel;
+  prepared?: {
+    /** key → sanitized subgraph, every key the sanitizer kept (collapsing may have dropped some). */
+    sanitized: Record<string, TuxMapSubgraph>;
+    rawOwners: Map<string, string>;
+    collapsedOwners: Map<string, string>;
+    /** `subgraphRef || id` of every Level 3 component. */
+    componentKeys: Set<string>;
+    /** folder subgraph key → the component subgraphs that show that folder as a card. */
+    folderHosts: Map<string, string[]>;
+    /** Subgraph keys named by the only element of some subgraph, when that element is a folder. */
+    singleFolderRefs: Set<string>;
+  };
+}
+
+const LAZY_MERGE_KEEP = /* @__PURE__ */ new WeakMap<TuxMapLazyMergeState, LazyMergeKeep>();
+
+const subgraphKeyOfElement = (e: TuxMapLevelElement): string => e.subgraphRef || e.id;
+
+/** The model `sanitizeMapModel` is given: `raw` with the lazily resolved subgraphs after its own. */
+function mergeRawLazySubgraphs(raw: unknown, lazy: Record<string, unknown>, lazyKeys: string[]): unknown {
+  if (lazyKeys.length === 0 || !isPlainRecord(raw)) return raw;
+  const merged: Record<string, unknown> = Object.create(null);
+  if (isPlainRecord(raw.subgraphs)) {
+    for (const [k, v] of Object.entries(raw.subgraphs)) setOwnProp(merged, k, v);
+  }
+  for (const k of lazyKeys) setOwnProp(merged, k, lazy[k]);
+  return { ...raw, subgraphs: merged };
+}
+
+/**
+ * `raw` with the lazily resolved subgraphs `lazy` merged in, sanitized and collapsed: the same model,
+ * aliases and validation as `collapseModelSubgraphs(sanitizeMapModel(merged).model)` on the merged
+ * model (`tti/tti-ux#157`).
+ *
+ * Given the state it returned last time (`prev`), with the same `raw` and one more key in `lazy`,
+ * it sanitizes and collapses only the subgraph that arrived and adds it to the previous model, when
+ * it can show the rest of the model is not affected by the arrival. The model is still validated as
+ * a whole. Anything else is built from scratch: another `raw`, a key removed or replaced, a subgraph
+ * that changes the model's cycles, that owns or is folded into a subgraph already there, or that a
+ * folder chain or a small component's flattening would reach.
+ *
+ * `prev` is used up by the call: pass each state once. A caller that changed `raw` or a resolved
+ * subgraph in place passes no `prev`.
+ * @internal
+ */
+export function mergeLazyMapSubgraphs(
+  raw: unknown,
+  lazy: Record<string, unknown>,
+  prev?: TuxMapLazyMergeState,
+): TuxMapLazyMergeState {
+  const lazyKeys = Object.keys(lazy);
+  const mergedRaw = mergeRawLazySubgraphs(raw, lazy, lazyKeys);
+  const keep = prev ? LAZY_MERGE_KEEP.get(prev) : undefined;
+  // The validation of `mergedRaw`, when a step got as far as running it before giving up
+  const done: { validation?: TuxMapValidationResult } = {};
+  if (prev && keep) {
+    // The bookkeeping moves to the state returned below, or is dropped with a half-applied step
+    LAZY_MERGE_KEEP.delete(prev);
+    const next = prev.raw === raw ? addLazySubgraph(prev, keep, mergedRaw, lazy, lazyKeys, done) : null;
+    if (next) {
+      LAZY_MERGE_KEEP.set(next, keep);
+      return next;
+    }
+  }
+  const sanitized = sanitizeMapModelKeepingPass(mergedRaw, done.validation);
+  const collapsed = collapseModelSubgraphs(sanitized.model);
+  const state: TuxMapLazyMergeState = {
+    raw,
+    model: collapsed.model,
+    aliases: collapsed.aliases,
+    validation: sanitized.validation,
+  };
+  if (sanitized.pass) {
+    LAZY_MERGE_KEEP.set(state, {
+      lazyKeys,
+      lazyValues: lazyKeys.map((k) => lazy[k]),
+      pass: sanitized.pass,
+      cycleIds: sanitized.validation.cycleIds,
+      sanitizedModel: sanitized.model,
+    });
+  }
+  return state;
+}
+
+function prepareLazyMerge(
+  keep: LazyMergeKeep,
+  prev: TuxMapLazyMergeState,
+  prevMergedRaw: unknown,
+): LazyMergeKeep["prepared"] | null {
+  const rawReport = { late: false };
+  const rawOwners = collectSubgraphOwners(prevMergedRaw as TuxMapLevelModel, rawReport);
+  const collapsedReport = { late: false };
+  const collapsedOwners = collectSubgraphOwners(prev.model, collapsedReport);
+  // Owners that took a repeat pass to settle can move when a subgraph is added: not handled here
+  if (rawReport.late || collapsedReport.late) return null;
+
+  const sanitized: Record<string, TuxMapSubgraph> = Object.create(null);
+  const singleFolderRefs = new Set<string>();
+  if (isPlainRecord(keep.sanitizedModel.subgraphs)) {
+    for (const [k, sg] of Object.entries(keep.sanitizedModel.subgraphs)) {
+      setOwnProp(sanitized, k, sg);
+      const only = sg.elements.length === 1 ? sg.elements[0]! : undefined;
+      if (only?.id && isFolderLikeElement(only)) singleFolderRefs.add(subgraphKeyOfElement(only));
+    }
+  }
+  const componentKeys = new Set<string>();
+  for (const kids of Object.values(prev.model.level3)) {
+    for (const comp of asObjArray<TuxMapLevelElement>(kids)) {
+      if (typeof comp.id === "string" && comp.id) componentKeys.add(subgraphKeyOfElement(comp));
+    }
+  }
+  const folderHosts = new Map<string, string[]>();
+  const collapsedSubgraphs = prev.model.subgraphs;
+  if (isPlainRecord(collapsedSubgraphs)) {
+    for (const compKey of componentKeys) {
+      if (hasOwn(collapsedSubgraphs, compKey)) {
+        noteFolderHosts(folderHosts, compKey, collapsedSubgraphs[compKey]!.elements);
+      }
+    }
+  }
+  keep.prepared = { sanitized, rawOwners, collapsedOwners, componentKeys, folderHosts, singleFolderRefs };
+  return keep.prepared;
+}
+
+function noteFolderHosts(folderHosts: Map<string, string[]>, compKey: string, elements: TuxMapLevelElement[]): void {
+  for (const item of elements) {
+    if (!isFolderLikeElement(item)) continue;
+    const fKey = subgraphKeyOfElement(item);
+    if (!fKey) continue;
+    const hosts = folderHosts.get(fKey);
+    if (hosts) hosts.push(compKey);
+    else folderHosts.set(fKey, [compKey]);
+  }
+}
+
+/**
+ * The `subgraphRef` owners the elements of one arriving subgraph add to `owners`, or `null` when one
+ * of them names a subgraph that is already in the model (`isLoaded`): that subgraph's owner, and so
+ * what it was sanitized and indexed under, would change.
+ */
+function ownersAddedBySubgraph(
+  owners: Map<string, string>,
+  ownerId: string,
+  rawElements: unknown,
+  isLoaded: (key: string) => boolean,
+): Map<string, string> | null {
+  const added = new Map<string, string>();
+  scanSubgraphOwners(
+    { has: (k) => owners.has(k) || added.has(k), set: (k, v) => added.set(k, v) },
+    ownerId,
+    rawElements,
+  );
+  for (const key of added.keys()) {
+    if (isLoaded(key)) return null;
+  }
+  return added;
+}
+
+/**
+ * `prev` plus the one subgraph `lazy` gained, or `null` when the arrival has to be answered by a full
+ * build. Each test below is a case where `sanitizeMapModel` or `collapseModelSubgraphs`, run on the
+ * whole merged model, would give an existing subgraph, an alias or the arriving one a different
+ * result than treating the arrival alone.
+ */
+function addLazySubgraph(
+  prev: TuxMapLazyMergeState,
+  keep: LazyMergeKeep,
+  mergedRaw: unknown,
+  lazy: Record<string, unknown>,
+  lazyKeys: string[],
+  done: { validation?: TuxMapValidationResult },
+): TuxMapLazyMergeState | null {
+  const raw = prev.raw;
+  if (!isPlainRecord(raw) || !isPlainRecord(mergedRaw)) return null;
+  // Exactly one key more, after the ones already merged, and those unchanged
+  const known = keep.lazyKeys.length;
+  if (lazyKeys.length !== known + 1) return null;
+  for (let i = 0; i < known; i++) {
+    if (lazyKeys[i] !== keep.lazyKeys[i] || lazy[lazyKeys[i]!] !== keep.lazyValues[i]) return null;
+  }
+  const key = lazyKeys[known]!;
+  const sg = lazy[key];
+  // The arriving subgraph is the last one the full build would visit, under its own key.
+  // (An integer-like key is enumerated first, wherever it was added.)
+  if (!key || !isPlainRecord(sg) || /^\d+$/.test(key) || keep.pass.sanitizeId(key) !== key) return null;
+  const rawBaseSubgraphs = isPlainRecord(raw.subgraphs) ? raw.subgraphs : undefined;
+  if (rawBaseSubgraphs && hasOwn(rawBaseSubgraphs, key)) return null;
+  // Collapsing removes the subgraphs it folds away, by alias
+  if (hasOwn(prev.aliases, key)) return null;
+
+  const prepared = keep.prepared ?? prepareLazyMerge(keep, prev, mergeRawLazySubgraphs(raw, lazy, keep.lazyKeys));
+  if (!prepared) return null;
+  const { sanitized, rawOwners, collapsedOwners, componentKeys, folderHosts, singleFolderRefs } = prepared;
+  if (hasOwn(sanitized, key)) return null;
+
+  // The whole model is validated: the issue list is the full one, and the cycles decide what is dropped
+  const validation = validateMapModel(mergedRaw);
+  done.validation = validation;
+  if (
+    validation.cycleIds.length !== keep.cycleIds.length ||
+    validation.cycleIds.some((id, i) => id !== keep.cycleIds[i])
+  ) {
+    return null;
+  }
+
+  const rawSubgraphs = mergedRaw.subgraphs as Record<string, unknown>;
+  const rawOwnerId = rawOwners.get(key) ?? key;
+  const rawOwnersAdded = ownersAddedBySubgraph(rawOwners, rawOwnerId, sg.elements, (k) => hasOwn(rawSubgraphs, k));
+  if (!rawOwnersAdded) return null;
+
+  // From here the pass's accepted parents hold the arrival: returning null drops `keep` with them
+  const entry = keep.pass.sanitizeSubgraph(sg, keep.pass.sanitizeId(rawOwnerId) || key);
+  const els = entry.elements;
+  const isLoaded = (k: string) => k === key || hasOwn(sanitized, k);
+
+  // 1. Folder chains: the arrival must not start, extend or sit inside one
+  const only = els.length === 1 ? els[0]! : undefined;
+  const onlyFolderRef = only?.id && isFolderLikeElement(only) ? subgraphKeyOfElement(only) : "";
+  if (onlyFolderRef && isLoaded(onlyFolderRef)) return null;
+  if (singleFolderRefs.has(key)) return null;
+  for (const el of els) {
+    if (!el.id || el.id === key || !isFolderLikeElement(el)) continue;
+    const k = subgraphKeyOfElement(el);
+    if (k !== key && hasOwn(sanitized, k) && sanitized[k]!.elements.length === 1) return null;
+  }
+
+  // 2. Small components: no component's folder level may become (or stop being) skippable
+  const lacksSubgraph = (item: TuxMapLevelElement): boolean => {
+    if (!isFolderLikeElement(item)) return false;
+    const k = subgraphKeyOfElement(item);
+    return !k || !isLoaded(k);
+  };
+  const hostsFolders = componentKeys.has(key) && els.some(isFolderLikeElement);
+  if (hostsFolders && !els.some(lacksSubgraph)) return null;
+  const hosts = folderHosts.get(key);
+  if (hosts && els.length > 0 && els.length <= MAX_SMALL_COMPONENT_FILES && !els.some(isFolderLikeElement)) {
+    const collapsedSubgraphs = prev.model.subgraphs!;
+    for (const compKey of hosts) {
+      if (!hasOwn(collapsedSubgraphs, compKey) || !collapsedSubgraphs[compKey]!.elements.some(lacksSubgraph)) {
+        return null;
+      }
+    }
+  }
+
+  // The entry as `collapseModelSubgraphs` leaves it: itself when nothing in the model is aliased
+  const aliased = Object.keys(prev.aliases).length > 0;
+  const collapsedEntry = aliased
+    ? remapSubgraphRelsThroughAliases({ ...entry, elements: [...els] }, prev.aliases)
+    : entry;
+  const prevSubgraphs = isPlainRecord(prev.model.subgraphs) ? prev.model.subgraphs : undefined;
+  const collapsedOwnerId = collapsedOwners.get(key) ?? key;
+  const collapsedOwnersAdded = ownersAddedBySubgraph(
+    collapsedOwners,
+    collapsedOwnerId,
+    collapsedEntry.elements,
+    (k) => k === key || (prevSubgraphs !== undefined && hasOwn(prevSubgraphs, k)),
+  );
+  if (!collapsedOwnersAdded) return null;
+
+  for (const [k, v] of rawOwnersAdded) rawOwners.set(k, v);
+  for (const [k, v] of collapsedOwnersAdded) collapsedOwners.set(k, v);
+  setOwnProp(sanitized, key, entry);
+  if (onlyFolderRef) singleFolderRefs.add(onlyFolderRef);
+  if (hostsFolders) noteFolderHosts(folderHosts, key, els);
+  keep.lazyKeys = lazyKeys;
+  keep.lazyValues = [...keep.lazyValues, sg];
+
+  const subgraphs: Record<string, TuxMapSubgraph> = Object.create(null);
+  if (prevSubgraphs) {
+    for (const [k, v] of Object.entries(prevSubgraphs)) setOwnProp(subgraphs, k, v);
+  }
+  setOwnProp(subgraphs, key, collapsedEntry);
+  return {
+    raw,
+    model: { ...prev.model, subgraphs },
+    aliases: prev.aliases,
+    validation,
+    added: { from: prev.model, key, owner: collapsedOwnerId, elements: collapsedEntry.elements },
+  };
+}
+
+/**
+ * `buildMapParentIndex` of a model that is the model `prev` was built from plus one subgraph, whose
+ * `elements` hang under `owner` (`TuxMapLazyMergeState.added`). `prev` is not changed.
+ * @internal
+ */
+export function extendMapParentIndex(
+  prev: ReadonlyMap<string, string>,
+  owner: string,
+  elements: TuxMapLevelElement[],
+): Map<string, string> {
+  const parentOf = new Map(prev);
+  indexInlineParents(parentOf, owner, elements, 0);
   return parentOf;
 }
 

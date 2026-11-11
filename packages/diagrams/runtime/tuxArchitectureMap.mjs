@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 39e023e0b6f9a67ce2553b52c46f327bcff3ecb6cbb792ddb554ed2dc1ccc78a
+// SOURCE-SHA256: 62b46eea28d809ef711d26b7d810a02635385179aae7ba092b321173c170ab0a
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -2585,9 +2585,12 @@ export function validateMapModel(model) {
     };
 }
 export function sanitizeMapModel(raw) {
-    const validation = validateMapModel(raw);
+    const { model, validation } = sanitizeMapModelKeepingPass(raw);
+    return { model, validation };
+}
+function sanitizeMapModelKeepingPass(raw, validation = validateMapModel(raw)) {
     if (!isPlainRecord(raw)) {
-        return { model: EMPTY_TTI_LEVEL_MODEL, validation };
+        return { model: EMPTY_TTI_LEVEL_MODEL, validation, pass: null };
     }
     const m = raw;
     const cycleSet = new Set(validation.cycleIds);
@@ -2701,6 +2704,15 @@ export function sanitizeMapModel(raw) {
             ? { ...n, ...(id !== rawId ? { id } : {}), ...(hasKids ? { children: nextKids } : {}) }
             : n);
     }
+    const sanitizeSubgraph = (sg, ownerId) => {
+        const els = sanitizeChildElements(sg.elements, ownerId, 1);
+        const rels = sg.rels !== undefined ? sanitizeRelEndpoints(sg.rels) : undefined;
+        return {
+            ...sg,
+            elements: els,
+            ...(rels !== undefined ? { rels } : {}),
+        };
+    };
     let safeSubgraphs;
     if (isPlainRecord(m.subgraphs)) {
         const cleaned = Object.create(null);
@@ -2711,13 +2723,7 @@ export function sanitizeMapModel(raw) {
             if (!key)
                 continue;
             const owner = sanitizeId(subgraphOwners.get(rawKey) ?? rawKey) || key;
-            const els = sanitizeChildElements(sg.elements, owner, 1);
-            const rels = sg.rels !== undefined ? sanitizeRelEndpoints(sg.rels) : undefined;
-            setOwnProp(cleaned, key, {
-                ...sg,
-                elements: els,
-                ...(rels !== undefined ? { rels } : {}),
-            });
+            setOwnProp(cleaned, key, sanitizeSubgraph(sg, owner));
         }
         safeSubgraphs = cleaned;
     }
@@ -2770,8 +2776,9 @@ export function sanitizeMapModel(raw) {
         ...(safeAliases ? { aliases: safeAliases } : {}),
         ...(safeLinks !== undefined ? { links: safeLinks } : {}),
     };
-    return { model: safeModel, validation };
+    return { model: safeModel, validation, pass: { sanitizeId, sanitizeSubgraph } };
 }
+const MAX_SMALL_COMPONENT_FILES = 8;
 function isFolderLikeElement(e) {
     const id = typeof e.id === "string" ? e.id : "";
     if (e.kind === "folder" || isKindNodeId(id, "d"))
@@ -2795,7 +2802,7 @@ export function collapseModelSubgraphs(model, opts = {}) {
     if (!isPlainRecord(model?.subgraphs)) {
         return { model, aliases };
     }
-    const maxSmallFiles = opts.maxSmallComponentFiles ?? 8;
+    const maxSmallFiles = opts.maxSmallComponentFiles ?? MAX_SMALL_COMPONENT_FILES;
     const origSubgraphs = model.subgraphs;
     const nextSubgraphs = Object.create(null);
     for (const [k, sg] of Object.entries(origSubgraphs)) {
@@ -2926,6 +2933,23 @@ export function collapseModelSubgraphs(model, opts = {}) {
     const changed = Object.keys(aliases).length > 0;
     if (!changed)
         return { model, aliases };
+    for (const [k, sg] of Object.entries(nextSubgraphs)) {
+        const remapped = remapSubgraphRelsThroughAliases(sg, aliases);
+        if (remapped !== sg)
+            setOwnProp(nextSubgraphs, k, remapped);
+    }
+    return {
+        model: {
+            ...model,
+            subgraphs: nextSubgraphs,
+            aliases,
+        },
+        aliases,
+    };
+}
+function remapSubgraphRelsThroughAliases(sg, aliases) {
+    if (!Array.isArray(sg.rels) || sg.rels.length === 0)
+        return sg;
     const resolveAliasTarget = (id) => {
         let cur = id;
         const seen = new Set([cur]);
@@ -2938,54 +2962,27 @@ export function collapseModelSubgraphs(model, opts = {}) {
         }
         return cur;
     };
-    for (const [k, sg] of Object.entries(nextSubgraphs)) {
-        if (!Array.isArray(sg.rels) || sg.rels.length === 0)
+    const seenPair = new Set();
+    const remappedRels = [];
+    for (const r of asObjArray(sg.rels)) {
+        const from = resolveAliasTarget(r.from);
+        const to = resolveAliasTarget(r.to);
+        if (!from || !to || from === to)
             continue;
-        const seenPair = new Set();
-        const remappedRels = [];
-        for (const r of asObjArray(sg.rels)) {
-            const from = resolveAliasTarget(r.from);
-            const to = resolveAliasTarget(r.to);
-            if (!from || !to || from === to)
-                continue;
-            const pk = `${from}\u0000${to}`;
-            if (seenPair.has(pk))
-                continue;
-            seenPair.add(pk);
-            remappedRels.push(from === r.from && to === r.to ? r : { ...r, from, to });
-        }
-        setOwnProp(nextSubgraphs, k, { ...sg, rels: remappedRels });
+        const pk = `${from}\u0000${to}`;
+        if (seenPair.has(pk))
+            continue;
+        seenPair.add(pk);
+        remappedRels.push(from === r.from && to === r.to ? r : { ...r, from, to });
     }
-    return {
-        model: {
-            ...model,
-            subgraphs: nextSubgraphs,
-            aliases,
-        },
-        aliases,
-    };
+    return { ...sg, rels: remappedRels };
 }
-function collectSubgraphOwners(model) {
+function collectSubgraphOwners(model, report) {
     const subgraphOwners = new Map();
     if (!model || typeof model !== "object")
         return subgraphOwners;
-    const noteSubgraphRef = (ownerId, ref) => {
-        if (ownerId && ref && typeof ref === "string" && ref !== ownerId && !subgraphOwners.has(ref)) {
-            subgraphOwners.set(ref, ownerId);
-        }
-    };
-    const scanInline = (pid, rawKids, depth = 0) => {
-        if (depth >= MAX_TREE_DEPTH)
-            return;
-        const kids = asObjArray(rawKids);
-        kids.forEach((k, i) => {
-            const id = (typeof k.id === "string" && k.id) || `${pid}/${i}`;
-            noteSubgraphRef(id, k.subgraphRef);
-            if (Array.isArray(k.children) && k.children.length > 0) {
-                scanInline(id, k.children, depth + 1);
-            }
-        });
-    };
+    const noteSubgraphRef = (ownerId, ref) => noteSubgraphOwner(subgraphOwners, ownerId, ref);
+    const scanInline = (pid, rawKids, depth = 0) => scanSubgraphOwners(subgraphOwners, pid, rawKids, depth);
     if (isPlainRecord(model.level3)) {
         for (const [cid, kids] of Object.entries(model.level3))
             scanInline(cid, kids, 0);
@@ -3018,25 +3015,33 @@ function collectSubgraphOwners(model) {
             }
             if (subgraphOwners.size === before && pass >= 1)
                 break;
+            if (pass >= 1 && report)
+                report.late = true;
         }
     }
     return subgraphOwners;
 }
+function noteSubgraphOwner(owners, ownerId, ref) {
+    if (ownerId && ref && typeof ref === "string" && ref !== ownerId && !owners.has(ref)) {
+        owners.set(ref, ownerId);
+    }
+}
+function scanSubgraphOwners(owners, pid, rawKids, depth = 0) {
+    if (depth >= MAX_TREE_DEPTH)
+        return;
+    const kids = asObjArray(rawKids);
+    kids.forEach((k, i) => {
+        const id = (typeof k.id === "string" && k.id) || `${pid}/${i}`;
+        noteSubgraphOwner(owners, id, k.subgraphRef);
+        if (Array.isArray(k.children) && k.children.length > 0) {
+            scanSubgraphOwners(owners, id, k.children, depth + 1);
+        }
+    });
+}
 export function buildMapParentIndex(model) {
     const parentOf = new Map();
     const subgraphOwners = collectSubgraphOwners(model);
-    const inline = (pid, rawKids, depth = 0) => {
-        if (!pid || depth >= MAX_TREE_DEPTH)
-            return;
-        const kids = asObjArray(rawKids);
-        kids.forEach((k, i) => {
-            const id = (typeof k.id === "string" && k.id) || `${pid}/${i}`;
-            if (!parentOf.has(id))
-                parentOf.set(id, pid);
-            if (Array.isArray(k.children) && k.children.length > 0)
-                inline(id, k.children, depth + 1);
-        });
-    };
+    const inline = (pid, rawKids, depth = 0) => indexInlineParents(parentOf, pid, rawKids, depth);
     if (isPlainRecord(model?.level3)) {
         for (const [cid, kids] of Object.entries(model.level3))
             inline(cid, kids, 0);
@@ -3062,6 +3067,233 @@ export function buildMapParentIndex(model) {
             inline(owner, sg.elements, 0);
         }
     }
+    return parentOf;
+}
+function indexInlineParents(parentOf, pid, rawKids, depth = 0) {
+    if (!pid || depth >= MAX_TREE_DEPTH)
+        return;
+    const kids = asObjArray(rawKids);
+    kids.forEach((k, i) => {
+        const id = (typeof k.id === "string" && k.id) || `${pid}/${i}`;
+        if (!parentOf.has(id))
+            parentOf.set(id, pid);
+        if (Array.isArray(k.children) && k.children.length > 0)
+            indexInlineParents(parentOf, id, k.children, depth + 1);
+    });
+}
+const LAZY_MERGE_KEEP = new WeakMap();
+const subgraphKeyOfElement = (e) => e.subgraphRef || e.id;
+function mergeRawLazySubgraphs(raw, lazy, lazyKeys) {
+    if (lazyKeys.length === 0 || !isPlainRecord(raw))
+        return raw;
+    const merged = Object.create(null);
+    if (isPlainRecord(raw.subgraphs)) {
+        for (const [k, v] of Object.entries(raw.subgraphs))
+            setOwnProp(merged, k, v);
+    }
+    for (const k of lazyKeys)
+        setOwnProp(merged, k, lazy[k]);
+    return { ...raw, subgraphs: merged };
+}
+export function mergeLazyMapSubgraphs(raw, lazy, prev) {
+    const lazyKeys = Object.keys(lazy);
+    const mergedRaw = mergeRawLazySubgraphs(raw, lazy, lazyKeys);
+    const keep = prev ? LAZY_MERGE_KEEP.get(prev) : undefined;
+    const done = {};
+    if (prev && keep) {
+        LAZY_MERGE_KEEP.delete(prev);
+        const next = prev.raw === raw ? addLazySubgraph(prev, keep, mergedRaw, lazy, lazyKeys, done) : null;
+        if (next) {
+            LAZY_MERGE_KEEP.set(next, keep);
+            return next;
+        }
+    }
+    const sanitized = sanitizeMapModelKeepingPass(mergedRaw, done.validation);
+    const collapsed = collapseModelSubgraphs(sanitized.model);
+    const state = {
+        raw,
+        model: collapsed.model,
+        aliases: collapsed.aliases,
+        validation: sanitized.validation,
+    };
+    if (sanitized.pass) {
+        LAZY_MERGE_KEEP.set(state, {
+            lazyKeys,
+            lazyValues: lazyKeys.map((k) => lazy[k]),
+            pass: sanitized.pass,
+            cycleIds: sanitized.validation.cycleIds,
+            sanitizedModel: sanitized.model,
+        });
+    }
+    return state;
+}
+function prepareLazyMerge(keep, prev, prevMergedRaw) {
+    const rawReport = { late: false };
+    const rawOwners = collectSubgraphOwners(prevMergedRaw, rawReport);
+    const collapsedReport = { late: false };
+    const collapsedOwners = collectSubgraphOwners(prev.model, collapsedReport);
+    if (rawReport.late || collapsedReport.late)
+        return null;
+    const sanitized = Object.create(null);
+    const singleFolderRefs = new Set();
+    if (isPlainRecord(keep.sanitizedModel.subgraphs)) {
+        for (const [k, sg] of Object.entries(keep.sanitizedModel.subgraphs)) {
+            setOwnProp(sanitized, k, sg);
+            const only = sg.elements.length === 1 ? sg.elements[0] : undefined;
+            if (only?.id && isFolderLikeElement(only))
+                singleFolderRefs.add(subgraphKeyOfElement(only));
+        }
+    }
+    const componentKeys = new Set();
+    for (const kids of Object.values(prev.model.level3)) {
+        for (const comp of asObjArray(kids)) {
+            if (typeof comp.id === "string" && comp.id)
+                componentKeys.add(subgraphKeyOfElement(comp));
+        }
+    }
+    const folderHosts = new Map();
+    const collapsedSubgraphs = prev.model.subgraphs;
+    if (isPlainRecord(collapsedSubgraphs)) {
+        for (const compKey of componentKeys) {
+            if (hasOwn(collapsedSubgraphs, compKey)) {
+                noteFolderHosts(folderHosts, compKey, collapsedSubgraphs[compKey].elements);
+            }
+        }
+    }
+    keep.prepared = { sanitized, rawOwners, collapsedOwners, componentKeys, folderHosts, singleFolderRefs };
+    return keep.prepared;
+}
+function noteFolderHosts(folderHosts, compKey, elements) {
+    for (const item of elements) {
+        if (!isFolderLikeElement(item))
+            continue;
+        const fKey = subgraphKeyOfElement(item);
+        if (!fKey)
+            continue;
+        const hosts = folderHosts.get(fKey);
+        if (hosts)
+            hosts.push(compKey);
+        else
+            folderHosts.set(fKey, [compKey]);
+    }
+}
+function ownersAddedBySubgraph(owners, ownerId, rawElements, isLoaded) {
+    const added = new Map();
+    scanSubgraphOwners({ has: (k) => owners.has(k) || added.has(k), set: (k, v) => added.set(k, v) }, ownerId, rawElements);
+    for (const key of added.keys()) {
+        if (isLoaded(key))
+            return null;
+    }
+    return added;
+}
+function addLazySubgraph(prev, keep, mergedRaw, lazy, lazyKeys, done) {
+    const raw = prev.raw;
+    if (!isPlainRecord(raw) || !isPlainRecord(mergedRaw))
+        return null;
+    const known = keep.lazyKeys.length;
+    if (lazyKeys.length !== known + 1)
+        return null;
+    for (let i = 0; i < known; i++) {
+        if (lazyKeys[i] !== keep.lazyKeys[i] || lazy[lazyKeys[i]] !== keep.lazyValues[i])
+            return null;
+    }
+    const key = lazyKeys[known];
+    const sg = lazy[key];
+    if (!key || !isPlainRecord(sg) || /^\d+$/.test(key) || keep.pass.sanitizeId(key) !== key)
+        return null;
+    const rawBaseSubgraphs = isPlainRecord(raw.subgraphs) ? raw.subgraphs : undefined;
+    if (rawBaseSubgraphs && hasOwn(rawBaseSubgraphs, key))
+        return null;
+    if (hasOwn(prev.aliases, key))
+        return null;
+    const prepared = keep.prepared ?? prepareLazyMerge(keep, prev, mergeRawLazySubgraphs(raw, lazy, keep.lazyKeys));
+    if (!prepared)
+        return null;
+    const { sanitized, rawOwners, collapsedOwners, componentKeys, folderHosts, singleFolderRefs } = prepared;
+    if (hasOwn(sanitized, key))
+        return null;
+    const validation = validateMapModel(mergedRaw);
+    done.validation = validation;
+    if (validation.cycleIds.length !== keep.cycleIds.length ||
+        validation.cycleIds.some((id, i) => id !== keep.cycleIds[i])) {
+        return null;
+    }
+    const rawSubgraphs = mergedRaw.subgraphs;
+    const rawOwnerId = rawOwners.get(key) ?? key;
+    const rawOwnersAdded = ownersAddedBySubgraph(rawOwners, rawOwnerId, sg.elements, (k) => hasOwn(rawSubgraphs, k));
+    if (!rawOwnersAdded)
+        return null;
+    const entry = keep.pass.sanitizeSubgraph(sg, keep.pass.sanitizeId(rawOwnerId) || key);
+    const els = entry.elements;
+    const isLoaded = (k) => k === key || hasOwn(sanitized, k);
+    const only = els.length === 1 ? els[0] : undefined;
+    const onlyFolderRef = only?.id && isFolderLikeElement(only) ? subgraphKeyOfElement(only) : "";
+    if (onlyFolderRef && isLoaded(onlyFolderRef))
+        return null;
+    if (singleFolderRefs.has(key))
+        return null;
+    for (const el of els) {
+        if (!el.id || el.id === key || !isFolderLikeElement(el))
+            continue;
+        const k = subgraphKeyOfElement(el);
+        if (k !== key && hasOwn(sanitized, k) && sanitized[k].elements.length === 1)
+            return null;
+    }
+    const lacksSubgraph = (item) => {
+        if (!isFolderLikeElement(item))
+            return false;
+        const k = subgraphKeyOfElement(item);
+        return !k || !isLoaded(k);
+    };
+    const hostsFolders = componentKeys.has(key) && els.some(isFolderLikeElement);
+    if (hostsFolders && !els.some(lacksSubgraph))
+        return null;
+    const hosts = folderHosts.get(key);
+    if (hosts && els.length > 0 && els.length <= MAX_SMALL_COMPONENT_FILES && !els.some(isFolderLikeElement)) {
+        const collapsedSubgraphs = prev.model.subgraphs;
+        for (const compKey of hosts) {
+            if (!hasOwn(collapsedSubgraphs, compKey) || !collapsedSubgraphs[compKey].elements.some(lacksSubgraph)) {
+                return null;
+            }
+        }
+    }
+    const aliased = Object.keys(prev.aliases).length > 0;
+    const collapsedEntry = aliased
+        ? remapSubgraphRelsThroughAliases({ ...entry, elements: [...els] }, prev.aliases)
+        : entry;
+    const prevSubgraphs = isPlainRecord(prev.model.subgraphs) ? prev.model.subgraphs : undefined;
+    const collapsedOwnerId = collapsedOwners.get(key) ?? key;
+    const collapsedOwnersAdded = ownersAddedBySubgraph(collapsedOwners, collapsedOwnerId, collapsedEntry.elements, (k) => k === key || (prevSubgraphs !== undefined && hasOwn(prevSubgraphs, k)));
+    if (!collapsedOwnersAdded)
+        return null;
+    for (const [k, v] of rawOwnersAdded)
+        rawOwners.set(k, v);
+    for (const [k, v] of collapsedOwnersAdded)
+        collapsedOwners.set(k, v);
+    setOwnProp(sanitized, key, entry);
+    if (onlyFolderRef)
+        singleFolderRefs.add(onlyFolderRef);
+    if (hostsFolders)
+        noteFolderHosts(folderHosts, key, els);
+    keep.lazyKeys = lazyKeys;
+    keep.lazyValues = [...keep.lazyValues, sg];
+    const subgraphs = Object.create(null);
+    if (prevSubgraphs) {
+        for (const [k, v] of Object.entries(prevSubgraphs))
+            setOwnProp(subgraphs, k, v);
+    }
+    setOwnProp(subgraphs, key, collapsedEntry);
+    return {
+        raw,
+        model: { ...prev.model, subgraphs },
+        aliases: prev.aliases,
+        validation,
+        added: { from: prev.model, key, owner: collapsedOwnerId, elements: collapsedEntry.elements },
+    };
+}
+export function extendMapParentIndex(prev, owner, elements) {
+    const parentOf = new Map(prev);
+    indexInlineParents(parentOf, owner, elements, 0);
     return parentOf;
 }
 export function levelForFocus(fid, model, parentOf = buildMapParentIndex(model)) {

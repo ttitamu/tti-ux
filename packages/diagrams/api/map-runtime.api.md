@@ -10,7 +10,7 @@ they stay importable, and they may change or go away in any release without noti
 
 ## `@tti/tti-ux-diagrams/runtime/tuxArchitectureMap`
 
-116 public, 41 internal.
+116 public, 44 internal.
 
 ### Public (116)
 
@@ -1527,13 +1527,14 @@ export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "rese
 export type TuxMapWireCategory = "prod" | "tests" | "ci" | "docs";
 ```
 
-### Internal (41)
+### Internal (44)
 
 - `GRID_METRICS` (const)
 - `LOD_THRESHOLDS` (const)
 - `SmoothStepEdgeResult` (interface)
 - `TuxMapGridCellRect` (interface)
 - `TuxMapHandlePosition` (type)
+- `TuxMapLazyMergeState` (interface)
 - `TuxMapPlacedBoundary` (interface)
 - `TuxMapQueryIndex` (interface)
 - `TuxMapRect` (interface)
@@ -1545,6 +1546,7 @@ export type TuxMapWireCategory = "prod" | "tests" | "ci" | "docs";
 - `compareBlastLinks` (function)
 - `computeMapAutoLayout` (function)
 - `deriveLinkId` (function)
+- `extendMapParentIndex` (function)
 - `getBezierEdgePath` (function)
 - `getBoundsOfRects` (function)
 - `getMapQueryIndex` (function)
@@ -1557,6 +1559,7 @@ export type TuxMapWireCategory = "prod" | "tests" | "ci" | "docs";
 - `hasOwn` (function)
 - `isKindNodeId` (function)
 - `liftToSet` (function)
+- `mergeLazyMapSubgraphs` (function)
 - `resetArchitectureDeprecationWarnings` (function)
 - `resolveOptimalEdgeAnchors` (function)
 - `resolveSemanticLoD` (function)
