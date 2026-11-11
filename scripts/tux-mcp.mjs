@@ -589,6 +589,16 @@ const cliContext = {
   baseModel: null,
 };
 
+// A one-shot path writes its output and then ends the process. Where a pipe
+// write is asynchronous (macOS, for one), process.exit() right after the write
+// drops whatever the pipe had not yet taken, so the exit waits for the write.
+function writeThenExit(stream, text, code) {
+  stream.write(text, () => process.exit(code));
+}
+
+// Set when --model or --base-model cannot be loaded; runCli() reports it.
+let cliStartupError = null;
+
 if (IS_MAIN) {
   try {
     const cliModelPath =
@@ -598,8 +608,7 @@ if (IS_MAIN) {
       parseCliOption(process.argv, "--base-model") || (process.env.TUX_MCP_BASE_MODEL || "").trim() || null;
     if (cliBasePath) cliContext.baseModel = loadArchitectureModelFile(cliBasePath, { allowEmpty: true });
   } catch (err) {
-    console.error(`tux-mcp: ${err instanceof Error ? err.message : String(err)}`);
-    process.exit(1);
+    cliStartupError = err instanceof Error ? err.message : String(err);
   }
 }
 
@@ -2019,10 +2028,15 @@ export function createStdioFrameParser({
   };
 }
 
-if (IS_MAIN) {
+function runCli() {
+  if (cliStartupError != null) {
+    writeThenExit(process.stderr, `tux-mcp: ${cliStartupError}\n`, 1);
+    return;
+  }
+
   if (process.argv.includes("--list-tools")) {
-    console.log(JSON.stringify(getTuxMcpTools(), null, 2));
-    process.exit(0);
+    writeThenExit(process.stdout, `${JSON.stringify(getTuxMcpTools(), null, 2)}\n`, 0);
+    return;
   }
 
   const callIdx = process.argv.indexOf("--call");
@@ -2039,12 +2053,15 @@ if (IS_MAIN) {
         throw new Error("Tool arguments JSON after --call must be an object.");
       }
       const result = callTuxMcpTool(toolName, parsedArgs);
-      console.log(JSON.stringify(result, null, 2));
-      process.exit(result && typeof result === "object" && result.error ? 1 : 0);
+      writeThenExit(
+        process.stdout,
+        `${JSON.stringify(result, null, 2)}\n`,
+        result && typeof result === "object" && result.error ? 1 : 0,
+      );
     } catch (err) {
-      console.error(`tux-mcp: ${err instanceof Error ? err.message : String(err)}`);
-      process.exit(1);
+      writeThenExit(process.stderr, `tux-mcp: ${err instanceof Error ? err.message : String(err)}\n`, 1);
     }
+    return;
   }
 
   function sendResponse(resObj, framing) {
@@ -2089,3 +2106,5 @@ if (IS_MAIN) {
     parser.push(chunk);
   });
 }
+
+if (IS_MAIN) runCli();
