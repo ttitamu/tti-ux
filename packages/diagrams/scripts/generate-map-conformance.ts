@@ -7,6 +7,7 @@
  *   node packages/diagrams/scripts/generate-map-conformance.ts
  *   node packages/diagrams/scripts/generate-map-conformance.ts --check
  */
+import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -606,6 +607,36 @@ const models: Record<string, TuxMapLevelModel> = {
   hybrid_c4_and_edge_cases: hybridC4AndEdgeCases,
 };
 
+// --- A real producer output (#165) ---
+// The six hand-written models above are small, and a second engine checked only against output the
+// TS engine produced from them can drift only *from TS*: a misunderstanding both share passes. This
+// model is what a second, independent producer (a Python code-graph generator) emits for this
+// repository's own packages/ directory, 2,048 symbols and 2,967 links, so both engines are held to
+// something neither of them authored. It lives in its own compact file (the fixture would grow
+// about fifteen-fold inline, and the npm package ships the fixture); the fixture names it by
+// path and sha256, and every consumer resolves the reference and checks the hash.
+const REAL_MODEL_FILE = "map-real-producer.json";
+const realModelBytes = readFileSync(resolve(HERE, "../tests/fixtures", REAL_MODEL_FILE));
+const realModelSha256 = createHash("sha256").update(realModelBytes).digest("hex");
+const realModel = JSON.parse(realModelBytes.toString("utf8")) as TuxMapLevelModel;
+models.real_producer_packages = realModel;
+const realModelRef = {
+  $file: REAL_MODEL_FILE,
+  sha256: realModelSha256,
+  bytes: realModelBytes.length,
+  producer: {
+    tool: "an independent Python code-graph producer, run with `--infer --model-json`",
+    source: "tti/tti-ux, the packages/ directory as a root (`--root packages`)",
+    commit: (realModel as unknown as { commit: string }).commit,
+    note: "keys kept: level1-4, subgraphs, links, schema, repo, commit, tree, routes; the producer's fitness, coverage, aliases and crossRepoSignals blocks are dropped (no conformance function reads them)",
+  },
+};
+const R = "tti/tti-ux:";
+const HUB_SYMBOL = `${R}s:diagrams/app/utils/tuxArchitectureMap.ts#hasOwn`;
+const OPEN_DESK = `${R}s:desk/server/utils/desk-service.ts#openDesk`;
+const DESK_SERVICE = `${R}f:desk/server/utils/desk-service.ts`;
+const DESK_SCHEMAS = `${R}f:desk/server/utils/desk-schemas.ts`;
+
 function buildLevelCheck(spec: {
   id: string;
   model: string;
@@ -1198,6 +1229,13 @@ const levelChecks = [
     focusIds: ["constructor", "c-empty-l3", "constructor/api", "f:api/handler.py"],
     parentCheckIds: ["f:api/handler.py", "s:api/handler.py#serve", "f:direct_l5.py"],
   }),
+  buildLevelCheck({
+    id: "real_producer_levels_focus_and_parents",
+    model: "real_producer_packages",
+    nodeIds: ["sys-repo", "app", `${R}c:desk`, `${R}d:charts`, DESK_SERVICE, OPEN_DESK, "p:pkg:npm/react"],
+    focusIds: [`${R}c:desk`, DESK_SERVICE, OPEN_DESK, "p:pkg:npm/react"],
+    parentCheckIds: [DESK_SERVICE, OPEN_DESK],
+  }),
 ];
 
 const blastCases = [
@@ -1336,6 +1374,43 @@ const blastCases = [
     seeds: ["f:api/handler.py"],
     opts: {},
   }),
+  buildBlastCase({
+    id: "real_symbol_openDesk_default",
+    model: "real_producer_packages",
+    seeds: [OPEN_DESK],
+    opts: {},
+    includeFields: ["testsToRun", "coCutCandidates"],
+  }),
+  buildBlastCase({
+    id: "real_symbol_hasOwn_refactor_summary",
+    model: "real_producer_packages",
+    seeds: [HUB_SYMBOL],
+    opts: { intent: "refactor" },
+    summaryOnly: true,
+    includeFields: ["testsToRun"],
+  }),
+  buildBlastCase({
+    id: "real_two_files_summary",
+    model: "real_producer_packages",
+    seeds: [DESK_SERVICE, DESK_SCHEMAS],
+    opts: {},
+    summaryOnly: true,
+    includeFields: ["testsToRun", "coCutCandidates"],
+  }),
+  buildBlastCase({
+    id: "real_npm_package_max_two_hops_summary",
+    model: "real_producer_packages",
+    seeds: ["p:pkg:npm/react"],
+    opts: { maxHops: 2 },
+    summaryOnly: true,
+  }),
+  buildBlastCase({
+    id: "real_symbol_openDesk_quiet_seed_only_false",
+    model: "real_producer_packages",
+    seeds: [OPEN_DESK],
+    opts: { quietSeedOnly: false },
+    summaryOnly: true,
+  }),
 ];
 
 const deltaCases = [
@@ -1460,7 +1535,7 @@ const fixture = {
   schemaVersion: "1.0.0",
   description:
     "Synthetic language-neutral conformance suite for TUX Architecture Map (tuxArchitectureMap.ts) and Forgejo Stack code-graph.py (#110 / #712).",
-  models,
+  models: { ...models, real_producer_packages: realModelRef },
   levelChecks,
   blastCases,
   deltaCases,

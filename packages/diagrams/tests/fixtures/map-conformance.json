@@ -2478,6 +2478,17 @@
           "at": "api/🚀.py:1"
         }
       ]
+    },
+    "real_producer_packages": {
+      "$file": "map-real-producer.json",
+      "sha256": "878f1dddde0a738bbabff67be121857884e9bbf7b885795ba541f974cfff7ad7",
+      "bytes": 1614420,
+      "producer": {
+        "tool": "an independent Python code-graph producer, run with `--infer --model-json`",
+        "source": "tti/tti-ux, the packages/ directory as a root (`--root packages`)",
+        "commit": "a6affe1128efe54c9e3e830a4d2edc2d68b58b12",
+        "note": "keys kept: level1-4, subgraphs, links, schema, repo, commit, tree, routes; the producer's fitness, coverage, aliases and crossRepoSignals blocks are dropped (no conformance function reads them)"
+      }
     }
   },
   "levelChecks": [
@@ -2540,6 +2551,29 @@
         "f:api/handler.py": "constructor/api",
         "s:api/handler.py#serve": "f:api/handler.py",
         "f:direct_l5.py": "c-empty-l3"
+      }
+    },
+    {
+      "id": "real_producer_levels_focus_and_parents",
+      "model": "real_producer_packages",
+      "expectedLevels": {
+        "sys-repo": 1,
+        "app": 2,
+        "tti/tti-ux:c:desk": 3,
+        "tti/tti-ux:d:charts": 5,
+        "tti/tti-ux:f:desk/server/utils/desk-service.ts": 6,
+        "tti/tti-ux:s:desk/server/utils/desk-service.ts#openDesk": 7,
+        "p:pkg:npm/react": 6
+      },
+      "expectedFocusLevels": {
+        "tti/tti-ux:c:desk": 5,
+        "tti/tti-ux:f:desk/server/utils/desk-service.ts": 7,
+        "tti/tti-ux:s:desk/server/utils/desk-service.ts#openDesk": 8,
+        "p:pkg:npm/react": 7
+      },
+      "expectedParent": {
+        "tti/tti-ux:f:desk/server/utils/desk-service.ts": "tti/tti-ux:d:desk/server/utils",
+        "tti/tti-ux:s:desk/server/utils/desk-service.ts#openDesk": "tti/tti-ux:f:desk/server/utils/desk-service.ts"
       }
     }
   ],
@@ -3823,6 +3857,265 @@
             "at": "api/🚀.py:1"
           }
         ]
+      }
+    },
+    {
+      "id": "real_symbol_openDesk_default",
+      "model": "real_producer_packages",
+      "seeds": [
+        "tti/tti-ux:s:desk/server/utils/desk-service.ts#openDesk"
+      ],
+      "opts": {},
+      "expected": {
+        "truncated": false,
+        "hits": [
+          {
+            "id": "tti/tti-ux:f:desk/server/api/feedback.post.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "desk/server/api/feedback.post.ts:12",
+            "sites": [
+              12
+            ]
+          },
+          {
+            "id": "tti/tti-ux:f:desk/server/api/forgejo/submit.post.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "desk/server/api/forgejo/submit.post.ts:39",
+            "sites": [
+              39
+            ]
+          },
+          {
+            "id": "tti/tti-ux:f:desk/server/api/issues/[id]/resolve.post.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "desk/server/api/issues/[id]/resolve.post.ts:12",
+            "sites": [
+              12
+            ]
+          },
+          {
+            "id": "tti/tti-ux:f:desk/server/api/issues/index.get.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "desk/server/api/issues/index.get.ts:6",
+            "sites": [
+              6
+            ]
+          },
+          {
+            "id": "tti/tti-ux:f:desk/server/api/media/index.get.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "desk/server/api/media/index.get.ts:5",
+            "sites": [
+              5
+            ]
+          },
+          {
+            "id": "tti/tti-ux:f:desk/server/api/media/index.post.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "desk/server/api/media/index.post.ts:6",
+            "sites": [
+              6
+            ]
+          },
+          {
+            "id": "tti/tti-ux:f:desk/server/api/pages/[id].get.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "desk/server/api/pages/[id].get.ts:5",
+            "sites": [
+              5
+            ]
+          },
+          {
+            "id": "tti/tti-ux:f:desk/server/api/pages/[id].put.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "desk/server/api/pages/[id].put.ts:6",
+            "sites": [
+              6
+            ]
+          },
+          {
+            "id": "tti/tti-ux:f:desk/server/api/pages/[id]/publish.post.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "desk/server/api/pages/[id]/publish.post.ts:5",
+            "sites": [
+              5
+            ]
+          },
+          {
+            "id": "tti/tti-ux:f:desk/server/api/pages/[id]/revisions/[revId]/rollback.post.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "desk/server/api/pages/[id]/revisions/[revId]/rollback.post.ts:5",
+            "sites": [
+              5
+            ]
+          },
+          {
+            "id": "tti/tti-ux:f:desk/server/api/pages/[id]/revisions/index.get.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "desk/server/api/pages/[id]/revisions/index.get.ts:5",
+            "sites": [
+              5
+            ]
+          },
+          {
+            "id": "tti/tti-ux:f:desk/server/api/pages/index.get.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "desk/server/api/pages/index.get.ts:6",
+            "sites": [
+              6
+            ]
+          },
+          {
+            "id": "tti/tti-ux:f:desk/server/api/pages/index.post.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "desk/server/api/pages/index.post.ts:6",
+            "sites": [
+              6
+            ]
+          },
+          {
+            "id": "tti/tti-ux:f:desk/server/api/public/pages/[slug].get.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "desk/server/api/public/pages/[slug].get.ts:5",
+            "sites": [
+              5
+            ]
+          },
+          {
+            "id": "tti/tti-ux:f:desk/server/api/system/stats.get.ts",
+            "hop": 1,
+            "kind": "calls",
+            "at": "desk/server/api/system/stats.get.ts:5",
+            "sites": [
+              5
+            ]
+          },
+          {
+            "id": "tti/tti-ux:f:desk/tests/api.test.ts",
+            "hop": 1,
+            "kind": "imports",
+            "at": "desk/tests/api.test.ts:2",
+            "sites": [
+              2
+            ]
+          }
+        ],
+        "testsToRun": [
+          "tti/tti-ux:f:desk/tests/api.test.ts"
+        ],
+        "coCutCandidates": []
+      }
+    },
+    {
+      "id": "real_symbol_hasOwn_refactor_summary",
+      "model": "real_producer_packages",
+      "seeds": [
+        "tti/tti-ux:s:diagrams/app/utils/tuxArchitectureMap.ts#hasOwn"
+      ],
+      "opts": {
+        "intent": "refactor"
+      },
+      "expected": {
+        "truncated": false,
+        "hitCount": 60,
+        "firstHit": {
+          "id": "tti/tti-ux:f:diagrams/app/components/TuxArchitectureMap.vue",
+          "hop": 1
+        },
+        "lastHit": {
+          "id": "tti/tti-ux:s:diagrams/app/components/TuxArchitectureMap.vue#resolveAndZoomIntoLazySubgraph",
+          "hop": 3
+        },
+        "testsToRun": [
+          "tti/tti-ux:f:diagrams/tests/diagrams.test.ts",
+          "tti/tti-ux:f:diagrams/tests/map-bench.test.ts",
+          "tti/tti-ux:f:diagrams/tests/support/mapSyntheticModels.ts",
+          "tti/tti-ux:s:diagrams/tests/map-bench.test.ts#prepare"
+        ]
+      }
+    },
+    {
+      "id": "real_two_files_summary",
+      "model": "real_producer_packages",
+      "seeds": [
+        "tti/tti-ux:f:desk/server/utils/desk-service.ts",
+        "tti/tti-ux:f:desk/server/utils/desk-schemas.ts"
+      ],
+      "opts": {},
+      "expected": {
+        "truncated": false,
+        "hitCount": 19,
+        "firstHit": {
+          "id": "tti/tti-ux:f:desk/README.md",
+          "hop": 1
+        },
+        "lastHit": {
+          "id": "tti/tti-ux:f:desk/tests/security.test.ts",
+          "hop": 1
+        },
+        "testsToRun": [
+          "tti/tti-ux:f:desk/tests/api.test.ts",
+          "tti/tti-ux:f:desk/tests/security.test.ts"
+        ],
+        "coCutCandidates": []
+      }
+    },
+    {
+      "id": "real_npm_package_max_two_hops_summary",
+      "model": "real_producer_packages",
+      "seeds": [
+        "p:pkg:npm/react"
+      ],
+      "opts": {
+        "maxHops": 2
+      },
+      "expected": {
+        "truncated": false,
+        "hitCount": 243,
+        "firstHit": {
+          "id": "tti/tti-ux:f:create-tux-site/index.mjs",
+          "hop": 1
+        },
+        "lastHit": {
+          "id": "tti/tti-ux:f:react/src/index.ts",
+          "hop": 2
+        }
+      }
+    },
+    {
+      "id": "real_symbol_openDesk_quiet_seed_only_false",
+      "model": "real_producer_packages",
+      "seeds": [
+        "tti/tti-ux:s:desk/server/utils/desk-service.ts#openDesk"
+      ],
+      "opts": {
+        "quietSeedOnly": false
+      },
+      "expected": {
+        "truncated": false,
+        "hitCount": 16,
+        "firstHit": {
+          "id": "tti/tti-ux:f:desk/server/api/feedback.post.ts",
+          "hop": 1
+        },
+        "lastHit": {
+          "id": "tti/tti-ux:f:desk/tests/api.test.ts",
+          "hop": 1
+        }
       }
     }
   ],
