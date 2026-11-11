@@ -16,10 +16,12 @@ import {
   collapseModelSubgraphs,
   computeLinkBlastRadius,
   extractModelLinks,
+  extendMapParentIndex,
   foldVendoredCopies,
   levelForFocus,
   liftLinksToView,
   liftToSet,
+  mergeLazyMapSubgraphs,
   resolveModelRawLinks,
   routeGridWires,
   sanitizeMapModel,
@@ -373,6 +375,52 @@ describe("architecture map benchmark: utils (#153)", () => {
         },
       };
     },
+  });
+
+  // What the component does since #157: the arrival is added to the model the previous merge left.
+  // The first arrival after a full build also reads the whole model once, for what later ones need.
+  const lazyAdd = (p: Prepared, held: number): BenchCase => {
+    const refs = [p.g.focus.lazyRef, ...Object.keys(p.g.lazySubgraphs).filter((k) => k !== p.g.focus.lazyRef)];
+    const lazyOf = (n: number) => {
+      const lazy: Record<string, unknown> = Object.create(null);
+      for (const k of refs.slice(refs.length - n)) lazy[k] = p.g.lazySubgraphs[k]!;
+      return lazy;
+    };
+    const before = lazyOf(held);
+    const after = lazyOf(held);
+    after[refs[0]!] = p.g.lazySubgraphs[refs[0]!]!;
+    let prev = mergeLazyMapSubgraphs(p.g.model, Object.create(null));
+    let parents = buildMapParentIndex(prev.model);
+    const reset = () => {
+      prev = mergeLazyMapSubgraphs(p.g.model, Object.create(null));
+      if (held > 0) prev = mergeLazyMapSubgraphs(p.g.model, before, prev);
+      parents = buildMapParentIndex(prev.model);
+    };
+    reset();
+    return {
+      run: () => {
+        const next = mergeLazyMapSubgraphs(p.g.model, after, prev);
+        if (!next.added) throw new Error("the arrival was not added in place");
+        sink += extendMapParentIndex(parents, next.added.owner, next.added.elements).size;
+      },
+      reset,
+    };
+  };
+
+  gate({
+    id: "lazy-merge-first",
+    title: "add the first resolved subgraph to the merged model, and extend the parent index",
+    scalesWith: "whole model",
+    bounds: [12, 12],
+    make: (p) => lazyAdd(p, 0),
+  });
+
+  gate({
+    id: "lazy-merge-next",
+    title: "add a later resolved subgraph to the merged model, and extend the parent index",
+    scalesWith: "whole model",
+    bounds: [12, 12],
+    make: (p) => lazyAdd(p, 1),
   });
 
   gate({

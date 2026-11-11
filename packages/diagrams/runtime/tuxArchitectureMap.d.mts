@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: fc88f51b8952fcff8a91e1a3820a77d1160e9267a35ddbf77024be38ae38b5f5
+// SOURCE-SHA256: ce0826771317c1f5c44be4c9b0553ece5ff57bf0fae81a52650467c98633a756
 /**
  * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
  *
@@ -1093,6 +1093,51 @@ export declare function collapseModelSubgraphs(model: TuxMapLevelModel, opts?: {
  * @public
  */
 export declare function buildMapParentIndex(model: TuxMapLevelModel): Map<string, string>;
+/**
+ * A model with its lazily resolved subgraphs merged in, sanitized and collapsed, as
+ * `mergeLazyMapSubgraphs` returns it (`tti/tti-ux#157`).
+ * @internal
+ */
+export interface TuxMapLazyMergeState {
+    /** The model the subgraphs were merged into, as it was passed. */
+    raw: unknown;
+    model: TuxMapLevelModel;
+    aliases: Record<string, string>;
+    validation: TuxMapValidationResult;
+    /**
+     * Set when `model` is `from` plus one subgraph and nothing else: every other subgraph, level and
+     * alias is the same object as in `from`. `owner` is the parent of `elements` in the parent index.
+     */
+    added?: {
+        from: TuxMapLevelModel;
+        key: string;
+        owner: string;
+        elements: TuxMapLevelElement[];
+    };
+}
+/**
+ * `raw` with the lazily resolved subgraphs `lazy` merged in, sanitized and collapsed: the same model,
+ * aliases and validation as `collapseModelSubgraphs(sanitizeMapModel(merged).model)` on the merged
+ * model (`tti/tti-ux#157`).
+ *
+ * Given the state it returned last time (`prev`), with the same `raw` and one more key in `lazy`,
+ * it sanitizes and collapses only the subgraph that arrived and adds it to the previous model, when
+ * it can show the rest of the model is not affected by the arrival. The model is still validated as
+ * a whole. Anything else is built from scratch: another `raw`, a key removed or replaced, a subgraph
+ * that changes the model's cycles, that owns or is folded into a subgraph already there, or that a
+ * folder chain or a small component's flattening would reach.
+ *
+ * `prev` is used up by the call: pass each state once. A caller that changed `raw` or a resolved
+ * subgraph in place passes no `prev`.
+ * @internal
+ */
+export declare function mergeLazyMapSubgraphs(raw: unknown, lazy: Record<string, unknown>, prev?: TuxMapLazyMergeState): TuxMapLazyMergeState;
+/**
+ * `buildMapParentIndex` of a model that is the model `prev` was built from plus one subgraph, whose
+ * `elements` hang under `owner` (`TuxMapLazyMergeState.added`). `prev` is not changed.
+ * @internal
+ */
+export declare function extendMapParentIndex(prev: ReadonlyMap<string, string>, owner: string, elements: TuxMapLevelElement[]): Map<string, string>;
 /**
  * Semantic level that displays the children of `fid`:
  * 3 inside a Level 2 container, 5 inside a Level 3 component or Level 4 deployment node,

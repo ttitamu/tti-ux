@@ -18,6 +18,16 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — Architecture map: a lazy subgraph's arrival is added to the model, not a reason to rebuild it (#157)
+
+- Every subgraph `resolveSubgraph` returned made `<TuxArchitectureMap>` sanitize and collapse the whole model again, so every element became a new object and everything read from the model was built again. The arrival is now sanitized and collapsed alone and added to the model the map already holds, when nothing else in the model is affected by it. The element and parent indexes are copied and extended with the arrival, so entries for everything else stay the same objects.
+- The result is the one a full rebuild gives, and the tests compare the two. The whole model is still validated on each arrival. The map falls back to the full rebuild when the arrival would change another part of the model: it joins a single-folder chain or a small component that collapses, it changes which parts are dropped as cycles, it claims a part another subgraph holds, or it sanitizes to nothing.
+- A new `model` object starts over, as does an edit inside a reactive `model`.
+- Links, the staged view and the Go-To index are still derived from the whole model after an arrival.
+- The benchmark gains `lazy-merge-first` and `lazy-merge-next` beside `lazy-merge`, which keeps timing the full rebuild.
+
+**To check when upgrading:** nothing to change. An edit made in place to a `model` that is not reactive was never seen by the map until something else changed; a lazy subgraph's arrival no longer picks it up either. Pass a new object, or a reactive one.
+
 ### Fixed — the supply-chain blast radius no longer loses a build-time file when a seed is added (#188)
 
 - `computeLinkBlastRadius` under `intent: "supply-chain"` built `buildExecImpacted` from the one link that first reached each hit. A file with a build-time link into one seed and any other link into a second seed was then listed for the first seed alone and missing when both were given. After the walk, every link into each seed is now read (honouring `kinds`), and a linking node whose coupling or phase is `build-exec` is listed. Adding a seed never removes an item.

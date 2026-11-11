@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from "vue";
+import { computed, isReactive, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from "vue";
 import {
   EMPTY_TTI_LEVEL_MODEL,
   GRID_METRICS,
@@ -14,9 +14,9 @@ import {
   classifyBlastLink,
   classifyLinkDependencyCategory,
   cmpCodepoint,
-  collapseModelSubgraphs,
   compareBlastLinks,
   computeLinkBlastRadius,
+  extendMapParentIndex,
   extractModelLinks,
   filterLinksByCategories,
   foldVendoredCopies,
@@ -26,9 +26,9 @@ import {
   liftLinksToView,
   liftToSet,
   mapAncestorsOf,
+  mergeLazyMapSubgraphs,
   plainElementKindLabel,
   resolveModelRawLinks,
-  sanitizeMapModel,
   setOwnProp,
   splitNodeId,
   stripNodeKindPrefix,
@@ -47,6 +47,7 @@ import {
   type TuxMapElementKind,
   type TuxMapGridCellRect,
   type TuxMapInkStroke,
+  type TuxMapLazyMergeState,
   type TuxMapLevelElement,
   type TuxMapLevelModel,
   type TuxMapLevelNumber,
@@ -266,49 +267,64 @@ watch([() => props.model, () => props.modelRef], () => {
   cancelPendingSubgraphResolve();
 });
 
-const modelBundle = computed(() => {
-  const rawInput =
-    props.model !== undefined
-      ? props.model
-      : props.nodes && props.nodes.length > 0
-        ? buildLevelModelFromLegacyNodes(props.nodes, props.edges, props.zones)
-        : EMPTY_TTI_LEVEL_MODEL;
-  const lazyKeys = Object.keys(resolvedSubgraphs.value);
-  let mergedRaw: unknown = rawInput;
-  if (
-    lazyKeys.length > 0 &&
-    rawInput !== null &&
-    typeof rawInput === "object" &&
-    !Array.isArray(rawInput)
-  ) {
-    const baseObj = rawInput as unknown as Record<string, unknown>;
-    const mergedSubgraphs: Record<string, unknown> = Object.create(null);
-    const baseSgs = baseObj.subgraphs;
-    if (baseSgs !== null && typeof baseSgs === "object" && !Array.isArray(baseSgs)) {
-      for (const [k, v] of Object.entries(baseSgs as Record<string, unknown>)) {
-        setOwnProp(mergedSubgraphs, k, v);
-      }
+/** The model as it was passed (or built from the legacy `nodes`): one object until those change. */
+const rawModelInput = computed<unknown>(() =>
+  props.model !== undefined
+    ? props.model
+    : props.nodes && props.nodes.length > 0
+      ? buildLevelModelFromLegacyNodes(props.nodes, props.edges, props.zones)
+      : EMPTY_TTI_LEVEL_MODEL,
+);
+
+// A reactive `model` can be changed in place, with no new object to tell by. Reading all of it here
+// makes this stamp move on any such change, and the next merge then starts over (#157).
+let modelEditCount = 0;
+const modelEditStamp = computed<number>(() => {
+  const m = props.model;
+  if (!isReactive(m)) return 0;
+  const seen = new Set<unknown>();
+  const stack: unknown[] = [m];
+  while (stack.length > 0) {
+    const v = stack.pop();
+    if (v === null || typeof v !== "object" || seen.has(v)) continue;
+    seen.add(v);
+    if (Array.isArray(v)) {
+      for (let i = 0; i < v.length; i++) stack.push(v[i]);
+    } else {
+      for (const k of Object.keys(v)) stack.push((v as Record<string, unknown>)[k]);
     }
-    for (const k of lazyKeys) {
-      setOwnProp(mergedSubgraphs, k, resolvedSubgraphs.value[k]);
-    }
-    mergedRaw = { ...baseObj, subgraphs: mergedSubgraphs };
   }
-  const sanitized = sanitizeMapModel(mergedRaw);
-  const collapsed = collapseModelSubgraphs(sanitized.model);
+  return ++modelEditCount;
+});
+
+// The model with its lazily resolved subgraphs, sanitized and collapsed. A subgraph that arrives is
+// sanitized and collapsed alone and added to the model before it, when the rest of the model is not
+// affected by it; `added` then names what was added, for the indexes below (#157).
+let lastMerge: TuxMapLazyMergeState | undefined;
+let lastMergeStamp = 0;
+const mergedModel = computed<TuxMapLazyMergeState>(() => {
+  const stamp = modelEditStamp.value;
+  const prev = stamp === lastMergeStamp ? lastMerge : undefined;
+  lastMergeStamp = stamp;
+  lastMerge = mergeLazyMapSubgraphs(rawModelInput.value, resolvedSubgraphs.value, prev);
+  return lastMerge;
+});
+
+const modelBundle = computed(() => {
+  const merged = mergedModel.value;
   // One issue per card whose lazily resolved subgraph had nothing usable in it (#156).
   const resolvedEmpty = Object.values(sanitizedEmptySubgraphs.value);
   return {
-    model: collapsed.model,
-    aliases: collapsed.aliases,
+    model: merged.model,
+    aliases: merged.aliases,
     validation:
       resolvedEmpty.length > 0
         ? {
-            ...sanitized.validation,
+            ...merged.validation,
             valid: false,
-            issues: [...sanitized.validation.issues, ...resolvedEmpty],
+            issues: [...merged.validation.issues, ...resolvedEmpty],
           }
-        : sanitized.validation,
+        : merged.validation,
   };
 });
 
@@ -758,8 +774,15 @@ function getSubgraphForNode(nodeId: string | null | undefined): TuxMapSubgraph |
   return null;
 }
 
+// The index the previous model gave, kept so one arriving subgraph is added to a copy of it (#157)
+let byIdBuilt: { model: TuxMapLevelModel; map: Record<string, TuxMapLevelElement> } | undefined;
 const byId = computed<Record<string, TuxMapLevelElement>>(() => {
+  const model = activeModel.value;
+  const added = mergedModel.value.added;
+  const before = added && byIdBuilt?.model === added.from ? byIdBuilt.map : undefined;
   const map: Record<string, TuxMapLevelElement> = Object.create(null);
+  if (before) Object.assign(map, before);
+  byIdBuilt = { model, map };
   const indexChildren = (parentId: string, kids: TuxMapLevelElement[], depth = 0) => {
     if (depth >= 64) return;
     kids.forEach((k, i) => {
@@ -771,6 +794,11 @@ const byId = computed<Record<string, TuxMapLevelElement>>(() => {
     });
   };
 
+  if (added && before) {
+    // the subgraphs are indexed last and in key order, and the one that arrived is the last key
+    indexChildren(added.key, added.elements);
+    return map;
+  }
   for (const e of activeModel.value.level1.elements) {
     map[e.id] = e;
     if (e.children?.length) indexChildren(e.id, e.children);
@@ -808,7 +836,17 @@ const resById = computed<Record<string, TuxMapDeploymentNode>>(() => {
 
 // child → parent below Level 2 (components, subgraph elements, inline children): what code links
 // are lifted through, and how a part far from the current view is reached (revealElement)
-const parentOf = computed(() => buildMapParentIndex(activeModel.value));
+let parentOfBuilt: { model: TuxMapLevelModel; map: Map<string, string> } | undefined;
+const parentOf = computed(() => {
+  const model = activeModel.value;
+  const added = mergedModel.value.added;
+  const map =
+    added && parentOfBuilt?.model === added.from
+      ? extendMapParentIndex(parentOfBuilt.map, added.owner, added.elements)
+      : buildMapParentIndex(model);
+  parentOfBuilt = { model, map };
+  return map;
+});
 
 const vendoredCopyIndex = computed(() => {
   const kindMap = new Map<string, string>();
