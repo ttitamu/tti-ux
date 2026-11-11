@@ -437,5 +437,6 @@ describe("mergeLazyMapSubgraphs on generated models", () => {
     expect(arrivals).toBeGreaterThan(1500);
     expect(added / arrivals).toBeGreaterThan(0.3);
     expect(added / arrivals).toBeLessThan(0.97);
-  });
+    // 400 models, each arrival compared against a full build: a few seconds on a laptop, 7 s on a shared CI runner
+  }, 60_000);
 });
