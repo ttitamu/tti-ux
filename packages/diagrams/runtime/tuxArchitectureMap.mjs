@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: beafe7e642f81c4ba221ac503e66b1095fb3be1b3d285bcd632979c46094df68
+// SOURCE-SHA256: 39e023e0b6f9a67ce2553b52c46f327bcff3ecb6cbb792ddb554ed2dc1ccc78a
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -1310,12 +1310,96 @@ export function routeGridWires(rels, rects, els) {
     }
     const wires = [];
     const labels = [];
-    const wireSegments = [];
     const hoverOnlyLabels = paths.length > 30;
+    const wireSegments = [];
+    const clipsOtherWire = (cand, idx) => {
+        for (let si = 0; si < wireSegments.length; si++) {
+            const seg = wireSegments[si];
+            if (seg[2] === idx)
+                continue;
+            const minX = Math.min(seg[0][0], seg[1][0]) - 2;
+            const maxX = Math.max(seg[0][0], seg[1][0]) + 2;
+            const minY = Math.min(seg[0][1], seg[1][1]) - 2;
+            const maxY = Math.max(seg[0][1], seg[1][1]) + 2;
+            if (cand.x < maxX && cand.x + cand.w > minX && cand.y < maxY && cand.y + cand.h > minY)
+                return true;
+        }
+        return false;
+    };
+    const COVER_SCAN_MAX = 64;
+    const coverTerm = (c, qi) => {
+        const q = placed[qi];
+        return ((qi < cards.length ? 1 : 25) *
+            Math.max(0, Math.min(c.x + c.w, q.x + q.w) - Math.max(c.x, q.x)) *
+            Math.max(0, Math.min(c.y + c.h, q.y + q.h) - Math.max(c.y, q.y)));
+    };
+    let placedAllFinite = cards.every((q) => Number.isFinite(q.x + q.y + q.w + q.h));
+    const coverStamp = [];
+    let coverRound = 0;
+    const coverOf = (c) => {
+        let cover = 0;
+        if (placed.length <= COVER_SCAN_MAX || !placedAllFinite || !Number.isFinite(c.x + c.y + c.w + c.h)) {
+            for (let qi = 0; qi < placed.length; qi++)
+                cover += coverTerm(c, qi);
+            return cover;
+        }
+        coverRound++;
+        const near = [];
+        const gx0 = Math.floor(c.x / CELL_W);
+        const gx1 = Math.floor((c.x + c.w) / CELL_W);
+        const gy0 = Math.floor(c.y / CELL_H);
+        const gy1 = Math.floor((c.y + c.h) / CELL_H);
+        for (let gx = gx0; gx <= gx1; gx++) {
+            for (let gy = gy0; gy <= gy1; gy++) {
+                const hits = placedBucket.get(`${gx},${gy}`);
+                if (!hits)
+                    continue;
+                for (let hi = 0; hi < hits.length; hi++) {
+                    const qi = hits[hi];
+                    if (coverStamp[qi] === coverRound)
+                        continue;
+                    coverStamp[qi] = coverRound;
+                    near.push(qi);
+                }
+            }
+        }
+        near.sort((u, v) => u - v);
+        for (let ni = 0; ni < near.length; ni++)
+            cover += coverTerm(c, near[ni]);
+        return cover;
+    };
+    const segmentsByLength = (pts) => {
+        const segs = [];
+        for (let i = 0; i < pts.length - 1; i++) {
+            const p0 = pts[i];
+            const p1 = pts[i + 1];
+            segs.push([p0, p1, Math.hypot(p1[0] - p0[0], p1[1] - p0[1])]);
+        }
+        segs.sort((u, v) => v[2] - u[2]);
+        return segs;
+    };
+    const longestSegment = (pts) => {
+        let best = -1;
+        let bestLen = -Infinity;
+        for (let i = 0; i < pts.length - 1; i++) {
+            const len = Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
+            if (!Number.isFinite(len)) {
+                const first = segmentsByLength(pts)[0];
+                return [first[0], first[1]];
+            }
+            if (len > bestLen) {
+                bestLen = len;
+                best = i;
+            }
+        }
+        return best < 0 ? null : [pts[best], pts[best + 1]];
+    };
     paths.forEach((p, idx) => {
         const pts = simplifyOrthogonalPoints(p.pts);
-        for (let si = 0; si < pts.length - 1; si++) {
-            wireSegments.push([pts[si], pts[si + 1], idx]);
+        if (!hoverOnlyLabels) {
+            for (let si = 0; si < pts.length - 1; si++) {
+                wireSegments.push([pts[si], pts[si + 1], idx]);
+            }
         }
         const isViolating = Boolean(p.rel.violations?.length);
         wires.push({
@@ -1331,18 +1415,24 @@ export function routeGridWires(rels, rects, els) {
             const t2 = p.rel.tech || "";
             const w = Math.max(t1.length * 6.1, (t2.length + 2) * 5.5) + 14;
             const h = t2 ? 32 : 19;
-            const segs = [];
-            for (let i = 0; i < pts.length - 1; i++) {
-                const p0 = pts[i];
-                const p1 = pts[i + 1];
-                segs.push([p0, p1, Math.hypot(p1[0] - p0[0], p1[1] - p0[1])]);
-            }
-            segs.sort((u, v) => v[2] - u[2]);
-            const fractions = idx % 2 === 0
-                ? [0.5, 0.34, 0.66, 0.24, 0.76, 0.18, 0.82]
-                : [0.36, 0.64, 0.5, 0.24, 0.76, 0.18, 0.82];
             let box = null;
-            if (!hoverOnlyLabels) {
+            let forced = true;
+            if (hoverOnlyLabels) {
+                const sg = longestSegment(pts);
+                if (sg) {
+                    box = {
+                        x: sg[0][0] + (sg[1][0] - sg[0][0]) * 0.5 - w / 2,
+                        y: sg[0][1] + (sg[1][1] - sg[0][1]) * 0.5 - h / 2,
+                        w,
+                        h,
+                    };
+                }
+            }
+            else {
+                const segs = segmentsByLength(pts);
+                const fractions = idx % 2 === 0
+                    ? [0.5, 0.34, 0.66, 0.24, 0.76, 0.18, 0.82]
+                    : [0.36, 0.64, 0.5, 0.24, 0.76, 0.18, 0.82];
                 for (let j = 0; j < segs.length && !box; j++) {
                     const sg = segs[j];
                     for (const f of fractions) {
@@ -1353,19 +1443,7 @@ export function routeGridWires(rels, rects, els) {
                         const cand = { x: m[0] - w / 2, y: m[1] - h / 2, w, h };
                         if (overlapsPlacedBucket(cand))
                             continue;
-                        const clipsOtherWire = wireSegments.some(([s0, s1, wIdx]) => {
-                            if (wIdx === idx)
-                                return false;
-                            const minX = Math.min(s0[0], s1[0]) - 2;
-                            const maxX = Math.max(s0[0], s1[0]) + 2;
-                            const minY = Math.min(s0[1], s1[1]) - 2;
-                            const maxY = Math.max(s0[1], s1[1]) + 2;
-                            return (cand.x < maxX &&
-                                cand.x + cand.w > minX &&
-                                cand.y < maxY &&
-                                cand.y + cand.h > minY);
-                        });
-                        if (!clipsOtherWire) {
+                        if (!clipsOtherWire(cand, idx)) {
                             box = cand;
                             break;
                         }
@@ -1387,19 +1465,8 @@ export function routeGridWires(rels, rects, els) {
                         }
                     }
                 }
-            }
-            const forced = hoverOnlyLabels || !box;
-            if (!box) {
-                if (hoverOnlyLabels && segs.length > 0) {
-                    const sg = segs[0];
-                    box = {
-                        x: sg[0][0] + (sg[1][0] - sg[0][0]) * 0.5 - w / 2,
-                        y: sg[0][1] + (sg[1][1] - sg[0][1]) * 0.5 - h / 2,
-                        w,
-                        h,
-                    };
-                }
-                else {
+                forced = !box;
+                if (!box) {
                     let best = Infinity;
                     for (const sg of segs) {
                         for (const f of [0.5, 0.35, 0.65, 0.22, 0.78, 0.15, 0.85]) {
@@ -1409,19 +1476,7 @@ export function routeGridWires(rels, rects, els) {
                                 w,
                                 h,
                             };
-                            let cover = 0;
-                            for (const q of cards) {
-                                cover +=
-                                    Math.max(0, Math.min(c.x + w, q.x + q.w) - Math.max(c.x, q.x)) *
-                                        Math.max(0, Math.min(c.y + h, q.y + q.h) - Math.max(c.y, q.y));
-                            }
-                            for (let pi = cards.length; pi < placed.length; pi++) {
-                                const q = placed[pi];
-                                cover +=
-                                    25 *
-                                        Math.max(0, Math.min(c.x + w, q.x + q.w) - Math.max(c.x, q.x)) *
-                                        Math.max(0, Math.min(c.y + h, q.y + q.h) - Math.max(c.y, q.y));
-                            }
+                            const cover = coverOf(c);
                             if (cover < best) {
                                 best = cover;
                                 box = c;
@@ -1432,7 +1487,10 @@ export function routeGridWires(rels, rects, els) {
             }
             if (box) {
                 if (!hoverOnlyLabels) {
-                    pushPlacedBox({ x: box.x - 2, y: box.y - 2, w: box.w + 4, h: box.h + 4 });
+                    const pad = { x: box.x - 2, y: box.y - 2, w: box.w + 4, h: box.h + 4 };
+                    if (!Number.isFinite(pad.x + pad.y + pad.w + pad.h))
+                        placedAllFinite = false;
+                    pushPlacedBox(pad);
                 }
                 labels.push({
                     id: `lbl-${idx}-${p.rel.from}-${p.rel.to}`,

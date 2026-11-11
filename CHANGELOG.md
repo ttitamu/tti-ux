@@ -18,6 +18,15 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — wire labels are placed through the layout grid (#159)
+
+- `routeGridWires()` tests a wire label against the cards and the labels already placed through the layout's grid buckets, not the whole view. The overlap test already read the buckets. The cover sum that picks the least bad spot when no candidate is free read every card and every placed label for each candidate; in a view with more than 64 boxes it now reads the boxes in the candidate's cells. A crowded label's cost no longer grows with the number of cards in the view.
+- With more than 30 wires the labels are shown on hover only. In that case no wire segment is recorded and the segments are not sorted; each label keeps the midpoint of its wire's longest segment, as before, because the hover label and the wire inspector are anchored there. The search for a free spot was already skipped in that case.
+- Every label lands where it did. `tests/map-label-placement.test.ts` compares 80 layouts (the default model, dense views with up to 30 and with more than 30 wires, crowded views of 4 to 240 cards where no spot is free, a card with no usable position) against positions recorded from the previous code. No option was added.
+- The package bench has a new row, `route-labels`: 30 crowded two-line labels in the deepest view at each model size. The recorded baseline has no value for it yet, so the last column reads "new" until the baseline is next recorded.
+
+**To check when upgrading:** nothing.
+
 ### Changed — `extractModelLinks` and `levelForFocus` take the caller's parent index (#160)
 
 - `extractModelLinks()` has a new option, `parentOf`: the model's parent index (`buildMapParentIndex(model)`) when the caller already holds it. The function reads it and does not build its own. Left out, the index is built as before, and the links returned are the same either way. `levelForFocus()` already took the index as its third argument.

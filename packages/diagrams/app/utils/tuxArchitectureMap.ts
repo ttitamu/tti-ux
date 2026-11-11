@@ -1927,6 +1927,14 @@ function assignCorridorLanes(gapLo: number, gapHi: number, reqs: CorridorLaneReq
 /**
  * Routes wires at right angles strictly through the gaps between columns and rows,
  * never crossing a card, with per-gap interval-coloured lanes and collision-checked labels (`#113`).
+ *
+ * A label is tested against the cards and the labels already placed through the layout's grid
+ * buckets, not the whole view (`#159`): both the overlap test and, in a view with more than 64
+ * boxes, the cover sum that picks the least bad spot when no candidate is free. The labels land
+ * where a scan of every box puts them. With more than 30 wires the labels are shown on hover only
+ * (`forced` on each one): no spot is searched for and no wire segment is recorded or sorted, and
+ * each label keeps the midpoint of its wire's longest segment, which is where the hover label and
+ * the wire inspector are anchored.
  * @internal
  */
 export function routeGridWires(
@@ -2523,13 +2531,114 @@ export function routeGridWires(
 
   const wires: TuxMapRoutedWire[] = [];
   const labels: TuxMapRoutedLabel[] = [];
-  const wireSegments: [[number, number], [number, number], number][] = [];
   const hoverOnlyLabels = paths.length > 30;
+
+  // Label pass (`#159`). Above 30 wires every label is hidden at rest: it takes the middle of its
+  // wire's longest segment and nothing is searched, sorted or recorded for it. Otherwise each
+  // candidate spot is tested against the cards and the labels already placed through the grid
+  // buckets, which give the answers a scan of every box would.
+  type LabelBox = { x: number; y: number; w: number; h: number };
+  /** Two ends and a number: the wire's index in `wireSegments`, the length in `segmentsByLength`. */
+  type WireSegment = [[number, number], [number, number], number];
+
+  // Segments of the wires routed so far. There are at most 30 wires here, so the list stays short
+  // however many cards the view holds, and a candidate is tested against all of it.
+  const wireSegments: WireSegment[] = [];
+  const clipsOtherWire = (cand: LabelBox, idx: number): boolean => {
+    for (let si = 0; si < wireSegments.length; si++) {
+      const seg = wireSegments[si]!;
+      if (seg[2] === idx) continue;
+      const minX = Math.min(seg[0][0], seg[1][0]) - 2;
+      const maxX = Math.max(seg[0][0], seg[1][0]) + 2;
+      const minY = Math.min(seg[0][1], seg[1][1]) - 2;
+      const maxY = Math.max(seg[0][1], seg[1][1]) + 2;
+      if (cand.x < maxX && cand.x + cand.w > minX && cand.y < maxY && cand.y + cand.h > minY) return true;
+    }
+    return false;
+  };
+
+  // How much of a candidate lies over cards (weight 1) and over placed labels (weight 25). Only a
+  // box that shares a bucket with the candidate can add to the sum, and the terms are added in the
+  // order the boxes were placed, so the total is bit for bit what a scan of every box gives. A box
+  // that is not finite is in no bucket: once one was placed, or for such a candidate, every box is
+  // scanned. So is a view with few boxes, where the scan is the cheaper of the two.
+  const COVER_SCAN_MAX = 64;
+  const coverTerm = (c: LabelBox, qi: number): number => {
+    const q = placed[qi]!;
+    return (
+      (qi < cards.length ? 1 : 25) *
+      Math.max(0, Math.min(c.x + c.w, q.x + q.w) - Math.max(c.x, q.x)) *
+      Math.max(0, Math.min(c.y + c.h, q.y + q.h) - Math.max(c.y, q.y))
+    );
+  };
+  let placedAllFinite = cards.every((q) => Number.isFinite(q.x + q.y + q.w + q.h));
+  const coverStamp: number[] = [];
+  let coverRound = 0;
+  const coverOf = (c: LabelBox): number => {
+    let cover = 0;
+    if (placed.length <= COVER_SCAN_MAX || !placedAllFinite || !Number.isFinite(c.x + c.y + c.w + c.h)) {
+      for (let qi = 0; qi < placed.length; qi++) cover += coverTerm(c, qi);
+      return cover;
+    }
+    coverRound++;
+    const near: number[] = [];
+    const gx0 = Math.floor(c.x / CELL_W);
+    const gx1 = Math.floor((c.x + c.w) / CELL_W);
+    const gy0 = Math.floor(c.y / CELL_H);
+    const gy1 = Math.floor((c.y + c.h) / CELL_H);
+    for (let gx = gx0; gx <= gx1; gx++) {
+      for (let gy = gy0; gy <= gy1; gy++) {
+        const hits = placedBucket.get(`${gx},${gy}`);
+        if (!hits) continue;
+        for (let hi = 0; hi < hits.length; hi++) {
+          const qi = hits[hi]!;
+          if (coverStamp[qi] === coverRound) continue;
+          coverStamp[qi] = coverRound;
+          near.push(qi);
+        }
+      }
+    }
+    near.sort((u, v) => u - v);
+    for (let ni = 0; ni < near.length; ni++) cover += coverTerm(c, near[ni]!);
+    return cover;
+  };
+
+  /** A wire's segments with their lengths, longest first (equal lengths keep the wire's order). */
+  const segmentsByLength = (pts: [number, number][]): WireSegment[] => {
+    const segs: WireSegment[] = [];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i]!;
+      const p1 = pts[i + 1]!;
+      segs.push([p0, p1, Math.hypot(p1[0] - p0[0], p1[1] - p0[1])]);
+    }
+    segs.sort((u, v) => v[2] - u[2]);
+    return segs;
+  };
+  /** The first entry of `segmentsByLength(pts)`, found without building or sorting the list. */
+  const longestSegment = (pts: [number, number][]): [[number, number], [number, number]] | null => {
+    let best = -1;
+    let bestLen = -Infinity;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const len = Math.hypot(pts[i + 1]![0] - pts[i]![0], pts[i + 1]![1] - pts[i]![1]);
+      // A length that is not finite has no defined place in the sort: let the sort decide
+      if (!Number.isFinite(len)) {
+        const first = segmentsByLength(pts)[0]!;
+        return [first[0], first[1]];
+      }
+      if (len > bestLen) {
+        bestLen = len;
+        best = i;
+      }
+    }
+    return best < 0 ? null : [pts[best]!, pts[best + 1]!];
+  };
 
   paths.forEach((p, idx) => {
     const pts = simplifyOrthogonalPoints(p.pts);
-    for (let si = 0; si < pts.length - 1; si++) {
-      wireSegments.push([pts[si]!, pts[si + 1]!, idx]);
+    if (!hoverOnlyLabels) {
+      for (let si = 0; si < pts.length - 1; si++) {
+        wireSegments.push([pts[si]!, pts[si + 1]!, idx]);
+      }
     }
 
     const isViolating = Boolean(p.rel.violations?.length);
@@ -2547,21 +2656,26 @@ export function routeGridWires(
       const t2 = p.rel.tech || "";
       const w = Math.max(t1.length * 6.1, (t2.length + 2) * 5.5) + 14;
       const h = t2 ? 32 : 19;
-      const segs: [[number, number], [number, number], number][] = [];
-      for (let i = 0; i < pts.length - 1; i++) {
-        const p0 = pts[i]!;
-        const p1 = pts[i + 1]!;
-        segs.push([p0, p1, Math.hypot(p1[0] - p0[0], p1[1] - p0[1])]);
-      }
-      segs.sort((u, v) => v[2] - u[2]);
 
-      const fractions =
-        idx % 2 === 0
-          ? [0.5, 0.34, 0.66, 0.24, 0.76, 0.18, 0.82]
-          : [0.36, 0.64, 0.5, 0.24, 0.76, 0.18, 0.82];
+      let box: LabelBox | null = null;
+      let forced = true;
+      if (hoverOnlyLabels) {
+        const sg = longestSegment(pts);
+        if (sg) {
+          box = {
+            x: sg[0][0] + (sg[1][0] - sg[0][0]) * 0.5 - w / 2,
+            y: sg[0][1] + (sg[1][1] - sg[0][1]) * 0.5 - h / 2,
+            w,
+            h,
+          };
+        }
+      } else {
+        const segs = segmentsByLength(pts);
+        const fractions =
+          idx % 2 === 0
+            ? [0.5, 0.34, 0.66, 0.24, 0.76, 0.18, 0.82]
+            : [0.36, 0.64, 0.5, 0.24, 0.76, 0.18, 0.82];
 
-      let box: { x: number; y: number; w: number; h: number } | null = null;
-      if (!hoverOnlyLabels) {
         for (let j = 0; j < segs.length && !box; j++) {
           const sg = segs[j]!;
           for (const f of fractions) {
@@ -2571,22 +2685,8 @@ export function routeGridWires(
             ];
             const cand = { x: m[0] - w / 2, y: m[1] - h / 2, w, h };
             if (overlapsPlacedBucket(cand)) continue;
-
             // Also avoid clipping across another wire's segment when a clean spot exists
-            const clipsOtherWire = wireSegments.some(([s0, s1, wIdx]) => {
-              if (wIdx === idx) return false;
-              const minX = Math.min(s0[0], s1[0]) - 2;
-              const maxX = Math.max(s0[0], s1[0]) + 2;
-              const minY = Math.min(s0[1], s1[1]) - 2;
-              const maxY = Math.max(s0[1], s1[1]) + 2;
-              return (
-                cand.x < maxX &&
-                cand.x + cand.w > minX &&
-                cand.y < maxY &&
-                cand.y + cand.h > minY
-              );
-            });
-            if (!clipsOtherWire) {
+            if (!clipsOtherWire(cand, idx)) {
               box = cand;
               break;
             }
@@ -2610,19 +2710,10 @@ export function routeGridWires(
             }
           }
         }
-      }
 
-      const forced = hoverOnlyLabels || !box;
-      if (!box) {
-        if (hoverOnlyLabels && segs.length > 0) {
-          const sg = segs[0]!;
-          box = {
-            x: sg[0][0] + (sg[1][0] - sg[0][0]) * 0.5 - w / 2,
-            y: sg[0][1] + (sg[1][1] - sg[0][1]) * 0.5 - h / 2,
-            w,
-            h,
-          };
-        } else {
+        // No free spot: the label is hidden at rest and takes the least-covered candidate
+        forced = !box;
+        if (!box) {
           let best = Infinity;
           for (const sg of segs) {
             for (const f of [0.5, 0.35, 0.65, 0.22, 0.78, 0.15, 0.85]) {
@@ -2632,19 +2723,7 @@ export function routeGridWires(
                 w,
                 h,
               };
-              let cover = 0;
-              for (const q of cards) {
-                cover +=
-                  Math.max(0, Math.min(c.x + w, q.x + q.w) - Math.max(c.x, q.x)) *
-                  Math.max(0, Math.min(c.y + h, q.y + q.h) - Math.max(c.y, q.y));
-              }
-              for (let pi = cards.length; pi < placed.length; pi++) {
-                const q = placed[pi]!;
-                cover +=
-                  25 *
-                  Math.max(0, Math.min(c.x + w, q.x + q.w) - Math.max(c.x, q.x)) *
-                  Math.max(0, Math.min(c.y + h, q.y + q.h) - Math.max(c.y, q.y));
-              }
+              const cover = coverOf(c);
               if (cover < best) {
                 best = cover;
                 box = c;
@@ -2656,7 +2735,9 @@ export function routeGridWires(
 
       if (box) {
         if (!hoverOnlyLabels) {
-          pushPlacedBox({ x: box.x - 2, y: box.y - 2, w: box.w + 4, h: box.h + 4 });
+          const pad = { x: box.x - 2, y: box.y - 2, w: box.w + 4, h: box.h + 4 };
+          if (!Number.isFinite(pad.x + pad.y + pad.w + pad.h)) placedAllFinite = false;
+          pushPlacedBox(pad);
         }
         labels.push({
           id: `lbl-${idx}-${p.rel.from}-${p.rel.to}`,

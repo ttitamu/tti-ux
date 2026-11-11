@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: beafe7e642f81c4ba221ac503e66b1095fb3be1b3d285bcd632979c46094df68
+// SOURCE-SHA256: 39e023e0b6f9a67ce2553b52c46f327bcff3ecb6cbb792ddb554ed2dc1ccc78a
 /**
  * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
  *
@@ -897,6 +897,14 @@ export declare function roundOrthogonalCorners(pts: [number, number][]): string;
 /**
  * Routes wires at right angles strictly through the gaps between columns and rows,
  * never crossing a card, with per-gap interval-coloured lanes and collision-checked labels (`#113`).
+ *
+ * A label is tested against the cards and the labels already placed through the layout's grid
+ * buckets, not the whole view (`#159`): both the overlap test and, in a view with more than 64
+ * boxes, the cover sum that picks the least bad spot when no candidate is free. The labels land
+ * where a scan of every box puts them. With more than 30 wires the labels are shown on hover only
+ * (`forced` on each one): no spot is searched for and no wire segment is recorded or sorted, and
+ * each label keeps the midpoint of its wire's longest segment, which is where the hover label and
+ * the wire inspector are anchored.
  * @internal
  */
 export declare function routeGridWires(rels: TuxMapLevelRel[], rects: Record<string, TuxMapGridCellRect>, els: TuxMapLevelElement[]): {

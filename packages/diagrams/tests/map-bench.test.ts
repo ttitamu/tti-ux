@@ -136,6 +136,25 @@ function openedRels(view: LiftedView, activeId: string): TuxMapLevelRel[] {
   return rels;
 }
 
+/**
+ * Thirty wires between the view's first eight cards, every one labelled on two lines: the most
+ * the router places labels for (above 30 wires it hides them and searches for no spot), crowded
+ * so that most labels find no free spot and fall back to the least-covered one, on a view that
+ * grows in cards.
+ */
+function crowdedLabelRels(view: LiftedView): TuxMapLevelRel[] {
+  const ids = view.kids.slice(0, 8).map((k) => k.id);
+  return Array.from({ length: 30 }, (_, k) => {
+    const a = k % 6;
+    return {
+      from: ids[a]!,
+      to: ids[(a + 1 + (k % 3)) % ids.length]!,
+      label: `passes the validated result ${k} over to`,
+      tech: "JSON over HTTPS",
+    };
+  });
+}
+
 function perSize(make: (p: Prepared, key: MapBenchSizeKey) => BenchCase, prepared: Record<MapBenchSizeKey, Prepared>) {
   const out = {} as Record<MapBenchSizeKey, BenchCase>;
   for (const s of MAP_BENCH_SIZES) out[s.key] = make(prepared[s.key], s.key);
@@ -314,6 +333,25 @@ describe("architecture map benchmark: utils (#153)", () => {
       const { rects, els } = layoutView(view);
       const rels = viewRels(view);
       return { run: () => void (sink += routeGridWires(rels, rects, els).wires.length + 1) };
+    },
+  });
+
+  gate({
+    id: "route-labels",
+    title: "routeGridWires placing 30 crowded two-line labels in the deepest view",
+    scalesWith: "cards in one view (30 wires at every size)",
+    bounds: [4, 4],
+    make: (p) => {
+      const view = liftView(p.model, p.rawLinks, p.parentOf, p.fileId);
+      const { rects, els } = layoutView(view);
+      const rels = crowdedLabelRels(view);
+      const routed = routeGridWires(rels, rects, els);
+      // The scenario times nothing unless labels are searched for, and most find no free spot
+      expect(routed.wires.length).toBe(30);
+      expect(routed.labels.length).toBe(30);
+      expect(routed.labels.filter((l) => l.forced).length).toBeGreaterThanOrEqual(15);
+      expect(routed.labels.some((l) => !l.forced)).toBe(true);
+      return { run: () => void (sink += routeGridWires(rels, rects, els).labels.length + 1) };
     },
   });
 
