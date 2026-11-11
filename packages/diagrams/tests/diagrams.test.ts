@@ -1285,9 +1285,21 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect(withModelToolNames).toContain("tux_compute_graph_delta");
     expect(withModelToolNames).not.toContain("tux_acp_subgraph_lease");
 
+    // One server per model: the real producer model (#165) is 2,000 symbols, and building its index once per
+    // case made this test take most of vitest's default 5 s on a slow runner.
+    const serverByModel = new Map<string, ReturnType<typeof mcpMod.createTuxMcpServer>>();
+    const serverFor = (name: string, model: TuxMapLevelModel) => {
+      let srv = serverByModel.get(name);
+      if (!srv) {
+        srv = mcpMod.createTuxMcpServer({ model });
+        serverByModel.set(name, srv);
+      }
+      return srv;
+    };
+
     for (const lc of fixture.levelChecks) {
       const m = fixture.models[lc.model]!;
-      const srv = mcpMod.createTuxMcpServer({ model: m });
+      const srv = serverFor(lc.model, m);
       for (const [nodeId, expLvl] of Object.entries(lc.expectedLevels)) {
         const nodeRes = srv.callTool("tux_query_architecture_nodes", { focusId: nodeId });
         const selfNode = nodeRes.nodes.find((n: { id: string }) => n.id === nodeId);
@@ -1310,7 +1322,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
         ...bc.opts,
         model: m,
       });
-      const srv = mcpMod.createTuxMcpServer({ model: m });
+      const srv = serverFor(bc.model, m);
       // The MCP tool caps each summary list (25 by default, 200 at most; the contract's lists are not
       // capped). Ask for the largest cap and compare the contract's first 200: the real producer model
       // (#165) has a 27-item blocker list and a 211-item test list, which a default call truncated and
@@ -1435,7 +1447,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     } finally {
       rmSync(tmpDir, { recursive: true, force: true });
     }
-  });
+  }, 60_000);
 
   it("enforces Gate B MCP hardening: NodeNext .d.mts, < 16 KB budgets, multi-header framing, linear snippet audit, and schema normalization (#112)", { timeout: 20_000 }, async () => {
     const packageRoot = join(import.meta.dirname, "..");
