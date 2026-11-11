@@ -64,6 +64,12 @@ conventions.
 
 **To check when upgrading:** `buildExecImpacted` (and `totalBuildExecCount` in the impact query) can be longer for a multi-seed supply-chain call. Other intents and every other list are unchanged.
 
+### Added — one mounted run of a 2,500-symbol architecture map (#166)
+
+- `tests/tux-architecture-map-2500.nuxt.test.ts` mounts `TuxArchitectureMap` once on a seeded synthetic model of 2,577 symbols and reads the page: the view of a 60-symbol file shows one card per symbol; the compact list opens by itself above `denseListThreshold` (60 cards against 40, and against 59) and stays closed at the threshold (60 against 60) and on a smaller view beside it; a hover and a selection each change the page with the component mounted once and the same card elements in place.
+- The hover and the selection are timed, fastest of seven, against work measured in the same run: under a tenth of the first mount, and under half (hover) or the whole (selection) of a move to another view and back. The log line `[map 2,500]` prints the milliseconds.
+- The conformance check asked for with it already runs in the package's `npm test` (#165). Nothing in the runtime changed.
+
 ### Changed — the conformance fixture holds a real producer output (#165)
 
 - `tests/fixtures/map-conformance.json` gains a model that no hand wrote: `real_producer_packages`, what an independent code-graph producer emitted for this repository's `packages/` directory at `a6affe1` (2,048 symbols, 2,967 links). Until now every model was one of six hand-written ones of about 20 nodes, recorded from this package's own output, so a second implementation could drift only from this one and a misreading both shared passed. The new level check and five blast-radius cases (default, refactor intent, two seeds, a hop limit, `quietSeedOnly: false`) were checked against the raw links: the hop-1 hits of the first case are exactly the files that link to its seed.
