@@ -1184,7 +1184,8 @@ const stageData = computed<ComputedStageData>(() => {
     ): number {
       let y = top;
       for (const r of regions) {
-        const list = nodes.filter((n) => n.zone && r.zones.includes(n.zone));
+        const zones = new Set(r.zones);
+        const list = nodes.filter((n) => n.zone && zones.has(n.zone));
         if (!list.length) continue;
         const h = list.length * (NH + 14) - 14 + 50;
         bounds.push({
@@ -1202,6 +1203,7 @@ const stageData = computed<ComputedStageData>(() => {
     }
 
     const customZones: TuxMapDeploymentZone[] | undefined = M.level4.zones;
+    const leftZoneIds = new Set(["people", "entra", "identity"]);
     const defaultLeftRegions: { title: string; zones: string[]; planned?: boolean }[] = [
       { title: "Users & clients", zones: ["people"] },
       { title: "Identity & SSO", zones: ["entra", "identity"] },
@@ -1218,7 +1220,7 @@ const stageData = computed<ComputedStageData>(() => {
           .filter(
             (z) =>
               z.column === "left" ||
-              (!z.column && ["people", "entra", "identity"].includes(z.id)),
+              (!z.column && leftZoneIds.has(z.id)),
           )
           .map((z) => ({
             title: z.title,
@@ -1234,7 +1236,7 @@ const stageData = computed<ComputedStageData>(() => {
               z.column === "right" ||
               (!z.column &&
                 z.column !== "center" &&
-                !["people", "entra", "identity"].includes(z.id)),
+                !leftZoneIds.has(z.id)),
           )
           .map((z) => ({
             title: z.title,
@@ -1440,8 +1442,23 @@ const stageData = computed<ComputedStageData>(() => {
       ? 4
       : Math.min(4, Math.max(2, Math.ceil(Math.sqrt(Math.max(1, kids.length) * 1.6))));
     const rows = Math.max(1, Math.ceil(kids.length / cols));
+    // The outside cards of each side, in the order they are stacked; the sets answer "already there?"
     const ins: string[] = [];
     const outs: string[] = [];
+    const insSet = new Set<string>();
+    const outsSet = new Set<string>();
+    const addIn = (id: string) => {
+      if (!insSet.has(id)) {
+        insSet.add(id);
+        ins.push(id);
+      }
+    };
+    const addOut = (id: string) => {
+      if (!outsSet.has(id)) {
+        outsSet.add(id);
+        outs.push(id);
+      }
+    };
 
     let allowedL3BoundaryRels: TuxMapLevelRel[] = [];
     if (currentLevel.value === 3) {
@@ -1466,14 +1483,14 @@ const stageData = computed<ComputedStageData>(() => {
         return l3AllCodePairs.has(pk) ? l3AllowedCodePairs.has(pk) : isRelInActiveCategories(r);
       });
       for (const r of allowedL3BoundaryRels) {
-        if (r.to === fId && !ins.includes(r.from)) ins.push(r.from);
-        if (r.from === fId && !outs.includes(r.to)) outs.push(r.to);
+        if (r.to === fId) addIn(r.from);
+        if (r.from === fId) addOut(r.to);
       }
     } else if (parentDn) {
       for (const l of M.level4.links) {
         if (!showPlanned.value && l.state === "planned") continue;
-        if (l.to === fId && !ins.includes(l.from)) ins.push(l.from);
-        if (l.from === fId && !outs.includes(l.to)) outs.push(l.to);
+        if (l.to === fId) addIn(l.from);
+        if (l.from === fId) addOut(l.to);
       }
     }
 
@@ -1517,7 +1534,7 @@ const stageData = computed<ComputedStageData>(() => {
       const inSlice = hasInOverflow ? codeEdge.ins.slice(0, 11) : codeEdge.ins;
       for (const o of inSlice) {
         shownInsSides.push(o);
-        if (!ins.includes(o.id)) ins.push(o.id);
+        addIn(o.id);
         codeEdgeCounts[o.id] = (codeEdgeCounts[o.id] ?? 0) + o.count;
         outsideMetaById[o.id] = {
           ...outsideMetaById[o.id],
@@ -1533,7 +1550,9 @@ const stageData = computed<ComputedStageData>(() => {
         const remLinks =
           codeEdge.moreInsLinks + dropped.reduce((acc, s) => acc + s.count, 0);
         const moreInId = `@more-in:${fId}`;
+        // Stacked last whatever is already there: an id of this form is no card of the model
         ins.push(moreInId);
+        insSet.add(moreInId);
         codeEdgeCounts[moreInId] = remLinks;
         outsideMetaById[moreInId] = {
           parts: remParts,
@@ -1558,7 +1577,7 @@ const stageData = computed<ComputedStageData>(() => {
       // Separate outs that already share a card on `ins` from distinct right-hand cards
       const distinctOuts: TuxMapLiftedSide[] = [];
       for (const o of codeEdge.outs) {
-        if (ins.includes(o.id)) {
+        if (insSet.has(o.id)) {
           outsAlsoOnIns.set(o.id, o);
           codeEdgeCounts[o.id] = (codeEdgeCounts[o.id] ?? 0) + o.count;
         } else {
@@ -1570,7 +1589,7 @@ const stageData = computed<ComputedStageData>(() => {
       const outSlice = hasOutOverflow ? distinctOuts.slice(0, 11) : distinctOuts.slice(0, 12);
       for (const o of outSlice) {
         shownOutsSides.push(o);
-        if (!outs.includes(o.id)) outs.push(o.id);
+        addOut(o.id);
         codeEdgeCounts[o.id] = (codeEdgeCounts[o.id] ?? 0) + o.count;
         outsideMetaById[o.id] = {
           ...outsideMetaById[o.id],
@@ -1587,6 +1606,7 @@ const stageData = computed<ComputedStageData>(() => {
           codeEdge.moreOutsLinks + dropped.reduce((acc, s) => acc + s.count, 0);
         const moreOutId = `@more-out:${fId}`;
         outs.push(moreOutId);
+        outsSet.add(moreOutId);
         codeEdgeCounts[moreOutId] = remLinks;
         outsideMetaById[moreOutId] = {
           parts: remParts,
@@ -1939,16 +1959,25 @@ const stageData = computed<ComputedStageData>(() => {
     const l2ContainerSet = new Set(
       M.level2.elements.filter((e) => !e.ref).map((e) => e.id),
     );
+    const boundaryOnStage = currentLevel.value === 1 && stageEndpointIds.has(M.level2.boundary);
+    // An id lifts to the same card whichever link names it: looked up once
+    const liftedEnd = new Map<string, string | null>();
     const liftForStagePair = (id: string): string | null => {
+      const known = liftedEnd.get(id);
+      if (known !== undefined) return known;
+      let found: string | null = null;
       for (const anc of mapAncestorsOf(id, parentOf.value)) {
         if (stageEndpointIds.has(anc)) {
-          return anc === activeFocusContainerId ? "@bound" : anc;
+          found = anc === activeFocusContainerId ? "@bound" : anc;
+          break;
         }
-        if (currentLevel.value === 1 && l2ContainerSet.has(anc) && stageEndpointIds.has(M.level2.boundary)) {
-          return M.level2.boundary;
+        if (boundaryOnStage && l2ContainerSet.has(anc)) {
+          found = M.level2.boundary;
+          break;
         }
       }
-      return null;
+      liftedEnd.set(id, found);
+      return found;
     };
     const filteredCodeLinks =
       currentLevel.value === 1
@@ -2064,7 +2093,15 @@ const stageData = computed<ComputedStageData>(() => {
       for (let i = ancParts.length - 1; i >= 0; i--) pushSeg(ancParts[i]!);
     }
 
+    // Candidates in the order they are tried; the set answers "already listed?"
     const candidates: string[] = [initial];
+    const listed = new Set<string>(candidates);
+    const addCandidate = (c: string) => {
+      if (!listed.has(c)) {
+        listed.add(c);
+        candidates.push(c);
+      }
+    };
     for (let depth = 1; depth <= parentSegs.length; depth++) {
       const chain = parentSegs.slice(0, depth).reverse();
       const fullCandidate = `${chain.join("/")}/${leaf}`;
@@ -2072,14 +2109,12 @@ const stageData = computed<ComputedStageData>(() => {
         fullCandidate.length <= maxChars + 8
           ? fullCandidate
           : `${chain[0]}/…/${leaf}`;
-      if (!candidates.includes(formatted)) candidates.push(formatted);
-      if (formatted !== fullCandidate && !candidates.includes(fullCandidate)) {
-        candidates.push(fullCandidate);
-      }
+      addCandidate(formatted);
+      if (formatted !== fullCandidate) addCandidate(fullCandidate);
     }
     const strippedId = stripNodeKindPrefix(e.id);
-    if (strippedId && !candidates.includes(strippedId)) candidates.push(strippedId);
-    if (!candidates.includes(e.id)) candidates.push(e.id);
+    if (strippedId) addCandidate(strippedId);
+    addCandidate(e.id);
     return candidates;
   };
 
@@ -2140,12 +2175,22 @@ const stageData = computed<ComputedStageData>(() => {
   for (const b of rawBounds) {
     let box = b.box;
     if (!box) {
-      const ins = els.filter((e) => b.of.includes(e.id) && e.at);
-      if (!ins.length) continue;
-      const c0 = Math.min(...ins.map((e) => e.at![0]));
-      const c1 = Math.max(...ins.map((e) => e.at![0]));
-      const r0 = Math.min(...ins.map((e) => e.at![1]));
-      const r1 = Math.max(...ins.map((e) => e.at![1]));
+      // The boundary wraps the grid cells of the cards it names
+      const of = new Set(b.of);
+      let c0 = Infinity;
+      let c1 = -Infinity;
+      let r0 = Infinity;
+      let r1 = -Infinity;
+      let any = false;
+      for (const e of els) {
+        if (!e.at || !of.has(e.id)) continue;
+        any = true;
+        c0 = Math.min(c0, e.at[0]);
+        c1 = Math.max(c1, e.at[0]);
+        r0 = Math.min(r0, e.at[1]);
+        r1 = Math.max(r1, e.at[1]);
+      }
+      if (!any) continue;
       const p0 = gridCellToPx([c0, r0]);
       const p1 = gridCellToPx([c1, r1]);
       box = {
