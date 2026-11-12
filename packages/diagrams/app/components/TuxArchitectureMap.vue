@@ -67,8 +67,10 @@ import {
   buildStageBase,
   buildStageData,
   middleEllipsizeFolderName,
+  placeLabelClearOfCard,
   wirePairKey,
   type ComputedStageData,
+  type LabelClearPlacementBox,
   type StageBase,
   type StageToggles,
 } from "../utils/internal/tuxArchitectureMapStage";
@@ -1337,6 +1339,60 @@ const routedSvg = computed<{ wires: TuxMapRoutedWire[]; labels: TuxMapRoutedLabe
     labels: [...baseStageLabels.value.filter((l) => !open.closedLabelIds.has(l.id)), ...openStageLabels.value],
   };
 });
+
+/**
+ * A wire label raised by a hover or a selection is drawn beside that card, not over it (#205): a
+ * long label reaches from the middle of its wire over the cards the wire joins, where it covered
+ * the title and took the click meant for `+`. The highlight places each label it raises against
+ * the card as it is drawn then (a hovered or selected card grows to show its text), and writes the
+ * place on the element as an attribute and three custom properties, which no render touches.
+ */
+const stageLabelByPair = computed<Map<string, TuxMapRoutedLabel>>(() => {
+  const out = new Map<string, TuxMapRoutedLabel>();
+  for (const lbl of routedSvg.value.labels) out.set(wirePairKey(lbl.from, lbl.to), lbl);
+  return out;
+});
+
+const LAB_CLEAR_PROPS = ["--tux-map-lab-left", "--tux-map-lab-top", "--tux-map-lab-shift"] as const;
+
+function lowerStageLabel(el: HTMLElement) {
+  el.classList.remove("tux-map__lab--on");
+  if (!el.hasAttribute("data-clear")) return;
+  el.removeAttribute("data-clear");
+  for (const prop of LAB_CLEAR_PROPS) el.style.removeProperty(prop);
+}
+
+/** The lit card's box in stage pixels, as tall as it is drawn */
+function litCardBox(id: string, cards: { el: HTMLElement; id: string }[]): LabelClearPlacementBox | null {
+  const r = hasOwn(stageData.value.rects, id) ? stageData.value.rects[id] : undefined;
+  if (!r || r.bound) return null;
+  let h = r.h;
+  for (let i = 0; i < cards.length; i++) {
+    if (cards[i]!.id !== id) continue;
+    h = Math.max(h, cards[i]!.el.offsetHeight || 0);
+    break;
+  }
+  return { x: r.x, y: r.y, w: r.w, h };
+}
+
+function raiseStageLabel(el: HTMLElement, card: LabelClearPlacementBox | null) {
+  el.classList.add("tux-map__lab--on");
+  const lbl = card ? stageLabelByPair.value.get(wirePairKey(el.dataset.from || "", el.dataset.to || "")) : undefined;
+  if (!card || !lbl) return;
+  // the size it is drawn at where the page has one; the router's estimate otherwise
+  const w = el.offsetWidth || lbl.w;
+  const h = el.offsetHeight || lbl.h;
+  const at = placeLabelClearOfCard(
+    { x: lbl.x + lbl.w / 2 - w / 2, y: lbl.y + lbl.h / 2 - h / 2, w, h },
+    card,
+    { width: stageData.value.width, height: stageData.value.height },
+  );
+  if (!at) return;
+  el.style.setProperty("--tux-map-lab-left", `${at.left}px`);
+  el.style.setProperty("--tux-map-lab-top", `${at.top}px`);
+  el.style.setProperty("--tux-map-lab-shift", at.shift);
+  el.setAttribute("data-clear", "1");
+}
 
 // ============================================================================
 // 3. PRECOMPUTED CARD VIEW-MODELS, BLAST RADIUS, SEARCH & ZERO-QUERY HOVER
@@ -2799,7 +2855,7 @@ function rebuildStageDomCache() {
     const entry = { el, forced: el.dataset.forced === "1" };
     pushMapItem(labelsByNode, from, entry);
     if (to !== from) pushMapItem(labelsByNode, to, entry);
-    if (el.classList.contains("tux-map__lab--on")) {
+    if (el.classList.contains("tux-map__lab--on") || el.hasAttribute("data-clear")) {
       litLabels.push(entry);
     }
   }
@@ -2850,7 +2906,7 @@ function applyStageHighlight(rawId: string | null) {
 
   for (let i = 0; i < cache.litLabels.length; i++) {
     const item = cache.litLabels[i]!;
-    item.el.classList.remove("tux-map__lab--on");
+    lowerStageLabel(item.el);
   }
   cache.litLabels.length = 0;
 
@@ -2935,12 +2991,17 @@ function applyStageHighlight(rawId: string | null) {
     }
   }
 
+  // Read the lit card's drawn height once, and only when it has a label to move
+  let litBox: LabelClearPlacementBox | null | undefined;
+  const litCard = (): LabelClearPlacementBox | null =>
+    litBox === undefined ? (litBox = litCardBox(key, cache.cards)) : litBox;
+
   const activeLabels = cache.labelsByNode.get(key);
   if (activeLabels) {
     for (let i = 0; i < activeLabels.length; i++) {
       const item = activeLabels[i]!;
       if (openDom && item.el.classList.contains("tux-map__lab--closed")) continue;
-      item.el.classList.add("tux-map__lab--on");
+      raiseStageLabel(item.el, litCard());
       cache.litLabels.push(item);
     }
   }
@@ -2957,7 +3018,7 @@ function applyStageHighlight(rawId: string | null) {
     for (let i = 0; i < openDom.labels.length; i++) {
       const item = openDom.labels[i]!;
       if (item.from !== key && item.to !== key) continue;
-      item.el.classList.add("tux-map__lab--on");
+      raiseStageLabel(item.el, litCard());
       cache.litLabels.push(item);
     }
   }
@@ -9792,6 +9853,14 @@ function buildSourceHref(src?: {
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.16);
 }
 
+/* Raised by the card the pointer is on or the selected one, a label hangs beside that card (#205).
+   The highlight sets the attribute and the three properties together. */
+.tux-map__lab[data-clear] {
+  left: var(--tux-map-lab-left) !important;
+  top: var(--tux-map-lab-top) !important;
+  transform: var(--tux-map-lab-shift);
+}
+
 /* Wire Link Inspector Popover (#115) */
 .tux-map__wire-pop {
   position: absolute;
@@ -10055,9 +10124,10 @@ function buildSourceHref(src?: {
 }
 
 /* Sibling Zoom-In `+` Badge Button on Stage (#116: never nested inside card button) */
+/* Above every wire label, raised (10) or under the pointer (11): a label never takes its click (#205) */
 .tux-map__el-zb {
   position: absolute;
-  z-index: 9;
+  z-index: 12;
   width: 22px;
   height: 22px;
   padding: 0;

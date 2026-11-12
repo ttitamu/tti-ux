@@ -1576,3 +1576,84 @@ export function buildStageData(base: StageBase, toggles: StageToggles): Computed
       return finishStage(base as ViewStageBase, liftView(base as ViewStageBase, toggles), toggles);
   }
 }
+
+// ============================================================================
+// A raised wire label beside the card the pointer is on (#205)
+// ============================================================================
+
+/**
+ * Where a wire label goes while one of its two cards is hovered or selected: `left` and `top` in
+ * stage pixels, and the CSS `translate()` that hangs the label from that point by an edge, so the
+ * drawn width of the text, which is only estimated here, cannot bring it back over the card.
+ * @internal
+ */
+export interface LabelClearPlacement {
+  left: number;
+  top: number;
+  shift: string;
+}
+
+/** @internal */
+export type LabelClearPlacementBox = { x: number; y: number; w: number; h: number };
+type StageBox = LabelClearPlacementBox;
+
+/**
+ * A label's position clear of one card, or `null` when it is clear where it is.
+ *
+ * A label sits on the middle of its wire, and a long one reaches over the cards the wire joins.
+ * At rest that is hidden or harmless; raised by a hover it covers the card's title and its `+`.
+ * A wire never crosses a card, so the label's middle is beside the card: the label moves off the
+ * card to that side, which keeps it on its wire. A middle that is over the card after all takes
+ * the shortest of the four ways off. A way that stays on the stage is preferred to one that
+ * leaves it. `pad` is the gap left between the two, and how close counts as touching.
+ * @internal
+ */
+export function placeLabelClearOfCard(
+  label: StageBox,
+  card: StageBox,
+  stage?: { width: number; height: number },
+  pad = 8,
+): LabelClearPlacement | null {
+  if (![label.x, label.y, label.w, label.h, card.x, card.y, card.w, card.h].every(Number.isFinite)) return null;
+  const apart =
+    label.x >= card.x + card.w + pad ||
+    label.x + label.w <= card.x - pad ||
+    label.y >= card.y + card.h + pad ||
+    label.y + label.h <= card.y - pad;
+  if (apart) return null;
+  const cx = label.x + label.w / 2;
+  const cy = label.y + label.h / 2;
+  const moves: { by: number; inside: boolean; onSide: boolean; at: LabelClearPlacement }[] = [
+    {
+      by: card.x + card.w + pad - label.x,
+      inside: !stage || card.x + card.w + pad + label.w <= stage.width,
+      onSide: cx >= card.x + card.w,
+      at: { left: card.x + card.w + pad, top: cy, shift: "translate(0%, -50%)" },
+    },
+    {
+      by: label.x + label.w - (card.x - pad),
+      inside: card.x - pad - label.w >= 0,
+      onSide: cx <= card.x,
+      at: { left: card.x - pad, top: cy, shift: "translate(-100%, -50%)" },
+    },
+    {
+      by: card.y + card.h + pad - label.y,
+      inside: !stage || card.y + card.h + pad + label.h <= stage.height,
+      onSide: cy >= card.y + card.h,
+      at: { left: cx, top: card.y + card.h + pad, shift: "translate(-50%, 0%)" },
+    },
+    {
+      by: label.y + label.h - (card.y - pad),
+      inside: card.y - pad - label.h >= 0,
+      onSide: cy <= card.y,
+      at: { left: cx, top: card.y - pad, shift: "translate(-50%, -100%)" },
+    },
+  ];
+  // first a way that stays on the stage, then the side the wire is on, then the shortest
+  const rank = (m: (typeof moves)[number]) => (m.inside ? 0 : 2) + (m.onSide ? 0 : 1);
+  let best: (typeof moves)[number] | null = null;
+  for (const m of moves) {
+    if (!best || rank(m) < rank(best) || (rank(m) === rank(best) && m.by < best.by)) best = m;
+  }
+  return best!.at;
+}
