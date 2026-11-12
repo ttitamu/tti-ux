@@ -237,6 +237,99 @@ export function wirePairKey(from: string, to: string): string {
   return `${from}\u0000${to}`;
 }
 
+// ----------------------------------------------------------------------------
+// What a card's text needs (#205)
+//
+// A card has a fixed height, set here, and its rows are drawn by the stylesheet.
+// Nothing measured the text against the height, so a card with one row more
+// than its height allows had its last row cut by its own bottom edge. The
+// numbers below are the stylesheet's (`.tux-map__el` and its rows, in px at the
+// stage's own scale): change one side and change the other.
+// ----------------------------------------------------------------------------
+
+/**
+ * Advance widths of the printable ASCII characters (space to `~`) in the title face, Work Sans
+ * Bold, in hundredths of an em, read from the font in a browser.
+ */
+// prettier-ignore
+const TITLE_CHAR_WIDTHS = [
+  29, 30, 45, 69, 64, 94, 65, 25, 38, 38, 59, 60, 29, 53, 29, 33, 64, 43, 60,
+  59, 65, 58, 62, 61, 63, 62, 30, 30, 60, 60, 60, 60, 93, 68, 68, 68, 72, 63,
+  61, 72, 74, 32, 62, 69, 60, 91, 74, 74, 67, 74, 69, 64, 65, 71, 68, 100, 66,
+  64, 63, 39, 33, 39, 61, 54, 50, 60, 63, 57, 63, 58, 40, 56, 62, 29, 29, 62,
+  33, 94, 62, 60, 63, 63, 43, 53, 40, 62, 56, 90, 59, 56, 52, 42, 32, 42, 60,
+];
+
+/**
+ * The width of a card title in px, estimated: no font is measured, so the stage is the same on a
+ * server, in a test and in a browser. A character outside ASCII counts as a wide letter, and the
+ * sum is taken 4% wide, so an estimate errs wide and a title is given a second line sooner than
+ * it needs one: the cost of that is a few pixels of room, the cost of the other a cut row.
+ * @internal
+ */
+export function estimateCardTitleWidth(text: string, fontPx: number): number {
+  let em = 0;
+  for (const ch of text) {
+    const code = ch.codePointAt(0)!;
+    em += code >= 32 && code < 127 ? TITLE_CHAR_WIDTHS[code - 32]! : 93;
+  }
+  return (em / 100) * fontPx * 1.04;
+}
+
+/** Text widths inside a 212px card: the card less its padding, border, icon and the icon's gap. */
+const MINI_TITLE_WIDTH = 168;
+const CARD_TITLE_WIDTH = 165;
+/** A card with a `+` badge keeps 24px clear of it. */
+const ZOOM_BADGE_CLEARANCE = 24;
+
+/**
+ * The lines an inner card's title takes: 1 or 2 (the stylesheet clamps a title at two).
+ * @internal
+ */
+export function cardTitleLines(name: string, zoomable: boolean): 1 | 2 {
+  const width = CARD_TITLE_WIDTH - (zoomable ? ZOOM_BADGE_CLEARANCE : 0);
+  return estimateCardTitleWidth(name, 14) > width ? 2 : 1;
+}
+
+/**
+ * The height of an outside card, from the rows it shows: its title on one line or two, the line
+ * that says where it lives, its type and its chips. Every outside card was 60px, which holds a
+ * one-line title and one more row: the chips of every card were cut by its bottom edge, and a card
+ * with a two-line title or an owner line lost them altogether.
+ *
+ * Whether the card will carry a `+` is not known here, so the title is measured against the
+ * narrower width.
+ * @internal
+ */
+export function outsideCardHeight(name: string, rows: { owner?: boolean; type?: boolean } = {}): number {
+  const twoLines = estimateCardTitleWidth(name, 13) > MINI_TITLE_WIDTH - ZOOM_BADGE_CLEARANCE;
+  // padding and border 16.4, a title line 17 (the icon's height), the chips 19, a 1.6 gap per row
+  let h = 16.4 + (twoLines ? 31.2 : 17) + 1.6 + 19;
+  if (rows.type !== false) h += 14.3 + 1.6;
+  if (rows.owner) h += 13.2 + 1.6;
+  return Math.ceil(h);
+}
+
+/**
+ * How many lines of its description an inner card of height `height` has room for, 0 to 2, after
+ * the rows that are always shown in full. The description was the row that gave way, by however
+ * many pixels were missing, so its last line was cut through the letters.
+ * @internal
+ */
+export function cardDescriptionLines(
+  height: number,
+  rows: { titleLines: 1 | 2; type: boolean; runsOn: boolean; footer: boolean },
+): 0 | 1 | 2 {
+  const GAP = 2.56;
+  // padding and border 20.4; a title line is 17 (the icon's height), two are 33.6
+  let used = 20.4 + (rows.titleLines === 2 ? 33.6 : 17);
+  if (rows.type) used += 14.3 + GAP;
+  if (rows.runsOn) used += 13 + GAP;
+  if (rows.footer) used += 19.2 + GAP;
+  const lines = Math.floor((height - used - GAP) / 16.2);
+  return lines >= 2 ? 2 : lines === 1 ? 1 : 0;
+}
+
 /** @internal */
 export function middleEllipsizeFolderName(name: string, kind?: string, id?: string, maxLen = 28): string {
   const isFolderLike =
@@ -934,9 +1027,69 @@ function liftView(base: ViewStageBase, toggles: StageToggles): StageDraft {
     }
   }
 
+  const resolvePerimeterCard = (id: string): TuxMapLevelElement | null => {
+    if (overflowInCard && id === overflowInCard.id) return overflowInCard;
+    if (overflowOutCard && id === overflowOutCard.id) return overflowOutCard;
+    if (hasOwn(lookup, id)) return lookup[id]!;
+    const dn = hasOwn(resById, id) ? resById[id] : undefined;
+    if (dn) {
+      return {
+        id: dn.id,
+        kind: "resource",
+        name: dn.title,
+        tech: dn.facts?.type || dn.kind,
+        desc: dn.role,
+      };
+    }
+    return null;
+  };
+
+  // Outside cards show their owning container/component on its own `.tux-map__el-own` line (#116)
+  const edgeCard = (id: string): TuxMapLevelElement | null => {
+    const card = resolvePerimeterCard(id);
+    if (!card) return null;
+    if (codeEdge && parentOf.has(id)) {
+      const where = mapAncestorsOf(id, parentOf)
+        .slice(1)
+        .reverse()
+        .map((a) => (hasOwn(lookup, a) ? lookup[a]?.name : undefined) || (hasOwn(resById, a) ? resById[a]?.title : undefined))
+        .filter(Boolean)
+        .join(" › ");
+      if (where) {
+        outsideMetaById[id] = {
+          ...outsideMetaById[id],
+          ownerLabel: `in ${where}`,
+          alsoInParts: toggles.countOtherSharedParts(id, card),
+        };
+      }
+    }
+    return card;
+  };
+
+  // The outside cards of each side and the height each needs for its rows (#205)
+  const STACK_GAP = 14;
+  const stackOf = (ids: string[]) => {
+    const cards = ids.map((id) => edgeCard(id));
+    const heights = cards.map((card, i) =>
+      card
+        ? outsideCardHeight(middleEllipsizeFolderName(card.name, card.kind, card.id, 24), {
+            owner: Boolean(outsideMetaById[ids[i]!]?.ownerLabel),
+          })
+        : MH,
+    );
+    const offsets: number[] = [];
+    let height = 0;
+    heights.forEach((h, i) => {
+      offsets.push(height);
+      height += h + (i < heights.length - 1 ? STACK_GAP : 0);
+    });
+    return { cards, heights, offsets, height };
+  };
+  const inStack = stackOf(ins);
+  const outStack = stackOf(outs);
+
   // Place the inner cards: the grid's height is the base's, its offset follows the taller outside stack
-  const stackH = (n: number) => (n ? n * MH + (n - 1) * 14 : 0);
-  const H = Math.max(gridH, stackH(ins.length), stackH(outs.length));
+  const H = Math.max(gridH, inStack.height, outStack.height);
   const top = PAD + 40;
   const innerStartY = top + (H - gridH) / 2;
 
@@ -1010,59 +1163,18 @@ function liftView(base: ViewStageBase, toggles: StageToggles): StageDraft {
     rawListRels.push(...uncoveredHandRels);
   }
 
-  const resolvePerimeterCard = (id: string): TuxMapLevelElement | null => {
-    if (overflowInCard && id === overflowInCard.id) return overflowInCard;
-    if (overflowOutCard && id === overflowOutCard.id) return overflowOutCard;
-    if (hasOwn(lookup, id)) return lookup[id]!;
-    const dn = hasOwn(resById, id) ? resById[id] : undefined;
-    if (dn) {
-      return {
-        id: dn.id,
-        kind: "resource",
-        name: dn.title,
-        tech: dn.facts?.type || dn.kind,
-        desc: dn.role,
-      };
-    }
-    return null;
-  };
-
-  // Outside cards show their owning container/component on its own `.tux-map__el-own` line (#116)
-  const edgeCard = (id: string): TuxMapLevelElement | null => {
-    const card = resolvePerimeterCard(id);
-    if (!card) return null;
-    if (codeEdge && parentOf.has(id)) {
-      const where = mapAncestorsOf(id, parentOf)
-        .slice(1)
-        .reverse()
-        .map((a) => (hasOwn(lookup, a) ? lookup[a]?.name : undefined) || (hasOwn(resById, a) ? resById[a]?.title : undefined))
-        .filter(Boolean)
-        .join(" › ");
-      if (where) {
-        outsideMetaById[id] = {
-          ...outsideMetaById[id],
-          ownerLabel: `in ${where}`,
-          alsoInParts: toggles.countOtherSharedParts(id, card),
-        };
-      }
-    }
-    return card;
-  };
-
-  ins.forEach((id, i) => {
-    const card = edgeCard(id);
+  inStack.cards.forEach((card, i) => {
     if (!card) return;
     rawEls.push({
       ...card,
       at: [0, i],
       side: "in",
       mini: true,
-      px: [PAD, top + (H - stackH(ins.length)) / 2 + i * (MH + 14), MH],
+      px: [PAD, Math.round(top + (H - inStack.height) / 2 + inStack.offsets[i]!), inStack.heights[i]!],
     });
   });
 
-  outs.forEach((id, i) => {
-    const card = edgeCard(id);
+  outStack.cards.forEach((card, i) => {
     if (!card) return;
     rawEls.push({
       ...card,
@@ -1071,8 +1183,8 @@ function liftView(base: ViewStageBase, toggles: StageToggles): StageDraft {
       mini: true,
       px: [
         PAD + (cols + 1) * (CW + GX),
-        top + (H - stackH(outs.length)) / 2 + i * (MH + 14),
-        MH,
+        Math.round(top + (H - outStack.height) / 2 + outStack.offsets[i]!),
+        outStack.heights[i]!,
       ],
     });
   });

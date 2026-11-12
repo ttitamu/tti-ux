@@ -66,6 +66,8 @@ import {
 import {
   buildStageBase,
   buildStageData,
+  cardDescriptionLines,
+  cardTitleLines,
   middleEllipsizeFolderName,
   placeLabelClearOfCard,
   wirePairKey,
@@ -2396,16 +2398,29 @@ const renderedCards = computed(() =>
     const ariaLabel = ariaParts.join(", ");
     const isSplittable = Boolean(e.mini && outMeta?.splittable && (outMeta.parts ?? 0) > 1);
     const isLoadingSubgraph = loadingSubgraphId.value === e.id;
+    // The description gets the whole lines the card has room for after its other rows (#205)
+    const descLines =
+      e.mini || !e.desc
+        ? 0
+        : cardDescriptionLines(r?.h ?? 128, {
+            titleLines: cardTitleLines(displayName, zoomable),
+            type: Boolean(typeLabel),
+            runsOn: Boolean(runsOnLabel),
+            footer: Boolean(live || chip || extraChips.length > 0 || diffBadge),
+          });
     return {
       el: e,
       id: e.id,
       parent: e.parent || "",
       name: displayName,
+      // the title in the pieces it may wrap between: after each `/` of a path
+      nameSegs: displayName.match(/[^/]*\/+|[^/]+$/g) ?? [displayName],
       fullName: e.name,
       ariaLabel,
       ownerLabel: outMeta?.ownerLabel || "",
       runsOnLabel,
       desc: !e.mini ? e.desc : undefined,
+      descLines,
       mini: Boolean(e.mini),
       splittable: isSplittable,
       isOverflowRollup: Boolean(outMeta?.isOverflowRollup),
@@ -7449,7 +7464,8 @@ function buildSourceHref(src?: {
             >
               <span class="tux-map__el-nm">
                 <Icon :name="c.icon" class="tux-map__el-ic" aria-hidden="true" />
-                <span>{{ c.name }}</span>
+                <!-- a path may break after each `/`; the <wbr>s add nothing to the text (#205) -->
+                <span>{{ c.nameSegs[0] }}<template v-for="(seg, segIdx) in c.nameSegs.slice(1)" :key="segIdx"><wbr />{{ seg }}</template></span>
               </span>
               <span v-if="c.ownerLabel" class="tux-map__el-own" :title="c.ownerLabel">
                 {{ c.ownerLabel }}
@@ -7460,7 +7476,7 @@ function buildSourceHref(src?: {
               <span v-if="c.runsOnLabel" class="tux-map__el-runs" :title="c.runsOnLabel">
                 {{ c.runsOnLabel }}
               </span>
-              <span v-if="c.desc" class="tux-map__el-ds" :title="c.desc">{{ c.desc }}</span>
+              <span v-if="c.desc" class="tux-map__el-ds" :data-lines="c.descLines" :title="c.desc">{{ c.desc }}</span>
               <span
                 v-if="c.live || c.chip || c.extraChips.length > 0 || c.diffBadge"
                 class="tux-map__el-ft"
@@ -10364,7 +10380,9 @@ function buildSourceHref(src?: {
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 0.22rem;
+  /* the rows of a card and their heights are also in `cardDescriptionLines()` and
+     `outsideCardHeight()` (utils/internal/tuxArchitectureMapStage): keep the two in step */
+  gap: 0.16rem;
   cursor: var(--tux-cursor-card);
   overflow: hidden;
   padding: 0.6rem 0.7rem 0.55rem;
@@ -10423,8 +10441,14 @@ function buildSourceHref(src?: {
 
 .tux-map__el:hover .tux-map__el-ds,
 .tux-map__el[aria-pressed="true"] .tux-map__el-ds {
+  display: -webkit-box;
   -webkit-line-clamp: unset;
   overflow: visible;
+}
+
+.tux-map__el:hover .tux-map__el-ft,
+.tux-map__el[aria-pressed="true"] .tux-map__el-ft {
+  max-height: none;
 }
 
 .tux-map__el:focus-visible {
@@ -10456,6 +10480,9 @@ function buildSourceHref(src?: {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  /* a path has no space to break at: it wraps onto the second line instead of being
+     cut through a letter at the card's edge (#205) */
+  overflow-wrap: anywhere;
 }
 
 .tux-map__el-ic {
@@ -10492,10 +10519,13 @@ function buildSourceHref(src?: {
 .tux-map__el-runs {
   font-family: var(--font-mono);
   font-size: 10px;
+  line-height: 1.3;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* it shrank with the description, to half a line of text (#205) */
+  flex: none;
 }
 
 .tux-map__el-busy {
@@ -10521,6 +10551,16 @@ function buildSourceHref(src?: {
   min-height: 0;
 }
 
+/* The lines the card has room for, counted by `cardDescriptionLines()`: whole lines, the last
+   one ending in an ellipsis. Left to shrink, the description was cut through its last line (#205) */
+.tux-map__el-ds[data-lines="1"] {
+  -webkit-line-clamp: 1;
+}
+
+.tux-map__el-ds[data-lines="0"] {
+  display: none;
+}
+
 .tux-map__el-ft {
   margin-top: auto;
   display: flex;
@@ -10530,6 +10570,8 @@ function buildSourceHref(src?: {
   font-size: 11px;
   color: var(--text-secondary);
   min-height: 18px;
+  /* one row of chips: a chip that does not fit wraps out of sight whole, never cut in half (#205) */
+  max-height: 1.2rem;
   overflow: hidden;
   flex: none;
 }

@@ -18,7 +18,7 @@ import {
   type StageToggles,
 } from "../../app/utils/internal/tuxArchitectureMapStage";
 
-function stageContext(model: TuxMapNormalizedModel): StageModelContext {
+export function stageContext(model: TuxMapNormalizedModel): StageModelContext {
   const lookup: Record<string, TuxMapLevelElement> = Object.create(null);
   const index = (kids: TuxMapLevelElement[], parent?: string) => {
     kids.forEach((k, i) => {
@@ -36,7 +36,7 @@ function stageContext(model: TuxMapNormalizedModel): StageModelContext {
   return { model, rawLinks: resolveModelRawLinks(model), lookup, resById, parentOf: buildMapParentIndex(model) };
 }
 
-const TOGGLES: StageToggles = {
+export const STAGE_TOGGLES: StageToggles = {
   showPlanned: true,
   wireCategories: new Set<TuxMapWireCategory>(),
   splitIds: new Set<string>(),
@@ -58,7 +58,7 @@ export function buildEveryStage(model: TuxMapNormalizedModel, level5Focus?: stri
     ...(level5Focus ? ([[5, level5Focus]] as const) : []),
   ] as const) {
     const sg = level >= 5 && focus ? (model.subgraphs[focus] ?? null) : null;
-    const data = buildStageData(buildStageBase(ctx, level, focus, sg), TOGGLES);
+    const data = buildStageData(buildStageBase(ctx, level, focus, sg), STAGE_TOGGLES);
     expect(data).toBeTypeOf("object");
     built.push(level);
   }

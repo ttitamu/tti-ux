@@ -188,3 +188,63 @@ describe("TuxArchitectureMap: the list view's details with the outline open (#20
     }
   });
 });
+
+describe("TuxArchitectureMap: a card shows whole rows (#205)", () => {
+  it("clamps each description to the whole lines its card has room for", async () => {
+    const { wrapper, state } = await mountMap({ initialLevel: 3, initialFocus: "c-api" });
+    const cards = state.renderedCards as { id: string; mini: boolean; desc?: string; descLines: number }[];
+    const inner = cards.filter((c) => !c.mini && c.desc);
+    expect(inner.length).toBeGreaterThan(3);
+    for (const c of inner) {
+      const ds = wrapper.find(`.tux-map__el[data-id="${c.id}"] .tux-map__el-ds`);
+      expect(ds.attributes("data-lines"), c.id).toBe(String(c.descLines));
+    }
+    // a two-line title beside the type, the host and the status leaves one line; a one-line title, two
+    const lines = (name: string) =>
+      (state.renderedCards as { fullName: string; descLines: number }[]).find((c) => c.fullName === name)!.descLines;
+    expect(lines("Webhook & Event Dispatcher")).toBe(1);
+    expect(lines("Audit Log Writer")).toBe(2);
+    expect(declarations('.tux-map__el-ds[data-lines="1"]')[0]).toMatch(/-webkit-line-clamp:\s*1/);
+    expect(declarations('.tux-map__el-ds[data-lines="0"]')[0]).toMatch(/display:\s*none/);
+    // the whole description is back while the card is open under the pointer or chosen
+    const open = declarations('.tux-map__el:hover .tux-map__el-ds').join(";");
+    expect(open).toMatch(/display:\s*-webkit-box/);
+    expect(open).toMatch(/-webkit-line-clamp:\s*unset/);
+  });
+
+  it("keeps the rows that are one line whole: they do not shrink with the description", () => {
+    for (const row of ["nm", "own", "ty", "runs", "ft"]) {
+      expect(declarations(`.tux-map__el-${row}`).join(";"), row).toMatch(/flex:\s*none/);
+    }
+  });
+
+  it("shows one row of chips, and hides a chip that does not fit whole", () => {
+    const ft = declarations(".tux-map__el-ft")[0]!;
+    expect(ft).toMatch(/flex-wrap:\s*wrap/);
+    expect(ft).toMatch(/max-height:\s*1\.2rem/);
+    expect(ft).toMatch(/overflow:\s*hidden/);
+    expect(declarations('.tux-map__el:hover .tux-map__el-ft').join(";")).toMatch(/max-height:\s*none/);
+  });
+
+  it("lets a path title break after a slash, and anywhere before it is cut", async () => {
+    expect(declarations(".tux-map__el-nm > span").join(";")).toMatch(/overflow-wrap:\s*anywhere/);
+    const model = {
+      ...DEFAULT_TTI_LEVEL_MODEL,
+      level3: {
+        ...DEFAULT_TTI_LEVEL_MODEL.level3,
+        "c-api": [
+          { id: "c-api/x", kind: "file", name: "services/api/internal/router.go" },
+          { id: "c-api/y", name: "Plain name" },
+        ],
+      },
+    };
+    const { wrapper } = await mountMap({ model, initialLevel: 3, initialFocus: "c-api" });
+    const title = (id: string) => wrapper.find(`.tux-map__el[data-id="${id}"] .tux-map__el-nm > span:last-child`).element;
+    const shown = title("c-api/x").textContent!;
+    // the text is the name as the stage shortens it, with nothing added: a <wbr> is not text
+    expect(shown).toContain("/");
+    expect(title("c-api/x").querySelectorAll("wbr").length).toBe(shown.split("/").length - 1);
+    expect(title("c-api/y").textContent).toBe("Plain name");
+    expect(title("c-api/y").querySelectorAll("wbr").length).toBe(0);
+  });
+});
