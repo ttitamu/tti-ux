@@ -175,3 +175,36 @@ Three groups of tests run in `npm test`. None of them runs in a browser.
 - **MCP over stdio.** Of the four architecture tools, the child-process tests call only `tux_query_architecture_nodes`. No test runs the server as a long-lived process that reads requests from stdin.
 - **The custom element.** `packages/elements` has no tests. Its only check is that the bundle builds, which `npm test` runs.
 - **The React shell.** `packages/react/src/components/TuxArchitectureMap.tsx` has no test file. The next section says what that file is.
+
+## The architecture map outside Vue
+
+The map is one Vue component, `app/components/TuxArchitectureMap.vue`. The files that carry its name elsewhere in the repository are these.
+
+| File | What it is |
+|---|---|
+| `packages/react/src/components/TuxArchitectureMap.tsx` | A shell written by `scripts/sync-engine.mjs`: 23 lines, a `<figure class="tux-architecture-map">` around its children. It takes `children`, `className` and `style`. It takes no model and draws no map. The index of `@tti/tti-ux-react` does not export it. |
+| `kit/js`, `kit/python`, `kit/kotlin`, `kit/php`, `kit/swift`, `kit/csharp` (one file each under `components/`) | The same shell from the same script, 12 to 28 lines each: a `figure` element or its counterpart, with the class name and nothing inside. |
+| `packages/elements/src/index.ts` | The custom element `<tux-architecture-map>`, written by `scripts/build-elements.mjs`. It is Vue's `defineCustomElement` of the component itself, so it is the whole map. |
+
+The custom element is the only surface outside Vue that draws the map. What it needs from the page that hosts it:
+
+- **Vue.** The bundle does not contain Vue. `dist/tux-elements.js` imports `vue` and `@nuxt/ui/vue-plugin`, and the build that consumes it resolves both. `@nuxt/ui/vue-plugin` is a module that Nuxt UI's Vite plugin (`@nuxt/ui/vite`) supplies; the `@nuxt/ui` package holds only its types.
+- **Styles.** The element is defined with `shadowRoot: false`, so it renders into the page and takes its styles from the page. The component styles are in `dist/tti-ux-elements.css`. The package's `exports` list `./styles.css` and `./tux-tokens.css`, which are the tokens, and do not list that file.
+- **The model as a property.** `model` is an object, so it is set as a DOM property, not as an attribute.
+
+It has no tests (see the section above).
+
+**Decision: there will be no React rewrite of the map.** A React application wraps the custom element:
+
+```tsx
+import { createElement, useEffect, useRef } from "react";
+import "@tti/tti-ux-elements";
+
+export function ArchitectureMap({ model }: { model: object }) {
+  const el = useRef<HTMLElement & { model?: object }>(null);
+  useEffect(() => { if (el.current) el.current.model = model; }, [model]);
+  return createElement("tux-architecture-map", { ref: el });
+}
+```
+
+The `ref` is needed. Vue declares the element's properties when the element connects to the document, and React 19 sets a prop before that, so `model` passed as a prop arrives as the attribute `model="[object Object]"`.
