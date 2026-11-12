@@ -10,16 +10,16 @@ they stay importable, and they may change or go away in any release without noti
 
 ## `@tti/tti-ux-diagrams/runtime/tuxArchitectureMap`
 
-116 public, 46 internal.
+118 public, 46 internal.
 
-### Public (116)
+### Public (118)
 
 #### Constants (9)
 
 ##### `EMPTY_TTI_LEVEL_MODEL`
 
 ```ts
-export declare const EMPTY_TTI_LEVEL_MODEL: TuxMapLevelModel;
+export declare const EMPTY_TTI_LEVEL_MODEL: TuxMapNormalizedModel;
 ```
 
 ##### `TUX_MAP_ELEMENT_KIND_LABELS`
@@ -144,10 +144,10 @@ export declare function classifyLinkDependencyCategory(link: TuxMapLink): TuxMap
 ##### `collapseModelSubgraphs`
 
 ```ts
-export declare function collapseModelSubgraphs(model: TuxMapLevelModel, opts?: {
+export declare function collapseModelSubgraphs<M extends TuxMapLevelModel>(model: M, opts?: {
     maxSmallComponentFiles?: number;
 }): {
-    model: TuxMapLevelModel;
+    model: M;
     aliases: Record<string, string>;
 };
 ```
@@ -487,7 +487,7 @@ export declare function resolveModelRawLinks(model?: TuxMapLevelModel): TuxMapLi
 
 ```ts
 export declare function sanitizeMapModel(raw: unknown): {
-    model: TuxMapLevelModel;
+    model: TuxMapNormalizedModel;
     validation: TuxMapValidationResult;
 };
 ```
@@ -520,7 +520,7 @@ export declare function traceSpreadingPath(fromId: string, toId: string, model: 
 export declare function validateMapModel(model: unknown): TuxMapValidationResult;
 ```
 
-#### Interfaces (56)
+#### Interfaces (58)
 
 ##### `FreehandStrokeOptions`
 
@@ -1133,6 +1133,22 @@ export interface TuxMapNodeQueryOptions {
 }
 ```
 
+##### `TuxMapNormalizedModel`
+
+```ts
+export interface TuxMapNormalizedModel extends TuxMapLevelModel {
+    subgraphs: Record<string, TuxMapNormalizedSubgraph>;
+}
+```
+
+##### `TuxMapNormalizedSubgraph`
+
+```ts
+export interface TuxMapNormalizedSubgraph extends TuxMapSubgraph {
+    rels: TuxMapLevelRel[];
+}
+```
+
 ##### `TuxMapPackageDep`
 
 ```ts
@@ -1339,6 +1355,8 @@ export interface TuxMapValidationIssue {
     message: string;
     nodeId?: string;
     targetId?: string;
+    path?: string;
+    count?: number;
 }
 ```
 
@@ -1518,7 +1536,7 @@ export type TuxMapTool = "select" | "pan" | "pen" | "laser" | "note";
 ##### `TuxMapValidationIssueCode`
 
 ```ts
-export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "reserved-id" | "parent-cycle" | "max-depth-exceeded" | "unknown-link-end" | "unknown-rel-end" | "resolved-empty-subgraph" | "missing-schema" | "unknown-schema";
+export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "reserved-id" | "parent-cycle" | "max-depth-exceeded" | "unknown-link-end" | "unknown-rel-end" | "resolved-empty-subgraph" | "missing-schema" | "unknown-schema" | "missing-field" | "invalid-type" | "unknown-kind" | "unknown-enum-value";
 ```
 
 ##### `TuxMapWireCategory`

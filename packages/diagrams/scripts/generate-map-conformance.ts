@@ -21,6 +21,7 @@ import {
   hasOwn,
   levelForFocus,
   queryArchitectureNodes,
+  validateMapModel,
   type TuxMapBlastIntent,
   type TuxMapLevelModel,
 } from "../app/utils/tuxArchitectureMap.ts";
@@ -1611,6 +1612,33 @@ const fixture = {
   deltaCases,
 };
 
+// --- The models have the shape the schema describes (#163) ---
+// Every model of the fixture goes through `validateMapModel`, which checks it against the JSON Schema generated
+// from the model types (`schema/tux-map-1.schema.json`). What the schema reports is compared with the list below:
+// the fixture holds one shape error on purpose, and a second one would mean a model, or the schema, went wrong.
+const SHAPE_CODES = new Set(["missing-field", "invalid-type", "unknown-kind", "unknown-enum-value"]);
+const EXPECTED_SHAPE_FINDINGS: Record<string, string[]> = {
+  // `source.lineRange: []`, an adversarial input of this model
+  "models/hybrid_c4_and_edge_cases": ["invalid-type /subgraphs/sg-aliased-api/elements/0/source/lineRange"],
+};
+const shapeChecked: Array<[string, TuxMapLevelModel]> = [
+  ...Object.entries(models).map(([k, m]): [string, TuxMapLevelModel] => [`models/${k}`, m]),
+  ...deltaCases.flatMap((c): Array<[string, TuxMapLevelModel]> => [
+    [`deltaCases/${c.id}/baseModel`, c.baseModel],
+    [`deltaCases/${c.id}/headModel`, c.headModel],
+  ]),
+];
+for (const [name, model] of shapeChecked) {
+  const found = validateMapModel(model)
+    .warnings.filter((w) => SHAPE_CODES.has(w.code))
+    .map((w) => `${w.code} ${w.path}${w.count ? ` x${w.count}` : ""}`);
+  const expected = EXPECTED_SHAPE_FINDINGS[name] ?? [];
+  assert(
+    JSON.stringify(found) === JSON.stringify(expected),
+    `the schema reports [${found.join(", ")}] on ${name}; expected [${expected.join(", ")}]`,
+  );
+}
+
 const serialized = `${JSON.stringify(fixture, null, 2)}\n`;
 
 if (process.argv.includes("--check")) {
@@ -1620,7 +1648,7 @@ if (process.argv.includes("--check")) {
     console.error("Run: node packages/diagrams/scripts/generate-map-conformance.ts");
     process.exit(1);
   }
-  console.log("map-conformance.json is up to date.");
+  console.log(`map-conformance.json is up to date; its ${shapeChecked.length} models have the shape of the schema.`);
 } else {
   writeFileSync(FIXTURE_PATH, serialized, "utf8");
   console.log(`Wrote ${FIXTURE_PATH} (${Buffer.byteLength(serialized)} bytes).`);

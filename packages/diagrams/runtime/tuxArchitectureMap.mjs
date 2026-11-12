@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 02eedafa0237f901562e533596ca4739f554f0f7fbcd0dff6a4785f15031db5d
+// SOURCE-SHA256: 7733128153271a39fe96e7ae56fe5959818d30c4dce39863bed37a541118127c
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -2285,7 +2285,324 @@ export function resolveModelRawLinks(model) {
         pushLink(l, true);
     return out;
 }
+const MAP_SHAPE_SCHEMA = {
+    type: "object",
+    properties: { "schema": { "const": "tux-map/1" }, "generatedAt": { "type": "string" }, "issueBaseUrl": { "type": "string" }, "sourceBaseUrl": { "type": "string" }, "level1": { "type": "object", "properties": { "title": { "type": "string" }, "summary": { "type": "string" }, "elements": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLevelElement" } }, "rels": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLevelRel" } } }, "required": ["elements", "rels"] }, "level2": { "type": "object", "properties": { "title": { "type": "string" }, "summary": { "type": "string" }, "boundary": { "type": "string" }, "elements": { "type": "array", "items": { "anyOf": [{ "$ref": "#/$defs/TuxMapLevelElement" }, { "$ref": "#/$defs/TuxMapLevelRef" }] } }, "rels": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLevelRel" } } }, "required": ["boundary", "elements", "rels"] }, "level3": { "type": "object", "additionalProperties": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLevelElement" } } }, "level4": { "type": "object", "properties": { "title": { "type": "string" }, "summary": { "type": "string" }, "zones": { "type": "array", "items": { "$ref": "#/$defs/TuxMapDeploymentZone" } }, "centerTitle": { "type": "string" }, "groups": { "type": "array", "items": { "$ref": "#/$defs/TuxMapDeploymentGroup" } }, "nodes": { "type": "array", "items": { "$ref": "#/$defs/TuxMapDeploymentNode" } }, "links": { "type": "array", "items": { "$ref": "#/$defs/TuxMapDeploymentLink" } }, "neighbors": { "type": "array", "items": { "$ref": "#/$defs/TuxMapNeighborResource" } } }, "required": ["groups", "nodes", "links"] }, "subgraphs": { "type": "object", "additionalProperties": { "$ref": "#/$defs/TuxMapSubgraph" } }, "links": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLink" } }, "linkTiers": { "type": "object", "properties": { "spread": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLink" } }, "stop": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLink" } } } }, "stopKinds": { "type": "array", "items": { "type": "string" } }, "aliases": { "type": "object", "additionalProperties": { "type": "string" } }, "routes": { "type": "array", "items": { "$ref": "#/$defs/TuxMapRouteEntry" } } },
+    required: ["level1", "level2", "level3", "level4"],
+    $defs: {
+        TuxMapDeploymentGroup: { "type": "object", "properties": { "id": { "type": "string" }, "zone": { "type": "string" }, "title": { "type": "string" }, "rg": { "type": "string" } }, "required": ["id", "zone", "title"] },
+        TuxMapDeploymentLink: { "type": "object", "properties": { "from": { "type": "string" }, "to": { "type": "string" }, "label": { "type": "string" }, "kind": { "type": "string" }, "state": { "type": "string", "enum": ["planned", "now"] } }, "required": ["from", "to"] },
+        TuxMapDeploymentNode: { "type": "object", "properties": { "id": { "type": "string" }, "zone": { "type": "string" }, "group": { "type": "string" }, "kind": { "type": "string" }, "title": { "type": "string" }, "role": { "type": "string" }, "status": { "type": "string", "enum": ["planned", "neighbor", "now"] }, "placement": { "type": "string" }, "hosts": { "type": "array", "items": { "type": "string" } }, "deps": { "type": "array", "items": { "type": "string" } }, "roadmap": { "type": "array", "items": { "type": "number" } }, "source": { "$ref": "#/$defs/TuxMapSourceRef" }, "diff": { "$ref": "#/$defs/TuxMapDiffInfo" }, "children": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLevelElement" } }, "childRels": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLevelRel" } }, "subgraphRef": { "type": "string" }, "facts": { "type": "object", "properties": { "type": { "type": "string" }, "size": { "type": "string" }, "sku": { "type": "string" }, "version": { "type": "string" }, "nodes": { "type": "number" }, "ingress": { "type": "string" }, "images": { "type": "array", "items": { "type": "string" } }, "rules": { "type": "array", "items": { "$ref": "#/$defs/TuxMapFirewallRule" } } } } }, "required": ["id", "kind", "title", "role"] },
+        TuxMapDeploymentZone: { "type": "object", "properties": { "id": { "type": "string" }, "title": { "type": "string" }, "column": { "type": "string", "enum": ["left", "right", "center"] }, "planned": { "type": "boolean" }, "zones": { "type": "array", "items": { "type": "string" } } }, "required": ["id", "title"] },
+        TuxMapDiffInfo: { "type": "object", "properties": { "changeType": { "type": "string", "enum": ["added", "modified", "deleted"] }, "filesChanged": { "type": "number" }, "summary": { "type": "string" } }, "required": ["changeType"] },
+        TuxMapElementKind: { "type": "string", "enum": ["symbol", "function", "person", "system", "container", "database", "storage", "component", "folder", "file", "class", "constant", "module", "schema", "route", "external", "resource"] },
+        TuxMapElementLiveInfo: { "type": "object", "properties": { "state": { "type": "string", "enum": ["running", "active", "present", "success", "inactive", "declared-not-installed", "failed", "unknown"] }, "total": { "type": "number" }, "running": { "type": "number" }, "version": { "type": "string" }, "update": { "type": "string" }, "updates": { "type": "number" }, "severity": { "type": "string" }, "newer_major": { "type": "string" }, "unit": { "type": "string" }, "findings": { "type": "string" }, "last_run": { "type": "object", "properties": { "result": { "type": "string" }, "at": { "type": "string" } }, "required": ["result"] } } },
+        TuxMapElementStatus: { "type": "string", "enum": ["live", "paused", "planned", "neighbor"] },
+        TuxMapFirewallRule: { "type": "object", "properties": { "direction": { "type": "string", "enum": ["in", "out"] }, "access": { "type": "string", "enum": ["allow", "deny"] }, "ports": { "type": "array", "items": { "type": "string" } }, "from": { "type": "array", "items": { "type": "string" } } }, "required": ["direction", "access", "ports", "from"] },
+        TuxMapLevelElement: { "type": "object", "properties": { "id": { "type": "string" }, "kind": { "$ref": "#/$defs/TuxMapElementKind" }, "name": { "type": "string" }, "tech": { "type": "string" }, "desc": { "type": "string" }, "status": { "$ref": "#/$defs/TuxMapElementStatus" }, "at": { "type": "array", "prefixItems": [{ "type": "number" }, { "type": "number" }], "minItems": 2, "maxItems": 2 }, "px": { "type": "array", "prefixItems": [{ "type": "number" }, { "type": "number" }, { "type": "number" }], "minItems": 3, "maxItems": 3 }, "ref": { "type": "boolean" }, "zoom": { "type": "number" }, "parent": { "type": "string" }, "side": { "type": "string", "enum": ["in", "out"] }, "mini": { "type": "boolean" }, "next": { "type": "number" }, "runs": { "anyOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }] }, "deployed": { "anyOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }] }, "roadmap": { "type": "array", "items": { "type": "number" } }, "live": { "$ref": "#/$defs/TuxMapElementLiveInfo" }, "source": { "$ref": "#/$defs/TuxMapSourceRef" }, "diff": { "$ref": "#/$defs/TuxMapDiffInfo" }, "children": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLevelElement" } }, "childRels": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLevelRel" } }, "subgraphRef": { "type": "string" }, "vendoredCopies": { "type": "array", "items": { "type": "string" } }, "isVendoredCopy": { "type": "boolean" }, "vendoredFrom": { "type": "string" } }, "required": ["id", "name"] },
+        TuxMapLevelRef: { "type": "object", "properties": { "live": { "$ref": "#/$defs/TuxMapElementLiveInfo" }, "kind": { "$ref": "#/$defs/TuxMapElementKind" }, "name": { "type": "string" }, "tech": { "type": "string" }, "desc": { "type": "string" }, "status": { "$ref": "#/$defs/TuxMapElementStatus" }, "at": { "type": "array", "prefixItems": [{ "type": "number" }, { "type": "number" }], "minItems": 2, "maxItems": 2 }, "px": { "type": "array", "prefixItems": [{ "type": "number" }, { "type": "number" }, { "type": "number" }], "minItems": 3, "maxItems": 3 }, "zoom": { "type": "number" }, "parent": { "type": "string" }, "side": { "type": "string", "enum": ["in", "out"] }, "mini": { "type": "boolean" }, "next": { "type": "number" }, "runs": { "anyOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }] }, "deployed": { "anyOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }] }, "roadmap": { "type": "array", "items": { "type": "number" } }, "source": { "$ref": "#/$defs/TuxMapSourceRef" }, "diff": { "$ref": "#/$defs/TuxMapDiffInfo" }, "children": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLevelElement" } }, "childRels": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLevelRel" } }, "subgraphRef": { "type": "string" }, "vendoredCopies": { "type": "array", "items": { "type": "string" } }, "isVendoredCopy": { "type": "boolean" }, "vendoredFrom": { "type": "string" }, "id": { "type": "string" }, "ref": { "const": true } }, "required": ["id", "ref"] },
+        TuxMapLevelRel: { "type": "object", "properties": { "from": { "type": "string" }, "to": { "type": "string" }, "label": { "type": "string" }, "tech": { "type": "string" }, "status": { "$ref": "#/$defs/TuxMapElementStatus" }, "roadmap": { "type": "array", "items": { "type": "number" } }, "violations": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLinkViolation" } } }, "required": ["from", "to"] },
+        TuxMapLink: { "type": "object", "properties": { "from": { "type": "string" }, "to": { "type": "string" }, "kind": { "type": "string" }, "label": { "type": "string" }, "stop": { "type": "boolean" }, "at": { "type": "string" }, "sites": { "type": "array", "items": { "type": "number" } }, "coupling": { "$ref": "#/$defs/TuxMapLinkCoupling" }, "phase": { "$ref": "#/$defs/TuxMapLinkPhase" }, "violations": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLinkViolation" } } }, "required": ["from", "to"] },
+        TuxMapLinkCoupling: { "type": "string", "enum": ["contract", "runtime", "type-only", "artifact-stamp", "build-exec", "verification", "prose"] },
+        TuxMapLinkPhase: { "type": "string", "enum": ["build-exec", "prod-runtime", "client-bundle", "ci-test", "doc-only"] },
+        TuxMapLinkViolation: { "type": "object", "properties": { "rule": { "type": "string" }, "message": { "type": "string" }, "fix": { "type": "string" }, "severity": { "type": "string", "enum": ["error", "warning"] } }, "required": ["rule"] },
+        TuxMapNeighborResource: { "type": "object", "properties": { "name": { "type": "string" }, "type": { "type": "string" }, "resourceGroup": { "type": "string" }, "reason": { "type": "string" } }, "required": ["name", "type", "resourceGroup", "reason"] },
+        TuxMapRouteEntry: { "type": "object", "properties": { "method": { "type": "string" }, "pattern": { "type": "string" }, "handler": { "type": "string" }, "framework": { "type": "string" } }, "required": ["pattern", "handler"] },
+        TuxMapSourceRef: { "type": "object", "properties": { "repo": { "type": "string" }, "path": { "type": "string" }, "lineRange": { "type": "array", "prefixItems": [{ "type": "number" }, { "type": "number" }], "minItems": 2, "maxItems": 2 }, "symbol": { "type": "string" }, "signature": { "type": "string" }, "hash": { "type": "string" }, "moduleHash": { "type": "string" }, "commitSha": { "type": "string" }, "url": { "type": "string" } }, "required": ["path"] },
+        TuxMapSubgraph: { "type": "object", "properties": { "stratum": { "type": "string" }, "summary": { "type": "string" }, "elements": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLevelElement" } }, "rels": { "type": "array", "items": { "$ref": "#/$defs/TuxMapLevelRel" } } }, "required": ["elements"] },
+    },
+};
+const jsonPointerToken = (key) => key.replace(/~/g, "~0").replace(/\//g, "~1");
+const MAP_SHAPE_DROP = Symbol("drop");
+const MAP_SHAPE_REPAIRS = new WeakMap();
+const mapShapePath = (trail) => {
+    let out = "";
+    for (const t of trail)
+        out += `/${typeof t === "number" ? t : jsonPointerToken(t)}`;
+    return out;
+};
+const MAP_SHAPE_REFS = new Map();
+function resolveMapShapeSchema(schema) {
+    const ref = schema.$ref;
+    if (ref === undefined)
+        return schema;
+    let s = MAP_SHAPE_REFS.get(ref);
+    if (!s) {
+        s = schema;
+        while (s.$ref !== undefined) {
+            const name = s.$ref.slice("#/$defs/".length);
+            const defs = MAP_SHAPE_SCHEMA.$defs;
+            s = defs && hasOwn(defs, name) ? defs[name] : {};
+        }
+        MAP_SHAPE_REFS.set(ref, s);
+    }
+    return s;
+}
+function fitsMapShapeScalar(value, schema) {
+    const type = schema.type;
+    return ((type === "string" || type === "number" || type === "boolean") &&
+        typeof value === type &&
+        schema.enum === undefined &&
+        schema.const === undefined);
+}
+function addMapShapeFinding(walk, code, schema, found, count = 1, path) {
+    const list = (walk.findings ??= []);
+    for (const f of list) {
+        if (f.schema === schema && f.code === code) {
+            f.count += count;
+            return;
+        }
+    }
+    list.push({ code, schema, path: path ?? mapShapePath(walk.trail), found, count });
+}
+function describeMapShapeValue(value) {
+    if (value === null)
+        return "null";
+    if (Array.isArray(value))
+        return `a list of ${value.length}`;
+    if (typeof value === "string")
+        return `"${value.slice(0, 64)}"`;
+    if (typeof value === "number" || typeof value === "boolean")
+        return String(value);
+    return typeof value === "object" ? "an object" : `a ${typeof value}`;
+}
+function describeMapShapeSchema(schema) {
+    const s = resolveMapShapeSchema(schema);
+    if (s.anyOf)
+        return [...new Set(s.anyOf.map(describeMapShapeSchema))].join(" or ");
+    if (s.const !== undefined)
+        return JSON.stringify(s.const);
+    if (s.enum)
+        return `one of ${s.enum.map((v) => `"${v}"`).join(", ")}`;
+    if (s.type === "array")
+        return s.minItems !== undefined ? `a list of ${s.minItems}` : "a list";
+    if (s.type === "object")
+        return "an object";
+    if (s.type === "boolean")
+        return "true or false";
+    return s.type ? `a ${s.type}` : "any value";
+}
+function isMapShapeType(value, schema) {
+    if (schema.const !== undefined)
+        return value === schema.const;
+    switch (schema.type) {
+        case "object":
+            return isPlainRecord(value);
+        case "array":
+            return Array.isArray(value);
+        case undefined:
+            return true;
+        default:
+            return typeof value === schema.type;
+    }
+}
+function checkMapShape(value, given, walk) {
+    const schema = resolveMapShapeSchema(given);
+    if (schema.anyOf) {
+        const fits = schema.anyOf.map(resolveMapShapeSchema).filter((s) => isMapShapeType(value, s));
+        if (fits.length === 0) {
+            addMapShapeFinding(walk, "invalid-type", schema, describeMapShapeValue(value));
+            return MAP_SHAPE_DROP;
+        }
+        if (fits.length === 1)
+            return checkMapShape(value, fits[0], walk);
+        let best;
+        let bestCount = 0;
+        let bestFixed = value;
+        for (const branch of fits) {
+            const trial = { trail: walk.trail, findings: null };
+            const fixed = checkMapShape(value, branch, trial);
+            if (!trial.findings)
+                return value;
+            const count = trial.findings.reduce((n, f) => n + f.count, 0);
+            if (!best || count < bestCount) {
+                best = trial;
+                bestCount = count;
+                bestFixed = fixed;
+            }
+        }
+        for (const f of best.findings)
+            addMapShapeFinding(walk, f.code, f.schema, f.found, f.count, f.path);
+        return bestFixed;
+    }
+    if (!isMapShapeType(value, schema)) {
+        addMapShapeFinding(walk, "invalid-type", schema, describeMapShapeValue(value));
+        return MAP_SHAPE_DROP;
+    }
+    if (schema.enum) {
+        if (!schema.enum.includes(value)) {
+            const last = walk.trail[walk.trail.length - 1];
+            addMapShapeFinding(walk, last === "kind" ? "unknown-kind" : "unknown-enum-value", schema, describeMapShapeValue(value));
+        }
+        return value;
+    }
+    const trail = walk.trail;
+    if (schema.type === "object") {
+        const obj = value;
+        const props = schema.properties;
+        if (schema.required && props) {
+            for (const key of schema.required) {
+                if (obj[key] === undefined || obj[key] === null) {
+                    trail.push(key);
+                    addMapShapeFinding(walk, "missing-field", props[key], "nothing");
+                    trail.pop();
+                }
+            }
+        }
+        const rest = schema.additionalProperties;
+        let copy;
+        const keys = Object.keys(obj);
+        for (let k = 0; k < keys.length; k++) {
+            const key = keys[k];
+            const v = obj[key];
+            if (v === undefined || v === null)
+                continue;
+            const sub = props && hasOwn(props, key) ? props[key] : rest;
+            if (!sub)
+                continue;
+            if (fitsMapShapeScalar(v, sub))
+                continue;
+            trail.push(key);
+            const fixed = checkMapShape(v, sub, walk);
+            trail.pop();
+            if (fixed === v)
+                continue;
+            copy ??= { ...obj };
+            if (fixed === MAP_SHAPE_DROP)
+                delete copy[key];
+            else
+                setOwnProp(copy, key, fixed);
+        }
+        return copy ?? obj;
+    }
+    if (schema.type === "array") {
+        const list = value;
+        if ((schema.minItems !== undefined && list.length < schema.minItems) ||
+            (schema.maxItems !== undefined && list.length > schema.maxItems)) {
+            addMapShapeFinding(walk, "invalid-type", schema, describeMapShapeValue(value));
+            return MAP_SHAPE_DROP;
+        }
+        const prefix = schema.prefixItems;
+        const items = schema.items;
+        if (!prefix && !items)
+            return value;
+        let copy;
+        for (let i = 0; i < list.length; i++) {
+            const item = list[i];
+            const sub = prefix && i < prefix.length ? prefix[i] : items;
+            let fixed = item;
+            if (sub && !fitsMapShapeScalar(item, sub)) {
+                trail.push(i);
+                fixed = checkMapShape(item, sub, walk);
+                trail.pop();
+            }
+            if (fixed !== item) {
+                if (prefix)
+                    return MAP_SHAPE_DROP;
+                copy ??= list.slice(0, i);
+            }
+            if (copy && fixed !== MAP_SHAPE_DROP)
+                copy.push(fixed);
+        }
+        return copy ?? list;
+    }
+    return value;
+}
+function collectMapShapeFindings(model, cache) {
+    const all = { trail: [], findings: null };
+    const part = (value, schema, trail) => {
+        const keyed = cache && typeof value === "object" && value !== null ? value : undefined;
+        const kept = keyed && cache.get(keyed);
+        let findings;
+        let fixed;
+        if (kept && kept.path === mapShapePath(trail)) {
+            findings = kept.findings;
+            fixed = kept.fixed;
+        }
+        else {
+            const walk = { trail, findings: null };
+            fixed = checkMapShape(value, schema, walk);
+            findings = walk.findings;
+            if (keyed)
+                cache.set(keyed, { path: mapShapePath(trail), findings, fixed });
+        }
+        if (findings)
+            for (const f of findings)
+                addMapShapeFinding(all, f.code, f.schema, f.found, f.count, f.path);
+        return fixed;
+    };
+    let copy;
+    const props = MAP_SHAPE_SCHEMA.properties ?? {};
+    for (const key of Object.keys(props)) {
+        if (key === "schema" || !hasOwn(model, key))
+            continue;
+        const value = model[key];
+        if (value === undefined || value === null)
+            continue;
+        if (/^level[1-4]$/.test(key) && !isPlainRecord(value))
+            continue;
+        const entries = key === "subgraphs" && isPlainRecord(value) ? props[key].additionalProperties : undefined;
+        let fixed = value;
+        if (entries) {
+            let sgCopy;
+            for (const sgKey of Object.keys(value)) {
+                const sg = value[sgKey];
+                if (sg === undefined || sg === null)
+                    continue;
+                const fixedSg = part(sg, entries, [key, sgKey]);
+                if (fixedSg === sg)
+                    continue;
+                if (!sgCopy) {
+                    sgCopy = Object.create(null);
+                    for (const [k, v] of Object.entries(value))
+                        setOwnProp(sgCopy, k, v);
+                }
+                if (fixedSg === MAP_SHAPE_DROP)
+                    delete sgCopy[sgKey];
+                else
+                    setOwnProp(sgCopy, sgKey, fixedSg);
+            }
+            if (sgCopy)
+                fixed = sgCopy;
+        }
+        else {
+            fixed = part(value, props[key], [key]);
+        }
+        if (fixed === value)
+            continue;
+        copy ??= { ...model };
+        if (fixed === MAP_SHAPE_DROP)
+            delete copy[key];
+        else
+            setOwnProp(copy, key, fixed);
+    }
+    return { findings: all.findings ?? [], fixed: copy ?? model };
+}
+function mapShapeWarning(f) {
+    const more = f.count > 1 ? ` (and ${f.count - 1} more like it)` : "";
+    const expected = describeMapShapeSchema(f.schema);
+    let message;
+    if (f.code === "missing-field") {
+        message =
+            resolveMapShapeSchema(f.schema).type === "array"
+                ? `Architecture model has no '${f.path}'${more}; it is read as an empty list.`
+                : `Architecture model has no '${f.path}'${more}, which the schema requires; the map fills in what it can.`;
+    }
+    else if (f.code === "invalid-type") {
+        message = `Architecture model has ${f.found} at '${f.path}'${more} where the schema has ${expected}; it is left out.`;
+    }
+    else if (f.code === "unknown-kind") {
+        message = `Architecture model has the kind ${f.found} at '${f.path}'${more}, which this release has no label for; it is shown under that name.`;
+    }
+    else {
+        message = `Architecture model has ${f.found} at '${f.path}'${more}; this release knows ${expected}.`;
+    }
+    return { code: f.code, message, path: f.path, ...(f.count > 1 ? { count: f.count } : {}) };
+}
 export function validateMapModel(model) {
+    return validateMapModelKeepingShape(model);
+}
+function validateMapModelKeepingShape(model, shapeCache) {
     const issues = [];
     const duplicateSet = new Set();
     const cycleSet = new Set();
@@ -2325,6 +2642,9 @@ export function validateMapModel(model) {
             });
         }
     }
+    const shape = collectMapShapeFindings(model, shapeCache);
+    for (const f of shape.findings)
+        warnings.push(mapShapeWarning(f));
     const m = model;
     const knownIds = new Set();
     const seenPrimaryIds = new Set();
@@ -2575,7 +2895,7 @@ export function validateMapModel(model) {
         checkEnd(l.from, l.from, "unknown-link-end");
         checkEnd(l.to, l.from, "unknown-link-end");
     }
-    return {
+    const result = {
         valid: issues.length === 0,
         issues,
         warnings,
@@ -2583,6 +2903,9 @@ export function validateMapModel(model) {
         cycleIds: [...cycleSet].sort(cmpCodepoint),
         unknownEnds: [...unknownSet].sort(cmpCodepoint),
     };
+    if (shape.fixed !== model)
+        MAP_SHAPE_REPAIRS.set(result, shape.fixed);
+    return result;
 }
 export function sanitizeMapModel(raw) {
     const { model, validation } = sanitizeMapModelKeepingPass(raw);
@@ -2592,7 +2915,7 @@ function sanitizeMapModelKeepingPass(raw, validation = validateMapModel(raw)) {
     if (!isPlainRecord(raw)) {
         return { model: EMPTY_TTI_LEVEL_MODEL, validation, pass: null };
     }
-    const m = raw;
+    const m = (MAP_SHAPE_REPAIRS.get(validation) ?? raw);
     const cycleSet = new Set(validation.cycleIds);
     const sanitizeId = (id) => {
         if (typeof id !== "string" || !id)
@@ -2642,10 +2965,12 @@ function sanitizeMapModelKeepingPass(raw, validation = validateMapModel(raw)) {
             const hasChildRels = Array.isArray(el.childRels);
             const nextKids = hasKids ? sanitizeChildElements(el.children, id || ownerId, depth + 1) : undefined;
             const nextChildRels = hasChildRels ? sanitizeRelEndpoints(el.childRels) : undefined;
-            if (id !== rawId || hasKids || hasChildRels) {
+            const noName = typeof el.name !== "string";
+            if (id !== el.id || hasKids || hasChildRels || noName) {
                 out.push({
                     ...el,
-                    ...(id !== rawId ? { id } : {}),
+                    ...(id !== el.id ? { id } : {}),
+                    ...(noName ? { name: id } : {}),
                     ...(hasKids ? { children: nextKids } : {}),
                     ...(hasChildRels ? { childRels: nextChildRels } : {}),
                 });
@@ -2672,10 +2997,12 @@ function sanitizeMapModelKeepingPass(raw, validation = validateMapModel(raw)) {
         const nextKids = hasKids
             ? sanitizeChildElements(e.children, id, 1)
             : undefined;
-        if (id !== rawId || hasKids) {
+        const noName = !e.ref && typeof e.name !== "string";
+        if (id !== e.id || hasKids || noName) {
             l2Els.push({
                 ...e,
-                ...(id !== rawId ? { id } : {}),
+                ...(id !== e.id ? { id } : {}),
+                ...(noName ? { name: id } : {}),
                 ...(hasKids ? { children: nextKids } : {}),
             });
         }
@@ -2700,22 +3027,27 @@ function sanitizeMapModelKeepingPass(raw, validation = validateMapModel(raw)) {
             parentOfAccepted.set(id, sanitizeId(n.group) || "");
         const hasKids = Array.isArray(n.children);
         const nextKids = hasKids ? sanitizeChildElements(n.children, id, 1) : undefined;
-        l4Nodes.push(id !== rawId || hasKids
-            ? { ...n, ...(id !== rawId ? { id } : {}), ...(hasKids ? { children: nextKids } : {}) }
+        const noTitle = typeof n.title !== "string";
+        const noKind = typeof n.kind !== "string";
+        const noRole = typeof n.role !== "string";
+        l4Nodes.push(id !== n.id || hasKids || noTitle || noKind || noRole
+            ? {
+                ...n,
+                ...(id !== n.id ? { id } : {}),
+                ...(noTitle ? { title: id } : {}),
+                ...(noKind ? { kind: "" } : {}),
+                ...(noRole ? { role: "" } : {}),
+                ...(hasKids ? { children: nextKids } : {}),
+            }
             : n);
     }
-    const sanitizeSubgraph = (sg, ownerId) => {
-        const els = sanitizeChildElements(sg.elements, ownerId, 1);
-        const rels = sg.rels !== undefined ? sanitizeRelEndpoints(sg.rels) : undefined;
-        return {
-            ...sg,
-            elements: els,
-            ...(rels !== undefined ? { rels } : {}),
-        };
-    };
-    let safeSubgraphs;
+    const sanitizeSubgraph = (sg, ownerId) => ({
+        ...sg,
+        elements: sanitizeChildElements(sg.elements, ownerId, 1),
+        rels: sanitizeRelEndpoints(sg.rels),
+    });
+    const safeSubgraphs = Object.create(null);
     if (isPlainRecord(m.subgraphs)) {
-        const cleaned = Object.create(null);
         for (const [rawKey, sg] of Object.entries(m.subgraphs)) {
             if (!isPlainRecord(sg))
                 continue;
@@ -2723,9 +3055,8 @@ function sanitizeMapModelKeepingPass(raw, validation = validateMapModel(raw)) {
             if (!key)
                 continue;
             const owner = sanitizeId(subgraphOwners.get(rawKey) ?? rawKey) || key;
-            setOwnProp(cleaned, key, sanitizeSubgraph(sg, owner));
+            setOwnProp(safeSubgraphs, key, sanitizeSubgraph(sg, owner));
         }
-        safeSubgraphs = cleaned;
     }
     let safeAliases;
     if (isPlainRecord(m.aliases)) {
@@ -2772,7 +3103,7 @@ function sanitizeMapModelKeepingPass(raw, validation = validateMapModel(raw)) {
             nodes: l4Nodes,
             links: sanitizeRelEndpoints(m.level4?.links),
         },
-        ...(safeSubgraphs ? { subgraphs: safeSubgraphs } : {}),
+        subgraphs: safeSubgraphs,
         ...(safeAliases ? { aliases: safeAliases } : {}),
         ...(safeLinks !== undefined ? { links: safeLinks } : {}),
     };
@@ -3100,6 +3431,7 @@ export function mergeLazyMapSubgraphs(raw, lazy, prev) {
     const mergedRaw = mergeRawLazySubgraphs(raw, lazy, lazyKeys);
     const keep = prev ? LAZY_MERGE_KEEP.get(prev) : undefined;
     const done = {};
+    const shape = (prev?.raw === raw && keep?.shape) || new WeakMap();
     if (prev && keep) {
         LAZY_MERGE_KEEP.delete(prev);
         const next = prev.raw === raw ? addLazySubgraph(prev, keep, mergedRaw, lazy, lazyKeys, done) : null;
@@ -3108,7 +3440,7 @@ export function mergeLazyMapSubgraphs(raw, lazy, prev) {
             return next;
         }
     }
-    const sanitized = sanitizeMapModelKeepingPass(mergedRaw, done.validation);
+    const sanitized = sanitizeMapModelKeepingPass(mergedRaw, done.validation ?? validateMapModelKeepingShape(mergedRaw, shape));
     const collapsed = collapseModelSubgraphs(sanitized.model);
     const state = {
         raw,
@@ -3122,6 +3454,7 @@ export function mergeLazyMapSubgraphs(raw, lazy, prev) {
             lazyValues: lazyKeys.map((k) => lazy[k]),
             pass: sanitized.pass,
             cycleIds: sanitized.validation.cycleIds,
+            shape,
             sanitizedModel: sanitized.model,
         });
     }
@@ -3136,13 +3469,11 @@ function prepareLazyMerge(keep, prev, prevMergedRaw) {
         return null;
     const sanitized = Object.create(null);
     const singleFolderRefs = new Set();
-    if (isPlainRecord(keep.sanitizedModel.subgraphs)) {
-        for (const [k, sg] of Object.entries(keep.sanitizedModel.subgraphs)) {
-            setOwnProp(sanitized, k, sg);
-            const only = sg.elements.length === 1 ? sg.elements[0] : undefined;
-            if (only?.id && isFolderLikeElement(only))
-                singleFolderRefs.add(subgraphKeyOfElement(only));
-        }
+    for (const [k, sg] of Object.entries(keep.sanitizedModel.subgraphs)) {
+        setOwnProp(sanitized, k, sg);
+        const only = sg.elements.length === 1 ? sg.elements[0] : undefined;
+        if (only?.id && isFolderLikeElement(only))
+            singleFolderRefs.add(subgraphKeyOfElement(only));
     }
     const componentKeys = new Set();
     for (const kids of Object.values(prev.model.level3)) {
@@ -3153,11 +3484,9 @@ function prepareLazyMerge(keep, prev, prevMergedRaw) {
     }
     const folderHosts = new Map();
     const collapsedSubgraphs = prev.model.subgraphs;
-    if (isPlainRecord(collapsedSubgraphs)) {
-        for (const compKey of componentKeys) {
-            if (hasOwn(collapsedSubgraphs, compKey)) {
-                noteFolderHosts(folderHosts, compKey, collapsedSubgraphs[compKey].elements);
-            }
+    for (const compKey of componentKeys) {
+        if (hasOwn(collapsedSubgraphs, compKey)) {
+            noteFolderHosts(folderHosts, compKey, collapsedSubgraphs[compKey].elements);
         }
     }
     keep.prepared = { sanitized, rawOwners, collapsedOwners, componentKeys, folderHosts, singleFolderRefs };
@@ -3212,8 +3541,10 @@ function addLazySubgraph(prev, keep, mergedRaw, lazy, lazyKeys, done) {
     const { sanitized, rawOwners, collapsedOwners, componentKeys, folderHosts, singleFolderRefs } = prepared;
     if (hasOwn(sanitized, key))
         return null;
-    const validation = validateMapModel(mergedRaw);
+    const validation = validateMapModelKeepingShape(mergedRaw, keep.shape);
     done.validation = validation;
+    if (MAP_SHAPE_REPAIRS.has(validation))
+        return null;
     if (validation.cycleIds.length !== keep.cycleIds.length ||
         validation.cycleIds.some((id, i) => id !== keep.cycleIds[i])) {
         return null;
@@ -3261,9 +3592,9 @@ function addLazySubgraph(prev, keep, mergedRaw, lazy, lazyKeys, done) {
     const collapsedEntry = aliased
         ? remapSubgraphRelsThroughAliases({ ...entry, elements: [...els] }, prev.aliases)
         : entry;
-    const prevSubgraphs = isPlainRecord(prev.model.subgraphs) ? prev.model.subgraphs : undefined;
+    const prevSubgraphs = prev.model.subgraphs;
     const collapsedOwnerId = collapsedOwners.get(key) ?? key;
-    const collapsedOwnersAdded = ownersAddedBySubgraph(collapsedOwners, collapsedOwnerId, collapsedEntry.elements, (k) => k === key || (prevSubgraphs !== undefined && hasOwn(prevSubgraphs, k)));
+    const collapsedOwnersAdded = ownersAddedBySubgraph(collapsedOwners, collapsedOwnerId, collapsedEntry.elements, (k) => k === key || hasOwn(prevSubgraphs, k));
     if (!collapsedOwnersAdded)
         return null;
     for (const [k, v] of rawOwnersAdded)
@@ -3278,10 +3609,8 @@ function addLazySubgraph(prev, keep, mergedRaw, lazy, lazyKeys, done) {
     keep.lazyKeys = lazyKeys;
     keep.lazyValues = [...keep.lazyValues, sg];
     const subgraphs = Object.create(null);
-    if (prevSubgraphs) {
-        for (const [k, v] of Object.entries(prevSubgraphs))
-            setOwnProp(subgraphs, k, v);
-    }
+    for (const [k, v] of Object.entries(prevSubgraphs))
+        setOwnProp(subgraphs, k, v);
     setOwnProp(subgraphs, key, collapsedEntry);
     return {
         raw,
@@ -5744,6 +6073,7 @@ export const EMPTY_TTI_LEVEL_MODEL = {
     level2: { title: "Containers", boundary: "", elements: [], rels: [] },
     level3: {},
     level4: { title: "Deployment", groups: [], nodes: [], links: [] },
+    subgraphs: Object.create(null),
 };
 export function getMapQueryIndex(model = EMPTY_TTI_LEVEL_MODEL) {
     const isObjModel = model != null && typeof model === "object";

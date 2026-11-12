@@ -1,0 +1,1184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tux-map-1.schema.json",
+  "title": "tux-map/1",
+  "description": "The architecture model \"tux-map/1\" (TuxMapLevelModel). Generated from the TypeScript types by scripts/build-map-schema.mjs; do not edit. Properties the schema does not name are allowed.",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "description": "Schema name of this document: `TUX_MAP_SCHEMA` (`\"tux-map/1\"`). Optional so documents written before the name existed keep rendering; `validateMapModel` reports its absence, or any other value, as a warning.",
+      "const": "tux-map/1"
+    },
+    "generatedAt": {
+      "type": "string"
+    },
+    "issueBaseUrl": {
+      "type": "string"
+    },
+    "sourceBaseUrl": {
+      "description": "Optional repository base URL for `source.path` links (e.g. \"https://forge.example/owner/name/src/branch/main\")",
+      "type": "string"
+    },
+    "level1": {
+      "description": "Level 1: High-level ecosystem, people, primary systems & external dependencies",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapLevelElement"
+          }
+        },
+        "rels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapLevelRel"
+          }
+        }
+      },
+      "required": [
+        "elements",
+        "rels"
+      ]
+    },
+    "level2": {
+      "description": "Level 2: Containers, databases, queues & services inside the primary system boundary",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "boundary": {
+          "type": "string"
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/TuxMapLevelElement"
+              },
+              {
+                "$ref": "#/$defs/TuxMapLevelRef"
+              }
+            ]
+          }
+        },
+        "rels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapLevelRel"
+          }
+        }
+      },
+      "required": [
+        "boundary",
+        "elements",
+        "rels"
+      ]
+    },
+    "level3": {
+      "description": "Level 3: Internal components/modules/packages keyed by Level 2 container ID",
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/TuxMapLevelElement"
+        }
+      }
+    },
+    "level4": {
+      "description": "Level 4: Physical/cloud deployment topology (regions, resource groups, VMs, firewall rules)",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "zones": {
+          "description": "Optional custom region/zone definitions for Level 4 columns; falls back to TUX defaults when omitted",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapDeploymentZone"
+          }
+        },
+        "centerTitle": {
+          "description": "Optional title for the center resource-groups boundary box (defaults to \"Cloud Region · Resource Groups\")",
+          "type": "string"
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapDeploymentGroup"
+          }
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapDeploymentNode"
+          }
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapDeploymentLink"
+          }
+        },
+        "neighbors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapNeighborResource"
+          }
+        }
+      },
+      "required": [
+        "groups",
+        "nodes",
+        "links"
+      ]
+    },
+    "subgraphs": {
+      "description": "Fractal N-Depth Subgraphs (Level 5, Level 6, Level 7...): Keyed by any parent element ID or Level 4 deployment node ID (e.g. `\"ai-search-app\"`, `\"vector-db-01\"`, `\"c-api/2\"`). Enables infinite semantic zooming down into modules, database schemas, and AST symbols.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/TuxMapSubgraph"
+      }
+    },
+    "links": {
+      "description": "Fine-grained dependencies between any two elements at any level (an import, a call, a script run, a page loading a script…), usually read from code. The map lifts them onto whatever level is on screen: wires between the cards inside, and in/out cards for what lies outside. The blast radius of a selected element walks them upstream.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TuxMapLink"
+      }
+    },
+    "linkTiers": {
+      "description": "Optional pre-partitioned spreading & stopping link tiers (`#126`).",
+      "type": "object",
+      "properties": {
+        "spread": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapLink"
+          }
+        },
+        "stop": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapLink"
+          }
+        }
+      }
+    },
+    "stopKinds": {
+      "description": "Optional list of link `kind`s treated as `stop: true` when `link.stop` is omitted (`#126`).",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "aliases": {
+      "description": "Optional legacy-to-canonical bookmark alias map (`#124`).",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "routes": {
+      "description": "Optional HTTP route table linking URL patterns to handler symbols or files (`#120`, `#122`).",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TuxMapRouteEntry"
+      }
+    }
+  },
+  "required": [
+    "level1",
+    "level2",
+    "level3",
+    "level4"
+  ],
+  "$defs": {
+    "TuxMapDeploymentGroup": {
+      "description": "A resource group inside a Level 4 zone.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "zone": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "rg": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "zone",
+        "title"
+      ]
+    },
+    "TuxMapDeploymentLink": {
+      "description": "A link between two Level 4 deployment nodes.",
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "planned",
+            "now"
+          ]
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ]
+    },
+    "TuxMapDeploymentNode": {
+      "description": "A Level 4 deployment resource and the containers it hosts.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "zone": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "planned",
+            "neighbor",
+            "now"
+          ]
+        },
+        "placement": {
+          "type": "string"
+        },
+        "hosts": {
+          "description": "Container IDs from Level 2 hosted on this Level 4 resource",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "deps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "roadmap": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "source": {
+          "description": "Source code / infrastructure manifest binding (e.g. Terraform/Ansible/Dockerfile)",
+          "$ref": "#/$defs/TuxMapSourceRef"
+        },
+        "diff": {
+          "description": "PR diff / modification state for Blast-Radius inspection",
+          "$ref": "#/$defs/TuxMapDiffInfo"
+        },
+        "children": {
+          "description": "Inline fractal child elements for drilling into Level 5+ directly from a Level 4 resource",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapLevelElement"
+          }
+        },
+        "childRels": {
+          "description": "Optional relationships among inline `children`",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapLevelRel"
+          }
+        },
+        "subgraphRef": {
+          "description": "Optional URL or key for lazy on-demand subgraph hydration",
+          "type": "string"
+        },
+        "facts": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "size": {
+              "type": "string"
+            },
+            "sku": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            },
+            "nodes": {
+              "type": "number"
+            },
+            "ingress": {
+              "type": "string"
+            },
+            "images": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "rules": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/TuxMapFirewallRule"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "role"
+      ]
+    },
+    "TuxMapDeploymentZone": {
+      "description": "A region or zone column of Level 4.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "column": {
+          "type": "string",
+          "enum": [
+            "left",
+            "right",
+            "center"
+          ]
+        },
+        "planned": {
+          "type": "boolean"
+        },
+        "zones": {
+          "description": "Optional additional zone IDs that also map into this region",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title"
+      ]
+    },
+    "TuxMapDiffInfo": {
+      "description": "Change badge of an element in a branch or pull-request overlay.",
+      "type": "object",
+      "properties": {
+        "changeType": {
+          "description": "Git diff change classification",
+          "type": "string",
+          "enum": [
+            "added",
+            "modified",
+            "deleted"
+          ]
+        },
+        "filesChanged": {
+          "description": "Number of files or symbols touched inside this node",
+          "type": "number"
+        },
+        "summary": {
+          "description": "Optional short summary of the change",
+          "type": "string"
+        }
+      },
+      "required": [
+        "changeType"
+      ]
+    },
+    "TuxMapElementKind": {
+      "description": "What an element is; `TUX_MAP_ELEMENT_KIND_LABELS` holds the label of each kind.",
+      "type": "string",
+      "enum": [
+        "symbol",
+        "function",
+        "person",
+        "system",
+        "container",
+        "database",
+        "storage",
+        "component",
+        "folder",
+        "file",
+        "class",
+        "constant",
+        "module",
+        "schema",
+        "route",
+        "external",
+        "resource"
+      ]
+    },
+    "TuxMapElementLiveInfo": {
+      "description": "Live operational facts shown on an element's card.",
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "running",
+            "active",
+            "present",
+            "success",
+            "inactive",
+            "declared-not-installed",
+            "failed",
+            "unknown"
+          ]
+        },
+        "total": {
+          "type": "number"
+        },
+        "running": {
+          "type": "number"
+        },
+        "version": {
+          "type": "string"
+        },
+        "update": {
+          "type": "string"
+        },
+        "updates": {
+          "type": "number"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "newer_major": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "findings": {
+          "type": "string"
+        },
+        "last_run": {
+          "type": "object",
+          "properties": {
+            "result": {
+              "type": "string"
+            },
+            "at": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ]
+        }
+      }
+    },
+    "TuxMapElementStatus": {
+      "description": "Lifecycle status of an element or a relationship.",
+      "type": "string",
+      "enum": [
+        "live",
+        "paused",
+        "planned",
+        "neighbor"
+      ]
+    },
+    "TuxMapFirewallRule": {
+      "description": "A firewall rule listed in a deployment node's facts.",
+      "type": "object",
+      "properties": {
+        "direction": {
+          "type": "string",
+          "enum": [
+            "in",
+            "out"
+          ]
+        },
+        "access": {
+          "type": "string",
+          "enum": [
+            "allow",
+            "deny"
+          ]
+        },
+        "ports": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "from": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "direction",
+        "access",
+        "ports",
+        "from"
+      ]
+    },
+    "TuxMapLevelElement": {
+      "description": "One element of the model at any level: a person, system, container, component, folder, file or symbol.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/TuxMapElementKind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tech": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/TuxMapElementStatus"
+        },
+        "at": {
+          "description": "Grid coordinates `[column, row]`",
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "px": {
+          "description": "Explicit pixel override `[x, y, height]` for compact neighbor stacks",
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "ref": {
+          "description": "Whether this element is a perimeter reference to an element defined in Level 1",
+          "type": "boolean"
+        },
+        "zoom": {
+          "description": "Target level when zooming into this element (e.g. 2 or 3)",
+          "type": "number"
+        },
+        "parent": {
+          "description": "Parent container/node ID when inside Level 3+",
+          "type": "string"
+        },
+        "side": {
+          "description": "Compact perimeter card in Level 3+ (\"in\" on left, \"out\" on right)",
+          "type": "string",
+          "enum": [
+            "in",
+            "out"
+          ]
+        },
+        "mini": {
+          "type": "boolean"
+        },
+        "next": {
+          "description": "Sequential step link to sibling index in Level 3+",
+          "type": "number"
+        },
+        "runs": {
+          "description": "Stack component IDs running inside this container",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "deployed": {
+          "description": "Level 4 resource IDs where this container/component is deployed",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "roadmap": {
+          "description": "Linked issue/roadmap numbers",
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "live": {
+          "description": "Live operational telemetry",
+          "$ref": "#/$defs/TuxMapElementLiveInfo"
+        },
+        "source": {
+          "description": "Source code file, line range, and symbol binding",
+          "$ref": "#/$defs/TuxMapSourceRef"
+        },
+        "diff": {
+          "description": "PR diff / modification state for Blast-Radius inspection",
+          "$ref": "#/$defs/TuxMapDiffInfo"
+        },
+        "children": {
+          "description": "Inline fractal child elements for N-depth zooming (Level 5, 6, 7...)",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapLevelElement"
+          }
+        },
+        "childRels": {
+          "description": "Optional relationships among inline `children`",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapLevelRel"
+          }
+        },
+        "subgraphRef": {
+          "description": "Optional URL or key for lazy on-demand subgraph hydration",
+          "type": "string"
+        },
+        "vendoredCopies": {
+          "description": "Optional IDs of vendored copy elements folded into this representative card (`#121`)",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "isVendoredCopy": {
+          "description": "True when this card itself is a vendored copy whose canonical source lies outside the view (`#121`)",
+          "type": "boolean"
+        },
+        "vendoredFrom": {
+          "description": "Canonical source element ID when `isVendoredCopy` is true (`#121`)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "TuxMapLevelRef": {
+      "description": "A Level 2 perimeter reference to a Level 1 element (a person or an outside system). It is drawn with that element's name, kind and details, so it carries only its id, `ref: true` and where it sits.",
+      "type": "object",
+      "properties": {
+        "live": {
+          "description": "Live operational telemetry",
+          "$ref": "#/$defs/TuxMapElementLiveInfo"
+        },
+        "kind": {
+          "$ref": "#/$defs/TuxMapElementKind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tech": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/TuxMapElementStatus"
+        },
+        "at": {
+          "description": "Grid coordinates `[column, row]`",
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "px": {
+          "description": "Explicit pixel override `[x, y, height]` for compact neighbor stacks",
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "zoom": {
+          "description": "Target level when zooming into this element (e.g. 2 or 3)",
+          "type": "number"
+        },
+        "parent": {
+          "description": "Parent container/node ID when inside Level 3+",
+          "type": "string"
+        },
+        "side": {
+          "description": "Compact perimeter card in Level 3+ (\"in\" on left, \"out\" on right)",
+          "type": "string",
+          "enum": [
+            "in",
+            "out"
+          ]
+        },
+        "mini": {
+          "type": "boolean"
+        },
+        "next": {
+          "description": "Sequential step link to sibling index in Level 3+",
+          "type": "number"
+        },
+        "runs": {
+          "description": "Stack component IDs running inside this container",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "deployed": {
+          "description": "Level 4 resource IDs where this container/component is deployed",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "roadmap": {
+          "description": "Linked issue/roadmap numbers",
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "source": {
+          "description": "Source code file, line range, and symbol binding",
+          "$ref": "#/$defs/TuxMapSourceRef"
+        },
+        "diff": {
+          "description": "PR diff / modification state for Blast-Radius inspection",
+          "$ref": "#/$defs/TuxMapDiffInfo"
+        },
+        "children": {
+          "description": "Inline fractal child elements for N-depth zooming (Level 5, 6, 7...)",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapLevelElement"
+          }
+        },
+        "childRels": {
+          "description": "Optional relationships among inline `children`",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapLevelRel"
+          }
+        },
+        "subgraphRef": {
+          "description": "Optional URL or key for lazy on-demand subgraph hydration",
+          "type": "string"
+        },
+        "vendoredCopies": {
+          "description": "Optional IDs of vendored copy elements folded into this representative card (`#121`)",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "isVendoredCopy": {
+          "description": "True when this card itself is a vendored copy whose canonical source lies outside the view (`#121`)",
+          "type": "boolean"
+        },
+        "vendoredFrom": {
+          "description": "Canonical source element ID when `isVendoredCopy` is true (`#121`)",
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "ref": {
+          "const": true
+        }
+      },
+      "required": [
+        "id",
+        "ref"
+      ]
+    },
+    "TuxMapLevelRel": {
+      "description": "A relationship drawn between two elements of one level.",
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "tech": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/TuxMapElementStatus"
+        },
+        "roadmap": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "violations": {
+          "description": "Optional architectural dependency-rule violations carried by this wire (`#123`)",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapLinkViolation"
+          }
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ]
+    },
+    "TuxMapLink": {
+      "description": "One dependency read from code: `from` depends on `to`.",
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "kind": {
+          "description": "e.g. imports, calls, runs, sources, stamps, loads, uses, checks, tests, routes, mentions",
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "stop": {
+          "description": "The blast radius takes one step through this link and no further (a test, a doc, a deploy step).",
+          "type": "boolean"
+        },
+        "at": {
+          "description": "Where it was read, as \"path:line\"",
+          "type": "string"
+        },
+        "sites": {
+          "description": "All 1-based line numbers in `from` where this link was read, sorted ascending",
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "coupling": {
+          "description": "Semantic coupling strength for intent-aware blast radius (`patch | refactor | cut | supply-chain`)",
+          "$ref": "#/$defs/TuxMapLinkCoupling"
+        },
+        "phase": {
+          "description": "Execution or shipping phase of the dependency",
+          "$ref": "#/$defs/TuxMapLinkPhase"
+        },
+        "violations": {
+          "description": "Optional architectural dependency-rule violations on this link (`#123`)",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapLinkViolation"
+          }
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ]
+    },
+    "TuxMapLinkCoupling": {
+      "description": "How strongly a link couples its two ends; decides which links each blast intent follows.",
+      "type": "string",
+      "enum": [
+        "contract",
+        "runtime",
+        "type-only",
+        "artifact-stamp",
+        "build-exec",
+        "verification",
+        "prose"
+      ]
+    },
+    "TuxMapLinkPhase": {
+      "description": "Where a link's dependency takes effect: production runtime, client bundle, build, CI or docs.",
+      "type": "string",
+      "enum": [
+        "build-exec",
+        "prod-runtime",
+        "client-bundle",
+        "ci-test",
+        "doc-only"
+      ]
+    },
+    "TuxMapLinkViolation": {
+      "description": "Consumer-supplied architectural dependency-rule violation (`#123`).",
+      "type": "object",
+      "properties": {
+        "rule": {
+          "description": "Short rule identifier or title (e.g. `\"no-component-cycle\"`, `\"leaf-lib\"`)",
+          "type": "string"
+        },
+        "message": {
+          "description": "Optional human-readable explanation of what broke",
+          "type": "string"
+        },
+        "fix": {
+          "description": "Optional actionable fix guidance supplied by the consumer",
+          "type": "string"
+        },
+        "severity": {
+          "description": "Optional severity tier (defaults to `\"error\"`)",
+          "type": "string",
+          "enum": [
+            "error",
+            "warning"
+          ]
+        }
+      },
+      "required": [
+        "rule"
+      ]
+    },
+    "TuxMapNeighborResource": {
+      "description": "A resource beside the deployment that the model lists but does not own.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "resourceGroup": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "resourceGroup",
+        "reason"
+      ]
+    },
+    "TuxMapRouteEntry": {
+      "description": "An HTTP route and the handler it resolves to.",
+      "type": "object",
+      "properties": {
+        "method": {
+          "type": "string"
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "handler": {
+          "type": "string"
+        },
+        "framework": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "pattern",
+        "handler"
+      ]
+    },
+    "TuxMapSourceRef": {
+      "description": "Where an element lives in source: repository, path, lines, symbol, and the digests `computeGraphDelta` compares.",
+      "type": "object",
+      "properties": {
+        "repo": {
+          "description": "Repository slug or URL (e.g. \"owner/name\" or \"https://forge.example/owner/name\")",
+          "type": "string"
+        },
+        "path": {
+          "description": "Relative file path inside the repository (e.g. \"src/search/retriever.py\")",
+          "type": "string"
+        },
+        "lineRange": {
+          "description": "Optional 1-based `[startLine, endLine]` range",
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "symbol": {
+          "description": "Optional symbol/function/class signature",
+          "type": "string"
+        },
+        "signature": {
+          "description": "Optional normalized callable/type signature for `sig-changed` detection across branches",
+          "type": "string"
+        },
+        "hash": {
+          "description": "Optional line-number-independent AST/content digest for `body-patched` detection across branches",
+          "type": "string"
+        },
+        "moduleHash": {
+          "description": "Optional digest of module-scope statements outside child symbols (distinguishes module-level edits from symbol-only edits)",
+          "type": "string"
+        },
+        "commitSha": {
+          "description": "Optional commit SHA or branch ref (defaults to \"main\")",
+          "type": "string"
+        },
+        "url": {
+          "description": "Optional direct URL override",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ]
+    },
+    "TuxMapSubgraph": {
+      "description": "The children of one element at Level 5 or deeper, and the relationships among them.",
+      "type": "object",
+      "properties": {
+        "stratum": {
+          "description": "Optional human-readable stratum title (e.g. \"Level 5 · Modules & Schemas\", \"Level 6 · AST Symbols\")",
+          "type": "string"
+        },
+        "summary": {
+          "description": "Optional summary sentence for this subgraph level",
+          "type": "string"
+        },
+        "elements": {
+          "description": "Child elements inside this node",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapLevelElement"
+          }
+        },
+        "rels": {
+          "description": "Internal relationships between child elements (or to/from perimeter element IDs)",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TuxMapLevelRel"
+          }
+        }
+      },
+      "required": [
+        "elements"
+      ]
+    }
+  }
+}
