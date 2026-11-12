@@ -1540,6 +1540,50 @@ export interface TuxMapLevelModel {
 }
 
 /**
+ * A subgraph after `sanitizeMapModel`: `rels` is always an array.
+ * @public
+ */
+export interface TuxMapNormalizedSubgraph extends TuxMapSubgraph {
+  rels: TuxMapLevelRel[];
+}
+
+/**
+ * A model after `sanitizeMapModel`: what `<TuxArchitectureMap>` lays out and what `collapseModelSubgraphs` returns
+ * when it is given one. It is a `TuxMapLevelModel`, so every function that takes a model takes it; the difference is
+ * that the fields below marked "filled" are always there, so code that holds a normalized model reads them without
+ * a guard, and the compiler checks that (`tti/tti-ux#164`).
+ *
+ * Required or optional, field by field. "Required" is what the type says and what `validateMapModel` reports when a
+ * document lacks it; "filled" is what `sanitizeMapModel` puts there, once, so a document that lacks it still renders.
+ *
+ * | Field | In a document | `validateMapModel` when absent | In a normalized model |
+ * |---|---|---|---|
+ * | `level1`, `level2`, `level3`, `level4` | required | issue `missing-level` (`valid: false`) | filled: an empty level |
+ * | `level1.elements`, `level1.rels` | required | warning `missing-field` | filled: `[]` |
+ * | `level2.elements`, `level2.rels` | required | warning `missing-field` | filled: `[]` |
+ * | `level2.boundary` | required | warning `missing-field` | filled: `""` (no boundary drawn) |
+ * | `level3[containerId]` | required to be a list | none | filled: `[]` |
+ * | `level4.groups`, `level4.nodes`, `level4.links` | required | warning `missing-field` | filled: `[]` |
+ * | `subgraphs` | optional | none | filled: `{}` |
+ * | `subgraphs[key].elements` | required | warning `missing-field` | filled: `[]` |
+ * | `subgraphs[key].rels` | optional | none | filled: `[]` |
+ * | `level4.zones`, `level4.neighbors`, `level4.centerTitle` | optional | none | left absent: absence selects the built-in columns and title |
+ * | `links`, `linkTiers`, `stopKinds` | optional | none | left absent: read together through `resolveModelRawLinks`, where a present `stopKinds` means something an empty default would not |
+ * | `routes`, `aliases` | optional | none | left absent (`aliases` is cleaned when present; `collapseModelSubgraphs` returns the full alias table) |
+ * | `schema`, titles, summaries, base URLs | optional | `missing-schema` for `schema`, none for the rest | left absent |
+ * | on an element or a deployment node: `kind`, `status`, `at`, `source`, `children`, `childRels`, `hosts`, `deps`, `runs`, `deployed`, `roadmap`, `live`, `diff`, `facts`, … | optional | none | left absent: absence is the value (no source link, no inline children, hosts nothing), and filling them would copy every element of the model |
+ * | on a relationship or a link: `label`, `tech`, `status`, `kind`, `stop`, `at`, `sites`, `coupling`, `phase`, `violations` | optional | none | left absent |
+ * | `id`, `name` on an element; `id`, `kind`, `title`, `role` on a deployment node; `from`, `to` on a relationship or link | required | existing issues for ids and ends; none for the rest | not filled: a relationship or link without both ends is dropped, an element is kept as written |
+ *
+ * The fields left absent are still read with `?.` or `?? []` wherever they are used: that is one guard, on a field
+ * whose absence is meaningful. The guards this type removes are the ones on containers.
+ * @public
+ */
+export interface TuxMapNormalizedModel extends TuxMapLevelModel {
+  subgraphs: Record<string, TuxMapNormalizedSubgraph>;
+}
+
+/**
  * How strongly a link couples its two ends; decides which links each blast intent follows.
  * @public
  */
@@ -3705,6 +3749,16 @@ export function resolveModelRawLinks(model?: TuxMapLevelModel): TuxMapLink[] {
   return out;
 }
 
+/** The fields `validateMapModel` reports as `missing-field` when a level that is present lacks them. */
+const REQUIRED_LEVEL_FIELDS: ReadonlyArray<readonly [string, readonly string[]]> = [
+  ["level1", ["elements", "rels"]],
+  ["level2", ["boundary", "elements", "rels"]],
+  ["level4", ["groups", "nodes", "links"]],
+];
+
+/** One reference token of a JSON Pointer (RFC 6901): `~` and `/` escaped. */
+const jsonPointerToken = (key: string): string => key.replace(/~/g, "~0").replace(/\//g, "~1");
+
 /**
  * Kind of problem `validateMapModel` reports. `resolved-empty-subgraph` is the one it never
  * reports itself: `<TuxArchitectureMap>` adds it to its own diagnostics, once per card, when
@@ -3721,7 +3775,8 @@ export type TuxMapValidationIssueCode =
   | "unknown-rel-end"
   | "resolved-empty-subgraph"
   | "missing-schema"
-  | "unknown-schema";
+  | "unknown-schema"
+  | "missing-field";
 
 /**
  * One problem found by `validateMapModel`.
@@ -3732,6 +3787,10 @@ export interface TuxMapValidationIssue {
   message: string;
   nodeId?: string;
   targetId?: string;
+  /** Where in the document, as a JSON Pointer (`/level1/elements`). Set by the codes that are about a field. */
+  path?: string;
+  /** How many places in the document have this same problem, when more than the one `path` names. */
+  count?: number;
 }
 
 /**
@@ -3743,9 +3802,10 @@ export interface TuxMapValidationResult {
   valid: boolean;
   issues: TuxMapValidationIssue[];
   /**
-   * Notices that do not make the model invalid and change nothing in how it renders: `missing-schema` and
-   * `unknown-schema` (`tti/tti-ux#162`). Kept apart from `issues` so a caller that gates on `valid` or counts
-   * `issues` behaves as before.
+   * Notices that do not make the model invalid: `missing-schema` and `unknown-schema` (`tti/tti-ux#162`), which
+   * change nothing in how it renders, and `missing-field` (`tti/tti-ux#164`), a required list or the Level 2
+   * boundary left out, which renders as the empty default `sanitizeMapModel` fills in. Kept apart from `issues` so
+   * a caller that gates on `valid` or counts `issues` behaves as before.
    */
   warnings: TuxMapValidationIssue[];
   duplicateIds: string[];
@@ -3766,6 +3826,11 @@ export interface TuxMapValidationResult {
  * a document that has at least one of `level1`..`level4`, so the compatibility inputs of
  * `normalizeArchitectureModelInput` (which are not level models) are not told to carry a name that is not theirs.
  * Pass the document as the producer wrote it: the normalizer's output is already stamped.
+ *
+ * `missing-field` is the third warning (`tti/tti-ux#164`): a field the model type requires and a level that is
+ * there does not have, one warning per field with its `path`. For `elements` of a subgraph it is one warning for
+ * all the subgraphs that lack it, with their `count` and the `path` of the first. The table on
+ * `TuxMapNormalizedModel` lists the fields and what `sanitizeMapModel` fills in for each.
  * @public
  */
 export function validateMapModel(model: unknown): TuxMapValidationResult {
@@ -3807,6 +3872,36 @@ export function validateMapModel(model: unknown): TuxMapValidationResult {
       warnings.push({
         code: "unknown-schema",
         message: `Architecture model declares schema ${shown}; this release supports "${TUX_MAP_SCHEMA}". It is read as "${TUX_MAP_SCHEMA}", best effort.`,
+      });
+    }
+  }
+
+  for (const [levelKey, fields] of REQUIRED_LEVEL_FIELDS) {
+    const level = model[levelKey];
+    if (!isPlainRecord(level)) continue;
+    for (const field of fields) {
+      if (level[field] === undefined || level[field] === null) {
+        warnings.push({
+          code: "missing-field",
+          message: `Architecture model has no '${levelKey}.${field}'; it is read as ${field === "boundary" ? "no boundary" : "an empty list"}.`,
+          path: `/${levelKey}/${field}`,
+        });
+      }
+    }
+  }
+  if (isPlainRecord(model.subgraphs)) {
+    let count = 0;
+    let first = "";
+    for (const [key, sg] of Object.entries(model.subgraphs)) {
+      if (!isPlainRecord(sg) || (sg.elements !== undefined && sg.elements !== null)) continue;
+      if (count++ === 0) first = key;
+    }
+    if (count > 0) {
+      warnings.push({
+        code: "missing-field",
+        message: `${count === 1 ? "A subgraph has" : `${count} subgraphs have`} no 'elements' (the first is '${first.slice(0, 64)}'); each is read as an empty list.`,
+        path: `/subgraphs/${jsonPointerToken(first)}/elements`,
+        ...(count > 1 ? { count } : {}),
       });
     }
   }
@@ -4060,12 +4155,16 @@ export function validateMapModel(model: unknown): TuxMapValidationResult {
 }
 
 /**
- * Produces a safe, non-throwing `TuxMapLevelModel` alongside its `validateMapModel` diagnostics (`tti/tti-ux#124`),
+ * Produces a safe, non-throwing model alongside its `validateMapModel` diagnostics (`tti/tti-ux#124`),
  * filling missing levels and breaking cyclic subgraph references.
+ *
+ * It is the one place defaults are filled (`tti/tti-ux#164`): the result is a `TuxMapNormalizedModel`, whose
+ * doc comment lists every field and its default. Elements, nodes, relationships and links that needed no change
+ * are the objects of `raw`, not copies.
  * @public
  */
 export function sanitizeMapModel(raw: unknown): {
-  model: TuxMapLevelModel;
+  model: TuxMapNormalizedModel;
   validation: TuxMapValidationResult;
 } {
   const { model, validation } = sanitizeMapModelKeepingPass(raw);
@@ -4080,14 +4179,14 @@ export function sanitizeMapModel(raw: unknown): {
  */
 interface MapSanitizePass {
   sanitizeId: (id: unknown) => string;
-  sanitizeSubgraph: (sg: Record<string, unknown>, ownerId: string) => TuxMapSubgraph;
+  sanitizeSubgraph: (sg: Record<string, unknown>, ownerId: string) => TuxMapNormalizedSubgraph;
 }
 
 function sanitizeMapModelKeepingPass(
   raw: unknown,
   validation: TuxMapValidationResult = validateMapModel(raw),
 ): {
-  model: TuxMapLevelModel;
+  model: TuxMapNormalizedModel;
   validation: TuxMapValidationResult;
   pass: MapSanitizePass | null;
 } {
@@ -4206,27 +4305,21 @@ function sanitizeMapModelKeepingPass(
     );
   }
 
-  const sanitizeSubgraph = (sg: Record<string, unknown>, ownerId: string): TuxMapSubgraph => {
-    const els = sanitizeChildElements(sg.elements, ownerId, 1);
-    const rels = sg.rels !== undefined ? sanitizeRelEndpoints<TuxMapLevelRel>(sg.rels) : undefined;
-    return {
-      ...(sg as unknown as TuxMapSubgraph),
-      elements: els,
-      ...(rels !== undefined ? { rels } : {}),
-    };
-  };
+  const sanitizeSubgraph = (sg: Record<string, unknown>, ownerId: string): TuxMapNormalizedSubgraph => ({
+    ...(sg as unknown as TuxMapSubgraph),
+    elements: sanitizeChildElements(sg.elements, ownerId, 1),
+    rels: sanitizeRelEndpoints<TuxMapLevelRel>(sg.rels),
+  });
 
-  let safeSubgraphs: Record<string, TuxMapSubgraph> | undefined;
+  const safeSubgraphs: Record<string, TuxMapNormalizedSubgraph> = Object.create(null);
   if (isPlainRecord(m.subgraphs)) {
-    const cleaned: Record<string, TuxMapSubgraph> = Object.create(null);
     for (const [rawKey, sg] of Object.entries(m.subgraphs)) {
       if (!isPlainRecord(sg)) continue;
       const key = sanitizeId(rawKey);
       if (!key) continue;
       const owner = sanitizeId(subgraphOwners.get(rawKey) ?? rawKey) || key;
-      setOwnProp(cleaned, key, sanitizeSubgraph(sg, owner));
+      setOwnProp(safeSubgraphs, key, sanitizeSubgraph(sg, owner));
     }
-    safeSubgraphs = cleaned;
   }
 
   let safeAliases: Record<string, string> | undefined;
@@ -4257,7 +4350,7 @@ function sanitizeMapModelKeepingPass(
     ? sanitizeRelEndpoints<TuxMapLink>(m.links)
     : undefined;
 
-  const safeModel: TuxMapLevelModel = {
+  const safeModel: TuxMapNormalizedModel = {
     ...m,
     level1: {
       ...(isPlainRecord(m.level1) ? m.level1 : {}),
@@ -4277,7 +4370,7 @@ function sanitizeMapModelKeepingPass(
       nodes: l4Nodes,
       links: sanitizeRelEndpoints<TuxMapDeploymentLink>(m.level4?.links),
     },
-    ...(safeSubgraphs ? { subgraphs: safeSubgraphs } : {}),
+    subgraphs: safeSubgraphs,
     ...(safeAliases ? { aliases: safeAliases } : {}),
     ...(safeLinks !== undefined ? { links: safeLinks } : {}),
   };
@@ -4304,12 +4397,15 @@ function isFolderLikeElement(e: TuxMapLevelElement): boolean {
  * Collapses single-child folder chains (`a/ -> b/ -> c/` becomes `a/b/c/`) and skips the intermediate
  * `Folders` subgraph level for small components (`<= maxSmallComponentFiles`, default `8`), recording
  * `aliases[skippedFolderId] = resolvedFocusId` so existing `#focus=` bookmarks still resolve (`tti/tti-ux#124`).
+ *
+ * The result has the type of the model given: a `TuxMapNormalizedModel` stays one (`tti/tti-ux#164`), because
+ * this adds no subgraph without `rels` and never removes `subgraphs`. Given any other model it fills nothing in.
  * @public
  */
-export function collapseModelSubgraphs(
-  model: TuxMapLevelModel,
+export function collapseModelSubgraphs<M extends TuxMapLevelModel>(
+  model: M,
   opts: { maxSmallComponentFiles?: number } = {},
-): { model: TuxMapLevelModel; aliases: Record<string, string> } {
+): { model: M; aliases: Record<string, string> } {
   const aliases: Record<string, string> = Object.create(null);
   if (isPlainRecord(model?.aliases)) {
     for (const [ak, av] of Object.entries(model.aliases)) {
@@ -4477,7 +4573,7 @@ export function collapseModelSubgraphs(
  * The last step of `collapseModelSubgraphs` for one subgraph: its rels with both ends resolved through
  * `aliases`, self-loops and repeated pairs dropped. Returns `sg` itself when it has no rels.
  */
-function remapSubgraphRelsThroughAliases(sg: TuxMapSubgraph, aliases: Record<string, string>): TuxMapSubgraph {
+function remapSubgraphRelsThroughAliases<T extends TuxMapSubgraph>(sg: T, aliases: Record<string, string>): T {
   if (!Array.isArray(sg.rels) || sg.rels.length === 0) return sg;
   const resolveAliasTarget = (id: string): string => {
     let cur = id;
@@ -4629,14 +4725,14 @@ function indexInlineParents(
 export interface TuxMapLazyMergeState {
   /** The model the subgraphs were merged into, as it was passed. */
   raw: unknown;
-  model: TuxMapLevelModel;
+  model: TuxMapNormalizedModel;
   aliases: Record<string, string>;
   validation: TuxMapValidationResult;
   /**
    * Set when `model` is `from` plus one subgraph and nothing else: every other subgraph, level and
    * alias is the same object as in `from`. `owner` is the parent of `elements` in the parent index.
    */
-  added?: { from: TuxMapLevelModel; key: string; owner: string; elements: TuxMapLevelElement[] };
+  added?: { from: TuxMapNormalizedModel; key: string; owner: string; elements: TuxMapLevelElement[] };
 }
 
 /** What a merge keeps so the next subgraph can be added without reading the rest of the model again. */
@@ -4646,10 +4742,10 @@ interface LazyMergeKeep {
   pass: MapSanitizePass;
   cycleIds: string[];
   /** The sanitized model before collapsing; its `subgraphs` are read once, by `prepareLazyMerge`. */
-  sanitizedModel: TuxMapLevelModel;
+  sanitizedModel: TuxMapNormalizedModel;
   prepared?: {
     /** key → sanitized subgraph, every key the sanitizer kept (collapsing may have dropped some). */
-    sanitized: Record<string, TuxMapSubgraph>;
+    sanitized: Record<string, TuxMapNormalizedSubgraph>;
     rawOwners: Map<string, string>;
     collapsedOwners: Map<string, string>;
     /** `subgraphRef || id` of every Level 3 component. */
@@ -4743,14 +4839,12 @@ function prepareLazyMerge(
   // Owners that took a repeat pass to settle can move when a subgraph is added: not handled here
   if (rawReport.late || collapsedReport.late) return null;
 
-  const sanitized: Record<string, TuxMapSubgraph> = Object.create(null);
+  const sanitized: Record<string, TuxMapNormalizedSubgraph> = Object.create(null);
   const singleFolderRefs = new Set<string>();
-  if (isPlainRecord(keep.sanitizedModel.subgraphs)) {
-    for (const [k, sg] of Object.entries(keep.sanitizedModel.subgraphs)) {
-      setOwnProp(sanitized, k, sg);
-      const only = sg.elements.length === 1 ? sg.elements[0]! : undefined;
-      if (only?.id && isFolderLikeElement(only)) singleFolderRefs.add(subgraphKeyOfElement(only));
-    }
+  for (const [k, sg] of Object.entries(keep.sanitizedModel.subgraphs)) {
+    setOwnProp(sanitized, k, sg);
+    const only = sg.elements.length === 1 ? sg.elements[0]! : undefined;
+    if (only?.id && isFolderLikeElement(only)) singleFolderRefs.add(subgraphKeyOfElement(only));
   }
   const componentKeys = new Set<string>();
   for (const kids of Object.values(prev.model.level3)) {
@@ -4760,11 +4854,9 @@ function prepareLazyMerge(
   }
   const folderHosts = new Map<string, string[]>();
   const collapsedSubgraphs = prev.model.subgraphs;
-  if (isPlainRecord(collapsedSubgraphs)) {
-    for (const compKey of componentKeys) {
-      if (hasOwn(collapsedSubgraphs, compKey)) {
-        noteFolderHosts(folderHosts, compKey, collapsedSubgraphs[compKey]!.elements);
-      }
+  for (const compKey of componentKeys) {
+    if (hasOwn(collapsedSubgraphs, compKey)) {
+      noteFolderHosts(folderHosts, compKey, collapsedSubgraphs[compKey]!.elements);
     }
   }
   keep.prepared = { sanitized, rawOwners, collapsedOwners, componentKeys, folderHosts, singleFolderRefs };
@@ -4883,7 +4975,7 @@ function addLazySubgraph(
   if (hostsFolders && !els.some(lacksSubgraph)) return null;
   const hosts = folderHosts.get(key);
   if (hosts && els.length > 0 && els.length <= MAX_SMALL_COMPONENT_FILES && !els.some(isFolderLikeElement)) {
-    const collapsedSubgraphs = prev.model.subgraphs!;
+    const collapsedSubgraphs = prev.model.subgraphs;
     for (const compKey of hosts) {
       if (!hasOwn(collapsedSubgraphs, compKey) || !collapsedSubgraphs[compKey]!.elements.some(lacksSubgraph)) {
         return null;
@@ -4896,13 +4988,13 @@ function addLazySubgraph(
   const collapsedEntry = aliased
     ? remapSubgraphRelsThroughAliases({ ...entry, elements: [...els] }, prev.aliases)
     : entry;
-  const prevSubgraphs = isPlainRecord(prev.model.subgraphs) ? prev.model.subgraphs : undefined;
+  const prevSubgraphs = prev.model.subgraphs;
   const collapsedOwnerId = collapsedOwners.get(key) ?? key;
   const collapsedOwnersAdded = ownersAddedBySubgraph(
     collapsedOwners,
     collapsedOwnerId,
     collapsedEntry.elements,
-    (k) => k === key || (prevSubgraphs !== undefined && hasOwn(prevSubgraphs, k)),
+    (k) => k === key || hasOwn(prevSubgraphs, k),
   );
   if (!collapsedOwnersAdded) return null;
 
@@ -4914,10 +5006,8 @@ function addLazySubgraph(
   keep.lazyKeys = lazyKeys;
   keep.lazyValues = [...keep.lazyValues, sg];
 
-  const subgraphs: Record<string, TuxMapSubgraph> = Object.create(null);
-  if (prevSubgraphs) {
-    for (const [k, v] of Object.entries(prevSubgraphs)) setOwnProp(subgraphs, k, v);
-  }
+  const subgraphs: Record<string, TuxMapNormalizedSubgraph> = Object.create(null);
+  for (const [k, v] of Object.entries(prevSubgraphs)) setOwnProp(subgraphs, k, v);
   setOwnProp(subgraphs, key, collapsedEntry);
   return {
     raw,
@@ -8143,12 +8233,13 @@ function modelCacheStamp(model: TuxMapLevelModel): string {
  * Minimal zero-sample fallback model (`tti/tti-ux#114`).
  * @public
  */
-export const EMPTY_TTI_LEVEL_MODEL: TuxMapLevelModel = {
+export const EMPTY_TTI_LEVEL_MODEL: TuxMapNormalizedModel = {
   schema: TUX_MAP_SCHEMA,
   level1: { title: "System Context", elements: [], rels: [] },
   level2: { title: "Containers", boundary: "", elements: [], rels: [] },
   level3: {},
   level4: { title: "Deployment", groups: [], nodes: [], links: [] },
+  subgraphs: /* @__PURE__ */ Object.create(null),
 };
 
 /**

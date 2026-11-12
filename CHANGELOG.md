@@ -18,6 +18,16 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — Architecture map: one normalizer fills the defaults, and the readers after it stop guarding (#164)
+
+- Every field of the model is now decided as required or optional, with the default of each optional one, in one table: the doc comment of the new type `TuxMapNormalizedModel`. A normalized model always has `subgraphs` (an empty object when the document has none) and every subgraph in it has `rels` (an empty list when the document gave none). The required lists of each level and the Level 2 boundary were already filled.
+- `sanitizeMapModel()` returns a `TuxMapNormalizedModel`, and so does `collapseModelSubgraphs()` when it is given one. `TuxMapNormalizedModel` extends `TuxMapLevelModel`, so the result goes wherever a model went before. `EMPTY_TTI_LEVEL_MODEL` is typed as one and gains an empty `subgraphs`.
+- `<TuxArchitectureMap>`, its stage builders and the lazy merge hold the normalized type, so the guards they carried on `subgraphs` and on a subgraph's `rels` are gone and the compiler checks that none is needed. Guards stay where the value has not passed the normalizer: on props, on what `resolveSubgraph` returns, and in the exported functions that accept any model a caller hands them. Fields whose absence is the value (`source`, `children`, `hosts`, `violations` and the like) stay optional and are read with one guard where they are used; filling them would copy every element.
+- Elements, relationships and links that need no change are still the document's own objects, and a lazy arrival is still normalized alone.
+- `validateMapModel()` has a new warning, `missing-field`: a list the model type requires (`level1.elements`, `level1.rels`, `level2.elements`, `level2.rels`, `level4.groups`, `level4.nodes`, `level4.links`, a subgraph's `elements`) or `level2.boundary` is absent from a level that is there. It is a warning because such a document renders, with the empty default. Issues and warnings may now carry `path`, a JSON Pointer to the field, and `count`.
+
+**To check when upgrading:** nothing to change for a document that renders today. Code that tested `model.subgraphs === undefined` or `subgraph.rels === undefined` on the result of `sanitizeMapModel()` to mean "the document had none" now sees an empty object or list; test the document instead. A document that leaves out a required list now gets one console warning per field from `<TuxArchitectureMap>`.
+
 ### Changed — Architecture map: a lazy subgraph's arrival is added to the model, not a reason to rebuild it (#157)
 
 - Every subgraph `resolveSubgraph` returned made `<TuxArchitectureMap>` sanitize and collapse the whole model again, so every element became a new object and everything read from the model was built again. The arrival is now sanitized and collapsed alone and added to the model the map already holds, when nothing else in the model is affected by it. The element and parent indexes are copied and extended with the arrival, so entries for everything else stay the same objects.

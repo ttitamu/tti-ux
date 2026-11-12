@@ -54,7 +54,7 @@ Every runtime export carries `@public` or `@internal` in its TSDoc comment, and 
 
 | Group | Exports |
 |---|---|
-| Model | The `TuxMap*` model types (`TuxMapLevelModel` and what it is made of); `TUX_MAP_SCHEMA`; `EMPTY_TTI_LEVEL_MODEL`, `DEFAULT_TTI_LEVEL_MODEL` (sample entry); `normalizeArchitectureModelInput()`, `validateMapModel()`, `sanitizeMapModel()`, `collapseModelSubgraphs()`, `buildLevelModelFromLegacyNodes()`, `extractModelLinks()`, `resolveModelRawLinks()` |
+| Model | The `TuxMap*` model types (`TuxMapLevelModel` and what it is made of; `TuxMapNormalizedModel`, what `sanitizeMapModel()` returns, with the required-or-optional table in its comment); `TUX_MAP_SCHEMA`; `EMPTY_TTI_LEVEL_MODEL`, `DEFAULT_TTI_LEVEL_MODEL` (sample entry); `normalizeArchitectureModelInput()`, `validateMapModel()`, `sanitizeMapModel()`, `collapseModelSubgraphs()`, `buildLevelModelFromLegacyNodes()`, `extractModelLinks()`, `resolveModelRawLinks()` |
 | Vocabulary | `TUX_MAP_ELEMENT_KIND_LABELS`, `TUX_MAP_LINK_KIND_LABELS`, `TUX_MAP_LINK_STRENGTH_ORDER`, `TUX_MAP_QUIET_LINK_KINDS`, `TUX_MAP_VALID_BLAST_INTENTS`, `TUX_MAP_WIRE_CATEGORIES`, `plainElementKindLabel()` |
 | Levels | `buildMapParentIndex()`, `levelForFocus()`, `mapAncestorsOf()` |
 | Links and blast radius | `liftLinksToView()`, `computeLinkBlastRadius()`, `classifyBlastLink()`, `inferLinkCoupling()`, `inferLinkPhase()`, `classifyLinkDependencyCategory()`, `filterLinksByCategories()`, `foldVendoredCopies()`, `traceSpreadingPath()` |

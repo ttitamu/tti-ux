@@ -42,6 +42,8 @@ import {
   type TuxMapLazyMergeState,
   type TuxMapLevelElement,
   type TuxMapLevelModel,
+  type TuxMapNormalizedModel,
+  type TuxMapNormalizedSubgraph,
   type TuxMapLevelNumber,
   type TuxMapLevelRel,
   type TuxMapLink,
@@ -320,7 +322,8 @@ const modelBundle = computed(() => {
   };
 });
 
-const activeModel = computed<TuxMapLevelModel>(() => modelBundle.value.model);
+// Normalized: `subgraphs` and each subgraph's `rels` are there, so nothing below guards them (#164).
+const activeModel = computed<TuxMapNormalizedModel>(() => modelBundle.value.model);
 const modelAliases = computed<Record<string, string>>(() => modelBundle.value.aliases);
 const modelValidationSummary = computed<string>(() => {
   if (props.model === undefined) return "";
@@ -348,9 +351,10 @@ const modelValidationSummary = computed<string>(() => {
   return parts.length > 0 ? `Model diagnostics: ${parts.join("; ")}` : "";
 });
 
-// Schema-name warnings (`missing-schema`, `unknown-schema`, #162) go to the console, once per `model` object the
-// host hands in: the validation ran on that object as given, before anything here touched it. They draw nothing
-// and change nothing in the map; a lazily resolved subgraph recomputes `modelBundle` but is the same `model`.
+// The validator's warnings go to the console, once per `model` object the host hands in: the validation ran on
+// that object as given, before anything here touched it. The schema-name ones (`missing-schema`, `unknown-schema`,
+// #162) change nothing in the map; `missing-field` (#164) names a required list the model left out, drawn as the
+// empty default. A lazily resolved subgraph recomputes `modelBundle` but is the same `model`.
 let schemaWarnedModel: unknown;
 watch(
   () => modelBundle.value.validation.warnings,
@@ -722,41 +726,41 @@ watch(
   },
 );
 
-function getSubgraphForNode(nodeId: string | null | undefined): TuxMapSubgraph | null {
+function getSubgraphForNode(nodeId: string | null | undefined): TuxMapNormalizedSubgraph | null {
   if (!nodeId) return null;
   const canonical = resolveAliasId(nodeId) ?? nodeId;
   const M = activeModel.value;
-  if (hasOwn(M.subgraphs, canonical) && M.subgraphs![canonical]!.elements.length > 0) {
-    return M.subgraphs![canonical]!;
+  if (hasOwn(M.subgraphs, canonical) && M.subgraphs[canonical]!.elements.length > 0) {
+    return M.subgraphs[canonical]!;
   }
   const el = hasOwn(byId.value, canonical) ? byId.value[canonical] : undefined;
   if (
     el?.subgraphRef &&
     hasOwn(M.subgraphs, el.subgraphRef) &&
-    M.subgraphs![el.subgraphRef]!.elements.length
+    M.subgraphs[el.subgraphRef]!.elements.length
   ) {
-    return M.subgraphs![el.subgraphRef]!;
+    return M.subgraphs[el.subgraphRef]!;
   }
   if (el?.children?.length) {
     return {
       stratum: `Internal Modules (${el.name})`,
       elements: el.children,
-      rels: el.childRels,
+      rels: el.childRels ?? [],
     };
   }
   const dn = hasOwn(resById.value, canonical) ? resById.value[canonical] : undefined;
   if (
     dn?.subgraphRef &&
     hasOwn(M.subgraphs, dn.subgraphRef) &&
-    M.subgraphs![dn.subgraphRef]!.elements.length
+    M.subgraphs[dn.subgraphRef]!.elements.length
   ) {
-    return M.subgraphs![dn.subgraphRef]!;
+    return M.subgraphs[dn.subgraphRef]!;
   }
   if (dn?.children?.length) {
     return {
       stratum: `Internal Modules (${dn.title})`,
       elements: dn.children,
-      rels: dn.childRels,
+      rels: dn.childRels ?? [],
     };
   }
   return null;
@@ -806,10 +810,8 @@ const byId = computed<Record<string, TuxMapLevelElement>>(() => {
   for (const n of activeModel.value.level4.nodes) {
     if (n.children?.length) indexChildren(n.id, n.children);
   }
-  if (activeModel.value.subgraphs) {
-    for (const [parentId, sg] of Object.entries(activeModel.value.subgraphs)) {
-      indexChildren(parentId, sg.elements);
-    }
+  for (const [parentId, sg] of Object.entries(activeModel.value.subgraphs)) {
+    indexChildren(parentId, sg.elements);
   }
   return map;
 });
@@ -897,17 +899,17 @@ function hasLazySubgraphRef(id: string): boolean {
 /** True while the model has no elements for the subgraph `id` owns or points at with `subgraphRef`. */
 function lacksLazySubgraph(id: string): boolean {
   const M = activeModel.value;
-  if (hasOwn(M.subgraphs, id) && M.subgraphs![id]!.elements.length > 0) return false;
+  if (hasOwn(M.subgraphs, id) && M.subgraphs[id]!.elements.length > 0) return false;
   const el = hasOwn(byId.value, id) ? byId.value[id] : undefined;
   if (el?.subgraphRef) {
-    if (hasOwn(M.subgraphs, el.subgraphRef) && M.subgraphs![el.subgraphRef]!.elements.length > 0) {
+    if (hasOwn(M.subgraphs, el.subgraphRef) && M.subgraphs[el.subgraphRef]!.elements.length > 0) {
       return false;
     }
     return true;
   }
   const dn = hasOwn(resById.value, id) ? resById.value[id] : undefined;
   if (dn?.subgraphRef) {
-    if (hasOwn(M.subgraphs, dn.subgraphRef) && M.subgraphs![dn.subgraphRef]!.elements.length > 0) {
+    if (hasOwn(M.subgraphs, dn.subgraphRef) && M.subgraphs[dn.subgraphRef]!.elements.length > 0) {
       return false;
     }
     return true;
@@ -917,14 +919,14 @@ function lacksLazySubgraph(id: string): boolean {
 
 function hasFractalSubgraph(id: string): boolean {
   const M = activeModel.value;
-  if (hasOwn(M.subgraphs, id) && M.subgraphs![id]!.elements.length > 0) return true;
+  if (hasOwn(M.subgraphs, id) && M.subgraphs[id]!.elements.length > 0) return true;
   const el = hasOwn(byId.value, id) ? byId.value[id] : undefined;
   if (el) {
     if (el.children?.length) return true;
     if (
       el.subgraphRef &&
       hasOwn(M.subgraphs, el.subgraphRef) &&
-      M.subgraphs![el.subgraphRef]!.elements.length > 0
+      M.subgraphs[el.subgraphRef]!.elements.length > 0
     ) {
       return true;
     }
@@ -935,7 +937,7 @@ function hasFractalSubgraph(id: string): boolean {
     if (
       dn.subgraphRef &&
       hasOwn(M.subgraphs, dn.subgraphRef) &&
-      M.subgraphs![dn.subgraphRef]!.elements.length > 0
+      M.subgraphs[dn.subgraphRef]!.elements.length > 0
     ) {
       return true;
     }
@@ -2210,7 +2212,7 @@ function countInnerItemsForCard(e: TuxMapLevelElement): number {
     return l3.filter((x) => isShownStatus(x.status)).length;
   }
   const sg = getSubgraphForNode(e.id);
-  if (sg?.elements?.length) {
+  if (sg?.elements.length) {
     return sg.elements.filter((x) => isShownStatus(x.status)).length;
   }
   return 0;
@@ -5348,7 +5350,7 @@ const outlineRows = computed<OutlineTreeRow[]>(() => {
     const l3 = getLevel3Kids(M, id);
     if (l3?.length) return l3.filter((x) => isShownStatus(x.status));
     const sg = getSubgraphForNode(id);
-    if (sg?.elements?.length) return sg.elements.filter((x) => isShownStatus(x.status));
+    if (sg?.elements.length) return sg.elements.filter((x) => isShownStatus(x.status));
     return [];
   };
   const visit = (el: TuxMapLevelElement, depth: number) => {

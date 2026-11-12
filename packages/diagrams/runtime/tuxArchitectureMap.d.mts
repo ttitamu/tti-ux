@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: bb56ae3cde40131f61fb2696b8ca2dcffeb963dd4be478fa4b10ce37ec0c7fe6
+// SOURCE-SHA256: 0c06a82690acfd2b41203f697f9d7f9ff334e12a4c929f08096c55bb1b58b799
 /**
  * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
  *
@@ -771,6 +771,48 @@ export interface TuxMapLevelModel {
     routes?: TuxMapRouteEntry[];
 }
 /**
+ * A subgraph after `sanitizeMapModel`: `rels` is always an array.
+ * @public
+ */
+export interface TuxMapNormalizedSubgraph extends TuxMapSubgraph {
+    rels: TuxMapLevelRel[];
+}
+/**
+ * A model after `sanitizeMapModel`: what `<TuxArchitectureMap>` lays out and what `collapseModelSubgraphs` returns
+ * when it is given one. It is a `TuxMapLevelModel`, so every function that takes a model takes it; the difference is
+ * that the fields below marked "filled" are always there, so code that holds a normalized model reads them without
+ * a guard, and the compiler checks that (`tti/tti-ux#164`).
+ *
+ * Required or optional, field by field. "Required" is what the type says and what `validateMapModel` reports when a
+ * document lacks it; "filled" is what `sanitizeMapModel` puts there, once, so a document that lacks it still renders.
+ *
+ * | Field | In a document | `validateMapModel` when absent | In a normalized model |
+ * |---|---|---|---|
+ * | `level1`, `level2`, `level3`, `level4` | required | issue `missing-level` (`valid: false`) | filled: an empty level |
+ * | `level1.elements`, `level1.rels` | required | warning `missing-field` | filled: `[]` |
+ * | `level2.elements`, `level2.rels` | required | warning `missing-field` | filled: `[]` |
+ * | `level2.boundary` | required | warning `missing-field` | filled: `""` (no boundary drawn) |
+ * | `level3[containerId]` | required to be a list | none | filled: `[]` |
+ * | `level4.groups`, `level4.nodes`, `level4.links` | required | warning `missing-field` | filled: `[]` |
+ * | `subgraphs` | optional | none | filled: `{}` |
+ * | `subgraphs[key].elements` | required | warning `missing-field` | filled: `[]` |
+ * | `subgraphs[key].rels` | optional | none | filled: `[]` |
+ * | `level4.zones`, `level4.neighbors`, `level4.centerTitle` | optional | none | left absent: absence selects the built-in columns and title |
+ * | `links`, `linkTiers`, `stopKinds` | optional | none | left absent: read together through `resolveModelRawLinks`, where a present `stopKinds` means something an empty default would not |
+ * | `routes`, `aliases` | optional | none | left absent (`aliases` is cleaned when present; `collapseModelSubgraphs` returns the full alias table) |
+ * | `schema`, titles, summaries, base URLs | optional | `missing-schema` for `schema`, none for the rest | left absent |
+ * | on an element or a deployment node: `kind`, `status`, `at`, `source`, `children`, `childRels`, `hosts`, `deps`, `runs`, `deployed`, `roadmap`, `live`, `diff`, `facts`, … | optional | none | left absent: absence is the value (no source link, no inline children, hosts nothing), and filling them would copy every element of the model |
+ * | on a relationship or a link: `label`, `tech`, `status`, `kind`, `stop`, `at`, `sites`, `coupling`, `phase`, `violations` | optional | none | left absent |
+ * | `id`, `name` on an element; `id`, `kind`, `title`, `role` on a deployment node; `from`, `to` on a relationship or link | required | existing issues for ids and ends; none for the rest | not filled: a relationship or link without both ends is dropped, an element is kept as written |
+ *
+ * The fields left absent are still read with `?.` or `?? []` wherever they are used: that is one guard, on a field
+ * whose absence is meaningful. The guards this type removes are the ones on containers.
+ * @public
+ */
+export interface TuxMapNormalizedModel extends TuxMapLevelModel {
+    subgraphs: Record<string, TuxMapNormalizedSubgraph>;
+}
+/**
  * How strongly a link couples its two ends; decides which links each blast intent follows.
  * @public
  */
@@ -1029,7 +1071,7 @@ export declare function resolveModelRawLinks(model?: TuxMapLevelModel): TuxMapLi
  * `resolveSubgraph` returned elements and sanitizing removed them all (`tti/tti-ux#156`).
  * @public
  */
-export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "reserved-id" | "parent-cycle" | "max-depth-exceeded" | "unknown-link-end" | "unknown-rel-end" | "resolved-empty-subgraph" | "missing-schema" | "unknown-schema";
+export type TuxMapValidationIssueCode = "missing-level" | "duplicate-id" | "reserved-id" | "parent-cycle" | "max-depth-exceeded" | "unknown-link-end" | "unknown-rel-end" | "resolved-empty-subgraph" | "missing-schema" | "unknown-schema" | "missing-field";
 /**
  * One problem found by `validateMapModel`.
  * @public
@@ -1039,6 +1081,10 @@ export interface TuxMapValidationIssue {
     message: string;
     nodeId?: string;
     targetId?: string;
+    /** Where in the document, as a JSON Pointer (`/level1/elements`). Set by the codes that are about a field. */
+    path?: string;
+    /** How many places in the document have this same problem, when more than the one `path` names. */
+    count?: number;
 }
 /**
  * Result of `validateMapModel`.
@@ -1049,9 +1095,10 @@ export interface TuxMapValidationResult {
     valid: boolean;
     issues: TuxMapValidationIssue[];
     /**
-     * Notices that do not make the model invalid and change nothing in how it renders: `missing-schema` and
-     * `unknown-schema` (`tti/tti-ux#162`). Kept apart from `issues` so a caller that gates on `valid` or counts
-     * `issues` behaves as before.
+     * Notices that do not make the model invalid: `missing-schema` and `unknown-schema` (`tti/tti-ux#162`), which
+     * change nothing in how it renders, and `missing-field` (`tti/tti-ux#164`), a required list or the Level 2
+     * boundary left out, which renders as the empty default `sanitizeMapModel` fills in. Kept apart from `issues` so
+     * a caller that gates on `valid` or counts `issues` behaves as before.
      */
     warnings: TuxMapValidationIssue[];
     duplicateIds: string[];
@@ -1071,28 +1118,40 @@ export interface TuxMapValidationResult {
  * a document that has at least one of `level1`..`level4`, so the compatibility inputs of
  * `normalizeArchitectureModelInput` (which are not level models) are not told to carry a name that is not theirs.
  * Pass the document as the producer wrote it: the normalizer's output is already stamped.
+ *
+ * `missing-field` is the third warning (`tti/tti-ux#164`): a field the model type requires and a level that is
+ * there does not have, one warning per field with its `path`. For `elements` of a subgraph it is one warning for
+ * all the subgraphs that lack it, with their `count` and the `path` of the first. The table on
+ * `TuxMapNormalizedModel` lists the fields and what `sanitizeMapModel` fills in for each.
  * @public
  */
 export declare function validateMapModel(model: unknown): TuxMapValidationResult;
 /**
- * Produces a safe, non-throwing `TuxMapLevelModel` alongside its `validateMapModel` diagnostics (`tti/tti-ux#124`),
+ * Produces a safe, non-throwing model alongside its `validateMapModel` diagnostics (`tti/tti-ux#124`),
  * filling missing levels and breaking cyclic subgraph references.
+ *
+ * It is the one place defaults are filled (`tti/tti-ux#164`): the result is a `TuxMapNormalizedModel`, whose
+ * doc comment lists every field and its default. Elements, nodes, relationships and links that needed no change
+ * are the objects of `raw`, not copies.
  * @public
  */
 export declare function sanitizeMapModel(raw: unknown): {
-    model: TuxMapLevelModel;
+    model: TuxMapNormalizedModel;
     validation: TuxMapValidationResult;
 };
 /**
  * Collapses single-child folder chains (`a/ -> b/ -> c/` becomes `a/b/c/`) and skips the intermediate
  * `Folders` subgraph level for small components (`<= maxSmallComponentFiles`, default `8`), recording
  * `aliases[skippedFolderId] = resolvedFocusId` so existing `#focus=` bookmarks still resolve (`tti/tti-ux#124`).
+ *
+ * The result has the type of the model given: a `TuxMapNormalizedModel` stays one (`tti/tti-ux#164`), because
+ * this adds no subgraph without `rels` and never removes `subgraphs`. Given any other model it fills nothing in.
  * @public
  */
-export declare function collapseModelSubgraphs(model: TuxMapLevelModel, opts?: {
+export declare function collapseModelSubgraphs<M extends TuxMapLevelModel>(model: M, opts?: {
     maxSmallComponentFiles?: number;
 }): {
-    model: TuxMapLevelModel;
+    model: M;
     aliases: Record<string, string>;
 };
 /**
@@ -1109,7 +1168,7 @@ export declare function buildMapParentIndex(model: TuxMapLevelModel): Map<string
 export interface TuxMapLazyMergeState {
     /** The model the subgraphs were merged into, as it was passed. */
     raw: unknown;
-    model: TuxMapLevelModel;
+    model: TuxMapNormalizedModel;
     aliases: Record<string, string>;
     validation: TuxMapValidationResult;
     /**
@@ -1117,7 +1176,7 @@ export interface TuxMapLazyMergeState {
      * alias is the same object as in `from`. `owner` is the parent of `elements` in the parent index.
      */
     added?: {
-        from: TuxMapLevelModel;
+        from: TuxMapNormalizedModel;
         key: string;
         owner: string;
         elements: TuxMapLevelElement[];
@@ -1601,7 +1660,7 @@ export declare function normalizeArchitectureModelInput(raw: unknown, opts?: {
  * Minimal zero-sample fallback model (`tti/tti-ux#114`).
  * @public
  */
-export declare const EMPTY_TTI_LEVEL_MODEL: TuxMapLevelModel;
+export declare const EMPTY_TTI_LEVEL_MODEL: TuxMapNormalizedModel;
 /**
  * Memoized `O(V + E)` query index per `TuxMapLevelModel` instance so repeated
  * layer, blast-radius, shortest-path, and lease queries do not rebuild graph tables.

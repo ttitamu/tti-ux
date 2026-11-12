@@ -41,13 +41,13 @@ import {
   type TuxMapDeploymentZone,
   type TuxMapGridCellRect,
   type TuxMapLevelElement,
-  type TuxMapLevelModel,
+  type TuxMapNormalizedModel,
+  type TuxMapNormalizedSubgraph,
   type TuxMapLevelRel,
   type TuxMapLiftedSide,
   type TuxMapLink,
   type TuxMapLinkViolation,
   type TuxMapPlacedBoundary,
-  type TuxMapSubgraph,
   type TuxMapWireCategory,
   type TuxMapWireInspectorDetail,
 } from "../tuxArchitectureMap";
@@ -101,7 +101,7 @@ export interface ComputedStageData {
  * @internal
  */
 export interface StageModelContext {
-  model: TuxMapLevelModel;
+  model: TuxMapNormalizedModel;
   /** `resolveModelRawLinks(model)` */
   rawLinks: TuxMapLink[];
   /** Every element of the model by id */
@@ -181,7 +181,7 @@ export interface ViewStageBase {
   ctx: StageModelContext;
   /** The container or node whose inside is on stage */
   fId: string;
-  sg: TuxMapSubgraph | null;
+  sg: TuxMapNormalizedSubgraph | null;
   parentDn: TuxMapDeploymentNode | undefined;
   boundaryLabel: string;
   boundaryType: string;
@@ -634,7 +634,7 @@ function buildViewBase(
   ctx: StageModelContext,
   level: number,
   focusId: string | null,
-  subgraph: TuxMapSubgraph | null,
+  subgraph: TuxMapNormalizedSubgraph | null,
 ): ViewStageBase {
   const { CH, GY } = GRID_METRICS;
   const { model: M, lookup, resById, parentOf } = ctx;
@@ -644,7 +644,7 @@ function buildViewBase(
   const sg = level >= 5 ? subgraph : null;
   const fId =
     level >= 5
-      ? focusId || Object.keys(M.subgraphs || {})[0] || "c-api"
+      ? focusId || Object.keys(M.subgraphs)[0] || "c-api"
       : focusId && level3Kids(focusId)
         ? focusId
         : Object.keys(M.level3)[0] || "c-api";
@@ -661,7 +661,7 @@ function buildViewBase(
     kind: k.kind ?? "component",
     parent: fId,
   }));
-  const folded = foldVendoredCopies(baseKids, sg?.rels || [], ctx.rawLinks);
+  const folded = foldVendoredCopies(baseKids, sg ? sg.rels : [], ctx.rawLinks);
   const kids = folded.elements;
 
   const useBands = kids.length > 24;
@@ -981,7 +981,7 @@ function liftView(base: ViewStageBase, toggles: StageToggles): StageDraft {
   }
 
   kids.forEach((k) => {
-    if (k.next != null && (!folded.rels || folded.rels.length === 0) && codeCoveredInnerPairs.size === 0) {
+    if (k.next != null && folded.rels.length === 0 && codeCoveredInnerPairs.size === 0) {
       const nextKid = baseKids[k.next];
       const nextId = nextKid?.id || `${fId}/${k.next}`;
       const stepRel: TuxMapLevelRel = {
@@ -1546,7 +1546,7 @@ export function buildStageBase(
   ctx: StageModelContext,
   level: number,
   focusId: string | null,
-  subgraph: TuxMapSubgraph | null,
+  subgraph: TuxMapNormalizedSubgraph | null,
 ): StageBase {
   if (level === 4) return buildLevel4Base(ctx);
   if (level === 1) return buildLevel1Base(ctx);

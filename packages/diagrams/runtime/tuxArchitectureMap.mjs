@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: bb56ae3cde40131f61fb2696b8ca2dcffeb963dd4be478fa4b10ce37ec0c7fe6
+// SOURCE-SHA256: 0c06a82690acfd2b41203f697f9d7f9ff334e12a4c929f08096c55bb1b58b799
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -2285,6 +2285,12 @@ export function resolveModelRawLinks(model) {
         pushLink(l, true);
     return out;
 }
+const REQUIRED_LEVEL_FIELDS = [
+    ["level1", ["elements", "rels"]],
+    ["level2", ["boundary", "elements", "rels"]],
+    ["level4", ["groups", "nodes", "links"]],
+];
+const jsonPointerToken = (key) => key.replace(/~/g, "~0").replace(/\//g, "~1");
 export function validateMapModel(model) {
     const issues = [];
     const duplicateSet = new Set();
@@ -2322,6 +2328,38 @@ export function validateMapModel(model) {
             warnings.push({
                 code: "unknown-schema",
                 message: `Architecture model declares schema ${shown}; this release supports "${TUX_MAP_SCHEMA}". It is read as "${TUX_MAP_SCHEMA}", best effort.`,
+            });
+        }
+    }
+    for (const [levelKey, fields] of REQUIRED_LEVEL_FIELDS) {
+        const level = model[levelKey];
+        if (!isPlainRecord(level))
+            continue;
+        for (const field of fields) {
+            if (level[field] === undefined || level[field] === null) {
+                warnings.push({
+                    code: "missing-field",
+                    message: `Architecture model has no '${levelKey}.${field}'; it is read as ${field === "boundary" ? "no boundary" : "an empty list"}.`,
+                    path: `/${levelKey}/${field}`,
+                });
+            }
+        }
+    }
+    if (isPlainRecord(model.subgraphs)) {
+        let count = 0;
+        let first = "";
+        for (const [key, sg] of Object.entries(model.subgraphs)) {
+            if (!isPlainRecord(sg) || (sg.elements !== undefined && sg.elements !== null))
+                continue;
+            if (count++ === 0)
+                first = key;
+        }
+        if (count > 0) {
+            warnings.push({
+                code: "missing-field",
+                message: `${count === 1 ? "A subgraph has" : `${count} subgraphs have`} no 'elements' (the first is '${first.slice(0, 64)}'); each is read as an empty list.`,
+                path: `/subgraphs/${jsonPointerToken(first)}/elements`,
+                ...(count > 1 ? { count } : {}),
             });
         }
     }
@@ -2704,18 +2742,13 @@ function sanitizeMapModelKeepingPass(raw, validation = validateMapModel(raw)) {
             ? { ...n, ...(id !== rawId ? { id } : {}), ...(hasKids ? { children: nextKids } : {}) }
             : n);
     }
-    const sanitizeSubgraph = (sg, ownerId) => {
-        const els = sanitizeChildElements(sg.elements, ownerId, 1);
-        const rels = sg.rels !== undefined ? sanitizeRelEndpoints(sg.rels) : undefined;
-        return {
-            ...sg,
-            elements: els,
-            ...(rels !== undefined ? { rels } : {}),
-        };
-    };
-    let safeSubgraphs;
+    const sanitizeSubgraph = (sg, ownerId) => ({
+        ...sg,
+        elements: sanitizeChildElements(sg.elements, ownerId, 1),
+        rels: sanitizeRelEndpoints(sg.rels),
+    });
+    const safeSubgraphs = Object.create(null);
     if (isPlainRecord(m.subgraphs)) {
-        const cleaned = Object.create(null);
         for (const [rawKey, sg] of Object.entries(m.subgraphs)) {
             if (!isPlainRecord(sg))
                 continue;
@@ -2723,9 +2756,8 @@ function sanitizeMapModelKeepingPass(raw, validation = validateMapModel(raw)) {
             if (!key)
                 continue;
             const owner = sanitizeId(subgraphOwners.get(rawKey) ?? rawKey) || key;
-            setOwnProp(cleaned, key, sanitizeSubgraph(sg, owner));
+            setOwnProp(safeSubgraphs, key, sanitizeSubgraph(sg, owner));
         }
-        safeSubgraphs = cleaned;
     }
     let safeAliases;
     if (isPlainRecord(m.aliases)) {
@@ -2772,7 +2804,7 @@ function sanitizeMapModelKeepingPass(raw, validation = validateMapModel(raw)) {
             nodes: l4Nodes,
             links: sanitizeRelEndpoints(m.level4?.links),
         },
-        ...(safeSubgraphs ? { subgraphs: safeSubgraphs } : {}),
+        subgraphs: safeSubgraphs,
         ...(safeAliases ? { aliases: safeAliases } : {}),
         ...(safeLinks !== undefined ? { links: safeLinks } : {}),
     };
@@ -3136,13 +3168,11 @@ function prepareLazyMerge(keep, prev, prevMergedRaw) {
         return null;
     const sanitized = Object.create(null);
     const singleFolderRefs = new Set();
-    if (isPlainRecord(keep.sanitizedModel.subgraphs)) {
-        for (const [k, sg] of Object.entries(keep.sanitizedModel.subgraphs)) {
-            setOwnProp(sanitized, k, sg);
-            const only = sg.elements.length === 1 ? sg.elements[0] : undefined;
-            if (only?.id && isFolderLikeElement(only))
-                singleFolderRefs.add(subgraphKeyOfElement(only));
-        }
+    for (const [k, sg] of Object.entries(keep.sanitizedModel.subgraphs)) {
+        setOwnProp(sanitized, k, sg);
+        const only = sg.elements.length === 1 ? sg.elements[0] : undefined;
+        if (only?.id && isFolderLikeElement(only))
+            singleFolderRefs.add(subgraphKeyOfElement(only));
     }
     const componentKeys = new Set();
     for (const kids of Object.values(prev.model.level3)) {
@@ -3153,11 +3183,9 @@ function prepareLazyMerge(keep, prev, prevMergedRaw) {
     }
     const folderHosts = new Map();
     const collapsedSubgraphs = prev.model.subgraphs;
-    if (isPlainRecord(collapsedSubgraphs)) {
-        for (const compKey of componentKeys) {
-            if (hasOwn(collapsedSubgraphs, compKey)) {
-                noteFolderHosts(folderHosts, compKey, collapsedSubgraphs[compKey].elements);
-            }
+    for (const compKey of componentKeys) {
+        if (hasOwn(collapsedSubgraphs, compKey)) {
+            noteFolderHosts(folderHosts, compKey, collapsedSubgraphs[compKey].elements);
         }
     }
     keep.prepared = { sanitized, rawOwners, collapsedOwners, componentKeys, folderHosts, singleFolderRefs };
@@ -3261,9 +3289,9 @@ function addLazySubgraph(prev, keep, mergedRaw, lazy, lazyKeys, done) {
     const collapsedEntry = aliased
         ? remapSubgraphRelsThroughAliases({ ...entry, elements: [...els] }, prev.aliases)
         : entry;
-    const prevSubgraphs = isPlainRecord(prev.model.subgraphs) ? prev.model.subgraphs : undefined;
+    const prevSubgraphs = prev.model.subgraphs;
     const collapsedOwnerId = collapsedOwners.get(key) ?? key;
-    const collapsedOwnersAdded = ownersAddedBySubgraph(collapsedOwners, collapsedOwnerId, collapsedEntry.elements, (k) => k === key || (prevSubgraphs !== undefined && hasOwn(prevSubgraphs, k)));
+    const collapsedOwnersAdded = ownersAddedBySubgraph(collapsedOwners, collapsedOwnerId, collapsedEntry.elements, (k) => k === key || hasOwn(prevSubgraphs, k));
     if (!collapsedOwnersAdded)
         return null;
     for (const [k, v] of rawOwnersAdded)
@@ -3278,10 +3306,8 @@ function addLazySubgraph(prev, keep, mergedRaw, lazy, lazyKeys, done) {
     keep.lazyKeys = lazyKeys;
     keep.lazyValues = [...keep.lazyValues, sg];
     const subgraphs = Object.create(null);
-    if (prevSubgraphs) {
-        for (const [k, v] of Object.entries(prevSubgraphs))
-            setOwnProp(subgraphs, k, v);
-    }
+    for (const [k, v] of Object.entries(prevSubgraphs))
+        setOwnProp(subgraphs, k, v);
     setOwnProp(subgraphs, key, collapsedEntry);
     return {
         raw,
@@ -5744,6 +5770,7 @@ export const EMPTY_TTI_LEVEL_MODEL = {
     level2: { title: "Containers", boundary: "", elements: [], rels: [] },
     level3: {},
     level4: { title: "Deployment", groups: [], nodes: [], links: [] },
+    subgraphs: Object.create(null),
 };
 export function getMapQueryIndex(model = EMPTY_TTI_LEVEL_MODEL) {
     const isObjModel = model != null && typeof model === "object";
