@@ -3450,7 +3450,10 @@ function onViewportScroll() {
 function panelFollowsMap(): boolean {
   if (effectiveIsListView.value) return true;
   const el = panelRef.value;
-  return Boolean(el && typeof window !== "undefined" && window.getComputedStyle(el).position === "static");
+  // in the flow the panel is `relative` (its close button is placed against it); over the map, `absolute`
+  if (!el || typeof window === "undefined") return false;
+  const position = window.getComputedStyle(el).position;
+  return position === "static" || position === "relative";
 }
 
 /**
@@ -6619,7 +6622,7 @@ function buildSourceHref(src?: {
           </button>
           <div class="tux-map__stepper-stratum">
             <span class="tux-map__stepper-lvl">L{{ currentLevel }}</span>
-            <span class="tux-map__stepper-name">{{ currentStratumShort }}</span>
+            <span class="tux-map__stepper-name" :title="currentStratumShort">{{ currentStratumShort }}</span>
           </div>
           <button
             type="button"
@@ -6630,49 +6633,6 @@ function buildSourceHref(src?: {
             @click="stepInLevel()"
           >
             +
-          </button>
-        </div>
-
-        <!-- Magnify (#106): past fitting the width, the diagram scrolls -->
-        <div
-          v-if="!effectiveIsListView"
-          class="tux-map__stepper tux-map__magnify"
-          role="group"
-          aria-label="Magnify the diagram"
-        >
-          <button
-            type="button"
-            class="tux-map__iconbtn"
-            :disabled="!isMagnified"
-            aria-label="Make the diagram smaller"
-            title="Smaller"
-            @click="magnifyBy(-1)"
-          >
-            A−
-          </button>
-          <button
-            type="button"
-            class="tux-map__magnify-fit"
-            :aria-pressed="!isMagnified"
-            :aria-label="
-              isMagnified
-                ? `Fit the diagram to the width (now ${magnifyLabel})`
-                : 'The diagram fits the width'
-            "
-            title="Fit to the width"
-            @click="magnifyFit()"
-          >
-            {{ magnifyLabel }}
-          </button>
-          <button
-            type="button"
-            class="tux-map__iconbtn"
-            :disabled="!canMagnify"
-            aria-label="Make the diagram larger"
-            title="Larger: then scroll or swipe to move around it"
-            @click="magnifyBy(1)"
-          >
-            A+
           </button>
         </div>
 
@@ -6802,67 +6762,118 @@ function buildSourceHref(src?: {
           </div>
         </div>
 
-        <span class="tux-map__spacer" />
-
-        <!-- Cross-Level Go-To Palette Trigger (#120) -->
-        <button
-          type="button"
-          class="tux-map__goto-btn"
-          aria-haspopup="dialog"
-          :aria-expanded="goToOpen"
-          title="Go to any component, folder, file, function, or route (/ or Ctrl+K)"
-          @click="openGoToPalette()"
+        <!-- Magnify (#106): past fitting the width, the diagram scrolls. Last of the leading controls:
+             the list view has no magnify, and nothing after it moves when it goes (#205) -->
+        <div
+          v-if="!effectiveIsListView"
+          class="tux-map__stepper tux-map__magnify"
+          role="group"
+          aria-label="Magnify the diagram"
         >
-          <Icon name="lucide:scan-search" aria-hidden="true" />
-          <span>Go to…</span>
-          <kbd class="tux-map__goto-kbd" aria-hidden="true">/</kbd>
-        </button>
-
-        <!-- Per-Level Search Filter (#120) -->
-        <div class="tux-map__search-wrap">
-          <Icon name="lucide:search" class="tux-map__search-icon" aria-hidden="true" />
-          <input
-            v-model="searchQuery"
-            type="search"
-            class="tux-map__search-input"
-            placeholder="Filter this level…"
-            aria-label="Filter architecture elements"
-          />
-          <span v-if="matchingSearchIds" class="tux-map__search-count" aria-hidden="true">
-            {{ matchingSearchIds.size }} of {{ stageTotalCount }} here
-          </span>
-        </div>
-
-        <!-- Diagram / List View Switch -->
-        <div class="tux-map__seg" role="group" aria-label="Display mode">
           <button
             type="button"
-            :aria-pressed="!effectiveIsListView"
-            @click="setExplicitViewMode('diagram')"
+            class="tux-map__iconbtn"
+            :disabled="!isMagnified"
+            aria-label="Make the diagram smaller"
+            title="Smaller"
+            @click="magnifyBy(-1)"
           >
-            Diagram
+            A−
           </button>
           <button
             type="button"
-            :aria-pressed="effectiveIsListView"
-            @click="setExplicitViewMode('list')"
+            class="tux-map__magnify-fit"
+            :aria-pressed="!isMagnified"
+            :aria-label="
+              isMagnified
+                ? `Fit the diagram to the width (now ${magnifyLabel})`
+                : 'The diagram fits the width'
+            "
+            title="Fit to the width"
+            @click="magnifyFit()"
           >
-            List
+            {{ magnifyLabel }}
+          </button>
+          <button
+            type="button"
+            class="tux-map__iconbtn"
+            :disabled="!canMagnify"
+            aria-label="Make the diagram larger"
+            title="Larger: then scroll or swipe to move around it"
+            @click="magnifyBy(1)"
+          >
+            A+
           </button>
         </div>
+        <!-- The list view has nothing to magnify. The group's width stays, empty, so the row
+             breaks where it does in the diagram view (#205) -->
+        <span v-else class="tux-map__magnify-gap" aria-hidden="true" />
 
-        <!-- Keyboard Shortcuts Help Trigger (#117) -->
-        <button
-          type="button"
-          class="tux-map__iconbtn tux-map__shortcuts-btn"
-          aria-haspopup="dialog"
-          :aria-expanded="shortcutsOpen"
-          aria-label="Keyboard shortcuts (?)"
-          title="Keyboard shortcuts (?)"
-          @click="shortcutsOpen ? closeShortcutsModal(true) : openShortcutsModal($event.currentTarget)"
-        >
-          ?
-        </button>
+        <!-- The trailing controls wrap as one group, in one order, at every level and in both views (#205) -->
+        <div class="tux-map__tools-end">
+          <!-- Cross-Level Go-To Palette Trigger (#120) -->
+          <button
+            type="button"
+            class="tux-map__goto-btn"
+            aria-haspopup="dialog"
+            :aria-expanded="goToOpen"
+            title="Go to any component, folder, file, function, or route (/ or Ctrl+K)"
+            @click="openGoToPalette()"
+          >
+            <Icon name="lucide:scan-search" aria-hidden="true" />
+            <span>Go to…</span>
+            <kbd class="tux-map__goto-kbd" aria-hidden="true">/</kbd>
+          </button>
+
+          <!-- Per-Level Search Filter (#120) -->
+          <div class="tux-map__search-wrap">
+            <Icon name="lucide:search" class="tux-map__search-icon" aria-hidden="true" />
+            <input
+              v-model="searchQuery"
+              type="search"
+              class="tux-map__search-input"
+              placeholder="Filter this level…"
+              aria-label="Filter architecture elements"
+            />
+            <span v-if="matchingSearchIds" class="tux-map__search-count" aria-hidden="true">
+              {{ matchingSearchIds.size }} of {{ stageTotalCount }} here
+            </span>
+          </div>
+
+          <!-- The switch and the help button stay together: `?` never wraps alone (#205) -->
+          <div class="tux-map__tools-pair">
+            <!-- Diagram / List View Switch -->
+            <div class="tux-map__seg" role="group" aria-label="Display mode">
+              <button
+                type="button"
+                :aria-pressed="!effectiveIsListView"
+                @click="setExplicitViewMode('diagram')"
+              >
+                Diagram
+              </button>
+              <button
+                type="button"
+                :aria-pressed="effectiveIsListView"
+                @click="setExplicitViewMode('list')"
+              >
+                List
+              </button>
+            </div>
+
+            <!-- Keyboard Shortcuts Help Trigger (#117) -->
+            <button
+              type="button"
+              class="tux-map__iconbtn tux-map__shortcuts-btn"
+              aria-haspopup="dialog"
+              :aria-expanded="shortcutsOpen"
+              aria-label="Keyboard shortcuts (?)"
+              title="Keyboard shortcuts (?)"
+              @click="shortcutsOpen ? closeShortcutsModal(true) : openShortcutsModal($event.currentTarget)"
+            >
+              ?
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Breadcrumb Trail with Sibling Switcher Dropdowns & Narrow Overflow Collapse (#116, #125) -->
@@ -9134,8 +9145,10 @@ function buildSourceHref(src?: {
   color: var(--text-primary);
 }
 
+/* one width for every level's name: the stepper, and so the toolbar after it, does not
+   change size from level to level (#205) */
 .tux-map__stepper-name {
-  max-width: 11rem;
+  width: 8rem;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -9221,8 +9234,30 @@ function buildSourceHref(src?: {
   cursor: pointer;
 }
 
-.tux-map__spacer {
-  flex: 1;
+/* The trailing controls (Go to, the filter, Diagram/List, help) are one group at the end of the
+   toolbar. They wrap to the next row together and keep their order, so a control is where it was
+   at every level and in both views (#205) */
+.tux-map__tools-end {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.55rem 0.85rem;
+  margin-left: auto;
+}
+
+.tux-map__tools-pair {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+/* a narrow map: the group may break, between the filter and the Diagram/List pair */
+@container tux-map (max-width: 620px) {
+  .tux-map__tools-end {
+    flex-wrap: wrap;
+    margin-left: 0;
+  }
 }
 
 .tux-map__search-wrap {
@@ -9292,7 +9327,16 @@ function buildSourceHref(src?: {
   color: var(--text-primary);
 }
 
+/* the width of the magnify group (two buttons, Fit, the group's border), held in the list view */
+.tux-map__magnify-gap {
+  flex: none;
+  width: calc(var(--tux-map-target) * 2 + 3.4rem + 2px);
+  height: var(--tux-map-target);
+  visibility: hidden;
+}
+
 .tux-map__magnify-fit {
+  box-sizing: border-box;
   min-width: 3.4rem;
   min-height: var(--tux-map-target);
   padding: 0 0.4rem;
@@ -10779,6 +10823,8 @@ function buildSourceHref(src?: {
   border-radius: var(--radius-md);
   background: var(--surface-raised);
   padding: 1rem 1.1rem;
+  /* a path or an id with no space in it wraps inside the panel instead of running out of it */
+  overflow-wrap: anywhere;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
   transform: translateX(calc(100% + 24px));
   visibility: hidden;
@@ -11596,14 +11642,30 @@ function buildSourceHref(src?: {
   width: 100%;
 }
 
+/* In the flow (the list view, a narrow map, a narrow map with the outline) the panel is
+   `relative`, not `static`: its close button is placed against it. Against the canvas it
+   floated over the first row of the list (#205) */
 .tux-map__canvas--list .tux-map__panel {
-  position: static;
+  position: relative;
+  inset: auto;
   transform: none;
   visibility: visible;
   width: auto;
   max-height: none;
   margin-top: 1rem;
   box-shadow: none;
+}
+
+/* With the outline open the list's details stay under the list, beside the outline. Auto-placed,
+   they fell into the outline's 236px column (#205) */
+.tux-map__canvas--list.tux-map__canvas--with-outline .tux-map__panel {
+  grid-column: 2;
+}
+
+@container tux-map (max-width: 760px) {
+  .tux-map__canvas--list.tux-map__canvas--with-outline .tux-map__panel {
+    grid-column: 1 / -1;
+  }
 }
 
 .tux-map__canvas--list .tux-map__panel:not(.tux-map__panel--open) {
@@ -11731,7 +11793,8 @@ function buildSourceHref(src?: {
 @container tux-map (max-width: 920px) {
   .tux-map__canvas--with-outline .tux-map__panel {
     grid-column: 1 / -1;
-    position: static;
+    position: relative;
+    inset: auto;
     transform: none;
     visibility: visible;
     width: auto;
@@ -11748,7 +11811,8 @@ function buildSourceHref(src?: {
 /* A narrow map (a phone, a sidebar): the details follow the diagram instead of covering it */
 @container tux-map (max-width: 640px) {
   .tux-map__panel {
-    position: static;
+    position: relative;
+    inset: auto;
     transform: none;
     visibility: visible;
     width: auto;
