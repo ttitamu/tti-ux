@@ -248,3 +248,26 @@ describe("TuxArchitectureMap: a card shows whole rows (#205)", () => {
     expect(title("c-api/y").querySelectorAll("wbr").length).toBe(0);
   });
 });
+
+describe("TuxArchitectureMap: wires and labels the highlight does not reach stay legible (#205)", () => {
+  const REST = ':not(.tux-map__lab--on):not(:hover):not(:focus-visible):not([aria-expanded="true"])';
+
+  it("steps a label back by its surface and its text colour, not by fading it", () => {
+    const box = declarations(`.tux-map__stage--dim .tux-map__lab${REST}`).join(";");
+    // opacity took the text to 1.3:1 on the canvas; the tokens hold 7:1 (measured in the four themes)
+    expect(box).not.toMatch(/opacity/);
+    expect(box).toMatch(/background:\s*var\(--surface-sunken\)/);
+    expect(declarations(`.tux-map__stage--dim .tux-map__lab${REST} .tux-map__lab-t1`).join(";")).toMatch(
+      /color:\s*var\(--text-secondary\)/,
+    );
+    // a crowded label is still hidden until its wire is lit
+    expect(declarations(`.tux-map__stage--dim .tux-map__lab--forced${REST}`).join(";")).toMatch(/opacity:\s*0\b/);
+  });
+
+  it("keeps a wire the highlight does not reach at 3:1 or more against the canvas", () => {
+    const opacity = /opacity:\s*([\d.]+)/.exec(declarations(".tux-map__wires--has-on .tux-map__wire").join(";"))?.[1];
+    // --text-secondary over the canvas: 3.09:1 at 0.6 in the light theme, the lowest of the four
+    expect(Number(opacity)).toBeGreaterThanOrEqual(0.6);
+    expect(Number(opacity)).toBeLessThan(Number(/opacity:\s*([\d.]+)/.exec(declarations(".tux-map__wire")[0]!)![1]));
+  });
+});

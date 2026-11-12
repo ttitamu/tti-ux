@@ -9967,8 +9967,10 @@ function buildSourceHref(src?: {
   display: none;
 }
 
+/* A wire the highlight does not reach steps back and stays a line: 3:1 or more against the
+   canvas in every TUX theme (1.4.11). At 0.12 it was 1.2:1, close to the canvas colour (#205) */
 .tux-map__wires--has-on .tux-map__wire {
-  opacity: 0.12;
+  opacity: 0.6;
 }
 
 [data-vision-stroke="heavy"] .tux-map__wire {
@@ -10240,9 +10242,17 @@ function buildSourceHref(src?: {
   color: var(--text-muted);
 }
 
+/* A label the highlight does not reach steps back by its surface, not by fading: it lies flat on
+   the canvas's own colour with quieter text, which holds 7:1 in every TUX theme (9.2:1 or more
+   for the first line, 7.1:1 or more for the second). At opacity 0.15 its text was 1.3:1 (#205) */
 .tux-map__stage--dim .tux-map__lab:not(.tux-map__lab--on):not(:hover):not(:focus-visible):not([aria-expanded="true"]) {
   z-index: 1;
-  opacity: 0.15;
+  background: var(--surface-sunken);
+  box-shadow: none;
+}
+
+.tux-map__stage--dim .tux-map__lab:not(.tux-map__lab--on):not(:hover):not(:focus-visible):not([aria-expanded="true"]) .tux-map__lab-t1 {
+  color: var(--text-secondary);
 }
 
 .tux-map__stage--dim .tux-map__lab--forced:not(.tux-map__lab--on):not(:hover):not(:focus-visible):not([aria-expanded="true"]) {
