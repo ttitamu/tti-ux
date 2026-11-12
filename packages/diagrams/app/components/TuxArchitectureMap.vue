@@ -4019,7 +4019,10 @@ function goToLevel(
               duration: 340,
               delay: Math.min(140, i * 16),
               easing: "cubic-bezier(0.22, 1.28, 0.36, 1)",
-              fill: "both",
+              // "backwards" holds a card back until its turn and lets go of it at the end. "both"
+              // kept the last frame on the card for good: its opacity 1 outranks the stylesheet, so
+              // after any change of level no filter, hover or selection could dim a card (#205)
+              fill: "backwards",
             },
           );
         }

@@ -358,3 +358,84 @@ describe("TuxArchitectureMap double-click (#205)", () => {
     w.unmount();
   });
 });
+
+const litCards = (w: Mounted) =>
+  w.findAll(".tux-map__el[data-id]").filter((c) => c.classes("tux-map__el--lit")).map((c) => c.attributes("data-id"));
+const allCards = (w: Mounted) => w.findAll(".tux-map__el[data-id]").map((c) => c.attributes("data-id"));
+const stageDims = (w: Mounted) => w.find(".tux-map__stage").classes("tux-map__stage--dim");
+
+async function filterLevel(w: Mounted, text: string) {
+  await w.find("input.tux-map__search-input").setValue(text);
+  await settle();
+}
+
+describe("TuxArchitectureMap level filter on the diagram (#205)", () => {
+  it("dims the cards that do not match, and lights them again when the filter is cleared", async () => {
+    const w = await mountMap();
+    expect(allCards(w)).toEqual(["c-gateway", "c-runner", "c-store"]);
+    await filterLevel(w, "runner");
+    expect(w.find(".tux-map__search-count").text()).toBe("1 of 3 here");
+    expect(stageDims(w)).toBe(true);
+    expect(litCards(w)).toEqual(["c-runner"]);
+
+    await filterLevel(w, "");
+    expect(stageDims(w)).toBe(false);
+    expect(litCards(w)).toEqual(allCards(w));
+    w.unmount();
+  });
+
+  it("keeps the filter's dimming when the pointer moves over a card and away, and when a card is chosen", async () => {
+    const w = await mountMap();
+    await filterLevel(w, "runner");
+    const over = card(w, "c-gateway");
+    await over.trigger("pointerover");
+    await settle();
+    expect(litCards(w)).toEqual(["c-runner"]);
+    await w.find(".tux-map__stage").trigger("pointerleave");
+    await settle();
+    expect(litCards(w)).toEqual(["c-runner"]);
+
+    await card(w, "c-store").trigger("click");
+    await settle();
+    expect(stageDims(w)).toBe(true);
+    expect(litCards(w)).toEqual(["c-runner"]);
+    w.unmount();
+  });
+
+  // jsdom has no Web Animations, so the map plays none in the other tests. Here `animate` is
+  // recorded: what an animation leaves on a card after it ends is what the browser shows.
+  it("leaves no animation on a level's cards once they have appeared, so the filter's dimming shows", async () => {
+    type Call = { el: HTMLElement; frames: Keyframe[]; options: KeyframeAnimationOptions };
+    const calls: Call[] = [];
+    const proto = HTMLElement.prototype as unknown as { animate?: unknown };
+    const had = Object.prototype.hasOwnProperty.call(proto, "animate");
+    const before = proto.animate;
+    proto.animate = function (this: HTMLElement, frames: Keyframe[], options: KeyframeAnimationOptions) {
+      calls.push({ el: this, frames, options });
+      return { cancel() {}, finish() {}, onfinish: null };
+    };
+    try {
+      const w = await mountMap();
+      await stepIn(w).trigger("click");
+      await settle();
+      expect(levelText(w)).toContain("Level 3");
+
+      const onCards = calls.filter((c) => c.el.classList.contains("tux-map__el"));
+      const revealed = onCards.filter((c) => c.frames.some((f) => f.opacity !== undefined));
+      expect(revealed.map((c) => c.el.dataset.id).sort()).toEqual(["c-gateway/core", "c-gateway/routes", "c-store"]);
+      // "forwards" and "both" hold the last frame (opacity 1) on the card for as long as it lives,
+      // over the 0.28 the stylesheet gives a card the filter, a hover or a selection dims
+      expect(onCards.map((c) => c.options.fill ?? "none").filter((f) => f === "both" || f === "forwards")).toEqual([]);
+      // the staggered start still holds a card back until its turn
+      expect(revealed.every((c) => c.options.fill === "backwards")).toBe(true);
+
+      await filterLevel(w, "core");
+      expect(stageDims(w)).toBe(true);
+      expect(litCards(w)).toEqual(["c-gateway/core"]);
+      w.unmount();
+    } finally {
+      if (had) proto.animate = before;
+      else delete proto.animate;
+    }
+  });
+});
