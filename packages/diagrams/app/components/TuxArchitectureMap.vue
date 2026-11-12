@@ -2324,6 +2324,9 @@ function countInnerItemsForCard(e: TuxMapLevelElement): number {
   return 0;
 }
 
+/** The key's first blast-radius entry stands for the selection, not for a change the model carries. */
+const blastKeyOfSelection = computed<boolean>(() => !(hasModelDiffs.value && blastFade.value?.of !== "selection"));
+
 const renderedCards = computed(() =>
   stageData.value.els.map((e) => {
     const r = hasOwn(stageData.value.rects, e.id) ? stageData.value.rects[e.id] : undefined;
@@ -7173,12 +7176,16 @@ function buildSourceHref(src?: {
       </template>
       <template v-if="showBlastRadius">
         <li>
-          <i class="tux-map__swatch tux-map__swatch--diff-direct" />
-          {{ hasModelDiffs && blastFade?.of !== "selection" ? "PR Modified" : "Selected" }}
+          <!-- "Selected" is drawn as the selected card is, "PR Modified" as a changed one (#205) -->
+          <i
+            class="tux-map__swatch"
+            :class="blastKeyOfSelection ? 'tux-map__swatch--selected' : 'tux-map__swatch--diff-direct'"
+          />
+          {{ blastKeyOfSelection ? "Selected" : "PR Modified" }}
         </li>
         <li>
           <i class="tux-map__swatch tux-map__swatch--diff-impact" />
-          {{ hasModelDiffs && blastFade?.of !== "selection" ? "Blast-Radius Impacted" : "Depends on selection" }}
+          {{ blastKeyOfSelection ? "Depends on selection" : "Blast-Radius Impacted" }}
         </li>
         <li v-if="blastFade">
           <i class="tux-map__swatch tux-map__swatch--card tux-map__swatch--faded" />
@@ -7377,6 +7384,7 @@ function buildSourceHref(src?: {
           class="tux-map__stage"
           :class="{
             'tux-map__stage--pan': isPanningStage,
+            'tux-map__stage--blast-selection': showBlastRadius && blastKeyOfSelection,
             'tux-map__stage--dim': Boolean(
               activeLitId || matchingSearchIds || blastRadiusState || stageTraceState,
             ),
@@ -9643,6 +9651,12 @@ function buildSourceHref(src?: {
   border: 2px solid var(--status-warning);
 }
 
+/* the ring of `.tux-map__el[aria-pressed="true"]` */
+.tux-map__swatch--selected {
+  background: var(--surface-raised);
+  border: 2px solid var(--brand-primary);
+}
+
 /* The opacity of a card the blast radius does not reach (.tux-map__stage--dim) */
 .tux-map__swatch--faded {
   opacity: 0.28;
@@ -10848,6 +10862,12 @@ function buildSourceHref(src?: {
   box-shadow:
     inset 4px 0 0 var(--status-warning),
     0 0 0 2px color-mix(in srgb, var(--status-warning) 45%, transparent);
+}
+
+/* In the radius of a selection the origin is the selected card, and it is drawn as selected:
+   the changed card's border under the selection's ring was a colour the key does not have (#205) */
+.tux-map__stage--blast-selection .tux-map__el--diff-direct[aria-pressed="true"] {
+  border-color: var(--brand-primary) !important;
 }
 
 .tux-map__el--diff-impact {

@@ -534,3 +534,42 @@ describe("TuxArchitectureMap: a jump to a level by number key does not linger (#
     }
   });
 });
+
+describe("TuxArchitectureMap: the blast radius key matches the cards (#205)", () => {
+  const swatchOf = (root: Element, text: string) =>
+    [...root.querySelectorAll(".tux-map__legend li")].find((li) => li.textContent!.trim() === text)?.querySelector("i");
+
+  it('draws "Selected" as the selected card is drawn, and the selected card as selected only', async () => {
+    const { wrapper } = await mountMap({ initialLevel: 2, initialShowBlastRadius: true });
+    await wrapper.find('.tux-map__el[data-id="c-db"]').trigger("click");
+    await nextTick();
+    await nextTick();
+    const swatch = swatchOf(wrapper.element, "Selected")!;
+    expect([...swatch.classList]).toEqual(["tux-map__swatch", "tux-map__swatch--selected"]);
+    const card = wrapper.find('.tux-map__el[data-id="c-db"]');
+    expect(card.attributes("aria-pressed")).toBe("true");
+    // it is the origin of the radius, and in the radius of a selection the origin is drawn as selected:
+    // the changed card's border under the selection's ring was a colour the key does not have
+    expect(card.classes()).toContain("tux-map__el--diff-direct");
+    expect(wrapper.find(".tux-map__stage").classes()).toContain("tux-map__stage--blast-selection");
+    expect(
+      declarations('.tux-map__stage--blast-selection .tux-map__el--diff-direct[aria-pressed="true"]')[0],
+    ).toMatch(/border-color:\s*var\(--brand-primary\)\s*!important/);
+    // what depends on it is still marked, and the key's entry for it is unchanged
+    expect(wrapper.findAll(".tux-map__stage .tux-map__el--diff-impact").length).toBeGreaterThan(0);
+    expect([...swatchOf(wrapper.element, "Depends on selection")!.classList]).toContain("tux-map__swatch--diff-impact");
+    // the swatch and the selected card's ring are one token
+    expect(declarations(".tux-map__swatch--selected")[0]).toMatch(/border:\s*2px solid var\(--brand-primary\)/);
+    expect(declarations('.tux-map__el[aria-pressed="true"]')[0]).toMatch(/box-shadow:\s*0 0 0 2px var\(--brand-primary\)/);
+  });
+
+  it('keeps "PR Modified" and the changed cards in the colour of a change', async () => {
+    const { wrapper } = await mountMap({ initialLevel: 3, initialFocus: "c-api", initialShowBlastRadius: true });
+    const swatch = swatchOf(wrapper.element, "PR Modified")!;
+    expect([...swatch.classList]).toEqual(["tux-map__swatch", "tux-map__swatch--diff-direct"]);
+    expect(wrapper.findAll(".tux-map__stage .tux-map__el--diff-direct").length).toBeGreaterThan(0);
+    expect(wrapper.find(".tux-map__stage").classes()).not.toContain("tux-map__stage--blast-selection");
+    expect(declarations(".tux-map__swatch--diff-direct")[0]).toMatch(/var\(--status-warning\)/);
+    expect(declarations(".tux-map__el--diff-direct")[0]).toMatch(/border-color:\s*var\(--status-warning\)/);
+  });
+});
