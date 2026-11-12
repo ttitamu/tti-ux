@@ -353,8 +353,9 @@ const modelValidationSummary = computed<string>(() => {
 
 // The validator's warnings go to the console, once per `model` object the host hands in: the validation ran on
 // that object as given, before anything here touched it. The schema-name ones (`missing-schema`, `unknown-schema`,
-// #162) change nothing in the map; `missing-field` (#164) names a required list the model left out, drawn as the
-// empty default. A lazily resolved subgraph recomputes `modelBundle` but is the same `model`.
+// #162) change nothing in the map; the rest are what the model's schema finds (#163, #164): a required field left
+// out, a value of the wrong type, a kind or an enum value this release does not list. The map draws all of them
+// (filled, left out, or kept). A lazily resolved subgraph recomputes `modelBundle` but is the same `model`.
 let schemaWarnedModel: unknown;
 watch(
   () => modelBundle.value.validation.warnings,

@@ -18,6 +18,22 @@ conventions.
 
 ## [Unreleased]
 
+### Added — Architecture map: the validator checks the shape of a document, against a schema generated from the types (#163)
+
+- `validateMapModel()` checked structure (ids, cycles, ends) and nothing about shape: a string where the types have a list, or a `kind` nobody knows, passed in silence and failed later, somewhere in the map. It now checks every document against the JSON Schema of the model and reports what it finds in `warnings`, with the `path` of each value:
+  - `missing-field`: a field the types require is absent or `null`. It was reported for the required lists (#164) and is now reported for every required field (an element's `name`, a deployment node's `title`, a route's `handler`, …).
+  - `invalid-type`: a value of another JSON type than the types have, a tuple of another length, or a value that fits no side of a union.
+  - `unknown-kind`: an element `kind` outside `TuxMapElementKind`.
+  - `unknown-enum-value`: any other value outside a closed list (`status`, `coupling`, `phase`, …).
+- The schema is new and is published with the package: `schema/tux-map-1.schema.json` (JSON Schema 2020-12), named for `tux-map/1`. It is generated from the TypeScript types by `scripts/build-map-schema.mjs`, with their doc comments as descriptions, and the package's tests fail when it is out of date (`check:schema`). No object in it is closed: a property the types do not name passes.
+- All four codes are warnings and never change `valid`. A kind or an enum value this release does not list is what a document from a later producer looks like, so it is reported and kept. One rule broken in many places is one warning with a `count`.
+- A document with these findings now renders. `sanitizeMapModel()` leaves out a value of the wrong type before it fills the defaults, gives an element with no `name` its id as the name, and gives an element or a deployment node with no `id` an empty one. Before, such a document could stop the map with a `TypeError` in whichever reader met the value first. A document with the types of the schema is not copied or changed by any of this.
+- The validator carries its own copy of the schema and reads it with a small interpreter. It adds no dependency and generates no code, so the runtime bundle still runs under a Content Security Policy without `unsafe-eval`. The bundle grows by about 22 KB unminified (290.6 KB to 312.8 KB; 61.3 KB to 65.3 KB gzipped), about half of it the schema.
+- The conformance check (`check:conformance`) now also asserts the shape of every model in the conformance fixture.
+- Cost: the check reads every value of the document once. On the 10,000-symbol benchmark model, validation goes from about 5 ms to about 14 ms, once per model; a lazy arrival reads only what arrived.
+
+**To check when upgrading:** nothing to change for a document that renders today, and `valid` and `issues` are what they were. A document with a shape finding now gets one console warning per rule from `<TuxArchitectureMap>`; a producer can run `validateMapModel()` or any JSON Schema validator with the published file to find them first. Code that switches over `TuxMapValidationIssueCode` exhaustively has three new members to handle.
+
 ### Changed — Architecture map: one normalizer fills the defaults, and the readers after it stop guarding (#164)
 
 - Every field of the model is now decided as required or optional, with the default of each optional one, in one table: the doc comment of the new type `TuxMapNormalizedModel`. A normalized model always has `subgraphs` (an empty object when the document has none) and every subgraph in it has `rels` (an empty list when the document gave none). The required lists of each level and the Level 2 boundary were already filled.

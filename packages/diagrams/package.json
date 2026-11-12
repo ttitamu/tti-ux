@@ -35,6 +35,7 @@
     "app",
     "runtime",
     "api",
+    "schema",
     "tests/fixtures/map-conformance.json",
     "nuxt.config.ts",
     "README.md"
@@ -49,7 +50,9 @@
   },
   "license": "Apache-2.0",
   "scripts": {
-    "test": "node scripts/build-map-runtime.mjs --check && node scripts/build-map-api.mjs --check && node scripts/generate-map-conformance.ts --check && vitest run",
+    "test": "node scripts/build-map-schema.mjs --check && node scripts/build-map-runtime.mjs --check && node scripts/build-map-api.mjs --check && node scripts/generate-map-conformance.ts --check && vitest run",
+    "build:schema": "node scripts/build-map-schema.mjs",
+    "check:schema": "node scripts/build-map-schema.mjs --check",
     "build:runtime": "node scripts/build-map-runtime.mjs",
     "check:runtime": "node scripts/build-map-runtime.mjs --check",
     "build:api": "node scripts/build-map-api.mjs",

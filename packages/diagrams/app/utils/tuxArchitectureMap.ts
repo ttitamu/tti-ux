@@ -1573,10 +1573,17 @@ export interface TuxMapNormalizedSubgraph extends TuxMapSubgraph {
  * | `schema`, titles, summaries, base URLs | optional | `missing-schema` for `schema`, none for the rest | left absent |
  * | on an element or a deployment node: `kind`, `status`, `at`, `source`, `children`, `childRels`, `hosts`, `deps`, `runs`, `deployed`, `roadmap`, `live`, `diff`, `facts`, … | optional | none | left absent: absence is the value (no source link, no inline children, hosts nothing), and filling them would copy every element of the model |
  * | on a relationship or a link: `label`, `tech`, `status`, `kind`, `stop`, `at`, `sites`, `coupling`, `phase`, `violations` | optional | none | left absent |
- * | `id`, `name` on an element; `id`, `kind`, `title`, `role` on a deployment node; `from`, `to` on a relationship or link | required | existing issues for ids and ends; none for the rest | not filled: a relationship or link without both ends is dropped, an element is kept as written |
+ * | `id`, `name` on an element | required | warning `missing-field` (and the existing issues for ids) | filled: `id` is `""` (the readers take it as "has none"), `name` is the id |
+ * | `id`, `kind`, `title`, `role` on a deployment node | required | warning `missing-field` | filled: `id`, `kind` and `role` are `""`, `title` is the id |
+ * | `from`, `to` on a relationship or link | required | warning `missing-field` (and the existing issues for ends) | not filled: a relationship or link without both ends is dropped |
+ * | any other field the types require (`path` of a source, `rule` of a violation, `pattern` and `handler` of a route, …) | required | warning `missing-field` | left absent |
  *
  * The fields left absent are still read with `?.` or `?? []` wherever they are used: that is one guard, on a field
  * whose absence is meaningful. The guards this type removes are the ones on containers.
+ *
+ * A field that is there with a value of another JSON type than its type here (a number for a `label`, an object
+ * for a list) is reported as `invalid-type` and read as absent, before the filling above (`tti/tti-ux#163`). So a
+ * normalized model has, in every field these types name, a value of the type they give it or none.
  * @public
  */
 export interface TuxMapNormalizedModel extends TuxMapLevelModel {
@@ -3749,20 +3756,412 @@ export function resolveModelRawLinks(model?: TuxMapLevelModel): TuxMapLink[] {
   return out;
 }
 
-/** The fields `validateMapModel` reports as `missing-field` when a level that is present lacks them. */
-const REQUIRED_LEVEL_FIELDS: ReadonlyArray<readonly [string, readonly string[]]> = [
-  ["level1", ["elements", "rels"]],
-  ["level2", ["boundary", "elements", "rels"]],
-  ["level4", ["groups", "nodes", "links"]],
-];
+/**
+ * The subset of JSON Schema that `scripts/build-map-schema.mjs` writes and `checkMapShape` reads. A schema with no
+ * keyword accepts any value.
+ */
+interface MapShapeSchema {
+  type?: "object" | "array" | "string" | "number" | "boolean";
+  properties?: Record<string, MapShapeSchema>;
+  required?: string[];
+  additionalProperties?: MapShapeSchema;
+  items?: MapShapeSchema;
+  prefixItems?: MapShapeSchema[];
+  minItems?: number;
+  maxItems?: number;
+  enum?: string[];
+  const?: string | number | boolean;
+  anyOf?: MapShapeSchema[];
+  $ref?: string;
+  $defs?: Record<string, MapShapeSchema>;
+}
+
+// <generated:map-schema>
+// Written by scripts/build-map-schema.mjs from TuxMapLevelModel and the types it is made of; do not edit.
+// The same schema, with descriptions, is published as schema/tux-map-1.schema.json.
+// prettier-ignore
+const MAP_SHAPE_SCHEMA: MapShapeSchema = {
+  type: "object",
+  properties: {"schema":{"const":"tux-map/1"},"generatedAt":{"type":"string"},"issueBaseUrl":{"type":"string"},"sourceBaseUrl":{"type":"string"},"level1":{"type":"object","properties":{"title":{"type":"string"},"summary":{"type":"string"},"elements":{"type":"array","items":{"$ref":"#/$defs/TuxMapLevelElement"}},"rels":{"type":"array","items":{"$ref":"#/$defs/TuxMapLevelRel"}}},"required":["elements","rels"]},"level2":{"type":"object","properties":{"title":{"type":"string"},"summary":{"type":"string"},"boundary":{"type":"string"},"elements":{"type":"array","items":{"anyOf":[{"$ref":"#/$defs/TuxMapLevelElement"},{"$ref":"#/$defs/TuxMapLevelRef"}]}},"rels":{"type":"array","items":{"$ref":"#/$defs/TuxMapLevelRel"}}},"required":["boundary","elements","rels"]},"level3":{"type":"object","additionalProperties":{"type":"array","items":{"$ref":"#/$defs/TuxMapLevelElement"}}},"level4":{"type":"object","properties":{"title":{"type":"string"},"summary":{"type":"string"},"zones":{"type":"array","items":{"$ref":"#/$defs/TuxMapDeploymentZone"}},"centerTitle":{"type":"string"},"groups":{"type":"array","items":{"$ref":"#/$defs/TuxMapDeploymentGroup"}},"nodes":{"type":"array","items":{"$ref":"#/$defs/TuxMapDeploymentNode"}},"links":{"type":"array","items":{"$ref":"#/$defs/TuxMapDeploymentLink"}},"neighbors":{"type":"array","items":{"$ref":"#/$defs/TuxMapNeighborResource"}}},"required":["groups","nodes","links"]},"subgraphs":{"type":"object","additionalProperties":{"$ref":"#/$defs/TuxMapSubgraph"}},"links":{"type":"array","items":{"$ref":"#/$defs/TuxMapLink"}},"linkTiers":{"type":"object","properties":{"spread":{"type":"array","items":{"$ref":"#/$defs/TuxMapLink"}},"stop":{"type":"array","items":{"$ref":"#/$defs/TuxMapLink"}}}},"stopKinds":{"type":"array","items":{"type":"string"}},"aliases":{"type":"object","additionalProperties":{"type":"string"}},"routes":{"type":"array","items":{"$ref":"#/$defs/TuxMapRouteEntry"}}},
+  required: ["level1","level2","level3","level4"],
+  $defs: {
+    TuxMapDeploymentGroup: {"type":"object","properties":{"id":{"type":"string"},"zone":{"type":"string"},"title":{"type":"string"},"rg":{"type":"string"}},"required":["id","zone","title"]},
+    TuxMapDeploymentLink: {"type":"object","properties":{"from":{"type":"string"},"to":{"type":"string"},"label":{"type":"string"},"kind":{"type":"string"},"state":{"type":"string","enum":["planned","now"]}},"required":["from","to"]},
+    TuxMapDeploymentNode: {"type":"object","properties":{"id":{"type":"string"},"zone":{"type":"string"},"group":{"type":"string"},"kind":{"type":"string"},"title":{"type":"string"},"role":{"type":"string"},"status":{"type":"string","enum":["planned","neighbor","now"]},"placement":{"type":"string"},"hosts":{"type":"array","items":{"type":"string"}},"deps":{"type":"array","items":{"type":"string"}},"roadmap":{"type":"array","items":{"type":"number"}},"source":{"$ref":"#/$defs/TuxMapSourceRef"},"diff":{"$ref":"#/$defs/TuxMapDiffInfo"},"children":{"type":"array","items":{"$ref":"#/$defs/TuxMapLevelElement"}},"childRels":{"type":"array","items":{"$ref":"#/$defs/TuxMapLevelRel"}},"subgraphRef":{"type":"string"},"facts":{"type":"object","properties":{"type":{"type":"string"},"size":{"type":"string"},"sku":{"type":"string"},"version":{"type":"string"},"nodes":{"type":"number"},"ingress":{"type":"string"},"images":{"type":"array","items":{"type":"string"}},"rules":{"type":"array","items":{"$ref":"#/$defs/TuxMapFirewallRule"}}}}},"required":["id","kind","title","role"]},
+    TuxMapDeploymentZone: {"type":"object","properties":{"id":{"type":"string"},"title":{"type":"string"},"column":{"type":"string","enum":["left","right","center"]},"planned":{"type":"boolean"},"zones":{"type":"array","items":{"type":"string"}}},"required":["id","title"]},
+    TuxMapDiffInfo: {"type":"object","properties":{"changeType":{"type":"string","enum":["added","modified","deleted"]},"filesChanged":{"type":"number"},"summary":{"type":"string"}},"required":["changeType"]},
+    TuxMapElementKind: {"type":"string","enum":["symbol","function","person","system","container","database","storage","component","folder","file","class","constant","module","schema","route","external","resource"]},
+    TuxMapElementLiveInfo: {"type":"object","properties":{"state":{"type":"string","enum":["running","active","present","success","inactive","declared-not-installed","failed","unknown"]},"total":{"type":"number"},"running":{"type":"number"},"version":{"type":"string"},"update":{"type":"string"},"updates":{"type":"number"},"severity":{"type":"string"},"newer_major":{"type":"string"},"unit":{"type":"string"},"findings":{"type":"string"},"last_run":{"type":"object","properties":{"result":{"type":"string"},"at":{"type":"string"}},"required":["result"]}}},
+    TuxMapElementStatus: {"type":"string","enum":["live","paused","planned","neighbor"]},
+    TuxMapFirewallRule: {"type":"object","properties":{"direction":{"type":"string","enum":["in","out"]},"access":{"type":"string","enum":["allow","deny"]},"ports":{"type":"array","items":{"type":"string"}},"from":{"type":"array","items":{"type":"string"}}},"required":["direction","access","ports","from"]},
+    TuxMapLevelElement: {"type":"object","properties":{"id":{"type":"string"},"kind":{"$ref":"#/$defs/TuxMapElementKind"},"name":{"type":"string"},"tech":{"type":"string"},"desc":{"type":"string"},"status":{"$ref":"#/$defs/TuxMapElementStatus"},"at":{"type":"array","prefixItems":[{"type":"number"},{"type":"number"}],"minItems":2,"maxItems":2},"px":{"type":"array","prefixItems":[{"type":"number"},{"type":"number"},{"type":"number"}],"minItems":3,"maxItems":3},"ref":{"type":"boolean"},"zoom":{"type":"number"},"parent":{"type":"string"},"side":{"type":"string","enum":["in","out"]},"mini":{"type":"boolean"},"next":{"type":"number"},"runs":{"anyOf":[{"type":"string"},{"type":"array","items":{"type":"string"}}]},"deployed":{"anyOf":[{"type":"string"},{"type":"array","items":{"type":"string"}}]},"roadmap":{"type":"array","items":{"type":"number"}},"live":{"$ref":"#/$defs/TuxMapElementLiveInfo"},"source":{"$ref":"#/$defs/TuxMapSourceRef"},"diff":{"$ref":"#/$defs/TuxMapDiffInfo"},"children":{"type":"array","items":{"$ref":"#/$defs/TuxMapLevelElement"}},"childRels":{"type":"array","items":{"$ref":"#/$defs/TuxMapLevelRel"}},"subgraphRef":{"type":"string"},"vendoredCopies":{"type":"array","items":{"type":"string"}},"isVendoredCopy":{"type":"boolean"},"vendoredFrom":{"type":"string"}},"required":["id","name"]},
+    TuxMapLevelRef: {"type":"object","properties":{"live":{"$ref":"#/$defs/TuxMapElementLiveInfo"},"kind":{"$ref":"#/$defs/TuxMapElementKind"},"name":{"type":"string"},"tech":{"type":"string"},"desc":{"type":"string"},"status":{"$ref":"#/$defs/TuxMapElementStatus"},"at":{"type":"array","prefixItems":[{"type":"number"},{"type":"number"}],"minItems":2,"maxItems":2},"px":{"type":"array","prefixItems":[{"type":"number"},{"type":"number"},{"type":"number"}],"minItems":3,"maxItems":3},"zoom":{"type":"number"},"parent":{"type":"string"},"side":{"type":"string","enum":["in","out"]},"mini":{"type":"boolean"},"next":{"type":"number"},"runs":{"anyOf":[{"type":"string"},{"type":"array","items":{"type":"string"}}]},"deployed":{"anyOf":[{"type":"string"},{"type":"array","items":{"type":"string"}}]},"roadmap":{"type":"array","items":{"type":"number"}},"source":{"$ref":"#/$defs/TuxMapSourceRef"},"diff":{"$ref":"#/$defs/TuxMapDiffInfo"},"children":{"type":"array","items":{"$ref":"#/$defs/TuxMapLevelElement"}},"childRels":{"type":"array","items":{"$ref":"#/$defs/TuxMapLevelRel"}},"subgraphRef":{"type":"string"},"vendoredCopies":{"type":"array","items":{"type":"string"}},"isVendoredCopy":{"type":"boolean"},"vendoredFrom":{"type":"string"},"id":{"type":"string"},"ref":{"const":true}},"required":["id","ref"]},
+    TuxMapLevelRel: {"type":"object","properties":{"from":{"type":"string"},"to":{"type":"string"},"label":{"type":"string"},"tech":{"type":"string"},"status":{"$ref":"#/$defs/TuxMapElementStatus"},"roadmap":{"type":"array","items":{"type":"number"}},"violations":{"type":"array","items":{"$ref":"#/$defs/TuxMapLinkViolation"}}},"required":["from","to"]},
+    TuxMapLink: {"type":"object","properties":{"from":{"type":"string"},"to":{"type":"string"},"kind":{"type":"string"},"label":{"type":"string"},"stop":{"type":"boolean"},"at":{"type":"string"},"sites":{"type":"array","items":{"type":"number"}},"coupling":{"$ref":"#/$defs/TuxMapLinkCoupling"},"phase":{"$ref":"#/$defs/TuxMapLinkPhase"},"violations":{"type":"array","items":{"$ref":"#/$defs/TuxMapLinkViolation"}}},"required":["from","to"]},
+    TuxMapLinkCoupling: {"type":"string","enum":["contract","runtime","type-only","artifact-stamp","build-exec","verification","prose"]},
+    TuxMapLinkPhase: {"type":"string","enum":["build-exec","prod-runtime","client-bundle","ci-test","doc-only"]},
+    TuxMapLinkViolation: {"type":"object","properties":{"rule":{"type":"string"},"message":{"type":"string"},"fix":{"type":"string"},"severity":{"type":"string","enum":["error","warning"]}},"required":["rule"]},
+    TuxMapNeighborResource: {"type":"object","properties":{"name":{"type":"string"},"type":{"type":"string"},"resourceGroup":{"type":"string"},"reason":{"type":"string"}},"required":["name","type","resourceGroup","reason"]},
+    TuxMapRouteEntry: {"type":"object","properties":{"method":{"type":"string"},"pattern":{"type":"string"},"handler":{"type":"string"},"framework":{"type":"string"}},"required":["pattern","handler"]},
+    TuxMapSourceRef: {"type":"object","properties":{"repo":{"type":"string"},"path":{"type":"string"},"lineRange":{"type":"array","prefixItems":[{"type":"number"},{"type":"number"}],"minItems":2,"maxItems":2},"symbol":{"type":"string"},"signature":{"type":"string"},"hash":{"type":"string"},"moduleHash":{"type":"string"},"commitSha":{"type":"string"},"url":{"type":"string"}},"required":["path"]},
+    TuxMapSubgraph: {"type":"object","properties":{"stratum":{"type":"string"},"summary":{"type":"string"},"elements":{"type":"array","items":{"$ref":"#/$defs/TuxMapLevelElement"}},"rels":{"type":"array","items":{"$ref":"#/$defs/TuxMapLevelRel"}}},"required":["elements"]},
+  },
+};
+// </generated:map-schema>
 
 /** One reference token of a JSON Pointer (RFC 6901): `~` and `/` escaped. */
 const jsonPointerToken = (key: string): string => key.replace(/~/g, "~0").replace(/\//g, "~1");
+
+/** The codes `validateMapModel` reports from the schema; all of them are warnings. */
+type MapShapeCode = "missing-field" | "invalid-type" | "unknown-kind" | "unknown-enum-value";
+
+/**
+ * Every place in one part of a document that breaks the same rule of the schema in the same way: the first
+ * `path`, what was `found` there, and how many places there are.
+ */
+interface MapShapeFinding {
+  code: MapShapeCode;
+  /** The schema of the value that is missing or wrong; two findings are the same rule when this is the same object. */
+  schema: MapShapeSchema;
+  path: string;
+  found: string;
+  count: number;
+}
+
+/**
+ * What a shape check has found so far. `trail` is where the walk is, as the tokens of a JSON Pointer; a path
+ * string is built from it only when a finding needs one.
+ */
+interface MapShapeWalk {
+  trail: Array<string | number>;
+  findings: MapShapeFinding[] | null;
+}
+
+/** What `checkMapShape` returns for a value that has to be left out of the model. */
+const MAP_SHAPE_DROP: unique symbol = /* @__PURE__ */ Symbol("drop");
+
+/**
+ * Shape findings by the object they were found in, with what the object is read as (`fixed`: the object
+ * itself when nothing in it had to be left out); see `validateMapModelKeepingShape`.
+ */
+type MapShapeCache = WeakMap<object, { path: string; findings: MapShapeFinding[] | null; fixed: unknown }>;
+
+/**
+ * The document a validation was run on, as it is read: without the values of another type than the schema has.
+ * Only there for a validation that left something out.
+ */
+const MAP_SHAPE_REPAIRS = /* @__PURE__ */ new WeakMap<TuxMapValidationResult, Record<string, unknown>>();
+
+const mapShapePath = (trail: ReadonlyArray<string | number>): string => {
+  let out = "";
+  for (const t of trail) out += `/${typeof t === "number" ? t : jsonPointerToken(t)}`;
+  return out;
+};
+
+/** What each `$ref` of the schema names, looked up once. */
+const MAP_SHAPE_REFS = /* @__PURE__ */ new Map<string, MapShapeSchema>();
+
+function resolveMapShapeSchema(schema: MapShapeSchema): MapShapeSchema {
+  const ref = schema.$ref;
+  if (ref === undefined) return schema;
+  let s = MAP_SHAPE_REFS.get(ref);
+  if (!s) {
+    s = schema;
+    while (s.$ref !== undefined) {
+      const name = s.$ref.slice("#/$defs/".length);
+      const defs = MAP_SHAPE_SCHEMA.$defs;
+      s = defs && hasOwn(defs, name) ? defs[name]! : {};
+    }
+    MAP_SHAPE_REFS.set(ref, s);
+  }
+  return s;
+}
+
+/**
+ * Whether `value` is all the `schema` asks for, for the schemas that ask for a string, a number or a boolean and
+ * nothing more. Most values of a document are these, and this spares each of them a walk of its own.
+ */
+function fitsMapShapeScalar(value: unknown, schema: MapShapeSchema): boolean {
+  const type = schema.type;
+  return (
+    (type === "string" || type === "number" || type === "boolean") &&
+    typeof value === type &&
+    schema.enum === undefined &&
+    schema.const === undefined
+  );
+}
+
+function addMapShapeFinding(
+  walk: MapShapeWalk,
+  code: MapShapeCode,
+  schema: MapShapeSchema,
+  found: string,
+  count = 1,
+  path?: string,
+): void {
+  const list = (walk.findings ??= []);
+  for (const f of list) {
+    if (f.schema === schema && f.code === code) {
+      f.count += count;
+      return;
+    }
+  }
+  list.push({ code, schema, path: path ?? mapShapePath(walk.trail), found, count });
+}
+
+function describeMapShapeValue(value: unknown): string {
+  if (value === null) return "null";
+  if (Array.isArray(value)) return `a list of ${value.length}`;
+  if (typeof value === "string") return `"${value.slice(0, 64)}"`;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return typeof value === "object" ? "an object" : `a ${typeof value}`;
+}
+
+function describeMapShapeSchema(schema: MapShapeSchema): string {
+  const s = resolveMapShapeSchema(schema);
+  if (s.anyOf) return [...new Set(s.anyOf.map(describeMapShapeSchema))].join(" or ");
+  if (s.const !== undefined) return JSON.stringify(s.const);
+  if (s.enum) return `one of ${s.enum.map((v) => `"${v}"`).join(", ")}`;
+  if (s.type === "array") return s.minItems !== undefined ? `a list of ${s.minItems}` : "a list";
+  if (s.type === "object") return "an object";
+  if (s.type === "boolean") return "true or false";
+  return s.type ? `a ${s.type}` : "any value";
+}
+
+/** Whether `value` is the JSON type the (resolved) `schema` names, before anything inside it is looked at. */
+function isMapShapeType(value: unknown, schema: MapShapeSchema): boolean {
+  if (schema.const !== undefined) return value === schema.const;
+  switch (schema.type) {
+    case "object":
+      return isPlainRecord(value);
+    case "array":
+      return Array.isArray(value);
+    case undefined:
+      return true;
+    default:
+      return typeof value === schema.type;
+  }
+}
+
+/**
+ * Checks `value` against `schema`, adds what it finds to `walk`, and returns the value as the map reads it. It
+ * reads the keywords `MapShapeSchema` lists and nothing else, by walking the schema: no code is generated, so it
+ * runs under a Content Security Policy that forbids `eval`.
+ *
+ * What it returns is `value` itself when every value in it is of the type the schema has, which is every model
+ * a producer of this schema writes. A value of another type is `invalid-type` and is left out: the property is
+ * dropped from a copy of its object, the item from a copy of its list, and a tuple with a wrong item is dropped
+ * whole (`MAP_SHAPE_DROP` when the value itself is the one to leave out). So no reader after this one meets a
+ * number where the types say string. A kind or an enum value this release does not list is reported and kept.
+ *
+ * `null` is read as absent, as the readers do: on a required field it is `missing-field`, on an optional one it
+ * is nothing. A property the schema does not name is not looked at, and is kept.
+ */
+function checkMapShape(value: unknown, given: MapShapeSchema, walk: MapShapeWalk): unknown {
+  const schema = resolveMapShapeSchema(given);
+  if (schema.anyOf) {
+    const fits = schema.anyOf.map(resolveMapShapeSchema).filter((s) => isMapShapeType(value, s));
+    if (fits.length === 0) {
+      addMapShapeFinding(walk, "invalid-type", schema, describeMapShapeValue(value));
+      return MAP_SHAPE_DROP;
+    }
+    if (fits.length === 1) return checkMapShape(value, fits[0]!, walk);
+    // The branch that fits best is the one the producer meant: report what is wrong against that one
+    let best: MapShapeWalk | undefined;
+    let bestCount = 0;
+    let bestFixed: unknown = value;
+    for (const branch of fits) {
+      const trial: MapShapeWalk = { trail: walk.trail, findings: null };
+      const fixed = checkMapShape(value, branch, trial);
+      if (!trial.findings) return value;
+      const count = trial.findings.reduce((n, f) => n + f.count, 0);
+      if (!best || count < bestCount) {
+        best = trial;
+        bestCount = count;
+        bestFixed = fixed;
+      }
+    }
+    for (const f of best!.findings!) addMapShapeFinding(walk, f.code, f.schema, f.found, f.count, f.path);
+    return bestFixed;
+  }
+  if (!isMapShapeType(value, schema)) {
+    addMapShapeFinding(walk, "invalid-type", schema, describeMapShapeValue(value));
+    return MAP_SHAPE_DROP;
+  }
+  if (schema.enum) {
+    if (!schema.enum.includes(value as string)) {
+      const last = walk.trail[walk.trail.length - 1];
+      addMapShapeFinding(
+        walk,
+        last === "kind" ? "unknown-kind" : "unknown-enum-value",
+        schema,
+        describeMapShapeValue(value),
+      );
+    }
+    return value;
+  }
+  const trail = walk.trail;
+  if (schema.type === "object") {
+    const obj = value as Record<string, unknown>;
+    const props = schema.properties;
+    if (schema.required && props) {
+      for (const key of schema.required) {
+        if (obj[key] === undefined || obj[key] === null) {
+          trail.push(key);
+          addMapShapeFinding(walk, "missing-field", props[key]!, "nothing");
+          trail.pop();
+        }
+      }
+    }
+    const rest = schema.additionalProperties;
+    let copy: Record<string, unknown> | undefined;
+    const keys = Object.keys(obj);
+    for (let k = 0; k < keys.length; k++) {
+      const key = keys[k]!;
+      const v = obj[key];
+      if (v === undefined || v === null) continue;
+      const sub = props && hasOwn(props, key) ? props[key] : rest;
+      if (!sub) continue;
+      if (fitsMapShapeScalar(v, sub)) continue;
+      trail.push(key);
+      const fixed = checkMapShape(v, sub, walk);
+      trail.pop();
+      if (fixed === v) continue;
+      copy ??= { ...obj };
+      if (fixed === MAP_SHAPE_DROP) delete copy[key];
+      else setOwnProp(copy, key, fixed);
+    }
+    return copy ?? obj;
+  }
+  if (schema.type === "array") {
+    const list = value as unknown[];
+    if (
+      (schema.minItems !== undefined && list.length < schema.minItems) ||
+      (schema.maxItems !== undefined && list.length > schema.maxItems)
+    ) {
+      addMapShapeFinding(walk, "invalid-type", schema, describeMapShapeValue(value));
+      return MAP_SHAPE_DROP;
+    }
+    const prefix = schema.prefixItems;
+    const items = schema.items;
+    if (!prefix && !items) return value;
+    let copy: unknown[] | undefined;
+    for (let i = 0; i < list.length; i++) {
+      const item = list[i];
+      const sub = prefix && i < prefix.length ? prefix[i] : items;
+      let fixed = item;
+      if (sub && !fitsMapShapeScalar(item, sub)) {
+        trail.push(i);
+        fixed = checkMapShape(item, sub, walk);
+        trail.pop();
+      }
+      if (fixed !== item) {
+        // A tuple is its items in their places: with one of them wrong there is nothing left to read
+        if (prefix) return MAP_SHAPE_DROP;
+        copy ??= list.slice(0, i);
+      }
+      if (copy && fixed !== MAP_SHAPE_DROP) copy.push(fixed);
+    }
+    return copy ?? list;
+  }
+  return value;
+}
+
+/**
+ * The shape findings of a whole document, in document order, the same rule broken in several parts counted
+ * once, and the document as it is read (`fixed`: `model` itself when nothing had to be left out, see
+ * `checkMapShape`). The parts are the values of the top-level fields and each entry of `subgraphs`; with a
+ * `cache`, a part that is the same object at the same place as last time is not walked again.
+ *
+ * Not checked here, because `validateMapModel` already reports them: `schema` (`missing-schema`,
+ * `unknown-schema`) and a level that is missing or not an object (`missing-level`).
+ */
+function collectMapShapeFindings(
+  model: Record<string, unknown>,
+  cache?: MapShapeCache,
+): { findings: MapShapeFinding[]; fixed: Record<string, unknown> } {
+  const all: MapShapeWalk = { trail: [], findings: null };
+  const part = (value: unknown, schema: MapShapeSchema, trail: string[]): unknown => {
+    const keyed = cache && typeof value === "object" && value !== null ? value : undefined;
+    const kept = keyed && cache!.get(keyed);
+    let findings: MapShapeFinding[] | null;
+    let fixed: unknown;
+    if (kept && kept.path === mapShapePath(trail)) {
+      findings = kept.findings;
+      fixed = kept.fixed;
+    } else {
+      const walk: MapShapeWalk = { trail, findings: null };
+      fixed = checkMapShape(value, schema, walk);
+      findings = walk.findings;
+      if (keyed) cache!.set(keyed, { path: mapShapePath(trail), findings, fixed });
+    }
+    if (findings) for (const f of findings) addMapShapeFinding(all, f.code, f.schema, f.found, f.count, f.path);
+    return fixed;
+  };
+  let copy: Record<string, unknown> | undefined;
+  const props = MAP_SHAPE_SCHEMA.properties ?? {};
+  for (const key of Object.keys(props)) {
+    if (key === "schema" || !hasOwn(model, key)) continue;
+    const value = model[key];
+    if (value === undefined || value === null) continue;
+    if (/^level[1-4]$/.test(key) && !isPlainRecord(value)) continue;
+    const entries = key === "subgraphs" && isPlainRecord(value) ? props[key]!.additionalProperties : undefined;
+    let fixed: unknown = value;
+    if (entries) {
+      let sgCopy: Record<string, unknown> | undefined;
+      for (const sgKey of Object.keys(value as Record<string, unknown>)) {
+        const sg = (value as Record<string, unknown>)[sgKey];
+        if (sg === undefined || sg === null) continue;
+        const fixedSg = part(sg, entries, [key, sgKey]);
+        if (fixedSg === sg) continue;
+        if (!sgCopy) {
+          sgCopy = Object.create(null) as Record<string, unknown>;
+          for (const [k, v] of Object.entries(value as Record<string, unknown>)) setOwnProp(sgCopy, k, v);
+        }
+        if (fixedSg === MAP_SHAPE_DROP) delete sgCopy[sgKey];
+        else setOwnProp(sgCopy, sgKey, fixedSg);
+      }
+      if (sgCopy) fixed = sgCopy;
+    } else {
+      fixed = part(value, props[key]!, [key]);
+    }
+    if (fixed === value) continue;
+    copy ??= { ...model };
+    if (fixed === MAP_SHAPE_DROP) delete copy[key];
+    else setOwnProp(copy, key, fixed);
+  }
+  return { findings: all.findings ?? [], fixed: copy ?? model };
+}
+
+function mapShapeWarning(f: MapShapeFinding): TuxMapValidationIssue {
+  const more = f.count > 1 ? ` (and ${f.count - 1} more like it)` : "";
+  const expected = describeMapShapeSchema(f.schema);
+  let message: string;
+  if (f.code === "missing-field") {
+    message =
+      resolveMapShapeSchema(f.schema).type === "array"
+        ? `Architecture model has no '${f.path}'${more}; it is read as an empty list.`
+        : `Architecture model has no '${f.path}'${more}, which the schema requires; the map fills in what it can.`;
+  } else if (f.code === "invalid-type") {
+    message = `Architecture model has ${f.found} at '${f.path}'${more} where the schema has ${expected}; it is left out.`;
+  } else if (f.code === "unknown-kind") {
+    message = `Architecture model has the kind ${f.found} at '${f.path}'${more}, which this release has no label for; it is shown under that name.`;
+  } else {
+    message = `Architecture model has ${f.found} at '${f.path}'${more}; this release knows ${expected}.`;
+  }
+  return { code: f.code, message, path: f.path, ...(f.count > 1 ? { count: f.count } : {}) };
+}
 
 /**
  * Kind of problem `validateMapModel` reports. `resolved-empty-subgraph` is the one it never
  * reports itself: `<TuxArchitectureMap>` adds it to its own diagnostics, once per card, when
  * `resolveSubgraph` returned elements and sanitizing removed them all (`tti/tti-ux#156`).
+ *
+ * The last four are what the schema of the model (`schema/tux-map-1.schema.json`, generated from these types)
+ * finds, and are only ever in `warnings` (`tti/tti-ux#163`): `missing-field`, a field the types require that is
+ * not there; `invalid-type`, a value of another JSON type than the types have; `unknown-kind`, an element `kind`
+ * this release does not list; `unknown-enum-value`, any other value outside a closed list (`status`, `coupling`,
+ * `phase`, …). A later release may add codes: read the ones you know and show the rest by their `message`.
  * @public
  */
 export type TuxMapValidationIssueCode =
@@ -3776,7 +4175,10 @@ export type TuxMapValidationIssueCode =
   | "resolved-empty-subgraph"
   | "missing-schema"
   | "unknown-schema"
-  | "missing-field";
+  | "missing-field"
+  | "invalid-type"
+  | "unknown-kind"
+  | "unknown-enum-value";
 
 /**
  * One problem found by `validateMapModel`.
@@ -3803,9 +4205,11 @@ export interface TuxMapValidationResult {
   issues: TuxMapValidationIssue[];
   /**
    * Notices that do not make the model invalid: `missing-schema` and `unknown-schema` (`tti/tti-ux#162`), which
-   * change nothing in how it renders, and `missing-field` (`tti/tti-ux#164`), a required list or the Level 2
-   * boundary left out, which renders as the empty default `sanitizeMapModel` fills in. Kept apart from `issues` so
-   * a caller that gates on `valid` or counts `issues` behaves as before.
+   * change nothing in how it renders, and what the schema of the model finds (`tti/tti-ux#163`, `#164`):
+   * `missing-field`, `invalid-type`, `unknown-kind` and `unknown-enum-value`. A model with any of these still
+   * renders: `sanitizeMapModel` fills what is missing, leaves out a value of the wrong type, and keeps a kind or
+   * an enum value it does not know. Kept apart from `issues` so a caller that gates on `valid` or counts `issues`
+   * behaves as before.
    */
   warnings: TuxMapValidationIssue[];
   duplicateIds: string[];
@@ -3827,13 +4231,36 @@ export interface TuxMapValidationResult {
  * `normalizeArchitectureModelInput` (which are not level models) are not told to carry a name that is not theirs.
  * Pass the document as the producer wrote it: the normalizer's output is already stamped.
  *
- * `missing-field` is the third warning (`tti/tti-ux#164`): a field the model type requires and a level that is
- * there does not have, one warning per field with its `path`. For `elements` of a subgraph it is one warning for
- * all the subgraphs that lack it, with their `count` and the `path` of the first. The table on
- * `TuxMapNormalizedModel` lists the fields and what `sanitizeMapModel` fills in for each.
+ * The other warnings are the shape of the document (`tti/tti-ux#163`, `#164`): it is checked against the JSON
+ * Schema generated from the model types, the one published as `schema/tux-map-1.schema.json`, by an interpreter
+ * in this file (no code is generated, so a Content Security Policy without `unsafe-eval` is enough).
+ * - `missing-field`: a field the types require is not there (or is `null`).
+ * - `invalid-type`: a value is of another JSON type than the types have, a tuple has another length, or a value
+ *   fits no side of a union.
+ * - `unknown-kind`: an element `kind` outside `TuxMapElementKind`.
+ * - `unknown-enum-value`: any other value outside a closed list of strings.
+ *
+ * Each has the `path` (a JSON Pointer) of the value. One rule broken in many places is one warning, with the
+ * `path` of the first place and the `count` of them all. A property the types do not name is not reported, and
+ * neither is anything already reported above: `schema`, and a level that is missing or is not an object.
+ *
+ * They are warnings and not issues for two reasons. A document with any of them still renders
+ * (`sanitizeMapModel` fills, leaves out or keeps, see `TuxMapNormalizedModel`). And a kind or an enum value
+ * this release does not know is what a document written for a later release looks like: reading it as an error
+ * would make every consumer that gates on `valid` refuse a model the day its producer is upgraded.
  * @public
  */
 export function validateMapModel(model: unknown): TuxMapValidationResult {
+  return validateMapModelKeepingShape(model);
+}
+
+/**
+ * `validateMapModel`, with the shape findings of each part of the document kept in `shapeCache` by the part's
+ * object. The lazy merge validates the whole model on every arrival; with the cache it checks the shape of the
+ * subgraph that arrived and reads the rest back. Only for a caller that knows the parts it validated before were
+ * not changed in place, which is what the lazy merge already requires of `raw`.
+ */
+function validateMapModelKeepingShape(model: unknown, shapeCache?: MapShapeCache): TuxMapValidationResult {
   const issues: TuxMapValidationIssue[] = [];
   const duplicateSet = new Set<string>();
   const cycleSet = new Set<string>();
@@ -3876,35 +4303,8 @@ export function validateMapModel(model: unknown): TuxMapValidationResult {
     }
   }
 
-  for (const [levelKey, fields] of REQUIRED_LEVEL_FIELDS) {
-    const level = model[levelKey];
-    if (!isPlainRecord(level)) continue;
-    for (const field of fields) {
-      if (level[field] === undefined || level[field] === null) {
-        warnings.push({
-          code: "missing-field",
-          message: `Architecture model has no '${levelKey}.${field}'; it is read as ${field === "boundary" ? "no boundary" : "an empty list"}.`,
-          path: `/${levelKey}/${field}`,
-        });
-      }
-    }
-  }
-  if (isPlainRecord(model.subgraphs)) {
-    let count = 0;
-    let first = "";
-    for (const [key, sg] of Object.entries(model.subgraphs)) {
-      if (!isPlainRecord(sg) || (sg.elements !== undefined && sg.elements !== null)) continue;
-      if (count++ === 0) first = key;
-    }
-    if (count > 0) {
-      warnings.push({
-        code: "missing-field",
-        message: `${count === 1 ? "A subgraph has" : `${count} subgraphs have`} no 'elements' (the first is '${first.slice(0, 64)}'); each is read as an empty list.`,
-        path: `/subgraphs/${jsonPointerToken(first)}/elements`,
-        ...(count > 1 ? { count } : {}),
-      });
-    }
-  }
+  const shape = collectMapShapeFindings(model, shapeCache);
+  for (const f of shape.findings) warnings.push(mapShapeWarning(f));
 
   const m = model as unknown as TuxMapLevelModel;
   const knownIds = new Set<string>();
@@ -4144,7 +4544,7 @@ export function validateMapModel(model: unknown): TuxMapValidationResult {
     checkEnd(l.to, l.from, "unknown-link-end");
   }
 
-  return {
+  const result: TuxMapValidationResult = {
     valid: issues.length === 0,
     issues,
     warnings,
@@ -4152,6 +4552,8 @@ export function validateMapModel(model: unknown): TuxMapValidationResult {
     cycleIds: [...cycleSet].sort(cmpCodepoint),
     unknownEnds: [...unknownSet].sort(cmpCodepoint),
   };
+  if (shape.fixed !== model) MAP_SHAPE_REPAIRS.set(result, shape.fixed);
+  return result;
 }
 
 /**
@@ -4193,7 +4595,9 @@ function sanitizeMapModelKeepingPass(
   if (!isPlainRecord(raw)) {
     return { model: EMPTY_TTI_LEVEL_MODEL, validation, pass: null };
   }
-  const m = raw as unknown as TuxMapLevelModel;
+  // What is sanitized is the document without the values the validator left out for their type (#163): the
+  // document itself, for every model that has the types of the schema
+  const m = (MAP_SHAPE_REPAIRS.get(validation) ?? raw) as unknown as TuxMapLevelModel;
   const cycleSet = new Set(validation.cycleIds);
   const sanitizeId = (id: unknown): string => {
     if (typeof id !== "string" || !id) return "";
@@ -4241,10 +4645,15 @@ function sanitizeMapModelKeepingPass(
       const hasChildRels = Array.isArray(el.childRels);
       const nextKids = hasKids ? sanitizeChildElements(el.children, id || ownerId, depth + 1) : undefined;
       const nextChildRels = hasChildRels ? sanitizeRelEndpoints<TuxMapLevelRel>(el.childRels) : undefined;
-      if (id !== rawId || hasKids || hasChildRels) {
+      // `id` and `name` are required and every reader after this one reads them as strings (#163; the validator
+      // says which are not, as `missing-field` or `invalid-type`): an id that is missing is empty, which the
+      // readers take as "has none", and a name that is missing is the id
+      const noName = typeof el.name !== "string";
+      if (id !== el.id || hasKids || hasChildRels || noName) {
         out.push({
           ...el,
-          ...(id !== rawId ? { id } : {}),
+          ...(id !== el.id ? { id } : {}),
+          ...(noName ? { name: id } : {}),
           ...(hasKids ? { children: nextKids } : {}),
           ...(hasChildRels ? { childRels: nextChildRels } : {}),
         });
@@ -4271,10 +4680,12 @@ function sanitizeMapModelKeepingPass(
     const nextKids = hasKids
       ? sanitizeChildElements((e as TuxMapLevelElement).children, id, 1)
       : undefined;
-    if (id !== rawId || hasKids) {
+    const noName = !e.ref && typeof (e as TuxMapLevelElement).name !== "string";
+    if (id !== e.id || hasKids || noName) {
       l2Els.push({
         ...e,
-        ...(id !== rawId ? { id } : {}),
+        ...(id !== e.id ? { id } : {}),
+        ...(noName ? { name: id } : {}),
         ...(hasKids ? { children: nextKids } : {}),
       } as TuxMapLevelElement);
     } else {
@@ -4298,9 +4709,21 @@ function sanitizeMapModelKeepingPass(
     if (id && !parentOfAccepted.has(id)) parentOfAccepted.set(id, sanitizeId(n.group) || "");
     const hasKids = Array.isArray(n.children);
     const nextKids = hasKids ? sanitizeChildElements(n.children, id, 1) : undefined;
+    // The three required strings of a deployment node, read as strings from here on: the title is the id, the
+    // kind and the role are empty
+    const noTitle = typeof n.title !== "string";
+    const noKind = typeof n.kind !== "string";
+    const noRole = typeof n.role !== "string";
     l4Nodes.push(
-      id !== rawId || hasKids
-        ? { ...n, ...(id !== rawId ? { id } : {}), ...(hasKids ? { children: nextKids } : {}) }
+      id !== n.id || hasKids || noTitle || noKind || noRole
+        ? {
+            ...n,
+            ...(id !== n.id ? { id } : {}),
+            ...(noTitle ? { title: id } : {}),
+            ...(noKind ? { kind: "" } : {}),
+            ...(noRole ? { role: "" } : {}),
+            ...(hasKids ? { children: nextKids } : {}),
+          }
         : n,
     );
   }
@@ -4741,6 +5164,8 @@ interface LazyMergeKeep {
   lazyValues: unknown[];
   pass: MapSanitizePass;
   cycleIds: string[];
+  /** The shape findings of each part of `raw` and of each resolved subgraph, so an arrival checks only its own. */
+  shape: MapShapeCache;
   /** The sanitized model before collapsing; its `subgraphs` are read once, by `prepareLazyMerge`. */
   sanitizedModel: TuxMapNormalizedModel;
   prepared?: {
@@ -4798,6 +5223,7 @@ export function mergeLazyMapSubgraphs(
   const keep = prev ? LAZY_MERGE_KEEP.get(prev) : undefined;
   // The validation of `mergedRaw`, when a step got as far as running it before giving up
   const done: { validation?: TuxMapValidationResult } = {};
+  const shape: MapShapeCache = (prev?.raw === raw && keep?.shape) || new WeakMap();
   if (prev && keep) {
     // The bookkeeping moves to the state returned below, or is dropped with a half-applied step
     LAZY_MERGE_KEEP.delete(prev);
@@ -4807,7 +5233,10 @@ export function mergeLazyMapSubgraphs(
       return next;
     }
   }
-  const sanitized = sanitizeMapModelKeepingPass(mergedRaw, done.validation);
+  const sanitized = sanitizeMapModelKeepingPass(
+    mergedRaw,
+    done.validation ?? validateMapModelKeepingShape(mergedRaw, shape),
+  );
   const collapsed = collapseModelSubgraphs(sanitized.model);
   const state: TuxMapLazyMergeState = {
     raw,
@@ -4821,6 +5250,7 @@ export function mergeLazyMapSubgraphs(
       lazyValues: lazyKeys.map((k) => lazy[k]),
       pass: sanitized.pass,
       cycleIds: sanitized.validation.cycleIds,
+      shape,
       sanitizedModel: sanitized.model,
     });
   }
@@ -4935,8 +5365,10 @@ function addLazySubgraph(
   if (hasOwn(sanitized, key)) return null;
 
   // The whole model is validated: the issue list is the full one, and the cycles decide what is dropped
-  const validation = validateMapModel(mergedRaw);
+  const validation = validateMapModelKeepingShape(mergedRaw, keep.shape);
   done.validation = validation;
+  // A document with values left out for their type is built from scratch, from what it is read as
+  if (MAP_SHAPE_REPAIRS.has(validation)) return null;
   if (
     validation.cycleIds.length !== keep.cycleIds.length ||
     validation.cycleIds.some((id, i) => id !== keep.cycleIds[i])

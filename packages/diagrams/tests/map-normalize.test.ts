@@ -4,25 +4,14 @@
  */
 import { describe, expect, it } from "vitest";
 import {
-  buildMapParentIndex,
   collapseModelSubgraphs,
   EMPTY_TTI_LEVEL_MODEL,
   mergeLazyMapSubgraphs,
-  resolveModelRawLinks,
   sanitizeMapModel,
   TUX_MAP_SCHEMA,
   validateMapModel,
-  type TuxMapDeploymentNode,
-  type TuxMapLevelElement,
-  type TuxMapNormalizedModel,
-  type TuxMapWireCategory,
 } from "../app/utils/tuxArchitectureMap";
-import {
-  buildStageBase,
-  buildStageData,
-  type StageModelContext,
-  type StageToggles,
-} from "../app/utils/internal/tuxArchitectureMapStage";
+import { buildEveryStage } from "./support/mapStages";
 
 /** Only what the model type requires: no optional field anywhere. */
 const minimalDocument = () => ({
@@ -31,50 +20,6 @@ const minimalDocument = () => ({
   level3: { "c-a": [{ id: "k-one", name: "One" }] },
   level4: { groups: [], nodes: [{ id: "vm", kind: "vm", title: "VM", role: "host" }], links: [] },
 });
-
-function stageContext(model: TuxMapNormalizedModel): StageModelContext {
-  const lookup: Record<string, TuxMapLevelElement> = Object.create(null);
-  const index = (kids: TuxMapLevelElement[], parent?: string) => {
-    kids.forEach((k, i) => {
-      const id = k.id || `${parent}/${i}`;
-      lookup[id] = parent ? { ...k, id, parent } : k;
-      if (k.children) index(k.children, id);
-    });
-  };
-  index(model.level1.elements);
-  index(model.level2.elements as TuxMapLevelElement[]);
-  for (const [cid, kids] of Object.entries(model.level3)) index(kids, cid);
-  for (const [key, sg] of Object.entries(model.subgraphs)) index(sg.elements, key);
-  const resById: Record<string, TuxMapDeploymentNode> = Object.create(null);
-  for (const n of model.level4.nodes) resById[n.id] = n;
-  return { model, rawLinks: resolveModelRawLinks(model), lookup, resById, parentOf: buildMapParentIndex(model) };
-}
-
-const TOGGLES: StageToggles = {
-  showPlanned: true,
-  wireCategories: new Set<TuxMapWireCategory>(),
-  splitIds: new Set<string>(),
-  countOtherSharedParts: () => 0,
-};
-
-/** Builds every level's stage the way the component does; a guard removed in error throws here. */
-function buildEveryStage(model: TuxMapNormalizedModel, level5Focus?: string): number[] {
-  const ctx = stageContext(model);
-  const built: number[] = [];
-  for (const [level, focus] of [
-    [1, null],
-    [2, null],
-    [3, "c-a"],
-    [4, null],
-    ...(level5Focus ? ([[5, level5Focus]] as const) : []),
-  ] as const) {
-    const sg = level >= 5 && focus ? (model.subgraphs[focus] ?? null) : null;
-    const data = buildStageData(buildStageBase(ctx, level, focus, sg), TOGGLES);
-    expect(data).toBeTypeOf("object");
-    built.push(level);
-  }
-  return built;
-}
 
 describe("the normalized model (#164)", () => {
   it("fills the documented default for every optional container, and the stage builders take the result", () => {

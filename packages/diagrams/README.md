@@ -109,6 +109,23 @@ What a host sees, by what it passes to `model`:
 
 To check a file where it is produced, call `validateMapModel()` on the document as written, not on the normalizer's output, which is already stamped.
 
+### The schema file, and what the validator checks with it
+
+`schema/tux-map-1.schema.json` is the JSON Schema (draft 2020-12) of `tux-map/1`: `TuxMapLevelModel` and every type it is made of, with their doc comments as descriptions. It is generated from the TypeScript types by `scripts/build-map-schema.mjs` and never edited; the package's tests fail when the file is out of date with the types (`npm run check:schema -w @tti/tti-ux-diagrams`, and `build:schema` to write it). Import it as `@tti/tti-ux-diagrams/schema/tux-map-1.schema.json` to check a document in a producer written in any language.
+
+The schema says what the types say and no more. No object is closed, so a property the types do not name passes: a document written for a later release is still a `tux-map/1` document to this one.
+
+`validateMapModel()` checks every document against the same schema and adds what it finds to `warnings`, each with the `path` (a JSON Pointer) of the value. It carries its own copy of the schema and reads it with an interpreter: it has no dependency and generates no code, so it runs under a Content Security Policy without `unsafe-eval`.
+
+| Code | The document has | The map |
+|---|---|---|
+| `missing-field` | No value (or `null`) for a field the types require. | Fills a required list with an empty one, an element's `name` and a deployment node's `title` with the id, and leaves the rest absent. |
+| `invalid-type` | A value of another JSON type than the types have: a number for a `label`, an object for a list, a tuple of another length. | Leaves the value out, and then treats the field as missing. |
+| `unknown-kind` | An element `kind` outside `TuxMapElementKind`. | Keeps it and shows the element under that kind. |
+| `unknown-enum-value` | Any other value outside a closed list (`status`, `coupling`, `phase`, a violation's `severity`, …). | Keeps it; the element or link is drawn without the styling of a value it does not know. |
+
+All four are warnings: they never change `valid`, and a document with any of them renders. The last two are warnings for a second reason, which is forward compatibility: a kind or an enum value this release does not list is exactly what a document from a later producer looks like, and a consumer that gates on `valid` must not refuse a model the day its producer is upgraded. One rule broken in many places is one warning, with the `path` of the first place and a `count`. `<TuxArchitectureMap>` writes them to the console once per model, like the schema-name warnings.
+
 ## Benchmarking the architecture map
 
 A change to the map's performance should land with a number. The benchmark gives one, and keeps a regression in how the map scales from merging.
