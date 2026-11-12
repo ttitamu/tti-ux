@@ -3465,7 +3465,27 @@ const magnifiedShowsFullHeight = computed<boolean>(
     viewportOuterHeight.value >= Math.ceil(stageData.value.height * stageScale.value) + VIEWPORT_BORDER - 0.5,
 );
 
+// The More menu of a narrow map opens under its button. Where the button is near the right
+// edge the menu ran past the map and was cut by the window or the frame around it (#205)
+const moreMenuRef = ref<HTMLElement | null>(null);
+
+function placeMoreMenu() {
+  const menu = moreMenuRef.value;
+  const root = mapRootRef.value;
+  if (!menu || !root) return;
+  menu.style.removeProperty("--tux-map-more-shift");
+  if (!moreMenuOpen.value) return;
+  const m = menu.getBoundingClientRect();
+  const r = root.getBoundingClientRect();
+  // as far left as keeps its right edge in the map, and no further than the map's left edge
+  const shift = Math.max(Math.min(0, r.right - m.right), Math.min(0, r.left - m.left));
+  if (shift < 0) menu.style.setProperty("--tux-map-more-shift", `${Math.round(shift)}px`);
+}
+
+watch(moreMenuOpen, () => nextTick(placeMoreMenu));
+
 function measureViewport() {
+  if (moreMenuOpen.value) placeMoreMenu();
   if (viewportRef.value && viewportRef.value.clientWidth > 0) {
     viewportWidth.value = viewportRef.value.clientWidth;
   }
@@ -6388,9 +6408,8 @@ function isStagePanPointer(e: PointerEvent): boolean {
 /** Nothing under the pointer that a press belongs to: a card, its `+`, a wire label, a note, a control. */
 function isStageBackground(target: Element | null): boolean {
   if (!target || !viewportRef.value?.contains(target)) return false;
-  return !target.closest?.(
-    ".tux-map__el, .tux-map__el-zb, .tux-map__lab, .tux-map__note, .tux-map__panel, .tux-map__wire-pop, .tux-map__wheel-veil, button, a, input, textarea, select",
-  );
+  // cards, their `+`, wire labels and the veil are all buttons
+  return !target.closest?.("button, a, input, textarea, select, .tux-map__note");
 }
 
 /** Follows a press on the background. True while it is a drag, so the caller does nothing else with the move. */
@@ -6814,6 +6833,7 @@ function buildSourceHref(src?: {
             <span>More</span>
           </button>
           <div
+            ref="moreMenuRef"
             class="tux-map__more-inline"
             :class="{ 'tux-map__more-inline--open': moreMenuOpen }"
           >
@@ -9023,7 +9043,8 @@ function buildSourceHref(src?: {
     align-items: flex-start;
     position: absolute;
     top: calc(100% + 6px);
-    left: 0;
+    /* under its button, moved left by as much as it would pass the map's right edge (#205) */
+    left: var(--tux-map-more-shift, 0px);
     z-index: 40;
     min-width: 220px;
     max-width: calc(100cqi - 16px);
@@ -10384,7 +10405,6 @@ function buildSourceHref(src?: {
 .tux-map__lab-t1 {
   font-family: var(--font-body);
   font-size: 11px;
-  color: var(--text-primary);
 }
 
 .tux-map__lab-t2 {
@@ -10400,9 +10420,7 @@ function buildSourceHref(src?: {
   z-index: 1;
   background: var(--surface-sunken);
   box-shadow: none;
-}
-
-.tux-map__stage--dim .tux-map__lab:not(.tux-map__lab--on):not(:hover):not(:focus-visible):not([aria-expanded="true"]) .tux-map__lab-t1 {
+  /* the first line takes the label's colour */
   color: var(--text-secondary);
 }
 

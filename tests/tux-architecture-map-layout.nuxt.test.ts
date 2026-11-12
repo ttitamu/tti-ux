@@ -257,9 +257,10 @@ describe("TuxArchitectureMap: wires and labels the highlight does not reach stay
     // opacity took the text to 1.3:1 on the canvas; the tokens hold 7:1 (measured in the four themes)
     expect(box).not.toMatch(/opacity/);
     expect(box).toMatch(/background:\s*var\(--surface-sunken\)/);
-    expect(declarations(`.tux-map__stage--dim .tux-map__lab${REST} .tux-map__lab-t1`).join(";")).toMatch(
-      /color:\s*var\(--text-secondary\)/,
-    );
+    // the first line has no colour of its own: it takes the label's
+    expect(box).toMatch(/(?:^|[;\s])color:\s*var\(--text-secondary\)/);
+    expect(declarations(".tux-map__lab-t1").join(";")).not.toMatch(/color:/);
+    expect(declarations(".tux-map__lab")[0]).toMatch(/(?:^|[;\s])color:\s*var\(--text-primary\)/);
     // a crowded label is still hidden until its wire is lit
     expect(declarations(`.tux-map__stage--dim .tux-map__lab--forced${REST}`).join(";")).toMatch(/opacity:\s*0\b/);
   });
@@ -571,5 +572,46 @@ describe("TuxArchitectureMap: the blast radius key matches the cards (#205)", ()
     expect(wrapper.find(".tux-map__stage").classes()).not.toContain("tux-map__stage--blast-selection");
     expect(declarations(".tux-map__swatch--diff-direct")[0]).toMatch(/var\(--status-warning\)/);
     expect(declarations(".tux-map__el--diff-direct")[0]).toMatch(/border-color:\s*var\(--status-warning\)/);
+  });
+});
+
+describe("TuxArchitectureMap: the More menu of a narrow map stays inside it (#205)", () => {
+  const rect = (left: number, right: number) => () => ({ left, right, top: 0, bottom: 40, width: right - left, height: 40, x: left, y: 0, toJSON() {} }) as DOMRect;
+
+  async function openAt(menu: [number, number], map: [number, number]) {
+    const { wrapper, state } = await mountMap({ initialLevel: 2 }, true);
+    const el = wrapper.find(".tux-map__more-inline").element as HTMLElement;
+    el.getBoundingClientRect = rect(...menu);
+    (wrapper.element as HTMLElement).getBoundingClientRect = rect(...map);
+    await wrapper.find(".tux-map__more-btn").trigger("click");
+    await nextTick();
+    await nextTick();
+    return { wrapper, state, shift: () => el.style.getPropertyValue("--tux-map-more-shift") };
+  }
+
+  it("moves the menu left by what it would pass the map's right edge", async () => {
+    // as measured at 792px: the button at 589, a 220px menu, the map from 16 to 776
+    const { wrapper, shift } = await openAt([589, 809], [16, 776]);
+    expect(shift()).toBe("-33px");
+    // closed, it holds no offset for the next time it opens
+    await wrapper.find(".tux-map__more-btn").trigger("click");
+    await nextTick();
+    await nextTick();
+    expect(shift()).toBe("");
+  });
+
+  it("leaves a menu that fits where it is, and never moves one past the map's left edge", async () => {
+    expect((await openAt([16, 236], [16, 584])).shift()).toBe("");
+    // wider than the room to its left: it stays at the left edge and its max-width holds it
+    expect((await openAt([12, 500], [12, 378])).shift()).toBe("");
+    expect((await openAt([100, 420], [12, 378])).shift()).toBe("-42px");
+  });
+
+  it("is placed again when the map is measured while it is open", async () => {
+    const { wrapper, state, shift } = await openAt([589, 809], [16, 776]);
+    (wrapper.find(".tux-map__more-inline").element as HTMLElement).getBoundingClientRect = rect(500, 720);
+    state.measureViewport();
+    expect(shift()).toBe("");
+    expect(blockAt(STYLE, STYLE.indexOf(".tux-map__more-inline--open {"))).toMatch(/left:\s*var\(--tux-map-more-shift, 0px\)/);
   });
 });

@@ -249,16 +249,11 @@ export function wirePairKey(from: string, to: string): string {
 
 /**
  * Advance widths of the printable ASCII characters (space to `~`) in the title face, Work Sans
- * Bold, in hundredths of an em, read from the font in a browser.
+ * Bold, read from the font in a browser. One character per character: its code less 8 is the
+ * width in hundredths of an em (`A` is 68, `i` is 29, `W` is 100).
  */
-// prettier-ignore
-const TITLE_CHAR_WIDTHS = [
-  29, 30, 45, 69, 64, 94, 65, 25, 38, 38, 59, 60, 29, 53, 29, 33, 64, 43, 60,
-  59, 65, 58, 62, 61, 63, 62, 30, 30, 60, 60, 60, 60, 93, 68, 68, 68, 72, 63,
-  61, 72, 74, 32, 62, 69, 60, 91, 74, 74, 67, 74, 69, 64, 65, 71, 68, 100, 66,
-  64, 63, 39, 33, 39, 61, 54, 50, 60, 63, 57, 63, 58, 40, 56, 62, 29, 29, 62,
-  33, 94, 62, 60, 63, 63, 43, 53, 40, 62, 56, 90, 59, 56, 52, 42, 32, 42, 60,
-];
+const TITLE_CHAR_WIDTHS =
+  "%&5MHfI!..CD%=%)H3DCIBFEGF&&DDDDeLLLPGEPR(FMDcRRKRMHIOLlJHG/)/E>:DGAGB0@F%%F)fFDGG3=0F@bC@<2(2D";
 
 /**
  * The width of a card title in px, estimated: no font is measured, so the stage is the same on a
@@ -271,7 +266,7 @@ export function estimateCardTitleWidth(text: string, fontPx: number): number {
   let em = 0;
   for (const ch of text) {
     const code = ch.codePointAt(0)!;
-    em += code >= 32 && code < 127 ? TITLE_CHAR_WIDTHS[code - 32]! : 93;
+    em += code >= 32 && code < 127 ? TITLE_CHAR_WIDTHS.charCodeAt(code - 32) - 8 : 93;
   }
   return (em / 100) * fontPx * 1.04;
 }
