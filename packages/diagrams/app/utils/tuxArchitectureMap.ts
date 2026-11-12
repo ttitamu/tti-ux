@@ -1526,14 +1526,14 @@ export interface TuxMapLevelModel {
    * blast radius of a selected element walks them upstream.
    */
   links?: TuxMapLink[];
-  /** Optional pre-partitioned spreading & stopping link tiers (`#126`, `#731`). */
+  /** Optional pre-partitioned spreading & stopping link tiers (`#126`). */
   linkTiers?: {
     spread?: TuxMapLink[];
     stop?: TuxMapLink[];
   };
-  /** Optional list of link `kind`s treated as `stop: true` when `link.stop` is omitted (`#126`, `#731`). */
+  /** Optional list of link `kind`s treated as `stop: true` when `link.stop` is omitted (`#126`). */
   stopKinds?: string[];
-  /** Optional legacy-to-canonical bookmark alias map (`#716`, `#124`). */
+  /** Optional legacy-to-canonical bookmark alias map (`#124`). */
   aliases?: Record<string, string>;
   /** Optional HTTP route table linking URL patterns to handler symbols or files (`#120`, `#122`). */
   routes?: TuxMapRouteEntry[];
@@ -3280,7 +3280,7 @@ export function stripNodeKindPrefix(nid: string): string {
 
 /**
  * Client-side deterministic link ID (`${kind}:${from}->${to}`, disambiguating duplicates with `#2`, `#3`, ...)
- * so models do not need to serialize explicit `id` fields on every link (`#716` `RO24`).
+ * so models do not need to serialize explicit `id` fields on every link.
  * @internal
  */
 export function deriveLinkId(

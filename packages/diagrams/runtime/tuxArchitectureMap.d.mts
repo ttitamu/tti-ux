@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: bb56ae3cde40131f61fb2696b8ca2dcffeb963dd4be478fa4b10ce37ec0c7fe6
+// SOURCE-SHA256: 4b459b04f77bb379ae9d269109684c3c9444f421a33e03fce92cd157cb97ccd9
 /**
  * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
  *
@@ -758,14 +758,14 @@ export interface TuxMapLevelModel {
      * blast radius of a selected element walks them upstream.
      */
     links?: TuxMapLink[];
-    /** Optional pre-partitioned spreading & stopping link tiers (`#126`, `#731`). */
+    /** Optional pre-partitioned spreading & stopping link tiers (`#126`). */
     linkTiers?: {
         spread?: TuxMapLink[];
         stop?: TuxMapLink[];
     };
-    /** Optional list of link `kind`s treated as `stop: true` when `link.stop` is omitted (`#126`, `#731`). */
+    /** Optional list of link `kind`s treated as `stop: true` when `link.stop` is omitted (`#126`). */
     stopKinds?: string[];
-    /** Optional legacy-to-canonical bookmark alias map (`#716`, `#124`). */
+    /** Optional legacy-to-canonical bookmark alias map (`#124`). */
     aliases?: Record<string, string>;
     /** Optional HTTP route table linking URL patterns to handler symbols or files (`#120`, `#122`). */
     routes?: TuxMapRouteEntry[];
@@ -965,7 +965,7 @@ export declare function isKindNodeId(nid: string, kind: string | readonly string
 export declare function stripNodeKindPrefix(nid: string): string;
 /**
  * Client-side deterministic link ID (`${kind}:${from}->${to}`, disambiguating duplicates with `#2`, `#3`, ...)
- * so models do not need to serialize explicit `id` fields on every link (`#716` `RO24`).
+ * so models do not need to serialize explicit `id` fields on every link.
  * @internal
  */
 export declare function deriveLinkId(link: Pick<TuxMapLink, "kind" | "from" | "to">, seenCounts?: Map<string, number>): string;

@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: bb56ae3cde40131f61fb2696b8ca2dcffeb963dd4be478fa4b10ce37ec0c7fe6
+// SOURCE-SHA256: 4b459b04f77bb379ae9d269109684c3c9444f421a33e03fce92cd157cb97ccd9
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
