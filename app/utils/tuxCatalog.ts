@@ -97,7 +97,7 @@ export const tuxCatalog: TuxCatalogEntry[] = [
   { name: "TuxAppSwitcher", to: "/components/app-switcher", icon: "lucide:layout-grid", family: "components", kind: "component", wraps: "UPopover", category: "actions",
     blurb: "Waffle-button popover for hopping between TTI portals — registry-fed via useTuxApps(), registry order everywhere, current tile carries aria-current." },
   { name: "TuxArchitectureMap", to: "/components/architecture-map", icon: "lucide:network", family: "components", kind: "component", wraps: "tux native (M.A.P. canvas)", category: "data-display",
-    blurb: "Infinite-canvas Master Architecture Plan (M.A.P.) — 3-level semantic zoom (Products → People/VMs/Containers → Package Dependencies), blast-radius traversal, smoothed freehand pen, decaying laser pointer, and multi-user cursors." },
+    blurb: "Infinite-canvas Modular Architecture Map (M.A.P.) — 3-level semantic zoom (Products → People/VMs/Containers → Package Dependencies), blast-radius traversal, smoothed freehand pen, decaying laser pointer, and multi-user cursors." },
   { name: "TuxArtifact", to: "/components/artifact", icon: "lucide:file-output", family: "components", kind: "component", wraps: "tux native", category: "ai",
     blurb: "AI output container — header + actions + body slot. Wraps generated code, docs, exported datasets." },
   { name: "TuxAuditLog", to: "/components/audit-log", icon: "lucide:scroll-text", family: "components", kind: "component", wraps: "tux native", category: "data-display",

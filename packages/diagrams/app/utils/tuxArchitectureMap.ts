@@ -1,5 +1,5 @@
 /**
- * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
+ * tuxArchitectureMap — Core Engine for the TUX Modular Architecture Map (M.A.P.) & Infinite Canvas.
  *
  * Synthesizes best-in-class open-source algorithms (MIT / Apache-2.0):
  * 1. SmoothStep & Bezier orthogonal/curved SVG edge routing + viewport bounds math

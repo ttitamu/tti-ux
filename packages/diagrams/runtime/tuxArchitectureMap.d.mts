@@ -1,8 +1,8 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 4b459b04f77bb379ae9d269109684c3c9444f421a33e03fce92cd157cb97ccd9
+// SOURCE-SHA256: 02eedafa0237f901562e533596ca4739f554f0f7fbcd0dff6a4785f15031db5d
 /**
- * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
+ * tuxArchitectureMap — Core Engine for the TUX Modular Architecture Map (M.A.P.) & Infinite Canvas.
  *
  * Synthesizes best-in-class open-source algorithms (MIT / Apache-2.0):
  * 1. SmoothStep & Bezier orthogonal/curved SVG edge routing + viewport bounds math
