@@ -258,6 +258,55 @@ describe("architecture map benchmark: component (#153)", () => {
     },
   });
 
+  // A later arrival: one lazy file is already resolved when the next one arrives, so the arrival is
+  // added to the merged model (#157) rather than starting it over as `c-lazy-merge` does each run.
+  const laterArrival = async (t: Target, derived: boolean): Promise<BenchCase> => {
+    const resolveSubgraph = (ref: string): Promise<TuxMapSubgraph | null> =>
+      Promise.resolve(t.g.lazySubgraphs[ref] ?? null);
+    const state = stateOf(await mountAt(t, "folder", { resolveSubgraph }));
+    const heldRef = Object.keys(t.g.lazySubgraphs)
+      .filter((k) => k !== t.g.focus.lazyRef)
+      .pop()!;
+    const read = () =>
+      state.stageData.els.length +
+      state.routedSvg.wires.length +
+      (derived ? state.effectiveModelLinks.length + state.mapSearchIndex.length : 0);
+    const reset = async () => {
+      const held: Record<string, TuxMapSubgraph> = Object.create(null);
+      held[heldRef] = t.g.lazySubgraphs[heldRef]!;
+      state.resolvedSubgraphs = held;
+      await nextTick();
+      sink += read();
+    };
+    await reset();
+    return {
+      run: async () => {
+        const { sg } = await state.hydrateLazySubgraph(t.g.focus.lazyFileId);
+        await nextTick();
+        if (!sg) throw new Error("the lazy subgraph did not resolve");
+        if (!state.mergedModel.added) throw new Error("the arrival was not added in place");
+        sink += read();
+      },
+      reset,
+    };
+  };
+
+  gate({
+    id: "c-lazy-merge-next",
+    title: "resolve a later lazy file in the folder view: added to the merged model, then staged again",
+    scalesWith: "whole model",
+    bounds: [7, 8],
+    make: (t) => laterArrival(t, false),
+  });
+
+  gate({
+    id: "c-lazy-merge-next-derived",
+    title: "the same later arrival with the links and the search index read after it, as a selection and the open palette do",
+    scalesWith: "whole model",
+    bounds: [7, 8],
+    make: (t) => laterArrival(t, true),
+  });
+
   gate({
     id: "c-go-to",
     title: "one Go-To query in the open palette: the search over the built index and the result list render",
