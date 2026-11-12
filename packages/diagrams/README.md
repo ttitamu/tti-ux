@@ -50,21 +50,188 @@ The architecture map has two contracts, and each has a committed snapshot that t
 - **The component**, `<TuxArchitectureMap>`: its props and defaults, events, `v-model` bindings, slots and exposed members. Snapshot: [`api/map-component.api.md`](./api/map-component.api.md).
 - **The runtime**, `@tti/tti-ux-diagrams/runtime/tuxArchitectureMap` (the same exports as `app/utils/tuxArchitectureMap.ts`, which a Nuxt app that extends this layer gets as auto-imports) and `@tti/tti-ux-diagrams/runtime/tuxArchitectureMapSample`. Snapshot: [`api/map-runtime.api.md`](./api/map-runtime.api.md).
 
-Every runtime export carries `@public` or `@internal` in its TSDoc comment, and the comment travels into the published `.d.mts`, so an editor shows it on hover. The public exports, by group:
+### The component: props
 
-| Group | Exports |
+`<TuxArchitectureMap>` takes 41 props, all optional. A state the host may own comes as a pair: the plain name is the controlled value, bound with `v-model:<name>`, and `initial<Name>` is the starting value used when the plain name is not passed. A controlled prop left `undefined` leaves that state to the component.
+
+**The model**
+
+| Prop | Type | Default | Meaning |
+|---|---|---|---|
+| `model` | `TuxMapLevelModel` | `undefined` | The model to draw. Without it the component builds one from `nodes`, and with neither it draws `EMPTY_TTI_LEVEL_MODEL`. |
+| `resolveSubgraph` | `(id: string, ref?: string) => Promise<TuxMapSubgraph \| null>` | `undefined` | Loads the inside of a card that names a `subgraphRef`, when the reader zooms into it. A card that resolves to nothing is asked once; a rejection is not remembered. Pass the same function between renders: a new one is asked again. |
+| `modelRef` | `string` | `undefined` | A commit or ref, passed as the second argument of `resolveSubgraph`. |
+| `nodes` | `TuxMapNode[]` | `[]` | Legacy input. Converted with `buildLevelModelFromLegacyNodes()` when `model` is not passed. |
+| `edges` | `TuxMapEdge[]` | `[]` | Legacy input: the edges between `nodes`. |
+| `zones` | `TuxMapZone[]` | `[]` | Legacy input: the zones of `nodes`. |
+
+**Where the map is**
+
+| Prop | Type | Default | Meaning |
+|---|---|---|---|
+| `level` | `TuxMapLevelNumber` | `undefined` | Controlled level: 1 to 4, and 5 or more inside a subgraph (`v-model:level`). |
+| `initialLevel` | `TuxMapLevelNumber` | `2` | Starting level. |
+| `focus` | `string \| null` | `undefined` | Controlled id of the element whose inside is shown at Level 3 and at Level 5 or deeper (`v-model:focus`). |
+| `initialFocus` | `string \| null` | `"c-api"` | Starting focus. The default is an id of the sample model: pass your own, or `null`. |
+| `selectedId` | `string \| null` | `undefined` | Controlled id of the selected element, the one the details panel shows (`v-model:selectedId`). |
+| `initialSelectedId` | `string \| null` | `null` | Starting selection. |
+| `view` | `"diagram" \| "list"` | `undefined` | Controlled view (`v-model:view`). |
+| `initialView` | `"diagram" \| "list" \| "auto"` | `"diagram"` | Starting view. `"auto"` opens the list when the window is narrower than `autoListBreakpoint`, after mount. |
+| `autoListBreakpoint` | `number` | `760` | Window width in px below which `initialView="auto"` opens the list. |
+| `denseListThreshold` | `number` | `40` | A view with more inner cards than this opens as the list, except at Level 4, when `view` is passed, or after the reader chose a view. |
+
+**What is shown**
+
+| Prop | Type | Default | Meaning |
+|---|---|---|---|
+| `showPlanned` | `boolean` | `undefined` | Controlled: planned elements and links are shown (`v-model:showPlanned`). |
+| `initialShowPlanned` | `boolean` | `false` | Starting value of the same. |
+| `showBlastRadius` | `boolean` | `undefined` | Controlled Blast radius switch (`v-model:showBlastRadius`). |
+| `initialShowBlastRadius` | `boolean` | `false` | Starting value of the same. |
+| `blastIntent` | `TuxMapBlastIntent` | `undefined` | Controlled kind of change the blast radius is computed for: `"default"`, `"patch"`, `"refactor"`, `"cut"` or `"supply-chain"` (`v-model:blastIntent`). |
+| `initialBlastIntent` | `TuxMapBlastIntent` | `"default"` | Starting intent. |
+| `blastSeeds` | `string[]` | `undefined` | Ids the branch blast radius starts from, for example `blastSeedIds` of `computeGraphDelta()`. Without it the seeds are taken from the elements that carry a `diff`. |
+| `splitIds` | `string[]` | `undefined` | Controlled ids of the rolled-up outside cards that are expanded (`v-model:splitIds`). |
+| `initialSplitIds` | `string[]` | `[]` | Starting value of the same. |
+| `wireFilters` | `TuxMapWireCategory[]` | `undefined` | Controlled categories of wire that are drawn: `"prod"`, `"tests"`, `"ci"`, `"docs"` (`v-model:wireFilters`). |
+| `initialWireFilters` | `TuxMapWireCategory[]` | `["prod"]` | Starting value of the same. |
+| `traceTarget` | `string \| null` | `undefined` | Controlled id a trace runs to (`v-model:traceTarget`). |
+| `initialTraceTarget` | `string \| null` | `null` | Starting value of the same. |
+
+**Around the diagram**
+
+| Prop | Type | Default | Meaning |
+|---|---|---|---|
+| `eyebrow` | `string` | `"TUX · MODULAR ARCHITECTURE MAP (M.A.P.)"` | The line above the title. Empty hides it. |
+| `title` | `string` | `"Modular Architecture Map"` | The heading. Empty hides it. |
+| `caption` | `string` | `""` | The caption below the map. Empty hides it. |
+| `ariaLabel` | `string` | `"Interactive multi-level architecture map"` | Accessible name of the diagram region. |
+| `height` | `string` | `"auto"` | CSS height of the diagram's viewport. `"auto"` sizes it to the diagram. |
+| `wheelZoom` | `boolean` | `true` | A plain mouse wheel over the diagram changes the level. `false` requires Ctrl or Cmd with the wheel. |
+
+**Pen, laser and notes**
+
+| Prop | Type | Default | Meaning |
+|---|---|---|---|
+| `annotations` | `boolean` | `false` | Shows the pen, laser and sticky-note tools. |
+| `strokes` | `TuxMapInkStroke[]` | `[]` | The pen strokes drawn on the map (`v-model:strokes`). |
+| `notes` | `TuxMapStickyNote[]` | `[]` | The sticky notes on the map (`v-model:notes`). |
+| `penColor` | `string` | `"#5C0025"` | Color of a new pen stroke. |
+
+**Kept for compatibility**
+
+| Prop | Type | Default | Meaning |
+|---|---|---|---|
+| `lodMode` | `"auto" \| "executive" \| "resources" \| "packages"` | `"auto"` | Legacy. A change after mount moves the map to Level 1 (`"executive"`), Level 2 (`"resources"`) or Level 3 (`"packages"`). The value at mount is not read: use `level`. |
+| `initialZoom` | `number` | `1` | Legacy. Accepted and not read. |
+
+### The component: events, slots and exposed members
+
+| Event | Payload | When |
+|---|---|---|
+| `node-select` | `TuxMapLevelElement \| TuxMapDeploymentNode \| TuxMapNode \| null` | The selection changes. `null` when it is cleared. |
+| `drill-down` | `{ level: number; focusId: string; subgraph: TuxMapSubgraph \| null }` | The map zooms into an element. |
+| `laser-move` | `TuxMapStrokePoint[]` | The laser pointer moves. |
+| `update:<prop>` | the prop's type | The matching state changes: `level`, `focus`, `selectedId`, `view`, `showPlanned`, `showBlastRadius`, `blastIntent`, `splitIds`, `wireFilters`, `traceTarget`, `strokes`, `notes`. |
+
+`update:lodMode` is declared, which is why the snapshot lists `v-model:lodMode`, and this release never emits it.
+
+The component has no slots and calls no `defineExpose()`: a template ref gives access to nothing. Its file exports two types, `TuxArchitectureMapProps` and `TuxMapViewMode`.
+
+### The runtime: public exports
+
+Every runtime export carries `@public` or `@internal` in its TSDoc comment, and the comment travels into the published `.d.mts`, so an editor shows it on hover. The entry point has 118 public exports: 9 constants, 34 functions and 75 types. The constants and functions, by purpose:
+
+**Reading and checking a model**
+
+| Export | What it does |
 |---|---|
-| Model | The `TuxMap*` model types (`TuxMapLevelModel` and what it is made of; `TuxMapNormalizedModel`, what `sanitizeMapModel()` returns, with the required-or-optional table in its comment); `TUX_MAP_SCHEMA`; `EMPTY_TTI_LEVEL_MODEL`, `DEFAULT_TTI_LEVEL_MODEL` (sample entry); `normalizeArchitectureModelInput()`, `validateMapModel()`, `sanitizeMapModel()`, `collapseModelSubgraphs()`, `buildLevelModelFromLegacyNodes()`, `extractModelLinks()`, `resolveModelRawLinks()` |
-| Vocabulary | `TUX_MAP_ELEMENT_KIND_LABELS`, `TUX_MAP_LINK_KIND_LABELS`, `TUX_MAP_LINK_STRENGTH_ORDER`, `TUX_MAP_QUIET_LINK_KINDS`, `TUX_MAP_VALID_BLAST_INTENTS`, `TUX_MAP_WIRE_CATEGORIES`, `plainElementKindLabel()` |
-| Levels | `buildMapParentIndex()`, `levelForFocus()`, `mapAncestorsOf()` |
-| Links and blast radius | `liftLinksToView()`, `computeLinkBlastRadius()`, `classifyBlastLink()`, `inferLinkCoupling()`, `inferLinkPhase()`, `classifyLinkDependencyCategory()`, `filterLinksByCategories()`, `foldVendoredCopies()`, `traceSpreadingPath()` |
-| Branch delta | `computeGraphDelta()` |
-| Queries | `buildUnifiedArchitectureGraph()`, `queryArchitectureNodes()`, `queryArchitectureImpact()`, `findArchitecturePath()` |
-| Search | `TUX_MAP_SEARCH_GROUPS`, `buildMapSearchIndex()`, `searchArchitectureMap()` |
-| Ink | `getSmoothedFreehandSvgPath()`, `getLaserPointerSvgPath()` |
-| Deprecated, still public | `computeDependencyBlastRadius()`, `queryArchitectureLayer()`, `queryMultiLevelBlastRadius()`, `findShortestArchitecturePath()`, `coordinateAcpSubgraphLease()` |
+| `TUX_MAP_SCHEMA` | The schema name of the canonical model, `"tux-map/1"`. |
+| `normalizeArchitectureModelInput()` | Reads any of the three accepted document shapes and returns a level model, stamped and sanitized. |
+| `validateMapModel()` | Reports what is wrong with a document, as `issues` and `warnings`. It never throws. |
+| `sanitizeMapModel()` | Returns a model that is safe to draw, a `TuxMapNormalizedModel`, with the validation beside it. The one place defaults are filled. |
+| `collapseModelSubgraphs()` | Joins single-child folder chains and skips the folder level of small components, and returns the `aliases` from the ids it removed. |
+| `buildLevelModelFromLegacyNodes()` | Builds a level model from the legacy `nodes`, `edges` and `zones`. |
+| `EMPTY_TTI_LEVEL_MODEL` | A model with four empty levels: what the component draws when it is given nothing. |
+| `DEFAULT_TTI_LEVEL_MODEL` | The sample model, from the `runtime/tuxArchitectureMapSample` entry point. |
 
-The result and option types of those functions are public with them; the snapshot lists every declaration.
+**Vocabulary**
+
+| Export | What it does |
+|---|---|
+| `TUX_MAP_ELEMENT_KIND_LABELS` | The label of each `TuxMapElementKind`. |
+| `plainElementKindLabel()` | The plain name of an element's kind: folder, file, function, class, HTTP route. |
+| `TUX_MAP_LINK_KIND_LABELS` | What each link kind means, read from the part it points at. |
+| `TUX_MAP_LINK_STRENGTH_ORDER` | The link kinds from strongest to weakest. It breaks ties in the blast radius. |
+| `TUX_MAP_QUIET_LINK_KINDS` | The link kinds drawn on no stage (`mentions`). They still count in the blast radius. |
+| `TUX_MAP_VALID_BLAST_INTENTS` | The set of valid `TuxMapBlastIntent` values. |
+| `TUX_MAP_WIRE_CATEGORIES` | Every `TuxMapWireCategory`, in display order. |
+
+**Levels and parents**
+
+| Export | What it does |
+|---|---|
+| `buildMapParentIndex()` | The parent of every element below Level 2, as a `Map` from child id to parent id. |
+| `mapAncestorsOf()` | An id and its ancestors, nearest first. |
+| `levelForFocus()` | The level that shows the children of an element. |
+
+**Links and blast radius**
+
+| Export | What it does |
+|---|---|
+| `resolveModelRawLinks()` | The model's code links from `links` and `linkTiers`, with `stopKinds` applied. |
+| `extractModelLinks()` | The links the map works with: the code links, bridged or replaced by links made from the level relationships where the code links do not reach. |
+| `liftLinksToView()` | The links lifted onto one view: wires between the children on screen, and the outside parts on each side. |
+| `computeLinkBlastRadius()` | Everything that depends on the seeds or on anything inside them, nearest first. |
+| `classifyBlastLink()` | Whether a blast-radius walk spreads through a link, stops at it or skips it. |
+| `traceSpreadingPath()` | The shortest directed walk over spreading links from one element to another. |
+| `inferLinkCoupling()` | The `coupling` of a link that does not state one. |
+| `inferLinkPhase()` | The `phase` of a link that does not state one. |
+| `classifyLinkDependencyCategory()` | The wire category of a link: `prod`, `tests`, `ci` or `docs`. |
+| `filterLinksByCategories()` | The links in the given categories. |
+| `foldVendoredCopies()` | Folds the cards of vendored copies into the card of their source. |
+
+**Branch delta**
+
+| Export | What it does |
+|---|---|
+| `computeGraphDelta()` | What changed between a base model and a head model: nodes, wires, the blast seeds, a recommended intent and a merged model to draw. |
+
+**Queries**
+
+| Export | What it does |
+|---|---|
+| `buildUnifiedArchitectureGraph()` | Every node and edge of the model, all levels, in one graph. |
+| `queryArchitectureNodes()` | The nodes at a level, under a parent, of a kind or matching a text, in pages. |
+| `queryArchitectureImpact()` | The upstream blast radius of one or more nodes, sorted into triage buckets. |
+| `findArchitecturePath()` | The shortest directed dependency path between two nodes. |
+
+**Search**
+
+| Export | What it does |
+|---|---|
+| `buildMapSearchIndex()` | The Go-To search index of a model, cached per model. |
+| `searchArchitectureMap()` | Searches the index and returns the hits by group. |
+| `TUX_MAP_SEARCH_GROUPS` | The result groups, in display order: Components, Folders, Files, Functions, Routes. |
+
+**Ink**
+
+| Export | What it does |
+|---|---|
+| `getSmoothedFreehandSvgPath()` | The SVG path of a pen stroke, from its pointer coordinates. |
+| `getLaserPointerSvgPath()` | The SVG path of a laser trail that fades with time and length. |
+
+**Deprecated, still public**
+
+| Export | Use instead |
+|---|---|
+| `computeDependencyBlastRadius()` | `computeLinkBlastRadius()` or `queryArchitectureImpact()` |
+| `queryArchitectureLayer()` | `queryArchitectureNodes()` |
+| `queryMultiLevelBlastRadius()` | `queryArchitectureImpact()` |
+| `findShortestArchitecturePath()` | `findArchitecturePath()` |
+| `coordinateAcpSubgraphLease()` | `computeGraphDelta()` and `queryArchitectureImpact()`: a lease does not coordinate across processes |
+
+The 75 public types are the model (`TuxMapLevelModel`, `TuxMapNormalizedModel` and what they are made of), the legacy `TuxMapNode`, `TuxMapEdge` and `TuxMapZone`, and the option and result types of the functions above. [`api/map-runtime.api.md`](./api/map-runtime.api.md) is the full list, with the declaration of each; it is generated and never edited.
 
 **`links` and `parentOf` are read-only once passed.** `computeLinkBlastRadius()` and `liftLinksToView()` build lookup tables from the `links` array and the `parentOf` map and cache them against those two objects, so a repeat call with the same array and map does not read either of them whole. The tables are rebuilt when the array's length or the map's size changes. A change in place that keeps the count (a link replaced, a link's `from` or `to` rewritten, a child given another parent) is not seen: pass a new array or map, which is what `extractModelLinks()` and `buildMapParentIndex()` return on every call, or pass `verifyInputs: true`, which hashes both inputs on that call and rebuilds on a difference.
 
@@ -82,7 +249,60 @@ Changing the surface on purpose: tag a new export `@public` or `@internal`, then
 | (b) | A site document: `c4` (`context`, `containers`, `components`), deployment `groups` / `nodes` / `links` at the top level, code under `code` | a `c4` object | Accepted for compatibility. |
 | (c) | A bare code graph: `subgraphs` and `links`, no levels | `subgraphs` and none of `level1` to `level4` | Accepted for compatibility. |
 
-A fourth kind of file, a placement config (`rules` and no model), is refused with an error that says what it is.
+The three are told apart in that order of precedence: a document with a `c4` object is read as (b) whatever else it has, and a document with `subgraphs` is read as (c) only when it has none of `level1` to `level4`. Anything else that is a JSON object is read as (a). There is no fourth shape: a value that is not an object is refused with a `TypeError`, and a placement config (a `rules` list and none of `level1`, `level2`, `c4`, `subgraphs`) is refused with an error that says what it is. With `{ allowEmpty: false }` a document that yields no element at all is refused too.
+
+What the normalizer reads from the two older shapes:
+
+- **(b)** `c4.context`, `c4.containers` and `c4.components` become Levels 1, 2 and 3. The top-level `groups`, `nodes`, `links` and `neighbors` become Level 4. The code graph is read from the top level or from under `code`, the top level first: `subgraphs`, `linkTiers`, `stopKinds`, `routes`, `sourceBaseUrl`, and the links as `codeLinks` or `code.links`. Three spellings are accepted beside the canonical one: `generated_at` for `generatedAt`, a neighbor's `"resource group"` for `resourceGroup`, and an element's `zoom` as `"context"`, `"containers"`, `"components"` or `"deployment"` for 1 to 4.
+- **(c)** `subgraphs`, `links`, `linkTiers`, `stopKinds`, `routes`, `generatedAt` and `sourceBaseUrl` are kept. Levels 1, 3 and 4 are empty. Level 2 gets one element for each subgraph key that is neither the id of an element in a subgraph nor the target of a `subgraphRef`: a `component` when the key has a `/`, a `container` otherwise, named by the key.
+
+`<TuxArchitectureMap>` has one more input, which is not a document: the legacy `nodes`, `edges` and `zones` props, converted by `buildLevelModelFromLegacyNodes()` when `model` is not passed.
+
+### `TuxMapLevelModel`: required and optional fields
+
+`TuxMapLevelModel` is the type of the canonical document: what a producer writes, what the `model` prop takes and what every function that reads a model takes. Its top level:
+
+| Field | Required | What it holds |
+|---|---|---|
+| `schema` | optional | The schema name, `"tux-map/1"`. |
+| `generatedAt` | optional | When the document was written. |
+| `issueBaseUrl`, `sourceBaseUrl` | optional | The base URLs for an element's `roadmap` numbers and for its `source.path`. |
+| `level1` | required | The context: `elements` and `rels` (both required), `title`, `summary`. |
+| `level2` | required | The containers: `boundary`, `elements` and `rels` (all required), `title`, `summary`. An element here is a `TuxMapLevelElement`, or a `TuxMapLevelRef` to a Level 1 element (`{ id, ref: true }`). |
+| `level3` | required | The components: an object from a Level 2 container's id to the list of its elements. |
+| `level4` | required | The deployment: `groups`, `nodes` and `links` (all required), `title`, `summary`, `zones`, `centerTitle`, `neighbors`. |
+| `subgraphs` | optional | Level 5 and deeper: an object from an element's or a deployment node's id to a `TuxMapSubgraph` (`elements` required; `rels`, `stratum`, `summary`). |
+| `links` | optional | The code links, `TuxMapLink[]`: `from` depends on `to`. |
+| `linkTiers` | optional | The same links already split into `spread` and `stop`. |
+| `stopKinds` | optional | The link kinds read as `stop: true` when a link does not say. |
+| `aliases` | optional | Old ids and the ids they now resolve to, so a saved `focus` still opens. |
+| `routes` | optional | The HTTP routes and their handlers, `TuxMapRouteEntry[]`. |
+
+`sanitizeMapModel()` returns a `TuxMapNormalizedModel`: a `TuxMapLevelModel` in which the fields marked "filled" below are always there, so code that holds one reads them without a guard. It is what `<TuxArchitectureMap>` lays out, and what `collapseModelSubgraphs()` returns when it is given one. The table is the one in the doc comment of `TuxMapNormalizedModel` in `app/utils/tuxArchitectureMap.ts`, which is the source. "Required" is what the type says and what `validateMapModel()` reports when a document lacks it; "filled" is what `sanitizeMapModel()` puts there, so a document that lacks it still renders.
+
+| Field | In a document | `validateMapModel()` when absent | In a normalized model |
+|---|---|---|---|
+| `level1`, `level2`, `level3`, `level4` | required | issue `missing-level` (`valid: false`) | filled: an empty level |
+| `level1.elements`, `level1.rels` | required | warning `missing-field` | filled: `[]` |
+| `level2.elements`, `level2.rels` | required | warning `missing-field` | filled: `[]` |
+| `level2.boundary` | required | warning `missing-field` | filled: `""` (no boundary drawn) |
+| `level3[containerId]` | required to be a list | none | filled: `[]` |
+| `level4.groups`, `level4.nodes`, `level4.links` | required | warning `missing-field` | filled: `[]` |
+| `subgraphs` | optional | none | filled: `{}` |
+| `subgraphs[key].elements` | required | warning `missing-field` | filled: `[]` |
+| `subgraphs[key].rels` | optional | none | filled: `[]` |
+| `level4.zones`, `level4.neighbors`, `level4.centerTitle` | optional | none | left absent: absence selects the built-in columns and title |
+| `links`, `linkTiers`, `stopKinds` | optional | none | left absent: read together through `resolveModelRawLinks()`, where a present `stopKinds` means something an empty default would not |
+| `routes`, `aliases` | optional | none | left absent (`aliases` is cleaned when present; `collapseModelSubgraphs()` returns the full alias table) |
+| `schema`, titles, summaries, base URLs | optional | `missing-schema` for `schema`, none for the rest | left absent |
+| on an element or a deployment node: `kind`, `status`, `at`, `source`, `children`, `childRels`, `hosts`, `deps`, `runs`, `deployed`, `roadmap`, `live`, `diff`, `facts`, … | optional | none | left absent: absence is the value (no source link, no inline children, hosts nothing) |
+| on a relationship or a link: `label`, `tech`, `status`, `kind`, `stop`, `at`, `sites`, `coupling`, `phase`, `violations` | optional | none | left absent |
+| `id`, `name` on an element | required | warning `missing-field` (and the issues for ids) | filled: `id` is `""` (the readers take it as "has none"), `name` is the id |
+| `id`, `kind`, `title`, `role` on a deployment node | required | warning `missing-field` | filled: `id`, `kind` and `role` are `""`, `title` is the id |
+| `from`, `to` on a relationship or link | required | warning `missing-field` (and the issues for ends) | not filled: a relationship or link without both ends is dropped |
+| any other field the types require (`path` of a source, `rule` of a violation, `pattern` and `handler` of a route, …) | required | warning `missing-field` | left absent |
+
+A field that is there with a value of another JSON type than its type (a number for a `label`, an object for a list) is reported as `invalid-type` and read as absent, before the filling above.
 
 **The schema name.** A canonical document names its schema in a top-level `schema` field, and the name is exported as `TUX_MAP_SCHEMA`:
 
@@ -111,7 +331,7 @@ To check a file where it is produced, call `validateMapModel()` on the document 
 
 ### The schema file, and what the validator checks with it
 
-`schema/tux-map-1.schema.json` is the JSON Schema (draft 2020-12) of `tux-map/1`: `TuxMapLevelModel` and every type it is made of, with their doc comments as descriptions. It is generated from the TypeScript types by `scripts/build-map-schema.mjs` and never edited; the package's tests fail when the file is out of date with the types (`npm run check:schema -w @tti/tti-ux-diagrams`, and `build:schema` to write it). Import it as `@tti/tti-ux-diagrams/schema/tux-map-1.schema.json` to check a document in a producer written in any language.
+`schema/tux-map-1.schema.json` is the JSON Schema (draft 2020-12) of `tux-map/1`: `TuxMapLevelModel` and every type it is made of, with their doc comments as descriptions. It is generated from the TypeScript types by `scripts/build-map-schema.mjs` and never edited; the package's tests fail when the file is out of date with the types (`npm run check:schema -w @tti/tti-ux-diagrams`, and `build:schema` to write it). Import it as `@tti/tti-ux-diagrams/schema/tux-map-1.schema.json` to check a document in a producer written in any language. Any JSON Schema 2020-12 validator reads it; in JavaScript, `validateMapModel()` does the same check with no validator to install.
 
 The schema says what the types say and no more. No object is closed, so a property the types do not name passes: a document written for a later release is still a `tux-map/1` document to this one.
 
@@ -178,7 +398,7 @@ Three groups of tests run in `npm test`. None of them runs in a browser.
 
 **Covered.**
 
-- **Unit:** validating, sanitizing and collapsing a model; the parent index; reading the links and lifting them onto a view; the blast radius and the branch delta; the node, impact and path queries; the Go-To search; the freehand path builders; merging a lazy subgraph into the model, compared with a full rebuild on generated models; wire-label placement, compared with the full scans; every case of the published conformance fixture; the API snapshots; and the growth ratios of the benchmark.
+- **Unit:** validating, sanitizing and collapsing a model; the parent index; reading the links and lifting them onto a view; the blast radius and the branch delta; the node, impact and path queries; the Go-To search; the freehand path builders; merging a lazy subgraph into the model, compared with a full rebuild on generated models; wire-label placement, compared with the full scans; every case of the published conformance fixture; the API snapshots; this README's tables of props, events, public exports and model fields, compared with the code; and the growth ratios of the benchmark.
 - **Mounted:** the levels and moving between them by button, breadcrumb, double-click and mouse wheel; the list view; magnify and Fit; the details panel and where focus goes; the blast radius switch; sticky notes by level; reduced motion; two axe checks; a lazy subgraph's arrival, and one that resolves empty; what a toggle rebuilds; one mount of a 2,500-symbol model; and the growth ratios of the mounted benchmark.
 - **MCP:** the four architecture tools (`tux_query_architecture_nodes`, `tux_query_architecture_impact`, `tux_find_architecture_path`, `tux_compute_graph_delta`) and the resource list, as JSON-RPC requests handled in process, with and without a model. As a child process: `--call` and `--list-tools` writing a result larger than a pipe's buffer, the exit codes, and the errors written to stderr.
 

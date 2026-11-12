@@ -18,6 +18,16 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — Architecture map: the README documents the props, the model's fields and the public exports (#169)
+
+- The diagrams README has a props table for `<TuxArchitectureMap>`: all 41 props with type, default and meaning, grouped by what they are for, then its events, and the statement that it has no slots and exposes nothing. Two props are documented as what they are: `initialZoom` is accepted and not read, and `lodMode` acts only on a change after mount. `update:lodMode` is declared and never emitted.
+- It documents `TuxMapLevelModel`: the top-level fields, required or optional, and the table from the doc comment of `TuxMapNormalizedModel` that says what `validateMapModel()` reports when a field is absent and what `sanitizeMapModel()` fills.
+- The section on the three accepted document shapes now says how they are told apart, that there is no fourth, what is read from the two older shapes (including the three alternate spellings the site document may use), and that the component's legacy `nodes`, `edges` and `zones` props are a separate input.
+- The public constants and functions of the runtime are listed by purpose with one line each, in place of a list of names. `api/map-runtime.api.md` remains the full list, types included.
+- A new test, `packages/diagrams/tests/map-readme.test.ts`, compares those tables with the code: every prop and its default, every event, every public constant and function, and the required top-level fields of the schema. A prop added without a row, or a default changed without the table, fails `npm test`.
+
+**To check when upgrading:** nothing. No code changed.
+
 ### Added — Architecture map: the validator checks the shape of a document, against a schema generated from the types (#163)
 
 - `validateMapModel()` checked structure (ids, cycles, ends) and nothing about shape: a string where the types have a list, or a `kind` nobody knows, passed in silence and failed later, somewhere in the map. It now checks every document against the JSON Schema of the model and reports what it finds in `warnings`, with the `path` of each value:
