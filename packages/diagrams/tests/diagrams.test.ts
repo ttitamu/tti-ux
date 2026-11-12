@@ -875,7 +875,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
       expect(ownCodeOut.edges[1]?.label).toBe("calls");
     }
 
-    // 5. `links` kind parity with code-graph.py (#706)
+    // 5. `links` kind parity with code-graph.py, the Python producer of the same model
     expect(TUX_MAP_LINK_STRENGTH_ORDER.at(-2)).toBe("links");
     expect(TUX_MAP_LINK_STRENGTH_ORDER.at(-1)).toBe("mentions");
     expect(inferLinkCoupling({ from: "a", to: "b", kind: "links", stop: true })).toBe("contract");

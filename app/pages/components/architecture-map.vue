@@ -16,7 +16,7 @@ const exampleCode = `<TuxArchitectureMap
   v-model:strokes="strokes"
   v-model:notes="notes"
   :annotations="true"
-  eyebrow="EXHIBIT 1.0 · MASTER ARCHITECTURE PLAN (M.A.P.)"
+  eyebrow="EXHIBIT 1.0 · M.A.P."
   title="Enterprise Cloud Platform Topology (Levels 1–6)"
   caption="Scroll the mouse wheel inside the canvas, double-click any card with '+', or use the N+1 stepper (− / +), breadcrumbs, and Infrastructure toggle to zoom across Levels 1–6 (including Level 5 internal modules/schemas and Level 6 AST code symbols). Toggle 'Blast radius' to visualize PR change propagation."
   :model="mapModel"
@@ -28,7 +28,7 @@ const exampleCode = `<TuxArchitectureMap
 <template>
   <div class="space-y-12">
     <TuxPageHeader eyebrow="component · @tti/tti-ux-diagrams" title="TuxArchitectureMap">
-      Native TUX <strong>Master Architecture Plan (M.A.P.)</strong> with instantaneous
+      Native TUX <strong>Modular Architecture Map (M.A.P.)</strong> with instantaneous
       <strong>Level 1 → Level 2 → Level 3 → Level 4 → Level 5/6+</strong> fractal semantic zoom,
       right-angle grid-gap wire routing, PR blast-radius overlay, source code &amp; roadmap links,
       and level-scoped freehand ink &amp; sticky-note annotations.
@@ -59,7 +59,7 @@ const exampleCode = `<TuxArchitectureMap
           v-model:strokes="strokes"
           v-model:notes="notes"
           :annotations="true"
-          eyebrow="EXHIBIT 1.0 · MASTER ARCHITECTURE PLAN (M.A.P.)"
+          eyebrow="EXHIBIT 1.0 · M.A.P."
           title="Enterprise Cloud Platform Topology (Levels 1–6)"
           caption="Scroll the mouse wheel inside the canvas, double-click any card with '+', or use the N+1 stepper (− / +), breadcrumbs, and Infrastructure toggle to zoom across Levels 1–6. Toggle 'Blast radius' to inspect PR change impact."
           :model="mapModel"

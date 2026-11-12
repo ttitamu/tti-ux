@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Deterministic generator and verifier for `packages/diagrams/tests/fixtures/map-conformance.json`
- * (`schemaVersion: "1.0.0"`, `tti/tti-ux#110` / `nis/forgejo-stack#712`).
+ * (`schemaVersion: "1.0.0"`, `tti/tti-ux#110`). The Python producer, code-graph.py, reads the same
+ * fixture; its side is tracked in its own repository.
  *
  * Usage:
  *   node packages/diagrams/scripts/generate-map-conformance.ts
@@ -1603,7 +1604,7 @@ assert(ghostsDelta.expected.danglingWires.length === 0, "L2 ref:true target must
 const fixture = {
   schemaVersion: "1.0.0",
   description:
-    "Synthetic language-neutral conformance suite for TUX Architecture Map (tuxArchitectureMap.ts) and Forgejo Stack code-graph.py (#110 / #712).",
+    "Synthetic language-neutral conformance suite for TUX Architecture Map (tuxArchitectureMap.ts) and Forgejo Stack code-graph.py (tti/tti-ux#110).",
   models: { ...models, real_producer_packages: realModelRef },
   levelChecks,
   blastCases,
