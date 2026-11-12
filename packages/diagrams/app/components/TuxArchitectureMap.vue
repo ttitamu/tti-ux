@@ -4686,6 +4686,12 @@ function onViewportWheel(ev: WheelEvent) {
 function jumpToSearchEntry(entry: TuxMapSearchEntry) {
   const rawTargetId = entry.revealId || entry.id;
   const targetId = resolveAliasId(rawTargetId) ?? rawTargetId;
+  // An entry for something the model does not hold (a route whose handler no file here has) opens
+  // nothing: the palette stays, and says so (#205)
+  if (!canRevealElement(targetId) && !hasOwn(byId.value, targetId)) {
+    announce(`${entry.name} is not on this map.`);
+    return;
+  }
   goToOpen.value = false;
   goToReturnFocusEl = null;
 
