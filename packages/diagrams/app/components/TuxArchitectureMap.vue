@@ -132,8 +132,8 @@ export interface TuxArchitectureMapProps {
   resolveSubgraph?: (id: string, ref?: string) => Promise<TuxMapSubgraph | null>;
   /** Optional commit SHA or ref passed as the second argument to `resolveSubgraph(id, modelRef)` (`#126`) */
   modelRef?: string;
-  /** Whether plain mouse wheel over the diagram zooms across levels without requiring Ctrl/Cmd (`true` by default; set `false` to require Ctrl/Cmd + wheel) */
-  wheelZoom?: boolean;
+  /** Whether plain mouse wheel over the diagram zooms across levels without requiring Ctrl/Cmd (`true` by default; set `false` to require Ctrl/Cmd + wheel; `"click"` puts the canvas under a "Click to explore" veil and leaves the wheel to the page until the reader clicks it or moves keyboard focus into the canvas; `#209`) */
+  wheelZoom?: boolean | "click";
   /** Legacy nodes prop (automatically converted into a 4-level model if `model` is omitted) */
   nodes?: TuxMapNode[];
   /** Legacy edges prop */
@@ -3492,10 +3492,98 @@ const onCoarseChange = () => {
   coarsePointer.value = Boolean(coarseQuery?.matches);
 };
 
+// `wheelZoom="click"` (#209): the plain wheel is the page's until the reader arms
+// the map, by a click on the veil or by keyboard focus entering the canvas. Armed,
+// it works as `true` does. A touch screen has no veil and nothing to arm: a finger
+// already scrolls the page past the map, so there the mode works as `false` does.
+const WHEEL_DISARM_AFTER_MS = 3000;
+const wheelArmed = ref<boolean>(false);
+let wheelDisarmTimer: ReturnType<typeof setTimeout> | null = null;
+let pointerInsideMap = false;
+const wheelMode = computed<"on" | "off" | "click">(() =>
+  props.wheelZoom === "click" ? (coarsePointer.value ? "off" : "click") : props.wheelZoom ? "on" : "off",
+);
+/** The plain wheel changes the level now (Ctrl+wheel and a pinch always do). */
+const plainWheelZooms = computed<boolean>(
+  () => wheelMode.value === "on" || (wheelMode.value === "click" && wheelArmed.value),
+);
+// magnified, the wheel scrolls the diagram and there is nothing to arm
+const wheelVeilShown = computed<boolean>(
+  () => wheelMode.value === "click" && !wheelArmed.value && !isMagnified.value && !effectiveIsListView.value,
+);
+const wheelVeilHint = computed<string>(() =>
+  wheelVeilShown.value ? "Click the diagram first: until then the mouse wheel scrolls the page. " : "",
+);
+
+function clearWheelDisarmTimer() {
+  if (wheelDisarmTimer) clearTimeout(wheelDisarmTimer);
+  wheelDisarmTimer = null;
+}
+
+function armWheel() {
+  if (wheelMode.value !== "click") return;
+  clearWheelDisarmTimer();
+  wheelArmed.value = true;
+}
+
+function disarmWheel() {
+  clearWheelDisarmTimer();
+  if (!wheelArmed.value) return;
+  wheelArmed.value = false;
+  clearPreZoomCardTransform();
+}
+
+function onWheelVeilClick() {
+  armWheel();
+  // the veil is about to go: focus stays in the canvas, not on a removed button
+  viewportRef.value?.focus({ preventScroll: true });
+}
+
+const isWheelVeil = (n: EventTarget | null) =>
+  n instanceof Element && n.classList.contains("tux-map__wheel-veil");
+
+/** Keyboard focus coming into the canvas arms it; focus on the veil itself, or put there by a mouse, does not. */
+function onMapFocusIn(ev: FocusEvent) {
+  if (!wheelVeilShown.value) return;
+  const vp = viewportRef.value;
+  const t = ev.target;
+  if (!vp || !(t instanceof Element) || !vp.contains(t) || isWheelVeil(t)) return;
+  const from = ev.relatedTarget;
+  if (from instanceof Node && vp.contains(from) && !isWheelVeil(from)) return;
+  let byKeyboard = true;
+  try {
+    byKeyboard = t.matches(":focus-visible");
+  } catch {
+    // no :focus-visible here: any focus counts
+  }
+  if (byKeyboard) armWheel();
+}
+
+function onMapFocusOut(ev: FocusEvent) {
+  if (!wheelArmed.value) return;
+  const to = ev.relatedTarget;
+  // focus gone to nothing (a focused card left the stage) is not a reader leaving while the pointer is on the map
+  if (to instanceof Node ? !mapRootRef.value?.contains(to) : !pointerInsideMap) disarmWheel();
+}
+
+function onMapPointerEnter() {
+  pointerInsideMap = true;
+  clearWheelDisarmTimer();
+}
+
+function onMapPointerLeave() {
+  pointerInsideMap = false;
+  clearWheelDisarmTimer();
+  if (wheelArmed.value) wheelDisarmTimer = setTimeout(disarmWheel, WHEEL_DISARM_AFTER_MS);
+}
+
+watch(wheelMode, () => disarmWheel());
+
 // The help names the wheel only as it works here: a plain wheel zooms unless
 // `wheelZoom` is off or the diagram is magnified, where it scrolls and zooming
-// needs Ctrl (a trackpad pinch sends it too). It counts the levels this map has.
-const wheelZooms = computed<boolean>(() => props.wheelZoom && !isMagnified.value);
+// needs Ctrl (a trackpad pinch sends it too). Under the veil it names the plain
+// wheel and `wheelVeilHint` says to click first. It counts the levels this map has.
+const wheelZooms = computed<boolean>(() => wheelMode.value !== "off" && !isMagnified.value);
 const hintText = computed<string>(() => {
   const scroll = wheelZooms.value ? "scroll" : "Ctrl+scroll";
   if (effectiveIsListView.value) {
@@ -3555,6 +3643,7 @@ function onWindowKeydown(ev: KeyboardEvent) {
 function onDocumentPointerDown(ev: PointerEvent) {
   const t = ev.target as HTMLElement | null;
   if (!t) return;
+  if (wheelArmed.value && !mapRootRef.value?.contains(t)) disarmWheel();
   if (openCrumbMenuIdx.value !== null && !t.closest(".tux-map__crumb-menu-wrap")) {
     openCrumbMenuIdx.value = null;
   }
@@ -3613,6 +3702,7 @@ onBeforeUnmount(() => {
     document.removeEventListener("pointerdown", onDocumentPointerDown);
   }
   coarseQuery?.removeEventListener?.("change", onCoarseChange);
+  clearWheelDisarmTimer();
   if (zoomHudTimer) clearTimeout(zoomHudTimer);
   if (announceTimer) clearTimeout(announceTimer);
   if (laserRaf !== null && typeof window !== "undefined") {
@@ -4683,7 +4773,7 @@ function onViewportWheel(ev: WheelEvent) {
   const isPinchOrMod = ev.ctrlKey || ev.metaKey;
   // magnified, the wheel scrolls the diagram; a trackpad pinch (ctrl) still changes level
   if (isMagnified.value && !isPinchOrMod) return;
-  if (!props.wheelZoom && !isPinchOrMod) {
+  if (!plainWheelZooms.value && !isPinchOrMod) {
     clearPreZoomCardTransform();
     return;
   }
@@ -5219,6 +5309,9 @@ function onStageKey(ev: KeyboardEvent) {
       selectElement(null);
     } else if (activeTool.value !== "select") {
       activeTool.value = "select";
+    } else if (wheelArmed.value && currentLevel.value <= 1) {
+      // nothing left for Escape to close or leave: it gives the wheel back to the page (#209)
+      disarmWheel();
     } else {
       zoomOutLevel();
     }
@@ -6139,7 +6232,7 @@ const visibleNotes = computed(() =>
 );
 
 function onStagePointerDown(e: PointerEvent) {
-  if (e.button !== 0) return;
+  if (e.button !== 0 || isWheelVeil(e.target)) return;
   const target = e.target as HTMLElement | null;
   if (target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement) {
     return;
@@ -6201,6 +6294,7 @@ function onStagePointerDown(e: PointerEvent) {
 
 function onStagePointerMove(e: PointerEvent) {
   lastPointerClient = { x: e.clientX, y: e.clientY };
+  if (isWheelVeil(e.target)) return;
   const pt = getStageCoords(e);
 
   if (
@@ -6481,6 +6575,10 @@ function buildSourceHref(src?: {
     ref="mapRootRef"
     class="tux-map"
     @keydown="onMapRootKeydown"
+    @focusin="onMapFocusIn"
+    @focusout="onMapFocusOut"
+    @pointerenter="onMapPointerEnter"
+    @pointerleave="onMapPointerLeave"
     @click.capture="onMapClickCapture"
     @dblclick.capture="onMapDblClickCapture"
   >
@@ -6890,7 +6988,7 @@ function buildSourceHref(src?: {
       </div>
     </div>
 
-    <p class="tux-map__hint">{{ hintText }}</p>
+    <p class="tux-map__hint">{{ wheelVeilHint }}{{ hintText }}</p>
     <p class="tux-map__summary">{{ summaryText }}</p>
 
     <!-- Visual Key Legend: On-Screen Element & Link Kinds Only (#115, #123) -->
@@ -7088,10 +7186,11 @@ function buildSourceHref(src?: {
               proximityCard?.zoomable && activeTool === 'select',
             ),
             'tux-map__viewport--magnified': isMagnified,
+            'tux-map__viewport--page-wheel': !plainWheelZooms && !isMagnified,
           },
         ]"
         :style="{ height: computedViewportHeight }"
-        tabindex="0"
+        :tabindex="wheelVeilShown ? -1 : 0"
         role="region"
         :aria-label="ariaLabel"
         @scroll.passive="onViewportScroll"
@@ -7104,6 +7203,17 @@ function buildSourceHref(src?: {
         @pointercancel="onStagePointerUp"
         @keydown="onStageKeydown"
       >
+        <!-- Click-to-explore veil: until it is clicked the wheel is the page's (wheelZoom="click", #209) -->
+        <button
+          v-if="wheelVeilShown"
+          type="button"
+          class="tux-map__wheel-veil"
+          @click="onWheelVeilClick"
+          @keydown.enter.stop
+          @keydown.space.stop
+        >
+          <span class="tux-map__wheel-veil-label">Click to explore</span>
+        </button>
         <div
           v-if="isMagnified"
           class="tux-map__sizer"
@@ -9542,6 +9652,63 @@ function buildSourceHref(src?: {
   overflow: auto;
 }
 
+/* where the plain wheel is the page's (`wheelZoom` false, or "click" and not armed)
+   the canvas must not hold the scroll it does not use: `contain` on this box stops
+   the wheel from reaching the page even when nothing here scrolls (#209) */
+.tux-map__viewport--page-wheel {
+  overscroll-behavior: auto;
+}
+
+/* Click-to-explore veil (#209): a light scrim, so the diagram reads through it,
+   and a label on a solid surface, so the words keep their contrast over any card */
+.tux-map__wheel-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--surface-sunken) 45%, transparent);
+  font: inherit;
+  cursor: pointer;
+  animation: tux-map-wheel-veil-in 0.18s ease;
+}
+
+.tux-map__wheel-veil-label {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  border: 1.5px solid var(--text-primary);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  font-family: var(--font-bold);
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+.tux-map__wheel-veil:hover .tux-map__wheel-veil-label {
+  border-color: var(--brand-primary);
+}
+
+.tux-map__wheel-veil:focus-visible {
+  outline: none;
+}
+
+.tux-map__wheel-veil:focus-visible .tux-map__wheel-veil-label {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 3px;
+}
+
+@keyframes tux-map-wheel-veil-in {
+  from {
+    opacity: 0;
+  }
+}
+
 .tux-map__sizer {
   pointer-events: none;
 }
@@ -11630,7 +11797,8 @@ function buildSourceHref(src?: {
      pattern and colour, so what it marks is still there, standing still */
   .tux-map__wire-fg--stream,
   .tux-map__proximity-beam,
-  .tux-map__zoom-hud {
+  .tux-map__zoom-hud,
+  .tux-map__wheel-veil {
     animation: none;
   }
 }

@@ -35,7 +35,7 @@ export default defineNuxtConfig({
     - **Contrast:** text stays `--text-primary` on brand tints, never on brand fills, and holds 7:1 in every TUX theme and colour-vision palette (`tti`, `tti-dark`, `tti-soft-dark`, `tti-hc` × `okabe-ito`, `deutan-protan`, `tritan`, `monochrome`).
     - **Targets:** controls are 44 px (48 px under `data-vision-comfort="field-sunlight"`).
     - **Vision modes:** `data-vision-stroke="heavy"` thickens the wires and borders. Change markers use TUX's status tokens, which the palettes remap.
-    - **Help text:** on a touch screen it talks about taps and swipes; where a plain wheel does not zoom (`wheelZoom` off, or magnified) it says Ctrl+scroll; it counts the levels the model has, says that Level 4 is the Infrastructure view (so zooming in goes from Level 3 to Level 5) where the model has code below its components, and mentions `+` cards only where one is in view.
+    - **Help text:** on a touch screen it talks about taps and swipes; where a plain wheel does not zoom (`wheelZoom` off, or magnified) it says Ctrl+scroll; under the `wheelZoom="click"` veil it says to click the diagram first; it counts the levels the model has, says that Level 4 is the Infrastructure view (so zooming in goes from Level 3 to Level 5) where the model has code below its components, and mentions `+` cards only where one is in view.
     - **Reduced motion (3.9.1):** under `prefers-reduced-motion` nothing on the map moves: wires keep their dashes without flowing, cards and frames change without sliding, and the wheel changes the level without pulling the card.
     - **Keyboard (3.9.1):** `+` acts on the card that has focus and says so when it has nothing inside; after a zoom, focus stays in the map, unless the host page moved it.
 - **`<TuxDiagram>`**: Accessible, responsive Mermaid diagram wrapper supporting flowcharts, sequence diagrams, ERDs, state machines, and Gantt charts.
@@ -107,7 +107,7 @@ The architecture map has two contracts, and each has a committed snapshot that t
 | `caption` | `string` | `""` | The caption below the map. Empty hides it. |
 | `ariaLabel` | `string` | `"Interactive multi-level architecture map"` | Accessible name of the diagram region. |
 | `height` | `string` | `"auto"` | CSS height of the diagram's viewport. `"auto"` sizes it to the diagram. |
-| `wheelZoom` | `boolean` | `true` | A plain mouse wheel over the diagram changes the level. `false` requires Ctrl or Cmd with the wheel. |
+| `wheelZoom` | `boolean \| "click"` | `true` | A plain mouse wheel over the diagram changes the level, and the page does not scroll while the pointer is on it. `false` leaves the plain wheel to the page and requires Ctrl or Cmd with the wheel. `"click"` starts the canvas under a "Click to explore" veil and works as `false` until the reader clicks the veil or moves keyboard focus into the canvas, then as `true` until Escape (with nothing else to close and no level to leave), a pointer-down outside the map, focus leaving the map, or the pointer staying outside it for 3 seconds. Ctrl or Cmd with the wheel, and a pinch, change the level in every mode. A touch screen (`pointer: coarse`) gets no veil, and `"click"` works there as `false`. |
 
 **Pen, laser and notes**
 

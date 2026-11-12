@@ -18,6 +18,18 @@ conventions.
 
 ## [Unreleased]
 
+### Added — Architecture map: `wheelZoom="click"`, a click-to-explore veil that leaves the wheel to the page until the map is clicked (#209)
+
+- `wheelZoom` on `<TuxArchitectureMap>` takes a third value, `"click"`, beside `true` and `false`. The canvas starts under a light scrim with a "Click to explore" button. Until the map is armed the plain wheel belongs to the page: the map neither changes level nor stops the scroll.
+- Arming: a click or tap on the veil, Enter or Space on it (it is a button, and the canvas's tab stop while it is up), or keyboard focus entering the canvas. Armed, the plain wheel changes the level at the pointer exactly as `wheelZoom: true` does, and the page does not scroll.
+- Disarming, which brings the veil back: Escape, once it has nothing else to do (it still closes a loading card, an edge popover, a trace, a selection or a drawing tool first, and goes out a level before that); a pointer-down outside the map; focus leaving the map; or the pointer staying outside the map for 3 seconds.
+- Ctrl or Cmd with the wheel, and a trackpad pinch, change the level in every mode, armed or not.
+- The help line under the toolbar says "Click the diagram first: until then the mouse wheel scrolls the page." while the veil is up.
+- Where the plain wheel is the page's (`wheelZoom: false`, or `"click"` and not armed) the canvas no longer sets `overscroll-behavior: contain`. With it, a browser kept the wheel from the page over the canvas even though the map did nothing with it, so `false` did not scroll the page either.
+- A touch screen (`pointer: coarse`) gets no veil: a finger already scrolls the page past the map. There `"click"` works as `false` does. A magnified diagram has no veil either: there the wheel scrolls the diagram, as before.
+- Under `prefers-reduced-motion` the veil appears without its fade.
+
+**To check when upgrading:** nothing unless you opt in. `true` and `false` mean what they did and the default is still `true`. With `wheelZoom: false`, check that the page now scrolls when the wheel turns over the canvas. If you pass `wheelZoom` through a typed wrapper, widen its type to `boolean | "click"`.
 ### Fixed — Architecture map: Go to opens a route, a view has one level number, double-click opens the card it began on, and the level filter dims cards (#205)
 
 - **Go to opens a route result.** A row of `model.routes` whose handler is in a subgraph that has not been loaded pointed at an id the model does not hold, so Enter or a click closed the palette and went nowhere. The entry now opens the route's own card while the handler is not loaded, or the handler's file when the route has no card, and the handler once it is. An entry that still leads nowhere (a handler in no file the model has) leaves the palette open and says that it is not on the map.
