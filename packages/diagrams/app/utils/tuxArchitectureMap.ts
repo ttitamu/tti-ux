@@ -1190,7 +1190,7 @@ export type TuxMapElementStatus = "live" | "paused" | "planned" | "neighbor";
  * @public
  */
 export interface TuxMapSourceRef {
-  /** Repository slug or URL (e.g. "nis/forgejo-stack" or "https://code.tti.tamu.edu/tti/tti-ux") */
+  /** Repository slug or URL (e.g. "owner/name" or "https://forge.example/owner/name") */
   repo?: string;
   /** Relative file path inside the repository (e.g. "src/search/retriever.py") */
   path: string;
@@ -1481,7 +1481,7 @@ export interface TuxMapLevelModel {
   schema?: TuxMapSchemaName;
   generatedAt?: string;
   issueBaseUrl?: string;
-  /** Optional repository base URL for `source.path` links (e.g. "https://code.tti.tamu.edu/tti/tti-ux/src/branch/main") */
+  /** Optional repository base URL for `source.path` links (e.g. "https://forge.example/owner/name/src/branch/main") */
   sourceBaseUrl?: string;
   /** Level 1: High-level ecosystem, people, primary systems & external dependencies */
   level1: {

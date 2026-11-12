@@ -16,7 +16,7 @@
       "type": "string"
     },
     "sourceBaseUrl": {
-      "description": "Optional repository base URL for `source.path` links (e.g. \"https://code.tti.tamu.edu/tti/tti-ux/src/branch/main\")",
+      "description": "Optional repository base URL for `source.path` links (e.g. \"https://forge.example/owner/name/src/branch/main\")",
       "type": "string"
     },
     "level1": {
@@ -1099,7 +1099,7 @@
       "type": "object",
       "properties": {
         "repo": {
-          "description": "Repository slug or URL (e.g. \"nis/forgejo-stack\" or \"https://code.tti.tamu.edu/tti/tti-ux\")",
+          "description": "Repository slug or URL (e.g. \"owner/name\" or \"https://forge.example/owner/name\")",
           "type": "string"
         },
         "path": {

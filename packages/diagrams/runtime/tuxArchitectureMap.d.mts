@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 7de2246ca5cfbbe8f732ccb42d16a7668e8ad8053c32e31eb6884a81ceccd7c3
+// SOURCE-SHA256: 22dc25e1572869aff672766956a4b237e977731c63afc058b7c01a5fa2f67bef
 /**
  * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
  *
@@ -433,7 +433,7 @@ export type TuxMapElementStatus = "live" | "paused" | "planned" | "neighbor";
  * @public
  */
 export interface TuxMapSourceRef {
-    /** Repository slug or URL (e.g. "nis/forgejo-stack" or "https://code.tti.tamu.edu/tti/tti-ux") */
+    /** Repository slug or URL (e.g. "owner/name" or "https://forge.example/owner/name") */
     repo?: string;
     /** Relative file path inside the repository (e.g. "src/search/retriever.py") */
     path: string;
@@ -713,7 +713,7 @@ export interface TuxMapLevelModel {
     schema?: TuxMapSchemaName;
     generatedAt?: string;
     issueBaseUrl?: string;
-    /** Optional repository base URL for `source.path` links (e.g. "https://code.tti.tamu.edu/tti/tti-ux/src/branch/main") */
+    /** Optional repository base URL for `source.path` links (e.g. "https://forge.example/owner/name/src/branch/main") */
     sourceBaseUrl?: string;
     /** Level 1: High-level ecosystem, people, primary systems & external dependencies */
     level1: {
