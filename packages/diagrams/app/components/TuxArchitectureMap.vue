@@ -3394,9 +3394,10 @@ const stageScale = computed<number>(() =>
 );
 const isMagnified = computed<boolean>(() => stageScale.value > fitScale.value + 0.001);
 const canMagnify = computed<boolean>(() => MAGNIFY_SCALES.some((m) => m > stageScale.value + 0.01));
-const magnifyLabel = computed<string>(() =>
-  isMagnified.value ? `${Math.round(stageScale.value * 100)}%` : "Fit",
-);
+// The size the reader is told is the size against Fit, which is what "larger" is larger than.
+// The stage's own scale read 75% after the first "larger" on a screen where Fit is 0.72 (#205)
+const magnifyPercent = computed<number>(() => Math.round((stageScale.value / fitScale.value) * 100));
+const magnifyLabel = computed<string>(() => (isMagnified.value ? `${magnifyPercent.value}%` : "Fit"));
 
 function magnifyBy(dir: 1 | -1) {
   const s = stageScale.value;
@@ -3409,7 +3410,7 @@ function magnifyBy(dir: 1 | -1) {
   }
   afterMagnify();
   liveAnnouncement.value = isMagnified.value
-    ? `Diagram at ${Math.round(stageScale.value * 100)}%: scroll or swipe to move around it`
+    ? `Diagram at ${magnifyPercent.value}% of the fitted size: scroll, swipe or drag the background to move around it`
     : "Diagram fitted to the width";
 }
 
@@ -3438,14 +3439,27 @@ const computedViewportHeight = computed<string>(() => {
   }
   const fitH = Math.max(440, Math.ceil(stageData.value.height * fitScale.value));
   if (!isMagnified.value) return `${fitH}px`;
-  // magnified: tall enough to read, never taller than most of the screen; the rest scrolls
-  return `max(${fitH}px, min(${Math.ceil(stageData.value.height * stageScale.value)}px, 75vh))`;
+  // magnified: tall enough to read, never taller than most of the screen; the rest scrolls.
+  // The 2px are the viewport's border: without them a viewport as tall as the diagram still
+  // scrolled by those 2px, and showed a scrollbar thumb as tall as itself (#205)
+  return `max(${fitH}px, min(${Math.ceil(stageData.value.height * stageScale.value) + VIEWPORT_BORDER}px, 75vh))`;
 });
+
+const VIEWPORT_BORDER = 2;
+const viewportOuterHeight = ref<number>(0);
+/** Magnified and as tall as the diagram: only the width scrolls. */
+const magnifiedShowsFullHeight = computed<boolean>(
+  () =>
+    isMagnified.value &&
+    viewportOuterHeight.value > 0 &&
+    viewportOuterHeight.value >= Math.ceil(stageData.value.height * stageScale.value) + VIEWPORT_BORDER - 0.5,
+);
 
 function measureViewport() {
   if (viewportRef.value && viewportRef.value.clientWidth > 0) {
     viewportWidth.value = viewportRef.value.clientWidth;
   }
+  viewportOuterHeight.value = viewportRef.value?.offsetHeight ?? 0;
   const rootW =
     mapRootRef.value?.clientWidth ||
     viewportRef.value?.clientWidth ||
@@ -6299,6 +6313,21 @@ function onStagePointerDown(e: PointerEvent) {
     return;
   }
 
+  // A mouse on the background may be the start of a drag: what a press there does is decided
+  // when it ends (a click clears the selection, as before) or once it has moved (#205)
+  if (isStagePanPointer(e) && isStageBackground(target)) {
+    const vp = viewportRef.value;
+    stageDrag = {
+      pointerId: e.pointerId,
+      x: e.clientX,
+      y: e.clientY,
+      scrollLeft: vp?.scrollLeft ?? 0,
+      scrollTop: vp?.scrollTop ?? 0,
+      moved: false,
+    };
+    return;
+  }
+
   // Clicking empty background in Select mode clears selection
   if (
     selectedId.value &&
@@ -6310,8 +6339,75 @@ function onStagePointerDown(e: PointerEvent) {
   }
 }
 
+// Drag-to-pan (#205). A mouse pressed on the stage's background and moved scrolls the viewport
+// with it. It moves what the scrollbars move, so there is something to drag only where the
+// diagram is larger than its viewport: magnified, or under a fixed `height`. A finger and a pen
+// are left to the browser, which already scrolls and pinches with them.
+const STAGE_DRAG_SLOP = 4;
+const isDraggingStage = ref<boolean>(false);
+let stageDrag: {
+  pointerId: number;
+  x: number;
+  y: number;
+  scrollLeft: number;
+  scrollTop: number;
+  moved: boolean;
+} | null = null;
+
+function isStagePanPointer(e: PointerEvent): boolean {
+  return activeTool.value === "select" && e.pointerType !== "touch" && e.pointerType !== "pen";
+}
+
+/** Nothing under the pointer that a press belongs to: a card, its `+`, a wire label, a note, a control. */
+function isStageBackground(target: Element | null): boolean {
+  if (!target || !viewportRef.value?.contains(target)) return false;
+  return !target.closest?.(
+    ".tux-map__el, .tux-map__el-zb, .tux-map__lab, .tux-map__note, .tux-map__panel, .tux-map__wire-pop, .tux-map__wheel-veil, button, a, input, textarea, select",
+  );
+}
+
+/** Follows a press on the background. True while it is a drag, so the caller does nothing else with the move. */
+function moveStageDrag(e: PointerEvent): boolean {
+  const drag = stageDrag;
+  if (!drag || e.pointerId !== drag.pointerId) return false;
+  // the button came up where the map did not hear it
+  if (e.buttons !== undefined && (e.buttons & 1) === 0) {
+    endStageDrag(e, true);
+    return false;
+  }
+  const dx = e.clientX - drag.x;
+  const dy = e.clientY - drag.y;
+  if (!drag.moved) {
+    if (Math.hypot(dx, dy) < STAGE_DRAG_SLOP) return false;
+    drag.moved = true;
+    isDraggingStage.value = true;
+    try {
+      viewportRef.value?.setPointerCapture?.(e.pointerId);
+    } catch {
+      // a pointer that is already gone cannot be captured: the drag still follows the moves it gets
+    }
+  }
+  e.preventDefault();
+  const vp = viewportRef.value;
+  if (vp) {
+    vp.scrollLeft = drag.scrollLeft - dx;
+    vp.scrollTop = drag.scrollTop - dy;
+  }
+  return true;
+}
+
+/** Ends a press on the background. One that did not move was a click, and clears the selection. */
+function endStageDrag(e: PointerEvent, cancelled = false) {
+  const drag = stageDrag;
+  if (!drag || e.pointerId !== drag.pointerId) return;
+  stageDrag = null;
+  isDraggingStage.value = false;
+  if (!drag.moved && !cancelled && selectedId.value) selectElement(null);
+}
+
 function onStagePointerMove(e: PointerEvent) {
   lastPointerClient = { x: e.clientX, y: e.clientY };
+  if (moveStageDrag(e)) return;
   if (isWheelVeil(e.target)) return;
   const pt = getStageCoords(e);
 
@@ -6364,6 +6460,7 @@ function onStagePointerMove(e: PointerEvent) {
 }
 
 function onStagePointerUp(e: PointerEvent) {
+  endStageDrag(e, e.type === "pointercancel");
   (e.currentTarget as HTMLElement)?.releasePointerCapture?.(e.pointerId);
   if (activeTool.value === "pen" && activePenPoints.value.length > 1) {
     const firstPt = activePenPoints.value[0]!;
@@ -6801,7 +6898,7 @@ function buildSourceHref(src?: {
             :aria-pressed="!isMagnified"
             :aria-label="
               isMagnified
-                ? `Fit the diagram to the width (now ${magnifyLabel})`
+                ? `Fit the diagram to the width (now ${magnifyLabel} of the fitted size)`
                 : 'The diagram fits the width'
             "
             title="Fit to the width"
@@ -6814,7 +6911,7 @@ function buildSourceHref(src?: {
             class="tux-map__iconbtn"
             :disabled="!canMagnify"
             aria-label="Make the diagram larger"
-            title="Larger: then scroll or swipe to move around it"
+            title="Larger: then scroll, swipe or drag the background to move around it"
             @click="magnifyBy(1)"
           >
             A+
@@ -7212,6 +7309,8 @@ function buildSourceHref(src?: {
               proximityCard?.zoomable && activeTool === 'select',
             ),
             'tux-map__viewport--magnified': isMagnified,
+            'tux-map__viewport--full-height': magnifiedShowsFullHeight,
+            'tux-map__viewport--dragging': isDraggingStage,
             'tux-map__viewport--page-wheel': !plainWheelZooms && !isMagnified,
           },
         ]"
@@ -9701,6 +9800,7 @@ function buildSourceHref(src?: {
   );
   background-size: 22px 22px;
   cursor: var(--tux-cursor-nav);
+  box-sizing: border-box;
   user-select: none;
   -webkit-user-select: none;
   /* a finger scrolls the page past the map and pinches to zoom; only the drawing tools take the gesture */
@@ -9710,6 +9810,19 @@ function buildSourceHref(src?: {
 
 .tux-map__viewport--magnified {
   overflow: auto;
+  /* the background drags the diagram about (#205); a card keeps its own cursor */
+  cursor: grab;
+}
+
+/* As tall as the diagram: nothing to scroll down to. A horizontal scrollbar that takes its
+   height from the viewport would otherwise bring a vertical one with it (#205) */
+.tux-map__viewport--full-height {
+  overflow-y: hidden;
+}
+
+.tux-map__viewport--dragging,
+.tux-map__viewport--dragging * {
+  cursor: grabbing !important;
 }
 
 /* where the plain wheel is the page's (`wheelZoom` false, or "click" and not armed)

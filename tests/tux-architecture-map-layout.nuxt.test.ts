@@ -271,3 +271,179 @@ describe("TuxArchitectureMap: wires and labels the highlight does not reach stay
     expect(Number(opacity)).toBeLessThan(Number(/opacity:\s*([\d.]+)/.exec(declarations(".tux-map__wire")[0]!)![1]));
   });
 });
+
+describe("TuxArchitectureMap: magnify says how much larger than Fit (#205)", () => {
+  it("labels each step against the fitted size, so the first step up reads more than 100%", async () => {
+    const { wrapper, state } = await mountMap({ initialLevel: 2 });
+    // a narrow viewport: the diagram fits at well under its real size, and the first step is 0.5 or 0.75
+    state.viewportWidth = 700;
+    await nextTick();
+    const fit = state.fitScale as number;
+    expect(fit).toBeLessThan(0.75);
+    const label = () => wrapper.find(".tux-map__magnify-fit").text();
+    expect(label()).toBe("Fit");
+    const seen: number[] = [];
+    while (!(wrapper.find('[aria-label="Make the diagram larger"]').element as HTMLButtonElement).disabled) {
+      await wrapper.find('[aria-label="Make the diagram larger"]').trigger("click");
+      await nextTick();
+      expect(label()).toBe(`${Math.round(((state.stageScale as number) / fit) * 100)}%`);
+      seen.push(Number.parseInt(label(), 10));
+    }
+    expect(seen.length).toBeGreaterThanOrEqual(3);
+    expect(seen[0]).toBeGreaterThan(100);
+    expect([...seen].sort((a, b) => a - b)).toEqual(seen);
+    // the scale itself still tops out at twice the real size
+    expect(state.stageScale).toBe(2);
+    expect(wrapper.find(".tux-map__magnify-fit").attributes("aria-label")).toContain(`${seen.at(-1)}% of the fitted size`);
+    expect(state.liveAnnouncement).toContain(`${seen.at(-1)}% of the fitted size`);
+  });
+
+  it("does not scroll down a magnified viewport that is as tall as the diagram", async () => {
+    const { wrapper, state } = await mountMap({ initialLevel: 2 }, true);
+    await wrapper.find('[aria-label="Make the diagram larger"]').trigger("click");
+    await nextTick();
+    const vp = wrapper.find(".tux-map__viewport");
+    const full = Math.ceil(state.stageData.height * state.stageScale) + 2;
+    // the height the component asks for includes the viewport's border
+    expect(state.computedViewportHeight).toContain(`min(${full}px, 75vh)`);
+    expect(declarations(".tux-map__viewport")[0]).toMatch(/box-sizing:\s*border-box/);
+    const measure = async (h: number) => {
+      Object.defineProperty(vp.element, "offsetHeight", { value: h, configurable: true });
+      state.measureViewport();
+      await nextTick();
+      return vp.classes().includes("tux-map__viewport--full-height");
+    };
+    expect(await measure(full)).toBe(true);
+    // most of a short screen: the rest scrolls
+    expect(await measure(full - 300)).toBe(false);
+    expect(declarations(".tux-map__viewport--full-height")[0]).toMatch(/overflow-y:\s*hidden/);
+  });
+});
+
+describe("TuxArchitectureMap: dragging the background moves the diagram (#205)", () => {
+  type PointerInit = { x: number; y: number; buttons?: number; pointerType?: string };
+
+  async function mountMagnified(props: Record<string, unknown> = {}) {
+    const m = await mountMap({ initialLevel: 2, ...props }, true);
+    await m.wrapper.find('[aria-label="Make the diagram larger"]').trigger("click");
+    await nextTick();
+    const vp = m.wrapper.find(".tux-map__viewport").element as HTMLElement;
+    // the test DOM scrolls nothing: hold what the component sets
+    const scroll = { left: 100, top: 80 };
+    Object.defineProperty(vp, "scrollLeft", { get: () => scroll.left, set: (v: number) => void (scroll.left = v), configurable: true });
+    Object.defineProperty(vp, "scrollTop", { get: () => scroll.top, set: (v: number) => void (scroll.top = v), configurable: true });
+    const captured: number[] = [];
+    vp.setPointerCapture = ((id: number) => void captured.push(id)) as typeof vp.setPointerCapture;
+    vp.releasePointerCapture = (() => {}) as typeof vp.releasePointerCapture;
+    const send = async (type: string, target: Element, init: PointerInit) => {
+      const ev = new window.MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        button: 0,
+        buttons: init.buttons ?? (type === "pointerup" ? 0 : 1),
+        clientX: init.x,
+        clientY: init.y,
+      });
+      Object.defineProperty(ev, "pointerId", { value: 7 });
+      Object.defineProperty(ev, "pointerType", { value: init.pointerType ?? "mouse" });
+      target.dispatchEvent(ev);
+      await nextTick();
+      return ev;
+    };
+    const stage = m.wrapper.find(".tux-map__stage").element;
+    const dragging = () => vp.classList.contains("tux-map__viewport--dragging");
+    return { ...m, vp, stage, scroll, captured, send, dragging };
+  }
+
+  it("scrolls the viewport with the pointer, captures it, and shows the grabbing cursor", async () => {
+    const { vp, stage, scroll, captured, send, dragging } = await mountMagnified();
+    await send("pointerdown", stage, { x: 400, y: 300 });
+    expect(dragging()).toBe(false);
+    const moved = await send("pointermove", stage, { x: 340, y: 270 });
+    expect(dragging()).toBe(true);
+    expect(captured).toEqual([7]);
+    expect(moved.defaultPrevented).toBe(true);
+    expect(scroll).toEqual({ left: 160, top: 110 });
+    await send("pointermove", stage, { x: 420, y: 330 });
+    expect(scroll).toEqual({ left: 80, top: 50 });
+    await send("pointerup", vp, { x: 420, y: 330 });
+    expect(dragging()).toBe(false);
+    // released: the pointer moves the diagram no more
+    await send("pointermove", stage, { x: 100, y: 100, buttons: 0 });
+    expect(scroll).toEqual({ left: 80, top: 50 });
+    expect(declarations(".tux-map__viewport--magnified")[0]).toMatch(/cursor:\s*grab\b/);
+    expect(declarations(".tux-map__viewport--dragging").join(";")).toMatch(/cursor:\s*grabbing/);
+  });
+
+  it("keeps the selection through a drag, and clears it on a click of the background as before", async () => {
+    const { wrapper, state, stage, scroll, send, dragging } = await mountMagnified();
+    await wrapper.find('.tux-map__el[data-id="c-db"]').trigger("click");
+    await nextTick();
+    expect(state.selectedId).toBe("c-db");
+    await send("pointerdown", stage, { x: 400, y: 300 });
+    await send("pointermove", stage, { x: 360, y: 300 });
+    await send("pointerup", stage, { x: 360, y: 300 });
+    expect(scroll.left).toBe(140);
+    expect(state.selectedId).toBe("c-db");
+    // under 4px is a click, not a drag
+    await send("pointerdown", stage, { x: 400, y: 300 });
+    await send("pointermove", stage, { x: 402, y: 302 });
+    expect(dragging()).toBe(false);
+    expect(scroll.left).toBe(140);
+    await send("pointerup", stage, { x: 402, y: 302 });
+    expect(state.selectedId).toBeNull();
+  });
+
+  it("does not start on a card, a `+`, a wire label or a control", async () => {
+    const { wrapper, scroll, send, dragging } = await mountMagnified();
+    for (const sel of [".tux-map__el", ".tux-map__el-zb", ".tux-map__lab"]) {
+      const el = wrapper.find(`.tux-map__stage ${sel}`).element;
+      await send("pointerdown", el, { x: 400, y: 300 });
+      await send("pointermove", el, { x: 300, y: 200 });
+      expect(dragging(), sel).toBe(false);
+      await send("pointerup", el, { x: 300, y: 200 });
+    }
+    expect(scroll).toEqual({ left: 100, top: 80 });
+  });
+
+  it("does not start under the click-to-explore veil", async () => {
+    const m = await mountMap({ initialLevel: 2, wheelZoom: "click" }, true);
+    const veil = m.wrapper.find(".tux-map__wheel-veil").element;
+    const down = new window.MouseEvent("pointerdown", { bubbles: true, button: 0, buttons: 1, clientX: 10, clientY: 10 });
+    veil.dispatchEvent(down);
+    const move = new window.MouseEvent("pointermove", { bubbles: true, cancelable: true, buttons: 1, clientX: 90, clientY: 90 });
+    veil.dispatchEvent(move);
+    await nextTick();
+    expect(m.wrapper.find(".tux-map__viewport").classes()).not.toContain("tux-map__viewport--dragging");
+    expect(move.defaultPrevented).toBe(false);
+  });
+
+  it("leaves a finger to the browser, which already scrolls with it", async () => {
+    const { wrapper, state, stage, scroll, send, dragging } = await mountMagnified();
+    await wrapper.find('.tux-map__el[data-id="c-db"]').trigger("click");
+    await nextTick();
+    await send("pointerdown", stage, { x: 400, y: 300, pointerType: "touch" });
+    // a touch on the background clears the selection at once, as it did
+    expect(state.selectedId).toBeNull();
+    await send("pointermove", stage, { x: 300, y: 200, pointerType: "touch" });
+    expect(dragging()).toBe(false);
+    expect(scroll).toEqual({ left: 100, top: 80 });
+  });
+
+  it("drops a drag whose button came up outside the map, and does not take the drawing tools' strokes", async () => {
+    const { wrapper, state, stage, scroll, send, dragging } = await mountMagnified({ annotations: true });
+    await send("pointerdown", stage, { x: 400, y: 300 });
+    await send("pointermove", stage, { x: 380, y: 300 });
+    expect(dragging()).toBe(true);
+    await send("pointermove", stage, { x: 200, y: 300, buttons: 0 });
+    expect(dragging()).toBe(false);
+    expect(scroll.left).toBe(120);
+    state.activeTool = "pen";
+    await nextTick();
+    await send("pointerdown", stage, { x: 400, y: 300 });
+    await send("pointermove", stage, { x: 300, y: 300 });
+    expect(dragging()).toBe(false);
+    expect(scroll.left).toBe(120);
+    expect(wrapper.find(".tux-map__viewport").classes()).toContain("tux-map__viewport--tool-pen");
+  });
+});
