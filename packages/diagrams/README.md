@@ -165,3 +165,63 @@ The **utils** rows call the exported functions directly (`tests/map-bench.test.t
 `--profile=<scenario>` answers where the time goes: it runs that one scenario and writes `<out>/profile/<scenario>.cpuprofile`, a V8 CPU profile of five calls at 10,000 symbols, which a browser's DevTools opens in the Performance tab.
 
 The committed baseline (`tests/support/map-bench.baseline.json`) records the machine, the Node version and the commit it was taken at. When it exists, the table's last column compares the 10,000-symbol median with it, divided by a fixed reference workload timed in the same run, so two machines can be read side by side. That column is information, not a gate. For a before and after, run `bench:map` on `main` and on the branch on the same machine and quote both rows; re-record the baseline when a change moves a number on purpose, and raise or lower that scenario's `bounds` in the test to about twice its new ratio.
+
+## What the architecture map's tests cover
+
+Three groups of tests run in `npm test`. None of them runs in a browser.
+
+| Suite | Where | What it runs |
+|---|---|---|
+| Unit | `packages/diagrams/tests/*.test.ts`, Node | The exported functions of `app/utils/tuxArchitectureMap.ts`, called directly |
+| Mounted | `tests/components/tux-architecture-map.nuxt.test.ts` and `tests/tux-architecture-map-*.nuxt.test.ts` at the repository root, jsdom | `<TuxArchitectureMap>` mounted in a Nuxt test app |
+| MCP | the server requests in `packages/diagrams/tests/diagrams.test.ts`, and `tests/tux-mcp-cli.test.mjs` at the repository root | `scripts/tux-mcp.mjs`, in process and as a child process |
+
+**Covered.**
+
+- **Unit:** validating, sanitizing and collapsing a model; the parent index; reading the links and lifting them onto a view; the blast radius and the branch delta; the node, impact and path queries; the Go-To search; the freehand path builders; merging a lazy subgraph into the model, compared with a full rebuild on generated models; wire-label placement, compared with the full scans; every case of the published conformance fixture; the API snapshots; and the growth ratios of the benchmark.
+- **Mounted:** the levels and moving between them by button, breadcrumb, double-click and mouse wheel; the list view; magnify and Fit; the details panel and where focus goes; the blast radius switch; sticky notes by level; reduced motion; two axe checks; a lazy subgraph's arrival, and one that resolves empty; what a toggle rebuilds; one mount of a 2,500-symbol model; and the growth ratios of the mounted benchmark.
+- **MCP:** the four architecture tools (`tux_query_architecture_nodes`, `tux_query_architecture_impact`, `tux_find_architecture_path`, `tux_compute_graph_delta`) and the resource list, as JSON-RPC requests handled in process, with and without a model. As a child process: `--call` and `--list-tools` writing a result larger than a pipe's buffer, the exit codes, and the errors written to stderr.
+
+**Not covered.**
+
+- **Anything a browser does.** jsdom does no layout, so no test asserts on rendered sizes, on the container-query layout or on scrolling. The 44 px targets and the 7:1 contrast are not asserted by these suites, and no audit script in this repository reads the map's styles.
+- **Touch and pinch.** No test sends a touch event, or a pointer event from a finger or a pen. The only pointer events sent are `pointerover` and `pointermove` from a mouse. No test sends a wheel event with Ctrl held, which is what a trackpad pinch sends. The help text for a touch screen (`pointer: coarse`) is not tested either.
+- **Drawing.** The path builders for the pen and the laser are unit-tested. Drawing a stroke on the mounted map is not.
+- **`resize` and `autoListBreakpoint`.** One test sends a `resize` event, to check that the breadcrumb collapses at 375 px. One test opens `initialView="auto"` at 375 px with the default breakpoint. No test passes `autoListBreakpoint`, and none resizes a mounted map across the breakpoint. jsdom has no `ResizeObserver`, so the code that observes the map's own width does not run.
+- **The hover re-route.** `tests/tux-architecture-map-hover.nuxt.test.ts` counts the calls to the wire router on one hand-built model: three files at Level 5. On larger models a hover is timed (the 2,500-symbol mount, and the benchmark's `hover` and `c-hover` rows), and its calls are not counted.
+- **MCP over stdio.** Of the four architecture tools, the child-process tests call only `tux_query_architecture_nodes`. No test runs the server as a long-lived process that reads requests from stdin.
+- **The custom element.** `packages/elements` has no tests. Its only check is that the bundle builds, which `npm test` runs.
+- **The React shell.** `packages/react/src/components/TuxArchitectureMap.tsx` has no test file. The next section says what that file is.
+
+## The architecture map outside Vue
+
+The map is one Vue component, `app/components/TuxArchitectureMap.vue`. The files that carry its name elsewhere in the repository are these.
+
+| File | What it is |
+|---|---|
+| `packages/react/src/components/TuxArchitectureMap.tsx` | A shell written by `scripts/sync-engine.mjs`: 23 lines, a `<figure class="tux-architecture-map">` around its children. It takes `children`, `className` and `style`. It takes no model and draws no map. The index of `@tti/tti-ux-react` does not export it. |
+| `kit/js`, `kit/python`, `kit/kotlin`, `kit/php`, `kit/swift`, `kit/csharp` (one file each under `components/`) | The same shell from the same script, 12 to 28 lines each: a `figure` element or its counterpart, with the class name and nothing inside. |
+| `packages/elements/src/index.ts` | The custom element `<tux-architecture-map>`, written by `scripts/build-elements.mjs`. It is Vue's `defineCustomElement` of the component itself, so it is the whole map. |
+
+The custom element is the only surface outside Vue that draws the map. What it needs from the page that hosts it:
+
+- **Vue.** The bundle does not contain Vue. `dist/tux-elements.js` imports `vue` and `@nuxt/ui/vue-plugin`, and the build that consumes it resolves both. `@nuxt/ui/vue-plugin` is a module that Nuxt UI's Vite plugin (`@nuxt/ui/vite`) supplies; the `@nuxt/ui` package holds only its types.
+- **Styles.** The element is defined with `shadowRoot: false`, so it renders into the page and takes its styles from the page. The component styles are in `dist/tti-ux-elements.css`. The package's `exports` list `./styles.css` and `./tux-tokens.css`, which are the tokens, and do not list that file.
+- **The model as a property.** `model` is an object, so it is set as a DOM property, not as an attribute.
+
+It has no tests (see the section above).
+
+**Decision: there will be no React rewrite of the map.** A React application wraps the custom element:
+
+```tsx
+import { createElement, useEffect, useRef } from "react";
+import "@tti/tti-ux-elements";
+
+export function ArchitectureMap({ model }: { model: object }) {
+  const el = useRef<HTMLElement & { model?: object }>(null);
+  useEffect(() => { if (el.current) el.current.model = model; }, [model]);
+  return createElement("tux-architecture-map", { ref: el });
+}
+```
+
+The `ref` is needed. Vue declares the element's properties when the element connects to the document, and React 19 sets a prop before that, so `model` passed as a prop arrives as the attribute `model="[object Object]"`.

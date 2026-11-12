@@ -163,7 +163,7 @@
       }
     },
     "linkTiers": {
-      "description": "Optional pre-partitioned spreading & stopping link tiers (`#126`, `#731`).",
+      "description": "Optional pre-partitioned spreading & stopping link tiers (`#126`).",
       "type": "object",
       "properties": {
         "spread": {
@@ -181,14 +181,14 @@
       }
     },
     "stopKinds": {
-      "description": "Optional list of link `kind`s treated as `stop: true` when `link.stop` is omitted (`#126`, `#731`).",
+      "description": "Optional list of link `kind`s treated as `stop: true` when `link.stop` is omitted (`#126`).",
       "type": "array",
       "items": {
         "type": "string"
       }
     },
     "aliases": {
-      "description": "Optional legacy-to-canonical bookmark alias map (`#716`, `#124`).",
+      "description": "Optional legacy-to-canonical bookmark alias map (`#124`).",
       "type": "object",
       "additionalProperties": {
         "type": "string"

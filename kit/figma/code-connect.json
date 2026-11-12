@@ -261,7 +261,7 @@
       "family": "components",
       "category": "data-display",
       "wraps": "tux native (M.A.P. canvas)",
-      "blurb": "Infinite-canvas Master Architecture Plan (M.A.P.) — 3-level semantic zoom (Products → People/VMs/Containers → Package Dependencies), blast-radius traversal, smoothed freehand pen, decaying laser pointer, and multi-user cursors.",
+      "blurb": "Infinite-canvas Modular Architecture Map (M.A.P.) — 3-level semantic zoom (Products → People/VMs/Containers → Package Dependencies), blast-radius traversal, smoothed freehand pen, decaying laser pointer, and multi-user cursors.",
       "route": "/components/architecture-map",
       "docsUrl": "https://ux.tti.tamu.edu/components/architecture-map",
       "figmaNodePattern": "TUX / TuxArchitectureMap",

@@ -43,6 +43,14 @@ conventions.
 - `validateMapModel()` has a new warning, `missing-field`: a list the model type requires (`level1.elements`, `level1.rels`, `level2.elements`, `level2.rels`, `level4.groups`, `level4.nodes`, `level4.links`, a subgraph's `elements`) or `level2.boundary` is absent from a level that is there. It is a warning because such a document renders, with the empty default. Issues and warnings may now carry `path`, a JSON Pointer to the field, and `count`.
 
 **To check when upgrading:** nothing to change for a document that renders today. Code that tested `model.subgraphs === undefined` or `subgraph.rels === undefined` on the result of `sanitizeMapModel()` to mean "the document had none" now sees an empty object or list; test the document instead. A document that leaves out a required list now gets one console warning per field from `<TuxArchitectureMap>`.
+### Changed — Architecture map: one expansion of M.A.P., and what the tests and the other framework files are (#170, #171, #172, #173)
+
+- M.A.P. is the Modular Architecture Map. The catalog, the docs page, the engine's header comment and the component said Master Architecture Plan in some places. `<TuxArchitectureMap>`'s default `title` is now `"Modular Architecture Map"` and its default `eyebrow` is `"TUX · MODULAR ARCHITECTURE MAP (M.A.P.)"`.
+- Comments in `packages/diagrams` no longer cite another repository's issues by bare number, which linked to unrelated issues here. The `description` of `tests/fixtures/map-conformance.json` changes with them; its cases do not.
+- The diagrams README says what the unit, mounted and MCP suites cover and what they do not: anything a browser does, touch and pinch, drawing, `resize` and `autoListBreakpoint` beyond one case each, the hover re-route beyond one hand-built model, MCP over stdio, the custom element and the React shell.
+- The diagrams README says what the map's files outside Vue are. The React file and the kit ports are generated shells that draw nothing. The custom element in `@tti/tti-ux-elements` is the whole map; its bundle leaves `vue` and `@nuxt/ui/vue-plugin` to the consumer's build. There will be no React rewrite: a React application wraps the custom element, and the README shows how.
+
+**To check when upgrading:** a map that sets neither `title` nor `eyebrow` shows the new defaults. A copy of `map-conformance.json` compared byte for byte differs in its `description` line.
 
 ### Changed — Architecture map: a lazy subgraph's arrival is added to the model, not a reason to rebuild it (#157)
 

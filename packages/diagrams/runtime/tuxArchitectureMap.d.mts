@@ -1,8 +1,8 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 22dc25e1572869aff672766956a4b237e977731c63afc058b7c01a5fa2f67bef
+// SOURCE-SHA256: 7733128153271a39fe96e7ae56fe5959818d30c4dce39863bed37a541118127c
 /**
- * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
+ * tuxArchitectureMap — Core Engine for the TUX Modular Architecture Map (M.A.P.) & Infinite Canvas.
  *
  * Synthesizes best-in-class open-source algorithms (MIT / Apache-2.0):
  * 1. SmoothStep & Bezier orthogonal/curved SVG edge routing + viewport bounds math
@@ -758,14 +758,14 @@ export interface TuxMapLevelModel {
      * blast radius of a selected element walks them upstream.
      */
     links?: TuxMapLink[];
-    /** Optional pre-partitioned spreading & stopping link tiers (`#126`, `#731`). */
+    /** Optional pre-partitioned spreading & stopping link tiers (`#126`). */
     linkTiers?: {
         spread?: TuxMapLink[];
         stop?: TuxMapLink[];
     };
-    /** Optional list of link `kind`s treated as `stop: true` when `link.stop` is omitted (`#126`, `#731`). */
+    /** Optional list of link `kind`s treated as `stop: true` when `link.stop` is omitted (`#126`). */
     stopKinds?: string[];
-    /** Optional legacy-to-canonical bookmark alias map (`#716`, `#124`). */
+    /** Optional legacy-to-canonical bookmark alias map (`#124`). */
     aliases?: Record<string, string>;
     /** Optional HTTP route table linking URL patterns to handler symbols or files (`#120`, `#122`). */
     routes?: TuxMapRouteEntry[];
@@ -1014,7 +1014,7 @@ export declare function isKindNodeId(nid: string, kind: string | readonly string
 export declare function stripNodeKindPrefix(nid: string): string;
 /**
  * Client-side deterministic link ID (`${kind}:${from}->${to}`, disambiguating duplicates with `#2`, `#3`, ...)
- * so models do not need to serialize explicit `id` fields on every link (`#716` `RO24`).
+ * so models do not need to serialize explicit `id` fields on every link.
  * @internal
  */
 export declare function deriveLinkId(link: Pick<TuxMapLink, "kind" | "from" | "to">, seenCounts?: Map<string, number>): string;
