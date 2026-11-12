@@ -45,13 +45,17 @@ const DEFAULT_THRESHOLD = 40;
  *
  * - Against the first mount, which reads the whole model: a hover or a
  *   selection that mounted again, or read the model again, would cost about
- *   one mount. On a laptop a hover is under 0.01 of it and a selection under 0.03.
+ *   one mount. On a laptop a hover is about 0.02 of it and a selection about 0.07.
+ *   The mount is the first in its file and its cost depends on what the worker
+ *   compiled before it: on a shared runner the same selection has measured 0.06
+ *   of a cold mount and 0.12 of a warm one, so the bound is a quarter, which a
+ *   second mount (1.0) still fails by a wide margin.
  * - Against a move to another view and back, which builds and routes two
  *   stages: a hover that built the stage again would cost at least half of
  *   it, on top of its own work. A selection also fills the details panel,
  *   so its bound is the whole round trip.
  */
-const MAX_SHARE_OF_MOUNT = 0.1;
+const MAX_SHARE_OF_MOUNT = 0.25;
 const HOVER_MAX_SHARE_OF_VIEW_CHANGE = 0.5;
 const SELECTION_MAX_SHARE_OF_VIEW_CHANGE = 1;
 const SAMPLES = 7;
