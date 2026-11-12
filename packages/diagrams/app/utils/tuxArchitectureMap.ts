@@ -10297,10 +10297,8 @@ function extendSearchIndex(
   // Nothing above changed `keep`; from here it describes `model`
   for (const pid of newlyParented.values()) passedThrough.add(pid);
   passedThrough.add(added.owner);
-  for (const n of arrived.values()) {
-    nodes.set(n.id, n);
-    if (n.parentId) passedThrough.add(n.parentId);
-  }
+  // What an arrived card hangs under is the owner or a card: a card is in `nodes`, which is asked first
+  for (const n of arrived.values()) nodes.set(n.id, n);
   keep.passedThrough = passedThrough;
   keep.model = model;
   keep.parentOf = parentOf;

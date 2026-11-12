@@ -861,6 +861,116 @@ describe("buildMapSearchIndexKept", () => {
     expect(r.steps[0]!.searchExtended).toBe(false);
   });
 
+  it("builds again when the arrival puts a parent over an entry that had none", () => {
+    const raw = searchable({
+      level4: { groups: [], nodes: [{ id: "vm", kind: "vm", title: "VM", role: "host" }], links: [] },
+    });
+    expect(feedDerived(raw, []).search.find((e) => e.id === "vm")!.ancestors).toEqual([]);
+    const r = feedDerived(raw, [["sg-a", sgA([{ id: "vm", kind: "module", name: "VM card" }])]]);
+    expect(r.steps[0]).toMatchObject({ added: true, searchExtended: false });
+    expect(r.search.find((e) => e.id === "vm")!.ancestors.length).toBeGreaterThan(0);
+  });
+
+  it("builds again when a later arrival is what an earlier one hangs under", () => {
+    const symbols = {
+      stratum: "Symbols",
+      elements: [
+        { id: "s:a/f0.ts#run", kind: "function", name: "run()" },
+        { id: "s:a/f0.ts#stop", kind: "function", name: "stop()" },
+      ],
+    };
+    const r = feedDerived(searchable(), [
+      ["f:a/f0.ts", symbols],
+      ["sg-a", sgA()],
+    ]);
+    expect(r.steps[0]).toMatchObject({ added: true, searchExtended: true });
+    expect(r.steps[1]).toMatchObject({ added: true, searchExtended: false });
+    expect(r.search.find((e) => e.id === "s:a/f0.ts#run")!.ancestors).toContain("f0.ts");
+
+    // the earlier arrival's cards were all indexed before it: only a child's level reads its owner
+    const shared: TuxMapLevelElement = { id: "g:shared", kind: "module", name: "shared", children: [file("shared/k.ts")] };
+    const raw = searchable({
+      subgraphs: {
+        "comp-b": { stratum: "Files", elements: [...files("b", 12), { id: "g:shared", kind: "module", name: "shared" }], rels: [] },
+      },
+    });
+    const inFirst = { stratum: "Files", elements: [shared, { id: "f:b/f0.ts", kind: "file", name: "f0.ts" }], rels: [] };
+    const one = feedDerived(raw, [["d:x/in", inFirst]]);
+    const two = feedDerived(raw, [
+      ["d:x/in", inFirst],
+      ["sg-a", sgA([folder("x/in"), folder("x/not-loaded")])],
+    ]);
+    expect(two.steps[0]).toMatchObject({ added: true, searchExtended: true });
+    expect(two.steps[1]).toMatchObject({ added: true, searchExtended: false });
+    const lvl = (list: TuxMapSearchEntry[]) => list.find((e) => e.id === "f:shared/k.ts")!.level;
+    expect(lvl(two.search)).toBe(lvl(one.search) + 1);
+  });
+
+  it("keeps the handlers an arrival brought for the arrival after it", () => {
+    const route: TuxMapLevelElement = { id: "r:GET /items", kind: "route", name: "GET /items" };
+    const raw = searchable({ links: [{ from: "r:GET /items", to: "f:b/f3.ts", kind: "handled-by" }] });
+    const r = feedDerived(raw, [
+      ["sg-a", sgA([route])],
+      ["f:b/f0.ts", { stratum: "Symbols", elements: [{ id: "s:b/f0.ts#a", kind: "function", name: "a()" }, { id: "s:b/f0.ts#b", kind: "function", name: "b()" }] }],
+    ]);
+    expect(r.steps[0]).toMatchObject({ added: true, searchExtended: true });
+    expect(r.steps[1]).toMatchObject({ added: true, searchExtended: true });
+  });
+
+  it("builds again when a later arrival names the place of a card an earlier one left without an id", () => {
+    const anonymous = { kind: "module", name: "no id", children: [file("anon/k.ts")] } as TuxMapLevelElement;
+    const symbols = (extra: TuxMapLevelElement) => ({
+      stratum: "Symbols",
+      elements: [{ id: "s:b/f0.ts#a", kind: "function", name: "a()" }, extra],
+    });
+    const plain = feedDerived(searchable(), [
+      ["sg-a", sgA([anonymous])],
+      ["f:b/f0.ts", symbols({ id: "s:b/f0.ts#b", kind: "function", name: "b()" })],
+    ]);
+    expect(plain.steps.map((st) => st.searchExtended)).toEqual([true, true]);
+    const place = plain.parents.get("f:anon/k.ts")!;
+    expect(place).not.toBe("comp-a");
+    expect(plain.search.find((e) => e.id === "f:anon/k.ts")!.ancestors).toContain(place);
+
+    const r = feedDerived(searchable(), [
+      ["sg-a", sgA([anonymous])],
+      ["f:b/f0.ts", symbols({ id: place, kind: "module", name: "Named" })],
+    ]);
+    expect(r.steps[1]).toMatchObject({ added: true, searchExtended: false });
+    expect(r.search.find((e) => e.id === "f:anon/k.ts")!.ancestors).toContain("Named");
+  });
+
+  it("extends again after an arrival brought a route whose handler an earlier one brought", () => {
+    const route: TuxMapLevelElement = { id: "r:GET /items", kind: "route", name: "GET /items" };
+    const fn = (id: string): TuxMapLevelElement => ({ id, kind: "function", name: `${id.split("#")[1]}()` });
+    const raw = searchable({ links: [{ from: "r:GET /items", to: "f:a/f3.ts", kind: "handled-by" }] });
+    const r = feedDerived(raw, [
+      ["sg-a", sgA()],
+      ["f:b/f0.ts", { stratum: "Symbols", elements: [fn("s:b/f0.ts#a"), route] }],
+      ["f:b/f1.ts", { stratum: "Symbols", elements: [fn("s:b/f1.ts#a"), fn("s:b/f1.ts#b")] }],
+    ]);
+    expect(r.steps.map((st) => st.added)).toEqual([true, true, true]);
+    expect(r.steps.map((st) => st.searchExtended)).toEqual([true, true, true]);
+    expect(r.search.find((e) => e.id === "r:GET /items")!.revealId).toBe("f:a/f3.ts");
+  });
+
+  it("builds again when an arriving card without an id takes the place a subgraph is kept under", () => {
+    // the subgraph "comp-a/12" hangs under nothing, until sg-a's thirteenth card, which has no id, is that place
+    const raw = searchable({
+      subgraphs: {
+        "comp-b": { stratum: "Files", elements: files("b", 12), rels: [] },
+        "comp-a/12": { stratum: "Files", elements: files("loose", 12), rels: [] },
+      },
+    });
+    const before = feedDerived(raw, []);
+    const anonymous = { kind: "module", name: "no id" } as TuxMapLevelElement;
+    const r = feedDerived(raw, [["sg-a", sgA([anonymous])]]);
+    expect(r.parents.get("comp-a/12")).toBe("comp-a");
+    expect(r.steps[0]).toMatchObject({ added: true, searchExtended: false });
+    const lvl = (list: TuxMapSearchEntry[]) => list.find((e) => e.id === "f:loose/f0.ts")!.level;
+    expect(lvl(r.search)).not.toBe(lvl(before.search));
+  });
+
   it("builds again for another model, or a result it was not given", () => {
     const raw = searchable();
     const first = mergeLazyMapSubgraphs(raw, {});
