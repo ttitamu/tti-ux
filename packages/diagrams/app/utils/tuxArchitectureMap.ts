@@ -10142,9 +10142,12 @@ interface SearchIndexKeep {
   nodeRouteKeys: Set<string>;
   routeLinks: TuxMapLink[];
   handlerByRouteId: Map<string, string>;
+  /** The card each subgraph hangs under: the level of its entries was read from that card's parents. */
+  owners: string[];
   /**
    * Every id an existing entry's level or ancestor names were read through, besides the node itself:
-   * each parent in the parent index and each node's `parentId`. Built when the first subgraph arrives.
+   * each parent in the parent index, each node's `parentId` and each subgraph's owner (which is neither
+   * when all the subgraph shows was indexed elsewhere first). Built when the first subgraph arrives.
    */
   passedThrough?: Set<string>;
 }
@@ -10213,10 +10216,13 @@ function buildSearchIndex(
     });
     walkChildren(dn.id, 4, dn.children);
   }
+  const owners: string[] = [];
   if (isPlainRecord(model?.subgraphs)) {
     for (const [ownerId, sg] of Object.entries(model.subgraphs)) {
       if (!hasOwn(model.subgraphs, ownerId) || !isPlainRecord(sg)) continue;
-      addSubgraphSearchNodes(addNode, model, parentOf, subgraphOwners.get(ownerId) ?? ownerId, sg);
+      const resolvedOwner = subgraphOwners.get(ownerId) ?? ownerId;
+      if (keepInto) owners.push(resolvedOwner);
+      addSubgraphSearchNodes(addNode, model, parentOf, resolvedOwner, sg);
     }
   }
 
@@ -10231,7 +10237,7 @@ function buildSearchIndex(
     for (const e of routeEntries) nodeEntries.push(e);
     return nodeEntries;
   }
-  keepInto.keep = { model, parentOf, nodes, nodeEntries, nodeRouteKeys, routeLinks, handlerByRouteId };
+  keepInto.keep = { model, parentOf, nodes, nodeEntries, nodeRouteKeys, routeLinks, handlerByRouteId, owners };
   return [...nodeEntries, ...routeEntries];
 }
 
@@ -10263,6 +10269,7 @@ function extendSearchIndex(
   if (!passedThrough) {
     passedThrough = new Set<string>(keep.parentOf.values());
     for (const n of nodes.values()) if (n.parentId) passedThrough.add(n.parentId);
+    for (const owner of keep.owners) passedThrough.add(owner);
   }
   const newlyParented = parentsAddedBy(keep.parentOf, added.owner, added.elements);
   for (const id of newlyParented.keys()) {
@@ -10289,6 +10296,7 @@ function extendSearchIndex(
 
   // Nothing above changed `keep`; from here it describes `model`
   for (const pid of newlyParented.values()) passedThrough.add(pid);
+  passedThrough.add(added.owner);
   for (const n of arrived.values()) {
     nodes.set(n.id, n);
     if (n.parentId) passedThrough.add(n.parentId);
