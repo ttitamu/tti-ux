@@ -4606,7 +4606,12 @@ export function buildMapParentIndex(model: TuxMapLevelModel): Map<string, string
 }
 
 /** child → parent for the elements under `pid`, inline `children` included. A parent already indexed is kept. */
-function indexInlineParents(parentOf: Map<string, string>, pid: string, rawKids: unknown, depth = 0): void {
+function indexInlineParents(
+  parentOf: Pick<Map<string, string>, "has" | "set">,
+  pid: string,
+  rawKids: unknown,
+  depth = 0,
+): void {
   if (!pid || depth >= MAX_TREE_DEPTH) return;
   const kids = asObjArray<TuxMapLevelElement>(rawKids);
   kids.forEach((k, i) => {
@@ -4939,6 +4944,20 @@ export function extendMapParentIndex(
 }
 
 /**
+ * The entries `extendMapParentIndex(prev, owner, elements)` has that `prev` has not: the elements an
+ * arriving subgraph gives a parent.
+ */
+function parentsAddedBy(
+  prev: ReadonlyMap<string, string>,
+  owner: string,
+  elements: TuxMapLevelElement[],
+): Map<string, string> {
+  const added = new Map<string, string>();
+  indexInlineParents({ has: (k) => prev.has(k) || added.has(k), set: (k, v) => added.set(k, v) }, owner, elements, 0);
+  return added;
+}
+
+/**
  * Semantic level that displays the children of `fid`:
  * 3 inside a Level 2 container, 5 inside a Level 3 component or Level 4 deployment node,
  * and +1 for each nested subgraph below that (cycle-safe, iterative, bounded at `MAX_TREE_DEPTH`: `#124`).
@@ -5135,6 +5154,159 @@ export function liftToSet(id: string, set: ReadonlySet<string>, parentOf: Map<st
   return null;
 }
 
+/** What `extractModelLinks` reads to tell which C4 relationships the code links already cover. */
+interface LinkCoverContext {
+  parentOf: ReadonlyMap<string, string>;
+  boundary: string;
+  l2ContainerIds: Set<string>;
+  hostsByElement: Map<string, Set<string>>;
+}
+
+/** `id`, its ancestors, the Level 2 boundary when one of them is a container, and the hosts of each. */
+function linkCoverAncestors(id: string, ctx: LinkCoverContext, chainEnd?: { id: string }): string[] {
+  const set = new Set<string>();
+  const chain = mapAncestorsOf(id, ctx.parentOf as Map<string, string>);
+  for (const anc of chain) {
+    set.add(anc);
+    if (ctx.boundary && ctx.l2ContainerIds.has(anc)) set.add(ctx.boundary);
+    const hs = ctx.hostsByElement.get(anc);
+    if (hs) {
+      for (const hid of hs) set.add(hid);
+    }
+  }
+  if (chainEnd) chainEnd.id = chain.length > 0 ? chain[chain.length - 1]! : "";
+  return [...set];
+}
+
+/**
+ * Marks every (ancestor of `from`, ancestor of `to`) pair of the code link at `idx` as covered, and
+ * returns nothing; `fresh`, when given, collects the pairs that were not covered before. `byEnd`,
+ * when given, files the link under the last id of each endpoint's ancestor chain: the only place a
+ * chain can grow when the parent index gains entries.
+ */
+function coverLinkPairs(
+  link: TuxMapLink,
+  idx: number,
+  ctx: LinkCoverContext,
+  pairs: Set<string>,
+  byEnd?: Map<string, number[]>,
+  fresh?: Set<string>,
+): void {
+  const end = byEnd ? { id: "" } : undefined;
+  const fromAncs = linkCoverAncestors(link.from, ctx, end);
+  if (byEnd && end) noteLinkChainEnd(byEnd, end.id, idx);
+  const toAncs = linkCoverAncestors(link.to, ctx, end);
+  if (byEnd && end) noteLinkChainEnd(byEnd, end.id, idx);
+  for (const fa of fromAncs) {
+    for (const ta of toAncs) {
+      const pk = `${fa}\u0000${ta}`;
+      if (fresh && !pairs.has(pk)) fresh.add(pk);
+      pairs.add(pk);
+    }
+  }
+}
+
+function noteLinkChainEnd(byEnd: Map<string, number[]>, endId: string, idx: number): void {
+  if (!endId) return;
+  const at = byEnd.get(endId);
+  if (!at) byEnd.set(endId, [idx]);
+  else if (at[at.length - 1] !== idx) at.push(idx);
+}
+
+/** The relationship bridging of `extractModelLinks`: one `push` per C4 relationship or Level 4 link. */
+function makeBridgePush(
+  out: TuxMapLink[],
+  seen: Set<string>,
+  covered: Set<string> | null,
+  coveredPairs: Set<string> | null,
+  alsoSeen?: ReadonlySet<string>,
+) {
+  return (from: string, to: string, kind: string, label?: string, violations?: TuxMapLinkViolation[]): void => {
+    if (typeof from !== "string" || typeof to !== "string" || !from || !to) return;
+    if (covered && covered.has(to)) return;
+    if (coveredPairs && coveredPairs.has(`${from}\u0000${to}`)) return;
+    const normKind = kind || "uses";
+    const key = `${from}\u0000${to}\u0000${normKind}`;
+    if (seen.has(key) || (alsoSeen && alsoSeen.has(key))) return;
+    seen.add(key);
+    out.push({
+      from,
+      to,
+      kind: normKind,
+      label,
+      coupling: "runtime",
+      phase: "prod-runtime",
+      ...(violations?.length ? { violations } : {}),
+    });
+  };
+}
+
+type BridgePush = ReturnType<typeof makeBridgePush>;
+
+function pushBridgedRels(push: BridgePush, rawRels: unknown, includePlanned: boolean): void {
+  for (const r of asObjArray<TuxMapLevelRel>(rawRels)) {
+    if (!includePlanned && r.status === "planned") continue;
+    push(r.from, r.to, "uses", r.label, r.violations);
+  }
+}
+
+/** Levels 1 to 3 and every subgraph, in the order `extractModelLinks` bridges them. */
+function pushBridgedModelRels(push: BridgePush, model: TuxMapLevelModel, includePlanned: boolean): void {
+  pushBridgedRels(push, model?.level1?.rels, includePlanned);
+  pushBridgedRels(push, model?.level2?.rels, includePlanned);
+  if (isPlainRecord(model?.level3)) {
+    for (const [pid, rawKids] of Object.entries(model.level3)) {
+      const kids = asObjArray<TuxMapLevelElement>(rawKids);
+      kids.forEach((k, idx) => {
+        if (!includePlanned && k.status === "planned") return;
+        if (typeof k.next === "number" && Number.isInteger(k.next) && k.next >= 0 && k.next < kids.length) {
+          const fromId = (typeof k.id === "string" && k.id) || `${pid}/${idx}`;
+          const toId = (typeof kids[k.next]!.id === "string" && kids[k.next]!.id) || `${pid}/${k.next}`;
+          push(fromId, toId, "uses");
+        }
+      });
+    }
+  }
+  if (isPlainRecord(model?.subgraphs)) {
+    for (const sg of Object.values(model.subgraphs)) {
+      if (!isPlainRecord(sg)) continue;
+      pushBridgedRels(push, sg.rels, includePlanned);
+    }
+  }
+}
+
+function pushBridgedDeploymentLinks(push: BridgePush, model: TuxMapLevelModel, includePlanned: boolean): void {
+  for (const l of asObjArray<TuxMapDeploymentLink>(model?.level4?.links)) {
+    if (!includePlanned && l.state === "planned") continue;
+    push(l.from, l.to, l.kind || "uses", l.label);
+  }
+}
+
+/**
+ * What `extractModelLinksKept` keeps of a result, so the links of the same model plus one subgraph
+ * can be had without reading the model again (`tti/tti-ux#157`).
+ */
+interface ModelLinksKeep {
+  model: TuxMapLevelModel;
+  includePlanned: boolean;
+  parentOf: ReadonlyMap<string, string>;
+  rawLinks: TuxMapLink[];
+  /** Absent when the model has no code links: no relationship is covered then. */
+  cover?: {
+    ctx: LinkCoverContext;
+    pairs: Set<string>;
+    /** last id of an endpoint's ancestor chain → the code links (by index) with such an endpoint. */
+    byEnd: Map<string, number[]>;
+  };
+  /** The bridged relationships of Levels 1 to 3 and the subgraphs, and the keys taken by them and the code links. */
+  rels: TuxMapLink[];
+  seen: Set<string>;
+}
+
+const MODEL_LINKS_KEEP = /* @__PURE__ */ new WeakMap<TuxMapLink[], ModelLinksKeep>();
+
+const bridgedLinkKey = (l: TuxMapLink): string => `${l.from}\u0000${l.to}\u0000${l.kind || "uses"}`;
+
 /**
  * Extracts fine-grained `TuxMapLink[]` from `model`: returns `model.links` / `model.linkTiers` when present
  * (bridging non-planned C4/Level-4 relationships for endpoints without fine-grained code-link coverage unless
@@ -5156,6 +5328,21 @@ export function extractModelLinks(
     parentOf?: Map<string, string>;
   } = {},
 ): TuxMapLink[] {
+  return buildModelLinks(model, opts);
+}
+
+function buildModelLinks(
+  model: TuxMapLevelModel,
+  opts: {
+    includePlanned?: boolean;
+    includeC4Rels?: boolean;
+    bridgeUncovered?: boolean;
+    bridgeUncoveredPairs?: boolean;
+    parentOf?: Map<string, string>;
+  },
+  /** Filled in when the caller keeps the result for `extendModelLinks`; pair bridging only. */
+  keepInto?: { keep?: ModelLinksKeep },
+): TuxMapLink[] {
   const includePlanned = opts.includePlanned ?? false;
   const rawLinks = resolveModelRawLinks(model);
   const hasCodeLinks = rawLinks.length > 0;
@@ -5165,8 +5352,9 @@ export function extractModelLinks(
 
   let covered: Set<string> | null = null;
   let coveredPairs: Set<string> | null = null;
-  const subgraphOwners = collectSubgraphOwners(model);
+  let cover: ModelLinksKeep["cover"];
   if (hasCodeLinks && !opts.includeC4Rels) {
+    const subgraphOwners = collectSubgraphOwners(model);
     const parentOf = opts.parentOf ?? buildMapParentIndex(model);
     const hostBridge = buildHostBridge(model, subgraphOwners);
     const l2ContainerIds = new Set(
@@ -5175,30 +5363,16 @@ export function extractModelLinks(
         .map((e) => e.id),
     );
     const boundary = typeof model?.level2?.boundary === "string" ? model.level2.boundary : "";
+    const ctx: LinkCoverContext = { parentOf, boundary, l2ContainerIds, hostsByElement: hostBridge.hostsByElement };
     if (opts.bridgeUncoveredPairs) {
       coveredPairs = new Set<string>();
-      const collectAncs = (id: string): string[] => {
-        const set = new Set<string>();
-        for (const anc of mapAncestorsOf(id, parentOf)) {
-          set.add(anc);
-          if (boundary && l2ContainerIds.has(anc)) set.add(boundary);
-          const hs = hostBridge.hostsByElement.get(anc);
-          if (hs) {
-            for (const hid of hs) set.add(hid);
-          }
-        }
-        return [...set];
-      };
-      for (const l of rawLinks) {
+      const byEnd = keepInto ? new Map<string, number[]>() : undefined;
+      for (let i = 0; i < rawLinks.length; i++) {
+        const l = rawLinks[i]!;
         if (TUX_MAP_QUIET_LINK_KINDS.has(l.kind || "")) continue;
-        const fromAncs = collectAncs(l.from);
-        const toAncs = collectAncs(l.to);
-        for (const fa of fromAncs) {
-          for (const ta of toAncs) {
-            coveredPairs.add(`${fa}\u0000${ta}`);
-          }
-        }
+        coverLinkPairs(l, i, ctx, coveredPairs, byEnd);
       }
+      if (byEnd) cover = { ctx, pairs: coveredPairs, byEnd };
     } else {
       covered = new Set<string>();
       const markCovered = (id: string) => {
@@ -5218,60 +5392,130 @@ export function extractModelLinks(
     }
   }
 
+  const seen = new Set(rawLinks.map(bridgedLinkKey));
+  if (keepInto && opts.bridgeUncoveredPairs) {
+    // The same pushes in the same order, the Level 4 ones kept apart: they come after the subgraphs',
+    // so an arriving subgraph's relationships go in before them
+    const rels: TuxMapLink[] = [];
+    pushBridgedModelRels(makeBridgePush(rels, seen, null, coveredPairs), model, includePlanned);
+    const deployment: TuxMapLink[] = [];
+    pushBridgedDeploymentLinks(makeBridgePush(deployment, new Set(), null, coveredPairs, seen), model, includePlanned);
+    keepInto.keep = {
+      model,
+      includePlanned,
+      parentOf: cover ? cover.ctx.parentOf : (opts.parentOf ?? new Map()),
+      rawLinks,
+      cover,
+      rels,
+      seen,
+    };
+    return [...rawLinks, ...rels, ...deployment];
+  }
   const out: TuxMapLink[] = [...rawLinks];
-  const seen = new Set(out.map((l) => `${l.from}\u0000${l.to}\u0000${l.kind || "uses"}`));
-  const push = (from: string, to: string, kind: string, label?: string, violations?: TuxMapLinkViolation[]) => {
-    if (typeof from !== "string" || typeof to !== "string" || !from || !to) return;
-    if (covered && covered.has(to)) return;
-    if (coveredPairs && coveredPairs.has(`${from}\u0000${to}`)) return;
-    const normKind = kind || "uses";
-    const key = `${from}\u0000${to}\u0000${normKind}`;
-    if (seen.has(key)) return;
-    seen.add(key);
-    out.push({
-      from,
-      to,
-      kind: normKind,
-      label,
-      coupling: "runtime",
-      phase: "prod-runtime",
-      ...(violations?.length ? { violations } : {}),
-    });
-  };
-  for (const r of asObjArray<TuxMapLevelRel>(model?.level1?.rels)) {
-    if (!includePlanned && r.status === "planned") continue;
-    push(r.from, r.to, "uses", r.label, r.violations);
+  const push = makeBridgePush(out, seen, covered, coveredPairs);
+  pushBridgedModelRels(push, model, includePlanned);
+  pushBridgedDeploymentLinks(push, model, includePlanned);
+  return out;
+}
+
+/** Whether an element, or one of its inline `children`, names a host it is deployed on. */
+function someElementDeployed(rawEls: unknown, depth = 0): boolean {
+  if (depth >= MAX_TREE_DEPTH) return false;
+  for (const e of asObjArray<TuxMapLevelElement>(rawEls)) {
+    if (e.deployed) return true;
+    if (Array.isArray(e.children) && e.children.length > 0 && someElementDeployed(e.children, depth + 1)) return true;
   }
-  for (const r of asObjArray<TuxMapLevelRel>(model?.level2?.rels)) {
-    if (!includePlanned && r.status === "planned") continue;
-    push(r.from, r.to, "uses", r.label, r.violations);
-  }
-  if (isPlainRecord(model?.level3)) {
-    for (const [pid, rawKids] of Object.entries(model.level3)) {
-      const kids = asObjArray<TuxMapLevelElement>(rawKids);
-      kids.forEach((k, idx) => {
-        if (!includePlanned && k.status === "planned") return;
-        if (typeof k.next === "number" && Number.isInteger(k.next) && k.next >= 0 && k.next < kids.length) {
-          const fromId = (typeof k.id === "string" && k.id) || `${pid}/${idx}`;
-          const toId = (typeof kids[k.next]!.id === "string" && kids[k.next]!.id) || `${pid}/${k.next}`;
-          push(fromId, toId, "uses");
-        }
-      });
+  return false;
+}
+
+/**
+ * The links of `model`, which is `keep.model` plus the one subgraph `added` names, built from what
+ * was kept; `null` when they have to be extracted from the whole model. `prev` is the array `keep`
+ * belongs to, returned as it is when the arrival changes none of the links.
+ *
+ * What an arrival can change: the ancestor chains of code-link endpoints that end at an element the
+ * subgraph gives a parent (more pairs are covered, so bridged relationships may drop out), the
+ * subgraph's own relationships (bridged after every other subgraph's), and through both the Level 4
+ * links, which are bridged last. An element that is `deployed` would change the host bridge: not
+ * handled here.
+ */
+function extendModelLinks(
+  prev: TuxMapLink[],
+  keep: ModelLinksKeep,
+  model: TuxMapLevelModel,
+  parentOf: ReadonlyMap<string, string>,
+  added: NonNullable<TuxMapLazyMergeState["added"]>,
+): TuxMapLink[] | null {
+  const sg = isPlainRecord(model.subgraphs) && hasOwn(model.subgraphs, added.key) ? model.subgraphs[added.key] : undefined;
+  if (!isPlainRecord(sg)) return null;
+  const cover = keep.cover;
+  if (cover && someElementDeployed(added.elements)) return null;
+
+  const fresh = new Set<string>();
+  if (cover) {
+    const newlyParented = parentsAddedBy(keep.parentOf, added.owner, added.elements);
+    cover.ctx.parentOf = parentOf;
+    const affected = new Set<number>();
+    for (const id of newlyParented.keys()) {
+      const at = cover.byEnd.get(id);
+      if (!at) continue;
+      cover.byEnd.delete(id);
+      for (const idx of at) affected.add(idx);
     }
+    for (const idx of affected) coverLinkPairs(keep.rawLinks[idx]!, idx, cover.ctx, cover.pairs, cover.byEnd, fresh);
   }
-  if (isPlainRecord(model?.subgraphs)) {
-    for (const sg of Object.values(model.subgraphs)) {
-      if (!isPlainRecord(sg)) continue;
-      for (const r of asObjArray<TuxMapLevelRel>(sg.rels)) {
-        if (!includePlanned && r.status === "planned") continue;
-        push(r.from, r.to, "uses", r.label, r.violations);
+  // A relationship whose pair is covered now is no longer bridged
+  const rels = fresh.size > 0 ? keep.rels.filter((l) => !fresh.has(`${l.from}\u0000${l.to}`)) : keep.rels;
+  const before = rels.length;
+  pushBridgedRels(makeBridgePush(rels, keep.seen, null, cover ? cover.pairs : null), sg.rels, keep.includePlanned);
+  keep.rels = rels;
+  keep.model = model;
+  keep.parentOf = parentOf;
+  // No pair newly covered and no key newly taken: the Level 4 links bridge as they did
+  if (fresh.size === 0 && rels.length === before) return prev;
+  const deployment: TuxMapLink[] = [];
+  pushBridgedDeploymentLinks(
+    makeBridgePush(deployment, new Set(), null, cover ? cover.pairs : null, keep.seen),
+    model,
+    keep.includePlanned,
+  );
+  return [...keep.rawLinks, ...rels, ...deployment];
+}
+
+/**
+ * `extractModelLinks(model, { includePlanned, bridgeUncoveredPairs: true, parentOf })`, kept so the
+ * next call can build on it (`tti/tti-ux#157`).
+ *
+ * `prev` is the array this function returned last time and `added` what the model gained since
+ * (`TuxMapLazyMergeState.added`): when `prev` was built for `added.from` with the same
+ * `includePlanned`, only what the arriving subgraph can change is worked out again, and `prev`
+ * itself comes back when that is nothing. Anything else is extracted from the whole model.
+ *
+ * `opts.parentOf` is the parent index of `model`. `prev` is used up by the call: pass each result once.
+ * @internal
+ */
+export function extractModelLinksKept(
+  model: TuxMapLevelModel,
+  opts: { includePlanned?: boolean; parentOf: Map<string, string> },
+  prev?: TuxMapLink[],
+  added?: TuxMapLazyMergeState["added"],
+): TuxMapLink[] {
+  const includePlanned = opts.includePlanned ?? false;
+  const keep = prev ? MODEL_LINKS_KEEP.get(prev) : undefined;
+  if (prev && keep) {
+    // The bookkeeping moves to the array returned below
+    MODEL_LINKS_KEEP.delete(prev);
+    if (added && keep.model === added.from && keep.includePlanned === includePlanned) {
+      const next = extendModelLinks(prev, keep, model, opts.parentOf, added);
+      if (next) {
+        MODEL_LINKS_KEEP.set(next, keep);
+        return next;
       }
     }
   }
-  for (const l of asObjArray<TuxMapDeploymentLink>(model?.level4?.links)) {
-    if (!includePlanned && l.state === "planned") continue;
-    push(l.from, l.to, l.kind || "uses", l.label);
-  }
+  const into: { keep?: ModelLinksKeep } = {};
+  const out = buildModelLinks(model, { includePlanned, bridgeUncoveredPairs: true, parentOf: opts.parentOf }, into);
+  if (into.keep) MODEL_LINKS_KEEP.set(out, into.keep);
   return out;
 }
 
@@ -9666,158 +9910,124 @@ interface SearchRawNode {
   source?: TuxMapSourceRef;
 }
 
-/**
- * Builds (and WeakMap-caches) the unified Go-To search index across Levels 1–4,
- * all fractal subgraphs, `route` elements, `handled-by` links, and `model.routes` (`tti/tti-ux#120`).
- * @public
- */
-export function buildMapSearchIndex(model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL): TuxMapSearchEntry[] {
-  const isObjModel = model != null && typeof model === "object";
-  const stamp = isObjModel ? modelCacheStamp(model) : "empty";
-  const cached = isObjModel ? MODEL_SEARCH_INDEX_CACHE.get(model) : undefined;
-  if (cached && cached.stamp === stamp) return cached.entries;
+type SearchNodeAdder = (n: SearchRawNode) => void;
 
-  const parentOf = buildMapParentIndex(model);
-  const subgraphOwners = collectSubgraphOwners(model);
-  const nodes = new Map<string, SearchRawNode>();
-  const addNode = (n: SearchRawNode) => {
-    if (n.id && !nodes.has(n.id)) nodes.set(n.id, n);
-  };
-  const walkChildren = (ownerId: string, ownerLvl: number, kids?: TuxMapLevelElement[], seen = new Set<string>()) => {
-    if (!kids?.length || seen.has(ownerId) || seen.size > MAX_TREE_DEPTH) return;
-    seen.add(ownerId);
-    for (const c of asObjArray<TuxMapLevelElement>(kids)) {
-      if (!c.id) continue;
-      addNode({
-        id: c.id,
-        name: c.name || c.id,
-        kind: c.kind || "module",
-        level: ownerLvl + 1,
-        parentId: ownerId,
-        tech: c.tech,
-        status: c.status,
-        source: c.source,
-      });
-      walkChildren(c.id, ownerLvl + 1, c.children, seen);
-    }
-    seen.delete(ownerId);
-  };
-
-  for (const e of asObjArray<TuxMapLevelElement>(model?.level1?.elements)) {
-    addNode({ id: e.id, name: e.name || e.id, kind: e.kind || "system", level: 1, tech: e.tech, status: e.status, source: e.source });
+function walkSearchChildren(
+  addNode: SearchNodeAdder,
+  ownerId: string,
+  ownerLvl: number,
+  kids?: TuxMapLevelElement[],
+  seen = new Set<string>(),
+): void {
+  if (!kids?.length || seen.has(ownerId) || seen.size > MAX_TREE_DEPTH) return;
+  seen.add(ownerId);
+  for (const c of asObjArray<TuxMapLevelElement>(kids)) {
+    if (!c.id) continue;
+    addNode({
+      id: c.id,
+      name: c.name || c.id,
+      kind: c.kind || "module",
+      level: ownerLvl + 1,
+      parentId: ownerId,
+      tech: c.tech,
+      status: c.status,
+      source: c.source,
+    });
+    walkSearchChildren(addNode, c.id, ownerLvl + 1, c.children, seen);
   }
-  const sysBoundary = model?.level2?.boundary || undefined;
-  for (const e of asObjArray<TuxMapLevelElement | TuxMapLevelRef>(model?.level2?.elements)) {
-    if (e.ref) continue;
+  seen.delete(ownerId);
+}
+
+/** The search nodes of one subgraph, whose elements hang under `resolvedOwner`. */
+function addSubgraphSearchNodes(
+  addNode: SearchNodeAdder,
+  model: TuxMapLevelModel,
+  parentOf: ReadonlyMap<string, string>,
+  resolvedOwner: string,
+  sg: TuxMapSubgraph,
+): void {
+  const lvl = isLevel3Focus(resolvedOwner, model)
+    ? 3
+    : levelForFocus(resolvedOwner, model, parentOf as Map<string, string>);
+  for (const e of asObjArray<TuxMapLevelElement>(sg.elements)) {
     addNode({
       id: e.id,
       name: e.name || e.id,
-      kind: e.kind || "container",
-      level: 2,
-      parentId: sysBoundary,
+      kind: e.kind || "module",
+      level: lvl,
+      parentId: resolvedOwner,
       tech: e.tech,
       status: e.status,
       source: e.source,
     });
-    walkChildren(e.id, 4, e.children);
+    walkSearchChildren(addNode, e.id, lvl, e.children);
   }
-  if (isPlainRecord(model?.level3)) {
-    for (const [cid, comps] of Object.entries(model.level3)) {
-      if (!hasOwn(model.level3, cid)) continue;
-      for (const e of asObjArray<TuxMapLevelElement>(comps)) {
-        addNode({
-          id: e.id,
-          name: e.name || e.id,
-          kind: e.kind || "component",
-          level: 3,
-          parentId: cid,
-          tech: e.tech,
-          status: e.status,
-          source: e.source,
-        });
-        walkChildren(e.id, 4, e.children);
-      }
-    }
-  }
-  for (const dn of asObjArray<TuxMapDeploymentNode>(model?.level4?.nodes)) {
-    addNode({
-      id: dn.id,
-      name: dn.title || dn.id,
-      kind: dn.kind || "resource",
-      level: 4,
-      parentId: dn.group,
-      tech: dn.facts?.type || dn.facts?.sku || dn.facts?.size,
-      status: dn.status,
-      source: dn.source,
-    });
-    walkChildren(dn.id, 4, dn.children);
-  }
-  if (isPlainRecord(model?.subgraphs)) {
-    for (const [ownerId, sg] of Object.entries(model.subgraphs)) {
-      if (!hasOwn(model.subgraphs, ownerId) || !isPlainRecord(sg)) continue;
-      const resolvedOwner = subgraphOwners.get(ownerId) ?? ownerId;
-      const lvl = isLevel3Focus(resolvedOwner, model)
-        ? 3
-        : levelForFocus(resolvedOwner, model, parentOf);
-      for (const e of asObjArray<TuxMapLevelElement>(sg.elements)) {
-        addNode({
-          id: e.id,
-          name: e.name || e.id,
-          kind: e.kind || "module",
-          level: lvl,
-          parentId: resolvedOwner,
-          tech: e.tech,
-          status: e.status,
-          source: e.source,
-        });
-        walkChildren(e.id, lvl, e.children);
-      }
-    }
-  }
+}
 
-  // Map route element ID -> handler node ID from `handled-by` or `routes` code links
+/** The code links that can name a route's handler, in link order. */
+function searchRouteLinks(model: TuxMapLevelModel): TuxMapLink[] {
+  return resolveModelRawLinks(model).filter(
+    (l) => (l.kind === "handled-by" || l.kind === "routes") && Boolean(l.from) && Boolean(l.to),
+  );
+}
+
+/** route element id → handler node id, from `handled-by` or `routes` code links: the first link wins. */
+function searchHandlersByRoute(
+  routeLinks: readonly TuxMapLink[],
+  getNode: (id: string) => SearchRawNode | undefined,
+): Map<string, string> {
   const handlerByRouteId = new Map<string, string>();
-  for (const l of resolveModelRawLinks(model)) {
-    if (l.kind === "handled-by" && l.from && l.to && nodes.has(l.to)) {
+  for (const l of routeLinks) {
+    if (l.kind === "handled-by" && getNode(l.to)) {
       if (!handlerByRouteId.has(l.from)) handlerByRouteId.set(l.from, l.to);
     } else if (
       l.kind === "routes" &&
-      l.from &&
-      l.to &&
-      (isKindNodeId(l.from, "r") || nodes.get(l.from)?.kind === "route") &&
-      nodes.has(l.to)
+      (isKindNodeId(l.from, "r") || getNode(l.from)?.kind === "route") &&
+      getNode(l.to)
     ) {
       if (!handlerByRouteId.has(l.from)) handlerByRouteId.set(l.from, l.to);
     }
   }
+  return handlerByRouteId;
+}
 
-  const entries: TuxMapSearchEntry[] = [];
-  const seenRouteKeys = new Set<string>();
-
-  const buildAncestors = (id: string): string[] => {
-    const chain = mapAncestorsOf(id, parentOf);
-    const names: string[] = [];
-    for (let i = chain.length - 1; i >= 1; i--) {
-      const ancId = chain[i]!;
-      const n = nodes.get(ancId);
-      names.push(n?.name || ancId);
+function searchAncestorNames(
+  id: string,
+  parentOf: ReadonlyMap<string, string>,
+  getNode: (id: string) => SearchRawNode | undefined,
+): string[] {
+  const chain = mapAncestorsOf(id, parentOf as Map<string, string>);
+  const names: string[] = [];
+  for (let i = chain.length - 1; i >= 1; i--) {
+    const ancId = chain[i]!;
+    const n = getNode(ancId);
+    names.push(n?.name || ancId);
+  }
+  if (names.length === 0) {
+    const n = getNode(id);
+    if (n?.parentId) {
+      const pNode = getNode(n.parentId);
+      names.push(pNode?.name || n.parentId);
     }
-    if (names.length === 0) {
-      const n = nodes.get(id);
-      if (n?.parentId) {
-        const pNode = nodes.get(n.parentId);
-        names.push(pNode?.name || n.parentId);
-      }
-    }
-    return names;
-  };
+  }
+  return names;
+}
 
-  for (const n of nodes.values()) {
+/** The entries of `list`, in order: one per node, and one per HTTP route signature a node carries. */
+function pushNodeSearchEntries(
+  entries: TuxMapSearchEntry[],
+  seenRouteKeys: Set<string>,
+  list: Iterable<SearchRawNode>,
+  getNode: (id: string) => SearchRawNode | undefined,
+  parentOf: ReadonlyMap<string, string>,
+  handlerByRouteId: ReadonlyMap<string, string>,
+): void {
+  for (const n of list) {
     const srcPath = n.source?.path || repoPathForNodeId(n.id);
     const group = classifySearchGroup(n.id, n.kind, n.name, n.tech, Boolean(n.source?.path));
-    const ancestors = buildAncestors(n.id);
+    const ancestors = searchAncestorNames(n.id, parentOf, getNode);
     const linkedHandlerId = group === "Routes" ? handlerByRouteId.get(n.id) : undefined;
-    const handlerNode = linkedHandlerId ? nodes.get(linkedHandlerId) : undefined;
+    const handlerNode = linkedHandlerId ? getNode(linkedHandlerId) : undefined;
     const routePattern =
       group === "Routes" ? (isKindNodeId(n.id, "r") ? splitNodeId(n.id).rest : n.name) : undefined;
     if (routePattern) {
@@ -9871,19 +10081,34 @@ export function buildMapSearchIndex(model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MO
       }
     }
   }
+}
 
+/**
+ * The entries of `model.routes`, which come after every node's. `nodeRouteKeys` are the route keys
+ * the nodes took; it is read, not changed.
+ */
+function routeTableSearchEntries(
+  model: TuxMapLevelModel,
+  nodeRouteKeys: ReadonlySet<string>,
+  getNode: (id: string) => SearchRawNode | undefined,
+  parentOf: ReadonlyMap<string, string>,
+): TuxMapSearchEntry[] {
+  const entries: TuxMapSearchEntry[] = [];
+  const seenRouteKeys = new Set<string>();
   for (const rt of asObjArray<TuxMapRouteEntry>(model?.routes)) {
     if (typeof rt.pattern !== "string" || !rt.pattern.trim()) continue;
     const method = typeof rt.method === "string" && rt.method.trim() ? rt.method.trim().toUpperCase() : "";
     const pat = rt.pattern.trim();
     const disp = method ? `${method} ${pat}` : pat;
     const handlerId = typeof rt.handler === "string" && rt.handler ? rt.handler : "";
-    const handlerNode = handlerId ? nodes.get(handlerId) : undefined;
+    const handlerNode = handlerId ? getNode(handlerId) : undefined;
     const revealId = handlerNode ? handlerNode.id : handlerId || `r:${disp}`;
     const rKey = `${disp.toLowerCase()}\u0000${revealId}`;
-    if (seenRouteKeys.has(rKey)) continue;
+    if (nodeRouteKeys.has(rKey) || seenRouteKeys.has(rKey)) continue;
     seenRouteKeys.add(rKey);
-    const ancestors = handlerNode ? [...buildAncestors(handlerNode.id), handlerNode.name] : [];
+    const ancestors = handlerNode
+      ? [...searchAncestorNames(handlerNode.id, parentOf, getNode), handlerNode.name]
+      : [];
     entries.push(
       makeSearchEntry({
         id: `route:${disp}->${revealId}`,
@@ -9901,10 +10126,238 @@ export function buildMapSearchIndex(model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MO
       }),
     );
   }
+  return entries;
+}
 
+/**
+ * What `buildMapSearchIndexKept` keeps of an index, so the index of the same model plus one subgraph
+ * can be had without reading the model again (`tti/tti-ux#157`).
+ */
+interface SearchIndexKeep {
+  model: TuxMapLevelModel;
+  parentOf: ReadonlyMap<string, string>;
+  nodes: Map<string, SearchRawNode>;
+  /** The entries the nodes gave, in node order, and the route keys they took. */
+  nodeEntries: TuxMapSearchEntry[];
+  nodeRouteKeys: Set<string>;
+  routeLinks: TuxMapLink[];
+  handlerByRouteId: Map<string, string>;
+  /** The card each subgraph hangs under: the level of its entries was read from that card's parents. */
+  owners: string[];
+  /**
+   * Every id an existing entry's level or ancestor names were read through, besides the node itself:
+   * each parent in the parent index, each node's `parentId` and each subgraph's owner (which is neither
+   * when all the subgraph shows was indexed elsewhere first). Built when the first subgraph arrives.
+   */
+  passedThrough?: Set<string>;
+}
+
+const SEARCH_INDEX_KEEP = /* @__PURE__ */ new WeakMap<TuxMapSearchEntry[], SearchIndexKeep>();
+
+function buildSearchIndex(
+  model: TuxMapLevelModel,
+  parentOf: ReadonlyMap<string, string>,
+  keepInto?: { keep?: SearchIndexKeep },
+): TuxMapSearchEntry[] {
+  const subgraphOwners = collectSubgraphOwners(model);
+  const nodes = new Map<string, SearchRawNode>();
+  const addNode = (n: SearchRawNode) => {
+    if (n.id && !nodes.has(n.id)) nodes.set(n.id, n);
+  };
+  const walkChildren = (ownerId: string, ownerLvl: number, kids?: TuxMapLevelElement[]) =>
+    walkSearchChildren(addNode, ownerId, ownerLvl, kids);
+
+  for (const e of asObjArray<TuxMapLevelElement>(model?.level1?.elements)) {
+    addNode({ id: e.id, name: e.name || e.id, kind: e.kind || "system", level: 1, tech: e.tech, status: e.status, source: e.source });
+  }
+  const sysBoundary = model?.level2?.boundary || undefined;
+  for (const e of asObjArray<TuxMapLevelElement | TuxMapLevelRef>(model?.level2?.elements)) {
+    if (e.ref) continue;
+    addNode({
+      id: e.id,
+      name: e.name || e.id,
+      kind: e.kind || "container",
+      level: 2,
+      parentId: sysBoundary,
+      tech: e.tech,
+      status: e.status,
+      source: e.source,
+    });
+    walkChildren(e.id, 4, e.children);
+  }
+  if (isPlainRecord(model?.level3)) {
+    for (const [cid, comps] of Object.entries(model.level3)) {
+      if (!hasOwn(model.level3, cid)) continue;
+      for (const e of asObjArray<TuxMapLevelElement>(comps)) {
+        addNode({
+          id: e.id,
+          name: e.name || e.id,
+          kind: e.kind || "component",
+          level: 3,
+          parentId: cid,
+          tech: e.tech,
+          status: e.status,
+          source: e.source,
+        });
+        walkChildren(e.id, 4, e.children);
+      }
+    }
+  }
+  for (const dn of asObjArray<TuxMapDeploymentNode>(model?.level4?.nodes)) {
+    addNode({
+      id: dn.id,
+      name: dn.title || dn.id,
+      kind: dn.kind || "resource",
+      level: 4,
+      parentId: dn.group,
+      tech: dn.facts?.type || dn.facts?.sku || dn.facts?.size,
+      status: dn.status,
+      source: dn.source,
+    });
+    walkChildren(dn.id, 4, dn.children);
+  }
+  const owners: string[] = [];
+  if (isPlainRecord(model?.subgraphs)) {
+    for (const [ownerId, sg] of Object.entries(model.subgraphs)) {
+      if (!hasOwn(model.subgraphs, ownerId) || !isPlainRecord(sg)) continue;
+      const resolvedOwner = subgraphOwners.get(ownerId) ?? ownerId;
+      if (keepInto) owners.push(resolvedOwner);
+      addSubgraphSearchNodes(addNode, model, parentOf, resolvedOwner, sg);
+    }
+  }
+
+  const getNode = (id: string) => nodes.get(id);
+  const routeLinks = searchRouteLinks(model);
+  const handlerByRouteId = searchHandlersByRoute(routeLinks, getNode);
+  const nodeEntries: TuxMapSearchEntry[] = [];
+  const nodeRouteKeys = new Set<string>();
+  pushNodeSearchEntries(nodeEntries, nodeRouteKeys, nodes.values(), getNode, parentOf, handlerByRouteId);
+  const routeEntries = routeTableSearchEntries(model, nodeRouteKeys, getNode, parentOf);
+  if (!keepInto) {
+    for (const e of routeEntries) nodeEntries.push(e);
+    return nodeEntries;
+  }
+  keepInto.keep = { model, parentOf, nodes, nodeEntries, nodeRouteKeys, routeLinks, handlerByRouteId, owners };
+  return [...nodeEntries, ...routeEntries];
+}
+
+/**
+ * The index of `model`, which is `keep.model` plus the one subgraph `added` names, built from what
+ * was kept; `null` when it has to be built from the whole model.
+ *
+ * The arriving subgraph is the last one the full build visits, so its nodes come after every other
+ * node and their entries after every other node's; the `model.routes` entries follow and are made
+ * again. An existing entry would change if the arrival moved its level (a parent chain grows, or
+ * the subgraph's key is an empty Level 3 container), renamed one of its ancestors (an id that was
+ * only a parent becomes a card with a name), or gave its route another handler: each is a full build.
+ */
+function extendSearchIndex(
+  keep: SearchIndexKeep,
+  model: TuxMapLevelModel,
+  parentOf: ReadonlyMap<string, string>,
+  added: NonNullable<TuxMapLazyMergeState["added"]>,
+): TuxMapSearchEntry[] | null {
+  const key = added.key;
+  const sg = isPlainRecord(model.subgraphs) && hasOwn(model.subgraphs, key) ? model.subgraphs[key] : undefined;
+  if (!isPlainRecord(sg)) return null;
+  // With a subgraph of its own, a container that has no components stops being a Level 3 focus
+  if (isPlainRecord(model.level3) && hasOwn(model.level3, key) && Array.isArray(model.level3[key]) && model.level3[key].length === 0) {
+    return null;
+  }
+  const nodes = keep.nodes;
+  let passedThrough = keep.passedThrough;
+  if (!passedThrough) {
+    passedThrough = new Set<string>(keep.parentOf.values());
+    for (const n of nodes.values()) if (n.parentId) passedThrough.add(n.parentId);
+    for (const owner of keep.owners) passedThrough.add(owner);
+  }
+  const newlyParented = parentsAddedBy(keep.parentOf, added.owner, added.elements);
+  for (const id of newlyParented.keys()) {
+    if (nodes.has(id) || passedThrough.has(id)) return null;
+  }
+  const arrived = new Map<string, SearchRawNode>();
+  addSubgraphSearchNodes(
+    (n) => {
+      if (n.id && !nodes.has(n.id) && !arrived.has(n.id)) arrived.set(n.id, n);
+    },
+    model,
+    parentOf,
+    added.owner,
+    sg,
+  );
+  for (const id of arrived.keys()) {
+    if (passedThrough.has(id)) return null;
+  }
+  const getNode = (id: string) => nodes.get(id) ?? arrived.get(id);
+  const handlerByRouteId = searchHandlersByRoute(keep.routeLinks, getNode);
+  for (const [routeId, handlerId] of handlerByRouteId) {
+    if (nodes.has(routeId) && keep.handlerByRouteId.get(routeId) !== handlerId) return null;
+  }
+
+  // Nothing above changed `keep`; from here it describes `model`
+  for (const pid of newlyParented.values()) passedThrough.add(pid);
+  passedThrough.add(added.owner);
+  // What an arrived card hangs under is the owner or a card: a card is in `nodes`, which is asked first
+  for (const n of arrived.values()) nodes.set(n.id, n);
+  keep.passedThrough = passedThrough;
+  keep.model = model;
+  keep.parentOf = parentOf;
+  keep.handlerByRouteId = handlerByRouteId;
+  pushNodeSearchEntries(keep.nodeEntries, keep.nodeRouteKeys, arrived.values(), getNode, parentOf, handlerByRouteId);
+  return [...keep.nodeEntries, ...routeTableSearchEntries(model, keep.nodeRouteKeys, getNode, parentOf)];
+}
+
+/**
+ * Builds (and WeakMap-caches) the unified Go-To search index across Levels 1–4,
+ * all fractal subgraphs, `route` elements, `handled-by` links, and `model.routes` (`tti/tti-ux#120`).
+ * @public
+ */
+export function buildMapSearchIndex(model: TuxMapLevelModel = EMPTY_TTI_LEVEL_MODEL): TuxMapSearchEntry[] {
+  const isObjModel = model != null && typeof model === "object";
+  const stamp = isObjModel ? modelCacheStamp(model) : "empty";
+  const cached = isObjModel ? MODEL_SEARCH_INDEX_CACHE.get(model) : undefined;
+  if (cached && cached.stamp === stamp) return cached.entries;
+
+  const entries = buildSearchIndex(model, buildMapParentIndex(model));
   if (isObjModel) {
     MODEL_SEARCH_INDEX_CACHE.set(model, { stamp, entries });
   }
+  return entries;
+}
+
+/**
+ * `buildMapSearchIndex(model)`, kept so the next call can build on it (`tti/tti-ux#157`). It neither
+ * reads nor fills that function's cache.
+ *
+ * `prev` is the array this function returned last time and `added` what the model gained since
+ * (`TuxMapLazyMergeState.added`): when `prev` was built for `added.from`, the entries of the
+ * arriving subgraph are added to it, when no entry already there can change. Anything else is
+ * built from the whole model.
+ *
+ * `parentOf` is the parent index of `model`. `prev` is used up by the call: pass each result once.
+ * @internal
+ */
+export function buildMapSearchIndexKept(
+  model: TuxMapLevelModel,
+  parentOf: Map<string, string>,
+  prev?: TuxMapSearchEntry[],
+  added?: TuxMapLazyMergeState["added"],
+): TuxMapSearchEntry[] {
+  const keep = prev ? SEARCH_INDEX_KEEP.get(prev) : undefined;
+  if (prev && keep) {
+    // The bookkeeping moves to the array returned below
+    SEARCH_INDEX_KEEP.delete(prev);
+    if (added && keep.model === added.from) {
+      const next = extendSearchIndex(keep, model, parentOf, added);
+      if (next) {
+        SEARCH_INDEX_KEEP.set(next, keep);
+        return next;
+      }
+    }
+  }
+  const into: { keep?: SearchIndexKeep } = {};
+  const entries = buildSearchIndex(model, parentOf, into);
+  if (into.keep) SEARCH_INDEX_KEEP.set(entries, into.keep);
   return entries;
 }
 

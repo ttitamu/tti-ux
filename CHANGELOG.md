@@ -23,10 +23,21 @@ conventions.
 - Every subgraph `resolveSubgraph` returned made `<TuxArchitectureMap>` sanitize and collapse the whole model again, so every element became a new object and everything read from the model was built again. The arrival is now sanitized and collapsed alone and added to the model the map already holds, when nothing else in the model is affected by it. The element and parent indexes are copied and extended with the arrival, so entries for everything else stay the same objects.
 - The result is the one a full rebuild gives, and the tests compare the two. The whole model is still validated on each arrival. The map falls back to the full rebuild when the arrival would change another part of the model: it joins a single-folder chain or a small component that collapses, it changes which parts are dropped as cycles, it claims a part another subgraph holds, or it sanitizes to nothing.
 - A new `model` object starts over, as does an edit inside a reactive `model`.
-- Links, the staged view and the Go-To index are still derived from the whole model after an arrival.
+- The staged view is still derived from the whole model after an arrival. The links and the Go-To index are the entry below.
 - The benchmark gains `lazy-merge-first` and `lazy-merge-next` beside `lazy-merge`, which keeps timing the full rebuild.
 
 **To check when upgrading:** nothing to change. An edit made in place to a `model` that is not reactive was never seen by the map until something else changed; a lazy subgraph's arrival no longer picks it up either. Pass a new object, or a reactive one.
+
+### Changed — Architecture map: a lazy subgraph's arrival extends the links and the Go-To index (#157)
+
+- After an arrival was added to the model, `<TuxArchitectureMap>` still read every link and every Go-To entry out of the whole model again the next time one was asked for: on a selection, or with the palette open. Both are now kept from the model before and extended with what the arrival brought. When the arrival brings no link and moves no end of a code link, the links are the same array as before, so nothing that reads them runs again.
+- The result is the one a full build gives, in the same order. A generated test compares the two after every arrival, 400 seeds.
+- The links are built in full when the arrival is a deployed part. The Go-To index is built in full when the arrival puts a parent over an entry that was already listed, when it is the place an earlier entry was counted under, when it changes the handler of a route already listed, or when its key holds no cards at Level 3. Both are built in full for a new `model`, a change to "show planned", and any arrival the model itself was rebuilt for.
+- The index of vendored copies is kept across an arrival that holds no end of a `copies` link.
+- Not changed: the whole model is validated on each arrival, the staged view is built from the whole model, and the shared-directory index is built again. In the mounted benchmark the staged view and its render are nearly all of an arrival's time, so that time is about what it was.
+- The benchmark gains `lazy-links-next`, `lazy-search-next`, `c-lazy-merge-next` and `c-lazy-merge-next-derived`.
+
+**To check when upgrading:** nothing to change. The links and the Go-To results are the same, in the same order.
 
 ### Changed — the map's stage is built per level, with set lookups (#158)
 

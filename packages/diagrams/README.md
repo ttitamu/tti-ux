@@ -130,12 +130,15 @@ It builds three synthetic repositories from a seeded generator (`tests/support/m
 | `hover` | utils | `routeGridWires` for the wires the hovered card opens, and no others |
 | `selection` | utils | `computeLinkBlastRadius` for one symbol, unfiltered and by kind |
 | `lazy-merge` | utils | one resolved subgraph merged: sanitize, collapse and index again |
+| `lazy-merge-first`, `lazy-merge-next` | utils | the first and a later resolved subgraph added to the merged model, and the parent index extended |
+| `lazy-links-next`, `lazy-search-next` | utils | a later resolved subgraph worked into the links and the search index kept from the model before |
 | `go-to` | utils | `searchArchitectureMap`, four queries over the built index |
 | `c-mount` | component | mounting `<TuxArchitectureMap>` on the deepest view |
 | `c-stage` | component | navigating to the deepest view: the `stageData` and `routedSvg` computeds and the render |
 | `c-hover` | component | a `pointerover` on one card |
 | `c-select` | component | `selectElement()` with the blast radius on |
 | `c-lazy-merge` | component | `resolveSubgraph` for one lazy file, through to the re-staged view |
+| `c-lazy-merge-next`, `c-lazy-merge-next-derived` | component | the same for a later lazy file, with one already resolved; `-derived` also reads the links and the search index afterwards, as a selection and the open palette do |
 | `c-go-to` | component | one query typed into the open Go-To palette |
 
 The **utils** rows call the exported functions directly (`tests/map-bench.test.ts`, Node). The **component** rows go through the mounted component (`tests/tux-architecture-map-bench.nuxt.test.ts` at the repository root, jsdom), because `stageData`, `routedSvg`, hover and selection live inside the `.vue` file. jsdom is not a browser: rendering costs more there than on screen and layout costs nothing, so read the component rows against each other and against their own baseline, not as frame times.

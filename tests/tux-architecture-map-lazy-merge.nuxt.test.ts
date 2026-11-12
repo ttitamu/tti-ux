@@ -179,3 +179,157 @@ describe("TuxArchitectureMap lazy subgraph arrival (#157)", () => {
     w.unmount();
   });
 });
+
+// What is read from the model after the indexes: the links, the search index and the
+// vendored-copy index. Each is extended, or kept, by an arrival, and must equal a full build.
+type DerivedState = SetupState & {
+  effectiveModelLinks: { from: string; to: string; kind?: string }[];
+  mapSearchIndex: { id: string }[];
+  vendoredCopyIndex: { copyToCanonical: Map<string, string>; copiesByCanonical: Map<string, string[]> };
+};
+
+const LAZY_EXT: TuxMapSubgraph = {
+  stratum: "Files",
+  elements: [...files("ext", 11), { id: "x:ext", kind: "external", name: "Elsewhere" }],
+  rels: [],
+};
+
+function linkedModel(inline: string[] = []): TuxMapLevelModel {
+  const model = lazyModel(inline.filter((k) => k !== "sg-ext"));
+  model.level3.c1!.push({ id: "comp-ext", kind: "component", name: "Ext", subgraphRef: "sg-ext" });
+  if (inline.includes("sg-ext")) {
+    // in the order they were asked for
+    const subgraphs: Record<string, TuxMapSubgraph> = { "sg-own": model.subgraphs!["sg-own"]! };
+    for (const k of inline) subgraphs[k] = k === "sg-ext" ? LAZY_EXT : LAZY[k]!;
+    model.subgraphs = subgraphs;
+  }
+  model.links = [
+    { from: "f:own/f0.ts", to: "f:own/f1.ts", kind: "copies" },
+    { from: "f:own/f2.ts", to: "x:ext", kind: "copies" },
+    { from: "f:own/f3.ts", to: "f:own/f4.ts", kind: "imports" },
+  ];
+  return model;
+}
+
+async function mountLinked(model: TuxMapLevelModel) {
+  return mountSuspended(TuxArchitectureMap, {
+    props: {
+      model,
+      initialLevel: 3,
+      initialFocus: "c1",
+      resolveSubgraph: (ref: string) => Promise.resolve(ref === "sg-ext" ? LAZY_EXT : (LAZY[ref] ?? null)),
+    },
+  });
+}
+
+const derivedOf = (w: Mounted) => stateOf(w) as DerivedState;
+
+async function expectDerivedAsMountedWith(w: Mounted, model: TuxMapLevelModel) {
+  const ref = await mountLinked(model);
+  const got = derivedOf(w);
+  const want = derivedOf(ref);
+  expect(got.activeModel).toEqual(want.activeModel);
+  expect(got.effectiveModelLinks).toStrictEqual(want.effectiveModelLinks);
+  expect(got.mapSearchIndex).toStrictEqual(want.mapSearchIndex);
+  expect([...got.vendoredCopyIndex.copyToCanonical]).toEqual([...want.vendoredCopyIndex.copyToCanonical]);
+  expect([...got.vendoredCopyIndex.copiesByCanonical]).toEqual([...want.vendoredCopyIndex.copiesByCanonical]);
+  ref.unmount();
+}
+
+describe("TuxArchitectureMap lazy subgraph arrival: links, search and vendored copies (#157)", () => {
+  it(
+    "keeps what an arrival cannot change and extends the rest, equal to a full build",
+    async () => {
+      const w = await mountLinked(linkedModel());
+      const s = derivedOf(w);
+      const links0 = s.effectiveModelLinks;
+      const search0 = s.mapSearchIndex;
+      const vendored0 = s.vendoredCopyIndex;
+      expect(links0.length).toBeGreaterThan(0);
+      expect(vendored0.copyToCanonical.get("f:own/f2.ts")).toBe("x:ext");
+      await expectDerivedAsMountedWith(w, linkedModel());
+
+      // no rels, no end of a copy: the same links and the same copy index, more to search
+      await arrive(w, "comp-two");
+      expect(s.mergedModel.added?.key).toBe("sg-two");
+      expect(s.effectiveModelLinks).toBe(links0);
+      expect(s.vendoredCopyIndex).toBe(vendored0);
+      const search1 = s.mapSearchIndex;
+      expect(search1).not.toBe(search0);
+      expect(search1.length).toBeGreaterThan(search0.length);
+      search0.forEach((entry, i) => expect(search1[i], entry.id).toBe(entry));
+      expect(search1.some((e) => e.id === "f:two/f0.ts")).toBe(true);
+      await expectDerivedAsMountedWith(w, linkedModel(["sg-two"]));
+
+      // a rel arrives: the links before are the same objects, the arrival's rel is among them
+      await arrive(w, "comp-one");
+      expect(s.mergedModel.added?.key).toBe("sg-one");
+      const links2 = s.effectiveModelLinks;
+      expect(links2).not.toBe(links0);
+      for (const l of links0) expect(links2).toContain(l);
+      expect(links2.some((l) => l.from === "f:one/f0.ts" && l.to === "f:one/f1.ts")).toBe(true);
+      expect(s.vendoredCopyIndex).toBe(vendored0);
+      expect(s.mapSearchIndex.some((e) => e.id === "f:one/in/f1.ts")).toBe(true);
+      await expectDerivedAsMountedWith(w, linkedModel(["sg-two", "sg-one"]));
+
+      // the end of a copy arrives with a kind that is not folded: the copy index is built again
+      await arrive(w, "comp-ext");
+      expect(s.mergedModel.added?.key).toBe("sg-ext");
+      expect(s.vendoredCopyIndex).not.toBe(vendored0);
+      expect(s.vendoredCopyIndex.copyToCanonical.has("f:own/f2.ts")).toBe(false);
+      expect(s.vendoredCopyIndex.copyToCanonical.get("f:own/f0.ts")).toBe("f:own/f1.ts");
+      await expectDerivedAsMountedWith(w, linkedModel(["sg-two", "sg-one", "sg-ext"]));
+      w.unmount();
+    },
+    120_000,
+  );
+
+  it(
+    "builds the copy index again after an arrival that was not read indexed the end of a copy",
+    async () => {
+      const w = await mountLinked(linkedModel());
+      const s = derivedOf(w);
+      expect(s.vendoredCopyIndex.copyToCanonical.get("f:own/f2.ts")).toBe("x:ext");
+      // two arrivals in one turn: the copy index is read after the second only
+      const held: Record<string, TuxMapSubgraph> = Object.create(null);
+      held["sg-ext"] = LAZY_EXT;
+      (s as unknown as { resolvedSubgraphs: Record<string, TuxMapSubgraph> }).resolvedSubgraphs = held;
+      expect(s.mergedModel.added?.key).toBe("sg-ext");
+      await arrive(w, "comp-two");
+      expect(s.mergedModel.added?.key).toBe("sg-two");
+      expect(s.vendoredCopyIndex.copyToCanonical.has("f:own/f2.ts")).toBe(false);
+      await expectDerivedAsMountedWith(w, linkedModel(["sg-ext", "sg-two"]));
+      w.unmount();
+    },
+    120_000,
+  );
+
+  it(
+    "builds all three again when the model changes",
+    async () => {
+      const w = await mountLinked(linkedModel());
+      const s = derivedOf(w);
+      await arrive(w, "comp-two");
+      const links = s.effectiveModelLinks;
+      const first = s.mapSearchIndex[0];
+      const vendored = s.vendoredCopyIndex;
+
+      const next = linkedModel();
+      next.links = [{ from: "f:own/f5.ts", to: "f:own/f6.ts", kind: "copies" }];
+      await w.setProps({ model: next });
+      await settle();
+      expect(s.mergedModel.added).toBeUndefined();
+      expect(s.effectiveModelLinks).not.toBe(links);
+      expect(s.mapSearchIndex[0]).not.toBe(first);
+      expect(s.vendoredCopyIndex).not.toBe(vendored);
+      await expectDerivedAsMountedWith(w, next);
+
+      await arrive(w, "comp-ext");
+      const withExt = linkedModel(["sg-ext"]);
+      withExt.links = next.links;
+      await expectDerivedAsMountedWith(w, withExt);
+      w.unmount();
+    },
+    120_000,
+  );
+});

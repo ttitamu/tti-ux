@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 62b46eea28d809ef711d26b7d810a02635385179aae7ba092b321173c170ab0a
+// SOURCE-SHA256: bb56ae3cde40131f61fb2696b8ca2dcffeb963dd4be478fa4b10ce37ec0c7fe6
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -3296,6 +3296,11 @@ export function extendMapParentIndex(prev, owner, elements) {
     indexInlineParents(parentOf, owner, elements, 0);
     return parentOf;
 }
+function parentsAddedBy(prev, owner, elements) {
+    const added = new Map();
+    indexInlineParents({ has: (k) => prev.has(k) || added.has(k), set: (k, v) => added.set(k, v) }, owner, elements, 0);
+    return added;
+}
 export function levelForFocus(fid, model, parentOf = buildMapParentIndex(model)) {
     if (isLevel3Focus(fid, model))
         return 3;
@@ -3436,7 +3441,118 @@ export function liftToSet(id, set, parentOf) {
             return a;
     return null;
 }
+function linkCoverAncestors(id, ctx, chainEnd) {
+    const set = new Set();
+    const chain = mapAncestorsOf(id, ctx.parentOf);
+    for (const anc of chain) {
+        set.add(anc);
+        if (ctx.boundary && ctx.l2ContainerIds.has(anc))
+            set.add(ctx.boundary);
+        const hs = ctx.hostsByElement.get(anc);
+        if (hs) {
+            for (const hid of hs)
+                set.add(hid);
+        }
+    }
+    if (chainEnd)
+        chainEnd.id = chain.length > 0 ? chain[chain.length - 1] : "";
+    return [...set];
+}
+function coverLinkPairs(link, idx, ctx, pairs, byEnd, fresh) {
+    const end = byEnd ? { id: "" } : undefined;
+    const fromAncs = linkCoverAncestors(link.from, ctx, end);
+    if (byEnd && end)
+        noteLinkChainEnd(byEnd, end.id, idx);
+    const toAncs = linkCoverAncestors(link.to, ctx, end);
+    if (byEnd && end)
+        noteLinkChainEnd(byEnd, end.id, idx);
+    for (const fa of fromAncs) {
+        for (const ta of toAncs) {
+            const pk = `${fa}\u0000${ta}`;
+            if (fresh && !pairs.has(pk))
+                fresh.add(pk);
+            pairs.add(pk);
+        }
+    }
+}
+function noteLinkChainEnd(byEnd, endId, idx) {
+    if (!endId)
+        return;
+    const at = byEnd.get(endId);
+    if (!at)
+        byEnd.set(endId, [idx]);
+    else if (at[at.length - 1] !== idx)
+        at.push(idx);
+}
+function makeBridgePush(out, seen, covered, coveredPairs, alsoSeen) {
+    return (from, to, kind, label, violations) => {
+        if (typeof from !== "string" || typeof to !== "string" || !from || !to)
+            return;
+        if (covered && covered.has(to))
+            return;
+        if (coveredPairs && coveredPairs.has(`${from}\u0000${to}`))
+            return;
+        const normKind = kind || "uses";
+        const key = `${from}\u0000${to}\u0000${normKind}`;
+        if (seen.has(key) || (alsoSeen && alsoSeen.has(key)))
+            return;
+        seen.add(key);
+        out.push({
+            from,
+            to,
+            kind: normKind,
+            label,
+            coupling: "runtime",
+            phase: "prod-runtime",
+            ...(violations?.length ? { violations } : {}),
+        });
+    };
+}
+function pushBridgedRels(push, rawRels, includePlanned) {
+    for (const r of asObjArray(rawRels)) {
+        if (!includePlanned && r.status === "planned")
+            continue;
+        push(r.from, r.to, "uses", r.label, r.violations);
+    }
+}
+function pushBridgedModelRels(push, model, includePlanned) {
+    pushBridgedRels(push, model?.level1?.rels, includePlanned);
+    pushBridgedRels(push, model?.level2?.rels, includePlanned);
+    if (isPlainRecord(model?.level3)) {
+        for (const [pid, rawKids] of Object.entries(model.level3)) {
+            const kids = asObjArray(rawKids);
+            kids.forEach((k, idx) => {
+                if (!includePlanned && k.status === "planned")
+                    return;
+                if (typeof k.next === "number" && Number.isInteger(k.next) && k.next >= 0 && k.next < kids.length) {
+                    const fromId = (typeof k.id === "string" && k.id) || `${pid}/${idx}`;
+                    const toId = (typeof kids[k.next].id === "string" && kids[k.next].id) || `${pid}/${k.next}`;
+                    push(fromId, toId, "uses");
+                }
+            });
+        }
+    }
+    if (isPlainRecord(model?.subgraphs)) {
+        for (const sg of Object.values(model.subgraphs)) {
+            if (!isPlainRecord(sg))
+                continue;
+            pushBridgedRels(push, sg.rels, includePlanned);
+        }
+    }
+}
+function pushBridgedDeploymentLinks(push, model, includePlanned) {
+    for (const l of asObjArray(model?.level4?.links)) {
+        if (!includePlanned && l.state === "planned")
+            continue;
+        push(l.from, l.to, l.kind || "uses", l.label);
+    }
+}
+const MODEL_LINKS_KEEP = new WeakMap();
+const bridgedLinkKey = (l) => `${l.from}\u0000${l.to}\u0000${l.kind || "uses"}`;
 export function extractModelLinks(model, opts = {}) {
+    return buildModelLinks(model, opts);
+}
+function buildModelLinks(model, opts, keepInto) {
     const includePlanned = opts.includePlanned ?? false;
     const rawLinks = resolveModelRawLinks(model);
     const hasCodeLinks = rawLinks.length > 0;
@@ -3445,41 +3561,27 @@ export function extractModelLinks(model, opts = {}) {
     }
     let covered = null;
     let coveredPairs = null;
-    const subgraphOwners = collectSubgraphOwners(model);
+    let cover;
     if (hasCodeLinks && !opts.includeC4Rels) {
+        const subgraphOwners = collectSubgraphOwners(model);
         const parentOf = opts.parentOf ?? buildMapParentIndex(model);
         const hostBridge = buildHostBridge(model, subgraphOwners);
         const l2ContainerIds = new Set(asObjArray(model?.level2?.elements)
             .filter((e) => !e.ref && typeof e.id === "string" && Boolean(e.id))
             .map((e) => e.id));
         const boundary = typeof model?.level2?.boundary === "string" ? model.level2.boundary : "";
+        const ctx = { parentOf, boundary, l2ContainerIds, hostsByElement: hostBridge.hostsByElement };
         if (opts.bridgeUncoveredPairs) {
             coveredPairs = new Set();
-            const collectAncs = (id) => {
-                const set = new Set();
-                for (const anc of mapAncestorsOf(id, parentOf)) {
-                    set.add(anc);
-                    if (boundary && l2ContainerIds.has(anc))
-                        set.add(boundary);
-                    const hs = hostBridge.hostsByElement.get(anc);
-                    if (hs) {
-                        for (const hid of hs)
-                            set.add(hid);
-                    }
-                }
-                return [...set];
-            };
-            for (const l of rawLinks) {
+            const byEnd = keepInto ? new Map() : undefined;
+            for (let i = 0; i < rawLinks.length; i++) {
+                const l = rawLinks[i];
                 if (TUX_MAP_QUIET_LINK_KINDS.has(l.kind || ""))
                     continue;
-                const fromAncs = collectAncs(l.from);
-                const toAncs = collectAncs(l.to);
-                for (const fa of fromAncs) {
-                    for (const ta of toAncs) {
-                        coveredPairs.add(`${fa}\u0000${ta}`);
-                    }
-                }
+                coverLinkPairs(l, i, ctx, coveredPairs, byEnd);
             }
+            if (byEnd)
+                cover = { ctx, pairs: coveredPairs, byEnd };
         }
         else {
             covered = new Set();
@@ -3501,70 +3603,92 @@ export function extractModelLinks(model, opts = {}) {
             }
         }
     }
+    const seen = new Set(rawLinks.map(bridgedLinkKey));
+    if (keepInto && opts.bridgeUncoveredPairs) {
+        const rels = [];
+        pushBridgedModelRels(makeBridgePush(rels, seen, null, coveredPairs), model, includePlanned);
+        const deployment = [];
+        pushBridgedDeploymentLinks(makeBridgePush(deployment, new Set(), null, coveredPairs, seen), model, includePlanned);
+        keepInto.keep = {
+            model,
+            includePlanned,
+            parentOf: cover ? cover.ctx.parentOf : (opts.parentOf ?? new Map()),
+            rawLinks,
+            cover,
+            rels,
+            seen,
+        };
+        return [...rawLinks, ...rels, ...deployment];
+    }
     const out = [...rawLinks];
-    const seen = new Set(out.map((l) => `${l.from}\u0000${l.to}\u0000${l.kind || "uses"}`));
-    const push = (from, to, kind, label, violations) => {
-        if (typeof from !== "string" || typeof to !== "string" || !from || !to)
-            return;
-        if (covered && covered.has(to))
-            return;
-        if (coveredPairs && coveredPairs.has(`${from}\u0000${to}`))
-            return;
-        const normKind = kind || "uses";
-        const key = `${from}\u0000${to}\u0000${normKind}`;
-        if (seen.has(key))
-            return;
-        seen.add(key);
-        out.push({
-            from,
-            to,
-            kind: normKind,
-            label,
-            coupling: "runtime",
-            phase: "prod-runtime",
-            ...(violations?.length ? { violations } : {}),
-        });
-    };
-    for (const r of asObjArray(model?.level1?.rels)) {
-        if (!includePlanned && r.status === "planned")
-            continue;
-        push(r.from, r.to, "uses", r.label, r.violations);
+    const push = makeBridgePush(out, seen, covered, coveredPairs);
+    pushBridgedModelRels(push, model, includePlanned);
+    pushBridgedDeploymentLinks(push, model, includePlanned);
+    return out;
+}
+function someElementDeployed(rawEls, depth = 0) {
+    if (depth >= MAX_TREE_DEPTH)
+        return false;
+    for (const e of asObjArray(rawEls)) {
+        if (e.deployed)
+            return true;
+        if (Array.isArray(e.children) && e.children.length > 0 && someElementDeployed(e.children, depth + 1))
+            return true;
     }
-    for (const r of asObjArray(model?.level2?.rels)) {
-        if (!includePlanned && r.status === "planned")
-            continue;
-        push(r.from, r.to, "uses", r.label, r.violations);
-    }
-    if (isPlainRecord(model?.level3)) {
-        for (const [pid, rawKids] of Object.entries(model.level3)) {
-            const kids = asObjArray(rawKids);
-            kids.forEach((k, idx) => {
-                if (!includePlanned && k.status === "planned")
-                    return;
-                if (typeof k.next === "number" && Number.isInteger(k.next) && k.next >= 0 && k.next < kids.length) {
-                    const fromId = (typeof k.id === "string" && k.id) || `${pid}/${idx}`;
-                    const toId = (typeof kids[k.next].id === "string" && kids[k.next].id) || `${pid}/${k.next}`;
-                    push(fromId, toId, "uses");
-                }
-            });
-        }
-    }
-    if (isPlainRecord(model?.subgraphs)) {
-        for (const sg of Object.values(model.subgraphs)) {
-            if (!isPlainRecord(sg))
+    return false;
+}
+function extendModelLinks(prev, keep, model, parentOf, added) {
+    const sg = isPlainRecord(model.subgraphs) && hasOwn(model.subgraphs, added.key) ? model.subgraphs[added.key] : undefined;
+    if (!isPlainRecord(sg))
+        return null;
+    const cover = keep.cover;
+    if (cover && someElementDeployed(added.elements))
+        return null;
+    const fresh = new Set();
+    if (cover) {
+        const newlyParented = parentsAddedBy(keep.parentOf, added.owner, added.elements);
+        cover.ctx.parentOf = parentOf;
+        const affected = new Set();
+        for (const id of newlyParented.keys()) {
+            const at = cover.byEnd.get(id);
+            if (!at)
                 continue;
-            for (const r of asObjArray(sg.rels)) {
-                if (!includePlanned && r.status === "planned")
-                    continue;
-                push(r.from, r.to, "uses", r.label, r.violations);
+            cover.byEnd.delete(id);
+            for (const idx of at)
+                affected.add(idx);
+        }
+        for (const idx of affected)
+            coverLinkPairs(keep.rawLinks[idx], idx, cover.ctx, cover.pairs, cover.byEnd, fresh);
+    }
+    const rels = fresh.size > 0 ? keep.rels.filter((l) => !fresh.has(`${l.from}\u0000${l.to}`)) : keep.rels;
+    const before = rels.length;
+    pushBridgedRels(makeBridgePush(rels, keep.seen, null, cover ? cover.pairs : null), sg.rels, keep.includePlanned);
+    keep.rels = rels;
+    keep.model = model;
+    keep.parentOf = parentOf;
+    if (fresh.size === 0 && rels.length === before)
+        return prev;
+    const deployment = [];
+    pushBridgedDeploymentLinks(makeBridgePush(deployment, new Set(), null, cover ? cover.pairs : null, keep.seen), model, keep.includePlanned);
+    return [...keep.rawLinks, ...rels, ...deployment];
+}
+export function extractModelLinksKept(model, opts, prev, added) {
+    const includePlanned = opts.includePlanned ?? false;
+    const keep = prev ? MODEL_LINKS_KEEP.get(prev) : undefined;
+    if (prev && keep) {
+        MODEL_LINKS_KEEP.delete(prev);
+        if (added && keep.model === added.from && keep.includePlanned === includePlanned) {
+            const next = extendModelLinks(prev, keep, model, opts.parentOf, added);
+            if (next) {
+                MODEL_LINKS_KEEP.set(next, keep);
+                return next;
             }
         }
     }
-    for (const l of asObjArray(model?.level4?.links)) {
-        if (!includePlanned && l.state === "planned")
-            continue;
-        push(l.from, l.to, l.kind || "uses", l.label);
-    }
+    const into = {};
+    const out = buildModelLinks(model, { includePlanned, bridgeUncoveredPairs: true, parentOf: opts.parentOf }, into);
+    if (into.keep)
+        MODEL_LINKS_KEEP.set(out, into.keep);
     return out;
 }
 export const TUX_MAP_WIRE_CATEGORIES = [
@@ -6943,40 +7067,183 @@ function makeSearchEntry(raw) {
         routeRegex: raw.routePattern ? compileSafeRouteRegex(raw.routePattern) : undefined,
     };
 }
-export function buildMapSearchIndex(model = EMPTY_TTI_LEVEL_MODEL) {
-    const isObjModel = model != null && typeof model === "object";
-    const stamp = isObjModel ? modelCacheStamp(model) : "empty";
-    const cached = isObjModel ? MODEL_SEARCH_INDEX_CACHE.get(model) : undefined;
-    if (cached && cached.stamp === stamp)
-        return cached.entries;
-    const parentOf = buildMapParentIndex(model);
+function walkSearchChildren(addNode, ownerId, ownerLvl, kids, seen = new Set()) {
+    if (!kids?.length || seen.has(ownerId) || seen.size > MAX_TREE_DEPTH)
+        return;
+    seen.add(ownerId);
+    for (const c of asObjArray(kids)) {
+        if (!c.id)
+            continue;
+        addNode({
+            id: c.id,
+            name: c.name || c.id,
+            kind: c.kind || "module",
+            level: ownerLvl + 1,
+            parentId: ownerId,
+            tech: c.tech,
+            status: c.status,
+            source: c.source,
+        });
+        walkSearchChildren(addNode, c.id, ownerLvl + 1, c.children, seen);
+    }
+    seen.delete(ownerId);
+}
+function addSubgraphSearchNodes(addNode, model, parentOf, resolvedOwner, sg) {
+    const lvl = isLevel3Focus(resolvedOwner, model)
+        ? 3
+        : levelForFocus(resolvedOwner, model, parentOf);
+    for (const e of asObjArray(sg.elements)) {
+        addNode({
+            id: e.id,
+            name: e.name || e.id,
+            kind: e.kind || "module",
+            level: lvl,
+            parentId: resolvedOwner,
+            tech: e.tech,
+            status: e.status,
+            source: e.source,
+        });
+        walkSearchChildren(addNode, e.id, lvl, e.children);
+    }
+}
+function searchRouteLinks(model) {
+    return resolveModelRawLinks(model).filter((l) => (l.kind === "handled-by" || l.kind === "routes") && Boolean(l.from) && Boolean(l.to));
+}
+function searchHandlersByRoute(routeLinks, getNode) {
+    const handlerByRouteId = new Map();
+    for (const l of routeLinks) {
+        if (l.kind === "handled-by" && getNode(l.to)) {
+            if (!handlerByRouteId.has(l.from))
+                handlerByRouteId.set(l.from, l.to);
+        }
+        else if (l.kind === "routes" &&
+            (isKindNodeId(l.from, "r") || getNode(l.from)?.kind === "route") &&
+            getNode(l.to)) {
+            if (!handlerByRouteId.has(l.from))
+                handlerByRouteId.set(l.from, l.to);
+        }
+    }
+    return handlerByRouteId;
+}
+function searchAncestorNames(id, parentOf, getNode) {
+    const chain = mapAncestorsOf(id, parentOf);
+    const names = [];
+    for (let i = chain.length - 1; i >= 1; i--) {
+        const ancId = chain[i];
+        const n = getNode(ancId);
+        names.push(n?.name || ancId);
+    }
+    if (names.length === 0) {
+        const n = getNode(id);
+        if (n?.parentId) {
+            const pNode = getNode(n.parentId);
+            names.push(pNode?.name || n.parentId);
+        }
+    }
+    return names;
+}
+function pushNodeSearchEntries(entries, seenRouteKeys, list, getNode, parentOf, handlerByRouteId) {
+    for (const n of list) {
+        const srcPath = n.source?.path || repoPathForNodeId(n.id);
+        const group = classifySearchGroup(n.id, n.kind, n.name, n.tech, Boolean(n.source?.path));
+        const ancestors = searchAncestorNames(n.id, parentOf, getNode);
+        const linkedHandlerId = group === "Routes" ? handlerByRouteId.get(n.id) : undefined;
+        const handlerNode = linkedHandlerId ? getNode(linkedHandlerId) : undefined;
+        const routePattern = group === "Routes" ? (isKindNodeId(n.id, "r") ? splitNodeId(n.id).rest : n.name) : undefined;
+        if (routePattern) {
+            seenRouteKeys.add(`${routePattern.toLowerCase()}\u0000${linkedHandlerId || n.id}`);
+        }
+        entries.push(makeSearchEntry({
+            id: n.id,
+            revealId: linkedHandlerId || n.id,
+            group,
+            level: n.level,
+            kind: n.kind,
+            name: n.name,
+            path: handlerNode?.source?.path || srcPath,
+            ancestors,
+            tech: n.tech || "",
+            routePattern,
+            handlerName: handlerNode?.name,
+            planned: n.status === "planned",
+        }));
+        if (group !== "Routes") {
+            for (const candidate of [n.tech, n.source?.symbol]) {
+                if (!candidate)
+                    continue;
+                const m = candidate.trim().match(HTTP_ROUTE_TEXT_RE);
+                if (!m)
+                    continue;
+                const method = m[1] ? m[1].toUpperCase() : "";
+                const pat = m[2];
+                const disp = method ? `${method} ${pat}` : pat;
+                const rKey = `${disp.toLowerCase()}\u0000${n.id}`;
+                if (seenRouteKeys.has(rKey))
+                    continue;
+                seenRouteKeys.add(rKey);
+                entries.push(makeSearchEntry({
+                    id: `route:${disp}->${n.id}`,
+                    revealId: n.id,
+                    group: "Routes",
+                    level: n.level,
+                    kind: "route",
+                    name: disp,
+                    path: srcPath,
+                    ancestors: [...ancestors, n.name],
+                    tech: n.name,
+                    routePattern: pat,
+                    handlerName: n.name,
+                    planned: n.status === "planned",
+                }));
+            }
+        }
+    }
+}
+function routeTableSearchEntries(model, nodeRouteKeys, getNode, parentOf) {
+    const entries = [];
+    const seenRouteKeys = new Set();
+    for (const rt of asObjArray(model?.routes)) {
+        if (typeof rt.pattern !== "string" || !rt.pattern.trim())
+            continue;
+        const method = typeof rt.method === "string" && rt.method.trim() ? rt.method.trim().toUpperCase() : "";
+        const pat = rt.pattern.trim();
+        const disp = method ? `${method} ${pat}` : pat;
+        const handlerId = typeof rt.handler === "string" && rt.handler ? rt.handler : "";
+        const handlerNode = handlerId ? getNode(handlerId) : undefined;
+        const revealId = handlerNode ? handlerNode.id : handlerId || `r:${disp}`;
+        const rKey = `${disp.toLowerCase()}\u0000${revealId}`;
+        if (nodeRouteKeys.has(rKey) || seenRouteKeys.has(rKey))
+            continue;
+        seenRouteKeys.add(rKey);
+        const ancestors = handlerNode
+            ? [...searchAncestorNames(handlerNode.id, parentOf, getNode), handlerNode.name]
+            : [];
+        entries.push(makeSearchEntry({
+            id: `route:${disp}->${revealId}`,
+            revealId,
+            group: "Routes",
+            level: handlerNode?.level ?? 5,
+            kind: "route",
+            name: disp,
+            path: handlerNode?.source?.path || "",
+            ancestors,
+            tech: [rt.framework, handlerNode?.name || handlerId].filter(Boolean).join(" · "),
+            routePattern: pat,
+            handlerName: handlerNode?.name || handlerId || undefined,
+            planned: handlerNode?.status === "planned",
+        }));
+    }
+    return entries;
+}
+const SEARCH_INDEX_KEEP = new WeakMap();
+function buildSearchIndex(model, parentOf, keepInto) {
     const subgraphOwners = collectSubgraphOwners(model);
     const nodes = new Map();
     const addNode = (n) => {
         if (n.id && !nodes.has(n.id))
             nodes.set(n.id, n);
     };
-    const walkChildren = (ownerId, ownerLvl, kids, seen = new Set()) => {
-        if (!kids?.length || seen.has(ownerId) || seen.size > MAX_TREE_DEPTH)
-            return;
-        seen.add(ownerId);
-        for (const c of asObjArray(kids)) {
-            if (!c.id)
-                continue;
-            addNode({
-                id: c.id,
-                name: c.name || c.id,
-                kind: c.kind || "module",
-                level: ownerLvl + 1,
-                parentId: ownerId,
-                tech: c.tech,
-                status: c.status,
-                source: c.source,
-            });
-            walkChildren(c.id, ownerLvl + 1, c.children, seen);
-        }
-        seen.delete(ownerId);
-    };
+    const walkChildren = (ownerId, ownerLvl, kids) => walkSearchChildren(addNode, ownerId, ownerLvl, kids);
     for (const e of asObjArray(model?.level1?.elements)) {
         addNode({ id: e.id, name: e.name || e.id, kind: e.kind || "system", level: 1, tech: e.tech, status: e.status, source: e.source });
     }
@@ -7028,150 +7295,110 @@ export function buildMapSearchIndex(model = EMPTY_TTI_LEVEL_MODEL) {
         });
         walkChildren(dn.id, 4, dn.children);
     }
+    const owners = [];
     if (isPlainRecord(model?.subgraphs)) {
         for (const [ownerId, sg] of Object.entries(model.subgraphs)) {
             if (!hasOwn(model.subgraphs, ownerId) || !isPlainRecord(sg))
                 continue;
             const resolvedOwner = subgraphOwners.get(ownerId) ?? ownerId;
-            const lvl = isLevel3Focus(resolvedOwner, model)
-                ? 3
-                : levelForFocus(resolvedOwner, model, parentOf);
-            for (const e of asObjArray(sg.elements)) {
-                addNode({
-                    id: e.id,
-                    name: e.name || e.id,
-                    kind: e.kind || "module",
-                    level: lvl,
-                    parentId: resolvedOwner,
-                    tech: e.tech,
-                    status: e.status,
-                    source: e.source,
-                });
-                walkChildren(e.id, lvl, e.children);
-            }
+            if (keepInto)
+                owners.push(resolvedOwner);
+            addSubgraphSearchNodes(addNode, model, parentOf, resolvedOwner, sg);
         }
     }
-    const handlerByRouteId = new Map();
-    for (const l of resolveModelRawLinks(model)) {
-        if (l.kind === "handled-by" && l.from && l.to && nodes.has(l.to)) {
-            if (!handlerByRouteId.has(l.from))
-                handlerByRouteId.set(l.from, l.to);
-        }
-        else if (l.kind === "routes" &&
-            l.from &&
-            l.to &&
-            (isKindNodeId(l.from, "r") || nodes.get(l.from)?.kind === "route") &&
-            nodes.has(l.to)) {
-            if (!handlerByRouteId.has(l.from))
-                handlerByRouteId.set(l.from, l.to);
-        }
+    const getNode = (id) => nodes.get(id);
+    const routeLinks = searchRouteLinks(model);
+    const handlerByRouteId = searchHandlersByRoute(routeLinks, getNode);
+    const nodeEntries = [];
+    const nodeRouteKeys = new Set();
+    pushNodeSearchEntries(nodeEntries, nodeRouteKeys, nodes.values(), getNode, parentOf, handlerByRouteId);
+    const routeEntries = routeTableSearchEntries(model, nodeRouteKeys, getNode, parentOf);
+    if (!keepInto) {
+        for (const e of routeEntries)
+            nodeEntries.push(e);
+        return nodeEntries;
     }
-    const entries = [];
-    const seenRouteKeys = new Set();
-    const buildAncestors = (id) => {
-        const chain = mapAncestorsOf(id, parentOf);
-        const names = [];
-        for (let i = chain.length - 1; i >= 1; i--) {
-            const ancId = chain[i];
-            const n = nodes.get(ancId);
-            names.push(n?.name || ancId);
-        }
-        if (names.length === 0) {
-            const n = nodes.get(id);
-            if (n?.parentId) {
-                const pNode = nodes.get(n.parentId);
-                names.push(pNode?.name || n.parentId);
-            }
-        }
-        return names;
-    };
-    for (const n of nodes.values()) {
-        const srcPath = n.source?.path || repoPathForNodeId(n.id);
-        const group = classifySearchGroup(n.id, n.kind, n.name, n.tech, Boolean(n.source?.path));
-        const ancestors = buildAncestors(n.id);
-        const linkedHandlerId = group === "Routes" ? handlerByRouteId.get(n.id) : undefined;
-        const handlerNode = linkedHandlerId ? nodes.get(linkedHandlerId) : undefined;
-        const routePattern = group === "Routes" ? (isKindNodeId(n.id, "r") ? splitNodeId(n.id).rest : n.name) : undefined;
-        if (routePattern) {
-            seenRouteKeys.add(`${routePattern.toLowerCase()}\u0000${linkedHandlerId || n.id}`);
-        }
-        entries.push(makeSearchEntry({
-            id: n.id,
-            revealId: linkedHandlerId || n.id,
-            group,
-            level: n.level,
-            kind: n.kind,
-            name: n.name,
-            path: handlerNode?.source?.path || srcPath,
-            ancestors,
-            tech: n.tech || "",
-            routePattern,
-            handlerName: handlerNode?.name,
-            planned: n.status === "planned",
-        }));
-        if (group !== "Routes") {
-            for (const candidate of [n.tech, n.source?.symbol]) {
-                if (!candidate)
-                    continue;
-                const m = candidate.trim().match(HTTP_ROUTE_TEXT_RE);
-                if (!m)
-                    continue;
-                const method = m[1] ? m[1].toUpperCase() : "";
-                const pat = m[2];
-                const disp = method ? `${method} ${pat}` : pat;
-                const rKey = `${disp.toLowerCase()}\u0000${n.id}`;
-                if (seenRouteKeys.has(rKey))
-                    continue;
-                seenRouteKeys.add(rKey);
-                entries.push(makeSearchEntry({
-                    id: `route:${disp}->${n.id}`,
-                    revealId: n.id,
-                    group: "Routes",
-                    level: n.level,
-                    kind: "route",
-                    name: disp,
-                    path: srcPath,
-                    ancestors: [...ancestors, n.name],
-                    tech: n.name,
-                    routePattern: pat,
-                    handlerName: n.name,
-                    planned: n.status === "planned",
-                }));
-            }
-        }
+    keepInto.keep = { model, parentOf, nodes, nodeEntries, nodeRouteKeys, routeLinks, handlerByRouteId, owners };
+    return [...nodeEntries, ...routeEntries];
+}
+function extendSearchIndex(keep, model, parentOf, added) {
+    const key = added.key;
+    const sg = isPlainRecord(model.subgraphs) && hasOwn(model.subgraphs, key) ? model.subgraphs[key] : undefined;
+    if (!isPlainRecord(sg))
+        return null;
+    if (isPlainRecord(model.level3) && hasOwn(model.level3, key) && Array.isArray(model.level3[key]) && model.level3[key].length === 0) {
+        return null;
     }
-    for (const rt of asObjArray(model?.routes)) {
-        if (typeof rt.pattern !== "string" || !rt.pattern.trim())
-            continue;
-        const method = typeof rt.method === "string" && rt.method.trim() ? rt.method.trim().toUpperCase() : "";
-        const pat = rt.pattern.trim();
-        const disp = method ? `${method} ${pat}` : pat;
-        const handlerId = typeof rt.handler === "string" && rt.handler ? rt.handler : "";
-        const handlerNode = handlerId ? nodes.get(handlerId) : undefined;
-        const revealId = handlerNode ? handlerNode.id : handlerId || `r:${disp}`;
-        const rKey = `${disp.toLowerCase()}\u0000${revealId}`;
-        if (seenRouteKeys.has(rKey))
-            continue;
-        seenRouteKeys.add(rKey);
-        const ancestors = handlerNode ? [...buildAncestors(handlerNode.id), handlerNode.name] : [];
-        entries.push(makeSearchEntry({
-            id: `route:${disp}->${revealId}`,
-            revealId,
-            group: "Routes",
-            level: handlerNode?.level ?? 5,
-            kind: "route",
-            name: disp,
-            path: handlerNode?.source?.path || "",
-            ancestors,
-            tech: [rt.framework, handlerNode?.name || handlerId].filter(Boolean).join(" · "),
-            routePattern: pat,
-            handlerName: handlerNode?.name || handlerId || undefined,
-            planned: handlerNode?.status === "planned",
-        }));
+    const nodes = keep.nodes;
+    let passedThrough = keep.passedThrough;
+    if (!passedThrough) {
+        passedThrough = new Set(keep.parentOf.values());
+        for (const n of nodes.values())
+            if (n.parentId)
+                passedThrough.add(n.parentId);
+        for (const owner of keep.owners)
+            passedThrough.add(owner);
     }
+    const newlyParented = parentsAddedBy(keep.parentOf, added.owner, added.elements);
+    for (const id of newlyParented.keys()) {
+        if (nodes.has(id) || passedThrough.has(id))
+            return null;
+    }
+    const arrived = new Map();
+    addSubgraphSearchNodes((n) => {
+        if (n.id && !nodes.has(n.id) && !arrived.has(n.id))
+            arrived.set(n.id, n);
+    }, model, parentOf, added.owner, sg);
+    for (const id of arrived.keys()) {
+        if (passedThrough.has(id))
+            return null;
+    }
+    const getNode = (id) => nodes.get(id) ?? arrived.get(id);
+    const handlerByRouteId = searchHandlersByRoute(keep.routeLinks, getNode);
+    for (const [routeId, handlerId] of handlerByRouteId) {
+        if (nodes.has(routeId) && keep.handlerByRouteId.get(routeId) !== handlerId)
+            return null;
+    }
+    for (const pid of newlyParented.values())
+        passedThrough.add(pid);
+    passedThrough.add(added.owner);
+    for (const n of arrived.values())
+        nodes.set(n.id, n);
+    keep.passedThrough = passedThrough;
+    keep.model = model;
+    keep.parentOf = parentOf;
+    keep.handlerByRouteId = handlerByRouteId;
+    pushNodeSearchEntries(keep.nodeEntries, keep.nodeRouteKeys, arrived.values(), getNode, parentOf, handlerByRouteId);
+    return [...keep.nodeEntries, ...routeTableSearchEntries(model, keep.nodeRouteKeys, getNode, parentOf)];
+}
+export function buildMapSearchIndex(model = EMPTY_TTI_LEVEL_MODEL) {
+    const isObjModel = model != null && typeof model === "object";
+    const stamp = isObjModel ? modelCacheStamp(model) : "empty";
+    const cached = isObjModel ? MODEL_SEARCH_INDEX_CACHE.get(model) : undefined;
+    if (cached && cached.stamp === stamp)
+        return cached.entries;
+    const entries = buildSearchIndex(model, buildMapParentIndex(model));
     if (isObjModel) {
         MODEL_SEARCH_INDEX_CACHE.set(model, { stamp, entries });
     }
+    return entries;
+}
+export function buildMapSearchIndexKept(model, parentOf, prev, added) {
+    const keep = prev ? SEARCH_INDEX_KEEP.get(prev) : undefined;
+    if (prev && keep) {
+        SEARCH_INDEX_KEEP.delete(prev);
+        if (added && keep.model === added.from) {
+            const next = extendSearchIndex(keep, model, parentOf, added);
+            if (next) {
+                SEARCH_INDEX_KEEP.set(next, keep);
+                return next;
+            }
+        }
+    }
+    const into = {};
+    const entries = buildSearchIndex(model, parentOf, into);
+    if (into.keep)
+        SEARCH_INDEX_KEEP.set(entries, into.keep);
     return entries;
 }
 function isWordBoundary(str, idx) {

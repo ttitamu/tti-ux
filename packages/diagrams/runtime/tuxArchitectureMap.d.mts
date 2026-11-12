@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 62b46eea28d809ef711d26b7d810a02635385179aae7ba092b321173c170ab0a
+// SOURCE-SHA256: bb56ae3cde40131f61fb2696b8ca2dcffeb963dd4be478fa4b10ce37ec0c7fe6
 /**
  * tuxArchitectureMap — Core Engine for TUX Master Architecture Plan (M.A.P.) & Infinite Canvas.
  *
@@ -1186,6 +1186,22 @@ export declare function extractModelLinks(model: TuxMapLevelModel, opts?: {
     parentOf?: Map<string, string>;
 }): TuxMapLink[];
 /**
+ * `extractModelLinks(model, { includePlanned, bridgeUncoveredPairs: true, parentOf })`, kept so the
+ * next call can build on it (`tti/tti-ux#157`).
+ *
+ * `prev` is the array this function returned last time and `added` what the model gained since
+ * (`TuxMapLazyMergeState.added`): when `prev` was built for `added.from` with the same
+ * `includePlanned`, only what the arriving subgraph can change is worked out again, and `prev`
+ * itself comes back when that is nothing. Anything else is extracted from the whole model.
+ *
+ * `opts.parentOf` is the parent index of `model`. `prev` is used up by the call: pass each result once.
+ * @internal
+ */
+export declare function extractModelLinksKept(model: TuxMapLevelModel, opts: {
+    includePlanned?: boolean;
+    parentOf: Map<string, string>;
+}, prev?: TuxMapLink[], added?: TuxMapLazyMergeState["added"]): TuxMapLink[];
+/**
  * Dependency wire filter categories (`tti/tti-ux#118`).
  * @public
  */
@@ -2034,6 +2050,19 @@ export interface TuxMapSearchGroupResult {
  * @public
  */
 export declare function buildMapSearchIndex(model?: TuxMapLevelModel): TuxMapSearchEntry[];
+/**
+ * `buildMapSearchIndex(model)`, kept so the next call can build on it (`tti/tti-ux#157`). It neither
+ * reads nor fills that function's cache.
+ *
+ * `prev` is the array this function returned last time and `added` what the model gained since
+ * (`TuxMapLazyMergeState.added`): when `prev` was built for `added.from`, the entries of the
+ * arriving subgraph are added to it, when no entry already there can change. Anything else is
+ * built from the whole model.
+ *
+ * `parentOf` is the parent index of `model`. `prev` is used up by the call: pass each result once.
+ * @internal
+ */
+export declare function buildMapSearchIndexKept(model: TuxMapLevelModel, parentOf: Map<string, string>, prev?: TuxMapSearchEntry[], added?: TuxMapLazyMergeState["added"]): TuxMapSearchEntry[];
 /**
  * Searches across Components, Folders, Files, Functions, and Routes in `< 1 ms` over 2,400+ entries.
  * Groups are ordered by top hit score when `query` is non-empty so `Enter` jumps directly to the #1 match.

@@ -8,14 +8,14 @@ import {
   TUX_MAP_WIRE_CATEGORIES,
   buildLevelModelFromLegacyNodes,
   buildMapParentIndex,
-  buildMapSearchIndex,
+  buildMapSearchIndexKept,
   buildVendoredCopyIndex,
   classifyBlastLink,
   cmpCodepoint,
   compareBlastLinks,
   computeLinkBlastRadius,
   extendMapParentIndex,
-  extractModelLinks,
+  extractModelLinksKept,
   hasOwn,
   isKindNodeId,
   levelForFocus as computeLevelForFocus,
@@ -836,12 +836,41 @@ const parentOf = computed(() => {
   return map;
 });
 
+// The index reads the code links, which an arriving subgraph leaves alone, and the kind of each end
+// of a `copies` link: it is the one before unless the arrival indexes such an end (#157)
+let vendoredBuilt:
+  | { model: TuxMapLevelModel; index: ReturnType<typeof buildVendoredCopyIndex>; copyEnds?: Set<string> }
+  | undefined;
 const vendoredCopyIndex = computed(() => {
+  const model = activeModel.value;
+  const added = mergedModel.value.added;
+  if (added && vendoredBuilt?.model === added.from) {
+    if (!vendoredBuilt.copyEnds) {
+      vendoredBuilt.copyEnds = new Set<string>();
+      for (const l of resolveModelRawLinks(model)) {
+        if (l.kind === "copies") vendoredBuilt.copyEnds.add(l.from).add(l.to);
+      }
+    }
+    const ends = vendoredBuilt.copyEnds;
+    // the ids `byId` writes for the arrival
+    const indexesAnEnd = (parentId: string, kids: TuxMapLevelElement[], depth = 0): boolean =>
+      depth < 64 &&
+      kids.some((k, i) => {
+        const id = k.id || `${parentId}/${i}`;
+        return ends.has(id) || Boolean(k.children?.length && indexesAnEnd(id, k.children, depth + 1));
+      });
+    if (ends.size === 0 || !indexesAnEnd(added.key, added.elements)) {
+      vendoredBuilt.model = model;
+      return vendoredBuilt.index;
+    }
+  }
   const kindMap = new Map<string, string>();
   for (const [id, el] of Object.entries(byId.value)) {
     if (el.kind) kindMap.set(id, el.kind);
   }
-  return buildVendoredCopyIndex(resolveModelRawLinks(activeModel.value), kindMap);
+  const index = buildVendoredCopyIndex(resolveModelRawLinks(model), kindMap);
+  vendoredBuilt = { model, index };
+  return index;
 });
 
 /** The level that shows the children of `fid`: 3 inside a container, 5 inside a component or
@@ -1369,13 +1398,17 @@ function liftToDeployHosts(
   return [...found];
 }
 
-const effectiveModelLinks = computed<TuxMapLink[]>(() =>
-  extractModelLinks(activeModel.value, {
-    includePlanned: showPlanned.value,
-    bridgeUncoveredPairs: true,
-    parentOf: parentOf.value,
-  }),
-);
+// The links of the model before, kept so one arriving subgraph is worked into them (#157)
+let linksBuilt: TuxMapLink[] | undefined;
+const effectiveModelLinks = computed<TuxMapLink[]>(() => {
+  linksBuilt = extractModelLinksKept(
+    activeModel.value,
+    { includePlanned: showPlanned.value, parentOf: parentOf.value },
+    linksBuilt,
+    mergedModel.value.added,
+  );
+  return linksBuilt;
+});
 
 // On-screen-only link kinds in `TUX_MAP_LINK_KIND_LABELS` wording (`tti/tti-ux#115`)
 const legendLinkKinds = computed<{ kind: string; label: string; quiet: boolean }[]>(() => {
@@ -2459,9 +2492,17 @@ const goToInputRef = ref<HTMLInputElement | null>(null);
 const goToListRef = ref<HTMLDivElement | null>(null);
 let goToReturnFocusEl: HTMLElement | null = null;
 
-const mapSearchIndex = computed<TuxMapSearchEntry[]>(() =>
-  buildMapSearchIndex(activeModel.value),
-);
+// The index of the model before, kept so one arriving subgraph's entries are added to it (#157)
+let searchIndexBuilt: TuxMapSearchEntry[] | undefined;
+const mapSearchIndex = computed<TuxMapSearchEntry[]>(() => {
+  searchIndexBuilt = buildMapSearchIndexKept(
+    activeModel.value,
+    parentOf.value,
+    searchIndexBuilt,
+    mergedModel.value.added,
+  );
+  return searchIndexBuilt;
+});
 
 const goToGroupResults = computed<TuxMapSearchGroupResult[]>(() =>
   searchArchitectureMap(mapSearchIndex.value, goToQuery.value, {

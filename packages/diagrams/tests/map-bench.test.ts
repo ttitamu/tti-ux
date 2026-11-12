@@ -13,9 +13,11 @@ import { afterAll, describe, expect, it } from "vitest";
 import {
   buildMapParentIndex,
   buildMapSearchIndex,
+  buildMapSearchIndexKept,
   collapseModelSubgraphs,
   computeLinkBlastRadius,
   extractModelLinks,
+  extractModelLinksKept,
   extendMapParentIndex,
   foldVendoredCopies,
   levelForFocus,
@@ -459,6 +461,66 @@ describe("architecture map benchmark: utils (#153)", () => {
     scalesWith: "whole model",
     bounds: [12, 12],
     make: (p) => lazyAdd(p, 1),
+  });
+
+  // What is read from the model after the indexes, when a later subgraph arrives: the links and the
+  // search index kept from the model before, with the arrival worked into them (#157). The merge and
+  // the parent index are `lazy-merge-next`, and are not timed here.
+  const lazyDerived = (p: Prepared, what: "links" | "search"): BenchCase => {
+    const refs = [p.g.focus.lazyRef, ...Object.keys(p.g.lazySubgraphs).filter((k) => k !== p.g.focus.lazyRef)];
+    const held: Record<string, unknown> = Object.create(null);
+    held[refs[refs.length - 1]!] = p.g.lazySubgraphs[refs[refs.length - 1]!]!;
+    const after: Record<string, unknown> = Object.assign(Object.create(null), held);
+    // The generated subgraphs hold symbols and no links, and an arrival with no link hands the kept
+    // links back untouched. One link between its first two symbols makes this the path that copies.
+    const arriving = p.g.lazySubgraphs[refs[0]!]!;
+    const [a, b] = arriving.elements;
+    after[refs[0]!] = what === "links" ? { ...arriving, rels: [{ from: a!.id!, to: b!.id!, label: "calls" }] } : arriving;
+    let run: () => number = () => 0;
+    const reset = () => {
+      const prev = mergeLazyMapSubgraphs(p.g.model, held, mergeLazyMapSubgraphs(p.g.model, Object.create(null)));
+      const prevParents = buildMapParentIndex(prev.model);
+      const kept =
+        what === "links"
+          ? extractModelLinksKept(prev.model, { includePlanned: false, parentOf: prevParents })
+          : buildMapSearchIndexKept(prev.model, prevParents);
+      const next = mergeLazyMapSubgraphs(p.g.model, after, prev);
+      if (!next.added) throw new Error("the arrival was not added in place");
+      const parents = extendMapParentIndex(prevParents, next.added.owner, next.added.elements);
+      run =
+        what === "links"
+          ? () => {
+              const links = extractModelLinksKept(
+                next.model,
+                { includePlanned: false, parentOf: parents },
+                kept as TuxMapLink[],
+                next.added,
+              );
+              if (links.length !== kept.length + 1) throw new Error("the arrival's link was not added");
+              return links.length;
+            }
+          : () =>
+              buildMapSearchIndexKept(next.model, parents, kept as ReturnType<typeof buildMapSearchIndexKept>, next.added)
+                .length;
+    };
+    reset();
+    return { run: () => void (sink += run()), reset };
+  };
+
+  gate({
+    id: "lazy-links-next",
+    title: "work a later resolved subgraph into the links kept from the model before",
+    scalesWith: "all links, copied once",
+    bounds: [4, 8],
+    make: (p) => lazyDerived(p, "links"),
+  });
+
+  gate({
+    id: "lazy-search-next",
+    title: "work a later resolved subgraph into the search index kept from the model before",
+    scalesWith: "all entries, copied once",
+    bounds: [6, 9],
+    make: (p) => lazyDerived(p, "search"),
   });
 
   gate({
