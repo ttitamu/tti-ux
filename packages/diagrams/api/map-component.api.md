@@ -48,7 +48,7 @@ internal.
 - `title?: string` (default: `"Modular Architecture Map"`)
 - `traceTarget?: string | null` (default: `undefined`)
 - `view?: TuxMapViewMode` (default: `undefined`)
-- `wheelZoom?: boolean` (default: `true`)
+- `wheelZoom?: boolean | "click"` (default: `true`)
 - `wireFilters?: TuxMapWireCategory[]` (default: `undefined`)
 - `zones?: TuxMapZone[]` (default: `() => []`)
 
