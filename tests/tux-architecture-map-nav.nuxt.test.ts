@@ -188,3 +188,89 @@ describe("TuxArchitectureMap Go to: route results (#205)", () => {
     }
   });
 });
+
+/**
+ * One small component: a folder of two files, one with a function. The map leaves the folder level
+ * out of a component this small, so the files are its Level 5 and the function is on Level 6. A host
+ * that counts the document's own nesting (component, folder, file) calls the function's view Level 7.
+ */
+function smallComponentModel(): TuxMapLevelModel {
+  return {
+    schema: "tux-map/1",
+    level1: { elements: [{ id: "sys", kind: "system", name: "App" }], rels: [] },
+    level2: { boundary: "sys", elements: [{ id: "c1", kind: "container", name: "Service" }], rels: [] },
+    level3: { c1: [{ id: "comp", kind: "component", name: "Worker" }] },
+    level4: { groups: [], nodes: [], links: [] },
+    subgraphs: {
+      comp: { stratum: "Folders", elements: [{ id: "d:src", kind: "folder", name: "src/" }] },
+      "d:src": {
+        stratum: "Files",
+        elements: [
+          { id: "f:src/a.py", kind: "file", name: "a.py", source: { path: "src/a.py" } },
+          { id: "f:src/b.py", kind: "file", name: "b.py", source: { path: "src/b.py" } },
+        ],
+      },
+      "f:src/a.py": {
+        stratum: "Functions and classes",
+        elements: [{ id: "s:src/a.py#run", kind: "function", name: "run()", source: { path: "src/a.py" } }],
+      },
+    },
+  };
+}
+
+const card = (w: Mounted, id: string) => w.find(`.tux-map__el[data-id="${id}"]`);
+const stepIn = (w: Mounted) => w.find('button[aria-label="Zoom in on the chosen element"]');
+
+describe("TuxArchitectureMap level numbers (#205)", () => {
+  it("gives a view one number, by drilling in and from a host that names the level itself", async () => {
+    const drilled = await mountMap({ model: smallComponentModel(), initialLevel: 3, initialFocus: "c1" });
+    await card(drilled, "comp").trigger("dblclick");
+    await settle();
+    expect(levelText(drilled)).toBe("Level 5 of 6");
+    await card(drilled, "f:src/a.py").trigger("dblclick");
+    await settle();
+    expect(levelText(drilled)).toBe("Level 6 of 6");
+    expect(card(drilled, "s:src/a.py#run").exists()).toBe(true);
+    drilled.unmount();
+
+    // the same view, from a link: the host counted component, folder, file
+    const restored = await mountMap({ model: smallComponentModel(), level: 7, focus: "f:src/a.py" });
+    await settle();
+    expect(card(restored, "s:src/a.py#run").exists()).toBe(true);
+    expect(levelText(restored)).toBe("Level 6 of 6");
+    expect(restored.emitted("update:level")?.at(-1)).toEqual([6]);
+
+    // and when the host moves a mounted map there
+    await restored.setProps({ level: 3, focus: "c1" });
+    await settle();
+    expect(levelText(restored)).toBe("Level 3 of 6");
+    await restored.setProps({ level: 7, focus: "f:src/a.py" });
+    await settle();
+    expect(levelText(restored)).toBe("Level 6 of 6");
+    expect(restored.emitted("update:level")?.at(-1)).toEqual([6]);
+    restored.unmount();
+  });
+
+  it("says where Level + goes: from Level 3 to Level 5, Level 4 being Infrastructure", async () => {
+    const w = await mountMap({ model: smallComponentModel(), initialLevel: 2 });
+    expect(stepIn(w).attributes("title")).toBe("Zoom in to Level 3 (+)");
+    expect(w.find(".tux-map__hint").text()).toContain("Levels 1–6");
+    expect(w.find(".tux-map__hint").text()).toContain("Level 4 is Infrastructure");
+
+    await stepIn(w).trigger("click");
+    await settle();
+    expect(levelText(w)).toBe("Level 3 of 6");
+    expect(stepIn(w).attributes("title")).toBe("Zoom in to Level 5 (+)");
+    await stepIn(w).trigger("click");
+    await settle();
+    expect(levelText(w)).toBe("Level 5 of 6");
+
+    // a model with no code below the components has no Level 5 to explain
+    const flat = { ...smallComponentModel(), subgraphs: {} };
+    const four = await mountMap({ model: flat, initialLevel: 2 });
+    expect(four.find(".tux-map__hint").text()).toContain("Levels 1–4");
+    expect(four.find(".tux-map__hint").text()).not.toContain("Level 4 is Infrastructure");
+    w.unmount();
+    four.unmount();
+  });
+});

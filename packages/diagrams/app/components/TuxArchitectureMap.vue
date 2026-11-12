@@ -572,10 +572,14 @@ function announce(msg: string) {
 watch(
   () => props.level,
   (lvl) => {
-    if (lvl !== undefined && lvl !== currentLevel.value) {
-      if (lvl !== 4) preInfraState.value = null;
-      currentLevel.value = lvl;
+    if (lvl === undefined) return;
+    // the focus arrives in the same update, and its watcher runs after this one
+    const next = deepLevelFor(props.focus !== undefined ? props.focus : focusId.value, lvl);
+    if (next !== currentLevel.value) {
+      if (next !== 4) preInfraState.value = null;
+      currentLevel.value = next;
     }
+    if (next !== lvl) emit("update:level", next);
   },
 );
 watch(
@@ -583,8 +587,9 @@ watch(
   (f) => {
     if (f !== undefined) {
       const resolved = f ? resolveAliasId(f) ?? f : f;
-      if (f && resolved && resolved !== f && currentLevel.value >= 5) {
-        const aliasedLvl = levelForFocus(resolved) as TuxMapLevelNumber;
+      if (resolved && currentLevel.value >= 5) {
+        const aliasedLvl =
+          resolved !== f ? (levelForFocus(resolved) as TuxMapLevelNumber) : deepLevelFor(resolved, currentLevel.value);
         if (aliasedLvl !== currentLevel.value) {
           currentLevel.value = aliasedLvl;
           emit("update:level", aliasedLvl);
@@ -882,6 +887,19 @@ function levelForFocus(fid: string): number {
   return computeLevelForFocus(fid, activeModel.value, parentOf.value);
 }
 
+/**
+ * The number of the view inside `fid` when `asked` is 5 or more. Below Level 4 a view has no number
+ * of its own: it is where its focus sits in the model as the map draws it. A host that counts the
+ * document's own nesting gets another number where the map left a folder level out, so the map's
+ * number stands and `update:level` says so (#205).
+ */
+function deepLevelFor(fid: string | null | undefined, asked: TuxMapLevelNumber): TuxMapLevelNumber {
+  if (asked < 5 || !fid) return asked;
+  const id = resolveAliasId(fid) ?? fid;
+  if (!hasFractalSubgraph(id) && !hasLazySubgraphRef(id)) return asked;
+  return Math.max(5, levelForFocus(id)) as TuxMapLevelNumber;
+}
+
 /** The drill stack a person builds zooming in step by step to the children of `fid`. */
 function drillStackFor(fid: string): { level: number; focusId: string }[] {
   return mapAncestorsOf(fid, parentOf.value)
@@ -978,6 +996,11 @@ watch(
       focusId.value = firstContainer?.id ?? null;
     }
     if (currentLevel.value >= 5 && focusId.value) {
+      const lvl = deepLevelFor(focusId.value, currentLevel.value);
+      if (lvl !== currentLevel.value) {
+        currentLevel.value = lvl;
+        emit("update:level", lvl);
+      }
       drillStack.value = drillStackFor(focusId.value);
     }
   },
@@ -3422,7 +3445,10 @@ const hintText = computed<string>(() => {
       ? `Inspecting deep internal modules & code symbols. Double-click or ${scroll} up on '+' cards to drill deeper, or ${scroll} down / press Escape to return to the parent level.`
       : `Inspecting deep internal modules & code symbols. ${wheelZooms.value ? "Scroll" : "Ctrl+scroll"} down or press Escape to return to the parent level.`;
   }
-  const levels = `Levels 1–${maxAvailableLevel.value}`;
+  // Level 4 is beside the zoom path, so zooming in from Level 3 lands on Level 5: say so (#205)
+  const levels =
+    `Levels 1–${maxAvailableLevel.value}` +
+    (modelDepth.value >= 5 ? ". Level 4 is Infrastructure, on its own button: zooming in goes from Level 3 to Level 5" : "");
   return wheelZooms.value
     ? `Hover over any card to highlight its links, or scroll the mouse wheel over a card (or double-click / press +) to zoom in and out across ${levels}.`
     : `Hover over any card to highlight its links, or hold Ctrl and scroll over a card (or double-click / press +) to zoom in and out across ${levels}.`;
@@ -4075,9 +4101,6 @@ function isCurrentViewChild(id: string): boolean {
 }
 
 function fractalZoomLevelFor(id: string): number {
-  if (isCurrentViewChild(id)) {
-    return currentLevel.value >= 5 ? currentLevel.value + 1 : 5;
-  }
   return Math.max(5, levelForFocus(id));
 }
 
@@ -4179,11 +4202,7 @@ function zoomIntoElement(rawId: string) {
   // Fractal Subgraph Drill-Down (Level 3 component -> Level 5, Level 4 host -> Level 5, Level 5 -> Level 6+)
   if (currentLevel.value >= 3 && hasFractalSubgraph(id)) {
     const inCurrentView = isCurrentViewChild(id);
-    const nextLvl = inCurrentView
-      ? currentLevel.value >= 5
-        ? currentLevel.value + 1
-        : 5
-      : Math.max(5, levelForFocus(id));
+    const nextLvl = fractalZoomLevelFor(id);
     drillStack.value = inCurrentView
       ? [
           ...drillStack.value,
@@ -4440,6 +4459,17 @@ const stepInTargetId = computed<string | null>(() => {
 });
 
 const canStepIn = computed(() => Boolean(stepInTargetId.value));
+
+// Where `+` goes, by number: from Level 3 it is Level 5, Level 4 being the Infrastructure view (#205)
+const stepInTitle = computed<string>(() => {
+  const target = stepInTargetId.value;
+  if (!target) return "Zoom in a level (+)";
+  const e = hasOwn(byId.value, target) ? byId.value[target] : undefined;
+  let lvl = fractalZoomLevelFor(target);
+  if (currentLevel.value === 1 && e && (e.zoom === 2 || target === activeModel.value.level2.boundary)) lvl = 2;
+  else if (currentLevel.value === 2 && e && !e.ref && (getLevel3Kids(activeModel.value, target)?.length ?? 0) > 0) lvl = 3;
+  return `Zoom in to Level ${lvl} (+)`;
+});
 
 // `+` acts on the card keyboard focus is on, never on the selection: a keyboard
 // user who tabs to a card means that card, whatever was clicked before.
@@ -6322,7 +6352,7 @@ function buildSourceHref(src?: {
             class="tux-map__iconbtn"
             :disabled="currentLevel === 1"
             aria-label="Zoom out a level"
-            title="Zoom out to parent level (N−1)"
+            title="Zoom out a level (−)"
             @click="zoomOutLevel()"
           >
             −
@@ -6336,7 +6366,7 @@ function buildSourceHref(src?: {
             class="tux-map__iconbtn"
             :disabled="!canStepIn"
             aria-label="Zoom in on the chosen element"
-            title="Drill into N+1 view (+)"
+            :title="stepInTitle"
             @click="stepInLevel()"
           >
             +
