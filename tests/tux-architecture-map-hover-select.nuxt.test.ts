@@ -170,3 +170,116 @@ describe("TuxArchitectureMap: a hover-raised wire label and the hovered card (#2
     expect(badge[0]).toBeGreaterThan(Math.max(...labels));
   });
 });
+
+describe("TuxArchitectureMap: what a wire's popover says (#205)", () => {
+  const c4Model = {
+    schema: "tux-map/1",
+    issueBaseUrl: "https://example.org/issues",
+    level1: {
+      title: "x",
+      elements: [
+        { id: "p-ops", kind: "person", name: "Operators", at: [0, 1] },
+        { id: "sys", kind: "system", name: "Platform", at: [1, 1] },
+        { id: "x-mail", kind: "external", name: "Mail relay", at: [2, 1] },
+        { id: "x-plain", kind: "external", name: "Archive", at: [2, 2] },
+      ],
+      rels: [
+        { from: "p-ops", to: "sys", label: "Operates", tech: "HTTPS" },
+        { from: "sys", to: "x-mail", label: "Sends notices", tech: "SMTP / TLS", status: "planned", roadmap: [104, 112] },
+        { from: "sys", to: "x-plain", label: "Archives to" },
+      ],
+    },
+    level2: { boundary: "sys", elements: [{ id: "c-app", kind: "container", name: "App", at: [1, 1] }], rels: [] },
+    level3: {},
+    level4: { groups: [], nodes: [], links: [] },
+  };
+
+  async function openPopover(props: Record<string, unknown>, from: string, to: string) {
+    const m = await mountMap(props);
+    const label = m.wrapper.find(`button.tux-map__lab[data-from="${from}"][data-to="${to}"]`);
+    expect(label.exists()).toBe(true);
+    await label.trigger("click");
+    await nextTick();
+    const pop = m.wrapper.find('.tux-map__wire-pop[role="dialog"]');
+    expect(pop.exists()).toBe(true);
+    return { ...m, pop };
+  }
+  const facts = (pop: { findAll: (s: string) => { text: () => string }[] }) =>
+    Object.fromEntries(
+      pop.findAll(".tux-map__wire-pop-facts dt").map((dt, i) => [
+        dt.text(),
+        pop.findAll(".tux-map__wire-pop-facts dd")[i]!.text().replace(/\s+/g, " "),
+      ]),
+    );
+
+  it("shows a relationship's label and technology, and says the model lists no code for it", async () => {
+    const { pop } = await openPopover({ model: c4Model, initialLevel: 1, initialFocus: null }, "p-ops", "sys");
+    expect(pop.find(".tux-map__wire-pop-title").text().replace(/\s+/g, " ")).toBe("Operators → Platform");
+    expect(facts(pop)).toEqual({ Relationship: "Operates", Over: "HTTPS" });
+    expect(pop.find(".tux-map__wire-pop-none").text()).toBe("The model lists no code references for this link.");
+    expect(pop.find(".tux-map__wire-pop-list").exists()).toBe(false);
+  });
+
+  it("shows a planned relationship's status and its roadmap items as links", async () => {
+    const { pop } = await openPopover(
+      { model: c4Model, initialLevel: 1, initialFocus: null, initialShowPlanned: true },
+      "sys",
+      "x-mail",
+    );
+    expect(facts(pop)).toEqual({
+      Relationship: "Sends notices",
+      Over: "SMTP / TLS",
+      Status: "Planned",
+      Roadmap: "#104 #112",
+    });
+    expect(pop.findAll(".tux-map__wire-pop-facts a").map((a) => a.attributes("href"))).toEqual([
+      "https://example.org/issues/104",
+      "https://example.org/issues/112",
+    ]);
+  });
+
+  it("shows the one field a bare relationship has", async () => {
+    const { pop } = await openPopover({ model: c4Model, initialLevel: 1, initialFocus: null }, "sys", "x-plain");
+    expect(facts(pop)).toEqual({ Relationship: "Archives to" });
+    expect(pop.find(".tux-map__wire-pop-none").exists()).toBe(true);
+  });
+
+  it("is never an empty box on the sample model: every Level 1 and Level 2 wire says something", async () => {
+    for (const level of [1, 2]) {
+      const { wrapper } = await mountMap({ model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: level });
+      const labels = wrapper.findAll("button.tux-map__lab");
+      expect(labels.length).toBeGreaterThan(3);
+      for (const label of labels) {
+        await label.trigger("click");
+        await nextTick();
+        const pop = wrapper.find(".tux-map__wire-pop");
+        const body = pop.text().replace(pop.find(".tux-map__wire-pop-hdr").text(), "").trim();
+        expect(body, `${level}: ${label.text()}`).not.toBe("");
+        await label.trigger("click");
+        await nextTick();
+      }
+    }
+  });
+
+  it("keeps the code links of a lifted wire, and does not say there are none", async () => {
+    const model = {
+      level1: { elements: [{ id: "sys", kind: "system", name: "System" }], rels: [] },
+      level2: { boundary: "sys", elements: [{ id: "c-app", kind: "container", name: "App" }], rels: [] },
+      level3: {
+        "c-app": [
+          { id: "comp-ui", kind: "component", name: "UI Layer" },
+          { id: "comp-db", kind: "component", name: "DB Layer" },
+        ],
+      },
+      level4: { groups: [], nodes: [], links: [] },
+      links: [
+        { from: "comp-ui", to: "comp-db", kind: "imports", at: "ui/repo.ts:14" },
+        { from: "comp-ui", to: "comp-db", kind: "calls", at: "ui/repo.ts:42" },
+      ],
+    };
+    const { pop } = await openPopover({ model, initialLevel: 3, initialFocus: "c-app" }, "comp-ui", "comp-db");
+    expect(pop.find(".tux-map__wire-pop-sum").text()).toContain("imports it 1");
+    expect(pop.findAll(".tux-map__wire-pop-list li")).toHaveLength(2);
+    expect(pop.find(".tux-map__wire-pop-none").exists()).toBe(false);
+  });
+});

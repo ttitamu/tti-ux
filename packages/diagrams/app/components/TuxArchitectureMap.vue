@@ -5487,6 +5487,9 @@ function selectOutlineNode(row: OutlineTreeRow) {
   revealElement(row.id);
 }
 
+/** A relationship's status as the wire popover names it; `live` is the unremarkable case and is not shown */
+const WIRE_STATUS_LABELS: Record<string, string> = { planned: "Planned", paused: "Paused", neighbor: "Neighbor" };
+
 const inspectedWireDetail = computed(() => {
   const key = inspectedWireKey.value;
   if (!key) return null;
@@ -5574,10 +5577,30 @@ const inspectedWireDetail = computed(() => {
       }
     }
   }
+  // What the model says of the relationship itself (#205): a Level 1 or Level 2 wire is a
+  // relationship someone wrote, with no code links under it, and its popover had only a title.
+  // A lifted wire's label is made from its link kinds, which the summary line already gives.
+  const rel =
+    stageData.value.rels.find((r) => r.from === det.from && r.to === det.to) ??
+    stageData.value.expandableSides.flatMap((side) => side.wires).find((r) => r.from === det.from && r.to === det.to);
+  const relLabel = rel?.label || lbl?.t1 || "";
+  const relTech = rel?.tech || lbl?.t2 || "";
+  const facts: { term: string; text: string; issues?: number[] }[] = [];
+  if (relLabel && (det.links.length === 0 || relTech)) facts.push({ term: "Relationship", text: relLabel });
+  if (relTech) facts.push({ term: "Over", text: relTech });
+  if (rel?.status && hasOwn(WIRE_STATUS_LABELS, rel.status)) {
+    facts.push({ term: "Status", text: WIRE_STATUS_LABELS[rel.status]! });
+  }
+  if (rel?.roadmap?.length) facts.push({ term: "Roadmap", text: "", issues: rel.roadmap });
   return {
     ...det,
     fromName: nameOf(det.from),
     toName: nameOf(det.to),
+    facts,
+    noCodeLine:
+      det.links.length === 0 && det.violations.length === 0
+        ? "The model lists no code references for this link."
+        : "",
     summaryLine: det.perKindCounts.map((pk) => `${pk.label} ${pk.count}`).join(" · "),
     cutLine: det.cutKinds.map((ck) => `${ck.label} ${ck.count}`).join(", "),
     sites: expandedSites,
@@ -7569,6 +7592,28 @@ function buildSourceHref(src?: {
             ×
           </button>
         </div>
+        <dl v-if="inspectedWireDetail.facts.length > 0" class="tux-map__wire-pop-facts">
+          <template v-for="f in inspectedWireDetail.facts" :key="f.term">
+            <dt>{{ f.term }}</dt>
+            <dd>
+              <template v-if="f.issues">
+                <template v-for="iss in f.issues" :key="iss">
+                  <a
+                    v-if="buildIssueHref(iss)"
+                    :href="buildIssueHref(iss)!"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="tux-map__issue-lnk"
+                  >
+                    #{{ iss }}
+                  </a>
+                  <span v-else class="tux-map__issue-pill">#{{ iss }}</span>
+                </template>
+              </template>
+              <template v-else>{{ f.text }}</template>
+            </dd>
+          </template>
+        </dl>
         <p v-if="inspectedWireDetail.summaryLine" class="tux-map__wire-pop-sum">
           {{ inspectedWireDetail.summaryLine }}
         </p>
@@ -7604,6 +7649,9 @@ function buildSourceHref(src?: {
             <code v-else class="tux-map__source-pill">{{ s.at }}</code>
           </li>
         </ul>
+        <p v-if="inspectedWireDetail.noCodeLine" class="tux-map__wire-pop-cut tux-map__wire-pop-none">
+          {{ inspectedWireDetail.noCodeLine }}
+        </p>
         <p v-if="inspectedWireDetail.moreSitesCount > 0" class="tux-map__wire-pop-cut">
           +{{ inspectedWireDetail.moreSitesCount }} more link{{
             inspectedWireDetail.moreSitesCount === 1 ? "" : "s"
@@ -9894,6 +9942,28 @@ function buildSourceHref(src?: {
   height: var(--tux-map-target);
   flex: none;
   font-size: 16px;
+}
+
+.tux-map__wire-pop-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.2rem 0.6rem;
+  margin: 0.35rem 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.tux-map__wire-pop-facts dt {
+  color: var(--text-secondary);
+}
+
+.tux-map__wire-pop-facts dd {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
 }
 
 .tux-map__wire-pop-sum {
