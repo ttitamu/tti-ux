@@ -283,3 +283,83 @@ describe("TuxArchitectureMap: what a wire's popover says (#205)", () => {
     expect(pop.find(".tux-map__wire-pop-none").exists()).toBe(false);
   });
 });
+
+describe("TuxArchitectureMap: selecting a card leaves the stage where it is (#205)", () => {
+  // The test DOM gives the viewport no width, so the component keeps its 1280 px default, and
+  // the details panel no width, so it counts 380 px: 864 px of the stage are clear of the panel.
+  const FREE = 1280 - 380 - 36;
+
+  async function mountLevel2() {
+    const m = await mountMap({ model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2 });
+    // The component asks the panel's computed position whether it overlays the map (a narrow map
+    // puts it below). The test DOM applies no stylesheet, so say what the wide layout's rule says.
+    (m.wrapper.find(".tux-map__panel").element as HTMLElement).style.position = "absolute";
+    const stage = () => m.wrapper.find(".tux-map__stage").attributes("style") || "";
+    const pan = () => Number(/translate3d\((-?[\d.]+)px/.exec(stage())![1]);
+    const scale = () => Number(/scale\(([\d.]+)\)/.exec(stage())![1]);
+    /** A card's left and right edge in viewport pixels, as the stage is drawn now. */
+    const edges = (id: string) => {
+      const r = m.state.stageData.rects[id] as Box;
+      return { left: r.x * scale() + pan(), right: (r.x + r.w) * scale() + pan() };
+    };
+    const select = async (id: string) => {
+      await m.wrapper.find(`.tux-map__el[data-id="${id}"]`).trigger("click");
+      await nextTick();
+      await nextTick();
+    };
+    const ids = (m.state.stageData.els as { id: string }[]).map((e) => e.id);
+    const clear = ids.filter((id) => edges(id).right <= FREE && edges(id).left >= 12);
+    const covered = ids.filter((id) => edges(id).right > FREE);
+    return { ...m, pan, scale, edges, select, clear, covered };
+  }
+
+  it("does not move for a card that is clear of the details panel, whatever its wires reach", async () => {
+    const { state, pan, edges, select, clear, covered } = await mountLevel2();
+    // a card clear of the panel with a neighbour under it: the case that used to slide the stage
+    const wires = state.routedSvg.wires as { from: string; to: string }[];
+    const pick = clear.find((id) =>
+      wires.some((w) => (w.from === id && covered.includes(w.to)) || (w.to === id && covered.includes(w.from))),
+    )!;
+    expect(pick).toBeTruthy();
+    const before = edges(pick);
+    await select(pick);
+    expect(state.selectedId).toBe(pick);
+    expect(pan()).toBe(0);
+    expect(edges(pick)).toEqual(before);
+  });
+
+  it("moves only as far as brings a card out from under the panel", async () => {
+    const { state, pan, edges, select, covered, scale } = await mountLevel2();
+    expect(covered.length).toBeGreaterThan(0);
+    // the covered card nearest the panel's edge needs the shortest move
+    const pick = covered.reduce((a, b) => (edges(a).right <= edges(b).right ? a : b));
+    // 24 px past the panel's edge, or as far as the stage goes: its own right end stops there
+    const need = Math.round(FREE - edges(pick).right - 24);
+    const stageEnd = -(state.stageData.width * scale() - FREE);
+    await select(pick);
+    expect(pan()).toBe(Math.max(need, stageEnd));
+    expect(edges(pick).right).toBeLessThanOrEqual(FREE);
+    expect(edges(pick).right).toBeGreaterThan(FREE - 26);
+  });
+
+  it("stays put for the next card too, and comes back when the selection is cleared", async () => {
+    const { wrapper, pan, edges, select, clear, covered } = await mountLevel2();
+    const far = covered.reduce((a, b) => (edges(a).right >= edges(b).right ? a : b));
+    await select(far);
+    const moved = pan();
+    expect(moved).toBeLessThan(0);
+    // a card still in view after that move: choosing it changes nothing
+    const still = clear.find((id) => edges(id).left >= 12 && edges(id).right <= FREE)!;
+    expect(still).toBeTruthy();
+    await select(still);
+    expect(pan()).toBe(moved);
+    // a card that move pushed past the left edge comes back in, and no further
+    const gone = clear.find((id) => edges(id).left < 0)!;
+    expect(gone).toBeTruthy();
+    await select(gone);
+    expect(Math.round(edges(gone).left)).toBe(12);
+    await wrapper.find(".tux-map__panel-close").trigger("click");
+    await nextTick();
+    expect(pan()).toBe(0);
+  });
+});

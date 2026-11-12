@@ -3406,6 +3406,13 @@ function panelFollowsMap(): boolean {
   return Boolean(el && typeof window !== "undefined" && window.getComputedStyle(el).position === "static");
 }
 
+/**
+ * Slides the stage so the details panel does not cover the selected card, and no further (#205).
+ * The stage stays where it is for a card that is in view and clear of the panel; one under the
+ * panel is brought out to its edge, and one past the left edge is brought back in. It used to
+ * slide for the selected card's wire neighbours as well, as far as the card's own left edge
+ * allowed, which took the cards on the left out of view for a card that was never covered.
+ */
 function keepClear(id: string | null) {
   const r = id ? stageData.value.rects[id] : undefined;
   let want = 0;
@@ -3415,26 +3422,12 @@ function keepClear(id: string | null) {
     const pWidth = panelRef.value?.offsetWidth || 380;
     const free = viewportWidth.value - pWidth - 36;
     const scale = stageScale.value;
-    const primaryLeft = r.x * scale;
-    const primaryRight = (r.x + r.w) * scale;
-    let clusterRight = primaryRight;
-    for (const nid of litNeighbors.value) {
-      if (nid === "@bound" || nid === id) continue;
-      const nr = stageData.value.rects[nid];
-      if (!nr || nr.bound) continue;
-      const nRight = (nr.x + nr.w) * scale;
-      if (nRight > clusterRight) clusterRight = nRight;
-    }
+    const left = r.x * scale;
+    const right = (r.x + r.w) * scale;
     const minPan = Math.min(0, -(stageData.value.width * scale - free));
-    const reqForPrimary = primaryRight > free ? Math.max(minPan, Math.round(free - primaryRight - 24)) : 0;
-    if (clusterRight > free) {
-      const wantForCluster = Math.max(minPan, Math.round(free - clusterRight - 24));
-      // Clear lit neighbors as well where space permits without pushing the selected card off the left edge (#117)
-      const maxLeftShiftKeepingPrimaryVisible = Math.min(0, Math.floor(12 - primaryLeft));
-      want = Math.min(reqForPrimary, Math.max(wantForCluster, maxLeftShiftKeepingPrimaryVisible));
-    } else {
-      want = reqForPrimary;
-    }
+    want = Math.max(minPan, Math.min(0, panX.value));
+    if (right + want > free) want = Math.max(minPan, Math.round(free - right - 24));
+    if (left + want < 12) want = Math.min(0, Math.round(12 - left));
   }
   if (want === panX.value) return;
   panX.value = want;
