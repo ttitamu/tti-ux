@@ -575,6 +575,30 @@ describe("TuxArchitectureMap: the blast radius key matches the cards (#205)", ()
   });
 });
 
+describe("TuxArchitectureMap: a planned link the model gives no label (#205)", () => {
+  it('is labelled "Planned", so it has a label to open like any other link', async () => {
+    const model = {
+      ...DEFAULT_TTI_LEVEL_MODEL,
+      level2: {
+        ...DEFAULT_TTI_LEVEL_MODEL.level2,
+        rels: [
+          ...DEFAULT_TTI_LEVEL_MODEL.level2.rels,
+          { from: "c-sandbox", to: "c-storage", status: "planned" as const },
+          { from: "c-web", to: "c-storage" },
+        ],
+      },
+    };
+    const { wrapper } = await mountMap({ model, initialLevel: 2, initialShowPlanned: true });
+    const label = (from: string, to: string) => wrapper.find(`.tux-map__lab[data-from="${from}"][data-to="${to}"]`);
+    expect(wrapper.find('.tux-map__wire--planned[data-from="c-sandbox"][data-to="c-storage"]').exists()).toBe(true);
+    expect(label("c-sandbox", "c-storage").find(".tux-map__lab-t1").text()).toBe("Planned");
+    // a planned link with a label of its own keeps it, and a live link with none still has none
+    expect(label("c-workers", "c-sandbox").find(".tux-map__lab-t1").text()).toBe("Dispatches plugins");
+    expect(wrapper.find('.tux-map__wire[data-from="c-web"][data-to="c-storage"]').exists()).toBe(true);
+    expect(label("c-web", "c-storage").exists()).toBe(false);
+  });
+});
+
 describe("TuxArchitectureMap: the More menu of a narrow map stays inside it (#205)", () => {
   const rect = (left: number, right: number) => () => ({ left, right, top: 0, bottom: 40, width: right - left, height: 40, x: left, y: 0, toJSON() {} }) as DOMRect;
 

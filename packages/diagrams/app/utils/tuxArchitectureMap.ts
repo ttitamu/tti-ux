@@ -2702,8 +2702,11 @@ export function routeGridWires(
       ...(isViolating ? { violating: true } : {}),
     });
 
-    if (p.rel.label) {
-      const t1 = p.rel.label;
+    // A planned link the model gives no label is still labelled, "Planned": the label is what a
+    // reader clicks to see what a wire is, and the dashes alone said only that it was not there yet (#205)
+    const labelText = p.rel.label || (p.rel.status === "planned" ? "Planned" : "");
+    if (labelText) {
+      const t1 = labelText;
       const t2 = p.rel.tech || "";
       const w = Math.max(t1.length * 6.1, (t2.length + 2) * 5.5) + 14;
       const h = t2 ? 32 : 19;
