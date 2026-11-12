@@ -447,3 +447,90 @@ describe("TuxArchitectureMap: dragging the background moves the diagram (#205)",
     expect(wrapper.find(".tux-map__viewport").classes()).toContain("tux-map__viewport--tool-pen");
   });
 });
+
+describe("TuxArchitectureMap: a jump to a level by number key does not linger (#205)", () => {
+  type Recorded = { el: Element; frames: Record<string, unknown>[]; duration: number };
+
+  /** The test DOM has no Web Animations: record what the component asks for. */
+  function recordAnimations() {
+    const calls: Recorded[] = [];
+    const proto = window.HTMLElement.prototype as unknown as Record<string, unknown>;
+    const had = Object.prototype.hasOwnProperty.call(proto, "animate");
+    const prev = proto.animate;
+    proto.animate = function (this: Element, frames: Record<string, unknown>[], o: { duration: number }) {
+      calls.push({ el: this, frames, duration: o.duration });
+      return { cancel() {}, onfinish: null };
+    };
+    return {
+      calls,
+      restore() {
+        if (had) proto.animate = prev;
+        else delete proto.animate;
+      },
+    };
+  }
+
+  const key = async (el: Element, k: string) => {
+    el.dispatchEvent(new window.KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true }));
+    await nextTick();
+    await nextTick();
+  };
+
+  it("draws the level where it is with a short fade: no travel, no frame, no reveal of the cards", async () => {
+    const { wrapper, state } = await mountMap({ initialLevel: 3, initialFocus: "c-api" }, true);
+    const rec = recordAnimations();
+    try {
+      await key(wrapper.find(".tux-map__viewport").element, "1");
+      expect(state.currentLevel).toBe(1);
+      expect(rec.calls).toHaveLength(1);
+      const [fade] = rec.calls;
+      expect(fade!.el).toBe(wrapper.find(".tux-map__stage").element);
+      expect(fade!.frames).toEqual([{ opacity: 0 }, { opacity: 1 }]);
+      expect(fade!.duration).toBeLessThanOrEqual(150);
+      expect((wrapper.find(".tux-map__zoom-portal").element as HTMLElement).style.display).not.toBe("block");
+    } finally {
+      rec.restore();
+    }
+  });
+
+  it("still travels when a card is zoomed into", async () => {
+    const { wrapper, state } = await mountMap({ initialLevel: 2 }, true);
+    const rec = recordAnimations();
+    try {
+      state.zoomIntoElement("c-api");
+      await nextTick();
+      await nextTick();
+      expect(state.currentLevel).toBe(3);
+      const stage = rec.calls.find((c) => c.el === wrapper.find(".tux-map__stage").element)!;
+      expect(String(stage.frames[0]!.transform)).toContain("scale(");
+      expect(rec.calls.length).toBeGreaterThan(1);
+    } finally {
+      rec.restore();
+    }
+  });
+
+  it("takes the pill down after 600ms on a jump, and after 1150ms on a zoom", async () => {
+    const { wrapper, state } = await mountMap({ initialLevel: 3, initialFocus: "c-api" }, true);
+    const pill = () => wrapper.find(".tux-map__zoom-hud");
+    const waits: number[] = [];
+    const realSetTimeout = window.setTimeout;
+    // the pill's timer is the only one these two calls start with one of these two delays
+    const spy = ((fn: TimerHandler, ms?: number, ...rest: unknown[]) => {
+      if (ms === 600 || ms === 1150) waits.push(ms);
+      return realSetTimeout(fn, ms, ...rest);
+    }) as typeof window.setTimeout;
+    window.setTimeout = spy;
+    globalThis.setTimeout = spy as typeof globalThis.setTimeout;
+    try {
+      await key(wrapper.find(".tux-map__viewport").element, "1");
+      expect(pill().text()).toContain("Level 3 → Level 1");
+      expect(waits).toEqual([600]);
+      state.zoomIntoElement(state.activeModel.level2.boundary);
+      await nextTick();
+      expect(waits).toEqual([600, 1150]);
+    } finally {
+      window.setTimeout = realSetTimeout;
+      globalThis.setTimeout = realSetTimeout as typeof globalThis.setTimeout;
+    }
+  });
+});

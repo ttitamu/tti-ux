@@ -3369,13 +3369,20 @@ let activeStageAnim: Animation | null = null;
 let activePortalAnim: Animation | null = null;
 let lastPointerClient: { x: number; y: number } | null = null;
 
-function showZoomHud(direction: "in" | "out", label: string) {
+// How long the pill that names a change of level stays. A jump (a number key) has no travel
+// to accompany, so its pill is a confirmation and goes sooner (#205)
+const ZOOM_HUD_MS = 1150;
+const ZOOM_HUD_JUMP_MS = 600;
+// A jump shows the level it lands on with a short fade and nothing else
+const JUMP_FADE_MS = 120;
+
+function showZoomHud(direction: "in" | "out", label: string, ms = ZOOM_HUD_MS) {
   zoomHudDirection.value = direction;
   zoomHudText.value = label;
   if (zoomHudTimer) clearTimeout(zoomHudTimer);
   zoomHudTimer = setTimeout(() => {
     zoomHudText.value = "";
-  }, 1150);
+  }, ms);
 }
 
 const fitScale = computed<number>(() => {
@@ -3386,7 +3393,7 @@ const fitScale = computed<number>(() => {
 
 // Magnification (#106). The stage fits the width by default, which on a phone or a tablet, or under
 // browser zoom, draws 14px text at 3-6px. "Larger" scales it past the fit and the viewport scrolls:
-// a finger, a scrollbar or the arrow keys move it, with no dragging (WCAG 1.4.4, 2.5.7).
+// a finger, a scrollbar or the arrow keys move it, and no dragging is required (WCAG 1.4.4, 2.5.7).
 const MAGNIFY_SCALES = [0.5, 0.75, 1, 1.5, 2];
 const zoomScale = ref<number | null>(null);
 const stageScale = computed<number>(() =>
@@ -3899,6 +3906,12 @@ function goToLevel(
     hudLabel?: string;
     announcement?: string;
     keepPreInfra?: boolean;
+    /**
+     * A jump to a level, not a zoom into or out of a card (the number keys). The level is drawn
+     * where it is, with a short fade: there is no card to travel from, and the travel drew the
+     * new level oversized and offset, under a frame, for as long as it lasted (#205).
+     */
+    jump?: boolean;
   } = {},
 ) {
   cancelPendingSubgraphResolve();
@@ -3987,7 +4000,7 @@ function goToLevel(
         ? ` · ${byId.value[focusId.value]!.name}`
         : ""
     }`;
-  showZoomHud(inward ? "in" : "out", resolvedHud);
+  showZoomHud(inward ? "in" : "out", resolvedHud, opts.jump ? ZOOM_HUD_JUMP_MS : ZOOM_HUD_MS);
 
   // Resolve target card or boundary on the incoming level
   const rawTargetCard =
@@ -4073,6 +4086,17 @@ function goToLevel(
 
     const stage = stageRef.value;
     if (!stage || typeof stage.animate !== "function") return;
+
+    if (opts.jump) {
+      activeStageAnim?.cancel();
+      activePortalAnim?.cancel();
+      if (portalRef.value) portalRef.value.style.display = "none";
+      activeStageAnim = stage.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: JUMP_FADE_MS,
+        easing: "ease-out",
+      });
+      return;
+    }
 
     const nextScale = stageScale.value;
     const nextPanX = panX.value;
@@ -5314,15 +5338,15 @@ function onStageKey(ev: KeyboardEvent) {
   if (ev.key === "1") {
     ev.preventDefault();
     drillStack.value = [];
-    goToLevel(1, { inward: false });
+    goToLevel(1, { inward: false, jump: true });
   } else if (ev.key === "2") {
     ev.preventDefault();
     drillStack.value = [];
-    goToLevel(2, { inward: currentLevel.value < 2 });
+    goToLevel(2, { inward: currentLevel.value < 2, jump: true });
   } else if (ev.key === "3" && focusId.value) {
     ev.preventDefault();
     drillStack.value = [];
-    goToLevel(3, { nextFocus: focusId.value, inward: true });
+    goToLevel(3, { nextFocus: focusId.value, inward: true, jump: true });
   } else if (ev.key === "4") {
     ev.preventDefault();
     toggleInfrastructureView();
