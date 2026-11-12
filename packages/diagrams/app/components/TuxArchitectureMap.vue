@@ -2253,6 +2253,30 @@ function formatDiffBadge(
   return null;
 }
 
+/**
+ * Why cards are faded while the Blast radius switch is on (#205). With a model that carries a
+ * change, switching it on fades every card the change does not reach, and nothing on the page
+ * said so. `of` is whose radius is lit: the selection's when the model has links to follow from
+ * it, the change's otherwise. `null` when the radius lights nothing here, so nothing is faded.
+ */
+const blastFade = computed<{ of: "selection" | "change"; text: string } | null>(() => {
+  const br = blastRadiusState.value;
+  if (!br || effectiveIsListView.value || matchingSearchIds.value) return null;
+  if (br.directIds.size === 0 && br.impactedIds.size === 0) return null;
+  const rest = "The rest of this view is faded.";
+  const id = selectedId.value;
+  if (id && selectionBlast.value) {
+    const name =
+      (hasOwn(byId.value, id) ? byId.value[id]?.name : undefined) ||
+      (hasOwn(resById.value, id) ? resById.value[id]?.title : undefined) ||
+      id;
+    return { of: "selection", text: `Blast radius of ${name}: it and what depends on it are lit. ${rest}` };
+  }
+  return hasModelDiffs.value
+    ? { of: "change", text: `Blast radius: the changed parts and what depends on them are lit. ${rest}` }
+    : { of: "selection", text: `Blast radius: the selection and what depends on it are lit. ${rest}` };
+});
+
 const offStageImpactCount = computed<number>(() => {
   if (blastRadiusState.value?.offStageCount) return blastRadiusState.value.offStageCount;
   if (selectionBlast.value) return countOffStageHits(selectionBlast.value.hits);
@@ -6808,11 +6832,15 @@ function buildSourceHref(src?: {
       <template v-if="showBlastRadius">
         <li>
           <i class="tux-map__swatch tux-map__swatch--diff-direct" />
-          {{ hasModelDiffs ? "PR Modified" : "Selected" }}
+          {{ hasModelDiffs && blastFade?.of !== "selection" ? "PR Modified" : "Selected" }}
         </li>
         <li>
           <i class="tux-map__swatch tux-map__swatch--diff-impact" />
-          {{ hasModelDiffs ? "Blast-Radius Impacted" : "Depends on selection" }}
+          {{ hasModelDiffs && blastFade?.of !== "selection" ? "Blast-Radius Impacted" : "Depends on selection" }}
+        </li>
+        <li v-if="blastFade">
+          <i class="tux-map__swatch tux-map__swatch--card tux-map__swatch--faded" />
+          Not in the blast radius
         </li>
       </template>
       <li v-if="legendFlags.hasGenericWires">
@@ -6850,6 +6878,7 @@ function buildSourceHref(src?: {
         Planned link
       </li>
     </ul>
+    <p v-if="blastFade" class="tux-map__blast-note">{{ blastFade.text }}</p>
     <div v-if="!effectiveIsListView && offStageImpactCount > 0" class="tux-map__other-levels">
       +{{ offStageImpactCount }} on other levels
     </div>
@@ -9222,6 +9251,17 @@ function buildSourceHref(src?: {
 .tux-map__swatch--diff-direct {
   background: var(--surface-raised);
   border: 2px solid var(--status-warning);
+}
+
+/* The opacity of a card the blast radius does not reach (.tux-map__stage--dim) */
+.tux-map__swatch--faded {
+  opacity: 0.28;
+}
+
+.tux-map__blast-note {
+  margin: 0 0 0.55rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }
 
 .tux-map__swatch--diff-impact {

@@ -363,3 +363,93 @@ describe("TuxArchitectureMap: selecting a card leaves the stage where it is (#20
     expect(pan()).toBe(0);
   });
 });
+
+describe("TuxArchitectureMap: a model that carries a change, with the blast radius on (#205)", () => {
+  // The sample model is a compare result: some of its elements carry a `diff`.
+  async function mountChange(extra: Record<string, unknown> = {}) {
+    const m = await mountMap({ model: DEFAULT_TTI_LEVEL_MODEL, initialLevel: 2, initialShowBlastRadius: true, ...extra });
+    (m.wrapper.find(".tux-map__panel").element as HTMLElement).style.position = "absolute";
+    const cards = () => m.wrapper.findAll(".tux-map__stage .tux-map__el");
+    const faded = () => cards().filter((c) => !c.classes().includes("tux-map__el--lit")).map((c) => c.attributes("data-id")!);
+    const legend = () => m.wrapper.find(".tux-map__legend").text().replace(/\s+/g, " ");
+    const note = () => m.wrapper.find(".tux-map__blast-note");
+    return { ...m, cards, faded, legend, note };
+  }
+
+  it("says why cards are faded: in a line above the diagram and in the key", async () => {
+    const { wrapper, faded, legend, note } = await mountChange();
+    expect(wrapper.find(".tux-map__stage").classes()).toContain("tux-map__stage--dim");
+    expect(faded().length).toBeGreaterThan(3);
+    expect(note().exists()).toBe(true);
+    expect(note().text().replace(/\s+/g, " ")).toBe(
+      "Blast radius: the changed parts and what depends on them are lit. The rest of this view is faded.",
+    );
+    expect(legend()).toContain("PR Modified");
+    expect(legend()).toContain("Not in the blast radius");
+  });
+
+  it("says nothing of fading when nothing is faded", async () => {
+    // off: no fade
+    const off = await mountChange({ initialShowBlastRadius: false });
+    expect(off.faded()).toEqual([]);
+    expect(off.note().exists()).toBe(false);
+    expect(off.legend()).not.toContain("Not in the blast radius");
+    // on, in a model with no change and nothing chosen: nothing to light, nothing faded
+    const plain = await mountMap({
+      model: {
+        level1: { elements: [{ id: "sys", kind: "system", name: "S", at: [1, 1] }], rels: [] },
+        level2: {
+          boundary: "sys",
+          elements: [
+            { id: "c-a", kind: "container", name: "A", at: [1, 1] },
+            { id: "c-b", kind: "container", name: "B", at: [2, 1] },
+          ],
+          rels: [{ from: "c-a", to: "c-b", label: "calls" }],
+        },
+        level3: {},
+        level4: { groups: [], nodes: [], links: [] },
+      },
+      initialLevel: 2,
+      initialFocus: null,
+      initialShowBlastRadius: true,
+    });
+    expect(plain.wrapper.find(".tux-map__blast-note").exists()).toBe(false);
+    expect(plain.wrapper.find(".tux-map__legend").text()).not.toContain("Not in the blast radius");
+  });
+
+  it("keeps the diagram when a faded card is chosen, and names what is lit then", async () => {
+    const { wrapper, state, cards, faded, legend, note } = await mountChange();
+    const before = cards().length;
+    const changed = (state.stageData.els as { id: string; diff?: unknown }[]).filter((e) => e.diff).map((e) => e.id);
+    expect(changed.length).toBeGreaterThan(0);
+    // a faded card with no change of its own
+    const pick = faded().find((id) => !changed.includes(id))!;
+    expect(pick).toBeTruthy();
+    const name = state.byId[pick].name as string;
+    await wrapper.find(`.tux-map__el[data-id="${pick}"]`).trigger("click");
+    await nextTick();
+    await nextTick();
+    expect(state.selectedId).toBe(pick);
+    // every card is still drawn, the chosen one lit
+    expect(cards().length).toBe(before);
+    expect(wrapper.find(`.tux-map__el[data-id="${pick}"]`).classes()).toContain("tux-map__el--lit");
+    // the key no longer calls the chosen card "PR Modified": it carries no change
+    expect(legend()).toContain("Selected");
+    expect(legend()).toContain("Depends on selection");
+    expect(legend()).not.toContain("PR Modified");
+    expect(legend()).toContain("Not in the blast radius");
+    expect(note().text().replace(/\s+/g, " ")).toBe(
+      `Blast radius of ${name}: it and what depends on it are lit. The rest of this view is faded.`,
+    );
+    // the changed cards keep their change chip while faded
+    for (const id of changed) {
+      expect(wrapper.find(`.tux-map__el[data-id="${id}"] [class*="tux-map__chip--diff-"]`).exists(), id).toBe(true);
+    }
+    // closing the panel brings the change's radius, and its wording, back
+    await wrapper.find(".tux-map__panel-close").trigger("click");
+    await nextTick();
+    await nextTick();
+    expect(legend()).toContain("PR Modified");
+    expect(note().text()).toContain("the changed parts");
+  });
+});
