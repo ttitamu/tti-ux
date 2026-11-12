@@ -10256,9 +10256,13 @@ export type TuxMapSearchGroup = (typeof TUX_MAP_SEARCH_GROUPS)[number];
  */
 export interface TuxMapSearchEntry {
   id: string;
-  /** Target node ID to reveal on Enter (for HTTP routes, points to the handler when present). */
+  /**
+   * Target node ID to reveal on Enter. For an HTTP route it is the handler when the model holds it;
+   * while it does not (a subgraph not loaded yet), the route's own element, or else the handler's file.
+   */
   revealId: string;
   group: TuxMapSearchGroup;
+  /** The level that shows `revealId`. */
   level: number;
   kind: string;
   name: string;
@@ -10514,6 +10518,52 @@ function searchHandlersByRoute(
   return handlerByRouteId;
 }
 
+/**
+ * What the route links say of each `route` element in the index, whether or not what handles it is
+ * in the model: `named` is the first id a route's links point at, and `covered` every id one points
+ * at. A covered handler's routes are listed by their elements, once (`tti/tti-ux#205`).
+ */
+interface SearchRouteTargets {
+  named: Map<string, string>;
+  covered: Set<string>;
+}
+
+/** `searchRouteTargets`, and the ids of the nodes whose `tech` gave a route entry, for the index to keep. */
+interface SearchRouteState extends SearchRouteTargets {
+  listedByTech: Set<string>;
+}
+
+function searchRouteTargets(
+  routeLinks: readonly TuxMapLink[],
+  getNode: (id: string) => SearchRawNode | undefined,
+): SearchRouteTargets {
+  const named = new Map<string, string>();
+  const covered = new Set<string>();
+  for (const l of routeLinks) {
+    const from = getNode(l.from);
+    if (!from || !(from.kind === "route" || isKindNodeId(from.id, "r"))) continue;
+    if (!named.has(l.from)) named.set(l.from, l.to);
+    covered.add(l.to);
+  }
+  return { named, covered };
+}
+
+/** The name a handler's id ends in (`…:s:path#name` → `name`), for a handler the model does not hold. */
+function handlerLabelOfId(id: string): string {
+  const rest = stripNodeKindPrefix(id);
+  const hash = rest.lastIndexOf("#");
+  return hash >= 0 ? rest.slice(hash + 1) : rest;
+}
+
+/** The id of the file a symbol's id names (`…:s:path#name` → `…:f:path`), or `""`. */
+function fileNodeIdOfSymbolId(id: string): string {
+  const { kind, rest } = splitNodeId(id);
+  const hash = rest.lastIndexOf("#");
+  const head = id.slice(0, id.length - rest.length);
+  if (kind !== "s" || hash <= 0 || rest.startsWith("pkg:") || !head.endsWith("s:")) return "";
+  return `${head.slice(0, -2)}f:${rest.slice(0, hash)}`;
+}
+
 function searchAncestorNames(
   id: string,
   parentOf: ReadonlyMap<string, string>,
@@ -10544,6 +10594,7 @@ function pushNodeSearchEntries(
   getNode: (id: string) => SearchRawNode | undefined,
   parentOf: ReadonlyMap<string, string>,
   handlerByRouteId: ReadonlyMap<string, string>,
+  routeTargets: SearchRouteState,
 ): void {
   for (const n of list) {
     const srcPath = n.source?.path || repoPathForNodeId(n.id);
@@ -10551,6 +10602,9 @@ function pushNodeSearchEntries(
     const ancestors = searchAncestorNames(n.id, parentOf, getNode);
     const linkedHandlerId = group === "Routes" ? handlerByRouteId.get(n.id) : undefined;
     const handlerNode = linkedHandlerId ? getNode(linkedHandlerId) : undefined;
+    // What handles the route is named by a link and not in the model: its subgraph is not loaded
+    const namedHandlerId = group === "Routes" && !handlerNode ? routeTargets.named.get(n.id) : undefined;
+    const handlerName = handlerNode?.name || (namedHandlerId ? handlerLabelOfId(namedHandlerId) : undefined);
     const routePattern =
       group === "Routes" ? (isKindNodeId(n.id, "r") ? splitNodeId(n.id).rest : n.name) : undefined;
     if (routePattern) {
@@ -10561,20 +10615,22 @@ function pushNodeSearchEntries(
         id: n.id,
         revealId: linkedHandlerId || n.id,
         group,
-        level: n.level,
+        // the level the entry opens: the handler's when it opens the handler
+        level: handlerNode?.level ?? n.level,
         kind: n.kind,
         name: n.name,
-        path: handlerNode?.source?.path || srcPath,
+        path: handlerNode?.source?.path || (namedHandlerId && repoPathForNodeId(namedHandlerId)) || srcPath,
         ancestors,
-        tech: n.tech || "",
+        // a route is found by its handler's name too
+        tech: group === "Routes" ? [n.tech, handlerName].filter(Boolean).join(" · ") : n.tech || "",
         routePattern,
-        handlerName: handlerNode?.name,
+        handlerName,
         planned: n.status === "planned",
       }),
     );
 
     // Also surface HTTP route signatures attached on symbol `tech` / `source.symbol` (e.g. `"POST /v1/orders"`)
-    if (group !== "Routes") {
+    if (group !== "Routes" && !routeTargets.covered.has(n.id)) {
       for (const candidate of [n.tech, n.source?.symbol]) {
         if (!candidate) continue;
         const m = candidate.trim().match(HTTP_ROUTE_TEXT_RE);
@@ -10585,6 +10641,7 @@ function pushNodeSearchEntries(
         const rKey = `${disp.toLowerCase()}\u0000${n.id}`;
         if (seenRouteKeys.has(rKey)) continue;
         seenRouteKeys.add(rKey);
+        routeTargets.listedByTech.add(n.id);
         entries.push(
           makeSearchEntry({
             id: `route:${disp}->${n.id}`,
@@ -10615,6 +10672,7 @@ function routeTableSearchEntries(
   nodeRouteKeys: ReadonlySet<string>,
   getNode: (id: string) => SearchRawNode | undefined,
   parentOf: ReadonlyMap<string, string>,
+  routeTargets: SearchRouteTargets,
 ): TuxMapSearchEntry[] {
   const entries: TuxMapSearchEntry[] = [];
   const seenRouteKeys = new Set<string>();
@@ -10624,23 +10682,25 @@ function routeTableSearchEntries(
     const pat = rt.pattern.trim();
     const disp = method ? `${method} ${pat}` : pat;
     const handlerId = typeof rt.handler === "string" && rt.handler ? rt.handler : "";
+    // a `route` element already lists what this handler serves
+    if (handlerId && routeTargets.covered.has(handlerId)) continue;
     const handlerNode = handlerId ? getNode(handlerId) : undefined;
     const revealId = handlerNode ? handlerNode.id : handlerId || `r:${disp}`;
     const rKey = `${disp.toLowerCase()}\u0000${revealId}`;
     if (nodeRouteKeys.has(rKey) || seenRouteKeys.has(rKey)) continue;
     seenRouteKeys.add(rKey);
-    const ancestors = handlerNode
-      ? [...searchAncestorNames(handlerNode.id, parentOf, getNode), handlerNode.name]
-      : [];
+    // A handler whose subgraph is not loaded is opened by its file, which is what loads it
+    const opens = handlerNode ?? (handlerId ? getNode(fileNodeIdOfSymbolId(handlerId)) : undefined);
+    const ancestors = opens ? [...searchAncestorNames(opens.id, parentOf, getNode), opens.name] : [];
     entries.push(
       makeSearchEntry({
         id: `route:${disp}->${revealId}`,
-        revealId,
+        revealId: opens ? opens.id : revealId,
         group: "Routes",
-        level: handlerNode?.level ?? 5,
+        level: opens?.level ?? 5,
         kind: "route",
         name: disp,
-        path: handlerNode?.source?.path || "",
+        path: opens?.source?.path || "",
         ancestors,
         tech: [rt.framework, handlerNode?.name || handlerId].filter(Boolean).join(" · "),
         routePattern: pat,
@@ -10665,6 +10725,7 @@ interface SearchIndexKeep {
   nodeRouteKeys: Set<string>;
   routeLinks: TuxMapLink[];
   handlerByRouteId: Map<string, string>;
+  routeTargets: SearchRouteState;
   /** The card each subgraph hangs under: the level of its entries was read from that card's parents. */
   owners: string[];
   /**
@@ -10752,15 +10813,16 @@ function buildSearchIndex(
   const getNode = (id: string) => nodes.get(id);
   const routeLinks = searchRouteLinks(model);
   const handlerByRouteId = searchHandlersByRoute(routeLinks, getNode);
+  const routeTargets: SearchRouteState = { ...searchRouteTargets(routeLinks, getNode), listedByTech: new Set() };
   const nodeEntries: TuxMapSearchEntry[] = [];
   const nodeRouteKeys = new Set<string>();
-  pushNodeSearchEntries(nodeEntries, nodeRouteKeys, nodes.values(), getNode, parentOf, handlerByRouteId);
-  const routeEntries = routeTableSearchEntries(model, nodeRouteKeys, getNode, parentOf);
+  pushNodeSearchEntries(nodeEntries, nodeRouteKeys, nodes.values(), getNode, parentOf, handlerByRouteId, routeTargets);
+  const routeEntries = routeTableSearchEntries(model, nodeRouteKeys, getNode, parentOf, routeTargets);
   if (!keepInto) {
     for (const e of routeEntries) nodeEntries.push(e);
     return nodeEntries;
   }
-  keepInto.keep = { model, parentOf, nodes, nodeEntries, nodeRouteKeys, routeLinks, handlerByRouteId, owners };
+  keepInto.keep = { model, parentOf, nodes, nodeEntries, nodeRouteKeys, routeLinks, handlerByRouteId, routeTargets, owners };
   return [...nodeEntries, ...routeEntries];
 }
 
@@ -10773,6 +10835,7 @@ function buildSearchIndex(
  * again. An existing entry would change if the arrival moved its level (a parent chain grows, or
  * the subgraph's key is an empty Level 3 container), renamed one of its ancestors (an id that was
  * only a parent becomes a card with a name), or gave its route another handler: each is a full build.
+ * So is a `route` element that arrives after its handler.
  */
 function extendSearchIndex(
   keep: SearchIndexKeep,
@@ -10816,6 +10879,14 @@ function extendSearchIndex(
   for (const [routeId, handlerId] of handlerByRouteId) {
     if (nodes.has(routeId) && keep.handlerByRouteId.get(routeId) !== handlerId) return null;
   }
+  // An arriving `route` element takes over the entry its handler's `tech` gave, when that one is listed
+  const routeTargets: SearchRouteState = {
+    ...searchRouteTargets(keep.routeLinks, getNode),
+    listedByTech: keep.routeTargets.listedByTech,
+  };
+  for (const handlerId of routeTargets.covered) {
+    if (routeTargets.listedByTech.has(handlerId) && !keep.routeTargets.covered.has(handlerId)) return null;
+  }
 
   // Nothing above changed `keep`; from here it describes `model`
   for (const pid of newlyParented.values()) passedThrough.add(pid);
@@ -10826,8 +10897,9 @@ function extendSearchIndex(
   keep.model = model;
   keep.parentOf = parentOf;
   keep.handlerByRouteId = handlerByRouteId;
-  pushNodeSearchEntries(keep.nodeEntries, keep.nodeRouteKeys, arrived.values(), getNode, parentOf, handlerByRouteId);
-  return [...keep.nodeEntries, ...routeTableSearchEntries(model, keep.nodeRouteKeys, getNode, parentOf)];
+  keep.routeTargets = routeTargets;
+  pushNodeSearchEntries(keep.nodeEntries, keep.nodeRouteKeys, arrived.values(), getNode, parentOf, handlerByRouteId, routeTargets);
+  return [...keep.nodeEntries, ...routeTableSearchEntries(model, keep.nodeRouteKeys, getNode, parentOf, routeTargets)];
 }
 
 /**

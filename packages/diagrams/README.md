@@ -35,7 +35,7 @@ export default defineNuxtConfig({
     - **Contrast:** text stays `--text-primary` on brand tints, never on brand fills, and holds 7:1 in every TUX theme and colour-vision palette (`tti`, `tti-dark`, `tti-soft-dark`, `tti-hc` × `okabe-ito`, `deutan-protan`, `tritan`, `monochrome`).
     - **Targets:** controls are 44 px (48 px under `data-vision-comfort="field-sunlight"`).
     - **Vision modes:** `data-vision-stroke="heavy"` thickens the wires and borders. Change markers use TUX's status tokens, which the palettes remap.
-    - **Help text:** on a touch screen it talks about taps and swipes; where a plain wheel does not zoom (`wheelZoom` off, or magnified) it says Ctrl+scroll; it counts the levels the model has and mentions `+` cards only where one is in view.
+    - **Help text:** on a touch screen it talks about taps and swipes; where a plain wheel does not zoom (`wheelZoom` off, or magnified) it says Ctrl+scroll; it counts the levels the model has, says that Level 4 is the Infrastructure view (so zooming in goes from Level 3 to Level 5) where the model has code below its components, and mentions `+` cards only where one is in view.
     - **Reduced motion (3.9.1):** under `prefers-reduced-motion` nothing on the map moves: wires keep their dashes without flowing, cards and frames change without sliding, and the wheel changes the level without pulling the card.
     - **Keyboard (3.9.1):** `+` acts on the card that has focus and says so when it has nothing inside; after a zoom, focus stays in the map, unless the host page moved it.
 - **`<TuxDiagram>`**: Accessible, responsive Mermaid diagram wrapper supporting flowcharts, sequence diagrams, ERDs, state machines, and Gantt charts.
@@ -69,7 +69,7 @@ The architecture map has two contracts, and each has a committed snapshot that t
 
 | Prop | Type | Default | Meaning |
 |---|---|---|---|
-| `level` | `TuxMapLevelNumber` | `undefined` | Controlled level: 1 to 4, and 5 or more inside a subgraph (`v-model:level`). |
+| `level` | `TuxMapLevelNumber` | `undefined` | Controlled level: 1 to 4, and 5 or more inside a subgraph (`v-model:level`). From 5 on, the number is where `focus` sits in the model as the map draws it (`levelForFocus()` on the collapsed model): a different number is corrected, and `update:level` reports the one in use. |
 | `initialLevel` | `TuxMapLevelNumber` | `2` | Starting level. |
 | `focus` | `string \| null` | `undefined` | Controlled id of the element whose inside is shown at Level 3 and at Level 5 or deeper (`v-model:focus`). |
 | `initialFocus` | `string \| null` | `"c-api"` | Starting focus. The default is an id of the sample model: pass your own, or `null`. |

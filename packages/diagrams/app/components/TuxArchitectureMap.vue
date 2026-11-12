@@ -574,10 +574,14 @@ function announce(msg: string) {
 watch(
   () => props.level,
   (lvl) => {
-    if (lvl !== undefined && lvl !== currentLevel.value) {
-      if (lvl !== 4) preInfraState.value = null;
-      currentLevel.value = lvl;
+    if (lvl === undefined) return;
+    // the focus arrives in the same update, and its watcher runs after this one
+    const next = deepLevelFor(props.focus !== undefined ? props.focus : focusId.value, lvl);
+    if (next !== currentLevel.value) {
+      if (next !== 4) preInfraState.value = null;
+      currentLevel.value = next;
     }
+    if (next !== lvl) emit("update:level", next);
   },
 );
 watch(
@@ -585,8 +589,9 @@ watch(
   (f) => {
     if (f !== undefined) {
       const resolved = f ? resolveAliasId(f) ?? f : f;
-      if (f && resolved && resolved !== f && currentLevel.value >= 5) {
-        const aliasedLvl = levelForFocus(resolved) as TuxMapLevelNumber;
+      if (resolved && currentLevel.value >= 5) {
+        const aliasedLvl =
+          resolved !== f ? (levelForFocus(resolved) as TuxMapLevelNumber) : deepLevelFor(resolved, currentLevel.value);
         if (aliasedLvl !== currentLevel.value) {
           currentLevel.value = aliasedLvl;
           emit("update:level", aliasedLvl);
@@ -884,6 +889,19 @@ function levelForFocus(fid: string): number {
   return computeLevelForFocus(fid, activeModel.value, parentOf.value);
 }
 
+/**
+ * The number of the view inside `fid` when `asked` is 5 or more. Below Level 4 a view has no number
+ * of its own: it is where its focus sits in the model as the map draws it. A host that counts the
+ * document's own nesting gets another number where the map left a folder level out, so the map's
+ * number stands and `update:level` says so (#205).
+ */
+function deepLevelFor(fid: string | null | undefined, asked: TuxMapLevelNumber): TuxMapLevelNumber {
+  if (asked < 5 || !fid) return asked;
+  const id = resolveAliasId(fid) ?? fid;
+  if (!hasFractalSubgraph(id) && !hasLazySubgraphRef(id)) return asked;
+  return Math.max(5, levelForFocus(id)) as TuxMapLevelNumber;
+}
+
 /** The drill stack a person builds zooming in step by step to the children of `fid`. */
 function drillStackFor(fid: string): { level: number; focusId: string }[] {
   return mapAncestorsOf(fid, parentOf.value)
@@ -980,6 +998,11 @@ watch(
       focusId.value = firstContainer?.id ?? null;
     }
     if (currentLevel.value >= 5 && focusId.value) {
+      const lvl = deepLevelFor(focusId.value, currentLevel.value);
+      if (lvl !== currentLevel.value) {
+        currentLevel.value = lvl;
+        emit("update:level", lvl);
+      }
       drillStack.value = drillStackFor(focusId.value);
     }
   },
@@ -3500,7 +3523,10 @@ const hintText = computed<string>(() => {
       ? `Inspecting deep internal modules & code symbols. Double-click or ${scroll} up on '+' cards to drill deeper, or ${scroll} down / press Escape to return to the parent level.`
       : `Inspecting deep internal modules & code symbols. ${wheelZooms.value ? "Scroll" : "Ctrl+scroll"} down or press Escape to return to the parent level.`;
   }
-  const levels = `Levels 1–${maxAvailableLevel.value}`;
+  // Level 4 is beside the zoom path, so zooming in from Level 3 lands on Level 5: say so (#205)
+  const levels =
+    `Levels 1–${maxAvailableLevel.value}` +
+    (modelDepth.value >= 5 ? ". Level 4 is Infrastructure, on its own button: zooming in goes from Level 3 to Level 5" : "");
   return wheelZooms.value
     ? `Hover over any card to highlight its links, or scroll the mouse wheel over a card (or double-click / press +) to zoom in and out across ${levels}.`
     : `Hover over any card to highlight its links, or hold Ctrl and scroll over a card (or double-click / press +) to zoom in and out across ${levels}.`;
@@ -3652,6 +3678,58 @@ function onStageCardClick(c: {
     return;
   }
   selectElement(selectedId.value === c.id ? null : c.id);
+}
+
+// A double-click is two clicks and a `dblclick`, and the browser sends the second click and the
+// `dblclick` to whatever is under the pointer by then. The first click chooses the card, which opens
+// the details and slides the diagram clear of them: the card is no longer there, and the second
+// click chose another card, opened the details' own controls or met the background. So the card a
+// double-click began on is kept for as long as a double-click lasts, the second click is not a
+// choice of anything, and the `dblclick` opens that card wherever it lands (#205).
+const DOUBLE_CLICK_MS = 600;
+let doubleClickStart: { id: string; at: number } | null = null;
+
+function doubleClickCard(): string | null {
+  const g = doubleClickStart;
+  return g && Date.now() - g.at < DOUBLE_CLICK_MS ? g.id : null;
+}
+
+function onMapClickCapture(ev: MouseEvent) {
+  if (activeTool.value !== "select") return;
+  // `detail` is the browser's click count; a key or a script sends 0
+  if (ev.detail >= 2 && doubleClickCard()) {
+    ev.stopPropagation();
+    ev.preventDefault();
+    return;
+  }
+  const cardEl = (ev.target as Element | null)?.closest?.(".tux-map__el[data-id]") as HTMLElement | null;
+  const id = cardEl && stageRef.value?.contains(cardEl) ? cardEl.dataset.id : undefined;
+  doubleClickStart = id && ev.detail === 1 ? { id, at: Date.now() } : null;
+}
+
+function onMapDblClickCapture(ev: MouseEvent) {
+  const id = doubleClickCard();
+  doubleClickStart = null;
+  if (!id) return;
+  const cardEl = (ev.target as Element | null)?.closest?.(".tux-map__el[data-id]") as HTMLElement | null;
+  // still under the pointer: the card's own handler opens it
+  if (cardEl?.dataset.id === id && stageRef.value?.contains(cardEl)) return;
+  ev.stopPropagation();
+  ev.preventDefault();
+  openCardByDoubleClick(id);
+}
+
+/** What a double-click on the card `id` does: go to where an outside card lives, or zoom in. */
+function openCardByDoubleClick(id: string) {
+  if (currentLevel.value === 4) {
+    const dn = hasOwn(resById.value, id) ? resById.value[id] : undefined;
+    if (dn && canZoomDeployNode(dn)) zoomIntoElement(id);
+    return;
+  }
+  const c = renderedCards.value.find((x) => x.id === id);
+  if (!c) return;
+  if (c.mini && currentLevel.value >= 5 && parentOf.value.has(id)) revealElement(id);
+  else if (c.zoomable) zoomIntoElement(id);
 }
 
 function selectElement(id: string | null) {
@@ -4019,7 +4097,10 @@ function goToLevel(
               duration: 340,
               delay: Math.min(140, i * 16),
               easing: "cubic-bezier(0.22, 1.28, 0.36, 1)",
-              fill: "both",
+              // "backwards" holds a card back until its turn and lets go of it at the end. "both"
+              // kept the last frame on the card for good: its opacity 1 outranks the stylesheet, so
+              // after any change of level no filter, hover or selection could dim a card (#205)
+              fill: "backwards",
             },
           );
         }
@@ -4153,9 +4234,6 @@ function isCurrentViewChild(id: string): boolean {
 }
 
 function fractalZoomLevelFor(id: string): number {
-  if (isCurrentViewChild(id)) {
-    return currentLevel.value >= 5 ? currentLevel.value + 1 : 5;
-  }
   return Math.max(5, levelForFocus(id));
 }
 
@@ -4257,11 +4335,7 @@ function zoomIntoElement(rawId: string) {
   // Fractal Subgraph Drill-Down (Level 3 component -> Level 5, Level 4 host -> Level 5, Level 5 -> Level 6+)
   if (currentLevel.value >= 3 && hasFractalSubgraph(id)) {
     const inCurrentView = isCurrentViewChild(id);
-    const nextLvl = inCurrentView
-      ? currentLevel.value >= 5
-        ? currentLevel.value + 1
-        : 5
-      : Math.max(5, levelForFocus(id));
+    const nextLvl = fractalZoomLevelFor(id);
     drillStack.value = inCurrentView
       ? [
           ...drillStack.value,
@@ -4519,6 +4593,17 @@ const stepInTargetId = computed<string | null>(() => {
 
 const canStepIn = computed(() => Boolean(stepInTargetId.value));
 
+// Where `+` goes, by number: from Level 3 it is Level 5, Level 4 being the Infrastructure view (#205)
+const stepInTitle = computed<string>(() => {
+  const target = stepInTargetId.value;
+  if (!target) return "Zoom in a level (+)";
+  const e = hasOwn(byId.value, target) ? byId.value[target] : undefined;
+  let lvl = fractalZoomLevelFor(target);
+  if (currentLevel.value === 1 && e && (e.zoom === 2 || target === activeModel.value.level2.boundary)) lvl = 2;
+  else if (currentLevel.value === 2 && e && !e.ref && (getLevel3Kids(activeModel.value, target)?.length ?? 0) > 0) lvl = 3;
+  return `Zoom in to Level ${lvl} (+)`;
+});
+
 // `+` acts on the card keyboard focus is on, never on the selection: a keyboard
 // user who tabs to a card means that card, whatever was clicked before.
 function cardIdOf(target: EventTarget | null): string | null {
@@ -4764,6 +4849,12 @@ function onViewportWheel(ev: WheelEvent) {
 function jumpToSearchEntry(entry: TuxMapSearchEntry) {
   const rawTargetId = entry.revealId || entry.id;
   const targetId = resolveAliasId(rawTargetId) ?? rawTargetId;
+  // An entry for something the model does not hold (a route whose handler no file here has) opens
+  // nothing: the palette stays, and says so (#205)
+  if (!canRevealElement(targetId) && !hasOwn(byId.value, targetId)) {
+    announce(`${entry.name} is not on this map.`);
+    return;
+  }
   goToOpen.value = false;
   goToReturnFocusEl = null;
 
@@ -6386,7 +6477,13 @@ function buildSourceHref(src?: {
 </script>
 
 <template>
-  <figure ref="mapRootRef" class="tux-map" @keydown="onMapRootKeydown">
+  <figure
+    ref="mapRootRef"
+    class="tux-map"
+    @keydown="onMapRootKeydown"
+    @click.capture="onMapClickCapture"
+    @dblclick.capture="onMapDblClickCapture"
+  >
     <!-- Header Bar -->
     <div v-if="eyebrow || title" class="tux-map__header">
       <div>
@@ -6417,7 +6514,7 @@ function buildSourceHref(src?: {
             class="tux-map__iconbtn"
             :disabled="currentLevel === 1"
             aria-label="Zoom out a level"
-            title="Zoom out to parent level (N−1)"
+            title="Zoom out a level (−)"
             @click="zoomOutLevel()"
           >
             −
@@ -6431,7 +6528,7 @@ function buildSourceHref(src?: {
             class="tux-map__iconbtn"
             :disabled="!canStepIn"
             aria-label="Zoom in on the chosen element"
-            title="Drill into N+1 view (+)"
+            :title="stepInTitle"
             @click="stepInLevel()"
           >
             +
