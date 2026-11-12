@@ -67,8 +67,10 @@ import {
   buildStageBase,
   buildStageData,
   middleEllipsizeFolderName,
+  placeLabelClearOfCard,
   wirePairKey,
   type ComputedStageData,
+  type LabelClearPlacementBox,
   type StageBase,
   type StageToggles,
 } from "../utils/internal/tuxArchitectureMapStage";
@@ -572,10 +574,14 @@ function announce(msg: string) {
 watch(
   () => props.level,
   (lvl) => {
-    if (lvl !== undefined && lvl !== currentLevel.value) {
-      if (lvl !== 4) preInfraState.value = null;
-      currentLevel.value = lvl;
+    if (lvl === undefined) return;
+    // the focus arrives in the same update, and its watcher runs after this one
+    const next = deepLevelFor(props.focus !== undefined ? props.focus : focusId.value, lvl);
+    if (next !== currentLevel.value) {
+      if (next !== 4) preInfraState.value = null;
+      currentLevel.value = next;
     }
+    if (next !== lvl) emit("update:level", next);
   },
 );
 watch(
@@ -583,8 +589,9 @@ watch(
   (f) => {
     if (f !== undefined) {
       const resolved = f ? resolveAliasId(f) ?? f : f;
-      if (f && resolved && resolved !== f && currentLevel.value >= 5) {
-        const aliasedLvl = levelForFocus(resolved) as TuxMapLevelNumber;
+      if (resolved && currentLevel.value >= 5) {
+        const aliasedLvl =
+          resolved !== f ? (levelForFocus(resolved) as TuxMapLevelNumber) : deepLevelFor(resolved, currentLevel.value);
         if (aliasedLvl !== currentLevel.value) {
           currentLevel.value = aliasedLvl;
           emit("update:level", aliasedLvl);
@@ -882,6 +889,19 @@ function levelForFocus(fid: string): number {
   return computeLevelForFocus(fid, activeModel.value, parentOf.value);
 }
 
+/**
+ * The number of the view inside `fid` when `asked` is 5 or more. Below Level 4 a view has no number
+ * of its own: it is where its focus sits in the model as the map draws it. A host that counts the
+ * document's own nesting gets another number where the map left a folder level out, so the map's
+ * number stands and `update:level` says so (#205).
+ */
+function deepLevelFor(fid: string | null | undefined, asked: TuxMapLevelNumber): TuxMapLevelNumber {
+  if (asked < 5 || !fid) return asked;
+  const id = resolveAliasId(fid) ?? fid;
+  if (!hasFractalSubgraph(id) && !hasLazySubgraphRef(id)) return asked;
+  return Math.max(5, levelForFocus(id)) as TuxMapLevelNumber;
+}
+
 /** The drill stack a person builds zooming in step by step to the children of `fid`. */
 function drillStackFor(fid: string): { level: number; focusId: string }[] {
   return mapAncestorsOf(fid, parentOf.value)
@@ -978,6 +998,11 @@ watch(
       focusId.value = firstContainer?.id ?? null;
     }
     if (currentLevel.value >= 5 && focusId.value) {
+      const lvl = deepLevelFor(focusId.value, currentLevel.value);
+      if (lvl !== currentLevel.value) {
+        currentLevel.value = lvl;
+        emit("update:level", lvl);
+      }
       drillStack.value = drillStackFor(focusId.value);
     }
   },
@@ -1337,6 +1362,60 @@ const routedSvg = computed<{ wires: TuxMapRoutedWire[]; labels: TuxMapRoutedLabe
     labels: [...baseStageLabels.value.filter((l) => !open.closedLabelIds.has(l.id)), ...openStageLabels.value],
   };
 });
+
+/**
+ * A wire label raised by a hover or a selection is drawn beside that card, not over it (#205): a
+ * long label reaches from the middle of its wire over the cards the wire joins, where it covered
+ * the title and took the click meant for `+`. The highlight places each label it raises against
+ * the card as it is drawn then (a hovered or selected card grows to show its text), and writes the
+ * place on the element as an attribute and three custom properties, which no render touches.
+ */
+const stageLabelByPair = computed<Map<string, TuxMapRoutedLabel>>(() => {
+  const out = new Map<string, TuxMapRoutedLabel>();
+  for (const lbl of routedSvg.value.labels) out.set(wirePairKey(lbl.from, lbl.to), lbl);
+  return out;
+});
+
+const LAB_CLEAR_PROPS = ["--tux-map-lab-left", "--tux-map-lab-top", "--tux-map-lab-shift"] as const;
+
+function lowerStageLabel(el: HTMLElement) {
+  el.classList.remove("tux-map__lab--on");
+  if (!el.hasAttribute("data-clear")) return;
+  el.removeAttribute("data-clear");
+  for (const prop of LAB_CLEAR_PROPS) el.style.removeProperty(prop);
+}
+
+/** The lit card's box in stage pixels, as tall as it is drawn */
+function litCardBox(id: string, cards: { el: HTMLElement; id: string }[]): LabelClearPlacementBox | null {
+  const r = hasOwn(stageData.value.rects, id) ? stageData.value.rects[id] : undefined;
+  if (!r || r.bound) return null;
+  let h = r.h;
+  for (let i = 0; i < cards.length; i++) {
+    if (cards[i]!.id !== id) continue;
+    h = Math.max(h, cards[i]!.el.offsetHeight || 0);
+    break;
+  }
+  return { x: r.x, y: r.y, w: r.w, h };
+}
+
+function raiseStageLabel(el: HTMLElement, card: LabelClearPlacementBox | null) {
+  el.classList.add("tux-map__lab--on");
+  const lbl = card ? stageLabelByPair.value.get(wirePairKey(el.dataset.from || "", el.dataset.to || "")) : undefined;
+  if (!card || !lbl) return;
+  // the size it is drawn at where the page has one; the router's estimate otherwise
+  const w = el.offsetWidth || lbl.w;
+  const h = el.offsetHeight || lbl.h;
+  const at = placeLabelClearOfCard(
+    { x: lbl.x + lbl.w / 2 - w / 2, y: lbl.y + lbl.h / 2 - h / 2, w, h },
+    card,
+    { width: stageData.value.width, height: stageData.value.height },
+  );
+  if (!at) return;
+  el.style.setProperty("--tux-map-lab-left", `${at.left}px`);
+  el.style.setProperty("--tux-map-lab-top", `${at.top}px`);
+  el.style.setProperty("--tux-map-lab-shift", at.shift);
+  el.setAttribute("data-clear", "1");
+}
 
 // ============================================================================
 // 3. PRECOMPUTED CARD VIEW-MODELS, BLAST RADIUS, SEARCH & ZERO-QUERY HOVER
@@ -2197,6 +2276,30 @@ function formatDiffBadge(
   return null;
 }
 
+/**
+ * Why cards are faded while the Blast radius switch is on (#205). With a model that carries a
+ * change, switching it on fades every card the change does not reach, and nothing on the page
+ * said so. `of` is whose radius is lit: the selection's when the model has links to follow from
+ * it, the change's otherwise. `null` when the radius lights nothing here, so nothing is faded.
+ */
+const blastFade = computed<{ of: "selection" | "change"; text: string } | null>(() => {
+  const br = blastRadiusState.value;
+  if (!br || effectiveIsListView.value || matchingSearchIds.value) return null;
+  if (br.directIds.size === 0 && br.impactedIds.size === 0) return null;
+  const rest = "The rest of this view is faded.";
+  const id = selectedId.value;
+  if (id && selectionBlast.value) {
+    const name =
+      (hasOwn(byId.value, id) ? byId.value[id]?.name : undefined) ||
+      (hasOwn(resById.value, id) ? resById.value[id]?.title : undefined) ||
+      id;
+    return { of: "selection", text: `Blast radius of ${name}: it and what depends on it are lit. ${rest}` };
+  }
+  return hasModelDiffs.value
+    ? { of: "change", text: `Blast radius: the changed parts and what depends on them are lit. ${rest}` }
+    : { of: "selection", text: `Blast radius: the selection and what depends on it are lit. ${rest}` };
+});
+
 const offStageImpactCount = computed<number>(() => {
   if (blastRadiusState.value?.offStageCount) return blastRadiusState.value.offStageCount;
   if (selectionBlast.value) return countOffStageHits(selectionBlast.value.hits);
@@ -2799,7 +2902,7 @@ function rebuildStageDomCache() {
     const entry = { el, forced: el.dataset.forced === "1" };
     pushMapItem(labelsByNode, from, entry);
     if (to !== from) pushMapItem(labelsByNode, to, entry);
-    if (el.classList.contains("tux-map__lab--on")) {
+    if (el.classList.contains("tux-map__lab--on") || el.hasAttribute("data-clear")) {
       litLabels.push(entry);
     }
   }
@@ -2850,7 +2953,7 @@ function applyStageHighlight(rawId: string | null) {
 
   for (let i = 0; i < cache.litLabels.length; i++) {
     const item = cache.litLabels[i]!;
-    item.el.classList.remove("tux-map__lab--on");
+    lowerStageLabel(item.el);
   }
   cache.litLabels.length = 0;
 
@@ -2935,12 +3038,17 @@ function applyStageHighlight(rawId: string | null) {
     }
   }
 
+  // Read the lit card's drawn height once, and only when it has a label to move
+  let litBox: LabelClearPlacementBox | null | undefined;
+  const litCard = (): LabelClearPlacementBox | null =>
+    litBox === undefined ? (litBox = litCardBox(key, cache.cards)) : litBox;
+
   const activeLabels = cache.labelsByNode.get(key);
   if (activeLabels) {
     for (let i = 0; i < activeLabels.length; i++) {
       const item = activeLabels[i]!;
       if (openDom && item.el.classList.contains("tux-map__lab--closed")) continue;
-      item.el.classList.add("tux-map__lab--on");
+      raiseStageLabel(item.el, litCard());
       cache.litLabels.push(item);
     }
   }
@@ -2957,7 +3065,7 @@ function applyStageHighlight(rawId: string | null) {
     for (let i = 0; i < openDom.labels.length; i++) {
       const item = openDom.labels[i]!;
       if (item.from !== key && item.to !== key) continue;
-      item.el.classList.add("tux-map__lab--on");
+      raiseStageLabel(item.el, litCard());
       cache.litLabels.push(item);
     }
   }
@@ -3345,6 +3453,13 @@ function panelFollowsMap(): boolean {
   return Boolean(el && typeof window !== "undefined" && window.getComputedStyle(el).position === "static");
 }
 
+/**
+ * Slides the stage so the details panel does not cover the selected card, and no further (#205).
+ * The stage stays where it is for a card that is in view and clear of the panel; one under the
+ * panel is brought out to its edge, and one past the left edge is brought back in. It used to
+ * slide for the selected card's wire neighbours as well, as far as the card's own left edge
+ * allowed, which took the cards on the left out of view for a card that was never covered.
+ */
 function keepClear(id: string | null) {
   const r = id ? stageData.value.rects[id] : undefined;
   let want = 0;
@@ -3354,26 +3469,12 @@ function keepClear(id: string | null) {
     const pWidth = panelRef.value?.offsetWidth || 380;
     const free = viewportWidth.value - pWidth - 36;
     const scale = stageScale.value;
-    const primaryLeft = r.x * scale;
-    const primaryRight = (r.x + r.w) * scale;
-    let clusterRight = primaryRight;
-    for (const nid of litNeighbors.value) {
-      if (nid === "@bound" || nid === id) continue;
-      const nr = stageData.value.rects[nid];
-      if (!nr || nr.bound) continue;
-      const nRight = (nr.x + nr.w) * scale;
-      if (nRight > clusterRight) clusterRight = nRight;
-    }
+    const left = r.x * scale;
+    const right = (r.x + r.w) * scale;
     const minPan = Math.min(0, -(stageData.value.width * scale - free));
-    const reqForPrimary = primaryRight > free ? Math.max(minPan, Math.round(free - primaryRight - 24)) : 0;
-    if (clusterRight > free) {
-      const wantForCluster = Math.max(minPan, Math.round(free - clusterRight - 24));
-      // Clear lit neighbors as well where space permits without pushing the selected card off the left edge (#117)
-      const maxLeftShiftKeepingPrimaryVisible = Math.min(0, Math.floor(12 - primaryLeft));
-      want = Math.min(reqForPrimary, Math.max(wantForCluster, maxLeftShiftKeepingPrimaryVisible));
-    } else {
-      want = reqForPrimary;
-    }
+    want = Math.max(minPan, Math.min(0, panX.value));
+    if (right + want > free) want = Math.max(minPan, Math.round(free - right - 24));
+    if (left + want < 12) want = Math.min(0, Math.round(12 - left));
   }
   if (want === panX.value) return;
   panX.value = want;
@@ -3510,7 +3611,10 @@ const hintText = computed<string>(() => {
       ? `Inspecting deep internal modules & code symbols. Double-click or ${scroll} up on '+' cards to drill deeper, or ${scroll} down / press Escape to return to the parent level.`
       : `Inspecting deep internal modules & code symbols. ${wheelZooms.value ? "Scroll" : "Ctrl+scroll"} down or press Escape to return to the parent level.`;
   }
-  const levels = `Levels 1–${maxAvailableLevel.value}`;
+  // Level 4 is beside the zoom path, so zooming in from Level 3 lands on Level 5: say so (#205)
+  const levels =
+    `Levels 1–${maxAvailableLevel.value}` +
+    (modelDepth.value >= 5 ? ". Level 4 is Infrastructure, on its own button: zooming in goes from Level 3 to Level 5" : "");
   return wheelZooms.value
     ? `Hover over any card to highlight its links, or scroll the mouse wheel over a card (or double-click / press +) to zoom in and out across ${levels}.`
     : `Hover over any card to highlight its links, or hold Ctrl and scroll over a card (or double-click / press +) to zoom in and out across ${levels}.`;
@@ -3664,6 +3768,58 @@ function onStageCardClick(c: {
     return;
   }
   selectElement(selectedId.value === c.id ? null : c.id);
+}
+
+// A double-click is two clicks and a `dblclick`, and the browser sends the second click and the
+// `dblclick` to whatever is under the pointer by then. The first click chooses the card, which opens
+// the details and slides the diagram clear of them: the card is no longer there, and the second
+// click chose another card, opened the details' own controls or met the background. So the card a
+// double-click began on is kept for as long as a double-click lasts, the second click is not a
+// choice of anything, and the `dblclick` opens that card wherever it lands (#205).
+const DOUBLE_CLICK_MS = 600;
+let doubleClickStart: { id: string; at: number } | null = null;
+
+function doubleClickCard(): string | null {
+  const g = doubleClickStart;
+  return g && Date.now() - g.at < DOUBLE_CLICK_MS ? g.id : null;
+}
+
+function onMapClickCapture(ev: MouseEvent) {
+  if (activeTool.value !== "select") return;
+  // `detail` is the browser's click count; a key or a script sends 0
+  if (ev.detail >= 2 && doubleClickCard()) {
+    ev.stopPropagation();
+    ev.preventDefault();
+    return;
+  }
+  const cardEl = (ev.target as Element | null)?.closest?.(".tux-map__el[data-id]") as HTMLElement | null;
+  const id = cardEl && stageRef.value?.contains(cardEl) ? cardEl.dataset.id : undefined;
+  doubleClickStart = id && ev.detail === 1 ? { id, at: Date.now() } : null;
+}
+
+function onMapDblClickCapture(ev: MouseEvent) {
+  const id = doubleClickCard();
+  doubleClickStart = null;
+  if (!id) return;
+  const cardEl = (ev.target as Element | null)?.closest?.(".tux-map__el[data-id]") as HTMLElement | null;
+  // still under the pointer: the card's own handler opens it
+  if (cardEl?.dataset.id === id && stageRef.value?.contains(cardEl)) return;
+  ev.stopPropagation();
+  ev.preventDefault();
+  openCardByDoubleClick(id);
+}
+
+/** What a double-click on the card `id` does: go to where an outside card lives, or zoom in. */
+function openCardByDoubleClick(id: string) {
+  if (currentLevel.value === 4) {
+    const dn = hasOwn(resById.value, id) ? resById.value[id] : undefined;
+    if (dn && canZoomDeployNode(dn)) zoomIntoElement(id);
+    return;
+  }
+  const c = renderedCards.value.find((x) => x.id === id);
+  if (!c) return;
+  if (c.mini && currentLevel.value >= 5 && parentOf.value.has(id)) revealElement(id);
+  else if (c.zoomable) zoomIntoElement(id);
 }
 
 function selectElement(id: string | null) {
@@ -4031,7 +4187,10 @@ function goToLevel(
               duration: 340,
               delay: Math.min(140, i * 16),
               easing: "cubic-bezier(0.22, 1.28, 0.36, 1)",
-              fill: "both",
+              // "backwards" holds a card back until its turn and lets go of it at the end. "both"
+              // kept the last frame on the card for good: its opacity 1 outranks the stylesheet, so
+              // after any change of level no filter, hover or selection could dim a card (#205)
+              fill: "backwards",
             },
           );
         }
@@ -4165,9 +4324,6 @@ function isCurrentViewChild(id: string): boolean {
 }
 
 function fractalZoomLevelFor(id: string): number {
-  if (isCurrentViewChild(id)) {
-    return currentLevel.value >= 5 ? currentLevel.value + 1 : 5;
-  }
   return Math.max(5, levelForFocus(id));
 }
 
@@ -4269,11 +4425,7 @@ function zoomIntoElement(rawId: string) {
   // Fractal Subgraph Drill-Down (Level 3 component -> Level 5, Level 4 host -> Level 5, Level 5 -> Level 6+)
   if (currentLevel.value >= 3 && hasFractalSubgraph(id)) {
     const inCurrentView = isCurrentViewChild(id);
-    const nextLvl = inCurrentView
-      ? currentLevel.value >= 5
-        ? currentLevel.value + 1
-        : 5
-      : Math.max(5, levelForFocus(id));
+    const nextLvl = fractalZoomLevelFor(id);
     drillStack.value = inCurrentView
       ? [
           ...drillStack.value,
@@ -4531,6 +4683,17 @@ const stepInTargetId = computed<string | null>(() => {
 
 const canStepIn = computed(() => Boolean(stepInTargetId.value));
 
+// Where `+` goes, by number: from Level 3 it is Level 5, Level 4 being the Infrastructure view (#205)
+const stepInTitle = computed<string>(() => {
+  const target = stepInTargetId.value;
+  if (!target) return "Zoom in a level (+)";
+  const e = hasOwn(byId.value, target) ? byId.value[target] : undefined;
+  let lvl = fractalZoomLevelFor(target);
+  if (currentLevel.value === 1 && e && (e.zoom === 2 || target === activeModel.value.level2.boundary)) lvl = 2;
+  else if (currentLevel.value === 2 && e && !e.ref && (getLevel3Kids(activeModel.value, target)?.length ?? 0) > 0) lvl = 3;
+  return `Zoom in to Level ${lvl} (+)`;
+});
+
 // `+` acts on the card keyboard focus is on, never on the selection: a keyboard
 // user who tabs to a card means that card, whatever was clicked before.
 function cardIdOf(target: EventTarget | null): string | null {
@@ -4776,6 +4939,12 @@ function onViewportWheel(ev: WheelEvent) {
 function jumpToSearchEntry(entry: TuxMapSearchEntry) {
   const rawTargetId = entry.revealId || entry.id;
   const targetId = resolveAliasId(rawTargetId) ?? rawTargetId;
+  // An entry for something the model does not hold (a route whose handler no file here has) opens
+  // nothing: the palette stays, and says so (#205)
+  if (!canRevealElement(targetId) && !hasOwn(byId.value, targetId)) {
+    announce(`${entry.name} is not on this map.`);
+    return;
+  }
   goToOpen.value = false;
   goToReturnFocusEl = null;
 
@@ -5519,6 +5688,9 @@ function selectOutlineNode(row: OutlineTreeRow) {
   revealElement(row.id);
 }
 
+/** A relationship's status as the wire popover names it; `live` is the unremarkable case and is not shown */
+const WIRE_STATUS_LABELS: Record<string, string> = { planned: "Planned", paused: "Paused", neighbor: "Neighbor" };
+
 const inspectedWireDetail = computed(() => {
   const key = inspectedWireKey.value;
   if (!key) return null;
@@ -5606,10 +5778,30 @@ const inspectedWireDetail = computed(() => {
       }
     }
   }
+  // What the model says of the relationship itself (#205): a Level 1 or Level 2 wire is a
+  // relationship someone wrote, with no code links under it, and its popover had only a title.
+  // A lifted wire's label is made from its link kinds, which the summary line already gives.
+  const rel =
+    stageData.value.rels.find((r) => r.from === det.from && r.to === det.to) ??
+    stageData.value.expandableSides.flatMap((side) => side.wires).find((r) => r.from === det.from && r.to === det.to);
+  const relLabel = rel?.label || lbl?.t1 || "";
+  const relTech = rel?.tech || lbl?.t2 || "";
+  const facts: { term: string; text: string; issues?: number[] }[] = [];
+  if (relLabel && (det.links.length === 0 || relTech)) facts.push({ term: "Relationship", text: relLabel });
+  if (relTech) facts.push({ term: "Over", text: relTech });
+  if (rel?.status && hasOwn(WIRE_STATUS_LABELS, rel.status)) {
+    facts.push({ term: "Status", text: WIRE_STATUS_LABELS[rel.status]! });
+  }
+  if (rel?.roadmap?.length) facts.push({ term: "Roadmap", text: "", issues: rel.roadmap });
   return {
     ...det,
     fromName: nameOf(det.from),
     toName: nameOf(det.to),
+    facts,
+    noCodeLine:
+      det.links.length === 0 && det.violations.length === 0
+        ? "The model lists no code references for this link."
+        : "",
     summaryLine: det.perKindCounts.map((pk) => `${pk.label} ${pk.count}`).join(" · "),
     cutLine: det.cutKinds.map((ck) => `${ck.label} ${ck.count}`).join(", "),
     sites: expandedSites,
@@ -6387,6 +6579,8 @@ function buildSourceHref(src?: {
     @focusout="onMapFocusOut"
     @pointerenter="onMapPointerEnter"
     @pointerleave="onMapPointerLeave"
+    @click.capture="onMapClickCapture"
+    @dblclick.capture="onMapDblClickCapture"
   >
     <!-- Header Bar -->
     <div v-if="eyebrow || title" class="tux-map__header">
@@ -6418,7 +6612,7 @@ function buildSourceHref(src?: {
             class="tux-map__iconbtn"
             :disabled="currentLevel === 1"
             aria-label="Zoom out a level"
-            title="Zoom out to parent level (N−1)"
+            title="Zoom out a level (−)"
             @click="zoomOutLevel()"
           >
             −
@@ -6432,7 +6626,7 @@ function buildSourceHref(src?: {
             class="tux-map__iconbtn"
             :disabled="!canStepIn"
             aria-label="Zoom in on the chosen element"
-            title="Drill into N+1 view (+)"
+            :title="stepInTitle"
             @click="stepInLevel()"
           >
             +
@@ -6833,11 +7027,15 @@ function buildSourceHref(src?: {
       <template v-if="showBlastRadius">
         <li>
           <i class="tux-map__swatch tux-map__swatch--diff-direct" />
-          {{ hasModelDiffs ? "PR Modified" : "Selected" }}
+          {{ hasModelDiffs && blastFade?.of !== "selection" ? "PR Modified" : "Selected" }}
         </li>
         <li>
           <i class="tux-map__swatch tux-map__swatch--diff-impact" />
-          {{ hasModelDiffs ? "Blast-Radius Impacted" : "Depends on selection" }}
+          {{ hasModelDiffs && blastFade?.of !== "selection" ? "Blast-Radius Impacted" : "Depends on selection" }}
+        </li>
+        <li v-if="blastFade">
+          <i class="tux-map__swatch tux-map__swatch--card tux-map__swatch--faded" />
+          Not in the blast radius
         </li>
       </template>
       <li v-if="legendFlags.hasGenericWires">
@@ -6875,6 +7073,7 @@ function buildSourceHref(src?: {
         Planned link
       </li>
     </ul>
+    <p v-if="blastFade" class="tux-map__blast-note">{{ blastFade.text }}</p>
     <div v-if="!effectiveIsListView && offStageImpactCount > 0" class="tux-map__other-levels">
       +{{ offStageImpactCount }} on other levels
     </div>
@@ -7622,6 +7821,28 @@ function buildSourceHref(src?: {
             ×
           </button>
         </div>
+        <dl v-if="inspectedWireDetail.facts.length > 0" class="tux-map__wire-pop-facts">
+          <template v-for="f in inspectedWireDetail.facts" :key="f.term">
+            <dt>{{ f.term }}</dt>
+            <dd>
+              <template v-if="f.issues">
+                <template v-for="iss in f.issues" :key="iss">
+                  <a
+                    v-if="buildIssueHref(iss)"
+                    :href="buildIssueHref(iss)!"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="tux-map__issue-lnk"
+                  >
+                    #{{ iss }}
+                  </a>
+                  <span v-else class="tux-map__issue-pill">#{{ iss }}</span>
+                </template>
+              </template>
+              <template v-else>{{ f.text }}</template>
+            </dd>
+          </template>
+        </dl>
         <p v-if="inspectedWireDetail.summaryLine" class="tux-map__wire-pop-sum">
           {{ inspectedWireDetail.summaryLine }}
         </p>
@@ -7657,6 +7878,9 @@ function buildSourceHref(src?: {
             <code v-else class="tux-map__source-pill">{{ s.at }}</code>
           </li>
         </ul>
+        <p v-if="inspectedWireDetail.noCodeLine" class="tux-map__wire-pop-cut tux-map__wire-pop-none">
+          {{ inspectedWireDetail.noCodeLine }}
+        </p>
         <p v-if="inspectedWireDetail.moreSitesCount > 0" class="tux-map__wire-pop-cut">
           +{{ inspectedWireDetail.moreSitesCount }} more link{{
             inspectedWireDetail.moreSitesCount === 1 ? "" : "s"
@@ -9236,6 +9460,17 @@ function buildSourceHref(src?: {
   border: 2px solid var(--status-warning);
 }
 
+/* The opacity of a card the blast radius does not reach (.tux-map__stage--dim) */
+.tux-map__swatch--faded {
+  opacity: 0.28;
+}
+
+.tux-map__blast-note {
+  margin: 0 0 0.55rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
 .tux-map__swatch--diff-impact {
   background: var(--surface-raised);
   border: 2px dashed var(--status-critical);
@@ -9963,6 +10198,14 @@ function buildSourceHref(src?: {
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.16);
 }
 
+/* Raised by the card the pointer is on or the selected one, a label hangs beside that card (#205).
+   The highlight sets the attribute and the three properties together. */
+.tux-map__lab[data-clear] {
+  left: var(--tux-map-lab-left) !important;
+  top: var(--tux-map-lab-top) !important;
+  transform: var(--tux-map-lab-shift);
+}
+
 /* Wire Link Inspector Popover (#115) */
 .tux-map__wire-pop {
   position: absolute;
@@ -9996,6 +10239,28 @@ function buildSourceHref(src?: {
   height: var(--tux-map-target);
   flex: none;
   font-size: 16px;
+}
+
+.tux-map__wire-pop-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.2rem 0.6rem;
+  margin: 0.35rem 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.tux-map__wire-pop-facts dt {
+  color: var(--text-secondary);
+}
+
+.tux-map__wire-pop-facts dd {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
 }
 
 .tux-map__wire-pop-sum {
@@ -10226,9 +10491,10 @@ function buildSourceHref(src?: {
 }
 
 /* Sibling Zoom-In `+` Badge Button on Stage (#116: never nested inside card button) */
+/* Above every wire label, raised (10) or under the pointer (11): a label never takes its click (#205) */
 .tux-map__el-zb {
   position: absolute;
-  z-index: 9;
+  z-index: 12;
   width: 22px;
   height: 22px;
   padding: 0;

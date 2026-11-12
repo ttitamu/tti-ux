@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 7733128153271a39fe96e7ae56fe5959818d30c4dce39863bed37a541118127c
+// SOURCE-SHA256: 4ff9ba7f145455183b6da75b336a88d58ef5adfeba8e577779ee151bd175c3ed
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -7455,6 +7455,32 @@ function searchHandlersByRoute(routeLinks, getNode) {
     }
     return handlerByRouteId;
 }
+function searchRouteTargets(routeLinks, getNode) {
+    const named = new Map();
+    const covered = new Set();
+    for (const l of routeLinks) {
+        const from = getNode(l.from);
+        if (!from || !(from.kind === "route" || isKindNodeId(from.id, "r")))
+            continue;
+        if (!named.has(l.from))
+            named.set(l.from, l.to);
+        covered.add(l.to);
+    }
+    return { named, covered };
+}
+function handlerLabelOfId(id) {
+    const rest = stripNodeKindPrefix(id);
+    const hash = rest.lastIndexOf("#");
+    return hash >= 0 ? rest.slice(hash + 1) : rest;
+}
+function fileNodeIdOfSymbolId(id) {
+    const { kind, rest } = splitNodeId(id);
+    const hash = rest.lastIndexOf("#");
+    const head = id.slice(0, id.length - rest.length);
+    if (kind !== "s" || hash <= 0 || rest.startsWith("pkg:") || !head.endsWith("s:"))
+        return "";
+    return `${head.slice(0, -2)}f:${rest.slice(0, hash)}`;
+}
 function searchAncestorNames(id, parentOf, getNode) {
     const chain = mapAncestorsOf(id, parentOf);
     const names = [];
@@ -7472,13 +7498,15 @@ function searchAncestorNames(id, parentOf, getNode) {
     }
     return names;
 }
-function pushNodeSearchEntries(entries, seenRouteKeys, list, getNode, parentOf, handlerByRouteId) {
+function pushNodeSearchEntries(entries, seenRouteKeys, list, getNode, parentOf, handlerByRouteId, routeTargets) {
     for (const n of list) {
         const srcPath = n.source?.path || repoPathForNodeId(n.id);
         const group = classifySearchGroup(n.id, n.kind, n.name, n.tech, Boolean(n.source?.path));
         const ancestors = searchAncestorNames(n.id, parentOf, getNode);
         const linkedHandlerId = group === "Routes" ? handlerByRouteId.get(n.id) : undefined;
         const handlerNode = linkedHandlerId ? getNode(linkedHandlerId) : undefined;
+        const namedHandlerId = group === "Routes" && !handlerNode ? routeTargets.named.get(n.id) : undefined;
+        const handlerName = handlerNode?.name || (namedHandlerId ? handlerLabelOfId(namedHandlerId) : undefined);
         const routePattern = group === "Routes" ? (isKindNodeId(n.id, "r") ? splitNodeId(n.id).rest : n.name) : undefined;
         if (routePattern) {
             seenRouteKeys.add(`${routePattern.toLowerCase()}\u0000${linkedHandlerId || n.id}`);
@@ -7487,17 +7515,17 @@ function pushNodeSearchEntries(entries, seenRouteKeys, list, getNode, parentOf, 
             id: n.id,
             revealId: linkedHandlerId || n.id,
             group,
-            level: n.level,
+            level: handlerNode?.level ?? n.level,
             kind: n.kind,
             name: n.name,
-            path: handlerNode?.source?.path || srcPath,
+            path: handlerNode?.source?.path || (namedHandlerId && repoPathForNodeId(namedHandlerId)) || srcPath,
             ancestors,
-            tech: n.tech || "",
+            tech: group === "Routes" ? [n.tech, handlerName].filter(Boolean).join(" · ") : n.tech || "",
             routePattern,
-            handlerName: handlerNode?.name,
+            handlerName,
             planned: n.status === "planned",
         }));
-        if (group !== "Routes") {
+        if (group !== "Routes" && !routeTargets.covered.has(n.id)) {
             for (const candidate of [n.tech, n.source?.symbol]) {
                 if (!candidate)
                     continue;
@@ -7511,6 +7539,7 @@ function pushNodeSearchEntries(entries, seenRouteKeys, list, getNode, parentOf, 
                 if (seenRouteKeys.has(rKey))
                     continue;
                 seenRouteKeys.add(rKey);
+                routeTargets.listedByTech.add(n.id);
                 entries.push(makeSearchEntry({
                     id: `route:${disp}->${n.id}`,
                     revealId: n.id,
@@ -7529,7 +7558,7 @@ function pushNodeSearchEntries(entries, seenRouteKeys, list, getNode, parentOf, 
         }
     }
 }
-function routeTableSearchEntries(model, nodeRouteKeys, getNode, parentOf) {
+function routeTableSearchEntries(model, nodeRouteKeys, getNode, parentOf, routeTargets) {
     const entries = [];
     const seenRouteKeys = new Set();
     for (const rt of asObjArray(model?.routes)) {
@@ -7539,23 +7568,24 @@ function routeTableSearchEntries(model, nodeRouteKeys, getNode, parentOf) {
         const pat = rt.pattern.trim();
         const disp = method ? `${method} ${pat}` : pat;
         const handlerId = typeof rt.handler === "string" && rt.handler ? rt.handler : "";
+        if (handlerId && routeTargets.covered.has(handlerId))
+            continue;
         const handlerNode = handlerId ? getNode(handlerId) : undefined;
         const revealId = handlerNode ? handlerNode.id : handlerId || `r:${disp}`;
         const rKey = `${disp.toLowerCase()}\u0000${revealId}`;
         if (nodeRouteKeys.has(rKey) || seenRouteKeys.has(rKey))
             continue;
         seenRouteKeys.add(rKey);
-        const ancestors = handlerNode
-            ? [...searchAncestorNames(handlerNode.id, parentOf, getNode), handlerNode.name]
-            : [];
+        const opens = handlerNode ?? (handlerId ? getNode(fileNodeIdOfSymbolId(handlerId)) : undefined);
+        const ancestors = opens ? [...searchAncestorNames(opens.id, parentOf, getNode), opens.name] : [];
         entries.push(makeSearchEntry({
             id: `route:${disp}->${revealId}`,
-            revealId,
+            revealId: opens ? opens.id : revealId,
             group: "Routes",
-            level: handlerNode?.level ?? 5,
+            level: opens?.level ?? 5,
             kind: "route",
             name: disp,
-            path: handlerNode?.source?.path || "",
+            path: opens?.source?.path || "",
             ancestors,
             tech: [rt.framework, handlerNode?.name || handlerId].filter(Boolean).join(" · "),
             routePattern: pat,
@@ -7639,16 +7669,17 @@ function buildSearchIndex(model, parentOf, keepInto) {
     const getNode = (id) => nodes.get(id);
     const routeLinks = searchRouteLinks(model);
     const handlerByRouteId = searchHandlersByRoute(routeLinks, getNode);
+    const routeTargets = { ...searchRouteTargets(routeLinks, getNode), listedByTech: new Set() };
     const nodeEntries = [];
     const nodeRouteKeys = new Set();
-    pushNodeSearchEntries(nodeEntries, nodeRouteKeys, nodes.values(), getNode, parentOf, handlerByRouteId);
-    const routeEntries = routeTableSearchEntries(model, nodeRouteKeys, getNode, parentOf);
+    pushNodeSearchEntries(nodeEntries, nodeRouteKeys, nodes.values(), getNode, parentOf, handlerByRouteId, routeTargets);
+    const routeEntries = routeTableSearchEntries(model, nodeRouteKeys, getNode, parentOf, routeTargets);
     if (!keepInto) {
         for (const e of routeEntries)
             nodeEntries.push(e);
         return nodeEntries;
     }
-    keepInto.keep = { model, parentOf, nodes, nodeEntries, nodeRouteKeys, routeLinks, handlerByRouteId, owners };
+    keepInto.keep = { model, parentOf, nodes, nodeEntries, nodeRouteKeys, routeLinks, handlerByRouteId, routeTargets, owners };
     return [...nodeEntries, ...routeEntries];
 }
 function extendSearchIndex(keep, model, parentOf, added) {
@@ -7689,6 +7720,14 @@ function extendSearchIndex(keep, model, parentOf, added) {
         if (nodes.has(routeId) && keep.handlerByRouteId.get(routeId) !== handlerId)
             return null;
     }
+    const routeTargets = {
+        ...searchRouteTargets(keep.routeLinks, getNode),
+        listedByTech: keep.routeTargets.listedByTech,
+    };
+    for (const handlerId of routeTargets.covered) {
+        if (routeTargets.listedByTech.has(handlerId) && !keep.routeTargets.covered.has(handlerId))
+            return null;
+    }
     for (const pid of newlyParented.values())
         passedThrough.add(pid);
     passedThrough.add(added.owner);
@@ -7698,8 +7737,9 @@ function extendSearchIndex(keep, model, parentOf, added) {
     keep.model = model;
     keep.parentOf = parentOf;
     keep.handlerByRouteId = handlerByRouteId;
-    pushNodeSearchEntries(keep.nodeEntries, keep.nodeRouteKeys, arrived.values(), getNode, parentOf, handlerByRouteId);
-    return [...keep.nodeEntries, ...routeTableSearchEntries(model, keep.nodeRouteKeys, getNode, parentOf)];
+    keep.routeTargets = routeTargets;
+    pushNodeSearchEntries(keep.nodeEntries, keep.nodeRouteKeys, arrived.values(), getNode, parentOf, handlerByRouteId, routeTargets);
+    return [...keep.nodeEntries, ...routeTableSearchEntries(model, keep.nodeRouteKeys, getNode, parentOf, routeTargets)];
 }
 export function buildMapSearchIndex(model = EMPTY_TTI_LEVEL_MODEL) {
     const isObjModel = model != null && typeof model === "object";

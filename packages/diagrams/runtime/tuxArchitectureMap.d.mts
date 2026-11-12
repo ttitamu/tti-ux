@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 7733128153271a39fe96e7ae56fe5959818d30c4dce39863bed37a541118127c
+// SOURCE-SHA256: 4ff9ba7f145455183b6da75b336a88d58ef5adfeba8e577779ee151bd175c3ed
 /**
  * tuxArchitectureMap — Core Engine for the TUX Modular Architecture Map (M.A.P.) & Infinite Canvas.
  *
@@ -2088,9 +2088,13 @@ export type TuxMapSearchGroup = (typeof TUX_MAP_SEARCH_GROUPS)[number];
  */
 export interface TuxMapSearchEntry {
     id: string;
-    /** Target node ID to reveal on Enter (for HTTP routes, points to the handler when present). */
+    /**
+     * Target node ID to reveal on Enter. For an HTTP route it is the handler when the model holds it;
+     * while it does not (a subgraph not loaded yet), the route's own element, or else the handler's file.
+     */
     revealId: string;
     group: TuxMapSearchGroup;
+    /** The level that shows `revealId`. */
     level: number;
     kind: string;
     name: string;
