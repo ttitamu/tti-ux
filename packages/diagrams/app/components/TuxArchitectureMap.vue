@@ -3602,6 +3602,58 @@ function onStageCardClick(c: {
   selectElement(selectedId.value === c.id ? null : c.id);
 }
 
+// A double-click is two clicks and a `dblclick`, and the browser sends the second click and the
+// `dblclick` to whatever is under the pointer by then. The first click chooses the card, which opens
+// the details and slides the diagram clear of them: the card is no longer there, and the second
+// click chose another card, opened the details' own controls or met the background. So the card a
+// double-click began on is kept for as long as a double-click lasts, the second click is not a
+// choice of anything, and the `dblclick` opens that card wherever it lands (#205).
+const DOUBLE_CLICK_MS = 600;
+let doubleClickStart: { id: string; at: number } | null = null;
+
+function doubleClickCard(): string | null {
+  const g = doubleClickStart;
+  return g && Date.now() - g.at < DOUBLE_CLICK_MS ? g.id : null;
+}
+
+function onMapClickCapture(ev: MouseEvent) {
+  if (activeTool.value !== "select") return;
+  // `detail` is the browser's click count; a key or a script sends 0
+  if (ev.detail >= 2 && doubleClickCard()) {
+    ev.stopPropagation();
+    ev.preventDefault();
+    return;
+  }
+  const cardEl = (ev.target as Element | null)?.closest?.(".tux-map__el[data-id]") as HTMLElement | null;
+  const id = cardEl && stageRef.value?.contains(cardEl) ? cardEl.dataset.id : undefined;
+  doubleClickStart = id && ev.detail === 1 ? { id, at: Date.now() } : null;
+}
+
+function onMapDblClickCapture(ev: MouseEvent) {
+  const id = doubleClickCard();
+  doubleClickStart = null;
+  if (!id) return;
+  const cardEl = (ev.target as Element | null)?.closest?.(".tux-map__el[data-id]") as HTMLElement | null;
+  // still under the pointer: the card's own handler opens it
+  if (cardEl?.dataset.id === id && stageRef.value?.contains(cardEl)) return;
+  ev.stopPropagation();
+  ev.preventDefault();
+  openCardByDoubleClick(id);
+}
+
+/** What a double-click on the card `id` does: go to where an outside card lives, or zoom in. */
+function openCardByDoubleClick(id: string) {
+  if (currentLevel.value === 4) {
+    const dn = hasOwn(resById.value, id) ? resById.value[id] : undefined;
+    if (dn && canZoomDeployNode(dn)) zoomIntoElement(id);
+    return;
+  }
+  const c = renderedCards.value.find((x) => x.id === id);
+  if (!c) return;
+  if (c.mini && currentLevel.value >= 5 && parentOf.value.has(id)) revealElement(id);
+  else if (c.zoomable) zoomIntoElement(id);
+}
+
 function selectElement(id: string | null) {
   if (activeTool.value !== "select") return;
   if (id && id.startsWith("@more-")) return;
@@ -6321,7 +6373,13 @@ function buildSourceHref(src?: {
 </script>
 
 <template>
-  <figure ref="mapRootRef" class="tux-map" @keydown="onMapRootKeydown">
+  <figure
+    ref="mapRootRef"
+    class="tux-map"
+    @keydown="onMapRootKeydown"
+    @click.capture="onMapClickCapture"
+    @dblclick.capture="onMapDblClickCapture"
+  >
     <!-- Header Bar -->
     <div v-if="eyebrow || title" class="tux-map__header">
       <div>

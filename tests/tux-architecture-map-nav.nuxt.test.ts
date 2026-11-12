@@ -274,3 +274,87 @@ describe("TuxArchitectureMap level numbers (#205)", () => {
     four.unmount();
   });
 });
+
+/**
+ * A double-click is two clicks and then `dblclick`, and a browser sends the second click and the
+ * `dblclick` to whatever is under the pointer by then. The first click chooses the card, which
+ * opens the details and slides the diagram clear of them, so the second lands on the background,
+ * on another card or on the details themselves. `detail` is the click count the browser reports.
+ */
+async function fire(w: Mounted, on: string, type: "click" | "dblclick", detail: number) {
+  w.find(on).element.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, detail }));
+  await nextTick();
+}
+
+async function doubleClick(w: Mounted, firstOn: string, secondOn: string) {
+  await fire(w, firstOn, "click", 1);
+  await fire(w, secondOn, "click", 2);
+  await fire(w, secondOn, "dblclick", 2);
+  await settle();
+}
+
+const cardSel = (id: string) => `.tux-map__el[data-id="${id}"]`;
+const selections = (w: Mounted) => (w.emitted("update:selectedId") ?? []).map((a) => a[0]);
+
+describe("TuxArchitectureMap double-click (#205)", () => {
+  it("opens the card it began on when the second click lands on the background", async () => {
+    const w = await mountMap();
+    await doubleClick(w, cardSel("c-gateway"), ".tux-map__stage");
+    expect(levelText(w)).toContain("Level 3");
+    expect(w.emitted("update:focus")?.at(-1)).toEqual(["c-gateway"]);
+    w.unmount();
+  });
+
+  it("opens the card it began on, and chooses no other, when the second click lands on another card", async () => {
+    const w = await mountMap();
+    await doubleClick(w, cardSel("c-gateway"), cardSel("c-runner"));
+    expect(levelText(w)).toContain("Level 3");
+    expect(w.emitted("update:focus")?.at(-1)).toEqual(["c-gateway"]);
+    expect(selections(w)).not.toContain("c-runner");
+    w.unmount();
+  });
+
+  it("opens the card it began on when the second click lands on the details that opened", async () => {
+    const w = await mountMap();
+    await doubleClick(w, cardSel("c-gateway"), ".tux-map__panel");
+    expect(levelText(w)).toContain("Level 3");
+    w.unmount();
+  });
+
+  it("opens a file whose inside is loaded on demand, at Level 5", async () => {
+    const asked: string[] = [];
+    const resolveSubgraph = (id: string) => {
+      asked.push(id);
+      return Promise.resolve({
+        stratum: "Functions and classes",
+        elements: [{ id: FN_WHOAMI, kind: "symbol", name: "whoami()" }],
+      });
+    };
+    const w = await mountMap({ initialLevel: 5, initialFocus: "c-gateway/core", resolveSubgraph });
+    await doubleClick(w, cardSel(FILE_ME), ".tux-map__stage");
+    await settle();
+    expect(asked).toEqual([FILE_ME]);
+    expect(levelText(w)).toContain("Level 6");
+    expect(card(w, FN_WHOAMI).exists()).toBe(true);
+    w.unmount();
+  });
+
+  it("leaves a card with nothing inside chosen: the second click does not undo the first", async () => {
+    const w = await mountMap();
+    await doubleClick(w, cardSel("c-runner"), cardSel("c-runner"));
+    expect(selections(w)).toEqual(["c-runner"]);
+    expect(levelText(w)).toContain("Level 2");
+    w.unmount();
+  });
+
+  it("takes two single clicks for what they are", async () => {
+    const w = await mountMap();
+    await fire(w, cardSel("c-gateway"), "click", 1);
+    await fire(w, cardSel("c-runner"), "click", 1);
+    await fire(w, ".tux-map__stage", "dblclick", 2);
+    await settle();
+    expect(selections(w)).toEqual(["c-gateway", "c-runner"]);
+    expect(levelText(w)).toContain("Level 2");
+    w.unmount();
+  });
+});
