@@ -127,8 +127,8 @@ The architecture map has two contracts, and each has a committed snapshot that t
 
 | Prop | Type | Default | Meaning |
 |---|---|---|---|
-| `lodMode` | `"auto" \| "executive" \| "resources" \| "packages"` | `"auto"` | Legacy. A change after mount moves the map to Level 1 (`"executive"`), Level 2 (`"resources"`) or Level 3 (`"packages"`). The value at mount is not read: use `level`. |
-| `initialZoom` | `number` | `1` | Legacy. Accepted and not read. |
+| `lodMode` | `"auto" \| "executive" \| "resources" \| "packages"` | `"auto"` | Deprecated: use `level` (`v-model:level`) or `initialLevel`. A change after mount moves the map to Level 1 (`"executive"`), Level 2 (`"resources"`) or Level 3 (`"packages"`) and emits `update:level`. The value at mount is not read. |
+| `initialZoom` | `number` | `undefined` | The stage scale the map opens at, 1 being the diagram's real size. It opens magnified at the nearest magnify step (0.5, 0.75, 1, 1.5 or 2; halfway, the larger), and the magnify buttons move on from there. A scale at or under the fitted one opens at Fit, as does no value. |
 
 ### The component: events, slots and exposed members
 
@@ -139,13 +139,13 @@ The architecture map has two contracts, and each has a committed snapshot that t
 | `laser-move` | `TuxMapStrokePoint[]` | The laser pointer moves. |
 | `update:<prop>` | the prop's type | The matching state changes: `level`, `focus`, `selectedId`, `view`, `showPlanned`, `showBlastRadius`, `blastIntent`, `splitIds`, `wireFilters`, `traceTarget`, `strokes`, `notes`. |
 
-`update:lodMode` is declared, which is why the snapshot lists `v-model:lodMode`, and this release never emits it.
+`lodMode` has no event of its own: a change of it is said on `update:level`. The `update:lodMode` the component used to declare, and never emitted, is gone, and with it the `v-model:lodMode` binding.
 
 The component has no slots and calls no `defineExpose()`: a template ref gives access to nothing. Its file exports two types, `TuxArchitectureMapProps` and `TuxMapViewMode`.
 
 ### The runtime: public exports
 
-Every runtime export carries `@public` or `@internal` in its TSDoc comment, and the comment travels into the published `.d.mts`, so an editor shows it on hover. The entry point has 118 public exports: 9 constants, 34 functions and 75 types. The constants and functions, by purpose:
+Every runtime export carries `@public` or `@internal` in its TSDoc comment, and the comment travels into the published `.d.mts`, so an editor shows it on hover. The entry point has 119 public exports: 9 constants, 35 functions and 75 types. The constants and functions, by purpose:
 
 **Reading and checking a model**
 
@@ -166,6 +166,7 @@ Every runtime export carries `@public` or `@internal` in its TSDoc comment, and 
 |---|---|
 | `TUX_MAP_ELEMENT_KIND_LABELS` | The label of each `TuxMapElementKind`. |
 | `plainElementKindLabel()` | The plain name of an element's kind: folder, file, function, class, HTTP route. |
+| `elementTypeLabel()` | An element's type line, its kind and its `tech`, as the card shows it. A `tech` that starts with the kind does not repeat it: "folder · 4 files". |
 | `TUX_MAP_LINK_KIND_LABELS` | What each link kind means, read from the part it points at. |
 | `TUX_MAP_LINK_STRENGTH_ORDER` | The link kinds from strongest to weakest. It breaks ties in the blast radius. |
 | `TUX_MAP_QUIET_LINK_KINDS` | The link kinds drawn on no stage (`mentions`). They still count in the blast radius. |

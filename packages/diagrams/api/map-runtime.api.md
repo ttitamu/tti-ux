@@ -10,9 +10,9 @@ they stay importable, and they may change or go away in any release without noti
 
 ## `@tti/tti-ux-diagrams/runtime/tuxArchitectureMap`
 
-118 public, 47 internal.
+119 public, 47 internal.
 
-### Public (118)
+### Public (119)
 
 #### Constants (9)
 
@@ -100,7 +100,7 @@ export declare const TUX_MAP_VALID_BLAST_INTENTS: ReadonlySet<TuxMapBlastIntent>
 export declare const TUX_MAP_WIRE_CATEGORIES: readonly TuxMapWireCategory[];
 ```
 
-#### Functions (34)
+#### Functions (35)
 
 ##### `buildLevelModelFromLegacyNodes`
 
@@ -245,6 +245,14 @@ export declare function coordinateAcpSubgraphLease(action: "acquire" | "release"
     suggestions?: undefined;
     conflict?: undefined;
 };
+```
+
+##### `elementTypeLabel`
+
+```ts
+export declare function elementTypeLabel(el: Pick<TuxMapLevelElement, "id" | "kind" | "name" | "tech" | "source"> | undefined, opts?: {
+    separator?: string;
+}): string;
 ```
 
 ##### `extractModelLinks`

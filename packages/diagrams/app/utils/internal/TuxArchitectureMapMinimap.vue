@@ -224,8 +224,9 @@ function onKeydown(e: KeyboardEvent) {
   stroke-width: 1;
 }
 
+/* a card the highlight does not reach: a lighter fill, opaque, as on the stage (#229) */
 .tux-map__minimap-card--faded {
-  opacity: 0.3;
+  fill: color-mix(in srgb, var(--text-muted) 18%, var(--surface-raised));
 }
 
 .tux-map__minimap-view {

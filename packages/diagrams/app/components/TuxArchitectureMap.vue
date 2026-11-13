@@ -14,6 +14,7 @@ import {
   cmpCodepoint,
   compareBlastLinks,
   computeLinkBlastRadius,
+  elementTypeLabel,
   extendMapParentIndex,
   extractModelLinksKept,
   hasOwn,
@@ -168,11 +169,16 @@ export interface TuxArchitectureMapProps {
   caption?: string;
   /** Accessible label for the diagram region */
   ariaLabel?: string;
-  /** Optional minimum viewport height */
+  /** CSS height of the diagram's viewport (`"auto"` by default: the viewport is as tall as the fitted diagram, 440px at least). A fixed height scrolls a taller diagram */
   height?: string;
-  /** Legacy LoD override prop for compatibility */
+  /**
+   * Legacy level-of-detail switch. A change after mount moves the map to Level 1 (`"executive"`),
+   * Level 2 (`"resources"`) or Level 3 (`"packages"`) and emits `update:level`; the value at mount
+   * is not read (`#230`).
+   * @deprecated Use `level` (`v-model:level`) or `initialLevel`.
+   */
   lodMode?: "auto" | TuxMapLoDLevel;
-  /** Initial zoom scale compatibility prop */
+  /** Stage scale to open at, 1 being the diagram's real size: the map opens magnified at the nearest magnify step (0.5, 0.75, 1, 1.5 or 2; halfway, the larger). A scale at or under the fitted one opens at Fit, as does no value (`undefined` by default; `#230`) */
   initialZoom?: number;
   /** Freehand ink strokes */
   strokes?: TuxMapInkStroke[];
@@ -223,7 +229,7 @@ const props = withDefaults(defineProps<TuxArchitectureMapProps>(), {
   ariaLabel: "Interactive multi-level architecture map",
   height: "auto",
   lodMode: "auto",
-  initialZoom: 1,
+  initialZoom: undefined,
   strokes: () => [],
   notes: () => [],
   penColor: "#5C0025",
@@ -240,7 +246,6 @@ const emit = defineEmits<{
   (e: "update:splitIds", splitIds: string[]): void;
   (e: "update:wireFilters", wireFilters: TuxMapWireCategory[]): void;
   (e: "update:traceTarget", traceTarget: string | null): void;
-  (e: "update:lodMode", mode: "auto" | TuxMapLoDLevel): void;
   (e: "node-select", item: TuxMapLevelElement | TuxMapDeploymentNode | TuxMapNode | null): void;
   (e: "drill-down", payload: { level: number; focusId: string; subgraph: TuxMapSubgraph | null }): void;
   (e: "update:strokes", strokes: TuxMapInkStroke[]): void;
@@ -736,10 +741,13 @@ watch(isListView, (lv) => {
   emit("update:view", lv ? "list" : "diagram");
 });
 
-// Sync legacy `lodMode` prop if changed externally
+// Sync legacy `lodMode` prop if changed externally (deprecated: `level`). The level it moves to is
+// said on `update:level`, as any other change of level is (#230)
 watch(
   () => props.lodMode,
   (mode) => {
+    const fromLevel = currentLevel.value;
+    const fromFocus = focusId.value;
     if (mode === "executive") currentLevel.value = 1;
     else if (mode === "resources") currentLevel.value = 2;
     else if (mode === "packages") {
@@ -751,6 +759,8 @@ watch(
       }
       if (focusId.value) currentLevel.value = 3;
     }
+    if (focusId.value !== fromFocus) emit("update:focus", focusId.value);
+    if (currentLevel.value !== fromLevel) emit("update:level", currentLevel.value);
   },
 );
 
@@ -2288,7 +2298,7 @@ const renderedCards = computed(() =>
     const r = hasOwn(stageData.value.rects, e.id) ? stageData.value.rects[e.id] : undefined;
     const kind = e.kind || "container";
     const plainKind = plainElementKindLabel(e);
-    const typeLabel = plainKind || e.tech ? `${plainKind}${e.tech ? ` · ${e.tech}` : ""}` : "";
+    const typeLabel = elementTypeLabel(e);
     const live = !e.mini ? formatLiveState(e) : null;
     const outsideLinks = e.mini ? stageData.value.outsideLinkCounts[e.id] || 0 : 0;
     const outMeta = stageData.value.outsideMetaById[e.id];
@@ -3379,7 +3389,12 @@ const fitScale = computed<number>(() => {
 // browser zoom, draws 14px text at 3-6px. "Larger" scales it past the fit and the viewport scrolls:
 // a finger, a scrollbar or the arrow keys move it, and no dragging is required (WCAG 1.4.4, 2.5.7).
 const MAGNIFY_SCALES = [0.5, 0.75, 1, 1.5, 2];
-const zoomScale = ref<number | null>(null);
+/** The magnify step nearest a scale (halfway, the larger), or `null` for no scale (`initialZoom`, #230). */
+function nearestMagnifyStep(scale: number | undefined): number | null {
+  if (typeof scale !== "number" || !Number.isFinite(scale) || scale <= 0) return null;
+  return MAGNIFY_SCALES.reduce((best, m) => (Math.abs(m - scale) <= Math.abs(best - scale) ? m : best));
+}
+const zoomScale = ref<number | null>(nearestMagnifyStep(props.initialZoom));
 const stageScale = computed<number>(() =>
   zoomScale.value !== null && zoomScale.value > fitScale.value ? zoomScale.value : fitScale.value,
 );
@@ -8050,8 +8065,8 @@ function buildSourceHref(src?: {
                   <Icon :name="elementIconName(e.kind)" class="tux-map__el-ic" aria-hidden="true" />
                   <span>{{ e.name }}</span>
                 </span>
-                <span v-if="plainElementKindLabel(e) || e.tech" class="tux-map__el-ty">
-                  [{{ plainElementKindLabel(e) }}{{ plainElementKindLabel(e) && e.tech ? " · " : "" }}{{ e.tech }}]
+                <span v-if="elementTypeLabel(e)" class="tux-map__el-ty">
+                  [{{ elementTypeLabel(e) }}]
                 </span>
                 <span v-if="e.desc" class="tux-map__el-ds">{{ e.desc }}</span>
               </button>
@@ -8879,6 +8894,22 @@ function buildSourceHref(src?: {
      link underlines, never the letters */
   --tux-map-brand-ink: var(--text-primary);
   --tux-map-brand-tint: color-mix(in srgb, var(--brand-primary) 18%, var(--surface-raised));
+  /* A card the highlight does not reach (#229): opaque, its surface most of the way to the canvas
+     (--surface-sunken) and its border quieter. The faded text on it holds 7:1 in the four themes
+     (--text-secondary 9.4:1 or more, --text-muted 7.3:1 or more); the border keeps 3:1 on the
+     canvas in the high-contrast theme (3.4:1), where it is the card's edge */
+  --tux-map-faded-surface: color-mix(in srgb, var(--surface-raised) 25%, var(--surface-sunken));
+  --tux-map-faded-border: color-mix(in srgb, var(--surface-border) 75%, var(--surface-sunken));
+  /* and hatched: diagonal lines under its text, so "out of the highlight" shows by a pattern and not
+     by a shade alone (1.4.1). A line is the faded surface with 14% of --text-muted, 1.23:1 to 1.29:1
+     on the surface in the four themes; the faded text is --text-secondary, which holds 7:1 or more
+     on a line (7.6:1 in tti) as well as between them */
+  --tux-map-faded-hatch: color-mix(in srgb, var(--text-muted) 14%, var(--tux-map-faded-surface));
+  --tux-map-faded-pattern: repeating-linear-gradient(
+    -45deg,
+    var(--tux-map-faded-hatch) 0 1.5px,
+    var(--tux-map-faded-surface) 1.5px 7px
+  );
   /* 2.5.5 Target Size (Enhanced); TUX's field-sunlight mode asks 48px for gloved hands */
   --tux-map-target: 44px;
 }
@@ -9644,9 +9675,11 @@ function buildSourceHref(src?: {
   border: 2px solid var(--brand-primary);
 }
 
-/* The opacity of a card the blast radius does not reach (.tux-map__stage--dim) */
+/* A card the blast radius does not reach (.tux-map__stage--dim), drawn as the card is (#229) */
 .tux-map__swatch--faded {
-  opacity: 0.28;
+  background-color: var(--tux-map-faded-surface);
+  background-image: var(--tux-map-faded-pattern);
+  border-color: var(--tux-map-faded-border);
 }
 
 .tux-map__blast-note {
@@ -10907,9 +10940,39 @@ function buildSourceHref(src?: {
   box-shadow: none;
 }
 
+/* A card the highlight does not reach steps back by its colours, not by fading (#229). At opacity
+   0.28 the wires behind it showed through, its text fell to about 2:1 and every faded card was a
+   layer of its own to paint. Opaque, it hides the wires under it, as a lit card does; its kind still
+   shows by its icon and its shape. It is hatched (--tux-map-faded-pattern) and its text is one step
+   quieter than a resting card's, --text-secondary throughout; a planned card is hatched the same and
+   keeps its dashes. A chip keeps a plain fill, so its small text never lies on a line */
 .tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) {
   z-index: 1;
-  opacity: 0.28;
+  background-color: var(--tux-map-faded-surface);
+  background-image: var(--tux-map-faded-pattern);
+  border-color: var(--tux-map-faded-border);
+  box-shadow: none;
+}
+
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-nm {
+  color: var(--text-secondary);
+}
+
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-ic,
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-own,
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-ty,
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-runs,
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-ds,
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-ft {
+  color: var(--text-secondary);
+  opacity: 1;
+}
+
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__chip,
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-busy {
+  background: var(--surface-sunken);
+  border-color: var(--tux-map-faded-border);
+  color: var(--text-muted);
 }
 
 .tux-map__stage--dim .tux-map__el--lit {

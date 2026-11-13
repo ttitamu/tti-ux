@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 524196c754ba90138e42b829f3f9000f2caac2f6a40eedc325e23ff375616a4d
+// SOURCE-SHA256: 406700b295f1b8a47eb7fd2d482b0a5885538c87e5d9060f373b6a82394cbc8c
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -1919,6 +1919,18 @@ export function plainElementKindLabel(elOrKind, opts = {}) {
         return "function";
     }
     return TUX_MAP_ELEMENT_KIND_LABELS[kind] || kind || "element";
+}
+export function elementTypeLabel(el, opts = {}) {
+    const kind = plainElementKindLabel(el);
+    const tech = typeof el?.tech === "string" ? el.tech.trim() : "";
+    if (!tech)
+        return kind;
+    const sep = opts.separator ?? " · ";
+    const lead = new RegExp(`^${kind.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}\\p{N}_])\\s*(?:[·:|,;/\u2013\u2014-]\\s*)*`, "iu");
+    const rest = tech.replace(lead, "").trim();
+    if (!rest)
+        return kind;
+    return `${kind}${sep}${rest}`;
 }
 export const TUX_MAP_VALID_BLAST_INTENTS = new Set([
     "default",

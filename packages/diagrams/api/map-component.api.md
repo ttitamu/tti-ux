@@ -32,7 +32,7 @@ internal.
 - `initialTraceTarget?: string | null` (default: `null`)
 - `initialView?: TuxMapViewMode | "auto"` (default: `"diagram"`)
 - `initialWireFilters?: TuxMapWireCategory[]` (default: `() => ["prod"]`)
-- `initialZoom?: number` (default: `1`)
+- `initialZoom?: number` (default: `undefined`)
 - `level?: TuxMapLevelNumber` (default: `undefined`)
 - `lodMode?: "auto" | TuxMapLoDLevel` (default: `"auto"`)
 - `minimap?: boolean` (default: `true`)
@@ -55,7 +55,7 @@ internal.
 - `wireFilters?: TuxMapWireCategory[]` (default: `undefined`)
 - `zones?: TuxMapZone[]` (default: `() => []`)
 
-## Events (16)
+## Events (15)
 
 - `drill-down`: `(payload: { level: number; focusId: string; subgraph: TuxMapSubgraph | null; })`
 - `laser-move`: `(points: TuxMapStrokePoint[])`
@@ -63,7 +63,6 @@ internal.
 - `update:blastIntent`: `(blastIntent: TuxMapBlastIntent)`
 - `update:focus`: `(focusId: string | null)`
 - `update:level`: `(level: TuxMapLevelNumber)`
-- `update:lodMode`: `(mode: "auto" | TuxMapLoDLevel)`
 - `update:notes`: `(notes: TuxMapStickyNote[])`
 - `update:selectedId`: `(selectedId: string | null)`
 - `update:showBlastRadius`: `(showBlastRadius: boolean)`
@@ -74,14 +73,13 @@ internal.
 - `update:view`: `(view: TuxMapViewMode)`
 - `update:wireFilters`: `(wireFilters: TuxMapWireCategory[])`
 
-## v-model bindings (13)
+## v-model bindings (12)
 
 A prop with a matching `update:<prop>` event.
 
 - `v-model:blastIntent`
 - `v-model:focus`
 - `v-model:level`
-- `v-model:lodMode`
 - `v-model:notes`
 - `v-model:selectedId`
 - `v-model:showBlastRadius`

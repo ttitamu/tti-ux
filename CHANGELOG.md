@@ -18,6 +18,38 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — Architecture map: `initialZoom` opens the map magnified; `lodMode` is deprecated and `update:lodMode` is gone (#230)
+
+- **`initialZoom` does what its name says.** It was accepted and never read. It is now the stage scale the map opens at, 1 being the diagram's real size: the map opens magnified at the nearest magnify step (0.5, 0.75, 1, 1.5 or 2; halfway between two, the larger), and the magnify buttons move on from there. A scale at or under the fitted one opens at Fit. Its default goes from `1` to `undefined`, so a map that does not pass it opens at Fit, as before.
+- **`lodMode` is deprecated** in favour of `level` (`v-model:level`) and `initialLevel`. A change of it after mount still moves the map, and now says so on `update:level` (and `update:focus` when it picks a container), which it did not.
+- **`update:lodMode` is no longer declared.** It was never emitted. The `v-model:lodMode` binding goes with it.
+- The `height` prop's comment called it a minimum. It is the CSS height of the diagram's viewport, as the README says; `"auto"` makes the viewport as tall as the fitted diagram, 440px at least.
+- Tests: `tests/tux-architecture-map-props.nuxt.test.ts` (mounted). `api/map-component.api.md` is regenerated and the README's props table follows it.
+
+**To check when upgrading:**
+- A page that passes `initialZoom` (it did nothing until now) opens magnified wherever Fit is smaller than that scale. Remove the prop to keep the fitted view.
+- A page that listens for `update:lodMode` or binds `v-model:lodMode` hears nothing, as before; bind `v-model:level` instead. A page that changes `lodMode` now gets `update:level` for it.
+
+### Deprecated — removed when TUX goes Live
+
+- `<TuxArchitectureMap lodMode>`: use `level` (`v-model:level`) or `initialLevel` (#230).
+### Fixed — Architecture map: a card's type line does not repeat its kind (#231)
+
+- Where a producer writes a `tech` that starts with the kind, as `"folder · 4 files"` on a folder, the card read "folder · folder · 4 files". It reads "folder · 4 files". A leading kind word is dropped in any case and before a space, `·`, `:`, `-` or nothing; a longer word that starts with it ("folders") is kept.
+- One helper joins the two, `elementTypeLabel(el, { separator })`, new and public in the runtime entry point beside `plainElementKindLabel()`. The card, its accessible name, the list view and the boundary of a view with no `stratum` use it. The boundary also names its card's kind as the card does: a folder card's boundary read "file: folder · 4 files" and now reads "folder: 4 files".
+- Tests: `packages/diagrams/tests/map-type-line.test.ts` (the helper, with the producer fixture's folder card, and the boundary) and `tests/tux-architecture-map-type-line.nuxt.test.ts` (the card, its accessible name and the list view, mounted).
+
+**To check when upgrading:** a test or a screen reader script that expected the repeated kind on a card, in the list view or on a boundary.
+### Changed — Architecture map: a faded card fades by colour, not by opacity (#229)
+
+- **A card a highlight does not reach stays opaque.** It was drawn at opacity 0.28 while the wires a highlight does not reach are at 0.6 in the same layer, so a wire showed through a faded card, its text fell to about 2:1 on the canvas, and every faded card was a layer of its own to paint. It now keeps a surface mixed most of the way to the canvas colour (`--surface-raised` 25% into `--surface-sunken`), a quieter border (`--surface-border` 75% into the canvas) and no shadow or kind bar. A selection, a search, the blast radius and a trace fade the same way.
+- **It is hatched.** Diagonal lines lie between the surface and the text (`--tux-map-faded-pattern`: 1.5 px lines every 7 px, of `--text-muted` 14% into the faded surface), so a faded card shows by a pattern and not by a shade alone (1.4.1). A line is 1.23:1 to 1.29:1 on the surface in the four themes: it shows without competing with the text.
+- **All its text is `--text-secondary`**, the name, the other lines and the icon, and chips keep a plain fill on the canvas colour, so their small text never lies on a line. Measured against a hatch line, the darker of the two grounds: 7.6:1 (`tti`), 10.0:1 (`tti-dark`), 8.6:1 (`tti-soft-dark`), 12.0:1 (`tti-hc`). The border keeps 3.4:1 on the canvas in `tti-hc`, where it is the card's edge.
+- **A planned card keeps its dashes** and is hatched the same. A person card faded is the faded surface, not maroon.
+- The key's "Not in the blast radius" swatch draws the faded card the same way, hatch included, and the overview's faded cards are a lighter fill, opaque, where they were at opacity 0.3.
+- Tests: `tests/tux-architecture-map-fade.test.ts` reads the stylesheet (no opacity under 1 on a faded card, anything in one, the swatch or the overview; the pattern opaque, with no gaps) and works the colours out from the token files of the four themes: the text 7:1 on the surface and on a line, a line between 1.2:1 and 1.5:1 on the surface.
+
+**To check when upgrading:** a host stylesheet that set the opacity or the `background` of `.tux-map__el` under `.tux-map__stage--dim` should be checked. Four custom properties on `.tux-map` carry the fade: `--tux-map-faded-surface`, `--tux-map-faded-border`, `--tux-map-faded-hatch` and `--tux-map-faded-pattern` (set the pattern to `none` for a plain fade).
 ### Changed — Architecture map: a selection, a stage build and a level change reuse what they computed (#227)
 
 - `computeLinkBlastRadius()` keeps what it reads from its `model` option (the subgraph owners, which element runs on which host, and each element's kind, path and technology) per model object, as it already kept its tables per `links` array and `parentOf` map. A selection computes the radius twice (unfiltered, and by the kind chips), and each call built all of it from the whole model again: 15 to 17 ms a call at 10,000 symbols. The tables are built again when the model is another object, when one of its `level1`..`level4` or `subgraphs` records is replaced or the number of subgraphs changes, and with `verifyInputs: true`.
