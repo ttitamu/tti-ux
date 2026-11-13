@@ -18,6 +18,18 @@ conventions.
 
 ## [Unreleased]
 
+## [3.13.0] — 2026-11-13
+
+The architecture map's 3.13 fixes, its 3.14 enhancements and the first phase of its performance work (#221), in one release. Every section below says what to check; these are the ones a host is most likely to meet when upgrading from 3.12.0:
+
+- **A reactive `model` edited in place** (#222): pass `:watch-model-deep="true"`, or pass a new object after the edit.
+- **`initialZoom`** (#230) now opens the map magnified; a page that already passes it should be checked. `lodMode` is deprecated in favour of `level`, and the never-emitted `update:lodMode` is gone.
+- **Wire labels** (#210) sit at the ports, up to two per wire (`data-end`): tests that expect one label per wire, or find one by its whole text, should be checked.
+- **The toolbar's DOM** (#205): the magnify group follows the More group and the trailing controls are in `.tux-map__tools-end`.
+- **A faded card** (#229, #233) is opaque and hatched, and GrayText in forced colours: host stylesheets that set its opacity or background should be checked.
+- **A model without `schema`** (#162) gets one console warning; add `"schema": "tux-map/1"`.
+- **New, off by default or opt-in:** `cursor` (#208), `wheelZoom="click"` (#209); on by default where the map scrolls: the overview `minimap` (#211, `:minimap="false"` to turn it off).
+
 ### Changed — Architecture map: `initialZoom` opens the map magnified; `lodMode` is deprecated and `update:lodMode` is gone (#230)
 
 - **`initialZoom` does what its name says.** It was accepted and never read. It is now the stage scale the map opens at, 1 being the diagram's real size: the map opens magnified at the nearest magnify step (0.5, 0.75, 1, 1.5 or 2; halfway between two, the larger), and the magnify buttons move on from there. A scale at or under the fitted one opens at Fit. Its default goes from `1` to `undefined`, so a map that does not pass it opens at Fit, as before.
