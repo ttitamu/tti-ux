@@ -588,18 +588,37 @@ function onSelectTab(tabId: Tab) {
   }
 }
 
+// The HTML (DOM) tab is the preview's live markup. Capturing it
+// (tuxFormatHtml over innerHTML) and highlighting it with Shiki cost
+// ~100 ms a batch, and a preview such as the architecture map mutates
+// on every pointer move, so the work happens only while the HTML tab
+// is shown: opening the tab captures and highlights once, mutations
+// while it is open are coalesced into one refresh at idle time, and
+// the observer is detached while any other tab is open. A theme change
+// re-highlights only while the tab is shown.
+const mounted = ref(false);
+
 onMounted(() => {
-  captureHTML();
-  attachObserver();
-  rehighlightHtmlTab();
+  mounted.value = true;
 });
 
-watch([rendered, shikiTheme], () => rehighlightHtmlTab());
+watch(
+  [activeTab, mounted, shikiTheme],
+  ([tab, isMounted]) => {
+    if (!isMounted) return;
+    if (tab === "html") {
+      attachObserver();
+      refreshHtmlTab();
+    } else {
+      detachObserver();
+    }
+  },
+  { immediate: true },
+);
 
 watch([activeTab, shikiTheme], async ([tab, theme]) => {
-  if (tab === "html") {
-    await rehighlightHtmlTab();
-  } else if (tab === "razor" && activeRazorCode.value) {
+  // "html" is handled by the HTML-tab watcher above.
+  if (tab === "razor" && activeRazorCode.value) {
     razorHighlighted.value = await highlight(activeRazorCode.value, { lang: "razor", theme });
   } else if (tab === "react" && activeReactCode.value) {
     reactHighlighted.value = await highlight(activeReactCode.value, { lang: "tsx", theme });
@@ -616,22 +635,61 @@ watch([activeTab, shikiTheme], async ([tab, theme]) => {
   }
 });
 
+// Markup + theme of the last highlight, so a refresh whose capture
+// came out identical (a mutation that round-tripped) skips Shiki.
+let highlightedKey: string | null = null;
+
 async function rehighlightHtmlTab() {
   if (!rendered.value) {
+    highlightedKey = null;
     renderedHighlighted.value = null;
     return;
   }
-  renderedHighlighted.value = await highlight(rendered.value, {
-    lang: "html",
-    theme: shikiTheme.value,
-  });
+  const theme = shikiTheme.value;
+  const code = rendered.value;
+  const key = `${theme}\u0000${code}`;
+  if (key === highlightedKey) return;
+  highlightedKey = key;
+  const html = await highlight(code, { lang: "html", theme });
+  // A newer capture or theme may have landed while Shiki ran.
+  if (highlightedKey === key) renderedHighlighted.value = html;
+}
+
+function refreshHtmlTab() {
+  if (activeTab.value !== "html") return;
+  captureHTML();
+  void rehighlightHtmlTab();
 }
 
 let observer: MutationObserver | null = null;
+let idleHandle: number | null = null;
+let idleIsTimeout = false;
+
+function scheduleHtmlRefresh() {
+  if (idleHandle !== null) return;
+  const run = () => {
+    idleHandle = null;
+    refreshHtmlTab();
+  };
+  if (typeof window.requestIdleCallback === "function") {
+    idleIsTimeout = false;
+    idleHandle = window.requestIdleCallback(run, { timeout: 500 });
+  } else {
+    idleIsTimeout = true;
+    idleHandle = window.setTimeout(run, 16);
+  }
+}
+
+function cancelHtmlRefresh() {
+  if (idleHandle === null) return;
+  if (idleIsTimeout) window.clearTimeout(idleHandle);
+  else window.cancelIdleCallback(idleHandle);
+  idleHandle = null;
+}
 
 function attachObserver() {
-  if (!previewRef.value) return;
-  observer = new MutationObserver(() => captureHTML());
+  if (observer || !previewRef.value) return;
+  observer = new MutationObserver(scheduleHtmlRefresh);
   observer.observe(previewRef.value, {
     childList: true,
     subtree: true,
@@ -640,8 +698,14 @@ function attachObserver() {
   });
 }
 
-onBeforeUnmount(() => {
+function detachObserver() {
   observer?.disconnect();
+  observer = null;
+  cancelHtmlRefresh();
+}
+
+onBeforeUnmount(() => {
+  detachObserver();
 });
 
 function captureHTML() {
