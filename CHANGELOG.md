@@ -40,6 +40,11 @@ conventions.
 - Tests: `packages/diagrams/tests/map-type-line.test.ts` (the helper, with the producer fixture's folder card, and the boundary) and `tests/tux-architecture-map-type-line.nuxt.test.ts` (the card, its accessible name and the list view, mounted).
 
 **To check when upgrading:** a test or a screen reader script that expected the repeated kind on a card, in the list view or on a boundary.
+### Fixed — Architecture map: a faded card is GrayText in forced colours (#233)
+
+- **Windows High Contrast and other forced-colour modes** drop a faded card's surface and its hatch (#229), so it read as a lit card. Its border and all its text now take `GrayText`, the system colour for what is not active, and the key's "Not in the blast radius" swatch follows. At opacity 0.28 the old fade still showed there, so this restores it.
+- Tests: `tests/tux-architecture-map-fade.test.ts` reads the forced-colors block (the card, everything in it at the specificity of its own text rules, the swatch).
+
 ### Changed — Architecture map: a faded card fades by colour, not by opacity (#229)
 
 - **A card a highlight does not reach stays opaque.** It was drawn at opacity 0.28 while the wires a highlight does not reach are at 0.6 in the same layer, so a wire showed through a faded card, its text fell to about 2:1 on the canvas, and every faded card was a layer of its own to paint. It now keeps a surface mixed most of the way to the canvas colour (`--surface-raised` 25% into `--surface-sunken`), a quieter border (`--surface-border` 75% into the canvas) and no shadow or kind bar. A selection, a search, the blast radius and a trace fade the same way.

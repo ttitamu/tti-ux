@@ -19,7 +19,20 @@ const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
 const uncomment = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, "");
 const styleOf = (sfc: string) => uncomment(sfc.slice(sfc.lastIndexOf("<style")).replace(/^<style[^>]*>/, ""));
 
-const MAP = styleOf(read("packages/diagrams/app/components/TuxArchitectureMap.vue"));
+const MAP_ALL = styleOf(read("packages/diagrams/app/components/TuxArchitectureMap.vue"));
+/** The forced-colors block, and the stylesheet without it: the colour rules below are the ones a
+    browser uses when it does not force colours */
+const FORCED_AT = MAP_ALL.indexOf("@media (forced-colors: active)");
+const FORCED_END = (() => {
+  let depth = 0;
+  for (let i = MAP_ALL.indexOf("{", FORCED_AT); i < MAP_ALL.length; i++) {
+    if (MAP_ALL[i] === "{") depth++;
+    if (MAP_ALL[i] === "}" && --depth === 0) return i + 1;
+  }
+  return MAP_ALL.length;
+})();
+const FORCED = MAP_ALL.slice(MAP_ALL.indexOf("{", FORCED_AT) + 1, FORCED_END - 1);
+const MAP = MAP_ALL.slice(0, FORCED_AT) + MAP_ALL.slice(FORCED_END);
 const MINIMAP = styleOf(read("packages/diagrams/app/utils/internal/TuxArchitectureMapMinimap.vue"));
 
 type Rule = { selectors: string[]; body: string };
@@ -174,6 +187,18 @@ describe("TuxArchitectureMap: a faded card fades by colour, not by opacity (#229
     expect(property(swatch, "background-image")).toBe("var(--tux-map-faded-pattern)");
     expect(property(swatch, "border-color")).toBe("var(--tux-map-faded-border)");
     expect(property(declarationsOf(MINIMAP, ".tux-map__minimap-card--faded"), "fill")).toMatch(/^color-mix\(in srgb, /);
+  });
+
+  it("in forced colours, where the surface and the hatch are dropped, draws a faded card in GrayText (#233)", () => {
+    expect(FORCED_AT).toBeGreaterThan(-1);
+    // the card, every element in it (at the specificity of its own text rules) and the key's swatch
+    for (const sel of [FADED, `${FADED} [class]`, ".tux-map__swatch--faded"]) {
+      const body = declarationsOf(FORCED, sel);
+      expect(property(body, "border-color"), sel).toBe("GrayText");
+      expect(property(body, "color"), sel).toBe("GrayText");
+    }
+    // the [class] rule comes after the faded text rules, so it wins their tie
+    expect(MAP_ALL.lastIndexOf(`${FADED} .tux-map__el-nm`)).toBeLessThan(FORCED_AT);
   });
 
   describe.each(Object.keys(THEMES))("in %s", (theme) => {
