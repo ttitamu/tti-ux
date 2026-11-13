@@ -11,7 +11,10 @@
  * - `filterLinksByCategories` keeps each link's category, and `splitNodeId` its
  *   answer per id: both equal what they give from scratch.
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// Every test here computes full radii or compares many pairs; a shared runner needs more than 5 s.
+vi.setConfig({ testTimeout: 30_000 });
 import {
   buildMapParentIndex,
   classifyLinkDependencyCategory,
@@ -60,7 +63,7 @@ describe("the blast radius tables are kept per model (#227)", () => {
         expect(warm, `${intent} ${seed}`).toEqual(cold);
       }
     }
-  }, 30_000); // a full radius per intent and seed, twice; a shared runner needs more than the 5 s default
+  });
 
   it("keeps the tables of each model apart", () => {
     const o = buildSyntheticMapModel({ symbols: 500, cardsPerView: 12, seed: 9 });
