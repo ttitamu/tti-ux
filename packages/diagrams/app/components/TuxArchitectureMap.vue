@@ -167,11 +167,16 @@ export interface TuxArchitectureMapProps {
   caption?: string;
   /** Accessible label for the diagram region */
   ariaLabel?: string;
-  /** Optional minimum viewport height */
+  /** CSS height of the diagram's viewport (`"auto"` by default: the viewport is as tall as the fitted diagram, 440px at least). A fixed height scrolls a taller diagram */
   height?: string;
-  /** Legacy LoD override prop for compatibility */
+  /**
+   * Legacy level-of-detail switch. A change after mount moves the map to Level 1 (`"executive"`),
+   * Level 2 (`"resources"`) or Level 3 (`"packages"`) and emits `update:level`; the value at mount
+   * is not read (`#230`).
+   * @deprecated Use `level` (`v-model:level`) or `initialLevel`.
+   */
   lodMode?: "auto" | TuxMapLoDLevel;
-  /** Initial zoom scale compatibility prop */
+  /** Stage scale to open at, 1 being the diagram's real size: the map opens magnified at the nearest magnify step (0.5, 0.75, 1, 1.5 or 2; halfway, the larger). A scale at or under the fitted one opens at Fit, as does no value (`undefined` by default; `#230`) */
   initialZoom?: number;
   /** Freehand ink strokes */
   strokes?: TuxMapInkStroke[];
@@ -221,7 +226,7 @@ const props = withDefaults(defineProps<TuxArchitectureMapProps>(), {
   ariaLabel: "Interactive multi-level architecture map",
   height: "auto",
   lodMode: "auto",
-  initialZoom: 1,
+  initialZoom: undefined,
   strokes: () => [],
   notes: () => [],
   penColor: "#5C0025",
@@ -238,7 +243,6 @@ const emit = defineEmits<{
   (e: "update:splitIds", splitIds: string[]): void;
   (e: "update:wireFilters", wireFilters: TuxMapWireCategory[]): void;
   (e: "update:traceTarget", traceTarget: string | null): void;
-  (e: "update:lodMode", mode: "auto" | TuxMapLoDLevel): void;
   (e: "node-select", item: TuxMapLevelElement | TuxMapDeploymentNode | TuxMapNode | null): void;
   (e: "drill-down", payload: { level: number; focusId: string; subgraph: TuxMapSubgraph | null }): void;
   (e: "update:strokes", strokes: TuxMapInkStroke[]): void;
@@ -739,10 +743,13 @@ watch(isListView, (lv) => {
   emit("update:view", lv ? "list" : "diagram");
 });
 
-// Sync legacy `lodMode` prop if changed externally
+// Sync legacy `lodMode` prop if changed externally (deprecated: `level`). The level it moves to is
+// said on `update:level`, as any other change of level is (#230)
 watch(
   () => props.lodMode,
   (mode) => {
+    const fromLevel = currentLevel.value;
+    const fromFocus = focusId.value;
     if (mode === "executive") currentLevel.value = 1;
     else if (mode === "resources") currentLevel.value = 2;
     else if (mode === "packages") {
@@ -754,6 +761,8 @@ watch(
       }
       if (focusId.value) currentLevel.value = 3;
     }
+    if (focusId.value !== fromFocus) emit("update:focus", focusId.value);
+    if (currentLevel.value !== fromLevel) emit("update:level", currentLevel.value);
   },
 );
 
@@ -3358,7 +3367,12 @@ const fitScale = computed<number>(() => {
 // browser zoom, draws 14px text at 3-6px. "Larger" scales it past the fit and the viewport scrolls:
 // a finger, a scrollbar or the arrow keys move it, and no dragging is required (WCAG 1.4.4, 2.5.7).
 const MAGNIFY_SCALES = [0.5, 0.75, 1, 1.5, 2];
-const zoomScale = ref<number | null>(null);
+/** The magnify step nearest a scale (halfway, the larger), or `null` for no scale (`initialZoom`, #230). */
+function nearestMagnifyStep(scale: number | undefined): number | null {
+  if (typeof scale !== "number" || !Number.isFinite(scale) || scale <= 0) return null;
+  return MAGNIFY_SCALES.reduce((best, m) => (Math.abs(m - scale) <= Math.abs(best - scale) ? m : best));
+}
+const zoomScale = ref<number | null>(nearestMagnifyStep(props.initialZoom));
 const stageScale = computed<number>(() =>
   zoomScale.value !== null && zoomScale.value > fitScale.value ? zoomScale.value : fitScale.value,
 );

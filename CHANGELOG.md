@@ -18,6 +18,21 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — Architecture map: `initialZoom` opens the map magnified; `lodMode` is deprecated and `update:lodMode` is gone (#230)
+
+- **`initialZoom` does what its name says.** It was accepted and never read. It is now the stage scale the map opens at, 1 being the diagram's real size: the map opens magnified at the nearest magnify step (0.5, 0.75, 1, 1.5 or 2; halfway between two, the larger), and the magnify buttons move on from there. A scale at or under the fitted one opens at Fit. Its default goes from `1` to `undefined`, so a map that does not pass it opens at Fit, as before.
+- **`lodMode` is deprecated** in favour of `level` (`v-model:level`) and `initialLevel`. A change of it after mount still moves the map, and now says so on `update:level` (and `update:focus` when it picks a container), which it did not.
+- **`update:lodMode` is no longer declared.** It was never emitted. The `v-model:lodMode` binding goes with it.
+- The `height` prop's comment called it a minimum. It is the CSS height of the diagram's viewport, as the README says; `"auto"` makes the viewport as tall as the fitted diagram, 440px at least.
+- Tests: `tests/tux-architecture-map-props.nuxt.test.ts` (mounted). `api/map-component.api.md` is regenerated and the README's props table follows it.
+
+**To check when upgrading:**
+- A page that passes `initialZoom` (it did nothing until now) opens magnified wherever Fit is smaller than that scale. Remove the prop to keep the fitted view.
+- A page that listens for `update:lodMode` or binds `v-model:lodMode` hears nothing, as before; bind `v-model:level` instead. A page that changes `lodMode` now gets `update:level` for it.
+
+### Deprecated — removed when TUX goes Live
+
+- `<TuxArchitectureMap lodMode>`: use `level` (`v-model:level`) or `initialLevel` (#230).
 ### Fixed — Architecture map: a card's type line does not repeat its kind (#231)
 
 - Where a producer writes a `tech` that starts with the kind, as `"folder · 4 files"` on a folder, the card read "folder · folder · 4 files". It reads "folder · 4 files". A leading kind word is dropped in any case and before a space, `·`, `:`, `-` or nothing; a longer word that starts with it ("folders") is kept.
