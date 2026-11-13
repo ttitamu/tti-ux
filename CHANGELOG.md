@@ -18,6 +18,15 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — Architecture map: a faded card fades by colour, not by opacity (#229)
+
+- **A card a highlight does not reach stays opaque.** It was drawn at opacity 0.28 while the wires a highlight does not reach are at 0.6 in the same layer, so a wire showed through a faded card, its text fell to about 2:1 on the canvas, and every faded card was a layer of its own to paint. It now keeps a surface mixed most of the way to the canvas colour (`--surface-raised` 25% into `--surface-sunken`), a quieter border (`--surface-border` 75% into the canvas) and no shadow or kind bar. A selection, a search, the blast radius and a trace fade the same way.
+- **Its text takes the colours of a faded wire label (#205):** the name `--text-secondary`, the other lines and the icon `--text-muted`, chips on the canvas colour. Measured against the faded surface: the name 9.4:1 (`tti`), 12.7:1 (`tti-dark`), 11.1:1 (`tti-soft-dark`), 14.8:1 (`tti-hc`); the other lines 7.3:1, 9.4:1, 8.4:1, 7.7:1. The border keeps 3.4:1 on the canvas in `tti-hc`, where it is the card's edge.
+- **A planned card keeps its dashes** and lies on the canvas colour, opaque. A person card faded is the faded surface, not maroon.
+- The key's "Not in the blast radius" swatch draws the faded card the same way, and the overview's faded cards are a lighter fill, opaque, where they were at opacity 0.3.
+- Tests: `tests/tux-architecture-map-fade.test.ts` reads the stylesheet (no opacity under 1 on a faded card, anything in one, the swatch or the overview) and works the colours out from the token files of the four themes.
+
+**To check when upgrading:** a host stylesheet that set the opacity of `.tux-map__el` under `.tux-map__stage--dim` should be checked. Two custom properties on `.tux-map` carry the fade: `--tux-map-faded-surface` and `--tux-map-faded-border`.
 ### Added — Architecture map: an overview of the level fades in while the view moves (`minimap`) (#211)
 
 - `<TuxArchitectureMap>` draws a small overview of the level in the bottom-left corner of the canvas: every card a rectangle in its place, and a frame around the part in view. The selected card is filled with the brand colour and outlined, a changed card (with the blast radius on) takes the warning colour, and while the stage dims the cards a highlight does not reach, the overview dims the same ones.

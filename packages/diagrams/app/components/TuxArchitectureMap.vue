@@ -8773,6 +8773,12 @@ function buildSourceHref(src?: {
      link underlines, never the letters */
   --tux-map-brand-ink: var(--text-primary);
   --tux-map-brand-tint: color-mix(in srgb, var(--brand-primary) 18%, var(--surface-raised));
+  /* A card the highlight does not reach (#229): opaque, its surface most of the way to the canvas
+     (--surface-sunken) and its border quieter. The faded text on it holds 7:1 in the four themes
+     (--text-secondary 9.4:1 or more, --text-muted 7.3:1 or more); the border keeps 3:1 on the
+     canvas in the high-contrast theme (3.4:1), where it is the card's edge */
+  --tux-map-faded-surface: color-mix(in srgb, var(--surface-raised) 25%, var(--surface-sunken));
+  --tux-map-faded-border: color-mix(in srgb, var(--surface-border) 75%, var(--surface-sunken));
   /* 2.5.5 Target Size (Enhanced); TUX's field-sunlight mode asks 48px for gloved hands */
   --tux-map-target: 44px;
 }
@@ -9538,9 +9544,10 @@ function buildSourceHref(src?: {
   border: 2px solid var(--brand-primary);
 }
 
-/* The opacity of a card the blast radius does not reach (.tux-map__stage--dim) */
+/* A card the blast radius does not reach (.tux-map__stage--dim), drawn as the card is (#229) */
 .tux-map__swatch--faded {
-  opacity: 0.28;
+  background: var(--tux-map-faded-surface);
+  border-color: var(--tux-map-faded-border);
 }
 
 .tux-map__blast-note {
@@ -10798,9 +10805,41 @@ function buildSourceHref(src?: {
   box-shadow: none;
 }
 
+/* A card the highlight does not reach steps back by its colours, not by fading (#229). At opacity
+   0.28 the wires behind it showed through, its text fell to about 2:1 and every faded card was a
+   layer of its own to paint. Opaque, it hides the wires under it, as a lit card does; its kind still
+   shows by its icon and its shape. Its text takes the colours of a faded wire label (#205) */
 .tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) {
   z-index: 1;
-  opacity: 0.28;
+  background: var(--tux-map-faded-surface);
+  border-color: var(--tux-map-faded-border);
+  box-shadow: none;
+}
+
+/* a planned card has no surface: it lies on the canvas colour, opaque, and keeps its dashes */
+.tux-map__stage--dim .tux-map__el--st-planned:not(.tux-map__el--lit) {
+  background: var(--surface-sunken);
+}
+
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-nm {
+  color: var(--text-secondary);
+}
+
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-ic,
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-own,
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-ty,
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-runs,
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-ds,
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-ft {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__chip,
+.tux-map__stage--dim .tux-map__el:not(.tux-map__el--lit) .tux-map__el-busy {
+  background: var(--surface-sunken);
+  border-color: var(--tux-map-faded-border);
+  color: var(--text-muted);
 }
 
 .tux-map__stage--dim .tux-map__el--lit {
