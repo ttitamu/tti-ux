@@ -50,6 +50,8 @@ export function useTuxMapCursor(o: {
   pan: Ref<number>;
   /** The background is being dragged */
   drag: Ref<boolean>;
+  /** Where the viewport's scrolled content starts, in client px: the map's own reading, kept between moves (#224) */
+  origin: () => number[];
 }) {
   /** The cursor element: a child of the viewport holding the dot, then the disc. */
   const el = ref<HTMLElement | null>(null);
@@ -99,14 +101,11 @@ export function useTuxMapCursor(o: {
     if (busy) raf = requestAnimationFrame(frame);
   }
 
-  /** Reads where the pointer and its target are (the only layout reads) and sets the disc going. */
+  /** Places the dot, and sets the disc going to its target: a control under the pointer is the one layout read. */
   function aim() {
-    const vp = el.value?.parentElement;
     const e = last;
-    if (!vp || !e) return;
-    const r = vp.getBoundingClientRect();
-    const ox = r.left + vp.clientLeft - vp.scrollLeft;
-    const oy = r.top + vp.clientTop - vp.scrollTop;
+    if (!el.value || !e) return;
+    const [ox, oy] = o.origin() as [number, number];
     const px = e.clientX - ox;
     const py = e.clientY - oy;
     (el.value!.firstElementChild as HTMLElement).style.transform = `translate(${px}px,${py}px)`;

@@ -70,6 +70,19 @@ function pointOf(e: PointerEvent) {
   return { x: e.clientX - box.left - el.clientLeft, y: e.clientY - box.top - el.clientTop };
 }
 
+/**
+ * The map's own pointer move, in px from the viewport's content box. Shown and resting, the
+ * overview lets the pointer through to the card under it; the pointer inside its box makes it
+ * live (#228).
+ */
+function pointerAt(x: number, y: number) {
+  const { width: w, height: h } = size.value;
+  const top = m.measured.value.height - h - 2 - MARGIN;
+  m.hold("pointer", rendered.value && m.shown.value && x >= MARGIN && x <= MARGIN + w + 2 && y >= top && y <= top + h + 2);
+}
+
+defineExpose({ pointerAt });
+
 function onPointerDown(e: PointerEvent) {
   if (e.button !== 0) return;
   e.preventDefault();
@@ -107,7 +120,7 @@ function onKeydown(e: KeyboardEvent) {
   <div
     v-if="rendered"
     class="tux-map__minimap"
-    :class="{ 'tux-map__minimap--shown': m.shown.value }"
+    :class="{ 'tux-map__minimap--shown': m.shown.value, 'tux-map__minimap--live': m.live.value }"
     role="img"
     tabindex="0"
     :aria-label="`Overview of this level: ${cards.length} ${cards.length === 1 ? 'card' : 'cards'}. The frame is the part in view; the arrow keys move it.`"
@@ -157,8 +170,8 @@ function onKeydown(e: KeyboardEvent) {
 </template>
 
 <style scoped>
-/* Not shown, it is out of the pointer's way: the cards under it take their clicks. It stays in
-   the document, so the Tab key reaches it, and focus shows it. */
+/* Out of the pointer's way unless live: the cards under it take their clicks, also while it is
+   shown after a move (#228). It stays in the document, so the Tab key reaches it, and focus shows it. */
 .tux-map__minimap {
   position: absolute;
   z-index: 24;
@@ -179,6 +192,9 @@ function onKeydown(e: KeyboardEvent) {
 
 .tux-map__minimap--shown {
   opacity: 1;
+}
+
+.tux-map__minimap--live {
   pointer-events: auto;
 }
 

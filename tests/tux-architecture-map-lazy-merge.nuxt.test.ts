@@ -2,7 +2,7 @@
 // the arrival is added to the model and to the indexes built from it, so what
 // was indexed before stays the same objects, and the result equals a map that
 // was given the same subgraphs from the start. A new model, or an edit inside a
-// reactive one, starts over.
+// reactive one under `watchModelDeep` (#222), starts over.
 import { describe, expect, it } from "vitest";
 import { nextTick, reactive } from "vue";
 import { mountSuspended } from "@nuxt/test-utils/runtime";
@@ -66,13 +66,14 @@ async function settle() {
   }
 }
 
-async function mountMap(model: TuxMapLevelModel) {
+async function mountMap(model: TuxMapLevelModel, extra: Record<string, unknown> = {}) {
   return mountSuspended(TuxArchitectureMap, {
     props: {
       model,
       initialLevel: 3,
       initialFocus: "c1",
       resolveSubgraph: (ref: string) => Promise.resolve(LAZY[ref] ?? null),
+      ...extra,
     },
   });
 }
@@ -160,9 +161,9 @@ describe("TuxArchitectureMap lazy subgraph arrival (#157)", () => {
     w.unmount();
   });
 
-  it("starts over when a reactive model is edited in place", async () => {
+  it("starts over when a reactive model is edited in place, with watchModelDeep (#222)", async () => {
     const model = reactive(lazyModel()) as TuxMapLevelModel;
-    const w = await mountMap(model);
+    const w = await mountMap(model, { watchModelDeep: true });
     await arrive(w, "comp-one");
     const s = stateOf(w);
     expect(s.mergedModel.added?.key).toBe("sg-one");

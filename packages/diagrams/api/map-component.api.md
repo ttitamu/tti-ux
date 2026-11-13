@@ -8,7 +8,7 @@ events it emits, its `v-model` bindings, its slots, the members it exposes on a 
 ref, and the types its file exports. Sorted by name. Everything else in the component is
 internal.
 
-## Props (43)
+## Props (44)
 
 - `annotations?: boolean` (default: `false`)
 - `ariaLabel?: string` (default: `"Interactive multi-level architecture map"`)
@@ -50,6 +50,7 @@ internal.
 - `title?: string` (default: `"Modular Architecture Map"`)
 - `traceTarget?: string | null` (default: `undefined`)
 - `view?: TuxMapViewMode` (default: `undefined`)
+- `watchModelDeep?: boolean` (default: `false`)
 - `wheelZoom?: boolean | "click"` (default: `true`)
 - `wireFilters?: TuxMapWireCategory[]` (default: `undefined`)
 - `zones?: TuxMapZone[]` (default: `() => []`)

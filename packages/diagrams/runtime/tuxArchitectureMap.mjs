@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: bef8e47401c596157979e99beff141efe9b197fc01edf682a5ed264ddcdea17a
+// SOURCE-SHA256: 406700b295f1b8a47eb7fd2d482b0a5885538c87e5d9060f373b6a82394cbc8c
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -1826,10 +1826,20 @@ const MAX_TREE_DEPTH = 64;
 const QUAL_OWNER_REPO_NODE_ID_RE = /^([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+):([cfsdpr]):(.*)$/;
 const LEGACY_NODE_ID_RE = /^([cfsdpr]):(.*)$/;
 const BARE_REPO_NODE_ID_RE = /^([A-Za-z0-9_.-]{2,}):([cfsdpr]):(.*)$/;
+const SPLIT_NODE_ID_MEMO = new Map();
 export function splitNodeId(nid) {
     if (typeof nid !== "string" || !nid) {
         return { repo: null, kind: null, rest: "" };
     }
+    let out = SPLIT_NODE_ID_MEMO.get(nid);
+    if (!out) {
+        if (SPLIT_NODE_ID_MEMO.size > 65535)
+            SPLIT_NODE_ID_MEMO.clear();
+        SPLIT_NODE_ID_MEMO.set(nid, (out = splitNodeIdUncached(nid)));
+    }
+    return out;
+}
+function splitNodeIdUncached(nid) {
     if (nid.startsWith("p:pkg:") || nid.startsWith("s:pkg:") || nid.startsWith("r:")) {
         return { repo: "", kind: nid[0], rest: nid.slice(2) };
     }
@@ -2034,9 +2044,12 @@ export function setOwnProp(obj, key, value) {
         obj[key] = value;
     }
 }
+const SURROGATE_RE = /[\uD800-\uDFFF]/;
 export function cmpCodepoint(a, b) {
     if (a === b)
         return 0;
+    if (!SURROGATE_RE.test(a) && !SURROGATE_RE.test(b))
+        return a < b ? -1 : 1;
     let ia = 0;
     let ib = 0;
     while (ia < a.length && ib < b.length) {
@@ -4000,6 +4013,7 @@ export function classifyLinkDependencyCategory(link) {
     }
     return "prod";
 }
+const LINK_CATEGORY_CACHE = new WeakMap();
 export function filterLinksByCategories(links, categories) {
     const catSet = categories instanceof Set ? categories : new Set(categories);
     if (catSet.size === 0)
@@ -4010,7 +4024,12 @@ export function filterLinksByCategories(links, categories) {
         catSet.has("docs")) {
         return [...links];
     }
-    return links.filter((l) => catSet.has(classifyLinkDependencyCategory(l)));
+    return links.filter((l) => {
+        let c = LINK_CATEGORY_CACHE.get(l);
+        if (!c)
+            LINK_CATEGORY_CACHE.set(l, (c = classifyLinkDependencyCategory(l)));
+        return catSet.has(c);
+    });
 }
 function sortKindEntries(kinds) {
     return [...kinds.entries()].sort((a, b) => b[1] - a[1] || linkStrengthRank(a[0]) - linkStrengthRank(b[0]) || cmpCodepoint(a[0], b[0]));
@@ -4589,7 +4608,7 @@ export function traceSpreadingPath(fromId, toId, model, opts = {}) {
     };
     return runSearch(false) ?? (allowStopFirst ? runSearch(true) : null) ?? { found: false, nodeIds: [], hops: [] };
 }
-function buildHostBridge(model, subgraphOwners = collectSubgraphOwners(model)) {
+function buildHostBridge(model, subgraphOwners) {
     const hostsByElement = new Map();
     const elementsByHost = new Map();
     const linkHost = (elId, hostId) => {
@@ -4653,7 +4672,7 @@ function buildHostBridge(model, subgraphOwners = collectSubgraphOwners(model)) {
     }
     return { hostsByElement, elementsByHost };
 }
-function buildBlastNodeMeta(model, subgraphOwners = collectSubgraphOwners(model)) {
+function buildBlastNodeMeta(model, subgraphOwners) {
     const meta = new Map();
     if (!model || typeof model !== "object")
         return meta;
@@ -4695,6 +4714,30 @@ function buildBlastNodeMeta(model, subgraphOwners = collectSubgraphOwners(model)
         }
     }
     return meta;
+}
+const BLAST_MODEL_CACHE = new WeakMap();
+function blastModelParts(model) {
+    const sg = model.subgraphs;
+    return [model.level1, model.level2, model.level3, model.level4, sg, isPlainRecord(sg) ? Object.keys(sg).length : 0];
+}
+function getBlastModelTables(model, verify) {
+    const keyed = model && typeof model === "object" ? model : undefined;
+    const parts = keyed ? blastModelParts(keyed) : [];
+    const cached = keyed && !verify ? BLAST_MODEL_CACHE.get(keyed) : undefined;
+    if (cached && cached.parts.every((p, i) => p === parts[i]))
+        return cached;
+    const subgraphOwners = collectSubgraphOwners(model);
+    const tables = {
+        parts,
+        hostBridge: keyed ? buildHostBridge(keyed, subgraphOwners) : null,
+        metaById: buildBlastNodeMeta(model, subgraphOwners),
+        l4NodeIds: new Set(asObjArray(keyed?.level4?.nodes)
+            .filter((n) => typeof n.id === "string" && Boolean(n.id))
+            .map((n) => n.id)),
+    };
+    if (keyed)
+        BLAST_MODEL_CACHE.set(keyed, tables);
+    return tables;
 }
 function repoPathForNodeId(id, meta) {
     if (meta?.path)
@@ -4780,9 +4823,7 @@ export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) 
     };
     for (const s of rawSeeds)
         addSeed(s);
-    const subgraphOwners = collectSubgraphOwners(opts.model);
-    const hostBridge = opts.model ? buildHostBridge(opts.model, subgraphOwners) : null;
-    const metaById = buildBlastNodeMeta(opts.model, subgraphOwners);
+    const { hostBridge, metaById, l4NodeIds } = getBlastModelTables(opts.model, verify);
     if (opts.model && typeof opts.model === "object") {
         if (typeof opts.model.level2?.boundary === "string" && opts.model.level2.boundary && seeds.has(opts.model.level2.boundary)) {
             for (const e of asObjArray(opts.model.level2.elements)) {
@@ -4790,9 +4831,6 @@ export function computeLinkBlastRadius(links, seedOrSeeds, parentOf, opts = {}) 
                     addSeed(e.id);
             }
         }
-        const l4NodeIds = new Set(asObjArray(opts.model.level4?.nodes)
-            .filter((n) => typeof n.id === "string" && Boolean(n.id))
-            .map((n) => n.id));
         for (const s of [...seeds]) {
             const hosted = hostBridge?.elementsByHost.get(s);
             if (hosted && l4NodeIds.has(s)) {

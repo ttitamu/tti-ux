@@ -3236,9 +3236,15 @@ const QUAL_OWNER_REPO_NODE_ID_RE = /^([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+):([cfsdpr
 const LEGACY_NODE_ID_RE = /^([cfsdpr]):(.*)$/;
 const BARE_REPO_NODE_ID_RE = /^([A-Za-z0-9_.-]{2,}):([cfsdpr]):(.*)$/;
 
+type SplitNodeId = { repo: string | null; kind: string | null; rest: string };
+
+/** `splitNodeId` answers by id (`tti/tti-ux#227`): it is called in the loops of a level change. Emptied at 65,536. */
+const SPLIT_NODE_ID_MEMO = /* @__PURE__ */ new Map<string, SplitNodeId>();
+
 /**
  * Splits repo-qualified (`owner/repo:k:rest` or `repo:k:rest`) and legacy (`k:rest`)
- * node IDs into `{ repo, kind, rest }` (matching Python `_split_node_id` 1:1).
+ * node IDs into `{ repo, kind, rest }` (matching Python `_split_node_id` 1:1). The answer
+ * is kept per id and shared between calls: read it, do not change it.
  * @internal
  */
 export function splitNodeId(nid: string): {
@@ -3249,6 +3255,15 @@ export function splitNodeId(nid: string): {
   if (typeof nid !== "string" || !nid) {
     return { repo: null, kind: null, rest: "" };
   }
+  let out = SPLIT_NODE_ID_MEMO.get(nid);
+  if (!out) {
+    if (SPLIT_NODE_ID_MEMO.size > 65535) SPLIT_NODE_ID_MEMO.clear();
+    SPLIT_NODE_ID_MEMO.set(nid, (out = splitNodeIdUncached(nid)));
+  }
+  return out;
+}
+
+function splitNodeIdUncached(nid: string): SplitNodeId {
   if (nid.startsWith("p:pkg:") || nid.startsWith("s:pkg:") || nid.startsWith("r:")) {
     return { repo: "", kind: nid[0]!, rest: nid.slice(2) };
   }
@@ -3512,12 +3527,17 @@ export function setOwnProp<T>(obj: Record<string, T>, key: string, value: T): vo
   }
 }
 
+const SURROGATE_RE = /[\uD800-\uDFFF]/;
+
 /**
  * True Unicode code-point comparison (matches Python `str < str` even on supplementary U+10000+ planes).
+ * Without a surrogate in either string, UTF-16 order is code-point order, so the engine compares
+ * (`tti/tti-ux#227`). Only the sign of the result means anything.
  * @internal
  */
 export function cmpCodepoint(a: string, b: string): number {
   if (a === b) return 0;
+  if (!SURROGATE_RE.test(a) && !SURROGATE_RE.test(b)) return a < b ? -1 : 1;
   let ia = 0;
   let ib = 0;
   while (ia < a.length && ib < b.length) {
@@ -6075,8 +6095,12 @@ export function classifyLinkDependencyCategory(link: TuxMapLink): TuxMapWireCate
   return "prod";
 }
 
+/** Each link's category, by the link object (`tti/tti-ux#227`): a stage build classified every link again. */
+const LINK_CATEGORY_CACHE = /* @__PURE__ */ new WeakMap<TuxMapLink, TuxMapWireCategory>();
+
 /**
- * Filters `links` to those matching `categories` (`tti/tti-ux#118`).
+ * Filters `links` to those matching `categories` (`tti/tti-ux#118`). The category of each link is
+ * kept against the link object: treat a link as read-only once passed, or pass a new object.
  * @public
  */
 export function filterLinksByCategories(
@@ -6093,7 +6117,11 @@ export function filterLinksByCategories(
   ) {
     return [...links];
   }
-  return links.filter((l) => catSet.has(classifyLinkDependencyCategory(l)));
+  return links.filter((l) => {
+    let c = LINK_CATEGORY_CACHE.get(l);
+    if (!c) LINK_CATEGORY_CACHE.set(l, (c = classifyLinkDependencyCategory(l)));
+    return catSet.has(c);
+  });
 }
 
 /**
@@ -6926,7 +6954,7 @@ export interface TuxMapBlastResult {
 
 function buildHostBridge(
   model: TuxMapLevelModel,
-  subgraphOwners: Map<string, string> = collectSubgraphOwners(model),
+  subgraphOwners: Map<string, string>,
 ): {
   hostsByElement: Map<string, Set<string>>;
   elementsByHost: Map<string, Set<string>>;
@@ -6990,8 +7018,8 @@ interface BlastNodeMeta {
 }
 
 function buildBlastNodeMeta(
-  model?: TuxMapLevelModel,
-  subgraphOwners: Map<string, string> = collectSubgraphOwners(model),
+  model: TuxMapLevelModel | undefined,
+  subgraphOwners: Map<string, string>,
 ): Map<string, BlastNodeMeta> {
   const meta = new Map<string, BlastNodeMeta>();
   if (!model || typeof model !== "object") return meta;
@@ -7029,6 +7057,45 @@ function buildBlastNodeMeta(
     }
   }
   return meta;
+}
+
+/**
+ * What `computeLinkBlastRadius` reads from its `model`, kept per model object (`tti/tti-ux#227`): every
+ * selection computed it twice (the radius, then the radius by kind), each time from the whole model. The
+ * parts it was built from are kept with it, so a model given a new level or subgraph record is read again.
+ */
+interface CachedBlastModelTables {
+  parts: unknown[];
+  hostBridge: ReturnType<typeof buildHostBridge> | null;
+  metaById: Map<string, BlastNodeMeta>;
+  l4NodeIds: Set<string>;
+}
+
+const BLAST_MODEL_CACHE = /* @__PURE__ */ new WeakMap<object, CachedBlastModelTables>();
+
+function blastModelParts(model: TuxMapLevelModel): unknown[] {
+  const sg = model.subgraphs;
+  return [model.level1, model.level2, model.level3, model.level4, sg, isPlainRecord(sg) ? Object.keys(sg).length : 0];
+}
+
+function getBlastModelTables(model: TuxMapLevelModel | undefined, verify: boolean): CachedBlastModelTables {
+  const keyed = model && typeof model === "object" ? model : undefined;
+  const parts = keyed ? blastModelParts(keyed) : [];
+  const cached = keyed && !verify ? BLAST_MODEL_CACHE.get(keyed) : undefined;
+  if (cached && cached.parts.every((p, i) => p === parts[i])) return cached;
+  const subgraphOwners = collectSubgraphOwners(model);
+  const tables: CachedBlastModelTables = {
+    parts,
+    hostBridge: keyed ? buildHostBridge(keyed, subgraphOwners) : null,
+    metaById: buildBlastNodeMeta(model, subgraphOwners),
+    l4NodeIds: new Set(
+      asObjArray<TuxMapDeploymentNode>(keyed?.level4?.nodes)
+        .filter((n) => typeof n.id === "string" && Boolean(n.id))
+        .map((n) => n.id),
+    ),
+  };
+  if (keyed) BLAST_MODEL_CACHE.set(keyed, tables);
+  return tables;
 }
 
 function repoPathForNodeId(id: string, meta?: BlastNodeMeta): string {
@@ -7147,9 +7214,7 @@ export function computeLinkBlastRadius(
   };
   for (const s of rawSeeds) addSeed(s);
 
-  const subgraphOwners = collectSubgraphOwners(opts.model);
-  const hostBridge = opts.model ? buildHostBridge(opts.model, subgraphOwners) : null;
-  const metaById = buildBlastNodeMeta(opts.model, subgraphOwners);
+  const { hostBridge, metaById, l4NodeIds } = getBlastModelTables(opts.model, verify);
   if (opts.model && typeof opts.model === "object") {
     // Expand Level 1 primary boundary seed into its Level 2 containers
     if (typeof opts.model.level2?.boundary === "string" && opts.model.level2.boundary && seeds.has(opts.model.level2.boundary)) {
@@ -7158,11 +7223,6 @@ export function computeLinkBlastRadius(
       }
     }
     // Expand Level 4 host/resource seeds into the containers/components hosted on or deployed to them
-    const l4NodeIds = new Set(
-      asObjArray<TuxMapDeploymentNode>(opts.model.level4?.nodes)
-        .filter((n) => typeof n.id === "string" && Boolean(n.id))
-        .map((n) => n.id),
-    );
     for (const s of [...seeds]) {
       const hosted = hostBridge?.elementsByHost.get(s);
       if (hosted && l4NodeIds.has(s)) {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, isReactive, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from "vue";
+import { computed, isReactive, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, useId, watch } from "vue";
 import {
   EMPTY_TTI_LEVEL_MODEL,
   TUX_MAP_ELEMENT_KIND_LABELS,
@@ -147,6 +147,8 @@ export interface TuxArchitectureMapProps {
   resolveSubgraph?: (id: string, ref?: string) => Promise<TuxMapSubgraph | null>;
   /** Optional commit SHA or ref passed as the second argument to `resolveSubgraph(id, modelRef)` (`#126`) */
   modelRef?: string;
+  /** Whether an edit made in place inside a reactive `model` is drawn (`false` by default). The map reads `model` raw, and sees a new `model` object; with this on, it also reads the whole of a reactive `model` through its proxies, so any edit inside it starts the map over. That read costs about as much as sanitizing the model, on every mount and every edit (`#222`) */
+  watchModelDeep?: boolean;
   /** Whether plain mouse wheel over the diagram zooms across levels without requiring Ctrl/Cmd (`true` by default; set `false` to require Ctrl/Cmd + wheel; `"click"` puts the canvas under a "Click to explore" veil and leaves the wheel to the page until the reader clicks it or moves keyboard focus into the canvas; `#209`) */
   wheelZoom?: boolean | "click";
   /** Whether a disc trails the pointer over the diagram and comes to rest on the card the pointer is near, or on the control it is over (`false` by default). Decoration: it is drawn only for a fine pointer with motion allowed, and not under the `wheelZoom="click"` veil (`#208`) */
@@ -214,6 +216,7 @@ const props = withDefaults(defineProps<TuxArchitectureMapProps>(), {
   annotations: false,
   resolveSubgraph: undefined,
   modelRef: undefined,
+  watchModelDeep: false,
   wheelZoom: true,
   cursor: false,
   minimap: true,
@@ -266,7 +269,8 @@ function getLevel3Kids(
 // 1. RESOLVED 4-LEVEL + FRACTAL N-DEPTH MODEL & LOOKUP MAPS
 // ============================================================================
 
-const resolvedSubgraphs = ref<Record<string, TuxMapSubgraph>>(Object.create(null));
+// Replaced, never edited, on each arrival: a shallow ref keeps what the resolver returned raw (#222)
+const resolvedSubgraphs = shallowRef<Record<string, TuxMapSubgraph>>(Object.create(null));
 const loadingSubgraphId = ref<string | null>(null);
 /**
  * Cards whose lazy subgraph resolved to nothing the map can show, by card id, so
@@ -288,35 +292,29 @@ watch([() => props.model, () => props.modelRef], () => {
   cancelPendingSubgraphResolve();
 });
 
-/** The model as it was passed (or built from the legacy `nodes`): one object until those change. */
+/**
+ * The model as it was passed (or built from the legacy `nodes`): one object until those change. A reactive
+ * `model` is read raw (#222): read through its proxies, every object the merge keeps from it stayed a proxy,
+ * and everything built from the model after it paid for one on each read.
+ */
 const rawModelInput = computed<unknown>(() =>
   props.model !== undefined
-    ? props.model
+    ? toRaw(props.model)
     : props.nodes && props.nodes.length > 0
       ? buildLevelModelFromLegacyNodes(props.nodes, props.edges, props.zones)
       : EMPTY_TTI_LEVEL_MODEL,
 );
 
-// A reactive `model` can be changed in place, with no new object to tell by. Reading all of it here
-// makes this stamp move on any such change, and the next merge then starts over (#157).
-let modelEditCount = 0;
-const modelEditStamp = computed<number>(() => {
-  const m = props.model;
-  if (!isReactive(m)) return 0;
-  const seen = new Set<unknown>();
-  const stack: unknown[] = [m];
-  while (stack.length > 0) {
-    const v = stack.pop();
-    if (v === null || typeof v !== "object" || seen.has(v)) continue;
-    seen.add(v);
-    if (Array.isArray(v)) {
-      for (let i = 0; i < v.length; i++) stack.push(v[i]);
-    } else {
-      for (const k of Object.keys(v)) stack.push((v as Record<string, unknown>)[k]);
-    }
-  }
-  return ++modelEditCount;
-});
+// A reactive `model` can be changed in place, with no new object to tell by. With `watchModelDeep`, a deep
+// watch reads all of it, so this stamp moves on any such change and the next merge starts over (#157). Off by
+// default (#222): the read goes through a proxy for every object of the model and keeps a dependency on each
+// of its fields, about as long as sanitizing the model and a large share of its heap.
+const modelEditStamp = ref(0);
+watch(
+  () => (props.watchModelDeep && isReactive(props.model) ? props.model : null),
+  () => modelEditStamp.value++,
+  { deep: true, flush: "sync" },
+);
 
 // The model with its lazily resolved subgraphs, sanitized and collapsed. A subgraph that arrives is
 // sanitized and collapsed alone and added to the model before it, when the rest of the model is not
@@ -1591,8 +1589,10 @@ const activeUsageKindsSet = computed<Set<string>>(() => {
 const selectionBlastBase = computed(() => {
   const M = activeModel.value;
   const id = selectedId.value;
+  // the links are read for a selection only: with none, the map's first render does not build them (#226)
+  if (!id || (!byId.value[id] && !resById.value[id])) return null;
   const links = effectiveModelLinks.value;
-  if (!links.length || !id || (!byId.value[id] && !resById.value[id])) return null;
+  if (!links.length) return null;
   return computeLinkBlastRadius(links, id, parentOf.value, {
     model: M,
     intent: blastIntent.value,
@@ -1636,17 +1636,18 @@ const usageKindChips = computed<{ kind: string; label: string; count: number; ac
 });
 
 // The blast radius of the selected element through the model's links, filtered by active kind chips:
-// everything that depends on it or on anything inside it (including Level 4 hosts and C4 rels).
+// everything that depends on it or on anything inside it (including Level 4 hosts and C4 rels). It reads
+// what the walk needs from the model out of the tables the unfiltered one left (#227).
 const selectionBlast = computed(() => {
-  const M = activeModel.value;
   const id = selectedId.value;
-  const links = effectiveModelLinks.value;
-  if (!links.length || !id || (!byId.value[id] && !resById.value[id])) return null;
-  return computeLinkBlastRadius(links, id, parentOf.value, {
-    model: M,
-    intent: blastIntent.value,
-    kinds: activeUsageKindsSet.value,
-  });
+  return (
+    selectionBlastBase.value &&
+    computeLinkBlastRadius(effectiveModelLinks.value, id!, parentOf.value, {
+      model: activeModel.value,
+      intent: blastIntent.value,
+      kinds: activeUsageKindsSet.value,
+    })
+  );
 });
 
 // Selected element's incoming & outgoing dependency-rule violations (`tti/tti-ux#123`)
@@ -2088,17 +2089,10 @@ function projectBlastOntoStage(
   return { directIds, impactedIds, impactedWires, rollupCountById, reachCountById, offStageCount };
 }
 
-const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
-  if (!showBlastRadius.value) return null;
-
-  // A selection with links: light what its change reaches, lifted onto the cards on stage
-  const sb = selectionBlast.value;
-  if (sb) {
-    return projectBlastOntoStage(sb.seeds, sb.hits, new Map());
-  }
-
+// The branch's blast radius over the whole model: what carries a diff, its roll-up onto every ancestor, and
+// the radius through the links. None of it depends on the level, so a level change only projects it (#227).
+const branchBlast = computed(() => {
   const M = activeModel.value;
-  const directIds = new Set<string>();
   const rollupCountById = new Map<string, number>();
 
   // Walk full ancestor chains across Levels 1..7+ so deep symbol/file diffs roll up to every ancestor
@@ -2137,6 +2131,35 @@ const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
     rollupCountById.set(M.level2.boundary, totalContainerDiffs);
   }
 
+  // Propagate via multi-seed computeLinkBlastRadius across effective links
+  const links = allDiffIds.size > 0 || props.blastSeeds?.length ? effectiveModelLinks.value : [];
+  if (!links.length) return { rollupCountById, diffBlast: null };
+  const seedIds = props.blastSeeds?.length
+    ? props.blastSeeds
+    : [...allDiffIds].filter((id) => {
+        if (!diffAncestorsWithDiffChild.has(id)) return true;
+        const d = diffById.get(id);
+        // Keep non-body-patched ancestors (added, deleted, moved, sig-changed)
+        return d?.changeType !== "modified" || Boolean(d.summary && d.summary !== "Body patched");
+      });
+  const diffBlast = computeLinkBlastRadius(links, seedIds, parentOf.value, {
+    model: M,
+    intent: blastIntent.value,
+  });
+  return { rollupCountById, diffBlast };
+});
+
+const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
+  if (!showBlastRadius.value) return null;
+
+  // A selection with links: light what its change reaches, lifted onto the cards on stage
+  const sb = selectionBlast.value;
+  if (sb) {
+    return projectBlastOntoStage(sb.seeds, sb.hits, new Map());
+  }
+
+  const { rollupCountById, diffBlast } = branchBlast.value;
+  const directIds = new Set<string>();
   if (currentLevel.value === 4) {
     for (const n of stageData.value.deployNodes) {
       if (n.diff || rollupCountById.has(n.id)) {
@@ -2153,23 +2176,7 @@ const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
     }
   }
 
-  // Propagate via multi-seed computeLinkBlastRadius across effective links
-  const links = effectiveModelLinks.value;
-  if (links.length && (allDiffIds.size > 0 || props.blastSeeds?.length)) {
-    const seedIds = props.blastSeeds?.length
-      ? props.blastSeeds
-      : [...allDiffIds].filter((id) => {
-          if (!diffAncestorsWithDiffChild.has(id)) return true;
-          const d = diffById.get(id);
-          // Keep non-body-patched ancestors (added, deleted, moved, sig-changed)
-          return d?.changeType !== "modified" || Boolean(d.summary && d.summary !== "Body patched");
-        });
-    const diffBlast = computeLinkBlastRadius(links, seedIds, parentOf.value, {
-      model: M,
-      intent: blastIntent.value,
-    });
-    return projectBlastOntoStage(diffBlast.seeds, diffBlast.hits, rollupCountById, directIds);
-  }
+  if (diffBlast) return projectBlastOntoStage(diffBlast.seeds, diffBlast.hits, rollupCountById, directIds);
 
   const impactedIds = new Set<string>();
   const impactedWires = new Set<string>();
@@ -3098,6 +3105,14 @@ function getCardDisplayName(id: string): string {
   return byId.value[id]?.name || resById.value[id]?.title || id;
 }
 
+// The cards of the stage that zoom, one table a stage: a pointer move looks one up only for a
+// card within reach (#224)
+const stageZoomable = computed<Set<string>>(() => {
+  const ids = new Set<string>();
+  for (const id in stageData.value.rects) if (isCardIdZoomable(id)) ids.add(id);
+  return ids;
+});
+
 function findNearestCardToPoint(
   stageX: number,
   stageY: number,
@@ -3124,22 +3139,23 @@ function findNearestCardToPoint(
     score: number;
   } | null = null;
 
-  for (const [id, r] of Object.entries(stageData.value.rects)) {
+  const rects = stageData.value.rects;
+  for (const id in rects) {
+    const r = rects[id]!;
     if (r.bound) continue;
-    const zoomable = isCardIdZoomable(id);
-    if (requireZoomable && !zoomable) continue;
-
     const anchorX = Math.max(r.x, Math.min(r.x + r.w, stageX));
     const anchorY = Math.max(r.y, Math.min(r.y + r.h, stageY));
     const dist = Math.hypot(stageX - anchorX, stageY - anchorY);
     if (dist > maxDist) continue;
+    const zoomable = stageZoomable.value.has(id);
+    if (requireZoomable && !zoomable) continue;
 
     // When in empty space, give zoomable cards a slight magnetic attraction advantage
     const score = dist === 0 ? 0 : preferZoomable && zoomable ? dist * 0.78 : dist;
     if (!best || score < best.score) {
       best = {
         id,
-        name: getCardDisplayName(id),
+        name: "",
         zoomable,
         rect: r,
         anchorX,
@@ -3149,14 +3165,20 @@ function findNearestCardToPoint(
       };
     }
   }
-
+  if (best) best.name = getCardDisplayName(best.id);
   return best;
 }
 
+// The beam's dashes run only under `--on`, set with its opacity: an always-mounted
+// beam that animated while transparent repainted the stage every frame (#223)
+function setProximityTether(svg: SVGSVGElement | null, opacity: string) {
+  if (!svg) return;
+  svg.style.opacity = opacity;
+  svg.classList.toggle("tux-map__proximity-tether--on", opacity !== "0");
+}
+
 function hideProximityTetherDom() {
-  if (proximityTetherSvgRef.value) {
-    proximityTetherSvgRef.value.style.opacity = "0";
-  }
+  setProximityTether(proximityTetherSvgRef.value, "0");
 }
 
 function setProximityClassOnDom(nextId: string | null) {
@@ -3221,9 +3243,9 @@ function renderProximityMatch(
         glideProgress > 0
           ? Math.min(0.95, 0.45 + glideProgress * 0.5)
           : Math.max(0.28, 1 - nearest.dist / 42);
-      svgEl.style.opacity = strength.toFixed(2);
+      setProximityTether(svgEl, strength.toFixed(2));
     } else {
-      svgEl.style.opacity = "0";
+      setProximityTether(svgEl, "0");
     }
   }
 }
@@ -3459,6 +3481,7 @@ function placeMoreMenu() {
 watch(moreMenuOpen, () => nextTick(placeMoreMenu));
 
 function measureViewport() {
+  vpBox = null;
   if (moreMenuOpen.value) placeMoreMenu();
   if (viewportRef.value && viewportRef.value.clientWidth > 0) {
     viewportWidth.value = viewportRef.value.clientWidth;
@@ -3473,10 +3496,45 @@ function measureViewport() {
   }
 }
 
+// The viewport's content box on the page and its scroll position, kept between pointer moves:
+// a move reads neither, so it forces no layout after the last one's writes (#224). The box is
+// read again after a resize, a scroll of the page or the pointer leaving the viewport; the
+// scroll position in the viewport's own scroll event, and after the map scrolls it.
+let vpBox: number[] | null = null;
+let vpScroll: number[] | null = null;
+const dropViewportBox = () => void (vpBox = null);
+const onPageScroll = (e: Event) => e.target !== viewportRef.value && dropViewportBox();
+
+function viewportBox(): number[] {
+  const el = viewportRef.value;
+  if (!el) return [0, 0];
+  if (!vpBox) {
+    const r = el.getBoundingClientRect();
+    vpBox = [r.left + el.clientLeft, r.top + el.clientTop];
+  }
+  return vpBox;
+}
+
+/** Where the viewport's scrolled content starts, in client px. */
+function viewportOrigin(): number[] {
+  const el = viewportRef.value;
+  const b = viewportBox();
+  if (el && !vpScroll) vpScroll = [el.scrollLeft, el.scrollTop];
+  return [b[0]! - (vpScroll?.[0] ?? 0), b[1]! - (vpScroll?.[1] ?? 0)];
+}
+
+function scrollViewport(vp: HTMLElement, left: number, top: number) {
+  vp.scrollLeft = left;
+  vp.scrollTop = top;
+  vpScroll = null;
+}
+
 function onViewportScroll() {
-  if (!viewportRef.value) return;
-  viewportScrollLeft.value = viewportRef.value.scrollLeft;
-  viewportScrollTop.value = viewportRef.value.scrollTop;
+  const el = viewportRef.value;
+  if (!el) return;
+  vpScroll = [el.scrollLeft, el.scrollTop];
+  viewportScrollLeft.value = vpScroll[0]!;
+  viewportScrollTop.value = vpScroll[1]!;
   mapCursor.move();
 }
 
@@ -3521,8 +3579,7 @@ function keepClear(id: string | null, fromId?: string | null) {
     landTravel();
     const step = (u: number) => {
       const [x, y] = cameraAlong(from, to, path, scale, u);
-      vp.scrollLeft = x;
-      vp.scrollTop = y;
+      scrollViewport(vp, x, y);
     };
     if (ms) endScrollTravel = startTravel(ms, step);
     else step(1);
@@ -3728,11 +3785,44 @@ function onDocumentPointerDown(ev: PointerEvent) {
   }
 }
 
+// Work whose result is not on screen when the map is first drawn runs in idle time after it (#226), one
+// task per callback: the Go-To index (the palette's first search), then the model's links (the first
+// selection). Either asked for before then is built on demand, and the idle task finds it built. Where
+// there is no `requestIdleCallback`, a 50 ms timer: after the first paint, and no animation frame asked for
+// (an idle map runs none). The validator's shape check stays in the merge: its findings go to the console,
+// but the values it leaves out for their type are what the sanitizer and every reader after it rely on not
+// to meet.
+let cancelIdle: (() => void) | null = null;
+let idleStarted = false;
+
+function scheduleIdleWork(step = 0) {
+  cancelIdle?.();
+  cancelIdle = null;
+  const next = [mapSearchIndex, effectiveModelLinks][step];
+  if (!idleStarted || !next) return;
+  const run = () => {
+    cancelIdle = null;
+    void next.value;
+    scheduleIdleWork(step + 1);
+  };
+  if (window.requestIdleCallback) {
+    const h = window.requestIdleCallback(run, { timeout: 2000 });
+    cancelIdle = () => window.cancelIdleCallback(h);
+  } else {
+    const t = setTimeout(run, 50);
+    cancelIdle = () => clearTimeout(t);
+  }
+}
+
+// a new model is indexed again
+watch(rawModelInput, () => scheduleIdleWork());
+
 onMounted(() => {
   applyAutoListView();
-  measureViewport();
   if (typeof window !== "undefined") {
     window.addEventListener("keydown", onWindowKeydown);
+    window.addEventListener("resize", dropViewportBox);
+    window.addEventListener("scroll", onPageScroll, { capture: true, passive: true });
     document.addEventListener("pointerdown", onDocumentPointerDown);
     if (window.matchMedia) {
       coarseQuery = window.matchMedia("(pointer: coarse)");
@@ -3740,6 +3830,8 @@ onMounted(() => {
       coarseQuery.addEventListener?.("change", onCoarseChange);
     }
   }
+  // The first size comes from the observer, which reports it once the browser has laid the page out for
+  // its first frame, rather than from a layout forced inside this task (#226)
   if (typeof ResizeObserver !== "undefined" && (viewportRef.value || mapRootRef.value)) {
     resizeObserver = new ResizeObserver(() => {
       measureViewport();
@@ -3748,7 +3840,11 @@ onMounted(() => {
     if (mapRootRef.value && mapRootRef.value !== viewportRef.value) {
       resizeObserver.observe(mapRootRef.value);
     }
+  } else {
+    measureViewport();
   }
+  idleStarted = true;
+  scheduleIdleWork();
   // Run `keepClear` on mount for `initialSelectedId` (#117)
   if (selectedId.value) {
     nextTick(() => {
@@ -3759,9 +3855,14 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   cancelPendingSubgraphResolve();
+  idleStarted = false;
+  cancelIdle?.();
+  cancelIdle = null;
   resizeObserver?.disconnect();
   if (typeof window !== "undefined") {
     window.removeEventListener("keydown", onWindowKeydown);
+    window.removeEventListener("resize", dropViewportBox);
+    window.removeEventListener("scroll", onPageScroll, { capture: true });
     document.removeEventListener("pointerdown", onDocumentPointerDown);
   }
   coarseQuery?.removeEventListener?.("change", onCoarseChange);
@@ -4061,23 +4162,17 @@ function goToLevel(
       }
     }
 
-    // Re-evaluate hovered & proximity-attached card under stationary cursor after level switch
+    // Re-evaluate hovered & proximity-attached card under stationary cursor after level switch: the card
+    // under the pointer is found in the new level's rectangles, not by a hit test of the page, which laid
+    // the new view out inside this task (#226)
     if (
       lastPointerClient &&
       typeof document !== "undefined" &&
       !selectedId.value &&
       activeTool.value === "select"
     ) {
-      const underEl =
-        typeof document.elementFromPoint === "function"
-          ? (document.elementFromPoint(
-              lastPointerClient.x,
-              lastPointerClient.y,
-            ) as HTMLElement | null)
-          : null;
-      const cardUnder = underEl?.closest?.(".tux-map__el") as HTMLElement | null;
-      currentHoveredId = cardUnder?.dataset?.id ?? null;
       const ptAfter = getStageCoordsFromClient(lastPointerClient.x, lastPointerClient.y);
+      currentHoveredId = findCardIdAtStagePoint(ptAfter.x, ptAfter.y);
       updateProximityAtStagePoint(ptAfter.x, ptAfter.y);
       applyStageHighlight(currentHoveredId ?? proximityCard.value?.id ?? null);
     }
@@ -4283,7 +4378,7 @@ async function hydrateLazySubgraph(
       const prevMap = resolvedSubgraphs.value;
       const knownIssues = new Set(modelBundle.value.validation.issues.map((i) => i.message));
       const nextMap: Record<string, TuxMapSubgraph> = Object.assign(Object.create(null), prevMap);
-      setOwnProp(nextMap, key, sg);
+      setOwnProp(nextMap, key, toRaw(sg));
       resolvedSubgraphs.value = nextMap;
       if (!lacksLazySubgraph(id)) return { sg, cancelled: false };
       // Non-empty as returned, empty in the sanitized model (#156). Recorded by what was
@@ -5940,6 +6035,7 @@ function scrollSelectionIntoView(orTopLeft = false) {
   const vp = viewportRef.value;
   const r = selectedId.value ? stageData.value.rects[selectedId.value] : undefined;
   if (!vp) return;
+  vpScroll = null;
   if (!r) {
     if (orTopLeft) vp.scrollTo?.(0, 0);
     return;
@@ -6112,13 +6208,12 @@ function startLaserLoop() {
 }
 
 function getStageCoordsFromClient(clientX: number, clientY: number): { x: number; y: number } {
-  const el = viewportRef.value;
-  if (!el) return { x: 0, y: 0 };
-  const rect = el.getBoundingClientRect();
+  if (!viewportRef.value) return { x: 0, y: 0 };
+  const [ox, oy] = viewportOrigin();
   const s = stageScale.value || 1;
   return {
-    x: Math.round((clientX - rect.left + el.scrollLeft - panX.value) / s),
-    y: Math.round((clientY - rect.top + el.scrollTop) / s),
+    x: Math.round((clientX - ox! - panX.value) / s),
+    y: Math.round((clientY - oy!) / s),
   };
 }
 
@@ -6246,6 +6341,7 @@ const mapCursor = useTuxMapCursor({
   scale: stageScale,
   pan: panX,
   drag: isDraggingStage,
+  origin: viewportOrigin,
 });
 const { el: cursorRef, on: cursorOn, shown: cursorShown } = mapCursor;
 let stageDrag: {
@@ -6291,10 +6387,7 @@ function moveStageDrag(e: PointerEvent): boolean {
   }
   e.preventDefault();
   const vp = viewportRef.value;
-  if (vp) {
-    vp.scrollLeft = drag.scrollLeft - dx;
-    vp.scrollTop = drag.scrollTop - dy;
-  }
+  if (vp) scrollViewport(vp, drag.scrollLeft - dx, drag.scrollTop - dy);
   return true;
 }
 
@@ -6307,10 +6400,22 @@ function endStageDrag(e: PointerEvent, cancelled = false) {
   if (!drag.moved && !cancelled && selectedId.value) selectElement(null);
 }
 
+const minimapRef = ref<InstanceType<typeof TuxArchitectureMapMinimap> | null>(null);
+
+function onViewportPointerLeave() {
+  vpBox = null;
+  mapCursor.leave();
+}
+
 function onStagePointerMove(e: PointerEvent) {
   lastPointerClient = { x: e.clientX, y: e.clientY };
   if (moveStageDrag(e)) return mapCursor.move(e);
   if (isWheelVeil(e.target)) return;
+  // the overview is over the canvas and lets the pointer through until it is inside its box (#228)
+  if (minimapRef.value) {
+    const [bx, by] = viewportBox();
+    minimapRef.value.pointerAt(e.clientX - bx!, e.clientY - by!);
+  }
   const pt = getStageCoords(e);
 
   if (
@@ -7237,7 +7342,7 @@ function buildSourceHref(src?: {
         @pointermove="onStagePointerMove"
         @pointerup="onStagePointerUp"
         @pointercancel="onStagePointerUp"
-        @pointerleave="mapCursor.leave"
+        @pointerleave="onViewportPointerLeave"
         @keydown="onStageKeydown"
       >
         <!-- Click-to-explore veil: until it is clicked the wheel is the page's (wheelZoom="click", #209) -->
@@ -7838,6 +7943,7 @@ function buildSourceHref(src?: {
       <!-- Overview of the level, while the view moves (#211) -->
       <TuxArchitectureMapMinimap
         v-if="minimap && !effectiveIsListView && !wheelVeilShown"
+        ref="minimapRef"
         :viewport="viewportRef"
         :stage="stageData"
         :scale="stageScale"
@@ -10238,6 +10344,9 @@ function buildSourceHref(src?: {
   stroke-width: 1.75;
   stroke-dasharray: 5 5;
   stroke-linecap: round;
+}
+
+.tux-map__proximity-tether--on .tux-map__proximity-beam {
   animation: tux-map-wire-flow 0.55s linear infinite;
 }
 
@@ -12026,7 +12135,7 @@ function buildSourceHref(src?: {
   /* the flowing dashes and the zoom pop are motion: the wire keeps its dash
      pattern and colour, so what it marks is still there, standing still */
   .tux-map__wire-fg--stream,
-  .tux-map__proximity-beam,
+  .tux-map__proximity-tether--on .tux-map__proximity-beam,
   .tux-map__zoom-hud,
   .tux-map__wheel-veil {
     animation: none;
