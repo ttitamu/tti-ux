@@ -18,6 +18,18 @@ conventions.
 
 ## [Unreleased]
 
+### Added — Architecture map: an overview of the level fades in while the view moves (`minimap`) (#211)
+
+- `<TuxArchitectureMap>` draws a small overview of the level in the bottom-left corner of the canvas: every card a rectangle in its place, and a frame around the part in view. The selected card is filled with the brand colour and outlined, a changed card (with the blast radius on) takes the warning colour, and while the stage dims the cards a highlight does not reach, the overview dims the same ones.
+- It is there only where the level is larger than its viewport: magnified, or under a fixed `height`. A level that fits has none.
+- It fades in while the view scrolls, is dragged, is magnified or changes level, and fades out 1.2 seconds after the view rests. It stays while the pointer is over it, while it has keyboard focus, and during a drag on it. A level that is already larger than its viewport when the map loads does not flash it.
+- A press on it centres the view on that point, and a drag follows (held to the edges of what can scroll). While it has focus, the arrow keys move the view by a quarter of the viewport. It is one tab stop, an image named "Overview of this level: n cards…". Every move it offers is also on the canvas: the scrollbars, a swipe, dragging the background, and a card's arrow keys.
+- Bottom-left, because the corners on the right are taken: the details panel opens at the top right, and the wire popover and the outside cards on the right sit along that edge. The bottom-left corner is the part of the stage furthest from them. It covers no control and no card's `+` at rest; while shown it may lie over the corner of a card, as a scrolled view would, and it is out of the pointer's way (no pointer events) whenever it is not shown.
+- It is drawn from the stage data the map already builds: no second layout, no card measured in the page. It reads the viewport's scroll position and size, once an animation frame at most, after a scroll or a resize.
+- It is not drawn in the list view, under the `wheelZoom="click"` veil until the map is armed, or on a touch screen narrower than `autoListBreakpoint`. Under `prefers-reduced-motion` it appears and goes without the fade.
+- `minimap: false` turns it off. The default is `true`.
+
+**To check when upgrading:** a map that scrolls (magnified, or with a fixed `height`) shows the overview while it moves. Pass `:minimap="false"` where something of your own sits in the canvas's bottom-left corner. The bundled payload the package's size test measures now includes the `.vue` files the map imports, and its budget went from 97,000 B to 99,300 B (96,410 B before this change, 99,240 B after).
 ### Added — Architecture map: `cursor`, a disc that trails the pointer and rests on the card or control it is near (#208)
 
 - `<TuxArchitectureMap cursor>` draws a dot on the pointer over the diagram and a 40 px disc that follows it on a critically damped spring. It does not overshoot when it starts from rest, and its frame loop stops when the disc is at rest or the pointer leaves the canvas: an idle map runs no frames.

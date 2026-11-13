@@ -87,6 +87,7 @@ import {
   wirePolyline,
   type TravelPoint,
 } from "../utils/internal/tuxArchitectureMapTravel";
+import TuxArchitectureMapMinimap from "../utils/internal/TuxArchitectureMapMinimap.vue";
 
 export type TuxMapViewMode = "diagram" | "list";
 
@@ -149,6 +150,8 @@ export interface TuxArchitectureMapProps {
   wheelZoom?: boolean | "click";
   /** Whether a disc trails the pointer over the diagram and comes to rest on the card the pointer is near, or on the control it is over (`false` by default). Decoration: it is drawn only for a fine pointer with motion allowed, and not under the `wheelZoom="click"` veil (`#208`) */
   cursor?: boolean;
+  /** Whether a small overview of the level fades in over the canvas while the view scrolls, magnifies or changes level (`true` by default; it is rendered only where the level is larger than its viewport; `#211`) */
+  minimap?: boolean;
   /** Legacy nodes prop (automatically converted into a 4-level model if `model` is omitted) */
   nodes?: TuxMapNode[];
   /** Legacy edges prop */
@@ -207,6 +210,7 @@ const props = withDefaults(defineProps<TuxArchitectureMapProps>(), {
   modelRef: undefined,
   wheelZoom: true,
   cursor: false,
+  minimap: true,
   nodes: () => [],
   edges: () => [],
   zones: () => [],
@@ -7815,6 +7819,20 @@ function buildSourceHref(src?: {
           <span>{{ zoomHudText }}</span>
         </div>
       </div>
+
+      <!-- Overview of the level, while the view moves (#211) -->
+      <TuxArchitectureMapMinimap
+        v-if="minimap && !effectiveIsListView && !wheelVeilShown"
+        :viewport="viewportRef"
+        :stage="stageData"
+        :scale="stageScale"
+        :pan-x="panX"
+        :selected-id="selectedId"
+        :changed-ids="blastRadiusState?.directIds"
+        :lit="activeLitId || matchingSearchIds || blastRadiusState || stageTraceState ? isElementLit : null"
+        :coarse="coarsePointer"
+        :narrow-below="autoListBreakpoint"
+      />
 
       <!-- Unscaled Wire Link Inspector Popover (#115, #123) -->
       <div

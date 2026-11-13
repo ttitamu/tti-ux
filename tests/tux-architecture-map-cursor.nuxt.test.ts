@@ -106,7 +106,8 @@ describe("TuxArchitectureMap: the trailing cursor (#208)", () => {
 
   async function mountMap(props: Record<string, unknown> = {}) {
     const wrapper = await mountSuspended(TuxArchitectureMap, {
-      props: { model, initialLevel: 2, ...props },
+      // The overview of the level (#211) asks for frames of its own; these tests count the cursor's.
+      props: { model, initialLevel: 2, minimap: false, ...props },
       attachTo: document.body,
     });
     mounted.push(wrapper);

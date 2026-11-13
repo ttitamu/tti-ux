@@ -2929,18 +2929,28 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
 
   // 96,000 B until #205: drag-to-pan, the cards' row counts and the toolbar's fixed order took the
   // payload from 94,496 B to 96,410 B, and the budget went up by 1,000 B with them.
-  // 97,000 B until #208: the trailing cursor (its composable, ~1,010 B, and the prop, element and
-  // styles, ~450 B) took it to 97,871 B, and the budget went up by 1,000 B.
-  it("keeps the bundled <TuxArchitectureMap> consumer payload (JS + CSS, gzip-9) under the 98,000 B budget", () => {
+  // 97,000 B until the 3.14.0 map features: from 96,410 B, the port labels (#210) took 687 B off,
+  // and the overview of the level (#211, +2,830 B, its component counted from here on), the
+  // trailing cursor (#208, +1,461 B) and the camera's travel (#212, +347 B) added the rest:
+  // 100,103 B together on macOS; the Linux CI runner measures the same tree at 100,569 B. The budget
+  // is 101,000 B, which holds on both with a few hundred bytes to spare.
+  // What is measured: the component's script and template, every module it imports (the `.vue`
+  // files among them, compiled the same way) except `vue`, and the styles of each of those files.
+  it("keeps the bundled <TuxArchitectureMap> consumer payload (JS + CSS, gzip-9) under the 101,000 B budget", async () => {
     const pkgRoot = join(__dirname, "..");
-    const vuePath = join(pkgRoot, "app/components/TuxArchitectureMap.vue");
-    const vueSrc = readFileSync(vuePath, "utf8");
-    const { descriptor } = parseSfc(vueSrc, { filename: "TuxArchitectureMap.vue" });
-    const compiled = compileScript(descriptor, { id: "tux-map-budget", inlineTemplate: true });
+    const css: string[] = [];
+    const measured: string[] = [];
+    /** One single-file component: its styles are kept, its script and template are returned as TypeScript. */
+    const compileSfc = (path: string): string => {
+      const { descriptor } = parseSfc(readFileSync(path, "utf8"), { filename: path });
+      measured.push(path.slice(pkgRoot.length + 1));
+      for (const s of descriptor.styles) css.push(esbuild.transformSync(s.content, { loader: "css", minify: true }).code);
+      return compileScript(descriptor, { id: "tux-map-budget", inlineTemplate: true }).content;
+    };
 
-    const bundled = esbuild.buildSync({
+    const bundled = await esbuild.build({
       stdin: {
-        contents: compiled.content,
+        contents: compileSfc(join(pkgRoot, "app/components/TuxArchitectureMap.vue")),
         resolveDir: join(pkgRoot, "app/components"),
         loader: "ts",
       },
@@ -2949,15 +2959,25 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
       format: "esm",
       external: ["vue"],
       write: false,
+      plugins: [
+        {
+          name: "tux-map-budget-sfc",
+          setup(build) {
+            build.onLoad({ filter: /\.vue$/ }, (args) => ({ contents: compileSfc(args.path), loader: "ts" }));
+          },
+        },
+      ],
     });
     const jsMin = bundled.outputFiles[0]!.text;
-    const cssMin = descriptor.styles
-      .map((s) => esbuild.transformSync(s.content, { loader: "css", minify: true }).code)
-      .join("\n");
-    const gzipBytes = gzipSync(Buffer.from(`${jsMin}\n${cssMin}`), { level: 9 }).byteLength;
+    const gzipBytes = gzipSync(Buffer.from(`${jsMin}\n${css.join("\n")}`), { level: 9 }).byteLength;
 
+    // the parts the map imports are in the measure, not beside it
+    expect(measured).toEqual([
+      "app/components/TuxArchitectureMap.vue",
+      "app/utils/internal/TuxArchitectureMapMinimap.vue",
+    ]);
     expect(gzipBytes).toBeGreaterThan(30_000);
-    expect(gzipBytes).toBeLessThan(98_000);
+    expect(gzipBytes).toBeLessThan(101_000);
   });
 });
 
