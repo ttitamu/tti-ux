@@ -6344,6 +6344,8 @@ function endStageDrag(e: PointerEvent, cancelled = false) {
   if (!drag.moved && !cancelled && selectedId.value) selectElement(null);
 }
 
+const minimapRef = ref<InstanceType<typeof TuxArchitectureMapMinimap> | null>(null);
+
 function onViewportPointerLeave() {
   vpBox = null;
   mapCursor.leave();
@@ -6353,6 +6355,11 @@ function onStagePointerMove(e: PointerEvent) {
   lastPointerClient = { x: e.clientX, y: e.clientY };
   if (moveStageDrag(e)) return mapCursor.move(e);
   if (isWheelVeil(e.target)) return;
+  // the overview is over the canvas and lets the pointer through until it is inside its box (#228)
+  if (minimapRef.value) {
+    const [bx, by] = viewportBox();
+    minimapRef.value.pointerAt(e.clientX - bx!, e.clientY - by!);
+  }
   const pt = getStageCoords(e);
 
   if (
@@ -7880,6 +7887,7 @@ function buildSourceHref(src?: {
       <!-- Overview of the level, while the view moves (#211) -->
       <TuxArchitectureMapMinimap
         v-if="minimap && !effectiveIsListView && !wheelVeilShown"
+        ref="minimapRef"
         :viewport="viewportRef"
         :stage="stageData"
         :scale="stageScale"

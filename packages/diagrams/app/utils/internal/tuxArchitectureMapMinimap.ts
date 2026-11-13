@@ -227,7 +227,10 @@ export function useMapMinimap(src: MapMinimapSource) {
   const k = computed(() => minimapScale(src.stage()));
   const overflows = computed(() => minimapOverflows(src.stage(), src.scale(), measured.value));
   const viewBox = computed(() => minimapViewBox(src.stage(), src.scale(), src.panX(), measured.value, k.value));
-  const shown = computed(() => moving.value || Object.values(holds.value).some(Boolean));
+  // Shown is not live (#228): resting after a move it is drawn and lets the pointer through, and
+  // it takes the pointer only for a reason to hold it (the pointer in its box, focus, a drag)
+  const live = computed(() => Object.values(holds.value).some(Boolean));
+  const shown = computed(() => moving.value || live.value);
 
   /** Holds the overview on screen (or lets it go) for one reason: "pointer", "focus", "drag". */
   function hold(why: string, on: boolean) {
@@ -260,5 +263,5 @@ export function useMapMinimap(src: MapMinimapSource) {
     });
   }
 
-  return { measured, k, overflows, viewBox, shown, hold, moveTo, step };
+  return { measured, k, overflows, viewBox, shown, live, hold, moveTo, step };
 }
