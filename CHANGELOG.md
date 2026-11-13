@@ -63,6 +63,13 @@ conventions.
 - **A magnified map no longer grows taller** (it asked for the diagram's height up to 75vh); it keeps the height it has at Fit and scrolls inside it. A page laid out around the taller magnified map gets a shorter one.
 - The tests that pinned the old placement and behaviour were updated: the toolbar's order (`tux-architecture-map-layout`), the Fit button's text (`-layout`, `-props`, `tests/components/tux-architecture-map`), Ctrl + wheel and the help that named it (`-wheel-veil`, `tests/components/tux-architecture-map`), two tests that assumed A+ left the scroll at the corner (`-minimap`, `-travel`) now start from it, and two that pinned the magnified height up to 75vh (`-layout`, `-level-mark`) now pin the held height.
 
+### Fixed — Architecture map: no flicker between two sizes when the host resizes to fit the map (#268)
+
+- **A host that sizes its frame to the map no longer makes it flicker.** In such a page, a map a few px taller made a scrollbar appear in the frame for one frame; the viewport lost about 15 px of width, the fit scale and the held height (#261) dropped, the scrollbar went, the width came back, and it repeated on every animation frame (seen at 0.760 and 0.770 scale, 87 changes in 1.5 s). The width the map lays itself out for now takes a narrower width at once, and a wider one only when it grows by more than 24 px, so the loop ends in one step.
+- Tests: `tests/tux-architecture-map-resize-loop.nuxt.test.ts` feeds the alternating widths and checks the scale and height settle, and that a real widening and a narrowing are still followed.
+
+**To check when upgrading:** after the window widens by 24 px or less, the map stays fitted to the narrower width until it widens further.
+
 ## [3.14.0] — 2026-11-13
 
 The accessibility icon becomes the universal-access figure, and the architecture map gets a pass on how it reads at a glance. Every section below says what to check; these are the ones a host is most likely to meet when upgrading from 3.13.0:
