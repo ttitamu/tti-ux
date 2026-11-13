@@ -284,7 +284,19 @@ export default defineNuxtConfig({
   vite: {
     server: {
       watch: {
-        ignored: ["**/templates/**", "**/packages/**", "**/dist/**", "**/.output/**", "**/reference/**"],
+        // The site reaches the workspace packages' components through
+        // node_modules symlinks, and Vite watches their real paths
+        // (packages/*/app/…), so packages/ itself must stay watched for an
+        // edit there to reload. Only the packages' build output and their
+        // own installs are ignored.
+        ignored: [
+          "**/templates/**",
+          "**/packages/*/dist/**",
+          "**/packages/*/node_modules/**",
+          "**/dist/**",
+          "**/.output/**",
+          "**/reference/**",
+        ],
       },
     },
     // Cast through unknown so consuming layers' typecheck doesn't trip
