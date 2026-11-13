@@ -2011,7 +2011,7 @@ describe("TuxArchitectureMap Component", () => {
 
     // Enabling `Tests` wire filter brings in `f:tests/test_lib.ts` and emits `update:wireFilters`
     const testsFilterBtn = wrapper
-      .findAll("button.tux-map__wire-filter-btn")
+      .findAll("button.tux-map__wire-chip")
       .find((b) => b.text().includes("Tests"))!;
     await testsFilterBtn.trigger("click");
     await nextTick();
@@ -2361,12 +2361,12 @@ describe("TuxArchitectureMap Component", () => {
     expect(w1.find(".tux-map__panel").text()).toContain("Fold back into Comp A");
 
     // Level 5+ Wire Category Filter (`P0-2`): toggling `Prod` off hides `sg.rels` `imports` wire while keeping `tests` wire when `Tests` is toggled on
-    await w1.find('button.tux-map__wire-filter-btn[data-wire-filter="prod"]').trigger("click");
+    await w1.find('button.tux-map__wire-chip[data-wire-filter="prod"]').trigger("click");
     await nextTick();
     expect(
       w1.find('button.tux-map__lab[data-from="f:core/lib.mjs"][data-to="f:core/only-copy.mjs"]').exists(),
     ).toBe(false);
-    await w1.find('button.tux-map__wire-filter-btn[data-wire-filter="tests"]').trigger("click");
+    await w1.find('button.tux-map__wire-chip[data-wire-filter="tests"]').trigger("click");
     await nextTick();
     expect(
       w1.find('button.tux-map__lab[data-from="f:core/lib.mjs"][data-to="f:core/only-copy.mjs"]').exists(),

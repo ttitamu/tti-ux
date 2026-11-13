@@ -72,6 +72,7 @@ import {
   buildStageData,
   cardDescriptionLines,
   middleEllipsizeFolderName,
+  wireCategoriesOnView,
   wireLabelAttrs,
   wirePairKey,
   type ComputedStageData,
@@ -260,6 +261,7 @@ const arrowMarkerId = `tux-map-arrow-${instanceId}`;
 const goToListboxId = `tux-map-goto-listbox-${instanceId}`;
 const wireInspectorId = `tux-map-wire-pop-${instanceId}`;
 const blastIntentKeyId = `tux-map-intent-${instanceId}`;
+const wiresLabelId = `tux-map-wires-${instanceId}`;
 
 function getLevel3Kids(
   M: TuxMapLevelModel,
@@ -1235,6 +1237,31 @@ const stageToggles: StageToggles = {
 };
 
 const stageData = computed<ComputedStageData>(() => buildStageData(stageBase.value, stageToggles));
+
+// The Wires filter (#272). Each choice says on hover what it draws; one with nothing on this view says
+// so too, and a line under the bar says when the filter leaves the view with no wires at all.
+const WIRE_FILTER_CHOICES: { id: TuxMapWireCategory; label: string; noun: string; says: string }[] = [
+  {
+    id: "prod",
+    label: "Prod",
+    noun: "production",
+    says: "Production wires: what runs, calls, reads and writes at run time, and the imports behind it. At Level 2, the containers' relationships.",
+  },
+  { id: "tests", label: "Tests", noun: "test", says: "Test wires: test code and what it exercises." },
+  { id: "ci", label: "CI", noun: "CI", says: "CI wires: workflows, checks and build steps, and what they build or run." },
+  { id: "docs", label: "Docs", noun: "doc", says: "Doc wires: documentation, and prose that mentions a part." },
+];
+const wireCategoriesHere = computed<ReadonlySet<TuxMapWireCategory>>(() => wireCategoriesOnView(stageBase.value));
+const wireFilterShown = computed<boolean>(() => currentLevel.value === 2 || currentLevel.value === 3 || currentLevel.value >= 5);
+const wiresFilterNote = computed<string>(() => {
+  if (!wireFilterShown.value || effectiveIsListView.value) return "";
+  const on = WIRE_FILTER_CHOICES.filter((c) => activeWireCategoriesSet.value.has(c.id));
+  if (on.length === 0) return "No wires drawn: every kind of wire is off. Turn on Prod, Tests, CI or Docs to see them.";
+  if (on.some((c) => wireCategoriesHere.value.has(c.id))) return "";
+  const names = on.map((c) => c.noun);
+  const said = names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} or ${names.at(-1)}`;
+  return `No wires drawn: this view has no ${said} wires.`;
+});
 
 watch(
   () => stageData.value.foldedToRepresentative,
@@ -7339,13 +7366,10 @@ function buildSourceHref(src?: {
           </ol>
         </nav>
 
-        <!-- Wire Dependency Category Filter Bar + Split Reset at Levels 2, 3, and 5+ (#118) -->
-        <div
-          v-if="currentLevel === 2 || currentLevel === 3 || currentLevel >= 5"
-          class="tux-map__wire-filters"
-          role="group"
-          aria-label="Wire dependency categories"
-        >
+        <!-- Wire Dependency Category Filter Bar + Split Reset at Levels 2, 3, and 5+ (#118). The choices
+             are TUX's toggle-style chip (TuxRemovableChip, `selected`) inside a native toggle button,
+             which gives them the keyboard the chip has not got on its own: Tab, then Space or Enter (#272) -->
+        <div v-if="wireFilterShown" class="tux-map__wire-filters">
           <button
             v-if="effectiveSplitSet.size > 0"
             type="button"
@@ -7355,27 +7379,34 @@ function buildSourceHref(src?: {
           >
             Fold split ({{ effectiveSplitSet.size }})
           </button>
-          <span class="tux-map__wire-filters-lbl">Wires:</span>
-          <button
-            v-for="cat in [
-              { id: 'prod' as const, label: 'Prod' },
-              { id: 'tests' as const, label: 'Tests' },
-              { id: 'ci' as const, label: 'CI' },
-              { id: 'docs' as const, label: 'Docs' },
-            ]"
-            :key="cat.id"
-            type="button"
-            class="tux-map__wire-filter-btn"
-            :data-wire-filter="cat.id"
-            :aria-pressed="activeWireCategoriesSet.has(cat.id)"
-            @click="toggleWireCategory(cat.id)"
-          >
-            {{ cat.label }}
-          </button>
+          <span :id="wiresLabelId" class="tux-map__wire-filters-lbl">Wires</span>
+          <div class="tux-map__wire-chips" role="group" :aria-labelledby="wiresLabelId">
+            <button
+              v-for="cat in WIRE_FILTER_CHOICES"
+              :key="cat.id"
+              type="button"
+              class="tux-map__wire-chip"
+              :class="{ 'tux-map__wire-chip--none-here': !wireCategoriesHere.has(cat.id) }"
+              :data-wire-filter="cat.id"
+              :aria-pressed="activeWireCategoriesSet.has(cat.id)"
+              :title="wireCategoriesHere.has(cat.id) ? cat.says : `${cat.says} None on this view.`"
+              @click="toggleWireCategory(cat.id)"
+            >
+              <TuxRemovableChip
+                size="md"
+                :selected="activeWireCategoriesSet.has(cat.id)"
+                :icon="activeWireCategoriesSet.has(cat.id) ? 'lucide:check' : undefined"
+              >
+                {{ cat.label }}
+              </TuxRemovableChip>
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- always in the page, so the live region speaks when it fills; empty, it takes no room -->
+    <p class="tux-map__wires-note" role="status" data-wires-empty>{{ wiresFilterNote }}</p>
     <p class="tux-map__hint">{{ wheelVeilHint }}{{ hintText }}</p>
     <p class="tux-map__summary">{{ summaryText }}</p>
 
@@ -9490,19 +9521,18 @@ function buildSourceHref(src?: {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.3rem;
+  gap: var(--space-8, 8px);
 }
 
 .tux-map__wire-filters-lbl {
   font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-right: 0.15rem;
+  color: var(--text-secondary);
 }
 
 .tux-map__wire-filter-btn {
   min-height: var(--tux-map-target);
   padding: 0.25rem 0.65rem;
-  border-radius: 999px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--surface-border);
   background: var(--surface-raised);
   color: var(--text-secondary);
@@ -9517,12 +9547,56 @@ function buildSourceHref(src?: {
   color: var(--text-primary);
 }
 
-.tux-map__wire-filter-btn[aria-pressed="true"] {
-  background: var(--tux-map-brand-tint);
-  border-color: var(--brand-primary);
+/* The Wires choices (#272): TUX's toggle-style chip, TuxRemovableChip with `selected`, inside a native
+   toggle button that is the map's target size and carries the pressed state and the keyboard. The
+   chip draws the look (brand fill when on, with a check, so "on" does not rest on colour); the
+   button adds nothing to it but the focus ring. */
+.tux-map__wire-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4, 4px);
+}
+
+.tux-map__wire-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tux-map-target);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xs, 2px);
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tux-map__wire-chip:focus-visible {
+  outline: none;
+}
+
+.tux-map__wire-chip:focus-visible .tux-removable-chip {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* a kind of wire this view has none of: still a choice (it holds across levels), drawn dashed */
+.tux-map__wire-chip--none-here .tux-removable-chip {
+  border-style: dashed;
+}
+
+.tux-map__wire-chip--none-here[aria-pressed="false"] .tux-removable-chip {
+  color: var(--text-secondary);
+}
+
+.tux-map__wires-note {
+  margin: 0 0 var(--space-8, 8px);
+  font-size: 0.8125rem;
   color: var(--text-primary);
-  font-family: var(--font-bold);
-  font-weight: 700;
+}
+
+/* empty, it takes no room and stays a live region (one that is not rendered is not heard) */
+.tux-map__wires-note:empty {
+  margin: 0;
 }
 
 .tux-map__trace-banner,

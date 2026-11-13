@@ -18,6 +18,18 @@ conventions.
 
 ## [Unreleased]
 
+### Fixed — Architecture map: the Wires filter draws what each choice names, says what it draws, and is TUX's toggle chip (#272)
+
+- **Why Tests, CI and Docs looked dead.** Level 2 draws the containers' C4 `rels`, and the filter only decided which of those were shown. A test, CI or doc link between two containers that no `rel` joins had no wire under any choice. On the docs sample every `rel` is production, so at Level 2 Tests, CI and Docs drew nothing, and the sample's one CI link (Scheduled Jobs builds the workers' image) was never drawn. Nothing said why, and with every choice off the canvas went blank without a word.
+- **Each choice now draws its own wires.** At Level 2 a test, CI or doc link between two containers that no `rel` joins is a wire of its own while its category is on, labelled with its kinds (one wire per pair, whichever of its categories are on); Prod stays the C4 `rels`, so the default view is unchanged. Level 3 and 5+ already lifted the code links of the chosen kinds and are unchanged.
+- **It says what it draws.** Each choice has a tooltip (Production wires: what runs, calls, reads and writes at run time; Test wires; CI wires: workflows, checks and build steps; Doc wires), with "None on this view." and a dashed outline where this view has none of that kind (`wireCategoriesOnView()`, internal, worked out once per view). When the filter leaves no wire, a line under the bar says so: "every kind of wire is off", or "this view has no test or doc wires". It is a live region.
+- **TUX's own control.** The choices were round, hand-styled pills. TUX has no toggle group or filter-chip component; its toggle-style chip is `TuxRemovableChip` with `selected` (the brand fill), which its docs give for "a facet that's currently applied vs. one that isn't". Each choice is now that chip, with a check when on, inside a native `<button aria-pressed>` at the map's target size, because the chip is a `<span>` with no keyboard of its own unless it is removable. Keyboard: Tab to each, Space or Enter toggles, as the toolbar's other toggles. The group is labelled by its "Wires" label.
+- Tests: `tests/tux-architecture-map-wires-filter.nuxt.test.ts` (mounted, the sample with one link of each kind added: the wires each choice draws at Levels 2 and 3, Prod and CI together, the notes, the tooltips and the dashed "none here", the order emitted, the group and its chips, none at Levels 1 and 4).
+
+**To check when upgrading:**
+- With Tests, CI or Docs on, Level 2 can show wires it did not: one per pair of containers that a link of that kind joins and no `rel` does. With the default (Prod) nothing changes.
+- The choices are `.tux-map__wire-chip` buttons (they were `.tux-map__wire-filter-btn`, still the Fold split button's class) with `data-wire-filter` and `aria-pressed` as before, each holding a `TuxRemovableChip`; the label reads "Wires" (it read "Wires:"). A host style or test that targeted the old buttons should move. A line `[data-wires-empty]` sits under the bar, empty unless the filter leaves no wire.
+
 ### Added — Architecture map: zoom and pan the canvas like a whiteboard (#271)
 
 - **A zoom group in the canvas's top-right corner**: −, the size against Fit (100% at Fit), + and Fit. It replaces the toolbar's A−, Fit and A+, which were far from the diagram they acted on. It moves left of the details panel while the panel is open over the map, and is not drawn in the list view. The buttons step through the same scales as before (50, 75, 100, 150 and 200% of the diagram's real size) and keep the selected card in view, or, with nothing selected, the middle of the view where it was (A+ used to keep the top-left corner).

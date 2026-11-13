@@ -2945,11 +2945,13 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
   // line that shows them (#259) add about 880 B more, so the budget was 103,500 B.
   // The canvas zoom and pan (#271: the zoom group in the canvas, Ctrl + wheel around the pointer,
   // Shift + wheel, Space + drag, the canvas's keys, the help text that names them) add 1,333 B on
-  // macOS (102,545 B to 103,878 B; about 104,330 B on the Linux runner), so the budget is 104,500 B
-  // until #242 sets it once at the end of the epic.
+  // macOS (102,545 B to 103,878 B; about 104,330 B on the Linux runner), so the budget was 104,500 B.
+  // The Wires filter's fix (#272: Level 2's test, CI and doc wires, what is on each view, the choices'
+  // tooltips and the note, the chips' styles) adds 1,412 B (105,290 B on macOS, about 105,750 B on the
+  // Linux runner), so the budget is 106,000 B until #242 sets it once at the end of the epic.
   // What is measured: the component's script and template, every module it imports (the `.vue`
   // files among them, compiled the same way) except `vue`, and the styles of each of those files.
-  it("keeps the bundled <TuxArchitectureMap> consumer payload (JS + CSS, gzip-9) under the 104,500 B budget", async () => {
+  it("keeps the bundled <TuxArchitectureMap> consumer payload (JS + CSS, gzip-9) under the 106,000 B budget", async () => {
     const pkgRoot = join(__dirname, "..");
     const css: string[] = [];
     const measured: string[] = [];
@@ -2990,7 +2992,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
       "app/utils/internal/TuxArchitectureMapMinimap.vue",
     ]);
     expect(gzipBytes).toBeGreaterThan(30_000);
-    expect(gzipBytes).toBeLessThan(104_500);
+    expect(gzipBytes).toBeLessThan(106_000);
   });
 });
 

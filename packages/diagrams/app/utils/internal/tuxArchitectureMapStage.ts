@@ -152,6 +152,11 @@ export interface Level2StageBase {
   folded: FoldedView;
   /** For each pair of cards a code link joins: the categories of those links */
   codePairCategories: Map<string, Set<TuxMapWireCategory>>;
+  /**
+   * Level 2's code-only wires (#272): for each pair of cards that a test, CI or doc link joins and no
+   * `rel` does, one wire per category, with the links behind it. Prod is the C4 `rels` at this level.
+   */
+  codeOnlyWires: { from: string; to: string; category: TuxMapWireCategory; kinds: Map<string, number> }[];
   boundaryLabel: string;
   boundaryOf: string[];
 }
@@ -667,9 +672,51 @@ function buildLevel2Base(ctx: StageModelContext): Level2StageBase {
     ctx,
     folded,
     codePairCategories: collectCodePairCategories(folded.links, endpoints, ctx.parentOf),
+    codeOnlyWires: collectCodeOnlyWires(folded.links, folded.rels, endpoints, ctx.parentOf),
     boundaryLabel: boundTarget ? boundTarget.name : "Primary System",
     boundaryOf: folded.elements.filter((e) => !e.ref).map((e) => e.id),
   };
+}
+
+/**
+ * Level 2 draws the C4 `rels`. A test, CI or doc link between two of its cards that no `rel` joins
+ * had no wire at all, so Tests, CI and Docs drew nothing there (#272). Such links are drawn as one
+ * wire per pair and category, labelled with their kinds, while that category is on.
+ */
+function collectCodeOnlyWires(
+  links: readonly TuxMapLink[],
+  rels: readonly TuxMapLevelRel[],
+  endpoints: ReadonlySet<string>,
+  parentOf: Map<string, string>,
+): Level2StageBase["codeOnlyWires"] {
+  const joined = new Set<string>();
+  for (const r of rels) {
+    joined.add(wirePairKey(r.from, r.to));
+    joined.add(wirePairKey(r.to, r.from));
+  }
+  const byKey = new Map<string, Level2StageBase["codeOnlyWires"][number]>();
+  for (const l of links) {
+    const category = classifyLinkDependencyCategory(l);
+    if (category === "prod") continue;
+    const from = liftToSet(l.from, endpoints, parentOf);
+    const to = liftToSet(l.to, endpoints, parentOf);
+    if (!from || !to || from === to || joined.has(wirePairKey(from, to))) continue;
+    const key = `${wirePairKey(from, to)}\u0000${category}`;
+    let w = byKey.get(key);
+    if (!w) byKey.set(key, (w = { from, to, category, kinds: new Map() }));
+    const kind = l.kind || "uses";
+    w.kinds.set(kind, (w.kinds.get(kind) ?? 0) + 1);
+  }
+  return [...byKey.values()];
+}
+
+/** The two commonest kinds of a code-only wire, most first, as its label. */
+function codeWireLabel(kinds: Map<string, number>): string {
+  return [...kinds.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 2)
+    .map(([k]) => k)
+    .join(", ");
 }
 
 function liftLevel2(base: Level2StageBase, toggles: StageToggles): StageDraft {
@@ -679,6 +726,20 @@ function liftLevel2(base: Level2StageBase, toggles: StageToggles): StageDraft {
   const rels = base.folded.rels.filter((r) =>
     isRelAllowed(r, base.codePairCategories, wireCategories, base.ctx.lookup),
   );
+  // a pair may carry more than one category: one wire for it, whichever of them is on
+  const drawnCodePairs = new Set<string>();
+  for (const w of base.codeOnlyWires) {
+    const pk = wirePairKey(w.from, w.to);
+    if (!wireCategories.has(w.category) || drawnCodePairs.has(pk)) continue;
+    drawnCodePairs.add(pk);
+    const kinds = new Map<string, number>();
+    for (const o of base.codeOnlyWires) {
+      if (o.from === w.from && o.to === w.to && wireCategories.has(o.category)) {
+        for (const [k, n] of o.kinds) kinds.set(k, (kinds.get(k) ?? 0) + n);
+      }
+    }
+    rels.push({ from: w.from, to: w.to, label: codeWireLabel(kinds) });
+  }
   draft.rawRels = rels;
   draft.rawListRels = rels;
   draft.innerCardCount = draft.rawEls.filter((e) => !e.ref && isShown(e.status, showPlanned)).length;
@@ -1641,6 +1702,48 @@ export function buildStageBase(
     folded: { elements: [], rels: [], links: ctx.rawLinks, foldedToRepresentative: new Map() },
   };
 }
+
+const WIRE_CATEGORIES_ON_VIEW = /* @__PURE__ */ new WeakMap<StageBase, ReadonlySet<TuxMapWireCategory>>();
+
+/**
+ * The categories of wire this view has something to draw for, whichever are switched on (#272): what
+ * the Wires filter says has nothing here. Levels 1 and 4 have no filter, and none. Kept per base.
+ * @internal
+ */
+export function wireCategoriesOnView(base: StageBase): ReadonlySet<TuxMapWireCategory> {
+  const known = WIRE_CATEGORIES_ON_VIEW.get(base);
+  if (known) return known;
+  const out = new Set<TuxMapWireCategory>();
+  const { lookup, parentOf } = base.ctx;
+  const addRel = (r: TuxMapLevelRel, pairs: ReadonlyMap<string, ReadonlySet<TuxMapWireCategory>>) => {
+    const cats = pairs.get(wirePairKey(r.from, r.to));
+    if (cats) for (const c of cats) out.add(c);
+    else out.add(relCategory(r, lookup));
+  };
+  if (base.level === 2) {
+    const b = base as Level2StageBase;
+    for (const r of b.folded.rels) addRel(r, b.codePairCategories);
+    for (const w of b.codeOnlyWires) out.add(w.category);
+  } else if (base.level !== 1 && base.level !== 4) {
+    const b = base as ViewStageBase;
+    if (b.level === 3) for (const r of b.ctx.model.level2.rels) {
+      if (r.from === b.fId || r.to === b.fId) addRel(r, b.boundaryPairCategories);
+    }
+    const kids = new Set(b.kidIds);
+    for (const r of b.folded.rels) if (!b.codeCoveredInnerPairs.has(wirePairKey(r.from, r.to))) out.add(relCategory(r, lookup));
+    // a code link with one end or both inside the view is drawn on it, as an inner or an outside wire
+    for (const l of b.folded.links) {
+      if (out.size === TUX_MAP_WIRE_CATEGORY_COUNT) break;
+      const a = liftToSet(l.from, kids, parentOf);
+      const z = liftToSet(l.to, kids, parentOf);
+      if ((a || z) && a !== z) out.add(classifyLinkDependencyCategory(l));
+    }
+  }
+  WIRE_CATEGORIES_ON_VIEW.set(base, out);
+  return out;
+}
+
+const TUX_MAP_WIRE_CATEGORY_COUNT = 4;
 
 /**
  * The stage of a base under the reader's toggles.
