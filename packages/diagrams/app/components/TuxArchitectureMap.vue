@@ -76,6 +76,7 @@ import {
   type StageBase,
   type StageToggles,
 } from "../utils/internal/tuxArchitectureMapStage";
+import TuxArchitectureMapMinimap from "../utils/internal/TuxArchitectureMapMinimap.vue";
 
 export type TuxMapViewMode = "diagram" | "list";
 
@@ -136,6 +137,8 @@ export interface TuxArchitectureMapProps {
   modelRef?: string;
   /** Whether plain mouse wheel over the diagram zooms across levels without requiring Ctrl/Cmd (`true` by default; set `false` to require Ctrl/Cmd + wheel; `"click"` puts the canvas under a "Click to explore" veil and leaves the wheel to the page until the reader clicks it or moves keyboard focus into the canvas; `#209`) */
   wheelZoom?: boolean | "click";
+  /** Whether a small overview of the level fades in over the canvas while the view scrolls, magnifies or changes level (`true` by default; it is rendered only where the level is larger than its viewport; `#211`) */
+  minimap?: boolean;
   /** Legacy nodes prop (automatically converted into a 4-level model if `model` is omitted) */
   nodes?: TuxMapNode[];
   /** Legacy edges prop */
@@ -193,6 +196,7 @@ const props = withDefaults(defineProps<TuxArchitectureMapProps>(), {
   resolveSubgraph: undefined,
   modelRef: undefined,
   wheelZoom: true,
+  minimap: true,
   nodes: () => [],
   edges: () => [],
   zones: () => [],
@@ -7973,6 +7977,20 @@ function buildSourceHref(src?: {
           <span>{{ zoomHudText }}</span>
         </div>
       </div>
+
+      <!-- Overview of the level, while the view moves (#211) -->
+      <TuxArchitectureMapMinimap
+        v-if="minimap && !effectiveIsListView && !wheelVeilShown"
+        :viewport="viewportRef"
+        :stage="stageData"
+        :scale="stageScale"
+        :pan-x="panX"
+        :selected-id="selectedId"
+        :changed-ids="blastRadiusState?.directIds"
+        :lit="activeLitId || matchingSearchIds || blastRadiusState || stageTraceState ? isElementLit : null"
+        :coarse="coarsePointer"
+        :narrow-below="autoListBreakpoint"
+      />
 
       <!-- Unscaled Wire Link Inspector Popover (#115, #123) -->
       <div

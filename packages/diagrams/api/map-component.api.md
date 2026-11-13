@@ -8,7 +8,7 @@ events it emits, its `v-model` bindings, its slots, the members it exposes on a 
 ref, and the types its file exports. Sorted by name. Everything else in the component is
 internal.
 
-## Props (41)
+## Props (42)
 
 - `annotations?: boolean` (default: `false`)
 - `ariaLabel?: string` (default: `"Interactive multi-level architecture map"`)
@@ -34,6 +34,7 @@ internal.
 - `initialZoom?: number` (default: `1`)
 - `level?: TuxMapLevelNumber` (default: `undefined`)
 - `lodMode?: "auto" | TuxMapLoDLevel` (default: `"auto"`)
+- `minimap?: boolean` (default: `true`)
 - `model?: TuxMapLevelModel` (default: `undefined`)
 - `modelRef?: string` (default: `undefined`)
 - `nodes?: TuxMapNode[]` (default: `() => []`)
