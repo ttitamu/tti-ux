@@ -814,8 +814,10 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect(pagedNodes.hasMore).toBe(true);
     expect("desc" in pagedNodes.nodes[0]!).toBe(false);
 
-    // 3. C4-only coarse-parent step is never added to `seeds` and is explicitly labelled
-    const coarseRes = queryArchitectureImpact("c-api/0", DEFAULT_TTI_LEVEL_MODEL);
+    // 3. C4-only coarse-parent step is never added to `seeds` and is explicitly labelled. The sample
+    // carries three code links since #259; without them it is the C4-only model this case is about.
+    const c4OnlySample: TuxMapLevelModel = { ...DEFAULT_TTI_LEVEL_MODEL, links: undefined };
+    const coarseRes = queryArchitectureImpact("c-api/0", c4OnlySample);
     expect("error" in coarseRes).toBe(false);
     if (!("error" in coarseRes)) {
       expect(coarseRes.seeds).toEqual(["c-api/0"]);
@@ -829,7 +831,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
       expect(coarseRes.hits.length).toBeGreaterThan(0);
       expect(coarseRes.hits.every((h) => h.coarseParentVia === "c-api")).toBe(true);
     }
-    const noCoarse = queryArchitectureImpact("c-api/0", DEFAULT_TTI_LEVEL_MODEL, {
+    const noCoarse = queryArchitectureImpact("c-api/0", c4OnlySample, {
       allowCoarseParentStep: false,
     });
     if (!("error" in noCoarse)) {
@@ -2936,9 +2938,11 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
   // is 101,000 B, which holds on both with a few hundred bytes to spare.
   // Phase 1 of the performance epic (#221: #222–#231) added 1,118 B more (101,221 B on macOS,
   // about 101,690 B on the Linux runner), so the budget is 102,000 B until #242 sets it once.
+  // The blast intents' definitions and the key line that shows them (#259) add about 880 B
+  // (102,200 B on macOS), so the budget is 103,000 B.
   // What is measured: the component's script and template, every module it imports (the `.vue`
   // files among them, compiled the same way) except `vue`, and the styles of each of those files.
-  it("keeps the bundled <TuxArchitectureMap> consumer payload (JS + CSS, gzip-9) under the 102,000 B budget", async () => {
+  it("keeps the bundled <TuxArchitectureMap> consumer payload (JS + CSS, gzip-9) under the 103,000 B budget", async () => {
     const pkgRoot = join(__dirname, "..");
     const css: string[] = [];
     const measured: string[] = [];
@@ -2979,7 +2983,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
       "app/utils/internal/TuxArchitectureMapMinimap.vue",
     ]);
     expect(gzipBytes).toBeGreaterThan(30_000);
-    expect(gzipBytes).toBeLessThan(102_000);
+    expect(gzipBytes).toBeLessThan(103_000);
   });
 });
 

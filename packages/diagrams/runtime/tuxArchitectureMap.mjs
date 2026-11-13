@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 406700b295f1b8a47eb7fd2d482b0a5885538c87e5d9060f373b6a82394cbc8c
+// SOURCE-SHA256: c1b2ae9ee77c1c755b7dbcda6e2fe1090b44ec51312307638772cd075f81dd30
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -1932,13 +1932,60 @@ export function elementTypeLabel(el, opts = {}) {
         return kind;
     return `${kind}${sep}${rest}`;
 }
-export const TUX_MAP_VALID_BLAST_INTENTS = new Set([
-    "default",
-    "patch",
-    "refactor",
-    "cut",
-    "supply-chain",
-]);
+export const TUX_MAP_BLAST_LINK_CLASS_LABELS = {
+    contract: "contracts (routes, code imports)",
+    runtime: "calls and uses",
+    "type-only": "type-only imports",
+    "artifact-stamp": "build stamps",
+    "build-exec": "build-time steps",
+    verification: "tests and checks",
+    prose: "docs that mention it",
+    "page-link": "page links",
+};
+const REFACTOR_WALK = {
+    follows: ["contract", "runtime", "type-only", "page-link"],
+    stops: ["artifact-stamp", "build-exec", "verification", "prose"],
+    skips: [],
+};
+export const TUX_MAP_BLAST_INTENTS = [
+    {
+        id: "default",
+        label: "General",
+        description: "Any change: everything that depends on it, through every link.",
+        follows: ["contract", "runtime", "type-only", "artifact-stamp", "build-exec", "verification", "page-link"],
+        stops: ["prose"],
+        skips: [],
+    },
+    {
+        id: "patch",
+        label: "Body patch",
+        description: "An edit inside a body that keeps its signature, types and build: what calls or routes to it.",
+        follows: ["contract", "runtime"],
+        stops: ["artifact-stamp", "verification", "prose"],
+        skips: ["type-only", "build-exec", "page-link"],
+    },
+    {
+        id: "refactor",
+        label: "Refactor",
+        description: "A change to a signature or type that callers see: what calls it or imports its types.",
+        ...REFACTOR_WALK,
+    },
+    {
+        id: "cut",
+        label: "Cut / remove",
+        description: "Removing it: the cards Refactor lights, and the result also names what could go with it.",
+        ...REFACTOR_WALK,
+    },
+    {
+        id: "supply-chain",
+        label: "Supply chain",
+        description: "A new version of a dependency, image or package: what runs, builds or ships it.",
+        follows: ["contract", "runtime"],
+        stops: ["artifact-stamp", "build-exec", "verification"],
+        skips: ["type-only", "prose", "page-link"],
+    },
+];
+export const TUX_MAP_VALID_BLAST_INTENTS = new Set(TUX_MAP_BLAST_INTENTS.map((d) => d.id));
 const VALID_LINK_COUPLINGS = new Set([
     "contract",
     "runtime",

@@ -10,16 +10,28 @@ they stay importable, and they may change or go away in any release without noti
 
 ## `@tti/tti-ux-diagrams/runtime/tuxArchitectureMap`
 
-119 public, 47 internal.
+123 public, 47 internal.
 
-### Public (119)
+### Public (123)
 
-#### Constants (9)
+#### Constants (11)
 
 ##### `EMPTY_TTI_LEVEL_MODEL`
 
 ```ts
 export declare const EMPTY_TTI_LEVEL_MODEL: TuxMapNormalizedModel;
+```
+
+##### `TUX_MAP_BLAST_INTENTS`
+
+```ts
+export declare const TUX_MAP_BLAST_INTENTS: readonly TuxMapBlastIntentDefinition[];
+```
+
+##### `TUX_MAP_BLAST_LINK_CLASS_LABELS`
+
+```ts
+export declare const TUX_MAP_BLAST_LINK_CLASS_LABELS: Readonly<Record<TuxMapBlastLinkClass, string>>;
 ```
 
 ##### `TUX_MAP_ELEMENT_KIND_LABELS`
@@ -528,7 +540,7 @@ export declare function traceSpreadingPath(fromId: string, toId: string, model: 
 export declare function validateMapModel(model: unknown): TuxMapValidationResult;
 ```
 
-#### Interfaces (58)
+#### Interfaces (59)
 
 ##### `FreehandStrokeOptions`
 
@@ -564,6 +576,19 @@ export interface TuxMapBlastHit {
     via: TuxMapLink;
     at?: string;
     sites?: number[];
+}
+```
+
+##### `TuxMapBlastIntentDefinition`
+
+```ts
+export interface TuxMapBlastIntentDefinition {
+    id: TuxMapBlastIntent;
+    label: string;
+    description: string;
+    follows: readonly TuxMapBlastLinkClass[];
+    stops: readonly TuxMapBlastLinkClass[];
+    skips: readonly TuxMapBlastLinkClass[];
 }
 ```
 
@@ -1446,12 +1471,18 @@ export interface TuxMapZone {
 }
 ```
 
-#### Type aliases (17)
+#### Type aliases (18)
 
 ##### `TuxMapBlastIntent`
 
 ```ts
 export type TuxMapBlastIntent = "default" | "patch" | "refactor" | "cut" | "supply-chain";
+```
+
+##### `TuxMapBlastLinkClass`
+
+```ts
+export type TuxMapBlastLinkClass = TuxMapLinkCoupling | "page-link";
 ```
 
 ##### `TuxMapElementChangeKind`

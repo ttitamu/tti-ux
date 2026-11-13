@@ -91,7 +91,7 @@ The architecture map has two contracts, and each has a committed snapshot that t
 | `initialShowPlanned` | `boolean` | `false` | Starting value of the same. |
 | `showBlastRadius` | `boolean` | `undefined` | Controlled Blast radius switch (`v-model:showBlastRadius`). |
 | `initialShowBlastRadius` | `boolean` | `false` | Starting value of the same. |
-| `blastIntent` | `TuxMapBlastIntent` | `undefined` | Controlled kind of change the blast radius is computed for: `"default"`, `"patch"`, `"refactor"`, `"cut"` or `"supply-chain"` (`v-model:blastIntent`). |
+| `blastIntent` | `TuxMapBlastIntent` | `undefined` | Controlled kind of change the blast radius is computed for: `"default"`, `"patch"`, `"refactor"`, `"cut"` or `"supply-chain"` (`v-model:blastIntent`; what each follows: [Blast intents](#blast-intents)). |
 | `initialBlastIntent` | `TuxMapBlastIntent` | `"default"` | Starting intent. |
 | `blastSeeds` | `string[]` | `undefined` | Ids the branch blast radius starts from, for example `blastSeedIds` of `computeGraphDelta()`. Without it the seeds are taken from the elements that carry a `diff`. |
 | `splitIds` | `string[]` | `undefined` | Controlled ids of the rolled-up outside cards that are expanded (`v-model:splitIds`). |
@@ -145,7 +145,7 @@ The component has no slots and calls no `defineExpose()`: a template ref gives a
 
 ### The runtime: public exports
 
-Every runtime export carries `@public` or `@internal` in its TSDoc comment, and the comment travels into the published `.d.mts`, so an editor shows it on hover. The entry point has 119 public exports: 9 constants, 35 functions and 75 types. The constants and functions, by purpose:
+Every runtime export carries `@public` or `@internal` in its TSDoc comment, and the comment travels into the published `.d.mts`, so an editor shows it on hover. The entry point has 123 public exports: 11 constants, 35 functions and 77 types. The constants and functions, by purpose:
 
 **Reading and checking a model**
 
@@ -170,6 +170,8 @@ Every runtime export carries `@public` or `@internal` in its TSDoc comment, and 
 | `TUX_MAP_LINK_KIND_LABELS` | What each link kind means, read from the part it points at. |
 | `TUX_MAP_LINK_STRENGTH_ORDER` | The link kinds from strongest to weakest. It breaks ties in the blast radius. |
 | `TUX_MAP_QUIET_LINK_KINDS` | The link kinds drawn on no stage (`mentions`). They still count in the blast radius. |
+| `TUX_MAP_BLAST_INTENTS` | The definition of each `TuxMapBlastIntent`, in picker order: its label, the change it models, and the link classes its walk follows, stops at and skips (the table below). |
+| `TUX_MAP_BLAST_LINK_CLASS_LABELS` | Each `TuxMapBlastLinkClass` in words, as the blast key names it. |
 | `TUX_MAP_VALID_BLAST_INTENTS` | The set of valid `TuxMapBlastIntent` values. |
 | `TUX_MAP_WIRE_CATEGORIES` | Every `TuxMapWireCategory`, in display order. |
 
@@ -237,7 +239,19 @@ Every runtime export carries `@public` or `@internal` in its TSDoc comment, and 
 | `findShortestArchitecturePath()` | `findArchitecturePath()` |
 | `coordinateAcpSubgraphLease()` | `computeGraphDelta()` and `queryArchitectureImpact()`: a lease does not coordinate across processes |
 
-The 75 public types are the model (`TuxMapLevelModel`, `TuxMapNormalizedModel` and what they are made of), the legacy `TuxMapNode`, `TuxMapEdge` and `TuxMapZone`, and the option and result types of the functions above. [`api/map-runtime.api.md`](./api/map-runtime.api.md) is the full list, with the declaration of each; it is generated and never edited.
+The 77 public types are the model (`TuxMapLevelModel`, `TuxMapNormalizedModel` and what they are made of), the legacy `TuxMapNode`, `TuxMapEdge` and `TuxMapZone`, and the option and result types of the functions above. [`api/map-runtime.api.md`](./api/map-runtime.api.md) is the full list, with the declaration of each; it is generated and never edited.
+
+<a id="blast-intents"></a>**Blast intents.** The intent is the kind of change the blast radius is lit for; it decides which links the walk follows. `TUX_MAP_BLAST_INTENTS` holds these definitions, and the map's key shows the chosen one with what it follows, stops at and skips. A link's class is its `coupling` (read from `kind` when left out), except that a `links` link is a page link. *Follows*: walked through and past. *Stops at*: lit one step out, not walked past. *Skips*: never lit.
+
+| Intent | Models | Follows | Stops at | Skips |
+|---|---|---|---|---|
+| `default` (General) | Any change. | every class but `prose` | `prose` | nothing |
+| `patch` (Body patch) | An edit inside a body that keeps its signature, types and build. | `contract`, `runtime` | `artifact-stamp`, `verification`, `prose` | `type-only`, `build-exec`, page links |
+| `refactor` (Refactor) | A change to a signature or type that callers see. | `contract`, `runtime`, `type-only`, page links | `artifact-stamp`, `build-exec`, `verification`, `prose` | nothing |
+| `cut` (Cut / remove) | Removing it. The same walk as Refactor, so it lights the same cards; the result also lists what could be removed with it (`coCutCandidates`). | as Refactor | as Refactor | as Refactor |
+| `supply-chain` (Supply chain) | A new version of a dependency, image or package. | `contract`, `runtime` | `artifact-stamp`, `build-exec`, `verification` | `type-only`, `prose`, page links |
+
+Under every intent a link marked `stop` is lit and not walked past (Refactor and Cut still walk a `type-only` one), and a `prose` link (`mentions`) is lit one step from the change only. Relationships bridged from C4 `rels` and Level 4 `links` are `runtime`, which every intent follows: on a model with no code `links`, every intent lights the same cards, and the map says so under the key. The docs sample's three code links into Background Workers show the difference.
 
 **`links` and `parentOf` are read-only once passed.** `computeLinkBlastRadius()` and `liftLinksToView()` build lookup tables from the `links` array and the `parentOf` map and cache them against those two objects, so a repeat call with the same array and map does not read either of them whole. The tables are rebuilt when the array's length or the map's size changes. A change in place that keeps the count (a link replaced, a link's `from` or `to` rewritten, a child given another parent) is not seen: pass a new array or map, which is what `extractModelLinks()` and `buildMapParentIndex()` return on every call, or pass `verifyInputs: true`, which hashes both inputs on that call and rebuilds on a difference. The same holds for the `model` option of `computeLinkBlastRadius()`: what it reads from the model (hosts, subgraph owners, each element's kind and path) is kept against the model object and its level and `subgraphs` records, and `verifyInputs: true` reads it again. `filterLinksByCategories()` keeps each link's category against the link object.
 

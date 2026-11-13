@@ -2,6 +2,8 @@
 import { computed, isReactive, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, useId, watch } from "vue";
 import {
   EMPTY_TTI_LEVEL_MODEL,
+  TUX_MAP_BLAST_INTENTS,
+  TUX_MAP_BLAST_LINK_CLASS_LABELS,
   TUX_MAP_ELEMENT_KIND_LABELS,
   TUX_MAP_LINK_KIND_LABELS,
   TUX_MAP_QUIET_LINK_KINDS,
@@ -35,6 +37,7 @@ import {
   routeGridWires,
   searchArchitectureMap,
   type TuxMapBlastIntent,
+  type TuxMapBlastLinkClass,
   type TuxMapDeploymentNode,
   type TuxMapDiffInfo,
   type TuxMapEdge,
@@ -257,6 +260,7 @@ const instanceId = useId();
 const arrowMarkerId = `tux-map-arrow-${instanceId}`;
 const goToListboxId = `tux-map-goto-listbox-${instanceId}`;
 const wireInspectorId = `tux-map-wire-pop-${instanceId}`;
+const blastIntentKeyId = `tux-map-intent-${instanceId}`;
 
 function getLevel3Kids(
   M: TuxMapLevelModel,
@@ -2266,6 +2270,37 @@ const blastFade = computed<{ of: "selection" | "change"; text: string } | null>(
   return hasModelDiffs.value
     ? { of: "change", text: `Blast radius: the changed parts and what depends on them are lit. ${rest}` }
     : { of: "selection", text: `Blast radius: the selection and what depends on it are lit. ${rest}` };
+});
+
+/** The chosen intent's definition, and what its walk follows, stops at and skips in words (#259). */
+const blastIntentDef = computed(() => TUX_MAP_BLAST_INTENTS.find((d) => d.id === blastIntent.value) ?? TUX_MAP_BLAST_INTENTS[0]!);
+const blastIntentRule = computed<string>(() => {
+  const d = blastIntentDef.value;
+  const say = (cs: readonly TuxMapBlastLinkClass[]) => cs.map((c) => TUX_MAP_BLAST_LINK_CLASS_LABELS[c]).join(", ");
+  return `Follows ${say(d.follows)}; stops one step out at ${say(d.stops)}${d.skips.length ? `; skips ${say(d.skips)}` : ""}.`;
+});
+
+/**
+ * What the chosen intent lights on this view next to General (#259), so switching it never looks dead:
+ * `same` when the cards lit are General's. `null` under General.
+ */
+const blastIntentVsGeneral = computed<{ n: number; general: number; same: boolean } | null>(() => {
+  const br = blastRadiusState.value;
+  if (!br || blastIntent.value === "default") return null;
+  const sb = selectionBlast.value;
+  const walk = sb || branchBlast.value.diffBlast;
+  // no links to walk: the change's neighbours are lit by the wires, whatever the intent
+  if (!walk) return { n: br.impactedIds.size, general: br.impactedIds.size, same: true };
+  const g = computeLinkBlastRadius(effectiveModelLinks.value, walk.seeds, parentOf.value, {
+    model: activeModel.value,
+    kinds: sb ? activeUsageKindsSet.value : undefined,
+  });
+  const lit = projectBlastOntoStage(g.seeds, g.hits, br.rollupCountById, sb ? undefined : br.directIds).impactedIds;
+  return {
+    n: br.impactedIds.size,
+    general: lit.size,
+    same: lit.size === br.impactedIds.size && [...lit].every((id) => br.impactedIds.has(id)),
+  };
 });
 
 const offStageImpactCount = computed<number>(() => {
@@ -6819,14 +6854,13 @@ function buildSourceHref(src?: {
               v-if="showBlastRadius"
               v-model="blastIntent"
               class="tux-map__intent-select"
-              aria-label="Blast radius intent"
-              title="Filter blast radius propagation by change intent"
+              aria-label="Blast radius intent: the kind of change it is lit for"
+              :aria-describedby="blastIntentKeyId"
+              :title="`${blastIntentDef.description} ${blastIntentRule}`"
             >
-              <option value="default">Intent: General</option>
-              <option value="patch">Intent: Body patch</option>
-              <option value="refactor">Intent: Refactor</option>
-              <option value="cut">Intent: Cut / remove</option>
-              <option value="supply-chain">Intent: Supply chain</option>
+              <option v-for="d in TUX_MAP_BLAST_INTENTS" :key="d.id" :value="d.id" :title="d.description">
+                Intent: {{ d.label }}
+              </option>
             </select>
 
             <!-- Lightweight Annotation Tools (opt-in via `annotations` prop, #125) -->
@@ -7212,6 +7246,15 @@ function buildSourceHref(src?: {
       </li>
     </ul>
     <p v-if="blastFade" class="tux-map__blast-note">{{ blastFade.text }}</p>
+    <!-- The intent's definition and what it changes here (#259); the intent select is described by it -->
+    <p v-if="showBlastRadius" :id="blastIntentKeyId" class="tux-map__blast-intent" data-blast-intent-key>
+      <strong>Intent: {{ blastIntentDef.label }}.</strong> {{ blastIntentDef.description }} {{ blastIntentRule }}
+      <strong v-if="blastIntentVsGeneral" role="status" data-blast-intent-vs>{{
+        blastIntentVsGeneral.same
+          ? `Same cards as General on this view: nothing here that ${blastIntentDef.label} skips or stops at changes what is lit.`
+          : `${blastIntentDef.label} lights ${blastIntentVsGeneral.n} card${blastIntentVsGeneral.n === 1 ? "" : "s"} here; General lights ${blastIntentVsGeneral.general}.`
+      }}</strong>
+    </p>
     <div v-if="!effectiveIsListView && offStageImpactCount > 0" class="tux-map__other-levels">
       +{{ offStageImpactCount }} on other levels
     </div>
@@ -9682,7 +9725,8 @@ function buildSourceHref(src?: {
   border-color: var(--tux-map-faded-border);
 }
 
-.tux-map__blast-note {
+.tux-map__blast-note,
+.tux-map__blast-intent {
   margin: 0 0 0.55rem;
   font-size: 0.75rem;
   color: var(--text-secondary);

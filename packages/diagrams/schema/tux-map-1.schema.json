@@ -975,7 +975,7 @@
           }
         },
         "coupling": {
-          "description": "Semantic coupling strength for intent-aware blast radius (`patch | refactor | cut | supply-chain`)",
+          "description": "How strongly the link couples its ends: which blast intents follow it, stop at it or skip it (`TuxMapLinkCoupling`)",
           "$ref": "#/$defs/TuxMapLinkCoupling"
         },
         "phase": {
@@ -996,7 +996,7 @@
       ]
     },
     "TuxMapLinkCoupling": {
-      "description": "How strongly a link couples its two ends; decides which links each blast intent follows.",
+      "description": "How strongly a link couples its two ends; decides which links each blast intent follows. Left out, it is read from `kind`. General walks every coupling; Body patch skips `type-only` and `build-exec`; Refactor and Cut walk `type-only` and stop at `build-exec`; Supply chain skips `type-only` and `prose`. Every intent other than General stops one step out at `artifact-stamp` and `verification` (`TUX_MAP_BLAST_INTENTS`).",
       "type": "string",
       "enum": [
         "contract",
