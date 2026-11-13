@@ -426,9 +426,11 @@ describe("TuxArchitectureMap: dragging the background moves the diagram (#205)",
     await send("pointerdown", stage, { x: 400, y: 300, pointerType: "touch" });
     // a touch on the background clears the selection at once, as it did
     expect(state.selectedId).toBeNull();
+    // choosing the card may have scrolled it into sight (#212); the finger moves nothing
+    const at = { ...scroll };
     await send("pointermove", stage, { x: 300, y: 200, pointerType: "touch" });
     expect(dragging()).toBe(false);
-    expect(scroll).toEqual({ left: 100, top: 80 });
+    expect(scroll).toEqual(at);
   });
 
   it("drops a drag whose button came up outside the map, and does not take the drawing tools' strokes", async () => {
@@ -488,7 +490,8 @@ describe("TuxArchitectureMap: a jump to a level by number key does not linger (#
       expect(fade!.el).toBe(wrapper.find(".tux-map__stage").element);
       expect(fade!.frames).toEqual([{ opacity: 0 }, { opacity: 1 }]);
       expect(fade!.duration).toBeLessThanOrEqual(150);
-      expect((wrapper.find(".tux-map__zoom-portal").element as HTMLElement).style.display).not.toBe("block");
+      // the frame that grew over a change of level is gone with the travel that drew it (#212)
+      expect(wrapper.find(".tux-map__zoom-portal").exists()).toBe(false);
     } finally {
       rec.restore();
     }
@@ -510,26 +513,34 @@ describe("TuxArchitectureMap: a jump to a level by number key does not linger (#
     }
   });
 
-  it("takes the pill down after 600ms on a jump, and after 1150ms on a zoom", async () => {
+  it("takes the pill down after 600ms on a jump, and when the travel ends on a zoom (#212)", async () => {
     const { wrapper, state } = await mountMap({ initialLevel: 3, initialFocus: "c-api" }, true);
     const pill = () => wrapper.find(".tux-map__zoom-hud");
     const waits: number[] = [];
     const realSetTimeout = window.setTimeout;
-    // the pill's timer is the only one these two calls start with one of these two delays
+    // the announcer's 100ms and the double-click's timers are not the pill's
     const spy = ((fn: TimerHandler, ms?: number, ...rest: unknown[]) => {
-      if (ms === 600 || ms === 1150) waits.push(ms);
+      if (ms !== undefined && ms >= 150) waits.push(ms);
       return realSetTimeout(fn, ms, ...rest);
     }) as typeof window.setTimeout;
     window.setTimeout = spy;
     globalThis.setTimeout = spy as typeof globalThis.setTimeout;
+    const rec = recordAnimations();
     try {
       await key(wrapper.find(".tux-map__viewport").element, "1");
       expect(pill().text()).toContain("Level 3 → Level 1");
       expect(waits).toEqual([600]);
       state.zoomIntoElement(state.activeModel.level2.boundary);
       await nextTick();
-      expect(waits).toEqual([600, 1150]);
+      await nextTick();
+      const travel = rec.calls.find((c) => c.el === wrapper.find(".tux-map__stage").element && c.frames[0]!.transform)!;
+      expect(travel.duration).toBeGreaterThanOrEqual(180);
+      expect(travel.duration).toBeLessThanOrEqual(600);
+      // armed for a confirmation when the level changed, and again for as long as the travel lasts
+      expect(waits).toEqual([600, 600, travel.duration]);
+      expect(pill().text()).toContain("Level 1 → Level 2");
     } finally {
+      rec.restore();
       window.setTimeout = realSetTimeout;
       globalThis.setTimeout = realSetTimeout as typeof globalThis.setTimeout;
     }
@@ -593,7 +604,8 @@ describe("TuxArchitectureMap: a planned link the model gives no label (#205)", (
     expect(wrapper.find('.tux-map__wire--planned[data-from="c-sandbox"][data-to="c-storage"]').exists()).toBe(true);
     expect(label("c-sandbox", "c-storage").find(".tux-map__lab-t1").text()).toBe("Planned");
     // a planned link with a label of its own keeps it, and a live link with none still has none
-    expect(label("c-workers", "c-sandbox").find(".tux-map__lab-t1").text()).toBe("Dispatches plugins");
+    expect(label("c-workers", "c-sandbox").find(".tux-map__lab-t1").text()).toBe("Dispa…");
+    expect(label("c-workers", "c-sandbox").attributes("title")).toBe("Dispatches plugins [gRPC] (planned)");
     expect(wrapper.find('.tux-map__wire[data-from="c-web"][data-to="c-storage"]').exists()).toBe(true);
     expect(label("c-web", "c-storage").exists()).toBe(false);
   });

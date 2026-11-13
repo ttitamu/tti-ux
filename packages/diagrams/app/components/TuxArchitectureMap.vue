@@ -69,14 +69,24 @@ import {
   cardDescriptionLines,
   cardTitleLines,
   middleEllipsizeFolderName,
-  placeLabelClearOfCard,
+  wireLabelAttrs,
   wirePairKey,
   type ComputedStageData,
-  type LabelClearPlacementBox,
   type StageBase,
   type StageToggles,
 } from "../utils/internal/tuxArchitectureMapStage";
 import { useTuxMapCursor } from "../composables/useTuxMapCursor";
+import {
+  TRAVEL_EASING,
+  TRAVEL_FADE_MS,
+  cameraAlong,
+  clearOffset,
+  flipStart,
+  startTravel,
+  travelDuration,
+  wirePolyline,
+  type TravelPoint,
+} from "../utils/internal/tuxArchitectureMapTravel";
 
 export type TuxMapViewMode = "diagram" | "list";
 
@@ -562,6 +572,8 @@ function toggleWireCategory(cat: TuxMapWireCategory) {
 function setTraceTarget(targetId: string | null) {
   localTraceTarget.value = targetId;
   emit("update:traceTarget", targetId);
+  // the camera goes to a traced card that is on this level, from the selection (#212)
+  if (targetId && stageData.value.rects[targetId]) nextTick(() => keepClear(targetId, selectedId.value));
 }
 
 // A live region reads a change, and the same message twice is no change: clear it,
@@ -1329,27 +1341,10 @@ const openStageWires = computed<OpenStageWires | null>(() => {
   return opened;
 });
 
-/** Above 30 routed wires (#124), hide labels at rest (`forced: true` -> opacity: 0, never display: none) */
-const forceLabels = (labels: TuxMapRoutedLabel[]): TuxMapRoutedLabel[] =>
-  labels.some((lbl) => !lbl.forced) ? labels.map((lbl) => (lbl.forced ? lbl : { ...lbl, forced: true })) : labels;
-
-const stageLabelsHoverOnly = computed<boolean>(() => {
-  const open = openStageWires.value;
-  const drawn = baseRoutedSvg.value.wires.length + (open ? open.wires.length - open.closedWireIds.size : 0);
-  return drawn > 30;
-});
-const forcedBaseLabels = computed(() => forceLabels(baseRoutedSvg.value.labels));
-
-/** The resting wires' labels as drawn; the ones in `openStageWires.closedLabelIds` are hidden. */
-const baseStageLabels = computed<TuxMapRoutedLabel[]>(() =>
-  stageLabelsHoverOnly.value ? forcedBaseLabels.value : baseRoutedSvg.value.labels,
-);
-/** The open wires' labels as drawn. */
-const openStageLabels = computed<TuxMapRoutedLabel[]>(() => {
-  const open = openStageWires.value;
-  if (!open) return [];
-  return stageLabelsHoverOnly.value ? forceLabels(open.labels) : open.labels;
-});
+/** The resting wires' labels; the ones in `openStageWires.closedLabelIds` are hidden. */
+const baseStageLabels = computed<TuxMapRoutedLabel[]>(() => baseRoutedSvg.value.labels);
+/** The open wires' labels. */
+const openStageLabels = computed<TuxMapRoutedLabel[]>(() => openStageWires.value?.labels ?? []);
 
 /**
  * Every wire and label on the stage as it is drawn now: the wires at rest, less
@@ -1368,60 +1363,6 @@ const routedSvg = computed<{ wires: TuxMapRoutedWire[]; labels: TuxMapRoutedLabe
     labels: [...baseStageLabels.value.filter((l) => !open.closedLabelIds.has(l.id)), ...openStageLabels.value],
   };
 });
-
-/**
- * A wire label raised by a hover or a selection is drawn beside that card, not over it (#205): a
- * long label reaches from the middle of its wire over the cards the wire joins, where it covered
- * the title and took the click meant for `+`. The highlight places each label it raises against
- * the card as it is drawn then (a hovered or selected card grows to show its text), and writes the
- * place on the element as an attribute and three custom properties, which no render touches.
- */
-const stageLabelByPair = computed<Map<string, TuxMapRoutedLabel>>(() => {
-  const out = new Map<string, TuxMapRoutedLabel>();
-  for (const lbl of routedSvg.value.labels) out.set(wirePairKey(lbl.from, lbl.to), lbl);
-  return out;
-});
-
-const LAB_CLEAR_PROPS = ["--tux-map-lab-left", "--tux-map-lab-top", "--tux-map-lab-shift"] as const;
-
-function lowerStageLabel(el: HTMLElement) {
-  el.classList.remove("tux-map__lab--on");
-  if (!el.hasAttribute("data-clear")) return;
-  el.removeAttribute("data-clear");
-  for (const prop of LAB_CLEAR_PROPS) el.style.removeProperty(prop);
-}
-
-/** The lit card's box in stage pixels, as tall as it is drawn */
-function litCardBox(id: string, cards: { el: HTMLElement; id: string }[]): LabelClearPlacementBox | null {
-  const r = hasOwn(stageData.value.rects, id) ? stageData.value.rects[id] : undefined;
-  if (!r || r.bound) return null;
-  let h = r.h;
-  for (let i = 0; i < cards.length; i++) {
-    if (cards[i]!.id !== id) continue;
-    h = Math.max(h, cards[i]!.el.offsetHeight || 0);
-    break;
-  }
-  return { x: r.x, y: r.y, w: r.w, h };
-}
-
-function raiseStageLabel(el: HTMLElement, card: LabelClearPlacementBox | null) {
-  el.classList.add("tux-map__lab--on");
-  const lbl = card ? stageLabelByPair.value.get(wirePairKey(el.dataset.from || "", el.dataset.to || "")) : undefined;
-  if (!card || !lbl) return;
-  // the size it is drawn at where the page has one; the router's estimate otherwise
-  const w = el.offsetWidth || lbl.w;
-  const h = el.offsetHeight || lbl.h;
-  const at = placeLabelClearOfCard(
-    { x: lbl.x + lbl.w / 2 - w / 2, y: lbl.y + lbl.h / 2 - h / 2, w, h },
-    card,
-    { width: stageData.value.width, height: stageData.value.height },
-  );
-  if (!at) return;
-  el.style.setProperty("--tux-map-lab-left", `${at.left}px`);
-  el.style.setProperty("--tux-map-lab-top", `${at.top}px`);
-  el.style.setProperty("--tux-map-lab-shift", at.shift);
-  el.setAttribute("data-clear", "1");
-}
 
 // ============================================================================
 // 3. PRECOMPUTED CARD VIEW-MODELS, BLAST RADIUS, SEARCH & ZERO-QUERY HOVER
@@ -2924,7 +2865,7 @@ function rebuildStageDomCache() {
     const entry = { el, forced: el.dataset.forced === "1" };
     pushMapItem(labelsByNode, from, entry);
     if (to !== from) pushMapItem(labelsByNode, to, entry);
-    if (el.classList.contains("tux-map__lab--on") || el.hasAttribute("data-clear")) {
+    if (el.classList.contains("tux-map__lab--on")) {
       litLabels.push(entry);
     }
   }
@@ -2974,8 +2915,7 @@ function applyStageHighlight(rawId: string | null) {
   cache.litWires.length = 0;
 
   for (let i = 0; i < cache.litLabels.length; i++) {
-    const item = cache.litLabels[i]!;
-    lowerStageLabel(item.el);
+    cache.litLabels[i]!.el.classList.remove("tux-map__lab--on");
   }
   cache.litLabels.length = 0;
 
@@ -3060,17 +3000,12 @@ function applyStageHighlight(rawId: string | null) {
     }
   }
 
-  // Read the lit card's drawn height once, and only when it has a label to move
-  let litBox: LabelClearPlacementBox | null | undefined;
-  const litCard = (): LabelClearPlacementBox | null =>
-    litBox === undefined ? (litBox = litCardBox(key, cache.cards)) : litBox;
-
   const activeLabels = cache.labelsByNode.get(key);
   if (activeLabels) {
     for (let i = 0; i < activeLabels.length; i++) {
       const item = activeLabels[i]!;
       if (openDom && item.el.classList.contains("tux-map__lab--closed")) continue;
-      raiseStageLabel(item.el, litCard());
+      item.el.classList.add("tux-map__lab--on");
       cache.litLabels.push(item);
     }
   }
@@ -3087,7 +3022,7 @@ function applyStageHighlight(rawId: string | null) {
     for (let i = 0; i < openDom.labels.length; i++) {
       const item = openDom.labels[i]!;
       if (item.from !== key && item.to !== key) continue;
-      raiseStageLabel(item.el, litCard());
+      item.el.classList.add("tux-map__lab--on");
       cache.litLabels.push(item);
     }
   }
@@ -3349,7 +3284,7 @@ watch([currentLevel, focusId, showPlanned, showBlastRadius, activeModel, baseRou
 
 // Opening or closing an outside card swaps a few wires: index those, and light
 // the stage again, once they are drawn.
-watch([openStageWires, stageLabelsHoverOnly], () => {
+watch(openStageWires, () => {
   nextTick(() => {
     indexStageOpenDom();
     applyStageHighlight(selectedId.value ?? currentHoveredId ?? proximityCard.value?.id ?? null);
@@ -3362,28 +3297,44 @@ watch([selectedId, matchingSearchIds, blastRadiusState, stageTraceState], () => 
   });
 });
 
-const portalRef = ref<HTMLDivElement | null>(null);
 const viewportWidth = ref<number>(1280);
 const containerWidth = ref<number>(1280);
 const viewportScrollLeft = ref<number>(0);
 const viewportScrollTop = ref<number>(0);
 const panX = ref<number>(0);
-const isPanningStage = ref<boolean>(false);
 const zoomHudText = ref<string>("");
 const zoomHudDirection = ref<"in" | "out">("in");
 let zoomHudTimer: ReturnType<typeof setTimeout> | null = null;
-let activeStageAnim: Animation | null = null;
-let activePortalAnim: Animation | null = null;
 let lastPointerClient: { x: number; y: number } | null = null;
 
-// How long the pill that names a change of level stays. A jump (a number key) has no travel
-// to accompany, so its pill is a confirmation and goes sooner (#205)
-const ZOOM_HUD_MS = 1150;
-const ZOOM_HUD_JUMP_MS = 600;
-// A jump shows the level it lands on with a short fade and nothing else
-const JUMP_FADE_MS = 120;
+// The camera's travel (#212). What is playing: the stage's own animation and the fades that
+// go with it, and the scroll of a magnified diagram. The state is on its target before any of
+// it starts, so ending a travel is dropping it: the view is where it was going.
+let travelAnims: Animation[] = [];
+let endScrollTravel: (() => void) | null = null;
 
-function showZoomHud(direction: "in" | "out", label: string, ms = ZOOM_HUD_MS) {
+function landTravel() {
+  for (const a of travelAnims.splice(0)) a.cancel();
+  endScrollTravel?.();
+  endScrollTravel = null;
+}
+
+/** A second input (a key, a press, a click, the wheel) ends the travel where it was going, and its pill with it. */
+function cancelTravel() {
+  landTravel();
+  if (zoomHudTimer) clearTimeout(zoomHudTimer);
+  zoomHudText.value = "";
+}
+
+/** Under `prefers-reduced-motion` nothing travels (2.3.3). */
+const prefersStill = () =>
+  typeof window !== "undefined" && Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+
+// How long the pill that names a change of level stays where there is no travel to go with it
+// (a jump, the list, reduced motion): a confirmation. With a travel it goes when the travel ends.
+const ZOOM_HUD_JUMP_MS = 600;
+
+function showZoomHud(direction: "in" | "out", label: string, ms = ZOOM_HUD_JUMP_MS) {
   zoomHudDirection.value = direction;
   zoomHudText.value = label;
   if (zoomHudTimer) clearTimeout(zoomHudTimer);
@@ -3521,34 +3472,60 @@ function panelFollowsMap(): boolean {
 }
 
 /**
- * Slides the stage so the details panel does not cover the selected card, and no further (#205).
- * The stage stays where it is for a card that is in view and clear of the panel; one under the
- * panel is brought out to its edge, and one past the left edge is brought back in. It used to
- * slide for the selected card's wire neighbours as well, as far as the card's own left edge
- * allowed, which took the cards on the left out of view for a card that was never covered.
+ * Moves the view so the details panel does not cover the card `id`, and no further (#205).
+ * The view stays where it is for a card that is in sight and clear of the panel; one under the
+ * panel is brought out to its edge, and one past the left edge is brought back in. Fitted, the
+ * stage slides; magnified, the viewport scrolls, along the wire from `fromId` where the two are
+ * wired and straight where they are not (#212). Either way the state is the target at once and
+ * the move is played over it: `cancelTravel()` leaves the view where it was going.
  */
-function keepClear(id: string | null) {
+function keepClear(id: string | null, fromId?: string | null) {
   const r = id ? stageData.value.rects[id] : undefined;
-  let want = 0;
-  if (panelFollowsMap()) id = null;
-  // magnified, the viewport scrolls; sliding the stage under it as well would fight the scroll
-  if (r && id && !effectiveIsListView.value && !isMagnified.value) {
-    const pWidth = panelRef.value?.offsetWidth || 380;
-    const free = viewportWidth.value - pWidth - 36;
-    const scale = stageScale.value;
-    const left = r.x * scale;
-    const right = (r.x + r.w) * scale;
-    const minPan = Math.min(0, -(stageData.value.width * scale - free));
-    want = Math.max(minPan, Math.min(0, panX.value));
-    if (right + want > free) want = Math.max(minPan, Math.round(free - right - 24));
-    if (left + want < 12) want = Math.min(0, Math.round(12 - left));
+  const scale = stageScale.value;
+  const follows = panelFollowsMap();
+  const free = viewportWidth.value - (follows ? 0 : (panelRef.value?.offsetWidth || 380) + 36);
+  const vp = viewportRef.value;
+  if (isMagnified.value) {
+    // magnified, the viewport scrolls; sliding the stage under it as well would fight the scroll
+    if (!r || !vp || effectiveIsListView.value) return;
+    const from: TravelPoint = [vp.scrollLeft, vp.scrollTop];
+    const to: TravelPoint = [
+      clearOffset(from[0], r.x * scale, (r.x + r.w) * scale, free, follows ? 12 : 24),
+      clearOffset(from[1], r.y * scale, (r.y + r.h) * scale, vp.clientHeight, 12),
+    ];
+    const ms = prefersStill() ? 0 : travelDuration(Math.hypot(to[0] - from[0], to[1] - from[1]));
+    const wire = fromId
+      ? routedSvg.value.wires.find((w) => (w.from === fromId && w.to === id) || (w.to === fromId && w.from === id))
+      : undefined;
+    const path = wire ? wirePolyline(wire.d) : [];
+    if (wire && wire.from !== fromId) path.reverse();
+    landTravel();
+    const step = (u: number) => {
+      const [x, y] = cameraAlong(from, to, path, scale, u);
+      vp.scrollLeft = x;
+      vp.scrollTop = y;
+    };
+    if (ms) endScrollTravel = startTravel(ms, step);
+    else step(1);
+    return;
   }
-  if (want === panX.value) return;
+  let want = 0;
+  if (r && !follows && !effectiveIsListView.value) {
+    const most = Math.max(0, stageData.value.width * scale - free);
+    want = -Math.min(most, clearOffset(Math.min(most, Math.max(0, -panX.value)), r.x * scale, (r.x + r.w) * scale, free, 24));
+  }
+  const was = panX.value;
+  if (want === was) return;
   panX.value = want;
-  isPanningStage.value = true;
-  setTimeout(() => {
-    isPanningStage.value = false;
-  }, 260);
+  const stage = stageRef.value;
+  if (!stage || typeof stage.animate !== "function" || prefersStill()) return;
+  landTravel();
+  travelAnims.push(
+    stage.animate(
+      [was, want].map((x) => ({ transform: `translate3d(${x}px, 0px, 0) scale(${scale})` })),
+      { duration: travelDuration(Math.abs(want - was)), easing: TRAVEL_EASING },
+    ),
+  );
 }
 
 let resizeObserver: ResizeObserver | null = null;
@@ -3852,6 +3829,7 @@ function doubleClickCard(): string | null {
 }
 
 function onMapClickCapture(ev: MouseEvent) {
+  cancelTravel();
   if (activeTool.value !== "select") return;
   // `detail` is the browser's click count; a key or a script sends 0
   if (ev.detail >= 2 && doubleClickCard()) {
@@ -3919,7 +3897,7 @@ function selectElement(id: string | null) {
   }
 
   nextTick(() => {
-    keepClear(id);
+    keepClear(id, prev);
   });
 }
 
@@ -3934,21 +3912,17 @@ function goToLevel(
     hudLabel?: string;
     announcement?: string;
     keepPreInfra?: boolean;
-    /**
-     * A jump to a level, not a zoom into or out of a card (the number keys). The level is drawn
-     * where it is, with a short fade: there is no card to travel from, and the travel drew the
-     * new level oversized and offset, under a frame, for as long as it lasted (#205).
-     */
-    jump?: boolean;
   } = {},
 ) {
   cancelPendingSubgraphResolve();
+  cancelTravel();
   openCrumbMenuIdx.value = null;
   openCrumbOverflow.value = false;
   const prevLevel = currentLevel.value;
   const prevScale = stageScale.value;
   const prevPanX = panX.value;
   const prevFocus = focusId.value;
+  const prevSel = selectedId.value;
   const inward = opts.inward ?? nextLevel > prevLevel;
   if (!opts.keepPreInfra && nextLevel !== 4) {
     preInfraState.value = null;
@@ -3961,37 +3935,19 @@ function goToLevel(
     typeof document !== "undefined" &&
     Boolean(document.activeElement && viewportRef.value?.contains(document.activeElement));
 
-  // Capture outgoing card / boundary viewport rectangle BEFORE switching levels
-  let fromViewportRect: {
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-    cx: number;
-    cy: number;
-  } | null = null;
-
-  if (opts.fromCardId && hasOwn(stageData.value.rects, opts.fromCardId)) {
-    const r = stageData.value.rects[opts.fromCardId]!;
-    fromViewportRect = {
-      x: prevPanX + r.x * prevScale,
-      y: r.y * prevScale,
-      w: r.w * prevScale,
-      h: r.h * prevScale,
-      cx: prevPanX + (r.x + r.w / 2) * prevScale,
-      cy: (r.y + r.h / 2) * prevScale,
-    };
-  } else if (!inward && stageData.value.bounds.length > 0) {
-    const b = stageData.value.bounds[0]!;
-    fromViewportRect = {
-      x: prevPanX + b.x * prevScale,
-      y: b.y * prevScale,
-      w: b.w * prevScale,
-      h: b.h * prevScale,
-      cx: prevPanX + (b.x + b.w / 2) * prevScale,
-      cy: (b.y + b.h / 2) * prevScale,
-    };
-  }
+  // Where the travel starts, on screen, read BEFORE the level changes (#212). A zoom is a call that
+  // names `fromCardId` (null where no card is known): in, the level grows out of that card; out, it
+  // shrinks from its own frame into the card it came from. Every other call is a jump to a level
+  // (a number key, a breadcrumb, a Go to result, a link to another level): no card to travel
+  // from, so the level is drawn where it is, with a short fade (#205).
+  const prevCard = opts.fromCardId ? stageData.value.rects[opts.fromCardId] : undefined;
+  const prevRect = inward
+    ? prevCard
+    : stageData.value.bounds[0] ?? { x: 24, y: 24, w: stageData.value.width - 48, h: stageData.value.height - 48 };
+  const travelFrom =
+    opts.fromCardId !== undefined && prevRect
+      ? { x: prevPanX + prevRect.x * prevScale, y: prevRect.y * prevScale, w: prevRect.w * prevScale, h: prevRect.h * prevScale }
+      : null;
 
   currentLevel.value = nextLevel;
   if (opts.nextFocus !== undefined) {
@@ -4028,7 +3984,11 @@ function goToLevel(
         ? ` · ${byId.value[focusId.value]!.name}`
         : ""
     }`;
-  showZoomHud(inward ? "in" : "out", resolvedHud, opts.jump ? ZOOM_HUD_JUMP_MS : ZOOM_HUD_MS);
+  // The same view again (a Go to result or a usage that is on this level; the focus is the view's
+  // parent only on Level 3 and from 5 on): nothing to name, and the card is travelled to as any
+  // other card on the level is
+  const sameView = nextLevel === prevLevel && (nextLevel < 3 || nextLevel === 4 || focusId.value === prevFocus);
+  if (!sameView) showZoomHud(inward ? "in" : "out", resolvedHud);
 
   // Resolve target card or boundary on the incoming level
   const rawTargetCard =
@@ -4047,7 +4007,7 @@ function goToLevel(
   nextTick(() => {
     rebuildStageDomCache();
     if (resolvedNextSel) {
-      keepClear(resolvedNextSel);
+      keepClear(resolvedNextSel, sameView ? prevSel : null);
     }
 
     // Focus preservation after zoom (#117), respecting #109 host-focus invariant
@@ -4103,205 +4063,64 @@ function goToLevel(
       applyStageHighlight(currentHoveredId ?? proximityCard.value?.id ?? null);
     }
 
+    const stage = stageRef.value;
     if (
+      sameView ||
       effectiveIsListView.value ||
       isMagnified.value ||
-      (typeof window !== "undefined" &&
-        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches)
+      prefersStill() ||
+      !stage ||
+      typeof stage.animate !== "function"
     ) {
       return;
     }
 
-    const stage = stageRef.value;
-    if (!stage || typeof stage.animate !== "function") return;
-
-    if (opts.jump) {
-      activeStageAnim?.cancel();
-      activePortalAnim?.cancel();
-      if (portalRef.value) portalRef.value.style.display = "none";
-      activeStageAnim = stage.animate([{ opacity: 0 }, { opacity: 1 }], {
-        duration: JUMP_FADE_MS,
-        easing: "ease-out",
-      });
+    const scale = stageScale.value;
+    const pan = panX.value;
+    const data = stageData.value;
+    // what of the new level the travel is about: its frame on the way in, the card on the way out
+    const inner = inward
+      ? data.bounds[0] ?? { x: 24, y: 24, w: data.width - 48, h: data.height - 48 }
+      : resolvedTargetId
+        ? data.rects[resolvedTargetId]
+        : undefined;
+    const start = travelFrom && inner ? flipStart(inner, travelFrom, pan, scale) : null;
+    const ms = start ? travelDuration(start.px) : 0;
+    const easing = TRAVEL_EASING;
+    landTravel();
+    if (!start || !ms) {
+      travelAnims.push(stage.animate([{ opacity: 0 }, { opacity: 1 }], { duration: TRAVEL_FADE_MS, easing }));
       return;
     }
 
-    const nextScale = stageScale.value;
-    const nextPanX = panX.value;
-
-    const rTarget = resolvedTargetId ? stageData.value.rects[resolvedTargetId] : undefined;
-    const bNext = stageData.value.bounds[0];
-
-    let toViewportRect: {
-      x: number;
-      y: number;
-      w: number;
-      h: number;
-      cx: number;
-      cy: number;
-    };
-
-    if (!inward && rTarget) {
-      toViewportRect = {
-        x: nextPanX + rTarget.x * nextScale,
-        y: rTarget.y * nextScale,
-        w: rTarget.w * nextScale,
-        h: rTarget.h * nextScale,
-        cx: nextPanX + (rTarget.x + rTarget.w / 2) * nextScale,
-        cy: (rTarget.y + rTarget.h / 2) * nextScale,
-      };
-    } else if (inward && rTarget) {
-      toViewportRect = {
-        x: nextPanX + rTarget.x * nextScale,
-        y: rTarget.y * nextScale,
-        w: rTarget.w * nextScale,
-        h: rTarget.h * nextScale,
-        cx: nextPanX + (rTarget.x + rTarget.w / 2) * nextScale,
-        cy: (rTarget.y + rTarget.h / 2) * nextScale,
-      };
-    } else if (bNext) {
-      toViewportRect = {
-        x: nextPanX + bNext.x * nextScale,
-        y: bNext.y * nextScale,
-        w: bNext.w * nextScale,
-        h: bNext.h * nextScale,
-        cx: nextPanX + (bNext.x + bNext.w / 2) * nextScale,
-        cy: (bNext.y + bNext.h / 2) * nextScale,
-      };
-    } else {
-      toViewportRect = {
-        x: nextPanX + 24 * nextScale,
-        y: 24 * nextScale,
-        w: (stageData.value.width - 48) * nextScale,
-        h: (stageData.value.height - 48) * nextScale,
-        cx: nextPanX + (stageData.value.width / 2) * nextScale,
-        cy: (stageData.value.height / 2) * nextScale,
-      };
-    }
-
-    // Stage focal point in incoming stage coordinates
-    const focalStageX =
-      !inward && rTarget
-        ? rTarget.x + rTarget.w / 2
-        : bNext
-          ? bNext.x + bNext.w / 2
-          : stageData.value.width / 2;
-    const focalStageY =
-      !inward && rTarget
-        ? rTarget.y + rTarget.h / 2
-        : bNext
-          ? bNext.y + bNext.h / 2
-          : stageData.value.height / 2;
-
-    const anchorViewportX = fromViewportRect ? fromViewportRect.cx : toViewportRect.cx;
-    const anchorViewportY = fromViewportRect ? fromViewportRect.cy : toViewportRect.cy;
-
-    const startScale = nextScale * (inward ? 0.42 : 1.82);
-    const startTx = Math.round(anchorViewportX - focalStageX * startScale);
-    const startTy = Math.round(anchorViewportY - focalStageY * startScale);
-
-    activeStageAnim?.cancel();
-    activeStageAnim = stage.animate(
-      [
-        {
-          transform: `translate3d(${startTx}px, ${startTy}px, 0) scale(${startScale})`,
-          opacity: 0,
-        },
-        {
-          transform: `translate3d(${nextPanX}px, 0px, 0) scale(${nextScale})`,
-          opacity: 1,
-        },
-      ],
-      {
-        duration: 380,
-        easing: "cubic-bezier(0.16, 1, 0.3, 1)",
-      },
-    );
-
-    // Portal frame expanding from hovered card -> new boundary (or contracting boundary -> parent card)
-    const portal = portalRef.value;
-    if (portal && fromViewportRect && typeof portal.animate === "function") {
-      activePortalAnim?.cancel();
-      portal.style.display = "block";
-      activePortalAnim = portal.animate(
+    // One transform on the stage, from the card's rectangle to the level's place: the level is laid
+    // out once, where it ends, and no frame of the travel lays anything out again. The pill goes
+    // when the travel does.
+    showZoomHud(inward ? "in" : "out", resolvedHud, ms);
+    travelAnims.push(
+      stage.animate(
         [
-          {
-            transform: `translate3d(${Math.round(fromViewportRect.x)}px, ${Math.round(fromViewportRect.y)}px, 0)`,
-            width: `${Math.max(40, Math.round(fromViewportRect.w))}px`,
-            height: `${Math.max(28, Math.round(fromViewportRect.h))}px`,
-            opacity: 0.92,
-          },
-          {
-            transform: `translate3d(${Math.round(toViewportRect.x)}px, ${Math.round(toViewportRect.y)}px, 0)`,
-            width: `${Math.max(40, Math.round(toViewportRect.w))}px`,
-            height: `${Math.max(28, Math.round(toViewportRect.h))}px`,
-            opacity: 0,
-          },
+          { transform: `translate3d(${start.x}px, ${start.y}px, 0) scale(${start.k})` },
+          { transform: `translate3d(${pan}px, 0px, 0) scale(${scale})` },
         ],
-        {
-          duration: 420,
-          easing: "cubic-bezier(0.16, 1, 0.3, 1)",
-        },
+        { duration: ms, easing },
+      ),
+    );
+    if (!inward) return;
+    // On the way in the frame grows first, and what is inside it fades in as it arrives.
+    // "backwards" holds a card back until its turn and lets go of it at the end. "both" kept the
+    // last frame on the card for good: its opacity 1 outranks the stylesheet, so after any change
+    // of level no filter, hover or selection could dim a card (#205)
+    for (const el of stage.children) {
+      if (el.classList.contains("tux-map__bound") || typeof el.animate !== "function") continue;
+      travelAnims.push(
+        el.animate([{ opacity: 0 }, { opacity: 1 }], {
+          duration: TRAVEL_FADE_MS,
+          delay: ms - TRAVEL_FADE_MS,
+          easing,
+          fill: "backwards",
+        }),
       );
-      activePortalAnim.onfinish = () => {
-        if (portal) portal.style.display = "none";
-      };
-    }
-
-    // Vue Flow–style staggered spring node reveal across incoming cards
-    if (stageDomCache?.cards) {
-      const cards = stageDomCache.cards;
-      for (let i = 0; i < cards.length; i++) {
-        const cardEl = cards[i]!.el;
-        if (typeof cardEl.animate === "function") {
-          cardEl.animate(
-            [
-              {
-                transform: inward
-                  ? "translate3d(0, 10px, 0) scale(0.92)"
-                  : "translate3d(0, -8px, 0) scale(1.06)",
-                opacity: 0.25,
-              },
-              {
-                transform: "translate3d(0, 0, 0) scale(1)",
-                opacity: 1,
-              },
-            ],
-            {
-              duration: 340,
-              delay: Math.min(140, i * 16),
-              easing: "cubic-bezier(0.22, 1.28, 0.36, 1)",
-              // "backwards" holds a card back until its turn and lets go of it at the end. "both"
-              // kept the last frame on the card for good: its opacity 1 outranks the stylesheet, so
-              // after any change of level no filter, hover or selection could dim a card (#205)
-              fill: "backwards",
-            },
-          );
-        }
-      }
-    }
-
-    // Pulse the landed card when zooming out (or when focusing a specific host on Level 4)
-    if (resolvedTargetId) {
-      const landedCard = queryCardById(stage, resolvedTargetId);
-      if (landedCard && typeof landedCard.animate === "function") {
-        landedCard.animate(
-          [
-            {
-              boxShadow:
-                "0 0 0 0px color-mix(in srgb, var(--brand-primary) 75%, transparent), 0 12px 28px rgba(0, 0, 0, 0.22)",
-            },
-            {
-              boxShadow:
-                "0 0 0 8px color-mix(in srgb, var(--brand-primary) 0%, transparent), 0 2px 6px rgba(0, 0, 0, 0.08)",
-            },
-          ],
-          {
-            duration: 620,
-            easing: "cubic-bezier(0.16, 1, 0.3, 1)",
-          },
-        );
-      }
     }
   });
 }
@@ -4854,6 +4673,11 @@ function clearPreZoomCardTransform() {
 function onViewportWheel(ev: WheelEvent) {
   lastPointerClient = { x: ev.clientX, y: ev.clientY };
 
+  // The wheel is a second input too, once the turn that changed the level is over: the rest of
+  // that turn (a trackpad's inertia) is the same input, and must not end the travel it began
+  const now = Date.now();
+  if (now - lastWheelZoomAt >= 520) cancelTravel();
+
   const isPinchOrMod = ev.ctrlKey || ev.metaKey;
   // magnified, the wheel scrolls the diagram; a trackpad pinch (ctrl) still changes level
   if (isMagnified.value && !isPinchOrMod) return;
@@ -4876,7 +4700,6 @@ function onViewportWheel(ev: WheelEvent) {
 
   const isZoomIn = ev.deltaY < 0;
   const isZoomOut = ev.deltaY > 0;
-  const now = Date.now();
 
   // Cooldown lock after a level transition so trackpad inertia doesn't skip multiple levels
   if (now - lastWheelZoomAt < 520) {
@@ -4939,8 +4762,7 @@ function onViewportWheel(ev: WheelEvent) {
   // Visually attach the magnetic frame to the closest card and glide the magnetic cursor dot
   // along the tether toward that card as the wheel turns. Under reduced motion nothing
   // glides or pulls: the wheel still counts toward the level change (2.3.3).
-  const still =
-    typeof window !== "undefined" && Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+  const still = prefersStill();
   const progress = still ? 0 : Math.min(1, Math.abs(wheelDeltaAccum) / 26);
   if (candidateId && stageData.value.rects[candidateId]) {
     const r = stageData.value.rects[candidateId]!;
@@ -5366,15 +5188,15 @@ function onStageKey(ev: KeyboardEvent) {
   if (ev.key === "1") {
     ev.preventDefault();
     drillStack.value = [];
-    goToLevel(1, { inward: false, jump: true });
+    goToLevel(1, { inward: false });
   } else if (ev.key === "2") {
     ev.preventDefault();
     drillStack.value = [];
-    goToLevel(2, { inward: currentLevel.value < 2, jump: true });
+    goToLevel(2, { inward: currentLevel.value < 2 });
   } else if (ev.key === "3" && focusId.value) {
     ev.preventDefault();
     drillStack.value = [];
-    goToLevel(3, { nextFocus: focusId.value, inward: true, jump: true });
+    goToLevel(3, { nextFocus: focusId.value, inward: true });
   } else if (ev.key === "4") {
     ev.preventDefault();
     toggleInfrastructureView();
@@ -6756,6 +6578,8 @@ function buildSourceHref(src?: {
     @focusout="onMapFocusOut"
     @pointerenter="onMapPointerEnter"
     @pointerleave="onMapPointerLeave"
+    @keydown.capture="cancelTravel"
+    @pointerdown.capture="cancelTravel"
     @click.capture="onMapClickCapture"
     @dblclick.capture="onMapDblClickCapture"
   >
@@ -7421,7 +7245,6 @@ function buildSourceHref(src?: {
           ref="stageRef"
           class="tux-map__stage"
           :class="{
-            'tux-map__stage--pan': isPanningStage,
             'tux-map__stage--blast-selection': showBlastRadius && blastKeyOfSelection,
             'tux-map__stage--dim': Boolean(
               activeLitId || matchingSearchIds || blastRadiusState || stageTraceState,
@@ -7790,7 +7613,7 @@ function buildSourceHref(src?: {
             </button>
           </template>
 
-          <!-- Layer 3 / 10: Interactive Wire Label Buttons (#115, #123, #124) -->
+          <!-- Layer 3 / 10: Wire label buttons, one beside each end of a wire (#115, #123, #210) -->
           <button
             v-for="lbl in baseStageLabels"
             :key="lbl.id"
@@ -7809,17 +7632,13 @@ function buildSourceHref(src?: {
             }"
             :aria-expanded="inspectedWireKey === wirePairKey(lbl.from, lbl.to) ? 'true' : 'false'"
             :aria-controls="wireInspectorId"
-            :aria-label="`Inspect wire ${lbl.t1}${lbl.t2 ? ` [${lbl.t2}]` : ''}${lbl.violating ? ' (rule violation)' : ''}`"
-            :style="{
-              left: `${lbl.x + lbl.w / 2}px`,
-              top: `${lbl.y + lbl.h / 2}px`,
-            }"
+            v-bind="wireLabelAttrs(lbl)"
             @click.stop="toggleWireInspector(lbl, $event.currentTarget)"
           >
-            <span class="tux-map__lab-t1">
+            <span v-if="lbl.t1" class="tux-map__lab-t1">
               <span v-if="lbl.violating" class="tux-map__lab-warn" aria-hidden="true">⚠ </span>{{ lbl.t1 }}
             </span>
-            <span v-if="lbl.t2" class="tux-map__lab-t2">[{{ lbl.t2 }}]</span>
+            <span v-else class="tux-map__lab-t2">[{{ lbl.t2 }}]</span>
           </button>
           <button
             v-for="lbl in openStageLabels"
@@ -7840,17 +7659,13 @@ function buildSourceHref(src?: {
             }"
             :aria-expanded="inspectedWireKey === wirePairKey(lbl.from, lbl.to) ? 'true' : 'false'"
             :aria-controls="wireInspectorId"
-            :aria-label="`Inspect wire ${lbl.t1}${lbl.t2 ? ` [${lbl.t2}]` : ''}${lbl.violating ? ' (rule violation)' : ''}`"
-            :style="{
-              left: `${lbl.x + lbl.w / 2}px`,
-              top: `${lbl.y + lbl.h / 2}px`,
-            }"
+            v-bind="wireLabelAttrs(lbl)"
             @click.stop="toggleWireInspector(lbl, $event.currentTarget)"
           >
-            <span class="tux-map__lab-t1">
+            <span v-if="lbl.t1" class="tux-map__lab-t1">
               <span v-if="lbl.violating" class="tux-map__lab-warn" aria-hidden="true">⚠ </span>{{ lbl.t1 }}
             </span>
-            <span v-if="lbl.t2" class="tux-map__lab-t2">[{{ lbl.t2 }}]</span>
+            <span v-else class="tux-map__lab-t2">[{{ lbl.t2 }}]</span>
           </button>
 
           <!-- Sticky Notes Overlay (Scoped to Current Level & Focus) -->
@@ -7988,7 +7803,6 @@ function buildSourceHref(src?: {
         </div>
 
         <!-- Portal Frame Shockwave Overlay (Paired with Mouse Wheel & Level Zoom) -->
-        <div ref="portalRef" class="tux-map__zoom-portal" aria-hidden="true" />
 
         <!-- Floating Wheel Zoom Level HUD -->
         <div
@@ -10060,32 +9874,7 @@ function buildSourceHref(src?: {
   -webkit-user-select: none;
 }
 
-.tux-map__stage--pan {
-  transition: transform 0.25s ease;
-}
-
-/* Portal Frame Shockwave & Floating Wheel Zoom HUD */
-.tux-map__zoom-portal {
-  display: none;
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 20;
-  pointer-events: none;
-  will-change: transform, width, height, opacity;
-  border-radius: 12px;
-  border: 2px solid var(--brand-primary);
-  background: radial-gradient(
-    circle at center,
-    color-mix(in srgb, var(--brand-primary) 16%, transparent) 0%,
-    color-mix(in srgb, var(--brand-primary) 4%, transparent) 70%,
-    transparent 100%
-  );
-  box-shadow:
-    0 0 0 4px color-mix(in srgb, var(--brand-primary) 18%, transparent),
-    0 12px 32px rgba(0, 0, 0, 0.16);
-}
-
+/* Floating pill that names a change of level */
 .tux-map__zoom-hud {
   position: absolute;
   top: 12px;
@@ -10105,7 +9894,7 @@ function buildSourceHref(src?: {
   font-weight: 700;
   font-size: 0.75rem;
   color: var(--text-primary);
-  animation: tux-map-hud-pop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: tux-map-hud-pop 0.18s cubic-bezier(0.333, 1, 0.667, 1);
 }
 
 .tux-map__zoom-hud-ic {
@@ -10424,7 +10213,9 @@ function buildSourceHref(src?: {
   stroke-width: 1.8;
 }
 
-/* Layer 3 / 10: Interactive Wire Label Buttons (#115, #123, #124) */
+/* Layer 3 / 10: Wire label buttons (#115, #123). One sits beside each end of a wire, at its port
+   and outside the card (#210): on the stub at a top or bottom port, and hung by the edge that
+   faces the card at a left or right one. `max-width` is the box the router kept clear of the cards. */
 .tux-map__lab {
   position: absolute;
   z-index: 3;
@@ -10432,19 +10223,32 @@ function buildSourceHref(src?: {
   pointer-events: auto;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 2px 7px;
+  box-sizing: border-box;
+  height: 17px;
+  overflow: hidden;
+  padding: 0 6px;
   border-radius: 6px;
   background: var(--surface-raised);
   border: 1px solid var(--surface-border);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   white-space: nowrap;
-  line-height: 1.25;
   font: inherit;
+  line-height: 15px;
   text-align: left;
   color: var(--text-primary);
   transition: none !important;
+}
+
+.tux-map__lab[data-side="r"] {
+  transform: translate(0, -50%);
+}
+
+.tux-map__lab[data-side="l"] {
+  transform: translate(-100%, -50%);
+}
+
+.tux-map__lab[data-planned] {
+  border-style: dashed;
 }
 
 .tux-map__lab:hover,
@@ -10462,7 +10266,7 @@ function buildSourceHref(src?: {
   outline-offset: 2px;
 }
 
-/* Dense/crowded wire labels (#124): hidden via opacity at rest so Tab still focuses them! */
+/* A label with no room at its port (#210): hidden via opacity at rest, so Tab still focuses it */
 .tux-map__lab--forced:not(.tux-map__lab--on):not(:hover):not(:focus-visible):not([aria-expanded="true"]) {
   opacity: 0;
   pointer-events: none;
@@ -10499,21 +10303,15 @@ function buildSourceHref(src?: {
   opacity: 0;
 }
 
+/* Lit by its card or its wire, a label stays at its port and takes the brand border. It stays
+   under a hovered or selected card, which grows over the gap to show all its text (#210) */
 .tux-map__stage--dim .tux-map__lab--on,
 .tux-map__lab--on {
-  z-index: 10;
+  z-index: 5;
   opacity: 1;
   pointer-events: auto;
   border-color: var(--brand-primary);
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.16);
-}
-
-/* Raised by the card the pointer is on or the selected one, a label hangs beside that card (#205).
-   The highlight sets the attribute and the three properties together. */
-.tux-map__lab[data-clear] {
-  left: var(--tux-map-lab-left) !important;
-  top: var(--tux-map-lab-top) !important;
-  transform: var(--tux-map-lab-shift);
 }
 
 /* Wire Link Inspector Popover (#115) */
@@ -12143,8 +11941,6 @@ function buildSourceHref(src?: {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tux-map__stage--anim,
-  .tux-map__stage--pan,
   .tux-map__panel,
   .tux-map__proximity-frame,
   .tux-map__switch-track::after {

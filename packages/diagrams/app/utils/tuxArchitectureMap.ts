@@ -1721,10 +1721,43 @@ export interface TuxMapRoutedLabel {
   y: number;
   w: number;
   h: number;
+  /** First line as drawn: what the link does, shortened by `shortWireLabel`. Empty on a technology label. */
   t1: string;
+  /** The link's technology, shortened, on the label at the target end. Empty on the other label. */
   t2: string;
+  /** Hidden at rest: another label holds its spot. Shown while its card is lit, hovered or focused. */
   forced: boolean;
   violating?: boolean;
+  /** The whole text, `label [tech]`: the accessible name and the tooltip (`#210`). */
+  full?: string;
+  /** The end of the wire the label sits at; absent on a label that found no spot clear of the cards. */
+  end?: "from" | "to";
+  /** The side of the card that end's port is on. */
+  side?: "l" | "r" | "t" | "b";
+  planned?: boolean;
+}
+
+/**
+ * Height of a port label, its distance from the card, and the lengths its text is cut to (`#210`):
+ * 16 characters where the port has room (a top or bottom port, an outer margin), else 10, else 6.
+ */
+const WIRE_LABEL_H = 17;
+const WIRE_LABEL_GAP = 4;
+const WIRE_LABEL_CHARS = [16, 10, 6] as const;
+
+/**
+ * A wire label's short text: the label itself up to `max` characters, else its leading words that
+ * fit, without trailing punctuation, and an ellipsis ("Uses portal & API" reads "Uses portal…" at
+ * 16, "Uses…" at 10). A first word longer than that is cut.
+ * @internal
+ */
+export function shortWireLabel(text: string, max = 16): string {
+  const chars = Array.from(text.trim());
+  if (chars.length <= max) return chars.join("");
+  const head = chars.slice(0, max - 1).join("");
+  const cut = /\s/u.test(chars[max - 1]!) ? head : head.replace(/\s+\S*$/u, "");
+  const words = cut.replace(/[^\p{L}\p{N})\]]+$/u, "");
+  return `${words || head.trimEnd()}…`;
 }
 
 /**
@@ -1979,13 +2012,17 @@ function assignCorridorLanes(gapLo: number, gapHi: number, reqs: CorridorLaneReq
  * Routes wires at right angles strictly through the gaps between columns and rows,
  * never crossing a card, with per-gap interval-coloured lanes and collision-checked labels (`#113`).
  *
- * A label is tested against the cards and the labels already placed through the layout's grid
- * buckets, not the whole view (`#159`): both the overlap test and, in a view with more than 64
- * boxes, the cover sum that picks the least bad spot when no candidate is free. The labels land
- * where a scan of every box puts them. With more than 30 wires the labels are shown on hover only
- * (`forced` on each one): no spot is searched for and no wire segment is recorded or sorted, and
- * each label keeps the midpoint of its wire's longest segment, which is where the hover label and
- * the wire inspector are anchored.
+ * Each labelled wire gets a short label beside its ends, at the port where it meets the card,
+ * outside the card's box and never over any card (`#210`): what the link does (`label`, or
+ * "Planned") at its source end, and its `tech` in brackets at its target end. The short text is
+ * `shortWireLabel`'s, at 16 characters where that fits and 10 where it does not; the whole of it
+ * is each label's `full`. Labels at one side of a card stack port by port, in the order the wires
+ * leave. Where two labels want the same spot the later one moves off its stub to just beside it,
+ * then its text is cut shorter, down to 6 characters, then what the link does moves to the wire's
+ * other end, and then the label of the lower rank is hidden at rest (`forced`): rule violations
+ * first, then live links, then planned
+ * ones, then technologies, and the model's order within a rank. A hidden label keeps its place at
+ * the port. A box is tested through the layout's grid buckets, not against the whole view (`#159`).
  * @internal
  */
 export function routeGridWires(
@@ -2041,31 +2078,6 @@ export function routeGridWires(
     placed.push(b);
     addBoxToBucket(placedBucket, idx, b.x, b.y, b.w, b.h);
   };
-  const overlapsPlacedBucket = (cand: { x: number; y: number; w: number; h: number }): boolean => {
-    const gx0 = Math.floor(cand.x / CELL_W);
-    const gx1 = Math.floor((cand.x + cand.w) / CELL_W);
-    const gy0 = Math.floor(cand.y / CELL_H);
-    const gy1 = Math.floor((cand.y + cand.h) / CELL_H);
-    for (let gx = gx0; gx <= gx1; gx++) {
-      for (let gy = gy0; gy <= gy1; gy++) {
-        const hits = placedBucket.get(`${gx},${gy}`);
-        if (!hits) continue;
-        for (let hi = 0; hi < hits.length; hi++) {
-          const q = placed[hits[hi]!]!;
-          if (
-            cand.x < q.x + q.w &&
-            cand.x + cand.w > q.x &&
-            cand.y < q.y + q.h &&
-            cand.y + cand.h > q.y
-          ) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  };
-
   const cardEntries: Array<[string, TuxMapGridCellRect]> = [];
   for (const k of Object.keys(rects)) {
     const r = rects[k]!;
@@ -2076,7 +2088,7 @@ export function routeGridWires(
       pushPlacedBox({ x: r.x - 4, y: r.y - 4, w: r.w + 8, h: r.h + 8 });
     }
   }
-  const cards = placed.slice();
+  const cardCount = placed.length;
 
   // Discover exact vertical column gaps and horizontal inner-row gaps from card geometry
   const colBands = mergeNumericBands(cardEntries.map(([, r]) => [r.x, r.x + r.w]));
@@ -2581,235 +2593,185 @@ export function routeGridWires(
   }
 
   const wires: TuxMapRoutedWire[] = [];
-  const labels: TuxMapRoutedLabel[] = [];
-  const hoverOnlyLabels = paths.length > 30;
 
-  // Label pass (`#159`). Above 30 wires every label is hidden at rest: it takes the middle of its
-  // wire's longest segment and nothing is searched, sorted or recorded for it. Otherwise each
-  // candidate spot is tested against the cards and the labels already placed through the grid
-  // buckets, which give the answers a scan of every box would.
+  // Label pass (`#210`): a short label beside each end of a wire, at the port where the wire meets
+  // its card. A box is tested through the grid buckets against the cards (4 px of clearance) and
+  // the labels placed before it, so the pass costs the same in a view of ten cards and of a thousand.
   type LabelBox = { x: number; y: number; w: number; h: number };
-  /** Two ends and a number: the wire's index in `wireSegments`, the length in `segmentsByLength`. */
-  type WireSegment = [[number, number], [number, number], number];
-
-  // Segments of the wires routed so far. There are at most 30 wires here, so the list stays short
-  // however many cards the view holds, and a candidate is tested against all of it.
-  const wireSegments: WireSegment[] = [];
-  const clipsOtherWire = (cand: LabelBox, idx: number): boolean => {
-    for (let si = 0; si < wireSegments.length; si++) {
-      const seg = wireSegments[si]!;
-      if (seg[2] === idx) continue;
-      const minX = Math.min(seg[0][0], seg[1][0]) - 2;
-      const maxX = Math.max(seg[0][0], seg[1][0]) + 2;
-      const minY = Math.min(seg[0][1], seg[1][1]) - 2;
-      const maxY = Math.max(seg[0][1], seg[1][1]) + 2;
-      if (cand.x < maxX && cand.x + cand.w > minX && cand.y < maxY && cand.y + cand.h > minY) return true;
-    }
-    return false;
-  };
-
-  // How much of a candidate lies over cards (weight 1) and over placed labels (weight 25). Only a
-  // box that shares a bucket with the candidate can add to the sum, and the terms are added in the
-  // order the boxes were placed, so the total is bit for bit what a scan of every box gives. A box
-  // that is not finite is in no bucket: once one was placed, or for such a candidate, every box is
-  // scanned. So is a view with few boxes, where the scan is the cheaper of the two.
-  const COVER_SCAN_MAX = 64;
-  const coverTerm = (c: LabelBox, qi: number): number => {
-    const q = placed[qi]!;
-    return (
-      (qi < cards.length ? 1 : 25) *
-      Math.max(0, Math.min(c.x + c.w, q.x + q.w) - Math.max(c.x, q.x)) *
-      Math.max(0, Math.min(c.y + c.h, q.y + q.h) - Math.max(c.y, q.y))
-    );
-  };
-  let placedAllFinite = cards.every((q) => Number.isFinite(q.x + q.y + q.w + q.h));
-  const coverStamp: number[] = [];
-  let coverRound = 0;
-  const coverOf = (c: LabelBox): number => {
-    let cover = 0;
-    if (placed.length <= COVER_SCAN_MAX || !placedAllFinite || !Number.isFinite(c.x + c.y + c.w + c.h)) {
-      for (let qi = 0; qi < placed.length; qi++) cover += coverTerm(c, qi);
-      return cover;
-    }
-    coverRound++;
-    const near: number[] = [];
-    const gx0 = Math.floor(c.x / CELL_W);
-    const gx1 = Math.floor((c.x + c.w) / CELL_W);
-    const gy0 = Math.floor(c.y / CELL_H);
-    const gy1 = Math.floor((c.y + c.h) / CELL_H);
+  /** 0: free. 1: over a label placed earlier. 2: over a card, where no label is ever drawn. */
+  const portClash = (cand: LabelBox): 0 | 1 | 2 => {
+    let clash: 0 | 1 = 0;
+    const gx0 = Math.floor(cand.x / CELL_W);
+    const gx1 = Math.floor((cand.x + cand.w) / CELL_W);
+    const gy0 = Math.floor(cand.y / CELL_H);
+    const gy1 = Math.floor((cand.y + cand.h) / CELL_H);
     for (let gx = gx0; gx <= gx1; gx++) {
       for (let gy = gy0; gy <= gy1; gy++) {
         const hits = placedBucket.get(`${gx},${gy}`);
         if (!hits) continue;
         for (let hi = 0; hi < hits.length; hi++) {
           const qi = hits[hi]!;
-          if (coverStamp[qi] === coverRound) continue;
-          coverStamp[qi] = coverRound;
-          near.push(qi);
+          const q = placed[qi]!;
+          if (cand.x < q.x + q.w && cand.x + cand.w > q.x && cand.y < q.y + q.h && cand.y + cand.h > q.y) {
+            if (qi < cardCount) return 2;
+            clash = 1;
+          }
         }
       }
     }
-    near.sort((u, v) => u - v);
-    for (let ni = 0; ni < near.length; ni++) cover += coverTerm(c, near[ni]!);
-    return cover;
+    return clash;
   };
 
-  /** A wire's segments with their lengths, longest first (equal lengths keep the wire's order). */
-  const segmentsByLength = (pts: [number, number][]): WireSegment[] => {
-    const segs: WireSegment[] = [];
-    for (let i = 0; i < pts.length - 1; i++) {
-      const p0 = pts[i]!;
-      const p1 = pts[i + 1]!;
-      segs.push([p0, p1, Math.hypot(p1[0] - p0[0], p1[1] - p0[1])]);
-    }
-    segs.sort((u, v) => v[2] - u[2]);
-    return segs;
-  };
-  /** The first entry of `segmentsByLength(pts)`, found without building or sorting the list. */
-  const longestSegment = (pts: [number, number][]): [[number, number], [number, number]] | null => {
-    let best = -1;
-    let bestLen = -Infinity;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const len = Math.hypot(pts[i + 1]![0] - pts[i]![0], pts[i + 1]![1] - pts[i]![1]);
-      // A length that is not finite has no defined place in the sort: let the sort decide
-      if (!Number.isFinite(len)) {
-        const first = segmentsByLength(pts)[0]!;
-        return [first[0], first[1]];
-      }
-      if (len > bestLen) {
-        bestLen = len;
-        best = i;
-      }
-    }
-    return best < 0 ? null : [pts[best]!, pts[best + 1]!];
-  };
+  interface PortEnd {
+    end: "from" | "to";
+    side: string;
+    at: [number, number];
+  }
+  interface PortLabelJob {
+    idx: number;
+    order: number;
+    rank: number;
+    rel: TuxMapLevelRel;
+    text: string;
+    tech: boolean;
+    full: string;
+    ends: PortEnd[];
+    pts: [number, number][];
+    out?: TuxMapRoutedLabel;
+  }
+  const jobs: PortLabelJob[] = [];
 
   paths.forEach((p, idx) => {
     const pts = simplifyOrthogonalPoints(p.pts);
-    if (!hoverOnlyLabels) {
-      for (let si = 0; si < pts.length - 1; si++) {
-        wireSegments.push([pts[si]!, pts[si + 1]!, idx]);
-      }
-    }
-
     const isViolating = Boolean(p.rel.violations?.length);
+    const planned = p.rel.status === "planned";
     wires.push({
       id: `w-${idx}-${p.rel.from}-${p.rel.to}`,
       from: p.rel.from,
       to: p.rel.to,
       d: roundOrthogonalCorners(pts),
-      planned: p.rel.status === "planned",
+      planned,
       ...(isViolating ? { violating: true } : {}),
     });
 
     // A planned link the model gives no label is still labelled, "Planned": the label is what a
     // reader clicks to see what a wire is, and the dashes alone said only that it was not there yet (#205)
-    const labelText = p.rel.label || (p.rel.status === "planned" ? "Planned" : "");
-    if (labelText) {
-      const t1 = labelText;
-      const t2 = p.rel.tech || "";
-      const w = Math.max(t1.length * 6.1, (t2.length + 2) * 5.5) + 14;
-      const h = t2 ? 32 : 19;
-
-      let box: LabelBox | null = null;
-      let forced = true;
-      if (hoverOnlyLabels) {
-        const sg = longestSegment(pts);
-        if (sg) {
-          box = {
-            x: sg[0][0] + (sg[1][0] - sg[0][0]) * 0.5 - w / 2,
-            y: sg[0][1] + (sg[1][1] - sg[0][1]) * 0.5 - h / 2,
-            w,
-            h,
-          };
-        }
-      } else {
-        const segs = segmentsByLength(pts);
-        const fractions =
-          idx % 2 === 0
-            ? [0.5, 0.34, 0.66, 0.24, 0.76, 0.18, 0.82]
-            : [0.36, 0.64, 0.5, 0.24, 0.76, 0.18, 0.82];
-
-        for (let j = 0; j < segs.length && !box; j++) {
-          const sg = segs[j]!;
-          for (const f of fractions) {
-            const m: [number, number] = [
-              sg[0][0] + (sg[1][0] - sg[0][0]) * f,
-              sg[0][1] + (sg[1][1] - sg[0][1]) * f,
-            ];
-            const cand = { x: m[0] - w / 2, y: m[1] - h / 2, w, h };
-            if (overlapsPlacedBucket(cand)) continue;
-            // Also avoid clipping across another wire's segment when a clean spot exists
-            if (!clipsOtherWire(cand, idx)) {
-              box = cand;
-              break;
-            }
-          }
-        }
-
-        // Second pass if every non-overlapping spot crossed another wire segment
-        if (!box) {
-          for (let j = 0; j < segs.length && !box; j++) {
-            const sg = segs[j]!;
-            for (const f of fractions) {
-              const m: [number, number] = [
-                sg[0][0] + (sg[1][0] - sg[0][0]) * f,
-                sg[0][1] + (sg[1][1] - sg[0][1]) * f,
-              ];
-              const cand = { x: m[0] - w / 2, y: m[1] - h / 2, w, h };
-              if (!overlapsPlacedBucket(cand)) {
-                box = cand;
-                break;
-              }
-            }
-          }
-        }
-
-        // No free spot: the label is hidden at rest and takes the least-covered candidate
-        forced = !box;
-        if (!box) {
-          let best = Infinity;
-          for (const sg of segs) {
-            for (const f of [0.5, 0.35, 0.65, 0.22, 0.78, 0.15, 0.85]) {
-              const c = {
-                x: sg[0][0] + (sg[1][0] - sg[0][0]) * f - w / 2,
-                y: sg[0][1] + (sg[1][1] - sg[0][1]) * f - h / 2,
-                w,
-                h,
-              };
-              const cover = coverOf(c);
-              if (cover < best) {
-                best = cover;
-                box = c;
-              }
-            }
-          }
-        }
-      }
-
-      if (box) {
-        if (!hoverOnlyLabels) {
-          const pad = { x: box.x - 2, y: box.y - 2, w: box.w + 4, h: box.h + 4 };
-          if (!Number.isFinite(pad.x + pad.y + pad.w + pad.h)) placedAllFinite = false;
-          pushPlacedBox(pad);
-        }
-        labels.push({
-          id: `lbl-${idx}-${p.rel.from}-${p.rel.to}`,
-          from: p.rel.from,
-          to: p.rel.to,
-          x: Math.round(box.x),
-          y: Math.round(box.y),
-          w: Math.round(w),
-          h: Math.round(h),
-          t1,
-          t2,
-          forced,
-          ...(isViolating ? { violating: true } : {}),
-        });
-      }
+    const text = p.rel.label || (planned ? "Planned" : "");
+    if (!text || pts.length < 2) return;
+    const tech = p.rel.tech || "";
+    const full = tech ? `${text} [${tech}]` : text;
+    // The boundary is no card: a wire that starts or ends on it has one end to label
+    const ends: PortEnd[] = [];
+    if (!p.a.bound) ends.push({ end: "from", side: p.s[0], at: pts[0]! });
+    if (!p.b.bound) ends.push({ end: "to", side: p.s[1], at: pts[pts.length - 1]! });
+    // What the link does goes at its source end, and at the other end when there is no room there
+    jobs.push({ idx, order: jobs.length, rank: isViolating ? 0 : planned ? 2 : 1, rel: p.rel, text, tech: false, full, ends, pts });
+    // What it speaks goes at the far end; a wire with one card end keeps that end for what it does
+    if (tech && ends.length === 2) {
+      jobs.push({ idx, order: jobs.length, rank: isViolating ? 0 : 3, rel: p.rel, text: tech, tech: true, full, ends: [ends[1]!], pts });
     }
   });
 
+  // When two labels want the same spot the one with the lower rank is drawn and the other hidden:
+  // a rule violation, then what a live link does, then what a planned one does, then the
+  // technology; within a rank, the model's order.
+  const byRank = jobs.slice().sort((u, v) => u.rank - v.rank || u.order - v.order);
+  for (const job of byRank) {
+    const isViolating = Boolean(job.rel.violations?.length);
+    let box: LabelBox | null = null;
+    let hidden: { box: LabelBox; short: string; end: PortEnd } | null = null;
+    let short = "";
+    let end: PortEnd | undefined;
+    search: for (const e of job.ends) {
+      let last = "";
+      for (const chars of WIRE_LABEL_CHARS) {
+        const s = shortWireLabel(job.text, chars);
+        if (s === last) continue;
+        last = s;
+        // The second term is the brackets around a technology, or the sign before a violation
+        const w = Math.round(job.tech ? (s.length + 2) * 5.5 + 18 : (s.length + (isViolating ? 2 : 0)) * 6.1 + 18);
+        const across = e.side === "l" || e.side === "r";
+        // On the wire's stub; else beside the stub, below or right of it, then above or left of
+        // it; else half a label further off, which clears a label on the facing card's stub
+        for (const beside of [0, 1, -1, 2, -2]) {
+          const off = Math.abs(beside) > 1 ? WIRE_LABEL_H / 2 : 1;
+          const cand: LabelBox = across
+            ? {
+                x: e.side === "r" ? e.at[0] + WIRE_LABEL_GAP : e.at[0] - WIRE_LABEL_GAP - w,
+                y: e.at[1] + (beside > 0 ? off : beside < 0 ? -off - WIRE_LABEL_H : -WIRE_LABEL_H / 2),
+                w,
+                h: WIRE_LABEL_H,
+              }
+            : {
+                x: e.at[0] + (beside > 0 ? off + 2 : beside < 0 ? -off - 2 - w : -w / 2),
+                y: e.side === "b" ? e.at[1] + WIRE_LABEL_GAP : e.at[1] - WIRE_LABEL_GAP - WIRE_LABEL_H,
+                w,
+                h: WIRE_LABEL_H,
+              };
+          if (!Number.isFinite(cand.x + cand.y)) break;
+          // Tested as it is returned, so two labels that touch never overlap by a rounding
+          cand.x = Number(cand.x.toFixed(2));
+          cand.y = Number(cand.y.toFixed(2));
+          const clash = portClash(cand);
+          if (clash === 0) {
+            box = cand;
+            short = s;
+            end = e;
+            break search;
+          }
+          if (clash === 1 && !hidden) hidden = { box: cand, short: s, end: e };
+        }
+      }
+    }
+    const forced = !box;
+    if (box) pushPlacedBox(box);
+    else if (hidden) {
+      // No room beside either port: hidden at rest, and drawn at its port when its card is lit
+      box = hidden.box;
+      short = hidden.short;
+      end = hidden.end;
+    } else if (!job.tech) {
+      // No spot clear of the cards (a gap under 40 px, or a card with no usable position): the
+      // label keeps the middle of its wire's longest run, hidden at rest, so the wire can be inspected
+      let best = 0;
+      let bestLen = -1;
+      for (let i = 0; i < job.pts.length - 1; i++) {
+        const len = Math.abs(job.pts[i + 1]![0] - job.pts[i]![0]) + Math.abs(job.pts[i + 1]![1] - job.pts[i]![1]);
+        if (len > bestLen) {
+          bestLen = len;
+          best = i;
+        }
+      }
+      short = shortWireLabel(job.text, WIRE_LABEL_CHARS[WIRE_LABEL_CHARS.length - 1]!);
+      const w = Math.round(short.length * 6.1 + 18);
+      box = {
+        x: (job.pts[best]![0] + job.pts[best + 1]![0]) / 2 - w / 2,
+        y: (job.pts[best]![1] + job.pts[best + 1]![1]) / 2 - WIRE_LABEL_H / 2,
+        w,
+        h: WIRE_LABEL_H,
+      };
+    }
+    if (!box) continue;
+    job.out = {
+      id: `lbl-${job.idx}${job.tech ? "t" : ""}-${job.rel.from}-${job.rel.to}`,
+      from: job.rel.from,
+      to: job.rel.to,
+      x: Number(box.x.toFixed(2)),
+      y: Number(box.y.toFixed(2)),
+      w: box.w,
+      h: box.h,
+      t1: job.tech ? "" : short,
+      t2: job.tech ? short : "",
+      forced,
+      full: job.full,
+      ...(end ? { end: end.end, side: end.side as TuxMapRoutedLabel["side"] } : {}),
+      ...(job.rel.status === "planned" ? { planned: true } : {}),
+      ...(isViolating ? { violating: true } : {}),
+    };
+  }
+
+  const labels: TuxMapRoutedLabel[] = [];
+  for (const job of jobs) if (job.out) labels.push(job.out);
   return { wires, labels };
 }
 
