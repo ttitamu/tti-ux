@@ -7094,7 +7094,7 @@ function buildSourceHref(src?: {
             @click="outlineOpen = !outlineOpen"
           >
             <Icon name="lucide:list-tree" aria-hidden="true" />
-            <span>Outline</span>
+            <span class="tux-map__btn-lbl">Outline</span>
           </button>
         </div>
 
@@ -7107,7 +7107,7 @@ function buildSourceHref(src?: {
             @click="toggleInfrastructureView()"
           >
             <Icon name="lucide:server" aria-hidden="true" />
-            <span>Infrastructure</span>
+            <span class="tux-map__btn-lbl">Infrastructure</span>
           </button>
         </div>
 
@@ -7120,6 +7120,7 @@ function buildSourceHref(src?: {
             aria-label="More view options"
             @click="moreMenuOpen = !moreMenuOpen"
           >
+            <Icon name="lucide:sliders-horizontal" aria-hidden="true" />
             <span>More</span>
           </button>
           <div
@@ -7140,73 +7141,6 @@ function buildSourceHref(src?: {
               <span class="tux-map__switch-track tux-map__switch-track--blast" />
               <span>Blast radius</span>
             </label>
-
-            <select
-              v-if="showBlastRadius"
-              v-model="blastIntent"
-              class="tux-map__intent-select"
-              aria-label="Blast radius intent: the kind of change it is lit for"
-              :aria-describedby="blastIntentKeyId"
-              :title="`${blastIntentDef.description} ${blastIntentRule}`"
-            >
-              <option v-for="d in TUX_MAP_BLAST_INTENTS" :key="d.id" :value="d.id" :title="d.description">
-                Intent: {{ d.label }}
-              </option>
-            </select>
-
-            <!-- Lightweight Annotation Tools (opt-in via `annotations` prop, #125) -->
-            <div
-              v-if="props.annotations"
-              class="tux-map__seg"
-              role="group"
-              aria-label="Annotation tools"
-            >
-              <button
-                type="button"
-                :aria-pressed="activeTool === 'select'"
-                title="Select & Inspect (V)"
-                @click="activeTool = 'select'"
-              >
-                <Icon name="lucide:mouse-pointer" aria-hidden="true" />
-                <span>Select</span>
-              </button>
-              <button
-                type="button"
-                :aria-pressed="activeTool === 'pen'"
-                title="Freehand Pen (P)"
-                @click="activeTool = 'pen'"
-              >
-                <Icon name="lucide:pen-tool" aria-hidden="true" />
-                <span>Pen</span>
-              </button>
-              <button
-                type="button"
-                :aria-pressed="activeTool === 'laser'"
-                title="Laser Pointer (L)"
-                @click="activeTool = 'laser'"
-              >
-                <Icon name="lucide:wand-sparkles" aria-hidden="true" />
-                <span>Laser</span>
-              </button>
-              <button
-                type="button"
-                :aria-pressed="activeTool === 'note'"
-                title="Sticky Note (N)"
-                @click="activeTool = 'note'"
-              >
-                <Icon name="lucide:sticky-note" aria-hidden="true" />
-                <span>Note</span>
-              </button>
-              <button
-                v-if="localStrokes.length > 0 || localNotes.length > 0"
-                type="button"
-                title="Clear annotations"
-                @click="clearAnnotations"
-              >
-                <Icon name="lucide:trash-2" aria-hidden="true" />
-                <span>Clear</span>
-              </button>
-            </div>
           </div>
         </div>
 
@@ -7248,16 +7182,20 @@ function buildSourceHref(src?: {
               <button
                 type="button"
                 :aria-pressed="!effectiveIsListView"
+                title="Diagram"
                 @click="setExplicitViewMode('diagram')"
               >
-                Diagram
+                <Icon name="lucide:network" aria-hidden="true" />
+                <span class="tux-map__btn-lbl">Diagram</span>
               </button>
               <button
                 type="button"
                 :aria-pressed="effectiveIsListView"
+                title="List"
                 @click="setExplicitViewMode('list')"
               >
-                List
+                <Icon name="lucide:list" aria-hidden="true" />
+                <span class="tux-map__btn-lbl">List</span>
               </button>
             </div>
 
@@ -7495,14 +7433,28 @@ function buildSourceHref(src?: {
     </ul>
     <p v-if="blastFade" class="tux-map__blast-note">{{ blastFade.text }}</p>
     <!-- The intent's definition and what it changes here (#259); the intent select is described by it -->
-    <p v-if="showBlastRadius" :id="blastIntentKeyId" class="tux-map__blast-intent" data-blast-intent-key>
-      <strong>Intent: {{ blastIntentDef.label }}.</strong> {{ blastIntentDef.description }} {{ blastIntentRule }}
-      <strong v-if="blastIntentVsGeneral" role="status" data-blast-intent-vs>{{
-        blastIntentVsGeneral.same
-          ? `Same cards as General on this view: nothing here that ${blastIntentDef.label} skips or stops at changes what is lit.`
-          : `${blastIntentDef.label} lights ${blastIntentVsGeneral.n} card${blastIntentVsGeneral.n === 1 ? "" : "s"} here; General lights ${blastIntentVsGeneral.general}.`
-      }}</strong>
-    </p>
+    <!-- The intent is chosen beside the line that defines it, not in the toolbar (#259, #273) -->
+    <div v-if="showBlastRadius" class="tux-map__blast-intent-row">
+      <select
+        v-model="blastIntent"
+        class="tux-map__intent-select"
+        aria-label="Blast radius intent: the kind of change it is lit for"
+        :aria-describedby="blastIntentKeyId"
+        :title="`${blastIntentDef.description} ${blastIntentRule}`"
+      >
+        <option v-for="d in TUX_MAP_BLAST_INTENTS" :key="d.id" :value="d.id" :title="d.description">
+          Intent: {{ d.label }}
+        </option>
+      </select>
+      <p :id="blastIntentKeyId" class="tux-map__blast-intent" data-blast-intent-key>
+        <strong>Intent: {{ blastIntentDef.label }}.</strong> {{ blastIntentDef.description }} {{ blastIntentRule }}
+        <strong v-if="blastIntentVsGeneral" role="status" data-blast-intent-vs>{{
+          blastIntentVsGeneral.same
+            ? `Same cards as General on this view: nothing here that ${blastIntentDef.label} skips or stops at changes what is lit.`
+            : `${blastIntentDef.label} lights ${blastIntentVsGeneral.n} card${blastIntentVsGeneral.n === 1 ? "" : "s"} here; General lights ${blastIntentVsGeneral.general}.`
+        }}</strong>
+      </p>
+    </div>
     <div v-if="!effectiveIsListView && offStageImpactCount > 0" class="tux-map__other-levels">
       +{{ offStageImpactCount }} on other levels
     </div>
@@ -8259,6 +8211,61 @@ function buildSourceHref(src?: {
         :coarse="coarsePointer"
         :narrow-below="autoListBreakpoint"
       />
+
+      <!-- Lightweight Annotation Tools (opt-in via `annotations` prop, #125): in the canvas's top-left
+           corner since #273, as icons named by their titles; the toolbar keeps one line -->
+      <div
+        v-if="props.annotations && !effectiveIsListView"
+        class="tux-map__drawtools"
+        role="group"
+        aria-label="Annotation tools"
+      >
+        <button
+          type="button"
+          :aria-pressed="activeTool === 'select'"
+          title="Select & Inspect (V)"
+          @click="activeTool = 'select'"
+        >
+          <Icon name="lucide:mouse-pointer" aria-hidden="true" />
+          <span class="tux-map__btn-lbl">Select</span>
+        </button>
+        <button
+          type="button"
+          :aria-pressed="activeTool === 'pen'"
+          title="Freehand Pen (P)"
+          @click="activeTool = 'pen'"
+        >
+          <Icon name="lucide:pen-tool" aria-hidden="true" />
+          <span class="tux-map__btn-lbl">Pen</span>
+        </button>
+        <button
+          type="button"
+          :aria-pressed="activeTool === 'laser'"
+          title="Laser Pointer (L)"
+          @click="activeTool = 'laser'"
+        >
+          <Icon name="lucide:wand-sparkles" aria-hidden="true" />
+          <span class="tux-map__btn-lbl">Laser</span>
+        </button>
+        <button
+          type="button"
+          :aria-pressed="activeTool === 'note'"
+          title="Sticky Note (N)"
+          @click="activeTool = 'note'"
+        >
+          <Icon name="lucide:sticky-note" aria-hidden="true" />
+          <span class="tux-map__btn-lbl">Note</span>
+        </button>
+        <button
+          v-if="localStrokes.length > 0 || localNotes.length > 0"
+          type="button"
+          title="Clear annotations"
+          @click="clearAnnotations"
+        >
+          <Icon name="lucide:trash-2" aria-hidden="true" />
+          <span class="tux-map__btn-lbl">Clear</span>
+        </button>
+      </div>
 
       <!-- Canvas zoom (#271): in the canvas's top-right corner, beside the details panel when it is
            open over the map. It does what Ctrl/Cmd + wheel, a pinch and the + − 0 keys do (2.5.7) -->
@@ -9360,13 +9367,44 @@ function buildSourceHref(src?: {
   }
 }
 
-/* Toolbar & Segmented Level Controls */
+/* Toolbar & Segmented Level Controls. One line at the widths a desktop map has (#273): every control
+   and every group is the map's target height (a group's 1px border is inside it), on one centre line;
+   the groups are 12px apart and the controls inside a group 8px, TUX's spacing steps. Below the width
+   the line needs, the switches go into the More menu, then the labelled toggles show their icons only
+   (their names stay, for assistive technology and in their titles); on a phone the groups wrap. */
 .tux-map__tools {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.55rem 0.85rem;
-  margin: 0.5rem 0 0.45rem;
+  gap: var(--space-8, 8px) var(--space-12, 12px);
+  margin: var(--space-8, 8px) 0;
+}
+
+/* a label that gives way to its icon on a narrower map, and in the canvas's drawing tools */
+.tux-map__drawtools .tux-map__btn-lbl {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@container tux-map (max-width: 1249px) {
+  .tux-map__tools .tux-map__btn-lbl {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .tux-map__tools .tux-map__seg button:has(.tux-map__btn-lbl) {
+    justify-content: center;
+    min-width: calc(var(--tux-map-target) - 2px);
+    padding-inline: 0;
+  }
 }
 
 .tux-map__more-wrap {
@@ -9396,10 +9434,12 @@ function buildSourceHref(src?: {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.55rem 0.85rem;
+  gap: var(--space-8, 8px) var(--space-12, 12px);
 }
 
-@container tux-map (max-width: 760px) {
+/* the switches stay on the line only where it has room for them and for the filter's count (#273):
+   the line is about 1,340px with them, 1,160px without, and the count takes 88px more */
+@container tux-map (max-width: 1439px) {
   .tux-map__more-btn {
     display: inline-flex;
   }
@@ -9428,13 +9468,23 @@ function buildSourceHref(src?: {
   }
 }
 
+/* The breadcrumb's own line (#273), with the Wires filter at its end on the same centre line. The
+   trail takes the room the filter leaves, and the filter wraps under it, at the start, when there is none. */
 .tux-map__subbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.4rem 1rem;
-  margin: 0.1rem 0 0.25rem;
+  gap: var(--space-8, 8px) var(--space-16, 16px);
+  min-height: var(--tux-map-target);
+  margin: 0 0 var(--space-8, 8px);
+  padding-top: var(--space-8, 8px);
+  border-top: 1px solid var(--surface-border);
+}
+
+.tux-map__subbar > nav {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .tux-map__crumb-menu-wrap,
@@ -9637,7 +9687,8 @@ function buildSourceHref(src?: {
 }
 
 .tux-map__seg button {
-  min-height: var(--tux-map-target);
+  /* the group's border is inside the target height */
+  min-height: calc(var(--tux-map-target) - 2px);
   font: inherit;
   font-family: var(--font-bold);
   font-size: 0.75rem;
@@ -9695,8 +9746,8 @@ function buildSourceHref(src?: {
 .tux-map__stepper .tux-map__iconbtn {
   border: 0;
   border-radius: 0;
-  height: var(--tux-map-target);
-  width: var(--tux-map-target);
+  height: calc(var(--tux-map-target) - 2px);
+  width: calc(var(--tux-map-target) - 2px);
 }
 
 .tux-map__stepper .tux-map__iconbtn:hover:not(:disabled) {
@@ -9708,7 +9759,8 @@ function buildSourceHref(src?: {
   align-items: center;
   gap: 0.4rem;
   padding: 0 0.7rem;
-  height: 32px;
+  height: calc(var(--tux-map-target) - 2px);
+  box-sizing: border-box;
   border-left: 1px solid var(--surface-border);
   border-right: 1px solid var(--surface-border);
   font-family: var(--font-bold);
@@ -9823,7 +9875,7 @@ function buildSourceHref(src?: {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 0.55rem 0.85rem;
+  gap: var(--space-8, 8px);
   margin-left: auto;
 }
 
@@ -9831,7 +9883,7 @@ function buildSourceHref(src?: {
   display: inline-flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 0.85rem;
+  gap: var(--space-8, 8px);
 }
 
 /* a narrow map: the group may break, between the filter and the Diagram/List pair */
@@ -9861,7 +9913,7 @@ function buildSourceHref(src?: {
 .tux-map__search-input {
   min-height: var(--tux-map-target);
   padding: 0.35rem 0.6rem 0.35rem 1.7rem;
-  width: 11.5rem;
+  width: 10rem;
   font: inherit;
   font-size: 0.75rem;
   color: var(--text-primary);
@@ -9927,6 +9979,116 @@ function buildSourceHref(src?: {
   background: var(--surface-raised);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   overflow: hidden;
+}
+
+/* The drawing tools (`annotations`), in the canvas's top-left corner (#273): icon buttons, each named
+   by its label for assistive technology and by its title on hover, the zoom group's height and look. */
+.tux-map__drawtools {
+  position: absolute;
+  z-index: 22;
+  top: var(--space-12, 12px);
+  left: var(--space-12, 12px);
+  display: inline-flex;
+  height: var(--tux-map-target);
+  box-sizing: border-box;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+/* With the outline open the canvas is a grid: the corner groups sit in the viewport's own cell, over
+   its corners, so they follow it beside the outline and, on a narrow map, under it */
+.tux-map__canvas--with-outline > .tux-map__viewport,
+.tux-map__canvas--with-outline > .tux-map__zoomctl,
+.tux-map__canvas--with-outline > .tux-map__drawtools {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.tux-map__canvas--with-outline > .tux-map__zoomctl,
+.tux-map__canvas--with-outline > .tux-map__drawtools {
+  position: relative;
+  top: auto;
+  right: auto;
+  left: auto;
+  align-self: start;
+  margin: var(--space-12, 12px);
+}
+
+.tux-map__canvas--with-outline > .tux-map__zoomctl {
+  justify-self: end;
+  margin-right: calc(var(--space-12, 12px) + var(--space-8, 8px));
+}
+
+.tux-map__canvas--with-outline > .tux-map__zoomctl--beside-panel {
+  margin-right: calc(min(380px, 100% - 24px) + var(--space-12, 12px) + var(--space-12, 12px));
+}
+
+.tux-map__canvas--with-outline > .tux-map__drawtools {
+  justify-self: start;
+}
+
+@container tux-map (max-width: 760px) {
+  .tux-map__canvas--with-outline > .tux-map__viewport,
+  .tux-map__canvas--with-outline > .tux-map__zoomctl,
+  .tux-map__canvas--with-outline > .tux-map__drawtools {
+    grid-column: 1;
+    grid-row: 2;
+  }
+}
+
+.tux-map__drawtools button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--tux-map-target) - 2px);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tux-map__drawtools button + button {
+  border-left: 1px solid var(--surface-border);
+}
+
+.tux-map__drawtools button:hover:not([aria-pressed="true"]) {
+  color: var(--text-primary);
+  background: var(--surface-sunken);
+}
+
+.tux-map__drawtools button[aria-pressed="true"] {
+  background: var(--tux-map-brand-tint);
+  color: var(--text-primary);
+  box-shadow: inset 0 -3px 0 var(--brand-primary);
+}
+
+.tux-map__drawtools button > :not(.tux-map__btn-lbl) {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* a narrow canvas: the tools stand in a column at the left, so the zoom group keeps the top-right */
+@container tux-map (max-width: 640px) {
+  .tux-map__drawtools {
+    flex-direction: column;
+    width: var(--tux-map-target);
+    height: auto;
+  }
+
+  .tux-map__drawtools button {
+    width: auto;
+    height: calc(var(--tux-map-target) - 2px);
+  }
+
+  .tux-map__drawtools button + button {
+    border-left: 0;
+    border-top: 1px solid var(--surface-border);
+  }
 }
 
 /* the details panel (380px at most, 12px from the edge) is over the map: the zoom sits to its left */
@@ -10007,8 +10169,8 @@ function buildSourceHref(src?: {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem;
-  margin: 0.25rem 0;
+  gap: var(--space-4, 4px) var(--space-8, 8px);
+  margin: 0;
   padding: 0;
   list-style: none;
   font-size: 0.875rem;
@@ -10017,7 +10179,7 @@ function buildSourceHref(src?: {
 .tux-map__crumbs li {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--space-8, 8px);
 }
 
 .tux-map__crumbs li + li::before {
@@ -10147,8 +10309,18 @@ function buildSourceHref(src?: {
 }
 
 .tux-map__blast-note,
-.tux-map__blast-intent {
+/* the intent beside the line that defines it (#273): the select on the line's first row */
+.tux-map__blast-intent-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4, 4px) var(--space-12, 12px);
   margin: 0 0 0.55rem;
+}
+
+.tux-map__blast-intent {
+  flex: 1 1 24rem;
+  margin: 0;
   font-size: 0.75rem;
   color: var(--text-secondary);
 }

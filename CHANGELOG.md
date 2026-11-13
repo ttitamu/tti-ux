@@ -18,6 +18,21 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — Architecture map: the toolbar is one aligned line, and the breadcrumb has its own (#273)
+
+- **Why it looked cramped.** The bar wrapped into two rows at 1,754 and 1,920 px and three at 1,440 px (a docs page at those widths gives the map 1,320, 1,486 and 1,006 px): A− Fit A+ and the four drawing tools did not fit, and the trailing group broke onto a row of its own. The controls were not one height either: a group's buttons were the target height and its border made it 2 px taller than a lone button, and the level's name between − and + was 32 px tall in a 46 px stepper. Gaps were five different rem values.
+- **One line.** At those three widths the bar is one line, also while the level filter shows its count. Every control and every group is the target height (44 px, 48 px in field sunlight), a group's border inside it, on one centre line; groups are 12 px apart and controls in a group 8 px (TUX's `--space-12` and `--space-8`). Where a map is narrower than the line needs, the Show planned and Blast radius switches go into the More menu (below 1,440 px of map width, where they were inline down to 760 px), then Outline, Infrastructure, Diagram and List show their icons only (below 1,250 px; Diagram and List gain icons); their names stay, for assistive technology and in their titles. On a phone (792 and 390 px) the groups wrap with nothing overlapping.
+- **The breadcrumb's own line.** It sits under the bar, after a hairline, and takes the room the Wires filter leaves at its end; both are on one centre line, and the filter wraps under the trail only when there is no room.
+- **What left the bar.** The drawing tools (`annotations`) are icon buttons in the canvas's top-left corner, across from the zoom group (in a column on a narrow canvas), with their names and their shortcut in each title. The blast intent select sits beside the line under the key that defines it, which it is still described by. With the outline open, both corner groups stay over the viewport's corners.
+- In a browser at 1,920, 1,754, 1,440, 792 and 390 px, light and dark: one centre line for the bar at the three desktop widths (it was two, two and three), every control 44 px, no two controls overlapping at any width, and the More menu inside the map.
+- Tests: `tests/tux-architecture-map-toolbar.nuxt.test.ts` (the stylesheet's contract: the heights, the group borders inside them, one centre line, the spacing tokens and no raw gaps, the two width rules, the breadcrumb line's layout; mounted: the toggles' names and titles, the trail and the filter on their line, the drawing tools in the canvas and not in the list view, the intent beside its key, the corner groups in the viewport's grid cell).
+
+**To check when upgrading:**
+- The drawing tools moved from the toolbar (inside More on a narrow map) to `.tux-map__drawtools` in the canvas, still a group labelled "Annotation tools". A host that draws in the canvas's top-left corner will find them there.
+- `.tux-map__intent-select` is in `.tux-map__blast-intent-row` under the key, not in the toolbar.
+- Show planned and Blast radius are in the More menu on maps narrower than 1,440 px; a host test that clicked them inline at that width opens More first (the inputs are in the DOM either way).
+- `.tux-map__subbar` has a top hairline and the target's minimum height; the toolbar's search is 10rem wide (it was 11.5rem).
+
 ### Fixed — Architecture map: the Wires filter draws what each choice names, says what it draws, and is TUX's toggle chip (#272)
 
 - **Why Tests, CI and Docs looked dead.** Level 2 draws the containers' C4 `rels`, and the filter only decided which of those were shown. A test, CI or doc link between two containers that no `rel` joins had no wire under any choice. On the docs sample every `rel` is production, so at Level 2 Tests, CI and Docs drew nothing, and the sample's one CI link (Scheduled Jobs builds the workers' image) was never drawn. Nothing said why, and with every choice off the canvas went blank without a word.
