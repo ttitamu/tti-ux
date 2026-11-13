@@ -81,13 +81,15 @@ describe("TuxArchitectureMap: wheelZoom and the click-to-explore veil (#209)", (
     }
   });
 
-  it("false: no veil, the plain wheel is the page's, Ctrl+wheel changes the level", async () => {
+  // Ctrl+wheel and a pinch magnify the canvas since #271; they no longer change the level
+  it("false: no veil, the plain wheel is the page's, Ctrl+wheel magnifies the canvas", async () => {
     const { veil, wheel, hint, releasesScroll } = await mountMap(false);
     expect(veil().exists()).toBe(false);
     expect(releasesScroll()).toBe(true);
-    expect(hint()).toContain("hold Ctrl and scroll");
+    expect(hint()).toContain("double-click a card");
+    expect(hint()).toContain("Ctrl+scroll or pinch magnifies the canvas");
     expect(await wheel()).toEqual({ prevented: false, level: 2 });
-    expect(await wheel({ ctrlKey: true })).toEqual({ prevented: true, level: 1 });
+    expect(await wheel({ ctrlKey: true })).toEqual({ prevented: true, level: 2 });
   });
 
   it('"click", not armed: a veil that is a button, the plain wheel is the page\'s, the help says to click first', async () => {
@@ -104,18 +106,20 @@ describe("TuxArchitectureMap: wheelZoom and the click-to-explore veil (#209)", (
     expect(state.wheelArmed).toBe(false);
     expect(hint()).toMatch(/^Click the diagram first/);
     expect(hint()).toContain("scroll the mouse wheel over a card");
-    expect(hint()).not.toContain("Ctrl");
+    // Ctrl is named only for the canvas magnifier, which works under the veil too (#271)
+    expect(hint()).not.toContain("hold Ctrl");
+    expect(hint()).toContain("Ctrl+scroll or pinch magnifies the canvas");
     expect(await wheel()).toEqual({ prevented: false, level: 2 });
     expect(veil().exists()).toBe(true);
   });
 
-  it('"click", not armed: Ctrl+wheel and a pinch still change the level, and do not arm', async () => {
+  it('"click", not armed: Ctrl+wheel and a pinch are kept from the page and magnify, and do not arm (#271)', async () => {
     const { veil, wheel, state } = await mountMap("click");
-    expect(await wheel({ ctrlKey: true })).toEqual({ prevented: true, level: 1 });
+    expect(await wheel({ ctrlKey: true })).toEqual({ prevented: true, level: 2 });
     expect(state.wheelArmed).toBe(false);
     expect(veil().exists()).toBe(true);
     const second = await mountMap("click");
-    expect(await second.wheel({ metaKey: true })).toEqual({ prevented: true, level: 1 });
+    expect(await second.wheel({ metaKey: true })).toEqual({ prevented: true, level: 2 });
   });
 
   it('"click": a click on the veil arms it; the veil goes, focus is in the canvas, the wheel zooms', async () => {
@@ -239,7 +243,7 @@ describe("TuxArchitectureMap: wheelZoom and the click-to-explore veil (#209)", (
     });
   });
 
-  it('"click" with a coarse pointer: no veil, nothing to arm, the wheel is the page\'s, Ctrl+wheel zooms', async () => {
+  it('"click" with a coarse pointer: no veil, nothing to arm, the wheel is the page\'s, Ctrl+wheel magnifies', async () => {
     vi.stubGlobal("matchMedia", (q: string) => ({
       matches: q === "(pointer: coarse)",
       media: q,
@@ -258,7 +262,7 @@ describe("TuxArchitectureMap: wheelZoom and the click-to-explore veil (#209)", (
     await nextTick();
     expect(state.wheelArmed).toBe(false);
     expect(await wheel()).toEqual({ prevented: false, level: 2 });
-    expect(await wheel({ ctrlKey: true })).toEqual({ prevented: true, level: 1 });
+    expect(await wheel({ ctrlKey: true })).toEqual({ prevented: true, level: 2 });
   });
 
   it("the veil's fade is off under prefers-reduced-motion, and the page-wheel class gives the scroll back", async () => {

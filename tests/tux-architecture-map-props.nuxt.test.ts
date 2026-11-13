@@ -38,7 +38,9 @@ describe("TuxArchitectureMap: initialZoom opens the map magnified (#230)", () =>
     expect(state.fitScale).toBeLessThan(0.5);
     expect(state.isMagnified).toBe(false);
     expect(state.stageScale).toBe(state.fitScale);
-    expect(wrapper.find(".tux-map__magnify-fit").text()).toBe("Fit");
+    // the canvas zoom (#271) shows the size against Fit, 100% at Fit; Fit is its own button
+    expect(wrapper.find("[data-zoom-percent]").text()).toBe("100%");
+    expect(wrapper.find(".tux-map__magnify-fit").attributes("aria-pressed")).toBe("true");
   });
 
   it.each([
@@ -54,7 +56,7 @@ describe("TuxArchitectureMap: initialZoom opens the map magnified (#230)", () =>
     const { wrapper, state } = await mountMap({ initialZoom: given });
     expect(state.isMagnified).toBe(true);
     expect(state.stageScale).toBe(step);
-    expect(wrapper.find(".tux-map__magnify-fit").text()).toBe(`${Math.round((step / state.fitScale) * 100)}%`);
+    expect(wrapper.find("[data-zoom-percent]").text()).toBe(`${Math.round((step / state.fitScale) * 100)}%`);
   });
 
   it("opens at Fit for a scale at or under the fitted one, or one that is not a scale", async () => {
