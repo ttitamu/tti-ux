@@ -18,6 +18,17 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — Architecture map: what the first paint does not show waits for idle time (#226)
+
+- `<TuxArchitectureMap>` builds the Go-To index and reads the model's links after it is drawn, in `requestIdleCallback`, one callback each, one after the other (a 50 ms timer each where the browser has no idle callback). At 10,000 symbols the index took 64 ms on the first search and the links 162 to 250 ms on the first selection. A search or a selection made before then builds what it needs, as before, and the idle task finds it built. A new `model` is indexed again the same way; an unmounted map does nothing more.
+- With nothing selected, the map no longer reads the links at all: the selection's blast radius read them before it checked that something was selected, so every first render built them.
+- The first size of the viewport comes from the `ResizeObserver` the map already registered, which reports it after the browser has laid the page out, instead of from a layout forced inside the mount (25 to 35 ms at 10,000 symbols). Where there is no `ResizeObserver`, the mount measures as before.
+- After a level change under a resting pointer, the card under the pointer is found in the new level's card rectangles, not with `document.elementFromPoint`, a hit test of the page that laid the new view out inside the same task.
+- Not changed: the validator's shape check still runs in the merge, before the first render. Its findings go only to the console, but a value of the wrong type is left out of the document the sanitizer reads, and the readers after it rely on that: deferred, a document with such values fails to draw until the check has run.
+- A mounted test stubs `requestIdleCallback` and `ResizeObserver`: neither the index nor the links is built before the first render, each is built once idle time is given, a search and a selection before then work, and the width is unknown until the observer reports. Another counts the hit tests of a level change: none.
+
+**To check when upgrading:** nothing to change. A test of your own that counts animation frames or timers on mount sees two idle callbacks after it, one after the other, or two 50 ms timers where `requestIdleCallback` is missing.
+
 ### Changed — Architecture map: a reactive `model` is read raw (`watchModelDeep`) (#222)
 
 - `<TuxArchitectureMap>` reads a `model` passed as a deep `reactive()` object through `toRaw()`. It used to read it through its proxies: the sanitized model kept tens of thousands of its objects as proxies (70,329 of 73,829 at 10,000 symbols), and everything built from the model afterwards paid for a proxy on every read. Mounting a 10,000-symbol file view took 1,224 ms with a reactive model against 298 ms with the same model passed plain (jsdom), and about 140 MB more heap.

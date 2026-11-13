@@ -1579,8 +1579,10 @@ const activeUsageKindsSet = computed<Set<string>>(() => {
 const selectionBlastBase = computed(() => {
   const M = activeModel.value;
   const id = selectedId.value;
+  // the links are read for a selection only: with none, the map's first render does not build them (#226)
+  if (!id || (!byId.value[id] && !resById.value[id])) return null;
   const links = effectiveModelLinks.value;
-  if (!links.length || !id || (!byId.value[id] && !resById.value[id])) return null;
+  if (!links.length) return null;
   return computeLinkBlastRadius(links, id, parentOf.value, {
     model: M,
     intent: blastIntent.value,
@@ -1628,8 +1630,9 @@ const usageKindChips = computed<{ kind: string; label: string; count: number; ac
 const selectionBlast = computed(() => {
   const M = activeModel.value;
   const id = selectedId.value;
+  if (!id || (!byId.value[id] && !resById.value[id])) return null;
   const links = effectiveModelLinks.value;
-  if (!links.length || !id || (!byId.value[id] && !resById.value[id])) return null;
+  if (!links.length) return null;
   return computeLinkBlastRadius(links, id, parentOf.value, {
     model: M,
     intent: blastIntent.value,
@@ -3711,9 +3714,40 @@ function onDocumentPointerDown(ev: PointerEvent) {
   }
 }
 
+// Work whose result is not on screen when the map is first drawn runs in idle time after it (#226), one
+// task per callback: the Go-To index (the palette's first search), then the model's links (the first
+// selection). Either asked for before then is built on demand, and the idle task finds it built. Where
+// there is no `requestIdleCallback`, a 50 ms timer: after the first paint, and no animation frame asked for
+// (an idle map runs none). The validator's shape check stays in the merge: its findings go to the console,
+// but the values it leaves out for their type are what the sanitizer and every reader after it rely on not
+// to meet.
+let cancelIdle: (() => void) | null = null;
+let idleStarted = false;
+
+function scheduleIdleWork(step = 0) {
+  cancelIdle?.();
+  cancelIdle = null;
+  const next = [mapSearchIndex, effectiveModelLinks][step];
+  if (!idleStarted || !next) return;
+  const run = () => {
+    cancelIdle = null;
+    void next.value;
+    scheduleIdleWork(step + 1);
+  };
+  if (window.requestIdleCallback) {
+    const h = window.requestIdleCallback(run, { timeout: 2000 });
+    cancelIdle = () => window.cancelIdleCallback(h);
+  } else {
+    const t = setTimeout(run, 50);
+    cancelIdle = () => clearTimeout(t);
+  }
+}
+
+// a new model is indexed again
+watch(rawModelInput, () => scheduleIdleWork());
+
 onMounted(() => {
   applyAutoListView();
-  measureViewport();
   if (typeof window !== "undefined") {
     window.addEventListener("keydown", onWindowKeydown);
     document.addEventListener("pointerdown", onDocumentPointerDown);
@@ -3723,6 +3757,8 @@ onMounted(() => {
       coarseQuery.addEventListener?.("change", onCoarseChange);
     }
   }
+  // The first size comes from the observer, which reports it once the browser has laid the page out for
+  // its first frame, rather than from a layout forced inside this task (#226)
   if (typeof ResizeObserver !== "undefined" && (viewportRef.value || mapRootRef.value)) {
     resizeObserver = new ResizeObserver(() => {
       measureViewport();
@@ -3731,7 +3767,11 @@ onMounted(() => {
     if (mapRootRef.value && mapRootRef.value !== viewportRef.value) {
       resizeObserver.observe(mapRootRef.value);
     }
+  } else {
+    measureViewport();
   }
+  idleStarted = true;
+  scheduleIdleWork();
   // Run `keepClear` on mount for `initialSelectedId` (#117)
   if (selectedId.value) {
     nextTick(() => {
@@ -3742,6 +3782,9 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   cancelPendingSubgraphResolve();
+  idleStarted = false;
+  cancelIdle?.();
+  cancelIdle = null;
   resizeObserver?.disconnect();
   if (typeof window !== "undefined") {
     window.removeEventListener("keydown", onWindowKeydown);
@@ -4044,23 +4087,17 @@ function goToLevel(
       }
     }
 
-    // Re-evaluate hovered & proximity-attached card under stationary cursor after level switch
+    // Re-evaluate hovered & proximity-attached card under stationary cursor after level switch: the card
+    // under the pointer is found in the new level's rectangles, not by a hit test of the page, which laid
+    // the new view out inside this task (#226)
     if (
       lastPointerClient &&
       typeof document !== "undefined" &&
       !selectedId.value &&
       activeTool.value === "select"
     ) {
-      const underEl =
-        typeof document.elementFromPoint === "function"
-          ? (document.elementFromPoint(
-              lastPointerClient.x,
-              lastPointerClient.y,
-            ) as HTMLElement | null)
-          : null;
-      const cardUnder = underEl?.closest?.(".tux-map__el") as HTMLElement | null;
-      currentHoveredId = cardUnder?.dataset?.id ?? null;
       const ptAfter = getStageCoordsFromClient(lastPointerClient.x, lastPointerClient.y);
+      currentHoveredId = findCardIdAtStagePoint(ptAfter.x, ptAfter.y);
       updateProximityAtStagePoint(ptAfter.x, ptAfter.y);
       applyStageHighlight(currentHoveredId ?? proximityCard.value?.id ?? null);
     }
