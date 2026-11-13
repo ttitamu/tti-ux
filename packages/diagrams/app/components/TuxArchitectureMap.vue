@@ -68,7 +68,6 @@ import {
   buildStageBase,
   buildStageData,
   cardDescriptionLines,
-  cardTitleLines,
   middleEllipsizeFolderName,
   wireLabelAttrs,
   wirePairKey,
@@ -1062,15 +1061,22 @@ const TYPE_LABELS: Record<string, string> = {
   ...TUX_MAP_ELEMENT_KIND_LABELS,
 };
 
+// What a card's status line says for each `live.state`, and its dot: each phrase says what the
+// state means, not only its name (#258). The meanings are on `TuxMapElementLiveInfo.state`.
 const STATE_LABELS: Record<string, [string, string]> = {
   running: ["ok", "Running"],
   active: ["ok", "Running"],
   present: ["ok", "Installed"],
-  success: ["ok", "Last run fine"],
-  inactive: ["warn", "Off"],
-  "declared-not-installed": ["warn", "Not installed"],
-  failed: ["bad", "Failed"],
-  unknown: ["", "State unknown"],
+  success: ["ok", "Last run succeeded"],
+  inactive: ["warn", "Installed, not running"],
+  "declared-not-installed": ["warn", "Declared, not installed"],
+  failed: ["bad", "Failed: stopped with an error"],
+  unknown: ["", "State not reported"],
+};
+
+const LAST_RUN_LABELS: Record<string, [string, string]> = {
+  success: ["ok", "Last run succeeded"],
+  failed: ["bad", "Last run failed"],
 };
 
 function isShownStatus(status?: string): boolean {
@@ -1156,14 +1162,21 @@ function countOtherSharedParts(id: string, el?: TuxMapLevelElement): number {
   return comps.size - 1;
 }
 
+/**
+ * A card's status line and its dot, from `live` (#258). A count says what it counts: `total` is the
+ * element's instances, `running` how many of them run ("8 of 10 instances running"), and the dot
+ * turns amber when some are not running and red when none are.
+ */
 function formatLiveState(e: TuxMapLevelElement): [string, string] | null {
   const L = e.live;
   if (!L) return null;
   if (L.total && L.total > 1) {
-    return [(STATE_LABELS[L.state ?? "running"] || [""])[0], `${L.running ?? L.total}/${L.total} running`];
+    const running = Math.max(0, Math.min(L.running ?? L.total, L.total));
+    const tone = running === 0 ? "bad" : running < L.total ? "warn" : (STATE_LABELS[L.state ?? "running"] || [""])[0];
+    return [tone, `${running} of ${L.total} instances running`];
   }
   if (L.last_run && L.last_run.result) {
-    return [L.last_run.result === "failed" ? "bad" : "ok", `Last run ${L.last_run.result}`];
+    return LAST_RUN_LABELS[L.last_run.result] || ["", `Last run: ${L.last_run.result}`];
   }
   if (L.state) {
     return STATE_LABELS[L.state] || ["", L.state];
@@ -2358,6 +2371,8 @@ const renderedCards = computed(() =>
     else if (typeLabel) ariaParts.push(typeLabel);
     else if (plainKind) ariaParts.push(plainKind);
     if (!e.mini && runsOnLabel) ariaParts.push(runsOnLabel);
+    // the status line as the card shows it (#258)
+    if (live) ariaParts.push(live[1]);
     if (chip) ariaParts.push(chip[1]);
     for (const ec of extraChips) ariaParts.push(ec.text);
     if (diffBadge) ariaParts.push(diffBadge[1]);
@@ -2372,7 +2387,6 @@ const renderedCards = computed(() =>
       e.mini || !e.desc
         ? 0
         : cardDescriptionLines(r?.h ?? 128, {
-            titleLines: cardTitleLines(displayName, zoomable),
             type: Boolean(typeLabel),
             runsOn: Boolean(runsOnLabel),
             footer: Boolean(live || chip || extraChips.length > 0 || diffBadge),
@@ -2382,8 +2396,6 @@ const renderedCards = computed(() =>
       id: e.id,
       parent: e.parent || "",
       name: displayName,
-      // the title in the pieces it may wrap between: after each `/` of a path
-      nameSegs: displayName.match(/[^/]*\/+|[^/]+$/g) ?? [displayName],
       fullName: e.name,
       ariaLabel,
       ownerLabel: outMeta?.ownerLabel || "",
@@ -7456,6 +7468,19 @@ function buildSourceHref(src?: {
             </span>
           </div>
 
+          <!-- Trailing cursor (#208): a dot on the pointer and the disc that follows it. Decoration only.
+               In the stage, after the boundaries and under everything else (#256); the stage's scale
+               and pan are undone on it, so it is placed in the viewport's content px -->
+          <div
+            v-if="cursorOn"
+            ref="cursorRef"
+            class="tux-map__cursor"
+            :style="{ transform: `scale(${1 / stageScale}) translateX(${-panX}px)` }"
+            aria-hidden="true"
+          >
+            <i /><i />
+          </div>
+
           <!-- Layer 1 (z-index: 1): Base Orthogonal Wires SVG -->
           <svg
             class="tux-map__wires"
@@ -7635,8 +7660,8 @@ function buildSourceHref(src?: {
             >
               <span class="tux-map__el-nm">
                 <Icon :name="c.icon" class="tux-map__el-ic" aria-hidden="true" />
-                <!-- a path may break after each `/`; the <wbr>s add nothing to the text (#205) -->
-                <span>{{ c.nameSegs[0] }}<template v-for="(seg, segIdx) in c.nameSegs.slice(1)" :key="segIdx"><wbr />{{ seg }}</template></span>
+                <!-- one line, cut with an ellipsis: the full name is the tooltip (#258) -->
+                <span :title="c.fullName">{{ c.name }}</span>
               </span>
               <span v-if="c.ownerLabel" class="tux-map__el-own" :title="c.ownerLabel">
                 {{ c.ownerLabel }}
@@ -7658,7 +7683,7 @@ function buildSourceHref(src?: {
                     :class="c.live[0] ? `tux-map__dot--${c.live[0]}` : ''"
                     aria-hidden="true"
                   />
-                  <span>{{ c.live[1] }}</span>
+                  <span class="tux-map__el-st" :title="c.live[1]">{{ c.live[1] }}</span>
                 </template>
                 <span
                   v-if="c.chip"
@@ -7744,7 +7769,7 @@ function buildSourceHref(src?: {
             >
               <span class="tux-map__el-nm">
                 <Icon :name="elementIconName(n.kind)" class="tux-map__el-ic" aria-hidden="true" />
-                <span>{{ n.title }}</span>
+                <span :title="n.title">{{ n.title }}</span>
               </span>
               <span
                 v-if="n.facts?.size || n.facts?.sku || n.facts?.version || n.facts?.ingress"
@@ -7971,16 +7996,6 @@ function buildSourceHref(src?: {
           </svg>
         </div>
 
-        <!-- Trailing cursor (#208): a dot on the pointer and the disc that follows it. Decoration only -->
-        <div
-          v-if="cursorOn"
-          ref="cursorRef"
-          class="tux-map__cursor"
-          aria-hidden="true"
-        >
-          <i /><i />
-        </div>
-
         <!-- Portal Frame Shockwave Overlay (Paired with Mouse Wheel & Level Zoom) -->
 
         <!-- Floating Wheel Zoom Level HUD -->
@@ -8124,6 +8139,14 @@ function buildSourceHref(src?: {
                   [{{ elementTypeLabel(e) }}]
                 </span>
                 <span v-if="e.desc" class="tux-map__el-ds">{{ e.desc }}</span>
+                <span v-if="formatLiveState(e)" class="tux-map__el-ft">
+                  <i
+                    class="tux-map__dot"
+                    :class="formatLiveState(e)![0] ? `tux-map__dot--${formatLiveState(e)![0]}` : ''"
+                    aria-hidden="true"
+                  />
+                  <span class="tux-map__el-st">{{ formatLiveState(e)![1] }}</span>
+                </span>
               </button>
               <dl v-if="listRelsById.get(e.id)" class="tux-map__list-rels">
                 <template v-if="listRelsById.get(e.id)!.uses.length">
@@ -8967,6 +8990,15 @@ function buildSourceHref(src?: {
   );
   /* 2.5.5 Target Size (Enhanced); TUX's field-sunlight mode asks 48px for gloved hands */
   --tux-map-target: 44px;
+  /* The trailing cursor's colour (#256): 3:1 or more on the canvas (--surface-sunken) in every
+     theme and colour-vision palette (1.4.11), 4.5:1 at the least (high contrast, Okabe-Ito).
+     The light themes take the brand colour; the dark ones the accent, below */
+  --tux-map-cursor: var(--brand-primary);
+}
+
+/* dark and soft dark: the accent, as the dark map's own pointer is (7.3:1 or more on the canvas) */
+[data-theme="tti-dark"] .tux-map {
+  --tux-map-cursor: var(--brand-accent);
 }
 
 [data-vision-comfort="field-sunlight"] .tux-map {
@@ -9921,11 +9953,12 @@ function buildSourceHref(src?: {
   overscroll-behavior: contain;
 }
 
-/* Trailing cursor (#208). `difference` against white inverts what is under the disc, so it
-   reads on a light card and on a dark one in every theme with no colour of its own. The
-   element is the blend group: the dot and the disc are plain white inside it. The pointer's
-   own cursor goes only from the background, and only while the disc is drawn: a card, a
-   control and a drag keep theirs. The disc reaching the card stands in for the tether */
+/* Trailing cursor (#208). It is a child of the stage, after the boundaries: in the stage's
+   stacking context at z-index 0, over the canvas and the boundaries' fills and under their
+   labels, the wires, the cards and every control (#256). Resting on a card, the card covers
+   it and its padding shows as a ring of --tux-map-cursor around the card. The pointer's own
+   cursor goes only from the background, and only while the disc is drawn: a card, a control
+   and a drag keep theirs. The disc reaching the card stands in for the tether */
 .tux-map__viewport--cursor {
   cursor: none;
 }
@@ -9939,12 +9972,12 @@ function buildSourceHref(src?: {
   position: absolute;
   left: 0;
   top: 0;
-  z-index: 19;
+  z-index: 0;
+  transform-origin: 0 0;
   pointer-events: none;
-  mix-blend-mode: difference;
 }
 
-.tux-map__viewport--cursor > .tux-map__cursor {
+.tux-map__viewport--cursor .tux-map__cursor {
   display: block;
 }
 
@@ -9955,7 +9988,7 @@ function buildSourceHref(src?: {
   height: 40px;
   margin: -20px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--tux-map-cursor);
 }
 
 .tux-map__cursor i:first-child {
@@ -10157,10 +10190,10 @@ function buildSourceHref(src?: {
   }
 }
 
-/* Boundaries & Regions */
+/* Boundaries & Regions. A boundary is no stacking context of its own: its fill is under the
+   trailing cursor and its label over it (#256) */
 .tux-map__bound {
   position: absolute;
-  z-index: 0;
   border: 1.5px dashed var(--text-muted);
   border-radius: 12px;
   background: color-mix(in srgb, var(--brand-primary) 4%, transparent);
@@ -10168,6 +10201,7 @@ function buildSourceHref(src?: {
 
 .tux-map__bound-label {
   position: absolute;
+  z-index: 1;
   left: 14px;
   top: 8px;
   font-size: 12px;
@@ -10675,7 +10709,9 @@ function buildSourceHref(src?: {
   display: flex;
   flex-direction: column;
   /* the rows of a card and their heights are also in `cardDescriptionLines()` and
-     `outsideCardHeight()` (utils/internal/tuxArchitectureMapStage): keep the two in step */
+     `outsideCardHeight()` (utils/internal/tuxArchitectureMapStage): keep the two in step. A card is
+     the height the stage plans and no other, hovered and chosen too: its ring, its ports and its
+     wires are drawn to that box (#257). What does not fit is in the tooltips and the panel */
   gap: 0.16rem;
   cursor: var(--tux-cursor-card);
   overflow: hidden;
@@ -10716,33 +10752,7 @@ function buildSourceHref(src?: {
 .tux-map__el:hover {
   border-color: var(--brand-primary);
   z-index: 8;
-  height: auto !important;
-  min-height: 128px;
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.16);
-}
-
-.tux-map__el--mini:hover,
-.tux-map__el--k-resource:hover {
-  min-height: 82px;
-}
-
-.tux-map__el:hover .tux-map__el-ty,
-.tux-map__el[aria-pressed="true"] .tux-map__el-ty {
-  white-space: normal;
-  overflow: visible;
-  text-overflow: unset;
-}
-
-.tux-map__el:hover .tux-map__el-ds,
-.tux-map__el[aria-pressed="true"] .tux-map__el-ds {
-  display: -webkit-box;
-  -webkit-line-clamp: unset;
-  overflow: visible;
-}
-
-.tux-map__el:hover .tux-map__el-ft,
-.tux-map__el[aria-pressed="true"] .tux-map__el-ft {
-  max-height: none;
 }
 
 .tux-map__el:focus-visible {
@@ -10754,7 +10764,6 @@ function buildSourceHref(src?: {
   border-color: var(--brand-primary);
   box-shadow: 0 0 0 2px var(--brand-primary);
   z-index: 7;
-  height: auto !important;
 }
 
 .tux-map__el-nm {
@@ -10769,14 +10778,13 @@ function buildSourceHref(src?: {
   flex: none;
 }
 
+/* One line, cut with an ellipsis: the full name is the tooltip, the accessible name and the
+   panel's heading. Two lines pushed the rows under it down and the description out (#258) */
 .tux-map__el-nm > span {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  min-width: 0;
+  white-space: nowrap;
   overflow: hidden;
-  /* a path has no space to break at: it wraps onto the second line instead of being
-     cut through a letter at the card's edge (#205) */
-  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
 }
 
 .tux-map__el-ic {
@@ -10800,8 +10808,9 @@ function buildSourceHref(src?: {
   flex: none;
 }
 
+/* the type line is the body's size, never smaller (#258): `--text-muted` holds 7:1 at 12px */
 .tux-map__el-ty {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   line-height: 1.3;
   white-space: nowrap;
@@ -10833,6 +10842,7 @@ function buildSourceHref(src?: {
   color: var(--text-primary);
 }
 
+/* The body: a hairline and 4px of space set it apart from the title, type and host rows (#258) */
 .tux-map__el-ds {
   font-size: 12px;
   color: var(--text-secondary);
@@ -10843,6 +10853,8 @@ function buildSourceHref(src?: {
   overflow: hidden;
   flex: 0 1 auto;
   min-height: 0;
+  border-top: 1px solid var(--surface-border);
+  padding-top: 4px;
 }
 
 /* The lines the card has room for, counted by `cardDescriptionLines()`: whole lines, the last
@@ -10868,6 +10880,14 @@ function buildSourceHref(src?: {
   max-height: 1.2rem;
   overflow: hidden;
   flex: none;
+}
+
+/* the status line: one line; cut, never wrapped out of sight (#258) */
+.tux-map__el-st {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Sibling Zoom-In `+` Badge Button on Stage (#116: never nested inside card button) */
@@ -10938,6 +10958,11 @@ function buildSourceHref(src?: {
 .tux-map__el--k-person .tux-map__el-ty,
 .tux-map__el--k-person .tux-map__el-ds {
   opacity: 0.88;
+}
+
+/* the body's hairline on the dark person card: its own text colour, faded */
+.tux-map__el--k-person .tux-map__el-ds {
+  border-top-color: color-mix(in srgb, currentColor 40%, transparent);
 }
 
 .tux-map__el--k-system {
@@ -12012,6 +12037,22 @@ function buildSourceHref(src?: {
 .tux-map__list .tux-map__el {
   position: relative;
   width: 100%;
+}
+
+/* The list view is the map in full text: no row of a card is cut there (#258) */
+.tux-map__list .tux-map__el-nm > span,
+.tux-map__list .tux-map__el-ty,
+.tux-map__list .tux-map__el-st {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.tux-map__list .tux-map__el-ds {
+  -webkit-line-clamp: unset;
+}
+
+.tux-map__list .tux-map__el-ft {
+  max-height: none;
 }
 
 /* In the flow (the list view, a narrow map, a narrow map with the outline) the panel is

@@ -4,6 +4,9 @@
  * and comes to rest on the card the map's proximity has picked or on the control
  * under the pointer.
  *
+ * It is drawn under the cards (#256): in the stage, after the boundaries and before
+ * everything else, at a z-index under every other layer of the stage.
+ *
  * It is decoration. Off by default; drawn only for a fine pointer with motion
  * allowed; not under the `wheelZoom="click"` veil; hidden from assistive
  * technology and from the pointer; and its frame loop stops when the disc is
@@ -158,12 +161,12 @@ describe("TuxArchitectureMap: the trailing cursor (#208)", () => {
     }
   });
 
-  it("on: rendered inside the viewport, hidden from assistive technology, and takes no pointer event", async () => {
+  it("on: rendered inside the stage, hidden from assistive technology, and takes no pointer event", async () => {
     stubPointer({ fine: true, reduce: false });
     stubFrames();
-    const { cursor, viewport } = await mountMap({ cursor: true });
+    const { cursor, stage } = await mountMap({ cursor: true });
     expect(cursor().exists()).toBe(true);
-    expect(cursor().element.parentElement).toBe(viewport);
+    expect(cursor().element.parentElement).toBe(stage);
     expect(cursor().attributes("aria-hidden")).toBe("true");
     expect(cursor().element.children.length).toBe(2);
     expect(cursor().element.querySelector("button, a, [tabindex]")).toBeNull();
@@ -172,11 +175,79 @@ describe("TuxArchitectureMap: the trailing cursor (#208)", () => {
     const sfc = readFileSync(join(process.cwd(), "packages/diagrams/app/components/TuxArchitectureMap.vue"), "utf8");
     const rule = /\n\.tux-map__cursor \{([^}]*)\}/.exec(sfc)?.[1] ?? "";
     expect(rule).toMatch(/pointer-events:\s*none;/);
-    expect(rule).toMatch(/mix-blend-mode:\s*difference;/);
+    // its own colour, not a blend with what is over it (#256)
+    expect(rule).not.toMatch(/mix-blend-mode/);
     // not drawn, and the pointer's own cursor kept, until a pointer is over the canvas
     expect(rule).toMatch(/display:\s*none;/);
-    expect(sfc).toMatch(/\n\.tux-map__viewport--cursor > \.tux-map__cursor \{\s*display:\s*block;\s*\}/);
+    expect(sfc).toMatch(/\n\.tux-map__viewport--cursor \.tux-map__cursor \{\s*display:\s*block;\s*\}/);
     expect(sfc).toMatch(/\n\.tux-map__viewport--cursor \{\s*cursor:\s*none;\s*\}/);
+  });
+
+  it("is drawn under the cards, wires, labels and controls, and over the canvas and the boundaries' fills (#256)", async () => {
+    stubPointer({ fine: true, reduce: false });
+    const frames = stubFrames();
+    const { wrapper, cursor, stage, send, state, cardBox, disc } = await mountMap({ cursor: true });
+    const b = cardBox("c-a");
+    await send("pointermove", stage, b.x + 10, b.y + 10);
+    frames.settle();
+    expect(state.proximityCard?.id).toBe("c-a");
+
+    // DOM order in the stage: only boundaries come before it; the cards, the wires and the
+    // labels all come after, so at an equal z-index they would still be drawn over it
+    const el = cursor().element;
+    const kids = [...stage.children];
+    const at = kids.indexOf(el);
+    expect(at).toBeGreaterThanOrEqual(0);
+    for (const k of kids.slice(0, at)) expect(k.classList.contains("tux-map__bound"), k.className).toBe(true);
+    const card = wrapper.find('.tux-map__el[data-id="c-a"]').element;
+    expect(kids.indexOf(card)).toBeGreaterThan(at);
+    expect(kids.indexOf(wrapper.find(".tux-map__wires").element)).toBeGreaterThan(at);
+
+    // z-index from the stylesheet (the test DOM does not apply a scoped style): the cursor's is
+    // under every other layer the stage draws, and a boundary is no stacking context of its own,
+    // so its label is drawn over the cursor and its fill under it
+    const sfc = readFileSync(join(process.cwd(), "packages/diagrams/app/components/TuxArchitectureMap.vue"), "utf8");
+    const css = sfc.slice(sfc.lastIndexOf("<style")).replace(/\/\*[\s\S]*?\*\//g, "");
+    const z = (sel: string) => {
+      const all = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+        .filter((m) => m[1]!.split(",").map((x) => x.trim()).includes(sel))
+        .map((m) => /(?:^|[;\s])z-index\s*:\s*(-?\d+)/.exec(m[2]!)?.[1])
+        .filter((v): v is string => v !== undefined)
+        .map(Number);
+      return all;
+    };
+    const mine = z(".tux-map__cursor");
+    expect(mine).toEqual([0]);
+    for (const sel of [".tux-map__el", ".tux-map__wires", ".tux-map__wires-fg", ".tux-map__lab", ".tux-map__el-zb", ".tux-map__proximity-frame", ".tux-map__note", ".tux-map__bound-label"]) {
+      const theirs = z(sel);
+      expect(theirs.length, sel).toBeGreaterThan(0);
+      for (const t of theirs) expect(t, sel).toBeGreaterThan(mine[0]!);
+    }
+    // a dimmed card is at 1: still over it
+    expect(Math.min(...[...css.matchAll(/\.tux-map__el[^{,]*\{[^}]*z-index\s*:\s*(-?\d+)/g)].map((m) => Number(m[1])))).toBeGreaterThan(0);
+    expect(z(".tux-map__bound")).toEqual([]);
+    // not in a layer of its own over the stage: no blend group, no filter, no isolation
+    const rule = /\n\.tux-map__cursor \{([^}]*)\}/.exec(css)?.[1] ?? "";
+    expect(rule).not.toMatch(/mix-blend-mode|isolation|filter/);
+    // where the disc rests: around the card's own box, so the card covers its middle
+    const d = readTransform(disc());
+    expect(d.x).toBeCloseTo(b.x + b.w / 2, 6);
+    expect(d.sx * 40).toBeGreaterThan(b.w);
+  });
+
+  it("the stage's scale and pan are undone on it, so it is placed in the viewport's px", async () => {
+    stubPointer({ fine: true, reduce: false });
+    stubFrames();
+    const { cursor, stage, send, state } = await mountMap({ cursor: true });
+    await send("pointermove", stage, 700, 20);
+    const s = state.stageScale as number;
+    const pan = state.panX as number;
+    expect(s).toBeGreaterThan(0);
+    const t = /^scale\(([-\d.e]+)\) translateX\(([-\d.e]+)px\)$/.exec(cursor().element.style.transform);
+    expect(t, cursor().element.style.transform).not.toBeNull();
+    // a point p inside it lands at pan + s * (p - pan) / s = p in the viewport
+    expect(Number(t![1]) * s).toBeCloseTo(1, 9);
+    expect(Number(t![2])).toBeCloseTo(-pan, 9);
   });
 
   it("a coarse pointer gets nothing", async () => {
@@ -260,7 +331,8 @@ describe("TuxArchitectureMap: the trailing cursor (#208)", () => {
     }
     expect(readTransform(disc())).toEqual({ x: 760, y: 30, sx: 1, sy: 1 });
     expect(n).toBeGreaterThan(5);
-    expect(n).toBeLessThan(60); // at rest inside a second
+    // at rest in under 0.4 s: #208's spring took 0.5 s for this 60 px (#256)
+    expect(n).toBeLessThan(24);
 
     // at rest: no frame waiting, and time passing asks for none
     const asked = frames.counts.requested;
@@ -305,9 +377,8 @@ describe("TuxArchitectureMap: the trailing cursor (#208)", () => {
     const [rx, ry] = disc().style.borderRadius.split("/").map((v) => Number.parseFloat(v));
     expect(rx! * at.sx).toBeCloseTo(13, 6);
     expect(ry! * at.sy).toBeCloseTo(13, 6);
-    // on the card it is a wash, so the card keeps its own colours under it
-    expect(Number(disc().style.opacity)).toBeLessThanOrEqual(0.25);
-    expect(Number(disc().style.opacity)).toBeGreaterThan(0);
+    // opaque: the card is drawn over it, so the 6 px around the card show as a ring (#256)
+    expect(disc().style.opacity).toBe("1");
 
     // the map drops the card (a change of level does) with the pointer still: the disc goes back to it
     state.proximityCard = null;

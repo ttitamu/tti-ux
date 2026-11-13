@@ -199,17 +199,15 @@ describe("TuxArchitectureMap: a card shows whole rows (#205)", () => {
       const ds = wrapper.find(`.tux-map__el[data-id="${c.id}"] .tux-map__el-ds`);
       expect(ds.attributes("data-lines"), c.id).toBe(String(c.descLines));
     }
-    // a two-line title beside the type, the host and the status leaves one line; a one-line title, two
+    // a title is one line however long (#258): a long one leaves the description the lines a short one does
     const lines = (name: string) =>
       (state.renderedCards as { fullName: string; descLines: number }[]).find((c) => c.fullName === name)!.descLines;
-    expect(lines("Webhook & Event Dispatcher")).toBe(1);
-    expect(lines("Audit Log Writer")).toBe(2);
+    expect(lines("Webhook & Event Dispatcher")).toBe(lines("Audit Log Writer"));
     expect(declarations('.tux-map__el-ds[data-lines="1"]')[0]).toMatch(/-webkit-line-clamp:\s*1/);
     expect(declarations('.tux-map__el-ds[data-lines="0"]')[0]).toMatch(/display:\s*none/);
-    // the whole description is back while the card is open under the pointer or chosen
-    const open = declarations('.tux-map__el:hover .tux-map__el-ds').join(";");
-    expect(open).toMatch(/display:\s*-webkit-box/);
-    expect(open).toMatch(/-webkit-line-clamp:\s*unset/);
+    // hovered or chosen, the description stays clamped: an unclamped one grew the card past its ring (#257)
+    expect(declarations(".tux-map__el:hover .tux-map__el-ds")).toEqual([]);
+    expect(declarations('.tux-map__el[aria-pressed="true"] .tux-map__el-ds')).toEqual([]);
   });
 
   it("keeps the rows that are one line whole: they do not shrink with the description", () => {
@@ -223,11 +221,15 @@ describe("TuxArchitectureMap: a card shows whole rows (#205)", () => {
     expect(ft).toMatch(/flex-wrap:\s*wrap/);
     expect(ft).toMatch(/max-height:\s*1\.2rem/);
     expect(ft).toMatch(/overflow:\s*hidden/);
-    expect(declarations('.tux-map__el:hover .tux-map__el-ft').join(";")).toMatch(/max-height:\s*none/);
+    // and still one row hovered or chosen (#257)
+    expect(declarations(".tux-map__el:hover .tux-map__el-ft")).toEqual([]);
   });
 
-  it("lets a path title break after a slash, and anywhere before it is cut", async () => {
-    expect(declarations(".tux-map__el-nm > span").join(";")).toMatch(/overflow-wrap:\s*anywhere/);
+  it("keeps a path title on one line, cut at its end, the whole path in its tooltip (#258)", async () => {
+    const nm = declarations(".tux-map__el-nm > span").join(";");
+    expect(nm).toMatch(/white-space:\s*nowrap/);
+    expect(nm).toMatch(/text-overflow:\s*ellipsis/);
+    expect(nm).not.toMatch(/line-clamp/);
     const model = {
       ...DEFAULT_TTI_LEVEL_MODEL,
       level3: {
@@ -239,13 +241,12 @@ describe("TuxArchitectureMap: a card shows whole rows (#205)", () => {
       },
     };
     const { wrapper } = await mountMap({ model, initialLevel: 3, initialFocus: "c-api" });
-    const title = (id: string) => wrapper.find(`.tux-map__el[data-id="${id}"] .tux-map__el-nm > span:last-child`).element;
-    const shown = title("c-api/x").textContent!;
-    // the text is the name as the stage shortens it, with nothing added: a <wbr> is not text
-    expect(shown).toContain("/");
-    expect(title("c-api/x").querySelectorAll("wbr").length).toBe(shown.split("/").length - 1);
-    expect(title("c-api/y").textContent).toBe("Plain name");
-    expect(title("c-api/y").querySelectorAll("wbr").length).toBe(0);
+    const title = (id: string) => wrapper.find(`.tux-map__el[data-id="${id}"] .tux-map__el-nm > span:last-child`);
+    expect(title("c-api/x").text()).toContain("/");
+    expect(title("c-api/x").attributes("title")).toBe("services/api/internal/router.go");
+    expect(title("c-api/x").element.querySelectorAll("wbr").length).toBe(0);
+    expect(title("c-api/y").text()).toBe("Plain name");
+    expect(title("c-api/y").attributes("title")).toBe("Plain name");
   });
 });
 

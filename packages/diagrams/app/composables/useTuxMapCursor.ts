@@ -3,6 +3,9 @@
  * that follows it on a critically damped spring. Near a card, or over a control inside the
  * canvas, the disc comes to rest on that target's rounded box.
  *
+ * It is drawn in the stage, under everything on it but the background (#256): resting on a card it
+ * shows as a ring around the card's edge, and never covers the card's text or a control.
+ *
  * Decoration only. It is drawn for a fine pointer with motion allowed, never takes a pointer
  * event, and its frame loop runs only while the disc is away from where it is going.
  */
@@ -10,6 +13,9 @@ import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from "vue"
 
 /** Diameter of the free disc, in CSS px. The stylesheet draws the disc at this size. */
 export const TUX_MAP_CURSOR_DISC = 40;
+
+/** The spring's rate, per second: the disc is most of the way to the pointer in 1/OMEGA s (#256: 18 → 26). */
+export const TUX_MAP_CURSOR_OMEGA = 26;
 
 type Box = { x: number; y: number; w: number; h: number };
 
@@ -27,8 +33,8 @@ export function tuxMapCursorSpring(x: number, v: number, to: number, dt: number,
 /**
  * Where the disc rests, as `[centre x, centre y, width, height, corner radius, opacity]`: the
  * padded box of what it is on, a round disc on the pointer over the background, a small one
- * while the map is dragged. On a target it thins to a wash, so the card under it keeps its
- * own colours.
+ * while the map is dragged. It is opaque everywhere: on a target, the target drawn over it
+ * leaves the padding showing as a ring (#256).
  */
 export function tuxMapCursorTarget(px: number, py: number, box: Box | null, pad: number, drag: boolean): number[] {
   if (drag || !box) {
@@ -37,7 +43,7 @@ export function tuxMapCursorTarget(px: number, py: number, box: Box | null, pad:
   }
   const w = box.w + pad * 2;
   const h = box.h + pad * 2;
-  return [box.x + box.w / 2, box.y + box.h / 2, w, h, Math.min(pad + 7, h / 2), 0.1];
+  return [box.x + box.w / 2, box.y + box.h / 2, w, h, Math.min(pad + 7, h / 2), 1];
 }
 
 export function useTuxMapCursor(o: {
@@ -53,7 +59,8 @@ export function useTuxMapCursor(o: {
   /** Where the viewport's scrolled content starts, in client px: the map's own reading, kept between moves (#224) */
   origin: () => number[];
 }) {
-  /** The cursor element: a child of the viewport holding the dot, then the disc. */
+  /** The cursor element: a child of the stage holding the dot, then the disc. The map undoes the
+      stage's scale and pan on it, so the px set here are the viewport's content px. */
   const el = ref<HTMLElement | null>(null);
   const allowed = ref(false);
   const shown = ref(false);
@@ -87,7 +94,7 @@ export function useTuxMapCursor(o: {
     raf = 0;
     let busy = false;
     for (let i = 0; i < 6; i++) {
-      const [x, s] = tuxMapCursorSpring(p[i]!, v[i]!, to[i]!, dt, 18);
+      const [x, s] = tuxMapCursorSpring(p[i]!, v[i]!, to[i]!, dt, TUX_MAP_CURSOR_OMEGA);
       if (Math.abs(x - to[i]!) < (i < 5 ? 0.1 : 0.01) && Math.abs(s) < 1) {
         p[i] = to[i]!;
         v[i] = 0;

@@ -187,6 +187,9 @@ export default defineNuxtConfig({
   // without external fetch dependencies.
   icon: {
     mode: "css",
+    // TUX's own icons, the few that are not Lucide's (app/assets/icons/tux/README.md): an absolute
+    // path from this file, so the collection resolves in an app that extends the layer as well
+    customCollections: [{ prefix: "tux", dir: resolve(layerDir, "app/assets/icons/tux") }],
     serverBundle: "local",
     clientBundle: {
       scan: {
