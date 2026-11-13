@@ -1626,18 +1626,18 @@ const usageKindChips = computed<{ kind: string; label: string; count: number; ac
 });
 
 // The blast radius of the selected element through the model's links, filtered by active kind chips:
-// everything that depends on it or on anything inside it (including Level 4 hosts and C4 rels).
+// everything that depends on it or on anything inside it (including Level 4 hosts and C4 rels). It reads
+// what the walk needs from the model out of the tables the unfiltered one left (#227).
 const selectionBlast = computed(() => {
-  const M = activeModel.value;
   const id = selectedId.value;
-  if (!id || (!byId.value[id] && !resById.value[id])) return null;
-  const links = effectiveModelLinks.value;
-  if (!links.length) return null;
-  return computeLinkBlastRadius(links, id, parentOf.value, {
-    model: M,
-    intent: blastIntent.value,
-    kinds: activeUsageKindsSet.value,
-  });
+  return (
+    selectionBlastBase.value &&
+    computeLinkBlastRadius(effectiveModelLinks.value, id!, parentOf.value, {
+      model: activeModel.value,
+      intent: blastIntent.value,
+      kinds: activeUsageKindsSet.value,
+    })
+  );
 });
 
 // Selected element's incoming & outgoing dependency-rule violations (`tti/tti-ux#123`)
@@ -2079,17 +2079,10 @@ function projectBlastOntoStage(
   return { directIds, impactedIds, impactedWires, rollupCountById, reachCountById, offStageCount };
 }
 
-const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
-  if (!showBlastRadius.value) return null;
-
-  // A selection with links: light what its change reaches, lifted onto the cards on stage
-  const sb = selectionBlast.value;
-  if (sb) {
-    return projectBlastOntoStage(sb.seeds, sb.hits, new Map());
-  }
-
+// The branch's blast radius over the whole model: what carries a diff, its roll-up onto every ancestor, and
+// the radius through the links. None of it depends on the level, so a level change only projects it (#227).
+const branchBlast = computed(() => {
   const M = activeModel.value;
-  const directIds = new Set<string>();
   const rollupCountById = new Map<string, number>();
 
   // Walk full ancestor chains across Levels 1..7+ so deep symbol/file diffs roll up to every ancestor
@@ -2128,6 +2121,35 @@ const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
     rollupCountById.set(M.level2.boundary, totalContainerDiffs);
   }
 
+  // Propagate via multi-seed computeLinkBlastRadius across effective links
+  const links = allDiffIds.size > 0 || props.blastSeeds?.length ? effectiveModelLinks.value : [];
+  if (!links.length) return { rollupCountById, diffBlast: null };
+  const seedIds = props.blastSeeds?.length
+    ? props.blastSeeds
+    : [...allDiffIds].filter((id) => {
+        if (!diffAncestorsWithDiffChild.has(id)) return true;
+        const d = diffById.get(id);
+        // Keep non-body-patched ancestors (added, deleted, moved, sig-changed)
+        return d?.changeType !== "modified" || Boolean(d.summary && d.summary !== "Body patched");
+      });
+  const diffBlast = computeLinkBlastRadius(links, seedIds, parentOf.value, {
+    model: M,
+    intent: blastIntent.value,
+  });
+  return { rollupCountById, diffBlast };
+});
+
+const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
+  if (!showBlastRadius.value) return null;
+
+  // A selection with links: light what its change reaches, lifted onto the cards on stage
+  const sb = selectionBlast.value;
+  if (sb) {
+    return projectBlastOntoStage(sb.seeds, sb.hits, new Map());
+  }
+
+  const { rollupCountById, diffBlast } = branchBlast.value;
+  const directIds = new Set<string>();
   if (currentLevel.value === 4) {
     for (const n of stageData.value.deployNodes) {
       if (n.diff || rollupCountById.has(n.id)) {
@@ -2144,23 +2166,7 @@ const blastRadiusState = computed<BlastRadiusComputation | null>(() => {
     }
   }
 
-  // Propagate via multi-seed computeLinkBlastRadius across effective links
-  const links = effectiveModelLinks.value;
-  if (links.length && (allDiffIds.size > 0 || props.blastSeeds?.length)) {
-    const seedIds = props.blastSeeds?.length
-      ? props.blastSeeds
-      : [...allDiffIds].filter((id) => {
-          if (!diffAncestorsWithDiffChild.has(id)) return true;
-          const d = diffById.get(id);
-          // Keep non-body-patched ancestors (added, deleted, moved, sig-changed)
-          return d?.changeType !== "modified" || Boolean(d.summary && d.summary !== "Body patched");
-        });
-    const diffBlast = computeLinkBlastRadius(links, seedIds, parentOf.value, {
-      model: M,
-      intent: blastIntent.value,
-    });
-    return projectBlastOntoStage(diffBlast.seeds, diffBlast.hits, rollupCountById, directIds);
-  }
+  if (diffBlast) return projectBlastOntoStage(diffBlast.seeds, diffBlast.hits, rollupCountById, directIds);
 
   const impactedIds = new Set<string>();
   const impactedWires = new Set<string>();

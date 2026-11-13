@@ -18,6 +18,19 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — Architecture map: a selection, a stage build and a level change reuse what they computed (#227)
+
+- `computeLinkBlastRadius()` keeps what it reads from its `model` option (the subgraph owners, which element runs on which host, and each element's kind, path and technology) per model object, as it already kept its tables per `links` array and `parentOf` map. A selection computes the radius twice (unfiltered, and by the kind chips), and each call built all of it from the whole model again: 15 to 17 ms a call at 10,000 symbols. The tables are built again when the model is another object, when one of its `level1`..`level4` or `subgraphs` records is replaced or the number of subgraphs changes, and with `verifyInputs: true`.
+- `cmpCodepoint()` compares with the engine's `<` when neither string has a surrogate, where UTF-16 order and code-point order are the same; a string with one is compared code point by code point as before. Sorting the 11,375 ids of a 10,000-symbol model took 4.3 ms against 1.3 ms natively. The result is now -1, 0 or 1 on that path: only its sign ever meant anything.
+- `filterLinksByCategories()` keeps each link's category against the link object; a stage build classified every link (about 37,000, 14.5 ms) on every build.
+- `splitNodeId()` keeps its answer per id (up to 65,536 ids, then starts again); it is called in the loops of a level change. The answer is shared between calls: read it, do not change it.
+- `<TuxArchitectureMap>` computes the branch's blast radius (the Blast radius switch on, nothing selected) once per model and projects it onto each level, instead of walking the model's diffs and links again on every level change.
+- Measured in jsdom on the 10,000-symbol model, with #222 and #226: a selection after another 99 → 81 ms, the first selection once idle time has passed 306 → 96 ms, "show planned" with a selection open 339 → 292 ms, a level change with the switch on 446 → 408 ms.
+- Not done: filtering the radius by kind from the unfiltered walk instead of walking again. It saved 7 ms of the 14 ms second call, and cost about 120 B of the map's gzip payload, which the budget does not have on the CI runner (Node 24's zlib measures this tree 450 B larger than Node 26's).
+- Unit tests compare each cache with the inputs copied, so that no cache has seen them; the native and code-point orders agree on every pair of a surrogate-free corpus of 100,000 pairs and differ only on astral characters and lone surrogates, where `cmpCodepoint()` keeps code-point order. A mounted test counts the radius walks of a selection, a kind chip and a level change.
+
+**To check when upgrading:** code that changes a model in place between calls to `computeLinkBlastRadius()` with the same model object (an element's `deployed`, a node's `hosts`) passes a new object, replaces the record it changed, or passes `verifyInputs: true`; the same holds for a link changed in place between calls to `filterLinksByCategories()` (pass a new link object). Code that compares `cmpCodepoint()` with a number other than 0 reads its sign instead.
+
 ### Changed — Architecture map: what the first paint does not show waits for idle time (#226)
 
 - `<TuxArchitectureMap>` builds the Go-To index and reads the model's links after it is drawn, in `requestIdleCallback`, one callback each, one after the other (a 50 ms timer each where the browser has no idle callback). At 10,000 symbols the index took 64 ms on the first search and the links 162 to 250 ms on the first selection. A search or a selection made before then builds what it needs, as before, and the idle task finds it built. A new `model` is indexed again the same way; an unmounted map does nothing more.
