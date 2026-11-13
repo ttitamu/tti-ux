@@ -18,6 +18,17 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — Architecture map: the camera travels on a zoom and on a move to another card (#212)
+
+- **A zoom into a card grows the level out of it.** Double-click, `+`, the wheel or Enter on a card used to draw the new level at 42% of its size, faded, over a frame that grew from the card, with the cards springing in one after another and a pulse on the landed card. The level now starts with its frame inside the card's rectangle and grows to its place with one transform on the stage, laid out once; the cards inside fade in over the last 120 ms. Zooming out is the reverse: the level shrinks back into the card it came from, which ends in view. The frame and the pulse are gone.
+- **A move to another card on the same level travels to it.** A link in the details panel ("Uses", "Used by", Find usages), a Go to result on this level and a Trace target used to snap a fitted diagram over in 250 ms and leave a magnified one where it was. A fitted diagram now slides, and a magnified one scrolls along the wire between the two cards (in a straight line where there is none), and stops once the card is clear of the details panel, moving no further than that. A Go to result on this level no longer shows the pill or a fade.
+- **A jump to another level is a short fade.** A number key, a breadcrumb or a Go to result on another level draws the level in place with a 120 ms fade and its pill, as the number keys already did.
+- **One curve and one duration rule.** Every travel lasts 180 ms plus 0.25 ms a pixel, 600 ms at most, on one cubic ease-out (`cubic-bezier(0.333, 1, 0.667, 1)`). The pill goes when the travel ends, where it used to stay 1150 ms.
+- **A second input ends a travel on its target.** A key, a press of the pointer, a click or a new turn of the wheel lands the view where the travel was going, at once. Focus after a zoom stays in the map, as before.
+- **Reduced motion:** under `prefers-reduced-motion` none of it plays: a zoom, a move and a jump go straight to where they end.
+- Tests: `packages/diagrams/tests/map-travel.test.ts` (duration, curve, path sampling, cancellation) and `tests/tux-architecture-map-travel.nuxt.test.ts` (mounted). The curve was sampled per frame in a browser.
+
+**To check when upgrading:** no prop, event or export changed. There is no prop to turn the travel off: reduced motion is the switch. `.tux-map__zoom-portal` and `.tux-map__stage--pan` are gone; a host stylesheet that addresses them should be checked. The pill (`.tux-map__zoom-hud`) after a zoom is up for as long as the travel (at most 600 ms), not 1150 ms.
 ### Changed — Architecture map: wire labels sit at the ports, one short label per end (#210)
 
 - **A wire is labelled beside its ends, not along its middle.** What the link does goes beside the port where the wire leaves its source card, and its technology, in brackets, beside the port where it reaches its target card. A label is outside the card's box, 4px off it, and never over any card. A wire with no technology has one label, at its source. A wire to or from the boundary has its label at its one card end.
