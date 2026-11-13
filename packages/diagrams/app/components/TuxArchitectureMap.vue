@@ -7469,13 +7469,14 @@ function buildSourceHref(src?: {
           </div>
 
           <!-- Trailing cursor (#208): a dot on the pointer and the disc that follows it. Decoration only.
-               In the stage, after the boundaries and under everything else (#256); the stage's scale
-               and pan are undone on it, so it is placed in the viewport's content px -->
+               In the stage, after the boundaries and under everything else (#256); the stage's scale,
+               pan and top offset (a centred level, #261) are undone on it, so it is placed in the
+               viewport's content px -->
           <div
             v-if="cursorOn"
             ref="cursorRef"
             class="tux-map__cursor"
-            :style="{ transform: `scale(${1 / stageScale}) translateX(${-panX}px)` }"
+            :style="{ transform: `scale(${1 / stageScale}) translateY(${-stageOffsetY}px) translateX(${-panX}px)` }"
             aria-hidden="true"
           >
             <i /><i />

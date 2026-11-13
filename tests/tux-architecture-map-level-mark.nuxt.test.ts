@@ -10,7 +10,7 @@
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import { mountSuspended } from "@nuxt/test-utils/runtime";
 import TuxArchitectureMap from "../packages/diagrams/app/components/TuxArchitectureMap.vue";
@@ -96,6 +96,31 @@ describe("TuxArchitectureMap: the canvas keeps its size from level to level (#26
     expect(Math.abs(at.x - (r.x + 5))).toBeLessThanOrEqual(1);
     expect(Math.abs(at.y - (r.y + 5))).toBeLessThanOrEqual(1);
     expect(state.findCardIdAtStagePoint(at.x, at.y)).toBe(id);
+  });
+
+  it("draws the trailing cursor where the pointer is on a centred level: the stage's offset is undone on it", async () => {
+    // The cursor sits inside the stage (#256), which a centred level moves down by stageOffsetY: its
+    // own transform must take that back, as it takes back the stage's scale and pan, or the disc lands
+    // that far below the card it rests on (seen in a browser: 137 px)
+    // a fine pointer with motion allowed: the only device the cursor is drawn for
+    vi.stubGlobal("matchMedia", (q: string) => ({
+      matches: /pointer: fine|reduced-motion: no-preference/.test(q),
+      media: q,
+      addEventListener() {},
+      removeEventListener() {},
+    }));
+    try {
+      const { wrapper, state, go } = await mountMap({ cursor: true });
+      await go(3);
+      expect(state.stageOffsetY).toBeGreaterThan(10);
+      const cursor = wrapper.find(".tux-map__cursor");
+      expect(cursor.exists()).toBe(true);
+      const t = (cursor.element as HTMLElement).style.transform.replace(/\s+/g, " ");
+      expect(t).toContain(`translateY(${-state.stageOffsetY}px)`);
+      expect(t.indexOf("scale(")).toBeLessThan(t.indexOf("translateY("));
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("starts again from the level on screen when the map's width changes", async () => {
