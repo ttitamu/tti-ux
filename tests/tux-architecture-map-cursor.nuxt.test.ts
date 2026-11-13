@@ -139,7 +139,8 @@ describe("TuxArchitectureMap: the trailing cursor (#208)", () => {
     const cardBox = (id: string) => {
       const r = state.stageData.rects[id] as { x: number; y: number; w: number; h: number };
       const s = state.stageScale as number;
-      return { x: r.x * s + (state.panX as number), y: r.y * s, w: r.w * s, h: r.h * s };
+      // in the viewport: the stage is drawn lower where a shorter level is centred (#261)
+      return { x: r.x * s + (state.panX as number), y: (state.stageOffsetY as number) + r.y * s, w: r.w * s, h: r.h * s };
     };
     return { wrapper, state, viewport, stage, cursor, dot, disc, shown, send, cardBox };
   }
