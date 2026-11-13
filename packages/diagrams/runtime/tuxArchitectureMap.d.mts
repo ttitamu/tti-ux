@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: b381770aa29debbf4a7678e6c6b58b91d235ed2ce488ec5474283d02c7f69b35
+// SOURCE-SHA256: bb123a1fe9bc3221a6ea36eb596971c3370b706951cdfadc407b81c1f1c9dcfa
 /**
  * tuxArchitectureMap — Core Engine for the TUX Modular Architecture Map (M.A.P.) & Infinite Canvas.
  *
@@ -925,11 +925,28 @@ export interface TuxMapRoutedLabel {
     y: number;
     w: number;
     h: number;
+    /** First line as drawn: what the link does, shortened by `shortWireLabel`. Empty on a technology label. */
     t1: string;
+    /** The link's technology, shortened, on the label at the target end. Empty on the other label. */
     t2: string;
+    /** Hidden at rest: another label holds its spot. Shown while its card is lit, hovered or focused. */
     forced: boolean;
     violating?: boolean;
+    /** The whole text, `label [tech]`: the accessible name and the tooltip (`#210`). */
+    full?: string;
+    /** The end of the wire the label sits at; absent on a label that found no spot clear of the cards. */
+    end?: "from" | "to";
+    /** The side of the card that end's port is on. */
+    side?: "l" | "r" | "t" | "b";
+    planned?: boolean;
 }
+/**
+ * A wire label's short text: the label itself up to `max` characters, else its leading words that
+ * fit, without trailing punctuation, and an ellipsis ("Reads & writes" reads "Reads…"). A first
+ * word longer than that is cut.
+ * @internal
+ */
+export declare function shortWireLabel(text: string, max?: number): string;
 /**
  * Grid cell `[column, row]` to its pixel origin.
  * @internal
@@ -947,13 +964,16 @@ export declare function roundOrthogonalCorners(pts: [number, number][]): string;
  * Routes wires at right angles strictly through the gaps between columns and rows,
  * never crossing a card, with per-gap interval-coloured lanes and collision-checked labels (`#113`).
  *
- * A label is tested against the cards and the labels already placed through the layout's grid
- * buckets, not the whole view (`#159`): both the overlap test and, in a view with more than 64
- * boxes, the cover sum that picks the least bad spot when no candidate is free. The labels land
- * where a scan of every box puts them. With more than 30 wires the labels are shown on hover only
- * (`forced` on each one): no spot is searched for and no wire segment is recorded or sorted, and
- * each label keeps the midpoint of its wire's longest segment, which is where the hover label and
- * the wire inspector are anchored.
+ * Each labelled wire gets a short label beside its ends, at the port where it meets the card,
+ * outside the card's box and never over any card (`#210`): what the link does (`label`, or
+ * "Planned") at its source end, and its `tech` in brackets at its target end. The short text is
+ * `shortWireLabel`'s; the whole of it is each label's `full`. Labels at one side of a card stack
+ * port by port, in the order the wires leave. Where two labels want the same spot the later one
+ * moves off its stub to just beside it, then its text is shortened once, then what the link does
+ * moves to the wire's other end, and then the label of the
+ * lower rank is hidden at rest (`forced`): rule violations first, then live links, then planned
+ * ones, then technologies, and the model's order within a rank. A hidden label keeps its place at
+ * the port. A box is tested through the layout's grid buckets, not against the whole view (`#159`).
  * @internal
  */
 export declare function routeGridWires(rels: TuxMapLevelRel[], rects: Record<string, TuxMapGridCellRect>, els: TuxMapLevelElement[]): {
