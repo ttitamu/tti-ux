@@ -32,7 +32,7 @@ conventions.
 - **Decoration:** `aria-hidden="true"`, no pointer events, nothing in it to focus. The stepper already names the level and a change of level is announced. It is drawn under every card, wire and label, away from the overview (bottom-left) and the level pill (top), and it stays in its corner while a magnified diagram scrolls (a sticky box as tall as the viewport that takes none of its room).
 - Tests: `tests/tux-architecture-map-level-mark.nuxt.test.ts` (the text after each change, `aria-hidden`, its place before the stage, the stylesheet's rules and the forced-colours rule). axe finds no violation on the canvas with it in any of the four themes.
 
-**To check when upgrading:** a host that draws something of its own in the canvas's bottom-right corner, under the cards, will find the word there. A test that reads the viewport's whole text (`textContent`) now also reads "LEVEL n". The bundled payload the package's size test measures is 101,722 B (101,313 B before; the budget is 102,000 B).
+**To check when upgrading:** a host that draws something of its own in the canvas's bottom-right corner, under the cards, will find the word there. A test that reads the viewport's whole text (`textContent`) now also reads "LEVEL n". The bundled payload the package's size test measures went from 101,313 B to 101,722 B on macOS and from 101,744 B to 102,192 B on the Linux CI runner, over the 102,000 B budget there, so the budget is 102,500 B until #242 sets it once.
 
 ## [3.13.0] — 2026-11-13
 
