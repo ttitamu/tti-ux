@@ -48,6 +48,7 @@ import {
   type TuxMapLink,
   type TuxMapLinkViolation,
   type TuxMapPlacedBoundary,
+  type TuxMapRoutedLabel,
   type TuxMapWireCategory,
   type TuxMapWireInspectorDetail,
 } from "../tuxArchitectureMap";
@@ -1685,82 +1686,30 @@ export function buildStageData(base: StageBase, toggles: StageToggles): Computed
 }
 
 // ============================================================================
-// A raised wire label beside the card the pointer is on (#205)
+// A wire label's button (#210)
 // ============================================================================
 
 /**
- * Where a wire label goes while one of its two cards is hovered or selected: `left` and `top` in
- * stage pixels, and the CSS `translate()` that hangs the label from that point by an edge, so the
- * drawn width of the text, which is only estimated here, cannot bring it back over the card.
- * @internal
- */
-export interface LabelClearPlacement {
-  left: number;
-  top: number;
-  shift: string;
-}
-
-/** @internal */
-export type LabelClearPlacementBox = { x: number; y: number; w: number; h: number };
-type StageBox = LabelClearPlacementBox;
-
-/**
- * A label's position clear of one card, or `null` when it is clear where it is.
+ * What the template binds on a wire label's button: where it hangs, and what it is called.
  *
- * A label sits on the middle of its wire, and a long one reaches over the cards the wire joins.
- * At rest that is hidden or harmless; raised by a hover it covers the card's title and its `+`.
- * A wire never crosses a card, so the label's middle is beside the card: the label moves off the
- * card to that side, which keeps it on its wire. A middle that is over the card after all takes
- * the shortest of the four ways off. A way that stays on the stage is preferred to one that
- * leaves it. `pad` is the gap left between the two, and how close counts as touching.
+ * The router gives the box it kept clear of the cards. A label at a left or right port hangs by
+ * the edge that faces the card and one at a top or bottom port is centred on its box, so text that
+ * is drawn narrower than estimated stays at the port, and `max-width` keeps wider text inside the
+ * box. The short text is what is drawn; the name and the tooltip carry the whole of it. The
+ * technology label at the target end opens the same popover as the label at the source end, so it
+ * is left out of the Tab order.
  * @internal
  */
-export function placeLabelClearOfCard(
-  label: StageBox,
-  card: StageBox,
-  stage?: { width: number; height: number },
-  pad = 8,
-): LabelClearPlacement | null {
-  if (![label.x, label.y, label.w, label.h, card.x, card.y, card.w, card.h].every(Number.isFinite)) return null;
-  const apart =
-    label.x >= card.x + card.w + pad ||
-    label.x + label.w <= card.x - pad ||
-    label.y >= card.y + card.h + pad ||
-    label.y + label.h <= card.y - pad;
-  if (apart) return null;
-  const cx = label.x + label.w / 2;
-  const cy = label.y + label.h / 2;
-  const moves: { by: number; inside: boolean; onSide: boolean; at: LabelClearPlacement }[] = [
-    {
-      by: card.x + card.w + pad - label.x,
-      inside: !stage || card.x + card.w + pad + label.w <= stage.width,
-      onSide: cx >= card.x + card.w,
-      at: { left: card.x + card.w + pad, top: cy, shift: "translate(0%, -50%)" },
-    },
-    {
-      by: label.x + label.w - (card.x - pad),
-      inside: card.x - pad - label.w >= 0,
-      onSide: cx <= card.x,
-      at: { left: card.x - pad, top: cy, shift: "translate(-100%, -50%)" },
-    },
-    {
-      by: card.y + card.h + pad - label.y,
-      inside: !stage || card.y + card.h + pad + label.h <= stage.height,
-      onSide: cy >= card.y + card.h,
-      at: { left: cx, top: card.y + card.h + pad, shift: "translate(-50%, 0%)" },
-    },
-    {
-      by: label.y + label.h - (card.y - pad),
-      inside: card.y - pad - label.h >= 0,
-      onSide: cy <= card.y,
-      at: { left: cx, top: card.y - pad, shift: "translate(-50%, -100%)" },
-    },
-  ];
-  // first a way that stays on the stage, then the side the wire is on, then the shortest
-  const rank = (m: (typeof moves)[number]) => (m.inside ? 0 : 2) + (m.onSide ? 0 : 1);
-  let best: (typeof moves)[number] | null = null;
-  for (const m of moves) {
-    if (!best || rank(m) < rank(best) || (rank(m) === rank(best) && m.by < best.by)) best = m;
-  }
-  return best!.at;
+export function wireLabelAttrs(lbl: TuxMapRoutedLabel) {
+  const name = `${lbl.full ?? lbl.t1}${lbl.planned ? " (planned)" : ""}${lbl.violating ? " (rule violation)" : ""}`;
+  const left = lbl.side === "l" ? lbl.x + lbl.w : lbl.side === "r" ? lbl.x : lbl.x + lbl.w / 2;
+  return {
+    "data-end": lbl.end,
+    "data-side": lbl.side,
+    "data-planned": lbl.planned ? "" : undefined,
+    tabindex: lbl.t2 ? -1 : undefined,
+    title: name,
+    "aria-label": `Inspect wire ${name}${lbl.t2 ? ", at its target" : ""}`,
+    style: { left: `${left}px`, top: `${lbl.y + lbl.h / 2}px`, maxWidth: `${lbl.w}px` },
+  };
 }

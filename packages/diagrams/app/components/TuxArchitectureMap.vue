@@ -69,10 +69,9 @@ import {
   cardDescriptionLines,
   cardTitleLines,
   middleEllipsizeFolderName,
-  placeLabelClearOfCard,
+  wireLabelAttrs,
   wirePairKey,
   type ComputedStageData,
-  type LabelClearPlacementBox,
   type StageBase,
   type StageToggles,
 } from "../utils/internal/tuxArchitectureMapStage";
@@ -1325,27 +1324,10 @@ const openStageWires = computed<OpenStageWires | null>(() => {
   return opened;
 });
 
-/** Above 30 routed wires (#124), hide labels at rest (`forced: true` -> opacity: 0, never display: none) */
-const forceLabels = (labels: TuxMapRoutedLabel[]): TuxMapRoutedLabel[] =>
-  labels.some((lbl) => !lbl.forced) ? labels.map((lbl) => (lbl.forced ? lbl : { ...lbl, forced: true })) : labels;
-
-const stageLabelsHoverOnly = computed<boolean>(() => {
-  const open = openStageWires.value;
-  const drawn = baseRoutedSvg.value.wires.length + (open ? open.wires.length - open.closedWireIds.size : 0);
-  return drawn > 30;
-});
-const forcedBaseLabels = computed(() => forceLabels(baseRoutedSvg.value.labels));
-
-/** The resting wires' labels as drawn; the ones in `openStageWires.closedLabelIds` are hidden. */
-const baseStageLabels = computed<TuxMapRoutedLabel[]>(() =>
-  stageLabelsHoverOnly.value ? forcedBaseLabels.value : baseRoutedSvg.value.labels,
-);
-/** The open wires' labels as drawn. */
-const openStageLabels = computed<TuxMapRoutedLabel[]>(() => {
-  const open = openStageWires.value;
-  if (!open) return [];
-  return stageLabelsHoverOnly.value ? forceLabels(open.labels) : open.labels;
-});
+/** The resting wires' labels; the ones in `openStageWires.closedLabelIds` are hidden. */
+const baseStageLabels = computed<TuxMapRoutedLabel[]>(() => baseRoutedSvg.value.labels);
+/** The open wires' labels. */
+const openStageLabels = computed<TuxMapRoutedLabel[]>(() => openStageWires.value?.labels ?? []);
 
 /**
  * Every wire and label on the stage as it is drawn now: the wires at rest, less
@@ -1364,60 +1346,6 @@ const routedSvg = computed<{ wires: TuxMapRoutedWire[]; labels: TuxMapRoutedLabe
     labels: [...baseStageLabels.value.filter((l) => !open.closedLabelIds.has(l.id)), ...openStageLabels.value],
   };
 });
-
-/**
- * A wire label raised by a hover or a selection is drawn beside that card, not over it (#205): a
- * long label reaches from the middle of its wire over the cards the wire joins, where it covered
- * the title and took the click meant for `+`. The highlight places each label it raises against
- * the card as it is drawn then (a hovered or selected card grows to show its text), and writes the
- * place on the element as an attribute and three custom properties, which no render touches.
- */
-const stageLabelByPair = computed<Map<string, TuxMapRoutedLabel>>(() => {
-  const out = new Map<string, TuxMapRoutedLabel>();
-  for (const lbl of routedSvg.value.labels) out.set(wirePairKey(lbl.from, lbl.to), lbl);
-  return out;
-});
-
-const LAB_CLEAR_PROPS = ["--tux-map-lab-left", "--tux-map-lab-top", "--tux-map-lab-shift"] as const;
-
-function lowerStageLabel(el: HTMLElement) {
-  el.classList.remove("tux-map__lab--on");
-  if (!el.hasAttribute("data-clear")) return;
-  el.removeAttribute("data-clear");
-  for (const prop of LAB_CLEAR_PROPS) el.style.removeProperty(prop);
-}
-
-/** The lit card's box in stage pixels, as tall as it is drawn */
-function litCardBox(id: string, cards: { el: HTMLElement; id: string }[]): LabelClearPlacementBox | null {
-  const r = hasOwn(stageData.value.rects, id) ? stageData.value.rects[id] : undefined;
-  if (!r || r.bound) return null;
-  let h = r.h;
-  for (let i = 0; i < cards.length; i++) {
-    if (cards[i]!.id !== id) continue;
-    h = Math.max(h, cards[i]!.el.offsetHeight || 0);
-    break;
-  }
-  return { x: r.x, y: r.y, w: r.w, h };
-}
-
-function raiseStageLabel(el: HTMLElement, card: LabelClearPlacementBox | null) {
-  el.classList.add("tux-map__lab--on");
-  const lbl = card ? stageLabelByPair.value.get(wirePairKey(el.dataset.from || "", el.dataset.to || "")) : undefined;
-  if (!card || !lbl) return;
-  // the size it is drawn at where the page has one; the router's estimate otherwise
-  const w = el.offsetWidth || lbl.w;
-  const h = el.offsetHeight || lbl.h;
-  const at = placeLabelClearOfCard(
-    { x: lbl.x + lbl.w / 2 - w / 2, y: lbl.y + lbl.h / 2 - h / 2, w, h },
-    card,
-    { width: stageData.value.width, height: stageData.value.height },
-  );
-  if (!at) return;
-  el.style.setProperty("--tux-map-lab-left", `${at.left}px`);
-  el.style.setProperty("--tux-map-lab-top", `${at.top}px`);
-  el.style.setProperty("--tux-map-lab-shift", at.shift);
-  el.setAttribute("data-clear", "1");
-}
 
 // ============================================================================
 // 3. PRECOMPUTED CARD VIEW-MODELS, BLAST RADIUS, SEARCH & ZERO-QUERY HOVER
@@ -2920,7 +2848,7 @@ function rebuildStageDomCache() {
     const entry = { el, forced: el.dataset.forced === "1" };
     pushMapItem(labelsByNode, from, entry);
     if (to !== from) pushMapItem(labelsByNode, to, entry);
-    if (el.classList.contains("tux-map__lab--on") || el.hasAttribute("data-clear")) {
+    if (el.classList.contains("tux-map__lab--on")) {
       litLabels.push(entry);
     }
   }
@@ -2970,8 +2898,7 @@ function applyStageHighlight(rawId: string | null) {
   cache.litWires.length = 0;
 
   for (let i = 0; i < cache.litLabels.length; i++) {
-    const item = cache.litLabels[i]!;
-    lowerStageLabel(item.el);
+    cache.litLabels[i]!.el.classList.remove("tux-map__lab--on");
   }
   cache.litLabels.length = 0;
 
@@ -3056,17 +2983,12 @@ function applyStageHighlight(rawId: string | null) {
     }
   }
 
-  // Read the lit card's drawn height once, and only when it has a label to move
-  let litBox: LabelClearPlacementBox | null | undefined;
-  const litCard = (): LabelClearPlacementBox | null =>
-    litBox === undefined ? (litBox = litCardBox(key, cache.cards)) : litBox;
-
   const activeLabels = cache.labelsByNode.get(key);
   if (activeLabels) {
     for (let i = 0; i < activeLabels.length; i++) {
       const item = activeLabels[i]!;
       if (openDom && item.el.classList.contains("tux-map__lab--closed")) continue;
-      raiseStageLabel(item.el, litCard());
+      item.el.classList.add("tux-map__lab--on");
       cache.litLabels.push(item);
     }
   }
@@ -3083,7 +3005,7 @@ function applyStageHighlight(rawId: string | null) {
     for (let i = 0; i < openDom.labels.length; i++) {
       const item = openDom.labels[i]!;
       if (item.from !== key && item.to !== key) continue;
-      raiseStageLabel(item.el, litCard());
+      item.el.classList.add("tux-map__lab--on");
       cache.litLabels.push(item);
     }
   }
@@ -3345,7 +3267,7 @@ watch([currentLevel, focusId, showPlanned, showBlastRadius, activeModel, baseRou
 
 // Opening or closing an outside card swaps a few wires: index those, and light
 // the stage again, once they are drawn.
-watch([openStageWires, stageLabelsHoverOnly], () => {
+watch(openStageWires, () => {
   nextTick(() => {
     indexStageOpenDom();
     applyStageHighlight(selectedId.value ?? currentHoveredId ?? proximityCard.value?.id ?? null);
@@ -7772,7 +7694,7 @@ function buildSourceHref(src?: {
             </button>
           </template>
 
-          <!-- Layer 3 / 10: Interactive Wire Label Buttons (#115, #123, #124) -->
+          <!-- Layer 3 / 10: Wire label buttons, one beside each end of a wire (#115, #123, #210) -->
           <button
             v-for="lbl in baseStageLabels"
             :key="lbl.id"
@@ -7791,17 +7713,13 @@ function buildSourceHref(src?: {
             }"
             :aria-expanded="inspectedWireKey === wirePairKey(lbl.from, lbl.to) ? 'true' : 'false'"
             :aria-controls="wireInspectorId"
-            :aria-label="`Inspect wire ${lbl.t1}${lbl.t2 ? ` [${lbl.t2}]` : ''}${lbl.violating ? ' (rule violation)' : ''}`"
-            :style="{
-              left: `${lbl.x + lbl.w / 2}px`,
-              top: `${lbl.y + lbl.h / 2}px`,
-            }"
+            v-bind="wireLabelAttrs(lbl)"
             @click.stop="toggleWireInspector(lbl, $event.currentTarget)"
           >
-            <span class="tux-map__lab-t1">
+            <span v-if="lbl.t1" class="tux-map__lab-t1">
               <span v-if="lbl.violating" class="tux-map__lab-warn" aria-hidden="true">⚠ </span>{{ lbl.t1 }}
             </span>
-            <span v-if="lbl.t2" class="tux-map__lab-t2">[{{ lbl.t2 }}]</span>
+            <span v-else class="tux-map__lab-t2">[{{ lbl.t2 }}]</span>
           </button>
           <button
             v-for="lbl in openStageLabels"
@@ -7822,17 +7740,13 @@ function buildSourceHref(src?: {
             }"
             :aria-expanded="inspectedWireKey === wirePairKey(lbl.from, lbl.to) ? 'true' : 'false'"
             :aria-controls="wireInspectorId"
-            :aria-label="`Inspect wire ${lbl.t1}${lbl.t2 ? ` [${lbl.t2}]` : ''}${lbl.violating ? ' (rule violation)' : ''}`"
-            :style="{
-              left: `${lbl.x + lbl.w / 2}px`,
-              top: `${lbl.y + lbl.h / 2}px`,
-            }"
+            v-bind="wireLabelAttrs(lbl)"
             @click.stop="toggleWireInspector(lbl, $event.currentTarget)"
           >
-            <span class="tux-map__lab-t1">
+            <span v-if="lbl.t1" class="tux-map__lab-t1">
               <span v-if="lbl.violating" class="tux-map__lab-warn" aria-hidden="true">⚠ </span>{{ lbl.t1 }}
             </span>
-            <span v-if="lbl.t2" class="tux-map__lab-t2">[{{ lbl.t2 }}]</span>
+            <span v-else class="tux-map__lab-t2">[{{ lbl.t2 }}]</span>
           </button>
 
           <!-- Sticky Notes Overlay (Scoped to Current Level & Focus) -->
@@ -10353,7 +10267,9 @@ function buildSourceHref(src?: {
   stroke-width: 1.8;
 }
 
-/* Layer 3 / 10: Interactive Wire Label Buttons (#115, #123, #124) */
+/* Layer 3 / 10: Wire label buttons (#115, #123). One sits beside each end of a wire, at its port
+   and outside the card (#210): on the stub at a top or bottom port, and hung by the edge that
+   faces the card at a left or right one. `max-width` is the box the router kept clear of the cards. */
 .tux-map__lab {
   position: absolute;
   z-index: 3;
@@ -10361,19 +10277,32 @@ function buildSourceHref(src?: {
   pointer-events: auto;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 2px 7px;
+  box-sizing: border-box;
+  height: 17px;
+  overflow: hidden;
+  padding: 0 6px;
   border-radius: 6px;
   background: var(--surface-raised);
   border: 1px solid var(--surface-border);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   white-space: nowrap;
-  line-height: 1.25;
   font: inherit;
+  line-height: 15px;
   text-align: left;
   color: var(--text-primary);
   transition: none !important;
+}
+
+.tux-map__lab[data-side="r"] {
+  transform: translate(0, -50%);
+}
+
+.tux-map__lab[data-side="l"] {
+  transform: translate(-100%, -50%);
+}
+
+.tux-map__lab[data-planned] {
+  border-style: dashed;
 }
 
 .tux-map__lab:hover,
@@ -10391,7 +10320,7 @@ function buildSourceHref(src?: {
   outline-offset: 2px;
 }
 
-/* Dense/crowded wire labels (#124): hidden via opacity at rest so Tab still focuses them! */
+/* A label with no room at its port (#210): hidden via opacity at rest, so Tab still focuses it */
 .tux-map__lab--forced:not(.tux-map__lab--on):not(:hover):not(:focus-visible):not([aria-expanded="true"]) {
   opacity: 0;
   pointer-events: none;
@@ -10428,21 +10357,15 @@ function buildSourceHref(src?: {
   opacity: 0;
 }
 
+/* Lit by its card or its wire, a label stays at its port and takes the brand border. It stays
+   under a hovered or selected card, which grows over the gap to show all its text (#210) */
 .tux-map__stage--dim .tux-map__lab--on,
 .tux-map__lab--on {
-  z-index: 10;
+  z-index: 5;
   opacity: 1;
   pointer-events: auto;
   border-color: var(--brand-primary);
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.16);
-}
-
-/* Raised by the card the pointer is on or the selected one, a label hangs beside that card (#205).
-   The highlight sets the attribute and the three properties together. */
-.tux-map__lab[data-clear] {
-  left: var(--tux-map-lab-left) !important;
-  top: var(--tux-map-lab-top) !important;
-  transform: var(--tux-map-lab-shift);
 }
 
 /* Wire Link Inspector Popover (#115) */

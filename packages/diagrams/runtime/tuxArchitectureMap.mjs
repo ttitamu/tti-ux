@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: b381770aa29debbf4a7678e6c6b58b91d235ed2ce488ec5474283d02c7f69b35
+// SOURCE-SHA256: 428fa86008bc066cdaefacdaa6cbb728a9ba581776c54fa64f76ea3fa0ea4405
 export const LOD_THRESHOLDS = {
     resources: 0.65,
     packages: 1.25,
@@ -568,6 +568,18 @@ export const GRID_METRICS = {
     NW: 210,
     NH: 92,
 };
+const WIRE_LABEL_H = 17;
+const WIRE_LABEL_GAP = 4;
+const WIRE_LABEL_CHARS = [16, 10, 6];
+export function shortWireLabel(text, max = 16) {
+    const chars = Array.from(text.trim());
+    if (chars.length <= max)
+        return chars.join("");
+    const head = chars.slice(0, max - 1).join("");
+    const cut = /\s/u.test(chars[max - 1]) ? head : head.replace(/\s+\S*$/u, "");
+    const words = cut.replace(/[^\p{L}\p{N})\]]+$/u, "");
+    return `${words || head.trimEnd()}…`;
+}
 export function gridCellToPx(at) {
     const { CW, CH, GX, GY, PAD } = GRID_METRICS;
     return {
@@ -826,29 +838,6 @@ export function routeGridWires(rels, rects, els) {
         placed.push(b);
         addBoxToBucket(placedBucket, idx, b.x, b.y, b.w, b.h);
     };
-    const overlapsPlacedBucket = (cand) => {
-        const gx0 = Math.floor(cand.x / CELL_W);
-        const gx1 = Math.floor((cand.x + cand.w) / CELL_W);
-        const gy0 = Math.floor(cand.y / CELL_H);
-        const gy1 = Math.floor((cand.y + cand.h) / CELL_H);
-        for (let gx = gx0; gx <= gx1; gx++) {
-            for (let gy = gy0; gy <= gy1; gy++) {
-                const hits = placedBucket.get(`${gx},${gy}`);
-                if (!hits)
-                    continue;
-                for (let hi = 0; hi < hits.length; hi++) {
-                    const q = placed[hits[hi]];
-                    if (cand.x < q.x + q.w &&
-                        cand.x + cand.w > q.x &&
-                        cand.y < q.y + q.h &&
-                        cand.y + cand.h > q.y) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    };
     const cardEntries = [];
     for (const k of Object.keys(rects)) {
         const r = rects[k];
@@ -859,7 +848,7 @@ export function routeGridWires(rels, rects, els) {
             pushPlacedBox({ x: r.x - 4, y: r.y - 4, w: r.w + 8, h: r.h + 8 });
         }
     }
-    const cards = placed.slice();
+    const cardCount = placed.length;
     const colBands = mergeNumericBands(cardEntries.map(([, r]) => [r.x, r.x + r.w]));
     const vGaps = [];
     if (colBands.length > 0) {
@@ -1309,46 +1298,12 @@ export function routeGridWires(rels, rects, els) {
         assignCorridorLanes(band.lo, band.hi, reqs);
     }
     const wires = [];
-    const labels = [];
-    const hoverOnlyLabels = paths.length > 30;
-    const wireSegments = [];
-    const clipsOtherWire = (cand, idx) => {
-        for (let si = 0; si < wireSegments.length; si++) {
-            const seg = wireSegments[si];
-            if (seg[2] === idx)
-                continue;
-            const minX = Math.min(seg[0][0], seg[1][0]) - 2;
-            const maxX = Math.max(seg[0][0], seg[1][0]) + 2;
-            const minY = Math.min(seg[0][1], seg[1][1]) - 2;
-            const maxY = Math.max(seg[0][1], seg[1][1]) + 2;
-            if (cand.x < maxX && cand.x + cand.w > minX && cand.y < maxY && cand.y + cand.h > minY)
-                return true;
-        }
-        return false;
-    };
-    const COVER_SCAN_MAX = 64;
-    const coverTerm = (c, qi) => {
-        const q = placed[qi];
-        return ((qi < cards.length ? 1 : 25) *
-            Math.max(0, Math.min(c.x + c.w, q.x + q.w) - Math.max(c.x, q.x)) *
-            Math.max(0, Math.min(c.y + c.h, q.y + q.h) - Math.max(c.y, q.y)));
-    };
-    let placedAllFinite = cards.every((q) => Number.isFinite(q.x + q.y + q.w + q.h));
-    const coverStamp = [];
-    let coverRound = 0;
-    const coverOf = (c) => {
-        let cover = 0;
-        if (placed.length <= COVER_SCAN_MAX || !placedAllFinite || !Number.isFinite(c.x + c.y + c.w + c.h)) {
-            for (let qi = 0; qi < placed.length; qi++)
-                cover += coverTerm(c, qi);
-            return cover;
-        }
-        coverRound++;
-        const near = [];
-        const gx0 = Math.floor(c.x / CELL_W);
-        const gx1 = Math.floor((c.x + c.w) / CELL_W);
-        const gy0 = Math.floor(c.y / CELL_H);
-        const gy1 = Math.floor((c.y + c.h) / CELL_H);
+    const portClash = (cand) => {
+        let clash = 0;
+        const gx0 = Math.floor(cand.x / CELL_W);
+        const gx1 = Math.floor((cand.x + cand.w) / CELL_W);
+        const gy0 = Math.floor(cand.y / CELL_H);
+        const gy1 = Math.floor((cand.y + cand.h) / CELL_H);
         for (let gx = gx0; gx <= gx1; gx++) {
             for (let gy = gy0; gy <= gy1; gy++) {
                 const hits = placedBucket.get(`${gx},${gy}`);
@@ -1356,159 +1311,142 @@ export function routeGridWires(rels, rects, els) {
                     continue;
                 for (let hi = 0; hi < hits.length; hi++) {
                     const qi = hits[hi];
-                    if (coverStamp[qi] === coverRound)
-                        continue;
-                    coverStamp[qi] = coverRound;
-                    near.push(qi);
+                    const q = placed[qi];
+                    if (cand.x < q.x + q.w && cand.x + cand.w > q.x && cand.y < q.y + q.h && cand.y + cand.h > q.y) {
+                        if (qi < cardCount)
+                            return 2;
+                        clash = 1;
+                    }
                 }
             }
         }
-        near.sort((u, v) => u - v);
-        for (let ni = 0; ni < near.length; ni++)
-            cover += coverTerm(c, near[ni]);
-        return cover;
+        return clash;
     };
-    const segmentsByLength = (pts) => {
-        const segs = [];
-        for (let i = 0; i < pts.length - 1; i++) {
-            const p0 = pts[i];
-            const p1 = pts[i + 1];
-            segs.push([p0, p1, Math.hypot(p1[0] - p0[0], p1[1] - p0[1])]);
-        }
-        segs.sort((u, v) => v[2] - u[2]);
-        return segs;
-    };
-    const longestSegment = (pts) => {
-        let best = -1;
-        let bestLen = -Infinity;
-        for (let i = 0; i < pts.length - 1; i++) {
-            const len = Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
-            if (!Number.isFinite(len)) {
-                const first = segmentsByLength(pts)[0];
-                return [first[0], first[1]];
-            }
-            if (len > bestLen) {
-                bestLen = len;
-                best = i;
-            }
-        }
-        return best < 0 ? null : [pts[best], pts[best + 1]];
-    };
+    const jobs = [];
     paths.forEach((p, idx) => {
         const pts = simplifyOrthogonalPoints(p.pts);
-        if (!hoverOnlyLabels) {
-            for (let si = 0; si < pts.length - 1; si++) {
-                wireSegments.push([pts[si], pts[si + 1], idx]);
-            }
-        }
         const isViolating = Boolean(p.rel.violations?.length);
+        const planned = p.rel.status === "planned";
         wires.push({
             id: `w-${idx}-${p.rel.from}-${p.rel.to}`,
             from: p.rel.from,
             to: p.rel.to,
             d: roundOrthogonalCorners(pts),
-            planned: p.rel.status === "planned",
+            planned,
             ...(isViolating ? { violating: true } : {}),
         });
-        const labelText = p.rel.label || (p.rel.status === "planned" ? "Planned" : "");
-        if (labelText) {
-            const t1 = labelText;
-            const t2 = p.rel.tech || "";
-            const w = Math.max(t1.length * 6.1, (t2.length + 2) * 5.5) + 14;
-            const h = t2 ? 32 : 19;
-            let box = null;
-            let forced = true;
-            if (hoverOnlyLabels) {
-                const sg = longestSegment(pts);
-                if (sg) {
-                    box = {
-                        x: sg[0][0] + (sg[1][0] - sg[0][0]) * 0.5 - w / 2,
-                        y: sg[0][1] + (sg[1][1] - sg[0][1]) * 0.5 - h / 2,
-                        w,
-                        h,
-                    };
-                }
-            }
-            else {
-                const segs = segmentsByLength(pts);
-                const fractions = idx % 2 === 0
-                    ? [0.5, 0.34, 0.66, 0.24, 0.76, 0.18, 0.82]
-                    : [0.36, 0.64, 0.5, 0.24, 0.76, 0.18, 0.82];
-                for (let j = 0; j < segs.length && !box; j++) {
-                    const sg = segs[j];
-                    for (const f of fractions) {
-                        const m = [
-                            sg[0][0] + (sg[1][0] - sg[0][0]) * f,
-                            sg[0][1] + (sg[1][1] - sg[0][1]) * f,
-                        ];
-                        const cand = { x: m[0] - w / 2, y: m[1] - h / 2, w, h };
-                        if (overlapsPlacedBucket(cand))
-                            continue;
-                        if (!clipsOtherWire(cand, idx)) {
-                            box = cand;
-                            break;
-                        }
-                    }
-                }
-                if (!box) {
-                    for (let j = 0; j < segs.length && !box; j++) {
-                        const sg = segs[j];
-                        for (const f of fractions) {
-                            const m = [
-                                sg[0][0] + (sg[1][0] - sg[0][0]) * f,
-                                sg[0][1] + (sg[1][1] - sg[0][1]) * f,
-                            ];
-                            const cand = { x: m[0] - w / 2, y: m[1] - h / 2, w, h };
-                            if (!overlapsPlacedBucket(cand)) {
-                                box = cand;
-                                break;
-                            }
-                        }
-                    }
-                }
-                forced = !box;
-                if (!box) {
-                    let best = Infinity;
-                    for (const sg of segs) {
-                        for (const f of [0.5, 0.35, 0.65, 0.22, 0.78, 0.15, 0.85]) {
-                            const c = {
-                                x: sg[0][0] + (sg[1][0] - sg[0][0]) * f - w / 2,
-                                y: sg[0][1] + (sg[1][1] - sg[0][1]) * f - h / 2,
-                                w,
-                                h,
-                            };
-                            const cover = coverOf(c);
-                            if (cover < best) {
-                                best = cover;
-                                box = c;
-                            }
-                        }
-                    }
-                }
-            }
-            if (box) {
-                if (!hoverOnlyLabels) {
-                    const pad = { x: box.x - 2, y: box.y - 2, w: box.w + 4, h: box.h + 4 };
-                    if (!Number.isFinite(pad.x + pad.y + pad.w + pad.h))
-                        placedAllFinite = false;
-                    pushPlacedBox(pad);
-                }
-                labels.push({
-                    id: `lbl-${idx}-${p.rel.from}-${p.rel.to}`,
-                    from: p.rel.from,
-                    to: p.rel.to,
-                    x: Math.round(box.x),
-                    y: Math.round(box.y),
-                    w: Math.round(w),
-                    h: Math.round(h),
-                    t1,
-                    t2,
-                    forced,
-                    ...(isViolating ? { violating: true } : {}),
-                });
-            }
+        const text = p.rel.label || (planned ? "Planned" : "");
+        if (!text || pts.length < 2)
+            return;
+        const tech = p.rel.tech || "";
+        const full = tech ? `${text} [${tech}]` : text;
+        const ends = [];
+        if (!p.a.bound)
+            ends.push({ end: "from", side: p.s[0], at: pts[0] });
+        if (!p.b.bound)
+            ends.push({ end: "to", side: p.s[1], at: pts[pts.length - 1] });
+        jobs.push({ idx, order: jobs.length, rank: isViolating ? 0 : planned ? 2 : 1, rel: p.rel, text, tech: false, full, ends, pts });
+        if (tech && ends.length === 2) {
+            jobs.push({ idx, order: jobs.length, rank: isViolating ? 0 : 3, rel: p.rel, text: tech, tech: true, full, ends: [ends[1]], pts });
         }
     });
+    const byRank = jobs.slice().sort((u, v) => u.rank - v.rank || u.order - v.order);
+    for (const job of byRank) {
+        const isViolating = Boolean(job.rel.violations?.length);
+        let box = null;
+        let hidden = null;
+        let short = "";
+        let end;
+        search: for (const e of job.ends) {
+            let last = "";
+            for (const chars of WIRE_LABEL_CHARS) {
+                const s = shortWireLabel(job.text, chars);
+                if (s === last)
+                    continue;
+                last = s;
+                const w = Math.round(job.tech ? (s.length + 2) * 5.5 + 18 : (s.length + (isViolating ? 2 : 0)) * 6.1 + 18);
+                const across = e.side === "l" || e.side === "r";
+                for (const beside of [0, 1, -1, 2, -2]) {
+                    const off = Math.abs(beside) > 1 ? WIRE_LABEL_H / 2 : 1;
+                    const cand = across
+                        ? {
+                            x: e.side === "r" ? e.at[0] + WIRE_LABEL_GAP : e.at[0] - WIRE_LABEL_GAP - w,
+                            y: e.at[1] + (beside > 0 ? off : beside < 0 ? -off - WIRE_LABEL_H : -WIRE_LABEL_H / 2),
+                            w,
+                            h: WIRE_LABEL_H,
+                        }
+                        : {
+                            x: e.at[0] + (beside > 0 ? off + 2 : beside < 0 ? -off - 2 - w : -w / 2),
+                            y: e.side === "b" ? e.at[1] + WIRE_LABEL_GAP : e.at[1] - WIRE_LABEL_GAP - WIRE_LABEL_H,
+                            w,
+                            h: WIRE_LABEL_H,
+                        };
+                    if (!Number.isFinite(cand.x + cand.y))
+                        break;
+                    cand.x = Number(cand.x.toFixed(2));
+                    cand.y = Number(cand.y.toFixed(2));
+                    const clash = portClash(cand);
+                    if (clash === 0) {
+                        box = cand;
+                        short = s;
+                        end = e;
+                        break search;
+                    }
+                    if (clash === 1 && !hidden)
+                        hidden = { box: cand, short: s, end: e };
+                }
+            }
+        }
+        const forced = !box;
+        if (box)
+            pushPlacedBox(box);
+        else if (hidden) {
+            box = hidden.box;
+            short = hidden.short;
+            end = hidden.end;
+        }
+        else if (!job.tech) {
+            let best = 0;
+            let bestLen = -1;
+            for (let i = 0; i < job.pts.length - 1; i++) {
+                const len = Math.abs(job.pts[i + 1][0] - job.pts[i][0]) + Math.abs(job.pts[i + 1][1] - job.pts[i][1]);
+                if (len > bestLen) {
+                    bestLen = len;
+                    best = i;
+                }
+            }
+            short = shortWireLabel(job.text, WIRE_LABEL_CHARS[WIRE_LABEL_CHARS.length - 1]);
+            const w = Math.round(short.length * 6.1 + 18);
+            box = {
+                x: (job.pts[best][0] + job.pts[best + 1][0]) / 2 - w / 2,
+                y: (job.pts[best][1] + job.pts[best + 1][1]) / 2 - WIRE_LABEL_H / 2,
+                w,
+                h: WIRE_LABEL_H,
+            };
+        }
+        if (!box)
+            continue;
+        job.out = {
+            id: `lbl-${job.idx}${job.tech ? "t" : ""}-${job.rel.from}-${job.rel.to}`,
+            from: job.rel.from,
+            to: job.rel.to,
+            x: Number(box.x.toFixed(2)),
+            y: Number(box.y.toFixed(2)),
+            w: box.w,
+            h: box.h,
+            t1: job.tech ? "" : short,
+            t2: job.tech ? short : "",
+            forced,
+            full: job.full,
+            ...(end ? { end: end.end, side: end.side } : {}),
+            ...(job.rel.status === "planned" ? { planned: true } : {}),
+            ...(isViolating ? { violating: true } : {}),
+        };
+    }
+    const labels = [];
+    for (const job of jobs)
+        if (job.out)
+            labels.push(job.out);
     return { wires, labels };
 }
 export function routeDeploymentWires(links, rects, selectedId = "*") {
