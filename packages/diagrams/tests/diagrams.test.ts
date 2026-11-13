@@ -2934,9 +2934,11 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
   // trailing cursor (#208, +1,461 B) and the camera's travel (#212, +347 B) added the rest:
   // 100,103 B together on macOS; the Linux CI runner measures the same tree at 100,569 B. The budget
   // is 101,000 B, which holds on both with a few hundred bytes to spare.
+  // Phase 1 of the performance epic (#221: #222–#231) added 1,118 B more (101,221 B on macOS,
+  // about 101,690 B on the Linux runner), so the budget is 102,000 B until #242 sets it once.
   // What is measured: the component's script and template, every module it imports (the `.vue`
   // files among them, compiled the same way) except `vue`, and the styles of each of those files.
-  it("keeps the bundled <TuxArchitectureMap> consumer payload (JS + CSS, gzip-9) under the 101,000 B budget", async () => {
+  it("keeps the bundled <TuxArchitectureMap> consumer payload (JS + CSS, gzip-9) under the 102,000 B budget", async () => {
     const pkgRoot = join(__dirname, "..");
     const css: string[] = [];
     const measured: string[] = [];
@@ -2977,7 +2979,7 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
       "app/utils/internal/TuxArchitectureMapMinimap.vue",
     ]);
     expect(gzipBytes).toBeGreaterThan(30_000);
-    expect(gzipBytes).toBeLessThan(101_000);
+    expect(gzipBytes).toBeLessThan(102_000);
   });
 });
 

@@ -1,6 +1,6 @@
 // AUTO-GENERATED from app/utils/tuxArchitectureMap.ts by scripts/build-map-runtime.mjs — DO NOT EDIT.
 // SPDX-License-Identifier: Apache-2.0 (adapts MIT geometry/graph routines; see app/utils/tuxArchitectureMap.ts)
-// SOURCE-SHA256: 428fa86008bc066cdaefacdaa6cbb728a9ba581776c54fa64f76ea3fa0ea4405
+// SOURCE-SHA256: 524196c754ba90138e42b829f3f9000f2caac2f6a40eedc325e23ff375616a4d
 /**
  * tuxArchitectureMap — Core Engine for the TUX Modular Architecture Map (M.A.P.) & Infinite Canvas.
  *
@@ -1015,7 +1015,8 @@ export declare const TUX_MAP_LINK_STRENGTH_ORDER: readonly ["calls", "handled-by
 export declare const TUX_MAP_LINK_KIND_LABELS: Record<string, string>;
 /**
  * Splits repo-qualified (`owner/repo:k:rest` or `repo:k:rest`) and legacy (`k:rest`)
- * node IDs into `{ repo, kind, rest }` (matching Python `_split_node_id` 1:1).
+ * node IDs into `{ repo, kind, rest }` (matching Python `_split_node_id` 1:1). The answer
+ * is kept per id and shared between calls: read it, do not change it.
  * @internal
  */
 export declare function splitNodeId(nid: string): {
@@ -1063,6 +1064,8 @@ export declare function hasOwn(obj: unknown, key: PropertyKey): boolean;
 export declare function setOwnProp<T>(obj: Record<string, T>, key: string, value: T): void;
 /**
  * True Unicode code-point comparison (matches Python `str < str` even on supplementary U+10000+ planes).
+ * Without a surrogate in either string, UTF-16 order is code-point order, so the engine compares
+ * (`tti/tti-ux#227`). Only the sign of the result means anything.
  * @internal
  */
 export declare function cmpCodepoint(a: string, b: string): number;
@@ -1325,7 +1328,8 @@ export declare const TUX_MAP_WIRE_CATEGORIES: readonly TuxMapWireCategory[];
  */
 export declare function classifyLinkDependencyCategory(link: TuxMapLink): TuxMapWireCategory;
 /**
- * Filters `links` to those matching `categories` (`tti/tti-ux#118`).
+ * Filters `links` to those matching `categories` (`tti/tti-ux#118`). The category of each link is
+ * kept against the link object: treat a link as read-only once passed, or pass a new object.
  * @public
  */
 export declare function filterLinksByCategories(links: readonly TuxMapLink[], categories: ReadonlySet<TuxMapWireCategory> | Iterable<TuxMapWireCategory>): TuxMapLink[];

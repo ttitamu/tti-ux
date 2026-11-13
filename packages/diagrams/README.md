@@ -54,7 +54,7 @@ The architecture map has two contracts, and each has a committed snapshot that t
 
 ### The component: props
 
-`<TuxArchitectureMap>` takes 43 props, all optional. A state the host may own comes as a pair: the plain name is the controlled value, bound with `v-model:<name>`, and `initial<Name>` is the starting value used when the plain name is not passed. A controlled prop left `undefined` leaves that state to the component.
+`<TuxArchitectureMap>` takes 44 props, all optional. A state the host may own comes as a pair: the plain name is the controlled value, bound with `v-model:<name>`, and `initial<Name>` is the starting value used when the plain name is not passed. A controlled prop left `undefined` leaves that state to the component.
 
 **The model**
 
@@ -63,6 +63,7 @@ The architecture map has two contracts, and each has a committed snapshot that t
 | `model` | `TuxMapLevelModel` | `undefined` | The model to draw. Without it the component builds one from `nodes`, and with neither it draws `EMPTY_TTI_LEVEL_MODEL`. |
 | `resolveSubgraph` | `(id: string, ref?: string) => Promise<TuxMapSubgraph \| null>` | `undefined` | Loads the inside of a card that names a `subgraphRef`, when the reader zooms into it. A card that resolves to nothing is asked once; a rejection is not remembered. Pass the same function between renders: a new one is asked again. |
 | `modelRef` | `string` | `undefined` | A commit or ref, passed as the second argument of `resolveSubgraph`. |
+| `watchModelDeep` | `boolean` | `false` | An edit made in place inside a reactive `model` is drawn. The map reads `model` raw and draws a new `model` object; it does not see an edit inside the same object. With `watchModelDeep`, it also reads the whole of a reactive `model` through its proxies, so that any edit in it starts the map over. That read costs about as much as sanitizing the model, on every mount and every edit: passing a new object is cheaper. |
 | `nodes` | `TuxMapNode[]` | `[]` | Legacy input. Converted with `buildLevelModelFromLegacyNodes()` when `model` is not passed. |
 | `edges` | `TuxMapEdge[]` | `[]` | Legacy input: the edges between `nodes`. |
 | `zones` | `TuxMapZone[]` | `[]` | Legacy input: the zones of `nodes`. |
@@ -237,7 +238,7 @@ Every runtime export carries `@public` or `@internal` in its TSDoc comment, and 
 
 The 75 public types are the model (`TuxMapLevelModel`, `TuxMapNormalizedModel` and what they are made of), the legacy `TuxMapNode`, `TuxMapEdge` and `TuxMapZone`, and the option and result types of the functions above. [`api/map-runtime.api.md`](./api/map-runtime.api.md) is the full list, with the declaration of each; it is generated and never edited.
 
-**`links` and `parentOf` are read-only once passed.** `computeLinkBlastRadius()` and `liftLinksToView()` build lookup tables from the `links` array and the `parentOf` map and cache them against those two objects, so a repeat call with the same array and map does not read either of them whole. The tables are rebuilt when the array's length or the map's size changes. A change in place that keeps the count (a link replaced, a link's `from` or `to` rewritten, a child given another parent) is not seen: pass a new array or map, which is what `extractModelLinks()` and `buildMapParentIndex()` return on every call, or pass `verifyInputs: true`, which hashes both inputs on that call and rebuilds on a difference.
+**`links` and `parentOf` are read-only once passed.** `computeLinkBlastRadius()` and `liftLinksToView()` build lookup tables from the `links` array and the `parentOf` map and cache them against those two objects, so a repeat call with the same array and map does not read either of them whole. The tables are rebuilt when the array's length or the map's size changes. A change in place that keeps the count (a link replaced, a link's `from` or `to` rewritten, a child given another parent) is not seen: pass a new array or map, which is what `extractModelLinks()` and `buildMapParentIndex()` return on every call, or pass `verifyInputs: true`, which hashes both inputs on that call and rebuilds on a difference. The same holds for the `model` option of `computeLinkBlastRadius()`: what it reads from the model (hosts, subgraph owners, each element's kind and path) is kept against the model object and its level and `subgraphs` records, and `verifyInputs: true` reads it again. `filterLinksByCategories()` keeps each link's category against the link object.
 
 **`@internal` exports may change or be removed in any release, without notice and without a changelog entry.** They are how the component draws (pixel geometry, path builders, the wire router, caches, comparators, object helpers). They remain exported and typed for now, so marking them broke no import; do not build on them. [`api/map-exports-inventory.md`](./api/map-exports-inventory.md) records how each export was sorted.
 

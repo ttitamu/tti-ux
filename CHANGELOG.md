@@ -18,6 +18,39 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — Architecture map: a selection, a stage build and a level change reuse what they computed (#227)
+
+- `computeLinkBlastRadius()` keeps what it reads from its `model` option (the subgraph owners, which element runs on which host, and each element's kind, path and technology) per model object, as it already kept its tables per `links` array and `parentOf` map. A selection computes the radius twice (unfiltered, and by the kind chips), and each call built all of it from the whole model again: 15 to 17 ms a call at 10,000 symbols. The tables are built again when the model is another object, when one of its `level1`..`level4` or `subgraphs` records is replaced or the number of subgraphs changes, and with `verifyInputs: true`.
+- `cmpCodepoint()` compares with the engine's `<` when neither string has a surrogate, where UTF-16 order and code-point order are the same; a string with one is compared code point by code point as before. Sorting the 11,375 ids of a 10,000-symbol model took 4.3 ms against 1.3 ms natively. The result is now -1, 0 or 1 on that path: only its sign ever meant anything.
+- `filterLinksByCategories()` keeps each link's category against the link object; a stage build classified every link (about 37,000, 14.5 ms) on every build.
+- `splitNodeId()` keeps its answer per id (up to 65,536 ids, then starts again); it is called in the loops of a level change. The answer is shared between calls: read it, do not change it.
+- `<TuxArchitectureMap>` computes the branch's blast radius (the Blast radius switch on, nothing selected) once per model and projects it onto each level, instead of walking the model's diffs and links again on every level change.
+- Measured in jsdom on the 10,000-symbol model, with #222 and #226: a selection after another 99 → 81 ms, the first selection once idle time has passed 306 → 96 ms, "show planned" with a selection open 339 → 292 ms, a level change with the switch on 446 → 408 ms.
+- Not done: filtering the radius by kind from the unfiltered walk instead of walking again. It saved 7 ms of the 14 ms second call, and cost about 120 B of the map's gzip payload, which the budget does not have on the CI runner (Node 24's zlib measures this tree 450 B larger than Node 26's).
+- Unit tests compare each cache with the inputs copied, so that no cache has seen them; the native and code-point orders agree on every pair of a surrogate-free corpus of 100,000 pairs and differ only on astral characters and lone surrogates, where `cmpCodepoint()` keeps code-point order. A mounted test counts the radius walks of a selection, a kind chip and a level change.
+
+**To check when upgrading:** code that changes a model in place between calls to `computeLinkBlastRadius()` with the same model object (an element's `deployed`, a node's `hosts`) passes a new object, replaces the record it changed, or passes `verifyInputs: true`; the same holds for a link changed in place between calls to `filterLinksByCategories()` (pass a new link object). Code that compares `cmpCodepoint()` with a number other than 0 reads its sign instead.
+
+### Changed — Architecture map: what the first paint does not show waits for idle time (#226)
+
+- `<TuxArchitectureMap>` builds the Go-To index and reads the model's links after it is drawn, in `requestIdleCallback`, one callback each, one after the other (a 50 ms timer each where the browser has no idle callback). At 10,000 symbols the index took 64 ms on the first search and the links 162 to 250 ms on the first selection. A search or a selection made before then builds what it needs, as before, and the idle task finds it built. A new `model` is indexed again the same way; an unmounted map does nothing more.
+- With nothing selected, the map no longer reads the links at all: the selection's blast radius read them before it checked that something was selected, so every first render built them.
+- The first size of the viewport comes from the `ResizeObserver` the map already registered, which reports it after the browser has laid the page out, instead of from a layout forced inside the mount (25 to 35 ms at 10,000 symbols). Where there is no `ResizeObserver`, the mount measures as before.
+- After a level change under a resting pointer, the card under the pointer is found in the new level's card rectangles, not with `document.elementFromPoint`, a hit test of the page that laid the new view out inside the same task.
+- Not changed: the validator's shape check still runs in the merge, before the first render. Its findings go only to the console, but a value of the wrong type is left out of the document the sanitizer reads, and the readers after it rely on that: deferred, a document with such values fails to draw until the check has run.
+- A mounted test stubs `requestIdleCallback` and `ResizeObserver`: neither the index nor the links is built before the first render, each is built once idle time is given, a search and a selection before then work, and the width is unknown until the observer reports. Another counts the hit tests of a level change: none.
+
+**To check when upgrading:** nothing to change. A test of your own that counts animation frames or timers on mount sees two idle callbacks after it, one after the other, or two 50 ms timers where `requestIdleCallback` is missing.
+
+### Changed — Architecture map: a reactive `model` is read raw (`watchModelDeep`) (#222)
+
+- `<TuxArchitectureMap>` reads a `model` passed as a deep `reactive()` object through `toRaw()`. It used to read it through its proxies: the sanitized model kept tens of thousands of its objects as proxies (70,329 of 73,829 at 10,000 symbols), and everything built from the model afterwards paid for a proxy on every read. Mounting a 10,000-symbol file view took 1,224 ms with a reactive model against 298 ms with the same model passed plain (jsdom), and about 140 MB more heap.
+- The map no longer reads the whole of a reactive `model` to find out whether something in it was edited in place, unless `watchModelDeep` is set. That read went through a proxy for every object in the model and kept a dependency on each of its fields: 128 to 175 ms at 10,000 symbols, against 4 ms for the same walk without proxies, on every mount and every edit. Vue has no cheaper signal for an edit at any depth, so it is now asked for.
+- `watchModelDeep: true` draws an edit made in place inside a reactive `model`, as every reactive `model` did since #157: the edit starts the map over. The default is `false`.
+- The lazily resolved subgraphs are kept in a shallow ref, raw as the resolver returned them; each arrival replaces the record.
+- A mounted test passes a `reactive()` model and finds no proxy in the merged model, the parent and element indexes or the staged view, and the mount within 1.5 times that of the same model passed plain. An edit in place is drawn with `watchModelDeep` and not without it; a new `model` object, reactive or not, is drawn either way.
+
+**To check when upgrading:** a host that edits a reactive `model` in place (`model.level3.c1.push(…)`, `model.level1.elements[0].name = …`) and expects the map to follow passes `:watch-model-deep="true"`, or passes a new object after the edit, which costs less. A host that passes a new object, or a plain one, has nothing to change.
 ### Changed — Architecture map: less work while the pointer is over the map, and none while nothing happens (#223, #224, #228)
 
 - **An idle map draws no frames (#223).** The dashed beam from the pointer to the nearest card ran its flowing-dash animation all the time, on a transparent layer as large as the stage, so a map with nothing under the pointer repainted every frame. The dashes now run only while the beam is drawn (`.tux-map__proximity-tether--on`, set with its opacity). Under `prefers-reduced-motion` they stand still, as before.
