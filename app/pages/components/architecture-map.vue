@@ -16,6 +16,7 @@ const exampleCode = `<TuxArchitectureMap
   v-model:strokes="strokes"
   v-model:notes="notes"
   :annotations="true"
+  cursor
   eyebrow="EXHIBIT 1.0 · M.A.P."
   title="Enterprise Cloud Platform Topology (Levels 1–6)"
   caption="Scroll the mouse wheel inside the canvas, double-click any card with '+', or use the N+1 stepper (− / +), breadcrumbs, and Infrastructure toggle to zoom across Levels 1–6 (including Level 5 internal modules/schemas and Level 6 AST code symbols). Toggle 'Blast radius' to visualize PR change propagation."
@@ -59,6 +60,7 @@ const exampleCode = `<TuxArchitectureMap
           v-model:strokes="strokes"
           v-model:notes="notes"
           :annotations="true"
+          cursor
           eyebrow="EXHIBIT 1.0 · M.A.P."
           title="Enterprise Cloud Platform Topology (Levels 1–6)"
           caption="Scroll the mouse wheel inside the canvas, double-click any card with '+', or use the N+1 stepper (− / +), breadcrumbs, and Infrastructure toggle to zoom across Levels 1–6. Toggle 'Blast radius' to inspect PR change impact."
