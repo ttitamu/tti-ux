@@ -3564,11 +3564,23 @@ function placeMoreMenu() {
 
 watch(moreMenuOpen, () => nextTick(placeMoreMenu));
 
+// A width the map lays itself out for takes a narrower width at once, but a wider one only when it
+// grows by more than a scrollbar's width (#268). The fit scale and the held height follow the width,
+// and a page that sizes its frame to the map closes a loop through them: a few px taller, a scrollbar
+// for a frame, ~15px narrower, a smaller fit and a shorter map, the scrollbar gone, the width back,
+// and round again on every frame, which reads as violent flicker. Keeping the narrower width until a
+// real widening ends it in one step; the map is at most this much narrower than it could be.
+const WIDTH_SETTLE_PX = 24;
+let widthsMeasured = false;
+function settledWidth(prev: number, next: number): number {
+  return !widthsMeasured || next < prev || next - prev > WIDTH_SETTLE_PX ? next : prev;
+}
+
 function measureViewport() {
   vpBox = null;
   if (moreMenuOpen.value) placeMoreMenu();
   if (viewportRef.value && viewportRef.value.clientWidth > 0) {
-    viewportWidth.value = viewportRef.value.clientWidth;
+    viewportWidth.value = settledWidth(viewportWidth.value, viewportRef.value.clientWidth);
   }
   viewportOuterHeight.value = viewportRef.value?.offsetHeight ?? 0;
   const rootW =
@@ -3576,7 +3588,8 @@ function measureViewport() {
     viewportRef.value?.clientWidth ||
     (typeof window !== "undefined" ? window.innerWidth : 1280);
   if (rootW > 0) {
-    containerWidth.value = rootW;
+    containerWidth.value = settledWidth(containerWidth.value, rootW);
+    widthsMeasured = true;
   }
 }
 
