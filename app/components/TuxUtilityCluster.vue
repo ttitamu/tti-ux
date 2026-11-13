@@ -144,7 +144,7 @@ function toggleHighContrast() {
         :title="hcLabel"
         @click="toggleHighContrast"
       >
-        <!-- the universal-access figure; filled in the brand colour while high contrast is on (#253) -->
+        <!-- the universal-access figure; filled in the brand colour while high contrast is on (issue 253) -->
         <Icon :name="isHighContrast ? 'tux:accessibility-active' : 'tux:accessibility'" :size="16" />
       </button>
 
@@ -214,7 +214,7 @@ function toggleHighContrast() {
   color: var(--text-primary);
 }
 
-/* On (#253): the icon turns to its filled form in the brand colour, so the state shows by its shape
+/* On (issue 253): the icon turns to its filled form in the brand colour, so the state shows by its shape
    as well as its colour (1.4.1). --brand-primary is each theme's own and holds 3:1 or more on the
    bar in all of them (1.4.11); the button keeps the bar's background */
 .tux-utility-cluster__hc-btn--active,
