@@ -3095,6 +3095,14 @@ function getCardDisplayName(id: string): string {
   return byId.value[id]?.name || resById.value[id]?.title || id;
 }
 
+// The cards of the stage that zoom, one table a stage: a pointer move looks one up only for a
+// card within reach (#224)
+const stageZoomable = computed<Set<string>>(() => {
+  const ids = new Set<string>();
+  for (const id in stageData.value.rects) if (isCardIdZoomable(id)) ids.add(id);
+  return ids;
+});
+
 function findNearestCardToPoint(
   stageX: number,
   stageY: number,
@@ -3121,22 +3129,23 @@ function findNearestCardToPoint(
     score: number;
   } | null = null;
 
-  for (const [id, r] of Object.entries(stageData.value.rects)) {
+  const rects = stageData.value.rects;
+  for (const id in rects) {
+    const r = rects[id]!;
     if (r.bound) continue;
-    const zoomable = isCardIdZoomable(id);
-    if (requireZoomable && !zoomable) continue;
-
     const anchorX = Math.max(r.x, Math.min(r.x + r.w, stageX));
     const anchorY = Math.max(r.y, Math.min(r.y + r.h, stageY));
     const dist = Math.hypot(stageX - anchorX, stageY - anchorY);
     if (dist > maxDist) continue;
+    const zoomable = stageZoomable.value.has(id);
+    if (requireZoomable && !zoomable) continue;
 
     // When in empty space, give zoomable cards a slight magnetic attraction advantage
     const score = dist === 0 ? 0 : preferZoomable && zoomable ? dist * 0.78 : dist;
     if (!best || score < best.score) {
       best = {
         id,
-        name: getCardDisplayName(id),
+        name: "",
         zoomable,
         rect: r,
         anchorX,
@@ -3146,14 +3155,20 @@ function findNearestCardToPoint(
       };
     }
   }
-
+  if (best) best.name = getCardDisplayName(best.id);
   return best;
 }
 
+// The beam's dashes run only under `--on`, set with its opacity: an always-mounted
+// beam that animated while transparent repainted the stage every frame (#223)
+function setProximityTether(svg: SVGSVGElement | null, opacity: string) {
+  if (!svg) return;
+  svg.style.opacity = opacity;
+  svg.classList.toggle("tux-map__proximity-tether--on", opacity !== "0");
+}
+
 function hideProximityTetherDom() {
-  if (proximityTetherSvgRef.value) {
-    proximityTetherSvgRef.value.style.opacity = "0";
-  }
+  setProximityTether(proximityTetherSvgRef.value, "0");
 }
 
 function setProximityClassOnDom(nextId: string | null) {
@@ -3218,9 +3233,9 @@ function renderProximityMatch(
         glideProgress > 0
           ? Math.min(0.95, 0.45 + glideProgress * 0.5)
           : Math.max(0.28, 1 - nearest.dist / 42);
-      svgEl.style.opacity = strength.toFixed(2);
+      setProximityTether(svgEl, strength.toFixed(2));
     } else {
-      svgEl.style.opacity = "0";
+      setProximityTether(svgEl, "0");
     }
   }
 }
@@ -3451,6 +3466,7 @@ function placeMoreMenu() {
 watch(moreMenuOpen, () => nextTick(placeMoreMenu));
 
 function measureViewport() {
+  vpBox = null;
   if (moreMenuOpen.value) placeMoreMenu();
   if (viewportRef.value && viewportRef.value.clientWidth > 0) {
     viewportWidth.value = viewportRef.value.clientWidth;
@@ -3465,10 +3481,45 @@ function measureViewport() {
   }
 }
 
+// The viewport's content box on the page and its scroll position, kept between pointer moves:
+// a move reads neither, so it forces no layout after the last one's writes (#224). The box is
+// read again after a resize, a scroll of the page or the pointer leaving the viewport; the
+// scroll position in the viewport's own scroll event, and after the map scrolls it.
+let vpBox: number[] | null = null;
+let vpScroll: number[] | null = null;
+const dropViewportBox = () => void (vpBox = null);
+const onPageScroll = (e: Event) => e.target !== viewportRef.value && dropViewportBox();
+
+function viewportBox(): number[] {
+  const el = viewportRef.value;
+  if (!el) return [0, 0];
+  if (!vpBox) {
+    const r = el.getBoundingClientRect();
+    vpBox = [r.left + el.clientLeft, r.top + el.clientTop];
+  }
+  return vpBox;
+}
+
+/** Where the viewport's scrolled content starts, in client px. */
+function viewportOrigin(): number[] {
+  const el = viewportRef.value;
+  const b = viewportBox();
+  if (el && !vpScroll) vpScroll = [el.scrollLeft, el.scrollTop];
+  return [b[0]! - (vpScroll?.[0] ?? 0), b[1]! - (vpScroll?.[1] ?? 0)];
+}
+
+function scrollViewport(vp: HTMLElement, left: number, top: number) {
+  vp.scrollLeft = left;
+  vp.scrollTop = top;
+  vpScroll = null;
+}
+
 function onViewportScroll() {
-  if (!viewportRef.value) return;
-  viewportScrollLeft.value = viewportRef.value.scrollLeft;
-  viewportScrollTop.value = viewportRef.value.scrollTop;
+  const el = viewportRef.value;
+  if (!el) return;
+  vpScroll = [el.scrollLeft, el.scrollTop];
+  viewportScrollLeft.value = vpScroll[0]!;
+  viewportScrollTop.value = vpScroll[1]!;
   mapCursor.move();
 }
 
@@ -3513,8 +3564,7 @@ function keepClear(id: string | null, fromId?: string | null) {
     landTravel();
     const step = (u: number) => {
       const [x, y] = cameraAlong(from, to, path, scale, u);
-      vp.scrollLeft = x;
-      vp.scrollTop = y;
+      scrollViewport(vp, x, y);
     };
     if (ms) endScrollTravel = startTravel(ms, step);
     else step(1);
@@ -3756,6 +3806,8 @@ onMounted(() => {
   applyAutoListView();
   if (typeof window !== "undefined") {
     window.addEventListener("keydown", onWindowKeydown);
+    window.addEventListener("resize", dropViewportBox);
+    window.addEventListener("scroll", onPageScroll, { capture: true, passive: true });
     document.addEventListener("pointerdown", onDocumentPointerDown);
     if (window.matchMedia) {
       coarseQuery = window.matchMedia("(pointer: coarse)");
@@ -3794,6 +3846,8 @@ onBeforeUnmount(() => {
   resizeObserver?.disconnect();
   if (typeof window !== "undefined") {
     window.removeEventListener("keydown", onWindowKeydown);
+    window.removeEventListener("resize", dropViewportBox);
+    window.removeEventListener("scroll", onPageScroll, { capture: true });
     document.removeEventListener("pointerdown", onDocumentPointerDown);
   }
   coarseQuery?.removeEventListener?.("change", onCoarseChange);
@@ -5966,6 +6020,7 @@ function scrollSelectionIntoView(orTopLeft = false) {
   const vp = viewportRef.value;
   const r = selectedId.value ? stageData.value.rects[selectedId.value] : undefined;
   if (!vp) return;
+  vpScroll = null;
   if (!r) {
     if (orTopLeft) vp.scrollTo?.(0, 0);
     return;
@@ -6138,13 +6193,12 @@ function startLaserLoop() {
 }
 
 function getStageCoordsFromClient(clientX: number, clientY: number): { x: number; y: number } {
-  const el = viewportRef.value;
-  if (!el) return { x: 0, y: 0 };
-  const rect = el.getBoundingClientRect();
+  if (!viewportRef.value) return { x: 0, y: 0 };
+  const [ox, oy] = viewportOrigin();
   const s = stageScale.value || 1;
   return {
-    x: Math.round((clientX - rect.left + el.scrollLeft - panX.value) / s),
-    y: Math.round((clientY - rect.top + el.scrollTop) / s),
+    x: Math.round((clientX - ox! - panX.value) / s),
+    y: Math.round((clientY - oy!) / s),
   };
 }
 
@@ -6272,6 +6326,7 @@ const mapCursor = useTuxMapCursor({
   scale: stageScale,
   pan: panX,
   drag: isDraggingStage,
+  origin: viewportOrigin,
 });
 const { el: cursorRef, on: cursorOn, shown: cursorShown } = mapCursor;
 let stageDrag: {
@@ -6317,10 +6372,7 @@ function moveStageDrag(e: PointerEvent): boolean {
   }
   e.preventDefault();
   const vp = viewportRef.value;
-  if (vp) {
-    vp.scrollLeft = drag.scrollLeft - dx;
-    vp.scrollTop = drag.scrollTop - dy;
-  }
+  if (vp) scrollViewport(vp, drag.scrollLeft - dx, drag.scrollTop - dy);
   return true;
 }
 
@@ -6333,10 +6385,22 @@ function endStageDrag(e: PointerEvent, cancelled = false) {
   if (!drag.moved && !cancelled && selectedId.value) selectElement(null);
 }
 
+const minimapRef = ref<InstanceType<typeof TuxArchitectureMapMinimap> | null>(null);
+
+function onViewportPointerLeave() {
+  vpBox = null;
+  mapCursor.leave();
+}
+
 function onStagePointerMove(e: PointerEvent) {
   lastPointerClient = { x: e.clientX, y: e.clientY };
   if (moveStageDrag(e)) return mapCursor.move(e);
   if (isWheelVeil(e.target)) return;
+  // the overview is over the canvas and lets the pointer through until it is inside its box (#228)
+  if (minimapRef.value) {
+    const [bx, by] = viewportBox();
+    minimapRef.value.pointerAt(e.clientX - bx!, e.clientY - by!);
+  }
   const pt = getStageCoords(e);
 
   if (
@@ -7263,7 +7327,7 @@ function buildSourceHref(src?: {
         @pointermove="onStagePointerMove"
         @pointerup="onStagePointerUp"
         @pointercancel="onStagePointerUp"
-        @pointerleave="mapCursor.leave"
+        @pointerleave="onViewportPointerLeave"
         @keydown="onStageKeydown"
       >
         <!-- Click-to-explore veil: until it is clicked the wheel is the page's (wheelZoom="click", #209) -->
@@ -7864,6 +7928,7 @@ function buildSourceHref(src?: {
       <!-- Overview of the level, while the view moves (#211) -->
       <TuxArchitectureMapMinimap
         v-if="minimap && !effectiveIsListView && !wheelVeilShown"
+        ref="minimapRef"
         :viewport="viewportRef"
         :stage="stageData"
         :scale="stageScale"
@@ -10257,6 +10322,9 @@ function buildSourceHref(src?: {
   stroke-width: 1.75;
   stroke-dasharray: 5 5;
   stroke-linecap: round;
+}
+
+.tux-map__proximity-tether--on .tux-map__proximity-beam {
   animation: tux-map-wire-flow 0.55s linear infinite;
 }
 
@@ -12013,7 +12081,7 @@ function buildSourceHref(src?: {
   /* the flowing dashes and the zoom pop are motion: the wire keeps its dash
      pattern and colour, so what it marks is still there, standing still */
   .tux-map__wire-fg--stream,
-  .tux-map__proximity-beam,
+  .tux-map__proximity-tether--on .tux-map__proximity-beam,
   .tux-map__zoom-hud,
   .tux-map__wheel-veil {
     animation: none;

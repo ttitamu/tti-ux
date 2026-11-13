@@ -3,7 +3,9 @@
  * The overview of the current level (#211): a small drawing of the stage's cards and of the
  * part in view, in a corner of the canvas. It is there only where the level is larger than
  * its viewport, it shows while the view moves and goes 1.2 s after it rests, and a press on
- * it moves the view. It is drawn from the stage data the map already built.
+ * it moves the view. It is drawn from the stage data the map already built. Shown is not live
+ * (#228): it takes the pointer only while the pointer is inside its box, it has focus or it is
+ * dragged; the rest of the time a click goes to the card under it.
  *
  * jsdom does no layout: the viewport's size is supplied by the test, and a scroll is the
  * scroll position set and the event sent.
@@ -110,6 +112,7 @@ describe("TuxArchitectureMap: the overview of the level (#211)", () => {
     };
     const minimap = () => wrapper.find(".tux-map__minimap");
     const shown = () => minimap().exists() && minimap().classes().includes("tux-map__minimap--shown");
+    const live = () => minimap().exists() && minimap().classes().includes("tux-map__minimap--live");
     const scrollTo = async (left: number, top: number) => {
       viewport.scrollLeft = left;
       viewport.scrollTop = top;
@@ -126,7 +129,19 @@ describe("TuxArchitectureMap: the overview of the level (#211)", () => {
       state.magnifyBy(1);
       await settle();
     }
-    return { wrapper, state, viewport, minimap, shown, scrollTo, settle, rest };
+    /** The overview's border box inside the viewport's content box, where the map places it. */
+    const box = () => {
+      const svg = minimap().find("svg");
+      const w = Number(svg.attributes("width")) + 2;
+      const h = Number(svg.attributes("height")) + 2;
+      return { x: 12, y: (opts.size?.[1] ?? 300) - 12 - h, w, h };
+    };
+    /** A pointer move over the canvas: jsdom puts the viewport at the page's corner, so client px are viewport px. */
+    const moveOnCanvas = async (x: number, y: number) => {
+      pointer(viewport, "pointermove", { clientX: x, clientY: y, buttons: 0 });
+      await settle();
+    };
+    return { wrapper, state, viewport, minimap, shown, live, box, moveOnCanvas, scrollTo, settle, rest };
   }
 
   it("is not rendered when the whole level fits in the viewport", async () => {
@@ -233,6 +248,71 @@ describe("TuxArchitectureMap: the overview of the level (#211)", () => {
     state.magnifyBy(1);
     await settle();
     expect(shown()).toBe(true);
+  });
+
+  it("after a scroll it is shown and lets the pointer through: 100 ms later a click is the card's (#228)", async () => {
+    const { shown, live, scrollTo, settle, rest } = await mountMap();
+    await rest();
+    await scrollTo(40, 0);
+    await settle(100);
+    expect(shown()).toBe(true);
+    expect(live()).toBe(false);
+    // the test DOM applies no scoped style: what decides the click is the stylesheet's own rule
+    const sfc = readFileSync(
+      join(process.cwd(), "packages/diagrams/app/utils/internal/TuxArchitectureMapMinimap.vue"),
+      "utf8",
+    );
+    const css = sfc.slice(sfc.indexOf("<style"));
+    expect(css).toMatch(/\.tux-map__minimap--shown\s*\{\s*opacity:\s*1;\s*\}/);
+    expect(css).toMatch(/\.tux-map__minimap--live\s*\{\s*pointer-events:\s*auto;\s*\}/);
+  });
+
+  it("takes the pointer only while the pointer is inside its box, and only while it is shown (#228)", async () => {
+    const { shown, live, box, moveOnCanvas, scrollTo, settle, rest } = await mountMap();
+    await rest();
+    const b = box();
+    // not shown: a move over its box goes to the canvas, and does not bring it out
+    await moveOnCanvas(b.x + b.w / 2, b.y + b.h / 2);
+    expect(shown()).toBe(false);
+    expect(live()).toBe(false);
+
+    await scrollTo(40, 0);
+    await moveOnCanvas(b.x + b.w + 20, b.y + b.h / 2);
+    expect(live()).toBe(false);
+    // into its box: live, and held there past the rest
+    await moveOnCanvas(b.x + b.w / 2, b.y + b.h / 2);
+    expect(live()).toBe(true);
+    await settle(MINIMAP_REST_MS * 3);
+    expect(shown()).toBe(true);
+    // its edges are inside, a pixel past them is not
+    await moveOnCanvas(b.x, b.y);
+    expect(live()).toBe(true);
+    await moveOnCanvas(b.x + b.w + 1, b.y);
+    expect(live()).toBe(false);
+    // let go, it rests as after a scroll: shown and out of the pointer's way, then gone
+    expect(shown()).toBe(true);
+    await settle(MINIMAP_REST_MS - 200);
+    expect(shown()).toBe(true);
+    await settle(400);
+    expect(shown()).toBe(false);
+  });
+
+  it("is live while it has focus and during a drag on it (#228)", async () => {
+    const { live, minimap, settle, rest } = await mountMap();
+    await rest();
+    const el = minimap().element as HTMLElement;
+    el.focus();
+    await settle();
+    expect(live()).toBe(true);
+    el.blur();
+    await settle();
+    expect(live()).toBe(false);
+    pointer(el, "pointerdown", { clientX: 30, clientY: 220, button: 0, buttons: 1, pointerId: 4 });
+    await settle(MINIMAP_REST_MS * 2);
+    expect(live()).toBe(true);
+    pointer(el, "pointerup", { clientX: 30, clientY: 220, button: 0, pointerId: 4 });
+    await settle();
+    expect(live()).toBe(false);
   });
 
   it("stays while the pointer is over it", async () => {
@@ -440,7 +520,9 @@ describe("TuxArchitectureMap: the overview of the level (#211)", () => {
     );
     const css = sfc.slice(sfc.indexOf("<style"));
     expect(css).toMatch(/\.tux-map__minimap\s*\{[^}]*opacity:\s*0;[^}]*pointer-events:\s*none;[^}]*transition:\s*opacity/s);
-    expect(css).toMatch(/\.tux-map__minimap--shown\s*\{[^}]*opacity:\s*1;[^}]*pointer-events:\s*auto;/s);
+    // shown, it is still out of the pointer's way: only live does it take the pointer (#228)
+    expect(css).toMatch(/\.tux-map__minimap--shown\s*\{[^}]*opacity:\s*1;/s);
+    expect(css).not.toMatch(/\.tux-map__minimap--shown\s*\{[^}]*pointer-events/s);
     expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.tux-map__minimap\s*\{\s*transition:\s*none;/);
   });
 });
