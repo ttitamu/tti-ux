@@ -2017,7 +2017,7 @@ describe("TuxArchitectureMap Component", () => {
   });
 
   // ── #124: non-throwing diagnostics, collapsed folder aliases, >24 bands, >40 auto-list, >30 hidden labels ──
-  it("handles cyclic models without throwing, resolves collapsed aliases, bands >24 cards, auto-lists >40 cards, and hides >30 wire labels via opacity (#124)", async () => {
+  it("handles cyclic models without throwing, resolves collapsed aliases, bands >24 cards, auto-lists >40 cards, and draws the labels of >30 wires at their ports (#124, #210)", async () => {
     // 1. Cyclic model shows `.tux-map__diag-note` and never throws
     const cyclicModel = {
       level1: { elements: [{ id: "sys", kind: "system", name: "Sys" }], rels: [] },
@@ -2036,7 +2036,7 @@ describe("TuxArchitectureMap Component", () => {
     });
     expect(diagWrap.find(".tux-map__diag-note").exists()).toBe(true);
 
-    // 2. 28 cards + 34 wires -> horizontal bands (`.tux-map__bound--band` / multiple `.tux-map__bound`) + `.tux-map__lab--forced` (`opacity: 0`, never `display: none`)
+    // 2. 28 cards + 34 wires -> horizontal bands (`.tux-map__bound--band` / multiple `.tux-map__bound`); a label with no room at its port is `.tux-map__lab--forced` (`opacity: 0`, never `display: none`)
     const cards28 = Array.from({ length: 28 }, (_, i) => ({
       id: `f:mod/m${i}.ts`,
       kind: "file" as const,
@@ -2068,7 +2068,11 @@ describe("TuxArchitectureMap Component", () => {
       props: { model: dense28Model, initialLevel: 5, initialFocus: "comp-28" },
     });
     expect(dense28Wrap.findAll(".tux-map__bound").length).toBeGreaterThan(1);
-    expect(dense28Wrap.findAll("button.tux-map__lab--forced").length).toBeGreaterThan(30);
+    // Since #210 a view of more than 30 wires draws the labels that have room at their ports, and
+    // hides at rest only those that do not
+    const dense28Labels = dense28Wrap.findAll("button.tux-map__lab");
+    expect(dense28Labels.length).toBeGreaterThan(30);
+    expect(dense28Wrap.findAll("button.tux-map__lab:not(.tux-map__lab--forced)").length).toBeGreaterThan(dense28Labels.length / 2);
     // Forced labels hide via opacity: 0, NEVER display: none
     expect(values(rulesFor("tux-map__lab--forced"), "display")).not.toContain("none");
     expect(values(rulesFor("tux-map__lab--forced"), "opacity")).toContain("0");

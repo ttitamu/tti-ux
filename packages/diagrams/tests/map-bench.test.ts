@@ -141,10 +141,9 @@ function openedRels(view: LiftedView, activeId: string): TuxMapLevelRel[] {
 }
 
 /**
- * Thirty wires between the view's first eight cards, every one labelled on two lines: the most
- * the router places labels for (above 30 wires it hides them and searches for no spot), crowded
- * so that most labels find no free spot and fall back to the least-covered one, on a view that
- * grows in cards.
+ * Thirty wires between the view's first eight cards, every one labelled and with a technology:
+ * sixty port labels on a few crowded sides, so that many find no free spot and are hidden at rest,
+ * on a view that grows in cards.
  */
 function crowdedLabelRels(view: LiftedView): TuxMapLevelRel[] {
   const ids = view.kids.slice(0, 8).map((k) => k.id);
@@ -342,7 +341,7 @@ describe("architecture map benchmark: utils (#153)", () => {
 
   gate({
     id: "route-labels",
-    title: "routeGridWires placing 30 crowded two-line labels in the deepest view",
+    title: "routeGridWires placing the port labels of 30 crowded wires in the deepest view",
     scalesWith: "cards in one view (30 wires at every size)",
     bounds: [4, 4],
     make: (p) => {
@@ -350,9 +349,10 @@ describe("architecture map benchmark: utils (#153)", () => {
       const { rects, els } = layoutView(view);
       const rels = crowdedLabelRels(view);
       const routed = routeGridWires(rels, rects, els);
-      // The scenario times nothing unless labels are searched for, and most find no free spot
+      // The scenario times nothing unless labels are searched for, and many find no free spot: two
+      // labels a wire since #210, what it does at its source port and its technology at its target
       expect(routed.wires.length).toBe(30);
-      expect(routed.labels.length).toBe(30);
+      expect(routed.labels.length).toBe(60);
       expect(routed.labels.filter((l) => l.forced).length).toBeGreaterThanOrEqual(15);
       expect(routed.labels.some((l) => !l.forced)).toBe(true);
       return { run: () => void (sink += routeGridWires(rels, rects, els).labels.length + 1) };

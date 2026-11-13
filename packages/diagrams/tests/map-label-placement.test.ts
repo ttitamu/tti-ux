@@ -1,11 +1,11 @@
 /**
- * Wire-label placement in `routeGridWires` (#159).
+ * Wire-label placement in `routeGridWires` (#159, #210).
  *
- * The overlap tests of the label pass read the layout grid's buckets. The labels must land where
- * the full scans put them, so every case below is compared with
- * `support/map-label-placement.snapshot.json`, which was recorded from the router as it was
- * before that change (`TUX_MAP_LABEL_SNAPSHOT=write npx vitest run tests/map-label-placement.test.ts`
- * records it again; do that only when a change of placement is intended).
+ * Every case below is compared with `support/map-label-placement.snapshot.json`, so a change to
+ * the router that moves a label, or a wire, shows here. It was recorded again when the labels moved
+ * from the middle of the wires to the ports (#210)
+ * (`TUX_MAP_LABEL_SNAPSHOT=write npx vitest run tests/map-label-placement.test.ts` records it; do
+ * that only when a change of placement is intended).
  */
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -33,8 +33,8 @@ interface LabelCase {
 
 interface CaseRecord {
   wires: number;
-  /** One entry per label, in order: `[x, y, w, h, forced]`. */
-  labels: [number | null, number | null, number, number, 0 | 1][];
+  /** One entry per label, in order: `[x, y, w, h, forced, end]`, `end` 0 at the source, 1 at the target, -1 at neither. */
+  labels: [number | null, number | null, number, number, 0 | 1, 0 | 1 | -1][];
   /** sha256 of the whole result (every wire path and every label field). */
   sha256: string;
 }
@@ -85,7 +85,7 @@ function seededCase(seed: number, opts: { inner: number; cols: number; perSide: 
 function buildCases(): LabelCase[] {
   const cases: LabelCase[] = [];
 
-  // The dense routed view the unit tests use: 100 wires, so every label is hidden at rest
+  // The dense routed view the unit tests use: 100 wires
   cases.push({ id: "dense-default", ...buildDenseViewFixture() });
   // The same shape under the 30-wire limit, as generated and with every wire labelled
   for (const [rows, cols, perSide, innerRels] of [
@@ -197,7 +197,9 @@ function record(c: LabelCase): CaseRecord {
   return {
     wires: routed.wires.length,
     // Through JSON, as the snapshot is: a position that is not a number reads back as null
-    labels: JSON.parse(JSON.stringify(routed.labels.map((l) => [l.x, l.y, l.w, l.h, l.forced ? 1 : 0]))),
+    labels: JSON.parse(
+      JSON.stringify(routed.labels.map((l) => [l.x, l.y, l.w, l.h, l.forced ? 1 : 0, l.end === "from" ? 0 : l.end === "to" ? 1 : -1])),
+    ),
     sha256: createHash("sha256").update(JSON.stringify(routed)).digest("hex"),
   };
 }
@@ -226,20 +228,19 @@ describe("wire labels land where the full scans put them (#159)", () => {
 
   it.skipIf(write)("the cases reach every branch of the label pass", () => {
     const snapshot = JSON.parse(readFileSync(SNAPSHOT, "utf8")) as Record<string, CaseRecord>;
-    const records = Object.values(snapshot);
-    const underLimit = records.filter((r) => r.wires <= 30);
-    // Labels placed in a free spot
-    expect(underLimit.reduce((n, r) => n + r.labels.filter((l) => l[4] === 0).length, 0)).toBeGreaterThan(300);
-    // Labels that found no free spot and took the least-covered one (`forced` under the limit)
-    expect(underLimit.reduce((n, r) => n + r.labels.filter((l) => l[4] === 1).length, 0)).toBeGreaterThan(20);
-    // Views over the limit: every label hidden at rest, each still with a position
-    const overLimit = records.filter((r) => r.wires > 30);
+    const labels = Object.values(snapshot).flatMap((r) => r.labels);
+    // Drawn at the source port, and at the target port (a technology, or a label with no room at its source)
+    expect(labels.filter((l) => l[4] === 0 && l[5] === 0).length).toBeGreaterThan(300);
+    expect(labels.filter((l) => l[4] === 0 && l[5] === 1).length).toBeGreaterThan(100);
+    // Hidden at rest at a port: another label holds the spot
+    expect(labels.filter((l) => l[4] === 1 && l[5] !== -1).length).toBeGreaterThan(20);
+    // Views over 30 wires draw labels too (they used to hide them all)
+    const overLimit = Object.values(snapshot).filter((r) => r.wires > 30);
     expect(overLimit.length).toBeGreaterThanOrEqual(4);
-    for (const r of overLimit) {
-      expect(r.labels.length).toBeGreaterThan(0);
-      expect(r.labels.every((l) => l[4] === 1 && Number.isFinite(l[0]) && Number.isFinite(l[1]))).toBe(true);
-    }
-    // A wire to a card with no usable position still gets its label entry, as before
-    expect(snapshot["not-finite-card-wired"]!.labels.some((l) => l[0] === null)).toBe(true);
+    for (const r of overLimit) expect(r.labels.some((l) => l[4] === 0)).toBe(true);
+    // A wire to a card with no usable position is labelled at its other end, which has one (#210)
+    const ghost = snapshot["not-finite-card-wired"]!.labels;
+    expect(ghost.length).toBeGreaterThan(snapshot["not-finite-card"]!.labels.length);
+    expect(ghost.every((l) => Number.isFinite(l[0]) && Number.isFinite(l[1]) && l[5] !== -1)).toBe(true);
   });
 });

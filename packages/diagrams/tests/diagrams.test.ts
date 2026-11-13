@@ -232,11 +232,19 @@ describe("@tti/tti-ux-diagrams composables and utilities", () => {
     expect(level2Routed.wires.length).toBeGreaterThan(5);
     expect(level2Routed.wires[0]!.d.startsWith("M")).toBe(true);
 
-    // Verify that all wire labels (both always-visible and hover-forced) do not overlap each other
-    for (let i = 0; i < level2Routed.labels.length; i++) {
-      const l1 = level2Routed.labels[i]!;
-      for (let j = i + 1; j < level2Routed.labels.length; j++) {
-        const l2 = level2Routed.labels[j]!;
+    // No label lies over a card, and no drawn label over another. A label hidden at rest keeps its
+    // place at its port, under the label that holds the spot, until its card is lit (#210)
+    for (const l of level2Routed.labels) {
+      for (const r of Object.values(rects)) {
+        expect(l.x < r.x + r.w && l.x + l.w > r.x && l.y < r.y + r.h && l.y + l.h > r.y, l.id).toBe(false);
+      }
+    }
+    const drawnLabels = level2Routed.labels.filter((l) => !l.forced);
+    expect(drawnLabels.length).toBeGreaterThan(20);
+    for (let i = 0; i < drawnLabels.length; i++) {
+      const l1 = drawnLabels[i]!;
+      for (let j = i + 1; j < drawnLabels.length; j++) {
+        const l2 = drawnLabels[j]!;
         const overlapX = Math.max(0, Math.min(l1.x + l1.w, l2.x + l2.w) - Math.max(l1.x, l2.x));
         const overlapY = Math.max(0, Math.min(l1.y + l1.h, l2.y + l2.h) - Math.max(l1.y, l2.y));
         expect(overlapX * overlapY).toBe(0);
