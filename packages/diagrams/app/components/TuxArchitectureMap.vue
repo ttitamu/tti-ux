@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, isReactive, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from "vue";
+import { computed, isReactive, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, toRaw, useId, watch } from "vue";
 import {
   EMPTY_TTI_LEVEL_MODEL,
   TUX_MAP_ELEMENT_KIND_LABELS,
@@ -146,6 +146,8 @@ export interface TuxArchitectureMapProps {
   resolveSubgraph?: (id: string, ref?: string) => Promise<TuxMapSubgraph | null>;
   /** Optional commit SHA or ref passed as the second argument to `resolveSubgraph(id, modelRef)` (`#126`) */
   modelRef?: string;
+  /** Whether an edit made in place inside a reactive `model` is drawn (`false` by default). The map reads `model` raw, and sees a new `model` object; with this on, it also reads the whole of a reactive `model` through its proxies, so any edit inside it starts the map over. That read costs about as much as sanitizing the model, on every mount and every edit (`#222`) */
+  watchModelDeep?: boolean;
   /** Whether plain mouse wheel over the diagram zooms across levels without requiring Ctrl/Cmd (`true` by default; set `false` to require Ctrl/Cmd + wheel; `"click"` puts the canvas under a "Click to explore" veil and leaves the wheel to the page until the reader clicks it or moves keyboard focus into the canvas; `#209`) */
   wheelZoom?: boolean | "click";
   /** Whether a disc trails the pointer over the diagram and comes to rest on the card the pointer is near, or on the control it is over (`false` by default). Decoration: it is drawn only for a fine pointer with motion allowed, and not under the `wheelZoom="click"` veil (`#208`) */
@@ -208,6 +210,7 @@ const props = withDefaults(defineProps<TuxArchitectureMapProps>(), {
   annotations: false,
   resolveSubgraph: undefined,
   modelRef: undefined,
+  watchModelDeep: false,
   wheelZoom: true,
   cursor: false,
   minimap: true,
@@ -261,7 +264,8 @@ function getLevel3Kids(
 // 1. RESOLVED 4-LEVEL + FRACTAL N-DEPTH MODEL & LOOKUP MAPS
 // ============================================================================
 
-const resolvedSubgraphs = ref<Record<string, TuxMapSubgraph>>(Object.create(null));
+// Replaced, never edited, on each arrival: a shallow ref keeps what the resolver returned raw (#222)
+const resolvedSubgraphs = shallowRef<Record<string, TuxMapSubgraph>>(Object.create(null));
 const loadingSubgraphId = ref<string | null>(null);
 /**
  * Cards whose lazy subgraph resolved to nothing the map can show, by card id, so
@@ -283,35 +287,29 @@ watch([() => props.model, () => props.modelRef], () => {
   cancelPendingSubgraphResolve();
 });
 
-/** The model as it was passed (or built from the legacy `nodes`): one object until those change. */
+/**
+ * The model as it was passed (or built from the legacy `nodes`): one object until those change. A reactive
+ * `model` is read raw (#222): read through its proxies, every object the merge keeps from it stayed a proxy,
+ * and everything built from the model after it paid for one on each read.
+ */
 const rawModelInput = computed<unknown>(() =>
   props.model !== undefined
-    ? props.model
+    ? toRaw(props.model)
     : props.nodes && props.nodes.length > 0
       ? buildLevelModelFromLegacyNodes(props.nodes, props.edges, props.zones)
       : EMPTY_TTI_LEVEL_MODEL,
 );
 
-// A reactive `model` can be changed in place, with no new object to tell by. Reading all of it here
-// makes this stamp move on any such change, and the next merge then starts over (#157).
-let modelEditCount = 0;
-const modelEditStamp = computed<number>(() => {
-  const m = props.model;
-  if (!isReactive(m)) return 0;
-  const seen = new Set<unknown>();
-  const stack: unknown[] = [m];
-  while (stack.length > 0) {
-    const v = stack.pop();
-    if (v === null || typeof v !== "object" || seen.has(v)) continue;
-    seen.add(v);
-    if (Array.isArray(v)) {
-      for (let i = 0; i < v.length; i++) stack.push(v[i]);
-    } else {
-      for (const k of Object.keys(v)) stack.push((v as Record<string, unknown>)[k]);
-    }
-  }
-  return ++modelEditCount;
-});
+// A reactive `model` can be changed in place, with no new object to tell by. With `watchModelDeep`, a deep
+// watch reads all of it, so this stamp moves on any such change and the next merge starts over (#157). Off by
+// default (#222): the read goes through a proxy for every object of the model and keeps a dependency on each
+// of its fields, about as long as sanitizing the model and a large share of its heap.
+const modelEditStamp = ref(0);
+watch(
+  () => (props.watchModelDeep && isReactive(props.model) ? props.model : null),
+  () => modelEditStamp.value++,
+  { deep: true, flush: "sync" },
+);
 
 // The model with its lazily resolved subgraphs, sanitized and collapsed. A subgraph that arrives is
 // sanitized and collapsed alone and added to the model before it, when the rest of the model is not
@@ -4268,7 +4266,7 @@ async function hydrateLazySubgraph(
       const prevMap = resolvedSubgraphs.value;
       const knownIssues = new Set(modelBundle.value.validation.issues.map((i) => i.message));
       const nextMap: Record<string, TuxMapSubgraph> = Object.assign(Object.create(null), prevMap);
-      setOwnProp(nextMap, key, sg);
+      setOwnProp(nextMap, key, toRaw(sg));
       resolvedSubgraphs.value = nextMap;
       if (!lacksLazySubgraph(id)) return { sg, cancelled: false };
       // Non-empty as returned, empty in the sanitized model (#156). Recorded by what was

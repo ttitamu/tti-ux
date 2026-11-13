@@ -18,6 +18,16 @@ conventions.
 
 ## [Unreleased]
 
+### Changed — Architecture map: a reactive `model` is read raw (`watchModelDeep`) (#222)
+
+- `<TuxArchitectureMap>` reads a `model` passed as a deep `reactive()` object through `toRaw()`. It used to read it through its proxies: the sanitized model kept tens of thousands of its objects as proxies (70,329 of 73,829 at 10,000 symbols), and everything built from the model afterwards paid for a proxy on every read. Mounting a 10,000-symbol file view took 1,224 ms with a reactive model against 298 ms with the same model passed plain (jsdom), and about 140 MB more heap.
+- The map no longer reads the whole of a reactive `model` to find out whether something in it was edited in place, unless `watchModelDeep` is set. That read went through a proxy for every object in the model and kept a dependency on each of its fields: 128 to 175 ms at 10,000 symbols, against 4 ms for the same walk without proxies, on every mount and every edit. Vue has no cheaper signal for an edit at any depth, so it is now asked for.
+- `watchModelDeep: true` draws an edit made in place inside a reactive `model`, as every reactive `model` did since #157: the edit starts the map over. The default is `false`.
+- The lazily resolved subgraphs are kept in a shallow ref, raw as the resolver returned them; each arrival replaces the record.
+- A mounted test passes a `reactive()` model and finds no proxy in the merged model, the parent and element indexes or the staged view, and the mount within 1.5 times that of the same model passed plain. An edit in place is drawn with `watchModelDeep` and not without it; a new `model` object, reactive or not, is drawn either way.
+
+**To check when upgrading:** a host that edits a reactive `model` in place (`model.level3.c1.push(…)`, `model.level1.elements[0].name = …`) and expects the map to follow passes `:watch-model-deep="true"`, or passes a new object after the edit, which costs less. A host that passes a new object, or a plain one, has nothing to change.
+
 ### Added — Architecture map: an overview of the level fades in while the view moves (`minimap`) (#211)
 
 - `<TuxArchitectureMap>` draws a small overview of the level in the bottom-left corner of the canvas: every card a rectangle in its place, and a frame around the part in view. The selected card is filled with the brand colour and outlined, a changed card (with the blast radius on) takes the warning colour, and while the stage dims the cards a highlight does not reach, the overview dims the same ones.

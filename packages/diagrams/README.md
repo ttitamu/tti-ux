@@ -54,7 +54,7 @@ The architecture map has two contracts, and each has a committed snapshot that t
 
 ### The component: props
 
-`<TuxArchitectureMap>` takes 43 props, all optional. A state the host may own comes as a pair: the plain name is the controlled value, bound with `v-model:<name>`, and `initial<Name>` is the starting value used when the plain name is not passed. A controlled prop left `undefined` leaves that state to the component.
+`<TuxArchitectureMap>` takes 44 props, all optional. A state the host may own comes as a pair: the plain name is the controlled value, bound with `v-model:<name>`, and `initial<Name>` is the starting value used when the plain name is not passed. A controlled prop left `undefined` leaves that state to the component.
 
 **The model**
 
@@ -63,6 +63,7 @@ The architecture map has two contracts, and each has a committed snapshot that t
 | `model` | `TuxMapLevelModel` | `undefined` | The model to draw. Without it the component builds one from `nodes`, and with neither it draws `EMPTY_TTI_LEVEL_MODEL`. |
 | `resolveSubgraph` | `(id: string, ref?: string) => Promise<TuxMapSubgraph \| null>` | `undefined` | Loads the inside of a card that names a `subgraphRef`, when the reader zooms into it. A card that resolves to nothing is asked once; a rejection is not remembered. Pass the same function between renders: a new one is asked again. |
 | `modelRef` | `string` | `undefined` | A commit or ref, passed as the second argument of `resolveSubgraph`. |
+| `watchModelDeep` | `boolean` | `false` | An edit made in place inside a reactive `model` is drawn. The map reads `model` raw and draws a new `model` object; it does not see an edit inside the same object. With `watchModelDeep`, it also reads the whole of a reactive `model` through its proxies, so that any edit in it starts the map over. That read costs about as much as sanitizing the model, on every mount and every edit: passing a new object is cheaper. |
 | `nodes` | `TuxMapNode[]` | `[]` | Legacy input. Converted with `buildLevelModelFromLegacyNodes()` when `model` is not passed. |
 | `edges` | `TuxMapEdge[]` | `[]` | Legacy input: the edges between `nodes`. |
 | `zones` | `TuxMapZone[]` | `[]` | Legacy input: the zones of `nodes`. |
